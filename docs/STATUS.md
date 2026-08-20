@@ -22,7 +22,7 @@ Last updated: 2026-08-20
 | Exact Chromium Stable pin | complete | 151.0.7922.170, fully rolled/pinnable Mac ARM64 Stable |
 | Chromium ARM64 checkout | complete | 233/233 dependency closure verified twice at `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` |
 | Unmodified Chromium ARM64 build | not run | exact Xcode 26.5 baseline is installed; build gate is ready to run |
-| Branded native browser | not run | 26.6 compatibility dev path may proceed before the exact 26.5 control; release remains blocked on the control |
+| Branded native browser | in progress | `AhoiDev` completed 3,021 Ninja edges; the macOS-26 SDK break in `launch_mac.o` is fixed by patch `0002` and that exact object now compiles; the full `chrome` target resumes incrementally after this fix |
 | Installed signed dogfood | not run | depends on branded build |
 | Signed release provenance | not implemented / fail-closed | Computer Use PASS disabled by `config/release-evidence.json` until build-sign-package-install binding exists |
 | HTTP-auth fixture spike | fixture complete | 9 local integration tests; browser AUTH gates remain not run |
@@ -34,3 +34,11 @@ The checkout completed with 233 expected and 233 actual dependencies and a
 machine-readable dependency artifact. More than 200 GiB remained available at
 the completion check, above the 150 GiB build threshold. No Chromium build is
 claimed until the separate control and branded build gates finish.
+
+The first branded compile exposed Chromium M151's retained reference to the
+macOS-26-deprecated `posix_spawn_file_actions_addchdir_np`. The narrowly scoped
+`0002-macos-26-posix-spawn-chdir.patch` retains the legacy runtime fallback for
+older deployment targets while compiling only the standardized replacement for
+AhoiBrowser's macOS-26 target. The previously failing
+`obj/base/base/launch_mac.o` edge and the repository contract suite pass; this
+is not yet a complete app-build or runtime claim.

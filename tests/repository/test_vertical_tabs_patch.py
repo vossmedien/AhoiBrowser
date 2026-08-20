@@ -18,7 +18,9 @@ class VerticalTabsPatchContractTests(unittest.TestCase):
             for line in SERIES_PATH.read_text(encoding="utf-8").splitlines()
             if line.strip() and not line.lstrip().startswith("#")
         ]
-        self.assertEqual([PATCH_PATH.name], entries)
+        self.assertGreaterEqual(len(entries), 1)
+        self.assertEqual(PATCH_PATH.name, entries[0])
+        self.assertEqual(len(entries), len(set(entries)))
 
         ledger = (ROOT / "patches/chromium/README.md").read_text(
             encoding="utf-8"

@@ -30,3 +30,35 @@ impact, expected rebase risk, and removal/upstream plan.
   default override when Chromium's launch feature is enabled by default; retain
   an Ahoi-owned fresh-profile default only while vertical mode remains the
   product default.
+
+## `0002-macos-26-posix-spawn-chdir.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae`.
+- **Affected path:** `base/process/launch_mac.cc`.
+- **Rationale:** AhoiBrowser v1 targets macOS 26. Chromium M151 retains a
+  runtime fallback to `posix_spawn_file_actions_addchdir_np`, but the macOS
+  26.5 SDK marks that symbol deprecated and Chromium promotes the warning to an
+  error even though a macOS-26 deployment can never execute the fallback. A
+  compile-time deployment-target guard uses the standardized replacement while
+  retaining Chromium's runtime fallback for builds that still target older
+  macOS versions.
+- **Rejected alternatives:** globally suppressing deprecation diagnostics,
+  weakening `-Werror`, lowering the deployment target, or deleting support for
+  older deployment targets from the shared upstream source.
+- **Tests:** `tests/repository/test_macos_26_compat_patch.py` constrains the
+  patch to the one method and requires the legacy fallback to remain in the
+  lower-deployment-target branch. The patch must pass `git apply --check
+  --whitespace=error-all` against the exact pin, and the failed
+  `obj/base/base/launch_mac.o` edge is rebuilt before the full `chrome` target
+  resumes.
+- **Security/privacy impact:** none expected. Process launch semantics are
+  unchanged on every supported runtime; only compile-time symbol selection is
+  made explicit for the macOS-26-only product build.
+- **Expected rebase risk:** low. Remove or refresh the patch if Chromium
+  upstream adopts an equivalent deployment-target guard or raises its minimum
+  macOS version.
+- **Removal/upstream plan:** check the upstream implementation on every roll
+  and drop this compatibility patch as soon as the pinned Chromium revision
+  builds cleanly with the required macOS 26 SDK without it.
