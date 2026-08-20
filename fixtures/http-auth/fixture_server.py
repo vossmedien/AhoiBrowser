@@ -16,6 +16,7 @@ import json
 import os
 import re
 import secrets
+import socketserver
 import ssl
 import subprocess
 import tempfile
@@ -290,8 +291,28 @@ class FixtureHTTPServer(ThreadingHTTPServer):
     allow_reuse_address = True
 
     def __init__(self, address: Tuple[str, int], state: FixtureState) -> None:
+        if address[0] != LOOPBACK_HOST:
+            raise ValueError("HTTP-auth fixtures must bind to IPv4 loopback")
         self.fixture_state = state
         super().__init__(address, FixtureRequestHandler)
+
+    def server_bind(self) -> None:
+        """Bind without HTTPServer's unnecessary reverse-DNS lookup.
+
+        HTTPServer.server_bind() calls socket.getfqdn() after bind and before
+        listen.  macOS 15+ local-network privacy can stall that lookup for
+        roughly 35 seconds on hosted runners, leaving the socket bound but not
+        listening.  This fixture has a fixed loopback identity, so resolving a
+        public hostname is both unnecessary and undesirable.
+        """
+
+        socketserver.TCPServer.server_bind(self)
+        bound_host, bound_port = self.server_address[:2]
+        if bound_host != LOOPBACK_HOST:
+            self.server_close()
+            raise RuntimeError("HTTP-auth fixture escaped the loopback bind")
+        self.server_name = LOOPBACK_HOST
+        self.server_port = bound_port
 
 
 class FixtureRequestHandler(BaseHTTPRequestHandler):

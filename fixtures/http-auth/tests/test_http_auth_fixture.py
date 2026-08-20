@@ -9,6 +9,7 @@ import ssl
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 from typing import Dict, Mapping, Optional, Tuple
 from urllib.parse import urljoin, urlsplit
@@ -19,7 +20,12 @@ sys.path.insert(0, str(FIXTURE_DIRECTORY))
 
 from fixture_server import (  # noqa: E402
     CREDENTIALS,
+    DigestNonceStore,
     FixtureCluster,
+    FixtureHTTPServer,
+    FixtureState,
+    LOOPBACK_HOST,
+    SanitizedEventLog,
     build_digest_authorization,
     parse_authenticate_challenge,
 )
@@ -239,6 +245,36 @@ class HTTPAuthFixtureTests(unittest.TestCase):
 
 
 class FixtureLifecycleCLITests(unittest.TestCase):
+    def _fixture_state(self) -> FixtureState:
+        return FixtureState(
+            "lifecycle-regression",
+            (),
+            SanitizedEventLog(),
+            DigestNonceStore(),
+        )
+
+    def test_loopback_bind_does_not_depend_on_fqdn_resolution(self) -> None:
+        with mock.patch(
+            "socket.getfqdn",
+            side_effect=AssertionError("loopback fixture attempted FQDN resolution"),
+        ):
+            server = FixtureHTTPServer((LOOPBACK_HOST, 0), self._fixture_state())
+        try:
+            self.assertEqual(LOOPBACK_HOST, server.server_name)
+            self.assertEqual(server.server_address[1], server.server_port)
+        finally:
+            server.server_close()
+
+    def test_non_loopback_bind_is_rejected_before_server_creation(self) -> None:
+        with mock.patch.object(
+            FixtureHTTPServer,
+            "server_bind",
+            side_effect=AssertionError("unsafe address reached socket bind"),
+        ) as server_bind:
+            with self.assertRaisesRegex(ValueError, "must bind to IPv4 loopback"):
+                FixtureHTTPServer(("0.0.0.0", 0), self._fixture_state())
+        server_bind.assert_not_called()
+
     def test_start_status_stop_are_idempotent(self) -> None:
         with tempfile.TemporaryDirectory(prefix="ahoi-http-auth-cli-test-") as directory:
             state_directory = Path(directory)
