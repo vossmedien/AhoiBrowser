@@ -106,6 +106,19 @@ release.
 - `ahoi-release`: optimized, non-component, unsigned candidate for the later
   signing and notarization pipeline.
 
+All profiles keep Chromium M151's `mac_deployment_target = "13.0"` while
+setting `mac_min_system_version = "26.0"`. The first value controls SDK symbol
+availability and deprecation diagnostics throughout the upstream Chromium
+core; the second writes the product's actual `LSMinimumSystemVersion` and makes
+AhoiBrowser macOS-26-only. Chromium documents these as deliberately separate
+levers so an application may raise its launch requirement before the entire
+upstream source tree is migrated away from every older SDK API. Ahoi-owned
+macOS-26 AppKit APIs belong in narrow Objective-C++ adapters guarded with
+`@available(macOS 26.0, *)` (or `__builtin_available`), with no AppKit-26 types
+leaking into generic Chromium headers. Do not use the deployment-target
+preprocessor macro to remove the new code: the shared compiler target remains
+13 by design while the linked SDK remains 26.5.
+
 No supported profile uses `--no-sandbox`, `--ignore-certificate-errors`, or a
 disabled site-isolation mode.
 Xcode 26.6 is deliberately not treated as equivalent to the M151 production

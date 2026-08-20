@@ -1,3 +1,2 @@
 # One relative patch path per line. Blank lines and comments are ignored.
 0001-ahoi-vertical-tabs-default.patch
-0002-macos-26-posix-spawn-chdir.patch
