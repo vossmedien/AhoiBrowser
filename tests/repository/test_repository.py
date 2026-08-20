@@ -1,7 +1,9 @@
 import json
+import os
 import pathlib
 import re
 import subprocess
+import tempfile
 import unittest
 
 
@@ -118,6 +120,82 @@ class RepositoryContractTests(unittest.TestCase):
         pin = load_json("config/depot-tools.json")
         self.assertRegex(pin["commit"], r"^[0-9a-f]{40}$")
         self.assertTrue(pin["source"].startswith("https://chromium.googlesource.com/"))
+
+    def test_depot_tools_bootstrap_is_explicit_absolute_and_reverified(self):
+        bootstrap = (ROOT / "scripts/bootstrap-depot-tools.sh").read_text(encoding="utf-8")
+        common = (ROOT / "scripts/lib/common.sh").read_text(encoding="utf-8")
+
+        export_call = "ahoi_export_depot_tools_environment"
+        ensure_call = '"${AHOI_DEPOT_TOOLS_DIR}/ensure_bootstrap"'
+        enable_call = "ahoi_enable_depot_tools"
+        self.assertLess(bootstrap.index(export_call), bootstrap.index(ensure_call))
+        self.assertLess(bootstrap.index(ensure_call), bootstrap.index(enable_call))
+        self.assertLess(bootstrap.index(enable_call), bootstrap.index("depot_tools ready"))
+        self.assertIn('export DEPOT_TOOLS_DIR="${AHOI_DEPOT_TOOLS_DIR}"', common)
+        self.assertIn('export DEPOT_TOOLS_UPDATE=0', common)
+        self.assertIn("ahoi_require_depot_tools_python", common)
+
+    def test_depot_tools_python_pointer_validation_fails_closed(self):
+        def validate(work_root: pathlib.Path) -> subprocess.CompletedProcess[str]:
+            environment = os.environ.copy()
+            environment["AHOI_WORK_ROOT"] = str(work_root)
+            return subprocess.run(
+                [
+                    "/bin/bash",
+                    "-c",
+                    'source "$1/scripts/lib/common.sh"; ahoi_require_depot_tools_python',
+                    "ahoi-depot-tools-test",
+                    str(ROOT),
+                ],
+                cwd=ROOT,
+                env=environment,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            work_root = pathlib.Path(temporary_directory).resolve()
+            depot_tools = work_root / "depot_tools"
+            python_directory = depot_tools / "bootstrap-python" / "python3" / "bin"
+            python_directory.mkdir(parents=True)
+            python_binary = python_directory / "python3"
+            python_binary.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            python_binary.chmod(0o755)
+            pointer = depot_tools / "python3_bin_reldir.txt"
+
+            missing = validate(work_root)
+            self.assertNotEqual(0, missing.returncode)
+            self.assertIn("missing regular bootstrap pointer", missing.stderr)
+
+            pointer.write_text("bootstrap-python/python3/bin", encoding="utf-8")
+            valid = validate(work_root)
+            self.assertEqual(0, valid.returncode, valid.stderr)
+
+            python_binary.chmod(0o644)
+            non_executable = validate(work_root)
+            self.assertNotEqual(0, non_executable.returncode)
+            self.assertIn("bootstrap Python is not executable", non_executable.stderr)
+            python_binary.chmod(0o755)
+
+            pointer.write_text(str(python_directory), encoding="utf-8")
+            absolute = validate(work_root)
+            self.assertNotEqual(0, absolute.returncode)
+            self.assertIn("bootstrap pointer must be relative", absolute.stderr)
+
+            outside_python = work_root / "outside" / "python3"
+            outside_python.parent.mkdir()
+            outside_python.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            outside_python.chmod(0o755)
+            pointer.write_text("../outside", encoding="utf-8")
+            traversal = validate(work_root)
+            self.assertNotEqual(0, traversal.returncode)
+            self.assertIn("bootstrap Python must resolve inside depot_tools", traversal.stderr)
+
+            pointer.write_text("missing/python3/bin", encoding="utf-8")
+            missing_binary = validate(work_root)
+            self.assertNotEqual(0, missing_binary.returncode)
+            self.assertIn("bootstrap Python must resolve inside depot_tools", missing_binary.stderr)
 
     def test_foundation_python_version_is_explicit(self):
         toolchain = load_json("config/toolchain.json")

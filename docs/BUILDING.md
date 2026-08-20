@@ -33,6 +33,14 @@ host recommendation.
 ./scripts/run-chromium-hooks.sh
 ```
 
+The depot_tools bootstrap disables automatic repository updates before running
+the pinned checkout's `ensure_bootstrap` through an absolute
+`DEPOT_TOOLS_DIR`. It then rejects a missing, absolute, escaping, or
+non-executable `python3_bin_reldir.txt` target and re-verifies the configured
+origin, exact commit, and clean checkout. A successful `gclient --help` alone
+is not bootstrap evidence because that command can bypass depot_tools' Python
+initialization.
+
 The fetch script never silently deletes a checkout, resets local edits, or
 changes a checkout whose origin is not official Chromium. It records resolved
 Git and CIPD dependency closures under `artifacts/build/`, comparing the

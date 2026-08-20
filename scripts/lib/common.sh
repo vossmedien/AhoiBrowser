@@ -123,6 +123,73 @@ PY
   fi
 }
 
+ahoi_export_depot_tools_environment() {
+  case "${AHOI_DEPOT_TOOLS_DIR}" in
+    /*) ;;
+    *) ahoi_die "depot_tools directory must be absolute: ${AHOI_DEPOT_TOOLS_DIR}" ;;
+  esac
+  export DEPOT_TOOLS_UPDATE=0
+  export DEPOT_TOOLS_DIR="${AHOI_DEPOT_TOOLS_DIR}"
+  export PATH="${AHOI_DEPOT_TOOLS_DIR}:${PATH}"
+}
+
+ahoi_require_depot_tools_python() {
+  local validation_error
+  if ! validation_error="$(python3 - "${AHOI_DEPOT_TOOLS_DIR}" <<'PY'
+import os
+from pathlib import Path
+import sys
+
+
+def fail(message: str) -> None:
+    raise SystemExit(message)
+
+
+configured_root = Path(sys.argv[1])
+if not configured_root.is_absolute():
+    fail(f"depot_tools root is not absolute: {configured_root}")
+
+try:
+    root = configured_root.resolve(strict=True)
+except OSError as error:
+    fail(f"depot_tools root cannot be resolved: {error}")
+
+pointer = root / "python3_bin_reldir.txt"
+if pointer.is_symlink() or not pointer.is_file():
+    fail(f"missing regular bootstrap pointer: {pointer}")
+
+try:
+    relative_text = pointer.read_text(encoding="utf-8")
+except (OSError, UnicodeError) as error:
+    fail(f"cannot read bootstrap pointer: {error}")
+
+if not relative_text or relative_text != relative_text.strip():
+    fail("bootstrap pointer must contain one non-empty path without surrounding whitespace")
+if "\n" in relative_text or "\r" in relative_text:
+    fail("bootstrap pointer must contain exactly one path")
+
+relative_path = Path(relative_text)
+if relative_path.is_absolute():
+    fail(f"bootstrap pointer must be relative: {relative_text}")
+
+try:
+    python_directory = (root / relative_path).resolve(strict=True)
+    python_binary = (python_directory / "python3").resolve(strict=True)
+    python_directory.relative_to(root)
+    python_binary.relative_to(root)
+except (OSError, ValueError) as error:
+    fail(f"bootstrap Python must resolve inside depot_tools: {error}")
+
+if not python_directory.is_dir():
+    fail(f"bootstrap Python directory is missing: {python_directory}")
+if not python_binary.is_file() or not os.access(python_binary, os.X_OK):
+    fail(f"bootstrap Python is not executable: {python_binary}")
+PY
+)"; then
+    ahoi_die "invalid depot_tools Python bootstrap: ${validation_error}"
+  fi
+}
+
 ahoi_enable_depot_tools() {
   [ -d "${AHOI_DEPOT_TOOLS_DIR}/.git" ] || \
     ahoi_die "depot_tools is not bootstrapped; run scripts/bootstrap-depot-tools.sh"
@@ -139,8 +206,8 @@ ahoi_enable_depot_tools() {
   [ "${actual_commit}" = "${expected_commit}" ] || \
     ahoi_die "depot_tools pin mismatch: expected ${expected_commit}, got ${actual_commit}"
   ahoi_require_clean_git_checkout "${AHOI_DEPOT_TOOLS_DIR}"
-  export DEPOT_TOOLS_UPDATE=0
-  export PATH="${AHOI_DEPOT_TOOLS_DIR}:${PATH}"
+  ahoi_export_depot_tools_environment
+  ahoi_require_depot_tools_python
 }
 
 ahoi_xcode_config_prefix() {

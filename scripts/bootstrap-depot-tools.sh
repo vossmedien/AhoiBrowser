@@ -32,11 +32,13 @@ git -C "${AHOI_DEPOT_TOOLS_DIR}" checkout --detach "${pinned_commit}"
   cd "${AHOI_DEPOT_TOOLS_DIR}"
   ./update_depot_tools_toggle.py --disable
 )
+
+ahoi_export_depot_tools_environment
+"${AHOI_DEPOT_TOOLS_DIR}/ensure_bootstrap"
+ahoi_enable_depot_tools
+
 actual_commit="$(git -C "${AHOI_DEPOT_TOOLS_DIR}" rev-parse HEAD)"
 [ "${actual_commit}" = "${pinned_commit}" ] || ahoi_die "depot_tools pin verification failed"
-
-export DEPOT_TOOLS_UPDATE=0
-export PATH="${AHOI_DEPOT_TOOLS_DIR}:${PATH}"
-gclient metrics --opt-out >/dev/null
 ahoi_note "depot_tools ready at ${actual_commit}"
+gclient metrics --opt-out >/dev/null
 gclient --help >/dev/null
