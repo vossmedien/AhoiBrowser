@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "host": {
+    "os": "macOS",
+    "architecture": "arm64",
+    "minimumVersion": "26.0",
+    "minimumMemoryBytes": 17179869184,
+    "minimumFreeWorkBytes": 161061273600,
+    "absoluteMinimumFreeCheckoutBytes": 128849018880
+  },
+  "xcode": {
+    "requiredVersion": "26.5",
+    "requiredBuild": "17F42",
+    "developerDirectory": "/Applications/Xcode-26.5.0.app/Contents/Developer",
+    "compatibleDevelopment": {
+      "version": "26.6",
+      "build": "17F113",
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "scope": "ahoi-dev only; never upstream control or release evidence"
+    }
+  },
+  "python": {
+    "minimumVersion": "3.9"
+  },
+  "sdks": {
+    "macOS": {
+      "testedVersion": "26.5",
+      "chromiumOfficialVersion": "26.5",
+      "chromiumOfficialBuild": "25F70"
+    },
+    "iOS": {
+      "testedVersion": "26.5",
+      "pinnedReferenceBuild": "23F73",
+      "compatibleDevelopmentBuild": "23F81a"
+    }
+  },
+  "buildTools": {
+    "gnRevision": "1d86777e7f2562a86ecea77d1809ac4f82bb5bfe",
+    "gnVersionOutput": "2435 (1d86777e7f25)",
+    "gnBinarySha256": "1102e0c5c9f29710263d8871bfe5631a648ce5495b95c58a7f26edc6ef75e34b",
+    "ninjaVersion": "version:3@1.12.1.chromium.4",
+    "ninjaVersionOutput": "1.12.1",
+    "ninjaBinarySha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f",
+    "sisoRevision": "7ea15ed68d4aa12fc4aaa50f5446e8549e8f1ce0",
+    "clangPackage": "llvmorg-23-init-19482-g53d18800-1",
+    "clangVersionLine": "clang version 23.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 53d18800eda3b7407e53366f27ca78e922c6e0db)",
+    "clangArchiveSha256": "e96c5e31ddc2a6e841bcb0f7278ae82b3a581799904276e6f7673213c9748c27",
+    "clangBinarySha256": "75228e26b09e1045e9f8b2cfcb5ad5b689c3ee3d74cdfab58e705260f70baf73",
+    "lldVersionLine": "LLD 23.0.0 (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 53d18800eda3b7407e53366f27ca78e922c6e0db)",
+    "lldBinarySha256": "b3f5d2d13548443396baedd54ebe50f1ad9d7ba971499ba33ec7f749dc575655"
+  },
+  "buildSystem": "ninja",
+  "targetCpu": "arm64"
+}

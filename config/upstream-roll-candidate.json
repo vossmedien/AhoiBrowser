@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "channel": "Early Stable",
+  "platform": "Mac ARM64",
+  "milestone": 152,
+  "version": "152.0.7977.54",
+  "commit": "24072c1aa400ec4a89dc738b6b6acd12a8589b6f",
+  "rolloutFraction": 0.005,
+  "pinnable": false,
+  "purpose": "parallel roll validation only",
+  "retrievedAt": "2026-08-20T00:00:00Z"
+}

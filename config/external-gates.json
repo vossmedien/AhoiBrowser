@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-20T00:00:00Z",
+  "gates": [
+    {
+      "id": "xcode-26.5",
+      "state": "verified",
+      "owner": "engineering",
+      "condition": "Xcode 26.5 build 17F42 is installed alongside Xcode 26.6 and passes the pinned-reference host check with macOS SDK 25F70 and iOS SDK 23F73."
+    },
+    {
+      "id": "disk-headroom",
+      "state": "verified",
+      "owner": "engineering",
+      "condition": "The APFS work path without spaces has more than 200 GiB free, above the 150 GiB build threshold. A checkout-only override remains defined but is not active."
+    },
+    {
+      "id": "widevine-mla",
+      "state": "blocked-entitlement",
+      "owner": "product-legal",
+      "condition": "Widevine MLA, partner access and redistributable ARM64 CDM are not yet available."
+    },
+    {
+      "id": "proprietary-codecs",
+      "state": "blocked-legal-review",
+      "owner": "product-legal",
+      "condition": "Written H.264/AAC patent and distribution assessment is required before public binaries."
+    },
+    {
+      "id": "cloudkit-identifiers",
+      "state": "required",
+      "owner": "apple-team-admin",
+      "condition": "Register final Mac/iOS bundle IDs, iCloud container and Developer ID/iOS provisioning profiles."
+    },
+    {
+      "id": "signed-release-provenance",
+      "state": "required-implementation",
+      "owner": "release-engineering",
+      "condition": "Implement and independently validate the attested chain from build provenance through signing, packaging and notarization to the exact installed bundle hash. CU_E2E and ASSISTED_E2E PASS remain fail-closed until this is complete."
+    },
+    {
+      "id": "chrome-web-store",
+      "state": "required-external-validation",
+      "owner": "engineering",
+      "condition": "Verify that Google still permits install, update and removal of ordinary MV3 Chrome Web Store extensions in the signed installed AhoiBrowser build."
+    },
+    {
+      "id": "google-api-services",
+      "state": "required-external-configuration",
+      "owner": "engineering",
+      "condition": "Configure only permitted Google API services and keys; Chrome Sync, private Chrome APIs and chrome.identity.getAuthToken are not inherited by this fork."
+    },
+    {
+      "id": "safe-browsing-service",
+      "state": "required-external-configuration",
+      "owner": "security-engineering",
+      "condition": "Confirm permitted Safe Browsing credentials, terms, endpoint set and privacy behavior for a third-party Chromium distribution."
+    },
+    {
+      "id": "onepassword-additional-browser",
+      "state": "required-user-assistance",
+      "owner": "compatibility-testing",
+      "condition": "Add the signed app through 1Password's Additional Browsers flow and verify extension, Native Messaging and Touch ID with a synthetic test vault."
+    },
+    {
+      "id": "ubo-redistribution",
+      "state": "blocked-legal-review",
+      "owner": "product-legal",
+      "condition": "Confirm source/license compliance and name/logo use for an Ahoi-signed uBO Classic package."
+    }
+  ]
+}

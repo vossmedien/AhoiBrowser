@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "defaultAppearance": "system",
+  "appearances": ["system", "light", "dark"],
+  "defaultAccent": "#0A84FF",
+  "workspaceAccentOverride": true,
+  "glass": {
+    "available": true,
+    "default": true,
+    "nativeView": "NSGlassEffectView",
+    "reducedTransparencyFallback": true,
+    "neverRequiredForLayout": true
+  },
+  "dimensions": {
+    "sidebarWidthDefault": 264,
+    "sidebarWidthMinimum": 208,
+    "sidebarWidthMaximum": 420,
+    "toolbarHeight": 48,
+    "treeRowHeight": 32,
+    "treeIndent": 16,
+    "commandBarWidthMaximum": 720,
+    "cornerRadiusSmall": 8,
+    "cornerRadiusMedium": 12,
+    "cornerRadiusLarge": 18
+  },
+  "light": {
+    "window": "#F4F5F7",
+    "sidebar": "#EEF0F3",
+    "surface": "#FFFFFF",
+    "textPrimary": "#17191C",
+    "textSecondary": "#5B616B",
+    "divider": "#0000001F",
+    "selectionOverlay": "#0A84FF24"
+  },
+  "dark": {
+    "window": "#17191C",
+    "sidebar": "#1E2125",
+    "surface": "#25292E",
+    "textPrimary": "#F5F7FA",
+    "textSecondary": "#ABB2BC",
+    "divider": "#FFFFFF24",
+    "selectionOverlay": "#0A84FF3D"
+  },
+  "accessibility": {
+    "minimumTextContrast": 4.5,
+    "minimumLargeTextContrast": 3.0,
+    "minimumHitTarget": 28,
+    "supportsReducedMotion": true,
+    "supportsIncreasedContrast": true,
+    "supportsKeyboardOnly": true,
+    "supportsVoiceOver": true
+  }
+}

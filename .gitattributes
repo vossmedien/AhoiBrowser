@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.patch text eol=lf
+*.pbxproj text eol=lf
+*.png binary
+*.icns binary
+*.dmg binary

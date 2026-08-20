@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "provider": "cloudkit-private-database",
+  "encryptedValues": true,
+  "localFirst": true,
+  "sync": [
+    "workspaces",
+    "treeNodes",
+    "treeOrdering",
+    "tombstones",
+    "deviceTabs",
+    "history",
+    "appearance",
+    "permittedSettings",
+    "extensionInventory",
+    "optInDeveloperAssets"
+  ],
+  "neverSync": [
+    "cookies",
+    "passwords",
+    "autofill",
+    "siteData",
+    "cache",
+    "permissions",
+    "extensionStorage",
+    "incognito",
+    "keychainSecrets",
+    "secretHeaders",
+    "httpAuthSecrets"
+  ],
+  "historyRetentionDaysDefault": 90,
+  "historyRetentionChoices": [30, 90, 365, -1]
+}

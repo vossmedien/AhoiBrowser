@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "dependencies": {
+    "sparkle": {
+      "version": "2.9.5",
+      "source": "https://github.com/sparkle-project/Sparkle/releases/tag/2.9.5",
+      "enabled": false,
+      "gate": "updater-integration-review"
+    },
+    "uBlockOriginClassic": {
+      "version": "1.73.0",
+      "commit": "ac55a03",
+      "source": "https://github.com/gorhill/uBlock/releases/tag/1.73.0",
+      "enabled": false,
+      "gate": "selectiveUboClassicMv2"
+    }
+  }
+}

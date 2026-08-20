@@ -1,0 +1,60 @@
+name: Repository contract
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - name: Verify ShellCheck
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
+      - name: Install pinned actionlint
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            --output "/tmp/${archive}" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
+          printf '%s  %s\n' "${ACTIONLINT_SHA256}" "/tmp/${archive}" | sha256sum --check --strict
+          mkdir /tmp/actionlint
+          tar -xzf "/tmp/${archive}" -C /tmp/actionlint actionlint
+          /tmp/actionlint/actionlint -version
+      - name: Verify GitHub Actions workflows
+        run: /tmp/actionlint/actionlint
+      - name: Verify DCO sign-offs
+        env:
+          AHOI_DCO_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          AHOI_DCO_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 tools/check_dco.py --base "${AHOI_DCO_BASE}" --head "${AHOI_DCO_HEAD}"
+      - name: Scan committed content for secrets
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  contract:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Verify shell syntax
+        run: bash -n scripts/*.sh scripts/lib/*.sh
+      - name: Run repository contract tests
+        run: ./scripts/test-repository.sh
+      - name: Verify generated files are clean
+        run: git diff --check

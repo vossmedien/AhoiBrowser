@@ -1,0 +1,1790 @@
+# AhoiBrowser – vollständiger Master-Zielprompt
+
+## Rolle und Gesamtauftrag
+
+Du bist leitender Browser-, Chromium-, C++-, Objective-C++-, AppKit-, Swift-, SwiftUI-, Security-, Privacy-, Release- und QA-Engineer. Baue im aktuell bereitgestellten Workspace das Open-Source-Projekt **AhoiBrowser** vollständig end to end auf.
+
+AhoiBrowser wird ein nativer, schlanker, performanter und optisch hochwertiger Chromium-Browser für macOS 26 auf Apple Silicon. Er übernimmt die wirklich guten Bedienkonzepte von Arc – insbesondere den vertikalen, persistenten Seitenbaum, Workspaces, schnelle Gesten und eine zentrale Command Bar – ohne dessen Ballast. Es gibt keine AI-Plattform, kein Wallet, keinen Screenshot-Editor, keine Boost-Plattform, kein soziales Sharing-System und keinen eingebauten Werbeblocker.
+
+Das Ziel ist ausdrücklich:
+
+- kein UI-Mockup;
+- kein Proof of Concept als Endergebnis;
+- kein Electron-Projekt;
+- kein CEF-Wrapper;
+- kein `WKWebView`-Browser;
+- kein eigener WebView-Tab-Host;
+- keine Web-App, die einen Browser simuliert;
+- sondern ein echter Chromium-`//chrome`-Fork mit nativer Oberfläche, Chromiums vollständiger Mehrprozessarchitektur, Sandbox, Extensions, DevTools, Downloads, Medien, Berechtigungen, Passwortfunktionen, HTTP-Authentifizierung, verschlüsseltem Sync und einem signierten, unter `/Applications/AhoiBrowser.app` installierten Daily-Driver-Build.
+
+Arbeite selbstständig und persistent durch die in diesem Prompt festgelegten Phasen. Beginne nach einer kurzen Bestandsaufnahme unmittelbar mit der Machbarkeitsphase. Frage nur dann nach, wenn eine Entscheidung nicht aus dem Repository, der Umgebung oder diesem Prompt ableitbar ist oder wenn tatsächlich eine externe Freigabe, ein Account, ein Vertrag, echte Hardware, biometrische Bestätigung oder eine andere Nutzeraktion erforderlich ist.
+
+Halte kontrollierbare Arbeit nicht wegen externer Blocker an. Schließe alle unabhängigen Arbeiten ab, dokumentiere den Blocker exakt und fahre mit dem nächsten möglichen Arbeitspaket fort.
+
+## Arbeitsweise und Wahrheitsstandard
+
+Unterscheide bei jeder Funktion und jedem Meilenstein strikt zwischen folgenden Zuständen:
+
+1. `IMPLEMENTED`: Der Quellcode ist vorhanden.
+2. `PROGRAMMATIC_PASS`: Unit-, Integration-, Browser- und relevante Security-Tests sind grün.
+3. `INSTALLED_PASS`: Die Funktion wurde im tatsächlich installierten Release-Bundle geprüft.
+4. `CU_E2E_PASS`: Die Funktion wurde über Computer Use wie von einem echten Nutzer sichtbar bedient und bestätigt.
+5. `ASSISTED_E2E_PASS`: Zusätzlich erforderliche Hardware-, Account-, Touch-ID- oder physische Nutzeraktion wurde real ausgeführt und das Ergebnis danach verifiziert.
+6. `BLOCKED_EXTERNAL`: Eine konkret benannte externe Voraussetzung verhindert ausschließlich den betroffenen Nachweis.
+
+„Build erfolgreich“, „Code ist vorhanden“, „Unit-Test grün“ oder „funktioniert im Debug-Build“ ist kein Fertignachweis.
+
+Verbindliche Regeln:
+
+- Teste sichtbare Funktionen im signierten, nach `/Applications` installierten Bundle.
+- Verwende für User-Flows Computer Use und bediene die App sichtbar über Maus, Tastatur, Menüs, Dialoge, Finder und Systemeinstellungen.
+- Terminal, Datenbank-Readback, interne APIs und Logs dürfen den sichtbaren User-Flow verifizieren, aber nicht ersetzen.
+- Kontrollierte lokale Testseiten sind Pflicht, ersetzen aber keine realen Tests von Chrome Web Store, 1Password, Bitwarden, uBlock Origin, YouTube, WebRTC/Meet, CloudKit, dem echten Updater und Widevine-Diensten.
+- Sichere bei einem sichtbaren Fehler zuerst Evidenz, diagnostiziere dann, behebe ihn und wiederhole exakt denselben User-Flow.
+- Ein einmaliger Screenshot reicht bei zustandsabhängigen Funktionen nicht; Reload, Fensterwechsel und App-Neustart gehören je nach Funktion zur Abnahme.
+- Keine Passwörter, Tokens, Cookies, Vault-Inhalte, Authorization-Header oder privaten Browserdaten in Screenshots, Videos, Logs oder Commits.
+- Keine Funktion als fertig melden, wenn der höchste für sie vorgeschriebene Testlevel nicht bestanden wurde.
+- Keine P0-/P1-Probleme als „bekannte Einschränkung“ in eine öffentliche v1 verschieben.
+- Antworte nicht nur mit weiteren Plänen. Plane knapp, implementiere danach und liefere überprüfbare Ergebnisse.
+
+Wenn ein externer Blocker auftritt:
+
+- benenne die genaue Test-ID;
+- benenne die fehlende Voraussetzung;
+- dokumentiere die bereits bestandenen Teilprüfungen;
+- fordere höchstens die eine konkret notwendige Nutzeraktion an;
+- führe danach die Verifikation selbst fort;
+- wiederhole nicht endlos denselben unveränderten Versuch;
+- behaupte niemals öffentliche Releasebereitschaft, solange ein kritisches Gate blockiert ist.
+
+## Feste Produktentscheidungen
+
+- Produkt- und Arbeitsname: **AhoiBrowser**.
+- Desktopziel für v1: macOS 26, ausschließlich Apple Silicon/ARM64.
+- Mobile Ergänzung zum ersten öffentlichen Release: native iOS-/iPadOS-26-Companion-App.
+- Browserbasis: vollständiger Chromium-`//chrome`-Fork.
+- UI: Chromium Views plus Objective-C++/AppKit für macOS-spezifische Integration und Liquid Glass.
+- Ein gemeinsames normales Chromium-Profil für alle Workspaces.
+- Workspaces trennen Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Darstellung, nicht Cookies, Logins, Verlauf, Downloads, Site Permissions oder Extensions.
+- Echte Inkognito-Fenster verwenden Chromiums `OffTheRecordProfile`.
+- Eigener CloudKit-first-Sync; kein Chrome Sync und kein Google-Konto zur Browsersynchronisation.
+- Deutsch und Englisch sind vollständige Release-Sprachen.
+- Erscheinungsbild: System/Hell/Dunkel, globale Hauptfarbe, optionaler Workspace-Akzent und natives, zurückhaltendes Liquid Glass.
+- Eigener Browsercode: GPL-3.0-or-later, vorbehaltlich juristischer Prüfung notwendiger Distributionsausnahmen.
+- Allgemeine Erweiterungskompatibilität bleibt erhalten.
+- Klassisches uBlock Origin wird optional als externe Erweiterung unterstützt, nicht in den Browserkern integriert.
+- Kein öffentliches Release, bevor die vollständige Daily-Driver-, Sync-, Extension-, Media-, DRM-, Update-, Security- und Computer-Use-Abnahme bestanden ist.
+
+Kapsle Produktname, Bundle-Identifier, URL-Schemes, CloudKit-Container, Updatekanäle, Signaturkonfiguration und Assets zentral. Verwende für Development konsistente AhoiBrowser-Identifier, aber lege irreversible Production-CloudKit- oder öffentliche Bundle-IDs erst fest, nachdem Eigentümerschaft und Verfügbarkeit geprüft wurden.
+
+## Unverhandelbare technische Architektur
+
+### Chromium statt Electron-Falle
+
+Verwende Chromiums echte Browserarchitektur und mindestens folgende Upstream-Komponenten:
+
+- `Browser` und `BrowserList`;
+- `Profile`, `BrowserContext` und `OffTheRecordProfile`;
+- `WebContents`;
+- `TabStripModel`;
+- Network Service;
+- Renderer-, GPU-, Utility- und Crash-Prozesse;
+- Site Isolation und Sandbox;
+- Extension Service;
+- Download Service;
+- History Service;
+- Password Manager und HTTP Auth Manager;
+- Permission Controller;
+- Media, WebRTC und Picture-in-Picture;
+- DevTools;
+- Session Restore;
+- Chromium PrefService und `sql::Database`.
+
+Verboten sind:
+
+- Electron;
+- CEF;
+- `WKWebView` als Desktop-Engine;
+- `content_shell` als Produktbasis;
+- ein eigener Prozess, der mehrere WebViews als Tabs verwaltet;
+- ein dauerhaft laufender Node-Prozess;
+- React oder eine andere Web-App als Orchestrator des Browser-Chrome;
+- Abschalten von Sandbox oder Site Isolation als Implementierungsabkürzung.
+
+Lasse Blink, V8, `net`, GPU, Media, Renderer-Sandbox und Site Isolation möglichst unverändert upstream. Eigene Produktlogik gehört primär in getrennte AhoiBrowser-Komponenten auf Browser-Ebene. Änderungen in Upstream-Dateien müssen kleine, nachvollziehbare Integrationspatches bleiben.
+
+Tiefe Integration bedeutet die Nutzung der richtigen Chromium-Schnittstellen, nicht eine maximal große Fork-Differenz.
+
+### Zentrale Dienste und Schnittstellen
+
+Implementiere klar abgegrenzte Services:
+
+- `WorkspaceService`: Workspaces, Reihenfolge, aktiver Zustand und Appearance.
+- `TabTreeService`: persistente Ordner und gespeicherte Seiten.
+- `SessionBridge`: Zuordnung von Baumknoten, temporären Tabs, `WebContents`, Fenstern und `TabStripModel`.
+- `CommandService`: lokale Suche, Befehle, URL- und Suchparser.
+- `ThemeService`: System/Hell/Dunkel, Hauptfarbe, Workspace-Akzent und Glass-Fallback.
+- `DeveloperToolkitService`: Injection, Cache, Site Data, Cookies, Header und Diagnosefunktionen.
+- `PrivacyModeService`: globaler und per Origin geltender Modus.
+- `SyncProvider`: austauschbare Sync-Schnittstelle.
+- `CloudKitSyncProvider`: v1-Syncimplementierung.
+- `RemoteCommandService`: sichere Mac-/iOS-Gerätebefehle.
+- `HttpAuthCredentialService`: UI- und Verwaltungslogik auf Chromiums Password Manager, `HttpAuthManager`, `LoginHandler` und Network Service.
+
+Neue Mojo-Schnittstellen dürfen nur dort entstehen, wo eine Prozessgrenze dies erfordert. Sie müssen minimal, typisiert, profile-scoped und sicherheitsgeprüft sein. Normale Websites erhalten niemals privilegierten Zugriff auf diese Dienste.
+
+### Datenmodell
+
+Verwende versionierte, migrationsfähige Kerntypen:
+
+- `Workspace`: UUID, Name, Icon, Sortierschlüssel, optionaler Akzent, Zeitstempel.
+- `TreeNode`: UUID, Workspace-ID, Parent-ID, Typ `folder` oder `savedPage`, Titel, URL, Sortierschlüssel, Zeitstempel, Tombstone.
+- `RuntimeTab`: Geräte-, Fenster- und Tab-ID, optionale TreeNode-ID, URL, Titel, Aktivitätszeit, Ladezustand.
+- `HistoryVisit`: Visit-ID, Geräte-ID, URL, Titel, Zeitpunkt und Transition-Typ.
+- `DeveloperAsset`: Typ CSS/LESS/SASS/JavaScript/Headerprofil, Scope, Aktivierung, Sync-Opt-in.
+- `RemoteCommand`: Zielgerät, Befehlstyp, Payload, Nonce, Ablaufzeit, Status und Signatur.
+- `HttpAuthCredentialMetadata`: server/proxy, Scheme, Origin, Port, Realm, Benutzername, bevorzugter Status und letzter erfolgreicher Einsatz; das Passwort selbst bleibt ausschließlich im Password Store.
+
+Der Seitenbaum liegt lokal in SQLite über Chromiums Datenbankhelfer. Verwende vorhandene Chromium-Services für Verlauf, Downloads, Permissions, Password Store, HTTP Auth Cache und Session Restore.
+
+## Repository-, Build- und Upstream-Modell
+
+### Repository
+
+Lege ein kleines öffentliches AhoiBrowser-Repository an, keinen vollständigen Chromium-Verlauf als primäres GitHub-Repository. Es enthält:
+
+- maschinenlesbaren Chromium-Pin;
+- gepinnte kompatible `depot_tools`- und Xcode-Stände;
+- eigenen Browsercode und GN-Targets;
+- Branding;
+- Overlay-/Integrationsmechanismus;
+- nummerierte Patchserie;
+- Build-, Test-, Packaging-, Installations- und Roll-Automation;
+- lokale E2E-Fixtures;
+- Dokumentation;
+- Lizenzen und Third-Party Notices;
+- Evidenzmanifeste.
+
+Ein Bootstrap-Prozess muss auf einer frischen geeigneten Apple-Silicon-Maschine:
+
+1. Voraussetzungen und freien Speicher prüfen.
+2. Gepinnte `depot_tools` beziehen.
+3. Chromium in exakt gepinnter Revision beziehen.
+4. AhoiBrowser-Komponenten einbinden.
+5. nummerierte Patches deterministisch anwenden.
+6. GN-Konfiguration erzeugen.
+7. ARM64-Build erstellen.
+8. Tests ausführen.
+9. App und DMG paketieren.
+10. den installierten Build verifizieren.
+
+Stelle idempotente Befehle für mindestens folgende Abläufe bereit:
+
+- Bootstrap;
+- Development-Build;
+- Release-Build;
+- fokussierte Tests;
+- vollständige Tests;
+- lokale E2E-Fixtures;
+- Packaging;
+- Installation nach `/Applications`;
+- isoliertes Testprofil;
+- Upstream-Roll;
+- Release-Smoke;
+- Evidenzsammlung.
+
+Prüfe vor dem Chromium-Fetch Hardware, Xcode, freien Speicher und Buildkapazität. Empfohlen sind mindestens 64 GB RAM und 2 TB SSD; für einen sicheren Checkout-/Buildbetrieb sollen mehrere hundert GB frei sein. Ein Ressourcenproblem ist früh und konkret zu melden, darf aber Dokumentation, Repository-Scaffolding und andere kontrollierbare Arbeiten nicht blockieren.
+
+### Patchstrategie
+
+Für jeden Patch müssen dokumentiert sein:
+
+- Zweck;
+- betroffene Upstream-Dateien;
+- Sicherheits- und Privacy-Auswirkung;
+- zugehörige Tests;
+- erwartete Konfliktfläche;
+- Rückbauoption.
+
+Verwende eigene GN-Targets und klar getrennte Komponenten statt dauerhafter Shell-Kopiertricks. Jeder Chromium-Roll muss Patchkonflikte einzeln sichtbar machen.
+
+### Upstream und Security-SLA
+
+Automatisiere Roll-Vorschläge für relevante Chromium-Stable- und Security-Releases:
+
+1. neue Upstream-Revision ohne eigene Patches bauen;
+2. Patchserie einzeln anwenden;
+3. vollständigen AhoiBrowser bauen;
+4. Unit-, Browser-, Extension-, uBO-, Media-, Security- und Release-Smokes ausführen;
+5. installierten Release-Smoke durchführen;
+6. eigene Abweichungen gegen den vorherigen Roll inventarisieren.
+
+Ziele:
+
+- kritische Chromium-Sicherheitsupdates innerhalb von 48 Stunden;
+- normale Stable-Rolls innerhalb von sieben Tagen.
+
+Ein fehlgeschlagener Roll erzeugt sichtbaren Blocking-Status. Öffentliche Releases nennen Chromium-Commit, Patchset-Version, SBOM, Checksums, Third-Party Notices und bekannte Abweichungen.
+
+### Erforderliche Dokumentation
+
+Pflege mindestens:
+
+- `PRODUCT_PRINCIPLES`;
+- `ARCHITECTURE`;
+- `UPSTREAM`;
+- `BUILDING`;
+- `SECURITY`;
+- `THREAT_MODEL`;
+- `PRIVACY`;
+- `NETWORK`;
+- `EXTENSION_COMPATIBILITY`;
+- `SYNC`;
+- `TESTING`;
+- `RELEASING`;
+- `CONTRIBUTING`;
+- Lizenz- und Third-Party-Dokumentation;
+- laufenden Status mit den definierten Wahrheitsstufen.
+
+Keine Apple-, Google-, CloudKit-, Widevine-, Update-, Notarisierungs- oder Signierschlüssel dürfen ins Repository gelangen.
+
+## Native Oberfläche und Design
+
+### Browser-Chrome
+
+Baue eine hochwertige native Oberfläche:
+
+- einheitliche vertikale Sidebar;
+- keine horizontale Tab-Leiste;
+- keine separate klassische Bookmark-Leiste;
+- minimaler Browser-Chrome mit Zurück, Vor, Reload, Security-/Site-Status, Downloads und Extension-Actions;
+- Sidebar ein- und ausblendbar;
+- für Fenstergrößen, Split View und Vollbild geeignet;
+- native Fokus-, Tastatur-, VoiceOver- und Accessibility-Semantik;
+- flüssige, zurückhaltende Animationen;
+- keine unnötig dauerhaft sichtbaren Entwicklerwerkzeuge;
+- kein technischer Baukasten-Look.
+
+Verwende Chromium Views für Browsernavigation, Sidebar, Workspaces und Command Bar. Objective-C++/AppKit dient macOS-Integration, Fenstern, Menüs, Gesten, Systemappearance und Liquid Glass. Interne WebUI ist nur für komplexe Settings oder Editoren erlaubt, nicht als Browser-Orchestrator.
+
+### Liquid Glass und Accessibility
+
+Verwende `NSGlassEffectView` gezielt für:
+
+- Sidebar-Hintergrund;
+- Command Bar;
+- Popover;
+- kompakte Werkzeugflächen;
+- passende native Buttons.
+
+Verwende Glass nicht flächendeckend über dem Webseiteninhalt. Respektiere automatisch:
+
+- Transparenz reduzieren;
+- Bewegung reduzieren;
+- erhöhten Kontrast;
+- systemweite Appearance.
+
+Bei reduzierter Transparenz muss eine vollständig lesbare opake Darstellung entstehen. Glass darf weder Textkontrast noch Performance verschlechtern.
+
+### Theme
+
+Implementiere:
+
+- `System`;
+- `Hell`;
+- `Dunkel`;
+- globale Hauptfarbe;
+- optionalen Akzent pro Workspace;
+- Glass an/aus beziehungsweise automatischen Accessibility-Fallback;
+- semantische Farben und Zustände.
+
+Nicht Bestandteil von v1 sind importierbare Theme-Pakete, frei programmierbare CSS-Themes für das Browser-Chrome oder ein Theme-Marktplatz.
+
+### Mehrsprachigkeit
+
+- Englisch ist Quellsprache.
+- Deutsch ist vollständig gepflegte Release-Sprache.
+- Desktoptexte verwenden GRIT/ICU.
+- iOS/iPadOS verwendet String Catalogs.
+- keine hart codierten sichtbaren UI-Texte.
+- CI prüft fehlende Strings, Pluralformen, Rohschlüssel und Überläufe.
+- Pseudolokalisierung gehört in CI.
+- vollständige Kernreise wird in Deutsch und Englisch per Computer Use geprüft.
+
+## Workspaces, nested Tabs und Sitzungen
+
+### Persistenter Seitenbaum
+
+Baue einen vertikalen Baum als Zusammenführung aus Tabs und Bookmarks:
+
+- beliebig tiefe logische Ordnerstruktur;
+- gespeicherte Seiten als dauerhaft organisierte Tab-Knoten;
+- Drag-and-drop;
+- manuelle Reihenfolge;
+- Umbenennen;
+- Verschieben innerhalb und zwischen Workspaces;
+- Duplizieren;
+- Papierkorb;
+- Undo;
+- Suche;
+- Virtualisierung für mindestens 10.000 Knoten;
+- Zyklenschutz und atomare Schreibvorgänge.
+
+### Tab-Lebenszyklus
+
+- Neue Seiten starten als temporäre Tabs.
+- `⌘D` oder Drag-and-drop in einen Ordner macht eine Seite dauerhaft.
+- Das Schließen eines gespeicherten Knotens entlädt dessen `WebContents`, löscht aber nicht den Knoten.
+- Löschen ist eine separate, klar erkennbare Aktion.
+- Geschlossene temporäre Tabs verschwinden, bleiben kurzfristig über Undo beziehungsweise Chromiums Tab Restore verfügbar.
+- Es gibt keine automatische Archivierung in v1.
+- „Temporär“ bedeutet nicht, dass die Seite bei normalem App-Ende zwingend verloren geht.
+- Beim Browserstart wird standardmäßig gefragt: „Letzte Sitzung fortsetzen“ oder „Leer starten“.
+- In den Einstellungen kann dauerhaft `fragen`, `fortsetzen` oder `leer starten` gewählt werden; Default ist `fragen`.
+- Crash Recovery bietet normale temporäre Tabs und Fenster zur Wiederherstellung an.
+- Inkognito wird nie wiederhergestellt.
+
+### Workspaces
+
+- Alle Workspaces verwenden dasselbe normale Browserprofil.
+- Cookies, Logins, Verlauf, Extensions, Downloads, Passwortspeicher und Site Permissions sind gemeinsam.
+- Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Akzent sind Workspace-bezogen.
+- Wechsel über Sidebar, Tastatur und horizontale Magic-Mouse-Geste.
+- Richtung, Empfindlichkeit und Deaktivierung der Geste sind konfigurierbar.
+- Mehrere Fenster werden unterstützt.
+- Der gespeicherte Baum ist fensterübergreifend gemeinsam.
+- Temporäre Tabs und aktive Auswahl bleiben fensterbezogen.
+- Echte getrennte Browserprofile sind nicht Bestandteil von v1, das Datenmodell darf eine spätere Erweiterung aber nicht unnötig verhindern.
+
+## Navigation, Command Bar und Fensterarten
+
+### Command Bar
+
+Implementiere eine native, latenzarme Command Bar:
+
+- `⌘L`: Navigation/Suche im aktuellen Tab.
+- `⌘T`: neuer temporärer Tab plus Command Bar.
+- Suche über offene Tabs, gespeicherte Seiten, Ordner, Workspaces, Verlauf und Browserbefehle.
+- URL-Erkennung.
+- Fuzzy Ranking.
+- vollständige Tastaturbedienung.
+- lokale Resultate ohne Netzwerk.
+- Remote-Suchvorschläge standardmäßig aus.
+- Google als initiale, konfigurierbare Standardsuchmaschine.
+- `g Suchbegriff` als direkter Google-Befehl.
+- erweiterbares Suchkürzelmodell.
+
+### Quick Window im Stil von Little Arc
+
+- konfigurierbarer globaler Default-Shortcut `⌥Space`;
+- kleines fokussiertes Fenster;
+- verwendet das normale Profil einschließlich Cookies, Logins und Extensions;
+- kann eine Seite in normalen Tab oder Baum überführen;
+- kann optional Ziel externer Links sein;
+- ist kein Inkognito-Modus.
+
+### Echtes Inkognito
+
+- `⌘⇧N`;
+- echtes `OffTheRecordProfile`;
+- keine Speicherung in Verlauf, Baum, Sync oder Session Restore;
+- keine Anzeige in der iOS-App;
+- Extensions nur nach expliziter Inkognito-Freigabe;
+- vollständige Trennung von normalen Cookies und Website-Speichern.
+
+## Vollwertige Browserfunktionen
+
+Erhalte beziehungsweise integriere vollständig:
+
+- Zurück, Vor, Reload und Hard Reload;
+- Downloads mit Fortschritt, Pause/Resume, Abbruch, Historie und Finder-Integration;
+- Datei- und Ordner-Uploads;
+- Drag-and-drop;
+- Drucken;
+- PDF-Anzeige;
+- Vollbild;
+- Standardbrowserregistrierung;
+- HTTP-/HTTPS-URL-Handler;
+- externe Links;
+- sichere Custom-Protocol-Prompts;
+- OAuth und SSO;
+- Passkeys/WebAuthn;
+- Autofill;
+- lokalen Chromium-Passwortmanager;
+- macOS-Keychain-Schutz;
+- Anzeige gespeicherter Passwörter nur nach Touch ID/Systemauthentifizierung;
+- Crash- und Session-Recovery;
+- DevTools und Entwicklermodus;
+- PWA-Funktionen soweit upstream vorhanden, ohne prominenten v1-Schwerpunkt.
+
+## Medien, DRM und Berechtigungen
+
+Implementiere und verifiziere:
+
+- HTML5 Audio/Video;
+- MSE;
+- Hardwaredecoding;
+- VP9 und AV1 entsprechend Chromium und Hardware;
+- H.264/AAC über einen rechtlich geklärten Build- und Distributionsweg;
+- Vollbild;
+- Picture-in-Picture;
+- Media Session;
+- macOS-Medientasten;
+- WebRTC;
+- Kamera;
+- Mikrofon;
+- Bildschirm-, Fenster- und Tabfreigabe;
+- Standort;
+- Benachrichtigungen;
+- Zwischenablage;
+- Site Permissions und deren Rücksetzung.
+
+### Widevine
+
+- Widevine niemals aus einer Chrome-Installation kopieren.
+- Kein proprietäres CDM ungeklärt in Repository oder Artefakten verteilen.
+- Offiziellen Partner-/Lizenzprozess früh starten.
+- CDM als separat lizenziertes und sicher aktualisierbares Modul behandeln.
+- Signierung, Packaging, Version und Updatepfad dokumentieren.
+- Ein privater Dogfood-Build darf ohne Widevine weiterentwickelt werden und muss den fehlenden Status sichtbar ausweisen.
+- Der öffentliche Release bleibt blockiert, bis Netflix und mindestens ein zweiter Widevine-Dienst im offiziellen signierten Build funktionieren.
+
+## Erweiterungen und Passwortmanager
+
+Erhalte allgemeine Chromium-/Chrome-Extension-Kompatibilität:
+
+- Chrome Web Store;
+- MV3;
+- Extension Service Worker;
+- Content Scripts;
+- Browser Actions;
+- Popups;
+- Optionsseiten;
+- Commands;
+- Storage;
+- Native Messaging;
+- entpackter Entwicklermodus;
+- Installation, Update, Neustartpersistenz und Deinstallation.
+
+Gepinnte Extension-Actions erscheinen kompakt im Sidebar-Kopf; weitere Actions liegen in einem Overflow-Menü.
+
+Pflichtkompatibilität:
+
+- 1Password;
+- Bitwarden;
+- React DevTools oder vergleichbare Entwicklererweiterung;
+- eine normale MV3-Produktivitätserweiterung;
+- IBM Equal Access Accessibility Checker als externe Erweiterung.
+
+Der lokale Chromium-Passwortmanager bleibt verfügbar. AhoiBrowser bevorzugt keinen externen Passwortanbieter. 1Password, Bitwarden und andere Chromium-Passwortmanager erhalten denselben Extension- und Native-Messaging-Pfad. Deren Tresore oder Extension Storage werden niemals durch AhoiBrowser Sync übertragen.
+
+1Password muss mit einer signierten App in `/Applications`, einmaliger Freigabe als zusätzlicher vertrauenswürdiger Browser, Desktop-App-Verbindung, Touch ID und einem künstlichen Test-Vault real geprüft werden.
+
+## Erstklassige HTTP-Authentifizierung für `.htaccess`
+
+Implementiere eine eigenständige, hochwertige Verwaltung für HTTP-Authentifizierung, insbesondere Apache-`.htaccess`-/HTTP-Basic-Auth-Zugänge.
+
+### Unterstützte Verfahren
+
+- HTTP Basic Auth ist der primäre Anwendungsfall.
+- HTTP Digest Auth verwendet denselben Credential-Chooser, soweit Chromium es unterstützt.
+- Proxy-Authentifizierung bleibt getrennt von Server-Authentifizierung.
+- NTLM und Negotiate verbleiben in Chromiums bestehenden Mechanismen und werden nicht mit Basic-/Digest-Zugängen vermischt.
+
+### Korrekte Schutzbereiche
+
+Zugangsdaten dürfen niemals nur anhand eines Hostnamens ausgewählt werden. Berücksichtige mindestens:
+
+- Zieltyp `server` oder `proxy`;
+- URL-Schema `http` oder `https`;
+- Host;
+- Port;
+- Auth-Schema;
+- Realm;
+- Chromiums Protection-Space- und Pfadregeln;
+- Profile-/Network-Kontext und Network Anonymization Key, soweit für Cache-Reuse relevant.
+
+Keine Wiederverwendung zwischen unterschiedlichen Origins, Ports, Realms, Profilen oder unzulässigen Pfadbereichen.
+
+### Nativer HTTP-Auth-Dialog
+
+Ersetze den primitiven Dialog durch eine native AhoiBrowser-Oberfläche mit:
+
+- deutlich sichtbarem Host und Port;
+- Realm;
+- Auth-Schema;
+- HTTPS-/Unsicher-Status;
+- Benutzername als durchsuchbarem Kombinationsfeld;
+- Auswahl aller für exakt diesen Schutzbereich gespeicherten Konten;
+- Tastatursteuerung und Autocomplete;
+- zuletzt erfolgreich verwendetem Konto als Vorauswahl;
+- maskiertem Passwortfeld;
+- Möglichkeit, neue Daten einzugeben;
+- Aktionen `Speichern`, `Aktualisieren`, `Nicht jetzt` und `Für dieses Realm nie speichern`;
+- verständlichem Fehlerzustand nach erneutem `401`;
+- Wechsel auf ein anderes Konto nach fehlgeschlagenem Versuch;
+- keinem automatischen Löschen eines gespeicherten Eintrags nach einem einzelnen Fehler.
+
+Bei genau einem gespeicherten Konto wird es vorausgewählt und ausgefüllt, aber standardmäßig erst nach Bestätigung gesendet. Bei mehreren gespeicherten Konten muss die Auswahl immer sichtbar erreichbar sein.
+
+Optional kann der Nutzer für ein konkretes HTTPS-Realm `Automatisch verwenden` aktivieren. Persistente Daten dürfen dabei erst nach einer passenden Server-Challenge eingesetzt und nie ungefragt an einen anderen Schutzbereich gesendet werden.
+
+### Speicherung
+
+- Verwende Chromiums Password Store, `HttpAuthManager` und `LoginHandler`.
+- Erstelle keine zweite unverschlüsselte Credential-Datenbank.
+- Schütze Secrets über Chromiums macOS-/Keychain-Integration.
+- Speichere erst nach nachweislich erfolgreicher Authentifizierung.
+- Biete bei geändertem Passwort `Gespeicherten Zugang aktualisieren` an.
+- Erlaube mehrere Benutzernamen für dasselbe Realm.
+- Erlaube ein bevorzugtes Konto pro Realm.
+- Synchronisiere HTTP-Auth-Passwörter niemals über AhoiBrowser CloudKit.
+- Schreibe weder Passwort noch vollständigen Authorization-Header in Logs, Crash Reports, NetLog-Evidenz oder Screenshots.
+
+### Verwaltung
+
+Ergänze unter `Passwörter und Authentifizierung` einen Bereich `HTTP-Zugänge`:
+
+- Suche nach Host, Realm oder Benutzername;
+- Gruppierung nach Origin und Realm;
+- Anzeige von Auth-Schema, Port und letztem erfolgreichen Einsatz;
+- bevorzugtes Konto ändern;
+- Benutzername bearbeiten;
+- Passwort aktualisieren;
+- einzelnen Zugang löschen;
+- alle Zugänge eines Realms löschen;
+- Passwortanzeige nur nach Touch ID/Systemauthentifizierung;
+- kein ungeschützter Klartext-Export.
+
+Webformular-Passwörter und HTTP-Auth-Zugänge müssen klar unterscheidbar bleiben.
+
+### Konto wechseln und abmelden
+
+Ergänze im Site-Panel und in der Command Bar:
+
+- `HTTP-Anmeldung wechseln`;
+- `HTTP-Anmeldung für diese Website vergessen`;
+- `Gespeicherte HTTP-Zugänge verwalten`.
+
+`HTTP-Anmeldung wechseln` muss:
+
+1. den flüchtigen HTTP-Auth-Cache originbezogen leeren;
+2. betroffene Verbindungen sicher schließen;
+3. die Seite neu laden;
+4. den Credential-Chooser erneut anzeigen.
+
+Verwende dafür den Network-Service-Pfad `ClearHttpAuthCache` mit engem Origin-Filter. Das Leeren einer aktiven Auth-Sitzung darf gespeicherte Zugangsdaten nicht löschen. `Gespeicherten Zugang löschen` und `Aktuelle HTTP-Auth-Sitzung beenden` sind getrennte Aktionen.
+
+### Unsicheres HTTP
+
+HTTP Basic Auth über unverschlüsseltes HTTP überträgt Zugangsdaten nicht vertraulich. Deshalb:
+
+- deutliche Warnung im Dialog;
+- kein automatisches Login über HTTP;
+- Speichern nur nach expliziter Bestätigung;
+- HTTP bleibt für lokale Entwicklungs- und Legacy-Systeme möglich;
+- kein falscher Eindruck, Keychain-Speicherung sichere die Übertragung;
+- HTTPS-Zugangsdaten niemals für dieselbe Domain über HTTP wiederverwenden.
+
+### Inkognito und Erweiterungen
+
+- Inkognito darf vorhandene HTTP-Zugänge nur nach expliziter Auswahl verwenden.
+- Keine automatische Auswahl in Inkognito.
+- Neue oder geänderte HTTP-Zugänge werden in Inkognito nie gespeichert.
+- Auth-Cache wird beim Schließen des letzten Inkognito-Fensters verworfen.
+- Keine HTTP-Auth-Nutzung aus Inkognito erscheint in Verlauf, Sync oder Companion.
+- 1Password und Bitwarden bleiben für normale Webformulare unterstützt.
+- Erfinde keine unsichere DOM-Injection oder proprietäre Extension-API für den nativen Auth-Dialog.
+- Eine spätere Credential-Provider-Schnittstelle ist nur zulässig, wenn ein sicherer Upstream-Standard und reale Anbieterunterstützung existieren.
+
+## Klassisches uBlock Origin ohne eingebauten Adblocker
+
+Baue keinen eigenen Adblocker, keine eigene Filterlisten-Engine und keine Brave-Shields-Kopie.
+
+Erhalte ausschließlich für **uBlock Origin Classic** die kleinstmögliche, wartbare MV2-Kompatibilität:
+
+- Allgemeines Manifest V2 bleibt im Release deaktiviert.
+- Nur feste, browserseitig erlaubte Extension-IDs erhalten die Ausnahme.
+- Die Ausnahme prüft zusätzlich signierten Katalog, erlaubte Herkunft, Version und Hash.
+- Erhalte nur die tatsächlich von uBO benötigten MV2-Background-Page-, Lifecycle- und blocking-`webRequest`-Funktionen.
+- Gewöhnliche MV3-Erweiterungen bleiben unverändert.
+- Webseiten oder beliebige Extension-Pakete dürfen die Ausnahme nicht beanspruchen.
+
+Distribution:
+
+- uBO ist nicht vorinstalliert und nicht automatisch aktiviert.
+- Eine optionale Ein-Klick-Installation wird in AhoiBrowser angeboten.
+- Vor Installation zeigt die UI Version, Upstream-Quelle, Extension-ID und GPL-Lizenz.
+- Das Paket wird reproduzierbar und unverändert aus einem festen offiziellen Upstream-Tag erzeugt.
+- Ein signierter AhoiBrowser-Katalog liefert Metadaten und erwartete Hashes.
+- Ein eigener sicherer Updatepfad aktualisiert das Extension-Paket, weil der Chrome Web Store uBO Classic nicht mehr verteilt.
+- Filterlistenupdates bleiben uBOs eigener Mechanismus.
+
+Pflichttests:
+
+- Installation per Nutzerklick;
+- Netzwerkfilterung;
+- kosmetische Filter;
+- eigene Filterregel;
+- Dashboard;
+- Neustartpersistenz;
+- Filterlistenupdate;
+- Extension-Update;
+- Deinstallation;
+- Ablehnung eines nicht allowlisteten MV2-Pakets;
+- unveränderte Funktion gewöhnlicher MV3-Erweiterungen.
+
+Wenn die Funktion nur durch eine allgemeine MV2-Freigabe oder eine große, unwartbare Extension-Forkfläche möglich wäre, dokumentiere ein Architektur-No-Go. Implementiere keinen unsicheren Workaround.
+
+## Integriertes Developer Toolkit
+
+Das Toolkit ist eine native Browserfunktion und keine Extension. Es ist für normale Nutzer standardmäßig verborgen und wird einmalig in den Einstellungen oder über einen Befehl aktiviert.
+
+Wenn es deaktiviert ist:
+
+- keine zusätzlichen Compilerprozesse;
+- keine dauerhaften Renderer;
+- keine DOM-Beobachter;
+- keine messbare eigene Idle-CPU-Last;
+- keine unnötige Speicherbelegung.
+
+### Live-Editor
+
+- CSS, LESS und SASS;
+- Sofortvorschau;
+- Syntaxfehleranzeige;
+- einmalige oder persistente Regeln;
+- Scope für aktuellen Tab, Origin, Domain oder Pfad;
+- Reload- und Neustartpersistenz entsprechend Einstellung;
+- lazy-loaded JS-/WASM-Compiler in einem sandboxed Utility-Kontext;
+- kein Compiler im Browserprozess.
+
+### JavaScript-Injection
+
+- einmalige oder persistente Ausführung;
+- Isolated World als Default;
+- Main World nur nach sichtbarer Warnung und expliziter Auswahl;
+- dieselben URL-Scopes wie der Style-Editor;
+- klar sichtbarer Aktivzustand;
+- definierte Rücksetzung bei Navigation, Tab-Schließung und Scope-Wechsel.
+
+### Cache und Site Data
+
+- normales Reload;
+- Hard Reload;
+- Cache für aktiven Tab deaktivieren;
+- Cache der aktuellen Site leeren;
+- globalen Cache nur nach Bestätigung leeren;
+- Cookies;
+- Local Storage;
+- Session Storage;
+- IndexedDB;
+- Cache Storage;
+- Service Worker;
+- einzelne oder sämtliche Site-Daten gezielt zurücksetzen.
+
+### Cookie Manager
+
+- Suche;
+- Erstellen, Bearbeiten und Löschen;
+- Domain und Path;
+- Ablaufzeit;
+- Secure;
+- HttpOnly;
+- SameSite;
+- Partitioned/CHIPS;
+- korrekte Trennung normaler und Inkognito-Kontexte;
+- Import/Export nur, wenn dies sicher und ohne unnötigen Ballast umgesetzt werden kann.
+
+### Headerregeln
+
+- Request- und Response-Header;
+- benannte Profile;
+- URL-Scope;
+- temporär oder persistent;
+- CSP-/CORS-Manipulation ausschließlich im sichtbar gekennzeichneten Advanced-Modus;
+- Warnung vor möglichen Sicherheits- und Kompatibilitätsfolgen;
+- als geheim markierte Werte ausschließlich im macOS-Keychain;
+- keine Secrets in Sync, Logs, Crash Reports oder Evidenz.
+
+### Schlanke Web-Developer-Funktionen
+
+- JavaScript pro Seite deaktivieren;
+- CSS pro Seite deaktivieren;
+- Bilder pro Seite deaktivieren;
+- Elemente, Überschriften und ARIA-Landmarks umranden;
+- Alt- und Title-Texte einblenden;
+- Meta-Tags, Canonical, OpenGraph und strukturierte Daten anzeigen;
+- Dokumentinformationen und Seitenquelltext öffnen;
+- Passwortfelder der aktuellen Website sichtbar beziehungsweise wieder maskiert schalten;
+- Passwortfelder bei Navigation und Tab-Schließung automatisch wieder maskieren;
+- gespeicherte Browserpasswörter ausschließlich nach Touch ID/Systemauthentifizierung anzeigen.
+
+Zeige aktive Zustände kompakt als Chips, beispielsweise:
+
+- `CSS`;
+- `JS`;
+- `HDR`;
+- `CACHE OFF`;
+- `PRIVACY OPEN`.
+
+Biete eine einzelne sichere Aktion `Alle Seitenmodifikationen zurücksetzen`.
+
+Developer Assets bleiben standardmäßig lokal. Jedes Snippet und Headerprofil kann einzeln für verschlüsselten Sync freigegeben werden. Keychain-Geheimnisse bleiben immer lokal.
+
+Nicht nachbauen:
+
+- vollständigen Accessibility-Scanner;
+- Network Inspector;
+- Performance Profiler;
+- Responsive Mode;
+- Grid-/Flex-Inspektoren;
+- umfangreiche Formularanalyse.
+
+Diese Funktionen bleiben in Chrome DevTools oder spezialisierten externen Erweiterungen wie IBM Equal Access Accessibility Checker.
+
+## Privacy ohne Funktionsverlust
+
+Implementiere zwei klare Datenschutzmodi.
+
+### `Strikt` – globaler Default
+
+Strikt soll Entwickler nicht unnötig einschränken und normale Websites weitgehend funktionsfähig halten:
+
+- First-Party-Cookies und normale Logins funktionieren vollständig.
+- Unpartitionierte Third-Party-Cookies werden blockiert.
+- CHIPS/partitionierte Cookies und Storage Access werden unterstützt.
+- HTTPS-First ist aktiv.
+- Global Privacy Control ist aktiv.
+- bekannte Trackingparameter werden konservativ entfernt.
+- Cross-Site-Referrer werden reduziert.
+- Topics, Protected Audience und Attribution Reporting sind deaktiviert.
+- Fingerprinting-Schutz greift zunächst gezielt in Drittanbieter-Kontexten.
+- keine globale User-Agent- oder Web-API-Fälschung, die Entwicklerseiten unnötig bricht.
+- keine Produkttelemetrie.
+- keine Usage-Pings.
+- keine automatischen Crash-Uploads.
+- keine ungefragten Experimente.
+- Remote-Suchvorschläge standardmäßig aus.
+- unnötige Google-Hintergrunddienste und spekulative Verbindungen aus.
+
+### `Chromium-kompatibel`
+
+Dieser Modus kann global oder pro Origin aktiviert werden:
+
+- deaktiviert AhoiBrowsers zusätzliche Cookie-, URL-, Referrer- und Fingerprinting-Eingriffe für die betreffende Website;
+- verändert nicht uBlock oder andere Erweiterungen;
+- deaktiviert niemals Sandbox, Site Isolation, Zertifikatsprüfung, Safe Browsing oder Downloadwarnungen;
+- wird sichtbar im Site-Panel und über `PRIVACY OPEN` angezeigt;
+- ist in DevTools beziehungsweise Diagnoseinformationen erkennbar;
+- kann vollständig zurückgesetzt werden.
+
+### Safe Browsing
+
+- Standard Protection aktiv.
+- Enhanced Protection aus.
+- lokale Bedrohungslisten und privacy-preserving Lookups.
+- Falls ein unabhängiger Browser einen Proxy benötigt, implementiere einen quelloffenen, zustandslosen, nicht protokollierenden Projekt-Proxy.
+- Kein stiller Rückfall auf direkte Übertragung vollständiger URLs.
+- dokumentiere alle verwendeten Endpunkte und Datenfelder.
+
+### Fresh-Profile-Netzwerkaudit
+
+Ein frisches Profil darf ohne Nutzeraktion nur dokumentierte Verbindungen aufbauen, beispielsweise für:
+
+- Browserupdate;
+- notwendige Chromium-Sicherheitskomponenten;
+- Safe Browsing;
+- CloudKit, sofern Sync aktiv ist.
+
+Erstelle eine maschinenlesbare Endpoint-Allowlist und einen dynamischen Netzwerktest. Jeder neue Hintergrundendpoint ist ein Security-/Privacy-Review-Ereignis. Teste den Browserschutz zusätzlich mit deaktiviertem uBlock, damit Browser- und Extension-Schutz nicht verwechselt werden.
+
+### Security-Regeln
+
+- Keine privilegierten Bindings für normale Webseiten.
+- Interne WebUIs nur auf dedizierten internen Origins.
+- Mojo-Interfaces minimal und streng validiert.
+- Keine Sandbox-Deaktivierung.
+- Keine Secrets im Repository.
+- Header-, Injection-, HTTP-Auth-, Sync-, Remote-Control- und Updatefunktionen benötigen Threat Model und Security Review.
+- Remote Commands erlauben keine Shellbefehle und keine beliebigen Custom Schemes.
+- Update-, Extension- und uBO-Kataloge werden signiert.
+- manipulierte Artefakte werden sicher abgewiesen.
+
+## CloudKit-Sync
+
+### Grundprinzip
+
+- local-first;
+- Browser und Companion funktionieren ohne iCloud und ohne Netzwerk mit dem lokalen Datenstand;
+- austauschbare `SyncProvider`-Schnittstelle;
+- v1 implementiert `CloudKitSyncProvider`;
+- CloudKit Private Database;
+- eigene Custom Record Zone;
+- native CloudKit-Schnittstellen der Zielsysteme;
+- Objective-C++-Bridge auf macOS;
+- Swift-/SwiftUI-Integration auf iOS/iPadOS.
+
+### Synchronisierte Daten
+
+Synchronisiere:
+
+- Workspaces;
+- Ordner und gespeicherte Seiten;
+- Reihenfolge und Tombstones;
+- offene normale Tabs als gerätebezogene Sitzungen;
+- Verlauf;
+- Appearance und Workspace-Akzente;
+- ausdrücklich freigegebene Einstellungen;
+- Extension-Inventar;
+- Developer Assets nur per einzelnem Opt-in.
+
+Extension-Inventar darf auf einem neuen Mac nur Installationsvorschläge erzeugen. Installiere Erweiterungen niemals still.
+
+Synchronisiere niemals:
+
+- Cookies;
+- Webformular- oder HTTP-Auth-Passwörter;
+- Autofill- oder Formulardaten;
+- Site Storage;
+- Cache;
+- Site Permissions;
+- Extension Storage;
+- Inkognito-Daten;
+- Keychain-Werte;
+- geheime Headerwerte.
+
+### Verschlüsselung und lokale Suche
+
+- Verwende CloudKit `encryptedValues` für URLs, Titel, Verlauf, Tabs, Baumdaten und freigegebene Developer Assets.
+- Verwende die private Datenbank.
+- Suche und Sortierung erfolgen über lokale Indizes, weil verschlüsselte Felder serverseitig nicht suchbar sind.
+- Keine eigenen kryptographischen Primitive erfinden.
+- Dokumentiere Datenklassifikation, Schlüsselabhängigkeiten und Recovery-Verhalten.
+
+### Konflikte
+
+- stabile UUIDs;
+- Hybrid Logical Clock;
+- Geräte-ID als deterministischer Tie-Breaker;
+- verteilbare Ordnungsschlüssel;
+- Last-writer-wins nur auf einzelnen skalaren Feldern;
+- History append-only mit Deduplizierung über Visit-ID;
+- Tombstones für 30 Tage;
+- deterministische Moves und Deletes;
+- Zyklenschutz;
+- unauflösbare Baumkonflikte sichtbar in einen Ordner `Wiederhergestellt` retten;
+- kein stilles Überschreiben oder Verwerfen.
+
+Verlauf:
+
+- Default-Aufbewahrung 90 Tage;
+- Optionen 30, 90 und 365 Tage oder unbegrenzt;
+- Löschen wird auf alle Geräte propagiert.
+
+Gerätesitzungen bleiben getrennt und werden nicht zu einer einzigen Tab-Liste vermischt.
+
+### Recovery und Open-Source-Boundary
+
+Implementiere klare Zustände für:
+
+- iCloud nicht angemeldet;
+- Offlineänderungen;
+- Quota;
+- Accountwechsel;
+- gelöschte Zone;
+- Reset des verschlüsselten iCloud-Schlüsselmaterials;
+- Schemaänderung;
+- Geräteentzug.
+
+Ein lokales Gerät kann nach bestätigtem Recovery seinen lokalen Datenstand neu hochladen. Keine automatische Datenvernichtung bei CloudKit-Key- oder Zone-Fehlern.
+
+Offizielle Builds verwenden den Projekt-CloudKit-Container. Selbst gebaute Forks müssen eigene Apple-Team-, Bundle- und Container-Identifier konfigurieren können.
+
+## Native iOS-/iPadOS-Companion-App
+
+Baue eine native SwiftUI-App. Sie ist in v1 kein vollständiger Browser und verwendet keine eingebettete Webansicht als Browserersatz.
+
+Funktionen:
+
+- Volltextsuche über synchronisierte Workspaces, Baum, normale offene Tabs und Verlauf;
+- Workspaces und Ordner anlegen, umbenennen, verschieben und löschen;
+- gespeicherte Seiten anlegen, verschieben, umbenennen und löschen;
+- Link im vom Nutzer gewählten Standardbrowser öffnen;
+- Link an einen konkreten Mac oder Workspace senden;
+- normalen Mac-Tab öffnen;
+- normalen Mac-Tab fokussieren;
+- normalen Mac-Tab nach Bestätigung schließen;
+- Gerätestatus und Befehlsstatus anzeigen;
+- Inkognito vollständig ausblenden.
+
+### Remote Control
+
+- Remote Control ist pro Mac abschaltbar.
+- Ein neues iOS-Gerät muss am Mac bestätigt werden.
+- Jedes Gerät besitzt einen Signierschlüssel im Keychain.
+- Befehle enthalten Zielgerät, Befehlstyp, Nonce, Timestamp und Ablaufzeit.
+- TTL ist fünf Minuten.
+- Signaturprüfung, Replay-Schutz und Idempotenz sind Pflicht.
+- Statuswerte: `queued`, `delivered`, `executed`, `failed`.
+- Offlinebefehle dürfen innerhalb der TTL warten.
+- Erlaubte Navigation beschränkt sich auf sichere HTTP-/HTTPS-URLs.
+- Keine Shellbefehle.
+- Keine beliebigen Custom Schemes.
+- Kein `Alle Tabs schließen` in v1.
+- Inkognito ist weder auffindbar noch adressierbar.
+
+## Build, Signierung und Distribution
+
+### Releasebuild
+
+- echter optimierter ARM64-Build;
+- `is_component_build=false`;
+- Release-Sandbox und Site Isolation aktiv;
+- Hardwarebeschleunigung aktiv;
+- Symbole getrennt archivieren;
+- eigenes Branding, kein Chrome-Branding und keine Google-Trademarks;
+- proprietäre Codecflags nur zusammen mit rechtlich geklärter Distribution.
+
+### App-Bundle und DMG
+
+- eigenständiges `.app`-Bundle;
+- Frameworks und Helper korrekt eingebettet;
+- Renderer-, GPU-, Utility- und Crash-Prozesse korrekt signiert;
+- minimale Entitlements;
+- Hardened Runtime;
+- Developer-ID-Signierung;
+- Notarisierung;
+- Stapling;
+- DMG;
+- reale Installation nach `/Applications/AhoiBrowser.app`.
+
+### Updater
+
+Verwende Sparkle 2 oder einen gleichwertigen nativen und auditierbaren Updater:
+
+- Ed25519-signierter Appcast;
+- Kanäle `dogfood`, `beta`, `stable`;
+- Delta- und Full-Update;
+- atomarer Austausch;
+- sauberer Neustart;
+- Recovery bei Downloadabbruch und Netzverlust;
+- sichere Ablehnung manipulierter Manifeste und Pakete;
+- reale Updates von N−2 und N−1 auf aktuellen Release Candidate;
+- keine Update-Telemetrie.
+
+### Releaseartefakte
+
+Veröffentliche je Release:
+
+- AhoiBrowser-Version und Buildnummer;
+- Git-SHA;
+- Chromium-Commit;
+- Patchset-Version;
+- Checksums;
+- SBOM;
+- Third-Party Notices;
+- Lizenztexte;
+- bekannte Abweichungen;
+- Status externer Release-Gates;
+- signiertes Evidenzmanifest.
+
+## Open Source, Lizenz und Marke
+
+- Eigener Browser-, Sync- und Companion-Code: GPL-3.0-or-later.
+- Chromium- und Drittanbieterdateien behalten ihre Originallizenzen.
+- Beiträge erfolgen per Developer Certificate of Origin.
+- Verwende kein CLA, das eine beliebige geschlossene Relizenzierung erlaubt.
+- Name und Logo erhalten eine klare Trademark-Policy.
+- Öffentliche Forks müssen rebranden.
+- Versprich nicht, kommerzielle Nutzung verbieten zu können; GPL verlangt bei verteilten abgeleiteten Werken die Offenlegung des korrespondierenden GPL-Quellcodes.
+- Prüfe iOS-App-Store-Distribution, GPL-§7-Zusatzfreigaben, Widevine, H.264/AAC und sonstige proprietäre Komponenten juristisch.
+- Formuliere keine selbst entworfene Lizenzausnahme als endgültig rechtssicher.
+- Proprietäre CDM-Binaries bleiben getrennt vom öffentlichen Quellcode.
+- uBlock Origin bleibt eine separate GPL-lizenzierte Erweiterung.
+
+## Implementierungsphasen
+
+### Phase 0 – Machbarkeit, Umgebung und Recht
+
+1. Inventarisiere Workspace, Hardware, RAM, freien Speicher, Xcode, SDKs, Signieridentitäten, verfügbare iOS-Geräte, Git/GitHub-Zugriff und vorhandene Chromium-Caches.
+2. Initialisiere Repository, GPL, DCO, zentrale Branding-Konfiguration und Dokumentationsstruktur.
+3. Pinne und baue unverändertes Chromium ARM64.
+4. Erzeuge einen minimal gebrandeten AhoiBrowser mit echter Prozessarchitektur.
+5. Verifiziere Sandbox, Site Isolation, Renderer, GPU, Network Service und DevTools.
+6. Erzeuge den ersten installierbaren Dogfood-Build.
+7. Verifiziere reale MV3-Extension-Installation.
+8. Verifiziere Native Messaging mit 1Password oder dokumentiere exakt die noch fehlende Nutzerfreigabe.
+9. Baue den minimalen selektiven uBO-MV2-Prototyp.
+10. Verifiziere CloudKit-Encrypted-Fields-Roundtrip zwischen Mac und iOS.
+11. Verifiziere AppKit-/Liquid-Glass-Integration.
+12. Verifiziere einen ersten HTTP-Basic-Auth-Flow über Chromiums Password Store.
+13. Starte Widevine-, Codec- und Lizenzklärung.
+
+Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung tragfähig ist, setze Phase 1 unmittelbar fort. Ein No-Go ist nur bei einem konkret nachgewiesenen Architekturproblem zulässig.
+
+### Phase 1 – Build-, Patch-, CI- und Releasegrundlage
+
+- gepinnter Bootstrap;
+- GN-Integration;
+- Patchverwaltung;
+- automatisierte Tests;
+- Releasebuild;
+- Packaging und Installation;
+- Dogfood-Updater;
+- Upstream-Roll;
+- Security-/Privacy-Dokumentation;
+- erster installierter Computer-Use-Smoke.
+
+### Phase 2 – Browser-Chrome, Baum und Navigation
+
+- native Hauptoberfläche;
+- Themes und Lokalisierung;
+- persistenter Tree;
+- temporäre Tabs;
+- Workspaces;
+- mehrere Fenster;
+- Session Restore;
+- Command Bar;
+- Quick Window;
+- Inkognito;
+- Magic-Mouse-Gesten;
+- Extension-Actions;
+- Computer-Use-Abnahme aller sichtbaren Kernflows.
+
+### Phase 3 – Browserfähigkeit, HTTP Auth und Extensions
+
+- Downloads und Uploads;
+- PDF/Drucken;
+- Standardbrowser;
+- Medien/PiP;
+- WebRTC;
+- Berechtigungen;
+- lokaler Passwortmanager;
+- vollständiger HTTP-Auth-Chooser und Verwaltung;
+- Chrome Web Store;
+- 1Password;
+- Bitwarden;
+- uBlock Origin Classic;
+- reale User-E2E-Abnahme.
+
+### Phase 4 – Developer Toolkit und Privacy
+
+- CSS/LESS/SASS/JavaScript;
+- Cache und Site Data;
+- Cookie Manager;
+- Headerregeln;
+- Diagnosewerkzeuge;
+- Passwortfeldanzeige;
+- Strict-/Compatibility-Modus;
+- Safe Browsing;
+- Fresh-Profile-Netzwerkaudit;
+- Computer-Use-Abnahme mit Fixtures und realen Seiten.
+
+### Phase 5 – CloudKit und Companion
+
+- Sync-Schema;
+- Konfliktauflösung;
+- Verlauf;
+- gerätebezogene offene Tabs;
+- Developer-Asset-Opt-in;
+- native iOS-/iPadOS-App;
+- Remote Control;
+- reale Zwei-Mac-plus-iOS-Abnahme.
+
+### Phase 6 – Hardening und öffentlicher Release Candidate
+
+- aktueller Chromium-Roll;
+- Security Review;
+- Privacy Review;
+- Lizenzreview;
+- Performance;
+- Accessibility;
+- Crash- und Soak Tests;
+- signierte N−2-/N−1-Updates;
+- DRM;
+- vollständige Computer-Use-Critical-Journey;
+- Releaseevidenz;
+- keine öffentlichen Stable-Binaries vor bestandenem Release-Gate.
+
+## Verbindliches Testmodell
+
+Jede Funktion erhält den höchsten erforderlichen Testlevel:
+
+- `UNIT`: deterministische Logiktests.
+- `INTEGRATION`: Chromium Browser Tests, lokale Testserver, Prozesse, Datenbanken und Services.
+- `CU_E2E`: reale Bedienung des installierten Builds via Computer Use.
+- `ASSISTED_E2E`: reale Hardware, Biometrie, Account oder physische Geste plus anschließende technische Verifikation.
+
+`PASS` ist nur zulässig, wenn der höchste für den Testfall vorgesehene Level bestanden wurde.
+
+### Computer-Use-Regeln
+
+Vor dem ersten Computer-Use-Test muss die verfügbare Computer-Use-Skill-Anleitung vollständig gelesen und befolgt werden.
+
+Computer Use bedient AhoiBrowser wie ein echter Nutzer:
+
+- Maus und Klicks;
+- Tastatur und Shortcuts;
+- Menüs und Popover;
+- Fenster und Workspaces;
+- Finder;
+- Systemeinstellungen;
+- sichtbare Berechtigungsdialoge;
+- installierte Extensions;
+- echte Websites.
+
+Terminal oder interne APIs dienen ausschließlich für Build, Prozess-, Netzwerk-, Dateisystem- und Datenbank-Readback. Sie dürfen keinen sichtbaren User-Flow umgehen.
+
+Vor jedem CU-E2E-Lauf:
+
+1. Git-SHA und Chromium-Revision festhalten.
+2. Releaseartefakt bauen.
+3. echten DMG-Installationsweg verwenden.
+4. ausschließlich `/Applications/AhoiBrowser.app` starten.
+5. ARM64 prüfen.
+6. Bundle-ID, Version und Buildnummer prüfen.
+7. Signatur, Hardened Runtime, Entitlements, Notarisierung, Stapling und Helper-Signaturen prüfen.
+8. in `Über AhoiBrowser` dieselben Revisionen bestätigen.
+9. macOS-Version, Gerät und Profiltyp dokumentieren.
+10. einen Lauf mit frischem Profil und bei Migrationen einen Lauf mit vorhandenem Profil durchführen.
+
+Release-E2E darf nicht mit folgenden Abkürzungen laufen:
+
+- `--no-sandbox`;
+- `--ignore-certificate-errors`;
+- deaktivierter Site Isolation;
+- entpacktem App-Bundle aus dem Buildverzeichnis;
+- Debug-only Feature Flags, die im Release nicht existieren.
+
+### Lokale HTTPS-E2E-Fixtures
+
+Baue einen reproduzierbaren lokalen HTTPS-Testserver mit sauber vertrauenswürdiger Testzertifikatslösung. Er liefert:
+
+- Downloads mit Range Requests, Pause/Resume und reproduzierbaren Hashes;
+- Upload und Drag-and-drop;
+- Redirects und Popups;
+- OAuth-Testfluss;
+- Passkey/WebAuthn-Testfluss;
+- H.264/AAC, MSE und PiP;
+- WebRTC;
+- Kamera und Mikrofon;
+- Screen Capture;
+- Location, Notifications und Clipboard;
+- First- und Third-Party-Cookies;
+- CHIPS;
+- GPC, Referrer und Trackingparameter;
+- Local Storage und Session Storage;
+- IndexedDB;
+- Cache Storage;
+- Service Worker;
+- versionierte Cache-Assets und Zugriffszähler;
+- Request-/Response-Header-Echo;
+- CSP- und CORS-Testfälle;
+- CSS-/LESS-/SASS-/JavaScript-Injection;
+- synthetische Loginformulare mit ausschließlich künstlichen Zugangsdaten;
+- sichere Testfälle für gefährliche Downloadwarnungen ohne echte Malware.
+
+HTTP-Auth-Fixtures enthalten zusätzlich:
+
+- mindestens zwei Basic-Auth-Realms auf demselben Host;
+- mehrere Benutzer für dasselbe Realm;
+- verschiedene Pfade innerhalb eines Realms;
+- gleichnamige Realms auf unterschiedlichen Ports;
+- gleichnamige Realms auf HTTP und HTTPS;
+- Digest Auth;
+- Proxy Auth, sofern lokal reproduzierbar;
+- falsche Zugangsdaten;
+- Passwortwechsel;
+- wiederholte `401`-Challenges;
+- Same-Origin-Redirect im Schutzbereich;
+- Redirect auf eine fremde Origin;
+- Subresource-Auth-Challenge;
+- Server-Receipts, die niemals das Passwort persistieren.
+
+Fixtures ersetzen keine Live-Abnahme von YouTube, Meet beziehungsweise einem vergleichbaren WebRTC-Dienst, Chrome Web Store, 1Password, Bitwarden, CloudKit, dem echten Updater, Netflix und dem zweiten Widevine-Dienst.
+
+## Vollständige Abnahmematrix
+
+Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn die Implementierung zusätzliche Risiken erzeugt.
+
+### Packaging, Installation und erster Start
+
+- `PKG-01`: DMG öffnen, App nach `/Applications` ziehen, DMG auswerfen und App ohne Gatekeeper-Fehler starten.
+- `PKG-02`: ARM64, vollständige Codesign-Kette, Hardened Runtime, Entitlements, Notarisierung und Stapling prüfen.
+- `PKG-03`: alle Renderer-, GPU-, Network-, Utility- und Crash-Helper auf korrekte Signatur prüfen.
+- `PKG-04`: Erster Start auf Deutsch durchführen.
+- `PKG-05`: Erster Start auf Englisch durchführen.
+- `PKG-06`: Sprache, Appearance und Startverhalten wählen, App beenden und Persistenz nach Neustart prüfen.
+- `PKG-07`: Clean Install unter einem frischen macOS-Testnutzer.
+- `PKG-08`: Upgrade Install mit realistischem vorhandenen Profil.
+- `PKG-09`: `Über AhoiBrowser` zeigt korrekte Produkt-, Build- und Chromium-Version.
+
+### UI, Theme, Glass und Accessibility
+
+- `UI-01`: mehrere reale Websites öffnen, Sidebar ein-/ausblenden und Fenster stufenlos skalieren.
+- `UI-02`: Vollbild und macOS Split View verwenden; keine abgeschnittenen oder überlagerten Elemente.
+- `UI-03`: System, Hell und Dunkel durchschalten und nach Neustart prüfen.
+- `UI-04`: globale Hauptfarbe ändern.
+- `UI-05`: pro Workspace unterschiedlichen Akzent setzen und Persistenz prüfen.
+- `UI-06`: Glass aktivieren und deaktivieren.
+- `UI-07`: macOS `Transparenz reduzieren` aktivieren; opaker, lesbarer Fallback.
+- `UI-08`: `Bewegung reduzieren` und erhöhten Kontrast prüfen.
+- `UI-09`: vollständige Kernreise auf Deutsch; keine Rohschlüssel, Überläufe oder falsche Pluralformen.
+- `UI-10`: dieselbe Kernreise auf Englisch.
+- `A11Y-01`: Kernreise ausschließlich per Tastatur; keine Fokusfalle.
+- `A11Y-02`: VoiceOver-Rollen, Labels, Reihenfolge und Zustandsansagen.
+- `A11Y-03`: 200-Prozent-Zoom beziehungsweise große Systemschrift, soweit für Browser-Chrome relevant.
+
+### Tree, Tabs und Workspaces
+
+- `TREE-01`: fünf Workspaces und mindestens zehn verschachtelte Ordnerebenen anlegen.
+- `TREE-02`: gespeicherte Seiten erstellen, umbenennen, sortieren und zwischen Ordnern verschieben.
+- `TREE-03`: Seite zwischen Workspaces verschieben und Undo prüfen.
+- `TREE-04`: temporären Tab öffnen, per `⌘D` speichern, schließen und erneut über den Knoten öffnen.
+- `TREE-05`: temporären Tab schließen und über Tab Restore zurückholen.
+- `TREE-06`: Browser mit temporären Tabs beenden; Standarddialog `Fortsetzen/Leer starten` prüfen.
+- `TREE-07`: feste Startpräferenzen `fragen`, `fortsetzen` und `leer` jeweils nach Neustart prüfen.
+- `TREE-08`: gespeicherten Unterbaum löschen, Undo verwenden, erneut löschen und neu starten.
+- `TREE-09`: Papierkorb und Tombstones führen nicht zu Zyklen oder Duplikaten.
+- `TREE-10`: 10.000-Knoten-Fixture laden, suchen, scrollen, öffnen und verschieben.
+- `TREE-11`: kontrollierter Crash während Baumänderung; atomare, reparierbare Daten nach Neustart.
+- `WS-01`: Workspace-Wechsel per Sidebar.
+- `WS-02`: Workspace-Wechsel per Tastatur.
+- `WS-03`: horizontale Geste mit echter Magic Mouse, einschließlich langsamer, schneller und abgebrochener Geste.
+- `WS-04`: Gestenrichtung, Empfindlichkeit und Deaktivierung prüfen.
+- `WS-05`: zwei Fenster; Baumänderung in Fenster A erscheint in B.
+- `WS-06`: temporäre Tabs und aktive Auswahl wandern nicht unerwartet zwischen Fenstern.
+- `WS-07`: Cookies und Logins bleiben beim Workspace-Wechsel erhalten.
+
+### Command Bar, Quick Window und Inkognito
+
+- `CMD-01`: `⌘L` und Navigation zu einer URL.
+- `CMD-02`: `⌘T` erzeugt temporären Tab und fokussiert die Eingabe.
+- `CMD-03`: `g Suchbegriff` führt direkte Google-Suche aus.
+- `CMD-04`: offene Tabs, Baum, Ordner, Workspaces, Verlauf und Befehle finden.
+- `CMD-05`: gesamte Command-Bar-Reise nur per Tastatur.
+- `CMD-06`: Ranking und Command-Bar-Latenz messen.
+- `QUICK-01`: globalen Shortcut bei inaktiver App verwenden.
+- `QUICK-02`: eingeloggte Website öffnen; Quick Window nutzt dasselbe normale Profil.
+- `QUICK-03`: Seite in normalen Tab beziehungsweise Baum übernehmen.
+- `QUICK-04`: Quick Window schließen, ohne normale Sitzung zu beschädigen.
+- `INC-01`: `⌘⇧N` öffnet echtes Inkognito-Fenster.
+- `INC-02`: Testcookie und Login in Inkognito setzen, Fenster schließen und normale Sitzung prüfen.
+- `INC-03`: Inkognito erscheint nicht in Verlauf, Baum, Sync, iOS oder Session Restore.
+- `INC-04`: Extension ist nur nach expliziter Inkognito-Freigabe aktiv.
+- `INC-05`: Browsercrash mit normalem und Inkognito-Fenster; nur normale Sitzung wird angeboten.
+
+### Navigation und Systemintegration
+
+- `NAV-01`: Zurück, Vor, Reload, Hard Reload, Same-Origin- und Cross-Origin-Redirect.
+- `NAV-02`: Popups zulassen, blockieren und pro Site konfigurieren.
+- `NAV-03`: Formulare, Datei- und Ordnerupload.
+- `NAV-04`: Drag-and-drop einer Datei in Website und Browser-Chrome.
+- `NAV-05`: Drucken und PDF-Vorschau.
+- `NAV-06`: OAuth-Testlogin.
+- `NAV-07`: Passkey/WebAuthn-Test.
+- `NAV-08`: sicherer Custom-Protocol-Prompt.
+- `DEFAULT-01`: AhoiBrowser als Standardbrowser setzen.
+- `DEFAULT-02`: Links aus Mail, Finder und Terminal öffnen; korrekter Fensterfokus und URL.
+
+### Downloads
+
+- `DL-01`: PDF und große ZIP-Datei laden.
+- `DL-02`: großen Download pausieren und fortsetzen.
+- `DL-03`: Download abbrechen und sauber entfernen.
+- `DL-04`: fertige Datei im Finder anzeigen und öffnen.
+- `DL-05`: Dateihash mit Fixture-Server vergleichen.
+- `DL-06`: Downloadhistorie nach Neustart.
+- `DL-07`: harmloser Testfall für gefährlichen Download zeigt Warnung; Abbrechen und explizites Behalten prüfen.
+- `DL-08`: Netzverlust und Wiederaufnahme.
+
+### HTTP Basic Auth, Digest und `.htaccess`
+
+- `AUTH-01`: neue Basic-Auth-Daten eingeben, erfolgreich anmelden und erst danach speichern.
+- `AUTH-02`: Browser vollständig beenden; nach Neustart wird das gespeicherte Konto angeboten.
+- `AUTH-03`: zwei Konten für dasselbe Realm speichern und sichtbar auswählen.
+- `AUTH-04`: Benutzername über Autocomplete suchen und per Tastatur auswählen.
+- `AUTH-05`: bevorzugtes beziehungsweise zuletzt erfolgreiches Konto wird korrekt vorausgewählt.
+- `AUTH-06`: falsches Passwort verwenden, verständlichen Fehler sehen und auf anderes Konto wechseln.
+- `AUTH-07`: einzelner Fehler löscht gespeicherte Daten nicht.
+- `AUTH-08`: geändertes Passwort nach erfolgreichem Login aktualisieren.
+- `AUTH-09`: zwei Realms desselben Hosts bleiben strikt getrennt.
+- `AUTH-10`: gleichnamige Realms auf unterschiedlichen Ports bleiben getrennt.
+- `AUTH-11`: Server- und Proxy-Credentials bleiben getrennt.
+- `AUTH-12`: HTTPS-Zugang wird nie auf HTTP übertragen.
+- `AUTH-13`: Cross-Origin-Redirect erhält keinen Authorization-Header.
+- `AUTH-14`: Pfad- und Protection-Space-Regeln verhindern zu breite Wiederverwendung.
+- `AUTH-15`: `HTTP-Anmeldung wechseln` leert den richtigen Auth-Cache, schließt betroffene Verbindungen, lädt neu und zeigt die Kontenauswahl.
+- `AUTH-16`: Sitzungsabmeldung löscht das gespeicherte Konto nicht.
+- `AUTH-17`: Löschen eines gespeicherten Kontos führt beim nächsten Besuch zu leerem Dialog.
+- `AUTH-18`: `Für dieses Realm nie speichern` unterdrückt Angebote und ist in Settings rücksetzbar.
+- `AUTH-19`: HTTP-Verbindung zeigt deutliche Warnung und bietet kein Auto-Login an.
+- `AUTH-20`: Digest Auth funktioniert ohne Vermischung mit Basic-Auth-Einträgen.
+- `AUTH-21`: Inkognito kann vorhandenes Konto nur explizit auswählen und speichert keine Änderungen.
+- `AUTH-22`: Schließen des letzten Inkognito-Fensters verwirft dessen Auth-Cache.
+- `AUTH-23`: HTTP-Auth-Credentials erscheinen weder auf Mac B noch in CloudKit oder iOS.
+- `AUTH-24`: Passwortanzeige in der HTTP-Zugangsverwaltung erfordert Touch ID/Systemauthentifizierung.
+- `AUTH-25`: Logs, NetLog, Crash Reports und Evidenz enthalten weder Passwort noch vollständigen Authorization-Header.
+- `AUTH-26`: Subresource-Auth-Challenge kann keine unklare oder irreführende Credential-Abfrage erzeugen.
+- `AUTH-27`: vollständige sichtbare Reise – Speichern, Neustart, Autocomplete, Kontowahl, Fehlerkorrektur, Wechsel und Abmeldung – via Computer Use im installierten Build.
+
+### Medien und Berechtigungen
+
+- `MEDIA-01`: lokale H.264/AAC-Fixture abspielen.
+- `MEDIA-02`: YouTube abspielen, seeken und Auflösung wechseln.
+- `MEDIA-03`: Vollbild und Picture-in-Picture.
+- `MEDIA-04`: PiP bleibt bei Tab-, Workspace- und Fensterwechsel sowie minimierter App aktiv.
+- `MEDIA-05`: Hardwaredecode über Media Internals und GPU-Status nachweisen.
+- `MEDIA-06`: Audiofokus und Media Session.
+- `MEDIA-07`: echte macOS-Medientasten.
+- `DRM-01`: Netflix mit legalem Widevine-CDM und Testaccount.
+- `DRM-02`: mindestens ein zweiter Widevine-Dienst.
+- `PERM-01`: Kamera/Mikrofon zunächst ablehnen, erneut anfordern, erlauben und zurücksetzen.
+- `PERM-02`: realer WebRTC-/Meet-Test.
+- `PERM-03`: gesamten Bildschirm teilen.
+- `PERM-04`: einzelnes Fenster teilen.
+- `PERM-05`: einzelnen Tab teilen.
+- `PERM-06`: Auswahl abbrechen und OS-Berechtigung entziehen.
+- `PERM-07`: Standort erlauben, ablehnen und zurücksetzen.
+- `PERM-08`: Notifications erlauben, ablehnen und zurücksetzen.
+- `PERM-09`: Clipboard-Berechtigung und macOS-Verhalten prüfen.
+
+### Extensions und uBlock Origin
+
+- `EXT-01`: reale MV3-Erweiterung aus Chrome Web Store installieren.
+- `EXT-02`: Popup, Optionsseite, Service Worker und Content Script bedienen.
+- `EXT-03`: Browser neu starten, Extensionzustand prüfen, Update durchführen und Extension entfernen.
+- `EXT-04`: Extension-Action pinnen, Overflow öffnen und Shortcut ändern.
+- `EXT-05`: entpackte Entwicklererweiterung laden und nach Codeänderung neu laden.
+- `EXT-06`: 1Password installieren und AhoiBrowser als vertrauenswürdigen Browser freigeben.
+- `EXT-07`: 1Password per Touch ID entsperren und künstlichen Testlogin ausfüllen/speichern.
+- `EXT-08`: Bitwarden mit Test-Vault entsperren, Login ausfüllen und speichern.
+- `EXT-09`: React DevTools oder vergleichbare Entwicklererweiterung verwenden.
+- `EXT-10`: IBM Equal Access Accessibility Checker installieren und auf Testseite ausführen.
+- `UBO-01`: uBlock Origin Classic über AhoiBrowser-Ein-Klick-Flow installieren.
+- `UBO-02`: Version, ID, Quelle und Hash gegen Katalog prüfen.
+- `UBO-03`: Netzwerkrequest auf kontrollierter Testseite blockieren.
+- `UBO-04`: kosmetischen Filter prüfen.
+- `UBO-05`: eigene Filterregel anlegen.
+- `UBO-06`: Dashboard und Einstellungen verwenden.
+- `UBO-07`: Browserneustart und Persistenz.
+- `UBO-08`: Filterlistenupdate.
+- `UBO-09`: Extension-Update über signierten Katalog.
+- `UBO-10`: Deinstallation.
+- `UBO-11`: fremdes, nicht allowlistetes MV2-Paket wird abgewiesen.
+- `UBO-12`: gewöhnliche MV3-Erweiterungen funktionieren parallel unverändert.
+
+### Developer Toolkit
+
+- `DEV-01`: CSS auf Fixture anwenden, Syntaxfehler korrigieren, Reload und Neustart.
+- `DEV-02`: LESS kompilieren und sichtbar anwenden.
+- `DEV-03`: SASS kompilieren und sichtbar anwenden.
+- `DEV-04`: nachweisen, dass Compiler erst beim Öffnen geladen werden.
+- `DEV-05`: JavaScript in Isolated World ausführen.
+- `DEV-06`: Main World auswählen, Warnung bestätigen und Ausführung prüfen.
+- `DEV-07`: Tab-, Origin-, Domain- und Pfad-Scope prüfen.
+- `DEV-08`: versioniertes Asset laden und Hard Reload prüfen.
+- `DEV-09`: Cache Off aktivieren und Serverzugriffszähler prüfen.
+- `DEV-10`: Site Cache und globalen Cache getrennt leeren.
+- `DEV-11`: Cookies, Local Storage, Session Storage, IndexedDB, Cache Storage und Service Worker einzeln löschen.
+- `DEV-12`: Cookie suchen, erstellen, bearbeiten und löschen.
+- `DEV-13`: SameSite, Secure, HttpOnly und Partitioned/CHIPS korrekt behandeln.
+- `DEV-14`: Request-Header über Echo-Server bestätigen.
+- `DEV-15`: Response-Header-Regel bestätigen.
+- `DEV-16`: CSP/CORS-Advanced-Modus sichtbar aktivieren und vollständig zurücksetzen.
+- `DEV-17`: Keychain-Secret verwenden; kein Klartext in UI-Evidenz, Logs oder Sync.
+- `DEV-18`: JavaScript, CSS und Bilder jeweils deaktivieren und wieder aktivieren.
+- `DEV-19`: Elemente, Überschriften und ARIA-Landmarks umranden.
+- `DEV-20`: Alt-/Title-Texte einblenden.
+- `DEV-21`: Meta, Canonical, OpenGraph und strukturierte Daten anzeigen.
+- `DEV-22`: Passwortfeld sichtbar machen; Navigation maskiert es wieder.
+- `DEV-23`: gespeichertes Passwort nur nach Touch ID/Systemauthentifizierung anzeigen.
+- `DEV-24`: Aktivchips sind korrekt und verschwinden nach Reset.
+- `DEV-25`: `Alle Seitenmodifikationen zurücksetzen` entfernt sämtliche aktiven Änderungen.
+- `DEV-26`: bei deaktiviertem Toolkit kein zusätzlicher Dauerprozess, keine messbare Idle-CPU und kein unnötiger Compiler-Speicher.
+
+### Privacy und Security
+
+- `PRIV-01`: First-Party-Login funktioniert im Strict-Modus.
+- `PRIV-02`: unpartitionierte Third-Party-Cookies werden blockiert.
+- `PRIV-03`: CHIPS und Storage Access funktionieren gemäß Policy.
+- `PRIV-04`: GPC wird korrekt gesendet.
+- `PRIV-05`: Referrer und Trackingparameter verhalten sich wie dokumentiert.
+- `PRIV-06`: Werbe-/Profiling-APIs sind deaktiviert.
+- `PRIV-07`: absichtlich inkompatible Fixture auf `Chromium-kompatibel` umschalten.
+- `PRIV-08`: Origin-Ausnahme bleibt nach Reload und Neustart sichtbar aktiv.
+- `PRIV-09`: Ausnahme entfernen und Strict-Verhalten wiederherstellen.
+- `PRIV-10`: uBlock deaktivieren und Browserschutz isoliert testen.
+- `PRIV-11`: frisches Profil fünf Minuten ohne Navigation mitschneiden.
+- `PRIV-12`: anschließend normale Navigation durchführen und vollständige Endpoint-Liste erfassen.
+- `PRIV-13`: jeder Hintergrundendpoint entspricht der maschinenlesbaren Allowlist.
+- `PRIV-14`: Standard Safe Browsing warnt auf kontrolliertem Testfall.
+- `PRIV-15`: Enhanced Protection ist nicht still aktiv.
+- `PRIV-16`: kontrollierter Crash löst keinen automatischen Produkttelemetrie- oder Crashupload aus.
+- `SEC-01`: Renderer-Sandbox, Site Isolation und Prozessgrenzen im Release nachweisen.
+- `SEC-02`: normale Website kann keine internen AhoiBrowser-Mojo- oder WebUI-Funktionen erreichen.
+- `SEC-03`: manipulierte Extension-, uBO- und Updateartefakte werden abgewiesen.
+- `SEC-04`: Repository- und Buildartefakte auf Secrets prüfen.
+
+### Sync zwischen zwei Macs
+
+Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCloud-/CloudKit-Umgebung:
+
+- `SYNC-01`: Workspace und Baum von Mac A nach Mac B synchronisieren.
+- `SYNC-02`: gespeicherte Seite von Mac B ändern und auf Mac A prüfen.
+- `SYNC-03`: beide Macs offline ändern und anschließend deterministisch mergen.
+- `SYNC-04`: gleichzeitige Moves desselben Knotens.
+- `SYNC-05`: gleichzeitiger Move und Delete.
+- `SYNC-06`: Konflikt darf keinen Zyklus erzeugen; Recovery-Ordner prüfen.
+- `SYNC-07`: History von A auf B und iOS finden.
+- `SYNC-08`: offene Tabs bleiben nach Gerät gruppiert.
+- `SYNC-09`: Verlauf löschen und Propagation prüfen.
+- `SYNC-10`: Retention 30/90/365/unbegrenzt prüfen; Default 90 Tage.
+- `SYNC-11`: Cookies bleiben lokal.
+- `SYNC-12`: Webformular- und HTTP-Auth-Passwörter bleiben lokal.
+- `SYNC-13`: Site Storage, Permissions, Extension Storage und Keychain-Secrets bleiben lokal.
+- `SYNC-14`: Inkognito wird nie serialisiert.
+- `SYNC-15`: zwei Developer Assets anlegen; nur explizit freigegebenes Asset synchronisiert.
+- `SYNC-16`: Extension-Inventar erzeugt nur Installationsvorschlag, keine stille Installation.
+- `SYNC-17`: iCloud abmelden, offline ändern, wieder anmelden und Queue abarbeiten.
+- `SYNC-18`: CloudKit-Quota-/temporären Fehler verständlich behandeln.
+- `SYNC-19`: Zone-/Key-Reset und bestätigten Recovery-Upload prüfen.
+- `SYNC-20`: Accountwechsel ohne stillen Datenverlust.
+- `SYNC-21`: Gerät widerrufen und weiteren Zugriff verhindern.
+- `SYNC-22`: Sync-Logs und Payload-Evidenz enthalten keine ausgeschlossenen Geheimdaten.
+
+### iOS-/iPadOS-Companion und Remote Control
+
+- `IOS-01`: auf echtem iPhone/iPad Workspaces, Baum, Tabs und Verlauf durchsuchen.
+- `IOS-02`: gespeicherte Seite und Ordner anlegen.
+- `IOS-03`: Baumknoten verschieben, umbenennen und löschen; Mac-Gegenprüfung.
+- `IOS-04`: Link im gewählten Standardbrowser öffnen.
+- `IOS-05`: Link an bestimmten Mac und Workspace senden.
+- `IOS-06`: normalen Mac-Tab remote öffnen.
+- `IOS-07`: normalen Mac-Tab remote fokussieren.
+- `IOS-08`: normalen Mac-Tab nach Bestätigung schließen.
+- `IOS-09`: Offlinebefehl und TTL prüfen.
+- `IOS-10`: Status `queued/delivered/executed/failed` prüfen.
+- `IOS-11`: Replay wird abgewiesen.
+- `IOS-12`: falsches Zielgerät und ungültige Signatur werden abgewiesen.
+- `IOS-13`: Gerätefreigabe und Geräteentzug.
+- `IOS-14`: Inkognito bleibt unsichtbar und nicht steuerbar.
+- `IOS-15`: beliebige Custom Schemes, Shellbefehle und Massenaktionen werden abgewiesen.
+
+### Updates, Crash und Recovery
+
+- `UPDATE-01`: signierten N−2-Build installieren, realistisches Profil erzeugen und auf aktuellen RC aktualisieren.
+- `UPDATE-02`: N−1 auf aktuellen RC.
+- `UPDATE-03`: Delta-Update.
+- `UPDATE-04`: Full-Fallback.
+- `UPDATE-05`: Download während Update unterbrechen; alter Build bleibt startfähig.
+- `UPDATE-06`: Netzverlust und Wiederaufnahme.
+- `UPDATE-07`: manipulierten Appcast beziehungsweise Manifest ablehnen.
+- `UPDATE-08`: Paket mit falschem Hash oder falscher Signatur ablehnen.
+- `UPDATE-09`: Dogfood-, Beta- und Stable-Kanäle trennen.
+- `UPDATE-10`: Datenmigration erhält Baum, Sessions, Einstellungen und lokale Credentials.
+- `CRASH-01`: Renderer eines Tabs beenden; andere Tabs bleiben intakt.
+- `CRASH-02`: GPU-Prozess beenden; UI und Video erholen sich.
+- `CRASH-03`: Browserprozess mit gespeicherten und temporären Tabs hart beenden.
+- `CRASH-04`: Recovery-Dialog bedienen und normale Sitzung wiederherstellen.
+- `CRASH-05`: Crash während Tree-Schreibvorgang.
+- `CRASH-06`: Crash während Sync-Commit beziehungsweise Migration.
+- `CRASH-07`: keine Zyklen, Duplikate oder beschädigte Daten nach Recovery.
+- `CRASH-08`: Inkognito wird nach Crash nie angeboten.
+
+### Performance und Daily Driver
+
+Vergleiche immer gegen unverändertes Chromium derselben Revision, auf derselben Hardware, mit gleichen Flags, gleichen Profilbedingungen und derselben Sitzung. Verwende mehrere Läufe und dokumentiere Methodik und Streuung.
+
+- `PERF-01`: Speedometer-Regression höchstens 3 Prozent.
+- `PERF-02`: Startzeit höchstens 10 Prozent schlechter.
+- `PERF-03`: Command Bar p95 unter 50 ms.
+- `PERF-04`: sichtbarer Workspace-Wechsel unter 100 ms.
+- `PERF-05`: flüssiges Scrollen und Interagieren mit 10.000 Baumknoten, Ziel 120-Hz-tauglich.
+- `PERF-06`: eigener Memory-Overhead bei identischer 20-Tab-Sitzung höchstens 5 Prozent.
+- `PERF-07`: keine messbare eigene Idle-CPU-Last.
+- `PERF-08`: Developer Compiler und Editoren werden lazy geladen und wieder freigegeben.
+- `PERF-09`: mindestens ein kompletter echter Arbeitstag mit Entwicklung, DevTools, mehreren Workspaces, Extensions, Video, PiP und Downloads.
+- `PERF-10`: Ressourcenverlauf, Abstürze, Hänger und subjektiv störende Ruckler dokumentieren und vor Release beheben.
+
+## Evidenzpakete
+
+Lege pro Testlauf ein Paket unter folgendem Schema an:
+
+`artifacts/e2e/<version>/<test-id>/`
+
+Jedes Paket enthält:
+
+- Test-ID und Status;
+- Datum und ausführende Person beziehungsweise Agent;
+- Git-SHA;
+- Chromium-Revision;
+- App-Version und Buildnummer;
+- installierten App-Pfad;
+- Gerät und Architektur;
+- macOS-/iOS-Version;
+- Profiltyp und dokumentierten Startzustand;
+- genaue sichtbare Benutzeraktionen;
+- Soll- und Ist-Ergebnis;
+- Screenshot oder sichere Bildschirmaufnahme;
+- relevante, redigierte Logs;
+- Fixture-Server-Receipt;
+- Netzwerk-/HAR-/Proxy-Evidenz, wenn relevant;
+- Datei-Hashes bei Downloads und Updates;
+- Unit-/Integration-Testreport;
+- verknüpfte Fehlernummer;
+- Evidenz des bestandenen Wiederholungslaufs.
+
+Große Bildschirmaufnahmen sollen Git nicht unnötig aufblähen. Speichere sie als CI-/Release-Artefakte oder über einen dokumentierten Artefaktspeicher; committe Manifest, Checksums, redigierte Screenshots und stabile Links.
+
+Zulässige Teststatuswerte:
+
+- `PASS`;
+- `FAIL`;
+- `BLOCKED_USER_ASSISTANCE`;
+- `BLOCKED_CREDENTIAL`;
+- `BLOCKED_ENTITLEMENT`;
+- `BLOCKED_EXTERNAL_SERVICE`;
+- `NOT_RUN`.
+
+`NOT_RUN` und jeder `BLOCKED_*`-Status sind ausdrücklich kein Erfolg.
+
+## Echte Nutzeraktionen und externe Voraussetzungen
+
+Folgende Prüfungen dürfen nicht vorgetäuscht oder allein durch Programmatik ersetzt werden:
+
+- physische Magic-Mouse-Geste;
+- Touch ID;
+- Kamera und Mikrofon;
+- physische Medientasten;
+- echte Bildschirm-/Fensterfreigabe;
+- einmalige macOS-TCC- und Browserfreigaben;
+- 1Password-/Bitwarden-Test-Vault;
+- Netflix- und zweiter DRM-Testaccount;
+- zwei reale Macs;
+- echtes iPhone oder iPad;
+- Apple Developer ID;
+- Notarisierung;
+- Production-CloudKit-Container;
+- Widevine-Partnerschaft und CDM-Distributionsfreigabe;
+- rechtliche H.264/AAC-Freigabe;
+- gegebenenfalls notwendige Google-/Chrome-Web-Store-Zugänge;
+- Update- und Extension-Katalog-Signing beziehungsweise Hosting;
+- juristische Prüfung von GPL-§7, iOS-App-Store-Verteilung, Marke und proprietären Komponenten.
+
+Bei einer erforderlichen Nutzeraktion:
+
+1. Bereite alle automatisierbaren Schritte vor.
+2. Sage präzise, welche eine Aktion benötigt wird und warum.
+3. Lasse keine Geheimnisse im Chat wiedergeben.
+4. Verifiziere nach der Aktion den tatsächlichen Systemzustand selbst.
+5. Fahre anschließend mit der Testmatrix fort.
+
+Bei externen Blockern dokumentiere:
+
+- betroffene Test- und Gate-IDs;
+- fehlende Voraussetzung;
+- zuständige Stelle oder Owner, sofern bekannt;
+- bereits durchgeführte Versuche;
+- bestandene lokale Kontrolltests;
+- genau nächste erforderliche Aktion.
+
+## Harte Release-Gates
+
+### Architecture Gate
+
+- echte Chromium-Mehrprozessarchitektur;
+- Sandbox und Site Isolation aktiv;
+- kein Electron-/CEF-/WebView-Ersatzpfad;
+- alle eigenen Chromium-Abweichungen inventarisiert und begrenzt.
+
+### Bootstrap Gate
+
+- frische geeignete ARM64-Maschine kann die gepinnte Revision anhand der Dokumentation beziehen und bauen;
+- kein unveröffentlichtes lokales Overlay erforderlich;
+- Buildprovenance und Pins sind nachvollziehbar.
+
+### UI/Product Gate
+
+- Sidebar, nested Tree, Workspaces, Command Bar, Quick Window, Inkognito und Session Restore bestehen installierte Computer-Use-Tests;
+- Deutsch und Englisch vollständig;
+- Hell/Dunkel/System/Glass und Accessibility abgenommen;
+- mehrere Fenster, 10.000-Knoten-Baum und echte Magic-Mouse-Geste funktionieren.
+
+### Browser Capability Gate
+
+- Downloads, Uploads, Drucken, PDF und Standardbrowser funktionieren;
+- Video, PiP, WebRTC, Kamera, Mikrofon, Bildschirmfreigabe und weitere Berechtigungen funktionieren;
+- H.264/AAC-Distribution rechtlich geklärt;
+- Widevine legal integriert;
+- Netflix und zweiter DRM-Dienst bestanden.
+
+### Extension Gate
+
+- echte Chrome-Web-Store-MV3-Extension installiert, aktualisiert und entfernt;
+- 1Password inklusive Native Messaging und Touch ID bestanden;
+- Bitwarden bestanden;
+- uBlock Origin Classic einschließlich Updates bestanden;
+- nicht allowlistetes MV2 bleibt gesperrt.
+
+### HTTP-Auth Gate
+
+- mehrere `.htaccess`-/Basic-Auth-Konten pro Realm speicher- und auswählbar;
+- Autocomplete und Tastaturbedienung;
+- korrekte Trennung nach Ziel, Scheme, Host, Port, Realm und Schutzbereich;
+- Passwortupdate;
+- gezielter Kontowechsel und Abmeldung ohne Browserneustart;
+- kein Credential-Leak über Origin- oder HTTPS-Grenzen;
+- Inkognito-Isolation;
+- keine Synchronisation oder Log-Leaks;
+- vollständiger `AUTH-27`-Computer-Use-Flow bestanden.
+
+### Developer/Privacy Gate
+
+- gesamtes schlankes Developer Toolkit bestanden;
+- deaktiviertes Toolkit verursacht keine relevante Laufzeitlast;
+- Strict- und Chromium-kompatibler Modus bestanden;
+- Safe Browsing aktiv;
+- Fresh-Profile-Netzwerkaudit ohne unbekannte Hintergrundendpoints;
+- keine Produkttelemetrie oder automatischen Crash-Uploads.
+
+### Sync/Companion Gate
+
+- zwei Macs plus iOS/iPadOS bestehen Online-, Offline-, Konflikt-, Lösch-, Recovery- und Geräteentzugstests;
+- History, normale Tabs und Baum funktionieren;
+- Remote Control ist signiert und replay-sicher;
+- Cookies, Passwörter, HTTP Auth, Site Storage, Permissions, Extension Storage, Inkognito und Keychain-Secrets bleiben lokal.
+
+### Update/Recovery Gate
+
+- signiertes N−2- und N−1-Update im installierten Bundle erfolgreich;
+- Delta- und Full-Fallback funktionieren;
+- manipulierte Updates werden abgewiesen;
+- Renderer-, GPU-, Browser- und Schreibcrash-Recovery bestanden;
+- Inkognito wird nie wiederhergestellt.
+
+### Performance Gate
+
+- alle definierten Budgets gegen identisches Upstream-Chromium eingehalten;
+- kein reproduzierbarer Hänger oder auffälliges UI-Lag;
+- kompletter Daily-Driver-Soak bestanden.
+
+### Legal/Release Gate
+
+- Developer-ID-Signierung, Notarisierung und Stapling bestanden;
+- Codec-, Widevine-, GPL-/App-Store-, Third-Party- und Trademark-Prüfung abgeschlossen;
+- SBOM, Checksums, Third-Party Notices und Evidenzmanifest vorhanden;
+- keine offenen P0-/P1-Fehler;
+- kein kritischer Test `NOT_RUN` oder `BLOCKED_*`.
+
+## Definition of Done
+
+AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
+
+1. Der vollständige gepinnte Bootstrap ist auf einer frischen geeigneten Apple-Silicon-Maschine nachvollziehbar.
+2. Chromium-Prozessarchitektur, Sandbox und Site Isolation sind im Release aktiv.
+3. Eigene Patches sind klein, dokumentiert, getestet und mit einem aktuellen Chromium-Stable-Roll kompatibel.
+4. Das signierte und notarisierte Bundle läuft unter `/Applications/AhoiBrowser.app`.
+5. Nested Tree, Workspaces, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
+6. Downloads, Uploads, PDF, Drucken, Medien, PiP, WebRTC und Permissions bestehen reale Tests.
+7. Chrome-Web-Store-Extensions, 1Password, Bitwarden und uBlock Origin Classic funktionieren im installierten Build.
+8. HTTP Basic Auth/`.htaccess` bietet Speicherung, mehrere Konten, Auswahl, Autocomplete, Update, Wechsel und Abmeldung und besteht die vollständige Auth-Testgruppe.
+9. Developer Toolkit und beide Privacy-Modi sind vollständig abgenommen.
+10. Fresh-Profile-Netzwerk und Telemetriefreiheit sind nachgewiesen.
+11. Mac–Mac–iOS-Sync, Offlinekonflikte, Recovery und Remote Control funktionieren auf realen Geräten.
+12. Keine ausgeschlossenen Secrets oder privaten Daten werden synchronisiert.
+13. N−2-/N−1-Updates funktionieren; manipulierte Artefakte werden abgewiesen.
+14. H.264/AAC sind rechtlich geklärt.
+15. Widevine ist legal integriert und zwei reale DRM-Dienste funktionieren.
+16. Performancebudgets gegen dieselbe Chromium-Revision sind eingehalten.
+17. Ein vollständiger Daily-Driver-Arbeitstag ist ohne ungeklärten Crash, Hänger oder störendes Lag bestanden.
+18. Keine P0-/P1-Fehler sind offen.
+19. Security-, Privacy-, Lizenz- und Trademark-Reviews sind abgeschlossen.
+20. Releaseartefakte, SBOM, Checksums, Lizenzen, Revisionen und E2E-Evidenz sind vollständig.
+
+## Explizit nicht Bestandteil von v1
+
+- Windows;
+- Linux;
+- Intel-Macs;
+- getrennte Chromium-Profile pro Workspace;
+- vollständiger iOS-Browser;
+- eingebettete iOS-WebView als Browserersatz;
+- Chrome Sync;
+- Google-Browserkonto;
+- Cookie-Sync;
+- Passwort-Sync;
+- HTTP-Auth-Credential-Sync;
+- Extension-Storage-Sync;
+- eigener Adblocker;
+- eigene Filterlisten-Engine;
+- allgemeine Manifest-V2-Unterstützung;
+- AI-Assistent;
+- Wallet;
+- Screenshot-Editor;
+- Boost-Plattform;
+- eigenes soziales Sharing-System;
+- importierbare Theme-Pakete;
+- vollständiger Nachbau von Web Developer;
+- integrierter vollständiger Accessibility-Scanner;
+- Unterstützung von Extensions, die AhoiBrowsers eigene UI verändern wollen.
+
+## Commit-, GitHub- und Berichtsregeln
+
+- Erzeuge logisch getrennte, überprüfte Commits.
+- Committe keine Buildartefakte, Secrets oder riesigen Chromium-Checkout.
+- Pushe abgeschlossene Meilensteine auf den konfigurierten GitHub-Remote.
+- Falls noch kein Remote oder GitHub-Owner festgelegt ist, blockiere die lokale Umsetzung nicht. Fordere diese Information erst an, wenn der erste sinnvoll veröffentlichbare Stand bereitsteht.
+- Öffentliche GitHub-Dokumentation darf keinen nicht bestandenen Status als fertige Funktion darstellen.
+- Private Dogfood- und Beta-Builds sind vor öffentlichem Stable erlaubt und ausdrücklich erwünscht.
+
+Liefere bei jedem Meilenstein:
+
+- konkretes Ergebnis;
+- relevante Commits;
+- Chromium-Revision;
+- ausgeführte programmatische Tests;
+- installierte Bundle-Version;
+- ausgeführte Computer-Use-/Assisted-E2E-Tests;
+- verlinkte Evidenz;
+- Performanceauswirkung;
+- bekannte Risiken;
+- externe Blocker;
+- nächsten konkreten Meilenstein.
+
+Kurze Statusmeldungen während langer Builds und Tests sollen Ergebnis, Beweisniveau und offenen Rest nennen. Vermeide lange Wiederholungen bereits bestandener Testmatrizen; nach einer vollständigen grünen Suite genügen gezielte Regressionstests und Release-/Runtime-Nachweise.
+
+## Startanweisung
+
+Beginne jetzt mit Phase 0.
+
+1. Lies alle lokalen Agenten- und Skill-Anweisungen.
+2. Inventarisiere die reale Umgebung, ohne Annahmen über vorhandene Repositories oder Tools.
+3. Prüfe Hardware, Speicher, Xcode und Chromium-Voraussetzungen.
+4. Erstelle einen kurzen ausführbaren Arbeitsplan.
+5. Initialisiere die lokale Projektgrundlage.
+6. Starte den echten Chromium-ARM64-Bootstrap und Machbarkeitsspike.
+7. Führe nach dem ersten installierbaren Build unmittelbar den ersten Computer-Use-Smoke auf `/Applications/AhoiBrowser.app` aus.
+8. Fahre bei positivem Spike ohne erneute allgemeine Planungsrunde mit Phase 1 fort.
+
+Antworte nicht lediglich mit einer weiteren Architekturübersicht und frage nicht pauschal, ob du beginnen sollst.
+
+## Autoritative Ausgangsquellen
+
+- [Chromium macOS build instructions](https://chromium.googlesource.com/chromium/src/+/main/docs/mac_build_instructions.md)
+- [Chromium multi-process architecture](https://www.chromium.org/developers/design-documents/multi-process-architecture/)
+- [Chromium Views](https://www.chromium.org/developers/design-documents/chromeviews/)
+- [Chromium HTTP Auth Controller](https://chromium.googlesource.com/chromium/src/+/main/net/http/http_auth_controller.h)
+- [Chromium LoginHandler and HTTP Auth Password Manager integration](https://chromium.googlesource.com/chromium/src/+/main/chrome/browser/ui/login/login_handler.cc)
+- [Chromium NetworkContext and ClearHttpAuthCache](https://chromium.googlesource.com/chromium/src/+/main/services/network/network_context.cc)
+- [Apple Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass)
+- [NSGlassEffectView](https://developer.apple.com/documentation/appkit/nsglasseffectview)
+- [CloudKit encrypted user data](https://developer.apple.com/documentation/cloudkit/encrypting-user-data)
+- [Chrome Manifest V2 support timeline](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline)
+- [uBlock Origin](https://github.com/gorhill/uBlock)
+- [1Password additional browsers](https://support.1password.com/additional-browsers/)
+- [Widevine partner access](https://developers.google.com/widevine/access)
+- [GNU GPLv3](https://www.gnu.org/licenses/gpl.en.html)
+
+Bei Abweichungen zwischen diesem Prompt und einer aktuellen autoritativen Plattformdokumentation prüfe die aktuelle Lage, dokumentiere die notwendige Anpassung und erhalte die Produktabsicht sowie die Sicherheits- und Release-Gates.

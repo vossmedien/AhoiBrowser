@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "chromiumCommit": "fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae",
+  "upstreamPolicySource": "chrome/installer/mac/signing/parts.py and chrome/app/*-entitlements.plist",
+  "rules": [
+    {
+      "id": "browser-app",
+      "pathPattern": "^Contents/MacOS/AhoiBrowser$",
+      "entitlements": {
+        "com.apple.security.device.audio-input": true,
+        "com.apple.security.device.bluetooth": true,
+        "com.apple.security.device.camera": true,
+        "com.apple.security.device.print": true,
+        "com.apple.security.device.usb": true,
+        "com.apple.security.personal-information.location": true,
+        "com.apple.security.personal-information.photos-library": true
+      }
+    },
+    {
+      "id": "renderer-helper",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper \\(Renderer\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Renderer\\)$",
+      "entitlements": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    {
+      "id": "gpu-helper",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper \\(GPU\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(GPU\\)$",
+      "entitlements": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    {
+      "id": "framework",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/AhoiBrowser Framework$",
+      "entitlements": {}
+    },
+    {
+      "id": "crashpad",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/chrome_crashpad_handler$",
+      "entitlements": {}
+    },
+    {
+      "id": "generic-helper",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper\\.app/Contents/MacOS/AhoiBrowser Helper$",
+      "entitlements": {}
+    },
+    {
+      "id": "alerts-helper",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper \\(Alerts\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Alerts\\)$",
+      "entitlements": {}
+    },
+    {
+      "id": "app-mode-loader",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/app_mode_loader$",
+      "entitlements": {}
+    },
+    {
+      "id": "web-app-shortcut-copier",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/web_app_shortcut_copier$",
+      "entitlements": {}
+    },
+    {
+      "id": "chromium-library",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Libraries/(?:libEGL|libGLESv2|libvk_swiftshader|libvulkan)\\.dylib$",
+      "entitlements": {}
+    },
+    {
+      "id": "updater-privileged-helper",
+      "pathPattern": "^Contents/Library/LaunchServices/app\\.ahoibrowser\\.AhoiBrowser\\.UpdaterPrivilegedHelper$",
+      "entitlements": {}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "manifest_version": 2,
+  "name": "AhoiBrowser MV2 Denied Control",
+  "description": "Negative control which must remain blocked by selective MV2 support.",
+  "version": "0.1.0",
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  }
+}

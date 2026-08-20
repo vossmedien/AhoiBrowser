@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "allowed": [
+    "PASS",
+    "FAIL",
+    "BLOCKED_USER_ASSISTANCE",
+    "BLOCKED_CREDENTIAL",
+    "BLOCKED_ENTITLEMENT",
+    "BLOCKED_EXTERNAL_SERVICE",
+    "NOT_RUN"
+  ],
+  "releaseSuccess": ["PASS"]
+}

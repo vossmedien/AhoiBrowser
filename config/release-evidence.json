@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "releasePassEnabled": false,
+  "requiredChain": [
+    "build-provenance",
+    "signed-package-provenance",
+    "notarization-receipt",
+    "installed-bundle-binding"
+  ],
+  "reason": "The build-to-sign-to-package-to-installed-bundle attestation chain is not implemented yet. CU_E2E and ASSISTED_E2E PASS must fail closed until the validator independently verifies that chain."
+}

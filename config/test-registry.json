@@ -1,0 +1,3177 @@
+{
+  "schemaVersion": 1,
+  "source": "outputs/AhoiBrowser-Master-Zielprompt.md",
+  "generatedAt": "2026-08-20T00:00:00Z",
+  "tests": [
+    {
+      "id": "PKG-01",
+      "suite": "PKG",
+      "description": "DMG öffnen, App nach `/Applications` ziehen, DMG auswerfen und App ohne Gatekeeper-Fehler starten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-02",
+      "suite": "PKG",
+      "description": "ARM64, vollständige Codesign-Kette, Hardened Runtime, Entitlements, Notarisierung und Stapling prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-03",
+      "suite": "PKG",
+      "description": "alle Renderer-, GPU-, Network-, Utility- und Crash-Helper auf korrekte Signatur prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-04",
+      "suite": "PKG",
+      "description": "Erster Start auf Deutsch durchführen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-05",
+      "suite": "PKG",
+      "description": "Erster Start auf Englisch durchführen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-06",
+      "suite": "PKG",
+      "description": "Sprache, Appearance und Startverhalten wählen, App beenden und Persistenz nach Neustart prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-07",
+      "suite": "PKG",
+      "description": "Clean Install unter einem frischen macOS-Testnutzer.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-08",
+      "suite": "PKG",
+      "description": "Upgrade Install mit realistischem vorhandenen Profil.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PKG-09",
+      "suite": "PKG",
+      "description": "`Über AhoiBrowser` zeigt korrekte Produkt-, Build- und Chromium-Version.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-01",
+      "suite": "UI",
+      "description": "mehrere reale Websites öffnen, Sidebar ein-/ausblenden und Fenster stufenlos skalieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-02",
+      "suite": "UI",
+      "description": "Vollbild und macOS Split View verwenden; keine abgeschnittenen oder überlagerten Elemente.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-03",
+      "suite": "UI",
+      "description": "System, Hell und Dunkel durchschalten und nach Neustart prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-04",
+      "suite": "UI",
+      "description": "globale Hauptfarbe ändern.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-05",
+      "suite": "UI",
+      "description": "pro Workspace unterschiedlichen Akzent setzen und Persistenz prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-06",
+      "suite": "UI",
+      "description": "Glass aktivieren und deaktivieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-07",
+      "suite": "UI",
+      "description": "macOS `Transparenz reduzieren` aktivieren; opaker, lesbarer Fallback.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-08",
+      "suite": "UI",
+      "description": "`Bewegung reduzieren` und erhöhten Kontrast prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-09",
+      "suite": "UI",
+      "description": "vollständige Kernreise auf Deutsch; keine Rohschlüssel, Überläufe oder falsche Pluralformen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UI-10",
+      "suite": "UI",
+      "description": "dieselbe Kernreise auf Englisch.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-01",
+      "suite": "TREE",
+      "description": "fünf Workspaces und mindestens zehn verschachtelte Ordnerebenen anlegen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-02",
+      "suite": "TREE",
+      "description": "gespeicherte Seiten erstellen, umbenennen, sortieren und zwischen Ordnern verschieben.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-03",
+      "suite": "TREE",
+      "description": "Seite zwischen Workspaces verschieben und Undo prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-04",
+      "suite": "TREE",
+      "description": "temporären Tab öffnen, per `⌘D` speichern, schließen und erneut über den Knoten öffnen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-05",
+      "suite": "TREE",
+      "description": "temporären Tab schließen und über Tab Restore zurückholen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-06",
+      "suite": "TREE",
+      "description": "Browser mit temporären Tabs beenden; Standarddialog `Fortsetzen/Leer starten` prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-07",
+      "suite": "TREE",
+      "description": "feste Startpräferenzen `fragen`, `fortsetzen` und `leer` jeweils nach Neustart prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-08",
+      "suite": "TREE",
+      "description": "gespeicherten Unterbaum löschen, Undo verwenden, erneut löschen und neu starten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-09",
+      "suite": "TREE",
+      "description": "Papierkorb und Tombstones führen nicht zu Zyklen oder Duplikaten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-10",
+      "suite": "TREE",
+      "description": "10.000-Knoten-Fixture laden, suchen, scrollen, öffnen und verschieben.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-11",
+      "suite": "TREE",
+      "description": "kontrollierter Crash während Baumänderung; atomare, reparierbare Daten nach Neustart.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WS-01",
+      "suite": "WS",
+      "description": "Workspace-Wechsel per Sidebar.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WS-02",
+      "suite": "WS",
+      "description": "Workspace-Wechsel per Tastatur.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WS-03",
+      "suite": "WS",
+      "description": "horizontale Geste mit echter Magic Mouse, einschließlich langsamer, schneller und abgebrochener Geste.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WS-04",
+      "suite": "WS",
+      "description": "Gestenrichtung, Empfindlichkeit und Deaktivierung prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WS-05",
+      "suite": "WS",
+      "description": "zwei Fenster; Baumänderung in Fenster A erscheint in B.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WS-06",
+      "suite": "WS",
+      "description": "temporäre Tabs und aktive Auswahl wandern nicht unerwartet zwischen Fenstern.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WS-07",
+      "suite": "WS",
+      "description": "Cookies und Logins bleiben beim Workspace-Wechsel erhalten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CMD-01",
+      "suite": "CMD",
+      "description": "`⌘L` und Navigation zu einer URL.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CMD-02",
+      "suite": "CMD",
+      "description": "`⌘T` erzeugt temporären Tab und fokussiert die Eingabe.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CMD-03",
+      "suite": "CMD",
+      "description": "`g Suchbegriff` führt direkte Google-Suche aus.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CMD-04",
+      "suite": "CMD",
+      "description": "offene Tabs, Baum, Ordner, Workspaces, Verlauf und Befehle finden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CMD-05",
+      "suite": "CMD",
+      "description": "gesamte Command-Bar-Reise nur per Tastatur.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CMD-06",
+      "suite": "CMD",
+      "description": "Ranking und Command-Bar-Latenz messen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "QUICK-01",
+      "suite": "QUICK",
+      "description": "globalen Shortcut bei inaktiver App verwenden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "QUICK-02",
+      "suite": "QUICK",
+      "description": "eingeloggte Website öffnen; Quick Window nutzt dasselbe normale Profil.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "QUICK-03",
+      "suite": "QUICK",
+      "description": "Seite in normalen Tab beziehungsweise Baum übernehmen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "QUICK-04",
+      "suite": "QUICK",
+      "description": "Quick Window schließen, ohne normale Sitzung zu beschädigen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "INC-01",
+      "suite": "INC",
+      "description": "`⌘⇧N` öffnet echtes Inkognito-Fenster.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "INC-02",
+      "suite": "INC",
+      "description": "Testcookie und Login in Inkognito setzen, Fenster schließen und normale Sitzung prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "INC-03",
+      "suite": "INC",
+      "description": "Inkognito erscheint nicht in Verlauf, Baum, Sync, iOS oder Session Restore.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "INC-04",
+      "suite": "INC",
+      "description": "Extension ist nur nach expliziter Inkognito-Freigabe aktiv.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "INC-05",
+      "suite": "INC",
+      "description": "Browsercrash mit normalem und Inkognito-Fenster; nur normale Sitzung wird angeboten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-01",
+      "suite": "NAV",
+      "description": "Zurück, Vor, Reload, Hard Reload, Same-Origin- und Cross-Origin-Redirect.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-02",
+      "suite": "NAV",
+      "description": "Popups zulassen, blockieren und pro Site konfigurieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-03",
+      "suite": "NAV",
+      "description": "Formulare, Datei- und Ordnerupload.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-04",
+      "suite": "NAV",
+      "description": "Drag-and-drop einer Datei in Website und Browser-Chrome.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-05",
+      "suite": "NAV",
+      "description": "Drucken und PDF-Vorschau.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-06",
+      "suite": "NAV",
+      "description": "OAuth-Testlogin.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-07",
+      "suite": "NAV",
+      "description": "Passkey/WebAuthn-Test.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "NAV-08",
+      "suite": "NAV",
+      "description": "sicherer Custom-Protocol-Prompt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEFAULT-01",
+      "suite": "DEFAULT",
+      "description": "AhoiBrowser als Standardbrowser setzen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEFAULT-02",
+      "suite": "DEFAULT",
+      "description": "Links aus Mail, Finder und Terminal öffnen; korrekter Fensterfokus und URL.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-01",
+      "suite": "DL",
+      "description": "PDF und große ZIP-Datei laden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-02",
+      "suite": "DL",
+      "description": "großen Download pausieren und fortsetzen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-03",
+      "suite": "DL",
+      "description": "Download abbrechen und sauber entfernen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-04",
+      "suite": "DL",
+      "description": "fertige Datei im Finder anzeigen und öffnen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-05",
+      "suite": "DL",
+      "description": "Dateihash mit Fixture-Server vergleichen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-06",
+      "suite": "DL",
+      "description": "Downloadhistorie nach Neustart.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-07",
+      "suite": "DL",
+      "description": "harmloser Testfall für gefährlichen Download zeigt Warnung; Abbrechen und explizites Behalten prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DL-08",
+      "suite": "DL",
+      "description": "Netzverlust und Wiederaufnahme.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-01",
+      "suite": "AUTH",
+      "description": "neue Basic-Auth-Daten eingeben, erfolgreich anmelden und erst danach speichern.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-02",
+      "suite": "AUTH",
+      "description": "Browser vollständig beenden; nach Neustart wird das gespeicherte Konto angeboten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-03",
+      "suite": "AUTH",
+      "description": "zwei Konten für dasselbe Realm speichern und sichtbar auswählen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-04",
+      "suite": "AUTH",
+      "description": "Benutzername über Autocomplete suchen und per Tastatur auswählen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-05",
+      "suite": "AUTH",
+      "description": "bevorzugtes beziehungsweise zuletzt erfolgreiches Konto wird korrekt vorausgewählt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-06",
+      "suite": "AUTH",
+      "description": "falsches Passwort verwenden, verständlichen Fehler sehen und auf anderes Konto wechseln.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-07",
+      "suite": "AUTH",
+      "description": "einzelner Fehler löscht gespeicherte Daten nicht.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-08",
+      "suite": "AUTH",
+      "description": "geändertes Passwort nach erfolgreichem Login aktualisieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-09",
+      "suite": "AUTH",
+      "description": "zwei Realms desselben Hosts bleiben strikt getrennt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-10",
+      "suite": "AUTH",
+      "description": "gleichnamige Realms auf unterschiedlichen Ports bleiben getrennt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-11",
+      "suite": "AUTH",
+      "description": "Server- und Proxy-Credentials bleiben getrennt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-12",
+      "suite": "AUTH",
+      "description": "HTTPS-Zugang wird nie auf HTTP übertragen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-13",
+      "suite": "AUTH",
+      "description": "Cross-Origin-Redirect erhält keinen Authorization-Header.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-14",
+      "suite": "AUTH",
+      "description": "Pfad- und Protection-Space-Regeln verhindern zu breite Wiederverwendung.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-15",
+      "suite": "AUTH",
+      "description": "`HTTP-Anmeldung wechseln` leert den richtigen Auth-Cache, schließt betroffene Verbindungen, lädt neu und zeigt die Kontenauswahl.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-16",
+      "suite": "AUTH",
+      "description": "Sitzungsabmeldung löscht das gespeicherte Konto nicht.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-17",
+      "suite": "AUTH",
+      "description": "Löschen eines gespeicherten Kontos führt beim nächsten Besuch zu leerem Dialog.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-18",
+      "suite": "AUTH",
+      "description": "`Für dieses Realm nie speichern` unterdrückt Angebote und ist in Settings rücksetzbar.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-19",
+      "suite": "AUTH",
+      "description": "HTTP-Verbindung zeigt deutliche Warnung und bietet kein Auto-Login an.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-20",
+      "suite": "AUTH",
+      "description": "Digest Auth funktioniert ohne Vermischung mit Basic-Auth-Einträgen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-21",
+      "suite": "AUTH",
+      "description": "Inkognito kann vorhandenes Konto nur explizit auswählen und speichert keine Änderungen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-22",
+      "suite": "AUTH",
+      "description": "Schließen des letzten Inkognito-Fensters verwirft dessen Auth-Cache.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-23",
+      "suite": "AUTH",
+      "description": "HTTP-Auth-Credentials erscheinen weder auf Mac B noch in CloudKit oder iOS.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-24",
+      "suite": "AUTH",
+      "description": "Passwortanzeige in der HTTP-Zugangsverwaltung erfordert Touch ID/Systemauthentifizierung.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-25",
+      "suite": "AUTH",
+      "description": "Logs, NetLog, Crash Reports und Evidenz enthalten weder Passwort noch vollständigen Authorization-Header.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-26",
+      "suite": "AUTH",
+      "description": "Subresource-Auth-Challenge kann keine unklare oder irreführende Credential-Abfrage erzeugen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AUTH-27",
+      "suite": "AUTH",
+      "description": "vollständige sichtbare Reise – Speichern, Neustart, Autocomplete, Kontowahl, Fehlerkorrektur, Wechsel und Abmeldung – via Computer Use im installierten Build.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MEDIA-01",
+      "suite": "MEDIA",
+      "description": "lokale H.264/AAC-Fixture abspielen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MEDIA-02",
+      "suite": "MEDIA",
+      "description": "YouTube abspielen, seeken und Auflösung wechseln.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MEDIA-03",
+      "suite": "MEDIA",
+      "description": "Vollbild und Picture-in-Picture.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MEDIA-04",
+      "suite": "MEDIA",
+      "description": "PiP bleibt bei Tab-, Workspace- und Fensterwechsel sowie minimierter App aktiv.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MEDIA-05",
+      "suite": "MEDIA",
+      "description": "Hardwaredecode über Media Internals und GPU-Status nachweisen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MEDIA-06",
+      "suite": "MEDIA",
+      "description": "Audiofokus und Media Session.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MEDIA-07",
+      "suite": "MEDIA",
+      "description": "echte macOS-Medientasten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DRM-01",
+      "suite": "DRM",
+      "description": "Netflix mit legalem Widevine-CDM und Testaccount.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DRM-02",
+      "suite": "DRM",
+      "description": "mindestens ein zweiter Widevine-Dienst.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-01",
+      "suite": "PERM",
+      "description": "Kamera/Mikrofon zunächst ablehnen, erneut anfordern, erlauben und zurücksetzen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-02",
+      "suite": "PERM",
+      "description": "realer WebRTC-/Meet-Test.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-03",
+      "suite": "PERM",
+      "description": "gesamten Bildschirm teilen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-04",
+      "suite": "PERM",
+      "description": "einzelnes Fenster teilen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-05",
+      "suite": "PERM",
+      "description": "einzelnen Tab teilen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-06",
+      "suite": "PERM",
+      "description": "Auswahl abbrechen und OS-Berechtigung entziehen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-07",
+      "suite": "PERM",
+      "description": "Standort erlauben, ablehnen und zurücksetzen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-08",
+      "suite": "PERM",
+      "description": "Notifications erlauben, ablehnen und zurücksetzen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERM-09",
+      "suite": "PERM",
+      "description": "Clipboard-Berechtigung und macOS-Verhalten prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-01",
+      "suite": "EXT",
+      "description": "reale MV3-Erweiterung aus Chrome Web Store installieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-02",
+      "suite": "EXT",
+      "description": "Popup, Optionsseite, Service Worker und Content Script bedienen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-03",
+      "suite": "EXT",
+      "description": "Browser neu starten, Extensionzustand prüfen, Update durchführen und Extension entfernen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-04",
+      "suite": "EXT",
+      "description": "Extension-Action pinnen, Overflow öffnen und Shortcut ändern.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-05",
+      "suite": "EXT",
+      "description": "entpackte Entwicklererweiterung laden und nach Codeänderung neu laden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-06",
+      "suite": "EXT",
+      "description": "1Password installieren und AhoiBrowser als vertrauenswürdigen Browser freigeben.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-07",
+      "suite": "EXT",
+      "description": "1Password per Touch ID entsperren und künstlichen Testlogin ausfüllen/speichern.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-08",
+      "suite": "EXT",
+      "description": "Bitwarden mit Test-Vault entsperren, Login ausfüllen und speichern.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-09",
+      "suite": "EXT",
+      "description": "React DevTools oder vergleichbare Entwicklererweiterung verwenden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-10",
+      "suite": "EXT",
+      "description": "IBM Equal Access Accessibility Checker installieren und auf Testseite ausführen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-01",
+      "suite": "UBO",
+      "description": "uBlock Origin Classic über AhoiBrowser-Ein-Klick-Flow installieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-02",
+      "suite": "UBO",
+      "description": "Version, ID, Quelle und Hash gegen Katalog prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-03",
+      "suite": "UBO",
+      "description": "Netzwerkrequest auf kontrollierter Testseite blockieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-04",
+      "suite": "UBO",
+      "description": "kosmetischen Filter prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-05",
+      "suite": "UBO",
+      "description": "eigene Filterregel anlegen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-06",
+      "suite": "UBO",
+      "description": "Dashboard und Einstellungen verwenden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-07",
+      "suite": "UBO",
+      "description": "Browserneustart und Persistenz.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-08",
+      "suite": "UBO",
+      "description": "Filterlistenupdate.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-09",
+      "suite": "UBO",
+      "description": "Extension-Update über signierten Katalog.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-10",
+      "suite": "UBO",
+      "description": "Deinstallation.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-11",
+      "suite": "UBO",
+      "description": "fremdes, nicht allowlistetes MV2-Paket wird abgewiesen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-12",
+      "suite": "UBO",
+      "description": "gewöhnliche MV3-Erweiterungen funktionieren parallel unverändert.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-01",
+      "suite": "DEV",
+      "description": "CSS auf Fixture anwenden, Syntaxfehler korrigieren, Reload und Neustart.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-02",
+      "suite": "DEV",
+      "description": "LESS kompilieren und sichtbar anwenden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-03",
+      "suite": "DEV",
+      "description": "SASS kompilieren und sichtbar anwenden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-04",
+      "suite": "DEV",
+      "description": "nachweisen, dass Compiler erst beim Öffnen geladen werden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-05",
+      "suite": "DEV",
+      "description": "JavaScript in Isolated World ausführen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-06",
+      "suite": "DEV",
+      "description": "Main World auswählen, Warnung bestätigen und Ausführung prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-07",
+      "suite": "DEV",
+      "description": "Tab-, Origin-, Domain- und Pfad-Scope prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-08",
+      "suite": "DEV",
+      "description": "versioniertes Asset laden und Hard Reload prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-09",
+      "suite": "DEV",
+      "description": "Cache Off aktivieren und Serverzugriffszähler prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-10",
+      "suite": "DEV",
+      "description": "Site Cache und globalen Cache getrennt leeren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-11",
+      "suite": "DEV",
+      "description": "Cookies, Local Storage, Session Storage, IndexedDB, Cache Storage und Service Worker einzeln löschen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-12",
+      "suite": "DEV",
+      "description": "Cookie suchen, erstellen, bearbeiten und löschen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-13",
+      "suite": "DEV",
+      "description": "SameSite, Secure, HttpOnly und Partitioned/CHIPS korrekt behandeln.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-14",
+      "suite": "DEV",
+      "description": "Request-Header über Echo-Server bestätigen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-15",
+      "suite": "DEV",
+      "description": "Response-Header-Regel bestätigen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-16",
+      "suite": "DEV",
+      "description": "CSP/CORS-Advanced-Modus sichtbar aktivieren und vollständig zurücksetzen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-17",
+      "suite": "DEV",
+      "description": "Keychain-Secret verwenden; kein Klartext in UI-Evidenz, Logs oder Sync.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-18",
+      "suite": "DEV",
+      "description": "JavaScript, CSS und Bilder jeweils deaktivieren und wieder aktivieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-19",
+      "suite": "DEV",
+      "description": "Elemente, Überschriften und ARIA-Landmarks umranden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-20",
+      "suite": "DEV",
+      "description": "Alt-/Title-Texte einblenden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-21",
+      "suite": "DEV",
+      "description": "Meta, Canonical, OpenGraph und strukturierte Daten anzeigen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-22",
+      "suite": "DEV",
+      "description": "Passwortfeld sichtbar machen; Navigation maskiert es wieder.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-23",
+      "suite": "DEV",
+      "description": "gespeichertes Passwort nur nach Touch ID/Systemauthentifizierung anzeigen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-24",
+      "suite": "DEV",
+      "description": "Aktivchips sind korrekt und verschwinden nach Reset.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-25",
+      "suite": "DEV",
+      "description": "`Alle Seitenmodifikationen zurücksetzen` entfernt sämtliche aktiven Änderungen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DEV-26",
+      "suite": "DEV",
+      "description": "bei deaktiviertem Toolkit kein zusätzlicher Dauerprozess, keine messbare Idle-CPU und kein unnötiger Compiler-Speicher.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-01",
+      "suite": "PRIV",
+      "description": "First-Party-Login funktioniert im Strict-Modus.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-02",
+      "suite": "PRIV",
+      "description": "unpartitionierte Third-Party-Cookies werden blockiert.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-03",
+      "suite": "PRIV",
+      "description": "CHIPS und Storage Access funktionieren gemäß Policy.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-04",
+      "suite": "PRIV",
+      "description": "GPC wird korrekt gesendet.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-05",
+      "suite": "PRIV",
+      "description": "Referrer und Trackingparameter verhalten sich wie dokumentiert.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-06",
+      "suite": "PRIV",
+      "description": "Werbe-/Profiling-APIs sind deaktiviert.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-07",
+      "suite": "PRIV",
+      "description": "absichtlich inkompatible Fixture auf `Chromium-kompatibel` umschalten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-08",
+      "suite": "PRIV",
+      "description": "Origin-Ausnahme bleibt nach Reload und Neustart sichtbar aktiv.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-09",
+      "suite": "PRIV",
+      "description": "Ausnahme entfernen und Strict-Verhalten wiederherstellen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-10",
+      "suite": "PRIV",
+      "description": "uBlock deaktivieren und Browserschutz isoliert testen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-11",
+      "suite": "PRIV",
+      "description": "frisches Profil fünf Minuten ohne Navigation mitschneiden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-12",
+      "suite": "PRIV",
+      "description": "anschließend normale Navigation durchführen und vollständige Endpoint-Liste erfassen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-13",
+      "suite": "PRIV",
+      "description": "jeder Hintergrundendpoint entspricht der maschinenlesbaren Allowlist.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-14",
+      "suite": "PRIV",
+      "description": "Standard Safe Browsing warnt auf kontrolliertem Testfall.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-15",
+      "suite": "PRIV",
+      "description": "Enhanced Protection ist nicht still aktiv.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-16",
+      "suite": "PRIV",
+      "description": "kontrollierter Crash löst keinen automatischen Produkttelemetrie- oder Crashupload aus.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SEC-01",
+      "suite": "SEC",
+      "description": "Renderer-Sandbox, Site Isolation und Prozessgrenzen im Release nachweisen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SEC-02",
+      "suite": "SEC",
+      "description": "normale Website kann keine internen AhoiBrowser-Mojo- oder WebUI-Funktionen erreichen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SEC-03",
+      "suite": "SEC",
+      "description": "manipulierte Extension-, uBO- und Updateartefakte werden abgewiesen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SEC-04",
+      "suite": "SEC",
+      "description": "Repository- und Buildartefakte auf Secrets prüfen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-01",
+      "suite": "SYNC",
+      "description": "Workspace und Baum von Mac A nach Mac B synchronisieren.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-02",
+      "suite": "SYNC",
+      "description": "gespeicherte Seite von Mac B ändern und auf Mac A prüfen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-03",
+      "suite": "SYNC",
+      "description": "beide Macs offline ändern und anschließend deterministisch mergen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-04",
+      "suite": "SYNC",
+      "description": "gleichzeitige Moves desselben Knotens.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-05",
+      "suite": "SYNC",
+      "description": "gleichzeitiger Move und Delete.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-06",
+      "suite": "SYNC",
+      "description": "Konflikt darf keinen Zyklus erzeugen; Recovery-Ordner prüfen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-07",
+      "suite": "SYNC",
+      "description": "History von A auf B und iOS finden.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-08",
+      "suite": "SYNC",
+      "description": "offene Tabs bleiben nach Gerät gruppiert.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-09",
+      "suite": "SYNC",
+      "description": "Verlauf löschen und Propagation prüfen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-10",
+      "suite": "SYNC",
+      "description": "Retention 30/90/365/unbegrenzt prüfen; Default 90 Tage.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-11",
+      "suite": "SYNC",
+      "description": "Cookies bleiben lokal.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-12",
+      "suite": "SYNC",
+      "description": "Webformular- und HTTP-Auth-Passwörter bleiben lokal.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-13",
+      "suite": "SYNC",
+      "description": "Site Storage, Permissions, Extension Storage und Keychain-Secrets bleiben lokal.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-14",
+      "suite": "SYNC",
+      "description": "Inkognito wird nie serialisiert.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-15",
+      "suite": "SYNC",
+      "description": "zwei Developer Assets anlegen; nur explizit freigegebenes Asset synchronisiert.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-16",
+      "suite": "SYNC",
+      "description": "Extension-Inventar erzeugt nur Installationsvorschlag, keine stille Installation.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-17",
+      "suite": "SYNC",
+      "description": "iCloud abmelden, offline ändern, wieder anmelden und Queue abarbeiten.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-18",
+      "suite": "SYNC",
+      "description": "CloudKit-Quota-/temporären Fehler verständlich behandeln.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-19",
+      "suite": "SYNC",
+      "description": "Zone-/Key-Reset und bestätigten Recovery-Upload prüfen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-20",
+      "suite": "SYNC",
+      "description": "Accountwechsel ohne stillen Datenverlust.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-21",
+      "suite": "SYNC",
+      "description": "Gerät widerrufen und weiteren Zugriff verhindern.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SYNC-22",
+      "suite": "SYNC",
+      "description": "Sync-Logs und Payload-Evidenz enthalten keine ausgeschlossenen Geheimdaten.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-01",
+      "suite": "IOS",
+      "description": "auf echtem iPhone/iPad Workspaces, Baum, Tabs und Verlauf durchsuchen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-02",
+      "suite": "IOS",
+      "description": "gespeicherte Seite und Ordner anlegen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-03",
+      "suite": "IOS",
+      "description": "Baumknoten verschieben, umbenennen und löschen; Mac-Gegenprüfung.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-04",
+      "suite": "IOS",
+      "description": "Link im gewählten Standardbrowser öffnen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-05",
+      "suite": "IOS",
+      "description": "Link an bestimmten Mac und Workspace senden.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-06",
+      "suite": "IOS",
+      "description": "normalen Mac-Tab remote öffnen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-07",
+      "suite": "IOS",
+      "description": "normalen Mac-Tab remote fokussieren.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-08",
+      "suite": "IOS",
+      "description": "normalen Mac-Tab nach Bestätigung schließen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-09",
+      "suite": "IOS",
+      "description": "Offlinebefehl und TTL prüfen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-10",
+      "suite": "IOS",
+      "description": "Status `queued/delivered/executed/failed` prüfen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-11",
+      "suite": "IOS",
+      "description": "Replay wird abgewiesen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-12",
+      "suite": "IOS",
+      "description": "falsches Zielgerät und ungültige Signatur werden abgewiesen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-13",
+      "suite": "IOS",
+      "description": "Gerätefreigabe und Geräteentzug.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-14",
+      "suite": "IOS",
+      "description": "Inkognito bleibt unsichtbar und nicht steuerbar.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "IOS-15",
+      "suite": "IOS",
+      "description": "beliebige Custom Schemes, Shellbefehle und Massenaktionen werden abgewiesen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-01",
+      "suite": "UPDATE",
+      "description": "signierten N−2-Build installieren, realistisches Profil erzeugen und auf aktuellen RC aktualisieren.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-02",
+      "suite": "UPDATE",
+      "description": "N−1 auf aktuellen RC.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-03",
+      "suite": "UPDATE",
+      "description": "Delta-Update.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-04",
+      "suite": "UPDATE",
+      "description": "Full-Fallback.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-05",
+      "suite": "UPDATE",
+      "description": "Download während Update unterbrechen; alter Build bleibt startfähig.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-06",
+      "suite": "UPDATE",
+      "description": "Netzverlust und Wiederaufnahme.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-07",
+      "suite": "UPDATE",
+      "description": "manipulierten Appcast beziehungsweise Manifest ablehnen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-08",
+      "suite": "UPDATE",
+      "description": "Paket mit falschem Hash oder falscher Signatur ablehnen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-09",
+      "suite": "UPDATE",
+      "description": "Dogfood-, Beta- und Stable-Kanäle trennen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UPDATE-10",
+      "suite": "UPDATE",
+      "description": "Datenmigration erhält Baum, Sessions, Einstellungen und lokale Credentials.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-01",
+      "suite": "CRASH",
+      "description": "Renderer eines Tabs beenden; andere Tabs bleiben intakt.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-02",
+      "suite": "CRASH",
+      "description": "GPU-Prozess beenden; UI und Video erholen sich.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-03",
+      "suite": "CRASH",
+      "description": "Browserprozess mit gespeicherten und temporären Tabs hart beenden.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-04",
+      "suite": "CRASH",
+      "description": "Recovery-Dialog bedienen und normale Sitzung wiederherstellen.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-05",
+      "suite": "CRASH",
+      "description": "Crash während Tree-Schreibvorgang.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-06",
+      "suite": "CRASH",
+      "description": "Crash während Sync-Commit beziehungsweise Migration.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-07",
+      "suite": "CRASH",
+      "description": "keine Zyklen, Duplikate oder beschädigte Daten nach Recovery.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CRASH-08",
+      "suite": "CRASH",
+      "description": "Inkognito wird nach Crash nie angeboten.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-01",
+      "suite": "PERF",
+      "description": "Speedometer-Regression höchstens 3 Prozent.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-02",
+      "suite": "PERF",
+      "description": "Startzeit höchstens 10 Prozent schlechter.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-03",
+      "suite": "PERF",
+      "description": "Command Bar p95 unter 50 ms.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-04",
+      "suite": "PERF",
+      "description": "sichtbarer Workspace-Wechsel unter 100 ms.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-05",
+      "suite": "PERF",
+      "description": "flüssiges Scrollen und Interagieren mit 10.000 Baumknoten, Ziel 120-Hz-tauglich.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-06",
+      "suite": "PERF",
+      "description": "eigener Memory-Overhead bei identischer 20-Tab-Sitzung höchstens 5 Prozent.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-07",
+      "suite": "PERF",
+      "description": "keine messbare eigene Idle-CPU-Last.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-08",
+      "suite": "PERF",
+      "description": "Developer Compiler und Editoren werden lazy geladen und wieder freigegeben.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-09",
+      "suite": "PERF",
+      "description": "mindestens ein kompletter echter Arbeitstag mit Entwicklung, DevTools, mehreren Workspaces, Extensions, Video, PiP und Downloads.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PERF-10",
+      "suite": "PERF",
+      "description": "Ressourcenverlauf, Abstürze, Hänger und subjektiv störende Ruckler dokumentieren und vor Release beheben.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    }
+  ]
+}

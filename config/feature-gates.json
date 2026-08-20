@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "gates": {
+    "proprietaryCodecs": {
+      "default": false,
+      "requires": ["legal-review", "distribution-review", "runtime-e2e"]
+    },
+    "widevine": {
+      "default": false,
+      "requires": ["cdm-license", "distribution-approval", "runtime-e2e"]
+    },
+    "selectiveUboClassicMv2": {
+      "default": false,
+      "requires": ["signed-allowlist", "package-hash", "update-path", "runtime-e2e"]
+    },
+    "crashUpload": {
+      "default": false,
+      "requires": ["explicit-user-opt-in", "privacy-review"]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "commands": {
+    "focusCommandBar": "Command+L",
+    "newTemporaryTab": "Command+T",
+    "saveCurrentPage": "Command+D",
+    "newIncognitoWindow": "Command+Shift+N",
+    "quickWindow": "Option+Space",
+    "previousWorkspace": "Command+Option+Left",
+    "nextWorkspace": "Command+Option+Right",
+    "reopenClosedTab": "Command+Shift+T",
+    "toggleSidebar": "Command+S"
+  },
+  "commandPrefixes": {
+    "googleSearch": "g ",
+    "commands": ">",
+    "openTabs": "@tabs ",
+    "history": "@history ",
+    "tree": "@tree "
+  },
+  "magicMouse": {
+    "enabledByDefault": true,
+    "direction": "natural",
+    "minimumHorizontalDistance": 72,
+    "maximumVerticalDrift": 40,
+    "commitVelocity": 420,
+    "interactiveCancellation": true,
+    "configurableSensitivity": true
+  }
+}

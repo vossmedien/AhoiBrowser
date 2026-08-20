@@ -1,0 +1,40 @@
+name: Bug report
+description: Report reproducible AhoiBrowser behavior without sensitive data
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not submit credentials, private URLs, browsing databases, or security vulnerabilities here.
+  - type: input
+    id: version
+    attributes:
+      label: AhoiBrowser and Chromium version
+      placeholder: "AhoiBrowser 0.x, Chromium 151.0.7922.170"
+    validations:
+      required: true
+  - type: dropdown
+    id: locale
+    attributes:
+      label: Locale
+      options: [Deutsch, English]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+    validations:
+      required: true

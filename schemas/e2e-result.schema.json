@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahoibrowser.org/schemas/e2e-result.schema.json",
+  "title": "AhoiBrowser end-to-end result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "testId",
+    "requirement",
+    "testClass",
+    "status",
+    "executedBy",
+    "source",
+    "productVersion",
+    "chromium",
+    "bundle",
+    "environment",
+    "startedAt",
+    "completedAt",
+    "expectedResult",
+    "actualResult",
+    "steps",
+    "assertions",
+    "evidence",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": {"const": 2},
+    "testId": {"type": "string", "pattern": "^[A-Z]{2,10}-[0-9]{2,3}$"},
+    "requirement": {"type": "string", "minLength": 1},
+    "testClass": {
+      "enum": ["UNIT", "INTEGRATION", "CU_E2E", "ASSISTED_E2E"]
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED_USER_ASSISTANCE",
+        "BLOCKED_CREDENTIAL",
+        "BLOCKED_ENTITLEMENT",
+        "BLOCKED_EXTERNAL_SERVICE",
+        "NOT_RUN"
+      ]
+    },
+    "executedBy": {"type": "string", "minLength": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gitCommit", "gitDirty"],
+      "properties": {
+        "gitCommit": {
+          "type": "string",
+          "pattern": "^([0-9a-f]{40}|NOT_AVAILABLE)$"
+        },
+        "gitDirty": {"type": "boolean"}
+      }
+    },
+    "productVersion": {"type": "string", "minLength": 1},
+    "chromium": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "commit"],
+      "properties": {
+        "version": {"type": "string", "pattern": "^\\d+\\.0\\.\\d+\\.\\d+$"},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "architecture",
+        "name",
+        "identifier",
+        "marketingVersion",
+        "buildNumber",
+        "productVersion",
+        "channel",
+        "sourceCommit",
+        "chromiumVersion",
+        "chromiumCommit",
+        "gnArgsSha256",
+        "buildProfile",
+        "teamIdentifier",
+        "signingAuthority",
+        "signatureVerified",
+        "hardenedRuntimeVerified",
+        "notarizationVerified"
+      ],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^([0-9a-f]{64}|NOT_AVAILABLE)$"},
+        "architecture": {"enum": ["arm64", "NOT_AVAILABLE"]},
+        "name": {"type": "string", "minLength": 1},
+        "identifier": {"type": "string", "minLength": 1},
+        "marketingVersion": {"type": "string", "minLength": 1},
+        "buildNumber": {"type": "string", "minLength": 1},
+        "productVersion": {"type": "string", "minLength": 1},
+        "channel": {"type": "string", "minLength": 1},
+        "sourceCommit": {
+          "type": "string",
+          "pattern": "^([0-9a-f]{40}|NOT_AVAILABLE)$"
+        },
+        "chromiumVersion": {"type": "string", "minLength": 1},
+        "chromiumCommit": {
+          "type": "string",
+          "pattern": "^([0-9a-f]{40}|NOT_AVAILABLE)$"
+        },
+        "gnArgsSha256": {
+          "type": "string",
+          "pattern": "^([0-9a-f]{64}|NOT_AVAILABLE)$"
+        },
+        "buildProfile": {"enum": ["dev", "release", "NOT_AVAILABLE"]},
+        "teamIdentifier": {"type": "string", "minLength": 1},
+        "signingAuthority": {"type": "string", "minLength": 1},
+        "signatureVerified": {"type": "boolean"},
+        "hardenedRuntimeVerified": {"type": "boolean"},
+        "notarizationVerified": {"type": "boolean"}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "osVersion",
+        "osBuild",
+        "device",
+        "hostArchitecture",
+        "locale",
+        "theme",
+        "glass",
+        "profileType",
+        "startState"
+      ],
+      "properties": {
+        "osVersion": {"type": "string", "minLength": 1},
+        "osBuild": {"type": "string", "minLength": 1},
+        "device": {"type": "string", "minLength": 1},
+        "hostArchitecture": {"const": "arm64"},
+        "locale": {"enum": ["de", "en"]},
+        "theme": {"enum": ["system", "light", "dark"]},
+        "glass": {"type": "boolean"},
+        "profileType": {
+          "enum": ["fresh", "existing", "migration", "incognito", "not-applicable"]
+        },
+        "startState": {"type": "string", "minLength": 1}
+      }
+    },
+    "startedAt": {"type": "string", "format": "date-time"},
+    "completedAt": {"type": "string", "format": "date-time"},
+    "expectedResult": {"type": "string", "minLength": 1},
+    "actualResult": {"type": "string", "minLength": 1},
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["index", "action", "expected", "observed"],
+        "properties": {
+          "index": {"type": "integer", "minimum": 1},
+          "action": {"type": "string", "minLength": 1},
+          "expected": {"type": "string", "minLength": 1},
+          "observed": {"type": "string"},
+          "artifact": {"type": "string"}
+        }
+      }
+    },
+    "assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "evidence"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "evidence": {"type": "string"}
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "screenshots",
+        "videos",
+        "redactedLogs",
+        "fixtureReceipts",
+        "networkCaptures",
+        "fileHashes",
+        "testReports",
+        "linkedIssue",
+        "repeatRun"
+      ],
+      "properties": {
+        "screenshots": {"type": "array", "items": {"type": "string"}},
+        "videos": {"type": "array", "items": {"type": "string"}},
+        "redactedLogs": {"type": "array", "items": {"type": "string"}},
+        "fixtureReceipts": {"type": "array", "items": {"type": "string"}},
+        "networkCaptures": {"type": "array", "items": {"type": "string"}},
+        "fileHashes": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "testReports": {"type": "array", "items": {"type": "string"}},
+        "linkedIssue": {"type": ["string", "null"]},
+        "repeatRun": {"type": ["string", "null"]}
+      }
+    },
+    "artifacts": {"type": "array", "items": {"type": "string"}},
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["condition", "owner", "nextAction"],
+      "properties": {
+        "condition": {"type": "string", "minLength": 1},
+        "owner": {"type": "string", "minLength": 1},
+        "nextAction": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["testClass"],
+        "properties": {"testClass": {"enum": ["CU_E2E", "ASSISTED_E2E"]}}
+      },
+      "then": {
+        "properties": {
+          "bundle": {"properties": {"path": {"const": "/Applications/AhoiBrowser.app"}}}
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "enum": [
+              "NOT_RUN",
+              "BLOCKED_USER_ASSISTANCE",
+              "BLOCKED_CREDENTIAL",
+              "BLOCKED_ENTITLEMENT",
+              "BLOCKED_EXTERNAL_SERVICE"
+            ]
+          }
+        }
+      },
+      "then": {"required": ["blocker"]}
+    },
+    {
+      "if": {
+        "required": ["testClass", "status"],
+        "properties": {
+          "testClass": {"enum": ["CU_E2E", "ASSISTED_E2E"]},
+          "status": {"const": "PASS"}
+        }
+      },
+      "then": {
+        "properties": {
+          "bundle": {
+            "properties": {
+              "sha256": {"pattern": "^[0-9a-f]{64}$"},
+              "architecture": {"const": "arm64"},
+              "name": {"not": {"const": "NOT_AVAILABLE"}},
+              "identifier": {"not": {"const": "NOT_AVAILABLE"}},
+              "marketingVersion": {"not": {"const": "NOT_AVAILABLE"}},
+              "buildNumber": {"not": {"const": "NOT_AVAILABLE"}},
+              "chromiumVersion": {"not": {"const": "NOT_AVAILABLE"}},
+              "chromiumCommit": {"pattern": "^[0-9a-f]{40}$"},
+              "gnArgsSha256": {"pattern": "^[0-9a-f]{64}$"},
+              "buildProfile": {"const": "release"},
+              "teamIdentifier": {"not": {"const": "NOT_AVAILABLE"}},
+              "signingAuthority": {"not": {"const": "NOT_AVAILABLE"}},
+              "signatureVerified": {"const": true},
+              "hardenedRuntimeVerified": {"const": true},
+              "notarizationVerified": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["status"],
+        "properties": {"status": {"const": "PASS"}}
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "gitCommit": {"pattern": "^[0-9a-f]{40}$"},
+              "gitDirty": {"const": false}
+            }
+          },
+          "steps": {"minItems": 1},
+          "assertions": {
+            "minItems": 1,
+            "items": {"properties": {"passed": {"const": true}}}
+          },
+          "evidence": {
+            "properties": {
+              "repeatRun": {"type": "string", "minLength": 1},
+              "testReports": {"minItems": 1}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "source": "https://chromium.googlesource.com/chromium/tools/depot_tools.git",
+  "commit": "547d7e12fe104305c7de797d5a2b4155914ad362",
+  "branch": "main",
+  "retrievedAt": "2026-08-20T00:00:00Z"
+}

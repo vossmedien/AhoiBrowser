@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "AhoiBrowser MV3 Phase-0 Probe",
+  "description": "Local, deterministic extension-platform probe for AhoiBrowser.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "151",
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_title": "Ahoi MV3 probe",
+    "default_popup": "popup.html"
+  }
+}

@@ -1,0 +1,10 @@
+COMPANY_FULLNAME=AhoiBrowser Project
+COMPANY_SHORTNAME=AhoiBrowser
+PRODUCT_FULLNAME=AhoiBrowser
+PRODUCT_SHORTNAME=AhoiBrowser
+PRODUCT_INSTALLER_FULLNAME=AhoiBrowser Installer
+PRODUCT_INSTALLER_SHORTNAME=AhoiBrowser Installer
+COPYRIGHT=Copyright @LASTCHANGE_YEAR@ AhoiBrowser contributors.
+MAC_BUNDLE_ID=app.ahoibrowser.AhoiBrowser
+MAC_CREATOR_CODE=Ah0i
+MAC_TEAM_ID=
