@@ -19,6 +19,9 @@ The normative allow/deny lists are `config/sync-policy.json`. Extension inventor
 means identifiers and desired enabled state, never CRX contents or extension
 storage. Developer assets sync only after explicit per-asset opt-in and may not
 contain inline secrets; secret placeholders resolve locally from Keychain.
+Device tabs may report that a page is open, but window/workspace split
+membership, pane order, layout, divider ratios, and focused pane are local
+session state and never CloudKit records.
 
 ## Remote commands
 

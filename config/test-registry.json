@@ -251,6 +251,45 @@
       "status": "NOT_RUN"
     },
     {
+      "id": "A11Y-01",
+      "suite": "A11Y",
+      "description": "Kernreise ausschließlich per Tastatur; keine Fokusfalle.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A11Y-02",
+      "suite": "A11Y",
+      "description": "VoiceOver-Rollen, Labels, Reihenfolge und Zustandsansagen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "A11Y-03",
+      "suite": "A11Y",
+      "description": "200-Prozent-Zoom beziehungsweise große Systemschrift, soweit für Browser-Chrome relevant.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
       "id": "TREE-01",
       "suite": "TREE",
       "description": "fünf Workspaces und mindestens zehn verschachtelte Ordnerebenen anlegen.",
@@ -475,6 +514,418 @@
       "id": "WS-07",
       "suite": "WS",
       "description": "Cookies und Logins bleiben beim Workspace-Wechsel erhalten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-01",
+      "suite": "SPLIT",
+      "description": "Integrationstest erzwingt exakt zwei oder drei eindeutige Tabs pro Split-Collection, weist Mischprofile und ein viertes Pane atomar ab und erhält genau ein aktives Pane.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-02",
+      "suite": "SPLIT",
+      "description": "alle kanonischen Zwei-/Drei-Pane-Layoutbäume, Ratios, Snap Points, Mindestgrößen und Layoutwechsel deterministisch serialisieren, validieren und ohne `WebContents`-Neuerzeugung anwenden.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-03",
+      "suite": "SPLIT",
+      "description": "Session Service und Tab Restore roundtrippen Zwei-/Drei-Pane-Mitgliedschaft, Layout, Ratios und Fokus; alte Zweierdaten migrieren und beschädigte beziehungsweise fehlende Leaves sicher degradieren.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-04",
+      "suite": "SPLIT",
+      "description": "Extension-`splitId` und Tab-Operationen für zwei und drei Mitglieder prüfen; Move, Close und ungültige Teiloperationen erhalten einen gültigen Zustand oder lösen den Split kontrolliert auf.",
+      "primaryClass": "INTEGRATION",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-05",
+      "suite": "SPLIT",
+      "description": "Seitenzeile in der linken Sidebar auf obere/untere Drop-Zonen ziehen; sichtbares Preview, Reihenfolge in tiefen Ordnern und Persistenz nach Neustart prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-06",
+      "suite": "SPLIT",
+      "description": "Seitenzeile über die mittlere Ordnerzone innerhalb und zwischen Workspaces verschieben; Auto-Expand, exaktes Ziel und Undo prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-07",
+      "suite": "SPLIT",
+      "description": "einen Tab mittig auf einen normalen Tab ziehen; echte Zwei-Spalten-Ansicht, zwei simultan interaktive Seiten und unveränderte Tree-Persistenz prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-08",
+      "suite": "SPLIT",
+      "description": "Zwei-Zeilen-Layout im Drag-Preview beziehungsweise Layoutmenü wählen und ohne Reload zwischen Zeilen und Spalten wechseln.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-09",
+      "suite": "SPLIT",
+      "description": "dritten Tab auf jedes Pane einer Zweiergruppe ziehen; Einfügeposition vor Drop eindeutig anzeigen und drei simultan laufende Seiten erhalten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-10",
+      "suite": "SPLIT",
+      "description": "drei Spalten, drei Zeilen, `main-left`, `main-right`, `main-top` und `main-bottom` sichtbar durchschalten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-11",
+      "suite": "SPLIT",
+      "description": "Panes per Drag-and-drop und Tastatur neu ordnen sowie Layout wechseln; URLs, Formzustand, Scrollposition und Navigation History bleiben erhalten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-12",
+      "suite": "SPLIT",
+      "description": "beide Divider per Maus/Trackpad ziehen; Ratios, Snap Points, bevorzugte und eingeschränkte Mindestgrößen sowie Persistenz prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-13",
+      "suite": "SPLIT",
+      "description": "komplette Split-Reise nur per Tastatur – erstellen, Pane fokussieren, neu ordnen, Layout wählen, Divider ändern und Split verlassen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-14",
+      "suite": "SPLIT",
+      "description": "Pane aus Split herausziehen, einzeln schließen und gesamten Split schließen; korrekte Übergänge `3 -> 2 -> 1`, Before-Unload und Tab Restore prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-15",
+      "suite": "SPLIT",
+      "description": "vierten externen Tab auf volle Dreiergruppe ziehen; verständliche Ablehnung ohne Reload, Ersatz, Verstecken, Schließen oder Tree-Mutation.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-16",
+      "suite": "SPLIT",
+      "description": "Drag mit `Escape`, Pointer-Abbruch, Mehrfachauswahl, Ordner, Datei, blockierter URL und fehlgeschlagenem Detach abbrechen; Baum und Split bleiben atomar unverändert.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-17",
+      "suite": "SPLIT",
+      "description": "echten Tab zwischen zwei normalen Browserfenstern in einen Split ziehen; `WebContents`, Formzustand, Scrollposition und Navigation History bleiben erhalten.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-18",
+      "suite": "SPLIT",
+      "description": "Pane anklicken und fokussieren; Adressleiste, Zurück/Vor, Reload, Page Info, Extension-Actions und Developer Toolkit wirken ausschließlich auf dieses aktive Pane.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-19",
+      "suite": "SPLIT",
+      "description": "Origin-/Security-/Media-Indikatoren aller Panes und den nicht nur farblichen aktiven Fokusrahmen bei Omnibox, Page Info und Device Chooser prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-20",
+      "suite": "SPLIT",
+      "description": "Permission Prompt, System-Dateipicker und tabmodalen Dialog aus aktivem und inaktivem Pane auslösen; Unterdrückung, Fokusübergabe, Scrim und Origin-Zuordnung prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-21",
+      "suite": "SPLIT",
+      "description": "normale Zwei- und Drei-Pane-Sitzung vollständig beenden und neu starten; Workspace/Fenster, Mitgliedschaft, Layout, Ratios und Fokus exakt wiederherstellen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-22",
+      "suite": "SPLIT",
+      "description": "Split-Zustand bleibt fenster- und Workspace-sessionbezogen; Wechsel und zweites Fenster beschädigen ihn nicht, CloudKit und iOS enthalten keine Split-Topologie.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-23",
+      "suite": "SPLIT",
+      "description": "Zwei-/Drei-Pane-Split innerhalb Inkognito funktioniert; Normal-/Inkognito-Mischung wird abgewiesen und nach Schließen oder Crash wird nichts wiederhergestellt, synchronisiert oder historisiert.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-24",
+      "suite": "SPLIT",
+      "description": "Audio und Video in allen Panes simultan abspielen; Fokuswechsel pausiert nichts, Mute und Media-/Capture-Indikatoren bleiben pro Pane korrekt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-25",
+      "suite": "SPLIT",
+      "description": "Picture in Picture aus jeder Pane-Position starten und über Fokus-, Layout-, Divider-, Workspace-, Minimize- und Sidebar-Wechsel prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-26",
+      "suite": "SPLIT",
+      "description": "Kamera, Mikrofon, WebRTC sowie Tab-/Fenster-/Screen-Sharing in verschiedenen Panes verwenden; laufende Streams, neue Prompts und alle Indikatoren bleiben eindeutig zugeordnet.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-27",
+      "suite": "SPLIT",
+      "description": "Download, Upload, HTTP Auth und sichere Dateiauswahl aus verschiedenen Panes starten; Origin, Dialog, Fortschritt und Ergebnis gehören jeweils zum auslösenden Pane.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-28",
+      "suite": "SPLIT",
+      "description": "DevTools pro Pane öffnen, docken, abdocken und zwischen Panes fokussieren; jedes DevTools bleibt ohne stilles Retargeting am ursprünglichen `WebContents`.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-29",
+      "suite": "SPLIT",
+      "description": "Browser-Vollbild mit allen Panes und Tab-/Content-Vollbild pro Pane prüfen; nach Exit werden Gruppe, Layout, Ratios, Fokus und PiP exakt wiederhergestellt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-30",
+      "suite": "SPLIT",
+      "description": "Renderer eines Panes und anschließend Browserprozess kontrolliert beenden; andere Panes bleiben beim Renderercrash bedienbar und Crash Recovery degradiert niemals zu Phantom-Tabs.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-31",
+      "suite": "SPLIT",
+      "description": "VoiceOver-Rollen, Pane- und Dividerwerte, Fokusreihenfolge, Drag-Ansagen, Ablehnungen, RTL sowie vollständige deutsche und englische Split-Reise in allen Appearance-/Accessibility-Modi prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-32",
+      "suite": "SPLIT",
+      "description": "drei reale komplexe Seiten mit Video, DevTools und Downloads neben 10.000 Sidebar-Knoten betreiben; Drag, Fokus, Resize und Layout bleiben flüssig und erzeugen keine eigene Idle-CPU-Regression.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",

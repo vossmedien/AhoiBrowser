@@ -4,7 +4,7 @@
 
 Du bist leitender Browser-, Chromium-, C++-, Objective-C++-, AppKit-, Swift-, SwiftUI-, Security-, Privacy-, Release- und QA-Engineer. Baue im aktuell bereitgestellten Workspace das Open-Source-Projekt **AhoiBrowser** vollständig end to end auf.
 
-AhoiBrowser wird ein nativer, schlanker, performanter und optisch hochwertiger Chromium-Browser für macOS 26 auf Apple Silicon. Er übernimmt die wirklich guten Bedienkonzepte von Arc – insbesondere den vertikalen, persistenten Seitenbaum, Workspaces, schnelle Gesten und eine zentrale Command Bar – ohne dessen Ballast. Es gibt keine AI-Plattform, kein Wallet, keinen Screenshot-Editor, keine Boost-Plattform, kein soziales Sharing-System und keinen eingebauten Werbeblocker.
+AhoiBrowser wird ein nativer, schlanker, performanter und optisch hochwertiger Chromium-Browser für macOS 26 auf Apple Silicon. Er übernimmt die wirklich guten Bedienkonzepte von Arc – insbesondere den vertikalen, persistenten Seitenbaum, Workspaces, schnelle Gesten, eine zentrale Command Bar und echte Split Views mit zwei oder drei simultan sichtbaren Seiten – ohne dessen Ballast. Es gibt keine AI-Plattform, kein Wallet, keinen Screenshot-Editor, keine Boost-Plattform, kein soziales Sharing-System und keinen eingebauten Werbeblocker.
 
 Das Ziel ist ausdrücklich:
 
@@ -67,6 +67,7 @@ Wenn ein externer Blocker auftritt:
 - Ein gemeinsames normales Chromium-Profil für alle Workspaces.
 - Workspaces trennen Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Darstellung, nicht Cookies, Logins, Verlauf, Downloads, Site Permissions oder Extensions.
 - Echte Inkognito-Fenster verwenden Chromiums `OffTheRecordProfile`.
+- Split View verwendet zwei oder drei echte Chromium-Tabs und `WebContents`; Tab-auf-Tab-Drag-and-drop ist Kernfunktion, mehr als drei gleichzeitige Panes sind nicht Bestandteil von v1.
 - Eigener CloudKit-first-Sync; kein Chrome Sync und kein Google-Konto zur Browsersynchronisation.
 - Deutsch und Englisch sind vollständige Release-Sprachen.
 - Erscheinungsbild: System/Hell/Dunkel, globale Hauptfarbe, optionaler Workspace-Akzent und natives, zurückhaltendes Liquid Glass.
@@ -122,6 +123,7 @@ Implementiere klar abgegrenzte Services:
 - `WorkspaceService`: Workspaces, Reihenfolge, aktiver Zustand und Appearance.
 - `TabTreeService`: persistente Ordner und gespeicherte Seiten.
 - `SessionBridge`: Zuordnung von Baumknoten, temporären Tabs, `WebContents`, Fenstern und `TabStripModel`.
+- `SplitViewService`: Split-Mitgliedschaft, Zwei-/Drei-Pane-Layout, Fokus, Divider, Drag-and-drop-Policy und lokale Session-Persistenz auf Chromiums `TabStripModel`-/Split-Collection-Infrastruktur.
 - `CommandService`: lokale Suche, Befehle, URL- und Suchparser.
 - `ThemeService`: System/Hell/Dunkel, Hauptfarbe, Workspace-Akzent und Glass-Fallback.
 - `DeveloperToolkitService`: Injection, Cache, Site Data, Cookies, Header und Diagnosefunktionen.
@@ -140,6 +142,7 @@ Verwende versionierte, migrationsfähige Kerntypen:
 - `Workspace`: UUID, Name, Icon, Sortierschlüssel, optionaler Akzent, Zeitstempel.
 - `TreeNode`: UUID, Workspace-ID, Parent-ID, Typ `folder` oder `savedPage`, Titel, URL, Sortierschlüssel, Zeitstempel, Tombstone.
 - `RuntimeTab`: Geräte-, Fenster- und Tab-ID, optionale TreeNode-ID, URL, Titel, Aktivitätszeit, Ladezustand.
+- `SplitGroup`: stabile UUID, Chromium-Split-ID, Fenster- und Workspace-Session, zwei oder drei geordnete Tab-Handles, kanonischer Layoutbaum, primäre/sekundäre Divider-Ratios, fokussiertes Pane und Zeitstempel.
 - `HistoryVisit`: Visit-ID, Geräte-ID, URL, Titel, Zeitpunkt und Transition-Typ.
 - `DeveloperAsset`: Typ CSS/LESS/SASS/JavaScript/Headerprofil, Scope, Aktivierung, Sync-Opt-in.
 - `RemoteCommand`: Zielgerät, Befehlstyp, Payload, Nonce, Ablaufzeit, Status und Signatur.
@@ -240,6 +243,7 @@ Pflege mindestens:
 - `NETWORK`;
 - `EXTENSION_COMPATIBILITY`;
 - `SYNC`;
+- `SPLIT_VIEW`;
 - `TESTING`;
 - `RELEASING`;
 - `CONTRIBUTING`;
@@ -259,7 +263,7 @@ Baue eine hochwertige native Oberfläche:
 - keine separate klassische Bookmark-Leiste;
 - minimaler Browser-Chrome mit Zurück, Vor, Reload, Security-/Site-Status, Downloads und Extension-Actions;
 - Sidebar ein- und ausblendbar;
-- für Fenstergrößen, Split View und Vollbild geeignet;
+- für Fenstergrößen, macOS Split View, AhoiBrowser Multi-Pane Split View und Vollbild geeignet;
 - native Fokus-, Tastatur-, VoiceOver- und Accessibility-Semantik;
 - flüssige, zurückhaltende Animationen;
 - keine unnötig dauerhaft sichtbaren Entwicklerwerkzeuge;
@@ -319,7 +323,7 @@ Baue einen vertikalen Baum als Zusammenführung aus Tabs und Bookmarks:
 
 - beliebig tiefe logische Ordnerstruktur;
 - gespeicherte Seiten als dauerhaft organisierte Tab-Knoten;
-- Drag-and-drop;
+- vollständiges Drag-and-drop mit eindeutigem `vorher`-, `nachher`-, `in Ordner`- und `mit Seite splitten`-Ziel;
 - manuelle Reihenfolge;
 - Umbenennen;
 - Verschieben innerhalb und zwischen Workspaces;
@@ -343,6 +347,86 @@ Baue einen vertikalen Baum als Zusammenführung aus Tabs und Bookmarks:
 - In den Einstellungen kann dauerhaft `fragen`, `fortsetzen` oder `leer starten` gewählt werden; Default ist `fragen`.
 - Crash Recovery bietet normale temporäre Tabs und Fenster zur Wiederherstellung an.
 - Inkognito wird nie wiederhergestellt.
+
+### Verbindlicher Drag-and-drop-Vertrag der Sidebar
+
+- Die obere und untere Zone einer Seitenzeile ordnet den Knoten `vorher` beziehungsweise `nachher` ein.
+- Die Mitte eines Ordners verschiebt die Auswahl `in` diesen Ordner.
+- Die Mitte einer Seitenzeile bedeutet `mit dieser Seite splitten`.
+- Vor dem Loslassen ist genau eine Operation mit Ziel, Einfügeposition und gegebenenfalls Split-Layout sichtbar.
+- `Escape`, Pointer-Abbruch, ungültiges Ziel, fehlgeschlagener Tab-Detach oder verweigerter Drop ändern weder Baum noch Split-Topologie.
+- Ordner, Mehrfachauswahl, Dateien und andere Nicht-Tab-Payloads dürfen nicht versehentlich einen Split erzeugen.
+- Drag-and-drop funktioniert innerhalb tief verschachtelter Ordner, zwischen Ordnern und Workspaces sowie zwischen normalen Browserfenstern.
+- Beim Cross-Window-Drag wird der echte Chromium-Tab mit `WebContents`, Navigation History und laufendem Zustand über Chromiums Detach-/Insert-Pfad verschoben; es wird kein Ersatz-WebView erzeugt.
+- Datei-Drag-and-drop behält seine Upload-/Navigationsbedeutung und wird nie als Tab-Split fehlinterpretiert.
+- Für alle Drag-Aktionen existieren gleichwertige Kontextmenü-, Command-Bar- und Tastaturaktionen.
+
+### Echte Split Views mit zwei oder drei Live-Panes
+
+Nutze und generalisiere Chromiums vorhandene M151-Split-Tab-Infrastruktur. `TabStripModel`, `SplitTabCollection`, `TabInterface` und die normalen `WebContents` bleiben die Runtime-Quelle der Wahrheit. `SplitViewService` koordiniert Ahoi-spezifische Policy und Persistenz, besitzt aber weder einen zweiten Tab-Store noch einen parallelen WebView-Host.
+
+Verbindliche Grenzen und Layout-IDs liegen in `config/split-view.json`; die implementierungsnahe Spezifikation liegt in `docs/SPLIT_VIEW.md`.
+
+Unterstütze:
+
+- exakt zwei oder drei gleichzeitig sichtbare, interaktive und live laufende Chromium-Seiten pro Split-Gruppe;
+- zwei Spalten und zwei Zeilen;
+- drei Spalten und drei Zeilen;
+- großes Pane links oder rechts plus zwei übereinanderliegende Panes;
+- großes Pane oben oder unten plus zwei nebeneinanderliegende Panes;
+- Wechsel der Anordnung ohne Reload oder Neuerzeugung eines `WebContents`;
+- Reordering der Panes;
+- Pointer-, Trackpad- und tastaturbedienbare Divider mit Snap Points, zugänglichen Werten und sicheren Mindestgrößen;
+- genau ein fokussiertes/aktives Pane bei gleichzeitig sichtbaren und laufenden übrigen Panes.
+
+Drag-Verhalten:
+
+- Tab auf normalen Tab erzeugt standardmäßig zwei Spalten und bietet im Preview direkt zwei Zeilen an.
+- Tab auf ein Pane einer Zweiergruppe zeigt die genaue Einfügeposition und erzeugt nach Drop eine gewählte Dreier-Anordnung.
+- Tab innerhalb derselben Split-Gruppe kann Pane-Reihenfolge und Layout ändern.
+- Tab aus der Split-Gruppe auf ein normales Sidebar-Ziel entfernt ihn aus dem Split, schließt ihn aber nicht.
+- Eine Dreiergruppe wird nach Entfernen oder Schließen eines Panes zur passenden Zweiergruppe; eine Zweiergruppe wird mit einem verbleibenden Pane zu einem normalen Tab.
+- Ein vierter externer Tab wird sichtbar und verständlich abgewiesen; kein vorhandenes Pane wird still ersetzt, versteckt oder geschlossen.
+- Normale und Inkognito-Tabs dürfen niemals in derselben Split-Gruppe liegen.
+- Quick Window hostet keine Multi-Pane-Oberfläche, darf aber `In Browser verschieben und splitten` anbieten.
+
+Fokus- und Security-Regeln:
+
+- Klick, Tastaturfokus oder expliziter Pane-Wechsel aktiviert dessen vorhandenes `TabInterface`, ohne Reload.
+- Adressleiste, Zurück/Vor, Reload, Page Info, Berechtigungen, Extension-Actions, Developer Toolkit und Downloads beziehen sich eindeutig auf das aktive Pane.
+- Jedes Pane zeigt browserkontrollierte Origin-, Security-, Audio-, Kamera-, Mikrofon- und Sharing-Zustände.
+- Ein dauerhafter, nicht nur farblicher Fokusrahmen markiert das aktive Pane und wird bei Omnibox, Page Info, Permission Prompt, Device Chooser und anderen sicherheitskritischen Browserflächen verstärkt.
+- Tabmodale Dialoge und Scrims bleiben beim auslösenden Pane.
+- Inaktive Panes dürfen keinen neuen Permission Prompt oder System-Dateipicker öffnen; nach Fokuswechsel darf die wartende Anfrage eindeutig zugeordnet erscheinen.
+- Same-Origin Policy, Site Isolation, Sandbox, Storage Partition und Renderer-Prozessgrenzen bleiben unverändert aktiv.
+
+Lebenszyklus und Persistenz:
+
+- Das Erzeugen eines Splits ändert weder gespeicherten/temporären Zustand noch Parent, Reihenfolge oder Persistenz eines Tree-Knotens.
+- Normale Split-Mitgliedschaft, Layoutbaum, Divider-Ratios und fokussiertes Pane gehören zur Fenster-/Workspace-Sitzung und werden lokal atomar über Session Restore gespeichert.
+- Split-Topologie wird nicht über CloudKit synchronisiert.
+- Inkognito-Splits funktionieren innerhalb eines `OffTheRecordProfile`, werden aber nie serialisiert, wiederhergestellt, synchronisiert oder in der Companion-App angezeigt.
+- Bei nicht wiederherstellbarem Leaf degradiert eine Dreiergruppe ohne Phantom-Tab zur passenden Zweiergruppe und eine Zweiergruppe zu einem normalen Tab.
+- Renderercrash betrifft nur das jeweilige Pane; andere Panes bleiben bedienbar.
+- Browsercrash und Tab Restore erhalten bei normalen Tabs die maximal wiederherstellbare Mitgliedschaft, Anordnung, Ratios und den Fokus.
+
+Browserfähigkeit im Split:
+
+- Audio und Video laufen in allen sichtbaren Panes weiter; Fokuswechsel pausiert nichts automatisch.
+- Mute und Media-/Capture-Indikatoren sind pro Tab/Panes sichtbar; Chromium Media Session und Audio Focus bleiben maßgeblich.
+- Picture in Picture startet aus dem auslösenden `WebContents` und überlebt Fokus-, Layout-, Divider-, Workspace-, Fenster-Minimize- und Sidebar-Wechsel gemäß normalem Chromium-PiP-Lebenszyklus.
+- Bereits freigegebene Kamera-, Mikrofon-, WebRTC- und Bildschirmfreigaben dürfen in einem inaktiven sichtbaren Pane weiterlaufen und bleiben immer angezeigt.
+- Downloads, Uploads, Auth- und Berechtigungsdialoge bleiben dem auslösenden Pane und Origin zugeordnet.
+- DevTools öffnet für das fokussierte Pane und bleibt an genau dessen `WebContents` gebunden. Docked DevTools liegt im zugehörigen `ContentsContainerView`; bei zu wenig Platz wird Undocking oder Resize angeboten, nicht still geschlossen oder umgehängt.
+- Browser-Vollbild behält alle Panes. Tab-/Content-Vollbild zeigt vorübergehend nur das anfordernde Pane und stellt danach exakte Gruppe, Anordnung, Ratios und Fokus wieder her.
+
+Accessibility und Lokalisierung:
+
+- Split-Gruppe, Pane-Anzahl, Layout, geordnete Mitglieder und aktives Pane werden über macOS Accessibility exponiert.
+- Jedes Pane wird lokalisiert als `Pane X von Y, Titel, Origin` angesagt.
+- Divider exponieren Orientierung, Prozentwert, Minimum, Maximum und Tastaturänderung.
+- Drag-Preview, akzeptierter Drop, Reordering, Abbruch und Ablehnung werden sichtbar sowie über VoiceOver angesagt.
+- Alle Layoutnamen, Aktionen, Status- und Fehlermeldungen werden über GRIT/ICU vollständig auf Deutsch und Englisch gepflegt.
 
 ### Workspaces
 
@@ -403,6 +487,7 @@ Erhalte beziehungsweise integriere vollständig:
 - Drucken;
 - PDF-Anzeige;
 - Vollbild;
+- Zwei-/Drei-Pane-Split View mit simultan lebenden Seiten, vollständigem Sidebar-Drag-and-drop, Resize, Session Restore und Tab Restore;
 - Standardbrowserregistrierung;
 - HTTP-/HTTPS-URL-Handler;
 - externe Links;
@@ -851,6 +936,7 @@ Synchronisiere niemals:
 - Site Permissions;
 - Extension Storage;
 - Inkognito-Daten;
+- lokale Split-Topologie einschließlich Fenster-/Workspace-Zuordnung, Pane-Reihenfolge, Layout, Divider-Ratios und Fokus;
 - Keychain-Werte;
 - geheime Headerwerte.
 
@@ -1041,6 +1127,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - native Hauptoberfläche;
 - Themes und Lokalisierung;
 - persistenter Tree;
+- vollständiges Sidebar-Drag-and-drop und echte Zwei-/Drei-Pane-Split-Views;
 - temporäre Tabs;
 - Workspaces;
 - mehrere Fenster;
@@ -1163,6 +1250,7 @@ Baue einen reproduzierbaren lokalen HTTPS-Testserver mit sauber vertrauenswürdi
 
 - Downloads mit Range Requests, Pause/Resume und reproduzierbaren Hashes;
 - Upload und Drag-and-drop;
+- Split-DnD-Ziele, sichere URL-Drops und Drei-Pane-Seiten mit getrennten Audio-/Video-, Dialog-, Download- und Permission-Zuständen;
 - Redirects und Popups;
 - OAuth-Testfluss;
 - Passkey/WebAuthn-Testfluss;
@@ -1256,6 +1344,41 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `WS-05`: zwei Fenster; Baumänderung in Fenster A erscheint in B.
 - `WS-06`: temporäre Tabs und aktive Auswahl wandern nicht unerwartet zwischen Fenstern.
 - `WS-07`: Cookies und Logins bleiben beim Workspace-Wechsel erhalten.
+
+### Sidebar Drag-and-drop und Split View
+
+- `SPLIT-01`: Integrationstest erzwingt exakt zwei oder drei eindeutige Tabs pro Split-Collection, weist Mischprofile und ein viertes Pane atomar ab und erhält genau ein aktives Pane.
+- `SPLIT-02`: alle kanonischen Zwei-/Drei-Pane-Layoutbäume, Ratios, Snap Points, Mindestgrößen und Layoutwechsel deterministisch serialisieren, validieren und ohne `WebContents`-Neuerzeugung anwenden.
+- `SPLIT-03`: Session Service und Tab Restore roundtrippen Zwei-/Drei-Pane-Mitgliedschaft, Layout, Ratios und Fokus; alte Zweierdaten migrieren und beschädigte beziehungsweise fehlende Leaves sicher degradieren.
+- `SPLIT-04`: Extension-`splitId` und Tab-Operationen für zwei und drei Mitglieder prüfen; Move, Close und ungültige Teiloperationen erhalten einen gültigen Zustand oder lösen den Split kontrolliert auf.
+- `SPLIT-05`: Seitenzeile in der linken Sidebar auf obere/untere Drop-Zonen ziehen; sichtbares Preview, Reihenfolge in tiefen Ordnern und Persistenz nach Neustart prüfen.
+- `SPLIT-06`: Seitenzeile über die mittlere Ordnerzone innerhalb und zwischen Workspaces verschieben; Auto-Expand, exaktes Ziel und Undo prüfen.
+- `SPLIT-07`: einen Tab mittig auf einen normalen Tab ziehen; echte Zwei-Spalten-Ansicht, zwei simultan interaktive Seiten und unveränderte Tree-Persistenz prüfen.
+- `SPLIT-08`: Zwei-Zeilen-Layout im Drag-Preview beziehungsweise Layoutmenü wählen und ohne Reload zwischen Zeilen und Spalten wechseln.
+- `SPLIT-09`: dritten Tab auf jedes Pane einer Zweiergruppe ziehen; Einfügeposition vor Drop eindeutig anzeigen und drei simultan laufende Seiten erhalten.
+- `SPLIT-10`: drei Spalten, drei Zeilen, `main-left`, `main-right`, `main-top` und `main-bottom` sichtbar durchschalten.
+- `SPLIT-11`: Panes per Drag-and-drop und Tastatur neu ordnen sowie Layout wechseln; URLs, Formzustand, Scrollposition und Navigation History bleiben erhalten.
+- `SPLIT-12`: beide Divider per Maus/Trackpad ziehen; Ratios, Snap Points, bevorzugte und eingeschränkte Mindestgrößen sowie Persistenz prüfen.
+- `SPLIT-13`: komplette Split-Reise nur per Tastatur – erstellen, Pane fokussieren, neu ordnen, Layout wählen, Divider ändern und Split verlassen.
+- `SPLIT-14`: Pane aus Split herausziehen, einzeln schließen und gesamten Split schließen; korrekte Übergänge `3 -> 2 -> 1`, Before-Unload und Tab Restore prüfen.
+- `SPLIT-15`: vierten externen Tab auf volle Dreiergruppe ziehen; verständliche Ablehnung ohne Reload, Ersatz, Verstecken, Schließen oder Tree-Mutation.
+- `SPLIT-16`: Drag mit `Escape`, Pointer-Abbruch, Mehrfachauswahl, Ordner, Datei, blockierter URL und fehlgeschlagenem Detach abbrechen; Baum und Split bleiben atomar unverändert.
+- `SPLIT-17`: echten Tab zwischen zwei normalen Browserfenstern in einen Split ziehen; `WebContents`, Formzustand, Scrollposition und Navigation History bleiben erhalten.
+- `SPLIT-18`: Pane anklicken und fokussieren; Adressleiste, Zurück/Vor, Reload, Page Info, Extension-Actions und Developer Toolkit wirken ausschließlich auf dieses aktive Pane.
+- `SPLIT-19`: Origin-/Security-/Media-Indikatoren aller Panes und den nicht nur farblichen aktiven Fokusrahmen bei Omnibox, Page Info und Device Chooser prüfen.
+- `SPLIT-20`: Permission Prompt, System-Dateipicker und tabmodalen Dialog aus aktivem und inaktivem Pane auslösen; Unterdrückung, Fokusübergabe, Scrim und Origin-Zuordnung prüfen.
+- `SPLIT-21`: normale Zwei- und Drei-Pane-Sitzung vollständig beenden und neu starten; Workspace/Fenster, Mitgliedschaft, Layout, Ratios und Fokus exakt wiederherstellen.
+- `SPLIT-22`: Split-Zustand bleibt fenster- und Workspace-sessionbezogen; Wechsel und zweites Fenster beschädigen ihn nicht, CloudKit und iOS enthalten keine Split-Topologie.
+- `SPLIT-23`: Zwei-/Drei-Pane-Split innerhalb Inkognito funktioniert; Normal-/Inkognito-Mischung wird abgewiesen und nach Schließen oder Crash wird nichts wiederhergestellt, synchronisiert oder historisiert.
+- `SPLIT-24`: Audio und Video in allen Panes simultan abspielen; Fokuswechsel pausiert nichts, Mute und Media-/Capture-Indikatoren bleiben pro Pane korrekt.
+- `SPLIT-25`: Picture in Picture aus jeder Pane-Position starten und über Fokus-, Layout-, Divider-, Workspace-, Minimize- und Sidebar-Wechsel prüfen.
+- `SPLIT-26`: Kamera, Mikrofon, WebRTC sowie Tab-/Fenster-/Screen-Sharing in verschiedenen Panes verwenden; laufende Streams, neue Prompts und alle Indikatoren bleiben eindeutig zugeordnet.
+- `SPLIT-27`: Download, Upload, HTTP Auth und sichere Dateiauswahl aus verschiedenen Panes starten; Origin, Dialog, Fortschritt und Ergebnis gehören jeweils zum auslösenden Pane.
+- `SPLIT-28`: DevTools pro Pane öffnen, docken, abdocken und zwischen Panes fokussieren; jedes DevTools bleibt ohne stilles Retargeting am ursprünglichen `WebContents`.
+- `SPLIT-29`: Browser-Vollbild mit allen Panes und Tab-/Content-Vollbild pro Pane prüfen; nach Exit werden Gruppe, Layout, Ratios, Fokus und PiP exakt wiederhergestellt.
+- `SPLIT-30`: Renderer eines Panes und anschließend Browserprozess kontrolliert beenden; andere Panes bleiben beim Renderercrash bedienbar und Crash Recovery degradiert niemals zu Phantom-Tabs.
+- `SPLIT-31`: VoiceOver-Rollen, Pane- und Dividerwerte, Fokusreihenfolge, Drag-Ansagen, Ablehnungen, RTL sowie vollständige deutsche und englische Split-Reise in allen Appearance-/Accessibility-Modi prüfen.
+- `SPLIT-32`: drei reale komplexe Seiten mit Video, DevTools und Downloads neben 10.000 Sidebar-Knoten betreiben; Drag, Fokus, Resize und Layout bleiben flüssig und erzeugen keine eigene Idle-CPU-Regression.
 
 ### Command Bar, Quick Window und Inkognito
 
@@ -1607,15 +1730,17 @@ Bei externen Blockern dokumentiere:
 
 ### UI/Product Gate
 
-- Sidebar, nested Tree, Workspaces, Command Bar, Quick Window, Inkognito und Session Restore bestehen installierte Computer-Use-Tests;
+- Sidebar, vollständiges Tree-Drag-and-drop, nested Tree, Zwei-/Drei-Pane-Split View, Workspaces, Command Bar, Quick Window, Inkognito und Session Restore bestehen installierte Computer-Use-Tests;
 - Deutsch und Englisch vollständig;
 - Hell/Dunkel/System/Glass und Accessibility abgenommen;
-- mehrere Fenster, 10.000-Knoten-Baum und echte Magic-Mouse-Geste funktionieren.
+- mehrere Fenster, Cross-Window-Tab-Drag, 10.000-Knoten-Baum und echte Magic-Mouse-Geste funktionieren;
+- alle `SPLIT-*`-Tests einschließlich Layouts, Divider, Fokus-/Origin-Zuordnung, Accessibility und normalem/Inkognito-Recovery sind `PASS`.
 
 ### Browser Capability Gate
 
 - Downloads, Uploads, Drucken, PDF und Standardbrowser funktionieren;
 - Video, PiP, WebRTC, Kamera, Mikrofon, Bildschirmfreigabe und weitere Berechtigungen funktionieren;
+- dieselben Media-, PiP-, WebRTC-, Permission-, Download-, Upload-, Auth- und DevTools-Funktionen funktionieren korrekt aus jedem Pane eines Dreier-Splits;
 - H.264/AAC-Distribution rechtlich geklärt;
 - Widevine legal integriert;
 - Netflix und zweiter DRM-Dienst bestanden.
@@ -1662,6 +1787,7 @@ Bei externen Blockern dokumentiere:
 - Delta- und Full-Fallback funktionieren;
 - manipulierte Updates werden abgewiesen;
 - Renderer-, GPU-, Browser- und Schreibcrash-Recovery bestanden;
+- Zwei-/Drei-Pane-Mitgliedschaft, Layout, Ratios und Fokus über Neustart, N−2-/N−1-Migration, Tab Restore und Crash maximal verlustfrei wiederhergestellt beziehungsweise ohne Phantom-Tab sicher degradiert;
 - Inkognito wird nie wiederhergestellt.
 
 ### Performance Gate
@@ -1686,7 +1812,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 2. Chromium-Prozessarchitektur, Sandbox und Site Isolation sind im Release aktiv.
 3. Eigene Patches sind klein, dokumentiert, getestet und mit einem aktuellen Chromium-Stable-Roll kompatibel.
 4. Das signierte und notarisierte Bundle läuft unter `/Applications/AhoiBrowser.app`.
-5. Nested Tree, Workspaces, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
+5. Nested Tree, vollständiges Sidebar-Drag-and-drop, Zwei-/Drei-Pane-Split Views, Workspaces, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
 6. Downloads, Uploads, PDF, Drucken, Medien, PiP, WebRTC und Permissions bestehen reale Tests.
 7. Chrome-Web-Store-Extensions, 1Password, Bitwarden und uBlock Origin Classic funktionieren im installierten Build.
 8. HTTP Basic Auth/`.htaccess` bietet Speicherung, mehrere Konten, Auswahl, Autocomplete, Update, Wechsel und Abmeldung und besteht die vollständige Auth-Testgruppe.
@@ -1729,6 +1855,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 - vollständiger Nachbau von Web Developer;
 - integrierter vollständiger Accessibility-Scanner;
 - Unterstützung von Extensions, die AhoiBrowsers eigene UI verändern wollen.
+- mehr als drei gleichzeitig sichtbare Panes in einer Split-Gruppe.
 
 ## Commit-, GitHub- und Berichtsregeln
 
@@ -1775,6 +1902,7 @@ Antworte nicht lediglich mit einer weiteren Architekturübersicht und frage nich
 - [Chromium macOS build instructions](https://chromium.googlesource.com/chromium/src/+/main/docs/mac_build_instructions.md)
 - [Chromium multi-process architecture](https://www.chromium.org/developers/design-documents/multi-process-architecture/)
 - [Chromium Views](https://www.chromium.org/developers/design-documents/chromeviews/)
+- [Chromium Split View Security FAQ](https://chromium.googlesource.com/chromium/src/+/fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae/chrome/browser/ui/tabs/docs/split_view_security_faq.md)
 - [Chromium HTTP Auth Controller](https://chromium.googlesource.com/chromium/src/+/main/net/http/http_auth_controller.h)
 - [Chromium LoginHandler and HTTP Auth Password Manager integration](https://chromium.googlesource.com/chromium/src/+/main/chrome/browser/ui/login/login_handler.cc)
 - [Chromium NetworkContext and ClearHttpAuthCache](https://chromium.googlesource.com/chromium/src/+/main/services/network/network_context.cc)

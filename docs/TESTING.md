@@ -66,12 +66,21 @@ that gate by themselves.
 
 ## Required matrices
 
-The master target defines PKG, UI, A11Y, TREE, WS, CMD, QUICK, INC, NAV,
+The master target defines PKG, UI, A11Y, TREE, WS, SPLIT, CMD, QUICK, INC, NAV,
 DEFAULT, DL, AUTH, MEDIA, DRM, PERM, EXT, UBO, DEV, PRIV, SEC, SYNC, IOS,
 UPDATE, CRASH, and PERF suites. Each identifier gets a registry entry before
 implementation. Tests include fresh/existing profiles, German/English,
 system/light/dark, glass on/off, restart/recovery, offline/error states, and
 migration from the preceding supported version where applicable.
+
+The SPLIT suite has explicit model/browser integration cases and visible
+installed Computer Use cases. Integration covers two/three-member collection
+invariants, canonical layout serialization, Session/Tab Restore migration and
+extension `splitId` behavior. Computer Use then performs real vertical-sidebar
+drag/drop, two- and three-pane layout, divider, focus/security, media/PiP,
+permissions, DevTools, incognito, crash/restart, accessibility, localization,
+and performance journeys. Upstream Chromium's two-pane tests do not substitute
+for Ahoi's macOS drag or installed three-pane evidence.
 
 ## Real services and local fixtures
 

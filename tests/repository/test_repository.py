@@ -16,17 +16,32 @@ def load_json(relative_path: str):
 class RepositoryContractTests(unittest.TestCase):
     def test_registry_covers_every_master_test_id(self):
         master = (ROOT / "outputs/AhoiBrowser-Master-Zielprompt.md").read_text(encoding="utf-8")
-        expected = set(re.findall(r"^- `([A-Z]{2,10}-\d{2,3})`:", master, re.MULTILINE))
+        expected_rows = re.findall(
+            r"^- `([A-Z][A-Z0-9]{1,9}-\d{2,3})`: (.+)$",
+            master,
+            re.MULTILINE,
+        )
+        expected = dict(expected_rows)
         registry = load_json("config/test-registry.json")["tests"]
-        actual = {entry["id"] for entry in registry}
-        self.assertEqual(248, len(registry))
+        actual = {entry["id"]: entry for entry in registry}
+        self.assertEqual(283, len(registry))
         self.assertEqual(len(registry), len(actual), "test IDs must be unique")
-        self.assertEqual(expected, actual)
+        self.assertEqual(set(expected), set(actual))
         for entry in registry:
             with self.subTest(test_id=entry["id"]):
+                self.assertEqual(expected[entry["id"]], entry["description"])
+                self.assertEqual(entry["id"].split("-", 1)[0], entry["suite"])
                 self.assertEqual("NOT_RUN", entry["status"])
                 self.assertTrue(entry["releaseCritical"])
                 self.assertIn(entry["primaryClass"], {"UNIT", "INTEGRATION", "CU_E2E", "ASSISTED_E2E"})
+                self.assertEqual(
+                    len(entry["requiredEvidenceClasses"]),
+                    len(set(entry["requiredEvidenceClasses"])),
+                    "required evidence classes must be unique",
+                )
+                self.assertIn("UNIT", entry["requiredEvidenceClasses"])
+                self.assertIn("INTEGRATION", entry["requiredEvidenceClasses"])
+                self.assertIn(entry["primaryClass"], entry["requiredEvidenceClasses"])
 
     def test_required_documents_exist(self):
         required = {
@@ -48,12 +63,14 @@ class RepositoryContractTests(unittest.TestCase):
             "docs/spikes/HTTP_AUTH_FIXTURE.md",
             "docs/spikes/CLOUDKIT.md",
             "docs/UI_SYSTEM.md",
+            "docs/SPLIT_VIEW.md",
             "docs/TESTING.md",
             "docs/RELEASING.md",
             "docs/LEGAL.md",
             "docs/PHASE0_FEASIBILITY.md",
             "schemas/e2e-result.schema.json",
             "config/version.json",
+            "config/split-view.json",
             "config/gclient.py",
             "tools/chromium_dependencies.py",
             "tools/compose_overlay.py",
@@ -151,6 +168,7 @@ class RepositoryContractTests(unittest.TestCase):
             "permissions",
             "extensionStorage",
             "incognito",
+            "splitTopology",
             "keychainSecrets",
             "secretHeaders",
             "httpAuthSecrets",
@@ -170,6 +188,82 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertEqual("Command+T", shortcuts["commands"]["newTemporaryTab"])
         self.assertEqual("Option+Space", shortcuts["commands"]["quickWindow"])
         self.assertEqual("g ", shortcuts["commandPrefixes"]["googleSearch"])
+
+    def test_split_view_contract_is_bounded_native_and_release_critical(self):
+        contract = load_json("config/split-view.json")
+        self.assertEqual(1, contract["schemaVersion"])
+        self.assertEqual(2, contract["minimumPanes"])
+        self.assertEqual(3, contract["maximumPanes"])
+        self.assertEqual(
+            {
+                "two-columns",
+                "two-rows",
+                "three-columns",
+                "three-rows",
+                "main-left",
+                "main-right",
+                "main-top",
+                "main-bottom",
+            },
+            set(contract["layouts"]),
+        )
+        self.assertTrue(contract["dragAndDrop"]["pageRowBeforeAfterReorders"])
+        self.assertTrue(contract["dragAndDrop"]["folderCenterNests"])
+        self.assertTrue(contract["dragAndDrop"]["pageRowCenterCreatesSplit"])
+        self.assertTrue(contract["dragAndDrop"]["cancelIsAtomic"])
+        self.assertEqual(
+            "reject-with-visible-explanation",
+            contract["dragAndDrop"]["fourthPanePolicy"],
+        )
+        self.assertFalse(contract["dragAndDrop"]["normalIncognitoMixing"])
+        self.assertTrue(contract["persistence"]["normalWindowWorkspaceSession"])
+        self.assertFalse(contract["persistence"]["incognito"])
+        self.assertFalse(contract["persistence"]["cloudSync"])
+        self.assertTrue(contract["security"]["oneActivePane"])
+        self.assertTrue(contract["security"]["activePaneIndicatorRequired"])
+        self.assertTrue(contract["security"]["originIndicatorForEveryPane"])
+        self.assertTrue(contract["security"]["siteIsolationPreserved"])
+
+        spec = (ROOT / "docs/SPLIT_VIEW.md").read_text(encoding="utf-8")
+        architecture = (ROOT / "docs/ARCHITECTURE.md").read_text(encoding="utf-8")
+        ui_system = (ROOT / "docs/UI_SYSTEM.md").read_text(encoding="utf-8")
+        for required in (
+            "TabStripModel",
+            "SplitTabCollection",
+            "MultiContentsView",
+            "ContentsContainerView",
+            "SessionService",
+            "exactly two or three",
+            "OffTheRecordProfile",
+            "DevTools",
+            "Picture in Picture",
+        ):
+            self.assertIn(required, spec)
+        self.assertIn("SplitViewService", architecture)
+        self.assertIn("parallel three-pane controller is prohibited", architecture)
+        self.assertIn("page creates a real split", ui_system)
+        self.assertIn("A fourth pane is rejected visibly", ui_system)
+
+        split_tests = [
+            entry
+            for entry in load_json("config/test-registry.json")["tests"]
+            if entry["suite"] == "SPLIT"
+        ]
+        self.assertEqual(32, len(split_tests))
+        self.assertEqual(
+            {"SPLIT-01", "SPLIT-02", "SPLIT-03", "SPLIT-04"},
+            {
+                entry["id"]
+                for entry in split_tests
+                if entry["primaryClass"] == "INTEGRATION"
+            },
+        )
+        self.assertTrue(
+            all(
+                entry["primaryClass"] == "CU_E2E"
+                for entry in split_tests[4:]
+            )
+        )
 
     def test_only_pass_is_release_success(self):
         statuses = load_json("config/test-statuses.json")

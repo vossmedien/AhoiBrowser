@@ -28,6 +28,12 @@ and appearance. Users can move between workspaces without signing in again.
 True incognito uses a Chromium off-the-record profile. Quick Window/Little Arc
 uses the normal profile and must be communicated distinctly.
 
+Sidebar drag-and-drop is a first-class organization surface: page rows reorder,
+folders nest, and page-on-page creates a real split. Split view contains two or
+three normal Chromium tabs and live `WebContents`, never previews or a second
+rendering host. Presentation grouping must not silently mutate whether a page
+is saved, temporary, or nested in the tree.
+
 ## Local-first privacy
 
 No usage telemetry, engagement tracking, automatic crash upload, or remote

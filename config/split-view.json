@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "maximumPanes": 3,
+  "minimumPanes": 2,
+  "defaultTwoPaneLayout": "two-columns",
+  "defaultThreePaneLayout": "three-columns",
+  "layouts": [
+    "two-columns",
+    "two-rows",
+    "three-columns",
+    "three-rows",
+    "main-left",
+    "main-right",
+    "main-top",
+    "main-bottom"
+  ],
+  "ratios": {
+    "defaultPrimary": 0.5,
+    "defaultSecondary": 0.5,
+    "snapPoints": [0.25, 0.333333, 0.5, 0.666667, 0.75],
+    "preferredMinimumPaneDips": 240,
+    "constrainedMinimumPaneDips": 96
+  },
+  "dragAndDrop": {
+    "pageRowBeforeAfterReorders": true,
+    "folderCenterNests": true,
+    "pageRowCenterCreatesSplit": true,
+    "singleTabRequiredForSplit": true,
+    "cancelIsAtomic": true,
+    "fourthPanePolicy": "reject-with-visible-explanation",
+    "normalIncognitoMixing": false
+  },
+  "persistence": {
+    "normalWindowWorkspaceSession": true,
+    "restoreFocusedPane": true,
+    "restoreLayoutAndRatios": true,
+    "incognito": false,
+    "cloudSync": false,
+    "missingLeafPolicy": "degrade-without-phantom-tabs"
+  },
+  "security": {
+    "oneActivePane": true,
+    "activePaneIndicatorRequired": true,
+    "originIndicatorForEveryPane": true,
+    "inactivePermissionPromptsSuppressed": true,
+    "inactiveFilePickersSuppressed": true,
+    "siteIsolationPreserved": true
+  }
+}

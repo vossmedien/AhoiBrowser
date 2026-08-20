@@ -2,9 +2,10 @@
 
 AhoiBrowser is an open-source, Apple-Silicon-only macOS browser built as a
 small, reviewable overlay on Chromium's native `//chrome` product. Its focus is
-an Arc-like vertical workspace tree, excellent developer convenience, strict
-privacy defaults, first-class HTTP authentication, and full browser behavior
-without an Electron, CEF, WKWebView, or web-app shell.
+an Arc-like vertical workspace tree with complete drag-and-drop, real two- and
+three-pane split views, excellent developer convenience, strict privacy
+defaults, first-class HTTP authentication, and full browser behavior without an
+Electron, CEF, WKWebView, or web-app shell.
 
 The complete product contract is
 [`outputs/AhoiBrowser-Master-Zielprompt.md`](outputs/AhoiBrowser-Master-Zielprompt.md).
@@ -28,6 +29,9 @@ claim is considered proven without installed-app evidence.
 - Workspaces are UI/session organization inside one normal profile, never
   separate cookie or extension profiles.
 - Incognito is a true off-the-record profile. Little Arc/Quick Window is not.
+- Split panes are two or three normal Chromium tabs/`WebContents` inside the
+  existing tab model, never a parallel WebView host. See
+  [`docs/SPLIT_VIEW.md`](docs/SPLIT_VIEW.md).
 - No built-in broad ad blocker. Selective legacy support exists only for an
   explicitly allowlisted uBlock Origin Classic package when legally and
   technically viable.

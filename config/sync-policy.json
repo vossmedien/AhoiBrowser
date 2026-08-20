@@ -24,6 +24,7 @@
     "permissions",
     "extensionStorage",
     "incognito",
+    "splitTopology",
     "keychainSecrets",
     "secretHeaders",
     "httpAuthSecrets"

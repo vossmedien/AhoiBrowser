@@ -24,6 +24,32 @@ activity chip, and restrained hover/selection treatments. Deep nesting remains
 keyboard navigable and virtualized. Drop targets communicate before/after/inside
 precisely, auto-expand deliberately, and never depend on color alone.
 
+Tab drag and drop is a complete interaction, not a later enhancement. Row-edge
+targets reorder, folder-center targets nest, and dropping one page on the center
+of another page creates a real split. The preview names the exact operation and
+Escape cancels it atomically. Files, folders, multi-selections, and invalid
+profile combinations cannot be mistaken for a split gesture.
+
+## Split view
+
+Two or three normal Chromium `WebContents` can be visible and live at once.
+Two-pane layouts are columns or rows. Three-pane layouts include three columns,
+three rows, and the four asymmetric main-pane arrangements. Layout IDs, ratios,
+limits, and persistence rules are defined in `config/split-view.json`; detailed
+interaction and security behavior is defined in `docs/SPLIT_VIEW.md`.
+
+Each pane has compact browser-owned origin and activity state, while one clear,
+non-color-only outline identifies the pane controlled by the address bar,
+navigation buttons, Page Info, permissions, extensions, and developer actions.
+Clicking a pane changes focus without reloading it. Dividers support pointer and
+keyboard resizing, accessible values, snap points, and safe minimum sizes.
+
+A page dropped onto an existing two-pane group previews where it will become
+the third pane. A fourth pane is rejected visibly and never replaces or closes
+content. Dragging a pane back to a normal sidebar target removes it from the
+group. Browser fullscreen retains the layout; content fullscreen temporarily
+shows its originating pane and restores the exact layout afterward.
+
 ## Command bar
 
 `Command+L` and `Command+T` focus the same centered command surface with different
@@ -51,10 +77,12 @@ surfaces. Increased Contrast and focus rings must remain legible in every accent
 
 Every operation is keyboard reachable. Views expose roles, labels, state,
 hierarchy, set membership, expanded/collapsed state, drag/drop announcements, and
-focus order to macOS accessibility APIs. German and English layouts are both
-designed, not just translated; no fixed text widths, raw keys, or concatenated
-sentences. Desktop strings ultimately live in GRIT/ICU and companion strings in
-Apple string catalogs.
+focus order to macOS accessibility APIs. Split groups expose pane count and
+layout; each pane exposes title, origin, position, activity state, and focused
+state; every divider exposes an adjustable value. German and English layouts
+are both designed, not just translated; no fixed text widths, raw keys, or
+concatenated sentences. Desktop strings ultimately live in GRIT/ICU and
+companion strings in Apple string catalogs.
 
 ## Convenience without clutter
 
