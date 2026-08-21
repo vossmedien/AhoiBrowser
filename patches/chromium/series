@@ -1,2 +1,10 @@
 # One relative patch path per line. Blank lines and comments are ignored.
 0001-ahoi-vertical-tabs-default.patch
+0002-ahoi-product-data-directory.patch
+0003-ahoi-nested-tab-tree.patch
+0004-ahoi-workspace-navigation.patch
+0005-ahoi-session-bridge.patch
+0006-ahoi-sidebar-tree-model.patch
+0007-ahoi-native-command-bar.patch
+0008-ahoi-three-pane-split.patch
+0009-ahoi-sidebar-views.patch

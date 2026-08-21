@@ -1,0 +1,1555 @@
+diff --git a/ahoi/browser/tab_tree/BUILD.gn b/ahoi/browser/tab_tree/BUILD.gn
+new file mode 100644
+index 0000000..90b394d
+--- /dev/null
++++ b/ahoi/browser/tab_tree/BUILD.gn
+@@ -0,0 +1,41 @@
++# Copyright 2026 The AhoiBrowser Authors
++# Use of this source code is governed by a GPL-3.0-or-later license that can be
++# found in the LICENSE file.
++
++import("//testing/test.gni")
++
++source_set("tab_tree") {
++  sources = [
++    "tab_tree_model.h",
++    "tab_tree_observer.h",
++    "tab_tree_store.cc",
++    "tab_tree_store.h",
++  ]
++
++  public_deps = [
++    "//base",
++    "//sql",
++    "//url",
++  ]
++}
++
++source_set("unit_tests") {
++  testonly = true
++  sources = [ "tab_tree_store_unittest.cc" ]
++  deps = [
++    ":tab_tree",
++    "//base/test:test_support",
++    "//sql:test_support",
++    "//testing/gtest",
++  ]
++}
++
++# Focused binary for this component. It intentionally does not pull the tree
++# tests into chrome/browser unit_tests until the profile-scoped service exists.
++test("ahoi_tab_tree_unittests") {
++  deps = [
++    ":unit_tests",
++    "//base/test:run_all_unittests",
++    "//testing/gtest",
++  ]
++}
+diff --git a/ahoi/browser/tab_tree/tab_tree_model.h b/ahoi/browser/tab_tree/tab_tree_model.h
+new file mode 100644
+index 0000000..e2dbd38
+--- /dev/null
++++ b/ahoi/browser/tab_tree/tab_tree_model.h
+@@ -0,0 +1,79 @@
++// Copyright 2026 The AhoiBrowser Authors
++// Use of this source code is governed by a GPL-3.0-or-later license that can be
++// found in the LICENSE file.
++
++#ifndef AHOI_BROWSER_TAB_TREE_TAB_TREE_MODEL_H_
++#define AHOI_BROWSER_TAB_TREE_TAB_TREE_MODEL_H_
++
++#include <cstdint>
++#include <optional>
++#include <string>
++#include <vector>
++
++#include "base/time/time.h"
++#include "base/uuid.h"
++#include "url/gurl.h"
++
++namespace ahoi::tab_tree {
++
++inline constexpr int kCurrentModelVersion = 1;
++
++enum class TreeNodeType {
++  kFolder = 0,
++  kSavedPage = 1,
++};
++
++// Persisted, profile-scoped workspace metadata. Workspaces deliberately do not
++// represent Chromium Profiles; cookies, logins, permissions and extensions are
++// shared by all workspaces in one normal Profile.
++struct Workspace {
++  int model_version = kCurrentModelVersion;
++  base::Uuid id;
++  std::u16string name;
++  std::u16string icon;
++  std::string sort_key;
++  std::optional<uint32_t> accent_argb;
++  base::Time created_at;
++  base::Time modified_at;
++  bool tombstone = false;
++
++  bool operator==(const Workspace&) const = default;
++};
++
++// A persistent item in the Ahoi sidebar. `parent_id == std::nullopt` denotes a
++// workspace root. Parent links are unrestricted in depth but must point to an
++// active folder in the same workspace.
++struct TreeNode {
++  int model_version = kCurrentModelVersion;
++  base::Uuid id;
++  base::Uuid workspace_id;
++  std::optional<base::Uuid> parent_id;
++  TreeNodeType type = TreeNodeType::kFolder;
++  std::u16string title;
++  GURL url;
++  std::string sort_key;
++  base::Time created_at;
++  base::Time modified_at;
++  bool tombstone = false;
++
++  bool operator==(const TreeNode&) const = default;
++};
++
++enum class MutationKind {
++  kCreated = 0,
++  kRenamed = 1,
++  kMoved = 2,
++  kDeleted = 3,
++  kUndone = 4,
++};
++
++// Commit-level invalidation seam for a future native Views sidebar. Consumers
++// re-read changed rows from TabTreeStore instead of receiving mutable objects.
++struct TabTreeChange {
++  MutationKind kind = MutationKind::kCreated;
++  std::vector<base::Uuid> node_ids;
++};
++
++}  // namespace ahoi::tab_tree
++
++#endif  // AHOI_BROWSER_TAB_TREE_TAB_TREE_MODEL_H_
+diff --git a/ahoi/browser/tab_tree/tab_tree_observer.h b/ahoi/browser/tab_tree/tab_tree_observer.h
+new file mode 100644
+index 0000000..1f43305
+--- /dev/null
++++ b/ahoi/browser/tab_tree/tab_tree_observer.h
+@@ -0,0 +1,23 @@
++// Copyright 2026 The AhoiBrowser Authors
++// Use of this source code is governed by a GPL-3.0-or-later license that can be
++// found in the LICENSE file.
++
++#ifndef AHOI_BROWSER_TAB_TREE_TAB_TREE_OBSERVER_H_
++#define AHOI_BROWSER_TAB_TREE_TAB_TREE_OBSERVER_H_
++
++#include "ahoi/browser/tab_tree/tab_tree_model.h"
++#include "base/observer_list_types.h"
++
++namespace ahoi::tab_tree {
++
++class TabTreeObserver : public base::CheckedObserver {
++ public:
++  virtual void OnTabTreeChanged(const TabTreeChange& change) = 0;
++
++ protected:
++  ~TabTreeObserver() override = default;
++};
++
++}  // namespace ahoi::tab_tree
++
++#endif  // AHOI_BROWSER_TAB_TREE_TAB_TREE_OBSERVER_H_
+diff --git a/ahoi/browser/tab_tree/tab_tree_store.cc b/ahoi/browser/tab_tree/tab_tree_store.cc
+new file mode 100644
+index 0000000..affa4bc
+--- /dev/null
++++ b/ahoi/browser/tab_tree/tab_tree_store.cc
+@@ -0,0 +1,921 @@
++// Copyright 2026 The AhoiBrowser Authors
++// Use of this source code is governed by a GPL-3.0-or-later license that can be
++// found in the LICENSE file.
++
++#include "ahoi/browser/tab_tree/tab_tree_store.h"
++
++#include <cstddef>
++#include <limits>
++#include <set>
++#include <utility>
++
++#include "base/check.h"
++#include "sql/meta_table.h"
++#include "sql/statement.h"
++#include "sql/transaction.h"
++
++namespace ahoi::tab_tree {
++
++namespace {
++
++constexpr char kSelectWorkspaceSql[] =
++    "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
++    "modified_at,tombstone FROM workspaces WHERE id=?";
++
++constexpr char kSelectNodeSql[] =
++    "SELECT model_version,id,workspace_id,parent_id,node_type,title,url,"
++    "sort_key,created_at,modified_at,tombstone FROM tree_nodes WHERE id=?";
++
++bool DecodeWorkspace(sql::Statement& statement, Workspace* workspace) {
++  Workspace decoded;
++  decoded.model_version = statement.ColumnInt(0);
++  decoded.id = base::Uuid::ParseLowercase(statement.ColumnString(1));
++  decoded.name = statement.ColumnString16(2);
++  decoded.icon = statement.ColumnString16(3);
++  decoded.sort_key = statement.ColumnString(4);
++  if (statement.GetColumnType(5) != sql::ColumnType::kNull) {
++    const int64_t accent = statement.ColumnInt64(5);
++    if (accent < 0 ||
++        accent > static_cast<int64_t>(std::numeric_limits<uint32_t>::max())) {
++      return false;
++    }
++    decoded.accent_argb = static_cast<uint32_t>(accent);
++  }
++  decoded.created_at = statement.ColumnTime(6);
++  decoded.modified_at = statement.ColumnTime(7);
++  decoded.tombstone = statement.ColumnBool(8);
++
++  if (decoded.model_version != kCurrentModelVersion || !decoded.id.is_valid()) {
++    return false;
++  }
++  *workspace = std::move(decoded);
++  return true;
++}
++
++bool DecodeNode(sql::Statement& statement, TreeNode* node) {
++  TreeNode decoded;
++  decoded.model_version = statement.ColumnInt(0);
++  decoded.id = base::Uuid::ParseLowercase(statement.ColumnString(1));
++  decoded.workspace_id = base::Uuid::ParseLowercase(statement.ColumnString(2));
++  if (statement.GetColumnType(3) != sql::ColumnType::kNull) {
++    base::Uuid parent = base::Uuid::ParseLowercase(statement.ColumnString(3));
++    if (!parent.is_valid()) {
++      return false;
++    }
++    decoded.parent_id = std::move(parent);
++  }
++
++  switch (statement.ColumnInt(4)) {
++    case static_cast<int>(TreeNodeType::kFolder):
++      decoded.type = TreeNodeType::kFolder;
++      break;
++    case static_cast<int>(TreeNodeType::kSavedPage):
++      decoded.type = TreeNodeType::kSavedPage;
++      break;
++    default:
++      return false;
++  }
++
++  decoded.title = statement.ColumnString16(5);
++  decoded.url = GURL(statement.ColumnString(6));
++  decoded.sort_key = statement.ColumnString(7);
++  decoded.created_at = statement.ColumnTime(8);
++  decoded.modified_at = statement.ColumnTime(9);
++  decoded.tombstone = statement.ColumnBool(10);
++
++  if (decoded.model_version != kCurrentModelVersion || !decoded.id.is_valid() ||
++      !decoded.workspace_id.is_valid()) {
++    return false;
++  }
++  *node = std::move(decoded);
++  return true;
++}
++
++void BindNodeForInsert(sql::Statement& statement, const TreeNode& node) {
++  statement.BindInt(0, node.model_version);
++  statement.BindString(1, node.id.AsLowercaseString());
++  statement.BindString(2, node.workspace_id.AsLowercaseString());
++  if (node.parent_id.has_value()) {
++    statement.BindString(3, node.parent_id->AsLowercaseString());
++  } else {
++    statement.BindNull(3);
++  }
++  statement.BindInt(4, static_cast<int>(node.type));
++  statement.BindString16(5, node.title);
++  statement.BindString(6, node.url.spec());
++  statement.BindString(7, node.sort_key);
++  statement.BindTime(8, node.created_at);
++  statement.BindTime(9, node.modified_at);
++  statement.BindBool(10, node.tombstone);
++}
++
++}  // namespace
++
++TabTreeStore::TabTreeStore()
++    : db_(sql::DatabaseOptions().set_flush_to_media(true),
++          /*tag=*/"AhoiTabTree") {
++  // The profile service may construct this store on the UI sequence before
++  // transferring it to its dedicated database sequence.
++  DETACH_FROM_SEQUENCE(sequence_checker_);
++}
++
++TabTreeStore::~TabTreeStore() {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++}
++
++bool TabTreeStore::Initialize(const base::FilePath& path) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (path.empty() || db_.is_open() || !db_.Open(path)) {
++    return false;
++  }
++
++  bool initialized = false;
++  if (db_.Execute("PRAGMA foreign_keys=ON")) {
++    sql::Transaction transaction(&db_);
++    if (transaction.Begin()) {
++      sql::MetaTable meta_table;
++      if (meta_table.Init(&db_, kCurrentSchemaVersion, kCurrentSchemaVersion) &&
++          meta_table.GetCompatibleVersionNumber() <= kCurrentSchemaVersion &&
++          meta_table.GetVersionNumber() >= kLowestSupportedSchemaVersion &&
++          meta_table.GetVersionNumber() <= kCurrentSchemaVersion) {
++        initialized = CreateSchema() && transaction.Commit();
++      }
++    }
++  }
++
++  if (!initialized) {
++    db_.Close();
++  }
++  return initialized;
++}
++
++void TabTreeStore::AddObserver(TabTreeObserver* observer) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  observers_.AddObserver(observer);
++}
++
++void TabTreeStore::RemoveObserver(TabTreeObserver* observer) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  observers_.RemoveObserver(observer);
++}
++
++TabTreeStore::Result TabTreeStore::CreateWorkspace(const Workspace& workspace) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!ValidateWorkspace(workspace) || workspace.tombstone) {
++    return Result::kInvalidArgument;
++  }
++
++  Workspace existing;
++  const Result lookup = ReadWorkspace(workspace.id, &existing);
++  if (lookup == Result::kOk) {
++    return Result::kAlreadyExists;
++  }
++  if (lookup != Result::kNotFound) {
++    return lookup;
++  }
++
++  sql::Transaction transaction(&db_);
++  if (!transaction.Begin()) {
++    return Result::kDatabaseError;
++  }
++  sql::Statement statement(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
++      "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?)"));
++  statement.BindInt(0, workspace.model_version);
++  statement.BindString(1, workspace.id.AsLowercaseString());
++  statement.BindString16(2, workspace.name);
++  statement.BindString16(3, workspace.icon);
++  statement.BindString(4, workspace.sort_key);
++  if (workspace.accent_argb.has_value()) {
++    statement.BindInt64(5, *workspace.accent_argb);
++  } else {
++    statement.BindNull(5);
++  }
++  statement.BindTime(6, workspace.created_at);
++  statement.BindTime(7, workspace.modified_at);
++  statement.BindBool(8, workspace.tombstone);
++  if (!statement.Run() || !transaction.Commit()) {
++    return Result::kDatabaseError;
++  }
++  return Result::kOk;
++}
++
++TabTreeStore::Result TabTreeStore::CreateNode(const TreeNode& node) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!ValidateNode(node) || node.tombstone) {
++    return Result::kInvalidArgument;
++  }
++
++  TreeNode existing;
++  const Result lookup = ReadNode(node.id, &existing);
++  if (lookup == Result::kOk) {
++    return Result::kAlreadyExists;
++  }
++  if (lookup != Result::kNotFound) {
++    return lookup;
++  }
++  const Result destination =
++      ValidateDestination(node.id, node.workspace_id, node.parent_id);
++  if (destination != Result::kOk) {
++    return destination;
++  }
++
++  sql::Transaction transaction(&db_);
++  if (!transaction.Begin()) {
++    return Result::kDatabaseError;
++  }
++
++  if (!InsertUndoOperation(PersistedMutationKind::kCreate, node.id,
++                           node.modified_at,
++                           {{.node_id = node.id, .previous = std::nullopt}})) {
++    return Result::kDatabaseError;
++  }
++
++  sql::Statement statement(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
++      "node_type,title,url,sort_key,created_at,modified_at,tombstone) "
++      "VALUES(?,?,?,?,?,?,?,?,?,?,?)"));
++  BindNodeForInsert(statement, node);
++  if (!statement.Run() || !transaction.Commit()) {
++    return Result::kDatabaseError;
++  }
++
++  Notify(MutationKind::kCreated, {node.id});
++  return Result::kOk;
++}
++
++TabTreeStore::Result TabTreeStore::RenameNode(const base::Uuid& node_id,
++                                              std::u16string title,
++                                              base::Time modified_at) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!node_id.is_valid() || title.empty() || modified_at.is_null()) {
++    return Result::kInvalidArgument;
++  }
++
++  TreeNode node;
++  Result result = ReadNode(node_id, &node);
++  if (result != Result::kOk) {
++    return result;
++  }
++  if (node.tombstone) {
++    return Result::kNotFound;
++  }
++  if (node.title == title) {
++    return Result::kOk;
++  }
++
++  sql::Transaction transaction(&db_);
++  if (!transaction.Begin()) {
++    return Result::kDatabaseError;
++  }
++  if (!InsertUndoOperation(PersistedMutationKind::kRename, node.id, modified_at,
++                           {{.node_id = node.id, .previous = node}})) {
++    return Result::kDatabaseError;
++  }
++
++  sql::Statement statement(db_.GetCachedStatement(
++      SQL_FROM_HERE, "UPDATE tree_nodes SET title=?,modified_at=? WHERE id=?"));
++  statement.BindString16(0, title);
++  statement.BindTime(1, modified_at);
++  statement.BindString(2, node.id.AsLowercaseString());
++  if (!statement.Run() || db_.GetLastChangeCount() != 1 ||
++      !transaction.Commit()) {
++    return Result::kDatabaseError;
++  }
++
++  Notify(MutationKind::kRenamed, {node.id});
++  return Result::kOk;
++}
++
++TabTreeStore::Result TabTreeStore::MoveNode(const base::Uuid& node_id,
++                                            const base::Uuid& workspace_id,
++                                            std::optional<base::Uuid> parent_id,
++                                            std::string sort_key,
++                                            base::Time modified_at) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!node_id.is_valid() || !workspace_id.is_valid() || sort_key.empty() ||
++      modified_at.is_null() ||
++      (parent_id.has_value() && !parent_id->is_valid())) {
++    return Result::kInvalidArgument;
++  }
++
++  TreeNode node;
++  Result result = ReadNode(node_id, &node);
++  if (result != Result::kOk) {
++    return result;
++  }
++  if (node.tombstone) {
++    return Result::kNotFound;
++  }
++  result = ValidateDestination(node_id, workspace_id, parent_id);
++  if (result != Result::kOk) {
++    return result;
++  }
++  if (node.workspace_id == workspace_id && node.parent_id == parent_id &&
++      node.sort_key == sort_key) {
++    return Result::kOk;
++  }
++
++  const bool changes_workspace = node.workspace_id != workspace_id;
++  std::vector<TreeNode> affected_nodes;
++  if (changes_workspace) {
++    result = ReadSubtree(node_id, &affected_nodes);
++    if (result != Result::kOk) {
++      return result;
++    }
++  } else {
++    affected_nodes.push_back(node);
++  }
++  std::vector<NodeSnapshot> snapshots;
++  snapshots.reserve(affected_nodes.size());
++  for (const TreeNode& affected_node : affected_nodes) {
++    snapshots.push_back(
++        {.node_id = affected_node.id, .previous = affected_node});
++  }
++
++  sql::Transaction transaction(&db_);
++  if (!transaction.Begin()) {
++    return Result::kDatabaseError;
++  }
++  if (!InsertUndoOperation(PersistedMutationKind::kMove, node.id, modified_at,
++                           snapshots)) {
++    return Result::kDatabaseError;
++  }
++
++  if (changes_workspace) {
++    sql::Statement update_descendants(db_.GetUniqueStatement(
++        "WITH RECURSIVE subtree(id) AS (SELECT id FROM tree_nodes WHERE id=? "
++        "UNION SELECT child.id FROM tree_nodes child JOIN subtree parent ON "
++        "child.parent_id=parent.id) UPDATE tree_nodes SET workspace_id=?,"
++        "modified_at=? WHERE id IN (SELECT id FROM subtree) AND id<>?"));
++    update_descendants.BindString(0, node.id.AsLowercaseString());
++    update_descendants.BindString(1, workspace_id.AsLowercaseString());
++    update_descendants.BindTime(2, modified_at);
++    update_descendants.BindString(3, node.id.AsLowercaseString());
++    if (!update_descendants.Run() ||
++        db_.GetLastChangeCount() !=
++            static_cast<int64_t>(affected_nodes.size() - 1)) {
++      return Result::kDatabaseError;
++    }
++  }
++
++  sql::Statement update_root(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "UPDATE tree_nodes SET workspace_id=?,parent_id=?,sort_key=?,"
++      "modified_at=? WHERE id=?"));
++  update_root.BindString(0, workspace_id.AsLowercaseString());
++  if (parent_id.has_value()) {
++    update_root.BindString(1, parent_id->AsLowercaseString());
++  } else {
++    update_root.BindNull(1);
++  }
++  update_root.BindString(2, sort_key);
++  update_root.BindTime(3, modified_at);
++  update_root.BindString(4, node.id.AsLowercaseString());
++  if (!update_root.Run() || db_.GetLastChangeCount() != 1 ||
++      !transaction.Commit()) {
++    return Result::kDatabaseError;
++  }
++
++  std::vector<base::Uuid> changed_ids;
++  if (changes_workspace) {
++    changed_ids.reserve(affected_nodes.size());
++    for (const TreeNode& affected_node : affected_nodes) {
++      changed_ids.push_back(affected_node.id);
++    }
++  } else {
++    changed_ids.push_back(node.id);
++  }
++  Notify(MutationKind::kMoved, std::move(changed_ids));
++  return Result::kOk;
++}
++
++TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
++                                              base::Time modified_at) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!node_id.is_valid() || modified_at.is_null()) {
++    return Result::kInvalidArgument;
++  }
++
++  TreeNode node;
++  Result result = ReadNode(node_id, &node);
++  if (result != Result::kOk) {
++    return result;
++  }
++  if (node.tombstone) {
++    return Result::kNotFound;
++  }
++
++  std::vector<TreeNode> subtree;
++  result = ReadSubtree(node_id, &subtree);
++  if (result != Result::kOk) {
++    return result;
++  }
++  std::vector<NodeSnapshot> snapshots;
++  snapshots.reserve(subtree.size());
++  for (const TreeNode& descendant : subtree) {
++    snapshots.push_back({.node_id = descendant.id, .previous = descendant});
++  }
++
++  sql::Transaction transaction(&db_);
++  if (!transaction.Begin()) {
++    return Result::kDatabaseError;
++  }
++  if (!InsertUndoOperation(PersistedMutationKind::kDelete, node.id, modified_at,
++                           snapshots)) {
++    return Result::kDatabaseError;
++  }
++
++  std::vector<base::Uuid> changed_ids;
++  changed_ids.reserve(subtree.size());
++  for (const TreeNode& descendant : subtree) {
++    changed_ids.push_back(descendant.id);
++  }
++  sql::Statement statement(db_.GetUniqueStatement(
++      "WITH RECURSIVE subtree(id) AS (SELECT id FROM tree_nodes WHERE id=? "
++      "UNION SELECT child.id FROM tree_nodes child JOIN subtree parent ON "
++      "child.parent_id=parent.id) UPDATE tree_nodes SET tombstone=1,"
++      "modified_at=? WHERE id IN (SELECT id FROM subtree)"));
++  statement.BindString(0, node.id.AsLowercaseString());
++  statement.BindTime(1, modified_at);
++  if (!statement.Run() ||
++      db_.GetLastChangeCount() != static_cast<int64_t>(subtree.size())) {
++    return Result::kDatabaseError;
++  }
++  if (!transaction.Commit()) {
++    return Result::kDatabaseError;
++  }
++
++  Notify(MutationKind::kDeleted, std::move(changed_ids));
++  return Result::kOk;
++}
++
++TabTreeStore::Result TabTreeStore::UndoLastMutation() {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++
++  sql::Transaction transaction(&db_);
++  if (!transaction.Begin()) {
++    return Result::kDatabaseError;
++  }
++
++  int64_t operation_id = 0;
++  {
++    sql::Statement operation(db_.GetCachedStatement(
++        SQL_FROM_HERE,
++        "SELECT operation_id FROM undo_operations ORDER BY operation_id DESC "
++        "LIMIT 1"));
++    if (!operation.Step()) {
++      return operation.Succeeded() ? Result::kNothingToUndo
++                                   : Result::kDatabaseError;
++    }
++    operation_id = operation.ColumnInt64(0);
++  }
++
++  std::vector<NodeSnapshot> snapshots;
++  if (!ReadUndoSnapshots(operation_id, &snapshots) || snapshots.empty()) {
++    return Result::kDatabaseError;
++  }
++  for (const NodeSnapshot& snapshot : snapshots) {
++    if (!RestoreSnapshot(snapshot)) {
++      return Result::kDatabaseError;
++    }
++  }
++  if (!RemoveUndoOperation(operation_id) || !transaction.Commit()) {
++    return Result::kDatabaseError;
++  }
++
++  std::vector<base::Uuid> changed_ids;
++  changed_ids.reserve(snapshots.size());
++  for (const NodeSnapshot& snapshot : snapshots) {
++    changed_ids.push_back(snapshot.node_id);
++  }
++  Notify(MutationKind::kUndone, std::move(changed_ids));
++  return Result::kOk;
++}
++
++TabTreeStore::Result TabTreeStore::GetWorkspace(const base::Uuid& workspace_id,
++                                                Workspace* workspace) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!workspace_id.is_valid() || !workspace) {
++    return Result::kInvalidArgument;
++  }
++  return ReadWorkspace(workspace_id, workspace);
++}
++
++TabTreeStore::Result TabTreeStore::GetNode(const base::Uuid& node_id,
++                                           TreeNode* node) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!node_id.is_valid() || !node) {
++    return Result::kInvalidArgument;
++  }
++  return ReadNode(node_id, node);
++}
++
++TabTreeStore::Result TabTreeStore::GetChildren(
++    const base::Uuid& workspace_id,
++    std::optional<base::Uuid> parent_id,
++    std::vector<TreeNode>* children) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!workspace_id.is_valid() || !children ||
++      (parent_id.has_value() && !parent_id->is_valid())) {
++    return Result::kInvalidArgument;
++  }
++
++  Workspace workspace;
++  const Result workspace_result = ReadWorkspace(workspace_id, &workspace);
++  if (workspace_result != Result::kOk) {
++    return workspace_result;
++  }
++  if (workspace.tombstone) {
++    return Result::kNotFound;
++  }
++
++  const std::string query =
++      parent_id.has_value()
++          ? "SELECT model_version,id,workspace_id,parent_id,"
++            "node_type,title,url,sort_key,created_at,modified_at,"
++            "tombstone FROM tree_nodes WHERE workspace_id=? "
++            "AND parent_id=? AND tombstone=0 ORDER BY "
++            "sort_key,id"
++          : "SELECT model_version,id,workspace_id,parent_id,"
++            "node_type,title,url,sort_key,created_at,modified_at,"
++            "tombstone FROM tree_nodes WHERE workspace_id=? "
++            "AND parent_id IS NULL AND tombstone=0 ORDER BY "
++            "sort_key,id";
++  sql::Statement statement(db_.GetUniqueStatement(query));
++  statement.BindString(0, workspace_id.AsLowercaseString());
++  if (parent_id.has_value()) {
++    statement.BindString(1, parent_id->AsLowercaseString());
++  }
++
++  std::vector<TreeNode> decoded;
++  while (statement.Step()) {
++    TreeNode node;
++    if (!DecodeNode(statement, &node) || !ValidateNode(node)) {
++      return Result::kDatabaseError;
++    }
++    decoded.push_back(std::move(node));
++  }
++  if (!statement.Succeeded()) {
++    return Result::kDatabaseError;
++  }
++  *children = std::move(decoded);
++  return Result::kOk;
++}
++
++bool TabTreeStore::CreateSchema() {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  return db_.Execute(
++             "CREATE TABLE IF NOT EXISTS workspaces("
++             "model_version INTEGER NOT NULL,id TEXT PRIMARY KEY NOT NULL,"
++             "name TEXT NOT NULL,icon TEXT NOT NULL,sort_key TEXT NOT NULL,"
++             "accent_argb INTEGER,created_at INTEGER NOT NULL,"
++             "modified_at INTEGER NOT NULL,tombstone INTEGER NOT NULL CHECK("
++             "tombstone IN (0,1)))") &&
++         db_.Execute(
++             "CREATE TABLE IF NOT EXISTS tree_nodes("
++             "model_version INTEGER NOT NULL,id TEXT PRIMARY KEY NOT NULL,"
++             "workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE "
++             "RESTRICT,parent_id TEXT REFERENCES tree_nodes(id) ON DELETE "
++             "RESTRICT,node_type INTEGER NOT NULL CHECK(node_type IN (0,1)),"
++             "title TEXT NOT NULL,url TEXT NOT NULL,sort_key TEXT NOT NULL,"
++             "created_at INTEGER NOT NULL,modified_at INTEGER NOT NULL,"
++             "tombstone INTEGER NOT NULL CHECK(tombstone IN (0,1)))") &&
++         db_.Execute(
++             "CREATE INDEX IF NOT EXISTS tree_nodes_parent_order ON "
++             "tree_nodes(workspace_id,parent_id,tombstone,sort_key,id)") &&
++         db_.Execute(
++             "CREATE TABLE IF NOT EXISTS undo_operations("
++             "operation_id INTEGER PRIMARY KEY AUTOINCREMENT,"
++             "mutation_kind INTEGER NOT NULL CHECK(mutation_kind IN (0,1,2,3)),"
++             "subject_node_id TEXT NOT NULL,created_at INTEGER NOT NULL)") &&
++         db_.Execute(
++             "CREATE TABLE IF NOT EXISTS undo_node_snapshots("
++             "operation_id INTEGER NOT NULL REFERENCES undo_operations("
++             "operation_id) ON DELETE CASCADE,ordinal INTEGER NOT NULL,"
++             "existed INTEGER NOT NULL CHECK(existed IN (0,1)),"
++             "node_id TEXT NOT NULL,model_version INTEGER,workspace_id TEXT,"
++             "parent_id TEXT,node_type INTEGER,title TEXT,url TEXT,"
++             "sort_key TEXT,created_at INTEGER,modified_at INTEGER,"
++             "tombstone INTEGER,PRIMARY KEY(operation_id,node_id),"
++             "UNIQUE(operation_id,ordinal))");
++}
++
++bool TabTreeStore::IsReady() const {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  return db_.is_open();
++}
++
++bool TabTreeStore::ValidateWorkspace(const Workspace& workspace) const {
++  return workspace.model_version == kCurrentModelVersion &&
++         workspace.id.is_valid() && !workspace.name.empty() &&
++         !workspace.sort_key.empty() && !workspace.created_at.is_null() &&
++         !workspace.modified_at.is_null();
++}
++
++bool TabTreeStore::ValidateNode(const TreeNode& node) const {
++  if (node.model_version != kCurrentModelVersion || !node.id.is_valid() ||
++      !node.workspace_id.is_valid() || node.title.empty() ||
++      node.sort_key.empty() || node.created_at.is_null() ||
++      node.modified_at.is_null() ||
++      (node.parent_id.has_value() && !node.parent_id->is_valid())) {
++    return false;
++  }
++  if (node.type == TreeNodeType::kFolder) {
++    return node.url.is_empty();
++  }
++  return node.type == TreeNodeType::kSavedPage && node.url.is_valid() &&
++         !node.url.is_empty();
++}
++
++TabTreeStore::Result TabTreeStore::ReadWorkspace(const base::Uuid& workspace_id,
++                                                 Workspace* workspace) {
++  sql::Statement statement(
++      db_.GetCachedStatement(SQL_FROM_HERE, kSelectWorkspaceSql));
++  statement.BindString(0, workspace_id.AsLowercaseString());
++  if (!statement.Step()) {
++    return statement.Succeeded() ? Result::kNotFound : Result::kDatabaseError;
++  }
++  return DecodeWorkspace(statement, workspace) && ValidateWorkspace(*workspace)
++             ? Result::kOk
++             : Result::kDatabaseError;
++}
++
++TabTreeStore::Result TabTreeStore::ReadNode(const base::Uuid& node_id,
++                                            TreeNode* node) {
++  sql::Statement statement(
++      db_.GetCachedStatement(SQL_FROM_HERE, kSelectNodeSql));
++  statement.BindString(0, node_id.AsLowercaseString());
++  if (!statement.Step()) {
++    return statement.Succeeded() ? Result::kNotFound : Result::kDatabaseError;
++  }
++  return DecodeNode(statement, node) && ValidateNode(*node)
++             ? Result::kOk
++             : Result::kDatabaseError;
++}
++
++TabTreeStore::Result TabTreeStore::ReadSubtree(const base::Uuid& node_id,
++                                               std::vector<TreeNode>* nodes) {
++  sql::Statement statement(db_.GetUniqueStatement(
++      "WITH RECURSIVE subtree(id) AS (SELECT id FROM tree_nodes WHERE id=? "
++      "UNION SELECT child.id FROM tree_nodes child JOIN subtree parent ON "
++      "child.parent_id=parent.id) SELECT node.model_version,node.id,"
++      "node.workspace_id,node.parent_id,node.node_type,node.title,node.url,"
++      "node.sort_key,node.created_at,node.modified_at,node.tombstone FROM "
++      "tree_nodes node JOIN subtree ON subtree.id=node.id ORDER BY node.id"));
++  statement.BindString(0, node_id.AsLowercaseString());
++
++  std::vector<TreeNode> decoded;
++  while (statement.Step()) {
++    TreeNode node;
++    if (!DecodeNode(statement, &node) || !ValidateNode(node)) {
++      return Result::kDatabaseError;
++    }
++    decoded.push_back(std::move(node));
++  }
++  if (!statement.Succeeded()) {
++    return Result::kDatabaseError;
++  }
++  if (decoded.empty()) {
++    return Result::kNotFound;
++  }
++  *nodes = std::move(decoded);
++  return Result::kOk;
++}
++
++TabTreeStore::Result TabTreeStore::ValidateDestination(
++    const base::Uuid& moving_node_id,
++    const base::Uuid& workspace_id,
++    const std::optional<base::Uuid>& parent_id) {
++  Workspace workspace;
++  Result result = ReadWorkspace(workspace_id, &workspace);
++  if (result != Result::kOk) {
++    return result;
++  }
++  if (workspace.tombstone) {
++    return Result::kNotFound;
++  }
++  if (!parent_id.has_value()) {
++    return Result::kOk;
++  }
++  if (*parent_id == moving_node_id) {
++    return Result::kCycle;
++  }
++
++  std::set<std::string> visited;
++  std::optional<base::Uuid> cursor = parent_id;
++  while (cursor.has_value()) {
++    if (*cursor == moving_node_id ||
++        !visited.insert(cursor->AsLowercaseString()).second) {
++      return Result::kCycle;
++    }
++    TreeNode ancestor;
++    result = ReadNode(*cursor, &ancestor);
++    if (result != Result::kOk) {
++      return result;
++    }
++    if (ancestor.tombstone || ancestor.type != TreeNodeType::kFolder ||
++        ancestor.workspace_id != workspace_id) {
++      return Result::kInvalidArgument;
++    }
++    cursor = ancestor.parent_id;
++  }
++  return Result::kOk;
++}
++
++bool TabTreeStore::InsertUndoOperation(
++    PersistedMutationKind kind,
++    const base::Uuid& subject_node_id,
++    base::Time created_at,
++    const std::vector<NodeSnapshot>& snapshots) {
++  sql::Statement operation(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "INSERT INTO undo_operations(mutation_kind,subject_node_id,created_at) "
++      "VALUES(?,?,?)"));
++  operation.BindInt(0, static_cast<int>(kind));
++  operation.BindString(1, subject_node_id.AsLowercaseString());
++  operation.BindTime(2, created_at);
++  if (!operation.Run()) {
++    return false;
++  }
++  const int64_t operation_id = db_.GetLastInsertRowId();
++
++  sql::Statement snapshot_statement(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,node_id,"
++      "model_version,workspace_id,parent_id,node_type,title,url,sort_key,"
++      "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
++  for (size_t i = 0; i < snapshots.size(); ++i) {
++    const NodeSnapshot& snapshot = snapshots[i];
++    snapshot_statement.Reset(/*clear_bound_vars=*/true);
++    snapshot_statement.BindInt64(0, operation_id);
++    snapshot_statement.BindInt64(1, static_cast<int64_t>(i));
++    snapshot_statement.BindBool(2, snapshot.previous.has_value());
++    snapshot_statement.BindString(3, snapshot.node_id.AsLowercaseString());
++    if (!snapshot.previous.has_value()) {
++      for (int column = 4; column <= 13; ++column) {
++        snapshot_statement.BindNull(column);
++      }
++    } else {
++      const TreeNode& node = *snapshot.previous;
++      snapshot_statement.BindInt(4, node.model_version);
++      snapshot_statement.BindString(5, node.workspace_id.AsLowercaseString());
++      if (node.parent_id.has_value()) {
++        snapshot_statement.BindString(6, node.parent_id->AsLowercaseString());
++      } else {
++        snapshot_statement.BindNull(6);
++      }
++      snapshot_statement.BindInt(7, static_cast<int>(node.type));
++      snapshot_statement.BindString16(8, node.title);
++      snapshot_statement.BindString(9, node.url.spec());
++      snapshot_statement.BindString(10, node.sort_key);
++      snapshot_statement.BindTime(11, node.created_at);
++      snapshot_statement.BindTime(12, node.modified_at);
++      snapshot_statement.BindBool(13, node.tombstone);
++    }
++    if (!snapshot_statement.Run()) {
++      return false;
++    }
++  }
++  return true;
++}
++
++bool TabTreeStore::RestoreSnapshot(const NodeSnapshot& snapshot) {
++  if (!snapshot.previous.has_value()) {
++    sql::Statement statement(db_.GetCachedStatement(
++        SQL_FROM_HERE, "DELETE FROM tree_nodes WHERE id=?"));
++    statement.BindString(0, snapshot.node_id.AsLowercaseString());
++    return statement.Run() && db_.GetLastChangeCount() == 1;
++  }
++
++  const TreeNode& node = *snapshot.previous;
++  sql::Statement statement(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "UPDATE tree_nodes SET model_version=?,workspace_id=?,parent_id=?,"
++      "node_type=?,title=?,url=?,sort_key=?,created_at=?,modified_at=?,"
++      "tombstone=? WHERE id=?"));
++  statement.BindInt(0, node.model_version);
++  statement.BindString(1, node.workspace_id.AsLowercaseString());
++  if (node.parent_id.has_value()) {
++    statement.BindString(2, node.parent_id->AsLowercaseString());
++  } else {
++    statement.BindNull(2);
++  }
++  statement.BindInt(3, static_cast<int>(node.type));
++  statement.BindString16(4, node.title);
++  statement.BindString(5, node.url.spec());
++  statement.BindString(6, node.sort_key);
++  statement.BindTime(7, node.created_at);
++  statement.BindTime(8, node.modified_at);
++  statement.BindBool(9, node.tombstone);
++  statement.BindString(10, node.id.AsLowercaseString());
++  return statement.Run() && db_.GetLastChangeCount() == 1;
++}
++
++bool TabTreeStore::ReadUndoSnapshots(int64_t operation_id,
++                                     std::vector<NodeSnapshot>* snapshots) {
++  sql::Statement statement(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "SELECT existed,node_id,model_version,workspace_id,parent_id,node_type,"
++      "title,url,sort_key,created_at,modified_at,tombstone FROM "
++      "undo_node_snapshots WHERE operation_id=? ORDER BY ordinal"));
++  statement.BindInt64(0, operation_id);
++
++  std::vector<NodeSnapshot> decoded;
++  while (statement.Step()) {
++    NodeSnapshot snapshot;
++    snapshot.node_id = base::Uuid::ParseLowercase(statement.ColumnString(1));
++    if (!snapshot.node_id.is_valid()) {
++      return false;
++    }
++    if (statement.ColumnBool(0)) {
++      TreeNode node;
++      node.model_version = statement.ColumnInt(2);
++      node.id = snapshot.node_id;
++      node.workspace_id = base::Uuid::ParseLowercase(statement.ColumnString(3));
++      if (statement.GetColumnType(4) != sql::ColumnType::kNull) {
++        base::Uuid parent =
++            base::Uuid::ParseLowercase(statement.ColumnString(4));
++        if (!parent.is_valid()) {
++          return false;
++        }
++        node.parent_id = std::move(parent);
++      }
++      const int node_type = statement.ColumnInt(5);
++      if (node_type == static_cast<int>(TreeNodeType::kFolder)) {
++        node.type = TreeNodeType::kFolder;
++      } else if (node_type == static_cast<int>(TreeNodeType::kSavedPage)) {
++        node.type = TreeNodeType::kSavedPage;
++      } else {
++        return false;
++      }
++      node.title = statement.ColumnString16(6);
++      node.url = GURL(statement.ColumnString(7));
++      node.sort_key = statement.ColumnString(8);
++      node.created_at = statement.ColumnTime(9);
++      node.modified_at = statement.ColumnTime(10);
++      node.tombstone = statement.ColumnBool(11);
++      if (!ValidateNode(node)) {
++        return false;
++      }
++      snapshot.previous = std::move(node);
++    }
++    decoded.push_back(std::move(snapshot));
++  }
++  if (!statement.Succeeded()) {
++    return false;
++  }
++  *snapshots = std::move(decoded);
++  return true;
++}
++
++bool TabTreeStore::RemoveUndoOperation(int64_t operation_id) {
++  sql::Statement delete_snapshots(db_.GetCachedStatement(
++      SQL_FROM_HERE, "DELETE FROM undo_node_snapshots WHERE operation_id=?"));
++  delete_snapshots.BindInt64(0, operation_id);
++  if (!delete_snapshots.Run()) {
++    return false;
++  }
++  sql::Statement delete_operation(db_.GetCachedStatement(
++      SQL_FROM_HERE, "DELETE FROM undo_operations WHERE operation_id=?"));
++  delete_operation.BindInt64(0, operation_id);
++  return delete_operation.Run() && db_.GetLastChangeCount() == 1;
++}
++
++void TabTreeStore::Notify(MutationKind kind, std::vector<base::Uuid> node_ids) {
++  TabTreeChange change{.kind = kind, .node_ids = std::move(node_ids)};
++  for (TabTreeObserver& observer : observers_) {
++    observer.OnTabTreeChanged(change);
++  }
++}
++
++}  // namespace ahoi::tab_tree
+diff --git a/ahoi/browser/tab_tree/tab_tree_store.h b/ahoi/browser/tab_tree/tab_tree_store.h
+new file mode 100644
+index 0000000..f4eb8a3
+--- /dev/null
++++ b/ahoi/browser/tab_tree/tab_tree_store.h
+@@ -0,0 +1,127 @@
++// Copyright 2026 The AhoiBrowser Authors
++// Use of this source code is governed by a GPL-3.0-or-later license that can be
++// found in the LICENSE file.
++
++#ifndef AHOI_BROWSER_TAB_TREE_TAB_TREE_STORE_H_
++#define AHOI_BROWSER_TAB_TREE_TAB_TREE_STORE_H_
++
++#include <cstdint>
++#include <optional>
++#include <string>
++#include <vector>
++
++#include "ahoi/browser/tab_tree/tab_tree_model.h"
++#include "ahoi/browser/tab_tree/tab_tree_observer.h"
++#include "base/files/file_path.h"
++#include "base/observer_list.h"
++#include "base/sequence_checker.h"
++#include "sql/database.h"
++
++namespace ahoi::tab_tree {
++
++class TabTreeStore {
++ public:
++  static constexpr int kCurrentSchemaVersion = 1;
++  static constexpr int kLowestSupportedSchemaVersion = 1;
++
++  enum class Result {
++    kOk = 0,
++    kNotInitialized,
++    kInvalidArgument,
++    kNotFound,
++    kAlreadyExists,
++    kCycle,
++    kNothingToUndo,
++    kDatabaseError,
++  };
++
++  TabTreeStore();
++  TabTreeStore(const TabTreeStore&) = delete;
++  TabTreeStore& operator=(const TabTreeStore&) = delete;
++  ~TabTreeStore();
++
++  // Opens (or creates) a profile-local database and atomically initializes its
++  // versioned schema. All later calls must run on this same sequence.
++  [[nodiscard]] bool Initialize(const base::FilePath& path);
++
++  void AddObserver(TabTreeObserver* observer);
++  void RemoveObserver(TabTreeObserver* observer);
++
++  [[nodiscard]] Result CreateWorkspace(const Workspace& workspace);
++  [[nodiscard]] Result CreateNode(const TreeNode& node);
++  [[nodiscard]] Result RenameNode(const base::Uuid& node_id,
++                                  std::u16string title,
++                                  base::Time modified_at);
++  [[nodiscard]] Result MoveNode(const base::Uuid& node_id,
++                                const base::Uuid& workspace_id,
++                                std::optional<base::Uuid> parent_id,
++                                std::string sort_key,
++                                base::Time modified_at);
++  [[nodiscard]] Result DeleteNode(const base::Uuid& node_id,
++                                  base::Time modified_at);
++  [[nodiscard]] Result UndoLastMutation();
++
++  [[nodiscard]] Result GetWorkspace(const base::Uuid& workspace_id,
++                                    Workspace* workspace);
++  [[nodiscard]] Result GetNode(const base::Uuid& node_id, TreeNode* node);
++  [[nodiscard]] Result GetChildren(const base::Uuid& workspace_id,
++                                   std::optional<base::Uuid> parent_id,
++                                   std::vector<TreeNode>* children);
++
++ private:
++  enum class PersistedMutationKind {
++    kCreate = 0,
++    kRename = 1,
++    kMove = 2,
++    kDelete = 3,
++  };
++
++  struct NodeSnapshot {
++    base::Uuid node_id;
++    std::optional<TreeNode> previous;
++  };
++
++  [[nodiscard]] bool CreateSchema();
++  [[nodiscard]] bool IsReady() const;
++  [[nodiscard]] bool ValidateWorkspace(const Workspace& workspace) const;
++  [[nodiscard]] bool ValidateNode(const TreeNode& node) const;
++
++  [[nodiscard]] Result ReadWorkspace(const base::Uuid& workspace_id,
++                                     Workspace* workspace)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++  [[nodiscard]] Result ReadNode(const base::Uuid& node_id, TreeNode* node)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++  [[nodiscard]] Result ReadSubtree(const base::Uuid& node_id,
++                                   std::vector<TreeNode>* nodes)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++  [[nodiscard]] Result ValidateDestination(
++      const base::Uuid& moving_node_id,
++      const base::Uuid& workspace_id,
++      const std::optional<base::Uuid>& parent_id)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++
++  [[nodiscard]] bool InsertUndoOperation(
++      PersistedMutationKind kind,
++      const base::Uuid& subject_node_id,
++      base::Time created_at,
++      const std::vector<NodeSnapshot>& snapshots)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++  [[nodiscard]] bool RestoreSnapshot(const NodeSnapshot& snapshot)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++  [[nodiscard]] bool ReadUndoSnapshots(int64_t operation_id,
++                                       std::vector<NodeSnapshot>* snapshots)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++  [[nodiscard]] bool RemoveUndoOperation(int64_t operation_id)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++
++  void Notify(MutationKind kind, std::vector<base::Uuid> node_ids)
++      VALID_CONTEXT_REQUIRED(sequence_checker_);
++
++  sql::Database db_ GUARDED_BY_CONTEXT(sequence_checker_);
++  base::ObserverList<TabTreeObserver> observers_;
++  SEQUENCE_CHECKER(sequence_checker_);
++};
++
++}  // namespace ahoi::tab_tree
++
++#endif  // AHOI_BROWSER_TAB_TREE_TAB_TREE_STORE_H_
+diff --git a/ahoi/browser/tab_tree/tab_tree_store_unittest.cc b/ahoi/browser/tab_tree/tab_tree_store_unittest.cc
+new file mode 100644
+index 0000000..b104f50
+--- /dev/null
++++ b/ahoi/browser/tab_tree/tab_tree_store_unittest.cc
+@@ -0,0 +1,316 @@
++// Copyright 2026 The AhoiBrowser Authors
++// Use of this source code is governed by a GPL-3.0-or-later license that can be
++// found in the LICENSE file.
++
++#include "ahoi/browser/tab_tree/tab_tree_store.h"
++
++#include <memory>
++#include <string>
++#include <utility>
++#include <vector>
++
++#include "ahoi/browser/tab_tree/tab_tree_observer.h"
++#include "base/files/scoped_temp_dir.h"
++#include "base/time/time.h"
++#include "sql/database.h"
++#include "sql/meta_table.h"
++#include "sql/test/test_helpers.h"
++#include "testing/gtest/include/gtest/gtest.h"
++
++namespace ahoi::tab_tree {
++
++namespace {
++
++class RecordingObserver : public TabTreeObserver {
++ public:
++  void OnTabTreeChanged(const TabTreeChange& change) override {
++    changes.push_back(change);
++  }
++
++  std::vector<TabTreeChange> changes;
++};
++
++class AhoiTabTreeStoreTest : public testing::Test {
++ public:
++  void SetUp() override {
++    ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
++    database_path_ = temp_dir_.GetPath().AppendASCII("AhoiTree.sqlite");
++    ASSERT_TRUE(ReopenStore());
++  }
++
++ protected:
++  bool ReopenStore() {
++    store_ = std::make_unique<TabTreeStore>();
++    return store_->Initialize(database_path_);
++  }
++
++  Workspace NewWorkspace(std::u16string name, std::string sort_key) {
++    Workspace workspace;
++    workspace.id = base::Uuid::GenerateRandomV4();
++    workspace.name = std::move(name);
++    workspace.icon = u"folder";
++    workspace.sort_key = std::move(sort_key);
++    workspace.created_at = base::Time::Now();
++    workspace.modified_at = workspace.created_at;
++    return workspace;
++  }
++
++  TreeNode NewFolder(const Workspace& workspace,
++                     std::optional<base::Uuid> parent_id,
++                     std::u16string title,
++                     std::string sort_key) {
++    TreeNode node;
++    node.id = base::Uuid::GenerateRandomV4();
++    node.workspace_id = workspace.id;
++    node.parent_id = std::move(parent_id);
++    node.type = TreeNodeType::kFolder;
++    node.title = std::move(title);
++    node.sort_key = std::move(sort_key);
++    node.created_at = base::Time::Now();
++    node.modified_at = node.created_at;
++    return node;
++  }
++
++  TreeNode NewSavedPage(const Workspace& workspace,
++                        std::optional<base::Uuid> parent_id,
++                        std::u16string title,
++                        const GURL& url,
++                        std::string sort_key) {
++    TreeNode node = NewFolder(workspace, std::move(parent_id), std::move(title),
++                              std::move(sort_key));
++    node.type = TreeNodeType::kSavedPage;
++    node.url = url;
++    return node;
++  }
++
++  base::ScopedTempDir temp_dir_;
++  base::FilePath database_path_;
++  std::unique_ptr<TabTreeStore> store_;
++};
++
++TEST_F(AhoiTabTreeStoreTest, PersistsDeepHierarchyAndManualOrder) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++
++  std::optional<base::Uuid> parent_id;
++  std::vector<TreeNode> folders;
++  for (int depth = 0; depth < 12; ++depth) {
++    TreeNode folder = NewFolder(workspace, parent_id, u"Nested folder",
++                                "folder-" + std::to_string(depth));
++    ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(folder));
++    parent_id = folder.id;
++    folders.push_back(std::move(folder));
++  }
++
++  TreeNode page_b = NewSavedPage(workspace, parent_id, u"B page",
++                                 GURL("https://example.test/b"), "b");
++  TreeNode page_a = NewSavedPage(workspace, parent_id, u"A page",
++                                 GURL("https://example.test/a"), "a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page_b));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page_a));
++
++  store_.reset();
++  ASSERT_TRUE(ReopenStore());
++
++  TreeNode persisted;
++  EXPECT_EQ(TabTreeStore::Result::kOk, store_->GetNode(page_a.id, &persisted));
++  EXPECT_EQ(page_a, persisted);
++
++  std::vector<TreeNode> children;
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->GetChildren(workspace.id, parent_id, &children));
++  ASSERT_EQ(2u, children.size());
++  EXPECT_EQ(page_a.id, children[0].id);
++  EXPECT_EQ(page_b.id, children[1].id);
++  ASSERT_TRUE(children[0].parent_id.has_value());
++  EXPECT_EQ(folders.back().id, *children[0].parent_id);
++}
++
++TEST_F(AhoiTabTreeStoreTest, RejectsCycleWithoutCreatingUndoEntry) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++  TreeNode root = NewFolder(workspace, std::nullopt, u"Root", "root-sort-key");
++  TreeNode child = NewFolder(workspace, root.id, u"Child", "child-sort-key");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(root));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(child));
++
++  RecordingObserver observer;
++  store_->AddObserver(&observer);
++  EXPECT_EQ(TabTreeStore::Result::kCycle,
++            store_->MoveNode(root.id, workspace.id, child.id, "moved",
++                             base::Time::Now()));
++  EXPECT_TRUE(observer.changes.empty());
++
++  TreeNode persisted_root;
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->GetNode(root.id, &persisted_root));
++  EXPECT_FALSE(persisted_root.parent_id.has_value());
++
++  // The failed move did not append an undo record: the latest successful
++  // mutation (creating `child`) is undone instead.
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
++  TreeNode missing_child;
++  EXPECT_EQ(TabTreeStore::Result::kNotFound,
++            store_->GetNode(child.id, &missing_child));
++  ASSERT_EQ(1u, observer.changes.size());
++  EXPECT_EQ(MutationKind::kUndone, observer.changes[0].kind);
++  store_->RemoveObserver(&observer);
++}
++
++TEST_F(AhoiTabTreeStoreTest, MovesWholeSubtreeAcrossWorkspacesAndUndoes) {
++  Workspace source = NewWorkspace(u"Source", "workspace-a");
++  Workspace destination = NewWorkspace(u"Destination", "workspace-b");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(source));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(destination));
++
++  TreeNode root = NewFolder(source, std::nullopt, u"Project", "a");
++  TreeNode child = NewFolder(source, root.id, u"Frontend", "a");
++  TreeNode page = NewSavedPage(source, child.id, u"Local app",
++                               GURL("https://localhost.test/"), "a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(root));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(child));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
++
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->MoveNode(root.id, destination.id, std::nullopt,
++                             "destination-a", base::Time::Now()));
++  for (const base::Uuid& id : {root.id, child.id, page.id}) {
++    TreeNode moved;
++    ASSERT_EQ(TabTreeStore::Result::kOk, store_->GetNode(id, &moved));
++    EXPECT_EQ(destination.id, moved.workspace_id);
++  }
++
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
++  for (const base::Uuid& id : {root.id, child.id, page.id}) {
++    TreeNode restored;
++    ASSERT_EQ(TabTreeStore::Result::kOk, store_->GetNode(id, &restored));
++    EXPECT_EQ(source.id, restored.workspace_id);
++  }
++  TreeNode restored_root;
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->GetNode(root.id, &restored_root));
++  EXPECT_FALSE(restored_root.parent_id.has_value());
++  EXPECT_EQ("a", restored_root.sort_key);
++}
++
++TEST_F(AhoiTabTreeStoreTest,
++       SameWorkspaceMoveDoesNotRewriteDescendantsAndUndoes) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++  TreeNode destination =
++      NewFolder(workspace, std::nullopt, u"Destination", "a");
++  TreeNode moved_root = NewFolder(workspace, std::nullopt, u"Moved root", "b");
++  TreeNode child = NewFolder(workspace, moved_root.id, u"Unchanged child", "a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(destination));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(moved_root));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(child));
++
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->MoveNode(moved_root.id, workspace.id, destination.id, "a",
++                             base::Time::Now()));
++  TreeNode persisted_child;
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->GetNode(child.id, &persisted_child));
++  EXPECT_EQ(child, persisted_child);
++
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
++  TreeNode restored_root;
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->GetNode(moved_root.id, &restored_root));
++  EXPECT_FALSE(restored_root.parent_id.has_value());
++  EXPECT_EQ("b", restored_root.sort_key);
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->GetNode(child.id, &persisted_child));
++  EXPECT_EQ(child, persisted_child);
++}
++
++TEST_F(AhoiTabTreeStoreTest, DeleteTombstonesSubtreeAndDurableUndoRestoresIt) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++  TreeNode root = NewFolder(workspace, std::nullopt, u"Project", "a");
++  TreeNode child = NewSavedPage(workspace, root.id, u"Issue tracker",
++                                GURL("https://issues.example.test/"), "a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(root));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(child));
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->DeleteNode(root.id, base::Time::Now()));
++
++  for (const base::Uuid& id : {root.id, child.id}) {
++    TreeNode deleted;
++    ASSERT_EQ(TabTreeStore::Result::kOk, store_->GetNode(id, &deleted));
++    EXPECT_TRUE(deleted.tombstone);
++  }
++  std::vector<TreeNode> visible_roots;
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->GetChildren(workspace.id, std::nullopt, &visible_roots));
++  EXPECT_TRUE(visible_roots.empty());
++
++  store_.reset();
++  ASSERT_TRUE(ReopenStore());
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
++  for (const base::Uuid& id : {root.id, child.id}) {
++    TreeNode restored;
++    ASSERT_EQ(TabTreeStore::Result::kOk, store_->GetNode(id, &restored));
++    EXPECT_FALSE(restored.tombstone);
++  }
++}
++
++TEST_F(AhoiTabTreeStoreTest, CreateRenameAndUndoAreLifoAndAtomic) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++  TreeNode page = NewSavedPage(workspace, std::nullopt, u"Before",
++                               GURL("https://example.test/"), "a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->RenameNode(page.id, u"After", base::Time::Now()));
++
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
++  TreeNode restored;
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->GetNode(page.id, &restored));
++  EXPECT_EQ(u"Before", restored.title);
++
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
++  EXPECT_EQ(TabTreeStore::Result::kNotFound,
++            store_->GetNode(page.id, &restored));
++  EXPECT_EQ(TabTreeStore::Result::kNothingToUndo, store_->UndoLastMutation());
++}
++
++TEST_F(AhoiTabTreeStoreTest, RejectsSavedPageAsParent) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++  TreeNode page = NewSavedPage(workspace, std::nullopt, u"Page",
++                               GURL("https://example.test/"), "a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
++  TreeNode invalid_child = NewFolder(workspace, page.id, u"Invalid child", "a");
++  EXPECT_EQ(TabTreeStore::Result::kInvalidArgument,
++            store_->CreateNode(invalid_child));
++}
++
++TEST_F(AhoiTabTreeStoreTest, RefusesTooNewSchemaWithoutRazingData) {
++  store_.reset();
++  {
++    sql::Database database(sql::test::kTestTag);
++    ASSERT_TRUE(database.Open(database_path_));
++    sql::MetaTable meta_table;
++    ASSERT_TRUE(meta_table.Init(&database, TabTreeStore::kCurrentSchemaVersion,
++                                TabTreeStore::kCurrentSchemaVersion));
++    ASSERT_TRUE(
++        meta_table.SetVersionNumber(TabTreeStore::kCurrentSchemaVersion + 1));
++    ASSERT_TRUE(meta_table.SetCompatibleVersionNumber(
++        TabTreeStore::kCurrentSchemaVersion + 1));
++    ASSERT_TRUE(database.Execute(
++        "CREATE TABLE schema_sentinel(value INTEGER NOT NULL)"));
++  }
++
++  store_ = std::make_unique<TabTreeStore>();
++  EXPECT_FALSE(store_->Initialize(database_path_));
++  store_.reset();
++
++  sql::Database database(sql::test::kTestTag);
++  ASSERT_TRUE(database.Open(database_path_));
++  EXPECT_TRUE(database.DoesTableExist("schema_sentinel"));
++}
++
++}  // namespace
++
++}  // namespace ahoi::tab_tree
+diff --git a/tools/metrics/histograms/metadata/sql/histograms.xml b/tools/metrics/histograms/metadata/sql/histograms.xml
+index 9b36f51e15b56..3e42f7139d915 100644
+--- a/tools/metrics/histograms/metadata/sql/histograms.xml
++++ b/tools/metrics/histograms/metadata/sql/histograms.xml
+@@ -32,6 +32,7 @@
+ <variants name="DatabaseTag">
+   <variant name="AccessibilityAnnotator" summary="AccessibilityAnnotator"/>
+   <variant name="Activity" summary="Activity"/>
+   <variant name="Affiliation" summary="Affiliation"/>
+   <variant name="AggregationService" summary="AggregationService"/>
++  <variant name="AhoiTabTree" summary="AhoiBrowser persistent tab tree"/>
+   <variant name="AnnotationStorage" summary="AnnotationStorage"/>
