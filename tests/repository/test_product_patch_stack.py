@@ -29,6 +29,8 @@ EXPECTED_PATCHES = {
         "5665ce99b3af2566ff2e4fbf3d33c5fad7d5d2c027256baade522da2173be8ec",
     "0011-ahoi-drag-and-tree-persistence.patch":
         "07d1aa647639ddaf37b76f17cdd7c7064fdd4590788d5b43a18a7d9b2db795c0",
+    "0012-ahoi-visual-language-and-nested-search.patch":
+        "e6b779668c4cd975b1af1392b8217c286d671b4aa67d74a690a6cb2becb03da4",
 }
 
 

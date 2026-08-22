@@ -15,10 +15,10 @@ architecture decision, test, or release gate.
 ## Current status
 
 Phase 0 is in progress. In addition to the upstream pin, reproducible
-patch/overlay workflow and evidence contracts, the current eleven-patch stack
+patch/overlay workflow and evidence contracts, the current twelve-patch stack
 now contains a native profile-backed sidebar, a durable SQLite-backed nested
-tree, live Chromium tab bridge, local command bar and bounded split-view
-integration. The
+tree with non-blocking UI access, live Chromium tab bridge, local command bar,
+shared visual language and bounded split-view integration. The
 development app builds and launches, but it is not yet a daily-use browser and
 no compatibility claim is considered proven without installed-app evidence.
 

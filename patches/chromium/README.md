@@ -267,3 +267,40 @@ impact, expected rebase risk, and removal/upstream plan.
   authority; replace the URL fallback with a stable upstream tab-session token
   if Chromium exposes one, and adapt only the narrow native drag hooks during
   rolls.
+
+## `0012-ahoi-visual-language-and-nested-search.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0011`.
+- **Affected paths:** Ahoi's semantic visual tokens, native command bar,
+  sidebar host/rows, session bridge and tab-tree store plus their focused
+  tests.
+- **Rationale:** establish one theme-aware chrome surface, spacing and radius
+  vocabulary; make inactive command results transparent while selected rows,
+  URLs and favicons remain legible; index saved pages at unlimited nesting
+  depth; and keep all on-disk SQLite work off Chromium's UI sequence. The live
+  store is in-memory and complete validated snapshots preserve tree state,
+  tombstones and durable undo history on a dedicated `MayBlock` runner.
+- **Rejected alternatives:** per-View hard-coded colors, dark cards behind
+  every command result, flattening saved pages into bookmarks, suppressing
+  Chromium's blocking `DCHECK`, or permitting synchronous profile-database
+  reads during navigation/title callbacks.
+- **Tests:** all 12 `AhoiTabTreeStoreTest` cases, all 7 `SessionBridgeTest`
+  cases, all 15 command-bar tests and 7 focused native sidebar interaction
+  tests pass. The incremental `chrome` gate is clean. A fresh-profile HTTPS
+  runtime smoke stayed alive through navigation, wrote a valid 57,344-byte
+  SQLite database with workspace/node/undo rows, produced no crash report and
+  exited cleanly. This is development-runtime evidence, not installed
+  `CU_E2E_PASS` evidence.
+- **Security/privacy impact:** persistence remains profile-local and excludes
+  off-the-record profiles. The change introduces no network endpoint, secret
+  field, renderer privilege or sandbox exception; it removes blocking disk I/O
+  from the browser UI sequence.
+- **Expected rebase risk:** low for Ahoi-owned snapshot/session code and medium
+  around native Views colors, bubble layout and Chromium favicon APIs.
+- **Removal/upstream plan:** retain the Ahoi visual-token and in-memory model
+  layers; adapt only narrow native Views integration seams during Chromium
+  rolls and replace custom colors with upstream semantic equivalents where
+  their contracts match.
