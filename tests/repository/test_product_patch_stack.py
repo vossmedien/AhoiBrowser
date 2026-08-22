@@ -35,6 +35,8 @@ EXPECTED_PATCHES = {
         "95acf7680dd94c3bf9e87145b47cb2e38c20df79bcef645487d2d4909b31be49",
     "0014-ahoi-live-tab-lifecycle-and-bidirectional-drag.patch":
         "af3d19046845ea89e123c244dd5e3c3dd894342b8479573646e91ee99542324f",
+    "0015-ahoi-save-shortcut-and-drag-feedback.patch":
+        "548fa9715844505d56b4227d03632dc7e45bdbdeb723cbcaa756c9c3cd1b0010",
 }
 
 

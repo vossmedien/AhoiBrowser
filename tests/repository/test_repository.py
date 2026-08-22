@@ -26,7 +26,7 @@ class RepositoryContractTests(unittest.TestCase):
         expected = dict(expected_rows)
         registry = load_json("config/test-registry.json")["tests"]
         actual = {entry["id"]: entry for entry in registry}
-        self.assertEqual(283, len(registry))
+        self.assertEqual(285, len(registry))
         self.assertEqual(len(registry), len(actual), "test IDs must be unique")
         self.assertEqual(set(expected), set(actual))
         for entry in registry:

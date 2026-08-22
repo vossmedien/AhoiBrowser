@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-08-22
+Last updated: 2026-08-23
 
 ## Verified local environment
 
@@ -22,9 +22,9 @@ Last updated: 2026-08-22
 | Exact Chromium Stable pin | complete | 151.0.7922.170, fully rolled/pinnable Mac ARM64 Stable |
 | Chromium ARM64 checkout | complete | 233/233 dependency closure verified twice at `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` |
 | Unmodified Chromium ARM64 build | not run | exact Xcode 26.5 baseline is installed; build gate is ready to run |
-| Branded native browser | development build complete; release build not run | `out/AhoiDev/AhoiBrowser.app` builds and launches as native ARM64 Chromium; the fourteen-patch product stack composes deterministically and the latest incremental `chrome` gate exited 0 |
-| Native visible product slice | `PROGRAMMATIC_PASS`; development-runtime interaction observed; installed proof pending | profile-backed sidebar with shared semantic colors/radii, adjacent saved/temporary sections, bidirectional live-tab drag-and-drop, split-aware context actions, real favicons, nested groups, two-/three-pane split projection and a centered five-result command bar; 25 sidebar, 17 command-bar and 19 navigation tests pass |
-| Persistent nested tab tree | `PROGRAMMATIC_PASS`; installed restart proof pending | the live UI uses an in-memory SQLite tree while complete profile-local snapshots, tombstones and undo history load/save on a dedicated `MayBlock` sequence; atomic split moves/deletes, nested rebinding and saved/open command indexing are covered by 15 tab-tree plus 8 session tests |
+| Branded native browser | development build complete; release build not run | `out/AhoiDev/AhoiBrowser.app` builds and launches as native ARM64 Chromium; the fifteen-patch product stack composes deterministically and the latest incremental `chrome` gate exited 0 |
+| Native visible product slice | `PROGRAMMATIC_PASS`; development-runtime interaction observed; installed proof pending | profile-backed sidebar with saved/temporary sections, fixed New Tab/Downloads/History/Settings dock, group styling/actions and searchable recent-link hover card, direct centered five-result command bar, URL-copy action, split-aware paired rows and row/column layouts; the incremental build and runtime restart journey pass while native pointer drag/resize still require manual dogfood confirmation |
+| Persistent nested tab tree | `PROGRAMMATIC_PASS`; development restart proof observed; installed proof pending | profile-local SQLite snapshots, tombstones, undo history, icon/accent schema migration and nested grouping remain authoritative; runtime acceptance covered group customization, duplication plus `Cmd+Z`, collapse, recent-link activation and persisted stacked split membership/orientation |
 | Installed signed dogfood | not run | depends on branded build |
 | Signed release provenance | not implemented / fail-closed | Computer Use PASS disabled by `config/release-evidence.json` until build-sign-package-install binding exists |
 | HTTP-auth fixture spike | fixture complete | 11 local integration tests; browser AUTH gates remain not run |
@@ -43,7 +43,7 @@ The first two branded compile passes exposed deprecation errors because the
 initial profiles coupled the product launch requirement to the compiler target.
 The corrected Chromium contract keeps `mac_deployment_target = "13.0"` while
 `mac_min_system_version = "26.0"` writes AhoiBrowser's real launch requirement.
-That baseline now builds and runs. The deterministic source patch stack now
+That baseline now builds and runs. The deterministic fifteen-patch source stack now
 also contains the first connected product UI: the profile-backed tree/session
 bridge, native sidebar, local command bar and bounded native split projection.
 The regular Chromium profile remains the persistent authority, and restored

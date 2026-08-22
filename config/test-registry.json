@@ -433,6 +433,32 @@
       "status": "NOT_RUN"
     },
     {
+      "id": "TREE-12",
+      "suite": "TREE",
+      "description": "Gruppenname, Icon und Farbe ändern; in Hell/Dunkel, nach Neustart und nach Workspace-Wechsel korrekt und kontrastreich wiederherstellen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TREE-13",
+      "suite": "TREE",
+      "description": "direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
       "id": "WS-01",
       "suite": "WS",
       "description": "Workspace-Wechsel per Sidebar.",

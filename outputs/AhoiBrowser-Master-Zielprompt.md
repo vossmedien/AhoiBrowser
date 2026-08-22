@@ -140,7 +140,7 @@ Neue Mojo-Schnittstellen dürfen nur dort entstehen, wo eine Prozessgrenze dies 
 Verwende versionierte, migrationsfähige Kerntypen:
 
 - `Workspace`: UUID, Name, Icon, Sortierschlüssel, optionaler Akzent, Zeitstempel.
-- `TreeNode`: UUID, Workspace-ID, Parent-ID, Typ `folder` oder `savedPage`, Titel, URL, Sortierschlüssel, Zeitstempel, Tombstone.
+- `TreeNode`: UUID, Workspace-ID, Parent-ID, Typ `folder` oder `savedPage`, Titel, URL, Sortierschlüssel, bei Ordnern optionales Icon und optionaler semantischer Farbakzent, Zeitstempel, Tombstone.
 - `RuntimeTab`: Geräte-, Fenster- und Tab-ID, optionale TreeNode-ID, URL, Titel, Aktivitätszeit, Ladezustand.
 - `SplitGroup`: stabile UUID, Chromium-Split-ID, Fenster- und Workspace-Session, zwei oder drei geordnete Tab-Handles, kanonischer Layoutbaum, primäre/sekundäre Divider-Ratios, fokussiertes Pane und Zeitstempel.
 - `HistoryVisit`: Visit-ID, Geräte-ID, URL, Titel, Zeitpunkt und Transition-Typ.
@@ -269,6 +269,27 @@ Baue eine hochwertige native Oberfläche:
 - keine unnötig dauerhaft sichtbaren Entwicklerwerkzeuge;
 - kein technischer Baukasten-Look.
 
+Die Sidebar folgt dabei einer ruhigen Arc-artigen Informationshierarchie,
+ohne Arc pixelgenau zu kopieren:
+
+- oben steht ausschließlich die kompakte Workspace-Identität mit Icon und
+  Name, keine redundante Produktüberschrift;
+- darunter folgen gespeicherte Gruppen und Seiten in flachen, luftigen Zeilen;
+  ein eigener Kartenhintergrund erscheint nicht dauerhaft pro Eintrag;
+- zusammengehörige Split-Panes werden innerhalb ihrer Gruppe kompakt
+  nebeneinander dargestellt;
+- eine feine Trennlinie mit einer dezenten Aktion zum Leeren trennt den
+  gespeicherten Bereich von den temporären Tabs;
+- ein neuer, noch leerer temporärer Tab erscheint in dieser Liste als normale
+  Zeile mit Plus-Icon und lokalisiertem Titel `Neuer Tab`, nicht als visuell
+  fremdes Sonderpanel;
+- am unteren Sidebar-Rand bleibt unabhängig vom Scrollinhalt eine kompakte,
+  gleichwertige Viererleiste für `Neuer Tab`, `Downloads`, `Verlauf` und
+  `Einstellungen` erreichbar; kein einzelner übergroßer New-Tab-Button;
+- nur Hover, Auswahl, Drag-Ziel, Split-Zugehörigkeit oder eine ausdrücklich
+  konfigurierte Gruppenfarbe erzeugen abgerundete Hintergründe; der
+  Grundzustand bleibt flach und ruhig.
+
 Verwende Chromium Views für Browsernavigation, Sidebar, Workspaces und Command Bar. Objective-C++/AppKit dient macOS-Integration, Fenstern, Menüs, Gesten, Systemappearance und Liquid Glass. Interne WebUI ist nur für komplexe Settings oder Editoren erlaubt, nicht als Browser-Orchestrator.
 
 ### Liquid Glass und Accessibility
@@ -333,6 +354,23 @@ Baue einen vertikalen Baum als Zusammenführung aus Tabs und Bookmarks:
 - Suche;
 - Virtualisierung für mindestens 10.000 Knoten;
 - Zyklenschutz und atomare Schreibvorgänge.
+
+Ordner beziehungsweise Gruppen besitzen zusätzlich eine schlanke, persistente
+Darstellungskonfiguration:
+
+- frei änderbarer Name, optionales Icon und optionaler Farbakzent;
+- eine zugewiesene Farbe färbt eine kontrastgeprüfte, zurückhaltende
+  Gruppen-Bubble und die zugehörigen Gruppen-Akzente, niemals unkontrolliert
+  Text oder Favicons;
+- alle sichtbaren direkten Kinder liegen innerhalb derselben
+  zusammenhängenden Bubble statt in voneinander getrennten Karten;
+- Unterordner bleiben darin als eigene verschachtelte Bubble und eindeutige
+  Hierarchie erkennbar;
+- Ein-/Ausklappen, Drag-Vorschau, Drop-Zonen, Auswahl, Hover und Split-Segmente
+  dürfen die optische Gruppenzugehörigkeit nicht aufbrechen;
+- ohne eigene Farbe verwendet eine Gruppe ausschließlich semantische
+  Theme-Farben; Hell, Dunkel, hoher Kontrast und reduzierte Transparenz bleiben
+  vollständig unterstützt.
 
 ### Tab-Lebenszyklus
 
@@ -1337,6 +1375,8 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `TREE-09`: Papierkorb und Tombstones führen nicht zu Zyklen oder Duplikaten.
 - `TREE-10`: 10.000-Knoten-Fixture laden, suchen, scrollen, öffnen und verschieben.
 - `TREE-11`: kontrollierter Crash während Baumänderung; atomare, reparierbare Daten nach Neustart.
+- `TREE-12`: Gruppenname, Icon und Farbe ändern; in Hell/Dunkel, nach Neustart und nach Workspace-Wechsel korrekt und kontrastreich wiederherstellen.
+- `TREE-13`: direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen.
 - `WS-01`: Workspace-Wechsel per Sidebar.
 - `WS-02`: Workspace-Wechsel per Tastatur.
 - `WS-03`: horizontale Geste mit echter Magic Mouse, einschließlich langsamer, schneller und abgebrochener Geste.

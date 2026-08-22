@@ -382,3 +382,52 @@ impact, expected rebase risk, and removal/upstream plan.
 - **Removal/upstream plan:** retain the Ahoi saved/temporary domain contract and
   adapt only the native integration seams when Chromium's vertical-tree or
   multi-pane APIs evolve.
+
+## `0015-ahoi-save-shortcut-and-drag-feedback.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0014`.
+- **Affected paths:** Ahoi's session bridge, tab-tree store/model, native
+  sidebar host/controller/rows and localization plus narrow Chromium
+  BrowserView, vertical-region, omnibox/location-bar, macOS command-dispatch,
+  dependency and build seams (29 files).
+- **Rationale:** complete the explicit saved/temporary lifecycle from the
+  keyboard and make its runtime projection stable. `Cmd+D` now promotes the
+  active temporary tab idempotently at the active workspace root through both
+  Views accelerators and the native macOS menu-key path. A running saved page
+  is indexed exactly once in Cmd+T while genuine separate tabs remain legal in
+  the sidebar. Runtime binding changes refresh the two sidebar sections, row
+  recycling restores titles after split/drag changes, the complete free lower
+  section accepts saved-to-temporary drops, and the new-group target occupies a
+  deliberate drag-only layout row. The same patch adds persistent group
+  name/icon/accent customization, nested/duplicate/move/copy-link actions,
+  collapse animation, scoped recent-link hover search, sidebar undo, split-pair
+  rows and native side/stack/reverse/separate actions. The page frame now owns
+  the remaining width, the sidebar width is bounded and persisted, and the
+  fixed bottom dock exposes New Tab, Downloads, History, and Settings. Direct
+  omnibox clicks and `Cmd+T` open the centered bounded command surface, while a
+  location-bar action copies the active URL.
+- **Rejected alternatives:** URL-based global deduplication that would hide
+  real duplicate tabs, preserving both open- and saved-result copies in Cmd+T,
+  mapping `Cmd+D` back to a second bookmark model, polling the sidebar,
+  permanent per-row cards, a second bookmark bar, or unrelated Unicode icons.
+- **Tests:** `gn check out/AhoiDev //chrome/browser/ui/views:views` and the
+  incremental `chrome -j10` build pass. The complete stack composes to tree
+  `353ec0b4a17a4fe561ff2a997d4cb9a04b731a67` with a verified overlay delta.
+  Development-runtime acceptance passed the four-action dock, direct omnibox
+  command bar with five unique results, group actions/customization, `Cmd+Z`,
+  searchable recent-link card, clear-temporary action, paired split rows,
+  side/stack switching and stacked-layout restoration after restart. The prior
+  focused unit suites remain recorded; this larger UX slice did not rerun every
+  unit target, and native pointer drag/resize remains a manual dogfood gate.
+- **Security/privacy impact:** saving remains profile-local, reuses the
+  validated SQLite tree and is unavailable for off-the-record profiles. The
+  change adds no renderer privilege, credential path, network endpoint,
+  telemetry, sync payload or sandbox exception.
+- **Expected rebase risk:** low for Ahoi-owned bridge/View/store code and medium
+  for the narrow BrowserView, vertical-region, omnibox and macOS command hooks.
+- **Removal/upstream plan:** retain the Ahoi lifecycle and presentation
+  callbacks; adapt only the keyboard/menu hooks if Chromium consolidates its
+  macOS command routing.

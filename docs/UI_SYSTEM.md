@@ -12,6 +12,15 @@ downloads/activity, and bottom utility controls. It can collapse completely and
 resizes within the limits in `config/theme.json`. Page content always receives
 the remaining native window space; overlays cannot permanently reduce its frame.
 
+Its information hierarchy stays Arc-like without copying Arc pixel for pixel:
+only the compact workspace identity sits above saved groups/pages; a quiet
+divider and clear-temporary action precede adjacent temporary tabs; and a fixed
+four-action dock for New Tab, Downloads, History, and Settings remains pinned
+below the scroll surface. A newly created blank tab is a normal temporary row
+with a plus icon and localized New Tab title. Rows are flat by default and gain
+rounded surfaces only for hover, selection, drag targets, split membership, or
+an explicitly colored group.
+
 The first native integration slice starts from Chromium M151's existing Views
 vertical tab strip. Ahoi enables its full-launch feature and vertical-mode
 profile preference by default. The existing preference/controller toggle stays
@@ -23,6 +32,13 @@ Tree rows use progressive indentation, disclosure state, favicon, title, optiona
 activity chip, and restrained hover/selection treatments. Deep nesting remains
 keyboard navigable and virtualized. Drop targets communicate before/after/inside
 precisely, auto-expand deliberately, and never depend on color alone.
+
+Folders persist an optional icon and semantic color accent. A colored folder
+draws one continuous, contrast-safe group bubble around its visible direct
+children; nested folders form visually distinct nested bubbles instead of
+breaking the hierarchy into unrelated cards. Collapse, virtualization, split
+segments and drag previews preserve that visible membership. Uncolored folders
+remain on the flat semantic surface.
 
 Tab drag and drop is a complete interaction, not a later enhancement. Row-edge
 targets reorder, folder-center targets nest, and dropping one page on the center

@@ -15,7 +15,7 @@ architecture decision, test, or release gate.
 ## Current status
 
 Phase 0 is in progress. In addition to the upstream pin, reproducible
-patch/overlay workflow and evidence contracts, the current fourteen-patch stack
+patch/overlay workflow and evidence contracts, the current fifteen-patch stack
 now contains a native profile-backed sidebar, a durable SQLite-backed nested
 tree with non-blocking UI access, an explicit saved/temporary live-tab
 lifecycle, bidirectional drag-and-drop, local command bar, shared visual
