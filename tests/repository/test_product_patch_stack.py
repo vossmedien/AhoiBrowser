@@ -27,6 +27,8 @@ EXPECTED_PATCHES = {
         "867a180f6991517ad8fcc14a4651529012056f7b4be17aa2f9f2925e35fe44e0",
     "0010-ahoi-live-sidebar-integration.patch":
         "5665ce99b3af2566ff2e4fbf3d33c5fad7d5d2c027256baade522da2173be8ec",
+    "0011-ahoi-drag-and-tree-persistence.patch":
+        "07d1aa647639ddaf37b76f17cdd7c7064fdd4590788d5b43a18a7d9b2db795c0",
 }
 
 

@@ -232,3 +232,38 @@ impact, expected rebase risk, and removal/upstream plan.
 - **Removal/upstream plan:** retain the Ahoi-owned services and Views while
   keeping the Chromium-facing seams small; replace individual seams with
   upstream equivalents when native vertical-tree or multi-pane APIs mature.
+
+## `0011-ahoi-drag-and-tree-persistence.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0010`.
+- **Affected paths:** Ahoi's session bridge, tab-tree store and native sidebar
+  drag event/layout paths plus their focused tests.
+- **Rationale:** persist the nested tree in one SQLite database inside each
+  regular Chromium profile, rebind restored tabs to saved pages at any nesting
+  depth, durably refresh committed destinations, and let native Views decide a
+  drag before click selection mutates and rebinds recycled rows. The temporary
+  New Group drop target occupies a real layout row so it cannot cover ordinary
+  reorder or split targets.
+- **Rejected alternatives:** continuing with an in-memory runtime tree, a
+  second bookmark store, flattening folders during restore, URL matching only
+  at workspace root, persisting pending navigation URLs, selecting a row on
+  mouse-down before Views starts its drag loop, or overlaying the group target
+  on top of live rows.
+- **Tests:** all 11 `AhoiTabTreeStoreTest` cases and all 6 `SessionBridgeTest`
+  cases pass, including database reopen and nested-tab recreation. Seven
+  focused native sidebar tests and eight command-bar tests pass; the incremental
+  `chrome` build at `out/AhoiDev` reports no remaining work after the component
+  relink.
+- **Security/privacy impact:** the database is profile-local and is never
+  created for off-the-record profiles. It stores only workspace/tree metadata
+  and page destinations; it introduces no cookie, credential, secret-header,
+  extension-storage, network or telemetry path.
+- **Expected rebase risk:** low for the Ahoi-owned SQLite/query changes and
+  medium around native Views drag event sequencing.
+- **Removal/upstream plan:** retain the profile-local tree as Ahoi's durable
+  authority; replace the URL fallback with a stable upstream tab-session token
+  if Chromium exposes one, and adapt only the narrow native drag hooks during
+  rolls.

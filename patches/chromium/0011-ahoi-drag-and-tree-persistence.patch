@@ -1,0 +1,565 @@
+diff --git a/ahoi/browser/session/session_bridge.cc b/ahoi/browser/session/session_bridge.cc
+index e48aa393a5c0dc63b480e614bb03562016ee48fc..afe339534174751f6274ce3ea304246731e06081 100644
+--- a/ahoi/browser/session/session_bridge.cc
++++ b/ahoi/browser/session/session_bridge.cc
+@@ -35,9 +35,11 @@ GURL GetRuntimeTabUrl(content::WebContents* contents) {
+   if (!contents) {
+     return GURL(chrome::kChromeUINewTabURL);
+   }
+-  GURL url = contents->GetVisibleURL();
++  // Persist only committed destinations. A pending visible URL may still fail
++  // or be cancelled and must not replace the durable saved-page target.
++  GURL url = contents->GetLastCommittedURL();
+   if (!url.is_valid() || url.is_empty()) {
+-    url = contents->GetLastCommittedURL();
++    url = contents->GetVisibleURL();
+   }
+   return url.is_valid() && !url.is_empty() ? url
+                                            : GURL(chrome::kChromeUINewTabURL);
+@@ -132,7 +134,8 @@ void SessionBridge::Shutdown() {
+ bool SessionBridge::InitializeTabTree() {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   auto store = std::make_unique<tab_tree::TabTreeStore>();
+-  if (!store->InitializeInMemory()) {
++  if (!store->Initialize(
++          profile_->GetPath().AppendASCII(kTabTreeDatabaseFilename))) {
+     return false;
+   }
+ 
+@@ -526,14 +529,14 @@ void SessionBridge::EnsureTreeNodeForTab(tabs::TabInterface* tab) {
+   content::WebContents* contents = runtime_it->second.web_contents.get();
+   const GURL url = GetRuntimeTabUrl(contents);
+   const std::u16string title = GetRuntimeTabTitle(tab, url);
+-  std::vector<tab_tree::TreeNode> root_nodes;
+-  if (tab_tree_store_->GetChildren(*workspace_id, std::nullopt, &root_nodes) !=
++  std::vector<tab_tree::TreeNode> matching_nodes;
++  if (tab_tree_store_->FindSavedPagesByUrl(*workspace_id, url,
++                                           &matching_nodes) !=
+       tab_tree::TabTreeStore::Result::kOk) {
+     return;
+   }
+-  for (const tab_tree::TreeNode& node : root_nodes) {
+-    if (node.type == tab_tree::TreeNodeType::kSavedPage && node.url == url &&
+-        !FindTabByTreeNodeId(node.id) && BindTreeNodeToTab(node, tab)) {
++  for (const tab_tree::TreeNode& node : matching_nodes) {
++    if (!FindTabByTreeNodeId(node.id) && BindTreeNodeToTab(node, tab)) {
+       return;
+     }
+   }
+@@ -703,15 +706,21 @@ void SessionBridge::OnTabUIChanged(tabs::TabInterface* tab) {
+   // Keep the visible tree title live while respecting an explicit user rename:
+   // only replace the stored value if it still equals Chromium's previous title
+   // for this runtime tab.
+-  if (runtime.node_id.has_value() && tab_tree_store_ &&
+-      !previous_automatic_title.empty() &&
+-      previous_automatic_title != current_title) {
++  if (runtime.node_id.has_value() && tab_tree_store_) {
+     tab_tree::TreeNode node;
+     if (tab_tree_store_->GetNode(*runtime.node_id, &node) ==
+-            tab_tree::TabTreeStore::Result::kOk &&
+-        node.title == previous_automatic_title) {
+-      std::ignore = tab_tree_store_->RenameNode(node.id, current_title,
+-                                                base::Time::Now());
++        tab_tree::TabTreeStore::Result::kOk) {
++      std::u16string persisted_title = node.title;
++      if (!previous_automatic_title.empty() &&
++          previous_automatic_title != current_title &&
++          node.title == previous_automatic_title) {
++        persisted_title = current_title;
++      }
++      if (node.url != current_url || node.title != persisted_title) {
++        std::ignore = tab_tree_store_->UpdateSavedPageMetadata(
++            node.id, std::move(persisted_title), current_url,
++            base::Time::Now());
++      }
+     }
+   }
+   PublishCommandItems();
+diff --git a/ahoi/browser/session/session_bridge.h b/ahoi/browser/session/session_bridge.h
+index aca95b53a92f7b3d6d468152728602e1e2267452..266933e8b8f9b843bb43f2c4e4b7af5021f22735 100644
+--- a/ahoi/browser/session/session_bridge.h
++++ b/ahoi/browser/session/session_bridge.h
+@@ -38,14 +38,16 @@ namespace ahoi {
+ 
+ class CommandService;
+ 
++inline constexpr char kTabTreeDatabaseFilename[] = "Ahoi Tab Tree";
++
+ // Profile-scoped runtime join between Ahoi's persistent UUID model and
+ // Chromium's native window/tab/content objects. TabInterface is the canonical
+ // runtime identity: it survives a tab drag between normal windows and a
+ // WebContents replacement caused by discarding.
+ //
+ // The bridge observes only TYPE_NORMAL windows belonging to its exact regular
+-// Profile. OTR profiles are not redirected here, and no data is persisted by
+-// this class. TabTreeStore remains the persistence authority.
++// Profile. OTR profiles are not redirected here. The owned TabTreeStore is the
++// persistence authority and opens one SQLite database inside the profile.
+ class SessionBridge : public KeyedService,
+                       public BrowserCollectionObserver,
+                       public TabStripModelObserver,
+diff --git a/ahoi/browser/session/session_bridge_unittest.cc b/ahoi/browser/session/session_bridge_unittest.cc
+index 8a00d9d8a0c88f507aeeacd4e351383e226fa350..d0c50b6e56f9861fde8a93f5eb422f5e8b86fabc 100644
+--- a/ahoi/browser/session/session_bridge_unittest.cc
++++ b/ahoi/browser/session/session_bridge_unittest.cc
+@@ -12,6 +12,7 @@
+ #include "ahoi/browser/session/command_service_factory.h"
+ #include "ahoi/browser/session/session_bridge_factory.h"
+ #include "ahoi/browser/session/workspace_service_factory.h"
++#include "base/files/file_util.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/time/time.h"
+ #include "chrome/browser/profiles/profile.h"
+@@ -87,6 +88,57 @@ TEST_F(SessionBridgeTest, FactoriesRejectOffTheRecordWithoutRedirection) {
+   EXPECT_EQ(nullptr, SessionBridgeFactory::GetForProfile(otr_profile));
+ }
+ 
++TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
++  const GURL url("https://example.test/persistent-nested");
++  AddTab(browser(), url);
++  TabStripModel* model = browser()->tab_strip_model();
++  tabs::TabInterface* original_tab = model->GetTabAtIndex(0);
++  ASSERT_TRUE(original_tab);
++  const std::optional<base::Uuid> original_node_id =
++      bridge_->FindTreeNodeIdForTab(original_tab);
++  ASSERT_TRUE(original_node_id.has_value());
++
++  tab_tree::TreeNode original_node;
++  ASSERT_EQ(
++      tab_tree::TabTreeStore::Result::kOk,
++      bridge_->tab_tree_store()->GetNode(*original_node_id, &original_node));
++  tab_tree::TreeNode folder = MakeSavedPage(original_node.workspace_id, url);
++  folder.type = tab_tree::TreeNodeType::kFolder;
++  folder.title = u"Persistent project";
++  folder.url = GURL();
++  folder.sort_key = "folder-a";
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            bridge_->tab_tree_store()->CreateNode(folder));
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            bridge_->tab_tree_store()->MoveNode(
++                original_node.id, original_node.workspace_id, folder.id,
++                "nested-a", base::Time::Now()));
++
++  model->DetachAndDeleteWebContentsAt(model->GetIndexOfTab(original_tab));
++  ASSERT_EQ(0u, bridge_->tracked_tab_count());
++  AddTab(browser(), url);
++  tabs::TabInterface* restored_tab = model->GetTabAtIndex(0);
++  ASSERT_TRUE(restored_tab);
++  EXPECT_EQ(original_node.id, bridge_->FindTreeNodeIdForTab(restored_tab));
++
++  const base::FilePath database_path =
++      profile()->GetPath().AppendASCII(kTabTreeDatabaseFilename);
++  EXPECT_TRUE(base::PathExists(database_path));
++  bridge_->Shutdown();
++
++  tab_tree::TabTreeStore reopened_store;
++  ASSERT_TRUE(reopened_store.Initialize(database_path));
++  tab_tree::TreeNode persisted_folder;
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            reopened_store.GetNode(folder.id, &persisted_folder));
++  EXPECT_EQ(folder, persisted_folder);
++  tab_tree::TreeNode persisted_page;
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            reopened_store.GetNode(original_node.id, &persisted_page));
++  ASSERT_TRUE(persisted_page.parent_id.has_value());
++  EXPECT_EQ(folder.id, *persisted_page.parent_id);
++}
++
+ TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
+   ASSERT_EQ(1u, bridge_->tracked_window_count());
+   const std::optional<base::Uuid> window_id = bridge_->GetWindowId(browser());
+diff --git a/ahoi/browser/tab_tree/tab_tree_store.cc b/ahoi/browser/tab_tree/tab_tree_store.cc
+index 8d39b9becfa5a271466b2b36c9805a68194aefb7..318b58eb326a42d8dc1b2d86c29dcce269e41d81 100644
+--- a/ahoi/browser/tab_tree/tab_tree_store.cc
++++ b/ahoi/browser/tab_tree/tab_tree_store.cc
+@@ -543,6 +543,55 @@ TabTreeStore::Result TabTreeStore::RenameNode(const base::Uuid& node_id,
+   return Result::kOk;
+ }
+ 
++TabTreeStore::Result TabTreeStore::UpdateSavedPageMetadata(
++    const base::Uuid& node_id,
++    std::u16string title,
++    const GURL& url,
++    base::Time modified_at) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!node_id.is_valid() || title.empty() || !url.is_valid() ||
++      url.is_empty() || modified_at.is_null()) {
++    return Result::kInvalidArgument;
++  }
++
++  TreeNode node;
++  const Result result = ReadNode(node_id, &node);
++  if (result != Result::kOk) {
++    return result;
++  }
++  if (node.tombstone) {
++    return Result::kNotFound;
++  }
++  if (node.type != TreeNodeType::kSavedPage) {
++    return Result::kInvalidArgument;
++  }
++  if (node.title == title && node.url == url) {
++    return Result::kOk;
++  }
++
++  sql::Transaction transaction(&db_);
++  if (!transaction.Begin()) {
++    return Result::kDatabaseError;
++  }
++  sql::Statement statement(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "UPDATE tree_nodes SET title=?,url=?,modified_at=? WHERE id=?"));
++  statement.BindString16(0, title);
++  statement.BindString(1, url.spec());
++  statement.BindTime(2, modified_at);
++  statement.BindString(3, node.id.AsLowercaseString());
++  if (!statement.Run() || db_.GetLastChangeCount() != 1 ||
++      !transaction.Commit()) {
++    return Result::kDatabaseError;
++  }
++
++  Notify(MutationKind::kRenamed, node.id, {node.id});
++  return Result::kOk;
++}
++
+ TabTreeStore::Result TabTreeStore::MoveNode(const base::Uuid& node_id,
+                                             const base::Uuid& workspace_id,
+                                             std::optional<base::Uuid> parent_id,
+@@ -897,6 +946,53 @@ TabTreeStore::Result TabTreeStore::GetChildren(
+   return Result::kOk;
+ }
+ 
++TabTreeStore::Result TabTreeStore::FindSavedPagesByUrl(
++    const base::Uuid& workspace_id,
++    const GURL& url,
++    std::vector<TreeNode>* saved_pages) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!IsReady()) {
++    return Result::kNotInitialized;
++  }
++  if (!workspace_id.is_valid() || !url.is_valid() || url.is_empty() ||
++      !saved_pages) {
++    return Result::kInvalidArgument;
++  }
++
++  Workspace workspace;
++  const Result workspace_result = ReadWorkspace(workspace_id, &workspace);
++  if (workspace_result != Result::kOk) {
++    return workspace_result;
++  }
++  if (workspace.tombstone) {
++    return Result::kNotFound;
++  }
++
++  sql::Statement statement(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "SELECT model_version,id,workspace_id,parent_id,node_type,title,url,"
++      "sort_key,created_at,modified_at,tombstone FROM tree_nodes WHERE "
++      "workspace_id=? AND node_type=? AND url=? AND tombstone=0 ORDER BY "
++      "parent_id,sort_key,id"));
++  statement.BindString(0, workspace_id.AsLowercaseString());
++  statement.BindInt(1, static_cast<int>(TreeNodeType::kSavedPage));
++  statement.BindString(2, url.spec());
++
++  std::vector<TreeNode> decoded;
++  while (statement.Step()) {
++    TreeNode node;
++    if (!DecodeNode(statement, &node) || !ValidateNode(node)) {
++      return Result::kDatabaseError;
++    }
++    decoded.push_back(std::move(node));
++  }
++  if (!statement.Succeeded()) {
++    return Result::kDatabaseError;
++  }
++  *saved_pages = std::move(decoded);
++  return Result::kOk;
++}
++
+ bool TabTreeStore::CreateSchema() {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   return db_.Execute(
+@@ -918,6 +1014,9 @@ bool TabTreeStore::CreateSchema() {
+          db_.Execute(
+              "CREATE INDEX IF NOT EXISTS tree_nodes_parent_order ON "
+              "tree_nodes(workspace_id,parent_id,tombstone,sort_key,id)") &&
++         db_.Execute(
++             "CREATE INDEX IF NOT EXISTS tree_nodes_url_lookup ON "
++             "tree_nodes(workspace_id,node_type,tombstone,url,id)") &&
+          db_.Execute(
+              "CREATE TABLE IF NOT EXISTS undo_operations("
+              "operation_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+diff --git a/ahoi/browser/tab_tree/tab_tree_store.h b/ahoi/browser/tab_tree/tab_tree_store.h
+index 86d8a0b62553934144d6fc7237a4bb45c0b7b98b..981c1031a3f1c86ef95d4dc7c82aba0bb5a2e072 100644
+--- a/ahoi/browser/tab_tree/tab_tree_store.h
++++ b/ahoi/browser/tab_tree/tab_tree_store.h
+@@ -43,8 +43,7 @@ class TabTreeStore {
+   // Opens (or creates) a profile-local database and atomically initializes its
+   // versioned schema. All later calls must run on this same sequence.
+   [[nodiscard]] bool Initialize(const base::FilePath& path);
+-  // Opens an in-memory database. This is used by the UI-facing runtime cache;
+-  // durable persistence is mirrored by the profile storage sequence.
++  // Opens an in-memory database for isolated tests and transient tools.
+   [[nodiscard]] bool InitializeInMemory();
+ 
+   void AddObserver(TabTreeObserver* observer);
+@@ -67,6 +66,13 @@ class TabTreeStore {
+   [[nodiscard]] Result RenameNode(const base::Uuid& node_id,
+                                   std::u16string title,
+                                   base::Time modified_at);
++  // Updates the live destination represented by a saved page without adding a
++  // user-facing undo entry. Manual titles can be preserved by passing the
++  // existing title while the URL changes.
++  [[nodiscard]] Result UpdateSavedPageMetadata(const base::Uuid& node_id,
++                                               std::u16string title,
++                                               const GURL& url,
++                                               base::Time modified_at);
+   [[nodiscard]] Result MoveNode(const base::Uuid& node_id,
+                                 const base::Uuid& workspace_id,
+                                 std::optional<base::Uuid> parent_id,
+@@ -85,6 +91,12 @@ class TabTreeStore {
+   [[nodiscard]] Result GetChildren(const base::Uuid& workspace_id,
+                                    std::optional<base::Uuid> parent_id,
+                                    std::vector<TreeNode>* children);
++  // Finds active saved pages at any nesting depth. The stable order lets a
++  // restored tab strip rebind duplicate URLs one-by-one without flattening the
++  // persistent tree.
++  [[nodiscard]] Result FindSavedPagesByUrl(const base::Uuid& workspace_id,
++                                           const GURL& url,
++                                           std::vector<TreeNode>* saved_pages);
+ 
+  private:
+   enum class PersistedMutationKind {
+diff --git a/ahoi/browser/tab_tree/tab_tree_store_unittest.cc b/ahoi/browser/tab_tree/tab_tree_store_unittest.cc
+index ebc5e0d4099a7c768c75c7a0bce9273c49bbc2ff..7ddd9c7a7be2c455cee77fe4fb25891ebd3116e0 100644
+--- a/ahoi/browser/tab_tree/tab_tree_store_unittest.cc
++++ b/ahoi/browser/tab_tree/tab_tree_store_unittest.cc
+@@ -141,6 +141,40 @@ TEST_F(AhoiTabTreeStoreTest, ListsActiveWorkspacesInStableOrder) {
+             store_->GetWorkspaces(nullptr));
+ }
+ 
++TEST_F(AhoiTabTreeStoreTest, FindsSavedPagesByUrlAtAnyNestingDepth) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++  TreeNode folder = NewFolder(workspace, std::nullopt, u"Project", "folder-a");
++  TreeNode nested = NewSavedPage(workspace, folder.id, u"Nested",
++                                 GURL("https://example.test/reused"), "a");
++  TreeNode root = NewSavedPage(workspace, std::nullopt, u"Root",
++                               GURL("https://example.test/reused"), "b");
++  TreeNode other = NewSavedPage(workspace, folder.id, u"Other",
++                                GURL("https://example.test/other"), "c");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(folder));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(nested));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(root));
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(other));
++
++  std::vector<TreeNode> matches;
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->FindSavedPagesByUrl(
++                workspace.id, GURL("https://example.test/reused"), &matches));
++  ASSERT_EQ(2u, matches.size());
++  EXPECT_EQ(root.id, matches[0].id);
++  EXPECT_EQ(nested.id, matches[1].id);
++
++  store_.reset();
++  ASSERT_TRUE(ReopenStore());
++  matches.clear();
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->FindSavedPagesByUrl(
++                workspace.id, GURL("https://example.test/reused"), &matches));
++  ASSERT_EQ(2u, matches.size());
++  EXPECT_EQ(root.id, matches[0].id);
++  EXPECT_EQ(nested.id, matches[1].id);
++}
++
+ TEST_F(AhoiTabTreeStoreTest, RejectsCycleWithoutCreatingUndoEntry) {
+   Workspace workspace = NewWorkspace(u"Development", "workspace-a");
+   ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
+@@ -290,6 +324,31 @@ TEST_F(AhoiTabTreeStoreTest, CreateRenameAndUndoAreLifoAndAtomic) {
+   EXPECT_EQ(TabTreeStore::Result::kNothingToUndo, store_->UndoLastMutation());
+ }
+ 
++TEST_F(AhoiTabTreeStoreTest, LiveMetadataUpdatePersistsWithoutPollutingUndo) {
++  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
++  TreeNode page = NewSavedPage(workspace, std::nullopt, u"Manual title",
++                               GURL("https://example.test/before"), "a");
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
++  ASSERT_EQ(TabTreeStore::Result::kOk,
++            store_->UpdateSavedPageMetadata(page.id, page.title,
++                                            GURL("https://example.test/after"),
++                                            base::Time::Now()));
++
++  store_.reset();
++  ASSERT_TRUE(ReopenStore());
++  TreeNode updated;
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->GetNode(page.id, &updated));
++  EXPECT_EQ(page.title, updated.title);
++  EXPECT_EQ(GURL("https://example.test/after"), updated.url);
++
++  // The automatic destination refresh did not become a separate tree-edit
++  // undo step, so undo still reverses the user's original create operation.
++  ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
++  EXPECT_EQ(TabTreeStore::Result::kNotFound,
++            store_->GetNode(page.id, &updated));
++}
++
+ TEST_F(AhoiTabTreeStoreTest, RejectsSavedPageAsParent) {
+   Workspace workspace = NewWorkspace(u"Development", "workspace-a");
+   ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
+diff --git a/ahoi/browser/ui/sidebar/browser_sidebar_host.cc b/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+index 116f5c5a9b79ee795b05e478b41a35bb81c58843..b8283fb75f6810d034fcf433ddb045c829dbc404 100644
+--- a/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
++++ b/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+@@ -61,7 +61,6 @@
+ #include "ui/views/layout/box_layout.h"
+ #include "ui/views/style/typography.h"
+ #include "ui/views/view.h"
+-#include "ui/views/view_class_properties.h"
+ #include "ui/views/widget/widget.h"
+ 
+ namespace ahoi::sidebar {
+@@ -219,7 +218,6 @@ class BrowserSidebarHostView final : public views::View,
+         AddChildView(std::make_unique<NewGroupDropTargetView>(
+             base::BindRepeating(&BrowserSidebarHostView::ShowCreateGroupDialog,
+                                 base::Unretained(this))));
+-    new_group_drop_target_->SetProperty(views::kViewIgnoredByLayoutKey, true);
+     new_group_drop_target_->SetVisible(false);
+ 
+     auto tree =
+@@ -229,9 +227,6 @@ class BrowserSidebarHostView final : public views::View,
+         SidebarTreeView::CreateScrollView(std::move(tree));
+     views::ScrollView* scroll_view = AddChildView(std::move(scroll));
+     layout->SetFlexForView(scroll_view, 1, /*use_min_size=*/true);
+-    // The target overlays the first rows while dragging instead of shifting the
+-    // tree underneath the pointer and invalidating split/reorder hit testing.
+-    ReorderChildView(new_group_drop_target_, children().size());
+ 
+     workspace_service_->AddObserver(this);
+     tab_strip_model_->AddObserver(this);
+@@ -243,15 +238,6 @@ class BrowserSidebarHostView final : public views::View,
+   BrowserSidebarHostView(const BrowserSidebarHostView&) = delete;
+   BrowserSidebarHostView& operator=(const BrowserSidebarHostView&) = delete;
+ 
+-  void Layout(PassKey) override {
+-    LayoutSuperclass<views::View>(this);
+-    if (new_group_drop_target_ && workspace_button_) {
+-      new_group_drop_target_->SetBounds(
+-          8, workspace_button_->bounds().bottom() + 6,
+-          std::max(width() - 16, 1), 42);
+-    }
+-  }
+-
+   ~BrowserSidebarHostView() override {
+     weak_ptr_factory_.InvalidateWeakPtrs();
+     group_name_field_ = nullptr;
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_view.cc b/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
+index 207abe4d07857b008e103d8624cf8b01823451b0..7508fdb3c1915f5d31c8f2be4d0dc6fc2a13a6a7 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
+@@ -195,9 +195,6 @@ void SidebarTreeView::OnRowPressed(SidebarTreeRowView* row,
+   if (editing_node_id_.has_value() && editing_node_id_ != row->node_id()) {
+     CancelRename();
+   }
+-  if (!disclosure_hit) {
+-    std::ignore = controller_->SelectNode(row->node_id());
+-  }
+   RequestFocus();
+ }
+ 
+@@ -215,6 +212,9 @@ void SidebarTreeView::OnRowReleased(SidebarTreeRowView* row,
+        (node && node->type == tab_tree::TreeNodeType::kFolder &&
+         event.GetClickCount() == 1)) &&
+       node && node->type == tab_tree::TreeNodeType::kFolder) {
++    if (!disclosure_hit) {
++      std::ignore = controller_->SelectNode(*pressed_node_id);
++    }
+     // Model updates and row rebinding are deliberately coalesced. A click can
+     // therefore arrive while the recycled row still reflects the previous
+     // frame. The model is authoritative for the toggle direction.
+@@ -229,9 +229,10 @@ void SidebarTreeView::OnRowReleased(SidebarTreeRowView* row,
+     return;
+   }
+   if (node && node->type == tab_tree::TreeNodeType::kSavedPage &&
+-      event.GetClickCount() == 1 &&
+-      model().selected_node_id() == *pressed_node_id) {
+-    ActivateSelectedNode();
++      event.GetClickCount() == 1) {
++    if (controller_->SelectNode(*pressed_node_id)) {
++      ActivateSelectedNode();
++    }
+   }
+ }
+ 
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc b/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc
+index 562f52266dbd7be81ce3bd37feeeb1f6e564a1f7..a0a475ecf410a02cb5d4d5b01dddc4670ba6b2fa 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc
+@@ -368,13 +368,19 @@ TEST_F(SidebarTreeViewTest, SingleClickOnFolderRowCollapsesAndExpands) {
+                        ui::EF_LEFT_MOUSE_BUTTON);
+   ui::MouseEvent release(ui::EventType::kMouseReleased, click_point,
+                          click_point, base::TimeTicks::Now(),
+-                         ui::EF_LEFT_MOUSE_BUTTON,
+-                         ui::EF_LEFT_MOUSE_BUTTON);
++                         ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
+ 
+   ASSERT_TRUE(folder_row->OnMousePressed(press));
++  EXPECT_FALSE(model.selected_node_id().has_value());
++  EXPECT_TRUE(view->CanStartDragForView(
++      folder_row, click_point,
++      gfx::Point(click_point.x(), click_point.y() + 12)));
++  EXPECT_EQ(ui::DragDropTypes::DRAG_MOVE | ui::DragDropTypes::DRAG_COPY,
++            view->GetDragOperationsForView(folder_row, click_point));
+   folder_row->OnMouseReleased(release);
+   EXPECT_FALSE(model.IsExpanded(folder.id));
+   EXPECT_EQ(1U, model.rows().size());
++  EXPECT_EQ(folder.id, model.selected_node_id());
+ 
+   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+   folder_row = view->GetMaterializedRowForTesting(folder.id);
+@@ -385,6 +391,42 @@ TEST_F(SidebarTreeViewTest, SingleClickOnFolderRowCollapsesAndExpands) {
+   EXPECT_EQ(2U, model.rows().size());
+ }
+ 
++TEST_F(SidebarTreeViewTest, SavedPageSelectsAndActivatesOnlyOnMouseUp) {
++  tab_tree::Workspace workspace = MakeWorkspace();
++  tab_tree::TreeNode first =
++      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
++               u"First", "a");
++  tab_tree::TreeNode second =
++      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
++               u"Second", "b");
++
++  auto view = NewTreeView();
++  auto& model = controller_->view_model();
++  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
++  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {first, second}));
++  ASSERT_TRUE(controller_->SelectNode(first.id));
++  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
++
++  SidebarTreeRowView* second_row =
++      view->GetMaterializedRowForTesting(second.id);
++  ASSERT_NE(nullptr, second_row);
++  const gfx::Point click_point(80, SidebarTreeRowView::kRowHeight / 2);
++  ui::MouseEvent press(ui::EventType::kMousePressed, click_point, click_point,
++                       base::TimeTicks::Now(), ui::EF_LEFT_MOUSE_BUTTON,
++                       ui::EF_LEFT_MOUSE_BUTTON);
++  ui::MouseEvent release(ui::EventType::kMouseReleased, click_point,
++                         click_point, base::TimeTicks::Now(),
++                         ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
++
++  ASSERT_TRUE(second_row->OnMousePressed(press));
++  EXPECT_EQ(first.id, model.selected_node_id());
++  EXPECT_FALSE(delegate_.activated_node.has_value());
++
++  second_row->OnMouseReleased(release);
++  EXPECT_EQ(second.id, model.selected_node_id());
++  EXPECT_EQ(second.id, delegate_.activated_node);
++}
++
+ TEST_F(SidebarTreeViewTest, RenameCommitsThroughControllerAndStore) {
+   tab_tree::Workspace workspace = MakeWorkspace();
+   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
