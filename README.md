@@ -14,10 +14,12 @@ architecture decision, test, or release gate.
 
 ## Current status
 
-Phase 0 is in progress. The repository currently establishes the upstream pin,
-host checks, patch/overlay workflow, architecture boundaries, test taxonomy,
-and evidence format. It is not yet a daily-use browser and no compatibility
-claim is considered proven without installed-app evidence.
+Phase 0 is in progress. In addition to the upstream pin, reproducible
+patch/overlay workflow and evidence contracts, the current ten-patch stack now
+contains a native profile-backed sidebar, persistent nested tree, live Chromium
+tab bridge, local command bar and bounded split-view integration. The
+development app builds and launches, but it is not yet a daily-use browser and
+no compatibility claim is considered proven without installed-app evidence.
 
 ## Non-negotiable boundaries
 

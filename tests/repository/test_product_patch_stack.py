@@ -25,6 +25,8 @@ EXPECTED_PATCHES = {
         "86d6ba7c8edc0416638c04180b5757a8ed73b5d48c5ac47ae2b2bc2e77f94173",
     "0009-ahoi-sidebar-views.patch":
         "867a180f6991517ad8fcc14a4651529012056f7b4be17aa2f9f2925e35fe44e0",
+    "0010-ahoi-live-sidebar-integration.patch":
+        "5665ce99b3af2566ff2e4fbf3d33c5fad7d5d2c027256baade522da2173be8ec",
 }
 
 

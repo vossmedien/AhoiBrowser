@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-08-21
+Last updated: 2026-08-22
 
 ## Verified local environment
 
@@ -22,7 +22,8 @@ Last updated: 2026-08-21
 | Exact Chromium Stable pin | complete | 151.0.7922.170, fully rolled/pinnable Mac ARM64 Stable |
 | Chromium ARM64 checkout | complete | 233/233 dependency closure verified twice at `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` |
 | Unmodified Chromium ARM64 build | not run | exact Xcode 26.5 baseline is installed; build gate is ready to run |
-| Branded native browser | baseline complete; product integration building | `AhoiBrowser.app` built at 18,542/18,542, repeated with `ninja: no work to do`, stamped and verified ARM64-only, then launched from `out/AhoiDev` with an isolated profile; the nine-patch product stack is now applied and compiling |
+| Branded native browser | development build complete; release build not run | `out/AhoiDev/AhoiBrowser.app` builds and launches as native ARM64 Chromium; the ten-patch product stack composes deterministically and the latest complete app relink exited 0 |
+| Native visible product slice | `PROGRAMMATIC_PASS`; installed proof pending | profile-backed sidebar with live tabs, nested folders, single-click selection/collapse, context menus, compact drag feedback, two-/three-pane split projection and centered command bar; 6 focused sidebar plus 8 command-bar tests pass |
 | Installed signed dogfood | not run | depends on branded build |
 | Signed release provenance | not implemented / fail-closed | Computer Use PASS disabled by `config/release-evidence.json` until build-sign-package-install binding exists |
 | HTTP-auth fixture spike | fixture complete | 11 local integration tests; browser AUTH gates remain not run |
@@ -41,8 +42,11 @@ The first two branded compile passes exposed deprecation errors because the
 initial profiles coupled the product launch requirement to the compiler target.
 The corrected Chromium contract keeps `mac_deployment_target = "13.0"` while
 `mac_min_system_version = "26.0"` writes AhoiBrowser's real launch requirement.
-That baseline now builds and runs. Product functionality beyond native vertical
-tabs is tracked separately: nested tree, workspaces, session bridge, native
-sidebar, command bar and three-pane split are present in the deterministic
-source patch stack and must pass the current compile/runtime integration gate
-before they are claimed as working UI.
+That baseline now builds and runs. The deterministic source patch stack now
+also contains the first connected product UI: the profile-backed tree/session
+bridge, native sidebar, local command bar and bounded native split projection.
+These features are `IMPLEMENTED` and have focused `PROGRAMMATIC_PASS` evidence;
+development-runtime observations from `out/AhoiDev` do not count as
+`INSTALLED_PASS` or release `CU_E2E_PASS`. Packaging, `/Applications`
+installation, signing/notarization binding and the broader daily-driver matrix
+remain open.

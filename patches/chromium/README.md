@@ -198,3 +198,37 @@ impact, expected rebase risk, and removal/upstream plan.
   APIs.
 - **Removal/upstream plan:** keep the Ahoi row/tree Views and adapt only the two
   native installation seams during Chromium rolls.
+
+## `0010-ahoi-live-sidebar-integration.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0009`.
+- **Affected paths:** Ahoi command-bar, session bridge, tab-tree and sidebar
+  components plus narrow `BrowserView`, macOS native-widget,
+  `MultiContentsView`, live-tab-context and vertical-tab-region integration
+  seams.
+- **Rationale:** connect the persistent Ahoi tree to live Chromium tabs and
+  windows, replace the stock vertical-tab list with the product sidebar, show
+  the native centered command surface, expose current titles, URLs and
+  favicons, and provide single-click activation/collapse, nested folders,
+  native context menus, drag feedback and native two-/three-pane split rows.
+- **Rejected alternatives:** a second WebView tab host, a WebUI sidebar, DOM
+  drag orchestration, using bookmarks as the runtime tab model, or mutating
+  parentage merely to make split panes look grouped.
+- **Tests:** focused command-bar and sidebar Views tests cover safe synchronous
+  command execution, widget/delegate lifetime, split-row projection,
+  cross-folder split anchoring, validated drop zones, nested-folder creation
+  and single-click folder collapse/expand. The native component build and
+  complete app relink pass at `out/AhoiDev`.
+- **Security/privacy impact:** profile-local tree/session metadata only. Normal
+  and off-the-record profiles remain separated; command results remain local;
+  no new renderer privilege, network endpoint, credential storage or sandbox
+  exception is introduced.
+- **Expected rebase risk:** medium-high around BrowserView layout, native macOS
+  activation and upstream split-tab APIs; Ahoi-owned model/View code is lower
+  risk.
+- **Removal/upstream plan:** retain the Ahoi-owned services and Views while
+  keeping the Chromium-facing seams small; replace individual seams with
+  upstream equivalents when native vertical-tree or multi-pane APIs mature.
