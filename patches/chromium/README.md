@@ -341,3 +341,44 @@ impact, expected rebase risk, and removal/upstream plan.
   product strings into a dedicated Ahoi GRIT bundle when that bundle is wired
   into every locale pak; adapt only the narrow Chromium resource and host seams
   during rolls.
+
+## `0014-ahoi-live-tab-lifecycle-and-bidirectional-drag.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0013`.
+- **Affected paths:** Ahoi's native command bar, session bridge, transactional
+  tab-tree store and sidebar host/controller/Views plus their focused tests.
+- **Rationale:** make saved pages and ordinary open tabs one explicit native
+  lifecycle: a temporary tab can be dragged into any validated tree position,
+  a saved tab or complete split can be dragged back below the separator without
+  closing its live `WebContents`, and both kinds expose useful native context
+  menus. Split membership moves atomically, real favicons flow through the
+  sidebar and command results, the command surface is capped at five results,
+  and deferred bubble destruction removes the observed Cmd+T activation crash.
+  Saved and temporary rows share one scroll surface so the sections remain
+  adjacent while Chromium's New Tab button stays at the bottom of the chrome.
+- **Rejected alternatives:** a second runtime tab model, bookmark-only state,
+  deleting live tabs when unpinning, removing split panes from their persistent
+  parent, a drop target fixed to the window bottom, rebuilding all persistent
+  rows per tab event, or destroying the command Widget from inside its native
+  activation observer callback.
+- **Tests:** all 15 tab-tree, 25 sidebar/controller/View, 17 command-bar and 8
+  session tests pass (65 focused tests). The full `chrome` target links at
+  `out/AhoiDev`. In an isolated development profile, real mouse input verified
+  temporary-to-saved split creation, atomic saved-split-to-temporary roundtrip,
+  both context menus, five-result Cmd+T with favicon, and the formerly crashing
+  Enter path without a crash report. An `about:blank` idle sample with four test
+  tabs measured approximately 0.2% aggregate CPU. This is development runtime
+  evidence, not installed or release `CU_E2E_PASS` evidence.
+- **Security/privacy impact:** the new lifecycle metadata remains profile-local
+  and off-the-record persistence remains excluded. Drops and context actions
+  reuse Chromium tabs and validated Ahoi transactions; no renderer privilege,
+  credential store, secret-header path, network endpoint, telemetry or sandbox
+  exception is introduced.
+- **Expected rebase risk:** low for Ahoi-owned store/controller code and medium
+  around native Views drag, favicon and bubble-lifecycle APIs.
+- **Removal/upstream plan:** retain the Ahoi saved/temporary domain contract and
+  adapt only the native integration seams when Chromium's vertical-tree or
+  multi-pane APIs evolve.

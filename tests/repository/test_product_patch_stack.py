@@ -33,6 +33,8 @@ EXPECTED_PATCHES = {
         "e6b779668c4cd975b1af1392b8217c286d671b4aa67d74a690a6cb2becb03da4",
     "0013-ahoi-group-actions-and-localization.patch":
         "95acf7680dd94c3bf9e87145b47cb2e38c20df79bcef645487d2d4909b31be49",
+    "0014-ahoi-live-tab-lifecycle-and-bidirectional-drag.patch":
+        "af3d19046845ea89e123c244dd5e3c3dd894342b8479573646e91ee99542324f",
 }
 
 
