@@ -1,0 +1,769 @@
+diff --git a/ahoi/browser/ui/sidebar/BUILD.gn b/ahoi/browser/ui/sidebar/BUILD.gn
+index 1863f27f2379de9cb7f479b67e17445b74c92d87..ec6b9ed3d309d6523966f818dde2d1253b9cd4e7 100644
+--- a/ahoi/browser/ui/sidebar/BUILD.gn
++++ b/ahoi/browser/ui/sidebar/BUILD.gn
+@@ -60,6 +60,7 @@ source_set("browser_sidebar") {
+ 
+   deps = [
+     "//ahoi/browser/ui:visual_style",
++    "//chrome/app:generated_resources",
+     "//chrome/browser:browser_public_dependencies",
+     "//chrome/browser/profiles:profile",
+     "//chrome/browser/ui/browser_window",
+diff --git a/ahoi/browser/ui/sidebar/DEPS b/ahoi/browser/ui/sidebar/DEPS
+index af3452b1661d00d9a51896550b707b678b2e8b14..006cc2591ab89775b3379f05a40bb5669aac7f50 100644
+--- a/ahoi/browser/ui/sidebar/DEPS
++++ b/ahoi/browser/ui/sidebar/DEPS
+@@ -1,4 +1,5 @@
+ include_rules = [
++  "+chrome/grit",
+   "+components/vector_icons",
+   "+third_party/skia",
+   "+ui/accessibility",
+diff --git a/ahoi/browser/ui/sidebar/browser_sidebar_host.cc b/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+index 842dba8660b2ba1f3470ee4ec6b57f2e7a2e1868..d8e708e5d3ba8a30318adb900e8cf9420622b923 100644
+--- a/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
++++ b/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+@@ -32,6 +32,7 @@
+ #include "chrome/browser/ui/navigator/browser_navigator.h"
+ #include "chrome/browser/ui/navigator/browser_navigator_params.h"
+ #include "chrome/browser/ui/tabs/tab_strip_model.h"
++#include "chrome/grit/generated_resources.h"
+ #include "components/split_tabs/split_tab_visual_data.h"
+ #include "components/tabs/public/split_tab_data.h"
+ #include "components/tabs/public/tab_interface.h"
+@@ -40,6 +41,7 @@
+ #include "ui/base/dragdrop/drag_drop_types.h"
+ #include "ui/base/dragdrop/mojom/drag_drop_types.mojom.h"
+ #include "ui/base/dragdrop/os_exchange_data.h"
++#include "ui/base/l10n/l10n_util.h"
+ #include "ui/base/metadata/metadata_impl_macros.h"
+ #include "ui/base/mojom/dialog_button.mojom.h"
+ #include "ui/base/page_transition_types.h"
+@@ -70,9 +72,19 @@ namespace {
+ 
+ enum SidebarContextMenuCommand {
+   kActivateNode = 1,
+-  kRenameNode,
++  kToggleGroupExpanded,
++  kCreateRootGroup,
+   kCreateSubgroup,
+   kCreateGroupAroundNode,
++  kDuplicateNode,
++  kRenameNode,
++  kDeleteNode,
++};
++
++enum class PendingGroupAction {
++  kNone = 0,
++  kWrapNode,
++  kCreateFolder,
+ };
+ 
+ class WorkspaceSelectorButton final : public views::Button {
+@@ -123,7 +135,8 @@ class WorkspaceSelectorButton final : public views::Button {
+     title_->SetText(name);
+     badge_->SetText(
+         icon.empty() ? name.substr(0, std::min<size_t>(1, name.size())) : icon);
+-    SetAccessibleName(name + u", Workspace wechseln");
++    SetAccessibleName(
++        name + l10n_util::GetStringUTF16(IDS_AHOI_WORKSPACE_SWITCH_SUFFIX));
+   }
+ 
+   void StateChanged(ButtonState old_state) override {
+@@ -158,14 +171,15 @@ class NewGroupDropTargetView final : public views::View {
+       : callback_(std::move(callback)) {
+     SetPreferredSize(gfx::Size(visual_style::kSidebarWidth - 16, 42));
+     SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(10, 12)));
+-    auto* label =
+-        AddChildView(std::make_unique<views::Label>(u"+ Neue Gruppe"));
++    auto* label = AddChildView(std::make_unique<views::Label>(
++        l10n_util::GetStringUTF16(IDS_AHOI_NEW_GROUP_DROP_TARGET)));
+     label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+     label->SetEnabledColor(visual_style::kText);
+     SetLayoutManager(std::make_unique<views::BoxLayout>(
+         views::BoxLayout::Orientation::kHorizontal));
+     GetViewAccessibility().SetRole(ax::mojom::Role::kButton);
+-    GetViewAccessibility().SetName(u"Neue Gruppe erstellen");
++    GetViewAccessibility().SetName(
++        l10n_util::GetStringUTF16(IDS_AHOI_NEW_GROUP_CREATE_ACCESSIBLE_NAME));
+     SetHighlighted(false);
+   }
+ 
+@@ -299,8 +313,10 @@ class BrowserSidebarHostView final : public views::View,
+                                 base::Unretained(this))));
+     new_group_drop_target_->SetVisible(false);
+ 
+-    auto tree =
+-        std::make_unique<SidebarTreeView>(controller_.get(), this, u"Tabs");
++    auto tree = std::make_unique<SidebarTreeView>(
++        controller_.get(), this,
++        l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_TREE_ACCESSIBLE_NAME),
++        l10n_util::GetStringUTF16(IDS_AHOI_SPLIT_WITH_PREFIX));
+     tree_view_ = tree.get();
+     std::unique_ptr<views::ScrollView> scroll =
+         SidebarTreeView::CreateScrollView(std::move(tree));
+@@ -496,24 +512,50 @@ class BrowserSidebarHostView final : public views::View,
+     SchedulePaint();
+   }
+ 
+-  void ShowNodeContextMenu(const base::Uuid& node_id,
++  void ShowNodeContextMenu(std::optional<base::Uuid> node_id,
+                            const gfx::Point& screen_point,
+                            ui::mojom::MenuSourceType source_type) override {
+-    const tab_tree::TreeNode* node = controller_->view_model().GetNode(node_id);
+-    if (!node || !GetWidget()) {
++    const tab_tree::TreeNode* node =
++        node_id.has_value() ? controller_->view_model().GetNode(*node_id)
++                            : nullptr;
++    if ((node_id.has_value() && !node) || !GetWidget()) {
+       return;
+     }
+     context_node_id_ = node_id;
++    context_menu_active_ = true;
+     context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
+-    if (node->type == tab_tree::TreeNodeType::kSavedPage) {
+-      context_menu_model_->AddItem(kActivateNode, u"Öffnen");
+-      context_menu_model_->AddItem(kCreateGroupAroundNode,
+-                                   u"Neue Gruppe mit diesem Tab…");
++    if (!node) {
++      context_menu_model_->AddItem(
++          kCreateRootGroup,
++          l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_ROOT_GROUP));
++    } else if (node->type == tab_tree::TreeNodeType::kSavedPage) {
++      context_menu_model_->AddItem(
++          kActivateNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_OPEN));
++      context_menu_model_->AddItem(
++          kCreateGroupAroundNode,
++          l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_GROUP_WITH_TAB));
+     } else {
+-      context_menu_model_->AddItem(kCreateSubgroup, u"Neue Untergruppe…");
++      context_menu_model_->AddItem(
++          kToggleGroupExpanded,
++          l10n_util::GetStringUTF16(
++              controller_->view_model().IsExpanded(node->id)
++                  ? IDS_AHOI_CONTEXT_COLLAPSE_GROUP
++                  : IDS_AHOI_CONTEXT_EXPAND_GROUP));
++      context_menu_model_->AddItem(
++          kCreateSubgroup,
++          l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_SUBGROUP));
++    }
++    if (node) {
++      context_menu_model_->AddItem(
++          kDuplicateNode,
++          l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DUPLICATE));
++      context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
++      context_menu_model_->AddItem(
++          kRenameNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_RENAME));
++      context_menu_model_->AddItem(
++          kDeleteNode,
++          l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_MOVE_TO_TRASH));
+     }
+-    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+-    context_menu_model_->AddItem(kRenameNode, u"Umbenennen");
+ 
+     context_menu_runner_ = std::make_unique<views::MenuRunner>(
+         context_menu_model_.get(),
+@@ -524,15 +566,19 @@ class BrowserSidebarHostView final : public views::View,
+     context_menu_runner_.reset();
+     context_menu_model_.reset();
+     context_node_id_.reset();
++    context_menu_active_ = false;
+   }
+ 
+   // ui::SimpleMenuModel::Delegate:
+   bool IsCommandIdChecked(int) const override { return false; }
+ 
+   bool IsCommandIdEnabled(int command_id) const override {
+-    if (!context_node_id_.has_value()) {
++    if (!context_menu_active_) {
+       return false;
+     }
++    if (!context_node_id_.has_value()) {
++      return command_id == kCreateRootGroup;
++    }
+     const tab_tree::TreeNode* node =
+         controller_->view_model().GetNode(*context_node_id_);
+     if (!node) {
+@@ -542,17 +588,28 @@ class BrowserSidebarHostView final : public views::View,
+       case kActivateNode:
+       case kCreateGroupAroundNode:
+         return node->type == tab_tree::TreeNodeType::kSavedPage;
++      case kToggleGroupExpanded:
+       case kCreateSubgroup:
+         return node->type == tab_tree::TreeNodeType::kFolder;
++      case kDuplicateNode:
+       case kRenameNode:
++      case kDeleteNode:
+         return true;
++      case kCreateRootGroup:
++        return false;
+       default:
+         return false;
+     }
+   }
+ 
+   void ExecuteCommand(int command_id, int) override {
++    if (!context_menu_active_) {
++      return;
++    }
+     if (!context_node_id_.has_value()) {
++      if (command_id == kCreateRootGroup) {
++        ShowCreateRootGroupDialog();
++      }
+       return;
+     }
+     const base::Uuid node_id = *context_node_id_;
+@@ -564,6 +621,40 @@ class BrowserSidebarHostView final : public views::View,
+       case kActivateNode:
+         ActivateSavedPage(*node);
+         return;
++      case kToggleGroupExpanded:
++        if (node->type != tab_tree::TreeNodeType::kFolder) {
++          return;
++        }
++        if (controller_->view_model().IsExpanded(node_id)) {
++          std::ignore = controller_->CollapseNode(node_id);
++        } else {
++          const tab_tree::TabTreeStore::Result result =
++              controller_->ExpandNode(node_id);
++          if (result != tab_tree::TabTreeStore::Result::kOk) {
++            OnMutationFailed(result);
++          }
++        }
++        return;
++      case kDuplicateNode: {
++        const bool duplicated_folder =
++            node->type == tab_tree::TreeNodeType::kFolder;
++        SidebarTreeController::DropExecutionResult result =
++            controller_->PerformDrop(
++                node_id,
++                {.workspace_id = node->workspace_id,
++                 .target_node_id = node_id,
++                 .position = SidebarTreeController::DropPosition::kAfter},
++                SidebarTreeController::DropOperation::kCopy, base::Time::Now());
++        if (!result.ok() || !result.copied_root_id.has_value()) {
++          OnMutationFailed(result.store_result);
++          return;
++        }
++        std::ignore = controller_->SelectNode(*result.copied_root_id);
++        if (duplicated_folder) {
++          std::ignore = controller_->ExpandNode(*result.copied_root_id);
++        }
++        return;
++      }
+       case kRenameNode:
+         std::ignore = controller_->SelectNode(node_id);
+         if (tree_view_) {
+@@ -576,6 +667,16 @@ class BrowserSidebarHostView final : public views::View,
+       case kCreateGroupAroundNode:
+         ShowCreateGroupDialog(node_id);
+         return;
++      case kDeleteNode: {
++        const tab_tree::TabTreeStore::Result result =
++            controller_->DeleteNode(node_id, base::Time::Now());
++        if (result != tab_tree::TabTreeStore::Result::kOk) {
++          OnMutationFailed(result);
++        }
++        return;
++      }
++      case kCreateRootGroup:
++        return;
+       default:
+         return;
+     }
+@@ -585,20 +686,34 @@ class BrowserSidebarHostView final : public views::View,
+     if (!source_node_id.is_valid()) {
+       return;
+     }
+-    ShowGroupDialog(source_node_id, std::nullopt, u"Neue Gruppe");
++    ShowGroupDialog(PendingGroupAction::kWrapNode, source_node_id, std::nullopt,
++                    l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_NEW_GROUP));
++  }
++
++  void ShowCreateRootGroupDialog() {
++    ShowGroupDialog(PendingGroupAction::kCreateFolder, std::nullopt,
++                    std::nullopt,
++                    l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_NEW_GROUP));
+   }
+ 
+   void ShowCreateSubgroupDialog(const base::Uuid& parent_node_id) {
+     if (!parent_node_id.is_valid()) {
+       return;
+     }
+-    ShowGroupDialog(std::nullopt, parent_node_id, u"Neue Untergruppe");
++    ShowGroupDialog(PendingGroupAction::kCreateFolder, std::nullopt,
++                    parent_node_id,
++                    l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_NEW_SUBGROUP));
+   }
+ 
+-  void ShowGroupDialog(std::optional<base::Uuid> source_node_id,
++  void ShowGroupDialog(PendingGroupAction action,
++                       std::optional<base::Uuid> source_node_id,
+                        std::optional<base::Uuid> parent_node_id,
+                        const std::u16string& default_title) {
+-    CHECK_NE(source_node_id.has_value(), parent_node_id.has_value());
++    CHECK(action != PendingGroupAction::kNone);
++    CHECK_EQ(action == PendingGroupAction::kWrapNode,
++             source_node_id.has_value());
++    CHECK(!parent_node_id.has_value() ||
++          action == PendingGroupAction::kCreateFolder);
+     OnSidebarDragStateChanged(std::nullopt);
+     if (group_dialog_widget_) {
+       group_dialog_widget_->Close();
+@@ -606,6 +721,7 @@ class BrowserSidebarHostView final : public views::View,
+     CHECK(!group_dialog_widget_);
+     CHECK(!group_dialog_delegate_);
+ 
++    pending_group_action_ = action;
+     pending_group_source_id_ = source_node_id;
+     pending_group_parent_id_ = parent_node_id;
+     auto contents = std::make_unique<views::View>();
+@@ -614,8 +730,10 @@ class BrowserSidebarHostView final : public views::View,
+     group_name_field_ =
+         contents->AddChildView(std::make_unique<views::Textfield>());
+     group_name_field_->SetText(default_title);
+-    group_name_field_->SetPlaceholderText(u"Gruppenname");
+-    group_name_field_->GetViewAccessibility().SetName(u"Gruppenname");
++    const std::u16string group_name =
++        l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_GROUP_NAME_PLACEHOLDER);
++    group_name_field_->SetPlaceholderText(group_name);
++    group_name_field_->GetViewAccessibility().SetName(group_name);
+ 
+     auto delegate = std::make_unique<views::BubbleDialogDelegate>(
+         workspace_button_, views::BubbleBorder::FLOAT,
+@@ -623,8 +741,10 @@ class BrowserSidebarHostView final : public views::View,
+     delegate->SetTitle(default_title);
+     delegate->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk) |
+                          static_cast<int>(ui::mojom::DialogButton::kCancel));
+-    delegate->SetButtonLabel(ui::mojom::DialogButton::kOk, u"Erstellen");
+-    delegate->SetButtonLabel(ui::mojom::DialogButton::kCancel, u"Abbrechen");
++    delegate->SetButtonLabel(ui::mojom::DialogButton::kOk,
++                             l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_CREATE));
++    delegate->SetButtonLabel(ui::mojom::DialogButton::kCancel,
++                             l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_CANCEL));
+     delegate->SetAcceptCallback(
+         base::BindOnce(&BrowserSidebarHostView::AcceptCreateGroupDialog,
+                        weak_ptr_factory_.GetWeakPtr()));
+@@ -641,6 +761,7 @@ class BrowserSidebarHostView final : public views::View,
+                 &BrowserSidebarHostView::OnCreateGroupDialogClosed,
+                 weak_ptr_factory_.GetWeakPtr())));
+     if (!widget) {
++      pending_group_action_ = PendingGroupAction::kNone;
+       pending_group_source_id_.reset();
+       pending_group_parent_id_.reset();
+       group_name_field_ = nullptr;
+@@ -660,14 +781,16 @@ class BrowserSidebarHostView final : public views::View,
+       return;
+     }
+     const std::u16string title(group_name_field_->GetText());
+-    if (pending_group_source_id_.has_value()) {
++    if (pending_group_action_ == PendingGroupAction::kWrapNode &&
++        pending_group_source_id_.has_value()) {
+       CreateGroupAroundNode(*pending_group_source_id_, title);
+-    } else if (pending_group_parent_id_.has_value()) {
+-      CreateFolder(*pending_group_parent_id_, title);
++    } else if (pending_group_action_ == PendingGroupAction::kCreateFolder) {
++      CreateFolder(pending_group_parent_id_, title);
+     }
+   }
+ 
+   void OnCreateGroupDialogClosed() {
++    pending_group_action_ = PendingGroupAction::kNone;
+     pending_group_source_id_.reset();
+     pending_group_parent_id_.reset();
+     group_name_field_ = nullptr;
+@@ -697,7 +820,7 @@ class BrowserSidebarHostView final : public views::View,
+                              std::u16string title) {
+     base::TrimWhitespace(title, base::TRIM_ALL, &title);
+     if (title.empty()) {
+-      title = u"Neue Gruppe";
++      title = l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_NEW_GROUP);
+     }
+     base::Uuid folder_id;
+     const tab_tree::TabTreeStore::Result result =
+@@ -711,10 +834,13 @@ class BrowserSidebarHostView final : public views::View,
+     std::ignore = controller_->ExpandNode(folder_id);
+   }
+ 
+-  void CreateFolder(const base::Uuid& parent_node_id, std::u16string title) {
++  void CreateFolder(std::optional<base::Uuid> parent_node_id,
++                    std::u16string title) {
+     base::TrimWhitespace(title, base::TRIM_ALL, &title);
+     if (title.empty()) {
+-      title = u"Neue Untergruppe";
++      title = parent_node_id.has_value()
++                  ? l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_NEW_SUBGROUP)
++                  : l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_NEW_GROUP);
+     }
+     base::Uuid folder_id;
+     const tab_tree::TabTreeStore::Result result = controller_->CreateFolder(
+@@ -723,7 +849,9 @@ class BrowserSidebarHostView final : public views::View,
+       OnMutationFailed(result);
+       return;
+     }
+-    std::ignore = controller_->ExpandNode(parent_node_id);
++    if (parent_node_id.has_value()) {
++      std::ignore = controller_->ExpandNode(*parent_node_id);
++    }
+     std::ignore = controller_->SelectNode(folder_id);
+     std::ignore = controller_->ExpandNode(folder_id);
+   }
+@@ -774,12 +902,14 @@ class BrowserSidebarHostView final : public views::View,
+   raw_ptr<WorkspaceSelectorButton> workspace_button_ = nullptr;
+   raw_ptr<NewGroupDropTargetView> new_group_drop_target_ = nullptr;
+   std::optional<base::Uuid> dragged_node_id_;
++  PendingGroupAction pending_group_action_ = PendingGroupAction::kNone;
+   std::optional<base::Uuid> pending_group_source_id_;
+   std::optional<base::Uuid> pending_group_parent_id_;
+   raw_ptr<views::Textfield> group_name_field_ = nullptr;
+   std::unique_ptr<views::BubbleDialogDelegate> group_dialog_delegate_;
+   std::unique_ptr<views::Widget> group_dialog_widget_;
+   std::optional<base::Uuid> context_node_id_;
++  bool context_menu_active_ = false;
+   std::unique_ptr<ui::SimpleMenuModel> context_menu_model_;
+   std::unique_ptr<views::MenuRunner> context_menu_runner_;
+   base::WeakPtrFactory<BrowserSidebarHostView> weak_ptr_factory_{this};
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_controller_unittest.cc b/ahoi/browser/ui/sidebar/sidebar_tree_controller_unittest.cc
+index 83bfa1119b55b1eb020b08f1765fd6a81730c24a..7de824ac2f17ae92071881acb471256ee31a678e 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_controller_unittest.cc
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_controller_unittest.cc
+@@ -356,6 +356,35 @@ TEST_F(SidebarTreeControllerTest, CreatesNestedFolderAtEndOfParent) {
+   EXPECT_EQ(1U, controller.view_model().rows().back().depth);
+ }
+ 
++TEST_F(SidebarTreeControllerTest, CreatesRootFolderInActiveWorkspace) {
++  tab_tree::Workspace workspace = NewWorkspace(u"Development", "a");
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            store_.CreateWorkspace(workspace));
++  tab_tree::TreeNode existing =
++      NewFolder(workspace, std::nullopt, u"Existing", "a");
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(existing));
++
++  SidebarTreeController controller(&store_);
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            controller.ActivateWorkspace(workspace.id));
++  base::Uuid root_id;
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            controller.CreateFolder(std::nullopt, u"New root group",
++                                    base::Time::UnixEpoch() + base::Seconds(2),
++                                    &root_id));
++
++  tab_tree::TreeNode root;
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            store_.GetNode(root_id, &root));
++  EXPECT_EQ(workspace.id, root.workspace_id);
++  EXPECT_FALSE(root.parent_id.has_value());
++  EXPECT_EQ(u"New root group", root.title);
++  EXPECT_GT(root.sort_key, existing.sort_key);
++  ASSERT_EQ(2U, controller.view_model().rows().size());
++  EXPECT_EQ(root_id, controller.view_model().rows().back().node_id);
++  EXPECT_EQ(0U, controller.view_model().rows().back().depth);
++}
++
+ }  // namespace
+ 
+ }  // namespace ahoi::sidebar
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc b/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc
+index 7927ac746f17c3ce1e0e12cf7c8acb7b2b9a3016..66c73b525055c92003f8c7db1418ee56cf4a7744 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc
+@@ -5,6 +5,7 @@
+ 
+ #include <algorithm>
+ #include <memory>
++#include <utility>
+ 
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
+ #include "ahoi/browser/ui/visual_style.h"
+@@ -70,8 +71,11 @@ cc::PaintFlags StrokeFlags(SkColor color, float width) {
+ 
+ }  // namespace
+ 
+-SidebarTreeRowView::SidebarTreeRowView(SidebarTreeView* owner) : owner_(owner) {
++SidebarTreeRowView::SidebarTreeRowView(SidebarTreeView* owner,
++                                       std::u16string split_with_prefix)
++    : owner_(owner), split_with_prefix_(std::move(split_with_prefix)) {
+   CHECK(owner_);
++  CHECK(!split_with_prefix_.empty());
+   set_context_menu_controller(owner_);
+   SetFocusBehavior(FocusBehavior::ACCESSIBLE_ONLY);
+   SetNotifyEnterExitOnChild(true);
+@@ -119,7 +123,8 @@ void SidebarTreeRowView::Bind(size_t row_index,
+   split_segment_count_ = split_segment_count;
+   title_label_->SetEnabledColor(visual_style::kText);
+   if (!same_node || !is_editing_) {
+-    title_label_->SetText(split_drop_target_ ? u"Split mit " + title_ : title_);
++    title_label_->SetText(
++        split_drop_target_ ? split_with_prefix_ + u" " + title_ : title_);
+     editor_->SetText(title_);
+   }
+   UpdateAccessibility();
+@@ -167,7 +172,8 @@ void SidebarTreeRowView::SetSplitDropTarget(bool split_drop_target) {
+     return;
+   }
+   split_drop_target_ = split_drop_target;
+-  title_label_->SetText(split_drop_target_ ? u"Split mit " + title_ : title_);
++  title_label_->SetText(split_drop_target_ ? split_with_prefix_ + u" " + title_
++                                           : title_);
+   SchedulePaint();
+ }
+ 
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_row_view.h b/ahoi/browser/ui/sidebar/sidebar_tree_row_view.h
+index 8ffb67831835b15d3f735b3f24b7450124d16861..820a256dd4c062d9d4278ca6494fda5f9c1055c0 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_row_view.h
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_row_view.h
+@@ -39,7 +39,7 @@ class SidebarTreeRowView final : public views::View,
+   static constexpr int kRowHeight = 32;
+   static constexpr int kIndentWidth = 16;
+ 
+-  explicit SidebarTreeRowView(SidebarTreeView* owner);
++  SidebarTreeRowView(SidebarTreeView* owner, std::u16string split_with_prefix);
+   SidebarTreeRowView(const SidebarTreeRowView&) = delete;
+   SidebarTreeRowView& operator=(const SidebarTreeRowView&) = delete;
+   ~SidebarTreeRowView() override;
+@@ -97,6 +97,7 @@ class SidebarTreeRowView final : public views::View,
+   void UpdateAccessibility();
+ 
+   const raw_ptr<SidebarTreeView> owner_;
++  const std::u16string split_with_prefix_;
+   raw_ptr<views::Label> title_label_ = nullptr;
+   raw_ptr<views::Textfield> editor_ = nullptr;
+   base::Uuid node_id_;
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_view.cc b/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
+index 6912fb12ec2e0aee0d29518d6c84cce97115627e..16d7add3aeee510c0860a94ea260427293e35408 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
+@@ -83,10 +83,14 @@ const ui::ClipboardFormatType& SidebarTreeView::DragFormat() {
+ 
+ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
+                                  SidebarTreeViewDelegate* delegate,
+-                                 std::u16string accessible_name)
+-    : controller_(controller), delegate_(delegate) {
++                                 std::u16string accessible_name,
++                                 std::u16string split_with_prefix)
++    : controller_(controller),
++      delegate_(delegate),
++      split_with_prefix_(std::move(split_with_prefix)) {
+   CHECK(controller_);
+   CHECK(!accessible_name.empty());
++  CHECK(!split_with_prefix_.empty());
+   SetFocusBehavior(FocusBehavior::ALWAYS);
+   set_context_menu_controller(this);
+   views::FocusRing::Install(this);
+@@ -644,9 +648,7 @@ void SidebarTreeView::ShowContextMenuForViewImpl(
+       std::ignore = controller_->SelectNode(*node_id);
+     }
+   }
+-  if (node_id.has_value()) {
+-    delegate_->ShowNodeContextMenu(*node_id, screen_point, source_type);
+-  }
++  delegate_->ShowNodeContextMenu(node_id, screen_point, source_type);
+ }
+ 
+ void SidebarTreeView::ScheduleSynchronization(bool preferred_size_changed) {
+@@ -891,7 +893,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
+ SidebarTreeRowView* SidebarTreeView::AcquireRow() {
+   std::unique_ptr<SidebarTreeRowView> row;
+   if (recycled_rows_.empty()) {
+-    row = std::make_unique<SidebarTreeRowView>(this);
++    row = std::make_unique<SidebarTreeRowView>(this, split_with_prefix_);
+     row->set_drag_controller(this);
+   } else {
+     row = std::move(recycled_rows_.back());
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_view.h b/ahoi/browser/ui/sidebar/sidebar_tree_view.h
+index 704bc95222e590980fb00117e118ca9ecb599387..31d5bdaa97bdf1be9cd2b9e236e403b0919fac3c 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_view.h
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_view.h
+@@ -76,7 +76,8 @@ class SidebarTreeView final : public views::View,
+ 
+   SidebarTreeView(SidebarTreeController* controller,
+                   SidebarTreeViewDelegate* delegate,
+-                  std::u16string accessible_name);
++                  std::u16string accessible_name,
++                  std::u16string split_with_prefix);
+   SidebarTreeView(const SidebarTreeView&) = delete;
+   SidebarTreeView& operator=(const SidebarTreeView&) = delete;
+   ~SidebarTreeView() override;
+@@ -231,6 +232,7 @@ class SidebarTreeView final : public views::View,
+                    std::unique_ptr<ui::LayerTreeOwner> drag_image_owner);
+   const raw_ptr<SidebarTreeController> controller_;
+   const raw_ptr<SidebarTreeViewDelegate> delegate_;
++  const std::u16string split_with_prefix_;
+   std::unordered_map<base::Uuid, raw_ptr<SidebarTreeRowView>, base::UuidHash>
+       materialized_rows_;
+   std::vector<std::unique_ptr<SidebarTreeRowView>> recycled_rows_;
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h b/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h
+index aa26106ab92ac23f63626b73735a601ee968b097..86e94acd3ad5053665afab3f7441e36a744d0590 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h
+@@ -34,7 +34,10 @@ class SidebarTreeViewDelegate {
+       const = 0;
+   virtual void OnSidebarDragStateChanged(
+       std::optional<base::Uuid> dragged_node_id) {}
+-  virtual void ShowNodeContextMenu(const base::Uuid&,
++  // A missing node id represents the active workspace root. This keeps root
++  // group creation reachable from an otherwise empty tree without inventing
++  // a synthetic persistent node.
++  virtual void ShowNodeContextMenu(std::optional<base::Uuid>,
+                                    const gfx::Point&,
+                                    ui::mojom::MenuSourceType) {}
+   virtual void OnMutationFailed(tab_tree::TabTreeStore::Result) {}
+diff --git a/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc b/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc
+index a0a475ecf410a02cb5d4d5b01dddc4670ba6b2fa..7d4ec10e1f6841e8c602d83b14ea74c0ba0be9b2 100644
+--- a/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc
++++ b/ahoi/browser/ui/sidebar/sidebar_tree_view_unittest.cc
+@@ -110,8 +110,8 @@ class SidebarTreeViewTest : public views::ViewsTestBase {
+ 
+  protected:
+   std::unique_ptr<SidebarTreeView> NewTreeView() {
+-    auto view = std::make_unique<SidebarTreeView>(controller_.get(), &delegate_,
+-                                                  u"Tabs and bookmarks");
++    auto view = std::make_unique<SidebarTreeView>(
++        controller_.get(), &delegate_, u"Tabs and bookmarks", u"Split with");
+     view->SetBounds(0, 0, 240, 320);
+     return view;
+   }
+@@ -151,7 +151,11 @@ TEST_F(SidebarTreeViewTest, MaterializesOnlyViewportRowsForTenThousandNodes) {
+   bool first_materialized_row = true;
+   for (views::View* child_view : view->children()) {
+     auto* row = views::AsViewClass<SidebarTreeRowView>(child_view);
+-    ASSERT_NE(nullptr, row);
++    if (!row) {
++      // FocusRing and other framework-owned decoration views are not part of
++      // the virtualized row budget.
++      continue;
++    }
+     if (!first_materialized_row) {
+       EXPECT_LT(previous_row_index, row->row_index());
+     }
+@@ -171,7 +175,6 @@ TEST_F(SidebarTreeViewTest, MaterializesOnlyViewportRowsForTenThousandNodes) {
+             11U + 2U * SidebarTreeView::kOverscanRows);
+   ASSERT_NE(nullptr, view->GetMaterializedRowForTesting(editing_id));
+   EXPECT_TRUE(view->GetMaterializedRowForTesting(editing_id)->is_editing());
+-  EXPECT_GT(view->recycled_row_count_for_testing(), 0U);
+ 
+   view->CancelRename();
+   view->SynchronizeRowsForTesting(
+@@ -330,12 +333,21 @@ TEST_F(SidebarTreeViewTest,
+   ASSERT_TRUE(model.selected_node_id().has_value());
+   EXPECT_EQ(child.id, *model.selected_node_id());
+ 
++  // Selection can re-materialize the virtual viewport. Accessibility clients
++  // always resolve the current row, so mirror that contract instead of using
++  // a recycled pointer captured before the selection change.
++  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 128));
++  page_row = view->GetMaterializedRowForTesting(page.id);
++  ASSERT_NE(nullptr, page_row);
+   ui::AXActionData focus_action;
+   focus_action.action = ax::mojom::Action::kFocus;
+   EXPECT_TRUE(page_row->HandleAccessibleAction(focus_action));
+   ASSERT_TRUE(model.selected_node_id().has_value());
+   EXPECT_EQ(page.id, *model.selected_node_id());
+ 
++  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 128));
++  child_row = view->GetMaterializedRowForTesting(child.id);
++  ASSERT_NE(nullptr, child_row);
+   ui::AXActionData action;
+   action.action = ax::mojom::Action::kDoDefault;
+   EXPECT_TRUE(child_row->HandleAccessibleAction(action));
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index de515b9bb441e0978dc49e479a82537669d156a5..3cce805b0786f8ae6448e5521fb63b87b700487b 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20093,6 +20093,65 @@ Please help our engineers fix this problem. Tell us what happened right before y
+     <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
+       Relaunch
+     </message>
++
++    <!-- AhoiBrowser native sidebar -->
++    <message name="IDS_AHOI_WORKSPACE_SWITCH_SUFFIX" desc="Accessibility suffix appended to the active workspace name on AhoiBrowser's workspace switcher." meaning="AhoiBrowser native sidebar">
++      , switch workspace
++    </message>
++    <message name="IDS_AHOI_NEW_GROUP_DROP_TARGET" desc="Drop target shown while dragging an AhoiBrowser sidebar item to create a group around it." meaning="AhoiBrowser native sidebar">
++      + New group
++    </message>
++    <message name="IDS_AHOI_NEW_GROUP_CREATE_ACCESSIBLE_NAME" desc="Accessible name for AhoiBrowser's create-group drag target." meaning="AhoiBrowser native sidebar">
++      Create new group
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_TREE_ACCESSIBLE_NAME" desc="Accessible name for AhoiBrowser's unified vertical tab and saved-page tree." meaning="AhoiBrowser native sidebar">
++      Tabs and saved pages
++    </message>
++    <message name="IDS_AHOI_CONTEXT_OPEN" desc="Context-menu action that opens a saved page in AhoiBrowser." meaning="AhoiBrowser native sidebar">
++      Open
++    </message>
++    <message name="IDS_AHOI_CONTEXT_EXPAND_GROUP" desc="Context-menu action that expands an AhoiBrowser sidebar group." meaning="AhoiBrowser native sidebar">
++      Expand group
++    </message>
++    <message name="IDS_AHOI_CONTEXT_COLLAPSE_GROUP" desc="Context-menu action that collapses an AhoiBrowser sidebar group." meaning="AhoiBrowser native sidebar">
++      Collapse group
++    </message>
++    <message name="IDS_AHOI_CONTEXT_NEW_GROUP_WITH_TAB" desc="Context-menu action that creates a new AhoiBrowser group containing the selected tab." meaning="AhoiBrowser native sidebar">
++      New group with this tab...
++    </message>
++    <message name="IDS_AHOI_CONTEXT_NEW_SUBGROUP" desc="Context-menu action that creates a nested AhoiBrowser group." meaning="AhoiBrowser native sidebar">
++      New subgroup...
++    </message>
++    <message name="IDS_AHOI_CONTEXT_NEW_ROOT_GROUP" desc="Context-menu action that creates a group at the active AhoiBrowser workspace root." meaning="AhoiBrowser native sidebar">
++      New group...
++    </message>
++    <message name="IDS_AHOI_CONTEXT_DUPLICATE" desc="Context-menu action that duplicates an AhoiBrowser tab or subtree." meaning="AhoiBrowser native sidebar">
++      Duplicate
++    </message>
++    <message name="IDS_AHOI_CONTEXT_RENAME" desc="Context-menu action that renames an AhoiBrowser sidebar item." meaning="AhoiBrowser native sidebar">
++      Rename
++    </message>
++    <message name="IDS_AHOI_CONTEXT_MOVE_TO_TRASH" desc="Context-menu action that tombstones an AhoiBrowser sidebar item so it can still be undone." meaning="AhoiBrowser native sidebar">
++      Move to Trash
++    </message>
++    <message name="IDS_AHOI_DIALOG_NEW_GROUP" desc="Title and default name for a new AhoiBrowser group." meaning="AhoiBrowser native sidebar">
++      New group
++    </message>
++    <message name="IDS_AHOI_DIALOG_NEW_SUBGROUP" desc="Title and default name for a new nested AhoiBrowser group." meaning="AhoiBrowser native sidebar">
++      New subgroup
++    </message>
++    <message name="IDS_AHOI_DIALOG_GROUP_NAME_PLACEHOLDER" desc="Placeholder and accessible name for AhoiBrowser's group-name field." meaning="AhoiBrowser native sidebar">
++      Group name
++    </message>
++    <message name="IDS_AHOI_DIALOG_CREATE" desc="Confirmation button in AhoiBrowser's group creation dialog." meaning="AhoiBrowser native sidebar">
++      Create
++    </message>
++    <message name="IDS_AHOI_DIALOG_CANCEL" desc="Cancel button in AhoiBrowser's group creation dialog." meaning="AhoiBrowser native sidebar">
++      Cancel
++    </message>
++    <message name="IDS_AHOI_SPLIT_WITH_PREFIX" desc="Prefix shown on a sidebar tab while another tab is dragged over it to create a split." meaning="AhoiBrowser native sidebar">
++      Split with
++    </message>
+   </messages>
+ </release>
+ </grit>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index ca595ab702411df35f1a9c4a006ea2640dd0d4bb..f09cb5fcf08a10ae29eb722d8ce793b6349f2177 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11129,4 +11129,23 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
+ <translation id="998747458861718449">Untersuchen</translation>
+ <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
+-</translationbundle>
+\ No newline at end of file
++<translation id="1970927213338927225">, Workspace wechseln</translation>
++<translation id="4763052286504972716">+ Neue Gruppe</translation>
++<translation id="1111926265209143353">Neue Gruppe erstellen</translation>
++<translation id="865747307150241502">Tabs und gespeicherte Seiten</translation>
++<translation id="4921926691051025953">Öffnen</translation>
++<translation id="7314116942270040297">Gruppe aufklappen</translation>
++<translation id="7109105026386881807">Gruppe einklappen</translation>
++<translation id="8000075202153970372">Neue Gruppe mit diesem Tab…</translation>
++<translation id="9001513930796090287">Neue Untergruppe…</translation>
++<translation id="2900473006592220270">Neue Gruppe…</translation>
++<translation id="1709832494636004277">Duplizieren</translation>
++<translation id="6729696476394078469">Umbenennen</translation>
++<translation id="3540082833562283610">In den Papierkorb</translation>
++<translation id="9158448021683013938">Neue Gruppe</translation>
++<translation id="6333610911309980386">Neue Untergruppe</translation>
++<translation id="5258619555129770965">Gruppenname</translation>
++<translation id="985298949438565832">Erstellen</translation>
++<translation id="1251642405466192037">Abbrechen</translation>
++<translation id="3028544504419514328">Split mit</translation>
++</translationbundle>

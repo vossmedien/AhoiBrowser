@@ -304,3 +304,40 @@ impact, expected rebase risk, and removal/upstream plan.
   layers; adapt only narrow native Views integration seams during Chromium
   rolls and replace custom colors with upstream semantic equivalents where
   their contracts match.
+
+## `0013-ahoi-group-actions-and-localization.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0012`.
+- **Affected paths:** Ahoi's native sidebar host, virtualized tree rows and
+  focused controller/View tests, plus Chromium's generated English and German
+  resource catalogs.
+- **Rationale:** make the nested tree operable without drag-only affordances:
+  the workspace root can create groups, folders can create subgroups and
+  collapse or expand, pages can be wrapped in a group, and pages or complete
+  subtrees can be duplicated, renamed or moved to the undo-aware trash. All
+  newly visible sidebar text now comes from GRIT with complete German
+  translations, while reusable Views receive localized accessibility text
+  explicitly and remain independently testable.
+- **Rejected alternatives:** hard-coded German strings, a separate bookmark
+  context menu, destructive immediate deletion, rebuilding one native View per
+  tree node, or moving split tabs out of their persistent parent merely to
+  depict the split association.
+- **Tests:** the full `ahoi_sidebar_tree_unittests` binary passes 21/21 tests,
+  including root/nested group creation, single-click collapse, virtualization,
+  drag zones, tab-on-tab split and grouped split projection. Adjacent command,
+  navigation, session and persistent-tree suites pass 53/53 tests; the
+  incremental `chrome` build completes at `out/AhoiDev`.
+- **Security/privacy impact:** mutations stay profile-local and travel through
+  the existing validated controller/store operations. Trash remains tombstoned
+  and undoable; cross-workspace copies remain atomic; no renderer privilege,
+  credential path, network endpoint, telemetry or off-the-record persistence is
+  added.
+- **Expected rebase risk:** low for Ahoi-owned Views and model code, medium for
+  Chromium GRIT catalogs and the native sidebar integration host.
+- **Removal/upstream plan:** retain the Ahoi tree action layer and move its
+  product strings into a dedicated Ahoi GRIT bundle when that bundle is wired
+  into every locale pak; adapt only the narrow Chromium resource and host seams
+  during rolls.

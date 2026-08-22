@@ -31,6 +31,8 @@ EXPECTED_PATCHES = {
         "07d1aa647639ddaf37b76f17cdd7c7064fdd4590788d5b43a18a7d9b2db795c0",
     "0012-ahoi-visual-language-and-nested-search.patch":
         "e6b779668c4cd975b1af1392b8217c286d671b4aa67d74a690a6cb2becb03da4",
+    "0013-ahoi-group-actions-and-localization.patch":
+        "95acf7680dd94c3bf9e87145b47cb2e38c20df79bcef645487d2d4909b31be49",
 }
 
 
