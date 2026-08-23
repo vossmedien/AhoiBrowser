@@ -431,3 +431,61 @@ impact, expected rebase risk, and removal/upstream plan.
 - **Removal/upstream plan:** retain the Ahoi lifecycle and presentation
   callbacks; adapt only the keyboard/menu hooks if Chromium consolidates its
   macOS command routing.
+
+## `0016-ahoi-modular-ui-auth-and-native-drag.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0015`.
+- **Affected paths:** Ahoi command, session, tab-tree, modal and sidebar
+  components; the browser profile/login integration; localized login strings;
+  narrow BrowserView, vertical-region, omnibox, Remote Cocoa and macOS Views
+  drag seams (136 files, dominated by splitting three former monoliths into
+  focused implementation units).
+- **Rationale:** establish the maintainable product foundation required for
+  continued feature work. The session bridge, transactional tree store and
+  native sidebar host/View are divided into responsibility-scoped files while
+  preserving their public contracts. Central visual and motion tokens drive
+  modal surfaces, rows, controls and the dock. The bottom New Tab/Incognito
+  control becomes one vertically stacked, independently accessible cell with a
+  full-width inner divider; the recent-link search field gets reliable text
+  padding and a restored focus ring. HTTP Basic/Digest authentication gains a
+  profile-local credential service, realm-aware saved-account selection and
+  three mutually exclusive persistence choices: use once, save only after a
+  successful challenge, or never save for that protection space. Finally,
+  macOS native drag startup is forwarded from AppKit into the active Views
+  `DragController`, concrete pasteboard fallback data keeps previews viable,
+  drag-only layout changes are deferred into the nested loop, and virtualized
+  source rows remain materialized until `OnDragDone()` can clear every drag
+  affordance.
+- **Rejected alternatives:** retaining 1,000-4,600-line implementation files;
+  per-component hard-coded colors and timing; two contradictory independent
+  auth checkboxes; persisting credentials before server acceptance; mutating
+  sidebar layout before AppKit has entered a native drag session; pinning every
+  row during drag; or replacing Chromium's native Views/AppKit drag stack with
+  a parallel event system.
+- **Tests:** the incremental `chrome`, `views_unittests` and
+  `ahoi_sidebar_tree_unittests` targets build with no remaining work. All six
+  Ahoi suites pass 117/117. The new
+  `DragDropClientMacTest.NativeDragStartedIsForwardedFromAppKit` regression
+  passes, including Xcode 26.5 nullability enforcement; `gn check` passes for
+  Views, Remote Cocoa and the Ahoi sidebar, and all touched focused files pass
+  Chromium clang-format plus `git diff --check`. A freshly restarted
+  development process visibly confirms the stacked New Tab/Incognito actions
+  and the three exclusive auth choices. Computer Use cannot emit a trustworthy
+  physical `mouseDragged` event in this environment, so real pointer drag and
+  the hover-only recent-link surface remain explicit manual dogfood gates.
+- **Security/privacy impact:** positive credential semantics. Saved HTTP-auth
+  secrets reuse Chromium's profile password store, are keyed by the complete
+  protection space, are written only after successful authentication and are
+  never automatically read or written off the record. The native drag hook
+  forwards lifecycle state only; it adds no renderer privilege, network path,
+  telemetry, sync payload, sandbox exception or persistent external data.
+- **Expected rebase risk:** low for the Ahoi-owned modular files, medium for
+  BrowserView/login integration, and medium-high for the deliberately narrow
+  AppKit/Remote Cocoa/Views drag lifecycle hook.
+- **Removal/upstream plan:** retain the Ahoi domain modules and credential
+  policy; adapt the narrow host and native-drag seams on Chromium rolls, and
+  remove the AppKit forwarding hook if upstream exposes an equivalent Views
+  lifecycle callback.

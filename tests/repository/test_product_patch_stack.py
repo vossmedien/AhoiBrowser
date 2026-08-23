@@ -37,6 +37,8 @@ EXPECTED_PATCHES = {
         "af3d19046845ea89e123c244dd5e3c3dd894342b8479573646e91ee99542324f",
     "0015-ahoi-save-shortcut-and-drag-feedback.patch":
         "548fa9715844505d56b4227d03632dc7e45bdbdeb723cbcaa756c9c3cd1b0010",
+    "0016-ahoi-modular-ui-auth-and-native-drag.patch":
+        "af1ad74015825edb48181485bfe58909b0ee69ef4e24b544e78f47a637064bbc",
 }
 
 
