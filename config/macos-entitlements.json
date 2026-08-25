@@ -66,8 +66,28 @@
       "entitlements": {}
     },
     {
-      "id": "updater-privileged-helper",
-      "pathPattern": "^Contents/Library/LaunchServices/app\\.ahoibrowser\\.AhoiBrowser\\.UpdaterPrivilegedHelper$",
+      "id": "sparkle-framework",
+      "pathPattern": "^Contents/Frameworks/Sparkle\\.framework/Versions/[^/]+/Sparkle$",
+      "entitlements": {}
+    },
+    {
+      "id": "sparkle-autoupdate",
+      "pathPattern": "^Contents/Frameworks/Sparkle\\.framework/Versions/[^/]+/Autoupdate$",
+      "entitlements": {}
+    },
+    {
+      "id": "sparkle-updater-app",
+      "pathPattern": "^Contents/Frameworks/Sparkle\\.framework/Versions/[^/]+/Updater\\.app/Contents/MacOS/Updater$",
+      "entitlements": {}
+    },
+    {
+      "id": "sparkle-downloader-xpc",
+      "pathPattern": "^Contents/Frameworks/Sparkle\\.framework/Versions/[^/]+/XPCServices/Downloader\\.xpc/Contents/MacOS/Downloader$",
+      "entitlements": {}
+    },
+    {
+      "id": "sparkle-installer-xpc",
+      "pathPattern": "^Contents/Frameworks/Sparkle\\.framework/Versions/[^/]+/XPCServices/Installer\\.xpc/Contents/MacOS/Installer$",
       "entitlements": {}
     }
   ]

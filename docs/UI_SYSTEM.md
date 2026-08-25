@@ -48,7 +48,8 @@ profile combinations cannot be mistaken for a split gesture.
 
 ## Split view
 
-Two or three normal Chromium `WebContents` can be visible and live at once.
+Two, three, or four normal Chromium `WebContents` can be visible and live at
+once.
 Two-pane layouts are columns or rows. Three-pane layouts include three columns,
 three rows, and the four asymmetric main-pane arrangements. Layout IDs, ratios,
 limits, and persistence rules are defined in `config/split-view.json`; detailed
@@ -61,7 +62,8 @@ Clicking a pane changes focus without reloading it. Dividers support pointer and
 keyboard resizing, accessible values, snap points, and safe minimum sizes.
 
 A page dropped onto an existing two-pane group previews where it will become
-the third pane. A fourth pane is rejected visibly and never replaces or closes
+the third pane. A fourth pane joins as a visible `four-grid` 2×2 preview. A
+fifth pane is rejected visibly and never replaces or closes
 content. Dragging a pane back to a normal sidebar target removes it from the
 group. Browser fullscreen retains the layout; content fullscreen temporarily
 shows its originating pane and restores the exact layout afterward.

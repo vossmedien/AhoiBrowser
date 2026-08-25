@@ -73,14 +73,23 @@ implementation. Tests include fresh/existing profiles, German/English,
 system/light/dark, glass on/off, restart/recovery, offline/error states, and
 migration from the preceding supported version where applicable.
 
+The native updater has deterministic unit coverage for config validation,
+stable/beta/nightly visibility, status transitions and de/en/en-GB strings.
+Repository tests additionally reject the vulnerable Sparkle pin, dependency
+material tampering, insecure/foreign-channel appcasts, malformed signatures,
+unsigned content after the signed-feed trailer, missing production feed/key
+policy, and incomplete Sparkle signing roles. These are static gates only;
+UPDATE-01 through UPDATE-10 still require the installed signed application and
+real HTTPS appcasts/artifacts.
+
 The SPLIT suite has explicit model/browser integration cases and visible
-installed Computer Use cases. Integration covers two/three-member collection
+installed Computer Use cases. Integration covers two-/three-/four-member collection
 invariants, canonical layout serialization, Session/Tab Restore migration and
 extension `splitId` behavior. Computer Use then performs real vertical-sidebar
-drag/drop, two- and three-pane layout, divider, focus/security, media/PiP,
+drag/drop, two-, three-, and four-pane layout including 2×2, divider, focus/security, media/PiP,
 permissions, DevTools, incognito, crash/restart, accessibility, localization,
 and performance journeys. Upstream Chromium's two-pane tests do not substitute
-for Ahoi's macOS drag or installed three-pane evidence.
+for Ahoi's macOS drag or installed multi-pane evidence.
 
 ## Real services and local fixtures
 

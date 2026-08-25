@@ -7,5 +7,5 @@
     "notarization-receipt",
     "installed-bundle-binding"
   ],
-  "reason": "The build-to-sign-to-package-to-installed-bundle attestation chain is not implemented yet. CU_E2E and ASSISTED_E2E PASS must fail closed until the validator independently verifies that chain."
+  "reason": "The fail-closed validator and Sparkle 2.9.6 runtime contract are implemented, but no real production Developer ID, Apple notarization, packaged-artifact, installed-bundle, manifest key, channel feed, Sparkle Ed25519 public key, signed appcast provenance or N-2/N-1 update evidence exists yet. CU_E2E and ASSISTED_E2E PASS remain disabled until an independently verified real chain is present."
 }

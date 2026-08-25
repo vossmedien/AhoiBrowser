@@ -8,6 +8,7 @@ artifacts/e2e/**
 !artifacts/e2e/.gitkeep
 artifacts/build/**
 !artifacts/build/.gitkeep
+artifacts/install-backups/
 out/
 **/.build/
 *.dmg

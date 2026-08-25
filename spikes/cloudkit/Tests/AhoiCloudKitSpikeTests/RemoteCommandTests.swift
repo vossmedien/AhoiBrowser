@@ -7,8 +7,8 @@ import CryptoKit
 #endif
 
 final class RemoteCommandTests: XCTestCase {
-    private let source = DeviceID(rawValue: UUID(uuidString: "10000000-0000-0000-0000-000000000001")!)
-    private let target = DeviceID(rawValue: UUID(uuidString: "20000000-0000-0000-0000-000000000002")!)
+    private let source = DeviceID(rawValue: UUID(uuidString: "a0000000-0000-4000-8000-000000000001")!)
+    private let target = DeviceID(rawValue: UUID(uuidString: "b0000000-0000-4000-8000-000000000002")!)
     private let now: UInt64 = 1_000_000
 
     func testValidSignedOpenCommandIsAccepted() async throws {
@@ -40,6 +40,62 @@ final class RemoteCommandTests: XCTestCase {
         _ = try await validator.validate(envelope, nowMilliseconds: now)
         await assertValidationError(.invalidNonce) {
             try await validator.validate(envelope, nowMilliseconds: self.now)
+        }
+    }
+
+    func testPersistentReplayRejectsCommandIDAndSourceNonceAfterRestart() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AhoiCommandReplay-\(UUID().uuidString)")
+        let fileURL = directory.appendingPathComponent("replay.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let commandID = UUID(uuidString: "c0000000-0000-4000-8000-000000000003")!
+        let firstNonce = Data(repeating: 1, count: 32)
+        let first = FileCommandReplayStore(fileURL: fileURL)
+
+        let accepted = await first.consume(
+            commandID: commandID,
+            nonce: firstNonce,
+            sourceDeviceID: source,
+            expiresAtMilliseconds: now + 300_000,
+            nowMilliseconds: now
+        )
+        XCTAssertTrue(accepted)
+
+        let restarted = FileCommandReplayStore(fileURL: fileURL)
+        let repeatedCommand = await restarted.consume(
+            commandID: commandID,
+            nonce: Data(repeating: 2, count: 32),
+            sourceDeviceID: source,
+            expiresAtMilliseconds: now + 300_000,
+            nowMilliseconds: now
+        )
+        let repeatedNonce = await restarted.consume(
+            commandID: UUID(),
+            nonce: firstNonce,
+            sourceDeviceID: source,
+            expiresAtMilliseconds: now + 300_000,
+            nowMilliseconds: now
+        )
+        XCTAssertFalse(repeatedCommand)
+        XCTAssertFalse(repeatedNonce)
+    }
+
+    func testWrongTargetIsRejected() async {
+        let payload = makePayload(command: .open(.init(url: "https://example.test")))
+        let validator = RemoteCommandValidator(
+            localDeviceID: DeviceID(),
+            enablement: StaticRemoteControlSetting(isEnabled: true),
+            approvalStore: StaticDeviceApprovalStore(
+                approvedPairs: [.init(source: source, target: target)]
+            ),
+            signatureVerifier: AcceptingSignatureVerifier(),
+            replayStore: InMemoryCommandReplayStore()
+        )
+        await assertValidationError(.wrongTarget) {
+            try await validator.validate(
+                .init(payload: payload, signature: Data([1])),
+                nowMilliseconds: self.now
+            )
         }
     }
 
@@ -158,7 +214,7 @@ final class RemoteCommandTests: XCTestCase {
 
     func testCanonicalPayloadEncodingMatchesSignedWireContract() throws {
         let payload = makePayload(command: .open(.init(url: "https://example.test/a/b")))
-        let expected = #"{"command":{"kind":"open","openRequest":{"url":"https://example.test/a/b"}},"commandID":"30000000-0000-0000-0000-000000000003","issuedAtMilliseconds":1000000,"nonce":"BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=","sourceDeviceID":{"rawValue":"10000000-0000-0000-0000-000000000001"},"targetDeviceID":{"rawValue":"20000000-0000-0000-0000-000000000002"}}"#
+        let expected = #"{"command":{"kind":"open","openRequest":{"url":"https://example.test/a/b"}},"commandID":"C0000000-0000-4000-8000-000000000003","issuedAtMilliseconds":1000000,"nonce":"AAAAAAAAAAAAAAAAAAAAAA==","sourceDeviceID":{"rawValue":"A0000000-0000-4000-8000-000000000001"},"targetDeviceID":{"rawValue":"B0000000-0000-4000-8000-000000000002"}}"#
 
         XCTAssertEqual(String(decoding: try payload.canonicalData(), as: UTF8.self), expected)
     }
@@ -168,10 +224,10 @@ final class RemoteCommandTests: XCTestCase {
         command: RemoteCommand
     ) -> RemoteCommandPayload {
         .init(
-            commandID: UUID(uuidString: "30000000-0000-0000-0000-000000000003")!,
+            commandID: UUID(uuidString: "c0000000-0000-4000-8000-000000000003")!,
             sourceDeviceID: source,
             targetDeviceID: target,
-            nonce: Data(repeating: 7, count: 32),
+            nonce: Data(repeating: 0, count: 16),
             issuedAtMilliseconds: issuedAt ?? now,
             command: command
         )

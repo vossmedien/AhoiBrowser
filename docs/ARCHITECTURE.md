@@ -7,7 +7,7 @@ AhoiBrowser Views/AppKit chrome
   -> WorkspaceTreeController (Ahoi-owned UI/session model)
   -> SplitViewService (Ahoi-owned policy/session coordinator)
   -> Chromium Browser + TabStripModel
-       -> SplitTabCollection (two or three normal tabs)
+       -> SplitTabCollection (two to four normal tabs)
   -> Profile / OffTheRecordProfile
   -> WebContents
   -> Chromium services
@@ -49,6 +49,22 @@ stack, permission store, media stack, renderer, or authentication protocol.
    default-browser registration, Keychain/LocalAuthentication, and optional
    `NSGlassEffectView` material.
 
+## macOS update boundary
+
+`ahoi/browser/updater` is a narrow Objective-C++ adapter around the pinned
+official Sparkle framework. Ahoi owns configuration validation, channel policy,
+native menu/settings presentation, localized status and accessibility
+announcements. Sparkle alone owns network checks, download, delta/full fallback,
+Ed25519 verification, extraction, atomic install and relaunch. The adapter never
+implements an alternate installer or archive parser.
+
+The runtime starts only after a credential-free HTTPS feed, 32-byte public
+Ed25519 key, exact framework pin, signed-feed enforcement and verification before
+extraction have all passed. Stable, beta and nightly visibility is monotonic, but
+the signed build's feed/key trust tuple is immutable. Release tooling binds the
+signed appcast to the release manifest, materials receipt, SBOM/license evidence
+and exact Sparkle upstream artifact. See `docs/UPDATES.md`.
+
 ## Profile and window invariants
 
 | Surface | Chromium context | Persistent | Normal cookies/extensions | Synced |
@@ -73,8 +89,8 @@ sessions, extension-created tabs, popups, and tabs moved between windows.
 
 `SplitViewService` coordinates UI policy and persistence, but Chromium's
 `TabStripModel`, `SplitTabCollection`, `TabInterface`, and `WebContents` remain
-the runtime source of truth. A split group contains exactly two or three tabs,
-one focused pane, a bounded binary layout tree, and one or two divider ratios.
+the runtime source of truth. A split group contains exactly two, three, or four
+tabs, one focused pane, a bounded layout tree, and one or two divider ratios.
 The canonical layouts and limits live in `config/split-view.json`; the complete
 behavioral contract lives in `docs/SPLIT_VIEW.md`.
 
@@ -83,16 +99,17 @@ delete, reorder, or re-parent `TreeNode` records. Topology belongs to a normal
 window/workspace session, persists through Session Service and crash restore,
 and is never CloudKit-synced. Off-the-record topology stays in memory and is
 never restored. A failed operation is atomic; a missing restore leaf degrades
-three panes to two or two panes to one without phantom tabs.
+four panes to three, three panes to two, or two panes to one without phantom
+tabs.
 
 Chromium M151 already supplies the correct two-pane seams: split collections
 inside the normal tab hierarchy, `MultiContentsView` and
 `ContentsContainerView`, vertical split rows, focus/security attribution,
 resizing, drop targets, Session Restore, Tab Restore, and extension `splitId`.
-Ahoi generalizes those seams to three children and a layout tree. Hard-coded
+Ahoi generalizes those seams to up to four children and a layout tree. Hard-coded
 two-child assumptions in creation/restore APIs, visual data, Views layout,
 menus, utilities, metrics, serialization, and tests must be removed together;
-shipping a parallel three-pane controller is prohibited.
+shipping a parallel Ahoi-specific pane controller is prohibited.
 
 Exactly one pane is active. Browser-mediated UI and sensitive actions are
 attributed to it, while every visible pane keeps a browser-owned origin and
@@ -122,7 +139,7 @@ tests, and expected rebase risk.
 
 Split view is staged as reviewable patches: enable and preserve upstream
 two-pane behavior; connect Ahoi sidebar drag targets; introduce versioned
-two/three-pane visual data and serialization; generalize model/view/layout;
+two-/three-/four-pane visual data and serialization; generalize model/view/layout;
 then add macOS interaction, accessibility, security, restore, extension, media,
 DevTools, and installed Computer Use coverage. Every stage keeps a working
 two-pane fallback and an explicit migration test.

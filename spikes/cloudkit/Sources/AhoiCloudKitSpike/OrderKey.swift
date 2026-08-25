@@ -87,6 +87,11 @@ public struct OrderKey: Codable, Hashable, Sendable, Comparable {
         throw OrderKeyError.depthLimitReached
     }
 
+    public var canonicalSortKey: String {
+        components.map { String(format: "%04x", $0) }.joined(separator: ".")
+            + "!" + tieBreaker.rawValue.uuidString.lowercased()
+    }
+
     private static func digit(
         at index: Int,
         in key: Self?,

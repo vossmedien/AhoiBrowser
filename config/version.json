@@ -2,6 +2,6 @@
   "schemaVersion": 1,
   "marketingVersion": "0.0.1",
   "buildNumber": "1",
-  "channel": "dogfood",
+  "channel": "nightly",
   "displayVersion": "0.0.1-dev"
 }

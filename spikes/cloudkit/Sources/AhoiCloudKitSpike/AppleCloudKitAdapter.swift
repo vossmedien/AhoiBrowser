@@ -65,7 +65,7 @@ public final class AppleCloudKitAdapter: CloudRecordTransport, @unchecked Sendab
 
         for identifier in recordIDs {
             let cloudID = CKRecord.ID(
-                recordName: identifier.uuidString,
+                recordName: identifier.uuidString.lowercased(),
                 zoneID: zoneID
             )
             let record = try await database.record(for: cloudID)

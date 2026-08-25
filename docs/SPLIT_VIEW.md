@@ -1,8 +1,8 @@
 # Split view
 
 Split view is a release-critical part of AhoiBrowser's tab model. A user can
-drag one page row onto another page row in the left sidebar and keep two or
-three real pages visible at the same time. Every pane remains a normal Chromium
+drag one page row onto another page row in the left sidebar and keep two,
+three, or four real pages visible at the same time. Every pane remains a normal Chromium
 `WebContents`; split view is not a screenshot, preview, embedded web app, or
 parallel WebView host.
 
@@ -44,7 +44,7 @@ already contains a production-quality two-tab foundation:
   inactive pane.
 
 This is the correct seam for AhoiBrowser. The two-pane path is extended, not
-reimplemented. Three panes require deliberate generalization because M151 has
+reimplemented. Three and four panes require deliberate generalization because M151 has
 hard two-item checks in `TabStripModel::AddToNewSplit`/`RestoreSplit`,
 `SplitTabVisualData`, split utilities and menus, and `MultiContentsView`'s
 container/index/layout code. The macOS upstream tab-to-content drag UI test is
@@ -62,7 +62,7 @@ A split group has:
 
 - a stable split-group UUID plus Chromium's runtime split identifier;
 - one window and one workspace-session owner;
-- an ordered set of exactly two or three tab handles;
+- an ordered set of exactly two, three, or four tab handles;
 - a canonical layout tree and primary/secondary divider ratios;
 - exactly one focused/active pane;
 - timestamps needed for atomic session persistence.
@@ -86,7 +86,13 @@ Three-pane groups support:
 - `main-left` and `main-right`, with the opposite column split into two rows;
 - `main-top` and `main-bottom`, with the opposite row split into two columns.
 
-The representation is a bounded binary layout tree with two or three leaves,
+Four-pane groups support `four-grid`, a row-ordered 2×2 layout. The primary
+ratio sizes the two columns in side-by-side orientation beziehungsweise the
+two rows in stacked orientation. The secondary ratio sizes the shared cross
+axis, so both rows/columns remain aligned. Both ratios survive session restore,
+browser restart, crash recovery, and supported layout changes.
+
+The representation is a bounded layout tree with two to four leaves,
 not ad-hoc rectangles. The root divider uses the primary ratio and the nested
 divider uses the secondary ratio. Reordering panes changes leaf order without
 recreating their `WebContents`. Changing a layout preserves the focused pane
@@ -98,6 +104,14 @@ per pane. Existing groups may compress to the constrained minimum of 96 DIPs in
 a narrow window, but panes may not silently disappear or overlap. Adding a
 third pane is disabled when the resulting bounds cannot satisfy constrained
 minimums; the UI explains why.
+
+The same minimum-size rule applies when adding the fourth pane and never
+silently replaces an existing pane. The sidebar renders one coherent split
+item whose segment geometry mirrors the content layout. In particular,
+`four-grid` appears as a compact 2×2 segment grid in row order. It may use a
+controlled taller row for legibility, but Favicons, titles, media state, focus,
+close actions, drag targets, and accessibility labels remain individually
+addressable.
 
 ## Sidebar drag and drop
 
@@ -114,12 +128,15 @@ Every drag has a single previewed outcome before mouse-up:
 Dropping one page onto a normal page creates the default two-column layout.
 The preview exposes a direct two-row alternative before commit, and the layout
 menu remains available afterward. Dropping one page onto any pane of a
-two-pane group previews the exact three-pane insertion and layout. Dropping an
-external page onto a full three-pane group is rejected with a visible
+two-pane group previews the exact three-pane insertion and layout. Dropping a
+page onto a three-pane group previews the exact four-pane insertion and
+defaults to `four-grid`. Dropping an external page onto a full four-pane group
+is rejected with a visible
 explanation; it never closes, replaces, or hides a page. Dragging a pane within
 its own group reorders leaves or selects another layout. Dragging it to a normal
 before/after/inside target removes it from the group; two remaining panes stay
-split, while a one-pane remainder collapses to a normal tab.
+split, while a one-pane remainder collapses to a normal tab. Removal degrades
+in the order `4 -> 3 -> 2 -> 1` with a valid balanced layout at every step.
 
 Cross-window drag uses Chromium's detach/insert path and transfers the actual
 tab, including navigation history and live page state, before atomically
@@ -183,7 +200,8 @@ DevTools opens for the focused pane and stays bound to that exact
 `WebContents`; later focus changes do not silently retarget it. A detached
 DevTools window works unchanged. Docked DevTools uses the originating
 `ContentsContainerView`, so it resizes inside that pane rather than replacing
-another pane or the entire split. If a three-pane layout becomes too narrow,
+another pane or the entire split. If a three- or four-pane layout becomes too
+narrow,
 the UI offers undocking or resizing and never silently closes DevTools. One
 docked DevTools instance per pane is supported, subject to the normal resource
 and minimum-size rules.
@@ -193,8 +211,9 @@ and minimum-size rules.
 Closing one pane closes only its tab using Chromium's normal before-unload and
 history behavior. Removing a pane from a split keeps the tab open. Closing the
 whole group is an explicit action and participates in Tab Restore. A two-pane
-group becomes one normal tab when one member is closed; a three-pane group
-becomes the corresponding two-pane layout without reloading either survivor.
+group becomes one normal tab when one member is closed; a four-pane group
+becomes a corresponding three-pane layout and a three-pane group becomes the
+corresponding two-pane layout without reloading any survivor.
 
 Browser fullscreen keeps the complete split visible. Tab/content fullscreen
 temporarily presents only the requesting pane and restores the exact group,
@@ -203,8 +222,9 @@ layout, ratios, and focus on exit. PiP remains independent.
 A renderer crash affects only its pane and shows the normal Sad Tab surface;
 other panes remain interactive. Normal browser-session restore persists
 membership, layout tree, ratios, and focused pane atomically. If a leaf cannot
-be restored, a three-pane group degrades to the matching two-pane layout and a
-two-pane group degrades to one normal tab. It never creates a phantom tab or
+be restored, a four-pane group degrades to a valid three-pane layout, a
+three-pane group degrades to the matching two-pane layout, and a two-pane group
+degrades to one normal tab. It never creates a phantom tab or
 loses a restorable survivor. Browser-process crash recovery follows the same
 rule. Off-the-record groups are never serialized, shown in restore UI, synced,
 or sent to the companion app.
@@ -214,7 +234,7 @@ or sent to the companion app.
 The sidebar announces reorder, folder nesting, proposed split position,
 accepted split, cancellation, and rejection. Split groups expose their group
 name, pane count, layout, focused member, and ordered membership. Each content
-surface is labelled `Pane 1 of 3, <title>, <origin>` (localized); dividers expose
+surface is labelled `Pane 1 of 4, <title>, <origin>` (localized); dividers expose
 orientation, current percentage, minimum, maximum, and keyboard adjustment.
 Focus order follows visual order in LTR and RTL without making security
 attribution depend on color.
@@ -226,8 +246,10 @@ part of the release test matrix.
 
 ## Verification boundary
 
-Chromium unit/browser tests must cover collection membership, two-to-three and
-three-to-two transitions, layout normalization, focus, security attribution,
+Chromium unit/browser tests must cover collection membership, two-to-three,
+three-to-four, four-to-three, and three-to-two transitions, layout
+normalization, 2×2 geometry and both persisted ratios, focus, security
+attribution,
 session serialization/migration, extension API behavior, invalid drops, and
 crash degradation. Views interaction tests must cover vertical-sidebar drag
 targets and dividers on macOS. None of that replaces visible Computer Use tests

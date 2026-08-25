@@ -120,3 +120,34 @@ public struct SignedRemoteCommand: Codable, Hashable, Sendable {
         self.signature = signature
     }
 }
+
+public enum RemoteCommandStatus: Int, Codable, CaseIterable, Sendable {
+    case queued = 0
+    case delivered = 1
+    case executed = 2
+    case failed = 3
+}
+
+/// Mutable delivery state around an immutable signed command. The target may
+/// update only status/result/version; changing the signed payload invalidates
+/// the Ed25519 signature on the desktop.
+public struct RemoteCommandState: Codable, Hashable, Sendable, Identifiable {
+    public let envelope: SignedRemoteCommand
+    public var status: RemoteCommandStatus
+    public var resultCode: String
+    public var version: SyncVersion
+
+    public init(
+        envelope: SignedRemoteCommand,
+        status: RemoteCommandStatus = .queued,
+        resultCode: String = "",
+        version: SyncVersion
+    ) {
+        self.envelope = envelope
+        self.status = status
+        self.resultCode = resultCode
+        self.version = version
+    }
+
+    public var id: UUID { envelope.payload.commandID }
+}

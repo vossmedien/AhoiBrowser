@@ -53,6 +53,7 @@ public protocol CommandSignatureVerifying: Sendable {
 public protocol CommandReplayChecking: Sendable {
     /// Atomically returns true only for the first observation of a nonce.
     func consume(
+        commandID: UUID,
         nonce: Data,
         sourceDeviceID: DeviceID,
         expiresAtMilliseconds: UInt64,
@@ -61,22 +62,27 @@ public protocol CommandReplayChecking: Sendable {
 }
 
 public actor InMemoryCommandReplayStore: CommandReplayChecking {
-    private var expirationByKey: [String: UInt64] = [:]
+    private var commandExpirations: [UUID: UInt64] = [:]
+    private var nonceExpirations: [String: UInt64] = [:]
 
     public init() {}
 
     public func consume(
+        commandID: UUID,
         nonce: Data,
         sourceDeviceID: DeviceID,
         expiresAtMilliseconds: UInt64,
         nowMilliseconds: UInt64
     ) -> Bool {
-        expirationByKey = expirationByKey.filter { $0.value > nowMilliseconds }
+        commandExpirations = commandExpirations.filter { $0.value > nowMilliseconds }
+        nonceExpirations = nonceExpirations.filter { $0.value > nowMilliseconds }
         let key = sourceDeviceID.rawValue.uuidString + ":" + nonce.base64EncodedString()
-        guard expirationByKey[key] == nil else {
+        guard commandExpirations[commandID] == nil,
+              nonceExpirations[key] == nil else {
             return false
         }
-        expirationByKey[key] = expiresAtMilliseconds
+        commandExpirations[commandID] = expiresAtMilliseconds
+        nonceExpirations[key] = expiresAtMilliseconds
         return true
     }
 }
@@ -94,6 +100,39 @@ public enum RemoteCommandValidationError: Error, Equatable {
     case urlUserInfoForbidden
     case incognitoForbidden
     case massActionForbidden
+}
+
+public enum RemoteCommandSemantics {
+    public static func validate(_ command: RemoteCommand) throws {
+        switch command {
+        case let .open(request):
+            guard let components = URLComponents(string: request.url) else {
+                throw RemoteCommandValidationError.malformedURL
+            }
+            let scheme = components.scheme?.lowercased()
+            guard scheme == "http" || scheme == "https" else {
+                throw RemoteCommandValidationError.unsupportedURLScheme(scheme)
+            }
+            guard components.user == nil, components.password == nil else {
+                throw RemoteCommandValidationError.urlUserInfoForbidden
+            }
+            guard components.url != nil,
+                  components.host?.isEmpty == false else {
+                throw RemoteCommandValidationError.malformedURL
+            }
+        case let .focus(reference):
+            guard reference.context == .normal else {
+                throw RemoteCommandValidationError.incognitoForbidden
+            }
+        case let .close(references):
+            guard references.count == 1 else {
+                throw RemoteCommandValidationError.massActionForbidden
+            }
+            guard references[0].context == .normal else {
+                throw RemoteCommandValidationError.incognitoForbidden
+            }
+        }
+    }
 }
 
 public struct RemoteCommandValidator: Sendable {
@@ -146,7 +185,7 @@ public struct RemoteCommandValidator: Sendable {
             throw RemoteCommandValidationError.invalidNonce
         }
 
-        try validateCommandSemantics(payload.command)
+        try RemoteCommandSemantics.validate(payload.command)
 
         guard await approvalStore.isApproved(
             source: payload.sourceDeviceID,
@@ -165,6 +204,7 @@ public struct RemoteCommandValidator: Sendable {
         }
 
         guard await replayStore.consume(
+            commandID: payload.commandID,
             nonce: payload.nonce,
             sourceDeviceID: payload.sourceDeviceID,
             expiresAtMilliseconds: payload.expiresAtMilliseconds,
@@ -174,37 +214,6 @@ public struct RemoteCommandValidator: Sendable {
         }
 
         return payload.command
-    }
-
-    private func validateCommandSemantics(_ command: RemoteCommand) throws {
-        switch command {
-        case let .open(request):
-            guard let components = URLComponents(string: request.url) else {
-                throw RemoteCommandValidationError.malformedURL
-            }
-            let scheme = components.scheme?.lowercased()
-            guard scheme == "http" || scheme == "https" else {
-                throw RemoteCommandValidationError.unsupportedURLScheme(scheme)
-            }
-            guard components.user == nil, components.password == nil else {
-                throw RemoteCommandValidationError.urlUserInfoForbidden
-            }
-            guard components.url != nil,
-                  components.host?.isEmpty == false else {
-                throw RemoteCommandValidationError.malformedURL
-            }
-        case let .focus(reference):
-            guard reference.context == .normal else {
-                throw RemoteCommandValidationError.incognitoForbidden
-            }
-        case let .close(references):
-            guard references.count == 1 else {
-                throw RemoteCommandValidationError.massActionForbidden
-            }
-            guard references[0].context == .normal else {
-                throw RemoteCommandValidationError.incognitoForbidden
-            }
-        }
     }
 }
 

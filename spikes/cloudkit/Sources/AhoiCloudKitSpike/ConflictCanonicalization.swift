@@ -169,6 +169,18 @@ extension TabID: ConflictCanonicalizable {
     }
 }
 
+extension DeviceSessionID: ConflictCanonicalizable {
+    public func stableConflictCanonicalBytes() throws -> Data {
+        try rawValue.stableConflictCanonicalBytes()
+    }
+}
+
+extension HistoryVisitID: ConflictCanonicalizable {
+    public func stableConflictCanonicalBytes() throws -> Data {
+        try rawValue.stableConflictCanonicalBytes()
+    }
+}
+
 extension EncryptedValue: ConflictCanonicalizable {
     public func stableConflictCanonicalBytes() throws -> Data {
         try ConflictCanonicalFrame.aggregate(

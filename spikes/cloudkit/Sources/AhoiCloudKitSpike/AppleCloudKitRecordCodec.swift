@@ -13,7 +13,7 @@ public enum AppleCloudKitRecordCodecError: Error, Equatable {
 /// Maps sync conflict/change metadata to normal queryable CKRecord fields and
 /// the opaque transport value to CKRecord.encryptedValues. It performs no
 /// cryptographic operation itself.
-public struct AppleCloudKitRecordCodec {
+public struct AppleCloudKitRecordCodec: Sendable {
     public static let recordType = "AhoiSyncRecord"
 
     public enum Fields {
@@ -48,18 +48,18 @@ public struct AppleCloudKitRecordCodec {
         zoneID: CKRecordZone.ID
     ) throws -> CKRecord {
         let recordID = CKRecord.ID(
-            recordName: value.recordID.uuidString,
+            recordName: value.recordID.uuidString.lowercased(),
             zoneID: zoneID
         )
         let record = CKRecord(recordType: Self.recordType, recordID: recordID)
 
-        record[Fields.entityID] = value.entityID.uuidString as NSString
+        record[Fields.entityID] = value.entityID.uuidString.lowercased() as NSString
         record[Fields.schemaVersion] = NSNumber(value: value.schemaVersion)
         record[Fields.dataClass] = value.dataClass.rawValue as NSString
         record[Fields.hlcPhysical] = NSNumber(value: value.modifiedAt.physicalMilliseconds)
         record[Fields.hlcLogical] = NSNumber(value: value.modifiedAt.logicalCounter)
-        record[Fields.hlcNodeID] = value.modifiedAt.nodeID.rawValue.uuidString as NSString
-        record[Fields.originatingDeviceID] = value.originatingDevice.rawValue.uuidString as NSString
+        record[Fields.hlcNodeID] = value.modifiedAt.nodeID.rawValue.uuidString.lowercased() as NSString
+        record[Fields.originatingDeviceID] = value.originatingDevice.rawValue.uuidString.lowercased() as NSString
         record[Fields.isTombstone] = NSNumber(value: value.tombstone != nil)
         writeOrderKey(value.orderKey, prefix: .primary, to: record)
         writeTombstone(value.tombstone, to: record)
@@ -155,7 +155,7 @@ public struct AppleCloudKitRecordCodec {
             return
         }
         record[prefix.components] = orderKey.components.map(String.init).joined(separator: ",") as NSString
-        record[prefix.tieBreaker] = orderKey.tieBreaker.rawValue.uuidString as NSString
+        record[prefix.tieBreaker] = orderKey.tieBreaker.rawValue.uuidString.lowercased() as NSString
         record[prefix.sortKey] = sortKey(for: orderKey) as NSString
     }
 
@@ -200,17 +200,17 @@ public struct AppleCloudKitRecordCodec {
         guard let tombstone else {
             return
         }
-        record[Fields.tombstoneEntityID] = tombstone.entityID.uuidString as NSString
+        record[Fields.tombstoneEntityID] = tombstone.entityID.uuidString.lowercased() as NSString
         record[Fields.tombstoneDeletedPhysical] = NSNumber(
             value: tombstone.deletedAt.physicalMilliseconds
         )
         record[Fields.tombstoneDeletedLogical] = NSNumber(
             value: tombstone.deletedAt.logicalCounter
         )
-        record[Fields.tombstoneDeletedNodeID] = tombstone.deletedAt.nodeID.rawValue.uuidString as NSString
-        record[Fields.tombstoneDeletedBy] = tombstone.deletedBy.rawValue.uuidString as NSString
+        record[Fields.tombstoneDeletedNodeID] = tombstone.deletedAt.nodeID.rawValue.uuidString.lowercased() as NSString
+        record[Fields.tombstoneDeletedBy] = tombstone.deletedBy.rawValue.uuidString.lowercased() as NSString
         if let originalParentID = tombstone.originalParentID {
-            record[Fields.tombstoneOriginalParentID] = originalParentID.uuidString as NSString
+            record[Fields.tombstoneOriginalParentID] = originalParentID.uuidString.lowercased() as NSString
         } else {
             record[Fields.tombstoneOriginalParentID] = nil
         }
@@ -254,10 +254,7 @@ public struct AppleCloudKitRecordCodec {
     }
 
     private func sortKey(for orderKey: OrderKey) -> String {
-        let path = orderKey.components
-            .map { String(format: "%04x", $0) }
-            .joined(separator: ".")
-        return path + "!" + orderKey.tieBreaker.rawValue.uuidString.lowercased()
+        orderKey.canonicalSortKey
     }
 
     private func string(_ field: String, in record: CKRecord) throws -> String {

@@ -16,7 +16,8 @@ Legal review is required before public binary distribution for:
 - H.264/AAC and other proprietary codec patent/distribution obligations
 - distribution/update rights for a selectively supported uBlock Origin Classic
   package and its filter-list ecosystem
-- Sparkle 2 or replacement updater license and attribution
+- Sparkle 2.9.6 MIT license and bundled third-party notices, pinned by exact
+  release commit and archive SHA-256 in `config/third-party-pins.json`
 
 Feature gates in `config/feature-gates.json` remain off until their recorded
 technical and legal requirements pass. A successful local experiment is not

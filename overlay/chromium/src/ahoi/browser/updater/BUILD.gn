@@ -1,0 +1,52 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//build/config/features.gni")
+import("//testing/test.gni")
+
+assert(is_mac, "AhoiBrowser's native runtime updater is macOS-only")
+
+source_set("core") {
+  sources = [
+    "update_channel.cc",
+    "update_channel.h",
+    "update_configuration.cc",
+    "update_configuration.h",
+    "update_status.cc",
+    "update_status.h",
+    "update_strings.cc",
+    "update_strings.h",
+  ]
+  deps = [
+    "//base",
+    "//url",
+  ]
+}
+
+config("sparkle_framework_config") {
+  framework_dirs = [ "//third_party/sparkle/prebuilt" ]
+  frameworks = [ "Sparkle.framework" ]
+}
+
+source_set("updater") {
+  public = [ "sparkle_runtime_mac.h" ]
+  sources = [ "sparkle_runtime_mac.mm" ]
+  public_deps = [ ":core" ]
+  all_dependent_configs = [ ":sparkle_framework_config" ]
+  deps = [ "//base" ]
+}
+
+test("ahoi_updater_unittests") {
+  sources = [
+    "run_all_unittests.cc",
+    "update_channel_unittest.cc",
+    "update_configuration_unittest.cc",
+    "update_status_unittest.cc",
+    "update_strings_unittest.cc",
+  ]
+  deps = [
+    ":core",
+    "//base/test:test_support",
+    "//testing/gtest",
+  ]
+}

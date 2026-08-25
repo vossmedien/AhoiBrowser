@@ -1,0 +1,11 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: BSD-3-Clause
+
+import("//build/config/features.gni")
+
+assert(is_mac, "Sparkle is bundled only in AhoiBrowser's macOS product")
+
+bundle_data("sparkle_framework_bundle_data") {
+  sources = [ "prebuilt/Sparkle.framework" ]
+  outputs = [ "{{bundle_contents_dir}}/Frameworks/{{source_file_part}}" ]
+}

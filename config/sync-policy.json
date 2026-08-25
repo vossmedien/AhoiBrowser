@@ -3,7 +3,14 @@
   "provider": "cloudkit-private-database",
   "encryptedValues": true,
   "localFirst": true,
+  "enabledByDefault": false,
+  "cloudKitContainerBeforeOptIn": false,
+  "wireModelVersion": 2,
+  "localStoreSchemaVersion": 3,
+  "customZoneRequired": true,
   "sync": [
+    "devices",
+    "deviceSessions",
     "workspaces",
     "treeNodes",
     "treeOrdering",
@@ -13,7 +20,19 @@
     "appearance",
     "permittedSettings",
     "extensionInventory",
-    "optInDeveloperAssets"
+    "optInDeveloperAssets",
+    "remoteCommands"
+  ],
+  "implementedRecords": [
+    "devices",
+    "deviceSessions",
+    "workspaces",
+    "treeNodes",
+    "treeOrdering",
+    "tombstones",
+    "deviceTabs",
+    "history",
+    "remoteCommands"
   ],
   "neverSync": [
     "cookies",
@@ -30,5 +49,19 @@
     "httpAuthSecrets"
   ],
   "historyRetentionDaysDefault": 90,
-  "historyRetentionChoices": [30, 90, 365, -1]
+  "historyRetentionChoices": [30, 90, 365, -1],
+  "tombstoneRetentionDays": 30,
+  "sessionFreshness": {
+    "heartbeatMinutes": 5,
+    "actionableMinutes": 15,
+    "visibleDays": 7
+  },
+  "convergence": {
+    "fieldClock": "hybrid-logical-clock",
+    "treeLocationAtomic": ["workspace_id", "parent_id", "sort_key"],
+    "mergedUnionRecordClock": "deterministic-successor",
+    "equalClockDifferentValue": "quarantine",
+    "invalidRecord": "quarantine-and-advance-token",
+    "compactedDeletion": "persistent-watermark-reject-resurrection"
+  }
 }

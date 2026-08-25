@@ -26,7 +26,7 @@ class RepositoryContractTests(unittest.TestCase):
         expected = dict(expected_rows)
         registry = load_json("config/test-registry.json")["tests"]
         actual = {entry["id"]: entry for entry in registry}
-        self.assertEqual(285, len(registry))
+        self.assertEqual(333, len(registry))
         self.assertEqual(len(registry), len(actual), "test IDs must be unique")
         self.assertEqual(set(expected), set(actual))
         for entry in registry:
@@ -110,7 +110,7 @@ class RepositoryContractTests(unittest.TestCase):
         version = load_json("config/version.json")
         self.assertRegex(version["marketingVersion"], r"^\d+(?:\.\d+){2}$")
         self.assertRegex(version["buildNumber"], r"^[1-9]\d*$")
-        self.assertIn(version["channel"], {"dogfood", "beta", "stable"})
+        self.assertIn(version["channel"], {"nightly", "beta", "stable"})
         self.assertEqual(
             (ROOT / "VERSION").read_text(encoding="utf-8").strip(),
             version["displayVersion"],
@@ -271,13 +271,14 @@ class RepositoryContractTests(unittest.TestCase):
         contract = load_json("config/split-view.json")
         self.assertEqual(1, contract["schemaVersion"])
         self.assertEqual(2, contract["minimumPanes"])
-        self.assertEqual(3, contract["maximumPanes"])
+        self.assertEqual(4, contract["maximumPanes"])
         self.assertEqual(
             {
                 "two-columns",
                 "two-rows",
                 "three-columns",
                 "three-rows",
+                "four-grid",
                 "main-left",
                 "main-right",
                 "main-top",
@@ -290,9 +291,14 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertTrue(contract["dragAndDrop"]["pageRowCenterCreatesSplit"])
         self.assertTrue(contract["dragAndDrop"]["cancelIsAtomic"])
         self.assertEqual(
-            "reject-with-visible-explanation",
+            "add-as-four-grid-with-visible-preview",
             contract["dragAndDrop"]["fourthPanePolicy"],
         )
+        self.assertEqual(
+            "reject-with-visible-explanation",
+            contract["dragAndDrop"]["fifthPanePolicy"],
+        )
+        self.assertTrue(contract["dragAndDrop"]["sidebarMirrorsContentLayout"])
         self.assertFalse(contract["dragAndDrop"]["normalIncognitoMixing"])
         self.assertTrue(contract["persistence"]["normalWindowWorkspaceSession"])
         self.assertFalse(contract["persistence"]["incognito"])
@@ -311,23 +317,23 @@ class RepositoryContractTests(unittest.TestCase):
             "MultiContentsView",
             "ContentsContainerView",
             "SessionService",
-            "exactly two or three",
+            "exactly two, three, or four",
             "OffTheRecordProfile",
             "DevTools",
             "Picture in Picture",
         ):
             self.assertIn(required, spec)
         self.assertIn("SplitViewService", architecture)
-        self.assertIn("parallel three-pane controller is prohibited", architecture)
+        self.assertIn("parallel Ahoi-specific pane controller is prohibited", architecture)
         self.assertIn("page creates a real split", ui_system)
-        self.assertIn("A fourth pane is rejected visibly", ui_system)
+        self.assertIn("fifth pane is rejected visibly", ui_system)
 
         split_tests = [
             entry
             for entry in load_json("config/test-registry.json")["tests"]
             if entry["suite"] == "SPLIT"
         ]
-        self.assertEqual(32, len(split_tests))
+        self.assertEqual(34, len(split_tests))
         self.assertEqual(
             {"SPLIT-01", "SPLIT-02", "SPLIT-03", "SPLIT-04"},
             {
@@ -419,6 +425,28 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("branded AhoiBrowser.app was not produced", builder)
         self.assertIn("stamp-built-app.sh", builder)
         self.assertIn("build_provenance.py", builder)
+
+    def test_component_development_bundle_is_staged_portably(self):
+        builder = (ROOT / "scripts/build-ahoi.sh").read_text(encoding="utf-8")
+        stager = (ROOT / "scripts/stage-component-runtime.sh").read_text(
+            encoding="utf-8"
+        )
+        verifier = (ROOT / "scripts/verify-built-app.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("stage-component-runtime.sh", builder)
+        self.assertIn("sign-development-app.sh", builder)
+        self.assertIn("is_component_build = true", stager)
+        self.assertIn("libc++_chrome.dylib", stager)
+        self.assertIn("ahoi-component-runtime.sha256", stager)
+        self.assertIn("libc++_chrome.dylib", verifier)
+        self.assertIn("shasum -a 256 -s -c", verifier)
+        signer = (ROOT / "scripts/sign-development-app.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("AhoiBuildProfile", signer)
+        self.assertIn("forbidden for release bundles", signer)
+        self.assertIn("codesign --verify --deep --strict", signer)
 
     def test_build_provenance_is_external_work_root_safe_and_fail_closed(self):
         provenance = (ROOT / "tools/build_provenance.py").read_text(

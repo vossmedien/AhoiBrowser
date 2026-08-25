@@ -3,7 +3,7 @@
   "name": "AhoiBrowser",
   "bundleId": "app.ahoibrowser.AhoiBrowser",
   "bundleIdStatus": "provisional-unregistered",
-  "updateChannels": ["dogfood", "beta", "stable"],
+  "updateChannels": ["nightly", "beta", "stable"],
   "platforms": {
     "macOS": {
       "minimumVersion": "26.0",
@@ -20,6 +20,6 @@
       "embeddedBrowser": false
     }
   },
-  "locales": ["de", "en"],
+  "locales": ["de", "en", "en-GB"],
   "license": "GPL-3.0-or-later"
 }

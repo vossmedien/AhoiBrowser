@@ -6,8 +6,12 @@ public enum SyncDataClass: String, Codable, CaseIterable, Sendable {
     case orderKey
     case tombstone
     case recoveryMetadata
+    case device
+    case deviceSession
     case deviceTab
     case history
+    case historyVisit
+    case remoteCommand
     case appearance
     case permittedSetting
     case extensionInventory
@@ -115,7 +119,7 @@ public struct SyncRecord: Codable, Hashable, Sendable {
     public init(
         recordID: UUID = UUID(),
         entityID: UUID,
-        schemaVersion: UInt32 = 1,
+        schemaVersion: UInt32 = 2,
         dataClass: SyncDataClass,
         modifiedAt: HybridLogicalClock,
         originatingDevice: DeviceID,

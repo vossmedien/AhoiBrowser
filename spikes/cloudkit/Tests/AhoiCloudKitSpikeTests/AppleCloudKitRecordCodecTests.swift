@@ -19,7 +19,11 @@ final class AppleCloudKitRecordCodecTests: XCTestCase {
 
         XCTAssertEqual(
             cloudRecord[AppleCloudKitRecordCodec.Fields.entityID] as? String,
-            source.entityID.uuidString
+            source.entityID.uuidString.lowercased()
+        )
+        XCTAssertEqual(
+            cloudRecord.recordID.recordName,
+            source.recordID.uuidString.lowercased()
         )
         XCTAssertEqual(
             cloudRecord[AppleCloudKitRecordCodec.Fields.dataClass] as? String,
@@ -123,11 +127,11 @@ final class AppleCloudKitRecordCodecTests: XCTestCase {
 
     private func makeLiveRecord(dataClass: SyncDataClass) throws -> SyncRecord {
         let device = DeviceID(
-            rawValue: UUID(uuidString: "10000000-0000-0000-0000-000000000001")!
+            rawValue: UUID(uuidString: "a0000000-0000-4000-8000-000000000001")!
         )
         return SyncRecord(
-            recordID: UUID(uuidString: "20000000-0000-0000-0000-000000000002")!,
-            entityID: UUID(uuidString: "30000000-0000-0000-0000-000000000003")!,
+            recordID: UUID(uuidString: "b0000000-0000-4000-8000-000000000002")!,
+            entityID: UUID(uuidString: "c0000000-0000-4000-8000-000000000003")!,
             schemaVersion: 1,
             dataClass: dataClass,
             modifiedAt: .init(

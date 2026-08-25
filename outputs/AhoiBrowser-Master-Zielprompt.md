@@ -1,6 +1,6 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 24. August 2026.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das aktive AhoiBrowser-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet; ein erneutes Einsetzen als separates Goal ist dafür nicht erforderlich.
+**Geltungsstand: 25. August 2026.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das aktive AhoiBrowser-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet; ein erneutes Einsetzen als separates Goal ist dafür nicht erforderlich.
 
 ## Rolle und Gesamtauftrag
 
@@ -277,6 +277,8 @@ Baue eine hochwertige native Oberfläche:
 - der WebContents-Bereich liegt im normalen Fenstermodus in einem abgerundeten, leicht schwebenden Container mit semantischem Schatten und sauberem Clipping; Vollbild, Video-Vollbild, Drucken, Screen Capture und Accessibility erhalten definierte radius- beziehungsweise schattenfreie Modi;
 - Sidebar ein- und ausblendbar sowie zusätzlich zwischen angedocktem und schwebendem Overlay-Modus umschaltbar;
 - die angedockte Sidebar verkleinert den realen Content-Viewport korrekt; die schwebende Sidebar überlagert ihn bewusst, besitzt Scrim/Shadow und verändert die von der Website gemessene Viewportbreite nicht;
+- im vollständig verborgenen Modus reserviert die Sidebar exakt null Layoutbreite. Eine maximal 5 Pixel breite, transparente Hot-Zone direkt am linken Fensterrand blendet dieselbe Sidebar als Overlay ein, ohne Renderer-Resize oder Website-Reflow. Verlassen blendet sie nach kurzer Verzögerung aus; Fokus, offenes Menü/Modal, laufender Sidebar-Drag, Resize und Tastaturbedienung halten sie zuverlässig offen. `Escape`, Pin/Dock und der Sidebar-Shortcut besitzen deterministische Semantik;
+- Edge-Reveal, Floating und Docked verwenden dieselbe Komponenteninstanz, denselben Baumzustand und dieselben Fokusobjekte; es existieren keine konkurrierenden Sidebar-Kopien;
 - für Fenstergrößen, macOS Split View, AhoiBrowser Multi-Pane Split View und Vollbild geeignet;
 - native Fokus-, Tastatur-, VoiceOver- und Accessibility-Semantik;
 - flüssige, zurückhaltende Animationen;
@@ -420,6 +422,9 @@ Darstellungskonfiguration:
 - Inkognito wird nie wiederhergestellt.
 - Geladene Tabs zeigen ihren Lifecycle verständlich an. Automatisch verworfene beziehungsweise schlafende Tabs bleiben in Baum und Sitzung erhalten, werden beim Aktivieren transparent wiederhergestellt und dürfen nicht wie geschlossene oder gelöschte Tabs wirken.
 - Ein laufender Audio-/Videotab zeigt statt eines beliebigen Statuszeichens ein konsistentes Lautsprecher-Icon; stummgeschaltete Wiedergabe beziehungsweise ein stummgeschaltetes Video zeigt ein eindeutig unterscheidbares stummes Lautsprecher-Icon. Hover-Aktionen dürfen den Mediazustand nicht verdecken.
+- Das Schließen des letzten Tabs schließt ein normales AhoiBrowser-Fenster nicht und erzeugt weder automatisch ein Ersatz-`WebContents` noch eine künstliche New-Tab-Seite. Ein Workspace und ein Fenster dürfen einen echten Zustand mit null Tabs und null aktivem Tab besitzen.
+- Im Null-Tab-Zustand bleibt die komplette native Browserhülle bedienbar: Sidebar, Workspaces, Command Bar, `⌘T`, Downloads, Verlauf, Einstellungen, Extension-/Browseraktionen und Fenstersteuerung funktionieren. Die Content-Fläche zeigt ausschließlich eine ruhige, native, theme- und appearancefähige Leerdarstellung ohne Renderer, Netzwerkzugriff oder Fake-Tab.
+- Nur das explizite Schließen des Fensters beziehungsweise Beenden der App zerstört das leere Fenster. `⌘W` schließt bei vorhandenem Tab zunächst den Tab; bei bereits leerem Fenster folgt es der dokumentierten macOS-Fenstersemantik. Session Restore, Downloads, Before-Unload, Split-Auflösung und Crash Recovery sind null-tab-sicher.
 
 ### Verbindlicher Drag-and-drop-Vertrag der Sidebar
 
@@ -427,6 +432,8 @@ Darstellungskonfiguration:
 - Die Mitte eines Ordners verschiebt die Auswahl `in` diesen Ordner.
 - Die Mitte einer Seitenzeile bedeutet `mit dieser Seite splitten`.
 - Vor dem Loslassen ist genau eine Operation mit Ziel, Einfügeposition und gegebenenfalls Split-Layout sichtbar.
+- Der Drag-Lifecycle besitzt genau eine zentrale Quelle für den aktiven Payload. Das `Neue Gruppe`-Ziel, Saved-/Temporary-Zonen, Split-Ziele und Auto-Expand erscheinen aus demselben Zustand und werden bei Drop, `Escape`, nativem Abbruch, Quell-View-Zerstörung, Widget-Abschluss und Fensterwechsel garantiert zurückgesetzt.
+- Die native Drag-Vorschau zeigt Favicon, Titel und bei Split-Gruppen die Pane-Anordnung; sie beginnt rechts vom Cursor und darf in den WebContents-Bereich hineinragen, überdeckt aber keine Sidebar-Drop-Zone. Sie bleibt an Fenster-/Bildschirmrändern sichtbar und besitzt einen zugänglichen Textfallback.
 - `Escape`, Pointer-Abbruch, ungültiges Ziel, fehlgeschlagener Tab-Detach oder verweigerter Drop ändern weder Baum noch Split-Topologie.
 - Ordner, Mehrfachauswahl, Dateien und andere Nicht-Tab-Payloads dürfen nicht versehentlich einen Split erzeugen.
 - Drag-and-drop funktioniert innerhalb tief verschachtelter Ordner, zwischen Ordnern und Workspaces sowie zwischen normalen Browserfenstern.
@@ -510,11 +517,12 @@ Accessibility und Lokalisierung:
 - Alle Workspaces verwenden dasselbe normale Browserprofil.
 - Cookies, Logins, Verlauf, Extensions, Downloads, Passwortspeicher und Site Permissions sind gemeinsam.
 - Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Akzent sind Workspace-bezogen.
-- Wechsel über Sidebar, Tastatur und horizontale Magic-Mouse-Geste.
+- Wechsel über Sidebar, Tastatur und horizontale Zwei-Finger-/Magic-Mouse-Geste innerhalb der Sidebar.
 - Richtung, Empfindlichkeit und Deaktivierung der Geste sind konfigurierbar.
 - Im kompakten Workspace-Kopf ist der aktive Workspace mit Icon und Name sichtbar; jeder inaktive Workspace wird daneben als Dot in stabiler Reihenfolge dargestellt.
 - Hover oder Tastaturfokus auf einem Dot zeigt ohne sofortigen Wechsel einen kompakten aktiven Vorschauzustand mit Icon, Name und optionalem Akzent, damit erkennbar ist, welcher Space dahinterliegt. Klick beziehungsweise bestätigter Fokus wechselt den Workspace.
 - Die Workspace-Geste animiert den Übergang direkt und abbrechbar; Dots, aktive Identität, Baum und WebContents-Fokus bleiben synchron und springen nicht erst nach Abschluss in einen widersprüchlichen Zustand.
+- Die Workspace-Geste startet nur, wenn ihr Pointer in der sichtbaren beziehungsweise per Edge-Reveal geöffneten Sidebar liegt. Im WebContents bleiben Chromiums Zurück-/Vor-Geste und horizontaler Website-Scroll unverändert; eine Eingabe darf niemals beide Aktionen auslösen.
 - Mehrere Fenster werden unterstützt.
 - Der gespeicherte Baum ist fensterübergreifend gemeinsam.
 - Temporäre Tabs und aktive Auswahl bleiben fensterbezogen.
@@ -559,12 +567,12 @@ Implementiere eine native, latenzarme Command Bar:
 
 ### Navigation und Gesten
 
-- Eine horizontale Wischgeste über einem WebContents navigiert nachvollziehbar zurück beziehungsweise vor und zeigt einen abbrechbaren visuellen Fortschritt.
-- Workspace-Wechsel und Seitennavigation verwenden unterscheidbare, dokumentierte Gesten beziehungsweise konfigurierbare Modifier/Regionen. Die Gesture-Arena entscheidet erst nach Schwelle eindeutig und löst niemals beide Aktionen aus.
+- Chromiums auf macOS bereits vorhandene Zwei-Finger-/Magic-Mouse-Geste für Zurück beziehungsweise Vor bleibt unverändert erhalten und wird nur als Regression geprüft; AhoiBrowser implementiert dafür keinen zweiten Gestenpfad.
+- Der eigene Workspace-Wechsel muss sich eindeutig von Chromiums vorhandener Seitennavigation und horizontalem Website-Scroll unterscheiden. Die Gesture-Arena entscheidet erst nach Schwelle eindeutig und löst niemals zwei Aktionen aus.
 - `⌘` plus Scroll beziehungsweise Trackpad-Scroll wechselt mit Delta-Schwelle, Rate-Limit und sichtbarer Vorschau zyklisch zwischen den aktuell laufenden/aktiven Tabs des Workspaces; die Funktion ist konfigurierbar und kollidiert nicht mit Webseitenzoom, horizontalem Seiten-Scroll oder Systemgesten.
 - Mittelklick in einer scrollbaren Webseite aktiviert Firefox-artiges Auto-Scrolling: Entfernung und Richtung des Cursors bestimmen kontinuierlich Richtung und Geschwindigkeit. Erneuter Mittelklick, primärer Klick, Escape, Tab-/Workspace-Wechsel oder Fokusverlust beendet es sofort.
 - Auto-Scrolling bleibt im Renderer-/Input-Pfad sicher, respektiert nicht scrollbare Flächen, verschachtelte Scroller, Zoom, reduzierte Bewegung und Pointer-Lock und darf keinen Browser-Chrome-Drag auslösen.
-- Zurück/Vor, Workspace-Swipe, Tab-Cycling und Auto-Scroll sind jeweils abschaltbar und besitzen vollständige Tastatur-/Menüalternativen.
+- Workspace-Swipe, Tab-Cycling und Auto-Scroll sind jeweils abschaltbar und besitzen vollständige Tastatur-/Menüalternativen; Zurück/Vor folgt weiterhin Chromiums vorhandener macOS-Konfiguration und Tastatursteuerung.
 
 ## Vollwertige Browserfunktionen
 
@@ -924,13 +932,17 @@ Nicht nachbauen:
 
 Diese Funktionen bleiben in Chrome DevTools oder spezialisierten externen Erweiterungen wie IBM Equal Access Accessibility Checker.
 
+### Unveränderliche Bestätigung für Datenlöschung
+
+Jede Cache-/Cookie-/Website-Daten-Löschung erzeugt vor der Bestätigung ein unveränderliches Request-Objekt aus Scope (`aktuelle Website` oder `alle Websites`), Datentypen und Zeitraum. Die Bestätigung führt exakt dieses Snapshot-Objekt höchstens einmal aus; nachträgliche UI-Änderungen, Doppelklick oder doppelte Callback-Zustellung dürfen Scope, Typen oder Text nicht verändern und keine zweite Löschung auslösen. Erfolg, Teilerfolg und Fehler nennen exakt den tatsächlich ausgeführten Scope, Zeitraum und die gelöschten Typen. Eine globale Löschung darf niemals als `für diese Seite gelöscht` gemeldet werden.
+
 ## Privacy ohne Funktionsverlust
 
 Implementiere zwei klare Datenschutzmodi.
 
-### `Strikt` – globaler Default
+### `Mehr Schutz` – globaler Default
 
-Strikt soll Entwickler nicht unnötig einschränken und normale Websites weitgehend funktionsfähig halten:
+`Mehr Schutz` soll Entwickler nicht unnötig einschränken und normale Websites weitgehend funktionsfähig halten. Die UI erklärt in einem Satz, dass zusätzliche Ahoi-Schutzmaßnahmen aktiv sind und einzelne eingebettete Drittanbieter-Inhalte gegebenenfalls eine Website-Ausnahme benötigen:
 
 - First-Party-Cookies und normale Logins funktionieren vollständig.
 - Unpartitionierte Third-Party-Cookies werden blockiert.
@@ -949,9 +961,9 @@ Strikt soll Entwickler nicht unnötig einschränken und normale Websites weitgeh
 - Remote-Suchvorschläge standardmäßig aus.
 - unnötige Google-Hintergrunddienste und spekulative Verbindungen aus.
 
-### `Chromium-kompatibel`
+### `Maximale Website-Kompatibilität`
 
-Dieser Modus kann global oder pro Origin aktiviert werden:
+Dieser Modus kann global oder pro Origin aktiviert werden. Die UI erklärt statt eines internen Technikbegriffs, dass Ahois zusätzliche Eingriffe für diese Website ausgesetzt werden, Chromiums Sicherheitsgrenzen jedoch aktiv bleiben. Interne Enum-/Policy-Namen dürfen aus Migrationsgründen unverändert bleiben, werden aber nicht ungeklärt als Nutzertext angezeigt:
 
 - deaktiviert AhoiBrowsers zusätzliche Cookie-, URL-, Referrer- und Fingerprinting-Eingriffe für die betreffende Website;
 - verändert nicht uBlock oder andere Erweiterungen;
@@ -998,13 +1010,20 @@ Erstelle eine maschinenlesbare Endpoint-Allowlist und einen dynamischen Netzwerk
 
 - local-first;
 - Browser und Companion funktionieren ohne iCloud und ohne Netzwerk mit dem lokalen Datenstand;
+- das lokale Ahoi-Domänenmodell, sein SQLite-Store und seine Outbox sind die kanonische Quelle; CloudKit ist Transport und niemals das einzige Datenlager;
 - austauschbare `SyncProvider`-Schnittstelle;
 - v1 implementiert `CloudKitSyncProvider`;
 - CloudKit Private Database;
 - eigene Custom Record Zone;
+- `CKSyncEngine` auf unterstützten Apple-Systemen mit persistiertem opakem Engine-State, automatischen Fetch-/Send-Zyklen, Retry/Backoff und explizitem Sofort-Sync nach einer Nutzeraktion;
+- `CKSyncEngine`-Accountwechsel, Zone-Reset, partielle Fehler und `serverRecordChanged` werden als explizite Zustände behandelt; Konflikte werden im Ahoi-Domänenmodell zusammengeführt und nicht blind durch CloudKit aufgelöst;
 - native CloudKit-Schnittstellen der Zielsysteme;
 - Objective-C++-Bridge auf macOS;
 - Swift-/SwiftUI-Integration auf iOS/iPadOS.
+
+Google-Web-Login, Google-Webseiten und Google als Suchmaschine bleiben normale Browserfunktionen. Chrome Account Sync ist davon strikt getrennt und kein unterstützter Distributionspfad für AhoiBrowser: Google beschränkt die privaten Chrome-Sync-APIs auf autorisierte Google-Produkte, und Chromium-API-Schlüssel beziehungsweise OAuth-Secrets dürfen weder eingebettet noch mit Forks geteilt werden. AhoiBrowser darf deshalb keine Google-Credentials mitliefern, keine private Chrome-Sync-API vortäuschen und keine UI anbieten, die ohne eine belastbare Konfiguration in einen Sign-in-Crash oder eine tote Synced-Tabs-Seite führt. Der zentrale Produkt-Policy-Schalter deaktiviert ausschließlich Chrome Account Sync; Ahoi Sync bleibt davon unabhängig aktivierbar.
+
+Der native CloudKit-Adapter besitzt die notwendigen iCloud-/CloudKit- und Remote-Notification-Entitlements. Ohne iCloud-Konto darf er initialisieren, bleibt aber verständlich inaktiv und blockiert weder den Browserstart noch lokale Mutationen. Opaque `CKSyncEngine`-State, lokale Cursor, Outbox und Tombstones werden versionsfest persistiert. Sensible Nutzdaten liegen in `CKRecord.encryptedValues`; da solche Felder serverseitig nicht abfragbar sind, bleiben Suche, Filter und Sortierung konsequent in lokalen Indizes.
 
 ### Synchronisierte Daten
 
@@ -1022,9 +1041,9 @@ Synchronisiere:
 
 Extension-Inventar darf auf einem neuen Mac nur Installationsvorschläge erzeugen. Installiere Erweiterungen niemals still.
 
-Die Desktopoberfläche besitzt eine kompakte Geräte-Tabs-Aktion mit eigenem, modernem Icon im Workspace-/Sidebar-Chrome; ihre Sichtbarkeit ist konfigurierbar, sie bleibt aber ohne tiefen Settings-Weg erreichbar. Sie öffnet eine nach Gerät gruppierte, lokal durchsuchbare Liste der auf anderen Macs sowie in der iOS-/iPadOS-Companion sichtbaren normalen Tabs mit Gerät, Workspace, Titel, URL-Favicon und letzter Aktivität. Ein Eintrag kann lokal geöffnet, in einen Workspace übernommen oder über den sicheren Remote-Control-Pfad fokussiert werden. Inkognito erscheint dort niemals.
+Tabs anderer AhoiBrowser-Instanzen erscheinen direkt in der normalen Tab-Liste der Sidebar und niemals hinter einer separaten Geräteverwaltung, History-Unterseite oder zusätzlichen Geräte-Schaltfläche. Sie verwenden dieselbe kompakte Zeilenform, Typografie und Favicon-Darstellung wie lokale temporäre Tabs, tragen aber ein eindeutiges Smartphone-, Tablet- oder Desktop-Badge sowie zugänglichen Gerätetext. Gerätegrenzen dürfen durch eine dezente Zwischenüberschrift beziehungsweise Gruppierung sichtbar bleiben, ohne eine zweite Navigationshierarchie zu erzeugen. Die Darstellung umfasst Gerät, Workspace, Titel, URL-Favicon und letzte Aktivität; sie lässt sich innerhalb der Sidebar lokal filtern. Ein Klick öffnet den Remote-Tab lokal, Kontextaktionen übernehmen ihn in einen Workspace oder fokussieren ihn über den sicheren Remote-Control-Pfad. Inkognito erscheint dort niemals. Ist kein `SyncProvider` verfügbar oder sind keine fremden Tabs vorhanden, gibt es weder leere Platzhalter noch einen funktionslosen Geräte-Button.
 
-Diese Geräte-Tabs-Funktion darf Chromiums vorhandene History-/Foreign-Session-UI und Datenmodelle als Integrationsvorbild beziehungsweise lokale Darstellungsschicht wiederverwenden, verwendet in v1 aber ausschließlich AhoiBrowsers `SyncProvider`/CloudKit-Daten. Sie darf weder eine Google-Anmeldung verlangen noch Chrome Sync heimlich aktivieren. Eine spätere zusätzliche Sync-Provider-Implementierung bleibt architektonisch möglich, ist aber kein v1-Releaseblocker.
+Diese Geräte-Tabs-Funktion darf Chromiums vorhandene Foreign-Session-Datenmodelle als Integrationsvorbild wiederverwenden, darf den Nutzer aber nicht in Chromiums separate History-/Synced-Tabs-Verwaltungsseite schicken. In v1 verwendet sie ausschließlich AhoiBrowsers `SyncProvider`/CloudKit-Daten. Sie darf weder eine Google-Anmeldung verlangen noch Chrome Sync heimlich aktivieren. Eine spätere zusätzliche Sync-Provider-Implementierung bleibt architektonisch möglich, ist aber kein v1-Releaseblocker.
 
 Synchronisiere niemals:
 
@@ -1150,7 +1169,7 @@ Funktionen:
 Verwende Sparkle 2 oder einen gleichwertigen nativen und auditierbaren Updater:
 
 - Ed25519-signierter Appcast;
-- Kanäle `dogfood`, `beta`, `stable`;
+- Kanäle `nightly`, `beta`, `stable`;
 - Delta- und Full-Update;
 - atomarer Austausch;
 - sauberer Neustart;
@@ -1238,7 +1257,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - Command Bar;
 - Quick Window;
 - Inkognito;
-- Magic-Mouse-/Trackpad-Gesten für Workspace und Zurück/Vor, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling;
+- eigene Magic-Mouse-/Trackpad-Geste für Workspaces, unveränderte Chromium-Zurück/Vor-Geste als Regression, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling;
 - Extension-Actions;
 - Computer-Use-Abnahme aller sichtbaren Kernflows.
 
@@ -1267,7 +1286,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - Headerregeln;
 - Diagnosewerkzeuge;
 - Passwortfeldanzeige;
-- Strict-/Compatibility-Modus;
+- nutzerverständlich benannter Modus `Mehr Schutz` beziehungsweise `Maximale Website-Kompatibilität`;
 - Safe Browsing;
 - Fresh-Profile-Netzwerkaudit;
 - Computer-Use-Abnahme mit Fixtures und realen Seiten.
@@ -1277,7 +1296,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - Sync-Schema;
 - Konfliktauflösung;
 - Verlauf;
-- gerätebezogene offene Tabs einschließlich der sichtbaren Geräte-Tabs-Aktion auf dem Desktop;
+- gerätebezogene offene Tabs als native, gerätegekennzeichnete Zeilen direkt in der normalen Desktop-Sidebar;
 - Developer-Asset-Opt-in;
 - native iOS-/iPadOS-App;
 - Remote Control;
@@ -1429,6 +1448,8 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `UI-13`: WebContents-Container mit Radius, Clipping und Schatten auf hellen/dunklen realen Seiten, bei Resize, Browser-Vollbild, Video-Vollbild, Screen Capture und macOS Split View prüfen.
 - `UI-14`: Sidebar zwischen angedockt, schwebend, eingeklappt und wieder sichtbar schalten; angedockt ändert den echten Viewport korrekt, schwebend überlagert ohne unerwarteten Reflow.
 - `UI-15`: Glass für Sidebar, Navigationszeile, Notch, Popup und MiniPlayer aktivieren; bei `Transparenz reduzieren`, hohem Kontrast, Battery-/Performance-Druck und deaktiviertem Glass entsteht ein konsistenter opaker Fallback.
+- `UI-16`: Sidebar vollständig verbergen, Pointer an den linken Fensterrand bewegen und dieselbe Sidebar als Overlay ein-/ausblenden; Website-Viewport und Renderergröße bleiben identisch, Drag/Fokus/Menu halten offen, Escape/Pin/Dock schließen beziehungsweise fixieren deterministisch.
+- `UI-17`: normalen letzten Tab schließen; Fenster bleibt mit nativer themefähiger Leerdarstellung offen, besitzt null Tabs/null `WebContents`, erzeugt keinen Netzwerkzugriff und kann über Cmd+T, Command Bar sowie Sidebar-Aktionen wieder einen Tab öffnen.
 - `A11Y-01`: Kernreise ausschließlich per Tastatur; keine Fokusfalle.
 - `A11Y-02`: VoiceOver-Rollen, Labels, Reihenfolge und Zustandsansagen.
 - `A11Y-03`: 200-Prozent-Zoom beziehungsweise große Systemschrift, soweit für Browser-Chrome relevant.
@@ -1448,6 +1469,8 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `TREE-11`: kontrollierter Crash während Baumänderung; atomare, reparierbare Daten nach Neustart.
 - `TREE-12`: Gruppenname, Icon und Farbe ändern; in Hell/Dunkel, nach Neustart und nach Workspace-Wechsel korrekt und kontrastreich wiederherstellen.
 - `TREE-13`: direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen.
+- `TREE-14`: leeren Workspace aktivieren, ohne automatisch einen Tab zu erzeugen; zwischen leerem und gefülltem Workspace wechseln und korrekten aktiven Nullzustand sowie Session Restore prüfen.
+- `TREE-15`: `Alle temporären Tabs leeren` einschließlich des aktiven letzten Tabs ausführen; kein Ersatz-Tab, kein fremder Workspace-Tab und kein Fenster-Close.
 - `WS-01`: Workspace-Wechsel per Sidebar.
 - `WS-02`: Workspace-Wechsel per Tastatur.
 - `WS-03`: horizontale Geste mit echter Magic Mouse, einschließlich langsamer, schneller und abgebrochener Geste.
@@ -1466,34 +1489,35 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `SPLIT-04`: Extension-`splitId` und Tab-Operationen für zwei, drei und vier Mitglieder prüfen; Move, Close und ungültige Teiloperationen erhalten einen gültigen Zustand oder lösen den Split kontrolliert auf.
 - `SPLIT-05`: Seitenzeile in der linken Sidebar auf obere/untere Drop-Zonen ziehen; sichtbares Preview, Reihenfolge in tiefen Ordnern und Persistenz nach Neustart prüfen.
 - `SPLIT-06`: Seitenzeile über die mittlere Ordnerzone innerhalb und zwischen Workspaces verschieben; Auto-Expand, exaktes Ziel und Undo prüfen.
+- `SPLIT-06A`: temporären und gespeicherten Tab mehrfach ziehen; `Neue Gruppe`, Saved-/Temporary- und Split-Ziele erscheinen in jeder Lifecycle-Reihenfolge zuverlässig, verschwinden nach Drop/Abbruch vollständig und die Vorschau liegt rechts vom Cursor ohne Drop-Zonen zu verdecken.
 - `SPLIT-07`: einen Tab mittig auf einen normalen Tab ziehen; echte Zwei-Spalten-Ansicht, zwei simultan interaktive Seiten und unveränderte Tree-Persistenz prüfen.
 - `SPLIT-08`: Zwei-Zeilen-Layout im Drag-Preview beziehungsweise Layoutmenü wählen und ohne Reload zwischen Zeilen und Spalten wechseln.
 - `SPLIT-09`: dritten Tab auf jedes Pane einer Zweiergruppe ziehen; Einfügeposition vor Drop eindeutig anzeigen und drei simultan laufende Seiten erhalten.
 - `SPLIT-10`: drei Spalten, drei Zeilen, `main-left`, `main-right`, `main-top` und `main-bottom` sichtbar durchschalten.
-- `SPLIT-11`: vierten Tab auf jedes Pane einer Dreiergruppe ziehen; 2×2-Vorschau, Einfügeposition und vier simultan laufende Seiten prüfen.
-- `SPLIT-12`: Vierergruppe zwischen unterstützten Anordnungen einschließlich 2×2 wechseln; Sidebar-Segmentraster spiegelt Position und Reihenfolge korrekt und lesbar wider.
-- `SPLIT-13`: Panes per Drag-and-drop und Tastatur neu ordnen sowie Layout wechseln; URLs, Formzustand, Scrollposition und Navigation History bleiben erhalten.
-- `SPLIT-14`: alle relevanten Divider per Maus/Trackpad ziehen; horizontales und vertikales Verhältnis, Snap Points, bevorzugte und eingeschränkte Mindestgrößen sowie Persistenz prüfen.
-- `SPLIT-15`: komplette Split-Reise nur per Tastatur – erstellen, Pane fokussieren, neu ordnen, Layout wählen, Divider ändern und Split verlassen.
-- `SPLIT-16`: Pane aus Split herausziehen, einzeln schließen und gesamten Split schließen; korrekte Übergänge `4 -> 3 -> 2 -> 1`, Before-Unload und Tab Restore prüfen.
-- `SPLIT-17`: fünften externen Tab auf volle Vierergruppe ziehen; verständliche Ablehnung ohne Reload, Ersatz, Verstecken, Schließen oder Tree-Mutation.
-- `SPLIT-18`: Drag mit `Escape`, Pointer-Abbruch, Mehrfachauswahl, Ordner, Datei, blockierter URL und fehlgeschlagenem Detach abbrechen; Baum und Split bleiben atomar unverändert.
-- `SPLIT-19`: echten Tab zwischen zwei normalen Browserfenstern in einen Split ziehen; `WebContents`, Formzustand, Scrollposition und Navigation History bleiben erhalten.
-- `SPLIT-20`: Pane anklicken und fokussieren; Adressleiste, Zurück/Vor, Reload, Page Info, Extension-Actions und Developer Toolkit wirken ausschließlich auf dieses aktive Pane.
-- `SPLIT-21`: Origin-/Security-/Media-Indikatoren aller Panes und den nicht nur farblichen aktiven Fokusrahmen bei Omnibox, Page Info und Device Chooser prüfen.
-- `SPLIT-22`: Permission Prompt, System-Dateipicker und tabmodalen Dialog aus aktivem und inaktivem Pane auslösen; Unterdrückung, Fokusübergabe, Scrim und Origin-Zuordnung prüfen.
-- `SPLIT-23`: normale Zwei-, Drei- und Vier-Pane-Sitzung vollständig beenden und neu starten; Workspace/Fenster, Mitgliedschaft, Layout, beide 2×2-Ratios und Fokus exakt wiederherstellen.
-- `SPLIT-24`: Split-Zustand bleibt fenster- und Workspace-sessionbezogen; Wechsel und zweites Fenster beschädigen ihn nicht, CloudKit und iOS enthalten keine Split-Topologie.
-- `SPLIT-25`: Zwei-/Drei-/Vier-Pane-Split innerhalb Inkognito funktioniert; Normal-/Inkognito-Mischung wird abgewiesen und nach Schließen oder Crash wird nichts wiederhergestellt, synchronisiert oder historisiert.
-- `SPLIT-26`: Audio und Video in allen Panes simultan abspielen; Fokuswechsel pausiert nichts, Mute und Media-/Capture-Indikatoren bleiben pro Pane korrekt.
-- `SPLIT-27`: Picture in Picture aus jeder Pane-Position starten und über Fokus-, Layout-, Divider-, Workspace-, Minimize- und Sidebar-Wechsel prüfen.
-- `SPLIT-28`: Kamera, Mikrofon, WebRTC sowie Tab-/Fenster-/Screen-Sharing in verschiedenen Panes verwenden; laufende Streams, neue Prompts und alle Indikatoren bleiben eindeutig zugeordnet.
-- `SPLIT-29`: Download, Upload, HTTP Auth und sichere Dateiauswahl aus verschiedenen Panes starten; Origin, Dialog, Fortschritt und Ergebnis gehören jeweils zum auslösenden Pane.
-- `SPLIT-30`: DevTools pro Pane öffnen, docken, abdocken und zwischen Panes fokussieren; jedes DevTools bleibt ohne stilles Retargeting am ursprünglichen `WebContents`.
-- `SPLIT-31`: Browser-Vollbild mit allen Panes und Tab-/Content-Vollbild pro Pane prüfen; nach Exit werden Gruppe, Layout, Ratios, Fokus und PiP exakt wiederhergestellt.
-- `SPLIT-32`: Renderer eines Panes und anschließend Browserprozess kontrolliert beenden; andere Panes bleiben beim Renderercrash bedienbar und Crash Recovery degradiert niemals zu Phantom-Tabs.
-- `SPLIT-33`: VoiceOver-Rollen, Pane- und Dividerwerte, Fokusreihenfolge, Drag-Ansagen, Ablehnungen, RTL sowie vollständige deutsche und englische Split-Reise in allen Appearance-/Accessibility-Modi prüfen.
-- `SPLIT-34`: vier reale komplexe Seiten mit Video, DevTools und Downloads neben 10.000 Sidebar-Knoten betreiben; Drag, Fokus, Resize und Layout bleiben flüssig und erzeugen keine eigene Idle-CPU-Regression.
+- `SPLIT-11`: Panes per Drag-and-drop und Tastatur neu ordnen sowie Layout wechseln; URLs, Formzustand, Scrollposition und Navigation History bleiben erhalten.
+- `SPLIT-12`: alle relevanten Divider per Maus/Trackpad ziehen; horizontales und vertikales Verhältnis, Snap Points, bevorzugte und eingeschränkte Mindestgrößen sowie Persistenz prüfen.
+- `SPLIT-13`: komplette Split-Reise nur per Tastatur – erstellen, Pane fokussieren, neu ordnen, Layout wählen, Divider ändern und Split verlassen.
+- `SPLIT-14`: Pane aus Split herausziehen, einzeln schließen und gesamten Split schließen; korrekte Übergänge `4 -> 3 -> 2 -> 1`, Before-Unload und Tab Restore prüfen.
+- `SPLIT-15`: fünften externen Tab auf volle Vierergruppe ziehen; verständliche Ablehnung ohne Reload, Ersatz, Verstecken, Schließen oder Tree-Mutation.
+- `SPLIT-16`: Drag mit `Escape`, Pointer-Abbruch, Mehrfachauswahl, Ordner, Datei, blockierter URL und fehlgeschlagenem Detach abbrechen; Baum und Split bleiben atomar unverändert.
+- `SPLIT-17`: echten Tab zwischen zwei normalen Browserfenstern in einen Split ziehen; `WebContents`, Formzustand, Scrollposition und Navigation History bleiben erhalten.
+- `SPLIT-18`: Pane anklicken und fokussieren; Adressleiste, Zurück/Vor, Reload, Page Info, Extension-Actions und Developer Toolkit wirken ausschließlich auf dieses aktive Pane.
+- `SPLIT-19`: Origin-/Security-/Media-Indikatoren aller Panes und den nicht nur farblichen aktiven Fokusrahmen bei Omnibox, Page Info und Device Chooser prüfen.
+- `SPLIT-20`: Permission Prompt, System-Dateipicker und tabmodalen Dialog aus aktivem und inaktivem Pane auslösen; Unterdrückung, Fokusübergabe, Scrim und Origin-Zuordnung prüfen.
+- `SPLIT-21`: normale Zwei-, Drei- und Vier-Pane-Sitzung vollständig beenden und neu starten; Workspace/Fenster, Mitgliedschaft, Layout, beide 2×2-Ratios und Fokus exakt wiederherstellen.
+- `SPLIT-22`: Split-Zustand bleibt fenster- und Workspace-sessionbezogen; Wechsel und zweites Fenster beschädigen ihn nicht, CloudKit und iOS enthalten keine Split-Topologie.
+- `SPLIT-23`: Zwei-/Drei-/Vier-Pane-Split innerhalb Inkognito funktioniert; Normal-/Inkognito-Mischung wird abgewiesen und nach Schließen oder Crash wird nichts wiederhergestellt, synchronisiert oder historisiert.
+- `SPLIT-24`: Audio und Video in allen Panes simultan abspielen; Fokuswechsel pausiert nichts, Mute und Media-/Capture-Indikatoren bleiben pro Pane korrekt.
+- `SPLIT-25`: Picture in Picture aus jeder Pane-Position starten und über Fokus-, Layout-, Divider-, Workspace-, Minimize- und Sidebar-Wechsel prüfen.
+- `SPLIT-26`: Kamera, Mikrofon, WebRTC sowie Tab-/Fenster-/Screen-Sharing in verschiedenen Panes verwenden; laufende Streams, neue Prompts und alle Indikatoren bleiben eindeutig zugeordnet.
+- `SPLIT-27`: Download, Upload, HTTP Auth und sichere Dateiauswahl aus verschiedenen Panes starten; Origin, Dialog, Fortschritt und Ergebnis gehören jeweils zum auslösenden Pane.
+- `SPLIT-28`: DevTools pro Pane öffnen, docken, abdocken und zwischen Panes fokussieren; jedes DevTools bleibt ohne stilles Retargeting am ursprünglichen `WebContents`.
+- `SPLIT-29`: Browser-Vollbild mit allen Panes und Tab-/Content-Vollbild pro Pane prüfen; nach Exit werden Gruppe, Layout, Ratios, Fokus und PiP exakt wiederhergestellt.
+- `SPLIT-30`: Renderer eines Panes und anschließend Browserprozess kontrolliert beenden; andere Panes bleiben beim Renderercrash bedienbar und Crash Recovery degradiert niemals zu Phantom-Tabs.
+- `SPLIT-31`: VoiceOver-Rollen, Pane- und Dividerwerte, Fokusreihenfolge, Drag-Ansagen, Ablehnungen, RTL sowie vollständige deutsche und englische Split-Reise in allen Appearance-/Accessibility-Modi prüfen.
+- `SPLIT-32`: vier reale komplexe Seiten mit Video, DevTools und Downloads neben 10.000 Sidebar-Knoten betreiben; Drag, Fokus, Resize und Layout bleiben flüssig und erzeugen keine eigene Idle-CPU-Regression.
+- `SPLIT-33`: vierten Tab auf jedes Pane einer Dreiergruppe ziehen; 2×2-Vorschau, Einfügeposition und vier simultan laufende Seiten prüfen.
+- `SPLIT-34`: Vierergruppe zwischen unterstützten Anordnungen einschließlich 2×2 wechseln; Sidebar-Segmentraster spiegelt Position und Reihenfolge korrekt und lesbar wider.
 
 ### Command Bar, Quick Window und Inkognito
 
@@ -1530,7 +1554,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `NAV-06`: OAuth-Testlogin.
 - `NAV-07`: Passkey/WebAuthn-Test.
 - `NAV-08`: sicherer Custom-Protocol-Prompt.
-- `NAV-09`: echte Trackpad-/Magic-Mouse-Wischgeste über einer Seite für Zurück und Vor; langsame, schnelle und abgebrochene Bewegung mit sichtbarem Fortschritt prüfen.
+- `NAV-09`: Chromiums unveränderte Trackpad-/Magic-Mouse-Wischgeste über einer Seite für Zurück und Vor als Regression prüfen; langsame, schnelle und abgebrochene Bewegung mit sichtbarem Fortschritt, aber keine Ahoi-Parallelimplementierung.
 - `NAV-10`: Seiten-, Workspace- und horizontale Website-Scrollgeste gegeneinander testen; genau eine erkannte Aktion, kein Doppelwechsel und konfigurierbare Deaktivierung.
 - `NAV-11`: `⌘` plus Scroll wechselt mit Vorschau, Schwelle und Rate-Limit zwischen laufenden Tabs; Web-Zoom, normales Scrollen, Modalzustände und Split-Fokus bleiben korrekt.
 - `NAV-12`: Mittelklick-Auto-Scrolling auf Hauptseite und verschachteltem Scroller in alle Richtungen und Geschwindigkeiten; Mittelklick, Klick, Escape, Tab-/Workspace-Wechsel und Fokusverlust beenden sofort.
@@ -1668,18 +1692,20 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `DEV-24`: Aktivchips sind korrekt und verschwinden nach Reset.
 - `DEV-25`: `Alle Seitenmodifikationen zurücksetzen` entfernt sämtliche aktiven Änderungen.
 - `DEV-26`: bei deaktiviertem Toolkit kein zusätzlicher Dauerprozess, keine messbare Idle-CPU und kein unnötiger Compiler-Speicher.
+- `DEV-27`: Datenlöschdialog auf `alle Websites`, mehrere Typen und einen Zeitraum konfigurieren, bestätigen und währenddessen UI ändern/doppelklicken; exakt ein unveränderlicher Request läuft und der Erfolg nennt globalen Scope, Zeitraum und Typen korrekt.
+- `DEV-28`: denselben Ablauf für `aktuelle Website`, Einzeltypen, Teilerfolg und Fehler prüfen; kein Status darf einen anderen Scope behaupten und Buttons bleiben in allen Themes/Größen sichtbar, kompakt und tastaturbedienbar.
 
 ### Privacy und Security
 
-- `PRIV-01`: First-Party-Login funktioniert im Strict-Modus.
+- `PRIV-01`: First-Party-Login funktioniert im Modus `Mehr Schutz`.
 - `PRIV-02`: unpartitionierte Third-Party-Cookies werden blockiert.
 - `PRIV-03`: CHIPS und Storage Access funktionieren gemäß Policy.
 - `PRIV-04`: GPC wird korrekt gesendet.
 - `PRIV-05`: Referrer und Trackingparameter verhalten sich wie dokumentiert.
 - `PRIV-06`: Werbe-/Profiling-APIs sind deaktiviert.
-- `PRIV-07`: absichtlich inkompatible Fixture auf `Chromium-kompatibel` umschalten.
+- `PRIV-07`: absichtlich inkompatible Fixture auf `Maximale Website-Kompatibilität` umschalten; Wirkung und weiterhin aktive Chromium-Sicherheitsgrenzen sind ohne internes Fachvokabular verständlich.
 - `PRIV-08`: Origin-Ausnahme bleibt nach Reload und Neustart sichtbar aktiv.
-- `PRIV-09`: Ausnahme entfernen und Strict-Verhalten wiederherstellen.
+- `PRIV-09`: Ausnahme entfernen und Verhalten von `Mehr Schutz` wiederherstellen.
 - `PRIV-10`: uBlock deaktivieren und Browserschutz isoliert testen.
 - `PRIV-11`: frisches Profil fünf Minuten ohne Navigation mitschneiden.
 - `PRIV-12`: anschließend normale Navigation durchführen und vollständige Endpoint-Liste erfassen.
@@ -1718,7 +1744,7 @@ Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCl
 - `SYNC-20`: Accountwechsel ohne stillen Datenverlust.
 - `SYNC-21`: Gerät widerrufen und weiteren Zugriff verhindern.
 - `SYNC-22`: Sync-Logs und Payload-Evidenz enthalten keine ausgeschlossenen Geheimdaten.
-- `SYNC-23`: Geräte-Tabs-Aktion im Browser öffnen; Tabs von Mac B und iOS nach Gerät gruppiert mit Favicon, Workspace und letzter Aktivität sehen, lokal suchen und öffnen.
+- `SYNC-23`: Tabs von Mac B und iOS erscheinen ohne Geräte-Sonderseite direkt zwischen den normalen Sidebar-Tabs, mit passendem Smartphone-/Tablet-/Desktop-Badge, Favicon, Workspace und letzter Aktivität; lokal filtern und öffnen.
 - `SYNC-24`: Gerät offline, Tab geschlossen, Gerät umbenannt und Gerät entzogen; Geräte-Tabs-UI zeigt verständliche Aktualität, räumt Tombstones auf und bietet keine veraltete Remote-Aktion an.
 - `SYNC-25`: Inkognito-, Passwort-, Cookie-, Site-Storage-, Permission- und Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf.
 - `SYNC-26`: frisches Profil ohne Google-Anmeldung verwenden; Geräte-Tabs und kompletter Sync funktionieren über CloudKit, während Chrome Sync und Google-Browserkonto deaktiviert bleiben.
@@ -1922,7 +1948,7 @@ Bei externen Blockern dokumentiere:
 
 - gesamtes schlankes Developer Toolkit bestanden;
 - deaktiviertes Toolkit verursacht keine relevante Laufzeitlast;
-- Strict- und Chromium-kompatibler Modus bestanden;
+- `Mehr Schutz` und `Maximale Website-Kompatibilität` bestanden; interne Policy-Begriffe erscheinen nicht ungeklärt in der UI;
 - Safe Browsing aktiv;
 - Fresh-Profile-Netzwerkaudit ohne unbekannte Hintergrundendpoints;
 - keine Produkttelemetrie oder automatischen Crash-Uploads.
@@ -1931,7 +1957,7 @@ Bei externen Blockern dokumentiere:
 
 - zwei Macs plus iOS/iPadOS bestehen Online-, Offline-, Konflikt-, Lösch-, Recovery- und Geräteentzugstests;
 - History, normale Tabs und Baum funktionieren;
-- Geräte-Tabs-Aktion auf beiden Macs zeigt normale Mac-/iOS-Tabs korrekt nach Gerät und funktioniert ohne Google-Konto oder Chrome Sync;
+- die normale Sidebar zeigt fremde Mac-/iOS-Tabs direkt, eindeutig nach Gerät gekennzeichnet und ohne separate Verwaltungsseite; sie funktioniert ohne Google-Konto oder Chrome Sync;
 - Remote Control ist signiert und replay-sicher;
 - Cookies, Passwörter, HTTP Auth, Site Storage, Permissions, Extension Storage, Inkognito und Keychain-Secrets bleiben lokal.
 
@@ -1968,13 +1994,13 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 2. Chromium-Prozessarchitektur, Sandbox und Site Isolation sind im Release aktiv.
 3. Eigene Patches sind klein, dokumentiert, getestet und mit einem aktuellen Chromium-Stable-Roll kompatibel.
 4. Das signierte und notarisierte Bundle läuft unter `/Applications/AhoiBrowser.app`.
-5. Nested Tree, vollständiges Sidebar-Drag-and-drop, Zwei-/Drei-/Vier-Pane-Split Views einschließlich persistiertem 2×2, Workspaces samt Dots/Swipe, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
+5. Nested Tree, vollständiges Sidebar-Drag-and-drop, Zwei-/Drei-/Vier-Pane-Split Views einschließlich persistiertem 2×2, Workspaces samt Dots/Swipe, echter Null-Tab-/Empty-Workspace-Zustand, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
 6. Schwebende Auto-Hide-Navigationszeile mit Reveal-Notch und Extensions, abgerundeter WebContents-Container, Glass, Floating Sidebar und Web-Popup-Overlays funktionieren ohne falschen Viewport-Reflow und bestehen die vollständigen CU-E2E-Fälle.
 7. Downloads, Uploads, PDF, Drucken, Medien, Sidebar-MiniPlayer, PiP, WebRTC und Permissions bestehen reale Tests.
 8. Chrome-Web-Store-Extensions, lokaler Passwortmanager, 1Password, Bitwarden und uBlock Origin Classic funktionieren im installierten Build.
 9. HTTP Basic Auth/`.htaccess` bietet Speicherung, mehrere Konten, Auswahl, Autocomplete, Update, Wechsel und Abmeldung und besteht die vollständige Auth-Testgruppe.
 10. Developer Toolkit und beide Privacy-Modi sind vollständig abgenommen.
-11. Zurück-/Vor-Gesten, Workspace-Swipe, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling sind konfliktfrei, konfigurierbar und real abgenommen.
+11. Chromiums unveränderte Zurück-/Vor-Geste ist regressionsfrei; Ahois Workspace-Swipe, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling sind konfliktfrei, konfigurierbar und real abgenommen.
 12. Fresh-Profile-Netzwerk und Telemetriefreiheit sind nachgewiesen.
 13. Mac–Mac–iOS-Sync, Geräte-Tabs ohne Google-Konto, Offlinekonflikte, Recovery und Remote Control funktionieren auf realen Geräten.
 14. Keine ausgeschlossenen Secrets oder privaten Daten werden synchronisiert.
@@ -2066,6 +2092,11 @@ Antworte nicht lediglich mit einer weiteren Architekturübersicht und frage nich
 - [Chromium NetworkContext and ClearHttpAuthCache](https://chromium.googlesource.com/chromium/src/+/main/services/network/network_context.cc)
 - [Apple Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass)
 - [NSGlassEffectView](https://developer.apple.com/documentation/appkit/nsglasseffectview)
+- [Chromium: Limiting Private API Availability in Chromium](https://blog.chromium.org/2021/01/limiting-private-api-availability-in.html)
+- [Chromium API Keys](https://www.chromium.org/developers/how-tos/api-keys/)
+- [Apple CKSyncEngine](https://developer.apple.com/documentation/cloudkit/cksyncengine-5sie5)
+- [Apple: Deciding whether CloudKit is right for your app](https://developer.apple.com/documentation/cloudkit/deciding-whether-cloudkit-is-right-for-your-app)
+- [Apple CloudKit remote records](https://developer.apple.com/documentation/cloudkit/remote-records)
 - [CloudKit encrypted user data](https://developer.apple.com/documentation/cloudkit/encrypting-user-data)
 - [Chrome Manifest V2 support timeline](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline)
 - [uBlock Origin](https://github.com/gorhill/uBlock)

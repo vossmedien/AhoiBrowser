@@ -1,14 +1,16 @@
 {
   "schemaVersion": 1,
-  "maximumPanes": 3,
+  "maximumPanes": 4,
   "minimumPanes": 2,
   "defaultTwoPaneLayout": "two-columns",
   "defaultThreePaneLayout": "three-columns",
+  "defaultFourPaneLayout": "four-grid",
   "layouts": [
     "two-columns",
     "two-rows",
     "three-columns",
     "three-rows",
+    "four-grid",
     "main-left",
     "main-right",
     "main-top",
@@ -27,7 +29,9 @@
     "pageRowCenterCreatesSplit": true,
     "singleTabRequiredForSplit": true,
     "cancelIsAtomic": true,
-    "fourthPanePolicy": "reject-with-visible-explanation",
+    "fourthPanePolicy": "add-as-four-grid-with-visible-preview",
+    "fifthPanePolicy": "reject-with-visible-explanation",
+    "sidebarMirrorsContentLayout": true,
     "normalIncognitoMixing": false
   },
   "persistence": {

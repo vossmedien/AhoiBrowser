@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "bundle": {
+    "name": "AhoiBrowser",
+    "identifier": "app.ahoibrowser.AhoiBrowser",
+    "architecture": "arm64",
+    "buildProfile": "release"
+  },
+  "signing": {
+    "identityPrefix": "Developer ID Application: ",
+    "hardenedRuntimeRequired": true,
+    "trustedTimestampRequired": true,
+    "entitlementPolicy": "config/macos-entitlements.json"
+  },
+  "notarization": {
+    "tool": "xcrun notarytool",
+    "credentialSource": "keychain-profile",
+    "acceptedStatus": "Accepted",
+    "stapleApp": true,
+    "stapleDmg": true
+  },
+  "packaging": {
+    "formats": ["zip", "dmg"],
+    "dmgVolumeName": "AhoiBrowser"
+  },
+  "installation": {
+    "target": "/Applications/AhoiBrowser.app",
+    "atomicReplacement": true,
+    "automaticRollbackOnVerificationFailure": true
+  },
+  "manifestSigning": {
+    "algorithm": "Ed25519",
+    "trustedKeyIds": [],
+    "externalGate": "Provision and independently pin the production release-manifest public key before release evidence can pass."
+  },
+  "updates": {
+    "implementation": "Sparkle",
+    "frameworkVersion": "2.9.6",
+    "frameworkCommit": "ac2def288cbff5cfc7df3ffef6abdf45b72bcb0a",
+    "archiveSha256": "52bf9e88cdd972fc0c81501377a880e90d47031bd8ca5462488f843e2609e192",
+    "algorithm": "Ed25519",
+    "httpsOnly": true,
+    "signedFeedRequired": true,
+    "verifyBeforeExtraction": true,
+    "systemProfileSubmission": false,
+    "downgradePrevention": "signed-appcast-version-policy",
+    "channels": {
+      "nightly": {
+        "feedUrl": "",
+        "artifactBaseUrl": "",
+        "publicEdKey": ""
+      },
+      "beta": {
+        "feedUrl": "",
+        "artifactBaseUrl": "",
+        "publicEdKey": ""
+      },
+      "stable": {
+        "feedUrl": "",
+        "artifactBaseUrl": "",
+        "publicEdKey": ""
+      }
+    },
+    "externalGate": "Provision and independently review each production HTTPS appcast and Sparkle Ed25519 public key, then pass real N-2 and N-1 delta/full update tests."
+  },
+  "requiredMaterials": [
+    "SPDX-2.3 SBOM",
+    "Third-Party Notices",
+    "corresponding source offer",
+    "component license evidence"
+  ]
+}

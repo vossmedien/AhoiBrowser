@@ -90,11 +90,14 @@ runtime entitlements required by their process role.
 - <https://developer.apple.com/support/developer-id/>
 - <https://chromium.googlesource.com/chromium/src/+/HEAD/chrome/installer/mac/signing/>
 
-Sparkle is the updater candidate, pinned at security-fixed `2.9.5`; profiling is
-off, keys remain outside source/web hosting, and full/delta/fallback/tamper/
-interruption/rollback tests are mandatory.
+Sparkle is the implemented updater, pinned at security-fixed `2.9.6`; profiling
+is off, keys remain outside source/web hosting, and full/delta/fallback/tamper/
+interruption/rollback tests are mandatory. The prior 2.9.5 candidate is not
+shippable because the two high-severity advisories below affect 2.9.5 and older.
 
-- <https://github.com/sparkle-project/Sparkle/releases/tag/2.9.5>
+- <https://github.com/sparkle-project/Sparkle/releases/tag/2.9.6>
+- <https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-3x7w-j75x-ppq5>
+- <https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-4v99-qgq9-6pxp>
 - <https://sparkle-project.org/documentation/security-and-reliability/>
 
 ## CloudKit and companion — green/yellow

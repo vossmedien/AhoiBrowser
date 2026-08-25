@@ -28,7 +28,8 @@ public struct SyncBoundary: Sendable {
     public func disposition(for dataClass: SyncDataClass) -> SyncDisposition {
         switch dataClass {
         case .workspace, .treeNode, .orderKey, .tombstone,
-             .recoveryMetadata, .deviceTab, .history, .appearance,
+             .recoveryMetadata, .device, .deviceSession, .deviceTab,
+             .history, .historyVisit, .remoteCommand, .appearance,
              .permittedSetting, .extensionInventory:
             return .allowed
         case .developerAsset:

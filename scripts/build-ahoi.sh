@@ -31,6 +31,7 @@ else
 fi
 
 ahoi_require_overlay_state
+"${SCRIPT_DIR}/fetch-sparkle.sh"
 hook_args=(--allow-source-overlay)
 if [ -n "${hook_xcode_option}" ]; then
   hook_args+=("${hook_xcode_option}")
@@ -61,7 +62,11 @@ ahoi_require_overlay_state
 app_path="${out_dir}/AhoiBrowser.app"
 [ -d "${app_path}" ] || \
   ahoi_die "branded AhoiBrowser.app was not produced in ${out_dir}"
+"${SCRIPT_DIR}/stage-component-runtime.sh" "${out_dir}" "${app_path}"
 "${SCRIPT_DIR}/stamp-built-app.sh" "${app_path}" "${args_file}"
+if [ "${profile}" = "dev" ]; then
+  "${SCRIPT_DIR}/sign-development-app.sh" "${app_path}"
+fi
 "${SCRIPT_DIR}/verify-built-app.sh" "${app_path}"
 python3 "${AHOI_REPO_ROOT}/tools/build_provenance.py" \
   --kind "${profile}" \

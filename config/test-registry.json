@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "outputs/AhoiBrowser-Master-Zielprompt.md",
-  "generatedAt": "2026-08-20T00:00:00Z",
+  "generatedAt": "2026-08-24T00:00:00Z",
   "tests": [
     {
       "id": "PKG-01",
@@ -552,7 +552,7 @@
     {
       "id": "SPLIT-01",
       "suite": "SPLIT",
-      "description": "Integrationstest erzwingt exakt zwei oder drei eindeutige Tabs pro Split-Collection, weist Mischprofile und ein viertes Pane atomar ab und erhält genau ein aktives Pane.",
+      "description": "Integrationstest erzwingt exakt zwei, drei oder vier eindeutige Tabs pro Split-Collection, weist Mischprofile und ein fünftes Pane atomar ab und erhält genau ein aktives Pane.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -564,7 +564,7 @@
     {
       "id": "SPLIT-02",
       "suite": "SPLIT",
-      "description": "alle kanonischen Zwei-/Drei-Pane-Layoutbäume, Ratios, Snap Points, Mindestgrößen und Layoutwechsel deterministisch serialisieren, validieren und ohne `WebContents`-Neuerzeugung anwenden.",
+      "description": "alle kanonischen Zwei-/Drei-/Vier-Pane-Layoutbäume einschließlich 2×2, Ratios, Snap Points, Mindestgrößen und Layoutwechsel deterministisch serialisieren, validieren und ohne `WebContents`-Neuerzeugung anwenden.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -576,7 +576,7 @@
     {
       "id": "SPLIT-03",
       "suite": "SPLIT",
-      "description": "Session Service und Tab Restore roundtrippen Zwei-/Drei-Pane-Mitgliedschaft, Layout, Ratios und Fokus; alte Zweierdaten migrieren und beschädigte beziehungsweise fehlende Leaves sicher degradieren.",
+      "description": "Session Service und Tab Restore roundtrippen Zwei-/Drei-/Vier-Pane-Mitgliedschaft, Layout, Ratios und Fokus; alte Zweier-/Dreierdaten migrieren und beschädigte beziehungsweise fehlende Leaves sicher degradieren.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -588,7 +588,7 @@
     {
       "id": "SPLIT-04",
       "suite": "SPLIT",
-      "description": "Extension-`splitId` und Tab-Operationen für zwei und drei Mitglieder prüfen; Move, Close und ungültige Teiloperationen erhalten einen gültigen Zustand oder lösen den Split kontrolliert auf.",
+      "description": "Extension-`splitId` und Tab-Operationen für zwei, drei und vier Mitglieder prüfen; Move, Close und ungültige Teiloperationen erhalten einen gültigen Zustand oder lösen den Split kontrolliert auf.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -691,7 +691,7 @@
     {
       "id": "SPLIT-12",
       "suite": "SPLIT",
-      "description": "beide Divider per Maus/Trackpad ziehen; Ratios, Snap Points, bevorzugte und eingeschränkte Mindestgrößen sowie Persistenz prüfen.",
+      "description": "alle relevanten Divider per Maus/Trackpad ziehen; horizontales und vertikales Verhältnis, Snap Points, bevorzugte und eingeschränkte Mindestgrößen sowie Persistenz prüfen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -717,7 +717,7 @@
     {
       "id": "SPLIT-14",
       "suite": "SPLIT",
-      "description": "Pane aus Split herausziehen, einzeln schließen und gesamten Split schließen; korrekte Übergänge `3 -> 2 -> 1`, Before-Unload und Tab Restore prüfen.",
+      "description": "Pane aus Split herausziehen, einzeln schließen und gesamten Split schließen; korrekte Übergänge `4 -> 3 -> 2 -> 1`, Before-Unload und Tab Restore prüfen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -730,7 +730,7 @@
     {
       "id": "SPLIT-15",
       "suite": "SPLIT",
-      "description": "vierten externen Tab auf volle Dreiergruppe ziehen; verständliche Ablehnung ohne Reload, Ersatz, Verstecken, Schließen oder Tree-Mutation.",
+      "description": "fünften externen Tab auf volle Vierergruppe ziehen; verständliche Ablehnung ohne Reload, Ersatz, Verstecken, Schließen oder Tree-Mutation.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -808,7 +808,7 @@
     {
       "id": "SPLIT-21",
       "suite": "SPLIT",
-      "description": "normale Zwei- und Drei-Pane-Sitzung vollständig beenden und neu starten; Workspace/Fenster, Mitgliedschaft, Layout, Ratios und Fokus exakt wiederherstellen.",
+      "description": "normale Zwei-, Drei- und Vier-Pane-Sitzung vollständig beenden und neu starten; Workspace/Fenster, Mitgliedschaft, Layout, beide 2×2-Ratios und Fokus exakt wiederherstellen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -834,7 +834,7 @@
     {
       "id": "SPLIT-23",
       "suite": "SPLIT",
-      "description": "Zwei-/Drei-Pane-Split innerhalb Inkognito funktioniert; Normal-/Inkognito-Mischung wird abgewiesen und nach Schließen oder Crash wird nichts wiederhergestellt, synchronisiert oder historisiert.",
+      "description": "Zwei-/Drei-/Vier-Pane-Split innerhalb Inkognito funktioniert; Normal-/Inkognito-Mischung wird abgewiesen und nach Schließen oder Crash wird nichts wiederhergestellt, synchronisiert oder historisiert.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -951,7 +951,33 @@
     {
       "id": "SPLIT-32",
       "suite": "SPLIT",
-      "description": "drei reale komplexe Seiten mit Video, DevTools und Downloads neben 10.000 Sidebar-Knoten betreiben; Drag, Fokus, Resize und Layout bleiben flüssig und erzeugen keine eigene Idle-CPU-Regression.",
+      "description": "vier reale komplexe Seiten mit Video, DevTools und Downloads neben 10.000 Sidebar-Knoten betreiben; Drag, Fokus, Resize und Layout bleiben flüssig und erzeugen keine eigene Idle-CPU-Regression.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-33",
+      "suite": "SPLIT",
+      "description": "vierten Tab auf jedes Pane einer Dreiergruppe ziehen; 2×2-Vorschau, Einfügeposition und vier simultan laufende Seiten prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPLIT-34",
+      "suite": "SPLIT",
+      "description": "Vierergruppe zwischen unterstützten Anordnungen einschließlich 2×2 wechseln; Sidebar-Segmentraster spiegelt Position und Reihenfolge korrekt und lesbar wider.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2602,7 +2628,7 @@
     {
       "id": "PRIV-01",
       "suite": "PRIV",
-      "description": "First-Party-Login funktioniert im Strict-Modus.",
+      "description": "First-Party-Login funktioniert im Modus `Mehr Schutz`.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2680,7 +2706,7 @@
     {
       "id": "PRIV-07",
       "suite": "PRIV",
-      "description": "absichtlich inkompatible Fixture auf `Chromium-kompatibel` umschalten.",
+      "description": "absichtlich inkompatible Fixture auf `Maximale Website-Kompatibilität` umschalten; Wirkung und weiterhin aktive Chromium-Sicherheitsgrenzen sind ohne internes Fachvokabular verständlich.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2706,7 +2732,7 @@
     {
       "id": "PRIV-09",
       "suite": "PRIV",
-      "description": "Ausnahme entfernen und Strict-Verhalten wiederherstellen.",
+      "description": "Ausnahme entfernen und Verhalten von `Mehr Schutz` wiederherstellen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -3649,6 +3675,599 @@
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
-    }
+    },
+      {
+        "id": "MEDIA-08",
+        "suite": "MEDIA",
+        "description": "abspielender Tab zeigt Lautsprecher, gemuteter beziehungsweise stummgeschalteter Medientab zeigt stummes Lautsprecher-Icon; Hover-, Close- und Power-Aktionen verdecken den Zustand nicht dauerhaft.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "MEDIA-09",
+        "suite": "MEDIA",
+        "description": "MiniPlayer erscheint am unteren Sidebar-Ende, steuert die richtige Media Session und lässt bei darüberliegendem Overlay jeden dahinter scrollenden Tab durch korrektes Bottom-Inset erreichen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "MEDIA-10",
+        "suite": "MEDIA",
+        "description": "MiniPlayer bei angedockter, schwebender, eingeklappter und wieder eingeblendeter Sidebar sowie nach Resize, Workspace-, Fenster- und App-Neustart prüfen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "MEDIA-11",
+        "suite": "MEDIA",
+        "description": "mit mehreren gleichzeitigen Media Sessions die Quelle explizit wechseln; Titel, Origin, Play/Pause, Seek, Mute und macOS-Medientasten bleiben dem gewählten Tab zugeordnet.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "MEDIA-12",
+        "suite": "MEDIA",
+        "description": "wiederholt ohne Playback-Verlust oder falschen Fokus zwischen Sidebar-MiniPlayer und Chromium-PiP wechseln; aus jedem Split-Pane und nach Layoutwechsel prüfen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "NAV-09",
+        "suite": "NAV",
+        "description": "Chromiums unveränderte Trackpad-/Magic-Mouse-Wischgeste über einer Seite für Zurück und Vor als Regression prüfen; langsame, schnelle und abgebrochene Bewegung mit sichtbarem Fortschritt, aber keine Ahoi-Parallelimplementierung.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "NAV-10",
+        "suite": "NAV",
+        "description": "Seiten-, Workspace- und horizontale Website-Scrollgeste gegeneinander testen; genau eine erkannte Aktion, kein Doppelwechsel und konfigurierbare Deaktivierung.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "NAV-11",
+        "suite": "NAV",
+        "description": "`⌘` plus Scroll wechselt mit Vorschau, Schwelle und Rate-Limit zwischen laufenden Tabs; Web-Zoom, normales Scrollen, Modalzustände und Split-Fokus bleiben korrekt.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "NAV-12",
+        "suite": "NAV",
+        "description": "Mittelklick-Auto-Scrolling auf Hauptseite und verschachteltem Scroller in alle Richtungen und Geschwindigkeiten; Mittelklick, Klick, Escape, Tab-/Workspace-Wechsel und Fokusverlust beenden sofort.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "NAV-13",
+        "suite": "NAV",
+        "description": "Auto-Scrolling bei nicht scrollbarer Seite, Pointer Lock, reduziertem Motion, Zoom und Browser-Chrome-Drag bleibt sicher und erzeugt keine hängende Eingabe.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PASS-01",
+        "suite": "PASS",
+        "description": "neuen Webformular-Login speichern und nach komplettem Browserneustart korrekt anbieten und ausfüllen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PASS-02",
+        "suite": "PASS",
+        "description": "mehrere Konten derselben Origin suchen, ausschließlich per Tastatur auswählen, aktualisieren und einzeln löschen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PASS-03",
+        "suite": "PASS",
+        "description": "gespeichertes Passwort erst nach erfolgreicher Touch-ID-/Systemauthentifizierung anzeigen beziehungsweise kopieren; Abbruch und fehlgeschlagene Authentifizierung geben keinen Klartext preis.",
+        "primaryClass": "ASSISTED_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "ASSISTED_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PASS-04",
+        "suite": "PASS",
+        "description": "Passwortverwaltung über Einstellungen und kompakte Browseraktion öffnen; Suche, Bearbeiten, Löschen, Import/Export und upstream verfügbare Passwortprüfung sind zugänglich und lokalisiert.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PASS-05",
+        "suite": "PASS",
+        "description": "Autofill, Passkeys, Webformular-Passwörter, HTTP-Auth-Zugänge, 1Password und Bitwarden bleiben getrennt und überschreiben oder doppeln einander nicht unerwartet.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PASS-06",
+        "suite": "PASS",
+        "description": "Inkognito speichert keine neuen lokalen Passwörter; bestehende Nutzung folgt Chromiums sicherer OTR-Policy und hinterlässt keine Sessiondaten.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PASS-07",
+        "suite": "PASS",
+        "description": "Webformular- und HTTP-Auth-Passwörter, Autofill und Passkeys erscheinen weder in CloudKit, Geräte-Tabs, iOS noch in E2E-Evidenz oder Logs.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PERF-11",
+        "suite": "PERF",
+        "description": "100-Tab-Sitzung mit Memory Saver messen; inaktive geeignete Tabs werden nach dokumentierter Policy verworfen, sichtbarer RAM sinkt nachvollziehbar und Reaktivierung erhält URL, Navigation History und Sessionzustand soweit Chromium dies garantiert.",
+        "primaryClass": "INTEGRATION",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PERF-12",
+        "suite": "PERF",
+        "description": "aktive Tabs sowie Audio, Video, MiniPlayer, PiP, Capture/WebRTC, Downloads, nicht abgesendete Formulare, HTTP-Auth-/Permission-Flows und DevTools werden während ihres kritischen Zustands nicht fälschlich verworfen.",
+        "primaryClass": "INTEGRATION",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PERF-13",
+        "suite": "PERF",
+        "description": "Schlafzustand in Sidebar/Tabstatus verständlich anzeigen, manuell aufwecken sowie Origin/Tab auf eine Never-Sleep-Liste setzen und wieder entfernen; Persistenz und Tastaturbedienung prüfen.",
+        "primaryClass": "INTEGRATION",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PERF-14",
+        "suite": "PERF",
+        "description": "schwebende Navigationszeile, Glass, Schatten, Popup-Overlay, MiniPlayer und Floating Sidebar einzeln und kombiniert profilieren; deaktivierte beziehungsweise verborgene Flächen erzeugen keine relevante Idle-CPU-, GPU- oder Memory-Regression.",
+        "primaryClass": "INTEGRATION",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PERF-15",
+        "suite": "PERF",
+        "description": "Hintergrundtimer-, Renderer- und Netzwerkdrosselung mit identischem Upstream-Chromium vergleichen; AhoiBrowser verschlechtert aktive Entwicklungs-, Media- oder Extension-Workloads nicht und dokumentiert jede absichtliche Abweichung.",
+        "primaryClass": "INTEGRATION",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "POPUP-01",
+        "suite": "POPUP",
+        "description": "Fixture und reale Website öffnen ein geeignetes Popup; es erscheint als fokussiertes Overlay über dem auslösenden Pane, mit korrekter Origin und ohne dessen Viewport dauerhaft umzubauen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "POPUP-02",
+        "suite": "POPUP",
+        "description": "externe vertikale Aktionen ausschließlich per Maus und anschließend ausschließlich per Tastatur bedienen; Close, Labels, Fokusreihenfolge, Hover und VoiceOver sind eindeutig.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "POPUP-03",
+        "suite": "POPUP",
+        "description": "Popup `Als eigenen Tab öffnen`; dasselbe `WebContents`, Formzustand, Login, Scrollposition und Navigation History bleiben ohne Reload erhalten.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "POPUP-04",
+        "suite": "POPUP",
+        "description": "Popup `Mit Ausgangstab splitten`; Zwei- bis Vier-Pane-Ziel, Opener-Zuordnung, Tree-Zustand und Fokus bleiben korrekt, fünftes Pane wird atomar abgewiesen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "POPUP-05",
+        "suite": "POPUP",
+        "description": "Download, Upload, HTTP Auth, Permission Prompt, OAuth, Passkey, Audio/Video, DevTools, Vollbild und Before-Unload aus Overlay prüfen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "POPUP-06",
+        "suite": "POPUP",
+        "description": "nicht sicher overlayfähigen Flow kontrolliert als separates Fenster öffnen; keine Origin-Verwechslung, kein abgeschnittener Inhalt und verständliche Transition.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "POPUP-07",
+        "suite": "POPUP",
+        "description": "Opener, Popup, Split-Promotion und Browser jeweils kontrolliert crashen beziehungsweise schließen; keine Phantom-Tabs, Leaks oder verlorenen normalen Sessions.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "SYNC-23",
+        "suite": "SYNC",
+        "description": "Tabs von Mac B und iOS erscheinen ohne Geräte-Sonderseite direkt zwischen den normalen Sidebar-Tabs, mit passendem Smartphone-/Tablet-/Desktop-Badge, Favicon, Workspace und letzter Aktivität; lokal filtern und öffnen.",
+        "primaryClass": "ASSISTED_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "ASSISTED_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "SYNC-24",
+        "suite": "SYNC",
+        "description": "Gerät offline, Tab geschlossen, Gerät umbenannt und Gerät entzogen; Geräte-Tabs-UI zeigt verständliche Aktualität, räumt Tombstones auf und bietet keine veraltete Remote-Aktion an.",
+        "primaryClass": "ASSISTED_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "ASSISTED_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "SYNC-25",
+        "suite": "SYNC",
+        "description": "Inkognito-, Passwort-, Cookie-, Site-Storage-, Permission- und Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf.",
+        "primaryClass": "ASSISTED_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "ASSISTED_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "SYNC-26",
+        "suite": "SYNC",
+        "description": "frisches Profil ohne Google-Anmeldung verwenden; Geräte-Tabs und kompletter Sync funktionieren über CloudKit, während Chrome Sync und Google-Browserkonto deaktiviert bleiben.",
+        "primaryClass": "ASSISTED_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "ASSISTED_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "UI-11",
+        "suite": "UI",
+        "description": "schwebende Navigationszeile einblenden, bedienen und automatisch ausblenden; Website misst vor, während und nach dem Vorgang identische Viewporthöhe und erhält keinen Layout-Shift.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "UI-12",
+        "suite": "UI",
+        "description": "Reveal-Notch per Hover, Klick, `⌘L` und Tastaturfokus bedienen; offene Eingabe, Extension-Popup, Auth-/Permission-Dialog und Downloadstatus werden nicht vorzeitig ausgeblendet.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "UI-13",
+        "suite": "UI",
+        "description": "WebContents-Container mit Radius, Clipping und Schatten auf hellen/dunklen realen Seiten, bei Resize, Browser-Vollbild, Video-Vollbild, Screen Capture und macOS Split View prüfen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "UI-14",
+        "suite": "UI",
+        "description": "Sidebar zwischen angedockt, schwebend, eingeklappt und wieder sichtbar schalten; angedockt ändert den echten Viewport korrekt, schwebend überlagert ohne unerwarteten Reflow.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "UI-15",
+        "suite": "UI",
+        "description": "Glass für Sidebar, Navigationszeile, Notch, Popup und MiniPlayer aktivieren; bei `Transparenz reduzieren`, hohem Kontrast, Battery-/Performance-Druck und deaktiviertem Glass entsteht ein konsistenter opaker Fallback.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "WS-08",
+        "suite": "WS",
+        "description": "aktiven Workspace mit Icon/Name und alle inaktiven Workspaces als stabile Dots darstellen; Hover und Tastaturfokus zeigen jeweils korrekte Vorschau ohne Wechsel.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "WS-09",
+        "suite": "WS",
+        "description": "Workspace per Dot, Tastatur und echter Wischgeste wechseln; Animation abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab und WebContents niemals auseinanderlaufen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "UI-16",
+        "suite": "UI",
+        "description": "Sidebar vollständig verbergen, Pointer an den linken Fensterrand bewegen und dieselbe Sidebar als Overlay ein-/ausblenden; Website-Viewport und Renderergröße bleiben identisch, Drag/Fokus/Menu halten offen, Escape/Pin/Dock schließen beziehungsweise fixieren deterministisch.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "UI-17",
+        "suite": "UI",
+        "description": "normalen letzten Tab schließen; Fenster bleibt mit nativer themefähiger Leerdarstellung offen, besitzt null Tabs/null `WebContents`, erzeugt keinen Netzwerkzugriff und kann über Cmd+T, Command Bar sowie Sidebar-Aktionen wieder einen Tab öffnen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "TREE-14",
+        "suite": "TREE",
+        "description": "leeren Workspace aktivieren, ohne automatisch einen Tab zu erzeugen; zwischen leerem und gefülltem Workspace wechseln und korrekten aktiven Nullzustand sowie Session Restore prüfen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "TREE-15",
+        "suite": "TREE",
+        "description": "`Alle temporären Tabs leeren` einschließlich des aktiven letzten Tabs ausführen; kein Ersatz-Tab, kein fremder Workspace-Tab und kein Fenster-Close.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "DEV-27",
+        "suite": "DEV",
+        "description": "Datenlöschdialog auf `alle Websites`, mehrere Typen und einen Zeitraum konfigurieren, bestätigen und währenddessen UI ändern/doppelklicken; exakt ein unveränderlicher Request läuft und der Erfolg nennt globalen Scope, Zeitraum und Typen korrekt.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "DEV-28",
+        "suite": "DEV",
+        "description": "denselben Ablauf für `aktuelle Website`, Einzeltypen, Teilerfolg und Fehler prüfen; kein Status darf einen anderen Scope behaupten und Buttons bleiben in allen Themes/Größen sichtbar, kompakt und tastaturbedienbar.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": [
+          "UNIT",
+          "INTEGRATION",
+          "CU_E2E"
+        ],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      }
   ]
 }

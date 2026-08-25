@@ -1,0 +1,6 @@
+include_rules = [
+  "+base",
+  "+testing/gtest",
+  "+third_party/sparkle",
+  "+url",
+]

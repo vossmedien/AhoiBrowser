@@ -49,5 +49,9 @@ overrides a warning. Secret values are Keychain references, not serialized text.
 - Chromium sandbox, renderer, GPU, utility, and network process verification
 - site-isolation cross-origin process check
 - update signature, rollback prevention, atomic replacement, and failure recovery
+- Sparkle must remain at or above the reviewed 2.9.6 pin; the advisory gate
+  rejects GHSA-3x7w-j75x-ppq5/GHSA-4v99-qgq9-6pxp-affected pins, unsigned feeds,
+  verification after extraction, credentialed/non-HTTPS feeds, profile upload,
+  or missing production feed/public-key configuration
 - endpoint and privacy audit on a fresh profile
 - dependency/license inventory and secret scan

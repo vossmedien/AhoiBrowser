@@ -1,39 +1,126 @@
 # Sync architecture
 
-Sync is optional, local-first, provider-abstracted, and initially backed by the
-user's CloudKit private database in a custom zone. Local operation never waits
-for CloudKit. Record payloads designated as encrypted values are encrypted before
-transport with device-held key material; CloudKit account privacy alone is not
-treated as application-layer encryption.
+Ahoi sync is optional, local-first and disabled by default. The default path
+does not construct `CKContainer`, request an iCloud account, read a sync key or
+start network work. Enabling the profile/Companion preference creates transport
+only when the signed app also supplies a non-placeholder container, the required
+entitlements and an externally provisioned 32-byte payload key. Failure at any
+of those gates leaves SQLite/JSON persistence, workspaces, tabs and history
+usable locally.
 
-## Data model
+`config/sync-policy.json` is the normative allow/deny contract. Cookies,
+passwords, autofill, HTTP-auth or header credentials, permissions, site data,
+cache, extension storage, Keychain secrets, split topology and incognito data
+never enter a sync record. The currently implemented record slice is devices,
+device sessions, workspaces, tree nodes/order, tombstones, normal device tabs,
+ordinary browser history and signed remote commands. Other allowlisted policy
+domains remain future work and must not be reported as transported until they
+have a concrete record adapter and tests.
 
-Every syncable entity has a UUID, schema version, hybrid logical timestamp,
-device ID, stable order key, payload hash, and tombstone state. Folder/page moves
-and reorders converge without using array indexes as identity. Orphans created
-by concurrent deletion/move conflicts are placed in a visible recovery folder.
+## Wire v2
 
-## Scope
+Chromium's `sync_serialization.cc` and the Companion's
+`DesktopWirePayloadCodec.swift` emit the same sorted JSON. UUIDs are lowercase,
+64-bit Windows-epoch microseconds are decimal strings, and every v2 payload has
+an exact `field_versions` map. A field clock is an HLC tuple of physical
+microseconds, logical counter and device UUID. V1 payloads remain readable;
+new or modified values are written as v2.
 
-The normative allow/deny lists are `config/sync-policy.json`. Extension inventory
-means identifiers and desired enabled state, never CRX contents or extension
-storage. Developer assets sync only after explicit per-asset opt-in and may not
-contain inline secrets; secret placeholders resolve locally from Keychain.
-Device tabs may report that a page is open, but window/workspace split
-membership, pane order, layout, divider ratios, and focused pane are local
-session state and never CloudKit records.
+Fields merge independently by HLC. The following groups are atomic because a
+partial merge would create invalid state:
 
-## Remote commands
+- tree `workspace_id + parent_id + sort_key` (`location`);
+- device-session `last_seen + active` (`liveness`);
+- remote-command immutable request and monotonic status/ack.
 
-The iOS companion can send enumerated commands to open, focus, or close a normal
-Mac tab. Commands are signed, device-approved, nonce-protected, expire after five
-minutes, and are stored long enough to reject replay. Targets and counts are
-validated. Incognito, shell commands, arbitrary URL schemes, bulk destructive
-operations, secret transfer, and developer override execution are forbidden.
+Creation identity, device/type ownership, node kind and command request are
+immutable. An equal field clock with different bytes, an immutable mismatch or
+an incomplete v2 field map is quarantined. Disjoint offline edits are unioned,
+then the converged union receives a deterministic record clock strictly newer
+than both inputs before it is put back in the outbox. That successor avoids an
+equal-record-clock `serverRecordChanged` loop and makes later devices reach the
+same value without a second authority.
 
-## Recovery and migration
+Exact Mac/Swift golden tests pin the v2 remote-tab bytes and the command signing
+canonicalization. Device kinds map to Mac/iPhone/iPad explicitly; unknown kinds
+are not silently promoted.
 
-Schema migrations are forward-tested with offline devices. Corrupt/unknown
-records are quarantined, not dropped. Users can disable sync, export permitted
-records, delete CloudKit data, rotate encryption material through a documented
-recovery flow, and continue locally after account or service failure.
+## Local store v3 and lifecycle
+
+The profile database is SQLite schema v3. Migration is transactional: existing
+v1/v2 rows remain readable and are upgraded lazily, while v3 adds quarantine and
+durable deletion-watermark tables. A local mutation and its outbox row commit in
+one transaction. A downloaded provider page, inbox dedupe rows and the next
+change token also commit together.
+
+Invalid individual remote records are quarantined locally without logging their
+payload. The valid remainder of the page is applied and the provider token can
+advance, avoiding one poison record permanently blocking sync. Tombstones are
+retained for 30 days and compact only after their outbox row is acknowledged.
+Compaction leaves a durable version watermark, so a delayed pre-deletion record
+cannot resurrect the identity. History retention defaults to 90 days and accepts
+30, 90, 365 or unlimited (`-1`). Expiry creates normal sync tombstones before
+compaction.
+
+One device-session heartbeat is published every five minutes while sync work is
+active. A clean shutdown first persists tombstones for every open normal tab and
+an `active=false` session update; network completion is not required during
+termination. On restart, any stale local active session and surviving local tab
+rows are closed before publishing the new session. Remote sessions remain
+visible for at most seven days and are actionable for only 15 minutes. Retired
+devices, inactive/tombstoned sessions, unsafe URLs and incognito tabs never reach
+`DeviceTabsService` observers.
+
+## Workspaces, tree and history authority
+
+`ProfileSyncService` observes the normal `TabTreeStore` through the UI-free
+`ProfileSyncUiBridge`. It exports local tree mutations into the sync outbox and
+reconciles downloaded workspaces/nodes back into that same store. Initial merge
+preserves the newer side; later callbacks use stable IDs, field clocks and
+canonical order keys. Cycles, missing parents and concurrent delete/move cases
+are repaired by `tab_tree_sync_adapter` into the normal recovery folder before
+the UI is notified. The sync core has no dependency on the UI-owning session
+target.
+
+Ordinary Chromium history is observed through `HistoryService`. Stable visit
+IDs derive from the profile device plus Chromium visit ID. Only browsed
+`http`/`https` entries with a host and no URL userinfo are eligible; hidden,
+404, non-browsed, file/data/custom-scheme and credential-bearing entries are
+excluded. Remote changes are inserted/deleted through the regular history
+service, with source/version guards preventing reflection loops and duplicates.
+
+## CloudKit transport
+
+The macOS and Companion providers use the private database and one custom zone.
+URLs, titles, history, tab and tree payloads are sealed with AES-256-GCM before
+the envelope is written exclusively through `CKRecord.encryptedValues`.
+Queryable fields contain only conflict/routing metadata. The code does not
+invent a KDF, recovery phrase, fallback key or fake credential.
+
+`CKSyncEngine` opaque state is stored atomically. Automatic sync, the five-minute
+timer and manual sync use the same outbox/download pump. Retryable CloudKit
+errors retain work and honor retry hints. Account changes and zone loss persist
+separate fail-closed recovery gates; the host must explicitly choose whether to
+requeue retained local data. `serverRecordChanged` accepts the newer version,
+deduplicates identical values and quarantines equal-version divergence.
+
+## Signed remote control
+
+Remote control is separately off by default. A Mac accepts only an approved
+source-device UUID mapped to a raw Ed25519 public key. Signatures cover command
+ID, source, target, nonce, issue time and exactly one open/focus/close action.
+The target enforces a five-minute TTL, target binding, safe network URLs and a
+persistent command-ID/source-nonce replay claim before dispatch on the UI
+thread. Incognito, bulk close, scripts, file/data URLs and credential URLs are
+not representable. Execution produces a delivered/executed/failed record ack.
+
+## External Apple boundary
+
+No Team ID, production container, signing identity, provisioning profile or
+secret is tracked. `config/macos-entitlements.json` intentionally remains the
+current exact no-CloudKit release allowlist. The external release owner must
+materialize matching App IDs, container/environment entitlements, Keychain
+access groups and provisioning profiles in the supplied templates, update the
+exact release allowlist for that signed build, and then prove an entitled
+two-device roundtrip. Until that happens, real CloudKit mutation is
+`BLOCKED_ENTITLEMENT`/`NOT_RUN`, not a local-test pass.

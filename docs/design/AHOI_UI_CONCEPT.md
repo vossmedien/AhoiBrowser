@@ -24,8 +24,8 @@ Implementation cues:
 Split-view interaction cues:
 
 - dropping one live tab onto another exposes a clear `Split with …` target;
-- support two panes side by side or stacked and all canonical three-pane
-  layouts: three columns, three rows, and main-left/right/top/bottom;
+- support two panes side by side or stacked, all canonical three-pane layouts,
+  and four panes as a coherent 2×2 grid mirrored by the sidebar;
 - keep every pane live, independently focusable and resizable;
 - show focus with the existing accent rather than duplicating full toolbars;
 - preserve unsplit, close, audio, PiP and pane-specific DevTools actions;
