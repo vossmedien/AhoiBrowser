@@ -1,0 +1,18 @@
+include_rules = [
+  "+chrome/browser/favicon",
+  "+chrome/grit",
+  "+components/favicon",
+  "+components/favicon_base",
+  "+components/split_tabs",
+  "+components/tabs",
+  "+components/vector_icons",
+  "+content/public/browser",
+  "+third_party/skia",
+  "+ui/accessibility",
+  "+ui/base",
+  "+ui/color",
+  "+ui/compositor",
+  "+ui/events",
+  "+ui/gfx",
+  "+ui/views",
+]

@@ -1,0 +1,554 @@
+// Copyright 2026 The AhoiBrowser Authors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
+
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <set>
+#include <tuple>
+#include <unordered_set>
+#include <utility>
+
+#include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/visual_style.h"
+#include "base/check.h"
+#include "base/functional/bind.h"
+#include "base/functional/callback_helpers.h"
+#include "base/i18n/rtl.h"
+#include "base/location.h"
+#include "base/no_destructor.h"
+#include "base/numerics/safe_conversions.h"
+#include "base/time/time.h"
+#include "third_party/skia/include/core/SkColor.h"
+#include "ui/accessibility/ax_enums.mojom.h"
+#include "ui/base/clipboard/clipboard_format_type.h"
+#include "ui/base/dragdrop/drag_drop_types.h"
+#include "ui/base/dragdrop/mojom/drag_drop_types.mojom.h"
+#include "ui/base/dragdrop/os_exchange_data.h"
+#include "ui/base/metadata/metadata_impl_macros.h"
+#include "ui/base/mojom/menu_source_type.mojom.h"
+#include "ui/color/color_id.h"
+#include "ui/color/color_provider.h"
+#include "ui/compositor/layer_tree_owner.h"
+#include "ui/events/event.h"
+#include "ui/events/keycodes/keyboard_codes.h"
+#include "ui/gfx/animation/animation.h"
+#include "ui/gfx/canvas.h"
+#include "ui/gfx/geometry/rect.h"
+#include "ui/gfx/image/image_skia.h"
+#include "ui/views/accessibility/view_accessibility.h"
+#include "ui/views/controls/focus_ring.h"
+#include "ui/views/controls/scroll_view.h"
+#include "ui/views/drag_utils.h"
+#include "ui/views/view_utils.h"
+
+namespace ahoi::sidebar {
+
+namespace {
+
+int RowY(size_t row_index) {
+  constexpr size_t kMaxRowIndex =
+      static_cast<size_t>(std::numeric_limits<int>::max()) /
+      SidebarTreeRowView::kRowHeight;
+  return base::saturated_cast<int>(std::min(row_index, kMaxRowIndex) *
+                                   SidebarTreeRowView::kRowHeight);
+}
+
+}  // namespace
+
+SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
+                                 SidebarTreeViewDelegate* delegate,
+                                 std::u16string accessible_name,
+                                 std::u16string split_with_prefix)
+    : controller_(controller),
+      delegate_(delegate),
+      split_with_prefix_(std::move(split_with_prefix)) {
+  CHECK(controller_);
+  CHECK(!accessible_name.empty());
+  CHECK(!split_with_prefix_.empty());
+  SetFocusBehavior(FocusBehavior::ALWAYS);
+  set_context_menu_controller(this);
+  views::FocusRing::Install(this);
+  views::FocusRing::Get(this)->SetColorId(visual_style::kAccent);
+  GetViewAccessibility().SetRole(ax::mojom::Role::kTree);
+  GetViewAccessibility().SetName(accessible_name);
+  GetViewAccessibility().SetIsVertical(true);
+  GetViewAccessibility().SetReadOnly(true);
+  preferred_height_animation_.SetSlideDuration(
+      visual_style::kTreeMotionDuration);
+  row_bounds_animator_.SetAnimationDuration(visual_style::kTreeMotionDuration);
+  last_visual_row_count_ = BuildVisualRows().size();
+  model().AddObserver(this);
+}
+
+SidebarTreeView::~SidebarTreeView() {
+  model().RemoveObserver(this);
+  set_context_menu_controller(nullptr);
+  for (auto& entry : materialized_rows_) {
+    entry.second->set_drag_controller(nullptr);
+  }
+  for (const auto& row : recycled_rows_) {
+    row->set_drag_controller(nullptr);
+  }
+}
+
+// static
+std::unique_ptr<views::ScrollView> SidebarTreeView::CreateScrollView(
+    std::unique_ptr<SidebarTreeView> tree_view) {
+  CHECK(tree_view);
+  auto scroll_view = std::make_unique<views::ScrollView>();
+  // The owning sidebar surface supplies the themed opaque/glass background.
+  // Keeping this scroll container transparent avoids painting a second full
+  // grey slab above the backdrop.
+  scroll_view->SetBackground(nullptr);
+  scroll_view->SetHorizontalScrollBarMode(
+      views::ScrollView::ScrollBarMode::kDisabled);
+  scroll_view->SetDrawOverflowIndicator(false);
+  scroll_view->SetContents(std::move(tree_view));
+  return scroll_view;
+}
+
+// static
+SidebarTreeView::VisibleRange SidebarTreeView::CalculateVisibleRange(
+    size_t row_count,
+    const gfx::Rect& visible_bounds,
+    size_t overscan_rows) {
+  if (row_count == 0 || visible_bounds.height() <= 0) {
+    return {};
+  }
+  const int top = std::max(0, visible_bounds.y());
+  const int bottom = std::max(top, visible_bounds.bottom());
+  size_t first = static_cast<size_t>(top / SidebarTreeRowView::kRowHeight);
+  size_t past_last = static_cast<size_t>(
+      (static_cast<int64_t>(bottom) + SidebarTreeRowView::kRowHeight - 1) /
+      SidebarTreeRowView::kRowHeight);
+  first = std::min(first, row_count);
+  past_last = std::min(std::max(past_last, first), row_count);
+  first = first > overscan_rows ? first - overscan_rows : 0;
+  past_last = std::min(row_count, past_last + overscan_rows);
+  return {.first = first, .past_last = past_last};
+}
+
+void SidebarTreeView::BeginRenameSelectedNode() {
+  if (!model().selected_node_id().has_value()) {
+    return;
+  }
+  const base::Uuid node_id = *model().selected_node_id();
+  const std::optional<size_t> row_index = model().GetRowForNode(node_id);
+  if (!row_index.has_value()) {
+    return;
+  }
+  if (editing_node_id_.has_value() && editing_node_id_ != node_id) {
+    CancelRename();
+  }
+  editing_node_id_ = node_id;
+  EnsureRowVisible(*row_index);
+  SynchronizeRows(GetVisibleBounds());
+  if (SidebarTreeRowView* row = GetMaterializedRowForTesting(node_id)) {
+    row->StartEditing();
+  }
+}
+
+void SidebarTreeView::CancelRename() {
+  if (!editing_node_id_.has_value()) {
+    return;
+  }
+  CancelRename(*editing_node_id_);
+}
+
+SidebarTreeRowView* SidebarTreeView::GetMaterializedRowForTesting(
+    const base::Uuid& node_id) const {
+  auto row = materialized_rows_.find(node_id);
+  return row == materialized_rows_.end() ? nullptr : row->second.get();
+}
+
+void SidebarTreeView::SynchronizeRowsForTesting(
+    const gfx::Rect& visible_bounds) {
+  SynchronizeRows(visible_bounds);
+}
+
+std::optional<SidebarTreeView::DropIndicator>
+SidebarTreeView::CalculateDropIndicatorForTesting(
+    const base::Uuid& source_node_id,
+    const gfx::Point& point,
+    SidebarTreeController::DropOperation operation) {
+  return CalculateDropIndicator(source_node_id, point, operation);
+}
+
+void SidebarTreeView::OnRowPressed(SidebarTreeRowView* row,
+                                   const ui::MouseEvent& /*event*/,
+                                   bool disclosure_hit) {
+  CHECK(row);
+  pressed_node_id_ = row->node_id();
+  if (editing_node_id_.has_value() && editing_node_id_ != row->node_id()) {
+    CancelRename();
+  }
+  RequestFocus();
+}
+
+void SidebarTreeView::OnRowReleased(SidebarTreeRowView* row,
+                                    const ui::MouseEvent& event,
+                                    bool disclosure_hit) {
+  CHECK(row);
+  const std::optional<base::Uuid> pressed_node_id =
+      std::exchange(pressed_node_id_, std::nullopt);
+  if (!pressed_node_id.has_value() || !event.IsLeftMouseButton() ||
+      *pressed_node_id != row->node_id() ||
+      !row->GetLocalBounds().Contains(event.location())) {
+    return;
+  }
+  const tab_tree::TreeNode* node = model().GetNode(*pressed_node_id);
+  if ((disclosure_hit ||
+       (node && node->type == tab_tree::TreeNodeType::kFolder &&
+        event.GetClickCount() == 1)) &&
+      node && node->type == tab_tree::TreeNodeType::kFolder) {
+    if (!disclosure_hit) {
+      std::ignore = controller_->SelectNode(*pressed_node_id);
+    }
+    // Model updates and row rebinding are deliberately coalesced. A click can
+    // therefore arrive while the recycled row still reflects the previous
+    // frame. The model is authoritative for the toggle direction.
+    if (model().IsExpanded(*pressed_node_id)) {
+      std::ignore = controller_->CollapseNode(*pressed_node_id);
+    } else {
+      const auto result = controller_->ExpandNode(*pressed_node_id);
+      if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
+        delegate_->OnMutationFailed(result);
+      }
+    }
+    return;
+  }
+  if (node && node->type == tab_tree::TreeNodeType::kSavedPage &&
+      event.GetClickCount() == 1) {
+    if (controller_->SelectNode(*pressed_node_id)) {
+      ActivateSelectedNode();
+    }
+  }
+}
+
+void SidebarTreeView::OnRowTrailingAction(SidebarTreeRowView* row) {
+  CHECK(row && row->is_bound());
+  if (delegate_) {
+    delegate_->PerformSavedPageTrailingAction(row->node_id());
+  }
+}
+
+void SidebarTreeView::OnRowHoverChanged(SidebarTreeRowView* row, bool hovered) {
+  if (!delegate_ || !row || !row->is_bound() || !row->is_folder()) {
+    return;
+  }
+  delegate_->OnFolderHoverChanged(row->node_id(), row, hovered);
+}
+
+bool SidebarTreeView::OnRowAccessibilityFocused(SidebarTreeRowView* row) {
+  CHECK(row && row->is_bound());
+  if (!controller_->SelectNode(row->node_id())) {
+    return false;
+  }
+  RequestFocus();
+  return true;
+}
+
+bool SidebarTreeView::OnRowAccessibilityActivated(SidebarTreeRowView* row) {
+  CHECK(row && row->is_bound());
+  if (!controller_->SelectNode(row->node_id())) {
+    return false;
+  }
+  ActivateSelectedNode();
+  return true;
+}
+
+void SidebarTreeView::CommitRename(const base::Uuid& node_id,
+                                   std::u16string title) {
+  if (!editing_node_id_.has_value() || *editing_node_id_ != node_id) {
+    return;
+  }
+  if (title.empty()) {
+    if (delegate_) {
+      delegate_->OnMutationFailed(
+          tab_tree::TabTreeStore::Result::kInvalidArgument);
+    }
+    return;
+  }
+  if (SidebarTreeRowView* row = GetMaterializedRowForTesting(node_id)) {
+    row->StopEditing(/*restore_model_title=*/false);
+  }
+  editing_node_id_.reset();
+  RequestFocus();
+  const auto result =
+      controller_->RenameNode(node_id, std::move(title), base::Time::Now());
+  if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
+    delegate_->OnMutationFailed(result);
+  }
+}
+
+void SidebarTreeView::CancelRename(const base::Uuid& node_id) {
+  if (!editing_node_id_.has_value() || *editing_node_id_ != node_id) {
+    return;
+  }
+  if (SidebarTreeRowView* row = GetMaterializedRowForTesting(node_id)) {
+    row->StopEditing(/*restore_model_title=*/true);
+  }
+  editing_node_id_.reset();
+  RequestFocus();
+}
+
+void SidebarTreeView::OnRowDragDone() {
+  pressed_node_id_.reset();
+  CancelFolderAutoExpand();
+  if (delegate_) {
+    delegate_->OnSidebarDragStateChanged(std::nullopt);
+  }
+}
+
+void SidebarTreeView::OnSplitGroupsChanged() {
+  last_drop_probe_.reset();
+  SetDropIndicator(std::nullopt);
+  HandleVisualRowCountChanged();
+  ScheduleSynchronization(/*preferred_size_changed=*/true);
+  SchedulePaint();
+}
+
+void SidebarTreeView::OnRuntimePresentationChanged() {
+  ScheduleSynchronization(/*preferred_size_changed=*/false);
+}
+
+void SidebarTreeView::Layout(PassKey) {
+  SynchronizeRows(GetVisibleBounds());
+}
+
+gfx::Size SidebarTreeView::CalculatePreferredSize(
+    const views::SizeBounds& /*available_size*/) const {
+  const size_t row_count = BuildVisualRows().size();
+  const size_t max_rows = static_cast<size_t>(std::numeric_limits<int>::max()) /
+                          SidebarTreeRowView::kRowHeight;
+  // Keep an empty workspace as a real drop surface. A zero-height tree means
+  // Views never routes the native drag into the saved section, so the first
+  // temporary tab cannot be pinned without creating a folder first.
+  const size_t visible_rows = std::max<size_t>(row_count, 1);
+  int height = base::saturated_cast<int>(
+      std::min(visible_rows, max_rows) * SidebarTreeRowView::kRowHeight);
+  if (preferred_height_animation_active_) {
+    const double value = preferred_height_animation_.GetCurrentValue();
+    height =
+        animated_height_from_ +
+        static_cast<int>((animated_height_to_ - animated_height_from_) * value);
+  }
+  // The host owns the sidebar width. Advertising the design-time default here
+  // makes ScrollView keep a wider contents layer after the native resize strip
+  // has narrowed the sidebar, so labels are clipped instead of being laid out
+  // against the new viewport. A zero preferred width lets ScrollView stretch
+  // the virtualized tree to the live viewport while preserving the exact row
+  // height and the host's independent default/min/max width contract.
+  return gfx::Size(0, height);
+}
+
+bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
+  if (event.type() != ui::EventType::kKeyPressed) {
+    return false;
+  }
+  if ((event.IsControlDown() || event.IsCommandDown()) &&
+      event.key_code() == ui::VKEY_Z) {
+    const auto result = controller_->UndoLastMutation();
+    if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
+      delegate_->OnMutationFailed(result);
+    }
+    return true;
+  }
+
+  switch (event.key_code()) {
+    case ui::VKEY_UP:
+      SelectRelativeRow(-1);
+      return true;
+    case ui::VKEY_DOWN:
+      SelectRelativeRow(1);
+      return true;
+    case ui::VKEY_HOME:
+      if (!model().rows().empty()) {
+        SelectRow(0);
+      }
+      return true;
+    case ui::VKEY_END:
+      if (!model().rows().empty()) {
+        SelectRow(model().rows().size() - 1);
+      }
+      return true;
+    case ui::VKEY_LEFT:
+      if (base::i18n::IsRTL()) {
+        ExpandOrSelectChild();
+      } else {
+        CollapseOrSelectParent();
+      }
+      return true;
+    case ui::VKEY_RIGHT:
+      if (base::i18n::IsRTL()) {
+        CollapseOrSelectParent();
+      } else {
+        ExpandOrSelectChild();
+      }
+      return true;
+    case ui::VKEY_RETURN:
+      ActivateSelectedNode();
+      return true;
+    case ui::VKEY_F2:
+      BeginRenameSelectedNode();
+      return true;
+    case ui::VKEY_BACK:
+    case ui::VKEY_DELETE:
+      if (model().selected_node_id().has_value()) {
+        const auto result = controller_->DeleteNode(*model().selected_node_id(),
+                                                    base::Time::Now());
+        if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
+          delegate_->OnMutationFailed(result);
+        }
+      }
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool SidebarTreeView::GetNeedsNotificationWhenVisibleBoundsChange() const {
+  return true;
+}
+
+void SidebarTreeView::OnVisibleBoundsChanged() {
+  SynchronizeRows(GetVisibleBounds());
+}
+
+void SidebarTreeView::OnBoundsChanged(const gfx::Rect& /*previous_bounds*/) {
+  SynchronizeRows(GetVisibleBounds());
+}
+
+void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
+  const std::vector<VisualRow> visual_rows = BuildVisualRows();
+  const std::vector<VisualPosition> visual_positions =
+      BuildVisualPositions(visual_rows);
+  const std::vector<SidebarTreeViewModel::Row>& rows = model().rows();
+  const int row_width = std::max(width(), 1);
+  const ui::ColorProvider* colors = GetColorProvider();
+
+  // An empty root is intentionally quiet until a drag enters it. Once the
+  // native drag probe has accepted a temporary tab, paint the same semantic
+  // drop surface used by rows, but without inventing a fake model node. This
+  // keeps the target visible and gives users a stable place to release the
+  // first saved tab at workspace root.
+  if (rows.empty() && drop_indicator_.has_value() &&
+      !drop_indicator_->target_node_id.has_value()) {
+    gfx::RectF target(GetLocalBounds());
+    target.Inset(gfx::InsetsF::VH(4.0f, 4.0f));
+    cc::PaintFlags fill;
+    fill.setAntiAlias(true);
+    fill.setStyle(cc::PaintFlags::kFill_Style);
+    fill.setColor(colors->GetColor(visual_style::kDropTargetSurface));
+    canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, fill);
+    cc::PaintFlags outline;
+    outline.setAntiAlias(true);
+    outline.setStyle(cc::PaintFlags::kStroke_Style);
+    outline.setStrokeWidth(2.0f);
+    outline.setColor(colors->GetColor(visual_style::kAccent));
+    canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, outline);
+  }
+
+  // A colored folder owns one quiet visual bubble through all of its visible
+  // descendants. Parent bubbles are painted first so nested folders retain a
+  // clear hierarchy without adding extra indentation or separate card views.
+  for (size_t row_index = 0; row_index < rows.size(); ++row_index) {
+    const SidebarTreeViewModel::Row& row = rows[row_index];
+    const tab_tree::TreeNode* node = model().GetNode(row.node_id);
+    if (!node || node->type != tab_tree::TreeNodeType::kFolder ||
+        !node->accent_argb.has_value()) {
+      continue;
+    }
+    size_t last_row_index = row_index;
+    while (last_row_index + 1 < rows.size() &&
+           rows[last_row_index + 1].depth > row.depth) {
+      ++last_row_index;
+    }
+    const size_t first_visual = visual_positions[row_index].visual_row;
+    const size_t last_visual = visual_positions[last_row_index].visual_row;
+    const int bubble_x = std::min(
+        base::saturated_cast<int>(row.depth) * SidebarTreeRowView::kIndentWidth,
+        std::max(row_width - 8, 0));
+    gfx::RectF bubble(
+        static_cast<float>(bubble_x + 2),
+        static_cast<float>(RowY(first_visual) + 1),
+        static_cast<float>(std::max(row_width - bubble_x - 4, 1)),
+        static_cast<float>(RowY(last_visual + 1) - RowY(first_visual) - 2));
+    cc::PaintFlags accent_fill;
+    accent_fill.setAntiAlias(true);
+    accent_fill.setStyle(cc::PaintFlags::kFill_Style);
+    accent_fill.setColor(
+        SkColorSetA(static_cast<SkColor>(*node->accent_argb), 34));
+    canvas->DrawRoundRect(bubble, visual_style::kControlCornerRadius,
+                          accent_fill);
+  }
+
+  cc::PaintFlags group_fill;
+  group_fill.setAntiAlias(true);
+  group_fill.setColor(colors->GetColor(visual_style::kRaisedSurface));
+  group_fill.setStyle(cc::PaintFlags::kFill_Style);
+  cc::PaintFlags separator;
+  separator.setAntiAlias(true);
+  separator.setColor(colors->GetColor(visual_style::kDivider));
+  separator.setStrokeWidth(1.0f);
+  separator.setStyle(cc::PaintFlags::kStroke_Style);
+
+  for (size_t visual_index = 0; visual_index < visual_rows.size();
+       ++visual_index) {
+    const VisualRow& visual_row = visual_rows[visual_index];
+    if (visual_row.model_indices.size() < 2) {
+      continue;
+    }
+    gfx::Rect group_bounds =
+        GetSegmentBounds(visual_row, visual_index, 0, row_width);
+    group_bounds.Union(GetSegmentBounds(visual_row, visual_index,
+                                        visual_row.model_indices.size() - 1,
+                                        row_width));
+    gfx::RectF background(group_bounds);
+    background.Inset(gfx::InsetsF::VH(2.0f, 4.0f));
+    canvas->DrawRoundRect(background, visual_style::kRowCornerRadius,
+                          group_fill);
+
+    for (size_t segment_index = 1;
+         segment_index < visual_row.model_indices.size(); ++segment_index) {
+      const gfx::Rect previous = GetSegmentBounds(visual_row, visual_index,
+                                                  segment_index - 1, row_width);
+      const gfx::Rect next =
+          GetSegmentBounds(visual_row, visual_index, segment_index, row_width);
+      const float divider_x =
+          static_cast<float>(previous.right() + next.x()) / 2.0f;
+      canvas->DrawLine(
+          gfx::PointF(divider_x, static_cast<float>(group_bounds.y() + 8)),
+          gfx::PointF(divider_x, static_cast<float>(group_bounds.bottom() - 8)),
+          separator);
+    }
+  }
+}
+
+gfx::Point SidebarTreeView::GetKeyboardContextMenuLocation() {
+  if (model().selected_node_id().has_value()) {
+    SidebarTreeRowView* row =
+        GetMaterializedRowForTesting(*model().selected_node_id());
+    if (row) {
+      return row->GetBoundsInScreen().CenterPoint();
+    }
+  }
+  return views::View::GetKeyboardContextMenuLocation();
+}
+
+bool SidebarTreeView::GetDropFormats(
+    int* formats,
+    std::set<ui::ClipboardFormatType>* format_types) {
+  *formats = ui::OSExchangeData::PICKLED_DATA;
+  format_types->insert(drag::SavedSidebarTabDragFormat());
+  format_types->insert(drag::RuntimeSidebarTabDragFormat());
+  return true;
+}
+
+BEGIN_METADATA(SidebarTreeView)
+END_METADATA
+
+}  // namespace ahoi::sidebar

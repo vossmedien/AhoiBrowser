@@ -166,6 +166,51 @@ def expected_xcode_for_kind(kind: str, toolchain: dict) -> dict[str, str]:
     }
 
 
+def verify_dependency_build_workaround(out_dir: pathlib.Path) -> dict:
+    config = load_json(ROOT / "config/dependency-build-workarounds.json")
+    if config.get("schemaVersion") != 1:
+        raise SystemExit("unsupported dependency build workaround schema")
+    workaround = config["v8InspectorProtocolRelativeDepfilePaths"]
+    patch = ROOT / workaround["patchPath"]
+    if sha256(patch) != workaround["patchSha256"]:
+        raise SystemExit("dependency build workaround patch SHA-256 mismatch")
+
+    dependency = CHROMIUM_SRC / workaround["dependencyPath"]
+    actual_commit = output("git", "rev-parse", "HEAD", cwd=dependency)
+    if actual_commit != workaround["upstreamCommit"]:
+        raise SystemExit("dependency build workaround V8 commit mismatch")
+    if output("git", "status", "--porcelain", cwd=dependency):
+        raise SystemExit("V8 is dirty after dependency build workaround")
+
+    receipt = load_json(out_dir / workaround["receiptName"])
+    expected_receipt = {
+        "schemaVersion": 1,
+        "workaroundId": workaround["id"],
+        "v8Commit": workaround["upstreamCommit"],
+        "upstreamFixCommit": workaround["upstreamFixCommit"],
+        "patchPath": workaround["patchPath"],
+        "patchSha256": workaround["patchSha256"],
+        "targetPath": workaround["targetPath"],
+        "restoredByteForByte": True,
+        "phases": ["gn gen", "autoninja"],
+    }
+    for key, expected in expected_receipt.items():
+        if receipt.get(key) != expected:
+            raise SystemExit(
+                f"dependency build workaround receipt mismatch: {key}"
+            )
+    return {
+        "id": workaround["id"],
+        "dependency": workaround["dependency"],
+        "upstreamCommit": workaround["upstreamCommit"],
+        "upstreamFixCommit": workaround["upstreamFixCommit"],
+        "patchPath": workaround["patchPath"],
+        "patchSha256": workaround["patchSha256"],
+        "targetPath": workaround["targetPath"],
+        "restoredByteForByte": True,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -228,6 +273,7 @@ def main() -> int:
         expected_chromium_commit=chromium_pin["commit"],
         allow_source_overlay=is_ahoi,
     )
+    dependency_build_workaround = verify_dependency_build_workaround(out_dir)
 
     gn_binary = CHROMIUM_SRC / "buildtools/mac/gn"
     ninja_binary = CHROMIUM_SRC / "third_party/ninja/ninja"
@@ -363,6 +409,7 @@ def main() -> int:
         "actualDependencyManifestSha256": json_sha256(actual_revisions),
         "expectedDependencyRevisions": expected_revisions,
         "actualDependencyRevisions": actual_revisions,
+        "dependencyBuildWorkarounds": [dependency_build_workaround],
     }
     if overlay_verification is not None:
         source_payload.update(

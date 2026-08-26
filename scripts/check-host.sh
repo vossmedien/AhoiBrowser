@@ -96,9 +96,6 @@ actual_xcode_build="$(xcodebuild -version | awk 'NR == 2 {print $3}')"
 [ "${actual_xcode_build}" = "${expected_xcode_build}" ] || \
   ahoi_die "Xcode build mismatch: expected ${expected_xcode_build}, got ${actual_xcode_build}"
 
-case "${AHOI_WORK_ROOT}" in
-  *' '*) ahoi_die "Chromium work path must not contain spaces: ${AHOI_WORK_ROOT}" ;;
-esac
 work_parent="$(ahoi_existing_parent "${AHOI_WORK_ROOT}")"
 work_device="$(df -P "${work_parent}" | awk 'NR == 2 {print $1}')"
 [ -n "${work_device}" ] || ahoi_die "could not resolve work-root filesystem device"
@@ -123,8 +120,6 @@ available, required = (int(item) for item in sys.argv[1:])
 print(f"==> free disk: {available / 2**30:.1f} GiB; required: {required / 2**30:.1f} GiB")
 PY
 
-if [ "${available}" -lt "${required}" ]; then
-  ahoi_die "free disk is below the safe Chromium checkout/build threshold"
-fi
+ahoi_require_build_free_space
 
 ahoi_note "host check passed"

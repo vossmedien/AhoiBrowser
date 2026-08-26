@@ -9,10 +9,11 @@ app, or parallel WebView host.
 The machine-readable limits and layout names are authoritative in
 `config/split-view.json`. This document defines their behavior.
 
-## Chromium M151 integration map
+## Chromium M152 integration map
 
-The pinned Chromium revision `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae`
-already contains a production-quality two-tab foundation:
+The active composition uses Chromium Mac Stable `152.0.7977.65` at exact
+revision `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. It combines Chromium's
+two-tab foundation with the Ahoi M152 integration-seam patch:
 
 - `chrome/browser/ui/tabs/tab_strip_model.{h,cc}` owns `AddToNewSplit`, split
   layout/ratio updates, reverse, removal, focus, detach/attach, and observer
@@ -42,11 +43,11 @@ already contains a production-quality two-tab foundation:
   inactive pane.
 
 This is the seam AhoiBrowser extends rather than reimplementing. Its bounded
-generalization removes M151's hard two-item assumptions from creation,
+generalization removes upstream M152's hard two-item assumptions from creation,
 restoration, visual data, utilities, menus, and content layout while retaining
-the upstream ownership model. The macOS upstream tab-to-content drag UI test is
-disabled in M151, so Ahoi also carries its own interaction coverage and still
-requires installed Computer Use proof.
+the upstream ownership model. The previous green M151 programmatic matrix is
+historical recovery evidence only; M152 still requires its own interaction
+coverage and installed Computer Use proof.
 
 ## Model and ownership
 
@@ -274,4 +275,4 @@ targets and dividers on macOS. None of that replaces visible Computer Use tests
 against the signed app installed at `/Applications/AhoiBrowser.app`.
 
 All `SPLIT-*` IDs in the master target and `config/test-registry.json` are
-release-critical. The upstream M151 feature alone does not satisfy them.
+release-critical. The upstream M152 foundation alone does not satisfy them.

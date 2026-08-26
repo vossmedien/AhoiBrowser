@@ -21,11 +21,12 @@ with a plus icon and localized New Tab title. Rows are flat by default and gain
 rounded surfaces only for hover, selection, drag targets, split membership, or
 an explicitly colored group.
 
-The current native integration uses Chromium M151's Views vertical-tab region as
-its host and replaces the stock row surface with Ahoi's profile-backed sidebar
-projection. Chromium's `TabStripModel`, profile and vertical-mode controller
-remain authoritative for tab ownership and for switching back to the horizontal
-strip; a feature override can still disable the vertical surface entirely.
+The current native integration is based on Chromium Stable M152's Views
+vertical-tab region and replaces the stock row surface with Ahoi's
+profile-backed sidebar projection through the active integration-seam patch.
+Chromium's `TabStripModel`, profile and vertical-mode controller remain
+authoritative for tab ownership and for switching back to the horizontal strip;
+a feature override can still disable the vertical surface entirely.
 Nested tree semantics, saved/temporary tab lifecycle and split-row projection
 are part of the current Ahoi surface rather than a future bootstrap slice.
 

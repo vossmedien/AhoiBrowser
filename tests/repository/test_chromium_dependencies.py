@@ -244,7 +244,7 @@ class ChromiumDependencyContractTests(unittest.TestCase):
                 "dev", dev_app, dev_out, dev_args, wrong_stamp
             )
 
-    def test_xcode_binding_is_compatible_only_for_dev(self):
+    def test_xcode_binding_uses_the_same_m152_toolchain_for_all_profiles(self):
         toolchain = build_provenance.load_json(
             build_provenance.ROOT / "config/toolchain.json"
         )
@@ -255,8 +255,8 @@ class ChromiumDependencyContractTests(unittest.TestCase):
         self.assertEqual("26.6", dev["version"])
         self.assertEqual("23F81a", dev["iOSSDKBuild"])
         self.assertEqual("pinned-reference", release["mode"])
-        self.assertEqual("26.5", release["version"])
-        self.assertEqual("23F73", release["iOSSDKBuild"])
+        self.assertEqual("26.6", release["version"])
+        self.assertEqual("23F81a", release["iOSSDKBuild"])
         self.assertEqual(release, upstream)
         with self.assertRaisesRegex(SystemExit, "unsupported build provenance kind"):
             build_provenance.expected_xcode_for_kind("forged", toolchain)

@@ -16,18 +16,10 @@ ahoi_require_command autoninja
 
 out_dir="${AHOI_CHROMIUM_SRC}/out/AhoiUpstreamRelease"
 args_file="${AHOI_REPO_ROOT}/config/build/upstream-release.gn"
-args="$(<"${args_file}")"
 
 ahoi_note "generating unmodified Chromium build in ${out_dir}"
-(
-  cd "${AHOI_CHROMIUM_SRC}"
-  gn gen "${out_dir}" --args="${args}"
-  if [ -n "${AHOI_JOBS:-}" ]; then
-    autoninja -C "${out_dir}" -j "${AHOI_JOBS}" chrome
-  else
-    autoninja -C "${out_dir}" chrome
-  fi
-)
+"${SCRIPT_DIR}/build-chromium-with-dependency-workarounds.sh" \
+  "${out_dir}" "${args_file}" chrome
 
 "${SCRIPT_DIR}/verify-upstream.sh"
 

@@ -1,22 +1,4 @@
 # One relative patch path per line. Blank lines and comments are ignored.
-0001-ahoi-vertical-tabs-default.patch
-0002-ahoi-product-data-directory.patch
-0003-ahoi-nested-tab-tree.patch
-0004-ahoi-workspace-navigation.patch
-0005-ahoi-session-bridge.patch
-0006-ahoi-sidebar-tree-model.patch
-0007-ahoi-native-command-bar.patch
-0008-ahoi-three-pane-split.patch
-0009-ahoi-sidebar-views.patch
-0010-ahoi-live-sidebar-integration.patch
-0011-ahoi-drag-and-tree-persistence.patch
-0012-ahoi-visual-language-and-nested-search.patch
-0013-ahoi-group-actions-and-localization.patch
-0014-ahoi-live-tab-lifecycle-and-bidirectional-drag.patch
-0015-ahoi-save-shortcut-and-drag-feedback.patch
-0016-ahoi-modular-ui-auth-and-native-drag.patch
-0017-ahoi-product-source-freeze.patch
-0018-ahoi-user-agent-client-hints-brand.patch
-0019-ahoi-deterministic-platform-tests.patch
-0020-ahoi-upstream-site-data-clock-revert.patch
-0021-ahoi-upstream-page-load-tracing-test-isolation.patch
+0001-ahoi-m152-integration-seams.patch
+0002-ahoi-deterministic-platform-tests.patch
+0003-ahoi-upstream-page-load-tracing-test-isolation.patch

@@ -1,0 +1,295 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("sidebar_tree") {
+  sources = [
+    "sidebar_tree_controller.cc",
+    "sidebar_tree_controller.h",
+    "sidebar_tree_controller_drop.cc",
+    "sidebar_tree_view_model.cc",
+    "sidebar_tree_view_model.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/tab_tree",
+    "//base",
+  ]
+}
+
+source_set("sidebar_presentation") {
+  sources = [
+    "sidebar_presentation_animator.cc",
+    "sidebar_presentation_animator.h",
+    "sidebar_presentation_state.cc",
+    "sidebar_presentation_state.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//base",
+    "//components/prefs",
+    "//components/sync_preferences",
+    "//ui/gfx/animation",
+  ]
+}
+
+source_set("move_destination_model") {
+  sources = [
+    "move_destination_menu_model.cc",
+    "move_destination_menu_model.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/tab_tree",
+    "//base",
+  ]
+}
+
+source_set("sidebar_link_copy") {
+  sources = [
+    "sidebar_link_copy.cc",
+    "sidebar_link_copy.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/tab_tree",
+    "//base",
+  ]
+}
+
+source_set("sidebar_views") {
+  sources = [
+    "sidebar_drag_image.cc",
+    "sidebar_drag_image.h",
+    "sidebar_media_indicator.cc",
+    "sidebar_media_indicator.h",
+    "sidebar_split_layout.cc",
+    "sidebar_split_layout.h",
+    "sidebar_tree_row_view.cc",
+    "sidebar_tree_row_view.h",
+    "sidebar_tree_view.cc",
+    "sidebar_tree_view.h",
+    "sidebar_tree_view_delegate.h",
+    "sidebar_tree_view_drag.cc",
+    "sidebar_tree_view_projection.cc",
+  ]
+
+  public_deps = [
+    ":sidebar_tree",
+    "//ahoi/browser/ui:visual_style",
+    "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
+    "//base",
+    "//components/split_tabs",
+    "//components/tabs:public",
+    "//ui/base",
+    "//ui/views",
+  ]
+
+  deps = [
+    "//cc/paint",
+    "//chrome/app:generated_resources",
+    "//components/vector_icons",
+    "//skia",
+    "//ui/accessibility",
+    "//ui/color",
+    "//ui/compositor",
+    "//ui/gfx",
+    "//ui/gfx/animation",
+    "//ui/menus",
+  ]
+}
+
+source_set("sidebar_runtime_drop_targets") {
+  public = [ "sidebar_runtime_tab_views.h" ]
+  sources = [ "sidebar_runtime_drop_targets.cc" ]
+
+  public_deps = [
+    ":sidebar_views",
+    "//ahoi/browser/ui:visual_style",
+    "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
+    "//base",
+    "//ui/views",
+  ]
+
+  deps = [
+    "//chrome/app:generated_resources",
+    "//components/vector_icons",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/color",
+    "//ui/compositor",
+    "//ui/gfx",
+    "//ui/gfx/animation",
+  ]
+}
+
+source_set("sidebar_media_overlay") {
+  sources = [
+    "sidebar_media_overlay_view.cc",
+    "sidebar_media_overlay_view.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//ui/views",
+  ]
+
+  deps = [
+    "//ui/base",
+    "//ui/gfx",
+  ]
+}
+
+source_set("browser_sidebar") {
+  sources = [
+    "browser_sidebar_host.cc",
+    "browser_sidebar_host.h",
+    "browser_sidebar_host_command_dispatch.cc",
+    "browser_sidebar_host_context_menu.cc",
+    "browser_sidebar_host_core.cc",
+    "browser_sidebar_host_device_tabs.cc",
+    "browser_sidebar_host_group_dialog.cc",
+    "browser_sidebar_host_media.cc",
+    "browser_sidebar_host_presentation.cc",
+    "browser_sidebar_host_recent_links.cc",
+    "browser_sidebar_host_runtime_actions.cc",
+    "browser_sidebar_host_runtime_refresh.cc",
+    "browser_sidebar_host_tree_actions.cc",
+    "browser_sidebar_host_view.h",
+    "browser_sidebar_host_workspace_dialog.cc",
+    "sidebar_action_views.cc",
+    "sidebar_action_views.h",
+    "sidebar_edge_reveal_view.cc",
+    "sidebar_edge_reveal_view.h",
+    "sidebar_recent_links_view.cc",
+    "sidebar_recent_links_view.h",
+    "sidebar_remote_tab_views.cc",
+    "sidebar_remote_tab_views.h",
+    "sidebar_runtime_refresh_gate.h",
+    "sidebar_runtime_tab_views.cc",
+    "sidebar_sync_controls.cc",
+    "sidebar_sync_controls.h",
+    "sidebar_tab_thumbnail_cache.cc",
+    "sidebar_tab_thumbnail_cache.h",
+    "sidebar_tabs_surface_view.cc",
+    "sidebar_tabs_surface_view.h",
+  ]
+
+  public_deps = [
+    ":move_destination_model",
+    ":sidebar_link_copy",
+    ":sidebar_media_overlay",
+    ":sidebar_presentation",
+    ":sidebar_runtime_drop_targets",
+    ":sidebar_views",
+    "//ahoi/browser/media",
+    "//ahoi/browser/memory:tab_sleeping",
+    "//ahoi/browser/navigation:navigation_preferences",
+    "//ahoi/browser/session:session_bridge_api",
+    "//ahoi/browser/sync:profile_sync_service",
+    "//ahoi/browser/ui/appearance",
+    "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
+    "//ahoi/browser/ui/media:media_mini_player_ui",
+    "//base",
+    "//components/prefs",
+    "//components/split_tabs",
+    "//ui/views",
+  ]
+
+  deps = [
+    "//ahoi/browser/ui:modal_overlay",
+    "//ahoi/browser/ui:visual_style",
+    "//ahoi/browser/ui/appearance",
+    "//base:i18n",
+    "//chrome/app:command_ids",
+    "//chrome/app:generated_resources",
+    "//chrome/app/vector_icons",
+    "//chrome/browser:browser_public_dependencies",
+    "//chrome/browser/favicon",
+    "//chrome/browser/history",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/navigator",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//chrome/browser/ui/tabs/alert:tab_alert",
+    "//chrome/browser/ui/thumbnails",
+    "//components/favicon/content",
+    "//components/favicon/core",
+    "//components/favicon_base",
+    "//components/history/core/browser",
+    "//components/split_tabs",
+    "//components/tabs:public",
+    "//components/vector_icons",
+    "//content/public/browser",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/color",
+    "//ui/compositor",
+    "//ui/events",
+    "//ui/gfx",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "../../memory/tab_sleeping_unittest.cc",
+    "move_destination_menu_model_unittest.cc",
+    "sidebar_drag_image_unittest.cc",
+    "sidebar_link_copy_unittest.cc",
+    "sidebar_media_indicator_unittest.cc",
+    "sidebar_media_overlay_view_unittest.cc",
+    "sidebar_presentation_animator_unittest.cc",
+    "sidebar_presentation_state_unittest.cc",
+    "sidebar_runtime_drop_targets_unittest.cc",
+    "sidebar_runtime_refresh_gate_unittest.cc",
+    "sidebar_split_layout_unittest.cc",
+    "sidebar_tree_controller_unittest.cc",
+    "sidebar_tree_view_drag_unittest.cc",
+    "sidebar_tree_view_model_unittest.cc",
+    "sidebar_tree_view_test_support.cc",
+    "sidebar_tree_view_test_support.h",
+    "sidebar_tree_view_unittest.cc",
+  ]
+  deps = [
+    ":browser_sidebar",
+    ":move_destination_model",
+    ":sidebar_link_copy",
+    ":sidebar_media_overlay",
+    ":sidebar_presentation",
+    ":sidebar_runtime_drop_targets",
+    ":sidebar_tree",
+    ":sidebar_views",
+    "//ahoi/browser/memory:tab_sleeping",
+    "//ahoi/browser/tab_tree",
+    "//base/test:test_support",
+    "//components/performance_manager",
+    "//components/prefs",
+    "//components/prefs:test_support",
+    "//components/sync_preferences:test_support",
+    "//skia",
+    "//testing/gtest",
+    "//ui/accessibility",
+    "//ui/events",
+    "//ui/gfx",
+    "//ui/gfx:test_support",
+    "//ui/gfx/animation",
+    "//ui/views",
+    "//ui/views:test_support",
+    "//url",
+  ]
+}
+
+test("ahoi_sidebar_tree_unittests") {
+  sources = [ "run_all_unittests.cc" ]
+  deps = [
+    ":unit_tests",
+    "//mojo/core/embedder",
+    "//testing/gtest",
+    "//ui/resources:ui_test_pak",
+    "//ui/views:test_support",
+  ]
+  data_deps = [ "//ui/resources:ui_test_pak_data" ]
+}

@@ -1,0 +1,52 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("visual_style") {
+  sources = [ "visual_style.h" ]
+
+  public_deps = [
+    "//base",
+    "//skia",
+    "//ui/color",
+  ]
+}
+
+source_set("modal_overlay") {
+  sources = [
+    "modal_overlay_controller.cc",
+    "modal_overlay_controller.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//ui/views",
+  ]
+
+  deps = [
+    ":visual_style",
+    "//ui/accessibility",
+    "//ui/color",
+    "//ui/compositor",
+    "//ui/events",
+    "//ui/gfx",
+    "//ui/gfx/animation",
+  ]
+}
+
+source_set("modal_overlay_unit_tests") {
+  testonly = true
+  sources = [ "modal_overlay_controller_unittest.cc" ]
+  deps = [
+    ":modal_overlay",
+    "//base/test:test_support",
+    "//testing/gtest",
+    "//ui/accessibility",
+    "//ui/events",
+    "//ui/gfx",
+    "//ui/gfx/animation",
+    "//ui/views",
+    "//ui/views:test_support",
+  ]
+}

@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-26T06:54:52+02:00",
+  "updatedAt": "2026-08-26T10:55:29+02:00",
   "gates": [
     {
-      "id": "xcode-26.5",
+      "id": "xcode-26.6",
       "state": "verified",
       "owner": "engineering",
-      "condition": "Xcode 26.5 build 17F42 is installed alongside Xcode 26.6 and passes the pinned-reference host check with macOS SDK 25F70 and iOS SDK 23F73."
+      "condition": "Xcode 26.6 build 17F113 is the exact Chromium M152 toolchain for upstream, development and release profiles, with macOS SDK 26.5 build 25F70 and iOS SDK 26.5 build 23F81a. Pinned-reference and compatible-development remain separate provenance labels even though they select the same installation."
     },
     {
       "id": "disk-headroom",
-      "state": "blocked-local-capacity",
+      "state": "ready-with-explicit-local-override",
       "owner": "engineering",
-      "condition": "The canonical APFS volume currently has roughly 120 GiB free (about 129 GB decimal, fluctuating with APFS accounting). The fail-closed release build requires at least 150 GiB, so a formal clean release build remains blocked by approximately 30 GiB of additional headroom without deleting user work. The verified M151 AhoiDev output remains locally reproducible and may be removed after the source and outer-repository recovery points are secured."
+      "condition": "The normal Chromium checkout/build recommendation remains 150 GiB free. For this explicitly supervised M152 run, AHOI_ALLOW_LOW_DISK=1 may proceed below that recommendation, but every checkout and build fails closed below the hard 120 GiB safety floor. Available space is measured again at each command start; the override is local authorization only and is not release evidence."
     },
     {
       "id": "widevine-mla",

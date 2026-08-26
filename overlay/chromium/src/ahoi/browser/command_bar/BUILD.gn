@@ -1,0 +1,175 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("quick_window_policy") {
+  sources = [
+    "quick_window.h",
+    "quick_window_policy.cc",
+  ]
+
+  public_deps = [
+    "//base",
+    "//ui/gfx",
+  ]
+
+  deps = [
+    "//ui/base",
+    "//ui/events",
+  ]
+}
+
+source_set("command_bar_core") {
+  sources = [
+    "command_bar_types.cc",
+    "command_bar_types.h",
+    "command_bar_view.cc",
+    "command_bar_view.h",
+    "command_execution_adapter.cc",
+    "command_execution_adapter.h",
+    "command_execution_adapter_internal.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/developer_toolkit",
+    "//ahoi/browser/navigation",
+    "//ahoi/browser/ui/appearance",
+    "//base",
+  ]
+
+  deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//chrome/app:command_ids",
+    "//components/omnibox/browser",
+    "//components/omnibox/browser:location_bar",
+    "//components/vector_icons",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/base:data_exchange",
+    "//ui/base/clipboard",
+    "//ui/color",
+    "//ui/compositor",
+    "//ui/events",
+    "//ui/views",
+    "//url",
+  ]
+}
+
+source_set("command_bar") {
+  sources = [
+    "command_bar_controller.cc",
+    "command_bar_controller.h",
+    "command_execution_adapter_chromium.cc",
+    "quick_window_chromium.cc",
+  ]
+
+  public_deps = [
+    ":command_bar_core",
+    ":quick_window_policy",
+    "//ahoi/browser/http_auth:http_auth_ui",
+  ]
+
+  deps = [
+    "//ahoi/browser/developer_toolkit",
+    "//ahoi/browser/http_auth",
+    "//ahoi/browser/session:command_service_factory",
+    "//ahoi/browser/session:session_bridge_api",
+    "//ahoi/browser/ui:modal_overlay",
+    "//ahoi/browser/ui:visual_style",
+    "//ahoi/browser/ui/appearance",
+    "//ahoi/browser/ui/sidebar:browser_sidebar",
+    "//chrome/app:generated_resources",
+    "//chrome/browser:browser_public_dependencies",
+    "//chrome/browser/autocomplete",
+    "//chrome/browser/favicon",
+    "//chrome/browser/history",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/search_engines",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/navigator",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//chrome/browser/ui/views/location_bar",
+    "//components/favicon/content",
+    "//components/favicon/core",
+    "//components/favicon_base",
+    "//components/history/core/browser",
+    "//components/search_engines",
+    "//components/tabs:public",
+    "//components/url_formatter",
+    "//components/vector_icons",
+    "//content/public/browser",
+    "//net",
+    "//services/network/public/cpp",
+    "//skia",
+    "//ui/base",
+    "//url",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "command_bar_types_unittest.cc",
+    "command_bar_view_unittest.cc",
+    "command_execution_adapter_unittest.cc",
+    "quick_window_policy_unittest.cc",
+  ]
+  deps = [
+    ":command_bar_core",
+    ":quick_window_policy",
+    "//ahoi/browser/ui:modal_overlay_unit_tests",
+    "//base/test:test_support",
+    "//components/omnibox/browser:location_bar",
+    "//components/omnibox/browser:test_support",
+    "//testing/gtest",
+    "//ui/events",
+    "//ui/events:test_support",
+    "//ui/views",
+    "//ui/views:test_support",
+  ]
+}
+
+test("ahoi_command_bar_unittests") {
+  sources = [ "run_all_unittests.cc" ]
+  deps = [
+    ":unit_tests",
+    "//mojo/core/embedder",
+    "//testing/gtest",
+    "//ui/resources:ui_test_pak",
+    "//ui/views:test_support",
+  ]
+  data_deps = [ "//ui/resources:ui_test_pak_data" ]
+}
+
+if (is_mac) {
+  source_set("browser_tests") {
+    testonly = true
+    defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+    sources = [ "quick_window_browsertest.cc" ]
+    deps = [
+      ":command_bar",
+      "//ahoi/browser/session",
+      "//base",
+      "//chrome/browser",
+      "//chrome/browser/profiles:profile",
+      "//chrome/browser/ui",
+      "//chrome/browser/ui/tabs:tab_strip",
+      "//chrome/test:test_support",
+      "//components/tabs:public",
+      "//content/public/browser",
+      "//content/test:test_support",
+      "//testing/gtest",
+      "//url",
+    ]
+  }
+
+  test("ahoi_quick_window_browsertests") {
+    deps = [
+      ":browser_tests",
+      "//chrome:packed_resources",
+      "//chrome/test:browser_tests_runner",
+      "//chrome/test:test_support",
+    ]
+  }
+}

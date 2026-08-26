@@ -14,14 +14,16 @@ architecture decision, test, or release gate.
 
 ## Current status
 
-Phase 0 is in progress. In addition to the upstream pin, reproducible
-patch/overlay workflow and evidence contracts, the current 21-patch stack
-now contains a native profile-backed sidebar, a durable SQLite-backed nested
-tree with non-blocking UI access, an explicit saved/temporary live-tab
-lifecycle, bidirectional drag-and-drop, local command bar, shared visual
-language and bounded split-view integration. The development app builds and
-launches, but it is not yet a daily-use browser and no compatibility claim is
-considered proven without installed-app evidence.
+Phase 0 is in progress on Chromium Mac Stable `152.0.7977.65` at exact commit
+`fc4d67f1788019a27e32511137ceccbd2fafdaaa`. The active source delta is the
+tracked overlay plus the three-entry series in `patches/chromium/series`: the
+M152 integration seams, deterministic platform tests, and upstream page-load
+tracing isolation. It contains the profile-backed sidebar, SQLite-backed nested
+tree, saved/temporary live-tab lifecycle, drag-and-drop, command bar, shared
+visual language, and bounded split-view integration. The previous M151
+development build and green programmatic matrix remain recovery/history
+evidence only; the M152 build, installed-app, and visible runtime gates are
+still required before any current compatibility or daily-driver claim.
 
 ## Non-negotiable boundaries
 
@@ -54,17 +56,20 @@ considered proven without installed-app evidence.
 ./scripts/test-repository.sh
 ```
 
-The upstream/release lane is pinned to Xcode 26.5/17F42. Local `ahoi-dev`
-iteration may use the separately pinned Xcode 26.6/17F113 compatibility lane;
-their iOS SDK builds are bound separately as 23F73 and 23F81a. The development
-lane cannot satisfy release provenance or release tests.
+All M152 build profiles use the same pinned Xcode 26.6/17F113 installation,
+macOS SDK 26.5/25F70, and iOS SDK build 23F81a. The `pinned-reference`
+upstream/release mode and `compatible-development` development mode remain
+separate provenance labels and gates even though their toolchain bytes match;
+development evidence still cannot satisfy release tests.
 
 A standalone hook run is useful as a preflight, but build scripts deliberately
 rerun Chromium hooks themselves. The local hook-state JSON is evidence only and
 cannot authorize a build or suppress that run.
 
 A complete checkout/build requires ample free disk space. See
-[`docs/BUILDING.md`](docs/BUILDING.md) before fetching Chromium.
+[`docs/BUILDING.md`](docs/BUILDING.md) before fetching Chromium. An explicitly
+supervised run may set `AHOI_ALLOW_LOW_DISK=1` below the 150 GiB recommendation,
+but every checkout and build still fails below the hard 120 GiB safety floor.
 
 ## License and contribution
 

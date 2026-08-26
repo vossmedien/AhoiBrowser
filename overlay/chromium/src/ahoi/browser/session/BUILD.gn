@@ -1,0 +1,154 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("workspace_session_metadata") {
+  sources = [
+    "workspace_session_metadata.cc",
+    "workspace_session_metadata.h",
+  ]
+  public_deps = [ "//base" ]
+}
+
+source_set("session_restore_integration") {
+  sources = [
+    "session_restore_integration.cc",
+    "session_restore_integration.h",
+  ]
+  public_deps = [
+    ":workspace_session_metadata",
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/browser_window",
+    "//components/tabs:public",
+  ]
+}
+
+source_set("session_preferences") {
+  sources = [
+    "session_prefs.cc",
+    "session_prefs.h",
+  ]
+  public_deps = [
+    "//components/prefs",
+    "//components/sync_preferences",
+  ]
+}
+
+source_set("startup_policy") {
+  sources = [
+    "startup_policy.cc",
+    "startup_policy.h",
+  ]
+  public_deps = [ ":session_preferences" ]
+}
+
+source_set("command_service_factory") {
+  sources = [
+    "command_service_factory.cc",
+    "command_service_factory.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/navigation",
+    "//base",
+    "//chrome/browser/profiles:profile",
+  ]
+}
+
+source_set("session_bridge_api") {
+  public = [
+    "session_bridge.h",
+    "session_bridge_factory.h",
+    "workspace_service_factory.h",
+  ]
+  public_deps = [
+    ":session_restore_integration",
+    ":workspace_session_metadata",
+    "//ahoi/browser/navigation",
+    "//ahoi/browser/sync:profile_sync_ui_bridge",
+    "//ahoi/browser/tab_tree",
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/tabs:tab_strip_model_observer",
+    "//components/keyed_service/core",
+    "//components/tabs:public",
+  ]
+}
+
+source_set("session") {
+  sources = [
+    "session_bridge.cc",
+    "session_bridge_factory.cc",
+    "session_bridge_internal.cc",
+    "session_bridge_internal.h",
+    "session_bridge_observers.cc",
+    "session_bridge_runtime.cc",
+    "session_bridge_session.cc",
+    "session_bridge_workspace.cc",
+    "workspace_service_factory.cc",
+    "workspace_service_factory.h",
+  ]
+
+  public_deps = [
+    ":command_service_factory",
+    ":session_bridge_api",
+    ":session_preferences",
+    ":session_restore_integration",
+    ":startup_policy",
+    ":workspace_session_metadata",
+    "//ahoi/browser/navigation",
+    "//ahoi/browser/tab_tree",
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/tabs:tab_strip_model_observer",
+    "//components/keyed_service/core",
+    "//components/tabs:public",
+  ]
+
+  deps = [
+    "//chrome/browser/sessions",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//components/keyed_service/content",
+    "//components/sessions",
+    "//content/public/browser",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "session_bridge_unittest.cc",
+    "session_prefs_unittest.cc",
+    "session_restore_integration_unittest.cc",
+    "startup_policy_unittest.cc",
+    "workspace_session_metadata_unittest.cc",
+  ]
+  deps = [
+    ":session",
+    ":session_preferences",
+    ":startup_policy",
+    ":workspace_session_metadata",
+    "//base/test:test_support",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/tabs:tab_model",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//chrome/test:test_support",
+    "//components/sync_preferences:test_support",
+    "//components/tabs:public",
+    "//content/test:test_support",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_session_unittests") {
+  data_deps = [ "//third_party/sparkle:sparkle_framework_test_runtime" ]
+  deps = [
+    ":unit_tests",
+    "//chrome/test:test_support_unit",
+    "//testing/gtest",
+  ]
+}

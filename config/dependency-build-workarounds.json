@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "v8InspectorProtocolRelativeDepfilePaths": {
+    "id": "v8-inspector-protocol-relative-depfile-paths",
+    "dependency": "v8",
+    "dependencyPath": "v8",
+    "upstreamSource": "https://chromium.googlesource.com/v8/v8.git",
+    "upstreamCommit": "6aacaf6256a069ee455142333b7d38cad1c8d6e0",
+    "targetPath": "third_party/inspector_protocol/code_generator.py",
+    "patchPath": "patches/dependencies/v8/0001-inspector-protocol-relative-depfile-paths.patch",
+    "patchSha256": "3357b24d8d3dd01ba7b2c26c4f822d71c32b6e511b8e4745702df746c1eee699",
+    "upstreamFixSource": "https://chromium.googlesource.com/deps/inspector_protocol.git",
+    "upstreamFixCommit": "369afb2ffe24f7c953dcd3eed71b3f1529670732",
+    "receiptName": "ahoi-dependency-build-workarounds.json"
+  }
+}

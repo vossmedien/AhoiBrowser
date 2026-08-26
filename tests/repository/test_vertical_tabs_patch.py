@@ -1,90 +1,93 @@
+import json
 import pathlib
 import re
 import unittest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PATCH_PATH = ROOT / "patches/chromium/0001-ahoi-vertical-tabs-default.patch"
-SERIES_PATH = ROOT / "patches/chromium/series"
+PATCH_ROOT = ROOT / "patches/chromium"
+PATCH_PATH = PATCH_ROOT / "0001-ahoi-m152-integration-seams.patch"
+SERIES_PATH = PATCH_ROOT / "series"
+M152_COMMIT = "fc4d67f1788019a27e32511137ceccbd2fafdaaa"
+
+
+def series_entries() -> tuple[str, ...]:
+    return tuple(
+        line.strip()
+        for line in SERIES_PATH.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    )
+
+
+def file_section(payload: str, path: str) -> str:
+    match = re.search(
+        rf"^diff --git a/{re.escape(path)} b/{re.escape(path)}\n"
+        r".*?(?=^diff --git |\Z)",
+        payload,
+        re.MULTILINE | re.DOTALL,
+    )
+    return "" if match is None else match.group(0)
+
+
+def changed_lines(section: str) -> list[str]:
+    return [
+        line
+        for line in section.splitlines()
+        if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))
+    ]
 
 
 class VerticalTabsPatchContractTests(unittest.TestCase):
     def setUp(self):
         self.patch = PATCH_PATH.read_text(encoding="utf-8")
 
-    def test_patch_is_first_and_documented(self):
-        entries = [
-            line.strip()
-            for line in SERIES_PATH.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
-        self.assertGreaterEqual(len(entries), 1)
+    def test_vertical_tabs_contract_lives_in_the_m152_integration_layer(self):
+        entries = series_entries()
         self.assertEqual(PATCH_PATH.name, entries[0])
+        self.assertEqual(3, len(entries))
         self.assertEqual(len(entries), len(set(entries)))
 
-        ledger = (ROOT / "patches/chromium/README.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn(f"## `{PATCH_PATH.name}`", ledger)
-        self.assertIn("fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae", ledger)
+        pin = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
+        self.assertEqual("152.0.7977.65", pin["version"])
+        self.assertEqual(M152_COMMIT, pin["commit"])
+        self.assertEqual("Stable", pin["channel"])
+        self.assertEqual("Mac", pin["platform"])
 
-    def test_patch_changes_only_the_two_ahoi_defaults(self):
-        touched_paths = re.findall(
-            r"^diff --git a/(\S+) b/(\S+)$", self.patch, re.MULTILINE
+        ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertEqual(1, ledger.count(f"## `{PATCH_PATH.name}`"))
+        self.assertIn(M152_COMMIT, ledger)
+
+    def test_ahoi_defaults_the_existing_vertical_tabs_profile_pref_to_true(self):
+        prefs = file_section(
+            self.patch, "chrome/browser/ui/tabs/tab_strip_prefs.cc"
         )
+        self.assertTrue(prefs)
         self.assertEqual(
             [
-                (
-                    "chrome/browser/ui/tabs/features.cc",
-                    "chrome/browser/ui/tabs/features.cc",
-                ),
-                (
-                    "chrome/browser/ui/tabs/tab_strip_prefs.cc",
-                    "chrome/browser/ui/tabs/tab_strip_prefs.cc",
-                ),
+                "-  registry->RegisterBooleanPref(prefs::kVerticalTabsEnabled, false);",
+                "+  registry->RegisterBooleanPref(prefs::kVerticalTabsEnabled, true);",
             ],
-            touched_paths,
+            changed_lines(prefs),
         )
+        self.assertNotIn("kVerticalTabsEnabledFirstTime", "\n".join(changed_lines(prefs)))
+        self.assertNotIn("kVerticalTabsCollapsedState", "\n".join(changed_lines(prefs)))
 
-        changed_lines = [
-            line
-            for line in self.patch.splitlines()
-            if line.startswith(("+", "-"))
-            and not line.startswith(("+++", "---"))
-        ]
-        self.assertEqual(
-            [
-                "-BASE_FEATURE(kVerticalTabsLaunch, "
-                "base::FEATURE_DISABLED_BY_DEFAULT);",
-                "+BASE_FEATURE(kVerticalTabsLaunch, "
-                "base::FEATURE_ENABLED_BY_DEFAULT);",
-                "-  registry->RegisterBooleanPref("
-                "prefs::kVerticalTabsEnabled, false);",
-                "+  registry->RegisterBooleanPref("
-                "prefs::kVerticalTabsEnabled, true);",
-            ],
-            changed_lines,
-        )
+    def test_m152_launch_and_horizontal_fallback_feature_gates_are_not_forked(self):
+        features = file_section(self.patch, "chrome/browser/ui/tabs/features.cc")
+        feature_changes = changed_lines(features)
 
-    def test_horizontal_fallback_contract_remains_in_upstream_control_path(self):
-        # The legacy gate remains off, the full-launch feature is still
-        # externally disableable, and its existing menu toggle parameter is not
-        # replaced. The exact changed-line allowlist above prevents either
-        # fallback seam from being edited without making this test fail.
-        changed_lines = [
-            line
-            for line in self.patch.splitlines()
-            if line.startswith(("+", "-"))
-            and not line.startswith(("+++", "---"))
-        ]
         self.assertFalse(
-            any("BASE_FEATURE(kVerticalTabs," in line for line in changed_lines)
+            any("BASE_FEATURE(kVerticalTabs" in line for line in feature_changes)
         )
         self.assertFalse(
-            any("kVerticalTabsToggleInTabContextMenu" in line for line in changed_lines)
+            any("kVerticalTabsToggleInTabContextMenu" in line for line in feature_changes)
         )
-        self.assertNotIn("vertical_tab_strip_state_controller", self.patch)
-        self.assertNotIn("browser_view", self.patch)
+        self.assertFalse(
+            any("FEATURE_ENABLED_BY_DEFAULT" in line for line in feature_changes)
+        )
+        self.assertFalse(
+            any("FEATURE_DISABLED_BY_DEFAULT" in line for line in feature_changes)
+        )
 
 
 if __name__ == "__main__":

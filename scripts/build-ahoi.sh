@@ -43,19 +43,11 @@ ahoi_require_command gn
 ahoi_require_command autoninja
 
 out_dir="${AHOI_CHROMIUM_SRC}/out/${out_name}"
-args="$(<"${args_file}")"
 target="chrome"
 
 ahoi_note "generating Ahoi ${profile} build"
-(
-  cd "${AHOI_CHROMIUM_SRC}"
-  gn gen "${out_dir}" --args="${args}"
-  if [ -n "${AHOI_JOBS:-}" ]; then
-    autoninja -C "${out_dir}" -j "${AHOI_JOBS}" "${target}"
-  else
-    autoninja -C "${out_dir}" "${target}"
-  fi
-)
+"${SCRIPT_DIR}/build-chromium-with-dependency-workarounds.sh" \
+  "${out_dir}" "${args_file}" "${target}"
 
 ahoi_require_overlay_state
 

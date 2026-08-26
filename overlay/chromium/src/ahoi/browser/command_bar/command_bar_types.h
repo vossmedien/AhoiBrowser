@@ -1,0 +1,55 @@
+// Copyright 2026 The AhoiBrowser Authors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#ifndef AHOI_BROWSER_COMMAND_BAR_COMMAND_BAR_TYPES_H_
+#define AHOI_BROWSER_COMMAND_BAR_COMMAND_BAR_TYPES_H_
+
+#include <optional>
+#include <string>
+#include <vector>
+
+#include "ahoi/browser/navigation/command_service.h"
+#include "ui/base/models/image_model.h"
+
+namespace ahoi {
+
+// Cmd+L keeps navigation in the selected tab. Cmd+T does not create a blank
+// tab up front; it commits into a new foreground tab only after the user
+// accepts a command-bar result.
+enum class CommandBarDisposition {
+  kCurrentTab = 0,
+  kNewForegroundTab = 1,
+};
+
+enum class CommandBarSuggestionKind {
+  kLocalItem = 0,
+  kInputFallback = 1,
+};
+
+// Complete, presentation-ready suggestion. The command bar never asks an
+// autocomplete provider for network suggestions. Local items come only from
+// CommandService; the fallback is derived synchronously from the entered URL
+// or the profile's configured default search provider.
+struct CommandBarSuggestion {
+  CommandBarSuggestionKind kind = CommandBarSuggestionKind::kLocalItem;
+  std::u16string title;
+  std::u16string secondary_text;
+  ui::ImageModel icon;
+  std::optional<CommandItem> item;
+  // Canonical destination used only for presentation-level de-duplication.
+  // In particular, a typed URL fallback must not be shown next to a richer
+  // open-tab, saved-page or history result for that same URL.
+  std::optional<GURL> destination_url;
+
+  bool operator==(const CommandBarSuggestion&) const = default;
+};
+
+// Preserves ranking order and keeps the first, richest suggestion for every
+// canonical URL. Suggestions without a destination (commands, folders and
+// search fallbacks) remain untouched.
+std::vector<CommandBarSuggestion> DeduplicateSuggestionsByDestination(
+    std::vector<CommandBarSuggestion> suggestions);
+
+}  // namespace ahoi
+
+#endif  // AHOI_BROWSER_COMMAND_BAR_COMMAND_BAR_TYPES_H_

@@ -1,0 +1,137 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("preferences") {
+  sources = [
+    "http_auth_prefs.cc",
+    "http_auth_prefs.h",
+  ]
+  public_deps = [
+    "//components/prefs",
+    "//components/sync_preferences",
+  ]
+}
+
+source_set("secret_util") {
+  sources = [
+    "http_auth_secret_util.cc",
+    "http_auth_secret_util.h",
+  ]
+  public_deps = [ "//base" ]
+  deps = [ "//crypto" ]
+}
+
+source_set("http_auth_core") {
+  sources = [
+    "http_auth_credential_metadata.cc",
+    "http_auth_credential_service.cc",
+    "http_auth_credential_service.h",
+    "http_auth_credential_service_internal.cc",
+    "http_auth_credential_service_internal.h",
+    "http_auth_management_model.cc",
+    "http_auth_management_model.h",
+    "http_auth_protection_space.cc",
+  ]
+  public_deps = [
+    ":preferences",
+    ":secret_util",
+    "//base",
+    "//components/keyed_service/core",
+    "//components/password_manager/core/browser/password_store:password_store_interface",
+    "//net",
+    "//services/network/public/mojom",
+    "//url",
+  ]
+  deps = [
+    "//base:i18n",
+    "//components/prefs",
+  ]
+}
+
+source_set("http_auth") {
+  sources = [
+    "http_auth_credential_service_factory.cc",
+    "http_auth_credential_service_factory.h",
+    "http_auth_credential_service_profile.cc",
+    "http_auth_session_controller.cc",
+    "http_auth_session_controller.h",
+  ]
+  public_deps = [ ":http_auth_core" ]
+  deps = [
+    "//chrome/browser/password_manager/factories",
+    "//chrome/browser/profiles:profile",
+    "//content/public/browser",
+  ]
+}
+
+source_set("secret_access") {
+  sources = [
+    "http_auth_secret_access_controller.cc",
+    "http_auth_secret_access_controller.h",
+  ]
+  public_deps = [
+    ":http_auth_core",
+    ":secret_util",
+    "//base",
+    "//components/device_reauth",
+  ]
+}
+
+source_set("http_auth_ui") {
+  sources = [
+    "http_auth_management_dialog.cc",
+    "http_auth_management_dialog.h",
+    "http_auth_management_dialog_lifecycle.cc",
+  ]
+  public_deps = [
+    ":http_auth",
+    ":secret_access",
+    "//content/public/browser",
+    "//ui/base/clipboard",
+    "//ui/views",
+  ]
+  deps = [
+    "//base:i18n",
+    "//chrome/app:generated_resources",
+    "//chrome/browser/profiles:profile",
+    "//components/constrained_window",
+    "//net",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/gfx",
+  ]
+
+  if (is_mac) {
+    deps += [ "//chrome/browser/device_reauth:impl" ]
+  }
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "http_auth_credential_service_unittest.cc",
+    "http_auth_management_model_unittest.cc",
+    "http_auth_secret_access_controller_unittest.cc",
+  ]
+  deps = [
+    ":http_auth_core",
+    ":secret_access",
+    "//base:i18n",
+    "//base/test:test_support",
+    "//components/device_reauth:test_support",
+    "//components/password_manager/core/browser/password_store:test_support",
+    "//components/sync_preferences:test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_http_auth_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

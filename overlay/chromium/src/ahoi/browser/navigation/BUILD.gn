@@ -1,0 +1,78 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("navigation_preferences") {
+  sources = [
+    "navigation_input_prefs.cc",
+    "navigation_input_prefs.h",
+  ]
+  public_deps = [
+    ":navigation",
+    "//components/prefs",
+    "//components/sync_preferences",
+  ]
+}
+
+source_set("navigation") {
+  sources = [
+    "cmd_scroll_tab_switcher.cc",
+    "cmd_scroll_tab_switcher.h",
+    "command_service.cc",
+    "command_service.h",
+    "workspace_service.cc",
+    "workspace_service.h",
+    "workspace_swipe_event_handler.cc",
+    "workspace_swipe_event_handler.h",
+    "workspace_swipe_tracker.cc",
+    "workspace_swipe_tracker.h",
+  ]
+
+  if (is_mac) {
+    sources += [ "workspace_swipe_event_handler_mac.mm" ]
+  }
+
+  public_deps = [
+    "//ahoi/browser/tab_tree",
+    "//base",
+    "//components/keyed_service/core",
+    "//url",
+  ]
+
+  deps = [
+    "//base:i18n",
+    "//components/omnibox/browser:location_bar",
+    "//ui/events",
+    "//ui/views",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "cmd_scroll_tab_switcher_unittest.cc",
+    "command_service_unittest.cc",
+    "navigation_input_prefs_unittest.cc",
+    "workspace_service_unittest.cc",
+    "workspace_swipe_event_handler_unittest.cc",
+    "workspace_swipe_tracker_unittest.cc",
+  ]
+  deps = [
+    ":navigation",
+    ":navigation_preferences",
+    "//base/test:test_support",
+    "//components/omnibox/browser:location_bar",
+    "//components/sync_preferences:test_support",
+    "//testing/gtest",
+    "//ui/events",
+  ]
+}
+
+test("ahoi_navigation_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

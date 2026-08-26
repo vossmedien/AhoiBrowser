@@ -1,3 +1,4 @@
+import hashlib
 import json
 import pathlib
 import re
@@ -14,6 +15,48 @@ def load_json(relative_path: str):
 
 
 class RepositoryBuildContractTests(unittest.TestCase):
+    def test_low_disk_build_override_is_explicit_and_keeps_a_hard_floor(self):
+        helper_script = ROOT / "scripts/lib/common.sh"
+        completed = subprocess.run(
+            [
+                "bash",
+                "-c",
+                (
+                    'source "$1"; '
+                    'ahoi_free_bytes() { printf "%s\\n" 150323855360; }; '
+                    'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
+                ),
+                "ahoi-low-disk-test",
+                str(helper_script),
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertIn("explicit low-disk build override", completed.stderr)
+
+        refused = subprocess.run(
+            [
+                "bash",
+                "-c",
+                (
+                    'source "$1"; '
+                    'ahoi_free_bytes() { printf "%s\\n" 128849018879; }; '
+                    'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
+                ),
+                "ahoi-low-disk-test",
+                str(helper_script),
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(0, refused.returncode)
+        self.assertIn("absolute safety floor", refused.stderr)
+
     def test_build_provenance_is_external_work_root_safe_and_fail_closed(self):
         provenance = (ROOT / "tools/build_provenance.py").read_text(
             encoding="utf-8"
@@ -62,6 +105,8 @@ class RepositoryBuildContractTests(unittest.TestCase):
         )
         ahoi = (ROOT / "scripts/build-ahoi.sh").read_text(encoding="utf-8")
         self.assertIn("--nohooks", fetch)
+        self.assertIn('gclient_jobs="${AHOI_GCLIENT_JOBS:-1}"', fetch)
+        self.assertIn('gclient sync -j "${gclient_jobs}"', fetch)
         self.assertIn("ahoi_require_gclient_config", fetch)
         self.assertIn("config/gclient.py", fetch)
         self.assertIn('"${SCRIPT_DIR}/check-host.sh"', hooks)
@@ -69,15 +114,65 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn('"${SCRIPT_DIR}/run-chromium-hooks.sh"', upstream)
         self.assertIn('hook_args=(--allow-source-overlay)', ahoi)
         self.assertIn("--compatible-dev-xcode", ahoi)
+        wrapper_call = 'build-chromium-with-dependency-workarounds.sh'
+        self.assertIn(wrapper_call, upstream)
+        self.assertIn(wrapper_call, ahoi)
         self.assertLess(
             upstream.index('"${SCRIPT_DIR}/run-chromium-hooks.sh"'),
-            upstream.index("gn gen"),
+            upstream.index(wrapper_call),
         )
         self.assertLess(
             ahoi.index('"${SCRIPT_DIR}/run-chromium-hooks.sh"'),
-            ahoi.index("gn gen"),
+            ahoi.index(wrapper_call),
         )
         self.assertGreaterEqual(ahoi.count("ahoi_require_overlay_state"), 2)
+
+    def test_space_path_workaround_is_exact_temporary_and_provenanced(self):
+        config = load_json("config/dependency-build-workarounds.json")
+        self.assertEqual(1, config["schemaVersion"])
+        workaround = config["v8InspectorProtocolRelativeDepfilePaths"]
+        self.assertEqual(
+            "6aacaf6256a069ee455142333b7d38cad1c8d6e0",
+            workaround["upstreamCommit"],
+        )
+        self.assertEqual(
+            "369afb2ffe24f7c953dcd3eed71b3f1529670732",
+            workaround["upstreamFixCommit"],
+        )
+        self.assertEqual(
+            "third_party/inspector_protocol/code_generator.py",
+            workaround["targetPath"],
+        )
+        patch = ROOT / workaround["patchPath"]
+        self.assertEqual(
+            workaround["patchSha256"],
+            hashlib.sha256(patch.read_bytes()).hexdigest(),
+        )
+        patch_text = patch.read_text(encoding="utf-8")
+        self.assertEqual(1, patch_text.count("diff --git "))
+        self.assertIn("os.path.relpath(p)", patch_text)
+        self.assertNotIn("concatenate_protocols.py", patch_text)
+
+        wrapper = (
+            ROOT / "scripts/build-chromium-with-dependency-workarounds.sh"
+        ).read_text(encoding="utf-8")
+        self.assertIn("ahoi_require_clean_git_checkout", wrapper)
+        self.assertIn("git -C \"${dependency_root}\" apply --check", wrapper)
+        self.assertIn("trap restore_on_exit EXIT", wrapper)
+        self.assertIn('cmp -s "${backup}" "${target_path}"', wrapper)
+        self.assertIn("gn gen", wrapper)
+        self.assertIn("autoninja -C", wrapper)
+        self.assertLess(wrapper.index("git -C"), wrapper.index("gn gen"))
+        self.assertLess(wrapper.index("gn gen"), wrapper.rindex("restore_v8"))
+
+        host_check = (ROOT / "scripts/check-host.sh").read_text(encoding="utf-8")
+        self.assertNotIn("work path must not contain spaces", host_check)
+        provenance = (ROOT / "tools/build_provenance.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("verify_dependency_build_workaround", provenance)
+        self.assertIn('"dependencyBuildWorkarounds"', provenance)
+        self.assertIn('"patchSha256"', provenance)
 
     def test_forged_hook_state_cannot_bypass_a_build_hook_run(self):
         for relative in ("scripts/build-upstream.sh", "scripts/build-ahoi.sh"):
@@ -109,17 +204,17 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn('"schemaVersion": 3', hooks)
         self.assertIn('"toolchainMode": toolchain_mode', hooks)
 
-    def test_xcode_26_6_is_dev_only_and_release_stays_on_reference_pin(self):
+    def test_xcode_26_6_is_the_m152_reference_for_all_build_profiles(self):
         toolchain = load_json("config/toolchain.json")
         compatible = toolchain["xcode"]["compatibleDevelopment"]
-        self.assertEqual("26.5", toolchain["xcode"]["requiredVersion"])
-        self.assertEqual("17F42", toolchain["xcode"]["requiredBuild"])
+        self.assertEqual("26.6", toolchain["xcode"]["requiredVersion"])
+        self.assertEqual("17F113", toolchain["xcode"]["requiredBuild"])
         self.assertEqual("26.6", compatible["version"])
         self.assertEqual("17F113", compatible["build"])
-        self.assertIn("ahoi-dev only", compatible["scope"])
+        self.assertIn("pinned Chromium M152 toolchain", compatible["scope"])
         ios_sdk = toolchain["sdks"]["iOS"]
         self.assertEqual("26.5", ios_sdk["testedVersion"])
-        self.assertEqual("23F73", ios_sdk["pinnedReferenceBuild"])
+        self.assertEqual("23F81a", ios_sdk["pinnedReferenceBuild"])
         self.assertEqual("23F81a", ios_sdk["compatibleDevelopmentBuild"])
         self.assertNotIn("testedBuild", ios_sdk)
         builder = (ROOT / "scripts/build-ahoi.sh").read_text(encoding="utf-8")
@@ -140,7 +235,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
 
         helper_script = ROOT / "scripts/lib/common.sh"
         for mode, expected_build in (
-            ("pinned-reference", "23F73"),
+            ("pinned-reference", "23F81a"),
             ("compatible-development", "23F81a"),
         ):
             with self.subTest(toolchain_mode=mode):

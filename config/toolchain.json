@@ -9,14 +9,14 @@
     "absoluteMinimumFreeCheckoutBytes": 128849018880
   },
   "xcode": {
-    "requiredVersion": "26.5",
-    "requiredBuild": "17F42",
-    "developerDirectory": "/Applications/Xcode-26.5.0.app/Contents/Developer",
+    "requiredVersion": "26.6",
+    "requiredBuild": "17F113",
+    "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
     "compatibleDevelopment": {
       "version": "26.6",
       "build": "17F113",
       "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
-      "scope": "ahoi-dev only; never upstream control or release evidence"
+      "scope": "same pinned Chromium M152 toolchain; development labeling only"
     }
   },
   "python": {
@@ -30,18 +30,18 @@
     },
     "iOS": {
       "testedVersion": "26.5",
-      "pinnedReferenceBuild": "23F73",
+      "pinnedReferenceBuild": "23F81a",
       "compatibleDevelopmentBuild": "23F81a"
     }
   },
   "buildTools": {
-    "gnRevision": "1d86777e7f2562a86ecea77d1809ac4f82bb5bfe",
-    "gnVersionOutput": "2435 (1d86777e7f25)",
-    "gnBinarySha256": "1102e0c5c9f29710263d8871bfe5631a648ce5495b95c58a7f26edc6ef75e34b",
+    "gnRevision": "641ace93dd9560e75e7add0d08f77b446fbb3b78",
+    "gnVersionOutput": "2486 (641ace93dd95)",
+    "gnBinarySha256": "b0723a3eb237552323a24938d9955a176489037a3b1e6bf152af5d6b98164f4e",
     "ninjaVersion": "version:3@1.12.1.chromium.4",
     "ninjaVersionOutput": "1.12.1",
     "ninjaBinarySha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f",
-    "sisoRevision": "7ea15ed68d4aa12fc4aaa50f5446e8549e8f1ce0",
+    "sisoRevision": "7bc9a0bfe050ef97e1712ff61c6f11952799e951",
     "clangPackage": "llvmorg-23-init-19482-g53d18800-1",
     "clangVersionLine": "clang version 23.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 53d18800eda3b7407e53366f27ca78e922c6e0db)",
     "clangArchiveSha256": "e96c5e31ddc2a6e841bcb0f7278ae82b3a581799904276e6f7673213c9748c27",

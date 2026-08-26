@@ -1,6 +1,6 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 25. August 2026.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das aktive AhoiBrowser-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet; ein erneutes Einsetzen als separates Goal ist dafür nicht erforderlich.
+**Geltungsstand: 26. August 2026.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das aktive AhoiBrowser-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet; ein erneutes Einsetzen als separates Goal ist dafür nicht erforderlich.
 
 ## Rolle und Gesamtauftrag
 
@@ -22,6 +22,13 @@ Das Ziel ist ausdrücklich:
 Arbeite selbstständig und persistent durch die in diesem Prompt festgelegten Phasen. Beginne nach einer kurzen Bestandsaufnahme unmittelbar mit der Machbarkeitsphase. Frage nur dann nach, wenn eine Entscheidung nicht aus dem Repository, der Umgebung oder diesem Prompt ableitbar ist oder wenn tatsächlich eine externe Freigabe, ein Account, ein Vertrag, echte Hardware, biometrische Bestätigung oder eine andere Nutzeraktion erforderlich ist.
 
 Halte kontrollierbare Arbeit nicht wegen externer Blocker an. Schließe alle unabhängigen Arbeiten ab, dokumentiere den Blocker exakt und fahre mit dem nächsten möglichen Arbeitspaket fort.
+
+## Aktiver technischer Ausgangspunkt
+
+- Chromium-Basis ist der vollständig ausgerollte Mac-Stable-Pin `152.0.7977.65` am exakten Commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. Dies ist weder Nightly noch Canary; die eigenen Ahoi-Kanalnamen `nightly`, `beta` und `stable` sind davon getrennte Produkt-/Updatekanäle.
+- Die aktive Quellkomposition besteht aus dem getrackten Overlay und genau drei geordneten Patches: `0001-ahoi-m152-integration-seams.patch`, `0002-ahoi-deterministic-platform-tests.patch` und `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`.
+- Alle M152-Profile pinnen dieselbe Xcode-Installation 26.6/17F113 mit macOS SDK 26.5/25F70 und iOS SDK 26.5/23F81a. `pinned-reference` für Upstream/Release und `compatible-development` für Development bleiben getrennte Provenienzlabels und Abnahmewege, obwohl die Toolchain-Bits identisch sind.
+- Die gesicherte M151-Quellfreeze, Recovery-Bundle und frühere grüne Testmatrix bleiben historische Recovery-/Regressionsbelege. Sie sind keine M152-Pässe. Ein M152-Build-, Installations- oder sichtbarer Runtime-Pass darf erst nach dem jeweils real durchgelaufenen Gate behauptet werden.
 
 ## Arbeitsweise und Wahrheitsstandard
 
@@ -202,7 +209,7 @@ Stelle idempotente Befehle für mindestens folgende Abläufe bereit:
 - Release-Smoke;
 - Evidenzsammlung.
 
-Prüfe vor dem Chromium-Fetch Hardware, Xcode, freien Speicher und Buildkapazität. Empfohlen sind mindestens 64 GB RAM und 2 TB SSD; für einen sicheren Checkout-/Buildbetrieb sollen mehrere hundert GB frei sein. Ein Ressourcenproblem ist früh und konkret zu melden, darf aber Dokumentation, Repository-Scaffolding und andere kontrollierbare Arbeiten nicht blockieren.
+Prüfe vor dem Chromium-Fetch Hardware, Xcode, freien Speicher und Buildkapazität. Empfohlen sind mindestens 64 GB RAM und 2 TB SSD; der aktuell konfigurierte Checkout-/Buildbetrieb empfiehlt mindestens 150 GiB freien Arbeitsbereich. Nur bei ausdrücklich überwachtem Lauf darf `AHOI_ALLOW_LOW_DISK=1` diese Empfehlung unterschreiten; unter der unveränderlichen harten 120-GiB-Sicherheitsgrenze müssen Checkout und Build weiterhin abbrechen. Der Override ist kein Release-Pass. Ein Ressourcenproblem ist früh und konkret zu melden, darf aber Dokumentation, Repository-Scaffolding und andere kontrollierbare Arbeiten nicht blockieren.
 
 ### Patchstrategie
 
@@ -217,11 +224,15 @@ Für jeden Patch müssen dokumentiert sein:
 
 Verwende eigene GN-Targets und klar getrennte Komponenten statt dauerhafter Shell-Kopiertricks. Jeder Chromium-Roll muss Patchkonflikte einzeln sichtbar machen.
 
+Für den aktiven M152-Pin ist die wartbare Serie auf drei Einträge konsolidiert: den Ahoi-Integrationspatch, deterministische Plattformtests und die isolierte Upstream-Tracing-Testkorrektur. Die frühere 21-Patch-M151-Serie bleibt über Recovery-Artefakte nachvollziehbar, ist aber keine parallel zu pflegende aktive Patchserie.
+
 Entschlackung muss updatesicher erfolgen: Deaktiviere nicht benötigte Produktflächen bevorzugt über zentrale Branding-/Feature-Konfiguration, Dependency- und Build-Flags oder kleine dokumentierte Integrationspunkte. Entferne keine gemeinsam genutzten Chromium-Kernpfade nur für eine kleinere sichtbare Oberfläche. Jeder deaktivierte Upstream-Dienst besitzt Begründung, Privacy-/Security-Auswirkung, Abhängigkeitstest und Roll-Check; ein Chromium-Update darf keine Funktion still reaktivieren oder einen sicherheitsrelevanten Dienst versehentlich abschalten.
 
 ### Upstream und Security-SLA
 
 Automatisiere Roll-Vorschläge für relevante Chromium-Stable- und Security-Releases:
+
+Bei einem vorhandenen sauberen Partial-Clone ist vor dem absichtlichen Wechsel des Checkouts `./scripts/fetch-chromium.sh --prehydrate-target` zu verwenden. Der Ablauf inventarisiert den exakten Ziel-Pin ohne Lazy Fetch, lädt nur fehlende eindeutige Blobs in kleinen, wiederaufnehmbaren HTTP/1.1-Batches und muss Worktree, Index, `HEAD`, Refs, `FETCH_HEAD` und Shallow-Grenze unverändert lassen. Erst danach darf der normale `gclient`-Sync den Checkout umstellen; ein Erst-Checkout verwendet diesen Opt-in-Modus nicht.
 
 1. neue Upstream-Revision ohne eigene Patches bauen;
 2. Patchserie einzeln anwenden;
@@ -443,7 +454,7 @@ Darstellungskonfiguration:
 
 ### Echte Split Views mit zwei bis vier Live-Panes
 
-Nutze und generalisiere Chromiums vorhandene M151-Split-Tab-Infrastruktur. `TabStripModel`, `SplitTabCollection`, `TabInterface` und die normalen `WebContents` bleiben die Runtime-Quelle der Wahrheit. `SplitViewService` koordiniert Ahoi-spezifische Policy und Persistenz, besitzt aber weder einen zweiten Tab-Store noch einen parallelen WebView-Host.
+Nutze und generalisiere Chromiums vorhandene Split-Tab-Infrastruktur auf dem aktiven Stable-M152-Pin. `TabStripModel`, `SplitTabCollection`, `TabInterface` und die normalen `WebContents` bleiben die Runtime-Quelle der Wahrheit. `SplitViewService` koordiniert Ahoi-spezifische Policy und Persistenz, besitzt aber weder einen zweiten Tab-Store noch einen parallelen WebView-Host.
 
 Verbindliche Grenzen und Layout-IDs liegen in `config/split-view.json`; die implementierungsnahe Spezifikation liegt in `docs/SPLIT_VIEW.md`.
 
@@ -2101,7 +2112,7 @@ Antworte nicht lediglich mit einer weiteren Architekturübersicht und frage nich
 - [Chromium macOS build instructions](https://chromium.googlesource.com/chromium/src/+/main/docs/mac_build_instructions.md)
 - [Chromium multi-process architecture](https://www.chromium.org/developers/design-documents/multi-process-architecture/)
 - [Chromium Views](https://www.chromium.org/developers/design-documents/chromeviews/)
-- [Chromium Split View Security FAQ](https://chromium.googlesource.com/chromium/src/+/fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae/chrome/browser/ui/tabs/docs/split_view_security_faq.md)
+- [Chromium Split View Security FAQ](https://chromium.googlesource.com/chromium/src/+/fc4d67f1788019a27e32511137ceccbd2fafdaaa/chrome/browser/ui/tabs/docs/split_view_security_faq.md)
 - [Chromium HTTP Auth Controller](https://chromium.googlesource.com/chromium/src/+/main/net/http/http_auth_controller.h)
 - [Chromium LoginHandler and HTTP Auth Password Manager integration](https://chromium.googlesource.com/chromium/src/+/main/chrome/browser/ui/login/login_handler.cc)
 - [Chromium NetworkContext and ClearHttpAuthCache](https://chromium.googlesource.com/chromium/src/+/main/services/network/network_context.cc)

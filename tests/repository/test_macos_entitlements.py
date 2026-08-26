@@ -17,9 +17,11 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
     def setUpClass(cls):
         cls.policy = load_policy(POLICY_PATH)
 
-    def test_policy_is_bound_to_current_chromium_commit(self):
+    def test_policy_is_bound_to_current_chromium_and_framework_version(self):
         pin = json.loads((ROOT / "config/chromium.json").read_text())
         self.assertEqual(pin["commit"], self.policy["chromiumCommit"])
+        self.assertEqual(pin["version"], self.policy["chromiumVersion"])
+        self.assertEqual(pin["version"], self.policy["frameworkVersion"])
 
     def test_browser_requires_exact_upstream_entitlements(self):
         expected = self.policy["rules"][0]["entitlements"]
@@ -33,7 +35,8 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
 
     def test_jit_is_allowed_only_for_renderer_and_gpu(self):
         renderer = (
-            "Contents/Frameworks/AhoiBrowser Framework.framework/Versions/151.0.0/"
+            "Contents/Frameworks/AhoiBrowser Framework.framework/"
+            "Versions/152.0.7977.65/"
             "Helpers/AhoiBrowser Helper (Renderer).app/Contents/MacOS/"
             "AhoiBrowser Helper (Renderer)"
         )
@@ -41,12 +44,17 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
         self.assertEqual("renderer-helper", verify(self.policy, renderer, jit))
 
         generic = (
-            "Contents/Frameworks/AhoiBrowser Framework.framework/Versions/151.0.0/"
+            "Contents/Frameworks/AhoiBrowser Framework.framework/"
+            "Versions/152.0.7977.65/"
             "Helpers/AhoiBrowser Helper.app/Contents/MacOS/AhoiBrowser Helper"
         )
         with self.assertRaises(SystemExit):
             verify(self.policy, generic, jit)
         self.assertEqual("generic-helper", verify(self.policy, generic, {}))
+
+        stale_renderer = renderer.replace("152.0.7977.65", "151.0.7922.170")
+        with self.assertRaises(SystemExit):
+            verify(self.policy, stale_renderer, jit)
 
     def test_risky_or_unknown_entitlements_fail_closed(self):
         actual = {"com.apple.security.cs.disable-library-validation": True}

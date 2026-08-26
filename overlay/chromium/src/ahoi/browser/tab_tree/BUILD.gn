@@ -1,0 +1,51 @@
+# Copyright 2026 The AhoiBrowser Authors
+# Use of this source code is governed by a GPL-3.0-or-later license that can be
+# found in the LICENSE file.
+
+import("//testing/test.gni")
+
+source_set("tab_tree") {
+  sources = [
+    "tab_tree_model.h",
+    "tab_tree_observer.h",
+    "tab_tree_store.cc",
+    "tab_tree_store_duplicate_workspace.cc",
+    "tab_tree_store.h",
+    "tab_tree_store_internal.cc",
+    "tab_tree_store_internal.h",
+    "tab_tree_store_move_delete.cc",
+    "tab_tree_store_node_mutations.cc",
+    "tab_tree_store_queries.cc",
+    "tab_tree_store_snapshot.cc",
+    "tab_tree_store_undo.cc",
+    "tab_tree_store_validation.cc",
+    "tab_tree_store_workspace.cc",
+  ]
+
+  public_deps = [
+    "//base",
+    "//sql",
+    "//url",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "tab_tree_store_unittest.cc" ]
+  deps = [
+    ":tab_tree",
+    "//base/test:test_support",
+    "//sql:test_support",
+    "//testing/gtest",
+  ]
+}
+
+# Focused binary for this component. It intentionally does not pull the tree
+# tests into chrome/browser unit_tests until the profile-scoped service exists.
+test("ahoi_tab_tree_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

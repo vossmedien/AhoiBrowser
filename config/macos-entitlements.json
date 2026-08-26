@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
-  "chromiumCommit": "fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae",
-  "upstreamPolicySource": "chrome/installer/mac/signing/parts.py and chrome/app/*-entitlements.plist",
+  "chromiumCommit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
+  "chromiumVersion": "152.0.7977.65",
+  "frameworkVersion": "152.0.7977.65",
+  "upstreamPolicySource": "Chromium 152.0.7977.65 chrome/installer/mac/signing/parts.py, chrome/app/*-entitlements.plist, chrome/version.gni and chrome/BUILD.gn",
   "rules": [
     {
       "id": "browser-app",
@@ -18,51 +20,51 @@
     },
     {
       "id": "renderer-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper \\(Renderer\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Renderer\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Helpers/AhoiBrowser Helper \\(Renderer\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Renderer\\)$",
       "entitlements": {
         "com.apple.security.cs.allow-jit": true
       }
     },
     {
       "id": "gpu-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper \\(GPU\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(GPU\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Helpers/AhoiBrowser Helper \\(GPU\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(GPU\\)$",
       "entitlements": {
         "com.apple.security.cs.allow-jit": true
       }
     },
     {
       "id": "framework",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/AhoiBrowser Framework$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/AhoiBrowser Framework$",
       "entitlements": {}
     },
     {
       "id": "crashpad",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/chrome_crashpad_handler$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Helpers/chrome_crashpad_handler$",
       "entitlements": {}
     },
     {
       "id": "generic-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper\\.app/Contents/MacOS/AhoiBrowser Helper$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Helpers/AhoiBrowser Helper\\.app/Contents/MacOS/AhoiBrowser Helper$",
       "entitlements": {}
     },
     {
       "id": "alerts-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/AhoiBrowser Helper \\(Alerts\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Alerts\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Helpers/AhoiBrowser Helper \\(Alerts\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Alerts\\)$",
       "entitlements": {}
     },
     {
       "id": "app-mode-loader",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/app_mode_loader$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Helpers/app_mode_loader$",
       "entitlements": {}
     },
     {
       "id": "web-app-shortcut-copier",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Helpers/web_app_shortcut_copier$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Helpers/web_app_shortcut_copier$",
       "entitlements": {}
     },
     {
       "id": "chromium-library",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/[^/]+/Libraries/(?:libEGL|libGLESv2|libvk_swiftshader|libvulkan)\\.dylib$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/152\\.0\\.7977\\.65/Libraries/(?:libEGL|libGLESv2|libvk_swiftshader|libvulkan)\\.dylib$",
       "entitlements": {}
     },
     {

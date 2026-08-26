@@ -24,6 +24,12 @@ def load_policy(path: pathlib.Path) -> dict[str, Any]:
     )
     if value.get("chromiumCommit") != chromium["commit"]:
         raise SystemExit("entitlement policy is stale for the Chromium pin")
+    if value.get("chromiumVersion") != chromium["version"]:
+        raise SystemExit("entitlement policy is stale for the Chromium version")
+    if value.get("frameworkVersion") != chromium["version"]:
+        raise SystemExit(
+            "entitlement policy is stale for the Chromium framework version"
+        )
     rules = value.get("rules")
     if not isinstance(rules, list) or not rules:
         raise SystemExit("entitlement policy must contain rules")

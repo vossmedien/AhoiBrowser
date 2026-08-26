@@ -4,9 +4,14 @@ AhoiBrowser tracks one explicit Chromium Stable commit. The version, commit,
 source URL, branch-head, and retrieval timestamp live in
 `config/chromium.json`. `depot_tools` is also pinned in
 `config/depot-tools.json`. Scripts refuse placeholder or malformed pins.
-The initial pin is the fully rolled, pinnable Mac ARM64 Stable; an Early Stable
+The active production pin is the fully rolled, pinnable Mac ARM64 Stable
+`152.0.7977.65` at
+`fc4d67f1788019a27e32511137ceccbd2fafdaaa`. Its tracked overlay is composed
+with the active three-patch series: `0001-ahoi-m152-integration-seams.patch`,
+`0002-ahoi-deterministic-platform-tests.patch`, and
+`0003-ahoi-upstream-page-load-tracing-test-isolation.patch`. An Early Stable
 version may be recorded separately as a roll candidate but cannot silently
-replace the production pin.
+replace this production pin.
 
 `scripts/verify-pin-online.sh` resolves the exact version tag from the official
 Chromium Git repository. Lightweight tags must point directly to the configured
@@ -38,11 +43,13 @@ checkouts must exist and be clean, and all CIPD versions are batch-resolved to
 instance IDs and compared with the installed instances. Merely recording the
 current nested HEADs is not accepted as proof of the pinned dependency closure.
 Source synchronization itself runs without hooks. Hooks are a separate pinned
-toolchain operation. Every build reruns them under its declared Xcode/SDK mode
-(26.5 reference for upstream/release, separately labeled 26.6 compatibility for
-development) after checking the dependency closure, so a forged or stale local
-state file cannot bypass the hook gate. Fetch and a new hook run invalidate the previous record;
-only a successful run followed by checkout revalidation atomically publishes a
+toolchain operation. Every M152 build reruns them against the exact pinned Xcode
+26.6/17F113, macOS SDK 26.5/25F70, and iOS SDK 26.5/23F81a tuple after checking
+the dependency closure. Upstream/release and development keep separate
+provenance labels even though they resolve to that same installation, so a
+forged, stale, or development-labeled state file cannot bypass a release hook
+gate. Fetch and a new hook run invalidate the previous record; only a
+successful run followed by checkout revalidation atomically publishes a
 diagnostic state record bound to the Chromium commit, DEPS hash, exact checkout
 delta, checkout mode, Xcode version/build, and lane-specific SDK versions and
 builds.
@@ -52,7 +59,17 @@ ordered patches against an explicit historical commit without moving or
 modifying the checkout's HEAD, index, worktree, or object database. Composition
 uses temporary index and object storage, with the real object database mounted
 read-only as an alternate. The flag defaults to `HEAD`; the requested ref is
-resolved once to an exact commit before composition.
+resolved once to an exact commit before composition. The active M152 series has
+three entries; the former 21-entry M151 series and its green matrix remain
+historical recovery evidence rather than inputs to the active checkout.
+
+For the later, deliberate checkout switch, an existing clean promisor checkout
+may use `scripts/fetch-chromium.sh --prehydrate-target`. Unlike the narrow
+patch-path hydration below, this opt-in inventories every unique blob in the
+exact production pin and fetches only those not already present. Small
+HTTP/1.1 batches, retries with adaptive splitting, atomic progress reports, and
+immutable object IDs make the operation safely resumable before `gclient sync`.
+It never resets or checks out a revision itself.
 
 ## Checkout-preserving roll dry-run
 

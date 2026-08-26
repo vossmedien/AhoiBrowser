@@ -102,14 +102,14 @@ never restored. A failed operation is atomic; a missing restore leaf degrades
 four panes to three, three panes to two, or two panes to one without phantom
 tabs.
 
-Chromium M151 already supplies the correct two-pane seams: split collections
+Chromium Stable M152 supplies the upstream two-pane seams: split collections
 inside the normal tab hierarchy, `MultiContentsView` and
 `ContentsContainerView`, vertical split rows, focus/security attribution,
 resizing, drop targets, Session Restore, Tab Restore, and extension `splitId`.
-Ahoi generalizes those seams to up to four children and a layout tree. Hard-coded
-two-child assumptions in creation/restore APIs, visual data, Views layout,
-menus, utilities, metrics, serialization, and tests must be removed together;
-shipping a parallel Ahoi-specific pane controller is prohibited.
+The active M152 Ahoi integration patch generalizes those seams to up to four
+children and a layout tree. Hard-coded two-child assumptions in
+creation/restore APIs, visual data, Views layout, menus, utilities, metrics,
+serialization, and tests must be removed together. A parallel Ahoi-specific pane controller is prohibited.
 
 Exactly one pane is active. Browser-mediated UI and sensitive actions are
 attributed to it, while every visible pane keeps a browser-owned origin and
@@ -137,9 +137,15 @@ and dependent patches are evaluated in series order. Each patch has an entry in
 `patches/chromium/README.md` with owner, affected upstream paths, rationale,
 tests, and expected rebase risk.
 
-Split view is staged as reviewable patches: enable and preserve upstream
-two-pane behavior; connect Ahoi sidebar drag targets; introduce versioned
-two-/three-/four-pane visual data and serialization; generalize model/view/layout;
-then add macOS interaction, accessibility, security, restore, extension, media,
-DevTools, and installed Computer Use coverage. Every stage keeps a working
-two-pane fallback and an explicit migration test.
+For the active Chromium M152 pin, the ordered series contains exactly three
+entries: one consolidated integration-seam patch, one deterministic-platform
+test patch, and one upstream page-load tracing-isolation patch. The former
+21-entry M151 stack is preserved through its recovery evidence, not kept active
+as duplicated maintenance surface.
+
+Within the M152 integration-seam patch, split view preserves upstream two-pane
+behavior, connects Ahoi sidebar drag targets, introduces versioned
+two-/three-/four-pane visual data and serialization, and generalizes the model
+and Views layout. Accessibility, security, restore, extension, media, DevTools,
+and installed Computer Use coverage remain explicit gates. The implementation
+keeps a working two-pane fallback and an explicit migration test.

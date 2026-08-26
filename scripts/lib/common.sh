@@ -109,13 +109,28 @@ ahoi_require_build_free_space() {
   required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeWorkBytes)"
   available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
   if [ "${available}" -lt "${required}" ]; then
+    if [ "${AHOI_ALLOW_LOW_DISK:-0}" = "1" ]; then
+      local absolute_floor
+      absolute_floor="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.absoluteMinimumFreeCheckoutBytes)"
+      [ "${available}" -ge "${absolute_floor}" ] || \
+        ahoi_die "low-disk build override refused below the absolute safety floor"
+      python3 - "${available}" "${required}" <<'PY'
+import sys
+available, recommended = (int(item) for item in sys.argv[1:])
+print(
+    "warning: proceeding with explicit low-disk build override: "
+    f"{available / 2**30:.1f} GiB available, {recommended / 2**30:.1f} GiB recommended",
+    file=sys.stderr,
+)
+PY
+      return 0
+    fi
     python3 - "${available}" "${required}" <<'PY'
 import sys
 available, required = (int(item) for item in sys.argv[1:])
 print(
     "error: insufficient free space for a Chromium build: "
-    f"{available / 2**30:.1f} GiB available, {required / 2**30:.1f} GiB required; "
-    "the checkout-only override is not accepted for builds",
+    f"{available / 2**30:.1f} GiB available, {required / 2**30:.1f} GiB required",
     file=sys.stderr,
 )
 PY

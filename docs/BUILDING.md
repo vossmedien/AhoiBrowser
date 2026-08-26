@@ -2,12 +2,13 @@
 
 ## Supported host
 
-Phase 0 targets Apple Silicon with macOS 26, exact Xcode 26.5 (17F42) for the
-upstream control and release path, macOS SDK 26.5 (25F70), iOS SDK 26.5
-(23F73), Git, APFS, and at least 150 GiB of free working space. Xcode 26.6
-(17F113), with the same macOS SDK build but iOS SDK 26.5 (23F81a), is accepted
-only for the `ahoi-dev` compatibility path. Repository/build tooling requires
-Python 3.9 or newer.
+Phase 0 targets Apple Silicon with macOS 26, exact Xcode 26.6 (17F113), macOS
+SDK 26.5 (25F70), iOS SDK 26.5 (23F81a), Git, APFS, and at least 150 GiB of
+free working space. Chromium M152 pins that same Xcode and SDK tuple for the
+upstream control, Ahoi development, and release paths. The paths retain
+different `pinned-reference` and `compatible-development` provenance labels;
+the latter does not turn development evidence into release evidence.
+Repository/build tooling requires Python 3.9 or newer.
 The authoritative upstream requirements are recorded alongside the Chromium
 pin; if Chromium requires a different Xcode/SDK, the host check fails clearly.
 
@@ -16,13 +17,21 @@ nearly full system volume. Set an explicit absolute work root when needed:
 
 ```sh
 export AHOI_WORK_ROOT="/absolute/path/to/ahoi-work"
-export AHOI_XCODE_DEVELOPER_DIR="/Applications/Xcode-26.5.0.app/Contents/Developer"
+export AHOI_XCODE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 ```
 
-For an explicitly supervised shallow checkout, `AHOI_ALLOW_LOW_DISK=1` permits
-starting below the recommended 150 GiB but never below the configured 120 GiB
-absolute floor. This is not accepted for a release build and does not change the
-host recommendation.
+The canonical work root may contain spaces. M152's pinned V8 revision still
+emits absolute Inspector-Protocol template paths into one depfile, so both
+build scripts use the exact temporary workaround pinned in
+`config/dependency-build-workarounds.json`. The wrapper applies it only while
+`gn gen` and `autoninja` run, restores V8 byte-for-byte on success, failure, or
+signal, and writes the verified patch SHA-256 into build provenance.
+
+For an explicitly supervised checkout or build, `AHOI_ALLOW_LOW_DISK=1`
+permits starting below the recommended 150 GiB but never below the configured
+120 GiB absolute floor. The override emits a warning and changes neither the
+recommendation nor the evidence required from the resulting build; it is not a
+release-pass signal by itself.
 
 ## Bootstrap
 
@@ -32,6 +41,23 @@ host recommendation.
 ./scripts/fetch-chromium.sh
 ./scripts/run-chromium-hooks.sh
 ```
+
+During a Stable milestone roll, an existing clean partial-clone checkout can
+prehydrate the exact pinned target before `gclient` changes its `HEAD`:
+
+```sh
+./scripts/fetch-chromium.sh --prehydrate-target
+```
+
+This opt-in mode is not used for the first checkout. It obtains missing
+commit/tree metadata without writing a ref when necessary, then inventories
+the pinned target with lazy fetching disabled and downloads only missing unique
+blobs in small HTTP/1.1 batches. The immutable object-store progress is
+resumable; rerunning the same command skips blobs already present. The report
+is atomically written to
+`artifacts/build/chromium-checkout-hydration.json`. Worktree, index, `HEAD`,
+refs, `FETCH_HEAD`, and shallow-boundary changes fail closed before the normal
+sync begins.
 
 The depot_tools bootstrap disables automatic repository updates before running
 the pinned checkout's `ensure_bootstrap` through an absolute
@@ -48,11 +74,12 @@ DEPS-declared revisions with the actual installed revisions. Fetch deliberately
 uses `--nohooks` and creates/revalidates the byte-exact, reviewable
 `config/gclient.py`; local solutions, `custom_vars`, or target overrides are
 rejected before sync and by all later provenance gates. The default hook step
-fails closed unless exact Xcode 26.5, its SDK builds, dependency closure, clean
+fails closed unless exact Xcode 26.6, its SDK builds, dependency closure, clean
 checkout, and build disk headroom all match. For local iteration,
-`--compatible-dev-xcode` selects the explicitly pinned 26.6 compatibility
-entry and its separate iOS SDK build; that state is labeled separately and
-rejected by the upstream/release path. Fetch invalidates the prior hook record
+`--compatible-dev-xcode` selects the separately labeled development entry,
+which currently resolves to the same Xcode 26.6/17F113 and SDK builds. That
+state remains rejected by the upstream/release provenance path despite the
+byte-identical toolchain. Fetch invalidates the prior hook record
 before every sync. More importantly, both build scripts run `gclient runhooks`
 again themselves before `gn gen`; they never use the freely writable state JSON
 as authority to skip execution. The Ahoi build uses the same gate while the
@@ -80,9 +107,9 @@ commits, trusted GN/Ninja/Clang/LLD binary hashes, and exact Xcode/SDK versions.
 ./scripts/build-ahoi.sh
 ```
 
-With the already installed Xcode 26.6 development toolchain, bootstrap and
-apply the overlay explicitly as follows; `build-ahoi.sh dev` then selects the
-same compatible toolchain automatically:
+With the pinned Xcode 26.6 toolchain, bootstrap and apply the overlay explicitly
+as follows; `build-ahoi.sh dev` then selects the same installation under the
+development provenance label automatically:
 
 ```sh
 ./scripts/run-chromium-hooks.sh --compatible-dev-xcode
@@ -164,11 +191,11 @@ distribution review and remains separate from core browsing.
 
 - `upstream-release`: unmodified Chromium control, ARM64, non-component.
 - `ahoi-dev`: faster local Ahoi iteration while retaining sandbox behavior;
-  pinned to the verified Xcode 26.6 compatibility entry.
+  uses the development provenance label for the pinned Xcode 26.6 toolchain.
 - `ahoi-release`: optimized, non-component, unsigned candidate for the later
   signing and notarization pipeline.
 
-All profiles keep Chromium M151's `mac_deployment_target = "13.0"` while
+All profiles keep Chromium M152's `mac_deployment_target = "13.0"` while
 setting `mac_min_system_version = "26.0"`. The first value controls SDK symbol
 availability and deprecation diagnostics throughout the upstream Chromium
 core; the second writes the product's actual `LSMinimumSystemVersion` and makes
@@ -183,6 +210,6 @@ preprocessor macro to remove the new code: the shared compiler target remains
 
 No supported profile uses `--no-sandbox`, `--ignore-certificate-errors`, or a
 disabled site-isolation mode.
-Xcode 26.6 is deliberately not treated as equivalent to the M151 production
-baseline: it can produce development evidence, but never the upstream control,
-release provenance, signed-candidate evidence, or a release PASS.
+Selecting Xcode 26.6 through the development label is deliberately not treated
+as upstream/release provenance: identical toolchain bytes do not let a
+development build satisfy control, signed-candidate, or release gates.
