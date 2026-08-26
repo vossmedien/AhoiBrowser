@@ -3699,7 +3699,7 @@ index 41b80c71f317ac260bbebec024aca8e7f25face5..8c7a86127569c996b3fafd7f0d0d8e0f
          this.pageVisibility_.setTheme, this.pageVisibility_.homeButton)}">
      </div>
 diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
-index 9c5e695824e0f2a1ed2d204335f48be827570769..56d8b41ee4419664fbd61e63a80d8ede738c2c7d 100644
+index 9c5e695824e0f2a1ed2d204335f48be827570769..d96bbddc21f0ba89d2c112247ba95b1a6de4557b 100644
 --- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
 +++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
 @@ -12,6 +12,10 @@ import '../controls/settings_toggle_button.js';
@@ -3786,7 +3786,7 @@ index 9c5e695824e0f2a1ed2d204335f48be827570769..56d8b41ee4419664fbd61e63a80d8ede
          changedPrivateProperties.has('systemTheme_') ||
          changedPrivateProperties.has('themePolicyColorPref_')
          // <if expr="is_linux">
-@@ -438,6 +466,20 @@ export class SettingsAppearancePageElement extends
+@@ -438,6 +466,27 @@ export class SettingsAppearancePageElement extends
      Router.getInstance().navigateTo(routes.FONTS);
    }
  
@@ -3795,19 +3795,26 @@ index 9c5e695824e0f2a1ed2d204335f48be827570769..56d8b41ee4419664fbd61e63a80d8ede
 +      return;
 +    }
 +
++    const prefService = PrefService.getInstance();
 +    const hasVisibleAddressBarAction =
-+        this.getPref('ahoi.developer_toolbar.show_cookie_button').value ||
-+        this.getPref('ahoi.developer_toolbar.show_cache_button').value ||
-+        this.getPref('ahoi.developer_toolbar.show_toolkit_button').value;
++        prefService
++            .getPref<boolean>('ahoi.developer_toolbar.show_cookie_button')
++            .value ||
++        prefService.getPref<boolean>('ahoi.developer_toolbar.show_cache_button')
++            .value ||
++        prefService
++            .getPref<boolean>('ahoi.developer_toolbar.show_toolkit_button')
++            .value;
 +    if (!hasVisibleAddressBarAction) {
-+      this.setPrefValue('ahoi.developer_toolbar.show_toolkit_button', true);
++      prefService.setPrefValue(
++          'ahoi.developer_toolbar.show_toolkit_button', true);
 +    }
 +  }
 +
    protected onDisableExtensionClick_() {
      this.fire('refresh-pref', 'homepage');
    }
-@@ -576,7 +618,7 @@ export class SettingsAppearancePageElement extends
+@@ -576,7 +625,7 @@ export class SettingsAppearancePageElement extends
      this.themeSublabel_ = this.i18n(i18nId);
      // </if>
      // <if expr="not is_linux">
@@ -3816,7 +3823,7 @@ index 9c5e695824e0f2a1ed2d204335f48be827570769..56d8b41ee4419664fbd61e63a80d8ede
      // </if>
    }
  
-@@ -681,7 +723,8 @@ export class SettingsAppearancePageElement extends
+@@ -681,7 +730,8 @@ export class SettingsAppearancePageElement extends
  
    protected onHoverCardMemoryUsageSettingsBooleanControlChange_(event: Event) {
      const enabled = (event.target as SettingsToggleButtonElement).checked;
