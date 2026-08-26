@@ -127,9 +127,34 @@ class RepositoryBuildContractTests(unittest.TestCase):
         )
         self.assertGreaterEqual(ahoi.count("ahoi_require_overlay_state"), 2)
 
-    def test_space_path_workaround_is_exact_temporary_and_provenanced(self):
+    def test_space_path_workarounds_are_exact_temporary_and_provenanced(self):
         config = load_json("config/dependency-build-workarounds.json")
-        self.assertEqual(1, config["schemaVersion"])
+        self.assertEqual(2, config["schemaVersion"])
+        rust_workaround = config["chromiumRustDepfileSpacePaths"]
+        self.assertEqual(
+            "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
+            rust_workaround["upstreamCommit"],
+        )
+        self.assertEqual(
+            "build/rust/gni_impl/rustc_wrapper.py",
+            rust_workaround["targetPath"],
+        )
+        self.assertEqual(
+            "3ddaae81891ab9397a734bbaffffd69bcca65e90c418aaa7cd3995eeccf4bbe5",
+            rust_workaround["targetSha256"],
+        )
+        self.assertIsNone(rust_workaround["upstreamFixCommit"])
+        rust_patch = ROOT / rust_workaround["patchPath"]
+        self.assertEqual(
+            rust_workaround["patchSha256"],
+            hashlib.sha256(rust_patch.read_bytes()).hexdigest(),
+        )
+        rust_patch_text = rust_patch.read_text(encoding="utf-8")
+        self.assertEqual(1, rust_patch_text.count("diff --git "))
+        self.assertIn("split_depfile_paths", rust_patch_text)
+        self.assertIn("escape_depfile_path", rust_patch_text)
+        self.assertIn("(?:\\\\ |[^ ])*", rust_patch_text)
+
         workaround = config["v8InspectorProtocolRelativeDepfilePaths"]
         self.assertEqual(
             "6aacaf6256a069ee455142333b7d38cad1c8d6e0",
@@ -157,20 +182,30 @@ class RepositoryBuildContractTests(unittest.TestCase):
             ROOT / "scripts/build-chromium-with-dependency-workarounds.sh"
         ).read_text(encoding="utf-8")
         self.assertIn("ahoi_require_clean_git_checkout", wrapper)
-        self.assertIn("git -C \"${dependency_root}\" apply --check", wrapper)
+        self.assertIn("git -C \"${AHOI_CHROMIUM_SRC}\" apply --check", wrapper)
+        self.assertIn("git -C \"${v8_root}\" apply --check", wrapper)
         self.assertIn("trap restore_on_exit EXIT", wrapper)
-        self.assertIn('cmp -s "${backup}" "${target_path}"', wrapper)
+        self.assertIn('unlink "${receipt}"', wrapper)
+        self.assertIn("retained V8 recovery backup", wrapper)
+        self.assertIn("retained Chromium recovery backup", wrapper)
+        self.assertIn(
+            'cmp -s "${chromium_backup}" "${chromium_target_path}"', wrapper
+        )
+        self.assertIn('cmp -s "${v8_backup}" "${v8_target_path}"', wrapper)
         self.assertIn("gn gen", wrapper)
         self.assertIn("autoninja -C", wrapper)
         self.assertLess(wrapper.index("git -C"), wrapper.index("gn gen"))
-        self.assertLess(wrapper.index("gn gen"), wrapper.rindex("restore_v8"))
+        self.assertLess(
+            wrapper.index("gn gen"), wrapper.rindex("restore_workarounds")
+        )
+        self.assertLess(wrapper.index('unlink "${receipt}"'), wrapper.index("gn gen"))
 
         host_check = (ROOT / "scripts/check-host.sh").read_text(encoding="utf-8")
         self.assertNotIn("work path must not contain spaces", host_check)
         provenance = (ROOT / "tools/build_provenance.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn("verify_dependency_build_workaround", provenance)
+        self.assertIn("verify_dependency_build_workarounds", provenance)
         self.assertIn('"dependencyBuildWorkarounds"', provenance)
         self.assertIn('"patchSha256"', provenance)
 

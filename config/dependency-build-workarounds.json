@@ -1,5 +1,19 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "chromiumRustDepfileSpacePaths": {
+    "id": "chromium-rust-depfile-space-paths",
+    "dependency": "chromium",
+    "dependencyPath": ".",
+    "upstreamSource": "https://chromium.googlesource.com/chromium/src.git",
+    "upstreamCommit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
+    "targetPath": "build/rust/gni_impl/rustc_wrapper.py",
+    "targetSha256": "3ddaae81891ab9397a734bbaffffd69bcca65e90c418aaa7cd3995eeccf4bbe5",
+    "patchPath": "patches/dependencies/chromium/0001-rust-depfile-space-paths.patch",
+    "patchSha256": "f9948dcb4dd7665fe3c67a2daecd7c1a6a5ea2a033c90271a7986f302b94612a",
+    "upstreamFixCommit": null,
+    "upstreamVerificationSource": "https://chromium.googlesource.com/chromium/src/+/main/build/rust/gni_impl/rustc_wrapper.py",
+    "receiptName": "ahoi-dependency-build-workarounds.json"
+  },
   "v8InspectorProtocolRelativeDepfilePaths": {
     "id": "v8-inspector-protocol-relative-depfile-paths",
     "dependency": "v8",
@@ -7,6 +21,7 @@
     "upstreamSource": "https://chromium.googlesource.com/v8/v8.git",
     "upstreamCommit": "6aacaf6256a069ee455142333b7d38cad1c8d6e0",
     "targetPath": "third_party/inspector_protocol/code_generator.py",
+    "targetSha256": "2d6b7a3f3bcb1becadc1bc9518d1016cd5d9eee221c8180c49c54350002ad619",
     "patchPath": "patches/dependencies/v8/0001-inspector-protocol-relative-depfile-paths.patch",
     "patchSha256": "3357b24d8d3dd01ba7b2c26c4f822d71c32b6e511b8e4745702df746c1eee699",
     "upstreamFixSource": "https://chromium.googlesource.com/deps/inspector_protocol.git",

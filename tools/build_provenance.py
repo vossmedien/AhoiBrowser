@@ -166,49 +166,109 @@ def expected_xcode_for_kind(kind: str, toolchain: dict) -> dict[str, str]:
     }
 
 
-def verify_dependency_build_workaround(out_dir: pathlib.Path) -> dict:
+def verify_dependency_build_workarounds(out_dir: pathlib.Path) -> list[dict]:
     config = load_json(ROOT / "config/dependency-build-workarounds.json")
-    if config.get("schemaVersion") != 1:
+    if config.get("schemaVersion") != 2:
         raise SystemExit("unsupported dependency build workaround schema")
-    workaround = config["v8InspectorProtocolRelativeDepfilePaths"]
-    patch = ROOT / workaround["patchPath"]
-    if sha256(patch) != workaround["patchSha256"]:
-        raise SystemExit("dependency build workaround patch SHA-256 mismatch")
-
-    dependency = CHROMIUM_SRC / workaround["dependencyPath"]
-    actual_commit = output("git", "rev-parse", "HEAD", cwd=dependency)
-    if actual_commit != workaround["upstreamCommit"]:
-        raise SystemExit("dependency build workaround V8 commit mismatch")
-    if output("git", "status", "--porcelain", cwd=dependency):
-        raise SystemExit("V8 is dirty after dependency build workaround")
-
-    receipt = load_json(out_dir / workaround["receiptName"])
-    expected_receipt = {
-        "schemaVersion": 1,
-        "workaroundId": workaround["id"],
-        "v8Commit": workaround["upstreamCommit"],
-        "upstreamFixCommit": workaround["upstreamFixCommit"],
-        "patchPath": workaround["patchPath"],
-        "patchSha256": workaround["patchSha256"],
-        "targetPath": workaround["targetPath"],
-        "restoredByteForByte": True,
-        "phases": ["gn gen", "autoninja"],
+    workaround_keys = (
+        "chromiumRustDepfileSpacePaths",
+        "v8InspectorProtocolRelativeDepfilePaths",
+    )
+    workarounds = [config[key] for key in workaround_keys]
+    receipt_names = {item["receiptName"] for item in workarounds}
+    if len(receipt_names) != 1:
+        raise SystemExit("dependency build workaround receipt names differ")
+    receipt = load_json(out_dir / receipt_names.pop())
+    if receipt.get("schemaVersion") != 2:
+        raise SystemExit("dependency build workaround receipt schema mismatch")
+    if receipt.get("phases") != ["gn gen", "autoninja"]:
+        raise SystemExit("dependency build workaround phases mismatch")
+    receipt_entries = receipt.get("workarounds")
+    if not isinstance(receipt_entries, list):
+        raise SystemExit("dependency build workaround receipt entries missing")
+    if len(receipt_entries) != len(workarounds):
+        raise SystemExit("dependency build workaround receipt entry mismatch")
+    entries_by_id = {
+        entry.get("workaroundId"): entry
+        for entry in receipt_entries
+        if isinstance(entry, dict)
     }
-    for key, expected in expected_receipt.items():
-        if receipt.get(key) != expected:
+    if len(entries_by_id) != len(workarounds):
+        raise SystemExit("dependency build workaround receipt entry mismatch")
+
+    verified = []
+    for workaround in workarounds:
+        patch = ROOT / workaround["patchPath"]
+        if sha256(patch) != workaround["patchSha256"]:
             raise SystemExit(
-                f"dependency build workaround receipt mismatch: {key}"
+                f'dependency build workaround patch mismatch: {workaround["id"]}'
             )
-    return {
-        "id": workaround["id"],
-        "dependency": workaround["dependency"],
-        "upstreamCommit": workaround["upstreamCommit"],
-        "upstreamFixCommit": workaround["upstreamFixCommit"],
-        "patchPath": workaround["patchPath"],
-        "patchSha256": workaround["patchSha256"],
-        "targetPath": workaround["targetPath"],
-        "restoredByteForByte": True,
-    }
+
+        dependency = (CHROMIUM_SRC / workaround["dependencyPath"]).resolve()
+        actual_commit = output("git", "rev-parse", "HEAD", cwd=dependency)
+        if actual_commit != workaround["upstreamCommit"]:
+            raise SystemExit(
+                f'dependency build workaround commit mismatch: {workaround["id"]}'
+            )
+        target = dependency / workaround["targetPath"]
+        if sha256(target) != workaround["targetSha256"]:
+            raise SystemExit(
+                f'dependency build workaround target mismatch: {workaround["id"]}'
+            )
+        status_args = ["git", "status", "--porcelain"]
+        if dependency == CHROMIUM_SRC.resolve():
+            status_args.extend(["--", workaround["targetPath"]])
+        if output(*status_args, cwd=dependency):
+            raise SystemExit(
+                f'dependency build workaround target dirty: {workaround["id"]}'
+            )
+
+        entry = entries_by_id.get(workaround["id"])
+        if entry is None:
+            raise SystemExit(
+                f'dependency build workaround receipt missing: {workaround["id"]}'
+            )
+        expected_entry = {
+            "workaroundId": workaround["id"],
+            "dependency": workaround["dependency"],
+            "upstreamCommit": workaround["upstreamCommit"],
+            "upstreamFixCommit": workaround["upstreamFixCommit"],
+            "patchPath": workaround["patchPath"],
+            "patchSha256": workaround["patchSha256"],
+            "targetPath": workaround["targetPath"],
+            "originalTargetSha256": workaround["targetSha256"],
+            "restoredByteForByte": True,
+        }
+        for key, expected in expected_entry.items():
+            if entry.get(key) != expected:
+                raise SystemExit(
+                    "dependency build workaround receipt mismatch: "
+                    f'{workaround["id"]}.{key}'
+                )
+        patched_target_sha = entry.get("patchedTargetSha256")
+        if not patched_target_sha:
+            raise SystemExit(
+                f'dependency workaround patched SHA missing: {workaround["id"]}'
+            )
+        if patched_target_sha == workaround["targetSha256"]:
+            raise SystemExit(
+                f'dependency workaround patch was a no-op: {workaround["id"]}'
+            )
+        verified.append(
+            {
+                "id": workaround["id"],
+                "dependency": workaround["dependency"],
+                "upstreamCommit": workaround["upstreamCommit"],
+                "upstreamFixCommit": workaround["upstreamFixCommit"],
+                "patchPath": workaround["patchPath"],
+                "patchSha256": workaround["patchSha256"],
+                "targetPath": workaround["targetPath"],
+                "targetSha256": workaround["targetSha256"],
+                "patchedTargetSha256": patched_target_sha,
+                "restoredByteForByte": True,
+            }
+        )
+    return verified
 
 
 def main() -> int:
@@ -273,7 +333,7 @@ def main() -> int:
         expected_chromium_commit=chromium_pin["commit"],
         allow_source_overlay=is_ahoi,
     )
-    dependency_build_workaround = verify_dependency_build_workaround(out_dir)
+    dependency_build_workarounds = verify_dependency_build_workarounds(out_dir)
 
     gn_binary = CHROMIUM_SRC / "buildtools/mac/gn"
     ninja_binary = CHROMIUM_SRC / "third_party/ninja/ninja"
@@ -409,7 +469,7 @@ def main() -> int:
         "actualDependencyManifestSha256": json_sha256(actual_revisions),
         "expectedDependencyRevisions": expected_revisions,
         "actualDependencyRevisions": actual_revisions,
-        "dependencyBuildWorkarounds": [dependency_build_workaround],
+        "dependencyBuildWorkarounds": dependency_build_workarounds,
     }
     if overlay_verification is not None:
         source_payload.update(
