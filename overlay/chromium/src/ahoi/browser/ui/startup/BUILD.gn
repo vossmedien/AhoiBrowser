@@ -1,0 +1,24 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+source_set("startup_choice_ui") {
+  public = [ "startup_choice_dialog.h" ]
+
+  sources = [
+    "startup_choice_dialog.cc",
+    "startup_choice_dialog.h",
+  ]
+
+  public_deps = [ "//base" ]
+
+  deps = [
+    "//chrome/app:generated_resources",
+    "//chrome/browser/ui/browser_window",
+    "//components/constrained_window",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/base:types",
+    "//ui/gfx",
+    "//ui/views",
+  ]
+}

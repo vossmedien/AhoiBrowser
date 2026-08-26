@@ -468,6 +468,12 @@ Drag-Verhalten:
 - Tab auf ein Pane einer Zweiergruppe zeigt die genaue Einfügeposition und erzeugt nach Drop eine gewählte Dreier-Anordnung.
 - Tab auf ein Pane einer Dreiergruppe zeigt die genaue Einfügeposition und erzeugt nach Drop eine gewählte Vierer-Anordnung, standardmäßig das nachvollziehbare 2×2-Raster.
 - Tab innerhalb derselben Split-Gruppe kann Pane-Reihenfolge und Layout ändern.
+- Sidebar- und Content-Drop verwenden denselben transaktionalen
+  WebContents-Rebind-Lebenszyklus: Alle geänderten alten Pane-Bindungen werden
+  zuerst gelöst und erst danach in Zielreihenfolge neu gebunden. Zu keinem
+  Zeitpunkt dürfen zwei `ContentsWebView`-, Accessibility-, Read-Anything-,
+  Permission- oder Dialog-Overlays dasselbe `WebContents` gleichzeitig
+  beobachten.
 - Tab aus der Split-Gruppe auf ein normales Sidebar-Ziel entfernt ihn aus dem Split, schließt ihn aber nicht.
 - Eine Vierergruppe wird nach Entfernen oder Schließen eines Panes zur passenden Dreiergruppe, eine Dreiergruppe zur passenden Zweiergruppe und eine Zweiergruppe mit einem verbleibenden Pane zu einem normalen Tab.
 - Ein fünfter externer Tab wird sichtbar und verständlich abgewiesen; kein vorhandenes Pane wird still ersetzt, versteckt oder geschlossen.
@@ -940,9 +946,9 @@ Jede Cache-/Cookie-/Website-Daten-Löschung erzeugt vor der Bestätigung ein unv
 
 Implementiere zwei klare Datenschutzmodi.
 
-### `Mehr Schutz` – globaler Default
+### `Mehr Schutz` – explizit aktivierbarer Zusatzschutz
 
-`Mehr Schutz` soll Entwickler nicht unnötig einschränken und normale Websites weitgehend funktionsfähig halten. Die UI erklärt in einem Satz, dass zusätzliche Ahoi-Schutzmaßnahmen aktiv sind und einzelne eingebettete Drittanbieter-Inhalte gegebenenfalls eine Website-Ausnahme benötigen:
+`Mehr Schutz` soll Entwickler nicht unnötig einschränken und normale Websites weitgehend funktionsfähig halten. Der Nutzer aktiviert diesen Modus bewusst global oder pro Website. Die UI erklärt in einem Satz, dass zusätzliche Ahoi-Schutzmaßnahmen aktiv sind und einzelne eingebettete Drittanbieter-Inhalte gegebenenfalls eine Website-Ausnahme benötigen:
 
 - First-Party-Cookies und normale Logins funktionieren vollständig.
 - Unpartitionierte Third-Party-Cookies werden blockiert.
@@ -963,7 +969,7 @@ Implementiere zwei klare Datenschutzmodi.
 
 ### `Maximale Website-Kompatibilität`
 
-Dieser Modus kann global oder pro Origin aktiviert werden. Die UI erklärt statt eines internen Technikbegriffs, dass Ahois zusätzliche Eingriffe für diese Website ausgesetzt werden, Chromiums Sicherheitsgrenzen jedoch aktiv bleiben. Interne Enum-/Policy-Namen dürfen aus Migrationsgründen unverändert bleiben, werden aber nicht ungeklärt als Nutzertext angezeigt:
+Dieser Modus ist bei einem frischen Profil der globale Default und kann zusätzlich pro Origin aktiviert werden. Die UI erklärt statt eines internen Technikbegriffs, dass Ahois zusätzliche Eingriffe für diese Website ausgesetzt werden, Chromiums Sicherheitsgrenzen jedoch aktiv bleiben. Interne Enum-/Policy-Namen dürfen aus Migrationsgründen unverändert bleiben, werden aber nicht ungeklärt als Nutzertext angezeigt:
 
 - deaktiviert AhoiBrowsers zusätzliche Cookie-, URL-, Referrer- und Fingerprinting-Eingriffe für die betreffende Website;
 - verändert nicht uBlock oder andere Erweiterungen;
@@ -971,6 +977,13 @@ Dieser Modus kann global oder pro Origin aktiviert werden. Die UI erklärt statt
 - wird sichtbar im Site-Panel und über `PRIVACY OPEN` angezeigt;
 - ist in DevTools beziehungsweise Diagnoseinformationen erkennbar;
 - kann vollständig zurückgesetzt werden.
+
+Keiner der beiden Modi ist ein Werbe- oder Contentblocker. Ahoi blockiert keine
+Script-, Bild-, Frame-, Analyse- oder Werbehosts durch eine zweite interne
+Filterengine. Umfangreiche Request- und kosmetische Filterung bleibt der separat
+installierten Erweiterung uBlock Origin vorbehalten; entsprechend muss eine
+normale Website wie `winfuture.de` einschließlich benötigter Drittressourcen wie
+`html-load.com` bei deaktiviertem uBlock im Defaultmodus funktionieren.
 
 ### Safe Browsing
 
@@ -1713,6 +1726,8 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `PRIV-14`: Standard Safe Browsing warnt auf kontrolliertem Testfall.
 - `PRIV-15`: Enhanced Protection ist nicht still aktiv.
 - `PRIV-16`: kontrollierter Crash löst keinen automatischen Produkttelemetrie- oder Crashupload aus.
+- `PRIV-17`: frisches Profil startet mit `Maximale Website-Kompatibilität`; `winfuture.de` lädt bei deaktiviertem uBlock inklusive `html-load.com`, ohne dass Ahoi einen Drittanbieterhost als Adblocker sperrt.
+- `PRIV-18`: fehlende private Google-API-Schlüssel erzeugen keine Nutzerwarnung und beeinträchtigen normale Navigation nicht; Ahoi verlangt von Endnutzern keinen Google-API-Key und bietet kein vorgetäuschtes Chrome Sync an.
 - `SEC-01`: Renderer-Sandbox, Site Isolation und Prozessgrenzen im Release nachweisen.
 - `SEC-02`: normale Website kann keine internen AhoiBrowser-Mojo- oder WebUI-Funktionen erreichen.
 - `SEC-03`: manipulierte Extension-, uBO- und Updateartefakte werden abgewiesen.

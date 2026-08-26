@@ -1,0 +1,83 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("appearance_preferences") {
+  sources = [
+    "appearance_prefs.cc",
+    "appearance_prefs.h",
+  ]
+
+  public_deps = [ "//base" ]
+
+  deps = [
+    "//components/prefs",
+    "//components/sync_preferences",
+  ]
+}
+
+source_set("appearance") {
+  sources = [
+    "appearance_policy.cc",
+    "appearance_policy.h",
+    "appearance_runtime_signals.cc",
+    "appearance_runtime_signals.h",
+    "appearance_views.cc",
+    "appearance_views.h",
+  ]
+
+  public_deps = [
+    ":appearance_preferences",
+    "//base",
+    "//skia",
+    "//ui/color",
+    "//ui/gfx",
+    "//ui/native_theme",
+    "//ui/views",
+  ]
+
+  deps = [
+    "//cc/paint",
+    "//components/prefs",
+    "//ui/base",
+    "//ui/compositor",
+    "//ui/gfx/animation",
+  ]
+
+  if (is_mac) {
+    sources += [
+      "native_glass_bridge.cc",
+      "native_glass_bridge.h",
+      "native_glass_bridge_mac.mm",
+    ]
+    frameworks = [ "AppKit.framework" ]
+  }
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "appearance_policy_unittest.cc",
+    "appearance_prefs_unittest.cc",
+    "appearance_runtime_signals_unittest.cc",
+  ]
+  if (is_mac) {
+    sources += [ "native_glass_bridge_unittest.cc" ]
+  }
+  deps = [
+    ":appearance",
+    "//base/test:test_support",
+    "//components/sync_preferences:test_support",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_appearance_unittests") {
+  sources = [ "run_all_unittests.cc" ]
+  deps = [
+    ":unit_tests",
+    "//base/test:test_support",
+    "//testing/gtest",
+  ]
+}

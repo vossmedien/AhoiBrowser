@@ -15,3 +15,8 @@
 0014-ahoi-live-tab-lifecycle-and-bidirectional-drag.patch
 0015-ahoi-save-shortcut-and-drag-feedback.patch
 0016-ahoi-modular-ui-auth-and-native-drag.patch
+0017-ahoi-product-source-freeze.patch
+0018-ahoi-user-agent-client-hints-brand.patch
+0019-ahoi-deterministic-platform-tests.patch
+0020-ahoi-upstream-site-data-clock-revert.patch
+0021-ahoi-upstream-page-load-tracing-test-isolation.patch

@@ -16,7 +16,7 @@ credential-store tests.
 python3 fixtures/http-auth/manage.py run-tests
 ```
 
-Expected result: nine tests pass. This is `INTEGRATION` fixture evidence, not
+Expected result: thirteen tests pass. This is `INTEGRATION` fixture evidence, not
 `CU_E2E`. A later installed-app run must start the fixture, trust its temporary
 certificate without insecure Chromium flags, exercise the visible browser, and
 store screenshots/video/log assertions under the corresponding
@@ -44,7 +44,7 @@ Legend:
 | AUTH-08 | **Fixture-ready:** successful response can confirm a changed test credential once a mutable-password scenario is added to the run. | Password-store update only after successful login. |
 | AUTH-09 | **Fixture-tested:** two Basic and two Digest realms share the primary host and remain distinct. | Credential chooser/store isolation in AhoiBrowser. |
 | AUTH-10 | **Fixture-tested:** primary and secondary HTTPS origins expose the same path on different ports with distinct realms. | Entries remain separated by effective port in the browser store. |
-| AUTH-11 | **Browser-only:** this fixture does not implement a proxy challenge. | Separate server and proxy credentials with a dedicated proxy fixture. |
+| AUTH-11 | **Fixture-tested:** the non-forwarding loopback proxy challenges with `407`, accepts only `Proxy-Authorization`, rejects origin credentials in that header, and never treats `Authorization` as proxy authentication. | Visible Chromium proxy prompt plus origin prompt, with separate stored credentials. |
 | AUTH-12 | **Fixture-ready:** HTTPS and explicit HTTP origins are separate. | Prove no HTTPS credential transfer or automatic HTTP login. |
 | AUTH-13 | **Fixture-tested:** an authenticated primary-origin redirect reaches the observer without Authorization when followed with the required policy. | Network evidence from Chromium itself, not the fixture helper client. |
 | AUTH-14 | **Fixture-ready:** independent path prefixes and protection spaces reject the wrong realm credential. | Chromium pre-auth/path reuse remains no broader than protection-space rules. |
@@ -59,7 +59,7 @@ Legend:
 | AUTH-23 | **Browser-only.** | Mac B, CloudKit, and iOS absence evidence. |
 | AUTH-24 | **Browser-only.** | Touch ID/system-authenticated reveal. |
 | AUTH-25 | **Fixture-tested (fixture scope):** structured log redacts Authorization and drops query strings; tests assert token/password/query absence. | Scrubbed AhoiBrowser logs, NetLog, crashes, and E2E artifacts. |
-| AUTH-26 | **Browser-only:** no subresource page is claimed by this initial fixture. | Unambiguous visible subresource challenge with origin/frame context. |
+| AUTH-26 | **Fixture-tested:** a visible main document loads one protected image under a dedicated Basic realm; direct challenge and success are deterministic. | Installed-browser prompt must name the requesting origin/frame context unambiguously. |
 | AUTH-27 | **Browser-only.** | Full installed, signed `/Applications/AhoiBrowser.app` Computer Use journey. |
 
 ## Release-gate boundary

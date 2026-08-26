@@ -1,0 +1,30 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("startup_policy") {
+  sources = [
+    "startup_policy.cc",
+    "startup_policy.h",
+  ]
+  public_deps = [ "//base" ]
+}
+
+source_set("startup_policy_unit_tests") {
+  testonly = true
+  sources = [ "startup_policy_unittest.cc" ]
+  deps = [
+    ":startup_policy",
+    "//base",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_startup_policy_unittests") {
+  deps = [
+    ":startup_policy_unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

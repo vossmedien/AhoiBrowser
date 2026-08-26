@@ -22,3 +22,9 @@ Legal review is required before public binary distribution for:
 Feature gates in `config/feature-gates.json` remain off until their recorded
 technical and legal requirements pass. A successful local experiment is not
 permission to publish it.
+
+The explicit name/logo and public-fork rules live in `docs/TRADEMARKS.md`.
+Candidate-specific third-party and brand review follows
+`docs/THIRD_PARTY_REVIEW.md` and `config/release-review-policy.json`. That
+policy intentionally contains no approval or trusted reviewer key today;
+generated receipts and passing tests are not legal clearance.

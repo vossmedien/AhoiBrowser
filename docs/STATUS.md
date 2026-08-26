@@ -1,66 +1,54 @@
 # Implementation status
 
-Last updated: 2026-08-23
+Last updated: 2026-08-26
 
-## Verified local environment
+This page records only completed, reproducible evidence from the current source
+state. A running suite is not counted as a pass, and development signing or an
+app copied to `/Applications` is not release or `CU_E2E` evidence.
 
-- Apple M2 Max, ARM64, 32 GiB RAM
-- macOS 26.6 (25G72)
-- Installed development lane: Xcode 26.6 (17F113), macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F81a); accepted for `ahoi-dev` only
-- Installed M151 baseline: Xcode 26.5 (17F42), macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F73)
-- Valid Apple Development and Developer ID Application identities available
-- Paired iPhone 16 Pro Max available for companion-device tests
-- Google Chrome, Arc, and 1Password installed for migration/compatibility checks
+## Completed current-source gates
 
-## Phase 0 progress
-
-| Deliverable | State | Evidence |
+| Gate | Result | Evidence boundary |
 | --- | --- | --- |
-| Product contract | complete | `outputs/AhoiBrowser-Master-Zielprompt.md` |
-| Host inventory | observed, not captured | local command observation; publishable machine-readable manifest pending |
-| Overlay repository foundation | complete | repository contracts and fail-closed provenance gates |
-| Exact Chromium Stable pin | complete | 151.0.7922.170, fully rolled/pinnable Mac ARM64 Stable |
-| Chromium ARM64 checkout | complete | 233/233 dependency closure verified twice at `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` |
-| Unmodified Chromium ARM64 build | not run | exact Xcode 26.5 baseline is installed; build gate is ready to run |
-| Branded native browser | development build complete; release build not run | `out/AhoiDev/AhoiBrowser.app` builds and launches as native ARM64 Chromium; the sixteen-patch product stack composes deterministically and the latest incremental `chrome` gate exited 0 |
-| Native visible product slice | `PROGRAMMATIC_PASS`; development-runtime interaction observed; installed proof pending | profile-backed sidebar with saved/temporary sections, fixed split New Tab/Incognito plus Downloads/History/Settings dock, group styling/actions and searchable recent-link hover card, direct centered five-result command bar, URL-copy action, split-aware paired rows and row/column layouts; 117/117 Ahoi tests plus the native AppKit drag-start forwarding regression pass, while physical pointer drag/resize still require manual nightly confirmation |
-| Persistent nested tab tree | `PROGRAMMATIC_PASS`; development restart proof observed; installed proof pending | profile-local SQLite snapshots, tombstones, undo history, icon/accent schema migration and nested grouping remain authoritative; runtime acceptance covered group customization, duplication plus `Cmd+Z`, collapse, recent-link activation and persisted stacked split membership/orientation |
-| Installed signed nightly | not run | depends on signed/notarized branded release build |
-| Native Sparkle updater | source and static contracts complete; installed update not run | official 2.9.6 pin, native menu/settings/status, fail-closed feed/key policy, signed appcast and fetched-material provenance; real feed/key/signing plus N-2/N-1 evidence remain external |
-| Signed release provenance | implemented / fail-closed without production receipts | Computer Use PASS disabled by `config/release-evidence.json` until build-sign-package-install/materials/appcast binding exists |
-| HTTP-auth fixture spike | fixture complete; browser integration in progress | 11 fixture integrations and 6/6 browser credential-service tests pass; the development UI visibly exposes one-time, save-after-success and never-save radio choices, while a complete saved-account submit/restart/autocomplete journey remains open |
-| CloudKit model spike | local model complete | 34 verified Swift tests in `docs/spikes/CLOUDKIT.md`; real entitled Mac-iOS CloudKit roundtrip remains not run |
-| Extension fixtures | fixture complete | local MV3 probe plus non-allowlisted MV2 negative control; installed-browser/CWS tests remain not run |
-| Glass integration spike | not run | depends on native browser integration |
+| Chromium source freeze | complete | The exact Chromium `151.0.7922.170` pin at `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` composes deterministically from the 21-entry patch series through `0021-ahoi-upstream-page-load-tracing-test-isolation.patch`, plus the tracked overlay, to tree `a3865fc6e9f89ccd9403fa888ccce1a54d67c4e4`. The portable recovery bundle is `artifacts/build/recovery/ahoi-m151-final.bundle` (SHA-256 `7e45492983029c62297941536b2830f8e06f3f25069e8c08f42ee01477bc7dc7`). Hardened non-mutating preflight reports 21/21 `applies` at `artifacts/build/chromium-roll-preflight-m151-hardened.json` (SHA-256 `c5e9d0ec97c4b61de004b7d9d6ff3e6152503cdc20f8e24419b2145ba35e9d23`). |
+| Ahoi Chromium binary matrix | `29/29 PASS` | All 29 focused Ahoi test binaries built and completed successfully against `out/AhoiDev`. This is programmatic development-build evidence, not installed-app evidence. |
+| Browser/privacy policy tests | `17/17 PASS` | The focused browser policy suite, including secure component transport and browser-account network gating, completed successfully. |
+| Fresh-profile idle network audit | `PASS` | `artifacts/e2e/fresh-profile-network-audit-20260826-idle.json` records only allowlisted component update/download and Safe Browsing origins, with no unknown or prohibited origins. |
+| Outer repository gate | `232 PASS` | 166 repository tests, 13 HTTP-auth fixture tests, 17 general HTTPS E2E-fixture tests and 36 CloudKit model tests completed successfully. Fixture and model tests prove their local contracts only. |
+| Native matrix | `36/36 PASS` | The completed native matrix passed all 36 checks. |
+| Companion matrix | `33 PASS`, `2 SKIP` | The completed Companion checks passed 33 tests; two real-entitlement cases were skipped because provisioned CloudKit/device entitlements are external. Skips are not passes. |
 
-The checkout completed with 233 expected and 233 actual dependencies and a
-machine-readable dependency artifact. The first branded AhoiDev baseline is a
-real native ARM64 application bundle and passed build, bundle, overlay,
-toolchain and runtime-start checks. It is a component-build development
-artifact and is therefore run in place, never copied to `/Applications` or used
-as release evidence.
+The post-fix, retry-free Chromium `components_unittests` run executed all
+52,855 tests: 52,854 passed and the randomized
+`AggregatableUtilsNullReportsTest.ExpectedDistribution/1` exceeded its
+statistical bound once. The upstream test itself documents a one-percent
+failure probability; its fresh no-retry rerun passed `1/1`. The four prior
+persistent failures are resolved, with additional post-fix repeat evidence of
+`50/50` tracing and `100/100` site-data tests. The full suite is deliberately
+not labeled retry-free green because the primary run had that one statistical
+failure. Its machine-readable summary is
+`artifacts/build/components-unittests-m151-summary.json` (SHA-256
+`803b8f92de1a4c6a669d702fc9406383c6729a867ec878615ebcf7c429bba5bc`).
 
-The first two branded compile passes exposed deprecation errors because the
-initial profiles coupled the product launch requirement to the compiler target.
-The corrected Chromium contract keeps `mac_deployment_target = "13.0"` while
-`mac_min_system_version = "26.0"` writes AhoiBrowser's real launch requirement.
-That baseline now builds and runs. The deterministic sixteen-patch source stack now
-also contains the first connected product UI: the profile-backed tree/session
-bridge, native sidebar, local command bar and bounded native split projection.
-The regular Chromium profile remains the persistent authority, and restored
-tabs can rebind saved pages at any folder depth without flattening their
-hierarchy. Disk access is isolated from Chromium's UI thread: a validated
-in-memory database serves runtime queries, while full SQLite snapshots
-including durable undo history are loaded and written on a sequenced blocking
-runner. A fresh-profile HTTPS runtime smoke remained alive through navigation
-updates, produced a valid tree database and no crash report, then exited
-cleanly. A later isolated development-profile interaction used native mouse and
-keyboard input to verify temporary-to-saved drag, saved-split-to-temporary
-roundtrip, both tab context menus, favicons, the five-result Cmd+T surface and
-its previously crashing Enter path. The exact process remained alive without a
-crash report; an `about:blank` idle sample with four test tabs measured about
-0.2% aggregate CPU. These features are `IMPLEMENTED` and have focused
-`PROGRAMMATIC_PASS` plus development-runtime observation; `out/AhoiDev` is not
-an installed artifact and therefore does not count as `INSTALLED_PASS` or
-release `CU_E2E_PASS`. Packaging, `/Applications` installation,
-signing/notarization binding and the broader daily-driver matrix remain open.
+The non-mutating roll discovery has verified Mac Stable `152.0.7977.65` at
+`fc4d67f1788019a27e32511137ceccbd2fafdaaa` as the next candidate. The
+production pin remains M151 until that exact target object has been fetched,
+the full overlay and patch stack has been dispositioned against it, and the
+rebased source has passed the required M152 build and runtime matrix.
+
+## Release and installed-app boundary
+
+No release build, notarized/stapled package, signed release manifest, updater
+journey, `INSTALLED_PASS`, `CU_E2E PASS`, or `ASSISTED_E2E PASS` has been
+recorded. The portable component build can be signed with an Apple Development
+identity for stable local Keychain behavior, but that signature does not provide
+Developer ID, Hardened Runtime, notarization, stapling or exact packaged-to-live
+bundle provenance.
+
+A valid Developer ID Application identity is available locally. Release remains
+blocked until the reviewed release environment and Team ID binding, Keychain
+notary profile, exact submission/acceptance, stapling and validation receipts
+exist. The canonical volume currently has roughly 120 GiB free and remains about
+30 GiB below the fail-closed 150 GiB clean release-build threshold. The remaining
+credential, service, entitlement, assisted-device and legal gates are listed in
+`config/external-gates.json`.

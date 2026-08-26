@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "releasePassEnabled": false,
+  "trustedReviewerKeyIds": [],
+  "externalGate": "trademark-and-distribution-policy",
+  "requiredReviews": [
+    {
+      "id": "third-party-license-and-source",
+      "owner": "product-legal",
+      "requiredEvidence": [
+        "exact candidate component inventory",
+        "SPDX-2.3 SBOM",
+        "Third-Party Notices",
+        "component license archive",
+        "corresponding source offer"
+      ]
+    },
+    {
+      "id": "trademark-and-branding",
+      "owner": "product-legal",
+      "requiredEvidence": [
+        "AhoiBrowser name and logo review",
+        "Chromium and Chrome trademark review",
+        "public fork rebranding review",
+        "distribution-channel review"
+      ]
+    }
+  ],
+  "reason": "No independent product-legal approval or trusted reviewer key is currently provisioned. Tooling, SBOM generation, notices and a written policy are not legal approval; public release remains fail-closed."
+}

@@ -2,6 +2,10 @@ import Foundation
 import SwiftUI
 import AhoiCloudKitSpike
 
+private func L(_ key: String, _ fallback: String) -> String {
+    CompanionL10n.string(key, fallback: fallback)
+}
+
 public struct CompanionRootView: View {
     @ObservedObject private var model: CompanionAppModel
     @Environment(\.openURL) private var openURL
@@ -13,6 +17,9 @@ public struct CompanionRootView: View {
     @State private var workspacePendingDeletion: WorkspaceID?
     @State private var workspacePendingRename: Workspace?
     @State private var renameDraft = ""
+    @State private var selectedRemoteDeviceID: DeviceID?
+    @State private var settingsPresented = false
+    @State private var sendLinkPresented = false
     @AppStorage(CompanionSyncPreferences.enabledKey) private var syncEnabled = false
 
     public init(model: CompanionAppModel) {
@@ -22,7 +29,7 @@ public struct CompanionRootView: View {
     public var body: some View {
         NavigationSplitView {
             List(selection: $selectedWorkspaceID) {
-                Section("Workspaces") {
+                Section(L("root.workspaces", "Workspaces")) {
                     ForEach(model.snapshot.visibleWorkspaces) { workspace in
                         HStack(spacing: 8) {
                             WorkspaceIcon(workspace: workspace)
@@ -30,11 +37,11 @@ public struct CompanionRootView: View {
                         }
                         .tag(workspace.id)
                         .contextMenu {
-                            Button("Umbenennen") {
+                            Button(L("action.rename", "Rename")) {
                                 renameDraft = workspace.name
                                 workspacePendingRename = workspace
                             }
-                            Button("Workspace löschen", role: .destructive) {
+                            Button(L("workspace.delete", "Delete workspace"), role: .destructive) {
                                 workspacePendingDeletion = workspace.id
                             }
                         }
@@ -42,9 +49,38 @@ public struct CompanionRootView: View {
                 }
 
                 if !model.snapshot.visibleRemoteTabs.isEmpty {
-                    Section("Geräte-Tabs") {
-                        ForEach(model.snapshot.visibleRemoteTabs.prefix(8)) { tab in
+                    Section {
+                        ForEach(filteredRemoteTabs) { tab in
                             remoteTabRow(tab)
+                        }
+                    } header: {
+                        HStack {
+                            Text(CompanionL10n.string(
+                                "root.device_tabs",
+                                fallback: "Device tabs"
+                            ))
+                            Spacer()
+                            Menu {
+                                Button(CompanionL10n.string(
+                                    "device_filter.all",
+                                    fallback: "All devices"
+                                )) {
+                                    selectedRemoteDeviceID = nil
+                                }
+                                ForEach(remoteDevices) { device in
+                                    Button(device.name) {
+                                        selectedRemoteDeviceID = device.id
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: selectedRemoteDeviceID == nil
+                                      ? "line.3.horizontal.decrease.circle"
+                                      : "line.3.horizontal.decrease.circle.fill")
+                                    .accessibilityLabel(CompanionL10n.string(
+                                        "device_filter.accessibility",
+                                        fallback: "Filter device tabs"
+                                    ))
+                            }
                         }
                     }
                 }
@@ -52,7 +88,7 @@ public struct CompanionRootView: View {
             .navigationTitle("Ahoi Companion")
             .overlay {
                 if model.snapshot.visibleWorkspaces.isEmpty && model.snapshot.visibleRemoteTabs.isEmpty {
-                    Text("Noch keine synchronisierten Daten")
+                    Text(L("root.empty", "No synced data yet"))
                         .foregroundStyle(.secondary)
                         .padding()
                 }
@@ -65,7 +101,9 @@ public struct CompanionRootView: View {
                     workspace: workspace,
                     nodes: model.snapshot.visibleTreeNodes.filter { $0.workspaceID == workspace.id },
                     tabs: model.visibleTabs(for: workspace.id),
-                    moveTargets: model.snapshot.visibleWorkspaces,
+                    moveTargets: CompanionMoveTargetBuilder.targets(
+                        snapshot: model.snapshot
+                    ),
                     actionableTabIDs: model.actionableRemoteTabIDs,
                     openURL: openURL,
                     remoteControlAvailable: model.isRemoteControlAvailable,
@@ -88,21 +126,28 @@ public struct CompanionRootView: View {
                         Task {
                             await model.moveTreeNode(
                                 node.id,
-                                workspaceID: target,
-                                parentID: nil
+                                workspaceID: target.workspaceID,
+                                parentID: target.parentID
                             )
                         }
                     }
                 )
             } else {
                 ContentUnavailableView(
-                    "Workspace auswählen",
+                    L("workspace.select", "Select a workspace"),
                     systemImage: "sidebar.left",
-                    description: Text("Workspaces, gespeicherte Seiten und normale Geräte-Tabs bleiben lokal verfügbar.")
+                    description: Text(L(
+                        "workspace.select.description",
+                        "Workspaces, saved pages and normal device tabs remain available locally."
+                    ))
                 )
             }
         }
-        .searchable(text: $query, placement: .sidebar, prompt: "Workspaces, Tabs, Verlauf")
+        .searchable(
+            text: $query,
+            placement: .sidebar,
+            prompt: L("search.prompt", "Workspaces, tabs, history")
+        )
         .onChange(of: query) { _, value in
             Task { await model.refreshSearch(query: value) }
         }
@@ -112,35 +157,61 @@ public struct CompanionRootView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Menu {
-                    Button("Workspace") { beginCreation(.workspace) }
-                    Button("Ordner") { beginCreation(.folder) }
+                    Button(L("workspace.title", "Workspace")) { beginCreation(.workspace) }
+                    Button(L("folder.title", "Folder")) { beginCreation(.folder) }
                         .disabled(selectedWorkspaceID == nil)
-                    Button("Gespeicherte Seite") { beginCreation(.savedPage) }
+                    Button(L("saved_page.title", "Saved page")) { beginCreation(.savedPage) }
                         .disabled(selectedWorkspaceID == nil)
                     Divider()
-                    Toggle("CloudKit-Sync", isOn: $syncEnabled)
+                    Toggle(L("settings.sync.enabled", "CloudKit sync"), isOn: $syncEnabled)
                     if syncEnabled && !model.isSyncConfigured {
-                        Text("Apple-Konfiguration oder Schlüssel fehlt")
+                        Text(L(
+                            "settings.sync.configuration_short",
+                            "Apple configuration or encryption key is missing"
+                        ))
                     }
                 } label: {
-                    Label("Verwalten", systemImage: "plus.circle")
+                    Label(L("action.manage", "Manage"), systemImage: "plus.circle")
                 }
             }
             ToolbarItem(placement: .automatic) {
                 Button {
                     Task { await model.sync() }
                 } label: {
-                    Label("Synchronisieren", systemImage: "arrow.triangle.2.circlepath")
+                    Label(L("action.sync_now", "Sync now"), systemImage: "arrow.triangle.2.circlepath")
                 }
-                .accessibilityHint("Startet eine CloudKit-Synchronisierung, falls ein Provider konfiguriert ist.")
+                .accessibilityHint(L(
+                    "sync.action.hint",
+                    "Starts a CloudKit sync when a provider is configured."
+                ))
                 .disabled(!model.isSyncConfigured)
             }
-        }
-        .safeAreaInset(edge: .bottom) {
-            RemoteControlProvisioningView(
-                identity: model.remoteControlIdentity,
-                status: model.remoteCommandStatus
-            )
+            ToolbarItemGroup(placement: .automatic) {
+                Button {
+                    sendLinkPresented = true
+                } label: {
+                    Label(
+                        CompanionL10n.string(
+                            "send_link.title",
+                            fallback: "Send link"
+                        ),
+                        systemImage: "paperplane"
+                    )
+                }
+                .disabled(!model.isRemoteControlAvailable || remoteDevices.isEmpty)
+
+                Button {
+                    settingsPresented = true
+                } label: {
+                    Label(
+                        CompanionL10n.string(
+                            "settings.title",
+                            fallback: "Settings"
+                        ),
+                        systemImage: "gearshape"
+                    )
+                }
+            }
         }
         .task {
             await model.load()
@@ -152,42 +223,52 @@ public struct CompanionRootView: View {
             }
         }
         .alert(creationTitle, isPresented: creationPresented) {
-            TextField("Name", text: $draftTitle)
+            TextField(L("field.name", "Name"), text: $draftTitle)
             if creationKind == .savedPage {
                 TextField("https://…", text: $draftURL)
             }
-            Button("Abbrechen", role: .cancel) { resetCreation() }
-            Button("Anlegen") { commitCreation() }
+            Button(L("action.cancel", "Cancel"), role: .cancel) { resetCreation() }
+            Button(L("action.create", "Create")) { commitCreation() }
         }
         .confirmationDialog(
-            "Workspace samt Baum löschen?",
+            L("workspace.delete.confirmation", "Delete workspace and its tree?"),
             isPresented: Binding(
                 get: { workspacePendingDeletion != nil },
                 set: { if !$0 { workspacePendingDeletion = nil } }
             ),
             titleVisibility: .visible
         ) {
-            Button("Löschen", role: .destructive) {
+            Button(L("action.delete", "Delete"), role: .destructive) {
                 guard let id = workspacePendingDeletion else { return }
                 Task { await model.deleteWorkspace(id) }
                 workspacePendingDeletion = nil
             }
-            Button("Abbrechen", role: .cancel) { workspacePendingDeletion = nil }
+            Button(L("action.cancel", "Cancel"), role: .cancel) {
+                workspacePendingDeletion = nil
+            }
         }
         .alert(
-            "Workspace umbenennen",
+            L("workspace.rename", "Rename workspace"),
             isPresented: Binding(
                 get: { workspacePendingRename != nil },
                 set: { if !$0 { workspacePendingRename = nil } }
             )
         ) {
-            TextField("Name", text: $renameDraft)
-            Button("Abbrechen", role: .cancel) { workspacePendingRename = nil }
-            Button("Sichern") {
+            TextField(L("field.name", "Name"), text: $renameDraft)
+            Button(L("action.cancel", "Cancel"), role: .cancel) {
+                workspacePendingRename = nil
+            }
+            Button(L("action.save", "Save")) {
                 guard let workspace = workspacePendingRename else { return }
                 Task { await model.renameWorkspace(workspace.id, name: renameDraft) }
                 workspacePendingRename = nil
             }
+        }
+        .sheet(isPresented: $settingsPresented) {
+            CompanionSettingsView(model: model, syncEnabled: $syncEnabled)
+        }
+        .sheet(isPresented: $sendLinkPresented) {
+            CompanionSendLinkView(model: model)
         }
     }
 
@@ -203,6 +284,21 @@ public struct CompanionRootView: View {
         )
     }
 
+    private var filteredRemoteTabs: [RemoteTab] {
+        model.snapshot.visibleRemoteTabs.filter { tab in
+            selectedRemoteDeviceID.map { $0 == tab.deviceID } ?? true
+        }
+    }
+
+    private var remoteDevices: [Device] {
+        let remoteDeviceIDs = Set(model.snapshot.visibleRemoteTabs.map(\.deviceID))
+        return model.snapshot.devices.filter {
+            remoteDeviceIDs.contains($0.id) && !$0.isDeleted && !$0.isRevoked
+        }.sorted {
+            $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+    }
+
     private var creationPresented: Binding<Bool> {
         Binding(
             get: { creationKind != nil },
@@ -212,10 +308,10 @@ public struct CompanionRootView: View {
 
     private var creationTitle: String {
         switch creationKind {
-        case .workspace: "Neuer Workspace"
-        case .folder: "Neuer Ordner"
-        case .savedPage: "Neue gespeicherte Seite"
-        case nil: "Neu"
+        case .workspace: L("workspace.new", "New workspace")
+        case .folder: L("folder.new", "New folder")
+        case .savedPage: L("saved_page.new", "New saved page")
+        case nil: L("action.new", "New")
         }
     }
 
@@ -272,7 +368,7 @@ public struct WorkspaceDetailView: View {
     public let workspace: Workspace
     public let nodes: [TreeNode]
     public let tabs: [RemoteTab]
-    public let moveTargets: [Workspace]
+    public let moveTargets: [CompanionTreeMoveTarget]
     public let actionableTabIDs: Set<TabID>
     public let openURL: OpenURLAction
     public let remoteControlAvailable: Bool
@@ -281,7 +377,7 @@ public struct WorkspaceDetailView: View {
     public let onRemoteClose: ((RemoteTab) -> Void)?
     public let onDeleteNode: ((TreeNode) -> Void)?
     public let onRenameNode: ((TreeNode, String) -> Void)?
-    public let onMoveNode: ((TreeNode, WorkspaceID) -> Void)?
+    public let onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)?
     @State private var nodePendingRename: TreeNode?
     @State private var renameDraft = ""
 
@@ -289,7 +385,7 @@ public struct WorkspaceDetailView: View {
         workspace: Workspace,
         nodes: [TreeNode],
         tabs: [RemoteTab],
-        moveTargets: [Workspace] = [],
+        moveTargets: [CompanionTreeMoveTarget] = [],
         actionableTabIDs: Set<TabID> = [],
         openURL: OpenURLAction,
         remoteControlAvailable: Bool = false,
@@ -298,7 +394,7 @@ public struct WorkspaceDetailView: View {
         onRemoteClose: ((RemoteTab) -> Void)? = nil,
         onDeleteNode: ((TreeNode) -> Void)? = nil,
         onRenameNode: ((TreeNode, String) -> Void)? = nil,
-        onMoveNode: ((TreeNode, WorkspaceID) -> Void)? = nil
+        onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)? = nil
     ) {
         self.workspace = workspace
         self.nodes = nodes
@@ -321,21 +417,24 @@ public struct WorkspaceDetailView: View {
                 ForEach(orderedNodes) { item in
                     TreeNodeRow(node: item.node, depth: item.depth, openURL: openURL)
                         .contextMenu {
-                            Button("Umbenennen") {
+                            Button(L("action.rename", "Rename")) {
                                 renameDraft = item.node.title
                                 nodePendingRename = item.node
                             }
                             .disabled(onRenameNode == nil)
-                            Menu("In Workspace verschieben") {
+                            Menu(CompanionL10n.string(
+                                "tree.move",
+                                fallback: "Move to"
+                            )) {
                                 ForEach(moveTargets) { target in
-                                    Button(target.name) {
-                                        onMoveNode?(item.node, target.id)
+                                    Button(target.label) {
+                                        onMoveNode?(item.node, target)
                                     }
-                                    .disabled(target.id == item.node.workspaceID)
+                                    .disabled(isInvalidMoveTarget(target, for: item.node))
                                 }
                             }
                             .disabled(onMoveNode == nil)
-                            Button("Löschen", role: .destructive) {
+                            Button(L("action.delete", "Delete"), role: .destructive) {
                                 onDeleteNode?(item.node)
                             }
                             .disabled(onDeleteNode == nil)
@@ -343,7 +442,7 @@ public struct WorkspaceDetailView: View {
                 }
             }
             if !tabs.isEmpty {
-                Section("Normale Tabs auf Geräten") {
+                Section(L("workspace.normal_device_tabs", "Normal tabs on devices")) {
                     ForEach(tabs) { tab in
                         RemoteTabRow(
                             tab: tab,
@@ -366,15 +465,17 @@ public struct WorkspaceDetailView: View {
         }
         .navigationTitle(workspace.name)
         .alert(
-            "Eintrag umbenennen",
+            L("tree.rename", "Rename item"),
             isPresented: Binding(
                 get: { nodePendingRename != nil },
                 set: { if !$0 { nodePendingRename = nil } }
             )
         ) {
-            TextField("Name", text: $renameDraft)
-            Button("Abbrechen", role: .cancel) { nodePendingRename = nil }
-            Button("Sichern") {
+            TextField(L("field.name", "Name"), text: $renameDraft)
+            Button(L("action.cancel", "Cancel"), role: .cancel) {
+                nodePendingRename = nil
+            }
+            Button(L("action.save", "Save")) {
                 guard let node = nodePendingRename else { return }
                 onRenameNode?(node, renameDraft)
                 nodePendingRename = nil
@@ -410,6 +511,26 @@ public struct WorkspaceDetailView: View {
             return left.syncSortKey < right.syncSortKey
         }
         return left.id < right.id
+    }
+
+    private func isInvalidMoveTarget(
+        _ target: CompanionTreeMoveTarget,
+        for node: TreeNode
+    ) -> Bool {
+        if target.workspaceID == node.workspaceID && target.parentID == node.parentID {
+            return true
+        }
+        guard node.kind == .folder, let parentID = target.parentID else {
+            return false
+        }
+        var descendants = Set<TreeNodeID>()
+        var pending = [node.id]
+        while let current = pending.popLast(), descendants.insert(current).inserted {
+            pending.append(contentsOf: nodes.filter {
+                $0.parentID == current
+            }.map(\.id))
+        }
+        return descendants.contains(parentID)
     }
 }
 
@@ -448,86 +569,6 @@ private struct TreeNodeRow: View {
     }
 }
 
-public struct RemoteTabRow: View {
-    public let tab: RemoteTab
-    public let openURL: OpenURLAction
-    public let remoteControlAvailable: Bool
-    public let onRemoteOpen: (() -> Void)?
-    public let onRemoteFocus: (() -> Void)?
-    public let onRemoteClose: (() -> Void)?
-
-    public init(
-        tab: RemoteTab,
-        openURL: OpenURLAction,
-        remoteControlAvailable: Bool = false,
-        onRemoteOpen: (() -> Void)? = nil,
-        onRemoteFocus: (() -> Void)? = nil,
-        onRemoteClose: (() -> Void)? = nil
-    ) {
-        self.tab = tab
-        self.openURL = openURL
-        self.remoteControlAvailable = remoteControlAvailable
-        self.onRemoteOpen = onRemoteOpen
-        self.onRemoteFocus = onRemoteFocus
-        self.onRemoteClose = onRemoteClose
-    }
-
-    public var body: some View {
-        HStack(spacing: 8) {
-            Button {
-                guard let url = URL(string: tab.url) else { return }
-                openURL(url)
-            } label: {
-                HStack(spacing: 10) {
-                Image(systemName: deviceSymbol)
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel(tab.deviceKind.rawValue)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(tab.title.isEmpty ? tab.url : tab.title)
-                        .lineLimit(1)
-                    Text("\(tab.deviceName) · \(tab.workspaceName ?? "Ohne Workspace")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                    Spacer(minLength: 8)
-                Text(tab.lastActiveAt.physicalMilliseconds.formatted())
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.tertiary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-            if tab.deviceKind == .mac {
-                Menu {
-                    Button("Auf dem Mac öffnen", action: onRemoteOpen ?? {})
-                        .disabled(!remoteControlAvailable || onRemoteOpen == nil)
-                    Button("Mac-Tab fokussieren", action: onRemoteFocus ?? {})
-                        .disabled(!remoteControlAvailable || onRemoteFocus == nil)
-                    Button("Mac-Tab schließen", role: .destructive, action: onRemoteClose ?? {})
-                        .disabled(!remoteControlAvailable || onRemoteClose == nil)
-                    if !remoteControlAvailable {
-                        Text("Signaturschlüssel fehlt")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .accessibilityLabel("Sichere Mac-Steuerung")
-                }
-            }
-        }
-        .accessibilityLabel("\(tab.title), \(tab.deviceName), normaler Tab")
-        .accessibilityHint("Öffnet die URL im Standardbrowser")
-    }
-
-    private var deviceSymbol: String {
-        switch tab.deviceKind {
-        case .mac: "desktopcomputer"
-        case .iPhone: "iphone"
-        case .iPad: "ipad"
-        }
-    }
-}
-
 private struct WorkspaceIcon: View {
     let workspace: Workspace
 
@@ -542,35 +583,6 @@ private struct WorkspaceIcon: View {
                 Circle().fill(accent).frame(width: 7, height: 7)
             }
         }
-    }
-}
-
-private struct RemoteControlProvisioningView: View {
-    let identity: RemoteControlProvisioningIdentity?
-    let status: String?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            if let identity {
-                Text("Mac-Steuerung: Schlüssel bereit")
-                    .font(.caption.weight(.semibold))
-                Text("Gerät \(identity.sourceDeviceID.rawValue.uuidString.lowercased())")
-                Text("Fingerprint \(identity.fingerprint)")
-                Text(identity.publicKeyBase64)
-                    .lineLimit(1)
-                    .textSelection(.enabled)
-                Text("Der Mac muss Gerät und Public Key ausdrücklich freigeben.")
-            } else {
-                Text("Mac-Steuerung aus: kein vorprovisionierter Ed25519-Keychain-Schlüssel")
-            }
-            if let status { Text(status) }
-        }
-        .font(.caption2)
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(.bar)
     }
 }
 
@@ -611,6 +623,6 @@ private struct SearchResultsView: View {
             .buttonStyle(.plain)
             .disabled(result.url == nil)
         }
-        .navigationTitle("Suche")
+        .navigationTitle(L("search.title", "Search"))
     }
 }

@@ -203,6 +203,29 @@ public enum CompanionReadModelFieldMerge {
         return result
     }
 
+    public static func stampLocal(
+        previous: HistoryVisit,
+        candidate: HistoryVisit
+    ) -> HistoryVisit {
+        var result = candidate
+        var version = candidate.version.normalized(for: historyFields)
+        let oldVersion = previous.version.normalized(for: historyFields)
+        let equality: [String: Bool] = [
+            "device_id": previous.deviceID == candidate.deviceID,
+            "url": previous.url == candidate.url,
+            "title": previous.title == candidate.title,
+            "last_visit": previous.visitedAt == candidate.visitedAt,
+            "visit_count": previous.visitCount == candidate.visitCount,
+            "transition": previous.transition == candidate.transition,
+            "tombstone": previous.tombstone == candidate.tombstone,
+        ]
+        for field in historyFields where equality[field] == true {
+            version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        result.version = version
+        return result
+    }
+
     private static func incomingWins<Value: Equatable>(
         _ field: String,
         _ oldValue: Value,

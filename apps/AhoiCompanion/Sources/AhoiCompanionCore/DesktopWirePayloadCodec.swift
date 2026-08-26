@@ -11,7 +11,7 @@ public enum DesktopWirePayloadCodecError: Error, Equatable, Sendable {
 /// Integer timestamps remain decimal strings so 64-bit microseconds survive
 /// JSON/Foundation without precision loss.
 public struct DesktopWirePayloadCodec: Sendable {
-    private static let windowsToUnixMicroseconds: Int64 = 11_644_473_600_000_000
+    static let windowsToUnixMicroseconds: Int64 = 11_644_473_600_000_000
     private static let deviceFields: Set<String> = [
         "type", "display_name", "created_at", "last_seen", "retired", "tombstone",
     ]
@@ -395,7 +395,7 @@ public struct DesktopWirePayloadCodec: Sendable {
         )
     }
 
-    private func common(
+    func common(
         id: UUID,
         tombstone: Bool,
         version: SyncVersion,
@@ -428,7 +428,7 @@ public struct DesktopWirePayloadCodec: Sendable {
         return value
     }
 
-    private func version(
+    func version(
         _ value: [String: Any],
         requiredFields: Set<String>? = nil
     ) throws -> SyncVersion {
@@ -505,7 +505,7 @@ public struct DesktopWirePayloadCodec: Sendable {
         )
     }
 
-    private func tombstone(
+    func tombstone(
         _ record: SyncRecord,
         value: [String: Any]
     ) throws -> Tombstone? {
@@ -574,36 +574,36 @@ public struct DesktopWirePayloadCodec: Sendable {
         )
     }
 
-    private func serialize(_ value: [String: Any]) throws -> Data {
+    func serialize(_ value: [String: Any]) throws -> Data {
         try JSONSerialization.data(
             withJSONObject: value,
             options: [.sortedKeys, .withoutEscapingSlashes]
         )
     }
 
-    private func id(_ value: [String: Any]) throws -> UUID { try uuid(value, "id") }
-    private func uuid(_ value: UUID) -> String { value.uuidString.lowercased() }
+    func id(_ value: [String: Any]) throws -> UUID { try uuid(value, "id") }
+    func uuid(_ value: UUID) -> String { value.uuidString.lowercased() }
 
-    private func uuid(_ value: [String: Any], _ key: String) throws -> UUID {
+    func uuid(_ value: [String: Any], _ key: String) throws -> UUID {
         guard let result = UUID(uuidString: try string(value, key)) else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
         return result
     }
 
-    private func optionalUUID(_ value: [String: Any], _ key: String) throws -> UUID? {
+    func optionalUUID(_ value: [String: Any], _ key: String) throws -> UUID? {
         guard value[key] != nil, !(value[key] is NSNull) else { return nil }
         return try uuid(value, key)
     }
 
-    private func string(_ value: [String: Any], _ key: String) throws -> String {
+    func string(_ value: [String: Any], _ key: String) throws -> String {
         guard let result = value[key] as? String else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
         return result
     }
 
-    private func integer(_ value: [String: Any], _ key: String) throws -> Int {
+    func integer(_ value: [String: Any], _ key: String) throws -> Int {
         guard let result = value[key] as? NSNumber else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }

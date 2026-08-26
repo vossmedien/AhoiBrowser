@@ -14,7 +14,11 @@ import plistlib
 import re
 import subprocess
 import sys
-from typing import Optional, Set, Tuple
+from typing import Optional
+
+from evidence_schema import validate_shape
+from release import chain as release_chain
+from release.common import ReleaseError
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -27,8 +31,14 @@ BLOCKED = {
     "BLOCKED_EXTERNAL_SERVICE",
 }
 RELEASE_EVIDENCE_NOT_READY = (
-    "Computer Use PASS is disabled until build-sign-package-install "
-    "provenance is implemented and independently validated"
+    "Computer Use PASS requires an independently validated signed release "
+    "manifest bound to the live installed bundle"
+)
+RELEASE_MANIFEST_REQUIRED = (
+    "Computer Use PASS requires an explicit --release-manifest path"
+)
+RELEASE_PUBLIC_KEY_REQUIRED = (
+    "Computer Use PASS requires an explicit --release-public-key path"
 )
 
 
@@ -36,23 +46,109 @@ def load(relative: str):
     return json.loads((ROOT / relative).read_text(encoding="utf-8"))
 
 
-def release_evidence_chain_ready() -> bool:
-    """Fail closed until a real release-attestation validator exists."""
+def validate_release_evidence_chain(
+    manifest_path: Optional[pathlib.Path],
+    public_key_path: Optional[pathlib.Path],
+) -> list[str]:
+    """Validate the signed chain and its binding to the live installed app."""
+    errors: list[str] = []
+    if manifest_path is None:
+        errors.append(RELEASE_MANIFEST_REQUIRED)
+    elif not manifest_path.is_file():
+        errors.append(f"release manifest is missing: {manifest_path}")
+    if public_key_path is None:
+        errors.append(RELEASE_PUBLIC_KEY_REQUIRED)
+    elif not public_key_path.is_file():
+        errors.append(f"release public key is missing: {public_key_path}")
+
     try:
         gate = load("config/release-evidence.json")
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return False
+        errors.append("release evidence gate cannot be read")
+        return [RELEASE_EVIDENCE_NOT_READY, *errors]
     required = {
         "build-provenance",
         "signed-package-provenance",
         "notarization-receipt",
         "installed-bundle-binding",
     }
-    return (
-        gate.get("schemaVersion") == 1
-        and gate.get("releasePassEnabled") is True
-        and set(gate.get("requiredChain", [])) == required
+    if not isinstance(gate, dict) or gate.get("schemaVersion") != 1:
+        errors.append("release evidence gate schema is unsupported")
+    elif gate.get("releasePassEnabled") is not True:
+        errors.append("release evidence gate is not enabled")
+    elif (
+        not isinstance(gate.get("requiredChain"), list)
+        or len(gate["requiredChain"]) != len(required)
+        or any(not isinstance(item, str) for item in gate["requiredChain"])
+        or set(gate["requiredChain"]) != required
+    ):
+        errors.append("release evidence gate does not require the complete chain")
+
+    try:
+        policy = load("config/release-policy.json")
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        errors.append("release policy cannot be read")
+        return [RELEASE_EVIDENCE_NOT_READY, *errors]
+    manifest_signing = (
+        policy.get("manifestSigning") if isinstance(policy, dict) else None
     )
+    trusted_key_ids = (
+        manifest_signing.get("trustedKeyIds")
+        if isinstance(manifest_signing, dict)
+        else None
+    )
+    if (
+        not isinstance(trusted_key_ids, list)
+        or not trusted_key_ids
+        or any(
+            not isinstance(key_id, str)
+            or re.fullmatch(r"[0-9a-f]{64}", key_id) is None
+            for key_id in trusted_key_ids
+        )
+        or len(trusted_key_ids) != len(set(trusted_key_ids))
+    ):
+        errors.append("release manifest key trust is not configured correctly")
+
+    if errors:
+        return [RELEASE_EVIDENCE_NOT_READY, *errors]
+
+    assert manifest_path is not None
+    assert public_key_path is not None
+    try:
+        release_chain.validate_manifest(
+            manifest_path.resolve(),
+            public_key=public_key_path.resolve(),
+            trusted_key_ids=set(trusted_key_ids),
+            product=load("config/product.json"),
+            version=load("config/version.json"),
+            chromium=load("config/chromium.json"),
+            toolchain=load("config/toolchain.json"),
+            release_args_sha256=sha256_file(ROOT / "config/build/ahoi-release.gn"),
+            installed_app=INSTALLED_BUNDLE,
+            policy_path=ROOT / "config/macos-entitlements.json",
+        )
+    except (
+        ReleaseError,
+        KeyError,
+        TypeError,
+        ValueError,
+        OSError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+    ) as error:
+        return [
+            RELEASE_EVIDENCE_NOT_READY,
+            f"release evidence chain validation failed: {error}",
+        ]
+    return []
+
+
+def release_evidence_chain_ready(
+    manifest_path: Optional[pathlib.Path] = None,
+    public_key_path: Optional[pathlib.Path] = None,
+) -> bool:
+    """Return true only after independent live release-chain validation."""
+    return not validate_release_evidence_chain(manifest_path, public_key_path)
 
 
 def run_output(*args: str, merge_stderr: bool = False) -> str:
@@ -232,255 +328,6 @@ def bundle_payload(
     }
 
 
-def validate_object_shape(
-    value: object,
-    path: str,
-    required: set[str],
-    allowed: Optional[Set[str]] = None,
-) -> list[str]:
-    if not isinstance(value, dict):
-        return [f"{path} must be an object"]
-    allowed = allowed or required
-    errors = [
-        f"missing field: {path}.{name}" for name in sorted(required - value.keys())
-    ]
-    errors.extend(
-        f"unexpected field: {path}.{name}" for name in sorted(value.keys() - allowed)
-    )
-    return errors
-
-
-def validate_string_array(value: object, path: str) -> list[str]:
-    if not isinstance(value, list):
-        return [f"{path} must be an array"]
-    return [
-        f"{path}[{index}] must be a string"
-        for index, item in enumerate(value)
-        if not isinstance(item, str)
-    ]
-
-
-def validate_timestamp(
-    value: object, path: str
-) -> Tuple[list[str], Optional[dt.datetime]]:
-    if not isinstance(value, str):
-        return [f"{path} must be a date-time string"], None
-    try:
-        parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return [f"{path} is not a valid date-time"], None
-    if parsed.tzinfo is None:
-        return [f"{path} must include a timezone"], None
-    return [], parsed
-
-
-def validate_shape(data: object) -> list[str]:
-    top_required = {
-        "schemaVersion", "testId", "requirement", "testClass", "status",
-        "executedBy", "source", "productVersion", "chromium", "bundle",
-        "environment", "startedAt", "completedAt", "expectedResult",
-        "actualResult", "steps", "assertions", "evidence", "artifacts",
-    }
-    errors = validate_object_shape(
-        data, "result", top_required, top_required | {"blocker"}
-    )
-    if errors or not isinstance(data, dict):
-        return errors
-
-    for key in (
-        "testId", "requirement", "testClass", "status", "executedBy",
-        "productVersion", "expectedResult", "actualResult",
-    ):
-        if not isinstance(data.get(key), str) or not data[key]:
-            errors.append(f"{key} must be a non-empty string")
-    if not isinstance(data.get("schemaVersion"), int):
-        errors.append("schemaVersion must be an integer")
-
-    source_keys = {"gitCommit", "gitDirty"}
-    errors.extend(validate_object_shape(data.get("source"), "source", source_keys))
-    source = data.get("source")
-    if isinstance(source, dict):
-        if not isinstance(source.get("gitCommit"), str):
-            errors.append("source.gitCommit must be a string")
-        elif not re.fullmatch(r"(?:[0-9a-f]{40}|NOT_AVAILABLE)", source["gitCommit"]):
-            errors.append("source.gitCommit is invalid")
-        if not isinstance(source.get("gitDirty"), bool):
-            errors.append("source.gitDirty must be a boolean")
-
-    chromium_keys = {"version", "commit"}
-    errors.extend(
-        validate_object_shape(data.get("chromium"), "chromium", chromium_keys)
-    )
-    chromium = data.get("chromium")
-    if isinstance(chromium, dict):
-        for key in chromium_keys:
-            if not isinstance(chromium.get(key), str):
-                errors.append(f"chromium.{key} must be a string")
-        if isinstance(chromium.get("version"), str) and not re.fullmatch(
-            r"\d+\.0\.\d+\.\d+", chromium["version"]
-        ):
-            errors.append("chromium.version is invalid")
-        if isinstance(chromium.get("commit"), str) and not re.fullmatch(
-            r"[0-9a-f]{40}", chromium["commit"]
-        ):
-            errors.append("chromium.commit is invalid")
-
-    bundle_keys = {
-        "path", "sha256", "architecture", "name", "identifier",
-        "marketingVersion", "buildNumber", "productVersion", "channel",
-        "sourceCommit", "chromiumVersion", "chromiumCommit", "gnArgsSha256",
-        "buildProfile", "teamIdentifier", "signingAuthority",
-        "signatureVerified", "hardenedRuntimeVerified", "notarizationVerified",
-    }
-    errors.extend(validate_object_shape(data.get("bundle"), "bundle", bundle_keys))
-    bundle = data.get("bundle")
-    if isinstance(bundle, dict):
-        for key in bundle_keys - {
-            "signatureVerified", "hardenedRuntimeVerified", "notarizationVerified"
-        }:
-            if not isinstance(bundle.get(key), str) or not bundle[key]:
-                errors.append(f"bundle.{key} must be a non-empty string")
-        for key in (
-            "signatureVerified", "hardenedRuntimeVerified", "notarizationVerified"
-        ):
-            if not isinstance(bundle.get(key), bool):
-                errors.append(f"bundle.{key} must be a boolean")
-        if isinstance(bundle.get("sha256"), str) and not re.fullmatch(
-            r"(?:[0-9a-f]{64}|NOT_AVAILABLE)", bundle["sha256"]
-        ):
-            errors.append("bundle.sha256 is invalid")
-        if isinstance(bundle.get("sourceCommit"), str) and not re.fullmatch(
-            r"(?:[0-9a-f]{40}|NOT_AVAILABLE)", bundle["sourceCommit"]
-        ):
-            errors.append("bundle.sourceCommit is invalid")
-        if isinstance(bundle.get("chromiumCommit"), str) and not re.fullmatch(
-            r"(?:[0-9a-f]{40}|NOT_AVAILABLE)", bundle["chromiumCommit"]
-        ):
-            errors.append("bundle.chromiumCommit is invalid")
-        if isinstance(bundle.get("gnArgsSha256"), str) and not re.fullmatch(
-            r"(?:[0-9a-f]{64}|NOT_AVAILABLE)", bundle["gnArgsSha256"]
-        ):
-            errors.append("bundle.gnArgsSha256 is invalid")
-        if bundle.get("architecture") not in {"arm64", NOT_AVAILABLE}:
-            errors.append("bundle.architecture is invalid")
-        if bundle.get("buildProfile") not in {"dev", "release", NOT_AVAILABLE}:
-            errors.append("bundle.buildProfile is invalid")
-
-    environment_keys = {
-        "osVersion", "osBuild", "device", "hostArchitecture", "locale",
-        "theme", "glass", "profileType", "startState",
-    }
-    errors.extend(
-        validate_object_shape(
-            data.get("environment"), "environment", environment_keys
-        )
-    )
-    environment = data.get("environment")
-    if isinstance(environment, dict):
-        for key in environment_keys - {"glass"}:
-            if not isinstance(environment.get(key), str) or not environment[key]:
-                errors.append(f"environment.{key} must be a non-empty string")
-        if not isinstance(environment.get("glass"), bool):
-            errors.append("environment.glass must be a boolean")
-        if environment.get("hostArchitecture") != "arm64":
-            errors.append("environment.hostArchitecture must be arm64")
-        if environment.get("locale") not in {"de", "en"}:
-            errors.append("environment.locale is invalid")
-        if environment.get("theme") not in {"system", "light", "dark"}:
-            errors.append("environment.theme is invalid")
-        if environment.get("profileType") not in {
-            "fresh", "existing", "migration", "incognito", "not-applicable"
-        }:
-            errors.append("environment.profileType is invalid")
-
-    started_errors, started = validate_timestamp(data.get("startedAt"), "startedAt")
-    completed_errors, completed = validate_timestamp(
-        data.get("completedAt"), "completedAt"
-    )
-    errors.extend(started_errors + completed_errors)
-    if started is not None and completed is not None and completed < started:
-        errors.append("completedAt cannot precede startedAt")
-
-    steps = data.get("steps")
-    if not isinstance(steps, list):
-        errors.append("steps must be an array")
-    else:
-        step_required = {"index", "action", "expected", "observed"}
-        for index, step in enumerate(steps):
-            errors.extend(
-                validate_object_shape(
-                    step, f"steps[{index}]", step_required,
-                    step_required | {"artifact"},
-                )
-            )
-            if isinstance(step, dict):
-                if not isinstance(step.get("index"), int) or step["index"] < 1:
-                    errors.append(f"steps[{index}].index must be a positive integer")
-                for key in ("action", "expected", "observed"):
-                    if not isinstance(step.get(key), str):
-                        errors.append(f"steps[{index}].{key} must be a string")
-                for key in ("action", "expected"):
-                    if isinstance(step.get(key), str) and not step[key]:
-                        errors.append(f"steps[{index}].{key} must be non-empty")
-                if "artifact" in step and not isinstance(step["artifact"], str):
-                    errors.append(f"steps[{index}].artifact must be a string")
-
-    assertions = data.get("assertions")
-    if not isinstance(assertions, list):
-        errors.append("assertions must be an array")
-    else:
-        assertion_keys = {"name", "passed", "evidence"}
-        for index, assertion in enumerate(assertions):
-            errors.extend(
-                validate_object_shape(
-                    assertion, f"assertions[{index}]", assertion_keys
-                )
-            )
-            if isinstance(assertion, dict):
-                if not isinstance(assertion.get("name"), str) or not assertion["name"]:
-                    errors.append(f"assertions[{index}].name must be non-empty")
-                if not isinstance(assertion.get("passed"), bool):
-                    errors.append(f"assertions[{index}].passed must be a boolean")
-                if not isinstance(assertion.get("evidence"), str):
-                    errors.append(f"assertions[{index}].evidence must be a string")
-
-    evidence_keys = {
-        "screenshots", "videos", "redactedLogs", "fixtureReceipts",
-        "networkCaptures", "fileHashes", "testReports", "linkedIssue",
-        "repeatRun",
-    }
-    errors.extend(
-        validate_object_shape(data.get("evidence"), "evidence", evidence_keys)
-    )
-    evidence_data = data.get("evidence")
-    if isinstance(evidence_data, dict):
-        for key in evidence_keys - {"fileHashes", "linkedIssue", "repeatRun"}:
-            errors.extend(validate_string_array(evidence_data.get(key), f"evidence.{key}"))
-        hashes = evidence_data.get("fileHashes")
-        if not isinstance(hashes, dict):
-            errors.append("evidence.fileHashes must be an object")
-        else:
-            for key, value in hashes.items():
-                if not isinstance(key, str) or not re.fullmatch(r"[0-9a-f]{64}", str(value)):
-                    errors.append("evidence.fileHashes entries must map paths to SHA-256")
-        for key in ("linkedIssue", "repeatRun"):
-            if evidence_data.get(key) is not None and not isinstance(
-                evidence_data.get(key), str
-            ):
-                errors.append(f"evidence.{key} must be a string or null")
-
-    errors.extend(validate_string_array(data.get("artifacts"), "artifacts"))
-    blocker = data.get("blocker")
-    if blocker is not None:
-        blocker_keys = {"condition", "owner", "nextAction"}
-        errors.extend(validate_object_shape(blocker, "blocker", blocker_keys))
-        if isinstance(blocker, dict):
-            for key in blocker_keys:
-                if not isinstance(blocker.get(key), str) or not blocker[key]:
-                    errors.append(f"blocker.{key} must be a non-empty string")
-    return errors
-
-
 def sha256_file(path: pathlib.Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -584,7 +431,12 @@ def init_result(args: argparse.Namespace) -> int:
     return 0
 
 
-def validate_result(path: pathlib.Path) -> list[str]:
+def validate_result(
+    path: pathlib.Path,
+    *,
+    release_manifest: Optional[pathlib.Path] = None,
+    release_public_key: Optional[pathlib.Path] = None,
+) -> list[str]:
     errors: list[str] = []
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -694,8 +546,12 @@ def validate_result(path: pathlib.Path) -> list[str]:
         if data["status"] == "PASS" and not visual_evidence:
             errors.append("Computer Use PASS requires screenshot or video evidence")
         if data["status"] == "PASS":
-            if not release_evidence_chain_ready():
-                errors.append(RELEASE_EVIDENCE_NOT_READY)
+            errors.extend(
+                validate_release_evidence_chain(
+                    release_manifest,
+                    release_public_key,
+                )
+            )
             actual = installed_bundle_checks(INSTALLED_BUNDLE)
             actual_hash = bundle_hash(INSTALLED_BUNDLE)
             expected_team = os.environ.get("AHOI_TEAM_ID")
@@ -778,13 +634,27 @@ def main() -> int:
     )
     init.add_argument("--force", action="store_true")
     validate = sub.add_parser("validate")
+    validate.add_argument(
+        "--release-manifest",
+        type=pathlib.Path,
+        help="signed release-manifest JSON required for CU/assisted PASS",
+    )
+    validate.add_argument(
+        "--release-public-key",
+        type=pathlib.Path,
+        help="public Ed25519 key required to verify the release manifest",
+    )
     validate.add_argument("paths", nargs="+", type=pathlib.Path)
     args = parser.parse_args()
     if args.command_name == "init":
         return init_result(args)
     failed = False
     for path in args.paths:
-        errors = validate_result(path)
+        errors = validate_result(
+            path,
+            release_manifest=args.release_manifest,
+            release_public_key=args.release_public_key,
+        )
         if errors:
             failed = True
             print(f"{path}:", file=sys.stderr)

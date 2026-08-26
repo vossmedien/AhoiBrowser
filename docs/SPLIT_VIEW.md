@@ -2,9 +2,9 @@
 
 Split view is a release-critical part of AhoiBrowser's tab model. A user can
 drag one page row onto another page row in the left sidebar and keep two,
-three, or four real pages visible at the same time. Every pane remains a normal Chromium
-`WebContents`; split view is not a screenshot, preview, embedded web app, or
-parallel WebView host.
+three, or four real pages visible at the same time. Every pane remains a normal
+Chromium `WebContents`; split view is not a screenshot, preview, embedded web
+app, or parallel WebView host.
 
 The machine-readable limits and layout names are authoritative in
 `config/split-view.json`. This document defines their behavior.
@@ -18,15 +18,13 @@ already contains a production-quality two-tab foundation:
   layout/ratio updates, reverse, removal, focus, detach/attach, and observer
   events.
 - `components/tabs/public/split_tab_collection.h` (`SplitTabCollection`) and
-  `components/tabs/impl/tab_strip_collection.cc` keep split tabs as a real
-  collection inside the normal tab-strip hierarchy. The collection layer
-  accepts two or more children, although the public creation and restore paths
-  currently enforce two.
-- `components/split_tabs/split_tab_visual_data.{h,cc}` stores the two-pane
-  orientation and one divider ratio.
-- `chrome/browser/ui/views/frame/multi_contents_view.{h,cc}` owns two
-  `ContentsContainerView` instances, focus, resizing, drop targets, layout, and
-  accessibility pane enumeration.
+  `components/tabs/impl/tab_strip_collection.cc` keep two through four split
+  tabs as one real collection inside the normal tab-strip hierarchy.
+- `components/split_tabs/split_tab_visual_data.{h,cc}` stores orientation,
+  three-pane arrangement, and primary/secondary divider ratios.
+- `chrome/browser/ui/views/frame/multi_contents_view.{h,cc}` (`MultiContentsView`) owns four bounded
+  `ContentsContainerView` instances, focus, resizing, drop targets, canonical
+  layouts, and accessibility pane enumeration.
 - `chrome/browser/ui/views/frame/contents_container_view.{h,cc}` keeps a real
   content surface, docked DevTools, tab-modal host, security outline, capture
   indicators, and the per-pane mini toolbar together.
@@ -43,13 +41,12 @@ already contains a production-quality two-tab foundation:
   browser UI, and suppression of permission prompts and file pickers from an
   inactive pane.
 
-This is the correct seam for AhoiBrowser. The two-pane path is extended, not
-reimplemented. Three and four panes require deliberate generalization because M151 has
-hard two-item checks in `TabStripModel::AddToNewSplit`/`RestoreSplit`,
-`SplitTabVisualData`, split utilities and menus, and `MultiContentsView`'s
-container/index/layout code. The macOS upstream tab-to-content drag UI test is
-also disabled in M151, so Ahoi must add its own macOS interaction and installed
-Computer Use coverage rather than treating upstream tests as proof.
+This is the seam AhoiBrowser extends rather than reimplementing. Its bounded
+generalization removes M151's hard two-item assumptions from creation,
+restoration, visual data, utilities, menus, and content layout while retaining
+the upstream ownership model. The macOS upstream tab-to-content drag UI test is
+disabled in M151, so Ahoi also carries its own interaction coverage and still
+requires installed Computer Use proof.
 
 ## Model and ownership
 
@@ -172,6 +169,27 @@ focused tab as pane, choose layout, move focus to next/previous pane, reorder
 pane, resize the selected divider, remove focused pane from split, and close
 split. Shortcut defaults must avoid Chromium, macOS, extension, and developer
 tool conflicts and remain configurable.
+
+The shipped macOS defaults are defined in `config/shortcuts.json` and handled
+by the native browser event path:
+
+- `Command+Control+1…4` focuses a pane without reloading it;
+- `Command+Control+Shift+Left/Right` reorders the focused pane;
+- `Command+Control+L` cycles the layouts valid for the current pane count;
+- `Command+Control+Left/Right` changes the active divider;
+- `Command+Control+0` separates the split; and
+- `Command+Control+W` closes only the active pane through Chromium's normal
+  close and before-unload path.
+
+The split menu exposes the same layout and separation operations. Pointer-only
+drag behavior is therefore never the sole way to create, arrange, resize, or
+leave a split.
+
+For three panes the menu exposes checked presets for three columns, three rows,
+main-left, main-right, main-top, and main-bottom. For four panes it exposes the
+two persisted 2x2 traversal orientations. Applying a preset updates only the
+visual layout and balanced ratios; it does not replace or navigate any
+`WebContents`.
 
 ## Media, Picture in Picture, downloads, and permissions
 

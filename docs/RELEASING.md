@@ -27,8 +27,10 @@ profile even if it is otherwise signed correctly.
 8. Generate full and delta updates; test success, signature rejection, network
    interruption, disk-full behavior, atomic replacement, restart, and rollback
    prevention.
-9. Publish source, patches, license notices, release notes, checksums, update
-   metadata, and evidence index for the exact binary.
+9. Archive debug symbols separately and generate canonical `SHA256SUMS` for the
+   ZIP, DMG, symbols, SBOM, notices, licenses and source offer.
+10. Complete the candidate-bound third-party and trademark review, then publish
+    source, patches, release notes, update metadata and the evidence index.
 
 ## Implemented release tooling
 
@@ -44,6 +46,7 @@ schema-v2 ahoi-release build provenance
   -> ZIP/DMG bytes
   -> /Applications/AhoiBrowser.app tree and signing identity
   -> SPDX SBOM, notices, licenses and corresponding-source offer
+  -> separate deterministic debug-symbol archive and canonical SHA256SUMS
   -> canonical Ed25519-signed release manifest
 ```
 
@@ -69,6 +72,7 @@ python3 scripts/release/ahoi-release.py --help
 python3 scripts/release/ahoi-release.py sign --help
 python3 scripts/release/ahoi-release.py notarize-package --help
 python3 scripts/release/ahoi-release.py materials --help
+python3 scripts/release/ahoi-release.py release-assets --help
 python3 scripts/release/ahoi-release.py bind-installed --help
 python3 scripts/release/ahoi-release.py assemble --help
 python3 scripts/release/ahoi-release.py verify-chain --help
@@ -99,6 +103,15 @@ component matching the reviewed 2.9.6 version, release URL, MIT conclusion and
 canonical in-repository license evidence. Appcast generation revalidates the
 inventory, SPDX package, materials receipt and their hashes before signing.
 
+`release-assets` recursively inventories all `.dSYM` bundles and standalone
+`.sym` files below the exact release output, rejects symbol symlinks and empty
+inputs, and writes a byte-reproducible ZIP with a per-member hash/mode
+inventory. It then writes sorted GNU-compatible `SHA256SUMS` entries for every
+packaged artifact, material artifact and the symbols ZIP. Its receipt binds the
+package and materials receipts; the final signed manifest requires and
+independently revalidates that receipt. Keep symbols outside the shipped app and
+publish them only through the access-controlled crash-analysis archive.
+
 After installing through the real DMG, `bind-installed` accepts only
 `/Applications/AhoiBrowser.app` and independently repeats signing,
 architecture/identity, entitlement, Gatekeeper and staple checks. `assemble`
@@ -117,7 +130,8 @@ or feed key IDs, and `config/release-evidence.json` remains
 - independently pin the production manifest public key, plus a distinct key
   for each update channel, in `config/release-policy.json`;
 - produce a complete Chromium component inventory, notices and corresponding
-  source package and complete legal review;
+  source package and complete the review contract in
+  `docs/THIRD_PARTY_REVIEW.md`;
 - install the resulting DMG and generate the installed-bundle receipt;
 - host the signed metadata/artifacts over HTTPS and pass real N-2/N-1, failed
   download, disk-full, full fallback and any enabled delta-update journeys;

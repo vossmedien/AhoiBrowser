@@ -1,0 +1,59 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("privacy_mode_ui") {
+  sources = [
+    "privacy_mode_bubble_view.cc",
+    "privacy_mode_bubble_view.h",
+    "privacy_mode_controller.cc",
+    "privacy_mode_controller.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/privacy:privacy_mode",
+    "//base",
+  ]
+
+  deps = [
+    "//ahoi/browser/ui/developer_toolkit:developer_toolkit_ui",
+    "//ahoi/browser/ui:visual_style",
+    "//chrome/app:generated_resources",
+    "//chrome/browser:browser_public_dependencies",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//components/prefs",
+    "//content/public/browser",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/gfx",
+    "//ui/views",
+    "//url",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "privacy_mode_bubble_view_unittest.cc" ]
+  deps = [
+    ":privacy_mode_ui",
+    "//base",
+    "//testing/gtest",
+    "//ui/views",
+    "//ui/views:test_support",
+  ]
+}
+
+test("ahoi_privacy_mode_ui_unittests") {
+  sources = [ "run_all_unittests.cc" ]
+  deps = [
+    ":unit_tests",
+    "//mojo/core/embedder",
+    "//testing/gtest",
+    "//ui/base",
+    "//ui/resources:ui_test_pak",
+    "//ui/views:test_support",
+  ]
+  data_deps = [ "//ui/resources:ui_test_pak_data" ]
+}

@@ -1,0 +1,26 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+source_set("empty_state") {
+  public = [ "empty_state_view.h" ]
+
+  sources = [
+    "empty_state_view.cc",
+    "empty_state_view.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//ui/views",
+  ]
+
+  deps = [
+    "//base",
+    "//cc/paint",
+    "//chrome/app:generated_resources",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/color",
+    "//ui/gfx",
+  ]
+}

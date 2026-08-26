@@ -26,6 +26,8 @@ def isolated_git_environment() -> dict[str, str]:
     environment = dict(os.environ)
     for name in GIT_CONTEXT_VARIABLES:
         environment.pop(name, None)
+    environment["GIT_OPTIONAL_LOCKS"] = "0"
+    environment["GIT_TERMINAL_PROMPT"] = "0"
     return environment
 
 
@@ -43,6 +45,48 @@ def run(
         check=True,
         capture_output=True,
     ).stdout
+
+
+def resolve_base_commit(
+    checkout: pathlib.Path,
+    environment: dict[str, str],
+    revision: str,
+) -> str:
+    """Resolve a caller-supplied revision to an exact commit without option parsing."""
+
+    try:
+        return run(
+            "git",
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            "--end-of-options",
+            f"{revision}^{{commit}}",
+            cwd=checkout,
+            env=environment,
+        ).decode("ascii").strip()
+    except (subprocess.CalledProcessError, UnicodeDecodeError) as error:
+        raise SystemExit(f"invalid base revision: {revision!r}") from error
+
+
+def git_object_directory(
+    checkout: pathlib.Path, environment: dict[str, str]
+) -> pathlib.Path:
+    """Return the real checkout object directory before enabling isolation."""
+
+    try:
+        raw = run(
+            "git",
+            "rev-parse",
+            "--git-path",
+            "objects",
+            cwd=checkout,
+            env=environment,
+        ).decode("utf-8").strip()
+    except (subprocess.CalledProcessError, UnicodeDecodeError) as error:
+        raise SystemExit("could not resolve the checkout object directory") from error
+    path = pathlib.Path(raw)
+    return (path if path.is_absolute() else checkout / path).resolve()
 
 
 def overlay_entries(root: pathlib.Path):
@@ -124,11 +168,32 @@ def compose_overlay(
     if not series.is_file():
         raise SystemExit(f"patch series is missing: {series}")
 
+    diff_configuration: list[str] = []
+    diff_attributes = patch_root / "diff.gitattributes"
+    if diff_attributes.exists():
+        if diff_attributes.is_symlink() or not diff_attributes.is_file():
+            raise SystemExit(
+                f"unsafe Chromium diff attributes input: {diff_attributes}"
+            )
+        diff_configuration = [
+            "-c",
+            f"core.attributesFile={diff_attributes}",
+            "-c",
+            "diff.ahoi-binary.binary=true",
+        ]
+
     with tempfile.TemporaryDirectory(prefix="ahoi-overlay-index-") as temp_root:
         environment = isolated_git_environment()
+        base_commit = resolve_base_commit(checkout, environment, base_revision)
+        real_objects = git_object_directory(checkout, environment)
+        temporary_root = pathlib.Path(temp_root)
+        temporary_objects = temporary_root / "objects"
+        temporary_objects.mkdir()
         # Git expects GIT_INDEX_FILE to name a path that does not yet exist.
-        environment["GIT_INDEX_FILE"] = str(pathlib.Path(temp_root) / "index")
-        run("git", "read-tree", base_revision, cwd=checkout, env=environment)
+        environment["GIT_INDEX_FILE"] = str(temporary_root / "index")
+        environment["GIT_OBJECT_DIRECTORY"] = str(temporary_objects)
+        environment["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = str(real_objects)
+        run("git", "read-tree", base_commit, cwd=checkout, env=environment)
         for source, relative in overlay_entries(overlay):
             add_overlay_file(
                 checkout,
@@ -157,6 +222,7 @@ def compose_overlay(
             )
         combined = run(
             "git",
+            *diff_configuration,
             "diff",
             "--cached",
             "--binary",
@@ -167,7 +233,7 @@ def compose_overlay(
             "--diff-algorithm=myers",
             "--src-prefix=a/",
             "--dst-prefix=b/",
-            base_revision,
+            base_commit,
             "--",
             cwd=checkout,
             env=environment,
@@ -189,6 +255,12 @@ def main() -> int:
     parser.add_argument("--overlay", type=pathlib.Path, required=True)
     parser.add_argument("--series", type=pathlib.Path, required=True)
     parser.add_argument("--patch-root", type=pathlib.Path, required=True)
+    parser.add_argument(
+        "--base-revision",
+        default="HEAD",
+        metavar="REVISION",
+        help="compose against this commit or ref (default: HEAD)",
+    )
     parser.add_argument("--output", type=pathlib.Path, required=True)
     args = parser.parse_args()
 
@@ -198,6 +270,7 @@ def main() -> int:
         args.overlay,
         args.series,
         args.patch_root,
+        base_revision=args.base_revision,
     )
     args.output.write_bytes(combined)
     print(args.output)

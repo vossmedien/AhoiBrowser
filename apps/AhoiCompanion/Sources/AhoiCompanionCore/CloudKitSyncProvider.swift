@@ -1,6 +1,10 @@
 import Foundation
 import AhoiCloudKitSpike
 
+private func SyncText(_ key: String, _ fallback: String) -> String {
+    CompanionL10n.string(key, fallback: fallback)
+}
+
 #if canImport(CloudKit)
 import CloudKit
 
@@ -205,7 +209,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
     private let statusLock = NSLock()
     private var currentStatus = CloudKitSyncStatus(
         phase: .idle,
-        detail: "Noch nicht synchronisiert"
+        detail: CompanionL10n.string(
+            "sync.status.not_yet_synced",
+            fallback: "Not synced yet"
+        )
     )
     private var engine: CKSyncEngine?
     private var accountTransitionPending = false
@@ -257,6 +264,15 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         statusLock.withLock { currentStatus }
     }
 
+    public func safetyState() -> CloudKitSyncSafetyState {
+        statusLock.withLock {
+            .init(
+                accountTransitionPending: accountTransitionPending,
+                zoneRecoveryPending: zoneRecoveryPending
+            )
+        }
+    }
+
     public func engineDescription() -> String? {
         engine?.description
     }
@@ -274,11 +290,13 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         }
         statusLock.withLock { zonePreparationInProgress = true }
         defer { statusLock.withLock { zonePreparationInProgress = false } }
-        setStatus(.init(phase: .preparing, detail: "Sync-Zone wird vorbereitet"))
+        setStatus(.init(phase: .preparing, detail: SyncText(
+            "sync.status.preparing_zone", "Preparing sync zone"
+        )))
         engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: zoneID))])
         do {
             try await engine.sendChanges()
-            setStatus(.init(phase: .idle, detail: "Bereit"))
+            setStatus(.init(phase: .idle, detail: SyncText("sync.status.ready", "Ready")))
         } catch {
             let syncError = classify(error)
             setStatus(syncError.status)
@@ -294,7 +312,9 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         guard !statusLock.withLock({ zoneRecoveryPending }) else {
             throw CloudKitSyncProviderError.zoneRecoveryRequiresConfirmation
         }
-        setStatus(.init(phase: .syncing, detail: "CloudKit wird synchronisiert"))
+        setStatus(.init(phase: .syncing, detail: SyncText(
+            "sync.status.syncing", "Syncing with CloudKit"
+        )))
         do {
             try await engine.fetchChanges(
                 .init(scope: .zoneIDs([zoneID]))
@@ -302,7 +322,9 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             try await engine.sendChanges(
                 .init(scope: .zoneIDs([zoneID]))
             )
-            setStatus(.init(phase: .idle, detail: "Synchronisiert"))
+            setStatus(.init(phase: .idle, detail: SyncText(
+                "sync.status.synced", "Synced"
+            )))
         } catch {
             let syncError = classify(error)
             setStatus(syncError.status)
@@ -344,7 +366,9 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             try? updateSafetyState(accountTransitionPending: true)
             throw error
         }
-        setStatus(.init(phase: .idle, detail: "Accountwechsel bestätigt"))
+        setStatus(.init(phase: .idle, detail: SyncText(
+            "sync.status.account_change_confirmed", "Account change confirmed"
+        )))
     }
 
     /// Recreates a missing/purged custom zone only after explicit recovery.
@@ -355,7 +379,9 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         try await engine.sendChanges()
         try await requeueLocalRecords(in: engine)
         try updateSafetyState(zoneRecoveryPending: false)
-        setStatus(.init(phase: .idle, detail: "Sync-Zone wiederhergestellt"))
+        setStatus(.init(phase: .idle, detail: SyncText(
+            "sync.status.zone_restored", "Sync zone restored"
+        )))
     }
 
     public func pendingRecordCount() -> Int {
@@ -377,7 +403,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             } catch {
                 setStatus(.init(
                     phase: .failed,
-                    detail: "Sync-Status konnte nicht gespeichert werden"
+                    detail: SyncText(
+                        "sync.status.state_save_failed",
+                        "Sync state could not be saved"
+                    )
                 ))
             }
         case .accountChange:
@@ -388,7 +417,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             try? updateSafetyState(accountTransitionPending: true)
             setStatus(.init(
                 phase: .accountRequired,
-                detail: "iCloud-Account geändert; lokale Daten bleiben erhalten"
+                detail: SyncText(
+                    "sync.status.account_changed",
+                    "iCloud account changed; local data was retained"
+                )
             ))
         case let .fetchedRecordZoneChanges(changes):
             await applyFetched(changes)
@@ -409,7 +441,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
                 try? updateSafetyState(zoneRecoveryPending: true)
                 setStatus(.init(
                     phase: .accountRequired,
-                    detail: "CloudKit-Zone gelöscht; lokale Daten wurden nicht verworfen"
+                    detail: SyncText(
+                        "sync.status.zone_deleted",
+                        "CloudKit zone was deleted; local data was retained"
+                    )
                 ))
             }
         case .sentDatabaseChanges, .willFetchChanges, .willFetchRecordZoneChanges,
@@ -418,7 +453,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         @unknown default:
             setStatus(.init(
                 phase: .failed,
-                detail: "Unbekanntes CKSyncEngine-Ereignis"
+                detail: SyncText(
+                    "sync.status.unknown_event",
+                    "Unknown CKSyncEngine event"
+                )
             ))
         }
     }
@@ -447,7 +485,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             syncEngine.state.remove(pendingRecordZoneChanges: unsupportedDeletes)
             setStatus(.init(
                 phase: .failed,
-                detail: "Rohe CloudKit-Record-Löschung wurde verworfen"
+                detail: SyncText(
+                    "sync.status.raw_delete_discarded",
+                    "Raw CloudKit record deletion was discarded"
+                )
             ))
         }
 
@@ -490,11 +531,14 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             } catch {
                 await quarantineStore.quarantine(
                     recordID: UUID(uuidString: modification.record.recordID.recordName) ?? UUID(),
-                    reason: "Ungültiger oder nicht erlaubter CloudKit-Record: \(error)"
+                    reason: "invalid_or_denied_cloudkit_record"
                 )
                 setStatus(.init(
                     phase: .quarantined,
-                    detail: "Mindestens ein CloudKit-Record wurde unter Quarantäne gestellt"
+                    detail: SyncText(
+                        "sync.status.record_quarantined",
+                        "At least one CloudKit record was quarantined"
+                    )
                 ))
             }
         }
@@ -502,14 +546,17 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             if let recordID = UUID(uuidString: deletion.recordID.recordName) {
                 await quarantineStore.quarantine(
                     recordID: recordID,
-                    reason: "Physische CloudKit-Löschung ohne validiertes Tombstone"
+                    reason: "physical_delete_without_validated_tombstone"
                 )
             }
         }
         if resolvedConflict {
             setStatus(.init(
                 phase: .conflictResolved,
-                detail: "Konflikt deterministisch zusammengeführt"
+                detail: SyncText(
+                    "sync.status.conflict_merged",
+                    "Conflict was merged deterministically"
+                )
             ))
         }
     }
@@ -537,7 +584,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         if !changes.failedRecordDeletes.isEmpty {
             setStatus(.init(
                 phase: .failed,
-                detail: "Rohe CloudKit-Record-Löschungen bleiben verboten"
+                detail: SyncText(
+                    "sync.status.raw_deletes_forbidden",
+                    "Raw CloudKit record deletions remain forbidden"
+                )
             ))
         }
     }
@@ -558,7 +608,7 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         } catch {
             await quarantineStore.quarantine(
                 recordID: UUID(uuidString: serverRecord.recordID.recordName) ?? UUID(),
-                reason: "Konflikt-Record konnte nicht zusammengeführt werden: \(error)"
+                reason: "cloudkit_conflict_record_merge_failed"
             )
         }
     }
@@ -614,31 +664,47 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         case .notAuthenticated, .permissionFailure:
             return .init(status: .init(
                 phase: .accountRequired,
-                detail: "iCloud-Anmeldung oder Berechtigung erforderlich",
+                detail: SyncText(
+                    "sync.status.account_required",
+                    "iCloud sign-in or permission is required"
+                ),
                 retryAfterSeconds: retryAfter
             ))
         case .networkUnavailable, .networkFailure:
             return .init(status: .init(
                 phase: .offline,
-                detail: "CloudKit ist offline; lokale Änderungen bleiben ausstehend",
+                detail: SyncText(
+                    "sync.status.offline",
+                    "CloudKit is offline; local changes remain pending"
+                ),
                 retryAfterSeconds: retryAfter
             ))
         case .requestRateLimited, .serviceUnavailable, .zoneBusy, .limitExceeded:
             return .init(status: .init(
                 phase: .retryScheduled,
-                detail: "CloudKit meldet eine vorübergehende Begrenzung",
+                detail: SyncText(
+                    "sync.status.temporary_limit",
+                    "CloudKit reported a temporary limit"
+                ),
                 retryAfterSeconds: retryAfter
             ))
         case .changeTokenExpired, .zoneNotFound, .userDeletedZone:
             return .init(status: .init(
                 phase: .retryScheduled,
-                detail: "CloudKit-Zone benötigt eine erneute Initialisierung",
+                detail: SyncText(
+                    "sync.status.zone_reinitialization",
+                    "CloudKit zone requires reinitialization"
+                ),
                 retryAfterSeconds: retryAfter
             ))
         default:
             return .init(status: .init(
                 phase: .failed,
-                detail: "CloudKit-Fehler: \(cloudError.code.rawValue)",
+                detail: CompanionL10n.format(
+                    "sync.status.error_code",
+                    fallback: "CloudKit error: %d",
+                    cloudError.code.rawValue
+                ),
                 retryAfterSeconds: retryAfter
             ))
         }
@@ -678,7 +744,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
 /// CloudKit is an Apple-platform capability. The app remains local-first on
 /// non-Apple hosts; no fake network provider is compiled into production.
 public enum CloudKitSyncProviderUnavailable {
-    public static let reason = "CloudKit SDK nicht verfügbar"
+    public static let reason = SyncText(
+        "sync.status.sdk_unavailable",
+        "CloudKit SDK is unavailable"
+    )
 }
 
 #endif

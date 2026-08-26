@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-20T00:00:00Z",
+  "updatedAt": "2026-08-26T06:54:52+02:00",
   "gates": [
     {
       "id": "xcode-26.5",
@@ -10,9 +10,9 @@
     },
     {
       "id": "disk-headroom",
-      "state": "verified",
+      "state": "blocked-local-capacity",
       "owner": "engineering",
-      "condition": "The APFS work path without spaces has more than 200 GiB free, above the 150 GiB build threshold. A checkout-only override remains defined but is not active."
+      "condition": "The canonical APFS volume currently has roughly 120 GiB free (about 129 GB decimal, fluctuating with APFS accounting). The fail-closed release build requires at least 150 GiB, so a formal clean release build remains blocked by approximately 30 GiB of additional headroom without deleting user work. The verified M151 AhoiDev output remains locally reproducible and may be removed after the source and outer-repository recovery points are secured."
     },
     {
       "id": "widevine-mla",
@@ -34,9 +34,27 @@
     },
     {
       "id": "signed-release-provenance",
-      "state": "required-implementation",
+      "state": "implemented-external-evidence-required",
       "owner": "release-engineering",
-      "condition": "Implement and independently validate the attested chain from build provenance through signing, packaging and notarization to the exact installed bundle hash. CU_E2E and ASSISTED_E2E PASS remain fail-closed until this is complete."
+      "condition": "The fail-closed attested chain and independent live-bundle validator are implemented and tested. No exact candidate has yet been bound to the available Developer ID identity, Apple notarization and stapling, a production-key-signed manifest and DMG-installed bundle receipts; CU_E2E and ASSISTED_E2E PASS therefore remain disabled."
+    },
+    {
+      "id": "apple-release-signing-notary",
+      "state": "blocked-credential",
+      "owner": "apple-team-admin",
+      "condition": "A valid Developer ID Application identity is locally available. Release remains blocked until the reviewed release environment binds that identity and Team ID, a Keychain-backed notarytool profile is provided, and the exact app and DMG are submitted, accepted, stapled and validated. The locally verified Apple Development signature is not release evidence."
+    },
+    {
+      "id": "release-manifest-and-update-keys",
+      "state": "blocked-credential",
+      "owner": "release-engineering",
+      "condition": "Provision and independently pin one Ed25519 release-manifest public key plus distinct nightly, beta and stable Sparkle signing keys. Private keys must remain outside the repository."
+    },
+    {
+      "id": "sparkle-feed-hosting",
+      "state": "blocked-external-service",
+      "owner": "release-engineering",
+      "condition": "Provide reviewed HTTPS artifact and appcast endpoints for every enabled channel, publish signed metadata and complete N-2/N-1, interruption, disk-full, fallback and rollback-prevention journeys."
     },
     {
       "id": "chrome-web-store",
@@ -63,10 +81,34 @@
       "condition": "Add the signed app through 1Password's Additional Browsers flow and verify extension, Native Messaging and Touch ID with a synthetic test vault."
     },
     {
+      "id": "password-manager-test-access",
+      "state": "required-user-assistance",
+      "owner": "compatibility-testing",
+      "condition": "Provide synthetic 1Password and Bitwarden test vaults and approve Touch ID/System Authentication prompts on the test Mac; no real credentials may be used or recorded."
+    },
+    {
+      "id": "physical-input-and-tcc",
+      "state": "required-user-assistance",
+      "owner": "compatibility-testing",
+      "condition": "Complete physical Magic Mouse/trackpad and media-key journeys plus macOS camera, microphone and screen-capture TCC prompts on the signed installed build."
+    },
+    {
+      "id": "cloudkit-device-validation",
+      "state": "blocked-entitlement",
+      "owner": "apple-team-admin",
+      "condition": "After final identifiers and entitlements exist, validate the production CloudKit container with two Macs and one real iPhone or iPad; simulator and provider-free tests are not substitutes."
+    },
+    {
       "id": "ubo-redistribution",
       "state": "blocked-legal-review",
       "owner": "product-legal",
       "condition": "Confirm source/license compliance and name/logo use for an Ahoi-signed uBO Classic package."
+    },
+    {
+      "id": "trademark-and-distribution-policy",
+      "state": "blocked-legal-review",
+      "owner": "product-legal",
+      "condition": "Approve the AhoiBrowser trademark/name/logo policy, Chromium and third-party notices, corresponding-source offer and all public distribution channels before a public candidate is published."
     }
   ]
 }

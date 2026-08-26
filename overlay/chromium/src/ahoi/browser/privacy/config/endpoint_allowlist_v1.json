@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "policy_id": "ahoi-fresh-profile-network-v1",
+  "default_action": "deny",
+  "allowed_background_endpoints": [
+    {
+      "id": "chromium-component-update-check",
+      "scheme": "https",
+      "host": "update.googleapis.com",
+      "port": 443,
+      "path_prefix": "/service/update2/json",
+      "purpose": "Fetch signed Chromium component update metadata",
+      "owner": "Google LLC upstream Chromium component service",
+      "payload_class": "component identifiers, installed versions, platform and update cohort metadata; no page URLs",
+      "retention": "Ahoi stores no request payload; upstream service retention applies",
+      "disable_behavior": "Disabling component updates stops this request and also stops security component refreshes",
+      "failure_behavior": "Keep the last verified component and retry with Chromium component-updater backoff"
+    },
+    {
+      "id": "chromium-component-download",
+      "scheme": "https",
+      "host": "redirector.gvt1.com",
+      "port": 443,
+      "path_prefix": "/edgedl/",
+      "purpose": "Download a signed component selected by component metadata",
+      "owner": "Google LLC upstream Chromium component CDN",
+      "payload_class": "signed CRX component bytes selected by verified update metadata",
+      "retention": "Ahoi retains only the verified installed component; CDN retention applies externally",
+      "disable_behavior": "Disabling component updates stops downloads and also stops security component refreshes",
+      "failure_behavior": "Reject incomplete or invalid signatures, retain the last verified component and retry later"
+    },
+    {
+      "id": "chromium-component-download-edge",
+      "scheme": "https",
+      "host": "edgedl.me.gvt1.com",
+      "port": 443,
+      "path_prefix": "/edgedl/",
+      "purpose": "Download a signed component after the Chromium CDN redirect",
+      "owner": "Google LLC upstream Chromium component CDN",
+      "payload_class": "signed CRX component bytes selected by verified update metadata",
+      "retention": "Ahoi retains only the verified installed component; CDN retention applies externally",
+      "disable_behavior": "Disabling component updates stops downloads and also stops security component refreshes",
+      "failure_behavior": "A plaintext capture blocks release; reject incomplete or invalid signatures, retain the last verified component and retry later"
+    },
+    {
+      "id": "safe-browsing-v4",
+      "scheme": "https",
+      "host": "safebrowsing.googleapis.com",
+      "port": 443,
+      "path_prefix": "/v4/",
+      "purpose": "Safe Browsing threat-list protection",
+      "owner": "Google LLC upstream Safe Browsing service",
+      "payload_class": "Standard Protection threat-list updates and hash-prefix lookups; no Ahoi account data",
+      "retention": "Ahoi retains local threat-list state only; upstream Safe Browsing retention applies",
+      "disable_behavior": "User or enterprise opt-out disables lookups and visibly reduces protection",
+      "failure_behavior": "Use the last valid local list, fail without bypassing certificate or download protections, and retry with backoff"
+    },
+    {
+      "id": "safe-browsing-v5",
+      "scheme": "https",
+      "host": "safebrowsing.googleapis.com",
+      "port": 443,
+      "path_prefix": "/v5/",
+      "purpose": "Safe Browsing threat-list protection",
+      "owner": "Google LLC upstream Safe Browsing service",
+      "payload_class": "Standard Protection threat-list updates and hash-prefix lookups; no Ahoi account data",
+      "retention": "Ahoi retains local threat-list state only; upstream Safe Browsing retention applies",
+      "disable_behavior": "User or enterprise opt-out disables lookups and visibly reduces protection",
+      "failure_behavior": "Use the last valid local list, fail without bypassing certificate or download protections, and retry with backoff"
+    }
+  ],
+  "conditional_endpoints": [
+    {
+      "id": "sparkle-appcast",
+      "environment_url": "AHOI_SPARKLE_FEED_URL",
+      "purpose": "Signed AhoiBrowser Sparkle appcast; absent until release configuration supplies it",
+      "owner": "AhoiBrowser release operator configured by the release environment",
+      "payload_class": "public release version, download URL, checksum and signature metadata",
+      "retention": "Ahoi retains installed-version metadata only; configured feed-host retention applies externally",
+      "disable_behavior": "An absent feed URL disables update checks and keeps the current installation usable",
+      "failure_behavior": "Reject unsigned or invalid metadata, retain the installed version and surface update failure"
+    }
+  ],
+  "prohibited_endpoints": [
+    {
+      "id": "variations-seed",
+      "url": "https://clientservices.googleapis.com/chrome-variations/seed"
+    },
+    {
+      "id": "legacy-crash-upload",
+      "url": "https://clients2.google.com/cr/report"
+    }
+  ]
+}

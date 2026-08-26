@@ -1,0 +1,9 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//mojo/public/tools/bindings/mojom.gni")
+
+mojom("mojom") {
+  sources = [ "developer_style_compiler.mojom" ]
+  public_deps = [ "//sandbox/policy/mojom" ]
+}

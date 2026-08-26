@@ -19,7 +19,8 @@ from pathlib import Path
 from typing import Dict, Mapping, Optional, Sequence
 from urllib.parse import urlsplit
 
-from fixture_server import CREDENTIALS, FixtureCluster
+from fixture_cluster import FixtureCluster
+from fixture_server import CREDENTIALS
 
 
 SCRIPT = Path(__file__).resolve()
@@ -148,6 +149,8 @@ def command_start(args: argparse.Namespace) -> int:
         str(args.cross_port),
         "--http-port",
         str(args.http_port),
+        "--proxy-port",
+        str(args.proxy_port),
     ]
     with service_log.open("a", encoding="utf-8") as output:
         process = subprocess.Popen(
@@ -301,6 +304,7 @@ def command_serve(args: argparse.Namespace) -> int:
             secondary_port=args.secondary_port,
             cross_port=args.cross_port,
             http_port=args.http_port,
+            proxy_port=args.proxy_port,
             log_stream=request_log,
         )
         cluster.start()
@@ -339,6 +343,7 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--secondary-port", type=int, default=18444)
     start.add_argument("--cross-port", type=int, default=19443)
     start.add_argument("--http-port", type=int, default=18080)
+    start.add_argument("--proxy-port", type=int, default=18081)
     start.add_argument("--startup-timeout", type=float, default=30.0)
     start.set_defaults(function=command_start)
 
@@ -365,6 +370,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--secondary-port", type=int, required=True)
     serve.add_argument("--cross-port", type=int, required=True)
     serve.add_argument("--http-port", type=int, required=True)
+    serve.add_argument("--proxy-port", type=int, required=True)
     serve.set_defaults(function=command_serve)
     return parser
 

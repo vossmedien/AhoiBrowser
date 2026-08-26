@@ -1,0 +1,107 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("policy") {
+  sources = [
+    "ubo_authorization.cc",
+    "ubo_authorization.h",
+    "ubo_catalog.cc",
+    "ubo_catalog.h",
+    "ubo_package_verifier.cc",
+    "ubo_package_verifier.h",
+    "ubo_product_config.cc",
+    "ubo_product_config.h",
+  ]
+  public_deps = [
+    "//base",
+    "//components/prefs",
+    "//components/sync_preferences",
+    "//extensions/common",
+    "//url",
+  ]
+  deps = [
+    "//components/crx_file",
+    "//components/pref_registry",
+    "//crypto",
+    "//third_party/boringssl",
+  ]
+}
+
+source_set("runtime") {
+  sources = [
+    "ubo_install_coordinator.cc",
+    "ubo_install_coordinator.h",
+  ]
+  public_deps = [
+    ":policy",
+    "//base",
+  ]
+  deps = [
+    "//chrome/browser/extensions",
+    "//chrome/browser/profiles:profile",
+    "//components/crx_file",
+    "//content/public/browser",
+    "//extensions/browser",
+    "//extensions/browser:crx_installer",
+  ]
+}
+
+source_set("service") {
+  sources = [
+    "ubo_network_client.h",
+    "ubo_service.cc",
+    "ubo_service.h",
+    "ubo_service_factory.cc",
+    "ubo_service_factory.h",
+    "ubo_simple_url_loader_client.cc",
+    "ubo_simple_url_loader_client.h",
+  ]
+  public_deps = [
+    ":policy",
+    ":runtime",
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//components/keyed_service/core",
+    "//content/public/browser",
+    "//extensions/browser",
+    "//services/network/public/cpp",
+    "//url",
+  ]
+  deps = [
+    "//net",
+    "//services/network/public/mojom",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "ubo_authorization_unittest.cc",
+    "ubo_catalog_unittest.cc",
+    "ubo_service_unittest.cc",
+  ]
+  deps = [
+    ":policy",
+    ":service",
+    "//base/test:test_support",
+    "//components/sync_preferences:test_support",
+    "//crypto",
+    "//crypto:test_support",
+    "//extensions:test_support",
+    "//extensions/common",
+    "//chrome/test:test_support",
+    "//content/test:test_support",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_extension_policy_unittests") {
+  data_deps = [ "//third_party/sparkle:sparkle_framework_test_runtime" ]
+  deps = [
+    ":unit_tests",
+    "//chrome/test:test_support_unit",
+    "//testing/gtest",
+  ]
+}

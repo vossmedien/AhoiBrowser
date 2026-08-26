@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Stateful popup</title>
+<style>
+  body { font: 16px system-ui; margin: 1.5rem; min-height: 140vh; }
+  label { display: block; margin: 1rem 0; }
+</style>
+<h1>Stateful popup</h1>
+<label>Form state <input id="state" value="keep me"></label>
+<label>Upload <input type="file"></label>
+<button id="history">Push history entry</button>
+<button id="guard">Enable before-unload guard</button>
+<a download="popup-state.txt" href="data:text/plain,Ahoi%20popup%20download">
+  Download fixture file
+</a>
+<p id="status" aria-live="polite"></p>
+<script>
+  history.onclick = () => {
+    window.history.pushState({fixture: true}, '', '#history-retained');
+    status.textContent = 'History entry added';
+  };
+  guard.onclick = () => {
+    window.addEventListener('beforeunload', event => event.preventDefault());
+    status.textContent = 'Before-unload guard enabled';
+  };
+</script>
+</html>

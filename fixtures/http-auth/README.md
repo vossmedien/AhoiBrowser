@@ -10,7 +10,7 @@ installed-app behavior.
 
 - Python 3.9 or newer
 - `openssl` on `PATH`
-- loopback ports `18443`, `18444`, `19443`, and `18080` available when using
+- loopback ports `18443`, `18444`, `19443`, `18080`, and `18081` available when using
   defaults
 
 No certificate or private key is committed. Startup creates a two-day,
@@ -56,6 +56,7 @@ the run.
 | secondary HTTPS | `https://127.0.0.1:18444` | same path on a different port and realm |
 | cross HTTPS | `https://127.0.0.1:19443` | observes only whether an Authorization header arrived |
 | explicit HTTP | `http://127.0.0.1:18080` | insecure Basic case carrying expected-warning metadata |
+| synthetic proxy | `http://127.0.0.1:18081` | non-forwarding Basic proxy challenge with separate credentials |
 
 Key routes:
 
@@ -64,12 +65,17 @@ Key routes:
 - `/basic/alpha/redirect-same`, `/basic/alpha/redirect-cross`
 - `/redirect/same-origin`, `/redirect/cross-origin`
 - `/basic/plaintext/resource` on the HTTP origin
+- `/subresource/page` and `/subresource/protected.svg`
+- any request target at the synthetic proxy, challenged with `407`
 - `/__fixture/health` on every origin
 - `/__fixture/observer` on the cross-origin HTTPS target
 
 Basic challenges include UTF-8 metadata. Digest challenges use RFC 7616 style
 `SHA-256` with `qop=auth`, an opaque value, a per-run nonce, and nonce-count
 replay rejection. All endpoints bind only to `127.0.0.1`.
+The proxy fixture never forwards traffic; it exists to prove that
+`Proxy-Authorization` is distinct from origin `Authorization` before the
+installed-browser integration run.
 
 ## Logging and secret boundary
 

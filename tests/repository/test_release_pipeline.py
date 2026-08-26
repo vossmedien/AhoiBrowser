@@ -5,16 +5,15 @@ import pathlib
 import plistlib
 import re
 import subprocess
+import sys
 import tempfile
 import unittest
 import zipfile
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-
-import sys
-
 sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "tests/repository"))
 
 from release import (  # noqa: E402
     chain,
@@ -26,35 +25,11 @@ from release import (  # noqa: E402
     signing,
     sparkle,
 )
-
-
-def write_json(path: pathlib.Path, value: object) -> None:
-    path.write_bytes(common.canonical_json(value))
-
-
-class TemporaryEd25519Key:
-    def __init__(self, root: pathlib.Path):
-        self.private = root / "test-only-private.pem"
-        self.public = root / "test-only-public.pem"
-        subprocess.run(
-            ["openssl", "genpkey", "-algorithm", "ED25519", "-out", str(self.private)],
-            check=True,
-            capture_output=True,
-        )
-        subprocess.run(
-            [
-                "openssl",
-                "pkey",
-                "-in",
-                str(self.private),
-                "-pubout",
-                "-out",
-                str(self.public),
-            ],
-            check=True,
-            capture_output=True,
-        )
-        self.key_id = crypto.public_key_id(self.public)
+from release_test_support import (  # noqa: E402
+    TemporaryEd25519Key,
+    create_release_assets_fixture,
+    write_json,
+)
 
 
 class ReleasePrimitiveTests(unittest.TestCase):
@@ -527,7 +502,7 @@ class ReleaseChainTests(unittest.TestCase):
         }
         paths = {name: root / name for name in (
             "build.json", "signing.json", "notary.json", "package.json",
-            "installed.json", "materials.json",
+            "installed.json", "materials.json", "assets.json",
         )}
         write_json(paths["build.json"], build)
         identity_metadata = {
@@ -713,6 +688,7 @@ class ReleaseChainTests(unittest.TestCase):
                 ],
             },
         )
+        create_release_assets_fixture(root, paths)
         output = root / "release-manifest.json"
         manifest = chain.assemble_manifest(
             root=root,
@@ -722,6 +698,7 @@ class ReleaseChainTests(unittest.TestCase):
             package_receipt_path=paths["package.json"],
             installed_receipt_path=paths["installed.json"],
             materials_receipt_path=paths["materials.json"],
+            release_assets_receipt_path=paths["assets.json"],
             product=product,
             version=version,
             chromium=chromium,
@@ -749,6 +726,7 @@ class ReleaseChainTests(unittest.TestCase):
             root = pathlib.Path(directory)
             values = self.make_chain(root)
             manifest, output, keys, product, version, chromium, toolchain, gn_hash, _ = values
+            self.assertIn("releaseAssetsReceipt", manifest["evidence"])
             first = output.read_bytes()
             chain.assemble_manifest(
                 root=root,
@@ -758,6 +736,7 @@ class ReleaseChainTests(unittest.TestCase):
                 package_receipt_path=root / "package.json",
                 installed_receipt_path=root / "installed.json",
                 materials_receipt_path=root / "materials.json",
+                release_assets_receipt_path=root / "assets.json",
                 product=product,
                 version=version,
                 chromium=chromium,

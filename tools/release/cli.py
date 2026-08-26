@@ -9,6 +9,7 @@ import pathlib
 import sys
 from typing import Optional
 
+from .assets import create_release_assets
 from .chain import assemble_manifest, create_installed_receipt, validate_manifest
 from .common import (
     ReleaseError,
@@ -73,6 +74,45 @@ def _policy() -> dict:
         raise ReleaseError("release installation policy weakens atomic recovery")
     if policy.get("manifestSigning", {}).get("algorithm") != "Ed25519":
         raise ReleaseError("release manifest policy must use Ed25519")
+    if set(policy.get("requiredMaterials", [])) != {
+        "SPDX-2.3 SBOM",
+        "Third-Party Notices",
+        "corresponding source offer",
+        "component license evidence",
+        "separate debug-symbol archive",
+        "SHA256SUMS",
+    }:
+        raise ReleaseError("release policy does not require the complete material set")
+    reviews = policy.get("reviews")
+    if reviews != {
+        "policy": "config/release-review-policy.json",
+        "externalGate": "trademark-and-distribution-policy",
+    }:
+        raise ReleaseError("release review policy binding is invalid")
+    review_policy = _config("release-review-policy.json")
+    required_reviews = review_policy.get("requiredReviews")
+    if not isinstance(required_reviews, list) or any(
+        not isinstance(item, dict) for item in required_reviews
+    ):
+        raise ReleaseError("release review inventory is invalid")
+    if (
+        review_policy.get("schemaVersion") != 1
+        or review_policy.get("externalGate") != reviews["externalGate"]
+        or {item.get("id") for item in required_reviews}
+        != {"third-party-license-and-source", "trademark-and-branding"}
+    ):
+        raise ReleaseError("release review policy is incomplete")
+    if not isinstance(review_policy.get("releasePassEnabled"), bool):
+        raise ReleaseError("release review PASS switch must be boolean")
+    reviewer_keys = review_policy.get("trustedReviewerKeyIds")
+    if not isinstance(reviewer_keys, list):
+        raise ReleaseError("trusted reviewer key IDs must be an array")
+    for key_id in reviewer_keys:
+        require_sha256(key_id, "trusted reviewer key ID")
+    if len(reviewer_keys) != len(set(reviewer_keys)):
+        raise ReleaseError("trusted reviewer key IDs contain duplicates")
+    if review_policy.get("releasePassEnabled") is True and not reviewer_keys:
+        raise ReleaseError("release review PASS requires a trusted reviewer key")
     updates = policy.get("updates", {})
     if (
         updates.get("implementation") != "Sparkle"
@@ -262,6 +302,26 @@ def _bind_installed(args: argparse.Namespace) -> None:
     )
 
 
+def _release_assets(args: argparse.Namespace) -> None:
+    _policy()
+    paths = [
+        _path(args.package_receipt),
+        _path(args.materials_receipt),
+        _path(args.symbol_archive),
+        _path(args.checksums),
+        _path(args.receipt),
+    ]
+    _require_common_parent(paths, "release assets")
+    create_release_assets(
+        symbols_root=_path(args.symbols_root),
+        package_receipt_path=_path(args.package_receipt),
+        materials_receipt_path=_path(args.materials_receipt),
+        symbol_archive_output=_path(args.symbol_archive),
+        checksums_output=_path(args.checksums),
+        receipt_output=_path(args.receipt),
+    )
+
+
 def _assemble(args: argparse.Namespace) -> None:
     policy = _policy()
     assemble_manifest(
@@ -272,6 +332,7 @@ def _assemble(args: argparse.Namespace) -> None:
         package_receipt_path=_path(args.package_receipt),
         installed_receipt_path=_path(args.installed_receipt),
         materials_receipt_path=_path(args.materials_receipt),
+        release_assets_receipt_path=_path(args.release_assets_receipt),
         product=_config("product.json"),
         version=_config("version.json"),
         chromium=_config("chromium.json"),
@@ -402,6 +463,17 @@ def parser() -> argparse.ArgumentParser:
     bind.add_argument("--output", required=True)
     bind.set_defaults(handler=_bind_installed)
 
+    assets = commands.add_parser(
+        "release-assets", help="archive debug symbols and publish checksums"
+    )
+    assets.add_argument("--symbols-root", required=True)
+    assets.add_argument("--package-receipt", required=True)
+    assets.add_argument("--materials-receipt", required=True)
+    assets.add_argument("--symbol-archive", required=True)
+    assets.add_argument("--checksums", required=True)
+    assets.add_argument("--receipt", required=True)
+    assets.set_defaults(handler=_release_assets)
+
     assemble = commands.add_parser("assemble", help="sign the complete release manifest")
     assemble.add_argument("--root", required=True)
     assemble.add_argument("--build-provenance", required=True)
@@ -410,6 +482,7 @@ def parser() -> argparse.ArgumentParser:
     assemble.add_argument("--package-receipt", required=True)
     assemble.add_argument("--installed-receipt", required=True)
     assemble.add_argument("--materials-receipt", required=True)
+    assemble.add_argument("--release-assets-receipt", required=True)
     assemble.add_argument("--private-key", required=True)
     assemble.add_argument("--public-key", required=True)
     assemble.add_argument("--output", required=True)

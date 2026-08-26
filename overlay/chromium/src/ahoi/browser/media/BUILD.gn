@@ -1,0 +1,56 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("media") {
+  sources = [
+    "ahoi_media_state.cc",
+    "ahoi_media_state.h",
+    "media_mini_player_chromium_adapter.cc",
+    "media_mini_player_chromium_adapter.h",
+    "media_mini_player_service.cc",
+    "media_mini_player_service.h",
+    "media_mini_player_types.h",
+    "tab_activity_state.cc",
+    "tab_activity_state.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//components/tabs:public",
+    "//content/public/browser",
+    "//services/media_session/public/mojom",
+    "//url",
+  ]
+  deps = [
+    "//chrome/browser/ui:recently_audible_helper",
+    "//chrome/browser/ui/tabs:utils",
+    "//chrome/browser/ui/tabs/alert:impl",
+    "//chrome/browser/ui/tabs/alert:tab_alert",
+    "//services/media_session/public/cpp",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "ahoi_media_state_unittest.cc",
+    "media_mini_player_chromium_adapter_unittest.cc",
+    "media_mini_player_service_unittest.cc",
+    "tab_activity_state_unittest.cc",
+  ]
+  deps = [
+    ":media",
+    "//base",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_media_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

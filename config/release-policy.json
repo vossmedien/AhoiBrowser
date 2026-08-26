@@ -28,10 +28,14 @@
     "atomicReplacement": true,
     "automaticRollbackOnVerificationFailure": true
   },
+  "reviews": {
+    "policy": "config/release-review-policy.json",
+    "externalGate": "trademark-and-distribution-policy"
+  },
   "manifestSigning": {
     "algorithm": "Ed25519",
     "trustedKeyIds": [],
-    "externalGate": "Provision and independently pin the production release-manifest public key before release evidence can pass."
+    "externalGate": "release-manifest-and-update-keys"
   },
   "updates": {
     "implementation": "Sparkle",
@@ -61,12 +65,14 @@
         "publicEdKey": ""
       }
     },
-    "externalGate": "Provision and independently review each production HTTPS appcast and Sparkle Ed25519 public key, then pass real N-2 and N-1 delta/full update tests."
+    "externalGate": "sparkle-feed-hosting"
   },
   "requiredMaterials": [
     "SPDX-2.3 SBOM",
     "Third-Party Notices",
     "corresponding source offer",
-    "component license evidence"
+    "component license evidence",
+    "separate debug-symbol archive",
+    "SHA256SUMS"
   ]
 }

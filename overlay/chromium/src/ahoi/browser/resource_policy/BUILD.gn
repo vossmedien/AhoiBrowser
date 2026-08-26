@@ -1,0 +1,64 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("resource_policy") {
+  sources = [
+    "resource_policy_evidence.cc",
+    "resource_policy_prefs.cc",
+    "resource_policy_prefs.h",
+    "resource_policy_service.cc",
+    "resource_policy_service.h",
+    "resource_policy_service_factory.cc",
+    "resource_policy_service_factory.h",
+    "resource_policy_service_internal.h",
+    "resource_policy_service_runtime.cc",
+    "resource_policy_types.cc",
+    "resource_policy_types.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//components/keyed_service/core",
+    "//components/tabs:public",
+    "//url",
+  ]
+
+  deps = [
+    "//chrome/browser/performance_manager",
+    "//chrome/browser/resource_coordinator",
+    "//chrome/browser/ui:recently_audible_helper",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/login",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//components/download/public/common:public",
+    "//components/performance_manager",
+    "//components/permissions",
+    "//components/prefs",
+    "//content/public/browser",
+    "//mojo/public/cpp/bindings",
+    "//services/media_session/public/cpp",
+    "//services/media_session/public/mojom",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "resource_policy_unittest.cc" ]
+  deps = [
+    ":resource_policy",
+    "//components/performance_manager",
+    "//components/prefs:test_support",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_resource_policy_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

@@ -138,6 +138,104 @@ class ChromiumPinVerifierTests(unittest.TestCase):
         self.assertEqual("", result.stderr)
         self.assertEqual(0, result.returncode)
 
+    def test_accepts_one_eligible_among_same_version_rollout_records(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            paths = self.write_inputs(pathlib.Path(temporary))
+            eligible = {
+                "version": self.pin["version"],
+                "fraction": self.pin["rolloutFraction"],
+                "pinnable": self.pin["pinnable"],
+            }
+            paths["release_json"].write_text(
+                json.dumps(
+                    {
+                        "releases": [
+                            {
+                                "version": self.pin["version"],
+                                "fraction": 0.5,
+                                "pinnable": False,
+                            },
+                            eligible,
+                            {
+                                "version": self.pin["version"],
+                                "fraction": 1.0,
+                                "pinnable": False,
+                            },
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = self.run_verifier(paths)
+        self.assertEqual("", result.stderr)
+        self.assertEqual(0, result.returncode)
+
+    def test_rejects_zero_eligible_same_version_release_records(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            paths = self.write_inputs(pathlib.Path(temporary))
+            paths["release_json"].write_text(
+                json.dumps(
+                    {
+                        "releases": [
+                            {
+                                "version": self.pin["version"],
+                                "fraction": 0.5,
+                                "pinnable": False,
+                            },
+                            {
+                                "version": self.pin["version"],
+                                "fraction": 1.0,
+                                "pinnable": False,
+                            },
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = self.run_verifier(paths)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("found 0 among 2 same-version records", result.stderr)
+
+    def test_rejects_exact_duplicate_eligible_release_records(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            paths = self.write_inputs(pathlib.Path(temporary))
+            eligible = {
+                "version": self.pin["version"],
+                "fraction": self.pin["rolloutFraction"],
+                "pinnable": self.pin["pinnable"],
+            }
+            paths["release_json"].write_text(
+                json.dumps({"releases": [eligible, copy.deepcopy(eligible)]}),
+                encoding="utf-8",
+            )
+            result = self.run_verifier(paths)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("found 2 among 2 same-version records", result.stderr)
+
+    def test_rejects_fully_rolled_pinnable_release_that_has_ended(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            paths = self.write_inputs(pathlib.Path(temporary))
+            paths["release_json"].write_text(
+                json.dumps(
+                    {
+                        "releases": [
+                            {
+                                "version": self.pin["version"],
+                                "fraction": self.pin["rolloutFraction"],
+                                "pinnable": self.pin["pinnable"],
+                                "serving": {
+                                    "endTime": "2026-08-25T12:00:00Z"
+                                },
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = self.run_verifier(paths)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("found 0 among 1 same-version records", result.stderr)
+
     def test_rejects_same_version_with_wrong_commit_even_when_other_payloads_match(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = pathlib.Path(temporary)

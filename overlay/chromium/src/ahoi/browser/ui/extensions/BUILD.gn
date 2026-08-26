@@ -1,0 +1,48 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("ubo_install_ui") {
+  sources = [
+    "ubo_install_dialog.cc",
+    "ubo_install_dialog.h",
+    "ubo_install_presenter.cc",
+    "ubo_install_presenter.h",
+    "ubo_ui_tokens.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/extensions:service",
+    "//base",
+    "//ui/views",
+  ]
+  deps = [
+    "//chrome/app:generated_resources",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser:browser_public_dependencies",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//components/constrained_window",
+    "//content/public/browser",
+    "//ui/base",
+    "//ui/gfx",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "ubo_install_presenter_unittest.cc" ]
+  deps = [
+    ":ubo_install_ui",
+    "//ahoi/browser/extensions:service",
+    "//chrome/app:generated_resources",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_extension_ui_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

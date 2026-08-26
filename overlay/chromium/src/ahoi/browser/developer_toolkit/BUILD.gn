@@ -1,0 +1,244 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("developer_profile_core") {
+  sources = [
+    "developer_asset_codec.cc",
+    "developer_asset_codec.h",
+    "developer_asset_validation.cc",
+    "developer_asset_validation.h",
+    "developer_profile_codec.cc",
+    "developer_profile_codec.h",
+    "developer_profile_integration.cc",
+    "developer_profile_integration.h",
+    "developer_profile_prefs.cc",
+    "developer_profile_prefs.h",
+    "developer_profile_store.cc",
+    "developer_profile_store.h",
+    "developer_profile_text_codec.cc",
+    "developer_profile_text_codec.h",
+    "developer_profile_types.h",
+    "developer_profile_validation.cc",
+    "developer_profile_validation.h",
+    "developer_secret_store.cc",
+    "developer_secret_store.h",
+    "developer_style_compiler.cc",
+    "developer_style_compiler.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//components/prefs",
+    "//url",
+  ]
+  deps = [ "//components/pref_registry" ]
+
+  if (is_mac) {
+    sources += [ "developer_secret_store_mac.mm" ]
+    deps += [ "//crypto" ]
+    frameworks = [
+      "Foundation.framework",
+      "Security.framework",
+    ]
+  } else {
+    sources += [ "developer_secret_store_stub.cc" ]
+  }
+}
+
+# The compiler implementation deliberately stays out of browser-side toolkit
+# targets. Production code reaches it only through the sandboxed Utility
+# service below; unit tests link it explicitly.
+source_set("developer_style_preprocessor") {
+  sources = [
+    "developer_profile_types.h",
+    "developer_style_compiler.h",
+    "developer_style_preprocessor.cc",
+    "developer_style_preprocessor.h",
+  ]
+  public_deps = [
+    "//base",
+    "//url",
+  ]
+}
+
+source_set("developer_profile_runtime") {
+  sources = [
+    "developer_main_world_executor.cc",
+    "developer_main_world_executor.h",
+    "developer_profile_runtime.cc",
+    "developer_profile_runtime.h",
+    "developer_profile_url_loader_throttle.cc",
+    "developer_profile_url_loader_throttle.h",
+    "developer_style_compiler_service_client.cc",
+    "developer_style_compiler_service_client.h",
+  ]
+
+  public_deps = [
+    ":developer_profile_core",
+    "//ahoi/browser/developer_toolkit/public/mojom",
+    "//content/public/browser",
+  ]
+  deps = [
+    ":developer_toolkit_core",
+    "//base",
+    "//components/user_prefs",
+    "//net",
+    "//services/network/public/cpp",
+    "//services/network/public/mojom",
+    "//third_party/blink/public/common",
+  ]
+}
+
+source_set("developer_style_compiler_service") {
+  sources = [
+    "developer_style_compiler_service.cc",
+    "developer_style_compiler_service.h",
+  ]
+  deps = [
+    ":developer_style_preprocessor",
+    "//ahoi/browser/developer_toolkit/public/mojom",
+    "//mojo/public/cpp/bindings",
+  ]
+}
+
+source_set("developer_toolkit_core") {
+  sources = [
+    "developer_cookie_manager.cc",
+    "developer_cookie_manager.h",
+    "developer_toolkit.cc",
+    "developer_toolkit.h",
+    "developer_toolkit_browsing_data.cc",
+    "developer_toolkit_browsing_data.h",
+    "developer_toolkit_content_settings.cc",
+    "developer_toolkit_content_settings.h",
+    "developer_toolkit_document_actions.cc",
+    "developer_toolkit_document_actions.h",
+    "developer_toolkit_target.cc",
+    "developer_toolkit_target.h",
+    "developer_toolkit_types.h",
+    "developer_user_agent_presets.cc",
+    "developer_user_agent_presets.h",
+  ]
+
+  public_deps = [
+    ":developer_profile_core",
+    "//base",
+    "//content/public/browser",
+    "//content/public/common",
+    "//net",
+    "//url",
+  ]
+}
+
+source_set("developer_toolkit") {
+  sources = [
+    "developer_cookie_chromium_adapter.cc",
+    "developer_screenshot_capture.cc",
+    "developer_screenshot_capture.h",
+    "developer_toolkit_action_executor.cc",
+    "developer_toolkit_action_executor.h",
+    "developer_toolkit_chromium_adapters.cc",
+    "developer_toolkit_chromium_adapters.h",
+    "developer_toolkit_prefs.cc",
+    "developer_toolkit_prefs.h",
+  ]
+
+  public_deps = [
+    ":developer_profile_core",
+    ":developer_toolkit_core",
+    "//base",
+    "//content/public/common",
+    "//url",
+  ]
+  deps = [
+    ":developer_profile_runtime",
+    "//chrome/browser/content_settings:content_settings_factory",
+    "//chrome/browser/content_settings:content_settings_factory_impl",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/select_file_policy",
+    "//chrome/common:constants",
+    "//components/content_settings/core/browser",
+    "//components/content_settings/core/common",
+    "//components/pref_registry",
+    "//components/prefs",
+    "//content/public/browser",
+    "//net",
+    "//services/network/public/mojom",
+    "//ui/shell_dialogs",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "developer_cookie_manager_unittest.cc",
+    "developer_header_materialization_unittest.cc",
+    "developer_profile_unittest.cc",
+    "developer_style_preprocessor_unittest.cc",
+    "developer_toolkit_prefs_unittest.cc",
+    "developer_toolkit_unittest.cc",
+  ]
+  deps = [
+    ":developer_profile_runtime",
+    ":developer_style_preprocessor",
+    ":developer_toolkit",
+    ":developer_toolkit_core",
+    "//base",
+    "//base/test:test_support",
+    "//components/prefs:test_support",
+    "//components/user_prefs",
+    "//content/public/browser",
+    "//content/test:test_support",
+    "//net",
+    "//services/network/public/cpp",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+
+  if (is_mac) {
+    sources += [ "developer_secret_store_mac_unittest.mm" ]
+    deps += [ "//crypto" ]
+    frameworks = [
+      "Foundation.framework",
+      "Security.framework",
+    ]
+  }
+}
+
+test("ahoi_developer_toolkit_unittests") {
+  deps = [
+    ":unit_tests",
+    "//content/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}
+
+source_set("browser_tests") {
+  testonly = true
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  sources = [ "developer_style_compiler_browsertest.cc" ]
+  deps = [
+    ":developer_profile_runtime",
+    "//ahoi/browser/developer_toolkit/public/mojom",
+    "//base/test:test_support",
+    "//chrome/browser",
+    "//chrome/test:test_support",
+    "//content/public/browser",
+    "//content/test:test_support",
+    "//sandbox/policy/mojom",
+    "//testing/gtest",
+  ]
+}
+
+if (!is_android) {
+  test("ahoi_developer_style_compiler_browsertests") {
+    deps = [
+      ":browser_tests",
+      "//chrome:packed_resources",
+      "//chrome/test:browser_tests_runner",
+      "//chrome/test:test_support",
+    ]
+  }
+}

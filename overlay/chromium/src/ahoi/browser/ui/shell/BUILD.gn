@@ -1,0 +1,54 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("navigation_surface_state") {
+  sources = [
+    "navigation_surface_state.cc",
+    "navigation_surface_state.h",
+  ]
+
+  public_deps = [ "//base" ]
+}
+
+source_set("navigation_surface_controller") {
+  sources = [
+    "navigation_surface_controller.cc",
+    "navigation_surface_controller.h",
+  ]
+
+  public_deps = [
+    ":navigation_surface_state",
+    "//ahoi/browser/ui/appearance",
+    "//base",
+    "//components/prefs",
+    "//ui/gfx",
+    "//ui/gfx/animation",
+    "//ui/views",
+  ]
+  deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//ui/compositor",
+    "//ui/events",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "navigation_surface_state_unittest.cc" ]
+  deps = [
+    ":navigation_surface_state",
+    "//base/test:test_support",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_navigation_surface_state_unittests") {
+  sources = [ "run_all_unittests.cc" ]
+  deps = [
+    ":unit_tests",
+    "//base/test:test_support",
+    "//testing/gtest",
+  ]
+}

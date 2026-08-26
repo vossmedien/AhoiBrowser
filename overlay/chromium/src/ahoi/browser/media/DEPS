@@ -1,0 +1,10 @@
+include_rules = [
+  "+base",
+  "+chrome/browser/ui/tabs",
+  "+content/public/browser",
+  "+mojo/public/cpp/bindings",
+  "+services/media_session/public/cpp",
+  "+services/media_session/public/mojom",
+  "+testing/gtest",
+  "+url",
+]

@@ -1,0 +1,25 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+source_set("tab_sleeping") {
+  sources = [
+    "tab_sleeping.cc",
+    "tab_sleeping.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/resource_policy",
+    "//base",
+    "//components/prefs",
+    "//components/tabs:public",
+  ]
+
+  deps = [
+    "//chrome/browser:browser_public_dependencies",
+    "//chrome/browser/performance_manager",
+    "//chrome/browser/profiles:profile",
+    "//components/download/public/common:public",
+    "//components/performance_manager",
+    "//content/public/browser",
+  ]
+}

@@ -1,0 +1,15 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+source_set("sidebar_tab_drag_payload") {
+  sources = [
+    "sidebar_tab_drag_payload.cc",
+    "sidebar_tab_drag_payload.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//ui/base",
+    "//ui/base/clipboard:clipboard_types",
+  ]
+}

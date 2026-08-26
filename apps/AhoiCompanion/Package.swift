@@ -5,8 +5,8 @@ import PackageDescription
 let package = Package(
     name: "AhoiCompanion",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14),
+        .iOS("26.0"),
+        .macOS("26.0"),
     ],
     products: [
         .library(
@@ -26,7 +26,8 @@ let package = Package(
             name: "AhoiCompanionCore",
             dependencies: [
                 .product(name: "AhoiCloudKitSpike", package: "cloudkit")
-            ]
+            ],
+            resources: [.process("Resources")]
         ),
         .executableTarget(
             name: "AhoiCompanionApp",

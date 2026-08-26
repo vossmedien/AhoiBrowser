@@ -1,0 +1,9 @@
+// Fork-owned development values belong in a local/signing configuration.
+// Never commit a production container, Team ID, access group, or key material.
+AHOI_CLOUDKIT_CONTAINER_ID =
+AHOI_CLOUDKIT_ZONE_NAME = AhoiBrowserSyncZone
+AHOI_CLOUDKIT_SUBSCRIPTION_ID = AhoiBrowserSyncSubscription
+AHOI_SYNC_KEYCHAIN_SERVICE =
+AHOI_SYNC_KEYCHAIN_ACCOUNT =
+AHOI_SYNC_KEYCHAIN_ACCESS_GROUP =
+AHOI_SYNC_KEY_VERSION = 1

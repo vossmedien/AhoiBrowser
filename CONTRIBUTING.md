@@ -10,9 +10,15 @@ the Chromium delta small enough to rebase quickly after security releases.
 2. Add or update a test whose identifier maps to the master target matrix.
 3. Keep Chromium modifications in documented, independently applicable patches
    or in the Ahoi-owned overlay target.
-4. Run `./scripts/test-repository.sh` before submitting.
-5. Use `git commit -s` so every commit contains a DCO sign-off.
-6. Include evidence for user-visible behavior. A screenshot alone is not proof
+4. Keep every Ahoi-owned source file at or below 800 physical lines. Extract a
+   cohesive model, service, controller, view, adapter, or test helper instead of
+   exempting a growing file. Upstream Chromium files are not reformatted merely
+   to satisfy this Ahoi-only budget; integrations there remain narrow hooks.
+5. Run `./scripts/test-repository.sh` before submitting. The repository contract
+   materializes the committed `ahoi/` patch stack and checks both that result and
+   a present local Chromium checkout against the same 800-line ceiling.
+6. Use `git commit -s` so every commit contains a DCO sign-off.
+7. Include evidence for user-visible behavior. A screenshot alone is not proof
    of process, sandbox, persistence, sync, or security behavior.
 
 Do not commit credentials, cookies, profiles, browser databases, certificate

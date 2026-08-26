@@ -13,9 +13,12 @@ Chromium Git repository. Lightweight tags must point directly to the configured
 commit; annotated tags are checked through their recursively peeled `^{}`
 target. The Gitiles commit metadata must also bind that object to the configured
 `refs/branch-heads/*` commit position and `Cr-Branched-From` main-branch point.
-The branch-point object's own main commit position, `chrome/VERSION`, and the
-active Mac ARM64 Stable VersionHistory record are checked in the same run. A
-matching version file alone is therefore not accepted as pin evidence.
+The branch-point object's own main commit position, `chrome/VERSION`, and
+exactly one fully rolled, pinnable active Mac ARM64 Stable VersionHistory
+record are checked in the same run. Same-version records for incomplete or
+non-pinnable rollout states do not make an otherwise unique eligible record
+ambiguous. A matching version file alone is therefore not accepted as pin
+evidence.
 
 The online script resolves the exact tag and branch-head through Gitiles' HTTPS
 ref endpoints on the same official Chromium host. This avoids relying on the
@@ -43,6 +46,38 @@ only a successful run followed by checkout revalidation atomically publishes a
 diagnostic state record bound to the Chromium commit, DEPS hash, exact checkout
 delta, checkout mode, Xcode version/build, and lane-specific SDK versions and
 builds.
+
+`tools/compose_overlay.py --base-revision REVISION` can compose the overlay and
+ordered patches against an explicit historical commit without moving or
+modifying the checkout's HEAD, index, worktree, or object database. Composition
+uses temporary index and object storage, with the real object database mounted
+read-only as an alternate. The flag defaults to `HEAD`; the requested ref is
+resolved once to an exact commit before composition.
+
+## Non-mutating roll dry-run
+
+Discover the highest active, fully rolled and pinnable Mac ARM64 Stable release
+from bounded Chromium Dash, VersionHistory and Gitiles requests without changing
+the production pin:
+
+```sh
+python3 tools/chromium_roll.py discover --online --output /private/tmp/ahoi-chromium-candidate.json
+```
+
+After that exact candidate commit exists in the local Chromium object database,
+classify the complete overlay and ordered patch stack without checking it out:
+
+```sh
+python3 tools/chromium_roll.py preflight --target COMMIT --output /private/tmp/ahoi-chromium-preflight.json
+```
+
+Preflight disables Git optional locks before its first snapshot, uses a
+temporary index and object directory, verifies that HEAD, the real index and
+worktree remain byte-for-byte/status-equivalent, and reports each
+patch as `applies`, `already_upstream`, or `conflict`. A report containing either
+of the latter dispositions exits with status 2 and is not roll-ready. Offline
+discovery accepts the seven explicit captured response files shown by
+`discover --help`; production `config/chromium.json` is never an output target.
 
 ## Roll policy
 

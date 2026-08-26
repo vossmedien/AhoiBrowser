@@ -53,6 +53,26 @@ def require_positive_int(value: Any, name: str) -> int:
     return value
 
 
+def is_eligible_release(
+    release: Mapping[str, Any],
+    *,
+    rollout_fraction: Any = 1.0,
+    pinnable: bool = True,
+) -> bool:
+    """Return whether a VersionHistory record is active and roll-ready."""
+
+    if "serving" in release:
+        serving = release["serving"]
+        if not isinstance(serving, Mapping) or "endTime" in serving:
+            return False
+    fraction = release.get("fraction")
+    return (
+        not isinstance(fraction, bool)
+        and fraction == rollout_fraction
+        and release.get("pinnable") is pinnable
+    )
+
+
 def validate_config(config: Mapping[str, Any]) -> None:
     version = config.get("version")
     match = VERSION_RE.fullmatch(version) if isinstance(version, str) else None
@@ -305,21 +325,26 @@ def verify_release(config: Mapping[str, Any], payload: Mapping[str, Any]) -> Non
     releases = payload.get("releases")
     if not isinstance(releases, list):
         raise VerificationError("VersionHistory response has no releases array")
-    matches = [
+    same_version = [
         release
         for release in releases
         if isinstance(release, dict) and release.get("version") == config["version"]
     ]
-    if len(matches) != 1:
-        raise VerificationError(
-            f"expected one active release record for {config['version']}, found {len(matches)}"
+    eligible = [
+        release
+        for release in same_version
+        if is_eligible_release(
+            release,
+            rollout_fraction=config["rolloutFraction"],
+            pinnable=config["pinnable"],
         )
-    release = matches[0]
-    if (
-        release.get("fraction") != config["rolloutFraction"]
-        or release.get("pinnable") is not config["pinnable"]
-    ):
-        raise VerificationError("pinned version is not fully rolled and pinnable")
+    ]
+    if len(eligible) != 1:
+        raise VerificationError(
+            "expected exactly one fully rolled and pinnable active release record "
+            f"for {config['version']}, found {len(eligible)} among "
+            f"{len(same_version)} same-version records"
+        )
 
 
 def verify(args: argparse.Namespace) -> None:

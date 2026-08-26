@@ -1,0 +1,187 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("browser_account_policy") {
+  sources = [
+    "browser_account_policy.cc",
+    "browser_account_policy.h",
+  ]
+  public_deps = [ "//base" ]
+  deps = [ "//components/sync/base" ]
+}
+
+source_set("privacy_mode") {
+  sources = [
+    "privacy_mode_service.cc",
+    "privacy_mode_service.h",
+  ]
+  public_deps = [
+    "//base",
+    "//components/content_settings/core/common",
+    "//components/prefs",
+    "//components/sync_preferences",
+    "//url",
+  ]
+}
+
+source_set("privacy_defaults") {
+  sources = [
+    "privacy_defaults.cc",
+    "privacy_defaults.h",
+  ]
+  public_deps = [ "//components/prefs" ]
+  deps = [
+    "//base",
+    "//chrome/browser/prefetch",
+    "//chrome/common:constants",
+    "//components/content_settings/core/common",
+    "//components/metrics:metrics_pref_names",
+    "//components/metrics:metrics_reporting_level",
+    "//components/network_time",
+    "//components/privacy_sandbox:privacy_sandbox_prefs",
+    "//components/safe_browsing/core/common:safe_browsing_prefs",
+    "//components/signin/public/base",
+    "//components/variations",
+  ]
+}
+
+source_set("secure_component_transport") {
+  sources = [
+    "secure_component_transport.cc",
+    "secure_component_transport.h",
+  ]
+  public_deps = [ "//components/update_client" ]
+  deps = [
+    "//base",
+    "//net",
+    "//url",
+  ]
+}
+
+source_set("privacy_sandbox_delegate") {
+  sources = [
+    "ahoi_privacy_sandbox_delegate.cc",
+    "ahoi_privacy_sandbox_delegate.h",
+  ]
+  public_deps =
+      [ "//components/privacy_sandbox:privacy_sandbox_settings_headers" ]
+}
+
+source_set("privacy_mode_runtime") {
+  sources = [
+    "privacy_mode_url_loader_throttle.cc",
+    "privacy_mode_url_loader_throttle.h",
+  ]
+  public_deps = [
+    ":privacy_mode",
+    "//services/network/public/cpp",
+    "//third_party/blink/public/common",
+  ]
+  deps = [
+    "//components/prefs",
+    "//net",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "ahoi_privacy_sandbox_delegate_unittest.cc",
+    "privacy_cookie_enforcement_unittest.cc",
+    "privacy_mode_url_loader_throttle_unittest.cc",
+  ]
+  deps = [
+    ":privacy_mode_runtime",
+    ":privacy_sandbox_delegate",
+    "//base/test:test_support",
+    "//components/content_settings/core/common",
+    "//components/sync_preferences:test_support",
+    "//net",
+    "//services/network:network_service",
+    "//services/network/public/cpp",
+    "//testing/gtest",
+  ]
+}
+
+source_set("policy_unit_tests") {
+  testonly = true
+  sources = [
+    "browser_account_policy_unittest.cc",
+    "privacy_defaults_unittest.cc",
+    "privacy_mode_service_unittest.cc",
+    "secure_component_transport_unittest.cc",
+  ]
+  deps = [
+    ":browser_account_policy",
+    ":privacy_defaults",
+    ":privacy_mode",
+    ":secure_component_transport",
+    "//base/test:test_support",
+    "//chrome/browser/prefetch",
+    "//chrome/common:constants",
+    "//components/content_settings/core/common",
+    "//components/metrics:metrics_pref_names",
+    "//components/metrics:metrics_reporting_level",
+    "//components/network_time",
+    "//components/prefs:test_support",
+    "//components/privacy_sandbox:privacy_sandbox_prefs",
+    "//components/safe_browsing/core/common:safe_browsing_prefs",
+    "//components/signin/public/base",
+    "//components/sync/base",
+    "//components/sync_preferences:test_support",
+    "//components/variations",
+    "//net",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_privacy_mode_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_privacy_policy_unittests") {
+  deps = [
+    ":policy_unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}
+
+source_set("browser_tests") {
+  testonly = true
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  sources = [ "browser_account_policy_browsertest.cc" ]
+  deps = [
+    ":browser_account_policy",
+    "//base",
+    "//chrome/browser",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/signin",
+    "//chrome/browser/sync:factories",
+    "//chrome/browser/ui",
+    "//chrome/test:test_support",
+    "//components/prefs",
+    "//components/signin/public/base",
+    "//components/sync/base",
+    "//components/sync_preferences:test_support",
+    "//content/test:test_support",
+    "//testing/gtest",
+  ]
+}
+
+if (!is_android) {
+  test("ahoi_browser_account_policy_browsertests") {
+    deps = [
+      ":browser_tests",
+      "//chrome:packed_resources",
+      "//chrome/test:browser_tests_runner",
+      "//chrome/test:test_support",
+    ]
+  }
+}

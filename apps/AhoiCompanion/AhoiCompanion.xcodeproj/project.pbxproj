@@ -9,23 +9,33 @@
 /* Begin PBXBuildFile section */
 		227EBDBC61C9045DB70342C1 /* RemoteCommandSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3960D3FE8C93C13D9A33A3E3 /* RemoteCommandSigner.swift */; };
 		263513F2BDC88DD1C456C588 /* SyncRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF4AFCE52EE5720BBFC8802 /* SyncRecordStore.swift */; };
+		2791FB27A8B312CC99419E25 /* DesktopWireProductPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75F849D46666B685D56CB868 /* DesktopWireProductPayloadCodec.swift */; };
 		31CC583DEBFFF499F20061EF /* CompanionSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAFE99DB867D3F0A23E0A350 /* CompanionSyncBridge.swift */; };
 		33BF483FB7F8A1710166D35A /* DesktopWirePayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C46BB2C721756E74F35ECD3 /* DesktopWirePayloadCodec.swift */; };
 		36775ED3F622E80B9AAFA4CD /* CompanionReadModelFieldMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B77F387E837032BB51DDE10 /* CompanionReadModelFieldMerge.swift */; };
 		38CFD17A09E4ABEF64B775F0 /* AhoiCompanionCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F0F3E86549D8C3E896AB617 /* AhoiCompanionCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		404FEBAEA5ABCA174668EAAD /* KeychainCompanionPayloadSealer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658585E40B6B016703DAB0EE /* KeychainCompanionPayloadSealer.swift */; };
+		405FB377BA396DF59D260193 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 4EA65CED4834B6DB5E32D24E /* Localizable.xcstrings */; };
 		51A1986D787490F35D5FBBC9 /* AhoiCloudKitSpike in Frameworks */ = {isa = PBXBuildFile; productRef = 3AED42F3CEDD5EBE37373E7F /* AhoiCloudKitSpike */; };
+		5CFB8904881FC40A29B5230E /* CompanionSnapshotCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72009FA9518862564523803 /* CompanionSnapshotCodable.swift */; };
 		5ED4B5D6062C6EEC75D2C02C /* CompanionPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B895C8D3734C08A0FE3CAAC /* CompanionPayloadCodec.swift */; };
 		624BC5339351334C132F6389 /* CompanionAppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 692B3180C3934A03B7B1297F /* CompanionAppModel.swift */; };
+		668EFE495159694659270C2F /* CompanionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16080E8696201AA429724FBF /* CompanionSettingsView.swift */; };
 		6EE2C1F5CBDDCF4D4A810099 /* CloudKitBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD49304185E160609ED4B01A /* CloudKitBootstrap.swift */; };
 		784D1AD535C365E87DE57702 /* InMemoryCloudSyncBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B29763BD644F39635938CB5 /* InMemoryCloudSyncBackend.swift */; };
+		9249B3D24B31A452F151FECD /* CompanionLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADF60E38EDB3F194643DCE5 /* CompanionLocalization.swift */; };
 		A0765B843A3218C5DC466873 /* CloudKitSyncProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2808829432BE7438CD472B92 /* CloudKitSyncProvider.swift */; };
 		B9A15C94E237CCE7583A4406 /* CompanionFieldMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446DFBABA92D3E112E6B3530 /* CompanionFieldMerge.swift */; };
 		C73AC3CB5FBF05F3500367F7 /* CompanionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6687CE4A7E33A22A567BF392 /* CompanionViews.swift */; };
+		CD82E148141D65337F44EB64 /* CompanionProductStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A635BEBB4B83868E3EBC5EA /* CompanionProductStore.swift */; };
+		D01B11E3F2567EF7D82F71F9 /* CompanionRemoteTabRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CABFF6B4965B5E1A6EA3D85E /* CompanionRemoteTabRow.swift */; };
+		D0BDD3D702A8EE5D580505B4 /* CompanionMoveTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE554F0210C5D4BF7DD55AC /* CompanionMoveTargets.swift */; };
+		D7F3B00A03254F31B8EA0B3A /* CompanionSendLinkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A7C890E422B2164F603F82 /* CompanionSendLinkView.swift */; };
 		F326B8EDE557E13A24CD8162 /* SyncQuarantineStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032F92CF0319ED6D6659DF3B /* SyncQuarantineStore.swift */; };
 		F6446D07B9ECF2F4247ED908 /* AhoiCompanionCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F0F3E86549D8C3E896AB617 /* AhoiCompanionCore.framework */; };
 		F8DB4B94D1C595CB796CA416 /* CompanionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BD666F45AE23427808E91B /* CompanionStore.swift */; };
 		FC26DCDB2BA5EA7B0AFE9ECB /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36E904758EC9934EB2EB334 /* AppEntry.swift */; };
+		FECD55A7CEEA1BC92309E1D5 /* CompanionProductRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BFB71429D7C2F449856F9B /* CompanionProductRecords.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,23 +64,33 @@
 
 /* Begin PBXFileReference section */
 		032F92CF0319ED6D6659DF3B /* SyncQuarantineStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncQuarantineStore.swift; sourceTree = "<group>"; };
+		16080E8696201AA429724FBF /* CompanionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSettingsView.swift; sourceTree = "<group>"; };
 		1B77F387E837032BB51DDE10 /* CompanionReadModelFieldMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionReadModelFieldMerge.swift; sourceTree = "<group>"; };
 		2808829432BE7438CD472B92 /* CloudKitSyncProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncProvider.swift; sourceTree = "<group>"; };
 		2B895C8D3734C08A0FE3CAAC /* CompanionPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionPayloadCodec.swift; sourceTree = "<group>"; };
 		2EF4AFCE52EE5720BBFC8802 /* SyncRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncRecordStore.swift; sourceTree = "<group>"; };
 		3960D3FE8C93C13D9A33A3E3 /* RemoteCommandSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCommandSigner.swift; sourceTree = "<group>"; };
+		3BE554F0210C5D4BF7DD55AC /* CompanionMoveTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMoveTargets.swift; sourceTree = "<group>"; };
 		3F0F3E86549D8C3E896AB617 /* AhoiCompanionCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AhoiCompanionCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		446DFBABA92D3E112E6B3530 /* CompanionFieldMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionFieldMerge.swift; sourceTree = "<group>"; };
 		4B29763BD644F39635938CB5 /* InMemoryCloudSyncBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryCloudSyncBackend.swift; sourceTree = "<group>"; };
+		4EA65CED4834B6DB5E32D24E /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		658585E40B6B016703DAB0EE /* KeychainCompanionPayloadSealer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainCompanionPayloadSealer.swift; sourceTree = "<group>"; };
 		6687CE4A7E33A22A567BF392 /* CompanionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionViews.swift; sourceTree = "<group>"; };
 		692B3180C3934A03B7B1297F /* CompanionAppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionAppModel.swift; sourceTree = "<group>"; };
+		75F849D46666B685D56CB868 /* DesktopWireProductPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWireProductPayloadCodec.swift; sourceTree = "<group>"; };
+		8A635BEBB4B83868E3EBC5EA /* CompanionProductStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProductStore.swift; sourceTree = "<group>"; };
 		9C46BB2C721756E74F35ECD3 /* DesktopWirePayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWirePayloadCodec.swift; sourceTree = "<group>"; };
+		BADF60E38EDB3F194643DCE5 /* CompanionLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionLocalization.swift; sourceTree = "<group>"; };
 		BAFE99DB867D3F0A23E0A350 /* CompanionSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSyncBridge.swift; sourceTree = "<group>"; };
 		BC345B6C5C6BDD6F972F4027 /* AhoiCompanion.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AhoiCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C8A7C890E422B2164F603F82 /* CompanionSendLinkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSendLinkView.swift; sourceTree = "<group>"; };
+		CABFF6B4965B5E1A6EA3D85E /* CompanionRemoteTabRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionRemoteTabRow.swift; sourceTree = "<group>"; };
 		D3506C130D112FB7DB78BB3E /* cloudkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = cloudkit; path = ../../spikes/cloudkit; sourceTree = SOURCE_ROOT; };
 		F2BD666F45AE23427808E91B /* CompanionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionStore.swift; sourceTree = "<group>"; };
 		F36E904758EC9934EB2EB334 /* AppEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntry.swift; sourceTree = "<group>"; };
+		F72009FA9518862564523803 /* CompanionSnapshotCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSnapshotCodable.swift; sourceTree = "<group>"; };
+		F9BFB71429D7C2F449856F9B /* CompanionProductRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProductRecords.swift; sourceTree = "<group>"; };
 		FD49304185E160609ED4B01A /* CloudKitBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitBootstrap.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -94,6 +114,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0AE2A5F2C61487C8E69FA778 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				4EA65CED4834B6DB5E32D24E /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		206E7F6F245412BEA25A62F2 /* AhoiCompanionApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -135,17 +163,27 @@
 				2808829432BE7438CD472B92 /* CloudKitSyncProvider.swift */,
 				692B3180C3934A03B7B1297F /* CompanionAppModel.swift */,
 				446DFBABA92D3E112E6B3530 /* CompanionFieldMerge.swift */,
+				BADF60E38EDB3F194643DCE5 /* CompanionLocalization.swift */,
+				3BE554F0210C5D4BF7DD55AC /* CompanionMoveTargets.swift */,
 				2B895C8D3734C08A0FE3CAAC /* CompanionPayloadCodec.swift */,
+				F9BFB71429D7C2F449856F9B /* CompanionProductRecords.swift */,
+				8A635BEBB4B83868E3EBC5EA /* CompanionProductStore.swift */,
 				1B77F387E837032BB51DDE10 /* CompanionReadModelFieldMerge.swift */,
+				CABFF6B4965B5E1A6EA3D85E /* CompanionRemoteTabRow.swift */,
+				C8A7C890E422B2164F603F82 /* CompanionSendLinkView.swift */,
+				16080E8696201AA429724FBF /* CompanionSettingsView.swift */,
+				F72009FA9518862564523803 /* CompanionSnapshotCodable.swift */,
 				F2BD666F45AE23427808E91B /* CompanionStore.swift */,
 				BAFE99DB867D3F0A23E0A350 /* CompanionSyncBridge.swift */,
 				6687CE4A7E33A22A567BF392 /* CompanionViews.swift */,
 				9C46BB2C721756E74F35ECD3 /* DesktopWirePayloadCodec.swift */,
+				75F849D46666B685D56CB868 /* DesktopWireProductPayloadCodec.swift */,
 				4B29763BD644F39635938CB5 /* InMemoryCloudSyncBackend.swift */,
 				658585E40B6B016703DAB0EE /* KeychainCompanionPayloadSealer.swift */,
 				3960D3FE8C93C13D9A33A3E3 /* RemoteCommandSigner.swift */,
 				032F92CF0319ED6D6659DF3B /* SyncQuarantineStore.swift */,
 				2EF4AFCE52EE5720BBFC8802 /* SyncRecordStore.swift */,
+				0AE2A5F2C61487C8E69FA778 /* Resources */,
 			);
 			path = AhoiCompanionCore;
 			sourceTree = "<group>";
@@ -187,6 +225,7 @@
 			buildConfigurationList = D0716DAA69E35889FBF54853 /* Build configuration list for PBXNativeTarget "AhoiCompanionCore" */;
 			buildPhases = (
 				9292F01C1E61433344E266BC /* Sources */,
+				92273B4D0FCBF0E47415867C /* Resources */,
 				F0A89FF9665E3F490A316CAF /* Frameworks */,
 			);
 			buildRules = (
@@ -211,7 +250,8 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					1611D632F0A9783A3DF08414 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = "$(AHOI_APPLE_TEAM_ID)";
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -220,6 +260,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
+				de,
 				en,
 			);
 			mainGroup = CE9B70A2AC4CA07967F4B2E2;
@@ -238,6 +279,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		92273B4D0FCBF0E47415867C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				405FB377BA396DF59D260193 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		9292F01C1E61433344E266BC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -247,12 +299,21 @@
 				A0765B843A3218C5DC466873 /* CloudKitSyncProvider.swift in Sources */,
 				624BC5339351334C132F6389 /* CompanionAppModel.swift in Sources */,
 				B9A15C94E237CCE7583A4406 /* CompanionFieldMerge.swift in Sources */,
+				9249B3D24B31A452F151FECD /* CompanionLocalization.swift in Sources */,
+				D0BDD3D702A8EE5D580505B4 /* CompanionMoveTargets.swift in Sources */,
 				5ED4B5D6062C6EEC75D2C02C /* CompanionPayloadCodec.swift in Sources */,
+				FECD55A7CEEA1BC92309E1D5 /* CompanionProductRecords.swift in Sources */,
+				CD82E148141D65337F44EB64 /* CompanionProductStore.swift in Sources */,
 				36775ED3F622E80B9AAFA4CD /* CompanionReadModelFieldMerge.swift in Sources */,
+				D01B11E3F2567EF7D82F71F9 /* CompanionRemoteTabRow.swift in Sources */,
+				D7F3B00A03254F31B8EA0B3A /* CompanionSendLinkView.swift in Sources */,
+				668EFE495159694659270C2F /* CompanionSettingsView.swift in Sources */,
+				5CFB8904881FC40A29B5230E /* CompanionSnapshotCodable.swift in Sources */,
 				F8DB4B94D1C595CB796CA416 /* CompanionStore.swift in Sources */,
 				31CC583DEBFFF499F20061EF /* CompanionSyncBridge.swift in Sources */,
 				C73AC3CB5FBF05F3500367F7 /* CompanionViews.swift in Sources */,
 				33BF483FB7F8A1710166D35A /* DesktopWirePayloadCodec.swift in Sources */,
+				2791FB27A8B312CC99419E25 /* DesktopWireProductPayloadCodec.swift in Sources */,
 				784D1AD535C365E87DE57702 /* InMemoryCloudSyncBackend.swift in Sources */,
 				404FEBAEA5ABCA174668EAAD /* KeychainCompanionPayloadSealer.swift in Sources */,
 				227EBDBC61C9045DB70342C1 /* RemoteCommandSigner.swift in Sources */,
@@ -283,26 +344,30 @@
 		29EFD7968DDF37CE115F9244 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				AHOI_APPLE_TEAM_ID = "";
+				AHOI_APS_ENVIRONMENT = development;
 				AHOI_CLOUDKIT_CONTAINER_ID = "";
 				AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_COMMAND_KEYCHAIN_ACCOUNT = "";
 				AHOI_COMMAND_KEYCHAIN_SERVICE = "";
 				AHOI_COMPANION_BUNDLE_ID = invalid.ahoibrowser.unconfigured.companion;
+				AHOI_PROVISIONING_PROFILE_SPECIFIER = "";
 				AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_SYNC_KEYCHAIN_ACCOUNT = "";
 				AHOI_SYNC_KEYCHAIN_SERVICE = "";
 				AHOI_SYNC_KEY_VERSION = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_IDENTITY = "";
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_ENTITLEMENTS = AhoiCompanion.entitlements.template;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(AHOI_APPLE_TEAM_ID)";
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_COMPANION_BUNDLE_ID)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(AHOI_PROVISIONING_PROFILE_SPECIFIER)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
@@ -355,7 +420,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -369,26 +434,30 @@
 		C12E39C9038CA5A6EA4991F1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				AHOI_APPLE_TEAM_ID = "";
+				AHOI_APS_ENVIRONMENT = production;
 				AHOI_CLOUDKIT_CONTAINER_ID = "";
 				AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_COMMAND_KEYCHAIN_ACCOUNT = "";
 				AHOI_COMMAND_KEYCHAIN_SERVICE = "";
 				AHOI_COMPANION_BUNDLE_ID = invalid.ahoibrowser.unconfigured.companion;
+				AHOI_PROVISIONING_PROFILE_SPECIFIER = "";
 				AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_SYNC_KEYCHAIN_ACCOUNT = "";
 				AHOI_SYNC_KEYCHAIN_SERVICE = "";
 				AHOI_SYNC_KEY_VERSION = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_IDENTITY = "";
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_ENTITLEMENTS = AhoiCompanion.entitlements.template;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(AHOI_APPLE_TEAM_ID)";
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_COMPANION_BUNDLE_ID)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(AHOI_PROVISIONING_PROFILE_SPECIFIER)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
@@ -447,7 +516,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -471,7 +540,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GENERATE_INFOPLIST_FILE = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -497,7 +566,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GENERATE_INFOPLIST_FILE = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

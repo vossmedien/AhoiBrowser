@@ -98,6 +98,68 @@ signing, notarization, stapling, DMG generation, and `/Applications`
 installation are separate gates; a successful `autoninja` invocation is not a
 release.
 
+## Stable development signing and Keychain access
+
+`build-ahoi.sh dev` signs the finished bundle with the single valid
+`Apple Development` identity available in the current macOS Keychain. This is
+local development signing only: the `Developer ID Application` identity remains
+reserved for the notarized release pipeline. If multiple development identities
+exist, select the intended one by its exact displayed name:
+
+```sh
+export AHOI_DEV_CODESIGN_IDENTITY='Apple Development: Name (TEAMID1234)'
+```
+
+The stable identity is important for ordinary browser profiles. Chromium keeps
+the profile encryption secret in its macOS Safe Storage Keychain item, whose
+access control evaluates the requesting app's designated code requirement. An
+ad-hoc signature has only a content-dependent CDHash requirement; every changed
+build therefore looks like a new requester and can trigger another macOS
+password prompt. An Apple Development signature has a stable Team ID and
+certificate-backed requirement across normal incremental builds.
+
+This does not promote the component-based development bundle into a release
+candidate. Its staged component libraries retain their linker signatures and
+the development signer does not enable a partial hardened runtime around them.
+The non-component release pipeline signs every nested code object with the
+reviewed entitlements before enabling hardened runtime, notarization and
+distribution gates.
+
+The first launch after moving from the old ad-hoc signature can still prompt
+once because the existing Keychain ACL knows the preceding CDHash. Authorize
+that expected AhoiBrowser request with **Always Allow** to update the access
+decision; the build tooling deliberately does not delete the Safe Storage item,
+rewrite its ACL, expose its secret, or weaken Keychain security.
+
+Identity discovery fails closed if no valid Apple Development identity exists.
+Configure one through Xcode before normal profile work. Disposable environments
+which intentionally accept repeated Keychain prompts may opt into ad-hoc signing
+explicitly:
+
+```sh
+export AHOI_ALLOW_ADHOC_DEV_SIGNING=1
+export AHOI_DEV_CODESIGN_IDENTITY=-
+```
+
+That fallback is not suitable for daily-driver profiles or release evidence.
+End users do not need a local signing identity; distributed builds use the
+project's Developer ID, notarization, and update chain.
+
+## Google API keys
+
+AhoiBrowser intentionally builds and runs without Google API keys or OAuth
+secrets. Ordinary browsing, downloads, media, permissions, DevTools and the
+Chromium extension runtime do not require a user-supplied key. The product UI
+must therefore never ask an end user to configure one or show Chromium's
+developer-only missing-key infobar.
+
+Google restricts private Chrome services such as Chrome Account Sync to
+authorized Google products. Ahoi does not embed shared credentials or pretend
+that adding a personal key enables Chrome Sync; cross-device browser state uses
+the independently documented Ahoi Sync provider instead. Any optional future
+Google-backed integration requires its own explicit product, privacy, quota and
+distribution review and remains separate from core browsing.
+
 ## Build profiles
 
 - `upstream-release`: unmodified Chromium control, ARM64, non-component.

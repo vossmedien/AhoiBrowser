@@ -91,6 +91,53 @@ public actor CompanionSyncBridge {
         ))
     }
 
+    public func enqueue(_ value: CompanionAppearanceRecord) async throws {
+        try await provider.enqueue(codec.makeRecord(
+            recordID: value.id,
+            entityID: value.id,
+            dataClass: .appearance,
+            version: value.version,
+            plaintext: wireCodec.encode(value),
+            tombstone: value.tombstone
+        ))
+    }
+
+    public func enqueue(_ value: CompanionPermittedSettingRecord) async throws {
+        try await provider.enqueue(codec.makeRecord(
+            recordID: value.id,
+            entityID: value.id,
+            dataClass: .permittedSetting,
+            version: value.version,
+            plaintext: wireCodec.encode(value),
+            tombstone: value.tombstone
+        ))
+    }
+
+    public func enqueue(_ value: CompanionExtensionInventoryRecord) async throws {
+        try await provider.enqueue(codec.makeRecord(
+            recordID: value.id,
+            entityID: value.id,
+            dataClass: .extensionInventory,
+            version: value.version,
+            plaintext: wireCodec.encode(value),
+            tombstone: value.tombstone
+        ))
+    }
+
+    public func enqueue(_ value: CompanionDeveloperAssetRecord) async throws {
+        guard value.isDeleted || value.optedIn else {
+            throw CompanionProductRecordError.developerAssetNotOptedIn
+        }
+        try await provider.enqueue(codec.makeRecord(
+            recordID: value.id,
+            entityID: value.id,
+            dataClass: .developerAsset,
+            version: value.version,
+            plaintext: wireCodec.encode(value),
+            tombstone: value.tombstone
+        ))
+    }
+
     @discardableResult
     public func enqueueRemoteCommand(
         targetDeviceID: DeviceID,
@@ -144,6 +191,14 @@ public actor CompanionSyncBridge {
         commandStates[commandID]
     }
 
+    public func remoteCommandStates(_ commandIDs: Set<UUID>) -> [RemoteCommandState] {
+        commandIDs.compactMap { commandStates[$0] }
+            .sorted {
+                $0.envelope.payload.issuedAtMilliseconds >
+                    $1.envelope.payload.issuedAtMilliseconds
+            }
+    }
+
     /// Seeds transport from the durable local authority when sync is enabled
     /// after offline-only edits. Reusing stable record IDs makes this safe to
     /// repeat after a restart or interrupted first upload.
@@ -152,6 +207,13 @@ public actor CompanionSyncBridge {
         for workspace in snapshot.workspaces { try await enqueue(workspace) }
         for node in snapshot.treeNodes { try await enqueue(node) }
         for visit in snapshot.history { try await enqueue(visit) }
+        for value in snapshot.productRecords.appearance { try await enqueue(value) }
+        for value in snapshot.productRecords.permittedSettings { try await enqueue(value) }
+        for value in snapshot.productRecords.extensionInventory { try await enqueue(value) }
+        for value in snapshot.productRecords.developerAssets
+            where value.isDeleted || value.optedIn {
+            try await enqueue(value)
+        }
     }
 
     public func syncNow() async throws {
@@ -244,9 +306,27 @@ public actor CompanionSyncBridge {
             if commandStates[value.id].map({ $0.version < value.version }) ?? true {
                 commandStates[value.id] = value
             }
-        case .orderKey, .tombstone, .recoveryMetadata, .history,
-             .appearance, .permittedSetting, .extensionInventory,
-             .developerAsset:
+        case .appearance:
+            let value = try wireCodec.decodeAppearance(record, plaintext: plaintext)
+            try validate(record, identity: value.id, version: value.version)
+            let merged = try await repository.upsert(value)
+            if merged.version > value.version { try await enqueue(merged) }
+        case .permittedSetting:
+            let value = try wireCodec.decodePermittedSetting(record, plaintext: plaintext)
+            try validate(record, identity: value.id, version: value.version)
+            let merged = try await repository.upsert(value)
+            if merged.version > value.version { try await enqueue(merged) }
+        case .extensionInventory:
+            let value = try wireCodec.decodeExtensionInventory(record, plaintext: plaintext)
+            try validate(record, identity: value.id, version: value.version)
+            let merged = try await repository.upsert(value)
+            if merged.version > value.version { try await enqueue(merged) }
+        case .developerAsset:
+            let value = try wireCodec.decodeDeveloperAsset(record, plaintext: plaintext)
+            try validate(record, identity: value.id, version: value.version)
+            let merged = try await repository.upsert(value)
+            if merged.version > value.version { try await enqueue(merged) }
+        case .orderKey, .tombstone, .recoveryMetadata, .history:
             return
         case .cookie, .password, .autofill, .siteData, .cache, .permission,
              .extensionStorage, .incognito, .keychainSecret, .headerSecret,

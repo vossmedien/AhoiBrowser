@@ -21,12 +21,13 @@ with a plus icon and localized New Tab title. Rows are flat by default and gain
 rounded surfaces only for hover, selection, drag targets, split membership, or
 an explicitly colored group.
 
-The first native integration slice starts from Chromium M151's existing Views
-vertical tab strip. Ahoi enables its full-launch feature and vertical-mode
-profile preference by default. The existing preference/controller toggle stays
-authoritative, so a user can switch back to Chromium's horizontal strip and a
-feature override can still disable the vertical surface entirely. Nested Ahoi
-tree semantics are deliberately outside this bootstrap slice.
+The current native integration uses Chromium M151's Views vertical-tab region as
+its host and replaces the stock row surface with Ahoi's profile-backed sidebar
+projection. Chromium's `TabStripModel`, profile and vertical-mode controller
+remain authoritative for tab ownership and for switching back to the horizontal
+strip; a feature override can still disable the vertical surface entirely.
+Nested tree semantics, saved/temporary tab lifecycle and split-row projection
+are part of the current Ahoi surface rather than a future bootstrap slice.
 
 Tree rows use progressive indentation, disclosure state, favicon, title, optional
 activity chip, and restrained hover/selection treatments. Deep nesting remains
@@ -82,6 +83,11 @@ Workspace changes are interactive: sidebar content follows the horizontal Magic
 Mouse gesture and settles or cancels based on distance/velocity. Reduced Motion
 uses a short cross-fade. Gesture direction, sensitivity, and disable control are
 settings. Keyboard/sidebar switching remains first-class and deterministic.
+The workspace context menu exposes persistent checked controls for workspace
+swipe, `Command`+scroll tab cycling, and middle-click auto-scroll. Preference
+changes propagate live to every open browser window or renderer as applicable;
+ordinary workspace/tab keyboard actions and normal scrolling remain available
+when an optional gesture is disabled.
 
 ## Appearance and glass
 

@@ -13,6 +13,7 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     public var sessions: [DeviceSession]
     public var remoteTabs: [RemoteTab]
     public var history: [HistoryVisit]
+    public var productRecords: CompanionProductSnapshot
 
     public init(
         devices: [Device] = [],
@@ -20,7 +21,8 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         treeNodes: [TreeNode] = [],
         sessions: [DeviceSession] = [],
         remoteTabs: [RemoteTab] = [],
-        history: [HistoryVisit] = []
+        history: [HistoryVisit] = [],
+        productRecords: CompanionProductSnapshot = .empty
     ) {
         self.devices = devices
         self.workspaces = workspaces
@@ -28,6 +30,7 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         self.sessions = sessions
         self.remoteTabs = remoteTabs
         self.history = history
+        self.productRecords = productRecords
     }
 
     public static let empty = Self()
@@ -227,7 +230,10 @@ public actor LocalSearchIndex {
                 id: workspace.id.rawValue,
                 kind: .workspace,
                 title: workspace.name,
-                detail: "Workspace"
+                detail: CompanionL10n.string(
+                    "search.kind.workspace",
+                    fallback: "Workspace"
+                )
             ))
         }
         for node in snapshot.visibleTreeNodes {
@@ -235,7 +241,12 @@ public actor LocalSearchIndex {
                 id: node.id.rawValue,
                 kind: node.kind == .folder ? .folder : .savedPage,
                 title: node.title,
-                detail: node.kind == .folder ? "Ordner" : "Gespeicherte Seite",
+                detail: node.kind == .folder
+                    ? CompanionL10n.string("search.kind.folder", fallback: "Folder")
+                    : CompanionL10n.string(
+                        "search.kind.saved_page",
+                        fallback: "Saved page"
+                    ),
                 url: node.url,
                 workspaceName: snapshot.workspaces.first { $0.id == node.workspaceID }?.name
             ))
@@ -288,7 +299,7 @@ public actor LocalFirstRepository {
     private let searchIndex = LocalSearchIndex()
     private let localDeviceID: DeviceID
     private var clock: HybridLogicalClock
-    private var snapshot: CompanionSnapshot = .empty
+    var snapshot: CompanionSnapshot = .empty
     private var didLoad = false
 
     public init(
@@ -653,7 +664,51 @@ public actor LocalFirstRepository {
         return result
     }
 
-    private func persist() async throws {
+    /// Applies the product retention policy as normal sync tombstones. The
+    /// local snapshot remains authoritative and an enabled bridge can enqueue
+    /// the returned records for deterministic deletion propagation.
+    @discardableResult
+    public func applyHistoryRetention(
+        days: Int,
+        nowMilliseconds: UInt64 = UInt64(Date().timeIntervalSince1970 * 1_000)
+    ) async throws -> [HistoryVisit] {
+        try await load()
+        guard CompanionSyncPreferences.historyRetentionChoices.contains(days) else {
+            throw LocalCompanionStoreError.invalidSnapshot
+        }
+        guard days != -1 else { return [] }
+        let retentionMilliseconds = UInt64(days) * 24 * 60 * 60 * 1_000
+        let cutoff = nowMilliseconds > retentionMilliseconds
+            ? nowMilliseconds - retentionMilliseconds
+            : 0
+        var deleted: [HistoryVisit] = []
+        for index in snapshot.history.indices
+            where !snapshot.history[index].isDeleted
+                && snapshot.history[index].visitedAt.physicalMilliseconds < cutoff {
+            let previous = snapshot.history[index]
+            let version = try nextVersion()
+            var candidate = previous
+            candidate.version = version
+            candidate.tombstone = makeTombstone(
+                entityID: previous.id.rawValue,
+                version: version,
+                parentID: nil,
+                orderKey: nil
+            )
+            candidate = CompanionReadModelFieldMerge.stampLocal(
+                previous: previous,
+                candidate: candidate
+            )
+            snapshot.history[index] = candidate
+            deleted.append(candidate)
+        }
+        if !deleted.isEmpty {
+            try await persist()
+        }
+        return deleted
+    }
+
+    func persist() async throws {
         try await store.save(snapshot)
         await searchIndex.rebuild(snapshot: snapshot)
     }
@@ -672,6 +727,10 @@ public actor LocalFirstRepository {
             + snapshot.sessions.map(\.version.modifiedAt)
             + snapshot.remoteTabs.map(\.version.modifiedAt)
             + snapshot.history.map(\.version.modifiedAt)
+            + snapshot.productRecords.appearance.map(\.version.modifiedAt)
+            + snapshot.productRecords.permittedSettings.map(\.version.modifiedAt)
+            + snapshot.productRecords.extensionInventory.map(\.version.modifiedAt)
+            + snapshot.productRecords.developerAssets.map(\.version.modifiedAt)
         guard let newest = clocks.max(), newest >= clock else { return }
         clock = HybridLogicalClock(
             physicalMilliseconds: newest.physicalMilliseconds,

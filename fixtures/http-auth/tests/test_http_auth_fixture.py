@@ -18,10 +18,10 @@ from urllib.parse import urljoin, urlsplit
 FIXTURE_DIRECTORY = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(FIXTURE_DIRECTORY))
 
+from fixture_cluster import FixtureCluster  # noqa: E402
 from fixture_server import (  # noqa: E402
     CREDENTIALS,
     DigestNonceStore,
-    FixtureCluster,
     FixtureHTTPServer,
     FixtureState,
     LOOPBACK_HOST,
@@ -220,6 +220,60 @@ class HTTPAuthFixtureTests(unittest.TestCase):
         )
         self.assertEqual("http", body["transport"])
 
+    def test_proxy_challenge_uses_only_proxy_authorization(self) -> None:
+        challenged, challenge_headers, _ = request(
+            self.cluster.proxy_url + "/synthetic-target",
+            {"Authorization": basic_header("basic-alpha")},
+        )
+        wrong, _, _ = request(
+            self.cluster.proxy_url + "/synthetic-target",
+            {"Proxy-Authorization": basic_header("basic-alpha")},
+        )
+        accepted, accepted_headers, body = request(
+            self.cluster.proxy_url + "/synthetic-target",
+            {
+                "Authorization": basic_header("basic-alpha"),
+                "Proxy-Authorization": basic_header("proxy"),
+            },
+        )
+
+        self.assertEqual(407, challenged)
+        self.assertIn('realm="Ahoi Proxy"', challenge_headers["proxy-authenticate"])
+        self.assertEqual(407, wrong)
+        self.assertEqual(200, accepted)
+        self.assertEqual("accepted", accepted_headers["x-ahoi-fixture-proxy-auth"])
+        self.assertTrue(body["proxy_authenticated"])
+        self.assertTrue(body["origin_authorization_present"])
+
+    def test_subresource_page_has_a_distinct_protection_space(self) -> None:
+        page, page_headers, _ = request(
+            self.cluster.primary_https_url + "/subresource/page"
+        )
+        challenged, challenge_headers, _ = request(
+            self.cluster.primary_https_url + "/subresource/protected.svg"
+        )
+        accepted, accepted_headers, _ = request(
+            self.cluster.primary_https_url + "/subresource/protected.svg",
+            {"Authorization": basic_header("subresource")},
+        )
+
+        self.assertEqual(200, page)
+        self.assertEqual(
+            "/subresource/protected.svg",
+            page_headers["x-ahoi-fixture-subresource"],
+        )
+        self.assertEqual(401, challenged)
+        self.assertIn(
+            'realm="Ahoi Subresource Image"',
+            challenge_headers["www-authenticate"],
+        )
+        self.assertEqual(200, accepted)
+        self.assertEqual("image/svg+xml", accepted_headers["content-type"])
+        self.assertEqual(
+            "subresource",
+            accepted_headers["x-ahoi-fixture-protection-space"],
+        )
+
     def test_logs_redact_authorization_and_query_strings(self) -> None:
         token = basic_header("basic-alpha")
         password = CREDENTIALS["basic-alpha"]["password"]
@@ -230,11 +284,19 @@ class HTTPAuthFixtureTests(unittest.TestCase):
             + query_secret,
             {"Authorization": token},
         )
+        proxy_token = basic_header("proxy")
+        request(
+            self.cluster.proxy_url + "/synthetic-target",
+            {"Proxy-Authorization": proxy_token},
+        )
         log = self.log_output.getvalue()
         self.assertIn('"authorization":"[REDACTED]"', log)
         self.assertNotIn(token, log)
         self.assertNotIn(password, log)
         self.assertNotIn(query_secret, log)
+        self.assertNotIn(proxy_token, log)
+        self.assertNotIn(CREDENTIALS["proxy"]["password"], log)
+        self.assertIn('"proxy_authorization":"[REDACTED]"', log)
 
     def test_certificate_is_temporary_and_not_a_repository_asset(self) -> None:
         certificate = self.cluster.certificate
@@ -289,6 +351,8 @@ class FixtureLifecycleCLITests(unittest.TestCase):
                 "--cross-port",
                 "0",
                 "--http-port",
+                "0",
+                "--proxy-port",
                 "0",
                 "--startup-timeout",
                 "30",

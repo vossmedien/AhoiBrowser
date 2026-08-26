@@ -489,3 +489,195 @@ impact, expected rebase risk, and removal/upstream plan.
   policy; adapt the narrow host and native-drag seams on Chromium rolls, and
   remove the AppKit forwarding hook if upstream exposes an equivalent Views
   lifecycle callback.
+
+## `0017-ahoi-product-source-freeze.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0016` and the complete 437-file product overlay.
+- **Affected paths:** 242 existing files across the Ahoi browser/application
+  modules and their narrow Chromium integration seams under `chrome/`,
+  `components/`, `content/`, `extensions/`, `services/`, `third_party/`,
+  `tools/` and `ui/`. All 414 newly introduced product, documentation and
+  local-fixture files are stored as complete overlay inputs instead of being
+  hidden inside this modification-only patch.
+- **Rationale:** freeze the complete reviewed product source state after the
+  modular UI, privacy, account-network, secure component transport, sync,
+  extension, developer-toolkit, popup, media, resource-policy and native
+  interaction work. The split between full overlay files and a full-index
+  modification-only patch makes the exact dirty-checkout result reproducible
+  from the pinned Chromium commit without relying on untracked local files.
+- **Rejected alternatives:** resetting or staging the canonical dirty
+  Chromium checkout; applying the overlay to that checkout; preserving only a
+  worktree diff that omits untracked files; allowing rename detection to
+  rewrite source identity; or accepting an approximate source snapshot whose
+  composed Git tree was not proven equal to the captured target.
+- **Tests:** the pre-patch composition was reconstructed twice as tree
+  `218613f2c92cc6d89a7ac0b64666242ab87786a5`. Two independently emitted
+  `--binary --full-index --no-renames` deltas were byte-identical with SHA-256
+  `5f00c505128e5c3c22f0c9d6d055000a12bfca49887f12dfd1d1d64fe368f4d7`.
+  Applying either delta through a fresh temporary index in an isolated shared
+  clone produced the captured target tree
+  `15bdaa897e94fbe8fbdcfde132438c49c4ae852a`; repository contracts pin the
+  patch order, hash, 242-path count, full object IDs and modification-only
+  form. The final tree includes both type-correct `EXPECT_EQ(0, NumPending())`
+  assertions from the component-build regression. `diff.gitattributes` makes
+  Git encode Sparkle's vendored license as an
+  exact binary delta so its historical trailing space is retained while the
+  combined overlay remains applicable with `--whitespace=error-all`.
+- **Security/privacy impact:** this patch adds no authority by itself; it
+  preserves the already reviewed source truth. The captured state includes
+  fail-closed HTTPS-only component transport, disabled product account
+  background initialization, profile/OTR boundaries, local-only credential
+  handling and the existing no-product-telemetry policy.
+- **Expected rebase risk:** high. This is an exact source-freeze delta over a
+  broad product integration surface and is intentionally sensitive to any
+  upstream or preceding-patch drift.
+- **Removal/upstream plan:** use this freeze as the recovery and acceptance
+  baseline. On the next Chromium roll, repartition surviving product changes
+  into focused patches and remove this catch-up patch only after the newly
+  composed tree has equivalent build, test and runtime evidence.
+
+## `0018-ahoi-user-agent-client-hints-brand.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0017`, represented by tree `15bdaa897e94fbe8fbdcfde132438c49c4ae852a`.
+- **Affected paths:** exactly
+  `components/embedder_support/user_agent_utils.cc`.
+- **Rationale:** expose AhoiBrowser's existing product name as its UA-CH
+  product brand while preserving Chromium's upstream omission when the
+  product name is exactly `Chromium`. This keeps the brand decision tied to
+  the configured product identity instead of an upstream branding buildflag
+  that cannot distinguish the Ahoi product build.
+- **Rejected alternatives:** hard-coding `AhoiBrowser` in the UA utility;
+  changing the legacy User-Agent string; adding a second client-hints
+  implementation; or reporting a product brand for stock Chromium.
+- **Tests:** two independently emitted `--binary --full-index --no-renames`
+  patches were byte-identical with SHA-256
+  `75cd21010930a8f551253a52fec7f8337e606c90d7f773fdb325240c4adb6561`.
+  Strict cached application changes only the named path and produces
+  intermediate tree `a16923ab31f7ac725428d8806b137dfd096a17df`.
+  Repository contracts pin the patch hash, path and product-name guard.
+- **Security/privacy impact:** UA-CH now exposes the same stable product
+  identity already configured for the browser instead of silently presenting
+  Chromium's brand behavior. It adds no per-user entropy, network endpoint,
+  secret, privilege or telemetry path.
+- **Expected rebase risk:** medium because upstream periodically revises its
+  UA-CH brand construction and grease ordering.
+- **Removal/upstream plan:** retain the product-name guard while Ahoi uses the
+  upstream UA-CH utility; replace it with an upstream-supported embedder brand
+  hook when one can express the same Chromium fallback.
+
+## `0019-ahoi-deterministic-platform-tests.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0018`, represented by tree `a16923ab31f7ac725428d8806b137dfd096a17df`.
+- **Affected paths:** exactly
+  `components/autofill/core/browser/metrics/autofill_metrics_test_base.cc` and
+  `components/input/web_input_event_builders_mac_unittest.mm`.
+- **Rationale:** make the affected upstream tests independent of the host's
+  date parsing, timezone and active macOS keyboard layout. The Autofill test
+  uses an explicit UTC instant; the three layout-sensitive input tests scope
+  themselves to the U.S. layout they already document and assume.
+- **Rejected alternatives:** changing the machine timezone or keyboard layout;
+  depending on locale-sensitive `FromString`; skipping the tests outside a
+  U.S. host configuration; or weakening their expected key mappings.
+- **Tests:** two independently emitted `--binary --full-index --no-renames`
+  patches were byte-identical with SHA-256
+  `ef8294746937cd7070c89fc7fc2ca5cc3ffb5fee9895356345a6b6199fbd73b4`.
+  Two fresh isolated-index runs applied `0018` and then `0019` with
+  `--whitespace=error-all`; both produced final target tree
+  `41f621e9d65b6dea9f02256075d779b866fc7746`. Repository contracts pin the
+  two paths, UTC instant and three scoped U.S. layouts.
+- **Security/privacy impact:** none. Both changes are test-only and do not
+  alter production code, runtime permissions, networking, telemetry or stored
+  browser data.
+- **Expected rebase risk:** low, limited to upstream test fixture API or Cocoa
+  keyboard-test helper changes.
+- **Removal/upstream plan:** upstream these deterministic test fixes where
+  practical and remove the patch once the pinned Chromium baseline contains
+  equivalent UTC and scoped-layout setup.
+
+## `0020-ahoi-upstream-site-data-clock-revert.patch`
+
+- **Owner:** AhoiBrowser project; exact backport of the official Chromium
+  revert `7de113b6a9ebac43911cb99dbc93fba1acbe3c2d` (Change-Id
+  `Ide538602776e119975742aecccf40b3dedb60152`, Chromium CL
+  [8126355](https://chromium-review.googlesource.com/c/chromium/src/+/8126355),
+  main position `#1665269`).
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patches `0001` through
+  `0019`, represented by tree `41f621e9d65b6dea9f02256075d779b866fc7746`.
+- **Affected paths:** exactly
+  `components/performance_manager/persistence/site_data/site_data_impl.cc`.
+- **Rationale:** restore wall-clock timestamps as upstream did after finding
+  that `TimeTicks` can stop while a machine is suspended. Caching a mapping
+  between the monotonic clock and the Unix epoch can therefore drift from real
+  time; `Time::Now() - Time::UnixEpoch()` preserves the persisted timestamp
+  contract.
+- **Rejected alternatives:** accepting suspend-induced timestamp drift;
+  weakening or skipping the affected tests; maintaining an Ahoi-specific
+  clock conversion; or rolling unrelated post-M151 Chromium changes only to
+  acquire this one-file correction.
+- **Tests:** two isolated-index generations emitted byte-identical
+  `--binary --full-index --no-renames` patches with SHA-256
+  `50ec277a35046de4e6cb36cb1f90f464c7bd42db349624d499ea843daddaba39`.
+  Two strict `--whitespace=error-all` applications produced intermediate tree
+  `d88f36c778eeb80578c84e49ee5493af8ca06cd9`. Post-fix focused evidence across
+  patches `0020` and `0021` is 50/50 plus a 100/100 repeat lane; the preceding
+  retry-free full suite still had four failures and is not reported as green.
+- **Security/privacy impact:** none. This changes the clock source for existing
+  local site-data timestamps and adds no network, telemetry, identity,
+  credential, storage-authority or sandbox path.
+- **Expected rebase risk:** low. The single helper is source-sensitive, but the
+  correction is already present upstream after Chromium main position
+  `#1665269`.
+- **Removal/upstream plan:** remove this backport when the pinned baseline
+  contains `7de113b6a9ebac43911cb99dbc93fba1acbe3c2d` or an equivalent successor;
+  retain an explicit regression check for suspend-safe wall-clock timestamps.
+
+## `0021-ahoi-upstream-page-load-tracing-test-isolation.patch`
+
+- **Owner:** AhoiBrowser project; M151-compatible backport of the official
+  Chromium fix `2e1143e225f92ded424380beaa9aa77df332b93a` (Change-Id
+  `I97a89551922458fda79c2b33496b321c3f91919c`, Chromium CL
+  [8160156](https://chromium-review.googlesource.com/c/chromium/src/+/8160156),
+  main position `#1676463`).
+- **Upstream baseline:** Chromium `151.0.7922.170` at
+  `fa19f0c9d2e340c1c5429d5fff181b6c2d51bbae` after patch `0020`, represented
+  by tree `d88f36c778eeb80578c84e49ee5493af8ca06cd9`.
+- **Affected paths:** exactly
+  `components/page_load_metrics/browser/observers/core/uma_page_load_metrics_observer_unittest.cc`,
+  `content/public/browser/tracing_support.cc` and
+  `content/public/browser/tracing_support.h`.
+- **Rationale:** isolate `UmaPageLoadMetricsObserverTest` instances from the
+  process-global tracing registration whose state otherwise leaks across tests.
+  The production helper now owns the registration in resettable optional
+  storage, and the test harness resets it during teardown. The backport retains
+  M151's existing `NamedTrack` API and contains no Ahoi-specific behavior.
+- **Rejected alternatives:** changing test order or process sharding; disabling
+  the affected tests; leaking a second registration; resetting unrelated
+  tracing state; or importing unrelated post-M151 source changes.
+- **Tests:** two isolated-index generations emitted byte-identical
+  `--binary --full-index --no-renames` patches with SHA-256
+  `d4ccef20872a7432aec4e3dd0f1e9b7ec58f599bea82780324e8040f08b2d2e5`.
+  Two strict applications produced final target tree
+  `a3865fc6e9f89ccd9403fa888ccce1a54d67c4e4`. The complete overlay and all 21
+  patches composed twice byte-identically to that tree (combined delta SHA-256
+  `8cfd72782b7beb911466939dbd0a20e6fd16d97b397d8bd212598dd00a14dd3a`).
+  Post-fix focused evidence across patches `0020` and `0021` is 50/50 plus a
+  100/100 repeat lane; a post-fix retry-free full-suite pass is still pending.
+- **Security/privacy impact:** none. The reset hook is used by tests and does
+  not change renderer privileges, production trace collection, network access,
+  telemetry policy, credentials, persistent browser data or sandboxing.
+- **Expected rebase risk:** low. Upstream already carries the same lifecycle
+  fix after main position `#1676463`; only tracing-track API evolution may
+  require a mechanical refresh on a future roll.
+- **Removal/upstream plan:** remove this backport when the pinned baseline
+  contains `2e1143e225f92ded424380beaa9aa77df332b93a` or equivalent resettable
+  registration ownership, while retaining the repeated-process test gate.

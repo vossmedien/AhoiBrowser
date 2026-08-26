@@ -6,7 +6,7 @@
   "enabledByDefault": false,
   "cloudKitContainerBeforeOptIn": false,
   "wireModelVersion": 2,
-  "localStoreSchemaVersion": 3,
+  "localStoreSchemaVersion": 4,
   "customZoneRequired": true,
   "sync": [
     "devices",
@@ -32,6 +32,10 @@
     "tombstones",
     "deviceTabs",
     "history",
+    "appearance",
+    "permittedSettings",
+    "extensionInventory",
+    "optInDeveloperAssets",
     "remoteCommands"
   ],
   "neverSync": [

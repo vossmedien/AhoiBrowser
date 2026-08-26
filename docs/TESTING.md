@@ -58,11 +58,16 @@ inside the result JSON.
 
 Those checks are necessary but not sufficient to prove that the installed
 binary is the output of the recorded build. `config/release-evidence.json`
-therefore keeps `CU_E2E` and `ASSISTED_E2E` PASS fail-closed until the validator
-also verifies an attested build-provenance -> signing/package-provenance ->
-notarization-receipt -> installed-bundle-hash chain. Matching plist stamps,
-signing booleans, screenshots, or a valid Developer ID signature cannot enable
-that gate by themselves.
+therefore keeps `CU_E2E` and `ASSISTED_E2E` PASS fail-closed. Even after that
+reviewed gate is enabled, every PASS validation must supply both
+`--release-manifest /path/to/release-manifest.json` and
+`--release-public-key /path/to/release-public.pem`. The evidence validator calls
+the release-chain validator with those explicit paths and
+`installed_app=/Applications/AhoiBrowser.app`; it verifies the manifest
+signature, trusted key ID, all bound receipts and artifacts, and the live
+installed bundle. Matching receipt-name strings, plist stamps, signing
+booleans, screenshots, or a valid Developer ID signature cannot enable the gate
+by themselves.
 
 ## Required matrices
 
@@ -100,11 +105,28 @@ cookies, extension behaviors, and crash recovery. Real-site tests verify OAuth,
 DRM service if entitled, and representative developer sites. No test flag may
 disable the sandbox or certificate validation.
 
-The first deterministic fixture lives at `fixtures/http-auth/`. Its nine
+The authentication-specific fixture lives at `fixtures/http-auth/`. Its thirteen
 self-tests run as part of `scripts/test-repository.sh` and prove only the local
 server and test-client contract. The installed AhoiBrowser, Keychain,
 incognito, persistence, localization, accessibility, and visible account
 chooser remain separate AUTH release gates.
+
+The general cluster at `fixtures/e2e/` provides three CA-signed loopback HTTPS
+origins and deterministic journeys for Range download/resume, upload and DnD,
+three-pane split state, redirects/popups, synthetic OAuth, explicitly simulated
+passkey plumbing, H.264/AAC/MSE/PiP, WebRTC/capture and permission prompts,
+cookies/CHIPS/GPC, storage/service-worker/cache behavior, CSP/CORS/header echo,
+developer injection controls, and artificial login forms. Its machine-readable
+receipts retain signal presence and public hashes but never secret/query/cookie
+values or uploaded bytes. Certificate generation never changes trust; the
+documented macOS user-keychain install and exact-fingerprint removal commands
+both require explicit confirmation. The self-tests validate TLS against only
+their temporary CA and mock every trust-changing command, leaving system trust
+untouched. See `fixtures/e2e/README.md` for the mandatory install/remove order
+and the boundaries that remain installed `CU_E2E` or `ASSISTED_E2E` work.
+The fixture README also records the media asset's observed encoder metadata,
+unknown copyright/license provenance and replacement recipe; its presence is
+not evidence of redistribution clearance for H.264/AAC.
 
 The CloudKit model spike under `spikes/cloudkit/` is also part of the repository
 test run. Its local Swift tests cover model convergence, sync-boundary policy,

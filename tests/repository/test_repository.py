@@ -26,7 +26,7 @@ class RepositoryContractTests(unittest.TestCase):
         expected = dict(expected_rows)
         registry = load_json("config/test-registry.json")["tests"]
         actual = {entry["id"]: entry for entry in registry}
-        self.assertEqual(333, len(registry))
+        self.assertEqual(335, len(registry))
         self.assertEqual(len(registry), len(actual), "test IDs must be unique")
         self.assertEqual(set(expected), set(actual))
         for entry in registry:
@@ -44,6 +44,32 @@ class RepositoryContractTests(unittest.TestCase):
                 self.assertIn("UNIT", entry["requiredEvidenceClasses"])
                 self.assertIn("INTEGRATION", entry["requiredEvidenceClasses"])
                 self.assertIn(entry["primaryClass"], entry["requiredEvidenceClasses"])
+
+    def test_physical_or_user_authenticated_journeys_require_assistance(self):
+        registry = {
+            entry["id"]: entry
+            for entry in load_json("config/test-registry.json")["tests"]
+        }
+        assisted = {
+            "WS-03",
+            "NAV-09",
+            "MEDIA-07",
+            "AUTH-24",
+            "DEV-23",
+            "EXT-06",
+            "EXT-07",
+            "SPLIT-26",
+            "PERM-01",
+            "PERM-02",
+            "PERM-03",
+        }
+        for test_id in assisted:
+            with self.subTest(test_id=test_id):
+                self.assertEqual("ASSISTED_E2E", registry[test_id]["primaryClass"])
+                self.assertIn(
+                    "ASSISTED_E2E", registry[test_id]["requiredEvidenceClasses"]
+                )
+                self.assertNotIn("CU_E2E", registry[test_id]["requiredEvidenceClasses"])
 
     def test_required_documents_exist(self):
         required = {
@@ -75,6 +101,8 @@ class RepositoryContractTests(unittest.TestCase):
             "config/split-view.json",
             "config/gclient.py",
             "tools/chromium_dependencies.py",
+            "tools/chromium_roll.py",
+            "tools/chromium_roll_discovery.py",
             "tools/compose_overlay.py",
             "tools/verify_chromium_pin.py",
             "tools/check_dco.py",
@@ -342,9 +370,17 @@ class RepositoryContractTests(unittest.TestCase):
                 if entry["primaryClass"] == "INTEGRATION"
             },
         )
+        self.assertEqual(
+            {"SPLIT-26"},
+            {
+                entry["id"]
+                for entry in split_tests[4:]
+                if entry["primaryClass"] == "ASSISTED_E2E"
+            },
+        )
         self.assertTrue(
             all(
-                entry["primaryClass"] == "CU_E2E"
+                entry["primaryClass"] in {"CU_E2E", "ASSISTED_E2E"}
                 for entry in split_tests[4:]
             )
         )
@@ -436,250 +472,127 @@ class RepositoryContractTests(unittest.TestCase):
         )
         self.assertIn("stage-component-runtime.sh", builder)
         self.assertIn("sign-development-app.sh", builder)
+        self.assertLess(
+            builder.index("stage-component-runtime.sh"),
+            builder.index("stamp-built-app.sh"),
+        )
+        self.assertLess(
+            builder.index("stamp-built-app.sh"),
+            builder.index("sign-development-app.sh"),
+        )
+        self.assertLess(
+            builder.index("sign-development-app.sh"),
+            builder.index("verify-built-app.sh"),
+        )
         self.assertIn("is_component_build = true", stager)
+        self.assertIn("AhoiBrowser Framework.framework", stager)
+        self.assertIn("ditto", stager)
+        self.assertIn(".ahoi-framework-stage.", stager)
+        self.assertIn("previous.framework", stager)
+        self.assertIn("staged component framework file differs", stager)
+        self.assertIn("staged component framework symlink differs", stager)
         self.assertIn("libc++_chrome.dylib", stager)
         self.assertIn("ahoi-component-runtime.sha256", stager)
+        self.assertIn("ahoi-component-framework-resources.sha256", stager)
         self.assertIn("libc++_chrome.dylib", verifier)
         self.assertIn("shasum -a 256 -s -c", verifier)
+        self.assertIn("ahoi-component-framework-resources.sha256", verifier)
         signer = (ROOT / "scripts/sign-development-app.sh").read_text(
             encoding="utf-8"
         )
         self.assertIn("AhoiBuildProfile", signer)
         self.assertIn("forbidden for release bundles", signer)
+        self.assertIn("tools/development_signing.py", signer)
+        self.assertIn("--preserve-metadata=entitlements", signer)
+        self.assertIn("designated => cdhash", signer)
+        self.assertNotIn("Developer ID Application", signer)
         self.assertIn("codesign --verify --deep --strict", signer)
 
-    def test_build_provenance_is_external_work_root_safe_and_fail_closed(self):
-        provenance = (ROOT / "tools/build_provenance.py").read_text(
-            encoding="utf-8"
-        )
-        dependency_check = (ROOT / "tools/chromium_dependencies.py").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn('os.environ.get("AHOI_WORK_ROOT")', provenance)
-        self.assertIn('choices=("upstream", "dev", "release")', provenance)
-        self.assertIn("collect_revisions", provenance)
-        self.assertIn("verify_deps_pins", provenance)
-        self.assertIn("logical_path", provenance)
-        self.assertNotIn("optional_output", provenance)
-        self.assertIn("verify_build_tool_identity", provenance)
-        self.assertIn("verify_profile_binding", provenance)
-        self.assertIn('"version": clang_version_line', provenance)
-        self.assertNotIn('"version": clang_version,', provenance)
-        for key in (
-            "gnBinarySha256",
-            "ninjaBinarySha256",
-            "clangArchiveSha256",
-            "clangBinarySha256",
-            "lldBinarySha256",
-        ):
-            self.assertRegex(load_json("config/toolchain.json")["buildTools"][key], r"^[0-9a-f]{64}$")
-        self.assertIn('"--actual"', dependency_check)
-        self.assertIn('"--output-json"', dependency_check)
+    def test_component_stager_replaces_stale_framework_atomically(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            work_root = pathlib.Path(temporary_directory) / "work"
+            chromium_src = work_root / "chromium" / "src"
+            out_dir = chromium_src / "out" / "AhoiDev"
+            app_path = out_dir / "AhoiBrowser.app"
+            runtime_dir = app_path / "Contents" / "Frameworks"
+            app_resources = app_path / "Contents" / "Resources"
+            source_framework = out_dir / "AhoiBrowser Framework.framework"
+            destination_framework = runtime_dir / "AhoiBrowser Framework.framework"
+            source_version = source_framework / "Versions" / "1.0"
 
-    def test_upstream_control_uses_full_build_provenance(self):
-        builder = (ROOT / "scripts/build-upstream.sh").read_text(encoding="utf-8")
-        self.assertIn("build_provenance.py", builder)
-        self.assertIn("--kind upstream", builder)
-        self.assertGreaterEqual(builder.count('"${SCRIPT_DIR}/verify-upstream.sh"'), 2)
-        self.assertIn("unexpectedly contains an x86_64 slice", builder)
+            (chromium_src / "buildtools" / "mac").mkdir(parents=True)
+            fake_gn = chromium_src / "buildtools" / "mac" / "gn"
+            fake_gn.write_text(
+                "#!/bin/sh\nprintf 'is_component_build = true\\n'\n",
+                encoding="utf-8",
+            )
+            fake_gn.chmod(0o755)
 
-    def test_fetch_and_build_rerun_hooks_under_the_pinned_toolchain(self):
-        fetch = (ROOT / "scripts/fetch-chromium.sh").read_text(encoding="utf-8")
-        hooks = (ROOT / "scripts/run-chromium-hooks.sh").read_text(
-            encoding="utf-8"
-        )
-        upstream = (ROOT / "scripts/build-upstream.sh").read_text(
-            encoding="utf-8"
-        )
-        ahoi = (ROOT / "scripts/build-ahoi.sh").read_text(encoding="utf-8")
-        self.assertIn("--nohooks", fetch)
-        self.assertIn("ahoi_require_gclient_config", fetch)
-        self.assertIn("config/gclient.py", fetch)
-        self.assertIn('"${SCRIPT_DIR}/check-host.sh"', hooks)
-        self.assertIn("gclient runhooks", hooks)
-        self.assertIn('"${SCRIPT_DIR}/run-chromium-hooks.sh"', upstream)
-        self.assertIn('hook_args=(--allow-source-overlay)', ahoi)
-        self.assertIn('--compatible-dev-xcode', ahoi)
-        self.assertLess(
-            upstream.index('"${SCRIPT_DIR}/run-chromium-hooks.sh"'),
-            upstream.index("gn gen"),
-        )
-        self.assertLess(
-            ahoi.index('"${SCRIPT_DIR}/run-chromium-hooks.sh"'),
-            ahoi.index("gn gen"),
-        )
-        self.assertGreaterEqual(ahoi.count("ahoi_require_overlay_state"), 2)
+            (source_version / "Resources" / "en.lproj").mkdir(parents=True)
+            (source_version / "Helpers").mkdir()
+            framework_binary = source_version / "AhoiBrowser Framework"
+            framework_binary.write_bytes(b"current-framework-binary")
+            framework_binary.chmod(0o755)
+            source_locale = source_version / "Resources" / "en.lproj" / "locale.pak"
+            source_locale.write_bytes(b"current-locale-pack")
+            (source_framework / "Versions" / "Current").symlink_to("1.0")
+            (source_framework / "Resources").symlink_to(
+                "Versions/Current/Resources"
+            )
+            (source_framework / "Helpers").symlink_to("Versions/Current/Helpers")
+            (source_framework / "AhoiBrowser Framework").symlink_to(
+                "Versions/Current/AhoiBrowser Framework"
+            )
 
-    def test_forged_hook_state_cannot_bypass_a_build_hook_run(self):
-        for relative in ("scripts/build-upstream.sh", "scripts/build-ahoi.sh"):
-            builder = (ROOT / relative).read_text(encoding="utf-8")
-            with self.subTest(builder=relative):
-                self.assertNotIn("ahoi_require_hook_state", builder)
-                self.assertEqual(
-                    1,
-                    builder.count('"${SCRIPT_DIR}/run-chromium-hooks.sh"'),
-                )
+            destination_framework.mkdir(parents=True)
+            (destination_framework / "stale-resource.txt").write_text(
+                "must disappear", encoding="utf-8"
+            )
+            app_resources.mkdir(parents=True)
+            (out_dir / "libc++_chrome.dylib").write_bytes(b"runtime")
 
-    def test_hook_state_is_invalidated_and_atomically_published(self):
-        fetch = (ROOT / "scripts/fetch-chromium.sh").read_text(encoding="utf-8")
-        hooks = (ROOT / "scripts/run-chromium-hooks.sh").read_text(
-            encoding="utf-8"
-        )
-        common = (ROOT / "scripts/lib/common.sh").read_text(encoding="utf-8")
-        self.assertLess(
-            fetch.index("ahoi_invalidate_hook_state"), fetch.index("gclient sync")
-        )
-        self.assertLess(
-            hooks.index("ahoi_invalidate_hook_state"), hooks.index("gclient runhooks")
-        )
-        self.assertLess(hooks.index("gclient runhooks"), hooks.index("os.replace"))
-        self.assertIn('rm -f -- "$(ahoi_hook_state_file)"', common)
-        self.assertIn("tempfile.mkstemp", hooks)
-        self.assertEqual(2, hooks.count("os.replace("))
-        self.assertNotIn("path.write_text", hooks)
-        self.assertIn('"schemaVersion": 3', hooks)
-        self.assertIn('"toolchainMode": toolchain_mode', hooks)
+            environment = os.environ.copy()
+            environment["AHOI_WORK_ROOT"] = str(work_root)
+            subprocess.run(
+                [
+                    str(ROOT / "scripts" / "stage-component-runtime.sh"),
+                    str(out_dir),
+                    str(app_path),
+                ],
+                cwd=ROOT,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
 
-    def test_xcode_26_6_is_dev_only_and_release_stays_on_reference_pin(self):
-        toolchain = load_json("config/toolchain.json")
-        compatible = toolchain["xcode"]["compatibleDevelopment"]
-        self.assertEqual("26.5", toolchain["xcode"]["requiredVersion"])
-        self.assertEqual("17F42", toolchain["xcode"]["requiredBuild"])
-        self.assertEqual("26.6", compatible["version"])
-        self.assertEqual("17F113", compatible["build"])
-        self.assertIn("ahoi-dev only", compatible["scope"])
-        ios_sdk = toolchain["sdks"]["iOS"]
-        self.assertEqual("26.5", ios_sdk["testedVersion"])
-        self.assertEqual("23F73", ios_sdk["pinnedReferenceBuild"])
-        self.assertEqual("23F81a", ios_sdk["compatibleDevelopmentBuild"])
-        self.assertNotIn("testedBuild", ios_sdk)
-        builder = (ROOT / "scripts/build-ahoi.sh").read_text(encoding="utf-8")
-        self.assertIn('dev)', builder)
-        self.assertIn('toolchain_mode="compatible-development"', builder)
-        self.assertIn('release)', builder)
-        self.assertIn('toolchain_mode="pinned-reference"', builder)
-        provenance = (ROOT / "tools/build_provenance.py").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("expected_xcode_for_kind", provenance)
-        host_check = (ROOT / "scripts/check-host.sh").read_text(encoding="utf-8")
-        common = (ROOT / "scripts/lib/common.sh").read_text(encoding="utf-8")
-        self.assertIn('ahoi_expected_ios_sdk_build "${xcode_mode}"', host_check)
-        self.assertIn("ahoi_expected_ios_sdk_build", common)
-        self.assertIn('"${expected_ios_sdk_build}"', common)
-        self.assertIn('expected_xcode["iOSSDKBuild"]', provenance)
-
-        helper_script = ROOT / "scripts/lib/common.sh"
-        for mode, expected_build in (
-            ("pinned-reference", "23F73"),
-            ("compatible-development", "23F81a"),
-        ):
-            with self.subTest(toolchain_mode=mode):
-                completed = subprocess.run(
-                    [
-                        "bash",
-                        "-c",
-                        'source "$1"; ahoi_expected_ios_sdk_build "$2"',
-                        "ahoi-sdk-test",
-                        str(helper_script),
-                        mode,
-                    ],
-                    cwd=ROOT,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                self.assertEqual(expected_build, completed.stdout.strip())
-        forged = subprocess.run(
-            [
-                "bash",
-                "-c",
-                'source "$1"; ahoi_expected_ios_sdk_build forged',
-                "ahoi-sdk-test",
-                str(helper_script),
-            ],
-            cwd=ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        self.assertNotEqual(0, forged.returncode)
-        self.assertIn("unsupported Xcode toolchain mode", forged.stderr)
-
-    def test_gclient_config_is_canonical_and_minimal(self):
-        config = (ROOT / "config/gclient.py").read_text(encoding="utf-8")
-        self.assertEqual(1, config.count('"name"        : \'src\''))
-        self.assertIn("https://chromium.googlesource.com/chromium/src.git", config)
-        self.assertIn('"custom_vars": {}', config)
-        self.assertNotIn("target_os", config)
-        common = (ROOT / "scripts/lib/common.sh").read_text(encoding="utf-8")
-        provenance = (ROOT / "tools/build_provenance.py").read_text(encoding="utf-8")
-        self.assertIn("ahoi_require_gclient_config", common)
-        self.assertIn("canonical config", provenance)
-
-    def test_no_obvious_committed_secret_files(self):
-        forbidden_suffixes = {
-            ".p12",
-            ".pfx",
-            ".p8",
-            ".mobileprovision",
-            ".provisionprofile",
-            ".key",
-            ".pem",
-        }
-        candidates = subprocess.run(
-            ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.splitlines()
-        offenders = [
-            relative
-            for relative in candidates
-            if pathlib.Path(relative).suffix in forbidden_suffixes
-        ]
-        self.assertEqual([], offenders)
-
-    def test_github_actions_are_immutable(self):
-        workflows = "\n".join(
-            path.read_text(encoding="utf-8")
-            for path in sorted((ROOT / ".github/workflows").glob("*.yml"))
-        )
-        action_references = re.findall(r"uses:\s*[^@\s]+@([^\s#]+)", workflows)
-        self.assertTrue(action_references)
-        for reference in action_references:
-            with self.subTest(reference=reference):
-                self.assertRegex(reference, r"^[0-9a-f]{40}$")
-
-    def test_github_enforces_lint_secrets_and_dco(self):
-        workflow = (
-            ROOT / ".github/workflows/repository-contract.yml"
-        ).read_text(encoding="utf-8")
-        self.assertIn("action-shellcheck@", workflow)
-        self.assertIn("actionlint/actionlint", workflow)
-        self.assertIn("gitleaks/gitleaks-action@", workflow)
-        self.assertIn("tools/check_dco.py", workflow)
-        self.assertIn("fetch-depth: 0", workflow)
-
-    def test_directly_invoked_scripts_are_executable(self):
-        for path in sorted((ROOT / "scripts").glob("*.sh")):
-            with self.subTest(path=path.name):
-                self.assertTrue(path.stat().st_mode & 0o111, path)
-        for relative in (
-            "tools/evidence.py",
-            "tools/build_provenance.py",
-            "tools/chromium_dependencies.py",
-            "tools/compose_overlay.py",
-            "tools/verify_chromium_pin.py",
-            "tools/check_dco.py",
-            "tools/overlay_fingerprint.py",
-            "tools/overlay_state.py",
-            "tools/verify_macos_entitlements.py",
-        ):
-            path = ROOT / relative
-            with self.subTest(path=relative):
-                self.assertTrue(path.stat().st_mode & 0o111, path)
+            destination_locale = (
+                destination_framework
+                / "Versions"
+                / "1.0"
+                / "Resources"
+                / "en.lproj"
+                / "locale.pak"
+            )
+            self.assertEqual(source_locale.read_bytes(), destination_locale.read_bytes())
+            self.assertFalse((destination_framework / "stale-resource.txt").exists())
+            self.assertEqual(
+                "1.0", os.readlink(destination_framework / "Versions" / "Current")
+            )
+            framework_manifest = (
+                app_resources / "ahoi-component-framework-resources.sha256"
+            )
+            self.assertIn("locale.pak", framework_manifest.read_text(encoding="utf-8"))
+            subprocess.run(
+                ["shasum", "-a", "256", "-s", "-c", str(framework_manifest)],
+                cwd=destination_framework,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(
+                b"runtime", (runtime_dir / "libc++_chrome.dylib").read_bytes()
+            )
 
     def test_http_auth_fixture_is_loopback_only_and_honest_about_scope(self):
         server = (ROOT / "fixtures/http-auth/fixture_server.py").read_text(

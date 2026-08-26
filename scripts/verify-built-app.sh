@@ -146,6 +146,8 @@ echo "${architecture}" | grep -q 'x86_64' && ahoi_die "unexpected x86_64 slice" 
 if [ "${build_profile}" = "dev" ]; then
   component_runtime_dir="${app_path}/Contents/Frameworks"
   component_manifest="${app_path}/Contents/Resources/ahoi-component-runtime.sha256"
+  component_framework="${component_runtime_dir}/AhoiBrowser Framework.framework"
+  framework_resource_manifest="${app_path}/Contents/Resources/ahoi-component-framework-resources.sha256"
   [ -f "${component_runtime_dir}/libc++_chrome.dylib" ] || \
     ahoi_die "portable development bundle is missing libc++_chrome.dylib"
   [ -s "${component_manifest}" ] || \
@@ -159,9 +161,24 @@ if [ "${build_profile}" = "dev" ]; then
     cd "${component_runtime_dir}"
     shasum -a 256 -s -c "${component_manifest}"
   ) || ahoi_die "a staged component runtime dylib differs from its build output"
+  [ -L "${component_framework}/Versions/Current" ] || \
+    ahoi_die "portable development bundle has no current component framework"
+  framework_current_version="$(readlink "${component_framework}/Versions/Current")"
+  [ -s "${framework_resource_manifest}" ] || \
+    ahoi_die "portable development bundle is missing its framework resource manifest"
+  framework_manifest_count="$(wc -l <"${framework_resource_manifest}" | tr -d ' ')"
+  framework_resource_count="$(find \
+    "${component_framework}/Versions/${framework_current_version}/Resources" \
+    -type f | wc -l | tr -d ' ')"
+  [ "${framework_manifest_count}" = "${framework_resource_count}" ] || \
+    ahoi_die "component framework resource manifest and file counts differ"
+  (
+    cd "${component_framework}"
+    shasum -a 256 -s -c "${framework_resource_manifest}"
+  ) || ahoi_die "a staged component framework resource differs from its build output"
   codesign --verify --deep --strict "${app_path}" || \
-    ahoi_die "portable development bundle has an invalid ad-hoc signature"
-  ahoi_note "portable component runtime: ${component_dylib_count} verified dylibs"
+    ahoi_die "portable development bundle has an invalid development code signature"
+  ahoi_note "portable component runtime: ${component_dylib_count} verified dylibs; ${framework_resource_count} verified framework resources"
 fi
 
 ahoi_note "bundle: ${name} ${version} (${identifier})"

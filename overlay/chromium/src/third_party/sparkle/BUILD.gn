@@ -9,3 +9,18 @@ bundle_data("sparkle_framework_bundle_data") {
   sources = [ "prebuilt/Sparkle.framework" ]
   outputs = [ "{{bundle_contents_dir}}/Frameworks/{{source_file_part}}" ]
 }
+
+# Some focused browser unit-test executables pull the native updater through
+# chrome/test:test_support. They therefore link Sparkle just like the browser,
+# but run directly from root_out_dir rather than from an application bundle.
+# Keep their runtime staging explicit instead of weakening the production
+# framework linkage or relying on a manually prepared output directory.
+copy("sparkle_framework_test_runtime") {
+  testonly = true
+  sources = [ "prebuilt/Sparkle.framework" ]
+  outputs = [ "$root_out_dir/Sparkle.framework" ]
+  visibility = [
+    "//ahoi/browser/extensions:ahoi_extension_policy_unittests",
+    "//ahoi/browser/session:ahoi_session_unittests",
+  ]
+}

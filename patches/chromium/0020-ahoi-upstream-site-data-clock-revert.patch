@@ -1,0 +1,15 @@
+diff --git a/components/performance_manager/persistence/site_data/site_data_impl.cc b/components/performance_manager/persistence/site_data/site_data_impl.cc
+index 18de6c6d47f65d2d2ef318e3c75450bfd14db61d..3cdd834bf14b2f8b1effdf821db4952f4d9817e4 100644
+--- a/components/performance_manager/persistence/site_data/site_data_impl.cc
++++ b/components/performance_manager/persistence/site_data/site_data_impl.cc
+@@ -24,9 +24,7 @@ namespace {
+ constexpr float kSampleWeightFactor = 0.5;
+ 
+ base::TimeDelta GetTimeDeltaSinceEpoch() {
+-  static const base::TimeTicks ticks_at_unix_epoch =
+-      base::TimeTicks::Now() - (base::Time::Now() - base::Time::UnixEpoch());
+-  return base::TimeTicks::Now() - ticks_at_unix_epoch;
++  return base::Time::Now() - base::Time::UnixEpoch();
+ }
+ 
+ // Returns all the SiteDataFeatureProto elements contained in a

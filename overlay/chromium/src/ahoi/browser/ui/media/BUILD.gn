@@ -1,0 +1,55 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+source_set("media_mini_player_ui") {
+  sources = [
+    "media_mini_player_surface.h",
+    "media_mini_player_view.cc",
+    "media_mini_player_view.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/media",
+    "//base",
+    "//ui/views",
+  ]
+
+  deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//ahoi/browser/ui/appearance",
+    "//components/vector_icons",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/color",
+    "//ui/gfx",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "media_mini_player_view_unittest.cc" ]
+
+  deps = [
+    ":media_mini_player_ui",
+    "//ahoi/browser/media",
+    "//ahoi/browser/ui:visual_style",
+    "//base",
+    "//components/vector_icons",
+    "//testing/gtest",
+    "//ui/views:test_support",
+  ]
+}
+
+test("ahoi_media_mini_player_ui_unittests") {
+  sources = [ "run_all_unittests.cc" ]
+  deps = [
+    ":unit_tests",
+    "//mojo/core/embedder",
+    "//testing/gtest",
+    "//ui/resources:ui_test_pak",
+    "//ui/views:test_support",
+  ]
+  data_deps = [ "//ui/resources:ui_test_pak_data" ]
+}

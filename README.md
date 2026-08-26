@@ -2,10 +2,10 @@
 
 AhoiBrowser is an open-source, Apple-Silicon-only macOS browser built as a
 small, reviewable overlay on Chromium's native `//chrome` product. Its focus is
-an Arc-like vertical workspace tree with complete drag-and-drop, real two- and
-three-pane split views, excellent developer convenience, strict privacy
-defaults, first-class HTTP authentication, and full browser behavior without an
-Electron, CEF, WKWebView, or web-app shell.
+an Arc-like vertical workspace tree with complete drag-and-drop, real two-,
+three-, and four-pane split views, excellent developer convenience, strict
+privacy defaults, first-class HTTP authentication, and full browser behavior
+without an Electron, CEF, WKWebView, or web-app shell.
 
 The complete product contract is
 [`outputs/AhoiBrowser-Master-Zielprompt.md`](outputs/AhoiBrowser-Master-Zielprompt.md).
@@ -15,7 +15,7 @@ architecture decision, test, or release gate.
 ## Current status
 
 Phase 0 is in progress. In addition to the upstream pin, reproducible
-patch/overlay workflow and evidence contracts, the current sixteen-patch stack
+patch/overlay workflow and evidence contracts, the current 21-patch stack
 now contains a native profile-backed sidebar, a durable SQLite-backed nested
 tree with non-blocking UI access, an explicit saved/temporary live-tab
 lifecycle, bidirectional drag-and-drop, local command bar, shared visual
@@ -33,7 +33,7 @@ considered proven without installed-app evidence.
 - Workspaces are UI/session organization inside one normal profile, never
   separate cookie or extension profiles.
 - Incognito is a true off-the-record profile. Little Arc/Quick Window is not.
-- Split panes are two or three normal Chromium tabs/`WebContents` inside the
+- Split panes are two, three, or four normal Chromium tabs/`WebContents` inside the
   existing tab model, never a parallel WebView host. See
   [`docs/SPLIT_VIEW.md`](docs/SPLIT_VIEW.md).
 - No built-in broad ad blocker. Selective legacy support exists only for an
@@ -71,4 +71,5 @@ A complete checkout/build requires ample free disk space. See
 AhoiBrowser-authored code is licensed under GPL-3.0-or-later. Chromium and
 third-party components retain their own licenses. Contributions require a
 Developer Certificate of Origin sign-off. See
-[`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/LEGAL.md`](docs/LEGAL.md).
+[`CONTRIBUTING.md`](CONTRIBUTING.md), [`docs/LEGAL.md`](docs/LEGAL.md), and the
+[`docs/TRADEMARKS.md`](docs/TRADEMARKS.md) rebranding policy.

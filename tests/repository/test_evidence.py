@@ -101,11 +101,34 @@ def result_for(test_id: str, test_class: str, status: str = "NOT_RUN"):
 
 
 class EvidenceValidationTests(unittest.TestCase):
-    def validate(self, payload):
+    def validate(self, payload, **kwargs):
         with tempfile.TemporaryDirectory(prefix="ahoi-evidence-test-") as directory:
             path = pathlib.Path(directory) / "result.json"
             path.write_text(json.dumps(payload), encoding="utf-8")
-            return evidence.validate_result(path)
+            return evidence.validate_result(path, **kwargs)
+
+    def enabled_release_config(self):
+        original_load = evidence.load
+
+        def configured_load(relative):
+            if relative == "config/release-evidence.json":
+                return {
+                    "schemaVersion": 1,
+                    "releasePassEnabled": True,
+                    "requiredChain": [
+                        "build-provenance",
+                        "signed-package-provenance",
+                        "notarization-receipt",
+                        "installed-bundle-binding",
+                    ],
+                }
+            if relative == "config/release-policy.json":
+                policy = original_load(relative)
+                policy["manifestSigning"]["trustedKeyIds"] = ["b" * 64]
+                return policy
+            return original_load(relative)
+
+        return configured_load
 
     def test_registry_class_cannot_be_downgraded_to_bypass_computer_use(self):
         errors = self.validate(result_for("AUTH-27", "UNIT"))
@@ -141,6 +164,123 @@ class EvidenceValidationTests(unittest.TestCase):
         ]
         payload["evidence"]["screenshots"] = ["screenshots/visible.png"]
         self.assertIn(evidence.RELEASE_EVIDENCE_NOT_READY, self.validate(payload))
+
+    def test_enabled_boolean_and_claimed_receipt_names_cannot_bypass_chain(self):
+        with mock.patch.object(
+            evidence,
+            "load",
+            side_effect=self.enabled_release_config(),
+        ), mock.patch.object(
+            evidence.release_chain,
+            "validate_manifest",
+        ) as validator:
+            errors = evidence.validate_release_evidence_chain(None, None)
+
+        self.assertIn(evidence.RELEASE_EVIDENCE_NOT_READY, errors)
+        self.assertIn(evidence.RELEASE_MANIFEST_REQUIRED, errors)
+        self.assertIn(evidence.RELEASE_PUBLIC_KEY_REQUIRED, errors)
+        validator.assert_not_called()
+
+    def test_release_chain_uses_explicit_paths_and_live_installed_app(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-release-gate-test-") as directory:
+            root = pathlib.Path(directory)
+            manifest = root / "release-manifest.json"
+            public_key = root / "release-public.pem"
+            manifest.write_text("{}\n", encoding="utf-8")
+            public_key.write_text("fixture\n", encoding="utf-8")
+            with mock.patch.object(
+                evidence,
+                "load",
+                side_effect=self.enabled_release_config(),
+            ), mock.patch.object(
+                evidence.release_chain,
+                "validate_manifest",
+                return_value={"kind": "ahoi-release-manifest"},
+            ) as validator:
+                errors = evidence.validate_release_evidence_chain(
+                    manifest,
+                    public_key,
+                )
+
+        self.assertEqual([], errors)
+        validator.assert_called_once()
+        args, kwargs = validator.call_args
+        self.assertEqual(manifest.resolve(), args[0])
+        self.assertEqual(public_key.resolve(), kwargs["public_key"])
+        self.assertEqual({"b" * 64}, kwargs["trusted_key_ids"])
+        self.assertEqual(evidence.INSTALLED_BUNDLE, kwargs["installed_app"])
+        self.assertEqual(
+            ROOT / "config/macos-entitlements.json",
+            kwargs["policy_path"],
+        )
+
+    def test_release_chain_validator_failure_is_a_hard_pass_failure(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-release-gate-test-") as directory:
+            root = pathlib.Path(directory)
+            manifest = root / "release-manifest.json"
+            public_key = root / "release-public.pem"
+            manifest.write_text("{}\n", encoding="utf-8")
+            public_key.write_text("fixture\n", encoding="utf-8")
+            with mock.patch.object(
+                evidence,
+                "load",
+                side_effect=self.enabled_release_config(),
+            ), mock.patch.object(
+                evidence.release_chain,
+                "validate_manifest",
+                side_effect=evidence.ReleaseError("forged receipt"),
+            ):
+                errors = evidence.validate_release_evidence_chain(
+                    manifest,
+                    public_key,
+                )
+
+        self.assertIn(evidence.RELEASE_EVIDENCE_NOT_READY, errors)
+        self.assertIn(
+            "release evidence chain validation failed: forged receipt",
+            errors,
+        )
+
+    def test_computer_use_pass_forwards_explicit_chain_paths(self):
+        payload = result_for("AUTH-27", "CU_E2E", "PASS")
+        payload["assertions"] = [
+            {"name": "visible", "passed": True, "evidence": "fixture"}
+        ]
+        payload["evidence"]["screenshots"] = ["screenshots/visible.png"]
+        manifest = pathlib.Path("/secure/release-manifest.json")
+        public_key = pathlib.Path("/secure/release-public.pem")
+        unavailable_bundle = evidence.installed_bundle_checks(
+            pathlib.Path("/definitely/not/an/app")
+        )
+        with mock.patch.object(
+            evidence,
+            "validate_release_evidence_chain",
+            return_value=["chain-validator-sentinel"],
+        ) as chain_validator, mock.patch.object(
+            evidence,
+            "repository_state",
+            return_value=payload["source"],
+        ), mock.patch.object(
+            evidence,
+            "installed_bundle_checks",
+            return_value=unavailable_bundle,
+        ), mock.patch.object(
+            evidence,
+            "bundle_hash",
+            return_value=evidence.NOT_AVAILABLE,
+        ), mock.patch.object(
+            evidence,
+            "succeeds",
+            return_value=False,
+        ):
+            errors = self.validate(
+                payload,
+                release_manifest=manifest,
+                release_public_key=public_key,
+            )
+
+        self.assertIn("chain-validator-sentinel", errors)
+        chain_validator.assert_called_once_with(manifest, public_key)
 
     def test_claimed_proof_cannot_replace_live_installed_bundle_validation(self):
         payload = result_for("AUTH-27", "CU_E2E", "PASS")

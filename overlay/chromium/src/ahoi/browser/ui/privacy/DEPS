@@ -1,0 +1,10 @@
+include_rules = [
+  "+ahoi/browser/privacy",
+  "+ahoi/browser/ui/developer_toolkit/developer_toolkit_button.h",
+  "+ahoi/browser/ui/visual_style.h",
+  "+chrome/browser/profiles/profile.h",
+  "+chrome/browser/ui/browser.h",
+  "+chrome/browser/ui/tabs/tab_strip_model.h",
+  "+chrome/grit/generated_resources.h",
+  "+content/public/browser",
+]

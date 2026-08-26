@@ -102,4 +102,10 @@ public enum CompanionCloudKitBootstrap {
 
 public enum CompanionSyncPreferences {
     public static let enabledKey = "AhoiCompanion.Sync.Enabled"
+    public static let historyRetentionDaysKey =
+        "AhoiCompanion.Sync.HistoryRetentionDays"
+    public static let remoteControlEnabledKey =
+        "AhoiCompanion.RemoteControl.Enabled"
+    public static let defaultHistoryRetentionDays = 90
+    public static let historyRetentionChoices = [30, 90, 365, -1]
 }

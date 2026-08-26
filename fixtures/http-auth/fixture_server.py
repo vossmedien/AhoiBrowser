@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Local-only HTTP authentication fixtures for AhoiBrowser.
+"""Protocol and request-handler support for local AhoiBrowser auth fixtures.
 
 The module intentionally uses only the Python standard library.  It provides
-four loopback servers: two HTTPS origins, a separate HTTPS redirect target,
-and one explicitly insecure HTTP origin.  It is test infrastructure, not a
-password manager implementation.
+five loopback servers: two HTTPS origins, a separate HTTPS redirect target,
+one explicitly insecure HTTP origin, and a non-forwarding synthetic proxy.
+It is test infrastructure, not a password manager implementation.
 """
 
 from __future__ import annotations
@@ -13,19 +13,24 @@ import base64
 import hashlib
 import hmac
 import json
-import os
 import re
 import secrets
 import socketserver
-import ssl
-import subprocess
-import tempfile
 import threading
 import time
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, MutableMapping, Optional, TextIO, Tuple
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    TextIO,
+    Tuple,
+    Type,
+)
 from urllib.parse import urlsplit
 
 
@@ -58,6 +63,14 @@ CREDENTIALS: Mapping[str, Mapping[str, str]] = {
         "username": "fixture-http-warning",
         "password": "plaintext-transport-test-only",
     },
+    "subresource": {
+        "username": "fixture-subresource",
+        "password": "subresource-password-for-local-tests",
+    },
+    "proxy": {
+        "username": "fixture-proxy",
+        "password": "proxy-password-for-local-tests",
+    },
 }
 
 
@@ -74,6 +87,12 @@ PRIMARY_SPACES: Tuple[ProtectionSpace, ...] = (
     ProtectionSpace("basic-beta", "basic", "Ahoi Basic Beta", "/basic/beta/"),
     ProtectionSpace("digest-alpha", "digest", "Ahoi Digest Alpha", "/digest/alpha/"),
     ProtectionSpace("digest-beta", "digest", "Ahoi Digest Beta", "/digest/beta/"),
+    ProtectionSpace(
+        "subresource",
+        "basic",
+        "Ahoi Subresource Image",
+        "/subresource/protected",
+    ),
 )
 
 SECONDARY_SPACES: Tuple[ProtectionSpace, ...] = (
@@ -111,6 +130,7 @@ class SanitizedEventLog:
         path: str,
         status: int,
         authorization_present: bool,
+        proxy_authorization_present: bool = False,
     ) -> None:
         event: Mapping[str, object] = {
             "event": "request",
@@ -122,6 +142,10 @@ class SanitizedEventLog:
             "status": status,
             "authorization_present": authorization_present,
             "authorization": "[REDACTED]" if authorization_present else None,
+            "proxy_authorization_present": proxy_authorization_present,
+            "proxy_authorization": (
+                "[REDACTED]" if proxy_authorization_present else None
+            ),
         }
         encoded = json.dumps(event, sort_keys=True, separators=(",", ":"))
         with self._lock:
@@ -290,11 +314,16 @@ class FixtureHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
 
-    def __init__(self, address: Tuple[str, int], state: FixtureState) -> None:
+    def __init__(
+        self,
+        address: Tuple[str, int],
+        state: FixtureState,
+        handler_class: Optional[Type[BaseHTTPRequestHandler]] = None,
+    ) -> None:
         if address[0] != LOOPBACK_HOST:
             raise ValueError("HTTP-auth fixtures must bind to IPv4 loopback")
         self.fixture_state = state
-        super().__init__(address, FixtureRequestHandler)
+        super().__init__(address, handler_class or FixtureRequestHandler)
 
     def server_bind(self) -> None:
         """Bind without HTTPServer's unnecessary reverse-DNS lookup.
@@ -354,6 +383,8 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             return self._redirect(self.state.cross_https_url + "/__fixture/observer")
         if self.state.role == "primary" and path == "/redirect/same-origin":
             return self._redirect("/basic/alpha/resource")
+        if self.state.role == "primary" and path == "/subresource/page":
+            return self._subresource_page()
 
         space = next(
             (
@@ -380,6 +411,8 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             return self._redirect(self.state.cross_https_url + "/__fixture/observer")
         if path.endswith("/redirect-same") and self.state.role == "primary":
             return self._redirect(space.path_prefix + "resource")
+        if space.key == "subresource":
+            return self._subresource_image()
         return self._json(
             200,
             {
@@ -393,21 +426,7 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
     def _check_basic(
         self, space: ProtectionSpace, authorization: Optional[str]
     ) -> bool:
-        if authorization is None or not authorization.lower().startswith("basic "):
-            return False
-        try:
-            decoded = base64.b64decode(
-                authorization.split(None, 1)[1], validate=True
-            ).decode("utf-8")
-        except (ValueError, UnicodeDecodeError):
-            return False
-        if ":" not in decoded:
-            return False
-        username, password = decoded.split(":", 1)
-        expected = CREDENTIALS[space.key]
-        return hmac.compare_digest(username, expected["username"]) and hmac.compare_digest(
-            password, expected["password"]
-        )
+        return _basic_matches(authorization, space.key)
 
     def _check_digest(
         self, space: ProtectionSpace, authorization: Optional[str]
@@ -515,6 +534,43 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
         return 302
 
+    def _subresource_page(self) -> int:
+        body = (
+            "<!doctype html><meta charset=utf-8>"
+            "<title>Ahoi subresource authentication fixture</title>"
+            "<h1>Subresource authentication fixture</h1>"
+            "<p>The image below is the only protected subresource.</p>"
+            '<img src="/subresource/protected.svg" '
+            'alt="Protected fixture image">'
+        ).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Security-Policy", "default-src 'none'; img-src 'self'")
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header(
+            "X-Ahoi-Fixture-Subresource", "/subresource/protected.svg"
+        )
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+        return 200
+
+    def _subresource_image(self) -> int:
+        body = (
+            '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80">'
+            '<rect width="240" height="80" fill="#0b6bcb"/>'
+            '<text x="16" y="48" fill="white" font-size="18">'
+            "Protected fixture loaded</text></svg>"
+        ).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Type", "image/svg+xml")
+        self.send_header("X-Ahoi-Fixture-Protection-Space", "subresource")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+        return 200
+
     def _json(
         self,
         status: int,
@@ -534,210 +590,63 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
         return status
 
 
-def generate_temporary_certificate(directory: Path) -> Tuple[Path, Path]:
-    """Generate a short-lived localhost certificate using the system OpenSSL."""
-
-    directory.mkdir(parents=True, exist_ok=True)
-    certificate = directory / "localhost-cert.pem"
-    private_key = directory / "localhost-key.pem"
-    config = directory / "openssl-localhost.cnf"
-    config.write_text(
-        "[req]\n"
-        "distinguished_name = dn\n"
-        "prompt = no\n"
-        "x509_extensions = v3_req\n"
-        "[dn]\n"
-        "CN = localhost\n"
-        "[v3_req]\n"
-        "basicConstraints = critical,CA:FALSE\n"
-        "keyUsage = critical,digitalSignature,keyEncipherment\n"
-        "extendedKeyUsage = serverAuth\n"
-        "subjectAltName = @alt_names\n"
-        "[alt_names]\n"
-        "DNS.1 = localhost\n"
-        "IP.1 = 127.0.0.1\n",
-        encoding="utf-8",
-    )
-    command = [
-        "openssl",
-        "req",
-        "-x509",
-        "-newkey",
-        "ec",
-        "-pkeyopt",
-        "ec_paramgen_curve:P-256",
-        "-sha256",
-        "-nodes",
-        "-days",
-        "2",
-        "-keyout",
-        str(private_key),
-        "-out",
-        str(certificate),
-        "-config",
-        str(config),
-        "-extensions",
-        "v3_req",
-    ]
+def _basic_matches(authorization: Optional[str], credential_key: str) -> bool:
+    if authorization is None or not authorization.lower().startswith("basic "):
+        return False
     try:
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-    except FileNotFoundError as error:
-        raise RuntimeError("openssl is required to create the local TLS fixture") from error
-    except subprocess.CalledProcessError as error:
-        raise RuntimeError("openssl certificate generation failed: %s" % error.stderr) from error
-    os.chmod(private_key, 0o600)
-    return certificate, private_key
+        decoded = base64.b64decode(
+            authorization.split(None, 1)[1], validate=True
+        ).decode("utf-8")
+    except (ValueError, UnicodeDecodeError):
+        return False
+    if ":" not in decoded:
+        return False
+    username, password = decoded.split(":", 1)
+    expected = CREDENTIALS[credential_key]
+    return hmac.compare_digest(username, expected["username"]) and hmac.compare_digest(
+        password, expected["password"]
+    )
 
 
-class FixtureCluster:
-    """Lifecycle wrapper around all HTTP-auth fixture origins."""
+class ProxyFixtureRequestHandler(FixtureRequestHandler):
+    """Synthetic proxy-auth endpoint which never forwards arbitrary traffic."""
 
-    def __init__(
-        self,
-        *,
-        runtime_directory: Optional[Path] = None,
-        primary_port: int = 0,
-        secondary_port: int = 0,
-        cross_port: int = 0,
-        http_port: int = 0,
-        log_stream: Optional[TextIO] = None,
-    ) -> None:
-        self._owned_tempdir: Optional[tempfile.TemporaryDirectory[str]] = None
-        if runtime_directory is None:
-            self._owned_tempdir = tempfile.TemporaryDirectory(
-                prefix="ahoibrowser-http-auth-"
+    def do_CONNECT(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
+        self._proxy_response()
+
+    def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
+        self._proxy_response()
+
+    def _proxy_response(self) -> None:
+        authorization = self.headers.get("Authorization")
+        proxy_authorization = self.headers.get("Proxy-Authorization")
+        accepted = _basic_matches(proxy_authorization, "proxy")
+        if accepted:
+            status = self._json(
+                200,
+                {
+                    "origin_authorization_present": authorization is not None,
+                    "proxy_authenticated": True,
+                    "synthetic_non_forwarding": True,
+                },
+                {"X-Ahoi-Fixture-Proxy-Auth": "accepted"},
             )
-            runtime_directory = Path(self._owned_tempdir.name)
-        self.runtime_directory = runtime_directory
-        self.runtime_directory.mkdir(parents=True, exist_ok=True)
-        self.certificate, self.private_key = generate_temporary_certificate(
-            self.runtime_directory
-        )
-        self.event_log = SanitizedEventLog(log_stream)
-        self.nonce_store = DigestNonceStore()
-        self.cross_observations: List[bool] = []
-
-        self._cross = FixtureHTTPServer(
-            (LOOPBACK_HOST, cross_port),
-            FixtureState(
-                "cross",
-                (),
-                self.event_log,
-                self.nonce_store,
-                cross_observations=self.cross_observations,
-            ),
-        )
-        self.cross_https_url = "https://%s:%d" % (
-            LOOPBACK_HOST,
-            self._cross.server_address[1],
-        )
-        self._primary = FixtureHTTPServer(
-            (LOOPBACK_HOST, primary_port),
-            FixtureState(
-                "primary",
-                PRIMARY_SPACES,
-                self.event_log,
-                self.nonce_store,
-                cross_https_url=self.cross_https_url,
-            ),
-        )
-        self._secondary = FixtureHTTPServer(
-            (LOOPBACK_HOST, secondary_port),
-            FixtureState(
-                "secondary",
-                SECONDARY_SPACES,
-                self.event_log,
-                self.nonce_store,
-            ),
-        )
-        self._plain = FixtureHTTPServer(
-            (LOOPBACK_HOST, http_port),
-            FixtureState(
-                "plain-http",
-                PLAIN_HTTP_SPACES,
-                self.event_log,
-                self.nonce_store,
-            ),
-        )
-        self._servers = (self._primary, self._secondary, self._cross, self._plain)
-        self._threads: List[threading.Thread] = []
-
-        tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        tls_context.load_cert_chain(str(self.certificate), str(self.private_key))
-        for server in (self._primary, self._secondary, self._cross):
-            server.socket = tls_context.wrap_socket(server.socket, server_side=True)
-
-    @property
-    def primary_https_url(self) -> str:
-        return "https://%s:%d" % (LOOPBACK_HOST, self._primary.server_address[1])
-
-    @property
-    def secondary_https_url(self) -> str:
-        return "https://%s:%d" % (LOOPBACK_HOST, self._secondary.server_address[1])
-
-    @property
-    def plain_http_url(self) -> str:
-        return "http://%s:%d" % (LOOPBACK_HOST, self._plain.server_address[1])
-
-    def start(self) -> "FixtureCluster":
-        if self._threads:
-            return self
-        for server in self._servers:
-            thread = threading.Thread(
-                target=server.serve_forever,
-                name="http-auth-fixture-%s" % server.fixture_state.role,
-                daemon=True,
+        else:
+            status = self._json(
+                407,
+                {"proxy_authenticated": False, "synthetic_non_forwarding": True},
+                {
+                    "Connection": "close",
+                    "Proxy-Authenticate": (
+                        'Basic realm="Ahoi Proxy", charset="UTF-8"'
+                    ),
+                },
             )
-            thread.start()
-            self._threads.append(thread)
-        return self
-
-    def stop(self) -> None:
-        shutdown_threads = [
-            threading.Thread(target=server.shutdown, daemon=True)
-            for server in self._servers
-        ]
-        for thread in shutdown_threads:
-            thread.start()
-        for thread in shutdown_threads:
-            thread.join(timeout=5)
-        for server in self._servers:
-            server.server_close()
-        for thread in self._threads:
-            thread.join(timeout=5)
-        self._threads.clear()
-        for path in (
-            self.private_key,
-            self.certificate,
-            self.runtime_directory / "openssl-localhost.cnf",
-        ):
-            try:
-                path.unlink()
-            except FileNotFoundError:
-                pass
-        if self._owned_tempdir is not None:
-            self._owned_tempdir.cleanup()
-            self._owned_tempdir = None
-
-    def describe(self) -> Mapping[str, object]:
-        return {
-            "primary_https_url": self.primary_https_url,
-            "secondary_https_url": self.secondary_https_url,
-            "cross_https_url": self.cross_https_url,
-            "plain_http_url": self.plain_http_url,
-            "certificate": str(self.certificate),
-            "credentials": CREDENTIALS,
-            "note": "All credentials are synthetic and local-test-only.",
-        }
-
-    def __enter__(self) -> "FixtureCluster":
-        return self.start()
-
-    def __exit__(self, *_args: object) -> None:
-        self.stop()
+        self.state.event_log.request(
+            server_role=self.state.role,
+            method=self.command,
+            path=self.path,
+            status=status,
+            authorization_present=authorization is not None,
+            proxy_authorization_present=proxy_authorization is not None,
+        )

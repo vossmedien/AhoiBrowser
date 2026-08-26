@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "commands": {
     "focusCommandBar": "Command+L",
     "newTemporaryTab": "Command+T",
@@ -9,7 +9,18 @@
     "previousWorkspace": "Command+Option+Left",
     "nextWorkspace": "Command+Option+Right",
     "reopenClosedTab": "Command+Shift+T",
-    "toggleSidebar": "Command+S"
+    "toggleSidebar": "Command+S",
+    "focusSplitPane1": "Command+Control+1",
+    "focusSplitPane2": "Command+Control+2",
+    "focusSplitPane3": "Command+Control+3",
+    "focusSplitPane4": "Command+Control+4",
+    "moveSplitPanePrevious": "Command+Control+Shift+Left",
+    "moveSplitPaneNext": "Command+Control+Shift+Right",
+    "cycleSplitLayout": "Command+Control+L",
+    "decreaseSplitDivider": "Command+Control+Left",
+    "increaseSplitDivider": "Command+Control+Right",
+    "leaveSplit": "Command+Control+0",
+    "closeActiveSplitPane": "Command+Control+W"
   },
   "commandPrefixes": {
     "googleSearch": "g ",
@@ -21,10 +32,27 @@
   "magicMouse": {
     "enabledByDefault": true,
     "direction": "natural",
-    "minimumHorizontalDistance": 72,
-    "maximumVerticalDrift": 40,
-    "commitVelocity": 420,
+    "minimumHorizontalDistance": 80,
+    "axisBias": 1.3,
+    "rejectVerticalDistance": 24,
     "interactiveCancellation": true,
     "configurableSensitivity": true
+  },
+  "commandScrollTabCycling": {
+    "enabledByDefault": true,
+    "deltaThreshold": 24,
+    "minimumIntervalMilliseconds": 250,
+    "phaseLessSequenceTimeoutMilliseconds": 400,
+    "showsPreview": true,
+    "oneSwitchPerTrackpadGesture": true
+  },
+  "middleClickAutoscroll": {
+    "enabledByDefault": true,
+    "configurablePerProfile": true,
+    "rendererInputPath": true,
+    "cancelOnSecondMiddleClick": true,
+    "cancelOnPrimaryClick": true,
+    "cancelOnEscape": true,
+    "cancelOnFocusLoss": true
   }
 }

@@ -7,6 +7,7 @@ import pathlib
 import zipfile
 from typing import Callable, Optional
 
+from .assets import validate_release_assets
 from .common import (
     ReleaseError,
     atomic_write_json,
@@ -32,6 +33,7 @@ RECEIPT_KINDS = {
     "packageReceipt": "package-provenance",
     "installedReceipt": "installed-bundle-binding",
     "materialsReceipt": "release-materials",
+    "releaseAssetsReceipt": "release-assets",
 }
 
 IDENTITY_FIELDS = {
@@ -311,6 +313,7 @@ def _validate_bindings(
     package = receipts["packageReceipt"]
     installed = receipts["installedReceipt"]
     materials = receipts["materialsReceipt"]
+    release_assets = receipts["releaseAssetsReceipt"]
     for name, receipt in receipts.items():
         if name != "buildProvenance" and receipt.get("schemaVersion") != 1:
             raise ReleaseError(f"{name} schema is unsupported")
@@ -482,6 +485,12 @@ def _validate_bindings(
         if artifact_path.stat().st_size != package_reference.get("size"):
             raise ReleaseError(f"release {artifact_name} size mismatch")
     _validate_material_files(root, materials)
+    validate_release_assets(
+        root,
+        release_assets,
+        package_reference=manifest["evidence"]["packageReceipt"],
+        materials_reference=manifest["evidence"]["materialsReceipt"],
+    )
 
 
 def assemble_manifest(
@@ -493,6 +502,7 @@ def assemble_manifest(
     package_receipt_path: pathlib.Path,
     installed_receipt_path: pathlib.Path,
     materials_receipt_path: pathlib.Path,
+    release_assets_receipt_path: pathlib.Path,
     product: dict,
     version: dict,
     chromium: dict,
@@ -512,6 +522,7 @@ def assemble_manifest(
         "packageReceipt": package_receipt_path,
         "installedReceipt": installed_receipt_path,
         "materialsReceipt": materials_receipt_path,
+        "releaseAssetsReceipt": release_assets_receipt_path,
     }
     evidence = {
         name: _sibling_reference(path, root, name) for name, path in paths.items()

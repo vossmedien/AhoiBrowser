@@ -1,0 +1,159 @@
+# Copyright 2026 The AhoiBrowser Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//testing/test.gni")
+
+source_set("sync_policy") {
+  sources = [ "sync_policy.h" ]
+  public_deps = [ "//base" ]
+}
+
+source_set("profile_sync_preferences") {
+  sources = [
+    "profile_sync_prefs.cc",
+    "profile_sync_prefs.h",
+  ]
+  public_deps = [
+    "//components/pref_registry",
+    "//components/prefs",
+  ]
+}
+
+source_set("profile_sync_ui_bridge") {
+  public = [ "profile_sync_ui_bridge.h" ]
+  public_deps = [
+    "//ahoi/browser/tab_tree",
+    "//base",
+    "//url",
+  ]
+}
+
+source_set("sync") {
+  sources = [
+    "cloudkit_sync_quarantine.cc",
+    "cloudkit_sync_quarantine.h",
+    "device_tabs_service.cc",
+    "device_tabs_service.h",
+    "history_sync_filter.cc",
+    "history_sync_filter.h",
+    "hybrid_logical_clock.cc",
+    "hybrid_logical_clock.h",
+    "remote_command_security.cc",
+    "remote_command_security.h",
+    "sync_field_merge.cc",
+    "sync_merge.cc",
+    "sync_merge.h",
+    "sync_model.cc",
+    "sync_model.h",
+    "sync_payload_cryptor.cc",
+    "sync_payload_cryptor.h",
+    "sync_provider.cc",
+    "sync_provider.h",
+    "sync_pump.cc",
+    "sync_pump.h",
+    "sync_serialization.cc",
+    "sync_serialization.h",
+    "sync_store.cc",
+    "sync_store.h",
+    "sync_store_maintenance.cc",
+    "sync_store_replay.cc",
+    "sync_store_schema.cc",
+    "tab_tree_sync_adapter.cc",
+    "tab_tree_sync_adapter.h",
+  ]
+
+  public_deps = [
+    ":sync_policy",
+    "//ahoi/browser/tab_tree",
+    "//base",
+    "//crypto",
+    "//sql",
+    "//url",
+  ]
+
+  deps = [ "//third_party/boringssl" ]
+
+  if (is_mac) {
+    sources += [
+      "cloudkit_sync_configuration_mac.h",
+      "cloudkit_sync_configuration_mac.mm",
+      "cloudkit_sync_provider_mac.h",
+      "cloudkit_sync_provider_mac.mm",
+      "cloudkit_sync_record_codec_mac.h",
+      "cloudkit_sync_record_codec_mac.mm",
+      "cloudkit_sync_util_mac.h",
+      "cloudkit_sync_util_mac.mm",
+      "keychain_sync_key_mac.h",
+      "keychain_sync_key_mac.mm",
+    ]
+    frameworks = [
+      "CloudKit.framework",
+      "Foundation.framework",
+      "Security.framework",
+    ]
+  }
+}
+
+source_set("profile_sync_service") {
+  sources = [
+    "profile_sync_backend.cc",
+    "profile_sync_backend.h",
+    "profile_sync_service.cc",
+    "profile_sync_service.h",
+    "profile_sync_service_factory.cc",
+    "profile_sync_service_factory.h",
+    "profile_sync_service_product.cc",
+    "profile_sync_types.h",
+    "sync_product_settings.cc",
+    "sync_product_settings.h",
+  ]
+  public_deps = [
+    ":profile_sync_ui_bridge",
+    ":sync",
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//components/keyed_service/core",
+    "//extensions/browser",
+  ]
+  deps = [
+    ":profile_sync_preferences",
+    "//ahoi/browser/tab_tree",
+    "//ahoi/browser/ui/appearance:appearance_preferences",
+    "//chrome/browser/history",
+    "//chrome/browser/themes",
+    "//chrome/common",
+    "//components/history/core/browser",
+    "//components/keyed_service/content",
+    "//components/prefs",
+    "//crypto",
+    "//extensions/common",
+    "//net",
+    "//skia",
+    "//ui/base",
+    "//url",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "sync_convergence_unittest.cc",
+    "sync_security_tree_unittest.cc",
+    "sync_unittest.cc",
+  ]
+  deps = [
+    ":sync",
+    "//base/test:test_support",
+    "//sql:test_support",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_sync_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

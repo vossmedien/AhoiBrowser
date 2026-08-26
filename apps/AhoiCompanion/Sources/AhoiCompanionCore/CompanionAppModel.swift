@@ -2,6 +2,19 @@ import Foundation
 import SwiftUI
 import AhoiCloudKitSpike
 
+public struct CompanionRemoteCommandStatusItem: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    public let action: String
+    public let targetDeviceID: DeviceID
+    public let status: RemoteCommandStatus
+    public let resultCode: String
+    public let expiresAtMilliseconds: UInt64
+
+    public var isTerminal: Bool {
+        status == .executed || status == .failed
+    }
+}
+
 @MainActor
 public final class CompanionAppModel: ObservableObject {
     @Published public private(set) var snapshot: CompanionSnapshot = .empty
@@ -10,25 +23,40 @@ public final class CompanionAppModel: ObservableObject {
     @Published public private(set) var syncStatus: CloudKitSyncStatus?
     @Published public private(set) var remoteControlIdentity: RemoteControlProvisioningIdentity?
     @Published public private(set) var remoteCommandStatus: String?
+    @Published public private(set) var recentRemoteCommands: [CompanionRemoteCommandStatusItem] = []
+    @Published public private(set) var syncSafetyState = CloudKitSyncSafetyState()
+    @Published public private(set) var historyRetentionDays: Int
     @Published public private(set) var isSyncConfigured: Bool
 
     public let repository: LocalFirstRepository
+    private let defaults: UserDefaults
     private var syncProvider: CloudKitSyncProvider?
     private var syncBridge: CompanionSyncBridge?
     private let syncRuntimeFactory: (() -> CompanionCloudKitRuntime?)?
     private var providerPrepared = false
+    private var commandLabels: [UUID: String] = [:]
+    private var commandFollowUpTasks: [UUID: Task<Void, Never>] = [:]
 
     public init(
         repository: LocalFirstRepository,
         syncProvider: CloudKitSyncProvider? = nil,
         syncBridge: CompanionSyncBridge? = nil,
-        syncRuntimeFactory: (() -> CompanionCloudKitRuntime?)? = nil
+        syncRuntimeFactory: (() -> CompanionCloudKitRuntime?)? = nil,
+        defaults: UserDefaults = .standard
     ) {
         self.repository = repository
+        self.defaults = defaults
         self.syncProvider = syncProvider
         self.syncBridge = syncBridge
         self.syncRuntimeFactory = syncRuntimeFactory
         self.isSyncConfigured = syncProvider != nil && syncBridge != nil
+        let storedRetention = defaults.integer(
+            forKey: CompanionSyncPreferences.historyRetentionDaysKey
+        )
+        self.historyRetentionDays =
+            CompanionSyncPreferences.historyRetentionChoices.contains(storedRetention)
+            ? storedRetention
+            : CompanionSyncPreferences.defaultHistoryRetentionDays
     }
 
     public convenience init() {
@@ -46,6 +74,7 @@ public final class CompanionAppModel: ObservableObject {
             searchResults = try await repository.search("")
             loadError = nil
             syncStatus = syncProvider?.status()
+            syncSafetyState = syncProvider?.safetyState() ?? .init()
             if let syncBridge {
                 remoteControlIdentity = try? await syncBridge.remoteControlIdentity()
             }
@@ -210,6 +239,7 @@ public final class CompanionAppModel: ObservableObject {
                 try await syncBridge.syncNow()
                 snapshot = try await repository.currentSnapshot()
                 searchResults = try await repository.search("")
+                await refreshRemoteCommandStates(using: syncBridge)
             } else {
                 try await syncProvider.syncNow()
             }
@@ -217,6 +247,7 @@ public final class CompanionAppModel: ObservableObject {
             loadError = error.localizedDescription
         }
         syncStatus = syncProvider.status()
+        syncSafetyState = syncProvider.safetyState()
     }
 
     /// Applies the user-owned transport preference at runtime. Disabling drops
@@ -230,13 +261,17 @@ public final class CompanionAppModel: ObservableObject {
             syncBridge = nil
             isSyncConfigured = false
             syncStatus = nil
+            syncSafetyState = .init()
             remoteControlIdentity = nil
             return
         }
         guard syncProvider == nil else { return }
         guard let runtime = syncRuntimeFactory?() else {
             isSyncConfigured = false
-            loadError = "CloudKit ist nicht vollständig eingerichtet. Lokale Daten bleiben verfügbar."
+            loadError = CompanionL10n.string(
+                "sync.configuration_missing",
+                fallback: "CloudKit is not fully configured. Local data remains available."
+            )
             return
         }
         syncProvider = runtime.provider
@@ -246,11 +281,66 @@ public final class CompanionAppModel: ObservableObject {
         await sync()
     }
 
+    public func setHistoryRetentionDays(_ days: Int) async {
+        guard CompanionSyncPreferences.historyRetentionChoices.contains(days) else {
+            loadError = CompanionL10n.string(
+                "sync.retention.invalid",
+                fallback: "This retention period is not supported."
+            )
+            return
+        }
+        do {
+            let tombstones = try await repository.applyHistoryRetention(days: days)
+            for visit in tombstones {
+                try await syncBridge?.enqueue(visit)
+            }
+            defaults.set(days, forKey: CompanionSyncPreferences.historyRetentionDaysKey)
+            historyRetentionDays = days
+            try await refreshLocalState()
+            if !tombstones.isEmpty {
+                await sync()
+            }
+        } catch {
+            loadError = error.localizedDescription
+        }
+    }
+
+    public func confirmAccountTransition(allowLocalUpload: Bool) async {
+        guard let syncProvider else { return }
+        do {
+            try await syncProvider.confirmAccountTransition(
+                allowLocalUpload: allowLocalUpload
+            )
+            syncSafetyState = syncProvider.safetyState()
+            await sync()
+        } catch {
+            loadError = error.localizedDescription
+            syncStatus = syncProvider.status()
+            syncSafetyState = syncProvider.safetyState()
+        }
+    }
+
+    public func confirmZoneRecovery() async {
+        guard let syncProvider else { return }
+        do {
+            try await syncProvider.confirmZoneRecovery()
+            syncSafetyState = syncProvider.safetyState()
+            await sync()
+        } catch {
+            loadError = error.localizedDescription
+            syncStatus = syncProvider.status()
+            syncSafetyState = syncProvider.safetyState()
+        }
+    }
+
     public func remotelyOpen(_ tab: RemoteTab) async {
         await sendRemoteCommand(
             .open(.init(url: tab.url, workspaceID: tab.workspaceID)),
             target: tab.deviceID,
-            action: "Öffnen"
+            action: CompanionL10n.string(
+                "remote.action.open",
+                fallback: "Open"
+            )
         )
     }
 
@@ -262,7 +352,10 @@ public final class CompanionAppModel: ObservableObject {
         await sendRemoteCommand(
             .open(.init(url: url, workspaceID: workspaceID)),
             target: target,
-            action: "Link senden"
+            action: CompanionL10n.string(
+                "remote.action.send_link",
+                fallback: "Send link"
+            )
         )
     }
 
@@ -270,7 +363,10 @@ public final class CompanionAppModel: ObservableObject {
         await sendRemoteCommand(
             .focus(.init(tabID: tab.id, context: .normal)),
             target: tab.deviceID,
-            action: "Fokussieren"
+            action: CompanionL10n.string(
+                "remote.action.focus",
+                fallback: "Focus"
+            )
         )
     }
 
@@ -278,7 +374,10 @@ public final class CompanionAppModel: ObservableObject {
         await sendRemoteCommand(
             .close([.init(tabID: tab.id, context: .normal)]),
             target: tab.deviceID,
-            action: "Schließen"
+            action: CompanionL10n.string(
+                "remote.action.close",
+                fallback: "Close"
+            )
         )
     }
 
@@ -301,24 +400,49 @@ public final class CompanionAppModel: ObservableObject {
         action: String
     ) async {
         guard let syncBridge else {
-            remoteCommandStatus = "Fernsteuerung ist nicht eingerichtet."
+            remoteCommandStatus = CompanionL10n.string(
+                "remote.not_configured",
+                fallback: "Remote control is not configured."
+            )
             return
         }
         do {
-            remoteCommandStatus = "\(action) wird signiert …"
+            remoteCommandStatus = CompanionL10n.format(
+                "remote.signing",
+                fallback: "%@ is being signed…",
+                action
+            )
             let state = try await syncBridge.enqueueRemoteCommand(
                 targetDeviceID: target,
                 command: command
             )
-            remoteCommandStatus = "\(action) ist sicher vorgemerkt."
+            commandLabels[state.id] = action
+            updateRemoteCommandStatusItem(state, action: action)
+            remoteCommandStatus = CompanionL10n.format(
+                "remote.queued_securely",
+                fallback: "%@ was queued securely.",
+                action
+            )
             try await syncBridge.syncNow()
             let updated = await syncBridge.remoteCommandState(state.id)
+            if let updated {
+                updateRemoteCommandStatusItem(updated, action: action)
+            }
             remoteCommandStatus = statusText(updated?.status ?? .queued, action: action)
             snapshot = try await repository.currentSnapshot()
             syncStatus = syncProvider?.status()
+            syncSafetyState = syncProvider?.safetyState() ?? .init()
             loadError = nil
+            beginCommandFollowUp(
+                commandID: state.id,
+                expiresAtMilliseconds: state.envelope.payload.expiresAtMilliseconds
+            )
         } catch {
-            remoteCommandStatus = "\(action) wurde nicht gesendet."
+            remoteCommandStatus = CompanionL10n.format(
+                "remote.send_failed",
+                fallback: "%@ was not sent.",
+                action
+            )
             loadError = error.localizedDescription
             syncStatus = syncProvider?.status()
         }
@@ -356,10 +480,90 @@ public final class CompanionAppModel: ObservableObject {
 
     private func statusText(_ status: RemoteCommandStatus, action: String) -> String {
         switch status {
-        case .queued: "\(action) wurde gesendet; Bestätigung steht aus."
-        case .delivered: "Der Mac hat den Befehl geprüft."
-        case .executed: "\(action) wurde am Mac ausgeführt."
-        case .failed: "Der Mac hat den Befehl sicher abgelehnt."
+        case .queued:
+            CompanionL10n.format(
+                "remote.status.queued",
+                fallback: "%@ was sent; confirmation is pending.",
+                action
+            )
+        case .delivered:
+            CompanionL10n.string(
+                "remote.status.delivered",
+                fallback: "The Mac verified the command."
+            )
+        case .executed:
+            CompanionL10n.format(
+                "remote.status.executed",
+                fallback: "%@ was completed on the Mac.",
+                action
+            )
+        case .failed:
+            CompanionL10n.string(
+                "remote.status.failed",
+                fallback: "The Mac rejected the command safely."
+            )
+        }
+    }
+
+    private func updateRemoteCommandStatusItem(
+        _ state: RemoteCommandState,
+        action: String
+    ) {
+        let item = CompanionRemoteCommandStatusItem(
+            id: state.id,
+            action: action,
+            targetDeviceID: state.envelope.payload.targetDeviceID,
+            status: state.status,
+            resultCode: state.resultCode,
+            expiresAtMilliseconds: state.envelope.payload.expiresAtMilliseconds
+        )
+        recentRemoteCommands.removeAll { $0.id == item.id }
+        recentRemoteCommands.insert(item, at: 0)
+        if recentRemoteCommands.count > 20 {
+            recentRemoteCommands.removeLast(recentRemoteCommands.count - 20)
+        }
+    }
+
+    private func refreshRemoteCommandStates(using bridge: CompanionSyncBridge) async {
+        let states = await bridge.remoteCommandStates(Set(commandLabels.keys))
+        for state in states {
+            let action = commandLabels[state.id] ?? CompanionL10n.string(
+                "remote.action.generic",
+                fallback: "Remote command"
+            )
+            updateRemoteCommandStatusItem(state, action: action)
+            if recentRemoteCommands.first(where: { $0.id == state.id })?.isTerminal == true {
+                commandFollowUpTasks[state.id]?.cancel()
+                commandFollowUpTasks[state.id] = nil
+            }
+        }
+    }
+
+    private func beginCommandFollowUp(
+        commandID: UUID,
+        expiresAtMilliseconds: UInt64
+    ) {
+        commandFollowUpTasks[commandID]?.cancel()
+        commandFollowUpTasks[commandID] = Task { [weak self] in
+            while !Task.isCancelled {
+                let now = UInt64(Date().timeIntervalSince1970 * 1_000)
+                guard now < expiresAtMilliseconds else { break }
+                try? await Task.sleep(for: .seconds(5))
+                guard let self, let bridge = self.syncBridge else { break }
+                do {
+                    try await bridge.syncNow()
+                    await self.refreshRemoteCommandStates(using: bridge)
+                    self.syncStatus = self.syncProvider?.status()
+                    if self.recentRemoteCommands.first(where: {
+                        $0.id == commandID
+                    })?.isTerminal == true {
+                        break
+                    }
+                } catch {
+                    self.syncStatus = self.syncProvider?.status()
+                }
+            }
+            self?.commandFollowUpTasks[commandID] = nil
         }
     }
 }

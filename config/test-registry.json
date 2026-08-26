@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "outputs/AhoiBrowser-Master-Zielprompt.md",
-  "generatedAt": "2026-08-24T00:00:00Z",
+  "generatedAt": "2026-08-26T00:00:00Z",
   "tests": [
     {
       "id": "PKG-01",
@@ -488,11 +488,11 @@
       "id": "WS-03",
       "suite": "WS",
       "description": "horizontale Geste mit echter Magic Mouse, einschließlich langsamer, schneller und abgebrochener Geste.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -874,11 +874,11 @@
       "id": "SPLIT-26",
       "suite": "SPLIT",
       "description": "Kamera, Mikrofon, WebRTC sowie Tab-/Fenster-/Screen-Sharing in verschiedenen Panes verwenden; laufende Streams, neue Prompts und alle Indikatoren bleiben eindeutig zugeordnet.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -1719,11 +1719,11 @@
       "id": "AUTH-24",
       "suite": "AUTH",
       "description": "Passwortanzeige in der HTTP-Zugangsverwaltung erfordert Touch ID/Systemauthentifizierung.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -1849,11 +1849,11 @@
       "id": "MEDIA-07",
       "suite": "MEDIA",
       "description": "echte macOS-Medientasten.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -1888,11 +1888,11 @@
       "id": "PERM-01",
       "suite": "PERM",
       "description": "Kamera/Mikrofon zunächst ablehnen, erneut anfordern, erlauben und zurücksetzen.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -1901,11 +1901,11 @@
       "id": "PERM-02",
       "suite": "PERM",
       "description": "realer WebRTC-/Meet-Test.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -1914,11 +1914,11 @@
       "id": "PERM-03",
       "suite": "PERM",
       "description": "gesamten Bildschirm teilen.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -2070,11 +2070,11 @@
       "id": "EXT-06",
       "suite": "EXT",
       "description": "1Password installieren und AhoiBrowser als vertrauenswürdigen Browser freigeben.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -2083,11 +2083,11 @@
       "id": "EXT-07",
       "suite": "EXT",
       "description": "1Password per Touch ID entsperren und künstlichen Testlogin ausfüllen/speichern.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -2577,11 +2577,11 @@
       "id": "DEV-23",
       "suite": "DEV",
       "description": "gespeichertes Passwort nur nach Touch ID/Systemauthentifizierung anzeigen.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -2824,6 +2824,32 @@
       "id": "PRIV-16",
       "suite": "PRIV",
       "description": "kontrollierter Crash löst keinen automatischen Produkttelemetrie- oder Crashupload aus.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-17",
+      "suite": "PRIV",
+      "description": "frisches Profil startet mit `Maximale Website-Kompatibilität`; `winfuture.de` lädt bei deaktiviertem uBlock inklusive `html-load.com`, ohne dass Ahoi einen Drittanbieterhost als Adblocker sperrt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PRIV-18",
+      "suite": "PRIV",
+      "description": "fehlende private Google-API-Schlüssel erzeugen keine Nutzerwarnung und beeinträchtigen normale Navigation nicht; Ahoi verlangt von Endnutzern keinen Google-API-Key und bietet kein vorgetäuschtes Chrome Sync an.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -3745,11 +3771,11 @@
         "id": "NAV-09",
         "suite": "NAV",
         "description": "Chromiums unveränderte Trackpad-/Magic-Mouse-Wischgeste über einer Seite für Zurück und Vor als Regression prüfen; langsame, schnelle und abgebrochene Bewegung mit sichtbarem Fortschritt, aber keine Ahoi-Parallelimplementierung.",
-        "primaryClass": "CU_E2E",
+        "primaryClass": "ASSISTED_E2E",
         "requiredEvidenceClasses": [
           "UNIT",
           "INTEGRATION",
-          "CU_E2E"
+          "ASSISTED_E2E"
         ],
         "releaseCritical": true,
         "status": "NOT_RUN"

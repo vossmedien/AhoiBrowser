@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Ahoi popup overlay fixture</title>
+<style>
+  body { font: 16px system-ui; margin: 2rem; max-width: 48rem; }
+  button { display: block; margin: .75rem 0; padding: .6rem .9rem; }
+</style>
+<h1>Ahoi popup overlay fixture</h1>
+<button id="ordinary">Open ordinary popup</button>
+<button id="signin">Open security-sensitive sign-in popup</button>
+<button id="large">Open application-sized popup</button>
+<script>
+  ordinary.onclick = () => window.open('popup.html', 'ordinary',
+      'popup,width=680,height=520');
+  signin.onclick = () => window.open('login.html', 'signin',
+      'popup,width=560,height=480');
+  large.onclick = () => window.open('popup.html', 'large',
+      'popup,width=1280,height=800');
+</script>
+</html>
