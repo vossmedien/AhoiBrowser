@@ -87,12 +87,13 @@ Hydration uses HTTPS Gitiles responses with redirects disabled, strict response
 and aggregate limits, path/request caps, a total deadline, strict base64
 decoding, and an exact Git blob SHA-1 check. The target must match either the
 validated production pin or `config/upstream-roll-candidate.json`; the report
-cryptographically binds the ordered patch inputs. Only after every response
-verifies are missing blobs added to the Chromium Git object store. Those
-immutable writes are deliberately resumable rather than transactional: if a
-later object write fails, an earlier verified blob may remain and the next run
-continues safely. HEAD, the real index (including a stale index), and the
-worktree must remain byte-identical.
+cryptographically binds the ordered patch inputs. Responses are verified in
+small bounded batches before those missing blobs are added to the Chromium Git
+object store. Those immutable writes are deliberately resumable rather than
+transactional: a rate limit or later object-write failure can leave earlier
+verified batches in place, and the next run skips them safely. Transient HTTP
+429 and server errors use a small per-request retry budget. HEAD, the real index
+(including a stale index), and the worktree must remain byte-identical.
 
 Report outputs are reserved before hydration, use a pinned directory descriptor
 and an atomic leaf replacement, and are refused inside the Chromium checkout or

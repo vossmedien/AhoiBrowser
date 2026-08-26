@@ -23,6 +23,8 @@ MAX_TOTAL_RESPONSE_BYTES = 256 * 1024 * 1024
 MAX_TARGET_PATHS = 4096
 MAX_BLOB_REQUESTS = 2048
 MAX_TOTAL_TIMEOUT_SECONDS = 3600
+NETWORK_ATTEMPTS = 4
+PROMOTION_BATCH_SIZE = 16
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -145,21 +147,53 @@ def fetch_gitiles_response(
         },
     )
     client = opener or urllib.request.build_opener(_RejectRedirects())
-    try:
-        with client.open(request, timeout=timeout) as response:
-            if response.geturl() != url:
-                raise HydrationError("Gitiles blob request was redirected")
-            status = response.getcode()
-            if status is not None and status != 200:
-                raise HydrationError(f"Gitiles blob request returned HTTP {status}")
-            raw = response.read(maximum + 1)
-    except HydrationError:
-        raise
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as error:
-        raise HydrationError(f"official Gitiles blob request failed: {error}") from error
-    if len(raw) > maximum:
-        raise HydrationError("Gitiles blob response exceeds the per-response limit")
-    return raw
+    deadline = time.monotonic() + timeout
+    for attempt in range(NETWORK_ATTEMPTS):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise HydrationError("official Gitiles blob request exceeded its deadline")
+        socket_timeout = min(60, max(1, int(remaining + 0.999)))
+        try:
+            with client.open(request, timeout=socket_timeout) as response:
+                if response.geturl() != url:
+                    raise HydrationError("Gitiles blob request was redirected")
+                status = response.getcode()
+                if status is not None and status != 200:
+                    raise HydrationError(
+                        f"Gitiles blob request returned HTTP {status}"
+                    )
+                raw = response.read(maximum + 1)
+        except HydrationError:
+            raise
+        except urllib.error.HTTPError as error:
+            retryable = error.code == 429 or 500 <= error.code <= 504
+            retry_after = error.headers.get("Retry-After") if error.headers else None
+            error.close()
+            if not retryable or attempt + 1 == NETWORK_ATTEMPTS:
+                raise HydrationError(
+                    f"official Gitiles blob request failed: {error}"
+                ) from error
+            try:
+                delay = int(retry_after) if retry_after is not None else 2**attempt
+            except ValueError:
+                delay = 2**attempt
+            delay = min(30, max(1, delay))
+            if delay >= deadline - time.monotonic():
+                raise HydrationError(
+                    "official Gitiles retry would exceed the request deadline"
+                ) from error
+            time.sleep(delay)
+            continue
+        except (urllib.error.URLError, TimeoutError, OSError) as error:
+            raise HydrationError(
+                f"official Gitiles blob request failed: {error}"
+            ) from error
+        if time.monotonic() > deadline:
+            raise HydrationError("official Gitiles blob request exceeded its deadline")
+        if len(raw) > maximum:
+            raise HydrationError("Gitiles blob response exceeds the per-response limit")
+        return raw
+    raise HydrationError("official Gitiles blob request exhausted its retry budget")
 
 
 def read_fixture_response(directory: pathlib.Path, oid: str, maximum: int) -> bytes:
@@ -311,62 +345,71 @@ def hydrate_target_blobs(
         for oid in missing
     }
 
-    staged: list[tuple[str, bytes, int]] = []
-    response_total = 0
-    deadline = time.monotonic() + total_timeout
-    for oid in missing:
-        path = source_path[oid]
-        remaining = max_total_response_bytes - response_total
-        if remaining < 1:
-            raise HydrationError("blob responses exceed the aggregate response limit")
-        effective_maximum = min(max_response_bytes, remaining)
-        remaining_time = deadline - time.monotonic()
-        if remaining_time <= 0:
-            raise HydrationError("hydration exceeded the total-timeout deadline")
-        effective_timeout = min(timeout, max(1, int(remaining_time + 0.999)))
-        try:
-            raw = load_response(
-                target, path, oid, effective_timeout, effective_maximum
-            )
-        except HydrationError as error:
-            if (
-                effective_maximum < max_response_bytes
-                and "exceeds the per-response limit" in str(error)
-            ):
-                raise HydrationError(
-                    "blob responses exceed the aggregate response limit"
-                ) from error
-            raise
-        if time.monotonic() > deadline:
-            raise HydrationError("hydration exceeded the total-timeout deadline")
-        response_total += len(raw)
-        if response_total > max_total_response_bytes:
-            raise HydrationError("blob responses exceed the aggregate response limit")
-        content = _decode_verified(raw, oid)
-        staged.append((oid, content, len(raw)))
-
     hydrated_sizes: dict[str, int] = {}
-    for oid, content, _ in staged:
-        try:
-            written = git(("hash-object", "-w", "--stdin"), content, True)
-        except Exception as error:
-            raise HydrationError(
-                "object promotion failed after "
-                f"{len(hydrated_sizes)} verified blob(s); rerun safely resumes"
-            ) from error
-        try:
-            actual = written.decode("ascii", "strict").strip()
-        except UnicodeDecodeError as error:
-            raise HydrationError("git hash-object returned invalid output") from error
-        if actual != oid:
-            raise HydrationError("git hash-object did not write the verified blob")
-        hydrated_sizes[oid] = len(content)
-    promoted = _present_blobs(git, missing)
-    for oid, content, _ in staged:
-        if promoted.get(oid) != (True, len(content)):
-            raise HydrationError(
-                "verified blob promotion could not be confirmed; rerun safely resumes"
-            )
+    response_total = 0
+    decoded_total = 0
+    deadline = time.monotonic() + total_timeout
+    for offset in range(0, len(missing), PROMOTION_BATCH_SIZE):
+        batch = missing[offset : offset + PROMOTION_BATCH_SIZE]
+        staged: list[tuple[str, bytes]] = []
+        for oid in batch:
+            path = source_path[oid]
+            remaining = max_total_response_bytes - response_total
+            if remaining < 1:
+                raise HydrationError("blob responses exceed the aggregate response limit")
+            effective_maximum = min(max_response_bytes, remaining)
+            remaining_time = deadline - time.monotonic()
+            if remaining_time <= 0:
+                raise HydrationError("hydration exceeded the total-timeout deadline")
+            effective_timeout = min(timeout, max(1, int(remaining_time + 0.999)))
+            try:
+                raw = load_response(
+                    target, path, oid, effective_timeout, effective_maximum
+                )
+            except HydrationError as error:
+                if (
+                    effective_maximum < max_response_bytes
+                    and "exceeds the per-response limit" in str(error)
+                ):
+                    error = HydrationError(
+                        "blob responses exceed the aggregate response limit"
+                    )
+                if hydrated_sizes:
+                    raise HydrationError(
+                        f"{error}; {len(hydrated_sizes)} verified blob(s) already "
+                        "promoted, rerun safely resumes"
+                    ) from error
+                raise error
+            if time.monotonic() > deadline:
+                raise HydrationError("hydration exceeded the total-timeout deadline")
+            response_total += len(raw)
+            if response_total > max_total_response_bytes:
+                raise HydrationError("blob responses exceed the aggregate response limit")
+            content = _decode_verified(raw, oid)
+            decoded_total += len(content)
+            staged.append((oid, content))
+
+        for oid, content in staged:
+            try:
+                written = git(("hash-object", "-w", "--stdin"), content, True)
+            except Exception as error:
+                raise HydrationError(
+                    "object promotion failed after "
+                    f"{len(hydrated_sizes)} verified blob(s); rerun safely resumes"
+                ) from error
+            try:
+                actual = written.decode("ascii", "strict").strip()
+            except UnicodeDecodeError as error:
+                raise HydrationError("git hash-object returned invalid output") from error
+            if actual != oid:
+                raise HydrationError("git hash-object did not write the verified blob")
+            hydrated_sizes[oid] = len(content)
+        promoted = _present_blobs(git, batch)
+        for oid, content in staged:
+            if promoted.get(oid) != (True, len(content)):
+                raise HydrationError(
+                    "verified blob promotion could not be confirmed; rerun safely resumes"
+                )
 
     path_reports: list[dict[str, Any]] = []
     for path in paths:
@@ -406,9 +449,10 @@ def hydrate_target_blobs(
             ),
             "alreadyPresentBlobCount": len(blob_ids) - len(missing),
             "requestedBlobCount": len(missing),
-            "hydratedBlobCount": len(staged),
+            "hydratedBlobCount": len(hydrated_sizes),
             "responseBytes": response_total,
-            "decodedBytes": sum(len(content) for _, content, _ in staged),
-            "writeModel": "validated_resumable_immutable_objects",
+            "decodedBytes": decoded_total,
+            "promotionBatchSize": PROMOTION_BATCH_SIZE,
+            "writeModel": "validated_resumable_immutable_object_batches",
         },
     }

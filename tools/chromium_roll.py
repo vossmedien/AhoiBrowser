@@ -627,7 +627,6 @@ def _hydrate(args: argparse.Namespace) -> dict[str, Any]:
         def load_response(target_id, path, object_id, timeout, maximum):
             del target_id, path, timeout
             return read_fixture_response(fixture_root, object_id, maximum)
-
     def isolated_git(command, input_bytes=None, check=True):
         return _git(
             checkout,
@@ -640,21 +639,22 @@ def _hydrate(args: argparse.Namespace) -> dict[str, Any]:
             input_bytes=input_bytes,
             check=check,
         ).stdout
-
-    result = hydrate_target_blobs(
-        git=isolated_git,
-        target=target,
-        touched_paths=sorted(touched),
-        load_response=load_response,
-        timeout=args.network_timeout,
-        total_timeout=args.total_timeout,
-        max_response_bytes=args.max_response_bytes,
-        max_total_response_bytes=args.max_total_response_bytes,
-    )
-    after = _checkout_snapshot(checkout, environment)
-    unchanged = before == after
-    if not unchanged:
-        raise RollError("Chromium HEAD, index, or worktree changed during hydration")
+    try:
+        result = hydrate_target_blobs(
+            git=isolated_git,
+            target=target,
+            touched_paths=sorted(touched),
+            load_response=load_response,
+            timeout=args.network_timeout,
+            total_timeout=args.total_timeout,
+            max_response_bytes=args.max_response_bytes,
+            max_total_response_bytes=args.max_total_response_bytes,
+        )
+    finally:
+        after = _checkout_snapshot(checkout, environment)
+        if before != after:
+            raise RollError("Chromium changed during hydration")
+    unchanged = True
     return {
         "schemaVersion": 1,
         "command": "hydrate",

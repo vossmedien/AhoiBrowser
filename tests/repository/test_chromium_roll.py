@@ -7,6 +7,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import urllib.error
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -652,6 +654,28 @@ diff --git a/existing.txt b/existing.txt
             fetch_gitiles_response(
                 url, 5, 4, opener=Opener(Response(url, b"YWFhYWFh"))
             )
+
+        class RateLimitedOpener:
+            def __init__(self):
+                self.calls = 0
+
+            def open(self, request, timeout):
+                del request, timeout
+                self.calls += 1
+                if self.calls == 1:
+                    raise urllib.error.HTTPError(
+                        url, 429, "rate limited", {"Retry-After": "1"}, None
+                    )
+                return Response(url, b"YQ==")
+
+        retrying = RateLimitedOpener()
+        with mock.patch("chromium_roll_hydration.time.sleep") as sleep:
+            self.assertEqual(
+                b"YQ==",
+                fetch_gitiles_response(url, 5, 8, opener=retrying),
+            )
+        sleep.assert_called_once_with(1)
+        self.assertEqual(2, retrying.calls)
 
     def test_path_bound_and_partial_promotion_have_explicit_resume_semantics(self):
         contents = {"a": b"one\n", "b": b"two\n"}
