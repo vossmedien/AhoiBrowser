@@ -40,6 +40,7 @@ class DeveloperToolkitBubbleView final : public views::View {
   using VisibilityCallback =
       base::RepeatingCallback<bool(developer_toolkit_prefs::ToolbarVisibility)>;
   using OpenDevToolsCallback = base::RepeatingClosure;
+  using OpenPasswordManagerCallback = base::RepeatingClosure;
   using OpenCookieManagerCallback = base::RepeatingClosure;
   using OpenProfileCallback = base::RepeatingClosure;
 
@@ -50,6 +51,7 @@ class DeveloperToolkitBubbleView final : public views::View {
       DataClearCallback data_clear_callback,
       VisibilityCallback visibility_callback,
       OpenDevToolsCallback open_devtools_callback,
+      OpenPasswordManagerCallback open_password_manager_callback,
       OpenCookieManagerCallback open_cookie_manager_callback,
       OpenProfileCallback open_profile_callback,
       PrefService* prefs = nullptr,
@@ -62,6 +64,9 @@ class DeveloperToolkitBubbleView final : public views::View {
   views::LabelButton* action_button_for_testing(DeveloperAction action) const;
   views::LabelButton* devtools_button_for_testing() const {
     return devtools_button_;
+  }
+  views::LabelButton* password_manager_button_for_testing() const {
+    return password_manager_button_;
   }
   views::Label* status_label_for_testing() const { return status_label_; }
   views::Label* activation_label_for_testing() const {
@@ -87,10 +92,12 @@ class DeveloperToolkitBubbleView final : public views::View {
   const DataClearCallback data_clear_callback_;
   const VisibilityCallback visibility_callback_;
   const OpenDevToolsCallback open_devtools_callback_;
+  const OpenPasswordManagerCallback open_password_manager_callback_;
   const OpenCookieManagerCallback open_cookie_manager_callback_;
   const OpenProfileCallback open_profile_callback_;
   std::map<DeveloperAction, raw_ptr<views::LabelButton>> action_buttons_;
   raw_ptr<views::LabelButton> devtools_button_ = nullptr;
+  raw_ptr<views::LabelButton> password_manager_button_ = nullptr;
   raw_ptr<views::Label> status_label_ = nullptr;
   raw_ptr<views::Label> activation_label_ = nullptr;
   raw_ptr<views::Checkbox> cookie_visibility_ = nullptr;

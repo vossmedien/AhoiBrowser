@@ -154,8 +154,15 @@ def compose_overlay(
     patch_root: pathlib.Path,
     *,
     base_revision: str = "HEAD",
+    diff_base_revision: str | None = None,
 ) -> tuple[bytes, str]:
-    """Return the canonical binary delta and resulting tree for an overlay."""
+    """Return a binary delta and the resulting canonical overlay tree.
+
+    Composition always starts from ``base_revision``. By default the returned
+    delta also starts there. ``diff_base_revision`` may name a different tree
+    when a caller needs a minimal transition from an already applied,
+    independently verified overlay tree to the newly composed result.
+    """
 
     checkout = checkout.resolve()
     overlay = overlay.resolve()
@@ -194,6 +201,33 @@ def compose_overlay(
         environment["GIT_OBJECT_DIRECTORY"] = str(temporary_objects)
         environment["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = str(real_objects)
         run("git", "read-tree", base_commit, cwd=checkout, env=environment)
+        base_tree = run(
+            "git",
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            "--end-of-options",
+            f"{base_commit}^{{tree}}",
+            cwd=checkout,
+            env=environment,
+        ).decode("ascii").strip()
+        diff_base_tree = base_tree
+        if diff_base_revision is not None:
+            try:
+                diff_base_tree = run(
+                    "git",
+                    "rev-parse",
+                    "--verify",
+                    "--quiet",
+                    "--end-of-options",
+                    f"{diff_base_revision}^{{tree}}",
+                    cwd=checkout,
+                    env=environment,
+                ).decode("ascii").strip()
+            except (subprocess.CalledProcessError, UnicodeDecodeError) as error:
+                raise SystemExit(
+                    f"invalid diff base revision: {diff_base_revision!r}"
+                ) from error
         for source, relative in overlay_entries(overlay):
             add_overlay_file(
                 checkout,
@@ -233,7 +267,7 @@ def compose_overlay(
             "--diff-algorithm=myers",
             "--src-prefix=a/",
             "--dst-prefix=b/",
-            base_commit,
+            diff_base_tree,
             "--",
             cwd=checkout,
             env=environment,
@@ -244,7 +278,9 @@ def compose_overlay(
             cwd=checkout,
             env=environment,
         ).decode("ascii").strip()
-    if not combined:
+    if tree == base_tree:
+        raise SystemExit("overlay and patch series produced no checkout delta")
+    if not combined and diff_base_revision is None:
         raise SystemExit("overlay and patch series produced no checkout delta")
     return combined, tree
 

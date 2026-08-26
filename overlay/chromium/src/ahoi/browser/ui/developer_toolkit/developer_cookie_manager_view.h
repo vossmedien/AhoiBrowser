@@ -59,6 +59,15 @@ class DeveloperCookieManagerView final : public views::View {
     return pending_delete_ids_;
   }
   bool busy_for_testing() const { return busy_; }
+  void StartCreateForTesting() { StartCreate(); }
+  void StartEditForTesting(uint64_t cookie_id) { StartEdit(cookie_id); }
+  DeveloperCookieDraft EditorDraftForTesting() const { return EditorDraft(); }
+  views::Checkbox* partitioned_checkbox_for_testing() const {
+    return partitioned_checkbox_;
+  }
+  views::Checkbox* secure_checkbox_for_testing() const {
+    return secure_checkbox_;
+  }
 
  private:
   std::unique_ptr<views::View> CreateHeader();
@@ -111,6 +120,7 @@ class DeveloperCookieManagerView final : public views::View {
   raw_ptr<views::Textfield> path_field_ = nullptr;
   raw_ptr<views::Checkbox> secure_checkbox_ = nullptr;
   raw_ptr<views::Checkbox> http_only_checkbox_ = nullptr;
+  raw_ptr<views::Checkbox> partitioned_checkbox_ = nullptr;
   raw_ptr<views::Combobox> same_site_combobox_ = nullptr;
   raw_ptr<views::Combobox> expiration_combobox_ = nullptr;
   raw_ptr<views::LabelButton> save_button_ = nullptr;

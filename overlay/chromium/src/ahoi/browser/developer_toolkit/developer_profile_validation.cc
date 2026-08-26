@@ -119,6 +119,26 @@ bool IsValidDeveloperSecretReference(std::string_view reference) {
                      });
 }
 
+bool IsAdvancedDeveloperResponseHeaderName(std::string_view name) {
+  return base::EqualsCaseInsensitiveASCII(name, "Content-Security-Policy") ||
+         base::EqualsCaseInsensitiveASCII(
+             name, "Content-Security-Policy-Report-Only") ||
+         base::EqualsCaseInsensitiveASCII(name, "X-Content-Security-Policy") ||
+         base::EqualsCaseInsensitiveASCII(name, "X-WebKit-CSP") ||
+         base::StartsWith(name, "Access-Control-",
+                          base::CompareCase::INSENSITIVE_ASCII);
+}
+
+bool HasActiveAdvancedDeveloperResponseHeaderRules(
+    const DeveloperProfile& profile) {
+  return profile.response_header_rules_enabled &&
+         std::ranges::any_of(
+             profile.response_header_rules,
+             [](const DeveloperHeaderRule& rule) {
+               return IsAdvancedDeveloperResponseHeaderName(rule.name);
+             });
+}
+
 DeveloperProfileValidationError ValidateDeveloperProfile(
     const url::Origin& origin,
     const DeveloperProfile& profile) {
@@ -164,6 +184,11 @@ DeveloperProfileValidationError ValidateDeveloperProfile(
                                      &total_header_bytes, &total_header_rules);
   if (header_error != DeveloperProfileValidationError::kNone) {
     return header_error;
+  }
+  if (HasActiveAdvancedDeveloperResponseHeaderRules(profile) &&
+      !profile.response_header_advanced_mode_acknowledged) {
+    return DeveloperProfileValidationError::
+        kAdvancedResponseHeadersNotAcknowledged;
   }
   return DeveloperProfileValidationError::kNone;
 }

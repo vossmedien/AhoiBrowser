@@ -28,6 +28,7 @@ enum class DeveloperProfileValidationError {
   kHeaderValueInvalid,
   kDuplicateHeaderName,
   kHeadersTooLarge,
+  kAdvancedResponseHeadersNotAcknowledged,
 };
 
 DeveloperProfileValidationError ValidateDeveloperProfile(
@@ -40,6 +41,9 @@ DeveloperProfileValidationError ValidateDeveloperProfileForPersistence(
 bool IsValidDeveloperHeaderName(std::string_view name);
 bool IsValidDeveloperHeaderValue(std::string_view value);
 bool IsValidDeveloperSecretReference(std::string_view reference);
+bool IsAdvancedDeveloperResponseHeaderName(std::string_view name);
+bool HasActiveAdvancedDeveloperResponseHeaderRules(
+    const DeveloperProfile& profile);
 
 }  // namespace ahoi
 

@@ -148,10 +148,15 @@ bool DeveloperActionExecutor::ResetAllPageModifications(
     if (!prefs || origin.opaque()) {
       profile_reset = false;
     } else {
-      PrefDeveloperProfileStore store(prefs,
-                                      browser_context_->IsOffTheRecord());
-      if (store.Get(origin)) {
-        profile_reset = store.Remove(origin);
+      DeveloperProfileTabHelper* const tab_helper =
+          DeveloperProfileTabHelper::FromWebContents(web_contents);
+      PrefDeveloperProfileStore fallback_store(
+          prefs, browser_context_->IsOffTheRecord());
+      if (tab_helper) {
+        profile_reset = tab_helper->ResetProfilesForUrl(
+            web_contents->GetLastCommittedURL());
+      } else if (fallback_store.Get(origin)) {
+        profile_reset = fallback_store.Remove(origin);
       }
       ApplyAhoiUserAgentOverride(*web_contents, nullptr);
       ClearDeveloperProfileNavigationRequest(*web_contents);
@@ -238,6 +243,18 @@ DeveloperActivationState DeveloperActionExecutor::GetActivationState(
       DeveloperActivation::kImages,
       toolkit_.GetContentSetting(web_contents, ContentSettingType::kImages) ==
           ContentSettingValue::kBlock);
+  if (const DeveloperProfileTabHelper* const tab_helper =
+          DeveloperProfileTabHelper::FromWebContents(web_contents)) {
+    for (const DeveloperAsset& asset : tab_helper->active_assets()) {
+      if (!asset.enabled) {
+        continue;
+      }
+      state.Set(asset.kind == DeveloperAssetKind::kStyle
+                    ? DeveloperActivation::kCss
+                    : DeveloperActivation::kJavaScript,
+                true);
+    }
+  }
   return state;
 }
 

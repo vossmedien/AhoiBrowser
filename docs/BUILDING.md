@@ -124,13 +124,50 @@ development provenance label automatically:
 ./scripts/build-ahoi.sh dev
 ```
 
-The overlay script is idempotent and transactional. It composes the standalone
-overlay plus the ordered patch series in an isolated Git index before applying
-one validated delta, so dependent patches work and a failed composition leaves
-the checkout pristine. It refuses unrelated dirty Chromium files. Packaging,
-signing, notarization, stapling, DMG generation, and `/Applications`
+The overlay script is idempotent and transactional. Its initial application
+composes the standalone overlay plus the ordered patch series in an isolated Git
+index, applies one validated delta, verifies the complete resulting tree, and
+atomically publishes a new pin-bound state file. A state-publication failure or
+interrupt rolls back only that exact delta; there is no reset fallback. Running
+the same command after changing overlay files or the patch series safely
+refreshes an already applied checkout: the recorded
+`checkoutDeltaFingerprint` must first match the complete current checkout tree,
+then only the checked old-tree-to-new-tree delta is applied and the state file
+is replaced atomically. There is no reset or broad cleanup fallback; unrelated,
+partial, staged, or foreign dirty state is refused and left untouched. A source
+tree change invalidates prior hook evidence so the next build reruns hooks;
+input-only changes that produce the identical tree update only overlay state.
+Packaging, signing, notarization, stapling, DMG generation, and `/Applications`
 installation are separate gates; a successful `autoninja` invocation is not a
 release.
+
+Before changing `config/chromium.json` for a Stable roll, return an applied
+checkout to the still-current pinned Chromium tree with:
+
+```sh
+./scripts/restore-overlay.sh
+```
+
+Restore recomposes the current source inputs, verifies the state and complete
+checkout tree, reverse-applies only their exact delta, removes that state, and
+invalidates hook evidence. Any mismatch is refused without broad cleanup. Run it
+before editing the production pin; after the pin changes, the old state is
+deliberately no longer authoritative.
+
+The dependency-workaround build wrapper accepts one or more explicit Ninja
+targets. Focused unit suites can therefore reuse the same pinned path-space
+workarounds as `chrome` without a second ad-hoc build path, and several related
+targets share one `gn gen` plus one temporary patch/apply/restore cycle.
+`build-ahoi.sh` always includes `chrome` and accepts additional targets, for
+example. Before deleting an old workaround receipt or invoking any build tool,
+the wrapper canonicalizes the output directory, requires an absolute child of
+the Chromium `out` directory, and rejects dot components, control characters,
+non-directory components, and every existing symlink component:
+
+```sh
+./scripts/build-ahoi.sh dev ahoi_developer_toolkit_unittests \
+  ahoi_developer_toolkit_ui_unittests
+```
 
 ## Stable development signing and Keychain access
 

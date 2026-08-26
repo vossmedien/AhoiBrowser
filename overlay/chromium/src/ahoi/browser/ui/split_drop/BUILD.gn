@@ -73,6 +73,7 @@ source_set("browser_tests") {
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
   sources = [ "split_layout_menu_browsertest.cc" ]
   deps = [
+    "//ahoi/browser/ui/sidebar:browser_sidebar",
     "//chrome/browser",
     "//chrome/browser/ui",
     "//chrome/browser/ui/tabs:tab_strip",

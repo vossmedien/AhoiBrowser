@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "ahoi/browser/developer_toolkit/developer_asset_codec.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
 
 namespace ahoi {
 namespace {
@@ -20,6 +21,7 @@ constexpr char kJavaScript[] = "javascript";
 constexpr char kUserAgent[] = "user_agent";
 constexpr char kHeaders[] = "headers";
 constexpr char kResponseHeaders[] = "response_headers";
+constexpr char kAdvancedModeAcknowledged[] = "advanced_mode_acknowledged";
 constexpr char kCacheDisabled[] = "cache_disabled";
 constexpr char kEnabled[] = "enabled";
 constexpr char kSyncEnabled[] = "sync_enabled";
@@ -130,6 +132,32 @@ bool DeserializeHeaderRules(const base::DictValue& encoded,
   return true;
 }
 
+void StripDeviceLocalAdvancedModeConsent(DeveloperProfile* profile) {
+  if (!profile) {
+    return;
+  }
+  if (HasActiveAdvancedDeveloperResponseHeaderRules(*profile)) {
+    profile->response_header_rules_enabled = false;
+  }
+  profile->response_header_advanced_mode_acknowledged = false;
+}
+
+void StripDeviceLocalDomainScopeConsent(DeveloperProfile* profile) {
+  if (!profile) {
+    return;
+  }
+  for (DeveloperAsset& asset : profile->assets) {
+    if (asset.scope.kind != DeveloperAssetScopeKind::kDomain) {
+      continue;
+    }
+    // Domain-wide source may reach login, payment, or account subdomains that
+    // do not exist yet. Consent is therefore local to one device; transferred
+    // source remains present but dormant until acknowledged there.
+    asset.enabled = false;
+    asset.domain_scope_warning_accepted = false;
+  }
+}
+
 }  // namespace
 
 std::optional<base::DictValue> SerializeDeveloperProfile(
@@ -144,10 +172,13 @@ std::optional<base::DictValue> SerializeDeveloperProfile(
   result.Set(kHeaders, SerializeHeaderRules(profile.header_rules_enabled,
                                             profile.header_rules_sync_enabled,
                                             profile.header_rules));
-  result.Set(kResponseHeaders,
-             SerializeHeaderRules(profile.response_header_rules_enabled,
-                                  profile.response_header_rules_sync_enabled,
-                                  profile.response_header_rules));
+  base::DictValue response_headers =
+      SerializeHeaderRules(profile.response_header_rules_enabled,
+                           profile.response_header_rules_sync_enabled,
+                           profile.response_header_rules);
+  response_headers.Set(kAdvancedModeAcknowledged,
+                       profile.response_header_advanced_mode_acknowledged);
+  result.Set(kResponseHeaders, std::move(response_headers));
   result.Set(kCacheDisabled, profile.cache_disabled);
   return result;
 }
@@ -222,8 +253,33 @@ std::optional<DeveloperProfile> DeserializeDeveloperProfile(
                                 &profile.response_header_rules)) {
       return std::nullopt;
     }
+    const base::Value* acknowledgement =
+        response_headers->Find(kAdvancedModeAcknowledged);
+    if (acknowledgement && !acknowledgement->is_bool()) {
+      return std::nullopt;
+    }
+    profile.response_header_advanced_mode_acknowledged =
+        acknowledgement ? acknowledgement->GetBool() : false;
+    // Legacy profiles predate device-local acknowledgement. Keep their rules
+    // editable without silently applying security-sensitive overrides.
+    if (!acknowledgement &&
+        HasActiveAdvancedDeveloperResponseHeaderRules(profile)) {
+      profile.response_header_rules_enabled = false;
+    }
   }
   profile.cache_disabled = value.FindBool(kCacheDisabled).value_or(false);
+  return profile;
+}
+
+std::optional<DeveloperProfile> DeserializeDeveloperProfileFromSync(
+    const base::DictValue& value,
+    const url::Origin* owner_origin) {
+  std::optional<DeveloperProfile> profile =
+      DeserializeDeveloperProfile(value, owner_origin);
+  if (profile) {
+    StripDeviceLocalDomainScopeConsent(&*profile);
+    StripDeviceLocalAdvancedModeConsent(&*profile);
+  }
   return profile;
 }
 
@@ -252,6 +308,8 @@ std::optional<base::DictValue> SerializeDeveloperProfileForSync(
   } else {
     std::erase_if(sync_profile.response_header_rules, remove_local_secret);
   }
+  StripDeviceLocalDomainScopeConsent(&sync_profile);
+  StripDeviceLocalAdvancedModeConsent(&sync_profile);
   return SerializeDeveloperProfile(sync_profile);
 }
 

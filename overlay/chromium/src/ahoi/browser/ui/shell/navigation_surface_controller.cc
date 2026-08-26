@@ -112,10 +112,9 @@ NavigationSurfaceController::NavigationSurfaceController(
 
   appearance_signals_ =
       std::make_unique<appearance::AppearanceRuntimeSignalSource>(
-          prefs_,
-          base::BindRepeating(
-              &NavigationSurfaceController::OnAppearancePolicyChanged,
-              base::Unretained(this)));
+          prefs_, base::BindRepeating(
+                      &NavigationSurfaceController::OnAppearancePolicyChanged,
+                      base::Unretained(this)));
   OnAppearancePolicyChanged(appearance_signals_->policy());
 
   if (prefs_) {
@@ -160,6 +159,10 @@ void NavigationSurfaceController::Layout(const gfx::Rect& content_card_bounds) {
       !visibility_animation_.is_animating()) {
     top_container_->SetVisible(false);
   }
+}
+
+void NavigationSurfaceController::SetFullscreenActive(bool active) {
+  state_.SetReasonActive(NavigationSurfaceState::Reason::kFullscreen, active);
 }
 
 void NavigationSurfaceController::AnimationProgressed(
@@ -286,9 +289,9 @@ void NavigationSurfaceController::ApplyVisibilityFraction(double value) {
 
   const float notch_opacity =
       static_cast<float>(std::clamp(1.0 - (clamped_value * 2.0), 0.0, 1.0));
-  const bool show_notch =
-      navigation_preferences_.auto_hide_enabled &&
-      navigation_preferences_.reveal_notch_enabled && notch_opacity > 0.0f;
+  const bool show_notch = navigation_preferences_.auto_hide_enabled &&
+                          navigation_preferences_.reveal_notch_enabled &&
+                          notch_opacity > 0.0f;
   reveal_notch_->SetVisible(show_notch);
   reveal_notch_->layer()->SetOpacity(notch_opacity);
   reveal_notch_->SetCanProcessEventsWithinSubtree(show_notch &&

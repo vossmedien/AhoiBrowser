@@ -64,6 +64,10 @@ struct DeveloperCookieDraft {
   std::string path = "/";
   bool secure = false;
   bool http_only = false;
+  // A newly partitioned cookie is keyed to the current top-level site by the
+  // Chromium adapter. Existing partitioned cookies retain their exact opaque
+  // partition identity while this remains enabled.
+  bool partitioned = false;
   DeveloperCookieSameSite same_site = DeveloperCookieSameSite::kUnspecified;
   DeveloperCookieExpiration expiration = DeveloperCookieExpiration::kSession;
 };
@@ -76,6 +80,7 @@ enum class DeveloperCookieError {
   kInvalidDomain,
   kInvalidPath,
   kInvalidSameSite,
+  kInvalidPartitioned,
   kInvalidPrefix,
   kInvalidExpiration,
   kNotFound,

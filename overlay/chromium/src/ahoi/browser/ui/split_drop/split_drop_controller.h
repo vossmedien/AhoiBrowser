@@ -30,8 +30,7 @@ namespace ahoi::split_drop {
 class SplitDropOverlayView;
 
 // Per-BrowserView coordinator for sidebar-to-MultiContents drops. It owns no
-// Views; tracked View references become null during BrowserView teardown, and
-// `CancelDrag()` cleans whichever presentation surfaces are still alive.
+// Views; tracked View references become null during BrowserView teardown.
 class SplitDropController {
  public:
   SplitDropController(TabStripModel* tab_strip_model,
@@ -56,8 +55,14 @@ class SplitDropController {
                    const gfx::Point& point,
                    const std::vector<SplitDropPane>& visible_panes);
 
-  // Safe and idempotent for drag exit, native cancellation and teardown.
-  void CancelDrag();
+  // A target exit is not a native-drag completion on macOS: AppKit reports it
+  // whenever the pointer crosses between BrowserView and sidebar targets.
+  // Keep sidebar affordances alive and clear only the content overlay here.
+  void OnTargetExited();
+
+  // Authoritative completion boundary for drop, cancellation and teardown.
+  // Safe and idempotent when the source View has already reported OnDragDone.
+  void CompleteDrag();
 
  private:
   std::optional<SplitDropTabState> SnapshotTab(tabs::TabInterface* tab) const;

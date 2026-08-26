@@ -6,6 +6,8 @@
 
 #include <memory>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
@@ -53,14 +55,47 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
       delete;
   ~DeveloperProfileTabHelper() override;
 
+  static DeveloperProfileTabHelper* FromWebContents(
+      content::WebContents* web_contents);
+
   void SetWebContents(content::WebContents* web_contents);
+  const std::string& tab_token() const { return tab_token_; }
+
+  // Stores restart assets in the profile PrefService and keeps once/reload
+  // assets in this tab-owned helper. Transient source never reaches prefs or
+  // sync, and a current-tab scope is accepted only for this helper's token.
+  bool SaveProfile(const url::Origin& origin, const DeveloperProfile& profile);
+  bool RemoveProfile(const url::Origin& origin);
+  std::optional<DeveloperProfile> GetProfile(const url::Origin& origin) const;
+
+  // Removes every saved or tab-local asset that currently contributes to
+  // `url`, while preserving unrelated assets owned by the same profile.
+  // Exact-origin request-stage overrides are disabled as well. The operation
+  // also clears the committed snapshot so reset cannot leave stale chips.
+  bool ResetProfilesForUrl(const GURL& url);
+
+  // Resolves all persistent and tab-local assets for one committed document.
+  // Once-assets are consumed at this navigation boundary whether or not their
+  // scope matched, so a later navigation can never resurrect them.
+  std::vector<DeveloperAsset> TakeAssetsForNavigation(const GURL& url);
+  const std::vector<DeveloperAsset>& active_assets() const {
+    return active_assets_;
+  }
 
   // content::WebContentsObserver:
   void DidFinishNavigation(
       content::NavigationHandle* navigation_handle) override;
 
  private:
+  void AttachToWebContents(content::WebContents* web_contents);
+  void DetachFromWebContents(content::WebContents* web_contents);
+
   PrefDeveloperProfileStore store_;
+  InMemoryDeveloperProfileStore reload_store_;
+  InMemoryDeveloperProfileStore once_store_;
+  const std::string tab_token_;
+  std::vector<DeveloperAsset> active_assets_;
+  base::WeakPtrFactory<DeveloperProfileTabHelper> weak_factory_{this};
 };
 
 // Request-stage half of the feature. It is created only when the regular

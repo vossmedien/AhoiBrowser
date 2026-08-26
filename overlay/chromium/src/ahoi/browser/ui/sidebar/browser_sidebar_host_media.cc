@@ -83,6 +83,10 @@ void BrowserSidebarHostView::OnAppearanceChanged(
   appearance::ApplySurfaceAppearance(
       this, appearance::AppearanceResolver::Resolve(
                 appearance::SurfaceRole::kSidebar, policy));
+  // This surface is rounded in floating mode. Even an opaque theme must keep
+  // transparent corner pixels truthful to CoreAnimation; otherwise the layer
+  // can substitute the browser background while scrolling or dragging.
+  layer()->SetFillsBoundsOpaquely(false);
 
   // The host owns the only full-size surface. Its scroll/tree children stay
   // transparent, while the overlay resolves its own semantic material.

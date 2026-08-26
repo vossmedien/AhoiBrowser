@@ -7,6 +7,9 @@ source "${SCRIPT_DIR}/lib/common.sh"
 ahoi_require_build_free_space
 
 profile="${1:-dev}"
+if [ "$#" -gt 0 ]; then
+  shift
+fi
 case "${profile}" in
   dev)
     args_file="${AHOI_REPO_ROOT}/config/build/ahoi-dev.gn"
@@ -20,8 +23,9 @@ case "${profile}" in
     toolchain_mode="pinned-reference"
     hook_xcode_option=""
     ;;
-  *) ahoi_die "usage: $0 [dev|release]" ;;
+  *) ahoi_die "usage: $0 [dev|release] [additional-ninja-target ...]" ;;
 esac
+targets=("chrome" "$@")
 
 ahoi_select_xcode "${toolchain_mode}"
 if [ "${toolchain_mode}" = "compatible-development" ]; then
@@ -43,11 +47,10 @@ ahoi_require_command gn
 ahoi_require_command autoninja
 
 out_dir="${AHOI_CHROMIUM_SRC}/out/${out_name}"
-target="chrome"
 
 ahoi_note "generating Ahoi ${profile} build"
 "${SCRIPT_DIR}/build-chromium-with-dependency-workarounds.sh" \
-  "${out_dir}" "${args_file}" "${target}"
+  "${out_dir}" "${args_file}" "${targets[@]}"
 
 ahoi_require_overlay_state
 

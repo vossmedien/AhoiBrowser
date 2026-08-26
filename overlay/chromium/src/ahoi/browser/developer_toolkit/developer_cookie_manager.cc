@@ -121,6 +121,13 @@ DeveloperCookieValidation ValidateDeveloperCookieDraft(
     result.error = DeveloperCookieError::kInvalidSameSite;
     return result;
   }
+  if (normalized.partitioned &&
+      (!normalized.secure ||
+       net::cookie_util::ProvisionalAccessScheme(site_url) ==
+           net::CookieAccessScheme::kNonCryptographic)) {
+    result.error = DeveloperCookieError::kInvalidPartitioned;
+    return result;
+  }
   if (!HasValidPrefix(site_url, normalized)) {
     result.error = DeveloperCookieError::kInvalidPrefix;
     return result;

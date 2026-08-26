@@ -73,6 +73,24 @@ source_set("unit_tests") {
   ]
 }
 
+if (!is_android && !is_chromeos) {
+  source_set("settings_browser_tests") {
+    testonly = true
+    defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+    sources = [ "appearance_settings_browsertest.cc" ]
+    deps = [
+      "//base/test:test_support",
+      "//chrome/browser/glic",
+      "//chrome/browser/glic/test_support",
+      "//chrome/browser/ui/webui/settings",
+      "//chrome/common",
+      "//chrome/test:test_support",
+      "//content/test:test_support",
+      "//testing/gtest",
+    ]
+  }
+}
+
 test("ahoi_appearance_unittests") {
   sources = [ "run_all_unittests.cc" ]
   deps = [
@@ -80,4 +98,16 @@ test("ahoi_appearance_unittests") {
     "//base/test:test_support",
     "//testing/gtest",
   ]
+}
+
+if (!is_android && !is_chromeos) {
+  test("ahoi_appearance_settings_browsertests") {
+    deps = [
+      ":settings_browser_tests",
+      "//chrome:packed_resources",
+      "//chrome/test:browser_tests_runner",
+      "//chrome/test:test_support",
+    ]
+    data_deps = [ "//chrome:browser_tests_pak" ]
+  }
 }

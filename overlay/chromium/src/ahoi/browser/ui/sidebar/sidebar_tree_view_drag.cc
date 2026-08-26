@@ -559,11 +559,16 @@ void SidebarTreeView::PerformDrop(
       .workspace_id = *model().workspace_id(),
       .target_node_id = indicator.target_node_id,
       .position = indicator.position};
-  const std::vector<base::Uuid> move_group =
+  const bool extract_split_pane =
       delegate_ &&
-              indicator.operation == SidebarTreeController::DropOperation::kMove
-          ? delegate_->GetMoveGroupNodeIds(indicator.source_node_id)
-          : std::vector<base::Uuid>{indicator.source_node_id};
+      indicator.operation == SidebarTreeController::DropOperation::kMove &&
+      delegate_->CanExtractSavedSplitPaneForDrop(indicator.source_node_id,
+                                                 indicator.target_node_id);
+  std::vector<base::Uuid> move_group{indicator.source_node_id};
+  if (!extract_split_pane && delegate_ &&
+      indicator.operation == SidebarTreeController::DropOperation::kMove) {
+    move_group = delegate_->GetMoveGroupNodeIds(indicator.source_node_id);
+  }
   SidebarTreeController::DropExecutionResult result =
       move_group.size() > 1
           ? controller_->PerformGroupedDrop(
@@ -580,6 +585,9 @@ void SidebarTreeView::PerformDrop(
   const base::Uuid selected_id =
       result.copied_root_id.value_or(indicator.source_node_id);
   std::ignore = controller_->SelectNode(selected_id);
+  if (extract_split_pane) {
+    delegate_->ExtractSavedSplitPaneAfterDrop(indicator.source_node_id);
+  }
   output_drag_op = ToNativeDragOperation(indicator.operation);
 }
 

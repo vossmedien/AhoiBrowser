@@ -7,6 +7,8 @@
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/split_drop/split_drop_overlay_view.h"
 #include "base/check.h"
+#include "base/functional/bind.h"
+#include "base/functional/callback_helpers.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
@@ -26,7 +28,7 @@ SplitDropController::SplitDropController(TabStripModel* tab_strip_model,
 }
 
 SplitDropController::~SplitDropController() {
-  CancelDrag();
+  CompleteDrag();
 }
 
 bool SplitDropController::CanDrop(const ui::OSExchangeData& data) const {
@@ -47,12 +49,12 @@ std::optional<DropIntent> SplitDropController::UpdateDrag(
     const ui::OSExchangeData& data,
     const gfx::Point& point,
     const std::vector<SplitDropPane>& visible_panes) {
-  HideOverlay();
   const std::optional<drag::SidebarTabDragPayload> payload =
       drag::ReadSidebarTabDragPayload(data);
   views::View* const browser_sidebar_host =
       browser_sidebar_host_tracker_.view();
   if (!payload.has_value() || !browser_sidebar_host) {
+    HideOverlay();
     return std::nullopt;
   }
   const sidebar::BrowserSidebarSplitDropSource source =
@@ -60,6 +62,7 @@ std::optional<DropIntent> SplitDropController::UpdateDrag(
           browser_sidebar_host, *payload,
           /*activate_saved_page=*/false);
   if (!source.valid) {
+    HideOverlay();
     return std::nullopt;
   }
 
@@ -68,6 +71,8 @@ std::optional<DropIntent> SplitDropController::UpdateDrag(
   if (intent.has_value() && overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->SetIntent(*intent);
+  } else {
+    HideOverlay();
   }
   return intent;
 }
@@ -85,10 +90,11 @@ bool SplitDropController::PerformDrop(
   const std::optional<drag::SidebarTabDragPayload> payload =
       drag::ReadSidebarTabDragPayload(data);
 
-  // From this point every return path is visually clean. The payload remains
-  // self-contained and can still be resolved after source-row presentation is
-  // cleared.
-  CancelDrag();
+  // This callback is an authoritative native completion boundary. Defer
+  // presentation cleanup until after every model mutation so refresh gating
+  // cannot recycle the drag source halfway through the transaction.
+  base::ScopedClosureRunner complete_drag(base::BindOnce(
+      &SplitDropController::CompleteDrag, base::Unretained(this)));
   views::View* const browser_sidebar_host =
       browser_sidebar_host_tracker_.view();
   if (!payload.has_value() || !browser_sidebar_host || !target_contents) {
@@ -152,7 +158,11 @@ bool SplitDropController::PerformDrop(
   return true;
 }
 
-void SplitDropController::CancelDrag() {
+void SplitDropController::OnTargetExited() {
+  HideOverlay();
+}
+
+void SplitDropController::CompleteDrag() {
   HideOverlay();
   if (views::View* const browser_sidebar_host =
           browser_sidebar_host_tracker_.view()) {

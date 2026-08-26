@@ -35,7 +35,9 @@ namespace ahoi {
 
 class LazyDeveloperStyleCompiler;
 struct DeveloperStyleCompileResult;
+class DeveloperAssetPolicyView;
 class DeveloperHeaderSecretEditorView;
+class DeveloperResponseHeaderAdvancedModeView;
 
 namespace appearance {
 class AppearanceRuntimeSignalSource;
@@ -83,6 +85,7 @@ class DeveloperProfileEditorView final : public views::View,
   void OnUserAgentEnabledChanged();
   void OnUserAgentPresetChanged();
   void OnMainWorldChanged();
+  void OnResponseHeaderRulesEnabledChanged();
   void ShowStatus(std::u16string text, bool is_error);
   void OnAppearanceChanged(const appearance::GlassPolicy& policy);
   bool CanPersistObservedTarget() const;
@@ -93,12 +96,12 @@ class DeveloperProfileEditorView final : public views::View,
   raw_ptr<views::Textfield> name_field_ = nullptr;
   raw_ptr<views::Checkbox> css_enabled_ = nullptr;
   raw_ptr<views::Combobox> style_language_ = nullptr;
-  raw_ptr<views::Checkbox> style_sync_enabled_ = nullptr;
+  raw_ptr<DeveloperAssetPolicyView> style_policy_ = nullptr;
   raw_ptr<views::Textfield> css_source_ = nullptr;
   raw_ptr<views::Checkbox> javascript_enabled_ = nullptr;
   raw_ptr<views::Checkbox> javascript_main_world_ = nullptr;
   raw_ptr<views::Checkbox> main_world_warning_accepted_ = nullptr;
-  raw_ptr<views::Checkbox> javascript_sync_enabled_ = nullptr;
+  raw_ptr<DeveloperAssetPolicyView> javascript_policy_ = nullptr;
   raw_ptr<views::Textfield> javascript_source_ = nullptr;
   raw_ptr<views::Checkbox> user_agent_enabled_ = nullptr;
   raw_ptr<views::Combobox> user_agent_preset_ = nullptr;
@@ -109,6 +112,8 @@ class DeveloperProfileEditorView final : public views::View,
   raw_ptr<views::Checkbox> response_header_rules_enabled_ = nullptr;
   raw_ptr<views::Checkbox> response_header_rules_sync_enabled_ = nullptr;
   raw_ptr<views::Textfield> response_header_rules_ = nullptr;
+  raw_ptr<DeveloperResponseHeaderAdvancedModeView>
+      response_header_advanced_mode_ = nullptr;
   raw_ptr<DeveloperHeaderSecretEditorView> header_secret_editor_ = nullptr;
   raw_ptr<views::Label> status_label_ = nullptr;
   raw_ptr<views::Checkbox> cache_disabled_ = nullptr;

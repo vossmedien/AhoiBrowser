@@ -198,10 +198,19 @@ class BrowserSidebarHostView final : public views::View,
   ~BrowserSidebarHostView() override;
 
  private:
+  friend bool IsBrowserSidebarDragActive(views::View* sidebar_host);
+
   // views::View:
   void AddedToWidget() override;
   void RemovedFromWidget() override;
   bool OnKeyPressed(const ui::KeyEvent& event) override;
+  bool GetDropFormats(int* formats,
+                      std::set<ui::ClipboardFormatType>* format_types) override;
+  bool AreDropTypesRequired() override;
+  bool CanDrop(const ui::OSExchangeData& data) override;
+  int OnDragUpdated(const ui::DropTargetEvent& event) override;
+  views::View::DropCallback GetDropCallback(
+      const ui::DropTargetEvent& event) override;
 
   // views::WidgetObserver:
   void OnWidgetDragDropWillStart(views::Widget* widget) override;
@@ -371,6 +380,13 @@ class BrowserSidebarHostView final : public views::View,
 
   std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const override;
+
+  bool CanExtractSavedSplitPaneForDrop(
+      const base::Uuid& source_node_id,
+      const std::optional<base::Uuid>& target_node_id) const override;
+
+  void ExtractSavedSplitPaneAfterDrop(
+      const base::Uuid& source_node_id) override;
 
   bool CanSaveTemporaryTab(
       int runtime_tab_handle,

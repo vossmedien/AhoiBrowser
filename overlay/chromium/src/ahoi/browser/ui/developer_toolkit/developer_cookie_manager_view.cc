@@ -94,6 +94,8 @@ int ErrorStringId(DeveloperCookieError error) {
       return IDS_AHOI_DEVELOPER_COOKIE_ERROR_PATH;
     case DeveloperCookieError::kInvalidSameSite:
       return IDS_AHOI_DEVELOPER_COOKIE_ERROR_SAMESITE;
+    case DeveloperCookieError::kInvalidPartitioned:
+      return IDS_AHOI_DEVELOPER_COOKIE_ERROR_PARTITIONED;
     case DeveloperCookieError::kInvalidPrefix:
       return IDS_AHOI_DEVELOPER_COOKIE_ERROR_PREFIX;
     case DeveloperCookieError::kInvalidExpiration:
@@ -310,10 +312,14 @@ std::unique_ptr<views::View> DeveloperCookieManagerView::CreateEditor() {
       l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_COOKIE_SECURE)));
   http_only_checkbox_ = flags->AddChildView(std::make_unique<views::Checkbox>(
       l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_COOKIE_HTTP_ONLY)));
+  partitioned_checkbox_ = flags->AddChildView(std::make_unique<views::Checkbox>(
+      l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_COOKIE_PARTITIONED)));
   secure_checkbox_->SetTextSubpixelRenderingEnabled(false);
   http_only_checkbox_->SetTextSubpixelRenderingEnabled(false);
+  partitioned_checkbox_->SetTextSubpixelRenderingEnabled(false);
   flags_layout->SetFlexForView(secure_checkbox_, 1);
   flags_layout->SetFlexForView(http_only_checkbox_, 1);
+  flags_layout->SetFlexForView(partitioned_checkbox_, 1);
   editor->AddChildView(std::move(flags));
 
   auto actions = std::make_unique<views::View>();
@@ -619,6 +625,7 @@ void DeveloperCookieManagerView::SetEditorCookie(
   path_field_->SetText(base::UTF8ToUTF16(cookie ? cookie->path : "/"));
   secure_checkbox_->SetChecked(cookie && cookie->secure);
   http_only_checkbox_->SetChecked(cookie && cookie->http_only);
+  partitioned_checkbox_->SetChecked(cookie && cookie->partitioned);
   same_site_combobox_->SetSelectedIndex(0);
   if (cookie) {
     for (size_t i = 0; i < kSameSiteValues.size(); ++i) {
@@ -651,6 +658,7 @@ DeveloperCookieDraft DeveloperCookieManagerView::EditorDraft() const {
       .path = base::UTF16ToUTF8(path_field_->GetText()),
       .secure = secure_checkbox_->GetChecked(),
       .http_only = http_only_checkbox_->GetChecked(),
+      .partitioned = partitioned_checkbox_->GetChecked(),
       .same_site = kSameSiteValues[same_site_index],
       .expiration = kExpirationValues[expiration_index],
   };

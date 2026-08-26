@@ -349,6 +349,7 @@ class SidebarActionButton final : public views::Button {
       const gfx::VectorIcon& icon,
       std::u16string accessible_name,
       int preferred_width = visual_style::kSidebarActionCellWidth,
+      int preferred_height = visual_style::kSidebarActionCellHeight,
       int icon_size = 19,
       bool draw_idle_shape = false,
       float hover_top_radius = visual_style::kControlCornerRadius,
@@ -360,8 +361,7 @@ class SidebarActionButton final : public views::Button {
     SetAnimateOnStateChange(true);
     SetHasInkDropActionOnClick(false);
     SetShowInkDropWhenHotTracked(false);
-    SetPreferredSize(
-        gfx::Size(preferred_width, visual_style::kSidebarActionCellHeight));
+    SetPreferredSize(gfx::Size(preferred_width, preferred_height));
     SetAccessibleName(accessible_name);
     SetTooltipText(accessible_name);
     icon_ = AddChildView(
@@ -433,12 +433,14 @@ class SidebarSplitActionCell final : public views::View {
     GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
     top_ = AddChildView(std::make_unique<SidebarActionButton>(
         std::move(top_callback), top_icon, std::move(top_name),
-        visual_style::kSidebarActionCellWidth, 14,
+        visual_style::kSidebarActionCellWidth,
+        visual_style::kSidebarActionCellHeight, 14,
         /*draw_idle_shape=*/false, visual_style::kControlCornerRadius,
         visual_style::kControlCornerRadius));
     bottom_ = AddChildView(std::make_unique<SidebarActionButton>(
         std::move(bottom_callback), bottom_icon, std::move(bottom_name),
-        visual_style::kSidebarActionCellWidth, 13,
+        visual_style::kSidebarActionCellWidth,
+        visual_style::kSidebarActionCellHeight, 13,
         /*draw_idle_shape=*/false, visual_style::kControlCornerRadius,
         visual_style::kControlCornerRadius));
   }
@@ -618,8 +620,12 @@ std::unique_ptr<views::View> CreateSidebarHeaderActionButton(
     std::u16string accessible_name) {
   return std::make_unique<SidebarActionButton>(
       std::move(callback), icon, std::move(accessible_name),
-      /*preferred_width=*/30, /*icon_size=*/15,
-      /*draw_idle_shape=*/false);
+      /*preferred_width=*/visual_style::kSidebarHeaderActionSize,
+      /*preferred_height=*/visual_style::kSidebarHeaderActionSize,
+      /*icon_size=*/15,
+      /*draw_idle_shape=*/false,
+      /*hover_top_radius=*/visual_style::kSidebarHeaderActionSize / 2.0f,
+      /*hover_bottom_radius=*/visual_style::kSidebarHeaderActionSize / 2.0f);
 }
 
 std::unique_ptr<views::View> CreateSidebarSplitActionCell(

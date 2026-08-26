@@ -22,8 +22,17 @@ std::optional<DeveloperProfile> DeserializeDeveloperProfile(
     const base::DictValue& value,
     const url::Origin* owner_origin = nullptr);
 
+// Decodes a profile received from sync, then strips device-local consent and
+// leaves domain-wide assets plus CSP/CORS response rules dormant until this
+// device acknowledges them.
+std::optional<DeveloperProfile> DeserializeDeveloperProfileFromSync(
+    const base::DictValue& value,
+    const url::Origin* owner_origin = nullptr);
+
 // Produces a payload containing only individually opted-in developer assets
-// and header profiles. Secret references and their values are always omitted.
+// and header profiles. Secret references and their values are always omitted;
+// device-local domain/advanced-mode consent is stripped and the affected
+// source/rules are sent dormant rather than deleted.
 std::optional<base::DictValue> SerializeDeveloperProfileForSync(
     const DeveloperProfile& profile);
 

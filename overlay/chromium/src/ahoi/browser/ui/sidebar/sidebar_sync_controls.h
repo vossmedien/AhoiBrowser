@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_SYNC_CONTROLS_H_
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "ahoi/browser/sync/sync_model.h"
@@ -36,6 +37,14 @@ void UpdateSidebarSyncControlsView(
 
 bool SidebarSyncControlsMatchesDevice(const views::View* view,
                                       const base::Uuid& device_id);
+
+// Focused View-test hooks. Production callers keep using the compact Sync
+// disclosure; these make the visibility contract observable without exposing
+// the private concrete View type.
+void SetSidebarSyncSettingsExpandedForTesting(views::View* view, bool expanded);
+bool SidebarSyncSettingsExpandedForTesting(const views::View* view);
+bool SidebarSyncStatusVisibleForTesting(const views::View* view);
+std::u16string SidebarSyncStatusTextForTesting(const views::View* view);
 
 }  // namespace ahoi::sidebar
 

@@ -91,6 +91,17 @@ std::vector<base::Uuid> RecordingDelegate::GetMoveGroupNodeIds(
   return {source_node_id};
 }
 
+bool RecordingDelegate::CanExtractSavedSplitPaneForDrop(
+    const base::Uuid&,
+    const std::optional<base::Uuid>&) const {
+  return can_extract_saved_split;
+}
+
+void RecordingDelegate::ExtractSavedSplitPaneAfterDrop(
+    const base::Uuid& source) {
+  extracted_split_requests.push_back(source);
+}
+
 bool RecordingDelegate::CanSaveTemporaryTab(
     int,
     const SidebarTreeController::DropTarget&) {

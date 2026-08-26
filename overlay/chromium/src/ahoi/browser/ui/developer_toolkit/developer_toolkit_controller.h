@@ -68,6 +68,7 @@ class DeveloperToolkitController {
   DeveloperActionExecutor* GetOrCreateExecutor();
   DeveloperActivationState GetActivationState();
   void OpenDevTools();
+  void OpenPasswordManager();
   void OpenCookieManager(views::View* anchor_view);
   void OpenProfileEditor(views::View* anchor_view);
   bool ShowCookieManager(views::View* anchor_view);

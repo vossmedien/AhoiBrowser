@@ -53,6 +53,10 @@ class NavigationSurfaceController final : public gfx::AnimationDelegate,
   // content card across resize, sidebar width and split-view changes.
   void Layout(const gfx::Rect& content_card_bounds);
 
+  // Keeps floating navigation visible and interactive while Chromium owns the
+  // top container in immersive fullscreen.
+  void SetFullscreenActive(bool active);
+
   NavigationSurfaceState::State state_for_testing() const {
     return state_.state();
   }

@@ -152,6 +152,8 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
           weak_ptr_factory_.GetWeakPtr()),
       base::BindRepeating(&DeveloperToolkitController::OpenDevTools,
                           weak_ptr_factory_.GetWeakPtr()),
+      base::BindRepeating(&DeveloperToolkitController::OpenPasswordManager,
+                          weak_ptr_factory_.GetWeakPtr()),
       base::BindRepeating(&DeveloperToolkitController::OpenCookieManager,
                           weak_ptr_factory_.GetWeakPtr(), anchor_view),
       base::BindRepeating(&DeveloperToolkitController::OpenProfileEditor,
@@ -302,6 +304,19 @@ void DeveloperToolkitController::OpenDevTools() {
   chrome::ExecuteCommand(browser_, IDC_DEV_TOOLS);
 }
 
+void DeveloperToolkitController::OpenPasswordManager() {
+  if (!browser_) {
+    return;
+  }
+  // Reuse Chromium's command path so its profile policy, singleton-tab routing
+  // and OS-authenticated plaintext boundary remain authoritative. Ahoi never
+  // requests, receives or retains a saved credential.
+  if (bubble_widget_) {
+    bubble_widget_->Close();
+  }
+  chrome::ExecuteCommand(browser_, IDC_SHOW_PASSWORD_MANAGER);
+}
+
 void DeveloperToolkitController::OpenCookieManager(views::View* anchor_view) {
   if (bubble_widget_) {
     bubble_widget_->Close();
@@ -388,7 +403,8 @@ bool DeveloperToolkitController::ShowCacheClear(views::View* anchor_view) {
   const url::Origin origin =
       url::Origin::Create(contents->GetLastCommittedURL());
   auto view = std::make_unique<DeveloperCacheStatusView>(
-      base::UTF8ToUTF16(origin.Serialize()), browser_->GetProfile()->GetPrefs());
+      base::UTF8ToUTF16(origin.Serialize()),
+      browser_->GetProfile()->GetPrefs());
   DeveloperCacheStatusView* const view_ptr = view.get();
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
       anchor_view, views::BubbleBorder::TOP_RIGHT,
@@ -462,8 +478,11 @@ bool DeveloperToolkitController::ShowProfileEditor(views::View* anchor_view) {
 
   const url::Origin origin =
       url::Origin::Create(contents->GetLastCommittedURL());
-  PrefDeveloperProfileStore store(profile->GetPrefs(), false);
-  std::optional<DeveloperProfile> existing = store.Get(origin);
+  DeveloperProfileTabHelper* const tab_helper =
+      DeveloperProfileTabHelper::FromWebContents(contents);
+  PrefDeveloperProfileStore fallback_store(profile->GetPrefs(), false);
+  std::optional<DeveloperProfile> existing =
+      tab_helper ? tab_helper->GetProfile(origin) : fallback_store.Get(origin);
   DeveloperProfile initial;
   if (existing) {
     initial = *existing;
@@ -567,8 +586,11 @@ bool DeveloperToolkitController::SaveProfile(
   }
   const url::Origin origin =
       url::Origin::Create(contents->GetLastCommittedURL());
-  PrefDeveloperProfileStore store(profile->GetPrefs(), false);
-  if (!store.Set(origin, developer_profile)) {
+  DeveloperProfileTabHelper* const tab_helper =
+      DeveloperProfileTabHelper::FromWebContents(contents);
+  PrefDeveloperProfileStore fallback_store(profile->GetPrefs(), false);
+  if (!(tab_helper ? tab_helper->SaveProfile(origin, developer_profile)
+                   : fallback_store.Set(origin, developer_profile))) {
     return false;
   }
   ApplyAhoiUserAgentOverride(*contents, &developer_profile);
@@ -589,8 +611,11 @@ bool DeveloperToolkitController::RemoveProfile() {
   }
   const url::Origin origin =
       url::Origin::Create(contents->GetLastCommittedURL());
-  PrefDeveloperProfileStore store(profile->GetPrefs(), false);
-  if (!store.Remove(origin)) {
+  DeveloperProfileTabHelper* const tab_helper =
+      DeveloperProfileTabHelper::FromWebContents(contents);
+  PrefDeveloperProfileStore fallback_store(profile->GetPrefs(), false);
+  if (!(tab_helper ? tab_helper->RemoveProfile(origin)
+                   : fallback_store.Remove(origin))) {
     return false;
   }
   ApplyAhoiUserAgentOverride(*contents, nullptr);

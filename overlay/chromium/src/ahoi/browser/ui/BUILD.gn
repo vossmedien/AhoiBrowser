@@ -50,3 +50,10 @@ source_set("modal_overlay_unit_tests") {
     "//ui/views:test_support",
   ]
 }
+
+if (!is_android) {
+  group("settings_private_unit_tests") {
+    testonly = true
+    deps = [ "//ahoi/browser/ui/settings:ahoi_settings_private_unittests" ]
+  }
+}

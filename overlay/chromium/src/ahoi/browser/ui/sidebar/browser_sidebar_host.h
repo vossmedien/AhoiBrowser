@@ -72,6 +72,17 @@ BrowserSidebarSplitDropSource ResolveBrowserSidebarSplitDropSource(
 // Clears all sidebar-owned native drag presentation on drop or cancellation.
 void CancelBrowserSidebarSplitDropDrag(views::View* sidebar_host);
 
+// Returns whether this host currently owns a saved- or runtime-tab drag. The
+// BrowserView hit-test seam uses this narrow query to route native drag events
+// through floating chrome without changing normal toolbar input behavior.
+bool IsBrowserSidebarDragActive(views::View* sidebar_host);
+
+// Native drags may cross Ahoi windows. The source host updates this
+// process-local lease, while every floating target window consults it before
+// allowing its higher-painted navigation surface to participate in hit tests.
+void SetBrowserSidebarDragRoutingActive(views::View* sidebar_host, bool active);
+bool IsAnyBrowserSidebarDragActive();
+
 }  // namespace ahoi::sidebar
 
 #endif  // AHOI_BROWSER_UI_SIDEBAR_BROWSER_SIDEBAR_HOST_H_

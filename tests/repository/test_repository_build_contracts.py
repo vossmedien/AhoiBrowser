@@ -1,8 +1,10 @@
 import hashlib
 import json
+import os
 import pathlib
 import re
 import subprocess
+import tempfile
 import unittest
 
 
@@ -15,6 +17,68 @@ def load_json(relative_path: str):
 
 
 class RepositoryBuildContractTests(unittest.TestCase):
+    def test_dependency_wrapper_rejects_out_dir_escape_before_receipt_mutation(self):
+        wrapper = ROOT / "scripts/build-chromium-with-dependency-workarounds.sh"
+        receipt_name = load_json("config/dependency-build-workarounds.json")[
+            "chromiumRustDepfileSpacePaths"
+        ]["receiptName"]
+        with tempfile.TemporaryDirectory(prefix="ahoi-out-dir-") as raw:
+            work = pathlib.Path(raw) / "work"
+            source = work / "chromium/src"
+            out = source / "out"
+            outside = source / "outside"
+            out.mkdir(parents=True)
+            outside.mkdir()
+            receipt = outside / receipt_name
+            receipt.write_text("preserve\n", encoding="utf-8")
+            args_file = pathlib.Path(raw) / "args.gn"
+            args_file.write_text("is_debug = true\n", encoding="utf-8")
+            environment = {**os.environ, "AHOI_WORK_ROOT": str(work)}
+
+            traversal = subprocess.run(
+                [
+                    "bash",
+                    str(wrapper),
+                    str(out / ".." / "outside"),
+                    str(args_file),
+                    "chrome",
+                ],
+                cwd=ROOT,
+                env=environment,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            linked_outside = pathlib.Path(raw) / "linked-outside"
+            linked_outside.mkdir()
+            linked_receipt = linked_outside / receipt_name
+            linked_receipt.write_text("preserve linked\n", encoding="utf-8")
+            (out / "linked").symlink_to(linked_outside, target_is_directory=True)
+            symlink = subprocess.run(
+                [
+                    "bash",
+                    str(wrapper),
+                    str(out / "linked"),
+                    str(args_file),
+                    "chrome",
+                ],
+                cwd=ROOT,
+                env=environment,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(0, traversal.returncode)
+            self.assertIn("dot components", traversal.stderr)
+            self.assertEqual("preserve\n", receipt.read_text(encoding="utf-8"))
+            self.assertNotEqual(0, symlink.returncode)
+            self.assertIn("component is a symlink", symlink.stderr)
+            self.assertEqual(
+                "preserve linked\n", linked_receipt.read_text(encoding="utf-8")
+            )
+
     def test_low_disk_build_override_is_explicit_and_keeps_a_hard_floor(self):
         helper_script = ROOT / "scripts/lib/common.sh"
         completed = subprocess.run(
@@ -117,6 +181,8 @@ class RepositoryBuildContractTests(unittest.TestCase):
         wrapper_call = 'build-chromium-with-dependency-workarounds.sh'
         self.assertIn(wrapper_call, upstream)
         self.assertIn(wrapper_call, ahoi)
+        self.assertIn('targets=("chrome" "$@")', ahoi)
+        self.assertIn('"${targets[@]}"', ahoi)
         self.assertLess(
             upstream.index('"${SCRIPT_DIR}/run-chromium-hooks.sh"'),
             upstream.index(wrapper_call),
@@ -201,6 +267,10 @@ class RepositoryBuildContractTests(unittest.TestCase):
         )
         self.assertIn("gn gen", wrapper)
         self.assertIn("autoninja -C", wrapper)
+        self.assertIn('targets=("$@")', wrapper)
+        self.assertIn('"${targets[@]}"', wrapper)
+        self.assertNotIn('[ "${target}" = "chrome" ]', wrapper)
+        self.assertIn("unsafe Chromium build target", wrapper)
         self.assertLess(wrapper.index("git -C"), wrapper.index("gn gen"))
         self.assertLess(
             wrapper.index("gn gen"), wrapper.rindex("restore_workarounds")

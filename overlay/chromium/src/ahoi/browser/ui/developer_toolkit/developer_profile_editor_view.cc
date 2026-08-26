@@ -10,13 +10,17 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_text_codec.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_style_compiler.h"
 #include "ahoi/browser/developer_toolkit/developer_style_compiler_service_client.h"
 #include "ahoi/browser/developer_toolkit/developer_user_agent_presets.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
 #include "ahoi/browser/ui/appearance/appearance_views.h"
+#include "ahoi/browser/ui/developer_toolkit/developer_asset_policy_view.h"
 #include "ahoi/browser/ui/developer_toolkit/developer_header_secret_editor_view.h"
+#include "ahoi/browser/ui/developer_toolkit/developer_response_header_advanced_mode_view.h"
 #include "ahoi/browser/ui/developer_toolkit/developer_toolkit_button.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/strings/string_number_conversions.h"
@@ -151,6 +155,13 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
       close_callback_(std::move(close_callback)),
       origin_scope_(base::UTF16ToUTF8(origin_label)),
       current_browser_user_agent_(embedder_support::GetUserAgent()) {
+  const GURL source_url = source_web_contents
+                              ? source_web_contents->GetLastCommittedURL()
+                              : GURL(origin_scope_);
+  DeveloperProfileTabHelper* const tab_helper =
+      DeveloperProfileTabHelper::FromWebContents(source_web_contents);
+  const std::string current_tab_token =
+      tab_helper ? tab_helper->tab_token() : std::string();
   style_compiler_ = std::make_unique<LazyDeveloperStyleCompiler>(
       base::BindRepeating(&CreateSandboxedDeveloperStyleCompilerService));
   style_compiler_->OpenEditor();
@@ -215,9 +226,8 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
       l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_STYLE_LANGUAGE));
   language_combobox->SetPreferredSize(gfx::Size(0, kSingleLineHeight));
   style_language_ = AddChildView(std::move(language_combobox));
-  style_sync_enabled_ = AddChildView(std::make_unique<views::Checkbox>(
-      l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_SYNC_ASSET)));
-  style_sync_enabled_->SetChecked(initial_style.sync_enabled);
+  style_policy_ = AddChildView(std::make_unique<DeveloperAssetPolicyView>(
+      initial_style, source_url, current_tab_token));
   css_source_ = AddTextControl(
       std::make_unique<views::Textarea>(), kCodeAreaHeight,
       std::u16string(css_enabled_->GetText()),
@@ -245,9 +255,8 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
           IDS_AHOI_DEVELOPER_PROFILE_MAIN_WORLD_WARNING)));
   main_world_warning_accepted_->SetChecked(
       initial_script.main_world_warning_accepted);
-  javascript_sync_enabled_ = AddChildView(std::make_unique<views::Checkbox>(
-      l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_SYNC_ASSET)));
-  javascript_sync_enabled_->SetChecked(initial_script.sync_enabled);
+  javascript_policy_ = AddChildView(std::make_unique<DeveloperAssetPolicyView>(
+      initial_script, source_url, current_tab_token));
   OnMainWorldChanged();
 
   user_agent_enabled_ = AddChildView(std::make_unique<views::Checkbox>(
@@ -320,8 +329,12 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
           DeveloperHeaderSecretDirection::kRequest))));
 
   response_header_rules_enabled_ =
-      AddChildView(std::make_unique<views::Checkbox>(l10n_util::GetStringUTF16(
-          IDS_AHOI_DEVELOPER_PROFILE_RESPONSE_HEADERS)));
+      AddChildView(std::make_unique<views::Checkbox>(
+          l10n_util::GetStringUTF16(
+              IDS_AHOI_DEVELOPER_PROFILE_RESPONSE_HEADERS),
+          base::BindRepeating(
+              &DeveloperProfileEditorView::OnResponseHeaderRulesEnabledChanged,
+              base::Unretained(this))));
   response_header_rules_enabled_->SetTextSubpixelRenderingEnabled(false);
   response_header_rules_enabled_->SetChecked(
       initial_profile.response_header_rules_enabled);
@@ -340,6 +353,10 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
           DeveloperHeaderSecretDirection::kResponse))));
   AddChildView(CreateMutedLabel(l10n_util::GetStringUTF16(
       IDS_AHOI_DEVELOPER_PROFILE_RESPONSE_HEADERS_HELP)));
+  response_header_advanced_mode_ =
+      AddChildView(std::make_unique<DeveloperResponseHeaderAdvancedModeView>(
+          initial_profile.response_header_rules_enabled,
+          initial_profile.response_header_advanced_mode_acknowledged));
 
   header_secret_editor_ = AddChildView(std::move(header_secret_editor));
 
@@ -459,31 +476,39 @@ DeveloperProfileEditorView::BuildProfileForSave() {
   DeveloperProfile profile;
   profile.name = base::UTF16ToUTF8(name_field_->GetText());
   profile.assets = preserved_assets_;
-  profile.assets.push_back({
+  DeveloperAsset style_asset{
       .id = style_asset_id_,
       .name = "Style",
       .kind = DeveloperAssetKind::kStyle,
       .style_language = kStyleLanguages[style_index],
       .enabled = css_enabled_->GetChecked(),
       .source = base::UTF16ToUTF8(css_source_->GetText()),
-      .scope = {.kind = DeveloperAssetScopeKind::kOrigin,
-                .value = origin_scope_},
-      .sync_enabled = style_sync_enabled_->GetChecked(),
-  });
-  profile.assets.push_back({
+  };
+  if (!style_policy_->ApplyTo(&style_asset)) {
+    ShowStatus(
+        l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_VALIDATION_ERROR),
+        true);
+    return std::nullopt;
+  }
+  profile.assets.push_back(std::move(style_asset));
+  DeveloperAsset script_asset{
       .id = script_asset_id_,
       .name = "JavaScript",
       .kind = DeveloperAssetKind::kJavaScript,
       .enabled = javascript_enabled_->GetChecked(),
       .source = base::UTF16ToUTF8(javascript_source_->GetText()),
-      .scope = {.kind = DeveloperAssetScopeKind::kOrigin,
-                .value = origin_scope_},
-      .sync_enabled = javascript_sync_enabled_->GetChecked(),
       .javascript_world = javascript_main_world_->GetChecked()
                               ? DeveloperJavaScriptWorld::kMain
                               : DeveloperJavaScriptWorld::kIsolated,
       .main_world_warning_accepted = main_world_warning_accepted_->GetChecked(),
-  });
+  };
+  if (!javascript_policy_->ApplyTo(&script_asset)) {
+    ShowStatus(
+        l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_VALIDATION_ERROR),
+        true);
+    return std::nullopt;
+  }
+  profile.assets.push_back(std::move(script_asset));
   profile.user_agent_enabled = user_agent_enabled_->GetChecked();
   profile.user_agent = base::UTF16ToUTF8(user_agent_->GetText());
   profile.header_rules_enabled = header_rules_enabled_->GetChecked();
@@ -493,11 +518,21 @@ DeveloperProfileEditorView::BuildProfileForSave() {
       response_header_rules_enabled_->GetChecked();
   profile.response_header_rules_sync_enabled =
       response_header_rules_sync_enabled_->GetChecked();
+  profile.response_header_advanced_mode_acknowledged =
+      response_header_advanced_mode_->acknowledged();
   profile.response_header_rules = std::move(parsed_response.rules);
   profile.cache_disabled = cache_disabled_->GetChecked();
   if (!header_secret_editor_->ApplyToProfile(&profile)) {
     ShowStatus(
         l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_VALIDATION_ERROR),
+        true);
+    return std::nullopt;
+  }
+  if (HasActiveAdvancedDeveloperResponseHeaderRules(profile) &&
+      !profile.response_header_advanced_mode_acknowledged) {
+    ShowStatus(
+        l10n_util::GetStringUTF16(
+            IDS_AHOI_DEVELOPER_PROFILE_ADVANCED_RESPONSE_HEADERS_REQUIRED),
         true);
     return std::nullopt;
   }
@@ -575,6 +610,11 @@ void DeveloperProfileEditorView::OnMainWorldChanged() {
   if (!main_world) {
     main_world_warning_accepted_->SetChecked(false);
   }
+}
+
+void DeveloperProfileEditorView::OnResponseHeaderRulesEnabledChanged() {
+  response_header_advanced_mode_->SetResponseHeadersEnabled(
+      response_header_rules_enabled_->GetChecked());
 }
 
 views::Textfield* DeveloperProfileEditorView::AddTextControl(

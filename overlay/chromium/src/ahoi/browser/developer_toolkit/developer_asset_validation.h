@@ -17,6 +17,7 @@ enum class DeveloperAssetValidationError {
   kInvalidName,
   kInvalidSource,
   kInvalidScope,
+  kDomainScopeNotAcknowledged,
   kInvalidLifetime,
   kInvalidWorld,
 };

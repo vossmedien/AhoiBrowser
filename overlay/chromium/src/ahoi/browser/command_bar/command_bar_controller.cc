@@ -305,16 +305,8 @@ std::vector<CommandBarSuggestion> CommandBarController::GetSuggestions(
     }
   }
 
-  if (fallback.has_value()) {
-    suggestions.push_back(*fallback);
-  }
-  suggestions = DeduplicateSuggestionsByDestination(std::move(suggestions));
-  if (suggestions.size() > kMaximumSuggestions) {
-    // Keep the typed navigation/search fallback as the final action while
-    // still guaranteeing a non-scrolling five-row result surface.
-    suggestions.erase(suggestions.begin() + (kMaximumSuggestions - 1u));
-  }
-  return suggestions;
+  return MergeCommandBarSuggestions(std::move(suggestions), fallback,
+                                    kMaximumSuggestions);
 }
 
 bool CommandBarController::ExecuteSuggestion(

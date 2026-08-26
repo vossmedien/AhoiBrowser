@@ -85,9 +85,8 @@ TEST_F(SidebarTreeViewTest, DropZonesValidateAndPaintBeforeInsideAfter) {
   EXPECT_EQ(u"Source", *drag_data.GetString());
   const gfx::PointF inside_point(12,
                                  target_y + SidebarTreeRowView::kRowHeight / 2);
-  ui::DropTargetEvent drop_event(
-      drag_data, inside_point, inside_point,
-      ui::DragDropTypes::DRAG_MOVE);
+  ui::DropTargetEvent drop_event(drag_data, inside_point, inside_point,
+                                 ui::DragDropTypes::DRAG_MOVE);
   EXPECT_EQ(static_cast<int>(ui::mojom::DragOperation::kMove),
             view->OnDragUpdated(drop_event));
   views::View::DropCallback drop_callback = view->GetDropCallback(drop_event);
@@ -300,6 +299,60 @@ TEST_F(SidebarTreeViewTest, SavedSplitPaneDropReordersTargetedGridSegment) {
   ASSERT_EQ(1u, delegate_.reorder_split_requests.size());
   EXPECT_EQ(std::make_pair(first.id, fourth.id),
             delegate_.reorder_split_requests.front());
+}
+
+TEST_F(SidebarTreeViewTest,
+       SavedSplitPaneDropOnOrdinaryTargetMovesOnlyExtractedPane) {
+  tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode source =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Source", "a");
+  tab_tree::TreeNode sibling =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Sibling", "b");
+  tab_tree::TreeNode folder = MakeNode(
+      workspace, std::nullopt, tab_tree::TreeNodeType::kFolder, u"Folder", "c");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(sibling));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  delegate_.split_groups = {{source.id, sibling.id}};
+  delegate_.can_extract_saved_split = true;
+
+  auto view = NewTreeView();
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+  SidebarTreeRowView* source_row =
+      view->GetMaterializedRowForTesting(source.id);
+  ASSERT_NE(nullptr, source_row);
+  ui::OSExchangeData drag_data;
+  view->WriteDragDataForView(source_row, gfx::Point(30, 16), &drag_data);
+  const gfx::PointF folder_center(
+      120, SidebarTreeRowView::kRowHeight + SidebarTreeRowView::kRowHeight / 2);
+  ui::DropTargetEvent drop_event(drag_data, folder_center, folder_center,
+                                 ui::DragDropTypes::DRAG_MOVE);
+  EXPECT_EQ(static_cast<int>(ui::mojom::DragOperation::kMove),
+            view->OnDragUpdated(drop_event));
+  views::View::DropCallback drop_callback = view->GetDropCallback(drop_event);
+  ASSERT_TRUE(drop_callback);
+  ui::mojom::DragOperation output_operation = ui::mojom::DragOperation::kNone;
+  std::move(drop_callback)
+      .Run(drop_event, output_operation,
+           /*drag_image_layer_owner=*/nullptr);
+
+  EXPECT_EQ(ui::mojom::DragOperation::kMove, output_operation);
+  ASSERT_EQ(1u, delegate_.extracted_split_requests.size());
+  EXPECT_EQ(source.id, delegate_.extracted_split_requests.front());
+  tab_tree::TreeNode moved_source;
+  tab_tree::TreeNode untouched_sibling;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetNode(source.id, &moved_source));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetNode(sibling.id, &untouched_sibling));
+  EXPECT_EQ(folder.id, moved_source.parent_id);
+  EXPECT_FALSE(untouched_sibling.parent_id.has_value());
 }
 
 TEST_F(SidebarTreeViewTest,

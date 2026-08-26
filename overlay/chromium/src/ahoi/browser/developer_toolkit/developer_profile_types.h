@@ -87,11 +87,20 @@ struct DeveloperAsset {
   std::string compiled_css;
   uint32_t compiled_style_version = 0;
   DeveloperAssetScope scope;
+  // A device-local acknowledgement that a domain scope can also affect
+  // credential, payment, or account pages on matching subdomains. Sync must
+  // clear this bit and leave the transferred asset dormant until the receiving
+  // device acknowledges it again.
+  bool domain_scope_warning_accepted = false;
   DeveloperAssetLifetime lifetime = DeveloperAssetLifetime::kRestart;
   bool sync_enabled = false;
   DeveloperJavaScriptWorld javascript_world =
       DeveloperJavaScriptWorld::kIsolated;
   bool main_world_warning_accepted = false;
+
+  // Navigation resolution namespaces this transient key by owner origin and
+  // asset ID. It is never serialized or accepted by profile validation.
+  std::string runtime_id;
 
   bool operator==(const DeveloperAsset&) const = default;
 };
@@ -131,6 +140,9 @@ struct DeveloperProfile {
   // native editor.
   bool response_header_rules_enabled = false;
   bool response_header_rules_sync_enabled = false;
+  // Local, per-device acknowledgement for response rules that can weaken CSP
+  // or CORS. Sync codecs must never transfer this consent to another device.
+  bool response_header_advanced_mode_acknowledged = false;
   std::vector<DeveloperHeaderRule> response_header_rules;
 
   // Applied to all requests from the active origin by the existing URLLoader

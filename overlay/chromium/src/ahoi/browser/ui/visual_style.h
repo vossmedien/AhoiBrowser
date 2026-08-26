@@ -61,10 +61,13 @@ inline constexpr int kSidebarHorizontalInset = 10;
 inline constexpr int kSidebarTopInset = 10;
 inline constexpr int kSidebarBottomInset = 8;
 // Floating/edge-revealed presentation is a card above the page rather than a
-// flush dock. Keep the leading breathing room slightly wider than the gap to
-// the WebContents so the card does not look glued to the window edge.
-inline constexpr int kFloatingSidebarLeadingInset = 14;
+// flush dock. Its leading, top and bottom breathing room form one continuous
+// outer gutter; the narrower trailing gap keeps the resize affordance close to
+// the WebContents without making the card look glued to the window edge.
+inline constexpr int kFloatingSidebarOuterInset = 14;
+inline constexpr int kFloatingSidebarLeadingInset = kFloatingSidebarOuterInset;
 inline constexpr int kFloatingSidebarTrailingInset = 8;
+inline constexpr int kFloatingSidebarCornerRadius = 14;
 inline constexpr int kSidebarPresentationRevealOffset = 18;
 // Fixed window-drag/caption area above the sidebar. Floating browser chrome
 // must never change this value or shift the complete sidebar surface.
@@ -72,7 +75,10 @@ inline constexpr int kSidebarTitlebarHeight = 40;
 inline constexpr int kSidebarSectionSpacing = 6;
 inline constexpr int kSidebarContentWidth =
     kSidebarWidthDefault - (2 * kSidebarHorizontalInset);
-inline constexpr int kTreeRowHeight = 32;
+// 36px keeps saved, temporary and remote tabs comfortably targetable without
+// turning the sidebar into a low-density list. Every tab surface consumes this
+// token; do not introduce per-section row heights.
+inline constexpr int kTreeRowHeight = 36;
 inline constexpr int kTreeIndent = 16;
 // Every saved, temporary and split-pane row keeps the same breathing room
 // around its active/hover surface. Split segments use the narrower horizontal
@@ -83,6 +89,8 @@ inline constexpr int kSidebarSplitPaneHorizontalInset = 1;
 inline constexpr int kSidebarSplitPaneGap = 2;
 inline constexpr int kSidebarActionCellWidth = 42;
 inline constexpr int kSidebarActionCellHeight = 36;
+// Header presentation actions are true circles, not narrow 30x36 pills.
+inline constexpr int kSidebarHeaderActionSize = 32;
 inline constexpr int kSidebarFooterSpacing = 8;
 inline constexpr int kSidebarSplitActionGap = 2;
 inline constexpr int kSidebarIconSize = 16;
@@ -94,6 +102,17 @@ inline constexpr int kSidebarIconSize = 16;
 inline constexpr int kContentCardInset = 8;
 inline constexpr int kContentCardCornerRadius = 14;
 inline constexpr int kContentCardShadowElevation = 10;
+// Split panes live inside the same content card and therefore share its
+// curvature. The semantic outline roles distinguish inactive, ordinary active
+// and security/focus-highlighted panes without hard-coding a light-only
+// palette.
+inline constexpr int kSplitPaneCornerRadius = kContentCardCornerRadius;
+inline constexpr int kSplitPaneInactiveOutlineThickness = 1;
+inline constexpr int kSplitPaneActiveOutlineThickness = 2;
+inline constexpr int kSplitPaneHighlightedOutlineThickness = 3;
+inline constexpr ui::ColorId kSplitPaneInactiveOutline = kDivider;
+inline constexpr ui::ColorId kSplitPaneActiveOutline = kAccent;
+inline constexpr ui::ColorId kSplitPaneHighlightedOutline = kFocusRing;
 inline constexpr int kNavigationSurfaceHorizontalInset = 10;
 inline constexpr int kNavigationSurfaceTopGap = 12;
 inline constexpr int kNavigationSurfaceCornerRadius = 14;
@@ -183,10 +202,8 @@ inline constexpr base::TimeDelta kSidebarRevealDuration =
 inline constexpr base::TimeDelta kSidebarHideDuration = base::Milliseconds(135);
 inline constexpr base::TimeDelta kModalFadeInDuration = base::Milliseconds(120);
 inline constexpr base::TimeDelta kModalFadeOutDuration = base::Milliseconds(90);
-inline constexpr base::TimeDelta kPopupRevealDuration =
-    kModalFadeInDuration;
-inline constexpr base::TimeDelta kPopupDismissDuration =
-    kModalFadeOutDuration;
+inline constexpr base::TimeDelta kPopupRevealDuration = kModalFadeInDuration;
+inline constexpr base::TimeDelta kPopupDismissDuration = kModalFadeOutDuration;
 inline constexpr base::TimeDelta kPopupFallbackNoticeDuration =
     base::Milliseconds(220);
 inline constexpr base::TimeDelta kNavigationSurfaceRevealDuration =

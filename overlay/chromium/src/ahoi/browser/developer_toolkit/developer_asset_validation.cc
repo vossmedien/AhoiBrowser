@@ -44,7 +44,8 @@ bool IsCanonicalDomain(std::string_view value) {
 DeveloperAssetValidationError ValidateDeveloperAsset(
     const url::Origin& owner_origin,
     const DeveloperAsset& asset) {
-  if (!IsSafeIdentifier(asset.id, kMaxDeveloperAssetIdBytes)) {
+  if (!IsSafeIdentifier(asset.id, kMaxDeveloperAssetIdBytes) ||
+      !asset.runtime_id.empty()) {
     return DeveloperAssetValidationError::kInvalidId;
   }
   if (asset.name.empty() || asset.name.size() > kMaxDeveloperAssetNameBytes ||
@@ -83,6 +84,9 @@ DeveloperAssetValidationError ValidateDeveloperAsset(
           !owner_url.DomainIs(asset.scope.value)) {
         return DeveloperAssetValidationError::kInvalidScope;
       }
+      if (asset.enabled && !asset.domain_scope_warning_accepted) {
+        return DeveloperAssetValidationError::kDomainScopeNotAcknowledged;
+      }
       break;
     case DeveloperAssetScopeKind::kPath:
       if (asset.scope.value.empty() || asset.scope.value.front() != '/' ||
@@ -93,6 +97,11 @@ DeveloperAssetValidationError ValidateDeveloperAsset(
         return DeveloperAssetValidationError::kInvalidScope;
       }
       break;
+  }
+
+  if (asset.scope.kind != DeveloperAssetScopeKind::kDomain &&
+      asset.domain_scope_warning_accepted) {
+    return DeveloperAssetValidationError::kInvalidScope;
   }
 
   if (asset.sync_enabled &&
@@ -112,13 +121,11 @@ DeveloperAssetValidationError ValidateDeveloperAsset(
       if (asset.enabled || asset.compiled_style_version != 0) {
         return DeveloperAssetValidationError::kInvalidSource;
       }
-    } else if (asset.compiled_style_version !=
-               kDeveloperStyleCompilerVersion) {
+    } else if (asset.compiled_style_version != kDeveloperStyleCompilerVersion) {
       return DeveloperAssetValidationError::kInvalidSource;
     }
   } else if (asset.style_language != DeveloperStyleLanguage::kCss ||
-             !asset.compiled_css.empty() ||
-             asset.compiled_style_version != 0 ||
+             !asset.compiled_css.empty() || asset.compiled_style_version != 0 ||
              (asset.javascript_world == DeveloperJavaScriptWorld::kMain &&
               !asset.main_world_warning_accepted) ||
              (asset.javascript_world == DeveloperJavaScriptWorld::kIsolated &&

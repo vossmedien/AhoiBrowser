@@ -1,0 +1,28 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+if (!is_android) {
+  test("ahoi_settings_private_unittests") {
+    sources = [ "settings_private_prefs_unittest.cc" ]
+
+    deps = [
+      "//ahoi/browser/developer_toolkit:developer_toolkit_preferences",
+      "//ahoi/browser/session:session_preferences",
+      "//ahoi/browser/sync:profile_sync_preferences",
+      "//ahoi/browser/ui/appearance:appearance_preferences",
+      "//base",
+      "//base/test:test_support",
+      "//chrome/browser/extensions",
+      "//chrome/test:test_support_unit",
+      "//components/prefs",
+      "//content/test:test_support",
+      "//testing/gtest",
+    ]
+
+    if (is_mac) {
+      data_deps = [ "//third_party/sparkle:sparkle_framework_test_runtime" ]
+    }
+  }
+}

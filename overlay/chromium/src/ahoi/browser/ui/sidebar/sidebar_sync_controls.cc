@@ -130,8 +130,6 @@ class SidebarSyncControlsView final : public views::View {
     StyleButton(settings_button_);
     AddChildView(std::move(filter_row));
 
-    status_label_ = AddChildView(MakeMutedLabel({}, true));
-
     settings_body_ = AddChildView(std::make_unique<views::View>());
     auto* settings_layout =
         settings_body_->SetLayoutManager(std::make_unique<views::BoxLayout>(
@@ -139,6 +137,11 @@ class SidebarSyncControlsView final : public views::View {
             gfx::Insets::TLBR(5, 0, 0, 0), 6));
     settings_layout->set_cross_axis_alignment(
         views::BoxLayout::CrossAxisAlignment::kStretch);
+
+    // Transport status belongs to the expanded settings disclosure. Keeping
+    // it out of the always-visible filter row prevents an ordinary disabled
+    // state from reading like a permanent warning between the user's tabs.
+    status_label_ = settings_body_->AddChildView(MakeMutedLabel({}, true));
 
     sync_enabled_ =
         settings_body_->AddChildView(std::make_unique<views::Checkbox>(
@@ -319,6 +322,22 @@ class SidebarSyncControlsView final : public views::View {
     return !selected_device_id_.has_value() || selected_device_id_ == device_id;
   }
 
+  void SetSettingsExpandedForTesting(bool expanded) {
+    SetSettingsExpanded(expanded);
+  }
+
+  bool SettingsExpandedForTesting() const {
+    return settings_body_->GetVisible();
+  }
+
+  bool StatusVisibleForTesting() const {
+    return settings_body_->GetVisible() && status_label_->GetVisible();
+  }
+
+  std::u16string StatusTextForTesting() const {
+    return std::u16string(status_label_->GetText());
+  }
+
  private:
   std::u16string StatusText(const sync::SyncTransportStatus& status) const {
     if (!status.enabled) {
@@ -425,10 +444,13 @@ class SidebarSyncControlsView final : public views::View {
   }
 
   void ToggleSettings(const ui::Event&) {
-    settings_body_->SetVisible(!settings_body_->GetVisible());
-    settings_button_->SetText(settings_body_->GetVisible()
-                                  ? Text(u"Fertig", u"Done")
-                                  : Text(u"Sync", u"Sync"));
+    SetSettingsExpanded(!settings_body_->GetVisible());
+  }
+
+  void SetSettingsExpanded(bool expanded) {
+    settings_body_->SetVisible(expanded);
+    settings_button_->SetText(expanded ? Text(u"Fertig", u"Done")
+                                       : Text(u"Sync", u"Sync"));
     InvalidateLayout();
     PreferredSizeChanged();
   }
@@ -613,6 +635,28 @@ bool SidebarSyncControlsMatchesDevice(const views::View* view,
                                       const base::Uuid& device_id) {
   const SidebarSyncControlsView* controls = AsSyncControls(view);
   return !controls || controls->MatchesDevice(device_id);
+}
+
+void SetSidebarSyncSettingsExpandedForTesting(views::View* view,
+                                              bool expanded) {
+  if (SidebarSyncControlsView* controls = AsSyncControls(view)) {
+    controls->SetSettingsExpandedForTesting(expanded);
+  }
+}
+
+bool SidebarSyncSettingsExpandedForTesting(const views::View* view) {
+  const SidebarSyncControlsView* controls = AsSyncControls(view);
+  return controls && controls->SettingsExpandedForTesting();
+}
+
+bool SidebarSyncStatusVisibleForTesting(const views::View* view) {
+  const SidebarSyncControlsView* controls = AsSyncControls(view);
+  return controls && controls->StatusVisibleForTesting();
+}
+
+std::u16string SidebarSyncStatusTextForTesting(const views::View* view) {
+  const SidebarSyncControlsView* controls = AsSyncControls(view);
+  return controls ? controls->StatusTextForTesting() : std::u16string();
 }
 
 }  // namespace ahoi::sidebar

@@ -132,6 +132,7 @@ DeveloperToolkitBubbleView::DeveloperToolkitBubbleView(
     DataClearCallback data_clear_callback,
     VisibilityCallback visibility_callback,
     OpenDevToolsCallback open_devtools_callback,
+    OpenPasswordManagerCallback open_password_manager_callback,
     OpenCookieManagerCallback open_cookie_manager_callback,
     OpenProfileCallback open_profile_callback,
     PrefService* prefs,
@@ -140,6 +141,8 @@ DeveloperToolkitBubbleView::DeveloperToolkitBubbleView(
       data_clear_callback_(std::move(data_clear_callback)),
       visibility_callback_(std::move(visibility_callback)),
       open_devtools_callback_(std::move(open_devtools_callback)),
+      open_password_manager_callback_(
+          std::move(open_password_manager_callback)),
       open_cookie_manager_callback_(std::move(open_cookie_manager_callback)),
       open_profile_callback_(std::move(open_profile_callback)),
       activation_state_(initial_activation) {
@@ -199,6 +202,20 @@ DeveloperToolkitBubbleView::DeveloperToolkitBubbleView(
   AddChildView(std::move(primary_row));
 
   AddChildView(CreateSectionLabel(IDS_AHOI_DEVELOPER_SECTION_PAGE));
+  auto password_manager_row = std::make_unique<views::View>();
+  auto* password_manager_layout =
+      password_manager_row->SetLayoutManager(std::make_unique<views::BoxLayout>(
+          views::BoxLayout::Orientation::kHorizontal));
+  auto password_manager_button = std::make_unique<DeveloperToolkitButton>(
+      open_password_manager_callback_,
+      l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_SAVED_PASSWORDS),
+      &vector_icons::kPasswordManagerIcon);
+  password_manager_button->SetAccessibleName(
+      std::u16string(password_manager_button->GetText()));
+  password_manager_button_ =
+      password_manager_row->AddChildView(std::move(password_manager_button));
+  password_manager_layout->SetFlexForView(password_manager_button_, 1);
+  AddChildView(std::move(password_manager_row));
   AddChildView(CreateActionRow(DeveloperAction::kToggleCss,
                                DeveloperAction::kTogglePasswordFields));
   AddChildView(CreateActionRow(DeveloperAction::kToggleJavaScript,

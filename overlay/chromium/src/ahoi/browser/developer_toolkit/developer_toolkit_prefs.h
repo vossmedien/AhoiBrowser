@@ -31,9 +31,15 @@ void RegisterProfilePrefs(PrefRegistrySimple* registry);
 ToolbarVisibility GetToolbarVisibility(const PrefService& prefs);
 bool IsToolkitEnabled(const PrefService& prefs);
 
+// Materializes the pre-master-switch activation signal once a real profile is
+// opened, so runtime chrome and chrome://settings expose the same state.
+void MigrateLegacyActivation(PrefService* prefs);
+
 // Explicit one-time activation used by Settings or a dedicated command. It
 // enables the compact main entry when no toolbar choices were configured.
 bool ActivateToolkit(PrefService& prefs);
+// Enabling through the master switch restores the compact toolkit entry when
+// no developer toolbar action is configured, keeping activation recoverable.
 void SetToolkitEnabled(PrefService& prefs, bool enabled);
 
 // Toolbar actions may all be hidden; the master switch remains reachable from

@@ -85,6 +85,26 @@ TEST(DeveloperCookieManagerTest, RejectsUnsafeSameSiteAndPrefixCombinations) {
                   .valid());
 }
 
+TEST(DeveloperCookieManagerTest, PartitionedCookiesRequireSecureContext) {
+  DeveloperCookieDraft draft{.name = "chips",
+                             .value = "value",
+                             .domain = "app.example.com",
+                             .partitioned = true};
+  EXPECT_EQ(DeveloperCookieError::kInvalidPartitioned,
+            ValidateDeveloperCookieDraft(SiteUrl(), draft, false).error);
+
+  draft.secure = true;
+  DeveloperCookieValidation valid =
+      ValidateDeveloperCookieDraft(SiteUrl(), draft, false);
+  ASSERT_TRUE(valid.valid());
+  EXPECT_TRUE(valid.normalized.partitioned);
+
+  EXPECT_EQ(DeveloperCookieError::kInvalidPartitioned,
+            ValidateDeveloperCookieDraft(GURL("http://app.example.com/"), draft,
+                                         false)
+                .error);
+}
+
 TEST(DeveloperCookieManagerTest, KeepExpirationIsEditOnly) {
   DeveloperCookieDraft draft{.name = "session",
                              .value = "abc",

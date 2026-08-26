@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "ahoi/browser/developer_toolkit/developer_asset_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_codec.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_integration.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
@@ -14,7 +13,6 @@
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
 #include "ahoi/browser/developer_toolkit/developer_style_compiler.h"
 #include "base/functional/bind.h"
-#include "base/json/json_writer.h"
 #include "base/memory/raw_ptr.h"
 #include "components/prefs/testing_pref_service.h"
 #include "net/base/load_flags.h"
@@ -166,8 +164,55 @@ TEST(DeveloperProfileValidationTest, RejectsUnsafeOrAmbiguousValues) {
             DeveloperProfileValidationError::kHeaderNameInvalid);
 }
 
+TEST(DeveloperProfileValidationTest,
+     RequiresLocalAcknowledgementForActiveCspAndCorsResponseRules) {
+  for (const char* header_name :
+       {"Content-Security-Policy", "content-security-policy-report-only",
+        "Access-Control-Allow-Origin"}) {
+    DeveloperProfile profile = MakeProfile();
+    profile.response_header_rules = {
+        {.name = header_name,
+         .value = "test-value",
+         .action = DeveloperHeaderAction::kSet},
+    };
+    EXPECT_TRUE(IsAdvancedDeveloperResponseHeaderName(header_name));
+    EXPECT_TRUE(HasActiveAdvancedDeveloperResponseHeaderRules(profile));
+    EXPECT_EQ(ValidateDeveloperProfile(ExampleOrigin(), profile),
+              DeveloperProfileValidationError::
+                  kAdvancedResponseHeadersNotAcknowledged);
+
+    profile.response_header_advanced_mode_acknowledged = true;
+    EXPECT_EQ(ValidateDeveloperProfile(ExampleOrigin(), profile),
+              DeveloperProfileValidationError::kNone);
+  }
+}
+
+TEST(DeveloperProfileValidationTest,
+     AllowsDormantAdvancedResponseRulesWithoutAcknowledgement) {
+  DeveloperProfile profile = MakeProfile();
+  profile.response_header_rules_enabled = false;
+  profile.response_header_rules = {
+      {.name = "Content-Security-Policy",
+       .value = "default-src 'self'",
+       .action = DeveloperHeaderAction::kSet},
+  };
+  EXPECT_FALSE(HasActiveAdvancedDeveloperResponseHeaderRules(profile));
+  EXPECT_EQ(ValidateDeveloperProfile(ExampleOrigin(), profile),
+            DeveloperProfileValidationError::kNone);
+
+  TestingPrefServiceSimple prefs;
+  developer_profile_prefs::RegisterProfilePrefs(prefs.registry());
+  PrefDeveloperProfileStore store(&prefs, false);
+  ASSERT_TRUE(store.Set(ExampleOrigin(), profile));
+  const std::optional<DeveloperProfile> stored = store.Get(ExampleOrigin());
+  ASSERT_TRUE(stored);
+  EXPECT_FALSE(stored->response_header_rules_enabled);
+  EXPECT_EQ(stored->response_header_rules, profile.response_header_rules);
+}
+
 TEST(DeveloperProfileCodecTest, RoundTripsExplicitOptInAndRules) {
-  const DeveloperProfile expected = MakeProfile();
+  DeveloperProfile expected = MakeProfile();
+  expected.response_header_advanced_mode_acknowledged = true;
   std::optional<base::DictValue> encoded = SerializeDeveloperProfile(expected);
   ASSERT_TRUE(encoded);
   const std::optional<DeveloperProfile> decoded =
@@ -178,6 +223,80 @@ TEST(DeveloperProfileCodecTest, RoundTripsExplicitOptInAndRules) {
   base::DictValue malformed = std::move(*encoded);
   malformed.Set("headers", base::DictValue().Set("enabled", true));
   EXPECT_FALSE(DeserializeDeveloperProfile(malformed));
+}
+
+TEST(DeveloperProfileCodecTest, MissingAdvancedAcknowledgementMigratesToFalse) {
+  DeveloperProfile profile = MakeProfile();
+  profile.response_header_advanced_mode_acknowledged = true;
+  std::optional<base::DictValue> encoded = SerializeDeveloperProfile(profile);
+  ASSERT_TRUE(encoded);
+  base::DictValue* response_headers = encoded->FindDict("response_headers");
+  ASSERT_TRUE(response_headers);
+  EXPECT_TRUE(response_headers->Remove("advanced_mode_acknowledged"));
+
+  const std::optional<DeveloperProfile> decoded =
+      DeserializeDeveloperProfile(*encoded);
+  ASSERT_TRUE(decoded);
+  EXPECT_FALSE(decoded->response_header_advanced_mode_acknowledged);
+  EXPECT_TRUE(decoded->response_header_rules_enabled);
+}
+
+TEST(DeveloperProfileCodecTest,
+     LegacyActiveAdvancedRulesMigrateDormantWithoutDataLoss) {
+  DeveloperProfile profile = MakeProfile();
+  profile.response_header_rules = {
+      {.name = "Content-Security-Policy-Report-Only",
+       .value = "default-src 'none'",
+       .action = DeveloperHeaderAction::kSet},
+  };
+  profile.response_header_advanced_mode_acknowledged = true;
+  std::optional<base::DictValue> encoded = SerializeDeveloperProfile(profile);
+  ASSERT_TRUE(encoded);
+  base::DictValue* response_headers = encoded->FindDict("response_headers");
+  ASSERT_TRUE(response_headers);
+  EXPECT_TRUE(response_headers->Remove("advanced_mode_acknowledged"));
+
+  const std::optional<DeveloperProfile> decoded =
+      DeserializeDeveloperProfile(*encoded);
+  ASSERT_TRUE(decoded);
+  EXPECT_FALSE(decoded->response_header_advanced_mode_acknowledged);
+  EXPECT_FALSE(decoded->response_header_rules_enabled);
+  EXPECT_EQ(decoded->response_header_rules, profile.response_header_rules);
+  EXPECT_EQ(ValidateDeveloperProfile(ExampleOrigin(), *decoded),
+            DeveloperProfileValidationError::kNone);
+}
+
+TEST(DeveloperProfileCodecTest,
+     ExplicitLocalAdvancedAcknowledgementKeepsRulesActive) {
+  DeveloperProfile profile = MakeProfile();
+  profile.response_header_rules = {
+      {.name = "Access-Control-Allow-Credentials",
+       .value = "true",
+       .action = DeveloperHeaderAction::kSet},
+  };
+  profile.response_header_advanced_mode_acknowledged = true;
+  const std::optional<base::DictValue> encoded =
+      SerializeDeveloperProfile(profile);
+  ASSERT_TRUE(encoded);
+
+  const std::optional<DeveloperProfile> decoded =
+      DeserializeDeveloperProfile(*encoded);
+  ASSERT_TRUE(decoded);
+  EXPECT_TRUE(decoded->response_header_advanced_mode_acknowledged);
+  EXPECT_TRUE(decoded->response_header_rules_enabled);
+  EXPECT_EQ(decoded->response_header_rules, profile.response_header_rules);
+  EXPECT_EQ(ValidateDeveloperProfile(ExampleOrigin(), *decoded),
+            DeveloperProfileValidationError::kNone);
+}
+
+TEST(DeveloperProfileCodecTest, RejectsMalformedAdvancedAcknowledgement) {
+  std::optional<base::DictValue> encoded =
+      SerializeDeveloperProfile(MakeProfile());
+  ASSERT_TRUE(encoded);
+  base::DictValue* response_headers = encoded->FindDict("response_headers");
+  ASSERT_TRUE(response_headers);
+  response_headers->Set("advanced_mode_acknowledged", "yes");
+  EXPECT_FALSE(DeserializeDeveloperProfile(*encoded));
 }
 
 TEST(DeveloperProfileCodecTest, MigratesV1FixedSlotsIntoScopedAssets) {
@@ -249,69 +368,6 @@ TEST(DeveloperProfileValidationTest,
        .action = DeveloperHeaderAction::kSet});
   EXPECT_EQ(ValidateDeveloperProfile(ExampleOrigin(), profile),
             DeveloperProfileValidationError::kTooManyHeaderRules);
-}
-
-TEST(DeveloperAssetValidationTest, EnforcesScopeLifetimeAndMainWorldWarning) {
-  DeveloperAsset asset = MakeProfile().assets[1];
-  asset.javascript_world = DeveloperJavaScriptWorld::kMain;
-  EXPECT_EQ(ValidateDeveloperAsset(ExampleOrigin(), asset),
-            DeveloperAssetValidationError::kInvalidWorld);
-  asset.main_world_warning_accepted = true;
-  EXPECT_EQ(ValidateDeveloperAsset(ExampleOrigin(), asset),
-            DeveloperAssetValidationError::kNone);
-
-  asset.scope = {.kind = DeveloperAssetScopeKind::kCurrentTab,
-                 .value = "tab-session-1"};
-  asset.lifetime = DeveloperAssetLifetime::kReload;
-  asset.sync_enabled = false;
-  EXPECT_EQ(ValidateDeveloperAsset(ExampleOrigin(), asset),
-            DeveloperAssetValidationError::kNone);
-  EXPECT_FALSE(IsDeveloperAssetPersistable(asset));
-  EXPECT_EQ(ValidateDeveloperProfileForPersistence(
-                ExampleOrigin(),
-                DeveloperProfile{.name = "Ephemeral", .assets = {asset}}),
-            DeveloperProfileValidationError::kEphemeralAssetCannotPersist);
-}
-
-TEST(DeveloperAssetValidationTest, MatchesOriginDomainPathAndTabExplicitly) {
-  DeveloperAsset asset = MakeProfile().assets[0];
-  EXPECT_TRUE(DoesDeveloperAssetMatch(ExampleOrigin(), asset,
-                                      GURL("https://example.test/next")));
-  EXPECT_FALSE(DoesDeveloperAssetMatch(ExampleOrigin(), asset,
-                                       GURL("https://sub.example.test/next")));
-
-  asset.scope = {.kind = DeveloperAssetScopeKind::kDomain,
-                 .value = "example.test"};
-  EXPECT_TRUE(DoesDeveloperAssetMatch(ExampleOrigin(), asset,
-                                      GURL("https://sub.example.test/next")));
-  EXPECT_FALSE(DoesDeveloperAssetMatch(ExampleOrigin(), asset,
-                                       GURL("http://sub.example.test/next")));
-
-  asset.scope = {.kind = DeveloperAssetScopeKind::kPath, .value = "/docs/"};
-  EXPECT_TRUE(DoesDeveloperAssetMatch(ExampleOrigin(), asset,
-                                      GURL("https://example.test/docs/page")));
-  EXPECT_FALSE(DoesDeveloperAssetMatch(ExampleOrigin(), asset,
-                                       GURL("https://example.test/api/page")));
-}
-
-TEST(DeveloperProfileCodecTest, SyncIsExplicitAndKeychainRulesStayLocal) {
-  DeveloperProfile profile = MakeProfile();
-  profile.header_rules_sync_enabled = true;
-  profile.header_rules.push_back({.name = "Authorization",
-                                  .secret_reference = "ahoi-keychain:token",
-                                  .action = DeveloperHeaderAction::kSet});
-  profile.assets[1].source = "not-synced-script";
-  profile.header_rules[0].value = "ordinary-value";
-
-  std::optional<base::DictValue> payload =
-      SerializeDeveloperProfileForSync(profile);
-  ASSERT_TRUE(payload);
-  std::string json;
-  ASSERT_TRUE(base::JSONWriter::Write(*payload, &json));
-  EXPECT_NE(json.find("example-style"), std::string::npos);
-  EXPECT_EQ(json.find("example-script"), std::string::npos);
-  EXPECT_EQ(json.find("ahoi-keychain:token"), std::string::npos);
-  EXPECT_EQ(json.find("resolved-secret"), std::string::npos);
 }
 
 TEST(DeveloperSecretStoreTest, MaterializesAtomicallyWithoutPersistedSecret) {
@@ -400,6 +456,60 @@ TEST(DeveloperProfileStoreTest, PersistsExactOriginAndSchema) {
   EXPECT_TRUE(store.Remove(ExampleOrigin()));
   EXPECT_TRUE(store.ListOrigins().empty());
   EXPECT_FALSE(store.Remove(ExampleOrigin()));
+}
+
+TEST(DeveloperProfileStoreTest, LegacyAdvancedRulesRemainVisibleButDormant) {
+  DeveloperProfile legacy_profile = MakeProfile();
+  legacy_profile.response_header_rules = {
+      {.name = "Content-Security-Policy",
+       .value = "default-src 'self'",
+       .action = DeveloperHeaderAction::kSet},
+  };
+  legacy_profile.response_header_advanced_mode_acknowledged = true;
+  std::optional<base::DictValue> encoded =
+      SerializeDeveloperProfile(legacy_profile);
+  ASSERT_TRUE(encoded);
+  base::DictValue* response_headers = encoded->FindDict("response_headers");
+  ASSERT_TRUE(response_headers);
+  EXPECT_TRUE(response_headers->Remove("advanced_mode_acknowledged"));
+
+  base::DictValue origins;
+  origins.Set(ExampleOrigin().Serialize(), std::move(*encoded));
+  base::DictValue root;
+  root.Set("version", kDeveloperProfileSchemaVersion);
+  root.Set("origins", std::move(origins));
+  TestingPrefServiceSimple prefs;
+  developer_profile_prefs::RegisterProfilePrefs(prefs.registry());
+  prefs.SetDict(kDeveloperProfilesPref, std::move(root));
+
+  PrefDeveloperProfileStore store(&prefs, false);
+  const std::optional<DeveloperProfile> stored = store.Get(ExampleOrigin());
+  ASSERT_TRUE(stored);
+  EXPECT_FALSE(stored->response_header_rules_enabled);
+  EXPECT_FALSE(stored->response_header_advanced_mode_acknowledged);
+  EXPECT_EQ(stored->response_header_rules,
+            legacy_profile.response_header_rules);
+  ASSERT_EQ(store.ListOrigins().size(), 1u);
+  EXPECT_EQ(store.ListOrigins()[0], ExampleOrigin());
+}
+
+TEST(DeveloperProfileStoreTest,
+     RejectsActiveAdvancedRulesUntilLocallyAcknowledged) {
+  TestingPrefServiceSimple prefs;
+  developer_profile_prefs::RegisterProfilePrefs(prefs.registry());
+  PrefDeveloperProfileStore store(&prefs, false);
+  DeveloperProfile profile = MakeProfile();
+  profile.response_header_rules = {
+      {.name = "Access-Control-Allow-Origin",
+       .value = "*",
+       .action = DeveloperHeaderAction::kSet},
+  };
+
+  EXPECT_FALSE(store.Set(ExampleOrigin(), profile));
+  EXPECT_FALSE(store.Get(ExampleOrigin()));
+  profile.response_header_advanced_mode_acknowledged = true;
+  EXPECT_TRUE(store.Set(ExampleOrigin(), profile));
+  EXPECT_EQ(store.Get(ExampleOrigin()), profile);
 }
 
 TEST(DeveloperProfileStoreTest, IsFailClosedForIncognitoByDefault) {

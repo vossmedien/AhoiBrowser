@@ -24,6 +24,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_media_indicator.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -170,21 +171,8 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::ResolveSplitDropSource(
 
   tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id);
   if (!tab && activate_saved_page) {
-    const int tab_count_before = tab_strip_model_->count();
-    tabs::TabInterface* const active_before = tab_strip_model_->GetActiveTab();
     ActivateSavedPage(node);
     tab = session_bridge_->FindTabByTreeNodeId(node.id);
-    if (!tab && tab_strip_model_->count() == tab_count_before + 1) {
-      tabs::TabInterface* const opened_tab = tab_strip_model_->GetActiveTab();
-      // Normal tab insertion deliberately schedules URL-based saved-node
-      // matching outside Chromium's no-blocking mutation scope. This drop path
-      // already owns the exact durable node, so bind the newly opened tab now
-      // and let the scheduled pass observe the established identity later.
-      if (opened_tab && opened_tab != active_before &&
-          session_bridge_->BindTreeNodeToTab(node, opened_tab)) {
-        tab = opened_tab;
-      }
-    }
   }
   return {.valid = true, .tab = tab};
 }
@@ -213,6 +201,38 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
   NavigateParams params(browser_, node.url, ui::PAGE_TRANSITION_AUTO_BOOKMARK);
   params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
   ::Navigate(&params);
+  tabs::TabInterface* const opened_tab = session_bridge_->FindTabByWebContents(
+      params.navigated_or_inserted_contents);
+  if (opened_tab && session_bridge_->BindTreeNodeToTab(node, opened_tab)) {
+    return;
+  }
+
+  // URL matching deliberately leaves chrome://newtab temporary, so the exact
+  // durable UUID must be bound synchronously here. If another activation won
+  // the race, retain that authoritative tab and retire only the tab created by
+  // this call; repeated clicks must never multiply one saved "New Tab" row.
+  if (tabs::TabInterface* const existing =
+          session_bridge_->FindTabByTreeNodeId(node.id)) {
+    if (opened_tab && opened_tab != existing) {
+      opened_tab->Close();
+    }
+    TabStripModel* const model =
+        session_bridge_->FindTabStripModelForTab(existing);
+    const int index = model ? model->GetIndexOfTab(existing) : -1;
+    if (model && index >= 0) {
+      model->ActivateTabAt(
+          index, TabStripUserGestureDetails(
+                     TabStripUserGestureDetails::GestureType::kMouse));
+    }
+    return;
+  }
+
+  // Binding failure without an authoritative winner must fail closed. This is
+  // the only tab created by this activation, so retiring it cannot disturb an
+  // existing session and prevents every retry from adding another orphan.
+  if (opened_tab) {
+    opened_tab->Close();
+  }
 }
 
 bool BrowserSidebarHostView::CanSplitSavedPages(
@@ -378,6 +398,31 @@ std::vector<base::Uuid> BrowserSidebarHostView::GetMoveGroupNodeIds(
   }
   return node_ids.size() > 1 ? node_ids
                              : std::vector<base::Uuid>{source_node_id};
+}
+
+bool BrowserSidebarHostView::CanExtractSavedSplitPaneForDrop(
+    const base::Uuid& source_node_id,
+    const std::optional<base::Uuid>& target_node_id) const {
+  tabs::TabInterface* const source =
+      session_bridge_->FindTabByTreeNodeId(source_node_id);
+  if (!source || !source->GetSplit().has_value() ||
+      session_bridge_->FindTabStripModelForTab(source) != tab_strip_model_) {
+    return false;
+  }
+  if (!target_node_id.has_value()) {
+    return true;
+  }
+  tabs::TabInterface* const target =
+      session_bridge_->FindTabByTreeNodeId(*target_node_id);
+  return !target || target->GetSplit() != source->GetSplit();
+}
+
+void BrowserSidebarHostView::ExtractSavedSplitPaneAfterDrop(
+    const base::Uuid& source_node_id) {
+  tabs::TabInterface* const source =
+      session_bridge_->FindTabByTreeNodeId(source_node_id);
+  CHECK(ExtractTabFromSplitPreservingRemainder(tab_strip_model_, source));
+  ScheduleRuntimePresentationRefresh();
 }
 
 bool BrowserSidebarHostView::CanSaveTemporaryTab(
@@ -566,6 +611,7 @@ void BrowserSidebarHostView::OnSidebarDragStateChanged(
     // which target rows appear for the new source.
     dragged_runtime_tab_handle_.reset();
   }
+  SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
   SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_,
                                          dragged_node_id_.has_value());
   const bool has_open_tabs = !open_tabs_container_->children().empty();
@@ -589,6 +635,7 @@ void BrowserSidebarHostView::OnTemporaryTabDragStateChanged(
     dragged_node_id_.reset();
     SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_, false);
   }
+  SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
   UpdateNewGroupDropTargetVisibility();
   MaybeScheduleDeferredRuntimePresentationRefresh();
 }
@@ -606,6 +653,7 @@ void BrowserSidebarHostView::ResetDragPresentation() {
       dragged_node_id_.has_value() || dragged_runtime_tab_handle_.has_value();
   dragged_node_id_.reset();
   dragged_runtime_tab_handle_.reset();
+  SetBrowserSidebarDragRoutingActive(this, false);
   SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_, false);
 
   const bool has_open_tabs = !open_tabs_container_->children().empty();

@@ -1,6 +1,8 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "ahoi/browser/developer_toolkit/developer_cookie_chromium_adapter.h"
+
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -20,15 +22,34 @@
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/storage_partition.h"
+#include "net/base/schemeful_site.h"
 #include "net/cookies/canonical_cookie.h"
 #include "net/cookies/cookie_access_result.h"
 #include "net/cookies/cookie_constants.h"
 #include "net/cookies/cookie_inclusion_status.h"
 #include "net/cookies/cookie_options.h"
+#include "net/cookies/cookie_partition_key.h"
 #include "services/network/public/mojom/cookie_manager.mojom.h"
 #include "url/origin.h"
 
 namespace ahoi {
+
+std::optional<net::CookiePartitionKey> ResolveDeveloperCookiePartitionKey(
+    const GURL& site_url,
+    bool partitioned,
+    const std::optional<net::CookiePartitionKey>& existing_partition_key) {
+  if (!partitioned) {
+    return std::nullopt;
+  }
+  if (existing_partition_key) {
+    return existing_partition_key;
+  }
+  return net::CookiePartitionKey::FromStorageKeyComponents(
+      net::SchemefulSite(site_url),
+      net::CookiePartitionKey::AncestorChainBit::kSameSite,
+      /*nonce=*/std::nullopt);
+}
+
 namespace {
 
 net::CookieSameSite ToChromiumSameSite(DeveloperCookieSameSite same_site) {
@@ -164,6 +185,19 @@ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
     const base::Time now = base::Time::Now();
     net::CookieInclusionStatus creation_status;
     const bool host_only = !validation.normalized.domain.starts_with('.');
+    // Preserve an existing key byte-for-byte. In particular, do not collapse
+    // a cross-site ancestor bit merely because the editor is currently shown
+    // in a first-party top-level tab. A newly partitioned cookie is explicitly
+    // scoped to the current top-level site through Chromium's supported
+    // storage-key factory.
+    std::optional<net::CookiePartitionKey> partition_key =
+        ResolveDeveloperCookiePartitionKey(
+            site_url, validation.normalized.partitioned,
+            existing ? existing->PartitionKey() : std::nullopt);
+    if (validation.normalized.partitioned && !partition_key) {
+      std::move(callback).Run({DeveloperCookieError::kRejected});
+      return true;
+    }
     std::unique_ptr<net::CanonicalCookie> cookie =
         net::CanonicalCookie::CreateSanitizedCookie(
             site_url, validation.normalized.name, validation.normalized.value,
@@ -174,8 +208,7 @@ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
             now, validation.normalized.secure, validation.normalized.http_only,
             ToChromiumSameSite(validation.normalized.same_site),
             existing ? existing->Priority() : net::COOKIE_PRIORITY_MEDIUM,
-            existing ? existing->PartitionKey() : std::nullopt,
-            &creation_status);
+            std::move(partition_key), &creation_status);
     if (!cookie || !creation_status.IsInclude()) {
       std::move(callback).Run({DeveloperCookieError::kRejected});
       return true;

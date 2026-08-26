@@ -81,6 +81,22 @@ the production pin:
 python3 tools/chromium_roll.py discover --online --output /private/tmp/ahoi-chromium-candidate.json
 ```
 
+Review that bounded discovery result and record its SHA-256, then bind exactly
+the reviewed file, version, and commit as the non-production roll candidate.
+The three explicit acceptance values prevent an unnoticed file replacement or
+metadata edit between review and promotion. Promotion revalidates the complete
+pin schema, requires a version newer than production, atomically writes only
+`config/upstream-roll-candidate.json`, and never changes `config/chromium.json`:
+
+```sh
+shasum -a 256 /private/tmp/ahoi-chromium-candidate.json
+python3 tools/chromium_roll.py promote-candidate \
+  --candidate /private/tmp/ahoi-chromium-candidate.json \
+  --accept-sha256 SHA256 \
+  --accept-version VERSION \
+  --accept-commit COMMIT
+```
+
 Fetch only that tag's commit and tree closure, without automatic maintenance or
 an eager blob transfer:
 
@@ -125,28 +141,36 @@ target out:
 python3 tools/chromium_roll.py preflight --target COMMIT --output /private/tmp/ahoi-chromium-preflight.json
 ```
 
-The efficient sequence is therefore `discover` -> filtered commit/tree fetch ->
-`hydrate` -> `preflight`. Preflight disables Git optional locks before its first
-snapshot, uses a temporary index and object directory, verifies that HEAD, the
-real index and worktree remain byte-for-byte/status-equivalent, and reports each
-patch as `applies`, `already_upstream`, or `conflict`. Lazy fetching is disabled;
-`write-tree --missing-ok` preserves untouched promisor references without
-requesting unrelated blobs. A report containing either of the latter
-dispositions exits with status 2 and is not roll-ready. Offline discovery accepts
-the seven explicit captured response files shown by
-`discover --help`; production `config/chromium.json` is never an output target.
+The efficient sequence is therefore `discover` -> explicit candidate promotion
+-> filtered commit/tree fetch -> `hydrate` -> `preflight`. Preflight disables Git
+optional locks before its first snapshot, uses a temporary index and object
+directory, verifies that HEAD, the real index and worktree remain
+byte-for-byte/status-equivalent, and reports each patch as `applies`,
+`already_upstream`, or `conflict`. Lazy fetching is disabled;
+`write-tree --missing-ok` preserves untouched promisor references without requesting
+unrelated blobs. A report containing either of the latter dispositions exits
+with status 2 and is not roll-ready. Offline discovery accepts the seven explicit
+captured response files shown by `discover --help`; neither production
+`config/chromium.json` nor the reviewed candidate binding is an unchecked report
+output target.
 
 ## Roll policy
 
-1. Read the Chromium Stable release announcement and resolve its exact Git
-   commit from official Chromium sources.
-2. Update the machine-readable pin in one commit.
-3. Sync dependencies and verify no unexpected solution/repository changes.
-4. Reapply every patch independently; record conflicts and disposition.
-5. Build unmodified Chromium, then AhoiBrowser.
-6. Run repository, unit, integration, security, installed-app CU E2E, update,
+1. Read the Chromium Stable release announcement, run discovery, review its
+   exact version/commit, promote the candidate binding, hydrate, and preflight.
+2. While `config/chromium.json` still names the old pin, restore an applied Ahoi
+   checkout through `./scripts/restore-overlay.sh`. The command accepts only the
+   exact current pin, current overlay inputs, recorded state, and complete
+   checkout tree; it performs no reset or broad cleanup.
+3. Update `config/chromium.json` to the reviewed candidate and remove the
+   candidate binding in the same reviewed commit.
+4. Run `./scripts/fetch-chromium.sh --prehydrate-target`, sync dependencies, and
+   verify no unexpected solution/repository changes.
+5. Reapply every patch independently; record conflicts and disposition.
+6. Build unmodified Chromium, then AhoiBrowser.
+7. Run repository, unit, integration, security, installed-app CU E2E, update,
    crash-recovery, and performance gates.
-7. Update third-party license notices and source-offer artifacts.
+8. Update third-party license notices and source-offer artifacts.
 
 Critical Chromium security updates target a releasable Ahoi build within 48
 hours. Routine Stable rolls target seven days. A missed target blocks unrelated

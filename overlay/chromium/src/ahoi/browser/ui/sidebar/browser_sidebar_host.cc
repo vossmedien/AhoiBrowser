@@ -197,4 +197,9 @@ void CancelBrowserSidebarSplitDropDrag(views::View* sidebar_host) {
   }
 }
 
+bool IsBrowserSidebarDragActive(views::View* sidebar_host) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->IsSidebarDragActive();
+}
+
 }  // namespace ahoi::sidebar

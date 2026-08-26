@@ -3,13 +3,14 @@
 
 #include <vector>
 
+#include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "base/test/scoped_feature_list.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/tabs/existing_base_sub_menu_model.h"
 #include "chrome/browser/ui/tabs/features.h"
-#include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/split_tab_menu_model.h"
+#include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "components/split_tabs/split_tab_visual_data.h"
@@ -125,6 +126,47 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   EXPECT_DOUBLE_EQ(visual_data->secondary_split_ratio(), 0.5);
   EXPECT_TRUE(menu.IsItemCheckedAt(rows_index));
   EXPECT_EQ(tab_strip_model->GetSplitData(split_id)->ListTabs(), original_tabs);
+}
+
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       DragExtractionKeepsWebContentsAndRemainingSplit) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+
+  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  ASSERT_EQ(4, tab_strip_model->count());
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {0, 1, 2},
+      split_tabs::SplitTabVisualData::ForFourPane(
+          split_tabs::SplitTabLayout::kStacked),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const std::vector<tabs::TabInterface*> original_panes =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  ASSERT_EQ(4u, original_panes.size());
+  std::vector<content::WebContents*> original_contents;
+  for (tabs::TabInterface* pane : original_panes) {
+    original_contents.push_back(pane->GetContents());
+  }
+
+  tabs::TabInterface* const extracted = original_panes[1];
+  ASSERT_TRUE(sidebar::ExtractTabFromSplitPreservingRemainder(tab_strip_model,
+                                                              extracted));
+
+  EXPECT_EQ(4, tab_strip_model->count());
+  EXPECT_FALSE(extracted->IsSplit());
+  ASSERT_TRUE(tab_strip_model->ContainsSplit(split_id));
+  const std::vector<tabs::TabInterface*> remaining =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  EXPECT_EQ((std::vector<tabs::TabInterface*>{
+                original_panes[0], original_panes[2], original_panes[3]}),
+            remaining);
+  EXPECT_EQ(
+      split_tabs::SplitTabLayout::kStacked,
+      tab_strip_model->GetSplitData(split_id)->visual_data()->split_layout());
+  for (size_t index = 0; index < original_panes.size(); ++index) {
+    EXPECT_EQ(original_contents[index], original_panes[index]->GetContents());
+  }
 }
 
 }  // namespace

@@ -132,22 +132,35 @@ source_set("developer_toolkit_core") {
   ]
 }
 
+source_set("developer_toolkit_preferences") {
+  sources = [
+    "developer_toolkit_prefs.cc",
+    "developer_toolkit_prefs.h",
+  ]
+
+  deps = [
+    ":developer_profile_core",
+    "//components/pref_registry",
+    "//components/prefs",
+  ]
+}
+
 source_set("developer_toolkit") {
   sources = [
     "developer_cookie_chromium_adapter.cc",
+    "developer_cookie_chromium_adapter.h",
     "developer_screenshot_capture.cc",
     "developer_screenshot_capture.h",
     "developer_toolkit_action_executor.cc",
     "developer_toolkit_action_executor.h",
     "developer_toolkit_chromium_adapters.cc",
     "developer_toolkit_chromium_adapters.h",
-    "developer_toolkit_prefs.cc",
-    "developer_toolkit_prefs.h",
   ]
 
   public_deps = [
     ":developer_profile_core",
     ":developer_toolkit_core",
+    ":developer_toolkit_preferences",
     "//base",
     "//content/public/common",
     "//url",
@@ -173,8 +186,11 @@ source_set("developer_toolkit") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "developer_asset_sync_unittest.cc",
+    "developer_cookie_chromium_adapter_unittest.cc",
     "developer_cookie_manager_unittest.cc",
     "developer_header_materialization_unittest.cc",
+    "developer_profile_runtime_unittest.cc",
     "developer_profile_unittest.cc",
     "developer_style_preprocessor_unittest.cc",
     "developer_toolkit_prefs_unittest.cc",

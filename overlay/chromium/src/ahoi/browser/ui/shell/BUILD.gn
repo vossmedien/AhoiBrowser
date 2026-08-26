@@ -44,6 +44,34 @@ source_set("unit_tests") {
   ]
 }
 
+source_set("floating_browser_view_browser_tests") {
+  testonly = true
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  sources = [ "floating_browser_view_browsertest.cc" ]
+  deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//ahoi/browser/ui/appearance:appearance_preferences",
+    "//ahoi/browser/ui/sidebar:browser_sidebar",
+    "//base",
+    "//chrome/app:generated_resources",
+    "//chrome/browser",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/views/location_bar",
+    "//chrome/browser/ui/views/tabs/vertical",
+    "//chrome/test:test_support",
+    "//chrome/test:test_support_ui",
+    "//components/prefs",
+    "//content/test:test_support",
+    "//testing/gtest",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/compositor",
+    "//ui/gfx",
+    "//ui/gfx:test_support",
+    "//ui/views",
+  ]
+}
+
 test("ahoi_navigation_surface_state_unittests") {
   sources = [ "run_all_unittests.cc" ]
   deps = [
@@ -51,4 +79,15 @@ test("ahoi_navigation_surface_state_unittests") {
     "//base/test:test_support",
     "//testing/gtest",
   ]
+}
+
+if (!is_android) {
+  test("ahoi_floating_browser_view_browsertests") {
+    deps = [
+      ":floating_browser_view_browser_tests",
+      "//chrome:packed_resources",
+      "//chrome/test:browser_tests_runner",
+      "//chrome/test:test_support",
+    ]
+  }
 }

@@ -60,6 +60,10 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
       const std::vector<base::Uuid>&) const override;
   std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const override;
+  bool CanExtractSavedSplitPaneForDrop(
+      const base::Uuid&,
+      const std::optional<base::Uuid>&) const override;
+  void ExtractSavedSplitPaneAfterDrop(const base::Uuid& source) override;
   bool CanSaveTemporaryTab(int,
                            const SidebarTreeController::DropTarget&) override;
   bool SaveTemporaryTab(
@@ -88,6 +92,7 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   bool split_succeeds = false;
   bool can_reorder_split = false;
   bool reorder_split_succeeds = false;
+  bool can_extract_saved_split = false;
   bool can_save_temporary = false;
   bool save_temporary_succeeds = false;
   bool can_split_temporary = false;
@@ -101,6 +106,7 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::optional<base::Uuid> drag_state;
   std::vector<std::pair<base::Uuid, base::Uuid>> split_requests;
   std::vector<std::pair<base::Uuid, base::Uuid>> reorder_split_requests;
+  std::vector<base::Uuid> extracted_split_requests;
   std::vector<std::pair<int, SidebarTreeController::DropTarget>>
       saved_temporary_tabs;
   std::vector<std::pair<int, base::Uuid>> split_temporary_requests;

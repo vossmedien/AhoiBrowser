@@ -4,6 +4,7 @@
 #ifndef AHOI_BROWSER_COMMAND_BAR_COMMAND_BAR_TYPES_H_
 #define AHOI_BROWSER_COMMAND_BAR_COMMAND_BAR_TYPES_H_
 
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>
@@ -49,6 +50,16 @@ struct CommandBarSuggestion {
 // search fallbacks) remain untouched.
 std::vector<CommandBarSuggestion> DeduplicateSuggestionsByDestination(
     std::vector<CommandBarSuggestion> suggestions);
+
+// Combines ranked local results with the action derived from the literal
+// input. A syntactically complete URL is always the default action: an exact
+// local destination may represent it (and can activate an existing tab), but
+// unrelated fuzzy history matches never precede it. Search fallbacks remain
+// the final action so local results keep their normal ranking.
+std::vector<CommandBarSuggestion> MergeCommandBarSuggestions(
+    std::vector<CommandBarSuggestion> local_suggestions,
+    std::optional<CommandBarSuggestion> input_fallback,
+    size_t max_suggestions);
 
 }  // namespace ahoi
 

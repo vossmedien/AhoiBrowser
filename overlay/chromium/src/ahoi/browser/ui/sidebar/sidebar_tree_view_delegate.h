@@ -54,6 +54,14 @@ class SidebarTreeViewDelegate {
   // Non-split pages return a one-element vector containing `source_node_id`.
   virtual std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const = 0;
+  // A drop from a split segment onto an ordinary tree target extracts only
+  // that pane. The durable move commits first; the implementation then
+  // rewrites Chromium split membership without touching WebContents.
+  virtual bool CanExtractSavedSplitPaneForDrop(
+      const base::Uuid& source_node_id,
+      const std::optional<base::Uuid>& target_node_id) const = 0;
+  virtual void ExtractSavedSplitPaneAfterDrop(
+      const base::Uuid& source_node_id) = 0;
   virtual bool CanSaveTemporaryTab(
       int,
       const SidebarTreeController::DropTarget&) = 0;

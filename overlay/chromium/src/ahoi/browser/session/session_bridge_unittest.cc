@@ -201,6 +201,28 @@ TEST_F(SessionBridgeTest, NewTabPageNeverRebindsToSavedGenericPage) {
 }
 
 TEST_F(SessionBridgeTest,
+       ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching) {
+  ASSERT_FALSE(workspace_service_->ordered_workspaces().empty());
+  const base::Uuid workspace_id =
+      workspace_service_->ordered_workspaces().front().id;
+  const tab_tree::TreeNode saved_new_tab =
+      MakeSavedPage(workspace_id, GURL(chrome::kChromeUINewTabURL));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            bridge_->tab_tree_store()->CreateNode(saved_new_tab));
+
+  AddTab(browser(), GURL(chrome::kChromeUINewTabURL));
+  tabs::TabInterface* const tab =
+      browser()->tab_strip_model()->GetTabAtIndex(0);
+  ASSERT_TRUE(tab);
+  ASSERT_TRUE(bridge_->BindTreeNodeToTab(saved_new_tab, tab));
+  task_environment()->RunUntilIdle();
+
+  EXPECT_EQ(1, browser()->tab_strip_model()->count());
+  EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(saved_new_tab.id));
+  EXPECT_EQ(saved_new_tab.id, bridge_->FindTreeNodeIdForTab(tab));
+}
+
+TEST_F(SessionBridgeTest,
        CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab) {
   ASSERT_EQ(workspace_service_->ordered_workspaces().size(), 1u);
   const base::Uuid fallback_id =

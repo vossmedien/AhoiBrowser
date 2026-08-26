@@ -62,6 +62,10 @@ TEST(CommandServiceTest, ParsesSearchShortcutAndUrlsLocally) {
   EXPECT_EQ(parsed.kind, CommandInputKind::kUrl);
   EXPECT_EQ(parsed.url, GURL("https://example.com/a"));
 
+  parsed = service.ParseInput(u"fpn-dichtstoffe.de", scheme_classifier);
+  EXPECT_EQ(parsed.kind, CommandInputKind::kUrl);
+  EXPECT_EQ(parsed.url, GURL("https://fpn-dichtstoffe.de/"));
+
   parsed = service.ParseInput(u"localhost:8443/path", scheme_classifier);
   EXPECT_EQ(parsed.kind, CommandInputKind::kUrl);
   EXPECT_EQ(parsed.url, GURL("http://localhost:8443/path"));

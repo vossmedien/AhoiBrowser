@@ -485,6 +485,7 @@ bool BrowserSidebarHostView::RevealFolder(const base::Uuid& folder_id) {
 }
 
 BrowserSidebarHostView::~BrowserSidebarHostView() {
+  SetBrowserSidebarDragRoutingActive(this, false);
   weak_ptr_factory_.InvalidateWeakPtrs();
   widget_drag_observation_.Reset();
   group_recent_show_timer_.Stop();

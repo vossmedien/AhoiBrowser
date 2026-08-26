@@ -25,7 +25,9 @@ std::optional<DeveloperProfile> GetDeveloperProfileForNavigation(
     const GURL& url);
 
 // Resolves all matching source assets across their explicit tab/origin/domain
-// or path scopes. The result order is stable by owner origin and asset order.
+// or path scopes. The result order is stable by owner origin and asset order;
+// each result receives a transient runtime ID namespaced by owner origin so
+// equal profile-local IDs cannot overwrite one another in the document.
 std::vector<DeveloperAsset> GetDeveloperAssetsForNavigation(
     const DeveloperProfileStore& store,
     const GURL& url,

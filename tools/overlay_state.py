@@ -1,63 +1,32 @@
 #!/usr/bin/env python3
-"""Verify that a Chromium worktree is exactly the deterministic Ahoi overlay."""
+"""Verify or safely refresh a deterministic Ahoi Chromium overlay checkout."""
 
 from __future__ import annotations
 
 import argparse
-import dataclasses
-import datetime as dt
-import hashlib
-import json
 import os
 import pathlib
-import re
 import shutil
 import subprocess
 import tempfile
-from typing import Any
 
 from compose_overlay import compose_overlay, isolated_git_environment
 from overlay_fingerprint import fingerprint as overlay_inputs_fingerprint
-
-
-STATE_SCHEMA_VERSION = 2
-STATE_FIELDS = frozenset(
-    {
-        "schemaVersion",
-        "fingerprint",
-        "checkoutDeltaFingerprint",
-        "chromiumCommit",
-        "appliedAt",
-    }
+from overlay_state_storage import (
+    ExpectedOverlay,
+    OverlayApplyResult,
+    OverlayRefreshResult,
+    OverlayRestoreResult,
+    OverlayStateError,
+    VerifiedOverlayState,
+    create_overlay_state_atomic as _create_overlay_state_atomic,
+    delta_fingerprint,
+    load_overlay_state,
+    new_overlay_state as _new_overlay_state,
+    remove_exact_overlay_state as _remove_exact_overlay_state,
+    require_commit as _require_commit,
+    write_overlay_state_atomic as _write_overlay_state_atomic,
 )
-COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
-SHA256_PATTERN = re.compile(r"[0-9a-f]{64}\Z")
-TIMESTAMP_PATTERN = re.compile(
-    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?"
-    r"(?:Z|[+-]\d{2}:\d{2})\Z"
-)
-
-
-class OverlayStateError(ValueError):
-    """Raised when overlay inputs, checkout state, or cached state are invalid."""
-
-
-@dataclasses.dataclass(frozen=True)
-class ExpectedOverlay:
-    chromium_commit: str
-    input_fingerprint: str
-    tree: str
-    delta_fingerprint: str
-
-
-@dataclasses.dataclass(frozen=True)
-class VerifiedOverlayState:
-    chromium_commit: str
-    input_fingerprint: str
-    checkout_delta_fingerprint: str
-    expected_tree: str
-    actual_tree: str
-    applied_at: str
 
 
 def _run_git(
@@ -82,110 +51,50 @@ def _run_git(
     return result.stdout.strip()
 
 
-def _require_commit(value: Any, *, label: str) -> str:
-    if not isinstance(value, str) or COMMIT_PATTERN.fullmatch(value) is None:
-        raise OverlayStateError(f"{label} must be a lowercase 40-character Git commit")
-    return value
+def _run_git_apply(
+    delta: bytes,
+    *,
+    checkout: pathlib.Path,
+    check_only: bool = False,
+    reverse: bool = False,
+) -> None:
+    """Apply one complete binary tree delta without fallback or rejects."""
 
-
-def _require_sha256(value: Any, *, label: str) -> str:
-    if not isinstance(value, str) or SHA256_PATTERN.fullmatch(value) is None:
-        raise OverlayStateError(f"{label} must be a lowercase SHA-256 digest")
-    return value
-
-
-def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for key, value in pairs:
-        if key in result:
-            raise OverlayStateError(f"overlay state contains duplicate key: {key}")
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(value: str):
-    raise OverlayStateError(f"overlay state contains invalid JSON value: {value}")
-
-
-def load_overlay_state(path: pathlib.Path, expected_commit: str) -> dict[str, Any]:
-    """Load the cache with an exact, versioned schema and commit binding."""
-
-    expected_commit = _require_commit(expected_commit, label="expected Chromium commit")
+    command = ["git", "apply", "--whitespace=error-all"]
+    if check_only:
+        command.append("--check")
+    if reverse:
+        command.append("--reverse")
+    effective_environment = isolated_git_environment()
     try:
-        raw = path.read_bytes()
-    except OSError as error:
-        raise OverlayStateError(f"overlay state is missing or unreadable: {path}") from error
-    if len(raw) > 64 * 1024:
-        raise OverlayStateError("overlay state exceeds the 64 KiB size limit")
-    try:
-        state = json.loads(
-            raw.decode("utf-8"),
-            object_pairs_hook=_reject_duplicate_keys,
-            parse_constant=_reject_json_constant,
+        subprocess.run(
+            command,
+            cwd=checkout,
+            env=effective_environment,
+            input=delta,
+            check=True,
+            capture_output=True,
         )
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise OverlayStateError("overlay state is not valid UTF-8 JSON") from error
-    if not isinstance(state, dict):
-        raise OverlayStateError("overlay state must be a JSON object")
-    actual_fields = frozenset(state)
-    if actual_fields != STATE_FIELDS:
-        missing = sorted(STATE_FIELDS - actual_fields)
-        extra = sorted(actual_fields - STATE_FIELDS)
-        details = []
-        if missing:
-            details.append("missing=" + ",".join(missing))
-        if extra:
-            details.append("extra=" + ",".join(extra))
-        raise OverlayStateError("overlay state schema mismatch: " + "; ".join(details))
-    if type(state["schemaVersion"]) is not int or state["schemaVersion"] != STATE_SCHEMA_VERSION:
+    except subprocess.CalledProcessError as error:
+        detail = (error.stderr or error.stdout or b"").decode(
+            "utf-8", "replace"
+        ).strip()
+        suffix = f": {detail}" if detail else ""
+        action = "preflight" if check_only else "application"
+        direction = "rollback " if reverse else ""
         raise OverlayStateError(
-            f"overlay state schemaVersion must be {STATE_SCHEMA_VERSION}"
-        )
-    state_commit = _require_commit(
-        state["chromiumCommit"], label="overlay state chromiumCommit"
-    )
-    if state_commit != expected_commit:
-        raise OverlayStateError("overlay state Chromium commit does not match the pin")
-    _require_sha256(state["fingerprint"], label="overlay state fingerprint")
-    _require_sha256(
-        state["checkoutDeltaFingerprint"],
-        label="overlay state checkoutDeltaFingerprint",
-    )
-    applied_at = state["appliedAt"]
-    if not isinstance(applied_at, str) or TIMESTAMP_PATTERN.fullmatch(applied_at) is None:
-        raise OverlayStateError("overlay state appliedAt must be an ISO-8601 timestamp")
-    try:
-        parsed_applied_at = dt.datetime.fromisoformat(applied_at.replace("Z", "+00:00"))
-    except ValueError as error:
-        raise OverlayStateError("overlay state appliedAt is not a valid timestamp") from error
-    if parsed_applied_at.tzinfo is None or parsed_applied_at.utcoffset() is None:
-        raise OverlayStateError("overlay state appliedAt must include a UTC offset")
-    return state
+            f"overlay refresh {direction}{action} failed{suffix}"
+        ) from error
 
 
-def delta_fingerprint(chromium_commit: str, tree: str) -> str:
-    """Bind the semantic resulting Git tree to its exact Chromium base commit."""
-
-    chromium_commit = _require_commit(
-        chromium_commit, label="expected Chromium commit"
-    )
-    if re.fullmatch(r"[0-9a-f]{40}", tree) is None:
-        raise OverlayStateError("overlay tree must be a lowercase Git SHA-1 object ID")
-    digest = hashlib.sha256()
-    digest.update(b"ahoi-checkout-delta-v2\0")
-    digest.update(chromium_commit.encode("ascii"))
-    digest.update(b"\0")
-    digest.update(tree.encode("ascii"))
-    digest.update(b"\0")
-    return digest.hexdigest()
-
-
-def derive_expected_overlay(
+def _compose_expected_overlay(
     repository: pathlib.Path,
     checkout: pathlib.Path,
     expected_commit: str,
-) -> ExpectedOverlay:
-    """Recompose the expected tree solely from the pin and current source inputs."""
+    *,
+    diff_base_tree: str | None = None,
+) -> tuple[ExpectedOverlay, bytes]:
+    """Compose source truth and optionally a transition from a verified tree."""
 
     repository = repository.resolve()
     checkout = checkout.resolve()
@@ -199,12 +108,13 @@ def derive_expected_overlay(
 
     fingerprint_before = overlay_inputs_fingerprint(repository)
     try:
-        _, expected_tree = compose_overlay(
+        transition, expected_tree = compose_overlay(
             checkout,
             repository / "overlay/chromium/src",
             repository / "patches/chromium/series",
             repository / "patches/chromium",
             base_revision=expected_commit,
+            diff_base_revision=diff_base_tree,
         )
     except (OSError, subprocess.CalledProcessError, SystemExit) as error:
         raise OverlayStateError(f"could not compose deterministic overlay: {error}") from error
@@ -213,12 +123,28 @@ def derive_expected_overlay(
         raise OverlayStateError("overlay inputs changed while they were being composed")
     if _run_git("rev-parse", "HEAD", checkout=checkout) != expected_commit:
         raise OverlayStateError("Chromium checkout HEAD changed during overlay composition")
-    return ExpectedOverlay(
-        chromium_commit=expected_commit,
-        input_fingerprint=fingerprint_after,
-        tree=expected_tree,
-        delta_fingerprint=delta_fingerprint(expected_commit, expected_tree),
+    return (
+        ExpectedOverlay(
+            chromium_commit=expected_commit,
+            input_fingerprint=fingerprint_after,
+            tree=expected_tree,
+            delta_fingerprint=delta_fingerprint(expected_commit, expected_tree),
+        ),
+        transition,
     )
+
+
+def derive_expected_overlay(
+    repository: pathlib.Path,
+    checkout: pathlib.Path,
+    expected_commit: str,
+) -> ExpectedOverlay:
+    """Recompose the expected tree solely from the pin and current source inputs."""
+
+    expected, _ = _compose_expected_overlay(
+        repository, checkout, expected_commit
+    )
+    return expected
 
 
 def current_checkout_tree(checkout: pathlib.Path, expected_commit: str) -> str:
@@ -273,6 +199,404 @@ def current_checkout_tree(checkout: pathlib.Path, expected_commit: str) -> str:
     return tree
 
 
+def _assert_refresh_preconditions(
+    repository: pathlib.Path,
+    checkout: pathlib.Path,
+    state_path: pathlib.Path,
+    expected_commit: str,
+    previous_state: dict[str, Any],
+    previous_tree: str,
+    input_fingerprint: str,
+) -> None:
+    """Recheck every authority immediately before a refresh mutation."""
+
+    if load_overlay_state(state_path, expected_commit) != previous_state:
+        raise OverlayStateError("overlay state changed during refresh")
+    if overlay_inputs_fingerprint(repository.resolve()) != input_fingerprint:
+        raise OverlayStateError("overlay inputs changed after refresh composition")
+    if current_checkout_tree(checkout, expected_commit) != previous_tree:
+        raise OverlayStateError("Chromium checkout changed during overlay refresh")
+
+
+def _rollback_exact_refresh(
+    checkout: pathlib.Path,
+    expected_commit: str,
+    transition: bytes,
+    previous_tree: str,
+    expected_tree: str,
+) -> None:
+    """Undo only our transition, and only while its complete result is present."""
+
+    if current_checkout_tree(checkout, expected_commit) != expected_tree:
+        raise OverlayStateError(
+            "refusing refresh rollback because the checkout changed after application"
+        )
+    _run_git_apply(
+        transition, checkout=checkout, check_only=True, reverse=True
+    )
+    _run_git_apply(transition, checkout=checkout, reverse=True)
+    if current_checkout_tree(checkout, expected_commit) != previous_tree:
+        raise OverlayStateError(
+            "overlay refresh rollback did not restore the previously recorded tree"
+        )
+
+
+def _reapply_exact_overlay(
+    checkout: pathlib.Path,
+    expected_commit: str,
+    transition: bytes,
+    base_tree: str,
+    overlay_tree: str,
+) -> None:
+    """Reapply an overlay only while the exact pinned base tree is present."""
+
+    if current_checkout_tree(checkout, expected_commit) != base_tree:
+        raise OverlayStateError(
+            "refusing restore rollback because the checkout changed after restoration"
+        )
+    _run_git_apply(transition, checkout=checkout, check_only=True)
+    _run_git_apply(transition, checkout=checkout)
+    if current_checkout_tree(checkout, expected_commit) != overlay_tree:
+        raise OverlayStateError(
+            "overlay restore rollback did not recover the previously recorded tree"
+        )
+
+
+def apply_overlay_state(
+    repository: pathlib.Path,
+    checkout: pathlib.Path,
+    state_path: pathlib.Path,
+    expected_commit: str,
+) -> OverlayApplyResult:
+    """Atomically apply the initial overlay and publish its bound state."""
+
+    repository = repository.resolve()
+    checkout = checkout.resolve()
+    state_path = state_path.absolute()
+    expected_commit = _require_commit(
+        expected_commit, label="expected Chromium commit"
+    )
+    if state_path.exists() or state_path.is_symlink():
+        raise OverlayStateError("initial overlay application requires missing state")
+
+    base_tree = _run_git(
+        "rev-parse", f"{expected_commit}^{{tree}}", checkout=checkout
+    )
+    actual_tree = current_checkout_tree(checkout, expected_commit)
+    if actual_tree != base_tree:
+        raise OverlayStateError(
+            "initial overlay application requires the exact clean pinned tree"
+        )
+    expected, transition = _compose_expected_overlay(
+        repository, checkout, expected_commit
+    )
+    if not transition:
+        raise OverlayStateError("initial overlay application produced no tree delta")
+    if state_path.exists() or state_path.is_symlink():
+        raise OverlayStateError("overlay state appeared during initial composition")
+    if overlay_inputs_fingerprint(repository) != expected.input_fingerprint:
+        raise OverlayStateError("overlay inputs changed after initial composition")
+    if current_checkout_tree(checkout, expected_commit) != base_tree:
+        raise OverlayStateError("Chromium checkout changed before initial application")
+
+    next_state = _new_overlay_state(expected)
+    state_published = False
+    try:
+        _run_git_apply(transition, checkout=checkout, check_only=True)
+        _run_git_apply(transition, checkout=checkout)
+        if current_checkout_tree(checkout, expected_commit) != expected.tree:
+            raise OverlayStateError(
+                "initial overlay application did not produce the composed tree"
+            )
+        if overlay_inputs_fingerprint(repository) != expected.input_fingerprint:
+            raise OverlayStateError("overlay inputs changed during initial application")
+        _create_overlay_state_atomic(state_path, next_state)
+        state_published = True
+        verify_overlay_state(repository, checkout, state_path, expected_commit)
+    except BaseException as error:
+        cleanup_error: BaseException | None = None
+        if state_published or state_path.exists() or state_path.is_symlink():
+            try:
+                _remove_exact_overlay_state(
+                    state_path, next_state, expected_commit
+                )
+            except BaseException as state_error:
+                cleanup_error = state_error
+        rollback_error: BaseException | None = None
+        try:
+            failed_tree = current_checkout_tree(checkout, expected_commit)
+            if failed_tree == expected.tree:
+                _rollback_exact_refresh(
+                    checkout,
+                    expected_commit,
+                    transition,
+                    base_tree,
+                    expected.tree,
+                )
+            elif failed_tree != base_tree:
+                raise OverlayStateError(
+                    "refusing initial-apply rollback because the interrupted "
+                    "checkout is neither the exact base nor composed tree"
+                )
+        except BaseException as recovery_error:
+            rollback_error = recovery_error
+        if rollback_error is not None:
+            detail = cleanup_error or rollback_error
+            raise OverlayStateError(
+                f"initial overlay application failed ({error}); exact rollback "
+                f"also failed: {detail}"
+            ) from error
+        if cleanup_error is not None:
+            raise OverlayStateError(
+                f"initial overlay application failed ({error}); checkout rolled "
+                f"back but state cleanup failed: {cleanup_error}"
+            ) from error
+        raise OverlayStateError(
+            "initial overlay application failed and its exact tree delta was "
+            f"rolled back: {error}"
+        ) from error
+
+    return OverlayApplyResult(
+        chromium_commit=expected.chromium_commit,
+        input_fingerprint=expected.input_fingerprint,
+        checkout_delta_fingerprint=expected.delta_fingerprint,
+        previous_tree=base_tree,
+        actual_tree=expected.tree,
+        applied_at=next_state["appliedAt"],
+    )
+
+
+def restore_overlay_state(
+    repository: pathlib.Path,
+    checkout: pathlib.Path,
+    state_path: pathlib.Path,
+    expected_commit: str,
+) -> OverlayRestoreResult:
+    """Restore an exactly verified overlay checkout to its pinned base tree."""
+
+    repository = repository.resolve()
+    checkout = checkout.resolve()
+    state_path = state_path.absolute()
+    expected_commit = _require_commit(
+        expected_commit, label="expected Chromium commit"
+    )
+    previous_state = load_overlay_state(state_path, expected_commit)
+    expected, transition = _compose_expected_overlay(
+        repository, checkout, expected_commit
+    )
+    previous_tree = current_checkout_tree(checkout, expected_commit)
+    if previous_tree != expected.tree:
+        raise OverlayStateError(
+            "Chromium checkout does not match the deterministic overlay being restored"
+        )
+    if previous_state["fingerprint"] != expected.input_fingerprint:
+        raise OverlayStateError("overlay inputs do not match the state being restored")
+    if previous_state["checkoutDeltaFingerprint"] != expected.delta_fingerprint:
+        raise OverlayStateError("overlay tree does not match the state being restored")
+    if not transition:
+        raise OverlayStateError("overlay restore produced no tree delta")
+    base_tree = _run_git(
+        "rev-parse", f"{expected_commit}^{{tree}}", checkout=checkout
+    )
+
+    _assert_refresh_preconditions(
+        repository,
+        checkout,
+        state_path,
+        expected_commit,
+        previous_state,
+        previous_tree,
+        expected.input_fingerprint,
+    )
+    try:
+        _run_git_apply(
+            transition, checkout=checkout, check_only=True, reverse=True
+        )
+        _run_git_apply(transition, checkout=checkout, reverse=True)
+        if current_checkout_tree(checkout, expected_commit) != base_tree:
+            raise OverlayStateError(
+                "overlay restore did not produce the exact pinned base tree"
+            )
+        if load_overlay_state(state_path, expected_commit) != previous_state:
+            raise OverlayStateError("overlay state changed during restoration")
+        if overlay_inputs_fingerprint(repository) != expected.input_fingerprint:
+            raise OverlayStateError("overlay inputs changed during restoration")
+        _remove_exact_overlay_state(state_path, previous_state, expected_commit)
+    except BaseException as error:
+        # State removal is the commit point and the final operation in the
+        # transaction. An asynchronous exception immediately after unlink must
+        # not reapply the overlay without recreating its state.
+        failed_tree = current_checkout_tree(checkout, expected_commit)
+        if (
+            failed_tree == base_tree
+            and not state_path.exists()
+            and not state_path.is_symlink()
+        ):
+            return OverlayRestoreResult(
+                chromium_commit=expected.chromium_commit,
+                input_fingerprint=expected.input_fingerprint,
+                checkout_delta_fingerprint=expected.delta_fingerprint,
+                previous_tree=previous_tree,
+                actual_tree=base_tree,
+            )
+        if failed_tree == base_tree:
+            try:
+                _reapply_exact_overlay(
+                    checkout,
+                    expected_commit,
+                    transition,
+                    base_tree,
+                    expected.tree,
+                )
+            except BaseException as rollback_error:
+                raise OverlayStateError(
+                    f"overlay restore failed ({error}); exact rollback also failed: "
+                    f"{rollback_error}"
+                ) from error
+        elif failed_tree != expected.tree:
+            raise OverlayStateError(
+                f"overlay restore failed ({error}); refusing rollback because "
+                "the interrupted checkout is neither the exact overlay nor base tree"
+            ) from error
+        raise OverlayStateError(
+            "overlay restore failed and the previously recorded tree was "
+            f"reapplied: {error}"
+        ) from error
+
+    return OverlayRestoreResult(
+        chromium_commit=expected.chromium_commit,
+        input_fingerprint=expected.input_fingerprint,
+        checkout_delta_fingerprint=expected.delta_fingerprint,
+        previous_tree=previous_tree,
+        actual_tree=base_tree,
+    )
+
+
+def refresh_overlay_state(
+    repository: pathlib.Path,
+    checkout: pathlib.Path,
+    state_path: pathlib.Path,
+    expected_commit: str,
+) -> OverlayRefreshResult:
+    """Transactionally refresh an exactly recorded applied overlay checkout.
+
+    The cached input fingerprint is deliberately not used as authority because
+    repository inputs are expected to have changed. The recorded checkout tree
+    fingerprint is: it must bind the complete current non-ignored worktree to
+    the previously applied tree before composition or mutation can proceed.
+    """
+
+    repository = repository.resolve()
+    checkout = checkout.resolve()
+    state_path = state_path.absolute()
+    expected_commit = _require_commit(
+        expected_commit, label="expected Chromium commit"
+    )
+    previous_state = load_overlay_state(state_path, expected_commit)
+    previous_tree = current_checkout_tree(checkout, expected_commit)
+    recorded_tree_fingerprint = delta_fingerprint(expected_commit, previous_tree)
+    if previous_state["checkoutDeltaFingerprint"] != recorded_tree_fingerprint:
+        raise OverlayStateError(
+            "Chromium checkout does not match the previously recorded applied "
+            "overlay tree; refusing to refresh foreign or partial edits"
+        )
+
+    expected, transition = _compose_expected_overlay(
+        repository,
+        checkout,
+        expected_commit,
+        diff_base_tree=previous_tree,
+    )
+    checkout_changed = expected.tree != previous_tree
+    state_changed = (
+        previous_state["fingerprint"] != expected.input_fingerprint
+        or previous_state["checkoutDeltaFingerprint"]
+        != expected.delta_fingerprint
+    )
+    if not checkout_changed and not state_changed:
+        return OverlayRefreshResult(
+            chromium_commit=expected.chromium_commit,
+            input_fingerprint=expected.input_fingerprint,
+            checkout_delta_fingerprint=expected.delta_fingerprint,
+            previous_tree=previous_tree,
+            actual_tree=previous_tree,
+            applied_at=previous_state["appliedAt"],
+            checkout_changed=False,
+            state_changed=False,
+        )
+
+    _assert_refresh_preconditions(
+        repository,
+        checkout,
+        state_path,
+        expected_commit,
+        previous_state,
+        previous_tree,
+        expected.input_fingerprint,
+    )
+    next_state = _new_overlay_state(expected)
+
+    if not checkout_changed:
+        _write_overlay_state_atomic(state_path, next_state)
+        return OverlayRefreshResult(
+            chromium_commit=expected.chromium_commit,
+            input_fingerprint=expected.input_fingerprint,
+            checkout_delta_fingerprint=expected.delta_fingerprint,
+            previous_tree=previous_tree,
+            actual_tree=previous_tree,
+            applied_at=next_state["appliedAt"],
+            checkout_changed=False,
+            state_changed=True,
+        )
+
+    if not transition:
+        raise OverlayStateError(
+            "overlay refresh produced different trees but no transition delta"
+        )
+    _run_git_apply(transition, checkout=checkout, check_only=True)
+    _run_git_apply(transition, checkout=checkout)
+
+    try:
+        actual_tree = current_checkout_tree(checkout, expected_commit)
+        if actual_tree != expected.tree:
+            raise OverlayStateError(
+                "overlay refresh did not produce the freshly composed tree"
+            )
+        if load_overlay_state(state_path, expected_commit) != previous_state:
+            raise OverlayStateError("overlay state changed during refresh application")
+        if overlay_inputs_fingerprint(repository) != expected.input_fingerprint:
+            raise OverlayStateError("overlay inputs changed during refresh application")
+        _write_overlay_state_atomic(state_path, next_state)
+    except (OSError, OverlayStateError) as error:
+        try:
+            _rollback_exact_refresh(
+                checkout,
+                expected_commit,
+                transition,
+                previous_tree,
+                expected.tree,
+            )
+        except OverlayStateError as rollback_error:
+            raise OverlayStateError(
+                f"overlay refresh failed ({error}); safe rollback also failed: "
+                f"{rollback_error}"
+            ) from error
+        raise OverlayStateError(
+            f"overlay refresh failed and its tree delta was rolled back: {error}"
+        ) from error
+
+    return OverlayRefreshResult(
+        chromium_commit=expected.chromium_commit,
+        input_fingerprint=expected.input_fingerprint,
+        checkout_delta_fingerprint=expected.delta_fingerprint,
+        previous_tree=previous_tree,
+        actual_tree=expected.tree,
+        applied_at=next_state["appliedAt"],
+        checkout_changed=True,
+        state_changed=True,
+    )
+
+
 def verify_overlay_state(
     repository: pathlib.Path,
     checkout: pathlib.Path,
@@ -315,11 +639,33 @@ def main() -> int:
     verify_parser = subparsers.add_parser(
         "verify", help="verify checkout truth and its cached state"
     )
-    for command_parser in (expected_parser, verify_parser):
+    refresh_parser = subparsers.add_parser(
+        "refresh",
+        help="safely refresh an exactly recorded applied overlay checkout",
+    )
+    apply_parser = subparsers.add_parser(
+        "apply", help="atomically perform the initial overlay application"
+    )
+    restore_parser = subparsers.add_parser(
+        "restore", help="restore a verified overlay checkout to its pinned base"
+    )
+    for command_parser in (
+        expected_parser,
+        verify_parser,
+        refresh_parser,
+        apply_parser,
+        restore_parser,
+    ):
         command_parser.add_argument("--repository", type=pathlib.Path, required=True)
         command_parser.add_argument("--checkout", type=pathlib.Path, required=True)
         command_parser.add_argument("--expected-commit", required=True)
-    verify_parser.add_argument("--state", type=pathlib.Path, required=True)
+    for state_parser in (
+        verify_parser,
+        refresh_parser,
+        apply_parser,
+        restore_parser,
+    ):
+        state_parser.add_argument("--state", type=pathlib.Path, required=True)
     args = parser.parse_args()
 
     try:
@@ -328,7 +674,7 @@ def main() -> int:
                 args.repository, args.checkout, args.expected_commit
             )
             print(expected.delta_fingerprint)
-        else:
+        elif args.command == "verify":
             verified = verify_overlay_state(
                 args.repository,
                 args.checkout,
@@ -336,8 +682,38 @@ def main() -> int:
                 args.expected_commit,
             )
             print(verified.checkout_delta_fingerprint)
+        elif args.command == "refresh":
+            refreshed = refresh_overlay_state(
+                args.repository,
+                args.checkout,
+                args.state,
+                args.expected_commit,
+            )
+            if refreshed.checkout_changed:
+                status = "checkout-refreshed"
+            elif refreshed.state_changed:
+                status = "state-updated"
+            else:
+                status = "unchanged"
+            print(f"{status} {refreshed.checkout_delta_fingerprint}")
+        elif args.command == "apply":
+            applied = apply_overlay_state(
+                args.repository,
+                args.checkout,
+                args.state,
+                args.expected_commit,
+            )
+            print(f"checkout-applied {applied.checkout_delta_fingerprint}")
+        else:
+            restored = restore_overlay_state(
+                args.repository,
+                args.checkout,
+                args.state,
+                args.expected_commit,
+            )
+            print(f"checkout-restored {restored.checkout_delta_fingerprint}")
     except (OSError, OverlayStateError, SystemExit) as error:
-        print(f"error: overlay verification failed: {error}", file=os.sys.stderr)
+        print(f"error: overlay {args.command} failed: {error}", file=os.sys.stderr)
         return 1
     return 0
 

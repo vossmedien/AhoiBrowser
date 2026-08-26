@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/views/controls/button/checkbox.h"
 #include "ui/views/controls/button/label_button.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/test/button_test_api.h"
@@ -160,6 +161,28 @@ TEST_F(DeveloperCookieManagerViewTest, NoMatchesCannotArmADeleteConfirmation) {
   views::test::ButtonTestApi(view->delete_visible_button_for_testing())
       .NotifyDefaultMouseClick();
   EXPECT_FALSE(view->pending_delete_ids_for_testing());
+}
+
+TEST_F(DeveloperCookieManagerViewTest,
+       EditorCreatesAndPreservesPartitionedCookieIntent) {
+  std::vector<DeveloperCookie> cookies = ExampleCookies();
+  cookies.front().secure = true;
+  cookies.front().partitioned = true;
+  auto view = std::make_unique<DeveloperCookieManagerView>(
+      GURL("https://example.test/page"),
+      std::make_unique<FakeDeveloperCookieAdapter>(std::move(cookies)));
+
+  view->StartEditForTesting(1);
+  EXPECT_TRUE(view->partitioned_checkbox_for_testing()->GetChecked());
+  EXPECT_TRUE(view->EditorDraftForTesting().partitioned);
+
+  view->StartCreateForTesting();
+  EXPECT_FALSE(view->partitioned_checkbox_for_testing()->GetChecked());
+  view->partitioned_checkbox_for_testing()->SetChecked(true);
+  view->secure_checkbox_for_testing()->SetChecked(true);
+  const DeveloperCookieDraft draft = view->EditorDraftForTesting();
+  EXPECT_TRUE(draft.partitioned);
+  EXPECT_TRUE(draft.secure);
 }
 
 }  // namespace

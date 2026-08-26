@@ -21,6 +21,7 @@ constexpr char kCompiledStyleVersion[] = "compiled_style_version";
 constexpr char kScope[] = "scope";
 constexpr char kScopeKind[] = "kind";
 constexpr char kScopeValue[] = "value";
+constexpr char kDomainScopeWarningAccepted[] = "domain_scope_warning_accepted";
 constexpr char kLifetime[] = "lifetime";
 constexpr char kSyncEnabled[] = "sync_enabled";
 constexpr char kWorld[] = "world";
@@ -154,6 +155,8 @@ base::ListValue SerializeDeveloperAssets(
             .Set(kScope, base::DictValue()
                              .Set(kScopeKind, EncodeScope(asset.scope.kind))
                              .Set(kScopeValue, asset.scope.value))
+            .Set(kDomainScopeWarningAccepted,
+                 asset.domain_scope_warning_accepted)
             .Set(kLifetime, EncodeLifetime(asset.lifetime))
             .Set(kSyncEnabled, asset.sync_enabled)
             .Set(kWorld, EncodeWorld(asset.javascript_world))
@@ -187,6 +190,11 @@ std::optional<std::vector<DeveloperAsset>> DeserializeDeveloperAssets(
         scope ? scope->FindString(kScopeKind) : nullptr;
     const std::string* scope_value =
         scope ? scope->FindString(kScopeValue) : nullptr;
+    const base::Value* domain_warning_value =
+        dict ? dict->Find(kDomainScopeWarningAccepted) : nullptr;
+    if (domain_warning_value && !domain_warning_value->is_bool()) {
+      return std::nullopt;
+    }
     const std::string* lifetime = dict ? dict->FindString(kLifetime) : nullptr;
     const std::optional<bool> sync_enabled =
         dict ? dict->FindBool(kSyncEnabled) : std::nullopt;
@@ -207,12 +215,17 @@ std::optional<std::vector<DeveloperAsset>> DeserializeDeveloperAssets(
         !parsed_world) {
       return std::nullopt;
     }
+    // Profiles saved before domain-wide consent existed remain editable, but
+    // an enabled domain asset must never become active without a local warning.
+    const bool migrated_enabled =
+        *enabled && (domain_warning_value ||
+                     *parsed_scope != DeveloperAssetScopeKind::kDomain);
     result.push_back({
         .id = *id,
         .name = *name,
         .kind = *parsed_kind,
         .style_language = *parsed_language,
-        .enabled = *enabled,
+        .enabled = migrated_enabled,
         .source = *source,
         .compiled_css = compiled_css ? *compiled_css : std::string(),
         .compiled_style_version =
@@ -220,6 +233,8 @@ std::optional<std::vector<DeveloperAsset>> DeserializeDeveloperAssets(
                 ? static_cast<uint32_t>(*compiled_style_version)
                 : 0u,
         .scope = {.kind = *parsed_scope, .value = *scope_value},
+        .domain_scope_warning_accepted =
+            domain_warning_value ? domain_warning_value->GetBool() : false,
         .lifetime = *parsed_lifetime,
         .sync_enabled = *sync_enabled,
         .javascript_world = *parsed_world,

@@ -4,11 +4,28 @@
 #include "ahoi/browser/developer_toolkit/developer_profile_integration.h"
 
 #include <algorithm>
+#include <string>
+#include <utility>
 
 #include "ahoi/browser/developer_toolkit/developer_asset_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
+#include "base/strings/strcat.h"
+#include "base/strings/string_number_conversions.h"
 
 namespace ahoi {
+namespace {
+
+std::string RuntimeAssetId(const url::Origin& owner_origin,
+                           std::string_view asset_id) {
+  const std::string owner = owner_origin.Serialize();
+  // Length-prefixing makes the namespace unambiguous without a collision-prone
+  // hash. Origins contain no whitespace, so the resulting value is also safe
+  // for exact getElementById()/data-attribute lookups after JSON escaping.
+  return base::StrCat(
+      {base::NumberToString(owner.size()), ":", owner, ":", asset_id});
+}
+
+}  // namespace
 
 std::optional<DeveloperProfile> GetDeveloperProfileForNavigation(
     const DeveloperProfileStore& store,
@@ -44,7 +61,9 @@ std::vector<DeveloperAsset> GetDeveloperAssetsForNavigation(
     for (const DeveloperAsset& asset : profile->assets) {
       if (DoesDeveloperAssetMatch(owner_origin, asset, url,
                                   current_tab_token)) {
-        result.push_back(asset);
+        DeveloperAsset resolved = asset;
+        resolved.runtime_id = RuntimeAssetId(owner_origin, asset.id);
+        result.push_back(std::move(resolved));
       }
     }
   }

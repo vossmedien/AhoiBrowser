@@ -5,6 +5,8 @@ import("//testing/test.gni")
 
 source_set("developer_toolkit_ui") {
   sources = [
+    "developer_asset_policy_view.cc",
+    "developer_asset_policy_view.h",
     "developer_cache_status_view.cc",
     "developer_cache_status_view.h",
     "developer_cookie_manager_view.cc",
@@ -17,6 +19,8 @@ source_set("developer_toolkit_ui") {
     "developer_header_secret_editor_view.h",
     "developer_profile_editor_view.cc",
     "developer_profile_editor_view.h",
+    "developer_response_header_advanced_mode_view.cc",
+    "developer_response_header_advanced_mode_view.h",
     "developer_toolbar_menu_controller.cc",
     "developer_toolbar_menu_controller.h",
     "developer_toolkit_bubble_view.cc",
@@ -49,6 +53,7 @@ source_set("developer_toolkit_ui") {
     "//components/vector_icons",
     "//content/public/browser",
     "//crypto",
+    "//net",
     "//skia",
     "//ui/accessibility",
     "//ui/base",
@@ -64,11 +69,14 @@ source_set("developer_toolkit_ui") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "developer_asset_policy_view_unittest.cc",
     "developer_cache_status_view_unittest.cc",
     "developer_cookie_manager_view_unittest.cc",
     "developer_data_clear_view_unittest.cc",
     "developer_header_secret_editor_model_unittest.cc",
     "developer_header_secret_editor_view_unittest.cc",
+    "developer_response_header_advanced_mode_view_unittest.cc",
+    "developer_toolkit_bubble_view_unittest.cc",
   ]
   deps = [
     ":developer_toolkit_ui",

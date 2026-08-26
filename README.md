@@ -57,6 +57,7 @@ remains recovery/history evidence only.
 ./scripts/fetch-chromium.sh
 ./scripts/run-chromium-hooks.sh
 ./scripts/build-upstream.sh
+./scripts/restore-overlay.sh  # before changing the pin for a Stable roll
 ./scripts/test-repository.sh
 ```
 

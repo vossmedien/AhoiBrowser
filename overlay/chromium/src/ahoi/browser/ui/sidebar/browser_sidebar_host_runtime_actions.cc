@@ -22,6 +22,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -213,12 +214,26 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
   if (source_node_id.has_value() && !MakeSavedPageTemporary(*source_node_id)) {
     return false;
   }
+  if (source->IsSplit() &&
+      !ExtractTabFromSplitPreservingRemainder(tab_strip_model_, source)) {
+    return false;
+  }
   const int source_index = tab_strip_model_->GetIndexOfTab(source);
   int target_index = tab_strip_model_->GetIndexOfTab(target.get());
   if (source_index < 0 || target_index < 0) {
     return false;
   }
-  if (position == OpenTabDropPosition::kAfter) {
+  if (target->GetSplit().has_value()) {
+    const split_tabs::SplitTabData* const target_split =
+        tab_strip_model_->GetSplitData(*target->GetSplit());
+    if (!target_split) {
+      return false;
+    }
+    const gfx::Range target_range = target_split->GetIndexRange();
+    target_index = position == OpenTabDropPosition::kBefore
+                       ? static_cast<int>(target_range.start())
+                       : static_cast<int>(target_range.end());
+  } else if (position == OpenTabDropPosition::kAfter) {
     ++target_index;
   }
   if (source_index < target_index) {
@@ -256,6 +271,7 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
   if (!tab || !contents) {
     return false;
   }
+  const bool extract_split_pane = tab->IsSplit();
   GURL url = contents->GetVisibleURL();
   if (!url.is_valid() || url.is_empty()) {
     url = contents->GetLastCommittedURL();
@@ -289,6 +305,9 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
   if (created_node_id) {
     *created_node_id = created.id;
   }
+  if (extract_split_pane) {
+    CHECK(ExtractTabFromSplitPreservingRemainder(tab_strip_model_, tab));
+  }
   OnTemporaryTabDragStateChanged(std::nullopt);
   ScheduleRuntimePresentationRefresh();
   return true;
@@ -310,45 +329,42 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtWorkspaceRoot(
 
 bool BrowserSidebarHostView::MakeSavedPageTemporary(
     const base::Uuid& source_node_id) {
-  const std::vector<base::Uuid> node_ids = GetMoveGroupNodeIds(source_node_id);
-  if (node_ids.empty()) {
+  tab_tree::TreeNode node;
+  if (session_bridge_->tab_tree_store()->GetNode(source_node_id, &node) !=
+          tab_tree::TabTreeStore::Result::kOk ||
+      node.tombstone || node.type != tab_tree::TreeNodeType::kSavedPage) {
     return false;
-  }
-  std::vector<tab_tree::TreeNode> nodes;
-  nodes.reserve(node_ids.size());
-  for (const base::Uuid& node_id : node_ids) {
-    tab_tree::TreeNode node;
-    if (session_bridge_->tab_tree_store()->GetNode(node_id, &node) !=
-            tab_tree::TabTreeStore::Result::kOk ||
-        node.tombstone || node.type != tab_tree::TreeNodeType::kSavedPage) {
-      return false;
-    }
-    nodes.push_back(std::move(node));
   }
 
   // A closed saved page is opened in the background before its persistent
   // row is removed; dropping it below the separator must never make it
   // disappear instead of becoming a live temporary tab.
-  for (const tab_tree::TreeNode& node : nodes) {
-    if (session_bridge_->FindTabByTreeNodeId(node.id)) {
-      continue;
-    }
+  tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id);
+  if (!tab) {
     NavigateParams params(browser_, node.url,
                           ui::PAGE_TRANSITION_AUTO_BOOKMARK);
     params.disposition = WindowOpenDisposition::NEW_BACKGROUND_TAB;
     ::Navigate(&params);
-  }
-  for (const base::Uuid& node_id : node_ids) {
-    if (tabs::TabInterface* tab =
-            session_bridge_->FindTabByTreeNodeId(node_id)) {
-      session_bridge_->MakeTabTemporary(tab);
+    tab = session_bridge_->FindTabByWebContents(
+        params.navigated_or_inserted_contents);
+    if (!tab || !session_bridge_->BindTreeNodeToTab(node, tab)) {
+      if (tab) {
+        tab->Close();
+      }
+      return false;
     }
   }
+  const bool extract_split_pane = tab->IsSplit();
+  session_bridge_->MakeTabTemporary(tab);
   const tab_tree::TabTreeStore::Result result =
-      controller_->DeleteNodes(node_ids, base::Time::Now());
+      controller_->DeleteNode(source_node_id, base::Time::Now());
   if (result != tab_tree::TabTreeStore::Result::kOk) {
+    CHECK(session_bridge_->BindTreeNodeToTab(node, tab));
     OnMutationFailed(result);
     return false;
+  }
+  if (extract_split_pane) {
+    CHECK(ExtractTabFromSplitPreservingRemainder(tab_strip_model_, tab));
   }
   OnSidebarDragStateChanged(std::nullopt);
   ScheduleRuntimePresentationRefresh();
