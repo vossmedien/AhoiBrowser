@@ -9,6 +9,7 @@
 #include "base/no_destructor.h"
 #include "ui/base/dragdrop/drag_drop_types.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
+#include "ui/compositor/layer_tree_owner.h"
 
 namespace ahoi::sidebar {
 
