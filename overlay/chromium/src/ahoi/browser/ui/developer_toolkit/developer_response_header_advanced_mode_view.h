@@ -18,6 +18,8 @@ namespace ahoi {
 // or CORS. Disabling response overrides clears the acknowledgement so enabling
 // them again always requires an explicit local action.
 class DeveloperResponseHeaderAdvancedModeView final : public views::View {
+  METADATA_HEADER(DeveloperResponseHeaderAdvancedModeView, views::View)
+
  public:
   DeveloperResponseHeaderAdvancedModeView(bool response_headers_enabled,
                                           bool acknowledged);

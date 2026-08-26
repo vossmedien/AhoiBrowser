@@ -7,6 +7,7 @@
 
 #include "chrome/grit/generated_resources.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/color/color_id.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/views/controls/button/checkbox.h"
@@ -56,5 +57,8 @@ void DeveloperResponseHeaderAdvancedModeView::SetResponseHeadersEnabled(
 bool DeveloperResponseHeaderAdvancedModeView::acknowledged() const {
   return acknowledgement_->GetChecked();
 }
+
+BEGIN_METADATA(DeveloperResponseHeaderAdvancedModeView)
+END_METADATA
 
 }  // namespace ahoi

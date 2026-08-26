@@ -23,6 +23,8 @@ namespace ahoi {
 // explicit UI choices into the bounded scope/lifetime model and prevents
 // transient or current-tab source from entering sync.
 class DeveloperAssetPolicyView final : public views::View {
+  METADATA_HEADER(DeveloperAssetPolicyView, views::View)
+
  public:
   DeveloperAssetPolicyView(const DeveloperAsset& initial_asset,
                            GURL source_url,

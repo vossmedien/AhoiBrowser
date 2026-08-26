@@ -16,6 +16,7 @@
 #include "chrome/grit/generated_resources.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/base/models/simple_combobox_model.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/size.h"
@@ -310,11 +311,15 @@ std::string DeveloperAssetPolicyView::DefaultScopeValue(
           net::registry_controlled_domains::GetDomainAndRegistry(
               source_url_,
               net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
-      return domain.empty() ? source_url_.host() : domain;
+      return domain.empty() ? std::string(source_url_.host()) : domain;
     }
     case DeveloperAssetScopeKind::kPath:
-      return source_url_.path().empty() ? "/" : source_url_.path();
+      return source_url_.path().empty() ? std::string("/")
+                                        : std::string(source_url_.path());
   }
 }
+
+BEGIN_METADATA(DeveloperAssetPolicyView)
+END_METADATA
 
 }  // namespace ahoi
