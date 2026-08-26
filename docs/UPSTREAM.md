@@ -112,9 +112,11 @@ The efficient sequence is therefore `discover` -> filtered commit/tree fetch ->
 `hydrate` -> `preflight`. Preflight disables Git optional locks before its first
 snapshot, uses a temporary index and object directory, verifies that HEAD, the
 real index and worktree remain byte-for-byte/status-equivalent, and reports each
-patch as `applies`, `already_upstream`, or `conflict`. A report containing either
-of the latter dispositions exits with status 2 and is not roll-ready. Offline
-discovery accepts the seven explicit captured response files shown by
+patch as `applies`, `already_upstream`, or `conflict`. Lazy fetching is disabled;
+`write-tree --missing-ok` preserves untouched promisor references without
+requesting unrelated blobs. A report containing either of the latter
+dispositions exits with status 2 and is not roll-ready. Offline discovery accepts
+the seven explicit captured response files shown by
 `discover --help`; production `config/chromium.json` is never an output target.
 
 ## Roll policy

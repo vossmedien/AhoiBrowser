@@ -447,6 +447,7 @@ def _preflight(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     if not repository.is_dir():
         raise RollError("repository root does not exist")
     environment = _git_environment()
+    environment["GIT_NO_LAZY_FETCH"] = "1"
     if not checkout.is_dir():
         raise RollError("Chromium checkout does not exist")
     inside = _git_text(checkout, environment, "rev-parse", "--is-inside-work-tree")
@@ -518,7 +519,7 @@ def _preflight(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                     "summary": detail,
                 }
             )
-        result_tree = _git_text(checkout, isolated, "write-tree")
+        result_tree = _git_text(checkout, isolated, "write-tree", "--missing-ok")
 
     after = _checkout_snapshot(checkout, environment)
     unchanged = before == after

@@ -200,7 +200,16 @@ class ChromiumRollPreflightTests(unittest.TestCase):
         (checkout / "base.txt").write_text("base\n", encoding="utf-8")
         (checkout / "overlay.txt").write_text("upstream\n", encoding="utf-8")
         (checkout / "upstream.txt").write_text("new\n", encoding="utf-8")
+        (checkout / "unused.txt").write_text("target-only blob\n", encoding="utf-8")
         target = commit(checkout, "target")
+        unused_target = run(
+            "git", "rev-parse", f"{target}:unused.txt", cwd=checkout
+        ).stdout.strip()
+        (checkout / "unused.txt").write_text("current blob\n", encoding="utf-8")
+        commit(checkout, "current")
+        unused_object = checkout / ".git/objects" / unused_target[:2] / unused_target[2:]
+        self.assertTrue(unused_object.is_file())
+        unused_object.unlink()
         (checkout / "base.txt").write_text("dirty but preserved\n", encoding="utf-8")
         (checkout / "untracked.txt").write_text("also preserved\n", encoding="utf-8")
         (repository / "config/chromium.json").write_text(
