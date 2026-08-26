@@ -192,6 +192,13 @@ class RepositoryBuildContractTests(unittest.TestCase):
             'cmp -s "${chromium_backup}" "${chromium_target_path}"', wrapper
         )
         self.assertIn('cmp -s "${v8_backup}" "${v8_target_path}"', wrapper)
+        self.assertIn("preserve_original_mtime", wrapper)
+        self.assertIn("reference_stat.st_mtime_ns", wrapper)
+        self.assertIn("sourceMtimePreserved", wrapper)
+        self.assertLess(
+            wrapper.index('preserve_original_mtime "${chromium_backup}"'),
+            wrapper.index("gn gen"),
+        )
         self.assertIn("gn gen", wrapper)
         self.assertIn("autoninja -C", wrapper)
         self.assertLess(wrapper.index("git -C"), wrapper.index("gn gen"))

@@ -64,7 +64,7 @@ BrowserSidebarHostView::CreateMiniPlayerOverlay(
           weak_ptr_factory_.GetWeakPtr()));
   mini_player_view_ = mini_player.get();
   mini_player_view_->SetViewMode(
-      IsMiniPlayerExpanded(*browser_->profile()->GetPrefs())
+      IsMiniPlayerExpanded(*browser_->GetProfile()->GetPrefs())
           ? media_ui::MediaMiniPlayerView::ViewMode::kExpanded
           : media_ui::MediaMiniPlayerView::ViewMode::kCompact);
 
@@ -75,7 +75,7 @@ BrowserSidebarHostView::CreateMiniPlayerOverlay(
 }
 
 void BrowserSidebarHostView::OnMiniPlayerExpandedChanged(bool expanded) {
-  (void)SetMiniPlayerExpanded(browser_->profile()->GetPrefs(), expanded);
+  (void)SetMiniPlayerExpanded(browser_->GetProfile()->GetPrefs(), expanded);
 }
 
 void BrowserSidebarHostView::OnAppearanceChanged(

@@ -99,7 +99,7 @@ CommandBarController::CommandBarController(
   CHECK(browser_);
   CHECK(modal_overlay_controller_);
 
-  Profile* profile = browser_->profile();
+  Profile* profile = browser_->GetProfile();
   if (!profile) {
     return;
   }
@@ -179,7 +179,7 @@ bool CommandBarController::Show(CommandBarDisposition disposition) {
                           weak_ptr_factory_.GetWeakPtr()),
       base::BindOnce(&CommandBarController::OnViewDestroyed,
                      weak_ptr_factory_.GetWeakPtr()),
-      browser_->profile()->GetPrefs());
+      browser_->GetProfile()->GetPrefs());
 
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
       anchor_view, views::BubbleBorder::FLOAT,
@@ -255,9 +255,9 @@ std::vector<CommandBarSuggestion> CommandBarController::GetSuggestions(
   suggestions.reserve(kMaximumSuggestions);
 
   SessionBridge* session_bridge =
-      browser_->profile()->IsOffTheRecord()
+      browser_->GetProfile()->IsOffTheRecord()
           ? nullptr
-          : SessionBridgeFactory::GetForProfile(browser_->profile());
+          : SessionBridgeFactory::GetForProfile(browser_->GetProfile());
 
   for (const RankedCommand& ranked :
        command_service_->Query(input, kMaximumIndexedCandidates)) {

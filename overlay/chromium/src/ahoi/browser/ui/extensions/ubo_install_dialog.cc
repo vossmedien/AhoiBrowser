@@ -170,17 +170,17 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
 }
 
 void ShowUboInstallDialog(Browser* browser) {
-  if (!browser || !browser->profile() ||
-      !browser->profile()->IsRegularProfile() || !browser->window()) {
+  if (!browser || !browser->GetProfile() ||
+      !browser->GetProfile()->IsRegularProfile() || !browser->GetWindow()) {
     return;
   }
-  UboService* service = UboServiceFactory::GetForProfile(browser->profile());
+  UboService* service = UboServiceFactory::GetForProfile(browser->GetProfile());
   if (!service) {
     return;
   }
   constrained_window::CreateBrowserModalDialogViews(
       std::make_unique<UboInstallDialog>(browser, service),
-      browser->window()->GetNativeWindow())
+      browser->GetWindow()->GetNativeWindow())
       ->Show();
 }
 

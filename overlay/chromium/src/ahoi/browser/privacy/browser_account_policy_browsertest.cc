@@ -37,7 +37,7 @@ IN_PROC_BROWSER_TEST_F(BrowserAccountPolicyBrowserTest,
             command_line->GetSwitchValueASCII(kAllowBrowserSigninSwitch));
   EXPECT_FALSE(syncer::IsSyncAllowedByFlag());
 
-  Profile* profile = browser()->profile();
+  Profile* profile = browser()->GetProfile();
   EXPECT_FALSE(profile->GetPrefs()->GetBoolean(prefs::kSigninAllowed));
   EXPECT_FALSE(
       profile->GetPrefs()->GetBoolean(prefs::kSigninAllowedOnNextStartup));

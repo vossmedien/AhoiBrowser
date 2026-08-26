@@ -68,7 +68,7 @@ PrivacyModeController::~PrivacyModeController() {
 
 bool PrivacyModeController::Show(views::View* anchor_view) {
   content::WebContents* const contents = GetActiveWebContents();
-  Profile* const profile = browser_ ? browser_->profile() : nullptr;
+  Profile* const profile = browser_ ? browser_->GetProfile() : nullptr;
   if (!anchor_view || !anchor_view->GetWidget() || !contents || !profile) {
     return false;
   }
@@ -138,7 +138,7 @@ bool PrivacyModeController::Show(views::View* anchor_view) {
 }
 
 bool PrivacyModeController::CanShow() const {
-  return browser_ && browser_->profile() && GetActiveWebContents();
+  return browser_ && browser_->GetProfile() && GetActiveWebContents();
 }
 
 content::WebContents* PrivacyModeController::GetActiveWebContents() const {
@@ -148,7 +148,7 @@ content::WebContents* PrivacyModeController::GetActiveWebContents() const {
 }
 
 bool PrivacyModeController::SetGlobalMode(privacy::PrivacyMode mode) {
-  Profile* const profile = browser_ ? browser_->profile() : nullptr;
+  Profile* const profile = browser_ ? browser_->GetProfile() : nullptr;
   if (!profile || profile->IsOffTheRecord() ||
       !privacy::SetGlobalMode(profile->GetPrefs(), mode)) {
     return false;
@@ -159,7 +159,7 @@ bool PrivacyModeController::SetGlobalMode(privacy::PrivacyMode mode) {
 
 bool PrivacyModeController::SetOriginMode(
     std::optional<privacy::PrivacyMode> mode) {
-  Profile* const profile = browser_ ? browser_->profile() : nullptr;
+  Profile* const profile = browser_ ? browser_->GetProfile() : nullptr;
   content::WebContents* const contents = GetActiveWebContents();
   if (!profile || profile->IsOffTheRecord() || !contents) {
     return false;

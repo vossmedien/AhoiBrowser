@@ -24,6 +24,7 @@
 #include "extensions/browser/extension_registrar.h"
 #include "extensions/browser/extension_registry.h"
 #include "extensions/browser/install/crx_install_error.h"
+#include "extensions/browser/install_prompt_data.h"
 
 namespace ahoi::extensions {
 
@@ -80,7 +81,10 @@ class UboInstallCoordinator : public base::RefCounted<UboInstallCoordinator> {
     }
     authorization_ = std::move(authorization.value());
 
-    auto prompt = std::make_unique<ExtensionInstallPrompt>(web_contents_.get());
+    auto prompt = std::make_unique<ExtensionInstallPrompt>(
+        web_contents_.get(),
+        std::make_unique<::extensions::InstallPromptData>(
+            ::extensions::InstallPromptData::UNSET_PROMPT_TYPE));
     installer_ =
         ::extensions::CrxInstaller::Create(profile_.get(), std::move(prompt));
     installer_->set_expected_id(entry_.extension_id);

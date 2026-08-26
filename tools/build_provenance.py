@@ -238,6 +238,7 @@ def verify_dependency_build_workarounds(out_dir: pathlib.Path) -> list[dict]:
             "targetPath": workaround["targetPath"],
             "originalTargetSha256": workaround["targetSha256"],
             "restoredByteForByte": True,
+            "sourceMtimePreserved": True,
         }
         for key, expected in expected_entry.items():
             if entry.get(key) != expected:
@@ -266,6 +267,7 @@ def verify_dependency_build_workarounds(out_dir: pathlib.Path) -> list[dict]:
                 "targetSha256": workaround["targetSha256"],
                 "patchedTargetSha256": patched_target_sha,
                 "restoredByteForByte": True,
+                "sourceMtimePreserved": True,
             }
         )
     return verified

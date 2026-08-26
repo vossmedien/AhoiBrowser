@@ -118,7 +118,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       return false;
     }
 
-    Profile* profile = browser_->profile();
+    Profile* profile = browser_->GetProfile();
     if (!profile->IsOffTheRecord()) {
       SessionBridge* bridge = SessionBridgeFactory::GetForProfile(profile);
       if (bridge) {
@@ -199,7 +199,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
   }
 
   bool SwitchWorkspace(std::string_view stable_id) override {
-    Profile* profile = browser_->profile();
+    Profile* profile = browser_->GetProfile();
     if (profile->IsOffTheRecord()) {
       return false;
     }
@@ -233,7 +233,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       return quick_window::CanMoveActiveTabToNormalWindow(browser_);
     }
     if (command_id == internal::kManageHttpAuthCredentialsCommand) {
-      return browser_->profile() && browser_->profile()->IsRegularProfile() &&
+      return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
              browser_->tab_strip_model()->GetActiveWebContents();
     }
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
@@ -246,7 +246,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       if (command_id == internal::kSwitchHttpAuthAccountCommand) {
         return true;
       }
-      if (browser_->profile()->IsOffTheRecord()) {
+      if (browser_->GetProfile()->IsOffTheRecord()) {
         return false;
       }
       HttpAuthSessionController* const controller =
@@ -272,7 +272,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     if (command_id == internal::kManageHttpAuthCredentialsCommand) {
       content::WebContents* const contents =
           browser_->tab_strip_model()->GetActiveWebContents();
-      return browser_->profile() && browser_->profile()->IsRegularProfile() &&
+      return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
              ShowHttpAuthManagementDialog(contents);
     }
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
@@ -291,7 +291,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
         controller->SwitchAccount();
         return true;
       }
-      if (browser_->profile()->IsOffTheRecord() ||
+      if (browser_->GetProfile()->IsOffTheRecord() ||
           !controller->active_protection_space()) {
         return false;
       }
@@ -335,10 +335,10 @@ std::unique_ptr<CommandExecutionAdapter>
 CommandExecutionAdapter::CreateForBrowser(Browser* browser,
                                           CommandService* command_service,
                                           views::View* sidebar_host) {
-  if (!browser || !command_service || !browser->profile()) {
+  if (!browser || !command_service || !browser->GetProfile()) {
     return nullptr;
   }
-  Profile* profile = browser->profile();
+  Profile* profile = browser->GetProfile();
   return std::make_unique<CommandExecutionAdapter>(
       command_service,
       std::make_unique<ChromeAutocompleteSchemeClassifier>(profile),

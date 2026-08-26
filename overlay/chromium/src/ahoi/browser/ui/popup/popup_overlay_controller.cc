@@ -17,6 +17,7 @@
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_window.h"
+#include "chrome/browser/ui/browser_window/public/desktop_browser_window_capabilities.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/grit/generated_resources.h"
@@ -92,7 +93,7 @@ bool PopupOverlayController::TryShow(
       !*popup_contents || !user_gesture || IsShowing() || popup_view_ ||
       !contents_host_ || !contents_host_->GetWidget() ||
       opener->GetBrowserContext() != (*popup_contents)->GetBrowserContext() ||
-      opener->GetBrowserContext() != browser_->profile()) {
+      opener->GetBrowserContext() != browser_->GetProfile()) {
     return false;
   }
   if (!opener_pane_provider_ || !opener_pane_provider_.Run(opener)) {
@@ -112,7 +113,7 @@ bool PopupOverlayController::TryShow(
                                              /*set_delegate=*/true);
   appearance_signal_source_ =
       std::make_unique<appearance::AppearanceRuntimeSignalSource>(
-          browser_->profile()->GetPrefs(),
+          browser_->GetProfile()->GetPrefs(),
           base::BindRepeating(&PopupOverlayController::OnAppearanceChanged,
                               weak_ptr_factory_.GetWeakPtr()));
   initial_window_features_ = window_features.Clone();
@@ -152,8 +153,8 @@ bool PopupOverlayController::ActivateOwnedContents(
   if (!OwnsContents(contents) || !popup_view_) {
     return false;
   }
-  if (browser_ && browser_->window()) {
-    browser_->window()->Activate();
+  if (browser_ && browser_->GetWindow()) {
+    browser_->GetWindow()->Activate();
   }
   popup_view_->FocusWebContents();
   return true;
@@ -511,7 +512,8 @@ void PopupOverlayController::RestoreFocus() {
     view->RequestFocus();
     return;
   }
-  if (!contents || !browser_ || browser_->IsAttemptingToCloseBrowser() ||
+  if (!contents || !browser_ ||
+      browser_->capabilities()->IsAttemptingToCloseBrowser() ||
       browser_->IsDeleteScheduled()) {
     return;
   }
@@ -522,8 +524,8 @@ void PopupOverlayController::RestoreFocus() {
     return;
   }
   browser_->tab_strip_model()->ActivateTabAt(opener_index);
-  if (browser_->window()) {
-    browser_->window()->Activate();
+  if (browser_->GetWindow()) {
+    browser_->GetWindow()->Activate();
   }
   contents->Focus();
 }

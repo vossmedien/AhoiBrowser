@@ -142,9 +142,9 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   CHECK(workspace_service_);
   CHECK(tab_strip_model_);
   favicon_service_ = FaviconServiceFactory::GetForProfile(
-      browser_->profile(), ServiceAccessType::EXPLICIT_ACCESS);
+      browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
   history_service_ = HistoryServiceFactory::GetForProfile(
-      browser_->profile(), ServiceAccessType::EXPLICIT_ACCESS);
+      browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
 
   SetPreferredSize(gfx::Size(visual_style::kSidebarWidthDefault, 480));
   // The appearance resolver installs the themed opaque/glass surface after
@@ -355,7 +355,7 @@ BrowserSidebarHostView::BrowserSidebarHostView(
               base::Unretained(this)));
   window_id_ = session_bridge_->GetWindowId(browser_);
   profile_sync_service_ =
-      sync::ProfileSyncServiceFactory::GetForProfile(browser_->profile());
+      sync::ProfileSyncServiceFactory::GetForProfile(browser_->GetProfile());
   if (profile_sync_service_) {
     profile_sync_service_->AttachUiBridge(session_bridge_);
     profile_sync_service_->AddObserver(this);
@@ -367,7 +367,7 @@ BrowserSidebarHostView::BrowserSidebarHostView(
 
   appearance_signal_source_ =
       std::make_unique<appearance::AppearanceRuntimeSignalSource>(
-          browser_->profile()->GetPrefs(),
+          browser_->GetProfile()->GetPrefs(),
           base::BindRepeating(&BrowserSidebarHostView::OnAppearanceChanged,
                               weak_ptr_factory_.GetWeakPtr()));
   OnAppearanceChanged(appearance_signal_source_->policy());
@@ -639,7 +639,7 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
       session_bridge_->GetWorkspaceForTab(active_tab);
   if (active_tab && (!active_tab_workspace.has_value() ||
                      active_tab_workspace == workspace_id)) {
-    if (browser_->window()) {
+    if (browser_->GetWindow()) {
       browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
     }
     return;
@@ -682,7 +682,7 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
           target_index,
           TabStripUserGestureDetails(
               TabStripUserGestureDetails::GestureType::kKeyboard));
-      if (browser_->window()) {
+      if (browser_->GetWindow()) {
         browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
       }
     }
@@ -692,13 +692,13 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
   // Empty workspaces are a first-class Ahoi state. Do not synthesize a New
   // Tab page when switching into one; the native empty surface remains visible
   // and the user can create a tab explicitly through Cmd+T or the sidebar.
-  if (browser_->window()) {
+  if (browser_->GetWindow()) {
     browser_->GetBrowserView().SetAhoiEmptyStateVisible(true);
   }
 }
 
 void BrowserSidebarHostView::EnsureWorkspaceSurface() {
-  if (!controller_ || !browser_ || !browser_->window() ||
+  if (!controller_ || !browser_ || !browser_->GetWindow() ||
       browser_->IsWindowCloseRequested()) {
     return;
   }

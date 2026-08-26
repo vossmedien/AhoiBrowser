@@ -109,7 +109,7 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
       !IsSupportedDeveloperTarget(contents)) {
     return false;
   }
-  if (Profile* original = browser_->profile()->GetOriginalProfile()) {
+  if (Profile* original = browser_->GetProfile()->GetOriginalProfile()) {
     developer_toolkit_prefs::ActivateToolkit(*original->GetPrefs());
   }
   if (bubble_widget_) {
@@ -156,7 +156,7 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
                           weak_ptr_factory_.GetWeakPtr(), anchor_view),
       base::BindRepeating(&DeveloperToolkitController::OpenProfileEditor,
                           weak_ptr_factory_.GetWeakPtr(), anchor_view),
-      browser_->profile()->GetPrefs(), GetActivationState());
+      browser_->GetProfile()->GetPrefs(), GetActivationState());
   DeveloperToolkitBubbleView* const view_ptr = view.get();
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
       anchor_view, views::BubbleBorder::TOP_RIGHT,
@@ -228,7 +228,7 @@ content::WebContents* DeveloperToolkitController::GetActiveWebContents() const {
 
 developer_toolkit_prefs::ToolbarVisibility
 DeveloperToolkitController::GetToolbarVisibility() const {
-  Profile* profile = browser_ ? browser_->profile() : nullptr;
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
   profile = profile ? profile->GetOriginalProfile() : nullptr;
   return profile ? developer_toolkit_prefs::GetToolbarVisibility(
                        *profile->GetPrefs())
@@ -237,7 +237,7 @@ DeveloperToolkitController::GetToolbarVisibility() const {
 
 bool DeveloperToolkitController::SetToolbarVisibility(
     developer_toolkit_prefs::ToolbarVisibility visibility) {
-  Profile* profile = browser_ ? browser_->profile() : nullptr;
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
   profile = profile ? profile->GetOriginalProfile() : nullptr;
   return profile && developer_toolkit_prefs::SetToolbarVisibility(
                         *profile->GetPrefs(), visibility);
@@ -264,7 +264,7 @@ DeveloperActivationState DeveloperToolkitController::GetActivationState() {
   if (DeveloperActionExecutor* executor = GetOrCreateExecutor()) {
     state = executor->GetActivationState(contents);
   }
-  Profile* profile = browser_ ? browser_->profile() : nullptr;
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
   if (!profile || profile->IsOffTheRecord()) {
     return state;
   }
@@ -330,7 +330,7 @@ bool DeveloperToolkitController::ShowCookieManager(views::View* anchor_view) {
   auto view = std::make_unique<DeveloperCookieManagerView>(
       site_url,
       CreateChromiumDeveloperCookieAdapter(contents->GetBrowserContext()),
-      browser_->profile()->GetPrefs());
+      browser_->GetProfile()->GetPrefs());
   DeveloperCookieManagerView* const view_ptr = view.get();
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
       anchor_view, views::BubbleBorder::TOP_RIGHT,
@@ -388,7 +388,7 @@ bool DeveloperToolkitController::ShowCacheClear(views::View* anchor_view) {
   const url::Origin origin =
       url::Origin::Create(contents->GetLastCommittedURL());
   auto view = std::make_unique<DeveloperCacheStatusView>(
-      base::UTF8ToUTF16(origin.Serialize()), browser_->profile()->GetPrefs());
+      base::UTF8ToUTF16(origin.Serialize()), browser_->GetProfile()->GetPrefs());
   DeveloperCacheStatusView* const view_ptr = view.get();
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
       anchor_view, views::BubbleBorder::TOP_RIGHT,
@@ -450,7 +450,7 @@ void DeveloperToolkitController::OpenProfileEditor(views::View* anchor_view) {
 
 bool DeveloperToolkitController::ShowProfileEditor(views::View* anchor_view) {
   content::WebContents* const contents = GetActiveWebContents();
-  Profile* profile = browser_ ? browser_->profile() : nullptr;
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
   if (!anchor_view || !anchor_view->GetWidget() || !contents || !profile ||
       profile->IsOffTheRecord() || !IsSupportedDeveloperTarget(contents)) {
     return false;
@@ -560,7 +560,7 @@ bool DeveloperToolkitController::ShowProfileEditor(views::View* anchor_view) {
 bool DeveloperToolkitController::SaveProfile(
     const DeveloperProfile& developer_profile) {
   content::WebContents* const contents = GetActiveWebContents();
-  Profile* profile = browser_ ? browser_->profile() : nullptr;
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
   if (!contents || !profile || profile->IsOffTheRecord() ||
       !IsSupportedDeveloperTarget(contents)) {
     return false;
@@ -582,7 +582,7 @@ bool DeveloperToolkitController::SaveProfile(
 
 bool DeveloperToolkitController::RemoveProfile() {
   content::WebContents* const contents = GetActiveWebContents();
-  Profile* profile = browser_ ? browser_->profile() : nullptr;
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
   if (!contents || !profile || profile->IsOffTheRecord() ||
       !IsSupportedDeveloperTarget(contents)) {
     return false;

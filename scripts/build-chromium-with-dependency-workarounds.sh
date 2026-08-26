@@ -79,6 +79,28 @@ cp -p -- "${v8_target_path}" "${v8_backup}"
 chromium_original_sha="$(ahoi_sha256 "${chromium_backup}")"
 v8_original_sha="$(ahoi_sha256 "${v8_backup}")"
 
+preserve_original_mtime() {
+  reference="$1"
+  target_path="$2"
+  python3 - "${reference}" "${target_path}" <<'PY'
+import os
+from pathlib import Path
+import sys
+
+reference = Path(sys.argv[1])
+target = Path(sys.argv[2])
+reference_stat = reference.stat(follow_symlinks=False)
+target_stat = target.stat(follow_symlinks=False)
+os.utime(
+    target,
+    ns=(target_stat.st_atime_ns, reference_stat.st_mtime_ns),
+    follow_symlinks=False,
+)
+if target.stat(follow_symlinks=False).st_mtime_ns != reference_stat.st_mtime_ns:
+    raise SystemExit(f"failed to preserve original mtime for {target}")
+PY
+}
+
 restore_workarounds() {
   restore_status=0
   if [ -n "${v8_backup}" ]; then
@@ -138,6 +160,7 @@ git -C "${AHOI_CHROMIUM_SRC}" apply --whitespace=error-all "${chromium_patch_pat
 chromium_expected_status=" M ${chromium_target_relative}"
 [ "$(git -C "${AHOI_CHROMIUM_SRC}" status --porcelain -- "${chromium_target_relative}")" = "${chromium_expected_status}" ] || \
   ahoi_die "Chromium Rust workaround changed an unexpected path"
+preserve_original_mtime "${chromium_backup}" "${chromium_target_path}"
 chromium_patched_sha="$(ahoi_sha256 "${chromium_target_path}")"
 
 git -C "${v8_root}" apply --check --whitespace=error-all "${v8_patch_path}"
@@ -145,6 +168,7 @@ git -C "${v8_root}" apply --whitespace=error-all "${v8_patch_path}"
 v8_expected_status=" M ${v8_target_relative}"
 [ "$(git -C "${v8_root}" status --porcelain)" = "${v8_expected_status}" ] || \
   ahoi_die "V8 workaround changed an unexpected path"
+preserve_original_mtime "${v8_backup}" "${v8_target_path}"
 v8_patched_sha="$(ahoi_sha256 "${v8_target_path}")"
 
 args="$(<"${args_file}")"
@@ -208,6 +232,7 @@ payload = {
             "originalTargetSha256": chromium_original_sha256,
             "patchedTargetSha256": chromium_patched_sha256,
             "restoredByteForByte": True,
+            "sourceMtimePreserved": True,
         },
         {
             "workaroundId": v8_id,
@@ -220,6 +245,7 @@ payload = {
             "originalTargetSha256": v8_original_sha256,
             "patchedTargetSha256": v8_patched_sha256,
             "restoredByteForByte": True,
+            "sourceMtimePreserved": True,
         },
     ],
 }
@@ -240,4 +266,4 @@ except BaseException:
     raise
 PY
 
-ahoi_note "restored Chromium and V8 sources after temporary build workarounds"
+ahoi_note "restored Chromium and V8 sources after timestamp-stable temporary build workarounds"

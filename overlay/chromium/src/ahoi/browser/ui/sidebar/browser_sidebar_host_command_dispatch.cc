@@ -183,7 +183,7 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     return;
   }
   if (context_menu_scope_ == ContextMenuScope::kWorkspace) {
-    PrefService* const prefs = browser_->profile()->GetPrefs();
+    PrefService* const prefs = browser_->GetProfile()->GetPrefs();
     if (command_id == kToggleWorkspaceSwipe) {
       prefs->SetBoolean(
           ahoi::navigation_input_prefs::kWorkspaceSwipeEnabled,

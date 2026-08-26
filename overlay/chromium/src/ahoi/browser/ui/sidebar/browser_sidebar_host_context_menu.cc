@@ -496,7 +496,7 @@ bool BrowserSidebarHostView::BuildMoveToMenu(const tab_tree::TreeNode* source) {
 
 // ui::SimpleMenuModel::Delegate:
 bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
-  const PrefService* const prefs = browser_->profile()->GetPrefs();
+  const PrefService* const prefs = browser_->GetProfile()->GetPrefs();
   if (command_id == kToggleWorkspaceSwipe) {
     return prefs->GetBoolean(
         ahoi::navigation_input_prefs::kWorkspaceSwipeEnabled);

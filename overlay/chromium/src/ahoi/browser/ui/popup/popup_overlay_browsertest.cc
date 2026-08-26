@@ -38,7 +38,7 @@ class AhoiPopupOverlayBrowserTest : public InProcessBrowserTest {
 
   std::unique_ptr<content::WebContents> CreatePopupContents() {
     return content::WebContents::Create(
-        content::WebContents::CreateParams(browser()->profile()));
+        content::WebContents::CreateParams(browser()->GetProfile()));
   }
 
   content::WebContents* ShowEligiblePopup() {

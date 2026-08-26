@@ -3603,6 +3603,14 @@ index 9c5e695824e0f2a1ed2d204335f48be827570769..218ffaeeebbb30b37974defa3c9526dc
        homepageIsNewTabPagePref_: {type: Object},
        homepagePref_: {type: Object},
        pinContextualTaskButtonPref_: {type: Object},
+@@ -154,6 +158,7 @@ export class SettingsAppearancePageElement extends
+       colorSchemeModeOptions_: {type: Array},
+       selectedColorSchemeMode_: {type: Number},
+       fontSizeOptions_: {type: Array},
++      floatingNavigationDelayOptions_: {type: Array},
+       pageZoomLevels_: {type: Array},
+       themeSublabel_: {type: String},
+       themeUrl_: {type: String},
 @@ -191,6 +195,8 @@ export class SettingsAppearancePageElement extends
    // Mirrored prefs.
    protected accessor defaultFontSizePref_: PrefObject<number>|undefined =
@@ -4515,11 +4523,12 @@ index 47c68b1f47caa9ff748bfe2f17374699a9ec410d..03aada52b8749249dc08430e1288065e
    browser_window_features()
        ->exclusive_access_manager()
        ->fullscreen_controller()
-@@ -2268,6 +2366,19 @@ void Browser::OnTabDetached(tabs::TabInterface* tab,
+@@ -2268,6 +2366,20 @@ void Browser::OnTabDetached(tabs::TabInterface* tab,
                              bool was_active,
                              bool had_active_modal_dialog) {
    WebContents* contents = tab->GetContents();
-+  if (!window_close_requested_ && !IsAttemptingToCloseBrowser() &&
++  if (!window_close_requested_ &&
++      !capabilities()->IsAttemptingToCloseBrowser() &&
 +      !IsDeleteScheduled()) {
 +    if (BrowserView* const browser_view =
 +            BrowserView::GetBrowserViewForBrowser(this)) {
@@ -4535,7 +4544,7 @@ index 47c68b1f47caa9ff748bfe2f17374699a9ec410d..03aada52b8749249dc08430e1288065e
    TabDetachedAtImpl(contents, was_active, DetachType::kDetach);
  
    window_->OnTabDetached(contents, was_active);
-@@ -2415,12 +2526,10 @@ void Browser::OnActiveTabChanged(const TabStripModelChange& change,
+@@ -2415,12 +2527,10 @@ void Browser::OnActiveTabChanged(const TabStripModelChange& change,
          selection.new_contents);
    }
  
@@ -4548,11 +4557,12 @@ index 47c68b1f47caa9ff748bfe2f17374699a9ec410d..03aada52b8749249dc08430e1288065e
  void Browser::OnTabReplacedAt(WebContents* old_contents,
                                WebContents* new_contents,
                                int index) {
-@@ -2428,6 +2537,16 @@ void Browser::OnTabReplacedAt(WebContents* old_contents,
+@@ -2428,6 +2538,17 @@ void Browser::OnTabReplacedAt(WebContents* old_contents,
    if (was_active) {
      did_active_tab_change_callback_list_.Notify(this);
    }
-+  if (!window_close_requested_ && !IsAttemptingToCloseBrowser() &&
++  if (!window_close_requested_ &&
++      !capabilities()->IsAttemptingToCloseBrowser() &&
 +      !IsDeleteScheduled()) {
 +    if (BrowserView* const browser_view =
 +            BrowserView::GetBrowserViewForBrowser(this)) {
@@ -4565,7 +4575,7 @@ index 47c68b1f47caa9ff748bfe2f17374699a9ec410d..03aada52b8749249dc08430e1288065e
    TabDetachedAtImpl(old_contents, was_active, DetachType::kReplace);
    browser_window_features()->exclusive_access_manager()->OnTabClosing(
        old_contents);
-@@ -2642,6 +2761,20 @@ chrome::BrowserCommandController* Browser::GetCommandController() {
+@@ -2642,6 +2763,20 @@ chrome::BrowserCommandController* Browser::GetCommandController() {
  ///////////////////////////////////////////////////////////////////////////////
  // Browser, Assorted utility functions (private):
  
@@ -4586,7 +4596,7 @@ index 47c68b1f47caa9ff748bfe2f17374699a9ec410d..03aada52b8749249dc08430e1288065e
  void Browser::SetAsDelegate(WebContents* web_contents, bool set_delegate) {
    Browser* delegate = set_delegate ? this : nullptr;
  
-@@ -2676,7 +2809,6 @@ void Browser::TabDetachedAtImpl(content::WebContents* contents,
+@@ -2676,7 +2811,6 @@ void Browser::TabDetachedAtImpl(content::WebContents* contents,
          location_bar->SaveStateToContents(contents);
        }
      }
@@ -7777,27 +7787,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
  #include "chrome/browser/ui/actions/chrome_action_id.h"
  #include "chrome/browser/ui/actions/chrome_action_properties.h"
  #include "chrome/browser/ui/browser_actions.h"
-@@ -115,19 +121,6 @@ double GetGlassFrameTintOpacity(bool is_dark_mode, bool is_vertical_tabs) {
- 
- }  // namespace
- 
--// NSGlassEffectView intercepts hit testing even when added below the
--// WebContents NSViews. Returning nil here lets clicks pass through to the
--// sibling subviews that are supposed to receive them.
--API_AVAILABLE(macos(26.0))
--@interface GlassFrameBackgroundView : NSGlassEffectView
--@end
--
--@implementation GlassFrameBackgroundView
--- (NSView*)hitTest:(NSPoint)point {
--  return nil;
--}
--@end
--
- // Bridge Obj-C class for WindowTouchBarDelegate and
- // BrowserWindowTouchBarController.
- @interface BrowserWindowTouchBarViewsDelegate
-@@ -177,6 +170,19 @@ BrowserNativeWidgetMac::BrowserNativeWidgetMac(BrowserWidget* browser_widget,
+@@ -177,6 +183,19 @@ BrowserNativeWidgetMac::BrowserNativeWidgetMac(BrowserWidget* browser_widget,
      chrome::AddCommandObserver(browser_view_->browser(), IDC_BACK, this);
      chrome::AddCommandObserver(browser_view_->browser(), IDC_FORWARD, this);
    }
@@ -7817,7 +7807,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
  
    if (features::IsGlassFrameEnabled()) {
      if (auto* vertical_tab_strip_state_controller =
-@@ -260,10 +266,8 @@ void BrowserNativeWidgetMac::OnWidgetDestroyed(views::Widget* widget) {
+@@ -260,10 +279,8 @@ void BrowserNativeWidgetMac::OnWidgetDestroyed(views::Widget* widget) {
      chrome::RemoveCommandObserver(browser_view_->browser(), IDC_FORWARD, this);
    }
    touch_bar_delegate_ = nullptr;
@@ -7829,7 +7819,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
    NativeWidgetMac::OnWidgetDestroyed(widget);
  }
  
-@@ -483,6 +487,20 @@ bool BrowserNativeWidgetMac::WillExecuteCommand(
+@@ -483,6 +500,20 @@ bool BrowserNativeWidgetMac::WillExecuteCommand(
  
    Browser* const browser = browser_view_->browser();
  
@@ -7850,7 +7840,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
    if (is_before_first_responder) {
      // The specification for this private extensions API is incredibly vague.
      // For now, we avoid triggering chrome commands prior to giving the
-@@ -521,6 +539,25 @@ bool BrowserNativeWidgetMac::ExecuteCommand(
+@@ -521,6 +552,25 @@ bool BrowserNativeWidgetMac::ExecuteCommand(
  
    Browser* browser = browser_view_->browser();
  
@@ -7876,7 +7866,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
    if (command == IDC_TOGGLE_VERTICAL_TABS) {
      if (auto* controller =
              tabs::VerticalTabStripStateController::From(browser)) {
-@@ -796,16 +833,49 @@ bool BrowserNativeWidgetMac::IsBrowserWidgetEligible() const {
+@@ -796,16 +846,49 @@ bool BrowserNativeWidgetMac::IsBrowserWidgetEligible() const {
  }
  
  void BrowserNativeWidgetMac::UpdateBackground(bool is_eligible) {
@@ -7927,7 +7917,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
        [background_view_ removeFromSuperview];
        background_view_ = nil;
      }
-@@ -820,9 +890,6 @@ void BrowserNativeWidgetMac::UpdateBackground(bool is_eligible) {
+@@ -820,9 +903,6 @@ void BrowserNativeWidgetMac::UpdateBackground(bool is_eligible) {
  
    const ui::NativeTheme::PreferredColorScheme color_scheme =
        browser_view_->GetNativeTheme()->preferred_color_scheme();
@@ -7937,7 +7927,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
  
    // Avoid updating the background view if the theme colors haven't changed.
    if (background_view_ && last_preferred_color_scheme_ == color_scheme &&
-@@ -839,13 +906,14 @@ void BrowserNativeWidgetMac::UpdateBackground(bool is_eligible) {
+@@ -839,13 +919,14 @@ void BrowserNativeWidgetMac::UpdateBackground(bool is_eligible) {
      is_vertical_tabs = controller->ShouldDisplayVerticalTabs();
    }
  
@@ -7957,7 +7947,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..16cf264e8b00d41bf44c78d08f679a73
  
    // A completely transparent background ([NSColor clearColor]) causes AppKit
    // to continuously invalidate the window surface, resulting in high CPU
-@@ -867,6 +935,7 @@ void BrowserNativeWidgetMac::UpdateBackground(bool is_eligible) {
+@@ -867,6 +948,7 @@ void BrowserNativeWidgetMac::UpdateBackground(bool is_eligible) {
        glass_view.wantsLayer = YES;
        glass_view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
        glass_view.style = NSGlassEffectViewStyleRegular;
@@ -10397,7 +10387,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
      GetActiveContentsContainerView()->SetRoundedCorners(radii);
 -    GetInactiveContentsContainerView()->SetRoundedCorners(
 -        gfx::RoundedCornersF());
-+    for (auto* container : contents_container_views_) {
++    for (auto& container : contents_container_views_) {
 +      if (!IsContainerActive(container)) {
 +        container->SetRoundedCorners(gfx::RoundedCornersF());
 +      }
@@ -10511,7 +10501,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
 +             ++index) {
 +          contents_container_views_[index]->SetVisible(index == 0);
 +        }
-+        for (auto* resize_area : resize_areas_) {
++        for (auto& resize_area : resize_areas_) {
 +          resize_area->SetVisible(false);
 +        }
 +        SetActiveIndex(0);
@@ -10581,7 +10571,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
  
    visual_data_ = visual_data;
 -  resize_area_->SetLayout(visual_data.split_layout());
-+  for (auto* resize_area : resize_areas_) {
++  for (auto& resize_area : resize_areas_) {
 +    resize_area->SetLayout(visual_data, GetVisiblePaneCount());
 +  }
    InvalidateLayout();
@@ -10603,7 +10593,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
 +  }
 +
 +  size_t pane_index = 0;
-+  for (auto* contents_container_view : contents_container_views_) {
++  for (auto& contents_container_view : contents_container_views_) {
 +    if (!contents_container_view->GetVisible()) {
 +      continue;
 +    }
@@ -10831,7 +10821,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
        delegate_->WebContentsFocused(container->contents_view()->web_contents());
      }
    }
-@@ -522,33 +763,227 @@ views::ProposedLayout MultiContentsView::CalculateProposedLayout(
+@@ -522,33 +763,228 @@ views::ProposedLayout MultiContentsView::CalculateProposedLayout(
    if (IsInSplitView()) {
      available_space.Inset(split_view_insets_);
    }
@@ -11074,22 +11064,23 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
 +  }
 +
 +  for (size_t index = 0; index < contents_container_views_.size(); ++index) {
-+    layouts.child_layouts.emplace_back(contents_container_views_[index],
++    layouts.child_layouts.emplace_back(contents_container_views_[index].get(),
 +                                       index < pane_count, pane_rects[index]);
 +    if (index < resize_areas_.size()) {
 +      layouts.child_layouts.emplace_back(
-+          resize_areas_[index], index + 1 < pane_count, resize_rects[index]);
++          resize_areas_[index].get(), index + 1 < pane_count,
++          resize_rects[index]);
 +    }
 +  }
    layouts.child_layouts.emplace_back(lens_overlay_view_.get(),
                                       lens_overlay_view_->GetVisible(),
                                       gfx::Rect(width, height));
-@@ -568,7 +1003,11 @@ void MultiContentsView::BeforeApplyLayout(const views::ProposedLayout& layout) {
+@@ -568,7 +1004,11 @@ void MultiContentsView::BeforeApplyLayout(const views::ProposedLayout& layout) {
    if (!IsInSplitView()) {
      const auto outsets = -target_content_bounds_->clipped_area.ToOutsets();
      GetActiveContentsContainerView()->SetTargetContentBounds(outsets);
 -    GetInactiveContentsContainerView()->SetTargetContentBounds(std::nullopt);
-+    for (auto* container : contents_container_views_) {
++    for (auto& container : contents_container_views_) {
 +      if (!IsContainerActive(container)) {
 +        container->SetTargetContentBounds(std::nullopt);
 +      }
@@ -11097,7 +11088,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
      return;
    }
  
-@@ -581,33 +1020,24 @@ void MultiContentsView::BeforeApplyLayout(const views::ProposedLayout& layout) {
+@@ -581,33 +1021,24 @@ void MultiContentsView::BeforeApplyLayout(const views::ProposedLayout& layout) {
  
    const auto& default_clip = target_content_bounds_->clipped_area;
  
@@ -11124,7 +11115,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
 -  if (second_current && second_target) {
 -    second_outsets.set_right(std::max(
 -        0, second_target->bounds.width() - second_current->bounds.width()));
-+  for (auto* container : contents_container_views_) {
++  for (auto& container : contents_container_views_) {
 +    if (!container->GetVisible()) {
 +      container->SetTargetContentBounds(std::nullopt);
 +      continue;
@@ -11148,7 +11139,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
  }
  
  gfx::Rect MultiContentsView::CalculateDropTargetLayout(
-@@ -733,8 +1163,8 @@ MultiContentsView::ViewSizes MultiContentsView::GetViewSizes(
+@@ -733,8 +1164,8 @@ MultiContentsView::ViewSizes MultiContentsView::GetViewSizes(
      CHECK(contents_container_views_[0]->GetVisible() &&
            contents_container_views_[1]->GetVisible());
      sizes.resize = GetSplitLayout() == split_tabs::SplitTabLayout::kSideBySide
@@ -11159,7 +11150,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
      sizes.start = std::round(visual_data_.split_ratio() *
                               (available_size - sizes.resize));
      sizes.end = available_size - sizes.start - sizes.resize;
-@@ -754,7 +1184,9 @@ MultiContentsView::ViewSizes MultiContentsView::ClampToMinSize(
+@@ -754,7 +1185,9 @@ MultiContentsView::ViewSizes MultiContentsView::ClampToMinSize(
      return sizes;
    }
  
@@ -11170,7 +11161,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
    if (sizes.start < min_size) {
      const int diff = min_size - sizes.start;
      sizes.start += diff;
-@@ -767,7 +1199,8 @@ MultiContentsView::ViewSizes MultiContentsView::ClampToMinSize(
+@@ -767,7 +1200,8 @@ MultiContentsView::ViewSizes MultiContentsView::ClampToMinSize(
    return sizes;
  }
  
@@ -11180,7 +11171,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
    CHECK(IsInSplitView());
  
    // The minimum size (in the resize axis) for a content view in a split should
-@@ -776,9 +1209,7 @@ int MultiContentsView::GetMinViewSize(gfx::Rect available_space) const {
+@@ -776,9 +1210,7 @@ int MultiContentsView::GetMinViewSize(gfx::Rect available_space) const {
    // of kConstrainedMinWebContentsSize.
    const int min_percentage =
        kMinWebContentsSizePercentage *
@@ -11191,7 +11182,7 @@ index 5b3e4c82073b5dd325d791e4f9ed4f0a43a04171..cecdd3e2ea8f9d07d262f3773e69ac58
    const int min_fixed_value =
        min_contents_size_for_testing_.value_or(kMinWebContentsSize);
    return std::min(min_fixed_value,
-@@ -853,11 +1284,16 @@ void MultiContentsView::SetSplitViewInsets(const gfx::Insets& insets) {
+@@ -853,11 +1285,16 @@ void MultiContentsView::SetSplitViewInsets(const gfx::Insets& insets) {
    InvalidateLayout(/*avoid_propagate_during_layout=*/true);
  }
  
@@ -12516,7 +12507,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..210f474cb1fb57164533c118bf788588
 +        &LocationBarView::CopyCurrentUrl, base::Unretained(this)));
 +    copy_url_button->SetImageModel(
 +        views::Button::STATE_NORMAL,
-+        ui::ImageModel::FromVectorIcon(kContentCopyIcon,
++        ui::ImageModel::FromVectorIcon(vector_icons::kContentCopyIcon,
 +                                       kColorOmniboxActionIcon, 18));
 +    copy_url_button->SetTooltipText(l10n_util::GetStringUTF16(IDS_COPY_URL));
 +    copy_url_button->SetAccessibleName(l10n_util::GetStringUTF16(IDS_COPY_URL));

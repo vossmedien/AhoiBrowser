@@ -51,13 +51,13 @@ Browser* CreateAndShowQuickWindow(Profile* profile,
 
   if (!chrome::AddAndReturnTabAt(quick_browser, GURL(url::kAboutBlankURL),
                                  /*index=*/-1, /*foreground=*/true)) {
-    if (quick_browser->window()) {
-      quick_browser->window()->Close();
+    if (quick_browser->GetWindow()) {
+      quick_browser->GetWindow()->Close();
     }
     return nullptr;
   }
-  if (quick_browser->window()) {
-    quick_browser->window()->Show();
+  if (quick_browser->GetWindow()) {
+    quick_browser->GetWindow()->Show();
   }
   BrowserView* const quick_view =
       BrowserView::GetBrowserViewForBrowser(quick_browser);
@@ -69,7 +69,7 @@ Browser* CreateAndShowQuickWindow(Profile* profile,
 
 bool CanMoveActiveTabToNormalWindow(const Browser* popup_browser) {
   return popup_browser && popup_browser->is_type_popup() &&
-         IsEligibleProfile(popup_browser->profile()) &&
+         IsEligibleProfile(popup_browser->GetProfile()) &&
          popup_browser->tab_strip_model() &&
          popup_browser->tab_strip_model()->active_index() >= 0;
 }
@@ -84,7 +84,7 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
       [popup_browser, &target](BrowserWindowInterface* candidate) {
         if (candidate != popup_browser &&
             candidate->GetType() == BrowserWindowInterface::TYPE_NORMAL &&
-            candidate->GetProfile() == popup_browser->profile()) {
+            candidate->GetProfile() == popup_browser->GetProfile()) {
           target = candidate->GetBrowserForMigrationOnly();
           return false;
         }
@@ -93,7 +93,7 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
   const bool created_target = !target;
   if (!target) {
     target = Browser::Create(
-        Browser::CreateParams(popup_browser->profile(), /*user_gesture=*/true));
+        Browser::CreateParams(popup_browser->GetProfile(), /*user_gesture=*/true));
   }
   if (!target) {
     return false;
@@ -103,8 +103,8 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
   std::unique_ptr<tabs::TabModel> tab =
       source_model->DetachTabAtForInsertion(source_model->active_index());
   if (!tab) {
-    if (created_target && target->window()) {
-      target->window()->Close();
+    if (created_target && target->GetWindow()) {
+      target->GetWindow()->Close();
     }
     return false;
   }
@@ -112,9 +112,9 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
   target->tab_strip_model()->InsertDetachedTabAt(
       target->tab_strip_model()->count(), std::move(tab),
       AddTabTypes::ADD_ACTIVE);
-  if (target->window()) {
-    target->window()->Show();
-    target->window()->Activate();
+  if (target->GetWindow()) {
+    target->GetWindow()->Show();
+    target->GetWindow()->Activate();
   }
   // Detaching the final popup tab follows Chromium's normal empty-window
   // lifecycle. The WebContents and its renderer/navigation state stay intact.

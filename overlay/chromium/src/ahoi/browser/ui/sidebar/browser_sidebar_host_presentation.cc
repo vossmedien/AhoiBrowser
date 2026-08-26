@@ -130,8 +130,8 @@ namespace ahoi::sidebar {
 
 bool BrowserSidebarHostView::SetSidebarPresentationMode(
     SidebarPresentationMode mode) {
-  if (!browser_ || !browser_->profile() ||
-      !SetPresentationMode(browser_->profile()->GetPrefs(), mode)) {
+  if (!browser_ || !browser_->GetProfile() ||
+      !SetPresentationMode(browser_->GetProfile()->GetPrefs(), mode)) {
     return false;
   }
   return browser_->GetBrowserView().SetAhoiSidebarPresentationMode(mode);
@@ -142,7 +142,7 @@ bool BrowserSidebarHostView::ToggleFloatingSidebar() {
       browser_->GetBrowserView().GetAhoiSidebarPresentationMode();
   if (current == SidebarPresentationMode::kHidden) {
     return SetSidebarPresentationMode(
-        GetVisibleModeBeforeHidden(*browser_->profile()->GetPrefs()));
+        GetVisibleModeBeforeHidden(*browser_->GetProfile()->GetPrefs()));
   }
   return SetSidebarPresentationMode(current ==
                                             SidebarPresentationMode::kFloating
@@ -165,7 +165,7 @@ bool BrowserSidebarHostView::RestoreSidebar() {
     return false;
   }
   return SetSidebarPresentationMode(
-      GetVisibleModeBeforeHidden(*browser_->profile()->GetPrefs()));
+      GetVisibleModeBeforeHidden(*browser_->GetProfile()->GetPrefs()));
 }
 
 void BrowserSidebarHostView::OnSidebarHeaderActionPressed(

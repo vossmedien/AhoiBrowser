@@ -123,15 +123,15 @@ namespace ahoi::sidebar {
 std::unique_ptr<views::View> CreateBrowserSidebarHost(
     Browser* browser,
     ModalOverlayController* modal_overlay_controller) {
-  if (!browser || !browser->is_type_normal() || !browser->profile() ||
-      !browser->profile()->IsRegularProfile() ||
-      browser->profile()->IsOffTheRecord() || !modal_overlay_controller) {
+  if (!browser || !browser->is_type_normal() || !browser->GetProfile() ||
+      !browser->GetProfile()->IsRegularProfile() ||
+      browser->GetProfile()->IsOffTheRecord() || !modal_overlay_controller) {
     return nullptr;
   }
   SessionBridge* session_bridge =
-      SessionBridgeFactory::GetForProfile(browser->profile());
+      SessionBridgeFactory::GetForProfile(browser->GetProfile());
   WorkspaceService* workspace_service =
-      WorkspaceServiceFactory::GetForProfile(browser->profile());
+      WorkspaceServiceFactory::GetForProfile(browser->GetProfile());
   if (!session_bridge || !session_bridge->is_operational() ||
       !session_bridge->tab_tree_store() || !workspace_service) {
     return nullptr;
