@@ -20,10 +20,14 @@ tracked overlay plus the three-entry series in `patches/chromium/series`: the
 M152 integration seams, deterministic platform tests, and upstream page-load
 tracing isolation. It contains the profile-backed sidebar, SQLite-backed nested
 tree, saved/temporary live-tab lifecycle, drag-and-drop, command bar, shared
-visual language, and bounded split-view integration. The previous M151
-development build and green programmatic matrix remain recovery/history
-evidence only; the M152 build, installed-app, and visible runtime gates are
-still required before any current compatibility or daily-driver claim.
+visual language, and bounded split-view integration. The current M152 ARM64
+development build is installed at `/Applications/AhoiBrowser.app`; focused
+tests and a visible installed-app compatibility smoke, including repeated
+sidebar collapse/restore and resize, passed. The Chromium base is Stable while
+the Ahoi development product channel remains `nightly`. This milestone does not
+claim the master prompt's complete binary/device matrix, `CU_E2E PASS`, or a
+Developer-ID-signed, notarized Ahoi Stable release. The previous M151 evidence
+remains recovery/history evidence only.
 
 ## Non-negotiable boundaries
 

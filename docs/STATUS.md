@@ -11,11 +11,13 @@ and development signing or an app copied to `/Applications` is not release or
 
 | Gate | Result | Evidence boundary |
 | --- | --- | --- |
-| Chromium Stable pin | configured | `config/chromium.json` selects Mac Stable `152.0.7977.65` at exact commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`; this is the production base, not Nightly or Canary. |
+| Chromium Stable pin | `PASS` | `config/chromium.json` selects Mac Stable `152.0.7977.65` at exact commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`; `./scripts/verify-pin-online.sh` confirmed that pair against the official Mac Stable release and also confirmed the pinned depot_tools revision. This Chromium base is not Nightly or Canary. |
 | Target-object hydration | `PASS` | `artifacts/build/chromium-checkout-hydration-m152.json` records all 461,863 unique target blobs present, zero remaining, and an unchanged worktree, index, `HEAD`, refs, `FETCH_HEAD`, and shallow boundary. This proves object availability, not dependency sync or a build. |
-| Overlay/patch preflight | `3/3 applies` | The tracked overlay and active series (`0001-ahoi-m152-integration-seams.patch`, `0002-ahoi-deterministic-platform-tests.patch`, `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`) compose non-mutatingly to tree `f2dd856058d4e88eb9cbd461d3010ad2fd522ca0`; see `artifacts/build/chromium-roll-preflight-m152-final.json`. |
-| M152 toolchain | configured; runtime proof pending | All profiles pin Xcode 26.6/17F113, macOS SDK 26.5/25F70, and iOS SDK 26.5/23F81a. Upstream/release and development labels remain provenance-separated even though they select the same installation. M152 hooks and build provenance must still be recorded. |
-| M152 build and installed runtime | pending | No M152 baseline build, Ahoi binary matrix, installed signed-bundle verification, `CU_E2E PASS`, or release result is claimed here yet. |
+| Overlay/patch preflight | `PASS` (`3/3 applies`) | The tracked overlay and active series (`0001-ahoi-m152-integration-seams.patch`, `0002-ahoi-deterministic-platform-tests.patch`, `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`) compose non-mutatingly to tree `d5d32d524f909da7043577d204d726b289a6d757`; see `artifacts/build/chromium-roll-preflight-m152-final.json`. |
+| M152 development toolchain and dependencies | `PASS` | The development build completed with pinned Xcode 26.6/17F113, macOS SDK 26.5/25F70, iOS SDK 26.5/23F81a, checkout-pinned depot_tools, and verified temporary Chromium/V8 path workarounds. Upstream/release and development labels remain provenance-separated even though they select the same installation. |
+| M152 focused tests | `PASS` | The complete sidebar suite passed `79/79`, including `CollapsingViewportDefersRegisteredTextfieldRecycling`. The current outer repository gate also passed 185 repository tests, 13 HTTP-auth fixture tests, 17 HTTPS fixture tests, and 36 CloudKit model tests. These focused development results are not the full product matrix. |
+| M152 development build and installation | `PASS` | The component runtime staged 525 dynamic libraries and 238 resources. The ARM64 app was stamped to the current source, signed with the configured Apple Development identity, installed atomically at `/Applications/AhoiBrowser.app`, and verified against the built executable. Chromium is Stable; `config/version.json` still labels this Ahoi development product channel `nightly`, so this is not an Ahoi Stable release. |
+| Installed visible compatibility smoke | `PASS` (development scope) | Computer Use visibly confirmed `chrome://version` as Chromium `152.0.7977.65` and the executable below `/Applications/AhoiBrowser.app`. Four fresh sidebar collapse/restore cycles and a native sidebar resize completed while the installed browser stayed alive, with no post-fix Crashpad dump. See `artifacts/computer-use/m152/README.md`. This scoped smoke is not the master prompt's full `CU_E2E PASS`. |
 
 ## Historical M151 recovery and previous green matrix
 
@@ -47,12 +49,12 @@ failure. Its machine-readable summary is
 
 ## Release and installed-app boundary
 
-No release build, notarized/stapled package, signed release manifest, updater
-journey, `INSTALLED_PASS`, `CU_E2E PASS`, or `ASSISTED_E2E PASS` has been
-recorded. The portable component build can be signed with an Apple Development
-identity for stable local Keychain behavior, but that signature does not provide
-Developer ID, Hardened Runtime, notarization, stapling or exact packaged-to-live
-bundle provenance.
+The M152 development bundle is built, signed, installed, and visibly smoke
+tested. No release build, notarized/stapled package, signed release manifest,
+updater journey, master-level `INSTALLED_PASS`, `CU_E2E PASS`, or
+`ASSISTED_E2E PASS` has been recorded. An Apple Development signature provides
+stable local Keychain behavior, but not Developer ID, Hardened Runtime,
+notarization, stapling, or exact packaged-to-live release provenance.
 
 A valid Developer ID Application identity is available locally. Release remains
 blocked until the reviewed release environment and Team ID binding, Keychain

@@ -26,10 +26,13 @@ Chromium's Rust wrapper cannot parse rustc's escaped absolute `OUT_DIR` paths.
 Both build scripts therefore use the exact temporary workarounds pinned in
 `config/dependency-build-workarounds.json`. The wrapper applies them only
 while `gn gen` and `autoninja` run, restores both target files byte-for-byte
-on success, failure, or signal, and writes every verified target and patch
-SHA-256 into build provenance. A milestone update fails closed until the new
-Chromium and V8 revisions, original target bytes, and patch applicability are
-reviewed and repinned.
+with their original modification times on success, failure, or signal, and
+writes every verified target and patch SHA-256 into build provenance.
+Preserving the original times keeps Ninja's incremental frontier intact, so a
+resumed build does not rebuild thousands of already valid outputs merely
+because the temporary workaround was restored. A milestone update fails closed
+until the new Chromium and V8 revisions, original target bytes, and patch
+applicability are reviewed and repinned.
 
 For an explicitly supervised checkout or build, `AHOI_ALLOW_LOW_DISK=1`
 permits starting below the recommended 150 GiB but never below the configured
