@@ -54,7 +54,7 @@ uses temporary index and object storage, with the real object database mounted
 read-only as an alternate. The flag defaults to `HEAD`; the requested ref is
 resolved once to an exact commit before composition.
 
-## Non-mutating roll dry-run
+## Checkout-preserving roll dry-run
 
 Discover the highest active, fully rolled and pinnable Mac ARM64 Stable release
 from bounded Chromium Dash, VersionHistory and Gitiles requests without changing
@@ -64,16 +64,53 @@ the production pin:
 python3 tools/chromium_roll.py discover --online --output /private/tmp/ahoi-chromium-candidate.json
 ```
 
-After that exact candidate commit exists in the local Chromium object database,
-classify the complete overlay and ordered patch stack without checking it out:
+Fetch only that tag's commit and tree closure, without automatic maintenance or
+an eager blob transfer:
+
+```sh
+git -C .work/chromium/src fetch --no-tags --filter=blob:none --depth=1 \
+  --no-auto-maintenance https://chromium.googlesource.com/chromium/src.git \
+  refs/tags/VERSION:refs/ahoi/upstream/VERSION
+```
+
+Hydrate only missing target blobs named by the ordered patch series. Explicitly
+bound inputs such as `DEPS` and `chrome/VERSION` can be added repeatably; they
+pass through the same path and object verification:
+
+```sh
+python3 tools/chromium_roll.py hydrate --target COMMIT \
+  --include-path DEPS --include-path chrome/VERSION \
+  --output /private/tmp/ahoi-chromium-hydration.json
+```
+
+Hydration uses HTTPS Gitiles responses with redirects disabled, strict response
+and aggregate limits, path/request caps, a total deadline, strict base64
+decoding, and an exact Git blob SHA-1 check. The target must match either the
+validated production pin or `config/upstream-roll-candidate.json`; the report
+cryptographically binds the ordered patch inputs. Only after every response
+verifies are missing blobs added to the Chromium Git object store. Those
+immutable writes are deliberately resumable rather than transactional: if a
+later object write fails, an earlier verified blob may remain and the next run
+continues safely. HEAD, the real index (including a stale index), and the
+worktree must remain byte-identical.
+
+Report outputs are reserved before hydration, use a pinned directory descriptor
+and an atomic leaf replacement, and are refused inside the Chromium checkout or
+outside `artifacts/build` when they are written inside this repository. Avoid
+`blob:limit` or another whole-tree refetch: it transfers unrelated source blobs
+and defeats this bounded patch-path workflow.
+
+Then classify the complete overlay and ordered patch stack without checking the
+target out:
 
 ```sh
 python3 tools/chromium_roll.py preflight --target COMMIT --output /private/tmp/ahoi-chromium-preflight.json
 ```
 
-Preflight disables Git optional locks before its first snapshot, uses a
-temporary index and object directory, verifies that HEAD, the real index and
-worktree remain byte-for-byte/status-equivalent, and reports each
+The efficient sequence is therefore `discover` -> filtered commit/tree fetch ->
+`hydrate` -> `preflight`. Preflight disables Git optional locks before its first
+snapshot, uses a temporary index and object directory, verifies that HEAD, the
+real index and worktree remain byte-for-byte/status-equivalent, and reports each
 patch as `applies`, `already_upstream`, or `conflict`. A report containing either
 of the latter dispositions exits with status 2 and is not roll-ready. Offline
 discovery accepts the seven explicit captured response files shown by

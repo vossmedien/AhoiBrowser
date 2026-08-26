@@ -1,8 +1,10 @@
 import base64
+import hashlib
 import json
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -10,6 +12,15 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ROLL = ROOT / "tools/chromium_roll.py"
 PIN = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
+sys.path.insert(0, str(ROOT / "tools"))
+
+from chromium_roll_hydration import (  # noqa: E402
+    HydrationError,
+    MAX_TARGET_PATHS,
+    fetch_gitiles_response,
+    gitiles_blob_url,
+    hydrate_target_blobs,
+)
 
 
 def run(*args: str, cwd: pathlib.Path = ROOT):
@@ -191,7 +202,7 @@ class ChromiumRollPreflightTests(unittest.TestCase):
         (checkout / "base.txt").write_text("dirty but preserved\n", encoding="utf-8")
         (checkout / "untracked.txt").write_text("also preserved\n", encoding="utf-8")
         (repository / "config/chromium.json").write_text(
-            json.dumps(PIN), encoding="utf-8"
+            json.dumps({**PIN, "commit": target}), encoding="utf-8"
         )
         (repository / "overlay/chromium/src/overlay.txt").write_text(
             "Ahoi overlay\n", encoding="utf-8"
@@ -334,6 +345,379 @@ class ChromiumRollPreflightTests(unittest.TestCase):
         self.assertNotEqual(0, result.returncode)
         self.assertNotIn("Traceback", result.stderr)
         self.assertIn("target revision is unsafe", result.stderr)
+
+
+class ChromiumRollHydrationTests(unittest.TestCase):
+    def make_fixture(self, root: pathlib.Path):
+        repository = root / "repository"
+        checkout = root / "chromium"
+        responses = root / "responses"
+        (repository / "config").mkdir(parents=True)
+        (repository / "patches/chromium").mkdir(parents=True)
+        responses.mkdir()
+        checkout.mkdir()
+        run("git", "init", "-q", cwd=checkout)
+        run("git", "config", "user.name", "Ahoi Test", cwd=checkout)
+        run("git", "config", "user.email", "test@example.invalid", cwd=checkout)
+        (checkout / "a.txt").write_text("target a\n", encoding="utf-8")
+        (checkout / "existing.txt").write_text("existing\n", encoding="utf-8")
+        (checkout / "DEPS").write_text("target deps\n", encoding="utf-8")
+        (checkout / "dir").mkdir()
+        (checkout / "dir/child.txt").write_text("target child\n", encoding="utf-8")
+        (checkout / "dir/sibling.txt").write_text(
+            "target sibling\n", encoding="utf-8"
+        )
+        target = commit(checkout, "target")
+        object_ids = {
+            path: run("git", "rev-parse", f"{target}:{path}", cwd=checkout).stdout.strip()
+            for path in (
+                "a.txt",
+                "existing.txt",
+                "DEPS",
+                "dir/child.txt",
+                "dir/sibling.txt",
+            )
+        }
+        contents = {
+            "a.txt": b"target a\n",
+            "existing.txt": b"existing\n",
+            "DEPS": b"target deps\n",
+            "dir/child.txt": b"target child\n",
+            "dir/sibling.txt": b"target sibling\n",
+        }
+        (checkout / "a.txt").write_text("current a\n", encoding="utf-8")
+        (checkout / "DEPS").write_text("current deps\n", encoding="utf-8")
+        (checkout / "current.txt").write_text("current only\n", encoding="utf-8")
+        (checkout / "dir/child.txt").write_text("current child\n", encoding="utf-8")
+        (checkout / "dir/sibling.txt").write_text(
+            "current sibling\n", encoding="utf-8"
+        )
+        commit(checkout, "current")
+        (repository / "config/chromium.json").write_text(
+            json.dumps({**PIN, "commit": target}), encoding="utf-8"
+        )
+        patches = repository / "patches/chromium"
+        (patches / "product.patch").write_text(
+            """diff --git a/a.txt b/a.txt
+--- a/a.txt
++++ b/a.txt
+@@ -1 +1 @@
+-target a
++patched a
+diff --git a/existing.txt b/existing.txt
+--- a/existing.txt
++++ b/existing.txt
+@@ -1 +1 @@
+-existing
++patched existing
+""",
+            encoding="utf-8",
+        )
+        (patches / "series").write_text("product.patch\n", encoding="utf-8")
+        for path in ("a.txt", "DEPS", "dir/child.txt", "dir/sibling.txt"):
+            oid = object_ids[path]
+            if path != "dir/child.txt":
+                (responses / f"{oid}.b64").write_bytes(
+                    base64.b64encode(contents[path])
+                )
+            loose = checkout / ".git/objects" / oid[:2] / oid[2:]
+            self.assertTrue(loose.is_file())
+            loose.unlink()
+        (checkout / "untracked.txt").write_text("preserve\n", encoding="utf-8")
+        tracked = checkout / "current.txt"
+        tracked_stat = tracked.stat()
+        os.utime(
+            tracked,
+            ns=(tracked_stat.st_atime_ns, tracked_stat.st_mtime_ns + 2_000_000_000),
+        )
+        return repository, checkout, responses, target, object_ids
+
+    def invoke(
+        self,
+        repository: pathlib.Path,
+        checkout: pathlib.Path,
+        responses: pathlib.Path,
+        target: str,
+        *extra: str,
+    ):
+        return run(
+            "python3",
+            str(ROLL),
+            "hydrate",
+            "--repository",
+            str(repository),
+            "--checkout",
+            str(checkout),
+            "--target",
+            target,
+            "--offline-response-directory",
+            str(responses),
+            *extra,
+        )
+
+    def missing(self, checkout: pathlib.Path, oid: str) -> bool:
+        environment = {**os.environ, "GIT_NO_LAZY_FETCH": "1"}
+        result = subprocess.run(
+            ("git", "cat-file", "-e", oid),
+            cwd=checkout,
+            env=environment,
+            check=False,
+            capture_output=True,
+        )
+        return result.returncode != 0
+
+    def test_only_missing_patch_blob_is_written_and_report_is_portable_deterministic(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-roll-hydrate-") as raw:
+            root = pathlib.Path(raw)
+            repository, checkout, responses, target, object_ids = self.make_fixture(root)
+            index_before = (checkout / ".git/index").read_bytes()
+            head_before = run("git", "rev-parse", "HEAD", cwd=checkout).stdout
+            first = self.invoke(repository, checkout, responses, target)
+            index_after = (checkout / ".git/index").read_bytes()
+            report = json.loads(first.stdout)
+            hydrated = checkout / ".git/objects" / object_ids["a.txt"][:2] / object_ids["a.txt"][2:]
+            hydrated.unlink()
+            second = self.invoke(repository, checkout, responses, target)
+
+            self.assertEqual(0, first.returncode, first.stderr)
+            self.assertEqual(first.stdout, second.stdout)
+            self.assertEqual(1, report["summary"]["requestedBlobCount"])
+            self.assertEqual(1, report["summary"]["hydratedBlobCount"])
+            self.assertFalse(self.missing(checkout, object_ids["a.txt"]))
+            self.assertTrue(self.missing(checkout, object_ids["DEPS"]))
+            self.assertEqual(index_before, index_after)
+            self.assertEqual(head_before, run("git", "rev-parse", "HEAD", cwd=checkout).stdout)
+            self.assertEqual("preserve\n", (checkout / "untracked.txt").read_text())
+            self.assertTrue(report["mutationGuard"]["unchanged"])
+            self.assertNotIn(str(root), first.stdout)
+
+    def test_include_path_hydrates_an_explicit_target_blob(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-roll-hydrate-") as raw:
+            repository, checkout, responses, target, object_ids = self.make_fixture(
+                pathlib.Path(raw)
+            )
+            result = self.invoke(
+                repository, checkout, responses, target, "--include-path", "DEPS"
+            )
+            unsafe = self.invoke(
+                repository, checkout, responses, target, "--include-path", "../DEPS"
+            )
+        self.assertEqual(0, result.returncode, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(["DEPS"], report["inputs"]["includePaths"])
+        self.assertEqual(2, report["summary"]["requestedBlobCount"])
+        self.assertEqual(2, report["summary"]["hydratedBlobCount"])
+        self.assertNotEqual(0, unsafe.returncode)
+        self.assertNotIn("Traceback", unsafe.stderr)
+        self.assertIn("unsafe hydration path", unsafe.stderr)
+
+    def test_directory_include_is_bounded_and_reported_without_descendant_fetch(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-roll-hydrate-") as raw:
+            repository, checkout, responses, target, object_ids = self.make_fixture(
+                pathlib.Path(raw)
+            )
+            patches = repository / "patches/chromium"
+            (patches / "child.patch").write_text(
+                """diff --git a/dir/child.txt b/dir/child.txt
+--- a/dir/child.txt
++++ b/dir/child.txt
+@@ -1 +1 @@
+-target child
++patched child
+""",
+                encoding="utf-8",
+            )
+            (patches / "series").write_text(
+                "product.patch\nchild.patch\n", encoding="utf-8"
+            )
+            child_oid = object_ids["dir/child.txt"]
+            (responses / f"{child_oid}.b64").write_bytes(
+                base64.b64encode(b"target child\n")
+            )
+            result = self.invoke(
+                repository, checkout, responses, target, "--include-path", "dir"
+            )
+            child_missing = self.missing(checkout, child_oid)
+            sibling_missing = self.missing(checkout, object_ids["dir/sibling.txt"])
+        self.assertEqual(0, result.returncode, result.stderr)
+        report = json.loads(result.stdout)
+        directory = next(item for item in report["paths"] if item["path"] == "dir")
+        self.assertEqual("tree", directory["targetType"])
+        self.assertEqual("non_blob", directory["disposition"])
+        self.assertFalse(child_missing)
+        self.assertTrue(sibling_missing)
+
+    def test_unbound_target_and_checkout_output_fail_before_blob_writes(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-roll-hydrate-") as raw:
+            repository, checkout, responses, target, object_ids = self.make_fixture(
+                pathlib.Path(raw)
+            )
+            output = checkout / ".git/index"
+            unsafe_output = self.invoke(
+                repository,
+                checkout,
+                responses,
+                target,
+                "--output",
+                str(output),
+            )
+            self.assertTrue(self.missing(checkout, object_ids["a.txt"]))
+            (repository / "config/chromium.json").write_text(
+                json.dumps({**PIN, "commit": "f" * 40}), encoding="utf-8"
+            )
+            unbound = self.invoke(repository, checkout, responses, target)
+            still_missing = self.missing(checkout, object_ids["a.txt"])
+        self.assertNotEqual(0, unsafe_output.returncode)
+        self.assertIn("inside the Chromium checkout", unsafe_output.stderr)
+        self.assertNotEqual(0, unbound.returncode)
+        self.assertIn("target is not bound", unbound.stderr)
+        self.assertTrue(still_missing)
+
+    def test_wrong_hash_and_aggregate_overflow_write_no_blobs(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-roll-hydrate-") as raw:
+            root = pathlib.Path(raw)
+            repository, checkout, responses, target, object_ids = self.make_fixture(root)
+            (responses / f"{object_ids['a.txt']}.b64").write_bytes(
+                base64.b64encode(b"wrong\n")
+            )
+            wrong = self.invoke(repository, checkout, responses, target)
+            self.assertTrue(self.missing(checkout, object_ids["a.txt"]))
+            self.assertNotIn("Traceback", wrong.stderr)
+            self.assertIn("hash mismatch", wrong.stderr)
+
+            (responses / f"{object_ids['a.txt']}.b64").write_bytes(
+                base64.b64encode(b"target a\n")
+            )
+            aggregate = self.invoke(
+                repository,
+                checkout,
+                responses,
+                target,
+                "--include-path",
+                "DEPS",
+                "--max-response-bytes",
+                "16",
+                "--max-total-response-bytes",
+                "20",
+            )
+            self.assertTrue(self.missing(checkout, object_ids["a.txt"]))
+            self.assertTrue(self.missing(checkout, object_ids["DEPS"]))
+        self.assertNotEqual(0, wrong.returncode)
+        self.assertNotEqual(0, aggregate.returncode)
+        self.assertNotIn("Traceback", aggregate.stderr)
+        self.assertIn("aggregate response limit", aggregate.stderr)
+
+    def test_url_encoding_official_source_redirect_and_response_bound(self):
+        target = "a" * 40
+        url = gitiles_blob_url(target, "dir/a b?#%.cc")
+        self.assertTrue(url.endswith("/dir/a%20b%3F%23%25.cc?format=TEXT"))
+        with self.assertRaises(HydrationError):
+            gitiles_blob_url(target, "../DEPS")
+        with self.assertRaises(HydrationError):
+            fetch_gitiles_response("http://example.invalid/blob", 5, 8)
+
+        class Response:
+            def __init__(self, final_url: str, payload: bytes):
+                self.final_url = final_url
+                self.payload = payload
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *unused):
+                del unused
+
+            def geturl(self):
+                return self.final_url
+
+            def getcode(self):
+                return 200
+
+            def read(self, maximum):
+                return self.payload[:maximum]
+
+        class Opener:
+            def __init__(self, response):
+                self.response = response
+
+            def open(self, request, timeout):
+                del request, timeout
+                return self.response
+
+        with self.assertRaisesRegex(HydrationError, "redirected"):
+            fetch_gitiles_response(
+                url, 5, 8, opener=Opener(Response(url + "&redirected=1", b"YQ=="))
+            )
+        with self.assertRaisesRegex(HydrationError, "per-response"):
+            fetch_gitiles_response(
+                url, 5, 4, opener=Opener(Response(url, b"YWFhYWFh"))
+            )
+
+    def test_path_bound_and_partial_promotion_have_explicit_resume_semantics(self):
+        contents = {"a": b"one\n", "b": b"two\n"}
+
+        def blob_oid(payload):
+            framed = b"blob " + str(len(payload)).encode() + b"\0" + payload
+            return hashlib.sha1(framed, usedforsecurity=False).hexdigest()
+
+        object_ids = {name: blob_oid(payload) for name, payload in contents.items()}
+        present = set()
+        writes = 0
+
+        def fake_git(command, input_bytes=None, check=True):
+            nonlocal writes
+            del check
+            if command[0] == "ls-tree":
+                return b"".join(
+                    f"100644 blob {object_ids[name]}\t{name}\0".encode()
+                    for name in ("a", "b")
+                )
+            if command[0] == "cat-file":
+                return b"".join(
+                    (
+                        f"{oid} blob {len(contents[name])}\n"
+                        if oid in present
+                        else f"{oid} missing\n"
+                    ).encode()
+                    for name, oid in object_ids.items()
+                )
+            if command[0] == "hash-object":
+                writes += 1
+                oid = blob_oid(input_bytes)
+                if writes == 2:
+                    raise RuntimeError("simulated object-store failure")
+                present.add(oid)
+                return f"{oid}\n".encode()
+            raise AssertionError(command)
+
+        def response(target, path, oid, timeout, maximum):
+            del target, oid, timeout, maximum
+            return base64.b64encode(contents[path])
+
+        with self.assertRaisesRegex(HydrationError, "rerun safely resumes"):
+            hydrate_target_blobs(
+                git=fake_git,
+                target="a" * 40,
+                touched_paths=["a", "b"],
+                load_response=response,
+                timeout=5,
+                total_timeout=30,
+                max_response_bytes=32,
+                max_total_response_bytes=64,
+            )
+        self.assertEqual({object_ids["a"]}, present)
+
+        with self.assertRaisesRegex(HydrationError, "path safety bound"):
+            hydrate_target_blobs(
+                git=fake_git,
+                target="a" * 40,
+                touched_paths=[f"p/{index}" for index in range(MAX_TARGET_PATHS + 1)],
+                load_response=response,
+                timeout=5,
+                total_timeout=30,
+                max_response_bytes=32,
+                max_total_response_bytes=64,
+            )
 
 
 if __name__ == "__main__":

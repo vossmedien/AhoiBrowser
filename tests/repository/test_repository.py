@@ -103,6 +103,8 @@ class RepositoryContractTests(unittest.TestCase):
             "tools/chromium_dependencies.py",
             "tools/chromium_roll.py",
             "tools/chromium_roll_discovery.py",
+            "tools/chromium_roll_hydration.py",
+            "tools/chromium_roll_output.py",
             "tools/compose_overlay.py",
             "tools/verify_chromium_pin.py",
             "tools/check_dco.py",

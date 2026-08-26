@@ -17,6 +17,19 @@ import zlib
 from typing import Any, Mapping, Sequence
 
 from chromium_roll_discovery import DiscoveryError, discover
+from chromium_roll_hydration import (
+    DEFAULT_MAX_RESPONSE_BYTES,
+    DEFAULT_MAX_TOTAL_RESPONSE_BYTES,
+    GITILES_BASE,
+    HydrationError,
+    fetch_gitiles_response,
+    gitiles_blob_url,
+    hydrate_target_blobs,
+    patch_stack_report,
+    read_fixture_response,
+    validate_git_path,
+)
+from chromium_roll_output import PreparedReportOutput, ReportOutputError
 from verify_chromium_pin import (
     VerificationError,
     load_json,
@@ -398,6 +411,36 @@ def _load_baseline(path: pathlib.Path) -> dict[str, Any]:
     return baseline
 
 
+def _target_binding(repository: pathlib.Path, target: str) -> dict[str, Any]:
+    bindings: list[dict[str, str]] = []
+    for relative in (
+        "config/chromium.json",
+        "config/upstream-roll-candidate.json",
+    ):
+        path = _safe_relative(repository / relative, repository, "target binding")
+        if not path.is_file() or path.is_symlink():
+            continue
+        config = _load_baseline(path)
+        if config["commit"] == target:
+            bindings.append(
+                {
+                    "config": relative,
+                    "version": config["version"],
+                    "tag": config["tag"],
+                    "commit": config["commit"],
+                }
+            )
+    if not bindings:
+        raise RollError(
+            "target is not bound by config/chromium.json or "
+            "config/upstream-roll-candidate.json"
+        )
+    identities = {(item["version"], item["tag"]) for item in bindings}
+    if len(identities) != 1:
+        raise RollError("target binding configs disagree on version or tag")
+    return {"verified": True, "configs": bindings}
+
+
 def _preflight(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     repository = args.repository.resolve()
     checkout = args.checkout.resolve() if args.checkout else repository / ".work/chromium/src"
@@ -410,6 +453,7 @@ def _preflight(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     if inside != "true":
         raise RollError("Chromium checkout is not a Git worktree")
     target = _resolve_commit(checkout, environment, args.target)
+    target_binding = _target_binding(repository, target)
     config_path = _safe_relative(repository / "config/chromium.json", repository, "config")
     overlay = _safe_relative(repository / "overlay/chromium/src", repository, "overlay")
     patch_root = _safe_relative(repository / "patches/chromium", repository, "patch root")
@@ -495,7 +539,11 @@ def _preflight(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             "version": baseline["version"],
             "commit": baseline["commit"],
         },
-        "target": {"requested": args.target, "commit": target},
+        "target": {
+            "requested": args.target,
+            "commit": target,
+            "binding": target_binding,
+        },
         "inputs": {
             "config": "config/chromium.json",
             "overlay": "overlay/chromium/src",
@@ -522,30 +570,130 @@ def _preflight(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     return report, 0 if ready else 2
 
 
-def _write_report(payload: Mapping[str, Any], output: pathlib.Path | None) -> None:
-    rendered = json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-    if output is None:
-        sys.stdout.write(rendered)
-        return
-    # Check the caller-supplied leaf before resolve() dereferences it. This
-    # rejects both live and dangling symlinks instead of overwriting the target.
-    if output.is_symlink():
-        raise RollError("refusing to overwrite a symlink output")
-    resolved = output.resolve()
-    production_config = (ROOT / "config/chromium.json").resolve()
-    if resolved == production_config:
-        raise RollError("refusing to overwrite production config/chromium.json")
-    resolved.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", dir=resolved.parent, delete=False
-    ) as temporary:
-        temporary.write(rendered)
-        temporary_path = pathlib.Path(temporary.name)
-    os.replace(temporary_path, resolved)
-
-
 def _discover(args: argparse.Namespace) -> dict[str, Any]:
     return discover(args)
+
+
+def _hydrate(args: argparse.Namespace) -> dict[str, Any]:
+    repository = args.repository.resolve()
+    checkout = (
+        args.checkout.resolve()
+        if args.checkout
+        else repository / ".work/chromium/src"
+    )
+    if not repository.is_dir():
+        raise RollError("repository root does not exist")
+    if not checkout.is_dir():
+        raise RollError("Chromium checkout does not exist")
+    environment = _git_environment()
+    environment["GIT_NO_LAZY_FETCH"] = "1"
+    environment["GIT_LITERAL_PATHSPECS"] = "1"
+    if (
+        _git_text(checkout, environment, "rev-parse", "--is-inside-work-tree")
+        != "true"
+    ):
+        raise RollError("Chromium checkout is not a Git worktree")
+    before = _checkout_snapshot(checkout, environment)
+    target = _resolve_commit(checkout, environment, args.target)
+    target_binding = _target_binding(repository, target)
+    patch_root = _safe_relative(
+        repository / "patches/chromium", repository, "patch root"
+    )
+    series = _safe_relative(patch_root / "series", patch_root, "series")
+    patches = _series_entries(series, patch_root)
+    patch_payloads = [(patch, patch.read_bytes()) for patch in patches]
+    touched: set[str] = set()
+    for _, payload in patch_payloads:
+        touched.update(_patch_paths(checkout, environment, payload))
+    include_paths = sorted({validate_git_path(path) for path in args.include_path})
+    touched.update(include_paths)
+
+    fixture_root = args.offline_response_directory
+    if fixture_root is None:
+        transport = "official_gitiles"
+
+        def load_response(target_id, path, object_id, timeout, maximum):
+            del object_id
+            return fetch_gitiles_response(
+                gitiles_blob_url(target_id, path), timeout, maximum
+            )
+
+    else:
+        if fixture_root.is_symlink():
+            raise RollError("offline response directory is a symlink")
+        fixture_root = fixture_root.resolve()
+        transport = "offline_fixture"
+
+        def load_response(target_id, path, object_id, timeout, maximum):
+            del target_id, path, timeout
+            return read_fixture_response(fixture_root, object_id, maximum)
+
+    def isolated_git(command, input_bytes=None, check=True):
+        return _git(
+            checkout,
+            environment,
+            "-c",
+            "maintenance.auto=false",
+            "-c",
+            "gc.auto=0",
+            *command,
+            input_bytes=input_bytes,
+            check=check,
+        ).stdout
+
+    result = hydrate_target_blobs(
+        git=isolated_git,
+        target=target,
+        touched_paths=sorted(touched),
+        load_response=load_response,
+        timeout=args.network_timeout,
+        total_timeout=args.total_timeout,
+        max_response_bytes=args.max_response_bytes,
+        max_total_response_bytes=args.max_total_response_bytes,
+    )
+    after = _checkout_snapshot(checkout, environment)
+    unchanged = before == after
+    if not unchanged:
+        raise RollError("Chromium HEAD, index, or worktree changed during hydration")
+    return {
+        "schemaVersion": 1,
+        "command": "hydrate",
+        "target": {"commit": target, "binding": target_binding},
+        "source": {
+            "baseUrl": GITILES_BASE if transport == "official_gitiles" else None,
+            "configuredTransport": transport,
+            "transportUsed": (
+                transport if result["summary"]["requestedBlobCount"] else "none"
+            ),
+        },
+        "inputs": {
+            "series": "patches/chromium/series",
+            "patchCount": len(patches),
+            "patchStack": patch_stack_report(
+                [
+                    (path.relative_to(patch_root).as_posix(), payload)
+                    for path, payload in patch_payloads
+                ]
+            ),
+            "includePaths": include_paths,
+        },
+        "limits": {
+            "networkTimeoutSeconds": args.network_timeout,
+            "totalTimeoutSeconds": args.total_timeout,
+            "maxResponseBytes": args.max_response_bytes,
+            "maxTotalResponseBytes": args.max_total_response_bytes,
+        },
+        **result,
+        "mutationGuard": {
+            "verified": True,
+            "unchanged": unchanged,
+            "head": before["head"],
+            "indexSha256": before["indexSha256"],
+            "statusSha256": before["statusSha256"],
+            "worktreeSha256": before["worktreeSha256"],
+            "allowedMutation": "verified target blobs added to the Git object store only",
+        },
+    }
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -566,6 +714,26 @@ def _parser() -> argparse.ArgumentParser:
     discover.add_argument("--version-text", type=pathlib.Path)
     discover.add_argument("--output", type=pathlib.Path)
 
+    hydrate = subparsers.add_parser(
+        "hydrate", help="fetch only missing target blobs touched by the patch stack"
+    )
+    hydrate.add_argument("--repository", type=pathlib.Path, default=ROOT)
+    hydrate.add_argument("--checkout", type=pathlib.Path)
+    hydrate.add_argument("--target", required=True)
+    hydrate.add_argument("--include-path", action="append", default=[])
+    hydrate.add_argument("--network-timeout", type=int, default=20)
+    hydrate.add_argument("--total-timeout", type=int, default=900)
+    hydrate.add_argument(
+        "--max-response-bytes", type=int, default=DEFAULT_MAX_RESPONSE_BYTES
+    )
+    hydrate.add_argument(
+        "--max-total-response-bytes",
+        type=int,
+        default=DEFAULT_MAX_TOTAL_RESPONSE_BYTES,
+    )
+    hydrate.add_argument("--offline-response-directory", type=pathlib.Path)
+    hydrate.add_argument("--output", type=pathlib.Path)
+
     preflight = subparsers.add_parser(
         "preflight", help="classify overlay and patch compatibility at a local target"
     )
@@ -579,13 +747,50 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str]) -> int:
     try:
         args = _parser().parse_args(argv)
-        if args.command == "discover":
-            payload, exit_code = _discover(args), 0
-        else:
-            payload, exit_code = _preflight(args)
-        _write_report(payload, args.output)
+        repository = (
+            args.repository.resolve() if hasattr(args, "repository") else ROOT
+        )
+        checkout = None
+        if args.command in {"hydrate", "preflight"}:
+            checkout = (
+                args.checkout.resolve()
+                if args.checkout
+                else repository / ".work/chromium/src"
+            )
+        protected = (
+            repository / "config/chromium.json",
+            repository / "config/upstream-roll-candidate.json",
+            repository / "patches/chromium/series",
+        )
+        with PreparedReportOutput.prepare(
+            args.output,
+            repository=repository,
+            checkout=checkout,
+            protected_files=protected,
+        ) as report_output:
+            if args.command == "discover":
+                payload, exit_code = _discover(args), 0
+            elif args.command == "hydrate":
+                payload, exit_code = _hydrate(args), 0
+            else:
+                payload, exit_code = _preflight(args)
+            rendered = (
+                json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False)
+                + "\n"
+            )
+            if report_output.output is None:
+                sys.stdout.write(rendered)
+            else:
+                report_output.write(rendered)
         return exit_code
-    except (DiscoveryError, OSError, RollError, VerificationError) as error:
+    except (
+        DiscoveryError,
+        HydrationError,
+        OSError,
+        ReportOutputError,
+        RollError,
+        VerificationError,
+    ) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
 
