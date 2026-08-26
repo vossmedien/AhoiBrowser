@@ -5,6 +5,8 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h"
 #include "ui/gfx/animation/animation_test_api.h"
 #include "ui/gfx/scoped_animation_duration_scale_mode.h"
+#include "ui/views/controls/scroll_view.h"
+#include "ui/views/widget/widget.h"
 
 namespace ahoi::sidebar {
 
@@ -22,6 +24,42 @@ TEST_F(SidebarTreeViewTest, EmptyRootKeepsAVisibleSavedDropViewport) {
   view->SynchronizeRowsForTesting(
       gfx::Rect(0, 0, 240, SidebarTreeRowView::kRowHeight));
   EXPECT_EQ(0U, view->materialized_row_count_for_testing());
+}
+
+TEST_F(SidebarTreeViewTest,
+       CollapsingViewportDefersRegisteredTextfieldRecycling) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  std::vector<tab_tree::TreeNode> pages;
+  for (int index = 0; index < 8; ++index) {
+    pages.push_back(MakeNode(
+        workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+        u"Saved page", std::to_string(index)));
+  }
+
+  auto tree = NewTreeView();
+  SidebarTreeView* const tree_ptr = tree.get();
+  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->view_model().ReplaceChildren(std::nullopt,
+                                                        std::move(pages)));
+  tree->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+  ASSERT_GT(tree->materialized_row_count_for_testing(), 0U);
+
+  auto scroll = SidebarTreeView::CreateScrollView(std::move(tree));
+  views::ScrollView* const scroll_ptr = scroll.get();
+  auto widget =
+      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  views::View* const viewport =
+      widget->SetContentsView(std::make_unique<views::View>());
+  viewport->AddChildView(std::move(scroll));
+  scroll_ptr->SetBoundsRect(gfx::Rect(0, 0, 240, 96));
+  scroll_ptr->DeprecatedLayoutImmediately();
+
+  // The collapse synchronously walks ScrollView's visible-bounds subscribers.
+  // Row recycling must happen only after that traversal has completed because
+  // every recycled row removes its registered Textfield descendant.
+  scroll_ptr->SetBoundsRect(gfx::Rect());
+  task_environment()->RunUntilIdle();
+  EXPECT_EQ(0U, tree_ptr->materialized_row_count_for_testing());
 }
 
 TEST_F(SidebarTreeViewTest, DefersWidthToResizableSidebarViewport) {

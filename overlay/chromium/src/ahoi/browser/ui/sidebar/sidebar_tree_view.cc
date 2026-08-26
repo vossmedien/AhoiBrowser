@@ -20,6 +20,7 @@
 #include "base/location.h"
 #include "base/no_destructor.h"
 #include "base/numerics/safe_conversions.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/time/time.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/accessibility/ax_enums.mojom.h"
@@ -415,6 +416,26 @@ bool SidebarTreeView::GetNeedsNotificationWhenVisibleBoundsChange() const {
 }
 
 void SidebarTreeView::OnVisibleBoundsChanged() {
+  // View::SetBoundsRect() notifies registered descendants by iterating a
+  // raw-pointer vector owned by each ancestor. SynchronizeRows() can recycle
+  // rows, and every row owns a Textfield that unregisters itself from those
+  // same vectors. Doing that synchronously invalidates Chromium's active
+  // iterator and can leave a null entry behind while the sidebar collapses.
+  // Coalesce the virtualized-row update onto the next UI task so the Views
+  // notification pass always finishes before the child hierarchy changes.
+  if (visible_bounds_synchronization_pending_) {
+    return;
+  }
+  visible_bounds_synchronization_pending_ = true;
+  base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE,
+      base::BindOnce(
+          &SidebarTreeView::SynchronizeRowsAfterVisibleBoundsChange,
+          weak_ptr_factory_.GetWeakPtr()));
+}
+
+void SidebarTreeView::SynchronizeRowsAfterVisibleBoundsChange() {
+  visible_bounds_synchronization_pending_ = false;
   SynchronizeRows(GetVisibleBounds());
 }
 

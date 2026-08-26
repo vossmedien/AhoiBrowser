@@ -213,6 +213,7 @@ class SidebarTreeView final : public views::View,
     return controller_->view_model();
   }
   void ScheduleSynchronization(bool preferred_size_changed);
+  void SynchronizeRowsAfterVisibleBoundsChange();
   std::vector<VisualRow> BuildVisualRows() const;
   std::vector<VisualPosition> BuildVisualPositions(
       const std::vector<VisualRow>& visual_rows) const;
@@ -280,6 +281,7 @@ class SidebarTreeView final : public views::View,
   std::optional<size_t> row_bounds_animation_from_rows_;
   bool in_batch_update_ = false;
   bool synchronization_pending_ = false;
+  bool visible_bounds_synchronization_pending_ = false;
   bool preferred_size_change_pending_ = false;
   gfx::SlideAnimation preferred_height_animation_{this};
   size_t last_visual_row_count_ = 0;
