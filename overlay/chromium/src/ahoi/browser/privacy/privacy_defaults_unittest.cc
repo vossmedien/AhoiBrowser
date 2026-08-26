@@ -7,7 +7,7 @@
 #include "chrome/browser/prefetch/pref_names.h"
 #include "chrome/common/pref_names.h"
 #include "components/metrics/metrics_pref_names.h"
-#include "components/metrics/metrics_reporting_level.h"
+#include "components/metrics/metrics_profile_pref_names.h"
 #include "components/network_time/network_time_pref_names.h"
 #include "components/prefs/pref_registry_simple.h"
 #include "components/prefs/testing_pref_service.h"
@@ -38,6 +38,8 @@ TEST(PrivacyDefaultsTest, ProfileDefaultsAreSafeAndRemainUserModifiable) {
   profile_prefs.registry()->RegisterBooleanPref(prefs::kSigninAllowed, true);
   profile_prefs.registry()->RegisterBooleanPref(
       prefs::kSigninAllowedOnNextStartup, true);
+  profile_prefs.registry()->RegisterBooleanPref(
+      metrics::prefs::kAdvancedReportingEnabled, true);
   privacy_sandbox::RegisterProfilePrefs(profile_prefs.registry());
 
   ApplyProfileDefaults(profile_prefs.registry());
@@ -51,6 +53,8 @@ TEST(PrivacyDefaultsTest, ProfileDefaultsAreSafeAndRemainUserModifiable) {
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kSafeBrowsingEnhanced));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kSigninAllowed));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kSigninAllowedOnNextStartup));
+  EXPECT_FALSE(profile_prefs.GetBoolean(
+      metrics::prefs::kAdvancedReportingEnabled));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kPrivacySandboxM1TopicsEnabled));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kPrivacySandboxM1FledgeEnabled));
   EXPECT_FALSE(
@@ -85,9 +89,6 @@ TEST(PrivacyDefaultsTest, LocalStateDisablesReportingAndVariations) {
   local_state.registry()->RegisterBooleanPref(
       metrics::prefs::kMetricsReportingEnabled, true);
   local_state.registry()->RegisterIntegerPref(
-      metrics::prefs::kMetricsReportingLevel,
-      static_cast<int>(metrics::MetricsReportingLevel::kBasic));
-  local_state.registry()->RegisterIntegerPref(
       variations::prefs::kVariationsRestrictionsByPolicy,
       static_cast<int>(variations::RestrictionPolicy::NO_RESTRICTIONS));
 
@@ -97,8 +98,6 @@ TEST(PrivacyDefaultsTest, LocalStateDisablesReportingAndVariations) {
       local_state.GetBoolean(network_time::prefs::kNetworkTimeQueriesEnabled));
   EXPECT_FALSE(
       local_state.GetBoolean(metrics::prefs::kMetricsReportingEnabled));
-  EXPECT_EQ(static_cast<int>(metrics::MetricsReportingLevel::kNone),
-            local_state.GetInteger(metrics::prefs::kMetricsReportingLevel));
   EXPECT_EQ(static_cast<int>(variations::RestrictionPolicy::ALL),
             local_state.GetInteger(
                 variations::prefs::kVariationsRestrictionsByPolicy));

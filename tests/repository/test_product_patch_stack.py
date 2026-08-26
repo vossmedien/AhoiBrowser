@@ -185,6 +185,27 @@ class ProductPatchStackTests(unittest.TestCase):
         self.assertIn('"sha256": hashlib.sha256(payload).hexdigest()', roll_tool)
         self.assertIn('"patches": patch_reports', roll_tool)
 
+    def test_m152_privacy_defaults_follow_current_metrics_backend(self):
+        privacy_root = ROOT / "overlay/chromium/src/ahoi/browser/privacy"
+        build = (privacy_root / "BUILD.gn").read_text(encoding="utf-8")
+        implementation = (privacy_root / "privacy_defaults.cc").read_text(
+            encoding="utf-8"
+        )
+        test = (privacy_root / "privacy_defaults_unittest.cc").read_text(
+            encoding="utf-8"
+        )
+        combined = build + implementation + test
+
+        self.assertNotIn("metrics_reporting_level", combined)
+        self.assertNotIn("MetricsReportingLevel", combined)
+        self.assertEqual(2, build.count('"//components/metrics",'))
+        self.assertIn(
+            '"components/metrics/metrics_profile_pref_names.h"', combined
+        )
+        self.assertIn("metrics::prefs::kMetricsReportingEnabled", implementation)
+        self.assertIn("metrics::prefs::kAdvancedReportingEnabled", implementation)
+        self.assertIn("metrics::prefs::kAdvancedReportingEnabled", test)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -10,7 +10,7 @@
 #include "chrome/browser/prefetch/pref_names.h"
 #include "chrome/common/pref_names.h"
 #include "components/metrics/metrics_pref_names.h"
-#include "components/metrics/metrics_reporting_level.h"
+#include "components/metrics/metrics_profile_pref_names.h"
 #include "components/network_time/network_time_pref_names.h"
 #include "components/prefs/pref_registry_simple.h"
 #include "components/privacy_sandbox/privacy_sandbox_prefs.h"
@@ -52,6 +52,9 @@ void ApplyProfileDefaults(PrefRegistrySimple* registry) {
   SetDefaultIfRegistered(registry, prefs::kSigninAllowed, base::Value(false));
   SetDefaultIfRegistered(registry, prefs::kSigninAllowedOnNextStartup,
                          base::Value(false));
+  SetDefaultIfRegistered(registry,
+                         metrics::prefs::kAdvancedReportingEnabled,
+                         base::Value(false));
 
   SetDefaultIfRegistered(registry, prefs::kPrivacySandboxM1TopicsEnabled,
                          base::Value(false));
@@ -72,9 +75,6 @@ void ApplyLocalStateDefaults(PrefRegistrySimple* registry) {
                          base::Value(false));
   SetDefaultIfRegistered(registry, metrics::prefs::kMetricsReportingEnabled,
                          base::Value(false));
-  SetDefaultIfRegistered(
-      registry, metrics::prefs::kMetricsReportingLevel,
-      base::Value(static_cast<int>(metrics::MetricsReportingLevel::kNone)));
   SetDefaultIfRegistered(
       registry, variations::prefs::kVariationsRestrictionsByPolicy,
       base::Value(static_cast<int>(variations::RestrictionPolicy::ALL)));
