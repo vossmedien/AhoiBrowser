@@ -14987,10 +14987,10 @@ index e7696ff22b83c90036f0a557ba2f34d69711b3d2..ed13bf9eba9e3ed50e1418c876f4248f
 +
 +    glass.click();
 +    await microtasksFinished();
-+    assertFalse(
-+        appearancePage.get('prefs.ahoi.appearance.glass_enabled.value'));
++    assertFalse(prefService.getPref<boolean>(
++        'ahoi.appearance.glass_enabled').value);
 +
-+    appearancePage.setPrefValue(
++    await prefService.setPrefValue(
 +        'ahoi.navigation.floating_auto_hide_enabled', false);
 +    await microtasksFinished();
 +    assertFalse(isVisible(revealNotch));
@@ -15028,18 +15028,18 @@ index e7696ff22b83c90036f0a557ba2f34d69711b3d2..ed13bf9eba9e3ed50e1418c876f4248f
 +
 +    sync.click();
 +    await microtasksFinished();
-+    assertTrue(appearancePage.get('prefs.ahoi.sync.enabled.value'));
++    assertTrue(prefService.getPref<boolean>('ahoi.sync.enabled').value);
 +
 +    // Even a migrated profile with every legacy address-bar action disabled
 +    // gets one recoverable entry when the master switch is enabled.
-+    appearancePage.setPrefValue(
++    await prefService.setPrefValue(
 +        'ahoi.developer_toolbar.show_toolkit_button', false);
 +    developer.click();
 +    await microtasksFinished();
-+    assertTrue(
-+        appearancePage.get('prefs.ahoi.developer_toolkit.enabled.value'));
-+    assertTrue(appearancePage.get(
-+        'prefs.ahoi.developer_toolbar.show_toolkit_button.value'));
++    assertTrue(prefService.getPref<boolean>(
++        'ahoi.developer_toolkit.enabled').value);
++    assertTrue(prefService.getPref<boolean>(
++        'ahoi.developer_toolbar.show_toolkit_button').value);
 +    assertFalse(cookie.disabled);
 +    assertFalse(cache.disabled);
 +    assertFalse(helpers.disabled);
