@@ -17,6 +17,7 @@
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
+#include "ahoi/browser/ui/appearance/appearance_prefs.h"
 #include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
@@ -67,6 +68,7 @@
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
+#include "components/prefs/pref_service.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "components/tabs/public/tab_interface.h"
@@ -342,6 +344,14 @@ BrowserSidebarHostView::BrowserSidebarHostView(
           browser_->GetProfile()->GetPrefs(),
           base::BindRepeating(&BrowserSidebarHostView::OnAppearanceChanged,
                               weak_ptr_factory_.GetWeakPtr()));
+  PrefService* const prefs = browser_->GetProfile()->GetPrefs();
+  if (prefs->FindPreference(appearance::kSidebarPageTintEnabledPref)) {
+    page_tint_pref_change_registrar_.Init(prefs);
+    page_tint_pref_change_registrar_.Add(
+        appearance::kSidebarPageTintEnabledPref,
+        base::BindRepeating(&BrowserSidebarHostView::RefreshPageTint,
+                            weak_ptr_factory_.GetWeakPtr()));
+  }
   OnAppearanceChanged(appearance_signal_source_->policy());
 }
 
@@ -713,6 +723,7 @@ void BrowserSidebarHostView::OnTabStripModelChanged(
     const TabStripModelChange&,
     const TabStripSelectionChange&) {
   SynchronizeSelection();
+  RefreshPageTint();
   EnsureWorkspaceSurface();
   ScheduleRuntimePresentationRefresh();
 }
@@ -725,6 +736,10 @@ void BrowserSidebarHostView::OnTabChangedAt(tabs::TabInterface* tab,
     if (it != tab_thumbnail_cache_.end()) {
       it->second->Refresh(tab);
     }
+  }
+  if (tab_strip_model_ && tab && tab == tab_strip_model_->GetActiveTab() &&
+      change_type == TabChangeType::kAll) {
+    RefreshPageTint();
   }
   ScheduleRuntimePresentationRefresh();
 }

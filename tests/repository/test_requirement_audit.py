@@ -58,19 +58,19 @@ class RequirementAuditTests(unittest.TestCase):
         )["tests"]
         expected_ids = {entry["id"] for entry in registry}
         actual_ids = [entry["id"] for entry in audit["requirements"]]
-        self.assertEqual(335, len(actual_ids))
-        self.assertEqual(335, len(set(actual_ids)))
+        self.assertEqual(349, len(actual_ids))
+        self.assertEqual(349, len(set(actual_ids)))
         self.assertEqual(expected_ids, set(actual_ids))
-        self.assertEqual(335, audit["summary"]["total"])
+        self.assertEqual(349, audit["summary"]["total"])
         self.assertEqual(
-            335,
+            349,
             sum(
                 item["count"]
                 for item in audit["summary"]["byPrimaryClass"].values()
             ),
         )
         self.assertEqual(
-            335,
+            349,
             sum(item["count"] for item in audit["summary"]["bySuite"].values()),
         )
         self.assertEqual(

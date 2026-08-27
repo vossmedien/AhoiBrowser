@@ -13,6 +13,9 @@ WEBUI_TEST = (
     ROOT
     / "overlay/chromium/src/chrome/test/data/webui/settings/ahoi_page_test.ts"
 )
+ARC_IMPORT_ROOT = (
+    ROOT / "overlay/chromium/src/ahoi/browser/importer/arc"
+)
 
 
 class AhoiSettingsPageContractTests(unittest.TestCase):
@@ -60,6 +63,7 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
     def test_all_ahoi_controls_have_one_owner_outside_appearance(self):
         pref_keys = (
             "ahoi.appearance.glass_enabled",
+            "ahoi.appearance.sidebar_page_tint_enabled",
             "ahoi.navigation.floating_auto_hide_enabled",
             "ahoi.navigation.floating_reveal_notch_enabled",
             "ahoi.navigation.floating_auto_hide_delay_ms",
@@ -104,9 +108,7 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         self.assertNotIn("kDeviceIdPref", combined)
         self.assertNotIn("ahoi.sync.device_id", combined)
 
-    def test_cloudkit_availability_is_false_and_gates_every_dependent_control(self):
-        combined = self.page + self.controller
-
+    def test_sync_opt_in_prepares_local_state_without_cloudkit_transport(self):
         self.assertIn(
             'AddBoolean("ahoiCloudKitAvailable", false)', self.patch
         )
@@ -119,49 +121,114 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         for marker in (
             "IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_TITLE",
             "IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_SUBLABEL",
-            '<translation id="8805387034065522283">',
-            '<translation id="9198210059928613224">',
+            "CloudKit-Übertragung ist in diesem Build nicht verfügbar",
+            "Lokale Sync-Daten und die ausstehende Outbox bleiben auf "
+            "diesem Mac.",
+            "Sie werden erst am Übergang zu einem konfigurierten "
+            "CloudKit-Transport verschlüsselt.",
+            "CloudKit transport is unavailable in this build",
+            "Local sync data and its pending outbox remain on this Mac.",
+            "They are encrypted only at the boundary to a configured "
+            "CloudKit transport.",
         ):
             self.assertIn(marker, self.patch)
-        self.assertEqual(
-            2,
-            self.patch.count('<translation id="8805387034065522283">'),
-        )
-        self.assertEqual(
-            2,
-            self.patch.count('<translation id="9198210059928613224">'),
-        )
-        for control_id in (
-            "ahoiSyncEnabled",
-            "ahoiRemoteControlEnabled",
-            "ahoiHistoryRetention",
+        for false_claim in (
+            "local encrypted sync",
+            "local encrypted sync store",
+            "lokale verschlüsselte Synchronisierung",
+            "lokalen verschlüsselten Sync-Speicher",
         ):
-            self.assertRegex(
-                self.page,
-                rf'(?s:id="{control_id}".*?)'
-                r'\?disabled="\$\{!this\.cloudKitAvailable_',
-            )
-        self.assertGreaterEqual(combined.count("!this.cloudKitAvailable_"), 4)
+            self.assertNotIn(false_claim, self.patch)
+
+        sync_control = re.search(
+            r'(?s:id="ahoiSyncEnabled".*?)</settings-toggle-button>',
+            self.page,
+        )
+        remote_control = re.search(
+            r'(?s:id="ahoiRemoteControlEnabled".*?)</settings-toggle-button>',
+            self.page,
+        )
+        retention_control = re.search(
+            r'(?s:id="ahoiHistoryRetention".*?)</settings-dropdown-menu>',
+            self.page,
+        )
+        self.assertIsNotNone(sync_control)
+        self.assertIsNotNone(remote_control)
+        self.assertIsNotNone(retention_control)
+        self.assertNotIn("?disabled", sync_control.group(0))
+        self.assertIn("!this.cloudKitAvailable_", remote_control.group(0))
+        self.assertIn("!this.syncEnabledPref_?.value", remote_control.group(0))
+        self.assertNotIn("!this.cloudKitAvailable_", retention_control.group(0))
+        self.assertIn(
+            "!this.syncEnabledPref_?.value", retention_control.group(0)
+        )
         for marker in (
-            "cloudKitCapabilityGateDisablesUnavailableControls",
+            "syncOptInCanPrepareLocalStateWithoutCloudKitTransport",
             "futureCloudKitAvailabilityUnlocksSafeSyncPrefs",
-            "await prefService.setPrefValue('ahoi.sync.enabled', true)",
-            "assertTrue(sync.disabled)",
+            "sync.click()",
+            "assertFalse(sync.disabled)",
             "assertTrue(remote.disabled)",
-            "assertTrue(retention.disabled)",
+            "assertFalse(retention.disabled)",
         ):
             self.assertIn(marker, self.webui_test)
 
     def test_webui_contract_covers_route_prefs_and_appearance_removal(self):
         for marker in (
             "hasDedicatedRouteAndTopLevelMenuItem",
-            "cloudKitCapabilityGateDisablesUnavailableControls",
+            "syncOptInCanPrepareLocalStateWithoutCloudKitTransport",
+            "sidebarPageTintIsOptionalAndPersistsUserChoice",
             "futureCloudKitAvailabilityUnlocksSafeSyncPrefs",
             "enablingToolkitKeepsOneRecoverableAddressBarEntry",
             "doesNotOwnDedicatedAhoiControls",
             '"ahoi_page_test.ts"',
         ):
             self.assertIn(marker, self.webui_test + self.patch)
+
+    def test_arc_import_is_visible_confirmed_and_transactional(self):
+        combined_backend = "\n".join(
+            (ARC_IMPORT_ROOT / name).read_text(encoding="utf-8")
+            for name in (
+                "arc_import_backup.cc",
+                "arc_import_discovery.cc",
+                "arc_import_service.cc",
+                "arc_split_runtime.cc",
+            )
+        )
+        for marker in (
+            "ArcImportHandler",
+            "//ahoi/browser/importer/arc:settings_handler",
+            "IDS_SETTINGS_AHOI_ARC_IMPORT_SECTION",
+            "Aus Arc importieren",
+        ):
+            self.assertIn(marker, self.patch)
+        for marker in (
+            'id="ahoiArcImportAssistant"',
+            'id="ahoiArcBackupConfirmation"',
+            'id="ahoiArcCommitConfirmation"',
+            'id="ahoiArcCommit"',
+        ):
+            self.assertIn(marker, self.page)
+        for marker in (
+            "ahoiArcDiscover",
+            "ahoiArcCommit",
+            "this.arcBackupConfirmed_",
+            "this.arcCommitConfirmed_",
+        ):
+            self.assertIn(marker, self.controller)
+        for marker in (
+            "IsArcApplicationRunning()",
+            "AreArcProfileFilesOpen",
+            "FlushPersistenceForBackup",
+            "CreateArcImportBackup",
+            "RollbackAndFinish",
+            "ExistingSplitMatches",
+            "committed_snapshot_hash_ == snapshot_token",
+        ):
+            self.assertIn(marker, combined_backend)
+        self.assertIn(
+            "arcPreviewRequiresBothExplicitConfirmationsBeforeCommit",
+            self.webui_test,
+        )
 
     def test_pref_service_imports_are_available_on_every_platform(self):
         chromeos_guard = self.controller.index(

@@ -32,6 +32,10 @@ class ProfileSyncUiBridge {
   virtual base::CallbackListSubscription AddTabTreeSnapshotChangedCallback(
       base::RepeatingCallback<void(const tab_tree::TabTreeSnapshot&)>
           callback) = 0;
+  // Requests a fresh snapshot from every attached runtime window. The bridge
+  // fans this out to its UI hosts; each host reads its live TabStripModel and
+  // publishes through ProfileSyncService::PublishWindowTabs().
+  virtual void RequestLocalTabCapture() = 0;
   [[nodiscard]] virtual bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) = 0;
   [[nodiscard]] virtual tab_tree::TabTreeStore::Result

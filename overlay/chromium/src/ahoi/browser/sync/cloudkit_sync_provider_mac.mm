@@ -30,6 +30,7 @@ API_AVAILABLE(macos(14.0))
 - (instancetype)initWithCore:
     (std::weak_ptr<ahoi::sync::CloudKitSyncProviderMac::Core>)core;
 - (void)invalidate;
+- (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core>)lockCore;
 - (void)completeUpload:(NSError*)error;
 - (void)completeDownload:(NSError*)error;
 @end
@@ -45,11 +46,31 @@ class CloudKitSyncProviderMac::Core
         inbox_path_(state_path_.AddExtensionASCII("inbox")),
         cryptor_(std::move(cryptor)),
         owner_runner_(base::SequencedTaskRunner::GetCurrentDefault()) {}
-  ~Core() {
-    [engine_ cancelOperationsWithCompletionHandler:^{
+  ~Core() { Shutdown(); }
+
+  void Shutdown() {
+    __strong CKSyncEngine* engine = nil;
+    __strong AhoiCloudKitSyncDelegate* delegate = nil;
+    {
+      base::AutoLock guard(lock_);
+      if (shutting_down_) {
+        return;
+      }
+      shutting_down_ = true;
+      engine = engine_;
+      delegate = delegate_core_;
+      engine_ = nil;
+      delegate_core_ = nil;
+      upload_callback_.Reset();
+      download_callback_.Reset();
+    }
+
+    // Invalidation stops new delegate entries. A callback that already locked
+    // the weak Core is serialized by |lock_| and observes |shutting_down_|, so
+    // it cannot persist transport state after this method returns.
+    [delegate invalidate];
+    [engine cancelOperationsWithCompletionHandler:^{
     }];
-    [delegate_core_ invalidate];
-    delegate_core_ = nil;
   }
   bool Initialize() API_AVAILABLE(macos(14.0)) {
     if (!cryptor_ || !owner_runner_) {
@@ -89,7 +110,8 @@ class CloudKitSyncProviderMac::Core
   void Upload(std::vector<SyncChange> changes, UploadCallback callback) {
     {
       base::AutoLock guard(lock_);
-      if (!engine_ || account_transition_pending_ || zone_recovery_pending_) {
+      if (shutting_down_ || !engine_ || account_transition_pending_ ||
+          zone_recovery_pending_) {
         std::move(callback).Run(false, {}, "account_unavailable");
         return;
       }
@@ -151,7 +173,8 @@ class CloudKitSyncProviderMac::Core
   void Download(std::string change_token, DownloadCallback callback) {
     {
       base::AutoLock guard(lock_);
-      if (!engine_ || account_transition_pending_ || zone_recovery_pending_) {
+      if (shutting_down_ || !engine_ || account_transition_pending_ ||
+          zone_recovery_pending_) {
         std::move(callback).Run(false, {}, "account_unavailable");
         return;
       }
@@ -180,6 +203,9 @@ class CloudKitSyncProviderMac::Core
     std::vector<std::string> acknowledged;
     {
       base::AutoLock guard(lock_);
+      if (shutting_down_) {
+        return;
+      }
       callback = std::move(upload_callback_);
       if (!callback) {
         return;
@@ -199,6 +225,9 @@ class CloudKitSyncProviderMac::Core
     ProviderBatch batch;
     {
       base::AutoLock guard(lock_);
+      if (shutting_down_) {
+        return;
+      }
       callback = std::move(download_callback_);
       if (!callback) {
         return;
@@ -226,13 +255,15 @@ class CloudKitSyncProviderMac::Core
                                   std::move(batch), safe_error));
   }
   void HandleEvent(CKSyncEngineEvent* event) API_AVAILABLE(macos(14.0)) {
+    base::AutoLock guard(lock_);
+    if (shutting_down_) {
+      return;
+    }
     switch (event.type) {
       case CKSyncEngineEventTypeStateUpdate: {
-        base::AutoLock guard(lock_);
         PersistState(event.stateUpdateEvent.stateSerialization);
       } break;
       case CKSyncEngineEventTypeAccountChange: {
-        base::AutoLock guard(lock_);
         account_transition_pending_ = true;
         fetched_changes_.clear();
         last_delivery_mutations_.clear();
@@ -248,13 +279,11 @@ class CloudKitSyncProviderMac::Core
       } break;
       case CKSyncEngineEventTypeFetchedDatabaseChanges:
         if (event.fetchedDatabaseChangesEvent.deletions.count > 0) {
-          base::AutoLock guard(lock_);
           zone_recovery_pending_ = true;
           PersistInbox();
         }
         break;
       case CKSyncEngineEventTypeFetchedRecordZoneChanges: {
-        base::AutoLock guard(lock_);
         for (CKRecord* record in event.fetchedRecordZoneChangesEvent
                  .modifications) {
           std::optional<SyncChange> change = Decode(record);
@@ -280,7 +309,6 @@ class CloudKitSyncProviderMac::Core
         break;
       case CKSyncEngineEventTypeDidFetchRecordZoneChanges:
         if (event.didFetchRecordZoneChangesEvent.error) {
-          base::AutoLock guard(lock_);
           NSError* error = event.didFetchRecordZoneChangesEvent.error;
           download_error_ = SafeCloudKitError(error);
           if (error.code == CKErrorZoneNotFound ||
@@ -299,7 +327,8 @@ class CloudKitSyncProviderMac::Core
       CKSyncEngineSendChangesContext* context) API_AVAILABLE(macos(14.0)) {
     {
       base::AutoLock guard(lock_);
-      if (account_transition_pending_ || zone_recovery_pending_) {
+      if (shutting_down_ || account_transition_pending_ ||
+          zone_recovery_pending_) {
         return nil;
       }
     }
@@ -323,6 +352,9 @@ class CloudKitSyncProviderMac::Core
                     return nil;
                   }
                   base::AutoLock guard(core->lock_);
+                  if (core->shutting_down_) {
+                    return nil;
+                  }
                   auto record = core->pending_records_.find(
                       ToString(record_id.recordName));
                   return record == core->pending_records_.end()
@@ -332,15 +364,15 @@ class CloudKitSyncProviderMac::Core
   }
   bool IsAccountTransitionPending() {
     base::AutoLock guard(lock_);
-    return account_transition_pending_;
+    return !shutting_down_ && account_transition_pending_;
   }
   bool IsZoneRecoveryPending() {
     base::AutoLock guard(lock_);
-    return zone_recovery_pending_;
+    return !shutting_down_ && zone_recovery_pending_;
   }
   bool ConfirmRecovery(bool account_transition, bool allow_local_upload) {
     base::AutoLock guard(lock_);
-    if (!engine_) {
+    if (shutting_down_ || !engine_) {
       return false;
     }
     bool& pending = account_transition ? account_transition_pending_
@@ -374,6 +406,11 @@ class CloudKitSyncProviderMac::Core
     return true;
   }
 
+  bool PersistInboxForTesting() {
+    base::AutoLock guard(lock_);
+    return !shutting_down_ && PersistInbox();
+  }
+
  private:
   CKRecord* Encode(const SyncChange& change,
                    const std::string& sealed,
@@ -381,6 +418,9 @@ class CloudKitSyncProviderMac::Core
     CKRecord* server_record = nil;
     {
       base::AutoLock guard(lock_);
+      if (shutting_down_) {
+        return nil;
+      }
       auto server = server_records_.find(change.entity_id.AsLowercaseString());
       if (server != server_records_.end()) {
         server_record = server->second;
@@ -395,7 +435,7 @@ class CloudKitSyncProviderMac::Core
 
   void HandleSent(CKSyncEngineSentRecordZoneChangesEvent* event)
       API_AVAILABLE(macos(14.0)) {
-    base::AutoLock guard(lock_);
+    lock_.AssertAcquired();
     for (CKRecord* record in event.savedRecords) {
       const std::string key = ToString(record.recordID.recordName);
       server_records_[key] = record;
@@ -645,12 +685,14 @@ class CloudKitSyncProviderMac::Core
   uint64_t download_generation_ = 0;
   bool account_transition_pending_ = false;
   bool zone_recovery_pending_ = false;
+  bool shutting_down_ = false;
   base::Lock lock_;
 };
 
 }  // namespace ahoi::sync
 
 @implementation AhoiCloudKitSyncDelegate {
+  base::Lock _lock;
   std::weak_ptr<ahoi::sync::CloudKitSyncProviderMac::Core> _core;
 }
 - (instancetype)initWithCore:
@@ -661,23 +703,29 @@ class CloudKitSyncProviderMac::Core
   return self;
 }
 - (void)invalidate {
+  base::AutoLock guard(_lock);
+  _core.reset();
+}
+- (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core>)lockCore {
+  base::AutoLock guard(_lock);
+  return _core.lock();
 }
 - (void)completeUpload:(NSError*)error {
   if (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core> core =
-          _core.lock()) {
+          [self lockCore]) {
     core->CompleteUpload(error);
   }
 }
 - (void)completeDownload:(NSError*)error {
   if (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core> core =
-          _core.lock()) {
+          [self lockCore]) {
     core->CompleteDownload(error);
   }
 }
 - (void)syncEngine:(CKSyncEngine*)syncEngine
        handleEvent:(CKSyncEngineEvent*)event {
   if (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core> core =
-          _core.lock()) {
+          [self lockCore]) {
     core->HandleEvent(event);
   }
 }
@@ -685,7 +733,7 @@ class CloudKitSyncProviderMac::Core
              nextRecordZoneChangeBatchForContext:
                  (CKSyncEngineSendChangesContext*)context {
   std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core> core =
-      _core.lock();
+      [self lockCore];
   return core ? core->NextBatch(syncEngine, context) : nil;
 }
 - (CKSyncEngineFetchChangesOptions*)syncEngine:(CKSyncEngine*)syncEngine
@@ -719,7 +767,26 @@ std::unique_ptr<CloudKitSyncProviderMac> CloudKitSyncProviderMac::Create(
 CloudKitSyncProviderMac::CloudKitSyncProviderMac(std::shared_ptr<Core> core)
     : core_(std::move(core)) {}
 
-CloudKitSyncProviderMac::~CloudKitSyncProviderMac() = default;
+CloudKitSyncProviderMac::~CloudKitSyncProviderMac() {
+  core_->Shutdown();
+}
+
+// Test-only construction deliberately skips CloudKit and cryptor setup. It
+// exercises the same Core shutdown fence used by the production destructor.
+std::unique_ptr<CloudKitSyncProviderMac>
+CloudKitSyncProviderMac::CreateForTesting(const base::FilePath& state_path) {
+  auto core = std::make_shared<Core>(CloudKitSyncConfigurationMac(), state_path,
+                                     /*cryptor=*/nullptr);
+  return std::unique_ptr<CloudKitSyncProviderMac>(
+      new CloudKitSyncProviderMac(std::move(core)));
+}
+
+base::RepeatingCallback<bool()>
+CloudKitSyncProviderMac::MakeDelayedCacheWriteForTesting() {
+  return base::BindRepeating(
+      [](std::shared_ptr<Core> core) { return core->PersistInboxForTesting(); },
+      core_);
+}
 
 void CloudKitSyncProviderMac::Upload(std::vector<SyncChange> changes,
                                      UploadCallback callback) {

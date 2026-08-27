@@ -25,6 +25,7 @@ TEST_F(AppearancePrefsTest, ProductDefaultsAreProfilePersistent) {
 #else
   EXPECT_FALSE(IsGlassEnabled(prefs_));
 #endif
+  EXPECT_FALSE(IsSidebarPageTintEnabled(prefs_));
 
   const FloatingNavigationPreferences navigation =
       GetFloatingNavigationPreferences(prefs_);
@@ -32,6 +33,14 @@ TEST_F(AppearancePrefsTest, ProductDefaultsAreProfilePersistent) {
   EXPECT_TRUE(navigation.reveal_notch_enabled);
   EXPECT_EQ(base::Milliseconds(kDefaultFloatingNavigationAutoHideDelayMs),
             navigation.auto_hide_delay);
+}
+
+TEST_F(AppearancePrefsTest, SidebarPageTintRoundTrips) {
+  prefs_.SetBoolean(kSidebarPageTintEnabledPref, true);
+  EXPECT_TRUE(IsSidebarPageTintEnabled(prefs_));
+
+  prefs_.SetBoolean(kSidebarPageTintEnabledPref, false);
+  EXPECT_FALSE(IsSidebarPageTintEnabled(prefs_));
 }
 
 TEST_F(AppearancePrefsTest, NavigationConfigurationRoundTrips) {

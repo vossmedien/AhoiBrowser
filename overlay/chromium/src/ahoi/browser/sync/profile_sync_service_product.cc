@@ -149,13 +149,14 @@ bool ProfileSyncService::SetPermittedSettingSyncEnabled(std::string setting_id,
   }
   const auto stored = std::ranges::find(permitted_settings_, setting_id,
                                         &PermittedSettingRecord::setting_id);
-  if (stored != permitted_settings_.end() && !stored->tombstone) {
+  if (sync_enabled_ && !backend_.is_null() &&
+      stored != permitted_settings_.end() && !stored->tombstone) {
     PermittedSettingRecord tombstone = *stored;
     tombstone.tombstone = true;
     backend_.AsyncCall(&ProfileSyncBackend::UpsertPermittedSetting)
         .WithArgs(std::move(tombstone))
         .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                             weak_ptr_factory_.GetWeakPtr()));
+                             backend_weak_ptr_factory_.GetWeakPtr()));
   }
   return true;
 }
@@ -168,7 +169,7 @@ bool ProfileSyncService::SetDeveloperAssetSyncEnabled(
   }
   SetListMembership(profile_->GetPrefs(), kDeveloperAssetOptInIdsPref,
                     asset_id.AsLowercaseString(), enabled);
-  if (!enabled) {
+  if (!enabled && sync_enabled_ && !backend_.is_null()) {
     const auto stored = std::ranges::find(developer_assets_, asset_id,
                                           &DeveloperAssetRecord::id);
     if (stored != developer_assets_.end() && !stored->tombstone) {
@@ -178,14 +179,15 @@ bool ProfileSyncService::SetDeveloperAssetSyncEnabled(
       backend_.AsyncCall(&ProfileSyncBackend::UpsertDeveloperAsset)
           .WithArgs(std::move(tombstone))
           .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                               weak_ptr_factory_.GetWeakPtr()));
+                               backend_weak_ptr_factory_.GetWeakPtr()));
     }
   }
   return true;
 }
 
 bool ProfileSyncService::PublishDeveloperAsset(DeveloperAssetRecord record) {
-  if (!profile_ || shutting_down_ || !record.id.is_valid() ||
+  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      !record.id.is_valid() ||
       !ListContains(profile_->GetPrefs()->GetList(kDeveloperAssetOptInIdsPref),
                     record.id.AsLowercaseString())) {
     return false;
@@ -195,7 +197,7 @@ bool ProfileSyncService::PublishDeveloperAsset(DeveloperAssetRecord record) {
   backend_.AsyncCall(&ProfileSyncBackend::UpsertDeveloperAsset)
       .WithArgs(std::move(record))
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
   return true;
 }
 
@@ -232,6 +234,9 @@ void ProfileSyncService::ShutdownProductSync() {
 }
 
 void ProfileSyncService::ApplyProductState(const SyncStateSnapshot& state) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
+    return;
+  }
   permitted_settings_ = state.permitted_settings;
   extension_inventory_ = state.extension_inventory;
   developer_assets_ = state.developer_assets;
@@ -276,6 +281,18 @@ void ProfileSyncService::ApplyProductState(const SyncStateSnapshot& state) {
   }
   applying_product_state_ = false;
 
+  if (!permitted_settings_seeded_) {
+    permitted_settings_seeded_ = true;
+    for (std::string setting_id : permitted_setting_ids()) {
+      const auto stored =
+          std::ranges::find(state.permitted_settings, setting_id,
+                            &PermittedSettingRecord::setting_id);
+      if (stored == state.permitted_settings.end() || stored->tombstone) {
+        PublishPermittedProductSetting(std::move(setting_id));
+      }
+    }
+  }
+
   if (!extension_inventory_seeded_) {
     extension_inventory_seeded_ = true;
     PublishExtensionInventory();
@@ -283,8 +300,9 @@ void ProfileSyncService::ApplyProductState(const SyncStateSnapshot& state) {
 }
 
 void ProfileSyncService::PublishCurrentAppearance() {
-  if (!profile_ || shutting_down_ || applying_product_state_ ||
-      appearance_publish_pending_ || !backend_ready_) {
+  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      applying_product_state_ || appearance_publish_pending_ ||
+      !backend_ready_) {
     return;
   }
   ThemeService* theme = ThemeServiceFactory::GetForProfile(profile_);
@@ -310,12 +328,13 @@ void ProfileSyncService::PublishCurrentAppearance() {
             service->OnBackendState(std::move(state));
             service->SyncNow();
           },
-          weak_ptr_factory_.GetWeakPtr()));
+          backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::PublishPermittedProductSetting(
     std::string setting_id) {
-  if (!profile_ || shutting_down_ || applying_product_state_ ||
+  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      applying_product_state_ ||
       !ListContains(profile_->GetPrefs()->GetList(kPermittedSettingIdsPref),
                     setting_id)) {
     return;
@@ -332,7 +351,7 @@ void ProfileSyncService::PublishPermittedProductSetting(
   backend_.AsyncCall(&ProfileSyncBackend::UpsertPermittedSetting)
       .WithArgs(std::move(record))
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnPermittedProductSettingChanged(
@@ -341,7 +360,8 @@ void ProfileSyncService::OnPermittedProductSettingChanged(
 }
 
 void ProfileSyncService::PublishExtensionInventory() {
-  if (!extension_registry_ || !backend_ready_ || shutting_down_) {
+  if (!extension_registry_ || !backend_ready_ || shutting_down_ ||
+      !sync_enabled_ || backend_.is_null()) {
     return;
   }
   std::vector<ExtensionInventoryRecord> records;
@@ -366,7 +386,7 @@ void ProfileSyncService::PublishExtensionInventory() {
   backend_.AsyncCall(&ProfileSyncBackend::ReplaceLocalExtensionInventory)
       .WithArgs(std::move(records))
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnExtensionLoaded(

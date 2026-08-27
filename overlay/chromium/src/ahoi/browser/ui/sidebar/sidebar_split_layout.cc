@@ -53,6 +53,64 @@ int GetSplitRowPreferredHeight(
   return std::max(standard_row_height, adaptive_height);
 }
 
+std::vector<SidebarSplitSeparator> GetSidebarSplitSeparators(
+    const std::vector<gfx::Rect>& segment_bounds,
+    const gfx::RectF& paint_bounds) {
+  std::vector<SidebarSplitSeparator> separators;
+  if (paint_bounds.IsEmpty()) {
+    return separators;
+  }
+
+  for (size_t first = 0; first < segment_bounds.size(); ++first) {
+    for (size_t second = first + 1; second < segment_bounds.size(); ++second) {
+      const gfx::Rect& a = segment_bounds[first];
+      const gfx::Rect& b = segment_bounds[second];
+      const float overlap_top = std::max(
+          static_cast<float>(std::max(a.y(), b.y())), paint_bounds.y());
+      const float overlap_bottom =
+          std::min(static_cast<float>(std::min(a.bottom(), b.bottom())),
+                   paint_bounds.bottom());
+      const float overlap_left = std::max(
+          static_cast<float>(std::max(a.x(), b.x())), paint_bounds.x());
+      const float overlap_right =
+          std::min(static_cast<float>(std::min(a.right(), b.right())),
+                   paint_bounds.right());
+
+      if (overlap_bottom > overlap_top) {
+        const int gap =
+            a.right() <= b.x() ? b.x() - a.right() : a.x() - b.right();
+        if (gap >= 0 && gap <= kGap) {
+          const float divider_x =
+              static_cast<float>(a.right() <= b.x() ? a.right() + gap / 2.0f
+                                                    : b.right() + gap / 2.0f);
+          if (divider_x >= paint_bounds.x() &&
+              divider_x <= paint_bounds.right()) {
+            separators.push_back(
+                {.start = gfx::PointF(divider_x, overlap_top),
+                 .end = gfx::PointF(divider_x, overlap_bottom)});
+          }
+        }
+      }
+      if (overlap_right > overlap_left) {
+        const int gap =
+            a.bottom() <= b.y() ? b.y() - a.bottom() : a.y() - b.bottom();
+        if (gap >= 0 && gap <= kGap) {
+          const float divider_y =
+              static_cast<float>(a.bottom() <= b.y() ? a.bottom() + gap / 2.0f
+                                                     : b.bottom() + gap / 2.0f);
+          if (divider_y >= paint_bounds.y() &&
+              divider_y <= paint_bounds.bottom()) {
+            separators.push_back(
+                {.start = gfx::PointF(overlap_left, divider_y),
+                 .end = gfx::PointF(overlap_right, divider_y)});
+          }
+        }
+      }
+    }
+  }
+  return separators;
+}
+
 gfx::Rect GetSplitSegmentBounds(
     const gfx::Rect& bounds,
     size_t segment,

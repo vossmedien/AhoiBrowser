@@ -104,17 +104,21 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
     case DeveloperToolbarSurface::kToolkit:
       break;
   }
+  if (!anchor_view || !anchor_view->GetWidget()) {
+    return false;
+  }
+  // Toggling an already-open surface must remain possible even if focus moved
+  // programmatically to an unsupported pane between press and release.
+  if (bubble_widget_) {
+    bubble_widget_->Close();
+    return true;
+  }
   content::WebContents* const contents = GetActiveWebContents();
-  if (!anchor_view || !anchor_view->GetWidget() ||
-      !IsSupportedDeveloperTarget(contents)) {
+  if (!IsSupportedDeveloperTarget(contents)) {
     return false;
   }
   if (Profile* original = browser_->GetProfile()->GetOriginalProfile()) {
     developer_toolkit_prefs::ActivateToolkit(*original->GetPrefs());
-  }
-  if (bubble_widget_) {
-    bubble_widget_->Close();
-    return true;
   }
   if (cookie_manager_widget_) {
     cookie_manager_widget_->Close();
@@ -125,6 +129,7 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
 
   const url::Origin origin =
       url::Origin::Create(contents->GetLastCommittedURL());
+  bubble_contents_ = contents->GetWeakPtr();
   auto view = std::make_unique<DeveloperToolkitBubbleView>(
       base::UTF8ToUTF16(origin.Serialize()), GetToolbarVisibility(),
       base::BindRepeating(
@@ -184,6 +189,7 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
               base::BindOnce(&DeveloperToolkitController::OnBubbleClosed,
                              weak_ptr_factory_.GetWeakPtr())));
   if (!widget) {
+    bubble_contents_.reset();
     return false;
   }
 
@@ -208,12 +214,12 @@ bool DeveloperToolkitController::IsSurfaceShowing(
 }
 
 bool DeveloperToolkitController::CanExecute() const {
-  return IsSupportedDeveloperTarget(GetActiveWebContents());
+  return IsSupportedDeveloperTarget(GetToolkitWebContents());
 }
 
 DeveloperActionResult DeveloperToolkitController::Execute(
     DeveloperAction action) {
-  content::WebContents* const contents = GetActiveWebContents();
+  content::WebContents* const contents = GetToolkitWebContents();
   if (!IsSupportedDeveloperTarget(contents)) {
     return {action, DeveloperActionStatus::kRejectedUnsupportedTarget};
   }
@@ -226,7 +232,7 @@ DeveloperActionResult DeveloperToolkitController::Execute(
 bool DeveloperToolkitController::ClearBrowsingData(
     BrowsingDataClearOptions options,
     BrowsingDataClearCallback callback) {
-  content::WebContents* const contents = GetActiveWebContents();
+  content::WebContents* const contents = GetToolkitWebContents();
   if (!IsSupportedDeveloperTarget(contents) || callback.is_null()) {
     return false;
   }
@@ -239,6 +245,23 @@ content::WebContents* DeveloperToolkitController::GetActiveWebContents() const {
   return browser_ && browser_->tab_strip_model()
              ? browser_->tab_strip_model()->GetActiveWebContents()
              : nullptr;
+}
+
+content::WebContents* DeveloperToolkitController::GetToolkitWebContents()
+    const {
+  return bubble_widget_ ? bubble_contents_.get() : GetActiveWebContents();
+}
+
+void DeveloperToolkitController::ActivateToolkitWebContents() {
+  content::WebContents* const contents = GetToolkitWebContents();
+  TabStripModel* const model = browser_ ? browser_->tab_strip_model() : nullptr;
+  if (!contents || !model) {
+    return;
+  }
+  const int index = model->GetIndexOfWebContents(contents);
+  if (index != TabStripModel::kNoTab && index != model->active_index()) {
+    model->ActivateTabAt(index);
+  }
 }
 
 developer_toolkit_prefs::ToolbarVisibility
@@ -311,10 +334,11 @@ void DeveloperToolkitController::OpenDevTools() {
   // pane receives focus without a stale toolbar bubble above it. Dispatching
   // Chromium's normal command preserves policy checks, metrics and docking
   // behavior instead of creating a parallel DevTools implementation.
+  ActivateToolkitWebContents();
   if (bubble_widget_) {
     bubble_widget_->Close();
   }
-  chrome::ExecuteCommand(browser_, IDC_DEV_TOOLS);
+  chrome::ExecuteCommand(browser_, IDC_DEV_TOOLS_TOGGLE);
 }
 
 void DeveloperToolkitController::OpenPasswordManager() {
@@ -661,6 +685,7 @@ void DeveloperToolkitController::OnCacheClearFinished(
 }
 
 void DeveloperToolkitController::OnBubbleClosed() {
+  bubble_contents_.reset();
   std::unique_ptr<views::Widget> closed_widget = std::move(bubble_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
       std::move(bubble_delegate_);

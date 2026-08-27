@@ -42,6 +42,9 @@
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_types.h"
+#include "components/prefs/pref_change_registrar.h"
+#include "content/public/browser/web_contents_observer.h"
+#include "third_party/skia/include/core/SkColor.h"
 #include "ui/base/metadata/metadata_header_macros.h"
 #include "ui/base/models/image_model.h"
 #include "ui/events/event.h"
@@ -155,6 +158,7 @@ enum class PendingWorkspaceAction {
 };
 
 class BrowserSidebarHostView final : public views::View,
+                                     public content::WebContentsObserver,
                                      public SidebarTreeViewDelegate,
                                      public WorkspaceServiceObserver,
                                      public sync::ProfileSyncService::Observer,
@@ -205,6 +209,7 @@ class BrowserSidebarHostView final : public views::View,
   // views::View:
   void AddedToWidget() override;
   void RemovedFromWidget() override;
+  void OnPaint(gfx::Canvas* canvas) override;
   bool OnKeyPressed(const ui::KeyEvent& event) override;
   bool GetDropFormats(int* formats,
                       std::set<ui::ClipboardFormatType>* format_types) override;
@@ -221,6 +226,11 @@ class BrowserSidebarHostView final : public views::View,
   void OnSessionPresentationChanged();
 
   void OnAppearanceChanged(const appearance::GlassPolicy& policy);
+  void RefreshPageTint();
+
+  // content::WebContentsObserver:
+  void DidChangeThemeColor() override;
+  void WebContentsDestroyed() override;
 
   // media_ui::MediaMiniPlayerHost:
   void OnMiniPlayerExpandedChanged(bool expanded) override;
@@ -581,6 +591,10 @@ class BrowserSidebarHostView final : public views::View,
   std::map<base::Uuid, int> last_active_tab_handles_;
   WorkspaceTransitionAnimator workspace_transition_animator_;
   bool reduced_motion_ = false;
+  bool high_contrast_ = false;
+  int surface_corner_radius_ = 0;
+  std::optional<SkColor> sidebar_page_tint_;
+  PrefChangeRegistrar page_tint_pref_change_registrar_;
   std::unique_ptr<SidebarTreeController> controller_;
   raw_ptr<SidebarTreeView> tree_view_ = nullptr;
   raw_ptr<views::Button> workspace_button_ = nullptr;

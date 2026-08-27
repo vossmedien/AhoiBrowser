@@ -63,6 +63,8 @@ class DeveloperToolkitController {
 
  private:
   content::WebContents* GetActiveWebContents() const;
+  content::WebContents* GetToolkitWebContents() const;
+  void ActivateToolkitWebContents();
   developer_toolkit_prefs::ToolbarVisibility GetToolbarVisibility() const;
   bool SetToolbarVisibility(
       developer_toolkit_prefs::ToolbarVisibility visibility);
@@ -86,6 +88,7 @@ class DeveloperToolkitController {
 
   raw_ptr<Browser> browser_ = nullptr;
   std::unique_ptr<DeveloperActionExecutor> executor_;
+  base::WeakPtr<content::WebContents> bubble_contents_;
   std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate_;
   std::unique_ptr<views::Widget> bubble_widget_;
   raw_ptr<DeveloperCookieManagerView> cookie_manager_view_ = nullptr;

@@ -73,6 +73,8 @@ source_set("browser_tests") {
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
   sources = [ "split_layout_menu_browsertest.cc" ]
   deps = [
+    ":split_drop",
+    "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
     "//ahoi/browser/ui/sidebar:browser_sidebar",
     "//chrome/browser",
     "//chrome/browser/ui",
@@ -83,6 +85,8 @@ source_set("browser_tests") {
     "//components/tabs:public",
     "//content/test:test_support",
     "//testing/gtest",
+    "//ui/base",
+    "//ui/gfx",
   ]
 }
 
@@ -93,6 +97,50 @@ if (!is_android) {
       "//chrome:packed_resources",
       "//chrome/test:browser_tests_runner",
       "//chrome/test:test_support",
+    ]
+  }
+}
+
+if (is_mac) {
+  test("ahoi_split_pane_interactive_uitests") {
+    sources = [
+      "../../../../chrome/test/base/interactive_ui_tests_main.cc",
+      "split_pane_interactive_uitest.cc",
+    ]
+
+    configs += [ "//build/config:precompiled_headers" ]
+    defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+
+    deps = [
+      ":split_drop",
+      "//base",
+      "//base/test:test_support",
+      "//chrome:browser_tests_pak",
+      "//chrome:packed_resources",
+      "//chrome:resources",
+      "//chrome:strings",
+      "//chrome/browser",
+      "//chrome/browser/ui",
+      "//chrome/browser/ui/tabs:tab_strip",
+      "//chrome/test:test_support",
+      "//chrome/test:test_support_ui",
+      "//chrome/test/base:chrome_test_launcher",
+      "//components/split_tabs",
+      "//components/tabs:public",
+      "//content/public/browser",
+      "//content/test:test_support",
+      "//testing/gtest",
+      "//ui/base",
+      "//ui/base:test_support",
+      "//ui/gfx",
+      "//ui/resources:ui_test_pak",
+      "//ui/views",
+      "//url",
+    ]
+    data_deps = [
+      "//chrome:browser_tests_pak",
+      "//chrome:packed_resources",
+      "//ui/resources:ui_test_pak_data",
     ]
   }
 }

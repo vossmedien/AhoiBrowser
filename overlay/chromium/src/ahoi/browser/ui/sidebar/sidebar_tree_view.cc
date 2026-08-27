@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -637,45 +638,13 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
                           group_fill);
 
     // Derive separators from actual pane adjacency rather than pane order.
-    // Three-pane main/secondary layouts and four-pane grids contain horizontal
-    // neighbours as well as vertical ones; a sequential-only divider paints
-    // frames through unrelated panes and omits the cross-axis separator.
-    for (size_t first = 0; first < segment_bounds.size(); ++first) {
-      for (size_t second = first + 1; second < segment_bounds.size();
-           ++second) {
-        const gfx::Rect& a = segment_bounds[first];
-        const gfx::Rect& b = segment_bounds[second];
-        const int overlap_top = std::max(a.y(), b.y());
-        const int overlap_bottom = std::min(a.bottom(), b.bottom());
-        const int overlap_left = std::max(a.x(), b.x());
-        const int overlap_right = std::min(a.right(), b.right());
-        if (overlap_bottom > overlap_top) {
-          const int gap =
-              a.right() <= b.x() ? b.x() - a.right() : a.x() - b.right();
-          if (gap >= 0 && gap <= visual_style::kSidebarSplitPaneGap) {
-            const float divider_x =
-                static_cast<float>(a.right() <= b.x() ? a.right() + gap / 2.0f
-                                                      : b.right() + gap / 2.0f);
-            canvas->DrawLine(
-                gfx::PointF(divider_x, static_cast<float>(overlap_top)),
-                gfx::PointF(divider_x, static_cast<float>(overlap_bottom)),
-                separator);
-          }
-        }
-        if (overlap_right > overlap_left) {
-          const int gap =
-              a.bottom() <= b.y() ? b.y() - a.bottom() : a.y() - b.bottom();
-          if (gap >= 0 && gap <= visual_style::kSidebarSplitPaneGap) {
-            const float divider_y = static_cast<float>(
-                a.bottom() <= b.y() ? a.bottom() + gap / 2.0f
-                                    : b.bottom() + gap / 2.0f);
-            canvas->DrawLine(
-                gfx::PointF(static_cast<float>(overlap_left), divider_y),
-                gfx::PointF(static_cast<float>(overlap_right), divider_y),
-                separator);
-          }
-        }
-      }
+    // Inset by half the stroke as well as the painted background margin so no
+    // anti-aliased endpoint protrudes above, below or beside the group bubble.
+    gfx::RectF separator_bounds = background;
+    separator_bounds.Inset(gfx::InsetsF(separator.getStrokeWidth() / 2.0f));
+    for (const SidebarSplitSeparator& split_separator :
+         GetSidebarSplitSeparators(segment_bounds, separator_bounds)) {
+      canvas->DrawLine(split_separator.start, split_separator.end, separator);
     }
   }
 }

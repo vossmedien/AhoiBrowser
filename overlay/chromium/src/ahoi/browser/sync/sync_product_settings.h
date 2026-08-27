@@ -13,7 +13,7 @@ class PrefService;
 
 namespace ahoi::sync {
 
-using PermittedSettingIdList = std::array<std::string_view, 4>;
+using PermittedSettingIdList = std::array<std::string_view, 5>;
 
 const PermittedSettingIdList& GetPermittedProductSettingIds();
 bool IsPermittedProductSettingId(std::string_view setting_id);

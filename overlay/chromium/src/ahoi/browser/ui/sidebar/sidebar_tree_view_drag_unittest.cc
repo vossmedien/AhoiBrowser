@@ -240,6 +240,51 @@ TEST_F(SidebarTreeViewTest, TabOnTabDropUsesVisibleSplitTarget) {
   EXPECT_FALSE(delegate_.drag_state.has_value());
 }
 
+TEST_F(SidebarTreeViewTest,
+       SplitDropPreviewUsesLeadingHalfAndSuppressesTrailingState) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode page = MakeNode(
+      workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+      u"A deliberately long title that must elide in the split preview", "a");
+  delegate_.saved_page_running = true;
+
+  auto view = NewTreeView();
+  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->view_model().ReplaceChildren(std::nullopt, {page}));
+  ASSERT_TRUE(controller_->SelectNode(page.id));
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 64));
+
+  SidebarTreeRowView* row = view->GetMaterializedRowForTesting(page.id);
+  ASSERT_NE(nullptr, row);
+  const gfx::Point action_point(row->width() - 16,
+                                SidebarTreeRowView::kRowHeight / 2);
+  ui::MouseEvent enter(ui::EventType::kMouseEntered, action_point, action_point,
+                       base::TimeTicks::Now(), ui::EF_NONE, ui::EF_NONE);
+  row->OnMouseEntered(enter);
+  ASSERT_TRUE(row->IsTrailingActionAt(action_point));
+  ASSERT_TRUE(row->should_paint_trailing_state_for_testing());
+  const gfx::Rect normal_title_bounds = row->title_bounds_for_testing();
+  ASSERT_GT(normal_title_bounds.right(), row->width() / 2);
+  EXPECT_EQ(page.title, row->GetViewAccessibility().GetCachedName());
+
+  row->SetSplitDropTarget(true);
+
+  const gfx::Rect preview_title_bounds = row->title_bounds_for_testing();
+  EXPECT_GT(preview_title_bounds.width(), 0);
+  EXPECT_LE(preview_title_bounds.right(), row->width() / 2);
+  EXPECT_LT(preview_title_bounds.width(), normal_title_bounds.width());
+  EXPECT_FALSE(row->IsTrailingActionAt(action_point));
+  EXPECT_FALSE(row->should_paint_trailing_state_for_testing());
+  EXPECT_EQ(u"Split with " + page.title,
+            row->GetViewAccessibility().GetCachedName());
+
+  row->SetSplitDropTarget(false);
+  EXPECT_EQ(normal_title_bounds, row->title_bounds_for_testing());
+  EXPECT_TRUE(row->IsTrailingActionAt(action_point));
+  EXPECT_TRUE(row->should_paint_trailing_state_for_testing());
+  EXPECT_EQ(page.title, row->GetViewAccessibility().GetCachedName());
+}
+
 TEST_F(SidebarTreeViewTest, TemporaryTabDropSavesInsideFolder) {
   tab_tree::Workspace workspace = MakeWorkspace();
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,

@@ -25,6 +25,8 @@ source_set("appearance") {
     "appearance_runtime_signals.h",
     "appearance_views.cc",
     "appearance_views.h",
+    "sidebar_page_tint.cc",
+    "sidebar_page_tint.h",
   ]
 
   public_deps = [
@@ -61,6 +63,7 @@ source_set("unit_tests") {
     "appearance_policy_unittest.cc",
     "appearance_prefs_unittest.cc",
     "appearance_runtime_signals_unittest.cc",
+    "sidebar_page_tint_unittest.cc",
   ]
   if (is_mac) {
     sources += [ "native_glass_bridge_unittest.cc" ]

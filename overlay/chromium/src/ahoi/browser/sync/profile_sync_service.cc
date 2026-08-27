@@ -34,12 +34,14 @@ namespace {
 constexpr base::TimeDelta kLocalPublishDelay = base::Milliseconds(80);
 constexpr base::TimeDelta kAutomaticSyncInterval = base::Minutes(5);
 
-base::Uuid GetOrCreateDeviceId(Profile& profile) {
+base::Uuid LoadOrGenerateDeviceId(Profile& profile, bool persist_if_created) {
   PrefService* const prefs = profile.GetPrefs();
   base::Uuid id = base::Uuid::ParseLowercase(prefs->GetString(kDeviceIdPref));
   if (!id.is_valid()) {
     id = base::Uuid::GenerateRandomV4();
-    prefs->SetString(kDeviceIdPref, id.AsLowercaseString());
+    if (persist_if_created) {
+      prefs->SetString(kDeviceIdPref, id.AsLowercaseString());
+    }
   }
   return id;
 }
@@ -53,19 +55,13 @@ std::string DeviceDisplayName(Profile& profile) {
 }  // namespace
 
 ProfileSyncService::ProfileSyncService(Profile* profile)
-    : local_device_id_(GetOrCreateDeviceId(*profile)),
+    : local_device_id_(LoadOrGenerateDeviceId(
+          *profile,
+          profile->GetPrefs()->GetBoolean(kSyncEnabledPref))),
       local_session_id_(base::Uuid::GenerateRandomV4()),
-      backend_(base::ThreadPool::CreateSequencedTaskRunner(
-                   {base::MayBlock(), base::TaskPriority::USER_VISIBLE,
-                    base::TaskShutdownBehavior::BLOCK_SHUTDOWN}),
-               profile->GetPath()
-                   .AppendASCII("Ahoi Sync")
-                   .AppendASCII("sync.sqlite"),
-               local_device_id_,
-               local_session_id_,
-               DeviceDisplayName(*profile),
-               profile->GetPrefs()->GetBoolean(kSyncEnabledPref),
-               profile->GetPrefs()->GetInteger(kHistoryRetentionDaysPref)),
+      backend_task_runner_(base::ThreadPool::CreateSequencedTaskRunner(
+          {base::MayBlock(), base::TaskPriority::USER_VISIBLE,
+           base::TaskShutdownBehavior::BLOCK_SHUTDOWN})),
       profile_(profile),
       history_service_(HistoryServiceFactory::GetForProfile(
           profile,
@@ -84,12 +80,88 @@ ProfileSyncService::ProfileSyncService(Profile* profile)
   if (history_service_) {
     history_service_->AddObserver(this);
   }
-  backend_.AsyncCall(&ProfileSyncBackend::Initialize)
-      .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           weak_ptr_factory_.GetWeakPtr()));
+  if (sync_enabled_) {
+    StartBackend();
+  }
 }
 
 ProfileSyncService::~ProfileSyncService() = default;
+
+void ProfileSyncService::StartBackend() {
+  if (!profile_ || shutting_down_ || !sync_enabled_ || !backend_.is_null()) {
+    return;
+  }
+
+  backend_weak_ptr_factory_.InvalidateWeakPtrs();
+  backend_ready_ = false;
+  initialized_ = false;
+  initial_tree_merged_ = true;
+  ui_tree_seeded_ = false;
+  extension_inventory_seeded_ = false;
+  appearance_publish_pending_ = false;
+  permitted_settings_seeded_ = false;
+  if (profile_->GetPrefs()->GetString(kDeviceIdPref) !=
+      local_device_id_.AsLowercaseString()) {
+    profile_->GetPrefs()->SetString(kDeviceIdPref,
+                                    local_device_id_.AsLowercaseString());
+  }
+  backend_.emplace(
+      backend_task_runner_,
+      profile_->GetPath().AppendASCII("Ahoi Sync").AppendASCII("sync.sqlite"),
+      local_device_id_, local_session_id_, DeviceDisplayName(*profile_),
+      /*transport_enabled=*/true,
+      profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref));
+  backend_.AsyncCall(&ProfileSyncBackend::Initialize)
+      .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
+                           backend_weak_ptr_factory_.GetWeakPtr()));
+
+  // Capture the current local tree as part of the explicit opt-in even if no
+  // subsequent sidebar mutation occurs. It stays pending until SQLite is
+  // ready and does not depend on CloudKit provider availability.
+  if (ui_bridge_) {
+    tab_tree::TabTreeSnapshot snapshot;
+    if (ui_bridge_->ExportTabTreeSnapshot(&snapshot)) {
+      OnTabTreeSnapshotChanged(snapshot);
+    }
+    ui_bridge_->RequestLocalTabCapture();
+  }
+}
+
+void ProfileSyncService::StopBackend() {
+  publish_timer_.Stop();
+  sync_timer_.Stop();
+  history_task_tracker_.TryCancelAll();
+  backend_weak_ptr_factory_.InvalidateWeakPtrs();
+  if (!backend_.is_null()) {
+    backend_.AsyncCall(&ProfileSyncBackend::SuspendWithoutPersisting);
+    backend_.Reset();
+  }
+
+  backend_ready_ = false;
+  initialized_ = false;
+  initial_tree_merged_ = true;
+  ui_tree_seeded_ = false;
+  applying_synced_tree_ = false;
+  applying_product_state_ = false;
+  appearance_publish_pending_ = false;
+  permitted_settings_seeded_ = false;
+  extension_inventory_seeded_ = false;
+  pending_remote_history_deletions_ = 0;
+  pending_tree_snapshot_.reset();
+  deferred_tree_snapshot_.reset();
+  window_tabs_.clear();
+  tab_sync_ids_.clear();
+  local_tab_keys_by_sync_id_.clear();
+  applied_history_versions_.clear();
+  applied_appearance_versions_.clear();
+  applied_setting_versions_.clear();
+  snapshot_ = {};
+  transport_status_ = {};
+  permitted_settings_.clear();
+  extension_inventory_.clear();
+  developer_assets_.clear();
+  NotifyObservers();
+}
 
 void ProfileSyncService::AddObserver(Observer* observer) {
   observers_.AddObserver(observer);
@@ -142,7 +214,8 @@ void ProfileSyncService::DetachUiBridge(ProfileSyncUiBridge* bridge) {
 
 void ProfileSyncService::PublishWindowTabs(std::string window_key,
                                            std::vector<LocalTabState> tabs) {
-  if (shutting_down_ || window_key.empty()) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      window_key.empty()) {
     return;
   }
   for (LocalTabState& tab : tabs) {
@@ -155,7 +228,8 @@ void ProfileSyncService::PublishWindowTabs(std::string window_key,
 }
 
 void ProfileSyncService::RemoveWindowTabs(const std::string& window_key) {
-  if (shutting_down_ || window_tabs_.erase(window_key) == 0u) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      window_tabs_.erase(window_key) == 0u) {
     return;
   }
   if (window_tabs_.empty()) {
@@ -167,32 +241,32 @@ void ProfileSyncService::RemoveWindowTabs(const std::string& window_key) {
 }
 
 void ProfileSyncService::ApplyRemoteBatch(ProviderBatch batch) {
-  if (shutting_down_) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::ApplyRemote)
       .WithArgs(std::move(batch))
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::Refresh() {
-  if (shutting_down_) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::Refresh)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::SyncNow() {
-  if (shutting_down_ || !initialized_ || !sync_enabled_) {
+  if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::SyncNow)
       .WithArgs(base::BindPostTaskToCurrentDefault(
           base::BindOnce(&ProfileSyncService::OnSyncCompleted,
-                         weak_ptr_factory_.GetWeakPtr())));
+                         backend_weak_ptr_factory_.GetWeakPtr())));
 }
 
 void ProfileSyncService::SetSyncEnabled(bool enabled) {
@@ -211,7 +285,8 @@ bool ProfileSyncService::SetHistoryRetentionDays(int days) {
 }
 
 void ProfileSyncService::SetRemoteControlEnabled(bool enabled) {
-  if (!profile_ || shutting_down_) {
+  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      !transport_status_.provider_available) {
     return;
   }
   profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, enabled);
@@ -224,7 +299,8 @@ bool ProfileSyncService::ApproveRemoteControlDevice(
     const base::Uuid& device_id,
     std::string public_key_base64) {
   std::string decoded;
-  if (!profile_ || shutting_down_ || !device_id.is_valid() ||
+  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      !transport_status_.provider_available || !device_id.is_valid() ||
       !base::Base64Decode(public_key_base64, &decoded) ||
       decoded.size() != 32u) {
     return false;
@@ -239,7 +315,8 @@ bool ProfileSyncService::ApproveRemoteControlDevice(
 
 void ProfileSyncService::RevokeRemoteControlDevice(
     const base::Uuid& device_id) {
-  if (!profile_ || shutting_down_ || !device_id.is_valid()) {
+  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      !transport_status_.provider_available || !device_id.is_valid()) {
     return;
   }
   base::DictValue keys =
@@ -251,22 +328,22 @@ void ProfileSyncService::RevokeRemoteControlDevice(
 
 void ProfileSyncService::ConfirmCloudKitAccountTransition(
     bool allow_local_upload) {
-  if (shutting_down_ || !initialized_ || !sync_enabled_) {
+  if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::ConfirmAccountTransition)
       .WithArgs(allow_local_upload)
       .Then(base::BindOnce(&ProfileSyncService::OnCloudKitRecoveryConfirmed,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::ConfirmCloudKitZoneRecovery() {
-  if (shutting_down_ || !initialized_ || !sync_enabled_) {
+  if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::ConfirmZoneRecovery)
       .Then(base::BindOnce(&ProfileSyncService::OnCloudKitRecoveryConfirmed,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::Shutdown() {
@@ -287,20 +364,26 @@ void ProfileSyncService::Shutdown() {
   ui_bridge_.reset();
   ui_bridge_attachment_count_ = 0;
   profile_ = nullptr;
+  backend_weak_ptr_factory_.InvalidateWeakPtrs();
   weak_ptr_factory_.InvalidateWeakPtrs();
   observers_.Clear();
   window_tabs_.clear();
-  backend_.AsyncCall(&ProfileSyncBackend::CloseSession);
-  backend_.Reset();
+  if (!backend_.is_null()) {
+    backend_.AsyncCall(&ProfileSyncBackend::CloseSession);
+    backend_.Reset();
+  }
 }
 
 void ProfileSyncService::ScheduleLocalPublish() {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
+    return;
+  }
   publish_timer_.Start(FROM_HERE, kLocalPublishDelay, this,
                        &ProfileSyncService::PublishCombinedLocalTabs);
 }
 
 void ProfileSyncService::PublishCombinedLocalTabs() {
-  if (shutting_down_) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   std::vector<LocalTabState> combined;
@@ -320,17 +403,23 @@ void ProfileSyncService::PublishCombinedLocalTabs() {
   backend_.AsyncCall(&ProfileSyncBackend::ReplaceLocalTabs)
       .WithArgs(std::move(combined))
       .Then(base::BindOnce(&ProfileSyncService::OnLocalPublishComplete,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnLocalPublishComplete(
     std::optional<DeviceTabsSnapshot> snapshot) {
+  if (!sync_enabled_ || backend_.is_null()) {
+    return;
+  }
   OnBackendSnapshot(std::move(snapshot));
   SyncNow();
 }
 
 void ProfileSyncService::OnSyncCompleted(
     std::optional<SyncStateSnapshot> snapshot) {
+  if (!sync_enabled_ || backend_.is_null()) {
+    return;
+  }
   OnBackendState(std::move(snapshot));
 }
 
@@ -349,17 +438,15 @@ void ProfileSyncService::OnSyncEnabledPrefChanged() {
     return;
   }
   sync_enabled_ = enabled;
-  if (!enabled) {
-    sync_timer_.Stop();
+  if (enabled) {
+    StartBackend();
+  } else {
+    StopBackend();
   }
-  backend_.AsyncCall(&ProfileSyncBackend::SetTransportEnabled)
-      .WithArgs(enabled)
-      .Then(base::BindOnce(&ProfileSyncService::OnTransportPreferenceApplied,
-                           weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnHistoryRetentionPrefChanged() {
-  if (!profile_ || shutting_down_) {
+  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   const int days = profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref);
@@ -369,20 +456,12 @@ void ProfileSyncService::OnHistoryRetentionPrefChanged() {
   backend_.AsyncCall(&ProfileSyncBackend::SetHistoryRetentionDays)
       .WithArgs(days)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::OnTransportPreferenceApplied(
-    std::optional<SyncStateSnapshot> state) {
-  OnBackendState(std::move(state));
-  if (sync_enabled_) {
-    SyncNow();
-  }
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnBackendState(
     std::optional<SyncStateSnapshot> state) {
-  if (shutting_down_ || !state) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !state) {
     return;
   }
   backend_ready_ = true;
@@ -393,7 +472,7 @@ void ProfileSyncService::OnBackendState(
       backend_.AsyncCall(&ProfileSyncBackend::MergeLocalTabTree)
           .WithArgs(std::move(tree), true)
           .Then(base::BindOnce(&ProfileSyncService::OnLocalTreeMerged,
-                               weak_ptr_factory_.GetWeakPtr()));
+                               backend_weak_ptr_factory_.GetWeakPtr()));
     }
     return;
   }
@@ -421,7 +500,8 @@ void ProfileSyncService::OnBackendState(
 
 void ProfileSyncService::OnBackendSnapshot(
     std::optional<DeviceTabsSnapshot> snapshot) {
-  if (shutting_down_ || !snapshot || *snapshot == snapshot_) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !snapshot ||
+      *snapshot == snapshot_) {
     return;
   }
   snapshot_ = std::move(*snapshot);
@@ -430,7 +510,7 @@ void ProfileSyncService::OnBackendSnapshot(
 
 void ProfileSyncService::OnTabTreeSnapshotChanged(
     const tab_tree::TabTreeSnapshot& snapshot) {
-  if (shutting_down_ || !ui_bridge_) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !ui_bridge_) {
     return;
   }
   if (applying_synced_tree_) {
@@ -448,12 +528,12 @@ void ProfileSyncService::OnTabTreeSnapshotChanged(
   backend_.AsyncCall(&ProfileSyncBackend::MergeLocalTabTree)
       .WithArgs(snapshot, initial)
       .Then(base::BindOnce(&ProfileSyncService::OnLocalTreeMerged,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnLocalTreeMerged(
     std::optional<SyncStateSnapshot> snapshot) {
-  if (shutting_down_ || !snapshot) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !snapshot) {
     return;
   }
   const bool was_initialized = initialized_;
@@ -467,6 +547,9 @@ void ProfileSyncService::OnLocalTreeMerged(
 }
 
 void ProfileSyncService::ApplyDomainState(const SyncStateSnapshot& state) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
+    return;
+  }
   if (ui_bridge_) {
     tab_tree::TabTreeSnapshot local;
     if (ui_bridge_->ExportTabTreeSnapshot(&local)) {
@@ -493,7 +576,8 @@ void ProfileSyncService::ApplyDomainState(const SyncStateSnapshot& state) {
 
 RemoteCommandPolicy ProfileSyncService::CurrentRemoteCommandPolicy() const {
   RemoteCommandPolicy policy;
-  if (!profile_ || shutting_down_) {
+  if (!profile_ || shutting_down_ || !sync_enabled_ ||
+      !transport_status_.provider_available) {
     return policy;
   }
   policy.enabled = profile_->GetPrefs()->GetBoolean(kRemoteControlEnabledPref);
@@ -508,18 +592,19 @@ RemoteCommandPolicy ProfileSyncService::CurrentRemoteCommandPolicy() const {
 }
 
 void ProfileSyncService::ClaimRemoteCommands() {
-  if (shutting_down_ || !initialized_) {
+  if (shutting_down_ || !sync_enabled_ || !initialized_ || backend_.is_null() ||
+      !transport_status_.provider_available) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::ClaimRemoteCommands)
       .WithArgs(CurrentRemoteCommandPolicy(), base::Time::Now())
       .Then(base::BindOnce(&ProfileSyncService::OnRemoteCommandsClaimed,
-                           weak_ptr_factory_.GetWeakPtr()));
+                           backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnRemoteCommandsClaimed(
     std::vector<RemoteCommandRecord> commands) {
-  if (shutting_down_) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   for (const RemoteCommandRecord& command : commands) {
@@ -557,13 +642,16 @@ void ProfileSyncService::CompleteRemoteCommand(
     const RemoteCommandRecord& command,
     bool executed,
     std::string result_code) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
+    return;
+  }
   backend_.AsyncCall(&ProfileSyncBackend::CompleteRemoteCommand)
       .WithArgs(command.id, executed, std::move(result_code));
 }
 
 void ProfileSyncService::ApplyRemoteHistory(
     const std::vector<HistoryRecord>& records) {
-  if (!history_service_) {
+  if (!sync_enabled_ || backend_.is_null() || !history_service_) {
     return;
   }
   for (const HistoryRecord& record : records) {
@@ -605,7 +693,8 @@ void ProfileSyncService::OnRemoteHistoryExpired() {
 
 void ProfileSyncService::OnURLVisited(history::HistoryService* history_service,
                                       const history::VisitedURLInfo& info) {
-  if (shutting_down_ || history_service != history_service_ ||
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      history_service != history_service_ ||
       !ShouldSyncHistoryVisit({
           .url = info.url_row.url(),
           .hidden = info.url_row.hidden(),
@@ -633,13 +722,14 @@ void ProfileSyncService::OnURLVisited(history::HistoryService* history_service,
             service->OnBackendState(std::move(state));
             service->SyncNow();
           },
-          weak_ptr_factory_.GetWeakPtr()));
+          backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::OnHistoryDeletions(
     history::HistoryService* history_service,
     const history::DeletionInfo& info) {
-  if (shutting_down_ || history_service != history_service_ ||
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      history_service != history_service_ ||
       pending_remote_history_deletions_ > 0 || info.is_from_expiration() ||
       info.deletion_reason() ==
           history::DeletionInfo::Reason::kDeleteAllForeignVisits) {
@@ -678,7 +768,7 @@ void ProfileSyncService::OnHistoryDeletions(
             service->OnBackendState(std::move(state));
             service->SyncNow();
           },
-          weak_ptr_factory_.GetWeakPtr()));
+          backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::HistoryServiceBeingDeleted(

@@ -126,6 +126,28 @@ class LocationBarBubbleToggleContractTest(unittest.TestCase):
         self.assertNotIn("cache_status_widget_->Activate();", cache_toggle)
         self.assertIn("bool IsShowing() const;", privacy_header)
 
+    def test_developer_toolkit_actions_stay_bound_to_the_opened_pane(self):
+        developer_source = text(
+            DEVELOPER_UI / "developer_toolkit_controller.cc"
+        )
+
+        toggle_guard = developer_source.index("if (bubble_widget_) {")
+        active_target_lookup = developer_source.index(
+            "content::WebContents* const contents = GetActiveWebContents();",
+            toggle_guard,
+        )
+        self.assertLess(toggle_guard, active_target_lookup)
+        self.assertIn("bubble_contents_ = contents->GetWeakPtr();", developer_source)
+        self.assertGreaterEqual(
+            developer_source.count("GetToolkitWebContents()"), 3
+        )
+        self.assertIn("ActivateToolkitWebContents();", developer_source)
+        self.assertIn(
+            "chrome::ExecuteCommand(browser_, IDC_DEV_TOOLS_TOGGLE);",
+            developer_source,
+        )
+        self.assertIn("bubble_contents_.reset();", developer_source)
+
 
 if __name__ == "__main__":
     unittest.main()

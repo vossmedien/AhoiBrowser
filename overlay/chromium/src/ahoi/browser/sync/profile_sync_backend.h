@@ -18,6 +18,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback_forward.h"
+#include "base/memory/weak_ptr.h"
 
 namespace ahoi::sync {
 
@@ -81,6 +82,11 @@ class ProfileSyncBackend {
 
   void SyncNow(
       base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback);
+  // Stops provider and local-session activity without mutating the durable
+  // store. Used when the profile-wide opt-in is disabled: existing records and
+  // outbox entries remain intact, while destruction cannot enqueue lifecycle
+  // tombstones after the opt-out boundary.
+  void SuspendWithoutPersisting();
   void CloseSession();
 
  private:
@@ -112,6 +118,7 @@ class ProfileSyncBackend {
   std::map<std::string, RemoteTabRecord> live_tabs_;
   std::unique_ptr<SyncProvider> provider_;
   std::unique_ptr<SyncPump> pump_;
+  base::WeakPtrFactory<ProfileSyncBackend> weak_ptr_factory_{this};
 };
 
 }  // namespace ahoi::sync

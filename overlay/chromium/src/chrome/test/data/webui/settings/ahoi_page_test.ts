@@ -19,6 +19,11 @@ const AHOI_PREFS: chrome.settingsPrivate.PrefObject[] = [
     value: true,
   },
   {
+    key: 'ahoi.appearance.sidebar_page_tint_enabled',
+    type: chrome.settingsPrivate.PrefType.BOOLEAN,
+    value: false,
+  },
+  {
     key: 'ahoi.navigation.floating_auto_hide_enabled',
     type: chrome.settingsPrivate.PrefType.BOOLEAN,
     value: true,
@@ -97,6 +102,7 @@ suite('AhoiPage', () => {
   test('ownsAhoiAppearanceNavigationSyncAndDeveloperControls', () => {
     const ids = [
       '#ahoiGlassEnabled',
+      '#ahoiSidebarPageTintEnabled',
       '#ahoiNavigationAutoHide',
       '#ahoiNavigationRevealNotch',
       '#ahoiNavigationAutoHideDelay',
@@ -126,7 +132,58 @@ suite('AhoiPage', () => {
     assertEquals('/ahoi', item.getAttribute('href'));
   });
 
-  test('cloudKitCapabilityGateDisablesUnavailableControls', async () => {
+  test('arcPreviewRequiresBothExplicitConfirmationsBeforeCommit', async () => {
+    const mutablePage = page as unknown as {
+      arcImportStage_: string,
+      arcImportPreview_: object,
+      arcSelectedProfiles_: string[],
+    };
+    mutablePage.arcImportStage_ = 'preview';
+    mutablePage.arcImportPreview_ = {
+      status: 'ok',
+      snapshotToken: 'test-token-without-source-data',
+      stats: {
+        sourceWorkspaces: 1,
+        sourceItems: 2,
+        workspaces: 1,
+        folders: 0,
+        pages: 2,
+        splits: 1,
+        degradedSplits: 0,
+        topApps: 0,
+        unsafeUrls: 0,
+        unsupportedItems: 0,
+      },
+      conflictingWorkspaces: 0,
+      alreadyImported: false,
+      sourceInUse: false,
+      targetWorkspaces: ['Imported workspace'],
+      profiles: ['Default'],
+    };
+    mutablePage.arcSelectedProfiles_ = ['Default'];
+    page.requestUpdate();
+    await microtasksFinished();
+
+    const backup = page.shadowRoot.querySelector<HTMLElement&{checked: boolean}>(
+        '#ahoiArcBackupConfirmation')!;
+    const commit = page.shadowRoot.querySelector<HTMLElement&{checked: boolean}>(
+        '#ahoiArcCommitConfirmation')!;
+    const button = page.shadowRoot.querySelector<HTMLElement&{disabled: boolean}>(
+        '#ahoiArcCommit')!;
+    assertTrue(!!backup);
+    assertTrue(!!commit);
+    assertTrue(button.disabled);
+
+    backup.click();
+    await microtasksFinished();
+    assertTrue(button.disabled);
+
+    commit.click();
+    await microtasksFinished();
+    assertFalse(button.disabled);
+  });
+
+  test('syncOptInCanPrepareLocalStateWithoutCloudKitTransport', async () => {
     const sync = page.shadowRoot.querySelector<SettingsToggleButtonElement>(
         '#ahoiSyncEnabled')!;
     const remote = page.shadowRoot.querySelector<SettingsToggleButtonElement>(
@@ -140,24 +197,32 @@ suite('AhoiPage', () => {
 
     assertFalse(unavailable.hidden);
     assertFalse(sync.checked);
-    assertTrue(sync.disabled);
+    assertFalse(sync.disabled);
     assertTrue(remote.disabled);
     assertTrue(retention.disabled);
 
     sync.click();
     await microtasksFinished();
 
-    assertFalse(prefService.getPref<boolean>('ahoi.sync.enabled').value);
+    assertTrue(prefService.getPref<boolean>('ahoi.sync.enabled').value);
+    assertTrue(sync.checked);
+    assertFalse(sync.disabled);
+    assertTrue(remote.disabled);
+    assertFalse(retention.disabled);
+  });
 
-    // A migrated profile may already have sync enabled. Capability absence
-    // remains authoritative without silently rewriting the stored preference.
-    await prefService.setPrefValue('ahoi.sync.enabled', true);
+  test('sidebarPageTintIsOptionalAndPersistsUserChoice', async () => {
+    const tint = page.shadowRoot.querySelector<SettingsToggleButtonElement>(
+        '#ahoiSidebarPageTintEnabled')!;
+
+    assertFalse(tint.checked);
+    tint.click();
     await microtasksFinished();
 
-    assertTrue(sync.checked);
-    assertTrue(sync.disabled);
-    assertTrue(remote.disabled);
-    assertTrue(retention.disabled);
+    assertTrue(
+        prefService
+            .getPref<boolean>('ahoi.appearance.sidebar_page_tint_enabled')
+            .value);
   });
 
   test('futureCloudKitAvailabilityUnlocksSafeSyncPrefs', async () => {

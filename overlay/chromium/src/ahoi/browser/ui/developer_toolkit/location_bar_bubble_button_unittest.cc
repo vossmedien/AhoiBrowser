@@ -13,6 +13,7 @@
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/events/test/test_event.h"
 #include "ui/gfx/geometry/point.h"
+#include "ui/views/layout/layout_provider.h"
 #include "ui/views/test/views_test_base.h"
 #include "ui/views/widget/widget.h"
 
@@ -50,7 +51,16 @@ LocationBarBubbleButton* MountButton(views::Widget* widget,
   return mounted_button;
 }
 
-class LocationBarBubbleButtonTest : public views::ViewsTestBase {};
+class LocationBarBubbleButtonTest : public views::ViewsTestBase {
+ protected:
+  void SetUp() override {
+    views::ViewsTestBase::SetUp();
+    // ConfigureVectorImageButton requires the Views layout metrics. The
+    // standalone Views fixture does not install a provider.
+    test_views_delegate()->set_layout_provider(
+        std::make_unique<views::LayoutProvider>());
+  }
+};
 
 TEST_F(LocationBarBubbleButtonTest,
        ExistingSurfaceDismissalDoesNotReopenOnMouseRelease) {

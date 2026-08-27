@@ -80,6 +80,10 @@ class SidebarTreeRowView final : public views::View,
   bool is_split_segment_for_testing() const { return split_segment_count_ > 1; }
   bool is_split_drop_target_for_testing() const { return split_drop_target_; }
   bool title_visible_for_testing() const;
+  gfx::Rect title_bounds_for_testing() const;
+  bool should_paint_trailing_state_for_testing() const {
+    return ShouldPaintTrailingState();
+  }
   const std::u16string& folder_icon_for_testing() const { return folder_icon_; }
   const std::u16string& title() const { return title_; }
   std::u16string editor_text_for_testing() const;
@@ -116,6 +120,7 @@ class SidebarTreeRowView final : public views::View,
   gfx::Rect MediaIndicatorBounds() const;
   gfx::Rect TrailingActionBounds() const;
   bool ShouldShowTrailingAction() const;
+  bool ShouldPaintTrailingState() const;
   void UpdateAccessibility();
 
   const raw_ptr<SidebarTreeView> owner_;

@@ -308,24 +308,31 @@ void SessionBridge::RunWhenReadyForTesting(base::OnceClosure callback) {
 void SessionBridge::FlushPersistenceForTesting(base::OnceClosure callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK(callback);
+  FlushPersistenceForBackup(base::BindOnce(
+      [](base::OnceClosure done, bool) { std::move(done).Run(); },
+      std::move(callback)));
+}
+
+void SessionBridge::FlushPersistenceForBackup(
+    base::OnceCallback<void(bool)> callback) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CHECK(callback);
   persistence_timer_.Stop();
   if (!tab_tree_store_ || !persistence_enabled_ || !persistence_task_runner_) {
-    std::move(callback).Run();
+    std::move(callback).Run(false);
     return;
   }
   tab_tree::TabTreeSnapshot snapshot;
   if (tab_tree_store_->ExportSnapshot(&snapshot) !=
       tab_tree::TabTreeStore::Result::kOk) {
-    std::move(callback).Run();
+    std::move(callback).Run(false);
     return;
   }
   persistence_task_runner_->PostTaskAndReplyWithResult(
       FROM_HERE,
       base::BindOnce(&SessionBridge::PersistTabTreeSnapshot,
                      tab_tree_database_path_, std::move(snapshot)),
-      base::BindOnce(
-          [](base::OnceClosure done, bool) { std::move(done).Run(); },
-          std::move(callback)));
+      std::move(callback));
 }
 
 base::CallbackListSubscription
@@ -335,8 +342,18 @@ SessionBridge::AddRuntimePresentationChangedCallback(
   return runtime_presentation_changed_callbacks_.Add(std::move(callback));
 }
 
-base::CallbackListSubscription
-SessionBridge::AddTabTreeSnapshotChangedCallback(
+void SessionBridge::RequestLocalTabCapture() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_) {
+    return;
+  }
+  // Every BrowserSidebarHostView is subscribed to this profile-scoped list.
+  // Its refresh reads the current TabStripModel before publishing, so an
+  // opt-in can never repopulate sync from a cache retained while disabled.
+  runtime_presentation_changed_callbacks_.Notify();
+}
+
+base::CallbackListSubscription SessionBridge::AddTabTreeSnapshotChangedCallback(
     base::RepeatingCallback<void(const tab_tree::TabTreeSnapshot&)> callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK(callback);
@@ -351,8 +368,7 @@ SessionBridge::AddTabTreeSnapshotChangedCallback(
   return subscription;
 }
 
-bool SessionBridge::ExportTabTreeSnapshot(
-    tab_tree::TabTreeSnapshot* snapshot) {
+bool SessionBridge::ExportTabTreeSnapshot(tab_tree::TabTreeSnapshot* snapshot) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   return snapshot && tab_tree_ready_ && !shutting_down_ && tab_tree_store_ &&
          tab_tree_store_->ExportSnapshot(snapshot) ==
@@ -371,7 +387,9 @@ tab_tree::TabTreeStore::Result SessionBridge::ApplySyncedTabTreeSnapshot(
     return tab_tree::TabTreeStore::Result::kDatabaseError;
   }
   snapshot.undo_operations = current.undo_operations;
-  if (snapshot == current) return tab_tree::TabTreeStore::Result::kOk;
+  if (snapshot == current) {
+    return tab_tree::TabTreeStore::Result::kOk;
+  }
   const tab_tree::TabTreeStore::Result result =
       tab_tree_store_->ReplaceWithSnapshot(snapshot);
   if (result != tab_tree::TabTreeStore::Result::kOk ||
@@ -388,7 +406,7 @@ tab_tree::TabTreeStore::Result SessionBridge::ApplySyncedTabTreeSnapshot(
     }
     tab_tree::TreeNode node;
     if (tab_tree_store_->GetNode(it->first, &node) !=
-                    tab_tree::TabTreeStore::Result::kOk ||
+            tab_tree::TabTreeStore::Result::kOk ||
         node.tombstone) {
       UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
       it = node_tabs_.begin();
@@ -426,7 +444,9 @@ bool SessionBridge::OpenNormalTabFromRemoteCommand(
     return false;
   }
   browser->OpenGURL(url, WindowOpenDisposition::NEW_FOREGROUND_TAB);
-  if (browser->GetWindow()) browser->GetWindow()->Activate();
+  if (browser->GetWindow()) {
+    browser->GetWindow()->Activate();
+  }
   return true;
 }
 
@@ -449,8 +469,11 @@ bool SessionBridge::FocusNormalTabFromRemoteCommand(
   const std::string stable_id = RuntimeStableId(local_stable_key);
   tabs::TabInterface* tab = FindTabForOpenTabStableId(stable_id);
   TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
-  const int index = model && tab ? model->GetIndexOfTab(tab) : TabStripModel::kNoTab;
-  if (index == TabStripModel::kNoTab) return false;
+  const int index =
+      model && tab ? model->GetIndexOfTab(tab) : TabStripModel::kNoTab;
+  if (index == TabStripModel::kNoTab) {
+    return false;
+  }
   model->ActivateTabAt(index);
   auto browser = model_windows_.find(model);
   if (browser != model_windows_.end() && browser->second->GetWindow()) {
@@ -465,10 +488,14 @@ bool SessionBridge::CloseNormalTabFromRemoteCommand(
   const std::string stable_id = RuntimeStableId(local_stable_key);
   tabs::TabInterface* tab = FindTabForOpenTabStableId(stable_id);
   TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
-  const int index = model && tab ? model->GetIndexOfTab(tab) : TabStripModel::kNoTab;
-  if (index == TabStripModel::kNoTab) return false;
-  model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_USER_GESTURE |
-                                      TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+  const int index =
+      model && tab ? model->GetIndexOfTab(tab) : TabStripModel::kNoTab;
+  if (index == TabStripModel::kNoTab) {
+    return false;
+  }
+  model->CloseWebContentsAt(index,
+                            TabCloseTypes::CLOSE_USER_GESTURE |
+                                TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
   return true;
 }
 

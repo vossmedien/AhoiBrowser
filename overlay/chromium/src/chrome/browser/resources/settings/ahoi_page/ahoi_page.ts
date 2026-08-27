@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import 'chrome://resources/cr_elements/cr_view_manager/cr_view_manager.js';
+import 'chrome://resources/cr_elements/cr_button/cr_button.js';
+import 'chrome://resources/cr_elements/cr_checkbox/cr_checkbox.js';
+import {sendWithPromise} from 'chrome://resources/js/cr.js';
 import '../controls/settings_dropdown_menu.js';
 import '../controls/settings_toggle_button.js';
 import '../settings_page/settings_section.js';
@@ -24,6 +27,40 @@ import {getCss} from './ahoi_page.css.js';
 import {getHtml} from './ahoi_page.html.js';
 
 type PrefObject<T> = chrome.settingsPrivate.PrefObject<T>;
+
+export interface ArcImportStats {
+  sourceWorkspaces: number;
+  sourceItems: number;
+  workspaces: number;
+  folders: number;
+  pages: number;
+  splits: number;
+  degradedSplits: number;
+  topApps: number;
+  unsafeUrls: number;
+  unsupportedItems: number;
+}
+
+export interface ArcImportPreviewResponse {
+  status: string;
+  snapshotToken: string;
+  stats: ArcImportStats;
+  conflictingWorkspaces: number;
+  alreadyImported: boolean;
+  sourceInUse: boolean;
+  targetWorkspaces: string[];
+  profiles: string[];
+}
+
+export interface ArcImportCommitResponse {
+  status: string;
+  stats: ArcImportStats;
+  renamedWorkspaces: number;
+  skippedWorkspaces: number;
+  mergedWorkspaces: number;
+  reconstructedSplits: number;
+  approximatedFourPaneRatios: number;
+}
 
 export interface SettingsAhoiPageElement {
   $: {
@@ -56,6 +93,15 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       floatingNavigationDelayOptions_: {type: Array},
       historyRetentionOptions_: {type: Array},
       syncEnabledPref_: {type: Object},
+      arcImportStage_: {type: String},
+      arcImportPreview_: {type: Object},
+      arcImportResult_: {type: Object},
+      arcConflictPolicy_: {type: String},
+      arcImportSidebar_: {type: Boolean},
+      arcReconstructSplits_: {type: Boolean},
+      arcSelectedProfiles_: {type: Array},
+      arcBackupConfirmed_: {type: Boolean},
+      arcCommitConfirmed_: {type: Boolean},
     };
   }
 
@@ -68,6 +114,15 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       PrefObject<boolean>|undefined = undefined;
   protected accessor syncEnabledPref_: PrefObject<boolean>|undefined =
       undefined;
+  protected accessor arcImportStage_: string = 'idle';
+  protected accessor arcImportPreview_: ArcImportPreviewResponse|null = null;
+  protected accessor arcImportResult_: ArcImportCommitResponse|null = null;
+  protected accessor arcConflictPolicy_: string = 'rename';
+  protected accessor arcImportSidebar_: boolean = true;
+  protected accessor arcReconstructSplits_: boolean = true;
+  protected accessor arcSelectedProfiles_: string[] = [];
+  protected accessor arcBackupConfirmed_: boolean = false;
+  protected accessor arcCommitConfirmed_: boolean = false;
 
   protected accessor floatingNavigationDelayOptions_: DropdownMenuOptionList = [
     {value: 400, name: loadTimeData.getString('ahoiNavigationDelayFast')},
@@ -128,6 +183,109 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       prefService.setPrefValue(
           'ahoi.developer_toolbar.show_toolkit_button', true);
     }
+  }
+
+  protected async onArcDiscover_() {
+    this.arcImportStage_ = 'discovering';
+    this.arcImportPreview_ = null;
+    this.arcImportResult_ = null;
+    this.arcBackupConfirmed_ = false;
+    this.arcCommitConfirmed_ = false;
+    try {
+      const preview = await sendWithPromise<ArcImportPreviewResponse>(
+          'ahoiArcDiscover');
+      this.arcImportPreview_ = preview;
+      this.arcSelectedProfiles_ = [...preview.profiles];
+      this.arcImportStage_ = preview.status === 'ok' ?
+          'preview' :
+          (preview.status === 'sourceInUse' ? 'sourceInUse' : 'error');
+    } catch {
+      this.arcImportStage_ = 'error';
+    }
+  }
+
+  protected async onArcCommit_() {
+    const preview = this.arcImportPreview_;
+    if (!preview || !this.canCommitArcImport_()) {
+      return;
+    }
+    this.arcImportStage_ = 'committing';
+    try {
+      const result = await sendWithPromise<ArcImportCommitResponse>(
+          'ahoiArcCommit', preview.snapshotToken, this.arcConflictPolicy_,
+          this.arcSelectedProfiles_, this.arcImportSidebar_,
+          this.arcReconstructSplits_, this.arcBackupConfirmed_,
+          this.arcCommitConfirmed_);
+      this.arcImportResult_ = result;
+      this.arcImportStage_ =
+          result.status === 'ok' || result.status === 'noChanges' ?
+          'done' :
+          (result.status === 'sourceInUse' ? 'sourceInUse' : 'error');
+    } catch {
+      this.arcImportStage_ = 'error';
+    }
+  }
+
+  protected onArcProfileToggle_(event: Event) {
+    const checkbox = event.currentTarget as HTMLElement&{checked: boolean};
+    const profile = checkbox.dataset['profile'];
+    if (!profile) {
+      return;
+    }
+    const selected = new Set(this.arcSelectedProfiles_);
+    checkbox.checked ? selected.add(profile) : selected.delete(profile);
+    this.arcSelectedProfiles_ = [...selected];
+  }
+
+  protected onArcConflictPolicyChange_(event: Event) {
+    this.arcConflictPolicy_ = (event.currentTarget as HTMLSelectElement).value;
+  }
+
+  protected onArcImportSidebarChange_(event: Event) {
+    this.arcImportSidebar_ =
+        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
+  }
+
+  protected onArcReconstructSplitsChange_(event: Event) {
+    this.arcReconstructSplits_ =
+        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
+  }
+
+  protected onArcBackupConfirmedChange_(event: Event) {
+    this.arcBackupConfirmed_ =
+        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
+  }
+
+  protected onArcCommitConfirmedChange_(event: Event) {
+    this.arcCommitConfirmed_ =
+        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
+  }
+
+  protected canCommitArcImport_(): boolean {
+    return this.arcImportStage_ === 'preview' && this.arcImportSidebar_ &&
+        this.arcSelectedProfiles_.length > 0 && this.arcBackupConfirmed_ &&
+        this.arcCommitConfirmed_;
+  }
+
+  protected arcStatusText_(): string {
+    if (this.arcImportStage_ === 'discovering') {
+      return loadTimeData.getString('ahoiArcImportDiscovering');
+    }
+    if (this.arcImportStage_ === 'committing') {
+      return loadTimeData.getString('ahoiArcImportCommitting');
+    }
+    if (this.arcImportStage_ === 'sourceInUse') {
+      return loadTimeData.getString('ahoiArcImportSourceInUse');
+    }
+    if (this.arcImportStage_ === 'done') {
+      return this.arcImportResult_?.status === 'noChanges' ?
+          loadTimeData.getString('ahoiArcImportNoChanges') :
+          loadTimeData.getString('ahoiArcImportSuccess');
+    }
+    if (this.arcImportStage_ === 'error') {
+      return loadTimeData.getString('ahoiArcImportError');
+    }
+    return '';
   }
 }
 

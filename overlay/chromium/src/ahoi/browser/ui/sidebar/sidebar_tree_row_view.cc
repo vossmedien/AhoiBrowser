@@ -208,6 +208,10 @@ bool SidebarTreeRowView::title_visible_for_testing() const {
   return title_label_->GetVisible();
 }
 
+gfx::Rect SidebarTreeRowView::title_bounds_for_testing() const {
+  return GetMirroredRect(TitleBounds());
+}
+
 void SidebarTreeRowView::SetSelected(bool selected) {
   if (selected_ == selected) {
     return;
@@ -234,6 +238,8 @@ void SidebarTreeRowView::SetSplitDropTarget(bool split_drop_target) {
   split_drop_target_ = split_drop_target;
   title_label_->SetText(split_drop_target_ ? split_with_prefix_ + u" " + title_
                                            : title_);
+  UpdateAccessibility();
+  InvalidateLayout();
   SchedulePaint();
 }
 
@@ -347,6 +353,7 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
   if (dragging_) {
     return;
   }
+  const bool paint_trailing_state = ShouldPaintTrailingState();
   const SkColor icon_color = GetColorProvider()->GetColor(
       selected_ ? visual_style::kText : visual_style::kMutedText);
 
@@ -482,7 +489,7 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
                     kDropStrokeWidth));
   }
 
-  if (!ShouldShowTrailingAction() && sleeping_) {
+  if (paint_trailing_state && !ShouldShowTrailingAction() && sleeping_) {
     const gfx::Rect status_bounds = GetMirroredRect(TrailingActionBounds());
     const gfx::Point center = status_bounds.CenterPoint();
     cc::PaintFlags sleep_stroke =
@@ -494,7 +501,7 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
     moon.cubicTo(center.x() - 0.5f, center.y() + 3.5f, center.x() - 0.5f,
                  center.y() - 3.5f, center.x() + 3.5f, center.y() - 5.5f);
     canvas->DrawPath(moon.detach(), sleep_stroke);
-  } else if (!ShouldShowTrailingAction() && selected_ &&
+  } else if (paint_trailing_state && !ShouldShowTrailingAction() && selected_ &&
              split_segment_count_ == 1 && media_indicator_.IsEmpty()) {
     const float dot_x = static_cast<float>(width() - 16);
     const float dot_y = static_cast<float>(height()) / 2.0f;
@@ -503,7 +510,7 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
         FillFlags(GetColorProvider()->GetColor(visual_style::kAccent)));
   }
 
-  if (!media_indicator_.IsEmpty()) {
+  if (paint_trailing_state && !media_indicator_.IsEmpty()) {
     const gfx::Rect indicator_bounds = GetMirroredRect(MediaIndicatorBounds());
     const gfx::ImageSkia indicator =
         media_indicator_.Rasterize(GetColorProvider());
@@ -641,8 +648,14 @@ gfx::Rect SidebarTreeRowView::IconBounds() const {
 
 gfx::Rect SidebarTreeRowView::TitleBounds() const {
   const int x = IconBounds().right() + kIconTitleSpacing;
-  const int title_end = media_indicator_.IsEmpty() ? TrailingActionBounds().x()
-                                                   : MediaIndicatorBounds().x();
+  int title_end = media_indicator_.IsEmpty() ? TrailingActionBounds().x()
+                                             : MediaIndicatorBounds().x();
+  // A split-drop preview labels the destination in the logical leading half.
+  // The Label already tail-elides, so the trailing half stays visually clear
+  // for the incoming pane preview in both LTR and RTL layouts.
+  if (split_drop_target_) {
+    title_end = std::min(title_end, width() / 2);
+  }
   return gfx::Rect(x, 0, std::max(0, title_end - x), height());
 }
 
@@ -664,7 +677,11 @@ bool SidebarTreeRowView::ShouldShowTrailingAction() const {
   // loaded-tab power action and the unloaded saved-page remove action hidden
   // until the pointer is genuinely over this row, matching temporary tabs and
   // preventing a persistent close affordance from crowding the active title.
-  return !is_folder() && hovered_;
+  return !split_drop_target_ && !is_folder() && hovered_;
+}
+
+bool SidebarTreeRowView::ShouldPaintTrailingState() const {
+  return !split_drop_target_;
 }
 
 bool SidebarTreeRowView::IsTrailingActionAt(const gfx::Point& point) const {
@@ -675,7 +692,8 @@ bool SidebarTreeRowView::IsTrailingActionAt(const gfx::Point& point) const {
 void SidebarTreeRowView::UpdateAccessibility() {
   auto& accessibility = GetViewAccessibility();
   accessibility.SetIsInvisible(false);
-  std::u16string accessible_name = title_;
+  std::u16string accessible_name =
+      split_drop_target_ ? split_with_prefix_ + u" " + title_ : title_;
   if (sleeping_) {
     accessible_name += u" — ";
     accessible_name += l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);

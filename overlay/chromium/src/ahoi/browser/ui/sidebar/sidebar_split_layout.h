@@ -5,9 +5,12 @@
 #define AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_SPLIT_LAYOUT_H_
 
 #include <cstddef>
+#include <vector>
 
 #include "components/split_tabs/split_tab_visual_data.h"
+#include "ui/gfx/geometry/point_f.h"
 #include "ui/gfx/geometry/rect.h"
+#include "ui/gfx/geometry/rect_f.h"
 
 namespace ahoi::sidebar {
 
@@ -27,6 +30,20 @@ int GetSplitRowPreferredHeight(
     size_t segment_count,
     const split_tabs::SplitTabVisualData& visual_data,
     int standard_row_height);
+
+struct SidebarSplitSeparator {
+  gfx::PointF start;
+  gfx::PointF end;
+
+  bool operator==(const SidebarSplitSeparator&) const = default;
+};
+
+// Returns separators only for panes that are geometrically adjacent. Every
+// endpoint is clamped to `paint_bounds`, which is the inset area actually
+// painted for the split group's background.
+std::vector<SidebarSplitSeparator> GetSidebarSplitSeparators(
+    const std::vector<gfx::Rect>& segment_bounds,
+    const gfx::RectF& paint_bounds);
 
 }  // namespace ahoi::sidebar
 

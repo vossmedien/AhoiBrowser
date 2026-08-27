@@ -117,7 +117,7 @@ index 45f00944bf1e64c5415c08d83d2f01a6f08c4366..458f0dcca0e27596ff7a868e2cc149b6
    // Only allow disabling web security via the command-line flag if the user has
    // specified a distinct profile directory. This still enables tests to disable
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8a23b2328 100644
+index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..2daa552684cdf958c959357252393b6e2bd63a54 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
 @@ -16738,6 +16738,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
@@ -130,7 +130,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8
        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
        </message>
-@@ -20042,6 +20045,1272 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20042,6 +20045,1350 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
        Relaunch
      </message>
@@ -147,6 +147,12 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_GLASS_ENABLED_SUBLABEL" desc="Description of AhoiBrowser's glass setting and its automatic accessibility fallback." meaning="AhoiBrowser appearance settings">
 +      Uses native glass when supported and switches to opaque surfaces for reduced transparency or increased contrast
++    </message>
++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_PAGE_TINT_ENABLED" desc="Label for tinting AhoiBrowser's sidebar from the active page's declared theme color." meaning="AhoiBrowser appearance settings">
++      Tint sidebar from active page
++    </message>
++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_PAGE_TINT_ENABLED_SUBLABEL" desc="Description of AhoiBrowser's optional subtle page-derived sidebar tint." meaning="AhoiBrowser appearance settings">
++      Adds a subtle pastel tint based on the active page's theme color.
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_FLOATING_NAVIGATION" desc="Section title for AhoiBrowser's floating address and extension bar settings." meaning="AhoiBrowser appearance settings">
 +      Floating navigation
@@ -176,6 +182,72 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8
 +      Long (2 seconds)
 +    </message>
 +
++    <!-- AhoiBrowser local Arc import assistant -->
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SECTION" desc="Heading for the local Arc sidebar import assistant." meaning="AhoiBrowser Arc import">
++      Import from Arc
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SECTION_SUBLABEL" desc="Description of the local, explicit Arc import workflow." meaning="AhoiBrowser Arc import">
++      Preview local Arc workspaces and tabs before adding them to this profile.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_TITLE" desc="Title inside the Arc import assistant." meaning="AhoiBrowser Arc import">
++      Arc sidebar migration
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_DESCRIPTION" desc="Introductory explanation of Arc import safety." meaning="AhoiBrowser Arc import">
++      Arc remains unchanged. Discovery creates a local preview and never modifies your AhoiBrowser profile.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_DISCOVER" desc="Button that discovers Arc data and creates a preview." meaning="AhoiBrowser Arc import">
++      Find Arc data
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_DISCOVERING" desc="Status while Arc data is being discovered." meaning="AhoiBrowser Arc import">
++      Creating local preview…
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMITTING" desc="Status while a confirmed Arc import is being committed." meaning="AhoiBrowser Arc import">
++      Backing up and importing…
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SOURCE_IN_USE" desc="Status when Arc or an Arc profile database is still open." meaning="AhoiBrowser Arc import">
++      Arc data is still in use.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_NO_CHANGES" desc="Result when the same Arc snapshot was already imported." meaning="AhoiBrowser Arc import">
++      This Arc snapshot is already imported. Nothing was changed.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SUCCESS" desc="Successful Arc import result." meaning="AhoiBrowser Arc import">
++      Arc workspaces were imported successfully.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR" desc="Generic fail-closed Arc import error." meaning="AhoiBrowser Arc import">
++      The import stopped safely without leaving a partial sidebar change. Try discovery again.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE" desc="Instruction to close Arc before import discovery." meaning="AhoiBrowser Arc import">
++      Close Arc completely
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_SUBLABEL" desc="Reason Arc and its database handles must be closed." meaning="AhoiBrowser Arc import">
++      Quit Arc and wait for its helpers to finish, then retry. AhoiBrowser will not snapshot open Arc databases.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PREVIEW" desc="Heading and accessible name for the mutation-free Arc preview." meaning="AhoiBrowser Arc import">
++      Import preview
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_WORKSPACES" desc="Arc preview workspace count label." meaning="AhoiBrowser Arc import">Workspaces</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_FOLDERS" desc="Arc preview folder count label." meaning="AhoiBrowser Arc import">Folders</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PAGES" desc="Arc preview safe page count label." meaning="AhoiBrowser Arc import">Pages</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SPLITS" desc="Arc preview valid split count label." meaning="AhoiBrowser Arc import">Split views</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_DEGRADATIONS" desc="Arc preview degraded split count label." meaning="AhoiBrowser Arc import">Splits kept as folders</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_EXCLUDED" desc="Arc preview excluded unsafe or unsupported item count label." meaning="AhoiBrowser Arc import">Excluded items</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_TARGETS" desc="Heading for target Ahoi workspace names." meaning="AhoiBrowser Arc import">Target workspaces</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PROFILES" desc="Legend for selectable Arc Chromium profiles included in the safety backup." meaning="AhoiBrowser Arc import">Arc profiles to back up</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CATEGORIES" desc="Legend for selectable Arc import categories." meaning="AhoiBrowser Arc import">Import categories</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SIDEBAR_CATEGORY" desc="Arc sidebar workspaces and tabs category." meaning="AhoiBrowser Arc import">Sidebar workspaces, folders, and safe pages</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SPLIT_CATEGORY" desc="Option to reconstruct validated Arc split views natively." meaning="AhoiBrowser Arc import">Open and reconstruct valid split views</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICTS" desc="Label for Arc workspace conflict policy." meaning="AhoiBrowser Arc import">When a workspace name already exists</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_RENAME" desc="Rename conflicting Arc workspaces option." meaning="AhoiBrowser Arc import">Import with a new name</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_SKIP" desc="Skip conflicting Arc workspaces option." meaning="AhoiBrowser Arc import">Skip that workspace</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_MERGE" desc="Merge conflicting Arc workspaces option." meaning="AhoiBrowser Arc import">Add into the existing workspace</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_COUNT" desc="Text preceding the detected conflict count." meaning="AhoiBrowser Arc import">Detected name conflicts:</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PRIVACY_TITLE" desc="Title for Arc data excluded from import." meaning="AhoiBrowser Arc import">Private browser data stays excluded</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PRIVACY_SUBLABEL" desc="List of sensitive Arc categories never imported." meaning="AhoiBrowser Arc import">Passwords, cookies, form data, browsing history, extension state, credentials in URLs, local files, and unsupported Arc items are not imported.</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_CONFIRMATION" desc="First explicit confirmation that a private local safety backup will be made." meaning="AhoiBrowser Arc import">Create the owner-only local safety backup before changing my sidebar</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION" desc="Second explicit confirmation to commit the previewed additive import." meaning="AhoiBrowser Arc import">I reviewed this preview and want to add these items now</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT" desc="Button that commits the explicitly confirmed Arc import." meaning="AhoiBrowser Arc import">Import selected data</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS" desc="Text preceding the number of natively reconstructed Arc splits." meaning="AhoiBrowser Arc import">Reconstructed split views:</message>
++
 +    <!-- AhoiBrowser feature activation and discoverability -->
 +    <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
 +      AhoiBrowser
@@ -186,11 +258,11 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8
 +    <message name="IDS_SETTINGS_AHOI_APPEARANCE_SECTION_SUBLABEL" desc="Description of AhoiBrowser-owned appearance controls." meaning="AhoiBrowser settings">
 +      Configure AhoiBrowser's own browser chrome and floating navigation.
 +    </message>
-+    <message name="IDS_SETTINGS_AHOI_SYNC_SECTION" desc="Heading for AhoiBrowser CloudKit synchronization controls." meaning="AhoiBrowser settings">
++    <message name="IDS_SETTINGS_AHOI_SYNC_SECTION" desc="Heading for AhoiBrowser synchronization controls." meaning="AhoiBrowser settings">
 +      AhoiBrowser sync
 +    </message>
-+    <message name="IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL" desc="Description of AhoiBrowser CloudKit synchronization controls." meaning="AhoiBrowser settings">
-+      Control the private CloudKit transport and synchronized browser data.
++    <message name="IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL" desc="Description of AhoiBrowser's local sync data and optional CloudKit transport controls." meaning="AhoiBrowser settings">
++      Configure local sync data, optional CloudKit transport, and which browser data may be synchronized.
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_SYNC_PROVIDER_TITLE" desc="Title explaining which provider AhoiBrowser sync uses." meaning="AhoiBrowser settings">
 +      Uses CloudKit, not Chrome Sync
@@ -199,19 +271,19 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8
 +      This setting does not sign you into Google or enable Chrome or Google Sync.
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_TITLE" desc="Status title shown when this AhoiBrowser build has no CloudKit capability." meaning="AhoiBrowser settings">
-+      CloudKit sync unavailable in this build
++      CloudKit transport unavailable in this build
 +    </message>
-+    <message name="IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_SUBLABEL" desc="Status explanation shown when this AhoiBrowser build cannot offer CloudKit-backed settings." meaning="AhoiBrowser settings">
-+      This build is not signed with the CloudKit capability. Sync, remote control, and synchronized history settings are unavailable.
++    <message name="IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_SUBLABEL" desc="Status explanation shown when AhoiBrowser keeps local sync state but this build has no CloudKit transport capability." meaning="AhoiBrowser settings">
++      Local sync data and its pending outbox remain on this Mac. They are encrypted only at the boundary to a configured CloudKit transport. Cross-device sync and remote control require a CloudKit-enabled signed build.
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_FEATURES" desc="Section title for AhoiBrowser-specific feature switches in Settings." meaning="AhoiBrowser feature settings">
 +      AhoiBrowser features
 +    </message>
-+    <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED" desc="Label for enabling AhoiBrowser's encrypted CloudKit synchronization." meaning="AhoiBrowser feature settings">
-+      CloudKit sync
++    <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED" desc="Label for enabling AhoiBrowser's local sync state and outbox." meaning="AhoiBrowser feature settings">
++      Ahoi Sync
 +    </message>
-+    <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED_SUBLABEL" desc="Description of the data synchronized by AhoiBrowser through CloudKit." meaning="AhoiBrowser feature settings">
-+      Synchronize workspaces, saved tabs and approved settings with end-to-end encryption through your iCloud account.
++    <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED_SUBLABEL" desc="Description of AhoiBrowser's local sync database, outbox and optional CloudKit transport." meaning="AhoiBrowser feature settings">
++      Keep workspaces, saved tabs and approved settings in the local sync database and pending outbox. A configured CloudKit transport encrypts them before cross-device transfer.
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED" desc="Label for allowing approved AhoiBrowser devices to send remote-control commands." meaning="AhoiBrowser settings">
 +      Receive secure remote control
@@ -281,6 +353,12 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8
 +    <!-- AhoiBrowser empty workspace and split layouts -->
 +    <message name="IDS_AHOI_EMPTY_WORKSPACE_ACCESSIBLE_NAME" desc="Accessible name for an AhoiBrowser window whose workspace has no tabs or web contents." meaning="AhoiBrowser empty workspace">
 +      Empty Ahoi workspace
++    </message>
++    <message name="IDS_AHOI_SPLIT_PANE_DRAG_HANDLE_ACCESSIBLE_NAME" desc="Accessible name for the draggable surface used to rearrange visible AhoiBrowser split panes." meaning="AhoiBrowser split view">
++      Drag to rearrange split pane
++    </message>
++    <message name="IDS_AHOI_SPLIT_PANE_ACTIVE_ACCESSIBLE_STATUS" desc="Accessible status identifying the currently active AhoiBrowser split pane. PANE_NAME is its visible URL or title." meaning="AhoiBrowser split view">
++      Active split pane: <ph name="PANE_NAME">$1<ex>example.test</ex></ph>
 +    </message>
 +    <message name="IDS_AHOI_SPLIT_LAYOUT_THREE_COLUMNS" desc="Menu label for arranging three AhoiBrowser split panes as columns." meaning="AhoiBrowser split view">
 +      Three columns
@@ -1404,10 +1482,10 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8
  </release>
  </grit>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index f630847b474cfde5341923bbd6776b17d6773102..870b4e015051aae6c6f49a9d9da7d4338e81970c 100644
+index f630847b474cfde5341923bbd6776b17d6773102..58cd76d3ebc7e2b7b7a3c98bab55589bcab7864f 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -10730,4 +10730,407 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -10730,4 +10730,447 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
  <translation id="998747458861718449">Untersuchen</translation>
  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
@@ -1633,6 +1711,8 @@ index f630847b474cfde5341923bbd6776b17d6773102..870b4e015051aae6c6f49a9d9da7d433
 +<translation id="3715463435630814891">Wird für Auswahl, Fokus und Aktivität auf allen Browserflächen verwendet</translation>
 +<translation id="8335243893841296825">Glass-Oberflächen</translation>
 +<translation id="8566643270864824503">Verwendet natives Glass, sofern unterstützt, und wechselt bei reduzierter Transparenz oder erhöhtem Kontrast zu opaken Oberflächen</translation>
++<translation id="2296672109594805949">Seitenleiste an aktive Seite anpassen</translation>
++<translation id="5671169634424868549">Färbt die Seitenleiste dezent pastellig anhand der Theme-Farbe der aktiven Seite ein.</translation>
 +<translation id="1687258185863391148">Schwebende Navigation</translation>
 +<translation id="3559720008134264599">Steuert, wie die Adress- und Erweiterungsleiste über dem Seiteninhalt erscheint</translation>
 +<translation id="7251519440554720421">Automatisch ausblenden</translation>
@@ -1646,14 +1726,14 @@ index f630847b474cfde5341923bbd6776b17d6773102..870b4e015051aae6c6f49a9d9da7d433
 +<translation id="420117894935451246">Darstellung</translation>
 +<translation id="8624912425148331647">AhoiBrowser-eigene Browseroberfläche und schwebende Navigation konfigurieren.</translation>
 +<translation id="6636539920573083641">AhoiBrowser-Synchronisierung</translation>
-+<translation id="7974155570720025051">Steuert die private CloudKit-Übertragung und synchronisierte Browserdaten.</translation>
++<translation id="794099036902524960">Lokale Sync-Daten, die optionale CloudKit-Übertragung und die zu synchronisierenden Browserdaten konfigurieren.</translation>
 +<translation id="3939949743743333888">Verwendet CloudKit, nicht Chrome Sync</translation>
 +<translation id="507633213435359276">Diese Einstellung meldet dich weder bei Google an noch aktiviert sie Chrome oder Google Sync.</translation>
-+<translation id="8805387034065522283">CloudKit-Synchronisierung ist in diesem Build nicht verfügbar</translation>
-+<translation id="9198210059928613224">Dieser Build ist nicht mit der CloudKit-Berechtigung signiert. Synchronisierung, Fernsteuerung und Einstellungen für den synchronisierten Verlauf sind nicht verfügbar.</translation>
++<translation id="6671303475818824155">CloudKit-Übertragung ist in diesem Build nicht verfügbar</translation>
++<translation id="6358987941401912852">Lokale Sync-Daten und die ausstehende Outbox bleiben auf diesem Mac. Sie werden erst am Übergang zu einem konfigurierten CloudKit-Transport verschlüsselt. Geräteübergreifende Synchronisierung und Fernsteuerung erfordern einen signierten Build mit CloudKit-Unterstützung.</translation>
 +<translation id="9218643974320930219">AhoiBrowser-Funktionen</translation>
-+<translation id="8503546095237201070">CloudKit-Synchronisierung</translation>
-+<translation id="3356978994582944478">Synchronisiert Arbeitsbereiche, gespeicherte Tabs und freigegebene Einstellungen Ende-zu-Ende-verschlüsselt über deinen iCloud-Account.</translation>
++<translation id="6309224796821066287">Ahoi Sync</translation>
++<translation id="2867451571144040364">Speichert Arbeitsbereiche, gespeicherte Tabs und freigegebene Einstellungen in der lokalen Sync-Datenbank und der ausstehenden Outbox. Ein konfigurierter CloudKit-Transport verschlüsselt sie vor der geräteübergreifenden Übertragung.</translation>
 +<translation id="5277086629884958430">Sichere Fernsteuerung empfangen</translation>
 +<translation id="3948271365460589090">Standardmäßig aus. Nur Geräte, die mit einem verifizierten öffentlichen Schlüssel freigegeben wurden, können Befehle senden.</translation>
 +<translation id="2321689613611076346">Verlaufsaufbewahrung</translation>
@@ -1676,6 +1756,8 @@ index f630847b474cfde5341923bbd6776b17d6773102..870b4e015051aae6c6f49a9d9da7d433
 +<translation id="4722578482923018130">Fortsetzen</translation>
 +<translation id="913846976501279719">Leer starten</translation>
 +<translation id="6700305793280749617">Leerer Ahoi-Arbeitsbereich</translation>
++<translation id="6447919602784205256">Ziehen, um das geteilte Fenster neu anzuordnen</translation>
++<translation id="4540440677245423635">Aktives geteiltes Fenster: <ph name="PANE_NAME" /></translation>
 +<translation id="4511640163030789542">Drei Spalten</translation>
 +<translation id="4025144474791159377">Drei Zeilen</translation>
 +<translation id="2030132304040054417">Großes Pane links</translation>
@@ -1816,12 +1898,48 @@ index f630847b474cfde5341923bbd6776b17d6773102..870b4e015051aae6c6f49a9d9da7d433
 +<translation id="1782489648598371881">Eine Regel pro Zeile. Mit „Name: Wert“ setzen, mit „-Name“ entfernen oder mit „Name: @keychain(ahoi-keychain:referenz)“ ein lokales Geheimnis verwenden.</translation>
 +<translation id="3824342247976280304">Verschlüsselten Sync erlauben; Keychain-Geheimnisse bleiben lokal</translation>
 +<translation id="4615050181991562795">Cache für diese Website deaktivieren (CACHE OFF)</translation>
++<translation id="8915492704598341643">Aus Arc importieren</translation>
++<translation id="7459130083189418784">Lokale Arc-Arbeitsbereiche und Tabs vor dem Hinzufügen zu diesem Profil ansehen.</translation>
++<translation id="3689116062487274847">Arc-Seitenleistenmigration</translation>
++<translation id="4842940571787520411">Arc bleibt unverändert. Die Suche erstellt eine lokale Vorschau und ändert dein AhoiBrowser-Profil nicht.</translation>
++<translation id="2294146902389888766">Arc-Daten suchen</translation>
++<translation id="1194363794946253196">Lokale Vorschau wird erstellt…</translation>
++<translation id="7456262841427916625">Sicherung wird erstellt und Daten werden importiert…</translation>
++<translation id="9037627939958118228">Arc-Daten werden noch verwendet.</translation>
++<translation id="899392523010245914">Dieser Arc-Snapshot wurde bereits importiert. Es wurde nichts geändert.</translation>
++<translation id="7752347700290384694">Arc-Arbeitsbereiche wurden erfolgreich importiert.</translation>
++<translation id="8260558927380188067">Der Import wurde sicher beendet, ohne eine teilweise Seitenleistenänderung zu hinterlassen. Erstelle die Vorschau erneut.</translation>
++<translation id="1687393768196560476">Arc vollständig beenden</translation>
++<translation id="9090513909176093975">Beende Arc und warte, bis auch alle Hilfsprozesse beendet sind. AhoiBrowser erstellt keinen Snapshot geöffneter Arc-Datenbanken.</translation>
++<translation id="3021282495262762494">Importvorschau</translation>
++<translation id="6354884045416110375">Arbeitsbereiche</translation>
++<translation id="7921103463007750554">Ordner</translation>
++<translation id="3950895658018167056">Seiten</translation>
++<translation id="5048439797286179673">Geteilte Ansichten</translation>
++<translation id="7627805978564900581">Als Ordner beibehaltene Splits</translation>
++<translation id="3160566334435592176">Ausgeschlossene Elemente</translation>
++<translation id="2750011680546392486">Zielarbeitsbereiche</translation>
++<translation id="2772869377275166296">Zu sichernde Arc-Profile</translation>
++<translation id="8616755775240240598">Importkategorien</translation>
++<translation id="5905591939771548075">Seitenleisten-Arbeitsbereiche, Ordner und sichere Seiten</translation>
++<translation id="9081698030822641093">Gültige geteilte Ansichten öffnen und wiederherstellen</translation>
++<translation id="2868533208490615270">Wenn ein Arbeitsbereichsname bereits vorhanden ist</translation>
++<translation id="2382180506027242641">Unter neuem Namen importieren</translation>
++<translation id="3008044524049140228">Arbeitsbereich überspringen</translation>
++<translation id="2035066535034029234">Zum vorhandenen Arbeitsbereich hinzufügen</translation>
++<translation id="629256909855479704">Erkannte Namenskonflikte:</translation>
++<translation id="1198927285460833452">Private Browserdaten bleiben ausgeschlossen</translation>
++<translation id="4739458892153680222">Passwörter, Cookies, Formulardaten, Browserverlauf, Erweiterungsstatus, Zugangsdaten in URLs, lokale Dateien und nicht unterstützte Arc-Elemente werden nicht importiert.</translation>
++<translation id="4246816671769361727">Vor der Änderung meiner Seitenleiste die lokale, nur für mich lesbare Sicherheitssicherung erstellen</translation>
++<translation id="604366452320429368">Ich habe die Vorschau geprüft und möchte diese Elemente jetzt hinzufügen</translation>
++<translation id="536686936509624394">Ausgewählte Daten importieren</translation>
++<translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
 +</translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..c17fda47ba5c1388fb90ead5ac8394c34b24f1ac 100644
+index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..541e0d6c7d5c138679a780a98dd8937b8c2d7db9 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -10750,4 +10750,239 @@ This can include information about installed software, files, your browser, the
+@@ -10750,4 +10750,243 @@ This can include information about installed software, files, your browser, the
  <translation id="998347228911661591">Sync your tab groups</translation>
  <translation id="998747458861718449">I&amp;nspect</translation>
  <translation id="998852291477823323">The action was disallowed by the configured policies.</translation>
@@ -1865,6 +1983,8 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..c17fda47ba5c1388fb90ead5ac8394c3
 +<translation id="3715463435630814891">Used for selection, focus and activity across browser surfaces</translation>
 +<translation id="8335243893841296825">Glass surfaces</translation>
 +<translation id="8566643270864824503">Uses native glass when supported and switches to opaque surfaces for reduced transparency or increased contrast</translation>
++<translation id="2296672109594805949">Tint sidebar from active page</translation>
++<translation id="5671169634424868549">Adds a subtle pastel tint based on the active page's theme colour.</translation>
 +<translation id="1687258185863391148">Floating navigation</translation>
 +<translation id="3559720008134264599">Controls how the address and extension bar appears over page content</translation>
 +<translation id="7251519440554720421">Hide automatically</translation>
@@ -1878,14 +1998,14 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..c17fda47ba5c1388fb90ead5ac8394c3
 +<translation id="420117894935451246">Appearance</translation>
 +<translation id="8624912425148331647">Configure AhoiBrowser's own browser chrome and floating navigation.</translation>
 +<translation id="6636539920573083641">AhoiBrowser sync</translation>
-+<translation id="7974155570720025051">Control the private CloudKit transport and synchronised browser data.</translation>
++<translation id="794099036902524960">Configure local sync data, optional CloudKit transport and which browser data may be synchronised.</translation>
 +<translation id="3939949743743333888">Uses CloudKit, not Chrome Sync</translation>
 +<translation id="507633213435359276">This setting does not sign you into Google or enable Chrome or Google Sync.</translation>
-+<translation id="8805387034065522283">CloudKit sync is unavailable in this build</translation>
-+<translation id="9198210059928613224">This build is not signed with the CloudKit capability. Sync, remote control and synchronised history settings are unavailable.</translation>
++<translation id="6671303475818824155">CloudKit transport is unavailable in this build</translation>
++<translation id="6358987941401912852">Local sync data and its pending outbox remain on this Mac. They are encrypted only at the boundary to a configured CloudKit transport. Cross-device sync and remote control require a CloudKit-enabled signed build.</translation>
 +<translation id="9218643974320930219">AhoiBrowser features</translation>
-+<translation id="8503546095237201070">CloudKit sync</translation>
-+<translation id="3356978994582944478">Synchronize workspaces, saved tabs and approved settings with end-to-end encryption through your iCloud account.</translation>
++<translation id="6309224796821066287">Ahoi Sync</translation>
++<translation id="2867451571144040364">Keep workspaces, saved tabs and approved settings in the local sync database and pending outbox. A configured CloudKit transport encrypts them before cross-device transfer.</translation>
 +<translation id="5277086629884958430">Receive secure remote control</translation>
 +<translation id="3948271365460589090">Off by default. Only devices approved with a verified public key can send commands.</translation>
 +<translation id="2321689613611076346">History retention</translation>
@@ -1908,6 +2028,8 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..c17fda47ba5c1388fb90ead5ac8394c3
 +<translation id="4722578482923018130">Continue</translation>
 +<translation id="913846976501279719">Start empty</translation>
 +<translation id="6700305793280749617">Empty Ahoi workspace</translation>
++<translation id="6447919602784205256">Drag to rearrange split pane</translation>
++<translation id="4540440677245423635">Active split pane: <ph name="PANE_NAME" /></translation>
 +<translation id="4511640163030789542">Three columns</translation>
 +<translation id="4025144474791159377">Three rows</translation>
 +<translation id="2030132304040054417">Large pane left</translation>
@@ -2409,7 +2531,7 @@ index 71d928daaedc7d696387b58a69ec226313fab0ee..c23c67c4a52a69a181808ca1461b4906
    "+components/crash/content/browser/error_reporting",
    "+components/guest_view/common",
 diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-index 43ba004cc63da143131b8e84533af1743f47727b..bf18f47d22eebfc92b4e7f1ac0c08baa46b48a1a 100644
+index 43ba004cc63da143131b8e84533af1743f47727b..3bbc0683fba54a9eb1a7b6e15f2966dd8a21347f 100644
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
 @@ -6,6 +6,10 @@
@@ -2423,11 +2545,13 @@ index 43ba004cc63da143131b8e84533af1743f47727b..bf18f47d22eebfc92b4e7f1ac0c08baa
  #include "ash/constants/ash_pref_names.h"
  #include "ash/constants/ash_switches.h"
  #include "base/feature_list.h"
-@@ -311,6 +315,28 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+@@ -311,6 +315,30 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
        settings_api::PrefType::kBoolean;
  
    // Appearance settings.
 +  (*s_allowlist)[ahoi::appearance::kGlassEnabledPref] =
++      settings_api::PrefType::kBoolean;
++  (*s_allowlist)[ahoi::appearance::kSidebarPageTintEnabledPref] =
 +      settings_api::PrefType::kBoolean;
 +  (*s_allowlist)[ahoi::appearance::kFloatingNavigationAutoHideEnabledPref] =
 +      settings_api::PrefType::kBoolean;
@@ -2452,7 +2576,7 @@ index 43ba004cc63da143131b8e84533af1743f47727b..bf18f47d22eebfc92b4e7f1ac0c08baa
    (*s_allowlist)[::prefs::kCtrlTabMru] = settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kCurrentThemeID] = settings_api::PrefType::kString;
    (*s_allowlist)[::prefs::kPinnedActions] = settings_api::PrefType::kList;
-@@ -353,6 +379,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+@@ -353,6 +381,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
        settings_api::PrefType::kBoolean;
  
    // On startup.
@@ -4369,7 +4493,7 @@ index 43584ac274296f5c1a570294093d9147d0739b01..9f26e5836c0e9476dabb8cf38fa1fc1a
    return std::make_unique<SplitCollectionStorageData>(std::move(state));
  }
 diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
-index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..e80fbd98b48a8777efd5887bb2ac3c097c7a7053 100644
+index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..bd2b7d89a0ea589dfd25e748419f03b9efbacf8f 100644
 --- a/chrome/browser/ui/BUILD.gn
 +++ b/chrome/browser/ui/BUILD.gn
 @@ -1508,6 +1508,10 @@ static_library("ui") {
@@ -4391,7 +4515,7 @@ index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..e80fbd98b48a8777efd5887bb2ac3c09
        "//chrome/browser:app_controller_mac",
        "//chrome/browser:chrome_browser_application_mac",
        "//chrome/browser:global_keyboard_shortcuts_mac",
-@@ -3654,6 +3659,35 @@ static_library("ui") {
+@@ -3654,6 +3659,36 @@ static_library("ui") {
    }
  
    if (toolkit_views) {
@@ -4403,6 +4527,7 @@ index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..e80fbd98b48a8777efd5887bb2ac3c09
 +      "//ahoi/browser/ui:modal_overlay",
 +      "//ahoi/browser/ui:visual_style",
 +      "//ahoi/browser/ui/developer_toolkit:developer_toolkit_ui",
++      "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
 +      "//ahoi/browser/ui/empty_state",
 +      "//ahoi/browser/ui/extensions:ubo_install_ui",
 +      "//ahoi/browser/ui/popup:popup_overlay",
@@ -4427,7 +4552,7 @@ index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..e80fbd98b48a8777efd5887bb2ac3c09
      sources += [
        "bubble_anchor_util.h",
        "views/autofill/address_bubble_base_view.cc",
-@@ -5264,6 +5298,8 @@ static_library("ui") {
+@@ -5264,6 +5299,8 @@ static_library("ui") {
  group("ui_public_dependencies") {
    visibility = [ "//chrome/browser:browser_public_dependencies" ]
    public_deps = [
@@ -5840,7 +5965,7 @@ index 8b590a4680ad6fcd5fb9187641a4751d49fd8726..6e2b7c93b140fc5ae60a28206673548d
    // We would like to redirect to the NTP, but it's not possible through the
    // `continue_url`, because Gaia cannot redirect to chrome:// URLs. Use the
 diff --git a/chrome/browser/ui/startup/BUILD.gn b/chrome/browser/ui/startup/BUILD.gn
-index f7e12d32b15fb85da942464c998bcc4cfb786790..ae5a7a593ec6e2cf2c998a7c9b6a853ffe8edf43 100644
+index f7e12d32b15fb85da942464c998bcc4cfb786790..ad592581dfa26620409c196d08807a6955727a30 100644
 --- a/chrome/browser/ui/startup/BUILD.gn
 +++ b/chrome/browser/ui/startup/BUILD.gn
 @@ -211,6 +211,8 @@ source_set("impl") {
@@ -5879,8 +6004,7 @@ index f7e12d32b15fb85da942464c998bcc4cfb786790..ae5a7a593ec6e2cf2c998a7c9b6a853f
        "//base",
        "//base/test:test_support",
        "//base/version_info",
-@@ -479,6 +487,7 @@ if (!is_android) {
-       "//chrome/browser:buildflags",
+@@ -480,6 +488,7 @@ if (!is_android) {
        "//chrome/browser:chrome_browser_main",
        "//chrome/browser/extensions",
        "//chrome/browser/lifetime",
@@ -5924,7 +6048,7 @@ index 4907b9a951040624eab323061636a222315194e5..390a64d0f3fd43ebe577a5261d1de415
    if (ObsoleteSystem::IsObsoleteNowOrSoon()) {
      PrefService* local_state = g_browser_process->local_state();
 diff --git a/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc b/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc
-index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..c204633d0f6f5a67671a07688272c63cbeff13cc 100644
+index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..d8f873291a07d3bab0b2e5a5473a494524c20ab3 100644
 --- a/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc
 +++ b/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc
 @@ -11,6 +11,8 @@
@@ -5963,7 +6087,7 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..c204633d0f6f5a67671a07688272c63c
  #include "chrome/browser/prefs/session_startup_pref.h"
  #include "chrome/browser/profiles/keep_alive/profile_keep_alive_types.h"
  #include "chrome/browser/profiles/keep_alive/scoped_profile_keep_alive.h"
-@@ -58,7 +64,8 @@
+@@ -58,6 +64,7 @@
  #include "chrome/browser/sessions/session_restore_test_helper.h"
  #include "chrome/browser/sessions/session_restore_test_utils.h"
  #include "chrome/browser/sessions/session_service_factory.h"
@@ -5971,7 +6095,6 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..c204633d0f6f5a67671a07688272c63c
  #include "chrome/browser/signin/signin_promo.h"
  #include "chrome/browser/signin/signin_util.h"
  #include "chrome/browser/ui/browser_commands.h"
- #include "chrome/browser/ui/browser_init_state.h"
 @@ -78,6 +85,7 @@
  #include "chrome/browser/ui/startup/web_app_startup_utils.h"
  #include "chrome/browser/ui/toasts/toast_controller.h"
@@ -7353,7 +7476,7 @@ index 7d2a563ee65174de57745ad1c40f4bc230c98dfb..43f94a6b56125c75349c20a8eee6dccd
    // scoped.
    side_panel_registry_->Deregister(
 diff --git a/chrome/browser/ui/tabs/tab_strip_model.cc b/chrome/browser/ui/tabs/tab_strip_model.cc
-index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a89906c4fc 100644
+index 5807c30e140fb09857b8488e22cf7bc788e18cf2..df3c753a44255301cb0de6c82cf806c573c21760 100644
 --- a/chrome/browser/ui/tabs/tab_strip_model.cc
 +++ b/chrome/browser/ui/tabs/tab_strip_model.cc
 @@ -1570,7 +1570,9 @@ void TabStripModel::DeselectTabAt(int index) {
@@ -7514,7 +7637,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
    AddToSplitImpl(split_id, indices, active_index(), visual_data,
                   SplitTabChange::SplitTabAddReason::kNewSplitTabAdded);
    split_tabs::LogSplitViewCreatedUKM(this, split_id);
-@@ -2002,12 +2087,87 @@ split_tabs::SplitTabId TabStripModel::AddToNewSplit(
+@@ -2002,12 +2087,90 @@ split_tabs::SplitTabId TabStripModel::AddToNewSplit(
    return split_id;
  }
  
@@ -7542,6 +7665,9 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
 +  if (is_expanding_existing_split) {
 +    split_id = target_tab->GetSplit().value();
 +    split_tabs::SplitTabData* split_data = GetSplitData(split_id);
++    if (!split_data || !split_data->visual_data()) {
++      return std::nullopt;
++    }
 +    tabs_to_split = split_data->ListTabs();
 +    if (tabs_to_split.size() >= tabs::SplitTabCollection::kMaxTabs) {
 +      return std::nullopt;
@@ -7603,7 +7729,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
  
    // Ideally these are consecutive indices from the restore flow and the pivot
    // index does not matter. However, given there are numerous steps in restore
-@@ -4164,6 +4324,8 @@ split_tabs::SplitTabId TabStripModel::AddToSplitImpl(
+@@ -4164,6 +4327,8 @@ split_tabs::SplitTabId TabStripModel::AddToSplitImpl(
      int pivot_index,
      split_tabs::SplitTabVisualData visual_data,
      SplitTabChange::SplitTabAddReason reason) {
@@ -7612,7 +7738,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
    std::vector<tabs::TabInterface*> tabs = {};
    for (int i : indices) {
      tabs::TabInterface* tab = GetTabAtIndex(i);
-@@ -4564,11 +4726,29 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
+@@ -4564,11 +4729,29 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
    std::optional<int> next_selected_index =
        DetermineNewSelectedIndex(tab_to_remove);
    const bool removed_tab_is_split = tab_to_remove->IsSplit();
@@ -7646,7 +7772,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
    }
  
    if (tab_detach_reason == tabs::TabInterface::DetachReason::kDelete) {
-@@ -4591,16 +4771,16 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
+@@ -4591,16 +4774,16 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
    } else {
      if (tab_to_remove == old_active_tab) {
        if (removed_tab_is_split) {
@@ -7673,7 +7799,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
          }
        } else if (!selection_model_.empty()) {
          // The active tab was removed, but there is still something selected.
-@@ -4624,6 +4804,29 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
+@@ -4624,6 +4807,29 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
                           std::nullopt);
    }
  
@@ -7703,7 +7829,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
    return old_data;
  }
  
-@@ -4667,7 +4870,11 @@ void TabStripModel::MoveTabToIndexImpl(
+@@ -4667,7 +4873,11 @@ void TabStripModel::MoveTabToIndexImpl(
    TabStripSelectionChange selection(GetActiveTab(),
                                      selection_model().GetListSelectionModel());
    if (move_within_split) {
@@ -7716,7 +7842,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..f4ea5c2e5a41e2354dad369add3f82a8
    } else {
      contents_data_->MoveTabRecursive(initial_index, final_index, group, pin);
    }
-@@ -5636,7 +5843,8 @@ void TabStripModel::CreateHistoricalSplitIfClosing(
+@@ -5636,7 +5846,8 @@ void TabStripModel::CreateHistoricalSplitIfClosing(
        }
      }
      for (const auto& [split_id, count] : split_closing_counts) {
@@ -8150,7 +8276,7 @@ index 2633c402ad09525623b0103618ab61fe1ab2c228..50290785637461321f5d43a5d87f92aa
        contents_container_views[0]->contents_outline_view()->is_highlighted());
    EXPECT_FALSE(
 diff --git a/chrome/browser/ui/views/file_system_access/file_system_access_restore_permission_bubble_view_browsertest.cc b/chrome/browser/ui/views/file_system_access/file_system_access_restore_permission_bubble_view_browsertest.cc
-index d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70..f2fa39a2893158be2523c4f0c7f6cbaff2e82203 100644
+index d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70..0a8dd63e92947b9653577b03a771f97e991def03 100644
 --- a/chrome/browser/ui/views/file_system_access/file_system_access_restore_permission_bubble_view_browsertest.cc
 +++ b/chrome/browser/ui/views/file_system_access/file_system_access_restore_permission_bubble_view_browsertest.cc
 @@ -13,6 +13,7 @@
@@ -8161,7 +8287,7 @@ index d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70..f2fa39a2893158be2523c4f0c7f6cbaf
  #include "chrome/test/base/in_process_browser_test.h"
  #include "chrome/test/base/ui_test_utils.h"
  #include "components/permissions/permission_util.h"
-@@ -29,7 +30,8 @@
+@@ -28,7 +29,8 @@
  using AccessType = FileSystemAccessPermissionRequestManager::Access;
  using HandleType = content::FileSystemAccessPermissionContext::HandleType;
  using RequestData = FileSystemAccessPermissionRequestManager::RequestData;
@@ -8171,7 +8297,7 @@ index d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70..f2fa39a2893158be2523c4f0c7f6cbaf
  
  class FileSystemAccessRestorePermissionBubbleViewTest
      : public InProcessBrowserTest {
-@@ -50,7 +52,7 @@ class FileSystemAccessRestorePermissionBubbleViewTest
+@@ -49,7 +51,7 @@ class FileSystemAccessRestorePermissionBubbleViewTest
  
   protected:
    const RequestData kRequestData =
@@ -8180,7 +8306,7 @@ index d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70..f2fa39a2893158be2523c4f0c7f6cbaf
                    url::Origin::Create(GURL("https://example.com")),
                    {{content::PathInfo(FILE_PATH_LITERAL("/foo/bar.txt")),
                      HandleType::kFile, AccessType::kRead}});
-@@ -174,7 +175,7 @@ IN_PROC_BROWSER_TEST_F(FileSystemAccessRestorePermissionBubbleViewTest,
+@@ -174,7 +176,7 @@ IN_PROC_BROWSER_TEST_F(FileSystemAccessRestorePermissionBubbleViewTest,
        contents_container_views =
            BrowserView::GetBrowserViewForBrowser(browser())
                ->GetContentsContainerViews();
@@ -8190,10 +8316,10 @@ index d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70..f2fa39a2893158be2523c4f0c7f6cbaf
        contents_container_views[0]->contents_outline_view()->is_highlighted());
    EXPECT_FALSE(
 diff --git a/chrome/browser/ui/views/frame/DEPS b/chrome/browser/ui/views/frame/DEPS
-index 0a36a14d9b330eb290e6b6f5e45d1b01307d9faf..7b179d6e1330f1e3338510048b58046be40c1811 100644
+index 0a36a14d9b330eb290e6b6f5e45d1b01307d9faf..bb6d409e29993582e187f8ee1b34aea415e13e8b 100644
 --- a/chrome/browser/ui/views/frame/DEPS
 +++ b/chrome/browser/ui/views/frame/DEPS
-@@ -15,8 +15,40 @@ specific_include_rules = {
+@@ -15,8 +15,43 @@ specific_include_rules = {
    ],
    # Parts of this class use Ash, but only when run in classic Ash mode.
    "browser_view\\.cc": [
@@ -8226,6 +8352,9 @@ index 0a36a14d9b330eb290e6b6f5e45d1b01307d9faf..7b179d6e1330f1e3338510048b58046b
 +    "+ahoi/browser/ui/empty_state",
 +    "+ahoi/browser/ui/split_drop",
 +    "+ahoi/browser/ui/visual_style.h",
++  ],
++  "multi_contents_view_mini_toolbar\\.(cc|h)": [
++    "+ahoi/browser/ui/drag",
 +  ],
 +  "vertical_tab_strip_region_view\\.(cc|h)": [
 +    "+ahoi/browser/ui/sidebar",
@@ -8459,7 +8588,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..332085416cdde5b04f955008aa0cb5a0
        glass_view.tintColor = [NSColor clearColor];
  
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 4b4697c29715c922037635a40141a3efb2bdbae4..2a33dc4cf46ca2346128d62485f4aff4b5940456 100644
+index 4b4697c29715c922037635a40141a3efb2bdbae4..58f40ed4ca2f942d5ca2600bad26c1ad9fbb8613 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -12,6 +12,29 @@
@@ -12386,10 +12515,135 @@ index 91de47263bf0471a74a2b9b934ae17e1a7101d50..d4f76e27556c993247cb0dc418c57639
    // Reverses the order of split tabs.
    // Must already be in a split.
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
-index c64e533302537a93fabe7d60591ebc51829e83f4..40b2c7b564dcdcbab5b2f433dd42eb0921d1e299 100644
+index c64e533302537a93fabe7d60591ebc51829e83f4..69b832fec8a60d1bcd8e84cf37556cc7d367ed01 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
-@@ -140,7 +140,7 @@ MultiContentsViewMiniToolbar::~MultiContentsViewMiniToolbar() = default;
+@@ -6,10 +6,13 @@
+ 
+ #include <optional>
+ 
++#include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
++#include "base/check.h"
+ #include "base/functional/bind.h"
+ #include "base/metrics/user_metrics.h"
+ #include "base/metrics/user_metrics_action.h"
+ #include "base/strings/utf_string_conversions.h"
++#include "cc/paint/paint_flags.h"
+ #include "chrome/app/vector_icons/vector_icons.h"
+ #include "chrome/browser/favicon/favicon_utils.h"
+ #include "chrome/browser/search/search.h"
+@@ -28,14 +31,21 @@
+ #include "components/url_formatter/url_formatter.h"
+ #include "content/public/browser/web_contents.h"
+ #include "content/public/common/url_constants.h"
++#include "ui/accessibility/ax_enums.mojom.h"
++#include "ui/base/dragdrop/drag_drop_types.h"
++#include "ui/base/dragdrop/os_exchange_data.h"
+ #include "ui/base/l10n/l10n_util.h"
+ #include "ui/base/metadata/metadata_impl_macros.h"
+ #include "ui/base/models/image_model.h"
+ #include "ui/base/ui_base_features.h"
+ #include "ui/color/color_provider.h"
+ #include "ui/compositor/layer.h"
++#include "ui/events/event.h"
++#include "ui/gfx/canvas.h"
+ #include "ui/gfx/geometry/insets.h"
++#include "ui/gfx/geometry/point_f.h"
+ #include "ui/gfx/image/image_skia_operations.h"
++#include "ui/views/accessibility/view_accessibility.h"
+ #include "ui/views/background.h"
+ #include "ui/views/controls/button/image_button.h"
+ #include "ui/views/controls/button/image_button_factory.h"
+@@ -67,6 +77,36 @@ void SetAccessibleNameAndTooltip(views::View* view, int string_id) {
+   view->SetAccessibleName(string);
+   view->SetTooltipText(string);
+ }
++
++class PaneDragHandleView final : public views::View {
++  METADATA_HEADER(PaneDragHandleView, views::View)
++
++ public:
++  PaneDragHandleView() {
++    SetPreferredSize(gfx::Size(10, 14));
++    SetCanProcessEventsWithinSubtree(false);
++    GetViewAccessibility().SetRole(ax::mojom::Role::kImage);
++    GetViewAccessibility().SetName(l10n_util::GetStringUTF16(
++        IDS_AHOI_SPLIT_PANE_DRAG_HANDLE_ACCESSIBLE_NAME));
++  }
++
++  void OnPaint(gfx::Canvas* canvas) override {
++    views::View::OnPaint(canvas);
++    cc::PaintFlags dots;
++    dots.setAntiAlias(true);
++    dots.setStyle(cc::PaintFlags::kFill_Style);
++    dots.setColor(GetColorProvider()->GetColor(
++        kColorMultiContentsViewMiniToolbarForeground));
++    for (const float x : {3.0f, 7.0f}) {
++      for (const float y : {3.0f, 7.0f, 11.0f}) {
++        canvas->DrawCircle(gfx::PointF(x, y), 1.0f, dots);
++      }
++    }
++  }
++};
++
++BEGIN_METADATA(PaneDragHandleView)
++END_METADATA
+ }  // namespace
+ 
+ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+@@ -83,6 +123,23 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+   SetPaintToLayer();
+   layer()->SetFillsBoundsOpaquely(false);
+   SetVisible(false);
++  set_drag_controller(this);
++
++  drag_handle_ = AddChildView(std::make_unique<PaneDragHandleView>());
++
++  // The active marker keeps the toolbar's URL a reliable indication of which
++  // pane receives omnibox navigation. The whole non-button surface is also a
++  // native drag handle for arranging the visible split panes.
++  active_indicator_ = AddChildView(std::make_unique<views::View>());
++  active_indicator_->SetPreferredSize(gfx::Size(6, 6));
++  active_indicator_->SetBackground(views::CreateRoundedRectBackground(
++      kColorMultiContentsViewMiniToolbarForeground, 3));
++  active_indicator_->SetCanProcessEventsWithinSubtree(false);
++  active_indicator_->SetVisible(false);
++  active_indicator_->GetViewAccessibility().SetRole(ax::mojom::Role::kStatus);
++  active_indicator_->GetViewAccessibility().SetLiveRegionContainer(
++      views::ViewAccessibility::LiveRegionStatus::kPolite,
++      views::ViewAccessibility::kLiveRegionRelevantDefault, /*atomic=*/true);
+ 
+   // Add favicon, domain label, alert state indicator, and close button.
+   favicon_ = AddChildView(std::make_unique<views::ImageView>());
+@@ -90,6 +147,7 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+       views::FlexSpecification(views::MinimumFlexSizeRule::kPreferredSnapToZero,
+                                views::MaximumFlexSizeRule::kPreferred);
+   favicon_->SetProperty(views::kFlexBehaviorKey, icon_flex_spec.WithOrder(3));
++  favicon_->SetCanProcessEventsWithinSubtree(false);
+   domain_label_ = AddChildView(std::make_unique<views::Label>(
+       u"", views::style::CONTEXT_LABEL, views::style::STYLE_PRIMARY,
+       gfx::DirectionalityMode::DIRECTIONALITY_AS_URL));
+@@ -104,9 +162,11 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+   domain_label_->SetSubpixelRenderingEnabled(false);
+   domain_label_->SetEnabledColor(kColorMultiContentsViewMiniToolbarForeground);
+   domain_label_->SetBackgroundColor(kColorToolbar);
++  domain_label_->SetCanProcessEventsWithinSubtree(false);
+   alert_state_indicator_ = AddChildView(std::make_unique<views::ImageView>());
+   alert_state_indicator_->SetProperty(views::kFlexBehaviorKey,
+                                       icon_flex_spec.WithOrder(2));
++  alert_state_indicator_->SetCanProcessEventsWithinSubtree(false);
+ 
+   close_button_ = AddChildView(views::CreateVectorImageButtonWithNativeTheme(
+       base::BindRepeating(&MultiContentsViewMiniToolbar::CloseCurrentView,
+@@ -135,12 +195,14 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+   RegisterTabSubscriptions();
+ }
+ 
+-MultiContentsViewMiniToolbar::~MultiContentsViewMiniToolbar() = default;
++MultiContentsViewMiniToolbar::~MultiContentsViewMiniToolbar() {
++  set_drag_controller(nullptr);
++}
+ 
  void MultiContentsViewMiniToolbar::UpdateState(bool is_active,
                                                 bool is_highlighted) {
    const int contents_container_outline_thickness =
@@ -12398,6 +12652,214 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..40b2c7b564dcdcbab5b2f433dd42eb09
  
    gfx::Insets kInactiveInteriorMargins = gfx::Insets::TLBR(
        ContentsContainerOutline::kCornerRadius + kMiniToolbarContentPadding,
+@@ -161,9 +223,14 @@ void MultiContentsViewMiniToolbar::UpdateState(bool is_active,
+ 
+   SetVisible(!is_highlighted);
+ 
+-  favicon_->SetVisible(!is_active);
+-  domain_label_->SetVisible(!is_active);
+-  alert_state_indicator_->SetVisible(!is_active);
++  // Keep each pane's URL visible. Hiding it for the active pane made the
++  // omnibox target ambiguous and removed the only pane-local drag handle.
++  is_active_ = is_active;
++  active_indicator_->SetVisible(is_active);
++  UpdateActiveIndicatorAccessibility();
++  favicon_->SetVisible(true);
++  domain_label_->SetVisible(true);
++  alert_state_indicator_->SetVisible(true);
+ }
+ 
+ void MultiContentsViewMiniToolbar::UpdateContents() {
+@@ -207,6 +274,8 @@ void MultiContentsViewMiniToolbar::UpdateContents() {
+                                       ? gfx::ELIDE_HEAD
+                                       : gfx::ELIDE_TAIL);
+   domain_label_->SetCustomTooltipText(base::ASCIIToUTF16(domain_url.spec()));
++  SetTooltipText(base::ASCIIToUTF16(domain_url.spec()));
++  UpdateActiveIndicatorAccessibility();
+ 
+   UpdateFavicon(tab_ui_helper);
+ }
+@@ -222,6 +291,55 @@ void MultiContentsViewMiniToolbar::ClearWebContents(views::WebView*) {
+   tab_alert_status_subscription_.reset();
+   OnAlertStatusIndicatorChanged(std::nullopt);
+   web_contents_ = nullptr;
++  UpdateActiveIndicatorAccessibility();
++}
++
++bool MultiContentsViewMiniToolbar::OnMousePressed(const ui::MouseEvent& event) {
++  if (!event.IsOnlyLeftMouseButton()) {
++    return false;
++  }
++  ActivateCurrentView();
++  return true;
++}
++
++void MultiContentsViewMiniToolbar::WriteDragDataForView(
++    views::View* sender,
++    const gfx::Point&,
++    ui::OSExchangeData* data) {
++  CHECK_EQ(sender, this);
++  tabs::TabInterface* const tab = GetTabInterface(web_contents_);
++  if (!tab || !data) {
++    return;
++  }
++  ActivateCurrentView();
++  std::u16string title = web_contents_->GetTitle();
++  if (title.empty()) {
++    title = domain_label_->GetText();
++  }
++  ahoi::drag::WriteRuntimeSidebarTabDragPayload(
++      data, tab->GetHandle().raw_value(), title);
++}
++
++int MultiContentsViewMiniToolbar::GetDragOperationsForView(views::View* sender,
++                                                           const gfx::Point&) {
++  return sender == this && GetTabInterface(web_contents_)
++             ? ui::DragDropTypes::DRAG_MOVE
++             : ui::DragDropTypes::DRAG_NONE;
++}
++
++bool MultiContentsViewMiniToolbar::CanStartDragForView(
++    views::View* sender,
++    const gfx::Point& press_pt,
++    const gfx::Point&) {
++  return sender == this && GetTabInterface(web_contents_) &&
++         !close_button_->bounds().Contains(press_pt);
++}
++
++void MultiContentsViewMiniToolbar::OnWillStartDragForView(
++    views::View* dragged_view) {
++  if (dragged_view == this) {
++    ActivateCurrentView();
++  }
+ }
+ 
+ void MultiContentsViewMiniToolbar::OnPaint(gfx::Canvas* canvas) {
+@@ -295,6 +413,34 @@ void MultiContentsViewMiniToolbar::UpdateFavicon(TabUIHelper* tab_ui_helper) {
+   favicon_->SetImage(favicon);
+ }
+ 
++void MultiContentsViewMiniToolbar::UpdateActiveIndicatorAccessibility() {
++  auto& accessibility = active_indicator_->GetViewAccessibility();
++  if (!is_active_ || !web_contents_) {
++    if (!accessibility.GetCachedName().empty()) {
++      accessibility.RemoveName();
++    }
++    return;
++  }
++
++  std::u16string pane_name = domain_label_->GetText();
++  if (pane_name.empty()) {
++    pane_name = web_contents_->GetTitle();
++  }
++  if (pane_name.empty()) {
++    pane_name = url::kAboutBlankURL16;
++  }
++  accessibility.SetName(l10n_util::GetStringFUTF16(
++      IDS_AHOI_SPLIT_PANE_ACTIVE_ACCESSIBLE_STATUS, pane_name));
++}
++
++void MultiContentsViewMiniToolbar::ActivateCurrentView() {
++  TabStripModel* const model = browser_view_->browser()->tab_strip_model();
++  const int index = model->GetIndexOfWebContents(web_contents_);
++  if (index != TabStripModel::kNoTab && index != model->active_index()) {
++    model->ActivateTabAt(index);
++  }
++}
++
+ void MultiContentsViewMiniToolbar::CloseCurrentView() {
+   base::RecordAction(
+       base::UserMetricsAction("DesktopSplitView_MiniToolbarCloseView"));
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h
+index de2fb5ff5f7f6fc249f729731fe9e2dd7038c2ae..aedf3c8809124e8605b4c4ad72931af7aced7ba3 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h
++++ b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h
+@@ -10,6 +10,7 @@
+ #include "base/memory/raw_ptr.h"
+ #include "chrome/browser/ui/color/chrome_color_id.h"
+ #include "ui/base/metadata/metadata_header_macros.h"
++#include "ui/views/drag_controller.h"
+ #include "ui/views/view.h"
+ 
+ class BrowserView;
+@@ -20,6 +21,11 @@ namespace content {
+ class WebContents;
+ }
+ 
++namespace ui {
++class MouseEvent;
++class OSExchangeData;
++}  // namespace ui
++
+ namespace tabs {
+ enum class TabAlert;
+ }
+@@ -31,9 +37,11 @@ class Label;
+ class WebView;
+ }  // namespace views
+ 
+-// MultiContentsViewMiniToolbar is shown for the inactive side of a split and
+-// displays the favicon, domain, tab alert state, and a close button.
+-class MultiContentsViewMiniToolbar : public views::View {
++// MultiContentsViewMiniToolbar is shown for each visible split pane and
++// displays a drag grip, active marker, favicon, domain, tab alert state, and a
++// close button.
++class MultiContentsViewMiniToolbar : public views::View,
++                                     public views::DragController {
+   METADATA_HEADER(MultiContentsViewMiniToolbar, views::View)
+ 
+  public:
+@@ -46,14 +54,28 @@ class MultiContentsViewMiniToolbar : public views::View {
+   // Trigger an update of the tab data used to populate the mini toolbar.
+   void UpdateContents();
+ 
++  views::View* drag_handle_for_testing() { return drag_handle_; }
++  views::View* active_indicator_for_testing() { return active_indicator_; }
+   views::Label* domain_label_for_testing() { return domain_label_; }
+   views::ImageButton* close_button_for_testing() { return close_button_; }
+ 
+  private:
+   // View:
++  bool OnMousePressed(const ui::MouseEvent& event) override;
+   void OnPaint(gfx::Canvas* canvas) override;
+   void OnThemeChanged() override;
+ 
++  // views::DragController:
++  void WriteDragDataForView(views::View* sender,
++                            const gfx::Point& press_pt,
++                            ui::OSExchangeData* data) override;
++  int GetDragOperationsForView(views::View* sender,
++                               const gfx::Point& point) override;
++  bool CanStartDragForView(views::View* sender,
++                           const gfx::Point& press_pt,
++                           const gfx::Point& point) override;
++  void OnWillStartDragForView(views::View* dragged_view) override;
++
+   void UpdateWebContents(views::WebView* web_view);
+   void ClearWebContents(views::WebView*);
+ 
+@@ -61,9 +83,13 @@ class MultiContentsViewMiniToolbar : public views::View {
+   void OnAlertStatusIndicatorChanged(std::optional<tabs::TabAlert> new_alert);
+ 
+   void UpdateFavicon(TabUIHelper* tab_ui_helper);
++  void UpdateActiveIndicatorAccessibility();
+ 
++  void ActivateCurrentView();
+   void CloseCurrentView();
+ 
++  raw_ptr<views::View> drag_handle_;
++  raw_ptr<views::View> active_indicator_;
+   raw_ptr<views::ImageView> favicon_;
+   raw_ptr<views::Label> domain_label_;
+   raw_ptr<views::ImageView> alert_state_indicator_;
+@@ -75,6 +101,7 @@ class MultiContentsViewMiniToolbar : public views::View {
+   base::CallbackListSubscription web_contents_detached_subscription_;
+   std::optional<base::CallbackListSubscription> tab_alert_status_subscription_;
+   std::optional<base::CallbackListSubscription> tab_ui_updated_subscription_;
++  bool is_active_ = false;
+ };
+ 
+ #endif  // CHROME_BROWSER_UI_VIEWS_FRAME_MULTI_CONTENTS_VIEW_MINI_TOOLBAR_H_
 diff --git a/chrome/browser/ui/views/frame/tab_modal_dialog_host.cc b/chrome/browser/ui/views/frame/tab_modal_dialog_host.cc
 index 7ad0e2b5aa68192110b721666509c2bc97d285da..ca412e1ad277acc5099a386b4b785b8d4623398b 100644
 --- a/chrome/browser/ui/views/frame/tab_modal_dialog_host.cc
@@ -15120,11 +15582,23 @@ index 458f7980c275454fbc469d4f63c48cd213ef1b83..2a1b101e8de402f04b4e634b146f6bcd
  TEST_F(BrowsingHistoryHandlerTest, ObservesIdentityManagerOnlyAfterRequest) {
    // Check that the identity manager is only observed after RequestAccountInfo
    // is called.
+diff --git a/chrome/browser/ui/webui/settings/BUILD.gn b/chrome/browser/ui/webui/settings/BUILD.gn
+index fc65badb87b480e64c70efc838653f313d82dbdc..17f3edb3f4e7cb2c9ef2870d162c5f59ec5783e7 100644
+--- a/chrome/browser/ui/webui/settings/BUILD.gn
++++ b/chrome/browser/ui/webui/settings/BUILD.gn
+@@ -346,6 +346,7 @@ source_set("impl") {
+       "mac_system_settings_handler.cc",
+       "settings_utils_mac.mm",
+     ]
++    deps += [ "//ahoi/browser/importer/arc:settings_handler" ]
+   }
+ 
+   if (is_win) {
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index c4d16f149080a98dfdcada4eafab4ba9e287447a..8c96974978d310864ffa0044062ccef59bfd439d 100644
+index c4d16f149080a98dfdcada4eafab4ba9e287447a..7c3d93b89b2e88b7609b7c7776308d13ec9d1f64 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -590,6 +590,62 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -590,6 +590,113 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"lightMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_LIGHT_LABEL},
        {"darkMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_DARK_LABEL},
        {"systemMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_SYSTEM_LABEL},
@@ -15137,6 +15611,10 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..8c96974978d310864ffa0044062ccef5
 +       IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR_SUBLABEL},
 +      {"ahoiGlassEnabled", IDS_SETTINGS_AHOI_GLASS_ENABLED},
 +      {"ahoiGlassEnabledSublabel", IDS_SETTINGS_AHOI_GLASS_ENABLED_SUBLABEL},
++      {"ahoiSidebarPageTintEnabled",
++       IDS_SETTINGS_AHOI_SIDEBAR_PAGE_TINT_ENABLED},
++      {"ahoiSidebarPageTintEnabledSublabel",
++       IDS_SETTINGS_AHOI_SIDEBAR_PAGE_TINT_ENABLED_SUBLABEL},
 +      {"ahoiFloatingNavigation", IDS_SETTINGS_AHOI_FLOATING_NAVIGATION},
 +      {"ahoiFloatingNavigationSublabel",
 +       IDS_SETTINGS_AHOI_FLOATING_NAVIGATION_SUBLABEL},
@@ -15150,6 +15628,53 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..8c96974978d310864ffa0044062ccef5
 +      {"ahoiNavigationDelayRelaxed",
 +       IDS_SETTINGS_AHOI_NAVIGATION_DELAY_RELAXED},
 +      {"ahoiNavigationDelayLong", IDS_SETTINGS_AHOI_NAVIGATION_DELAY_LONG},
++      {"ahoiArcImportSection", IDS_SETTINGS_AHOI_ARC_IMPORT_SECTION},
++      {"ahoiArcImportSectionSublabel",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_SECTION_SUBLABEL},
++      {"ahoiArcImportTitle", IDS_SETTINGS_AHOI_ARC_IMPORT_TITLE},
++      {"ahoiArcImportDescription", IDS_SETTINGS_AHOI_ARC_IMPORT_DESCRIPTION},
++      {"ahoiArcImportDiscover", IDS_SETTINGS_AHOI_ARC_IMPORT_DISCOVER},
++      {"ahoiArcImportDiscovering", IDS_SETTINGS_AHOI_ARC_IMPORT_DISCOVERING},
++      {"ahoiArcImportCommitting", IDS_SETTINGS_AHOI_ARC_IMPORT_COMMITTING},
++      {"ahoiArcImportSourceInUse", IDS_SETTINGS_AHOI_ARC_IMPORT_SOURCE_IN_USE},
++      {"ahoiArcImportNoChanges", IDS_SETTINGS_AHOI_ARC_IMPORT_NO_CHANGES},
++      {"ahoiArcImportSuccess", IDS_SETTINGS_AHOI_ARC_IMPORT_SUCCESS},
++      {"ahoiArcImportError", IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR},
++      {"ahoiArcImportCloseArcTitle",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE},
++      {"ahoiArcImportCloseArcSublabel",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_SUBLABEL},
++      {"ahoiArcImportPreview", IDS_SETTINGS_AHOI_ARC_IMPORT_PREVIEW},
++      {"ahoiArcImportWorkspaces", IDS_SETTINGS_AHOI_ARC_IMPORT_WORKSPACES},
++      {"ahoiArcImportFolders", IDS_SETTINGS_AHOI_ARC_IMPORT_FOLDERS},
++      {"ahoiArcImportPages", IDS_SETTINGS_AHOI_ARC_IMPORT_PAGES},
++      {"ahoiArcImportSplits", IDS_SETTINGS_AHOI_ARC_IMPORT_SPLITS},
++      {"ahoiArcImportDegradations", IDS_SETTINGS_AHOI_ARC_IMPORT_DEGRADATIONS},
++      {"ahoiArcImportExcluded", IDS_SETTINGS_AHOI_ARC_IMPORT_EXCLUDED},
++      {"ahoiArcImportTargets", IDS_SETTINGS_AHOI_ARC_IMPORT_TARGETS},
++      {"ahoiArcImportProfiles", IDS_SETTINGS_AHOI_ARC_IMPORT_PROFILES},
++      {"ahoiArcImportCategories", IDS_SETTINGS_AHOI_ARC_IMPORT_CATEGORIES},
++      {"ahoiArcImportSidebarCategory",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_SIDEBAR_CATEGORY},
++      {"ahoiArcImportSplitCategory",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_SPLIT_CATEGORY},
++      {"ahoiArcImportConflicts", IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICTS},
++      {"ahoiArcImportConflictRename",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_RENAME},
++      {"ahoiArcImportConflictSkip", IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_SKIP},
++      {"ahoiArcImportConflictMerge",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_MERGE},
++      {"ahoiArcImportConflictCount",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_CONFLICT_COUNT},
++      {"ahoiArcImportPrivacyTitle", IDS_SETTINGS_AHOI_ARC_IMPORT_PRIVACY_TITLE},
++      {"ahoiArcImportPrivacySublabel",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_PRIVACY_SUBLABEL},
++      {"ahoiArcImportBackupConfirmation",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_CONFIRMATION},
++      {"ahoiArcImportCommitConfirmation",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION},
++      {"ahoiArcImportCommit", IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT},
++      {"ahoiArcImportResultSplits", IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS},
 +      {"ahoiFeatures", IDS_SETTINGS_AHOI_FEATURES},
 +      {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
 +      {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
@@ -15187,14 +15712,17 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..8c96974978d310864ffa0044062ccef5
        {"showHomeButton", IDS_SETTINGS_SHOW_HOME_BUTTON},
        {"showBookmarksBar", IDS_SETTINGS_SHOW_BOOKMARKS_BAR},
        {"bookmarksBar", IDS_SETTINGS_BOOKMARKS_BAR},
-@@ -662,3 +718,6 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -660,6 +767,9 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+       {"themeManagedDialogBody", IDS_NTP_THEME_MANAGED_DIALOG_BODY},
    };
    html_source->AddLocalizedStrings(kLocalizedStrings);
 +  // This signed product currently has no CloudKit capability. Keep this as a
 +  // load-time gate so a future signed provider can report true here.
 +  html_source->AddBoolean("ahoiCloudKitAvailable", false);
  
-@@ -1518,6 +1570,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
+   html_source->AddBoolean("ntpSimplificationBookmarksBarEnabled",
+                           base::FeatureList::IsEnabled(
+@@ -1518,6 +1628,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
  void AddOnStartupStrings(content::WebUIDataSource* html_source) {
    static constexpr webui::LocalizedString kLocalizedStrings[] = {
        {"onStartup", IDS_SETTINGS_ON_STARTUP},
@@ -15206,7 +15734,7 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..8c96974978d310864ffa0044062ccef5
        {"onStartupOpenNewTab", IDS_SETTINGS_ON_STARTUP_OPEN_NEW_TAB},
        {"onStartupContinue", IDS_SETTINGS_ON_STARTUP_CONTINUE},
        {"onStartupOpenSpecific", IDS_SETTINGS_ON_STARTUP_OPEN_SPECIFIC},
-@@ -2037,8 +2094,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
+@@ -2037,8 +2152,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
        autofill_client &&
            autofill::MayPerformAutofillAiAction(
                *autofill_client, autofill::AutofillAiAction::kOptIn));
@@ -15217,6 +15745,27 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..8c96974978d310864ffa0044062ccef5
    html_source->AddBoolean(
        "canEnableOrDisableAutofillAi",
        autofill_client &&
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 5c7141365e8869373c507392792258ec0e11e667..304131bb6d5ceaf7bb18e6f2ac844a430860830e 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -202,6 +202,7 @@
+ #endif  // BUILDFLAG(GOOGLE_CHROME_BRANDING)
+ 
+ #if BUILDFLAG(IS_MAC)
++#include "ahoi/browser/importer/arc/arc_import_handler.h"
+ #include "chrome/browser/ui/webui/settings/mac_system_settings_handler.h"
+ #endif
+ 
+@@ -304,6 +305,8 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+ #endif
+ 
+ #if BUILDFLAG(IS_MAC)
++  AddSettingsPageUIHandler(
++      std::make_unique<ahoi::importer::arc::ArcImportHandler>(profile));
+   AddSettingsPageUIHandler(std::make_unique<MacSystemSettingsHandler>());
+ #endif
+ 
 diff --git a/chrome/test/BUILD.gn b/chrome/test/BUILD.gn
 index a7bd79373d0031ac224461e98a812847e880f27e..4d7c1949cddde743dddd7690bebbbeb863b41986 100644
 --- a/chrome/test/BUILD.gn
@@ -15453,18 +16002,6 @@ index e54f81985ca855d2df8ff898455fa688cadcd660..c92c990340a2322522f87a8918ee9a6d
    // Test that loadStartupPages is called every time the "Open a specific page
    // or set of pages" radio button is selected.
    test('toggle-startup-urls-visibility', async function() {
-diff --git a/chrome/test/data/webui/settings/settings_main_plugins_test.ts b/chrome/test/data/webui/settings/settings_main_plugins_test.ts
-index 905cbf001368b89fe76e8be6d81bdcd49f4122a2..e8094685eb006c2d8069eb28e4ba542f7cbe52a4 100644
---- a/chrome/test/data/webui/settings/settings_main_plugins_test.ts
-+++ b/chrome/test/data/webui/settings/settings_main_plugins_test.ts
-@@ -68,6 +68,7 @@ suite('SettingsMain', function() {
-       {route: routes.AUTOFILL, pluginTag: 'settings-autofill-page-index'},
-       {route: routes.PERFORMANCE, pluginTag: 'settings-performance-page-index'},
-       {route: routes.APPEARANCE, pluginTag: 'settings-appearance-page-index'},
-+      {route: routes.AHOI, pluginTag: 'settings-ahoi-page'},
-       {route: routes.SEARCH, pluginTag: 'settings-search-page-index'},
-       // <if expr="not is_chromeos">
-       {
 diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
 index 1764852106275b48595a43ac11515a743dd867f2..1c90e778793884d7cec5e7b8bfcb9a2fcee49905 100644
 --- a/chrome/test/data/webui/settings/settings_browsertest.cc
@@ -15480,6 +16017,18 @@ index 1764852106275b48595a43ac11515a743dd867f2..1c90e778793884d7cec5e7b8bfcb9a2f
  IN_PROC_BROWSER_TEST_F(SettingsTest, GoogleServicesPage) {
    RunTest("settings/google_services_page_test.js", "mocha.run()");
  }
+diff --git a/chrome/test/data/webui/settings/settings_main_plugins_test.ts b/chrome/test/data/webui/settings/settings_main_plugins_test.ts
+index 905cbf001368b89fe76e8be6d81bdcd49f4122a2..e8094685eb006c2d8069eb28e4ba542f7cbe52a4 100644
+--- a/chrome/test/data/webui/settings/settings_main_plugins_test.ts
++++ b/chrome/test/data/webui/settings/settings_main_plugins_test.ts
+@@ -68,6 +68,7 @@ suite('SettingsMain', function() {
+       {route: routes.AUTOFILL, pluginTag: 'settings-autofill-page-index'},
+       {route: routes.PERFORMANCE, pluginTag: 'settings-performance-page-index'},
+       {route: routes.APPEARANCE, pluginTag: 'settings-appearance-page-index'},
++      {route: routes.AHOI, pluginTag: 'settings-ahoi-page'},
+       {route: routes.SEARCH, pluginTag: 'settings-search-page-index'},
+       // <if expr="not is_chromeos">
+       {
 diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
 index 500cbc7ed8e76b552a23147279fc233af9649197..ed36395ae7d494a51a465d4a22d2a89c3bd3479c 100644
 --- a/chrome/utility/BUILD.gn

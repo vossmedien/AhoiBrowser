@@ -15,6 +15,7 @@ namespace {
 
 constexpr PermittedSettingIdList kPermittedIds = {
     appearance::kGlassEnabledPref,
+    appearance::kSidebarPageTintEnabledPref,
     appearance::kFloatingNavigationAutoHideEnabledPref,
     appearance::kFloatingNavigationRevealNotchEnabledPref,
     appearance::kFloatingNavigationAutoHideDelayMsPref,
@@ -22,6 +23,7 @@ constexpr PermittedSettingIdList kPermittedIds = {
 
 bool IsBooleanSetting(std::string_view id) {
   return id == appearance::kGlassEnabledPref ||
+         id == appearance::kSidebarPageTintEnabledPref ||
          id == appearance::kFloatingNavigationAutoHideEnabledPref ||
          id == appearance::kFloatingNavigationRevealNotchEnabledPref;
 }

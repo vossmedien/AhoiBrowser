@@ -548,10 +548,29 @@ void ProfileSyncBackend::SyncNow(
   }
   std::ignore = pump_->SyncNow(
       base::BindOnce(&ProfileSyncBackend::OnSyncFinished,
-                     base::Unretained(this), std::move(callback)));
+                     weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
+}
+
+void ProfileSyncBackend::SuspendWithoutPersisting() {
+  transport_enabled_ = false;
+  weak_ptr_factory_.InvalidateWeakPtrs();
+  pump_.reset();
+  provider_.reset();
+
+  // The next explicit enable starts a new backend and reconciles the previous
+  // durable session then. Marking the in-memory session inactive here keeps
+  // CloseSession() from writing session/tombstone mutations after opt-out.
+  live_tabs_.clear();
+  session_record_.active = false;
+  tabs_service_.reset();
+  store_.reset();
 }
 
 void ProfileSyncBackend::CloseSession() {
+  transport_enabled_ = false;
+  weak_ptr_factory_.InvalidateWeakPtrs();
+  pump_.reset();
+  provider_.reset();
   if (!store_ || !tabs_service_ || !session_record_.active) {
     return;
   }

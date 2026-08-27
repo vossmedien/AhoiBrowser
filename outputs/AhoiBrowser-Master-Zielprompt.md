@@ -1,6 +1,8 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 26. August 2026.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das aktive AhoiBrowser-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet; ein erneutes Einsetzen als separates Goal ist dafür nicht erforderlich.
+**Geltungsstand: 28. August 2026.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das aktive AhoiBrowser-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet; ein erneutes Einsetzen als separates Goal ist dafür nicht erforderlich.
+
+**Verbindliche Ausführungsabgrenzung vom 27. August 2026:** Der native iOS-/iPadOS-Companion wird ab sofort von einem anderen Agenten verantwortet. Dieser macOS-/Chromium-Arbeitsstrom verändert, baut, testet oder installiert keine iOS-Dateien oder -Targets und wartet nicht auf deren Abschluss. Die Companion-Anforderungen bleiben Produktziel und Integrationsvertrag, sind aber ausdrücklich kein Schreib- oder Build-Scope dieses Arbeitsstroms.
 
 ## Rolle und Gesamtauftrag
 
@@ -47,6 +49,8 @@ Verbindliche Regeln:
 
 - Teste sichtbare Funktionen im signierten, nach `/Applications` installierten Bundle.
 - Verwende für User-Flows Computer Use und bediene die App sichtbar über Maus, Tastatur, Menüs, Dialoge, Finder und Systemeinstellungen.
+- Führe den sichtbaren echten Computer-Use-/User-E2E-Pfad jeder betroffenen Funktion vor den zugehörigen programmatischen Unit-, Browser-, Integrations- und Repository-Tests aus.
+- Findet ein nachgelagerter programmatischer Test einen Fehler, sichere die Diagnose, behebe ihn, baue und installiere den Kandidaten neu und wiederhole zuerst den exakt betroffenen sichtbaren E2E-Pfad; erst danach darf die Programmatik erneut laufen.
 - Terminal, Datenbank-Readback, interne APIs und Logs dürfen den sichtbaren User-Flow verifizieren, aber nicht ersetzen.
 - Kontrollierte lokale Testseiten sind Pflicht, ersetzen aber keine realen Tests von Chrome Web Store, 1Password, Bitwarden, uBlock Origin, YouTube, WebRTC/Meet, CloudKit, dem echten Updater und Widevine-Diensten.
 - Sichere bei einem sichtbaren Fehler zuerst Evidenz, diagnostiziere dann, behebe ihn und wiederhole exakt denselben User-Flow.
@@ -137,6 +141,7 @@ Implementiere klar abgegrenzte Services:
 - `MediaMiniPlayerService`: sichtbare Medienzustände, MiniPlayer-Platzierung, Quellenwechsel und Übergabe an Chromiums Picture-in-Picture- und Media-Session-Infrastruktur.
 - `DeviceTabsService`: lokale, CloudKit-basierte Geräte-/Tab-Sicht auf Grundlage von `SyncProvider`, ohne Google-Konto oder Chrome Sync.
 - `ResourcePolicyService`: Tab-Discarding, Memory-Saver-Policy, Ausnahmen und sichtbare Schlaf-/Aufweckzustände auf Chromiums Lifecycle- und Performance-Manager-Infrastruktur.
+- `ArcImportService`: sichere Discovery, unveränderlicher Snapshot, Vorschau, deterministische Abbildung und atomarer Commit von Arc-Profil- und Sidebar-Daten in das Ahoi-Domänenmodell.
 - `CommandService`: lokale Suche, Befehle, URL- und Suchparser.
 - `ThemeService`: System/Hell/Dunkel, Hauptfarbe, Workspace-Akzent und Glass-Fallback.
 - `DeveloperToolkitService`: Injection, Cache, Site Data, Cookies, Header und Diagnosefunktionen.
@@ -160,6 +165,8 @@ Verwende versionierte, migrationsfähige Kerntypen:
 - `DeveloperAsset`: Typ CSS/LESS/SASS/JavaScript/Headerprofil, Scope, Aktivierung, Sync-Opt-in.
 - `RemoteCommand`: Zielgerät, Befehlstyp, Payload, Nonce, Ablaufzeit, Status und Signatur.
 - `HttpAuthCredentialMetadata`: server/proxy, Scheme, Origin, Port, Realm, Benutzername, bevorzugter Status und letzter erfolgreicher Einsatz; das Passwort selbst bleibt ausschließlich im Password Store.
+- `ImportPlan`: Quellprofil, Snapshot-ID, Quellschema, ausgewählte Kategorien, deterministische Quell-/Ziel-IDs, Konfliktentscheidungen, Warnungen und erwartete Mutationen.
+- `ImportJournal`: Import-ID, Snapshot-Hash, Status, atomare Commit-Grenze, Rollback-Metadaten und Idempotenzschlüssel; keine Klartext-Secrets oder unnötigen URLs/Titel in Logs oder Evidenz.
 
 Der Seitenbaum liegt lokal in SQLite über Chromiums Datenbankhelfer. Verwende vorhandene Chromium-Services für Verlauf, Downloads, Permissions, Password Store, HTTP Auth Cache und Session Restore.
 
@@ -227,6 +234,26 @@ Verwende eigene GN-Targets und klar getrennte Komponenten statt dauerhafter Shel
 Für den aktiven M152-Pin ist die wartbare Serie auf drei Einträge konsolidiert: den Ahoi-Integrationspatch, deterministische Plattformtests und die isolierte Upstream-Tracing-Testkorrektur. Die frühere 21-Patch-M151-Serie bleibt über Recovery-Artefakte nachvollziehbar, ist aber keine parallel zu pflegende aktive Patchserie.
 
 Entschlackung muss updatesicher erfolgen: Deaktiviere nicht benötigte Produktflächen bevorzugt über zentrale Branding-/Feature-Konfiguration, Dependency- und Build-Flags oder kleine dokumentierte Integrationspunkte. Entferne keine gemeinsam genutzten Chromium-Kernpfade nur für eine kleinere sichtbare Oberfläche. Jeder deaktivierte Upstream-Dienst besitzt Begründung, Privacy-/Security-Auswirkung, Abhängigkeitstest und Roll-Check; ein Chromium-Update darf keine Funktion still reaktivieren oder einen sicherheitsrelevanten Dienst versehentlich abschalten.
+
+### Lean Chromium: kleiner Lieferumfang statt kosmetischem Verstecken
+
+Führe einen eigenen, messbaren **Lean-Chromium-Track**. Ziel ist kein tiefgreifender Umbau von Blink, V8 oder Chromiums Sicherheitsarchitektur, sondern ein kleineres, schnelleres und ruhigeres macOS-Produkt mit möglichst wenig ungenutztem Code, Ressourcenpaketen und Hintergrundaktivität. Brave darf als Vergleich für wartbare Feature-Gates und die Entkopplung fremder Produktdienste dienen, ist aber weder Quellvorlage noch automatischer Beleg für geringeren Ressourcenverbrauch; AhoiBrowser benötigt eine eigene, reproduzierbar gemessene Entscheidungsmatrix.
+
+Erstelle eine versionierte maschinenlesbare Komponentenmatrix, die jede geprüfte Upstream-Produktfläche genau einer Entscheidung zuordnet: `keep`, `replace-with-ahoi`, `runtime-disable`, `exclude-from-build` oder `defer`. Jeder Eintrag nennt GN-Target beziehungsweise Feature-Flag, direkte und transitive Abhängigkeiten, Nutzerwert, Security-/Privacy-Auswirkung, erwartete Größen- und Laufzeitwirkung, Rollbackweg sowie den Test, der eine stille Reaktivierung beim nächsten Chromium-Roll verhindert. Ungeprüfte oder sicherheitsrelevante Komponenten bleiben standardmäßig erhalten.
+
+Prüfe als Kandidaten insbesondere Google-/Chrome-Konto- und Chrome-Sync-Flächen, Chrome-spezifische Promotions und Onboarding, Commerce/Shopping/Preisbeobachtung, Feed/Discover, Lens, Glic/AI/Actor-/On-Device-Model-Funktionen, ungenutzte gebündelte Apps sowie ausschließlich von ausgeschlossenen Funktionen benötigte Background-Services, Ressourcen und Component-Updater. Diese Liste ist ein Auditauftrag, keine pauschale Löschfreigabe. Entferne eine Abhängigkeit erst, wenn alle Verbraucher, Startpfade, Einstellungen, Strings, Policies, Migrationen und Updatepfade nachweislich behandelt sind.
+
+Unverändert erhalten bleiben insbesondere Sandbox, Site Isolation, Prozessisolation, Zertifikats- und Netzwerksicherheit, Safe Browsing und sicherheitsnotwendige Component-Updates, Blink/V8 und standardkonforme Web-APIs, Extensions und Native Messaging, DevTools, Downloads, Uploads, PDF/Druck, Passwortmanager, Autofill, Passkeys/WebAuthn, HTTP Auth, Permissions, Medien/WebRTC/PiP, Accessibility, Lokalisierung, Übersetzung, Crash-/Session-Recovery und alle in diesem Zielprompt zugesagten Ahoi-Funktionen. Webkompatibilität oder Sicherheitsupdates dürfen niemals für wenige Megabyte geopfert werden.
+
+Bevor etwas entfällt, erfasse mit unverändertem Chromium derselben Revision und einem Ahoi-Vollbuild auf derselben Maschine mindestens: installiertes App-/DMG-Volumen, Mach-O- und Resource-Pack-Anteile, geladene Libraries, Prozesszahl, Cold-/Warm-Start, Idle-CPU und Wakeups, Hintergrundnetzwerk, GPU-Nutzung sowie RAM bei 1, 20 und 100 Tabs. Wiederhole die Messung nach jeder Entschlackungswelle. Die Releaseziele sind:
+
+- keine ungenutzte ausgeschlossene Produktfläche bleibt nur verborgen, aber weiterhin verlinkt, paketiert oder im Hintergrund aktiv;
+- das installierte Ahoi-Bundle überschreitet das gleich konfigurierte unveränderte Chromium-Bundle trotz Ahoi-Funktionen um höchstens 3 Prozent;
+- gegenüber einem ansonsten identischen Ahoi-Vollbuild mit allen auditierten optionalen Produktmodulen wird mindestens 10 Prozent Bundle-Footprint eingespart, sofern die vorab dokumentierte Kandidatenmenge dies ohne Funktions- oder Sicherheitsverlust zulässt;
+- deaktivierte Komponenten erzeugen null periodische Tasks, Wakeups oder Netzwerkzugriffe und werden nicht lazy nachgeladen;
+- vorhandene Startzeit-, Speicher-, Idle-CPU- und Web-Benchmark-Budgets bleiben zusätzlich bindend.
+
+Kann das 10-Prozent-Ziel nachweislich nur durch Entfernung zugesagter Browserfähigkeit, Webkompatibilität oder Security erreicht werden, entscheide nicht still. Dokumentiere die vollständige Größenbilanz und behandle ausschließlich dieses Prozentziel als explizites Produktentscheidungs-Gate; alle Null-Aktivitäts-, Größenaccounting- und Sicherheitsregeln bleiben hart. Jede Entschlackungswelle muss separat rückbaubar und über einen Chromium-Roll reproduzierbar sein.
 
 ### Upstream und Security-SLA
 
@@ -367,7 +394,9 @@ Implementiere:
 - Glass an/aus beziehungsweise automatischen Accessibility-Fallback;
 - Glass als normal aktivierbare Produktoption für Sidebar, schwebende Browserflächen, Popups und MiniPlayer mit einem einheitlichen Materialsystem;
 - auf unterstütztem macOS 26 ist Glass im Systemmodus standardmäßig aktiv, solange Accessibility-, Energie- oder Performancebedingungen keinen dokumentierten Fallback erfordern;
-- semantische Farben und Zustände.
+- semantische Farben und Zustände;
+- optional aktivierbare, standardmäßig ausgeschaltete Seitenfarb-Tönung der Sidebar: bevorzugt wird die bereits geladene deklarierte `theme-color` des aktiven Panes, sonst eine lokal und auf feste Pixelzahl begrenzte Analyse des bereits geladenen Favicons; daraus entsteht nur ein dezenter Pastell-Overlay auf der semantischen Hell-/Dunkel-/Glass-Fläche;
+- die Seitenfarb-Tönung löst niemals Netzwerkzugriffe, Seitenscreenshots oder unbeschränkte Bildanalyse aus, folgt dem aktiven Split-Pane ohne Flackern und ist bei hohem Kontrast vollständig deaktiviert.
 
 Nicht Bestandteil von v1 sind importierbare Theme-Pakete, frei programmierbare CSS-Themes für das Browser-Chrome oder ein Theme-Marktplatz.
 
@@ -479,6 +508,8 @@ Drag-Verhalten:
 - Tab auf ein Pane einer Zweiergruppe zeigt die genaue Einfügeposition und erzeugt nach Drop eine gewählte Dreier-Anordnung.
 - Tab auf ein Pane einer Dreiergruppe zeigt die genaue Einfügeposition und erzeugt nach Drop eine gewählte Vierer-Anordnung, standardmäßig das nachvollziehbare 2×2-Raster.
 - Tab innerhalb derselben Split-Gruppe kann Pane-Reihenfolge und Layout ändern.
+- Jedes sichtbare Pane besitzt in seiner Mini-Toolbar einen klar erkennbaren nativen Drag-Griff. Das Ziehen dieses Griffs über obere, rechte, untere oder linke Drop-Zonen eines anderen sichtbaren Panes ordnet die bestehenden `WebContents` atomar neu an und kann zwischen Spalten- und Zeilenlayout wechseln; es handelt sich ausdrücklich nicht um das Ziehen eines Sidebar-Tabs.
+- Während dieses Content-Drags zeigt ein browserkontrolliertes Overlay die exakte Zielzone und resultierende Pane-Reihenfolge. Abbruch oder jeder Fehler stellt Tab-Reihenfolge, Split-ID, Mitgliedschaft, Layout, Arrangement, Ratios und aktives Pane vollständig wieder her.
 - Sidebar- und Content-Drop verwenden denselben transaktionalen
   WebContents-Rebind-Lebenszyklus: Alle geänderten alten Pane-Bindungen werden
   zuerst gelöst und erst danach in Zielreihenfolge neu gebunden. Zu keinem
@@ -495,6 +526,7 @@ Fokus- und Security-Regeln:
 
 - Klick, Tastaturfokus oder expliziter Pane-Wechsel aktiviert dessen vorhandenes `TabInterface`, ohne Reload.
 - Adressleiste, Zurück/Vor, Reload, Page Info, Berechtigungen, Extension-Actions, Developer Toolkit und Downloads beziehen sich eindeutig auf das aktive Pane.
+- Die Mini-Toolbar jedes Panes zeigt dessen gekürzte URL dauerhaft; ein zusätzlicher nicht nur farblicher Aktivindikator macht dort den Omnibox-Zielzustand eindeutig. Klick oder Drag-Start aktiviert genau dieses Pane, und die nächste Adressleisten-Navigation verändert ausschließlich dessen URL.
 - Jedes Pane zeigt browserkontrollierte Origin-, Security-, Audio-, Kamera-, Mikrofon- und Sharing-Zustände.
 - Ein dauerhafter, nicht nur farblicher Fokusrahmen markiert das aktive Pane und wird bei Omnibox, Page Info, Permission Prompt, Device Chooser und anderen sicherheitskritischen Browserflächen verstärkt.
 - Tabmodale Dialoge und Scrims bleiben beim auslösenden Pane.
@@ -685,6 +717,46 @@ Pflichtkompatibilität:
 Der lokale Chromium-Passwortmanager bleibt nicht nur technisch vorhanden, sondern als schlanke, vollständige Produktfläche erreichbar: Passwörter speichern, mehrere Konten pro Origin auswählen, suchen, bearbeiten, löschen, importieren/exportieren im sicheren Chromium-Rahmen, Passwortprüfung soweit upstream verfügbar und Passwörter erst nach Touch ID beziehungsweise Systemauthentifizierung im Klartext anzeigen. Autofill, Passkeys und HTTP-Auth-Credentials bleiben korrekt getrennte Datendomänen. AhoiBrowser bevorzugt keinen externen Passwortanbieter. 1Password, Bitwarden und andere Chromium-Passwortmanager erhalten denselben Extension- und Native-Messaging-Pfad. Deren Tresore oder Extension Storage werden niemals durch AhoiBrowser Sync übertragen.
 
 1Password muss mit einer signierten App in `/Applications`, einmaliger Freigabe als zusätzlicher vertrauenswürdiger Browser, Desktop-App-Verbindung, Touch ID und einem künstlichen Test-Vault real geprüft werden.
+
+Für die konkrete Dogfood-Abnahme werden Erweiterungen ausschließlich im AhoiBrowser-Profil installiert, eingerichtet und geprüft. Google Chrome und Arc sind dabei nur mögliche, strikt read-only Inventarquellen und dürfen weder verändert noch als Laufzeitnachweis für AhoiBrowser gewertet werden. Pflichtkandidaten sind uBlock Origin Classic (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) über den signierten Ahoi-Sonderpfad, AnyChat (`khpefodpgnkegiohbolbaaeabnfdegln`) und 1Password Stable (`aeblfdkhhhdcdjpifhhbdiojplfjncoa`) über den normalen Chrome-Web-Store-/Chromium-Pfad. Jede Installation zeigt Quelle, Identität und Berechtigungen sichtbar an und benötigt eine bewusste Bestätigung; es gibt keine stille Installation, keine pauschale Allowlist und kein Übertragen von Extension Storage oder Kontositzungen.
+
+1Password-Native-Messaging wird nicht aus einem fremden Browserprofil kopiert. Die 1Password-Desktop-App muss die signierte Ahoi-App über ihren offiziellen Additional-Browsers-Prozess als vertrauenswürdig aufnehmen und das Manifest für Ahois eigenes Profil beziehungsweise den unterstützten systemweiten Hostpfad selbst provisionieren. Login, Entsperren und Touch ID bleiben nutzerassistiert; AhoiBrowser oder die Testautomation lesen, speichern oder protokollieren keine realen Tresorgeheimnisse.
+
+## Migration aus Arc
+
+Implementiere einen erstklassigen, wiederholbaren Assistenten `Aus Arc importieren`. Er migriert Arc-Seitenleisten- und Browserdaten in das vorhandene Ahoi-Domänenmodell; er kopiert niemals ein komplettes fremdes Chromium-Profil und führt Arc-Code nicht aus.
+
+### Discovery und sicherer Snapshot
+
+- Erkenne die installierte Arc-App, alle auswählbaren Arc-Profile und mindestens `~/Library/Application Support/Arc/StorableSidebar.json` sowie `~/Library/Application Support/Arc/User Data/<Profil>`.
+- Prüfe anhand realer Prozesse und geöffneter Datenbanken, ob Arc noch läuft. Verwaiste `Singleton*`-Symlinks sind kein ausreichender Laufzeitbeleg.
+- Fordere zum Schließen von Arc auf, bevor ein mutierbarer Profilstand übernommen wird.
+- Erzeuge vor Parser oder Import einen unveränderlichen Snapshot mit Manifest, Quellpfaden, Größen, Zeitstempeln und SHA-256. SQLite-Datenbanken werden zusammen mit passenden WAL-/SHM-Dateien konsistent gesichert.
+- Weise Symlinks, Pfadtraversal, Gerätepfade, übergroße Dateien und unerwartete Dateitypen fail-closed ab. Temporäre Snapshot- und Journaldateien erhalten mindestens Modus `0600` und werden nach erfolgreicher Evidenzbildung sicher entfernt.
+- Schreibe niemals in Arc-Dateien. Ein Abbruch oder Fehler lässt sowohl Arc als auch das bestehende Ahoi-Profil unverändert.
+
+### Unterstützte Abbildung
+
+- Arc Spaces werden zu Ahoi-Workspaces.
+- Arc Lists und verschachtelte Gruppen werden zu Ahoi-Ordnern; Reihenfolge und Hierarchie bleiben soweit valide erhalten.
+- angeheftete und gespeicherte Arc-Tabs werden zu gespeicherten Seiten; temporäre offene Tabs werden nur nach expliziter Kategorieauswahl als normale Ahoi-Tabs geöffnet.
+- valide Arc Split Views werden nach Erzeugung echter Chromium-Tabs über `SplitViewService`, `TabStripModel` und Chromiums Split-Collection-Infrastruktur rekonstruiert. Orientierung, Mitglieder, Reihenfolge, Fokus und normalisierbare Divider-Ratios bleiben erhalten.
+- Nicht rekonstruierbare oder unvollständige Splits werden verlustarm in einen klar benannten Ordner mit ihren sicheren Mitglieds-URLs degradiert; es entstehen keine Phantom-Tabs und kein separater WebView-/Split-State.
+- Lesezeichen, Verlauf, Favicons, Suchmaschinen und kompatible Autofill-Metadaten dürfen über Chromiums Importer-Seams als getrennt auswählbare Kategorien importiert werden.
+
+Passwörter, Cookies, Login Data, Web Sessions, Tokens, `Secure Preferences`, Extension Storage, Service-Worker-/Site-Storage, Native-Messaging-Manifeste, Keychain-Geheimnisse und Inkognito-Daten werden niemals direkt aus Arc kopiert. Für Passwörter ist ausschließlich ein ausdrücklich vom Nutzer erzeugter, von Chromium sicher unterstützter Export-/Importweg zulässig.
+
+### Parser, Vorschau und Commit
+
+- Der `StorableSidebar.json`-Parser ist versionsgebunden. Für Schema 1 verarbeitet er typisiert Container, Spaces, Lists, Tabs und Split Views; unbekannte Schema-Versionen oder Varianten werden nicht geraten.
+- Setze harte Grenzen für Dateigröße, Objektanzahl, Stringlängen, Verschachtelung und Split-Mitglieder. Erkenne doppelte IDs, Zyklen, Waisen, ungültige URLs, interne Arc-/Extension-URLs und beschädigte Referenzen.
+- Der Assistent zeigt vor jeder Mutation Kategorien, Objektzahlen, Ziel-Workspaces, Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Datentypen. Titel und URLs dürfen in dieser lokalen Nutzervorschau erscheinen, nicht aber unredigiert in Logs, Crash Reports oder veröffentlichter Evidenz.
+- Erzeuge deterministische Ziel-IDs und einen `ImportPlan`, sodass derselbe Snapshot bei Wiederholung keine Duplikate erzeugt.
+- Führe den Plan als additive, atomare Mehr-Workspace-Transaktion aus. Bei Fehler oder Prozessabsturz muss das `ImportJournal` vollständig zurückrollen oder beim Neustart deterministisch fortsetzen können; ein halb importierter Baum ist unzulässig.
+- Überschreibe bestehende Ahoi-Inhalte nie still. Gleichnamige Workspaces und Ordner erhalten eine sichtbare Merge-, Umbenennen- oder Überspringen-Entscheidung.
+- Der Ergebnisbericht nennt importierte, übersprungene, deduplizierte und degradierte Objekte sowie sicher ausgeschlossene Kategorien, ohne Geheimnisse offenzulegen.
+
+Für die reale Dogfood-Migration wird der vorhandene lokale Arc-Datenstand zuerst unveränderlich gesichert, dann als Vorschau ohne Mutation geprüft, anschließend nach Bestätigung in das installierte AhoiBrowser-Profil importiert und direkt danach mit demselben Snapshot erneut ausgeführt. Der zweite Lauf muss nachweislich idempotent beziehungsweise ein erklärter No-op sein. Workspace-, Ordner-, Tab- und rekonstruierte Split-Ergebnisse werden sichtbar im installierten AhoiBrowser geprüft.
 
 ## Erstklassige HTTP-Authentifizierung für `.htaccess`
 
@@ -1257,6 +1329,8 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - gepinnter Bootstrap;
 - GN-Integration;
 - Patchverwaltung;
+- reproduzierbare Upstream-/Ahoi-Vollbuild-Baseline für App-/DMG-Größe, Mach-O-/Resource-Pack-Anteile, Start, Idle, Netzwerk, Prozesse, GPU und RAM;
+- versionierte Lean-Chromium-Komponentenmatrix mit Abhängigkeitsgraph, Messwerten, Rollback und Roll-Checks;
 - automatisierte Tests;
 - Releasebuild;
 - Packaging und Installation;
@@ -1295,11 +1369,15 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - Berechtigungen;
 - lokaler Passwortmanager;
 - Memory Saver, Tab-Discarding, sichtbare Schlafzustände und kritische Ausnahmen;
+- erste updatesichere Entschlackungswelle ausschließlich für vollständig auditierte optionale Produktmodule; nach jedem Cluster erneut Größen-, Start-, Idle-, Netzwerk- und Kompatibilitätsmessung;
 - vollständiger HTTP-Auth-Chooser und Verwaltung;
 - Chrome Web Store;
 - 1Password;
+- AnyChat;
 - Bitwarden;
 - uBlock Origin Classic;
+- sicherer Arc-Importassistent mit Vorschau, atomarem Commit, Rollback und idempotenter Wiederholung;
+- realer Import des vorhandenen lokalen Arc-Datenstands nach unveränderlichem Backup;
 - reale User-E2E-Abnahme.
 
 ### Phase 4 – Developer Toolkit und Privacy
@@ -1333,6 +1411,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - Privacy Review;
 - Lizenzreview;
 - Performance;
+- finaler Lean-Chromium-Audit gegen identisches Upstream-Chromium und den dokumentierten Ahoi-Vollbuild einschließlich stiller Reaktivierungen nach dem aktuellen Roll;
 - Accessibility;
 - Crash- und Soak Tests;
 - signierte N−2-/N−1-Updates;
@@ -1542,6 +1621,11 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `SPLIT-32`: vier reale komplexe Seiten mit Video, DevTools und Downloads neben 10.000 Sidebar-Knoten betreiben; Drag, Fokus, Resize und Layout bleiben flüssig und erzeugen keine eigene Idle-CPU-Regression.
 - `SPLIT-33`: vierten Tab auf jedes Pane einer Dreiergruppe ziehen; 2×2-Vorschau, Einfügeposition und vier simultan laufende Seiten prüfen.
 - `SPLIT-34`: Vierergruppe zwischen unterstützten Anordnungen einschließlich 2×2 wechseln; Sidebar-Segmentraster spiegelt Position und Reihenfolge korrekt und lesbar wider.
+- `SPLIT-35`: den nativen Griff in der Mini-Toolbar eines sichtbaren Panes per echter Maus auf obere, rechte, untere und linke Zone eines anderen Panes ziehen; Overlay, endgültige Reihenfolge, Zeilen-/Spaltenlayout, aktives Pane und unveränderte `WebContents` prüfen.
+- `SPLIT-36`: denselben Pane-Drag nach einer bereits erfolgreichen Teilreihenfolge künstlich fehlschlagen lassen; Tab-Reihenfolge, Split-IDs, Mitgliedschaft, Layout, Arrangement, Ratios und aktives Pane müssen byte- beziehungsweise modellgleich zurückgerollt werden.
+- `SPLIT-37`: in jedem Pane eine unterschiedliche URL laden, anhand URL plus Aktivindikator unten rechts das aktive Pane auswählen und anschließend über die obere Adressleiste navigieren; nur das markierte Pane ändert seine URL, auch nach mehrfachen Fokus-, Layout- und Workspace-Wechseln.
+- `SPLIT-38`: Split-Drop-Vorschautext mit langem Titel prüfen; Titel, Status- und Aktionsicons bleiben innerhalb des Zielsegments und ragen weder über die Segment- noch über die Gruppen-Trennlinie hinaus.
+- `SPLIT-39`: Sidebar-Split-Trennlinien für zwei, drei und vier Panes in LTR/RTL, verschiedenen Skalen und Hover-/Drag-Zuständen prüfen; kein antialiasierter Endpunkt ragt oben, unten oder seitlich aus der Gruppen-Bubble heraus.
 
 ### Command Bar, Quick Window und Inkognito
 
@@ -1665,6 +1749,9 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `EXT-08`: Bitwarden mit Test-Vault entsperren, Login ausfüllen und speichern.
 - `EXT-09`: React DevTools oder vergleichbare Entwicklererweiterung verwenden.
 - `EXT-10`: IBM Equal Access Accessibility Checker installieren und auf Testseite ausführen.
+- `EXT-11`: AnyChat mit exakt der erwarteten Store-ID im AhoiBrowser-Profil installieren, sichtbare Berechtigungen prüfen, Action beziehungsweise Side Panel öffnen und nach Browserneustart erneut bedienen.
+- `EXT-12`: nachweisen, dass AnyChat, 1Password und uBlock ausschließlich im getesteten AhoiBrowser-Profil installiert beziehungsweise konfiguriert wurden; Google-Chrome- und Arc-Profile bleiben byte- beziehungsweise zustandsseitig unverändert.
+- `EXT-13`: 1Password-Native-Messaging wird über den offiziellen Additional-Browsers-Prozess für die signierte Ahoi-App provisioniert; ein aus Arc oder Chrome kopiertes Manifest wird abgewiesen und zählt nicht als Pass.
 - `UBO-01`: uBlock Origin Classic über AhoiBrowser-Ein-Klick-Flow installieren.
 - `UBO-02`: Version, ID, Quelle und Hash gegen Katalog prüfen.
 - `UBO-03`: Netzwerkrequest auf kontrollierter Testseite blockieren.
@@ -1677,6 +1764,21 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `UBO-10`: Deinstallation.
 - `UBO-11`: fremdes, nicht allowlistetes MV2-Paket wird abgewiesen.
 - `UBO-12`: gewöhnliche MV3-Erweiterungen funktionieren parallel unverändert.
+
+### Arc-Import
+
+- `IMPORT-ARC-01`: Arc-App und mehrere Profile erkennen; verwaiste `Singleton*`-Symlinks nicht als laufende Instanz fehlinterpretieren.
+- `IMPORT-ARC-02`: bei laufendem Arc verständlich stoppen, ohne Quellprofil oder Ahoi-Zielprofil zu verändern.
+- `IMPORT-ARC-03`: Snapshot von `StorableSidebar.json` und ausgewählten Chromium-Datenbanken einschließlich konsistenter WAL-/SHM-Dateien erstellen; Manifest und Hashes verifizieren.
+- `IMPORT-ARC-04`: Symlink-, Traversal-, Größenlimit-, unbekannte-Schema-, Malformed-JSON-/SQLite- und Lock-Fixtures fail-closed ablehnen.
+- `IMPORT-ARC-05`: Schema-1-Fixture mit Spaces, verschachtelten Lists, Tabs, Containern und Split Views vollständig in einen deterministischen `ImportPlan` überführen.
+- `IMPORT-ARC-06`: Vorschau und Kategorien einzeln an-/abwählen; Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Geheimdaten korrekt anzeigen.
+- `IMPORT-ARC-07`: Spaces, Listen und Tabs atomar als Workspaces, Ordner und gespeicherte Seiten importieren; Reihenfolge, Hierarchie und sichere URLs prüfen.
+- `IMPORT-ARC-08`: valide Zwei-Pane-Splits über echte Chromium-Tabs und `SplitViewService` mit Orientierung, Fokus und Ratio rekonstruieren; ungültige Splits verlustarm als Ordner degradieren.
+- `IMPORT-ARC-09`: Crash beziehungsweise Fehler vor, während und nach der Commit-Grenze injizieren; vollständigen Rollback oder deterministische Recovery ohne halben Baum beweisen.
+- `IMPORT-ARC-10`: denselben Snapshot zweimal importieren; der zweite Lauf ist ohne Duplikate ein nachvollziehbarer No-op.
+- `IMPORT-ARC-11`: Cookies, Login Data, Passwörter, Tokens, Sessions, `Secure Preferences`, Extension Storage, Native-Messaging-Manifeste, Keychain- und Inkognito-Daten bleiben ausgeschlossen; Logs und Evidenz sind redigiert.
+- `IMPORT-ARC-12`: vorhandenen realen lokalen Arc-Datenstand nach immutable Backup und Dry Run in das installierte AhoiBrowser-Profil importieren; Workspaces, Ordner, gespeicherte Seiten und rekonstruierbare Splits sichtbar prüfen und den No-op-Wiederholungslauf belegen.
 
 ### Lokaler Passwortmanager und Autofill
 
@@ -1718,6 +1820,14 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `DEV-26`: bei deaktiviertem Toolkit kein zusätzlicher Dauerprozess, keine messbare Idle-CPU und kein unnötiger Compiler-Speicher.
 - `DEV-27`: Datenlöschdialog auf `alle Websites`, mehrere Typen und einen Zeitraum konfigurieren, bestätigen und währenddessen UI ändern/doppelklicken; exakt ein unveränderlicher Request läuft und der Erfolg nennt globalen Scope, Zeitraum und Typen korrekt.
 - `DEV-28`: denselben Ablauf für `aktuelle Website`, Einzeltypen, Teilerfolg und Fehler prüfen; kein Status darf einen anderen Scope behaupten und Buttons bleiben in allen Themes/Größen sichtbar, kompakt und tastaturbedienbar.
+- `DEV-29`: Toolkit-Icon in der Adressleiste zweimal klicken; der erste Klick öffnet genau eine Bubble für das aktive Split-Pane, der zweite schließt sie zuverlässig ohne Release-Reopen, Flackern oder Retargeting.
+
+### Appearance
+
+- `APPEARANCE-01`: optionale Sidebar-Seitenfarb-Tönung in den Einstellungen ein- und ausschalten; Default und Neustartpersistenz prüfen.
+- `APPEARANCE-02`: zwei Split-Panes mit unterschiedlichen `theme-color`-Werten aktivieren; Sidebar folgt ausschließlich dem aktiven Pane und behält lesbare semantische Oberflächen in Hell, Dunkel und Glass.
+- `APPEARANCE-03`: ohne `theme-color` das bereits geladene Favicon als begrenzten lokalen Fallback verwenden; kein zusätzlicher Request und keine Seitenerfassung dürfen entstehen.
+- `APPEARANCE-04`: bei hohem Kontrast bleibt die Seitenfarb-Tönung unabhängig vom gespeicherten Schalter vollständig aus; reduzierte Transparenz und fehlende beziehungsweise transparente Farben ergeben sichere Fallbacks.
 
 ### Privacy und Security
 
@@ -1774,6 +1884,7 @@ Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCl
 - `SYNC-24`: Gerät offline, Tab geschlossen, Gerät umbenannt und Gerät entzogen; Geräte-Tabs-UI zeigt verständliche Aktualität, räumt Tombstones auf und bietet keine veraltete Remote-Aktion an.
 - `SYNC-25`: Inkognito-, Passwort-, Cookie-, Site-Storage-, Permission- und Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf.
 - `SYNC-26`: frisches Profil ohne Google-Anmeldung verwenden; Geräte-Tabs und kompletter Sync funktionieren über CloudKit, während Chrome Sync und Google-Browserkonto deaktiviert bleiben.
+- `SYNC-27`: in einem Build ohne konfigurierte CloudKit-Capability den Hauptschalter aktivieren und lokale Sync-Datenbank, Outbox sowie Retention bedienen; Remote Control bleibt ehrlich gesperrt, es wird keine Verschlüsselung ruhender lokaler Daten behauptet und nach signierter CloudKit-Konfiguration wird die ausstehende Outbox kontrolliert transportiert.
 
 ### iOS-/iPadOS-Companion und Remote Control
 
@@ -1813,6 +1924,19 @@ Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCl
 - `CRASH-06`: Crash während Sync-Commit beziehungsweise Migration.
 - `CRASH-07`: keine Zyklen, Duplikate oder beschädigte Daten nach Recovery.
 - `CRASH-08`: Inkognito wird nach Crash nie angeboten.
+
+### Lean Chromium und Lieferumfang
+
+- `LEAN-01`: Gegen unverändertes Chromium derselben Revision und einen Ahoi-Vollbuild mit aktivierten Auditkandidaten reproduzierbare Baselines für installiertes App-/DMG-Volumen, Mach-O-Segmente, Resource Packs, geladene Libraries, Prozesse, Start, Idle, Netzwerk, GPU und RAM erstellen.
+- `LEAN-02`: Die maschinenlesbare Komponentenmatrix vollständig gegen GN-Graph, Feature-Defaults, Einstellungen, Policies, Strings, Migrationen, Component-Updater und Runtime-Registrierungen abgleichen; jeder Ausschluss besitzt Begründung, Messwert, Rollback und Test-ID.
+- `LEAN-03`: Google-/Chrome-Konto und Chrome Sync, Promotions/Onboarding, Commerce/Shopping, Feed/Discover, Lens, Glic/AI/Actor/On-Device-Model, gebündelte Apps und funktionsgebundene Background-Services einzeln auditieren; keine Kategorie wird pauschal entfernt.
+- `LEAN-04`: Für jede als `exclude-from-build` markierte Funktion nachweisen, dass Code, Ressourcen, Strings, Settings-Routen und alleinige transitive Abhängigkeiten nicht mehr im Releasebundle liegen; `runtime-disable` ist nur mit begründetem Roll-/Rollbackvorteil zulässig.
+- `LEAN-05`: Mit frischem Profil und anschließendem Daily-Driver-Profil nachweisen, dass deaktivierte Komponenten keine periodischen Tasks, Wakeups, Netzwerkzugriffe, Downloads, Component-Registrierungen oder Lazy-Loads erzeugen.
+- `LEAN-06`: Das installierte Ahoi-Releasebundle bleibt höchstens 3 Prozent größer als das identisch gebaute unveränderte Chromium-Bundle; gegenüber dem dokumentierten Ahoi-Vollbuild werden mindestens 10 Prozent Bundle-Footprint eingespart oder das ausdrücklich definierte Produktentscheidungs-Gate wird mit vollständiger Größenbilanz ausgelöst.
+- `LEAN-07`: Vollständige Browserfähigkeit, Webplattform, Sandbox, Site Isolation, Safe Browsing, Zertifikats-/Netzwerksicherheit, Extensions/Native Messaging, DevTools, Medien, Downloads, PDF/Druck, Passwörter, Passkeys, HTTP Auth, Permissions, Accessibility, Übersetzung sowie Crash-/Session-Recovery nach jeder Entschlackungswelle regressionsfrei bestätigen.
+- `LEAN-08`: AnyChat, 1Password, Bitwarden, uBlock Origin Classic, CloudKit-Sync, Arc-Import, Split Views und Developer Toolkit im installierten Ahoi-Profil nach der finalen Entschlackungswelle real bedienen; fremde Browserprofile bleiben unverändert.
+- `LEAN-09`: Einen Chromium-Stable-/Security-Roll durchführen und beweisen, dass ausgeschlossene Funktionen weder still reaktiviert noch als verwaiste Buildabhängigkeit zurückgebracht werden und sicherheitsrelevante neue Upstream-Komponenten nicht versehentlich ausgeschlossen sind.
+- `LEAN-10`: Jede Entschlackungswelle separat zurückrollen, erneut bauen und die erwartete Größen-/Runtime-Differenz reproduzieren; nicht eindeutig zurechenbare oder nicht sicher rückbaubare Eingriffe werden nicht übernommen.
 
 ### Performance und Daily Driver
 
@@ -1952,11 +2076,20 @@ Bei externen Blockern dokumentiere:
 ### Extension Gate
 
 - echte Chrome-Web-Store-MV3-Extension installiert, aktualisiert und entfernt;
+- AnyChat mit verifizierter Store-ID ausschließlich im AhoiBrowser-Profil installiert, berechtigungsgeprüft, geöffnet und neustartfest;
 - 1Password inklusive Native Messaging und Touch ID bestanden;
 - Bitwarden bestanden;
 - lokaler Chromium-Passwortmanager einschließlich Mehrkontoauswahl, Bearbeitung, sicherer Klartextanzeige, Autofill-/Passkey-Abgrenzung und Inkognito-Policy bestanden;
 - uBlock Origin Classic einschließlich Updates bestanden;
 - nicht allowlistetes MV2 bleibt gesperrt.
+
+### Arc-Migrations-Gate
+
+- Arc-Discovery, immutable Snapshot, WAL-/SHM-Konsistenz, Parserlimits und sichere Ausschlussregeln bestanden;
+- Spaces, Listen, Tabs und valide Splits werden deterministisch in das native Ahoi-Modell übernommen; beschädigte Splits degradieren ohne Datenverlust oder Phantom-Tabs;
+- Vorschau, Konfliktauflösung, atomarer Commit, Crash-Rollback und idempotenter No-op-Wiederholungslauf bestanden;
+- ein realer lokaler Arc-Datenstand wurde nach Backup und Dry Run in das installierte AhoiBrowser-Profil importiert und sichtbar geprüft;
+- Arc, Google Chrome, fremde Extension Storage, Native-Messaging-Manifeste, Cookies, Sessions, Passwörter und Geheimnisse blieben unverändert beziehungsweise ausgeschlossen.
 
 ### HTTP-Auth Gate
 
@@ -1999,6 +2132,9 @@ Bei externen Blockern dokumentiere:
 ### Performance Gate
 
 - alle definierten Budgets gegen identisches Upstream-Chromium eingehalten;
+- Lean-Chromium-Komponentenmatrix, Größenbilanz und GN-/Runtime-Nachweis sind vollständig; ausgeschlossene Produktmodule sind nicht bloß versteckt und erzeugen weder paketierten Ballast noch Hintergrundaktivität;
+- Bundle-Grenze von höchstens 3 Prozent über identischem Upstream sowie das 10-Prozent-Ziel gegenüber dem Ahoi-Vollbuild sind bestanden oder ausschließlich das vorab definierte, evidenzbasierte Produktentscheidungs-Gate für das 10-Prozent-Ziel ist offen;
+- mindestens ein aktueller Chromium-Roll beweist, dass Entschlackung updatesicher bleibt und keine Security-Komponente still verloren geht;
 - Memory Saver und Tab-Discarding senken den Ressourcenverbrauch nachvollziehbar, schützen alle kritischen Media-/Capture-/Download-/Formular-/DevTools-Zustände und erwachen ohne Phantom- oder Duplikat-Tabs;
 - schwebende Browserflächen, Glass, Schatten, Popup-Overlay, MiniPlayer und Floating Sidebar verursachen weder relevante Idle-Last noch störende Animation-/Resize-Lags;
 - kein reproduzierbarer Hänger oder auffälliges UI-Lag;
@@ -2023,7 +2159,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 5. Nested Tree, vollständiges Sidebar-Drag-and-drop, Zwei-/Drei-/Vier-Pane-Split Views einschließlich persistiertem 2×2, Workspaces samt Dots/Swipe, echter Null-Tab-/Empty-Workspace-Zustand, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
 6. Schwebende Auto-Hide-Navigationszeile mit Reveal-Notch und Extensions, abgerundeter WebContents-Container, Glass, Floating Sidebar und Web-Popup-Overlays funktionieren ohne falschen Viewport-Reflow und bestehen die vollständigen CU-E2E-Fälle.
 7. Downloads, Uploads, PDF, Drucken, Medien, Sidebar-MiniPlayer, PiP, WebRTC und Permissions bestehen reale Tests.
-8. Chrome-Web-Store-Extensions, lokaler Passwortmanager, 1Password, Bitwarden und uBlock Origin Classic funktionieren im installierten Build.
+8. Chrome-Web-Store-Extensions, AnyChat, lokaler Passwortmanager, 1Password, Bitwarden und uBlock Origin Classic funktionieren ausschließlich im installierten AhoiBrowser-Profil; fremde Browserprofile blieben unverändert.
 9. HTTP Basic Auth/`.htaccess` bietet Speicherung, mehrere Konten, Auswahl, Autocomplete, Update, Wechsel und Abmeldung und besteht die vollständige Auth-Testgruppe.
 10. Developer Toolkit und beide Privacy-Modi sind vollständig abgenommen.
 11. Chromiums unveränderte Zurück-/Vor-Geste ist regressionsfrei; Ahois Workspace-Swipe, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling sind konfliktfrei, konfigurierbar und real abgenommen.
@@ -2037,7 +2173,9 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 19. Ein vollständiger Daily-Driver-Arbeitstag ist ohne ungeklärten Crash, Hänger oder störendes Lag bestanden.
 20. Keine P0-/P1-Fehler sind offen.
 21. Security-, Privacy-, Lizenz- und Trademark-Reviews sind abgeschlossen.
-22. Releaseartefakte, SBOM, Checksums, Lizenzen, Revisionen und E2E-Evidenz sind vollständig.
+22. Der Arc-Import besteht sichere Snapshot-, Vorschau-, Atomizitäts-, Rollback-, Idempotenz- und reale installierte UI-Abnahmen; der vorhandene lokale Arc-Datenstand ist mit redigierter Evidenz migriert.
+23. Releaseartefakte, SBOM, Checksums, Lizenzen, Revisionen und E2E-Evidenz sind vollständig.
+24. Lean-Chromium-Matrix, Bundle-/Runtime-Bilanz, Null-Aktivitätsnachweise und Roll-Regressionen sind vollständig; Ahoi ist innerhalb der definierten Größenbudgets schlanker, ohne zugesagte Browserfähigkeit, Extension-Kompatibilität, Webkompatibilität oder Security zu verlieren.
 
 ## Explizit nicht Bestandteil von v1
 
@@ -2066,6 +2204,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 - integrierter vollständiger Accessibility-Scanner;
 - Unterstützung von Extensions, die AhoiBrowsers eigene UI verändern wollen;
 - mehr als vier gleichzeitig sichtbare Panes in einer Split-Gruppe.
+- tiefgreifende Eigenforks von Blink, V8, `net`, Media, Sandbox oder Site Isolation nur zur kosmetischen Größenreduktion.
 
 ## Commit-, GitHub- und Berichtsregeln
 

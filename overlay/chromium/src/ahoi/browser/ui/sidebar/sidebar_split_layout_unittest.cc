@@ -5,6 +5,7 @@
 
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/gfx/geometry/insets_f.h"
 
 namespace ahoi::sidebar {
 namespace {
@@ -59,6 +60,37 @@ TEST(SidebarSplitLayoutTest, RuntimeHeightKeepsStackedSegmentsReadable) {
             GetSplitRowPreferredHeight(3, three_stacked, kStandardRowHeight));
   EXPECT_EQ(50, GetSplitRowPreferredHeight(3, three_main, kStandardRowHeight));
   EXPECT_EQ(50, GetSplitRowPreferredHeight(4, four, kStandardRowHeight));
+}
+
+TEST(SidebarSplitLayoutTest,
+     SplitSeparatorsStayInsideInsetPaintedGroupBackground) {
+  const gfx::Rect group_bounds(0, 0, 200, 50);
+  const auto visual_data = split_tabs::SplitTabVisualData::ForFourPane(
+      split_tabs::SplitTabLayout::kSideBySide);
+  std::vector<gfx::Rect> segments;
+  for (size_t index = 0; index < 4; ++index) {
+    segments.push_back(
+        GetSplitSegmentBounds(group_bounds, index, 4, visual_data));
+  }
+
+  // The group paint is inset 4 DIPs horizontally and 2 vertically. Account for
+  // half of the one-DIP separator stroke so anti-aliasing cannot escape it.
+  gfx::RectF separator_bounds(group_bounds);
+  separator_bounds.Inset(gfx::InsetsF::VH(2.5f, 4.5f));
+  const std::vector<SidebarSplitSeparator> separators =
+      GetSidebarSplitSeparators(segments, separator_bounds);
+
+  EXPECT_EQ(
+      (std::vector<SidebarSplitSeparator>{
+          {.start = gfx::PointF(100.0f, 2.5f),
+           .end = gfx::PointF(100.0f, 24.0f)},
+          {.start = gfx::PointF(4.5f, 25.0f), .end = gfx::PointF(99.0f, 25.0f)},
+          {.start = gfx::PointF(101.0f, 25.0f),
+           .end = gfx::PointF(195.5f, 25.0f)},
+          {.start = gfx::PointF(100.0f, 26.0f),
+           .end = gfx::PointF(100.0f, 47.5f)},
+      }),
+      separators);
 }
 
 }  // namespace

@@ -26,7 +26,7 @@ class RepositoryContractTests(unittest.TestCase):
         expected = dict(expected_rows)
         registry = load_json("config/test-registry.json")["tests"]
         actual = {entry["id"]: entry for entry in registry}
-        self.assertEqual(335, len(registry))
+        self.assertEqual(349, len(registry))
         self.assertEqual(len(registry), len(actual), "test IDs must be unique")
         self.assertEqual(set(expected), set(actual))
         for entry in registry:
@@ -367,9 +367,9 @@ class RepositoryContractTests(unittest.TestCase):
             for entry in load_json("config/test-registry.json")["tests"]
             if entry["suite"] == "SPLIT"
         ]
-        self.assertEqual(34, len(split_tests))
+        self.assertEqual(39, len(split_tests))
         self.assertEqual(
-            {"SPLIT-01", "SPLIT-02", "SPLIT-03", "SPLIT-04"},
+            {"SPLIT-01", "SPLIT-02", "SPLIT-03", "SPLIT-04", "SPLIT-36"},
             {
                 entry["id"]
                 for entry in split_tests
@@ -386,7 +386,11 @@ class RepositoryContractTests(unittest.TestCase):
         )
         self.assertTrue(
             all(
-                entry["primaryClass"] in {"CU_E2E", "ASSISTED_E2E"}
+                entry["primaryClass"] in {
+                    "INTEGRATION",
+                    "CU_E2E",
+                    "ASSISTED_E2E",
+                }
                 for entry in split_tests[4:]
             )
         )

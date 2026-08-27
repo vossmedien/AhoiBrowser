@@ -2,21 +2,31 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <memory>
+#include <optional>
 #include <utility>
 
 #include "ahoi/browser/ui/appearance/appearance_policy.h"
+#include "ahoi/browser/ui/appearance/appearance_prefs.h"
 #include "ahoi/browser/ui/appearance/appearance_views.h"
+#include "ahoi/browser/ui/appearance/sidebar_page_tint.h"
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_overlay_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "base/functional/bind.h"
+#include "cc/paint/paint_flags.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/favicon/content/content_favicon_driver.h"
+#include "content/public/browser/web_contents.h"
+#include "third_party/skia/include/core/SkBitmap.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/compositor/layer.h"
+#include "ui/gfx/canvas.h"
+#include "ui/gfx/geometry/rect_f.h"
+#include "ui/gfx/image/image.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/view.h"
 
@@ -82,12 +92,15 @@ void BrowserSidebarHostView::OnMiniPlayerExpandedChanged(bool expanded) {
 void BrowserSidebarHostView::OnAppearanceChanged(
     const appearance::GlassPolicy& policy) {
   reduced_motion_ = policy.reduced_motion;
+  high_contrast_ = policy.high_contrast;
   if (reduced_motion_) {
     CancelWorkspaceTransition();
   }
-  appearance::ApplySurfaceAppearance(
-      this, appearance::AppearanceResolver::Resolve(
-                appearance::SurfaceRole::kSidebar, policy));
+  const appearance::SurfaceAppearance surface =
+      appearance::AppearanceResolver::Resolve(appearance::SurfaceRole::kSidebar,
+                                              policy);
+  surface_corner_radius_ = surface.corner_radius;
+  appearance::ApplySurfaceAppearance(this, surface);
   // This surface is rounded in floating mode. Even an opaque theme must keep
   // transparent corner pixels truthful to CoreAnimation; otherwise the layer
   // can substitute the browser background while scrolling or dragging.
@@ -106,7 +119,64 @@ void BrowserSidebarHostView::OnAppearanceChanged(
         appearance::AppearanceResolver::Resolve(
             appearance::SurfaceRole::kMiniPlayer, policy));
   }
+  RefreshPageTint();
   SchedulePaint();
+}
+
+void BrowserSidebarHostView::RefreshPageTint() {
+  PrefService* const prefs = browser_->GetProfile()->GetPrefs();
+  const bool enabled = appearance::IsSidebarPageTintEnabled(*prefs);
+  content::WebContents* const contents =
+      enabled && !high_contrast_ && tab_strip_model_
+          ? tab_strip_model_->GetActiveWebContents()
+          : nullptr;
+  if (web_contents() != contents) {
+    Observe(contents);
+  }
+
+  const std::optional<SkColor> theme_color =
+      contents ? contents->GetThemeColor() : std::nullopt;
+  std::optional<SkColor> favicon_color;
+  if (contents &&
+      (!theme_color.has_value() || SkColorGetA(*theme_color) == 0)) {
+    // The driver exposes only the favicon already accepted for the current
+    // committed entry. Reading it here triggers no fetch, navigation, or page
+    // capture and therefore keeps the optional tint local and privacy-safe.
+    favicon::ContentFaviconDriver* const favicon_driver =
+        favicon::ContentFaviconDriver::FromWebContents(contents);
+    if (favicon_driver && favicon_driver->FaviconIsValid()) {
+      favicon_color = appearance::ExtractSidebarPageColorFromFavicon(
+          favicon_driver->GetFavicon().AsBitmap());
+    }
+  }
+  sidebar_page_tint_ = appearance::ResolveSidebarPageTint(
+      enabled, high_contrast_, theme_color, favicon_color);
+  SchedulePaint();
+}
+
+void BrowserSidebarHostView::DidChangeThemeColor() {
+  RefreshPageTint();
+}
+
+void BrowserSidebarHostView::WebContentsDestroyed() {
+  // WebContentsObserver clears its binding after this notification. Avoid
+  // consulting a WebContents while it is tearing down; the next tab-model
+  // selection notification attaches the replacement.
+  sidebar_page_tint_.reset();
+  SchedulePaint();
+}
+
+void BrowserSidebarHostView::OnPaint(gfx::Canvas* canvas) {
+  views::View::OnPaint(canvas);
+  if (!sidebar_page_tint_.has_value()) {
+    return;
+  }
+  cc::PaintFlags tint;
+  tint.setAntiAlias(true);
+  tint.setStyle(cc::PaintFlags::kFill_Style);
+  tint.setColor(*sidebar_page_tint_);
+  canvas->DrawRoundRect(gfx::RectF(GetLocalBounds()), surface_corner_radius_,
+                        tint);
 }
 
 }  // namespace ahoi::sidebar

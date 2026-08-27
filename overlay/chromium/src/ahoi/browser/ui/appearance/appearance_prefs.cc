@@ -32,6 +32,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // GlassFrame feature and macOS version, so older/other platforms resolve to
   // the fully opaque fallback even if a migrated profile contains `true`.
   registry->RegisterBooleanPref(kGlassEnabledPref, GlassEnabledByDefault());
+  registry->RegisterBooleanPref(kSidebarPageTintEnabledPref, false);
   registry->RegisterBooleanPref(kFloatingNavigationAutoHideEnabledPref, true);
   registry->RegisterBooleanPref(kFloatingNavigationRevealNotchEnabledPref,
                                 true);
@@ -42,6 +43,11 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
 bool IsGlassEnabled(const PrefService& prefs) {
   return prefs.FindPreference(kGlassEnabledPref) &&
          prefs.GetBoolean(kGlassEnabledPref);
+}
+
+bool IsSidebarPageTintEnabled(const PrefService& prefs) {
+  return prefs.FindPreference(kSidebarPageTintEnabledPref) &&
+         prefs.GetBoolean(kSidebarPageTintEnabledPref);
 }
 
 FloatingNavigationPreferences GetFloatingNavigationPreferences(
@@ -56,10 +62,10 @@ FloatingNavigationPreferences GetFloatingNavigationPreferences(
         prefs.GetBoolean(kFloatingNavigationRevealNotchEnabledPref);
   }
   if (prefs.FindPreference(kFloatingNavigationAutoHideDelayMsPref)) {
-    result.auto_hide_delay = base::Milliseconds(std::clamp(
-        prefs.GetInteger(kFloatingNavigationAutoHideDelayMsPref),
-        kMinimumFloatingNavigationAutoHideDelayMs,
-        kMaximumFloatingNavigationAutoHideDelayMs));
+    result.auto_hide_delay = base::Milliseconds(
+        std::clamp(prefs.GetInteger(kFloatingNavigationAutoHideDelayMsPref),
+                   kMinimumFloatingNavigationAutoHideDelayMs,
+                   kMaximumFloatingNavigationAutoHideDelayMs));
   }
   return result;
 }

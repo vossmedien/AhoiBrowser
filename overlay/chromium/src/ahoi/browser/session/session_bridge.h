@@ -90,12 +90,17 @@ class SessionBridge : public KeyedService,
   // is refreshed when the background load completes.
   void RunWhenReadyForTesting(base::OnceClosure callback);
   void FlushPersistenceForTesting(base::OnceClosure callback);
+  // Serializes the current authoritative tree through the persistence task
+  // runner and reports whether the durable snapshot was written. Importers use
+  // this before copying the SQLite database into a rollback backup.
+  void FlushPersistenceForBackup(base::OnceCallback<void(bool)> callback);
   base::WeakPtr<sync::ProfileSyncUiBridge> GetWeakPtrForSync() override;
   base::CallbackListSubscription AddRuntimePresentationChangedCallback(
       base::RepeatingClosure callback);
   base::CallbackListSubscription AddTabTreeSnapshotChangedCallback(
-      base::RepeatingCallback<void(const tab_tree::TabTreeSnapshot&)>
-          callback) override;
+      base::RepeatingCallback<void(const tab_tree::TabTreeSnapshot&)> callback)
+      override;
+  void RequestLocalTabCapture() override;
 
   [[nodiscard]] bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) override;

@@ -19,6 +19,8 @@ namespace ahoi::appearance {
 // single palette inputs for every semantic ColorProvider role. These Ahoi prefs
 // contain only product-surface behavior that Chromium does not already own.
 inline constexpr char kGlassEnabledPref[] = "ahoi.appearance.glass_enabled";
+inline constexpr char kSidebarPageTintEnabledPref[] =
+    "ahoi.appearance.sidebar_page_tint_enabled";
 inline constexpr char kFloatingNavigationAutoHideEnabledPref[] =
     "ahoi.navigation.floating_auto_hide_enabled";
 inline constexpr char kFloatingNavigationRevealNotchEnabledPref[] =
@@ -52,6 +54,7 @@ constexpr bool operator!=(const FloatingNavigationPreferences& lhs,
 void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
 
 bool IsGlassEnabled(const PrefService& prefs);
+bool IsSidebarPageTintEnabled(const PrefService& prefs);
 FloatingNavigationPreferences GetFloatingNavigationPreferences(
     const PrefService& prefs);
 

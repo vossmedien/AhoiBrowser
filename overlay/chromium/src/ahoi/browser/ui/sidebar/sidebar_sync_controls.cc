@@ -145,7 +145,7 @@ class SidebarSyncControlsView final : public views::View {
 
     sync_enabled_ =
         settings_body_->AddChildView(std::make_unique<views::Checkbox>(
-            Text(u"CloudKit-Synchronisierung", u"CloudKit sync"),
+            Text(u"Ahoi-Synchronisierung", u"Ahoi Sync"),
             base::BindRepeating(&SidebarSyncControlsView::OnSyncToggled,
                                 weak_ptr_factory_.GetWeakPtr())));
     remote_control_enabled_ =
@@ -283,8 +283,12 @@ class SidebarSyncControlsView final : public views::View {
       return;
     }
     SetEnabled(true);
+    const bool sync_enabled = service_->sync_enabled();
+    const sync::SyncTransportStatus& status = service_->transport_status();
+    const bool remote_control_available =
+        sync_enabled && status.provider_available;
     updating_controls_ = true;
-    sync_enabled_->SetChecked(service_->sync_enabled());
+    sync_enabled_->SetChecked(sync_enabled);
     remote_control_enabled_->SetChecked(service_->remote_control_enabled());
     const int retention_days = service_->history_retention_days();
     auto retention_it = std::ranges::find(kRetentionDays, retention_days);
@@ -295,7 +299,12 @@ class SidebarSyncControlsView final : public views::View {
                   std::distance(std::begin(kRetentionDays), retention_it)));
     updating_controls_ = false;
 
-    const sync::SyncTransportStatus& status = service_->transport_status();
+    remote_control_enabled_->SetEnabled(remote_control_available);
+    approval_device_id_->SetEnabled(remote_control_available);
+    approval_public_key_->SetEnabled(remote_control_available);
+    approve_button_->SetEnabled(remote_control_available);
+    approved_devices_container_->SetEnabled(remote_control_available);
+    retention_->SetEnabled(sync_enabled);
     status_label_->SetText(StatusText(status));
     recovery_container_->SetVisible(status.account_transition_pending ||
                                     status.zone_recovery_pending);
@@ -304,7 +313,7 @@ class SidebarSyncControlsView final : public views::View {
     keep_local_button_->SetVisible(status.account_transition_pending);
     no_upload_button_->SetVisible(status.account_transition_pending);
     zone_recovery_button_->SetVisible(status.zone_recovery_pending);
-    sync_now_button_->SetEnabled(service_->sync_enabled());
+    sync_now_button_->SetEnabled(sync_enabled);
 
     std::vector<base::Uuid> approved =
         service_->approved_remote_control_devices();
@@ -463,7 +472,7 @@ class SidebarSyncControlsView final : public views::View {
   }
 
   void OnRemoteControlToggled(const ui::Event&) {
-    if (service_ && !updating_controls_) {
+    if (CanUseRemoteControl() && !updating_controls_) {
       service_->SetRemoteControlEnabled(remote_control_enabled_->GetChecked());
       service_->Refresh();
     }
@@ -500,7 +509,7 @@ class SidebarSyncControlsView final : public views::View {
   }
 
   void ApproveDevice(const ui::Event&) {
-    if (!service_) {
+    if (!CanUseRemoteControl()) {
       return;
     }
     const base::Uuid device_id =
@@ -523,7 +532,7 @@ class SidebarSyncControlsView final : public views::View {
   }
 
   void RevokeDevice(base::Uuid device_id, const ui::Event&) {
-    if (!service_) {
+    if (!CanUseRemoteControl()) {
       return;
     }
     if (pending_revoke_ != device_id) {
@@ -570,6 +579,11 @@ class SidebarSyncControlsView final : public views::View {
       approved_devices_container_->AddChildView(std::move(row));
     }
     approved_devices_container_->InvalidateLayout();
+  }
+
+  bool CanUseRemoteControl() const {
+    return service_ && service_->sync_enabled() &&
+           service_->transport_status().provider_available;
   }
 
   raw_ptr<sync::ProfileSyncService> service_ = nullptr;

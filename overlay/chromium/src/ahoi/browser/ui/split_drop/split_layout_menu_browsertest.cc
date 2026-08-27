@@ -1,9 +1,12 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <optional>
 #include <vector>
 
+#include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
+#include "ahoi/browser/ui/split_drop/split_drop_controller.h"
 #include "base/test/scoped_feature_list.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -12,12 +15,19 @@
 #include "chrome/browser/ui/tabs/split_tab_menu_model.h"
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/frame/multi_contents_view.h"
+#include "chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/test/browser_test.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/base/dragdrop/drag_drop_types.h"
+#include "ui/base/dragdrop/os_exchange_data.h"
+#include "ui/gfx/geometry/point.h"
+#include "ui/gfx/geometry/rect.h"
 
 namespace ahoi::split_drop {
 namespace {
@@ -25,6 +35,16 @@ namespace {
 int CommandId(SplitTabMenuModel::CommandId command) {
   return ExistingBaseSubMenuModel::kMinSplitTabMenuModelCommandId +
          static_cast<int>(command);
+}
+
+std::vector<tabs::TabInterface*> CurrentTabOrder(
+    TabStripModel* tab_strip_model) {
+  std::vector<tabs::TabInterface*> order;
+  order.reserve(tab_strip_model->count());
+  for (tabs::TabInterface* tab : *tab_strip_model) {
+    order.push_back(tab);
+  }
+  return order;
 }
 
 class SplitLayoutMenuBrowserTest : public InProcessBrowserTest {
@@ -292,6 +312,224 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   EXPECT_EQ(original_visual_data,
             *tab_strip_model->GetSplitData(split_id)->visual_data());
   EXPECT_FALSE(unsplit_tab->IsSplit());
+}
+
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       RuntimePaneDropDoesNotRequireSidebarSource) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+
+  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  ASSERT_EQ(2, tab_strip_model->count());
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {0},
+      split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const std::vector<tabs::TabInterface*> original =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  ASSERT_EQ(2u, original.size());
+
+  ui::OSExchangeData data;
+  drag::WriteRuntimeSidebarTabDragPayload(
+      &data, original[0]->GetHandle().raw_value(), u"Pane");
+  SplitDropController controller(tab_strip_model,
+                                 /*browser_sidebar_host=*/nullptr,
+                                 /*overlay_view=*/nullptr);
+  EXPECT_TRUE(controller.CanDrop(data));
+
+  const std::vector<SplitDropPane> panes = {
+      {.pane_index = 0,
+       .bounds = gfx::Rect(0, 0, 200, 300),
+       .web_contents = original[0]->GetContents()},
+      {.pane_index = 1,
+       .bounds = gfx::Rect(200, 0, 200, 300),
+       .web_contents = original[1]->GetContents()},
+  };
+  ASSERT_TRUE(controller.PerformDrop(data, gfx::Point(300, 298), panes));
+
+  const split_tabs::SplitTabData* const split_data =
+      tab_strip_model->GetSplitData(split_id);
+  ASSERT_TRUE(split_data);
+  EXPECT_EQ(split_tabs::SplitTabLayout::kStacked,
+            split_data->visual_data()->split_layout());
+  EXPECT_EQ((std::vector<tabs::TabInterface*>{original[1], original[0]}),
+            split_data->ListTabs());
+  EXPECT_EQ(original[0], tab_strip_model->GetActiveTab());
+}
+
+IN_PROC_BROWSER_TEST_F(
+    SplitLayoutMenuBrowserTest,
+    FailedDesiredOrderReorderRestoresEntireExistingSplitTransaction) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+
+  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  ASSERT_EQ(3, tab_strip_model->count());
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {1, 2},
+      split_tabs::SplitTabVisualData::ForThreePane(
+          split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const std::vector<tabs::TabInterface*> original_members =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  ASSERT_EQ(3u, original_members.size());
+  const std::vector<tabs::TabInterface*> original_tab_order =
+      CurrentTabOrder(tab_strip_model);
+  const auto original_split_ids = tab_strip_model->ListSplits();
+  const split_tabs::SplitTabVisualData original_visual_data =
+      *tab_strip_model->GetSplitData(split_id)->visual_data();
+  tabs::TabInterface* const original_active = tab_strip_model->GetActiveTab();
+
+  ui::OSExchangeData data;
+  drag::WriteRuntimeSidebarTabDragPayload(
+      &data, original_members[0]->GetHandle().raw_value(), u"Pane");
+  SplitDropController controller(tab_strip_model,
+                                 /*browser_sidebar_host=*/nullptr,
+                                 /*overlay_view=*/nullptr);
+  // [A, B, C] -> [B, C, A] takes two model reorders. Fail after the
+  // first one to prove both the partial order and changed arrangement roll
+  // back.
+  controller.FailApplyDesiredOrderAfterForTesting(1u);
+
+  const std::vector<SplitDropPane> panes = {
+      {.pane_index = 0,
+       .bounds = gfx::Rect(0, 0, 130, 300),
+       .web_contents = original_members[0]->GetContents()},
+      {.pane_index = 1,
+       .bounds = gfx::Rect(130, 0, 140, 300),
+       .web_contents = original_members[1]->GetContents()},
+      {.pane_index = 2,
+       .bounds = gfx::Rect(270, 0, 130, 300),
+       .web_contents = original_members[2]->GetContents()},
+  };
+  EXPECT_FALSE(controller.PerformDrop(data, gfx::Point(335, 298), panes));
+
+  EXPECT_EQ(original_tab_order, CurrentTabOrder(tab_strip_model));
+  EXPECT_EQ(original_split_ids, tab_strip_model->ListSplits());
+  ASSERT_TRUE(tab_strip_model->ContainsSplit(split_id));
+  EXPECT_EQ(original_members,
+            tab_strip_model->GetSplitData(split_id)->ListTabs());
+  EXPECT_EQ(original_visual_data,
+            *tab_strip_model->GetSplitData(split_id)->visual_data());
+  EXPECT_EQ(
+      original_visual_data.split_layout(),
+      tab_strip_model->GetSplitData(split_id)->visual_data()->split_layout());
+  EXPECT_EQ(
+      original_visual_data.arrangement(),
+      tab_strip_model->GetSplitData(split_id)->visual_data()->arrangement());
+  for (tabs::TabInterface* member : original_members) {
+    ASSERT_TRUE(member->GetSplit().has_value());
+    EXPECT_EQ(split_id, *member->GetSplit());
+  }
+  EXPECT_EQ(original_active, tab_strip_model->GetActiveTab());
+}
+
+IN_PROC_BROWSER_TEST_F(
+    SplitLayoutMenuBrowserTest,
+    FailedDesiredOrderAddRestoresEntireOriginalSplitTransaction) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+
+  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  ASSERT_EQ(4, tab_strip_model->count());
+  tabs::TabInterface* const source = tab_strip_model->GetTabAtIndex(0);
+  tabs::TabInterface* const background = tab_strip_model->GetTabAtIndex(3);
+  tab_strip_model->ActivateTabAt(1);
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {2},
+      split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const std::vector<tabs::TabInterface*> original_members =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  ASSERT_EQ(2u, original_members.size());
+  ASSERT_FALSE(source->GetSplit().has_value());
+  ASSERT_FALSE(background->GetSplit().has_value());
+  const std::vector<tabs::TabInterface*> original_tab_order =
+      CurrentTabOrder(tab_strip_model);
+  const auto original_split_ids = tab_strip_model->ListSplits();
+  const split_tabs::SplitTabVisualData original_visual_data =
+      *tab_strip_model->GetSplitData(split_id)->visual_data();
+  tabs::TabInterface* const original_active = tab_strip_model->GetActiveTab();
+
+  ui::OSExchangeData data;
+  drag::WriteRuntimeSidebarTabDragPayload(
+      &data, source->GetHandle().raw_value(), u"Pane");
+  SplitDropController controller(tab_strip_model,
+                                 /*browser_sidebar_host=*/nullptr,
+                                 /*overlay_view=*/nullptr);
+  // CreateOrAdd first replaces the two-pane split with [source, A, B]. The
+  // requested [A, B, source] order needs two moves; fail after the first.
+  controller.FailApplyDesiredOrderAfterForTesting(1u);
+
+  const std::vector<SplitDropPane> panes = {
+      {.pane_index = 0,
+       .bounds = gfx::Rect(0, 0, 200, 300),
+       .web_contents = original_members[0]->GetContents()},
+      {.pane_index = 1,
+       .bounds = gfx::Rect(200, 0, 200, 300),
+       .web_contents = original_members[1]->GetContents()},
+  };
+  EXPECT_FALSE(controller.PerformDrop(data, gfx::Point(300, 298), panes));
+
+  EXPECT_EQ(original_tab_order, CurrentTabOrder(tab_strip_model));
+  EXPECT_EQ(original_split_ids, tab_strip_model->ListSplits());
+  ASSERT_TRUE(tab_strip_model->ContainsSplit(split_id));
+  EXPECT_EQ(original_members,
+            tab_strip_model->GetSplitData(split_id)->ListTabs());
+  EXPECT_EQ(original_visual_data,
+            *tab_strip_model->GetSplitData(split_id)->visual_data());
+  EXPECT_EQ(
+      original_visual_data.split_layout(),
+      tab_strip_model->GetSplitData(split_id)->visual_data()->split_layout());
+  EXPECT_EQ(
+      original_visual_data.arrangement(),
+      tab_strip_model->GetSplitData(split_id)->visual_data()->arrangement());
+  for (tabs::TabInterface* member : original_members) {
+    ASSERT_TRUE(member->GetSplit().has_value());
+    EXPECT_EQ(split_id, *member->GetSplit());
+  }
+  EXPECT_FALSE(source->GetSplit().has_value());
+  EXPECT_FALSE(background->GetSplit().has_value());
+  EXPECT_EQ(original_active, tab_strip_model->GetActiveTab());
+}
+
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       PaneMiniToolbarPublishesRuntimeDragIdentity) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+
+  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  ASSERT_EQ(2, tab_strip_model->count());
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {0},
+      split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const std::vector<tabs::TabInterface*> panes =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  ASSERT_EQ(2u, panes.size());
+
+  BrowserView* const browser_view =
+      BrowserView::GetBrowserViewForBrowser(browser());
+  ASSERT_TRUE(browser_view);
+  MultiContentsView* const multi_contents_view =
+      browser_view->multi_contents_view();
+  ASSERT_TRUE(multi_contents_view);
+  ASSERT_TRUE(multi_contents_view->IsInSplitView());
+  MultiContentsViewMiniToolbar* const drag_handle =
+      multi_contents_view->mini_toolbar_for_testing(0);
+  ASSERT_TRUE(drag_handle);
+
+  const gfx::Point press_point(8, 8);
+  EXPECT_EQ(ui::DragDropTypes::DRAG_MOVE,
+            drag_handle->GetDragOperations(press_point));
+  ui::OSExchangeData data;
+  drag_handle->WriteDragData(press_point, &data);
+
+  const std::optional<drag::SidebarTabDragPayload> payload =
+      drag::ReadSidebarTabDragPayload(data);
+  ASSERT_TRUE(payload.has_value());
+  ASSERT_TRUE(payload->runtime_tab_handle.has_value());
+  EXPECT_EQ(panes[0]->GetHandle().raw_value(), *payload->runtime_tab_handle);
+  EXPECT_EQ(panes[0], tab_strip_model->GetActiveTab());
 }
 
 }  // namespace

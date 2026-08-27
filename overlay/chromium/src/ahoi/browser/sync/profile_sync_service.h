@@ -21,6 +21,7 @@
 #include "base/observer_list.h"
 #include "base/observer_list_types.h"
 #include "base/task/cancelable_task_tracker.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/threading/sequence_bound.h"
 #include "base/timer/timer.h"
 #include "components/history/core/browser/history_service_observer.h"
@@ -43,6 +44,7 @@ enum class UnloadedExtensionReason;
 namespace ahoi::sync {
 
 class ProfileSyncBackend;
+class ProfileSyncServiceTest;
 
 // Profile-scoped UI facade around the blocking local-first SQLite store. Disk
 // work remains on one MayBlock sequence; views only receive immutable copies.
@@ -119,6 +121,10 @@ class ProfileSyncService final : public KeyedService,
   void Shutdown() override;
 
  private:
+  friend class ProfileSyncServiceTest;
+
+  void StartBackend();
+  void StopBackend();
   void ScheduleLocalPublish();
   void PublishCombinedLocalTabs();
   void OnLocalPublishComplete(std::optional<DeviceTabsSnapshot> snapshot);
@@ -126,7 +132,6 @@ class ProfileSyncService final : public KeyedService,
   void OnCloudKitRecoveryConfirmed(bool confirmed);
   void OnSyncEnabledPrefChanged();
   void OnHistoryRetentionPrefChanged();
-  void OnTransportPreferenceApplied(std::optional<SyncStateSnapshot> snapshot);
   void OnBackendState(std::optional<SyncStateSnapshot> snapshot);
   void OnBackendSnapshot(std::optional<DeviceTabsSnapshot> snapshot);
   void OnTabTreeSnapshotChanged(const tab_tree::TabTreeSnapshot& snapshot);
@@ -173,6 +178,7 @@ class ProfileSyncService final : public KeyedService,
 
   const base::Uuid local_device_id_;
   const base::Uuid local_session_id_;
+  const scoped_refptr<base::SequencedTaskRunner> backend_task_runner_;
   base::SequenceBound<ProfileSyncBackend> backend_;
   raw_ptr<Profile> profile_ = nullptr;
   base::WeakPtr<ProfileSyncUiBridge> ui_bridge_;
@@ -206,9 +212,11 @@ class ProfileSyncService final : public KeyedService,
   bool applying_synced_tree_ = false;
   bool applying_product_state_ = false;
   bool appearance_publish_pending_ = false;
+  bool permitted_settings_seeded_ = false;
   bool extension_inventory_seeded_ = false;
   int pending_remote_history_deletions_ = 0;
   bool shutting_down_ = false;
+  base::WeakPtrFactory<ProfileSyncService> backend_weak_ptr_factory_{this};
   base::WeakPtrFactory<ProfileSyncService> weak_ptr_factory_{this};
 };
 
