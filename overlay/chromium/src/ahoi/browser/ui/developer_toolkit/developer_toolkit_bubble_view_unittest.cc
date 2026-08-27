@@ -7,6 +7,7 @@
 
 #include "base/functional/bind.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/views/controls/button/label_button.h"
 #include "ui/views/test/button_test_api.h"
 #include "ui/views/test/views_test_base.h"
 

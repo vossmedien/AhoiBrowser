@@ -23,5 +23,6 @@ copy("sparkle_framework_test_runtime") {
     "//ahoi/browser/extensions:ahoi_extension_policy_unittests",
     "//ahoi/browser/session:ahoi_session_unittests",
     "//ahoi/browser/ui/settings:ahoi_settings_private_unittests",
+    "//ahoi/browser/ui/sidebar:ahoi_sidebar_tree_unittests",
   ]
 }

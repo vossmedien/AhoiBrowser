@@ -5,6 +5,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h"
 #include "ui/gfx/animation/animation_test_api.h"
 #include "ui/gfx/scoped_animation_duration_scale_mode.h"
+#include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/widget/widget.h"
 

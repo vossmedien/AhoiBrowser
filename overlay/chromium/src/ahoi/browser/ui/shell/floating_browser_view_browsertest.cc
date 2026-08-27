@@ -97,9 +97,8 @@ views::View* FindAcceptingDropDescendant(views::View* root,
 }
 
 gfx::Rect BoundsInTarget(views::View* view, views::View* target) {
-  gfx::Rect bounds = view->GetLocalBounds();
-  views::View::ConvertRectToTarget(view, target, &bounds);
-  return bounds;
+  return views::View::ConvertRectToTarget(view, target,
+                                          view->GetLocalBounds());
 }
 
 bool IsInsideOrEqual(views::View* ancestor, views::View* candidate) {

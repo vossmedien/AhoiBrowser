@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "base/test/scoped_feature_list.h"
-#include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/test_support/glic_test_environment.h"
+#include "chrome/common/chrome_features.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/test/base/web_ui_mocha_browser_test.h"
 #include "content/public/test/browser_test.h"

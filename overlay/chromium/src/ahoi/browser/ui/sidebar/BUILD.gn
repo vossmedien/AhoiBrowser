@@ -289,13 +289,10 @@ source_set("unit_tests") {
 }
 
 test("ahoi_sidebar_tree_unittests") {
-  sources = [ "run_all_unittests.cc" ]
+  data_deps = [ "//third_party/sparkle:sparkle_framework_test_runtime" ]
   deps = [
     ":unit_tests",
-    "//mojo/core/embedder",
+    "//chrome/test:test_support_unit",
     "//testing/gtest",
-    "//ui/resources:ui_test_pak",
-    "//ui/views:test_support",
   ]
-  data_deps = [ "//ui/resources:ui_test_pak_data" ]
 }
