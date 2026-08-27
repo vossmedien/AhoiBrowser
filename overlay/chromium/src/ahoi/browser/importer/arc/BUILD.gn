@@ -38,7 +38,6 @@ source_set("service") {
   ]
   public_deps = [
     ":arc_import",
-    "//ahoi/browser/session",
     "//ahoi/browser/tab_tree",
     "//base",
     "//chrome/browser/profiles:profile",
@@ -48,6 +47,7 @@ source_set("service") {
     "//components/tabs:public",
   ]
   deps = [
+    "//ahoi/browser/session:session_bridge_api",
     "//chrome/browser/ui/tabs:tab_strip",
     "//components/split_tabs",
     "//content/public/browser",
@@ -89,6 +89,7 @@ source_set("unit_tests") {
 test("ahoi_arc_import_unittests") {
   deps = [
     ":unit_tests",
+    "//ahoi/browser/session",
     "//base/test:run_all_unittests",
     "//testing/gtest",
   ]
