@@ -60,7 +60,7 @@ class SidebarTreeViewDelegate {
   virtual bool CanExtractSavedSplitPaneForDrop(
       const base::Uuid& source_node_id,
       const std::optional<base::Uuid>& target_node_id) const = 0;
-  virtual void ExtractSavedSplitPaneAfterDrop(
+  virtual bool ExtractSavedSplitPaneAfterDrop(
       const base::Uuid& source_node_id) = 0;
   virtual bool CanSaveTemporaryTab(
       int,

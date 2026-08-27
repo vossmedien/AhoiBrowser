@@ -225,8 +225,11 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
          .focus_remote = {}}));
     ++row_count;
   }
-  remote_tabs_header_->SetVisible(row_count > 0u);
-  remote_tabs_container_->SetVisible(profile_sync_service_ != nullptr);
+  const bool show_remote_tabs = row_count > 0u;
+  remote_tabs_header_->SetVisible(show_remote_tabs);
+  // Sync controls belong to the remote-tab section and must not reserve a
+  // phantom row between saved and temporary tabs when there is no remote data.
+  remote_tabs_container_->SetVisible(show_remote_tabs);
   remote_tabs_container_->InvalidateLayout();
 }
 

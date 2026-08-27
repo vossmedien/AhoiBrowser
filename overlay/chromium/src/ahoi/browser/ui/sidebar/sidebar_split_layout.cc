@@ -15,8 +15,9 @@ constexpr int kMinimumSegmentHeight = 24;
 constexpr int kGap = visual_style::kSidebarSplitPaneGap;
 
 int SplitAt(int extent, double ratio, int gap) {
-  return std::clamp(static_cast<int>(extent * ratio), 0,
-                    std::max(0, extent - gap));
+  const int available_extent = std::max(0, extent - gap);
+  return std::clamp(static_cast<int>(available_extent * ratio), 0,
+                    available_extent);
 }
 
 }  // namespace

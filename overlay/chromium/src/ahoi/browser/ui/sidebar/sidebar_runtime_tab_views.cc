@@ -56,6 +56,23 @@
 
 namespace ahoi::sidebar {
 
+bool CanDetachRuntimeSplitPaneOnSelfDrop(bool source_is_split,
+                                         OpenTabDropPosition position) {
+  return source_is_split && position != OpenTabDropPosition::kSplit;
+}
+
+void WriteOpenTabDragPayload(ui::OSExchangeData* data,
+                             std::optional<base::Uuid> saved_node_id,
+                             int runtime_tab_handle,
+                             const std::u16string& fallback_title) {
+  if (saved_node_id.has_value()) {
+    drag::WriteSavedSidebarTabDragPayload(data, *saved_node_id, fallback_title);
+    return;
+  }
+  drag::WriteRuntimeSidebarTabDragPayload(data, runtime_tab_handle,
+                                          fallback_title);
+}
+
 ui::ImageModel GetLiveTabFavicon(tabs::TabInterface* tab) {
   content::WebContents* contents = tab ? tab->GetContents() : nullptr;
   favicon::ContentFaviconDriver* driver =
@@ -98,6 +115,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
                                    OpenTabDropPosition)>;
 
   OpenTabRowView(tabs::TabInterface* tab,
+                 std::optional<base::Uuid> saved_node_id,
                  ui::ImageModel favicon,
                  std::vector<gfx::ImageSkia> drag_thumbnails,
                  std::optional<tabs::TabAlert> media_alert,
@@ -106,13 +124,16 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  bool sleeping,
                  TabCallback activate_callback,
                  TabCallback close_callback,
+                 SavedTabDragStateCallback saved_drag_state_callback,
                  DragStateCallback drag_state_callback,
                  CanDropCallback can_drop_callback,
                  DropCallback drop_callback,
                  views::ContextMenuController* context_menu_controller)
       : tab_(tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()),
+        saved_node_id_(std::move(saved_node_id)),
         activate_callback_(std::move(activate_callback)),
         close_callback_(std::move(close_callback)),
+        saved_drag_state_callback_(std::move(saved_drag_state_callback)),
         drag_state_callback_(std::move(drag_state_callback)),
         can_drop_callback_(std::move(can_drop_callback)),
         drop_callback_(std::move(drop_callback)),
@@ -120,6 +141,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
         active_(active),
         sleeping_(sleeping) {
     CHECK(tab);
+    CHECK(!saved_node_id_.has_value() || saved_node_id_->is_valid());
     const std::u16string tab_title =
         tab->GetTitle().empty() ? l10n_util::GetStringUTF16(IDS_NEW_TAB)
                                 : tab->GetTitle();
@@ -192,6 +214,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   base::WeakPtr<tabs::TabInterface> tab() const { return tab_; }
+  const std::optional<base::Uuid>& saved_node_id() const {
+    return saved_node_id_;
+  }
 
   void Layout(PassKey) override {
     const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
@@ -257,7 +282,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   void OnDragDone() override {
     dragging_ = false;
     drag_state_published_ = false;
-    drag_state_callback_.Run(std::nullopt);
+    ClearDragState();
     UpdateBackground();
     views::View::OnDragDone();
   }
@@ -278,8 +303,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
     // Give AppKit a concrete pasteboard item in addition to Ahoi's private
     // runtime-tab handle. Custom-only payloads can otherwise fail before the
     // native dragging session (and therefore before any preview) begins.
-    drag::WriteRuntimeSidebarTabDragPayload(data, tab_->GetHandle().raw_value(),
-                                            std::u16string(title_->GetText()));
+    WriteOpenTabDragPayload(data, saved_node_id_, tab_->GetHandle().raw_value(),
+                            std::u16string(title_->GetText()));
     // WriteDragData is the last deterministic boundary before Cocoa enters
     // its nested native loop. Publish here as well as in both lifecycle hooks
     // so the saved/new-group targets cannot depend on callback ordering.
@@ -421,7 +446,19 @@ class OpenTabRowView final : public views::View, public views::DragController {
       return;
     }
     drag_state_published_ = true;
-    drag_state_callback_.Run(tab_->GetHandle().raw_value());
+    if (saved_node_id_.has_value()) {
+      saved_drag_state_callback_.Run(saved_node_id_);
+    } else {
+      drag_state_callback_.Run(tab_->GetHandle().raw_value());
+    }
+  }
+
+  void ClearDragState() {
+    if (saved_node_id_.has_value()) {
+      saved_drag_state_callback_.Run(std::nullopt);
+    } else {
+      drag_state_callback_.Run(std::nullopt);
+    }
   }
 
   OpenTabDropPosition PositionForPoint(const gfx::Point& point) const {
@@ -500,8 +537,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   const base::WeakPtr<tabs::TabInterface> tab_;
+  const std::optional<base::Uuid> saved_node_id_;
   const TabCallback activate_callback_;
   const TabCallback close_callback_;
+  const SavedTabDragStateCallback saved_drag_state_callback_;
   const DragStateCallback drag_state_callback_;
   const CanDropCallback can_drop_callback_;
   const DropCallback drop_callback_;
@@ -527,9 +566,9 @@ BEGIN_METADATA(OpenTabRowView)
 END_METADATA
 
 // A live Chromium split is one visual row in the sidebar as well. Temporary
-// tabs do not exist in SidebarTreeView's persistent model, so their split
-// representation lives in the runtime section and follows SplitTabData rather
-// than trying to infer membership from adjacency in TabStripModel.
+// panes and mixed saved/temporary collections live in this composite runtime
+// representation, following SplitTabData rather than inferring membership
+// from adjacency in TabStripModel.
 class OpenTabSplitRowView final : public views::View {
   METADATA_HEADER(OpenTabSplitRowView, views::View)
 
@@ -574,6 +613,7 @@ END_METADATA
 
 std::unique_ptr<views::View> CreateOpenTabRowView(
     tabs::TabInterface* tab,
+    std::optional<base::Uuid> saved_node_id,
     ui::ImageModel favicon,
     std::vector<gfx::ImageSkia> drag_thumbnails,
     std::optional<tabs::TabAlert> media_alert,
@@ -582,14 +622,16 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     bool sleeping,
     RuntimeTabCallback activate_callback,
     RuntimeTabCallback close_callback,
+    SavedTabDragStateCallback saved_drag_state_callback,
     RuntimeTabDragStateCallback drag_state_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller) {
   return std::make_unique<OpenTabRowView>(
-      tab, std::move(favicon), std::move(drag_thumbnails), media_alert,
-      std::move(status_text), active, sleeping, std::move(activate_callback),
-      std::move(close_callback), std::move(drag_state_callback),
+      tab, std::move(saved_node_id), std::move(favicon),
+      std::move(drag_thumbnails), media_alert, std::move(status_text), active,
+      sleeping, std::move(activate_callback), std::move(close_callback),
+      std::move(saved_drag_state_callback), std::move(drag_state_callback),
       std::move(can_drop_callback), std::move(drop_callback),
       context_menu_controller);
 }
@@ -597,6 +639,11 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {
   auto* row = views::AsViewClass<OpenTabRowView>(view);
   return row ? row->tab() : base::WeakPtr<tabs::TabInterface>();
+}
+
+std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view) {
+  auto* row = views::AsViewClass<OpenTabRowView>(view);
+  return row ? row->saved_node_id() : std::nullopt;
 }
 
 std::unique_ptr<views::View> CreateOpenTabSplitRowView(

@@ -55,6 +55,7 @@ class DeveloperToolkitController {
                                      DeveloperToolbarSurface surface);
 
   bool Show(views::View* anchor_view);
+  bool IsSurfaceShowing(DeveloperToolbarSurface surface) const;
   bool CanExecute() const;
   DeveloperActionResult Execute(DeveloperAction action);
   bool ClearBrowsingData(BrowsingDataClearOptions options,

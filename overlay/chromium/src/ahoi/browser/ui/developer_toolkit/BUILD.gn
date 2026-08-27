@@ -29,6 +29,8 @@ source_set("developer_toolkit_ui") {
     "developer_toolkit_button.h",
     "developer_toolkit_controller.cc",
     "developer_toolkit_controller.h",
+    "location_bar_bubble_button.cc",
+    "location_bar_bubble_button.h",
   ]
 
   public_deps = [
@@ -77,12 +79,14 @@ source_set("unit_tests") {
     "developer_header_secret_editor_view_unittest.cc",
     "developer_response_header_advanced_mode_view_unittest.cc",
     "developer_toolkit_bubble_view_unittest.cc",
+    "location_bar_bubble_button_unittest.cc",
   ]
   deps = [
     ":developer_toolkit_ui",
     "//ahoi/browser/ui:visual_style",
     "//base",
     "//testing/gtest",
+    "//ui/events:test_support",
     "//ui/views",
     "//ui/views:test_support",
   ]

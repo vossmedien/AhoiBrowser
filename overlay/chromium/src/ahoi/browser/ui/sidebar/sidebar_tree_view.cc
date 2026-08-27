@@ -47,18 +47,6 @@
 
 namespace ahoi::sidebar {
 
-namespace {
-
-int RowY(size_t row_index) {
-  constexpr size_t kMaxRowIndex =
-      static_cast<size_t>(std::numeric_limits<int>::max()) /
-      SidebarTreeRowView::kRowHeight;
-  return base::saturated_cast<int>(std::min(row_index, kMaxRowIndex) *
-                                   SidebarTreeRowView::kRowHeight);
-}
-
-}  // namespace
-
 SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
                                  SidebarTreeViewDelegate* delegate,
                                  std::u16string accessible_name,
@@ -80,7 +68,7 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
   preferred_height_animation_.SetSlideDuration(
       visual_style::kTreeMotionDuration);
   row_bounds_animator_.SetAnimationDuration(visual_style::kTreeMotionDuration);
-  last_visual_row_count_ = BuildVisualRows().size();
+  last_visual_height_ = GetVisualRowsHeight(BuildVisualRows());
   model().AddObserver(this);
 }
 
@@ -109,6 +97,62 @@ std::unique_ptr<views::ScrollView> SidebarTreeView::CreateScrollView(
   scroll_view->SetDrawOverflowIndicator(false);
   scroll_view->SetContents(std::move(tree_view));
   return scroll_view;
+}
+
+// static
+SidebarTreeView::VisibleRange SidebarTreeView::CalculateVisibleRange(
+    const std::vector<VisualRow>& visual_rows,
+    const gfx::Rect& visible_bounds,
+    size_t overscan_rows) {
+  if (visual_rows.empty() || visible_bounds.height() <= 0) {
+    return {};
+  }
+  const int top = std::max(visible_bounds.y(), 0);
+  const int bottom = std::max(visible_bounds.bottom(), top);
+  auto first =
+      std::lower_bound(visual_rows.begin(), visual_rows.end(), top,
+                       [](const VisualRow& row, int y) {
+                         return static_cast<int64_t>(row.y) + row.height <= y;
+                       });
+  auto past_last =
+      std::lower_bound(first, visual_rows.end(), bottom,
+                       [](const VisualRow& row, int y) { return row.y < y; });
+  size_t first_index =
+      static_cast<size_t>(std::distance(visual_rows.begin(), first));
+  size_t past_last_index =
+      static_cast<size_t>(std::distance(visual_rows.begin(), past_last));
+  first_index = first_index > overscan_rows ? first_index - overscan_rows : 0;
+  past_last_index =
+      std::min(visual_rows.size(), past_last_index + overscan_rows);
+  return {.first = first_index, .past_last = past_last_index};
+}
+
+// static
+int SidebarTreeView::GetVisualRowsHeight(
+    const std::vector<VisualRow>& visual_rows) {
+  if (visual_rows.empty()) {
+    return 0;
+  }
+  const VisualRow& last = visual_rows.back();
+  return base::saturated_cast<int>(static_cast<int64_t>(last.y) + last.height);
+}
+
+// static
+std::optional<size_t> SidebarTreeView::FindVisualRowAtY(
+    const std::vector<VisualRow>& visual_rows,
+    int y) {
+  if (y < 0) {
+    return std::nullopt;
+  }
+  auto found = std::lower_bound(
+      visual_rows.begin(), visual_rows.end(), y,
+      [](const VisualRow& row, int point_y) {
+        return static_cast<int64_t>(row.y) + row.height <= point_y;
+      });
+  if (found == visual_rows.end() || y < found->y) {
+    return std::nullopt;
+  }
+  return static_cast<size_t>(std::distance(visual_rows.begin(), found));
 }
 
 // static
@@ -307,7 +351,7 @@ void SidebarTreeView::OnRowDragDone() {
 void SidebarTreeView::OnSplitGroupsChanged() {
   last_drop_probe_.reset();
   SetDropIndicator(std::nullopt);
-  HandleVisualRowCountChanged();
+  HandleVisualLayoutChanged();
   ScheduleSynchronization(/*preferred_size_changed=*/true);
   SchedulePaint();
 }
@@ -322,15 +366,11 @@ void SidebarTreeView::Layout(PassKey) {
 
 gfx::Size SidebarTreeView::CalculatePreferredSize(
     const views::SizeBounds& /*available_size*/) const {
-  const size_t row_count = BuildVisualRows().size();
-  const size_t max_rows = static_cast<size_t>(std::numeric_limits<int>::max()) /
-                          SidebarTreeRowView::kRowHeight;
+  const int visual_height = GetVisualRowsHeight(BuildVisualRows());
   // Keep an empty workspace as a real drop surface. A zero-height tree means
   // Views never routes the native drag into the saved section, so the first
   // temporary tab cannot be pinned without creating a folder first.
-  const size_t visible_rows = std::max<size_t>(row_count, 1);
-  int height = base::saturated_cast<int>(
-      std::min(visible_rows, max_rows) * SidebarTreeRowView::kRowHeight);
+  int height = std::max(visual_height, SidebarTreeRowView::kRowHeight);
   if (preferred_height_animation_active_) {
     const double value = preferred_height_animation_.GetCurrentValue();
     height =
@@ -358,6 +398,9 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
     }
     return true;
   }
+  const bool selected_node_suppressed =
+      model().selected_node_id().has_value() &&
+      runtime_composite_suppressed_nodes_.contains(*model().selected_node_id());
 
   switch (event.key_code()) {
     case ui::VKEY_UP:
@@ -367,13 +410,21 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
       SelectRelativeRow(1);
       return true;
     case ui::VKEY_HOME:
-      if (!model().rows().empty()) {
-        SelectRow(0);
+      for (size_t index = 0; index < model().rows().size(); ++index) {
+        if (!runtime_composite_suppressed_nodes_.contains(
+                model().rows()[index].node_id)) {
+          SelectRow(index);
+          break;
+        }
       }
       return true;
     case ui::VKEY_END:
-      if (!model().rows().empty()) {
-        SelectRow(model().rows().size() - 1);
+      for (size_t index = model().rows().size(); index > 0; --index) {
+        if (!runtime_composite_suppressed_nodes_.contains(
+                model().rows()[index - 1].node_id)) {
+          SelectRow(index - 1);
+          break;
+        }
       }
       return true;
     case ui::VKEY_LEFT:
@@ -391,14 +442,18 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
       }
       return true;
     case ui::VKEY_RETURN:
-      ActivateSelectedNode();
+      if (!selected_node_suppressed) {
+        ActivateSelectedNode();
+      }
       return true;
     case ui::VKEY_F2:
-      BeginRenameSelectedNode();
+      if (!selected_node_suppressed) {
+        BeginRenameSelectedNode();
+      }
       return true;
     case ui::VKEY_BACK:
     case ui::VKEY_DELETE:
-      if (model().selected_node_id().has_value()) {
+      if (model().selected_node_id().has_value() && !selected_node_suppressed) {
         const auto result = controller_->DeleteNode(*model().selected_node_id(),
                                                     base::Time::Now());
         if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
@@ -429,9 +484,8 @@ void SidebarTreeView::OnVisibleBoundsChanged() {
   visible_bounds_synchronization_pending_ = true;
   base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE,
-      base::BindOnce(
-          &SidebarTreeView::SynchronizeRowsAfterVisibleBoundsChange,
-          weak_ptr_factory_.GetWeakPtr()));
+      base::BindOnce(&SidebarTreeView::SynchronizeRowsAfterVisibleBoundsChange,
+                     weak_ptr_factory_.GetWeakPtr()));
 }
 
 void SidebarTreeView::SynchronizeRowsAfterVisibleBoundsChange() {
@@ -443,6 +497,30 @@ void SidebarTreeView::OnBoundsChanged(const gfx::Rect& /*previous_bounds*/) {
   SynchronizeRows(GetVisibleBounds());
 }
 
+void SidebarTreeView::SetDragTargetVisible(bool visible) {
+  const bool changed = drag_target_visible_ != visible;
+  drag_target_visible_ = visible;
+  if (!visible) {
+    SetDropIndicator(std::nullopt);
+  }
+  if (changed) {
+    SchedulePaint();
+  }
+}
+
+void SidebarTreeView::SetRuntimeCompositeSuppressedNodes(
+    std::set<base::Uuid> node_ids) {
+  if (model().selected_node_id().has_value() &&
+      node_ids.contains(*model().selected_node_id())) {
+    std::ignore = controller_->SelectNode(std::nullopt);
+  }
+  if (runtime_composite_suppressed_nodes_ == node_ids) {
+    return;
+  }
+  runtime_composite_suppressed_nodes_ = std::move(node_ids);
+  OnSplitGroupsChanged();
+}
+
 void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
   const std::vector<VisualRow> visual_rows = BuildVisualRows();
   const std::vector<VisualPosition> visual_positions =
@@ -451,25 +529,31 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
   const int row_width = std::max(width(), 1);
   const ui::ColorProvider* colors = GetColorProvider();
 
-  // An empty root is intentionally quiet until a drag enters it. Once the
-  // native drag probe has accepted a temporary tab, paint the same semantic
-  // drop surface used by rows, but without inventing a fake model node. This
-  // keeps the target visible and gives users a stable place to release the
-  // first saved tab at workspace root.
-  if (rows.empty() && drop_indicator_.has_value() &&
-      !drop_indicator_->target_node_id.has_value()) {
+  // Native drag lifetime keeps the complete saved section discoverable even
+  // between enter/exit events. Acceptance strengthens the same semantic
+  // surface without changing its bounds. An accepted empty workspace still
+  // uses the real root hit area; no fake model node is introduced.
+  const bool empty_root_accepting =
+      rows.empty() && drop_indicator_.has_value() &&
+      !drop_indicator_->target_node_id.has_value();
+  if (drag_target_visible_ || empty_root_accepting) {
+    const bool accepting = drag_target_accepting_ || empty_root_accepting;
     gfx::RectF target(GetLocalBounds());
-    target.Inset(gfx::InsetsF::VH(4.0f, 4.0f));
+    target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
     cc::PaintFlags fill;
     fill.setAntiAlias(true);
     fill.setStyle(cc::PaintFlags::kFill_Style);
-    fill.setColor(colors->GetColor(visual_style::kDropTargetSurface));
+    fill.setColor(colors->GetColor(accepting ? visual_style::kDropTargetSurface
+                                             : visual_style::kHoverSurface));
     canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, fill);
     cc::PaintFlags outline;
     outline.setAntiAlias(true);
     outline.setStyle(cc::PaintFlags::kStroke_Style);
-    outline.setStrokeWidth(2.0f);
-    outline.setColor(colors->GetColor(visual_style::kAccent));
+    outline.setStrokeWidth(
+        accepting ? visual_style::kSidebarDropTargetAcceptingOutlineThickness
+                  : visual_style::kSidebarDropTargetOutlineThickness);
+    outline.setColor(colors->GetColor(accepting ? visual_style::kAccent
+                                                : visual_style::kDivider));
     canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, outline);
   }
 
@@ -488,16 +572,31 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
            rows[last_row_index + 1].depth > row.depth) {
       ++last_row_index;
     }
-    const size_t first_visual = visual_positions[row_index].visual_row;
-    const size_t last_visual = visual_positions[last_row_index].visual_row;
+    size_t first_visible_index = row_index;
+    while (first_visible_index <= last_row_index &&
+           !visual_positions[first_visible_index].present) {
+      ++first_visible_index;
+    }
+    if (first_visible_index > last_row_index) {
+      continue;
+    }
+    size_t last_visible_index = last_row_index;
+    while (last_visible_index > first_visible_index &&
+           !visual_positions[last_visible_index].present) {
+      --last_visible_index;
+    }
+    const size_t first_visual =
+        visual_positions[first_visible_index].visual_row;
+    const size_t last_visual = visual_positions[last_visible_index].visual_row;
     const int bubble_x = std::min(
         base::saturated_cast<int>(row.depth) * SidebarTreeRowView::kIndentWidth,
         std::max(row_width - 8, 0));
-    gfx::RectF bubble(
-        static_cast<float>(bubble_x + 2),
-        static_cast<float>(RowY(first_visual) + 1),
-        static_cast<float>(std::max(row_width - bubble_x - 4, 1)),
-        static_cast<float>(RowY(last_visual + 1) - RowY(first_visual) - 2));
+    gfx::RectF bubble(static_cast<float>(bubble_x + 2),
+                      static_cast<float>(visual_rows[first_visual].y + 1),
+                      static_cast<float>(std::max(row_width - bubble_x - 4, 1)),
+                      static_cast<float>(visual_rows[last_visual].y +
+                                         visual_rows[last_visual].height -
+                                         visual_rows[first_visual].y - 2));
     cc::PaintFlags accent_fill;
     accent_fill.setAntiAlias(true);
     accent_fill.setStyle(cc::PaintFlags::kFill_Style);
@@ -523,28 +622,60 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
     if (visual_row.model_indices.size() < 2) {
       continue;
     }
-    gfx::Rect group_bounds =
-        GetSegmentBounds(visual_row, visual_index, 0, row_width);
-    group_bounds.Union(GetSegmentBounds(visual_row, visual_index,
-                                        visual_row.model_indices.size() - 1,
-                                        row_width));
+    std::vector<gfx::Rect> segment_bounds;
+    segment_bounds.reserve(visual_row.model_indices.size());
+    gfx::Rect group_bounds;
+    for (size_t segment_index = 0;
+         segment_index < visual_row.model_indices.size(); ++segment_index) {
+      segment_bounds.push_back(
+          GetSegmentBounds(visual_row, segment_index, row_width));
+      group_bounds.Union(segment_bounds.back());
+    }
     gfx::RectF background(group_bounds);
     background.Inset(gfx::InsetsF::VH(2.0f, 4.0f));
     canvas->DrawRoundRect(background, visual_style::kRowCornerRadius,
                           group_fill);
 
-    for (size_t segment_index = 1;
-         segment_index < visual_row.model_indices.size(); ++segment_index) {
-      const gfx::Rect previous = GetSegmentBounds(visual_row, visual_index,
-                                                  segment_index - 1, row_width);
-      const gfx::Rect next =
-          GetSegmentBounds(visual_row, visual_index, segment_index, row_width);
-      const float divider_x =
-          static_cast<float>(previous.right() + next.x()) / 2.0f;
-      canvas->DrawLine(
-          gfx::PointF(divider_x, static_cast<float>(group_bounds.y() + 8)),
-          gfx::PointF(divider_x, static_cast<float>(group_bounds.bottom() - 8)),
-          separator);
+    // Derive separators from actual pane adjacency rather than pane order.
+    // Three-pane main/secondary layouts and four-pane grids contain horizontal
+    // neighbours as well as vertical ones; a sequential-only divider paints
+    // frames through unrelated panes and omits the cross-axis separator.
+    for (size_t first = 0; first < segment_bounds.size(); ++first) {
+      for (size_t second = first + 1; second < segment_bounds.size();
+           ++second) {
+        const gfx::Rect& a = segment_bounds[first];
+        const gfx::Rect& b = segment_bounds[second];
+        const int overlap_top = std::max(a.y(), b.y());
+        const int overlap_bottom = std::min(a.bottom(), b.bottom());
+        const int overlap_left = std::max(a.x(), b.x());
+        const int overlap_right = std::min(a.right(), b.right());
+        if (overlap_bottom > overlap_top) {
+          const int gap =
+              a.right() <= b.x() ? b.x() - a.right() : a.x() - b.right();
+          if (gap >= 0 && gap <= visual_style::kSidebarSplitPaneGap) {
+            const float divider_x =
+                static_cast<float>(a.right() <= b.x() ? a.right() + gap / 2.0f
+                                                      : b.right() + gap / 2.0f);
+            canvas->DrawLine(
+                gfx::PointF(divider_x, static_cast<float>(overlap_top)),
+                gfx::PointF(divider_x, static_cast<float>(overlap_bottom)),
+                separator);
+          }
+        }
+        if (overlap_right > overlap_left) {
+          const int gap =
+              a.bottom() <= b.y() ? b.y() - a.bottom() : a.y() - b.bottom();
+          if (gap >= 0 && gap <= visual_style::kSidebarSplitPaneGap) {
+            const float divider_y = static_cast<float>(
+                a.bottom() <= b.y() ? a.bottom() + gap / 2.0f
+                                    : b.bottom() + gap / 2.0f);
+            canvas->DrawLine(
+                gfx::PointF(static_cast<float>(overlap_left), divider_y),
+                gfx::PointF(static_cast<float>(overlap_right), divider_y),
+                separator);
+          }
+        }
+      }
     }
   }
 }

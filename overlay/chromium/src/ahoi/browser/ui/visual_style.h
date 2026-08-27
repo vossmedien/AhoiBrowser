@@ -75,10 +75,10 @@ inline constexpr int kSidebarTitlebarHeight = 40;
 inline constexpr int kSidebarSectionSpacing = 6;
 inline constexpr int kSidebarContentWidth =
     kSidebarWidthDefault - (2 * kSidebarHorizontalInset);
-// 36px keeps saved, temporary and remote tabs comfortably targetable without
-// turning the sidebar into a low-density list. Every tab surface consumes this
-// token; do not introduce per-section row heights.
-inline constexpr int kTreeRowHeight = 36;
+// Saved, temporary, remote and split-tab rows share one density contract.
+// Keeping the token sidebar-semantic rather than tree-specific prevents the
+// runtime and remote sections from drifting to separate per-view heights.
+inline constexpr int kSidebarTabRowHeight = 40;
 inline constexpr int kTreeIndent = 16;
 // Every saved, temporary and split-pane row keeps the same breathing room
 // around its active/hover surface. Split segments use the narrower horizontal
@@ -87,11 +87,23 @@ inline constexpr int kSidebarTabRowVerticalInset = 2;
 inline constexpr int kSidebarTabRowHorizontalInset = 4;
 inline constexpr int kSidebarSplitPaneHorizontalInset = 1;
 inline constexpr int kSidebarSplitPaneGap = 2;
+// Native drag targets use one inset and two deliberately restrained emphasis
+// levels. The idle outline makes the complete drop surface discoverable;
+// acceptance strengthens it without changing geometry under the pointer.
+inline constexpr int kSidebarDropTargetInset = kSidebarTabRowHorizontalInset;
+inline constexpr int kSidebarDropTargetOutlineThickness = 1;
+inline constexpr int kSidebarDropTargetAcceptingOutlineThickness = 2;
 inline constexpr int kSidebarActionCellWidth = 42;
 inline constexpr int kSidebarActionCellHeight = 36;
 // Header presentation actions are true circles, not narrow 30x36 pills.
 inline constexpr int kSidebarHeaderActionSize = 32;
 inline constexpr int kSidebarFooterSpacing = 8;
+// The saved/temporary boundary is a compact semantic divider, not another tab
+// row. Its action and separator consume these shared dimensions so neither the
+// host nor the button can reintroduce nested vertical padding.
+inline constexpr int kSidebarSectionDividerHeight = 28;
+inline constexpr int kSidebarSectionDividerSpacing = kSidebarFooterSpacing;
+inline constexpr int kSidebarSectionDividerActionHorizontalInset = 4;
 inline constexpr int kSidebarSplitActionGap = 2;
 inline constexpr int kSidebarIconSize = 16;
 
@@ -200,6 +212,10 @@ inline constexpr base::TimeDelta kTreeMotionDuration = base::Milliseconds(145);
 inline constexpr base::TimeDelta kSidebarRevealDuration =
     base::Milliseconds(180);
 inline constexpr base::TimeDelta kSidebarHideDuration = base::Milliseconds(135);
+inline constexpr base::TimeDelta kWorkspaceTransitionDuration =
+    base::Milliseconds(165);
+inline constexpr int kWorkspaceTransitionOffset = 24;
+inline constexpr float kWorkspaceTransitionInitialOpacity = 0.86f;
 inline constexpr base::TimeDelta kModalFadeInDuration = base::Milliseconds(120);
 inline constexpr base::TimeDelta kModalFadeOutDuration = base::Milliseconds(90);
 inline constexpr base::TimeDelta kPopupRevealDuration = kModalFadeInDuration;

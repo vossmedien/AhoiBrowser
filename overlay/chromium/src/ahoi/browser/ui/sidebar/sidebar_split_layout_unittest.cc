@@ -24,6 +24,20 @@ TEST(SidebarSplitLayoutTest, FourPaneMirrorsRowMajorTwoByTwoGrid) {
             GetSplitSegmentBounds(bounds, 3, 4, visual_data));
 }
 
+TEST(SidebarSplitLayoutTest, SplitRatiosExcludeGapsFromAvailableExtent) {
+  const gfx::Rect bounds(0, 0, 200, 50);
+  const split_tabs::SplitTabVisualData stacked(
+      split_tabs::SplitTabLayout::kStacked, 0.5);
+  const auto three_main = split_tabs::SplitTabVisualData::ForThreePane(
+      split_tabs::SplitTabLayout::kSideBySide,
+      split_tabs::SplitTabArrangement::kMainStart);
+
+  EXPECT_EQ(24, GetSplitSegmentBounds(bounds, 0, 2, stacked).height());
+  EXPECT_EQ(24, GetSplitSegmentBounds(bounds, 1, 2, stacked).height());
+  EXPECT_EQ(24, GetSplitSegmentBounds(bounds, 1, 3, three_main).height());
+  EXPECT_EQ(24, GetSplitSegmentBounds(bounds, 2, 3, three_main).height());
+}
+
 TEST(SidebarSplitLayoutTest, RuntimeHeightKeepsStackedSegmentsReadable) {
   constexpr int kStandardRowHeight = 32;
   const split_tabs::SplitTabVisualData side_by_side(

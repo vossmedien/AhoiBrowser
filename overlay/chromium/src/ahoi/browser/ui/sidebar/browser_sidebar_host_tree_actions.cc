@@ -417,12 +417,17 @@ bool BrowserSidebarHostView::CanExtractSavedSplitPaneForDrop(
   return !target || target->GetSplit() != source->GetSplit();
 }
 
-void BrowserSidebarHostView::ExtractSavedSplitPaneAfterDrop(
+bool BrowserSidebarHostView::ExtractSavedSplitPaneAfterDrop(
     const base::Uuid& source_node_id) {
   tabs::TabInterface* const source =
       session_bridge_->FindTabByTreeNodeId(source_node_id);
-  CHECK(ExtractTabFromSplitPreservingRemainder(tab_strip_model_, source));
+  if (!source || !source->GetSplit().has_value() ||
+      session_bridge_->FindTabStripModelForTab(source) != tab_strip_model_ ||
+      !ExtractTabFromSplitPreservingRemainder(tab_strip_model_, source)) {
+    return false;
+  }
   ScheduleRuntimePresentationRefresh();
+  return true;
 }
 
 bool BrowserSidebarHostView::CanSaveTemporaryTab(
@@ -612,6 +617,7 @@ void BrowserSidebarHostView::OnSidebarDragStateChanged(
     dragged_runtime_tab_handle_.reset();
   }
   SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
+  tree_view_->SetDragTargetVisible(IsSidebarDragActive());
   SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_,
                                          dragged_node_id_.has_value());
   const bool has_open_tabs = !open_tabs_container_->children().empty();
@@ -636,6 +642,7 @@ void BrowserSidebarHostView::OnTemporaryTabDragStateChanged(
     SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_, false);
   }
   SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
+  tree_view_->SetDragTargetVisible(IsSidebarDragActive());
   UpdateNewGroupDropTargetVisibility();
   MaybeScheduleDeferredRuntimePresentationRefresh();
 }
@@ -654,6 +661,7 @@ void BrowserSidebarHostView::ResetDragPresentation() {
   dragged_node_id_.reset();
   dragged_runtime_tab_handle_.reset();
   SetBrowserSidebarDragRoutingActive(this, false);
+  tree_view_->SetDragTargetVisible(false);
   SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_, false);
 
   const bool has_open_tabs = !open_tabs_container_->children().empty();

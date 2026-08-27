@@ -97,9 +97,10 @@ bool RecordingDelegate::CanExtractSavedSplitPaneForDrop(
   return can_extract_saved_split;
 }
 
-void RecordingDelegate::ExtractSavedSplitPaneAfterDrop(
+bool RecordingDelegate::ExtractSavedSplitPaneAfterDrop(
     const base::Uuid& source) {
   extracted_split_requests.push_back(source);
+  return extract_saved_split_succeeds;
 }
 
 bool RecordingDelegate::CanSaveTemporaryTab(

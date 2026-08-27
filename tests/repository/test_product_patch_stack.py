@@ -119,7 +119,8 @@ class ProductPatchStackTests(unittest.TestCase):
             "chrome/browser/ui/views/frame/multi_contents_view.cc",
             "chrome/browser/ui/views/tabs/common/split_tab_view.cc",
             "chrome/browser/resources/history/app.ts",
-            "chrome/browser/resources/settings/appearance_page/appearance_page.ts",
+            "chrome/browser/resources/settings/route.ts",
+            "chrome/browser/resources/settings/settings_main/settings_main.html",
             "components/embedder_support/user_agent_utils.cc",
             "extensions/browser/extensions_browser_client.cc",
             "services/network/cookie_manager.cc",
@@ -205,6 +206,122 @@ class ProductPatchStackTests(unittest.TestCase):
         self.assertIn("metrics::prefs::kMetricsReportingEnabled", implementation)
         self.assertIn("metrics::prefs::kAdvancedReportingEnabled", implementation)
         self.assertIn("metrics::prefs::kAdvancedReportingEnabled", test)
+
+    def test_navigation_views_suite_stages_its_required_ui_test_pack(self):
+        build = (
+            ROOT / "overlay/chromium/src/ahoi/browser/ui/shell/BUILD.gn"
+        ).read_text(encoding="utf-8")
+        target = re.search(
+            r'test\("ahoi_navigation_surface_state_unittests"\) \{'
+            r"[\s\S]*?\n\}",
+            build,
+        )
+        self.assertIsNotNone(target)
+        self.assertIn('"//ui/resources:ui_test_pak"', target.group(0))
+        self.assertIn('"//ui/resources:ui_test_pak_data"', target.group(0))
+
+    def test_startup_browser_tests_use_current_new_tab_and_policy_apis(self):
+        integration = patch_text(INTEGRATION_PATCH)
+
+        self.assertIn('"//chrome/browser/policy:test_support"', integration)
+        self.assertIn(
+            '#include "chrome/browser/policy/policy_test_utils.h"', integration
+        )
+        self.assertIn(
+            "class AhoiManagedStartupPolicyTest : public policy::PolicyTest {};",
+            integration,
+        )
+        self.assertIn(
+            "chrome::NewTab(empty_browser, NewTabTypes::kNewTabCommand);",
+            integration,
+        )
+        self.assertIn("UpdateProviderPolicy(policies);", integration)
+        self.assertNotIn("SetManagedPref(", integration)
+
+    def test_startup_browser_tests_cover_real_restore_and_dialog_choices(self):
+        integration = patch_text(INTEGRATION_PATCH)
+        dialog_header = (
+            ROOT
+            / "overlay/chromium/src/ahoi/browser/ui/startup/startup_choice_dialog.h"
+        ).read_text(encoding="utf-8")
+        dialog_implementation = (
+            ROOT
+            / "overlay/chromium/src/ahoi/browser/ui/startup/startup_choice_dialog.cc"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("void SaveCurrentBrowserAsLastSession", integration)
+        self.assertIn(
+            "+  void TearDownOnMainThread() override {\n"
+            "+    profile_keep_alive_.reset();\n"
+            "+    session_keep_alive_.reset();\n"
+            "+    extensions::ExtensionBrowserTest::TearDownOnMainThread();\n"
+            "+  }",
+            integration,
+        )
+        self.assertIn(
+            "AhoiAskContinueRestoresAndRemembersChoice", integration
+        )
+        self.assertIn("AhoiAskEmptyStaysEmptyAndRemembersChoice", integration)
+        self.assertIn(
+            "AhoiAskContinueWithoutRememberRestoresOnce", integration
+        )
+        self.assertIn(
+            "AhoiAskEmptyWithoutRememberStaysEmptyOnce", integration
+        )
+        for test_name in (
+            "AhoiStartupChoiceAcceptWithoutRememberReturnsContinue",
+            "AhoiStartupChoiceCancelWithoutRememberReturnsEmpty",
+            "AhoiStartupChoiceCloseButtonForcesEmptyWithoutRemember",
+            "AhoiStartupChoiceWidgetDestroyForcesEmptyWithoutRemember",
+        ):
+            self.assertIn(test_name, integration)
+        self.assertIn(
+            "base::test::TestFuture<ahoi::startup::StartupChoiceResult>",
+            integration,
+        )
+        self.assertIn("ASSERT_TRUE(future.Wait());", integration)
+        self.assertIn(
+            "PostCrashDoesNotAutomaticallyContinueAhoiSession", integration
+        )
+        self.assertIn(
+            "+  StartupBrowserCreator::ClearLaunchedProfilesForTesting();",
+            integration,
+        )
+        self.assertIn(
+            "+  const GURL requested_url(url::kAboutBlankURL);",
+            integration,
+        )
+        self.assertIn(
+            '#include "chrome/browser/ui/views/session_crashed_bubble_view.h"',
+            integration,
+        )
+        self.assertIn(
+            "SessionCrashedBubbleView::GetInstanceForTest()", integration
+        )
+        self.assertIn(
+            "SetRememberStartupChoiceForTesting", dialog_header
+        )
+        self.assertIn(
+            "checkbox->button_controller()->NotifyClick();",
+            dialog_implementation,
+        )
+
+    def test_four_pane_file_system_access_test_uses_collision_safe_alias(self):
+        integration = patch_text(INTEGRATION_PATCH)
+
+        self.assertIn(
+            "+using FileSystemAccessRequestType =\n"
+            "+    FileSystemAccessPermissionRequestManager::RequestType;",
+            integration,
+        )
+        self.assertIn(
+            "+      RequestData(FileSystemAccessRequestType::kRestorePermissions,",
+            integration,
+        )
+        self.assertNotIn(
+            "+using RequestType = FileSystemAccessPermissionRequestManager::RequestType;",
+            integration,
+        )
 
 
 if __name__ == "__main__":

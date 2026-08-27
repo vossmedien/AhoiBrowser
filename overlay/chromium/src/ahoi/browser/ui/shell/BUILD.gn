@@ -36,11 +36,17 @@ source_set("navigation_surface_controller") {
 
 source_set("unit_tests") {
   testonly = true
-  sources = [ "navigation_surface_state_unittest.cc" ]
+  sources = [
+    "navigation_surface_controller_unittest.cc",
+    "navigation_surface_state_unittest.cc",
+  ]
   deps = [
+    ":navigation_surface_controller",
     ":navigation_surface_state",
     "//base/test:test_support",
     "//testing/gtest",
+    "//ui/views",
+    "//ui/views:test_support",
   ]
 }
 
@@ -78,7 +84,10 @@ test("ahoi_navigation_surface_state_unittests") {
     ":unit_tests",
     "//base/test:test_support",
     "//testing/gtest",
+    "//ui/resources:ui_test_pak",
+    "//ui/views:test_support",
   ]
+  data_deps = [ "//ui/resources:ui_test_pak_data" ]
 }
 
 if (!is_android) {

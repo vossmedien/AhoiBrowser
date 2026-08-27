@@ -20,10 +20,12 @@
 #include "ui/gfx/geometry/transform.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/background.h"
+#include "ui/views/bubble/bubble_dialog_delegate_view.h"
 #include "ui/views/controls/button/button.h"
 #include "ui/views/mouse_watcher_view_host.h"
 #include "ui/views/view.h"
 #include "ui/views/widget/widget.h"
+#include "ui/views/widget/widget_delegate.h"
 
 namespace ahoi {
 
@@ -72,6 +74,12 @@ BEGIN_METADATA(NavigationRevealNotchView)
 END_METADATA
 
 }  // namespace
+
+bool IsToolbarAnchoredNavigationBubble(bool is_modal,
+                                       const views::View* anchor_view,
+                                       const views::View* toolbar) {
+  return !is_modal && anchor_view && toolbar && toolbar->Contains(anchor_view);
+}
 
 NavigationSurfaceController::NavigationSurfaceController(
     views::View* host,
@@ -347,7 +355,7 @@ void NavigationSurfaceController::UpdateInteractionReasons(
   state_.SetReasonActive(
       NavigationSurfaceState::Reason::kKeyboardOrOmniboxFocus, toolbar_focused);
 
-  bool has_child_bubble = false;
+  bool has_toolbar_bubble = false;
   bool has_modal_prompt = false;
   if (host_ && host_->GetWidget()) {
     for (views::Widget* widget : views::Widget::GetAllChildWidgets(
@@ -355,12 +363,19 @@ void NavigationSurfaceController::UpdateInteractionReasons(
       if (widget == host_->GetWidget() || !widget->IsVisible()) {
         continue;
       }
-      has_modal_prompt |= widget->IsModal();
-      has_child_bubble |= !widget->IsModal();
+      const bool is_modal = widget->IsModal();
+      has_modal_prompt |= is_modal;
+      views::WidgetDelegate* const widget_delegate = widget->widget_delegate();
+      views::BubbleDialogDelegate* const bubble_delegate =
+          widget_delegate ? widget_delegate->AsBubbleDialogDelegate() : nullptr;
+      has_toolbar_bubble |= IsToolbarAnchoredNavigationBubble(
+          is_modal,
+          bubble_delegate ? bubble_delegate->GetAnchorView() : nullptr,
+          toolbar_);
     }
   }
   state_.SetReasonActive(NavigationSurfaceState::Reason::kToolbarBubble,
-                         has_child_bubble);
+                         has_toolbar_bubble);
   state_.SetReasonActive(NavigationSurfaceState::Reason::kAuthPrompt,
                          has_modal_prompt);
 }

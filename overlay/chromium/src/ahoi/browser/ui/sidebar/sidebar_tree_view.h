@@ -40,9 +40,10 @@ class ScrollView;
 
 namespace ahoi::sidebar {
 
-// Native, fixed-height virtualized viewport over SidebarTreeViewModel. Only
-// visible rows plus a small overscan are Views children; the persistent model
-// remains the single source of truth.
+// Native virtualized viewport over SidebarTreeViewModel. Ordinary rows keep a
+// fixed semantic height; multi-row split collections reserve enough height for
+// every pane. Only visible rows plus a small overscan are Views children; the
+// persistent model remains the single source of truth.
 class SidebarTreeView final : public views::View,
                               public SidebarTreeViewModelObserver,
                               public views::ContextMenuController,
@@ -63,6 +64,7 @@ class SidebarTreeView final : public views::View,
       kMoveOrCopy = 0,
       kSplit = 1,
       kReorderSplitPane = 2,
+      kExtractSplitPane = 3,
     };
 
     base::Uuid source_node_id;
@@ -96,6 +98,15 @@ class SidebarTreeView final : public views::View,
                                             size_t overscan_rows);
   void BeginRenameSelectedNode();
   void CancelRename();
+  // The host owns native drag lifetime while this view owns geometric
+  // acceptance. Keeping both states explicit lets the saved section remain a
+  // visible drop surface between target enter/exit events, including when the
+  // workspace has no saved nodes yet.
+  void SetDragTargetVisible(bool visible);
+  // Live mixed saved/temporary splits are rendered by the host as one
+  // composite row. Hide only their saved-page proxies here; the persistent
+  // model and its selection/order remain untouched.
+  void SetRuntimeCompositeSuppressedNodes(std::set<base::Uuid> node_ids);
 
   size_t materialized_row_count_for_testing() const {
     return materialized_rows_.size();
@@ -107,6 +118,10 @@ class SidebarTreeView final : public views::View,
       const base::Uuid& node_id) const;
   const std::optional<DropIndicator>& drop_indicator_for_testing() const {
     return drop_indicator_;
+  }
+  bool drag_target_visible_for_testing() const { return drag_target_visible_; }
+  bool drag_target_accepting_for_testing() const {
+    return drag_target_accepting_;
   }
   void SynchronizeRowsForTesting(const gfx::Rect& visible_bounds);
   std::optional<DropIndicator> CalculateDropIndicatorForTesting(
@@ -121,6 +136,9 @@ class SidebarTreeView final : public views::View,
   }
   void CompleteRowBoundsAnimationForTesting() {
     row_bounds_animator_.Complete();
+  }
+  const std::optional<base::Uuid>& editing_node_id_for_testing() const {
+    return editing_node_id_;
   }
 
   // Row callbacks. These are public only so the separately compiled recycled
@@ -194,12 +212,15 @@ class SidebarTreeView final : public views::View,
     std::vector<size_t> model_indices;
     size_t anchor_depth = 0;
     std::optional<split_tabs::SplitTabVisualData> split_visual_data;
+    int y = 0;
+    int height = SidebarTreeRowView::kRowHeight;
   };
 
   struct VisualPosition {
     size_t visual_row = 0;
     size_t segment = 0;
     size_t segment_count = 1;
+    bool present = false;
   };
 
   // views::ContextMenuController:
@@ -217,8 +238,15 @@ class SidebarTreeView final : public views::View,
   std::vector<VisualRow> BuildVisualRows() const;
   std::vector<VisualPosition> BuildVisualPositions(
       const std::vector<VisualRow>& visual_rows) const;
+  static VisibleRange CalculateVisibleRange(
+      const std::vector<VisualRow>& visual_rows,
+      const gfx::Rect& visible_bounds,
+      size_t overscan_rows);
+  static int GetVisualRowsHeight(const std::vector<VisualRow>& visual_rows);
+  static std::optional<size_t> FindVisualRowAtY(
+      const std::vector<VisualRow>& visual_rows,
+      int y);
   gfx::Rect GetSegmentBounds(const VisualRow& visual_row,
-                             size_t visual_row_index,
                              size_t segment_index,
                              int row_width) const;
   void SynchronizeRows(const gfx::Rect& visible_bounds);
@@ -256,8 +284,8 @@ class SidebarTreeView final : public views::View,
                    const ui::DropTargetEvent& event,
                    ui::mojom::DragOperation& output_drag_op,
                    std::unique_ptr<ui::LayerTreeOwner> drag_image_owner);
-  void HandleVisualRowCountChanged();
-  void StartPreferredHeightAnimation(size_t from_rows, size_t to_rows);
+  void HandleVisualLayoutChanged();
+  void StartPreferredHeightAnimation(int from_height, int to_height);
   const raw_ptr<SidebarTreeController> controller_;
   const raw_ptr<SidebarTreeViewDelegate> delegate_;
   const std::u16string split_with_prefix_;
@@ -270,6 +298,9 @@ class SidebarTreeView final : public views::View,
   std::optional<base::Uuid> pressed_node_id_;
   std::optional<base::Uuid> editing_node_id_;
   std::optional<DropIndicator> drop_indicator_;
+  bool drag_target_visible_ = false;
+  bool drag_target_accepting_ = false;
+  std::set<base::Uuid> runtime_composite_suppressed_nodes_;
   // Avoid repeating database-backed cycle/order validation while the pointer
   // remains within the same geometric drop zone. Rejected probes are cached
   // too; every model delta invalidates this cache.
@@ -278,14 +309,14 @@ class SidebarTreeView final : public views::View,
   base::OneShotTimer folder_expand_timer_;
   views::BoundsAnimator row_bounds_animator_{this};
   bool row_bounds_animation_pending_ = false;
-  std::optional<size_t> row_bounds_animation_from_rows_;
+  std::optional<int> row_bounds_animation_from_height_;
   bool in_batch_update_ = false;
   bool synchronization_pending_ = false;
   bool visible_bounds_synchronization_pending_ = false;
   bool preferred_size_change_pending_ = false;
   gfx::SlideAnimation preferred_height_animation_{this};
-  size_t last_visual_row_count_ = 0;
-  std::optional<size_t> pending_animation_from_rows_;
+  int last_visual_height_ = 0;
+  std::optional<int> pending_animation_from_height_;
   int animated_height_from_ = 0;
   int animated_height_to_ = 0;
   bool preferred_height_animation_active_ = false;

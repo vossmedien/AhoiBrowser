@@ -63,7 +63,7 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   bool CanExtractSavedSplitPaneForDrop(
       const base::Uuid&,
       const std::optional<base::Uuid>&) const override;
-  void ExtractSavedSplitPaneAfterDrop(const base::Uuid& source) override;
+  bool ExtractSavedSplitPaneAfterDrop(const base::Uuid& source) override;
   bool CanSaveTemporaryTab(int,
                            const SidebarTreeController::DropTarget&) override;
   bool SaveTemporaryTab(
@@ -93,6 +93,7 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   bool can_reorder_split = false;
   bool reorder_split_succeeds = false;
   bool can_extract_saved_split = false;
+  bool extract_saved_split_succeeds = false;
   bool can_save_temporary = false;
   bool save_temporary_succeeds = false;
   bool can_split_temporary = false;

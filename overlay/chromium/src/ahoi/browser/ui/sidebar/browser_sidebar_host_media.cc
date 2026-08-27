@@ -81,6 +81,10 @@ void BrowserSidebarHostView::OnMiniPlayerExpandedChanged(bool expanded) {
 
 void BrowserSidebarHostView::OnAppearanceChanged(
     const appearance::GlassPolicy& policy) {
+  reduced_motion_ = policy.reduced_motion;
+  if (reduced_motion_) {
+    CancelWorkspaceTransition();
+  }
   appearance::ApplySurfaceAppearance(
       this, appearance::AppearanceResolver::Resolve(
                 appearance::SurfaceRole::kSidebar, policy));

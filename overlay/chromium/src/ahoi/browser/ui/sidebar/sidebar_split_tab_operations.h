@@ -15,8 +15,8 @@ namespace ahoi::sidebar {
 // Extracts exactly `source` from its Chromium split without replacing or
 // reloading any WebContents. For three/four-pane collections the remaining
 // panes are restored under the same split id and orientation; a two-pane
-// collection naturally leaves one ordinary tab. Returns false without
-// mutation when either identity is stale or `source` is not split.
+// collection naturally leaves one ordinary tab. Every false return occurs
+// before mutation when an identity or split precondition is stale.
 bool ExtractTabFromSplitPreservingRemainder(TabStripModel* tab_strip_model,
                                             tabs::TabInterface* source);
 

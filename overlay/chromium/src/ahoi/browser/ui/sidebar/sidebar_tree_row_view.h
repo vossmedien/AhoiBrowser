@@ -39,7 +39,7 @@ class SidebarTreeRowView final : public views::View,
   METADATA_HEADER(SidebarTreeRowView, views::View)
 
  public:
-  static constexpr int kRowHeight = visual_style::kTreeRowHeight;
+  static constexpr int kRowHeight = visual_style::kSidebarTabRowHeight;
   static constexpr int kIndentWidth = visual_style::kTreeIndent;
 
   SidebarTreeRowView(SidebarTreeView* owner, std::u16string split_with_prefix);

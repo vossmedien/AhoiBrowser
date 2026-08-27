@@ -31,6 +31,12 @@ class PrefService;
 
 namespace ahoi {
 
+// Only a non-modal bubble anchored inside the toolbar owns a navigation
+// visibility lease. Page/split child widgets are deliberately excluded.
+bool IsToolbarAnchoredNavigationBubble(bool is_modal,
+                                       const views::View* anchor_view,
+                                       const views::View* toolbar);
+
 // Window-local Views adapter for NavigationSurfaceState. The browser layout
 // still owns the ToolbarView bounds; this controller owns only presentation,
 // reveal hit testing and interaction leases.

@@ -150,6 +150,12 @@ bool ActivateRelativeBrowserWorkspace(views::View* sidebar_host, int delta) {
   return host && host->ActivateRelativeWorkspace(delta);
 }
 
+bool ActivateRelativeBrowserWorkspaceByGesture(views::View* sidebar_host,
+                                               int delta) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->ActivateRelativeWorkspaceByGesture(delta);
+}
+
 bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->ActivateRelativeRuntimeTab(delta);

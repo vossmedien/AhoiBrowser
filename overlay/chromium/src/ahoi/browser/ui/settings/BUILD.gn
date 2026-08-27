@@ -4,6 +4,22 @@
 import("//testing/test.gni")
 
 if (!is_android) {
+  source_set("settings_browser_tests") {
+    testonly = true
+    defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+    sources = [ "ahoi_settings_browsertest.cc" ]
+    deps = [
+      "//ahoi/browser/developer_toolkit:developer_toolkit_preferences",
+      "//base",
+      "//chrome/browser",
+      "//chrome/browser/ui",
+      "//chrome/test:test_support",
+      "//components/prefs",
+      "//content/test:test_support",
+      "//testing/gtest",
+    ]
+  }
+
   test("ahoi_settings_private_unittests") {
     sources = [ "settings_private_prefs_unittest.cc" ]
 
@@ -24,5 +40,14 @@ if (!is_android) {
     if (is_mac) {
       data_deps = [ "//third_party/sparkle:sparkle_framework_test_runtime" ]
     }
+  }
+
+  test("ahoi_settings_browsertests") {
+    deps = [
+      ":settings_browser_tests",
+      "//chrome:packed_resources",
+      "//chrome/test:browser_tests_runner",
+      "//chrome/test:test_support",
+    ]
   }
 }

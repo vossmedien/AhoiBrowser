@@ -142,11 +142,18 @@ bool BrowserSidebarHostView::CanDropOnRuntimeTab(
   } else {
     source = FindTemporaryTab(*source_runtime_handle);
   }
-  if (!source || source == target.get() ||
+  if (!source ||
       session_bridge_->FindTabStripModelForTab(source) != tab_strip_model_ ||
       session_bridge_->FindTabStripModelForTab(target.get()) !=
           tab_strip_model_) {
     return false;
+  }
+
+  // Dropping onto the outer edge of the source pane is the only universally
+  // available detach target: an all-temporary split may have no ordinary row
+  // or saved-tree destination. Keep the center reserved for pane reordering.
+  if (source == target.get()) {
+    return CanDetachRuntimeSplitPaneOnSelfDrop(source->IsSplit(), position);
   }
 
   if (position != OpenTabDropPosition::kSplit) {
@@ -211,7 +218,14 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
     return created;
   }
 
-  if (source_node_id.has_value() && !MakeSavedPageTemporary(*source_node_id)) {
+  // A saved segment in a mixed composite row still owns its durable node.
+  // Pulling it out of its own split must only change Chromium split
+  // membership; it is not a move into the temporary section.
+  const bool extracting_from_same_split =
+      source->GetSplit().has_value() &&
+      source->GetSplit() == target->GetSplit();
+  if (source_node_id.has_value() && !extracting_from_same_split &&
+      !MakeSavedPageTemporary(*source_node_id)) {
     return false;
   }
   if (source->IsSplit() &&

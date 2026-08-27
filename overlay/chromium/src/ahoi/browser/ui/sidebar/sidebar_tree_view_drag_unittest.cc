@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h"
+#include "ahoi/browser/ui/visual_style.h"
+#include "ui/views/view_test_api.h"
 
 namespace ahoi::sidebar {
 
@@ -33,6 +36,79 @@ TEST_F(SidebarTreeViewTest, RenameCommitsThroughControllerAndStore) {
             store_.GetNode(page.id, &stored));
   EXPECT_EQ(u"New title", stored.title);
   EXPECT_FALSE(row->is_editing());
+}
+
+TEST_F(SidebarTreeViewTest,
+       SuppressedRuntimeProxyRejectsStaleSelectionActions) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode page =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Mixed saved", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(page));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->SelectNode(page.id));
+
+  auto view = NewTreeView();
+  view->SetRuntimeCompositeSuppressedNodes({page.id});
+  EXPECT_FALSE(controller_->view_model().selected_node_id().has_value());
+  ASSERT_TRUE(controller_->SelectNode(page.id));
+  view->SetRuntimeCompositeSuppressedNodes({page.id});
+  EXPECT_FALSE(controller_->view_model().selected_node_id().has_value());
+
+  ASSERT_TRUE(controller_->SelectNode(page.id));
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_RETURN, ui::EF_NONE)));
+  EXPECT_FALSE(delegate_.activated_node.has_value());
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_F2, ui::EF_NONE)));
+  EXPECT_FALSE(view->editing_node_id_for_testing().has_value());
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_DELETE, ui::EF_NONE)));
+  tab_tree::TreeNode stored;
+  EXPECT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetNode(page.id, &stored));
+}
+
+TEST_F(SidebarTreeViewTest,
+       EmptySavedTreeExposesAndClearsDragTargetPresentation) {
+  tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+
+  auto view = NewTreeView();
+  ASSERT_TRUE(controller_->view_model().rows().empty());
+  EXPECT_EQ(visual_style::kSidebarTabRowHeight,
+            view->GetPreferredSize().height());
+
+  views::ViewTestApi view_test_api(view.get());
+  view_test_api.ClearNeedsPaint();
+  view->SetDragTargetVisible(true);
+  EXPECT_TRUE(view->drag_target_visible_for_testing());
+  EXPECT_FALSE(view->drag_target_accepting_for_testing());
+  EXPECT_TRUE(view_test_api.needs_paint());
+
+  view_test_api.ClearNeedsPaint();
+  SidebarTreeView::DropIndicator root_indicator;
+  root_indicator.source_runtime_tab_handle = 7;
+  view->SetDropIndicatorForTesting(root_indicator);
+  EXPECT_TRUE(view->drag_target_accepting_for_testing());
+  ASSERT_TRUE(view->drop_indicator_for_testing().has_value());
+  EXPECT_FALSE(view->drop_indicator_for_testing()->target_node_id.has_value());
+  EXPECT_TRUE(view_test_api.needs_paint());
+
+  view_test_api.ClearNeedsPaint();
+  view->SetDragTargetVisible(false);
+  EXPECT_FALSE(view->drag_target_visible_for_testing());
+  EXPECT_FALSE(view->drag_target_accepting_for_testing());
+  EXPECT_FALSE(view->drop_indicator_for_testing().has_value());
+  EXPECT_TRUE(view_test_api.needs_paint());
+  EXPECT_EQ(visual_style::kSidebarTabRowHeight,
+            view->GetPreferredSize().height());
 }
 
 TEST_F(SidebarTreeViewTest, DropZonesValidateAndPaintBeforeInsideAfter) {
@@ -302,6 +378,76 @@ TEST_F(SidebarTreeViewTest, SavedSplitPaneDropReordersTargetedGridSegment) {
 }
 
 TEST_F(SidebarTreeViewTest,
+       SavedSplitPaneDropOnItsOwnGridEdgeExtractsThatPane) {
+  tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode first =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"First", "a");
+  tab_tree::TreeNode second =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Second", "b");
+  tab_tree::TreeNode third =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Third", "c");
+  tab_tree::TreeNode fourth =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Fourth", "d");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(first));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(second));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(third));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(fourth));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  delegate_.split_groups = {{first.id, second.id, third.id, fourth.id}};
+  delegate_.split_visual_data = split_tabs::SplitTabVisualData::ForFourPane(
+      split_tabs::SplitTabLayout::kSideBySide);
+  delegate_.can_extract_saved_split = true;
+  delegate_.extract_saved_split_succeeds = true;
+
+  auto view = NewTreeView();
+  const int split_height = GetSplitRowPreferredHeight(
+      4, *delegate_.split_visual_data, SidebarTreeRowView::kRowHeight);
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, split_height));
+  SidebarTreeRowView* source_row =
+      view->GetMaterializedRowForTesting(fourth.id);
+  ASSERT_NE(nullptr, source_row);
+
+  // The fourth pane starts on the second visual row. Its own top edge is a
+  // detach target; calculating against the outer split row would incorrectly
+  // classify this same point as an inside/reorder drop.
+  const gfx::Point detach_point(source_row->bounds().CenterPoint().x(),
+                                source_row->y() + 1);
+  const auto indicator = view->CalculateDropIndicatorForTesting(
+      fourth.id, detach_point, SidebarTreeController::DropOperation::kMove);
+  ASSERT_TRUE(indicator.has_value());
+  EXPECT_EQ(fourth.id, indicator->target_node_id);
+  EXPECT_EQ(SidebarTreeController::DropPosition::kBefore, indicator->position);
+  EXPECT_EQ(SidebarTreeView::DropIndicator::Action::kExtractSplitPane,
+            indicator->action);
+
+  ui::OSExchangeData drag_data;
+  view->WriteDragDataForView(source_row, gfx::Point(30, 1), &drag_data);
+  const gfx::PointF detach_point_f(detach_point);
+  ui::DropTargetEvent drop_event(drag_data, detach_point_f, detach_point_f,
+                                 ui::DragDropTypes::DRAG_MOVE);
+  EXPECT_EQ(static_cast<int>(ui::mojom::DragOperation::kMove),
+            view->OnDragUpdated(drop_event));
+  views::View::DropCallback drop_callback = view->GetDropCallback(drop_event);
+  ASSERT_TRUE(drop_callback);
+  ui::mojom::DragOperation output_operation = ui::mojom::DragOperation::kNone;
+  std::move(drop_callback)
+      .Run(drop_event, output_operation,
+           /*drag_image_layer_owner=*/nullptr);
+
+  EXPECT_EQ(ui::mojom::DragOperation::kMove, output_operation);
+  EXPECT_TRUE(delegate_.reorder_split_requests.empty());
+  ASSERT_EQ(1u, delegate_.extracted_split_requests.size());
+  EXPECT_EQ(fourth.id, delegate_.extracted_split_requests.front());
+}
+
+TEST_F(SidebarTreeViewTest,
        SavedSplitPaneDropOnOrdinaryTargetMovesOnlyExtractedPane) {
   tab_tree::Workspace workspace = MakeWorkspace();
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
@@ -321,6 +467,7 @@ TEST_F(SidebarTreeViewTest,
             controller_->ActivateWorkspace(workspace.id));
   delegate_.split_groups = {{source.id, sibling.id}};
   delegate_.can_extract_saved_split = true;
+  delegate_.extract_saved_split_succeeds = true;
 
   auto view = NewTreeView();
   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
@@ -353,6 +500,117 @@ TEST_F(SidebarTreeViewTest,
             store_.GetNode(sibling.id, &untouched_sibling));
   EXPECT_EQ(folder.id, moved_source.parent_id);
   EXPECT_FALSE(untouched_sibling.parent_id.has_value());
+}
+
+TEST_F(SidebarTreeViewTest,
+       FailedSavedSplitExtractionRollsBackOrdinaryTargetMove) {
+  tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode source =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Source", "a");
+  tab_tree::TreeNode sibling =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Sibling", "b");
+  tab_tree::TreeNode folder = MakeNode(
+      workspace, std::nullopt, tab_tree::TreeNodeType::kFolder, u"Folder", "c");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(sibling));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->SelectNode(sibling.id));
+  delegate_.split_groups = {{source.id, sibling.id}};
+  delegate_.can_extract_saved_split = true;
+  delegate_.extract_saved_split_succeeds = false;
+
+  auto view = NewTreeView();
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+  SidebarTreeRowView* source_row =
+      view->GetMaterializedRowForTesting(source.id);
+  ASSERT_NE(nullptr, source_row);
+  ui::OSExchangeData drag_data;
+  view->WriteDragDataForView(source_row, gfx::Point(30, 16), &drag_data);
+  const gfx::PointF folder_center(
+      120, SidebarTreeRowView::kRowHeight + SidebarTreeRowView::kRowHeight / 2);
+  ui::DropTargetEvent drop_event(drag_data, folder_center, folder_center,
+                                 ui::DragDropTypes::DRAG_MOVE);
+  EXPECT_EQ(static_cast<int>(ui::mojom::DragOperation::kMove),
+            view->OnDragUpdated(drop_event));
+  views::View::DropCallback drop_callback = view->GetDropCallback(drop_event);
+  ASSERT_TRUE(drop_callback);
+  ui::mojom::DragOperation output_operation = ui::mojom::DragOperation::kMove;
+  std::move(drop_callback)
+      .Run(drop_event, output_operation,
+           /*drag_image_layer_owner=*/nullptr);
+
+  EXPECT_EQ(ui::mojom::DragOperation::kNone, output_operation);
+  ASSERT_EQ(1u, delegate_.extracted_split_requests.size());
+  EXPECT_EQ(source.id, delegate_.extracted_split_requests.front());
+  tab_tree::TreeNode restored_source;
+  tab_tree::TreeNode untouched_sibling;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetNode(source.id, &restored_source));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetNode(sibling.id, &untouched_sibling));
+  EXPECT_EQ(source, restored_source);
+  EXPECT_FALSE(untouched_sibling.parent_id.has_value());
+  EXPECT_EQ(sibling.id, controller_->view_model().selected_node_id());
+  std::vector<tab_tree::TreeNode> folder_children;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetChildren(workspace.id, folder.id, &folder_children));
+  EXPECT_TRUE(folder_children.empty());
+  std::vector<tab_tree::TreeNode> root_children;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetChildren(workspace.id, std::nullopt, &root_children));
+  EXPECT_EQ((std::vector<tab_tree::TreeNode>{source, sibling, folder}),
+            root_children);
+}
+
+TEST_F(SidebarTreeViewTest,
+       SavedSplitExtractionCallbackFailsClosedWhenStateChanges) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode source =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Source", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  auto view = NewTreeView();
+  SidebarTreeView::DropIndicator indicator;
+  indicator.source_node_id = source.id;
+  indicator.target_node_id = source.id;
+  indicator.position = SidebarTreeController::DropPosition::kBefore;
+  indicator.action = SidebarTreeView::DropIndicator::Action::kExtractSplitPane;
+  ui::OSExchangeData drag_data;
+  const gfx::PointF point;
+  ui::DropTargetEvent drop_event(drag_data, point, point,
+                                 ui::DragDropTypes::DRAG_MOVE);
+
+  delegate_.can_extract_saved_split = true;
+  view->SetDropIndicatorForTesting(indicator);
+  views::View::DropCallback stale_callback = view->GetDropCallback(drop_event);
+  delegate_.can_extract_saved_split = false;
+  ui::mojom::DragOperation output_operation = ui::mojom::DragOperation::kMove;
+  std::move(stale_callback)
+      .Run(drop_event, output_operation,
+           /*drag_image_layer_owner=*/nullptr);
+  EXPECT_EQ(ui::mojom::DragOperation::kNone, output_operation);
+  EXPECT_TRUE(delegate_.extracted_split_requests.empty());
+
+  delegate_.can_extract_saved_split = true;
+  view->SetDropIndicatorForTesting(indicator);
+  views::View::DropCallback failed_callback = view->GetDropCallback(drop_event);
+  output_operation = ui::mojom::DragOperation::kMove;
+  std::move(failed_callback)
+      .Run(drop_event, output_operation,
+           /*drag_image_layer_owner=*/nullptr);
+  EXPECT_EQ(ui::mojom::DragOperation::kNone, output_operation);
+  ASSERT_EQ(1u, delegate_.extracted_split_requests.size());
+  EXPECT_EQ(source.id, delegate_.extracted_split_requests.front());
 }
 
 TEST_F(SidebarTreeViewTest,
@@ -394,6 +652,53 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_EQ(1u, delegate_.reorder_temporary_split_requests.size());
   EXPECT_EQ(std::make_pair(123, target.id),
             delegate_.reorder_temporary_split_requests.front());
+}
+
+TEST_F(SidebarTreeViewTest, NativeDragAndOutsideReleaseDoNotActivateRow) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode first =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"First", "a");
+  const tab_tree::TreeNode second =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Second", "b");
+
+  auto view = NewTreeView();
+  auto& model = controller_->view_model();
+  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
+  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {first, second}));
+  ASSERT_TRUE(controller_->SelectNode(first.id));
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+
+  SidebarTreeRowView* second_row =
+      view->GetMaterializedRowForTesting(second.id);
+  ASSERT_NE(nullptr, second_row);
+  const gfx::Point click_point(80, SidebarTreeRowView::kRowHeight / 2);
+  ui::MouseEvent press(ui::EventType::kMousePressed, click_point, click_point,
+                       base::TimeTicks::Now(), ui::EF_LEFT_MOUSE_BUTTON,
+                       ui::EF_LEFT_MOUSE_BUTTON);
+  ui::MouseEvent release(ui::EventType::kMouseReleased, click_point,
+                         click_point, base::TimeTicks::Now(),
+                         ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
+
+  ASSERT_TRUE(second_row->OnMousePressed(press));
+  ui::OSExchangeData drag_data;
+  view->WriteDragDataForView(second_row, click_point, &drag_data);
+  second_row->OnMouseReleased(release);
+  EXPECT_EQ(first.id, model.selected_node_id());
+  EXPECT_FALSE(delegate_.activated_node.has_value());
+  EXPECT_EQ(second.id, drag::ReadSavedSidebarTabDragPayload(drag_data));
+  second_row->OnDragDone();
+
+  const gfx::Point outside_point(-20, click_point.y());
+  ui::MouseEvent outside_release(ui::EventType::kMouseReleased, outside_point,
+                                 outside_point, base::TimeTicks::Now(),
+                                 ui::EF_LEFT_MOUSE_BUTTON,
+                                 ui::EF_LEFT_MOUSE_BUTTON);
+  ASSERT_TRUE(second_row->OnMousePressed(press));
+  second_row->OnMouseReleased(outside_release);
+  EXPECT_EQ(first.id, model.selected_node_id());
+  EXPECT_FALSE(delegate_.activated_node.has_value());
 }
 
 TEST(SidebarTreeViewRangeTest, AddsBoundedOverscanAtBothEdges) {

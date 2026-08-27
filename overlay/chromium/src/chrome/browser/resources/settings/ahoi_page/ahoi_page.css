@@ -1,0 +1,29 @@
+/* Copyright 2026 The AhoiBrowser Authors
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* #css_wrapper_metadata_start
+ * #type=style-lit
+ * #import=../settings_shared_lit.css.js
+ * #include=settings-shared-lit
+ * #css_wrapper_metadata_end */
+
+cr-view-manager [hidden-by-search] {
+  display: none;
+}
+
+.section-heading {
+  padding-block: 18px 8px;
+}
+
+.section-heading:first-child {
+  padding-top: 12px;
+}
+
+.sync-explanation {
+  align-items: flex-start;
+  padding-block: 12px;
+}
+
+.sync-explanation .secondary {
+  margin-top: 4px;
+}

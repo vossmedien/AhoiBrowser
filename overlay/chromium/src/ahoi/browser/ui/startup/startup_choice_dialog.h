@@ -34,6 +34,7 @@ using StartupChoiceCallback =
                                            StartupChoiceCallback callback);
 
 views::Widget* GetStartupChoiceDialogForTesting();
+bool SetRememberStartupChoiceForTesting(bool remember);
 
 }  // namespace ahoi::startup
 

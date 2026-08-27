@@ -7,6 +7,7 @@
 #include <optional>
 #include <vector>
 
+#include "base/check.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
@@ -51,41 +52,43 @@ bool ExtractTabFromSplitPreservingRemainder(TabStripModel* tab_strip_model,
       *split_data->visual_data();
   std::vector<tabs::TabInterface*> remaining;
   remaining.reserve(panes.size() - 1u);
+  std::vector<int> remaining_indices;
+  remaining_indices.reserve(panes.size() - 1u);
   for (tabs::TabInterface* pane : panes) {
-    if (!pane || tab_strip_model->GetIndexOfTab(pane) < 0) {
+    const int pane_index = pane ? tab_strip_model->GetIndexOfTab(pane) : -1;
+    if (pane_index < 0) {
       return false;
     }
     if (pane != source) {
       remaining.push_back(pane);
+      remaining_indices.push_back(pane_index);
     }
   }
+  std::ranges::sort(remaining_indices);
 
-  // Both mutations operate solely on TabInterface membership. The strong
-  // pointers above let us prove that no close, navigation or replacement
-  // enters this extraction path.
+  // Complete every fallible lookup before the first mutation. Both operations
+  // below are synchronous TabStripModel membership mutations with hard input
+  // contracts, so returning false can never expose a partially updated split.
   tab_strip_model->RemoveSplit(split_id);
   if (remaining.size() >= 2u) {
-    std::vector<int> remaining_indices;
-    remaining_indices.reserve(remaining.size());
-    for (tabs::TabInterface* pane : remaining) {
-      remaining_indices.push_back(tab_strip_model->GetIndexOfTab(pane));
-    }
-    std::ranges::sort(remaining_indices);
     tab_strip_model->RestoreSplit(
         split_id, remaining_indices,
         VisualDataForRemainingPanes(remaining.size(), previous_visual_data));
   }
 
-  if (source->GetSplit().has_value()) {
-    return false;
-  }
+  CHECK(!source->GetSplit().has_value());
   if (remaining.size() < 2u) {
-    return remaining.empty() || !remaining.front()->GetSplit().has_value();
+    CHECK(remaining.empty() || !remaining.front()->GetSplit().has_value());
+  } else {
+    const bool remainder_restored =
+        std::ranges::all_of(remaining, [split_id](tabs::TabInterface* pane) {
+          const std::optional<split_tabs::SplitTabId> pane_split =
+              pane->GetSplit();
+          return pane_split.has_value() && *pane_split == split_id;
+        });
+    CHECK(remainder_restored);
   }
-  return std::ranges::all_of(remaining, [split_id](tabs::TabInterface* pane) {
-    const std::optional<split_tabs::SplitTabId> pane_split = pane->GetSplit();
-    return pane_split.has_value() && *pane_split == split_id;
-  });
+  return true;
 }
 
 }  // namespace ahoi::sidebar

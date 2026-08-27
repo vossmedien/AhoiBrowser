@@ -21,6 +21,10 @@ namespace tabs {
 class TabInterface;
 }
 
+namespace ui {
+class OSExchangeData;
+}
+
 namespace views {
 class ContextMenuController;
 class View;
@@ -34,10 +38,25 @@ enum class OpenTabDropPosition {
   kAfter,
 };
 
+// A pane can be detached without a second target row by dropping it on either
+// outer edge of its own runtime segment. The center remains the reorder/split
+// target and a non-split tab has nothing to detach.
+bool CanDetachRuntimeSplitPaneOnSelfDrop(bool source_is_split,
+                                         OpenTabDropPosition position);
+
+// A composite segment keeps its durable saved-node identity when available;
+// only genuinely temporary panes use Chromium's process-local tab handle.
+void WriteOpenTabDragPayload(ui::OSExchangeData* data,
+                             std::optional<base::Uuid> saved_node_id,
+                             int runtime_tab_handle,
+                             const std::u16string& fallback_title);
+
 using RuntimeTabCallback =
     base::RepeatingCallback<void(base::WeakPtr<tabs::TabInterface>)>;
 using RuntimeTabDragStateCallback =
     base::RepeatingCallback<void(std::optional<int>)>;
+using SavedTabDragStateCallback =
+    base::RepeatingCallback<void(std::optional<base::Uuid>)>;
 using CanDropOnRuntimeTabCallback =
     base::RepeatingCallback<bool(std::optional<base::Uuid>,
                                  std::optional<int>,
@@ -53,6 +72,7 @@ ui::ImageModel GetLiveTabFavicon(tabs::TabInterface* tab);
 
 std::unique_ptr<views::View> CreateOpenTabRowView(
     tabs::TabInterface* tab,
+    std::optional<base::Uuid> saved_node_id,
     ui::ImageModel favicon,
     std::vector<gfx::ImageSkia> drag_thumbnails,
     std::optional<tabs::TabAlert> media_alert,
@@ -61,12 +81,14 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     bool sleeping,
     RuntimeTabCallback activate_callback,
     RuntimeTabCallback close_callback,
+    SavedTabDragStateCallback saved_drag_state_callback,
     RuntimeTabDragStateCallback drag_state_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller);
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view);
+std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view);
 
 std::unique_ptr<views::View> CreateOpenTabSplitRowView(
     std::vector<std::unique_ptr<views::View>> tabs,
@@ -77,6 +99,8 @@ using DropSavedNodeToTemporaryCallback =
 std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
     DropSavedNodeToTemporaryCallback callback);
 void SetOpenTabsDropTargetAcceptingSavedTab(views::View* view, bool accepting);
+bool IsOpenTabsDropTargetAcceptingSavedTabForTesting(const views::View* view);
+bool IsOpenTabsDropTargetHighlightedForTesting(const views::View* view);
 
 using CreateGroupForSavedNodeCallback =
     base::RepeatingCallback<void(const base::Uuid&)>;

@@ -16,6 +16,9 @@
 #include "ui/base/interaction/element_identifier.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/models/dialog_model.h"
+#include "ui/views/controls/button/button_controller.h"
+#include "ui/views/controls/button/checkbox.h"
+#include "ui/views/interaction/element_tracker_views.h"
 #include "ui/views/widget/widget.h"
 
 namespace ahoi::startup {
@@ -117,6 +120,24 @@ bool ShowStartupChoiceDialog(BrowserWindowInterface* browser,
 
 views::Widget* GetStartupChoiceDialogForTesting() {
   return g_dialog_for_testing;
+}
+
+bool SetRememberStartupChoiceForTesting(bool remember) {
+  if (!g_dialog_for_testing) {
+    return false;
+  }
+  const ui::ElementContext context =
+      views::ElementTrackerViews::GetContextForWidget(g_dialog_for_testing);
+  views::Checkbox* checkbox = views::ElementTrackerViews::GetInstance()
+                                  ->GetUniqueViewAs<views::Checkbox>(
+                                      kRememberStartupChoiceCheckbox, context);
+  if (!checkbox) {
+    return false;
+  }
+  if (checkbox->GetChecked() != remember) {
+    checkbox->button_controller()->NotifyClick();
+  }
+  return checkbox->GetChecked() == remember;
 }
 
 }  // namespace ahoi::startup

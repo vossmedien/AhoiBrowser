@@ -47,6 +47,10 @@ bool UndoBrowserSidebarMutation(views::View* sidebar_host);
 // Global browser accelerators use these narrow entry points so the actual
 // workspace/session behavior remains owned by the native sidebar host.
 bool ActivateRelativeBrowserWorkspace(views::View* sidebar_host, int delta);
+// Gesture entry point stays separate so WorkspaceService observers receive the
+// truthful source while keyboard commands keep their existing semantics.
+bool ActivateRelativeBrowserWorkspaceByGesture(views::View* sidebar_host,
+                                               int delta);
 // Cycles through live tabs that belong to the currently active workspace.
 // This deliberately does not use TabStripModel's global next/previous helpers,
 // because one native tab strip backs every Ahoi workspace.

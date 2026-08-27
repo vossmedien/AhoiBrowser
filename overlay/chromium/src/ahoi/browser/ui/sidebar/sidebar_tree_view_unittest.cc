@@ -1,7 +1,7 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h"
 #include "ui/gfx/animation/animation_test_api.h"
 #include "ui/gfx/scoped_animation_duration_scale_mode.h"
@@ -32,9 +32,9 @@ TEST_F(SidebarTreeViewTest,
   const tab_tree::Workspace workspace = MakeWorkspace();
   std::vector<tab_tree::TreeNode> pages;
   for (int index = 0; index < 8; ++index) {
-    pages.push_back(MakeNode(
-        workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-        u"Saved page", std::to_string(index)));
+    pages.push_back(MakeNode(workspace, std::nullopt,
+                             tab_tree::TreeNodeType::kSavedPage, u"Saved page",
+                             std::to_string(index)));
   }
 
   auto tree = NewTreeView();
@@ -47,8 +47,7 @@ TEST_F(SidebarTreeViewTest,
 
   auto scroll = SidebarTreeView::CreateScrollView(std::move(tree));
   views::ScrollView* const scroll_ptr = scroll.get();
-  auto widget =
-      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
   views::View* const viewport =
       widget->SetContentsView(std::make_unique<views::View>());
   viewport->AddChildView(std::move(scroll));
@@ -77,6 +76,45 @@ TEST_F(SidebarTreeViewTest, DefersWidthToResizableSidebarViewport) {
   SidebarTreeRowView* row = view->GetMaterializedRowForTesting(page.id);
   ASSERT_NE(nullptr, row);
   EXPECT_EQ(188, row->width());
+}
+
+TEST_F(SidebarTreeViewTest,
+       RuntimeCompositeSuppressesOnlySavedPresentationProxy) {
+  gfx::ScopedAnimationDurationScaleMode disable_animations(
+      gfx::ScopedAnimationDurationScaleMode::ZERO_DURATION);
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode first =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"First", "a");
+  const tab_tree::TreeNode mixed_saved =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Mixed saved", "b");
+  const tab_tree::TreeNode third =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Third", "c");
+  auto view = NewTreeView();
+  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->view_model().ReplaceChildren(
+      std::nullopt, {first, mixed_saved, third}));
+  ASSERT_TRUE(controller_->SelectNode(mixed_saved.id));
+
+  view->SetRuntimeCompositeSuppressedNodes({mixed_saved.id});
+  EXPECT_FALSE(controller_->view_model().selected_node_id().has_value());
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 128));
+  EXPECT_EQ(3U, controller_->view_model().rows().size());
+  EXPECT_NE(nullptr, view->GetMaterializedRowForTesting(first.id));
+  EXPECT_EQ(nullptr, view->GetMaterializedRowForTesting(mixed_saved.id));
+  SidebarTreeRowView* third_row = view->GetMaterializedRowForTesting(third.id);
+  ASSERT_NE(nullptr, third_row);
+  EXPECT_EQ(SidebarTreeRowView::kRowHeight, third_row->y());
+  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight,
+            view->GetPreferredSize().height());
+
+  view->SetRuntimeCompositeSuppressedNodes({});
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 128));
+  EXPECT_NE(nullptr, view->GetMaterializedRowForTesting(mixed_saved.id));
+  EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight,
+            view->GetPreferredSize().height());
 }
 
 TEST_F(SidebarTreeViewTest, ExposesLocalizedTabStatusOnSavedPageRows) {
@@ -324,6 +362,81 @@ TEST_F(SidebarTreeViewTest, SavedSplitVisualDataControlsSegmentBounds) {
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, view->GetPreferredSize().height());
 }
 
+TEST_F(SidebarTreeViewTest,
+       ThreeAndFourPaneSavedSplitsReserveReadableMultilineHeight) {
+  gfx::ScopedAnimationDurationScaleMode disable_animations(
+      gfx::ScopedAnimationDurationScaleMode::ZERO_DURATION);
+  tab_tree::Workspace workspace = MakeWorkspace();
+  tab_tree::TreeNode first =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"First", "a");
+  tab_tree::TreeNode second =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Second", "b");
+  tab_tree::TreeNode third =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Third", "c");
+  tab_tree::TreeNode fourth =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Fourth", "d");
+
+  auto view = NewTreeView();
+  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->view_model().ReplaceChildren(
+      std::nullopt, {first, second, third, fourth}));
+
+  delegate_.split_groups = {{first.id, second.id, third.id}};
+  delegate_.split_visual_data = split_tabs::SplitTabVisualData::ForThreePane(
+      split_tabs::SplitTabLayout::kSideBySide,
+      split_tabs::SplitTabArrangement::kMainStart);
+  const int three_pane_height = GetSplitRowPreferredHeight(
+      3, *delegate_.split_visual_data, SidebarTreeRowView::kRowHeight);
+  view->OnSplitGroupsChanged();
+  view->SynchronizeRowsForTesting(
+      gfx::Rect(0, 0, 240, three_pane_height + SidebarTreeRowView::kRowHeight));
+
+  SidebarTreeRowView* first_row = view->GetMaterializedRowForTesting(first.id);
+  SidebarTreeRowView* second_row =
+      view->GetMaterializedRowForTesting(second.id);
+  SidebarTreeRowView* third_row = view->GetMaterializedRowForTesting(third.id);
+  SidebarTreeRowView* fourth_row =
+      view->GetMaterializedRowForTesting(fourth.id);
+  ASSERT_NE(nullptr, first_row);
+  ASSERT_NE(nullptr, second_row);
+  ASSERT_NE(nullptr, third_row);
+  ASSERT_NE(nullptr, fourth_row);
+  EXPECT_EQ(three_pane_height + SidebarTreeRowView::kRowHeight,
+            view->GetPreferredSize().height());
+  EXPECT_EQ(three_pane_height, first_row->height());
+  EXPECT_LT(second_row->y(), third_row->y());
+  EXPECT_GE(second_row->height(), 24);
+  EXPECT_GE(third_row->height(), 24);
+  EXPECT_EQ(three_pane_height, fourth_row->y());
+
+  delegate_.split_groups = {{first.id, second.id, third.id, fourth.id}};
+  delegate_.split_visual_data = split_tabs::SplitTabVisualData::ForFourPane(
+      split_tabs::SplitTabLayout::kSideBySide);
+  const int four_pane_height = GetSplitRowPreferredHeight(
+      4, *delegate_.split_visual_data, SidebarTreeRowView::kRowHeight);
+  view->OnSplitGroupsChanged();
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, four_pane_height));
+
+  first_row = view->GetMaterializedRowForTesting(first.id);
+  second_row = view->GetMaterializedRowForTesting(second.id);
+  third_row = view->GetMaterializedRowForTesting(third.id);
+  fourth_row = view->GetMaterializedRowForTesting(fourth.id);
+  ASSERT_NE(nullptr, first_row);
+  ASSERT_NE(nullptr, second_row);
+  ASSERT_NE(nullptr, third_row);
+  ASSERT_NE(nullptr, fourth_row);
+  EXPECT_EQ(four_pane_height, view->GetPreferredSize().height());
+  EXPECT_EQ(first_row->y(), second_row->y());
+  EXPECT_EQ(third_row->y(), fourth_row->y());
+  EXPECT_LT(first_row->y(), third_row->y());
+  EXPECT_GE(first_row->height(), 24);
+  EXPECT_GE(fourth_row->height(), 24);
+}
+
 TEST_F(SidebarTreeViewTest, CrossGroupSplitStaysAtDeepestVisibleParent) {
   tab_tree::Workspace workspace = MakeWorkspace();
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
@@ -357,6 +470,35 @@ TEST_F(SidebarTreeViewTest, CrossGroupSplitStaysAtDeepestVisibleParent) {
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, nested_row->y());
   EXPECT_GT(nested_row->x(), 0);
   EXPECT_GT(root_row->x(), 0);
+}
+
+TEST_F(SidebarTreeViewTest,
+       RightArrowSelectsFirstVisibleChildPastRuntimeProxy) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
+  const tab_tree::TreeNode suppressed_child =
+      MakeNode(workspace, folder.id, tab_tree::TreeNodeType::kSavedPage,
+               u"Running split pane", "a");
+  const tab_tree::TreeNode visible_child =
+      MakeNode(workspace, folder.id, tab_tree::TreeNodeType::kSavedPage,
+               u"Visible saved page", "b");
+
+  auto view = NewTreeView();
+  auto& model = controller_->view_model();
+  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
+  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder}));
+  ASSERT_TRUE(
+      model.ReplaceChildren(folder.id, {suppressed_child, visible_child}));
+  ASSERT_TRUE(model.SetExpanded(folder.id, true));
+  ASSERT_TRUE(controller_->SelectNode(folder.id));
+  view->SetRuntimeCompositeSuppressedNodes({suppressed_child.id});
+
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_RIGHT, ui::EF_NONE)));
+  ASSERT_TRUE(model.selected_node_id().has_value());
+  EXPECT_EQ(visible_child.id, *model.selected_node_id());
 }
 
 TEST_F(SidebarTreeViewTest,
@@ -602,53 +744,6 @@ TEST_F(SidebarTreeViewTest, SavedPageSelectsAndActivatesOnlyOnMouseUp) {
   second_row->OnMouseReleased(release);
   EXPECT_EQ(second.id, model.selected_node_id());
   EXPECT_EQ(second.id, delegate_.activated_node);
-}
-
-TEST_F(SidebarTreeViewTest, NativeDragAndOutsideReleaseDoNotActivateRow) {
-  const tab_tree::Workspace workspace = MakeWorkspace();
-  const tab_tree::TreeNode first =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"First", "a");
-  const tab_tree::TreeNode second =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"Second", "b");
-
-  auto view = NewTreeView();
-  auto& model = controller_->view_model();
-  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
-  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {first, second}));
-  ASSERT_TRUE(controller_->SelectNode(first.id));
-  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-
-  SidebarTreeRowView* second_row =
-      view->GetMaterializedRowForTesting(second.id);
-  ASSERT_NE(nullptr, second_row);
-  const gfx::Point click_point(80, SidebarTreeRowView::kRowHeight / 2);
-  ui::MouseEvent press(ui::EventType::kMousePressed, click_point, click_point,
-                       base::TimeTicks::Now(), ui::EF_LEFT_MOUSE_BUTTON,
-                       ui::EF_LEFT_MOUSE_BUTTON);
-  ui::MouseEvent release(ui::EventType::kMouseReleased, click_point,
-                         click_point, base::TimeTicks::Now(),
-                         ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
-
-  ASSERT_TRUE(second_row->OnMousePressed(press));
-  ui::OSExchangeData drag_data;
-  view->WriteDragDataForView(second_row, click_point, &drag_data);
-  second_row->OnMouseReleased(release);
-  EXPECT_EQ(first.id, model.selected_node_id());
-  EXPECT_FALSE(delegate_.activated_node.has_value());
-  EXPECT_EQ(second.id, drag::ReadSavedSidebarTabDragPayload(drag_data));
-  second_row->OnDragDone();
-
-  const gfx::Point outside_point(-20, click_point.y());
-  ui::MouseEvent outside_release(ui::EventType::kMouseReleased, outside_point,
-                                 outside_point, base::TimeTicks::Now(),
-                                 ui::EF_LEFT_MOUSE_BUTTON,
-                                 ui::EF_LEFT_MOUSE_BUTTON);
-  ASSERT_TRUE(second_row->OnMousePressed(press));
-  second_row->OnMouseReleased(outside_release);
-  EXPECT_EQ(first.id, model.selected_node_id());
-  EXPECT_FALSE(delegate_.activated_node.has_value());
 }
 
 TEST_F(SidebarTreeViewTest, SavedPageTrailingActionRequiresRealHover) {

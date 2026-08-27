@@ -48,26 +48,15 @@
 
 namespace ahoi::sidebar {
 
-namespace {
-
-int RowY(size_t row_index) {
-  constexpr size_t kMaxRowIndex =
-      static_cast<size_t>(std::numeric_limits<int>::max()) /
-      SidebarTreeRowView::kRowHeight;
-  return base::saturated_cast<int>(std::min(row_index, kMaxRowIndex) *
-                                   SidebarTreeRowView::kRowHeight);
-}
-
-}  // namespace
-
 void SidebarTreeView::OnBatchUpdateEnded() {
   in_batch_update_ = false;
-  const size_t target_rows = BuildVisualRows().size();
-  if (pending_animation_from_rows_.has_value()) {
-    StartPreferredHeightAnimation(*pending_animation_from_rows_, target_rows);
-    pending_animation_from_rows_.reset();
+  const int target_height = GetVisualRowsHeight(BuildVisualRows());
+  if (pending_animation_from_height_.has_value()) {
+    StartPreferredHeightAnimation(*pending_animation_from_height_,
+                                  target_height);
+    pending_animation_from_height_.reset();
   }
-  last_visual_row_count_ = target_rows;
+  last_visual_height_ = target_height;
   if (synchronization_pending_ || preferred_size_change_pending_) {
     ScheduleSynchronization(preferred_size_change_pending_);
   }
@@ -79,17 +68,17 @@ void SidebarTreeView::OnTreeReset() {
   SetDropIndicator(std::nullopt);
   row_bounds_animator_.Cancel();
   row_bounds_animation_pending_ = false;
-  row_bounds_animation_from_rows_.reset();
+  row_bounds_animation_from_height_.reset();
   preferred_height_animation_.Reset(1.0);
   preferred_height_animation_active_ = false;
-  last_visual_row_count_ = BuildVisualRows().size();
-  pending_animation_from_rows_.reset();
+  last_visual_height_ = GetVisualRowsHeight(BuildVisualRows());
+  pending_animation_from_height_.reset();
   ScheduleSynchronization(/*preferred_size_changed=*/true);
 }
 
 void SidebarTreeView::OnRowsInserted(size_t /*first_row*/, size_t /*count*/) {
   last_drop_probe_.reset();
-  HandleVisualRowCountChanged();
+  HandleVisualLayoutChanged();
   ScheduleSynchronization(/*preferred_size_changed=*/true);
 }
 
@@ -100,7 +89,7 @@ void SidebarTreeView::OnRowsRemoved(size_t /*first_row*/, size_t /*count*/) {
   }
   last_drop_probe_.reset();
   SetDropIndicator(std::nullopt);
-  HandleVisualRowCountChanged();
+  HandleVisualLayoutChanged();
   ScheduleSynchronization(/*preferred_size_changed=*/true);
 }
 
@@ -131,32 +120,27 @@ void SidebarTreeView::OnSelectionChanged(
   UpdateActiveDescendant();
 }
 
-void SidebarTreeView::HandleVisualRowCountChanged() {
-  const size_t target_rows = BuildVisualRows().size();
-  row_bounds_animation_pending_ = target_rows != last_visual_row_count_ &&
+void SidebarTreeView::HandleVisualLayoutChanged() {
+  const int target_height = GetVisualRowsHeight(BuildVisualRows());
+  row_bounds_animation_pending_ = target_height != last_visual_height_ &&
                                   gfx::Animation::ShouldRenderRichAnimation();
-  row_bounds_animation_from_rows_ =
-      row_bounds_animation_pending_ ? std::make_optional(last_visual_row_count_)
+  row_bounds_animation_from_height_ =
+      row_bounds_animation_pending_ ? std::make_optional(last_visual_height_)
                                     : std::nullopt;
   if (in_batch_update_) {
-    if (!pending_animation_from_rows_.has_value()) {
-      pending_animation_from_rows_ = last_visual_row_count_;
+    if (!pending_animation_from_height_.has_value()) {
+      pending_animation_from_height_ = last_visual_height_;
     }
   } else {
-    StartPreferredHeightAnimation(last_visual_row_count_, target_rows);
+    StartPreferredHeightAnimation(last_visual_height_, target_height);
   }
-  last_visual_row_count_ = target_rows;
+  last_visual_height_ = target_height;
 }
 
-void SidebarTreeView::StartPreferredHeightAnimation(size_t from_rows,
-                                                    size_t to_rows) {
-  constexpr size_t kMaxRows =
-      static_cast<size_t>(std::numeric_limits<int>::max()) /
-      SidebarTreeRowView::kRowHeight;
-  animated_height_from_ = base::saturated_cast<int>(
-      std::min(from_rows, kMaxRows) * SidebarTreeRowView::kRowHeight);
-  animated_height_to_ = base::saturated_cast<int>(
-      std::min(to_rows, kMaxRows) * SidebarTreeRowView::kRowHeight);
+void SidebarTreeView::StartPreferredHeightAnimation(int from_height,
+                                                    int to_height) {
+  animated_height_from_ = std::max(from_height, 0);
+  animated_height_to_ = std::max(to_height, 0);
   if (animated_height_from_ == animated_height_to_ ||
       !gfx::Animation::ShouldRenderRichAnimation()) {
     preferred_height_animation_.Reset(1.0);
@@ -232,6 +216,9 @@ std::vector<SidebarTreeView::VisualRow> SidebarTreeView::BuildVisualRows()
   std::unordered_map<base::Uuid, size_t, base::UuidHash> index_by_node;
   index_by_node.reserve(rows.size());
   for (size_t index = 0; index < rows.size(); ++index) {
+    if (runtime_composite_suppressed_nodes_.contains(rows[index].node_id)) {
+      continue;
+    }
     index_by_node.emplace(rows[index].node_id, index);
   }
 
@@ -297,6 +284,9 @@ std::vector<SidebarTreeView::VisualRow> SidebarTreeView::BuildVisualRows()
   std::unordered_set<base::Uuid, base::UuidHash> emitted_nodes;
   emitted_nodes.reserve(rows.size());
   for (const SidebarTreeViewModel::Row& row : rows) {
+    if (runtime_composite_suppressed_nodes_.contains(row.node_id)) {
+      continue;
+    }
     if (emitted_nodes.contains(row.node_id)) {
       continue;
     }
@@ -324,6 +314,18 @@ std::vector<SidebarTreeView::VisualRow> SidebarTreeView::BuildVisualRows()
       emitted_nodes.insert(rows[index].node_id);
     }
   }
+  int next_y = 0;
+  for (VisualRow& visual_row : visual_rows) {
+    visual_row.y = next_y;
+    if (visual_row.model_indices.size() >= 2 &&
+        visual_row.split_visual_data.has_value()) {
+      visual_row.height = GetSplitRowPreferredHeight(
+          visual_row.model_indices.size(), *visual_row.split_visual_data,
+          SidebarTreeRowView::kRowHeight);
+    }
+    next_y = base::saturated_cast<int>(static_cast<int64_t>(next_y) +
+                                       visual_row.height);
+  }
   return visual_rows;
 }
 
@@ -341,22 +343,21 @@ SidebarTreeView::BuildVisualPositions(
       positions[model_index] = {
           .visual_row = visual_index,
           .segment = segment_index,
-          .segment_count = visual_row.model_indices.size()};
+          .segment_count = visual_row.model_indices.size(),
+          .present = true};
     }
   }
   return positions;
 }
 
 gfx::Rect SidebarTreeView::GetSegmentBounds(const VisualRow& visual_row,
-                                            size_t visual_row_index,
                                             size_t segment_index,
                                             int row_width) const {
   CHECK(!visual_row.model_indices.empty());
   CHECK_LT(segment_index, visual_row.model_indices.size());
   const size_t segment_count = visual_row.model_indices.size();
   if (segment_count == 1) {
-    return gfx::Rect(0, RowY(visual_row_index), row_width,
-                     SidebarTreeRowView::kRowHeight);
+    return gfx::Rect(0, visual_row.y, row_width, visual_row.height);
   }
 
   const int group_x = std::min(
@@ -364,8 +365,8 @@ gfx::Rect SidebarTreeView::GetSegmentBounds(const VisualRow& visual_row,
           SidebarTreeRowView::kIndentWidth,
       std::max(row_width - base::saturated_cast<int>(segment_count), 0));
   const int available_width = std::max(row_width - group_x, 1);
-  const gfx::Rect split_bounds(group_x, RowY(visual_row_index), available_width,
-                               SidebarTreeRowView::kRowHeight);
+  const gfx::Rect split_bounds(group_x, visual_row.y, available_width,
+                               visual_row.height);
   if (visual_row.split_visual_data.has_value()) {
     return GetSplitSegmentBounds(split_bounds, segment_index, segment_count,
                                  *visual_row.split_visual_data);
@@ -382,8 +383,7 @@ gfx::Rect SidebarTreeView::GetSegmentBounds(const VisualRow& visual_row,
                 segment * (base_width + visual_style::kSidebarSplitPaneGap) +
                 std::min(segment, remainder);
   const int width = base_width + (segment < remainder ? 1 : 0);
-  return gfx::Rect(x, RowY(visual_row_index), std::max(width, 1),
-                   SidebarTreeRowView::kRowHeight);
+  return gfx::Rect(x, visual_row.y, std::max(width, 1), visual_row.height);
 }
 
 void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
@@ -405,7 +405,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
   const std::vector<VisualPosition> visual_positions =
       BuildVisualPositions(visual_rows);
   const VisibleRange range =
-      CalculateVisibleRange(visual_rows.size(), visible_bounds, kOverscanRows);
+      CalculateVisibleRange(visual_rows, visible_bounds, kOverscanRows);
 
   std::vector<size_t> desired_indices;
   desired_indices.reserve((range.past_last - range.first) * 3U +
@@ -422,7 +422,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
   if (editing_node_id_.has_value()) {
     const std::optional<size_t> editing_index =
         model().GetRowForNode(*editing_node_id_);
-    if (editing_index.has_value()) {
+    if (editing_index.has_value() && visual_positions[*editing_index].present) {
       const VisualRow& editing_visual_row =
           visual_rows[visual_positions[*editing_index].visual_row];
       for (const size_t model_index : editing_visual_row.model_indices) {
@@ -442,7 +442,8 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     }
     const std::optional<size_t> dragged_index =
         model().GetRowForNode(entry.first);
-    if (!dragged_index.has_value()) {
+    if (!dragged_index.has_value() ||
+        !visual_positions[*dragged_index].present) {
       continue;
     }
     const VisualRow& dragged_visual_row =
@@ -507,9 +508,8 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     row->SetSplitDropTarget(is_drop_target &&
                             drop_indicator_->action ==
                                 DropIndicator::Action::kSplit);
-    const gfx::Rect target_bounds =
-        GetSegmentBounds(visual_rows[position.visual_row], position.visual_row,
-                         position.segment, row_width);
+    const gfx::Rect target_bounds = GetSegmentBounds(
+        visual_rows[position.visual_row], position.segment, row_width);
     if (row_bounds_animator_.IsAnimating(row)) {
       if (row_bounds_animator_.GetTargetBounds(row) != target_bounds) {
         if (row_bounds_animation_pending_ && rich_motion) {
@@ -523,10 +523,10 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
       row_bounds_animator_.AnimateViewTo(row, target_bounds);
     } else if (row_bounds_animation_pending_ && rich_motion &&
                !was_materialized &&
-               row_bounds_animation_from_rows_.value_or(0) > 0 &&
+               row_bounds_animation_from_height_.value_or(0) > 0 &&
                position.visual_row > 0) {
       gfx::Rect start_bounds = target_bounds;
-      start_bounds.set_y(RowY(position.visual_row - 1));
+      start_bounds.set_y(visual_rows[position.visual_row - 1].y);
       row->SetBoundsRect(start_bounds);
       row_bounds_animator_.AnimateViewTo(row, target_bounds);
     } else {
@@ -535,7 +535,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     ReorderChildView(row, child_order++);
   }
   row_bounds_animation_pending_ = false;
-  row_bounds_animation_from_rows_.reset();
+  row_bounds_animation_from_height_.reset();
   UpdateActiveDescendant();
 }
 
@@ -581,17 +581,19 @@ void SidebarTreeView::EnsureRowVisible(size_t row_index) {
   const std::vector<VisualRow> visual_rows = BuildVisualRows();
   const std::vector<VisualPosition> positions =
       BuildVisualPositions(visual_rows);
-  if (row_index >= positions.size()) {
+  if (row_index >= positions.size() || !positions[row_index].present) {
     return;
   }
-  ScrollRectToVisible(gfx::Rect(0, RowY(positions[row_index].visual_row),
-                                std::max(width(), 1),
-                                SidebarTreeRowView::kRowHeight));
+  const VisualRow& visual_row = visual_rows[positions[row_index].visual_row];
+  ScrollRectToVisible(
+      gfx::Rect(0, visual_row.y, std::max(width(), 1), visual_row.height));
   SynchronizeRows(GetVisibleBounds());
 }
 
 void SidebarTreeView::SelectRow(size_t row_index) {
-  if (row_index >= model().rows().size()) {
+  if (row_index >= model().rows().size() ||
+      runtime_composite_suppressed_nodes_.contains(
+          model().rows()[row_index].node_id)) {
     return;
   }
   std::ignore = controller_->SelectNode(model().rows()[row_index].node_id);
@@ -604,7 +606,21 @@ void SidebarTreeView::SelectRelativeRow(int delta) {
     return;
   }
   if (!model().selected_node_id().has_value()) {
-    SelectRow(delta < 0 ? rows.size() - 1 : 0);
+    size_t target = delta < 0 ? rows.size() : 0;
+    while (delta < 0 && target > 0) {
+      --target;
+      if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
+        SelectRow(target);
+        return;
+      }
+    }
+    while (delta >= 0 && target < rows.size()) {
+      if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
+        SelectRow(target);
+        return;
+      }
+      ++target;
+    }
     return;
   }
   const std::optional<size_t> selected =
@@ -613,9 +629,21 @@ void SidebarTreeView::SelectRelativeRow(int delta) {
     SelectRow(0);
     return;
   }
-  const size_t target = delta < 0 ? (*selected == 0 ? 0 : *selected - 1)
-                                  : std::min(*selected + 1, rows.size() - 1);
-  SelectRow(target);
+  size_t target = *selected;
+  while (delta < 0 && target > 0) {
+    --target;
+    if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
+      SelectRow(target);
+      return;
+    }
+  }
+  while (delta >= 0 && target + 1 < rows.size()) {
+    ++target;
+    if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
+      SelectRow(target);
+      return;
+    }
+  }
 }
 
 void SidebarTreeView::CollapseOrSelectParent() {
@@ -665,9 +693,17 @@ void SidebarTreeView::ExpandOrSelectChild() {
     }
     return;
   }
-  if (*selected_index + 1 < model().rows().size() &&
-      model().rows()[*selected_index + 1].depth > row.depth) {
-    SelectRow(*selected_index + 1);
+  for (size_t index = *selected_index + 1; index < model().rows().size();
+       ++index) {
+    const auto& child = model().rows()[index];
+    if (child.depth <= row.depth) {
+      return;
+    }
+    if (child.depth == row.depth + 1 &&
+        !runtime_composite_suppressed_nodes_.contains(child.node_id)) {
+      SelectRow(index);
+      return;
+    }
   }
 }
 
@@ -699,19 +735,19 @@ std::optional<base::Uuid> SidebarTreeView::NodeAtPoint(
   if (point.y() < 0) {
     return std::nullopt;
   }
-  const size_t visual_index =
-      static_cast<size_t>(point.y() / SidebarTreeRowView::kRowHeight);
   const std::vector<VisualRow> visual_rows = BuildVisualRows();
-  if (visual_index >= visual_rows.size()) {
+  const std::optional<size_t> visual_index =
+      FindVisualRowAtY(visual_rows, point.y());
+  if (!visual_index.has_value()) {
     return std::nullopt;
   }
-  const VisualRow& visual_row = visual_rows[visual_index];
+  const VisualRow& visual_row = visual_rows[*visual_index];
   size_t closest_segment = 0;
   int closest_distance = std::numeric_limits<int>::max();
   for (size_t segment = 0; segment < visual_row.model_indices.size();
        ++segment) {
-    const gfx::Rect bounds = GetSegmentBounds(visual_row, visual_index, segment,
-                                              std::max(width(), 1));
+    const gfx::Rect bounds =
+        GetSegmentBounds(visual_row, segment, std::max(width(), 1));
     if (bounds.Contains(point)) {
       closest_segment = segment;
       break;

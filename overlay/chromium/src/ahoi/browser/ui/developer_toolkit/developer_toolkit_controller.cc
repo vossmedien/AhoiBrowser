@@ -194,6 +194,19 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
   return true;
 }
 
+bool DeveloperToolkitController::IsSurfaceShowing(
+    DeveloperToolbarSurface surface) const {
+  switch (surface) {
+    case DeveloperToolbarSurface::kToolkit:
+      return bubble_widget_ != nullptr;
+    case DeveloperToolbarSurface::kCookieManager:
+      return cookie_manager_widget_ != nullptr;
+    case DeveloperToolbarSurface::kCacheClear:
+      return cache_status_widget_ != nullptr;
+  }
+  return false;
+}
+
 bool DeveloperToolkitController::CanExecute() const {
   return IsSupportedDeveloperTarget(GetActiveWebContents());
 }
@@ -389,7 +402,7 @@ bool DeveloperToolkitController::ShowCacheClear(views::View* anchor_view) {
     return false;
   }
   if (cache_status_widget_) {
-    cache_status_widget_->Activate();
+    cache_status_widget_->Close();
     return true;
   }
   if (bubble_widget_) {

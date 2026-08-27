@@ -20,7 +20,7 @@ gfx::Rect GetSplitSegmentBounds(
     size_t segment_count,
     const split_tabs::SplitTabVisualData& visual_data);
 
-// Returns a readable row height for a runtime split representation. Layouts
+// Returns a readable row height for any sidebar split representation. Layouts
 // with panes on multiple visual rows grow just enough to keep every segment
 // usable instead of squeezing a full tab row into a few pixels.
 int GetSplitRowPreferredHeight(

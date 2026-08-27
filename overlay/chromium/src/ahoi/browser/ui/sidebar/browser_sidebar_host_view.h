@@ -30,6 +30,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
+#include "ahoi/browser/ui/sidebar/workspace_transition_animator.h"
 #include "base/callback_list.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -69,7 +70,6 @@ class ImageButton;
 class LabelButton;
 class MenuRunner;
 class ScrollView;
-class Separator;
 class Textfield;
 class Widget;
 }  // namespace views
@@ -179,6 +179,8 @@ class BrowserSidebarHostView final : public views::View,
 
   bool ActivateRelativeWorkspace(int delta);
 
+  bool ActivateRelativeWorkspaceByGesture(int delta);
+
   bool ActivateRelativeRuntimeTab(int delta);
 
   bool ActivateWorkspaceAtIndex(size_t index);
@@ -230,6 +232,14 @@ class BrowserSidebarHostView final : public views::View,
   void ActivateInitialWorkspace();
 
   void ActivateWorkspace(const base::Uuid& workspace_id);
+
+  bool ActivateRelativeWorkspaceWithTransition(
+      int delta,
+      WorkspaceActivationSource source);
+
+  void StartWorkspaceTransition(int delta);
+
+  void CancelWorkspaceTransition();
 
   void UpdateWorkspaceSelectorIndicators();
 
@@ -385,7 +395,7 @@ class BrowserSidebarHostView final : public views::View,
       const base::Uuid& source_node_id,
       const std::optional<base::Uuid>& target_node_id) const override;
 
-  void ExtractSavedSplitPaneAfterDrop(
+  bool ExtractSavedSplitPaneAfterDrop(
       const base::Uuid& source_node_id) override;
 
   bool CanSaveTemporaryTab(
@@ -569,6 +579,8 @@ class BrowserSidebarHostView final : public views::View,
   raw_ptr<TabStripModel> tab_strip_model_ = nullptr;
   std::optional<base::Uuid> window_id_;
   std::map<base::Uuid, int> last_active_tab_handles_;
+  WorkspaceTransitionAnimator workspace_transition_animator_;
+  bool reduced_motion_ = false;
   std::unique_ptr<SidebarTreeController> controller_;
   raw_ptr<SidebarTreeView> tree_view_ = nullptr;
   raw_ptr<views::Button> workspace_button_ = nullptr;
@@ -576,7 +588,6 @@ class BrowserSidebarHostView final : public views::View,
   raw_ptr<SidebarMediaOverlayView> media_overlay_view_ = nullptr;
   raw_ptr<views::View> sidebar_actions_ = nullptr;
   raw_ptr<views::View> open_tabs_header_ = nullptr;
-  raw_ptr<views::Separator> open_tabs_separator_ = nullptr;
   raw_ptr<views::View> open_tabs_container_ = nullptr;
   raw_ptr<views::View> remote_tabs_header_ = nullptr;
   raw_ptr<views::View> remote_tabs_container_ = nullptr;

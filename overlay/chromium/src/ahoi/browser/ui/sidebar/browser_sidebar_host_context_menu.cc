@@ -131,6 +131,13 @@ void BrowserSidebarHostView::ShowContextMenuForViewImpl(
     ShowWorkspaceMenu(screen_point, source_type);
     return;
   }
+  if (const std::optional<base::Uuid> saved_node_id =
+          GetSavedNodeForOpenTabView(source);
+      saved_node_id.has_value() &&
+      controller_->view_model().GetNode(*saved_node_id)) {
+    ShowNodeContextMenu(saved_node_id, screen_point, source_type);
+    return;
+  }
   if (base::WeakPtr<tabs::TabInterface> open_tab = GetOpenTabForView(source)) {
     ShowOpenTabContextMenu(std::move(open_tab), screen_point, source_type);
   }

@@ -103,18 +103,15 @@
 #include "ui/views/controls/button/button.h"
 #include "ui/views/controls/button/image_button.h"
 #include "ui/views/controls/button/image_button_factory.h"
-#include "ui/views/controls/button/label_button.h"
 #include "ui/views/controls/image_view.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/controls/scroll_view.h"
-#include "ui/views/controls/separator.h"
 #include "ui/views/controls/textfield/textfield.h"
 #include "ui/views/controls/textfield/textfield_controller.h"
 #include "ui/views/drag_controller.h"
 #include "ui/views/focus/focus_manager.h"
 #include "ui/views/layout/box_layout.h"
-#include "ui/views/layout/fill_layout.h"
 #include "ui/views/style/typography.h"
 #include "ui/views/view.h"
 #include "ui/views/view_class_properties.h"
@@ -171,25 +168,11 @@ BrowserSidebarHostView::BrowserSidebarHostView(
           visual_style::kSidebarFooterSpacing));
   workspace_header_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kCenter);
-  auto workspace_drop_host = std::make_unique<views::View>();
-  workspace_drop_host->SetPreferredSize(
-      gfx::Size(0, visual_style::kSidebarActionCellHeight));
-  workspace_drop_host->SetLayoutManager(std::make_unique<views::FillLayout>());
   workspace_button_ =
-      workspace_drop_host->AddChildView(CreateWorkspaceSelectorButton(
+      workspace_header->AddChildView(CreateWorkspaceSelectorButton(
           base::BindRepeating(&BrowserSidebarHostView::OnWorkspacePressed,
                               base::Unretained(this))));
-  new_group_drop_target_ =
-      workspace_drop_host->AddChildView(CreateNewGroupDropTargetView(
-          base::BindRepeating(&BrowserSidebarHostView::ShowCreateGroupDialog,
-                              base::Unretained(this)),
-          base::BindRepeating(
-              &BrowserSidebarHostView::ShowCreateGroupDialogForTemporaryTab,
-              base::Unretained(this))));
-  SetNewGroupDropTargetVisible(new_group_drop_target_, false);
-  views::View* workspace_drop_host_ptr =
-      workspace_header->AddChildView(std::move(workspace_drop_host));
-  workspace_header_layout->SetFlexForView(workspace_drop_host_ptr, 1);
+  workspace_header_layout->SetFlexForView(workspace_button_, 1);
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
                           weak_ptr_factory_.GetWeakPtr(),
@@ -207,6 +190,17 @@ BrowserSidebarHostView::BrowserSidebarHostView(
                                    visual_style::kDefaultAccent);
   workspace_button_->set_context_menu_controller(this);
 
+  // New Group is a normal content row. Keeping it out of the workspace
+  // header's bounds leaves the selector visible and interactive throughout a
+  // native drag and prevents the target from overlapping floating chrome.
+  new_group_drop_target_ = AddChildView(CreateNewGroupDropTargetView(
+      base::BindRepeating(&BrowserSidebarHostView::ShowCreateGroupDialog,
+                          base::Unretained(this)),
+      base::BindRepeating(
+          &BrowserSidebarHostView::ShowCreateGroupDialogForTemporaryTab,
+          base::Unretained(this))));
+  SetNewGroupDropTargetVisible(new_group_drop_target_, false);
+
   auto tabs_surface = CreateSidebarTabsSurfaceView();
   auto* tabs_surface_layout =
       tabs_surface->SetLayoutManager(std::make_unique<views::BoxLayout>(
@@ -221,32 +215,10 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   tree_view_ = tree.get();
   tabs_surface->AddChildView(std::move(tree));
 
-  auto open_tabs_header = std::make_unique<views::View>();
-  auto* open_tabs_header_layout =
-      open_tabs_header->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(7, 0),
-          visual_style::kSidebarFooterSpacing));
-  open_tabs_header_layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kCenter);
-  open_tabs_separator_ =
-      open_tabs_header->AddChildView(std::make_unique<views::Separator>());
-  open_tabs_separator_->SetOrientation(
-      views::Separator::Orientation::kHorizontal);
-  open_tabs_separator_->SetColorId(visual_style::kDivider);
-  open_tabs_header_layout->SetFlexForView(open_tabs_separator_, 1);
-  auto* clear_open_tabs =
-      open_tabs_header->AddChildView(std::make_unique<views::LabelButton>(
-          base::BindRepeating(&BrowserSidebarHostView::CloseAllTemporaryTabs,
-                              base::Unretained(this)),
-          l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL)));
-  clear_open_tabs->SetTextColor(views::Button::STATE_NORMAL,
-                                visual_style::kMutedText);
-  clear_open_tabs->SetTextColor(views::Button::STATE_HOVERED,
-                                visual_style::kText);
-  clear_open_tabs->SetTextSubpixelRenderingEnabled(false);
-  clear_open_tabs->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(2, 4)));
-  clear_open_tabs->SetBackground(nullptr);
-  open_tabs_header_ = tabs_surface->AddChildView(std::move(open_tabs_header));
+  open_tabs_header_ = tabs_surface->AddChildView(CreateSidebarSectionDivider(
+      base::BindRepeating(&BrowserSidebarHostView::CloseAllTemporaryTabs,
+                          base::Unretained(this)),
+      l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL)));
 
   auto open_tabs = CreateOpenTabsDropTargetView(base::BindRepeating(
       &BrowserSidebarHostView::MakeSavedPageTemporary, base::Unretained(this)));
@@ -416,14 +388,6 @@ bool BrowserSidebarHostView::UndoLastMutationIfAvailable() {
   return true;
 }
 
-bool BrowserSidebarHostView::ActivateRelativeWorkspace(int delta) {
-  return delta != 0 &&
-         session_bridge_
-             ->ActivateRelativeWorkspaceForWindow(
-                 browser_, delta, WorkspaceActivationSource::kKeyboard)
-             .has_value();
-}
-
 bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
   if (index >= workspace_service_->ordered_workspaces().size()) {
     return false;
@@ -485,6 +449,7 @@ bool BrowserSidebarHostView::RevealFolder(const base::Uuid& folder_id) {
 }
 
 BrowserSidebarHostView::~BrowserSidebarHostView() {
+  CancelWorkspaceTransition();
   SetBrowserSidebarDragRoutingActive(this, false);
   weak_ptr_factory_.InvalidateWeakPtrs();
   widget_drag_observation_.Reset();

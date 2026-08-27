@@ -137,6 +137,10 @@ bool PrivacyModeController::Show(views::View* anchor_view) {
   return true;
 }
 
+bool PrivacyModeController::IsShowing() const {
+  return bubble_widget_ != nullptr;
+}
+
 bool PrivacyModeController::CanShow() const {
   return browser_ && browser_->GetProfile() && GetActiveWebContents();
 }

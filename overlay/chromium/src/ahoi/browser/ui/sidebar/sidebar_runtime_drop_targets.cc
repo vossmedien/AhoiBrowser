@@ -62,10 +62,15 @@ class OpenTabsDropTargetView final : public views::View {
     }
     accepting_saved_tab_ = accepting;
     if (!accepting) {
-      SetHighlighted(false);
+      highlighted_ = false;
     }
+    UpdateDropTargetBackground();
     PreferredSizeChanged();
   }
+
+  bool accepting_saved_tab_for_testing() const { return accepting_saved_tab_; }
+
+  bool highlighted_for_testing() const { return highlighted_; }
 
   gfx::Size CalculatePreferredSize(
       const views::SizeBounds& available_size) const override {
@@ -120,10 +125,18 @@ class OpenTabsDropTargetView final : public views::View {
  private:
   void SetHighlighted(bool highlighted) {
     highlighted_ = highlighted && accepting_saved_tab_;
-    SetBackground(highlighted_ ? views::CreateRoundedRectBackground(
-                                     visual_style::kHoverSurface,
-                                     visual_style::kRowCornerRadius)
-                               : nullptr);
+    UpdateDropTargetBackground();
+  }
+
+  void UpdateDropTargetBackground() {
+    SetBackground(
+        accepting_saved_tab_
+            ? views::CreateRoundedRectBackground(
+                  highlighted_ ? visual_style::kDropTargetSurface
+                               : visual_style::kHoverSurface,
+                  gfx::RoundedCornersF(visual_style::kRowCornerRadius),
+                  gfx::Insets(visual_style::kSidebarDropTargetInset))
+            : nullptr);
     SchedulePaint();
   }
 
@@ -160,8 +173,7 @@ class NewGroupDropTargetView final : public views::View,
                          std::u16string accessible_name)
       : node_callback_(std::move(node_callback)),
         runtime_tab_callback_(std::move(runtime_tab_callback)) {
-    SetPreferredSize(
-        gfx::Size(0, visual_style::kSidebarActionCellHeight));
+    SetPreferredSize(gfx::Size(0, visual_style::kSidebarActionCellHeight));
     auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
         views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(0, 13), 9));
     layout->set_cross_axis_alignment(
@@ -207,15 +219,16 @@ class NewGroupDropTargetView final : public views::View,
     }
     target_visible_ = visible;
     if (visible) {
-      // This target shares a FillLayout host with the workspace pill. Since it
-      // is normally hidden, it may not have participated in the preceding
-      // layout pass. Give it the stable overlay bounds synchronously before
-      // AppKit enters its nested drag loop so the first gesture can hit it.
-      if (parent()) {
-        SetBoundsRect(parent()->GetLocalBounds());
-      }
+      // This normally hidden content row must participate in BoxLayout before
+      // AppKit enters its nested native drag loop. Resolve its own stable row
+      // bounds synchronously; never borrow the workspace header's bounds.
       SetCanProcessEventsWithinSubtree(true);
       SetVisible(true);
+      PreferredSizeChanged();
+      if (parent()) {
+        parent()->InvalidateLayout();
+        parent()->DeprecatedLayoutImmediately();
+      }
       visibility_animation_.Show();
     } else if (GetVisible()) {
       SetCanProcessEventsWithinSubtree(false);
@@ -318,6 +331,10 @@ class NewGroupDropTargetView final : public views::View,
     }
     if (!target_visible_) {
       SetVisible(false);
+      PreferredSizeChanged();
+      if (parent()) {
+        parent()->InvalidateLayout();
+      }
     }
     SchedulePaint();
   }
@@ -347,6 +364,16 @@ void SetOpenTabsDropTargetAcceptingSavedTab(views::View* view, bool accepting) {
   if (auto* target = views::AsViewClass<OpenTabsDropTargetView>(view)) {
     target->SetAcceptingSavedTab(accepting);
   }
+}
+
+bool IsOpenTabsDropTargetAcceptingSavedTabForTesting(const views::View* view) {
+  const auto* target = views::AsViewClass<OpenTabsDropTargetView>(view);
+  return target && target->accepting_saved_tab_for_testing();
+}
+
+bool IsOpenTabsDropTargetHighlightedForTesting(const views::View* view) {
+  const auto* target = views::AsViewClass<OpenTabsDropTargetView>(view);
+  return target && target->highlighted_for_testing();
 }
 
 std::unique_ptr<views::View> CreateNewGroupDropTargetView(

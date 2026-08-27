@@ -1,13 +1,8 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "base/functional/bind.h"
-#include "base/test/launcher/unit_test_launcher.h"
-#include "base/test/test_suite.h"
+#include "ui/views/views_test_suite.h"
 
 int main(int argc, char** argv) {
-  base::TestSuite test_suite(argc, argv);
-  return base::LaunchUnitTests(
-      argc, argv,
-      base::BindOnce(&base::TestSuite::Run, base::Unretained(&test_suite)));
+  return views::ViewsTestSuite(argc, argv).RunTests();
 }

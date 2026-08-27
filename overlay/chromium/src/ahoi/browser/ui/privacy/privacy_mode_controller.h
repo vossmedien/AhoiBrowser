@@ -36,6 +36,7 @@ class PrivacyModeController {
   ~PrivacyModeController();
 
   bool Show(views::View* anchor_view);
+  bool IsShowing() const;
   bool CanShow() const;
 
  private:

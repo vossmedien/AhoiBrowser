@@ -24,6 +24,8 @@ source_set("sidebar_presentation") {
     "sidebar_presentation_animator.h",
     "sidebar_presentation_state.cc",
     "sidebar_presentation_state.h",
+    "workspace_transition_animator.cc",
+    "workspace_transition_animator.h",
   ]
 
   public_deps = [
@@ -33,6 +35,8 @@ source_set("sidebar_presentation") {
     "//components/sync_preferences",
     "//ui/gfx/animation",
   ]
+
+  deps = [ "//ui/compositor" ]
 }
 
 source_set("move_destination_model") {
@@ -160,6 +164,7 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_tree_actions.cc",
     "browser_sidebar_host_view.h",
     "browser_sidebar_host_workspace_dialog.cc",
+    "browser_sidebar_host_workspace_transition.cc",
     "sidebar_action_views.cc",
     "sidebar_action_views.h",
     "sidebar_edge_reveal_view.cc",
@@ -251,12 +256,14 @@ source_set("unit_tests") {
     "sidebar_runtime_refresh_gate_unittest.cc",
     "sidebar_split_layout_unittest.cc",
     "sidebar_sync_controls_unittest.cc",
+    "sidebar_tab_density_unittest.cc",
     "sidebar_tree_controller_unittest.cc",
     "sidebar_tree_view_drag_unittest.cc",
     "sidebar_tree_view_model_unittest.cc",
     "sidebar_tree_view_test_support.cc",
     "sidebar_tree_view_test_support.h",
     "sidebar_tree_view_unittest.cc",
+    "workspace_transition_animator_unittest.cc",
   ]
   deps = [
     ":browser_sidebar",
@@ -278,6 +285,7 @@ source_set("unit_tests") {
     "//skia",
     "//testing/gtest",
     "//ui/accessibility",
+    "//ui/compositor",
     "//ui/events",
     "//ui/gfx",
     "//ui/gfx:test_support",

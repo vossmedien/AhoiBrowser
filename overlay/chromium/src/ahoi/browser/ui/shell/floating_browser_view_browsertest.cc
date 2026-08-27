@@ -97,8 +97,7 @@ views::View* FindAcceptingDropDescendant(views::View* root,
 }
 
 gfx::Rect BoundsInTarget(views::View* view, views::View* target) {
-  return views::View::ConvertRectToTarget(view, target,
-                                          view->GetLocalBounds());
+  return views::View::ConvertRectToTarget(view, target, view->GetLocalBounds());
 }
 
 bool IsInsideOrEqual(views::View* ancestor, views::View* candidate) {
@@ -301,18 +300,33 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
       BoundsInTarget(browser_view.top_container(), root);
   const gfx::Rect new_group_overlap =
       gfx::IntersectRects(top_container_bounds, new_group_bounds);
-  ASSERT_FALSE(new_group_overlap.IsEmpty());
-  const gfx::Point floating_new_group_point = new_group_overlap.CenterPoint();
-  EXPECT_TRUE(top_container_bounds.Contains(floating_new_group_point));
+  EXPECT_TRUE(new_group_overlap.IsEmpty());
+  const gfx::Point floating_new_group_point = new_group_bounds.CenterPoint();
+  EXPECT_FALSE(top_container_bounds.Contains(floating_new_group_point));
   EXPECT_TRUE(new_group_bounds.Contains(floating_new_group_point));
 
-  // The address bar paints above the card, but once a sidebar drag is active
-  // its transparent overlap must route to the sidebar rather than to the
-  // BrowserView content/split target below it.
+  // New Group is a normal content row below floating chrome and remains the
+  // deepest semantic target after switching presentation modes.
   EXPECT_TRUE(IsInsideOrEqual(
       sidebar, root->GetEventHandlerForPoint(floating_new_group_point)));
   EXPECT_EQ(new_group_target,
             drop_helper.CalculateTargetView(floating_new_group_point, drag_data,
+                                            /*check_can_drop=*/true));
+
+  // The address bar paints above the card, but once a sidebar drag is active
+  // its transparent overlap must route to the sidebar rather than to the
+  // BrowserView content/split target below it.
+  const gfx::Rect floating_chrome_overlap =
+      gfx::IntersectRects(top_container_bounds, sidebar_bounds);
+  ASSERT_FALSE(floating_chrome_overlap.IsEmpty());
+  const gfx::Point floating_chrome_padding(
+      sidebar_bounds.x() + 1, floating_chrome_overlap.CenterPoint().y());
+  EXPECT_TRUE(top_container_bounds.Contains(floating_chrome_padding));
+  EXPECT_TRUE(sidebar_bounds.Contains(floating_chrome_padding));
+  EXPECT_TRUE(IsInsideOrEqual(
+      sidebar, root->GetEventHandlerForPoint(floating_chrome_padding)));
+  EXPECT_EQ(sidebar,
+            drop_helper.CalculateTargetView(floating_chrome_padding, drag_data,
                                             /*check_can_drop=*/true));
 
   const gfx::Point row_point = [&]() {
@@ -347,6 +361,74 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   drag_source->OnDragDone();
   EXPECT_FALSE(ahoi::sidebar::IsBrowserSidebarDragActive(sidebar));
   EXPECT_FALSE(ahoi::sidebar::IsAnyBrowserSidebarDragActive());
+}
+
+IN_PROC_BROWSER_TEST_F(
+    VerticalTabStripRegionViewTest,
+    AhoiFloatingSidebarTransparentTopChromeDoesNotStealInput) {
+  BrowserView& browser_view = browser()->GetBrowserView();
+  views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
+  views::View* const top_container = browser_view.top_container();
+  views::View* const root = browser_view.GetWidget()->GetRootView();
+  ASSERT_TRUE(sidebar);
+  ASSERT_TRUE(top_container);
+  ASSERT_TRUE(root);
+  browser()->GetProfile()->GetPrefs()->SetBoolean(
+      ahoi::appearance::kFloatingNavigationAutoHideEnabledPref, false);
+  ASSERT_TRUE(browser_view.SetAhoiSidebarPresentationMode(
+      ahoi::sidebar::SidebarPresentationMode::kFloating));
+  browser_view.DeprecatedLayoutImmediately();
+
+  const gfx::Rect overlap = gfx::IntersectRects(
+      BoundsInTarget(sidebar, root), BoundsInTarget(top_container, root));
+  ASSERT_FALSE(overlap.IsEmpty());
+
+  std::optional<gfx::Point> transparent_overlap;
+  std::optional<gfx::Point> semantic_chrome_overlap;
+  for (int y = overlap.y(); y < overlap.bottom(); ++y) {
+    for (int x = overlap.x(); x < overlap.right(); ++x) {
+      const gfx::Point root_point(x, y);
+      gfx::Point sidebar_point = root_point;
+      views::View::ConvertPointToTarget(root, sidebar, &sidebar_point);
+      if (!sidebar->HitTestPoint(sidebar_point)) {
+        continue;
+      }
+
+      gfx::Point top_point = root_point;
+      views::View::ConvertPointToTarget(root, top_container, &top_point);
+      const bool hits_semantic_chrome = std::ranges::any_of(
+          top_container->children(), [&](views::View* child) {
+            if (!child->GetVisible() ||
+                !child->GetCanProcessEventsWithinSubtree()) {
+              return false;
+            }
+            gfx::Point child_point = top_point;
+            views::View::ConvertPointToTarget(top_container, child,
+                                              &child_point);
+            return child->HitTestPoint(child_point);
+          });
+      if (hits_semantic_chrome && !semantic_chrome_overlap.has_value()) {
+        semantic_chrome_overlap = root_point;
+      } else if (!hits_semantic_chrome && !transparent_overlap.has_value()) {
+        transparent_overlap = root_point;
+      }
+      if (transparent_overlap.has_value() &&
+          semantic_chrome_overlap.has_value()) {
+        break;
+      }
+    }
+    if (transparent_overlap.has_value() &&
+        semantic_chrome_overlap.has_value()) {
+      break;
+    }
+  }
+
+  ASSERT_TRUE(transparent_overlap.has_value());
+  EXPECT_TRUE(IsInsideOrEqual(
+      sidebar, root->GetEventHandlerForPoint(*transparent_overlap)));
+  ASSERT_TRUE(semantic_chrome_overlap.has_value());
+  EXPECT_TRUE(IsInsideOrEqual(
+      top_container, root->GetEventHandlerForPoint(*semantic_chrome_overlap)));
 }
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,

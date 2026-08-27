@@ -117,7 +117,7 @@ index 45f00944bf1e64c5415c08d83d2f01a6f08c4366..458f0dcca0e27596ff7a868e2cc149b6
    // Only allow disabling web security via the command-line flag if the user has
    // specified a distinct profile directory. This still enables tests to disable
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..cb27fa666c819204e7f96ff3524934976f9611cd 100644
+index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..fec08b1d5a75b4883539970ee539a6e8a23b2328 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
 @@ -16738,6 +16738,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
@@ -130,7 +130,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..cb27fa666c819204e7f96ff352493497
        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
        </message>
-@@ -20042,6 +20045,1215 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20042,6 +20045,1272 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
        Relaunch
      </message>
@@ -177,6 +177,33 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..cb27fa666c819204e7f96ff352493497
 +    </message>
 +
 +    <!-- AhoiBrowser feature activation and discoverability -->
++    <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
++      AhoiBrowser
++    </message>
++    <message name="IDS_SETTINGS_AHOI_APPEARANCE_SECTION" desc="Heading for AhoiBrowser-owned appearance controls." meaning="AhoiBrowser settings">
++      Appearance
++    </message>
++    <message name="IDS_SETTINGS_AHOI_APPEARANCE_SECTION_SUBLABEL" desc="Description of AhoiBrowser-owned appearance controls." meaning="AhoiBrowser settings">
++      Configure AhoiBrowser's own browser chrome and floating navigation.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_SYNC_SECTION" desc="Heading for AhoiBrowser CloudKit synchronization controls." meaning="AhoiBrowser settings">
++      AhoiBrowser sync
++    </message>
++    <message name="IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL" desc="Description of AhoiBrowser CloudKit synchronization controls." meaning="AhoiBrowser settings">
++      Control the private CloudKit transport and synchronized browser data.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_SYNC_PROVIDER_TITLE" desc="Title explaining which provider AhoiBrowser sync uses." meaning="AhoiBrowser settings">
++      Uses CloudKit, not Chrome Sync
++    </message>
++    <message name="IDS_SETTINGS_AHOI_SYNC_PROVIDER_SUBLABEL" desc="Description distinguishing AhoiBrowser CloudKit sync from Chrome or Google Sync." meaning="AhoiBrowser settings">
++      This setting does not sign you into Google or enable Chrome or Google Sync.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_TITLE" desc="Status title shown when this AhoiBrowser build has no CloudKit capability." meaning="AhoiBrowser settings">
++      CloudKit sync unavailable in this build
++    </message>
++    <message name="IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_SUBLABEL" desc="Status explanation shown when this AhoiBrowser build cannot offer CloudKit-backed settings." meaning="AhoiBrowser settings">
++      This build is not signed with the CloudKit capability. Sync, remote control, and synchronized history settings are unavailable.
++    </message>
 +    <message name="IDS_SETTINGS_AHOI_FEATURES" desc="Section title for AhoiBrowser-specific feature switches in Settings." meaning="AhoiBrowser feature settings">
 +      AhoiBrowser features
 +    </message>
@@ -185,6 +212,36 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..cb27fa666c819204e7f96ff352493497
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED_SUBLABEL" desc="Description of the data synchronized by AhoiBrowser through CloudKit." meaning="AhoiBrowser feature settings">
 +      Synchronize workspaces, saved tabs and approved settings with end-to-end encryption through your iCloud account.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED" desc="Label for allowing approved AhoiBrowser devices to send remote-control commands." meaning="AhoiBrowser settings">
++      Receive secure remote control
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED_SUBLABEL" desc="Security description for AhoiBrowser remote control." meaning="AhoiBrowser settings">
++      Off by default. Only devices approved with a verified public key can send commands.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_HISTORY_RETENTION" desc="Label for selecting how long AhoiBrowser sync retains history." meaning="AhoiBrowser settings">
++      History retention
++    </message>
++    <message name="IDS_SETTINGS_AHOI_HISTORY_RETENTION_SUBLABEL" desc="Description for AhoiBrowser synchronized history retention." meaning="AhoiBrowser settings">
++      Choose how long synchronized history remains available.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_HISTORY_RETENTION_30_DAYS" desc="AhoiBrowser synchronized history retention option for 30 days." meaning="AhoiBrowser settings">
++      30 days
++    </message>
++    <message name="IDS_SETTINGS_AHOI_HISTORY_RETENTION_90_DAYS" desc="AhoiBrowser synchronized history retention option for 90 days." meaning="AhoiBrowser settings">
++      90 days
++    </message>
++    <message name="IDS_SETTINGS_AHOI_HISTORY_RETENTION_365_DAYS" desc="AhoiBrowser synchronized history retention option for 365 days." meaning="AhoiBrowser settings">
++      365 days
++    </message>
++    <message name="IDS_SETTINGS_AHOI_HISTORY_RETENTION_FOREVER" desc="AhoiBrowser synchronized history retention option with no automatic expiry." meaning="AhoiBrowser settings">
++      Keep forever
++    </message>
++    <message name="IDS_SETTINGS_AHOI_DEVELOPER_SECTION" desc="Heading for AhoiBrowser developer toolkit settings." meaning="AhoiBrowser settings">
++      Developer tools
++    </message>
++    <message name="IDS_SETTINGS_AHOI_DEVELOPER_SECTION_SUBLABEL" desc="Description of AhoiBrowser developer toolkit and address-bar controls." meaning="AhoiBrowser settings">
++      Enable the toolkit and choose which developer actions appear in the address bar.
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_DEVELOPER_TOOLKIT_SUBLABEL" desc="Description of AhoiBrowser's built-in developer toolkit and address-bar controls." meaning="AhoiBrowser feature settings">
 +      Show the built-in website developer tools and choose their address-bar buttons.
@@ -1347,10 +1404,10 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..cb27fa666c819204e7f96ff352493497
  </release>
  </grit>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index f630847b474cfde5341923bbd6776b17d6773102..9769e2fc37dd22006f003377d9dd85db533cc428 100644
+index f630847b474cfde5341923bbd6776b17d6773102..870b4e015051aae6c6f49a9d9da7d4338e81970c 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -10730,4 +10730,388 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -10730,4 +10730,407 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
  <translation id="998747458861718449">Untersuchen</translation>
  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
@@ -1585,9 +1642,28 @@ index f630847b474cfde5341923bbd6776b17d6773102..9769e2fc37dd22006f003377d9dd85db
 +<translation id="6126121424053787911">Ausgewogen (0,65 Sekunden)</translation>
 +<translation id="2534541957183311941">Entspannt (1 Sekunde)</translation>
 +<translation id="768143274100278709">Lang (2 Sekunden)</translation>
++<translation id="1690052925938352037">AhoiBrowser</translation>
++<translation id="420117894935451246">Darstellung</translation>
++<translation id="8624912425148331647">AhoiBrowser-eigene Browseroberfläche und schwebende Navigation konfigurieren.</translation>
++<translation id="6636539920573083641">AhoiBrowser-Synchronisierung</translation>
++<translation id="7974155570720025051">Steuert die private CloudKit-Übertragung und synchronisierte Browserdaten.</translation>
++<translation id="3939949743743333888">Verwendet CloudKit, nicht Chrome Sync</translation>
++<translation id="507633213435359276">Diese Einstellung meldet dich weder bei Google an noch aktiviert sie Chrome oder Google Sync.</translation>
++<translation id="8805387034065522283">CloudKit-Synchronisierung ist in diesem Build nicht verfügbar</translation>
++<translation id="9198210059928613224">Dieser Build ist nicht mit der CloudKit-Berechtigung signiert. Synchronisierung, Fernsteuerung und Einstellungen für den synchronisierten Verlauf sind nicht verfügbar.</translation>
 +<translation id="9218643974320930219">AhoiBrowser-Funktionen</translation>
 +<translation id="8503546095237201070">CloudKit-Synchronisierung</translation>
 +<translation id="3356978994582944478">Synchronisiert Arbeitsbereiche, gespeicherte Tabs und freigegebene Einstellungen Ende-zu-Ende-verschlüsselt über deinen iCloud-Account.</translation>
++<translation id="5277086629884958430">Sichere Fernsteuerung empfangen</translation>
++<translation id="3948271365460589090">Standardmäßig aus. Nur Geräte, die mit einem verifizierten öffentlichen Schlüssel freigegeben wurden, können Befehle senden.</translation>
++<translation id="2321689613611076346">Verlaufsaufbewahrung</translation>
++<translation id="7660302535648766629">Wähle, wie lange der synchronisierte Verlauf verfügbar bleibt.</translation>
++<translation id="7729439309422095264">30 Tage</translation>
++<translation id="2045382547347282138">90 Tage</translation>
++<translation id="2513667765171348794">365 Tage</translation>
++<translation id="75324400469059415">Dauerhaft behalten</translation>
++<translation id="2632100835744003312">Entwicklerwerkzeuge</translation>
++<translation id="6823793276099833061">Aktiviere das Toolkit und wähle aus, welche Entwickleraktionen in der Adressleiste erscheinen.</translation>
 +<translation id="4994058867705188518">Zeigt die integrierten Website-Entwicklerwerkzeuge und erlaubt die Auswahl ihrer Adressleisten-Schaltflächen.</translation>
 +<translation id="7281912093178363838">Startverhalten</translation>
 +<translation id="2554639672774478509">Gilt für normale Starts. Verwaltete Startrichtlinien, explizite Startanforderungen, der erste Start, Gastfenster, Inkognito und die Wiederherstellung nach einem Absturz haben Vorrang.</translation>
@@ -1742,10 +1818,10 @@ index f630847b474cfde5341923bbd6776b17d6773102..9769e2fc37dd22006f003377d9dd85db
 +<translation id="4615050181991562795">Cache für diese Website deaktivieren (CACHE OFF)</translation>
 +</translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..1e9545ef076f21d7ee11623ba414574ca1e1b9a6 100644
+index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..c17fda47ba5c1388fb90ead5ac8394c34b24f1ac 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -10750,4 +10750,220 @@ This can include information about installed software, files, your browser, the
+@@ -10750,4 +10750,239 @@ This can include information about installed software, files, your browser, the
  <translation id="998347228911661591">Sync your tab groups</translation>
  <translation id="998747458861718449">I&amp;nspect</translation>
  <translation id="998852291477823323">The action was disallowed by the configured policies.</translation>
@@ -1798,9 +1874,28 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..1e9545ef076f21d7ee11623ba414574c
 +<translation id="6126121424053787911">Balanced (0.65 seconds)</translation>
 +<translation id="2534541957183311941">Relaxed (1 second)</translation>
 +<translation id="768143274100278709">Long (2 seconds)</translation>
++<translation id="1690052925938352037">AhoiBrowser</translation>
++<translation id="420117894935451246">Appearance</translation>
++<translation id="8624912425148331647">Configure AhoiBrowser's own browser chrome and floating navigation.</translation>
++<translation id="6636539920573083641">AhoiBrowser sync</translation>
++<translation id="7974155570720025051">Control the private CloudKit transport and synchronised browser data.</translation>
++<translation id="3939949743743333888">Uses CloudKit, not Chrome Sync</translation>
++<translation id="507633213435359276">This setting does not sign you into Google or enable Chrome or Google Sync.</translation>
++<translation id="8805387034065522283">CloudKit sync is unavailable in this build</translation>
++<translation id="9198210059928613224">This build is not signed with the CloudKit capability. Sync, remote control and synchronised history settings are unavailable.</translation>
 +<translation id="9218643974320930219">AhoiBrowser features</translation>
 +<translation id="8503546095237201070">CloudKit sync</translation>
 +<translation id="3356978994582944478">Synchronize workspaces, saved tabs and approved settings with end-to-end encryption through your iCloud account.</translation>
++<translation id="5277086629884958430">Receive secure remote control</translation>
++<translation id="3948271365460589090">Off by default. Only devices approved with a verified public key can send commands.</translation>
++<translation id="2321689613611076346">History retention</translation>
++<translation id="7660302535648766629">Choose how long synchronised history remains available.</translation>
++<translation id="7729439309422095264">30 days</translation>
++<translation id="2045382547347282138">90 days</translation>
++<translation id="2513667765171348794">365 days</translation>
++<translation id="75324400469059415">Keep forever</translation>
++<translation id="2632100835744003312">Developer tools</translation>
++<translation id="6823793276099833061">Enable the toolkit and choose which developer actions appear in the address bar.</translation>
 +<translation id="4994058867705188518">Show the built-in website developer tools and choose their address-bar buttons.</translation>
 +<translation id="7281912093178363838">Startup behaviour</translation>
 +<translation id="2554639672774478509">Applies to normal launches. Managed startup policy, explicit launch requests, first run, guest windows, incognito and crash recovery take priority.</translation>
@@ -2314,7 +2409,7 @@ index 71d928daaedc7d696387b58a69ec226313fab0ee..c23c67c4a52a69a181808ca1461b4906
    "+components/crash/content/browser/error_reporting",
    "+components/guest_view/common",
 diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-index 43ba004cc63da143131b8e84533af1743f47727b..7975ea5fdf8c95184979c49aae72f9b7034d2da4 100644
+index 43ba004cc63da143131b8e84533af1743f47727b..bf18f47d22eebfc92b4e7f1ac0c08baa46b48a1a 100644
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
 @@ -6,6 +6,10 @@
@@ -2328,7 +2423,7 @@ index 43ba004cc63da143131b8e84533af1743f47727b..7975ea5fdf8c95184979c49aae72f9b7
  #include "ash/constants/ash_pref_names.h"
  #include "ash/constants/ash_switches.h"
  #include "base/feature_list.h"
-@@ -311,6 +315,24 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+@@ -311,6 +315,28 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
        settings_api::PrefType::kBoolean;
  
    // Appearance settings.
@@ -2342,6 +2437,10 @@ index 43ba004cc63da143131b8e84533af1743f47727b..7975ea5fdf8c95184979c49aae72f9b7
 +      settings_api::PrefType::kNumber;
 +  (*s_allowlist)[ahoi::sync::kSyncEnabledPref] =
 +      settings_api::PrefType::kBoolean;
++  (*s_allowlist)[ahoi::sync::kHistoryRetentionDaysPref] =
++      settings_api::PrefType::kNumber;
++  (*s_allowlist)[ahoi::sync::kRemoteControlEnabledPref] =
++      settings_api::PrefType::kBoolean;
 +  (*s_allowlist)[ahoi::developer_toolkit_prefs::kToolkitEnabled] =
 +      settings_api::PrefType::kBoolean;
 +  (*s_allowlist)[ahoi::developer_toolkit_prefs::kShowCookieButton] =
@@ -2353,7 +2452,7 @@ index 43ba004cc63da143131b8e84533af1743f47727b..7975ea5fdf8c95184979c49aae72f9b7
    (*s_allowlist)[::prefs::kCtrlTabMru] = settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kCurrentThemeID] = settings_api::PrefType::kString;
    (*s_allowlist)[::prefs::kPinnedActions] = settings_api::PrefType::kList;
-@@ -353,6 +375,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+@@ -353,6 +379,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
        settings_api::PrefType::kBoolean;
  
    // On startup.
@@ -3608,231 +3707,27 @@ index 9e734e7ac98e82cbba502ed21d83b95cdbea75c3..8fc1c59a27102e1e737cd9ca8427ea59
          !this.isTabsSyncDisabled_() &&
          !(this.isSignInState_(HistorySignInState.SIGNED_IN) &&
            this.isTabsSyncTurnedOn_());
-diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-index 41b80c71f317ac260bbebec024aca8e7f25face5..8c7a86127569c996b3fafd7f0d0d8e0ff5860efb 100644
---- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-+++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-@@ -80,6 +80,85 @@ export function getHtml(this: SettingsAppearancePageElement) {
-         `)}
-       </select>
-     </div>
-+<if expr="not is_chromeos">
-+    <div id="ahoiAccentPickerRow" class="cr-row hr"
-+        style="align-items: start; flex-direction: column; padding-bottom: 16px;
-+            padding-top: 12px;">
-+      <div class="cr-padded-text">
-+        <div>$i18n{ahoiGlobalPrimaryColor}</div>
-+        <div class="secondary">$i18n{ahoiGlobalPrimaryColorSublabel}</div>
-+      </div>
-+      <cr-theme-color-picker columns="6"
-+          style="margin-top: 12px; width: 100%;">
-+      </cr-theme-color-picker>
-+    </div>
-+</if>
-+    <settings-toggle-button id="ahoiGlassEnabled"
-+        pref-key="ahoi.appearance.glass_enabled"
-+        label="$i18n{ahoiGlassEnabled}"
-+        sub-label="$i18n{ahoiGlassEnabledSublabel}">
-+    </settings-toggle-button>
-+    <div class="cr-row hr">
-+      <div class="flex cr-padded-text">
-+        <div>$i18n{ahoiFloatingNavigation}</div>
-+        <div class="secondary">$i18n{ahoiFloatingNavigationSublabel}</div>
-+      </div>
-+    </div>
-+    <div class="list-frame indented-toggles">
-+      <settings-toggle-button id="ahoiNavigationAutoHide"
-+          pref-key="ahoi.navigation.floating_auto_hide_enabled"
-+          label="$i18n{ahoiNavigationAutoHide}">
-+      </settings-toggle-button>
-+      <settings-toggle-button id="ahoiNavigationRevealNotch"
-+          ?hidden="${!this.floatingNavigationAutoHideEnabledPref_?.value}"
-+          pref-key="ahoi.navigation.floating_reveal_notch_enabled"
-+          label="$i18n{ahoiNavigationRevealNotch}">
-+      </settings-toggle-button>
-+      <div class="cr-row continuation"
-+          ?hidden="${!this.floatingNavigationAutoHideEnabledPref_?.value}">
-+        <div class="flex cr-padded-text" aria-hidden="true">
-+          $i18n{ahoiNavigationAutoHideDelay}
-+        </div>
-+        <settings-dropdown-menu id="ahoiNavigationAutoHideDelay"
-+            label="$i18n{ahoiNavigationAutoHideDelay}"
-+            pref-key="ahoi.navigation.floating_auto_hide_delay_ms"
-+            .menuOptions="${this.floatingNavigationDelayOptions_}">
-+        </settings-dropdown-menu>
-+      </div>
-+    </div>
-+    <div class="cr-row hr">
-+      <div class="flex cr-padded-text">
-+        <div>$i18n{ahoiFeatures}</div>
-+      </div>
-+    </div>
-+    <settings-toggle-button id="ahoiSyncEnabled"
-+        pref-key="ahoi.sync.enabled"
-+        label="$i18n{ahoiSyncEnabled}"
-+        sub-label="$i18n{ahoiSyncEnabledSublabel}">
-+    </settings-toggle-button>
-+    <settings-toggle-button id="ahoiDeveloperToolkitEnabled" class="hr"
-+        pref-key="ahoi.developer_toolkit.enabled"
-+        label="$i18n{ahoiDeveloperToolkit}"
-+        sub-label="$i18n{ahoiDeveloperToolkitSublabel}"
-+        @change="${this.onAhoiDeveloperToolkitEnabledChange_}">
-+    </settings-toggle-button>
-+    <div class="list-frame indented-toggles">
-+      <settings-toggle-button id="ahoiDeveloperToolbarCookies"
-+          ?disabled="${!this.developerToolkitEnabledPref_?.value}"
-+          pref-key="ahoi.developer_toolbar.show_cookie_button"
-+          label="$i18n{ahoiDeveloperToolbarCookies}">
-+      </settings-toggle-button>
-+      <settings-toggle-button id="ahoiDeveloperToolbarCache"
-+          ?disabled="${!this.developerToolkitEnabledPref_?.value}"
-+          pref-key="ahoi.developer_toolbar.show_cache_button"
-+          label="$i18n{ahoiDeveloperToolbarCache}">
-+      </settings-toggle-button>
-+      <settings-toggle-button id="ahoiDeveloperToolbarHelpers"
-+          ?disabled="${!this.developerToolkitEnabledPref_?.value}"
-+          pref-key="ahoi.developer_toolbar.show_toolkit_button"
-+          label="$i18n{ahoiDeveloperToolbarHelpers}">
-+      </settings-toggle-button>
-+    </div>
-     <div class="hr" ?hidden="${!this.showHr_(
-         this.pageVisibility_.setTheme, this.pageVisibility_.homeButton)}">
-     </div>
-diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
-index 9c5e695824e0f2a1ed2d204335f48be827570769..d96bbddc21f0ba89d2c112247ba95b1a6de4557b 100644
---- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
-+++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
-@@ -12,6 +12,10 @@ import '../controls/settings_toggle_button.js';
- import '../settings_page/settings_section.js';
- import './home_url_input.js';
- import '../controls/settings_dropdown_menu.js';
-+// <if expr="not is_chromeos">
-+import 'chrome://resources/cr_components/theme_color_picker/theme_color_picker.js';
-+
-+// </if>
+diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
+index 24115ed25cc9130ada7cf5ac572d4da715ba89ac..beba8dd32ec46d4998fc38e8ee529344d9827471 100644
+--- a/chrome/browser/resources/settings/BUILD.gn
++++ b/chrome/browser/resources/settings/BUILD.gn
+@@ -285,6 +285,8 @@ build_webui("build") {
+   # -----------------ts_files start ----------------------------
  
- import {PrefService} from '/shared/settings/prefs2/pref_service.js';
- import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
-@@ -134,6 +138,8 @@ export class SettingsAppearancePageElement extends
-       defaultZoom_: {type: Number},
- 
-       defaultFontSizePref_: {type: Object},
-+      developerToolkitEnabledPref_: {type: Object},
-+      floatingNavigationAutoHideEnabledPref_: {type: Object},
-       homepageIsNewTabPagePref_: {type: Object},
-       homepagePref_: {type: Object},
-       pinContextualTaskButtonPref_: {type: Object},
-@@ -154,6 +160,7 @@ export class SettingsAppearancePageElement extends
-       colorSchemeModeOptions_: {type: Array},
-       selectedColorSchemeMode_: {type: Number},
-       fontSizeOptions_: {type: Array},
-+      floatingNavigationDelayOptions_: {type: Array},
-       pageZoomLevels_: {type: Array},
-       themeSublabel_: {type: String},
-       themeUrl_: {type: String},
-@@ -191,6 +198,10 @@ export class SettingsAppearancePageElement extends
-   // Mirrored prefs.
-   protected accessor defaultFontSizePref_: PrefObject<number>|undefined =
-       undefined;
-+  protected accessor developerToolkitEnabledPref_: PrefObject<boolean>|
-+      undefined = undefined;
-+  protected accessor floatingNavigationAutoHideEnabledPref_:
-+      PrefObject<boolean>|undefined = undefined;
-   protected accessor homepageIsNewTabPagePref_: PrefObject<boolean>|undefined =
-       undefined;
-   protected accessor homepagePref_: PrefObject<string>|undefined = undefined;
-@@ -249,10 +260,23 @@ export class SettingsAppearancePageElement extends
-     {value: 24, name: loadTimeData.getString('veryLarge')},
-   ];
- 
-+  protected accessor floatingNavigationDelayOptions_: DropdownMenuOptionList = [
-+    {value: 400, name: loadTimeData.getString('ahoiNavigationDelayFast')},
-+    {
-+      value: 650,
-+      name: loadTimeData.getString('ahoiNavigationDelayBalanced'),
-+    },
-+    {
-+      value: 1000,
-+      name: loadTimeData.getString('ahoiNavigationDelayRelaxed'),
-+    },
-+    {value: 2000, name: loadTimeData.getString('ahoiNavigationDelayLong')},
-+  ];
-+
-   protected accessor glassEffectOptions_: DropdownMenuOptionList = [
-     {value: 'false', name: loadTimeData.getString('glassEffectClassic')},
-     {value: 'true', name: loadTimeData.getString('glassEffectModern')},
-- ];
-+  ];
- 
-   protected accessor tabStripOptions_: DropdownMenuOptionList = [
-     {value: 'true', name: loadTimeData.getString('uiFeatureAlignSide')},
-@@ -327,6 +351,9 @@ export class SettingsAppearancePageElement extends
- 
-     this.mirrorPrefs({
-       'autogenerated.theme.policy.color': 'themePolicyColorPref_',
-+      'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
-+      'ahoi.navigation.floating_auto_hide_enabled':
-+          'floatingNavigationAutoHideEnabledPref_',
-       'browser.pin_contextual_task_button': 'pinContextualTaskButtonPref_',
-       'browser.pin_split_tab_button': 'pinSplitTabButtonPref_',
-       'browser.show_forward_button': 'showForwardButtonPref_',
-@@ -385,7 +412,8 @@ export class SettingsAppearancePageElement extends
-     }
-     // </if>
- 
--    if (changedPrivateProperties.has('themeIdPref_') ||
-+    if (
-+        changedPrivateProperties.has('themeIdPref_') ||
-         changedPrivateProperties.has('systemTheme_') ||
-         changedPrivateProperties.has('themePolicyColorPref_')
-         // <if expr="is_linux">
-@@ -438,6 +466,27 @@ export class SettingsAppearancePageElement extends
-     Router.getInstance().navigateTo(routes.FONTS);
+   ts_files = [
++    "ahoi_page/ahoi_page.html.ts",
++    "ahoi_page/ahoi_page.ts",
+     "a11y_page/a11y_browser_proxy.ts",
+     "a11y_page/a11y_page.html.ts",
+     "a11y_page/a11y_page.ts",
+@@ -447,6 +449,7 @@ build_webui("build") {
    }
  
-+  protected onAhoiDeveloperToolkitEnabledChange_(event: CustomEvent<boolean>) {
-+    if (!event.detail) {
-+      return;
-+    }
-+
-+    const prefService = PrefService.getInstance();
-+    const hasVisibleAddressBarAction =
-+        prefService
-+            .getPref<boolean>('ahoi.developer_toolbar.show_cookie_button')
-+            .value ||
-+        prefService.getPref<boolean>('ahoi.developer_toolbar.show_cache_button')
-+            .value ||
-+        prefService
-+            .getPref<boolean>('ahoi.developer_toolbar.show_toolkit_button')
-+            .value;
-+    if (!hasVisibleAddressBarAction) {
-+      prefService.setPrefValue(
-+          'ahoi.developer_toolbar.show_toolkit_button', true);
-+    }
-+  }
-+
-   protected onDisableExtensionClick_() {
-     this.fire('refresh-pref', 'homepage');
-   }
-@@ -576,7 +625,7 @@ export class SettingsAppearancePageElement extends
-     this.themeSublabel_ = this.i18n(i18nId);
-     // </if>
-     // <if expr="not is_linux">
--      this.themeSublabel_ = '';
-+    this.themeSublabel_ = '';
-     // </if>
-   }
- 
-@@ -681,7 +730,8 @@ export class SettingsAppearancePageElement extends
- 
-   protected onHoverCardMemoryUsageSettingsBooleanControlChange_(event: Event) {
-     const enabled = (event.target as SettingsToggleButtonElement).checked;
--    this.appearanceBrowserProxy_.recordHoverCardMemoryUsageEnabledChanged(enabled);
-+    this.appearanceBrowserProxy_.recordHoverCardMemoryUsageEnabledChanged(
-+        enabled);
-   }
- 
-   protected showVerticalTabsExpandOnHoverSetting_(): boolean {
+   css_files = [
++    "ahoi_page/ahoi_page.css",
+     "settings_columned_section.css",
+     "settings_shared.css",
+     "settings_shared_lit.css",
 diff --git a/chrome/browser/resources/settings/on_startup_page/on_startup_page.html.ts b/chrome/browser/resources/settings/on_startup_page/on_startup_page.html.ts
 index 064f725d0afa575cd21341337790da46bb7122ac..404a782f922c6193fdd51a3d3cd7d4eb6fc49c67 100644
 --- a/chrome/browser/resources/settings/on_startup_page/on_startup_page.html.ts
@@ -4005,6 +3900,92 @@ index 5f3a324970436d1b540a6be47e3bfa0f278b136a..c958c31b56c59b7c8aad3334c93068ac
    /**
     * Determine whether to show the user defined startup pages.
     * @return Whether the "open specific pages" or "continue and open specific
+diff --git a/chrome/browser/resources/settings/route.ts b/chrome/browser/resources/settings/route.ts
+index 98e81d33d5f39194b3af3304b03036425f1ef257..3890731fb4ee2acfca94523e7ec0e67373462551 100644
+--- a/chrome/browser/resources/settings/route.ts
++++ b/chrome/browser/resources/settings/route.ts
+@@ -157,6 +157,9 @@ function createRoutes(): SettingsRoutes {
+ 
+   const visibility = pageVisibility || {};
+ 
++  r.AHOI = r.BASIC.createSection(
++      '/ahoi', 'ahoi', loadTimeData.getString('ahoiPageTitle'));
++
+   if (visibility.people !== false) {
+     r.PEOPLE = r.BASIC.createSection(
+         '/people', 'people', loadTimeData.getString('peoplePageTitle'));
+diff --git a/chrome/browser/resources/settings/router.ts b/chrome/browser/resources/settings/router.ts
+index 7fb927120327cc9a208c374b007792425ef91a0a..28843ef928abf0eae4aa153607f149049bf329d7 100644
+--- a/chrome/browser/resources/settings/router.ts
++++ b/chrome/browser/resources/settings/router.ts
+@@ -21,6 +21,7 @@ export interface SettingsRoutes {
+   AI: Route;
+   AI_MODE_SEARCH: Route;
+   AI_SUGGESTIONS: Route;
++  AHOI: Route;
+   APPEARANCE: Route;
+   AUTOFILL: Route;
+   AUTOFILL_AI: Route;
+diff --git a/chrome/browser/resources/settings/settings.ts b/chrome/browser/resources/settings/settings.ts
+index 63f0721f69e30b8c7657444bfea2f034d0f35ebc..f5c4fb29e33ff212b95ced1086bc43a8b090d0eb 100644
+--- a/chrome/browser/resources/settings/settings.ts
++++ b/chrome/browser/resources/settings/settings.ts
+@@ -47,6 +47,7 @@ export type {OpenWindowProxy} from 'chrome://resources/js/open_window_proxy.js';
+ export {PluralStringProxyImpl as SettingsPluralStringProxyImpl} from 'chrome://resources/js/plural_string_proxy.js';
+ export {getTrustedHTML} from 'chrome://resources/js/static_types.js';
+ export {SettingsAboutPageElement} from './about_page/about_page.js';
++export {SettingsAhoiPageElement} from './ahoi_page/ahoi_page.js';
+ export {ControlledRadioButtonElement} from './controls/controlled_radio_button.js';
+ export {SettingsDropdownMenuElement} from './controls/settings_dropdown_menu.js';
+ export {SettingsRadioGroupElement} from './controls/settings_radio_group.js';
+diff --git a/chrome/browser/resources/settings/settings_main/settings_main.html b/chrome/browser/resources/settings/settings_main/settings_main.html
+index 703394559fbf325542e67245d87fd0585442b706..d8b3387c2c41387cdc661ae55b382ebe5b702e04 100644
+--- a/chrome/browser/resources/settings/settings_main/settings_main.html
++++ b/chrome/browser/resources/settings/settings_main/settings_main.html
+@@ -133,6 +133,14 @@
+     </div>
+   </template>
+ 
++  <div slot="view" id="ahoi">
++    <template is="dom-if" if="[[renderPlugin_(
++        routes_.AHOI, lastRoute_, inSearchMode_)]]" update-when-false>
++      <settings-ahoi-page in-search-mode="[[inSearchMode_]]">
++      </settings-ahoi-page>
++    </template>
++  </div>
++
+   <div slot="view" id="search">
+     <template is="dom-if" if="[[renderPlugin_(
+         routes_.SEARCH, lastRoute_, inSearchMode_)]]">
+diff --git a/chrome/browser/resources/settings/settings_main/settings_main.ts b/chrome/browser/resources/settings/settings_main/settings_main.ts
+index 7ff1c061b5a6bc9dbd1868ed155214ca97508efc..c012c13e87440b77fea8dc5210f91878da25034f 100644
+--- a/chrome/browser/resources/settings/settings_main/settings_main.ts
++++ b/chrome/browser/resources/settings/settings_main/settings_main.ts
+@@ -11,6 +11,7 @@ import 'chrome://resources/cr_elements/cr_shared_style.css.js';
+ import 'chrome://resources/cr_elements/cr_view_manager/cr_view_manager.js';
+ import 'chrome://resources/cr_elements/icons.html.js';
+ import '../about_page/about_page.js';
++import '../ahoi_page/ahoi_page.js';
+ import '../ai_page/ai_page_index.js';
+ import '../appearance_page/appearance_page_index.js';
+ import '../autofill_page/autofill_page_index.js';
+diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.html b/chrome/browser/resources/settings/settings_menu/settings_menu.html
+index dd30b5046d72725249b90621d1346a2d23ba71f0..5988b1cddcb4ee721f2ea26cf38a178ed69406f4 100644
+--- a/chrome/browser/resources/settings/settings_menu/settings_menu.html
++++ b/chrome/browser/resources/settings/settings_menu/settings_menu.html
+@@ -96,6 +96,12 @@
+           $i18n{appearancePageTitle}
+           <cr-ripple></cr-ripple>
+         </a>
++        <a role="menuitem" id="ahoi" href="/ahoi"
++            class="cr-nav-menu-item">
++          <cr-icon icon="settings:apps"></cr-icon>
++          $i18n{ahoiPageTitle}
++          <cr-ripple></cr-ripple>
++        </a>
+         <a role="menuitem" href="/search" class="cr-nav-menu-item">
+           <cr-icon icon="settings:search"></cr-icon>
+           $i18n{searchPageTitle}
 diff --git a/chrome/browser/sessions/BUILD.gn b/chrome/browser/sessions/BUILD.gn
 index 0130da8bbd4cc450be9bde43a336bcec50f83b1b..920168878589f8845cba1d8c78e7eab115fd7c6b 100644
 --- a/chrome/browser/sessions/BUILD.gn
@@ -5898,6 +5879,15 @@ index f7e12d32b15fb85da942464c998bcc4cfb786790..ae5a7a593ec6e2cf2c998a7c9b6a853f
        "//base",
        "//base/test:test_support",
        "//base/version_info",
+@@ -479,6 +487,7 @@ if (!is_android) {
+       "//chrome/browser:buildflags",
+       "//chrome/browser:chrome_browser_main",
+       "//chrome/browser/extensions",
+       "//chrome/browser/lifetime",
++      "//chrome/browser/policy:test_support",
+       "//chrome/browser/prefs:util",
+       "//chrome/browser/profiles",
+       "//chrome/browser/profiles:misc",
 diff --git a/chrome/browser/ui/startup/infobar_utils.cc b/chrome/browser/ui/startup/infobar_utils.cc
 index 4907b9a951040624eab323061636a222315194e5..390a64d0f3fd43ebe577a5261d1de415cb60cc15 100644
 --- a/chrome/browser/ui/startup/infobar_utils.cc
@@ -5934,7 +5924,7 @@ index 4907b9a951040624eab323061636a222315194e5..390a64d0f3fd43ebe577a5261d1de415
    if (ObsoleteSystem::IsObsoleteNowOrSoon()) {
      PrefService* local_state = g_browser_process->local_state();
 diff --git a/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc b/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc
-index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2a75985db 100644
+index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..c204633d0f6f5a67671a07688272c63cbeff13cc 100644
 --- a/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc
 +++ b/chrome/browser/ui/startup/startup_browser_creator_browsertest.cc
 @@ -11,6 +11,8 @@
@@ -5965,7 +5955,15 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
  #include "base/version_info/version_info.h"
  #include "build/branding_buildflags.h"
  #include "build/build_config.h"
-@@ -58,6 +63,7 @@
+@@ -42,6 +47,7 @@
+ #include "chrome/browser/extensions/launch_util.h"
+ #include "chrome/browser/first_run/first_run.h"
+ #include "chrome/browser/lifetime/application_lifetime.h"
++#include "chrome/browser/policy/policy_test_utils.h"
+ #include "chrome/browser/prefs/session_startup_pref.h"
+ #include "chrome/browser/profiles/keep_alive/profile_keep_alive_types.h"
+ #include "chrome/browser/profiles/keep_alive/scoped_profile_keep_alive.h"
+@@ -58,7 +64,8 @@
  #include "chrome/browser/sessions/session_restore_test_helper.h"
  #include "chrome/browser/sessions/session_restore_test_utils.h"
  #include "chrome/browser/sessions/session_service_factory.h"
@@ -5973,7 +5971,16 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
  #include "chrome/browser/signin/signin_promo.h"
  #include "chrome/browser/signin/signin_util.h"
  #include "chrome/browser/ui/browser_commands.h"
-@@ -93,6 +99,7 @@
+ #include "chrome/browser/ui/browser_init_state.h"
+@@ -78,6 +85,7 @@
+ #include "chrome/browser/ui/startup/web_app_startup_utils.h"
+ #include "chrome/browser/ui/toasts/toast_controller.h"
+ #include "chrome/browser/ui/ui_features.h"
++#include "chrome/browser/ui/views/session_crashed_bubble_view.h"
+ #include "chrome/browser/ui/web_applications/test/web_app_browsertest_util.h"
+ #include "chrome/browser/ui/window_metadata/window_metadata_controller.h"
+ #include "chrome/browser/web_applications/test/os_integration_test_override_impl.h"
+@@ -93,6 +101,7 @@
  #include "chrome/common/chrome_switches.h"
  #include "chrome/common/chrome_version.h"
  #include "chrome/common/pref_names.h"
@@ -5981,7 +5988,7 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
  #include "chrome/test/base/chrome_test_utils.h"
  #include "chrome/test/base/in_process_browser_test.h"
  #include "chrome/test/base/ui_test_utils.h"
-@@ -124,13 +131,13 @@
+@@ -124,13 +133,13 @@
  #include "testing/gtest/include/gtest/gtest.h"
  #include "third_party/abseil-cpp/absl/strings/ascii.h"
  #include "ui/views/controls/webview/webview.h"
@@ -5997,7 +6004,7 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
  #include "chrome/browser/first_run/scoped_relaunch_chrome_browser_override.h"
  #include "chrome/browser/ui/profiles/profile_picker.h"
  #include "chrome/browser/ui/webui/signin/profile_picker_handler.h"
-@@ -151,7 +158,6 @@
+@@ -151,7 +160,6 @@
  #include "chrome/browser/web_applications/web_app_sync_bridge.h"
  #include "third_party/blink/public/common/features.h"
  #include "ui/views/widget/any_widget_observer.h"
@@ -6005,7 +6012,7 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
  #endif
  
  using testing::Return;
-@@ -186,6 +192,16 @@ void DisableWhatsNewPage() {
+@@ -186,6 +194,16 @@ void DisableWhatsNewPage() {
                             version_info::GetMajorVersionNumberAsInt());
  }
  
@@ -6022,16 +6029,65 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
  Browser* OpenNewBrowser(Profile* profile,
                          const std::optional<std::string>&
                              version_string_for_testing = std::nullopt) {
-@@ -321,6 +337,228 @@ class StartupBrowserCreatorTest : public extensions::ExtensionBrowserTest {
+@@ -317,10 +335,460 @@ class StartupBrowserCreatorTest : public extensions::ExtensionBrowserTest {
+ #endif  // BUILDFLAG(IS_MAC)
+   }
+ 
++  void TearDownOnMainThread() override {
++    profile_keep_alive_.reset();
++    session_keep_alive_.reset();
++    extensions::ExtensionBrowserTest::TearDownOnMainThread();
++  }
++
++  void SaveCurrentBrowserAsLastSession(const GURL& saved_url) {
++    Profile* profile = browser()->GetProfile();
++    ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), saved_url));
++
++    SessionService* session_service =
++        SessionServiceFactory::GetForProfileForSessionRestore(profile);
++    ASSERT_TRUE(session_service);
++    SessionServiceTestHelper session_helper(session_service);
++    session_helper.SaveNow();
++    session_service->MoveCurrentSessionToLastSession();
++    session_keep_alive_ = std::make_unique<ScopedKeepAlive>(
++        KeepAliveOrigin::SESSION_RESTORE, KeepAliveRestartOption::DISABLED);
++    profile_keep_alive_ = std::make_unique<ScopedProfileKeepAlive>(
++        profile, ProfileKeepAliveOrigin::kBrowserWindow);
++    CloseBrowserSynchronously(browser());
++  }
++
++  void ChooseAhoiStartup(views::Widget* dialog,
++                         ahoi::startup::StartupChoice choice,
++                         bool remember) {
++    ASSERT_TRUE(dialog);
++    ASSERT_TRUE(ahoi::startup::SetRememberStartupChoiceForTesting(remember));
++
++    views::DialogDelegate* dialog_delegate =
++        dialog->widget_delegate()->AsDialogDelegate();
++    ASSERT_TRUE(dialog_delegate);
++    if (choice == ahoi::startup::StartupChoice::kContinue) {
++      dialog_delegate->AcceptDialog();
++    } else {
++      dialog_delegate->CancelDialog();
++    }
++  }
++
+  private:
++  std::unique_ptr<ScopedKeepAlive> session_keep_alive_;
++  std::unique_ptr<ScopedProfileKeepAlive> profile_keep_alive_;
    base::test::ScopedFeatureList scoped_feature_list_;
  };
  
 +#if !BUILDFLAG(IS_CHROMEOS)
++class AhoiManagedStartupPolicyTest : public policy::PolicyTest {};
++
 +IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
 +                       AhoiEmptyStartupCreatesTrueZeroTabWindow) {
 +  base::test::ScopedCommandLine scoped_process_command_line;
 +  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
 +  Profile* profile = browser()->GetProfile();
++  const GURL suppressed_url(chrome::kChromeUIVersionURL);
++  ASSERT_NO_FATAL_FAILURE(SaveCurrentBrowserAsLastSession(suppressed_url));
 +  ASSERT_TRUE(ahoi::session::SetStartupMode(
 +      profile->GetPrefs(), ahoi::session::StartupMode::kEmpty));
 +  DisableWhatsNewPage();
@@ -6047,8 +6103,9 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +  ASSERT_TRUE(empty_browser);
 +  EXPECT_EQ(0, empty_browser->tab_strip_model()->count());
 +  EXPECT_EQ(nullptr, empty_browser->tab_strip_model()->GetActiveWebContents());
++  EXPECT_FALSE(profile->restored_last_session());
 +
-+  chrome::NewTab(empty_browser);
++  chrome::NewTab(empty_browser, NewTabTypes::kNewTabCommand);
 +  EXPECT_EQ(1, empty_browser->tab_strip_model()->count());
 +  EXPECT_NE(nullptr, empty_browser->tab_strip_model()->GetActiveWebContents());
 +}
@@ -6080,24 +6137,12 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +}
 +
 +IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
-+                       AhoiAskWithRestorableSessionShowsNativeChoice) {
++                       AhoiAskContinueRestoresAndRemembersChoice) {
 +  base::test::ScopedCommandLine scoped_process_command_line;
 +  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
 +  Profile* profile = browser()->GetProfile();
-+  ASSERT_TRUE(ui_test_utils::NavigateToURL(
-+      browser(), GURL(chrome::kChromeUIVersionURL)));
-+
-+  SessionService* session_service =
-+      SessionServiceFactory::GetForProfileForSessionRestore(profile);
-+  ASSERT_TRUE(session_service);
-+  SessionServiceTestHelper session_helper(session_service);
-+  session_helper.SaveNow();
-+  session_service->MoveCurrentSessionToLastSession();
-+  ScopedKeepAlive keep_alive(KeepAliveOrigin::SESSION_RESTORE,
-+                             KeepAliveRestartOption::DISABLED);
-+  ScopedProfileKeepAlive profile_keep_alive(
-+      profile, ProfileKeepAliveOrigin::kBrowserWindow);
-+  CloseBrowserSynchronously(browser());
++  const GURL restored_url(chrome::kChromeUIVersionURL);
++  ASSERT_NO_FATAL_FAILURE(SaveCurrentBrowserAsLastSession(restored_url));
 +  ASSERT_TRUE(ahoi::session::SetStartupMode(profile->GetPrefs(),
 +                                            ahoi::session::StartupMode::kAsk));
 +  DisableWhatsNewPage();
@@ -6115,12 +6160,207 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +    return ahoi::startup::GetStartupChoiceDialogForTesting() != nullptr;
 +  }));
 +  EXPECT_EQ(0, choice_browser->tab_strip_model()->count());
-+  EXPECT_EQ(nullptr,
-+            choice_browser->tab_strip_model()->GetActiveWebContents());
-+  ahoi::startup::GetStartupChoiceDialogForTesting()->Close();
-+  base::RunLoop().RunUntilIdle();
++  EXPECT_EQ(nullptr, choice_browser->tab_strip_model()->GetActiveWebContents());
++  ASSERT_NO_FATAL_FAILURE(ChooseAhoiStartup(
++      ahoi::startup::GetStartupChoiceDialogForTesting(),
++      ahoi::startup::StartupChoice::kContinue, /*remember=*/true));
++  ASSERT_TRUE(base::test::RunUntil([&] {
++    content::WebContents* active_contents =
++        choice_browser->tab_strip_model()->GetActiveWebContents();
++    return active_contents &&
++           active_contents->GetLastCommittedURL() == restored_url &&
++           profile->restored_last_session() &&
++           !ahoi::startup::GetStartupChoiceDialogForTesting();
++  }));
++  EXPECT_EQ(ahoi::session::StartupMode::kContinue,
++            ahoi::session::GetStartupMode(*profile->GetPrefs()));
++}
++
++IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
++                       AhoiAskEmptyStaysEmptyAndRemembersChoice) {
++  base::test::ScopedCommandLine scoped_process_command_line;
++  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
++  Profile* profile = browser()->GetProfile();
++  const GURL suppressed_url(chrome::kChromeUIVersionURL);
++  ASSERT_NO_FATAL_FAILURE(SaveCurrentBrowserAsLastSession(suppressed_url));
++  ASSERT_TRUE(ahoi::session::SetStartupMode(profile->GetPrefs(),
++                                            ahoi::session::StartupMode::kAsk));
++  DisableWhatsNewPage();
++
++  base::CommandLine command_line(base::CommandLine::NO_PROGRAM);
++  StartupBrowserCreatorImpl creator(base::FilePath(), command_line,
++                                    chrome::startup::IsFirstRun::kNo);
++  ui_test_utils::BrowserCreatedObserver browser_created_observer;
++  creator.Launch(profile, chrome::startup::IsProcessStartup::kYes,
++                 /*restore_tabbed_browser=*/true);
++  Browser* choice_browser = browser_created_observer.Wait();
++
++  ASSERT_TRUE(choice_browser);
++  ASSERT_TRUE(base::test::RunUntil([] {
++    return ahoi::startup::GetStartupChoiceDialogForTesting() != nullptr;
++  }));
++  ASSERT_NO_FATAL_FAILURE(ChooseAhoiStartup(
++      ahoi::startup::GetStartupChoiceDialogForTesting(),
++      ahoi::startup::StartupChoice::kEmpty, /*remember=*/true));
++  ASSERT_TRUE(base::test::RunUntil([&] {
++    return ahoi::session::GetStartupMode(*profile->GetPrefs()) ==
++               ahoi::session::StartupMode::kEmpty &&
++           !ahoi::startup::GetStartupChoiceDialogForTesting();
++  }));
++  EXPECT_EQ(0, choice_browser->tab_strip_model()->count());
++  EXPECT_EQ(nullptr, choice_browser->tab_strip_model()->GetActiveWebContents());
++  EXPECT_FALSE(profile->restored_last_session());
++}
++
++IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
++                       AhoiAskContinueWithoutRememberRestoresOnce) {
++  base::test::ScopedCommandLine scoped_process_command_line;
++  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
++  Profile* profile = browser()->GetProfile();
++  const GURL restored_url(chrome::kChromeUIVersionURL);
++  ASSERT_NO_FATAL_FAILURE(SaveCurrentBrowserAsLastSession(restored_url));
++  ASSERT_TRUE(ahoi::session::SetStartupMode(profile->GetPrefs(),
++                                            ahoi::session::StartupMode::kAsk));
++  DisableWhatsNewPage();
++
++  base::CommandLine command_line(base::CommandLine::NO_PROGRAM);
++  StartupBrowserCreatorImpl creator(base::FilePath(), command_line,
++                                    chrome::startup::IsFirstRun::kNo);
++  ui_test_utils::BrowserCreatedObserver browser_created_observer;
++  creator.Launch(profile, chrome::startup::IsProcessStartup::kYes,
++                 /*restore_tabbed_browser=*/true);
++  Browser* choice_browser = browser_created_observer.Wait();
++
++  ASSERT_TRUE(choice_browser);
++  ASSERT_TRUE(base::test::RunUntil([] {
++    return ahoi::startup::GetStartupChoiceDialogForTesting() != nullptr;
++  }));
++  ASSERT_NO_FATAL_FAILURE(ChooseAhoiStartup(
++      ahoi::startup::GetStartupChoiceDialogForTesting(),
++      ahoi::startup::StartupChoice::kContinue, /*remember=*/false));
++  ASSERT_TRUE(base::test::RunUntil([&] {
++    content::WebContents* active_contents =
++        choice_browser->tab_strip_model()->GetActiveWebContents();
++    return active_contents &&
++           active_contents->GetLastCommittedURL() == restored_url &&
++           profile->restored_last_session() &&
++           !ahoi::startup::GetStartupChoiceDialogForTesting();
++  }));
 +  EXPECT_EQ(ahoi::session::StartupMode::kAsk,
 +            ahoi::session::GetStartupMode(*profile->GetPrefs()));
++}
++
++IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
++                       AhoiAskEmptyWithoutRememberStaysEmptyOnce) {
++  base::test::ScopedCommandLine scoped_process_command_line;
++  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
++  Profile* profile = browser()->GetProfile();
++  const GURL suppressed_url(chrome::kChromeUIVersionURL);
++  ASSERT_NO_FATAL_FAILURE(SaveCurrentBrowserAsLastSession(suppressed_url));
++  ASSERT_TRUE(ahoi::session::SetStartupMode(profile->GetPrefs(),
++                                            ahoi::session::StartupMode::kAsk));
++  DisableWhatsNewPage();
++
++  base::CommandLine command_line(base::CommandLine::NO_PROGRAM);
++  StartupBrowserCreatorImpl creator(base::FilePath(), command_line,
++                                    chrome::startup::IsFirstRun::kNo);
++  ui_test_utils::BrowserCreatedObserver browser_created_observer;
++  creator.Launch(profile, chrome::startup::IsProcessStartup::kYes,
++                 /*restore_tabbed_browser=*/true);
++  Browser* choice_browser = browser_created_observer.Wait();
++
++  ASSERT_TRUE(choice_browser);
++  ASSERT_TRUE(base::test::RunUntil([] {
++    return ahoi::startup::GetStartupChoiceDialogForTesting() != nullptr;
++  }));
++  ASSERT_NO_FATAL_FAILURE(ChooseAhoiStartup(
++      ahoi::startup::GetStartupChoiceDialogForTesting(),
++      ahoi::startup::StartupChoice::kEmpty, /*remember=*/false));
++  ASSERT_TRUE(base::test::RunUntil(
++      [] { return !ahoi::startup::GetStartupChoiceDialogForTesting(); }));
++  base::RunLoop().RunUntilIdle();
++  EXPECT_EQ(0, choice_browser->tab_strip_model()->count());
++  EXPECT_EQ(nullptr, choice_browser->tab_strip_model()->GetActiveWebContents());
++  EXPECT_FALSE(profile->restored_last_session());
++  EXPECT_EQ(ahoi::session::StartupMode::kAsk,
++            ahoi::session::GetStartupMode(*profile->GetPrefs()));
++}
++
++IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
++                       AhoiStartupChoiceAcceptWithoutRememberReturnsContinue) {
++  base::test::TestFuture<ahoi::startup::StartupChoiceResult> future;
++  ASSERT_TRUE(
++      ahoi::startup::ShowStartupChoiceDialog(browser(), future.GetCallback()));
++  views::Widget* dialog = ahoi::startup::GetStartupChoiceDialogForTesting();
++  ASSERT_TRUE(dialog);
++
++  ASSERT_NO_FATAL_FAILURE(ChooseAhoiStartup(
++      dialog, ahoi::startup::StartupChoice::kContinue, /*remember=*/false));
++  ASSERT_TRUE(future.Wait());
++  const ahoi::startup::StartupChoiceResult result = future.Take();
++
++  EXPECT_EQ(ahoi::startup::StartupChoice::kContinue, result.choice);
++  EXPECT_FALSE(result.remember);
++  ASSERT_TRUE(base::test::RunUntil(
++      [] { return !ahoi::startup::GetStartupChoiceDialogForTesting(); }));
++}
++
++IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
++                       AhoiStartupChoiceCancelWithoutRememberReturnsEmpty) {
++  base::test::TestFuture<ahoi::startup::StartupChoiceResult> future;
++  ASSERT_TRUE(
++      ahoi::startup::ShowStartupChoiceDialog(browser(), future.GetCallback()));
++  views::Widget* dialog = ahoi::startup::GetStartupChoiceDialogForTesting();
++  ASSERT_TRUE(dialog);
++
++  ASSERT_NO_FATAL_FAILURE(ChooseAhoiStartup(
++      dialog, ahoi::startup::StartupChoice::kEmpty, /*remember=*/false));
++  ASSERT_TRUE(future.Wait());
++  const ahoi::startup::StartupChoiceResult result = future.Take();
++
++  EXPECT_EQ(ahoi::startup::StartupChoice::kEmpty, result.choice);
++  EXPECT_FALSE(result.remember);
++  ASSERT_TRUE(base::test::RunUntil(
++      [] { return !ahoi::startup::GetStartupChoiceDialogForTesting(); }));
++}
++
++IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
++                       AhoiStartupChoiceCloseButtonForcesEmptyWithoutRemember) {
++  base::test::TestFuture<ahoi::startup::StartupChoiceResult> future;
++  ASSERT_TRUE(
++      ahoi::startup::ShowStartupChoiceDialog(browser(), future.GetCallback()));
++  views::Widget* dialog = ahoi::startup::GetStartupChoiceDialogForTesting();
++  ASSERT_TRUE(dialog);
++  ASSERT_TRUE(ahoi::startup::SetRememberStartupChoiceForTesting(true));
++
++  dialog->CloseWithReason(views::Widget::ClosedReason::kCloseButtonClicked);
++  ASSERT_TRUE(future.Wait());
++  const ahoi::startup::StartupChoiceResult result = future.Take();
++
++  EXPECT_EQ(ahoi::startup::StartupChoice::kEmpty, result.choice);
++  EXPECT_FALSE(result.remember);
++  ASSERT_TRUE(base::test::RunUntil(
++      [] { return !ahoi::startup::GetStartupChoiceDialogForTesting(); }));
++}
++
++IN_PROC_BROWSER_TEST_F(
++    StartupBrowserCreatorTest,
++    AhoiStartupChoiceWidgetDestroyForcesEmptyWithoutRemember) {
++  base::test::TestFuture<ahoi::startup::StartupChoiceResult> future;
++  ASSERT_TRUE(
++      ahoi::startup::ShowStartupChoiceDialog(browser(), future.GetCallback()));
++  views::Widget* dialog = ahoi::startup::GetStartupChoiceDialogForTesting();
++  ASSERT_TRUE(dialog);
++  ASSERT_TRUE(ahoi::startup::SetRememberStartupChoiceForTesting(true));
++
++  dialog->CloseNow();
++  ASSERT_TRUE(future.Wait());
++  const ahoi::startup::StartupChoiceResult result = future.Take();
++
++  EXPECT_EQ(ahoi::startup::StartupChoice::kEmpty, result.choice);
++  EXPECT_FALSE(result.remember);
++  ASSERT_TRUE(base::test::RunUntil(
++      [] { return !ahoi::startup::GetStartupChoiceDialogForTesting(); }));
 +}
 +
 +IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
@@ -6129,19 +6369,7 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
 +  Profile* profile = browser()->GetProfile();
 +  const GURL restored_url(chrome::kChromeUIVersionURL);
-+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), restored_url));
-+
-+  SessionService* session_service =
-+      SessionServiceFactory::GetForProfileForSessionRestore(profile);
-+  ASSERT_TRUE(session_service);
-+  SessionServiceTestHelper session_helper(session_service);
-+  session_helper.SaveNow();
-+  session_service->MoveCurrentSessionToLastSession();
-+  ScopedKeepAlive keep_alive(KeepAliveOrigin::SESSION_RESTORE,
-+                             KeepAliveRestartOption::DISABLED);
-+  ScopedProfileKeepAlive profile_keep_alive(
-+      profile, ProfileKeepAliveOrigin::kBrowserWindow);
-+  CloseBrowserSynchronously(browser());
++  ASSERT_NO_FATAL_FAILURE(SaveCurrentBrowserAsLastSession(restored_url));
 +  ASSERT_TRUE(ahoi::session::SetStartupMode(
 +      profile->GetPrefs(), ahoi::session::StartupMode::kContinue));
 +  DisableWhatsNewPage();
@@ -6178,7 +6406,7 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +      profile->GetPrefs(), ahoi::session::StartupMode::kEmpty));
 +  DisableWhatsNewPage();
 +
-+  const GURL requested_url(chrome::kChromeUIVersionURL);
++  const GURL requested_url(url::kAboutBlankURL);
 +  base::CommandLine command_line(base::CommandLine::NO_PROGRAM);
 +  command_line.AppendArg(requested_url.spec());
 +  StartupBrowserCreatorImpl creator(base::FilePath(), command_line,
@@ -6195,16 +6423,18 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +                               ->GetVisibleURL());
 +}
 +
-+IN_PROC_BROWSER_TEST_F(StartupBrowserCreatorTest,
++IN_PROC_BROWSER_TEST_F(AhoiManagedStartupPolicyTest,
 +                       ManagedRestorePolicyWinsOverAhoiEmpty) {
 +  base::test::ScopedCommandLine scoped_process_command_line;
 +  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
 +  Profile* profile = browser()->GetProfile();
 +  ASSERT_TRUE(ahoi::session::SetStartupMode(
 +      profile->GetPrefs(), ahoi::session::StartupMode::kEmpty));
-+  profile->GetPrefs()->SetManagedPref(
-+      prefs::kRestoreOnStartup,
-+      base::Value(SessionStartupPref::kPrefValueNewTab));
++  policy::PolicyMap policies;
++  policies.Set(policy::key::kRestoreOnStartup, policy::POLICY_LEVEL_MANDATORY,
++               policy::POLICY_SCOPE_USER, policy::POLICY_SOURCE_CLOUD,
++               base::Value(SessionStartupPref::kPrefValueNewTab), nullptr);
++  UpdateProviderPolicy(policies);
 +  DisableWhatsNewPage();
 +
 +  base::CommandLine command_line(base::CommandLine::NO_PROGRAM);
@@ -6226,10 +6456,13 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +  base::test::ScopedCommandLine scoped_process_command_line;
 +  AllowAhoiStartupInBrowserTest(&scoped_process_command_line);
 +  Profile* profile = browser()->GetProfile();
++  const GURL suppressed_url(chrome::kChromeUIVersionURL);
++  ASSERT_NO_FATAL_FAILURE(SaveCurrentBrowserAsLastSession(suppressed_url));
 +  ASSERT_TRUE(ahoi::session::SetStartupMode(
 +      profile->GetPrefs(), ahoi::session::StartupMode::kContinue));
 +  ExitTypeService::GetInstanceForProfile(profile)
 +      ->SetLastSessionExitTypeForTest(ExitType::kCrashed);
++  StartupBrowserCreator::ClearLaunchedProfilesForTesting();
 +  DisableWhatsNewPage();
 +
 +  base::CommandLine command_line(base::CommandLine::NO_PROGRAM);
@@ -6241,10 +6474,16 @@ index 6ac32ab40f0af210ee78856b967edd4adfb19d3b..fdd21cd6df8879a27f88158095627ad2
 +  Browser* recovery_browser = browser_created_observer.Wait();
 +
 +  ASSERT_TRUE(recovery_browser);
-+  EXPECT_GT(recovery_browser->tab_strip_model()->count(), 0);
-+  EXPECT_NE(nullptr,
++  ASSERT_GT(recovery_browser->tab_strip_model()->count(), 0);
++  ASSERT_NE(nullptr,
 +            recovery_browser->tab_strip_model()->GetActiveWebContents());
 +  EXPECT_FALSE(profile->restored_last_session());
++  EXPECT_NE(suppressed_url, recovery_browser->tab_strip_model()
++                                ->GetActiveWebContents()
++                                ->GetLastCommittedURL());
++  ASSERT_TRUE(base::test::RunUntil([] {
++    return SessionCrashedBubbleView::GetInstanceForTest() != nullptr;
++  }));
 +}
 +#endif  // !BUILDFLAG(IS_CHROMEOS)
 +
@@ -7922,6 +8161,25 @@ index d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70..f2fa39a2893158be2523c4f0c7f6cbaf
  #include "chrome/test/base/in_process_browser_test.h"
  #include "chrome/test/base/ui_test_utils.h"
  #include "components/permissions/permission_util.h"
+@@ -29,7 +30,8 @@
+ using AccessType = FileSystemAccessPermissionRequestManager::Access;
+ using HandleType = content::FileSystemAccessPermissionContext::HandleType;
+ using RequestData = FileSystemAccessPermissionRequestManager::RequestData;
+-using RequestType = FileSystemAccessPermissionRequestManager::RequestType;
++using FileSystemAccessRequestType =
++    FileSystemAccessPermissionRequestManager::RequestType;
+ 
+ class FileSystemAccessRestorePermissionBubbleViewTest
+     : public InProcessBrowserTest {
+@@ -50,7 +52,7 @@ class FileSystemAccessRestorePermissionBubbleViewTest
+ 
+  protected:
+   const RequestData kRequestData =
+-      RequestData(RequestType::kRestorePermissions,
++      RequestData(FileSystemAccessRequestType::kRestorePermissions,
+                   url::Origin::Create(GURL("https://example.com")),
+                   {{content::PathInfo(FILE_PATH_LITERAL("/foo/bar.txt")),
+                     HandleType::kFile, AccessType::kRead}});
 @@ -174,7 +175,7 @@ IN_PROC_BROWSER_TEST_F(FileSystemAccessRestorePermissionBubbleViewTest,
        contents_container_views =
            BrowserView::GetBrowserViewForBrowser(browser())
@@ -8201,7 +8459,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..332085416cdde5b04f955008aa0cb5a0
        glass_view.tintColor = [NSColor clearColor];
  
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85fee04952 100644
+index 4b4697c29715c922037635a40141a3efb2bdbae4..2a33dc4cf46ca2346128d62485f4aff4b5940456 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -12,6 +12,29 @@
@@ -8298,7 +8556,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
 +// walks ancestors and would otherwise skip the sibling sidebar entirely.
 +// Installing this targeter on TopContainer alone preserves the z-order of
 +// find bars, modal scrims and every other BrowserView sibling.
-+class AhoiSidebarDragViewTargeterDelegate : public views::ViewTargeterDelegate {
++class AhoiSidebarDragViewTargeterDelegate : public OverlayViewTargeterDelegate {
 + public:
 +  explicit AhoiSidebarDragViewTargeterDelegate(
 +      VerticalTabStripRegionView* sidebar_region)
@@ -8320,7 +8578,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
 +        !sidebar_region->GetCanProcessEventsWithinSubtree() ||
 +        !sidebar_region->IsAhoiSidebarFloating() ||
 +        !ahoi::sidebar::IsAnyBrowserSidebarDragActive()) {
-+      return views::ViewTargeterDelegate::DoesIntersectRect(target, rect);
++      return OverlayViewTargeterDelegate::DoesIntersectRect(target, rect);
 +    }
 +
 +    // TopContainer may be reparented into OverlayWidgetMac during immersive
@@ -8333,7 +8591,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
 +    if (sidebar->HitTestPoint(sidebar_point)) {
 +      return false;
 +    }
-+    return views::ViewTargeterDelegate::DoesIntersectRect(target, rect);
++    return OverlayViewTargeterDelegate::DoesIntersectRect(target, rect);
 +  }
 +
 + private:
@@ -9032,7 +9290,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
 +                  VerticalTabStripRegionView* region =
 +                      browser_view->vertical_tab_strip_region_view_;
 +                  return region && region->ahoi_sidebar_tree_view() &&
-+                         ahoi::sidebar::ActivateRelativeBrowserWorkspace(
++                         ahoi::sidebar::ActivateRelativeBrowserWorkspaceByGesture(
 +                             region->ahoi_sidebar_tree_view(), delta);
 +                },
 +                base::Unretained(this)),
@@ -9381,7 +9639,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
    if (command_id == IDC_SHOW_READING_MODE_SIDE_PANEL) {
      actions::ActionInvocationContext context =
          actions::ActionInvocationContext::Builder()
-@@ -5185,6 +6007,188 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -5185,6 +6007,199 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
                                  accelerator.time_stamp());
  }
  
@@ -9508,6 +9766,12 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
 +  return ahoi_developer_toolkit_controller_->Show(anchor_view);
 +}
 +
++bool BrowserView::IsAhoiDeveloperToolbarSurfaceShowing(
++    ahoi::DeveloperToolbarSurface surface) const {
++  return ahoi_developer_toolkit_controller_ &&
++         ahoi_developer_toolkit_controller_->IsSurfaceShowing(surface);
++}
++
 +bool BrowserView::CanExecuteAhoiDeveloperAction() const {
 +  if (!browser_) {
 +    return false;
@@ -9541,6 +9805,11 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
 +  return ahoi_privacy_mode_controller_->Show(anchor_view);
 +}
 +
++bool BrowserView::IsAhoiPrivacyModeShowing() const {
++  return ahoi_privacy_mode_controller_ &&
++         ahoi_privacy_mode_controller_->IsShowing();
++}
++
 +bool BrowserView::CanShowAhoiPrivacyMode() const {
 +  if (!browser_) {
 +    return false;
@@ -9570,7 +9839,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
  ///////////////////////////////////////////////////////////////////////////////
  // BrowserView, infobars::InfoBarContainer::Delegate overrides:
  
-@@ -5318,7 +6322,8 @@ bool BrowserView::MaybeUpdateSplitView(content::WebContents* contents) {
+@@ -5318,7 +6333,8 @@ bool BrowserView::MaybeUpdateSplitView(content::WebContents* contents) {
    if (updated_state) {
      split_tabs::SplitTabData* split_data =
          browser_->tab_strip_model()->GetSplitData(new_tab->GetSplit().value());
@@ -9580,7 +9849,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
    } else if (current_state != updated_state) {
      multi_contents_view_->CloseSplitView();
    } else {
-@@ -5579,6 +6584,62 @@ void BrowserView::LoadAccelerators() {
+@@ -5579,6 +6595,62 @@ void BrowserView::LoadAccelerators() {
          accelerator, ui::AcceleratorManager::kNormalPriority, this);
    }
  
@@ -9643,7 +9912,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
    // Register the Esc accelerators (both press and release) to ensure they are
    // sent to the ExclusiveAccessManager for press-and-hold fullscreen exit.
    ui::Accelerator escape_pressed(ui::VKEY_ESCAPE, ui::EF_NONE,
-@@ -5909,6 +6970,10 @@ void BrowserView::OnImmersiveFullscreenEntered() {
+@@ -5909,6 +6981,10 @@ void BrowserView::OnImmersiveFullscreenEntered() {
      control->CloseMenu();
    }
  
@@ -9654,7 +9923,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
    ReparentTopContainerForStartOfImmersive();
  
    InvalidateLayout();
-@@ -5928,6 +6993,10 @@ void BrowserView::OnImmersiveFullscreenExited() {
+@@ -5928,6 +7004,10 @@ void BrowserView::OnImmersiveFullscreenExited() {
  
    ReparentTopContainerForEndOfImmersive();
  
@@ -9665,7 +9934,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
    InvalidateLayout();
    GetWidget()->GetRootView()->DeprecatedLayoutImmediately();
  
-@@ -5937,6 +7006,10 @@ void BrowserView::OnImmersiveFullscreenExited() {
+@@ -5937,6 +7017,10 @@ void BrowserView::OnImmersiveFullscreenExited() {
  void BrowserView::OnImmersiveModeControllerDestroyed() {
    ReparentTopContainerForEndOfImmersive();
  
@@ -9677,10 +9946,10 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b43cadd4c3a0de2a2516c7660544ac85
  }
  
 diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef1daeb212 100644
+index a4e53aca6a459b0161ae585aed2354075cabdaf1..e51b532546d69296bbf09a61e039deff395d6a37 100644
 --- a/chrome/browser/ui/views/frame/browser_view.h
 +++ b/chrome/browser/ui/views/frame/browser_view.h
-@@ -100,6 +100,26 @@ class TopControlsSlideControllerTest;
+@@ -100,6 +100,27 @@ class TopControlsSlideControllerTest;
  class VerticalTabStripRegionView;
  class WebAppFrameToolbarView;
  
@@ -9688,6 +9957,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
 +class CommandBarController;
 +class DeveloperToolkitController;
 +enum class DeveloperAction;
++enum class DeveloperToolbarSurface;
 +class ModalOverlayController;
 +class NavigationSurfaceController;
 +class PrivacyModeController;
@@ -9707,7 +9977,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
  namespace gfx {
  class AnimationRunner;
  }  // namespace gfx
-@@ -117,6 +137,8 @@ enum class Channel;
+@@ -117,6 +138,8 @@ enum class Channel;
  }
  
  namespace views {
@@ -9716,7 +9986,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
  class WebView;
  }  // namespace views
  
-@@ -263,6 +285,12 @@ class BrowserView : public BrowserWindow,
+@@ -263,6 +286,12 @@ class BrowserView : public BrowserWindow,
  
    // Container for the web contents.
    views::View* contents_container() { return contents_container_; }
@@ -9729,7 +9999,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
  
    views::View* main_shadow_overlay() { return main_shadow_overlay_; }
  
-@@ -273,6 +301,25 @@ class BrowserView : public BrowserWindow,
+@@ -273,6 +302,25 @@ class BrowserView : public BrowserWindow,
    // Returns either the Horizontal or Vertical TabStrip.
    TabStripRegionView* tab_strip_view() const;
  
@@ -9755,7 +10025,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
    // Test only function. When the VerticalTabs feature is enabled,
    // `vertical_tab_strip_container_` will have a value for normal tabbed
    // browsers even if it is not the active TabStrip. Prefer to use
-@@ -724,6 +771,11 @@ class BrowserView : public BrowserWindow,
+@@ -724,6 +772,11 @@ class BrowserView : public BrowserWindow,
    bool AreDropTypesRequired() override;
    bool CanDrop(const ui::OSExchangeData& data) override;
    void OnDragEntered(const ui::DropTargetEvent& event) override;
@@ -9767,7 +10037,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
    View* GetViewByElementId(ui::ElementIdentifier element_id) override;
    const View* GetViewByElementId(
        ui::ElementIdentifier element_id) const override;
-@@ -731,6 +783,25 @@ class BrowserView : public BrowserWindow,
+@@ -731,6 +784,28 @@ class BrowserView : public BrowserWindow,
    // ui::AcceleratorTarget:
    bool AcceleratorPressed(const ui::Accelerator& accelerator) override;
  
@@ -9779,11 +10049,14 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
 +  // fixed actions. These entry points are shared by location-bar buttons and
 +  // the command bar so all callers use one per-window controller.
 +  bool ShowAhoiDeveloperToolkit(views::View* anchor_view);
++  bool IsAhoiDeveloperToolbarSurfaceShowing(
++      ahoi::DeveloperToolbarSurface surface) const;
 +  bool CanExecuteAhoiDeveloperAction() const;
 +  bool ExecuteAhoiDeveloperAction(ahoi::DeveloperAction action);
 +  // Opens the profile-backed privacy panel shared by the shield action and
 +  // `PRIVACY OPEN` command-bar command.
 +  bool ShowAhoiPrivacyMode(views::View* anchor_view);
++  bool IsAhoiPrivacyModeShowing() const;
 +  bool CanShowAhoiPrivacyMode() const;
 +  // Converts the active temporary tab into an Ahoi saved page. Returns false
 +  // for unsupported browser/profile types so Chromium retains its normal
@@ -9793,7 +10066,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
    // ImmersiveModeController::Observer:
    void OnImmersiveFullscreenEntered() override;
    void OnImmersiveFullscreenExited() override;
-@@ -881,6 +952,9 @@ class BrowserView : public BrowserWindow,
+@@ -881,6 +956,9 @@ class BrowserView : public BrowserWindow,
    // as to what tabs are affected.
    void RevealTopContainerIfNeeded();
  
@@ -9803,7 +10076,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
    void OnVerticalTabStripModeChanged(
        tabs::VerticalTabStripStateController* controller);
  
-@@ -969,6 +1043,14 @@ class BrowserView : public BrowserWindow,
+@@ -969,6 +1047,14 @@ class BrowserView : public BrowserWindow,
    // use.
    void LoadAccelerators();
  
@@ -9818,7 +10091,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
    // Retrieves the command id for the specified Windows app command.
    int GetCommandIDForAppCommandID(int app_command_id) const;
  
-@@ -1219,6 +1301,19 @@ class BrowserView : public BrowserWindow,
+@@ -1219,6 +1305,19 @@ class BrowserView : public BrowserWindow,
    // Handled by ContentsLayoutManager.
    raw_ptr<views::View> contents_container_ = nullptr;
  
@@ -9838,7 +10111,7 @@ index a4e53aca6a459b0161ae585aed2354075cabdaf1..e9e7797fbdebd3f2c6cdbc3a92ce82ef
    // The view responsible for housing the contents of the vertical tab strip.
    raw_ptr<VerticalTabStripRegionView> vertical_tab_strip_region_view_ = nullptr;
    raw_ptr<VerticalTabStripBackgroundBlurBackdrop>
-@@ -1253,6 +1348,55 @@ class BrowserView : public BrowserWindow,
+@@ -1253,6 +1352,55 @@ class BrowserView : public BrowserWindow,
    // A mapping between accelerators and command IDs.
    std::map<ui::Accelerator, int> accelerator_table_;
  
@@ -10013,21 +10286,35 @@ index 3dd6c5cf3093b6ab68040a4b6d37395618f03730..657a335e52971da9edefff28e5dcbd55
    static SkPath GetPath(const gfx::RectF& local_bounds,
                          float corner_radius,
 diff --git a/chrome/browser/ui/views/frame/contents_container_view.cc b/chrome/browser/ui/views/frame/contents_container_view.cc
-index 6c1080488d4d3f9a88d44f2aba5868d29c9e4378..040667fb4af5f1e7da44d6dbfa55044de9c952a7 100644
+index 6c1080488d4d3f9a88d44f2aba5868d29c9e4378..3fefdb4d9f2a9022f2f3a0c43360df9c2f72bdeb 100644
 --- a/chrome/browser/ui/views/frame/contents_container_view.cc
 +++ b/chrome/browser/ui/views/frame/contents_container_view.cc
-@@ -215,8 +215,9 @@ void ContentsContainerView::UpdateBorderAndOverlay(bool is_in_split,
+@@ -214,13 +214,22 @@ void ContentsContainerView::UpdateBorderAndOverlay(bool is_in_split,
+       }
      }
    } else {
++    const bool use_ahoi_split_separators =
++        browser_view_->IsAhoiBrowserSurface();
      if (split_changed) {
 -      SetBorder(views::CreateEmptyBorder(gfx::Insets(
 -          kSplitViewContentPadding + ContentsContainerOutline::kThickness)));
-+      SetBorder(views::CreateEmptyBorder(
-+          gfx::Insets(kSplitViewContentPadding +
-+                      ContentsContainerOutline::kHighlightThickness)));
++      SetBorder(use_ahoi_split_separators
++                    ? nullptr
++                    : views::CreateEmptyBorder(gfx::Insets(
++                          kSplitViewContentPadding +
++                          ContentsContainerOutline::kHighlightThickness)));
        UpdateBorderRoundedCorners();
      }
  
+-    container_outline_->UpdateState(is_active, is_highlighted);
++    if (use_ahoi_split_separators) {
++      container_outline_->SetVisible(false);
++    } else {
++      container_outline_->UpdateState(is_active, is_highlighted);
++    }
+     // Mini toolbar should only be visible for the inactive contents
+     // container view or both depending on configuration.
+     mini_toolbar_->UpdateState(is_active, is_highlighted);
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 index 64cc69c116d30c7f922adf9e67232f4507780d54..e437a5202ae794c9847d60e28405294057133e9c 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
@@ -11905,10 +12192,10 @@ index 15f578411f9e877b296f81b589fa4631cfccdad4..b66c9b0f59e5e8bb93bd04d659d8dbc5
    // Insets of the start and end contents view when in split view.
    gfx::Insets split_view_insets_;
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc b/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc
-index ab603907a6df2ab442816339023683862d8c1c64..c393298f0ec7dcd688e1fd950d7468f3266f3cf9 100644
+index ab603907a6df2ab442816339023683862d8c1c64..0eec4a7c9e993c20473c00a0b1beb1868333170b 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc
-@@ -11,6 +11,7 @@
+@@ -11,9 +11,11 @@
  #include "base/test/scoped_feature_list.h"
  #include "chrome/browser/profiles/profile.h"
  #include "chrome/browser/ui/browser_commands.h"
@@ -11916,7 +12203,11 @@ index ab603907a6df2ab442816339023683862d8c1c64..c393298f0ec7dcd688e1fd950d7468f3
  #include "chrome/browser/ui/browser_window.h"
  #include "chrome/browser/ui/tabs/split_tab_metrics.h"
  #include "chrome/browser/ui/tabs/tab_model.h"
-@@ -336,6 +337,58 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
++#include "chrome/browser/ui/views/frame/contents_container_outline.h"
+ #include "chrome/browser/ui/ui_features.h"
+ #include "chrome/browser/ui/views/frame/custom_floating_corner.h"
+ #include "chrome/browser/ui/views/frame/multi_contents_drop_target_view.h"
+@@ -336,6 +338,66 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
    EXPECT_EQ(0, tab_strip_model->active_index());
  }
  
@@ -11942,11 +12233,19 @@ index ab603907a6df2ab442816339023683862d8c1c64..c393298f0ec7dcd688e1fd950d7468f3
 +  RunScheduledLayouts();
 +
 +  MultiContentsView* view = multi_contents_view();
++  const bool is_ahoi_surface =
++      BrowserView::GetBrowserViewForBrowser(browser())->IsAhoiBrowserSurface();
 +  ASSERT_EQ(view->GetVisiblePaneCount(), 4u);
 +  ASSERT_EQ(view->contents_container_views().size(), 4u);
 +  for (size_t index = 0; index < 4; ++index) {
 +    EXPECT_TRUE(view->contents_container_views()[index]->GetVisible());
 +    EXPECT_FALSE(view->contents_container_views()[index]->bounds().IsEmpty());
++    if (is_ahoi_surface) {
++      EXPECT_EQ(nullptr, view->contents_container_views()[index]->GetBorder());
++      EXPECT_FALSE(view->contents_container_views()[index]
++                       ->contents_outline_view()
++                       ->GetVisible());
++    }
 +    if (index < 3) {
 +      EXPECT_TRUE(view->resize_area_for_testing(index)->GetVisible());
 +    }
@@ -11975,7 +12274,7 @@ index ab603907a6df2ab442816339023683862d8c1c64..c393298f0ec7dcd688e1fd950d7468f3
  IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest, DragAndDropEnabledPref) {
    // Drag and drop should be enabled by default.
    EXPECT_TRUE(multi_contents_view()->IsDragAndDropEnabled());
-@@ -373,7 +426,6 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
+@@ -373,7 +435,6 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
  class MultiContentsViewWebContentsReLayoutBrowserTest
      : public SplitViewBrowserTestMixin<InProcessBrowserTest> {
   protected:
@@ -11983,7 +12282,7 @@ index ab603907a6df2ab442816339023683862d8c1c64..c393298f0ec7dcd688e1fd950d7468f3
    static constexpr char kReLayoutTestURL[] = "/re_layout_test.html";
  
    void SetUpOnMainThread() override {
-@@ -818,3 +870,44 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest, DropTargetLayout) {
+@@ -818,3 +879,44 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest, DropTargetLayout) {
      CompareLayouts(expected_child_layouts, actual_child_layouts);
    }
  }
@@ -12823,10 +13122,10 @@ index 9c60461de2676b2ec9b17f50a8ff3dcd1f05610f..e5707bd0a19b92619a7a8ec206425d45
        "//chrome/app/vector_icons",
        "//chrome/browser:primitives",
 diff --git a/chrome/browser/ui/views/location_bar/location_bar_view.cc b/chrome/browser/ui/views/location_bar/location_bar_view.cc
-index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d3f5a1d2e 100644
+index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c86965362a2b 100644
 --- a/chrome/browser/ui/views/location_bar/location_bar_view.cc
 +++ b/chrome/browser/ui/views/location_bar/location_bar_view.cc
-@@ -9,6 +9,12 @@
+@@ -9,6 +9,13 @@
  #include <string_view>
  #include <utility>
  
@@ -12835,11 +13134,12 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
 +#include "ahoi/browser/privacy/privacy_mode_service.h"
 +#include "ahoi/browser/ui/developer_toolkit/developer_toolbar_menu_controller.h"
 +#include "ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.h"
++#include "ahoi/browser/ui/developer_toolkit/location_bar_bubble_button.h"
 +#include "ahoi/browser/ui/visual_style.h"
  #include "base/containers/adapters.h"
  #include "base/feature_list.h"
  #include "base/functional/bind.h"
-@@ -117,6 +123,8 @@
+@@ -117,6 +124,8 @@
  #include "components/search_engines/template_url_service.h"
  #include "components/security_state/content/security_state_tab_helper.h"
  #include "components/security_state/core/security_state.h"
@@ -12848,7 +13148,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  #include "content/public/browser/navigation_entry.h"
  #include "content/public/browser/render_widget_host_view.h"
  #include "content/public/browser/web_contents.h"
-@@ -127,6 +135,7 @@
+@@ -127,6 +136,7 @@
  #include "ui/accessibility/ax_enums.mojom.h"
  #include "ui/actions/actions.h"
  #include "ui/base/clipboard/clipboard.h"
@@ -12856,7 +13156,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  #include "ui/base/dragdrop/drag_drop_types.h"
  #include "ui/base/ime/input_method.h"
  #include "ui/base/ime/virtual_keyboard_controller.h"
-@@ -182,10 +191,15 @@ LocationBarView* GetLocationBarViewForActions(Browser* browser) {
+@@ -182,10 +192,15 @@ LocationBarView* GetLocationBarViewForActions(Browser* browser) {
    return browser_view ? browser_view->GetLocationBarView() : nullptr;
  }
  
@@ -12873,7 +13173,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  }  // namespace
  
  using content::WebContents;
-@@ -211,6 +225,30 @@ LocationBarView::LocationBarView(Browser* browser,
+@@ -211,6 +226,30 @@ LocationBarView::LocationBarView(Browser* browser,
      pref_registrar_->Add(omnibox::kShowAiModeOmniboxButton,
                           base::BindRepeating(&LocationBarView::OnChanged,
                                               base::Unretained(this)));
@@ -12904,7 +13204,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
    }
  
    run_omnibox_context_menu_callback_ =
-@@ -359,8 +397,7 @@ void LocationBarView::Init() {
+@@ -359,8 +398,7 @@ void LocationBarView::Init() {
      } else if (omnibox::IsWebUIOmniboxInBrowserViewEnabled()) {
        omnibox_popup_view_ =
            std::make_unique<OmniboxPopupViewBrowserView>(this, browser_);
@@ -12914,7 +13214,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
        omnibox_popup_view_ = std::make_unique<OmniboxPopupViewFullWebUI>(
            /*omnibox_view=*/omnibox_view_,
            /*controller=*/omnibox_controller_.get(), /*location_bar=*/this,
-@@ -434,7 +471,6 @@ void LocationBarView::Init() {
+@@ -434,7 +472,6 @@ void LocationBarView::Init() {
    selected_keyword_view_ = AddChildView(std::make_unique<SelectedKeywordView>(
        this, profile_, omnibox_controller_.get(), font_list));
  
@@ -12922,7 +13222,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
    SkColor icon_color = color_provider->GetColor(kColorOmniboxResultsIcon);
  
    std::vector<std::unique_ptr<ContentSettingImageModel>> models =
-@@ -483,7 +519,6 @@ void LocationBarView::Init() {
+@@ -483,7 +520,6 @@ void LocationBarView::Init() {
      params.types_enabled.push_back(PageActionIconType::kFederation);
    }
  
@@ -12930,7 +13230,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
    params.icon_color = color_provider->GetColor(kColorOmniboxActionIcon);
    params.between_icon_spacing = kBetweenIconSpacing;
    params.font_list = &page_action_font_list;
-@@ -504,6 +539,79 @@ void LocationBarView::Init() {
+@@ -504,6 +540,90 @@ void LocationBarView::Init() {
    clear_all_button_ = AddChildView(std::move(clear_all_button));
    RefreshClearAllButtonIcon();
  
@@ -12959,8 +13259,11 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
 +    configure_ahoi_action_button(copy_url_button.get());
 +    ahoi_copy_url_button_ = AddChildView(std::move(copy_url_button));
 +
-+    auto privacy_button = views::CreateVectorImageButton(base::BindRepeating(
-+        &LocationBarView::ShowAhoiPrivacyMode, base::Unretained(this)));
++    auto privacy_button = std::make_unique<ahoi::LocationBarBubbleButton>(
++        base::BindRepeating(&LocationBarView::ShowAhoiPrivacyMode,
++                            base::Unretained(this)),
++        base::BindRepeating(&LocationBarView::IsAhoiPrivacyModeShowing,
++                            base::Unretained(this)));
 +    privacy_button->SetTooltipText(
 +        l10n_util::GetStringUTF16(IDS_AHOI_PRIVACY_BUTTON_TOOLTIP));
 +    privacy_button->SetAccessibleName(
@@ -12972,8 +13275,13 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
 +    auto add_developer_button = [this, &configure_ahoi_action_button](
 +                                    views::Button::PressedCallback callback,
 +                                    const gfx::VectorIcon& icon,
-+                                    int tooltip_id) {
-+      auto button = views::CreateVectorImageButton(std::move(callback));
++                                    int tooltip_id,
++                                    ahoi::DeveloperToolbarSurface surface) {
++      auto button = std::make_unique<ahoi::LocationBarBubbleButton>(
++          std::move(callback),
++          base::BindRepeating(
++              &LocationBarView::IsAhoiDeveloperToolbarSurfaceShowing,
++              base::Unretained(this), surface));
 +      button->SetImageModel(
 +          views::Button::STATE_NORMAL,
 +          ui::ImageModel::FromVectorIcon(icon, kColorOmniboxActionIcon, 18));
@@ -12986,15 +13294,18 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
 +    ahoi_cookie_button_ = add_developer_button(
 +        base::BindRepeating(&LocationBarView::ShowAhoiSiteData,
 +                            base::Unretained(this)),
-+        vector_icons::kCookieIcon, IDS_AHOI_DEVELOPER_COOKIE_BUTTON_TOOLTIP);
++        vector_icons::kCookieIcon, IDS_AHOI_DEVELOPER_COOKIE_BUTTON_TOOLTIP,
++        ahoi::DeveloperToolbarSurface::kCookieManager);
 +    ahoi_cache_button_ = add_developer_button(
 +        base::BindRepeating(&LocationBarView::ClearAhoiSiteCache,
 +                            base::Unretained(this)),
-+        vector_icons::kRefreshIcon, IDS_AHOI_DEVELOPER_CACHE_BUTTON_TOOLTIP);
++        vector_icons::kRefreshIcon, IDS_AHOI_DEVELOPER_CACHE_BUTTON_TOOLTIP,
++        ahoi::DeveloperToolbarSurface::kCacheClear);
 +    ahoi_developer_toolkit_button_ = add_developer_button(
 +        base::BindRepeating(&LocationBarView::ShowAhoiDeveloperToolkit,
 +                            base::Unretained(this)),
-+        vector_icons::kCodeIcon, IDS_AHOI_DEVELOPER_HELPERS_BUTTON_TOOLTIP);
++        vector_icons::kCodeIcon, IDS_AHOI_DEVELOPER_HELPERS_BUTTON_TOOLTIP,
++        ahoi::DeveloperToolbarSurface::kToolkit);
 +    ahoi_developer_toolbar_menu_controller_ =
 +        std::make_unique<ahoi::DeveloperToolbarMenuController>(
 +            profile_->GetOriginalProfile()->GetPrefs());
@@ -13010,7 +13321,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
    auto ai_mode_hint_label = std::make_unique<views::Label>(
        std::u16string(), CONTEXT_OMNIBOX_PRIMARY, views::style::STYLE_PRIMARY);
    ai_mode_hint_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-@@ -901,9 +1009,29 @@ void LocationBarView::Layout(PassKey) {
+@@ -901,9 +1021,29 @@ void LocationBarView::Layout(PassKey) {
                              /*edge_padding=*/trailing_decorations_edge_padding);
    }
  
@@ -13041,7 +13352,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  
    // Perform layout.
    int entry_width = width();
-@@ -1020,6 +1148,7 @@ void LocationBarView::OnThemeChanged() {
+@@ -1020,6 +1160,7 @@ void LocationBarView::OnThemeChanged() {
  
    RefreshBackground();
    RefreshClearAllButtonIcon();
@@ -13049,7 +13360,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  }
  
  void LocationBarView::ChildPreferredSizeChanged(views::View* child) {
-@@ -1041,7 +1170,8 @@ void LocationBarView::Update(WebContents* contents) {
+@@ -1041,7 +1182,8 @@ void LocationBarView::Update(WebContents* contents) {
    RefreshPageActionIconViews();
    location_icon_view_->Update(
        /*suppress_animations=*/contents, GetOmniboxController()->IsPopupOpen());
@@ -13059,7 +13370,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  
    if (contents) {
      omnibox_view_->OnTabChanged(contents);
-@@ -1423,7 +1553,12 @@ int LocationBarView::GetMinimumLeadingWidth() const {
+@@ -1423,7 +1565,12 @@ int LocationBarView::GetMinimumLeadingWidth() const {
  
  int LocationBarView::GetMinimumTrailingWidth() const {
    int trailing_width = IncrementalMinimumWidth(page_action_icon_container_) +
@@ -13073,7 +13384,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  
    for (ContentSettingImageView* content_setting_view : content_setting_views_) {
      trailing_width += IncrementalMinimumWidth(content_setting_view);
-@@ -1432,6 +1567,107 @@ int LocationBarView::GetMinimumTrailingWidth() const {
+@@ -1432,6 +1579,121 @@ int LocationBarView::GetMinimumTrailingWidth() const {
    return trailing_width;
  }
  
@@ -13099,6 +13410,12 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
 +  if (browser_view && ahoi_privacy_button_) {
 +    browser_view->ShowAhoiPrivacyMode(ahoi_privacy_button_);
 +  }
++}
++
++bool LocationBarView::IsAhoiPrivacyModeShowing() const {
++  BrowserView* const browser_view =
++      browser_ ? BrowserView::GetBrowserViewForBrowser(browser_) : nullptr;
++  return browser_view && browser_view->IsAhoiPrivacyModeShowing();
 +}
 +
 +void LocationBarView::UpdateAhoiPrivacyButton() {
@@ -13155,6 +13472,14 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
 +  }
 +}
 +
++bool LocationBarView::IsAhoiDeveloperToolbarSurfaceShowing(
++    ahoi::DeveloperToolbarSurface surface) const {
++  BrowserView* const browser_view =
++      browser_ ? BrowserView::GetBrowserViewForBrowser(browser_) : nullptr;
++  return browser_view &&
++         browser_view->IsAhoiDeveloperToolbarSurfaceShowing(surface);
++}
++
 +void LocationBarView::UpdateAhoiDeveloperButtons() {
 +  if (!ahoi_cookie_button_ || !ahoi_cache_button_ ||
 +      !ahoi_developer_toolkit_button_ || !profile_) {
@@ -13181,7 +13506,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
  gfx::Rect LocationBarView::GetLocalBoundsWithoutEndcaps() const {
    const int border_radius = height() / 2;
    gfx::Rect bounds_without_endcaps(GetLocalBounds());
-@@ -1739,6 +1975,9 @@ void LocationBarView::OnPaintBorder(gfx::Canvas* canvas) {
+@@ -1739,6 +2001,9 @@ void LocationBarView::OnPaintBorder(gfx::Canvas* canvas) {
  }
  
  bool LocationBarView::OnMousePressed(const ui::MouseEvent& event) {
@@ -13191,7 +13516,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
    return omnibox_view_->OnMousePressed(
        AdjustMouseEventLocationForOmniboxView(event));
  }
-@@ -2535,7 +2774,8 @@ void LocationBarView::SetOmniboxToolModeAndOpenAi(
+@@ -2535,7 +2800,8 @@ void LocationBarView::SetOmniboxToolModeAndOpenAi(
    ContextualSearchboxHandler* const composebox_handler =
        omnibox_popup_ui ? omnibox_popup_ui->composebox_handler() : nullptr;
    if (composebox_handler) {
@@ -13202,21 +13527,22 @@ index c299038dd809a8365e671581b2c1f1209ce15178..14a5211a53970fd5c3a54f9d280f3c2d
    }
    edit_model->OpenAiMode(OmniboxEditModel::AimActivation::kContextMenu);
 diff --git a/chrome/browser/ui/views/location_bar/location_bar_view.h b/chrome/browser/ui/views/location_bar/location_bar_view.h
-index 495fecc019ebe9010f21161c5be141d8f62b976b..0f06abf63ef51404b3a0e2e9169e71a98e73209b 100644
+index 495fecc019ebe9010f21161c5be141d8f62b976b..fa8dbe624152a613c34fc383401521d2be9d6e4b 100644
 --- a/chrome/browser/ui/views/location_bar/location_bar_view.h
 +++ b/chrome/browser/ui/views/location_bar/location_bar_view.h
-@@ -83,6 +83,10 @@ class Profile;
+@@ -83,6 +83,11 @@ class Profile;
  class SelectedKeywordView;
  class PrefChangeRegistrar;
  
 +namespace ahoi {
 +class DeveloperToolbarMenuController;
-+}
++enum class DeveloperToolbarSurface;
++}  // namespace ahoi
 +
  namespace page_actions {
  class PageActionContainerView;
  class PageActionController;
-@@ -206,7 +210,6 @@ class LocationBarView
+@@ -206,7 +211,6 @@ class LocationBarView
  
    const OmniboxController* GetOmniboxController() const;
  
@@ -13224,7 +13550,7 @@ index 495fecc019ebe9010f21161c5be141d8f62b976b..0f06abf63ef51404b3a0e2e9169e71a9
    // Controls the permission dashboard in the LocationBarView.
    PermissionDashboardController* permission_dashboard_controller() {
      return permission_dashboard_controller_.get();
-@@ -618,6 +621,15 @@ class LocationBarView
+@@ -618,6 +622,15 @@ class LocationBarView
    // user to clear all text.
    raw_ptr<views::ImageButton> clear_all_button_ = nullptr;
  
@@ -13240,16 +13566,19 @@ index 495fecc019ebe9010f21161c5be141d8f62b976b..0f06abf63ef51404b3a0e2e9169e71a9
    // A label to show the AI Mode hint text.
    raw_ptr<views::Label> ai_mode_hint_label_ = nullptr;
  
-@@ -655,6 +667,13 @@ class LocationBarView
+@@ -655,6 +668,16 @@ class LocationBarView
    bool in_popup_state_transition_ = false;
  
    void OnMiddleClickPaste(base::TimeTicks event_timestamp, std::u16string text);
 +  void CopyCurrentUrl(const ui::Event& event);
 +  void ShowAhoiPrivacyMode(const ui::Event& event);
++  bool IsAhoiPrivacyModeShowing() const;
 +  void UpdateAhoiPrivacyButton();
 +  void ShowAhoiSiteData(const ui::Event& event);
 +  void ClearAhoiSiteCache(const ui::Event& event);
 +  void ShowAhoiDeveloperToolkit(const ui::Event& event);
++  bool IsAhoiDeveloperToolbarSurfaceShowing(
++      ahoi::DeveloperToolbarSurface surface) const;
 +  void UpdateAhoiDeveloperButtons();
  
    void RegisterOmniboxActions();
@@ -14792,13 +15121,17 @@ index 458f7980c275454fbc469d4f63c48cd213ef1b83..2a1b101e8de402f04b4e634b146f6bcd
    // Check that the identity manager is only observed after RequestAccountInfo
    // is called.
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index c4d16f149080a98dfdcada4eafab4ba9e287447a..b9c0ef6305b16b24288333a19ec06b403bf89475 100644
+index c4d16f149080a98dfdcada4eafab4ba9e287447a..8c96974978d310864ffa0044062ccef59bfd439d 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -590,6 +590,33 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -590,6 +590,62 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"lightMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_LIGHT_LABEL},
        {"darkMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_DARK_LABEL},
        {"systemMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_SYSTEM_LABEL},
++      {"ahoiPageTitle", IDS_SETTINGS_AHOI_PAGE_TITLE},
++      {"ahoiAppearanceSection", IDS_SETTINGS_AHOI_APPEARANCE_SECTION},
++      {"ahoiAppearanceSectionSublabel",
++       IDS_SETTINGS_AHOI_APPEARANCE_SECTION_SUBLABEL},
 +      {"ahoiGlobalPrimaryColor", IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR},
 +      {"ahoiGlobalPrimaryColorSublabel",
 +       IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR_SUBLABEL},
@@ -14818,8 +15151,33 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..b9c0ef6305b16b24288333a19ec06b40
 +       IDS_SETTINGS_AHOI_NAVIGATION_DELAY_RELAXED},
 +      {"ahoiNavigationDelayLong", IDS_SETTINGS_AHOI_NAVIGATION_DELAY_LONG},
 +      {"ahoiFeatures", IDS_SETTINGS_AHOI_FEATURES},
++      {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
++      {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
++      {"ahoiSyncProviderTitle", IDS_SETTINGS_AHOI_SYNC_PROVIDER_TITLE},
++      {"ahoiSyncProviderSublabel", IDS_SETTINGS_AHOI_SYNC_PROVIDER_SUBLABEL},
++      {"ahoiCloudKitUnavailableTitle",
++       IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_TITLE},
++      {"ahoiCloudKitUnavailableSublabel",
++       IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_SUBLABEL},
 +      {"ahoiSyncEnabled", IDS_SETTINGS_AHOI_SYNC_ENABLED},
 +      {"ahoiSyncEnabledSublabel", IDS_SETTINGS_AHOI_SYNC_ENABLED_SUBLABEL},
++      {"ahoiRemoteControlEnabled", IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED},
++      {"ahoiRemoteControlEnabledSublabel",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED_SUBLABEL},
++      {"ahoiHistoryRetention", IDS_SETTINGS_AHOI_HISTORY_RETENTION},
++      {"ahoiHistoryRetentionSublabel",
++       IDS_SETTINGS_AHOI_HISTORY_RETENTION_SUBLABEL},
++      {"ahoiHistoryRetention30Days",
++       IDS_SETTINGS_AHOI_HISTORY_RETENTION_30_DAYS},
++      {"ahoiHistoryRetention90Days",
++       IDS_SETTINGS_AHOI_HISTORY_RETENTION_90_DAYS},
++      {"ahoiHistoryRetention365Days",
++       IDS_SETTINGS_AHOI_HISTORY_RETENTION_365_DAYS},
++      {"ahoiHistoryRetentionForever",
++       IDS_SETTINGS_AHOI_HISTORY_RETENTION_FOREVER},
++      {"ahoiDeveloperSection", IDS_SETTINGS_AHOI_DEVELOPER_SECTION},
++      {"ahoiDeveloperSectionSublabel",
++       IDS_SETTINGS_AHOI_DEVELOPER_SECTION_SUBLABEL},
 +      {"ahoiDeveloperToolkit", IDS_AHOI_DEVELOPER_TOOLKIT_TITLE},
 +      {"ahoiDeveloperToolkitSublabel",
 +       IDS_SETTINGS_AHOI_DEVELOPER_TOOLKIT_SUBLABEL},
@@ -14829,7 +15187,14 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..b9c0ef6305b16b24288333a19ec06b40
        {"showHomeButton", IDS_SETTINGS_SHOW_HOME_BUTTON},
        {"showBookmarksBar", IDS_SETTINGS_SHOW_BOOKMARKS_BAR},
        {"bookmarksBar", IDS_SETTINGS_BOOKMARKS_BAR},
-@@ -1518,6 +1545,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
+@@ -662,3 +718,6 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+   };
+   html_source->AddLocalizedStrings(kLocalizedStrings);
++  // This signed product currently has no CloudKit capability. Keep this as a
++  // load-time gate so a future signed provider can report true here.
++  html_source->AddBoolean("ahoiCloudKitAvailable", false);
+ 
+@@ -1518,6 +1570,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
  void AddOnStartupStrings(content::WebUIDataSource* html_source) {
    static constexpr webui::LocalizedString kLocalizedStrings[] = {
        {"onStartup", IDS_SETTINGS_ON_STARTUP},
@@ -14841,7 +15206,7 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..b9c0ef6305b16b24288333a19ec06b40
        {"onStartupOpenNewTab", IDS_SETTINGS_ON_STARTUP_OPEN_NEW_TAB},
        {"onStartupContinue", IDS_SETTINGS_ON_STARTUP_CONTINUE},
        {"onStartupOpenSpecific", IDS_SETTINGS_ON_STARTUP_OPEN_SPECIFIC},
-@@ -2037,8 +2069,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
+@@ -2037,8 +2094,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
        autofill_client &&
            autofill::MayPerformAutofillAiAction(
                *autofill_client, autofill::AutofillAiAction::kOptIn));
@@ -14962,155 +15327,44 @@ index 367f1a4736e09a63daa6a9a0745df419cbcbda57..8ba7da78d0cd66bf3a8b387b3bd5a075
  suite(`routing-test-with-history-clusters-pref-set`, () => {
    let app: HistoryAppElement;
    let testProxy: TestHistoryBrowserProxy;
+diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/settings/BUILD.gn
+index 446e7500bf8be7830ac572dc3368b44c9d561b70..2f3a2fd27d61b0da3800e801b11dc75b68f2e93a 100644
+--- a/chrome/test/data/webui/settings/BUILD.gn
++++ b/chrome/test/data/webui/settings/BUILD.gn
+@@ -12,6 +12,7 @@ build_webui_tests("build") {
+ 
+   files = [
+     "about_page_test.ts",
++    "ahoi_page_test.ts",
+     "account_page_test.ts",
+     "ai_history_search_subpage_test.ts",
+     "ai_info_card_test.ts",
 diff --git a/chrome/test/data/webui/settings/appearance_page_test.ts b/chrome/test/data/webui/settings/appearance_page_test.ts
-index e7696ff22b83c90036f0a557ba2f34d69711b3d2..ed13bf9eba9e3ed50e1418c876f4248fecc56363 100644
+index e7696ff22b83c90036f0a557ba2f34d69711b3d2..813a8bc7946e06a35e8368bd2b0211f31fe15fff 100644
 --- a/chrome/test/data/webui/settings/appearance_page_test.ts
 +++ b/chrome/test/data/webui/settings/appearance_page_test.ts
-@@ -37,6 +37,51 @@ async function createAppearancePage() {
-   colorSchemeCallbackRouter = remote;
+@@ -220,6 +220,19 @@ suite('AppearancePage', function() {
  
-   const fakePrefs = [
-+    {
-+      key: 'ahoi.appearance.glass_enabled',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: true,
-+    },
-+    {
-+      key: 'ahoi.navigation.floating_auto_hide_enabled',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: true,
-+    },
-+    {
-+      key: 'ahoi.navigation.floating_reveal_notch_enabled',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: true,
-+    },
-+    {
-+      key: 'ahoi.navigation.floating_auto_hide_delay_ms',
-+      type: chrome.settingsPrivate.PrefType.NUMBER,
-+      value: 650,
-+    },
-+    {
-+      key: 'ahoi.sync.enabled',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: false,
-+    },
-+    {
-+      key: 'ahoi.developer_toolkit.enabled',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: false,
-+    },
-+    {
-+      key: 'ahoi.developer_toolbar.show_cookie_button',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: false,
-+    },
-+    {
-+      key: 'ahoi.developer_toolbar.show_cache_button',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: false,
-+    },
-+    {
-+      key: 'ahoi.developer_toolbar.show_toolkit_button',
-+      type: chrome.settingsPrivate.PrefType.BOOLEAN,
-+      value: true,
-+    },
-     {
-       key: 'autogenerated.theme.policy.color',
-       type: chrome.settingsPrivate.PrefType.NUMBER,
-@@ -500,6 +545,90 @@ suite('AppearancePage', function() {
-     assertEquals(ColorSchemeMode.kDark, handlerArg);
-   });
+   const THEME_ID_PREF = 'extensions.theme.id';
  
-+  test('AhoiAppearanceControlsUseProfilePrefs', async function() {
-+    await microtasksFinished();
-+
-+    const glass =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiGlassEnabled');
-+    const autoHide =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiNavigationAutoHide');
-+    const revealNotch =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiNavigationRevealNotch');
-+    const delay =
-+        appearancePage.shadowRoot.querySelector<SettingsDropdownMenuElement>(
-+            '#ahoiNavigationAutoHideDelay');
-+    assertTrue(!!glass);
-+    assertTrue(!!autoHide);
-+    assertTrue(!!revealNotch);
-+    assertTrue(!!delay);
-+    assertTrue(glass.checked);
-+    assertTrue(autoHide.checked);
-+    assertTrue(isVisible(revealNotch));
-+    assertTrue(isVisible(delay));
-+
-+    glass.click();
-+    await microtasksFinished();
-+    assertFalse(prefService.getPref<boolean>(
-+        'ahoi.appearance.glass_enabled').value);
-+
-+    await prefService.setPrefValue(
-+        'ahoi.navigation.floating_auto_hide_enabled', false);
-+    await microtasksFinished();
-+    assertFalse(isVisible(revealNotch));
-+    assertFalse(isVisible(delay));
++  test('doesNotOwnDedicatedAhoiControls', () => {
++    const ahoiControlIds = [
++      '#ahoiAccentPickerRow',
++      '#ahoiGlassEnabled',
++      '#ahoiNavigationAutoHide',
++      '#ahoiSyncEnabled',
++      '#ahoiDeveloperToolkitEnabled',
++    ];
++    for (const id of ahoiControlIds) {
++      assertFalse(!!appearancePage.shadowRoot.querySelector(id), id);
++    }
 +  });
 +
-+  test('AhoiFeatureActivationIsDiscoverableAndRecoverable', async function() {
-+    await microtasksFinished();
-+
-+    const sync =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiSyncEnabled');
-+    const developer =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiDeveloperToolkitEnabled');
-+    const cookie =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiDeveloperToolbarCookies');
-+    const cache =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiDeveloperToolbarCache');
-+    const helpers =
-+        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
-+            '#ahoiDeveloperToolbarHelpers');
-+    assertTrue(!!sync);
-+    assertTrue(!!developer);
-+    assertTrue(!!cookie);
-+    assertTrue(!!cache);
-+    assertTrue(!!helpers);
-+    assertFalse(sync.checked);
-+    assertFalse(developer.checked);
-+    assertTrue(cookie.disabled);
-+    assertTrue(cache.disabled);
-+    assertTrue(helpers.disabled);
-+
-+    sync.click();
-+    await microtasksFinished();
-+    assertTrue(prefService.getPref<boolean>('ahoi.sync.enabled').value);
-+
-+    // Even a migrated profile with every legacy address-bar action disabled
-+    // gets one recoverable entry when the master switch is enabled.
-+    await prefService.setPrefValue(
-+        'ahoi.developer_toolbar.show_toolkit_button', false);
-+    developer.click();
-+    await microtasksFinished();
-+    assertTrue(prefService.getPref<boolean>(
-+        'ahoi.developer_toolkit.enabled').value);
-+    assertTrue(prefService.getPref<boolean>(
-+        'ahoi.developer_toolbar.show_toolkit_button').value);
-+    assertFalse(cookie.disabled);
-+    assertFalse(cache.disabled);
-+    assertFalse(helpers.disabled);
-+  });
-+
-   test('default zoom handling', async function() {
-     function getDefaultZoomText() {
-       const zoomLevel = appearancePage.$.zoomLevel;
+   // <if expr="is_linux">
+   const SYSTEM_THEME_PREF = 'extensions.theme.system_theme';
+ 
 diff --git a/chrome/test/data/webui/settings/on_startup_page_test.ts b/chrome/test/data/webui/settings/on_startup_page_test.ts
-index e54f81985ca855d2df8ff898455fa688cadcd660..ed182365570c930727b225b6d9a8ea94c0c0e5ac 100644
+index e54f81985ca855d2df8ff898455fa688cadcd660..c92c990340a2322522f87a8918ee9a6d8d82ff75 100644
 --- a/chrome/test/data/webui/settings/on_startup_page_test.ts
 +++ b/chrome/test/data/webui/settings/on_startup_page_test.ts
 @@ -42,8 +42,15 @@ class TestOnStartupBrowserProxy extends TestBrowserProxy implements
@@ -15199,6 +15453,33 @@ index e54f81985ca855d2df8ff898455fa688cadcd660..ed182365570c930727b225b6d9a8ea94
    // Test that loadStartupPages is called every time the "Open a specific page
    // or set of pages" radio button is selected.
    test('toggle-startup-urls-visibility', async function() {
+diff --git a/chrome/test/data/webui/settings/settings_main_plugins_test.ts b/chrome/test/data/webui/settings/settings_main_plugins_test.ts
+index 905cbf001368b89fe76e8be6d81bdcd49f4122a2..e8094685eb006c2d8069eb28e4ba542f7cbe52a4 100644
+--- a/chrome/test/data/webui/settings/settings_main_plugins_test.ts
++++ b/chrome/test/data/webui/settings/settings_main_plugins_test.ts
+@@ -68,6 +68,7 @@ suite('SettingsMain', function() {
+       {route: routes.AUTOFILL, pluginTag: 'settings-autofill-page-index'},
+       {route: routes.PERFORMANCE, pluginTag: 'settings-performance-page-index'},
+       {route: routes.APPEARANCE, pluginTag: 'settings-appearance-page-index'},
++      {route: routes.AHOI, pluginTag: 'settings-ahoi-page'},
+       {route: routes.SEARCH, pluginTag: 'settings-search-page-index'},
+       // <if expr="not is_chromeos">
+       {
+diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
+index 1764852106275b48595a43ac11515a743dd867f2..1c90e778793884d7cec5e7b8bfcb9a2fcee49905 100644
+--- a/chrome/test/data/webui/settings/settings_browsertest.cc
++++ b/chrome/test/data/webui/settings/settings_browsertest.cc
+@@ -94,6 +94,10 @@ IN_PROC_BROWSER_TEST_F(SettingsTest, AccountPage) {
+   RunTest("settings/account_page_test.js", "mocha.run()");
+ }
+ 
++IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiPage) {
++  RunTest("settings/ahoi_page_test.js", "mocha.run()");
++}
++
+ IN_PROC_BROWSER_TEST_F(SettingsTest, GoogleServicesPage) {
+   RunTest("settings/google_services_page_test.js", "mocha.run()");
+ }
 diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
 index 500cbc7ed8e76b552a23147279fc233af9649197..ed36395ae7d494a51a465d4a22d2a89c3bd3479c 100644
 --- a/chrome/utility/BUILD.gn
