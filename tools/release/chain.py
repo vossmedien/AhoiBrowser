@@ -179,6 +179,7 @@ def create_installed_receipt(
     policy_path: pathlib.Path,
     output: pathlib.Path,
     required_install_path: pathlib.Path = pathlib.Path("/Applications/AhoiBrowser.app"),
+    installation: Optional[dict] = None,
 ) -> dict:
     if app.resolve() != required_install_path.resolve():
         raise ReleaseError(f"installed release proof requires {required_install_path}")
@@ -221,8 +222,87 @@ def create_installed_receipt(
             "stapling": True,
         },
     }
+    if installation is not None:
+        receipt["installation"] = installation
+        _validate_installation_receipt(receipt)
+        previous = installation.get("previousBundle")
+        if previous is not None:
+            backup = pathlib.Path(previous["backupPath"])
+            if backup.is_symlink() or not backup.is_dir():
+                raise ReleaseError("version-bound rollback bundle is missing or unsafe")
+            if backup.stat().st_dev != app.stat().st_dev:
+                raise ReleaseError("rollback bundle is not on the installation filesystem")
+            if tree_sha256(backup) != previous["bundleTreeSha256"]:
+                raise ReleaseError("live rollback bundle hash differs from installation evidence")
+            if bundle_identity(backup) != previous["bundle"]:
+                raise ReleaseError(
+                    "live rollback bundle identity differs from installation evidence"
+                )
     atomic_write_json(output, receipt)
     return receipt
+
+
+def _validate_installation_receipt(installed: dict) -> None:
+    installation = installed.get("installation")
+    fields = {
+        "target",
+        "method",
+        "sameVolumeStaging",
+        "processesQuiescent",
+        "automaticRollbackOnVerificationFailure",
+        "postInstallVerification",
+        "candidateBundleTreeSha256",
+        "previousBundle",
+    }
+    if not isinstance(installation, dict) or set(installation) != fields:
+        raise ReleaseError(
+            "installed receipt lacks canonical atomic installation evidence"
+        )
+    if installation.get("target") != installed.get("installPath"):
+        raise ReleaseError("installation evidence target differs from installed path")
+    for field in (
+        "sameVolumeStaging",
+        "processesQuiescent",
+        "automaticRollbackOnVerificationFailure",
+        "postInstallVerification",
+    ):
+        if installation.get(field) is not True:
+            raise ReleaseError(f"installation evidence {field} is not PASS")
+    candidate_hash = require_sha256(
+        installation.get("candidateBundleTreeSha256"),
+        "installation candidate bundle hash",
+    )
+    if candidate_hash != installed.get("bundleTreeSha256"):
+        raise ReleaseError("installation candidate hash differs from installed bundle")
+
+    method = installation.get("method")
+    previous = installation.get("previousBundle")
+    if method == "renameatx_np(RENAME_EXCL)":
+        if previous is not None:
+            raise ReleaseError("initial installation must not claim a previous bundle")
+        return
+    if method != "renameatx_np(RENAME_SWAP)":
+        raise ReleaseError("installation evidence names an unsupported atomic method")
+    previous_fields = {"backupPath", "bundleTreeSha256", "bundle"}
+    if not isinstance(previous, dict) or set(previous) != previous_fields:
+        raise ReleaseError("replacement installation lacks rollback-bundle evidence")
+    backup_path = pathlib.PurePosixPath(
+        require_string(previous.get("backupPath"), "rollback backup path")
+    )
+    if (
+        not backup_path.is_absolute()
+        or backup_path.parent != pathlib.PurePosixPath("/Applications")
+        or not backup_path.name.startswith(".AhoiBrowser.rollback-")
+        or not backup_path.name.endswith(".app")
+    ):
+        raise ReleaseError("rollback backup path is outside the safe installation root")
+    previous_hash = require_sha256(
+        previous.get("bundleTreeSha256"), "rollback bundle hash"
+    )
+    previous_identity = previous.get("bundle")
+    _identity_subset(previous_identity, "rollback bundle")
+    if previous_identity.get("bundleTreeSha256") != previous_hash:
+        raise ReleaseError("rollback bundle identity/hash evidence differs")
 
 
 def _validate_material_files(root: pathlib.Path, materials: dict) -> None:
@@ -472,6 +552,9 @@ def _validate_bindings(
         raise ReleaseError(
             "installed receipt does not contain all required verification PASS values"
         )
+    manifest_schema = manifest.get("schemaVersion")
+    if manifest_schema == 2 or "installation" in installed:
+        _validate_installation_receipt(installed)
     for artifact_name in ("zip", "dmg"):
         package_reference = package.get("artifacts", {}).get(artifact_name)
         manifest_reference = manifest.get("artifacts", {}).get(artifact_name)
@@ -543,7 +626,7 @@ def assemble_manifest(
     if not isinstance(package_artifacts, dict):
         raise ReleaseError("package receipt has no artifacts")
     unsigned_manifest = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "kind": "ahoi-release-manifest",
         "release": {
             "name": product["name"],
@@ -608,7 +691,7 @@ def validate_manifest(
         "signature",
     }:
         raise ReleaseError("release manifest has an invalid shape")
-    if manifest["schemaVersion"] != 1 or manifest["kind"] != "ahoi-release-manifest":
+    if manifest["schemaVersion"] not in {1, 2} or manifest["kind"] != "ahoi-release-manifest":
         raise ReleaseError("release manifest schema/kind is unsupported")
     unsigned = dict(manifest)
     signature = unsigned.pop("signature")

@@ -639,6 +639,16 @@ class ReleaseChainTests(unittest.TestCase):
                     "gatekeeper": True,
                     "stapling": True,
                 },
+                "installation": {
+                    "target": "/Applications/AhoiBrowser.app",
+                    "method": "renameatx_np(RENAME_EXCL)",
+                    "sameVolumeStaging": True,
+                    "processesQuiescent": True,
+                    "automaticRollbackOnVerificationFailure": True,
+                    "postInstallVerification": True,
+                    "candidateBundleTreeSha256": stapled_tree,
+                    "previousBundle": None,
+                },
             },
         )
         sbom = root / "sbom.json"
@@ -726,6 +736,7 @@ class ReleaseChainTests(unittest.TestCase):
             root = pathlib.Path(directory)
             values = self.make_chain(root)
             manifest, output, keys, product, version, chromium, toolchain, gn_hash, _ = values
+            self.assertEqual(2, manifest["schemaVersion"])
             self.assertIn("releaseAssetsReceipt", manifest["evidence"])
             first = output.read_bytes()
             chain.assemble_manifest(
@@ -762,6 +773,39 @@ class ReleaseChainTests(unittest.TestCase):
             signature = unsigned.pop("signature")
             crypto.verify_signature_object(
                 common.canonical_json(unsigned), signature, keys.public, {keys.key_id}
+            )
+
+    def test_legacy_schema_one_manifest_without_install_transaction_still_validates(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-chain-legacy-") as directory:
+            root = pathlib.Path(directory)
+            values = self.make_chain(root)
+            manifest, output, keys, product, version, chromium, toolchain, gn_hash, _ = values
+            installed_path = root / "installed.json"
+            installed = json.loads(installed_path.read_text())
+            installed.pop("installation")
+            write_json(installed_path, installed)
+
+            unsigned = json.loads(json.dumps(manifest))
+            unsigned.pop("signature")
+            unsigned["schemaVersion"] = 1
+            unsigned["evidence"]["installedReceipt"]["sha256"] = common.sha256_file(
+                installed_path
+            )
+            legacy = dict(unsigned)
+            legacy["signature"] = crypto.signature_object(
+                common.canonical_json(unsigned), keys.private, keys.public
+            )
+            write_json(output, legacy)
+
+            chain.validate_manifest(
+                output,
+                public_key=keys.public,
+                trusted_key_ids={keys.key_id},
+                product=product,
+                version=version,
+                chromium=chromium,
+                toolchain=toolchain,
+                release_args_sha256=gn_hash,
             )
 
     def test_artifact_tampering_breaks_independent_chain_validation(self):

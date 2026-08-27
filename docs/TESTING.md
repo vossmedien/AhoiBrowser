@@ -15,6 +15,15 @@ Terminal/CDP inspection may corroborate state but cannot replace visible user
 interaction for CU tests. Debug builds, app bundles outside `/Applications`,
 screenshots of mock UI, or another Chromium browser are not product evidence.
 
+For local feature acceptance, install the signed `AhoiDev` candidate through
+`scripts/install-dev-app.py` as documented in `docs/BUILDING.md`, then perform
+the real visible Computer Use journeys before running the corresponding
+programmatic suites. If implementation or later programmatic checks expose a
+defect, rebuild/reinstall and repeat the affected visible journey before
+recording the result. The development installation receipt binds the exact
+candidate and transaction, but it is not notarized release evidence and cannot
+turn a `CU_E2E` release gate into `PASS`.
+
 ## Status model
 
 Allowed statuses are machine-readable in `config/test-statuses.json`. Only

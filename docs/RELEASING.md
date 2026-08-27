@@ -73,6 +73,7 @@ python3 scripts/release/ahoi-release.py sign --help
 python3 scripts/release/ahoi-release.py notarize-package --help
 python3 scripts/release/ahoi-release.py materials --help
 python3 scripts/release/ahoi-release.py release-assets --help
+python3 scripts/release/ahoi-release.py install --help
 python3 scripts/release/ahoi-release.py bind-installed --help
 python3 scripts/release/ahoi-release.py assemble --help
 python3 scripts/release/ahoi-release.py verify-chain --help
@@ -112,11 +113,57 @@ package and materials receipts; the final signed manifest requires and
 independently revalidates that receipt. Keep symbols outside the shipped app and
 publish them only through the access-controlled crash-analysis archive.
 
-After installing through the real DMG, `bind-installed` accepts only
-`/Applications/AhoiBrowser.app` and independently repeats signing,
-architecture/identity, entitlement, Gatekeeper and staple checks. `assemble`
-then validates every relationship before signing canonical JSON. Re-running it
-with unchanged inputs and key produces identical manifest bytes.
+Mount the real notarized DMG, quit every AhoiBrowser process, and install its
+already verified app through the canonical transaction (use `sudo` when the
+current account cannot write `/Applications`):
+
+```sh
+sudo python3 scripts/release/ahoi-release.py install \
+  --app "/Volumes/AhoiBrowser/AhoiBrowser.app" \
+  --signing-receipt "artifacts/releases/0.0.1-1/signed-package-provenance.json" \
+  --notary-receipt "artifacts/releases/0.0.1-1/notarization-receipt.json" \
+  --output "artifacts/releases/0.0.1-1/installed-bundle-binding.json"
+```
+
+`install` has no configurable destination: it accepts only a canonical,
+non-symlink `AhoiBrowser.app` candidate and the policy-fixed
+`/Applications/AhoiBrowser.app` target. Before any mutation it binds the exact
+post-staple tree and bundle identity to the signing/notarization receipts and
+repeats Developer ID, ARM64-only, Hardened Runtime, entitlement, Gatekeeper and
+staple verification. It then locks installation, rejects running processes from
+either bundle, copies into a uniquely version-bound hidden path on the
+`/Applications` filesystem, and verifies the copy again.
+
+For replacement, Darwin `renameatx_np(RENAME_SWAP)` exchanges the complete
+target and staged candidate in one filesystem operation. The old app remains at
+`/Applications/.AhoiBrowser.rollback-v<version>-b<build>-s<commit>-h<hash>.app`.
+For first installation, `renameatx_np(RENAME_EXCL)` atomically publishes the
+staged app only if the destination is still absent. Any subsequent installed-app
+verification or receipt-write failure automatically reverses the exchange (or
+restores target absence) before reporting failure. If even rollback cannot be
+proven, the command stops with both exact recovery paths and never deletes an
+unrecognized tree. `SIGKILL` and power loss cannot run a handler, but the atomic
+filesystem operation still leaves a complete new target and, for replacement,
+the complete version-bound old bundle.
+
+`bind-installed` remains a read-only diagnostic for an app installed by some
+other mechanism. It repeats the live checks but deliberately emits no atomic
+installation evidence, so its receipt cannot satisfy `assemble`. The canonical
+`install` receipt records same-volume staging, process quiescence, atomic method,
+retained backup identity/hash, rollback policy and successful post-install
+verification. `assemble` validates those relationships before signing canonical
+JSON as release-manifest schema 2. Validation remains backward-compatible with
+already signed schema-1 manifests, whose historical installed receipts predate
+the atomic-transaction evidence. Re-running assembly with unchanged inputs and
+key produces identical manifest bytes.
+
+The separate `scripts/install-dev-app.py` command uses the same reviewed atomic
+transaction and rollback implementation for an already stamped and signed
+`AhoiDev` Computer Use candidate. Its fixed target is also
+`/Applications/AhoiBrowser.app`, but it verifies with
+`scripts/verify-built-app.sh` and emits a development-only receipt marked
+`releaseEvidenceEligible=false`. It cannot consume release receipts, satisfy
+`assemble`, or replace Developer ID/notarization verification.
 
 ## Gates intentionally still closed
 
@@ -132,7 +179,8 @@ or feed key IDs, and `config/release-evidence.json` remains
 - produce a complete Chromium component inventory, notices and corresponding
   source package and complete the review contract in
   `docs/THIRD_PARTY_REVIEW.md`;
-- install the resulting DMG and generate the installed-bundle receipt;
+- run the canonical install transaction from the resulting DMG and retain its
+  installed-bundle receipt plus any version-bound rollback bundle;
 - host the signed metadata/artifacts over HTTPS and pass real N-2/N-1, failed
   download, disk-full, full fallback and any enabled delta-update journeys;
 - pass the remaining release-critical installed CU/ASSISTED test matrix.
@@ -150,9 +198,10 @@ unresolved licensing obligation, missing signed release-provenance chain, or a
 fake/partial implementation presented as complete.
 
 The update metadata and full-package transaction are documented in
-`docs/UPDATES.md`. Official Sparkle 2.9.6 is the sole native
-check/download/install/relaunch engine; the former repository-owned installer
-path has been removed. The signed appcast provenance receipt binds its exact
-bytes to the signed release manifest and materials receipt. Update private keys
-and notarization credentials live only in secured release infrastructure or
-Keychain-backed local configuration.
+`docs/UPDATES.md`. Official Sparkle 2.9.6 remains the sole native
+check/download/install/relaunch engine for updates. The repository CLI above is
+only the explicit initial/manual release installation and evidence transaction;
+it does not download, extract, relaunch or replace Sparkle. The signed appcast
+provenance receipt binds its exact bytes to the signed release manifest and
+materials receipt. Update private keys and notarization credentials live only
+in secured release infrastructure or Keychain-backed local configuration.

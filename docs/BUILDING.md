@@ -216,6 +216,40 @@ That fallback is not suitable for daily-driver profiles or release evidence.
 End users do not need a local signing identity; distributed builds use the
 project's Developer ID, notarization, and update chain.
 
+## Install a verified development E2E candidate
+
+After `build-ahoi.sh dev` has stamped, staged and signed the portable
+`AhoiDev` bundle, quit every running AhoiBrowser process and install that exact
+candidate through the canonical development transaction. The output parent must
+already exist and each transaction uses a new immutable receipt path:
+
+```sh
+mkdir -p "${PWD}/artifacts/build"
+receipt="${PWD}/artifacts/build/installed-ahoi-dev-$(git rev-parse --short=12 HEAD)-$(date -u +%Y%m%dT%H%M%SZ).json"
+sudo python3 scripts/install-dev-app.py \
+  --app "${AHOI_WORK_ROOT:-${PWD}/.work}/chromium/src/out/AhoiDev/AhoiBrowser.app" \
+  --output "${receipt}"
+```
+
+Omit `sudo` when the current account can write `/Applications`. The command has
+no destination option: it installs only to `/Applications/AhoiBrowser.app` and
+rejects a release-profile or non-canonical candidate. Before creating staging
+state, after copying to the `/Applications` filesystem, and again after
+activation it applies the complete `scripts/verify-built-app.sh` contract. That
+binds the current source/config stamps, ARM64 binary, portable component
+manifests, Sparkle contents and the existing development signature.
+
+The development and release installers share the same process-quiescence lock,
+same-volume staging, `renameatx_np(RENAME_SWAP)` replacement,
+`renameatx_np(RENAME_EXCL)` first-install protection and rollback state machine.
+On replacement the previous bundle remains available at the version-, source-
+and hash-bound `/Applications/.AhoiBrowser.rollback-....app` path recorded by the
+receipt. If activated-bundle verification or receipt publication fails, the
+prior bundle (or target absence) is restored automatically. The development
+receipt is explicitly not release evidence: Developer ID, Hardened Runtime,
+notarization/stapling and the production manifest still require the release
+pipeline documented in `docs/RELEASING.md`.
+
 ## Google API keys
 
 AhoiBrowser intentionally builds and runs without Google API keys or OAuth

@@ -18,6 +18,7 @@ from .common import (
     sha256_file,
     tree_sha256,
 )
+from .installation import install_release_app
 from .materials import create_materials
 from .packaging import notarize_and_package
 from .signing import sign_app, verify_signed_app
@@ -302,6 +303,29 @@ def _bind_installed(args: argparse.Namespace) -> None:
     )
 
 
+def _install(args: argparse.Namespace) -> None:
+    policy = _policy()
+    signing_receipt = _path(args.signing_receipt)
+    notary_receipt = _path(args.notary_receipt)
+    output = _path(args.output)
+    _require_common_parent(
+        [signing_receipt, notary_receipt, output],
+        "atomic installation evidence",
+    )
+    candidate = pathlib.Path(args.app)
+    if not candidate.is_absolute():
+        raise ReleaseError("install --app must be an absolute canonical path")
+    install_release_app(
+        candidate,
+        signing_receipt_path=signing_receipt,
+        notarization_receipt_path=notary_receipt,
+        policy_path=ENTITLEMENTS_PATH,
+        output=output,
+        expected_bundle=policy["bundle"],
+        required_install_path=pathlib.Path(policy["installation"]["target"]),
+    )
+
+
 def _release_assets(args: argparse.Namespace) -> None:
     _policy()
     paths = [
@@ -456,7 +480,18 @@ def parser() -> argparse.ArgumentParser:
     materials.add_argument("--created-at", required=True)
     materials.set_defaults(handler=_materials)
 
-    bind = commands.add_parser("bind-installed", help="bind the live installed app")
+    install = commands.add_parser(
+        "install", help="atomically install and verify a notarized release app"
+    )
+    install.add_argument("--app", required=True)
+    install.add_argument("--signing-receipt", required=True)
+    install.add_argument("--notary-receipt", required=True)
+    install.add_argument("--output", required=True)
+    install.set_defaults(handler=_install)
+
+    bind = commands.add_parser(
+        "bind-installed", help="diagnostically verify an already installed app"
+    )
     bind.add_argument("--app", default="/Applications/AhoiBrowser.app")
     bind.add_argument("--signing-receipt", required=True)
     bind.add_argument("--notary-receipt", required=True)

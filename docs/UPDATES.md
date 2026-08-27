@@ -125,9 +125,15 @@ Downgrade resistance comes from monotonically increasing numeric
 `CFBundleVersion`, Sparkle's version checks, signed-feed verification, channel
 isolation and signed minimum-update constraints. A delta is an optimization;
 the matching signed full archive remains available for Sparkle fallback. Atomic
-replacement and recovery are Sparkle behavior, not a second Ahoi installer.
-Recovery to the pre-update bundle after a failed install is distinct from
-publishing or accepting an older signed version.
+replacement and recovery for downloaded updates are Sparkle behavior, not a
+second Ahoi update engine. The release CLI's `install` command is a separate,
+operator-invoked initial/manual installation transaction for an app already
+extracted from the real notarized DMG. It never checks feeds, downloads,
+extracts, launches or handles future updates. Its same-volume atomic swap,
+version-bound backup and fail-closed installed receipt provide release evidence
+without duplicating Sparkle's runtime responsibility. Recovery to the pre-update
+or pre-install bundle after a failed transaction is distinct from publishing or
+accepting an older signed version.
 
 Production release remains fail-closed until real values and evidence exist:
 
