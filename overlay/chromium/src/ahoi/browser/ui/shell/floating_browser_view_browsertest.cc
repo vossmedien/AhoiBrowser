@@ -125,6 +125,7 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiResizeAreaHandlesAccessibleIncrement) {
   std::unique_ptr<views::View> previous_sidebar =
       region_view()->SetAhoiSidebarTreeView(std::make_unique<views::View>());
+  ASSERT_TRUE(previous_sidebar);
   EXPECT_FALSE(region_view()->GetTopContainer()->GetVisible());
   EXPECT_FALSE(region_view()->GetBottomContainer()->GetVisible());
   const int initial_width = region_view()->GetPreferredSize().width();
@@ -142,8 +143,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   std::unique_ptr<views::View> dummy_sidebar =
       region_view()->SetAhoiSidebarTreeView(std::move(previous_sidebar));
   EXPECT_TRUE(dummy_sidebar);
-  EXPECT_TRUE(region_view()->GetTopContainer()->GetVisible());
-  EXPECT_TRUE(region_view()->GetBottomContainer()->GetVisible());
+  EXPECT_FALSE(region_view()->GetTopContainer()->GetVisible());
+  EXPECT_FALSE(region_view()->GetBottomContainer()->GetVisible());
 }
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
@@ -369,10 +370,9 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   ASSERT_TRUE(sidebar->layer());
   EXPECT_TRUE(sidebar->GetVisible());
 
-  constexpr int kDockedToolbarHeight = 64;
-  region_view()->SetToolbarHeightForLayout(kDockedToolbarHeight);
+  browser()->GetBrowserView().DeprecatedLayoutImmediately();
   const gfx::Insets docked_margins = *sidebar->GetProperty(views::kMarginsKey);
-  EXPECT_EQ(kDockedToolbarHeight, docked_margins.top());
+  EXPECT_EQ(ahoi::visual_style::kSidebarTitlebarHeight, docked_margins.top());
 
   region_view()->SetAhoiSidebarPresentationMode(
       ahoi::sidebar::SidebarPresentationMode::kHidden);

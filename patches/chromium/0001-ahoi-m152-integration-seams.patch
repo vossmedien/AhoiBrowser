@@ -7787,6 +7787,67 @@ index 24873dd76bd280dd9e4acf1ac48966ff70aea9df..c4fd5bab320f0ce996b7fc9352ce248a
    registry->RegisterBooleanPref(
        prefs::kVerticalTabsExpandOnHoverEnabled,
        tabs::kVerticalTabsExpandOnHoverDefaultEnabled.Get());
+diff --git a/chrome/browser/ui/tabs/vertical_tab_strip_state_controller.cc b/chrome/browser/ui/tabs/vertical_tab_strip_state_controller.cc
+index d1ae4d7cc261240933cb6fa1edeb59e26a4ed8b5..238cedf24f663c2d3cc1b0bcffe12ea02b17ad81 100644
+--- a/chrome/browser/ui/tabs/vertical_tab_strip_state_controller.cc
++++ b/chrome/browser/ui/tabs/vertical_tab_strip_state_controller.cc
+@@ -296,6 +296,9 @@ void VerticalTabStripStateController::OnModeChanged() {
+         base::UserMetricsAction("VerticalTabs_EnabledFirstTime"));
+     pref_service_->SetBoolean(prefs::kVerticalTabsEnabledFirstTime, true);
+   }
++  if (new_enabled == is_vertical_tabs_enabled_) {
++    return;
++  }
+   if (enable_state_lock_count_ > 0) {
+     if (new_enabled != is_vertical_tabs_enabled_) {
+       ToastController* const toast_controller =
+diff --git a/chrome/browser/ui/tabs/vertical_tab_strip_state_controller_unittest.cc b/chrome/browser/ui/tabs/vertical_tab_strip_state_controller_unittest.cc
+index 2fcfa4831611eff6753867e4cbf35831b178c2bc..e7840826706cd77338cd4b0add2918e2fbb1bf4d 100644
+--- a/chrome/browser/ui/tabs/vertical_tab_strip_state_controller_unittest.cc
++++ b/chrome/browser/ui/tabs/vertical_tab_strip_state_controller_unittest.cc
+@@ -56,6 +56,8 @@ class VerticalTabStripStateControllerTest : public testing::Test {
+                                 tabs::kVerticalTabsExpandOnHover},
+         /* disabled_features */ {});
+     tabs::RegisterProfilePrefs(pref_service_.registry());
++    pref_service_.SetDefaultPrefValue(prefs::kVerticalTabsEnabled,
++                                      base::Value(false));
+     SessionID test_session_id = SessionID::FromSerializedValue(kSessionIDValue);
+ 
+     EXPECT_CALL(mock_browser_window_interface_, GetUnownedUserDataHost)
+@@ -95,6 +97,13 @@ class VerticalTabStripStateControllerTest : public testing::Test {
+   MockBrowserWindowInterface mock_browser_window_interface_;
+ };
+ 
++TEST(VerticalTabStripPrefsTest, AhoiDefaultsToVerticalTabs) {
++  sync_preferences::TestingPrefServiceSyncable pref_service;
++  tabs::RegisterProfilePrefs(pref_service.registry());
++
++  EXPECT_TRUE(pref_service.GetBoolean(prefs::kVerticalTabsEnabled));
++}
++
+ TEST_F(VerticalTabStripStateControllerTest, Initial) {
+   EXPECT_FALSE(controller()->ShouldDisplayVerticalTabs());
+   EXPECT_FALSE(controller()->IsCollapsed());
+@@ -127,6 +136,19 @@ TEST_F(VerticalTabStripStateControllerTest, VerticalTabsEnabled) {
+   EXPECT_FALSE(pref_service()->GetBoolean(prefs::kVerticalTabsEnabled));
+ }
+ 
++TEST_F(VerticalTabStripStateControllerTest,
++       SettingCurrentModeDoesNotNotifyModeChanged) {
++  int mode_changed_count = 0;
++  auto subscription = controller()->RegisterOnModeChanged(base::BindRepeating(
++      [](int* count, VerticalTabStripStateController*) { ++*count; },
++      &mode_changed_count));
++
++  controller()->SetVerticalTabsEnabled(
++      pref_service()->GetBoolean(prefs::kVerticalTabsEnabled));
++
++  EXPECT_EQ(0, mode_changed_count);
++}
++
+ TEST_F(VerticalTabStripStateControllerTest, FeatureDisabled) {
+   base::test::ScopedFeatureList local_feature_list;
+   local_feature_list.InitAndDisableFeature(tabs::kVerticalTabsLaunch);
 diff --git a/chrome/browser/ui/toolbar/app_menu_model.cc b/chrome/browser/ui/toolbar/app_menu_model.cc
 index 66571f07bc4b7a9932b535cfb346a9c228b43125..166fa0e50d7349e11c48d25ba75301d5f1c71696 100644
 --- a/chrome/browser/ui/toolbar/app_menu_model.cc
