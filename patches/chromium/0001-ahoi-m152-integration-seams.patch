@@ -14965,16 +14965,16 @@ index e7696ff22b83c90036f0a557ba2f34d69711b3d2..ed13bf9eba9e3ed50e1418c876f4248f
 +    await microtasksFinished();
 +
 +    const glass =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiGlassEnabled');
 +    const autoHide =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiNavigationAutoHide');
 +    const revealNotch =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiNavigationRevealNotch');
 +    const delay =
-+        appearancePage.shadowRoot!.querySelector<SettingsDropdownMenuElement>(
++        appearancePage.shadowRoot.querySelector<SettingsDropdownMenuElement>(
 +            '#ahoiNavigationAutoHideDelay');
 +    assertTrue(!!glass);
 +    assertTrue(!!autoHide);
@@ -15001,19 +15001,19 @@ index e7696ff22b83c90036f0a557ba2f34d69711b3d2..ed13bf9eba9e3ed50e1418c876f4248f
 +    await microtasksFinished();
 +
 +    const sync =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiSyncEnabled');
 +    const developer =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiDeveloperToolkitEnabled');
 +    const cookie =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiDeveloperToolbarCookies');
 +    const cache =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiDeveloperToolbarCache');
 +    const helpers =
-+        appearancePage.shadowRoot!.querySelector<SettingsToggleButtonElement>(
++        appearancePage.shadowRoot.querySelector<SettingsToggleButtonElement>(
 +            '#ahoiDeveloperToolbarHelpers');
 +    assertTrue(!!sync);
 +    assertTrue(!!developer);
@@ -15083,7 +15083,7 @@ index e54f81985ca855d2df8ff898455fa688cadcd660..ed182365570c930727b225b6d9a8ea94
    }
  
    function getSelectedOptionLabel(): string {
-+    const group = testElement.shadowRoot!.querySelector<HTMLElement&{
++    const group = testElement.shadowRoot.querySelector<HTMLElement&{
 +      selected: string,
 +    }>('#onStartupRadioGroup')!;
      return Array
@@ -15102,10 +15102,10 @@ index e54f81985ca855d2df8ff898455fa688cadcd660..ed182365570c930727b225b6d9a8ea94
    });
  
 +  test('managed-startup-policy-hides-ahoi-mode', function() {
-+    assertFalse(!!testElement.shadowRoot!.querySelector(
++    assertFalse(!!testElement.shadowRoot.querySelector(
 +        '#ahoiStartupModeRadioGroup'));
 +    assertTrue(
-+        !!testElement.shadowRoot!.querySelector('#onStartupRadioGroup'));
++        !!testElement.shadowRoot.querySelector('#onStartupRadioGroup'));
 +  });
 +
 +  test('ahoi-startup-mode-is-profile-persistent-and-visible', async function() {
@@ -15117,8 +15117,8 @@ index e54f81985ca855d2df8ff898455fa688cadcd660..ed182365570c930727b225b6d9a8ea94
 +    await initPage();
 +
 +    assertFalse(
-+        !!testElement.shadowRoot!.querySelector('#onStartupRadioGroup'));
-+    const group = testElement.shadowRoot!.querySelector<HTMLElement&{
++        !!testElement.shadowRoot.querySelector('#onStartupRadioGroup'));
++    const group = testElement.shadowRoot.querySelector<HTMLElement&{
 +      selected: string,
 +    }>('#ahoiStartupModeRadioGroup')!;
 +    assertEquals('ask', group.selected);
