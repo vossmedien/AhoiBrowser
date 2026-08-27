@@ -14,8 +14,9 @@ AhoiBrowser Views/AppKit chrome
        extensions | downloads | history | passwords | permissions
        media | DevTools | network service | session restore | sync adapter
 
-AhoiBrowser iOS/iPadOS companion (SwiftUI, no embedded browser)
-  -> local encrypted store
+AhoiBrowser Mobile (SwiftUI + system WebKit, iOS/iPadOS 26+)
+  -> BrowserSessionController -> WebPage/WebView -> WKWebsiteDataStore
+  -> local browser-session store + existing local encrypted record store
   -> CloudKit private database adapter
   -> signed, scoped remote commands
 ```
@@ -72,7 +73,8 @@ and exact Sparkle upstream artifact. See `docs/UPDATES.md`.
 | Workspace window | shared normal profile | yes | yes | permitted UI records |
 | Quick Window | shared normal profile | window no; resulting tab configurable | yes | resulting normal records |
 | Incognito window | off-the-record profile | no | no | never |
-| iOS companion | no browser context | permitted local records | not applicable | permitted records |
+| iOS/iPadOS Mobile normal | system WebKit persistent store | normal session records | WebKit-owned | permitted UI/history/tab records |
+| iOS/iPadOS Mobile private | nonpersistent WebKit store | no | isolated | never |
 
 ## Tree model
 
