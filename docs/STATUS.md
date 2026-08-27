@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 This page separates completed, reproducible evidence from explicitly pending
 gates for the active source state. A running suite is not counted as a pass,
@@ -18,6 +18,9 @@ and development signing or an app copied to `/Applications` is not release or
 | M152 focused tests | `PASS` | The complete sidebar suite passed `79/79`, including `CollapsingViewportDefersRegisteredTextfieldRecycling`. The current outer repository gate also passed 185 repository tests, 13 HTTP-auth fixture tests, 17 HTTPS fixture tests, and 36 CloudKit model tests. These focused development results are not the full product matrix. |
 | M152 development build and installation | `PASS` | The component runtime staged 525 dynamic libraries and 238 resources. The ARM64 app was stamped to the current source, signed with the configured Apple Development identity, installed atomically at `/Applications/AhoiBrowser.app`, and verified against the built executable. Chromium is Stable; `config/version.json` still labels this Ahoi development product channel `nightly`, so this is not an Ahoi Stable release. |
 | Installed visible compatibility smoke | `PASS` (development scope) | Computer Use visibly confirmed `chrome://version` as Chromium `152.0.7977.65` and the executable below `/Applications/AhoiBrowser.app`. Four fresh sidebar collapse/restore cycles and a native sidebar resize completed while the installed browser stayed alive, with no post-fix Crashpad dump. See `artifacts/computer-use/m152/README.md`. This scoped smoke is not the master prompt's full `CU_E2E PASS`. |
+| M152 interaction-regression gate | `PASS` (development scope) | Source `f332dd7011c1aca566f919e5d6d955dcfcab7f99` passed 402/402 focused unit tests and 14/14 retry-disabled browser tests. The latter cover floating native drag routing, appearance settings, exact quick-window handoff, two-to-four-pane split preservation/extraction, and lazy developer-style-compiler lifecycle. |
+| Source-matched build and installed binding | `PASS` (development scope) | The official build wrapper completed at `f332dd7`; its incremental Ninja phase linked eight targets. The ARM64 development app was signed, installed atomically, deep/strict codesign-verified, independently verified, and matched the built executable at SHA-256 `1453ef09b84104002f798ee1e83d0788939c5c3e6bc08bb0f09b01a39db6b259`. |
+| Installed interaction smoke | `PASS` with explicit native-drag boundary | Fresh-profile Computer Use visibly proved exact FPN resolution in normal and Command-T entry, the independent CloudKit/developer settings, restored Developer menu and opened DevTools, `URL kopieren`, floating-card geometry, and address-bar-over-sidebar layering. The Computer Use primitive did not initiate native AppKit drag in either floating or docked mode; therefore the installed drag is not mislabeled `CU_E2E PASS`. The retry-disabled native-routing browser test is green. See `artifacts/computer-use/m152/README.md`. |
 
 ## Historical M151 recovery and previous green matrix
 
