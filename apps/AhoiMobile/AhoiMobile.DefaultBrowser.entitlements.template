@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Use this release template only after Apple grants the managed default-
+	     browser entitlement to the final bundle identifier and the provisioning
+	     profile contains the same entitlement. -->
+	<key>com.apple.developer.web-browser</key>
+	<true/>
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>$(AHOI_CLOUDKIT_CONTAINER_ID)</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudKit</string>
+	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AHOI_SYNC_KEYCHAIN_ACCESS_GROUP)</string>
+		<string>$(AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP)</string>
+	</array>
+	<key>aps-environment</key>
+	<string>$(AHOI_APS_ENVIRONMENT)</string>
+</dict>
+</plist>

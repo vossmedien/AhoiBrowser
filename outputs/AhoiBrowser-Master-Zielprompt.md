@@ -74,7 +74,7 @@ Wenn ein externer Blocker auftritt:
 
 - Produkt- und Arbeitsname: **AhoiBrowser**.
 - Desktopziel für v1: macOS 26, ausschließlich Apple Silicon/ARM64.
-- Mobile Ergänzung zum ersten öffentlichen Release: native iOS-/iPadOS-26-Companion-App.
+- Mobile Ergänzung zum ersten öffentlichen Release: nativer iOS-/iPadOS-26-Browser auf Basis des systemgelieferten WebKit und des vorhandenen Companion-Cores.
 - Browserbasis: vollständiger Chromium-`//chrome`-Fork.
 - UI: Chromium Views plus Objective-C++/AppKit für macOS-spezifische Integration und Liquid Glass.
 - Ein gemeinsames normales Chromium-Profil für alle Workspaces.
@@ -1202,16 +1202,18 @@ Ein lokales Gerät kann nach bestätigtem Recovery seinen lokalen Datenstand neu
 
 Offizielle Builds verwenden den Projekt-CloudKit-Container. Selbst gebaute Forks müssen eigene Apple-Team-, Bundle- und Container-Identifier konfigurieren können.
 
-## Native iOS-/iPadOS-Companion-App
+## Nativer iOS-/iPadOS-Browser
 
-Baue eine native SwiftUI-App. Sie ist in v1 kein vollständiger Browser und verwendet keine eingebettete Webansicht als Browserersatz.
+Baue eine native SwiftUI-Browser-App für iOS/iPadOS 26+. Sie verwendet Apples systemgeliefertes WebKit über `WebView`/`WebPage`, keinen Chromium-Port und keine alternative Browser-Engine. Der bisherige Companion wird als Workspace-, Sync- und Remote-Control-Core integriert und nicht als zweites App-Produkt fortgeführt. Der vollständige Vertrag steht in `outputs/AhoiBrowser-Mobile-Zielprompt.md`.
 
 Funktionen:
 
 - Volltextsuche über synchronisierte Workspaces, Baum, normale offene Tabs und Verlauf;
 - Workspaces und Ordner anlegen, umbenennen, verschieben und löschen;
 - gespeicherte Seiten anlegen, verschieben, umbenennen und löschen;
-- Link im vom Nutzer gewählten Standardbrowser öffnen;
+- Webseiten im eigenen normalen oder privaten Browserkontext öffnen;
+- als verwalteter iOS-Standardbrowser HTTP-/HTTPS-Links annehmen;
+- Adress-/Suchfeld, Back/Forward/Reload, Tabs, Undo Close und normalen Session Restore bereitstellen;
 - Link an einen konkreten Mac oder Workspace senden;
 - normalen Mac-Tab öffnen;
 - normalen Mac-Tab fokussieren;

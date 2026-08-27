@@ -1,0 +1,2598 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "action.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "action.create": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create"
+          }
+        }
+      }
+    },
+    "action.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "action.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "action.manage": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage"
+          }
+        }
+      }
+    },
+    "action.new": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New"
+          }
+        }
+      }
+    },
+    "action.rename": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenennen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
+          }
+        }
+      }
+    },
+    "action.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sichern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "action.send": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        }
+      }
+    },
+    "action.sync_now": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt synchronisieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync now"
+          }
+        }
+      }
+    },
+    "action.allow": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erlauben"}},"en":{"stringUnit":{"state":"translated","value":"Allow"}}}},
+    "action.clear": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Leeren"}},"en":{"stringUnit":{"state":"translated","value":"Clear"}}}},
+    "action.close": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schließen"}},"en":{"stringUnit":{"state":"translated","value":"Close"}}}},
+    "action.deny": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nicht erlauben"}},"en":{"stringUnit":{"state":"translated","value":"Don't Allow"}}}},
+    "action.ok": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"OK"}},"en":{"stringUnit":{"state":"translated","value":"OK"}}}},
+    "browser.address.accessibility": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Adresse und Suche"}},"en":{"stringUnit":{"state":"translated","value":"Address and search"}}}},
+    "browser.back": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zurück"}},"en":{"stringUnit":{"state":"translated","value":"Back"}}}},
+    "browser.close_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab schließen"}},"en":{"stringUnit":{"state":"translated","value":"Close Tab"}}}},
+    "browser.clear_address": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Adresse leeren"}},"en":{"stringUnit":{"state":"translated","value":"Clear address"}}}},
+    "browser.clear_website_data": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website-Daten löschen"}},"en":{"stringUnit":{"state":"translated","value":"Clear Website Data"}}}},
+    "browser.clear_website_data.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Cookies, Caches und andere Website-Daten auf diesem Gerät werden gelöscht. Downloads und Ahoi-Workspaces bleiben erhalten."}},"en":{"stringUnit":{"state":"translated","value":"Cookies, caches and other website storage on this device will be removed. Downloads and Ahoi workspaces stay intact."}}}},
+    "browser.clear_website_data.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website-Daten löschen?"}},"en":{"stringUnit":{"state":"translated","value":"Clear Website Data?"}}}},
+    "browser.command.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Bereit zum Ablegen"}},"en":{"stringUnit":{"state":"translated","value":"Ready to sail"}}}},
+    "browser.command.empty.description": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website, Suche, Workspace, Tab oder Verlauf eingeben."}},"en":{"stringUnit":{"state":"translated","value":"Enter a website, search, workspace, tab or history item."}}}},
+    "browser.command.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Go to"}}}},
+    "browser.copy_address": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Adresse kopieren"}},"en":{"stringUnit":{"state":"translated","value":"Copy Address"}}}},
+    "browser.desktop_site": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Desktop-Website anfordern"}},"en":{"stringUnit":{"state":"translated","value":"Request Desktop Site"}}}},
+    "browser.download.cancelled": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Abgebrochen"}},"en":{"stringUnit":{"state":"translated","value":"Cancelled"}}}},
+    "browser.download.completed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geladen"}},"en":{"stringUnit":{"state":"translated","value":"Downloaded"}}}},
+    "browser.download.downloading": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird geladen …"}},"en":{"stringUnit":{"state":"translated","value":"Downloading…"}}}},
+    "browser.download.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download fehlgeschlagen"}},"en":{"stringUnit":{"state":"translated","value":"Download failed"}}}},
+    "browser.download.starting": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird gestartet …"}},"en":{"stringUnit":{"state":"translated","value":"Starting…"}}}},
+    "browser.downloads": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Downloads"}},"en":{"stringUnit":{"state":"translated","value":"Downloads"}}}},
+    "browser.downloads.count": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Downloads (%d)"}},"en":{"stringUnit":{"state":"translated","value":"Downloads (%d)"}}}},
+    "browser.downloads.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Downloads"}},"en":{"stringUnit":{"state":"translated","value":"No Downloads"}}}},
+    "browser.duplicate_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab duplizieren"}},"en":{"stringUnit":{"state":"translated","value":"Duplicate Tab"}}}},
+    "browser.error.blocked_scheme": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser öffnet hier nur HTTP- und HTTPS-Links."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser only opens HTTP and HTTPS links here."}}}},
+    "browser.error.invalid_address": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gib eine gültige Adresse oder einen Suchbegriff ein."}},"en":{"stringUnit":{"state":"translated","value":"Enter a valid address or search term."}}}},
+    "browser.error.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser"}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser"}}}},
+    "browser.external.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Website möchte %@ öffnen."}},"en":{"stringUnit":{"state":"translated","value":"The website wants to open %@."}}}},
+    "browser.external.open": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"App öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open App"}}}},
+    "browser.external.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Andere App öffnen?"}},"en":{"stringUnit":{"state":"translated","value":"Open another app?"}}}},
+    "browser.failure.generic.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Website konnte nicht erreicht werden."}},"en":{"stringUnit":{"state":"translated","value":"The website could not be reached."}}}},
+    "browser.failure.generic.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite konnte nicht geladen werden"}},"en":{"stringUnit":{"state":"translated","value":"Page Couldn't Load"}}}},
+    "browser.failure.invalid.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Prüfe die Adresse und versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"Check the address and try again."}}}},
+    "browser.failure.invalid.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Diese Adresse kann nicht geöffnet werden"}},"en":{"stringUnit":{"state":"translated","value":"This Address Can't Be Opened"}}}},
+    "browser.failure.offline.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Prüfe deine Verbindung und versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"Check your connection and try again."}}}},
+    "browser.failure.offline.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Du bist offline"}},"en":{"stringUnit":{"state":"translated","value":"You're Offline"}}}},
+    "browser.failure.process.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"iOS hat den Seitenprozess freigegeben. Lade die Seite neu, um fortzufahren."}},"en":{"stringUnit":{"state":"translated","value":"iOS released the page process. Reload it to continue."}}}},
+    "browser.failure.process.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite muss neu geladen werden"}},"en":{"stringUnit":{"state":"translated","value":"Page Reload Required"}}}},
+    "browser.failure.timeout.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Website hat nicht rechtzeitig geantwortet."}},"en":{"stringUnit":{"state":"translated","value":"The website did not respond in time."}}}},
+    "browser.failure.timeout.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Seite braucht zu lange"}},"en":{"stringUnit":{"state":"translated","value":"The Page Took Too Long"}}}},
+    "browser.find": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf Seite suchen"}},"en":{"stringUnit":{"state":"translated","value":"Find on Page"}}}},
+    "browser.find.next": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nächster Treffer"}},"en":{"stringUnit":{"state":"translated","value":"Next match"}}}},
+    "browser.find.previous": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vorheriger Treffer"}},"en":{"stringUnit":{"state":"translated","value":"Previous match"}}}},
+    "browser.find.results": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%d Treffer"}},"en":{"stringUnit":{"state":"translated","value":"%d matches"}}}},
+    "browser.forward": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vor"}},"en":{"stringUnit":{"state":"translated","value":"Forward"}}}},
+    "browser.loading": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite wird geladen"}},"en":{"stringUnit":{"state":"translated","value":"Loading page"}}}},
+    "browser.mobile_site": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Mobile Website anfordern"}},"en":{"stringUnit":{"state":"translated","value":"Request Mobile Site"}}}},
+    "browser.new_private_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neuer privater Tab"}},"en":{"stringUnit":{"state":"translated","value":"New private tab"}}}},
+    "browser.new_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neuer Tab"}},"en":{"stringUnit":{"state":"translated","value":"New tab"}}}},
+    "browser.page_settings": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seiteneinstellungen"}},"en":{"stringUnit":{"state":"translated","value":"Page Settings"}}}},
+    "browser.permission.camera": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"die Kamera"}},"en":{"stringUnit":{"state":"translated","value":"the camera"}}}},
+    "browser.permission.camera_microphone": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Kamera und Mikrofon"}},"en":{"stringUnit":{"state":"translated","value":"the camera and microphone"}}}},
+    "browser.permission.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ möchte auf %@ zugreifen."}},"en":{"stringUnit":{"state":"translated","value":"%@ wants access to %@."}}}},
+    "browser.permission.microphone": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"das Mikrofon"}},"en":{"stringUnit":{"state":"translated","value":"the microphone"}}}},
+    "browser.permission.motion": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Bewegungssensoren"}},"en":{"stringUnit":{"state":"translated","value":"motion sensors"}}}},
+    "browser.permission.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website-Berechtigung"}},"en":{"stringUnit":{"state":"translated","value":"Website permission"}}}},
+    "browser.private": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privat"}},"en":{"stringUnit":{"state":"translated","value":"Private"}}}},
+    "browser.private.close_all": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Private Tabs schließen"}},"en":{"stringUnit":{"state":"translated","value":"Close Private Tabs"}}}},
+    "browser.reload": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neu laden"}},"en":{"stringUnit":{"state":"translated","value":"Reload"}}}},
+    "browser.retry": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erneut versuchen"}},"en":{"stringUnit":{"state":"translated","value":"Try Again"}}}},
+    "browser.rename_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab umbenennen"}},"en":{"stringUnit":{"state":"translated","value":"Rename Tab"}}}},
+    "browser.save_to_workspace": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"In Workspace sichern"}},"en":{"stringUnit":{"state":"translated","value":"Save to workspace"}}}},
+    "browser.search.library": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ahoi-Mediathek"}},"en":{"stringUnit":{"state":"translated","value":"Ahoi Library"}}}},
+    "browser.search.open_tabs": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Offene Tabs"}},"en":{"stringUnit":{"state":"translated","value":"Open Tabs"}}}},
+    "browser.search_or_address": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Suchen oder Adresse eingeben"}},"en":{"stringUnit":{"state":"translated","value":"Search or enter address"}}}},
+    "browser.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite teilen"}},"en":{"stringUnit":{"state":"translated","value":"Share Page"}}}},
+    "browser.tab_name": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab-Name"}},"en":{"stringUnit":{"state":"translated","value":"Tab name"}}}},
+    "browser.tabs.count": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%d Tabs"}},"en":{"stringUnit":{"state":"translated","value":"%d tabs"}}}},
+    "browser.tabs.normal": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tabs"}},"en":{"stringUnit":{"state":"translated","value":"Tabs"}}}},
+    "browser.tabs.private": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privat"}},"en":{"stringUnit":{"state":"translated","value":"Private"}}}},
+    "browser.tabs.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tabs"}},"en":{"stringUnit":{"state":"translated","value":"Tabs"}}}},
+    "browser.text_larger": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Größerer Text"}},"en":{"stringUnit":{"state":"translated","value":"Larger Text"}}}},
+    "browser.text_smaller": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Kleinerer Text"}},"en":{"stringUnit":{"state":"translated","value":"Smaller Text"}}}},
+    "browser.undo_close": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ wieder öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Reopen %@"}}}},
+    "device_filter.accessibility": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte-Tabs filtern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter device tabs"
+          }
+        }
+      }
+    },
+    "device_filter.all": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Geräte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All devices"
+          }
+        }
+      }
+    },
+    "device.kind.ipad": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPad"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPad"
+          }
+        }
+      }
+    },
+    "device.kind.iphone": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone"
+          }
+        }
+      }
+    },
+    "device.kind.mac": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac"
+          }
+        }
+      }
+    },
+    "device.state.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        }
+      }
+    },
+    "device.state.online": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Online"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Online"
+          }
+        }
+      }
+    },
+    "device.state.revoked": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widerrufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoked"
+          }
+        }
+      }
+    },
+    "field.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      }
+    },
+    "folder.new": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Ordner"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New folder"
+          }
+        }
+      }
+    },
+    "folder.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordner"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folder"
+          }
+        }
+      }
+    },
+    "remote_tab.accessibility": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %@, normaler Tab"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %@, normal tab"
+          }
+        }
+      }
+    },
+    "remote_tab.open_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet die URL im Standardbrowser"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the URL in the default browser"
+          }
+        }
+      }
+    },
+    "remote_tab.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "remote.action.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "remote.action.focus": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fokussieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus"
+          }
+        }
+      }
+    },
+    "remote.action.generic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fernbefehl"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote command"
+          }
+        }
+      }
+    },
+    "remote.action.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        }
+      }
+    },
+    "remote.action.send_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link senden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send link"
+          }
+        }
+      }
+    },
+    "remote.close_confirmation.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab schließen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close tab"
+          }
+        }
+      }
+    },
+    "remote.close_confirmation.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein signierter Schließbefehl wird an %@ gesendet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A signed close command will be sent to %@."
+          }
+        }
+      }
+    },
+    "remote.close_confirmation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab auf dem Mac schließen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close this tab on the Mac?"
+          }
+        }
+      }
+    },
+    "remote.close_tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac-Tab schließen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Mac tab"
+          }
+        }
+      }
+    },
+    "remote.focus_mac_tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac-Tab fokussieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus Mac tab"
+          }
+        }
+      }
+    },
+    "remote.menu.accessibility": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sichere Mac-Steuerung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure Mac control"
+          }
+        }
+      }
+    },
+    "remote.not_configured": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Fernsteuerung ist nicht konfiguriert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote control is not configured."
+          }
+        }
+      }
+    },
+    "remote.open_on_mac": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dem Mac öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open on Mac"
+          }
+        }
+      }
+    },
+    "remote.queued_securely": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wurde sicher eingereiht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ was queued securely."
+          }
+        }
+      }
+    },
+    "remote.send_failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wurde nicht gesendet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ was not sent."
+          }
+        }
+      }
+    },
+    "remote.signing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wird signiert …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is being signed…"
+          }
+        }
+      }
+    },
+    "remote.signing_key_missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signaturschlüssel oder Mac-Freigabe fehlt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing key or Mac approval is missing"
+          }
+        }
+      }
+    },
+    "remote.state.delivered": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugestellt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delivered"
+          }
+        }
+      }
+    },
+    "remote.state.executed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgeführt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Executed"
+          }
+        }
+      }
+    },
+    "remote.state.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed"
+          }
+        }
+      }
+    },
+    "remote.state.queued": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingereiht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queued"
+          }
+        }
+      }
+    },
+    "remote.status.delivered": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Mac hat den Befehl geprüft."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Mac verified the command."
+          }
+        }
+      }
+    },
+    "remote.status.executed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wurde auf dem Mac abgeschlossen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ was completed on the Mac."
+          }
+        }
+      }
+    },
+    "remote.status.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Mac hat den Befehl sicher abgelehnt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Mac rejected the command safely."
+          }
+        }
+      }
+    },
+    "remote.status.queued": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wurde gesendet; die Bestätigung steht noch aus."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ was sent; confirmation is pending."
+          }
+        }
+      }
+    },
+    "root.device_tabs": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte-Tabs"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device tabs"
+          }
+        }
+      }
+    },
+    "root.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine synchronisierten Daten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No synced data yet"
+          }
+        }
+      }
+    },
+    "root.workspaces": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereiche"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspaces"
+          }
+        }
+      }
+    },
+    "saved_page.new": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue gespeicherte Seite"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New saved page"
+          }
+        }
+      }
+    },
+    "saved_page.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Seite"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved page"
+          }
+        }
+      }
+    },
+    "search.kind.folder": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordner"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folder"
+          }
+        }
+      }
+    },
+    "search.kind.saved_page": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Seite"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved page"
+          }
+        }
+      }
+    },
+    "search.kind.workspace": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace"
+          }
+        }
+      }
+    },
+    "search.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereiche, Tabs, Verlauf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspaces, tabs, history"
+          }
+        }
+      }
+    },
+    "search.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        }
+      }
+    },
+    "send_link.device": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac"
+          }
+        }
+      }
+    },
+    "send_link.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es werden nur HTTP- und HTTPS-Links akzeptiert. Der ausgewählte Mac muss dieses Gerät freigegeben haben."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only HTTP and HTTPS links are accepted. The selected Mac must have approved this device."
+          }
+        }
+      }
+    },
+    "send_link.select_device": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac auswählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a Mac"
+          }
+        }
+      }
+    },
+    "send_link.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link senden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send link"
+          }
+        }
+      }
+    },
+    "send_link.url": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link"
+          }
+        }
+      }
+    },
+    "send_link.workspace": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace"
+          }
+        }
+      }
+    },
+    "send_link.workspace.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein bestimmter Arbeitsbereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No specific workspace"
+          }
+        }
+      }
+    },
+    "settings.devices.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine synchronisierten Geräte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No synced devices yet"
+          }
+        }
+      }
+    },
+    "settings.devices.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devices"
+          }
+        }
+      }
+    },
+    "settings.product.appearance": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Darstellung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        }
+      }
+    },
+    "settings.product.extension_detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · Version %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · version %@"
+          }
+        }
+      }
+    },
+    "settings.product.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Erweiterungsinventar dient nur als Hinweis. Es installiert oder aktiviert niemals eine Erweiterung. Entwickler-Assets erscheinen erst nach ausdrücklicher Freigabe pro Asset."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extension inventory is advisory only. It never installs or enables an extension. Developer assets appear only after explicit per-asset opt-in."
+          }
+        }
+      }
+    },
+    "settings.product.opted_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freigegeben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opted in"
+          }
+        }
+      }
+    },
+    "settings.product.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierte Produktdaten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced product data"
+          }
+        }
+      }
+    },
+    "settings.product.unknown_device": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anderes Gerät"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other device"
+          }
+        }
+      }
+    },
+    "settings.recovery.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud-Accountwechsel klären"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve iCloud account change"
+          }
+        }
+      }
+    },
+    "settings.recovery.account.keep_local": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur lokal behalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep local only"
+          }
+        }
+      }
+    },
+    "settings.recovery.account.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis zu deiner Auswahl wird nichts hochgeladen. Lokale Daten bleiben in beiden Fällen erhalten."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing is uploaded until you choose. Local data is retained in both cases."
+          }
+        }
+      }
+    },
+    "settings.recovery.account.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den lokalen Stand mit dem neuen iCloud-Account verwenden?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the local snapshot with the new iCloud account?"
+          }
+        }
+      }
+    },
+    "settings.recovery.account.upload": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Daten hochladen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload local data"
+          }
+        }
+      }
+    },
+    "settings.recovery.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellung löscht den lokalen Stand niemals automatisch."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery never deletes the local snapshot automatically."
+          }
+        }
+      }
+    },
+    "settings.recovery.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery"
+          }
+        }
+      }
+    },
+    "settings.recovery.zone": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync-Zone neu erstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recreate sync zone"
+          }
+        }
+      }
+    },
+    "settings.recovery.zone.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu erstellen und hochladen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recreate and upload"
+          }
+        }
+      }
+    },
+    "settings.recovery.zone.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit-Zone neu erstellen und den erhaltenen lokalen Stand hochladen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recreate the CloudKit zone and upload the retained local snapshot?"
+          }
+        }
+      }
+    },
+    "settings.remote.approval_required": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPhone oder iPad muss auf jedem Mac freigegeben werden, bevor es Befehle senden kann."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This iPhone or iPad must be approved on each Mac before it can send commands."
+          }
+        }
+      }
+    },
+    "settings.remote.key": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signaturschlüssel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing key"
+          }
+        }
+      }
+    },
+    "settings.remote.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fernsteuerung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote control"
+          }
+        }
+      }
+    },
+    "settings.remote.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Fernsteuerung ist erst verfügbar, wenn ein Signaturschlüssel im Schlüsselbund bereitgestellt wurde."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote control is unavailable until a Keychain signing key is provisioned."
+          }
+        }
+      }
+    },
+    "settings.retention.30": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 Tage"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 days"
+          }
+        }
+      }
+    },
+    "settings.retention.365": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "365 Tage"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "365 days"
+          }
+        }
+      }
+    },
+    "settings.retention.90": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 Tage"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 days"
+          }
+        }
+      }
+    },
+    "settings.retention.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgelaufene Besuche werden in Sync-Löschmarken umgewandelt, damit die Löschung auf deine anderen Geräte übertragen wird."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired visits are converted to sync tombstones so deletion propagates to your other devices."
+          }
+        }
+      }
+    },
+    "settings.retention.forever": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbegrenzt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forever"
+          }
+        }
+      }
+    },
+    "settings.retention.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        }
+      }
+    },
+    "settings.retention.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf behalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep history"
+          }
+        }
+      }
+    },
+    "settings.sync.configuration_missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple-Bereitstellung oder lokaler Verschlüsselungsschlüssel fehlt. Lokale Daten bleiben verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple provisioning or the local encryption key is missing. Local data remains available."
+          }
+        }
+      }
+    },
+    "settings.sync.configuration_short": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple-Konfiguration oder Verschlüsselungsschlüssel fehlt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple configuration or encryption key is missing"
+          }
+        }
+      }
+    },
+    "settings.sync.enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit-Sync"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit sync"
+          }
+        }
+      }
+    },
+    "settings.sync.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Versuch in %.0f Sekunden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry in %.0f seconds"
+          }
+        }
+      }
+    },
+    "settings.sync.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        }
+      }
+    },
+    "settings.sync.state": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
+        }
+      }
+    },
+    "settings.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "sync.action.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startet einen CloudKit-Sync, sobald ein Anbieter konfiguriert ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starts a CloudKit sync when a provider is configured."
+          }
+        }
+      }
+    },
+    "sync.configuration_missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit ist nicht vollständig konfiguriert. Lokale Daten bleiben verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit is not fully configured. Local data remains available."
+          }
+        }
+      }
+    },
+    "sync.retention.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Aufbewahrungszeitraum wird nicht unterstützt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This retention period is not supported."
+          }
+        }
+      }
+    },
+    "sync.state.account_required": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account-Aktion erforderlich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account action required"
+          }
+        }
+      }
+    },
+    "sync.state.conflict_resolved": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konflikt gelöst"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conflict resolved"
+          }
+        }
+      }
+    },
+    "sync.state.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed"
+          }
+        }
+      }
+    },
+    "sync.state.local_only": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur lokal"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local only"
+          }
+        }
+      }
+    },
+    "sync.state.off": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        }
+      }
+    },
+    "sync.state.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        }
+      }
+    },
+    "sync.state.preparing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird vorbereitet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing"
+          }
+        }
+      }
+    },
+    "sync.state.quarantined": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datensatz isoliert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record quarantined"
+          }
+        }
+      }
+    },
+    "sync.state.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        }
+      }
+    },
+    "sync.state.retry_scheduled": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Versuch geplant"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry scheduled"
+          }
+        }
+      }
+    },
+    "sync.state.syncing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird synchronisiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing"
+          }
+        }
+      }
+    },
+    "sync.status.account_change_confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accountwechsel bestätigt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account change confirmed"
+          }
+        }
+      }
+    },
+    "sync.status.account_changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud-Account wurde gewechselt; lokale Daten wurden behalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud account changed; local data was retained"
+          }
+        }
+      }
+    },
+    "sync.status.account_required": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud-Anmeldung oder Berechtigung ist erforderlich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud sign-in or permission is required"
+          }
+        }
+      }
+    },
+    "sync.status.conflict_merged": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konflikt wurde deterministisch zusammengeführt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conflict was merged deterministically"
+          }
+        }
+      }
+    },
+    "sync.status.error_code": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit-Fehler: %d"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit error: %d"
+          }
+        }
+      }
+    },
+    "sync.status.not_yet_synced": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht synchronisiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not synced yet"
+          }
+        }
+      }
+    },
+    "sync.status.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit ist offline; lokale Änderungen bleiben ausstehend"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit is offline; local changes remain pending"
+          }
+        }
+      }
+    },
+    "sync.status.preparing_zone": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync-Zone wird vorbereitet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing sync zone"
+          }
+        }
+      }
+    },
+    "sync.status.raw_delete_discarded": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direkte CloudKit-Datensatzlöschung wurde verworfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raw CloudKit record deletion was discarded"
+          }
+        }
+      }
+    },
+    "sync.status.raw_deletes_forbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direkte CloudKit-Datensatzlöschungen bleiben gesperrt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raw CloudKit record deletions remain forbidden"
+          }
+        }
+      }
+    },
+    "sync.status.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        }
+      }
+    },
+    "sync.status.record_quarantined": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindestens ein CloudKit-Datensatz wurde isoliert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At least one CloudKit record was quarantined"
+          }
+        }
+      }
+    },
+    "sync.status.sdk_unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit-SDK ist nicht verfügbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit SDK is unavailable"
+          }
+        }
+      }
+    },
+    "sync.status.state_save_failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync-Status konnte nicht gesichert werden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync state could not be saved"
+          }
+        }
+      }
+    },
+    "sync.status.synced": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced"
+          }
+        }
+      }
+    },
+    "sync.status.syncing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird mit CloudKit synchronisiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing with CloudKit"
+          }
+        }
+      }
+    },
+    "sync.status.temporary_limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit meldet eine vorübergehende Begrenzung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit reported a temporary limit"
+          }
+        }
+      }
+    },
+    "sync.status.unknown_event": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekanntes CKSyncEngine-Ereignis"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown CKSyncEngine event"
+          }
+        }
+      }
+    },
+    "sync.status.zone_deleted": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit-Zone wurde gelöscht; lokale Daten wurden behalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit zone was deleted; local data was retained"
+          }
+        }
+      }
+    },
+    "sync.status.zone_reinitialization": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit-Zone muss neu initialisiert werden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloudKit zone requires reinitialization"
+          }
+        }
+      }
+    },
+    "sync.status.zone_restored": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync-Zone wiederhergestellt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync zone restored"
+          }
+        }
+      }
+    },
+    "tree.move": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschieben nach"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to"
+          }
+        }
+      }
+    },
+    "tree.rename": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Element umbenennen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename item"
+          }
+        }
+      }
+    },
+    "workspace.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete workspace"
+          }
+        }
+      }
+    },
+    "workspace.delete.confirmation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich und seine Struktur löschen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete workspace and its tree?"
+          }
+        }
+      }
+    },
+    "workspace.new": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Arbeitsbereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New workspace"
+          }
+        }
+      }
+    },
+    "workspace.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Arbeitsbereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No workspace"
+          }
+        }
+      }
+    },
+    "workspace.normal_device_tabs": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normale Tabs auf Geräten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normal tabs on devices"
+          }
+        }
+      }
+    },
+    "workspace.rename": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich umbenennen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename workspace"
+          }
+        }
+      }
+    },
+    "workspace.select": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich auswählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a workspace"
+          }
+        }
+      }
+    },
+    "workspace.select.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereiche, gespeicherte Seiten und normale Geräte-Tabs bleiben lokal verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspaces, saved pages and normal device tabs remain available locally."
+          }
+        }
+      }
+    },
+    "workspace.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
