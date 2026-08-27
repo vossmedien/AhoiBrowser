@@ -24,7 +24,7 @@ namespace {
 class DeveloperProfileRuntimeTest : public testing::Test {
  protected:
   DeveloperProfileRuntimeTest() {
-    RegisterDeveloperProfilePrefs(prefs_.registry());
+    developer_profile_prefs::RegisterProfilePrefs(prefs_.registry());
     web_contents_ = content::WebContentsTester::CreateTestWebContents(
         &browser_context_, nullptr);
   }
