@@ -56,11 +56,23 @@ bool IsStructurallySafePath(const base::FilePath& path) {
 constexpr size_t kPidEnumerationHeadroom = 64;
 constexpr size_t kFileDescriptorHeadroom = 16;
 constexpr int kMaxPidEnumerationAttempts = 4;
+constexpr int kMaxOpenFileInspectionAttempts = 3;
+
+struct ProcessIdentity {
+  pid_t pid;
+  uint64_t start_time_seconds;
+  uint64_t start_time_microseconds;
+};
 
 struct ProcessMetadata {
+  ProcessIdentity identity;
   internal::ProcessOwnership ownership;
   uint32_t open_file_count;
-  bool is_exiting;
+};
+
+struct ProcessObservation {
+  std::optional<ProcessMetadata> metadata;
+  internal::ProcessLiveness liveness;
 };
 
 enum class OpenFileInspectionResult {
@@ -121,25 +133,31 @@ std::optional<ProcessMetadata> ReadProcessMetadata(pid_t pid) {
   const int received_bytes =
       proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &process_info,
                    static_cast<int>(sizeof(process_info)));
-  if (received_bytes != static_cast<int>(sizeof(process_info))) {
+  if (received_bytes != static_cast<int>(sizeof(process_info)) || pid <= 0 ||
+      process_info.pbi_pid != static_cast<uint32_t>(pid)) {
     return std::nullopt;
   }
 
   const bool is_current_user = process_info.pbi_uid == geteuid() ||
                                process_info.pbi_ruid == getuid();
   return ProcessMetadata{
+      .identity =
+          ProcessIdentity{
+              .pid = static_cast<pid_t>(process_info.pbi_pid),
+              .start_time_seconds = process_info.pbi_start_tvsec,
+              .start_time_microseconds = process_info.pbi_start_tvusec,
+          },
       .ownership = is_current_user
                        ? internal::ProcessOwnership::kCurrentUser
                        : internal::ProcessOwnership::kForeignUser,
       .open_file_count = process_info.pbi_nfiles,
-      .is_exiting = (process_info.pbi_flags & PROC_FLAG_INEXIT) != 0,
   };
 }
 
 internal::ProcessLiveness ProbeProcessLiveness(pid_t pid) {
   errno = 0;
   if (kill(pid, 0) == 0) {
-    return internal::ProcessLiveness::kAliveAndSignalable;
+    return internal::ProcessLiveness::kAlive;
   }
   if (errno == ESRCH) {
     return internal::ProcessLiveness::kExited;
@@ -150,19 +168,46 @@ internal::ProcessLiveness ProbeProcessLiveness(pid_t pid) {
   return internal::ProcessLiveness::kUnknown;
 }
 
-bool ShouldBlockAfterProcessInspectionFailure(pid_t pid) {
-  const std::optional<ProcessMetadata> refreshed_metadata =
-      ReadProcessMetadata(pid);
-  if (refreshed_metadata && refreshed_metadata->is_exiting) {
-    return false;
+ProcessObservation ObserveProcess(pid_t pid) {
+  std::optional<ProcessMetadata> metadata = ReadProcessMetadata(pid);
+  if (metadata) {
+    // The metadata and identity came from one proc_bsdinfo snapshot, so no
+    // separate liveness probe can accidentally describe a reused PID.
+    return {.metadata = std::move(metadata),
+            .liveness = internal::ProcessLiveness::kAlive};
   }
-  return internal::ShouldBlockOnProcessInspectionFailure(
-      refreshed_metadata ? refreshed_metadata->ownership
-                         : internal::ProcessOwnership::kUnknown,
-      ProbeProcessLiveness(pid));
+
+  const internal::ProcessLiveness liveness = ProbeProcessLiveness(pid);
+  if (liveness == internal::ProcessLiveness::kExited) {
+    return {.metadata = std::nullopt, .liveness = liveness};
+  }
+
+  // A process may become inspectable between the metadata and signal probes.
+  // Re-read metadata so any usable liveness evidence is bound to PID+start time.
+  metadata = ReadProcessMetadata(pid);
+  if (metadata) {
+    return {.metadata = std::move(metadata),
+            .liveness = internal::ProcessLiveness::kAlive};
+  }
+  return {.metadata = std::nullopt, .liveness = liveness};
 }
 
-OpenFileInspectionResult InspectOpenFiles(
+internal::ProcessIdentityMatch CompareProcessIdentity(
+    const ProcessIdentity& expected,
+    const std::optional<ProcessMetadata>& actual) {
+  if (!actual) {
+    return internal::ProcessIdentityMatch::kUnknown;
+  }
+  if (expected.pid == actual->identity.pid &&
+      expected.start_time_seconds == actual->identity.start_time_seconds &&
+      expected.start_time_microseconds ==
+          actual->identity.start_time_microseconds) {
+    return internal::ProcessIdentityMatch::kSameProcess;
+  }
+  return internal::ProcessIdentityMatch::kDifferentProcess;
+}
+
+OpenFileInspectionResult InspectOpenFilesOnce(
     pid_t pid,
     uint32_t expected_open_file_count,
     const ArcSource& source) {
@@ -203,6 +248,7 @@ OpenFileInspectionResult InspectOpenFiles(
   descriptors.resize(static_cast<size_t>(received_bytes) /
                      sizeof(proc_fdinfo));
 
+  bool had_descriptor_failure = false;
   for (const proc_fdinfo& descriptor : descriptors) {
     if (descriptor.proc_fdtype != PROX_FDTYPE_VNODE) {
       continue;
@@ -212,14 +258,77 @@ OpenFileInspectionResult InspectOpenFiles(
         proc_pidfdinfo(pid, descriptor.proc_fd, PROC_PIDFDVNODEPATHINFO,
                        &vnode_info, sizeof(vnode_info));
     if (vnode_bytes != static_cast<int>(sizeof(vnode_info))) {
-      return OpenFileInspectionResult::kFailed;
+      had_descriptor_failure = true;
+      continue;
     }
     if (internal::IsRelevantArcSourcePath(
             source, base::FilePath(vnode_info.pvip.vip_path))) {
       return OpenFileInspectionResult::kRelevantFileOpen;
     }
   }
-  return OpenFileInspectionResult::kClear;
+  return had_descriptor_failure ? OpenFileInspectionResult::kFailed
+                                : OpenFileInspectionResult::kClear;
+}
+
+OpenFileInspectionResult InspectOpenFilesWithRetry(
+    pid_t pid,
+    ProcessMetadata metadata,
+    const ArcSource& source) {
+  int consecutive_same_process_failures = 0;
+  for (int attempt = 0; attempt < kMaxOpenFileInspectionAttempts; ++attempt) {
+    // A descriptor can disappear between PROC_PIDLISTFDS and proc_pidfdinfo.
+    // Retry the whole snapshot, and only accept a clear result while the PID,
+    // start time, and descriptor count still match the pre-snapshot metadata.
+    const OpenFileInspectionResult result =
+        InspectOpenFilesOnce(pid, metadata.open_file_count, source);
+    if (result == OpenFileInspectionResult::kRelevantFileOpen) {
+      return result;
+    }
+
+    const ProcessObservation observation = ObserveProcess(pid);
+    const internal::ProcessIdentityMatch identity_match =
+        CompareProcessIdentity(metadata.identity, observation.metadata);
+    if (identity_match ==
+        internal::ProcessIdentityMatch::kDifferentProcess) {
+      // This PID now names a process created after ListAllPids(). Do not carry
+      // the original process's failure history into its replacement.
+      return OpenFileInspectionResult::kClear;
+    }
+
+    const bool descriptor_snapshot_stable =
+        observation.metadata &&
+        identity_match == internal::ProcessIdentityMatch::kSameProcess &&
+        observation.metadata->open_file_count == metadata.open_file_count;
+    if (result == OpenFileInspectionResult::kClear &&
+        descriptor_snapshot_stable) {
+      return result;
+    }
+
+    if (identity_match == internal::ProcessIdentityMatch::kSameProcess) {
+      ++consecutive_same_process_failures;
+    } else {
+      consecutive_same_process_failures = 0;
+    }
+    const bool can_retry = attempt + 1 < kMaxOpenFileInspectionAttempts;
+    const internal::ProcessInspectionFailureDisposition disposition =
+        internal::DecideOpenFileInspectionFailure(
+            observation.metadata ? observation.metadata->ownership
+                                 : metadata.ownership,
+            observation.liveness, identity_match,
+            consecutive_same_process_failures, can_retry);
+    switch (disposition) {
+      case internal::ProcessInspectionFailureDisposition::kRetry:
+        if (observation.metadata) {
+          metadata = *observation.metadata;
+        }
+        break;
+      case internal::ProcessInspectionFailureDisposition::kIgnore:
+        return OpenFileInspectionResult::kClear;
+      case internal::ProcessInspectionFailureDisposition::kBlock:
+        return OpenFileInspectionResult::kFailed;
+    }
+  }
+  return OpenFileInspectionResult::kFailed;
 }
 
 bool IsSelectableProfileName(const std::string& name) {
@@ -270,6 +379,35 @@ bool ShouldBlockOnProcessInspectionFailure(ProcessOwnership ownership,
     return true;
   }
   return liveness != ProcessLiveness::kAliveButNotSignalable;
+}
+
+ProcessInspectionFailureDisposition DecideOpenFileInspectionFailure(
+    ProcessOwnership ownership,
+    ProcessLiveness liveness,
+    ProcessIdentityMatch identity_match,
+    int consecutive_same_process_failures,
+    bool can_retry) {
+  if (liveness == ProcessLiveness::kExited ||
+      identity_match == ProcessIdentityMatch::kDifferentProcess) {
+    return ProcessInspectionFailureDisposition::kIgnore;
+  }
+  if (identity_match == ProcessIdentityMatch::kSameProcess &&
+      consecutive_same_process_failures >=
+          kMaxOpenFileInspectionAttempts) {
+    return ShouldBlockOnProcessInspectionFailure(ownership, liveness)
+               ? ProcessInspectionFailureDisposition::kBlock
+               : ProcessInspectionFailureDisposition::kIgnore;
+  }
+  return can_retry ? ProcessInspectionFailureDisposition::kRetry
+                   : ProcessInspectionFailureDisposition::kIgnore;
+}
+
+bool ShouldBlockOnOpenFileInspectionEvidence(
+    OpenFileInspectionEvidence evidence,
+    ProcessOwnership ownership) {
+  // Ownership affects inaccessible inspection, never positive evidence.
+  static_cast<void>(ownership);
+  return evidence == OpenFileInspectionEvidence::kRelevantSourceHandle;
 }
 
 bool IsArcBundleExecutablePath(const base::FilePath& executable) {
@@ -428,13 +566,11 @@ bool IsArcApplicationRunning() {
       continue;
     }
 
-    const std::optional<ProcessMetadata> metadata = ReadProcessMetadata(pid);
-    if (metadata && (metadata->is_exiting ||
-                     metadata->ownership ==
-                         internal::ProcessOwnership::kForeignUser)) {
-      continue;
-    }
-    if (ShouldBlockAfterProcessInspectionFailure(pid)) {
+    const ProcessObservation observation = ObserveProcess(pid);
+    if (internal::ShouldBlockOnProcessInspectionFailure(
+            observation.metadata ? observation.metadata->ownership
+                                 : internal::ProcessOwnership::kUnknown,
+            observation.liveness)) {
       return true;
     }
   }
@@ -457,28 +593,32 @@ bool AreArcProfileFilesOpen(const ArcSource& source) {
       return true;
     }
 
-    const std::optional<ProcessMetadata> metadata = ReadProcessMetadata(pid);
-    if (!metadata) {
-      if (ShouldBlockAfterProcessInspectionFailure(pid)) {
+    const ProcessObservation observation = ObserveProcess(pid);
+    if (!observation.metadata) {
+      if (internal::ShouldBlockOnProcessInspectionFailure(
+              internal::ProcessOwnership::kUnknown,
+              observation.liveness)) {
         return true;
       }
       continue;
     }
-    if (metadata->is_exiting ||
-        metadata->ownership == internal::ProcessOwnership::kForeignUser) {
-      continue;
-    }
-    if (executable.empty() && ShouldBlockAfterProcessInspectionFailure(pid)) {
+    if (executable.empty() &&
+        internal::ShouldBlockOnProcessInspectionFailure(
+            observation.metadata->ownership, observation.liveness)) {
       return true;
     }
 
     const OpenFileInspectionResult result =
-        InspectOpenFiles(pid, metadata->open_file_count, source);
-    if (result == OpenFileInspectionResult::kRelevantFileOpen) {
+        InspectOpenFilesWithRetry(pid, *observation.metadata, source);
+    const internal::OpenFileInspectionEvidence evidence =
+        result == OpenFileInspectionResult::kRelevantFileOpen
+            ? internal::OpenFileInspectionEvidence::kRelevantSourceHandle
+            : internal::OpenFileInspectionEvidence::kNoRelevantSourceHandle;
+    if (internal::ShouldBlockOnOpenFileInspectionEvidence(
+            evidence, observation.metadata->ownership)) {
       return true;
     }
-    if (result == OpenFileInspectionResult::kFailed &&
-        ShouldBlockAfterProcessInspectionFailure(pid)) {
+    if (result == OpenFileInspectionResult::kFailed) {
       return true;
     }
   }

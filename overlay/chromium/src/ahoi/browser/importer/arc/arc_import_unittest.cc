@@ -345,8 +345,7 @@ TEST(ArcImportDiscoveryTest,
   using internal::ProcessOwnership;
 
   EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
-      ProcessOwnership::kCurrentUser,
-      ProcessLiveness::kAliveAndSignalable));
+      ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive));
   EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
       ProcessOwnership::kCurrentUser,
       ProcessLiveness::kAliveButNotSignalable));
@@ -356,8 +355,7 @@ TEST(ArcImportDiscoveryTest,
       ProcessOwnership::kCurrentUser, ProcessLiveness::kExited));
 
   EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
-      ProcessOwnership::kForeignUser,
-      ProcessLiveness::kAliveAndSignalable));
+      ProcessOwnership::kForeignUser, ProcessLiveness::kAlive));
   EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
       ProcessOwnership::kForeignUser,
       ProcessLiveness::kAliveButNotSignalable));
@@ -365,8 +363,7 @@ TEST(ArcImportDiscoveryTest,
       ProcessOwnership::kForeignUser, ProcessLiveness::kUnknown));
 
   EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
-      ProcessOwnership::kUnknown,
-      ProcessLiveness::kAliveAndSignalable));
+      ProcessOwnership::kUnknown, ProcessLiveness::kAlive));
   EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
       ProcessOwnership::kUnknown, ProcessLiveness::kUnknown));
   EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
@@ -374,6 +371,90 @@ TEST(ArcImportDiscoveryTest,
       ProcessLiveness::kAliveButNotSignalable));
   EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
       ProcessOwnership::kUnknown, ProcessLiveness::kExited));
+}
+
+TEST(ArcImportDiscoveryTest, InExitFlagNeverProvesThatProcessExited) {
+  using internal::ProcessLiveness;
+  using internal::ProcessOwnership;
+
+  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kCurrentUser,
+      ProcessLiveness::kInExitWithoutExitEvidence));
+  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kUnknown,
+      ProcessLiveness::kInExitWithoutExitEvidence));
+  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kCurrentUser, ProcessLiveness::kExited));
+}
+
+TEST(ArcImportDiscoveryTest,
+     OpenFileInspectionRetriesChurnAndDoesNotAttributeReusedPid) {
+  using internal::DecideOpenFileInspectionFailure;
+  using internal::ProcessIdentityMatch;
+  using internal::ProcessInspectionFailureDisposition;
+  using internal::ProcessLiveness;
+  using internal::ProcessOwnership;
+
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kRetry,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
+                ProcessIdentityMatch::kSameProcess,
+                /*consecutive_same_process_failures=*/1,
+                /*can_retry=*/true));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kRetry,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kForeignUser,
+                ProcessLiveness::kAliveButNotSignalable,
+                ProcessIdentityMatch::kSameProcess,
+                /*consecutive_same_process_failures=*/1,
+                /*can_retry=*/true));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kRetry,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
+                ProcessIdentityMatch::kSameProcess,
+                /*consecutive_same_process_failures=*/2,
+                /*can_retry=*/true));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kBlock,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
+                ProcessIdentityMatch::kSameProcess,
+                /*consecutive_same_process_failures=*/3,
+                /*can_retry=*/false));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kForeignUser,
+                ProcessLiveness::kAliveButNotSignalable,
+                ProcessIdentityMatch::kSameProcess,
+                /*consecutive_same_process_failures=*/3,
+                /*can_retry=*/false));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
+                ProcessIdentityMatch::kDifferentProcess,
+                /*consecutive_same_process_failures=*/0,
+                /*can_retry=*/true));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
+                ProcessIdentityMatch::kUnknown,
+                /*consecutive_same_process_failures=*/0,
+                /*can_retry=*/false));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kCurrentUser, ProcessLiveness::kExited,
+                ProcessIdentityMatch::kSameProcess,
+                /*consecutive_same_process_failures=*/3,
+                /*can_retry=*/false));
+}
+
+TEST(ArcImportDiscoveryTest,
+     RelevantForeignProcessHandleBlocksWhenInspectionSucceeds) {
+  EXPECT_TRUE(internal::ShouldBlockOnOpenFileInspectionEvidence(
+      internal::OpenFileInspectionEvidence::kRelevantSourceHandle,
+      internal::ProcessOwnership::kForeignUser));
+  EXPECT_FALSE(internal::ShouldBlockOnOpenFileInspectionEvidence(
+      internal::OpenFileInspectionEvidence::kNoRelevantSourceHandle,
+      internal::ProcessOwnership::kForeignUser));
 }
 
 TEST_F(ArcImportFileTest, ProtectsSidebarAndSelectedProfileDatabaseFiles) {
