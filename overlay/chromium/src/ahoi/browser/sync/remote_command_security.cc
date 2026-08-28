@@ -61,6 +61,53 @@ std::string CommandJson(const RemoteCommandRecord& command) {
   }
 }
 
+RemoteCommandValidationFailure ValidateRemoteCommandForExecutionStatus(
+    const RemoteCommandRecord& command,
+    RemoteCommandStatus required_status,
+    const base::Uuid& local_device_id,
+    const RemoteCommandPolicy& policy,
+    base::Time now) {
+  if (!ValidateRecord(command, nullptr) ||
+      command.status != required_status) {
+    return RemoteCommandValidationFailure::kInvalidPayload;
+  }
+  if (command.target_device_id != local_device_id) {
+    return RemoteCommandValidationFailure::kWrongTarget;
+  }
+  if (!policy.enabled) {
+    return RemoteCommandValidationFailure::kDisabled;
+  }
+  if (command.issued_at > now + kAllowedFutureClockSkew) {
+    return RemoteCommandValidationFailure::kIssuedInFuture;
+  }
+  if (now >= command.expires_at) {
+    return RemoteCommandValidationFailure::kExpired;
+  }
+  auto approved = policy.approved_public_keys_base64.find(
+      command.source_device_id);
+  if (approved == policy.approved_public_keys_base64.end()) {
+    return RemoteCommandValidationFailure::kUnapprovedDevice;
+  }
+  std::string public_key;
+  std::string signature;
+  std::string signed_payload;
+  if (!base::Base64Decode(approved->second, &public_key) ||
+      public_key.size() != ED25519_PUBLIC_KEY_LEN ||
+      !base::Base64Decode(command.signature_base64, &signature) ||
+      signature.size() != ED25519_SIGNATURE_LEN ||
+      !CanonicalRemoteCommandPayload(command, &signed_payload)) {
+    return RemoteCommandValidationFailure::kInvalidSignature;
+  }
+  if (ED25519_verify(
+          reinterpret_cast<const uint8_t*>(signed_payload.data()),
+          signed_payload.size(),
+          reinterpret_cast<const uint8_t*>(signature.data()),
+          reinterpret_cast<const uint8_t*>(public_key.data())) != 1) {
+    return RemoteCommandValidationFailure::kInvalidSignature;
+  }
+  return RemoteCommandValidationFailure::kNone;
+}
+
 }  // namespace
 
 bool IsValidRemoteControlPublicKeyBase64(
@@ -105,45 +152,18 @@ RemoteCommandValidationFailure ValidateRemoteCommandForExecution(
     const base::Uuid& local_device_id,
     const RemoteCommandPolicy& policy,
     base::Time now) {
-  if (!ValidateRecord(command, nullptr) ||
-      command.status != RemoteCommandStatus::kQueued) {
-    return RemoteCommandValidationFailure::kInvalidPayload;
-  }
-  if (command.target_device_id != local_device_id) {
-    return RemoteCommandValidationFailure::kWrongTarget;
-  }
-  if (!policy.enabled) {
-    return RemoteCommandValidationFailure::kDisabled;
-  }
-  if (command.issued_at > now + kAllowedFutureClockSkew) {
-    return RemoteCommandValidationFailure::kIssuedInFuture;
-  }
-  if (now >= command.expires_at) {
-    return RemoteCommandValidationFailure::kExpired;
-  }
-  auto approved = policy.approved_public_keys_base64.find(
-      command.source_device_id);
-  if (approved == policy.approved_public_keys_base64.end()) {
-    return RemoteCommandValidationFailure::kUnapprovedDevice;
-  }
-  std::string public_key;
-  std::string signature;
-  std::string signed_payload;
-  if (!base::Base64Decode(approved->second, &public_key) ||
-      public_key.size() != ED25519_PUBLIC_KEY_LEN ||
-      !base::Base64Decode(command.signature_base64, &signature) ||
-      signature.size() != ED25519_SIGNATURE_LEN ||
-      !CanonicalRemoteCommandPayload(command, &signed_payload)) {
-    return RemoteCommandValidationFailure::kInvalidSignature;
-  }
-  if (ED25519_verify(
-          reinterpret_cast<const uint8_t*>(signed_payload.data()),
-          signed_payload.size(),
-          reinterpret_cast<const uint8_t*>(signature.data()),
-          reinterpret_cast<const uint8_t*>(public_key.data())) != 1) {
-    return RemoteCommandValidationFailure::kInvalidSignature;
-  }
-  return RemoteCommandValidationFailure::kNone;
+  return ValidateRemoteCommandForExecutionStatus(
+      command, RemoteCommandStatus::kQueued, local_device_id, policy, now);
+}
+
+RemoteCommandValidationFailure
+RevalidateDeliveredRemoteCommandForExecution(
+    const RemoteCommandRecord& command,
+    const base::Uuid& local_device_id,
+    const RemoteCommandPolicy& policy,
+    base::Time now) {
+  return ValidateRemoteCommandForExecutionStatus(
+      command, RemoteCommandStatus::kDelivered, local_device_id, policy, now);
 }
 
 const char* SafeRemoteCommandFailureCode(
