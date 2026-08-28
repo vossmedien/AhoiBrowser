@@ -25,6 +25,7 @@
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/image/image_skia_operations.h"
+#include "ui/gfx/scoped_canvas.h"
 #include "ui/gfx/text_elider.h"
 #include "ui/views/drag_utils.h"
 #include "ui/views/paint_info.h"
@@ -198,13 +199,19 @@ class SidebarDragPreviewView final : public views::View {
       display_title.append(base::NumberToString16(represented_tab_count_ - 1u));
     }
     const gfx::FontList font;
-    const int available_width =
-        static_cast<int>(card.width()) - 10 - kFaviconSize - 8 - 10;
+    gfx::Rect title_bounds(
+        icon_bounds.right() + 8, static_cast<int>(card.y()),
+        static_cast<int>(card.width()) - 10 - kFaviconSize - 8 - 10,
+        kHeaderHeight);
+    // Keep a physical pixel of clearance from the drag card's trailing edge.
+    // The preview can float directly above a split divider and text glyphs may
+    // otherwise anti-alias outside their nominal advance width.
+    title_bounds.Inset(gfx::Insets::TLBR(0, 0, 0, 1));
+    const int available_width = std::max(0, title_bounds.width());
     display_title =
         gfx::ElideText(display_title, font, available_width, gfx::ELIDE_TAIL);
-    const gfx::Rect title_bounds(icon_bounds.right() + 8,
-                                 static_cast<int>(card.y()), available_width,
-                                 kHeaderHeight);
+    gfx::ScopedCanvas scoped_canvas(canvas);
+    canvas->ClipRect(title_bounds);
     canvas->DrawStringRectWithFlags(
         display_title, font, text_color_, title_bounds,
         gfx::Canvas::TEXT_ALIGN_LEFT | gfx::Canvas::NO_ELLIPSIS);
