@@ -3920,6 +3920,140 @@ index afd1085d964048745d5decf994d240888713e7cf..b61fa5f35055711046868af266859e73
    }
  
    Profile* const original_profile = profile->GetOriginalProfile();
+diff --git a/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper.mm b/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper.mm
+index 97a9e990f7419fb732df3279945aae5163290523..8685c8cb10a737d6848e279242a6d9d9b1f878f7 100644
+--- a/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper.mm
++++ b/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper.mm
+@@ -496,6 +496,16 @@ constexpr CGFloat kCancelEventVerticalLowerThreshold = 0.01;
+ 
+                       BOOL ended = phase == NSEventPhaseEnded;
+ 
++                      // A nested native drag loop can detach the overlay host
++                      // while AppKit still has a swipe callback queued. Stop
++                      // the stale tracking session before it can update the
++                      // detached overlay or navigate a no-longer-active view.
++                      if (!historyOverlay.view.superview) {
++                        *stop = YES;
++                        historyOverlay = nil;
++                        return;
++                      }
++
+                       // Dismiss the panel before navigation for immediate
+                       // visual feedback.
+                       CGFloat progress = std::abs(gestureAmount) / 0.3;
+diff --git a/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper_unittest.mm b/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper_unittest.mm
+index 507dafbfaf521bc45898a0b005331e1b383f3ca0..ef9a8823e179f4651fbbc9c95943c00e633f32fc 100644
+--- a/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper_unittest.mm
++++ b/chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper_unittest.mm
+@@ -23,6 +23,36 @@
+                                  event:(NSEvent*)event;
+ @end
+ 
++@interface HistorySwiperTestDelegate : NSObject <HistorySwiperDelegate>
++@property(nonatomic, strong) NSView* overlayHost;
++@property(nonatomic) NSUInteger navigationCount;
++@end
++
++@implementation HistorySwiperTestDelegate
++
++- (BOOL)shouldAllowHistorySwiping {
++  return YES;
++}
++
++- (NSView*)viewThatWantsHistoryOverlay {
++  return self.overlayHost;
++}
++
++- (BOOL)canNavigateInDirection:(history_swiper::NavigationDirection)direction
++                      onWindow:(NSWindow*)window {
++  return YES;
++}
++
++- (void)navigateInDirection:(history_swiper::NavigationDirection)direction
++                   onWindow:(NSWindow*)window {
++  self.navigationCount += 1;
++}
++
++- (void)backwardsSwipeNavigationLikely {
++}
++
++@end
++
+ class MacHistorySwiperTest : public CocoaTest {
+  public:
+   void SetUp() override {
+@@ -337,6 +367,71 @@ TEST_F(MacHistorySwiperTest, MagicMouseMomentumSwipe) {
+   EXPECT_FALSE(magic_mouse_history_swipe_);
+ }
+ 
++// Native drags run a nested AppKit event loop and can detach the overlay host
++// before a queued Magic Mouse callback arrives. Such a callback must stop the
++// tracking session without navigating the detached WebContents.
++TEST_F(MacHistorySwiperTest, MagicMouseDetachedOverlayStopsWithoutNavigation) {
++  HistorySwiperTestDelegate* delegate =
++      [[HistorySwiperTestDelegate alloc] init];
++  delegate.overlayHost = view_;
++  HistorySwiper* historySwiper =
++      [[HistorySwiper alloc] initWithDelegate:delegate];
++
++  __block NSUInteger subviewCountAtBegan = 0;
++  __block BOOL trackingStopped = NO;
++  id event = [OCMockObject mockForClass:[NSEvent class]];
++  [[[event stub] andDo:^(NSInvocation* invocation) {
++    __unsafe_unretained void (^handler)(CGFloat, NSEventPhase, BOOL, BOOL*) =
++        nil;
++    [invocation getArgument:&handler atIndex:5];
++    BOOL stop = NO;
++    handler(0, NSEventPhaseBegan, NO, &stop);
++    subviewCountAtBegan = view_.subviews.count;
++    [view_.subviews.firstObject removeFromSuperview];
++    handler(0.4, NSEventPhaseEnded, NO, &stop);
++    trackingStopped = stop;
++  }] trackSwipeEventWithOptions:NSEventSwipeTrackingLockDirection
++       dampenAmountThresholdMin:-1
++                            max:1
++                   usingHandler:[OCMArg any]];
++
++  [historySwiper initiateMagicMouseHistorySwipe:NO event:event];
++
++  EXPECT_EQ(1u, subviewCountAtBegan);
++  EXPECT_TRUE(trackingStopped);
++  EXPECT_EQ(0u, delegate.navigationCount);
++}
++
++// The detached-host guard must not alter a normal attached Magic Mouse swipe.
++TEST_F(MacHistorySwiperTest, MagicMouseAttachedOverlayStillNavigates) {
++  HistorySwiperTestDelegate* delegate =
++      [[HistorySwiperTestDelegate alloc] init];
++  delegate.overlayHost = view_;
++  HistorySwiper* historySwiper =
++      [[HistorySwiper alloc] initWithDelegate:delegate];
++
++  __block NSUInteger subviewCountAtBegan = 0;
++  id event = [OCMockObject mockForClass:[NSEvent class]];
++  [[[event stub] andDo:^(NSInvocation* invocation) {
++    __unsafe_unretained void (^handler)(CGFloat, NSEventPhase, BOOL, BOOL*) =
++        nil;
++    [invocation getArgument:&handler atIndex:5];
++    BOOL stop = NO;
++    handler(0, NSEventPhaseBegan, NO, &stop);
++    subviewCountAtBegan = view_.subviews.count;
++    handler(0.4, NSEventPhaseEnded, NO, &stop);
++  }] trackSwipeEventWithOptions:NSEventSwipeTrackingLockDirection
++       dampenAmountThresholdMin:-1
++                            max:1
++                   usingHandler:[OCMArg any]];
++
++  [historySwiper initiateMagicMouseHistorySwipe:NO event:event];
++
++  EXPECT_EQ(1u, subviewCountAtBegan);
++  EXPECT_EQ(1u, delegate.navigationCount);
++  EXPECT_EQ(0u, view_.subviews.count);
++}
++
+ // User starts a swipe but doesn't move.
+ TEST_F(MacHistorySwiperTest, NoSwipe) {
+   startGestureInMiddle();
 diff --git a/chrome/browser/resources/history/app.ts b/chrome/browser/resources/history/app.ts
 index 3bb9d2e8ec3fa412dac2d4117afa0a1c7a625128..5c53750107e2dfcc473d2ed1f37e06b840e5fa91 100644
 --- a/chrome/browser/resources/history/app.ts
@@ -5371,6 +5505,51 @@ index 31e62a465342122cb9544323cc3a637e2422ccb8..ce989dda395b6433c048bba34727105d
        split_tabs::SplitTabId split_id,
        const split_tabs::SplitTabVisualData& visual_data) override;
    void CloseTab() override;
+diff --git a/chrome/browser/ui/cocoa/history_overlay_controller.mm b/chrome/browser/ui/cocoa/history_overlay_controller.mm
+index 278340d773567b8202dbf98cc8604931ea4de26f..deb18711f059cd045125c25e6444ae4890fde781 100644
+--- a/chrome/browser/ui/cocoa/history_overlay_controller.mm
++++ b/chrome/browser/ui/cocoa/history_overlay_controller.mm
+@@ -127,8 +127,15 @@ const CGFloat kShieldHeightCompletionAdjust = 10;
+ }
+ 
+ - (void)setProgress:(CGFloat)gestureAmount finished:(BOOL)finished {
+-  DCHECK(self.view.superview);
+-  NSRect parentFrame = self.view.superview.frame;
++  NSView* superview = self.view.superview;
++  // AppKit can deliver a queued swipe-tracking callback from a nested native
++  // drag loop after the overlay's host view has been detached. Treat that as
++  // cancellation: there is no longer a valid coordinate space to update.
++  if (!superview) {
++    return;
++  }
++
++  NSRect parentFrame = superview.frame;
+   // When tracking the gesture, the height is constant and the alpha value
+   // changes from [0.25, 0.65].
+   CGFloat height = kShieldHeight;
+diff --git a/chrome/browser/ui/cocoa/history_overlay_controller_unittest.mm b/chrome/browser/ui/cocoa/history_overlay_controller_unittest.mm
+index c17d14cceead0f28aaab0e395c0ad996a76dbb7b..376cb53982e02347c8a0e234546b2322bb0d97e2 100644
+--- a/chrome/browser/ui/cocoa/history_overlay_controller_unittest.mm
++++ b/chrome/browser/ui/cocoa/history_overlay_controller_unittest.mm
+@@ -38,3 +38,18 @@ TEST_F(HistoryOverlayControllerTest, DismissClearsAnimationsAndRemovesView) {
+   [controller dismiss];
+   EXPECT_EQ(0u, [[test_view() subviews] count]);
+ }
++
++// Native drag sessions run nested AppKit event loops. A queued swipe-tracking
++// callback can consequently arrive after its overlay has already been
++// dismissed. The stale callback must be ignored instead of trying to lay out
++// against a missing superview.
++TEST_F(HistoryOverlayControllerTest, ProgressAfterDismissIsIgnored) {
++  HistoryOverlayController* controller =
++      [[HistoryOverlayController alloc] initForMode:kHistoryOverlayModeBack];
++  [controller showPanelForView:test_view()];
++  [controller dismiss];
++
++  EXPECT_EQ(0u, [[test_view() subviews] count]);
++  [controller setProgress:1.0 finished:YES];
++  EXPECT_EQ(0u, [[test_view() subviews] count]);
++}
 diff --git a/chrome/browser/ui/login/BUILD.gn b/chrome/browser/ui/login/BUILD.gn
 index e94fa69c67ce2f1dbd96b2d150f0b0cf49730989..a67627f7a12ecb968be024ff9b264e40e7c8b1cf 100644
 --- a/chrome/browser/ui/login/BUILD.gn
