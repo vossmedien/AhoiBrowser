@@ -1,0 +1,182 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 978b631..4c2da60 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -4746,28 +4746,38 @@ void BrowserView::ShowSplitView(bool focus_active_view) {
+ 
+   const auto& pane_containers =
+       multi_contents_view_->contents_container_views();
++  std::vector<content::WebContents*> desired_visible_bindings;
++  desired_visible_bindings.reserve(split_tabs.size());
+   std::vector<content::WebContents*> desired_bindings(pane_containers.size(),
+                                                       nullptr);
+   for (size_t index = 0; index < split_tabs.size(); ++index) {
+-    desired_bindings[index] = split_tabs[index]->GetContents();
++    content::WebContents* const contents = split_tabs[index]->GetContents();
++    desired_visible_bindings.push_back(contents);
++    desired_bindings[index] = contents;
++  }
++
++  // A pure reorder must keep the existing pane hosts attached. Detaching a
++  // focused WebContents makes macOS advance first responder synchronously;
++  // that focus callback cannot activate another tab while TabStripModel is
++  // still delivering its reorder notification. Add/remove transitions still
++  // use the overlap-safe two-phase binding lifecycle below.
++  if (multi_contents_view_->ReorderContentsInSplitView(
++          desired_visible_bindings)) {
++    multi_contents_view_->UpdateSplitVisualData(*split_data->visual_data());
++  } else {
++    ahoi::split_drop::RebindSplitPanesWithoutOverlap(
++        desired_bindings,
++        [&pane_containers](size_t index) {
++          return pane_containers[index]->contents_view()->web_contents();
++        },
++        [this](size_t index, content::WebContents* web_contents) {
++          multi_contents_view_->SetWebContentsAtIndex(web_contents, index);
++        },
++        [this, split_data, &split_tabs]() {
++          multi_contents_view_->ShowSplitView(*split_data->visual_data(),
++                                              split_tabs.size());
++        });
+   }
+-
+-  // Reorders arrive synchronously from both sidebar rows and the WebContents
+-  // drop surface. Move every changed binding through the shared two-phase
+-  // lifecycle so overlays owned by one tab are fully detached before another
+-  // pane attempts to subscribe to them.
+-  ahoi::split_drop::RebindSplitPanesWithoutOverlap(
+-      desired_bindings,
+-      [&pane_containers](size_t index) {
+-        return pane_containers[index]->contents_view()->web_contents();
+-      },
+-      [this](size_t index, content::WebContents* web_contents) {
+-        multi_contents_view_->SetWebContentsAtIndex(web_contents, index);
+-      },
+-      [this, split_data, &split_tabs]() {
+-        multi_contents_view_->ShowSplitView(*split_data->visual_data(),
+-                                            split_tabs.size());
+-      });
+   const int first_split_tab_index =
+       browser_->tab_strip_model()->GetIndexOfTab(split_tabs[0]);
+   const int relative_active_position = active_index - first_split_tab_index;
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
+index 9586219..3aa13d4 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -422,23 +422,76 @@ void MultiContentsView::CloseSplitView() {
+   }
+ }
+ 
++bool MultiContentsView::ReorderContentsInSplitView(
++    const std::vector<content::WebContents*>& desired_contents) {
++  const size_t pane_count = GetVisiblePaneCount();
++  if (pane_count < 2u || desired_contents.size() != pane_count) {
++    return false;
++  }
++
++  std::vector<ContentsContainerView*> desired_containers;
++  desired_containers.reserve(pane_count);
++  for (content::WebContents* desired_contents_entry : desired_contents) {
++    if (!desired_contents_entry) {
++      return false;
++    }
++    ContentsContainerView* const container =
++        GetContentsContainerViewFor(desired_contents_entry);
++    if (!container || !container->GetVisible() ||
++        std::ranges::find(desired_containers, container) !=
++            desired_containers.end()) {
++      return false;
++    }
++    desired_containers.push_back(container);
++  }
++
++  ContentsContainerView* const active_container =
++      GetActiveContentsContainerView();
++  for (size_t destination = 0; destination < pane_count; ++destination) {
++    if (contents_container_views_[destination] ==
++        desired_containers[destination]) {
++      continue;
++    }
++    const auto source = std::ranges::find(
++        contents_container_views_.begin() + destination,
++        contents_container_views_.begin() + pane_count,
++        desired_containers[destination]);
++    CHECK(source != contents_container_views_.begin() + pane_count);
++    const size_t source_index =
++        static_cast<size_t>(source - contents_container_views_.begin());
++    ContentsContainerView* const destination_container =
++        contents_container_views_[destination];
++    ContentsContainerView* const source_container =
++        contents_container_views_[source_index];
++    const size_t destination_child_index =
++        GetIndexOf(destination_container).value();
++    const size_t source_child_index = GetIndexOf(source_container).value();
++    ReorderChildView(destination_container, source_child_index);
++    ReorderChildView(source_container, destination_child_index);
++    std::swap(contents_container_views_[destination],
++              contents_container_views_[source_index]);
++  }
++
++  const auto active = std::ranges::find(
++      contents_container_views_.begin(),
++      contents_container_views_.begin() + pane_count, active_container);
++  CHECK(active != contents_container_views_.begin() + pane_count);
++  SetActiveIndex(
++      static_cast<int>(active - contents_container_views_.begin()));
++  return true;
++}
++
+ void MultiContentsView::SwapContentsInSplitView() {
+   const size_t pane_count = GetVisiblePaneCount();
+   CHECK_GE(pane_count, 2u);
+-  ContentsContainerView* start_view = contents_container_views_.front();
+-  ContentsContainerView* end_view = contents_container_views_[pane_count - 1];
+-  const size_t start_view_child_index = GetIndexOf(start_view).value();
+-  const size_t end_view_child_index = GetIndexOf(end_view).value();
+-  ReorderChildView(start_view, end_view_child_index);
+-  ReorderChildView(end_view, start_view_child_index);
+-  std::swap(contents_container_views_.front(),
+-            contents_container_views_[pane_count - 1]);
+-  if (active_index_ == 0) {
+-    active_index_ = static_cast<int>(pane_count) - 1;
+-  } else if (active_index_ == static_cast<int>(pane_count) - 1) {
+-    active_index_ = 0;
++  std::vector<content::WebContents*> desired_contents;
++  desired_contents.reserve(pane_count);
++  for (size_t index = 0; index < pane_count; ++index) {
++    desired_contents.push_back(
++        contents_container_views_[index]->contents_view()->web_contents());
+   }
+-  SetActiveIndex(active_index_);
++  std::swap(desired_contents.front(), desired_contents.back());
++  CHECK(ReorderContentsInSplitView(desired_contents));
+ }
+ 
+ void MultiContentsView::SetActiveIndex(int index) {
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.h b/chrome/browser/ui/views/frame/multi_contents_view.h
+index 1f4df67..15c59db 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_view.h
++++ b/chrome/browser/ui/views/frame/multi_contents_view.h
+@@ -9,6 +9,7 @@
+ #include <cstddef>
+ #include <memory>
+ #include <optional>
++#include <vector>
+ 
+ #include "base/callback_list.h"
+ #include "base/functional/callback_forward.h"
+@@ -115,6 +116,14 @@ class MultiContentsView
+   // hierarchy and updating active_index_.
+   void SwapContentsInSplitView();
+ 
++  // Reorders the currently visible pane hosts to match `desired_contents`
++  // without detaching their WebContents. Returns false when the requested
++  // contents are not a pure permutation of the visible panes. Preserving the
++  // hosts also preserves native focus during synchronous TabStripModel
++  // notifications.
++  bool ReorderContentsInSplitView(
++      const std::vector<content::WebContents*>& desired_contents);
++
+   // Assigns `web_contents` to the pane at `index`. Setting a hidden non-zero
+   // pane makes all panes through that index visible.
+   void SetWebContentsAtIndex(content::WebContents* web_contents, int index);

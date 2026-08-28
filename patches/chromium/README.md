@@ -178,3 +178,29 @@ as a second active patch stack.
 - **Removal/upstream plan:** keep until Chromium guarantees native child hit
   testing independently of pane construction order and exposes the AX actions
   on the visible split handle.
+
+## `0008-ahoi-focused-split-pane-reorder.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the native
+  split resize seam.
+- **Affected paths:** BrowserView split binding and MultiContentsView pane-host
+  ordering.
+- **Rationale:** a pure split reorder must not detach focused WebContents while
+  Chromium is synchronously notifying TabStripModel observers. The native
+  focus hand-off otherwise attempts a nested tab activation and aborts on the
+  model's reentrancy guard. Two-to-four-pane permutations now reorder their
+  existing hosts in place; actual membership changes retain the overlap-safe
+  detach/attach lifecycle.
+- **Rejected alternatives:** weakening TabStripModel's reentrancy CHECK,
+  deferring the complete model transaction, globally swallowing focus events,
+  or detaching then guessing which WebContents should regain focus.
+- **Tests:** installed-browser focused pane drag from side-by-side to stacked in
+  both directions first; then the focused split-drop regression, native pointer
+  interaction case, and ordered patch composition.
+- **Security/privacy impact:** none; native view ownership, active-tab identity,
+  and focus are preserved rather than recreated.
+- **Expected rebase risk:** medium because Chromium's native multi-contents
+  host and observer notification paths evolve with upstream split view.
+- **Removal/upstream plan:** retain until upstream supports arbitrary two-to-
+  four-pane in-place host permutations without synchronous focus churn.
