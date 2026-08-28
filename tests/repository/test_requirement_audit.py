@@ -325,6 +325,14 @@ class RequirementAuditTests(unittest.TestCase):
         self.assertIn(
             "cloudkit-device-validation", by_id["IOS-01"]["externalGateIds"]
         )
+        self.assertEqual(
+            [
+                "ubo-catalog-hosting-and-signing",
+                "ubo-fixed-id-crx-publisher-provenance",
+                "ubo-redistribution",
+            ],
+            by_id["UBO-13"]["externalGateIds"],
+        )
         for number in range(1, 16):
             perf = by_id[f"PERF-{number:02d}"]
             self.assertFalse(perf["locallyControllable"])

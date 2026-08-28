@@ -898,6 +898,14 @@ Distribution:
 - Ein eigener sicherer Updatepfad aktualisiert das Extension-Paket, weil der Chrome Web Store uBO Classic nicht mehr verteilt.
 - Filterlistenupdates bleiben uBOs eigener Mechanismus.
 
+Externe Release-Gates, die unabhängig voneinander geschlossen sein müssen:
+
+- Ein eigener, überprüfter HTTPS-Katalog-/Artefakt-Host, ein unveränderlicher hash-adressierter Publishing-Workflow und ein offline beziehungsweise per HSM geschützter Ed25519-Katalogschlüssel sind provisioniert; nur der öffentliche Schlüssel liegt im Repository.
+- Für die feste Chrome-Web-Store-ID liegt ein authentisches CRX vor, dessen Publisher-Signierschlüssel genau diese ID ableitet, einschließlich nachprüfbarer Distributionsberechtigung sowie Upstream-/Tag-/Build-Provenienz. Ein Ahoi-eigener Publisher-Schlüssel erfordert stattdessen eine bewusst migrierte neue Extension-ID und erneute Prüfung aller Trust Roots und Tests.
+- Source-/Lizenz-/GPL-Pflichten, Name und Logo, Redistribution, reproduzierbarer Build, Signing-Attestierungen, Release-QA und Rückrollartefakte sind vollständig geliefert und unabhängig freigegeben.
+
+Bis alle drei Gates erfüllt und durch reale Release-Evidenz belegt sind, bleibt die Produktionskonfiguration unprovisioniert und der Installationspfad schlägt ohne Netzwerkzugriff fail-closed fehl. Kein Gate darf durch ein anderes ersetzt werden.
+
 Pflichttests:
 
 - Installation per Nutzerklick;
@@ -1766,6 +1774,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `UBO-10`: Deinstallation.
 - `UBO-11`: fremdes, nicht allowlistetes MV2-Paket wird abgewiesen.
 - `UBO-12`: gewöhnliche MV3-Erweiterungen funktionieren parallel unverändert.
+- `UBO-13`: unprovisionierte Katalog-, Signing- oder Publisher-Trust-Roots bleiben sichtbar deaktiviert und lösen keinen Netzwerkrequest aus.
 
 ### Arc-Import
 

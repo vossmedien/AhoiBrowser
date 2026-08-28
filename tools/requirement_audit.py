@@ -235,7 +235,9 @@ def _gate_ids_for(entry: dict[str, Any], *, release_chain_ready: bool,
         gate_ids.extend(("release-manifest-and-update-keys",
                          "signed-release-provenance", "sparkle-feed-hosting"))
     if test_id.startswith("UBO-"):
-        gate_ids.append("ubo-redistribution")
+        gate_ids.extend(("ubo-catalog-hosting-and-signing",
+                         "ubo-fixed-id-crx-publisher-provenance",
+                         "ubo-redistribution"))
     if test_id.startswith("DRM-"):
         gate_ids.extend(("proprietary-codecs", "widevine-mla"))
     if test_id in {"EXT-01", "EXT-02", "EXT-03", "EXT-09", "EXT-10"}:

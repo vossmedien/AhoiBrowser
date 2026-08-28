@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-26T10:55:29+02:00",
+  "updatedAt": "2026-08-28T00:00:00+02:00",
   "gates": [
     {
       "id": "xcode-26.6",
@@ -99,10 +99,22 @@
       "condition": "After final identifiers and entitlements exist, validate the production CloudKit container with two Macs and one real iPhone or iPad; simulator and provider-free tests are not substitutes."
     },
     {
+      "id": "ubo-catalog-hosting-and-signing",
+      "state": "blocked-external-service",
+      "owner": "release-engineering",
+      "condition": "Provision an owned and reviewed HTTPS catalog/artifact origin, immutable hash-addressed publishing, an offline or HSM-backed Ed25519 catalog key with only its public key checked in, retained rollback artifacts, and real signed-catalog runtime evidence. Private signing material must remain outside the repository."
+    },
+    {
+      "id": "ubo-fixed-id-crx-publisher-provenance",
+      "state": "blocked-publisher-provenance",
+      "owner": "security-engineering",
+      "condition": "Before enabling the fixed uBlock Origin Classic Web Store ID, provide an authentic CRX whose publisher signing key derives exactly that ID, proof of authorization to distribute it, and recorded upstream tag, source, build and signing provenance. An Ahoi-owned publisher key requires an explicit new-ID migration and complete trust-root review; repackaging must never impersonate the Web Store identity."
+    },
+    {
       "id": "ubo-redistribution",
       "state": "blocked-legal-review",
       "owner": "product-legal",
-      "condition": "Confirm source/license compliance and name/logo use for an Ahoi-signed uBO Classic package."
+      "condition": "Provide independent approval and retained inputs for source and license compliance, GPL obligations and corresponding-source offer, name/logo use, redistribution rights, reproducible-build and signing attestations, release QA, and operational rollback evidence for the exact uBlock Origin Classic candidate."
     },
     {
       "id": "trademark-and-distribution-policy",

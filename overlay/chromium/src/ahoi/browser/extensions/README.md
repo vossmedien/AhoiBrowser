@@ -146,7 +146,8 @@ automatic enablement.
 Focused test contracts are named for release traceability: UBO-01 covers the
 complete explicit verified install hand-off, UBO-02 covers catalog-only
 periodic checks, UBO-09 covers rollback rejection before package download, and
-UBO-10 covers the unprovisioned fail-closed product state. Additional tests
+UBO-13 covers the unprovisioned fail-closed product state. UBO-10 remains the
+uninstall journey defined by the product test registry. Additional tests
 cover foreign MV2 and unchanged MV3 behavior, catalog tampering, redirected,
 oversized and offline fetches, package hash failure, and uninstall cleanup.
 
@@ -165,6 +166,11 @@ Before enabling the production configuration, AhoiBrowser still needs:
 - proof of authorization to distribute a CRX signed by the key for the fixed
   ID, plus recorded upstream/tag/build provenance;
 - release QA and retained reproducible-build/signing attestations.
+
+These dependencies are tracked independently in
+`config/external-gates.json` as `ubo-catalog-hosting-and-signing`,
+`ubo-fixed-id-crx-publisher-provenance`, and `ubo-redistribution`. Passing one
+gate never substitutes for either of the others.
 
 If AhoiBrowser instead uses its own CRX publisher key, the derived extension ID
 will be different. That is a deliberate product/security migration: change the

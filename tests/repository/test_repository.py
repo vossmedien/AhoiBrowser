@@ -415,6 +415,9 @@ class RepositoryContractTests(unittest.TestCase):
                 "google-api-services",
                 "safe-browsing-service",
                 "onepassword-additional-browser",
+                "ubo-catalog-hosting-and-signing",
+                "ubo-fixed-id-crx-publisher-provenance",
+                "ubo-redistribution",
             }.issubset(external)
         )
 

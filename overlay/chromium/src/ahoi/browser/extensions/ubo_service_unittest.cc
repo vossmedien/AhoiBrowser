@@ -204,9 +204,9 @@ class UboServiceTest : public ::testing::Test {
   crypto::keypair::PublicKey public_key_;
 };
 
-// UBO-10: a build without the external trust roots presents a disabled state
+// UBO-13: a build without the external trust roots presents a disabled state
 // and performs no network request.
-TEST_F(UboServiceTest, UBO10UnprovisionedFailsClosedWithoutNetwork) {
+TEST_F(UboServiceTest, UBO13UnprovisionedFailsClosedWithoutNetwork) {
   auto network = std::make_unique<FakeNetworkClient>();
   FakeNetworkClient* network_ptr = network.get();
   auto service = MakeService(std::move(network), UboProductConfig());

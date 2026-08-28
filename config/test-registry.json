@@ -2404,6 +2404,17 @@
       "status": "NOT_RUN"
     },
     {
+      "id": "UBO-13",
+      "suite": "UBO",
+      "description": "Unprovisionierte uBlock-Trust-Roots bleiben sichtbar deaktiviert, lösen keinen Netzwerkrequest aus und schlagen fail-closed fehl.",
+      "primaryClass": "UNIT",
+      "requiredEvidenceClasses": [
+        "UNIT"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
       "id": "DEV-01",
       "suite": "DEV",
       "description": "CSS auf Fixture anwenden, Syntaxfehler korrigieren, Reload und Neustart.",
