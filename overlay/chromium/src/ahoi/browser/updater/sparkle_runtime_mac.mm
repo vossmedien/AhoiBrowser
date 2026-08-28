@@ -71,7 +71,6 @@ UpdateString StringForStage(UpdateStage stage) {
 }
 
 NSString* const kAhoiUpdateCheckMenuMarker = @"AhoiUpdateCheckMenu";
-NSString* const kAhoiUpdateSettingsMenuMarker = @"AhoiUpdateSettingsMenu";
 
 }  // namespace
 
@@ -114,16 +113,7 @@ NSString* const kAhoiUpdateSettingsMenuMarker = @"AhoiUpdateSettingsMenu";
   checkItem.target = self;
   checkItem.representedObject = kAhoiUpdateCheckMenuMarker;
   checkItem.accessibilityLabel = Local(UpdateString::kCheckMenu);
-  [applicationMenu insertItem:checkItem atIndex:insertionIndex++];
-
-  NSMenuItem* settingsItem =
-      [[NSMenuItem alloc] initWithTitle:Local(UpdateString::kSettingsMenu)
-                                 action:@selector(showUpdateSettings:)
-                          keyEquivalent:@""];
-  settingsItem.target = self;
-  settingsItem.representedObject = kAhoiUpdateSettingsMenuMarker;
-  settingsItem.accessibilityLabel = Local(UpdateString::kSettingsMenu);
-  [applicationMenu insertItem:settingsItem atIndex:insertionIndex];
+  [applicationMenu insertItem:checkItem atIndex:insertionIndex];
   [applicationMenu insertItem:NSMenuItem.separatorItem
                       atIndex:insertionIndex + 1];
 }

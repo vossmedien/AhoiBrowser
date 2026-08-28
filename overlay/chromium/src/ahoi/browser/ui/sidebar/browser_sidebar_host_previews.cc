@@ -14,6 +14,7 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "chrome/browser/ui/thumbnails/thumbnail_tab_helper.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "components/tabs/public/tab_interface.h"
@@ -82,11 +83,37 @@ void BrowserSidebarHostView::OnRuntimeTabHoverChanged(
     base::WeakPtr<tabs::TabInterface> tab,
     views::View* anchor,
     bool hovered) {
-  if (!tab_preview_controller_ || !tab) {
+  if (!tab_preview_controller_ || !tab || !tab_strip_model_) {
     return;
   }
   if (hovered) {
     InvalidateAndCloseGroupRecentBubble();
+    const split_tabs::SplitTabData* const split_data =
+        tab->GetSplit().has_value()
+            ? tab_strip_model_->GetSplitData(*tab->GetSplit())
+            : nullptr;
+    const std::vector<tabs::TabInterface*> preview_tabs =
+        split_data
+            ? split_data->ListTabs()
+            : std::vector<tabs::TabInterface*>{tab.get()};
+    for (tabs::TabInterface* preview_tab : preview_tabs) {
+      if (!preview_tab || !preview_tab->GetContents()) {
+        continue;
+      }
+      const auto cached = tab_thumbnail_cache_.find(
+          preview_tab->GetHandle().raw_value());
+      if (cached != tab_thumbnail_cache_.end() && cached->second &&
+          !cached->second->image().isNull() &&
+          !cached->second->image().size().IsEmpty()) {
+        continue;
+      }
+      if (ThumbnailTabHelper* helper =
+              ThumbnailTabHelper::FromWebContents(preview_tab->GetContents())) {
+        // Capture the already-visible renderer surface on demand. This does
+        // not activate, navigate or materialize a closed saved tab.
+        helper->CaptureThumbnailOnTabBackgrounded();
+      }
+    }
   }
   tab_preview_controller_->OnRuntimeTabHover(tab->GetHandle().raw_value(),
                                              anchor, hovered);
@@ -100,6 +127,23 @@ void BrowserSidebarHostView::OnSavedPageHoverChanged(const base::Uuid& node_id,
   }
   if (hovered) {
     InvalidateAndCloseGroupRecentBubble();
+    if (tabs::TabInterface* live_tab =
+            session_bridge_->FindTabByTreeNodeId(node_id)) {
+      if (content::WebContents* contents = live_tab->GetContents()) {
+        const auto cached =
+            tab_thumbnail_cache_.find(live_tab->GetHandle().raw_value());
+        const bool needs_thumbnail =
+            cached == tab_thumbnail_cache_.end() || !cached->second ||
+            cached->second->image().isNull() ||
+            cached->second->image().size().IsEmpty();
+        if (needs_thumbnail) {
+          if (ThumbnailTabHelper* helper =
+                  ThumbnailTabHelper::FromWebContents(contents)) {
+            helper->CaptureThumbnailOnTabBackgrounded();
+          }
+        }
+      }
+    }
   }
   tab_preview_controller_->OnSavedPageHover(node_id, anchor, hovered);
 }

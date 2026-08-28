@@ -11,7 +11,6 @@
 
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/strings/string_number_conversions.h"
-#include "build/build_config.h"
 #include "cc/paint/paint_flags.h"
 #include "skia/ext/image_operations.h"
 #include "third_party/skia/include/core/SkBitmap.h"
@@ -38,19 +37,11 @@ namespace {
 
 constexpr int kVisiblePreviewWidth = 224;
 constexpr int kCursorCardGap = 12;
-#if BUILDFLAG(IS_MAC)
-// DragDropClientMac centers the complete NSDraggingItem and currently ignores
-// OSExchangeData's cursor offset. A transparent leading canvas keeps the
-// visible 224px card wholly to the right of the pointer without changing
-// Chromium's global drag behavior.
-constexpr int kNativeDragCanvasWidth =
-    2 * (kVisiblePreviewWidth + kCursorCardGap);
-constexpr int kNativeDragVisiblePreviewX =
-    kNativeDragCanvasWidth / 2 + kCursorCardGap;
-#else
+// All desktop drag clients honor OSExchangeData's cursor offset. Keep the
+// image itself compact; transparent padding makes the native drag preview
+// appear attached to the pointer and substantially enlarges its hit geometry.
 constexpr int kNativeDragCanvasWidth = kVisiblePreviewWidth;
 constexpr int kNativeDragVisiblePreviewX = 0;
-#endif
 constexpr int kFallbackHeight = 54;
 constexpr int kThumbnailHeight = 168;
 constexpr int kCardInset = 6;
@@ -368,7 +359,7 @@ gfx::ImageSkia CreateSidebarPreviewImage(
   return BuildSidebarPreviewImage(source_widget, color_provider, favicon, title,
                                   cached_thumbnails,
                                   /*pad_for_native_drag=*/false,
-                                  /*force_thumbnail_area=*/true);
+                                  /*force_thumbnail_area=*/false);
 }
 
 gfx::ImageSkia CreateSidebarDragImage(
@@ -379,7 +370,7 @@ gfx::ImageSkia CreateSidebarDragImage(
     const std::vector<gfx::ImageSkia>& cached_thumbnails) {
   return BuildSidebarPreviewImage(source_widget, color_provider, favicon, title,
                                   cached_thumbnails,
-                                  /*pad_for_native_drag=*/true,
+                                  /*pad_for_native_drag=*/false,
                                   /*force_thumbnail_area=*/false);
 }
 
@@ -388,17 +379,9 @@ gfx::Vector2d GetSidebarDragImageCursorOffset(const gfx::ImageSkia& image,
   if (image.isNull() || image.size().IsEmpty()) {
     return gfx::Vector2d();
   }
-#if BUILDFLAG(IS_MAC)
-  // Kept correct for a future DragDropClientMac implementation that starts
-  // honoring the provider offset; today AppKit uses the image center.
-  return gfx::Vector2d(
-      image.width() / 2,
-      std::clamp(press_point.y(), 0, std::max(image.height() - 1, 0)));
-#else
   return gfx::Vector2d(
       -kCursorCardGap,
       std::clamp(press_point.y(), 0, std::max(image.height() - 1, 0)));
-#endif
 }
 
 }  // namespace ahoi::sidebar

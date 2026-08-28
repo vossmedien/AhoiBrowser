@@ -434,12 +434,17 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
     // source and make the group/split targets flash away mid-gesture.
     return;
   }
+  // A synchronous first projection invalidates constructor-time refresh tasks;
+  // their callbacks carry the older generation and become harmless no-ops.
+  ++runtime_refresh_generation_;
   if (!tab_strip_model_ || !open_tabs_container_ || !open_tabs_header_) {
     return;
   }
-  RefreshThumbnailCache();
-  RefreshMediaTrackers();
-  PublishLocalDeviceTabs();
+  if (runtime_auxiliary_ready_) {
+    RefreshThumbnailCache();
+    RefreshMediaTrackers();
+    PublishLocalDeviceTabs();
+  }
   open_tabs_container_->RemoveAllChildViews();
   const std::optional<base::Uuid> active_workspace =
       controller_->view_model().workspace_id();
@@ -489,10 +494,28 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
         base::BindRepeating(
             &BrowserSidebarHostView::OnTemporaryTabDragStateChanged,
             weak_ptr_factory_.GetWeakPtr()),
-        base::BindRepeating(&BrowserSidebarHostView::CanDropOnRuntimeTab,
-                            base::Unretained(this)),
-        base::BindRepeating(&BrowserSidebarHostView::DropOnRuntimeTab,
-                            base::Unretained(this)),
+        base::BindRepeating(
+            [](base::WeakPtr<BrowserSidebarHostView> host,
+               std::optional<base::Uuid> source_node_id,
+               std::optional<int> source_runtime_handle,
+               base::WeakPtr<tabs::TabInterface> target,
+               OpenTabDropPosition position) {
+              return host && host->CanDropOnRuntimeTab(
+                                 source_node_id, source_runtime_handle, target,
+                                 position);
+            },
+            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(
+            [](base::WeakPtr<BrowserSidebarHostView> host,
+               std::optional<base::Uuid> source_node_id,
+               std::optional<int> source_runtime_handle,
+               base::WeakPtr<tabs::TabInterface> target,
+               OpenTabDropPosition position) {
+              return host && host->DropOnRuntimeTab(
+                                 source_node_id, source_runtime_handle, target,
+                                 position);
+            },
+            weak_ptr_factory_.GetWeakPtr()),
         this);
   };
 
@@ -570,7 +593,9 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
   open_tabs_header_->SetVisible(has_open_tabs);
   open_tabs_container_->SetVisible(true);
   open_tabs_container_->InvalidateLayout();
-  RefreshRemoteTabPresentation();
+  if (runtime_auxiliary_ready_) {
+    RefreshRemoteTabPresentation();
+  }
   scroll_view_->InvalidateLayout();
   if (tree_view_) {
     // Bindings between saved nodes and live tabs can settle one task after a

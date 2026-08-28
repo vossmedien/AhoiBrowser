@@ -23,6 +23,7 @@
 #include "content/public/browser/web_contents.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/color/color_provider.h"
 #include "ui/compositor/layer.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/geometry/rect_f.h"
@@ -137,11 +138,11 @@ void BrowserSidebarHostView::RefreshPageTint() {
   const std::optional<SkColor> theme_color =
       contents ? contents->GetThemeColor() : std::nullopt;
   std::optional<SkColor> favicon_color;
-  if (contents &&
-      (!theme_color.has_value() || SkColorGetA(*theme_color) == 0)) {
+  if (contents) {
     // The driver exposes only the favicon already accepted for the current
     // committed entry. Reading it here triggers no fetch, navigation, or page
-    // capture and therefore keeps the optional tint local and privacy-safe.
+    // capture. ResolveSidebarPageTint may use it when a declared theme color is
+    // neutral, so the bounded analysis remains local and privacy-safe.
     favicon::ContentFaviconDriver* const favicon_driver =
         favicon::ContentFaviconDriver::FromWebContents(contents);
     if (favicon_driver && favicon_driver->FaviconIsValid()) {
@@ -149,8 +150,23 @@ void BrowserSidebarHostView::RefreshPageTint() {
           favicon_driver->GetFavicon().AsBitmap());
     }
   }
-  sidebar_page_tint_ = appearance::ResolveSidebarPageTint(
-      enabled, high_contrast_, theme_color, favicon_color);
+  std::optional<SkColor> sidebar_background_color;
+  if (const ui::ColorProvider* const color_provider = GetColorProvider();
+      color_provider && appearance_signal_source_) {
+    const appearance::SurfaceAppearance surface =
+        appearance::AppearanceResolver::Resolve(
+            appearance::SurfaceRole::kSidebar,
+            appearance_signal_source_->policy());
+    sidebar_background_color = color_provider->GetColor(surface.background_color);
+  }
+  const std::optional<SkColor> resolved_tint =
+      appearance::ResolveSidebarPageTint(enabled, high_contrast_, theme_color,
+                                         favicon_color,
+                                         sidebar_background_color);
+  if (resolved_tint == sidebar_page_tint_) {
+    return;
+  }
+  sidebar_page_tint_ = resolved_tint;
   SchedulePaint();
 }
 
@@ -162,8 +178,10 @@ void BrowserSidebarHostView::WebContentsDestroyed() {
   // WebContentsObserver clears its binding after this notification. Avoid
   // consulting a WebContents while it is tearing down; the next tab-model
   // selection notification attaches the replacement.
-  sidebar_page_tint_.reset();
-  SchedulePaint();
+  if (sidebar_page_tint_.has_value()) {
+    sidebar_page_tint_.reset();
+    SchedulePaint();
+  }
 }
 
 void BrowserSidebarHostView::OnPaint(gfx::Canvas* canvas) {

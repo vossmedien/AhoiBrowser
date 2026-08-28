@@ -133,8 +133,13 @@ bool RestoreDropModelSnapshot(TabStripModel* tab_strip_model,
       restore_indices.push_back(member_index);
     }
     std::ranges::sort(restore_indices);
+    const bool indices_are_contiguous =
+        std::ranges::adjacent_find(
+            restore_indices,
+            [](int left, int right) { return right != left + 1; }) ==
+        restore_indices.end();
     if (restore_indices.size() < 2u || restore_indices.size() > 4u ||
-        std::ranges::adjacent_find(restore_indices) != restore_indices.end() ||
+        !indices_are_contiguous ||
         tab_strip_model->ContainsSplit(snapshot.target_split->split_id)) {
       return false;
     }
@@ -234,12 +239,22 @@ bool SplitDropController::PerformDrop(
     const ui::OSExchangeData& data,
     const gfx::Point& point,
     const std::vector<SplitDropPane>& visible_panes) {
-  // Capture the target renderer identity before activating a closed saved tab;
-  // activation can change which pane is focused but does not invalidate the
-  // target WebContents or its TabInterface.
+  // Capture the target tab identity before activating a closed saved tab.
+  // Activation is reentrant and may replace a WebContents, while the process-
+  // local TabHandle remains the authoritative identity within this model.
   const std::optional<size_t> hit = HitTestVisiblePane(point, visible_panes);
-  content::WebContents* target_contents =
+  content::WebContents* const initial_target_contents =
       hit.has_value() ? visible_panes[*hit].web_contents : nullptr;
+  const int initial_target_index =
+      initial_target_contents
+          ? tab_strip_model_->GetIndexOfWebContents(initial_target_contents)
+          : -1;
+  tabs::TabInterface* const initial_target =
+      initial_target_index >= 0
+          ? tab_strip_model_->GetTabAtIndex(initial_target_index)
+          : nullptr;
+  const int target_handle =
+      initial_target ? initial_target->GetHandle().raw_value() : -1;
   const std::optional<drag::SidebarTabDragPayload> payload =
       drag::ReadSidebarTabDragPayload(data);
 
@@ -248,7 +263,7 @@ bool SplitDropController::PerformDrop(
   // cannot recycle the drag source halfway through the transaction.
   base::ScopedClosureRunner complete_drag(base::BindOnce(
       &SplitDropController::CompleteDrag, weak_ptr_factory_.GetWeakPtr()));
-  if (!payload.has_value() || !target_contents) {
+  if (!payload.has_value() || target_handle < 0) {
     return false;
   }
 
@@ -263,8 +278,12 @@ bool SplitDropController::PerformDrop(
     return false;
   }
 
+  tabs::TabInterface* const current_target = FindTabByHandle(target_handle);
+  if (!current_target || !current_target->GetContents()) {
+    return false;
+  }
   std::vector<SplitDropPane> current_panes = visible_panes;
-  current_panes[*hit].web_contents = target_contents;
+  current_panes[*hit].web_contents = current_target->GetContents();
   const std::optional<DropIntent> intent =
       BuildIntent(*payload, source.tab.get(), point, current_panes);
   if (!intent.has_value()) {

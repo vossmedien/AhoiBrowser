@@ -43,10 +43,11 @@ bool LocationBarBubbleButton::OnMousePressed(const ui::MouseEvent& event) {
 }
 
 bool LocationBarBubbleButton::IsTriggerableEvent(const ui::Event& event) {
-  if (event.IsMouseEvent()) {
-    return !IsSurfaceShowing() && !suppress_button_release_;
+  if (!views::ImageButton::IsTriggerableEvent(event)) {
+    return false;
   }
-  return true;
+  return !event.IsMouseEvent() ||
+         (!IsSurfaceShowing() && !suppress_button_release_);
 }
 
 bool LocationBarBubbleButton::IsSurfaceShowing() const {

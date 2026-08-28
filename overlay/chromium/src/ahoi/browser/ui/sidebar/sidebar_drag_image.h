@@ -41,11 +41,9 @@ gfx::ImageSkia CreateSidebarDragImage(
     const std::u16string& title,
     const std::vector<gfx::ImageSkia>& cached_thumbnails);
 
-// Places the visible card to the right of the cursor so it can extend over
-// WebContents without covering narrow sidebar drop targets. macOS currently
-// centers native drag images and therefore receives a transparent padded
-// canvas from CreateSidebarDragImage; other platforms use the negative x
-// hotspot directly.
+// Places the compact visible card to the right of the cursor so it can extend
+// over WebContents without covering narrow sidebar drop targets. Every native
+// drag client, including Chromium's macOS bridge, consumes this hotspot.
 gfx::Vector2d GetSidebarDragImageCursorOffset(const gfx::ImageSkia& image,
                                               const gfx::Point& press_point);
 

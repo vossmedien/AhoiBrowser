@@ -96,6 +96,12 @@ bool IsNewTabPage(tabs::TabInterface* tab) {
   return url == GURL(chrome::kChromeUINewTabURL);
 }
 
+std::u16string StableTabTitle(tabs::TabInterface* tab) {
+  return !tab || tab->GetTitle().empty()
+             ? l10n_util::GetStringUTF16(IDS_NEW_TAB)
+             : tab->GetTitle();
+}
+
 class OpenTabRowView final : public views::View, public views::DragController {
   METADATA_HEADER(OpenTabRowView, views::View)
 
@@ -131,6 +137,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  DropCallback drop_callback,
                  views::ContextMenuController* context_menu_controller)
       : tab_(tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()),
+        runtime_tab_handle_(tab ? tab->GetHandle().raw_value() : -1),
+        drag_title_(StableTabTitle(tab)),
         saved_node_id_(std::move(saved_node_id)),
         activate_callback_(std::move(activate_callback)),
         close_callback_(std::move(close_callback)),
@@ -144,9 +152,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
         sleeping_(sleeping) {
     CHECK(tab);
     CHECK(!saved_node_id_.has_value() || saved_node_id_->is_valid());
-    const std::u16string tab_title =
-        tab->GetTitle().empty() ? l10n_util::GetStringUTF16(IDS_NEW_TAB)
-                                : tab->GetTitle();
+    const std::u16string& tab_title = drag_title_;
     SetPreferredSize(gfx::Size(0, SidebarTreeRowView::kRowHeight));
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetNotifyEnterExitOnChild(true);
@@ -299,9 +305,6 @@ class OpenTabRowView final : public views::View, public views::DragController {
                             const gfx::Point& press_pt,
                             ui::OSExchangeData* data) override {
     CHECK_EQ(sender, this);
-    if (!tab_) {
-      return;
-    }
     const gfx::ImageSkia image = GetDragImage();
     CHECK(!image.isNull());
     CHECK(!image.size().IsEmpty());
@@ -310,8 +313,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
     // Give AppKit a concrete pasteboard item in addition to Ahoi's private
     // runtime-tab handle. Custom-only payloads can otherwise fail before the
     // native dragging session (and therefore before any preview) begins.
-    WriteOpenTabDragPayload(data, saved_node_id_, tab_->GetHandle().raw_value(),
-                            std::u16string(title_->GetText()));
+    WriteOpenTabDragPayload(data, saved_node_id_, runtime_tab_handle_,
+                            drag_title_);
     // WriteDragData is the last deterministic boundary before Cocoa enters
     // its nested native loop. Publish here as well as in both lifecycle hooks
     // so the saved/new-group targets cannot depend on callback ordering.
@@ -467,15 +470,17 @@ class OpenTabRowView final : public views::View, public views::DragController {
 
  private:
   void PublishDragState() {
-    if (drag_state_published_ || !tab_) {
+    if (drag_state_published_) {
       return;
     }
     drag_state_published_ = true;
-    hover_callback_.Run(tab_, this, false);
+    if (tab_) {
+      hover_callback_.Run(tab_, this, false);
+    }
     if (saved_node_id_.has_value()) {
       saved_drag_state_callback_.Run(saved_node_id_);
     } else {
-      drag_state_callback_.Run(tab_->GetHandle().raw_value());
+      drag_state_callback_.Run(runtime_tab_handle_);
     }
   }
 
@@ -559,9 +564,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
     if (!favicon_model.IsEmpty() && (colors || favicon_model.IsImage())) {
       favicon = favicon_model.Rasterize(colors);
     }
-    return CreateSidebarDragImage(GetWidget(), colors, favicon,
-                                  std::u16string(title_->GetText()),
-                                  thumbnails_callback_.Run(tab_));
+    const std::vector<gfx::ImageSkia> thumbnails =
+        tab_ ? thumbnails_callback_.Run(tab_) : std::vector<gfx::ImageSkia>();
+    return CreateSidebarDragImage(GetWidget(), colors, favicon, drag_title_,
+                                  thumbnails);
   }
 
   gfx::Rect CloseBounds() const {
@@ -591,6 +597,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   const base::WeakPtr<tabs::TabInterface> tab_;
+  const int runtime_tab_handle_;
+  const std::u16string drag_title_;
   const std::optional<base::Uuid> saved_node_id_;
   const TabCallback activate_callback_;
   const TabCallback close_callback_;

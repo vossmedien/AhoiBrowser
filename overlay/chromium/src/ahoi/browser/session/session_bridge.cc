@@ -226,6 +226,11 @@ bool SessionBridge::FinishRuntimeInitialization() {
   // tree snapshot has loaded. Apply their metadata only now, against the
   // authoritative workspace/node identities rather than the bootstrap store.
   ApplyPendingSessionMetadata();
+  // The sidebar may already be showing its immediate bootstrap projection.
+  // Publish one authoritative ready transition even when restoration did not
+  // otherwise mutate a tracked tab, so saved/runtime classification cannot
+  // remain stuck on the bootstrap store.
+  runtime_presentation_changed_callbacks_.Notify();
   PublishCommandItems();
   NotifyTabTreeSnapshotChanged();
   return true;

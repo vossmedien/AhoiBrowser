@@ -17,14 +17,17 @@ namespace ahoi::appearance {
 std::optional<SkColor> ExtractSidebarPageColorFromFavicon(
     const SkBitmap& favicon);
 
-// Resolves a deliberately subtle overlay from the active page's declared
-// theme color, falling back to an already-loaded favicon color. High-contrast
-// mode and the user toggle always win.
+// Resolves a deliberately subtle overlay from the active page's useful brand
+// color. A neutral declared theme color does not prevent an already-loaded
+// favicon from supplying the color. When the semantic sidebar background is
+// available, the overlay alpha is bounded and adapted to remain perceptible.
+// High-contrast mode and the user toggle always win.
 std::optional<SkColor> ResolveSidebarPageTint(
     bool enabled,
     bool high_contrast,
     std::optional<SkColor> page_theme_color,
-    std::optional<SkColor> favicon_color = std::nullopt);
+    std::optional<SkColor> favicon_color = std::nullopt,
+    std::optional<SkColor> sidebar_background_color = std::nullopt);
 
 }  // namespace ahoi::appearance
 

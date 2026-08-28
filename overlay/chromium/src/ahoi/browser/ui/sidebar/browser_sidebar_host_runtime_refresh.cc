@@ -13,10 +13,36 @@ void BrowserSidebarHostView::ScheduleRuntimePresentationRefresh() {
   if (!runtime_refresh_gate_.TrySchedule(IsSidebarDragActive())) {
     return;
   }
+  const uint64_t generation = ++runtime_refresh_generation_;
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE,
-      base::BindOnce(&BrowserSidebarHostView::RefreshRuntimePresentation,
-                     weak_ptr_factory_.GetWeakPtr()));
+      base::BindOnce(
+          &BrowserSidebarHostView::RunScheduledRuntimePresentationRefresh,
+          weak_ptr_factory_.GetWeakPtr(), generation));
+}
+
+void BrowserSidebarHostView::RunScheduledRuntimePresentationRefresh(
+    uint64_t generation) {
+  if (generation != runtime_refresh_generation_) {
+    return;
+  }
+  RefreshRuntimePresentation();
+}
+
+void BrowserSidebarHostView::PrimeRuntimeAuxiliaryPresentation() {
+  runtime_auxiliary_prime_scheduled_ = false;
+  if (runtime_auxiliary_ready_) {
+    return;
+  }
+  runtime_auxiliary_ready_ = true;
+  if (profile_sync_service_ && !profile_sync_ui_attached_) {
+    // Mark attachment before registering: AddObserver publishes its current
+    // snapshots synchronously and may re-enter the sidebar refresh path.
+    profile_sync_ui_attached_ = true;
+    profile_sync_service_->AttachUiBridge(session_bridge_);
+    profile_sync_service_->AddObserver(this);
+  }
+  ScheduleRuntimePresentationRefresh();
 }
 
 bool BrowserSidebarHostView::IsSidebarDragActive() const {

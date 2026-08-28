@@ -696,14 +696,16 @@ gfx::Rect SidebarTreeRowView::IconBounds() const {
 }
 
 gfx::Rect SidebarTreeRowView::TitleBounds() const {
+  constexpr int kTitleTrailingGap = 7;
   const int x = IconBounds().right() + kIconTitleSpacing;
   int title_end = media_indicator_.IsEmpty() ? TrailingActionBounds().x()
                                              : MediaIndicatorBounds().x();
+  title_end -= kTitleTrailingGap;
   // A split-drop preview labels the destination in the logical leading half.
   // The Label already tail-elides, so the trailing half stays visually clear
   // for the incoming pane preview in both LTR and RTL layouts.
   if (split_drop_target_) {
-    title_end = std::min(title_end, width() / 2);
+    title_end = std::min(title_end, width() / 2 - kTitleTrailingGap);
   }
   return gfx::Rect(x, 0, std::max(0, title_end - x), height());
 }

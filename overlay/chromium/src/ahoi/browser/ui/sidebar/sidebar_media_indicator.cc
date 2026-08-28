@@ -79,6 +79,7 @@ SidebarTabTrailingLayout GetSidebarTabTrailingLayout(int width,
   constexpr int kTrailingRightInset = 4;
   constexpr int kSlotWidth = 24;
   constexpr int kSlotGap = 2;
+  constexpr int kTitleTrailingGap = 7;
   const gfx::Rect hover_action(
       std::max(0, width - kTrailingRightInset - kSlotWidth), 2, kSlotWidth,
       std::max(0, height - 4));
@@ -88,7 +89,8 @@ SidebarTabTrailingLayout GetSidebarTabTrailingLayout(int width,
                       kSlotWidth, std::max(0, height - 4))
           : gfx::Rect();
   const int title_end =
-      has_media_indicator ? media_indicator.x() : hover_action.x();
+      (has_media_indicator ? media_indicator.x() : hover_action.x()) -
+      kTitleTrailingGap;
   return {.title = gfx::Rect(kTitleStart, 0,
                              std::max(0, title_end - kTitleStart), height),
           .media_indicator = media_indicator,

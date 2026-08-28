@@ -95,6 +95,7 @@ void SidebarTabPreviewController::Refresh() {
 void SidebarTabPreviewController::Hide() {
   target_.reset();
   anchor_tracker_.SetView(nullptr);
+  anchor_tracker_.SetIsDeletingCallback(base::OnceClosure());
   show_timer_.Stop();
   CloseBubble();
 }
@@ -115,6 +116,8 @@ void SidebarTabPreviewController::Request(SidebarTabPreviewTarget target,
   const bool same_target = target_ == target;
   target_ = std::move(target);
   anchor_tracker_.SetView(anchor);
+  anchor_tracker_.SetIsDeletingCallback(base::BindOnce(
+      &SidebarTabPreviewController::Hide, weak_ptr_factory_.GetWeakPtr()));
   show_timer_.Stop();
   if (bubble_widget_) {
     if (!same_target && bubble_delegate_) {

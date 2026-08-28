@@ -37,6 +37,7 @@
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/i18n/case_conversion.h"
+#include "base/location.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/pickle.h"
@@ -44,6 +45,7 @@
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/cancelable_task_tracker.h"
+#include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "base/uuid.h"
@@ -88,6 +90,7 @@
 #include "ui/base/page_transition_types.h"
 #include "ui/base/window_open_disposition.h"
 #include "ui/color/color_id.h"
+#include "ui/compositor/compositor.h"
 #include "ui/compositor/layer_tree_owner.h"
 #include "ui/events/event.h"
 #include "ui/gfx/canvas.h"
@@ -368,16 +371,16 @@ BrowserSidebarHostView::BrowserSidebarHostView(
               &BrowserSidebarHostView::OnSessionPresentationChanged,
               base::Unretained(this)));
   window_id_ = session_bridge_->GetWindowId(browser_);
-  profile_sync_service_ =
-      sync::ProfileSyncServiceFactory::GetForProfile(browser_->GetProfile());
-  if (profile_sync_service_) {
-    profile_sync_service_->AttachUiBridge(session_bridge_);
-    profile_sync_service_->AddObserver(this);
-  }
   ActivateInitialWorkspace();
   UpdateWorkspaceSelectorIndicators();
   SynchronizeSelection();
+  // Project the local TabStrip/session state before attaching remote sync.
+  // CloudKit transport, device snapshots and thumbnail work must never hold
+  // the first interactive sidebar frame hostage.
   RefreshRuntimePresentation();
+
+  profile_sync_service_ =
+      sync::ProfileSyncServiceFactory::GetForProfile(browser_->GetProfile());
 
   appearance_signal_source_ =
       std::make_unique<appearance::AppearanceRuntimeSignalSource>(
@@ -399,6 +402,30 @@ void BrowserSidebarHostView::AddedToWidget() {
   views::View::AddedToWidget();
   if (views::Widget* const widget = GetWidget()) {
     widget_drag_observation_.Observe(widget);
+    // The semantic sidebar color becomes available with the Widget. Re-resolve
+    // the bounded tint now instead of retaining the pre-Widget fallback alpha.
+    RefreshPageTint();
+    if (!runtime_auxiliary_ready_ && !runtime_auxiliary_prime_scheduled_) {
+      runtime_auxiliary_prime_scheduled_ = true;
+      // Enrich only after the compositor confirms that the local TabStrip
+      // projection reached the screen. A timer remains as a hidden-window
+      // fallback so background windows still acquire thumbnails and sync.
+      widget->GetCompositor()->RequestSuccessfulPresentationTimeForNextFrame(
+          base::BindOnce(
+              [](base::WeakPtr<BrowserSidebarHostView> host,
+                 const viz::FrameTimingDetails&) {
+                if (host) {
+                  host->PrimeRuntimeAuxiliaryPresentation();
+                }
+              },
+              weak_ptr_factory_.GetWeakPtr()));
+      base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
+          FROM_HERE,
+          base::BindOnce(
+              &BrowserSidebarHostView::PrimeRuntimeAuxiliaryPresentation,
+              weak_ptr_factory_.GetWeakPtr()),
+          base::Milliseconds(250));
+    }
   }
 }
 
@@ -526,14 +553,15 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   group_recent_widget_.reset();
   group_recent_delegate_.reset();
   session_presentation_subscription_ = {};
-  if (profile_sync_service_) {
+  if (profile_sync_service_ && profile_sync_ui_attached_) {
     if (window_id_.has_value()) {
       profile_sync_service_->RemoveWindowTabs(window_id_->AsLowercaseString());
     }
     profile_sync_service_->RemoveObserver(this);
     profile_sync_service_->DetachUiBridge(session_bridge_);
-    profile_sync_service_ = nullptr;
+    profile_sync_ui_attached_ = false;
   }
+  profile_sync_service_ = nullptr;
   if (workspace_button_) {
     workspace_button_->set_context_menu_controller(nullptr);
   }
@@ -815,6 +843,10 @@ void BrowserSidebarHostView::OnTabStripModelDestroyed(
       mini_player_adapter_->UnregisterWebContents(base::NumberToString(handle));
     }
     mini_player_tab_handles_.clear();
+    if (tab_preview_controller_) {
+      tab_preview_controller_->Hide();
+    }
+    tab_thumbnail_cache_.clear();
     tab_strip_model_ = nullptr;
   }
 }

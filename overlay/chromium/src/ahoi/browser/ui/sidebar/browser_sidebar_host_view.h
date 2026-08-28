@@ -271,6 +271,8 @@ class BrowserSidebarHostView final : public views::View,
   void SynchronizeSelection();
 
   void ScheduleRuntimePresentationRefresh();
+  void RunScheduledRuntimePresentationRefresh(uint64_t generation);
+  void PrimeRuntimeAuxiliaryPresentation();
   bool IsSidebarDragActive() const;
   void MaybeScheduleDeferredRuntimePresentationRefresh();
 
@@ -673,7 +675,11 @@ class BrowserSidebarHostView final : public views::View,
   base::ScopedObservation<views::Widget, views::WidgetObserver>
       widget_drag_observation_{this};
   SidebarRuntimeRefreshGate runtime_refresh_gate_;
+  uint64_t runtime_refresh_generation_ = 0;
+  bool runtime_auxiliary_prime_scheduled_ = false;
+  bool runtime_auxiliary_ready_ = false;
   raw_ptr<sync::ProfileSyncService> profile_sync_service_ = nullptr;
+  bool profile_sync_ui_attached_ = false;
   sync::DeviceTabsSnapshot device_tabs_snapshot_;
   PendingGroupAction pending_group_action_ = PendingGroupAction::kNone;
   std::optional<base::Uuid> pending_group_source_id_;

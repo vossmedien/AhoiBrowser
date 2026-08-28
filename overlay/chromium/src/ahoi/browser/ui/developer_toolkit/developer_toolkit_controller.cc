@@ -114,7 +114,7 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
     return true;
   }
   content::WebContents* const contents = GetActiveWebContents();
-  if (!IsSupportedDeveloperTarget(contents)) {
+  if (!contents) {
     return false;
   }
   if (Profile* original = browser_->GetProfile()->GetOriginalProfile()) {
@@ -127,11 +127,15 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
     cache_status_widget_->Close();
   }
 
-  const url::Origin origin =
-      url::Origin::Create(contents->GetLastCommittedURL());
+  const GURL context_url = contents->GetLastCommittedURL();
+  const url::Origin origin = url::Origin::Create(context_url);
+  const std::u16string context_label =
+      IsSupportedDeveloperTarget(contents)
+          ? base::UTF8ToUTF16(origin.Serialize())
+          : base::UTF8ToUTF16(context_url.spec());
   bubble_contents_ = contents->GetWeakPtr();
   auto view = std::make_unique<DeveloperToolkitBubbleView>(
-      base::UTF8ToUTF16(origin.Serialize()), GetToolbarVisibility(),
+      context_label, GetToolbarVisibility(),
       base::BindRepeating(
           [](base::WeakPtr<DeveloperToolkitController> controller,
              DeveloperAction action) {

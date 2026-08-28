@@ -10,6 +10,7 @@
 
 namespace ui {
 class Event;
+class MouseEvent;
 }
 
 namespace ahoi {

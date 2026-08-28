@@ -4107,7 +4107,7 @@ index 7ff1c061b5a6bc9dbd1868ed155214ca97508efc..c012c13e87440b77fea8dc5210f91878
  import '../appearance_page/appearance_page_index.js';
  import '../autofill_page/autofill_page_index.js';
 diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.html b/chrome/browser/resources/settings/settings_menu/settings_menu.html
-index dd30b5046d72725249b90621d1346a2d23ba71f0..5988b1cddcb4ee721f2ea26cf38a178ed69406f4 100644
+index dd30b5046d72725249b90621d1346a2d23ba71f0..462cc28d494268dbe59090a410995f8c2d4b7ed9 100644
 --- a/chrome/browser/resources/settings/settings_menu/settings_menu.html
 +++ b/chrome/browser/resources/settings/settings_menu/settings_menu.html
 @@ -96,6 +96,12 @@
@@ -4116,7 +4116,7 @@ index dd30b5046d72725249b90621d1346a2d23ba71f0..5988b1cddcb4ee721f2ea26cf38a178e
          </a>
 +        <a role="menuitem" id="ahoi" href="/ahoi"
 +            class="cr-nav-menu-item">
-+          <cr-icon icon="settings:apps"></cr-icon>
++          <cr-icon icon="settings20:apps"></cr-icon>
 +          $i18n{ahoiPageTitle}
 +          <cr-ripple></cr-ripple>
 +        </a>
@@ -8321,10 +8321,21 @@ index 80565d4e20f1a538319c87828b363cdcbc7f184a..54cfc74e2fbd522b2007c25dd6179e60
        content::NavigationHandle* navigation_handle) override;
    void PrimaryMainFrameRenderProcessGone(
 diff --git a/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc b/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
-index 79828c5ddfda761af2eb1b69b4f3d75c0d57e91d..5fc3df77a2d4298b00c03fb23a9a7af2e97271c9 100644
+index 79828c5ddfda761af2eb1b69b4f3d75c0d57e91d..c733e17da9a1974cc1e439f0256f21b46c03189a 100644
 --- a/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
 +++ b/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
-@@ -1639,11 +1639,15 @@ void BookmarkBarView::Init() {
+@@ -1154,6 +1154,10 @@ void BookmarkBarView::ChildPreferredSizeChanged(views::View* child) {
+ }
+ 
+ void BookmarkBarView::AddedToWidget() {
++  // BrowserView installs Ahoi's sidebar after BookmarkBarView::Init(). Recheck
++  // here, once the complete hierarchy exists, so Chromium's saved-group grid
++  // and separator cannot survive the initialization-order boundary.
++  OnTabGroupsVisibilityPrefChanged();
+   MaybeShowSavedTabGroupsIntroPromo();
+ }
+ 
+@@ -1639,11 +1643,15 @@ void BookmarkBarView::Init() {
      saved_tab_group_bar_ =
          AddChildView(std::make_unique<tab_groups::SavedTabGroupBar>(
              browser_, animations_enabled));
@@ -8343,7 +8354,7 @@ index 79828c5ddfda761af2eb1b69b4f3d75c0d57e91d..5fc3df77a2d4298b00c03fb23a9a7af2
    }
  
    overflow_button_ = AddChildView(CreateOverflowButton());
-@@ -2288,7 +2292,12 @@ void BookmarkBarView::OnTabGroupsVisibilityPrefChanged() {
+@@ -2288,12 +2296,19 @@ void BookmarkBarView::OnTabGroupsVisibilityPrefChanged() {
  
    DCHECK(saved_tab_group_bar_);
    // Only perform layout if required.
@@ -8355,8 +8366,16 @@ index 79828c5ddfda761af2eb1b69b4f3d75c0d57e91d..5fc3df77a2d4298b00c03fb23a9a7af2
 +  const bool visible =
 +      (!browser_view_ || !browser_view_->IsAhoiBrowserSurface()) &&
        chrome::ShouldShowTabGroupsInBookmarkBar(browser_->GetProfile());
-   if (saved_tab_group_bar_->GetVisible() == visible) {
+-  if (saved_tab_group_bar_->GetVisible() == visible) {
++  if (saved_tab_group_bar_->GetVisible() == visible &&
++      saved_tab_groups_separator_view_->GetVisible() == visible) {
      return;
+   }
+   saved_tab_group_bar_->SetVisible(visible);
++  saved_tab_groups_separator_view_->SetVisible(visible);
+   LayoutAndPaint();
+ }
+ 
 diff --git a/chrome/browser/ui/views/device_chooser_browsertest.cc b/chrome/browser/ui/views/device_chooser_browsertest.cc
 index 2633c402ad09525623b0103618ab61fe1ab2c228..50290785637461321f5d43a5d87f92aa22fb1e13 100644
 --- a/chrome/browser/ui/views/device_chooser_browsertest.cc
@@ -12850,14 +12869,15 @@ index 91de47263bf0471a74a2b9b934ae17e1a7101d50..d4f76e27556c993247cb0dc418c57639
    // Reverses the order of split tabs.
    // Must already be in a split.
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
-index c64e533302537a93fabe7d60591ebc51829e83f4..5f3d0655a235f9faa5b43386270170efd0f5bcce 100644
+index c64e533302537a93fabe7d60591ebc51829e83f4..2ee31750661ba150bdbb6f97366c915f05114a09 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
-@@ -6,10 +6,13 @@
+@@ -6,10 +6,14 @@
  
  #include <optional>
  
 +#include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
++#include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 +#include "base/check.h"
  #include "base/functional/bind.h"
  #include "base/metrics/user_metrics.h"
@@ -13028,7 +13048,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..5f3d0655a235f9faa5b43386270170ef
  
    UpdateFavicon(tab_ui_helper);
  }
-@@ -215,13 +283,69 @@ void MultiContentsViewMiniToolbar::UpdateWebContents(views::WebView* web_view) {
+@@ -215,13 +284,83 @@ void MultiContentsViewMiniToolbar::UpdateWebContents(views::WebView* web_view) {
    tab_alert_status_subscription_.reset();
    tab_ui_updated_subscription_.reset();
    web_contents_ = web_view->web_contents();
@@ -13059,7 +13079,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..5f3d0655a235f9faa5b43386270170ef
 +
 +void MultiContentsViewMiniToolbar::WriteDragDataForView(
 +    views::View* sender,
-+    const gfx::Point&,
++    const gfx::Point& press_pt,
 +    ui::OSExchangeData* data) {
 +  CHECK_EQ(sender, this);
 +  tabs::TabInterface* const tab = GetTabInterface(web_contents_);
@@ -13071,6 +13091,20 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..5f3d0655a235f9faa5b43386270170ef
 +  if (title.empty()) {
 +    title = domain_label_->GetText();
 +  }
++  const ui::ColorProvider* const colors = GetColorProvider();
++  const ui::ImageModel& favicon_model = favicon_->GetImageModel();
++  gfx::ImageSkia favicon;
++  if (!favicon_model.IsEmpty() && (colors || favicon_model.IsImage())) {
++    favicon = favicon_model.Rasterize(colors);
++  }
++  const gfx::ImageSkia drag_image = ahoi::sidebar::CreateSidebarPreviewImage(
++      GetWidget(), colors, favicon, title, {});
++  if (drag_image.isNull() || drag_image.size().IsEmpty()) {
++    return;
++  }
++  data->provider().SetDragImage(
++      drag_image,
++      ahoi::sidebar::GetSidebarDragImageCursorOffset(drag_image, press_pt));
 +  ahoi::drag::WriteRuntimeSidebarTabDragPayload(
 +      data, tab->GetHandle().raw_value(), title);
 +}
@@ -13933,7 +13967,7 @@ index b7dbd7c98548e3a7d2e15951ece8741b5b21dc7a..dfa39e0dcb88988dfb357e2cfa104d4e
    raw_ptr<views::FlexLayout> flex_layout_ = nullptr;
  
 diff --git a/chrome/browser/ui/views/location_bar/BUILD.gn b/chrome/browser/ui/views/location_bar/BUILD.gn
-index 9c60461de2676b2ec9b17f50a8ff3dcd1f05610f..e5707bd0a19b92619a7a8ec206425d4595f37525 100644
+index 9c60461de2676b2ec9b17f50a8ff3dcd1f05610f..872e1e64c600f750053b8dc9d81a930ce8c41c3f 100644
 --- a/chrome/browser/ui/views/location_bar/BUILD.gn
 +++ b/chrome/browser/ui/views/location_bar/BUILD.gn
 @@ -101,6 +101,10 @@ source_set("impl") {
@@ -13947,8 +13981,16 @@ index 9c60461de2676b2ec9b17f50a8ff3dcd1f05610f..e5707bd0a19b92619a7a8ec206425d45
        "//chrome/app:generated_resources",
        "//chrome/app/vector_icons",
        "//chrome/browser:primitives",
+@@ -118,6 +122,7 @@ source_set("impl") {
+       "//chrome/browser/sharing_hub",
+       "//chrome/browser/signin",
+       "//chrome/browser/themes",
++      "//chrome/browser/ui/toasts",
+       "//chrome/browser/translate",
+       "//chrome/browser/ui:browser_actions",
+       "//chrome/browser/ui:ui_features",
 diff --git a/chrome/browser/ui/views/location_bar/location_bar_view.cc b/chrome/browser/ui/views/location_bar/location_bar_view.cc
-index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c86965362a2b 100644
+index c299038dd809a8365e671581b2c1f1209ce15178..6a7601e5ea651d8a39b0c3206ff2bd0c85071ad1 100644
 --- a/chrome/browser/ui/views/location_bar/location_bar_view.cc
 +++ b/chrome/browser/ui/views/location_bar/location_bar_view.cc
 @@ -9,6 +9,13 @@
@@ -13965,7 +14007,16 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  #include "base/containers/adapters.h"
  #include "base/feature_list.h"
  #include "base/functional/bind.h"
-@@ -117,6 +124,8 @@
+@@ -54,6 +61,8 @@
+ #include "chrome/browser/ui/tabs/public/tab_features.h"
+ #include "chrome/browser/ui/tabs/saved_tab_groups/saved_tab_group_utils.h"
+ #include "chrome/browser/ui/tabs/tab_strip_model.h"
++#include "chrome/browser/ui/toasts/api/toast_id.h"
++#include "chrome/browser/ui/toasts/toast_controller.h"
+ #include "chrome/browser/ui/ui_features.h"
+ #include "chrome/browser/ui/views/bubble_anchor_util_views.h"
+ #include "chrome/browser/ui/views/chrome_layout_provider.h"
+@@ -117,6 +126,8 @@
  #include "components/search_engines/template_url_service.h"
  #include "components/security_state/content/security_state_tab_helper.h"
  #include "components/security_state/core/security_state.h"
@@ -13974,7 +14025,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  #include "content/public/browser/navigation_entry.h"
  #include "content/public/browser/render_widget_host_view.h"
  #include "content/public/browser/web_contents.h"
-@@ -127,6 +136,7 @@
+@@ -127,6 +138,7 @@
  #include "ui/accessibility/ax_enums.mojom.h"
  #include "ui/actions/actions.h"
  #include "ui/base/clipboard/clipboard.h"
@@ -13982,7 +14033,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  #include "ui/base/dragdrop/drag_drop_types.h"
  #include "ui/base/ime/input_method.h"
  #include "ui/base/ime/virtual_keyboard_controller.h"
-@@ -182,10 +192,15 @@ LocationBarView* GetLocationBarViewForActions(Browser* browser) {
+@@ -182,10 +194,15 @@ LocationBarView* GetLocationBarViewForActions(Browser* browser) {
    return browser_view ? browser_view->GetLocationBarView() : nullptr;
  }
  
@@ -13999,7 +14050,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  }  // namespace
  
  using content::WebContents;
-@@ -211,6 +226,30 @@ LocationBarView::LocationBarView(Browser* browser,
+@@ -211,6 +228,30 @@ LocationBarView::LocationBarView(Browser* browser,
      pref_registrar_->Add(omnibox::kShowAiModeOmniboxButton,
                           base::BindRepeating(&LocationBarView::OnChanged,
                                               base::Unretained(this)));
@@ -14030,7 +14081,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
    }
  
    run_omnibox_context_menu_callback_ =
-@@ -359,8 +398,7 @@ void LocationBarView::Init() {
+@@ -359,8 +400,7 @@ void LocationBarView::Init() {
      } else if (omnibox::IsWebUIOmniboxInBrowserViewEnabled()) {
        omnibox_popup_view_ =
            std::make_unique<OmniboxPopupViewBrowserView>(this, browser_);
@@ -14040,7 +14091,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
        omnibox_popup_view_ = std::make_unique<OmniboxPopupViewFullWebUI>(
            /*omnibox_view=*/omnibox_view_,
            /*controller=*/omnibox_controller_.get(), /*location_bar=*/this,
-@@ -434,7 +472,6 @@ void LocationBarView::Init() {
+@@ -434,7 +474,6 @@ void LocationBarView::Init() {
    selected_keyword_view_ = AddChildView(std::make_unique<SelectedKeywordView>(
        this, profile_, omnibox_controller_.get(), font_list));
  
@@ -14048,7 +14099,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
    SkColor icon_color = color_provider->GetColor(kColorOmniboxResultsIcon);
  
    std::vector<std::unique_ptr<ContentSettingImageModel>> models =
-@@ -483,7 +520,6 @@ void LocationBarView::Init() {
+@@ -483,7 +522,6 @@ void LocationBarView::Init() {
      params.types_enabled.push_back(PageActionIconType::kFederation);
    }
  
@@ -14056,7 +14107,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
    params.icon_color = color_provider->GetColor(kColorOmniboxActionIcon);
    params.between_icon_spacing = kBetweenIconSpacing;
    params.font_list = &page_action_font_list;
-@@ -504,6 +540,90 @@ void LocationBarView::Init() {
+@@ -504,6 +542,98 @@ void LocationBarView::Init() {
    clear_all_button_ = AddChildView(std::move(clear_all_button));
    RefreshClearAllButtonIcon();
  
@@ -14094,6 +14145,10 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
 +        l10n_util::GetStringUTF16(IDS_AHOI_PRIVACY_BUTTON_TOOLTIP));
 +    privacy_button->SetAccessibleName(
 +        l10n_util::GetStringUTF16(IDS_AHOI_PRIVACY_BUTTON_TOOLTIP));
++    privacy_button->SetImageModel(
++        views::Button::STATE_DISABLED,
++        ui::ImageModel::FromVectorIcon(vector_icons::kShieldIcon,
++                                       kColorToolbarButtonIconDisabled, 18));
 +    configure_ahoi_action_button(privacy_button.get());
 +    ahoi_privacy_button_ = AddChildView(std::move(privacy_button));
 +    UpdateAhoiPrivacyButton();
@@ -14111,6 +14166,10 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
 +      button->SetImageModel(
 +          views::Button::STATE_NORMAL,
 +          ui::ImageModel::FromVectorIcon(icon, kColorOmniboxActionIcon, 18));
++      button->SetImageModel(
++          views::Button::STATE_DISABLED,
++          ui::ImageModel::FromVectorIcon(icon,
++                                         kColorToolbarButtonIconDisabled, 18));
 +      const std::u16string label = l10n_util::GetStringUTF16(tooltip_id);
 +      button->SetTooltipText(label);
 +      button->SetAccessibleName(label);
@@ -14147,7 +14206,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
    auto ai_mode_hint_label = std::make_unique<views::Label>(
        std::u16string(), CONTEXT_OMNIBOX_PRIMARY, views::style::STYLE_PRIMARY);
    ai_mode_hint_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-@@ -901,9 +1021,29 @@ void LocationBarView::Layout(PassKey) {
+@@ -901,9 +1031,29 @@ void LocationBarView::Layout(PassKey) {
                              /*edge_padding=*/trailing_decorations_edge_padding);
    }
  
@@ -14178,7 +14237,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  
    // Perform layout.
    int entry_width = width();
-@@ -1020,6 +1160,7 @@ void LocationBarView::OnThemeChanged() {
+@@ -1020,6 +1170,7 @@ void LocationBarView::OnThemeChanged() {
  
    RefreshBackground();
    RefreshClearAllButtonIcon();
@@ -14186,7 +14245,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  }
  
  void LocationBarView::ChildPreferredSizeChanged(views::View* child) {
-@@ -1041,7 +1182,8 @@ void LocationBarView::Update(WebContents* contents) {
+@@ -1041,7 +1192,8 @@ void LocationBarView::Update(WebContents* contents) {
    RefreshPageActionIconViews();
    location_icon_view_->Update(
        /*suppress_animations=*/contents, GetOmniboxController()->IsPopupOpen());
@@ -14196,7 +14255,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  
    if (contents) {
      omnibox_view_->OnTabChanged(contents);
-@@ -1423,7 +1565,12 @@ int LocationBarView::GetMinimumLeadingWidth() const {
+@@ -1423,7 +1575,12 @@ int LocationBarView::GetMinimumLeadingWidth() const {
  
  int LocationBarView::GetMinimumTrailingWidth() const {
    int trailing_width = IncrementalMinimumWidth(page_action_icon_container_) +
@@ -14210,7 +14269,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  
    for (ContentSettingImageView* content_setting_view : content_setting_views_) {
      trailing_width += IncrementalMinimumWidth(content_setting_view);
-@@ -1432,6 +1579,121 @@ int LocationBarView::GetMinimumTrailingWidth() const {
+@@ -1432,6 +1589,146 @@ int LocationBarView::GetMinimumTrailingWidth() const {
    return trailing_width;
  }
  
@@ -14226,8 +14285,14 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
 +  if (!url.is_valid() || url.is_empty()) {
 +    return;
 +  }
-+  ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
-+  writer.WriteText(base::UTF8ToUTF16(url.spec()));
++  {
++    ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
++    writer.WriteText(base::UTF8ToUTF16(url.spec()));
++  }
++  if (ToastController* const toast_controller =
++          ToastController::MaybeGetForWebContents(contents)) {
++    toast_controller->MaybeShowToast(ToastParams(ToastId::kLinkCopied));
++  }
 +}
 +
 +void LocationBarView::ShowAhoiPrivacyMode(const ui::Event&) {
@@ -14263,8 +14328,9 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
 +                                     18));
 +  ahoi_privacy_button_->SetEnabled(supported);
 +  const std::u16string tooltip = l10n_util::GetStringUTF16(
-+      compatible ? IDS_AHOI_PRIVACY_BUTTON_COMPATIBLE_TOOLTIP
-+                 : IDS_AHOI_PRIVACY_BUTTON_TOOLTIP);
++      !supported ? IDS_AHOI_PRIVACY_UNSUPPORTED_SITE
++      : compatible ? IDS_AHOI_PRIVACY_BUTTON_COMPATIBLE_TOOLTIP
++                   : IDS_AHOI_PRIVACY_BUTTON_TOOLTIP);
 +  ahoi_privacy_button_->SetTooltipText(tooltip);
 +  ahoi_privacy_button_->SetAccessibleName(tooltip);
 +}
@@ -14316,15 +14382,33 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
 +      *original_profile->GetPrefs());
 +  BrowserView* const browser_view =
 +      browser_ ? BrowserView::GetBrowserViewForBrowser(browser_) : nullptr;
-+  const bool enabled =
++  const bool site_actions_enabled =
 +      browser_view && browser_view->CanExecuteAhoiDeveloperAction();
++  const bool toolkit_enabled = browser_view && GetWebContents();
 +
 +  ahoi_cookie_button_->SetVisible(visibility.cookie);
 +  ahoi_cache_button_->SetVisible(visibility.cache);
 +  ahoi_developer_toolkit_button_->SetVisible(visibility.toolkit);
-+  ahoi_cookie_button_->SetEnabled(enabled);
-+  ahoi_cache_button_->SetEnabled(enabled);
-+  ahoi_developer_toolkit_button_->SetEnabled(enabled);
++  ahoi_cookie_button_->SetEnabled(site_actions_enabled);
++  ahoi_cache_button_->SetEnabled(site_actions_enabled);
++  ahoi_developer_toolkit_button_->SetEnabled(toolkit_enabled);
++  if (!site_actions_enabled) {
++    const std::u16string unavailable =
++        l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_UNSUPPORTED_PAGE);
++    ahoi_cookie_button_->SetTooltipText(unavailable);
++    ahoi_cookie_button_->SetAccessibleName(unavailable);
++    ahoi_cache_button_->SetTooltipText(unavailable);
++    ahoi_cache_button_->SetAccessibleName(unavailable);
++  } else {
++    const std::u16string cookie = l10n_util::GetStringUTF16(
++        IDS_AHOI_DEVELOPER_COOKIE_BUTTON_TOOLTIP);
++    const std::u16string cache = l10n_util::GetStringUTF16(
++        IDS_AHOI_DEVELOPER_CACHE_BUTTON_TOOLTIP);
++    ahoi_cookie_button_->SetTooltipText(cookie);
++    ahoi_cookie_button_->SetAccessibleName(cookie);
++    ahoi_cache_button_->SetTooltipText(cache);
++    ahoi_cache_button_->SetAccessibleName(cache);
++  }
 +  InvalidateLayout();
 +  SchedulePaint();
 +}
@@ -14332,7 +14416,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
  gfx::Rect LocationBarView::GetLocalBoundsWithoutEndcaps() const {
    const int border_radius = height() / 2;
    gfx::Rect bounds_without_endcaps(GetLocalBounds());
-@@ -1739,6 +2001,9 @@ void LocationBarView::OnPaintBorder(gfx::Canvas* canvas) {
+@@ -1739,6 +2036,9 @@ void LocationBarView::OnPaintBorder(gfx::Canvas* canvas) {
  }
  
  bool LocationBarView::OnMousePressed(const ui::MouseEvent& event) {
@@ -14342,7 +14426,7 @@ index c299038dd809a8365e671581b2c1f1209ce15178..79aadfa393d4ca930c1bb38646e1c869
    return omnibox_view_->OnMousePressed(
        AdjustMouseEventLocationForOmniboxView(event));
  }
-@@ -2535,7 +2800,8 @@ void LocationBarView::SetOmniboxToolModeAndOpenAi(
+@@ -2535,7 +2835,8 @@ void LocationBarView::SetOmniboxToolModeAndOpenAi(
    ContextualSearchboxHandler* const composebox_handler =
        omnibox_popup_ui ? omnibox_popup_ui->composebox_handler() : nullptr;
    if (composebox_handler) {
@@ -20007,12 +20091,14 @@ index 293196eeb08f45de1e99cb8bd164f9c8c337936e..8d236b38b7312c4b814771cafa883481
   private:
    friend class test::DragDropClientMacTest;
 diff --git a/ui/views/cocoa/drag_drop_client_mac.mm b/ui/views/cocoa/drag_drop_client_mac.mm
-index b7aa80c925d32c876af4f742bf550eea991e1c5e..08e91a66bab7c208cf0e1dca3aa25106f245bd32 100644
+index b7aa80c925d32c876af4f742bf550eea991e1c5e..50dbe1b2bc41eb7e66826dac4f45d8bfac26775d 100644
 --- a/ui/views/cocoa/drag_drop_client_mac.mm
 +++ b/ui/views/cocoa/drag_drop_client_mac.mm
-@@ -13,8 +13,10 @@
+@@ -12,9 +12,12 @@
+ #include "ui/base/dragdrop/drag_drop_types.h"
  #include "ui/base/dragdrop/mojom/drag_drop_types.mojom.h"
  #import "ui/base/dragdrop/os_exchange_data_provider_mac.h"
++#include "ui/gfx/geometry/vector2d.h"
  #include "ui/gfx/image/image_skia_util_mac.h"
 +#include "ui/views/drag_controller.h"
  #include "ui/views/drag_utils.h"
@@ -20021,7 +20107,23 @@ index b7aa80c925d32c876af4f742bf550eea991e1c5e..08e91a66bab7c208cf0e1dca3aa25106
  
  namespace views {
  
-@@ -67,6 +69,8 @@ void DragDropClientMac::StartDragAndDrop(
+@@ -59,14 +62,22 @@ void DragDropClientMac::StartDragAndDrop(
+                          pressure:1.0];
+ 
+   NSImage* image = gfx::NSImageFromImageSkia(provider_mac.GetDragImage());
+-
+-  DCHECK(!NSEqualSizes(image.size, NSZeroSize));
++  if (!image || NSEqualSizes(image.size, NSZeroSize)) {
++    // A missing drag image is an invalid Views drag contract, but user input
++    // must never turn that caller error into a browser-process crash. Abort the
++    // native boundary cleanly; valid callers keep their exact preview below.
++    exchange_data_.reset();
++    is_drag_source_ = false;
++    return;
++  }
+   NSArray<NSDraggingItem*>* drag_items = provider_mac.GetDraggingItems();
+   if (!drag_items) {
+     // The source of this data is ultimately the OS, and while this shouldn't be
      // nil, it is documented as possibly being so if things are broken. If so,
      // fail early rather than try to start a drag of a nil item list and making
      // things worse.
@@ -20030,7 +20132,28 @@ index b7aa80c925d32c876af4f742bf550eea991e1c5e..08e91a66bab7c208cf0e1dca3aa25106
      return;
    }
  
-@@ -90,9 +94,15 @@ void DragDropClientMac::StartDragAndDrop(
+@@ -76,12 +87,14 @@ void DragDropClientMac::StartDragAndDrop(
+   // item, and set nil images for the remaining items. In the future, when Views
+   // becomes more capable in the area of the clipboard, revisit this.
+ 
+-  // Create the frame to cause the mouse to be centered over the image, with the
+-  // image slightly above the mouse pointer for visibility.
+-  NSRect dragging_frame =
+-      NSMakeRect(event.locationInWindow.x - image.size.width / 2,
+-                 event.locationInWindow.y - image.size.height / 4,
+-                 image.size.width, image.size.height);
++  // Views stores the cursor offset from the image's top-left corner in its
++  // y-down coordinate system. AppKit uses a y-up origin, so convert the y
++  // component while preserving the caller's exact horizontal placement.
++  const gfx::Vector2d cursor_offset = provider_mac.GetDragImageOffset();
++  NSRect dragging_frame = NSMakeRect(
++      event.locationInWindow.x - cursor_offset.x(),
++      event.locationInWindow.y - image.size.height + cursor_offset.y(),
++      image.size.width, image.size.height);
+   for (NSUInteger i = 0; i < drag_items.count; ++i) {
+     if (i == 0) {
+       [drag_items[i] setDraggingFrame:dragging_frame contents:image];
+@@ -90,9 +103,15 @@ void DragDropClientMac::StartDragAndDrop(
      }
    }
  
@@ -20049,7 +20172,7 @@ index b7aa80c925d32c876af4f742bf550eea991e1c5e..08e91a66bab7c208cf0e1dca3aa25106
  
    // Since Drag and drop is asynchronous on the Mac, spin a nested run loop for
    // consistency with other platforms.
-@@ -110,6 +120,19 @@ void DragDropClientMac::StartDragAndDrop(
+@@ -110,6 +129,19 @@ void DragDropClientMac::StartDragAndDrop(
                         dequeue:YES];
  }
  
