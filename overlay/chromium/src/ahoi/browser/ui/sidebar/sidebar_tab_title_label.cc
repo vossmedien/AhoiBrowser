@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 
+#include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/scoped_canvas.h"
@@ -51,5 +52,8 @@ void SidebarTabTitleLabel::OnPaint(gfx::Canvas* canvas) {
   canvas->ClipRect(paint_clip_bounds_);
   views::Label::OnPaint(canvas);
 }
+
+BEGIN_METADATA(SidebarTabTitleLabel)
+END_METADATA
 
 }  // namespace ahoi::sidebar

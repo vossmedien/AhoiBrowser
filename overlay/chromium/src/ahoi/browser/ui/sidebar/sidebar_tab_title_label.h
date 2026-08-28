@@ -21,6 +21,8 @@ gfx::Rect GetDividerSafeSidebarTitleBounds(const gfx::Rect& requested_bounds,
 // an explicit local canvas clip in addition to ELIDE_TAIL. Both saved and live
 // tab rows use this type to keep hover/drag state from crossing a pane divider.
 class SidebarTabTitleLabel final : public views::Label {
+  METADATA_HEADER(SidebarTabTitleLabel, views::Label)
+
  public:
   SidebarTabTitleLabel();
   SidebarTabTitleLabel(const SidebarTabTitleLabel&) = delete;
