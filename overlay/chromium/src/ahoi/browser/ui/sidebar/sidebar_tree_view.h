@@ -70,6 +70,15 @@ class SidebarTreeView final : public views::View,
     base::Uuid source_node_id;
     std::optional<int> source_runtime_tab_handle;
     std::optional<base::Uuid> target_node_id;
+    // Geometry belongs to the validated visual projection used for this
+    // pointer event. Caching it keeps marker stabilization paint-only instead
+    // of rebuilding the complete virtualized split projection in the drag
+    // hotpath.
+    std::optional<gfx::Rect> target_bounds;
+    // A valid split target can still reject this particular source pair. Keep
+    // the pointer's deterministic before/after fallback in the geometric
+    // probe so crossing the row midpoint invalidates the cached validation.
+    std::optional<SidebarTreeController::DropPosition> fallback_position;
     SidebarTreeController::DropPosition position =
         SidebarTreeController::DropPosition::kInside;
     SidebarTreeController::DropOperation operation =
@@ -225,6 +234,12 @@ class SidebarTreeView final : public views::View,
     bool present = false;
   };
 
+  struct VisualHit {
+    size_t visual_row = 0;
+    size_t model_index = 0;
+    gfx::Rect bounds;
+  };
+
   // views::ContextMenuController:
   void ShowContextMenuForViewImpl(
       views::View* source,
@@ -262,23 +277,22 @@ class SidebarTreeView final : public views::View,
   void ExpandOrSelectChild();
   void ActivateSelectedNode();
   std::optional<base::Uuid> NodeAtPoint(const gfx::Point& point) const;
+  std::optional<VisualHit> FindVisualHit(
+      const std::vector<VisualRow>& visual_rows,
+      const gfx::Point& point) const;
   std::optional<DropIndicator> CalculateDropIndicator(
-      const base::Uuid& source_node_id,
-      const gfx::Point& point,
-      SidebarTreeController::DropOperation operation);
+      DropIndicator probe);
   std::optional<DropIndicator> CalculateTemporaryTabDropIndicator(
-      int runtime_tab_handle,
-      const gfx::Point& point);
+      DropIndicator probe);
   std::optional<DropIndicator> BuildDropProbe(
       const base::Uuid& source_node_id,
       const gfx::Point& point,
-      SidebarTreeController::DropOperation operation) const;
+      SidebarTreeController::DropOperation operation,
+      const std::vector<VisualRow>& visual_rows) const;
   std::optional<DropIndicator> BuildTemporaryTabDropProbe(
       int runtime_tab_handle,
-      const gfx::Point& point) const;
-  std::optional<SidebarTreeController::DropPosition>
-  NearestReorderPositionForTarget(const base::Uuid& target_node_id,
-                                  const gfx::Point& point) const;
+      const gfx::Point& point,
+      const std::vector<VisualRow>& visual_rows) const;
   std::optional<int> InsertionMarkerY(const DropIndicator& indicator) const;
   std::optional<DropIndicator> StabilizeInsertionSlot(
       std::optional<DropIndicator> indicator) const;

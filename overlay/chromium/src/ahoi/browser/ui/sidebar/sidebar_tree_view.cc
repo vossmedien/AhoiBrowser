@@ -230,7 +230,12 @@ SidebarTreeView::CalculateDropIndicatorForTesting(
     const base::Uuid& source_node_id,
     const gfx::Point& point,
     SidebarTreeController::DropOperation operation) {
-  return CalculateDropIndicator(source_node_id, point, operation);
+  const std::vector<VisualRow> visual_rows = BuildVisualRows();
+  std::optional<DropIndicator> probe =
+      BuildDropProbe(source_node_id, point, operation, visual_rows);
+  return probe.has_value()
+             ? CalculateDropIndicator(std::move(*probe))
+             : std::nullopt;
 }
 
 void SidebarTreeView::OnRowPressed(SidebarTreeRowView* row,

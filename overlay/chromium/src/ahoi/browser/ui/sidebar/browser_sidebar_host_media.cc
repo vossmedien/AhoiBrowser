@@ -153,6 +153,7 @@ void BrowserSidebarHostView::RefreshPageTint() {
   }
   std::optional<SkColor> sidebar_background_color;
   std::optional<SkColor> sidebar_foreground_color;
+  std::optional<SkColor> sidebar_muted_foreground_color;
   if (const ui::ColorProvider* const color_provider = GetColorProvider();
       color_provider && appearance_signal_source_) {
     const appearance::SurfaceAppearance surface =
@@ -161,17 +162,21 @@ void BrowserSidebarHostView::RefreshPageTint() {
             appearance_signal_source_->policy());
     sidebar_background_color =
         color_provider->GetColor(surface.background_color);
-    // Rows use this semantic text color, so it is the relevant contrast
-    // guard rather than the page-derived color itself.
+    // Guard both primary titles and the weaker metadata/icon token painted
+    // directly over this surface. The weakest relevant token determines the
+    // maximum safe tint strength.
     sidebar_foreground_color =
         color_provider->GetColor(visual_style::kText);
+    sidebar_muted_foreground_color =
+        color_provider->GetColor(visual_style::kMutedText);
   }
   const std::optional<SkColor> resolved_tint =
       appearance::ResolveSidebarPageTint(enabled, high_contrast_, theme_color,
                                          favicon_color,
                                          sidebar_background_color,
                                          sidebar_foreground_color,
-                                         reduced_transparency_);
+                                         reduced_transparency_,
+                                         sidebar_muted_foreground_color);
   if (resolved_tint == sidebar_page_tint_) {
     return;
   }

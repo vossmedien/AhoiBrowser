@@ -731,12 +731,12 @@ void SidebarTreeView::ActivateSelectedNode() {
   }
 }
 
-std::optional<base::Uuid> SidebarTreeView::NodeAtPoint(
+std::optional<SidebarTreeView::VisualHit> SidebarTreeView::FindVisualHit(
+    const std::vector<VisualRow>& visual_rows,
     const gfx::Point& point) const {
   if (point.y() < 0) {
     return std::nullopt;
   }
-  const std::vector<VisualRow> visual_rows = BuildVisualRows();
   const std::optional<size_t> visual_index =
       FindVisualRowAtY(visual_rows, point.y());
   if (!visual_index.has_value()) {
@@ -759,7 +759,21 @@ std::optional<base::Uuid> SidebarTreeView::NodeAtPoint(
       closest_segment = segment;
     }
   }
-  return model().rows()[visual_row.model_indices[closest_segment]].node_id;
+  return VisualHit{
+      .visual_row = *visual_index,
+      .model_index = visual_row.model_indices[closest_segment],
+      .bounds = GetSegmentBounds(visual_row, closest_segment,
+                                 std::max(width(), 1))};
+}
+
+std::optional<base::Uuid> SidebarTreeView::NodeAtPoint(
+    const gfx::Point& point) const {
+  const std::vector<VisualRow> visual_rows = BuildVisualRows();
+  const std::optional<VisualHit> hit = FindVisualHit(visual_rows, point);
+  if (!hit.has_value() || hit->model_index >= model().rows().size()) {
+    return std::nullopt;
+  }
+  return model().rows()[hit->model_index].node_id;
 }
 
 }  // namespace ahoi::sidebar

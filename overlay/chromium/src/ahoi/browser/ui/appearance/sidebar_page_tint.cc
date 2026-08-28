@@ -69,7 +69,8 @@ bool IsUsefulBrandColor(
 std::optional<uint8_t> ResolveTintAlpha(
     SkColor source_color,
     SkColor background_color,
-    const std::optional<SkColor>& foreground_color) {
+    const std::optional<SkColor>& foreground_color,
+    const std::optional<SkColor>& muted_foreground_color) {
   source_color = SkColorSetA(source_color, SK_AlphaOPAQUE);
   background_color = SkColorSetA(background_color, SK_AlphaOPAQUE);
   constexpr int kTargetSquaredDistance =
@@ -80,10 +81,16 @@ std::optional<uint8_t> ResolveTintAlpha(
        alpha += kSidebarPageTintAlphaStep) {
     const SkColor blended = color_utils::AlphaBlend(
         source_color, background_color, static_cast<SkAlpha>(alpha));
-    if (foreground_color.has_value() &&
-        color_utils::GetContrastRatio(
-            SkColorSetA(*foreground_color, SK_AlphaOPAQUE), blended) <
-            kMinimumNormalTextContrast) {
+    const auto loses_required_contrast = [blended](
+                                             const std::optional<SkColor>&
+                                                 foreground) {
+      return foreground.has_value() &&
+             color_utils::GetContrastRatio(
+                 SkColorSetA(*foreground, SK_AlphaOPAQUE), blended) <
+                 kMinimumNormalTextContrast;
+    };
+    if (loses_required_contrast(foreground_color) ||
+        loses_required_contrast(muted_foreground_color)) {
       break;
     }
     strongest_safe_alpha = static_cast<uint8_t>(alpha);
@@ -144,7 +151,8 @@ std::optional<SkColor> ResolveSidebarPageTint(
     std::optional<SkColor> favicon_color,
     std::optional<SkColor> sidebar_background_color,
     std::optional<SkColor> sidebar_foreground_color,
-    bool reduce_transparency) {
+    bool reduce_transparency,
+    std::optional<SkColor> sidebar_muted_foreground_color) {
   if (!enabled || high_contrast) {
     return std::nullopt;
   }
@@ -168,7 +176,8 @@ std::optional<SkColor> ResolveSidebarPageTint(
                      *source_color, kFallbackSidebarPageTintAlpha));
   }
   const std::optional<uint8_t> alpha = ResolveTintAlpha(
-      *source_color, *sidebar_background_color, sidebar_foreground_color);
+      *source_color, *sidebar_background_color, sidebar_foreground_color,
+      sidebar_muted_foreground_color);
   if (!alpha.has_value()) {
     return std::nullopt;
   }

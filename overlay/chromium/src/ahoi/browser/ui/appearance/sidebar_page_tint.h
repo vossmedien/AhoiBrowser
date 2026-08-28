@@ -31,7 +31,8 @@ std::optional<SkColor> ResolveSidebarPageTint(
     std::optional<SkColor> favicon_color = std::nullopt,
     std::optional<SkColor> sidebar_background_color = std::nullopt,
     std::optional<SkColor> sidebar_foreground_color = std::nullopt,
-    bool reduce_transparency = false);
+    bool reduce_transparency = false,
+    std::optional<SkColor> sidebar_muted_foreground_color = std::nullopt);
 
 }  // namespace ahoi::appearance
 
