@@ -398,8 +398,12 @@ ProcessInspectionFailureDisposition DecideOpenFileInspectionFailure(
                ? ProcessInspectionFailureDisposition::kBlock
                : ProcessInspectionFailureDisposition::kIgnore;
   }
-  return can_retry ? ProcessInspectionFailureDisposition::kRetry
-                   : ProcessInspectionFailureDisposition::kIgnore;
+  if (can_retry) {
+    return ProcessInspectionFailureDisposition::kRetry;
+  }
+  return ShouldBlockOnProcessInspectionFailure(ownership, liveness)
+             ? ProcessInspectionFailureDisposition::kBlock
+             : ProcessInspectionFailureDisposition::kIgnore;
 }
 
 bool ShouldBlockOnOpenFileInspectionEvidence(

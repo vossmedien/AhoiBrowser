@@ -92,9 +92,12 @@ bool ShouldBlockOnProcessInspectionFailure(ProcessOwnership ownership,
 
 // Pure retry policy for an incomplete descriptor snapshot. A verified PID and
 // start-time change ends inspection of the originally enumerated process. A
-// stable current-user process only blocks after at least three failures for the
-// same identity. Foreign-user failures receive the same retries, but never
-// block solely because descriptor inspection remained inaccessible.
+// stable current-user process blocks after at least three failures for the
+// same identity. If identity cannot be refreshed, a still-live process whose
+// last known ownership is the current user also blocks when retries are
+// exhausted; only verified replacement or ESRCH releases that process.
+// Foreign-user failures receive the same retries, but never block solely
+// because descriptor inspection remained inaccessible.
 ProcessInspectionFailureDisposition DecideOpenFileInspectionFailure(
     ProcessOwnership ownership,
     ProcessLiveness liveness,

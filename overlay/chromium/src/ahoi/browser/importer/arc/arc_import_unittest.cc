@@ -433,9 +433,16 @@ TEST(ArcImportDiscoveryTest,
                 ProcessIdentityMatch::kDifferentProcess,
                 /*consecutive_same_process_failures=*/0,
                 /*can_retry=*/true));
-  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kBlock,
             DecideOpenFileInspectionFailure(
                 ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
+                ProcessIdentityMatch::kUnknown,
+                /*consecutive_same_process_failures=*/0,
+                /*can_retry=*/false));
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
+            DecideOpenFileInspectionFailure(
+                ProcessOwnership::kForeignUser,
+                ProcessLiveness::kAliveButNotSignalable,
                 ProcessIdentityMatch::kUnknown,
                 /*consecutive_same_process_failures=*/0,
                 /*can_retry=*/false));
