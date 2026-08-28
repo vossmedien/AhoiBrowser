@@ -73,10 +73,16 @@ std::optional<SkColor> SidebarTintTransition::current_color() const {
 
   // A missing endpoint means a transparent version of the peer color. This
   // preserves hue while fading and avoids an unintended muddy-black midpoint.
-  const SkColor start =
-      start_color_.value_or(SkColorSetA(*target_color_, SK_AlphaTRANSPARENT));
-  const SkColor target =
-      target_color_.value_or(SkColorSetA(*start_color_, SK_AlphaTRANSPARENT));
+  // Do not use optional::value_or() here: its fallback argument is evaluated
+  // eagerly, so dereferencing the absent peer would crash even when the
+  // optional already contains a value. The conditional operator evaluates
+  // only the selected branch, and the both-missing case returned above.
+  const SkColor start = start_color_.has_value()
+                            ? *start_color_
+                            : SkColorSetA(*target_color_, SK_AlphaTRANSPARENT);
+  const SkColor target = target_color_.has_value()
+                             ? *target_color_
+                             : SkColorSetA(*start_color_, SK_AlphaTRANSPARENT);
   return gfx::Tween::ColorValueBetween(animation_.GetCurrentValue(), start,
                                        target);
 }
