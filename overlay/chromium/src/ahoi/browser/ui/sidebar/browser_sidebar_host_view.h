@@ -629,6 +629,7 @@ class BrowserSidebarHostView final : public views::View,
   WorkspaceTransitionAnimator workspace_transition_animator_;
   bool reduced_motion_ = false;
   bool high_contrast_ = false;
+  bool reduced_transparency_ = false;
   int surface_corner_radius_ = 0;
   std::optional<SkColor> sidebar_page_tint_;
   PrefChangeRegistrar page_tint_pref_change_registrar_;

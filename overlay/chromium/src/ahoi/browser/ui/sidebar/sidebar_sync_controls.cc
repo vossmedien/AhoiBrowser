@@ -285,8 +285,11 @@ class SidebarSyncControlsView final : public views::View {
     SetEnabled(true);
     const bool sync_enabled = service_->sync_enabled();
     const sync::SyncTransportStatus& status = service_->transport_status();
-    const bool remote_control_available =
-        sync_enabled && status.provider_available;
+    const bool remote_control_pairing_available =
+        service_->can_pair_remote_control_device();
+    const bool remote_control_activation_ready =
+        service_->remote_control_prerequisite() ==
+        sync::ProfileSyncService::RemoteControlPrerequisite::kReady;
     updating_controls_ = true;
     sync_enabled_->SetChecked(sync_enabled);
     remote_control_enabled_->SetChecked(service_->remote_control_enabled());
@@ -299,11 +302,13 @@ class SidebarSyncControlsView final : public views::View {
                   std::distance(std::begin(kRetentionDays), retention_it)));
     updating_controls_ = false;
 
-    remote_control_enabled_->SetEnabled(remote_control_available);
-    approval_device_id_->SetEnabled(remote_control_available);
-    approval_public_key_->SetEnabled(remote_control_available);
-    approve_button_->SetEnabled(remote_control_available);
-    approved_devices_container_->SetEnabled(remote_control_available);
+    remote_control_enabled_->SetEnabled(remote_control_activation_ready);
+    approval_device_id_->SetEnabled(remote_control_pairing_available);
+    approval_public_key_->SetEnabled(remote_control_pairing_available);
+    approve_button_->SetEnabled(remote_control_pairing_available);
+    // Revocation is deliberately local and fail-closed, so it remains
+    // available even while CloudKit is offline or recovery is pending.
+    approved_devices_container_->SetEnabled(true);
     retention_->SetEnabled(sync_enabled);
     status_label_->SetText(StatusText(status));
     recovery_container_->SetVisible(status.account_transition_pending ||
@@ -473,7 +478,8 @@ class SidebarSyncControlsView final : public views::View {
 
   void OnRemoteControlToggled(const ui::Event&) {
     if (CanUseRemoteControl() && !updating_controls_) {
-      service_->SetRemoteControlEnabled(remote_control_enabled_->GetChecked());
+      std::ignore = service_->SetRemoteControlEnabled(
+          remote_control_enabled_->GetChecked());
       service_->Refresh();
     }
   }
@@ -532,7 +538,7 @@ class SidebarSyncControlsView final : public views::View {
   }
 
   void RevokeDevice(base::Uuid device_id, const ui::Event&) {
-    if (!CanUseRemoteControl()) {
+    if (!service_) {
       return;
     }
     if (pending_revoke_ != device_id) {
@@ -582,8 +588,7 @@ class SidebarSyncControlsView final : public views::View {
   }
 
   bool CanUseRemoteControl() const {
-    return service_ && service_->sync_enabled() &&
-           service_->transport_status().provider_available;
+    return service_ && service_->can_pair_remote_control_device();
   }
 
   raw_ptr<sync::ProfileSyncService> service_ = nullptr;

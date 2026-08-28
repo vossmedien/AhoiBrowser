@@ -4,6 +4,8 @@
 import 'chrome://resources/cr_elements/cr_view_manager/cr_view_manager.js';
 import 'chrome://resources/cr_elements/cr_button/cr_button.js';
 import 'chrome://resources/cr_elements/cr_checkbox/cr_checkbox.js';
+import 'chrome://resources/cr_elements/cr_input/cr_input.js';
+import {WebUiListenerMixinLit} from 'chrome://resources/cr_elements/web_ui_listener_mixin_lit.js';
 import {sendWithPromise} from 'chrome://resources/js/cr.js';
 import '../controls/settings_dropdown_menu.js';
 import '../controls/settings_toggle_button.js';
@@ -62,6 +64,17 @@ export interface ArcImportCommitResponse {
   approximatedFourPaneRatios: number;
 }
 
+export interface RemoteControlStatusResponse {
+  action: string;
+  prerequisite: string;
+  syncEnabled: boolean;
+  cloudKitAvailable: boolean;
+  canPair: boolean;
+  canEnable: boolean;
+  enabled: boolean;
+  approvedDeviceIds: string[];
+}
+
 export interface SettingsAhoiPageElement {
   $: {
     viewManager: CrViewManagerElement,
@@ -69,7 +82,8 @@ export interface SettingsAhoiPageElement {
 }
 
 const SettingsAhoiPageElementBase =
-    SearchableViewContainerMixinLit(PrefServiceObserverMixinLit(CrLitElement));
+    SearchableViewContainerMixinLit(
+        PrefServiceObserverMixinLit(WebUiListenerMixinLit(CrLitElement)));
 
 export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
   static get is() {
@@ -93,6 +107,10 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       floatingNavigationDelayOptions_: {type: Array},
       historyRetentionOptions_: {type: Array},
       syncEnabledPref_: {type: Object},
+      remoteControlStatus_: {type: Object},
+      remoteControlDeviceId_: {type: String},
+      remoteControlPublicKey_: {type: String},
+      remoteControlActionPending_: {type: Boolean},
       arcImportStage_: {type: String},
       arcImportPreview_: {type: Object},
       arcImportResult_: {type: Object},
@@ -114,6 +132,11 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       PrefObject<boolean>|undefined = undefined;
   protected accessor syncEnabledPref_: PrefObject<boolean>|undefined =
       undefined;
+  protected accessor remoteControlStatus_: RemoteControlStatusResponse|null =
+      null;
+  protected accessor remoteControlDeviceId_: string = '';
+  protected accessor remoteControlPublicKey_: string = '';
+  protected accessor remoteControlActionPending_: boolean = false;
   protected accessor arcImportStage_: string = 'idle';
   protected accessor arcImportPreview_: ArcImportPreviewResponse|null = null;
   protected accessor arcImportResult_: ArcImportCommitResponse|null = null;
@@ -146,12 +169,150 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
 
   override connectedCallback() {
     super.connectedCallback();
+    this.addWebUiListener(
+        'ahoi-remote-control-status-changed',
+        (status: RemoteControlStatusResponse) => {
+          this.applyRemoteControlStatus_(status);
+        });
     this.mirrorPrefs({
       'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
       'ahoi.navigation.floating_auto_hide_enabled':
           'floatingNavigationAutoHideEnabledPref_',
       'ahoi.sync.enabled': 'syncEnabledPref_',
     });
+    void this.refreshRemoteControlStatus_();
+  }
+
+  private applyRemoteControlStatus_(status: RemoteControlStatusResponse) {
+    this.remoteControlStatus_ = status;
+    this.cloudKitAvailable_ = status.cloudKitAvailable;
+  }
+
+  private async refreshRemoteControlStatus_() {
+    try {
+      this.applyRemoteControlStatus_(
+          await sendWithPromise<RemoteControlStatusResponse>(
+              'ahoiGetRemoteControlStatus'));
+    } catch {
+      this.remoteControlStatus_ = null;
+      this.cloudKitAvailable_ = false;
+    }
+  }
+
+  protected async onRemoteControlEnabledChange_(
+      event: CustomEvent<boolean>) {
+    if (this.remoteControlActionPending_) {
+      return;
+    }
+    this.remoteControlActionPending_ = true;
+    try {
+      this.applyRemoteControlStatus_(
+          await sendWithPromise<RemoteControlStatusResponse>(
+              'ahoiSetRemoteControlEnabled', event.detail));
+    } catch {
+      // The control is deliberately not allowed to persist its optimistic
+      // checked state. Re-read the service authority so a blocked or failed
+      // enable snaps back to the fail-closed backend state immediately.
+      await this.refreshRemoteControlStatus_();
+    } finally {
+      this.remoteControlActionPending_ = false;
+    }
+  }
+
+  protected onRemoteControlDeviceIdInput_(event: Event) {
+    this.remoteControlDeviceId_ =
+        (event.currentTarget as HTMLInputElement).value;
+  }
+
+  protected onRemoteControlPublicKeyInput_(event: Event) {
+    this.remoteControlPublicKey_ =
+        (event.currentTarget as HTMLInputElement).value;
+  }
+
+  protected canApproveRemoteControlDevice_(): boolean {
+    return !!this.remoteControlStatus_?.canPair &&
+        !this.remoteControlActionPending_ &&
+        this.remoteControlDeviceId_.trim().length > 0 &&
+        this.remoteControlPublicKey_.trim().length > 0;
+  }
+
+  protected async onApproveRemoteControlDevice_() {
+    if (!this.canApproveRemoteControlDevice_()) {
+      return;
+    }
+    this.remoteControlActionPending_ = true;
+    try {
+      const status = await sendWithPromise<RemoteControlStatusResponse>(
+          'ahoiApproveRemoteControlDevice',
+          this.remoteControlDeviceId_.trim(),
+          this.remoteControlPublicKey_.trim());
+      this.applyRemoteControlStatus_(status);
+      if (status.action === 'approved') {
+        this.remoteControlDeviceId_ = '';
+        this.remoteControlPublicKey_ = '';
+      }
+    } catch {
+      await this.refreshRemoteControlStatus_();
+    } finally {
+      this.remoteControlActionPending_ = false;
+    }
+  }
+
+  protected async onRevokeRemoteControlDevice_(event: Event) {
+    const deviceId =
+        (event.currentTarget as HTMLElement).dataset['deviceId'];
+    if (!deviceId || this.remoteControlActionPending_) {
+      return;
+    }
+    this.remoteControlActionPending_ = true;
+    try {
+      this.applyRemoteControlStatus_(
+          await sendWithPromise<RemoteControlStatusResponse>(
+              'ahoiRevokeRemoteControlDevice', deviceId));
+    } catch {
+      await this.refreshRemoteControlStatus_();
+    } finally {
+      this.remoteControlActionPending_ = false;
+    }
+  }
+
+  protected remoteControlPrerequisiteText_(): string {
+    switch (this.remoteControlStatus_?.prerequisite) {
+      case 'syncDisabled':
+        return loadTimeData.getString('ahoiRemoteControlNeedsSync');
+      case 'transportUnavailable':
+        return loadTimeData.getString('ahoiRemoteControlNeedsCloudKit');
+      case 'recoveryPending':
+        return loadTimeData.getString('ahoiRemoteControlNeedsRecovery');
+      case 'approvedDeviceRequired':
+        return loadTimeData.getString('ahoiRemoteControlNeedsApproval');
+      case 'ready':
+        return loadTimeData.getString(
+            this.remoteControlStatus_?.enabled ?
+                'ahoiRemoteControlActive' :
+                'ahoiRemoteControlReady');
+      default:
+        return loadTimeData.getString('ahoiRemoteControlLoading');
+    }
+  }
+
+  protected remoteControlActionText_(): string {
+    switch (this.remoteControlStatus_?.action) {
+      case 'approved':
+        return loadTimeData.getString('ahoiRemoteControlApproved');
+      case 'invalidApproval':
+        return loadTimeData.getString('ahoiRemoteControlInvalidApproval');
+      case 'revoked':
+        return loadTimeData.getString('ahoiRemoteControlRevoked');
+      case 'blocked':
+        return this.remoteControlPrerequisiteText_();
+      default:
+        return '';
+    }
+  }
+
+  protected shortRemoteControlDeviceId_(deviceId: string): string {
+    return deviceId.slice(0, 8);
   }
 
   override currentRouteChanged(newRoute: Route, oldRoute?: Route) {

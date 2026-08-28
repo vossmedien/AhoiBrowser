@@ -94,6 +94,7 @@ void BrowserSidebarHostView::OnAppearanceChanged(
     const appearance::GlassPolicy& policy) {
   reduced_motion_ = policy.reduced_motion;
   high_contrast_ = policy.high_contrast;
+  reduced_transparency_ = policy.system_reduce_transparency;
   if (reduced_motion_) {
     CancelWorkspaceTransition();
   }
@@ -151,18 +152,26 @@ void BrowserSidebarHostView::RefreshPageTint() {
     }
   }
   std::optional<SkColor> sidebar_background_color;
+  std::optional<SkColor> sidebar_foreground_color;
   if (const ui::ColorProvider* const color_provider = GetColorProvider();
       color_provider && appearance_signal_source_) {
     const appearance::SurfaceAppearance surface =
         appearance::AppearanceResolver::Resolve(
             appearance::SurfaceRole::kSidebar,
             appearance_signal_source_->policy());
-    sidebar_background_color = color_provider->GetColor(surface.background_color);
+    sidebar_background_color =
+        color_provider->GetColor(surface.background_color);
+    // Rows use this semantic text color, so it is the relevant contrast
+    // guard rather than the page-derived color itself.
+    sidebar_foreground_color =
+        color_provider->GetColor(visual_style::kText);
   }
   const std::optional<SkColor> resolved_tint =
       appearance::ResolveSidebarPageTint(enabled, high_contrast_, theme_color,
                                          favicon_color,
-                                         sidebar_background_color);
+                                         sidebar_background_color,
+                                         sidebar_foreground_color,
+                                         reduced_transparency_);
   if (resolved_tint == sidebar_page_tint_) {
     return;
   }

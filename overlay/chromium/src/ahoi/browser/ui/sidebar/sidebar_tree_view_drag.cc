@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstdlib>
 #include <limits>
 #include <set>
 #include <tuple>
@@ -115,6 +116,7 @@ int SidebarTreeView::OnDragUpdated(const ui::DropTargetEvent& event) {
           ? CalculateDropIndicator(*source, event.location(), operation)
           : CalculateTemporaryTabDropIndicator(*runtime_source,
                                                event.location());
+  indicator = StabilizeInsertionSlot(std::move(indicator));
   SetDropIndicator(indicator);
   return indicator.has_value()
              ? static_cast<int>(ToNativeDragOperation(indicator->operation))
@@ -468,6 +470,91 @@ SidebarTreeView::NearestReorderPositionForTarget(
              : SidebarTreeController::DropPosition::kAfter;
 }
 
+std::optional<int> SidebarTreeView::InsertionMarkerY(
+    const DropIndicator& indicator) const {
+  if (!indicator.target_node_id.has_value() ||
+      indicator.position == SidebarTreeController::DropPosition::kInside) {
+    return std::nullopt;
+  }
+  const std::optional<size_t> row_index =
+      model().GetRowForNode(*indicator.target_node_id);
+  if (!row_index.has_value()) {
+    return std::nullopt;
+  }
+  const std::vector<VisualRow> visual_rows = BuildVisualRows();
+  const std::vector<VisualPosition> visual_positions =
+      BuildVisualPositions(visual_rows);
+  if (*row_index >= visual_positions.size() ||
+      !visual_positions[*row_index].present) {
+    return std::nullopt;
+  }
+  const VisualPosition& position = visual_positions[*row_index];
+  if (position.visual_row >= visual_rows.size()) {
+    return std::nullopt;
+  }
+  const gfx::Rect bounds = GetSegmentBounds(
+      visual_rows[position.visual_row], position.segment, std::max(width(), 1));
+  return indicator.position == SidebarTreeController::DropPosition::kBefore
+             ? bounds.y()
+             : bounds.bottom();
+}
+
+std::optional<SidebarTreeView::DropIndicator>
+SidebarTreeView::StabilizeInsertionSlot(
+    std::optional<DropIndicator> indicator) const {
+  if (!indicator.has_value() || !drop_indicator_.has_value() ||
+      indicator->source_node_id != drop_indicator_->source_node_id ||
+      indicator->source_runtime_tab_handle !=
+          drop_indicator_->source_runtime_tab_handle ||
+      indicator->operation != drop_indicator_->operation) {
+    return indicator;
+  }
+  const std::optional<int> current_y = InsertionMarkerY(*drop_indicator_);
+  const std::optional<int> next_y = InsertionMarkerY(*indicator);
+  const tab_tree::TreeNode* const current_target =
+      drop_indicator_->target_node_id.has_value()
+          ? model().GetNode(*drop_indicator_->target_node_id)
+          : nullptr;
+  const tab_tree::TreeNode* const next_target =
+      indicator->target_node_id.has_value()
+          ? model().GetNode(*indicator->target_node_id)
+          : nullptr;
+  // Adjacent rows describe the same insertion slot as either "after A" or
+  // "before B" only when both nodes share the same persisted parent. Keep the
+  // first validated semantic target so a tiny pointer movement cannot make the
+  // marker hop, without crossing a folder boundary or changing ownership.
+  constexpr int kEquivalentSlotTolerance = 3;
+  if (current_target && next_target &&
+      current_target->parent_id == next_target->parent_id &&
+      current_y.has_value() && next_y.has_value() &&
+      std::abs(*current_y - *next_y) <= kEquivalentSlotTolerance) {
+    return drop_indicator_;
+  }
+  return indicator;
+}
+
+void SidebarTreeView::UpdateInsertionMarker() {
+  if (!insertion_marker_) {
+    return;
+  }
+  const std::optional<int> marker_y =
+      drop_indicator_.has_value() ? InsertionMarkerY(*drop_indicator_)
+                                  : std::nullopt;
+  if (!marker_y.has_value() || width() <= 20 || height() <= 0) {
+    insertion_marker_->SetVisible(false);
+    return;
+  }
+  constexpr int kMarkerHeight = 4;
+  constexpr int kMarkerHorizontalInset = 10;
+  const int y = std::clamp(*marker_y - kMarkerHeight / 2, 0,
+                           std::max(height() - kMarkerHeight, 0));
+  insertion_marker_->SetBounds(kMarkerHorizontalInset, y,
+                               width() - 2 * kMarkerHorizontalInset,
+                               kMarkerHeight);
+  insertion_marker_->SetVisible(true);
+  ReorderChildView(insertion_marker_, children().size() - 1);
+}
+
 void SidebarTreeView::SetDropIndicator(std::optional<DropIndicator> indicator) {
   if (drop_indicator_ == indicator) {
     return;
@@ -492,6 +579,7 @@ void SidebarTreeView::SetDropIndicator(std::optional<DropIndicator> indicator) {
                               DropIndicator::Action::kSplit);
     }
   }
+  UpdateInsertionMarker();
   UpdateFolderAutoExpand(drop_indicator_);
   SchedulePaint();
 }

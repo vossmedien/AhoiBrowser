@@ -837,6 +837,10 @@ void BrowserSidebarHostView::OnSplitTabChanged(const SplitTabChange& change) {
     tree_view_->OnSplitGroupsChanged();
   }
   SynchronizeSelection();
+  // Chromium's active WebContents is the active pane inside a split. Resolve
+  // the page tint again here because pane focus can change without a saved
+  // tree selection or navigation event.
+  RefreshPageTint();
   ScheduleRuntimePresentationRefresh();
 }
 

@@ -41,6 +41,7 @@
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/views/accessibility/view_accessibility.h"
+#include "ui/views/background.h"
 #include "ui/views/controls/focus_ring.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/drag_utils.h"
@@ -69,6 +70,15 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
   preferred_height_animation_.SetSlideDuration(
       visual_style::kTreeMotionDuration);
   row_bounds_animator_.SetAnimationDuration(visual_style::kTreeMotionDuration);
+  // This paint-only child is deliberately outside materialized_rows_. Row
+  // synchronization orders every virtualized row before it; when visible it
+  // is explicitly restored to the topmost child slot without affecting layout.
+  insertion_marker_ = AddChildView(std::make_unique<views::View>());
+  insertion_marker_->SetBackground(views::CreateRoundedRectBackground(
+      visual_style::kAccent, 2.0f));
+  insertion_marker_->SetCanProcessEventsWithinSubtree(false);
+  insertion_marker_->GetViewAccessibility().SetIsIgnored(true);
+  insertion_marker_->SetVisible(false);
   last_visual_height_ = GetVisualRowsHeight(BuildVisualRows());
   model().AddObserver(this);
 }
@@ -506,6 +516,7 @@ void SidebarTreeView::SynchronizeRowsAfterVisibleBoundsChange() {
 
 void SidebarTreeView::OnBoundsChanged(const gfx::Rect& /*previous_bounds*/) {
   SynchronizeRows(GetVisibleBounds());
+  UpdateInsertionMarker();
 }
 
 void SidebarTreeView::SetDragTargetVisible(bool visible) {

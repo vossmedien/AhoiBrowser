@@ -20,6 +20,12 @@ struct RemoteCommandPolicy {
   std::map<base::Uuid, std::string> approved_public_keys_base64;
 };
 
+// Validates the complete local approval credential, not merely that a value
+// exists in Preferences. A verified sender key is exactly one raw 32-byte
+// Ed25519 public key encoded as standard Base64.
+[[nodiscard]] bool IsValidRemoteControlPublicKeyBase64(
+    const std::string& public_key_base64);
+
 enum class RemoteCommandValidationFailure {
   kNone = 0,
   kWrongTarget,

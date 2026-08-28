@@ -12,7 +12,6 @@
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/sync_policy.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
-#include "base/base64.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/strings/utf_string_conversions.h"
@@ -76,6 +75,16 @@ ProfileSyncService::ProfileSyncService(Profile* profile)
       kHistoryRetentionDaysPref,
       base::BindRepeating(&ProfileSyncService::OnHistoryRetentionPrefChanged,
                           weak_ptr_factory_.GetWeakPtr()));
+  sync_pref_registrar_.Add(
+      kRemoteControlEnabledPref,
+      base::BindRepeating(
+          &ProfileSyncService::OnRemoteControlPolicyPrefChanged,
+          weak_ptr_factory_.GetWeakPtr()));
+  sync_pref_registrar_.Add(
+      kApprovedRemoteCommandKeysPref,
+      base::BindRepeating(
+          &ProfileSyncService::OnRemoteControlPolicyPrefChanged,
+          weak_ptr_factory_.GetWeakPtr()));
   InitializeProductSync();
   if (history_service_) {
     history_service_->AddObserver(this);
@@ -284,25 +293,27 @@ bool ProfileSyncService::SetHistoryRetentionDays(int days) {
   return true;
 }
 
-void ProfileSyncService::SetRemoteControlEnabled(bool enabled) {
-  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      !transport_status_.provider_available) {
-    return;
+bool ProfileSyncService::SetRemoteControlEnabled(bool enabled) {
+  if (!profile_ || shutting_down_) {
+    return false;
   }
-  profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, enabled);
-  if (enabled) {
-    SyncNow();
+  if (!enabled) {
+    profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, false);
+    return true;
   }
+  if (remote_control_prerequisite() != RemoteControlPrerequisite::kReady) {
+    return false;
+  }
+  profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, true);
+  SyncNow();
+  return true;
 }
 
 bool ProfileSyncService::ApproveRemoteControlDevice(
     const base::Uuid& device_id,
     std::string public_key_base64) {
-  std::string decoded;
-  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      !transport_status_.provider_available || !device_id.is_valid() ||
-      !base::Base64Decode(public_key_base64, &decoded) ||
-      decoded.size() != 32u) {
+  if (!can_pair_remote_control_device() || !device_id.is_valid() ||
+      !IsValidRemoteControlPublicKeyBase64(public_key_base64)) {
     return false;
   }
   base::DictValue keys =
@@ -315,8 +326,9 @@ bool ProfileSyncService::ApproveRemoteControlDevice(
 
 void ProfileSyncService::RevokeRemoteControlDevice(
     const base::Uuid& device_id) {
-  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      !transport_status_.provider_available || !device_id.is_valid()) {
+  // Revocation is a local fail-closed operation and therefore remains
+  // available during an outage or after Sync is disabled.
+  if (!profile_ || shutting_down_ || !device_id.is_valid()) {
     return;
   }
   base::DictValue keys =
@@ -441,6 +453,10 @@ void ProfileSyncService::OnSyncEnabledPrefChanged() {
   if (enabled) {
     StartBackend();
   } else {
+    // Opting out of the local sync authority also revokes receive mode. The
+    // approved local keys remain so the user can deliberately re-enable after
+    // transport recovery without repeating pairing.
+    profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, false);
     StopBackend();
   }
 }
@@ -457,6 +473,22 @@ void ProfileSyncService::OnHistoryRetentionPrefChanged() {
       .WithArgs(days)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
                            backend_weak_ptr_factory_.GetWeakPtr()));
+}
+
+void ProfileSyncService::OnRemoteControlPolicyPrefChanged() {
+  if (!profile_ || shutting_down_) {
+    return;
+  }
+  PrefService* const prefs = profile_->GetPrefs();
+  if (prefs->GetBoolean(kRemoteControlEnabledPref) &&
+      remote_control_prerequisite() != RemoteControlPrerequisite::kReady) {
+    // Preferences can be written by Settings or restored from an older
+    // profile. Never retain an apparently enabled receive policy unless the
+    // local database, CloudKit transport and a verified sender key all exist.
+    prefs->SetBoolean(kRemoteControlEnabledPref, false);
+    return;
+  }
+  NotifyObservers();
 }
 
 void ProfileSyncService::OnBackendState(
@@ -481,6 +513,10 @@ void ProfileSyncService::OnBackendState(
   initialized_ = true;
   const bool transport_changed = transport_status_ != state->transport;
   transport_status_ = state->transport;
+  if (profile_->GetPrefs()->GetBoolean(kRemoteControlEnabledPref) &&
+      remote_control_prerequisite() != RemoteControlPrerequisite::kReady) {
+    profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, false);
+  }
   ApplyDomainState(*state);
   OnBackendSnapshot(std::move(state->device_tabs));
   if (transport_changed) {
@@ -576,15 +612,16 @@ void ProfileSyncService::ApplyDomainState(const SyncStateSnapshot& state) {
 
 RemoteCommandPolicy ProfileSyncService::CurrentRemoteCommandPolicy() const {
   RemoteCommandPolicy policy;
-  if (!profile_ || shutting_down_ || !sync_enabled_ ||
-      !transport_status_.provider_available) {
+  if (!profile_ || shutting_down_ ||
+      remote_control_prerequisite() != RemoteControlPrerequisite::kReady) {
     return policy;
   }
-  policy.enabled = profile_->GetPrefs()->GetBoolean(kRemoteControlEnabledPref);
+  policy.enabled = remote_control_enabled();
   for (const auto [device, value] :
        profile_->GetPrefs()->GetDict(kApprovedRemoteCommandKeysPref)) {
     const base::Uuid id = base::Uuid::ParseLowercase(device);
-    if (id.is_valid() && value.is_string()) {
+    if (id.is_valid() && value.is_string() &&
+        IsValidRemoteControlPublicKeyBase64(value.GetString())) {
       policy.approved_public_keys_base64.emplace(id, value.GetString());
     }
   }
