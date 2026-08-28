@@ -13285,7 +13285,7 @@ index 91de47263bf0471a74a2b9b934ae17e1a7101d50..d4f76e27556c993247cb0dc418c57639
    // Reverses the order of split tabs.
    // Must already be in a split.
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
-index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f7057aef5634 100644
+index c64e533302537a93fabe7d60591ebc51829e83f4..a907bdbeb0d1a9e4e52f9299eef32d75b2a8bf67 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 @@ -6,10 +6,17 @@
@@ -13329,7 +13329,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  #include "ui/views/background.h"
  #include "ui/views/controls/button/image_button.h"
  #include "ui/views/controls/button/image_button_factory.h"
-@@ -67,6 +82,56 @@ void SetAccessibleNameAndTooltip(views::View* view, int string_id) {
+@@ -67,6 +82,61 @@ void SetAccessibleNameAndTooltip(views::View* view, int string_id) {
    view->SetAccessibleName(string);
    view->SetTooltipText(string);
  }
@@ -13368,6 +13368,8 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
 +// Clip at the label boundary as a final invariant so stale glyphs can never
 +// extend into a split divider or neighboring pane while geometry is changing.
 +class DividerSafeLabel final : public views::Label {
++  METADATA_HEADER(DividerSafeLabel, views::Label)
++
 + public:
 +  using views::Label::Label;
 +
@@ -13383,10 +13385,13 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
 +    views::Label::OnPaint(canvas);
 +  }
 +};
++
++BEGIN_METADATA(DividerSafeLabel)
++END_METADATA
  }  // namespace
  
  MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
-@@ -83,6 +148,23 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+@@ -83,6 +153,23 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
    SetPaintToLayer();
    layer()->SetFillsBoundsOpaquely(false);
    SetVisible(false);
@@ -13410,7 +13415,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  
    // Add favicon, domain label, alert state indicator, and close button.
    favicon_ = AddChildView(std::make_unique<views::ImageView>());
-@@ -90,7 +172,8 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+@@ -90,7 +177,8 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
        views::FlexSpecification(views::MinimumFlexSizeRule::kPreferredSnapToZero,
                                 views::MaximumFlexSizeRule::kPreferred);
    favicon_->SetProperty(views::kFlexBehaviorKey, icon_flex_spec.WithOrder(3));
@@ -13420,7 +13425,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
        u"", views::style::CONTEXT_LABEL, views::style::STYLE_PRIMARY,
        gfx::DirectionalityMode::DIRECTIONALITY_AS_URL));
    domain_label_->SetProperty(
-@@ -104,9 +187,11 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+@@ -104,9 +192,11 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
    domain_label_->SetSubpixelRenderingEnabled(false);
    domain_label_->SetEnabledColor(kColorMultiContentsViewMiniToolbarForeground);
    domain_label_->SetBackgroundColor(kColorToolbar);
@@ -13432,7 +13437,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  
    close_button_ = AddChildView(views::CreateVectorImageButtonWithNativeTheme(
        base::BindRepeating(&MultiContentsViewMiniToolbar::CloseCurrentView,
-@@ -135,12 +220,14 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
+@@ -135,12 +225,14 @@ MultiContentsViewMiniToolbar::MultiContentsViewMiniToolbar(
    RegisterTabSubscriptions();
  }
  
@@ -13449,7 +13454,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  
    gfx::Insets kInactiveInteriorMargins = gfx::Insets::TLBR(
        ContentsContainerOutline::kCornerRadius + kMiniToolbarContentPadding,
-@@ -161,9 +248,14 @@ void MultiContentsViewMiniToolbar::UpdateState(bool is_active,
+@@ -161,9 +253,14 @@ void MultiContentsViewMiniToolbar::UpdateState(bool is_active,
  
    SetVisible(!is_highlighted);
  
@@ -13467,7 +13472,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  }
  
  void MultiContentsViewMiniToolbar::UpdateContents() {
-@@ -174,10 +266,9 @@ void MultiContentsViewMiniToolbar::UpdateContents() {
+@@ -174,10 +271,9 @@ void MultiContentsViewMiniToolbar::UpdateContents() {
  
    TabUIHelper* const tab_ui_helper = TabUIHelper::From(interface);
  
@@ -13481,7 +13486,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  
    // Create the formatted domain, this will match the hover card domain.
    std::u16string domain;
-@@ -207,6 +298,8 @@ void MultiContentsViewMiniToolbar::UpdateContents() {
+@@ -207,6 +303,8 @@ void MultiContentsViewMiniToolbar::UpdateContents() {
                                        ? gfx::ELIDE_HEAD
                                        : gfx::ELIDE_TAIL);
    domain_label_->SetCustomTooltipText(base::ASCIIToUTF16(domain_url.spec()));
@@ -13490,7 +13495,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  
    UpdateFavicon(tab_ui_helper);
  }
-@@ -215,13 +308,112 @@ void MultiContentsViewMiniToolbar::UpdateWebContents(views::WebView* web_view) {
+@@ -215,13 +313,112 @@ void MultiContentsViewMiniToolbar::UpdateWebContents(views::WebView* web_view) {
    tab_alert_status_subscription_.reset();
    tab_ui_updated_subscription_.reset();
    web_contents_ = web_view->web_contents();
@@ -13603,7 +13608,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..84b9c82e7f2abed5a56595d4cb11f705
  }
  
  void MultiContentsViewMiniToolbar::OnPaint(gfx::Canvas* canvas) {
-@@ -295,6 +487,34 @@ void MultiContentsViewMiniToolbar::UpdateFavicon(TabUIHelper* tab_ui_helper) {
+@@ -295,6 +492,34 @@ void MultiContentsViewMiniToolbar::UpdateFavicon(TabUIHelper* tab_ui_helper) {
    favicon_->SetImage(favicon);
  }
  
