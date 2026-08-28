@@ -25,41 +25,85 @@ SplitDropOverlayView::SplitDropOverlayView() {
 
 SplitDropOverlayView::~SplitDropOverlayView() = default;
 
-void SplitDropOverlayView::SetIntent(const DropIntent& intent) {
-  intent_ = intent;
+void SplitDropOverlayView::BeginDragPresentation() {
+  if (drag_active_) {
+    return;
+  }
+  drag_active_ = true;
   SetVisible(true);
   SchedulePaint();
 }
 
+void SplitDropOverlayView::SetIntent(const DropIntent& intent) {
+  BeginDragPresentation();
+  intent_ = intent;
+  SchedulePaint();
+}
+
 void SplitDropOverlayView::ClearIntent() {
+  if (!intent_.has_value()) {
+    return;
+  }
+  intent_.reset();
+  SchedulePaint();
+}
+
+void SplitDropOverlayView::EndDragPresentation() {
+  if (!drag_active_ && !intent_.has_value()) {
+    return;
+  }
+  drag_active_ = false;
   intent_.reset();
   SetVisible(false);
 }
 
 void SplitDropOverlayView::OnPaint(gfx::Canvas* canvas) {
   views::View::OnPaint(canvas);
-  if (!intent_.has_value() || intent_->highlight_bounds.IsEmpty() ||
-      !GetColorProvider()) {
+  if (!drag_active_ || !GetColorProvider()) {
     return;
   }
 
   const SkColor accent = GetColorProvider()->GetColor(visual_style::kAccent);
+  gfx::RectF active_bounds(GetLocalBounds());
+  active_bounds.Inset(3.0f);
+  constexpr float kActiveRadius =
+      static_cast<float>(visual_style::kSplitPaneCornerRadius);
+
+  // Keep the base state obvious but restrained: it confirms that the complete
+  // split surface is participating without obscuring the rendered pages.
+  cc::PaintFlags active_fill;
+  active_fill.setAntiAlias(true);
+  active_fill.setColor(SkColorSetA(accent, 0x18));
+  active_fill.setStyle(cc::PaintFlags::kFill_Style);
+  canvas->DrawRoundRect(active_bounds, kActiveRadius, active_fill);
+
+  cc::PaintFlags active_stroke;
+  active_stroke.setAntiAlias(true);
+  active_stroke.setColor(SkColorSetA(accent, 0xB8));
+  active_stroke.setStrokeWidth(2.0f);
+  active_stroke.setStyle(cc::PaintFlags::kStroke_Style);
+  canvas->DrawRoundRect(active_bounds, kActiveRadius, active_stroke);
+
+  if (!intent_.has_value() || intent_->highlight_bounds.IsEmpty()) {
+    return;
+  }
+
   const gfx::RectF highlight(intent_->highlight_bounds);
   const bool detaching = intent_->action == DropAction::kDetachFromSplit;
-  constexpr float kRadius = 12.0f;
+  constexpr float kTargetRadius = 12.0f;
 
   cc::PaintFlags fill;
   fill.setAntiAlias(true);
-  fill.setColor(SkColorSetA(accent, detaching ? 0x48 : 0x38));
+  fill.setColor(SkColorSetA(accent, detaching ? 0x5C : 0x4A));
   fill.setStyle(cc::PaintFlags::kFill_Style);
-  canvas->DrawRoundRect(highlight, kRadius, fill);
+  canvas->DrawRoundRect(highlight, kTargetRadius, fill);
 
   cc::PaintFlags stroke;
   stroke.setAntiAlias(true);
-  stroke.setColor(SkColorSetA(accent, 0xE6));
+  stroke.setColor(SkColorSetA(accent, 0xF2));
   stroke.setStrokeWidth(3.0f);
   stroke.setStyle(cc::PaintFlags::kStroke_Style);
-  canvas->DrawRoundRect(highlight, kRadius, stroke);
+  canvas->DrawRoundRect(highlight, kTargetRadius, stroke);
 
   if (detaching) {
     gfx::RectF outer_edge = highlight;

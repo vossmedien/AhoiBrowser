@@ -269,23 +269,27 @@ std::optional<DropIntent> SplitDropController::UpdateDrag(
   const std::optional<drag::SidebarTabDragPayload> payload =
       drag::ReadSidebarTabDragPayload(data);
   if (!payload.has_value()) {
-    HideOverlay();
+    EndOverlayPresentation();
     return std::nullopt;
   }
   const ResolvedSource source =
       ResolveSource(*payload, /*activate_saved_page=*/false);
   if (!source.valid) {
-    HideOverlay();
+    EndOverlayPresentation();
     return std::nullopt;
   }
 
+  if (overlay_view_tracker_) {
+    static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
+        ->BeginDragPresentation();
+  }
   std::optional<DropIntent> intent =
       BuildIntent(*payload, source.tab.get(), point, visible_panes);
   if (intent.has_value() && overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->SetIntent(*intent);
   } else {
-    HideOverlay();
+    ClearOverlayIntent();
   }
   return intent;
 }
@@ -538,11 +542,11 @@ bool SplitDropController::PerformDrop(
 }
 
 void SplitDropController::OnTargetExited() {
-  HideOverlay();
+  EndOverlayPresentation();
 }
 
 void SplitDropController::CompleteDrag() {
-  HideOverlay();
+  EndOverlayPresentation();
   if (views::View* const browser_sidebar_host =
           browser_sidebar_host_tracker_.view()) {
     sidebar::CancelBrowserSidebarSplitDropDrag(browser_sidebar_host);
@@ -758,10 +762,17 @@ bool SplitDropController::ReorderSplitTo(
   return true;
 }
 
-void SplitDropController::HideOverlay() {
+void SplitDropController::ClearOverlayIntent() {
   if (overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->ClearIntent();
+  }
+}
+
+void SplitDropController::EndOverlayPresentation() {
+  if (overlay_view_tracker_) {
+    static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
+        ->EndDragPresentation();
   }
 }
 

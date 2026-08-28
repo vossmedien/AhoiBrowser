@@ -2255,6 +2255,101 @@ index a096792799d62121394b3a05b93f63228aeadab0..7f167f0c2f804444ea6ac19fa54c1d17
  
    // If enabled, keep Chrome alive when apps are open instead of quitting all
    // apps.
+diff --git a/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm b/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
+index 94da7540e0..a6cab19730 100644
+--- a/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
++++ b/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
+@@ -101,11 +101,38 @@ STATIC_ASSERT_ENUM(NSDragOperationMove, ui::DragDropTypes::DRAG_MOVE);
+ 
+ namespace {
+ 
++// Keep these values in sync with ahoi/browser/ui/drag/sidebar_tab_drag_payload.
++// This app-shim target cannot depend on the higher-level browser component.
++NSString* const kAhoiSavedSidebarTabDragType =
++    @"chromium/x-ahoi-sidebar-tree-node";
++NSString* const kAhoiRuntimeSidebarTabDragType =
++    @"chromium/x-ahoi-runtime-tab";
++
+ gfx::PointF GetSanitizedFlippedPoint(NSPoint point, CGFloat height) {
+   return gfx::PointF(gfx::ClampFloatGeometry(point.x),
+                      gfx::ClampFloatGeometry(height - point.y));
+ }
+ 
++bool IsAhoiSidebarTabDrag(id<NSDraggingInfo> sender) {
++  NSPasteboard* pasteboard = sender.draggingPasteboard;
++  if (!pasteboard) {
++    return false;
++  }
++  NSArray<NSPasteboardType>* types = pasteboard.types;
++  return [types containsObject:kAhoiSavedSidebarTabDragType] ||
++         [types containsObject:kAhoiRuntimeSidebarTabDragType];
++}
++
++NSView* GetAhoiViewsDragDestination(NSView* source, SEL selector) {
++  // A hosted WebContents is a native child of BridgedContentView and therefore
++  // wins AppKit's drag-destination lookup over the surrounding Views tree.
++  // Forward only Ahoi's reserved internal tab payloads to that parent so
++  // ordinary renderer URL, text, file and HTML drops keep their existing path.
++  NSView* destination = source.superview;
++  return destination && [destination respondsToSelector:selector] ? destination
++                                                                  : nil;
++}
++
+ }  // namespace
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -359,6 +386,12 @@ gfx::PointF GetSanitizedFlippedPoint(NSPoint point, CGFloat height) {
+ // NSDraggingDestination methods
+ 
+ - (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
++  if (IsAhoiSidebarTabDrag(sender)) {
++    NSView* destination = GetAhoiViewsDragDestination(
++        self, @selector(draggingEntered:));
++    return destination ? [destination draggingEntered:sender]
++                       : NSDragOperationNone;
++  }
+   if (!_host)
+     return NSDragOperationNone;
+ 
+@@ -381,12 +414,26 @@ gfx::PointF GetSanitizedFlippedPoint(NSPoint point, CGFloat height) {
+ }
+ 
+ - (void)draggingExited:(id<NSDraggingInfo>)sender {
++  if (IsAhoiSidebarTabDrag(sender)) {
++    NSView* destination = GetAhoiViewsDragDestination(
++        self, @selector(draggingExited:));
++    if (destination) {
++      [destination draggingExited:sender];
++    }
++    return;
++  }
+   if (!_host)
+     return;
+   _host->DraggingExited();
+ }
+ 
+ - (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender {
++  if (IsAhoiSidebarTabDrag(sender)) {
++    NSView* destination = GetAhoiViewsDragDestination(
++        self, @selector(draggingUpdated:));
++    return destination ? [destination draggingUpdated:sender]
++                       : NSDragOperationNone;
++  }
+   if (!_host)
+     return NSDragOperationNone;
+   auto draggingInfo = DraggingInfo::New();
+@@ -397,6 +444,11 @@ gfx::PointF GetSanitizedFlippedPoint(NSPoint point, CGFloat height) {
+ }
+ 
+ - (BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
++  if (IsAhoiSidebarTabDrag(sender)) {
++    NSView* destination = GetAhoiViewsDragDestination(
++        self, @selector(performDragOperation:));
++    return destination ? [destination performDragOperation:sender] : NO;
++  }
+   if (!_host)
+     return NO;
+   auto draggingInfo = DraggingInfo::New();
 diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
 index 8436913e6145a4c488524e45218396f61dffba0a..aadbd548922a1d7e4cd8ee2180b54ac605dc0e91 100644
 --- a/chrome/browser/chrome_content_browser_client.cc

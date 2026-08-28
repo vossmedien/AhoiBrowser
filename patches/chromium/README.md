@@ -16,10 +16,11 @@ as a second active patch stack.
 - **Owner:** AhoiBrowser project.
 - **Upstream baseline:** Chromium Mac Stable `152.0.7977.65` at the exact commit
   above.
-- **Affected paths:** 227 existing Chromium integration paths. They cover the
+- **Affected paths:** 247 existing Chromium integration paths. They cover the
   native browser frame/sidebar and command bar, two-to-four-pane split tabs,
   sessions/startup, history/device tabs, settings, HTTP authentication,
-  cookie/cache/privacy policy, extensions, autoscroll, macOS drag handling,
+  cookie/cache/privacy policy, extensions, autoscroll, macOS native
+  WebContents-to-Views drag routing,
   branding/localization, and their focused Chromium tests. Product-owned
   implementations remain under the tracked `overlay/chromium/src/ahoi` tree.
 - **Rationale:** keep Ahoi-owned modules isolated while adapting the smallest

@@ -102,7 +102,8 @@ class SplitDropController {
   bool ReorderSplitTo(split_tabs::SplitTabId split_id,
                       const std::vector<int>& desired_handles,
                       std::optional<size_t> fail_after_successful_reorders);
-  void HideOverlay();
+  void ClearOverlayIntent();
+  void EndOverlayPresentation();
 
   raw_ptr<TabStripModel> tab_strip_model_ = nullptr;
   views::ViewTracker browser_sidebar_host_tracker_;
