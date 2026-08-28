@@ -632,6 +632,8 @@ END_METADATA
 // outline and separators in a final child prevents a selected or hovered pane
 // background from erasing the visual boundary of the complete split.
 class OpenTabSplitChromeView final : public views::View {
+  METADATA_HEADER(OpenTabSplitChromeView, views::View)
+
  public:
   OpenTabSplitChromeView(
       size_t pane_count,
@@ -695,6 +697,9 @@ class OpenTabSplitChromeView final : public views::View {
   const size_t pane_count_;
   const split_tabs::SplitTabVisualData visual_data_;
 };
+
+BEGIN_METADATA(OpenTabSplitChromeView)
+END_METADATA
 
 // A live Chromium split is one visual row in the sidebar as well. Temporary
 // panes and mixed saved/temporary collections live in this composite runtime
