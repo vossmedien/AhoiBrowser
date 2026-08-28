@@ -8262,6 +8262,51 @@ index 95415e5abb2105d9345c870fe2d8f24d1bb6eaff..c1e2324d67c65cf53f661610c28f4dba
  }
  
  ////////////////////////////////////////////////////////////////////////////////
+diff --git a/chrome/browser/ui/tab_ui_helper.cc b/chrome/browser/ui/tab_ui_helper.cc
+index 90c84396f44779419ee2999fd034084103ebf7a7..5d8212f73e8710251a5c94a6720bd0506622dec9 100644
+--- a/chrome/browser/ui/tab_ui_helper.cc
++++ b/chrome/browser/ui/tab_ui_helper.cc
+@@ -30,6 +30,7 @@
+ #include "components/tabs/public/tab_network_state.h"
+ #include "content/public/browser/navigation_controller.h"
+ #include "content/public/browser/navigation_entry.h"
++#include "content/public/browser/navigation_handle.h"
+ #include "content/public/browser/web_contents.h"
+ #include "content/public/common/url_constants.h"
+ #include "ui/base/l10n/l10n_util.h"
+@@ -298,6 +299,19 @@ void TabUIHelper::WasDiscarded() {
+   }
+ }
+ 
++void TabUIHelper::DidStartNavigation(
++    content::NavigationHandle* navigation_handle) {
++  if (!navigation_handle->IsInPrimaryMainFrame() ||
++      GetVisibleURL() == GetLastCommittedURL()) {
++    return;
++  }
++
++  // Browser-initiated navigations install their pending entry before
++  // DidStartNavigation. Notify URL consumers now that the controller exposes
++  // that entry, matching the omnibox during the pending navigation.
++  tab_ui_change_callbacks_.Notify();
++}
++
+ void TabUIHelper::DidFinishNavigation(
+     content::NavigationHandle* navigation_handle) {
+   // Navigation committed so the visible URL might have changed.
+diff --git a/chrome/browser/ui/tab_ui_helper.h b/chrome/browser/ui/tab_ui_helper.h
+index 80565d4e20f1a538319c87828b363cdcbc7f184a..54cfc74e2fbd522b2007c25dd6179e60d4980afa 100644
+--- a/chrome/browser/ui/tab_ui_helper.h
++++ b/chrome/browser/ui/tab_ui_helper.h
+@@ -88,6 +88,8 @@ class TabUIHelper : public tabs::ContentsObservingTabFeature {
+   void DidStopLoading() override;
+   void OnVisibilityChanged(content::Visibility visiblity) override;
+   void WasDiscarded() override;
++  void DidStartNavigation(
++      content::NavigationHandle* navigation_handle) override;
+   void DidFinishNavigation(
+       content::NavigationHandle* navigation_handle) override;
+   void PrimaryMainFrameRenderProcessGone(
 diff --git a/chrome/browser/ui/views/device_chooser_browsertest.cc b/chrome/browser/ui/views/device_chooser_browsertest.cc
 index 2633c402ad09525623b0103618ab61fe1ab2c228..50290785637461321f5d43a5d87f92aa22fb1e13 100644
 --- a/chrome/browser/ui/views/device_chooser_browsertest.cc
@@ -8588,7 +8633,7 @@ index 93eeda2daf44d3da4591852d1a82a0aeb9a969b4..332085416cdde5b04f955008aa0cb5a0
        glass_view.tintColor = [NSColor clearColor];
  
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 4b4697c29715c922037635a40141a3efb2bdbae4..b0bd30351c3a03e916915234d99472c8b33d45e4 100644
+index 4b4697c29715c922037635a40141a3efb2bdbae4..7368de21fa18943648c7044c5b51f67ccbdfee06 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -12,6 +12,29 @@
@@ -9041,7 +9086,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b0bd30351c3a03e916915234d99472c8
  }
  
  // static
-@@ -1290,6 +1615,91 @@ TabStripRegionView* BrowserView::tab_strip_view() const {
+@@ -1290,6 +1615,93 @@ TabStripRegionView* BrowserView::tab_strip_view() const {
    return horizontal_tab_strip_region_view_.get();
  }
  
@@ -9120,7 +9165,9 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..b0bd30351c3a03e916915234d99472c8
 +    content::WebContents* active_contents =
 +        browser_->tab_strip_model()->GetActiveWebContents();
 +    if (active_contents) {
-+      if (tabs::TabInterface::GetFromContents(active_contents)->IsSplit()) {
++      tabs::TabInterface* active_tab =
++          tabs::TabInterface::MaybeGetFromContents(active_contents);
++      if (active_tab && active_tab->IsSplit()) {
 +        ShowSplitView(/*focus_active_view=*/false);
 +      } else {
 +        multi_contents_view_->SetWebContentsAtIndex(active_contents, 0);
@@ -12325,13 +12372,14 @@ index 15f578411f9e877b296f81b589fa4631cfccdad4..b66c9b0f59e5e8bb93bd04d659d8dbc5
    // Insets of the start and end contents view when in split view.
    gfx::Insets split_view_insets_;
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc b/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc
-index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe6413e872 100644
+index ab603907a6df2ab442816339023683862d8c1c64..66d3b1c7572e8522b58169c3e7d04559930bcfb4 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc
-@@ -7,18 +7,22 @@
+@@ -7,18 +7,25 @@
  #include "base/check_deref.h"
  #include "base/files/file_path.h"
  #include "base/notreached.h"
++#include "base/strings/stringprintf.h"
 +#include "base/strings/utf_string_conversions.h"
  #include "base/test/run_until.h"
  #include "base/test/scoped_feature_list.h"
@@ -12339,6 +12387,8 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
  #include "chrome/browser/ui/browser_commands.h"
 +#include "chrome/browser/ui/browser_tabstrip.h"
  #include "chrome/browser/ui/browser_window.h"
++#include "chrome/browser/ui/location_bar/location_bar.h"
++#include "chrome/browser/ui/omnibox/omnibox_view.h"
  #include "chrome/browser/ui/tabs/split_tab_metrics.h"
  #include "chrome/browser/ui/tabs/tab_model.h"
 +#include "chrome/browser/ui/views/frame/contents_container_outline.h"
@@ -12351,7 +12401,7 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
  #include "chrome/browser/ui/views/tabs/dragging/tab_drag_controller.h"
  #include "chrome/browser/ui/views/test/split_view_browser_test_mixin.h"
  #include "chrome/common/pref_names.h"
-@@ -30,6 +34,7 @@
+@@ -30,6 +37,7 @@
  #include "content/public/common/url_constants.h"
  #include "content/public/test/browser_test.h"
  #include "content/public/test/browser_test_utils.h"
@@ -12359,7 +12409,7 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
  #include "testing/gmock/include/gmock/gmock.h"
  #include "third_party/blink/public/mojom/frame/fullscreen.mojom.h"
  #include "ui/base/dragdrop/drag_drop_types.h"
-@@ -41,6 +46,8 @@
+@@ -41,6 +49,8 @@
  #include "ui/base/ozone_buildflags.h"
  #include "ui/compositor/layer_tree_owner.h"
  #include "ui/ozone/public/ozone_platform.h"
@@ -12368,7 +12418,18 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
  #include "ui/views/controls/separator.h"
  #include "ui/views/interaction/element_tracker_views.h"
  #include "ui/views/layout/proposed_layout.h"
-@@ -336,6 +343,66 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
+@@ -92,6 +102,10 @@ void CompareLayouts(const std::vector<views::ChildLayout>& expected,
+ class MultiContentsViewBrowserTest
+     : public SplitViewBrowserTestMixin<InProcessBrowserTest> {};
+ 
++class AhoiEmptyStateSplitRehydrateBrowserTest
++    : public MultiContentsViewBrowserTest,
++      public testing::WithParamInterface<size_t> {};
++
+ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
+                        HandleDropTargetViewLinkDrop_IsSupported) {
+   EXPECT_TRUE(multi_contents_view()->IsDragAndDropEnabled());
+@@ -336,6 +350,66 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
    EXPECT_EQ(0, tab_strip_model->active_index());
  }
  
@@ -12435,7 +12496,7 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
  IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest, DragAndDropEnabledPref) {
    // Drag and drop should be enabled by default.
    EXPECT_TRUE(multi_contents_view()->IsDragAndDropEnabled());
-@@ -373,7 +440,6 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
+@@ -373,7 +447,6 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
  class MultiContentsViewWebContentsReLayoutBrowserTest
      : public SplitViewBrowserTestMixin<InProcessBrowserTest> {
   protected:
@@ -12443,7 +12504,7 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
    static constexpr char kReLayoutTestURL[] = "/re_layout_test.html";
  
    void SetUpOnMainThread() override {
-@@ -818,3 +884,173 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest, DropTargetLayout) {
+@@ -818,3 +891,236 @@ IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest, DropTargetLayout) {
      CompareLayouts(expected_child_layouts, actual_child_layouts);
    }
  }
@@ -12489,7 +12550,7 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
 +                ->web_contents());
 +}
 +
-+IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
++IN_PROC_BROWSER_TEST_P(AhoiEmptyStateSplitRehydrateBrowserTest,
 +                       AhoiEmptyStateRehydratesEverySplitPane) {
 +  BrowserView* browser_view =
 +      BrowserView::GetBrowserViewForBrowser(browser());
@@ -12497,25 +12558,49 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
 +    GTEST_SKIP() << "The Ahoi native sidebar is not enabled in this test run";
 +  }
 +
++  host_resolver()->AddRule("*", "127.0.0.1");
++  ASSERT_TRUE(embedded_test_server()->Start());
++
 +  TabStripModel* tab_strip_model = browser()->tab_strip_model();
-+  ASSERT_TRUE(
-+      AddTabAtIndex(1, GURL(url::kAboutBlankURL), ui::PAGE_TRANSITION_TYPED));
-+  ASSERT_TRUE(
-+      AddTabAtIndex(2, GURL(url::kAboutBlankURL), ui::PAGE_TRANSITION_TYPED));
-+  ASSERT_TRUE(
-+      AddTabAtIndex(3, GURL(url::kAboutBlankURL), ui::PAGE_TRANSITION_TYPED));
++  const size_t pane_count = GetParam();
++  ASSERT_GE(pane_count, 2u);
++  ASSERT_LE(pane_count, split_tabs::SplitTabVisualData::kMaxPanes);
++  std::vector<GURL> pane_urls;
++  pane_urls.reserve(pane_count);
++  for (size_t pane = 0; pane < pane_count; ++pane) {
++    pane_urls.push_back(embedded_test_server()->GetURL(
++        base::StringPrintf("pane-%zu.test", pane), "/title1.html"));
++  }
++
++  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), pane_urls[0]));
++  std::vector<int> additional_tab_indices;
++  for (size_t pane = 1; pane < pane_count; ++pane) {
++    ASSERT_TRUE(AddTabAtIndex(static_cast<int>(pane),
++                              pane_urls[pane],
++                              ui::PAGE_TRANSITION_TYPED));
++    additional_tab_indices.push_back(static_cast<int>(pane));
++  }
 +  tab_strip_model->ActivateTabAt(
 +      0, TabStripUserGestureDetails(
 +             TabStripUserGestureDetails::GestureType::kOther));
++
++  split_tabs::SplitTabVisualData visual_data(
++      split_tabs::SplitTabLayout::kSideBySide);
++  if (pane_count == 3u) {
++    visual_data = split_tabs::SplitTabVisualData::ForThreePane(
++        split_tabs::SplitTabLayout::kSideBySide);
++  } else if (pane_count == 4u) {
++    visual_data = split_tabs::SplitTabVisualData::ForFourPane(
++        split_tabs::SplitTabLayout::kSideBySide);
++  }
 +  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-+      {1, 2, 3},
-+      split_tabs::SplitTabVisualData::ForFourPane(
-+          split_tabs::SplitTabLayout::kSideBySide),
++      std::move(additional_tab_indices), visual_data,
 +      split_tabs::SplitTabCreatedSource::kToolbarButton);
 +  ASSERT_TRUE(tab_strip_model->ContainsSplit(split_id));
++  const int active_pane = static_cast<int>(pane_count / 2u);
 +  tab_strip_model->ActivateTabAt(
-+      2, TabStripUserGestureDetails(
-+             TabStripUserGestureDetails::GestureType::kOther));
++      active_pane, TabStripUserGestureDetails(
++                       TabStripUserGestureDetails::GestureType::kOther));
 +  RunScheduledLayouts();
 +
 +  split_tabs::SplitTabData* split_data =
@@ -12525,17 +12610,30 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
 +  for (tabs::TabInterface* tab : split_data->ListTabs()) {
 +    expected_contents.push_back(tab->GetContents());
 +  }
-+  ASSERT_EQ(expected_contents.size(), 4u);
++  ASSERT_EQ(expected_contents.size(), pane_count);
++  for (size_t pane = 0; pane < pane_count; ++pane) {
++    EXPECT_EQ(pane_urls[pane], expected_contents[pane]->GetVisibleURL());
++  }
 +
 +  MultiContentsView* view = browser_view->multi_contents_view();
-+  ASSERT_EQ(view->GetVisiblePaneCount(), 4u);
-+  const int active_pane = view->GetActiveIndex();
-+  ASSERT_EQ(active_pane, 2);
-+  MultiContentsViewMiniToolbar* active_toolbar =
-+      view->mini_toolbar_for_testing(active_pane);
-+  EXPECT_TRUE(active_toolbar->active_indicator_for_testing()->GetVisible());
-+  EXPECT_FALSE(
-+      active_toolbar->favicon_for_testing()->GetImageModel().IsEmpty());
++  ASSERT_EQ(view->GetVisiblePaneCount(), pane_count);
++  ASSERT_EQ(view->GetActiveIndex(), active_pane);
++  for (size_t pane = 0; pane < pane_count; ++pane) {
++    MultiContentsViewMiniToolbar* toolbar =
++        view->mini_toolbar_for_testing(pane);
++    EXPECT_EQ(base::ASCIIToUTF16(pane_urls[pane].host()),
++              toolbar->domain_label_for_testing()->GetText());
++    EXPECT_EQ(base::UTF8ToUTF16(pane_urls[pane].spec()),
++              toolbar->GetTooltipText());
++    EXPECT_EQ(static_cast<int>(pane) == active_pane,
++              toolbar->active_indicator_for_testing()->GetVisible());
++  }
++
++  OmniboxView* omnibox =
++      BrowserWindow::FromBrowser(browser())->GetLocationBar()->GetOmniboxView();
++  ASSERT_TRUE(omnibox);
++  EXPECT_THAT(base::UTF16ToUTF8(omnibox->GetText()),
++              ::testing::HasSubstr(pane_urls[active_pane].host()));
 +
 +  browser_view->SetAhoiEmptyStateVisible(true);
 +  EXPECT_TRUE(view->IsAhoiEmptyStateVisibleForTesting());
@@ -12559,17 +12657,39 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
 +  browser_view->SetAhoiEmptyStateVisible(false);
 +  EXPECT_FALSE(view->IsAhoiEmptyStateVisibleForTesting());
 +  EXPECT_TRUE(view->IsInSplitView());
-+  EXPECT_EQ(view->GetVisiblePaneCount(), 4u);
++  EXPECT_EQ(view->GetVisiblePaneCount(), pane_count);
 +  EXPECT_EQ(view->GetActiveIndex(), active_pane);
 +  for (size_t pane = 0; pane < expected_contents.size(); ++pane) {
 +    EXPECT_EQ(expected_contents[pane],
 +              view->contents_container_views()[pane]
 +                  ->contents_view()
 +                  ->web_contents());
++    MultiContentsViewMiniToolbar* toolbar =
++        view->mini_toolbar_for_testing(pane);
++    EXPECT_EQ(base::ASCIIToUTF16(pane_urls[pane].host()),
++              toolbar->domain_label_for_testing()->GetText());
++    EXPECT_EQ(base::UTF8ToUTF16(pane_urls[pane].spec()),
++              toolbar->GetTooltipText());
++    const bool is_active = static_cast<int>(pane) == active_pane;
++    EXPECT_EQ(is_active,
++              toolbar->active_indicator_for_testing()->GetVisible());
++    EXPECT_EQ(is_active,
++              !toolbar->active_indicator_for_testing()
++                   ->GetViewAccessibility()
++                   .GetCachedName()
++                   .empty());
 +  }
 +  EXPECT_EQ(tab_strip_model->GetActiveWebContents(),
 +            view->GetActiveContentsView()->web_contents());
++  EXPECT_EQ(pane_urls[active_pane],
++            tab_strip_model->GetActiveWebContents()->GetVisibleURL());
++  EXPECT_THAT(base::UTF16ToUTF8(omnibox->GetText()),
++              ::testing::HasSubstr(pane_urls[active_pane].host()));
 +}
++
++INSTANTIATE_TEST_SUITE_P(AllPaneCounts,
++                         AhoiEmptyStateSplitRehydrateBrowserTest,
++                         testing::Values(2u, 3u, 4u));
 +
 +IN_PROC_BROWSER_TEST_F(MultiContentsViewBrowserTest,
 +                       MiniToolbarTracksPendingAndCommittedVisibleUrl) {
@@ -12610,6 +12730,10 @@ index ab603907a6df2ab442816339023683862d8c1c64..c0582bf5275a1b85311f2664ea9bccbe
 +
 +  active_contents->Stop();
 +  ASSERT_TRUE(pending_navigation.WaitForNavigationFinished());
++  EXPECT_EQ(base::ASCIIToUTF16(committed_url.host()),
++            toolbar->domain_label_for_testing()->GetText());
++  EXPECT_EQ(base::UTF8ToUTF16(committed_url.spec()), toolbar->GetTooltipText());
++
 +  const GURL final_url =
 +      embedded_test_server()->GetURL("final.test", "/title2.html");
 +  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), final_url));
