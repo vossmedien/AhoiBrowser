@@ -73,8 +73,10 @@ cannot authorize a build or suppress that run.
 
 A complete checkout/build requires ample free disk space. See
 [`docs/BUILDING.md`](docs/BUILDING.md) before fetching Chromium. An explicitly
-supervised run may set `AHOI_ALLOW_LOW_DISK=1` below the 150 GiB recommendation,
-but every checkout and build still fails below the hard 120 GiB safety floor.
+supervised checkout may set `AHOI_ALLOW_LOW_DISK=1` below the 150 GiB checkout
+recommendation, but still fails below its hard 120 GiB floor. Builds use their
+own 64 GiB recommendation and 32 GiB hard floor, because an existing checkout
+and incremental output do not need checkout-sized free-space headroom.
 
 ## License and contribution
 

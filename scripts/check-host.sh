@@ -108,7 +108,7 @@ minimum_memory="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.m
   ahoi_die "host memory is below the configured minimum"
 
 available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
-required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeWorkBytes)"
+required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeBuildBytes)"
 
 ahoi_note "host: $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion)), ${actual_arch}"
 ahoi_note "hardware: $(sysctl -n machdep.cpu.brand_string), $((actual_memory / 1073741824)) GiB RAM"

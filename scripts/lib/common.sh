@@ -106,12 +106,12 @@ PY
 ahoi_require_build_free_space() {
   local required
   local available
-  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeWorkBytes)"
+  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeBuildBytes)"
   available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
   if [ "${available}" -lt "${required}" ]; then
     if [ "${AHOI_ALLOW_LOW_DISK:-0}" = "1" ]; then
       local absolute_floor
-      absolute_floor="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.absoluteMinimumFreeCheckoutBytes)"
+      absolute_floor="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.absoluteMinimumFreeBuildBytes)"
       [ "${available}" -ge "${absolute_floor}" ] || \
         ahoi_die "low-disk build override refused below the absolute safety floor"
       python3 - "${available}" "${required}" <<'PY'

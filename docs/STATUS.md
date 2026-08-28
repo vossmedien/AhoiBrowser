@@ -62,9 +62,10 @@ notarization, stapling, or exact packaged-to-live release provenance.
 A valid Developer ID Application identity is available locally. Release remains
 blocked until the reviewed release environment and Team ID binding, Keychain
 notary profile, exact submission/acceptance, stapling and validation receipts
-exist. The normal checkout/build recommendation is 150 GiB free. An explicitly
-supervised `AHOI_ALLOW_LOW_DISK=1` run is permitted only at or above the hard
-120 GiB safety floor and does not itself count as release evidence. The actual
-free-space gate is measured again at command start. Remaining credential,
+exist. A fresh checkout uses a 150 GiB recommendation and 120 GiB hard floor;
+builds with an existing checkout use a 64 GiB recommendation and 32 GiB hard
+floor. An explicitly supervised `AHOI_ALLOW_LOW_DISK=1` run below the applicable
+recommendation does not itself count as release evidence. The actual free-space
+gate is measured again at command start. Remaining credential,
 service, entitlement, assisted-device and legal gates are listed in
 `config/external-gates.json`.

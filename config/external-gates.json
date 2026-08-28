@@ -12,7 +12,7 @@
       "id": "disk-headroom",
       "state": "ready-with-explicit-local-override",
       "owner": "engineering",
-      "condition": "The normal Chromium checkout/build recommendation remains 150 GiB free. For this explicitly supervised M152 run, AHOI_ALLOW_LOW_DISK=1 may proceed below that recommendation, but every checkout and build fails closed below the hard 120 GiB safety floor. Available space is measured again at each command start; the override is local authorization only and is not release evidence."
+      "condition": "A fresh Chromium checkout retains a 150 GiB recommendation and 120 GiB hard floor. Builds with an existing checkout use a profile-specific 64 GiB recommendation and 32 GiB hard floor, so incremental builds are not blocked by checkout-sized headroom. AHOI_ALLOW_LOW_DISK=1 is still required below the applicable recommendation, available space is measured again at each command start, and the override is local authorization only rather than release evidence."
     },
     {
       "id": "widevine-mla",

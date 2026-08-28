@@ -79,7 +79,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
                 "preserve linked\n", linked_receipt.read_text(encoding="utf-8")
             )
 
-    def test_low_disk_build_override_is_explicit_and_keeps_a_hard_floor(self):
+    def test_build_disk_guard_uses_a_profile_specific_hard_floor(self):
         helper_script = ROOT / "scripts/lib/common.sh"
         completed = subprocess.run(
             [
@@ -87,7 +87,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
                 "-c",
                 (
                     'source "$1"; '
-                    'ahoi_free_bytes() { printf "%s\\n" 150323855360; }; '
+                    'ahoi_free_bytes() { printf "%s\\n" 53687091200; }; '
                     'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
                 ),
                 "ahoi-low-disk-test",
@@ -107,7 +107,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
                 "-c",
                 (
                     'source "$1"; '
-                    'ahoi_free_bytes() { printf "%s\\n" 128849018879; }; '
+                    'ahoi_free_bytes() { printf "%s\\n" 34359738367; }; '
                     'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
                 ),
                 "ahoi-low-disk-test",

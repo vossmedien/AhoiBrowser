@@ -6,7 +6,9 @@
     "minimumVersion": "26.0",
     "minimumMemoryBytes": 17179869184,
     "minimumFreeWorkBytes": 161061273600,
-    "absoluteMinimumFreeCheckoutBytes": 128849018880
+    "absoluteMinimumFreeCheckoutBytes": 128849018880,
+    "minimumFreeBuildBytes": 68719476736,
+    "absoluteMinimumFreeBuildBytes": 34359738368
   },
   "xcode": {
     "requiredVersion": "26.6",

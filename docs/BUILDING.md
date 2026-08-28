@@ -3,8 +3,8 @@
 ## Supported host
 
 Phase 0 targets Apple Silicon with macOS 26, exact Xcode 26.6 (17F113), macOS
-SDK 26.5 (25F70), iOS SDK 26.5 (23F81a), Git, APFS, and at least 150 GiB of
-free working space. Chromium M152 pins that same Xcode and SDK tuple for the
+SDK 26.5 (25F70), iOS SDK 26.5 (23F81a), Git, APFS, and 150 GiB of free space
+for a fresh Chromium checkout. Chromium M152 pins that same Xcode and SDK tuple for the
 upstream control, Ahoi development, and release paths. The paths retain
 different `pinned-reference` and `compatible-development` provenance labels;
 the latter does not turn development evidence into release evidence.
@@ -34,11 +34,13 @@ because the temporary workaround was restored. A milestone update fails closed
 until the new Chromium and V8 revisions, original target bytes, and patch
 applicability are reviewed and repinned.
 
-For an explicitly supervised checkout or build, `AHOI_ALLOW_LOW_DISK=1`
-permits starting below the recommended 150 GiB but never below the configured
-120 GiB absolute floor. The override emits a warning and changes neither the
-recommendation nor the evidence required from the resulting build; it is not a
-release-pass signal by itself.
+For an explicitly supervised checkout, `AHOI_ALLOW_LOW_DISK=1` permits starting
+below the recommended 150 GiB but never below the configured 120 GiB checkout
+floor. Builds with an existing checkout have a separate 64 GiB recommendation
+and 32 GiB hard floor; this avoids reserving checkout-sized headroom for an
+incremental build. The override emits a warning below the applicable
+recommendation and changes neither the recommendation nor the evidence required
+from the resulting build; it is not a release-pass signal by itself.
 
 ## Bootstrap
 
