@@ -132,6 +132,12 @@ class SidebarTreeView final : public views::View,
   bool drag_target_accepting_for_testing() const {
     return drag_target_accepting_;
   }
+  bool insertion_marker_visible_for_testing() const {
+    return insertion_marker_ && insertion_marker_->GetVisible();
+  }
+  gfx::Rect insertion_marker_bounds_for_testing() const {
+    return insertion_marker_ ? insertion_marker_->bounds() : gfx::Rect();
+  }
   void SynchronizeRowsForTesting(const gfx::Rect& visible_bounds);
   std::optional<DropIndicator> CalculateDropIndicatorForTesting(
       const base::Uuid& source_node_id,
@@ -280,8 +286,7 @@ class SidebarTreeView final : public views::View,
   std::optional<VisualHit> FindVisualHit(
       const std::vector<VisualRow>& visual_rows,
       const gfx::Point& point) const;
-  std::optional<DropIndicator> CalculateDropIndicator(
-      DropIndicator probe);
+  std::optional<DropIndicator> CalculateDropIndicator(DropIndicator probe);
   std::optional<DropIndicator> CalculateTemporaryTabDropIndicator(
       DropIndicator probe);
   std::optional<DropIndicator> BuildDropProbe(
@@ -293,7 +298,7 @@ class SidebarTreeView final : public views::View,
       int runtime_tab_handle,
       const gfx::Point& point,
       const std::vector<VisualRow>& visual_rows) const;
-  std::optional<int> InsertionMarkerY(const DropIndicator& indicator) const;
+  std::optional<int> InsertionSlotY(const DropIndicator& indicator) const;
   std::optional<DropIndicator> StabilizeInsertionSlot(
       std::optional<DropIndicator> indicator) const;
   void UpdateInsertionMarker();
@@ -314,6 +319,10 @@ class SidebarTreeView final : public views::View,
   const std::u16string split_with_prefix_;
   std::unordered_map<base::Uuid, raw_ptr<SidebarTreeRowView>, base::UuidHash>
       materialized_rows_;
+  // Paint-only overlay. The full row edge zone communicates target area;
+  // this fixed semantic slot edge disambiguates before from after without
+  // participating in layout or following raw pointer coordinates.
+  raw_ptr<views::View> insertion_marker_ = nullptr;
   std::vector<std::unique_ptr<SidebarTreeRowView>> recycled_rows_;
   // Selection can synchronously re-materialize a virtualized row between its
   // mouse-down and mouse-up. Keep the pressed identity in the stable owner so
@@ -321,7 +330,6 @@ class SidebarTreeView final : public views::View,
   std::optional<base::Uuid> pressed_node_id_;
   std::optional<base::Uuid> editing_node_id_;
   std::optional<DropIndicator> drop_indicator_;
-  raw_ptr<views::View> insertion_marker_ = nullptr;
   bool drag_target_visible_ = false;
   bool drag_target_accepting_ = false;
   std::set<base::Uuid> runtime_composite_suppressed_nodes_;

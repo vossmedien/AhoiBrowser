@@ -64,6 +64,8 @@ void SplitDropOverlayView::OnPaint(gfx::Canvas* canvas) {
   }
 
   const SkColor accent = GetColorProvider()->GetColor(visual_style::kAccent);
+  const SkColor drop_surface =
+      GetColorProvider()->GetColor(visual_style::kDropTargetSurface);
   gfx::RectF active_bounds(GetLocalBounds());
   active_bounds.Inset(3.0f);
   constexpr float kActiveRadius =
@@ -94,7 +96,7 @@ void SplitDropOverlayView::OnPaint(gfx::Canvas* canvas) {
 
   cc::PaintFlags fill;
   fill.setAntiAlias(true);
-  fill.setColor(SkColorSetA(accent, detaching ? 0x5C : 0x4A));
+  fill.setColor(SkColorSetA(drop_surface, detaching ? 0xD8 : 0xB8));
   fill.setStyle(cc::PaintFlags::kFill_Style);
   canvas->DrawRoundRect(highlight, kTargetRadius, fill);
 
@@ -123,8 +125,7 @@ void SplitDropOverlayView::OnPaint(gfx::Canvas* canvas) {
     edge_marker.setAntiAlias(true);
     edge_marker.setColor(SkColorSetA(accent, 0xF2));
     edge_marker.setStyle(cc::PaintFlags::kFill_Style);
-    canvas->DrawRoundRect(outer_edge, kEdgeMarkerThickness / 2.0f,
-                          edge_marker);
+    canvas->DrawRoundRect(outer_edge, kEdgeMarkerThickness / 2.0f, edge_marker);
   }
 }
 

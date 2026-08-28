@@ -45,6 +45,14 @@ std::vector<SidebarSplitSeparator> GetSidebarSplitSeparators(
     const std::vector<gfx::Rect>& segment_bounds,
     const gfx::RectF& paint_bounds);
 
+// Returns the stable, full-surface target used for before/after tab drops.
+// Hit testing and paint both use the same 30% edge geometry; unlike a moving
+// insertion line the returned surface remains easy to aim at during a native
+// drag. `trailing_edge` means after/bottom in the vertical sidebar list.
+int GetSidebarEdgeDropTargetExtent(int row_height);
+gfx::RectF GetSidebarEdgeDropTargetBounds(const gfx::Rect& row_bounds,
+                                          bool trailing_edge);
+
 }  // namespace ahoi::sidebar
 
 #endif  // AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_SPLIT_LAYOUT_H_

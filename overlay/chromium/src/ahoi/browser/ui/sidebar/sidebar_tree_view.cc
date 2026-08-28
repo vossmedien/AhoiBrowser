@@ -70,12 +70,12 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
   preferred_height_animation_.SetSlideDuration(
       visual_style::kTreeMotionDuration);
   row_bounds_animator_.SetAnimationDuration(visual_style::kTreeMotionDuration);
-  // This paint-only child is deliberately outside materialized_rows_. Row
-  // synchronization orders every virtualized row before it; when visible it
-  // is explicitly restored to the topmost child slot without affecting layout.
+  // This paint-only child is deliberately outside materialized_rows_. The
+  // full target surface is painted by the row; this topmost fixed edge only
+  // disambiguates before/after and never participates in layout.
   insertion_marker_ = AddChildView(std::make_unique<views::View>());
-  insertion_marker_->SetBackground(views::CreateRoundedRectBackground(
-      visual_style::kAccent, 2.0f));
+  insertion_marker_->SetBackground(
+      views::CreateRoundedRectBackground(visual_style::kAccent, 2.0f));
   insertion_marker_->SetCanProcessEventsWithinSubtree(false);
   insertion_marker_->GetViewAccessibility().SetIsIgnored(true);
   insertion_marker_->SetVisible(false);
@@ -233,9 +233,8 @@ SidebarTreeView::CalculateDropIndicatorForTesting(
   const std::vector<VisualRow> visual_rows = BuildVisualRows();
   std::optional<DropIndicator> probe =
       BuildDropProbe(source_node_id, point, operation, visual_rows);
-  return probe.has_value()
-             ? CalculateDropIndicator(std::move(*probe))
-             : std::nullopt;
+  return probe.has_value() ? CalculateDropIndicator(std::move(*probe))
+                           : std::nullopt;
 }
 
 void SidebarTreeView::OnRowPressed(SidebarTreeRowView* row,
@@ -662,12 +661,17 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
     background.Inset(gfx::InsetsF::VH(2.0f, 4.0f));
     canvas->DrawRoundRect(background, visual_style::kRowCornerRadius,
                           group_fill);
+    gfx::RectF outline_bounds = background;
+    outline_bounds.Inset(separator.getStrokeWidth() / 2.0f);
+    canvas->DrawRoundRect(outline_bounds,
+                          std::max(0.0f, visual_style::kRowCornerRadius -
+                                             separator.getStrokeWidth() / 2.0f),
+                          separator);
 
     // Derive separators from actual pane adjacency rather than pane order.
     // Inset by half the stroke as well as the painted background margin so no
     // anti-aliased endpoint protrudes above, below or beside the group bubble.
-    gfx::RectF separator_bounds = background;
-    separator_bounds.Inset(gfx::InsetsF(separator.getStrokeWidth() / 2.0f));
+    gfx::RectF separator_bounds = outline_bounds;
     for (const SidebarSplitSeparator& split_separator :
          GetSidebarSplitSeparators(segment_bounds, separator_bounds)) {
       canvas->DrawLine(split_separator.start, split_separator.end, separator);

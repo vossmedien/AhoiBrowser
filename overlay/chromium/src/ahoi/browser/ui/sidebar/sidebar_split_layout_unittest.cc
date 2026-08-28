@@ -93,5 +93,29 @@ TEST(SidebarSplitLayoutTest,
       separators);
 }
 
+TEST(SidebarSplitLayoutTest, EdgeDropTargetsAreStableFullWidthSurfaces) {
+  const gfx::Rect row_bounds(0, 0, 240, 40);
+  const gfx::RectF before =
+      GetSidebarEdgeDropTargetBounds(row_bounds, /*trailing_edge=*/false);
+  const gfx::RectF after =
+      GetSidebarEdgeDropTargetBounds(row_bounds, /*trailing_edge=*/true);
+
+  EXPECT_EQ(12, GetSidebarEdgeDropTargetExtent(row_bounds.height()));
+  EXPECT_EQ(gfx::RectF(4.0f, 0.0f, 232.0f, 12.0f), before);
+  EXPECT_EQ(gfx::RectF(4.0f, 28.0f, 232.0f, 12.0f), after);
+  EXPECT_EQ(before.size(), after.size());
+}
+
+TEST(SidebarSplitLayoutTest, EdgeDropTargetsRemainBoundedInNarrowSplitPane) {
+  const gfx::Rect pane_bounds(0, 0, 6, 30);
+  const gfx::RectF target =
+      GetSidebarEdgeDropTargetBounds(pane_bounds, /*trailing_edge=*/false);
+
+  EXPECT_FALSE(target.IsEmpty());
+  EXPECT_GE(target.x(), pane_bounds.x());
+  EXPECT_LE(target.right(), pane_bounds.right());
+  EXPECT_LE(target.bottom(), pane_bounds.bottom());
+}
+
 }  // namespace
 }  // namespace ahoi::sidebar

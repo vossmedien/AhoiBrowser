@@ -50,17 +50,6 @@ namespace {
 
 constexpr int kAutoScrollEdge = 24;
 
-int ReorderDropZoneHeight(int row_height) {
-  if (row_height <= 2) {
-    return 1;
-  }
-  // Reserve 30% at both row edges for predictable before/after ordering and
-  // the central 40% for folder/split intent. The previous fixed 5 px edge was
-  // below a reliable pointer target on Retina displays and made ordinary
-  // saved-tab reordering needlessly difficult.
-  return std::clamp(row_height * 3 / 10, 1, (row_height - 1) / 2);
-}
-
 ui::mojom::DragOperation ToNativeDragOperation(
     SidebarTreeController::DropOperation operation) {
   return operation == SidebarTreeController::DropOperation::kCopy
@@ -123,9 +112,8 @@ int SidebarTreeView::OnDragUpdated(const ui::DropTargetEvent& event) {
   last_drop_probe_ = probe;
   std::optional<DropIndicator> indicator;
   if (probe.has_value()) {
-    indicator = source.has_value()
-                    ? CalculateDropIndicator(*probe)
-                    : CalculateTemporaryTabDropIndicator(*probe);
+    indicator = source.has_value() ? CalculateDropIndicator(*probe)
+                                   : CalculateTemporaryTabDropIndicator(*probe);
   }
   indicator = StabilizeInsertionSlot(std::move(indicator));
   SetDropIndicator(indicator);
@@ -246,10 +234,8 @@ void SidebarTreeView::ScheduleSynchronization(bool preferred_size_changed) {
 }
 
 std::optional<SidebarTreeView::DropIndicator>
-SidebarTreeView::CalculateDropIndicator(
-    DropIndicator probe) {
-  if (!probe.source_node_id.is_valid() ||
-      !model().workspace_id().has_value()) {
+SidebarTreeView::CalculateDropIndicator(DropIndicator probe) {
+  if (!probe.source_node_id.is_valid() || !model().workspace_id().has_value()) {
     return std::nullopt;
   }
   const base::Uuid source_node_id = probe.source_node_id;
@@ -305,8 +291,7 @@ SidebarTreeView::CalculateDropIndicator(
 }
 
 std::optional<SidebarTreeView::DropIndicator>
-SidebarTreeView::CalculateTemporaryTabDropIndicator(
-    DropIndicator probe) {
+SidebarTreeView::CalculateTemporaryTabDropIndicator(DropIndicator probe) {
   if (!probe.source_runtime_tab_handle.has_value() ||
       !model().workspace_id().has_value() || !delegate_) {
     return std::nullopt;
@@ -373,7 +358,8 @@ std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
     const gfx::Rect& target_bounds = hit->bounds;
     const int offset = clamped_y - target_bounds.y();
     const int target_height = target_bounds.height();
-    const int reorder_zone_height = ReorderDropZoneHeight(target_height);
+    const int reorder_zone_height =
+        GetSidebarEdgeDropTargetExtent(target_height);
     const auto nearest_position =
         offset < target_height / 2
             ? SidebarTreeController::DropPosition::kBefore
@@ -400,10 +386,10 @@ std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
 }
 
 std::optional<SidebarTreeView::DropIndicator>
-SidebarTreeView::BuildTemporaryTabDropProbe(int runtime_tab_handle,
-                                            const gfx::Point& point,
-                                            const std::vector<VisualRow>&
-                                                visual_rows) const {
+SidebarTreeView::BuildTemporaryTabDropProbe(
+    int runtime_tab_handle,
+    const gfx::Point& point,
+    const std::vector<VisualRow>& visual_rows) const {
   if (runtime_tab_handle < 0 || !model().workspace_id().has_value()) {
     return std::nullopt;
   }
@@ -426,7 +412,8 @@ SidebarTreeView::BuildTemporaryTabDropProbe(int runtime_tab_handle,
     const gfx::Rect& target_bounds = hit->bounds;
     const int offset = clamped_y - target_bounds.y();
     const int target_height = target_bounds.height();
-    const int reorder_zone_height = ReorderDropZoneHeight(target_height);
+    const int reorder_zone_height =
+        GetSidebarEdgeDropTargetExtent(target_height);
     const auto nearest_position =
         offset < target_height / 2
             ? SidebarTreeController::DropPosition::kBefore
@@ -449,7 +436,7 @@ SidebarTreeView::BuildTemporaryTabDropProbe(int runtime_tab_handle,
   return probe;
 }
 
-std::optional<int> SidebarTreeView::InsertionMarkerY(
+std::optional<int> SidebarTreeView::InsertionSlotY(
     const DropIndicator& indicator) const {
   if (!indicator.target_node_id.has_value() ||
       !indicator.target_bounds.has_value() ||
@@ -471,8 +458,8 @@ SidebarTreeView::StabilizeInsertionSlot(
       indicator->operation != drop_indicator_->operation) {
     return indicator;
   }
-  const std::optional<int> current_y = InsertionMarkerY(*drop_indicator_);
-  const std::optional<int> next_y = InsertionMarkerY(*indicator);
+  const std::optional<int> current_y = InsertionSlotY(*drop_indicator_);
+  const std::optional<int> next_y = InsertionSlotY(*indicator);
   const tab_tree::TreeNode* const current_target =
       drop_indicator_->target_node_id.has_value()
           ? model().GetNode(*drop_indicator_->target_node_id)
@@ -499,16 +486,20 @@ void SidebarTreeView::UpdateInsertionMarker() {
   if (!insertion_marker_) {
     return;
   }
-  const std::optional<int> marker_y =
-      drop_indicator_.has_value() ? InsertionMarkerY(*drop_indicator_)
-                                  : std::nullopt;
-  if (!marker_y.has_value() || width() <= 20 || height() <= 0) {
+  const std::optional<int> slot_y = drop_indicator_.has_value()
+                                        ? InsertionSlotY(*drop_indicator_)
+                                        : std::nullopt;
+  if (!slot_y.has_value() || width() <= 20 || height() <= 0) {
     insertion_marker_->SetVisible(false);
     return;
   }
-  constexpr int kMarkerHeight = 4;
+
+  // The edge is derived solely from the validated target bounds. It therefore
+  // remains fixed while the pointer moves within the painted 30% zone and is
+  // a companion to that surface, never the only available target affordance.
+  constexpr int kMarkerHeight = 3;
   constexpr int kMarkerHorizontalInset = 10;
-  const int y = std::clamp(*marker_y - kMarkerHeight / 2, 0,
+  const int y = std::clamp(*slot_y - kMarkerHeight / 2, 0,
                            std::max(height() - kMarkerHeight, 0));
   insertion_marker_->SetBounds(kMarkerHorizontalInset, y,
                                width() - 2 * kMarkerHorizontalInset,

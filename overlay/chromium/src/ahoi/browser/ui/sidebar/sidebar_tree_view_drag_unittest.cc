@@ -144,6 +144,20 @@ TEST_F(SidebarTreeViewTest, DropZonesValidateAndPaintBeforeInsideAfter) {
   EXPECT_EQ(SidebarTreeController::DropPosition::kInside, inside->position);
   EXPECT_EQ(SidebarTreeController::DropPosition::kAfter, after->position);
 
+  view->SetDropIndicatorForTesting(before);
+  ASSERT_TRUE(view->insertion_marker_visible_for_testing());
+  const gfx::Rect stable_before_edge =
+      view->insertion_marker_bounds_for_testing();
+  const auto same_before_zone = view->CalculateDropIndicatorForTesting(
+      source.id, gfx::Point(12, target_y + 6),
+      SidebarTreeController::DropOperation::kCopy);
+  ASSERT_TRUE(same_before_zone.has_value());
+  view->SetDropIndicatorForTesting(same_before_zone);
+  EXPECT_EQ(stable_before_edge, view->insertion_marker_bounds_for_testing());
+  view->SetDropIndicatorForTesting(after);
+  EXPECT_GT(view->insertion_marker_bounds_for_testing().y(),
+            stable_before_edge.y());
+
   view->SetDropIndicatorForTesting(inside);
   SidebarTreeRowView* target = view->GetMaterializedRowForTesting(folder.id);
   ASSERT_NE(nullptr, target);
@@ -268,10 +282,16 @@ TEST_F(SidebarTreeViewTest,
   EXPECT_EQ(page.title, row->GetViewAccessibility().GetCachedName());
 
   row->SetSplitDropTarget(true);
+  row->DeprecatedLayoutImmediately();
 
   const gfx::Rect preview_title_bounds = row->title_bounds_for_testing();
+  const gfx::Rect preview_paint_bounds = row->title_paint_bounds_for_testing();
   EXPECT_GT(preview_title_bounds.width(), 0);
   EXPECT_LE(preview_title_bounds.right(), row->width() / 2);
+  EXPECT_LT(preview_paint_bounds.right(), row->width() / 2);
+  EXPECT_LT(preview_paint_bounds.bottom(), row->height());
+  EXPECT_EQ(gfx::Rect(gfx::Point(), preview_paint_bounds.size()),
+            row->title_paint_clip_bounds_for_testing());
   EXPECT_LT(preview_title_bounds.width(), normal_title_bounds.width());
   EXPECT_FALSE(row->IsTrailingActionAt(action_point));
   EXPECT_FALSE(row->should_paint_trailing_state_for_testing());

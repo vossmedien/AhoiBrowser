@@ -111,6 +111,31 @@ std::vector<SidebarSplitSeparator> GetSidebarSplitSeparators(
   return separators;
 }
 
+int GetSidebarEdgeDropTargetExtent(int row_height) {
+  if (row_height <= 0) {
+    return 0;
+  }
+  return std::clamp(row_height * 3 / 10, 1, std::max(1, (row_height - 1) / 2));
+}
+
+gfx::RectF GetSidebarEdgeDropTargetBounds(const gfx::Rect& row_bounds,
+                                          bool trailing_edge) {
+  if (row_bounds.IsEmpty()) {
+    return gfx::RectF();
+  }
+  const int zone_height = GetSidebarEdgeDropTargetExtent(row_bounds.height());
+  const int horizontal_inset =
+      std::min(visual_style::kSidebarTabRowHorizontalInset,
+               std::max(0, (row_bounds.width() - 1) / 2));
+  return gfx::RectF(
+      static_cast<float>(row_bounds.x() + horizontal_inset),
+      static_cast<float>(trailing_edge ? row_bounds.bottom() - zone_height
+                                       : row_bounds.y()),
+      static_cast<float>(
+          std::max(0, row_bounds.width() - 2 * horizontal_inset)),
+      static_cast<float>(zone_height));
+}
+
 gfx::Rect GetSplitSegmentBounds(
     const gfx::Rect& bounds,
     size_t segment,
