@@ -71,8 +71,9 @@ JournalReadResult ReadJournal(const base::FilePath& profile_path) {
   if (!base::ReadFileToStringWithMaxSize(path, &json, kMaxJournalBytes)) {
     return {.status = ArcImportStatus::kJournalError};
   }
-  std::optional<base::Value> parsed = base::JSONReader::Read(json);
-  const base::Value::Dict* dict =
+  std::optional<base::Value> parsed =
+      base::JSONReader::Read(json, base::JSON_PARSE_RFC);
+  const base::DictValue* dict =
       parsed.has_value() ? parsed->GetIfDict() : nullptr;
   const std::optional<int> version =
       dict ? dict->FindInt("version") : std::nullopt;
@@ -109,7 +110,7 @@ bool WriteJournal(const base::FilePath& profile_path,
     return false;
   }
 
-  base::Value::Dict journal;
+  base::DictValue journal;
   journal.Set("version", kJournalSchemaVersion);
   journal.Set("snapshot_sha256", snapshot_hash);
   journal.Set("status", "committed");

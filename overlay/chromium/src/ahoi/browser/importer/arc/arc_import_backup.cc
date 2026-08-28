@@ -103,12 +103,12 @@ bool HashRegularFile(const base::FilePath& path,
 
 bool CopyAndVerify(const BackupFileSpec& spec,
                    const base::FilePath& backup_directory,
-                   base::Value::List* manifest_files,
+                   base::ListValue* manifest_files,
                    const std::string& expected_snapshot_token) {
   if (!IsSafeManifestSourcePath(spec.manifest_source_path)) {
     return false;
   }
-  base::Value::Dict entry;
+  base::DictValue entry;
   entry.Set("role", spec.role);
   entry.Set("source_path", spec.manifest_source_path);
   if (!base::PathExists(spec.source)) {
@@ -259,7 +259,7 @@ ArcImportBackupResult CreateArcImportBackup(
                    base::StrCat({"AhoiProfile/", kTabTreeDatabaseFilename}),
                    FILE_PATH_LITERAL("Ahoi-Tab-Tree.sqlite"));
 
-  base::Value::List manifest_files;
+  base::ListValue manifest_files;
   bool success = true;
   for (const BackupFileSpec& spec : specs) {
     if (!CopyAndVerify(spec, backup_directory, &manifest_files,
@@ -274,7 +274,7 @@ ArcImportBackupResult CreateArcImportBackup(
     success = false;
   }
 
-  base::Value::Dict manifest;
+  base::DictValue manifest;
   manifest.Set("version", kBackupManifestVersion);
   manifest.Set("snapshot_sha256", expected_snapshot_token);
   manifest.Set("files", std::move(manifest_files));

@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "base/json/json_reader.h"
+#include "base/memory/raw_ref.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
@@ -91,20 +92,21 @@ class ArcParser {
   explicit ArcParser(const ArcImportSnapshot& snapshot) : snapshot_(snapshot) {}
 
   ArcParseResult Parse() {
-    if (snapshot_.schema_version != kArcSnapshotSchemaVersion ||
-        snapshot_.source_size < 0 ||
-        static_cast<uint64_t>(snapshot_.source_size) != snapshot_.json.size() ||
-        snapshot_.json.size() > kMaxSnapshotBytes ||
-        crypto::hash::Sha256(snapshot_.json) != snapshot_.sha256) {
+    if (snapshot_->schema_version != kArcSnapshotSchemaVersion ||
+        snapshot_->source_size < 0 ||
+        static_cast<uint64_t>(snapshot_->source_size) !=
+            snapshot_->json.size() ||
+        snapshot_->json.size() > kMaxSnapshotBytes ||
+        crypto::hash::Sha256(snapshot_->json) != snapshot_->sha256) {
       return {.status = ArcImportStatus::kSourceChanged};
     }
 
     std::optional<base::Value> parsed = base::JSONReader::Read(
-        snapshot_.json, base::JSON_PARSE_RFC, kMaxTreeDepth + 16);
+        snapshot_->json, base::JSON_PARSE_RFC, kMaxTreeDepth + 16);
     if (!parsed.has_value() || !parsed->is_dict()) {
       return {.status = ArcImportStatus::kInvalidJson};
     }
-    const base::Value::Dict& root = parsed->GetDict();
+    const base::DictValue& root = parsed->GetDict();
     const std::optional<int> source_version = root.FindInt("version");
     if (!source_version.has_value()) {
       return {.status = ArcImportStatus::kMissingRequiredField};
@@ -113,16 +115,16 @@ class ArcParser {
       return {.status = ArcImportStatus::kUnsupportedSchema};
     }
 
-    const base::Value::Dict* sync_state = root.FindDict("sidebarSyncState");
-    const base::Value::List* space_models =
+    const base::DictValue* sync_state = root.FindDict("sidebarSyncState");
+    const base::ListValue* space_models =
         sync_state ? sync_state->FindList("spaceModels") : nullptr;
-    const base::Value::List* items =
+    const base::ListValue* items =
         sync_state ? sync_state->FindList("items") : nullptr;
-    const base::Value::Dict* container =
+    const base::DictValue* container =
         sync_state ? sync_state->FindDict("container") : nullptr;
-    const base::Value::Dict* container_value =
+    const base::DictValue* container_value =
         container ? container->FindDict("value") : nullptr;
-    const base::Value::List* ordered_space_ids =
+    const base::ListValue* ordered_space_ids =
         container_value ? container_value->FindList("orderedSpaceIDs")
                         : nullptr;
     if (!space_models || !items || !ordered_space_ids) {
@@ -147,7 +149,7 @@ class ArcParser {
     return identifier && IsBoundedUtf8(*identifier, kMaxSourceIdentifierBytes);
   }
 
-  bool ReadOptionalTitle(const base::Value::Dict& value, std::string* title) {
+  bool ReadOptionalTitle(const base::DictValue& value, std::string* title) {
     const base::Value* raw_title = value.Find("title");
     if (!raw_title || raw_title->is_none()) {
       title->clear();
@@ -162,7 +164,7 @@ class ArcParser {
     return true;
   }
 
-  bool ReadIdentifierList(const base::Value::List& list,
+  bool ReadIdentifierList(const base::ListValue& list,
                           size_t max_count,
                           std::vector<std::string>* identifiers) {
     if (list.size() > max_count) {
@@ -183,9 +185,9 @@ class ArcParser {
     return true;
   }
 
-  bool ReadSpaceRoots(const base::Value::Dict& value,
+  bool ReadSpaceRoots(const base::DictValue& value,
                       std::vector<std::string>* roots) {
-    const base::Value::List* new_container_ids =
+    const base::ListValue* new_container_ids =
         value.FindList("newContainerIDs");
     if (new_container_ids && !new_container_ids->empty()) {
       if (new_container_ids->size() % 2 != 0 ||
@@ -211,7 +213,7 @@ class ArcParser {
       return true;
     }
 
-    const base::Value::List* legacy_container_ids =
+    const base::ListValue* legacy_container_ids =
         value.FindList("containerIDs");
     if (!legacy_container_ids) {
       return Fail(ArcImportStatus::kMissingRequiredField);
@@ -220,7 +222,7 @@ class ArcParser {
                               roots);
   }
 
-  bool ParseSpaces(const base::Value::List& serialized) {
+  bool ParseSpaces(const base::ListValue& serialized) {
     if (serialized.size() % 2 != 0 ||
         serialized.size() / 2 > kMaxWorkspaceCount) {
       return Fail(serialized.size() / 2 > kMaxWorkspaceCount
@@ -229,8 +231,8 @@ class ArcParser {
     }
     for (size_t index = 0; index < serialized.size(); index += 2) {
       const std::string* map_key = serialized[index].GetIfString();
-      const base::Value::Dict* wrapper = serialized[index + 1].GetIfDict();
-      const base::Value::Dict* value =
+      const base::DictValue* wrapper = serialized[index + 1].GetIfDict();
+      const base::DictValue* value =
           wrapper ? wrapper->FindDict("value") : nullptr;
       const std::string* id = value ? value->FindString("id") : nullptr;
       const std::string* title = value ? value->FindString("title") : nullptr;
@@ -256,16 +258,16 @@ class ArcParser {
     return true;
   }
 
-  bool ParseChildren(const base::Value::Dict& value,
+  bool ParseChildren(const base::DictValue& value,
                      std::vector<std::string>* children) {
-    const base::Value::List* child_ids = value.FindList("childrenIds");
+    const base::ListValue* child_ids = value.FindList("childrenIds");
     if (!child_ids) {
       return Fail(ArcImportStatus::kMissingRequiredField);
     }
     return ReadIdentifierList(*child_ids, kMaxChildrenPerItem, children);
   }
 
-  bool ParseSplitData(const base::Value::Dict& split, SourceItem* item) {
+  bool ParseSplitData(const base::DictValue& split, SourceItem* item) {
     item->kind = SourceItemKind::kSplit;
     item->split_metadata_valid = true;
 
@@ -289,7 +291,7 @@ class ArcParser {
       item->split_focus_item_id = *focus_item_id;
     }
 
-    const base::Value::List* factors = split.FindList("itemWidthFactors");
+    const base::ListValue* factors = split.FindList("itemWidthFactors");
     if (!factors) {
       return true;
     }
@@ -318,11 +320,11 @@ class ArcParser {
     return true;
   }
 
-  bool ParseItemData(const base::Value::Dict& data, SourceItem* item) {
+  bool ParseItemData(const base::DictValue& data, SourceItem* item) {
     if (data.size() != 1) {
       return Fail(ArcImportStatus::kGraphViolation);
     }
-    if (const base::Value::Dict* tab = data.FindDict("tab")) {
+    if (const base::DictValue* tab = data.FindDict("tab")) {
       item->kind = SourceItemKind::kTab;
       const std::string* url = tab->FindString("savedURL");
       if (!url || url->size() > kMaxUrlBytes || !base::IsStringUTF8(*url)) {
@@ -343,15 +345,15 @@ class ArcParser {
       item->kind = SourceItemKind::kFolder;
       return true;
     }
-    if (const base::Value::Dict* split = data.FindDict("splitView")) {
+    if (const base::DictValue* split = data.FindDict("splitView")) {
       return ParseSplitData(*split, item);
     }
-    if (const base::Value::Dict* item_container =
+    if (const base::DictValue* item_container =
             data.FindDict("itemContainer")) {
       item->kind = SourceItemKind::kContainer;
-      const base::Value::Dict* container_type =
+      const base::DictValue* container_type =
           item_container->FindDict("containerType");
-      const base::Value::Dict* space_items =
+      const base::DictValue* space_items =
           container_type ? container_type->FindDict("spaceItems") : nullptr;
       if (space_items) {
         const std::string* space_id = space_items->FindString("_0");
@@ -370,7 +372,7 @@ class ArcParser {
     return true;
   }
 
-  bool ParseItems(const base::Value::List& serialized) {
+  bool ParseItems(const base::ListValue& serialized) {
     if (serialized.size() % 2 != 0 || serialized.size() / 2 > kMaxItemCount) {
       return Fail(serialized.size() / 2 > kMaxItemCount
                       ? ArcImportStatus::kLimitExceeded
@@ -378,11 +380,11 @@ class ArcParser {
     }
     for (size_t index = 0; index < serialized.size(); index += 2) {
       const std::string* map_key = serialized[index].GetIfString();
-      const base::Value::Dict* wrapper = serialized[index + 1].GetIfDict();
-      const base::Value::Dict* value =
+      const base::DictValue* wrapper = serialized[index + 1].GetIfDict();
+      const base::DictValue* value =
           wrapper ? wrapper->FindDict("value") : nullptr;
       const std::string* id = value ? value->FindString("id") : nullptr;
-      const base::Value::Dict* data = value ? value->FindDict("data") : nullptr;
+      const base::DictValue* data = value ? value->FindDict("data") : nullptr;
       if (!ValidateIdentifier(map_key) || !ValidateIdentifier(id) ||
           *map_key != *id || !value || !data) {
         return Fail(ArcImportStatus::kMalformedSerializedMap);
@@ -412,7 +414,7 @@ class ArcParser {
     return true;
   }
 
-  bool ParseSpaceOrder(const base::Value::List& ordered_space_ids) {
+  bool ParseSpaceOrder(const base::ListValue& ordered_space_ids) {
     if (!ReadIdentifierList(ordered_space_ids, kMaxWorkspaceCount,
                             &ordered_space_ids_)) {
       return false;
@@ -764,7 +766,7 @@ class ArcParser {
     return true;
   }
 
-  const ArcImportSnapshot& snapshot_;
+  const base::raw_ref<const ArcImportSnapshot> snapshot_;
   ArcImportStatus status_ = ArcImportStatus::kInvalidJson;
   ArcImportPlan plan_;
   std::map<std::string, SourceSpace> spaces_;

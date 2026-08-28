@@ -89,8 +89,8 @@ std::optional<ArcConflictResolution> ParseConflictResolution(
   return std::nullopt;
 }
 
-base::Value::Dict StatsValue(const ArcImportStats& stats) {
-  base::Value::Dict value;
+base::DictValue StatsValue(const ArcImportStats& stats) {
+  base::DictValue value;
   value.Set("sourceWorkspaces", static_cast<int>(stats.source_workspace_count));
   value.Set("sourceItems", static_cast<int>(stats.source_item_count));
   value.Set("workspaces", static_cast<int>(stats.imported_workspace_count));
@@ -124,7 +124,7 @@ void ArcImportHandler::RegisterMessages() {
                                            base::Unretained(this)));
 }
 
-void ArcImportHandler::HandleDiscover(const base::Value::List& args) {
+void ArcImportHandler::HandleDiscover(const base::ListValue& args) {
   if (args.size() != 1u || !args.front().is_string()) {
     return;
   }
@@ -141,7 +141,7 @@ void ArcImportHandler::HandleDiscover(const base::Value::List& args) {
                                              std::move(callback_id)));
 }
 
-void ArcImportHandler::HandleCommit(const base::Value::List& args) {
+void ArcImportHandler::HandleCommit(const base::ListValue& args) {
   if (args.size() != 8u || !args[0].is_string() || !args[1].is_string() ||
       !args[2].is_string() || !args[3].is_list() || !args[4].is_bool() ||
       !args[5].is_bool() || !args[6].is_bool() || !args[7].is_bool()) {
@@ -190,7 +190,7 @@ void ArcImportHandler::ResolvePreview(base::Value callback_id,
   if (!IsJavascriptAllowed()) {
     return;
   }
-  base::Value::Dict value;
+  base::DictValue value;
   value.Set("status", StatusName(preview.status));
   value.Set("snapshotToken", preview.snapshot_token);
   value.Set("stats", StatsValue(preview.stats));
@@ -198,12 +198,12 @@ void ArcImportHandler::ResolvePreview(base::Value callback_id,
             static_cast<int>(preview.conflicting_workspace_count));
   value.Set("alreadyImported", preview.already_imported);
   value.Set("sourceInUse", preview.arc_is_running);
-  base::Value::List workspaces;
+  base::ListValue workspaces;
   for (const std::u16string& workspace : preview.target_workspace_names) {
     workspaces.Append(base::UTF16ToUTF8(workspace));
   }
   value.Set("targetWorkspaces", std::move(workspaces));
-  base::Value::List profiles;
+  base::ListValue profiles;
   for (const std::string& profile : preview.available_browser_profiles) {
     profiles.Append(profile);
   }
@@ -216,7 +216,7 @@ void ArcImportHandler::ResolveCommit(base::Value callback_id,
   if (!IsJavascriptAllowed()) {
     return;
   }
-  base::Value::Dict value;
+  base::DictValue value;
   value.Set("status", StatusName(result.status));
   value.Set("stats", StatsValue(result.stats));
   value.Set("renamedWorkspaces",

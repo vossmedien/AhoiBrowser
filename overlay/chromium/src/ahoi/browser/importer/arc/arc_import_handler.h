@@ -23,8 +23,8 @@ class ArcImportHandler : public content::WebUIMessageHandler {
   void RegisterMessages() override;
 
  private:
-  void HandleDiscover(const base::Value::List& args);
-  void HandleCommit(const base::Value::List& args);
+  void HandleDiscover(const base::ListValue& args);
+  void HandleCommit(const base::ListValue& args);
   void ResolvePreview(base::Value callback_id, ArcImportPreview preview);
   void ResolveCommit(base::Value callback_id, ArcImportCommitResult result);
 
