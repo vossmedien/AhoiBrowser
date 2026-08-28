@@ -356,10 +356,15 @@ BrowserSidebarHostView::BrowserSidebarHostView(
     auto discovery = std::make_unique<SidebarDiscoveryView>(
         discovery_model_.get(),
         base::BindRepeating(
-            &BrowserSidebarHostView::ActivateSidebarDiscoveryCommand,
+            [](base::WeakPtr<BrowserSidebarHostView> host,
+               const CommandItem& item) {
+              return host && host->ActivateSidebarDiscoveryCommand(item);
+            },
             weak_ptr_factory_.GetWeakPtr()),
         base::BindRepeating(
-            &BrowserSidebarHostView::RestoreSidebarDiscoveryEntry,
+            [](base::WeakPtr<BrowserSidebarHostView> host, SessionID entry_id) {
+              return host && host->RestoreSidebarDiscoveryEntry(entry_id);
+            },
             weak_ptr_factory_.GetWeakPtr()),
         base::BindRepeating(&BrowserSidebarHostView::CloseSidebarDiscovery,
                             weak_ptr_factory_.GetWeakPtr()));
