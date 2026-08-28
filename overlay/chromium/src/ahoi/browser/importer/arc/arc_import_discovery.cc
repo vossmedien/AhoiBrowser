@@ -4,11 +4,16 @@
 #include "ahoi/browser/importer/arc/arc_import_discovery.h"
 
 #include <libproc.h>
+#include <signal.h>
 #include <sys/proc_info.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cstdint>
+#include <limits>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -19,7 +24,6 @@
 #include "base/files/file_util.h"
 #include "base/path_service.h"
 #include "base/process/process_handle.h"
-#include "base/process/process_iterator.h"
 #include "base/strings/string_util.h"
 
 namespace ahoi::importer::arc {
@@ -49,15 +53,173 @@ bool IsStructurallySafePath(const base::FilePath& path) {
   return !path.empty() && path.IsAbsolute() && !path.ReferencesParent();
 }
 
-bool IsArcBundleProcess(const base::ProcessEntry& process) {
-  if (internal::IsArcBundleExecutablePath(
-          base::GetProcessExecutablePath(process.pid()))) {
-    return true;
+constexpr size_t kPidEnumerationHeadroom = 64;
+constexpr size_t kFileDescriptorHeadroom = 16;
+constexpr int kMaxPidEnumerationAttempts = 4;
+
+struct ProcessMetadata {
+  internal::ProcessOwnership ownership;
+  uint32_t open_file_count;
+  bool is_exiting;
+};
+
+enum class OpenFileInspectionResult {
+  kClear,
+  kRelevantFileOpen,
+  kFailed,
+};
+
+std::optional<std::vector<pid_t>> ListAllPids() {
+  const int estimated_count = proc_listallpids(nullptr, 0);
+  if (estimated_count <= 0) {
+    return std::nullopt;
   }
-  return !process.cmd_line_args().empty() &&
-         internal::IsArcBundleExecutablePath(
-             base::FilePath::FromUTF8Unsafe(
-                 process.cmd_line_args().front()));
+
+  size_t capacity = static_cast<size_t>(estimated_count);
+  if (capacity > std::numeric_limits<size_t>::max() -
+                     kPidEnumerationHeadroom) {
+    return std::nullopt;
+  }
+  capacity += kPidEnumerationHeadroom;
+
+  for (int attempt = 0; attempt < kMaxPidEnumerationAttempts; ++attempt) {
+    constexpr size_t kMaxPidCapacity =
+        static_cast<size_t>(std::numeric_limits<int>::max()) / sizeof(pid_t);
+    if (capacity == 0 || capacity > kMaxPidCapacity) {
+      return std::nullopt;
+    }
+
+    std::vector<pid_t> pids(capacity);
+    const int count = proc_listallpids(
+        pids.data(), static_cast<int>(capacity * sizeof(pid_t)));
+    if (count <= 0 || static_cast<size_t>(count) > capacity) {
+      return std::nullopt;
+    }
+    if (static_cast<size_t>(count) == capacity) {
+      if (capacity > kMaxPidCapacity / 2) {
+        return std::nullopt;
+      }
+      capacity *= 2;
+      continue;
+    }
+
+    pids.resize(static_cast<size_t>(count));
+    std::erase_if(pids, [](pid_t pid) { return pid <= 0; });
+    std::ranges::sort(pids);
+    pids.erase(std::unique(pids.begin(), pids.end()), pids.end());
+    if (pids.empty() ||
+        !std::binary_search(pids.begin(), pids.end(), getpid())) {
+      return std::nullopt;
+    }
+    return pids;
+  }
+  return std::nullopt;
+}
+
+std::optional<ProcessMetadata> ReadProcessMetadata(pid_t pid) {
+  proc_bsdinfo process_info{};
+  const int received_bytes =
+      proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &process_info,
+                   static_cast<int>(sizeof(process_info)));
+  if (received_bytes != static_cast<int>(sizeof(process_info))) {
+    return std::nullopt;
+  }
+
+  const bool is_current_user = process_info.pbi_uid == geteuid() ||
+                               process_info.pbi_ruid == getuid();
+  return ProcessMetadata{
+      .ownership = is_current_user
+                       ? internal::ProcessOwnership::kCurrentUser
+                       : internal::ProcessOwnership::kForeignUser,
+      .open_file_count = process_info.pbi_nfiles,
+      .is_exiting = (process_info.pbi_flags & PROC_FLAG_INEXIT) != 0,
+  };
+}
+
+internal::ProcessLiveness ProbeProcessLiveness(pid_t pid) {
+  errno = 0;
+  if (kill(pid, 0) == 0) {
+    return internal::ProcessLiveness::kAliveAndSignalable;
+  }
+  if (errno == ESRCH) {
+    return internal::ProcessLiveness::kExited;
+  }
+  if (errno == EPERM) {
+    return internal::ProcessLiveness::kAliveButNotSignalable;
+  }
+  return internal::ProcessLiveness::kUnknown;
+}
+
+bool ShouldBlockAfterProcessInspectionFailure(pid_t pid) {
+  const std::optional<ProcessMetadata> refreshed_metadata =
+      ReadProcessMetadata(pid);
+  if (refreshed_metadata && refreshed_metadata->is_exiting) {
+    return false;
+  }
+  return internal::ShouldBlockOnProcessInspectionFailure(
+      refreshed_metadata ? refreshed_metadata->ownership
+                         : internal::ProcessOwnership::kUnknown,
+      ProbeProcessLiveness(pid));
+}
+
+OpenFileInspectionResult InspectOpenFiles(
+    pid_t pid,
+    uint32_t expected_open_file_count,
+    const ArcSource& source) {
+  if (expected_open_file_count == 0) {
+    return OpenFileInspectionResult::kClear;
+  }
+
+  const int required_bytes =
+      proc_pidinfo(pid, PROC_PIDLISTFDS, 0, nullptr, 0);
+  if (required_bytes <= 0 ||
+      required_bytes % static_cast<int>(sizeof(proc_fdinfo)) != 0) {
+    return OpenFileInspectionResult::kFailed;
+  }
+
+  size_t capacity = static_cast<size_t>(required_bytes) / sizeof(proc_fdinfo);
+  if (capacity > std::numeric_limits<size_t>::max() -
+                     kFileDescriptorHeadroom) {
+    return OpenFileInspectionResult::kFailed;
+  }
+  capacity += kFileDescriptorHeadroom;
+  constexpr size_t kMaxFileDescriptorCapacity =
+      static_cast<size_t>(std::numeric_limits<int>::max()) /
+      sizeof(proc_fdinfo);
+  if (capacity == 0 || capacity > kMaxFileDescriptorCapacity) {
+    return OpenFileInspectionResult::kFailed;
+  }
+
+  std::vector<proc_fdinfo> descriptors(capacity);
+  const int buffer_bytes =
+      static_cast<int>(capacity * sizeof(proc_fdinfo));
+  const int received_bytes = proc_pidinfo(pid, PROC_PIDLISTFDS, 0,
+                                          descriptors.data(), buffer_bytes);
+  if (received_bytes <= 0 || received_bytes > buffer_bytes ||
+      received_bytes % static_cast<int>(sizeof(proc_fdinfo)) != 0 ||
+      received_bytes == buffer_bytes) {
+    return OpenFileInspectionResult::kFailed;
+  }
+  descriptors.resize(static_cast<size_t>(received_bytes) /
+                     sizeof(proc_fdinfo));
+
+  for (const proc_fdinfo& descriptor : descriptors) {
+    if (descriptor.proc_fdtype != PROX_FDTYPE_VNODE) {
+      continue;
+    }
+    vnode_fdinfowithpath vnode_info{};
+    const int vnode_bytes =
+        proc_pidfdinfo(pid, descriptor.proc_fd, PROC_PIDFDVNODEPATHINFO,
+                       &vnode_info, sizeof(vnode_info));
+    if (vnode_bytes != static_cast<int>(sizeof(vnode_info))) {
+      return OpenFileInspectionResult::kFailed;
+    }
+    if (internal::IsRelevantArcSourcePath(
+            source, base::FilePath(vnode_info.pvip.vip_path))) {
+      return OpenFileInspectionResult::kRelevantFileOpen;
+    }
+  }
+  return OpenFileInspectionResult::kClear;
 }
 
 bool IsSelectableProfileName(const std::string& name) {
@@ -97,6 +259,18 @@ bool HasSafeOpenFileSource(const ArcSource& source) {
 }  // namespace
 
 namespace internal {
+
+bool ShouldBlockOnProcessInspectionFailure(ProcessOwnership ownership,
+                                           ProcessLiveness liveness) {
+  if (liveness == ProcessLiveness::kExited ||
+      ownership == ProcessOwnership::kForeignUser) {
+    return false;
+  }
+  if (ownership == ProcessOwnership::kCurrentUser) {
+    return true;
+  }
+  return liveness != ProcessLiveness::kAliveButNotSignalable;
+}
 
 bool IsArcBundleExecutablePath(const base::FilePath& executable) {
   if (!IsStructurallySafePath(executable)) {
@@ -240,9 +414,27 @@ ArcDiscoveryResult DiscoverDefaultArcSource() {
 }
 
 bool IsArcApplicationRunning() {
-  base::ProcessIterator iterator(/*filter=*/nullptr);
-  while (const base::ProcessEntry* entry = iterator.NextProcessEntry()) {
-    if (IsArcBundleProcess(*entry)) {
+  const std::optional<std::vector<pid_t>> pids = ListAllPids();
+  if (!pids) {
+    return true;
+  }
+
+  for (pid_t pid : *pids) {
+    const base::FilePath executable = base::GetProcessExecutablePath(pid);
+    if (internal::IsArcBundleExecutablePath(executable)) {
+      return true;
+    }
+    if (!executable.empty()) {
+      continue;
+    }
+
+    const std::optional<ProcessMetadata> metadata = ReadProcessMetadata(pid);
+    if (metadata && (metadata->is_exiting ||
+                     metadata->ownership ==
+                         internal::ProcessOwnership::kForeignUser)) {
+      continue;
+    }
+    if (ShouldBlockAfterProcessInspectionFailure(pid)) {
       return true;
     }
   }
@@ -254,41 +446,40 @@ bool AreArcProfileFilesOpen(const ArcSource& source) {
     return true;
   }
 
-  base::ProcessIterator iterator(/*filter=*/nullptr);
-  while (const base::ProcessEntry* process = iterator.NextProcessEntry()) {
-    const bool arc_bundle_process = IsArcBundleProcess(*process);
-    if (arc_bundle_process) {
+  const std::optional<std::vector<pid_t>> pids = ListAllPids();
+  if (!pids) {
+    return true;
+  }
+
+  for (pid_t pid : *pids) {
+    const base::FilePath executable = base::GetProcessExecutablePath(pid);
+    if (internal::IsArcBundleExecutablePath(executable)) {
       return true;
     }
-    const int required_bytes =
-        proc_pidinfo(process->pid(), PROC_PIDLISTFDS, 0, nullptr, 0);
-    if (required_bytes <= 0) {
-      continue;
-    }
-    std::vector<proc_fdinfo> descriptors(static_cast<size_t>(required_bytes) /
-                                         sizeof(proc_fdinfo));
-    const int received_bytes = proc_pidinfo(process->pid(), PROC_PIDLISTFDS, 0,
-                                            descriptors.data(), required_bytes);
-    if (received_bytes <= 0) {
-      continue;
-    }
-    descriptors.resize(static_cast<size_t>(received_bytes) /
-                       sizeof(proc_fdinfo));
-    for (const proc_fdinfo& descriptor : descriptors) {
-      if (descriptor.proc_fdtype != PROX_FDTYPE_VNODE) {
-        continue;
-      }
-      vnode_fdinfowithpath vnode_info{};
-      const int vnode_bytes = proc_pidfdinfo(process->pid(), descriptor.proc_fd,
-                                             PROC_PIDFDVNODEPATHINFO,
-                                             &vnode_info, sizeof(vnode_info));
-      if (vnode_bytes != static_cast<int>(sizeof(vnode_info))) {
-        continue;
-      }
-      const base::FilePath open_path(vnode_info.pvip.vip_path);
-      if (internal::IsRelevantArcSourcePath(source, open_path)) {
+
+    const std::optional<ProcessMetadata> metadata = ReadProcessMetadata(pid);
+    if (!metadata) {
+      if (ShouldBlockAfterProcessInspectionFailure(pid)) {
         return true;
       }
+      continue;
+    }
+    if (metadata->is_exiting ||
+        metadata->ownership == internal::ProcessOwnership::kForeignUser) {
+      continue;
+    }
+    if (executable.empty() && ShouldBlockAfterProcessInspectionFailure(pid)) {
+      return true;
+    }
+
+    const OpenFileInspectionResult result =
+        InspectOpenFiles(pid, metadata->open_file_count, source);
+    if (result == OpenFileInspectionResult::kRelevantFileOpen) {
+      return true;
+    }
+    if (result == OpenFileInspectionResult::kFailed &&
+        ShouldBlockAfterProcessInspectionFailure(pid)) {
+      return true;
     }
   }
   return false;

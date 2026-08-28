@@ -339,6 +339,43 @@ TEST(ArcImportDiscoveryTest, RecognizesMainAndHelperExecutablesInArcBundle) {
       FILE_PATH_LITERAL("relative/Arc.app/Contents/MacOS/Arc"))));
 }
 
+TEST(ArcImportDiscoveryTest,
+     InspectionFailuresBlockOnlyRelevantLiveProcesses) {
+  using internal::ProcessLiveness;
+  using internal::ProcessOwnership;
+
+  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kCurrentUser,
+      ProcessLiveness::kAliveAndSignalable));
+  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kCurrentUser,
+      ProcessLiveness::kAliveButNotSignalable));
+  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kCurrentUser, ProcessLiveness::kUnknown));
+  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kCurrentUser, ProcessLiveness::kExited));
+
+  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kForeignUser,
+      ProcessLiveness::kAliveAndSignalable));
+  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kForeignUser,
+      ProcessLiveness::kAliveButNotSignalable));
+  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kForeignUser, ProcessLiveness::kUnknown));
+
+  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kUnknown,
+      ProcessLiveness::kAliveAndSignalable));
+  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kUnknown, ProcessLiveness::kUnknown));
+  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kUnknown,
+      ProcessLiveness::kAliveButNotSignalable));
+  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+      ProcessOwnership::kUnknown, ProcessLiveness::kExited));
+}
+
 TEST_F(ArcImportFileTest, ProtectsSidebarAndSelectedProfileDatabaseFiles) {
   CreateArcRootAndProfile();
   ASSERT_TRUE(base::WriteFile(SidebarFile(), kValidArcSidebar));
