@@ -12869,7 +12869,7 @@ index 91de47263bf0471a74a2b9b934ae17e1a7101d50..d4f76e27556c993247cb0dc418c57639
    // Reverses the order of split tabs.
    // Must already be in a split.
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
-index c64e533302537a93fabe7d60591ebc51829e83f4..2ee31750661ba150bdbb6f97366c915f05114a09 100644
+index c64e533302537a93fabe7d60591ebc51829e83f4..26c8c52fe5a51502b4afceb3b8e67a561817550c 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 @@ -6,10 +6,14 @@
@@ -13048,7 +13048,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..2ee31750661ba150bdbb6f97366c915f
  
    UpdateFavicon(tab_ui_helper);
  }
-@@ -215,13 +284,83 @@ void MultiContentsViewMiniToolbar::UpdateWebContents(views::WebView* web_view) {
+@@ -215,13 +284,86 @@ void MultiContentsViewMiniToolbar::UpdateWebContents(views::WebView* web_view) {
    tab_alert_status_subscription_.reset();
    tab_ui_updated_subscription_.reset();
    web_contents_ = web_view->web_contents();
@@ -13086,7 +13086,10 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..2ee31750661ba150bdbb6f97366c915f
 +  if (!tab || !data) {
 +    return;
 +  }
-+  ActivateCurrentView();
++  // Build the complete native drag contract before the later drag-lifecycle
++  // activation can synchronously re-enter BrowserView and replace this view.
++  // TabHandle and the value objects remain valid independently of this View.
++  const int runtime_tab_handle = tab->GetHandle().raw_value();
 +  std::u16string title = web_contents_->GetTitle();
 +  if (title.empty()) {
 +    title = domain_label_->GetText();
@@ -13105,8 +13108,8 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..2ee31750661ba150bdbb6f97366c915f
 +  data->provider().SetDragImage(
 +      drag_image,
 +      ahoi::sidebar::GetSidebarDragImageCursorOffset(drag_image, press_pt));
-+  ahoi::drag::WriteRuntimeSidebarTabDragPayload(
-+      data, tab->GetHandle().raw_value(), title);
++  ahoi::drag::WriteRuntimeSidebarTabDragPayload(data, runtime_tab_handle,
++                                                title);
 +}
 +
 +int MultiContentsViewMiniToolbar::GetDragOperationsForView(views::View* sender,
