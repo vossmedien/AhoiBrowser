@@ -1,0 +1,140 @@
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index e437a5202ae794c9847d60e28405294057133e9c..5edbf45ac58913cf260d3df415cc9bde7a17cb15 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1093,10 +1093,21 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+   const auto& separator_info = layout_data_->separator_info;
+   views().multi_contents_view->SetShouldShowTopSeparator(
+       !IsAhoiShell(views()) && separator_info.multi_contents_separator);
++
++  const bool is_ahoi_shell = IsAhoiShell(views());
++  const bool uses_ahoi_content_card =
++      is_ahoi_shell && !is_fullscreen(layout_data_->window_state);
++  views().multi_contents_view->SetResizeHandlesAlwaysVisible(
++      horizontal_layout.is_split_view && uses_ahoi_content_card);
+ 
+   // Updating the top, left and right insets for contents container view when
+   // in split view. This is dependent on a number of other browser states.
+-  if (horizontal_layout.is_split_view) {
++  if (horizontal_layout.is_split_view && uses_ahoi_content_card) {
++    // The Ahoi card already supplies the complete outer gutter. Retaining
++    // Chromium's split inset here exposes the background as a second 8 px
++    // seam between the sidebar and the first pane.
++    views().multi_contents_view->SetSplitViewInsets(gfx::Insets());
++  } else if (horizontal_layout.is_split_view) {
+     const bool include_top_inset =
+         layout_data_->window_state == WindowState::kFullscreen ||
+         infobar_visible;
+@@ -1155,8 +1166,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+   // Ahoi's content card is true layout rather than an overlay. This keeps
+   // CSS media queries, window.innerWidth/innerHeight, DevTools and split-pane
+   // hit testing in sync with the pixels the user actually sees.
+-  const bool is_ahoi_shell = IsAhoiShell(views());
+-  if (is_ahoi_shell && !is_fullscreen(layout_data_->window_state)) {
++  if (uses_ahoi_content_card) {
+     contents_layout.bounds.Inset(
+         gfx::Insets(ahoi::visual_style::kContentCardInset));
+   }
+@@ -1202,7 +1212,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+     }
+   }
+ 
+-  if (is_ahoi_shell && !is_fullscreen(layout_data_->window_state)) {
++  if (uses_ahoi_content_card) {
+     views().multi_contents_view->SetBackgroundRadii(
+         gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius));
+   } else if (in_glass_mode()) {
+diff --git a/chrome/browser/ui/views/frame/multi_contents_resize_area.cc b/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
+index 2458693c4938495e974f3e2786cad0c39528686e..4a708567ef98f75d59407d4850af20193b1d574f 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
+@@ -55,9 +55,18 @@ MultiContentsResizeHandle::MultiContentsResizeHandle() {
+       kColorSidePanelHoverResizeAreaHandle, kHandleCornerRadius));
+ }
+ 
++void MultiContentsResizeHandle::SetAlwaysVisible(bool always_visible) {
++  if (always_visible_ == always_visible) {
++    return;
++  }
++  always_visible_ = always_visible;
++  UpdateVisibility();
++}
++
+ void MultiContentsResizeHandle::UpdateVisibility() {
+   layer()->SetVisible(parent()->GetVisible() &&
+-                      (HasFocus() || parent()->IsMouseHovered()));
++                      (always_visible_ || HasFocus() ||
++                       parent()->IsMouseHovered()));
+ }
+ 
+ void MultiContentsResizeHandle::AddedToWidget() {
+@@ -116,6 +125,10 @@ void MultiContentsResizeArea::SetLayout(
+   }
+ }
+ 
++void MultiContentsResizeArea::SetHandleAlwaysVisible(bool always_visible) {
++  resize_handle_->SetAlwaysVisible(always_visible);
++}
++
+ void MultiContentsResizeArea::OnResize(int resize_amount, bool done_resizing) {
+   multi_contents_view_->OnResize(divider_index_, resize_amount, done_resizing);
+ }
+diff --git a/chrome/browser/ui/views/frame/multi_contents_resize_area.h b/chrome/browser/ui/views/frame/multi_contents_resize_area.h
+index 5356e211bca6c7c079ab044b0ea5295a6aa1b8a1..108dfb62c1720b697ed49c291cae49be049dec60 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_resize_area.h
++++ b/chrome/browser/ui/views/frame/multi_contents_resize_area.h
+@@ -37,6 +37,7 @@ class MultiContentsResizeHandle : public views::View,
+ 
+   MultiContentsResizeHandle();
+ 
++  void SetAlwaysVisible(bool always_visible);
+   void UpdateVisibility();
+ 
+   // views::View:
+@@ -45,6 +46,9 @@ class MultiContentsResizeHandle : public views::View,
+ 
+   // FocusChangeListener:
+   void OnDidChangeFocus(views::View* before, views::View* now) override;
++
++ private:
++  bool always_visible_ = false;
+ };
+ 
+ // ResizeArea meant to draw in between WebContents within a MultiContentsView,
+@@ -64,6 +68,7 @@ class MultiContentsResizeArea : public views::ResizeArea,
+ 
+   void SetLayout(const split_tabs::SplitTabVisualData& visual_data,
+                  size_t pane_count);
++  void SetHandleAlwaysVisible(bool always_visible);
+ 
+   MultiContentsResizeHandle* resize_handle_for_testing() const {
+     return resize_handle_;
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
+index 05a945128aab6e1ce765c84530b1954bf9f08b5b..fa7e2b641ee79b79834990fc9888d68b6a67ddb2 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -1278,6 +1278,12 @@ void MultiContentsView::SetShouldShowTopSeparator(bool should_show) {
+ }
+ 
++void MultiContentsView::SetResizeHandlesAlwaysVisible(bool always_visible) {
++  for (auto& resize_area : resize_areas_) {
++    resize_area->SetHandleAlwaysVisible(always_visible);
++  }
++}
++
+ void MultiContentsView::SetSplitViewInsets(const gfx::Insets& insets) {
+   if (split_view_insets_ == insets) {
+     return;
+   }
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.h b/chrome/browser/ui/views/frame/multi_contents_view.h
+index b66c9b0f59e5e8bb93bd04d659d8dbc571bfb943..1f4df67898436b96c14c3e9f96aac7725916ab76 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_view.h
++++ b/chrome/browser/ui/views/frame/multi_contents_view.h
+@@ -201,6 +201,7 @@
+   void OnDragAndDropPrefStateChange();
+ 
+   void SetShouldShowTopSeparator(bool should_show);
++  void SetResizeHandlesAlwaysVisible(bool always_visible);
+   void SetSplitViewInsets(const gfx::Insets& insets);
+   const gfx::Insets& split_view_insets_for_testing() const {
+     return split_view_insets_;

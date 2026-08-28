@@ -27,6 +27,8 @@ source_set("appearance") {
     "appearance_views.h",
     "sidebar_page_tint.cc",
     "sidebar_page_tint.h",
+    "sidebar_tint_transition.cc",
+    "sidebar_tint_transition.h",
   ]
 
   public_deps = [
@@ -35,16 +37,17 @@ source_set("appearance") {
     "//skia",
     "//ui/color",
     "//ui/gfx",
+    "//ui/gfx/animation",
     "//ui/native_theme",
     "//ui/views",
   ]
 
   deps = [
+    "//ahoi/browser/ui:visual_style",
     "//cc/paint",
     "//components/prefs",
     "//ui/base",
     "//ui/compositor",
-    "//ui/gfx/animation",
   ]
 
   if (is_mac) {

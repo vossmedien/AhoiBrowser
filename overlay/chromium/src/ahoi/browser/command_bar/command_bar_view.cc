@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <utility>
 
 #include "ahoi/browser/ui/appearance/appearance_views.h"
@@ -17,6 +18,7 @@
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_runner.h"
+#include "chrome/grit/generated_resources.h"
 #include "components/omnibox/browser/omnibox_text_util.h"
 #include "components/vector_icons/vector_icons.h"
 #include "ui/accessibility/ax_enums.mojom.h"
@@ -26,6 +28,7 @@
 #include "ui/base/dragdrop/mojom/drag_drop_types.mojom.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
 #include "ui/base/dragdrop/os_exchange_data_provider.h"
+#include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_header_macros.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/color/color_id.h"
@@ -65,6 +68,23 @@ bool HasOnlyTabTraversalModifiers(const ui::KeyEvent& event) {
          !event.IsAltDown() && !event.IsCommandDown() && !event.IsAltGrDown();
 }
 
+bool HasSameSuggestionIdentity(const CommandBarSuggestion& left,
+                               const CommandBarSuggestion& right) {
+  if (left.kind != right.kind) {
+    return false;
+  }
+  if (left.item.has_value() && right.item.has_value() &&
+      !left.item->stable_id.empty() && !right.item->stable_id.empty()) {
+    return left.item->type == right.item->type &&
+           left.item->stable_id == right.item->stable_id;
+  }
+  if (left.destination_url.has_value() && right.destination_url.has_value()) {
+    return left.destination_url == right.destination_url;
+  }
+  return left.title == right.title &&
+         left.secondary_text == right.secondary_text;
+}
+
 }  // namespace
 
 class CommandBarResultRow final : public views::Button {
@@ -80,7 +100,8 @@ class CommandBarResultRow final : public views::Button {
                       KeyCallback key_callback)
       : Button(std::move(pressed_callback)),
         selected_callback_(std::move(selected_callback)),
-        key_callback_(std::move(key_callback)) {
+        key_callback_(std::move(key_callback)),
+        is_active_tab_(suggestion.is_active_tab) {
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetHasInkDropActionOnClick(false);
     SetShowInkDropWhenHotTracked(false);
@@ -119,7 +140,8 @@ class CommandBarResultRow final : public views::Button {
         views::style::STYLE_PRIMARY));
     title->SetSubpixelRenderingEnabled(false);
     title->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    title->SetEnabledColor(visual_style::kText);
+    title->SetEnabledColor(is_active_tab_ ? visual_style::kAccent
+                                          : visual_style::kText);
     title->SetElideBehavior(gfx::ELIDE_TAIL);
     title->GetViewAccessibility().SetIsIgnored(true);
     layout->SetFlexForView(title, 1);
@@ -137,6 +159,24 @@ class CommandBarResultRow final : public views::Button {
     secondary->SetVisible(!suggestion.secondary_text.empty());
     secondary->GetViewAccessibility().SetIsIgnored(true);
 
+    // Reserve this fixed slot for every row so the active marker never moves
+    // titles or actions when results are rebuilt. The marker remains visible
+    // while hover and keyboard selection use their own surface states.
+    auto* active_tab_indicator =
+        AddChildView(std::make_unique<views::ImageView>());
+    active_tab_indicator->SetPreferredSize(
+        gfx::Size(visual_style::kCommandBarResultIconBoxSize,
+                  visual_style::kCommandBarResultIconBoxSize));
+    active_tab_indicator->SetImageSize(
+        gfx::Size(visual_style::kCommandBarResultIconSize,
+                  visual_style::kCommandBarResultIconSize));
+    if (is_active_tab_) {
+      active_tab_indicator->SetImage(ui::ImageModel::FromVectorIcon(
+          vector_icons::kCheckCircleFilledIcon, visual_style::kAccent,
+          visual_style::kCommandBarResultIconSize));
+    }
+    active_tab_indicator->GetViewAccessibility().SetIsIgnored(true);
+
     auto* accept_hint = AddChildView(std::make_unique<views::Label>(
         u"↵", views::style::CONTEXT_LABEL, views::style::STYLE_SECONDARY));
     accept_hint->SetSubpixelRenderingEnabled(false);
@@ -149,6 +189,10 @@ class CommandBarResultRow final : public views::Button {
 
     GetViewAccessibility().SetRole(ax::mojom::Role::kListBoxOption);
     GetViewAccessibility().SetName(AccessibleRowName(suggestion));
+    if (is_active_tab_) {
+      GetViewAccessibility().SetDescription(
+          l10n_util::GetStringUTF16(IDS_AHOI_COMMAND_BAR_CURRENT_TAB));
+    }
     UpdateBackground();
   }
 
@@ -192,22 +236,31 @@ class CommandBarResultRow final : public views::Button {
  private:
   void UpdateBackground() {
     const bool selected_or_focused = selected_ || HasFocus();
-    const bool hovered = GetState() == ButtonState::STATE_HOVERED ||
-                         GetState() == ButtonState::STATE_PRESSED;
+    const bool hovered = GetState() == ButtonState::STATE_HOVERED;
+    const bool pressed = GetState() == ButtonState::STATE_PRESSED;
     // Arc's command palette reads as one continuous surface. Individual rows
-    // stay transparent until hover/selection instead of looking like stacked
-    // dark buttons.
-    SetBackground(selected_or_focused ? views::CreateRoundedRectBackground(
-                                            visual_style::kSelectedSurface,
-                                            visual_style::kRowCornerRadius)
-                  : hovered           ? views::CreateRoundedRectBackground(
-                                            visual_style::kRaisedSurface,
-                                            visual_style::kRowCornerRadius)
-                                      : nullptr);
+    // stay transparent unless they carry semantic or interaction state. Hover
+    // intentionally takes precedence over the selection that mouse entry also
+    // updates, keeping pointer hover distinct from keyboard selection.
+    std::optional<ui::ColorId> surface;
+    if (pressed) {
+      surface = visual_style::kSelectedSurface;
+    } else if (hovered) {
+      surface = visual_style::kHoverSurface;
+    } else if (selected_or_focused) {
+      surface = visual_style::kSelectedSurface;
+    } else if (is_active_tab_) {
+      surface = visual_style::kRaisedSurface;
+    }
+    SetBackground(surface.has_value()
+                      ? views::CreateRoundedRectBackground(
+                            *surface, visual_style::kRowCornerRadius)
+                      : nullptr);
   }
 
   base::RepeatingClosure selected_callback_;
   KeyCallback key_callback_;
+  const bool is_active_tab_;
   bool selected_ = false;
 };
 
@@ -296,9 +349,8 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
 
   appearance_signal_source_ =
       std::make_unique<appearance::AppearanceRuntimeSignalSource>(
-          prefs,
-          base::BindRepeating(&CommandBarView::OnAppearanceChanged,
-                              weak_ptr_factory_.GetWeakPtr()));
+          prefs, base::BindRepeating(&CommandBarView::OnAppearanceChanged,
+                                     weak_ptr_factory_.GetWeakPtr()));
   OnAppearanceChanged(appearance_signal_source_->policy());
 }
 
@@ -316,8 +368,8 @@ void CommandBarView::OnAppearanceChanged(
   const appearance::SurfaceAppearance surface =
       appearance::AppearanceResolver::Resolve(
           appearance::SurfaceRole::kCommandBar, policy);
-  views::ClientView* client_view = GetWidget() ? GetWidget()->client_view()
-                                               : nullptr;
+  views::ClientView* client_view =
+      GetWidget() ? GetWidget()->client_view() : nullptr;
   if (!client_view) {
     appearance::ApplySurfaceAppearance(this, surface);
     return;
@@ -342,7 +394,28 @@ void CommandBarView::ReapplyAppearance() {
 }
 
 void CommandBarView::RefreshSuggestions() {
+  std::optional<CommandBarSuggestion> selected_suggestion;
+  bool selected_row_had_focus = false;
+  if (selected_index_.has_value() && *selected_index_ < suggestions_.size() &&
+      *selected_index_ < rows_.size()) {
+    selected_suggestion = suggestions_[*selected_index_];
+    selected_row_had_focus = rows_[*selected_index_]->HasFocus();
+  }
   RebuildSuggestions(/*prefer_input_fallback=*/false);
+  if (!selected_suggestion.has_value()) {
+    return;
+  }
+
+  const auto selected = std::ranges::find_if(
+      suggestions_, [&selected_suggestion](const CommandBarSuggestion& item) {
+        return HasSameSuggestionIdentity(*selected_suggestion, item);
+      });
+  if (selected != suggestions_.end()) {
+    SelectIndex(static_cast<size_t>(selected - suggestions_.begin()),
+                selected_row_had_focus);
+  } else if (selected_row_had_focus) {
+    textfield_->RequestFocus();
+  }
 }
 
 views::View* CommandBarView::row_for_testing(size_t index) const {

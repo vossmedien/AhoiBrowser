@@ -16,9 +16,11 @@
 #include "base/memory/weak_ptr.h"
 #include "base/task/cancelable_task_tracker.h"
 #include "base/time/time.h"
+#include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
 #include "url/gurl.h"
 
 class Browser;
+class TabStripModel;
 
 namespace favicon {
 class FaviconService;
@@ -50,7 +52,8 @@ class ModalOverlayController;
 // keyed CommandService. OTR and guest windows get an empty, process-local
 // CommandService so URL/default-search parsing remains available without
 // exposing regular-profile tabs, history, workspaces or saved pages.
-class CommandBarController {
+class CommandBarController : public TabStripModelObserver,
+                             public CommandServiceObserver {
  public:
   CommandBarController(Browser* browser,
                        ModalOverlayController* modal_overlay_controller,
@@ -80,7 +83,20 @@ class CommandBarController {
   void OnBubbleClosed();
   void OnViewDestroyed();
 
+  // TabStripModelObserver:
+  void OnTabStripModelChanged(
+      TabStripModel* tab_strip_model,
+      const TabStripModelChange& change,
+      const TabStripSelectionChange& selection) override;
+  void OnTabStripModelDestroyed(TabStripModel* tab_strip_model) override;
+
+  // CommandServiceObserver:
+  void OnCommandIndexChanged(CommandItemType type) override;
+
+  void ScheduleSuggestionRefresh();
+
   raw_ptr<Browser> browser_ = nullptr;
+  raw_ptr<TabStripModel> tab_strip_model_ = nullptr;
   raw_ptr<ModalOverlayController> modal_overlay_controller_ = nullptr;
   raw_ptr<CommandService> command_service_ = nullptr;
   std::unique_ptr<CommandService> ephemeral_command_service_;
@@ -100,6 +116,7 @@ class CommandBarController {
   std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate_;
   std::unique_ptr<views::Widget> bubble_widget_;
   raw_ptr<CommandBarView> view_ = nullptr;
+  bool active_tab_refresh_pending_ = false;
   base::WeakPtrFactory<CommandBarController> weak_ptr_factory_{this};
 };
 

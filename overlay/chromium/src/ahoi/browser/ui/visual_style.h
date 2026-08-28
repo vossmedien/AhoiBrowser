@@ -217,6 +217,8 @@ inline constexpr base::TimeDelta kSidebarRevealDuration =
 inline constexpr base::TimeDelta kSidebarHideDuration = base::Milliseconds(135);
 inline constexpr base::TimeDelta kWorkspaceTransitionDuration =
     base::Milliseconds(165);
+inline constexpr base::TimeDelta kSidebarTintTransitionDuration =
+    base::Milliseconds(180);
 inline constexpr int kWorkspaceTransitionOffset = 24;
 inline constexpr float kWorkspaceTransitionInitialOpacity = 0.86f;
 inline constexpr base::TimeDelta kModalFadeInDuration = base::Milliseconds(120);

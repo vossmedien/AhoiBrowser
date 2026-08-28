@@ -97,7 +97,10 @@ CommandBarController::CommandBarController(
     views::View* sidebar_host)
     : browser_(browser), modal_overlay_controller_(modal_overlay_controller) {
   CHECK(browser_);
+  tab_strip_model_ = browser_->tab_strip_model();
+  CHECK(tab_strip_model_);
   CHECK(modal_overlay_controller_);
+  tab_strip_model_->AddObserver(this);
 
   Profile* profile = browser_->GetProfile();
   if (!profile) {
@@ -117,6 +120,7 @@ CommandBarController::CommandBarController(
   }
 
   if (command_service_) {
+    command_service_->AddObserver(this);
     PublishBrowserCommands();
     RefreshHistoryItems();
     execution_adapter_ = CommandExecutionAdapter::CreateForBrowser(
@@ -125,6 +129,12 @@ CommandBarController::CommandBarController(
 }
 
 CommandBarController::~CommandBarController() {
+  if (command_service_) {
+    command_service_->RemoveObserver(this);
+  }
+  if (tab_strip_model_) {
+    tab_strip_model_->RemoveObserver(this);
+  }
   // Widget teardown destroys the content view. Keep the separate delegate
   // alive until that has completed, and prevent teardown callbacks from
   // re-entering this partially destroyed controller.
@@ -135,6 +145,55 @@ CommandBarController::~CommandBarController() {
   }
   bubble_widget_.reset();
   bubble_delegate_.reset();
+}
+
+void CommandBarController::OnTabStripModelChanged(
+    TabStripModel* tab_strip_model,
+    const TabStripModelChange&,
+    const TabStripSelectionChange& selection) {
+  if (tab_strip_model == tab_strip_model_ && view_ &&
+      selection.active_tab_changed()) {
+    // The active-tab marker is semantic state, not a snapshot of the moment
+    // the command bar opened. Defer rebuilding rows because this notification
+    // can arrive synchronously while an existing row is executing its button
+    // callback; deleting that row on its own callback stack is unsafe.
+    ScheduleSuggestionRefresh();
+  }
+}
+
+void CommandBarController::OnTabStripModelDestroyed(
+    TabStripModel* tab_strip_model) {
+  if (tab_strip_model_ == tab_strip_model) {
+    tab_strip_model_ = nullptr;
+  }
+}
+
+void CommandBarController::OnCommandIndexChanged(CommandItemType type) {
+  if (type == CommandItemType::kOpenTab) {
+    // SessionBridge owns the open-tab index. Refreshing from its notification
+    // guarantees insertion/removal/replacement results are current regardless
+    // of TabStripModel observer ordering.
+    ScheduleSuggestionRefresh();
+  }
+}
+
+void CommandBarController::ScheduleSuggestionRefresh() {
+  if (!view_ || active_tab_refresh_pending_) {
+    return;
+  }
+  active_tab_refresh_pending_ = true;
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE, base::BindOnce(
+                     [](base::WeakPtr<CommandBarController> controller) {
+                       if (!controller) {
+                         return;
+                       }
+                       controller->active_tab_refresh_pending_ = false;
+                       if (controller->view_) {
+                         controller->view_->RefreshSuggestions();
+                       }
+                     },
+                     weak_ptr_factory_.GetWeakPtr()));
 }
 
 bool CommandBarController::Show(CommandBarDisposition disposition) {
@@ -284,6 +343,9 @@ std::vector<CommandBarSuggestion> CommandBarController::GetSuggestions(
         session_bridge) {
       tabs::TabInterface* tab =
           session_bridge->FindTabForOpenTabStableId(ranked.item.stable_id);
+      suggestion.is_active_tab =
+          ranked.item.type == CommandItemType::kOpenTab && tab &&
+          tab_strip_model_ && tab == tab_strip_model_->GetActiveTab();
       content::WebContents* contents = tab ? tab->GetContents() : nullptr;
       favicon::ContentFaviconDriver* favicon_driver =
           contents ? favicon::ContentFaviconDriver::FromWebContents(contents)

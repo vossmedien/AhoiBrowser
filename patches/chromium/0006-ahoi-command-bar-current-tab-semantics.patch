@@ -1,0 +1,38 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index ce4f6bd92119fe97540de31fcd73ab666b3e1bb2..7ef0a2395fd19b8db00d4250e7653c8dffc3d219 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20864,6 +20864,9 @@
+     <message name="IDS_AHOI_DEVELOPER_ASSET_SCOPE_TAB" desc="Developer asset scope limited to the current tab." meaning="AhoiBrowser developer toolkit">
+       Current tab
+     </message>
++    <message name="IDS_AHOI_COMMAND_BAR_CURRENT_TAB" desc="Accessible description for the currently active browser tab in AhoiBrowser's command bar." meaning="AhoiBrowser command bar">
++      Current tab
++    </message>
+     <message name="IDS_AHOI_DEVELOPER_ASSET_SCOPE_ORIGIN" desc="Developer asset scope limited to the current exact origin." meaning="AhoiBrowser developer toolkit">
+       Exact origin
+     </message>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index c22138f384529218b633c103d8f16426c3a2c7c2..0a805ee0fabfb1a62bdafa647a1effdee4fc27be 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11138,6 +11138,7 @@
+ <translation id="1534074917150785690">Verschlüsselten Sync für dieses Asset erlauben</translation>
+ <translation id="956437958128566241">URL-Geltungsbereich</translation>
+ <translation id="5720325548335527619">Aktueller Tab</translation>
++<translation id="3062223442052030743">Aktueller Tab</translation>
+ <translation id="7592279450846348181">Exakter Ursprung</translation>
+ <translation id="6364878297740434630">Domain und Subdomains</translation>
+ <translation id="2056065112898830396">Pfadpräfix</translation>
+diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+index a647ad1a76b8c5d9b16f4476b4e61b124a900547..ca9151ec6eb77c91ff99de8c4a391e82dcff6764 100644
+--- a/chrome/app/resources/generated_resources_en-GB.xtb
++++ b/chrome/app/resources/generated_resources_en-GB.xtb
+@@ -10990,6 +10990,7 @@
+ <translation id="1534074917150785690">Allow encrypted sync for this asset</translation>
+ <translation id="956437958128566241">URL scope</translation>
+ <translation id="5720325548335527619">Current tab</translation>
++<translation id="3062223442052030743">Current tab</translation>
+ <translation id="7592279450846348181">Exact origin</translation>
+ <translation id="6364878297740434630">Domain and subdomains</translation>
+ <translation id="2056065112898830396">Path prefix</translation>

@@ -3,3 +3,5 @@
 0002-ahoi-deterministic-platform-tests.patch
 0003-ahoi-upstream-page-load-tracing-test-isolation.patch
 0004-ahoi-lean-profile-compose-guards.patch
+0005-ahoi-content-card-seam-and-resize-affordance.patch
+0006-ahoi-command-bar-current-tab-semantics.patch

@@ -37,6 +37,10 @@ struct CommandBarSuggestion {
   std::u16string secondary_text;
   ui::ImageModel icon;
   std::optional<CommandItem> item;
+  // Presentation state for a live open-tab result. This is deliberately
+  // independent from the command bar's keyboard selection: the current tab
+  // stays identifiable while the user hovers or moves through other results.
+  bool is_active_tab = false;
   // Canonical destination used only for presentation-level de-duplication.
   // In particular, a typed URL fallback must not be shown next to a richer
   // open-tab, saved-page or history result for that same URL.

@@ -112,3 +112,43 @@ as a second active patch stack.
   edges when Compose integrations move between desktop surfaces.
 - **Removal/upstream plan:** remove individual guards as upstream consistently
   guards every parent edge with `enable_compose`.
+
+## `0005-ahoi-content-card-seam-and-resize-affordance.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the complete
+  Ahoi integration and Lean guard stack.
+- **Affected paths:** the tabbed browser layout and native split resize area.
+- **Rationale:** Ahoi's outer content card already supplies the split gutter;
+  retaining Chromium's second inset exposed an 8 px background seam. The
+  native split resize path remains unchanged, while its restrained handle is
+  kept visible so stacked height resizing is discoverable and targetable.
+- **Rejected alternatives:** changing Chromium's global split inset, covering
+  the seam with an overlay, widening the resize hit target into page content,
+  or replacing the upstream mouse, touch, keyboard and persistence path.
+- **Tests:** visible installed-browser seam and stacked/side-by-side resize
+  journeys first, followed by ordered composition and focused split layout
+  tests.
+- **Security/privacy impact:** none; layout and affordance only.
+- **Expected rebase risk:** low-to-medium because the browser layout owns the
+  side-panel and fullscreen inset policy.
+- **Removal/upstream plan:** drop the seam exception if Ahoi no longer owns an
+  outer content card or Chromium exposes a product-level inset policy.
+
+## `0006-ahoi-command-bar-current-tab-semantics.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the complete
+  Ahoi integration, Lean guards and native content-card fixes.
+- **Affected paths:** generated browser resources and German/English command
+  surface translations.
+- **Rationale:** the Cmd+T active-tab state has its own accessibility copy and
+  must not depend on an unrelated Developer Toolkit label that happens to have
+  the same English text today.
+- **Rejected alternatives:** hardcoded accessibility text or reusing the
+  developer-asset scope resource.
+- **Tests:** visible Cmd+T active-row and VoiceOver semantics first, followed by
+  ordered patch composition and generated-resource compilation.
+- **Security/privacy impact:** none; accessibility semantics only.
+- **Expected rebase risk:** low.
+- **Removal/upstream plan:** retain while the native Ahoi command bar exists.

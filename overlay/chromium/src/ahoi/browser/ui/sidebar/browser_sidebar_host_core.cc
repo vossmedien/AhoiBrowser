@@ -434,7 +434,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
     page_tint_pref_change_registrar_.Add(
         appearance::kSidebarPageTintEnabledPref,
         base::BindRepeating(&BrowserSidebarHostView::RefreshPageTint,
-                            weak_ptr_factory_.GetWeakPtr()));
+                            weak_ptr_factory_.GetWeakPtr(),
+                            /*allow_animation=*/true));
   }
   OnAppearanceChanged(appearance_signal_source_->policy());
 }

@@ -21,6 +21,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
+#include "ahoi/browser/ui/appearance/sidebar_tint_transition.h"
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
@@ -163,17 +164,19 @@ enum class PendingWorkspaceAction {
   kDelete,
 };
 
-class BrowserSidebarHostView final : public views::View,
-                                     public content::WebContentsObserver,
-                                     public SidebarTreeViewDelegate,
-                                     public WorkspaceServiceObserver,
-                                     public sync::ProfileSyncService::Observer,
-                                     public TabStripModelObserver,
-                                     public media_ui::MediaMiniPlayerHost,
-                                     public views::ContextMenuController,
-                                     public views::TextfieldController,
-                                     public views::WidgetObserver,
-                                     public ui::SimpleMenuModel::Delegate {
+class BrowserSidebarHostView final
+    : public views::View,
+      public content::WebContentsObserver,
+      public SidebarTreeViewDelegate,
+      public WorkspaceServiceObserver,
+      public sync::ProfileSyncService::Observer,
+      public TabStripModelObserver,
+      public appearance::SidebarTintTransition::Observer,
+      public media_ui::MediaMiniPlayerHost,
+      public views::ContextMenuController,
+      public views::TextfieldController,
+      public views::WidgetObserver,
+      public ui::SimpleMenuModel::Delegate {
   METADATA_HEADER(BrowserSidebarHostView, views::View)
 
  public:
@@ -235,7 +238,10 @@ class BrowserSidebarHostView final : public views::View,
   void OnSessionPresentationChanged();
 
   void OnAppearanceChanged(const appearance::GlassPolicy& policy);
-  void RefreshPageTint();
+  void RefreshPageTint(bool allow_animation = true);
+
+  // appearance::SidebarTintTransition::Observer:
+  void OnSidebarTintTransitionUpdated() override;
 
   // content::WebContentsObserver:
   void DidChangeThemeColor() override;
@@ -651,7 +657,7 @@ class BrowserSidebarHostView final : public views::View,
   bool high_contrast_ = false;
   bool reduced_transparency_ = false;
   int surface_corner_radius_ = 0;
-  std::optional<SkColor> sidebar_page_tint_;
+  appearance::SidebarTintTransition sidebar_tint_transition_{this};
   PrefChangeRegistrar page_tint_pref_change_registrar_;
   std::unique_ptr<SidebarTreeController> controller_;
   raw_ptr<SidebarTreeView> tree_view_ = nullptr;

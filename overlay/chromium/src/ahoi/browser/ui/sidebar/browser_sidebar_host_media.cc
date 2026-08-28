@@ -121,11 +121,13 @@ void BrowserSidebarHostView::OnAppearanceChanged(
         appearance::AppearanceResolver::Resolve(
             appearance::SurfaceRole::kMiniPlayer, policy));
   }
-  RefreshPageTint();
+  // Semantic base colors and accessibility policy changed. Snap to the newly
+  // resolved endpoint instead of blending through an obsolete theme.
+  RefreshPageTint(/*allow_animation=*/false);
   SchedulePaint();
 }
 
-void BrowserSidebarHostView::RefreshPageTint() {
+void BrowserSidebarHostView::RefreshPageTint(bool allow_animation) {
   PrefService* const prefs = browser_->GetProfile()->GetPrefs();
   const bool enabled = appearance::IsSidebarPageTintEnabled(*prefs);
   content::WebContents* const contents =
@@ -165,23 +167,17 @@ void BrowserSidebarHostView::RefreshPageTint() {
     // Guard both primary titles and the weaker metadata/icon token painted
     // directly over this surface. The weakest relevant token determines the
     // maximum safe tint strength.
-    sidebar_foreground_color =
-        color_provider->GetColor(visual_style::kText);
+    sidebar_foreground_color = color_provider->GetColor(visual_style::kText);
     sidebar_muted_foreground_color =
         color_provider->GetColor(visual_style::kMutedText);
   }
   const std::optional<SkColor> resolved_tint =
-      appearance::ResolveSidebarPageTint(enabled, high_contrast_, theme_color,
-                                         favicon_color,
-                                         sidebar_background_color,
-                                         sidebar_foreground_color,
-                                         reduced_transparency_,
-                                         sidebar_muted_foreground_color);
-  if (resolved_tint == sidebar_page_tint_) {
-    return;
-  }
-  sidebar_page_tint_ = resolved_tint;
-  SchedulePaint();
+      appearance::ResolveSidebarPageTint(
+          enabled, high_contrast_, theme_color, favicon_color,
+          sidebar_background_color, sidebar_foreground_color,
+          reduced_transparency_, sidebar_muted_foreground_color);
+  sidebar_tint_transition_.SetTarget(
+      resolved_tint, allow_animation && !reduced_motion_ && !high_contrast_);
 }
 
 void BrowserSidebarHostView::DidChangeThemeColor() {
@@ -192,21 +188,24 @@ void BrowserSidebarHostView::WebContentsDestroyed() {
   // WebContentsObserver clears its binding after this notification. Avoid
   // consulting a WebContents while it is tearing down; the next tab-model
   // selection notification attaches the replacement.
-  if (sidebar_page_tint_.has_value()) {
-    sidebar_page_tint_.reset();
-    SchedulePaint();
-  }
+  sidebar_tint_transition_.Reset(std::nullopt);
+}
+
+void BrowserSidebarHostView::OnSidebarTintTransitionUpdated() {
+  SchedulePaint();
 }
 
 void BrowserSidebarHostView::OnPaint(gfx::Canvas* canvas) {
   views::View::OnPaint(canvas);
-  if (!sidebar_page_tint_.has_value()) {
+  const std::optional<SkColor> tint_color =
+      sidebar_tint_transition_.current_color();
+  if (!tint_color.has_value()) {
     return;
   }
   cc::PaintFlags tint;
   tint.setAntiAlias(true);
   tint.setStyle(cc::PaintFlags::kFill_Style);
-  tint.setColor(*sidebar_page_tint_);
+  tint.setColor(*tint_color);
   canvas->DrawRoundRect(gfx::RectF(GetLocalBounds()), surface_corner_radius_,
                         tint);
 }
