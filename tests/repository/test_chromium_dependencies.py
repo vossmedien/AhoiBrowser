@@ -244,20 +244,74 @@ class ChromiumDependencyContractTests(unittest.TestCase):
                 "dev", dev_app, dev_out, dev_args, wrong_stamp
             )
 
+        full_dev_args = (root / "config/build/ahoi-full-dev.gn").resolve()
+        full_dev_out = (chromium / "out/AhoiFullDev").resolve()
+        full_dev_app = (full_dev_out / "AhoiBrowser.app").resolve()
+        full_dev_plist = {
+            "AhoiBuildProfile": "full-dev",
+            "AhoiGNArgsSHA256": build_provenance.sha256(full_dev_args),
+        }
+        build_provenance.verify_profile_binding(
+            "full-dev",
+            full_dev_app,
+            full_dev_out,
+            full_dev_args,
+            full_dev_plist,
+        )
+        with self.assertRaisesRegex(SystemExit, "requires"):
+            build_provenance.verify_profile_binding(
+                "dev",
+                full_dev_app,
+                full_dev_out,
+                full_dev_args,
+                full_dev_plist,
+            )
+
+        full_release_args = (
+            root / "config/build/ahoi-full-release.gn"
+        ).resolve()
+        full_release_out = (chromium / "out/AhoiFullRelease").resolve()
+        full_release_app = (full_release_out / "AhoiBrowser.app").resolve()
+        full_release_plist = {
+            "AhoiBuildProfile": "full-release",
+            "AhoiGNArgsSHA256": build_provenance.sha256(full_release_args),
+        }
+        build_provenance.verify_profile_binding(
+            "full-release",
+            full_release_app,
+            full_release_out,
+            full_release_args,
+            full_release_plist,
+        )
+        with self.assertRaisesRegex(SystemExit, "requires"):
+            build_provenance.verify_profile_binding(
+                "release",
+                full_release_app,
+                full_release_out,
+                full_release_args,
+                full_release_plist,
+            )
+
     def test_xcode_binding_uses_the_same_m152_toolchain_for_all_profiles(self):
         toolchain = build_provenance.load_json(
             build_provenance.ROOT / "config/toolchain.json"
         )
         dev = build_provenance.expected_xcode_for_kind("dev", toolchain)
+        full_dev = build_provenance.expected_xcode_for_kind("full-dev", toolchain)
         release = build_provenance.expected_xcode_for_kind("release", toolchain)
+        full_release = build_provenance.expected_xcode_for_kind(
+            "full-release", toolchain
+        )
         upstream = build_provenance.expected_xcode_for_kind("upstream", toolchain)
         self.assertEqual("compatible-development", dev["mode"])
         self.assertEqual("26.6", dev["version"])
         self.assertEqual("23F81a", dev["iOSSDKBuild"])
+        self.assertEqual(dev, full_dev)
         self.assertEqual("pinned-reference", release["mode"])
         self.assertEqual("26.6", release["version"])
         self.assertEqual("23F81a", release["iOSSDKBuild"])
         self.assertEqual(release, upstream)
+        self.assertEqual(release, full_release)
         with self.assertRaisesRegex(SystemExit, "unsupported build provenance kind"):
             build_provenance.expected_xcode_for_kind("forged", toolchain)
 

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "measurementId": "lean-chromium-wave-1-release-bundles",
+  "matrixPath": "config/lean-chromium-components.json",
+  "chromium": {
+    "milestone": 152,
+    "version": "152.0.7977.65",
+    "commit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa"
+  },
+  "byteBasis": "sum-of-regular-file-logical-bytes",
+  "treeDigest": "sha256-v1-canonical-path-type-mode-size-content-records",
+  "profiles": [
+    {
+      "id": "upstream-control",
+      "argsPath": "config/build/upstream-release.gn",
+      "expectedArgsSha256": "abe86e85d5ec8d662d0d372951d70f7ce18cedf5f7b009b1baa72bce9f6a4bfd",
+      "bundlePath": "chromium/src/out/AhoiUpstreamRelease/Chromium.app",
+      "expectedBundleName": "Chromium",
+      "expectedBundleIdentifier": "org.chromium.Chromium",
+      "expectedBuildProfile": null
+    },
+    {
+      "id": "ahoi-full-release",
+      "argsPath": "config/build/ahoi-full-release.gn",
+      "expectedArgsSha256": "cf144d4dcfb41383b3e863c363de0d89568a09baa06219b64e5627c516b0bf4c",
+      "bundlePath": "chromium/src/out/AhoiFullRelease/AhoiBrowser.app",
+      "expectedBundleName": "AhoiBrowser",
+      "expectedBundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+      "expectedBuildProfile": "full-release"
+    },
+    {
+      "id": "ahoi-release",
+      "argsPath": "config/build/ahoi-release.gn",
+      "expectedArgsSha256": "59b1ca1639c96a25a1c908aa936f8a04c582ad7e37dcb79bf619ba66954a9b95",
+      "bundlePath": "chromium/src/out/AhoiRelease/AhoiBrowser.app",
+      "expectedBundleName": "AhoiBrowser",
+      "expectedBundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+      "expectedBuildProfile": "release"
+    }
+  ],
+  "categories": [
+    {
+      "id": "resources",
+      "rule": "path-component-equals-Resources"
+    },
+    {
+      "id": "frameworks-and-libraries",
+      "rule": "path-component-equals-Frameworks-or-suffix-dylib"
+    },
+    {
+      "id": "mach-o",
+      "rule": "recognized-thin-or-fat-mach-o-magic"
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "lean-over-upstream",
+      "operation": "overhead",
+      "subjectProfile": "ahoi-release",
+      "referenceProfile": "upstream-control",
+      "maximumBasisPoints": 300,
+      "testIds": ["LEAN-01", "LEAN-06"]
+    },
+    {
+      "id": "lean-savings-versus-full",
+      "operation": "savings",
+      "subjectProfile": "ahoi-release",
+      "referenceProfile": "ahoi-full-release",
+      "minimumBasisPoints": 1000,
+      "testIds": ["LEAN-01", "LEAN-04", "LEAN-06", "LEAN-10"]
+    }
+  ],
+  "gate": {
+    "passWhen": "all-comparisons-pass",
+    "otherwise": "product-decision-required",
+    "testIds": ["LEAN-06"]
+  },
+  "outputPath": "artifacts/build/lean-wave-1-bundle-measurement.json"
+}

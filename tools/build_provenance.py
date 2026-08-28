@@ -125,7 +125,13 @@ def verify_profile_binding(
     profiles = {
         "upstream": ("upstream-release.gn", "AhoiUpstreamRelease", "Chromium.app"),
         "dev": ("ahoi-dev.gn", "AhoiDev", "AhoiBrowser.app"),
+        "full-dev": ("ahoi-full-dev.gn", "AhoiFullDev", "AhoiBrowser.app"),
         "release": ("ahoi-release.gn", "AhoiRelease", "AhoiBrowser.app"),
+        "full-release": (
+            "ahoi-full-release.gn",
+            "AhoiFullRelease",
+            "AhoiBrowser.app",
+        ),
     }
     args_name, out_name, app_name = profiles[kind]
     expected_args = (ROOT / "config/build" / args_name).resolve()
@@ -146,7 +152,7 @@ def verify_profile_binding(
 
 def expected_xcode_for_kind(kind: str, toolchain: dict) -> dict[str, str]:
     ios_sdk = toolchain["sdks"]["iOS"]
-    if kind == "dev":
+    if kind in {"dev", "full-dev"}:
         compatible = toolchain["xcode"]["compatibleDevelopment"]
         return {
             "mode": "compatible-development",
@@ -155,7 +161,7 @@ def expected_xcode_for_kind(kind: str, toolchain: dict) -> dict[str, str]:
             "developerDirectory": compatible["developerDirectory"],
             "iOSSDKBuild": ios_sdk["compatibleDevelopmentBuild"],
         }
-    if kind not in {"upstream", "release"}:
+    if kind not in {"upstream", "release", "full-release"}:
         raise SystemExit(f"unsupported build provenance kind: {kind}")
     return {
         "mode": "pinned-reference",
@@ -276,7 +282,9 @@ def verify_dependency_build_workarounds(out_dir: pathlib.Path) -> list[dict]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--kind", choices=("upstream", "dev", "release"), required=True
+        "--kind",
+        choices=("upstream", "dev", "full-dev", "release", "full-release"),
+        required=True,
     )
     parser.add_argument("--app", type=pathlib.Path, required=True)
     parser.add_argument("--out-dir", type=pathlib.Path, required=True)

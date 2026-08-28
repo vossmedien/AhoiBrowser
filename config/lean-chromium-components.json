@@ -1,0 +1,446 @@
+{
+  "schemaVersion": 1,
+  "matrixId": "lean-chromium-wave-1",
+  "chromium": {
+    "milestone": 152,
+    "version": "152.0.7977.65",
+    "commit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa"
+  },
+  "scope": {
+    "wave": 1,
+    "activeExclusions": [
+      "compose",
+      "pdf-save-to-drive"
+    ],
+    "rule": "Only activeExclusions may differ between a lean Ahoi profile and its byte-preserved full baseline in wave 1."
+  },
+  "profiles": [
+    {
+      "id": "upstream-control",
+      "role": "unmodified-upstream-control",
+      "buildCommand": "./scripts/build-upstream.sh",
+      "argsPath": "config/build/upstream-release.gn",
+      "outDirectory": "AhoiUpstreamRelease",
+      "bundleName": "Chromium.app",
+      "provenanceKind": "upstream",
+      "toolchainMode": "pinned-reference",
+      "shippingEligible": false,
+      "expectedGnArgsSha256": "abe86e85d5ec8d662d0d372951d70f7ce18cedf5f7b009b1baa72bce9f6a4bfd"
+    },
+    {
+      "id": "ahoi-dev",
+      "role": "lean-development",
+      "buildCommand": "./scripts/build-ahoi.sh dev",
+      "argsPath": "config/build/ahoi-dev.gn",
+      "outDirectory": "AhoiDev",
+      "bundleName": "AhoiBrowser.app",
+      "provenanceKind": "dev",
+      "stampedProfile": "dev",
+      "toolchainMode": "compatible-development",
+      "signingMode": "development",
+      "sparklePolicyClass": "development",
+      "shippingEligible": false,
+      "expectedGnArgsSha256": "a87e78f52fcadfc019affc17afb0210abfbf62238456416a4e516f2eab6b9847"
+    },
+    {
+      "id": "ahoi-full-dev",
+      "role": "pre-wave-1-full-development-baseline",
+      "buildCommand": "./scripts/build-ahoi.sh full-dev",
+      "argsPath": "config/build/ahoi-full-dev.gn",
+      "outDirectory": "AhoiFullDev",
+      "bundleName": "AhoiBrowser.app",
+      "provenanceKind": "full-dev",
+      "stampedProfile": "full-dev",
+      "toolchainMode": "compatible-development",
+      "signingMode": "development",
+      "sparklePolicyClass": "development",
+      "shippingEligible": false,
+      "expectedGnArgsSha256": "49b306d09fa8b6aa17b654d63527fe042eef77abf7f30b3d8727bc67d0c9e48d"
+    },
+    {
+      "id": "ahoi-release",
+      "role": "lean-release",
+      "buildCommand": "./scripts/build-ahoi.sh release",
+      "argsPath": "config/build/ahoi-release.gn",
+      "outDirectory": "AhoiRelease",
+      "bundleName": "AhoiBrowser.app",
+      "provenanceKind": "release",
+      "stampedProfile": "release",
+      "toolchainMode": "pinned-reference",
+      "signingMode": "release-pipeline-only",
+      "sparklePolicyClass": "reviewed-release",
+      "shippingEligible": true,
+      "expectedGnArgsSha256": "59b1ca1639c96a25a1c908aa936f8a04c582ad7e37dcb79bf619ba66954a9b95"
+    },
+    {
+      "id": "ahoi-full-release",
+      "role": "pre-wave-1-full-release-baseline",
+      "buildCommand": "./scripts/build-ahoi.sh full-release",
+      "argsPath": "config/build/ahoi-full-release.gn",
+      "outDirectory": "AhoiFullRelease",
+      "bundleName": "AhoiBrowser.app",
+      "provenanceKind": "full-release",
+      "stampedProfile": "full-release",
+      "toolchainMode": "pinned-reference",
+      "signingMode": "none-in-build-script",
+      "sparklePolicyClass": "reviewed-release",
+      "shippingEligible": false,
+      "expectedGnArgsSha256": "cf144d4dcfb41383b3e863c363de0d89568a09baa06219b64e5627c516b0bf4c"
+    }
+  ],
+  "fullBaselineContract": {
+    "algorithm": "sha256",
+    "development": {
+      "profileId": "ahoi-full-dev",
+      "preWave1ArgsSha256": "49b306d09fa8b6aa17b654d63527fe042eef77abf7f30b3d8727bc67d0c9e48d"
+    },
+    "release": {
+      "profileId": "ahoi-full-release",
+      "preWave1ArgsSha256": "cf144d4dcfb41383b3e863c363de0d89568a09baa06219b64e5627c516b0bf4c"
+    },
+    "allowedLeanDelta": [
+      "enable_compose = false",
+      "enable_pdf_save_to_drive = false"
+    ]
+  },
+  "verificationPolicy": {
+    "order": [
+      "installed-cu-e2e",
+      "focused-programmatic",
+      "bundle-measurement"
+    ],
+    "programmaticExecutionBlockedUntil": "installed-cu-e2e-complete",
+    "testIds": ["LEAN-07", "LEAN-08", "LEAN-01", "LEAN-06"]
+  },
+  "rollPolicy": {
+    "requiredOnEveryChromiumPinChange": true,
+    "failClosed": true,
+    "actions": [
+      "re-enumerate-every-controlled-gn-arg-reference",
+      "gn-gen-all-four-ahoi-profiles",
+      "verify-resolved-gn-arg-values",
+      "compare-lean-and-full-gn-graph-closures",
+      "inspect-generated-buildflags",
+      "verify-byte-exact-full-baselines-and-two-line-lean-delta",
+      "verify-full-release-remains-rejected-by-shipping-release-chain"
+    ],
+    "testIds": ["LEAN-02", "LEAN-04", "LEAN-09", "LEAN-10"]
+  },
+  "protectedCapabilities": [
+    {
+      "id": "extensions",
+      "wave1Mutations": [],
+      "rollCheckPaths": ["extensions/buildflags/buildflags.gni"],
+      "testIds": ["LEAN-07", "LEAN-08"]
+    },
+    {
+      "id": "core-pdf",
+      "wave1Mutations": [],
+      "rollCheckPaths": ["pdf/features.gni"],
+      "testIds": ["LEAN-07"]
+    },
+    {
+      "id": "printing",
+      "wave1Mutations": [],
+      "rollCheckPaths": ["printing/buildflags/buildflags.gni"],
+      "testIds": ["LEAN-07"]
+    },
+    {
+      "id": "safe-browsing",
+      "wave1Mutations": [],
+      "rollCheckPaths": ["components/safe_browsing/buildflags.gni"],
+      "testIds": ["LEAN-07"]
+    },
+    {
+      "id": "web-platform",
+      "wave1Mutations": [],
+      "rollCheckPaths": ["content", "third_party/blink"],
+      "testIds": ["LEAN-07"]
+    },
+    {
+      "id": "native-messaging",
+      "wave1Mutations": [],
+      "rollCheckPaths": ["extensions/browser/BUILD.gn"],
+      "testIds": ["LEAN-07", "LEAN-08"]
+    },
+    {
+      "id": "background-extensions",
+      "wave1Mutations": [],
+      "rollCheckPaths": [
+        "chrome/common/features.gni",
+        "chrome/browser/BUILD.gn",
+        "chrome/browser/background/extensions/BUILD.gn"
+      ],
+      "testIds": ["LEAN-07", "LEAN-08"]
+    }
+  ],
+  "components": [
+    {
+      "id": "lens-desktop",
+      "name": "Lens Desktop",
+      "decision": "retain-in-wave-1",
+      "buildControl": {
+        "kind": "gn-arg",
+        "name": "enable_lens_desktop",
+        "declarationPath": "components/lens/features.gni",
+        "expectedDefault": "toolkit_views",
+        "profileOverrides": []
+      },
+      "rationale": "The desktop and Google-branded feature layers are separate in M152; the unbranded product needs a focused dependency and user-journey audit before exclusion.",
+      "dependencyRisks": [
+        "Disabling the desktop layer without auditing non-Google consumers can remove shared image-search or selection surfaces."
+      ],
+      "rollback": {
+        "strategy": "no-wave-1-change",
+        "fallbackProfileId": "ahoi-full-release",
+        "requiresRebuild": true
+      },
+      "rollCheck": {
+        "required": true,
+        "declarations": ["components/lens/features.gni"],
+        "expectedRelations": [
+          "enable_lens_desktop = toolkit_views",
+          "enable_lens_desktop_google_branded_features = enable_lens_desktop && is_chrome_branded"
+        ],
+        "failClosedIf": [
+          "desktop-and-google-branded-layers-merge",
+          "new-unconditional-product-dependency",
+          "declaration-missing-or-default-changed"
+        ]
+      },
+      "testIds": ["LEAN-02", "LEAN-03", "LEAN-07", "LEAN-09"]
+    },
+    {
+      "id": "compose",
+      "name": "Compose",
+      "decision": "exclude-from-lean-profiles",
+      "buildControl": {
+        "kind": "gn-arg",
+        "name": "enable_compose",
+        "declarationPath": "components/compose/features.gni",
+        "expectedDefault": "is_mac || is_win || is_linux || is_chromeos",
+        "leanExplicitValue": false,
+        "fullBaselineEffectiveValueOnMac": true
+      },
+      "rationale": "M152 exposes the dedicated Chromium Compose product slice behind one argument and guards its browser, UI, resources, and WebUI dependency roots.",
+      "dependencyRisks": [
+        "Compose child BUILD targets assert that the argument is enabled and must remain reachable only through guarded parent edges."
+      ],
+      "rollback": {
+        "strategy": "set-lean-arg-true-or-build-full-profile",
+        "gnArg": "enable_compose",
+        "rollbackValue": true,
+        "fallbackProfileId": "ahoi-full-release",
+        "requiresRebuild": true
+      },
+      "rollCheck": {
+        "required": true,
+        "declarations": ["components/compose/features.gni"],
+        "guardPaths": [
+          "chrome/browser/BUILD.gn",
+          "chrome/browser/ui/BUILD.gn",
+          "chrome/browser/resources/BUILD.gn",
+          "chrome/browser/ui/autofill/BUILD.gn",
+          "chrome/browser/ui/webui/BUILD.gn",
+          "chrome/browser/ui/webui/compose/BUILD.gn"
+        ],
+        "assertionPaths": ["chrome/browser/compose/BUILD.gn"],
+        "buildflagPath": "components/compose/BUILD.gn",
+        "failClosedIf": [
+          "gn-arg-missing-or-default-changed",
+          "new-unconditional-parent-edge",
+          "child-assertion-reachable-while-disabled",
+          "settings-or-runtime-registration-remains"
+        ]
+      },
+      "testIds": [
+        "LEAN-02",
+        "LEAN-03",
+        "LEAN-04",
+        "LEAN-05",
+        "LEAN-06",
+        "LEAN-07",
+        "LEAN-09",
+        "LEAN-10"
+      ]
+    },
+    {
+      "id": "structured-metrics",
+      "name": "Structured Metrics",
+      "decision": "retain-in-wave-1",
+      "buildControl": {
+        "kind": "gn-arg",
+        "name": "structured_metrics_enabled",
+        "declarationPath": "components/metrics/structured/buildflags/buildflags.gni",
+        "expectedDefault": "is_win || is_mac || is_linux || is_chromeos",
+        "profileOverrides": []
+      },
+      "rationale": "M152 references the validator and feature layer from browser, app-service, metrics, and diagnostic targets; compilation and runtime/upload policy must be audited separately.",
+      "dependencyRisks": [
+        "A build-only switch does not by itself prove that settings, registration, persistence, scheduling, or upload paths are absent."
+      ],
+      "rollback": {
+        "strategy": "no-wave-1-change",
+        "fallbackProfileId": "ahoi-full-release",
+        "requiresRebuild": true
+      },
+      "rollCheck": {
+        "required": true,
+        "declarations": [
+          "components/metrics/structured/buildflags/buildflags.gni"
+        ],
+        "dependencyRoots": [
+          "components/metrics/structured/BUILD.gn",
+          "chrome/browser/metrics/BUILD.gn",
+          "chrome/browser/metrics/structured/BUILD.gn"
+        ],
+        "failClosedIf": [
+          "buildflag-removed-or-renamed",
+          "runtime-policy-not-audited",
+          "shared-metrics-dependency-cannot-be-separated"
+        ]
+      },
+      "testIds": ["LEAN-02", "LEAN-03", "LEAN-05", "LEAN-07", "LEAN-09"]
+    },
+    {
+      "id": "pdf-save-to-drive",
+      "name": "PDF Save to Drive",
+      "decision": "exclude-from-lean-profiles",
+      "buildControl": {
+        "kind": "gn-arg",
+        "name": "enable_pdf_save_to_drive",
+        "declarationPath": "pdf/features.gni",
+        "expectedDefault": "enable_pdf",
+        "leanExplicitValue": false,
+        "fullBaselineEffectiveValueOnMac": true
+      },
+      "rationale": "The Google Drive export integration is separable in M152 and is not core PDF viewing, saving, annotation, or printing.",
+      "dependencyRisks": [
+        "Save-to-Drive child targets assert that the argument is enabled; all browser, UI, and Views roots must remain guarded.",
+        "The independent enable_pdf and enable_pdf_ink2 arguments must not change.",
+        "Generic Drive or composebox code used by other features may remain and must not be reported as a failed dedicated-slice exclusion."
+      ],
+      "protectedCapabilities": ["core-pdf", "printing"],
+      "rollback": {
+        "strategy": "set-lean-arg-true-or-build-full-profile",
+        "gnArg": "enable_pdf_save_to_drive",
+        "rollbackValue": true,
+        "fallbackProfileId": "ahoi-full-release",
+        "requiresRebuild": true
+      },
+      "rollCheck": {
+        "required": true,
+        "declarations": ["pdf/features.gni"],
+        "guardPaths": [
+          "pdf/BUILD.gn",
+          "pdf/mojom/BUILD.gn",
+          "chrome/browser/resources/pdf/BUILD.gn",
+          "chrome/browser/ui/BUILD.gn",
+          "chrome/browser/extensions/api/pdf_viewer_private/BUILD.gn"
+        ],
+        "assertionPaths": [
+          "chrome/browser/save_to_drive/BUILD.gn",
+          "chrome/browser/ui/save_to_drive/BUILD.gn",
+          "chrome/browser/ui/views/save_to_drive/BUILD.gn"
+        ],
+        "requiredIndependentControls": ["enable_pdf", "enable_pdf_ink2"],
+        "failClosedIf": [
+          "gn-arg-missing-or-default-changed",
+          "new-unconditional-parent-edge",
+          "child-assertion-reachable-while-disabled",
+          "core-pdf-or-printing-control-changed"
+        ]
+      },
+      "testIds": [
+        "LEAN-02",
+        "LEAN-03",
+        "LEAN-04",
+        "LEAN-05",
+        "LEAN-06",
+        "LEAN-07",
+        "LEAN-09",
+        "LEAN-10"
+      ]
+    },
+    {
+      "id": "legacy-platform-apps",
+      "name": "Legacy Platform Apps",
+      "decision": "retain-in-wave-1",
+      "buildControl": {
+        "kind": "gn-arg",
+        "name": "enable_platform_apps",
+        "declarationPath": "extensions/buildflags/buildflags.gni",
+        "expectedDefault": "enable_extensions",
+        "profileOverrides": []
+      },
+      "rationale": "The M152 buildflag inherits enable_extensions. Wave 1 must not weaken extension, Native Messaging, or background-extension capability through a broad coupled switch.",
+      "dependencyRisks": [
+        "Platform-app APIs and extension consumers remain spread across browser, UI, profile, file-system, media, session, and background targets."
+      ],
+      "protectedCapabilities": [
+        "extensions",
+        "native-messaging",
+        "background-extensions"
+      ],
+      "rollback": {
+        "strategy": "no-wave-1-change",
+        "fallbackProfileId": "ahoi-full-release",
+        "requiresRebuild": true
+      },
+      "rollCheck": {
+        "required": true,
+        "declarations": ["extensions/buildflags/buildflags.gni"],
+        "expectedRelations": ["enable_platform_apps = enable_extensions"],
+        "dependencyRoots": [
+          "chrome/browser/apps/platform_apps/BUILD.gn",
+          "chrome/common/apps/platform_apps/BUILD.gn",
+          "chrome/browser/extensions/BUILD.gn"
+        ],
+        "failClosedIf": [
+          "extension-coupling-changed",
+          "selected-extension-e2e-not-green",
+          "native-messaging-or-background-capability-regresses"
+        ]
+      },
+      "testIds": ["LEAN-02", "LEAN-03", "LEAN-07", "LEAN-08", "LEAN-09"]
+    },
+    {
+      "id": "legacy-hosted-apps",
+      "name": "Legacy Hosted Apps",
+      "decision": "retain-in-wave-1",
+      "buildControl": {
+        "kind": "gn-arg",
+        "name": "enable_hosted_apps",
+        "declarationPath": "extensions/buildflags/buildflags.gni",
+        "expectedDefault": "enable_extensions",
+        "profileOverrides": []
+      },
+      "rationale": "The M152 buildflag also inherits enable_extensions. A later removal needs its own graph, browsing-data, migration, policy, and installed-extension audit.",
+      "dependencyRisks": [
+        "Hosted-app data counters and extension migration or policy paths can outlive a superficial UI removal."
+      ],
+      "protectedCapabilities": [
+        "extensions",
+        "native-messaging",
+        "background-extensions"
+      ],
+      "rollback": {
+        "strategy": "no-wave-1-change",
+        "fallbackProfileId": "ahoi-full-release",
+        "requiresRebuild": true
+      },
+      "rollCheck": {
+        "required": true,
+        "declarations": ["extensions/buildflags/buildflags.gni"],
+        "expectedRelations": ["enable_hosted_apps = enable_extensions"],
+        "dependencyRoots": ["chrome/browser/browsing_data/BUILD.gn"],
+        "failClosedIf": [
+          "extension-coupling-changed",
+          "migration-policy-or-data-path-not-audited",
+          "selected-extension-e2e-not-green"
+        ]
+      },
+      "testIds": ["LEAN-02", "LEAN-03", "LEAN-04", "LEAN-07", "LEAN-08", "LEAN-09"]
+    }
+  ]
+}

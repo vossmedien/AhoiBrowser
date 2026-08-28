@@ -81,12 +81,17 @@ class ProductDataDirectoryPatchContractTests(unittest.TestCase):
         self.assertNotIn("--user-data-dir", plist)
         self.assertNotRegex(plist, r"\.grd(?:p)?\b|IDS_[A-Z0-9_]+")
 
-    def test_ahoi_branding_materializes_the_plist_variable_for_both_profiles(self):
+    def test_ahoi_branding_materializes_the_plist_variable_for_all_profiles(self):
         branding = parse_branding(BRANDING_PATH)
         self.assertEqual("AhoiBrowser", branding["PRODUCT_SHORTNAME"])
         self.assertIn("${CHROMIUM_SHORT_NAME}", file_section(self.patch, PLIST_PATH))
 
-        for profile_name in ("ahoi-dev.gn", "ahoi-release.gn"):
+        for profile_name in (
+            "ahoi-dev.gn",
+            "ahoi-full-dev.gn",
+            "ahoi-release.gn",
+            "ahoi-full-release.gn",
+        ):
             profile = (ROOT / "config/build" / profile_name).read_text(
                 encoding="utf-8"
             )

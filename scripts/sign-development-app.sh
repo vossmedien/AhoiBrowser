@@ -14,8 +14,11 @@ esac
 [ -d "${app_path}" ] || ahoi_die "app bundle not found: ${app_path}"
 plist="${app_path}/Contents/Info.plist"
 [ -f "${plist}" ] || ahoi_die "Info.plist missing: ${plist}"
-[ "$(plutil -extract AhoiBuildProfile raw "${plist}")" = "dev" ] || \
-  ahoi_die "development signing is forbidden for release bundles"
+build_profile="$(plutil -extract AhoiBuildProfile raw "${plist}")"
+case "${build_profile}" in
+  dev|full-dev) ;;
+  *) ahoi_die "development signing is restricted to development profiles" ;;
+esac
 
 ahoi_require_command codesign
 ahoi_require_command security
@@ -28,12 +31,12 @@ identity="$(python3 "${AHOI_REPO_ROOT}/tools/development_signing.py")" || \
   ahoi_die "cannot resolve a safe development signing identity"
 signing_arguments=(--force --sign "${identity}" --timestamp=none)
 if [ "${identity}" != "-" ]; then
-  # AhoiDev is a component build whose staged Chromium dylibs intentionally
-  # keep their linker signatures. A stable identity fixes the Keychain access
-  # requirement; it must not silently turn this non-release bundle into a
-  # partial hardened-runtime package whose library validation rejects those
-  # development components. The separate release signer owns full hardened
-  # runtime signing for every nested code object.
+  # Development profiles are component builds. Their staged Chromium dylibs
+  # intentionally keep their linker signatures. A stable identity fixes the
+  # Keychain access requirement; it must not silently turn this non-release
+  # bundle into a partial hardened-runtime package whose library validation
+  # rejects those development components. The separate release signer owns full
+  # hardened runtime signing for every nested code object.
   signing_arguments+=(--preserve-metadata=entitlements)
 fi
 

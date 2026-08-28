@@ -129,7 +129,15 @@ class RepositoryBuildContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn('os.environ.get("AHOI_WORK_ROOT")', provenance)
-        self.assertIn('choices=("upstream", "dev", "release")', provenance)
+        self.assertIn('"--kind"', provenance)
+        for build_kind in (
+            "upstream",
+            "dev",
+            "full-dev",
+            "release",
+            "full-release",
+        ):
+            self.assertIn(f'"{build_kind}"', provenance)
         self.assertIn("collect_revisions", provenance)
         self.assertIn("verify_deps_pins", provenance)
         self.assertIn("logical_path", provenance)

@@ -169,6 +169,45 @@ non-directory components, and every existing symlink component:
   ahoi_developer_toolkit_ui_unittests
 ```
 
+### Lean Chromium wave 1 and full baselines
+
+The normal `dev` and `release` profiles are the conservative wave-1 Lean
+profiles. They differ from their pre-wave-1 full baselines only by disabling
+Chromium Compose and PDF Save-to-Drive. Core PDF support, printing, the Web
+platform, Safe Browsing, extensions, Native Messaging, and background-extension
+capability are unchanged. The exact decisions, M152 roll checks, rollback paths,
+protected capabilities, and test-registry IDs live in
+`config/lean-chromium-components.json`.
+
+The byte-preserved `full-dev` and `full-release` GN profiles make the old Ahoi
+configuration reproducible under distinct output directories and provenance
+kinds:
+
+```sh
+./scripts/build-ahoi.sh full-dev
+./scripts/build-ahoi.sh full-release
+```
+
+`full-release` is a measurement baseline, not a distributable release profile.
+It keeps release-like toolchain and Sparkle stamping requirements, but the
+signing, packaging, installation, and release-evidence chain continues to
+accept only `AhoiBuildProfile=release` with `ahoi-release` provenance.
+
+After building the upstream control, full release baseline, and Lean release
+with the same pinned source/toolchain, generate the deterministic logical-byte,
+Mach-O, Resources, and Framework/library inventory with:
+
+```sh
+python3 tools/measure_lean_bundles.py
+```
+
+The tool verifies every GN profile hash and bundle identity before atomically
+writing `artifacts/build/lean-wave-1-bundle-measurement.json`. Its report has no
+wall-clock field and uses the rules and thresholds in
+`config/lean-bundle-measurement.json`. A missed size threshold produces the
+explicit `PRODUCT_DECISION_REQUIRED` metric state; it is not silently treated
+as a passing release gate.
+
 ## Stable development signing and Keychain access
 
 `build-ahoi.sh dev` signs the finished bundle with the single valid

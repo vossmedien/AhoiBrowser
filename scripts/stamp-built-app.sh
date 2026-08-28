@@ -25,7 +25,9 @@ chromium_version="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/chromium.json" versi
 args_hash="$(ahoi_sha256 "${args_file}")"
 case "$(basename "${args_file}")" in
   ahoi-dev.gn) build_profile="dev" ;;
+  ahoi-full-dev.gn) build_profile="full-dev" ;;
   ahoi-release.gn) build_profile="release" ;;
+  ahoi-full-release.gn) build_profile="full-release" ;;
   *) ahoi_die "unsupported Ahoi GN args file: ${args_file}" ;;
 esac
 plist="${app_path}/Contents/Info.plist"
@@ -77,9 +79,9 @@ PY
 sparkle_feed_url="${AHOI_SPARKLE_FEED_URL:-}"
 sparkle_public_key="${AHOI_SPARKLE_PUBLIC_ED_KEY:-}"
 sparkle_require_policy_match=0
-if [ "${build_profile}" = "release" ]; then
-  sparkle_require_policy_match=1
-fi
+case "${build_profile}" in
+  release|full-release) sparkle_require_policy_match=1 ;;
+esac
 if [ -n "${sparkle_feed_url}" ] || [ -n "${sparkle_public_key}" ]; then
   [ -n "${sparkle_feed_url}" ] && [ -n "${sparkle_public_key}" ] || \
     ahoi_die "Sparkle feed URL and public Ed25519 key must be supplied together"
@@ -133,8 +135,12 @@ PY
   set_plist_string SUPublicEDKey "${sparkle_public_key}"
   set_plist_bool AhoiSparkleFeedConfigured true
 else
-  [ "${build_profile}" != "release" ] || \
-    ahoi_die "release stamping requires externally reviewed Sparkle feed/key values"
+  case "${build_profile}" in
+    release|full-release)
+      ahoi_die \
+        "release-like stamping requires externally reviewed Sparkle feed/key values"
+      ;;
+  esac
   delete_plist_key SUFeedURL
   delete_plist_key SUPublicEDKey
   set_plist_bool AhoiSparkleFeedConfigured false

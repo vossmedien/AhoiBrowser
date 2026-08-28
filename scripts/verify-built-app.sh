@@ -54,7 +54,9 @@ PY
 )"
 case "${build_profile}" in
   dev) expected_args_file="${AHOI_REPO_ROOT}/config/build/ahoi-dev.gn" ;;
+  full-dev) expected_args_file="${AHOI_REPO_ROOT}/config/build/ahoi-full-dev.gn" ;;
   release) expected_args_file="${AHOI_REPO_ROOT}/config/build/ahoi-release.gn" ;;
+  full-release) expected_args_file="${AHOI_REPO_ROOT}/config/build/ahoi-full-release.gn" ;;
   *) ahoi_die "unexpected Ahoi build profile: ${build_profile}" ;;
 esac
 expected_gn_args_hash="$(ahoi_sha256 "${expected_args_file}")"
@@ -86,7 +88,8 @@ expected_gn_args_hash="$(ahoi_sha256 "${expected_args_file}")"
   ahoi_die "Sparkle verification-before-extraction is disabled"
 [ "$(plutil -extract SUSendProfileInfo raw "${plist}")" = "false" ] || \
   ahoi_die "Sparkle system-profile submission must remain disabled"
-if [ "${build_profile}" = "release" ]; then
+if [ "${build_profile}" = "release" ] || \
+  [ "${build_profile}" = "full-release" ]; then
   [ "${sparkle_feed_configured}" = "true" ] || \
     ahoi_die "release bundle has no reviewed Sparkle feed/key configuration"
   sparkle_feed_url="$(plutil -extract SUFeedURL raw "${plist}")"
@@ -143,7 +146,8 @@ architecture="$(file "${binary}")"
 echo "${architecture}" | grep -q 'arm64' || ahoi_die "main executable is not ARM64"
 echo "${architecture}" | grep -q 'x86_64' && ahoi_die "unexpected x86_64 slice" || true
 
-if [ "${build_profile}" = "dev" ]; then
+if [ "${build_profile}" = "dev" ] || \
+  [ "${build_profile}" = "full-dev" ]; then
   component_runtime_dir="${app_path}/Contents/Frameworks"
   component_manifest="${app_path}/Contents/Resources/ahoi-component-runtime.sha256"
   component_framework="${component_runtime_dir}/AhoiBrowser Framework.framework"

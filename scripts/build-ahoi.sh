@@ -17,13 +17,28 @@ case "${profile}" in
     toolchain_mode="compatible-development"
     hook_xcode_option="--compatible-dev-xcode"
     ;;
+  full-dev)
+    args_file="${AHOI_REPO_ROOT}/config/build/ahoi-full-dev.gn"
+    out_name="AhoiFullDev"
+    toolchain_mode="compatible-development"
+    hook_xcode_option="--compatible-dev-xcode"
+    ;;
   release)
     args_file="${AHOI_REPO_ROOT}/config/build/ahoi-release.gn"
     out_name="AhoiRelease"
     toolchain_mode="pinned-reference"
     hook_xcode_option=""
     ;;
-  *) ahoi_die "usage: $0 [dev|release] [additional-ninja-target ...]" ;;
+  full-release)
+    args_file="${AHOI_REPO_ROOT}/config/build/ahoi-full-release.gn"
+    out_name="AhoiFullRelease"
+    toolchain_mode="pinned-reference"
+    hook_xcode_option=""
+    ;;
+  *)
+    ahoi_die \
+      "usage: $0 [dev|full-dev|release|full-release] [additional-ninja-target ...]"
+    ;;
 esac
 targets=("chrome" "$@")
 
@@ -59,9 +74,9 @@ app_path="${out_dir}/AhoiBrowser.app"
   ahoi_die "branded AhoiBrowser.app was not produced in ${out_dir}"
 "${SCRIPT_DIR}/stage-component-runtime.sh" "${out_dir}" "${app_path}"
 "${SCRIPT_DIR}/stamp-built-app.sh" "${app_path}" "${args_file}"
-if [ "${profile}" = "dev" ]; then
-  "${SCRIPT_DIR}/sign-development-app.sh" "${app_path}"
-fi
+case "${profile}" in
+  dev|full-dev) "${SCRIPT_DIR}/sign-development-app.sh" "${app_path}" ;;
+esac
 "${SCRIPT_DIR}/verify-built-app.sh" "${app_path}"
 python3 "${AHOI_REPO_ROOT}/tools/build_provenance.py" \
   --kind "${profile}" \

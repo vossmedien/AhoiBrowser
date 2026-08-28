@@ -6,7 +6,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 PROFILE_PATHS = (
     ROOT / "config/build/upstream-release.gn",
     ROOT / "config/build/ahoi-dev.gn",
+    ROOT / "config/build/ahoi-full-dev.gn",
     ROOT / "config/build/ahoi-release.gn",
+    ROOT / "config/build/ahoi-full-release.gn",
 )
 
 
