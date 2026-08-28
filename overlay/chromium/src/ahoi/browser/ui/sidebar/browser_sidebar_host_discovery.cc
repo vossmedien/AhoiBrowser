@@ -7,6 +7,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_device_tab_commands.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_media_overlay_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
