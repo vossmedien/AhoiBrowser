@@ -228,7 +228,8 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn("split_depfile_paths", rust_patch_text)
         self.assertIn("escape_depfile_path", rust_patch_text)
         self.assertIn(
-            "depline.replace(\\n+      abs_build_root, escape_depfile_path(abs_build_root))",
+            "parseable_depline = depline.replace(\n"
+            "+      abs_build_root, escape_depfile_path(abs_build_root))",
             rust_patch_text,
         )
         self.assertIn("(?:\\\\ |[^ ])*", rust_patch_text)

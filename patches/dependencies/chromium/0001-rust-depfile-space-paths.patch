@@ -89,7 +89,8 @@ diff --git a/build/rust/gni_impl/rustc_wrapper.py b/build/rust/gni_impl/rustc_wr
      return f"{lhs_file}: {rhs_files}"
    else:
      return f"{lhs_file}:"
-@@ -198,6 +232,9 @@ def verify_inputs(depline, sources, abs_build_root):
+ 
+@@ -198,7 +232,10 @@ def verify_inputs(depline, sources, abs_build_root):
    m = FILE_RE.match(depline)
    if m and m.group(2):
      files = m.group(2)
@@ -100,3 +101,4 @@ diff --git a/build/rust/gni_impl/rustc_wrapper.py b/build/rust/gni_impl/rustc_wr
 +    }
    # Get which ones are not listed in GN.
    missing_files = found_files.keys() - sources
+ 
