@@ -314,8 +314,11 @@ class NewGroupDropTargetView final : public views::View,
                        const ui::DropTargetEvent&,
                        ui::mojom::DragOperation& output_drag_op,
                        std::unique_ptr<ui::LayerTreeOwner>) {
+    const DropNodeCallback callback = node_callback_;
     SetHighlighted(false);
-    output_drag_op = node_callback_.Run(source_node_id)
+    // The callback may synchronously rebuild and delete this sidebar view.
+    // Invoke the stable copy last and never touch members afterwards.
+    output_drag_op = callback.Run(source_node_id)
                          ? ui::mojom::DragOperation::kMove
                          : ui::mojom::DragOperation::kNone;
   }
@@ -324,8 +327,10 @@ class NewGroupDropTargetView final : public views::View,
                              const ui::DropTargetEvent&,
                              ui::mojom::DragOperation& output_drag_op,
                              std::unique_ptr<ui::LayerTreeOwner>) {
+    const DropRuntimeTabCallback callback = runtime_tab_callback_;
     SetHighlighted(false);
-    output_drag_op = runtime_tab_callback_.Run(runtime_tab_handle)
+    // Keep the same reentrancy contract as saved-node drops.
+    output_drag_op = callback.Run(runtime_tab_handle)
                          ? ui::mojom::DragOperation::kMove
                          : ui::mojom::DragOperation::kNone;
   }
