@@ -232,10 +232,13 @@ class OpenTabRowView final : public views::View, public views::DragController {
       return;
     }
     is_split_segment_ = split_segment;
+    UpdateTitleBounds();
     InvalidateLayout();
   }
 
-  void Layout(PassKey) override {
+  void Layout(PassKey) override { UpdateTitleBounds(); }
+
+  void UpdateTitleBounds() {
     const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
     favicon_view_->SetBoundsRect(icon_bounds);
     fallback_icon_->SetBoundsRect(icon_bounds);
@@ -247,7 +250,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
     const bool split_drop_preview =
         drop_position_ == OpenTabDropPosition::kSplit;
     if (split_drop_preview) {
-      title_pane_bounds.set_width(std::max(0, width() / 2));
+      // The existing tab stays in the logical leading half. Mirror that half
+      // for RTL instead of always clipping the title to physical left.
+      title_pane_bounds =
+          GetMirroredRect(gfx::Rect(0, 0, std::max(0, width() / 2), height()));
     }
     title_->SetDividerSafeBounds(trailing.title, title_pane_bounds,
                                  is_split_segment_ || split_drop_preview);
@@ -490,6 +496,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
       return;
     }
     drop_position_.reset();
+    // Keep title geometry in lockstep with the painted split state even while
+    // AppKit owns the nested native drag loop and ordinary Views layout is
+    // deferred.
+    UpdateTitleBounds();
     InvalidateLayout();
     SchedulePaint();
   }
@@ -539,6 +549,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
                             : std::nullopt;
     if (drop_position_ != next) {
       drop_position_ = next;
+      UpdateTitleBounds();
       InvalidateLayout();
       SchedulePaint();
     }

@@ -282,7 +282,6 @@ TEST_F(SidebarTreeViewTest,
   EXPECT_EQ(page.title, row->GetViewAccessibility().GetCachedName());
 
   row->SetSplitDropTarget(true);
-  row->DeprecatedLayoutImmediately();
 
   const gfx::Rect preview_title_bounds = row->title_bounds_for_testing();
   const gfx::Rect preview_paint_bounds = row->title_paint_bounds_for_testing();

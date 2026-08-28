@@ -121,6 +121,7 @@ class SidebarTreeRowView final : public views::View,
   gfx::Rect TitleBounds() const;
   gfx::Rect MediaIndicatorBounds() const;
   gfx::Rect TrailingActionBounds() const;
+  void UpdateTitleBounds();
   bool ShouldShowTrailingAction() const;
   bool ShouldPaintTrailingState() const;
   void UpdateAccessibility();

@@ -247,6 +247,13 @@ void SidebarTreeRowView::SetSplitDropTarget(bool split_drop_target) {
   title_label_->SetText(split_drop_target_ ? split_with_prefix_ + u" " + title_
                                            : title_);
   UpdateAccessibility();
+  // Native AppKit drags run a nested event loop. A deferred Views layout is not
+  // guaranteed to run before the next paint in that loop, so updating only the
+  // split background could briefly leave the old full-width title above the
+  // newly painted divider. Apply the pane-safe bounds synchronously as part of
+  // the state transition; Layout() remains the source of truth for later size
+  // changes.
+  UpdateTitleBounds();
   InvalidateLayout();
   SchedulePaint();
 }
@@ -310,6 +317,10 @@ std::u16string SidebarTreeRowView::editor_text_for_testing() const {
 }
 
 void SidebarTreeRowView::Layout(PassKey) {
+  UpdateTitleBounds();
+}
+
+void SidebarTreeRowView::UpdateTitleBounds() {
   const gfx::Rect title_bounds = GetMirroredRect(TitleBounds());
   gfx::Rect title_pane_bounds = GetLocalBounds();
   const bool has_split_separator =
