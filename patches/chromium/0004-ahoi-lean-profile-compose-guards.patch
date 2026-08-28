@@ -1,0 +1,122 @@
+diff --git a/chrome/browser/glic/BUILD.gn b/chrome/browser/glic/BUILD.gn
+index 5b912150fb73761090e5e7b610b5c0eab5ea4d5c..58eb6a26cf00d539262dedb60adce2d3556faf8e 100644
+--- a/chrome/browser/glic/BUILD.gn
++++ b/chrome/browser/glic/BUILD.gn
+@@ -5,6 +5,7 @@
+ import("//build/config/gclient_args.gni")
+ import("//build/config/ozone.gni")
+ import("//chrome/common/features.gni")
++import("//components/compose/features.gni")
+ import("//components/enterprise/buildflags/buildflags.gni")
+ import("//components/guest_view/buildflags/buildflags.gni")
+ import("//mojo/public/tools/bindings/mojom.gni")
+@@ -1020,7 +1021,6 @@ if (!is_android) {
+       "//chrome/browser/actor:tools_test_support",
+       "//chrome/browser/autofill",
+       "//chrome/browser/background/glic",
+-      "//chrome/browser/compose",
+       "//chrome/browser/contextual_tasks:ui",
+       "//chrome/browser/devtools:test_support",
+       "//chrome/browser/download:test_support",
+@@ -1049,6 +1049,9 @@ if (!is_android) {
+       "//content/test:test_support",
+       "//ui/display:test_support",
+     ]
++    if (enable_compose) {
++      deps += [ "//chrome/browser/compose" ]
++    }
+     if (enable_pdf) {
+       deps += [
+         "//chrome/browser/pdf:pdf_extension_test_utils",
+diff --git a/chrome/browser/renderer_context_menu/BUILD.gn b/chrome/browser/renderer_context_menu/BUILD.gn
+index 0313a7b60b49ef9bac2b33e96af6cb3c2fd9cd16..e5ba1065f8741eeabbde1ad24bcda27c5f20b2b8 100644
+--- a/chrome/browser/renderer_context_menu/BUILD.gn
++++ b/chrome/browser/renderer_context_menu/BUILD.gn
+@@ -3,6 +3,7 @@
+ # found in the LICENSE file.
+ 
+ import("//components/spellcheck/spellcheck_build_features.gni")
++import("//components/compose/features.gni")
+ import("//extensions/buildflags/buildflags.gni")
+ import("//pdf/features.gni")
+ import("//printing/buildflags/buildflags.gni")
+@@ -119,7 +120,6 @@ source_set("impl") {
+       "//chrome/browser/apps/app_service",
+       "//chrome/browser/apps/platform_apps",
+       "//chrome/browser/autocomplete",
+-      "//chrome/browser/compose",
+       "//chrome/browser/context_hub",
+       "//chrome/browser/custom_handlers",
+       "//chrome/browser/devtools",
+@@ -187,6 +187,10 @@ source_set("impl") {
+       "//url",
+     ]
+ 
++    if (enable_compose) {
++      deps += [ "//chrome/browser/compose" ]
++    }
++
+     if (enable_print_preview) {
+       deps += [ "//chrome/browser/printing" ]
+     }
+@@ -272,7 +276,9 @@ static_library("test_support") {
+       "render_view_context_menu_test_util.cc",
+     ]
+     public_deps += [ "//extensions/buildflags" ]
+-    deps += [ "//chrome/browser/compose" ]
++    if (enable_compose) {
++      deps += [ "//chrome/browser/compose" ]
++    }
+   }
+ 
+   if (is_chromeos) {
+@@ -375,7 +381,6 @@ if (!is_android) {
+       ":test_support",
+       "//base/test:test_support",
+       "//chrome/browser",
+-      "//chrome/browser/compose:test_support",
+       "//chrome/browser/context_hub",
+       "//chrome/browser/devtools",
+       "//chrome/browser/enterprise/data_controls:test_support",
+@@ -410,6 +415,10 @@ if (!is_android) {
+       "//url",
+     ]
+ 
++    if (enable_compose) {
++      deps += [ "//chrome/browser/compose:test_support" ]
++    }
++
+     if (is_linux || is_chromeos || is_win) {
+       sources += [
+         # This test is for the spelling options submenu that's only for
+diff --git a/chrome/browser/ui/webui/settings/BUILD.gn b/chrome/browser/ui/webui/settings/BUILD.gn
+index 17f3edb3f4e7cb2c9ef2870d162c5f59ec5783e7..22972bdeb4629827721f10f803f0938a4209842f 100644
+--- a/chrome/browser/ui/webui/settings/BUILD.gn
++++ b/chrome/browser/ui/webui/settings/BUILD.gn
+@@ -4,6 +4,7 @@
+ 
+ import("//build/config/ozone.gni")
+ import("//build/config/ui.gni")
++import("//components/compose/features.gni")
+ import("//components/signin/features.gni")
+ 
+ assert(is_win || is_mac || is_linux || is_chromeos)
+@@ -197,7 +198,6 @@ source_set("impl") {
+     "//chrome/browser/bluetooth",
+     "//chrome/browser/browsing_data",
+     "//chrome/browser/browsing_data:constants",
+-    "//chrome/browser/compose",
+     "//chrome/browser/content_settings",
+     "//chrome/browser/content_settings:content_settings_util",
+     "//chrome/browser/contextual_tasks",
+@@ -324,6 +324,10 @@ source_set("impl") {
+     "//v8:v8_version",
+   ]
+ 
++  if (enable_compose) {
++    deps += [ "//chrome/browser/compose" ]
++  }
++
+   if (is_win || is_mac || is_linux) {
+     sources += [
+       "settings_default_browser_handler.cc",

@@ -10,10 +10,12 @@ PATCH_ROOT = ROOT / "patches/chromium"
 INTEGRATION_PATCH = "0001-ahoi-m152-integration-seams.patch"
 DETERMINISTIC_PATCH = "0002-ahoi-deterministic-platform-tests.patch"
 TRACING_PATCH = "0003-ahoi-upstream-page-load-tracing-test-isolation.patch"
+LEAN_GUARDS_PATCH = "0004-ahoi-lean-profile-compose-guards.patch"
 EXPECTED_SERIES = (
     INTEGRATION_PATCH,
     DETERMINISTIC_PATCH,
     TRACING_PATCH,
+    LEAN_GUARDS_PATCH,
 )
 M152_PIN = {
     "version": "152.0.7977.65",
@@ -92,7 +94,7 @@ class ProductPatchStackTests(unittest.TestCase):
         self.assertIn(M152_PIN["version"], ledger)
         self.assertIn(M152_PIN["commit"], ledger)
 
-    def test_series_is_exactly_the_three_active_m152_layers(self):
+    def test_series_is_exactly_the_four_active_m152_layers(self):
         self.assertEqual(EXPECTED_SERIES, series_entries())
         self.assertEqual(len(EXPECTED_SERIES), len(set(EXPECTED_SERIES)))
 

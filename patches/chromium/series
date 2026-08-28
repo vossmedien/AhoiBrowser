@@ -2,3 +2,4 @@
 0001-ahoi-m152-integration-seams.patch
 0002-ahoi-deterministic-platform-tests.patch
 0003-ahoi-upstream-page-load-tracing-test-isolation.patch
+0004-ahoi-lean-profile-compose-guards.patch

@@ -82,3 +82,26 @@ as a second active patch stack.
 - **Expected rebase risk:** low.
 - **Removal/upstream plan:** remove when the upstream fix is present in the next
   pinned Stable baseline.
+
+## `0004-ahoi-lean-profile-compose-guards.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** Chromium Mac Stable `152.0.7977.65` at the exact commit
+  above, applied after the Ahoi M152 integration seam.
+- **Affected paths:** the Glic interactive-test aggregate, renderer context-menu
+  implementation/test aggregates, and desktop settings implementation.
+- **Rationale:** keep every remaining `//chrome/browser/compose` edge behind
+  Chromium's `enable_compose` argument so the Lean profile can disable the
+  dedicated Compose product slice without reaching its fail-closed assertion.
+- **Rejected alternatives:** silently re-enabling Compose in the Lean profile,
+  removing Compose source code, weakening its child-target assertion, or
+  carrying a non-reproducible checkout-only edit.
+- **Tests:** strict ordered patch composition, full-index validation, Lean
+  component-matrix roll checks, `gn gen` with Compose disabled, and the normal
+  full development profile with Compose enabled.
+- **Security/privacy impact:** none; the full profiles retain upstream Compose,
+  while Lean profiles remove only already build-flagged dependency edges.
+- **Expected rebase risk:** low-to-medium because Chromium can add new parent
+  edges when Compose integrations move between desktop surfaces.
+- **Removal/upstream plan:** remove individual guards as upstream consistently
+  guards every parent edge with `enable_compose`.
