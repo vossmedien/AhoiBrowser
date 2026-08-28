@@ -12800,7 +12800,7 @@ index 91de47263bf0471a74a2b9b934ae17e1a7101d50..d4f76e27556c993247cb0dc418c57639
    // Reverses the order of split tabs.
    // Must already be in a split.
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
-index c64e533302537a93fabe7d60591ebc51829e83f4..024f5791e0ef5285a510b98bc91cdb6ade52a9b1 100644
+index c64e533302537a93fabe7d60591ebc51829e83f4..5f3d0655a235f9faa5b43386270170efd0f5bcce 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc
 @@ -6,10 +6,13 @@
@@ -13061,7 +13061,7 @@ index c64e533302537a93fabe7d60591ebc51829e83f4..024f5791e0ef5285a510b98bc91cdb6a
 +    return;
 +  }
 +
-+  std::u16string pane_name = domain_label_->GetText();
++  std::u16string pane_name(domain_label_->GetText());
 +  if (pane_name.empty()) {
 +    pane_name = web_contents_->GetTitle();
 +  }
