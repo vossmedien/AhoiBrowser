@@ -224,7 +224,7 @@ class NewGroupDropTargetView final : public views::View,
   ~NewGroupDropTargetView() override = default;
 
   void SetDropTargetVisible(bool visible) {
-    if (target_visible_ == visible) {
+    if (visible && target_visible_) {
       return;
     }
     target_visible_ = visible;
@@ -235,10 +235,17 @@ class NewGroupDropTargetView final : public views::View,
       SetCanProcessEventsWithinSubtree(true);
       SetVisible(true);
       visibility_animation_.Show();
-    } else if (GetVisible()) {
+    } else {
+      // Drop and cancellation are synchronous native-drag boundaries. Keeping
+      // this overlay paint-visible during its exit animation made "Neue
+      // Gruppe" look like a persistent sidebar action after the drag ended.
+      // Reset the animation and composited layer immediately; entrance motion
+      // remains animated without leaving stale hit-test or paint state behind.
       SetCanProcessEventsWithinSubtree(false);
       SetHighlighted(false);
-      visibility_animation_.Hide();
+      visibility_animation_.Reset(0.0);
+      layer()->SetOpacity(0.0f);
+      SetVisible(false);
     }
     SchedulePaint();
   }

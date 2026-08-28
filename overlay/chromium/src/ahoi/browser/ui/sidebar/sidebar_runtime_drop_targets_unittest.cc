@@ -151,9 +151,9 @@ TEST_F(SidebarRuntimeDropTargetsTest,
             target->GetPreferredSize().height());
 
   SetNewGroupDropTargetVisible(target.get(), false);
-  // The fade may remain paint-visible until its animation finishes, but it
-  // must stop intercepting the workspace pill immediately on drop/cancel.
+  EXPECT_FALSE(target->GetVisible());
   EXPECT_FALSE(target->GetCanProcessEventsWithinSubtree());
+  EXPECT_EQ(0.0f, target->layer()->opacity());
   EXPECT_EQ(visual_style::kSidebarActionCellHeight,
             target->GetPreferredSize().height());
 }
@@ -186,7 +186,7 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   EXPECT_TRUE(target_ptr->GetCanProcessEventsWithinSubtree());
 
   SetNewGroupDropTargetVisible(target_ptr, false);
-  host.DeprecatedLayoutImmediately();
+  EXPECT_FALSE(target_ptr->GetVisible());
   EXPECT_EQ(stable_workspace_bounds, workspace_ptr->bounds());
 }
 
