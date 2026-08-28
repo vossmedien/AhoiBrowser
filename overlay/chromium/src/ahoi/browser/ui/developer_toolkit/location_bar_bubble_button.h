@@ -8,6 +8,10 @@
 #include "ui/base/metadata/metadata_header_macros.h"
 #include "ui/views/controls/button/image_button.h"
 
+namespace ui {
+class Event;
+}
+
 namespace ahoi {
 
 // An address-bar image button whose action owns a close-on-deactivate surface.
@@ -30,6 +34,7 @@ class LocationBarBubbleButton final : public views::ImageButton {
   ~LocationBarBubbleButton() override;
 
   // views::ImageButton:
+  void OnEvent(ui::Event* event) override;
   bool OnMousePressed(const ui::MouseEvent& event) override;
   bool IsTriggerableEvent(const ui::Event& event) override;
 

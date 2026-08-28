@@ -158,6 +158,7 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_group_dialog.cc",
     "browser_sidebar_host_media.cc",
     "browser_sidebar_host_presentation.cc",
+    "browser_sidebar_host_previews.cc",
     "browser_sidebar_host_recent_links.cc",
     "browser_sidebar_host_runtime_actions.cc",
     "browser_sidebar_host_runtime_refresh.cc",
@@ -181,6 +182,8 @@ source_set("browser_sidebar") {
     "sidebar_sync_controls.h",
     "sidebar_tab_thumbnail_cache.cc",
     "sidebar_tab_thumbnail_cache.h",
+    "sidebar_tab_preview_controller.cc",
+    "sidebar_tab_preview_controller.h",
     "sidebar_tabs_surface_view.cc",
     "sidebar_tabs_surface_view.h",
   ]

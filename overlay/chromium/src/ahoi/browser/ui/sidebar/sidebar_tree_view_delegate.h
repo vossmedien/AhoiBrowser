@@ -91,6 +91,9 @@ class SidebarTreeViewDelegate {
   virtual void OnFolderHoverChanged(const base::Uuid&,
                                     views::View* anchor,
                                     bool hovered) {}
+  virtual void OnSavedPageHoverChanged(const base::Uuid&,
+                                       views::View* anchor,
+                                       bool hovered) {}
   virtual void OnSidebarDragStateChanged(
       std::optional<base::Uuid> dragged_node_id) {}
   virtual void OnTemporaryTabDragStateChanged(

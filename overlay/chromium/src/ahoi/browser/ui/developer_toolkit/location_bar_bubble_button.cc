@@ -21,6 +21,22 @@ LocationBarBubbleButton::LocationBarBubbleButton(
 
 LocationBarBubbleButton::~LocationBarBubbleButton() = default;
 
+void LocationBarBubbleButton::OnEvent(ui::Event* event) {
+  // A disabled Views child is still the initial event target, but View's
+  // default disabled path returns without marking the event handled. RootView
+  // then retries the same press on LocationBarView, whose intended empty-bar
+  // behavior forwards it to the omnibox/command bar. Consume only disabled
+  // mouse presses here so an unavailable action remains inert instead of
+  // activating an unrelated parent surface. Enabled mouse, keyboard, touch,
+  // focus and accessibility events keep ImageButton's normal behavior.
+  if (event && event->type() == ui::EventType::kMousePressed &&
+      !GetEnabledInViewsSubtree()) {
+    event->SetHandled();
+    return;
+  }
+  views::ImageButton::OnEvent(event);
+}
+
 bool LocationBarBubbleButton::OnMousePressed(const ui::MouseEvent& event) {
   suppress_button_release_ = IsSurfaceShowing();
   return views::ImageButton::OnMousePressed(event);

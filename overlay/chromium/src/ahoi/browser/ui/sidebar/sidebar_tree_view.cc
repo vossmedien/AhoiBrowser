@@ -282,10 +282,20 @@ void SidebarTreeView::OnRowTrailingAction(SidebarTreeRowView* row) {
 }
 
 void SidebarTreeView::OnRowHoverChanged(SidebarTreeRowView* row, bool hovered) {
-  if (!delegate_ || !row || !row->is_bound() || !row->is_folder()) {
+  if (!delegate_ || !row || !row->is_bound()) {
     return;
   }
-  delegate_->OnFolderHoverChanged(row->node_id(), row, hovered);
+  if (row->is_folder()) {
+    delegate_->OnFolderHoverChanged(row->node_id(), row, hovered);
+  } else {
+    delegate_->OnSavedPageHoverChanged(row->node_id(), row, hovered);
+  }
+}
+
+std::vector<gfx::ImageSkia> SidebarTreeView::GetSavedPageDragThumbnailsForNode(
+    const base::Uuid& node_id) const {
+  return delegate_ ? delegate_->GetSavedPageDragThumbnails(node_id)
+                   : std::vector<gfx::ImageSkia>();
 }
 
 bool SidebarTreeView::OnRowAccessibilityFocused(SidebarTreeRowView* row) {

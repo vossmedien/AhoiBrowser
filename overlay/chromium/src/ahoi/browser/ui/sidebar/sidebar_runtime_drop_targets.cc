@@ -65,7 +65,6 @@ class OpenTabsDropTargetView final : public views::View {
       highlighted_ = false;
     }
     UpdateDropTargetBackground();
-    PreferredSizeChanged();
   }
 
   bool accepting_saved_tab_for_testing() const { return accepting_saved_tab_; }
@@ -75,10 +74,11 @@ class OpenTabsDropTargetView final : public views::View {
   gfx::Size CalculatePreferredSize(
       const views::SizeBounds& available_size) const override {
     gfx::Size preferred = views::View::CalculatePreferredSize(available_size);
-    if (accepting_saved_tab_) {
-      preferred.set_height(
-          std::max(preferred.height(), SidebarTreeRowView::kRowHeight));
-    }
+    // Keep one stable empty-row affordance regardless of drag state. The host
+    // flexes this surface across the remaining sidebar height, so accepting a
+    // saved tab changes only paint/drop semantics and never tree geometry.
+    preferred.set_height(
+        std::max(preferred.height(), SidebarTreeRowView::kRowHeight));
     return preferred;
   }
 
@@ -164,8 +164,8 @@ class NewGroupDropTargetView final : public views::View,
   METADATA_HEADER(NewGroupDropTargetView, views::View)
 
  public:
-  using DropNodeCallback = base::RepeatingCallback<void(const base::Uuid&)>;
-  using DropRuntimeTabCallback = base::RepeatingCallback<void(int)>;
+  using DropNodeCallback = base::RepeatingCallback<bool(const base::Uuid&)>;
+  using DropRuntimeTabCallback = base::RepeatingCallback<bool(int)>;
 
   NewGroupDropTargetView(DropNodeCallback node_callback,
                          DropRuntimeTabCallback runtime_tab_callback,
@@ -219,16 +219,11 @@ class NewGroupDropTargetView final : public views::View,
     }
     target_visible_ = visible;
     if (visible) {
-      // This normally hidden content row must participate in BoxLayout before
-      // AppKit enters its nested native drag loop. Resolve its own stable row
-      // bounds synchronously; never borrow the workspace header's bounds.
+      // The target already occupies the workspace selector's fixed overlay
+      // bounds. Showing it must not invalidate the sidebar's vertical layout
+      // or move any saved/open tab while AppKit is in its native drag loop.
       SetCanProcessEventsWithinSubtree(true);
       SetVisible(true);
-      PreferredSizeChanged();
-      if (parent()) {
-        parent()->InvalidateLayout();
-        parent()->DeprecatedLayoutImmediately();
-      }
       visibility_animation_.Show();
     } else if (GetVisible()) {
       SetCanProcessEventsWithinSubtree(false);
@@ -303,8 +298,9 @@ class NewGroupDropTargetView final : public views::View,
                        ui::mojom::DragOperation& output_drag_op,
                        std::unique_ptr<ui::LayerTreeOwner>) {
     SetHighlighted(false);
-    node_callback_.Run(source_node_id);
-    output_drag_op = ui::mojom::DragOperation::kMove;
+    output_drag_op = node_callback_.Run(source_node_id)
+                         ? ui::mojom::DragOperation::kMove
+                         : ui::mojom::DragOperation::kNone;
   }
 
   void PerformRuntimeTabDrop(int runtime_tab_handle,
@@ -312,8 +308,9 @@ class NewGroupDropTargetView final : public views::View,
                              ui::mojom::DragOperation& output_drag_op,
                              std::unique_ptr<ui::LayerTreeOwner>) {
     SetHighlighted(false);
-    runtime_tab_callback_.Run(runtime_tab_handle);
-    output_drag_op = ui::mojom::DragOperation::kMove;
+    output_drag_op = runtime_tab_callback_.Run(runtime_tab_handle)
+                         ? ui::mojom::DragOperation::kMove
+                         : ui::mojom::DragOperation::kNone;
   }
 
   void AnimationProgressed(const gfx::Animation* animation) override {
@@ -331,10 +328,6 @@ class NewGroupDropTargetView final : public views::View,
     }
     if (!target_visible_) {
       SetVisible(false);
-      PreferredSizeChanged();
-      if (parent()) {
-        parent()->InvalidateLayout();
-      }
     }
     SchedulePaint();
   }
@@ -394,8 +387,8 @@ void SetNewGroupDropTargetVisible(views::View* view, bool visible) {
 std::unique_ptr<views::View> CreateNewGroupDropTargetViewForTesting(
     std::u16string label) {
   return std::make_unique<NewGroupDropTargetView>(
-      base::BindRepeating([](const base::Uuid&) {}),
-      base::BindRepeating([](int) {}), label, label);
+      base::BindRepeating([](const base::Uuid&) { return true; }),
+      base::BindRepeating([](int) { return true; }), label, label);
 }
 
 }  // namespace ahoi::sidebar

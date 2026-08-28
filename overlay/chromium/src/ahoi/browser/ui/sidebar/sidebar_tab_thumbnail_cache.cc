@@ -6,8 +6,6 @@
 #include <utility>
 
 #include "base/functional/bind.h"
-#include "base/location.h"
-#include "base/task/single_thread_task_runner.h"
 #include "chrome/browser/ui/thumbnails/thumbnail_tab_helper.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/web_contents.h"
@@ -41,12 +39,11 @@ void CachedTabThumbnail::ObserveImpl(tabs::TabInterface* tab,
           : nullptr;
   scoped_refptr<ThumbnailImage> thumbnail =
       helper ? helper->thumbnail() : nullptr;
-  if (thumbnail == thumbnail_ && !force_refresh) {
+  if (thumbnail == thumbnail_ && subscription_ && !force_refresh) {
     return;
   }
 
   subscription_.reset();
-  ++subscription_generation_;
   if (thumbnail != thumbnail_) {
     thumbnail_ = std::move(thumbnail);
     image_ = gfx::ImageSkia();
@@ -64,19 +61,12 @@ void CachedTabThumbnail::ObserveImpl(tabs::TabInterface* tab,
 }
 
 void CachedTabThumbnail::OnThumbnailAvailable(gfx::ImageSkia image) {
+  // An empty publication is an explicit privacy invalidation during
+  // navigation. Clear immediately instead of showing the previous origin's
+  // frame while the new page is still producing its first thumbnail. The
+  // subscription remains alive and will publish the replacement later.
   image_ = std::move(image);
   image_changed_callback_.Run();
-  // ThumbnailImage::Subscription forbids destruction from its callback.
-  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
-      FROM_HERE, base::BindOnce(&CachedTabThumbnail::StopObserving,
-                                weak_ptr_factory_.GetWeakPtr(),
-                                subscription_generation_));
-}
-
-void CachedTabThumbnail::StopObserving(uint64_t generation) {
-  if (generation == subscription_generation_) {
-    subscription_.reset();
-  }
 }
 
 }  // namespace ahoi::sidebar

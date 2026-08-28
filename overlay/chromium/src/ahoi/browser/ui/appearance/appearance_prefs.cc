@@ -32,7 +32,11 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // GlassFrame feature and macOS version, so older/other platforms resolve to
   // the fully opaque fallback even if a migrated profile contains `true`.
   registry->RegisterBooleanPref(kGlassEnabledPref, GlassEnabledByDefault());
-  registry->RegisterBooleanPref(kSidebarPageTintEnabledPref, false);
+  // Page-aware chrome is part of Ahoi's product identity rather than an
+  // experimental opt-in. Existing explicit user choices remain authoritative,
+  // while profiles that never touched the setting now receive the subtle,
+  // contrast-gated theme/favicon tint by default.
+  registry->RegisterBooleanPref(kSidebarPageTintEnabledPref, true);
   registry->RegisterBooleanPref(kFloatingNavigationAutoHideEnabledPref, true);
   registry->RegisterBooleanPref(kFloatingNavigationRevealNotchEnabledPref,
                                 true);

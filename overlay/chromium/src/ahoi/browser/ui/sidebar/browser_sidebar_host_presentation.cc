@@ -388,9 +388,9 @@ void BrowserSidebarHostView::RefreshThumbnailCache() {
     live_handles.insert(handle);
     auto [it, inserted] = tab_thumbnail_cache_.try_emplace(handle, nullptr);
     if (inserted) {
-      it->second = std::make_unique<CachedTabThumbnail>(base::BindRepeating(
-          &BrowserSidebarHostView::ScheduleRuntimePresentationRefresh,
-          weak_ptr_factory_.GetWeakPtr()));
+      it->second = std::make_unique<CachedTabThumbnail>(
+          base::BindRepeating(&BrowserSidebarHostView::OnTabThumbnailChanged,
+                              weak_ptr_factory_.GetWeakPtr(), handle));
     }
     it->second->Observe(tab);
   }
@@ -414,7 +414,8 @@ std::vector<gfx::ImageSkia> BrowserSidebarHostView::GetCachedDragThumbnails(
       continue;
     }
     const auto it = tab_thumbnail_cache_.find(tab->GetHandle().raw_value());
-    if (it != tab_thumbnail_cache_.end() && !it->second->image().isNull()) {
+    if (it != tab_thumbnail_cache_.end() && !it->second->image().isNull() &&
+        !it->second->image().size().IsEmpty()) {
       thumbnails.push_back(it->second->image());
     } else {
       // Preserve the split member count even while one member still awaits
@@ -463,32 +464,37 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
         return !active_workspace.has_value() || !tab_workspace.has_value() ||
                active_workspace == tab_workspace;
       };
-  const auto create_open_tab_row =
-      [this](tabs::TabInterface* tab,
-             std::vector<gfx::ImageSkia> drag_thumbnails) {
-        const std::optional<base::Uuid> saved_node_id =
-            session_bridge_->FindTreeNodeIdForTab(tab);
-        return CreateOpenTabRowView(
-            tab, saved_node_id, GetLiveTabFavicon(tab),
-            std::move(drag_thumbnails), GetMediaAlertForTab(tab),
-            GetTabAlertStatusText(tab), tab == tab_strip_model_->GetActiveTab(),
-            ahoi::memory::IsTabSleeping(tab),
-            base::BindRepeating(&BrowserSidebarHostView::ActivateRuntimeTab,
-                                weak_ptr_factory_.GetWeakPtr()),
-            base::BindRepeating(&BrowserSidebarHostView::CloseRuntimeTab,
-                                weak_ptr_factory_.GetWeakPtr()),
-            base::BindRepeating(
-                &BrowserSidebarHostView::OnSidebarDragStateChanged,
-                weak_ptr_factory_.GetWeakPtr()),
-            base::BindRepeating(
-                &BrowserSidebarHostView::OnTemporaryTabDragStateChanged,
-                weak_ptr_factory_.GetWeakPtr()),
-            base::BindRepeating(&BrowserSidebarHostView::CanDropOnRuntimeTab,
-                                base::Unretained(this)),
-            base::BindRepeating(&BrowserSidebarHostView::DropOnRuntimeTab,
-                                base::Unretained(this)),
-            this);
-      };
+  const auto create_open_tab_row = [this](tabs::TabInterface* tab) {
+    const std::optional<base::Uuid> saved_node_id =
+        session_bridge_->FindTreeNodeIdForTab(tab);
+    return CreateOpenTabRowView(
+        tab, saved_node_id, GetLiveTabFavicon(tab), GetMediaAlertForTab(tab),
+        GetTabAlertStatusText(tab), tab == tab_strip_model_->GetActiveTab(),
+        ahoi::memory::IsTabSleeping(tab),
+        base::BindRepeating(&BrowserSidebarHostView::ActivateRuntimeTab,
+                            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(&BrowserSidebarHostView::CloseRuntimeTab,
+                            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(
+            [](base::WeakPtr<BrowserSidebarHostView> host,
+               base::WeakPtr<tabs::TabInterface> tab) {
+              return host ? host->GetRuntimeTabPreviewThumbnails(tab)
+                          : std::vector<gfx::ImageSkia>();
+            },
+            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(&BrowserSidebarHostView::OnRuntimeTabHoverChanged,
+                            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(&BrowserSidebarHostView::OnSidebarDragStateChanged,
+                            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(
+            &BrowserSidebarHostView::OnTemporaryTabDragStateChanged,
+            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(&BrowserSidebarHostView::CanDropOnRuntimeTab,
+                            base::Unretained(this)),
+        base::BindRepeating(&BrowserSidebarHostView::DropOnRuntimeTab,
+                            base::Unretained(this)),
+        this);
+  };
 
   // Rebuild temporary and mixed split rows directly from Chromium's
   // authoritative SplitTabData. Walking the tab strip keeps split and
@@ -531,13 +537,10 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
           saved_member_count < split_tabs.size() &&
           std::ranges::all_of(split_tabs, is_visible_workspace_tab);
       if (all_members_are_visible_temporary || is_visible_mixed_split) {
-        const std::vector<gfx::ImageSkia> split_thumbnails =
-            GetCachedDragThumbnails(split_tabs);
         std::vector<std::unique_ptr<views::View>> split_rows;
         split_rows.reserve(split_tabs.size());
         for (tabs::TabInterface* split_tab : split_tabs) {
-          split_rows.push_back(
-              create_open_tab_row(split_tab, split_thumbnails));
+          split_rows.push_back(create_open_tab_row(split_tab));
           if (const std::optional<base::Uuid> saved_node_id =
                   session_bridge_->FindTreeNodeIdForTab(split_tab);
               saved_node_id.has_value()) {
@@ -556,8 +559,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
 
     presented_temporary_tabs.insert(tab);
     presented_temporary_handles.insert(tab_handle);
-    open_tabs_container_->AddChildView(
-        create_open_tab_row(tab, GetCachedDragThumbnails({tab})));
+    open_tabs_container_->AddChildView(create_open_tab_row(tab));
   }
   // Suppression is presentation-only and is recalculated from authoritative
   // SplitTabData on every refresh. Ending or reclassifying a split therefore
@@ -565,9 +567,8 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
   tree_view_->SetRuntimeCompositeSuppressedNodes(
       std::move(mixed_split_saved_nodes));
   const bool has_open_tabs = !open_tabs_container_->children().empty();
-  const bool show_open_tabs = has_open_tabs || dragged_node_id_.has_value();
-  open_tabs_header_->SetVisible(show_open_tabs);
-  open_tabs_container_->SetVisible(show_open_tabs);
+  open_tabs_header_->SetVisible(has_open_tabs);
+  open_tabs_container_->SetVisible(true);
   open_tabs_container_->InvalidateLayout();
   RefreshRemoteTabPresentation();
   scroll_view_->InvalidateLayout();

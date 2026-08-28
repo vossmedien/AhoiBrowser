@@ -10,7 +10,7 @@
 #include "ui/base/dragdrop/drop_target_event.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
 #include "ui/compositor/layer.h"
-#include "ui/views/layout/box_layout.h"
+#include "ui/views/layout/fill_layout.h"
 #include "ui/views/test/views_test_base.h"
 #include "ui/views/view.h"
 
@@ -62,7 +62,8 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   EXPECT_FALSE(IsOpenTabsDropTargetAcceptingSavedTabForTesting(target.get()));
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
   EXPECT_EQ(nullptr, target->GetBackground());
-  EXPECT_EQ(0, target->GetPreferredSize().height());
+  EXPECT_EQ(visual_style::kSidebarTabRowHeight,
+            target->GetPreferredSize().height());
 
   SetOpenTabsDropTargetAcceptingSavedTab(target.get(), true);
   EXPECT_TRUE(IsOpenTabsDropTargetAcceptingSavedTabForTesting(target.get()));
@@ -85,7 +86,8 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   EXPECT_FALSE(IsOpenTabsDropTargetAcceptingSavedTabForTesting(target.get()));
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
   EXPECT_EQ(nullptr, target->GetBackground());
-  EXPECT_EQ(0, target->GetPreferredSize().height());
+  EXPECT_EQ(visual_style::kSidebarTabRowHeight,
+            target->GetPreferredSize().height());
 
   // The saved/open targets have independent presentation state. Toggling this
   // surface must not hide or disable the New Group hit target during the same
@@ -122,13 +124,10 @@ TEST_F(SidebarRuntimeDropTargetsTest,
 }
 
 TEST_F(SidebarRuntimeDropTargetsTest,
-       NewGroupGetsOwnStableRowBeforeNativeDragLoop) {
+       NewGroupOverlaysWorkspaceWithoutChangingGeometry) {
   views::View host;
-  host.SetBounds(0, 0, 320, 2 * visual_style::kSidebarActionCellHeight);
-  auto* layout = host.SetLayoutManager(std::make_unique<views::BoxLayout>(
-      views::BoxLayout::Orientation::kVertical));
-  layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kStretch);
+  host.SetBounds(0, 0, 320, visual_style::kSidebarActionCellHeight);
+  host.SetLayoutManager(std::make_unique<views::FillLayout>());
 
   auto workspace = std::make_unique<views::View>();
   workspace->SetPreferredSize(
@@ -139,18 +138,21 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   host.AddChildView(std::move(target));
   host.DeprecatedLayoutImmediately();
 
-  ASSERT_TRUE(target_ptr->bounds().IsEmpty());
+  const gfx::Rect stable_workspace_bounds = workspace_ptr->bounds();
+  EXPECT_EQ(gfx::Rect(0, 0, 320, visual_style::kSidebarActionCellHeight),
+            stable_workspace_bounds);
   SetNewGroupDropTargetVisible(target_ptr, true);
+  host.DeprecatedLayoutImmediately();
 
   EXPECT_TRUE(workspace_ptr->GetVisible());
   EXPECT_TRUE(workspace_ptr->GetCanProcessEventsWithinSubtree());
-  EXPECT_EQ(gfx::Rect(0, 0, 320, visual_style::kSidebarActionCellHeight),
-            workspace_ptr->bounds());
-  EXPECT_EQ(gfx::Rect(0, visual_style::kSidebarActionCellHeight, 320,
-                      visual_style::kSidebarActionCellHeight),
-            target_ptr->bounds());
-  EXPECT_FALSE(workspace_ptr->bounds().Intersects(target_ptr->bounds()));
+  EXPECT_EQ(stable_workspace_bounds, workspace_ptr->bounds());
+  EXPECT_EQ(stable_workspace_bounds, target_ptr->bounds());
   EXPECT_TRUE(target_ptr->GetCanProcessEventsWithinSubtree());
+
+  SetNewGroupDropTargetVisible(target_ptr, false);
+  host.DeprecatedLayoutImmediately();
+  EXPECT_EQ(stable_workspace_bounds, workspace_ptr->bounds());
 }
 
 }  // namespace ahoi::sidebar

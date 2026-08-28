@@ -33,6 +33,7 @@
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
+#include "base/functional/callback_helpers.h"
 #include "base/i18n/case_conversion.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -157,7 +158,11 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::ResolveSplitDropSource(
   }
   if (payload.runtime_tab_handle.has_value()) {
     tabs::TabInterface* tab = FindRuntimeTab(*payload.runtime_tab_handle);
-    return {.valid = tab != nullptr, .tab = tab};
+    const bool local = tab && session_bridge_->FindTabStripModelForTab(tab) ==
+                                  tab_strip_model_;
+    return {
+        .valid = local,
+        .tab = local ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()};
   }
 
   tab_tree::TreeNode node;
@@ -170,11 +175,27 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::ResolveSplitDropSource(
   }
 
   tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id);
-  if (!tab && activate_saved_page) {
-    ActivateSavedPage(node);
-    tab = session_bridge_->FindTabByTreeNodeId(node.id);
+  if (tab &&
+      session_bridge_->FindTabStripModelForTab(tab) != tab_strip_model_) {
+    // Content drops are window-local. Activating a saved tab owned by another
+    // window would steal focus before the local split API rejects it.
+    return {};
   }
-  return {.valid = true, .tab = tab};
+  if (!tab && activate_saved_page) {
+    BrowserSidebarSplitDropSource materialized =
+        MaterializeSavedPage(node, /*require_local_model=*/true);
+    if (!materialized.valid || !materialized.tab ||
+        session_bridge_->FindTabStripModelForTab(materialized.tab.get()) !=
+            tab_strip_model_) {
+      if (materialized.rollback) {
+        std::move(materialized.rollback).Run();
+      }
+      return {};
+    }
+    return materialized;
+  }
+  return {.valid = true,
+          .tab = tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()};
 }
 
 void BrowserSidebarHostView::CancelSplitDropDrag() {
@@ -183,28 +204,104 @@ void BrowserSidebarHostView::CancelSplitDropDrag() {
 
 // SidebarTreeViewDelegate:
 void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
+  // A direct user activation commits the materialization. Transactional drop
+  // callers retain and run the returned rollback closure only on failure.
+  MaterializeSavedPage(node, /*require_local_model=*/false);
+}
+
+BrowserSidebarSplitDropSource BrowserSidebarHostView::MaterializeSavedPage(
+    const tab_tree::TreeNode& node,
+    bool require_local_model) {
+  const base::WeakPtr<BrowserSidebarHostView> weak_host =
+      weak_ptr_factory_.GetWeakPtr();
+  const base::WeakPtr<tabs::TabInterface> active_before =
+      tab_strip_model_ && tab_strip_model_->GetActiveTab()
+          ? tab_strip_model_->GetActiveTab()->GetWeakPtr()
+          : base::WeakPtr<tabs::TabInterface>();
+  const auto make_rollback = [weak_host, active_before](
+                                 base::WeakPtr<tabs::TabInterface> opened_tab) {
+    return base::BindOnce(
+        [](base::WeakPtr<BrowserSidebarHostView> host,
+           base::WeakPtr<tabs::TabInterface> prior_active,
+           base::WeakPtr<tabs::TabInterface> owned_tab) {
+          // Restore focus before closing the transaction-owned foreground
+          // tab. Close is deliberately the last operation: its synchronous
+          // callbacks may tear down the host or window.
+          if (host && host->tab_strip_model_ && prior_active &&
+              host->tab_strip_model_->GetIndexOfTab(prior_active.get()) >= 0 &&
+              host->tab_strip_model_->GetActiveTab() != prior_active.get()) {
+            host->tab_strip_model_->ActivateTab(prior_active.get());
+          }
+          if (owned_tab) {
+            owned_tab->Close();
+          }
+        },
+        weak_host, active_before, std::move(opened_tab));
+  };
+
   if (tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id)) {
+    const base::WeakPtr<tabs::TabInterface> weak_tab = tab->GetWeakPtr();
     TabStripModel* model = session_bridge_->FindTabStripModelForTab(tab);
-    BrowserWindowInterface* window = tab->GetBrowserWindowInterface();
     const int index = model ? model->GetIndexOfTab(tab) : -1;
+    if (require_local_model && model != tab_strip_model_) {
+      return {};
+    }
     if (model && index >= 0) {
       model->ActivateTabAt(
           index, TabStripUserGestureDetails(
                      TabStripUserGestureDetails::GestureType::kMouse));
+      if (!weak_host || !weak_tab) {
+        return {};
+      }
+      BrowserWindowInterface* const window =
+          weak_tab->GetBrowserWindowInterface();
       if (window && window->GetWindow()) {
         window->GetWindow()->Activate();
       }
-      return;
+      if (!weak_host || !weak_tab) {
+        return {};
+      }
+      return {.valid = true,
+              .tab = weak_tab,
+              .rollback = make_rollback(base::WeakPtr<tabs::TabInterface>())};
     }
   }
 
-  NavigateParams params(browser_, node.url, ui::PAGE_TRANSITION_AUTO_BOOKMARK);
+  Browser* const navigation_browser = browser_;
+  NavigateParams params(navigation_browser, node.url,
+                        ui::PAGE_TRANSITION_AUTO_BOOKMARK);
   params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
   ::Navigate(&params);
-  tabs::TabInterface* const opened_tab = session_bridge_->FindTabByWebContents(
-      params.navigated_or_inserted_contents);
-  if (opened_tab && session_bridge_->BindTreeNodeToTab(node, opened_tab)) {
-    return;
+  tabs::TabInterface* const opened_tab =
+      tabs::TabInterface::MaybeGetFromContents(
+          params.navigated_or_inserted_contents);
+  const base::WeakPtr<tabs::TabInterface> weak_opened_tab =
+      opened_tab ? opened_tab->GetWeakPtr()
+                 : base::WeakPtr<tabs::TabInterface>();
+  if (!weak_host) {
+    if (weak_opened_tab) {
+      weak_opened_tab->Close();
+    }
+    return {};
+  }
+  if (weak_opened_tab && weak_host->session_bridge_->BindTreeNodeToTab(
+                             node, weak_opened_tab.get())) {
+    if (!weak_host || !weak_opened_tab) {
+      if (weak_opened_tab) {
+        weak_opened_tab->Close();
+      }
+      return {};
+    }
+    return {.valid = true,
+            .tab = weak_opened_tab,
+            .rollback = make_rollback(weak_opened_tab)};
+  }
+
+  if (!weak_host) {
+    if (weak_opened_tab) {
+      weak_opened_tab->Close();
+    }
+    return {};
   }
 
   // URL matching deliberately leaves chrome://newtab temporary, so the exact
@@ -212,52 +309,97 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
   // the race, retain that authoritative tab and retire only the tab created by
   // this call; repeated clicks must never multiply one saved "New Tab" row.
   if (tabs::TabInterface* const existing =
-          session_bridge_->FindTabByTreeNodeId(node.id)) {
-    if (opened_tab && opened_tab != existing) {
-      opened_tab->Close();
-    }
+          weak_host->session_bridge_->FindTabByTreeNodeId(node.id)) {
+    const base::WeakPtr<tabs::TabInterface> weak_existing =
+        existing->GetWeakPtr();
     TabStripModel* const model =
-        session_bridge_->FindTabStripModelForTab(existing);
+        weak_host->session_bridge_->FindTabStripModelForTab(existing);
     const int index = model ? model->GetIndexOfTab(existing) : -1;
+    if (require_local_model && model != weak_host->tab_strip_model_) {
+      if (weak_opened_tab && weak_opened_tab.get() != weak_existing.get()) {
+        weak_opened_tab->Close();
+      }
+      return {};
+    }
     if (model && index >= 0) {
       model->ActivateTabAt(
           index, TabStripUserGestureDetails(
                      TabStripUserGestureDetails::GestureType::kMouse));
     }
-    return;
+    if (!weak_host || !weak_existing) {
+      if (weak_opened_tab && weak_opened_tab.get() != weak_existing.get()) {
+        weak_opened_tab->Close();
+      }
+      return {};
+    }
+    // Activate the authoritative winner before retiring only the duplicate
+    // created by this call. A failed outer drop may restore `active_before`,
+    // but must never close this independently bound winner.
+    BrowserSidebarSplitDropSource result{
+        .valid = true,
+        .tab = weak_existing,
+        .rollback = make_rollback(base::WeakPtr<tabs::TabInterface>())};
+    if (weak_opened_tab && weak_opened_tab.get() != weak_existing.get()) {
+      weak_opened_tab->Close();
+    }
+    if (!weak_host || !weak_existing) {
+      return {};
+    }
+    return result;
   }
 
   // Binding failure without an authoritative winner must fail closed. This is
   // the only tab created by this activation, so retiring it cannot disturb an
   // existing session and prevents every retry from adding another orphan.
-  if (opened_tab) {
-    opened_tab->Close();
+  if (weak_opened_tab) {
+    base::OnceClosure rollback = make_rollback(weak_opened_tab);
+    std::move(rollback).Run();
   }
+  return {};
 }
 
 bool BrowserSidebarHostView::CanSplitSavedPages(
     const base::Uuid& source_node_id,
     const base::Uuid& target_node_id) const {
+  if (source_node_id == target_node_id || !controller_ || !session_bridge_ ||
+      !tab_strip_model_) {
+    return false;
+  }
+  const tab_tree::TreeNode* const source_node =
+      controller_->view_model().GetNode(source_node_id);
+  const tab_tree::TreeNode* const target_node =
+      controller_->view_model().GetNode(target_node_id);
+  if (!source_node || !target_node || source_node->tombstone ||
+      target_node->tombstone ||
+      source_node->type != tab_tree::TreeNodeType::kSavedPage ||
+      target_node->type != tab_tree::TreeNodeType::kSavedPage) {
+    return false;
+  }
+
   tabs::TabInterface* source =
       session_bridge_->FindTabByTreeNodeId(source_node_id);
   tabs::TabInterface* target =
       session_bridge_->FindTabByTreeNodeId(target_node_id);
-  if (!source || !target || source == target || source->IsSplit()) {
+  if (source == target && source) {
     return false;
   }
-  TabStripModel* source_model =
-      session_bridge_->FindTabStripModelForTab(source);
-  TabStripModel* target_model =
-      session_bridge_->FindTabStripModelForTab(target);
-  if (!source_model || source_model != target_model ||
-      source_model != tab_strip_model_) {
+
+  // Hover validation must not open closed saved pages. A committed drop below
+  // activates only the missing participants and rolls them back if Chromium
+  // rejects the split transaction. Already-live participants must belong to
+  // this exact window; silently moving a tab from another window is unsafe.
+  if ((source &&
+       session_bridge_->FindTabStripModelForTab(source) != tab_strip_model_) ||
+      (target &&
+       session_bridge_->FindTabStripModelForTab(target) != tab_strip_model_) ||
+      (source && source->IsSplit())) {
     return false;
   }
-  if (!target->IsSplit()) {
+  if (!target || !target->IsSplit()) {
     return true;
   }
   const split_tabs::SplitTabData* split_data =
-      target_model->GetSplitData(*target->GetSplit());
+      tab_strip_model_->GetSplitData(*target->GetSplit());
   // Respect Chromium's collection invariant without introducing an Ahoi-only
   // lower cap.
   return split_data &&
@@ -269,21 +411,44 @@ bool BrowserSidebarHostView::SplitSavedPages(const base::Uuid& source_node_id,
   if (!CanSplitSavedPages(source_node_id, target_node_id)) {
     return false;
   }
-  tabs::TabInterface* source =
-      session_bridge_->FindTabByTreeNodeId(source_node_id);
-  tabs::TabInterface* target =
-      session_bridge_->FindTabByTreeNodeId(target_node_id);
-  TabStripModel* model = session_bridge_->FindTabStripModelForTab(target);
+
+  BrowserSidebarSplitDropSource target_resolution = ResolveSplitDropSource(
+      drag::SidebarTabDragPayload{.saved_node_id = target_node_id},
+      /*activate_saved_page=*/true);
+  base::ScopedClosureRunner rollback_target(
+      std::move(target_resolution.rollback));
+  base::WeakPtr<tabs::TabInterface> target = target_resolution.tab;
+  BrowserSidebarSplitDropSource source_resolution = ResolveSplitDropSource(
+      drag::SidebarTabDragPayload{.saved_node_id = source_node_id},
+      /*activate_saved_page=*/true);
+  base::ScopedClosureRunner rollback_source(
+      std::move(source_resolution.rollback));
+  base::WeakPtr<tabs::TabInterface> source = source_resolution.tab;
+
+  if (!source_resolution.valid || !target_resolution.valid || !source ||
+      !target || !CanSplitSavedPages(source_node_id, target_node_id)) {
+    return false;
+  }
+  const int source_index = tab_strip_model_->GetIndexOfTab(source.get());
+  const int target_index = tab_strip_model_->GetIndexOfTab(target.get());
+  if (source_index < 0 || target_index < 0) {
+    return false;
+  }
   const bool created =
-      model
-          ->CreateOrAddToSplitFromDrop(model->GetIndexOfTab(source),
-                                       model->GetIndexOfTab(target),
+      tab_strip_model_
+          ->CreateOrAddToSplitFromDrop(source_index, target_index,
                                        split_tabs::SplitTabArrangement::kLinear)
           .has_value();
+  if (!created) {
+    return false;
+  }
+  rollback_source.ReplaceClosure(base::OnceClosure());
+  rollback_target.ReplaceClosure(base::OnceClosure());
   if (created && tree_view_) {
     tree_view_->OnSplitGroupsChanged();
   }
-  return created;
+  ScheduleRuntimePresentationRefresh();
+  return true;
 }
 
 bool BrowserSidebarHostView::CanReorderSavedSplitPanes(
@@ -549,14 +714,31 @@ bool BrowserSidebarHostView::IsSavedPageSleeping(
 
 std::vector<gfx::ImageSkia> BrowserSidebarHostView::GetSavedPageDragThumbnails(
     const base::Uuid& node_id) const {
-  std::vector<tabs::TabInterface*> tabs;
+  std::vector<gfx::ImageSkia> thumbnails;
   for (const base::Uuid& grouped_node_id : GetMoveGroupNodeIds(node_id)) {
-    if (tabs::TabInterface* tab =
-            session_bridge_->FindTabByTreeNodeId(grouped_node_id)) {
-      tabs.push_back(tab);
+    tabs::TabInterface* const tab =
+        session_bridge_->FindTabByTreeNodeId(grouped_node_id);
+    std::vector<gfx::ImageSkia> live = GetCachedDragThumbnails({tab});
+    if (!live.empty() && !live.front().isNull() &&
+        !live.front().size().IsEmpty()) {
+      thumbnails.push_back(std::move(live.front()));
+      continue;
     }
+    const auto snapshot = saved_thumbnail_snapshots_.find(grouped_node_id);
+    const tab_tree::TreeNode* const grouped_node =
+        controller_->view_model().GetNode(grouped_node_id);
+    thumbnails.push_back(snapshot != saved_thumbnail_snapshots_.end() &&
+                                 grouped_node &&
+                                 snapshot->second.url == grouped_node->url &&
+                                 !snapshot->second.image.isNull() &&
+                                 !snapshot->second.image.size().IsEmpty()
+                             ? snapshot->second.image
+                             : gfx::ImageSkia());
   }
-  return GetCachedDragThumbnails(tabs);
+  if (thumbnails.empty()) {
+    thumbnails.emplace_back();
+  }
+  return thumbnails;
 }
 
 ui::ImageModel BrowserSidebarHostView::GetSavedPageIcon(
@@ -602,6 +784,9 @@ void BrowserSidebarHostView::PerformSavedPageTrailingAction(
 
 void BrowserSidebarHostView::OnSidebarDragStateChanged(
     std::optional<base::Uuid> dragged_node_id) {
+  if (dragged_node_id.has_value() && tab_preview_controller_) {
+    tab_preview_controller_->Hide();
+  }
   const bool source_already_current =
       dragged_node_id_ == dragged_node_id &&
       (!dragged_node_id.has_value() ||
@@ -621,15 +806,19 @@ void BrowserSidebarHostView::OnSidebarDragStateChanged(
   SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_,
                                          dragged_node_id_.has_value());
   const bool has_open_tabs = !open_tabs_container_->children().empty();
-  const bool show_open_tabs = has_open_tabs || dragged_node_id_.has_value();
-  open_tabs_header_->SetVisible(show_open_tabs);
-  open_tabs_container_->SetVisible(show_open_tabs);
+  open_tabs_header_->SetVisible(has_open_tabs);
+  // The empty flex surface stays mounted before, during and after a drag.
+  // Only its background/drop acceptance changes, so saved rows cannot jump.
+  open_tabs_container_->SetVisible(true);
   UpdateNewGroupDropTargetVisibility();
   MaybeScheduleDeferredRuntimePresentationRefresh();
 }
 
 void BrowserSidebarHostView::OnTemporaryTabDragStateChanged(
     std::optional<int> runtime_tab_handle) {
+  if (runtime_tab_handle.has_value() && tab_preview_controller_) {
+    tab_preview_controller_->Hide();
+  }
   const bool source_already_current =
       dragged_runtime_tab_handle_ == runtime_tab_handle &&
       (!runtime_tab_handle.has_value() || !dragged_node_id_.has_value());
@@ -666,7 +855,7 @@ void BrowserSidebarHostView::ResetDragPresentation() {
 
   const bool has_open_tabs = !open_tabs_container_->children().empty();
   open_tabs_header_->SetVisible(has_open_tabs);
-  open_tabs_container_->SetVisible(has_open_tabs);
+  open_tabs_container_->SetVisible(true);
   SetNewGroupDropTargetVisible(new_group_drop_target_, false);
   MaybeScheduleDeferredRuntimePresentationRefresh();
 

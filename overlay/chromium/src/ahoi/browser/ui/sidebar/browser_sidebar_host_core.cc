@@ -114,6 +114,7 @@
 #include "ui/views/drag_controller.h"
 #include "ui/views/focus/focus_manager.h"
 #include "ui/views/layout/box_layout.h"
+#include "ui/views/layout/fill_layout.h"
 #include "ui/views/style/typography.h"
 #include "ui/views/view.h"
 #include "ui/views/view_class_properties.h"
@@ -144,6 +145,20 @@ BrowserSidebarHostView::BrowserSidebarHostView(
       browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
   history_service_ = HistoryServiceFactory::GetForProfile(
       browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
+  tab_preview_controller_ = std::make_unique<SidebarTabPreviewController>(
+      base::BindRepeating(
+          [](base::WeakPtr<BrowserSidebarHostView> host,
+             const SidebarTabPreviewTarget& target)
+              -> std::optional<SidebarTabPreviewData> {
+            return host ? host->ResolveTabPreviewData(target) : std::nullopt;
+          },
+          weak_ptr_factory_.GetWeakPtr()),
+      base::BindRepeating(
+          [](base::WeakPtr<BrowserSidebarHostView> host,
+             const SidebarTabPreviewTarget& target, const views::View* anchor) {
+            return host && host->ValidateTabPreviewAnchor(target, anchor);
+          },
+          weak_ptr_factory_.GetWeakPtr()));
 
   SetPreferredSize(gfx::Size(visual_style::kSidebarWidthDefault, 480));
   // The appearance resolver installs the themed opaque/glass surface after
@@ -170,11 +185,47 @@ BrowserSidebarHostView::BrowserSidebarHostView(
           visual_style::kSidebarFooterSpacing));
   workspace_header_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kCenter);
+  auto workspace_selector_host = std::make_unique<views::View>();
+  workspace_selector_host->SetPreferredSize(
+      gfx::Size(0, visual_style::kSidebarActionCellHeight));
+  workspace_selector_host->SetLayoutManager(
+      std::make_unique<views::FillLayout>());
   workspace_button_ =
-      workspace_header->AddChildView(CreateWorkspaceSelectorButton(
+      workspace_selector_host->AddChildView(CreateWorkspaceSelectorButton(
           base::BindRepeating(&BrowserSidebarHostView::OnWorkspacePressed,
                               base::Unretained(this))));
-  workspace_header_layout->SetFlexForView(workspace_button_, 1);
+
+  // The drag-only target is a sibling of the selector inside a fixed-height
+  // FillLayout. It therefore covers the workspace name while dragging but can
+  // never insert a row or move the saved/open-tab surfaces below it.
+  new_group_drop_target_ =
+      workspace_selector_host->AddChildView(CreateNewGroupDropTargetView(
+          base::BindRepeating(
+              [](base::WeakPtr<BrowserSidebarHostView> host,
+                 const base::Uuid& node_id) {
+                if (!host ||
+                    !host->controller_->view_model().GetNode(node_id)) {
+                  return false;
+                }
+                host->ShowCreateGroupDialog(node_id);
+                return host && host->group_dialog_widget_;
+              },
+              weak_ptr_factory_.GetWeakPtr()),
+          base::BindRepeating(
+              [](base::WeakPtr<BrowserSidebarHostView> host,
+                 int runtime_tab_handle) {
+                if (!host || !host->FindTemporaryTab(runtime_tab_handle)) {
+                  return false;
+                }
+                host->ShowCreateGroupDialogForTemporaryTab(runtime_tab_handle);
+                return host && host->group_dialog_widget_;
+              },
+              weak_ptr_factory_.GetWeakPtr())));
+  SetNewGroupDropTargetVisible(new_group_drop_target_, false);
+
+  views::View* workspace_selector_host_ptr =
+      workspace_header->AddChildView(std::move(workspace_selector_host));
+  workspace_header_layout->SetFlexForView(workspace_selector_host_ptr, 1);
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
                           weak_ptr_factory_.GetWeakPtr(),
@@ -191,17 +242,6 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   SetWorkspaceSelectorPresentation(workspace_button_, u"Ahoi", u"A",
                                    visual_style::kDefaultAccent);
   workspace_button_->set_context_menu_controller(this);
-
-  // New Group is a normal content row. Keeping it out of the workspace
-  // header's bounds leaves the selector visible and interactive throughout a
-  // native drag and prevents the target from overlapping floating chrome.
-  new_group_drop_target_ = AddChildView(CreateNewGroupDropTargetView(
-      base::BindRepeating(&BrowserSidebarHostView::ShowCreateGroupDialog,
-                          base::Unretained(this)),
-      base::BindRepeating(
-          &BrowserSidebarHostView::ShowCreateGroupDialogForTemporaryTab,
-          base::Unretained(this))));
-  SetNewGroupDropTargetVisible(new_group_drop_target_, false);
 
   auto tabs_surface = CreateSidebarTabsSurfaceView();
   auto* tabs_surface_layout =
@@ -363,6 +403,10 @@ void BrowserSidebarHostView::AddedToWidget() {
 }
 
 void BrowserSidebarHostView::RemovedFromWidget() {
+  if (tab_preview_controller_) {
+    tab_preview_controller_->Hide();
+  }
+  InvalidateAndCloseGroupRecentBubble();
   ResetDragPresentation();
   widget_drag_observation_.Reset();
   views::View::RemovedFromWidget();
@@ -381,6 +425,17 @@ void BrowserSidebarHostView::OnWidgetDragDropCompleted(views::Widget* widget) {
   if (widget_drag_observation_.IsObservingSource(widget)) {
     ResetDragPresentation();
   }
+}
+
+void BrowserSidebarHostView::OnWidgetActivationChanged(views::Widget* widget,
+                                                       bool active) {
+  if (active || !widget_drag_observation_.IsObservingSource(widget)) {
+    return;
+  }
+  if (tab_preview_controller_) {
+    tab_preview_controller_->Hide();
+  }
+  InvalidateAndCloseGroupRecentBubble();
 }
 
 bool BrowserSidebarHostView::UndoLastMutationIfAvailable() {
@@ -461,6 +516,7 @@ bool BrowserSidebarHostView::RevealFolder(const base::Uuid& folder_id) {
 BrowserSidebarHostView::~BrowserSidebarHostView() {
   CancelWorkspaceTransition();
   SetBrowserSidebarDragRoutingActive(this, false);
+  tab_preview_controller_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
   widget_drag_observation_.Reset();
   group_recent_show_timer_.Stop();

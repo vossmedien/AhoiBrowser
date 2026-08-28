@@ -151,6 +151,8 @@ class SidebarTreeView final : public views::View,
                      bool disclosure_hit);
   void OnRowTrailingAction(SidebarTreeRowView* row);
   void OnRowHoverChanged(SidebarTreeRowView* row, bool hovered);
+  std::vector<gfx::ImageSkia> GetSavedPageDragThumbnailsForNode(
+      const base::Uuid& node_id) const;
   bool OnRowAccessibilityFocused(SidebarTreeRowView* row);
   bool OnRowAccessibilityActivated(SidebarTreeRowView* row);
   void CommitRename(const base::Uuid& node_id, std::u16string title);
@@ -274,6 +276,9 @@ class SidebarTreeView final : public views::View,
   std::optional<DropIndicator> BuildTemporaryTabDropProbe(
       int runtime_tab_handle,
       const gfx::Point& point) const;
+  std::optional<SidebarTreeController::DropPosition>
+  NearestReorderPositionForTarget(const base::Uuid& target_node_id,
+                                  const gfx::Point& point) const;
   void SetDropIndicator(std::optional<DropIndicator> indicator);
   void UpdateFolderAutoExpand(const std::optional<DropIndicator>& indicator);
   void CancelFolderAutoExpand();

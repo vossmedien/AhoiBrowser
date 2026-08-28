@@ -25,7 +25,7 @@ TEST_F(AppearancePrefsTest, ProductDefaultsAreProfilePersistent) {
 #else
   EXPECT_FALSE(IsGlassEnabled(prefs_));
 #endif
-  EXPECT_FALSE(IsSidebarPageTintEnabled(prefs_));
+  EXPECT_TRUE(IsSidebarPageTintEnabled(prefs_));
 
   const FloatingNavigationPreferences navigation =
       GetFloatingNavigationPreferences(prefs_);

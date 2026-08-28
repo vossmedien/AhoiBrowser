@@ -176,6 +176,9 @@ void SidebarTreeRowView::Bind(size_t row_index,
 }
 
 void SidebarTreeRowView::Unbind() {
+  if (hovered_ && is_bound()) {
+    owner_->OnRowHoverChanged(this, false);
+  }
   StopEditing(/*restore_model_title=*/true);
   // A row can be recycled while its source drag tears down a split
   // projection. Reset child visibility explicitly; merely clearing
@@ -245,9 +248,22 @@ void SidebarTreeRowView::SetSplitDropTarget(bool split_drop_target) {
 
 gfx::ImageSkia SidebarTreeRowView::GetDragImage() {
   CHECK(is_bound());
-  const gfx::ImageSkia favicon = page_icon_.Rasterize(GetColorProvider());
-  return CreateSidebarDragImage(GetWidget(), GetColorProvider(), favicon,
-                                title_, drag_thumbnails_);
+  const ui::ColorProvider* const colors = GetColorProvider();
+  gfx::ImageSkia favicon;
+  // Vector and generator ImageModels require a ColorProvider. A native drag
+  // can cross the Views lifecycle boundary before the row is attached to a
+  // widget, so rasterize only provider-independent bitmap models in that
+  // state. The drag card paints its own neutral fallback icon otherwise.
+  if (!page_icon_.IsEmpty() && (colors || page_icon_.IsImage())) {
+    favicon = page_icon_.Rasterize(colors);
+  }
+  std::vector<gfx::ImageSkia> live_thumbnails =
+      owner_->GetSavedPageDragThumbnailsForNode(node_id_);
+  if (live_thumbnails.empty()) {
+    live_thumbnails = drag_thumbnails_;
+  }
+  return CreateSidebarDragImage(GetWidget(), colors, favicon, title_,
+                                live_thumbnails);
 }
 
 void SidebarTreeRowView::SetIsDragging(bool dragging) {
@@ -306,7 +322,8 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
     canvas->DrawRoundRect(
         background, visual_style::kRowCornerRadius,
         FillFlags(colors->GetColor(visual_style::kHoverSurface)));
-  } else if (split_drop_target_) {
+  } else if (split_drop_target_ ||
+             drop_position_ == SidebarTreeController::DropPosition::kInside) {
     canvas->DrawRoundRect(
         background, visual_style::kRowCornerRadius,
         FillFlags(colors->GetColor(visual_style::kDropTargetSurface)));
@@ -318,6 +335,25 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
     canvas->DrawRoundRect(
         background, visual_style::kRowCornerRadius,
         FillFlags(colors->GetColor(visual_style::kHoverSurface)));
+  }
+
+  if (drop_position_ == SidebarTreeController::DropPosition::kBefore ||
+      drop_position_ == SidebarTreeController::DropPosition::kAfter) {
+    // Paint the complete effective edge zone, not merely its insertion line.
+    // This makes the generous hit target visible and therefore aimable while
+    // keeping row geometry absolutely stable during the native drag.
+    const float zone_height = static_cast<float>(
+        std::clamp(height() * 3 / 10, 1, std::max(1, (height() - 1) / 2)));
+    gfx::RectF zone(
+        visual_style::kSidebarTabRowHorizontalInset, 0.0f,
+        std::max(0, width() - 2 * visual_style::kSidebarTabRowHorizontalInset),
+        zone_height);
+    if (drop_position_ == SidebarTreeController::DropPosition::kAfter) {
+      zone.set_y(std::max(0.0f, static_cast<float>(height()) - zone_height));
+    }
+    canvas->DrawRoundRect(
+        zone, visual_style::kRowCornerRadius,
+        FillFlags(colors->GetColor(visual_style::kDropTargetSurface)));
   }
 
   if (split_drop_target_) {
@@ -479,14 +515,27 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
 
   if (drop_position_ == SidebarTreeController::DropPosition::kBefore ||
       drop_position_ == SidebarTreeController::DropPosition::kAfter) {
+    constexpr float kInsertionIndicatorHeight = 3.0f;
     const float y =
         drop_position_ == SidebarTreeController::DropPosition::kBefore
-            ? 1.0f
-            : static_cast<float>(height() - 1);
+            ? 0.0f
+            : std::max(0.0f, static_cast<float>(height()) -
+                                 kInsertionIndicatorHeight);
+    const gfx::RectF insertion_indicator(
+        6.0f, y, std::max(0.0f, static_cast<float>(width()) - 12.0f),
+        kInsertionIndicatorHeight);
+    canvas->DrawRoundRect(
+        insertion_indicator, kInsertionIndicatorHeight / 2.0f,
+        FillFlags(GetColorProvider()->GetColor(visual_style::kAccent)));
+  }
+
+  if (split_drop_target_) {
+    const float divider_x = static_cast<float>(width()) * 0.5f;
     canvas->DrawLine(
-        gfx::PointF(4.0f, y), gfx::PointF(static_cast<float>(width() - 4), y),
+        gfx::PointF(divider_x, 8.0f),
+        gfx::PointF(divider_x, std::max(8.0f, height() - 8.0f)),
         StrokeFlags(GetColorProvider()->GetColor(visual_style::kAccent),
-                    kDropStrokeWidth));
+                    1.25f));
   }
 
   if (paint_trailing_state && !ShouldShowTrailingAction() && sleeping_) {

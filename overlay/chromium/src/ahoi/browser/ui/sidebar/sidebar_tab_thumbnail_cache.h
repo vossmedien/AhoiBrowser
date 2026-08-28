@@ -4,11 +4,9 @@
 #ifndef AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_TAB_THUMBNAIL_CACHE_H_
 #define AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_TAB_THUMBNAIL_CACHE_H_
 
-#include <cstdint>
 #include <memory>
 
 #include "base/functional/callback.h"
-#include "base/memory/weak_ptr.h"
 #include "chrome/browser/ui/thumbnails/thumbnail_image.h"
 #include "ui/gfx/image/image_skia.h"
 
@@ -35,14 +33,11 @@ class CachedTabThumbnail final {
  private:
   void ObserveImpl(tabs::TabInterface* tab, bool force_refresh);
   void OnThumbnailAvailable(gfx::ImageSkia image);
-  void StopObserving(uint64_t generation);
 
   const base::RepeatingClosure image_changed_callback_;
   scoped_refptr<ThumbnailImage> thumbnail_;
   std::unique_ptr<ThumbnailImage::Subscription> subscription_;
   gfx::ImageSkia image_;
-  uint64_t subscription_generation_ = 0;
-  base::WeakPtrFactory<CachedTabThumbnail> weak_ptr_factory_{this};
 };
 
 }  // namespace ahoi::sidebar

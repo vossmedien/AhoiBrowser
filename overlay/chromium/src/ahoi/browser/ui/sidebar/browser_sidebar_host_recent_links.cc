@@ -141,6 +141,9 @@ void BrowserSidebarHostView::OnFolderHoverChanged(
     return;
   }
   if (hovered) {
+    if (tab_preview_controller_) {
+      tab_preview_controller_->Hide();
+    }
     hovered_folder_id_ = folder_node_id;
     group_recent_anchor_tracker_.SetView(anchor);
     group_recent_hide_timer_.Stop();
@@ -205,10 +208,9 @@ void BrowserSidebarHostView::BeginGroupRecentQuery(
   options.visit_order = history::QueryOptions::RECENT_FIRST;
   history_service_->QueryHistory(
       std::u16string(), options,
-      base::BindOnce(
-          &BrowserSidebarHostView::OnGroupHistoryQueryCompleted,
-          weak_ptr_factory_.GetWeakPtr(), generation, folder_node_id,
-          std::move(pages_by_url)),
+      base::BindOnce(&BrowserSidebarHostView::OnGroupHistoryQueryCompleted,
+                     weak_ptr_factory_.GetWeakPtr(), generation, folder_node_id,
+                     std::move(pages_by_url)),
       &group_recent_history_task_tracker_);
 }
 

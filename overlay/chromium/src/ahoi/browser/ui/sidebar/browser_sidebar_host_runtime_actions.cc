@@ -33,6 +33,7 @@
 #include "base/functional/callback.h"
 #include "base/functional/callback_helpers.h"
 #include "base/i18n/case_conversion.h"
+#include "base/logging.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/pickle.h"
@@ -126,7 +127,7 @@ bool BrowserSidebarHostView::CanDropOnRuntimeTab(
     std::optional<int> source_runtime_handle,
     base::WeakPtr<tabs::TabInterface> target,
     OpenTabDropPosition position) const {
-  if (!target || !tab_strip_model_ ||
+  if (!target || !controller_ || !session_bridge_ || !tab_strip_model_ ||
       source_node_id.has_value() == source_runtime_handle.has_value()) {
     return false;
   }
@@ -134,19 +135,36 @@ bool BrowserSidebarHostView::CanDropOnRuntimeTab(
   tabs::TabInterface* source = nullptr;
   if (source_node_id.has_value()) {
     source = session_bridge_->FindTabByTreeNodeId(*source_node_id);
-    // Closed saved pages can still be moved into the temporary section via
-    // its free area, but row-relative ordering requires a live tab identity.
     if (!source) {
-      return false;
+      // A center drop can lazily open a durable saved page at the committed
+      // drop boundary. Before/after ordering still requires a live tab
+      // identity and must not mutate the browser during hover validation.
+      const tab_tree::TreeNode* const node =
+          controller_->view_model().GetNode(*source_node_id);
+      if (position != OpenTabDropPosition::kSplit || !node || node->tombstone ||
+          node->type != tab_tree::TreeNodeType::kSavedPage) {
+        return false;
+      }
     }
   } else {
     source = FindTemporaryTab(*source_runtime_handle);
   }
-  if (!source ||
-      session_bridge_->FindTabStripModelForTab(source) != tab_strip_model_ ||
+  if ((!source && !source_node_id.has_value()) ||
+      (source &&
+       session_bridge_->FindTabStripModelForTab(source) != tab_strip_model_) ||
       session_bridge_->FindTabStripModelForTab(target.get()) !=
           tab_strip_model_) {
     return false;
+  }
+
+  if (!source) {
+    if (!target->IsSplit()) {
+      return true;
+    }
+    const split_tabs::SplitTabData* const target_split =
+        tab_strip_model_->GetSplitData(*target->GetSplit());
+    return target_split &&
+           target_split->ListTabs().size() < tabs::SplitTabCollection::kMaxTabs;
   }
 
   // Dropping onto the outer edge of the source pane is the only universally
@@ -195,41 +213,120 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
                            position)) {
     return false;
   }
+  base::ScopedClosureRunner rollback_materialized_source;
   tabs::TabInterface* source =
       source_node_id.has_value()
           ? session_bridge_->FindTabByTreeNodeId(*source_node_id)
           : FindTemporaryTab(*source_runtime_handle);
+  if (!source && source_node_id.has_value() &&
+      position == OpenTabDropPosition::kSplit) {
+    BrowserSidebarSplitDropSource resolution = ResolveSplitDropSource(
+        drag::SidebarTabDragPayload{.saved_node_id = *source_node_id},
+        /*activate_saved_page=*/true);
+    source = resolution.valid ? resolution.tab.get() : nullptr;
+    rollback_materialized_source.ReplaceClosure(std::move(resolution.rollback));
+  }
   if (!source || !target) {
+    return false;
+  }
+  const int source_handle = source->GetHandle().raw_value();
+  if (!CanDropOnRuntimeTab(source_node_id, source_runtime_handle, target,
+                           position)) {
     return false;
   }
 
   if (position == OpenTabDropPosition::kSplit) {
     const bool same_split = source->GetSplit().has_value() &&
                             source->GetSplit() == target->GetSplit();
+    const int source_index = tab_strip_model_->GetIndexOfTab(source);
+    const int target_index = tab_strip_model_->GetIndexOfTab(target.get());
+    if (source_index < 0 || target_index < 0) {
+      return false;
+    }
     const bool created =
         same_split ? tab_strip_model_->ReorderTabInSplit(source, target.get())
                    : tab_strip_model_
                          ->CreateOrAddToSplitFromDrop(
-                             tab_strip_model_->GetIndexOfTab(source),
-                             tab_strip_model_->GetIndexOfTab(target.get()),
+                             source_index, target_index,
                              split_tabs::SplitTabArrangement::kLinear)
                          .has_value();
+    if (!created) {
+      return false;
+    }
+    rollback_materialized_source.ReplaceClosure(base::OnceClosure());
     ScheduleRuntimePresentationRefresh();
-    return created;
+    return true;
   }
 
   // A saved segment in a mixed composite row still owns its durable node.
   // Pulling it out of its own split must only change Chromium split
   // membership; it is not a move into the temporary section.
+  const int original_source_index = tab_strip_model_->GetIndexOfTab(source);
+  if (original_source_index < 0 ||
+      tab_strip_model_->GetIndexOfTab(target.get()) < 0 ||
+      (source->IsSplit() &&
+       !CanExtractTabFromSplitPreservingRemainder(tab_strip_model_, source)) ||
+      (target->GetSplit().has_value() &&
+       !tab_strip_model_->GetSplitData(*target->GetSplit()))) {
+    return false;
+  }
   const bool extracting_from_same_split =
       source->GetSplit().has_value() &&
       source->GetSplit() == target->GetSplit();
-  if (source_node_id.has_value() && !extracting_from_same_split &&
-      !MakeSavedPageTemporary(*source_node_id)) {
-    return false;
+  std::optional<SplitTabExtractionSnapshot> extraction_snapshot;
+  if (source->IsSplit()) {
+    extraction_snapshot =
+        CaptureSplitTabExtractionSnapshot(tab_strip_model_, source);
+    if (!extraction_snapshot.has_value()) {
+      return false;
+    }
   }
+
+  // All model changes below are one transaction. Reordering is performed
+  // before deleting a durable node, and every early return restores the
+  // original absolute tab position plus its split membership.
+  base::ScopedClosureRunner rollback_model(base::BindOnce(
+      [](base::WeakPtr<BrowserSidebarHostView> host, int tab_handle,
+         int original_index,
+         std::optional<SplitTabExtractionSnapshot> split_snapshot) {
+        if (!host || !host->tab_strip_model_) {
+          return;
+        }
+        tabs::TabInterface* const rollback_tab =
+            host->FindRuntimeTab(tab_handle);
+        const int current_index =
+            rollback_tab ? host->tab_strip_model_->GetIndexOfTab(rollback_tab)
+                         : -1;
+        bool restored = rollback_tab && current_index >= 0 &&
+                        original_index >= 0 &&
+                        original_index < host->tab_strip_model_->count();
+        if (restored && current_index != original_index) {
+          host->tab_strip_model_->MoveWebContentsAt(
+              current_index, original_index, /*select_after_move=*/false);
+          restored = host && host->FindRuntimeTab(tab_handle) &&
+                     host->tab_strip_model_->GetIndexOfTab(
+                         host->FindRuntimeTab(tab_handle)) == original_index;
+        }
+        if (restored && split_snapshot.has_value()) {
+          restored = RestoreSplitTabExtraction(host->tab_strip_model_,
+                                               *split_snapshot);
+        }
+        if (!restored) {
+          LOG(ERROR) << "Runtime-tab drop failed and its model rollback was "
+                        "incomplete";
+        }
+      },
+      weak_ptr_factory_.GetWeakPtr(), source_handle, original_source_index,
+      extraction_snapshot));
+
   if (source->IsSplit() &&
       !ExtractTabFromSplitPreservingRemainder(tab_strip_model_, source)) {
+    return false;
+  }
+  const base::WeakPtr<BrowserSidebarHostView> weak_host =
+      weak_ptr_factory_.GetWeakPtr();
+  source = FindRuntimeTab(source_handle);
+  if (!weak_host || !source || !target) {
     return false;
   }
   const int source_index = tab_strip_model_->GetIndexOfTab(source);
@@ -258,6 +355,20 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
     tab_strip_model_->MoveWebContentsAt(source_index, target_index,
                                         /*select_after_move=*/false);
   }
+  if (!weak_host || !FindRuntimeTab(source_handle) || !target) {
+    return false;
+  }
+
+  // Commit the durable-to-temporary conversion only after the Chromium model
+  // mutation is known to be valid. A store failure can then leave the saved
+  // page intact while the guard restores the model exactly.
+  if (source_node_id.has_value() && !extracting_from_same_split) {
+    const bool converted = MakeSavedPageTemporary(*source_node_id);
+    if (!weak_host || !converted) {
+      return false;
+    }
+  }
+  rollback_model.ReplaceClosure(base::OnceClosure());
   ScheduleRuntimePresentationRefresh();
   return true;
 }
@@ -285,7 +396,7 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
   if (!tab || !contents) {
     return false;
   }
-  const bool extract_split_pane = tab->IsSplit();
+  const base::WeakPtr<tabs::TabInterface> weak_tab = tab->GetWeakPtr();
   GURL url = contents->GetVisibleURL();
   if (!url.is_valid() || url.is_empty()) {
     url = contents->GetLastCommittedURL();
@@ -296,6 +407,37 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
   const std::u16string title = tab->GetTitle().empty()
                                    ? l10n_util::GetStringUTF16(IDS_NEW_TAB)
                                    : tab->GetTitle();
+
+  // Capture everything needed from WebContents before changing split
+  // membership. TabStripModel observers run synchronously and may destroy or
+  // replace the source during extraction.
+  const bool extract_split_pane = tab->IsSplit();
+  std::optional<SplitTabExtractionSnapshot> extraction_snapshot;
+  if (extract_split_pane) {
+    extraction_snapshot =
+        CaptureSplitTabExtractionSnapshot(tab_strip_model_, tab);
+    if (!extraction_snapshot.has_value() ||
+        !ExtractTabFromSplitPreservingRemainder(tab_strip_model_, tab)) {
+      return false;
+    }
+  }
+  base::ScopedClosureRunner rollback_extraction;
+  if (extraction_snapshot.has_value()) {
+    rollback_extraction.ReplaceClosure(base::BindOnce(
+        [](base::WeakPtr<BrowserSidebarHostView> host,
+           SplitTabExtractionSnapshot snapshot) {
+          if (host && host->tab_strip_model_ &&
+              !RestoreSplitTabExtraction(host->tab_strip_model_, snapshot)) {
+            LOG(ERROR) << "Temporary-tab save failed and its split rollback "
+                          "was incomplete";
+          }
+        },
+        weak_ptr_factory_.GetWeakPtr(), std::move(*extraction_snapshot)));
+  }
+  if (!weak_tab || session_bridge_->FindTabStripModelForTab(weak_tab.get()) !=
+                       tab_strip_model_) {
+    return false;
+  }
   tab_tree::TreeNode created;
   const tab_tree::TabTreeStore::Result result =
       controller_->CreateSavedPageAtDrop(target, title, url, base::Time::Now(),
@@ -304,7 +446,8 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
     OnMutationFailed(result);
     return false;
   }
-  if (!session_bridge_->BindTreeNodeToTab(created, tab)) {
+  if (!weak_tab ||
+      !session_bridge_->BindTreeNodeToTab(created, weak_tab.get())) {
     const tab_tree::TabTreeStore::Result rollback =
         controller_->DeleteNode(created.id, base::Time::Now());
     if (rollback != tab_tree::TabTreeStore::Result::kOk) {
@@ -319,9 +462,7 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
   if (created_node_id) {
     *created_node_id = created.id;
   }
-  if (extract_split_pane) {
-    CHECK(ExtractTabFromSplitPreservingRemainder(tab_strip_model_, tab));
-  }
+  rollback_extraction.ReplaceClosure(base::OnceClosure());
   OnTemporaryTabDragStateChanged(std::nullopt);
   ScheduleRuntimePresentationRefresh();
   return true;
@@ -354,6 +495,7 @@ bool BrowserSidebarHostView::MakeSavedPageTemporary(
   // row is removed; dropping it below the separator must never make it
   // disappear instead of becoming a live temporary tab.
   tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id);
+  bool opened_for_transaction = false;
   if (!tab) {
     NavigateParams params(browser_, node.url,
                           ui::PAGE_TRANSITION_AUTO_BOOKMARK);
@@ -367,19 +509,60 @@ bool BrowserSidebarHostView::MakeSavedPageTemporary(
       }
       return false;
     }
+    opened_for_transaction = true;
   }
+  const base::WeakPtr<tabs::TabInterface> weak_tab = tab->GetWeakPtr();
   const bool extract_split_pane = tab->IsSplit();
-  session_bridge_->MakeTabTemporary(tab);
+  std::optional<SplitTabExtractionSnapshot> extraction_snapshot;
+  if (extract_split_pane) {
+    extraction_snapshot =
+        CaptureSplitTabExtractionSnapshot(tab_strip_model_, tab);
+    if (!extraction_snapshot.has_value() ||
+        !ExtractTabFromSplitPreservingRemainder(tab_strip_model_, tab)) {
+      if (opened_for_transaction && weak_tab) {
+        weak_tab->Close();
+      }
+      return false;
+    }
+  }
+  base::ScopedClosureRunner rollback_extraction;
+  if (extraction_snapshot.has_value()) {
+    rollback_extraction.ReplaceClosure(base::BindOnce(
+        [](base::WeakPtr<BrowserSidebarHostView> host,
+           SplitTabExtractionSnapshot snapshot) {
+          if (host && host->tab_strip_model_ &&
+              !RestoreSplitTabExtraction(host->tab_strip_model_, snapshot)) {
+            LOG(ERROR) << "Saved-tab conversion failed and its split rollback "
+                          "was incomplete";
+          }
+        },
+        weak_ptr_factory_.GetWeakPtr(), std::move(*extraction_snapshot)));
+  }
+  if (!weak_tab || session_bridge_->FindTabStripModelForTab(weak_tab.get()) !=
+                       tab_strip_model_) {
+    return false;
+  }
+  session_bridge_->MakeTabTemporary(weak_tab.get());
   const tab_tree::TabTreeStore::Result result =
       controller_->DeleteNode(source_node_id, base::Time::Now());
   if (result != tab_tree::TabTreeStore::Result::kOk) {
-    CHECK(session_bridge_->BindTreeNodeToTab(node, tab));
+    // Restore Chromium split membership while every original member still
+    // exists. Closing a transaction-owned tab before this point would make a
+    // complete rollback impossible.
+    rollback_extraction.RunAndReset();
+    const bool rebound =
+        weak_tab && session_bridge_->BindTreeNodeToTab(node, weak_tab.get());
+    if (opened_for_transaction && weak_tab) {
+      weak_tab->Close();
+    }
+    if (!rebound) {
+      LOG(ERROR) << "Saved-tab conversion failed to restore its durable tab "
+                    "binding";
+    }
     OnMutationFailed(result);
     return false;
   }
-  if (extract_split_pane) {
-    CHECK(ExtractTabFromSplitPreservingRemainder(tab_strip_model_, tab));
-  }
+  rollback_extraction.ReplaceClosure(base::OnceClosure());
   OnSidebarDragStateChanged(std::nullopt);
   ScheduleRuntimePresentationRefresh();
   return true;

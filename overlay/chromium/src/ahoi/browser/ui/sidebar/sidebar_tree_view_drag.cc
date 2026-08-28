@@ -48,7 +48,17 @@ namespace ahoi::sidebar {
 namespace {
 
 constexpr int kAutoScrollEdge = 24;
-constexpr int kReorderDropEdge = 5;
+
+int ReorderDropZoneHeight(int row_height) {
+  if (row_height <= 2) {
+    return 1;
+  }
+  // Reserve 30% at both row edges for predictable before/after ordering and
+  // the central 40% for folder/split intent. The previous fixed 5 px edge was
+  // below a reliable pointer target on Retina displays and made ordinary
+  // saved-tab reordering needlessly difficult.
+  return std::clamp(row_height * 3 / 10, 1, (row_height - 1) / 2);
+}
 
 ui::mojom::DragOperation ToNativeDragOperation(
     SidebarTreeController::DropOperation operation) {
@@ -265,6 +275,14 @@ SidebarTreeView::CalculateDropIndicator(
         probe->action = DropIndicator::Action::kSplit;
         return probe;
       }
+      // The center of a saved-page row expresses split intent. When that
+      // particular pair cannot be split, keep the drag useful by resolving to
+      // the nearer insertion edge instead of exposing a dead 40% drop zone.
+      if (const auto nearest =
+              NearestReorderPositionForTarget(*probe->target_node_id, point)) {
+        probe->position = *nearest;
+        target.position = *nearest;
+      }
     }
   }
   SidebarTreeController::DropPlan plan;
@@ -298,6 +316,13 @@ SidebarTreeView::CalculateTemporaryTabDropIndicator(int runtime_tab_handle,
                                                  destination->id)) {
         probe->action = DropIndicator::Action::kSplit;
         return probe;
+      }
+      // Match saved-tab drags: rejected split intent falls back to the
+      // closest stable before/after target rather than making the row center
+      // appear interactive while refusing the drop.
+      if (const auto nearest =
+              NearestReorderPositionForTarget(*probe->target_node_id, point)) {
+        probe->position = *nearest;
       }
     }
   }
@@ -344,6 +369,7 @@ std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
         visual_row, visual_position.segment, std::max(width(), 1));
     const int offset = clamped_y - target_bounds.y();
     const int target_height = target_bounds.height();
+    const int reorder_zone_height = ReorderDropZoneHeight(target_height);
     const bool targets_split_segment = visual_position.segment_count > 1;
     const bool targets_own_split_segment =
         targets_split_segment &&
@@ -351,8 +377,8 @@ std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
     if ((targets_split_segment && !targets_own_split_segment) ||
         ((rows[*row_index].type == tab_tree::TreeNodeType::kFolder ||
           rows[*row_index].type == tab_tree::TreeNodeType::kSavedPage) &&
-         offset >= kReorderDropEdge &&
-         offset < target_height - kReorderDropEdge)) {
+         offset >= reorder_zone_height &&
+         offset < target_height - reorder_zone_height)) {
       probe.position = SidebarTreeController::DropPosition::kInside;
     } else {
       probe.position = offset < target_height / 2
@@ -395,12 +421,13 @@ SidebarTreeView::BuildTemporaryTabDropProbe(int runtime_tab_handle,
         visual_row, visual_position.segment, std::max(width(), 1));
     const int offset = clamped_y - target_bounds.y();
     const int target_height = target_bounds.height();
+    const int reorder_zone_height = ReorderDropZoneHeight(target_height);
     const bool targets_split_segment = visual_position.segment_count > 1;
     if (targets_split_segment ||
         ((rows[*row_index].type == tab_tree::TreeNodeType::kFolder ||
           rows[*row_index].type == tab_tree::TreeNodeType::kSavedPage) &&
-         offset >= kReorderDropEdge &&
-         offset < target_height - kReorderDropEdge)) {
+         offset >= reorder_zone_height &&
+         offset < target_height - reorder_zone_height)) {
       probe.position = SidebarTreeController::DropPosition::kInside;
     } else {
       probe.position = offset < target_height / 2
@@ -409,6 +436,36 @@ SidebarTreeView::BuildTemporaryTabDropProbe(int runtime_tab_handle,
     }
   }
   return probe;
+}
+
+std::optional<SidebarTreeController::DropPosition>
+SidebarTreeView::NearestReorderPositionForTarget(
+    const base::Uuid& target_node_id,
+    const gfx::Point& point) const {
+  const std::optional<size_t> row_index = model().GetRowForNode(target_node_id);
+  if (!row_index.has_value()) {
+    return std::nullopt;
+  }
+  const std::vector<VisualRow> visual_rows = BuildVisualRows();
+  const std::vector<VisualPosition> visual_positions =
+      BuildVisualPositions(visual_rows);
+  if (*row_index >= visual_positions.size() ||
+      !visual_positions[*row_index].present) {
+    return std::nullopt;
+  }
+  const VisualPosition& visual_position = visual_positions[*row_index];
+  if (visual_position.visual_row >= visual_rows.size()) {
+    return std::nullopt;
+  }
+  const gfx::Rect target_bounds =
+      GetSegmentBounds(visual_rows[visual_position.visual_row],
+                       visual_position.segment, std::max(width(), 1));
+  if (target_bounds.IsEmpty()) {
+    return std::nullopt;
+  }
+  return point.y() < target_bounds.CenterPoint().y()
+             ? SidebarTreeController::DropPosition::kBefore
+             : SidebarTreeController::DropPosition::kAfter;
 }
 
 void SidebarTreeView::SetDropIndicator(std::optional<DropIndicator> indicator) {

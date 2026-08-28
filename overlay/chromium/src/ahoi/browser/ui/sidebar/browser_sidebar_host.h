@@ -9,7 +9,8 @@
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
-#include "base/memory/raw_ptr.h"
+#include "base/functional/callback.h"
+#include "base/memory/weak_ptr.h"
 #include "base/uuid.h"
 
 class Browser;
@@ -30,7 +31,12 @@ namespace ahoi::sidebar {
 
 struct BrowserSidebarSplitDropSource {
   bool valid = false;
-  raw_ptr<tabs::TabInterface> tab = nullptr;
+  base::WeakPtr<tabs::TabInterface> tab;
+  // Present only when commit-time materialization changed browser state. A
+  // failed drop runs this exactly once to restore the previous active tab and
+  // close only the tab actually opened by this transaction. Destroying the
+  // callback commits the materialization and performs no work.
+  base::OnceClosure rollback;
 };
 
 // Creates the profile-backed Ahoi organization surface for a normal browser

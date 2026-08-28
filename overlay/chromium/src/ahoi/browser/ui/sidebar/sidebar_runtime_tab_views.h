@@ -53,6 +53,11 @@ void WriteOpenTabDragPayload(ui::OSExchangeData* data,
 
 using RuntimeTabCallback =
     base::RepeatingCallback<void(base::WeakPtr<tabs::TabInterface>)>;
+using RuntimeTabThumbnailsCallback =
+    base::RepeatingCallback<std::vector<gfx::ImageSkia>(
+        base::WeakPtr<tabs::TabInterface>)>;
+using RuntimeTabHoverCallback = base::RepeatingCallback<
+    void(base::WeakPtr<tabs::TabInterface>, views::View*, bool)>;
 using RuntimeTabDragStateCallback =
     base::RepeatingCallback<void(std::optional<int>)>;
 using SavedTabDragStateCallback =
@@ -74,13 +79,14 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     tabs::TabInterface* tab,
     std::optional<base::Uuid> saved_node_id,
     ui::ImageModel favicon,
-    std::vector<gfx::ImageSkia> drag_thumbnails,
     std::optional<tabs::TabAlert> media_alert,
     std::u16string status_text,
     bool active,
     bool sleeping,
     RuntimeTabCallback activate_callback,
     RuntimeTabCallback close_callback,
+    RuntimeTabThumbnailsCallback thumbnails_callback,
+    RuntimeTabHoverCallback hover_callback,
     SavedTabDragStateCallback saved_drag_state_callback,
     RuntimeTabDragStateCallback drag_state_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
@@ -103,8 +109,8 @@ bool IsOpenTabsDropTargetAcceptingSavedTabForTesting(const views::View* view);
 bool IsOpenTabsDropTargetHighlightedForTesting(const views::View* view);
 
 using CreateGroupForSavedNodeCallback =
-    base::RepeatingCallback<void(const base::Uuid&)>;
-using CreateGroupForRuntimeTabCallback = base::RepeatingCallback<void(int)>;
+    base::RepeatingCallback<bool(const base::Uuid&)>;
+using CreateGroupForRuntimeTabCallback = base::RepeatingCallback<bool(int)>;
 std::unique_ptr<views::View> CreateNewGroupDropTargetView(
     CreateGroupForSavedNodeCallback node_callback,
     CreateGroupForRuntimeTabCallback runtime_tab_callback);

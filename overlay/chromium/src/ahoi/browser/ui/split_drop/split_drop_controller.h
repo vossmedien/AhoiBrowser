@@ -9,7 +9,9 @@
 #include <vector>
 
 #include "ahoi/browser/ui/split_drop/split_drop_intent.h"
+#include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
+#include "base/memory/weak_ptr.h"
 #include "ui/views/view_tracker.h"
 
 class TabStripModel;
@@ -78,7 +80,8 @@ class SplitDropController {
  private:
   struct ResolvedSource {
     bool valid = false;
-    raw_ptr<tabs::TabInterface> tab = nullptr;
+    base::WeakPtr<tabs::TabInterface> tab;
+    base::OnceClosure rollback;
   };
 
   ResolvedSource ResolveSource(const drag::SidebarTabDragPayload& payload,
@@ -105,6 +108,7 @@ class SplitDropController {
   views::ViewTracker browser_sidebar_host_tracker_;
   views::ViewTracker overlay_view_tracker_;
   std::optional<size_t> fail_apply_desired_order_after_for_testing_;
+  base::WeakPtrFactory<SplitDropController> weak_ptr_factory_{this};
 };
 
 }  // namespace ahoi::split_drop

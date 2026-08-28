@@ -282,6 +282,12 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
       FindAcceptingDropDescendant(sidebar, drag_data);
   ASSERT_TRUE(new_group_target);
   ASSERT_NE(sidebar, new_group_target);
+  views::View* const workspace_selector_host = new_group_target->parent();
+  ASSERT_TRUE(workspace_selector_host);
+  ASSERT_EQ(2u, workspace_selector_host->children().size());
+  views::View* const workspace_selector =
+      workspace_selector_host->children().front();
+  EXPECT_EQ(workspace_selector->bounds(), new_group_target->bounds());
 
   gfx::Point docked_new_group_point =
       new_group_target->GetLocalBounds().CenterPoint();
@@ -298,15 +304,13 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   const gfx::Rect new_group_bounds = BoundsInTarget(new_group_target, root);
   const gfx::Rect top_container_bounds =
       BoundsInTarget(browser_view.top_container(), root);
-  const gfx::Rect new_group_overlap =
-      gfx::IntersectRects(top_container_bounds, new_group_bounds);
-  EXPECT_TRUE(new_group_overlap.IsEmpty());
+  EXPECT_EQ(BoundsInTarget(workspace_selector, root), new_group_bounds);
   const gfx::Point floating_new_group_point = new_group_bounds.CenterPoint();
-  EXPECT_FALSE(top_container_bounds.Contains(floating_new_group_point));
   EXPECT_TRUE(new_group_bounds.Contains(floating_new_group_point));
 
-  // New Group is a normal content row below floating chrome and remains the
-  // deepest semantic target after switching presentation modes.
+  // New Group overlays the fixed workspace selector during the drag. It
+  // remains the deepest semantic target without inserting a sidebar row or
+  // moving the saved/open tab surfaces.
   EXPECT_TRUE(IsInsideOrEqual(
       sidebar, root->GetEventHandlerForPoint(floating_new_group_point)));
   EXPECT_EQ(new_group_target,

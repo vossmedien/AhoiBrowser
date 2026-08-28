@@ -80,6 +80,22 @@ TEST_F(LocationBarBubbleButtonTest,
   EXPECT_FALSE(surface_showing);
 }
 
+TEST_F(LocationBarBubbleButtonTest,
+       DisabledMousePressIsConsumedWithoutActivation) {
+  bool surface_showing = false;
+  int activation_count = 0;
+  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  auto* button = MountButton(widget.get(), &surface_showing, &activation_count);
+  button->SetEnabled(false);
+  ui::MouseEvent event = MouseEvent(ui::EventType::kMousePressed);
+
+  button->OnEvent(&event);
+
+  EXPECT_TRUE(event.handled());
+  EXPECT_EQ(0, activation_count);
+  EXPECT_FALSE(surface_showing);
+}
+
 TEST_F(LocationBarBubbleButtonTest, ClosedSurfaceOpensOnMouseRelease) {
   bool surface_showing = false;
   int activation_count = 0;

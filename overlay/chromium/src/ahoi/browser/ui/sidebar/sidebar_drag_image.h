@@ -21,6 +21,16 @@ class Widget;
 
 namespace ahoi::sidebar {
 
+// Builds the shared unpadded preview card used by the passive hover bubble.
+// Drag and hover deliberately share the same title/favicon/split-thumbnail
+// renderer so the interaction never changes visual language mid-gesture.
+gfx::ImageSkia CreateSidebarPreviewImage(
+    views::Widget* source_widget,
+    const ui::ColorProvider* color_provider,
+    const gfx::ImageSkia& favicon,
+    const std::u16string& title,
+    const std::vector<gfx::ImageSkia>& cached_thumbnails);
+
 // Composites a Retina-aware native drag card from thumbnails that were cached
 // before drag initiation. No capture, decode, source-view resize or layout is
 // performed synchronously by this function.
@@ -36,9 +46,8 @@ gfx::ImageSkia CreateSidebarDragImage(
 // centers native drag images and therefore receives a transparent padded
 // canvas from CreateSidebarDragImage; other platforms use the negative x
 // hotspot directly.
-gfx::Vector2d GetSidebarDragImageCursorOffset(
-    const gfx::ImageSkia& image,
-    const gfx::Point& press_point);
+gfx::Vector2d GetSidebarDragImageCursorOffset(const gfx::ImageSkia& image,
+                                              const gfx::Point& press_point);
 
 }  // namespace ahoi::sidebar
 

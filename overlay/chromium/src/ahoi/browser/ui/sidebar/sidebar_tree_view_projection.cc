@@ -187,10 +187,10 @@ void SidebarTreeView::WriteDragDataForView(views::View* sender,
   // compact card also makes the dragged tab remain recognizable when it is
   // moved across a deeply nested tree.
   const gfx::ImageSkia image = row->GetDragImage();
-  if (!image.isNull() && !image.size().IsEmpty()) {
-    data->provider().SetDragImage(
-        image, GetSidebarDragImageCursorOffset(image, press_pt));
-  }
+  CHECK(!image.isNull());
+  CHECK(!image.size().IsEmpty());
+  data->provider().SetDragImage(
+      image, GetSidebarDragImageCursorOffset(image, press_pt));
   row->SetIsDragging(true);
 
   // macOS needs at least one concrete pasteboard representation to create an
@@ -432,10 +432,10 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
       }
     }
   }
-  // A drag-only host row (for example "New group") can change the viewport
-  // while AppKit owns the pointer. Keep the source visual row materialized so
-  // Widget::dragged_view() remains valid through OnDragDone(), even when the
-  // source would otherwise move outside the virtualized overscan range.
+  // Scrolling can change the virtualized viewport while AppKit owns the
+  // pointer. Keep the source visual row materialized so Widget::dragged_view()
+  // remains valid through OnDragDone(), even when the source would otherwise
+  // move outside the overscan range.
   for (const auto& entry : materialized_rows_) {
     if (!entry.second || !entry.second->is_dragging_for_presentation()) {
       continue;

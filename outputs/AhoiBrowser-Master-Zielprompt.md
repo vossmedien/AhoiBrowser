@@ -1,6 +1,6 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 28. August 2026.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das aktive AhoiBrowser-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet; ein erneutes Einsetzen als separates Goal ist dafür nicht erforderlich.
+**Geltungsstand: 28. August 2026, User-First-Recovery-Welle.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das neue AhoiBrowser-Mac-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet. Die unten definierte Mac-Recovery-Welle hat bis zu ihrem belegten Abschluss Vorrang vor breiter Featurearbeit, Lean-Optimierung und Mobile-Integration.
 
 **Verbindliche Ausführungsabgrenzung vom 27. August 2026:** Der native iOS-/iPadOS-Companion wird ab sofort von einem anderen Agenten verantwortet. Dieser macOS-/Chromium-Arbeitsstrom verändert, baut, testet oder installiert keine iOS-Dateien oder -Targets und wartet nicht auf deren Abschluss. Die Companion-Anforderungen bleiben Produktziel und Integrationsvertrag, sind aber ausdrücklich kein Schreib- oder Build-Scope dieses Arbeitsstroms.
 
@@ -59,6 +59,38 @@ Verbindliche Regeln:
 - Keine Funktion als fertig melden, wenn der höchste für sie vorgeschriebene Testlevel nicht bestanden wurde.
 - Keine P0-/P1-Probleme als „bekannte Einschränkung“ in eine öffentliche v1 verschieben.
 - Antworte nicht nur mit weiteren Plänen. Plane knapp, implementiere danach und liefere überprüfbare Ergebnisse.
+
+### Unmittelbar verbindliche User-First-Recovery-Welle
+
+Die folgenden aktuell real beobachteten Mac-Defekte sind Stop-the-line-Arbeit. Bis diese Welle abgeschlossen ist, beginnt keine breite programmatische Suite, keine Lean-Messwelle und keine neue, unabhängige Produktfeature-Welle:
+
+- `RECOVERY-MAC-01`: Einstellungen aus Menü und Command Bar wiederholt öffnen, Unterseiten wechseln, schließen und nach App-Neustart erneut öffnen; kein Crash, keine verlorene Sitzung und keine verspätete Service-Registrierung.
+- `RECOVERY-MAC-02`: jedes sichtbare Aktionsicon der Adressleiste mit der Maus bedienen. Copy, Privacy, Cookies, Cache, Developer Toolkit/DevTools, Workspace und weitere sichtbare Aktionen öffnen ausschließlich ihr eigenes Ziel; kein Icon darf durch Event-Fallthrough die `Cmd+T`-/Command-Bar-Oberfläche öffnen.
+- `RECOVERY-MAC-03`: gespeicherte Tabs innerhalb einer Gruppe und zwischen Gruppen mehrfach per Drag-and-drop vor und nach andere Tabs verschieben. Die vollständige wirksame obere beziehungsweise untere Dropfläche ist ruhig eingefärbt und zusätzlich durch eine klare Einfügemarkierung erkennbar; eine bloße dünne, schwer anzielbare Linie ist nicht zulässig. Vor dem Drop ist genau eine stabile Einfügeposition sichtbar; während des Drags springt oder verschiebt sich die Sidebar nicht; nach Drop, Workspace-Wechsel und App-Neustart stimmen sichtbare und persistierte Reihenfolge überein.
+- `RECOVERY-MAC-04`: gespeicherte sowie temporäre Tabs per Drag-and-drop auf gespeicherte Tabs ziehen und echte Zwei-Pane-Splits in beiden Richtungen erzeugen. Temporäre und gespeicherte Zeilen verwenden dasselbe großzügige Vorher/Nachher-/Split-Zonenmodell; ein abgelehnter Split fällt auf die nächstgelegene gültige Einfügekante zurück und erzeugt keine tote Mitte. Beide Seiten bleiben interaktiv; Fokus, Adressleiste, Reihenfolge, Split-Mitgliedschaft und Session-Restore stimmen; Drag-Start, Drop und Abbruch crashen niemals.
+- `RECOVERY-MAC-05`: `Neue Gruppe` existiert im Ruhezustand nicht als eigene Sidebar-Zeile und reserviert keinerlei Layoutplatz. Ausschließlich während eines passenden Drags liegt die Dropfläche als Overlay über dem Workspace-Namen ganz oben, verschiebt keine Tabs, zeigt den Zielzustand eindeutig und verschwindet nach erfolgreichem Drop, `Escape`, Pointer-Abbruch, Fensterwechsel und App-Neustart vollständig.
+- `RECOVERY-MAC-06`: die Chromium-Neuer-Tab-Seite zeigt auf einer echten Ahoi-Oberfläche weder den konkurrierenden Saved-Tab-Group-Streifen noch dessen Vier-Kästchen-Icon oder Separator. Ahois Gruppenmodell bleibt ausschließlich in der Sidebar; auf nicht von Ahoi gehosteten Chromium-Oberflächen bleibt die Standardfunktion unverändert. Resize, Hell/Dunkel und deutsche/englische Oberfläche bleiben korrekt.
+- `RECOVERY-MAC-07`: Arc-Import, AnyChat, 1Password und uBlock Origin Classic werden im installierten AhoiBrowser sichtbar geprüft. Der Arc-Import zeigt reale Erkennung, auswählbare Profile, redigierte Vorschau und transaktionale Bestätigung, bevor Quelldaten unverändert übernommen werden. AnyChat nutzt den normalen Web-Store-Pfad. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.
+- `RECOVERY-MAC-08`: die native Drag-Vorschau zeigt rechts vom Cursor eine sichtbare Favicon-/Titelkarte und bei Splits die tatsächliche Pane-Anordnung. Nach kurzem Hover auf jedem aktiven oder gespeicherten Sidebar-Tab erscheint dieselbe Vorschau rechts der Zeile in den WebContents hinein, ohne Fokus, Klicks oder Seitenlayout zu beeinflussen; Navigation, Scroll, Workspace-Wechsel, Dragstart und Hover-Ende schließen beziehungsweise aktualisieren sie deterministisch.
+- `RECOVERY-MAC-09`: die Sidebar übernimmt standardmäßig die kontrastgeprüfte Hauptfarbe des aktiven Tabs dezent aus `theme-color` beziehungsweise dem bereits lokal vorhandenen Favicon. Rot, Orange, Blau, Hell/Dunkel, transparente oder fehlende Farben, Tab-/Workspace-Wechsel, hoher Kontrast und der Theme-Fallback werden sichtbar geprüft; ein explizites Nutzer-Aus bleibt verbindlich.
+
+Für jeden dieser Fälle gilt ohne Ausnahme diese Reihenfolge:
+
+1. Den Fehler im aktuell installierten Kandidaten sichtbar reproduzieren und Evidenz sichern.
+2. Ursache diagnostizieren und beheben; dabei Nutzerarbeit, Profil und fremde Browser unverändert lassen.
+   Vor jedem Build folgt ein vollständiger Best-Practice-Codeaudit der betroffenen Integrationsfläche: Aufruf- und Objektlebenszyklus, zentrale Registrierung, Plattform- und Buildflag-Guards, `BUILD.gn`-/`DEPS`-Kanten, Ownership und `WeakPtr`-Sicherheit, Threading/Reentrancy, Event-Targeting, Accessibility, Lokalisierung, Persistenz/Migration, Fehler-/Abbruchpfade sowie Security- und Privacy-Grenzen. Ein lokaler Einzeiler oder ein nur am beobachteten Symptom funktionierender Sonderfall ist kein ausreichender Fix.
+3. Den exakten neuen SHA als signiertes Bundle bauen und atomar nach `/Applications/AhoiBrowser.app` installieren. Build-, Signatur- und Installationsprüfungen sind Voraussetzungen für den Nutzertest, aber kein Ersatz dafür.
+4. Zuerst den betroffenen Fall vollständig per Computer Use wie ein echter Nutzer bedienen. Zustandsabhängige Fälle umfassen Drop oder Bestätigung, Abbruch, Workspace-/Fensterwechsel und App-Neustart; bloßes Öffnen, AX-Auslesen oder ein einzelner Screenshot genügt nicht.
+5. Erst nach dem sichtbaren `CU_E2E_PASS` dieses Falls dürfen seine fokussierten Unit-, Browser-, Integrations- und Repository-Tests laufen. Breite Suites folgen erst, wenn alle kontrollierbaren Recovery-Fälle sichtbar bestanden sind.
+6. Meldet irgendein nachgelagerter programmatischer Test einen Defekt, wird korrigiert, neu gebaut und installiert und zuerst der betroffene sichtbare Computer-Use-Fall wiederholt. Erst danach wird der programmatische Test erneut ausgeführt.
+7. Jeder Lauf erhält SHA, Bundle-Hash, installiertes Bundle, Ausgangszustand, sichtbare Schritte, Ergebnis, Screenshots beziehungsweise zustandsbezogene Evidenz und gegebenenfalls exakt abgegrenzten externen Blocker. Quellcode, Buildgrün oder Prozentfortschritt zählen nicht als User-Pass.
+
+Der angehaltene parallele Ahoi-Agent darf erst wieder an derselben Produktlinie arbeiten, wenn alle kontrollierbaren Fälle dieser Recovery-Welle sichtbar bestanden, die nachgelagerten Tests grün, die Änderungen sauber in den kanonischen Hauptbranch integriert und zum Remote gepusht sind. Verbleibende Account-, Touch-ID-, Publisher-, Signierungs-, Notarisierungs- oder Vertragsgrenzen werden testfallgenau dokumentiert und blockieren keine davon unabhängige kontrollierbare Arbeit.
+
+### Nachgelagerter Produkt-Backlog nach der Recovery-Welle
+
+- `FUTURE-SIDEBAR-SEARCH-01`: eine direkt in die Sidebar integrierte Suche für sichtbare und gespeicherte Tabs, Gruppen und Workspaces konzipieren und umsetzen. Sie folgt erst nach vollständiger Behebung, sichtbarer Abnahme und Integration aller kontrollierbaren `RECOVERY-MAC-*`-Fälle und erweitert dann die bestehende Command-Service-Suche, statt eine zweite inkonsistente Suchlogik aufzubauen.
+- Dieser Backlogpunkt ist ausdrücklich keine Freigabe, die laufende Mac-Recovery-Welle zu unterbrechen oder deren Definition of Done zu verschieben.
 
 Wenn ein externer Blocker auftritt:
 

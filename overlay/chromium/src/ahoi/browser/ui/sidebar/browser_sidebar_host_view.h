@@ -28,6 +28,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_refresh_gate.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_tab_preview_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
 #include "ahoi/browser/ui/sidebar/workspace_transition_animator.h"
@@ -222,6 +223,7 @@ class BrowserSidebarHostView final : public views::View,
   // views::WidgetObserver:
   void OnWidgetDragDropWillStart(views::Widget* widget) override;
   void OnWidgetDragDropCompleted(views::Widget* widget) override;
+  void OnWidgetActivationChanged(views::Widget* widget, bool active) override;
 
   void OnSessionPresentationChanged();
 
@@ -274,6 +276,8 @@ class BrowserSidebarHostView final : public views::View,
 
   void RefreshThumbnailCache();
 
+  void OnTabThumbnailChanged(int runtime_tab_handle);
+
   void RefreshMediaTrackers();
 
   void RefreshMiniPlayerSources();
@@ -294,6 +298,23 @@ class BrowserSidebarHostView final : public views::View,
 
   std::vector<gfx::ImageSkia> GetCachedDragThumbnails(
       const std::vector<tabs::TabInterface*>& tabs) const;
+
+  std::vector<gfx::ImageSkia> GetRuntimeTabPreviewThumbnails(
+      base::WeakPtr<tabs::TabInterface> tab) const;
+
+  void OnRuntimeTabHoverChanged(base::WeakPtr<tabs::TabInterface> tab,
+                                views::View* anchor,
+                                bool hovered);
+
+  std::optional<SidebarTabPreviewData> ResolveTabPreviewData(
+      const SidebarTabPreviewTarget& target);
+
+  bool ValidateTabPreviewAnchor(const SidebarTabPreviewTarget& target,
+                                const views::View* anchor) const;
+
+  void StoreSavedTabThumbnailSnapshot(const base::Uuid& node_id,
+                                      const GURL& url,
+                                      const gfx::ImageSkia& image);
 
   void RefreshRuntimePresentation();
 
@@ -339,6 +360,10 @@ class BrowserSidebarHostView final : public views::View,
                             views::View* anchor,
                             bool hovered) override;
 
+  void OnSavedPageHoverChanged(const base::Uuid& node_id,
+                               views::View* anchor,
+                               bool hovered) override;
+
   void BeginGroupRecentQuery(const base::Uuid& folder_node_id);
 
   void OnGroupHistoryQueryCompleted(
@@ -379,6 +404,10 @@ class BrowserSidebarHostView final : public views::View,
 
   // SidebarTreeViewDelegate:
   void ActivateSavedPage(const tab_tree::TreeNode& node) override;
+
+  BrowserSidebarSplitDropSource MaterializeSavedPage(
+      const tab_tree::TreeNode& node,
+      bool require_local_model);
 
   bool CanSplitSavedPages(const base::Uuid& source_node_id,
                           const base::Uuid& target_node_id) const override;
@@ -614,6 +643,14 @@ class BrowserSidebarHostView final : public views::View,
   std::set<GURL> requested_favicon_urls_;
   base::CancelableTaskTracker favicon_task_tracker_;
   std::map<int, std::unique_ptr<CachedTabThumbnail>> tab_thumbnail_cache_;
+  struct SavedTabThumbnailSnapshot {
+    GURL url;
+    gfx::ImageSkia image;
+    uint64_t recency = 0;
+  };
+  std::map<base::Uuid, SavedTabThumbnailSnapshot> saved_thumbnail_snapshots_;
+  uint64_t saved_thumbnail_recency_ = 0;
+  std::unique_ptr<SidebarTabPreviewController> tab_preview_controller_;
   std::map<int, std::unique_ptr<AhoiMediaStateTracker>> media_trackers_;
   std::map<int, base::CallbackListSubscription> media_state_subscriptions_;
   std::unique_ptr<MediaMiniPlayerService> mini_player_service_;

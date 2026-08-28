@@ -4,6 +4,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -14,6 +15,9 @@
 #include "cc/paint/paint_flags.h"
 #include "skia/ext/image_operations.h"
 #include "third_party/skia/include/core/SkBitmap.h"
+#include "third_party/skia/include/core/SkCanvas.h"
+#include "third_party/skia/include/core/SkPaint.h"
+#include "third_party/skia/include/core/SkRect.h"
 #include "ui/color/color_id.h"
 #include "ui/color/color_provider.h"
 #include "ui/compositor/canvas_painter.h"
@@ -39,12 +43,13 @@ constexpr int kCursorCardGap = 12;
 // OSExchangeData's cursor offset. A transparent leading canvas keeps the
 // visible 224px card wholly to the right of the pointer without changing
 // Chromium's global drag behavior.
-constexpr int kPreviewCanvasWidth =
+constexpr int kNativeDragCanvasWidth =
     2 * (kVisiblePreviewWidth + kCursorCardGap);
-constexpr int kVisiblePreviewX = kPreviewCanvasWidth / 2 + kCursorCardGap;
+constexpr int kNativeDragVisiblePreviewX =
+    kNativeDragCanvasWidth / 2 + kCursorCardGap;
 #else
-constexpr int kPreviewCanvasWidth = kVisiblePreviewWidth;
-constexpr int kVisiblePreviewX = 0;
+constexpr int kNativeDragCanvasWidth = kVisiblePreviewWidth;
+constexpr int kNativeDragVisiblePreviewX = 0;
 #endif
 constexpr int kFallbackHeight = 54;
 constexpr int kThumbnailHeight = 168;
@@ -52,6 +57,32 @@ constexpr int kCardInset = 6;
 constexpr int kHeaderHeight = 38;
 constexpr int kFaviconSize = 16;
 constexpr int kThumbnailGap = 3;
+
+gfx::ImageSkia CreateNonEmptyFallbackPreviewImage(bool pad_for_native_drag) {
+  const int canvas_width =
+      pad_for_native_drag ? kNativeDragCanvasWidth : kVisiblePreviewWidth;
+  const int preview_x = pad_for_native_drag ? kNativeDragVisiblePreviewX : 0;
+  SkBitmap bitmap;
+  bitmap.allocN32Pixels(canvas_width, kFallbackHeight);
+  bitmap.eraseColor(SK_ColorTRANSPARENT);
+  SkCanvas canvas(bitmap);
+  SkPaint paint;
+  paint.setAntiAlias(true);
+  paint.setColor(SkColorSetARGB(245, 248, 249, 250));
+  canvas.drawRoundRect(SkRect::MakeXYWH(preview_x + kCardInset, kCardInset,
+                                        kVisiblePreviewWidth - 2 * kCardInset,
+                                        kFallbackHeight - 2 * kCardInset),
+                       9.0f, 9.0f, paint);
+  paint.setStyle(SkPaint::kStroke_Style);
+  paint.setStrokeWidth(1.0f);
+  paint.setColor(SkColorSetARGB(56, 60, 64, 67));
+  canvas.drawRoundRect(
+      SkRect::MakeXYWH(preview_x + kCardInset + 0.5f, kCardInset + 0.5f,
+                       kVisiblePreviewWidth - 2 * kCardInset - 1.0f,
+                       kFallbackHeight - 2 * kCardInset - 1.0f),
+      8.5f, 8.5f, paint);
+  return gfx::ImageSkia::CreateFrom1xBitmap(bitmap);
+}
 
 gfx::ImageSkia PrepareThumbnail(const gfx::ImageSkia& source,
                                 const gfx::Size& target_size) {
@@ -86,24 +117,39 @@ class SidebarDragPreviewView final : public views::View {
   SidebarDragPreviewView(const ui::ColorProvider* colors,
                          gfx::ImageSkia favicon,
                          std::u16string title,
-                         std::vector<gfx::ImageSkia> thumbnails)
-      : card_color_(colors->GetColor(visual_style::kRaisedSurface)),
-        text_color_(colors->GetColor(visual_style::kText)),
-        muted_color_(colors->GetColor(visual_style::kMutedText)),
-        divider_color_(colors->GetColor(visual_style::kDivider)),
+                         std::vector<gfx::ImageSkia> thumbnails,
+                         bool pad_for_native_drag,
+                         bool force_thumbnail_area)
+      : card_color_(colors ? colors->GetColor(visual_style::kRaisedSurface)
+                           : SkColorSetRGB(248, 248, 248)),
+        text_color_(colors ? colors->GetColor(visual_style::kText)
+                           : SkColorSetRGB(32, 33, 36)),
+        muted_color_(colors ? colors->GetColor(visual_style::kMutedText)
+                            : SkColorSetRGB(95, 99, 104)),
+        divider_color_(colors ? colors->GetColor(visual_style::kDivider)
+                              : SkColorSetARGB(48, 60, 64, 67)),
         favicon_(std::move(favicon)),
         title_(std::move(title)),
         thumbnails_(std::move(thumbnails)),
-        represented_tab_count_(std::max<size_t>(1u, thumbnails_.size())) {
-    std::erase_if(thumbnails_,
-                  [](const gfx::ImageSkia& image) { return image.isNull(); });
-    SetBounds(0, 0, kPreviewCanvasWidth,
-              thumbnails_.empty() ? kFallbackHeight : kThumbnailHeight);
+        represented_tab_count_(std::max<size_t>(1u, thumbnails_.size())),
+        show_thumbnail_area_(
+            force_thumbnail_area || thumbnails_.size() > 1u ||
+            std::ranges::any_of(thumbnails_,
+                                [](const gfx::ImageSkia& image) {
+                                  return !image.isNull() &&
+                                         !image.size().IsEmpty();
+                                })),
+        canvas_width_(pad_for_native_drag ? kNativeDragCanvasWidth
+                                          : kVisiblePreviewWidth),
+        visible_preview_x_(pad_for_native_drag ? kNativeDragVisiblePreviewX
+                                               : 0) {
+    SetBounds(0, 0, canvas_width_,
+              show_thumbnail_area_ ? kThumbnailHeight : kFallbackHeight);
   }
 
   void OnPaint(gfx::Canvas* canvas) override {
     views::View::OnPaint(canvas);
-    gfx::RectF card(kVisiblePreviewX, 0, kVisiblePreviewWidth, height());
+    gfx::RectF card(visible_preview_x_, 0, kVisiblePreviewWidth, height());
     card.Inset(gfx::InsetsF(kCardInset));
 
     // A small layered shadow remains visible in the bitmap itself. Native drag
@@ -130,7 +176,7 @@ class SidebarDragPreviewView final : public views::View {
     canvas->DrawRoundRect(border_bounds, 8.5f, border);
 
     PaintHeader(canvas, card);
-    if (!thumbnails_.empty()) {
+    if (show_thumbnail_area_) {
       PaintThumbnails(canvas, card);
     }
   }
@@ -182,7 +228,7 @@ class SidebarDragPreviewView final : public views::View {
     if (thumbnails_.size() == 1u) {
       const gfx::ImageSkia thumbnail =
           PrepareThumbnail(thumbnails_.front(), content.size());
-      canvas->DrawImageInt(thumbnail, content.x(), content.y());
+      PaintThumbnailTile(canvas, thumbnail, content);
       return;
     }
 
@@ -211,8 +257,8 @@ class SidebarDragPreviewView final : public views::View {
                            static_cast<int>(row) * kThumbnailGap;
         const gfx::Rect tile(x, y, std::max(0, right - x),
                              std::max(0, bottom - y));
-        canvas->DrawImageInt(PrepareThumbnail(thumbnails_[index], tile.size()),
-                             tile.x(), tile.y());
+        PaintThumbnailTile(
+            canvas, PrepareThumbnail(thumbnails_[index], tile.size()), tile);
       }
       return;
     }
@@ -222,7 +268,7 @@ class SidebarDragPreviewView final : public views::View {
                           content.height());
     const gfx::ImageSkia first_image =
         PrepareThumbnail(thumbnails_[0], first.size());
-    canvas->DrawImageInt(first_image, first.x(), first.y());
+    PaintThumbnailTile(canvas, first_image, first);
 
     const gfx::Rect remainder(first.right() + kThumbnailGap, content.y(),
                               content.right() - first.right() - kThumbnailGap,
@@ -230,7 +276,7 @@ class SidebarDragPreviewView final : public views::View {
     if (thumbnails_.size() == 2u) {
       const gfx::ImageSkia second =
           PrepareThumbnail(thumbnails_[1], remainder.size());
-      canvas->DrawImageInt(second, remainder.x(), remainder.y());
+      PaintThumbnailTile(canvas, second, remainder);
       return;
     }
 
@@ -243,8 +289,28 @@ class SidebarDragPreviewView final : public views::View {
     const gfx::ImageSkia second = PrepareThumbnail(thumbnails_[1], top.size());
     const gfx::ImageSkia third =
         PrepareThumbnail(thumbnails_[2], bottom.size());
-    canvas->DrawImageInt(second, top.x(), top.y());
-    canvas->DrawImageInt(third, bottom.x(), bottom.y());
+    PaintThumbnailTile(canvas, second, top);
+    PaintThumbnailTile(canvas, third, bottom);
+  }
+
+  void PaintThumbnailTile(gfx::Canvas* canvas,
+                          const gfx::ImageSkia& image,
+                          const gfx::Rect& bounds) {
+    if (!image.isNull() && !image.size().IsEmpty()) {
+      canvas->DrawImageInt(image, bounds.x(), bounds.y());
+      return;
+    }
+    cc::PaintFlags placeholder;
+    placeholder.setAntiAlias(true);
+    placeholder.setStyle(cc::PaintFlags::kFill_Style);
+    placeholder.setColor(SkColorSetA(muted_color_, 20));
+    canvas->DrawRoundRect(gfx::RectF(bounds), 5.0f, placeholder);
+    placeholder.setStyle(cc::PaintFlags::kStroke_Style);
+    placeholder.setStrokeWidth(1.0f);
+    placeholder.setColor(SkColorSetA(muted_color_, 72));
+    gfx::RectF border(bounds);
+    border.Inset(0.5f);
+    canvas->DrawRoundRect(border, 4.5f, placeholder);
   }
 
   const SkColor card_color_;
@@ -255,9 +321,55 @@ class SidebarDragPreviewView final : public views::View {
   const std::u16string title_;
   std::vector<gfx::ImageSkia> thumbnails_;
   const size_t represented_tab_count_;
+  const bool show_thumbnail_area_;
+  const int canvas_width_;
+  const int visible_preview_x_;
 };
 
+gfx::ImageSkia BuildSidebarPreviewImage(
+    views::Widget* source_widget,
+    const ui::ColorProvider* color_provider,
+    const gfx::ImageSkia& favicon,
+    const std::u16string& title,
+    const std::vector<gfx::ImageSkia>& cached_thumbnails,
+    bool pad_for_native_drag,
+    bool force_thumbnail_area) {
+  SidebarDragPreviewView preview(color_provider, favicon, title,
+                                 cached_thumbnails, pad_for_native_drag,
+                                 force_thumbnail_area);
+  SkBitmap bitmap;
+  float raster_scale =
+      source_widget ? views::ScaleFactorForDragFromWidget(source_widget) : 1.0f;
+  if (!std::isfinite(raster_scale) || raster_scale <= 0.0f) {
+    raster_scale = 1.0f;
+  }
+  preview.Paint(views::PaintInfo::CreateRootPaintInfo(
+      ui::CanvasPainter(&bitmap, preview.size(), raster_scale,
+                        SK_ColorTRANSPARENT, /*is_pixel_canvas=*/true)
+          .context(),
+      preview.size()));
+  if (bitmap.empty()) {
+    return CreateNonEmptyFallbackPreviewImage(pad_for_native_drag);
+  }
+  gfx::ImageSkia image = gfx::ImageSkia::CreateFromBitmap(bitmap, raster_scale);
+  return image.isNull() || image.size().IsEmpty()
+             ? CreateNonEmptyFallbackPreviewImage(pad_for_native_drag)
+             : image;
+}
+
 }  // namespace
+
+gfx::ImageSkia CreateSidebarPreviewImage(
+    views::Widget* source_widget,
+    const ui::ColorProvider* color_provider,
+    const gfx::ImageSkia& favicon,
+    const std::u16string& title,
+    const std::vector<gfx::ImageSkia>& cached_thumbnails) {
+  return BuildSidebarPreviewImage(source_widget, color_provider, favicon, title,
+                                  cached_thumbnails,
+                                  /*pad_for_native_drag=*/false,
+                                  /*force_thumbnail_area=*/true);
+}
 
 gfx::ImageSkia CreateSidebarDragImage(
     views::Widget* source_widget,
@@ -265,24 +377,14 @@ gfx::ImageSkia CreateSidebarDragImage(
     const gfx::ImageSkia& favicon,
     const std::u16string& title,
     const std::vector<gfx::ImageSkia>& cached_thumbnails) {
-  if (!source_widget || !color_provider) {
-    return gfx::ImageSkia();
-  }
-  SidebarDragPreviewView preview(color_provider, favicon, title,
-                                 cached_thumbnails);
-  SkBitmap bitmap;
-  const float raster_scale = views::ScaleFactorForDragFromWidget(source_widget);
-  preview.Paint(views::PaintInfo::CreateRootPaintInfo(
-      ui::CanvasPainter(&bitmap, preview.size(), raster_scale,
-                        SK_ColorTRANSPARENT, /*is_pixel_canvas=*/true)
-          .context(),
-      preview.size()));
-  return gfx::ImageSkia::CreateFromBitmap(bitmap, raster_scale);
+  return BuildSidebarPreviewImage(source_widget, color_provider, favicon, title,
+                                  cached_thumbnails,
+                                  /*pad_for_native_drag=*/true,
+                                  /*force_thumbnail_area=*/false);
 }
 
-gfx::Vector2d GetSidebarDragImageCursorOffset(
-    const gfx::ImageSkia& image,
-    const gfx::Point& press_point) {
+gfx::Vector2d GetSidebarDragImageCursorOffset(const gfx::ImageSkia& image,
+                                              const gfx::Point& press_point) {
   if (image.isNull() || image.size().IsEmpty()) {
     return gfx::Vector2d();
   }

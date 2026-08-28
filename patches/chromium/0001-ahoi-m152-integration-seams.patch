@@ -2987,7 +2987,7 @@ index dd0bf0c49dd18dfd2f5088d33b66269e28633e74..39593853cf4f2b9d2a29cda6ef30e1e1
        CookieSettingsFactory::GetForProfile(profile), profile->GetPrefs());
  }
 diff --git a/chrome/browser/profiles/BUILD.gn b/chrome/browser/profiles/BUILD.gn
-index 7261b2cc26b5f913deda86a9392462d068d39fb2..d6111bf37db9c2bc250a5274ce3f73cd8f6848d6 100644
+index 7261b2cc26b5f913deda86a9392462d068d39fb2..02b29d7f11db98278259c9bc9776016bcd71acf0 100644
 --- a/chrome/browser/profiles/BUILD.gn
 +++ b/chrome/browser/profiles/BUILD.gn
 @@ -378,6 +378,7 @@ source_set("profile_manager_impl") {
@@ -3018,7 +3018,7 @@ index 7261b2cc26b5f913deda86a9392462d068d39fb2..d6111bf37db9c2bc250a5274ce3f73cd
      "//base",
      "//chrome/browser:browser_process",
      "//chrome/browser:chrome_browser_main",
-@@ -784,6 +789,16 @@ source_set("profiles_extra_parts_impl") {
+@@ -784,6 +789,20 @@ source_set("profiles_extra_parts_impl") {
      "//ui/webui:buildflags",
    ]
  
@@ -3032,29 +3032,36 @@ index 7261b2cc26b5f913deda86a9392462d068d39fb2..d6111bf37db9c2bc250a5274ce3f73cd
 +    ]
 +  }
 +
++  if (is_mac) {
++    deps += [ "//ahoi/browser/importer/arc:service" ]
++  }
++
    public_deps = [
      "//chrome/browser:browser_public_dependencies",
      "//chrome/browser/search/background",
 diff --git a/chrome/browser/profiles/DEPS b/chrome/browser/profiles/DEPS
-index 93832e7e0f6cd129e7bf35ebc90b86a39c536301..20faccad2d9d3427da0835529fd34e4828142b2a 100644
+index 93832e7e0f6cd129e7bf35ebc90b86a39c536301..caf7dfc34ca0ccd3c0437e7c42ae46cbb96a93a7 100644
 --- a/chrome/browser/profiles/DEPS
 +++ b/chrome/browser/profiles/DEPS
-@@ -7,6 +7,10 @@ include_rules = [
+@@ -7,6 +7,13 @@ include_rules = [
  
  specific_include_rules = {
    "chrome_browser_main_extra_parts_profiles.cc": [
 +    "+ahoi/browser/extensions",
 +    "+ahoi/browser/http_auth",
++    "+ahoi/browser/importer/arc",
++    "+ahoi/browser/privacy",
++    "+ahoi/browser/resource_policy",
 +    "+ahoi/browser/session",
 +    "+ahoi/browser/sync",
      # This is required to create the SiteDataCacheFacadeFactory when a profile
      # is created. This file isn't part of the PerformanceManager public API and
      # its include should be explicitly allowed.
 diff --git a/chrome/browser/profiles/chrome_browser_main_extra_parts_profiles.cc b/chrome/browser/profiles/chrome_browser_main_extra_parts_profiles.cc
-index 71127aff75a3446195b930390428bf1baf22eec6..be61d2f208795dd30f2a8732226aceb4a655cd38 100644
+index 71127aff75a3446195b930390428bf1baf22eec6..68aa0ec1a4e4673b62796eda2208c2837a17499a 100644
 --- a/chrome/browser/profiles/chrome_browser_main_extra_parts_profiles.cc
 +++ b/chrome/browser/profiles/chrome_browser_main_extra_parts_profiles.cc
-@@ -7,10 +7,21 @@
+@@ -7,10 +7,24 @@
  #include <memory>
  #include <utility>
  
@@ -3063,6 +3070,9 @@ index 71127aff75a3446195b930390428bf1baf22eec6..be61d2f208795dd30f2a8732226aceb4
  #include "base/no_destructor.h"
  #include "build/build_config.h"
  #include "build/chromeos_buildflags.h"
++#if BUILDFLAG(IS_MAC)
++#include "ahoi/browser/importer/arc/arc_import_service_factory.h"
++#endif
 +#if !BUILDFLAG(IS_ANDROID)
 +#include "ahoi/browser/extensions/ubo_service_factory.h"
 +#include "ahoi/browser/http_auth/http_auth_credential_service_factory.h"
@@ -3076,7 +3086,7 @@ index 71127aff75a3446195b930390428bf1baf22eec6..be61d2f208795dd30f2a8732226aceb4
  #include "chrome/browser/accessibility/accessibility_labels_service_factory.h"
  #include "chrome/browser/accessibility/page_colors_controller_factory.h"
  #include "chrome/browser/accessibility_annotator/accessibility_annotator_backend_factory.h"
-@@ -857,6 +868,13 @@ void ChromeBrowserMainExtraPartsProfiles::
+@@ -857,6 +871,16 @@ void ChromeBrowserMainExtraPartsProfiles::
    browser_sync::UserEventServiceFactory::GetInstance();
  #if !BUILDFLAG(IS_ANDROID)
    BrowserManagerServiceFactory::GetInstance();
@@ -3088,9 +3098,12 @@ index 71127aff75a3446195b930390428bf1baf22eec6..be61d2f208795dd30f2a8732226aceb4
 +  ahoi::WorkspaceServiceFactory::GetInstance();
 +  ahoi::sync::ProfileSyncServiceFactory::GetInstance();
  #endif
++#if BUILDFLAG(IS_MAC)
++  ahoi::importer::arc::ArcImportServiceFactory::GetInstance();
++#endif
    BrowsingDataHistoryObserverService::Factory::GetInstance();
  #if !BUILDFLAG(IS_ANDROID)
-@@ -1620,5 +1638,9 @@ void ChromeBrowserMainExtraPartsProfiles::
+@@ -1620,5 +1644,9 @@ void ChromeBrowserMainExtraPartsProfiles::
  }
  
  void ChromeBrowserMainExtraPartsProfiles::PreProfileInit() {
@@ -8307,6 +8320,43 @@ index 80565d4e20f1a538319c87828b363cdcbc7f184a..54cfc74e2fbd522b2007c25dd6179e60
    void DidFinishNavigation(
        content::NavigationHandle* navigation_handle) override;
    void PrimaryMainFrameRenderProcessGone(
+diff --git a/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc b/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
+index 79828c5ddfda761af2eb1b69b4f3d75c0d57e91d..5fc3df77a2d4298b00c03fb23a9a7af2e97271c9 100644
+--- a/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
++++ b/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
+@@ -1639,11 +1639,15 @@ void BookmarkBarView::Init() {
+     saved_tab_group_bar_ =
+         AddChildView(std::make_unique<tab_groups::SavedTabGroupBar>(
+             browser_, animations_enabled));
+-    saved_tab_group_bar_->SetVisible(
+-        chrome::ShouldShowTabGroupsInBookmarkBar(browser_->GetProfile()));
++    const bool show_saved_tab_group_bar =
++        (!browser_view_ || !browser_view_->IsAhoiBrowserSurface()) &&
++        chrome::ShouldShowTabGroupsInBookmarkBar(browser_->GetProfile());
++    saved_tab_group_bar_->SetVisible(show_saved_tab_group_bar);
+     saved_tab_groups_separator_view_ =
+         AddChildView(std::make_unique<ButtonSeparatorView>());
+-    saved_tab_groups_separator_view_->SetVisible(true);
++    // Keep the initial frame atomic: an Ahoi surface must not flash the
++    // upstream separator while its duplicate saved-tab-group bar is hidden.
++    saved_tab_groups_separator_view_->SetVisible(show_saved_tab_group_bar);
+   }
+ 
+   overflow_button_ = AddChildView(CreateOverflowButton());
+@@ -2288,7 +2292,12 @@ void BookmarkBarView::OnTabGroupsVisibilityPrefChanged() {
+ 
+   DCHECK(saved_tab_group_bar_);
+   // Only perform layout if required.
+-  bool visible =
++  // Ahoi owns saved-tab-group discovery and organization in its persistent
++  // sidebar. Keep Chromium's model and service alive for compatibility and
++  // sync, but never expose the duplicate bookmark-bar launcher in an Ahoi
++  // surface. Tests and non-Ahoi surfaces retain upstream preference behavior.
++  const bool visible =
++      (!browser_view_ || !browser_view_->IsAhoiBrowserSurface()) &&
+       chrome::ShouldShowTabGroupsInBookmarkBar(browser_->GetProfile());
+   if (saved_tab_group_bar_->GetVisible() == visible) {
+     return;
 diff --git a/chrome/browser/ui/views/device_chooser_browsertest.cc b/chrome/browser/ui/views/device_chooser_browsertest.cc
 index 2633c402ad09525623b0103618ab61fe1ab2c228..50290785637461321f5d43a5d87f92aa22fb1e13 100644
 --- a/chrome/browser/ui/views/device_chooser_browsertest.cc
@@ -20138,3 +20188,48 @@ index cd2df191413e185f4f168f35b1d63887f4216b04..32bf3b17318d9e05e32874bbefd09172
   protected:
    virtual ~DragController() = default;
  };
+diff --git a/chrome/browser/metrics/chrome_feature_list_creator.cc b/chrome/browser/metrics/chrome_feature_list_creator.cc
+index 90e572fe4efe1baa00ca8218dbcb3a5d0ad36ddb..30a6dfef1c83a87182b3e219a2cd0b7ebd413432 100644
+--- a/chrome/browser/metrics/chrome_feature_list_creator.cc
++++ b/chrome/browser/metrics/chrome_feature_list_creator.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/browser/metrics/chrome_feature_list_creator.h"
+ 
++#include <functional>
+ #include <vector>
+ 
+ #include "base/command_line.h"
+@@ -22,6 +23,7 @@
+ #include "chrome/browser/metrics/chrome_metrics_services_manager_client.h"
+ #include "chrome/browser/prefs/browser_prefs.h"
+ #include "chrome/browser/prefs/chrome_pref_service_factory.h"
++#include "chrome/browser/ui/ui_features.h"
+ #include "chrome/common/chrome_paths.h"
+ #include "chrome/common/chrome_switches.h"
+ #include "chrome/installer/util/initial_preferences.h"
+@@ -238,11 +240,19 @@ void ChromeFeatureListCreator::SetUpFieldTrials() {
+ 
+   variations::VariationsService* variations_service =
+       metrics_services_manager_->GetVariationsService();
++  auto feature_overrides = content::GetSwitchDependentFeatureOverrides(
++      *base::CommandLine::ForCurrentProcess());
++#if BUILDFLAG(IS_MAC)
++  // Ahoi's saved/runtime sidebar previews use Chromium's existing thumbnail
++  // pipeline. Register the typed product override before FeatureList
++  // finalization so every subsequently created tab receives its
++  // ThumbnailTabHelper. Explicit command-line/flags choices remain stronger.
++  feature_overrides.emplace_back(std::cref(features::kTabHoverCardImages),
++                                 base::FeatureList::OVERRIDE_ENABLE_FEATURE);
++#endif
+-  variations_service->SetUpFieldTrials(
+-      variation_ids,
+-      content::GetSwitchDependentFeatureOverrides(
+-          *base::CommandLine::ForCurrentProcess()),
+-      std::move(feature_list), browser_field_trials_.get());
++  variations_service->SetUpFieldTrials(variation_ids, feature_overrides,
++                                       std::move(feature_list),
++                                       browser_field_trials_.get());
+   variations::InitCrashKeys();
+ }
+ 

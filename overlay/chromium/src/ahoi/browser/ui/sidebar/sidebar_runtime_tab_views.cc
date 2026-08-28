@@ -117,13 +117,14 @@ class OpenTabRowView final : public views::View, public views::DragController {
   OpenTabRowView(tabs::TabInterface* tab,
                  std::optional<base::Uuid> saved_node_id,
                  ui::ImageModel favicon,
-                 std::vector<gfx::ImageSkia> drag_thumbnails,
                  std::optional<tabs::TabAlert> media_alert,
                  std::u16string status_text,
                  bool active,
                  bool sleeping,
                  TabCallback activate_callback,
                  TabCallback close_callback,
+                 RuntimeTabThumbnailsCallback thumbnails_callback,
+                 RuntimeTabHoverCallback hover_callback,
                  SavedTabDragStateCallback saved_drag_state_callback,
                  DragStateCallback drag_state_callback,
                  CanDropCallback can_drop_callback,
@@ -133,11 +134,12 @@ class OpenTabRowView final : public views::View, public views::DragController {
         saved_node_id_(std::move(saved_node_id)),
         activate_callback_(std::move(activate_callback)),
         close_callback_(std::move(close_callback)),
+        thumbnails_callback_(std::move(thumbnails_callback)),
+        hover_callback_(std::move(hover_callback)),
         saved_drag_state_callback_(std::move(saved_drag_state_callback)),
         drag_state_callback_(std::move(drag_state_callback)),
         can_drop_callback_(std::move(can_drop_callback)),
         drop_callback_(std::move(drop_callback)),
-        drag_thumbnails_(std::move(drag_thumbnails)),
         active_(active),
         sleeping_(sleeping) {
     CHECK(tab);
@@ -209,6 +211,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
   OpenTabRowView(const OpenTabRowView&) = delete;
   OpenTabRowView& operator=(const OpenTabRowView&) = delete;
   ~OpenTabRowView() override {
+    if (hovered_) {
+      hover_callback_.Run(tab_, this, false);
+    }
     set_drag_controller(nullptr);
     set_context_menu_controller(nullptr);
   }
@@ -257,6 +262,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
     hovered_ = true;
     close_->SetVisible(true);
     UpdateBackground();
+    hover_callback_.Run(tab_, this, true);
   }
 
   void OnMouseExited(const ui::MouseEvent&) override {
@@ -264,6 +270,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
     close_pressed_ = false;
     close_->SetVisible(false);
     UpdateBackground();
+    hover_callback_.Run(tab_, this, false);
   }
 
   bool OnKeyPressed(const ui::KeyEvent& event) override {
@@ -296,10 +303,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
       return;
     }
     const gfx::ImageSkia image = GetDragImage();
-    if (!image.isNull() && !image.size().IsEmpty()) {
-      data->provider().SetDragImage(
-          image, GetSidebarDragImageCursorOffset(image, press_pt));
-    }
+    CHECK(!image.isNull());
+    CHECK(!image.size().IsEmpty());
+    data->provider().SetDragImage(
+        image, GetSidebarDragImageCursorOffset(image, press_pt));
     // Give AppKit a concrete pasteboard item in addition to Ahoi's private
     // runtime-tab handle. Custom-only payloads can otherwise fail before the
     // native dragging session (and therefore before any preview) begins.
@@ -375,16 +382,16 @@ class OpenTabRowView final : public views::View, public views::DragController {
     if (!payload.has_value()) {
       return {};
     }
-    const OpenTabDropPosition position = PositionForPoint(event.location());
-    if (!can_drop_callback_.Run(payload->saved_node_id,
-                                payload->runtime_tab_handle, tab_, position)) {
+    const std::optional<OpenTabDropPosition> position =
+        AllowedPosition(*payload, event.location());
+    if (!position.has_value()) {
       drop_position_.reset();
       SchedulePaint();
       return {};
     }
     return base::BindOnce(
         &OpenTabRowView::PerformDrop, weak_ptr_factory_.GetWeakPtr(),
-        payload->saved_node_id, payload->runtime_tab_handle, position);
+        payload->saved_node_id, payload->runtime_tab_handle, *position);
   }
 
   void OnPaint(gfx::Canvas* canvas) override {
@@ -432,12 +439,30 @@ class OpenTabRowView final : public views::View, public views::DragController {
                        indicator);
       return;
     }
+    const float zone_height = static_cast<float>(
+        std::clamp(height() * 3 / 10, 1, std::max(1, (height() - 1) / 2)));
+    gfx::RectF zone(
+        visual_style::kSidebarTabRowHorizontalInset, 0.0f,
+        std::max(0, width() - 2 * visual_style::kSidebarTabRowHorizontalInset),
+        zone_height);
+    if (*drop_position_ == OpenTabDropPosition::kAfter) {
+      zone.set_y(std::max(0.0f, static_cast<float>(height()) - zone_height));
+    }
+    cc::PaintFlags zone_fill = indicator;
+    zone_fill.setStyle(cc::PaintFlags::kFill_Style);
+    zone_fill.setColor(
+        GetColorProvider()->GetColor(visual_style::kDropTargetSurface));
+    canvas->DrawRoundRect(zone, visual_style::kRowCornerRadius, zone_fill);
+
     indicator.setStyle(cc::PaintFlags::kFill_Style);
+    constexpr float kInsertionIndicatorHeight = 3.0f;
     const float y = *drop_position_ == OpenTabDropPosition::kBefore
-                        ? 1.0f
-                        : height() - 2.0f;
-    canvas->DrawRoundRect(gfx::RectF(4.0f, y, std::max(0, width() - 8), 2.0f),
-                          1.0f, indicator);
+                        ? 0.0f
+                        : std::max(0.0f, static_cast<float>(height()) -
+                                             kInsertionIndicatorHeight);
+    canvas->DrawRoundRect(gfx::RectF(6.0f, y, std::max(0, width() - 12),
+                                     kInsertionIndicatorHeight),
+                          kInsertionIndicatorHeight / 2.0f, indicator);
   }
 
  private:
@@ -446,6 +471,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
       return;
     }
     drag_state_published_ = true;
+    hover_callback_.Run(tab_, this, false);
     if (saved_node_id_.has_value()) {
       saved_drag_state_callback_.Run(saved_node_id_);
     } else {
@@ -462,7 +488,11 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   OpenTabDropPosition PositionForPoint(const gfx::Point& point) const {
-    const int edge_zone = std::max(6, height() / 4);
+    // Keep native hit testing identical to the painted 30/40/30 zones. A
+    // highlighted region must never promise a drop that the pointer cannot
+    // actually commit.
+    const int edge_zone =
+        std::clamp(height() * 3 / 10, 1, std::max(1, (height() - 1) / 2));
     if (point.y() < edge_zone) {
       return OpenTabDropPosition::kBefore;
     }
@@ -475,18 +505,38 @@ class OpenTabRowView final : public views::View, public views::DragController {
   bool UpdateDropPosition(const ui::DropTargetEvent& event) {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(event.data());
-    const OpenTabDropPosition position = PositionForPoint(event.location());
-    const bool allowed =
-        payload.has_value() &&
-        can_drop_callback_.Run(payload->saved_node_id,
-                               payload->runtime_tab_handle, tab_, position);
     const std::optional<OpenTabDropPosition> next =
-        allowed ? std::optional(position) : std::nullopt;
+        payload.has_value() ? AllowedPosition(*payload, event.location())
+                            : std::nullopt;
     if (drop_position_ != next) {
       drop_position_ = next;
       SchedulePaint();
     }
-    return allowed;
+    return next.has_value();
+  }
+
+  std::optional<OpenTabDropPosition> AllowedPosition(
+      const drag::SidebarTabDragPayload& payload,
+      const gfx::Point& point) const {
+    const OpenTabDropPosition preferred = PositionForPoint(point);
+    if (can_drop_callback_.Run(payload.saved_node_id,
+                               payload.runtime_tab_handle, tab_, preferred)) {
+      return preferred;
+    }
+    if (preferred != OpenTabDropPosition::kSplit) {
+      return std::nullopt;
+    }
+
+    // A rejected split is still a useful reorder gesture. Resolve the central
+    // pointer to its nearest valid edge so the visible tab row has no dead
+    // middle region.
+    const OpenTabDropPosition nearest = point.y() < height() / 2
+                                            ? OpenTabDropPosition::kBefore
+                                            : OpenTabDropPosition::kAfter;
+    return can_drop_callback_.Run(payload.saved_node_id,
+                                  payload.runtime_tab_handle, tab_, nearest)
+               ? std::optional(nearest)
+               : std::nullopt;
   }
 
   void PerformDrop(std::optional<base::Uuid> source_node,
@@ -503,11 +553,15 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   gfx::ImageSkia GetDragImage() {
-    const gfx::ImageSkia favicon =
-        favicon_view_->GetImageModel().Rasterize(GetColorProvider());
-    return CreateSidebarDragImage(GetWidget(), GetColorProvider(), favicon,
+    const ui::ColorProvider* const colors = GetColorProvider();
+    const ui::ImageModel& favicon_model = favicon_view_->GetImageModel();
+    gfx::ImageSkia favicon;
+    if (!favicon_model.IsEmpty() && (colors || favicon_model.IsImage())) {
+      favicon = favicon_model.Rasterize(colors);
+    }
+    return CreateSidebarDragImage(GetWidget(), colors, favicon,
                                   std::u16string(title_->GetText()),
-                                  drag_thumbnails_);
+                                  thumbnails_callback_.Run(tab_));
   }
 
   gfx::Rect CloseBounds() const {
@@ -540,6 +594,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
   const std::optional<base::Uuid> saved_node_id_;
   const TabCallback activate_callback_;
   const TabCallback close_callback_;
+  const RuntimeTabThumbnailsCallback thumbnails_callback_;
+  const RuntimeTabHoverCallback hover_callback_;
   const SavedTabDragStateCallback saved_drag_state_callback_;
   const DragStateCallback drag_state_callback_;
   const CanDropCallback can_drop_callback_;
@@ -549,7 +605,6 @@ class OpenTabRowView final : public views::View, public views::DragController {
   raw_ptr<views::Label> title_ = nullptr;
   raw_ptr<views::ImageView> media_indicator_ = nullptr;
   raw_ptr<views::View> close_ = nullptr;
-  const std::vector<gfx::ImageSkia> drag_thumbnails_;
   const bool active_;
   const bool sleeping_;
   bool has_media_indicator_ = false;
@@ -615,25 +670,26 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     tabs::TabInterface* tab,
     std::optional<base::Uuid> saved_node_id,
     ui::ImageModel favicon,
-    std::vector<gfx::ImageSkia> drag_thumbnails,
     std::optional<tabs::TabAlert> media_alert,
     std::u16string status_text,
     bool active,
     bool sleeping,
     RuntimeTabCallback activate_callback,
     RuntimeTabCallback close_callback,
+    RuntimeTabThumbnailsCallback thumbnails_callback,
+    RuntimeTabHoverCallback hover_callback,
     SavedTabDragStateCallback saved_drag_state_callback,
     RuntimeTabDragStateCallback drag_state_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller) {
   return std::make_unique<OpenTabRowView>(
-      tab, std::move(saved_node_id), std::move(favicon),
-      std::move(drag_thumbnails), media_alert, std::move(status_text), active,
-      sleeping, std::move(activate_callback), std::move(close_callback),
-      std::move(saved_drag_state_callback), std::move(drag_state_callback),
-      std::move(can_drop_callback), std::move(drop_callback),
-      context_menu_controller);
+      tab, std::move(saved_node_id), std::move(favicon), media_alert,
+      std::move(status_text), active, sleeping, std::move(activate_callback),
+      std::move(close_callback), std::move(thumbnails_callback),
+      std::move(hover_callback), std::move(saved_drag_state_callback),
+      std::move(drag_state_callback), std::move(can_drop_callback),
+      std::move(drop_callback), context_menu_controller);
 }
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {

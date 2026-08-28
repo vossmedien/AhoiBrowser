@@ -65,6 +65,119 @@ std::vector<int> SplitHandles(const split_tabs::SplitTabData& split_data) {
   return handles;
 }
 
+tabs::TabInterface* FindTabByHandleInModel(TabStripModel* tab_strip_model,
+                                           int handle) {
+  if (!tab_strip_model || handle < 0) {
+    return nullptr;
+  }
+  for (tabs::TabInterface* tab : *tab_strip_model) {
+    if (tab && tab->GetHandle().raw_value() == handle) {
+      return tab;
+    }
+  }
+  return nullptr;
+}
+
+bool RestoreDropModelSnapshot(TabStripModel* tab_strip_model,
+                              const DropModelSnapshot& snapshot) {
+  if (!tab_strip_model || snapshot.tab_order.empty()) {
+    return false;
+  }
+  std::vector<int> current_handles = TabHandles(tab_strip_model);
+  std::vector<int> expected_handles = snapshot.tab_order;
+  std::ranges::sort(current_handles);
+  std::ranges::sort(expected_handles);
+  if (current_handles != expected_handles) {
+    return false;
+  }
+
+  // Remove only the split created/expanded by this transaction. Existing
+  // unrelated splits remain untouched. An existing target split is rebuilt
+  // from its complete snapshot so an added source pane cannot leak through.
+  for (split_tabs::SplitTabId split_id : tab_strip_model->ListSplits()) {
+    const bool is_transaction_split =
+        !snapshot.split_ids.contains(split_id) ||
+        (snapshot.target_split.has_value() &&
+         snapshot.target_split->split_id == split_id);
+    if (is_transaction_split && tab_strip_model->ContainsSplit(split_id)) {
+      tab_strip_model->RemoveSplit(split_id);
+    }
+  }
+
+  for (size_t desired_index = 0; desired_index < snapshot.tab_order.size();
+       ++desired_index) {
+    tabs::TabInterface* const tab = FindTabByHandleInModel(
+        tab_strip_model, snapshot.tab_order[desired_index]);
+    const int current_index = tab ? tab_strip_model->GetIndexOfTab(tab) : -1;
+    if (!tab || current_index < 0) {
+      return false;
+    }
+    if (current_index != static_cast<int>(desired_index)) {
+      tab_strip_model->MoveWebContentsAt(current_index,
+                                         static_cast<int>(desired_index),
+                                         /*select_after_move=*/false);
+    }
+  }
+
+  if (snapshot.target_split.has_value()) {
+    std::vector<int> restore_indices;
+    restore_indices.reserve(snapshot.target_split->member_handles.size());
+    for (int handle : snapshot.target_split->member_handles) {
+      tabs::TabInterface* const member =
+          FindTabByHandleInModel(tab_strip_model, handle);
+      const int member_index =
+          member ? tab_strip_model->GetIndexOfTab(member) : -1;
+      if (!member || member_index < 0 || member->GetSplit().has_value()) {
+        return false;
+      }
+      restore_indices.push_back(member_index);
+    }
+    std::ranges::sort(restore_indices);
+    if (restore_indices.size() < 2u || restore_indices.size() > 4u ||
+        std::ranges::adjacent_find(restore_indices) != restore_indices.end() ||
+        tab_strip_model->ContainsSplit(snapshot.target_split->split_id)) {
+      return false;
+    }
+    tab_strip_model->RestoreSplit(snapshot.target_split->split_id,
+                                  restore_indices,
+                                  snapshot.target_split->visual_data);
+  }
+
+  if (snapshot.active_handle >= 0) {
+    tabs::TabInterface* const active =
+        FindTabByHandleInModel(tab_strip_model, snapshot.active_handle);
+    if (!active) {
+      return false;
+    }
+    if (tab_strip_model->GetActiveTab() != active) {
+      tab_strip_model->ActivateTab(active);
+    }
+  }
+
+  tabs::TabInterface* const source =
+      FindTabByHandleInModel(tab_strip_model, snapshot.source_handle);
+  tabs::TabInterface* const target =
+      FindTabByHandleInModel(tab_strip_model, snapshot.target_handle);
+  if (!source || !target || TabHandles(tab_strip_model) != snapshot.tab_order ||
+      tab_strip_model->ListSplits() != snapshot.split_ids ||
+      source->GetSplit() != snapshot.source_split_id ||
+      (snapshot.active_handle >= 0 &&
+       (!tab_strip_model->GetActiveTab() ||
+        tab_strip_model->GetActiveTab()->GetHandle().raw_value() !=
+            snapshot.active_handle))) {
+    return false;
+  }
+  if (!snapshot.target_split.has_value()) {
+    return !target->GetSplit().has_value();
+  }
+  const split_tabs::SplitTabData* const restored_split =
+      tab_strip_model->GetSplitData(snapshot.target_split->split_id);
+  return restored_split && restored_split->visual_data() &&
+         SplitHandles(*restored_split) ==
+             snapshot.target_split->member_handles &&
+         *restored_split->visual_data() == snapshot.target_split->visual_data;
+}
+
 }  // namespace
 
 SplitDropController::SplitDropController(TabStripModel* tab_strip_model,
@@ -107,7 +220,7 @@ std::optional<DropIntent> SplitDropController::UpdateDrag(
   }
 
   std::optional<DropIntent> intent =
-      BuildIntent(*payload, source.tab, point, visible_panes);
+      BuildIntent(*payload, source.tab.get(), point, visible_panes);
   if (intent.has_value() && overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->SetIntent(*intent);
@@ -134,33 +247,39 @@ bool SplitDropController::PerformDrop(
   // presentation cleanup until after every model mutation so refresh gating
   // cannot recycle the drag source halfway through the transaction.
   base::ScopedClosureRunner complete_drag(base::BindOnce(
-      &SplitDropController::CompleteDrag, base::Unretained(this)));
+      &SplitDropController::CompleteDrag, weak_ptr_factory_.GetWeakPtr()));
   if (!payload.has_value() || !target_contents) {
     return false;
   }
 
-  const ResolvedSource source =
-      ResolveSource(*payload, /*activate_saved_page=*/true);
-  if (!source.valid || !source.tab) {
+  const base::WeakPtr<SplitDropController> weak_self =
+      weak_ptr_factory_.GetWeakPtr();
+  ResolvedSource source = ResolveSource(*payload, /*activate_saved_page=*/true);
+  base::ScopedClosureRunner rollback_materialized_source(
+      std::move(source.rollback));
+  // Saved-page materialization can synchronously activate a window, navigate
+  // and rebuild BrowserView. Never continue through a destroyed coordinator.
+  if (!weak_self || !source.valid || !source.tab) {
     return false;
   }
 
   std::vector<SplitDropPane> current_panes = visible_panes;
   current_panes[*hit].web_contents = target_contents;
   const std::optional<DropIntent> intent =
-      BuildIntent(*payload, source.tab, point, current_panes);
+      BuildIntent(*payload, source.tab.get(), point, current_panes);
   if (!intent.has_value()) {
     return false;
   }
 
   tabs::TabInterface* target = FindTabByHandle(intent->target_tab_handle);
-  if (!target || source.tab == target) {
+  if (!target || source.tab.get() == target) {
     return false;
   }
+  const base::WeakPtr<tabs::TabInterface> weak_target = target->GetWeakPtr();
 
   DropModelSnapshot snapshot{
       .source_handle = source.tab->GetHandle().raw_value(),
-      .source_index = tab_strip_model_->GetIndexOfTab(source.tab),
+      .source_index = tab_strip_model_->GetIndexOfTab(source.tab.get()),
       .source_split_id = source.tab->GetSplit(),
       .target_handle = target->GetHandle().raw_value(),
       .active_handle =
@@ -170,6 +289,9 @@ bool SplitDropController::PerformDrop(
       .tab_order = TabHandles(tab_strip_model_),
       .split_ids = tab_strip_model_->ListSplits(),
   };
+  if (snapshot.source_index < 0 || !weak_target) {
+    return false;
+  }
   if (target->GetSplit().has_value()) {
     const split_tabs::SplitTabId target_split_id = *target->GetSplit();
     if (!tab_strip_model_->ContainsSplit(target_split_id)) {
@@ -207,44 +329,21 @@ bool SplitDropController::PerformDrop(
     return false;
   }
 
-  const auto restore_active_tab = [&]() {
-    if (snapshot.active_handle < 0) {
-      return true;
-    }
-    tabs::TabInterface* const active = FindTabByHandle(snapshot.active_handle);
-    if (!active) {
-      return false;
-    }
-    if (tab_strip_model_->GetActiveTab() != active) {
-      tab_strip_model_->ActivateTab(active);
-    }
-    return tab_strip_model_->GetActiveTab() == active;
-  };
-
-  const auto matches_snapshot = [&]() {
-    if (TabHandles(tab_strip_model_) != snapshot.tab_order ||
-        tab_strip_model_->ListSplits() != snapshot.split_ids ||
-        !FindTabByHandle(snapshot.source_handle) ||
-        !FindTabByHandle(snapshot.target_handle) ||
-        FindTabByHandle(snapshot.source_handle)->GetSplit() !=
-            snapshot.source_split_id ||
-        (snapshot.active_handle >= 0 &&
-         (!tab_strip_model_->GetActiveTab() ||
-          tab_strip_model_->GetActiveTab()->GetHandle().raw_value() !=
-              snapshot.active_handle))) {
-      return false;
-    }
-    if (!snapshot.target_split.has_value()) {
-      return !FindTabByHandle(snapshot.target_handle)->GetSplit().has_value();
-    }
-    if (!tab_strip_model_->ContainsSplit(snapshot.target_split->split_id)) {
-      return false;
-    }
-    const split_tabs::SplitTabData* const split_data =
-        tab_strip_model_->GetSplitData(snapshot.target_split->split_id);
-    return split_data && split_data->visual_data() &&
-           SplitHandles(*split_data) == snapshot.target_split->member_handles &&
-           *split_data->visual_data() == snapshot.target_split->visual_data;
+  base::ScopedClosureRunner rollback_model;
+  const auto arm_model_rollback = [&]() {
+    rollback_model.ReplaceClosure(base::BindOnce(
+        [](base::WeakPtr<SplitDropController> controller,
+           DropModelSnapshot model_snapshot) {
+          if (!controller) {
+            return;
+          }
+          if (!RestoreDropModelSnapshot(controller->tab_strip_model_,
+                                        model_snapshot)) {
+            LOG(ERROR) << "Split drop failed and its model rollback was "
+                          "incomplete";
+          }
+        },
+        weak_self, snapshot));
   };
 
   if (intent->action == DropAction::kReorderInSplit) {
@@ -253,112 +352,75 @@ bool SplitDropController::PerformDrop(
       return false;
     }
     const split_tabs::SplitTabId split_id = *source.tab->GetSplit();
+    arm_model_rollback();
     tab_strip_model_->UpdateSplitLayout(split_id, intent->layout);
-    tab_strip_model_->UpdateSplitArrangement(split_id, intent->arrangement);
-    if (!ApplyDesiredOrder(split_id, *desired_handles)) {
-      bool rollback_succeeded = snapshot.target_split.has_value() &&
-                                tab_strip_model_->ContainsSplit(split_id) &&
-                                tab_strip_model_->GetSplitData(split_id);
-      if (rollback_succeeded) {
-        tab_strip_model_->UpdateSplitLayout(
-            split_id, snapshot.target_split->visual_data.split_layout());
-        tab_strip_model_->UpdateSplitArrangement(
-            split_id, snapshot.target_split->visual_data.arrangement());
-        rollback_succeeded &= ReorderSplitTo(
-            split_id, snapshot.target_split->member_handles, std::nullopt);
-      }
-      rollback_succeeded &= restore_active_tab();
-      rollback_succeeded &= matches_snapshot();
-      if (!rollback_succeeded) {
-        LOG(ERROR) << "Split drop reorder failed and its model rollback was "
-                      "incomplete";
-      }
+    if (!weak_self || !source.tab || !weak_target) {
       return false;
     }
-    tab_strip_model_->ActivateTabAt(
-        tab_strip_model_->GetIndexOfTab(source.tab));
+    tab_strip_model_->UpdateSplitArrangement(split_id, intent->arrangement);
+    if (!weak_self || !source.tab || !weak_target) {
+      return false;
+    }
+    const bool order_applied = ApplyDesiredOrder(split_id, *desired_handles);
+    if (!weak_self || !order_applied) {
+      return false;
+    }
+    if (!weak_self || !source.tab) {
+      return false;
+    }
+    const int active_source_index =
+        tab_strip_model_->GetIndexOfTab(source.tab.get());
+    if (active_source_index < 0) {
+      return false;
+    }
+    tab_strip_model_->ActivateTabAt(active_source_index);
+    if (!weak_self || !source.tab) {
+      return false;
+    }
+    rollback_model.ReplaceClosure(base::OnceClosure());
+    rollback_materialized_source.ReplaceClosure(base::OnceClosure());
     return true;
   }
 
-  const int source_index = tab_strip_model_->GetIndexOfTab(source.tab);
+  const int source_index = tab_strip_model_->GetIndexOfTab(source.tab.get());
   const int target_index = tab_strip_model_->GetIndexOfTab(target);
+  if (source_index < 0 || target_index < 0) {
+    return false;
+  }
+  arm_model_rollback();
   std::optional<split_tabs::SplitTabId> split_id =
       tab_strip_model_->CreateOrAddToSplitFromDrop(source_index, target_index,
                                                    intent->arrangement);
-  if (!split_id.has_value()) {
+  if (!weak_self || !source.tab || !weak_target || !split_id.has_value()) {
     return false;
   }
 
   tab_strip_model_->UpdateSplitLayout(*split_id, intent->layout);
-  tab_strip_model_->UpdateSplitArrangement(*split_id, intent->arrangement);
-  if (!ApplyDesiredOrder(*split_id, *desired_handles)) {
-    bool rollback_succeeded = true;
-    if (tab_strip_model_->ContainsSplit(*split_id)) {
-      tab_strip_model_->RemoveSplit(*split_id);
-    }
-    rollback_succeeded &= !tab_strip_model_->ContainsSplit(*split_id);
-
-    tabs::TabInterface* const restored_source =
-        FindTabByHandle(snapshot.source_handle);
-    if (!restored_source || restored_source->GetSplit().has_value() ||
-        snapshot.source_index < 0 ||
-        snapshot.source_index >= tab_strip_model_->count()) {
-      rollback_succeeded = false;
-    } else {
-      const int current_source_index =
-          tab_strip_model_->GetIndexOfTab(restored_source);
-      if (current_source_index < 0) {
-        rollback_succeeded = false;
-      } else if (current_source_index != snapshot.source_index) {
-        tab_strip_model_->MoveWebContentsAt(current_source_index,
-                                            snapshot.source_index,
-                                            /*select_after_move=*/false);
-      }
-    }
-
-    if (snapshot.target_split.has_value()) {
-      std::vector<int> restore_indices;
-      restore_indices.reserve(snapshot.target_split->member_handles.size());
-      for (int handle : snapshot.target_split->member_handles) {
-        tabs::TabInterface* const member = FindTabByHandle(handle);
-        const int member_index =
-            member ? tab_strip_model_->GetIndexOfTab(member) : -1;
-        if (!member || member->GetSplit().has_value() || member_index < 0) {
-          rollback_succeeded = false;
-          restore_indices.clear();
-          break;
-        }
-        restore_indices.push_back(member_index);
-      }
-      std::ranges::sort(restore_indices);
-      const bool can_restore_split =
-          restore_indices.size() ==
-              snapshot.target_split->member_handles.size() &&
-          restore_indices.size() >= 2u && restore_indices.size() <= 4u &&
-          std::ranges::adjacent_find(restore_indices) ==
-              restore_indices.end() &&
-          !tab_strip_model_->ContainsSplit(snapshot.target_split->split_id);
-      if (can_restore_split) {
-        tab_strip_model_->RestoreSplit(snapshot.target_split->split_id,
-                                       restore_indices,
-                                       snapshot.target_split->visual_data);
-        rollback_succeeded &=
-            tab_strip_model_->ContainsSplit(snapshot.target_split->split_id) &&
-            ReorderSplitTo(snapshot.target_split->split_id,
-                           snapshot.target_split->member_handles, std::nullopt);
-      } else {
-        rollback_succeeded = false;
-      }
-    }
-    rollback_succeeded &= restore_active_tab();
-    rollback_succeeded &= matches_snapshot();
-    if (!rollback_succeeded) {
-      LOG(ERROR) << "Split drop creation failed and its model rollback was "
-                    "incomplete";
-    }
+  if (!weak_self || !source.tab || !weak_target) {
     return false;
   }
-  tab_strip_model_->ActivateTabAt(tab_strip_model_->GetIndexOfTab(source.tab));
+  tab_strip_model_->UpdateSplitArrangement(*split_id, intent->arrangement);
+  if (!weak_self || !source.tab || !weak_target) {
+    return false;
+  }
+  const bool order_applied = ApplyDesiredOrder(*split_id, *desired_handles);
+  if (!weak_self || !order_applied) {
+    return false;
+  }
+  if (!weak_self || !source.tab) {
+    return false;
+  }
+  const int active_source_index =
+      tab_strip_model_->GetIndexOfTab(source.tab.get());
+  if (active_source_index < 0) {
+    return false;
+  }
+  tab_strip_model_->ActivateTabAt(active_source_index);
+  if (!weak_self || !source.tab) {
+    return false;
+  }
+  rollback_model.ReplaceClosure(base::OnceClosure());
+  rollback_materialized_source.ReplaceClosure(base::OnceClosure());
   return true;
 }
 
@@ -388,17 +450,21 @@ SplitDropController::ResolvedSource SplitDropController::ResolveSource(
   if (payload.runtime_tab_handle.has_value()) {
     tabs::TabInterface* const tab =
         FindTabByHandle(*payload.runtime_tab_handle);
-    return {.valid = tab != nullptr, .tab = tab};
+    return {
+        .valid = tab != nullptr,
+        .tab = tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()};
   }
   views::View* const browser_sidebar_host =
       const_cast<views::View*>(browser_sidebar_host_tracker_.view());
   if (!browser_sidebar_host) {
     return {};
   }
-  const sidebar::BrowserSidebarSplitDropSource source =
+  sidebar::BrowserSidebarSplitDropSource source =
       sidebar::ResolveBrowserSidebarSplitDropSource(
           browser_sidebar_host, payload, activate_saved_page);
-  return {.valid = source.valid, .tab = source.tab};
+  return {.valid = source.valid,
+          .tab = source.tab,
+          .rollback = std::move(source.rollback)};
 }
 
 std::optional<SplitDropTabState> SplitDropController::SnapshotTab(

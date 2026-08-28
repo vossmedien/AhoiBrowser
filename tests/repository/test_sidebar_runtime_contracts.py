@@ -321,23 +321,23 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
         self.assertIn("tree_view_->SetDragTargetVisible", runtime_drag)
         self.assertIn("tree_view_->SetDragTargetVisible(false)", reset_drag)
 
-        self.assertNotIn("workspace_drop_host", host_core)
-        self.assertNotIn("views::FillLayout", host_core)
+        self.assertIn("workspace_selector_host", host_core)
+        self.assertIn("views::FillLayout", host_core)
         workspace_button = host_core.index(
-            "workspace_header->AddChildView(CreateWorkspaceSelectorButton"
-        )
-        workspace_header = host_core.index(
-            "AddChildView(std::move(workspace_header))"
+            "workspace_selector_host->AddChildView("
         )
         new_group = host_core.index(
-            "new_group_drop_target_ = AddChildView(CreateNewGroupDropTargetView"
+            "new_group_drop_target_ = workspace_selector_host->AddChildView"
+        )
+        workspace_header = host_core.index(
+            "workspace_header->AddChildView(std::move(workspace_selector_host))"
         )
         tabs_surface = host_core.index(
             "auto tabs_surface = CreateSidebarTabsSurfaceView()"
         )
-        self.assertLess(workspace_button, workspace_header)
-        self.assertLess(workspace_header, new_group)
-        self.assertLess(new_group, tabs_surface)
+        self.assertLess(workspace_button, new_group)
+        self.assertLess(new_group, workspace_header)
+        self.assertLess(workspace_header, tabs_surface)
 
         open_target = function(
             runtime_targets,
@@ -357,11 +357,9 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
         self.assertNotIn(
             "SetBoundsRect(parent()->GetLocalBounds())", new_group_target
         )
-        self.assertIn("PreferredSizeChanged()", new_group_target)
-        self.assertIn("parent()->InvalidateLayout()", new_group_target)
-        self.assertIn(
-            "parent()->DeprecatedLayoutImmediately()", new_group_target
-        )
+        self.assertNotIn("PreferredSizeChanged()", new_group_target)
+        self.assertNotIn("parent()->InvalidateLayout()", new_group_target)
+        self.assertNotIn("DeprecatedLayoutImmediately()", new_group_target)
         self.assertIn(
             "EmptySavedTreeExposesAndClearsDragTargetPresentation",
             tree_tests,
@@ -371,10 +369,10 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             runtime_tests,
         )
         self.assertIn(
-            "NewGroupGetsOwnStableRowBeforeNativeDragLoop", runtime_tests
+            "NewGroupOverlaysWorkspaceWithoutChangingGeometry", runtime_tests
         )
         self.assertIn(
-            "workspace_ptr->bounds().Intersects(target_ptr->bounds())",
+            "EXPECT_EQ(stable_workspace_bounds, target_ptr->bounds())",
             runtime_tests,
         )
 
