@@ -1,0 +1,136 @@
+diff --git a/chrome/browser/ui/views/frame/multi_contents_resize_area.h b/chrome/browser/ui/views/frame/multi_contents_resize_area.h
+--- a/chrome/browser/ui/views/frame/multi_contents_resize_area.h
++++ b/chrome/browser/ui/views/frame/multi_contents_resize_area.h
+@@ -17,6 +17,7 @@
+ #include "ui/views/view.h"
+ 
+ class MultiContentsView;
++class MultiContentsResizeArea;
+ 
+ namespace split_tabs {
+ enum class SplitTabLayout;
+@@ -35,7 +36,8 @@ class MultiContentsResizeHandle : public views::View,
+  public:
+   DECLARE_CLASS_ELEMENT_IDENTIFIER_VALUE(kMultiContentsResizeHandleElementId);
+ 
+-  MultiContentsResizeHandle();
++  explicit MultiContentsResizeHandle(
++      MultiContentsResizeArea* multi_contents_resize_area);
+ 
+   void SetAlwaysVisible(bool always_visible);
+   void UpdateVisibility();
+@@ -43,11 +45,15 @@ class MultiContentsResizeHandle : public views::View,
+   // views::View:
+   void AddedToWidget() override;
+   void RemovedFromWidget() override;
++  bool OnKeyPressed(const ui::KeyEvent& event) override;
++  bool HandleAccessibleAction(
++      const ui::AXActionData& action_data) override;
+ 
+   // FocusChangeListener:
+   void OnDidChangeFocus(views::View* before, views::View* now) override;
+ 
+  private:
++  raw_ptr<MultiContentsResizeArea> multi_contents_resize_area_;
+   bool always_visible_ = false;
+ };
+ 
+@@ -69,6 +75,7 @@ class MultiContentsResizeArea : public views::ResizeArea,
+   void SetLayout(const split_tabs::SplitTabVisualData& visual_data,
+                  size_t pane_count);
+   void SetHandleAlwaysVisible(bool always_visible);
++  bool ResizeByKeyboardStep(bool increase);
+ 
+   MultiContentsResizeHandle* resize_handle_for_testing() const {
+     return resize_handle_;
+diff --git a/chrome/browser/ui/views/frame/multi_contents_resize_area.cc b/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
+--- a/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
+@@ -13,6 +13,8 @@
+ #include "chrome/browser/ui/views/frame/multi_contents_view.h"
+ #include "chrome/grit/generated_resources.h"
+ #include "components/split_tabs/split_tab_visual_data.h"
++#include "ui/accessibility/ax_action_data.h"
++#include "ui/accessibility/ax_enums.mojom.h"
+ #include "ui/base/l10n/l10n_util.h"
+ #include "ui/base/metadata/metadata_impl_macros.h"
+ #include "ui/compositor/layer.h"
+@@ -36,7 +38,9 @@ DEFINE_CLASS_ELEMENT_IDENTIFIER_VALUE(MultiContentsResizeHandle,
+ DEFINE_CLASS_ELEMENT_IDENTIFIER_VALUE(MultiContentsResizeArea,
+                                       kMultiContentsResizeAreaElementId);
+ 
+-MultiContentsResizeHandle::MultiContentsResizeHandle() {
++MultiContentsResizeHandle::MultiContentsResizeHandle(
++    MultiContentsResizeArea* multi_contents_resize_area)
++    : multi_contents_resize_area_(multi_contents_resize_area) {
+   // Cannot use `SOLID_COLOR_LAYER`, since resize handle has rounded corners,
+   // and applying layer based rounded corners will clip the focus ring.
+   SetPaintToLayer(ui::LAYER_TEXTURED);
+@@ -75,6 +79,21 @@ void MultiContentsResizeHandle::AddedToWidget() {
+ 
+ void MultiContentsResizeHandle::RemovedFromWidget() {
+   GetFocusManager()->RemoveFocusChangeListener(this);
++}
++
++bool MultiContentsResizeHandle::OnKeyPressed(const ui::KeyEvent& event) {
++  return multi_contents_resize_area_->OnKeyPressed(event);
++}
++
++bool MultiContentsResizeHandle::HandleAccessibleAction(
++    const ui::AXActionData& action_data) {
++  if (action_data.action == ax::mojom::Action::kIncrement) {
++    return multi_contents_resize_area_->ResizeByKeyboardStep(true);
++  }
++  if (action_data.action == ax::mojom::Action::kDecrement) {
++    return multi_contents_resize_area_->ResizeByKeyboardStep(false);
++  }
++  return views::View::HandleAccessibleAction(action_data);
+ }
+ 
+ void MultiContentsResizeHandle::OnDidChangeFocus(views::View* before,
+@@ -96,7 +115,8 @@ MultiContentsResizeArea::MultiContentsResizeArea(
+   flex_layout_manager_->SetMainAxisAlignment(views::LayoutAlignment::kCenter)
+       .SetCrossAxisAlignment(views::LayoutAlignment::kCenter);
+ 
+-  resize_handle_ = AddChildView(std::make_unique<MultiContentsResizeHandle>());
++  resize_handle_ =
++      AddChildView(std::make_unique<MultiContentsResizeHandle>(this));
+   resize_handle_->GetViewAccessibility().SetMinValueForRange(0.0f);
+   resize_handle_->GetViewAccessibility().SetMaxValueForRange(100.0f);
+   resize_handle_->GetViewAccessibility().SetValueForRange(50.0f);
+@@ -161,10 +181,14 @@ bool MultiContentsResizeArea::OnKeyPressed(const ui::KeyEvent& event) {
+     resize_amount = kResizeIncrement;
+   }
+ 
+-  if (resize_amount == 0) {
+-    return false;
+-  }
++  return resize_amount == 0
++             ? false
++             : ResizeByKeyboardStep(resize_amount > 0);
++}
+ 
++bool MultiContentsResizeArea::ResizeByKeyboardStep(bool increase) {
++  const int resize_amount = increase ? kResizeIncrement : -kResizeIncrement;
++
+   multi_contents_view_->OnResize(divider_index_, resize_amount, true);
+ 
+   if ((axis() == Axis::kHorizontal ? multi_contents_view_->width()
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -113,6 +113,14 @@ MultiContentsView::MultiContentsView(
+       resize_area->SetVisible(false);
+       resize_areas_.push_back(resize_area);
+     }
++  }
++
++  // Later native WebContents siblings can win hit testing over an adjacent
++  // divider on macOS even though their layout bounds do not overlap. Keep all
++  // resize areas above every content container. The overlays added below stay
++  // above the dividers and retain their own drag/drop priority.
++  for (auto& resize_area : resize_areas_) {
++    ReorderChildView(resize_area, children().size() - 1u);
+   }
+ 
+   // Kept as a native sibling of the pre-created contents panes. It becomes

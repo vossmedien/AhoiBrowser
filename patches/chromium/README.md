@@ -152,3 +152,29 @@ as a second active patch stack.
 - **Security/privacy impact:** none; accessibility semantics only.
 - **Expected rebase risk:** low.
 - **Removal/upstream plan:** retain while the native Ahoi command bar exists.
+
+## `0007-ahoi-split-resize-hit-testing-and-accessibility.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the command-bar
+  accessibility seam.
+- **Affected paths:** the native multi-contents pane host and its resize area.
+- **Rationale:** macOS WebContents are independently composited native siblings.
+  The later pane hosts could therefore win pointer hit testing over an earlier
+  divider even when their layout bounds only met at the seam. Resize areas now
+  sit above every pane but below drop/overlay surfaces, and the visible AX
+  slider delegates keyboard plus increment/decrement actions to the canonical
+  Chromium ratio/persistence path.
+- **Rejected alternatives:** an overlay-only fake handle, JavaScript resizing,
+  polling pointer coordinates, widening the divider into page content, or
+  bypassing Chromium's split model and snap-point logic.
+- **Tests:** installed-browser pointer resize in side-by-side and stacked modes
+  first, including AX increment/decrement and persistence; then ordered patch
+  composition plus focused native split layout/interaction tests.
+- **Security/privacy impact:** none; z-order, pointer routing and accessibility
+  actions only.
+- **Expected rebase risk:** low-to-medium because native WebContents and resize
+  area construction order can change in Chromium rolls.
+- **Removal/upstream plan:** keep until Chromium guarantees native child hit
+  testing independently of pane construction order and exposes the AX actions
+  on the visible split handle.
