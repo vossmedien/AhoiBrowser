@@ -59,6 +59,7 @@
 #include "url/gurl.h"
 
 class Browser;
+class SessionID;
 class TabStripModel;
 
 namespace favicon {
@@ -79,13 +80,17 @@ class Widget;
 }  // namespace views
 
 namespace ahoi {
+class CommandService;
 class ModalOverlayController;
 class SessionBridge;
+struct CommandItem;
 }  // namespace ahoi
 
 namespace ahoi::sidebar {
 
 class CachedTabThumbnail;
+class SidebarDiscoveryModel;
+class SidebarDiscoveryView;
 class SidebarMediaOverlayView;
 class SidebarTreeView;
 
@@ -406,6 +411,18 @@ class BrowserSidebarHostView final : public views::View,
 
   void RunSidebarHeaderAction(bool toggle_visibility);
 
+  void OnSidebarDiscoveryPressed(const ui::Event&);
+
+  void ToggleSidebarDiscovery();
+
+  void OpenSidebarDiscovery();
+
+  void CloseSidebarDiscovery();
+
+  bool ActivateSidebarDiscoveryCommand(const CommandItem& item);
+
+  bool RestoreSidebarDiscoveryEntry(SessionID entry_id);
+
   void RunBrowserCommand(int command_id, const ui::Event&);
 
   void ExecuteBrowserCommand(int command_id);
@@ -636,6 +653,10 @@ class BrowserSidebarHostView final : public views::View,
   std::unique_ptr<SidebarTreeController> controller_;
   raw_ptr<SidebarTreeView> tree_view_ = nullptr;
   raw_ptr<views::Button> workspace_button_ = nullptr;
+  raw_ptr<CommandService> command_service_ = nullptr;
+  std::unique_ptr<SidebarDiscoveryModel> discovery_model_;
+  raw_ptr<SidebarDiscoveryView> discovery_view_ = nullptr;
+  views::ViewTracker discovery_focus_restore_tracker_;
   raw_ptr<views::ScrollView> scroll_view_ = nullptr;
   raw_ptr<SidebarMediaOverlayView> media_overlay_view_ = nullptr;
   raw_ptr<views::View> sidebar_actions_ = nullptr;

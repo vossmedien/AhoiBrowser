@@ -24,6 +24,7 @@
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_indicator.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
@@ -199,6 +200,15 @@ bool BrowserSidebarHostView::OnKeyPressed(const ui::KeyEvent& event) {
   const bool command_or_control =
       (flags & ui::EF_COMMAND_DOWN) || (flags & ui::EF_CONTROL_DOWN);
   const bool shift = flags & ui::EF_SHIFT_DOWN;
+  if (command_or_control && shift && event.key_code() == ui::VKEY_F &&
+      discovery_view_) {
+    ToggleSidebarDiscovery();
+    return true;
+  }
+  if (event.key_code() == ui::VKEY_ESCAPE && discovery_view_ &&
+      discovery_view_->GetVisible()) {
+    return discovery_view_->CloseOrClear();
+  }
   if (command_or_control && shift && event.key_code() == ui::VKEY_S) {
     return ToggleFloatingSidebar();
   }

@@ -218,6 +218,43 @@ TEST(CommandServiceTest, QueryDeduplicatesUrlAcrossAllLocalSources) {
   EXPECT_EQ(results.front().item.type, CommandItemType::kOpenTab);
 }
 
+TEST(CommandServiceTest, QueryPolicyKeepsDuplicateTabsAndFiltersSources) {
+  CommandService service;
+  const GURL shared_url("https://example.test/shared");
+  CommandItem first =
+      MakeItem(CommandItemType::kOpenTab, "first", u"Shared first");
+  first.url = shared_url;
+  CommandItem second =
+      MakeItem(CommandItemType::kOpenTab, "second", u"Shared second");
+  second.url = shared_url;
+  CommandItem saved =
+      MakeItem(CommandItemType::kSavedPage, "saved", u"Shared saved");
+  saved.url = shared_url;
+  CommandItem history =
+      MakeItem(CommandItemType::kHistory, "history", u"Shared history");
+  history.url = shared_url;
+  ASSERT_TRUE(service.ReplaceItems(CommandItemType::kOpenTab,
+                                   {std::move(first), std::move(second)}));
+  ASSERT_TRUE(service.ReplaceItems(CommandItemType::kSavedPage,
+                                   {std::move(saved)}));
+  ASSERT_TRUE(service.ReplaceItems(CommandItemType::kHistory,
+                                   {std::move(history)}));
+
+  const CommandQueryOptions sidebar_options{
+      .allowed_types = {CommandItemType::kOpenTab,
+                        CommandItemType::kSavedPage},
+      .deduplicate_urls = false,
+      .max_results = 10,
+  };
+  const std::vector<RankedCommand> results =
+      service.Query(u"shared", sidebar_options);
+  ASSERT_EQ(results.size(), 3u);
+  EXPECT_EQ(results[0].item.type, CommandItemType::kOpenTab);
+  EXPECT_EQ(results[1].item.type, CommandItemType::kOpenTab);
+  EXPECT_NE(results[0].item.stable_id, results[1].item.stable_id);
+  EXPECT_EQ(results[2].item.type, CommandItemType::kSavedPage);
+}
+
 TEST(CommandServiceTest, TenThousandItemIndexReturnsBoundedResults) {
   CommandService service;
   std::vector<CommandItem> items;

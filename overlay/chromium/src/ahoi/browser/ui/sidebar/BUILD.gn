@@ -148,6 +148,34 @@ source_set("sidebar_media_overlay") {
   ]
 }
 
+source_set("sidebar_discovery") {
+  sources = [
+    "sidebar_discovery_model.cc",
+    "sidebar_discovery_model.h",
+    "sidebar_discovery_view.cc",
+    "sidebar_discovery_view.h",
+  ]
+
+  public_deps = [
+    "//ahoi/browser/navigation",
+    "//base",
+    "//components/sessions",
+    "//ui/views",
+    "//url",
+  ]
+
+  deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//chrome/app:generated_resources",
+    "//components/vector_icons",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/color",
+    "//ui/events",
+    "//ui/gfx",
+  ]
+}
+
 source_set("browser_sidebar") {
   sources = [
     "browser_sidebar_host.cc",
@@ -156,6 +184,7 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_context_menu.cc",
     "browser_sidebar_host_core.cc",
     "browser_sidebar_host_device_tabs.cc",
+    "browser_sidebar_host_discovery.cc",
     "browser_sidebar_host_drag_routing.cc",
     "browser_sidebar_host_group_dialog.cc",
     "browser_sidebar_host_media.cc",
@@ -212,6 +241,8 @@ source_set("browser_sidebar") {
   ]
 
   deps = [
+    ":sidebar_discovery",
+    "//ahoi/browser/session:command_service_factory",
     "//ahoi/browser/ui:modal_overlay",
     "//ahoi/browser/ui:visual_style",
     "//ahoi/browser/ui/appearance",
@@ -223,6 +254,7 @@ source_set("browser_sidebar") {
     "//chrome/browser/favicon",
     "//chrome/browser/history",
     "//chrome/browser/profiles:profile",
+    "//chrome/browser/sessions",
     "//chrome/browser/ui/browser_window",
     "//chrome/browser/ui/navigator",
     "//chrome/browser/ui/tabs:tab_strip",

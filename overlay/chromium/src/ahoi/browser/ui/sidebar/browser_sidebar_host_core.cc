@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -23,6 +24,8 @@
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/sidebar/sidebar_discovery_model.h"
+#include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_overlay_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
@@ -55,6 +58,7 @@
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
@@ -148,6 +152,17 @@ BrowserSidebarHostView::BrowserSidebarHostView(
       browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
   history_service_ = HistoryServiceFactory::GetForProfile(
       browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
+  // SessionBridge and CommandServiceFactory both reject OTR and non-regular
+  // profiles. Keep that boundary explicit here as well: discovery must never
+  // expose another profile's durable tree or recently-closed session list.
+  Profile* const profile = browser_->GetProfile();
+  if (profile && profile->IsRegularProfile() && !profile->IsOffTheRecord()) {
+    command_service_ = CommandServiceFactory::GetForProfile(profile);
+    if (command_service_) {
+      discovery_model_ = std::make_unique<SidebarDiscoveryModel>(
+          command_service_, TabRestoreServiceFactory::GetForProfile(profile));
+    }
+  }
   tab_preview_controller_ = std::make_unique<SidebarTabPreviewController>(
       base::BindRepeating(
           [](base::WeakPtr<BrowserSidebarHostView> host,
@@ -229,6 +244,14 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   views::View* workspace_selector_host_ptr =
       workspace_header->AddChildView(std::move(workspace_selector_host));
   workspace_header_layout->SetFlexForView(workspace_selector_host_ptr, 1);
+  if (discovery_model_) {
+    workspace_header->AddChildView(CreateSidebarHeaderActionButton(
+        base::BindRepeating(
+            &BrowserSidebarHostView::OnSidebarDiscoveryPressed,
+            weak_ptr_factory_.GetWeakPtr()),
+        vector_icons::kSearchIcon,
+        l10n_util::GetStringUTF16(IDS_TAB_SEARCH_SEARCH_TABS)));
+  }
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
                           weak_ptr_factory_.GetWeakPtr(),
@@ -330,6 +353,22 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   media_overlay_view_ = AddChildView(
       CreateMiniPlayerOverlay(std::move(scroll), mini_player_scroll_inset));
   layout->SetFlexForView(media_overlay_view_, 1, /*use_min_size=*/true);
+
+  if (discovery_model_) {
+    auto discovery = std::make_unique<SidebarDiscoveryView>(
+        discovery_model_.get(),
+        base::BindRepeating(
+            &BrowserSidebarHostView::ActivateSidebarDiscoveryCommand,
+            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(
+            &BrowserSidebarHostView::RestoreSidebarDiscoveryEntry,
+            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(&BrowserSidebarHostView::CloseSidebarDiscovery,
+                            weak_ptr_factory_.GetWeakPtr()));
+    discovery->SetVisible(false);
+    discovery_view_ = AddChildView(std::move(discovery));
+    layout->SetFlexForView(discovery_view_, 1, /*use_min_size=*/true);
+  }
 
   auto actions = std::make_unique<views::View>();
   auto* actions_layout =

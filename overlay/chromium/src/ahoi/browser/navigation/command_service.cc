@@ -172,8 +172,14 @@ void CommandService::ClearItems(CommandItemType type) {
 
 std::vector<RankedCommand> CommandService::Query(std::u16string_view input,
                                                  size_t max_results) const {
+  return Query(input, CommandQueryOptions{.max_results = max_results});
+}
+
+std::vector<RankedCommand> CommandService::Query(
+    std::u16string_view input,
+    const CommandQueryOptions& options) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (max_results == 0u) {
+  if (options.max_results == 0u) {
     return {};
   }
 
@@ -184,7 +190,9 @@ std::vector<RankedCommand> CommandService::Query(std::u16string_view input,
   std::vector<ScoredItem> scored_items;
   const ScopedQuery query = ParseScopedQuery(Normalize(input));
   for (const auto& entry : index_) {
-    if (!TypeMatchesScope(entry.first, query.scope)) {
+    if (!TypeMatchesScope(entry.first, query.scope) ||
+        (!options.allowed_types.empty() &&
+         !options.allowed_types.contains(entry.first))) {
       continue;
     }
     for (const auto& indexed : entry.second) {
@@ -218,18 +226,19 @@ std::vector<RankedCommand> CommandService::Query(std::u16string_view input,
   std::ranges::sort(scored_items, is_better);
 
   std::vector<RankedCommand> results;
-  results.reserve(std::min(max_results, scored_items.size()));
+  results.reserve(std::min(options.max_results, scored_items.size()));
   std::set<GURL> seen_urls;
   for (const ScoredItem& scored : scored_items) {
     const CommandItem& item = scored.indexed->item;
     // One destination should appear once even if it is simultaneously an open
     // tab, a saved page and a history entry. This also intentionally collapses
     // duplicate open tabs in the command bar without affecting the sidebar.
-    if (item.url.has_value() && !seen_urls.insert(*item.url).second) {
+    if (options.deduplicate_urls && item.url.has_value() &&
+        !seen_urls.insert(*item.url).second) {
       continue;
     }
     results.push_back({item, scored.score});
-    if (results.size() == max_results) {
+    if (results.size() == options.max_results) {
       break;
     }
   }
