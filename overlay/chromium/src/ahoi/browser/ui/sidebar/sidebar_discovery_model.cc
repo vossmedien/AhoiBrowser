@@ -58,7 +58,6 @@ SidebarDiscoveryItemKind ToDiscoveryKind(const CommandItem& item) {
       break;
   }
   NOTREACHED();
-  return SidebarDiscoveryItemKind::kOpenTab;
 }
 
 GURL SanitizeDisplayUrl(const GURL& url) {
@@ -90,7 +89,6 @@ std::string CommandStableId(const CommandItem& item) {
       break;
   }
   NOTREACHED();
-  return {};
 }
 
 std::string RestoreStableId(SessionID id) {
@@ -167,7 +165,6 @@ SidebarDiscoveryItemKind RestoreKind(
       return SidebarDiscoveryItemKind::kRecentlyClosedWindow;
   }
   NOTREACHED();
-  return SidebarDiscoveryItemKind::kRecentlyClosedTab;
 }
 
 std::u16string EntryTitle(const sessions::tab_restore::Entry& entry,

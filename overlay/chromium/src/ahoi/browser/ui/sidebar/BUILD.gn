@@ -171,6 +171,7 @@ source_set("sidebar_discovery") {
     "//ahoi/browser/session:workspace_session_metadata",
     "//ahoi/browser/ui:visual_style",
     "//chrome/app:generated_resources",
+    "//components/strings",
     "//components/vector_icons",
     "//ui/accessibility",
     "//ui/base",

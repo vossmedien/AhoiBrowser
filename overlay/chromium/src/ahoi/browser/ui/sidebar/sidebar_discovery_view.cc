@@ -16,6 +16,7 @@
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/strings/grit/components_strings.h"
 #include "components/vector_icons/vector_icons.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -531,8 +532,15 @@ void SidebarDiscoveryView::RefreshResults() {
             weak_ptr_factory_.GetWeakPtr(), stable_id),
         base::BindRepeating(&SidebarDiscoveryView::OnResultHovered,
                             weak_ptr_factory_.GetWeakPtr(), stable_id),
-        base::BindRepeating(&SidebarDiscoveryView::HandleResultKeyEvent,
-                            weak_ptr_factory_.GetWeakPtr(), stable_id));
+        base::BindRepeating(
+            [](base::WeakPtr<SidebarDiscoveryView> view,
+               const std::string& item_stable_id, const ui::KeyEvent& event) {
+              if (!view) {
+                return false;
+              }
+              return view->HandleResultKeyEvent(item_stable_id, event);
+            },
+            weak_ptr_factory_.GetWeakPtr(), stable_id));
     row->GetViewAccessibility().SetPosInSet(
         static_cast<int>(rows_.size() + 1u));
     row->GetViewAccessibility().SetSetSize(static_cast<int>(items_.size()));
