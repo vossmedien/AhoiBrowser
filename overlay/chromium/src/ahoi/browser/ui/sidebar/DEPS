@@ -1,9 +1,11 @@
 include_rules = [
   "+chrome/browser/favicon",
+  "+chrome/browser/sessions",
   "+chrome/grit",
   "+components/favicon",
   "+components/favicon_base",
   "+components/split_tabs",
+  "+components/sessions",
   "+components/tabs",
   "+components/vector_icons",
   "+content/public/browser",

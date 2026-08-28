@@ -52,6 +52,18 @@ struct RankedCommand {
   bool operator==(const RankedCommand&) const = default;
 };
 
+// Per-surface query policy. The command bar retains its compact, destination-
+// deduplicated behavior through the legacy overload below; native collections
+// such as the sidebar can preserve multiple open tabs with the same URL while
+// excluding unrelated history and browser-command sources.
+struct CommandQueryOptions {
+  std::set<CommandItemType> allowed_types;
+  bool deduplicate_urls = true;
+  size_t max_results = 0;
+
+  bool operator==(const CommandQueryOptions&) const = default;
+};
+
 enum class CommandInputKind {
   kEmpty = 0,
   // A local query which may become a default-engine search if the user does
@@ -102,6 +114,9 @@ class CommandService : public KeyedService {
 
   std::vector<RankedCommand> Query(std::u16string_view input,
                                    size_t max_results) const;
+  std::vector<RankedCommand> Query(
+      std::u16string_view input,
+      const CommandQueryOptions& options) const;
   bool IsExplicitLocalQuery(std::u16string_view input) const;
   // The caller supplies Chromium's profile-aware scheme classifier for this
   // synchronous call. The service neither owns nor retains Profile state.
