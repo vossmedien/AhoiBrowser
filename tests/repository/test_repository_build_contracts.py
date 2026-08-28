@@ -219,6 +219,10 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertEqual(1, rust_patch_text.count("diff --git "))
         self.assertIn("split_depfile_paths", rust_patch_text)
         self.assertIn("escape_depfile_path", rust_patch_text)
+        self.assertIn(
+            "depline.replace(\\n+      abs_build_root, escape_depfile_path(abs_build_root))",
+            rust_patch_text,
+        )
         self.assertIn("(?:\\\\ |[^ ])*", rust_patch_text)
 
         workaround = config["v8InspectorProtocolRelativeDepfilePaths"]

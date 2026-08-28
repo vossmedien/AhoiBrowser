@@ -58,7 +58,18 @@ diff --git a/build/rust/gni_impl/rustc_wrapper.py b/build/rust/gni_impl/rustc_wr
  def normalize_depline(depline, abs_build_root):
    """Returns `depline` with normalized file paths.
  
-@@ -169,15 +199,15 @@ def normalize_depline(depline, abs_build_root):
+@@ -161,22 +191,26 @@ def normalize_depline(depline, abs_build_root):
+      `env-dep`) then an unmodified `depline` is returned.
+   """
+-  m = FILE_RE.match(depline)
++  # rustc may leave absolute OUT_DIR paths unescaped. Escape only the exact
++  # build-root prefix before tokenizing; already escaped paths stay unchanged.
++  parseable_depline = depline.replace(
++      abs_build_root, escape_depfile_path(abs_build_root))
++  m = FILE_RE.match(parseable_depline)
+   if not m:
+     return depline
+ 
 -  lhs_file = m.group(1)
 +  lhs_file = split_depfile_paths(m.group(1))[0]
    rhs_group = m.group(2)
@@ -78,7 +89,7 @@ diff --git a/build/rust/gni_impl/rustc_wrapper.py b/build/rust/gni_impl/rustc_wr
      return f"{lhs_file}: {rhs_files}"
    else:
      return f"{lhs_file}:"
-@@ -198,6 +228,9 @@ def verify_inputs(depline, sources, abs_build_root):
+@@ -198,6 +232,9 @@ def verify_inputs(depline, sources, abs_build_root):
    m = FILE_RE.match(depline)
    if m and m.group(2):
      files = m.group(2)

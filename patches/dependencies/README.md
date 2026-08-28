@@ -6,12 +6,13 @@ while `gn gen` and `autoninja` run. It must restore every target
 byte-for-byte before publishing one complete receipt.
 
 The M152 Chromium workaround teaches
-`build/rust/gni_impl/rustc_wrapper.py` to preserve rustc's Makefile-escaped
-spaces while normalizing and validating depfile paths. It is required when the
-canonical checkout path contains spaces because M152 makes build-script
-`OUT_DIR` values absolute. Chromium main still carried the same unsupported
-space-path parser when this pin was recorded. Remove the workaround only after
-the pinned Chromium revision supports the same escaped-path cases.
+`build/rust/gni_impl/rustc_wrapper.py` to preserve Makefile-escaped spaces and
+to escape rustc's raw absolute build-root prefix before normalizing and
+validating depfile paths. It is required when the canonical checkout path
+contains spaces because M152 makes build-script `OUT_DIR` values absolute.
+Chromium main still carried the same unsupported space-path parser when this
+pin was recorded. Remove the workaround only after the pinned Chromium revision
+supports both escaped paths and raw absolute `OUT_DIR` paths.
 
 The M152 V8 workaround is bound in
 `config/dependency-build-workarounds.json`. It ports the upstream

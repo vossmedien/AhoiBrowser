@@ -55,10 +55,12 @@ class LocationBarBubbleButtonTest : public views::ViewsTestBase {
  protected:
   void SetUp() override {
     views::ViewsTestBase::SetUp();
-    // ConfigureVectorImageButton requires the Views layout metrics. The
-    // standalone Views fixture does not install a provider.
+    // The constructor calls ConfigureVectorImageButton(), which requires a
+    // live process-global provider. Pin that fixture invariant explicitly so
+    // future harness drift fails here instead of in product code.
     test_views_delegate()->set_layout_provider(
         std::make_unique<views::LayoutProvider>());
+    ASSERT_NE(nullptr, views::LayoutProvider::Get());
   }
 };
 
