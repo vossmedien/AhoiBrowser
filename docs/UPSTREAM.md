@@ -7,9 +7,10 @@ source URL, branch-head, and retrieval timestamp live in
 The active production pin is the fully rolled, pinnable Mac ARM64 Stable
 `152.0.7977.65` at
 `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. Its tracked overlay is composed
-with the active three-patch series: `0001-ahoi-m152-integration-seams.patch`,
-`0002-ahoi-deterministic-platform-tests.patch`, and
-`0003-ahoi-upstream-page-load-tracing-test-isolation.patch`. An Early Stable
+with the active four-patch series: `0001-ahoi-m152-integration-seams.patch`,
+`0002-ahoi-deterministic-platform-tests.patch`,
+`0003-ahoi-upstream-page-load-tracing-test-isolation.patch`, and
+`0004-ahoi-lean-profile-compose-guards.patch`. An Early Stable
 version may be recorded separately as a roll candidate but cannot silently
 replace this production pin.
 
@@ -60,7 +61,7 @@ modifying the checkout's HEAD, index, worktree, or object database. Composition
 uses temporary index and object storage, with the real object database mounted
 read-only as an alternate. The flag defaults to `HEAD`; the requested ref is
 resolved once to an exact commit before composition. The active M152 series has
-three entries; the former 21-entry M151 series and its green matrix remain
+four entries; the former 21-entry M151 series and its green matrix remain
 historical recovery evidence rather than inputs to the active checkout.
 
 For the later, deliberate checkout switch, an existing clean promisor checkout
