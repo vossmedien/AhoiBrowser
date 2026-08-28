@@ -265,16 +265,20 @@ BrowserSidebarHostView::BrowserSidebarHostView(
                           base::Unretained(this)),
       l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL)));
 
-  auto open_tabs = CreateOpenTabsDropTargetView(base::BindRepeating(
-      &BrowserSidebarHostView::MakeSavedPageTemporary, base::Unretained(this)));
+  auto open_tabs = CreateOpenTabsDropTargetView(
+      base::BindRepeating(
+          &BrowserSidebarHostView::CanDropOpenTabToTemporary,
+          base::Unretained(this)),
+      base::BindRepeating(&BrowserSidebarHostView::DropOpenTabToTemporary,
+                          base::Unretained(this)));
   open_tabs->GetViewAccessibility().SetRole(ax::mojom::Role::kTabList);
   open_tabs->GetViewAccessibility().SetName(
       l10n_util::GetStringUTF16(IDS_TAB_SEARCH_OPEN_TABS));
   open_tabs_container_ = tabs_surface->AddChildView(std::move(open_tabs));
   // ScrollView expands its contents to at least the viewport. Giving the
   // temporary-tab target the remaining height makes the entire free lower
-  // sidebar a valid saved-to-temporary drop zone instead of requiring a hit
-  // on the narrow list itself.
+  // sidebar a valid saved-to-temporary or split-detach drop zone instead of
+  // requiring a hit on the narrow list itself.
   tabs_surface_layout->SetFlexForView(open_tabs_container_, 1,
                                       /*use_min_size=*/true);
 

@@ -11,7 +11,6 @@ namespace ahoi::sidebar {
 
 namespace {
 
-constexpr int kMinimumSegmentHeight = 24;
 constexpr int kGap = visual_style::kSidebarSplitPaneGap;
 
 int SplitAt(int extent, double ratio, int gap) {
@@ -48,7 +47,8 @@ int GetSplitRowPreferredHeight(
   }
 
   const int adaptive_height =
-      static_cast<int>(visual_rows) * kMinimumSegmentHeight +
+      static_cast<int>(visual_rows) *
+          visual_style::kSidebarSplitPaneMinimumHeight +
       static_cast<int>(visual_rows - 1) * visual_style::kSidebarSplitPaneGap;
   return std::max(standard_row_height, adaptive_height);
 }

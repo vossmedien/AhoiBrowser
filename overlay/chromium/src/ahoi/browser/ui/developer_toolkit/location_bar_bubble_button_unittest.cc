@@ -65,18 +65,18 @@ class LocationBarBubbleButtonTest : public views::ViewsTestBase {
 };
 
 TEST_F(LocationBarBubbleButtonTest,
-       ExistingSurfaceDismissalDoesNotReopenOnMouseRelease) {
+       SecondMousePressClosesExactlyOnceWithoutReleaseReopen) {
   bool surface_showing = true;
   int activation_count = 0;
   auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
   auto* button = MountButton(widget.get(), &surface_showing, &activation_count);
 
   EXPECT_TRUE(button->OnMousePressed(MouseEvent(ui::EventType::kMousePressed)));
-  // Mirrors a close-on-deactivate bubble disappearing between press/release.
-  surface_showing = false;
+  EXPECT_EQ(1, activation_count);
+  EXPECT_FALSE(surface_showing);
   button->OnMouseReleased(MouseEvent(ui::EventType::kMouseReleased));
 
-  EXPECT_EQ(0, activation_count);
+  EXPECT_EQ(1, activation_count);
   EXPECT_FALSE(surface_showing);
 }
 
@@ -117,13 +117,13 @@ TEST_F(LocationBarBubbleButtonTest,
   auto* button = MountButton(widget.get(), &surface_showing, &activation_count);
 
   EXPECT_TRUE(button->OnMousePressed(MouseEvent(ui::EventType::kMousePressed)));
-  surface_showing = false;
   button->OnMouseReleased(MouseEvent(ui::EventType::kMouseReleased));
-  EXPECT_EQ(0, activation_count);
+  EXPECT_EQ(1, activation_count);
+  EXPECT_FALSE(surface_showing);
 
   EXPECT_TRUE(button->OnMousePressed(MouseEvent(ui::EventType::kMousePressed)));
   button->OnMouseReleased(MouseEvent(ui::EventType::kMouseReleased));
-  EXPECT_EQ(1, activation_count);
+  EXPECT_EQ(2, activation_count);
   EXPECT_TRUE(surface_showing);
 }
 

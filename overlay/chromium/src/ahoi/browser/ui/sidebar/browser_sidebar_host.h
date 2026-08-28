@@ -79,6 +79,14 @@ BrowserSidebarSplitDropSource ResolveBrowserSidebarSplitDropSource(
     const drag::SidebarTabDragPayload& payload,
     bool activate_saved_page);
 
+// Publishes the stable identity of a split-pane drag that originated in the
+// WebContents mini toolbar. This activates the same visible sidebar targets as
+// a drag that starts on a sidebar row; Widget drag completion remains the
+// authoritative cancellation boundary.
+void BeginBrowserSidebarSplitPaneDrag(
+    views::View* sidebar_host,
+    const drag::SidebarTabDragPayload& payload);
+
 // Clears all sidebar-owned native drag presentation on drop or cancellation.
 void CancelBrowserSidebarSplitDropDrag(views::View* sidebar_host);
 

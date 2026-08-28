@@ -200,6 +200,7 @@ class BrowserSidebarHostView final : public views::View,
   BrowserSidebarSplitDropSource ResolveSplitDropSource(
       const drag::SidebarTabDragPayload& payload,
       bool activate_saved_page);
+  void BeginSplitPaneDrag(const drag::SidebarTabDragPayload& payload);
   void CancelSplitDropDrag();
 
   ~BrowserSidebarHostView() override;
@@ -343,6 +344,11 @@ class BrowserSidebarHostView final : public views::View,
                         std::optional<int> source_runtime_handle,
                         base::WeakPtr<tabs::TabInterface> target,
                         OpenTabDropPosition position);
+
+  bool CanDropOpenTabToTemporary(
+      const drag::SidebarTabDragPayload& payload) const;
+
+  bool DropOpenTabToTemporary(const drag::SidebarTabDragPayload& payload);
 
   tabs::TabInterface* FindTemporaryTab(int runtime_tab_handle) const;
 

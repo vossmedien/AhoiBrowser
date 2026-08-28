@@ -21,6 +21,10 @@ namespace tabs {
 class TabInterface;
 }
 
+namespace ahoi::drag {
+struct SidebarTabDragPayload;
+}
+
 namespace ui {
 class OSExchangeData;
 }
@@ -102,10 +106,17 @@ std::unique_ptr<views::View> CreateOpenTabSplitRowView(
 
 using DropSavedNodeToTemporaryCallback =
     base::RepeatingCallback<bool(const base::Uuid&)>;
+using CanDropOpenTabToTemporaryCallback =
+    base::RepeatingCallback<bool(const drag::SidebarTabDragPayload&)>;
+using DropOpenTabToTemporaryCallback =
+    base::RepeatingCallback<bool(const drag::SidebarTabDragPayload&)>;
 std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
     DropSavedNodeToTemporaryCallback callback);
-void SetOpenTabsDropTargetAcceptingSavedTab(views::View* view, bool accepting);
-bool IsOpenTabsDropTargetAcceptingSavedTabForTesting(const views::View* view);
+std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
+    CanDropOpenTabToTemporaryCallback can_drop_callback,
+    DropOpenTabToTemporaryCallback drop_callback);
+void SetOpenTabsDropTargetAcceptingTab(views::View* view, bool accepting);
+bool IsOpenTabsDropTargetAcceptingTabForTesting(const views::View* view);
 bool IsOpenTabsDropTargetHighlightedForTesting(const views::View* view);
 
 using CreateGroupForSavedNodeCallback =

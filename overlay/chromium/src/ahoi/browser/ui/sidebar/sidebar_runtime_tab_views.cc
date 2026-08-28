@@ -628,6 +628,74 @@ class OpenTabRowView final : public views::View, public views::DragController {
 BEGIN_METADATA(OpenTabRowView)
 END_METADATA
 
+// Paints the non-interactive group chrome above the pane rows. Keeping the
+// outline and separators in a final child prevents a selected or hovered pane
+// background from erasing the visual boundary of the complete split.
+class OpenTabSplitChromeView final : public views::View {
+ public:
+  OpenTabSplitChromeView(
+      size_t pane_count,
+      const split_tabs::SplitTabVisualData& visual_data)
+      : pane_count_(pane_count), visual_data_(visual_data) {
+    CHECK_GE(pane_count_, 2u);
+    SetCanProcessEventsWithinSubtree(false);
+    GetViewAccessibility().SetIsIgnored(true);
+  }
+
+  OpenTabSplitChromeView(const OpenTabSplitChromeView&) = delete;
+  OpenTabSplitChromeView& operator=(const OpenTabSplitChromeView&) = delete;
+  ~OpenTabSplitChromeView() override = default;
+
+  void OnPaint(gfx::Canvas* canvas) override {
+    views::View::OnPaint(canvas);
+    const ui::ColorProvider* const colors = GetColorProvider();
+    if (!colors || width() <= 0 || height() <= 0) {
+      return;
+    }
+
+    gfx::RectF group_bounds(GetLocalBounds());
+    group_bounds.Inset(gfx::InsetsF::VH(
+        visual_style::kSidebarTabRowVerticalInset,
+        visual_style::kSidebarTabRowHorizontalInset));
+    if (group_bounds.IsEmpty()) {
+      return;
+    }
+
+    cc::PaintFlags outline;
+    outline.setAntiAlias(true);
+    outline.setColor(colors->GetColor(visual_style::kDivider));
+    outline.setStrokeWidth(1.0f);
+    outline.setStyle(cc::PaintFlags::kStroke_Style);
+    gfx::RectF outline_bounds = group_bounds;
+    outline_bounds.Inset(outline.getStrokeWidth() / 2.0f);
+    canvas->DrawRoundRect(
+        outline_bounds,
+        std::max(0.0f, visual_style::kRowCornerRadius -
+                           outline.getStrokeWidth() / 2.0f),
+        outline);
+
+    std::vector<gfx::Rect> pane_bounds;
+    pane_bounds.reserve(pane_count_);
+    const gfx::Rect bounds = GetLocalBounds();
+    for (size_t pane = 0; pane < pane_count_; ++pane) {
+      pane_bounds.push_back(
+          GetSplitSegmentBounds(bounds, pane, pane_count_, visual_data_));
+    }
+
+    cc::PaintFlags separator = outline;
+    gfx::RectF separator_bounds = group_bounds;
+    separator_bounds.Inset(separator.getStrokeWidth() / 2.0f);
+    for (const SidebarSplitSeparator& split_separator :
+         GetSidebarSplitSeparators(pane_bounds, separator_bounds)) {
+      canvas->DrawLine(split_separator.start, split_separator.end, separator);
+    }
+  }
+
+ private:
+  const size_t pane_count_;
+  const split_tabs::SplitTabVisualData visual_data_;
+};
+
 // A live Chromium split is one visual row in the sidebar as well. Temporary
 // panes and mixed saved/temporary collections live in this composite runtime
 // representation, following SplitTabData rather than inferring membership
@@ -645,8 +713,10 @@ class OpenTabSplitRowView final : public views::View {
                                       SidebarTreeRowView::kRowHeight)));
     GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
     for (auto& tab : tabs) {
-      AddChildView(std::move(tab));
+      pane_views_.push_back(AddChildView(std::move(tab)));
     }
+    chrome_overlay_ = AddChildView(std::make_unique<OpenTabSplitChromeView>(
+        pane_views_.size(), visual_data_));
   }
 
   OpenTabSplitRowView(const OpenTabSplitRowView&) = delete;
@@ -654,19 +724,42 @@ class OpenTabSplitRowView final : public views::View {
   ~OpenTabSplitRowView() override = default;
 
   void Layout(PassKey) override {
-    const int count = static_cast<int>(children().size());
+    const int count = static_cast<int>(pane_views_.size());
     if (count == 0) {
       return;
     }
     const gfx::Rect bounds = GetContentsBounds();
     for (int index = 0; index < count; ++index) {
-      children()[index]->SetBoundsRect(
+      pane_views_[index]->SetBoundsRect(
           GetSplitSegmentBounds(bounds, index, count, visual_data_));
     }
+    chrome_overlay_->SetBoundsRect(bounds);
+  }
+
+  void OnPaintBackground(gfx::Canvas* canvas) override {
+    views::View::OnPaintBackground(canvas);
+    const ui::ColorProvider* const colors = GetColorProvider();
+    if (!colors || width() <= 0 || height() <= 0) {
+      return;
+    }
+    gfx::RectF background(GetLocalBounds());
+    background.Inset(gfx::InsetsF::VH(
+        visual_style::kSidebarTabRowVerticalInset,
+        visual_style::kSidebarTabRowHorizontalInset));
+    if (background.IsEmpty()) {
+      return;
+    }
+    cc::PaintFlags fill;
+    fill.setAntiAlias(true);
+    fill.setColor(colors->GetColor(visual_style::kRaisedSurface));
+    fill.setStyle(cc::PaintFlags::kFill_Style);
+    canvas->DrawRoundRect(background, visual_style::kRowCornerRadius, fill);
   }
 
  private:
   const split_tabs::SplitTabVisualData visual_data_;
+  std::vector<raw_ptr<views::View>> pane_views_;
+  raw_ptr<views::View> chrome_overlay_ = nullptr;
 };
 
 BEGIN_METADATA(OpenTabSplitRowView)

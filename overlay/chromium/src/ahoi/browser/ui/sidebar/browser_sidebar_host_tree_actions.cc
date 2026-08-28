@@ -198,6 +198,19 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::ResolveSplitDropSource(
           .tab = tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()};
 }
 
+void BrowserSidebarHostView::BeginSplitPaneDrag(
+    const drag::SidebarTabDragPayload& payload) {
+  if (!payload.is_valid()) {
+    ResetDragPresentation();
+    return;
+  }
+  if (payload.saved_node_id.has_value()) {
+    OnSidebarDragStateChanged(*payload.saved_node_id);
+    return;
+  }
+  OnTemporaryTabDragStateChanged(*payload.runtime_tab_handle);
+}
+
 void BrowserSidebarHostView::CancelSplitDropDrag() {
   ResetDragPresentation();
 }
@@ -803,8 +816,8 @@ void BrowserSidebarHostView::OnSidebarDragStateChanged(
   }
   SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
   tree_view_->SetDragTargetVisible(IsSidebarDragActive());
-  SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_,
-                                         dragged_node_id_.has_value());
+  SetOpenTabsDropTargetAcceptingTab(open_tabs_container_,
+                                    dragged_node_id_.has_value());
   const bool has_open_tabs = !open_tabs_container_->children().empty();
   open_tabs_header_->SetVisible(has_open_tabs);
   // The empty flex surface stays mounted before, during and after a drag.
@@ -828,7 +841,11 @@ void BrowserSidebarHostView::OnTemporaryTabDragStateChanged(
   dragged_runtime_tab_handle_ = runtime_tab_handle;
   if (dragged_runtime_tab_handle_.has_value()) {
     dragged_node_id_.reset();
-    SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_, false);
+    SetOpenTabsDropTargetAcceptingTab(
+        open_tabs_container_,
+        CanDropOpenTabToTemporary(
+            {.saved_node_id = std::nullopt,
+             .runtime_tab_handle = dragged_runtime_tab_handle_}));
   }
   SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
   tree_view_->SetDragTargetVisible(IsSidebarDragActive());
@@ -851,7 +868,7 @@ void BrowserSidebarHostView::ResetDragPresentation() {
   dragged_runtime_tab_handle_.reset();
   SetBrowserSidebarDragRoutingActive(this, false);
   tree_view_->SetDragTargetVisible(false);
-  SetOpenTabsDropTargetAcceptingSavedTab(open_tabs_container_, false);
+  SetOpenTabsDropTargetAcceptingTab(open_tabs_container_, false);
 
   const bool has_open_tabs = !open_tabs_container_->children().empty();
   open_tabs_header_->SetVisible(has_open_tabs);

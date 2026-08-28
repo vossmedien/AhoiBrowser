@@ -39,7 +39,30 @@ void LocationBarBubbleButton::OnEvent(ui::Event* event) {
 
 bool LocationBarBubbleButton::OnMousePressed(const ui::MouseEvent& event) {
   suppress_button_release_ = IsSurfaceShowing();
+  if (suppress_button_release_ && event.IsOnlyLeftMouseButton()) {
+    // Do not depend solely on the close-on-deactivate bubble behavior here.
+    // In particular, an inspected or otherwise non-activating bubble can stay
+    // alive while its anchor receives the press. Route that press through the
+    // controller's toggle contract immediately, then discard the matching
+    // release so the same physical click cannot reopen the surface.
+    auto weak_this = GetWeakPtr();
+    NotifyClick(event);
+    if (!weak_this) {
+      return true;
+    }
+  }
   return views::ImageButton::OnMousePressed(event);
+}
+
+void LocationBarBubbleButton::OnMouseReleased(const ui::MouseEvent& event) {
+  // ImageButton::OnMouseReleased() may invoke product code synchronously. Copy
+  // and clear the suppression state before that call so no member is touched
+  // after a callback that could mutate the surrounding browser chrome.
+  const bool suppress_button_release = suppress_button_release_;
+  suppress_button_release_ = false;
+  if (!suppress_button_release) {
+    views::ImageButton::OnMouseReleased(event);
+  }
 }
 
 bool LocationBarBubbleButton::IsTriggerableEvent(const ui::Event& event) {

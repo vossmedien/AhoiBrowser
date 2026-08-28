@@ -55,6 +55,7 @@ class DeveloperToolkitController {
                                      DeveloperToolbarSurface surface);
 
   bool Show(views::View* anchor_view);
+  void CloseAllSurfaces();
   bool IsSurfaceShowing(DeveloperToolbarSurface surface) const;
   bool CanExecute() const;
   DeveloperActionResult Execute(DeveloperAction action);
@@ -91,12 +92,15 @@ class DeveloperToolkitController {
   base::WeakPtr<content::WebContents> bubble_contents_;
   std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate_;
   std::unique_ptr<views::Widget> bubble_widget_;
+  bool bubble_close_pending_ = false;
   raw_ptr<DeveloperCookieManagerView> cookie_manager_view_ = nullptr;
   std::unique_ptr<views::BubbleDialogDelegate> cookie_manager_delegate_;
   std::unique_ptr<views::Widget> cookie_manager_widget_;
+  bool cookie_manager_close_pending_ = false;
   raw_ptr<DeveloperCacheStatusView> cache_status_view_ = nullptr;
   std::unique_ptr<views::BubbleDialogDelegate> cache_status_delegate_;
   std::unique_ptr<views::Widget> cache_status_widget_;
+  bool cache_status_close_pending_ = false;
   bool cache_clear_in_flight_ = false;
   raw_ptr<DeveloperProfileEditorView> profile_editor_view_ = nullptr;
   std::unique_ptr<views::BubbleDialogDelegate> profile_editor_delegate_;

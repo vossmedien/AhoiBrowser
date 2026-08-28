@@ -44,10 +44,11 @@ class OpenTabsDropTargetView final : public views::View {
   METADATA_HEADER(OpenTabsDropTargetView, views::View)
 
  public:
-  using DropNodeCallback = base::RepeatingCallback<bool(const base::Uuid&)>;
-
-  explicit OpenTabsDropTargetView(DropNodeCallback callback)
-      : callback_(std::move(callback)) {
+  OpenTabsDropTargetView(
+      CanDropOpenTabToTemporaryCallback can_drop_callback,
+      DropOpenTabToTemporaryCallback drop_callback)
+      : can_drop_callback_(std::move(can_drop_callback)),
+        drop_callback_(std::move(drop_callback)) {
     SetLayoutManager(std::make_unique<views::BoxLayout>(
         views::BoxLayout::Orientation::kVertical));
   }
@@ -56,18 +57,18 @@ class OpenTabsDropTargetView final : public views::View {
   OpenTabsDropTargetView& operator=(const OpenTabsDropTargetView&) = delete;
   ~OpenTabsDropTargetView() override = default;
 
-  void SetAcceptingSavedTab(bool accepting) {
-    if (accepting_saved_tab_ == accepting) {
+  void SetAcceptingTab(bool accepting) {
+    if (accepting_tab_ == accepting) {
       return;
     }
-    accepting_saved_tab_ = accepting;
+    accepting_tab_ = accepting;
     if (!accepting) {
       highlighted_ = false;
     }
     UpdateDropTargetBackground();
   }
 
-  bool accepting_saved_tab_for_testing() const { return accepting_saved_tab_; }
+  bool accepting_tab_for_testing() const { return accepting_tab_; }
 
   bool highlighted_for_testing() const { return highlighted_; }
 
@@ -76,7 +77,7 @@ class OpenTabsDropTargetView final : public views::View {
     gfx::Size preferred = views::View::CalculatePreferredSize(available_size);
     // Keep one stable empty-row affordance regardless of drag state. The host
     // flexes this surface across the remaining sidebar height, so accepting a
-    // saved tab changes only paint/drop semantics and never tree geometry.
+    // tab changes only paint/drop semantics and never tree geometry.
     preferred.set_height(
         std::max(preferred.height(), SidebarTreeRowView::kRowHeight));
     return preferred;
@@ -87,6 +88,7 @@ class OpenTabsDropTargetView final : public views::View {
       std::set<ui::ClipboardFormatType>* format_types) override {
     *formats |= ui::OSExchangeData::PICKLED_DATA;
     format_types->insert(drag::SavedSidebarTabDragFormat());
+    format_types->insert(drag::RuntimeSidebarTabDragFormat());
     return true;
   }
 
@@ -95,17 +97,21 @@ class OpenTabsDropTargetView final : public views::View {
   bool CanDrop(const ui::OSExchangeData& data) override {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(data);
-    return accepting_saved_tab_ && payload.has_value() &&
-           payload->is_saved_tab();
+    return payload.has_value() && can_drop_callback_ &&
+           can_drop_callback_.Run(*payload);
   }
 
   void OnDragEntered(const ui::DropTargetEvent&) override {
+    // Views only enters a target after CanDrop succeeds. Keeping this lifecycle
+    // method data-independent also makes synthetic accessibility drags stable.
     SetHighlighted(true);
   }
 
-  int OnDragUpdated(const ui::DropTargetEvent&) override {
-    return accepting_saved_tab_ ? ui::DragDropTypes::DRAG_MOVE
-                                : ui::DragDropTypes::DRAG_NONE;
+  int OnDragUpdated(const ui::DropTargetEvent& event) override {
+    const bool can_drop = CanDrop(event.data());
+    SetHighlighted(can_drop);
+    return can_drop ? ui::DragDropTypes::DRAG_MOVE
+                    : ui::DragDropTypes::DRAG_NONE;
   }
 
   void OnDragExited() override { SetHighlighted(false); }
@@ -114,23 +120,23 @@ class OpenTabsDropTargetView final : public views::View {
       const ui::DropTargetEvent& event) override {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(event.data());
-    if (!payload.has_value() || !payload->saved_node_id.has_value()) {
+    if (!payload.has_value() || !can_drop_callback_ ||
+        !can_drop_callback_.Run(*payload)) {
       return {};
     }
     return base::BindOnce(&OpenTabsDropTargetView::PerformDrop,
-                          weak_ptr_factory_.GetWeakPtr(),
-                          *payload->saved_node_id);
+                          weak_ptr_factory_.GetWeakPtr(), *payload);
   }
 
  private:
   void SetHighlighted(bool highlighted) {
-    highlighted_ = highlighted && accepting_saved_tab_;
+    highlighted_ = highlighted;
     UpdateDropTargetBackground();
   }
 
   void UpdateDropTargetBackground() {
     SetBackground(
-        accepting_saved_tab_
+        accepting_tab_ || highlighted_
             ? views::CreateRoundedRectBackground(
                   highlighted_ ? visual_style::kDropTargetSurface
                                : visual_style::kHoverSurface,
@@ -140,18 +146,22 @@ class OpenTabsDropTargetView final : public views::View {
     SchedulePaint();
   }
 
-  void PerformDrop(base::Uuid source_node_id,
+  void PerformDrop(drag::SidebarTabDragPayload payload,
                    const ui::DropTargetEvent&,
                    ui::mojom::DragOperation& output_drag_op,
                    std::unique_ptr<ui::LayerTreeOwner>) {
+    // The callback may synchronously refresh the sidebar. Copy it before the
+    // call and do not access this View afterwards.
+    DropOpenTabToTemporaryCallback drop_callback = drop_callback_;
     SetHighlighted(false);
-    output_drag_op = callback_.Run(source_node_id)
+    output_drag_op = drop_callback && drop_callback.Run(payload)
                          ? ui::mojom::DragOperation::kMove
                          : ui::mojom::DragOperation::kNone;
   }
 
-  const DropNodeCallback callback_;
-  bool accepting_saved_tab_ = false;
+  const CanDropOpenTabToTemporaryCallback can_drop_callback_;
+  const DropOpenTabToTemporaryCallback drop_callback_;
+  bool accepting_tab_ = false;
   bool highlighted_ = false;
   base::WeakPtrFactory<OpenTabsDropTargetView> weak_ptr_factory_{this};
 };
@@ -350,18 +360,37 @@ END_METADATA
 
 std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
     DropSavedNodeToTemporaryCallback callback) {
-  return std::make_unique<OpenTabsDropTargetView>(std::move(callback));
+  CanDropOpenTabToTemporaryCallback can_drop_callback = base::BindRepeating(
+      [](const drag::SidebarTabDragPayload& payload) {
+        return payload.is_saved_tab();
+      });
+  DropOpenTabToTemporaryCallback drop_callback = base::BindRepeating(
+      [](DropSavedNodeToTemporaryCallback callback,
+         const drag::SidebarTabDragPayload& payload) {
+        return payload.saved_node_id.has_value() &&
+               callback.Run(*payload.saved_node_id);
+      },
+      std::move(callback));
+  return CreateOpenTabsDropTargetView(std::move(can_drop_callback),
+                                      std::move(drop_callback));
 }
 
-void SetOpenTabsDropTargetAcceptingSavedTab(views::View* view, bool accepting) {
+std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
+    CanDropOpenTabToTemporaryCallback can_drop_callback,
+    DropOpenTabToTemporaryCallback drop_callback) {
+  return std::make_unique<OpenTabsDropTargetView>(
+      std::move(can_drop_callback), std::move(drop_callback));
+}
+
+void SetOpenTabsDropTargetAcceptingTab(views::View* view, bool accepting) {
   if (auto* target = views::AsViewClass<OpenTabsDropTargetView>(view)) {
-    target->SetAcceptingSavedTab(accepting);
+    target->SetAcceptingTab(accepting);
   }
 }
 
-bool IsOpenTabsDropTargetAcceptingSavedTabForTesting(const views::View* view) {
+bool IsOpenTabsDropTargetAcceptingTabForTesting(const views::View* view) {
   const auto* target = views::AsViewClass<OpenTabsDropTargetView>(view);
-  return target && target->accepting_saved_tab_for_testing();
+  return target && target->accepting_tab_for_testing();
 }
 
 bool IsOpenTabsDropTargetHighlightedForTesting(const views::View* view) {

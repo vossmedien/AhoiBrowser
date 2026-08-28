@@ -9,6 +9,7 @@
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "ahoi/browser/ui/split_drop/split_drop_overlay_view.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -63,6 +64,60 @@ std::vector<int> SplitHandles(const split_tabs::SplitTabData& split_data) {
     handles.push_back(tab->GetHandle().raw_value());
   }
   return handles;
+}
+
+tabs::TabInterface* FindTabByHandleInModel(TabStripModel* tab_strip_model,
+                                           int handle);
+
+bool SplitExtractionMatchesSnapshot(
+    TabStripModel* tab_strip_model,
+    int source_handle,
+    const sidebar::SplitTabExtractionSnapshot& snapshot) {
+  if (!tab_strip_model || snapshot.member_handles.size() < 2u) {
+    return false;
+  }
+  tabs::TabInterface* const source =
+      FindTabByHandleInModel(tab_strip_model, source_handle);
+  if (!source || source->GetSplit().has_value()) {
+    return false;
+  }
+
+  std::vector<int> expected_remainder;
+  expected_remainder.reserve(snapshot.member_handles.size() - 1u);
+  for (int handle : snapshot.member_handles) {
+    if (handle != source_handle) {
+      expected_remainder.push_back(handle);
+    }
+  }
+  if (expected_remainder.size() + 1u != snapshot.member_handles.size()) {
+    return false;
+  }
+
+  if (expected_remainder.size() == 1u) {
+    tabs::TabInterface* const remainder =
+        FindTabByHandleInModel(tab_strip_model, expected_remainder.front());
+    return remainder && !remainder->GetSplit().has_value() &&
+           !tab_strip_model->ContainsSplit(snapshot.split_id);
+  }
+  if (expected_remainder.size() < 2u ||
+      !tab_strip_model->ContainsSplit(snapshot.split_id)) {
+    return false;
+  }
+
+  const split_tabs::SplitTabData* const remainder_split =
+      tab_strip_model->GetSplitData(snapshot.split_id);
+  if (!remainder_split || !remainder_split->visual_data() ||
+      SplitHandles(*remainder_split) != expected_remainder) {
+    return false;
+  }
+  const split_tabs::SplitTabVisualData expected_visual_data =
+      expected_remainder.size() == 3u
+          ? split_tabs::SplitTabVisualData::ForThreePane(
+                snapshot.visual_data.split_layout(),
+                snapshot.visual_data.arrangement())
+          : split_tabs::SplitTabVisualData(
+                snapshot.visual_data.split_layout());
+  return *remainder_split->visual_data() == expected_visual_data;
 }
 
 tabs::TabInterface* FindTabByHandleInModel(TabStripModel* tab_strip_model,
@@ -291,8 +346,47 @@ bool SplitDropController::PerformDrop(
   }
 
   tabs::TabInterface* target = FindTabByHandle(intent->target_tab_handle);
-  if (!target || source.tab.get() == target) {
+  const bool detaching = intent->action == DropAction::kDetachFromSplit;
+  if (!target || (detaching && source.tab.get() != target) ||
+      (!detaching && source.tab.get() == target)) {
     return false;
+  }
+
+  if (detaching) {
+    TabStripModel* const model = tab_strip_model_;
+    const int source_handle = source.tab->GetHandle().raw_value();
+    const std::optional<sidebar::SplitTabExtractionSnapshot>
+        extraction_snapshot = sidebar::CaptureSplitTabExtractionSnapshot(
+            model, source.tab.get());
+    if (!extraction_snapshot.has_value() ||
+        !sidebar::ExtractTabFromSplitPreservingRemainder(model,
+                                                         source.tab.get())) {
+      return false;
+    }
+
+    // Extraction itself fails only before mutation. Once it succeeds, keep the
+    // exact prior split shape armed until all postconditions have been checked
+    // using stable handles; any stale or reentrant state restores the original
+    // split id, orientation and pane order.
+    // TabStripModel is Browser-owned and outlives this BrowserView-owned
+    // controller. Keep it directly in the synchronous scope guard so a
+    // reentrant BrowserView rebuild cannot disarm rollback.
+    base::ScopedClosureRunner rollback_extraction(base::BindOnce(
+        [](TabStripModel* tab_strip_model,
+           sidebar::SplitTabExtractionSnapshot snapshot) {
+          if (!sidebar::RestoreSplitTabExtraction(tab_strip_model, snapshot)) {
+            LOG(ERROR) << "Split pane detach failed and its model rollback was "
+                          "incomplete";
+          }
+        },
+        base::Unretained(model), *extraction_snapshot));
+    if (!SplitExtractionMatchesSnapshot(model, source_handle,
+                                        *extraction_snapshot)) {
+      return false;
+    }
+    rollback_extraction.ReplaceClosure(base::OnceClosure());
+    rollback_materialized_source.ReplaceClosure(base::OnceClosure());
+    return true;
   }
   const base::WeakPtr<tabs::TabInterface> weak_target = target->GetWeakPtr();
 

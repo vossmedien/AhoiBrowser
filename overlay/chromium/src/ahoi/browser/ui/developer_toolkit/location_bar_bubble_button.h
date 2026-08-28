@@ -17,11 +17,12 @@ namespace ahoi {
 
 // An address-bar image button whose action owns a close-on-deactivate surface.
 //
-// On desktop, clicking an already-open bubble dismisses it before the button
-// receives the matching mouse release. Remembering the state at mouse press
-// prevents that release from immediately reopening the surface. Non-mouse
-// activation is deliberately left triggerable so keyboard and touch invoke the
-// controller's normal toggle contract.
+// On desktop, clicking an already-open bubble can dismiss it before the button
+// receives the matching mouse release. The button explicitly routes a press on
+// its own open surface through the controller's close branch and suppresses the
+// paired release, so one physical click can never close and immediately reopen
+// the surface. Non-mouse activation remains triggerable so keyboard and touch
+// use the same controller toggle contract.
 class LocationBarBubbleButton final : public views::ImageButton {
   METADATA_HEADER(LocationBarBubbleButton, views::ImageButton)
 
@@ -37,6 +38,7 @@ class LocationBarBubbleButton final : public views::ImageButton {
   // views::ImageButton:
   void OnEvent(ui::Event* event) override;
   bool OnMousePressed(const ui::MouseEvent& event) override;
+  void OnMouseReleased(const ui::MouseEvent& event) override;
   bool IsTriggerableEvent(const ui::Event& event) override;
 
  private:

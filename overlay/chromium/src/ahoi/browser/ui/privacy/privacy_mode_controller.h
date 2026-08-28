@@ -36,6 +36,7 @@ class PrivacyModeController {
   ~PrivacyModeController();
 
   bool Show(views::View* anchor_view);
+  void Close();
   bool IsShowing() const;
   bool CanShow() const;
 
@@ -49,6 +50,7 @@ class PrivacyModeController {
   raw_ptr<Browser> browser_ = nullptr;
   std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate_;
   std::unique_ptr<views::Widget> bubble_widget_;
+  bool bubble_close_pending_ = false;
   base::WeakPtrFactory<PrivacyModeController> weak_ptr_factory_{this};
 };
 

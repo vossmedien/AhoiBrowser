@@ -45,11 +45,12 @@ void SplitDropOverlayView::OnPaint(gfx::Canvas* canvas) {
 
   const SkColor accent = GetColorProvider()->GetColor(visual_style::kAccent);
   const gfx::RectF highlight(intent_->highlight_bounds);
+  const bool detaching = intent_->action == DropAction::kDetachFromSplit;
   constexpr float kRadius = 12.0f;
 
   cc::PaintFlags fill;
   fill.setAntiAlias(true);
-  fill.setColor(SkColorSetA(accent, 0x38));
+  fill.setColor(SkColorSetA(accent, detaching ? 0x48 : 0x38));
   fill.setStyle(cc::PaintFlags::kFill_Style);
   canvas->DrawRoundRect(highlight, kRadius, fill);
 
@@ -59,6 +60,28 @@ void SplitDropOverlayView::OnPaint(gfx::Canvas* canvas) {
   stroke.setStrokeWidth(3.0f);
   stroke.setStyle(cc::PaintFlags::kStroke_Style);
   canvas->DrawRoundRect(highlight, kRadius, stroke);
+
+  if (detaching) {
+    gfx::RectF outer_edge = highlight;
+    constexpr float kEdgeMarkerThickness = 6.0f;
+    if (intent_->zone == DropZone::kLeft) {
+      outer_edge.set_width(kEdgeMarkerThickness);
+    } else if (intent_->zone == DropZone::kRight) {
+      outer_edge.set_x(outer_edge.right() - kEdgeMarkerThickness);
+      outer_edge.set_width(kEdgeMarkerThickness);
+    } else if (intent_->zone == DropZone::kTop) {
+      outer_edge.set_height(kEdgeMarkerThickness);
+    } else {
+      outer_edge.set_y(outer_edge.bottom() - kEdgeMarkerThickness);
+      outer_edge.set_height(kEdgeMarkerThickness);
+    }
+    cc::PaintFlags edge_marker;
+    edge_marker.setAntiAlias(true);
+    edge_marker.setColor(SkColorSetA(accent, 0xF2));
+    edge_marker.setStyle(cc::PaintFlags::kFill_Style);
+    canvas->DrawRoundRect(outer_edge, kEdgeMarkerThickness / 2.0f,
+                          edge_marker);
+  }
 }
 
 void SplitDropOverlayView::OnThemeChanged() {

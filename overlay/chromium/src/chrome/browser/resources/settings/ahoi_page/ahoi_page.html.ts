@@ -75,7 +75,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
           <div class="secondary">$i18n{ahoiArcImportSectionSublabel}</div>
         </div>
       </div>
-      <div id="ahoiArcImportAssistant" class="arc-import-card"
+      <section id="ahoiArcImportAssistant" class="arc-import-card"
           aria-labelledby="ahoiArcImportHeading">
         <div id="ahoiArcImportHeading" class="arc-import-title">
           $i18n{ahoiArcImportTitle}
@@ -101,8 +101,12 @@ export function getHtml(this: SettingsAhoiPageElement) {
         ` : ''}
 
         ${this.arcImportPreview_ && this.arcImportStage_ === 'preview' ? html`
-          <div class="arc-import-preview" aria-label="$i18n{ahoiArcImportPreview}">
-            <div class="arc-import-subheading">$i18n{ahoiArcImportPreview}</div>
+          <section class="arc-import-preview"
+              aria-labelledby="ahoiArcImportPreviewHeading">
+            <div id="ahoiArcImportPreviewHeading"
+                class="arc-import-subheading">
+              $i18n{ahoiArcImportPreview}
+            </div>
             <dl class="arc-import-counts">
               <div><dt>$i18n{ahoiArcImportWorkspaces}</dt>
                 <dd>${this.arcImportPreview_.stats.workspaces}</dd></div>
@@ -182,7 +186,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
                 @click="${this.onArcCommitClick_}">
               $i18n{ahoiArcImportCommit}
             </cr-button>
-          </div>
+          </section>
         ` : ''}
 
         ${this.arcImportStage_ === 'done' ? html`
@@ -194,7 +198,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
             </div>
           </div>
         ` : ''}
-      </div>
+      </section>
 
       <div class="section-heading cr-row hr">
         <div class="flex cr-padded-text">

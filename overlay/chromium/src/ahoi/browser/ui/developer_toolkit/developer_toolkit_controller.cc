@@ -109,8 +109,10 @@ bool DeveloperToolkitController::Show(views::View* anchor_view) {
   }
   // Toggling an already-open surface must remain possible even if focus moved
   // programmatically to an unsupported pane between press and release.
-  if (bubble_widget_) {
-    bubble_widget_->Close();
+  if (bubble_widget_ || bubble_close_pending_) {
+    if (bubble_widget_) {
+      bubble_widget_->Close();
+    }
     return true;
   }
   content::WebContents* const contents = GetActiveWebContents();
@@ -208,13 +210,29 @@ bool DeveloperToolkitController::IsSurfaceShowing(
     DeveloperToolbarSurface surface) const {
   switch (surface) {
     case DeveloperToolbarSurface::kToolkit:
-      return bubble_widget_ != nullptr;
+      return bubble_widget_ != nullptr || bubble_close_pending_;
     case DeveloperToolbarSurface::kCookieManager:
-      return cookie_manager_widget_ != nullptr;
+      return cookie_manager_widget_ != nullptr ||
+             cookie_manager_close_pending_;
     case DeveloperToolbarSurface::kCacheClear:
-      return cache_status_widget_ != nullptr;
+      return cache_status_widget_ != nullptr || cache_status_close_pending_;
   }
   return false;
+}
+
+void DeveloperToolkitController::CloseAllSurfaces() {
+  if (bubble_widget_) {
+    bubble_widget_->Close();
+  }
+  if (cookie_manager_widget_) {
+    cookie_manager_widget_->Close();
+  }
+  if (cache_status_widget_) {
+    cache_status_widget_->Close();
+  }
+  if (profile_editor_widget_) {
+    profile_editor_widget_->Close();
+  }
 }
 
 bool DeveloperToolkitController::CanExecute() const {
@@ -366,14 +384,18 @@ void DeveloperToolkitController::OpenCookieManager(views::View* anchor_view) {
 }
 
 bool DeveloperToolkitController::ShowCookieManager(views::View* anchor_view) {
-  content::WebContents* const contents = GetActiveWebContents();
-  if (!anchor_view || !anchor_view->GetWidget() ||
-      !IsSupportedDeveloperTarget(contents)) {
+  if (!anchor_view || !anchor_view->GetWidget()) {
     return false;
   }
-  if (cookie_manager_widget_) {
-    cookie_manager_widget_->Close();
+  if (cookie_manager_widget_ || cookie_manager_close_pending_) {
+    if (cookie_manager_widget_) {
+      cookie_manager_widget_->Close();
+    }
     return true;
+  }
+  content::WebContents* const contents = GetActiveWebContents();
+  if (!IsSupportedDeveloperTarget(contents)) {
+    return false;
   }
   if (bubble_widget_) {
     bubble_widget_->Close();
@@ -424,14 +446,18 @@ bool DeveloperToolkitController::ShowCookieManager(views::View* anchor_view) {
 }
 
 bool DeveloperToolkitController::ShowCacheClear(views::View* anchor_view) {
-  content::WebContents* const contents = GetActiveWebContents();
-  if (!anchor_view || !anchor_view->GetWidget() ||
-      !IsSupportedDeveloperTarget(contents)) {
+  if (!anchor_view || !anchor_view->GetWidget()) {
     return false;
   }
-  if (cache_status_widget_) {
-    cache_status_widget_->Close();
+  if (cache_status_widget_ || cache_status_close_pending_) {
+    if (cache_status_widget_) {
+      cache_status_widget_->Close();
+    }
     return true;
+  }
+  content::WebContents* const contents = GetActiveWebContents();
+  if (!IsSupportedDeveloperTarget(contents)) {
+    return false;
   }
   if (bubble_widget_) {
     bubble_widget_->Close();
@@ -690,48 +716,66 @@ void DeveloperToolkitController::OnCacheClearFinished(
 
 void DeveloperToolkitController::OnBubbleClosed() {
   bubble_contents_.reset();
+  bubble_close_pending_ = true;
   std::unique_ptr<views::Widget> closed_widget = std::move(bubble_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
       std::move(bubble_delegate_);
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(
-                     [](std::unique_ptr<views::Widget> widget,
+                     [](base::WeakPtr<DeveloperToolkitController> controller,
+                        std::unique_ptr<views::Widget> widget,
                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
                        widget.reset();
                        delegate.reset();
+                       if (controller) {
+                         controller->bubble_close_pending_ = false;
+                       }
                      },
+                     weak_ptr_factory_.GetWeakPtr(),
                      std::move(closed_widget), std::move(closed_delegate)));
 }
 
 void DeveloperToolkitController::OnCookieManagerClosed() {
   cookie_manager_view_ = nullptr;
+  cookie_manager_close_pending_ = true;
   std::unique_ptr<views::Widget> closed_widget =
       std::move(cookie_manager_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
       std::move(cookie_manager_delegate_);
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(
-                     [](std::unique_ptr<views::Widget> widget,
+                     [](base::WeakPtr<DeveloperToolkitController> controller,
+                        std::unique_ptr<views::Widget> widget,
                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
                        widget.reset();
                        delegate.reset();
+                       if (controller) {
+                         controller->cookie_manager_close_pending_ = false;
+                       }
                      },
+                     weak_ptr_factory_.GetWeakPtr(),
                      std::move(closed_widget), std::move(closed_delegate)));
 }
 
 void DeveloperToolkitController::OnCacheStatusClosed() {
   cache_status_view_ = nullptr;
+  cache_status_close_pending_ = true;
   std::unique_ptr<views::Widget> closed_widget =
       std::move(cache_status_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
       std::move(cache_status_delegate_);
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(
-                     [](std::unique_ptr<views::Widget> widget,
+                     [](base::WeakPtr<DeveloperToolkitController> controller,
+                        std::unique_ptr<views::Widget> widget,
                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
                        widget.reset();
                        delegate.reset();
+                       if (controller) {
+                         controller->cache_status_close_pending_ = false;
+                       }
                      },
+                     weak_ptr_factory_.GetWeakPtr(),
                      std::move(closed_widget), std::move(closed_delegate)));
 }
 

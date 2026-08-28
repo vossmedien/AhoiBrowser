@@ -12,6 +12,25 @@ namespace ahoi::split_drop {
 namespace {
 
 constexpr size_t kMaximumPaneCount = 4;
+constexpr int kOuterEdgeTolerance = 2;
+
+int DetachHitExtent(int pane_extent) {
+  constexpr double kEdgeFraction = 0.24;
+  constexpr int kMinimumExtent = 56;
+  constexpr int kMaximumExtent = 96;
+  const int scaled = static_cast<int>(pane_extent * kEdgeFraction);
+  return std::min(std::max(1, pane_extent / 2),
+                  std::clamp(scaled, kMinimumExtent, kMaximumExtent));
+}
+
+int DetachPreviewExtent(int pane_extent) {
+  constexpr double kEdgeFraction = 0.36;
+  constexpr int kMinimumExtent = 72;
+  constexpr int kMaximumExtent = 160;
+  const int scaled = static_cast<int>(pane_extent * kEdgeFraction);
+  return std::min(std::max(1, pane_extent / 2),
+                  std::clamp(scaled, kMinimumExtent, kMaximumExtent));
+}
 
 bool IsLeadingZone(DropZone zone) {
   return zone == DropZone::kLeft || zone == DropZone::kTop;
@@ -43,6 +62,77 @@ gfx::Rect HighlightForZone(const gfx::Rect& pane, DropZone zone) {
   }
   highlight.Inset(4);
   return highlight;
+}
+
+gfx::Rect HighlightForDetachZone(const gfx::Rect& pane, DropZone zone) {
+  gfx::Rect highlight = pane;
+  if (zone == DropZone::kLeft || zone == DropZone::kRight) {
+    const int width = DetachPreviewExtent(pane.width());
+    highlight.set_width(width);
+    if (zone == DropZone::kRight) {
+      highlight.set_x(pane.right() - width);
+    }
+  } else {
+    const int height = DetachPreviewExtent(pane.height());
+    highlight.set_height(height);
+    if (zone == DropZone::kBottom) {
+      highlight.set_y(pane.bottom() - height);
+    }
+  }
+  highlight.Inset(4);
+  return highlight;
+}
+
+gfx::Rect VisiblePaneBounds(const std::vector<SplitDropPane>& visible_panes) {
+  gfx::Rect bounds;
+  for (const SplitDropPane& pane : visible_panes) {
+    if (!pane.bounds.IsEmpty()) {
+      bounds.Union(pane.bounds);
+    }
+  }
+  return bounds;
+}
+
+std::optional<DropZone> DetachZoneForPoint(
+    const gfx::Point& point,
+    const gfx::Rect& source_pane,
+    const gfx::Rect& all_panes,
+    split_tabs::SplitTabLayout layout) {
+  if (source_pane.IsEmpty() || all_panes.IsEmpty() ||
+      !source_pane.Contains(point)) {
+    return std::nullopt;
+  }
+
+  std::optional<std::pair<int, DropZone>> nearest;
+  const auto consider = [&nearest](bool eligible, int distance,
+                                    DropZone zone) {
+    if (eligible && distance >= 0 &&
+        (!nearest.has_value() || distance < nearest->first)) {
+      nearest = std::pair(distance, zone);
+    }
+  };
+
+  if (layout == split_tabs::SplitTabLayout::kSideBySide) {
+    const int hit_extent = DetachHitExtent(source_pane.width());
+    consider(source_pane.x() <= all_panes.x() + kOuterEdgeTolerance &&
+                 point.x() - source_pane.x() <= hit_extent,
+             point.x() - source_pane.x(), DropZone::kLeft);
+    consider(source_pane.right() >=
+                     all_panes.right() - kOuterEdgeTolerance &&
+                 source_pane.right() - point.x() <= hit_extent,
+             source_pane.right() - point.x(), DropZone::kRight);
+  } else {
+    const int hit_extent = DetachHitExtent(source_pane.height());
+    consider(source_pane.y() <= all_panes.y() + kOuterEdgeTolerance &&
+                 point.y() - source_pane.y() <= hit_extent,
+             point.y() - source_pane.y(), DropZone::kTop);
+    consider(source_pane.bottom() >=
+                     all_panes.bottom() - kOuterEdgeTolerance &&
+                 source_pane.bottom() - point.y() <= hit_extent,
+             source_pane.bottom() - point.y(), DropZone::kBottom);
+  }
+  return nearest.has_value() ? std::make_optional(nearest->second)
+                             : std::nullopt;
 }
 
 std::vector<int> NormalizedTargetOrder(const SplitDropTabState& target) {
@@ -131,6 +221,34 @@ std::optional<DropIntent> CalculateDropIntent(
   if (target_order.empty() || target_order.size() > kMaximumPaneCount ||
       target_position == target_order.end()) {
     return std::nullopt;
+  }
+
+  // Dragging a visible split pane onto its own physical outer edge means
+  // detaching that pane, not reordering it before/after itself. The split's
+  // orientation selects the valid axis, while the pane/group geometry selects
+  // the actual leading or trailing outside edge. Interior edges deliberately
+  // keep their existing split/reorder semantics.
+  if (source_state.has_value() && source_state->split_id.has_value() &&
+      source_state->tab_handle == target_state.tab_handle &&
+      source_state->split_id == target_state.split_id &&
+      source_state->split_order == target_order &&
+      source_state->split_order.size() >= 2u &&
+      source_state->split_order.size() == visible_panes.size()) {
+    const std::optional<DropZone> detach_zone = DetachZoneForPoint(
+        point, pane_it->bounds, VisiblePaneBounds(visible_panes),
+        source_state->split_layout);
+    if (!detach_zone.has_value()) {
+      return std::nullopt;
+    }
+    return DropIntent{
+        .source = payload,
+        .action = DropAction::kDetachFromSplit,
+        .zone = *detach_zone,
+        .target_tab_handle = target_state.tab_handle,
+        .target_pane_index = target_pane_index,
+        .layout = source_state->split_layout,
+        .highlight_bounds =
+            HighlightForDetachZone(pane_it->bounds, *detach_zone)};
   }
 
   const DropZone zone = ClassifyDropZone(point, pane_it->bounds);

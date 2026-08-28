@@ -59,14 +59,14 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   auto new_group = CreateNewGroupDropTargetViewForTesting(u"Neue Gruppe");
   SetNewGroupDropTargetVisible(new_group.get(), true);
 
-  EXPECT_FALSE(IsOpenTabsDropTargetAcceptingSavedTabForTesting(target.get()));
+  EXPECT_FALSE(IsOpenTabsDropTargetAcceptingTabForTesting(target.get()));
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
   EXPECT_EQ(nullptr, target->GetBackground());
   EXPECT_EQ(visual_style::kSidebarTabRowHeight,
             target->GetPreferredSize().height());
 
-  SetOpenTabsDropTargetAcceptingSavedTab(target.get(), true);
-  EXPECT_TRUE(IsOpenTabsDropTargetAcceptingSavedTabForTesting(target.get()));
+  SetOpenTabsDropTargetAcceptingTab(target.get(), true);
+  EXPECT_TRUE(IsOpenTabsDropTargetAcceptingTabForTesting(target.get()));
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
   EXPECT_NE(nullptr, target->GetBackground());
   EXPECT_EQ(visual_style::kSidebarTabRowHeight,
@@ -82,8 +82,8 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
   EXPECT_NE(nullptr, target->GetBackground());
 
-  SetOpenTabsDropTargetAcceptingSavedTab(target.get(), false);
-  EXPECT_FALSE(IsOpenTabsDropTargetAcceptingSavedTabForTesting(target.get()));
+  SetOpenTabsDropTargetAcceptingTab(target.get(), false);
+  EXPECT_FALSE(IsOpenTabsDropTargetAcceptingTabForTesting(target.get()));
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
   EXPECT_EQ(nullptr, target->GetBackground());
   EXPECT_EQ(visual_style::kSidebarTabRowHeight,
@@ -94,6 +94,41 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   // native drag.
   EXPECT_TRUE(new_group->GetVisible());
   EXPECT_TRUE(new_group->GetCanProcessEventsWithinSubtree());
+}
+
+TEST_F(SidebarRuntimeDropTargetsTest,
+       OpenTabsTargetAcceptsOnlyValidatedRuntimeSplitPayload) {
+  auto target = CreateOpenTabsDropTargetView(
+      base::BindRepeating([](const drag::SidebarTabDragPayload& payload) {
+        return payload.runtime_tab_handle == 17;
+      }),
+      base::BindRepeating(
+          [](const drag::SidebarTabDragPayload& payload) {
+            return payload.runtime_tab_handle == 17;
+          }));
+  SetOpenTabsDropTargetAcceptingTab(target.get(), true);
+
+  ui::OSExchangeData accepted_data;
+  WriteOpenTabDragPayload(&accepted_data, std::nullopt, 17, u"Split pane");
+  ui::DropTargetEvent accepted_event(
+      accepted_data, gfx::PointF(), gfx::PointF(),
+      ui::DragDropTypes::DRAG_MOVE);
+  EXPECT_TRUE(target->CanDrop(accepted_data));
+  target->OnDragEntered(accepted_event);
+  EXPECT_TRUE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
+  EXPECT_EQ(ui::DragDropTypes::DRAG_MOVE,
+            target->OnDragUpdated(accepted_event));
+  EXPECT_FALSE(target->GetDropCallback(accepted_event).is_null());
+
+  ui::OSExchangeData rejected_data;
+  WriteOpenTabDragPayload(&rejected_data, std::nullopt, 23, u"Single tab");
+  ui::DropTargetEvent rejected_event(
+      rejected_data, gfx::PointF(), gfx::PointF(),
+      ui::DragDropTypes::DRAG_MOVE);
+  EXPECT_FALSE(target->CanDrop(rejected_data));
+  EXPECT_EQ(ui::DragDropTypes::DRAG_NONE,
+            target->OnDragUpdated(rejected_event));
+  EXPECT_TRUE(target->GetDropCallback(rejected_event).is_null());
 }
 
 TEST_F(SidebarRuntimeDropTargetsTest,

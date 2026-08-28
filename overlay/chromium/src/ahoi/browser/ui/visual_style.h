@@ -87,6 +87,9 @@ inline constexpr int kSidebarTabRowVerticalInset = 2;
 inline constexpr int kSidebarTabRowHorizontalInset = 4;
 inline constexpr int kSidebarSplitPaneHorizontalInset = 1;
 inline constexpr int kSidebarSplitPaneGap = 2;
+// Stacked and grid split segments remain compact, but must still leave enough
+// room for a favicon, an elided title and a reliable desktop pointer target.
+inline constexpr int kSidebarSplitPaneMinimumHeight = 30;
 // Native drag targets use one inset and two deliberately restrained emphasis
 // levels. The idle outline makes the complete drop surface discoverable;
 // acceptance strengthens it without changing geometry under the pointer.

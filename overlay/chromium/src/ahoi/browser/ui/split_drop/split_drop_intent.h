@@ -22,7 +22,11 @@ class WebContents;
 namespace ahoi::split_drop {
 
 enum class DropZone { kLeft, kRight, kTop, kBottom };
-enum class DropAction { kReorderInSplit, kCreateOrAddToSplit };
+enum class DropAction {
+  kReorderInSplit,
+  kCreateOrAddToSplit,
+  kDetachFromSplit,
+};
 
 // BrowserView supplies these in MultiContents-local coordinates. Hidden panes
 // must not be included.

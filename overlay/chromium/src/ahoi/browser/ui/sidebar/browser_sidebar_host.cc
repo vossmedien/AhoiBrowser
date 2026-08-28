@@ -196,6 +196,15 @@ BrowserSidebarSplitDropSource ResolveBrowserSidebarSplitDropSource(
               : BrowserSidebarSplitDropSource();
 }
 
+void BeginBrowserSidebarSplitPaneDrag(
+    views::View* sidebar_host,
+    const drag::SidebarTabDragPayload& payload) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (host) {
+    host->BeginSplitPaneDrag(payload);
+  }
+}
+
 void CancelBrowserSidebarSplitDropDrag(views::View* sidebar_host) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   if (host) {

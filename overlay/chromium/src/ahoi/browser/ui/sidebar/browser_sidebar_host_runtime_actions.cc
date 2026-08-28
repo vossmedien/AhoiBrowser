@@ -15,6 +15,7 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
+#include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
@@ -370,6 +371,84 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
   }
   rollback_model.ReplaceClosure(base::OnceClosure());
   ScheduleRuntimePresentationRefresh();
+  return true;
+}
+
+bool BrowserSidebarHostView::CanDropOpenTabToTemporary(
+    const drag::SidebarTabDragPayload& payload) const {
+  if (!payload.is_valid() || !controller_ || !session_bridge_ ||
+      !tab_strip_model_) {
+    return false;
+  }
+  if (payload.saved_node_id.has_value()) {
+    tab_tree::TreeNode node;
+    return session_bridge_->tab_tree_store()->GetNode(*payload.saved_node_id,
+                                                      &node) ==
+               tab_tree::TabTreeStore::Result::kOk &&
+           !node.tombstone &&
+           node.type == tab_tree::TreeNodeType::kSavedPage;
+  }
+
+  tabs::TabInterface* const source =
+      FindTemporaryTab(*payload.runtime_tab_handle);
+  return source && source->IsSplit() &&
+         CanExtractTabFromSplitPreservingRemainder(tab_strip_model_, source);
+}
+
+bool BrowserSidebarHostView::DropOpenTabToTemporary(
+    const drag::SidebarTabDragPayload& payload) {
+  // A drop can synchronously rebuild the row that owns the drag controller.
+  // Clear both identity channels on every exit and never retain a source View.
+  base::ScopedClosureRunner clear_drag_presentation(base::BindOnce(
+      [](base::WeakPtr<BrowserSidebarHostView> host) {
+        if (!host) {
+          return;
+        }
+        host->OnSidebarDragStateChanged(std::nullopt);
+        host->OnTemporaryTabDragStateChanged(std::nullopt);
+      },
+      weak_ptr_factory_.GetWeakPtr()));
+  if (!CanDropOpenTabToTemporary(payload)) {
+    return false;
+  }
+  if (payload.saved_node_id.has_value()) {
+    // MakeSavedPageTemporary already captures and rolls back Chromium split
+    // membership if the durable store mutation fails.
+    return MakeSavedPageTemporary(*payload.saved_node_id);
+  }
+
+  const int runtime_tab_handle = *payload.runtime_tab_handle;
+  tabs::TabInterface* source = FindTemporaryTab(runtime_tab_handle);
+  std::optional<SplitTabExtractionSnapshot> extraction_snapshot =
+      CaptureSplitTabExtractionSnapshot(tab_strip_model_, source);
+  const base::WeakPtr<BrowserSidebarHostView> weak_host =
+      weak_ptr_factory_.GetWeakPtr();
+  if (!extraction_snapshot.has_value() ||
+      !ExtractTabFromSplitPreservingRemainder(tab_strip_model_, source)) {
+    return false;
+  }
+
+  // TabStrip observers run synchronously during extraction and may rebuild all
+  // sidebar rows. Re-resolve the pane from its stable handle before commit.
+  base::ScopedClosureRunner rollback_extraction(base::BindOnce(
+      [](base::WeakPtr<BrowserSidebarHostView> host,
+         SplitTabExtractionSnapshot snapshot) {
+        if (host && host->tab_strip_model_ &&
+            !RestoreSplitTabExtraction(host->tab_strip_model_, snapshot)) {
+          LOG(ERROR) << "Temporary split-pane detach rollback was incomplete";
+        }
+      },
+      weak_host, std::move(*extraction_snapshot)));
+  source = weak_host ? weak_host->FindTemporaryTab(runtime_tab_handle)
+                     : nullptr;
+  if (!weak_host || !source || source->IsSplit() ||
+      weak_host->session_bridge_->FindTabStripModelForTab(source) !=
+          weak_host->tab_strip_model_) {
+    return false;
+  }
+
+  rollback_extraction.ReplaceClosure(base::OnceClosure());
+  weak_host->ScheduleRuntimePresentationRefresh();
   return true;
 }
 

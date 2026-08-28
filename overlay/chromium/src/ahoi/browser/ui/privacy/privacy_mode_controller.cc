@@ -67,14 +67,19 @@ PrivacyModeController::~PrivacyModeController() {
 }
 
 bool PrivacyModeController::Show(views::View* anchor_view) {
-  content::WebContents* const contents = GetActiveWebContents();
-  Profile* const profile = browser_ ? browser_->GetProfile() : nullptr;
-  if (!anchor_view || !anchor_view->GetWidget() || !contents || !profile) {
+  if (!anchor_view || !anchor_view->GetWidget()) {
     return false;
   }
-  if (bubble_widget_) {
-    bubble_widget_->Close();
+  if (bubble_widget_ || bubble_close_pending_) {
+    if (bubble_widget_) {
+      bubble_widget_->Close();
+    }
     return true;
+  }
+  content::WebContents* const contents = GetActiveWebContents();
+  Profile* const profile = browser_ ? browser_->GetProfile() : nullptr;
+  if (!contents || !profile) {
+    return false;
   }
 
   GURL url = contents->GetLastCommittedURL();
@@ -138,7 +143,13 @@ bool PrivacyModeController::Show(views::View* anchor_view) {
 }
 
 bool PrivacyModeController::IsShowing() const {
-  return bubble_widget_ != nullptr;
+  return bubble_widget_ != nullptr || bubble_close_pending_;
+}
+
+void PrivacyModeController::Close() {
+  if (bubble_widget_) {
+    bubble_widget_->Close();
+  }
 }
 
 bool PrivacyModeController::CanShow() const {
@@ -184,16 +195,22 @@ void PrivacyModeController::ReloadActivePage() {
 }
 
 void PrivacyModeController::OnBubbleClosed() {
+  bubble_close_pending_ = true;
   std::unique_ptr<views::Widget> closed_widget = std::move(bubble_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
       std::move(bubble_delegate_);
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(
-                     [](std::unique_ptr<views::Widget> widget,
+                     [](base::WeakPtr<PrivacyModeController> controller,
+                        std::unique_ptr<views::Widget> widget,
                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
                        widget.reset();
                        delegate.reset();
+                       if (controller) {
+                         controller->bubble_close_pending_ = false;
+                       }
                      },
+                     weak_ptr_factory_.GetWeakPtr(),
                      std::move(closed_widget), std::move(closed_delegate)));
 }
 
