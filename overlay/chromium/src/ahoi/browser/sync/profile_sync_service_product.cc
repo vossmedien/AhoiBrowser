@@ -87,7 +87,37 @@ std::optional<ThemeService::BrowserColorScheme> ParseColorMode(
 
 bool ProfileSyncService::remote_control_enabled() const {
   return profile_ && !shutting_down_ &&
+         remote_control_prerequisite() == RemoteControlPrerequisite::kReady &&
          profile_->GetPrefs()->GetBoolean(kRemoteControlEnabledPref);
+}
+
+ProfileSyncService::RemoteControlPrerequisite
+ProfileSyncService::remote_control_prerequisite() const {
+  if (!profile_ || shutting_down_ || !sync_enabled_) {
+    return RemoteControlPrerequisite::kSyncDisabled;
+  }
+  if (!initialized_ || backend_.is_null() || !transport_status_.enabled ||
+      !transport_status_.provider_available) {
+    return RemoteControlPrerequisite::kTransportUnavailable;
+  }
+  if (transport_status_.account_transition_pending ||
+      transport_status_.zone_recovery_pending) {
+    return RemoteControlPrerequisite::kRecoveryPending;
+  }
+  if (approved_remote_control_devices().empty()) {
+    return RemoteControlPrerequisite::kApprovedDeviceRequired;
+  }
+  return RemoteControlPrerequisite::kReady;
+}
+
+bool ProfileSyncService::can_pair_remote_control_device() const {
+  if (!profile_ || shutting_down_ || !sync_enabled_ || !initialized_ ||
+      backend_.is_null() || !transport_status_.enabled ||
+      !transport_status_.provider_available) {
+    return false;
+  }
+  return !transport_status_.account_transition_pending &&
+         !transport_status_.zone_recovery_pending;
 }
 
 int ProfileSyncService::history_retention_days() const {
@@ -105,7 +135,8 @@ std::vector<base::Uuid> ProfileSyncService::approved_remote_control_devices()
   for (const auto [key, value] :
        profile_->GetPrefs()->GetDict(kApprovedRemoteCommandKeysPref)) {
     const base::Uuid id = base::Uuid::ParseLowercase(key);
-    if (id.is_valid() && value.is_string()) {
+    if (id.is_valid() && value.is_string() &&
+        IsValidRemoteControlPublicKeyBase64(value.GetString())) {
       result.push_back(id);
     }
   }

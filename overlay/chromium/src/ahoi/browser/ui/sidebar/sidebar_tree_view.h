@@ -279,6 +279,10 @@ class SidebarTreeView final : public views::View,
   std::optional<SidebarTreeController::DropPosition>
   NearestReorderPositionForTarget(const base::Uuid& target_node_id,
                                   const gfx::Point& point) const;
+  std::optional<int> InsertionMarkerY(const DropIndicator& indicator) const;
+  std::optional<DropIndicator> StabilizeInsertionSlot(
+      std::optional<DropIndicator> indicator) const;
+  void UpdateInsertionMarker();
   void SetDropIndicator(std::optional<DropIndicator> indicator);
   void UpdateFolderAutoExpand(const std::optional<DropIndicator>& indicator);
   void CancelFolderAutoExpand();
@@ -303,6 +307,7 @@ class SidebarTreeView final : public views::View,
   std::optional<base::Uuid> pressed_node_id_;
   std::optional<base::Uuid> editing_node_id_;
   std::optional<DropIndicator> drop_indicator_;
+  raw_ptr<views::View> insertion_marker_ = nullptr;
   bool drag_target_visible_ = false;
   bool drag_target_accepting_ = false;
   std::set<base::Uuid> runtime_composite_suppressed_nodes_;

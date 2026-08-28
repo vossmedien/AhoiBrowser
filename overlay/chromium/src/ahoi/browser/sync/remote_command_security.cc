@@ -63,6 +63,13 @@ std::string CommandJson(const RemoteCommandRecord& command) {
 
 }  // namespace
 
+bool IsValidRemoteControlPublicKeyBase64(
+    const std::string& public_key_base64) {
+  std::string public_key;
+  return base::Base64Decode(public_key_base64, &public_key) &&
+         public_key.size() == ED25519_PUBLIC_KEY_LEN;
+}
+
 bool CanonicalRemoteCommandPayload(const RemoteCommandRecord& command,
                                    std::string* payload) {
   if (!payload || !command.id.is_valid() ||

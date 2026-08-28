@@ -14,16 +14,17 @@
 namespace ahoi::appearance {
 namespace {
 
-// Before a View has a ColorProvider, preserve the historical restrained
-// fallback. Once attached, choose the smallest bounded alpha that makes the
-// tint visibly distinct from the semantic sidebar surface.
-constexpr uint8_t kFallbackSidebarPageTintAlpha = 0x1c;
-constexpr uint8_t kMinimumSidebarPageTintAlpha = 0x28;
-constexpr uint8_t kMaximumSidebarPageTintAlpha = 0x40;
+// Before a View has a ColorProvider, use a restrained fallback. Once attached,
+// choose the smallest bounded alpha that makes the tint clearly perceptible
+// while retaining the semantic text contrast of the active theme.
+constexpr uint8_t kFallbackSidebarPageTintAlpha = 0x24;
+constexpr uint8_t kMinimumSidebarPageTintAlpha = 0x30;
+constexpr uint8_t kMaximumSidebarPageTintAlpha = 0x50;
 constexpr uint8_t kSidebarPageTintAlphaStep = 0x04;
 constexpr int kMaxFaviconAnalysisDimension = 32;
 constexpr int kMinimumBrandColorDistance = 80;
-constexpr int kTargetTintDistance = 20;
+constexpr int kTargetTintDistance = 26;
+constexpr float kMinimumNormalTextContrast = 4.5f;
 constexpr uint8_t kMinimumBrandColorAlpha = 0x40;
 constexpr double kMinimumBrandColorSaturation = 0.18;
 constexpr double kMinimumBrandColorLightness = 0.08;
@@ -65,22 +66,33 @@ bool IsUsefulBrandColor(
          kMinimumSquaredDistance;
 }
 
-uint8_t ResolveTintAlpha(SkColor source_color, SkColor background_color) {
+std::optional<uint8_t> ResolveTintAlpha(
+    SkColor source_color,
+    SkColor background_color,
+    const std::optional<SkColor>& foreground_color) {
   source_color = SkColorSetA(source_color, SK_AlphaOPAQUE);
   background_color = SkColorSetA(background_color, SK_AlphaOPAQUE);
   constexpr int kTargetSquaredDistance =
       kTargetTintDistance * kTargetTintDistance;
+  std::optional<uint8_t> strongest_safe_alpha;
   for (int alpha = kMinimumSidebarPageTintAlpha;
        alpha <= kMaximumSidebarPageTintAlpha;
        alpha += kSidebarPageTintAlphaStep) {
     const SkColor blended = color_utils::AlphaBlend(
         source_color, background_color, static_cast<SkAlpha>(alpha));
+    if (foreground_color.has_value() &&
+        color_utils::GetContrastRatio(
+            SkColorSetA(*foreground_color, SK_AlphaOPAQUE), blended) <
+            kMinimumNormalTextContrast) {
+      break;
+    }
+    strongest_safe_alpha = static_cast<uint8_t>(alpha);
     if (SquaredRgbDistance(blended, background_color) >=
         kTargetSquaredDistance) {
       return static_cast<uint8_t>(alpha);
     }
   }
-  return kMaximumSidebarPageTintAlpha;
+  return strongest_safe_alpha;
 }
 
 bool HasVisiblePixel(const SkBitmap& bitmap) {
@@ -130,7 +142,9 @@ std::optional<SkColor> ResolveSidebarPageTint(
     bool high_contrast,
     std::optional<SkColor> page_theme_color,
     std::optional<SkColor> favicon_color,
-    std::optional<SkColor> sidebar_background_color) {
+    std::optional<SkColor> sidebar_background_color,
+    std::optional<SkColor> sidebar_foreground_color,
+    bool reduce_transparency) {
   if (!enabled || high_contrast) {
     return std::nullopt;
   }
@@ -146,11 +160,24 @@ std::optional<SkColor> ResolveSidebarPageTint(
   if (!source_color.has_value()) {
     return std::nullopt;
   }
-  const uint8_t alpha = sidebar_background_color.has_value()
-                            ? ResolveTintAlpha(*source_color,
-                                               *sidebar_background_color)
-                            : kFallbackSidebarPageTintAlpha;
-  return SkColorSetA(*source_color, alpha);
+  if (!sidebar_background_color.has_value()) {
+    // Reduced-transparency mode must never introduce a translucent fallback.
+    return reduce_transparency
+               ? std::nullopt
+               : std::make_optional(SkColorSetA(
+                     *source_color, kFallbackSidebarPageTintAlpha));
+  }
+  const std::optional<uint8_t> alpha = ResolveTintAlpha(
+      *source_color, *sidebar_background_color, sidebar_foreground_color);
+  if (!alpha.has_value()) {
+    return std::nullopt;
+  }
+  if (reduce_transparency) {
+    return color_utils::AlphaBlend(
+        SkColorSetA(*source_color, SK_AlphaOPAQUE),
+        SkColorSetA(*sidebar_background_color, SK_AlphaOPAQUE), *alpha);
+  }
+  return SkColorSetA(*source_color, *alpha);
 }
 
 }  // namespace ahoi::appearance

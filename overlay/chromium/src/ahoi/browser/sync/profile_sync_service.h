@@ -52,6 +52,14 @@ class ProfileSyncService final : public KeyedService,
                                  public history::HistoryServiceObserver,
                                  public extensions::ExtensionRegistryObserver {
  public:
+  enum class RemoteControlPrerequisite {
+    kReady = 0,
+    kSyncDisabled,
+    kTransportUnavailable,
+    kRecoveryPending,
+    kApprovedDeviceRequired,
+  };
+
   class Observer : public base::CheckedObserver {
    public:
     ~Observer() override = default;
@@ -101,13 +109,15 @@ class ProfileSyncService final : public KeyedService,
   void SyncNow();
   void SetSyncEnabled(bool enabled);
   [[nodiscard]] bool SetHistoryRetentionDays(int days);
-  void SetRemoteControlEnabled(bool enabled);
+  bool SetRemoteControlEnabled(bool enabled);
   [[nodiscard]] bool ApproveRemoteControlDevice(const base::Uuid& device_id,
                                                 std::string public_key_base64);
   void RevokeRemoteControlDevice(const base::Uuid& device_id);
   void ConfirmCloudKitAccountTransition(bool allow_local_upload);
   void ConfirmCloudKitZoneRecovery();
   bool remote_control_enabled() const;
+  RemoteControlPrerequisite remote_control_prerequisite() const;
+  bool can_pair_remote_control_device() const;
   int history_retention_days() const;
   std::vector<base::Uuid> approved_remote_control_devices() const;
   std::vector<std::string> permitted_setting_ids() const;
@@ -132,6 +142,7 @@ class ProfileSyncService final : public KeyedService,
   void OnCloudKitRecoveryConfirmed(bool confirmed);
   void OnSyncEnabledPrefChanged();
   void OnHistoryRetentionPrefChanged();
+  void OnRemoteControlPolicyPrefChanged();
   void OnBackendState(std::optional<SyncStateSnapshot> snapshot);
   void OnBackendSnapshot(std::optional<DeviceTabsSnapshot> snapshot);
   void OnTabTreeSnapshotChanged(const tab_tree::TabTreeSnapshot& snapshot);

@@ -228,12 +228,65 @@ export function getHtml(this: SettingsAhoiPageElement) {
       </settings-toggle-button>
       <div class="list-frame indented-toggles">
         <settings-toggle-button id="ahoiRemoteControlEnabled"
-            ?disabled="${!this.cloudKitAvailable_ ||
-                !this.syncEnabledPref_?.value}"
+            no-set-pref
+            ?disabled="${!this.remoteControlStatus_?.canEnable ||
+                this.remoteControlActionPending_}"
             pref-key="ahoi.sync.remote_control.enabled"
+            .checked="${this.remoteControlStatus_?.enabled ?? false}"
             label="$i18n{ahoiRemoteControlEnabled}"
-            sub-label="$i18n{ahoiRemoteControlEnabledSublabel}">
+            sub-label="${this.remoteControlPrerequisiteText_()}"
+            @change="${this.onRemoteControlEnabledChange_}">
         </settings-toggle-button>
+        <section id="ahoiRemoteControlPairing" class="remote-pairing-card"
+            aria-labelledby="ahoiRemoteControlPairingTitle">
+          <div id="ahoiRemoteControlPairingTitle" class="pairing-title">
+            $i18n{ahoiRemoteControlPairingTitle}
+          </div>
+          <div class="secondary">
+            $i18n{ahoiRemoteControlPairingSublabel}
+          </div>
+          <div class="pairing-inputs">
+            <cr-input id="ahoiRemoteControlDeviceId"
+                label="$i18n{ahoiRemoteControlDeviceId}"
+                .value="${this.remoteControlDeviceId_}"
+                ?disabled="${!this.remoteControlStatus_?.canPair ||
+                    this.remoteControlActionPending_}"
+                @input="${this.onRemoteControlDeviceIdInput_}">
+            </cr-input>
+            <cr-input id="ahoiRemoteControlPublicKey"
+                label="$i18n{ahoiRemoteControlPublicKey}"
+                .value="${this.remoteControlPublicKey_}"
+                ?disabled="${!this.remoteControlStatus_?.canPair ||
+                    this.remoteControlActionPending_}"
+                @input="${this.onRemoteControlPublicKeyInput_}">
+            </cr-input>
+          </div>
+          <cr-button id="ahoiRemoteControlApprove" class="action-button"
+              ?disabled="${!this.canApproveRemoteControlDevice_()}"
+              @click="${this.onApproveRemoteControlDevice_}">
+            $i18n{ahoiRemoteControlApprove}
+          </cr-button>
+          <div class="pairing-status" role="status" aria-live="polite">
+            ${this.remoteControlActionText_() ||
+                this.remoteControlPrerequisiteText_()}
+          </div>
+          ${this.remoteControlStatus_?.approvedDeviceIds.length ? html`
+            <div class="approved-devices"
+                aria-label="$i18n{ahoiRemoteControlApprovedDevices}">
+              ${this.remoteControlStatus_.approvedDeviceIds.map(deviceId =>
+                  html`<div class="approved-device-row">
+                    <span title="${deviceId}">
+                      ${this.shortRemoteControlDeviceId_(deviceId)}
+                    </span>
+                    <cr-button data-device-id="${deviceId}"
+                        ?disabled="${this.remoteControlActionPending_}"
+                        @click="${this.onRevokeRemoteControlDevice_}">
+                      $i18n{ahoiRemoteControlRevoke}
+                    </cr-button>
+                  </div>`)}
+            </div>
+          ` : ''}
+        </section>
         <div class="cr-row continuation">
           <div class="flex cr-padded-text" aria-hidden="true">
             <div>$i18n{ahoiHistoryRetention}</div>

@@ -117,7 +117,7 @@ index 45f00944bf1e64c5415c08d83d2f01a6f08c4366..458f0dcca0e27596ff7a868e2cc149b6
    // Only allow disabling web security via the command-line flag if the user has
    // specified a distinct profile directory. This still enables tests to disable
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..2daa552684cdf958c959357252393b6e2bd63a54 100644
+index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..28f23ae46dbc222e824ba5a0565917304f411d46 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
 @@ -16738,6 +16738,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
@@ -130,7 +130,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..2daa552684cdf958c959357252393b6e
        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
        </message>
-@@ -20042,6 +20045,1350 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20042,6 +20045,1401 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
        Relaunch
      </message>
@@ -290,6 +290,57 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..2daa552684cdf958c959357252393b6e
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED_SUBLABEL" desc="Security description for AhoiBrowser remote control." meaning="AhoiBrowser settings">
 +      Off by default. Only devices approved with a verified public key can send commands.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_PAIRING_TITLE" desc="Heading for the local companion-device approval workflow." meaning="AhoiBrowser settings">
++      Approve a companion device
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_PAIRING_SUBLABEL" desc="Security explanation for the local companion-device approval workflow." meaning="AhoiBrowser settings">
++      Enter the device UUID and its Base64-encoded Ed25519 public key. The key stays in this local profile and is never synchronized.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_DEVICE_ID" desc="Label for the companion device UUID field." meaning="AhoiBrowser settings">
++      Device UUID
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_PUBLIC_KEY" desc="Label for the companion Ed25519 public key field." meaning="AhoiBrowser settings">
++      Ed25519 public key (Base64)
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_APPROVE" desc="Action that locally approves a companion device public key." meaning="AhoiBrowser settings">
++      Approve device
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_APPROVED_DEVICES" desc="Accessible name for the list of locally approved companion devices." meaning="AhoiBrowser settings">
++      Approved companion devices
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_REVOKE" desc="Action that revokes a local companion-device approval." meaning="AhoiBrowser settings">
++      Revoke
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_SYNC" desc="Immediate explanation when local Ahoi Sync is disabled." meaning="AhoiBrowser settings">
++      First enable Ahoi Sync. The receive switch remains off until the local sync database is active.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_CLOUDKIT" desc="Immediate explanation when CloudKit or its end-to-end key is unavailable." meaning="AhoiBrowser settings">
++      Remote control needs this Mac's configured CloudKit transport and end-to-end sync key. This build or account is not ready.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_RECOVERY" desc="Immediate explanation while CloudKit recovery blocks remote control." meaning="AhoiBrowser settings">
++      Finish the shown CloudKit account or zone recovery before pairing or enabling remote control.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_APPROVAL" desc="Immediate explanation when no verified companion key is approved." meaning="AhoiBrowser settings">
++      Approve at least one companion device with its verified public key. The receive switch unlocks immediately afterwards.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_ACTIVE" desc="Status shown when secure remote control is enabled." meaning="AhoiBrowser settings">
++      Secure remote control is on. Commands are accepted only from approved keys and are still verified before execution.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_READY" desc="Status shown after pairing when remote control can be enabled." meaning="AhoiBrowser settings">
++      Pairing is complete. You can now explicitly enable secure remote control.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_LOADING" desc="Status while remote-control prerequisites are being read." meaning="AhoiBrowser settings">
++      Checking local sync, CloudKit and approved keys…
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_APPROVED" desc="Confirmation after approving a verified companion key." meaning="AhoiBrowser settings">
++      Device approved. You can now enable secure remote control.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_INVALID_APPROVAL" desc="Fail-closed validation error for an invalid device UUID or public key." meaning="AhoiBrowser settings">
++      Approval failed. Check the device UUID and the 32-byte Ed25519 public key in Base64.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_REMOTE_CONTROL_REVOKED" desc="Confirmation after revoking a companion-device approval." meaning="AhoiBrowser settings">
++      Device approval revoked. Receive mode was turned off automatically if no verified key remains.
 +    </message>
 +    <message name="IDS_SETTINGS_AHOI_HISTORY_RETENTION" desc="Label for selecting how long AhoiBrowser sync retains history." meaning="AhoiBrowser settings">
 +      History retention
@@ -1482,10 +1533,10 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..2daa552684cdf958c959357252393b6e
  </release>
  </grit>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index f630847b474cfde5341923bbd6776b17d6773102..58cd76d3ebc7e2b7b7a3c98bab55589bcab7864f 100644
+index f630847b474cfde5341923bbd6776b17d6773102..4a8bb19c3066b87a3605070f562ac6b61cf630c3 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -10730,4 +10730,447 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -10730,4 +10730,464 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
  <translation id="998747458861718449">Untersuchen</translation>
  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
@@ -1736,6 +1787,23 @@ index f630847b474cfde5341923bbd6776b17d6773102..58cd76d3ebc7e2b7b7a3c98bab55589b
 +<translation id="2867451571144040364">Speichert Arbeitsbereiche, gespeicherte Tabs und freigegebene Einstellungen in der lokalen Sync-Datenbank und der ausstehenden Outbox. Ein konfigurierter CloudKit-Transport verschlüsselt sie vor der geräteübergreifenden Übertragung.</translation>
 +<translation id="5277086629884958430">Sichere Fernsteuerung empfangen</translation>
 +<translation id="3948271365460589090">Standardmäßig aus. Nur Geräte, die mit einem verifizierten öffentlichen Schlüssel freigegeben wurden, können Befehle senden.</translation>
++<translation id="7408657270544189074">Companion-Gerät freigeben</translation>
++<translation id="4940076732872686709">Gib die Geräte-UUID und den Base64-codierten öffentlichen Ed25519-Schlüssel ein. Der Schlüssel bleibt in diesem lokalen Profil und wird niemals synchronisiert.</translation>
++<translation id="326305871179124663">Geräte-UUID</translation>
++<translation id="4673057877742125616">Öffentlicher Ed25519-Schlüssel (Base64)</translation>
++<translation id="3821185871830975673">Gerät freigeben</translation>
++<translation id="2246472643389007086">Freigegebene Companion-Geräte</translation>
++<translation id="336627326079335429">Widerrufen</translation>
++<translation id="3287165604160520140">Aktiviere zuerst Ahoi Sync. Der Empfangsschalter bleibt aus, bis die lokale Sync-Datenbank aktiv ist.</translation>
++<translation id="4447933072638496612">Die Fernsteuerung benötigt den konfigurierten CloudKit-Transport dieses Macs und den Ende-zu-Ende-Sync-Schlüssel. Dieser Build oder Account ist noch nicht bereit.</translation>
++<translation id="7170101781726902173">Schließe zuerst die angezeigte CloudKit-Account- oder Zonenwiederherstellung ab.</translation>
++<translation id="5835463390654092950">Gib mindestens ein Companion-Gerät mit seinem verifizierten öffentlichen Schlüssel frei. Danach wird der Empfangsschalter sofort bedienbar.</translation>
++<translation id="8106381358228031774">Die sichere Fernsteuerung ist aktiv. Befehle werden nur von freigegebenen Schlüsseln angenommen und vor der Ausführung erneut verifiziert.</translation>
++<translation id="6645410981547393243">Das Pairing ist abgeschlossen. Du kannst die sichere Fernsteuerung jetzt ausdrücklich aktivieren.</translation>
++<translation id="5656855103680066195">Lokalen Sync, CloudKit und freigegebene Schlüssel prüfen…</translation>
++<translation id="3659744073823333755">Gerät freigegeben. Du kannst die sichere Fernsteuerung jetzt aktivieren.</translation>
++<translation id="3100658921514284774">Freigabe fehlgeschlagen. Prüfe die Geräte-UUID und den 32 Byte langen öffentlichen Ed25519-Schlüssel im Base64-Format.</translation>
++<translation id="1111076425360358555">Gerätefreigabe widerrufen. Der Empfang wurde automatisch ausgeschaltet, falls kein verifizierter Schlüssel mehr vorhanden ist.</translation>
 +<translation id="2321689613611076346">Verlaufsaufbewahrung</translation>
 +<translation id="7660302535648766629">Wähle, wie lange der synchronisierte Verlauf verfügbar bleibt.</translation>
 +<translation id="7729439309422095264">30 Tage</translation>
@@ -1936,10 +2004,10 @@ index f630847b474cfde5341923bbd6776b17d6773102..58cd76d3ebc7e2b7b7a3c98bab55589b
 +<translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
 +</translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..541e0d6c7d5c138679a780a98dd8937b8c2d7db9 100644
+index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..87bbf65d9671fa6f20faf9c0f37a70ef0f3ae9b1 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -10750,4 +10750,243 @@ This can include information about installed software, files, your browser, the
+@@ -10750,4 +10750,260 @@ This can include information about installed software, files, your browser, the
  <translation id="998347228911661591">Sync your tab groups</translation>
  <translation id="998747458861718449">I&amp;nspect</translation>
  <translation id="998852291477823323">The action was disallowed by the configured policies.</translation>
@@ -2008,6 +2076,23 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..541e0d6c7d5c138679a780a98dd8937b
 +<translation id="2867451571144040364">Keep workspaces, saved tabs and approved settings in the local sync database and pending outbox. A configured CloudKit transport encrypts them before cross-device transfer.</translation>
 +<translation id="5277086629884958430">Receive secure remote control</translation>
 +<translation id="3948271365460589090">Off by default. Only devices approved with a verified public key can send commands.</translation>
++<translation id="7408657270544189074">Approve a companion device</translation>
++<translation id="4940076732872686709">Enter the device UUID and its Base64-encoded Ed25519 public key. The key stays in this local profile and is never synchronised.</translation>
++<translation id="326305871179124663">Device UUID</translation>
++<translation id="4673057877742125616">Ed25519 public key (Base64)</translation>
++<translation id="3821185871830975673">Approve device</translation>
++<translation id="2246472643389007086">Approved companion devices</translation>
++<translation id="336627326079335429">Revoke</translation>
++<translation id="3287165604160520140">First enable Ahoi Sync. The receive switch remains off until the local sync database is active.</translation>
++<translation id="4447933072638496612">Remote control needs this Mac's configured CloudKit transport and end-to-end sync key. This build or account is not ready.</translation>
++<translation id="7170101781726902173">Finish the shown CloudKit account or zone recovery before pairing or enabling remote control.</translation>
++<translation id="5835463390654092950">Approve at least one companion device with its verified public key. The receive switch unlocks immediately afterwards.</translation>
++<translation id="8106381358228031774">Secure remote control is on. Commands are accepted only from approved keys and are still verified before execution.</translation>
++<translation id="6645410981547393243">Pairing is complete. You can now explicitly enable secure remote control.</translation>
++<translation id="5656855103680066195">Checking local sync, CloudKit and approved keys…</translation>
++<translation id="3659744073823333755">Device approved. You can now enable secure remote control.</translation>
++<translation id="3100658921514284774">Approval failed. Check the device UUID and the 32-byte Ed25519 public key in Base64.</translation>
++<translation id="1111076425360358555">Device approval revoked. Receive mode was turned off automatically if no verified key remains.</translation>
 +<translation id="2321689613611076346">History retention</translation>
 +<translation id="7660302535648766629">Choose how long synchronised history remains available.</translation>
 +<translation id="7729439309422095264">30 days</translation>
@@ -2256,7 +2341,7 @@ index a096792799d62121394b3a05b93f63228aeadab0..7f167f0c2f804444ea6ac19fa54c1d17
    // If enabled, keep Chrome alive when apps are open instead of quitting all
    // apps.
 diff --git a/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm b/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
-index 94da7540e0..a6cab19730 100644
+index 94da7540e099609322c7f7a8e0c72a1a04b4fe57..a6cab19730e771c5b04b0405feda81d4485db2a7 100644
 --- a/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
 +++ b/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
 @@ -101,11 +101,38 @@ STATIC_ASSERT_ENUM(NSDragOperationMove, ui::DragDropTypes::DRAG_MOVE);
@@ -16197,22 +16282,36 @@ index 458f7980c275454fbc469d4f63c48cd213ef1b83..2a1b101e8de402f04b4e634b146f6bcd
    // Check that the identity manager is only observed after RequestAccountInfo
    // is called.
 diff --git a/chrome/browser/ui/webui/settings/BUILD.gn b/chrome/browser/ui/webui/settings/BUILD.gn
-index fc65badb87b480e64c70efc838653f313d82dbdc..17f3edb3f4e7cb2c9ef2870d162c5f59ec5783e7 100644
+index fc65badb87b480e64c70efc838653f313d82dbdc..4fff078860ba17f0dafd2a80deb358d49b5cf8dc 100644
 --- a/chrome/browser/ui/webui/settings/BUILD.gn
 +++ b/chrome/browser/ui/webui/settings/BUILD.gn
-@@ -346,6 +346,7 @@ source_set("impl") {
+@@ -346,6 +346,10 @@ source_set("impl") {
        "mac_system_settings_handler.cc",
        "settings_utils_mac.mm",
      ]
-+    deps += [ "//ahoi/browser/importer/arc:settings_handler" ]
++    deps += [
++      "//ahoi/browser/importer/arc:settings_handler",
++      "//ahoi/browser/ui/settings:settings_handler",
++    ]
    }
  
    if (is_win) {
+diff --git a/chrome/browser/ui/webui/settings/DEPS b/chrome/browser/ui/webui/settings/DEPS
+index eff7c13aedc3751eb4b2f9e9c2e12010891e7ce1..873e70b133404f4fee2e19cce3cb9893c6a19e40 100644
+--- a/chrome/browser/ui/webui/settings/DEPS
++++ b/chrome/browser/ui/webui/settings/DEPS
+@@ -1,4 +1,6 @@
+ include_rules = [
++  "+ahoi/browser/importer/arc",
++  "+ahoi/browser/ui/settings",
+   "+components/device_reauth",
+   "+components/live_caption",
+ ]
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index c4d16f149080a98dfdcada4eafab4ba9e287447a..7c3d93b89b2e88b7609b7c7776308d13ec9d1f64 100644
+index c4d16f149080a98dfdcada4eafab4ba9e287447a..2ca51a0c59024a13fed43752b82884aed1fae3bb 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -590,6 +590,113 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -590,6 +590,144 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"lightMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_LIGHT_LABEL},
        {"darkMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_DARK_LABEL},
        {"systemMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_SYSTEM_LABEL},
@@ -16303,6 +16402,37 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..7c3d93b89b2e88b7609b7c7776308d13
 +      {"ahoiRemoteControlEnabled", IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED},
 +      {"ahoiRemoteControlEnabledSublabel",
 +       IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED_SUBLABEL},
++      {"ahoiRemoteControlPairingTitle",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_PAIRING_TITLE},
++      {"ahoiRemoteControlPairingSublabel",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_PAIRING_SUBLABEL},
++      {"ahoiRemoteControlDeviceId",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_DEVICE_ID},
++      {"ahoiRemoteControlPublicKey",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_PUBLIC_KEY},
++      {"ahoiRemoteControlApprove",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_APPROVE},
++      {"ahoiRemoteControlApprovedDevices",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_APPROVED_DEVICES},
++      {"ahoiRemoteControlRevoke",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_REVOKE},
++      {"ahoiRemoteControlNeedsSync",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_SYNC},
++      {"ahoiRemoteControlNeedsCloudKit",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_CLOUDKIT},
++      {"ahoiRemoteControlNeedsRecovery",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_RECOVERY},
++      {"ahoiRemoteControlNeedsApproval",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_NEEDS_APPROVAL},
++      {"ahoiRemoteControlActive",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_ACTIVE},
++      {"ahoiRemoteControlReady", IDS_SETTINGS_AHOI_REMOTE_CONTROL_READY},
++      {"ahoiRemoteControlLoading", IDS_SETTINGS_AHOI_REMOTE_CONTROL_LOADING},
++      {"ahoiRemoteControlApproved",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_APPROVED},
++      {"ahoiRemoteControlInvalidApproval",
++       IDS_SETTINGS_AHOI_REMOTE_CONTROL_INVALID_APPROVAL},
++      {"ahoiRemoteControlRevoked", IDS_SETTINGS_AHOI_REMOTE_CONTROL_REVOKED},
 +      {"ahoiHistoryRetention", IDS_SETTINGS_AHOI_HISTORY_RETENTION},
 +      {"ahoiHistoryRetentionSublabel",
 +       IDS_SETTINGS_AHOI_HISTORY_RETENTION_SUBLABEL},
@@ -16326,17 +16456,17 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..7c3d93b89b2e88b7609b7c7776308d13
        {"showHomeButton", IDS_SETTINGS_SHOW_HOME_BUTTON},
        {"showBookmarksBar", IDS_SETTINGS_SHOW_BOOKMARKS_BAR},
        {"bookmarksBar", IDS_SETTINGS_BOOKMARKS_BAR},
-@@ -660,6 +767,9 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -660,6 +798,9 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"themeManagedDialogBody", IDS_NTP_THEME_MANAGED_DIALOG_BODY},
    };
    html_source->AddLocalizedStrings(kLocalizedStrings);
-+  // This signed product currently has no CloudKit capability. Keep this as a
-+  // load-time gate so a future signed provider can report true here.
++  // Fail closed until the profile-scoped Ahoi settings handler publishes the
++  // live local-database and CloudKit transport state.
 +  html_source->AddBoolean("ahoiCloudKitAvailable", false);
  
    html_source->AddBoolean("ntpSimplificationBookmarksBarEnabled",
                            base::FeatureList::IsEnabled(
-@@ -1518,6 +1628,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
+@@ -1518,6 +1659,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
  void AddOnStartupStrings(content::WebUIDataSource* html_source) {
    static constexpr webui::LocalizedString kLocalizedStrings[] = {
        {"onStartup", IDS_SETTINGS_ON_STARTUP},
@@ -16348,7 +16478,7 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..7c3d93b89b2e88b7609b7c7776308d13
        {"onStartupOpenNewTab", IDS_SETTINGS_ON_STARTUP_OPEN_NEW_TAB},
        {"onStartupContinue", IDS_SETTINGS_ON_STARTUP_CONTINUE},
        {"onStartupOpenSpecific", IDS_SETTINGS_ON_STARTUP_OPEN_SPECIFIC},
-@@ -2037,8 +2152,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
+@@ -2037,8 +2183,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
        autofill_client &&
            autofill::MayPerformAutofillAiAction(
                *autofill_client, autofill::AutofillAiAction::kOptIn));
@@ -16360,23 +16490,26 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..7c3d93b89b2e88b7609b7c7776308d13
        "canEnableOrDisableAutofillAi",
        autofill_client &&
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index 5c7141365e8869373c507392792258ec0e11e667..304131bb6d5ceaf7bb18e6f2ac844a430860830e 100644
+index 5c7141365e8869373c507392792258ec0e11e667..9a3dcdb9ed790b5227090edd8e7b1df7738f3e0d 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
-@@ -202,6 +202,7 @@
+@@ -202,6 +202,8 @@
  #endif  // BUILDFLAG(GOOGLE_CHROME_BRANDING)
  
  #if BUILDFLAG(IS_MAC)
 +#include "ahoi/browser/importer/arc/arc_import_handler.h"
++#include "ahoi/browser/ui/settings/ahoi_settings_handler.h"
  #include "chrome/browser/ui/webui/settings/mac_system_settings_handler.h"
  #endif
  
-@@ -304,6 +305,8 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+@@ -304,6 +306,10 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
  #endif
  
  #if BUILDFLAG(IS_MAC)
 +  AddSettingsPageUIHandler(
 +      std::make_unique<ahoi::importer::arc::ArcImportHandler>(profile));
++  AddSettingsPageUIHandler(
++      std::make_unique<ahoi::settings::AhoiSettingsHandler>(profile));
    AddSettingsPageUIHandler(std::make_unique<MacSystemSettingsHandler>());
  #endif
  

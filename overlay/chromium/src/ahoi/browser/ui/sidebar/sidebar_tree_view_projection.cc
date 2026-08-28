@@ -536,6 +536,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
   }
   row_bounds_animation_pending_ = false;
   row_bounds_animation_from_height_.reset();
+  UpdateInsertionMarker();
   UpdateActiveDescendant();
 }
 

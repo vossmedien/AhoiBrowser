@@ -513,22 +513,6 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
     }
   }
 
-  if (drop_position_ == SidebarTreeController::DropPosition::kBefore ||
-      drop_position_ == SidebarTreeController::DropPosition::kAfter) {
-    constexpr float kInsertionIndicatorHeight = 3.0f;
-    const float y =
-        drop_position_ == SidebarTreeController::DropPosition::kBefore
-            ? 0.0f
-            : std::max(0.0f, static_cast<float>(height()) -
-                                 kInsertionIndicatorHeight);
-    const gfx::RectF insertion_indicator(
-        6.0f, y, std::max(0.0f, static_cast<float>(width()) - 12.0f),
-        kInsertionIndicatorHeight);
-    canvas->DrawRoundRect(
-        insertion_indicator, kInsertionIndicatorHeight / 2.0f,
-        FillFlags(GetColorProvider()->GetColor(visual_style::kAccent)));
-  }
-
   if (split_drop_target_) {
     const float divider_x = static_cast<float>(width()) * 0.5f;
     canvas->DrawLine(
@@ -551,7 +535,11 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
                  center.y() - 3.5f, center.x() + 3.5f, center.y() - 5.5f);
     canvas->DrawPath(moon.detach(), sleep_stroke);
   } else if (paint_trailing_state && !ShouldShowTrailingAction() && selected_ &&
+             running_ && type_ == tab_tree::TreeNodeType::kSavedPage &&
              split_segment_count_ == 1 && media_indicator_.IsEmpty()) {
+    // The accent dot is a live-page indicator, not a generic tree-selection
+    // marker. Folders retain their selected surface and AX selection without
+    // suggesting that the container itself is an active WebContents.
     const float dot_x = static_cast<float>(width() - 16);
     const float dot_y = static_cast<float>(height()) / 2.0f;
     canvas->DrawCircle(

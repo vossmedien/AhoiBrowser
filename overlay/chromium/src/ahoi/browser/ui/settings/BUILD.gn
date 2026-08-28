@@ -3,6 +3,21 @@
 
 import("//testing/test.gni")
 
+if (is_mac) {
+  source_set("settings_handler") {
+    sources = [
+      "ahoi_settings_handler.cc",
+      "ahoi_settings_handler.h",
+    ]
+    public_deps = [
+      "//ahoi/browser/sync:profile_sync_service",
+      "//base",
+      "//chrome/browser/profiles:profile",
+      "//content/public/browser",
+    ]
+  }
+}
+
 if (!is_android) {
   source_set("settings_browser_tests") {
     testonly = true

@@ -28,6 +28,48 @@ cr-view-manager [hidden-by-search] {
   margin-top: 4px;
 }
 
+.remote-pairing-card {
+  border-top: 1px solid var(--cr-separator-color);
+  margin-inline: var(--cr-section-padding);
+  padding-block: 14px;
+}
+
+.pairing-title {
+  font-weight: 500;
+}
+
+.pairing-inputs {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 12px;
+}
+
+.remote-pairing-card .action-button {
+  margin-top: 10px;
+}
+
+.pairing-status {
+  color: var(--cr-secondary-text-color);
+  margin-top: 10px;
+}
+
+.approved-devices {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.approved-device-row {
+  align-items: center;
+  background: var(--cr-fallback-color-surface-variant);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  min-height: 36px;
+  padding-inline: 10px 4px;
+}
+
 .arc-import-card {
   border: 1px solid var(--cr-separator-color);
   border-radius: 12px;
