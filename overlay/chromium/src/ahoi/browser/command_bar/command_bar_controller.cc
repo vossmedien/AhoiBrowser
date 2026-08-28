@@ -511,13 +511,21 @@ void CommandBarController::OnHistoryQueryCompleted(
   std::vector<CommandItem> items;
   items.reserve(results.size());
   for (const history::URLResult& result : results) {
-    const GURL& url = result.url();
+    const GURL& original_url = result.url();
+    GURL::Replacements replacements;
+    replacements.ClearUsername();
+    replacements.ClearPassword();
+    const GURL url = original_url.ReplaceComponents(replacements);
     if (!url.is_valid() || url.is_empty() || result.hidden() ||
         result.blocked_visit() || !seen_urls.insert(url).second) {
       continue;
     }
     const std::u16string display_url = base::UTF8ToUTF16(url.spec());
     std::u16string title = result.title();
+    if ((original_url.has_username() || original_url.has_password()) &&
+        title == base::UTF8ToUTF16(original_url.spec())) {
+      title = display_url;
+    }
     if (title.empty()) {
       title = base::UTF8ToUTF16(url.host());
     }

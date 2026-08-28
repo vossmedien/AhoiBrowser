@@ -75,7 +75,8 @@ bool TypeMatchesScope(CommandItemType type, QueryScope scope) {
     case QueryScope::kBrowserCommands:
       return type == CommandItemType::kBrowserCommand;
     case QueryScope::kTabs:
-      return type == CommandItemType::kOpenTab;
+      return type == CommandItemType::kOpenTab ||
+             type == CommandItemType::kDeviceTab;
     case QueryScope::kHistory:
       return type == CommandItemType::kHistory;
     case QueryScope::kTree:
@@ -88,10 +89,12 @@ bool TypeMatchesScope(CommandItemType type, QueryScope scope) {
 
 bool IsItemShapeValid(const CommandItem& item) {
   const bool has_valid_url =
-      item.url.has_value() && item.url->is_valid() && !item.url->is_empty();
+      item.url.has_value() && item.url->is_valid() && !item.url->is_empty() &&
+      !item.url->has_username() && !item.url->has_password();
   switch (item.type) {
     case CommandItemType::kOpenTab:
     case CommandItemType::kSavedPage:
+    case CommandItemType::kDeviceTab:
     case CommandItemType::kHistory:
       return has_valid_url;
     case CommandItemType::kFolder:
@@ -172,7 +175,18 @@ void CommandService::ClearItems(CommandItemType type) {
 
 std::vector<RankedCommand> CommandService::Query(std::u16string_view input,
                                                  size_t max_results) const {
-  return Query(input, CommandQueryOptions{.max_results = max_results});
+  // Preserve the command bar's pre-device-tabs contract. Remote items need a
+  // surface that can resolve their opaque identity against a current sync
+  // snapshot, which the command execution adapter deliberately cannot do.
+  return Query(input, CommandQueryOptions{
+                          .allowed_types = {CommandItemType::kOpenTab,
+                                            CommandItemType::kSavedPage,
+                                            CommandItemType::kFolder,
+                                            CommandItemType::kWorkspace,
+                                            CommandItemType::kHistory,
+                                            CommandItemType::kBrowserCommand},
+                          .max_results = max_results,
+                      });
 }
 
 std::vector<RankedCommand> CommandService::Query(

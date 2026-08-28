@@ -70,6 +70,7 @@ bool RevealBrowserSidebarFolder(views::View* sidebar_host,
 bool ToggleBrowserSidebarFloating(views::View* sidebar_host);
 bool ToggleBrowserSidebarVisibility(views::View* sidebar_host);
 bool RestoreBrowserSidebar(views::View* sidebar_host);
+bool ToggleBrowserSidebarDiscovery(views::View* sidebar_host);
 
 // Resolves only Ahoi's private drag identity. A closed saved page is valid but
 // remains unopened during hover. A committed drop can activate it through the

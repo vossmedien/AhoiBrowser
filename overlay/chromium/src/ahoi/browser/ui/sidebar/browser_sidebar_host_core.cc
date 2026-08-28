@@ -23,9 +23,9 @@
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
-#include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_overlay_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
@@ -246,11 +246,10 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   workspace_header_layout->SetFlexForView(workspace_selector_host_ptr, 1);
   if (discovery_model_) {
     workspace_header->AddChildView(CreateSidebarHeaderActionButton(
-        base::BindRepeating(
-            &BrowserSidebarHostView::OnSidebarDiscoveryPressed,
-            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(&BrowserSidebarHostView::OnSidebarDiscoveryPressed,
+                            weak_ptr_factory_.GetWeakPtr()),
         vector_icons::kSearchIcon,
-        l10n_util::GetStringUTF16(IDS_TAB_SEARCH_SEARCH_TABS)));
+        l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_DISCOVERY_SEARCH)));
   }
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
@@ -289,9 +288,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
       l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL)));
 
   auto open_tabs = CreateOpenTabsDropTargetView(
-      base::BindRepeating(
-          &BrowserSidebarHostView::CanDropOpenTabToTemporary,
-          base::Unretained(this)),
+      base::BindRepeating(&BrowserSidebarHostView::CanDropOpenTabToTemporary,
+                          base::Unretained(this)),
       base::BindRepeating(&BrowserSidebarHostView::DropOpenTabToTemporary,
                           base::Unretained(this)));
   open_tabs->GetViewAccessibility().SetRole(ax::mojom::Role::kTabList);

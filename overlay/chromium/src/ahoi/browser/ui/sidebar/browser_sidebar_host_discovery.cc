@@ -1,10 +1,10 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
-
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_device_tab_commands.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -31,9 +31,8 @@ void BrowserSidebarHostView::OnSidebarDiscoveryPressed(const ui::Event&) {
   // Toggling replaces a sibling surface. Defer until the native Button has
   // finished dispatching so layout never invalidates its current event path.
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
-      FROM_HERE,
-      base::BindOnce(&BrowserSidebarHostView::ToggleSidebarDiscovery,
-                     weak_ptr_factory_.GetWeakPtr()));
+      FROM_HERE, base::BindOnce(&BrowserSidebarHostView::ToggleSidebarDiscovery,
+                                weak_ptr_factory_.GetWeakPtr()));
 }
 
 void BrowserSidebarHostView::ToggleSidebarDiscovery() {
@@ -157,8 +156,16 @@ bool BrowserSidebarHostView::ActivateSidebarDiscoveryCommand(
           base::Uuid::ParseLowercase(item.stable_id);
       return workspace_id.is_valid() &&
              session_bridge_->SetActiveWorkspaceForWindow(
-                 browser_, workspace_id,
-                 WorkspaceActivationSource::kKeyboard);
+                 browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
+    }
+    case CommandItemType::kDeviceTab: {
+      const sync::RemoteTabRecord* const tab = ResolveDeviceTabCommand(
+          device_tabs_snapshot_, item.stable_id, base::Time::Now());
+      if (!tab) {
+        return false;
+      }
+      OpenRemoteTab(*tab);
+      return true;
     }
     case CommandItemType::kHistory:
     case CommandItemType::kBrowserCommand:

@@ -33,6 +33,30 @@
 
 namespace ahoi {
 
+namespace {
+
+GURL SanitizeCommandUrl(const GURL& url) {
+  if (!url.is_valid() || url.is_empty()) {
+    return GURL();
+  }
+  GURL::Replacements replacements;
+  replacements.ClearUsername();
+  replacements.ClearPassword();
+  return url.ReplaceComponents(replacements);
+}
+
+std::u16string SanitizeCommandTitle(std::u16string title,
+                                    const GURL& original_url,
+                                    const GURL& sanitized_url) {
+  if ((original_url.has_username() || original_url.has_password()) &&
+      title == base::UTF8ToUTF16(original_url.spec())) {
+    return base::UTF8ToUTF16(sanitized_url.spec());
+  }
+  return title;
+}
+
+}  // namespace
+
 void SessionBridge::TrackRuntimeTab(TabStripModel* model,
                                     tabs::TabInterface* tab,
                                     content::WebContents* contents) {
@@ -241,7 +265,11 @@ void SessionBridge::PublishCommandItems() {
     if (!tab || !contents) {
       continue;
     }
-    const GURL url = session_internal::GetRuntimeTabUrl(contents);
+    const GURL original_url = session_internal::GetRuntimeTabUrl(contents);
+    const GURL url = SanitizeCommandUrl(original_url);
+    if (!url.is_valid() || url.is_empty()) {
+      continue;
+    }
     open_tabs.push_back({
         .type = CommandItemType::kOpenTab,
         .stable_id =
@@ -249,12 +277,15 @@ void SessionBridge::PublishCommandItems() {
                 ? runtime.node_id->AsLowercaseString()
                 : base::StrCat({"runtime:", base::NumberToString(
                                                 tab->GetHandle().raw_value())}),
-        .title = session_internal::GetRuntimeTabTitle(tab, url),
+        .title = SanitizeCommandTitle(
+            session_internal::GetRuntimeTabTitle(tab, original_url),
+            original_url, url),
         .secondary_text = base::UTF8ToUTF16(url.spec()),
         .keywords = {base::UTF8ToUTF16(url.spec())},
         .url = url,
         .priority = tab->IsActivated() ? 300 : 200,
         .last_used = tab->IsActivated() ? base::Time::Now() : base::Time(),
+        .sleeping = contents->WasDiscarded(),
     });
   }
   CHECK(command_service_->ReplaceItems(CommandItemType::kOpenTab,
@@ -318,14 +349,25 @@ void SessionBridge::PublishCommandItems() {
       if (!node.url.is_valid() || node.url.is_empty()) {
         continue;
       }
-      const std::u16string url = base::UTF8ToUTF16(node.url.spec());
+      const GURL sanitized_url = SanitizeCommandUrl(node.url);
+      if (!sanitized_url.is_valid() || sanitized_url.is_empty()) {
+        continue;
+      }
+      const std::u16string url = base::UTF8ToUTF16(sanitized_url.spec());
+      const std::u16string title =
+          SanitizeCommandTitle(node.title, node.url, sanitized_url);
+      std::u16string safe_node_path = pending.path;
+      if (!safe_node_path.empty()) {
+        safe_node_path.append(u" / ");
+      }
+      safe_node_path.append(title);
       saved_pages.push_back({
           .type = CommandItemType::kSavedPage,
           .stable_id = node.id.AsLowercaseString(),
-          .title = node.title,
+          .title = title,
           .secondary_text = url,
-          .keywords = {url, std::move(node_path)},
-          .url = node.url,
+          .keywords = {url, std::move(safe_node_path)},
+          .url = sanitized_url,
           .priority = 120,
           .last_used = node.modified_at,
       });

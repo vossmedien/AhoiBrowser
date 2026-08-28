@@ -8,12 +8,15 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/sync/sync_policy.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_device_tab_commands.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_sync_controls.h"
+#include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
 #include "base/strings/string_number_conversions.h"
@@ -77,6 +80,15 @@ void BrowserSidebarHostView::PublishLocalDeviceTabs() {
   }
   profile_sync_service_->PublishWindowTabs(window_id_->AsLowercaseString(),
                                            std::move(tabs));
+}
+
+void BrowserSidebarHostView::PublishDeviceTabCommands() {
+  if (!command_service_) {
+    return;
+  }
+  CHECK(command_service_->ReplaceItems(
+      CommandItemType::kDeviceTab,
+      BuildDeviceTabCommandItems(device_tabs_snapshot_, base::Time::Now())));
 }
 
 void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
@@ -247,6 +259,7 @@ void BrowserSidebarHostView::OpenRemoteTab(sync::RemoteTabRecord tab) {
 void BrowserSidebarHostView::OnAhoiDeviceTabsChanged(
     const sync::DeviceTabsSnapshot& snapshot) {
   device_tabs_snapshot_ = snapshot;
+  PublishDeviceTabCommands();
   ScheduleRuntimePresentationRefresh();
 }
 
