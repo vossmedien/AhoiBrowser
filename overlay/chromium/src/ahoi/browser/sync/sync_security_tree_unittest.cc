@@ -80,6 +80,45 @@ TEST(RemoteCommandSecurityTest, MatchesSwiftGoldenAndVerifiesEd25519) {
                 command, command.target_device_id, policy,
                 command.issued_at + base::Seconds(1)),
             RemoteCommandValidationFailure::kNone);
+
+  // Backend claim changes only delivery-owned fields, which are excluded from
+  // the signature. The UI gate must accept that delivered copy while the same
+  // authority is current, then fail closed if receive mode or the approved key
+  // changes during the asynchronous claim.
+  command.status = RemoteCommandStatus::kDelivered;
+  EXPECT_EQ(RevalidateDeliveredRemoteCommandForExecution(
+                command, command.target_device_id, policy,
+                command.issued_at + base::Seconds(1)),
+            RemoteCommandValidationFailure::kNone);
+  EXPECT_EQ(RevalidateDeliveredRemoteCommandForExecution(
+                command, command.target_device_id, policy,
+                command.expires_at),
+            RemoteCommandValidationFailure::kExpired);
+  RemoteCommandPolicy disabled_policy = policy;
+  disabled_policy.enabled = false;
+  EXPECT_EQ(RevalidateDeliveredRemoteCommandForExecution(
+                command, command.target_device_id, disabled_policy,
+                command.issued_at + base::Seconds(1)),
+            RemoteCommandValidationFailure::kDisabled);
+  const RemoteCommandPolicy revoked_policy{.enabled = true};
+  EXPECT_EQ(RevalidateDeliveredRemoteCommandForExecution(
+                command, command.target_device_id, revoked_policy,
+                command.issued_at + base::Seconds(1)),
+            RemoteCommandValidationFailure::kUnapprovedDevice);
+  uint8_t rotated_seed[32] = {1};
+  uint8_t rotated_public_key[ED25519_PUBLIC_KEY_LEN];
+  uint8_t rotated_private_key[ED25519_PRIVATE_KEY_LEN];
+  ED25519_keypair_from_seed(rotated_public_key, rotated_private_key,
+                            rotated_seed);
+  RemoteCommandPolicy rotated_policy = policy;
+  rotated_policy.approved_public_keys_base64[command.source_device_id] =
+      base::Base64Encode(rotated_public_key);
+  EXPECT_EQ(RevalidateDeliveredRemoteCommandForExecution(
+                command, command.target_device_id, rotated_policy,
+                command.issued_at + base::Seconds(1)),
+            RemoteCommandValidationFailure::kInvalidSignature);
+
+  command.status = RemoteCommandStatus::kQueued;
   command.url = "file:///tmp/secret";
   EXPECT_EQ(ValidateRemoteCommandForExecution(
                 command, command.target_device_id, policy,

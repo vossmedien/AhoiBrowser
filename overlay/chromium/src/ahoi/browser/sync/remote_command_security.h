@@ -49,6 +49,18 @@ enum class RemoteCommandValidationFailure {
     const RemoteCommandPolicy& policy,
     base::Time now);
 
+// Revalidates a command already atomically claimed by the backend immediately
+// before its UI-side effect. Delivery and replay protection remain backend
+// responsibilities; this second gate closes the asynchronous policy window in
+// which receive mode can be disabled, transport recovery can begin, or the
+// sender key can be revoked or rotated after the original claim.
+[[nodiscard]] RemoteCommandValidationFailure
+RevalidateDeliveredRemoteCommandForExecution(
+    const RemoteCommandRecord& command,
+    const base::Uuid& local_device_id,
+    const RemoteCommandPolicy& policy,
+    base::Time now);
+
 const char* SafeRemoteCommandFailureCode(
     RemoteCommandValidationFailure failure);
 

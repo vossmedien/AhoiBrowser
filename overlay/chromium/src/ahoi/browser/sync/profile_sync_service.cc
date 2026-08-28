@@ -645,6 +645,21 @@ void ProfileSyncService::OnRemoteCommandsClaimed(
     return;
   }
   for (const RemoteCommandRecord& command : commands) {
+    // ClaimRemoteCommands() runs on the blocking backend sequence with a
+    // by-value policy snapshot. Re-read and cryptographically validate the
+    // current UI-sequence authority immediately before dispatch so a disable,
+    // transport/recovery transition, or sender-key revoke/rotation that occurs
+    // while the claim is in flight always wins. The backend remains the sole
+    // owner of queued -> delivered and replay-consumption semantics.
+    const RemoteCommandValidationFailure authorization =
+        RevalidateDeliveredRemoteCommandForExecution(
+            command, local_device_id_, CurrentRemoteCommandPolicy(),
+            base::Time::Now());
+    if (authorization != RemoteCommandValidationFailure::kNone) {
+      CompleteRemoteCommand(command, false,
+                            SafeRemoteCommandFailureCode(authorization));
+      continue;
+    }
     bool executed = false;
     if (ui_bridge_) {
       switch (command.kind) {
