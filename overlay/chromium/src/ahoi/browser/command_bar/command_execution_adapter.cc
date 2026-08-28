@@ -182,6 +182,9 @@ bool CommandExecutionAdapter::CanExecuteItem(const CommandItem& item) const {
       return internal::GetAllowlistedBrowserCommand(item.stable_id)
                  .has_value() &&
              execution_delegate_->CanExecuteBrowserCommand(item.stable_id);
+    case CommandItemType::kDeviceTab:
+      // Device tabs require fresh snapshot revalidation in the native sidebar.
+      return false;
   }
   return false;
 }
@@ -245,6 +248,8 @@ bool CommandExecutionAdapter::ExecuteItem(const CommandItem& item,
         return execution_delegate_->ExecuteDeveloperAction(*action);
       }
       return execution_delegate_->ExecuteBrowserCommand(item.stable_id);
+    case CommandItemType::kDeviceTab:
+      return false;
   }
   return false;
 }

@@ -165,6 +165,17 @@ void SessionBridge::OnTabWillDiscardContents(
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!shutting_down_) {
     UpdateRuntimeTabContents(tab, old_contents, new_contents);
+    // WillDiscardContents runs inside Chromium's tab mutation path. Defer the
+    // command projection until the replacement WebContents has committed its
+    // discarded state and SQLite-backed tree reads are permitted again.
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(
+                       [](base::WeakPtr<SessionBridge> bridge) {
+                         if (bridge) {
+                           bridge->PublishCommandItems();
+                         }
+                       },
+                       weak_ptr_factory_.GetWeakPtr()));
   }
 }
 

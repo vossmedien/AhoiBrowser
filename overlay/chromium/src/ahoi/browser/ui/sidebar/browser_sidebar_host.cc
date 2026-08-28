@@ -187,6 +187,15 @@ bool RestoreBrowserSidebar(views::View* sidebar_host) {
   return host && host->RestoreSidebar();
 }
 
+bool ToggleBrowserSidebarDiscovery(views::View* sidebar_host) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (!host || !host->discovery_view_) {
+    return false;
+  }
+  host->ToggleSidebarDiscovery();
+  return true;
+}
+
 BrowserSidebarSplitDropSource ResolveBrowserSidebarSplitDropSource(
     views::View* sidebar_host,
     const drag::SidebarTabDragPayload& payload,

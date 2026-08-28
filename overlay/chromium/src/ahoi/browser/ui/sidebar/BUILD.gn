@@ -150,6 +150,8 @@ source_set("sidebar_media_overlay") {
 
 source_set("sidebar_discovery") {
   sources = [
+    "sidebar_device_tab_commands.cc",
+    "sidebar_device_tab_commands.h",
     "sidebar_discovery_model.cc",
     "sidebar_discovery_model.h",
     "sidebar_discovery_view.cc",
@@ -158,6 +160,7 @@ source_set("sidebar_discovery") {
 
   public_deps = [
     "//ahoi/browser/navigation",
+    "//ahoi/browser/sync:sync",
     "//base",
     "//components/sessions",
     "//ui/views",
@@ -165,6 +168,7 @@ source_set("sidebar_discovery") {
   ]
 
   deps = [
+    "//ahoi/browser/session:workspace_session_metadata",
     "//ahoi/browser/ui:visual_style",
     "//chrome/app:generated_resources",
     "//components/vector_icons",
@@ -283,6 +287,9 @@ source_set("unit_tests") {
     "../../memory/tab_sleeping_unittest.cc",
     "move_destination_menu_model_unittest.cc",
     "sidebar_action_views_unittest.cc",
+    "sidebar_device_tab_commands_unittest.cc",
+    "sidebar_discovery_model_unittest.cc",
+    "sidebar_discovery_view_unittest.cc",
     "sidebar_drag_image_unittest.cc",
     "sidebar_link_copy_unittest.cc",
     "sidebar_media_indicator_unittest.cc",
@@ -306,6 +313,7 @@ source_set("unit_tests") {
   deps = [
     ":browser_sidebar",
     ":move_destination_model",
+    ":sidebar_discovery",
     ":sidebar_link_copy",
     ":sidebar_media_overlay",
     ":sidebar_presentation",
@@ -318,9 +326,11 @@ source_set("unit_tests") {
     "//components/performance_manager",
     "//components/prefs",
     "//components/prefs:test_support",
+    "//components/sessions:test_support",
     "//components/sync_preferences:test_support",
     "//components/vector_icons",
     "//skia",
+    "//testing/gmock",
     "//testing/gtest",
     "//ui/accessibility",
     "//ui/compositor",

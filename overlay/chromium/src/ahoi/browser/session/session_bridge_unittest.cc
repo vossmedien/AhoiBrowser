@@ -452,6 +452,37 @@ TEST_F(SessionBridgeTest, PublishesNestedSavedPagesToCommandBarIndex) {
             after_delete.end());
 }
 
+TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
+  CommandService* command_service =
+      CommandServiceFactory::GetForProfile(profile());
+  ASSERT_TRUE(command_service);
+  ASSERT_FALSE(workspace_service_->ordered_workspaces().empty());
+
+  const GURL credential_url(
+      "https://username:password@example.test/private-document");
+  tab_tree::TreeNode page = MakeSavedPage(
+      workspace_service_->ordered_workspaces().front().id, credential_url);
+  page.title = base::UTF8ToUTF16(credential_url.spec());
+  page.sort_key = "credential-page";
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            bridge_->tab_tree_store()->CreateNode(page));
+
+  const std::vector<RankedCommand> results =
+      command_service->Query(u"private-document", 10u);
+  const auto result =
+      std::ranges::find_if(results, [&page](const RankedCommand& ranked) {
+        return ranked.item.type == CommandItemType::kSavedPage &&
+               ranked.item.stable_id == page.id.AsLowercaseString();
+      });
+  ASSERT_NE(result, results.end());
+  const GURL safe_url("https://example.test/private-document");
+  EXPECT_EQ(result->item.url, safe_url);
+  EXPECT_EQ(result->item.title, base::UTF8ToUTF16(safe_url.spec()));
+  EXPECT_EQ(result->item.secondary_text, base::UTF8ToUTF16(safe_url.spec()));
+  EXPECT_TRUE(command_service->Query(u"username", 10u).empty());
+  EXPECT_TRUE(command_service->Query(u"password", 10u).empty());
+}
+
 TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
   ASSERT_EQ(1u, bridge_->tracked_window_count());
   const std::optional<base::Uuid> window_id = bridge_->GetWindowId(browser());

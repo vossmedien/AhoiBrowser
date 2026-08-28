@@ -30,6 +30,11 @@ enum class CommandItemType {
   kWorkspace = 3,
   kHistory = 4,
   kBrowserCommand = 5,
+  // Profile-local tabs received through Ahoi's SyncProvider. These items are
+  // intentionally excluded from the legacy command-bar query overload; the
+  // sidebar opts in and revalidates their opaque identity against its current
+  // device snapshot before navigation.
+  kDeviceTab = 6,
 };
 
 struct CommandItem {
@@ -41,6 +46,9 @@ struct CommandItem {
   std::optional<GURL> url;
   int priority = 0;
   base::Time last_used;
+  // Chromium remains the lifecycle authority. This is only a presentation
+  // snapshot of WebContents::WasDiscarded(), never a second sleep state.
+  bool sleeping = false;
 
   bool operator==(const CommandItem&) const = default;
 };
@@ -114,9 +122,8 @@ class CommandService : public KeyedService {
 
   std::vector<RankedCommand> Query(std::u16string_view input,
                                    size_t max_results) const;
-  std::vector<RankedCommand> Query(
-      std::u16string_view input,
-      const CommandQueryOptions& options) const;
+  std::vector<RankedCommand> Query(std::u16string_view input,
+                                   const CommandQueryOptions& options) const;
   bool IsExplicitLocalQuery(std::u16string_view input) const;
   // The caller supplies Chromium's profile-aware scheme classifier for this
   // synchronous call. The service neither owns nor retains Profile state.

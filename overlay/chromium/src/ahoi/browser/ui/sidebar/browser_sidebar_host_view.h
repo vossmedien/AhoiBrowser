@@ -212,6 +212,7 @@ class BrowserSidebarHostView final : public views::View,
 
  private:
   friend bool IsBrowserSidebarDragActive(views::View* sidebar_host);
+  friend bool ToggleBrowserSidebarDiscovery(views::View* sidebar_host);
 
   // views::View:
   void AddedToWidget() override;
@@ -327,6 +328,8 @@ class BrowserSidebarHostView final : public views::View,
   void RefreshRuntimePresentation();
 
   void PublishLocalDeviceTabs();
+
+  void PublishDeviceTabCommands();
 
   void RefreshRemoteTabPresentation();
 

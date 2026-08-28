@@ -25,7 +25,7 @@ namespace views {
 class Label;
 class ScrollView;
 class Textfield;
-}
+}  // namespace views
 
 namespace ahoi::sidebar {
 
@@ -96,6 +96,7 @@ class SidebarDiscoveryView final : public views::View,
   std::vector<SidebarDiscoveryItem> items_;
   std::vector<raw_ptr<SidebarDiscoveryResultRow>> rows_;
   std::optional<size_t> selected_index_;
+  bool suppress_contents_refresh_ = false;
   base::WeakPtrFactory<SidebarDiscoveryView> weak_ptr_factory_{this};
 };
 

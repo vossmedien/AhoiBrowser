@@ -38,6 +38,7 @@ CommandItem MakeItem(CommandItemType type,
   item.priority = priority;
   if (type == CommandItemType::kOpenTab ||
       type == CommandItemType::kSavedPage ||
+      type == CommandItemType::kDeviceTab ||
       type == CommandItemType::kHistory) {
     item.url = GURL("https://example.test/" + item.stable_id);
   }
@@ -135,6 +136,19 @@ TEST(CommandServiceTest, RejectsTypeUrlShapeMismatchAtomically) {
   const std::vector<RankedCommand> results = service.Query(u"original", 10u);
   ASSERT_EQ(results.size(), 1u);
   EXPECT_EQ(results[0].item.stable_id, "original");
+}
+
+TEST(CommandServiceTest, RejectsUrlUserinfoBeforeIndexing) {
+  CommandService service;
+  CommandItem credential_bearing =
+      MakeItem(CommandItemType::kSavedPage, "private", u"Private");
+  credential_bearing.url =
+      GURL("https://username:password@example.test/private");
+  credential_bearing.keywords = {u"username", u"password"};
+
+  EXPECT_FALSE(service.ReplaceItems(CommandItemType::kSavedPage,
+                                    {std::move(credential_bearing)}));
+  EXPECT_TRUE(service.Query(u"password", 10u).empty());
 }
 
 TEST(CommandServiceTest, LimitsResultsAndUsesRecencyAsStableTieBreaker) {
@@ -235,14 +249,13 @@ TEST(CommandServiceTest, QueryPolicyKeepsDuplicateTabsAndFiltersSources) {
   history.url = shared_url;
   ASSERT_TRUE(service.ReplaceItems(CommandItemType::kOpenTab,
                                    {std::move(first), std::move(second)}));
-  ASSERT_TRUE(service.ReplaceItems(CommandItemType::kSavedPage,
-                                   {std::move(saved)}));
-  ASSERT_TRUE(service.ReplaceItems(CommandItemType::kHistory,
-                                   {std::move(history)}));
+  ASSERT_TRUE(
+      service.ReplaceItems(CommandItemType::kSavedPage, {std::move(saved)}));
+  ASSERT_TRUE(
+      service.ReplaceItems(CommandItemType::kHistory, {std::move(history)}));
 
   const CommandQueryOptions sidebar_options{
-      .allowed_types = {CommandItemType::kOpenTab,
-                        CommandItemType::kSavedPage},
+      .allowed_types = {CommandItemType::kOpenTab, CommandItemType::kSavedPage},
       .deduplicate_urls = false,
       .max_results = 10,
   };
@@ -253,6 +266,26 @@ TEST(CommandServiceTest, QueryPolicyKeepsDuplicateTabsAndFiltersSources) {
   EXPECT_EQ(results[1].item.type, CommandItemType::kOpenTab);
   EXPECT_NE(results[0].item.stable_id, results[1].item.stable_id);
   EXPECT_EQ(results[2].item.type, CommandItemType::kSavedPage);
+}
+
+TEST(CommandServiceTest, DeviceTabsRequireAnExplicitSurfacePolicy) {
+  CommandService service;
+  ASSERT_TRUE(service.ReplaceItems(
+      CommandItemType::kDeviceTab,
+      {MakeItem(CommandItemType::kDeviceTab, "device:tab", u"Remote docs")}));
+
+  EXPECT_TRUE(service.Query(u"remote", 10u).empty());
+
+  const CommandQueryOptions sidebar_options{
+      .allowed_types = {CommandItemType::kDeviceTab},
+      .deduplicate_urls = false,
+      .max_results = 10u,
+  };
+  const std::vector<RankedCommand> results =
+      service.Query(u"@tabs remote", sidebar_options);
+  ASSERT_EQ(results.size(), 1u);
+  EXPECT_EQ(results.front().item.type, CommandItemType::kDeviceTab);
+  EXPECT_EQ(results.front().item.stable_id, "device:tab");
 }
 
 TEST(CommandServiceTest, TenThousandItemIndexReturnsBoundedResults) {

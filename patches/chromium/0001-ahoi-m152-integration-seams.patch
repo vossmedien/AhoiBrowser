@@ -117,7 +117,7 @@ index 45f00944bf1e64c5415c08d83d2f01a6f08c4366..458f0dcca0e27596ff7a868e2cc149b6
    // Only allow disabling web security via the command-line flag if the user has
    // specified a distinct profile directory. This still enables tests to disable
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..28f23ae46dbc222e824ba5a0565917304f411d46 100644
+index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351fcaa4dc0c 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
 @@ -16738,6 +16738,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
@@ -130,7 +130,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..28f23ae46dbc222e824ba5a056591730
        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
        </message>
-@@ -20042,6 +20045,1401 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20042,6 +20045,1434 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
        Relaunch
      </message>
@@ -487,6 +487,39 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..28f23ae46dbc222e824ba5a056591730
 +    </message>
 +    <message name="IDS_AHOI_SIDEBAR_TREE_ACCESSIBLE_NAME" desc="Accessible name for AhoiBrowser's unified vertical tab and saved-page tree." meaning="AhoiBrowser native sidebar">
 +      Tabs and saved pages
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_SEARCH" desc="Placeholder and accessible name for AhoiBrowser's unified sidebar discovery search." meaning="AhoiBrowser sidebar discovery">
++      Search tabs, saved pages, groups, workspaces, and devices
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_OPEN_TAB" desc="Origin label for an open local tab in AhoiBrowser's sidebar discovery results." meaning="AhoiBrowser sidebar discovery">
++      Open tab
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_SLEEPING_TAB" desc="Origin label for a discarded local tab in AhoiBrowser's sidebar discovery results." meaning="AhoiBrowser sidebar discovery">
++      Sleeping tab
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_SAVED_PAGE" desc="Origin label for a durable saved page in AhoiBrowser's sidebar discovery results." meaning="AhoiBrowser sidebar discovery">
++      Saved page
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_GROUP" desc="Origin label for a native sidebar group in AhoiBrowser's discovery results." meaning="AhoiBrowser sidebar discovery">
++      Group
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_WORKSPACE" desc="Origin label for a workspace in AhoiBrowser's sidebar discovery results." meaning="AhoiBrowser sidebar discovery">
++      Workspace
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_DEVICE_TAB" desc="Origin label for a remote device tab in AhoiBrowser's sidebar discovery results." meaning="AhoiBrowser sidebar discovery">
++      Device tab
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_RECENT_TAB" desc="Origin label for a temporary tab in AhoiBrowser's recently closed results." meaning="AhoiBrowser sidebar discovery">
++      Recently closed tab
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_RECENT_SPLIT" desc="Origin label for a split in AhoiBrowser's recently closed results." meaning="AhoiBrowser sidebar discovery">
++      Recently closed split
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_RECENT_GROUP" desc="Origin label for a group in AhoiBrowser's recently closed results." meaning="AhoiBrowser sidebar discovery">
++      Recently closed group
++    </message>
++    <message name="IDS_AHOI_SIDEBAR_DISCOVERY_RECENT_WINDOW" desc="Origin label for a window in AhoiBrowser's recently closed results." meaning="AhoiBrowser sidebar discovery">
++      Recently closed window
 +    </message>
 +    <message name="IDS_AHOI_CONTEXT_OPEN" desc="Context-menu action that opens a saved page in AhoiBrowser." meaning="AhoiBrowser native sidebar">
 +      Open
@@ -1533,10 +1566,10 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..28f23ae46dbc222e824ba5a056591730
  </release>
  </grit>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index f630847b474cfde5341923bbd6776b17d6773102..4a8bb19c3066b87a3605070f562ac6b61cf630c3 100644
+index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426c3a2c7c2 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -10730,4 +10730,464 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -10730,4 +10730,475 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
  <translation id="998747458861718449">Untersuchen</translation>
  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
@@ -2002,12 +2035,23 @@ index f630847b474cfde5341923bbd6776b17d6773102..4a8bb19c3066b87a3605070f562ac6b6
 +<translation id="604366452320429368">Ich habe die Vorschau geprüft und möchte diese Elemente jetzt hinzufügen</translation>
 +<translation id="536686936509624394">Ausgewählte Daten importieren</translation>
 +<translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
++<translation id="6666862080270678315">Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen</translation>
++<translation id="1323743597646662877">Geöffneter Tab</translation>
++<translation id="5052185113772701312">Schlafender Tab</translation>
++<translation id="8581959836704899064">Gespeicherte Seite</translation>
++<translation id="2770498212512399456">Gruppe</translation>
++<translation id="2778748677232951498">Workspace</translation>
++<translation id="2741156161637802449">Geräte-Tab</translation>
++<translation id="7732275909611556473">Kürzlich geschlossener Tab</translation>
++<translation id="4131831590543916816">Kürzlich geschlossener Split</translation>
++<translation id="5502679562240472247">Kürzlich geschlossene Gruppe</translation>
++<translation id="5461107725978398953">Kürzlich geschlossenes Fenster</translation>
 +</translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..87bbf65d9671fa6f20faf9c0f37a70ef0f3ae9b1 100644
+index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b124a900547 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -10750,4 +10750,260 @@ This can include information about installed software, files, your browser, the
+@@ -10750,4 +10750,271 @@ This can include information about installed software, files, your browser, the
  <translation id="998347228911661591">Sync your tab groups</translation>
  <translation id="998747458861718449">I&amp;nspect</translation>
  <translation id="998852291477823323">The action was disallowed by the configured policies.</translation>
@@ -2269,6 +2313,17 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..87bbf65d9671fa6f20faf9c0f37a70ef
 +<translation id="1782489648598371881">One rule per line. Use “Name: value” to set, “-Name” to remove, or “Name: @keychain(ahoi-keychain:reference)” for a local secret.</translation>
 +<translation id="3824342247976280304">Allow encrypted sync; Keychain secrets stay local</translation>
 +<translation id="4615050181991562795">Disable cache for this site (CACHE OFF)</translation>
++<translation id="6666862080270678315">Search tabs, saved pages, groups, workspaces, and devices</translation>
++<translation id="1323743597646662877">Open tab</translation>
++<translation id="5052185113772701312">Sleeping tab</translation>
++<translation id="8581959836704899064">Saved page</translation>
++<translation id="2770498212512399456">Group</translation>
++<translation id="2778748677232951498">Workspace</translation>
++<translation id="2741156161637802449">Device tab</translation>
++<translation id="7732275909611556473">Recently closed tab</translation>
++<translation id="4131831590543916816">Recently closed split</translation>
++<translation id="5502679562240472247">Recently closed group</translation>
++<translation id="5461107725978398953">Recently closed window</translation>
 +</translationbundle>
 diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
 index e1d0017fc823e435bf28702d309297b33c296f76..051a1a4398548ae2b602300fac7ba24596036940 100644
@@ -10189,7 +10244,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..056ea93bdf4c76839a506a762b1db68d
  }
  
  views::View* BrowserView::GetViewByElementId(ui::ElementIdentifier element_id) {
-@@ -5152,6 +5914,66 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -5152,6 +5914,76 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
      return true;
    }
  
@@ -10200,6 +10255,16 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..056ea93bdf4c76839a506a762b1db68d
 +  if (ahoi::quick_window::IsQuickWindowAccelerator(accelerator) &&
 +      !AhoiQuickWindowGlobalShortcut::GetInstance()->registered() &&
 +      AhoiQuickWindowGlobalShortcut::GetInstance()->Activate()) {
++    return true;
++  }
++  const bool is_ahoi_sidebar_discovery_shortcut =
++      accelerator.IsCmdDown() && accelerator.IsShiftDown() &&
++      !accelerator.IsCtrlDown() && !accelerator.IsAltDown() &&
++      accelerator.key_code() == ui::VKEY_F;
++  if (is_ahoi_sidebar_discovery_shortcut &&
++      vertical_tab_strip_region_view_ &&
++      ahoi::sidebar::ToggleBrowserSidebarDiscovery(
++          vertical_tab_strip_region_view_->ahoi_sidebar_tree_view())) {
 +    return true;
 +  }
 +  const bool is_ahoi_relative_workspace_shortcut =
@@ -10505,7 +10570,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..056ea93bdf4c76839a506a762b1db68d
    } else if (current_state != updated_state) {
      multi_contents_view_->CloseSplitView();
    } else {
-@@ -5579,6 +6627,62 @@ void BrowserView::LoadAccelerators() {
+@@ -5579,6 +6627,65 @@ void BrowserView::LoadAccelerators() {
          accelerator, ui::AcceleratorManager::kNormalPriority, this);
    }
  
@@ -10533,6 +10598,9 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..056ea93bdf4c76839a506a762b1db68d
 +      ui::AcceleratorManager::kHighPriority, this);
 +  focus_manager->RegisterAccelerator(
 +      ui::Accelerator(ui::VKEY_H, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
++      ui::AcceleratorManager::kHighPriority, this);
++  focus_manager->RegisterAccelerator(
++      ui::Accelerator(ui::VKEY_F, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
 +      ui::AcceleratorManager::kHighPriority, this);
 +  for (int key = ui::VKEY_1; key <= ui::VKEY_9; ++key) {
 +    focus_manager->RegisterAccelerator(
