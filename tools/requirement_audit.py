@@ -81,7 +81,7 @@ def load_registry(path: pathlib.Path) -> tuple[dict[str, Any], list[dict[str, An
             raise AuditError(f"duplicate registry test ID: {test_id}")
         seen.add(test_id)
         suite = _require_nonempty_string(entry.get("suite"), f"tests[{index}].suite")
-        if test_id.split("-", 1)[0] != suite:
+        if test_id.rsplit("-", 1)[0] != suite:
             raise AuditError(f"registry suite does not match test ID: {test_id}")
         _require_nonempty_string(entry.get("description"), f"tests[{index}].description")
         _require_nonempty_string(entry.get("primaryClass"), f"tests[{index}].primaryClass")
@@ -225,7 +225,13 @@ def _gate_ids_for(entry: dict[str, Any], *, release_chain_ready: bool,
                   include_assistance: bool) -> list[str]:
     gate_ids: list[str] = []
     test_id = entry["id"]
-    if entry["primaryClass"] in VISIBLE_CLASSES and not release_chain_ready:
+    # UBO-11 is an installed-app negative test against local fixture input;
+    # it must retain CU_E2E evidence without depending on production signing.
+    if (
+        entry["primaryClass"] in VISIBLE_CLASSES
+        and not release_chain_ready
+        and test_id != "UBO-11"
+    ):
         gate_ids.append("signed-release-provenance")
     if test_id.startswith(("SYNC-", "IOS-")):
         gate_ids.extend(("cloudkit-identifiers", "cloudkit-device-validation"))
@@ -234,10 +240,15 @@ def _gate_ids_for(entry: dict[str, Any], *, release_chain_ready: bool,
     if test_id.startswith("UPDATE-"):
         gate_ids.extend(("release-manifest-and-update-keys",
                          "signed-release-provenance", "sparkle-feed-hosting"))
-    if test_id.startswith("UBO-"):
+    ubo_production_gate_ids = {
+        f"UBO-{number:02d}" for number in range(1, 11)
+    } | {"UBO-12"}
+    if test_id in ubo_production_gate_ids:
         gate_ids.extend(("ubo-catalog-hosting-and-signing",
                          "ubo-fixed-id-crx-publisher-provenance",
                          "ubo-redistribution"))
+    if test_id == "UBO-12":
+        gate_ids.append("chrome-web-store")
     if test_id.startswith("DRM-"):
         gate_ids.extend(("proprietary-codecs", "widevine-mla"))
     if test_id in {"EXT-01", "EXT-02", "EXT-03", "EXT-09", "EXT-10"}:
@@ -398,6 +409,10 @@ def _audited_candidate_record(
         )
     if read_error and read_error not in validation_errors:
         validation_errors.append(read_error)
+    ubo_11_local_fail_closed = evidence.is_ubo_11_local_fail_closed_pass(
+        path,
+        payload,
+    )
     if declared_status == PASS and entry["primaryClass"] == "INTEGRATION":
         evidence_data = payload.get("evidence") if payload else None
         reports = evidence_data.get("testReports") if isinstance(evidence_data, dict) else None
@@ -423,6 +438,7 @@ def _audited_candidate_record(
         declared_status == PASS
         and entry["primaryClass"] in VISIBLE_CLASSES
         and not release_chain_ready
+        and not ubo_11_local_fail_closed
     ):
         validation_errors.append(
             "CU_E2E and ASSISTED_E2E PASS require a validated release chain"

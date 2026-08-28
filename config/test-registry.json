@@ -2406,10 +2406,11 @@
     {
       "id": "UBO-13",
       "suite": "UBO",
-      "description": "Unprovisionierte uBlock-Trust-Roots bleiben sichtbar deaktiviert, lösen keinen Netzwerkrequest aus und schlagen fail-closed fehl.",
+      "description": "unprovisionierte Katalog-, Signing- oder Publisher-Trust-Roots bleiben sichtbar deaktiviert und lösen keinen Netzwerkrequest aus.",
       "primaryClass": "UNIT",
       "requiredEvidenceClasses": [
-        "UNIT"
+        "UNIT",
+        "INTEGRATION"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"

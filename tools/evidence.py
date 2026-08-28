@@ -40,6 +40,15 @@ RELEASE_MANIFEST_REQUIRED = (
 RELEASE_PUBLIC_KEY_REQUIRED = (
     "Computer Use PASS requires an explicit --release-public-key path"
 )
+UBO_11_LOCAL_FAIL_CLOSED_RECEIPT = {
+    "schemaVersion": 1,
+    "kind": "ubo-11-local-unprovisioned-fail-closed",
+    "testId": "UBO-11",
+    "productionTrustRootsProvisioned": False,
+    "foreignMv2Rejected": True,
+    "networkRequestCount": 0,
+    "positiveUboInstallAttempted": False,
+}
 
 
 def load(relative: str):
@@ -361,6 +370,42 @@ def validate_artifact_reference(
     return []
 
 
+def is_ubo_11_local_fail_closed_pass(
+    result_path: pathlib.Path,
+    data: object,
+) -> bool:
+    """Recognize the only CU PASS that does not need production provenance."""
+    if not isinstance(data, dict) or {
+        "testId": data.get("testId"),
+        "testClass": data.get("testClass"),
+        "status": data.get("status"),
+    } != {
+        "testId": "UBO-11",
+        "testClass": "CU_E2E",
+        "status": "PASS",
+    }:
+        return False
+    evidence_data = data.get("evidence")
+    if not isinstance(evidence_data, dict):
+        return False
+    references = evidence_data.get("fixtureReceipts")
+    hashes = evidence_data.get("fileHashes")
+    if (
+        not isinstance(references, list)
+        or len(references) != 1
+        or not isinstance(references[0], str)
+        or not isinstance(hashes, dict)
+        or validate_artifact_reference(result_path, references[0], hashes)
+    ):
+        return False
+    receipt_path = result_path.resolve().parent / references[0]
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+    return receipt == UBO_11_LOCAL_FAIL_CLOSED_RECEIPT
+
+
 def init_result(args: argparse.Namespace) -> int:
     entry = registry_entry(args.test_id)
     product_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
@@ -524,6 +569,7 @@ def validate_result(
         for reference in sorted(set(evidence_references)):
             errors.extend(validate_artifact_reference(path, reference, hashes))
 
+    ubo_11_local_fail_closed = is_ubo_11_local_fail_closed_pass(path, data)
     if data["testClass"] in {"CU_E2E", "ASSISTED_E2E"}:
         bundle = data["bundle"]
         if bundle.get("path") != str(INSTALLED_BUNDLE):
@@ -546,12 +592,13 @@ def validate_result(
         if data["status"] == "PASS" and not visual_evidence:
             errors.append("Computer Use PASS requires screenshot or video evidence")
         if data["status"] == "PASS":
-            errors.extend(
-                validate_release_evidence_chain(
-                    release_manifest,
-                    release_public_key,
+            if not ubo_11_local_fail_closed:
+                errors.extend(
+                    validate_release_evidence_chain(
+                        release_manifest,
+                        release_public_key,
+                    )
                 )
-            )
             actual = installed_bundle_checks(INSTALLED_BUNDLE)
             actual_hash = bundle_hash(INSTALLED_BUNDLE)
             expected_team = os.environ.get("AHOI_TEAM_ID")

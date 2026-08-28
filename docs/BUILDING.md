@@ -201,12 +201,16 @@ Mach-O, Resources, and Framework/library inventory with:
 python3 tools/measure_lean_bundles.py
 ```
 
-The tool verifies every GN profile hash and bundle identity before atomically
-writing `artifacts/build/lean-wave-1-bundle-measurement.json`. Its report has no
-wall-clock field and uses the rules and thresholds in
-`config/lean-bundle-measurement.json`. A missed size threshold produces the
-explicit `PRODUCT_DECISION_REQUIRED` metric state; it is not silently treated
-as a passing release gate.
+The tool binds each candidate to its canonical schema-v2 build receipt, verifies
+the configured and generated GN hashes, recomputes the receipt's bundle hash,
+and requires one clean repository/Chromium/dependency/depot_tools/gclient,
+pinned-toolchain, build-tool, and Ahoi-overlay provenance set across all three
+candidates. Every receipt SHA-256 is retained in the report before it atomically
+writes `artifacts/build/lean-wave-1-bundle-measurement.json`. Its report has no
+wall-clock field and uses the exact rules and thresholds in
+`config/lean-bundle-measurement.json`. A missed size threshold still writes the
+explicit `PRODUCT_DECISION_REQUIRED` metric state, then exits with status 2; it
+is never silently treated as a passing release gate.
 
 ## Stable development signing and Keychain access
 

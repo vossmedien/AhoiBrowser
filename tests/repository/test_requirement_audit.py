@@ -58,19 +58,19 @@ class RequirementAuditTests(unittest.TestCase):
         )["tests"]
         expected_ids = {entry["id"] for entry in registry}
         actual_ids = [entry["id"] for entry in audit["requirements"]]
-        self.assertEqual(349, len(actual_ids))
-        self.assertEqual(349, len(set(actual_ids)))
+        self.assertEqual(373, len(actual_ids))
+        self.assertEqual(373, len(set(actual_ids)))
         self.assertEqual(expected_ids, set(actual_ids))
-        self.assertEqual(349, audit["summary"]["total"])
+        self.assertEqual(373, audit["summary"]["total"])
         self.assertEqual(
-            349,
+            373,
             sum(
                 item["count"]
                 for item in audit["summary"]["byPrimaryClass"].values()
             ),
         )
         self.assertEqual(
-            349,
+            373,
             sum(item["count"] for item in audit["summary"]["bySuite"].values()),
         )
         self.assertEqual(
@@ -208,6 +208,95 @@ class RequirementAuditTests(unittest.TestCase):
         self.assertIn("signed-release-provenance", result["externalGateIds"])
         self.assertFalse(result["locallyControllable"])
 
+    def test_ubo_11_local_fail_closed_receipt_is_the_only_release_chain_exception(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-requirement-audit-") as directory:
+            root = pathlib.Path(directory)
+            registry_path = root / "registry.json"
+            write_registry(registry_path, [registry_entry("UBO-11")])
+            result_path = root / "UBO-11" / "result.json"
+            result_path.parent.mkdir()
+            receipt_path = result_path.parent / "ubo-11-local-receipt.json"
+            receipt_path.write_text(
+                json.dumps(
+                    requirement_audit.evidence.UBO_11_LOCAL_FAIL_CLOSED_RECEIPT,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            digest = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+            result_path.write_text(
+                json.dumps(
+                    {
+                        "testId": "UBO-11",
+                        "testClass": "CU_E2E",
+                        "status": "PASS",
+                        "executedBy": "fixture-runner",
+                        "steps": [{"executed": True}],
+                        "evidence": {
+                            "fixtureReceipts": [receipt_path.name],
+                            "fileHashes": {receipt_path.name: digest},
+                            "testReports": ["validated-report.json"],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                requirement_audit.evidence,
+                "validate_release_evidence_chain",
+                return_value=CHAIN_NOT_READY,
+            ), mock.patch.object(
+                requirement_audit.evidence,
+                "validate_result",
+                return_value=[],
+            ):
+                audit = requirement_audit.build_audit(
+                    registry_path=registry_path,
+                    evidence_root=root,
+                )
+
+            result = audit["requirements"][0]
+            self.assertEqual("PASS", result["status"])
+            self.assertEqual("VALID", result["evidence"]["state"])
+            self.assertEqual([], result["externalGateIds"])
+            self.assertTrue(result["locallyControllable"])
+
+            rejected_receipt = dict(
+                requirement_audit.evidence.UBO_11_LOCAL_FAIL_CLOSED_RECEIPT
+            )
+            rejected_receipt["positiveUboInstallAttempted"] = True
+            receipt_path.write_text(
+                json.dumps(rejected_receipt, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            payload = json.loads(result_path.read_text(encoding="utf-8"))
+            payload["evidence"]["fileHashes"][receipt_path.name] = hashlib.sha256(
+                receipt_path.read_bytes()
+            ).hexdigest()
+            result_path.write_text(json.dumps(payload), encoding="utf-8")
+            with mock.patch.object(
+                requirement_audit.evidence,
+                "validate_release_evidence_chain",
+                return_value=CHAIN_NOT_READY,
+            ), mock.patch.object(
+                requirement_audit.evidence,
+                "validate_result",
+                return_value=[],
+            ):
+                rejected_audit = requirement_audit.build_audit(
+                    registry_path=registry_path,
+                    evidence_root=root,
+                )
+
+        rejected = rejected_audit["requirements"][0]
+        self.assertEqual("NOT_RUN", rejected["status"])
+        self.assertEqual("INVALID", rejected["evidence"]["state"])
+        self.assertIn(
+            "CU_E2E and ASSISTED_E2E PASS require a validated release chain",
+            rejected["evidence"]["validationErrors"],
+        )
+
     def test_integration_pass_without_a_concrete_report_remains_not_run(self):
         with tempfile.TemporaryDirectory(prefix="ahoi-requirement-audit-") as directory:
             root = pathlib.Path(directory)
@@ -325,14 +414,25 @@ class RequirementAuditTests(unittest.TestCase):
         self.assertIn(
             "cloudkit-device-validation", by_id["IOS-01"]["externalGateIds"]
         )
-        self.assertEqual(
-            [
-                "ubo-catalog-hosting-and-signing",
-                "ubo-fixed-id-crx-publisher-provenance",
-                "ubo-redistribution",
-            ],
-            by_id["UBO-13"]["externalGateIds"],
+        ubo_production_gates = {
+            "ubo-catalog-hosting-and-signing",
+            "ubo-fixed-id-crx-publisher-provenance",
+            "ubo-redistribution",
+        }
+        for number in range(1, 11):
+            self.assertLessEqual(
+                ubo_production_gates,
+                set(by_id[f"UBO-{number:02d}"]["externalGateIds"]),
+            )
+        self.assertEqual([], by_id["UBO-11"]["externalGateIds"])
+        self.assertTrue(by_id["UBO-11"]["locallyControllable"])
+        self.assertEqual("CU_E2E", by_id["UBO-11"]["primaryClass"])
+        self.assertLessEqual(
+            ubo_production_gates | {"chrome-web-store"},
+            set(by_id["UBO-12"]["externalGateIds"]),
         )
+        self.assertEqual([], by_id["UBO-13"]["externalGateIds"])
+        self.assertTrue(by_id["UBO-13"]["locallyControllable"])
         for number in range(1, 16):
             perf = by_id[f"PERF-{number:02d}"]
             self.assertFalse(perf["locallyControllable"])

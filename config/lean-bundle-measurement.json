@@ -15,6 +15,9 @@
       "argsPath": "config/build/upstream-release.gn",
       "expectedArgsSha256": "abe86e85d5ec8d662d0d372951d70f7ce18cedf5f7b009b1baa72bce9f6a4bfd",
       "bundlePath": "chromium/src/out/AhoiUpstreamRelease/Chromium.app",
+      "generatedArgsPath": "chromium/src/out/AhoiUpstreamRelease/args.gn",
+      "receiptPath": "artifacts/build/upstream-build.json",
+      "expectedReceiptKind": "unmodified-upstream-control",
       "expectedBundleName": "Chromium",
       "expectedBundleIdentifier": "org.chromium.Chromium",
       "expectedBuildProfile": null
@@ -24,6 +27,9 @@
       "argsPath": "config/build/ahoi-full-release.gn",
       "expectedArgsSha256": "cf144d4dcfb41383b3e863c363de0d89568a09baa06219b64e5627c516b0bf4c",
       "bundlePath": "chromium/src/out/AhoiFullRelease/AhoiBrowser.app",
+      "generatedArgsPath": "chromium/src/out/AhoiFullRelease/args.gn",
+      "receiptPath": "artifacts/build/ahoi-full-release-build.json",
+      "expectedReceiptKind": "ahoi-full-release",
       "expectedBundleName": "AhoiBrowser",
       "expectedBundleIdentifier": "app.ahoibrowser.AhoiBrowser",
       "expectedBuildProfile": "full-release"
@@ -33,6 +39,9 @@
       "argsPath": "config/build/ahoi-release.gn",
       "expectedArgsSha256": "59b1ca1639c96a25a1c908aa936f8a04c582ad7e37dcb79bf619ba66954a9b95",
       "bundlePath": "chromium/src/out/AhoiRelease/AhoiBrowser.app",
+      "generatedArgsPath": "chromium/src/out/AhoiRelease/args.gn",
+      "receiptPath": "artifacts/build/ahoi-release-build.json",
+      "expectedReceiptKind": "ahoi-release",
       "expectedBundleName": "AhoiBrowser",
       "expectedBundleIdentifier": "app.ahoibrowser.AhoiBrowser",
       "expectedBuildProfile": "release"

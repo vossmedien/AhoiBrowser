@@ -151,6 +151,17 @@ uninstall journey defined by the product test registry. Additional tests
 cover foreign MV2 and unchanged MV3 behavior, catalog tampering, redirected,
 oversized and offline fetches, package hash failure, and uninstall cleanup.
 
+UBO-11 remains a real installed-app CU_E2E negative test but is locally
+controllable while production trust roots are unprovisioned. Its only
+release-chain exception requires one hashed fixture receipt whose complete JSON
+value is `schemaVersion: 1`, kind
+`ubo-11-local-unprovisioned-fail-closed`, test ID `UBO-11`, unprovisioned
+production trust roots, a rejected foreign MV2 package, zero network requests,
+and no positive uBO installation attempt. Signature, Hardened Runtime,
+notarization, installed-bundle binding, visual evidence, reports, artifact
+hashes, and repeat-run validation remain mandatory. No positive uBO journey or
+other CU_E2E test inherits this exception.
+
 ## External release gate
 
 The public ID above is the Chrome Web Store identity documented by uBlock

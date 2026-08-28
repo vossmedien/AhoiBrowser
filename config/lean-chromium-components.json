@@ -237,12 +237,20 @@
         "required": true,
         "declarations": ["components/compose/features.gni"],
         "guardPaths": [
+          "build/config/android/internal_rules.gni",
           "chrome/browser/BUILD.gn",
           "chrome/browser/ui/BUILD.gn",
           "chrome/browser/resources/BUILD.gn",
+          "chrome/browser/ui/android/bricks/internal/BUILD.gn",
           "chrome/browser/ui/autofill/BUILD.gn",
           "chrome/browser/ui/webui/BUILD.gn",
-          "chrome/browser/ui/webui/compose/BUILD.gn"
+          "chrome/browser/ui/webui/compose/BUILD.gn",
+          "chrome/chrome_paks.gni",
+          "chrome/common/features.gni",
+          "chrome/test/BUILD.gn",
+          "chrome/test/data/webui/BUILD.gn",
+          "components/BUILD.gn",
+          "components/segmentation_platform/embedder/default_model/BUILD.gn"
         ],
         "assertionPaths": ["chrome/browser/compose/BUILD.gn"],
         "buildflagPath": "components/compose/BUILD.gn",
@@ -336,7 +344,13 @@
           "pdf/mojom/BUILD.gn",
           "chrome/browser/resources/pdf/BUILD.gn",
           "chrome/browser/ui/BUILD.gn",
-          "chrome/browser/extensions/api/pdf_viewer_private/BUILD.gn"
+          "chrome/browser/ui/hats/BUILD.gn",
+          "chrome/browser/extensions/api/pdf_viewer_private/BUILD.gn",
+          "chrome/common/BUILD.gn",
+          "chrome/common/features.gni",
+          "chrome/test/BUILD.gn",
+          "chrome/test/data/pdf/BUILD.gn",
+          "components/strings/BUILD.gn"
         ],
         "assertionPaths": [
           "chrome/browser/save_to_drive/BUILD.gn",

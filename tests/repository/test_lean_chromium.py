@@ -106,17 +106,138 @@ class LeanChromiumContractTests(unittest.TestCase):
     def test_measurement_manifest_binds_profile_hashes_and_matrix_pin(self):
         matrix = load_json("config/lean-chromium-components.json")
         manifest = load_json("config/lean-bundle-measurement.json")
+        expected_receipts = {
+            "upstream-control": (
+                "chromium/src/out/AhoiUpstreamRelease/args.gn",
+                "artifacts/build/upstream-build.json",
+                "unmodified-upstream-control",
+            ),
+            "ahoi-full-release": (
+                "chromium/src/out/AhoiFullRelease/args.gn",
+                "artifacts/build/ahoi-full-release-build.json",
+                "ahoi-full-release",
+            ),
+            "ahoi-release": (
+                "chromium/src/out/AhoiRelease/args.gn",
+                "artifacts/build/ahoi-release-build.json",
+                "ahoi-release",
+            ),
+        }
         self.assertEqual(matrix["chromium"], manifest["chromium"])
         self.assertEqual(
-            {"upstream-control", "ahoi-full-release", "ahoi-release"},
+            set(expected_receipts),
             {profile["id"] for profile in manifest["profiles"]},
         )
         for profile in manifest["profiles"]:
             with self.subTest(profile=profile["id"]):
                 self.assertEqual(
+                    expected_receipts[profile["id"]],
+                    (
+                        profile["generatedArgsPath"],
+                        profile["receiptPath"],
+                        profile["expectedReceiptKind"],
+                    ),
+                )
+                self.assertEqual(
                     profile["expectedArgsSha256"],
                     sha256(ROOT / profile["argsPath"]),
                 )
+        self.assertEqual(
+            {
+                "passWhen": "all-comparisons-pass",
+                "otherwise": "product-decision-required",
+                "testIds": ["LEAN-06"],
+            },
+            manifest["gate"],
+        )
+        measure_lean_bundles.validate_manifest(manifest)
+
+        for field, invalid_value in (
+            ("passWhen", "any-comparison-passes"),
+            ("otherwise", "warn-only"),
+        ):
+            invalid = json.loads(json.dumps(manifest))
+            invalid["gate"][field] = invalid_value
+            with self.subTest(field=field), self.assertRaises(SystemExit):
+                measure_lean_bundles.validate_manifest(invalid)
+
+    def test_roll_checks_cover_every_m152_feature_reference(self):
+        matrix = load_json("config/lean-chromium-components.json")
+        components = {
+            component["id"]: component for component in matrix["components"]
+        }
+        expected_paths = {
+            "compose": {
+                "build/config/android/internal_rules.gni",
+                "chrome/browser/BUILD.gn",
+                "chrome/browser/compose/BUILD.gn",
+                "chrome/browser/resources/BUILD.gn",
+                "chrome/browser/ui/BUILD.gn",
+                "chrome/browser/ui/android/bricks/internal/BUILD.gn",
+                "chrome/browser/ui/autofill/BUILD.gn",
+                "chrome/browser/ui/webui/BUILD.gn",
+                "chrome/browser/ui/webui/compose/BUILD.gn",
+                "chrome/chrome_paks.gni",
+                "chrome/common/features.gni",
+                "chrome/test/BUILD.gn",
+                "chrome/test/data/webui/BUILD.gn",
+                "components/BUILD.gn",
+                "components/compose/BUILD.gn",
+                "components/compose/features.gni",
+                "components/segmentation_platform/embedder/default_model/BUILD.gn",
+            },
+            "pdf-save-to-drive": {
+                "chrome/browser/extensions/api/pdf_viewer_private/BUILD.gn",
+                "chrome/browser/resources/pdf/BUILD.gn",
+                "chrome/browser/save_to_drive/BUILD.gn",
+                "chrome/browser/ui/BUILD.gn",
+                "chrome/browser/ui/hats/BUILD.gn",
+                "chrome/browser/ui/save_to_drive/BUILD.gn",
+                "chrome/browser/ui/views/save_to_drive/BUILD.gn",
+                "chrome/common/BUILD.gn",
+                "chrome/common/features.gni",
+                "chrome/test/BUILD.gn",
+                "chrome/test/data/pdf/BUILD.gn",
+                "components/strings/BUILD.gn",
+                "pdf/BUILD.gn",
+                "pdf/features.gni",
+                "pdf/mojom/BUILD.gn",
+            },
+        }
+        for component_id, expected in expected_paths.items():
+            roll_check = components[component_id]["rollCheck"]
+            actual = set(roll_check["declarations"])
+            actual.update(roll_check["guardPaths"])
+            actual.update(roll_check["assertionPaths"])
+            if "buildflagPath" in roll_check:
+                actual.add(roll_check["buildflagPath"])
+            with self.subTest(component=component_id):
+                self.assertEqual(expected, actual)
+
+    def test_measurement_fails_closed_on_provenance_and_size_gate(self):
+        source = (ROOT / "tools/measure_lean_bundles.py").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            'receipt.get("schemaVersion") != 2',
+            "actual_bundle_sha256 = bundle_hash(bundle)",
+            'source.get("repositoryDirty") is not False',
+            'source.get("repositoryCommit") != repository_commit',
+            'source.get("chromiumDepsSha256") != expected_deps_sha256',
+            'raise SystemExit("current Chromium checkout differs from the pin")',
+            'raise SystemExit("current depot_tools checkout differs from the pin")',
+            'raise SystemExit("current Chromium .gclient differs from the '
+            'canonical config")',
+            "if toolchain != expected_toolchain",
+            "if build_tools != expected_build_tools",
+            '("overlayFingerprint", "checkoutDeltaFingerprint")',
+            '"sha256": sha256_file(receipt_path)',
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+        report_write = source.index("atomic_write_json(output_path.resolve(), report)")
+        gate_exit = source.index('return 0 if gate_status == "PASS" else 2')
+        self.assertLess(report_write, gate_exit)
 
     def test_bundle_inventory_is_repeatable_and_classifies_entries(self):
         with tempfile.TemporaryDirectory(prefix="ahoi-lean-measure-") as directory:

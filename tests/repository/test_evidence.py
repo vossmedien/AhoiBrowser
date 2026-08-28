@@ -1,3 +1,4 @@
+import hashlib
 import json
 import pathlib
 import tempfile
@@ -100,6 +101,28 @@ def result_for(test_id: str, test_class: str, status: str = "NOT_RUN"):
     return payload
 
 
+def bind_ubo_11_local_receipt(
+    result_path: pathlib.Path,
+    payload: dict,
+    receipt: dict | None = None,
+) -> pathlib.Path:
+    receipt_path = result_path.parent / "ubo-11-local-receipt.json"
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(
+        json.dumps(
+            receipt or evidence.UBO_11_LOCAL_FAIL_CLOSED_RECEIPT,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    payload["evidence"]["fixtureReceipts"] = [receipt_path.name]
+    payload["evidence"]["fileHashes"][receipt_path.name] = hashlib.sha256(
+        receipt_path.read_bytes()
+    ).hexdigest()
+    return receipt_path
+
+
 class EvidenceValidationTests(unittest.TestCase):
     def validate(self, payload, **kwargs):
         with tempfile.TemporaryDirectory(prefix="ahoi-evidence-test-") as directory:
@@ -147,6 +170,42 @@ class EvidenceValidationTests(unittest.TestCase):
         self.assertIn("Computer Use PASS requires an installed bundle hash", errors)
         self.assertIn("Computer Use PASS requires an ARM64-only bundle", errors)
         self.assertIn(evidence.RELEASE_EVIDENCE_NOT_READY, errors)
+
+    def test_ubo_11_release_exception_requires_exact_hashed_local_receipt(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-ubo-11-receipt-") as directory:
+            result_path = pathlib.Path(directory) / "result.json"
+            payload = result_for("UBO-11", "CU_E2E", "PASS")
+            receipt_path = bind_ubo_11_local_receipt(result_path, payload)
+
+            self.assertTrue(
+                evidence.is_ubo_11_local_fail_closed_pass(result_path, payload)
+            )
+
+            positive_install = dict(evidence.UBO_11_LOCAL_FAIL_CLOSED_RECEIPT)
+            positive_install["positiveUboInstallAttempted"] = True
+            bind_ubo_11_local_receipt(result_path, payload, positive_install)
+            self.assertFalse(
+                evidence.is_ubo_11_local_fail_closed_pass(result_path, payload)
+            )
+
+            with_extra_field = dict(evidence.UBO_11_LOCAL_FAIL_CLOSED_RECEIPT)
+            with_extra_field["releaseChainBypass"] = True
+            bind_ubo_11_local_receipt(result_path, payload, with_extra_field)
+            self.assertFalse(
+                evidence.is_ubo_11_local_fail_closed_pass(result_path, payload)
+            )
+
+            bind_ubo_11_local_receipt(result_path, payload)
+            payload["testId"] = "UBO-01"
+            self.assertFalse(
+                evidence.is_ubo_11_local_fail_closed_pass(result_path, payload)
+            )
+
+            payload["testId"] = "UBO-11"
+            receipt_path.write_text("{}\n", encoding="utf-8")
+            self.assertFalse(
+                evidence.is_ubo_11_local_fail_closed_pass(result_path, payload)
+            )
 
     def test_computer_use_pass_fails_closed_without_release_attestation_chain(self):
         payload = result_for("AUTH-27", "CU_E2E", "PASS")
