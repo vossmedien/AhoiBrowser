@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/glic/BUILD.gn b/chrome/browser/glic/BUILD.gn
-index 5b912150fb73761090e5e7b610b5c0eab5ea4d5c..58eb6a26cf00d539262dedb60adce2d3556faf8e 100644
+index 5b912150fb73761090e5e7b610b5c0eab5ea4d5c..e0457cbf2af68638235caac2a9f9078646b2a9a6 100644
 --- a/chrome/browser/glic/BUILD.gn
 +++ b/chrome/browser/glic/BUILD.gn
 @@ -5,6 +5,7 @@
@@ -10,7 +10,15 @@ index 5b912150fb73761090e5e7b610b5c0eab5ea4d5c..58eb6a26cf00d539262dedb60adce2d3
  import("//components/enterprise/buildflags/buildflags.gni")
  import("//components/guest_view/buildflags/buildflags.gni")
  import("//mojo/public/tools/bindings/mojom.gni")
-@@ -1020,7 +1021,6 @@ if (!is_android) {
+@@ -976,7 +977,6 @@ if (!is_android) {
+     defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+     sources = [
+       "glic_selection_observer_interactive_uitest.cc",
+-      "glic_settings_util_interactive_uitest.cc",
+       "glic_user_status_interactive_uitest.cc",
+       "host/glic_actor_attempt_form_filling_interactive_ui_test.cc",
+       "host/glic_actor_autofill_interactive_uitest.cc",
+@@ -1020,7 +1020,6 @@ if (!is_android) {
        "//chrome/browser/actor:tools_test_support",
        "//chrome/browser/autofill",
        "//chrome/browser/background/glic",
@@ -18,11 +26,12 @@ index 5b912150fb73761090e5e7b610b5c0eab5ea4d5c..58eb6a26cf00d539262dedb60adce2d3
        "//chrome/browser/contextual_tasks:ui",
        "//chrome/browser/devtools:test_support",
        "//chrome/browser/download:test_support",
-@@ -1049,6 +1049,9 @@ if (!is_android) {
+@@ -1049,6 +1048,10 @@ if (!is_android) {
        "//content/test:test_support",
        "//ui/display:test_support",
      ]
 +    if (enable_compose) {
++      sources += [ "glic_settings_util_interactive_uitest.cc" ]
 +      deps += [ "//chrome/browser/compose" ]
 +    }
      if (enable_pdf) {
@@ -89,34 +98,3 @@ index 0313a7b60b49ef9bac2b33e96af6cb3c2fd9cd16..e5ba1065f8741eeabbde1ad24bcda27c
      if (is_linux || is_chromeos || is_win) {
        sources += [
          # This test is for the spelling options submenu that's only for
-diff --git a/chrome/browser/ui/webui/settings/BUILD.gn b/chrome/browser/ui/webui/settings/BUILD.gn
-index 17f3edb3f4e7cb2c9ef2870d162c5f59ec5783e7..22972bdeb4629827721f10f803f0938a4209842f 100644
---- a/chrome/browser/ui/webui/settings/BUILD.gn
-+++ b/chrome/browser/ui/webui/settings/BUILD.gn
-@@ -4,6 +4,7 @@
- 
- import("//build/config/ozone.gni")
- import("//build/config/ui.gni")
-+import("//components/compose/features.gni")
- import("//components/signin/features.gni")
- 
- assert(is_win || is_mac || is_linux || is_chromeos)
-@@ -197,7 +198,6 @@ source_set("impl") {
-     "//chrome/browser/bluetooth",
-     "//chrome/browser/browsing_data",
-     "//chrome/browser/browsing_data:constants",
--    "//chrome/browser/compose",
-     "//chrome/browser/content_settings",
-     "//chrome/browser/content_settings:content_settings_util",
-     "//chrome/browser/contextual_tasks",
-@@ -324,6 +324,10 @@ source_set("impl") {
-     "//v8:v8_version",
-   ]
- 
-+  if (enable_compose) {
-+    deps += [ "//chrome/browser/compose" ]
-+  }
-+
-   if (is_win || is_mac || is_linux) {
-     sources += [
-       "settings_default_browser_handler.cc",

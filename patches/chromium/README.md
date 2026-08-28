@@ -91,8 +91,9 @@ as a second active patch stack.
 - **Owner:** AhoiBrowser project.
 - **Upstream baseline:** Chromium Mac Stable `152.0.7977.65` at the exact commit
   above, applied after the Ahoi M152 integration seam.
-- **Affected paths:** the Glic interactive-test aggregate, renderer context-menu
-  implementation/test aggregates, and desktop settings implementation.
+- **Affected paths:** the Glic interactive-test aggregate and renderer
+  context-menu implementation/test aggregates. The Ahoi integration seam owns
+  the desktop Settings guard so each ordered patch has one clear owner.
 - **Rationale:** keep every remaining `//chrome/browser/compose` edge behind
   Chromium's `enable_compose` argument so the Lean profile can disable the
   dedicated Compose product slice without reaching its fail-closed assertion.

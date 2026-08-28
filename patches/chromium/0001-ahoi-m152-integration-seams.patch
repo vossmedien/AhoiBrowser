@@ -16525,7 +16525,7 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..2ca51a0c59024a13fed43752b82884ae
        "canEnableOrDisableAutofillAi",
        autofill_client &&
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index 5c7141365e8869373c507392792258ec0e11e667..191f97ea5600241d1b49eb5e7418d9dd048eceee 100644
+index 5c7141365e8869373c507392792258ec0e11e667..9db0b619cb91fd6a393f343973b889e7d12b8a72 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
 @@ -21,7 +21,10 @@
@@ -16569,18 +16569,23 @@ index 5c7141365e8869373c507392792258ec0e11e667..191f97ea5600241d1b49eb5e7418d9dd
    AddSettingsPageUIHandler(std::make_unique<MacSystemSettingsHandler>());
  #endif
  
-@@ -387,10 +398,14 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
-   const bool compose_visible = false;
- #endif  // BUILDFLAG(ENABLE_COMPOSE)
- 
-+#if BUILDFLAG(ENABLE_COMPOSE)
+@@ -382,15 +393,14 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+ #if BUILDFLAG(ENABLE_COMPOSE)
+   const bool compose_enabled = ComposeEnabling::IsEnabledForProfile(profile);
+   const bool compose_visible = ComposeEnabling::IsSettingVisible(profile);
+-#else
+-  const bool compose_enabled = false;
+-  const bool compose_visible = false;
+-#endif  // BUILDFLAG(ENABLE_COMPOSE)
+-
    html_source->AddBoolean(
        "enableComposeProactiveNudge",
        compose_enabled && base::FeatureList::IsEnabled(
                               compose::features::kEnableComposeProactiveNudge));
 +#else
++  const bool compose_visible = false;
 +  html_source->AddBoolean("enableComposeProactiveNudge", false);
-+#endif
++#endif  // BUILDFLAG(ENABLE_COMPOSE)
  
    auto* subscription_service = subscription_eligibility::
        SubscriptionEligibilityServiceFactory::GetForProfile(profile);
