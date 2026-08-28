@@ -60,7 +60,7 @@ class CommandBarController : public TabStripModelObserver,
                        views::View* sidebar_host);
   CommandBarController(const CommandBarController&) = delete;
   CommandBarController& operator=(const CommandBarController&) = delete;
-  ~CommandBarController();
+  ~CommandBarController() override;
 
   // Returns false when the host window/profile cannot safely support the
   // command bar, allowing Chromium's original accelerator behavior to run.
