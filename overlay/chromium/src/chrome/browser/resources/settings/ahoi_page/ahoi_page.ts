@@ -236,7 +236,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         this.remoteControlPublicKey_.trim().length > 0;
   }
 
-  protected async onApproveRemoteControlDevice_() {
+  protected async onRemoteControlApproveClick_() {
     if (!this.canApproveRemoteControlDevice_()) {
       return;
     }
@@ -258,7 +258,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
-  protected async onRevokeRemoteControlDevice_(event: Event) {
+  protected async onRemoteControlRevokeClick_(event: Event) {
     const deviceId =
         (event.currentTarget as HTMLElement).dataset['deviceId'];
     if (!deviceId || this.remoteControlActionPending_) {

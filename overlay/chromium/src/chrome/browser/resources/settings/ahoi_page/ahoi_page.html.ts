@@ -263,7 +263,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
           </div>
           <cr-button id="ahoiRemoteControlApprove" class="action-button"
               ?disabled="${!this.canApproveRemoteControlDevice_()}"
-              @click="${this.onApproveRemoteControlDevice_}">
+              @click="${this.onRemoteControlApproveClick_}">
             $i18n{ahoiRemoteControlApprove}
           </cr-button>
           <div class="pairing-status" role="status" aria-live="polite">
@@ -280,7 +280,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
                     </span>
                     <cr-button data-device-id="${deviceId}"
                         ?disabled="${this.remoteControlActionPending_}"
-                        @click="${this.onRevokeRemoteControlDevice_}">
+                        @click="${this.onRemoteControlRevokeClick_}">
                       $i18n{ahoiRemoteControlRevoke}
                     </cr-button>
                   </div>`)}
