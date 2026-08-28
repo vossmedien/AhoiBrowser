@@ -7,6 +7,7 @@
 #include <sys/proc_info.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -17,6 +18,7 @@
 #include "base/files/file_enumerator.h"
 #include "base/files/file_util.h"
 #include "base/path_service.h"
+#include "base/process/process_handle.h"
 #include "base/process/process_iterator.h"
 #include "base/strings/string_util.h"
 
@@ -27,46 +29,35 @@ namespace {
 constexpr base::FilePath::CharType kArcDirectory[] = FILE_PATH_LITERAL("Arc");
 constexpr base::FilePath::CharType kArcAppDirectory[] =
     FILE_PATH_LITERAL("Arc.app");
-constexpr base::FilePath::CharType kContentsDirectory[] =
-    FILE_PATH_LITERAL("Contents");
-constexpr base::FilePath::CharType kMacOsDirectory[] =
-    FILE_PATH_LITERAL("MacOS");
 constexpr base::FilePath::CharType kSidebarFile[] =
     FILE_PATH_LITERAL("StorableSidebar.json");
 constexpr base::FilePath::CharType kUserDataDirectory[] =
     FILE_PATH_LITERAL("User Data");
+// These are the selected-profile inputs inspected or copied by discovery and
+// backup. Keep the database set synchronized with CreateArcImportBackup().
+constexpr std::array<std::string_view, 2> kArcProfileFiles = {
+    "Preferences",
+    "Bookmarks",
+};
+constexpr std::array<std::string_view, 3> kArcProfileDatabases = {
+    "History",
+    "Favicons",
+    "Web Data",
+};
 
 bool IsStructurallySafePath(const base::FilePath& path) {
   return !path.empty() && path.IsAbsolute() && !path.ReferencesParent();
 }
 
-bool IsArcMainExecutable(const base::FilePath& executable) {
-  const base::FilePath mac_os = executable.DirName();
-  const base::FilePath contents = mac_os.DirName();
-  const base::FilePath app = contents.DirName();
-  return executable.BaseName() == base::FilePath(kArcDirectory) &&
-         mac_os.BaseName() == base::FilePath(kMacOsDirectory) &&
-         contents.BaseName() == base::FilePath(kContentsDirectory) &&
-         app.BaseName() == base::FilePath(kArcAppDirectory);
-}
-
 bool IsArcBundleProcess(const base::ProcessEntry& process) {
-  if (process.cmd_line_args().empty()) {
-    return false;
+  if (internal::IsArcBundleExecutablePath(
+          base::GetProcessExecutablePath(process.pid()))) {
+    return true;
   }
-  const base::FilePath executable =
-      base::FilePath::FromUTF8Unsafe(process.cmd_line_args().front());
-  for (base::FilePath ancestor = executable.DirName(); !ancestor.empty();) {
-    if (ancestor.BaseName() == base::FilePath(kArcAppDirectory)) {
-      return true;
-    }
-    const base::FilePath parent = ancestor.DirName();
-    if (parent == ancestor) {
-      break;
-    }
-    ancestor = parent;
-  }
-  return false;
+  return !process.cmd_line_args().empty() &&
+         internal::IsArcBundleExecutablePath(
+             base::FilePath::FromUTF8Unsafe(
+                 process.cmd_line_args().front()));
 }
 
 bool IsSelectableProfileName(const std::string& name) {
@@ -82,11 +73,77 @@ bool IsSelectableProfileName(const std::string& name) {
   });
 }
 
-bool IsPathInside(const base::FilePath& parent, const base::FilePath& child) {
-  return parent == child || parent.IsParent(child);
+bool HasSafeOpenFileSource(const ArcSource& source) {
+  const base::FilePath user_data = source.arc_root.Append(kUserDataDirectory);
+  if (!IsStructurallySafePath(source.arc_root) ||
+      source.sidebar_file != source.arc_root.Append(kSidebarFile) ||
+      base::IsLink(source.arc_root) || base::IsLink(source.sidebar_file) ||
+      base::IsLink(user_data) || !base::DirectoryExists(user_data) ||
+      source.browser_profiles.empty()) {
+    return false;
+  }
+  return std::ranges::all_of(
+      source.browser_profiles, [&user_data](const ArcBrowserProfile& profile) {
+        return IsStructurallySafePath(profile.path) &&
+               IsSelectableProfileName(profile.directory_name) &&
+               profile.path.DirName() == user_data &&
+               profile.path.BaseName().MaybeAsASCII() ==
+                   profile.directory_name &&
+               !base::IsLink(profile.path) &&
+               base::DirectoryExists(profile.path);
+      });
 }
 
 }  // namespace
+
+namespace internal {
+
+bool IsArcBundleExecutablePath(const base::FilePath& executable) {
+  if (!IsStructurallySafePath(executable)) {
+    return false;
+  }
+  for (base::FilePath ancestor = executable.DirName(); !ancestor.empty();) {
+    if (ancestor.BaseName() == base::FilePath(kArcAppDirectory)) {
+      return true;
+    }
+    const base::FilePath parent = ancestor.DirName();
+    if (parent == ancestor) {
+      break;
+    }
+    ancestor = parent;
+  }
+  return false;
+}
+
+bool IsRelevantArcSourcePath(const ArcSource& source,
+                             const base::FilePath& open_path) {
+  if (open_path.empty()) {
+    return false;
+  }
+  if (open_path == source.sidebar_file) {
+    return true;
+  }
+  for (const ArcBrowserProfile& profile : source.browser_profiles) {
+    for (std::string_view filename : kArcProfileFiles) {
+      if (open_path == profile.path.AppendASCII(filename)) {
+        return true;
+      }
+    }
+    for (std::string_view filename : kArcProfileDatabases) {
+      const base::FilePath database = profile.path.AppendASCII(filename);
+      if (open_path == database ||
+          open_path == base::FilePath(database.value() +
+                                     FILE_PATH_LITERAL("-wal")) ||
+          open_path == base::FilePath(database.value() +
+                                     FILE_PATH_LITERAL("-shm"))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+}  // namespace internal
 
 ArcDiscoveryResult DiscoverArcSourceAt(
     const base::FilePath& application_support_dir) {
@@ -183,12 +240,9 @@ ArcDiscoveryResult DiscoverDefaultArcSource() {
 }
 
 bool IsArcApplicationRunning() {
-  base::NamedProcessIterator iterator(base::FilePath(kArcDirectory).value(),
-                                      /*filter=*/nullptr);
+  base::ProcessIterator iterator(/*filter=*/nullptr);
   while (const base::ProcessEntry* entry = iterator.NextProcessEntry()) {
-    if (!entry->cmd_line_args().empty() &&
-        IsArcMainExecutable(
-            base::FilePath::FromUTF8Unsafe(entry->cmd_line_args().front()))) {
+    if (IsArcBundleProcess(*entry)) {
       return true;
     }
   }
@@ -196,24 +250,19 @@ bool IsArcApplicationRunning() {
 }
 
 bool AreArcProfileFilesOpen(const ArcSource& source) {
-  const base::FilePath user_data = source.arc_root.Append(kUserDataDirectory);
-  if (source.arc_root.empty() || !source.arc_root.IsAbsolute() ||
-      source.arc_root.ReferencesParent() || base::IsLink(source.arc_root) ||
-      base::IsLink(user_data) || !base::DirectoryExists(user_data)) {
+  if (!HasSafeOpenFileSource(source)) {
     return true;
   }
 
   base::ProcessIterator iterator(/*filter=*/nullptr);
   while (const base::ProcessEntry* process = iterator.NextProcessEntry()) {
     const bool arc_bundle_process = IsArcBundleProcess(*process);
+    if (arc_bundle_process) {
+      return true;
+    }
     const int required_bytes =
         proc_pidinfo(process->pid(), PROC_PIDLISTFDS, 0, nullptr, 0);
     if (required_bytes <= 0) {
-      // Access to an Arc helper must be fail-closed: otherwise a detached
-      // helper could still hold SQLite WAL/SHM handles while appearing safe.
-      if (arc_bundle_process) {
-        return true;
-      }
       continue;
     }
     std::vector<proc_fdinfo> descriptors(static_cast<size_t>(required_bytes) /
@@ -221,9 +270,6 @@ bool AreArcProfileFilesOpen(const ArcSource& source) {
     const int received_bytes = proc_pidinfo(process->pid(), PROC_PIDLISTFDS, 0,
                                             descriptors.data(), required_bytes);
     if (received_bytes <= 0) {
-      if (arc_bundle_process) {
-        return true;
-      }
       continue;
     }
     descriptors.resize(static_cast<size_t>(received_bytes) /
@@ -240,7 +286,7 @@ bool AreArcProfileFilesOpen(const ArcSource& source) {
         continue;
       }
       const base::FilePath open_path(vnode_info.pvip.vip_path);
-      if (!open_path.empty() && IsPathInside(user_data, open_path)) {
+      if (internal::IsRelevantArcSourcePath(source, open_path)) {
         return true;
       }
     }

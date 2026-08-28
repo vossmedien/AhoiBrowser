@@ -19,16 +19,25 @@ ArcDiscoveryResult DiscoverArcSourceAt(
 // to DiscoverArcSourceAt().
 ArcDiscoveryResult DiscoverDefaultArcSource();
 
-// Returns true only for Arc's signed-app main executable shape
-// (.../Arc.app/Contents/MacOS/Arc). Helpers are deliberately ignored. Import
-// must not snapshot while this process is present because Arc can replace its
-// sidebar file atomically at any time.
+// Returns true while any process whose executable is inside Arc.app is
+// present. Import must not snapshot while either Arc's main process or a
+// detached helper is present because both can mutate sidebar or profile data.
 bool IsArcApplicationRunning();
 
-// Enumerates open vnode handles read-only and blocks while any process has a
-// file below this Arc source's User Data directory open. This catches detached
-// helpers and external SQLite readers even after the main process exits.
+// Enumerates open vnode handles read-only and blocks while any process has the
+// sidebar file or a relevant file in one of this source's selected profiles
+// open. Relevant profile files include Preferences, Bookmarks, and the
+// History, Favicons, and Web Data databases with their WAL/SHM sidecars.
 bool AreArcProfileFilesOpen(const ArcSource& source);
+
+namespace internal {
+
+// Pure path predicates shared by production discovery and focused unit tests.
+bool IsArcBundleExecutablePath(const base::FilePath& executable);
+bool IsRelevantArcSourcePath(const ArcSource& source,
+                             const base::FilePath& open_path);
+
+}  // namespace internal
 
 }  // namespace ahoi::importer::arc
 

@@ -320,6 +320,56 @@ TEST_F(ArcImportFileTest, DiscoversEverySelectableChromiumProfileOnly) {
   EXPECT_EQ("Profile 2", discovery.source->browser_profiles[1].directory_name);
 }
 
+TEST(ArcImportDiscoveryTest, RecognizesMainAndHelperExecutablesInArcBundle) {
+  EXPECT_TRUE(internal::IsArcBundleExecutablePath(base::FilePath(
+      FILE_PATH_LITERAL("/Applications/Arc.app/Contents/MacOS/Arc"))));
+  EXPECT_TRUE(internal::IsArcBundleExecutablePath(base::FilePath(
+      FILE_PATH_LITERAL("/Applications/Arc.app/Contents/Frameworks/"
+                        "Arc Helper.app/Contents/MacOS/Arc Helper"))));
+  EXPECT_TRUE(internal::IsArcBundleExecutablePath(base::FilePath(
+      FILE_PATH_LITERAL("/Applications/Arc.app/Contents/Frameworks/"
+                        "Arc Helper (Renderer).app/Contents/MacOS/"
+                        "Arc Helper (Renderer)"))));
+  EXPECT_FALSE(internal::IsArcBundleExecutablePath(base::FilePath(
+      FILE_PATH_LITERAL("/Applications/Arc Helper.app/Contents/MacOS/"
+                        "Arc Helper"))));
+  EXPECT_FALSE(internal::IsArcBundleExecutablePath(base::FilePath(
+      FILE_PATH_LITERAL("/Applications/Arc.app.backup/Contents/MacOS/Arc"))));
+  EXPECT_FALSE(internal::IsArcBundleExecutablePath(base::FilePath(
+      FILE_PATH_LITERAL("relative/Arc.app/Contents/MacOS/Arc"))));
+}
+
+TEST_F(ArcImportFileTest, ProtectsSidebarAndSelectedProfileDatabaseFiles) {
+  CreateArcRootAndProfile();
+  ASSERT_TRUE(base::WriteFile(SidebarFile(), kValidArcSidebar));
+  const ArcDiscoveryResult discovery =
+      DiscoverArcSourceAt(application_support_);
+  ASSERT_EQ(ArcImportStatus::kOk, discovery.status);
+  ASSERT_TRUE(discovery.source.has_value());
+  const ArcSource& source = *discovery.source;
+
+  EXPECT_TRUE(
+      internal::IsRelevantArcSourcePath(source, source.sidebar_file));
+  for (std::string_view filename : {"Preferences", "Bookmarks", "History",
+                                    "History-wal", "History-shm", "Favicons",
+                                    "Favicons-wal", "Favicons-shm", "Web Data",
+                                    "Web Data-wal", "Web Data-shm"}) {
+    EXPECT_TRUE(internal::IsRelevantArcSourcePath(
+        source, BrowserProfile().AppendASCII(filename)))
+        << filename;
+  }
+
+  EXPECT_FALSE(internal::IsRelevantArcSourcePath(
+      source, BrowserProfile().AppendASCII("Cache/Cache_Data/index")));
+  EXPECT_FALSE(internal::IsRelevantArcSourcePath(
+      source, BrowserProfile().AppendASCII("History-journal")));
+  EXPECT_FALSE(internal::IsRelevantArcSourcePath(
+      source, BrowserProfile()
+                  .DirName()
+                  .AppendASCII("Profile 2")
+                  .AppendASCII("History")));
+}
+
 TEST_F(ArcImportFileTest, RejectsSymlinkedArcRoot) {
   const base::FilePath actual_root =
       temp_dir_.GetPath().Append(FILE_PATH_LITERAL("ActualArc"));
