@@ -16,13 +16,14 @@ as a second active patch stack.
 - **Owner:** AhoiBrowser project.
 - **Upstream baseline:** Chromium Mac Stable `152.0.7977.65` at the exact commit
   above.
-- **Affected paths:** 248 existing Chromium integration paths. They cover the
+- **Affected paths:** 252 existing Chromium integration paths. They cover the
   native browser frame/sidebar and command bar, two-to-four-pane split tabs,
   sessions/startup, history/device tabs, settings including the theme-resource
   product logo in the Ahoi menu entry and the fail-closed Ahoi
   Settings-handler dependency boundary, HTTP authentication,
   cookie/cache/privacy policy, extensions, autoscroll, macOS native
-  WebContents-to-Views drag routing,
+  WebContents-to-Views drag routing and crash-safe macOS history-overlay
+  teardown across nested native drag loops,
   branding/localization, and their focused Chromium tests. Product-owned
   implementations remain under the tracked `overlay/chromium/src/ahoi` tree.
 - **Rationale:** keep Ahoi-owned modules isolated while adapting the smallest
@@ -34,9 +35,11 @@ as a second active patch stack.
   WebView host, or weakening Chromium profile, sandbox, permission, credential,
   and process-isolation ownership.
 - **Tests:** offline composition and full-index checks, repository contracts,
-  Chromium format/checkdeps/build gates, focused native and browser tests, and
-  installed-bundle visible E2E evidence. The patch is binary/full-index and is
-  applied with `--whitespace=error-all` against the exact baseline.
+  Chromium format/checkdeps/build gates, focused native and browser tests
+  including detached-host no-navigation and attached-swipe lifecycle
+  regressions, and installed-bundle visible E2E evidence. The patch is
+  binary/full-index and is applied with `--whitespace=error-all` against the
+  exact baseline.
 - **Security/privacy impact:** profile and off-the-record separation, Chromium
   networking/security indicators, sandboxing, permission ownership, and local
   credential boundaries remain authoritative. Ahoi additions are local and
