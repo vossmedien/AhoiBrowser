@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
