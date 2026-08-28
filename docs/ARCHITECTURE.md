@@ -139,11 +139,12 @@ and dependent patches are evaluated in series order. Each patch has an entry in
 `patches/chromium/README.md` with owner, affected upstream paths, rationale,
 tests, and expected rebase risk.
 
-For the active Chromium M152 pin, the ordered series contains exactly three
+For the active Chromium M152 pin, the ordered series contains exactly four
 entries: one consolidated integration-seam patch, one deterministic-platform
-test patch, and one upstream page-load tracing-isolation patch. The former
-21-entry M151 stack is preserved through its recovery evidence, not kept active
-as duplicated maintenance surface.
+test patch, one upstream page-load tracing-isolation patch, and one bounded
+Lean-profile Compose-guard patch. The former 21-entry M151 stack is preserved
+through its recovery evidence, not kept active as duplicated maintenance
+surface.
 
 Within the M152 integration-seam patch, split view preserves upstream two-pane
 behavior, connects Ahoi sidebar drag targets, introduces versioned

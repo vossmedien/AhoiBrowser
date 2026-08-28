@@ -16,9 +16,10 @@ architecture decision, test, or release gate.
 
 Phase 0 is in progress on Chromium Mac Stable `152.0.7977.65` at exact commit
 `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. The active source delta is the
-tracked overlay plus the three-entry series in `patches/chromium/series`: the
-M152 integration seams, deterministic platform tests, and upstream page-load
-tracing isolation. It contains the profile-backed sidebar, SQLite-backed nested
+tracked overlay plus the four-entry series in `patches/chromium/series`: the
+M152 integration seams, deterministic platform tests, upstream page-load
+tracing isolation, and Lean-profile Compose guards. It contains the
+profile-backed sidebar, SQLite-backed nested
 tree, saved/temporary live-tab lifecycle, drag-and-drop, command bar, shared
 visual language, and bounded split-view integration. The current M152 ARM64
 development build is installed at `/Applications/AhoiBrowser.app`; focused
