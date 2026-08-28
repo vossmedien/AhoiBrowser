@@ -84,7 +84,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
         <cr-button id="ahoiArcDiscover" class="action-button"
             ?disabled="${this.arcImportStage_ === 'discovering' ||
                 this.arcImportStage_ === 'committing'}"
-            @click="${this.onArcDiscover_}">
+            @click="${this.onArcDiscoverClick_}">
           $i18n{ahoiArcImportDiscover}
         </cr-button>
 
@@ -130,7 +130,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
               ${this.arcImportPreview_.profiles.map(profile => html`
                 <cr-checkbox data-profile="${profile}"
                     .checked="${this.arcSelectedProfiles_.includes(profile)}"
-                    @change="${this.onArcProfileToggle_}">
+                    @change="${this.onArcProfileChange_}">
                   ${profile}
                 </cr-checkbox>
               `)}
@@ -179,7 +179,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
             </cr-checkbox>
             <cr-button id="ahoiArcCommit" class="action-button"
                 ?disabled="${!this.canCommitArcImport_()}"
-                @click="${this.onArcCommit_}">
+                @click="${this.onArcCommitClick_}">
               $i18n{ahoiArcImportCommit}
             </cr-button>
           </div>

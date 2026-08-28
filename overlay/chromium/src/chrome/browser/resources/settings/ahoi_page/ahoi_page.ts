@@ -185,7 +185,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
-  protected async onArcDiscover_() {
+  protected async onArcDiscoverClick_() {
     this.arcImportStage_ = 'discovering';
     this.arcImportPreview_ = null;
     this.arcImportResult_ = null;
@@ -204,7 +204,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
-  protected async onArcCommit_() {
+  protected async onArcCommitClick_() {
     const preview = this.arcImportPreview_;
     if (!preview || !this.canCommitArcImport_()) {
       return;
@@ -226,7 +226,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
-  protected onArcProfileToggle_(event: Event) {
+  protected onArcProfileChange_(event: Event) {
     const checkbox = event.currentTarget as HTMLElement&{checked: boolean};
     const profile = checkbox.dataset['profile'];
     if (!profile) {
