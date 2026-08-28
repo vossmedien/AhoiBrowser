@@ -4202,16 +4202,36 @@ index 7ff1c061b5a6bc9dbd1868ed155214ca97508efc..c012c13e87440b77fea8dc5210f91878
  import '../appearance_page/appearance_page_index.js';
  import '../autofill_page/autofill_page_index.js';
 diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.html b/chrome/browser/resources/settings/settings_menu/settings_menu.html
-index dd30b5046d72725249b90621d1346a2d23ba71f0..462cc28d494268dbe59090a410995f8c2d4b7ed9 100644
+index dd30b5046d72725249b90621d1346a2d23ba71f0..76cc7e6c41011f6249a9f0a5e49c169ddb57f386 100644
 --- a/chrome/browser/resources/settings/settings_menu/settings_menu.html
 +++ b/chrome/browser/resources/settings/settings_menu/settings_menu.html
-@@ -96,6 +96,12 @@
+@@ -23,6 +23,15 @@
+         width: var(--cr-icon-size);
+       }
+ 
++      .ahoi-product-logo {
++        flex-shrink: 0;
++        height: 20px;
++        margin-inline-end: 20px;
++        object-fit: contain;
++        pointer-events: none;
++        width: 20px;
++      }
++
+       .menu-separator {
+         /* Per bettes@, this is different from the other separator lines. */
+         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+@@ -96,6 +105,16 @@
            $i18n{appearancePageTitle}
            <cr-ripple></cr-ripple>
          </a>
 +        <a role="menuitem" id="ahoi" href="/ahoi"
 +            class="cr-nav-menu-item">
-+          <cr-icon icon="settings20:apps"></cr-icon>
++          <img class="ahoi-product-logo" aria-hidden="true" alt=""
++              draggable="false"
++              src="chrome://theme/IDR_PRODUCT_LOGO_32"
++              srcset="chrome://theme/IDR_PRODUCT_LOGO_32,
++                  chrome://theme/IDR_PRODUCT_LOGO_32@2x 2x">
 +          $i18n{ahoiPageTitle}
 +          <cr-ripple></cr-ripple>
 +        </a>

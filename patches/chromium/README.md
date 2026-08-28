@@ -18,7 +18,8 @@ as a second active patch stack.
   above.
 - **Affected paths:** 247 existing Chromium integration paths. They cover the
   native browser frame/sidebar and command bar, two-to-four-pane split tabs,
-  sessions/startup, history/device tabs, settings, HTTP authentication,
+  sessions/startup, history/device tabs, settings including the theme-resource
+  product logo in the Ahoi menu entry, HTTP authentication,
   cookie/cache/privacy policy, extensions, autoscroll, macOS native
   WebContents-to-Views drag routing,
   branding/localization, and their focused Chromium tests. Product-owned
