@@ -13,6 +13,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_indicator.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+#include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
@@ -170,13 +171,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
     fallback_icon_->SetVisible(favicon_view_->GetImageModel().IsEmpty());
     fallback_icon_->SetCanProcessEventsWithinSubtree(false);
 
-    title_ = AddChildView(std::make_unique<views::Label>(tab_title));
-    title_->SetSubpixelRenderingEnabled(false);
+    title_ = AddChildView(std::make_unique<SidebarTabTitleLabel>());
+    title_->SetText(tab_title);
     title_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    title_->SetElideBehavior(gfx::ELIDE_TAIL);
     title_->SetEnabledColor(visual_style::kText);
-    title_->SetCanProcessEventsWithinSubtree(false);
-    title_->GetViewAccessibility().SetIsIgnored(true);
 
     media_indicator_ = AddChildView(std::make_unique<views::ImageView>());
     media_indicator_->SetImage(GetSidebarMediaIndicator(media_alert));
@@ -229,6 +227,14 @@ class OpenTabRowView final : public views::View, public views::DragController {
     return saved_node_id_;
   }
 
+  void SetSplitSegmentPresentation(bool split_segment) {
+    if (is_split_segment_ == split_segment) {
+      return;
+    }
+    is_split_segment_ = split_segment;
+    InvalidateLayout();
+  }
+
   void Layout(PassKey) override {
     const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
     favicon_view_->SetBoundsRect(icon_bounds);
@@ -237,7 +243,14 @@ class OpenTabRowView final : public views::View, public views::DragController {
         GetSidebarTabTrailingLayout(width(), height(), has_media_indicator_);
     close_->SetBoundsRect(trailing.hover_action);
     media_indicator_->SetBoundsRect(trailing.media_indicator);
-    title_->SetBoundsRect(trailing.title);
+    gfx::Rect title_pane_bounds = GetLocalBounds();
+    const bool split_drop_preview =
+        drop_position_ == OpenTabDropPosition::kSplit;
+    if (split_drop_preview) {
+      title_pane_bounds.set_width(std::max(0, width() / 2));
+    }
+    title_->SetDividerSafeBounds(trailing.title, title_pane_bounds,
+                                 is_split_segment_ || split_drop_preview);
   }
 
   bool OnMousePressed(const ui::MouseEvent& event) override {
@@ -373,10 +386,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
                                      : ui::DragDropTypes::DRAG_NONE;
   }
 
-  void OnDragExited() override {
-    drop_position_.reset();
-    SchedulePaint();
-  }
+  void OnDragExited() override { ClearDropPosition(); }
 
   views::View::DropCallback GetDropCallback(
       const ui::DropTargetEvent& event) override {
@@ -388,8 +398,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
     const std::optional<OpenTabDropPosition> position =
         AllowedPosition(*payload, event.location());
     if (!position.has_value()) {
-      drop_position_.reset();
-      SchedulePaint();
+      ClearDropPosition();
       return {};
     }
     return base::BindOnce(
@@ -442,33 +451,49 @@ class OpenTabRowView final : public views::View, public views::DragController {
                        indicator);
       return;
     }
-    const float zone_height = static_cast<float>(
-        std::clamp(height() * 3 / 10, 1, std::max(1, (height() - 1) / 2)));
-    gfx::RectF zone(
-        visual_style::kSidebarTabRowHorizontalInset, 0.0f,
-        std::max(0, width() - 2 * visual_style::kSidebarTabRowHorizontalInset),
-        zone_height);
-    if (*drop_position_ == OpenTabDropPosition::kAfter) {
-      zone.set_y(std::max(0.0f, static_cast<float>(height()) - zone_height));
-    }
+    const gfx::RectF zone = GetSidebarEdgeDropTargetBounds(
+        GetLocalBounds(), *drop_position_ == OpenTabDropPosition::kAfter);
     cc::PaintFlags zone_fill = indicator;
     zone_fill.setStyle(cc::PaintFlags::kFill_Style);
     zone_fill.setColor(
         GetColorProvider()->GetColor(visual_style::kDropTargetSurface));
     canvas->DrawRoundRect(zone, visual_style::kRowCornerRadius, zone_fill);
+    gfx::RectF outline = zone;
+    constexpr float kDropOutlineWidth = static_cast<float>(
+        visual_style::kSidebarDropTargetAcceptingOutlineThickness);
+    outline.Inset(kDropOutlineWidth / 2.0f);
+    indicator.setStyle(cc::PaintFlags::kStroke_Style);
+    indicator.setStrokeWidth(kDropOutlineWidth);
+    canvas->DrawRoundRect(outline,
+                          std::max(0.0f, visual_style::kRowCornerRadius -
+                                             kDropOutlineWidth / 2.0f),
+                          indicator);
 
+    // Keep a fixed semantic insertion edge inside the generous target
+    // surface. It is derived from the row bounds and changes only when the
+    // validated before/after zone changes, never with raw pointer movement.
+    constexpr float kInsertionEdgeHeight = 3.0f;
+    gfx::RectF insertion_edge(
+        zone.x() + 4.0f,
+        *drop_position_ == OpenTabDropPosition::kBefore
+            ? zone.y()
+            : std::max(zone.y(), zone.bottom() - kInsertionEdgeHeight),
+        std::max(0.0f, zone.width() - 8.0f), kInsertionEdgeHeight);
     indicator.setStyle(cc::PaintFlags::kFill_Style);
-    constexpr float kInsertionIndicatorHeight = 3.0f;
-    const float y = *drop_position_ == OpenTabDropPosition::kBefore
-                        ? 0.0f
-                        : std::max(0.0f, static_cast<float>(height()) -
-                                             kInsertionIndicatorHeight);
-    canvas->DrawRoundRect(gfx::RectF(6.0f, y, std::max(0, width() - 12),
-                                     kInsertionIndicatorHeight),
-                          kInsertionIndicatorHeight / 2.0f, indicator);
+    canvas->DrawRoundRect(insertion_edge, kInsertionEdgeHeight / 2.0f,
+                          indicator);
   }
 
  private:
+  void ClearDropPosition() {
+    if (!drop_position_.has_value()) {
+      return;
+    }
+    drop_position_.reset();
+    InvalidateLayout();
+    SchedulePaint();
+  }
+
   void PublishDragState() {
     if (drag_state_published_) {
       return;
@@ -496,8 +521,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
     // Keep native hit testing identical to the painted 30/40/30 zones. A
     // highlighted region must never promise a drop that the pointer cannot
     // actually commit.
-    const int edge_zone =
-        std::clamp(height() * 3 / 10, 1, std::max(1, (height() - 1) / 2));
+    const int edge_zone = GetSidebarEdgeDropTargetExtent(height());
     if (point.y() < edge_zone) {
       return OpenTabDropPosition::kBefore;
     }
@@ -515,6 +539,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
                             : std::nullopt;
     if (drop_position_ != next) {
       drop_position_ = next;
+      InvalidateLayout();
       SchedulePaint();
     }
     return next.has_value();
@@ -550,8 +575,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
                    const ui::DropTargetEvent&,
                    ui::mojom::DragOperation& output_drag_op,
                    std::unique_ptr<ui::LayerTreeOwner>) {
-    drop_position_.reset();
-    SchedulePaint();
+    ClearDropPosition();
     output_drag_op = drop_callback_.Run(source_node, source_tab, tab_, position)
                          ? ui::mojom::DragOperation::kMove
                          : ui::mojom::DragOperation::kNone;
@@ -610,12 +634,13 @@ class OpenTabRowView final : public views::View, public views::DragController {
   const DropCallback drop_callback_;
   raw_ptr<views::ImageView> favicon_view_ = nullptr;
   raw_ptr<views::View> fallback_icon_ = nullptr;
-  raw_ptr<views::Label> title_ = nullptr;
+  raw_ptr<SidebarTabTitleLabel> title_ = nullptr;
   raw_ptr<views::ImageView> media_indicator_ = nullptr;
   raw_ptr<views::View> close_ = nullptr;
   const bool active_;
   const bool sleeping_;
   bool has_media_indicator_ = false;
+  bool is_split_segment_ = false;
   bool hovered_ = false;
   bool close_pressed_ = false;
   bool dragging_ = false;
@@ -635,9 +660,8 @@ class OpenTabSplitChromeView final : public views::View {
   METADATA_HEADER(OpenTabSplitChromeView, views::View)
 
  public:
-  OpenTabSplitChromeView(
-      size_t pane_count,
-      const split_tabs::SplitTabVisualData& visual_data)
+  OpenTabSplitChromeView(size_t pane_count,
+                         const split_tabs::SplitTabVisualData& visual_data)
       : pane_count_(pane_count), visual_data_(visual_data) {
     CHECK_GE(pane_count_, 2u);
     SetCanProcessEventsWithinSubtree(false);
@@ -656,9 +680,9 @@ class OpenTabSplitChromeView final : public views::View {
     }
 
     gfx::RectF group_bounds(GetLocalBounds());
-    group_bounds.Inset(gfx::InsetsF::VH(
-        visual_style::kSidebarTabRowVerticalInset,
-        visual_style::kSidebarTabRowHorizontalInset));
+    group_bounds.Inset(
+        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+                         visual_style::kSidebarTabRowHorizontalInset));
     if (group_bounds.IsEmpty()) {
       return;
     }
@@ -670,11 +694,10 @@ class OpenTabSplitChromeView final : public views::View {
     outline.setStyle(cc::PaintFlags::kStroke_Style);
     gfx::RectF outline_bounds = group_bounds;
     outline_bounds.Inset(outline.getStrokeWidth() / 2.0f);
-    canvas->DrawRoundRect(
-        outline_bounds,
-        std::max(0.0f, visual_style::kRowCornerRadius -
-                           outline.getStrokeWidth() / 2.0f),
-        outline);
+    canvas->DrawRoundRect(outline_bounds,
+                          std::max(0.0f, visual_style::kRowCornerRadius -
+                                             outline.getStrokeWidth() / 2.0f),
+                          outline);
 
     std::vector<gfx::Rect> pane_bounds;
     pane_bounds.reserve(pane_count_);
@@ -718,7 +741,11 @@ class OpenTabSplitRowView final : public views::View {
                                       SidebarTreeRowView::kRowHeight)));
     GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
     for (auto& tab : tabs) {
-      pane_views_.push_back(AddChildView(std::move(tab)));
+      views::View* const pane = AddChildView(std::move(tab));
+      auto* const tab_row = views::AsViewClass<OpenTabRowView>(pane);
+      CHECK(tab_row);
+      tab_row->SetSplitSegmentPresentation(true);
+      pane_views_.push_back(pane);
     }
     chrome_overlay_ = AddChildView(std::make_unique<OpenTabSplitChromeView>(
         pane_views_.size(), visual_data_));
@@ -748,9 +775,9 @@ class OpenTabSplitRowView final : public views::View {
       return;
     }
     gfx::RectF background(GetLocalBounds());
-    background.Inset(gfx::InsetsF::VH(
-        visual_style::kSidebarTabRowVerticalInset,
-        visual_style::kSidebarTabRowHorizontalInset));
+    background.Inset(
+        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+                         visual_style::kSidebarTabRowHorizontalInset));
     if (background.IsEmpty()) {
       return;
     }

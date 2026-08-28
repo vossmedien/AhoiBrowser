@@ -37,6 +37,11 @@ std::vector<SplitDropPane> TwoPanes() {
           {.pane_index = 1, .bounds = gfx::Rect(200, 0, 200, 300)}};
 }
 
+std::vector<SplitDropPane> TwoStackedPanes() {
+  return {{.pane_index = 0, .bounds = gfx::Rect(0, 0, 400, 150)},
+          {.pane_index = 1, .bounds = gfx::Rect(0, 150, 400, 150)}};
+}
+
 std::vector<int> ExistingOrder(const DropIntent& intent) {
   std::vector<int> result;
   for (const DropOrderEntry& entry : intent.desired_order) {
@@ -183,6 +188,55 @@ TEST(SplitDropIntentTest, SameTwoPaneFourEdgesHaveDistinctSemantics) {
   EXPECT_EQ((std::vector<int>{1, 2}), ExistingOrder(*top));
   EXPECT_EQ(split_tabs::SplitTabLayout::kStacked, bottom->layout);
   EXPECT_EQ((std::vector<int>{2, 1}), ExistingOrder(*bottom));
+}
+
+TEST(SplitDropIntentTest,
+     LeadingAndTrailingPanesUseTheSameFullDetachTargetSurface) {
+  const split_tabs::SplitTabId split_id = split_tabs::SplitTabId::GenerateNew();
+  const auto left = CalculateDropIntent(
+      RuntimePayload(1),
+      Split(1, split_id, {1, 2}, split_tabs::SplitTabLayout::kSideBySide),
+      Split(1, split_id, {1, 2}, split_tabs::SplitTabLayout::kSideBySide), 0,
+      gfx::Point(60, 150), TwoPanes());
+  const auto right = CalculateDropIntent(
+      RuntimePayload(2),
+      Split(2, split_id, {1, 2}, split_tabs::SplitTabLayout::kSideBySide),
+      Split(2, split_id, {1, 2}, split_tabs::SplitTabLayout::kSideBySide), 1,
+      gfx::Point(340, 150), TwoPanes());
+
+  ASSERT_TRUE(left.has_value());
+  ASSERT_TRUE(right.has_value());
+  EXPECT_EQ(DropAction::kDetachFromSplit, left->action);
+  EXPECT_EQ(DropAction::kDetachFromSplit, right->action);
+  EXPECT_EQ(DropZone::kLeft, left->zone);
+  EXPECT_EQ(DropZone::kRight, right->zone);
+  EXPECT_EQ(left->highlight_bounds.size(), right->highlight_bounds.size());
+  EXPECT_TRUE(left->highlight_bounds.Contains(gfx::Point(60, 150)));
+  EXPECT_TRUE(right->highlight_bounds.Contains(gfx::Point(340, 150)));
+}
+
+TEST(SplitDropIntentTest, TopAndBottomPanesUseTheSameFullDetachTargetSurface) {
+  const split_tabs::SplitTabId split_id = split_tabs::SplitTabId::GenerateNew();
+  const auto top = CalculateDropIntent(
+      RuntimePayload(1),
+      Split(1, split_id, {1, 2}, split_tabs::SplitTabLayout::kStacked),
+      Split(1, split_id, {1, 2}, split_tabs::SplitTabLayout::kStacked), 0,
+      gfx::Point(200, 60), TwoStackedPanes());
+  const auto bottom = CalculateDropIntent(
+      RuntimePayload(2),
+      Split(2, split_id, {1, 2}, split_tabs::SplitTabLayout::kStacked),
+      Split(2, split_id, {1, 2}, split_tabs::SplitTabLayout::kStacked), 1,
+      gfx::Point(200, 240), TwoStackedPanes());
+
+  ASSERT_TRUE(top.has_value());
+  ASSERT_TRUE(bottom.has_value());
+  EXPECT_EQ(DropAction::kDetachFromSplit, top->action);
+  EXPECT_EQ(DropAction::kDetachFromSplit, bottom->action);
+  EXPECT_EQ(DropZone::kTop, top->zone);
+  EXPECT_EQ(DropZone::kBottom, bottom->zone);
+  EXPECT_EQ(top->highlight_bounds.size(), bottom->highlight_bounds.size());
+  EXPECT_TRUE(top->highlight_bounds.Contains(gfx::Point(200, 60)));
+  EXPECT_TRUE(bottom->highlight_bounds.Contains(gfx::Point(200, 240)));
 }
 
 TEST(SplitDropIntentTest, SameThreePaneCrossEdgeSelectsMainArrangement) {

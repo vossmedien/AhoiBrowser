@@ -80,19 +80,22 @@ SidebarTabTrailingLayout GetSidebarTabTrailingLayout(int width,
   constexpr int kSlotWidth = 24;
   constexpr int kSlotGap = 2;
   constexpr int kTitleTrailingGap = 7;
-  const gfx::Rect hover_action(
-      std::max(0, width - kTrailingRightInset - kSlotWidth), 2, kSlotWidth,
-      std::max(0, height - 4));
-  const gfx::Rect media_indicator =
+  const gfx::Rect row_bounds(0, 0, std::max(0, width), std::max(0, height));
+  gfx::Rect hover_action(std::max(0, width - kTrailingRightInset - kSlotWidth),
+                         2, kSlotWidth, std::max(0, height - 4));
+  hover_action.Intersect(row_bounds);
+  gfx::Rect media_indicator =
       has_media_indicator
           ? gfx::Rect(std::max(0, hover_action.x() - kSlotGap - kSlotWidth), 2,
                       kSlotWidth, std::max(0, height - 4))
           : gfx::Rect();
+  media_indicator.Intersect(row_bounds);
   const int title_end =
       (has_media_indicator ? media_indicator.x() : hover_action.x()) -
       kTitleTrailingGap;
-  return {.title = gfx::Rect(kTitleStart, 0,
-                             std::max(0, title_end - kTitleStart), height),
+  gfx::Rect title(kTitleStart, 0, std::max(0, title_end - kTitleStart), height);
+  title.Intersect(row_bounds);
+  return {.title = title,
           .media_indicator = media_indicator,
           .hover_action = hover_action};
 }

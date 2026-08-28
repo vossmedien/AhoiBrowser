@@ -9,6 +9,8 @@
 #include <utility>
 
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+#include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
@@ -82,13 +84,8 @@ SidebarTreeRowView::SidebarTreeRowView(SidebarTreeView* owner,
   SetFocusBehavior(FocusBehavior::ACCESSIBLE_ONLY);
   SetNotifyEnterExitOnChild(true);
 
-  title_label_ = AddChildView(std::make_unique<views::Label>());
-  title_label_->SetSubpixelRenderingEnabled(false);
-  title_label_->SetHorizontalAlignment(gfx::ALIGN_TO_HEAD);
-  title_label_->SetElideBehavior(gfx::ELIDE_TAIL);
+  title_label_ = AddChildView(std::make_unique<SidebarTabTitleLabel>());
   title_label_->SetEnabledColor(visual_style::kText);
-  title_label_->SetCanProcessEventsWithinSubtree(false);
-  title_label_->GetViewAccessibility().SetIsIgnored(true);
 
   editor_ = AddChildView(std::make_unique<views::Textfield>());
   editor_->SetController(this);
@@ -215,6 +212,14 @@ gfx::Rect SidebarTreeRowView::title_bounds_for_testing() const {
   return GetMirroredRect(TitleBounds());
 }
 
+gfx::Rect SidebarTreeRowView::title_paint_bounds_for_testing() const {
+  return title_label_->bounds();
+}
+
+gfx::Rect SidebarTreeRowView::title_paint_clip_bounds_for_testing() const {
+  return title_label_->paint_clip_bounds_for_testing();
+}
+
 void SidebarTreeRowView::SetSelected(bool selected) {
   if (selected_ == selected) {
     return;
@@ -306,8 +311,19 @@ std::u16string SidebarTreeRowView::editor_text_for_testing() const {
 
 void SidebarTreeRowView::Layout(PassKey) {
   const gfx::Rect title_bounds = GetMirroredRect(TitleBounds());
-  title_label_->SetBoundsRect(title_bounds);
-  editor_->SetBoundsRect(title_bounds);
+  gfx::Rect title_pane_bounds = GetLocalBounds();
+  const bool has_split_separator =
+      split_segment_count_ > 1 || split_drop_target_;
+  if (split_drop_target_) {
+    // The incoming pane occupies the logical trailing half. GetMirroredRect()
+    // has already projected the title to the leading side for RTL as well, so
+    // intersect against that exact physical half before painting.
+    title_pane_bounds =
+        GetMirroredRect(gfx::Rect(0, 0, std::max(0, width() / 2), height()));
+  }
+  title_label_->SetDividerSafeBounds(title_bounds, title_pane_bounds,
+                                     has_split_separator);
+  editor_->SetBoundsRect(title_label_->bounds());
 }
 
 void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
@@ -339,21 +355,21 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
 
   if (drop_position_ == SidebarTreeController::DropPosition::kBefore ||
       drop_position_ == SidebarTreeController::DropPosition::kAfter) {
-    // Paint the complete effective edge zone, not merely its insertion line.
-    // This makes the generous hit target visible and therefore aimable while
-    // keeping row geometry absolutely stable during the native drag.
-    const float zone_height = static_cast<float>(
-        std::clamp(height() * 3 / 10, 1, std::max(1, (height() - 1) / 2)));
-    gfx::RectF zone(
-        visual_style::kSidebarTabRowHorizontalInset, 0.0f,
-        std::max(0, width() - 2 * visual_style::kSidebarTabRowHorizontalInset),
-        zone_height);
-    if (drop_position_ == SidebarTreeController::DropPosition::kAfter) {
-      zone.set_y(std::max(0.0f, static_cast<float>(height()) - zone_height));
-    }
+    // Paint the complete effective edge zone. The same fixed geometry is used
+    // by hit testing and never shifts the row or chases the pointer.
+    const gfx::RectF zone = GetSidebarEdgeDropTargetBounds(
+        GetLocalBounds(),
+        drop_position_ == SidebarTreeController::DropPosition::kAfter);
     canvas->DrawRoundRect(
         zone, visual_style::kRowCornerRadius,
         FillFlags(colors->GetColor(visual_style::kDropTargetSurface)));
+    gfx::RectF outline = zone;
+    outline.Inset(kDropStrokeWidth / 2.0f);
+    canvas->DrawRoundRect(
+        outline,
+        std::max(0.0f,
+                 visual_style::kRowCornerRadius - kDropStrokeWidth / 2.0f),
+        StrokeFlags(colors->GetColor(visual_style::kAccent), kDropStrokeWidth));
   }
 
   if (split_drop_target_) {
@@ -700,15 +716,19 @@ gfx::Rect SidebarTreeRowView::TitleBounds() const {
 
 gfx::Rect SidebarTreeRowView::MediaIndicatorBounds() const {
   const gfx::Rect action = TrailingActionBounds();
-  return gfx::Rect(std::max(0, action.x() - kTrailingActionSize - 2),
+  gfx::Rect bounds(std::max(0, action.x() - kTrailingActionSize - 2),
                    action.y(), kTrailingActionSize, action.height());
+  bounds.Intersect(GetLocalBounds());
+  return bounds;
 }
 
 gfx::Rect SidebarTreeRowView::TrailingActionBounds() const {
-  return gfx::Rect(std::max(0, width() - kTrailingActionSize - 4),
+  gfx::Rect bounds(std::max(0, width() - kTrailingActionSize - 4),
                    std::max(0, (height() - kTrailingActionSize) / 2),
                    kTrailingActionSize,
-                   std::min(kTrailingActionSize, height()));
+                   std::min(kTrailingActionSize, std::max(0, height())));
+  bounds.Intersect(GetLocalBounds());
+  return bounds;
 }
 
 bool SidebarTreeRowView::ShouldShowTrailingAction() const {

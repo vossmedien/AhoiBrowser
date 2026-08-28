@@ -313,6 +313,18 @@ TEST_F(SidebarTreeViewTest, SplitTabsShareOneSegmentedVisualRow) {
   EXPECT_TRUE(second_row->is_split_segment_for_testing());
   EXPECT_EQ(first_row->y(), second_row->y());
   EXPECT_LT(first_row->x(), second_row->x());
+  first_row->DeprecatedLayoutImmediately();
+  second_row->DeprecatedLayoutImmediately();
+  // These are the final child-label paint bounds, not just the preferred title
+  // geometry. Both labels hard-stop before their pane's trailing/bottom split
+  // separators and apply a matching local canvas clip.
+  for (SidebarTreeRowView* split_row : {first_row, second_row}) {
+    const gfx::Rect paint_bounds = split_row->title_paint_bounds_for_testing();
+    EXPECT_LT(paint_bounds.right(), split_row->width());
+    EXPECT_LT(paint_bounds.bottom(), split_row->height());
+    EXPECT_EQ(gfx::Rect(gfx::Point(), paint_bounds.size()),
+              split_row->title_paint_clip_bounds_for_testing());
+  }
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, third_row->y());
   EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight,
             view->GetPreferredSize().height());

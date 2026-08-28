@@ -23,12 +23,12 @@
 #include "ui/views/view.h"
 
 namespace views {
-class Label;
 class Textfield;
 }  // namespace views
 
 namespace ahoi::sidebar {
 
+class SidebarTabTitleLabel;
 class SidebarTreeView;
 
 // A recycled visual row. It never owns model data and is rebound by UUID when
@@ -81,6 +81,8 @@ class SidebarTreeRowView final : public views::View,
   bool is_split_drop_target_for_testing() const { return split_drop_target_; }
   bool title_visible_for_testing() const;
   gfx::Rect title_bounds_for_testing() const;
+  gfx::Rect title_paint_bounds_for_testing() const;
+  gfx::Rect title_paint_clip_bounds_for_testing() const;
   bool should_paint_trailing_state_for_testing() const {
     return ShouldPaintTrailingState();
   }
@@ -125,7 +127,7 @@ class SidebarTreeRowView final : public views::View,
 
   const raw_ptr<SidebarTreeView> owner_;
   const std::u16string split_with_prefix_;
-  raw_ptr<views::Label> title_label_ = nullptr;
+  raw_ptr<SidebarTabTitleLabel> title_label_ = nullptr;
   raw_ptr<views::Textfield> editor_ = nullptr;
   base::Uuid node_id_;
   size_t row_index_ = 0;

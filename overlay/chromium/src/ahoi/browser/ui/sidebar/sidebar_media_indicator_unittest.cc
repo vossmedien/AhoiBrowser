@@ -60,6 +60,20 @@ TEST(SidebarMediaIndicatorTest, NarrowSplitCellLayoutRemainsBounded) {
   EXPECT_GE(layout.media_indicator.x(), 0);
   EXPECT_GE(layout.hover_action.x(), 0);
   EXPECT_FALSE(layout.media_indicator.Intersects(layout.hover_action));
+  const gfx::Rect pane_bounds(0, 0, 92, 24);
+  EXPECT_TRUE(pane_bounds.Contains(layout.title));
+  EXPECT_TRUE(pane_bounds.Contains(layout.media_indicator));
+  EXPECT_TRUE(pane_bounds.Contains(layout.hover_action));
+}
+
+TEST(SidebarMediaIndicatorTest, ExtremelyNarrowPaneNeverLeaksTrailingSlots) {
+  const SidebarTabTrailingLayout layout =
+      GetSidebarTabTrailingLayout(18, 12, true);
+  const gfx::Rect pane_bounds(0, 0, 18, 12);
+
+  EXPECT_TRUE(pane_bounds.Contains(layout.title));
+  EXPECT_TRUE(pane_bounds.Contains(layout.media_indicator));
+  EXPECT_TRUE(pane_bounds.Contains(layout.hover_action));
 }
 
 }  // namespace
