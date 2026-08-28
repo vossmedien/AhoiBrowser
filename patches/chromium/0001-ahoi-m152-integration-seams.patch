@@ -16282,10 +16282,45 @@ index 458f7980c275454fbc469d4f63c48cd213ef1b83..2a1b101e8de402f04b4e634b146f6bcd
    // Check that the identity manager is only observed after RequestAccountInfo
    // is called.
 diff --git a/chrome/browser/ui/webui/settings/BUILD.gn b/chrome/browser/ui/webui/settings/BUILD.gn
-index fc65badb87b480e64c70efc838653f313d82dbdc..4fff078860ba17f0dafd2a80deb358d49b5cf8dc 100644
+index fc65badb87b480e64c70efc838653f313d82dbdc..cee16e134ab48125c16d19cf884bff6e46019223 100644
 --- a/chrome/browser/ui/webui/settings/BUILD.gn
 +++ b/chrome/browser/ui/webui/settings/BUILD.gn
-@@ -346,6 +346,10 @@ source_set("impl") {
+@@ -4,6 +4,7 @@
+ 
+ import("//build/config/ozone.gni")
+ import("//build/config/ui.gni")
++import("//components/compose/features.gni")
+ import("//components/signin/features.gni")
+ 
+ assert(is_win || is_mac || is_linux || is_chromeos)
+@@ -197,7 +198,6 @@ source_set("impl") {
+     "//chrome/browser/bluetooth",
+     "//chrome/browser/browsing_data",
+     "//chrome/browser/browsing_data:constants",
+-    "//chrome/browser/compose",
+     "//chrome/browser/content_settings",
+     "//chrome/browser/content_settings:content_settings_util",
+     "//chrome/browser/contextual_tasks",
+@@ -287,6 +287,7 @@ source_set("impl") {
+     "//components/browsing_data/core",
+     "//components/browsing_data/core:cookie_or_cache_deletion_choice",
+     "//components/browsing_topics",
++    "//components/compose:buildflags",
+     "//components/content_settings/core/browser",
+     "//components/custom_handlers",
+     "//components/desktop_to_mobile_promos",
+@@ -324,6 +325,10 @@ source_set("impl") {
+     "//v8:v8_version",
+   ]
+ 
++  if (enable_compose) {
++    deps += [ "//chrome/browser/compose" ]
++  }
++
+   if (is_win || is_mac || is_linux) {
+     sources += [
+       "settings_default_browser_handler.cc",
+@@ -346,6 +351,10 @@ source_set("impl") {
        "mac_system_settings_handler.cc",
        "settings_utils_mac.mm",
      ]
@@ -16490,10 +16525,31 @@ index c4d16f149080a98dfdcada4eafab4ba9e287447a..2ca51a0c59024a13fed43752b82884ae
        "canEnableOrDisableAutofillAi",
        autofill_client &&
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index 5c7141365e8869373c507392792258ec0e11e667..9a3dcdb9ed790b5227090edd8e7b1df7738f3e0d 100644
+index 5c7141365e8869373c507392792258ec0e11e667..191f97ea5600241d1b49eb5e7418d9dd048eceee 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
-@@ -202,6 +202,8 @@
+@@ -21,7 +21,10 @@
+ #include "chrome/browser/browser_features.h"
+ #include "chrome/browser/browser_process.h"
+ #include "chrome/browser/commerce/shopping_service_factory.h"
++#include "components/compose/buildflags.h"
++#if BUILDFLAG(ENABLE_COMPOSE)
+ #include "chrome/browser/compose/compose_enabling.h"
++#endif
+ #include "chrome/browser/contextual_cueing/features.h"
+ #include "chrome/browser/contextual_tasks/contextual_tasks_context_service.h"
+ #include "chrome/browser/dictation/dictation_keyed_service.h"
+@@ -114,7 +117,9 @@
+ #include "components/commerce/core/commerce_feature_list.h"
+ #include "components/commerce/core/feature_utils.h"
+ #include "components/commerce/core/shopping_service.h"
++#if BUILDFLAG(ENABLE_COMPOSE)
+ #include "components/compose/core/browser/compose_features.h"
++#endif
+ #include "components/content_settings/core/common/features.h"
+ #include "components/contextual_tasks/public/features.h"
+ #include "components/contextual_tasks/public/prefs.h"
+@@ -202,6 +207,8 @@
  #endif  // BUILDFLAG(GOOGLE_CHROME_BRANDING)
  
  #if BUILDFLAG(IS_MAC)
@@ -16502,7 +16558,7 @@ index 5c7141365e8869373c507392792258ec0e11e667..9a3dcdb9ed790b5227090edd8e7b1df7
  #include "chrome/browser/ui/webui/settings/mac_system_settings_handler.h"
  #endif
  
-@@ -304,6 +306,10 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+@@ -304,6 +311,10 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
  #endif
  
  #if BUILDFLAG(IS_MAC)
@@ -16513,6 +16569,21 @@ index 5c7141365e8869373c507392792258ec0e11e667..9a3dcdb9ed790b5227090edd8e7b1df7
    AddSettingsPageUIHandler(std::make_unique<MacSystemSettingsHandler>());
  #endif
  
+@@ -387,10 +398,14 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   const bool compose_visible = false;
+ #endif  // BUILDFLAG(ENABLE_COMPOSE)
+ 
++#if BUILDFLAG(ENABLE_COMPOSE)
+   html_source->AddBoolean(
+       "enableComposeProactiveNudge",
+       compose_enabled && base::FeatureList::IsEnabled(
+                              compose::features::kEnableComposeProactiveNudge));
++#else
++  html_source->AddBoolean("enableComposeProactiveNudge", false);
++#endif
+ 
+   auto* subscription_service = subscription_eligibility::
+       SubscriptionEligibilityServiceFactory::GetForProfile(profile);
 diff --git a/chrome/test/BUILD.gn b/chrome/test/BUILD.gn
 index a7bd79373d0031ac224461e98a812847e880f27e..4d7c1949cddde743dddd7690bebbbeb863b41986 100644
 --- a/chrome/test/BUILD.gn
