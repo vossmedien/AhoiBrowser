@@ -19,6 +19,30 @@ Critical upstream fixes target 48 hours; routine Stable updates target seven
 days. If a patch cannot rebase safely, features are removed or disabled before
 shipping an exposed build.
 
+## Mobile WebKit security boundary
+
+AhoiBrowser Mobile delegates rendering, networking, TLS, cookie/site storage,
+authentication challenges and transfer execution to system WebKit. SwiftUI
+chrome applies navigation and presentation policy but must treat every
+`WebPage`, frame, popup, JavaScript dialog, download and displayed origin as
+untrusted input. Normal and private browsing use separate WebKit data stores;
+private tabs share a single nonpersistent store for only the current private
+session and are excluded from durable browser/domain records.
+
+Downloads use `WKDownload` with the initiating request/data store. Destination
+filenames are reduced to safe leaves and never overwrite an existing file, but
+the resulting bytes remain untrusted and persistent even when requested from a
+private tab. Release evidence must cover platform quarantine/scanning behavior,
+malicious filenames and MIME/disposition changes, Quick Look/share handoff and
+real file providers.
+
+Camera, microphone, combined capture and motion prompts are fail-closed and
+origin-labelled. JavaScript and file-input dialogs belong to the initiating
+page and are cancelled when that page disappears. External schemes require a
+native origin/target confirmation. Ahoi does not create a parallel persistent
+permission store. Hostile cross-origin and physical system-prompt journeys
+remain required device evidence.
+
 ## Secret handling
 
 Passwords, HTTP-auth credentials, secret header values, signing material,
@@ -55,3 +79,8 @@ overrides a warning. Secret values are Keychain references, not serialized text.
   or missing production feed/public-key configuration
 - endpoint and privacy audit on a fresh profile
 - dependency/license inventory and secret scan
+- for Mobile: final Team/bundle/profile and managed default-browser entitlement;
+  merged archive Privacy Manifest and App Store disclosures; exact CloudKit,
+  push and Keychain entitlements; physical iPhone/iPad permission, file,
+  download, private-store and sync-abuse journeys; and processed TestFlight
+  installation provenance

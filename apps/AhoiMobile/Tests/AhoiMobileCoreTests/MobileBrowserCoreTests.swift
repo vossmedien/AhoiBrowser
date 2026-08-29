@@ -18,6 +18,24 @@ final class MobileBrowserCoreTests: XCTestCase {
         )
     }
 
+    func testConfiguredSearchEnginesProduceHTTPSSearchURLs() throws {
+        XCTAssertEqual(
+            try MobileBrowserInputRouter.resolve(
+                "ahoi browser",
+                searchTemplate: MobileSearchEngine.google.searchTemplate
+            ).absoluteString,
+            "https://www.google.com/search?q=ahoi%20browser"
+        )
+        XCTAssertEqual(
+            try MobileBrowserInputRouter.resolve(
+                "ahoi browser",
+                searchTemplate: MobileSearchEngine.bing.searchTemplate
+            ).absoluteString,
+            "https://www.bing.com/search?q=ahoi%20browser"
+        )
+        XCTAssertEqual(MobileSearchEngine.resolved(from: "invalid"), .duckDuckGo)
+    }
+
     func testInputRouterRejectsCredentialsAndUnsafeSchemes() {
         XCTAssertThrowsError(try MobileBrowserInputRouter.resolve("javascript:alert(1)"))
         XCTAssertThrowsError(try MobileBrowserInputRouter.resolve("file:///tmp/private"))
@@ -149,6 +167,46 @@ final class MobileBrowserCoreTests: XCTestCase {
         )
     }
 
+    func testCompanionStorageMigrationPreservesSyncSafetySidecar() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AhoiSafetyMigrationTests-\(UUID())", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let legacy = root.appendingPathComponent("AhoiCompanion", isDirectory: true)
+        let mobile = root.appendingPathComponent("AhoiMobile", isDirectory: true)
+        try FileManager.default.createDirectory(at: legacy, withIntermediateDirectories: true)
+        let safety = Data("fail-closed-safety-state".utf8)
+        try safety.write(to: legacy.appendingPathComponent("sync-engine-state.json.safety"))
+
+        try MobileStorageMigrator.migrateIfNeeded(
+            legacyDirectory: legacy,
+            destinationDirectory: mobile
+        )
+
+        XCTAssertEqual(
+            try Data(contentsOf: mobile.appendingPathComponent("sync-engine-state.json.safety")),
+            safety
+        )
+        XCTAssertEqual(
+            try Data(contentsOf: mobile
+                .appendingPathComponent("CompanionBackup-v1", isDirectory: true)
+                .appendingPathComponent("sync-engine-state.json.safety")),
+            safety
+        )
+    }
+
+    func testSessionSaveCoordinatorRejectsOlderRevisionAfterNewerCommit() async throws {
+        let store = InMemoryMobileBrowserSessionStore()
+        let coordinator = MobileBrowserSessionSaveCoordinator(store: store)
+        let newest = MobileTabRecord(title: "Newest", url: "https://newest.example")
+        let stale = MobileTabRecord(title: "Stale", url: "https://stale.example")
+
+        try await coordinator.enqueue(.init(tabs: [newest]), revision: 2)
+        try await coordinator.enqueue(.init(tabs: [stale]), revision: 1)
+
+        let persistedSession = try await store.load()
+        XCTAssertEqual(persistedSession.tabs, [newest])
+    }
+
     func testLocalNavigationCreatesSyncableHistoryWithoutPrivateState() async throws {
         let deviceID = DeviceID()
         let repository = LocalFirstRepository(
@@ -165,6 +223,29 @@ final class MobileBrowserCoreTests: XCTestCase {
         XCTAssertEqual(visit.transition, "typed")
         let snapshot = try await repository.currentSnapshot()
         XCTAssertEqual(snapshot.visibleHistory, [visit])
+    }
+
+    func testHistoryIndividualAndTimeRangeDeletesCreateTombstones() async throws {
+        let repository = LocalFirstRepository(store: InMemoryCompanionStore())
+        let first = try await repository.recordLocalHistoryVisit(
+            title: "First",
+            url: "https://first.example"
+        )
+        let second = try await repository.recordLocalHistoryVisit(
+            title: "Second",
+            url: "https://second.example"
+        )
+
+        let firstTombstone = try await repository.deleteHistoryVisit(first.id)
+        XCTAssertTrue(firstTombstone.isDeleted)
+        XCTAssertNotNil(firstTombstone.tombstone)
+        let snapshotAfterIndividualDelete = try await repository.currentSnapshot()
+        XCTAssertEqual(snapshotAfterIndividualDelete.visibleHistory, [second])
+
+        let remaining = try await repository.deleteHistory(sinceMilliseconds: 0)
+        XCTAssertEqual(remaining.map(\.id), [second.id])
+        let snapshotAfterRangeDelete = try await repository.currentSnapshot()
+        XCTAssertTrue(snapshotAfterRangeDelete.visibleHistory.isEmpty)
     }
 
     func testLocalMobileTabPublicationUsesMobileDeviceAndStableSession() async throws {
@@ -260,5 +341,40 @@ final class MobileBrowserCoreTests: XCTestCase {
             MobileDownloadCoordinator.safeFilename("report:final.pdf", fallback: "download"),
             "report-final.pdf"
         )
+    }
+
+    func testNavigationDownloadRequestPreservesMethodHeadersAndBody() throws {
+        var original = URLRequest(url: try XCTUnwrap(URL(string: "https://example.com/export")))
+        original.httpMethod = "POST"
+        original.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        original.setValue("request-token", forHTTPHeaderField: "X-Ahoi-Token")
+        original.httpBody = Data(#"{"format":"pdf"}"#.utf8)
+
+        var tracker = MobileNavigationRequestTracker()
+        tracker.record(original)
+        let retained = try XCTUnwrap(tracker.take(matching: original.url))
+
+        XCTAssertEqual(retained.url, original.url)
+        XCTAssertEqual(retained.httpMethod, "POST")
+        XCTAssertEqual(retained.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(retained.value(forHTTPHeaderField: "X-Ahoi-Token"), "request-token")
+        XCTAssertEqual(retained.httpBody, original.httpBody)
+        XCTAssertNil(tracker.take(matching: original.url))
+    }
+
+    func testDownloadRecordCarriesVisibleOriginAndByteProgress() throws {
+        let record = MobileDownloadRecord(
+            sourceURL: try XCTUnwrap(URL(string: "https://downloads.example:8443/files/archive.zip")),
+            suggestedFilename: "archive.zip",
+            bytesReceived: 420,
+            totalBytesExpected: 1_000,
+            progressFraction: 0.42,
+            isPrivate: false
+        )
+
+        XCTAssertEqual(record.sourceOrigin, "https://downloads.example:8443")
+        XCTAssertEqual(record.bytesReceived, 420)
+        XCTAssertEqual(record.totalBytesExpected, 1_000)
+        XCTAssertEqual(record.progressPercent, 42)
     }
 }

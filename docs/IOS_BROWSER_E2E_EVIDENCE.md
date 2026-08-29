@@ -1,90 +1,91 @@
-# AhoiBrowser Mobile E2E evidence
+# AhoiBrowser Mobile E2E evidence contract
 
-Candidate: `codex/ahoi-mobile-browser` based on `319bff3`  
-Simulator runtime: iOS/iPadOS 26.5  
-Date: 2026-08-28
+- Source state: current Mobile worktree on 2026-08-29
+- Candidate binding: none
+- Execution in this documentation update: no build or test run
 
-## Test-order contract
+This file is an evidence plan, not an execution receipt. The authoritative
+machine-readable status is `config/test-registry.json`. Every
+`MOB-USER-01` through `MOB-USER-15` entry is release-critical `CU_E2E`
+with status `NOT_RUN`. Every `IOS-01` through `IOS-15` entry remains
+release-critical `ASSISTED_E2E` with status `NOT_RUN`.
 
-The mobile implementation was exercised through visible Simulator/Computer
-Use journeys before the corresponding XCTest gates. Two defects found during
-this sequence demonstrate the enforced loop:
+Source presence, previews, screenshots from another revision, an XCTest result,
+a simulator launch, an archive, an upload or a processed TestFlight build may
+support a later evidence chain, but none changes a registry status by itself.
+Evidence must name the repository commit, generated Xcode project inputs,
+bundle/build version, Team ID, bundle ID, profile, entitlements, device model,
+OS build and retained artifact paths.
 
-1. website tint remained on its blue fallback because WebKit's asynchronous
-   JavaScript body required an explicit `return`; the same orange fixture was
-   visibly repeated after the fix;
-2. decorative tint overlays intercepted coordinate taps on the address and
-   more controls; the affected coordinate journeys were repeated visibly
-   before the UI suite was rerun.
+## Source seams awaiting runtime evidence
 
-Source compilation is only a candidate-construction step. It is not counted as
-an E2E or release result.
+- system `WebPage`/`WebView` rendering with WebKit-owned networking, TLS,
+  dialogs, permissions and website storage;
+- persistent normal `WKWebsiteDataStore.default()` plus one shared
+  `WKWebsiteDataStore.nonPersistent()` for the running private session;
+- `WKDownload` transfers tied to the initiating request/data store, with
+  filename sanitization, collision-safe destination, progress, cancellation,
+  Quick Look and sharing;
+- origin-labelled camera, microphone, motion, JavaScript, file-input and
+  external-scheme consent surfaces;
+- browser-session persistence that excludes private tabs and serializes writes
+  by revision;
+- tracked Privacy Manifests declaring no tracking/no collected data and
+  UserDefaults reason `CA92.1`;
+- local-first encrypted CloudKit records, a durable fetched-envelope inbox and
+  event-driven CKSyncEngine transport without a foreground polling loop.
 
-## Simulator user journeys
+These bullets describe reviewable source boundaries only.
 
-| Journey | Simulator status | Evidence and boundary |
+## Mobile Computer Use journeys
+
+| Journey | Status | Candidate-bound evidence required |
 | --- | --- | --- |
-| `MOB-USER-01` cold start, URL, HTTPS | `PASS_SIMULATOR` | local deterministic fixture and real `example.com`; `iphone-adaptive-orange-tint.png` and `iphone-adaptive-tint-transition.png` |
-| `MOB-USER-02` search, results, navigation | `PASS_SIMULATOR` | DuckDuckGo search plus back/forward/reload; `iphone-web-search.png` |
-| `MOB-USER-03` tabs, close, undo, restore | `PASS_SIMULATOR` | close/undo and process relaunch restore; `iphone-tabs-close-undo.png`, `iphone-session-restored.png` |
-| `MOB-USER-04` workspace save/move | `PASS_SIMULATOR` | Example is both a permanent saved page and a normal open device tab in `Recherche`; `iphone-workspace-example-saved-page.png` |
-| `MOB-USER-05` private separation | `PASS_SIMULATOR` | purple private chrome, no restore and no device-tab publication; `iphone-private-purple-polished.png`, `ipad-private-not-published.png` |
-| `MOB-USER-06` external HTTP(S) | `PARTIAL` | internal cold/warm URL router and deduplication work; selecting an external HTTPS URL opens Safari because the unsigned app cannot be selected as default browser; `iphone-external-https-default-browser-boundary.png` |
-| `MOB-USER-07` upload/download/share/popup | `PARTIAL` | download, share and `target=_blank` pass; upload input renders, but the simulator file picker did not open and requires physical-device repetition; `iphone-download-completed.png` |
-| `MOB-USER-08` permission/external app | `PASS_SIMULATOR` | origin-scoped camera prompt and mail-app confirmation; `iphone-permission-origin.png`, `iphone-external-app-confirmation.png` |
-| `MOB-USER-09` rotation/accessibility | `PARTIAL` | portrait/landscape, Dynamic Type, dark appearance and high contrast are visible; a complete VoiceOver rotor and Reduce Motion/Transparency hardware run remains open; `iphone-landscape-tabs.png`, `iphone-adaptive-tint-dark-high-contrast.png` |
-| `MOB-USER-10` iPad | `PARTIAL` | native sidebar, adaptive tint and touch flows pass; full hardware keyboard and pointer matrix remains open; `ipad-adaptive-orange-sidebar.png` |
-| `MOB-USER-11` failure/memory/restore | `PARTIAL` | offline retry, process relaunch restore and inactive-page discard path are covered; physical memory-pressure stress remains open |
-| `MOB-USER-12` cross-device tabs | `PARTIAL` | local iPhone/iPad projection, icon, device, workspace, close and immediate reopen pass; entitled Mac-mobile CloudKit roundtrip and signed link-to-Mac remain `NOT_RUN`; `ipad-device-tab-closed.png`, `ipad-device-tab-restored-immediately.png`, `iphone-workspace-example-saved-and-published.png` |
-| `MOB-USER-13` unsafe actions | `PASS_SIMULATOR` | unsafe scheme rejected with visible explanation and recoverable address field; `iphone-unsafe-scheme-rejected.png`, `iphone-address-clear-after-error.png` |
-| `MOB-USER-14` 1/5/20 tabs | `PASS_SIMULATOR` | 20 real menu-created tabs without phantom rows; `iphone-twenty-tabs.png`, `iphone-twenty-tabs-switcher.png` |
-| `MOB-USER-15` visual consistency | `PASS_SIMULATOR` | iPhone/iPad, normal/private, website-derived orange, fallback tint, light/dark and high contrast; `iphone-adaptive-orange-tint.png`, `ipad-adaptive-orange-sidebar.png` |
+| `MOB-USER-01` cold start, URL and HTTPS | `NOT_RUN` | Installed candidate cold launch, URL entry, HTTPS navigation and visible origin on supported iPhone. |
+| `MOB-USER-02` search and navigation | `NOT_RUN` | Configured provider, result navigation, Back/Forward/Reload/Stop and no duplicate loads. |
+| `MOB-USER-03` tab lifecycle and restore | `NOT_RUN` | Create, reorder, rename, close/undo, terminate and cold-restore normal tabs. |
+| `MOB-USER-04` workspace save/move | `NOT_RUN` | Save and move a live page, then reopen it through tree and search. |
+| `MOB-USER-05` private separation | `NOT_RUN` | Normal/private cookie and storage probes plus process-death proof that private tabs never enter session, history, search, sync or device tabs. |
+| `MOB-USER-06` default-browser callback | `NOT_RUN` | Apple-entitled system default selection and external HTTP(S) callbacks into the exact signed app. |
+| `MOB-USER-07` upload/download/share/popup | `NOT_RUN` | Real file provider upload, normal/private authenticated downloads, progress/cancel, Quick Look/share and popup attribution. |
+| `MOB-USER-08` permissions/dialogs/external app | `NOT_RUN` | Origin-labelled allow/deny/cancel across main/subframes, JavaScript/file dialogs and external-app confirmation. |
+| `MOB-USER-09` rotation and accessibility | `NOT_RUN` | Portrait/landscape, Dynamic Type, VoiceOver, high contrast, Reduce Motion and Reduce Transparency on device. |
+| `MOB-USER-10` iPad interaction | `NOT_RUN` | Real iPad sidebar, multitasking, keyboard, pointer, rotation, reorder and workspace gestures. |
+| `MOB-USER-11` failure and restore | `NOT_RUN` | Offline/TLS/WebContent failure, background/termination, memory pressure, incomplete download and deterministic recovery. |
+| `MOB-USER-12` cross-device tabs | `NOT_RUN` | Final entitled Mac–iPhone/iPad CloudKit and Keychain roundtrip, offline queue, conflict, revoke and private-data exclusion. |
+| `MOB-USER-13` unsafe actions | `NOT_RUN` | Reject local/script/credential/unknown schemes and verify labelled confirmation for permitted external schemes. |
+| `MOB-USER-14` 1/5/20 tabs | `NOT_RUN` | Normal/private scale, switching, reorder, discard, persistence and absence of phantom tabs. |
+| `MOB-USER-15` visual consistency | `NOT_RUN` | iPhone/iPad, normal/private, light/dark, tint/fallback and accessibility appearance matrix. |
 
-All paths above are relative to `artifacts/computer-use/mobile/`.
+## Physical cross-device assisted journeys
 
-## Programmatic gates after visible acceptance
+| Journey | Status | Required boundary |
+| --- | --- | --- |
+| `IOS-01` | `NOT_RUN` | Browse workspaces, tree, tabs and history on real iPhone/iPad. |
+| `IOS-02` | `NOT_RUN` | Create saved page and folder. |
+| `IOS-03` | `NOT_RUN` | Move, rename and delete tree nodes with Mac confirmation. |
+| `IOS-04` | `NOT_RUN` | Open link through the selected system default browser. |
+| `IOS-05` | `NOT_RUN` | Send link to a selected Mac and workspace. |
+| `IOS-06` | `NOT_RUN` | Remotely open one normal Mac tab. |
+| `IOS-07` | `NOT_RUN` | Remotely focus one normal Mac tab. |
+| `IOS-08` | `NOT_RUN` | Remotely close one normal Mac tab after confirmation. |
+| `IOS-09` | `NOT_RUN` | Offline command and TTL behavior. |
+| `IOS-10` | `NOT_RUN` | Queued/delivered/executed/failed status progression. |
+| `IOS-11` | `NOT_RUN` | Replay rejection across restart. |
+| `IOS-12` | `NOT_RUN` | Wrong target and invalid signature rejection. |
+| `IOS-13` | `NOT_RUN` | Device approval and revocation. |
+| `IOS-14` | `NOT_RUN` | Private tabs remain invisible and uncontrollable. |
+| `IOS-15` | `NOT_RUN` | Reject arbitrary schemes, shell commands and bulk actions. |
 
-- Core XCTest: **48 executed, 0 failures, 2 expected skips**. The skipped
-  `CKSyncEngine` tests require an entitled Apple test target. Result bundle:
-  `/private/tmp/ahoi-mobile-derived/Logs/Test/Test-AhoiMobile-2026.08.28_00-55-37-+0200.xcresult`.
-- First UI XCTest after the redesign: failed because decorative overlays
-  intercepted taps. Result bundle retained as diagnostic evidence:
-  `/private/tmp/ahoi-mobile-derived/Logs/Test/Test-AhoiMobile-2026.08.28_00-56-08-+0200.xcresult`.
-- Affected visible address/menu/private flows were repeated after the fix.
-- Final UI XCTest: **3 executed, 0 failures**. Result bundle:
-  `/private/tmp/ahoi-mobile-derived/Logs/Test/Test-AhoiMobile-2026.08.28_00-58-21-+0200.xcresult`.
+## External gate mapping
 
-The result bundles are machine-local and intentionally not described as
-device, CloudKit or TestFlight evidence.
+| Gate | State | Closure evidence |
+| --- | --- | --- |
+| `ios-final-bundle-team-profile` | `blocked-credential` | Final Team/App/bundle identity plus matching development and distribution signing profiles. |
+| `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Apple grant, profile attachment and physical default-browser journey. |
+| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | Final container/environment, entitlements, Keychain groups/keys and key-lifecycle proof. |
+| `ios-physical-device-journeys` | `required-user-assistance` | Exact signed candidate installed and all Mobile/IOS journeys executed on real iPhone and iPad. |
+| `ios-app-store-connect-testflight` | `blocked-external-service` | Reviewed App Store record/disclosures, archive/export/upload/processing receipts and physical TestFlight install. |
 
-## Adaptive website tint and visual concept evidence
-
-The app samples `meta[name=theme-color]` first, then selected computed style
-candidates. Transparent, near-white, near-black and low-saturation colors are
-discarded. Only browser chrome is tinted; website pixels are never recolored.
-The sampled ARGB value is local session metadata and is absent from sync wire
-records. Private tabs always use their own purple treatment.
-
-ImageGen concepts are retained under `artifacts/design-concepts/mobile/` as
-design input, not runtime evidence. The shipped SwiftUI implementation uses a
-smaller, native interpretation: subtle material tint, a floating rounded dock,
-a nested address capsule and lightly tinted iPad sidebar/device rows.
-
-## External release gates
-
-The following are not satisfiable by an unsigned placeholder-bundle simulator
-build and are not passed:
-
-- all physical-device `IOS-01` through `IOS-15` assisted E2E journeys:
-  `NOT_RUN`;
-- Apple Managed Default Browser entitlement and default-browser selection:
-  `BLOCKED_ENTITLEMENT`;
-- production App ID, Team ID, provisioning profile, concrete CloudKit
-  container and shared Keychain keys: `BLOCKED_CREDENTIAL` / `BLOCKED_ENTITLEMENT`;
-- signed Mac-iPhone/iPad CloudKit roundtrip, offline queue and conflict run:
-  `NOT_RUN`;
-- signed `.xcarchive`/`.ipa`, installed physical candidate and TestFlight
-  processing/installation: `NOT_RUN`.
-
-No `DEVICE_PASS`, `CLOUDKIT_E2E_PASS`, `ARCHIVE_PASS`, `TESTFLIGHT_PASS` or
-`RELEASE_PASS` is claimed.
+The source state does not claim a simulator result, device result, CloudKit
+roundtrip, archive, TestFlight installation or Mobile release.

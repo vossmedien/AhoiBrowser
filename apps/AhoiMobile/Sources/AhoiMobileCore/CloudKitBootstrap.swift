@@ -17,7 +17,8 @@ public enum CompanionCloudKitBootstrap {
         containerIdentifier: String?,
         recordsURL: URL,
         stateURL: URL,
-        quarantineStore: (any SyncQuarantineStore)? = nil
+        quarantineStore: (any SyncQuarantineStore)? = nil,
+        systemFieldsStore: (any CloudKitSystemFieldsStore)? = nil
     ) -> CloudKitSyncProvider? {
         guard syncEnabled,
               let containerIdentifier,
@@ -39,11 +40,25 @@ public enum CompanionCloudKitBootstrap {
             }
             resolvedQuarantineStore = durableStore
         }
+        let resolvedSystemFieldsStore: any CloudKitSystemFieldsStore
+        if let systemFieldsStore {
+            resolvedSystemFieldsStore = systemFieldsStore
+        } else {
+            let systemFieldsURL = stateURL.deletingLastPathComponent()
+                .appendingPathComponent("sync-record-system-fields.json")
+            guard let durableStore = try? FileCloudKitSystemFieldsStore(
+                fileURL: systemFieldsURL
+            ) else {
+                return nil
+            }
+            resolvedSystemFieldsStore = durableStore
+        }
         return try? CloudKitSyncProvider(
             configuration: .init(containerIdentifier: containerIdentifier),
             recordStore: recordStore,
             stateStore: FileSyncEngineStateStore(fileURL: stateURL),
-            quarantineStore: resolvedQuarantineStore
+            quarantineStore: resolvedQuarantineStore,
+            systemFieldsStore: resolvedSystemFieldsStore
         )
     }
 

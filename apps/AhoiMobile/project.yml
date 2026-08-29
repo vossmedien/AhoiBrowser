@@ -43,11 +43,15 @@ targets:
         AHOI_SYNC_KEYCHAIN_ACCOUNT: "$(AHOI_SYNC_KEYCHAIN_ACCOUNT)"
         AHOI_SYNC_KEYCHAIN_SERVICE: "$(AHOI_SYNC_KEYCHAIN_SERVICE)"
         AHOI_SYNC_KEY_VERSION: "$(AHOI_SYNC_KEY_VERSION)"
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
         UIApplicationSupportsIndirectInputEvents: true
         NSCameraUsageDescription: AhoiBrowser asks only when a website you are using requests the camera.
         NSMicrophoneUsageDescription: AhoiBrowser asks only when a website you are using requests the microphone.
         NSMotionUsageDescription: AhoiBrowser asks only when a website you are using requests motion sensors.
         NSLocationWhenInUseUsageDescription: AhoiBrowser asks only when a website you are using requests your location.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoadsInWebContent: true
         UILaunchScreen: {}
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true
@@ -89,6 +93,9 @@ targets:
         Release:
           SWIFT_OPTIMIZATION_LEVEL: "-O"
           AHOI_APS_ENVIRONMENT: production
+          # This template intentionally fails signing until Apple has granted
+          # the managed entitlement to the final bundle/profile.
+          CODE_SIGN_ENTITLEMENTS: AhoiMobile.DefaultBrowser.entitlements.template
   AhoiMobileCoreTests:
     type: bundle.unit-test
     platform: iOS

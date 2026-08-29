@@ -118,15 +118,23 @@ public struct HybridLogicalClock: Codable, Hashable, Sendable, Comparable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let submillisecondMicroseconds = try container.decodeIfPresent(
+            UInt16.self,
+            forKey: .submillisecondMicroseconds
+        ) ?? 0
+        guard submillisecondMicroseconds < 1_000 else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .submillisecondMicroseconds,
+                in: container,
+                debugDescription: "Submillisecond microseconds must be below 1000"
+            )
+        }
         self.init(
             physicalMilliseconds: try container.decode(
                 UInt64.self,
                 forKey: .physicalMilliseconds
             ),
-            submillisecondMicroseconds: try container.decodeIfPresent(
-                UInt16.self,
-                forKey: .submillisecondMicroseconds
-            ) ?? 0,
+            submillisecondMicroseconds: submillisecondMicroseconds,
             logicalCounter: try container.decode(UInt32.self, forKey: .logicalCounter),
             nodeID: try container.decode(DeviceID.self, forKey: .nodeID)
         )

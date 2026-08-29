@@ -54,8 +54,11 @@ public struct SyncBoundary: Sendable {
             throw SyncBoundaryError.invalidCiphertext
         }
 
-        if record.dataClass == .tombstone {
-            guard let tombstone = record.tombstone,
+        if let tombstone = record.tombstone {
+            guard Self.supportsTombstone(record.dataClass) else {
+                throw SyncBoundaryError.invalidTombstone
+            }
+            guard
                   tombstone.entityID == record.entityID,
                   tombstone.deletedAt == record.modifiedAt,
                   tombstone.deletedBy == record.originatingDevice,
@@ -63,7 +66,7 @@ public struct SyncBoundary: Sendable {
                     > tombstone.deletedAt.physicalMilliseconds else {
                 throw SyncBoundaryError.invalidTombstone
             }
-        } else if record.tombstone != nil {
+        } else if record.dataClass == .tombstone {
             throw SyncBoundaryError.invalidTombstone
         }
 
@@ -73,9 +76,24 @@ public struct SyncBoundary: Sendable {
         case .denied:
             throw SyncBoundaryError.dataClassDenied(record.dataClass)
         case .requiresExplicitOptIn:
-            guard context.optedInDeveloperAssetIDs.contains(record.entityID) else {
+            guard record.tombstone != nil ||
+                    context.optedInDeveloperAssetIDs.contains(record.entityID) else {
                 throw SyncBoundaryError.developerAssetNotOptedIn(record.entityID)
             }
+        }
+    }
+
+    private static func supportsTombstone(_ dataClass: SyncDataClass) -> Bool {
+        switch dataClass {
+        case .device, .workspace, .treeNode, .deviceSession, .deviceTab,
+             .historyVisit, .appearance, .permittedSetting, .extensionInventory,
+             .developerAsset, .tombstone:
+            return true
+        case .orderKey, .recoveryMetadata, .history, .remoteCommand,
+             .cookie, .password, .autofill, .siteData, .cache, .permission,
+             .extensionStorage, .incognito, .keychainSecret, .headerSecret,
+             .httpAuthSecret:
+            return false
         }
     }
 }

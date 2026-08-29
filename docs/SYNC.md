@@ -62,13 +62,16 @@ cannot resurrect the identity. History retention defaults to 90 days and accepts
 30, 90, 365 or unlimited (`-1`). Expiry creates normal sync tombstones before
 compaction.
 
-One device-session heartbeat is published every five minutes while sync work is
-active. A clean shutdown first persists tombstones for every open normal tab and
-an `active=false` session update; network completion is not required during
-termination. On restart, any stale local active session and surviving local tab
-rows are closed before publishing the new session. Remote sessions remain
-visible for at most seven days and are actionable for only 15 minutes. Retired
-devices, inactive/tombstoned sessions, unsafe URLs and incognito tabs never reach
+The desktop service publishes a device-session heartbeat every five minutes
+while its sync work is active. Mobile does not run a foreground polling loop;
+it reconciles its restored normal tabs at launch, when the scene becomes active
+and in response to local browser mutations. A clean desktop shutdown first
+persists tombstones for every open normal tab and an `active=false` session
+update; network completion is not required during termination. On restart, any
+stale local active session and surviving local tab rows are closed before
+publishing the new session. Remote sessions remain visible for at most seven
+days and are actionable for only 15 minutes. Retired devices,
+inactive/tombstoned sessions, unsafe URLs and incognito tabs never reach
 `DeviceTabsService` observers.
 
 ## Workspaces, tree and history authority
@@ -97,12 +100,22 @@ the envelope is written exclusively through `CKRecord.encryptedValues`.
 Queryable fields contain only conflict/routing metadata. The code does not
 invent a KDF, recovery phrase, fallback key or fake credential.
 
-`CKSyncEngine` opaque state is stored atomically. Automatic sync, the five-minute
-timer and manual sync use the same outbox/download pump. Retryable CloudKit
-errors retain work and honor retry hints. Account changes and zone loss persist
-separate fail-closed recovery gates; the host must explicitly choose whether to
-requeue retained local data. `serverRecordChanged` accepts the newer version,
-deduplicates identical values and quarantines equal-version divergence.
+`CKSyncEngine` opaque state is stored atomically. On Mobile, durable local
+mutations enqueue pending record changes and CKSyncEngine automatic transport
+plus delegate events form the event-driven path; manual sync and foreground
+reconciliation use the same outbox and fetched-record inbox. There is no Mobile
+foreground polling timer. Retryable CloudKit errors retain work and honor retry
+hints. Account changes and zone loss persist separate fail-closed recovery
+gates; the host must explicitly choose whether to requeue retained local data.
+
+Every distinct fetched encrypted envelope is staged durably before the provider
+selects its one transport snapshot. The domain bridge decrypts and merges each
+staged candidate, then acknowledges that exact envelope only after successful
+import. Failed authentication, key access or local persistence therefore keeps
+the candidate pending instead of silently advancing past it. Equal-version
+payload divergence is resolved only at the authenticated field/domain merge or
+quarantined there; transport-level last-writer selection is not convergence
+evidence.
 
 ## Signed remote control
 
@@ -122,5 +135,7 @@ current exact no-CloudKit release allowlist. The external release owner must
 materialize matching App IDs, container/environment entitlements, Keychain
 access groups and provisioning profiles in the supplied templates, update the
 exact release allowlist for that signed build, and then prove an entitled
-two-device roundtrip. Until that happens, real CloudKit mutation is
-`BLOCKED_ENTITLEMENT`/`NOT_RUN`, not a local-test pass.
+Mac–iPhone/iPad roundtrip. The granular external contracts are
+`ios-final-bundle-team-profile`, `ios-cloudkit-keychain-capabilities` and
+`cloudkit-device-validation` in `config/external-gates.json`. Until those are
+closed, real CloudKit mutation remains `BLOCKED_ENTITLEMENT`/`NOT_RUN`.

@@ -1,12 +1,13 @@
 # Native AhoiBrowser for iOS and iPadOS
 
-Status: the former local-first Companion has been migrated into the
-`AhoiBrowser Mobile` source product and a first native WebKit browser slice is
-implemented. A simulator-visible development pass exists only after it is
-bound in `artifacts/computer-use/mobile/`; real-device, default-browser,
-entitled CloudKit, archive and TestFlight gates remain separate.
-The journey-by-journey status and ordered visible/XCTest evidence are recorded
-in [`IOS_BROWSER_E2E_EVIDENCE.md`](IOS_BROWSER_E2E_EVIDENCE.md).
+Status: **SOURCE_ONLY**. The former local-first Companion has been migrated into
+the `AhoiBrowser Mobile` source product and a native WebKit browser slice is
+present in the worktree. No build, simulator journey, physical-device journey,
+signed archive, entitled CloudKit roundtrip or TestFlight installation is
+recorded for this source state. `MOB-USER-01` through `MOB-USER-15` and
+`IOS-01` through `IOS-15` are release-critical and remain `NOT_RUN` in
+`config/test-registry.json`. The evidence contract is documented in
+[`IOS_BROWSER_E2E_EVIDENCE.md`](IOS_BROWSER_E2E_EVIDENCE.md).
 
 The mobile product is a native SwiftUI browser for **iOS/iPadOS 26 and later**.
 This resolves the previous contradiction where this document claimed 17+
@@ -98,8 +99,9 @@ mutates local state immediately, writes it back, and rebuilds the local
 `LocalSearchIndex`. `InMemoryCompanionStore` makes previews and tests fully
 reproducible. `FileCompanionStore` is an atomic JSON persistence seam that can
 be replaced by SwiftData/SQLite without changing the UI or CloudKit provider.
-It does not claim application-layer encryption; the eventual production store
-must use the platform's protected app container and the approved key lifecycle.
+It does not claim application-layer encryption; the source relies on the app
+container and platform Data Protection, whose exact signed-target behavior must
+still be verified on a locked physical device.
 
 `FileSyncRecordStore` is the corresponding durable outbox-payload seam. This
 matters because `CKSyncEngine.State.Serialization` persists pending record IDs
@@ -298,18 +300,53 @@ slice includes:
   source-device ID, public-key fingerprint and selectable public key needed for
   explicit Mac approval.
 
+The source has one persistent `WKWebsiteDataStore.default()` for normal
+browsing and one shared `WKWebsiteDataStore.nonPersistent()` for all private
+tabs in the current private session. Dropping all private tabs also releases
+the private store. Private tab metadata is excluded from browser-session JSON,
+history, local search, device-tab publication and CloudKit. This is a source
+invariant, not a device isolation result.
+
+Downloads stay inside WebKit's `WKDownload` path and preserve the initiating
+request and source tab's normal/private data store. Ahoi sanitizes the suggested
+leaf name, prevents overwrite by suffixing collisions, writes the selected
+output below the app's `Documents/Downloads` directory and exposes progress,
+cancel, Quick Look and share actions. A user-requested private download still
+creates a persistent file; private mode does not promise to erase downloads.
+
+Camera, microphone, combined capture and motion requests are shown with their
+WebKit security origin and default to denial until the user decides. JavaScript
+dialogs and file input have a presenter owned by the initiating `WebPage`; file
+selection requires an origin-labelled native confirmation before the system
+importer. External schemes are cancelled in WebKit and require native
+origin/target confirmation before system handoff. No custom persistent
+permission database or alternative browser engine is introduced.
+
 Saved links and the primary remote-tab row are routed into the active Mobile
 browser tab. The app does not instantiate a Chromium view or alternate
-cookie/session store. Initial and five-minute periodic sync keep CKSyncEngine's automatic
-transport and the local repository/UI reconciled; the toolbar is the manual
-trigger.
+cookie/session store. Local mutations enqueue durable CKSyncEngine changes;
+automatic transport and delegate callbacks are the normal event-driven path.
+The prior foreground polling loop has been removed. Initial load, foreground
+activation and the toolbar still trigger explicit reconciliation/manual sync.
+Entitled push delivery, background scheduling and multi-device convergence are
+not inferred from these source seams.
+
+## Privacy Manifest source contract
+
+`Sources/AhoiMobileApp/PrivacyInfo.xcprivacy` and the package resource manifest
+declare no tracking, no tracking domains, no collected data types and
+`NSPrivacyAccessedAPICategoryUserDefaults` reason `CA92.1`. The Xcode project
+includes the app manifest as a target resource. Release engineering must inspect
+the final archive's merged Privacy Manifest, every embedded SDK manifest,
+runtime endpoint behavior and matching App Store Connect privacy answers. A
+tracked manifest is not archive or review evidence.
 
 SwiftPM's `.build` directories are build products, not source artifacts. The
 repository-wide `**/.build/` ignore rule excludes both Companion and spike
 artifacts from Git and source packaging; Xcode/SwiftPM may recreate them
 locally at any time.
 
-## Local verification
+## Verification commands (not run for this source update)
 
 From the repository root:
 
@@ -325,8 +362,9 @@ swift build --target AhoiMobileApp --jobs 1 --disable-index-store \
   --sdk "$(xcrun --sdk iphoneos --show-sdk-path)" --triple arm64-apple-ios26.5
 ```
 
-The package tests exercise browser input routing, normal/private session
-persistence, Companion-to-Mobile migration, model validation, local search,
+When executed, the package tests are intended to exercise browser input
+routing, normal/private session persistence, Companion-to-Mobile migration,
+model validation, local search,
 boundary enforcement, tombstone-safe in-memory sync, and conflict ordering.
 The Chromium `ahoi_sync_unittests` target additionally pins the same
 remote-tab and signed-command golden JSON, AES-GCM roundtrip/tamper behavior,
@@ -339,24 +377,33 @@ explicit entitled test target sets `AHOI_CLOUDKIT_TEST_ENTITLED=1`; this keeps
 the default test run offline and prevents a placeholder container from making
 an account/network claim.
 
-## External Apple gates
+## External Apple and distribution gates
 
-The following are the only remaining gates for a real Mac–iOS CloudKit run:
+The authoritative machine-readable gates live in
+`config/external-gates.json`. Mobile release requires at least:
 
-1. Apple Developer Team ownership, the final macOS/iOS bundle IDs and Apple's
-   managed default-browser entitlement for the final Mobile bundle;
-2. a registered development iCloud container and matching CloudKit entitlements;
-3. Development provisioning/signing profiles for both targets;
-4. development schema deployment and controlled Production promotion;
-5. signed, installed Mac and Mobile browser builds using one authenticated iCloud test
-   account;
-6. production key lifecycle and provisioning (approval, cross-device Keychain
-   availability, rotation, recovery, revocation) for the AES payload key and
-   each Companion Ed25519 command key; the repository intentionally supplies no
-   KDF, fake credential or bootstrap secret;
+1. Apple Developer Team ownership, final Mobile bundle ID/App ID and matching
+   development plus distribution certificates/profiles;
+2. Apple's managed default-browser entitlement attached to that exact bundle
+   and provisioning profile;
+3. a registered private CloudKit container, matching environment/iCloud/push
+   entitlements and controlled schema promotion;
+4. reviewed synchronizable Keychain groups and production key lifecycle
+   provisioning (approval, cross-device availability, rotation, recovery and
+   revocation) for the AES payload key and each Mobile Ed25519 command key; the
+   repository intentionally supplies no KDF, fake credential or bootstrap
+   secret;
+5. signed, installed Mac, iPhone and iPad candidates using one controlled
+   iCloud test account;
+6. all `MOB-USER-*` Computer Use and `IOS-*` assisted physical-device journeys,
+   including permissions, file provider, downloads, accessibility, pointer,
+   keyboard, backgrounding and memory pressure;
 7. entitled E2E proof for offline changes, account switch, token expiry,
-   conflict, tombstone/recovery, quota, and device revocation.
+   conflict, tombstone/recovery, quota and device revocation; and
+8. App Store Connect record/disclosures, candidate archive/export/upload and
+   processing receipts, followed by TestFlight installation and launch on real
+   iPhone and iPad.
 
-Until those artifacts exist, the strongest possible local claim is a named
-`LOCAL_BUILD_PASS` or `SIMULATOR_VISIBLE` pass and the
-CloudKit roundtrip is `BLOCKED_ENTITLEMENT`/`NOT_RUN`, never `PASS`.
+Until candidate-bound artifacts exist, this document records source coverage
+only. The registry status for every Mobile user/device journey remains
+`NOT_RUN`.

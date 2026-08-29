@@ -44,6 +44,37 @@ History sync defaults to 90 days with 30, 90, 365, and unlimited choices.
 Deleting local or synced permitted records creates tombstones so deleted items
 do not silently reappear from an offline device.
 
+## Mobile WebKit and private browsing
+
+The Mobile source uses system WebKit rather than a second engine. Normal tabs
+use the persistent default website data store. All private tabs in the running
+private session share one nonpersistent WebKit store so they can interact like
+one private session while remaining separate from normal cookies and site data.
+Private tab records are excluded from session restore, history, search,
+device-tab publication and sync, and clearing the last private session releases
+that store.
+
+Private browsing is not anonymity and does not erase explicit user output. A
+download started from a private tab uses that private WebKit session for the
+request but writes the chosen result into the app's persistent Downloads
+directory. Files selected for upload and items explicitly shared leave the
+private browser boundary by user action.
+
+Camera, microphone, combined capture and motion requests are origin-labelled,
+default-denied and not copied into an Ahoi permission database. JavaScript
+dialogs, file selection and external-app handoff show the initiating origin;
+file access additionally requires the system importer. Whether the final signed
+app receives, remembers or revokes OS/WebKit permissions as intended must be
+verified on physical devices.
+
+## Mobile Privacy Manifest
+
+The app and package source include `PrivacyInfo.xcprivacy` manifests declaring
+no tracking, no tracking domains, no collected data types and UserDefaults
+access reason `CA92.1`. These declarations must be reconciled with the final
+archive, embedded SDK manifests, actual runtime endpoints and App Store Connect
+privacy answers. Their presence in source is not distribution evidence.
+
 ## Diagnostics
 
 Crash reports remain local unless a future explicitly opt-in, documented,

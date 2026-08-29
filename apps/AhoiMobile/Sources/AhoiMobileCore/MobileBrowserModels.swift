@@ -7,6 +7,10 @@ public enum MobileBrowsingMode: String, Codable, CaseIterable, Sendable {
 }
 
 public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
+    public static let maximumFaviconDataBytes = 128 * 1_024
+    public static let maximumTitleUTF8Bytes = 1_024
+    public static let maximumURLUTF8Bytes = 16 * 1_024
+
     public let id: UUID
     public var workspaceID: WorkspaceID?
     public var title: String
@@ -15,6 +19,9 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     public var lastActiveAt: Date
     public var isSaved: Bool
     public var mode: MobileBrowsingMode
+    /// Bounded local image bytes fetched inside the owning tab's WebKit
+    /// context. No remote favicon URL is persisted or synchronized.
+    public var faviconData: Data?
     /// Local-only, contrast-filtered website accent for the browser chrome.
     /// It is deliberately absent from Ahoi sync wire records.
     public var websiteTintARGB: UInt32?
@@ -28,17 +35,50 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
         lastActiveAt: Date = Date(),
         isSaved: Bool = false,
         mode: MobileBrowsingMode = .normal,
+        faviconData: Data? = nil,
         websiteTintARGB: UInt32? = nil
     ) {
         self.id = id
         self.workspaceID = workspaceID
-        self.title = title
-        self.url = url
+        self.title = Self.normalizedTitle(title)
+        self.url = Self.normalizedURLString(url)
         self.createdAt = createdAt
         self.lastActiveAt = lastActiveAt
         self.isSaved = isSaved
         self.mode = mode
+        self.faviconData = faviconData.flatMap { data in
+            data.count <= Self.maximumFaviconDataBytes ? data : nil
+        }
         self.websiteTintARGB = websiteTintARGB
+    }
+
+    public static func normalizedTitle(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return utf8Prefix(trimmed, maximumBytes: maximumTitleUTF8Bytes)
+    }
+
+    public static func normalizedURLString(_ value: String?) -> String? {
+        guard let value,
+              value.utf8.count <= maximumURLUTF8Bytes,
+              let url = URL(string: value),
+              (try? MobileBrowserInputRouter.validateWebURL(url)) != nil else {
+            return nil
+        }
+        return url.absoluteString
+    }
+
+    private static func utf8Prefix(_ value: String, maximumBytes: Int) -> String {
+        guard value.utf8.count > maximumBytes else { return value }
+        var result = ""
+        result.reserveCapacity(maximumBytes)
+        var usedBytes = 0
+        for character in value {
+            let characterBytes = String(character).utf8.count
+            guard usedBytes + characterBytes <= maximumBytes else { break }
+            result.append(character)
+            usedBytes += characterBytes
+        }
+        return result
     }
 
     public var displayTitle: String {
@@ -51,6 +91,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
 
 public struct MobileBrowserSessionSnapshot: Codable, Equatable, Sendable {
     public static let currentSchemaVersion = 1
+    public static let maximumTotalFaviconBytes = 8 * 1_024 * 1_024
 
     public var schemaVersion: Int
     public var tabs: [MobileTabRecord]
@@ -62,7 +103,24 @@ public struct MobileBrowserSessionSnapshot: Codable, Equatable, Sendable {
         selectedTabID: UUID? = nil
     ) {
         self.schemaVersion = schemaVersion
-        self.tabs = tabs.filter { $0.mode == .normal }
+        var seenIDs = Set<UUID>()
+        var retainedFaviconBytes = 0
+        self.tabs = tabs.compactMap { tab in
+            guard tab.mode == .normal, seenIDs.insert(tab.id).inserted else {
+                return nil
+            }
+            var sanitized = tab
+            sanitized.title = MobileTabRecord.normalizedTitle(sanitized.title)
+            sanitized.url = MobileTabRecord.normalizedURLString(sanitized.url)
+            if let faviconData = sanitized.faviconData,
+               faviconData.count > MobileTabRecord.maximumFaviconDataBytes ||
+                retainedFaviconBytes + faviconData.count > Self.maximumTotalFaviconBytes {
+                    sanitized.faviconData = nil
+            } else if let faviconData = sanitized.faviconData {
+                retainedFaviconBytes += faviconData.count
+            }
+            return sanitized
+        }
         self.selectedTabID = self.tabs.contains { $0.id == selectedTabID }
             ? selectedTabID
             : self.tabs.first?.id
@@ -131,6 +189,9 @@ public enum MobileBrowserInputRouter {
     }
 
     public static func validateWebURL(_ url: URL) throws -> URL {
+        guard url.absoluteString.utf8.count <= MobileTabRecord.maximumURLUTF8Bytes else {
+            throw MobileBrowserInputError.unsafeURL
+        }
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let scheme = components.scheme?.lowercased(),
               scheme == "https" || scheme == "http",
@@ -152,13 +213,27 @@ public actor InMemoryMobileBrowserSessionStore: MobileBrowserSessionStoring {
     private var snapshot: MobileBrowserSessionSnapshot
 
     public init(snapshot: MobileBrowserSessionSnapshot = .empty) {
-        self.snapshot = snapshot
+        self.snapshot = MobileBrowserSessionSnapshot(
+            schemaVersion: snapshot.schemaVersion,
+            tabs: snapshot.tabs,
+            selectedTabID: snapshot.selectedTabID
+        )
     }
 
-    public func load() async throws -> MobileBrowserSessionSnapshot { snapshot }
+    public func load() async throws -> MobileBrowserSessionSnapshot {
+        MobileBrowserSessionSnapshot(
+            schemaVersion: snapshot.schemaVersion,
+            tabs: snapshot.tabs,
+            selectedTabID: snapshot.selectedTabID
+        )
+    }
 
     public func save(_ snapshot: MobileBrowserSessionSnapshot) async throws {
-        self.snapshot = snapshot
+        self.snapshot = MobileBrowserSessionSnapshot(
+            schemaVersion: snapshot.schemaVersion,
+            tabs: snapshot.tabs,
+            selectedTabID: snapshot.selectedTabID
+        )
     }
 }
 
@@ -168,6 +243,7 @@ public enum MobileBrowserSessionStoreError: Error, Equatable, Sendable {
 }
 
 public actor FileMobileBrowserSessionStore: MobileBrowserSessionStoring {
+    private static let maximumSessionBytes: UInt64 = 64 * 1_024 * 1_024
     private let fileURL: URL
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
@@ -183,6 +259,11 @@ public actor FileMobileBrowserSessionStore: MobileBrowserSessionStoring {
 
     public func load() async throws -> MobileBrowserSessionSnapshot {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return .empty }
+        let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+        guard let fileSize = attributes[.size] as? NSNumber,
+              fileSize.uint64Value <= Self.maximumSessionBytes else {
+            throw MobileBrowserSessionStoreError.invalidSnapshot
+        }
         let data = try Data(contentsOf: fileURL)
         let snapshot = try decoder.decode(MobileBrowserSessionSnapshot.self, from: data)
         guard snapshot.schemaVersion == MobileBrowserSessionSnapshot.currentSchemaVersion else {
@@ -191,7 +272,14 @@ public actor FileMobileBrowserSessionStore: MobileBrowserSessionStoring {
         guard snapshot.tabs.allSatisfy({ $0.mode == .normal }) else {
             throw MobileBrowserSessionStoreError.invalidSnapshot
         }
-        return snapshot
+        // Decoding a Codable struct bypasses its memberwise initializer. Run
+        // the decoded value through the same normalization boundary so a
+        // corrupt file cannot restore duplicate tab identities.
+        return MobileBrowserSessionSnapshot(
+            schemaVersion: snapshot.schemaVersion,
+            tabs: snapshot.tabs,
+            selectedTabID: snapshot.selectedTabID
+        )
     }
 
     public func save(_ snapshot: MobileBrowserSessionSnapshot) async throws {
@@ -205,6 +293,9 @@ public actor FileMobileBrowserSessionStore: MobileBrowserSessionStoring {
             withIntermediateDirectories: true
         )
         let data = try encoder.encode(persistent)
+        guard UInt64(data.count) <= Self.maximumSessionBytes else {
+            throw MobileBrowserSessionStoreError.invalidSnapshot
+        }
         try data.write(to: fileURL, options: [.atomic])
     }
 }

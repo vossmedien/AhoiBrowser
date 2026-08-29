@@ -229,11 +229,6 @@ public struct CompanionRootView: View {
         .task {
             await model.load()
             await model.sync()
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(300))
-                guard !Task.isCancelled else { break }
-                await model.sync()
-            }
         }
         .alert(creationTitle, isPresented: creationPresented) {
             TextField(L("field.name", "Name"), text: $draftTitle)
@@ -393,6 +388,7 @@ public struct WorkspaceDetailView: View {
     public let onRenameNode: ((TreeNode, String) -> Void)?
     public let onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)?
     @State private var nodePendingRename: TreeNode?
+    @State private var nodePendingDeletion: TreeNode?
     @State private var renameDraft = ""
 
     public init(
@@ -449,7 +445,7 @@ public struct WorkspaceDetailView: View {
                             }
                             .disabled(onMoveNode == nil)
                             Button(L("action.delete", "Delete"), role: .destructive) {
-                                onDeleteNode?(item.node)
+                                nodePendingDeletion = item.node
                             }
                             .disabled(onDeleteNode == nil)
                         }
@@ -495,6 +491,34 @@ public struct WorkspaceDetailView: View {
                 nodePendingRename = nil
             }
         }
+        .confirmationDialog(
+            nodePendingDeletion.map {
+                CompanionL10n.format(
+                    "tree.delete.confirmation",
+                    fallback: "Delete %@ and its contents?",
+                    $0.title
+                )
+            } ?? "",
+            isPresented: Binding(
+                get: { nodePendingDeletion != nil },
+                set: { if !$0 { nodePendingDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(L("action.delete", "Delete"), role: .destructive) {
+                guard let node = nodePendingDeletion else { return }
+                nodePendingDeletion = nil
+                onDeleteNode?(node)
+            }
+            Button(L("action.cancel", "Cancel"), role: .cancel) {
+                nodePendingDeletion = nil
+            }
+        } message: {
+            Text(CompanionL10n.string(
+                "tree.delete.message",
+                fallback: "Deleted items are removed from Ahoi sync on your other devices too."
+            ))
+        }
     }
 
     private var orderedNodes: [IndentedTreeNode] {
@@ -504,18 +528,24 @@ public struct WorkspaceDetailView: View {
         }
         var result: [IndentedTreeNode] = []
         var visited = Set<TreeNodeID>()
-        func append(_ node: TreeNode, depth: Int) {
-            guard visited.insert(node.id).inserted else { return }
-            result.append(.init(node: node, depth: depth))
-            for child in (children[node.id] ?? []).sorted(by: nodeOrder) {
-                append(child, depth: depth + 1)
+
+        func appendForest(_ roots: [TreeNode], depth: Int) {
+            var pending = roots.reversed().map { ($0, depth) }
+            while let (node, rawDepth) = pending.popLast() {
+                guard visited.insert(node.id).inserted else { continue }
+                result.append(.init(
+                    node: node,
+                    depth: min(rawDepth, CompanionHierarchyPolicy.maximumDepth)
+                ))
+                let descendants = (children[node.id] ?? []).sorted(by: nodeOrder)
+                pending.append(contentsOf: descendants.reversed().map {
+                    ($0, rawDepth + 1)
+                })
             }
         }
-        for root in (children[nil] ?? []).sorted(by: nodeOrder) {
-            append(root, depth: 0)
-        }
+        appendForest((children[nil] ?? []).sorted(by: nodeOrder), depth: 0)
         for orphan in nodes.sorted(by: nodeOrder) where !visited.contains(orphan.id) {
-            append(orphan, depth: 0)
+            appendForest([orphan], depth: 0)
         }
         return result
     }

@@ -24,6 +24,7 @@ NSString* DataClass(EntityType type);
 std::optional<EntityType> EntityTypeForDataClass(NSString* value);
 std::string SafeCloudKitError(NSError* error);
 int64_t UnixMilliseconds(const HlcStamp& stamp);
+int64_t UnixMicroseconds(const HlcStamp& stamp);
 
 }  // namespace ahoi::sync
 #endif  // __OBJC__

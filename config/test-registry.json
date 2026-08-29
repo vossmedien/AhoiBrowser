@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "outputs/AhoiBrowser-Master-Zielprompt.md",
-  "generatedAt": "2026-08-28T00:00:00Z",
+  "generatedAt": "2026-08-29T00:00:00Z",
   "tests": [
     {
       "id": "PKG-01",
@@ -3295,6 +3295,201 @@
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-01",
+      "suite": "MOB-USER",
+      "description": "AhoiBrowser Mobile kalt starten, eine URL eingeben, HTTPS-Navigation und sichtbare Origin-Zuordnung im aktiven WebKit-Tab prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-02",
+      "suite": "MOB-USER",
+      "description": "Suchbegriff eingeben, konfigurierten Suchanbieter öffnen und Ergebnisnavigation mit Zurück, Vor, Neu laden und Stop bedienen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-03",
+      "suite": "MOB-USER",
+      "description": "Normale Tabs anlegen, wechseln, umordnen, umbenennen, schließen und wiederherstellen; Session nach Beenden und Kaltstart konsistent wiederherstellen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-04",
+      "suite": "MOB-USER",
+      "description": "Aktive Seite in einen Workspace speichern, zwischen Workspaces verschieben und aus Baum, Suche und Browser erneut öffnen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-05",
+      "suite": "MOB-USER",
+      "description": "Private Tabs teilen genau einen flüchtigen WebKit-Datenspeicher, bleiben vom normalen persistenten Store getrennt und erscheinen weder in Session, Verlauf, Suche, Sync noch Geräte-Tabs.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-06",
+      "suite": "MOB-USER",
+      "description": "Externe HTTP(S)-Links über die registrierte Default-Browser-Rolle in den bestehenden aktiven Tab routen und doppelte Callback-Navigation verhindern.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-07",
+      "suite": "MOB-USER",
+      "description": "Datei-Upload, normale und private Downloads, Fortschritt, Abbruch, Quick Look, Teilen sowie `target=_blank` mit korrekter Origin-, Tab- und Datenschutz-Zuordnung bedienen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-08",
+      "suite": "MOB-USER",
+      "description": "Kamera- und Mikrofonberechtigung originbezogen erlauben oder ablehnen, JavaScript-/Dateiauswahl-Dialoge dem auslösenden WebKit-Tab zuordnen und externe App-Schemes erst nach Bestätigung öffnen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-09",
+      "suite": "MOB-USER",
+      "description": "Portrait/Landscape, Dynamic Type, VoiceOver, hoher Kontrast sowie reduzierte Bewegung und Transparenz auf echtem Gerät durchgängig bedienen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-10",
+      "suite": "MOB-USER",
+      "description": "iPad-Sidebar, Multitasking, Rotation, Hardwaretastatur, Pointer, Tab-Reorder und Workspace-Wechsel auf echtem iPad prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-11",
+      "suite": "MOB-USER",
+      "description": "Offline-, TLS-, Renderer-/WebContent-, Speicher- und Prozessabbruchfälle auslösen; lokale Daten, Session-Restore, Downloads und verständliche Wiederaufnahme prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-12",
+      "suite": "MOB-USER",
+      "description": "Normale Tabs und Workspace-Änderungen zwischen signiertem Mac und echtem iPhone/iPad über den finalen CloudKit-/Keychain-Vertrag abgleichen; private Daten bleiben ausgeschlossen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-13",
+      "suite": "MOB-USER",
+      "description": "Unsichere, lokale, skriptbasierte, credentialtragende und unbekannte Schemes ablehnen; erlaubte externe Schemes zeigen vor Übergabe Origin und Ziel.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-14",
+      "suite": "MOB-USER",
+      "description": "Mit 1, 5 und 20 normalen sowie privaten Tabs Navigation, Wechsel, Umordnung, Speicherabbau, Session-Speicherung und Wiederherstellung ohne Phantomtabs prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MOB-USER-15",
+      "suite": "MOB-USER",
+      "description": "Visuelle und interaktive Konsistenz auf iPhone/iPad, normal/privat, Hell/Dunkel, Website-Tint/Fallback und allen unterstützten Barrierefreiheitsmodi prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"

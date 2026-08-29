@@ -71,6 +71,96 @@ final class CompanionConvergenceTests: XCTestCase {
         XCTAssertEqual(merged.version.fieldVersions["pinned"], pinnedClock)
     }
 
+#if canImport(CloudKit)
+    func testFetchedEnvelopeLosingTransportLWWStillReachesDomainMerge() async throws {
+        let localDevice = DeviceID(
+            rawValue: UUID(uuidString: "50000000-0000-4000-8000-000000000005")!
+        )
+        let remoteDevice = DeviceID(
+            rawValue: UUID(uuidString: "60000000-0000-4000-8000-000000000006")!
+        )
+        let workspaceID = WorkspaceID(
+            rawValue: UUID(uuidString: "70000000-0000-4000-8000-000000000007")!
+        )
+        let base = clock(100, localDevice)
+        let localNameClock = clock(300, localDevice)
+        let remoteOrderClock = clock(200, remoteDevice)
+        var localFields = Dictionary(
+            uniqueKeysWithValues: CompanionFieldMerge.workspaceFields.map { ($0, base) }
+        )
+        localFields["name"] = localNameClock
+        localFields["modified_at"] = localNameClock
+        var remoteFields = Dictionary(
+            uniqueKeysWithValues: CompanionFieldMerge.workspaceFields.map { ($0, base) }
+        )
+        remoteFields["sort_key"] = remoteOrderClock
+        remoteFields["modified_at"] = remoteOrderClock
+        let localVersion = SyncVersion(
+            modifiedAt: localNameClock,
+            modifiedBy: localDevice,
+            fieldVersions: localFields
+        )
+        let remoteVersion = SyncVersion(
+            modifiedAt: remoteOrderClock,
+            modifiedBy: remoteDevice,
+            fieldVersions: remoteFields
+        )
+        let local = Workspace(
+            workspaceID: workspaceID,
+            name: "Local name",
+            sortKey: "a",
+            createdAt: base,
+            modifiedAt: localNameClock,
+            version: localVersion
+        )
+        let remote = Workspace(
+            workspaceID: workspaceID,
+            name: "Base name",
+            sortKey: "z",
+            createdAt: base,
+            modifiedAt: remoteOrderClock,
+            version: remoteVersion
+        )
+        let localEnvelope = envelope(
+            id: workspaceID.rawValue,
+            dataClass: .workspace,
+            version: localVersion,
+            byte: 0x11
+        )
+        let remoteEnvelope = envelope(
+            id: workspaceID.rawValue,
+            dataClass: .workspace,
+            version: remoteVersion,
+            byte: 0x22
+        )
+        let store = InMemorySyncRecordStore(records: [localEnvelope])
+
+        try await CloudKitSyncProvider.retainFetchedEnvelope(
+            remoteEnvelope,
+            in: store
+        )
+
+        // The opaque transport snapshot still selects the later local record,
+        // but the exact remote bytes remain available to the domain importer.
+        let selectedEnvelope = try await store.record(for: workspaceID.rawValue)
+        let pendingEnvelopes = try await store.fetchedRecords()
+        XCTAssertEqual(selectedEnvelope, localEnvelope)
+        XCTAssertEqual(pendingEnvelopes, [remoteEnvelope])
+        let primaryEnvelopes = try await store.allRecords()
+        let importCandidates = CompanionSyncBridge.makeImportCandidates(
+            primaryRecords: primaryEnvelopes,
+            fetchedRecords: pendingEnvelopes
+        )
+        XCTAssertEqual(importCandidates.map(\.record), [localEnvelope, remoteEnvelope])
+        XCTAssertEqual(importCandidates.map(\.acknowledgeOnSuccess), [false, true])
+        let merged = try CompanionFieldMerge.merge(local, remote)
+        XCTAssertEqual(merged.name, "Local name")
+        XCTAssertEqual(merged.sortKey, "z")
+        XCTAssertGreaterThan(merged.version, localVersion)
+        XCTAssertGreaterThan(merged.version, remoteVersion)
+    }
+#endif
+
     func testTreeOrderTieBreakerRoundTripsIndependentlyOfRecordWriter() throws {
         let orderDevice = DeviceID(
             rawValue: UUID(uuidString: "30000000-0000-4000-8000-000000000003")!
@@ -214,7 +304,8 @@ final class CompanionConvergenceTests: XCTestCase {
     private func envelope(
         id: UUID,
         dataClass: SyncDataClass,
-        version: SyncVersion
+        version: SyncVersion,
+        byte: UInt8 = 0
     ) -> SyncRecord {
         SyncRecord(
             recordID: id,
@@ -225,8 +316,8 @@ final class CompanionConvergenceTests: XCTestCase {
             originatingDevice: version.modifiedBy,
             encryptedValue: .init(
                 keyVersion: 1,
-                nonce: Data(repeating: 0, count: 12),
-                ciphertextAndTag: Data(repeating: 0, count: 16)
+                nonce: Data(repeating: byte, count: 12),
+                ciphertextAndTag: Data(repeating: byte, count: 16)
             )
         )
     }

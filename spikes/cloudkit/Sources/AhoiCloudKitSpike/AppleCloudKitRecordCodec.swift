@@ -5,6 +5,7 @@ import CloudKit
 
 public enum AppleCloudKitRecordCodecError: Error, Equatable {
     case invalidRecordID(String)
+    case invalidBaseRecord
     case missingField(String)
     case invalidField(String)
     case corruptEncryptedValue(UUID)
@@ -22,6 +23,7 @@ public struct AppleCloudKitRecordCodec: Sendable {
         public static let schemaVersion = "schemaVersion"
         public static let dataClass = "dataClass"
         public static let hlcPhysical = "hlcPhysical"
+        public static let hlcSubmillisecond = "hlcSubmillisecond"
         public static let hlcLogical = "hlcLogical"
         public static let hlcNodeID = "hlcNodeID"
         public static let originatingDeviceID = "originatingDeviceID"
@@ -31,6 +33,7 @@ public struct AppleCloudKitRecordCodec: Sendable {
         public static let isTombstone = "isTombstone"
         public static let tombstoneEntityID = "tombstoneEntityID"
         public static let tombstoneDeletedPhysical = "tombstoneDeletedPhysical"
+        public static let tombstoneDeletedSubmillisecond = "tombstoneDeletedSubmillisecond"
         public static let tombstoneDeletedLogical = "tombstoneDeletedLogical"
         public static let tombstoneDeletedNodeID = "tombstoneDeletedNodeID"
         public static let tombstoneDeletedBy = "tombstoneDeletedBy"
@@ -45,18 +48,31 @@ public struct AppleCloudKitRecordCodec: Sendable {
 
     public func encode(
         _ value: SyncRecord,
-        zoneID: CKRecordZone.ID
+        zoneID: CKRecordZone.ID,
+        baseRecord: CKRecord? = nil
     ) throws -> CKRecord {
         let recordID = CKRecord.ID(
             recordName: value.recordID.uuidString.lowercased(),
             zoneID: zoneID
         )
-        let record = CKRecord(recordType: Self.recordType, recordID: recordID)
+        let record: CKRecord
+        if let baseRecord {
+            guard baseRecord.recordType == Self.recordType,
+                  baseRecord.recordID == recordID else {
+                throw AppleCloudKitRecordCodecError.invalidBaseRecord
+            }
+            record = baseRecord
+        } else {
+            record = CKRecord(recordType: Self.recordType, recordID: recordID)
+        }
 
         record[Fields.entityID] = value.entityID.uuidString.lowercased() as NSString
         record[Fields.schemaVersion] = NSNumber(value: value.schemaVersion)
         record[Fields.dataClass] = value.dataClass.rawValue as NSString
         record[Fields.hlcPhysical] = NSNumber(value: value.modifiedAt.physicalMilliseconds)
+        record[Fields.hlcSubmillisecond] = NSNumber(
+            value: value.modifiedAt.submillisecondMicroseconds
+        )
         record[Fields.hlcLogical] = NSNumber(value: value.modifiedAt.logicalCounter)
         record[Fields.hlcNodeID] = value.modifiedAt.nodeID.rawValue.uuidString.lowercased() as NSString
         record[Fields.originatingDeviceID] = value.originatingDevice.rawValue.uuidString.lowercased() as NSString
@@ -85,6 +101,10 @@ public struct AppleCloudKitRecordCodec: Sendable {
 
         let modifiedAt = HybridLogicalClock(
             physicalMilliseconds: try uint64(Fields.hlcPhysical, in: record),
+            submillisecondMicroseconds: try submillisecondMicroseconds(
+                Fields.hlcSubmillisecond,
+                in: record
+            ),
             logicalCounter: try uint32(Fields.hlcLogical, in: record),
             nodeID: DeviceID(rawValue: try uuid(Fields.hlcNodeID, in: record))
         )
@@ -197,12 +217,26 @@ public struct AppleCloudKitRecordCodec: Sendable {
     }
 
     private func writeTombstone(_ tombstone: Tombstone?, to record: CKRecord) {
+        record[Fields.tombstoneEntityID] = nil
+        record[Fields.tombstoneDeletedPhysical] = nil
+        record[Fields.tombstoneDeletedSubmillisecond] = nil
+        record[Fields.tombstoneDeletedLogical] = nil
+        record[Fields.tombstoneDeletedNodeID] = nil
+        record[Fields.tombstoneDeletedBy] = nil
+        record[Fields.tombstoneOriginalParentID] = nil
+        record[Fields.tombstoneOriginalOrderComponents] = nil
+        record[Fields.tombstoneOriginalOrderTieBreaker] = nil
+        record[Fields.tombstoneOriginalOrderSortKey] = nil
+        record[Fields.tombstonePurgeAfter] = nil
         guard let tombstone else {
             return
         }
         record[Fields.tombstoneEntityID] = tombstone.entityID.uuidString.lowercased() as NSString
         record[Fields.tombstoneDeletedPhysical] = NSNumber(
             value: tombstone.deletedAt.physicalMilliseconds
+        )
+        record[Fields.tombstoneDeletedSubmillisecond] = NSNumber(
+            value: tombstone.deletedAt.submillisecondMicroseconds
         )
         record[Fields.tombstoneDeletedLogical] = NSNumber(
             value: tombstone.deletedAt.logicalCounter
@@ -239,6 +273,10 @@ public struct AppleCloudKitRecordCodec: Sendable {
             deletedAt: HybridLogicalClock(
                 physicalMilliseconds: try uint64(
                     Fields.tombstoneDeletedPhysical,
+                    in: record
+                ),
+                submillisecondMicroseconds: try submillisecondMicroseconds(
+                    Fields.tombstoneDeletedSubmillisecond,
                     in: record
                 ),
                 logicalCounter: try uint32(Fields.tombstoneDeletedLogical, in: record),
@@ -293,6 +331,21 @@ public struct AppleCloudKitRecordCodec: Sendable {
             throw AppleCloudKitRecordCodecError.invalidField(field)
         }
         return UInt32(value)
+    }
+
+    /// Older records predate microsecond precision and therefore decode as an
+    /// exact millisecond boundary. Present corrupt values fail before reaching
+    /// HybridLogicalClock's programmer-only initializer precondition.
+    private func submillisecondMicroseconds(
+        _ field: String,
+        in record: CKRecord
+    ) throws -> UInt16 {
+        guard record[field] != nil else { return 0 }
+        let value = try uint64(field, in: record)
+        guard value < 1_000 else {
+            throw AppleCloudKitRecordCodecError.invalidField(field)
+        }
+        return UInt16(value)
     }
 
     private func bool(_ field: String, in record: CKRecord) throws -> Bool {

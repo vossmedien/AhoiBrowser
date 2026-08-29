@@ -64,10 +64,10 @@ and provider stay authoritative.
 
 ## Mobile publication lifecycle
 
-The native mobile browser publishes only normal HTTP(S) tabs. The publication
-uses stable tab and session UUIDs and the existing desktop-compatible wire
-codec. The app now reconciles the complete restored browser session at launch
-and while active:
+The native mobile browser source publishes only normal HTTP(S) tabs. The
+publication uses stable tab and session UUIDs and the existing
+desktop-compatible wire codec. The app reconciles the complete restored browser
+session at launch and on relevant lifecycle/browser events:
 
 1. restored normal tabs missing from the device projection are republished;
 2. records no longer present in the browser session become tombstones;
@@ -76,7 +76,9 @@ and while active:
 5. closing through either the tab switcher or page menu closes the published
    tab;
 6. saving to a workspace republishes the tab with its workspace and saved state;
-7. a foreground timer imports remote changes and refreshes the heartbeat;
+7. CKSyncEngine automatic transport and delegate callbacks import remote
+   changes; launch, foreground activation and the manual action are explicit
+   reconciliation triggers, with no foreground polling loop;
 8. private tabs remain outside the repository, outbox, CloudKit, and desktop UI.
 
 Local mutations commit before network work. A missing account, key, container,
@@ -85,8 +87,8 @@ pending.
 
 ## Evidence boundary
 
-Source integration, deterministic wire compatibility, and simulator-visible
-local UI do not prove seamless sync. Release acceptance requires one signed
+Source integration and deterministic wire compatibility do not prove seamless
+sync. Release acceptance requires one signed
 macOS AhoiBrowser and one signed physical iPhone/iPad using the same production
 configuration, then visible proof of all of the following:
 
