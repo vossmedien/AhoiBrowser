@@ -250,9 +250,12 @@ TEST_F(SidebarTreeControllerTest, SearchEvictsDeletedExactMatchImmediately) {
             controller.SetSearchMatches({page.id}));
   ASSERT_EQ(2U, controller.view_model().rows().size());
 
+  // Search intentionally disables destructive controller actions. Exercise a
+  // synchronous external store mutation instead, as produced by sync or
+  // another window, and verify that the live projection evicts the stale row.
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
-            controller.DeleteNode(page.id,
-                                  base::Time::UnixEpoch() + base::Seconds(2)));
+            store_.DeleteNode(page.id,
+                              base::Time::UnixEpoch() + base::Seconds(2)));
   EXPECT_EQ(nullptr, controller.view_model().GetNode(page.id));
   EXPECT_TRUE(controller.view_model().rows().empty());
   EXPECT_FALSE(controller.view_model().IsSearchExactMatch(page.id));

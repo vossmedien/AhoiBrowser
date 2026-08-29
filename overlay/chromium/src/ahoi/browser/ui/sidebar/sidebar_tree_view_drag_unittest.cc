@@ -261,12 +261,16 @@ TEST_F(SidebarTreeViewTest,
   tab_tree::Workspace workspace = MakeWorkspace();
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode leading =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Leading", "a");
   tab_tree::TreeNode source =
       MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"Source", "a");
+               u"Source", "c");
   tab_tree::TreeNode target =
       MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
                u"Target", "b");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(leading));
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(target));
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
@@ -453,17 +457,22 @@ TEST_F(SidebarTreeViewTest, SavedSplitPaneDropReordersTargetedGridSegment) {
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             controller_->ActivateWorkspace(workspace.id));
   delegate_.split_groups = {{first.id, second.id, third.id, fourth.id}};
-  delegate_.split_visual_data = split_tabs::SplitTabVisualData::ForFourPane(
+  const auto split_visual_data = split_tabs::SplitTabVisualData::ForFourPane(
       split_tabs::SplitTabLayout::kStacked);
+  delegate_.split_visual_data = split_visual_data;
   delegate_.can_reorder_split = true;
   delegate_.reorder_split_succeeds = true;
 
   auto view = NewTreeView();
   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 64));
-  // The fourth pane occupies the bottom-right grid segment. Its center lies in
-  // the row-level "after" edge, so this also proves segmented split hit-testing
-  // wins over ordinary tree-row reordering.
-  const gfx::Point target_point(180, 28);
+  // Derive the fourth pane's center from the production layout so this remains
+  // valid when the minimum readable split-row height changes.
+  const int split_row_height = GetSplitRowPreferredHeight(
+      4, split_visual_data, SidebarTreeRowView::kRowHeight);
+  const gfx::Point target_point =
+      GetSplitSegmentBounds(gfx::Rect(0, 0, 240, split_row_height), 3, 4,
+                            split_visual_data)
+          .CenterPoint();
   const auto indicator = view->CalculateDropIndicatorForTesting(
       first.id, target_point, SidebarTreeController::DropOperation::kMove);
   ASSERT_TRUE(indicator.has_value());

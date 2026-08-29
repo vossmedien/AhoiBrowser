@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import("//testing/test.gni")
+import("//tools/grit/repack.gni")
 
 source_set("sidebar_tree") {
   sources = [
@@ -160,7 +161,7 @@ source_set("sidebar_discovery") {
 
   public_deps = [
     "//ahoi/browser/navigation",
-    "//ahoi/browser/sync:sync",
+    "//ahoi/browser/sync",
     "//base",
     "//components/sessions",
     "//ui/views",
@@ -216,10 +217,10 @@ source_set("browser_sidebar") {
     "sidebar_split_tab_operations.h",
     "sidebar_sync_controls.cc",
     "sidebar_sync_controls.h",
-    "sidebar_tab_thumbnail_cache.cc",
-    "sidebar_tab_thumbnail_cache.h",
     "sidebar_tab_preview_controller.cc",
     "sidebar_tab_preview_controller.h",
+    "sidebar_tab_thumbnail_cache.cc",
+    "sidebar_tab_thumbnail_cache.h",
     "sidebar_tabs_surface_view.cc",
     "sidebar_tabs_surface_view.h",
   ]
@@ -300,9 +301,9 @@ source_set("unit_tests") {
     "sidebar_runtime_drop_targets_unittest.cc",
     "sidebar_runtime_refresh_gate_unittest.cc",
     "sidebar_split_layout_unittest.cc",
-    "sidebar_tab_title_label_unittest.cc",
     "sidebar_sync_controls_unittest.cc",
     "sidebar_tab_density_unittest.cc",
+    "sidebar_tab_title_label_unittest.cc",
     "sidebar_tree_controller_unittest.cc",
     "sidebar_tree_view_drag_unittest.cc",
     "sidebar_tree_view_model_unittest.cc",
@@ -342,6 +343,71 @@ source_set("unit_tests") {
     "//ui/views",
     "//ui/views:test_support",
     "//url",
+  ]
+}
+
+# Keeps the sidebar search, hierarchy, and drag regression gate independent
+# from Chromium's broad chrome/test support graph. This is the focused target
+# used for rapid iteration on the visible sidebar experience.
+source_set("search_unit_tests") {
+  testonly = true
+  sources = [
+    "sidebar_discovery_view_unittest.cc",
+    "sidebar_tree_controller_unittest.cc",
+    "sidebar_tree_view_drag_unittest.cc",
+    "sidebar_tree_view_test_support.cc",
+    "sidebar_tree_view_test_support.h",
+    "sidebar_tree_view_unittest.cc",
+  ]
+  deps = [
+    ":sidebar_discovery",
+    ":sidebar_tree",
+    ":sidebar_views",
+    "//ahoi/browser/tab_tree",
+    "//base/test:test_support",
+    "//components/split_tabs",
+    "//skia",
+    "//testing/gmock",
+    "//testing/gtest",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/compositor",
+    "//ui/events",
+    "//ui/gfx",
+    "//ui/gfx:test_support",
+    "//ui/gfx/animation",
+    "//ui/views",
+    "//ui/views:test_support",
+    "//url",
+  ]
+}
+
+repack("sidebar_search_test_pak") {
+  sources = [
+    "$root_gen_dir/chrome/generated_resources_en-US.pak",
+    "$root_gen_dir/components/strings/components_strings_en-US.pak",
+  ]
+  output = "$root_out_dir/sidebar_search_test_resources.pak"
+  deps = [
+    "//chrome/app:generated_resources",
+    "//components/strings",
+  ]
+}
+
+test("ahoi_sidebar_search_unittests") {
+  sources = [ "run_all_unittests.cc" ]
+  deps = [
+    ":search_unit_tests",
+    "//base",
+    "//mojo/core/embedder",
+    "//testing/gtest",
+    "//ui/base",
+    "//ui/resources:ui_test_pak",
+    "//ui/views:test_support",
+  ]
+  data_deps = [
+    ":sidebar_search_test_pak",
+    "//ui/resources:ui_test_pak_data",
   ]
 }
 

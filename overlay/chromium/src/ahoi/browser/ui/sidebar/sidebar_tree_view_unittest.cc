@@ -486,6 +486,9 @@ TEST_F(SidebarTreeViewTest, CrossGroupSplitStaysAtDeepestVisibleParent) {
 
 TEST_F(SidebarTreeViewTest,
        SearchKeepsCrossFolderSplitPartnersInTheirRealHierarchy) {
+  const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
+      gfx::Animation::RichAnimationRenderMode::FORCE_DISABLED);
+  ASSERT_TRUE(render_mode);
   const tab_tree::Workspace workspace = MakeWorkspace();
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             store_.CreateWorkspace(workspace));
