@@ -112,6 +112,10 @@ class SidebarTreeView final : public views::View,
   // visible drop surface between target enter/exit events, including when the
   // workspace has no saved nodes yet.
   void SetDragTargetVisible(bool visible);
+  // Clears the concrete row/slot target without ending the host-owned drag.
+  // This named entry point is also used when AppKit routes directly from a
+  // descendant to a sibling or the WebContents overlay.
+  void ClearDropTargetPresentation();
   // Live mixed saved/temporary splits are rendered by the host as one
   // composite row. Hide only their saved-page proxies here; the persistent
   // model and its selection/order remain untouched.
@@ -301,6 +305,9 @@ class SidebarTreeView final : public views::View,
   std::optional<int> InsertionSlotY(const DropIndicator& indicator) const;
   std::optional<DropIndicator> StabilizeInsertionSlot(
       std::optional<DropIndicator> indicator) const;
+  std::optional<DropIndicator> StabilizeDropZone(
+      std::optional<DropIndicator> indicator,
+      const gfx::Point& point) const;
   void UpdateInsertionMarker();
   void SetDropIndicator(std::optional<DropIndicator> indicator);
   void UpdateFolderAutoExpand(const std::optional<DropIndicator>& indicator);

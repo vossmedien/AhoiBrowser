@@ -66,6 +66,8 @@ using RuntimeTabDragStateCallback =
     base::RepeatingCallback<void(std::optional<int>)>;
 using SavedTabDragStateCallback =
     base::RepeatingCallback<void(std::optional<base::Uuid>)>;
+using SidebarDropTargetClaimCallback =
+    base::RepeatingCallback<void(views::View*)>;
 using CanDropOnRuntimeTabCallback =
     base::RepeatingCallback<bool(std::optional<base::Uuid>,
                                  std::optional<int>,
@@ -93,6 +95,7 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     RuntimeTabHoverCallback hover_callback,
     SavedTabDragStateCallback saved_drag_state_callback,
     RuntimeTabDragStateCallback drag_state_callback,
+    SidebarDropTargetClaimCallback drop_target_claim_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller);
@@ -114,18 +117,28 @@ std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
     DropSavedNodeToTemporaryCallback callback);
 std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
     CanDropOpenTabToTemporaryCallback can_drop_callback,
-    DropOpenTabToTemporaryCallback drop_callback);
+    DropOpenTabToTemporaryCallback drop_callback,
+    SidebarDropTargetClaimCallback drop_target_claim_callback = {});
 void SetOpenTabsDropTargetAcceptingTab(views::View* view, bool accepting);
+void ClearOpenTabsDropTargetHighlight(views::View* view);
 bool IsOpenTabsDropTargetAcceptingTabForTesting(const views::View* view);
 bool IsOpenTabsDropTargetHighlightedForTesting(const views::View* view);
+
+// Clears drop state only from known runtime-tab rows below `root`. No generic
+// Views drag lifecycle callbacks are invoked. `except` retains the one surface
+// that just claimed the pointer.
+void ClearOpenTabRowDropTargetPresentation(views::View* root,
+                                           views::View* except = nullptr);
 
 using CreateGroupForSavedNodeCallback =
     base::RepeatingCallback<bool(const base::Uuid&)>;
 using CreateGroupForRuntimeTabCallback = base::RepeatingCallback<bool(int)>;
 std::unique_ptr<views::View> CreateNewGroupDropTargetView(
     CreateGroupForSavedNodeCallback node_callback,
-    CreateGroupForRuntimeTabCallback runtime_tab_callback);
+    CreateGroupForRuntimeTabCallback runtime_tab_callback,
+    SidebarDropTargetClaimCallback drop_target_claim_callback = {});
 void SetNewGroupDropTargetVisible(views::View* view, bool visible);
+void ClearNewGroupDropTargetHighlight(views::View* view);
 
 // Creates the same native presentation without consulting ResourceBundle.
 // Focused Views tests use this to keep visual regressions independent from the

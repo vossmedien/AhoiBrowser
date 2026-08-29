@@ -279,15 +279,23 @@ std::optional<DropIntent> SplitDropController::UpdateDrag(
     return std::nullopt;
   }
 
+  if (views::View* const browser_sidebar_host =
+          browser_sidebar_host_tracker_.view()) {
+    sidebar::ClearBrowserSidebarDropTargetPresentation(browser_sidebar_host);
+  }
+
   if (overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->BeginDragPresentation();
   }
-  std::optional<DropIntent> intent =
-      BuildIntent(*payload, source.tab.get(), point, visible_panes);
+  std::optional<DropIntent> intent = BuildIntent(
+      *payload, source.tab.get(), point, visible_panes, preview_intent_);
   if (intent.has_value() && overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->SetIntent(*intent);
+  }
+  if (intent.has_value()) {
+    preview_intent_ = intent;
   } else {
     ClearOverlayIntent();
   }
@@ -298,6 +306,20 @@ bool SplitDropController::PerformDrop(
     const ui::OSExchangeData& data,
     const gfx::Point& point,
     const std::vector<SplitDropPane>& visible_panes) {
+  // This callback is an authoritative native completion boundary. Defer
+  // presentation cleanup until after every model mutation so refresh gating
+  // cannot recycle the drag source halfway through the transaction.
+  base::ScopedClosureRunner complete_drag(base::BindOnce(
+      &SplitDropController::CompleteDrag, weak_ptr_factory_.GetWeakPtr()));
+
+  const std::optional<drag::SidebarTabDragPayload> payload =
+      drag::ReadSidebarTabDragPayload(data);
+  if (!payload.has_value() || !preview_intent_.has_value() ||
+      preview_intent_->source != *payload) {
+    return false;
+  }
+  const DropIntent preview_intent = *preview_intent_;
+
   // Capture the target tab identity before activating a closed saved tab.
   // Activation is reentrant and may replace a WebContents, while the process-
   // local TabHandle remains the authoritative identity within this model.
@@ -314,15 +336,9 @@ bool SplitDropController::PerformDrop(
           : nullptr;
   const int target_handle =
       initial_target ? initial_target->GetHandle().raw_value() : -1;
-  const std::optional<drag::SidebarTabDragPayload> payload =
-      drag::ReadSidebarTabDragPayload(data);
-
-  // This callback is an authoritative native completion boundary. Defer
-  // presentation cleanup until after every model mutation so refresh gating
-  // cannot recycle the drag source halfway through the transaction.
-  base::ScopedClosureRunner complete_drag(base::BindOnce(
-      &SplitDropController::CompleteDrag, weak_ptr_factory_.GetWeakPtr()));
-  if (!payload.has_value() || target_handle < 0) {
+  if (!hit.has_value() || target_handle < 0 ||
+      visible_panes[*hit].pane_index != preview_intent.target_pane_index ||
+      target_handle != preview_intent.target_tab_handle) {
     return false;
   }
 
@@ -343,11 +359,16 @@ bool SplitDropController::PerformDrop(
   }
   std::vector<SplitDropPane> current_panes = visible_panes;
   current_panes[*hit].web_contents = current_target->GetContents();
-  const std::optional<DropIntent> intent =
-      BuildIntent(*payload, source.tab.get(), point, current_panes);
-  if (!intent.has_value()) {
+  const std::optional<DropIntent> validated_intent = BuildIntent(
+      *payload, source.tab.get(), point, current_panes, preview_intent);
+  // Do not reinterpret the pointer on mouse-up. The model may change only for
+  // the exact intent that was visibly previewed and remains valid against the
+  // current tab/split snapshot and hysteresis geometry.
+  if (!preview_intent_.has_value() || *preview_intent_ != preview_intent ||
+      !validated_intent.has_value() || *validated_intent != preview_intent) {
     return false;
   }
+  const DropIntent* const intent = &preview_intent;
 
   tabs::TabInterface* target = FindTabByHandle(intent->target_tab_handle);
   const bool detaching = intent->action == DropAction::kDetachFromSplit;
@@ -614,7 +635,8 @@ std::optional<DropIntent> SplitDropController::BuildIntent(
     const drag::SidebarTabDragPayload& payload,
     tabs::TabInterface* source_tab,
     const gfx::Point& point,
-    const std::vector<SplitDropPane>& visible_panes) const {
+    const std::vector<SplitDropPane>& visible_panes,
+    const std::optional<DropIntent>& retained_intent) const {
   const std::optional<size_t> hit = HitTestVisiblePane(point, visible_panes);
   if (!hit.has_value() || !visible_panes[*hit].web_contents) {
     return std::nullopt;
@@ -637,9 +659,15 @@ std::optional<DropIntent> SplitDropController::BuildIntent(
     // same-model split API can move it across windows.
     return std::nullopt;
   }
+  std::optional<DropZone> retained_zone;
+  if (retained_intent.has_value() && retained_intent->source == payload &&
+      retained_intent->target_tab_handle == target_state->tab_handle &&
+      retained_intent->target_pane_index == visible_panes[*hit].pane_index) {
+    retained_zone = retained_intent->zone;
+  }
   return CalculateDropIntent(payload, source_state, *target_state,
                              visible_panes[*hit].pane_index, point,
-                             visible_panes);
+                             visible_panes, retained_zone);
 }
 
 tabs::TabInterface* SplitDropController::FindTabByHandle(int tab_handle) const {
@@ -763,6 +791,7 @@ bool SplitDropController::ReorderSplitTo(
 }
 
 void SplitDropController::ClearOverlayIntent() {
+  preview_intent_.reset();
   if (overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->ClearIntent();
@@ -770,6 +799,7 @@ void SplitDropController::ClearOverlayIntent() {
 }
 
 void SplitDropController::EndOverlayPresentation() {
+  preview_intent_.reset();
   if (overlay_view_tracker_) {
     static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
         ->EndDragPresentation();

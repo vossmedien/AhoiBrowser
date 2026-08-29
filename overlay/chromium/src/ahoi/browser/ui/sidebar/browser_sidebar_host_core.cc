@@ -238,6 +238,9 @@ BrowserSidebarHostView::BrowserSidebarHostView(
                 host->ShowCreateGroupDialogForTemporaryTab(runtime_tab_handle);
                 return host && host->group_dialog_widget_;
               },
+              weak_ptr_factory_.GetWeakPtr()),
+          base::BindRepeating(
+              &BrowserSidebarHostView::ClaimDropTargetPresentation,
               weak_ptr_factory_.GetWeakPtr())));
   SetNewGroupDropTargetVisible(new_group_drop_target_, false);
 
@@ -291,7 +294,10 @@ BrowserSidebarHostView::BrowserSidebarHostView(
       base::BindRepeating(&BrowserSidebarHostView::CanDropOpenTabToTemporary,
                           base::Unretained(this)),
       base::BindRepeating(&BrowserSidebarHostView::DropOpenTabToTemporary,
-                          base::Unretained(this)));
+                          base::Unretained(this)),
+      base::BindRepeating(
+          &BrowserSidebarHostView::ClaimDropTargetPresentation,
+          weak_ptr_factory_.GetWeakPtr()));
   open_tabs->GetViewAccessibility().SetRole(ax::mojom::Role::kTabList);
   open_tabs->GetViewAccessibility().SetName(
       l10n_util::GetStringUTF16(IDS_TAB_SEARCH_OPEN_TABS));

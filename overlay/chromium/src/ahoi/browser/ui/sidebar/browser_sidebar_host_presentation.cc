@@ -501,6 +501,9 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
             &BrowserSidebarHostView::OnTemporaryTabDragStateChanged,
             weak_ptr_factory_.GetWeakPtr()),
         base::BindRepeating(
+            &BrowserSidebarHostView::ClaimDropTargetPresentation,
+            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(
             [](base::WeakPtr<BrowserSidebarHostView> host,
                std::optional<base::Uuid> source_node_id,
                std::optional<int> source_runtime_handle,

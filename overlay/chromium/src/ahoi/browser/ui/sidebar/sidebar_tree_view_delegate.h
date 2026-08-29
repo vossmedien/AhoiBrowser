@@ -98,6 +98,9 @@ class SidebarTreeViewDelegate {
       std::optional<base::Uuid> dragged_node_id) {}
   virtual void OnTemporaryTabDragStateChanged(
       std::optional<int> runtime_tab_handle) {}
+  // The tree owns the pointer and claims exclusive drop presentation. It
+  // decides independently whether the concrete row/zone is accepted.
+  virtual void OnSidebarDropTargetClaimed() {}
   // A missing node id represents the active workspace root. This keeps root
   // group creation reachable from an otherwise empty tree without inventing
   // a synthetic persistent node.

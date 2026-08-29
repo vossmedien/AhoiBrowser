@@ -75,7 +75,7 @@ TEST(SplitDropIntentTest, SameTwoPaneRuntimeDropReordersToTargetSlot) {
   EXPECT_EQ(DropAction::kReorderInSplit, intent->action);
   EXPECT_EQ((std::vector<int>{2, 1}), ExistingOrder(*intent));
   EXPECT_EQ(split_tabs::SplitTabLayout::kSideBySide, intent->layout);
-  EXPECT_EQ(gfx::Rect(320, 4, 76, 292), intent->highlight_bounds);
+  EXPECT_EQ(gfx::Rect(336, 4, 60, 292), intent->highlight_bounds);
 }
 
 TEST(SplitDropIntentTest, CrossSplitSourceIsRejected) {
@@ -138,12 +138,27 @@ TEST(SplitDropIntentTest, FourPaneGridDropReordersExactSlot) {
       RuntimePayload(4),
       Split(4, split_id, {1, 2, 3, 4}, split_tabs::SplitTabLayout::kSideBySide),
       Split(1, split_id, {1, 2, 3, 4}, split_tabs::SplitTabLayout::kSideBySide),
-      0, gfx::Point(100, 75), panes);
+      0, gfx::Point(2, 75), panes);
 
   ASSERT_TRUE(intent.has_value());
   EXPECT_EQ(DropAction::kReorderInSplit, intent->action);
   EXPECT_EQ((std::vector<int>{4, 1, 2, 3}), ExistingOrder(*intent));
-  EXPECT_EQ(gfx::Rect(4, 4, 76, 142), intent->highlight_bounds);
+  EXPECT_EQ(gfx::Rect(4, 4, 60, 142), intent->highlight_bounds);
+}
+
+TEST(SplitDropIntentTest, CenterIsNeutralUntilAnEdgeZoneIsEntered) {
+  const gfx::Rect pane(0, 0, 200, 300);
+  EXPECT_FALSE(ClassifyDropZone(gfx::Point(100, 150), pane).has_value());
+  EXPECT_EQ(DropZone::kLeft, ClassifyDropZone(gfx::Point(2, 150), pane));
+}
+
+TEST(SplitDropIntentTest, RetainedZoneUsesHysteresisAndThenClears) {
+  const gfx::Rect pane(0, 0, 200, 300);
+  EXPECT_FALSE(ClassifyDropZone(gfx::Point(74, 150), pane).has_value());
+  EXPECT_EQ(DropZone::kLeft,
+            ClassifyDropZone(gfx::Point(74, 150), pane, DropZone::kLeft));
+  EXPECT_FALSE(
+      ClassifyDropZone(gfx::Point(90, 150), pane, DropZone::kLeft).has_value());
 }
 
 TEST(SplitDropIntentTest, SameTwoPaneTopEdgeChangesLayoutToStacked) {
@@ -288,7 +303,7 @@ TEST(SplitDropIntentTest, FourPaneGridMovesSourceIntoExactHoveredSlot) {
       RuntimePayload(4),
       Split(4, split_id, {1, 2, 3, 4}, split_tabs::SplitTabLayout::kSideBySide),
       Split(2, split_id, {1, 2, 3, 4}, split_tabs::SplitTabLayout::kSideBySide),
-      1, gfx::Point(300, 75), panes);
+      1, gfx::Point(202, 75), panes);
 
   ASSERT_TRUE(intent.has_value());
   EXPECT_EQ(DropAction::kReorderInSplit, intent->action);

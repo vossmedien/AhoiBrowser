@@ -13,6 +13,28 @@ namespace {
 
 constexpr size_t kMaximumPaneCount = 4;
 constexpr int kOuterEdgeTolerance = 2;
+constexpr double kDropZoneActivationFraction = 0.34;
+constexpr double kDropZoneRetentionFraction = 0.42;
+constexpr double kDropZoneSwitchAdvantage = 0.07;
+
+struct ZoneDistance {
+  double distance = 1.0;
+  DropZone zone = DropZone::kRight;
+};
+
+std::array<ZoneDistance, 4> DistancesToPaneEdges(const gfx::Point& point,
+                                                 const gfx::Rect& pane_bounds) {
+  const double width = std::max(1, pane_bounds.width());
+  const double height = std::max(1, pane_bounds.height());
+  return {{{static_cast<double>(point.x() - pane_bounds.x()) / width,
+            DropZone::kLeft},
+           {static_cast<double>(pane_bounds.right() - point.x()) / width,
+            DropZone::kRight},
+           {static_cast<double>(point.y() - pane_bounds.y()) / height,
+            DropZone::kTop},
+           {static_cast<double>(pane_bounds.bottom() - point.y()) / height,
+            DropZone::kBottom}}};
+}
 
 int DetachDropZoneExtent(int pane_extent) {
   constexpr double kEdgeFraction = 0.36;
@@ -35,17 +57,16 @@ split_tabs::SplitTabLayout LayoutForZone(DropZone zone) {
 
 gfx::Rect HighlightForZone(const gfx::Rect& pane, DropZone zone) {
   gfx::Rect highlight = pane;
-  constexpr double kEdgeFraction = 0.42;
   if (zone == DropZone::kLeft || zone == DropZone::kRight) {
-    const int width =
-        std::max(1, static_cast<int>(pane.width() * kEdgeFraction));
+    const int width = std::max(
+        1, static_cast<int>(pane.width() * kDropZoneActivationFraction));
     highlight.set_width(width);
     if (zone == DropZone::kRight) {
       highlight.set_x(pane.right() - width);
     }
   } else {
-    const int height =
-        std::max(1, static_cast<int>(pane.height() * kEdgeFraction));
+    const int height = std::max(
+        1, static_cast<int>(pane.height() * kDropZoneActivationFraction));
     highlight.set_height(height);
     if (zone == DropZone::kBottom) {
       highlight.set_y(pane.bottom() - height);
@@ -84,10 +105,12 @@ gfx::Rect VisiblePaneBounds(const std::vector<SplitDropPane>& visible_panes) {
   return bounds;
 }
 
-std::optional<DropZone> DetachZoneForPoint(const gfx::Point& point,
-                                           const gfx::Rect& source_pane,
-                                           const gfx::Rect& all_panes,
-                                           split_tabs::SplitTabLayout layout) {
+std::optional<DropZone> DetachZoneForPoint(
+    const gfx::Point& point,
+    const gfx::Rect& source_pane,
+    const gfx::Rect& all_panes,
+    split_tabs::SplitTabLayout layout,
+    std::optional<DropZone> retained_zone) {
   if (source_pane.IsEmpty() || all_panes.IsEmpty() ||
       !source_pane.Contains(point)) {
     return std::nullopt;
@@ -121,8 +144,47 @@ std::optional<DropZone> DetachZoneForPoint(const gfx::Point& point,
                  source_pane.bottom() - point.y() <= hit_extent,
              source_pane.bottom() - point.y(), DropZone::kBottom);
   }
-  return nearest.has_value() ? std::make_optional(nearest->second)
-                             : std::nullopt;
+  if (nearest.has_value()) {
+    return nearest->second;
+  }
+
+  // Once a detach preview is visible, allow a small retreat from its active
+  // edge without making the target flash. Never retain across the split axis,
+  // an interior pane edge or more than half of the source pane.
+  if (!retained_zone.has_value()) {
+    return std::nullopt;
+  }
+  constexpr int kDetachHysteresis = 16;
+  if (layout == split_tabs::SplitTabLayout::kSideBySide) {
+    const int retained_extent =
+        std::min(source_pane.width() / 2,
+                 DetachDropZoneExtent(source_pane.width()) + kDetachHysteresis);
+    if (*retained_zone == DropZone::kLeft &&
+        source_pane.x() <= all_panes.x() + kOuterEdgeTolerance &&
+        point.x() - source_pane.x() <= retained_extent) {
+      return retained_zone;
+    }
+    if (*retained_zone == DropZone::kRight &&
+        source_pane.right() >= all_panes.right() - kOuterEdgeTolerance &&
+        source_pane.right() - point.x() <= retained_extent) {
+      return retained_zone;
+    }
+  } else {
+    const int retained_extent = std::min(
+        source_pane.height() / 2,
+        DetachDropZoneExtent(source_pane.height()) + kDetachHysteresis);
+    if (*retained_zone == DropZone::kTop &&
+        source_pane.y() <= all_panes.y() + kOuterEdgeTolerance &&
+        point.y() - source_pane.y() <= retained_extent) {
+      return retained_zone;
+    }
+    if (*retained_zone == DropZone::kBottom &&
+        source_pane.bottom() >= all_panes.bottom() - kOuterEdgeTolerance &&
+        source_pane.bottom() - point.y() <= retained_extent) {
+      return retained_zone;
+    }
+  }
+  return std::nullopt;
 }
 
 std::vector<int> NormalizedTargetOrder(const SplitDropTabState& target) {
@@ -164,28 +226,32 @@ std::optional<size_t> HitTestVisiblePane(
   return std::nullopt;
 }
 
-DropZone ClassifyDropZone(const gfx::Point& point,
-                          const gfx::Rect& pane_bounds) {
-  if (pane_bounds.IsEmpty()) {
-    return DropZone::kRight;
+std::optional<DropZone> ClassifyDropZone(
+    const gfx::Point& point,
+    const gfx::Rect& pane_bounds,
+    std::optional<DropZone> retained_zone) {
+  if (pane_bounds.IsEmpty() || !pane_bounds.Contains(point)) {
+    return std::nullopt;
   }
-  const double width = std::max(1, pane_bounds.width());
-  const double height = std::max(1, pane_bounds.height());
-  const std::array<std::pair<double, DropZone>, 4> distances = {{
-      {static_cast<double>(point.x() - pane_bounds.x()) / width,
-       DropZone::kLeft},
-      {static_cast<double>(pane_bounds.right() - point.x()) / width,
-       DropZone::kRight},
-      {static_cast<double>(point.y() - pane_bounds.y()) / height,
-       DropZone::kTop},
-      {static_cast<double>(pane_bounds.bottom() - point.y()) / height,
-       DropZone::kBottom},
-  }};
-  return std::min_element(distances.begin(), distances.end(),
-                          [](const auto& left, const auto& right) {
-                            return left.first < right.first;
-                          })
-      ->second;
+  const std::array<ZoneDistance, 4> distances =
+      DistancesToPaneEdges(point, pane_bounds);
+  const auto nearest =
+      std::ranges::min_element(distances, {}, &ZoneDistance::distance);
+
+  if (retained_zone.has_value()) {
+    const auto retained =
+        std::ranges::find(distances, *retained_zone, &ZoneDistance::zone);
+    if (retained != distances.end() &&
+        retained->distance <= kDropZoneRetentionFraction &&
+        (nearest->zone == retained->zone ||
+         nearest->distance + kDropZoneSwitchAdvantage >= retained->distance)) {
+      return retained->zone;
+    }
+  }
+
+  return nearest->distance <= kDropZoneActivationFraction
+             ? std::make_optional(nearest->zone)
+             : std::nullopt;
 }
 
 std::optional<DropIntent> CalculateDropIntent(
@@ -194,7 +260,8 @@ std::optional<DropIntent> CalculateDropIntent(
     const SplitDropTabState& target_state,
     size_t target_pane_index,
     const gfx::Point& point,
-    const std::vector<SplitDropPane>& visible_panes) {
+    const std::vector<SplitDropPane>& visible_panes,
+    std::optional<DropZone> retained_zone) {
   if (!payload.is_valid() || target_state.tab_handle < 0 ||
       (!source_state.has_value() && !payload.is_saved_tab())) {
     return std::nullopt;
@@ -226,7 +293,7 @@ std::optional<DropIntent> CalculateDropIntent(
       source_state->split_order.size() == visible_panes.size()) {
     const std::optional<DropZone> detach_zone = DetachZoneForPoint(
         point, pane_it->bounds, VisiblePaneBounds(visible_panes),
-        source_state->split_layout);
+        source_state->split_layout, retained_zone);
     if (!detach_zone.has_value()) {
       return std::nullopt;
     }
@@ -240,7 +307,12 @@ std::optional<DropIntent> CalculateDropIntent(
                           pane_it->bounds, *detach_zone)};
   }
 
-  const DropZone zone = ClassifyDropZone(point, pane_it->bounds);
+  const std::optional<DropZone> classified_zone =
+      ClassifyDropZone(point, pane_it->bounds, retained_zone);
+  if (!classified_zone.has_value()) {
+    return std::nullopt;
+  }
+  const DropZone zone = *classified_zone;
   DropIntent intent{
       .source = payload,
       .zone = zone,

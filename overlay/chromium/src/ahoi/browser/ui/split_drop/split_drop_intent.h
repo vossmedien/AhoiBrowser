@@ -67,14 +67,21 @@ struct DropIntent {
       split_tabs::SplitTabArrangement::kLinear;
   std::vector<DropOrderEntry> desired_order;
   gfx::Rect highlight_bounds;
+
+  bool operator==(const DropIntent&) const = default;
 };
 
 std::optional<size_t> HitTestVisiblePane(
     const gfx::Point& point,
     const std::vector<SplitDropPane>& visible_panes);
 
-DropZone ClassifyDropZone(const gfx::Point& point,
-                          const gfx::Rect& pane_bounds);
+// Returns no zone for the neutral center. `retained_zone` is used only while
+// the pointer remains inside that zone's slightly larger hysteresis surface;
+// it prevents adjacent edge targets from flickering around their boundary.
+std::optional<DropZone> ClassifyDropZone(
+    const gfx::Point& point,
+    const gfx::Rect& pane_bounds,
+    std::optional<DropZone> retained_zone = std::nullopt);
 
 // A null source state is valid only for a closed saved page. Runtime payloads
 // always require a live source. A source belonging to a different split is
@@ -86,7 +93,8 @@ std::optional<DropIntent> CalculateDropIntent(
     const SplitDropTabState& target_state,
     size_t target_pane_index,
     const gfx::Point& point,
-    const std::vector<SplitDropPane>& visible_panes);
+    const std::vector<SplitDropPane>& visible_panes,
+    std::optional<DropZone> retained_zone = std::nullopt);
 
 }  // namespace ahoi::split_drop
 

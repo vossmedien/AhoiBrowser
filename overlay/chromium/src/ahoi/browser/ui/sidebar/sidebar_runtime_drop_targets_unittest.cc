@@ -53,7 +53,7 @@ TEST_F(SidebarRuntimeDropTargetsTest,
 }
 
 TEST_F(SidebarRuntimeDropTargetsTest,
-       OpenTabsTargetIsVisibleBeforeHoverAndClearsWithoutAffectingNewGroup) {
+       OpenTabsTargetPaintsOnlyWhileHoveredAndDoesNotAffectNewGroup) {
   auto target = CreateOpenTabsDropTargetView(
       base::BindRepeating([](const base::Uuid&) { return true; }));
   auto new_group = CreateNewGroupDropTargetViewForTesting(u"Neue Gruppe");
@@ -68,7 +68,7 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   SetOpenTabsDropTargetAcceptingTab(target.get(), true);
   EXPECT_TRUE(IsOpenTabsDropTargetAcceptingTabForTesting(target.get()));
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
-  EXPECT_NE(nullptr, target->GetBackground());
+  EXPECT_EQ(nullptr, target->GetBackground());
   EXPECT_EQ(visual_style::kSidebarTabRowHeight,
             target->GetPreferredSize().height());
 
@@ -80,7 +80,7 @@ TEST_F(SidebarRuntimeDropTargetsTest,
   EXPECT_NE(nullptr, target->GetBackground());
   target->OnDragExited();
   EXPECT_FALSE(IsOpenTabsDropTargetHighlightedForTesting(target.get()));
-  EXPECT_NE(nullptr, target->GetBackground());
+  EXPECT_EQ(nullptr, target->GetBackground());
 
   SetOpenTabsDropTargetAcceptingTab(target.get(), false);
   EXPECT_FALSE(IsOpenTabsDropTargetAcceptingTabForTesting(target.get()));

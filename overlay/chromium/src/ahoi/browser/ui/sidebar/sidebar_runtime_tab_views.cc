@@ -134,6 +134,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  RuntimeTabHoverCallback hover_callback,
                  SavedTabDragStateCallback saved_drag_state_callback,
                  DragStateCallback drag_state_callback,
+                 SidebarDropTargetClaimCallback drop_target_claim_callback,
                  CanDropCallback can_drop_callback,
                  DropCallback drop_callback,
                  views::ContextMenuController* context_menu_controller)
@@ -147,6 +148,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
         hover_callback_(std::move(hover_callback)),
         saved_drag_state_callback_(std::move(saved_drag_state_callback)),
         drag_state_callback_(std::move(drag_state_callback)),
+        drop_target_claim_callback_(std::move(drop_target_claim_callback)),
         can_drop_callback_(std::move(can_drop_callback)),
         drop_callback_(std::move(drop_callback)),
         active_(active),
@@ -314,6 +316,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   void OnDragDone() override {
     dragging_ = false;
     drag_state_published_ = false;
+    ClearDropPosition();
     ClearDragState();
     UpdateBackground();
     views::View::OnDragDone();
@@ -399,11 +402,22 @@ class OpenTabRowView final : public views::View, public views::DragController {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(event.data());
     if (!payload.has_value()) {
+      if (drop_target_claim_callback_) {
+        drop_target_claim_callback_.Run(nullptr);
+      }
+      ClearDropPosition();
       return {};
     }
-    const std::optional<OpenTabDropPosition> position =
-        AllowedPosition(*payload, event.location());
+    std::optional<OpenTabDropPosition> position = drop_position_;
+    if (!position.has_value() ||
+        !can_drop_callback_.Run(payload->saved_node_id,
+                                payload->runtime_tab_handle, tab_, *position)) {
+      position = AllowedPosition(*payload, event.location());
+    }
     if (!position.has_value()) {
+      if (drop_target_claim_callback_) {
+        drop_target_claim_callback_.Run(nullptr);
+      }
       ClearDropPosition();
       return {};
     }
@@ -490,6 +504,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
                           indicator);
   }
 
+  void ClearDropTargetPresentation() { ClearDropPosition(); }
+
  private:
   void ClearDropPosition() {
     if (!drop_position_.has_value()) {
@@ -544,9 +560,15 @@ class OpenTabRowView final : public views::View, public views::DragController {
   bool UpdateDropPosition(const ui::DropTargetEvent& event) {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(event.data());
-    const std::optional<OpenTabDropPosition> next =
+    std::optional<OpenTabDropPosition> next =
         payload.has_value() ? AllowedPosition(*payload, event.location())
                             : std::nullopt;
+    if (payload.has_value()) {
+      next = StabilizeDropPosition(*payload, std::move(next), event.location());
+    }
+    if (drop_target_claim_callback_) {
+      drop_target_claim_callback_.Run(next.has_value() ? this : nullptr);
+    }
     if (drop_position_ != next) {
       drop_position_ = next;
       UpdateTitleBounds();
@@ -554,6 +576,46 @@ class OpenTabRowView final : public views::View, public views::DragController {
       SchedulePaint();
     }
     return next.has_value();
+  }
+
+  std::optional<OpenTabDropPosition> StabilizeDropPosition(
+      const drag::SidebarTabDragPayload& payload,
+      std::optional<OpenTabDropPosition> next,
+      const gfx::Point& point) const {
+    if (!drop_position_.has_value() || next == drop_position_ ||
+        !can_drop_callback_.Run(payload.saved_node_id,
+                                payload.runtime_tab_handle, tab_,
+                                *drop_position_)) {
+      return next;
+    }
+
+    const int edge_extent = GetSidebarEdgeDropTargetExtent(height());
+    const int before_boundary = edge_extent;
+    const int after_boundary = height() - edge_extent;
+    const int center_boundary = height() / 2;
+    constexpr int kDropZoneHysteresis = 4;
+    const OpenTabDropPosition current = *drop_position_;
+    if ((current == OpenTabDropPosition::kBefore &&
+         next == OpenTabDropPosition::kSplit &&
+         point.y() < before_boundary + kDropZoneHysteresis) ||
+        (current == OpenTabDropPosition::kSplit &&
+         next == OpenTabDropPosition::kBefore &&
+         point.y() >= before_boundary - kDropZoneHysteresis) ||
+        (current == OpenTabDropPosition::kAfter &&
+         next == OpenTabDropPosition::kSplit &&
+         point.y() >= after_boundary - kDropZoneHysteresis) ||
+        (current == OpenTabDropPosition::kSplit &&
+         next == OpenTabDropPosition::kAfter &&
+         point.y() < after_boundary + kDropZoneHysteresis) ||
+        (current == OpenTabDropPosition::kBefore &&
+         next == OpenTabDropPosition::kAfter &&
+         point.y() < center_boundary + kDropZoneHysteresis) ||
+        (current == OpenTabDropPosition::kAfter &&
+         next == OpenTabDropPosition::kBefore &&
+         point.y() >= center_boundary - kDropZoneHysteresis)) {
+      return current;
+    }
+    return next;
   }
 
   std::optional<OpenTabDropPosition> AllowedPosition(
@@ -586,10 +648,17 @@ class OpenTabRowView final : public views::View, public views::DragController {
                    const ui::DropTargetEvent&,
                    ui::mojom::DragOperation& output_drag_op,
                    std::unique_ptr<ui::LayerTreeOwner>) {
+    // A successful drop may synchronously rebuild this row. Capture every
+    // value the callback needs before clearing local paint state, then invoke
+    // the stable callback last and never touch members afterwards.
+    const DropCallback drop_callback = drop_callback_;
+    const base::WeakPtr<tabs::TabInterface> target = tab_;
     ClearDropPosition();
-    output_drag_op = drop_callback_.Run(source_node, source_tab, tab_, position)
-                         ? ui::mojom::DragOperation::kMove
-                         : ui::mojom::DragOperation::kNone;
+    output_drag_op =
+        drop_callback && drop_callback.Run(source_node, source_tab, target,
+                                           position)
+            ? ui::mojom::DragOperation::kMove
+            : ui::mojom::DragOperation::kNone;
   }
 
   gfx::ImageSkia GetDragImage() {
@@ -641,6 +710,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   const RuntimeTabHoverCallback hover_callback_;
   const SavedTabDragStateCallback saved_drag_state_callback_;
   const DragStateCallback drag_state_callback_;
+  const SidebarDropTargetClaimCallback drop_target_claim_callback_;
   const CanDropCallback can_drop_callback_;
   const DropCallback drop_callback_;
   raw_ptr<views::ImageView> favicon_view_ = nullptr;
@@ -824,6 +894,7 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     RuntimeTabHoverCallback hover_callback,
     SavedTabDragStateCallback saved_drag_state_callback,
     RuntimeTabDragStateCallback drag_state_callback,
+    SidebarDropTargetClaimCallback drop_target_claim_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller) {
@@ -832,8 +903,9 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
       std::move(status_text), active, sleeping, std::move(activate_callback),
       std::move(close_callback), std::move(thumbnails_callback),
       std::move(hover_callback), std::move(saved_drag_state_callback),
-      std::move(drag_state_callback), std::move(can_drop_callback),
-      std::move(drop_callback), context_menu_controller);
+      std::move(drag_state_callback), std::move(drop_target_claim_callback),
+      std::move(can_drop_callback), std::move(drop_callback),
+      context_menu_controller);
 }
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {
@@ -844,6 +916,23 @@ base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {
 std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view) {
   auto* row = views::AsViewClass<OpenTabRowView>(view);
   return row ? row->saved_node_id() : std::nullopt;
+}
+
+void ClearOpenTabRowDropTargetPresentation(views::View* root,
+                                           views::View* except) {
+  if (!root) {
+    return;
+  }
+  if (root != except) {
+    if (auto* row = views::AsViewClass<OpenTabRowView>(root)) {
+      row->ClearDropTargetPresentation();
+    }
+  }
+  // Known row cleanup changes paint/layout state only; it never mutates this
+  // hierarchy, so traversing composite split containers remains stable.
+  for (views::View* child : root->children()) {
+    ClearOpenTabRowDropTargetPresentation(child, except);
+  }
 }
 
 std::unique_ptr<views::View> CreateOpenTabSplitRowView(

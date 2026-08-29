@@ -1,6 +1,8 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <optional>
+
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h"
@@ -252,6 +254,55 @@ TEST_F(SidebarTreeViewTest, TabOnTabDropUsesVisibleSplitTarget) {
   EXPECT_EQ(target.id, delegate_.split_requests.front().second);
   view->OnRowDragDone();
   EXPECT_FALSE(delegate_.drag_state.has_value());
+}
+
+TEST_F(SidebarTreeViewTest,
+       SavedTabDropHysteresisReleasesAfterFourDipBoundary) {
+  tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode source =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Source", "a");
+  tab_tree::TreeNode target =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Target", "b");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(target));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  delegate_.can_split = true;
+
+  auto view = NewTreeView();
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+  SidebarTreeRowView* source_row =
+      view->GetMaterializedRowForTesting(source.id);
+  ASSERT_NE(nullptr, source_row);
+  ui::OSExchangeData drag_data;
+  view->WriteDragDataForView(source_row, gfx::Point(24, 16), &drag_data);
+
+  const int target_y = SidebarTreeRowView::kRowHeight;
+  const int boundary =
+      target_y + GetSidebarEdgeDropTargetExtent(SidebarTreeRowView::kRowHeight);
+  const auto update_at = [&](int y)
+      -> std::optional<SidebarTreeController::DropPosition> {
+    const gfx::PointF point(120, y);
+    ui::DropTargetEvent event(drag_data, point, point,
+                              ui::DragDropTypes::DRAG_MOVE);
+    EXPECT_EQ(static_cast<int>(ui::mojom::DragOperation::kMove),
+              view->OnDragUpdated(event));
+    if (!view->drop_indicator_for_testing().has_value()) {
+      return std::nullopt;
+    }
+    return view->drop_indicator_for_testing()->position;
+  };
+
+  EXPECT_EQ(std::make_optional(SidebarTreeController::DropPosition::kBefore),
+            update_at(boundary - 1));
+  EXPECT_EQ(std::make_optional(SidebarTreeController::DropPosition::kBefore),
+            update_at(boundary + 1));
+  EXPECT_EQ(std::make_optional(SidebarTreeController::DropPosition::kInside),
+            update_at(boundary + 4));
 }
 
 TEST_F(SidebarTreeViewTest,

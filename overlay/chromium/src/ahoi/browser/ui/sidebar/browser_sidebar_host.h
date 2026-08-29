@@ -91,6 +91,12 @@ void BeginBrowserSidebarSplitPaneDrag(
 // Clears all sidebar-owned native drag presentation on drop or cancellation.
 void CancelBrowserSidebarSplitDropDrag(views::View* sidebar_host);
 
+// Clears only concrete target highlights while retaining the current drag
+// source and drag-only targets. WebContents split-drop routing uses this when
+// the pointer leaves the sidebar so stale AppKit exit delivery cannot leave a
+// second accepted surface painted behind the content overlay.
+void ClearBrowserSidebarDropTargetPresentation(views::View* sidebar_host);
+
 // Returns whether this host currently owns a saved- or runtime-tab drag. The
 // BrowserView hit-test seam uses this narrow query to route native drag events
 // through floating chrome without changing normal toolbar input behavior.

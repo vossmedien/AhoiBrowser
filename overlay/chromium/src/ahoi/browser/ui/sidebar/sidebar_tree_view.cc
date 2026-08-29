@@ -527,7 +527,7 @@ void SidebarTreeView::SetDragTargetVisible(bool visible) {
   const bool changed = drag_target_visible_ != visible;
   drag_target_visible_ = visible;
   if (!visible) {
-    SetDropIndicator(std::nullopt);
+    ClearDropTargetPresentation();
   }
   if (changed) {
     SchedulePaint();
@@ -555,31 +555,27 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
   const int row_width = std::max(width(), 1);
   const ui::ColorProvider* colors = GetColorProvider();
 
-  // Native drag lifetime keeps the complete saved section discoverable even
-  // between enter/exit events. Acceptance strengthens the same semantic
-  // surface without changing its bounds. An accepted empty workspace still
-  // uses the real root hit area; no fake model node is introduced.
+  // A concrete saved-row target paints its own exact, validated zone. Painting
+  // the complete section at the same time creates two competing highlights
+  // and makes a pointer transition look like two accepted targets. The broad
+  // surface is needed only for an empty workspace, where no row can own it.
   const bool empty_root_accepting =
       rows.empty() && drop_indicator_.has_value() &&
       !drop_indicator_->target_node_id.has_value();
-  if (drag_target_visible_ || empty_root_accepting) {
-    const bool accepting = drag_target_accepting_ || empty_root_accepting;
+  if (empty_root_accepting) {
     gfx::RectF target(GetLocalBounds());
     target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
     cc::PaintFlags fill;
     fill.setAntiAlias(true);
     fill.setStyle(cc::PaintFlags::kFill_Style);
-    fill.setColor(colors->GetColor(accepting ? visual_style::kDropTargetSurface
-                                             : visual_style::kHoverSurface));
+    fill.setColor(colors->GetColor(visual_style::kDropTargetSurface));
     canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, fill);
     cc::PaintFlags outline;
     outline.setAntiAlias(true);
     outline.setStyle(cc::PaintFlags::kStroke_Style);
     outline.setStrokeWidth(
-        accepting ? visual_style::kSidebarDropTargetAcceptingOutlineThickness
-                  : visual_style::kSidebarDropTargetOutlineThickness);
-    outline.setColor(colors->GetColor(accepting ? visual_style::kAccent
-                                                : visual_style::kDivider));
+        visual_style::kSidebarDropTargetAcceptingOutlineThickness);
+    outline.setColor(colors->GetColor(visual_style::kAccent));
     canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, outline);
   }
 

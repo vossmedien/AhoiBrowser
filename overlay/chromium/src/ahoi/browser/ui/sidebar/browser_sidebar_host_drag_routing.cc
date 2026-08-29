@@ -64,6 +64,10 @@ bool BrowserSidebarHostView::CanDrop(const ui::OSExchangeData& data) {
 
 int BrowserSidebarHostView::OnDragUpdated(
     const ui::DropTargetEvent& /*event*/) {
+  // Gaps and headers are deliberate non-targets. Explicitly release any
+  // descendant highlight because macOS can skip the descendant exit callback
+  // while moving through this routing shield in its nested native drag loop.
+  ClearDropTargetPresentation();
   return ui::DragDropTypes::DRAG_NONE;
 }
 

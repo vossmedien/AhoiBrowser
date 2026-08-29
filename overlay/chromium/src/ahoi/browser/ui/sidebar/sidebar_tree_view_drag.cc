@@ -104,7 +104,16 @@ int SidebarTreeView::OnDragUpdated(const ui::DropTargetEvent& event) {
           ? BuildDropProbe(*source, event.location(), operation, visual_rows)
           : BuildTemporaryTabDropProbe(*runtime_source, event.location(),
                                        visual_rows);
-  if (last_drop_probe_ == probe) {
+  // A latched indicator can intentionally differ from the raw geometric
+  // probe inside the hysteresis band. Do not take the validation cache fast
+  // path in that state: the pointer must be allowed to cross the far side of
+  // the band even though its coarse 30/40/30 probe has not changed.
+  const bool probe_matches_presentation =
+      (!probe.has_value() && !drop_indicator_.has_value()) ||
+      (probe.has_value() && !drop_indicator_.has_value()) ||
+      (probe.has_value() && drop_indicator_.has_value() &&
+       probe->position == drop_indicator_->position);
+  if (last_drop_probe_ == probe && probe_matches_presentation) {
     return drop_indicator_.has_value()
                ? static_cast<int>(
                      ToNativeDragOperation(drop_indicator_->operation))
@@ -117,6 +126,10 @@ int SidebarTreeView::OnDragUpdated(const ui::DropTargetEvent& event) {
                                    : CalculateTemporaryTabDropIndicator(*probe);
   }
   indicator = StabilizeInsertionSlot(std::move(indicator));
+  indicator = StabilizeDropZone(std::move(indicator), event.location());
+  if (delegate_) {
+    delegate_->OnSidebarDropTargetClaimed();
+  }
   SetDropIndicator(indicator);
   return indicator.has_value()
              ? static_cast<int>(ToNativeDragOperation(indicator->operation))
@@ -124,6 +137,10 @@ int SidebarTreeView::OnDragUpdated(const ui::DropTargetEvent& event) {
 }
 
 void SidebarTreeView::OnDragExited() {
+  ClearDropTargetPresentation();
+}
+
+void SidebarTreeView::ClearDropTargetPresentation() {
   CancelFolderAutoExpand();
   last_drop_probe_.reset();
   SetDropIndicator(std::nullopt);
@@ -478,6 +495,61 @@ SidebarTreeView::StabilizeInsertionSlot(
       current_target->parent_id == next_target->parent_id &&
       current_y.has_value() && next_y.has_value() &&
       std::abs(*current_y - *next_y) <= kEquivalentSlotTolerance) {
+    return drop_indicator_;
+  }
+  return indicator;
+}
+
+std::optional<SidebarTreeView::DropIndicator>
+SidebarTreeView::StabilizeDropZone(
+    std::optional<DropIndicator> indicator,
+    const gfx::Point& point) const {
+  if (!indicator.has_value() || !drop_indicator_.has_value() ||
+      indicator->source_node_id != drop_indicator_->source_node_id ||
+      indicator->source_runtime_tab_handle !=
+          drop_indicator_->source_runtime_tab_handle ||
+      indicator->operation != drop_indicator_->operation ||
+      indicator->target_node_id != drop_indicator_->target_node_id ||
+      indicator->target_bounds != drop_indicator_->target_bounds ||
+      !indicator->target_bounds.has_value() ||
+      indicator->position == drop_indicator_->position) {
+    return indicator;
+  }
+
+  // Native AppKit drags report sub-pixel pointer jitter around a Views target
+  // boundary. Keep the already validated semantic zone until the pointer has
+  // crossed a small, symmetric dead band. This makes the painted target and
+  // the eventual drop agree without allowing a stale target to survive a row
+  // or model transition.
+  const gfx::Rect& bounds = *indicator->target_bounds;
+  const int edge_extent = GetSidebarEdgeDropTargetExtent(bounds.height());
+  const int before_boundary = bounds.y() + edge_extent;
+  const int after_boundary = bounds.bottom() - edge_extent;
+  const int center_boundary = bounds.CenterPoint().y();
+  constexpr int kDropZoneHysteresis = 4;
+  const auto current = drop_indicator_->position;
+  const auto next = indicator->position;
+  if ((current == SidebarTreeController::DropPosition::kBefore &&
+       next == SidebarTreeController::DropPosition::kInside &&
+       point.y() < before_boundary + kDropZoneHysteresis) ||
+      (current == SidebarTreeController::DropPosition::kInside &&
+       next == SidebarTreeController::DropPosition::kBefore &&
+       point.y() >= before_boundary - kDropZoneHysteresis) ||
+      (current == SidebarTreeController::DropPosition::kAfter &&
+       next == SidebarTreeController::DropPosition::kInside &&
+       point.y() >= after_boundary - kDropZoneHysteresis) ||
+      (current == SidebarTreeController::DropPosition::kInside &&
+       next == SidebarTreeController::DropPosition::kAfter &&
+       point.y() < after_boundary + kDropZoneHysteresis) ||
+      // When a row cannot accept a center split, validation deliberately
+      // resolves that center to before/after. Latch that direct transition as
+      // well, otherwise the marker still flips on every pixel around 50%.
+      (current == SidebarTreeController::DropPosition::kBefore &&
+       next == SidebarTreeController::DropPosition::kAfter &&
+       point.y() < center_boundary + kDropZoneHysteresis) ||
+      (current == SidebarTreeController::DropPosition::kAfter &&
+       next == SidebarTreeController::DropPosition::kBefore &&
+       point.y() >= center_boundary - kDropZoneHysteresis)) {
     return drop_indicator_;
   }
   return indicator;

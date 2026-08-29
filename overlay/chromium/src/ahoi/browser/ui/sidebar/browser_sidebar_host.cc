@@ -221,6 +221,13 @@ void CancelBrowserSidebarSplitDropDrag(views::View* sidebar_host) {
   }
 }
 
+void ClearBrowserSidebarDropTargetPresentation(views::View* sidebar_host) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (host) {
+    host->ClearDropTargetPresentation();
+  }
+}
+
 bool IsBrowserSidebarDragActive(views::View* sidebar_host) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->IsSidebarDragActive();

@@ -344,6 +344,9 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
        .bounds = gfx::Rect(200, 0, 200, 300),
        .web_contents = original[1]->GetContents()},
   };
+  EXPECT_FALSE(controller.PerformDrop(data, gfx::Point(300, 298), panes));
+  ASSERT_TRUE(
+      controller.UpdateDrag(data, gfx::Point(300, 298), panes).has_value());
   ASSERT_TRUE(controller.PerformDrop(data, gfx::Point(300, 298), panes));
 
   const split_tabs::SplitTabData* const split_data =
@@ -401,6 +404,8 @@ IN_PROC_BROWSER_TEST_F(
        .bounds = gfx::Rect(270, 0, 130, 300),
        .web_contents = original_members[2]->GetContents()},
   };
+  ASSERT_TRUE(
+      controller.UpdateDrag(data, gfx::Point(335, 298), panes).has_value());
   EXPECT_FALSE(controller.PerformDrop(data, gfx::Point(335, 298), panes));
 
   EXPECT_EQ(original_tab_order, CurrentTabOrder(tab_strip_model));
@@ -469,6 +474,8 @@ IN_PROC_BROWSER_TEST_F(
        .bounds = gfx::Rect(200, 0, 200, 300),
        .web_contents = original_members[1]->GetContents()},
   };
+  ASSERT_TRUE(
+      controller.UpdateDrag(data, gfx::Point(300, 298), panes).has_value());
   EXPECT_FALSE(controller.PerformDrop(data, gfx::Point(300, 298), panes));
 
   EXPECT_EQ(original_tab_order, CurrentTabOrder(tab_strip_model));

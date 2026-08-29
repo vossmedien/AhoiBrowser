@@ -807,6 +807,7 @@ void BrowserSidebarHostView::OnSidebarDragStateChanged(
   if (source_already_current) {
     return;
   }
+  ClearDropTargetPresentation();
   dragged_node_id_ = std::move(dragged_node_id);
   if (dragged_node_id_.has_value()) {
     // Exactly one source owns a native drag. Making that invariant explicit
@@ -816,8 +817,13 @@ void BrowserSidebarHostView::OnSidebarDragStateChanged(
   }
   SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
   tree_view_->SetDragTargetVisible(IsSidebarDragActive());
-  SetOpenTabsDropTargetAcceptingTab(open_tabs_container_,
-                                    dragged_node_id_.has_value());
+  SetOpenTabsDropTargetAcceptingTab(
+      open_tabs_container_,
+      dragged_node_id_.has_value() ||
+          (dragged_runtime_tab_handle_.has_value() &&
+           CanDropOpenTabToTemporary(
+               {.saved_node_id = std::nullopt,
+                .runtime_tab_handle = dragged_runtime_tab_handle_})));
   const bool has_open_tabs = !open_tabs_container_->children().empty();
   open_tabs_header_->SetVisible(has_open_tabs);
   // The empty flex surface stays mounted before, during and after a drag.
@@ -838,15 +844,18 @@ void BrowserSidebarHostView::OnTemporaryTabDragStateChanged(
   if (source_already_current) {
     return;
   }
+  ClearDropTargetPresentation();
   dragged_runtime_tab_handle_ = runtime_tab_handle;
   if (dragged_runtime_tab_handle_.has_value()) {
     dragged_node_id_.reset();
-    SetOpenTabsDropTargetAcceptingTab(
-        open_tabs_container_,
-        CanDropOpenTabToTemporary(
-            {.saved_node_id = std::nullopt,
-             .runtime_tab_handle = dragged_runtime_tab_handle_}));
   }
+  SetOpenTabsDropTargetAcceptingTab(
+      open_tabs_container_,
+      dragged_node_id_.has_value() ||
+          (dragged_runtime_tab_handle_.has_value() &&
+           CanDropOpenTabToTemporary(
+               {.saved_node_id = std::nullopt,
+                .runtime_tab_handle = dragged_runtime_tab_handle_})));
   SetBrowserSidebarDragRoutingActive(this, IsSidebarDragActive());
   tree_view_->SetDragTargetVisible(IsSidebarDragActive());
   UpdateNewGroupDropTargetVisibility();
@@ -861,11 +870,38 @@ void BrowserSidebarHostView::UpdateNewGroupDropTargetVisibility() {
   SchedulePaint();
 }
 
+void BrowserSidebarHostView::ClearDropTargetPresentation() {
+  ClaimDropTargetPresentation(nullptr);
+}
+
+void BrowserSidebarHostView::ClaimDropTargetPresentation(
+    views::View* claimant) {
+  if (tree_view_ && claimant != tree_view_) {
+    tree_view_->ClearDropTargetPresentation();
+  }
+  if (new_group_drop_target_ && claimant != new_group_drop_target_) {
+    ClearNewGroupDropTargetHighlight(new_group_drop_target_);
+  }
+  if (open_tabs_container_ && claimant != open_tabs_container_) {
+    ClearOpenTabsDropTargetHighlight(open_tabs_container_);
+  }
+  ClearOpenTabRowDropTargetPresentation(open_tabs_container_, claimant);
+}
+
+void BrowserSidebarHostView::OnSidebarDropTargetClaimed() {
+  // The pointer is owned by the tree surface even when its current row/zone
+  // rejects the payload. Keep the tree's raw validation cache intact while
+  // clearing every sibling; SetDropIndicator() immediately decides whether
+  // the tree itself paints a strong target.
+  ClaimDropTargetPresentation(tree_view_);
+}
+
 void BrowserSidebarHostView::ResetDragPresentation() {
   const bool had_drag_presentation =
       dragged_node_id_.has_value() || dragged_runtime_tab_handle_.has_value();
   dragged_node_id_.reset();
   dragged_runtime_tab_handle_.reset();
+  ClearDropTargetPresentation();
   SetBrowserSidebarDragRoutingActive(this, false);
   tree_view_->SetDragTargetVisible(false);
   SetOpenTabsDropTargetAcceptingTab(open_tabs_container_, false);

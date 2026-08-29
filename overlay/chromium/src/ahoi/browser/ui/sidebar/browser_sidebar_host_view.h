@@ -210,6 +210,8 @@ class BrowserSidebarHostView final
       bool activate_saved_page);
   void BeginSplitPaneDrag(const drag::SidebarTabDragPayload& payload);
   void CancelSplitDropDrag();
+  void ClaimDropTargetPresentation(views::View* claimant);
+  void ClearDropTargetPresentation();
 
   ~BrowserSidebarHostView() override;
 
@@ -515,6 +517,8 @@ class BrowserSidebarHostView final
 
   void OnTemporaryTabDragStateChanged(
       std::optional<int> runtime_tab_handle) override;
+
+  void OnSidebarDropTargetClaimed() override;
 
   void UpdateNewGroupDropTargetVisibility();
 

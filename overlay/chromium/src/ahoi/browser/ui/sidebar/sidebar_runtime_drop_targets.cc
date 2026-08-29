@@ -46,9 +46,11 @@ class OpenTabsDropTargetView final : public views::View {
  public:
   OpenTabsDropTargetView(
       CanDropOpenTabToTemporaryCallback can_drop_callback,
-      DropOpenTabToTemporaryCallback drop_callback)
+      DropOpenTabToTemporaryCallback drop_callback,
+      SidebarDropTargetClaimCallback drop_target_claim_callback)
       : can_drop_callback_(std::move(can_drop_callback)),
-        drop_callback_(std::move(drop_callback)) {
+        drop_callback_(std::move(drop_callback)),
+        drop_target_claim_callback_(std::move(drop_target_claim_callback)) {
     SetLayoutManager(std::make_unique<views::BoxLayout>(
         views::BoxLayout::Orientation::kVertical));
   }
@@ -97,49 +99,62 @@ class OpenTabsDropTargetView final : public views::View {
   bool CanDrop(const ui::OSExchangeData& data) override {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(data);
-    return payload.has_value() && can_drop_callback_ &&
+    return accepting_tab_ && payload.has_value() && can_drop_callback_ &&
            can_drop_callback_.Run(*payload);
   }
 
   void OnDragEntered(const ui::DropTargetEvent&) override {
     // Views only enters a target after CanDrop succeeds. Keeping this lifecycle
     // method data-independent also makes synthetic accessibility drags stable.
+    if (drop_target_claim_callback_) {
+      drop_target_claim_callback_.Run(this);
+    }
     SetHighlighted(true);
   }
 
   int OnDragUpdated(const ui::DropTargetEvent& event) override {
     const bool can_drop = CanDrop(event.data());
+    if (drop_target_claim_callback_) {
+      drop_target_claim_callback_.Run(can_drop ? this : nullptr);
+    }
     SetHighlighted(can_drop);
     return can_drop ? ui::DragDropTypes::DRAG_MOVE
                     : ui::DragDropTypes::DRAG_NONE;
   }
 
-  void OnDragExited() override { SetHighlighted(false); }
+  void OnDragExited() override { ClearDropTargetPresentation(); }
 
   views::View::DropCallback GetDropCallback(
       const ui::DropTargetEvent& event) override {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(event.data());
-    if (!payload.has_value() || !can_drop_callback_ ||
-        !can_drop_callback_.Run(*payload)) {
+    if (!payload.has_value() || !CanDrop(event.data())) {
+      if (drop_target_claim_callback_) {
+        drop_target_claim_callback_.Run(nullptr);
+      }
+      SetHighlighted(false);
       return {};
     }
     return base::BindOnce(&OpenTabsDropTargetView::PerformDrop,
                           weak_ptr_factory_.GetWeakPtr(), *payload);
   }
 
+  void ClearDropTargetPresentation() { SetHighlighted(false); }
+
  private:
   void SetHighlighted(bool highlighted) {
+    if (highlighted_ == highlighted) {
+      return;
+    }
     highlighted_ = highlighted;
     UpdateDropTargetBackground();
   }
 
   void UpdateDropTargetBackground() {
     SetBackground(
-        accepting_tab_ || highlighted_
+        highlighted_
             ? views::CreateRoundedRectBackground(
-                  highlighted_ ? visual_style::kDropTargetSurface
-                               : visual_style::kHoverSurface,
+                  visual_style::kDropTargetSurface,
                   gfx::RoundedCornersF(visual_style::kRowCornerRadius),
                   gfx::Insets(visual_style::kSidebarDropTargetInset))
             : nullptr);
@@ -161,6 +176,7 @@ class OpenTabsDropTargetView final : public views::View {
 
   const CanDropOpenTabToTemporaryCallback can_drop_callback_;
   const DropOpenTabToTemporaryCallback drop_callback_;
+  const SidebarDropTargetClaimCallback drop_target_claim_callback_;
   bool accepting_tab_ = false;
   bool highlighted_ = false;
   base::WeakPtrFactory<OpenTabsDropTargetView> weak_ptr_factory_{this};
@@ -179,10 +195,12 @@ class NewGroupDropTargetView final : public views::View,
 
   NewGroupDropTargetView(DropNodeCallback node_callback,
                          DropRuntimeTabCallback runtime_tab_callback,
+                         SidebarDropTargetClaimCallback drop_target_claim_callback,
                          std::u16string label_text,
                          std::u16string accessible_name)
       : node_callback_(std::move(node_callback)),
-        runtime_tab_callback_(std::move(runtime_tab_callback)) {
+        runtime_tab_callback_(std::move(runtime_tab_callback)),
+        drop_target_claim_callback_(std::move(drop_target_claim_callback)) {
     SetPreferredSize(gfx::Size(0, visual_style::kSidebarActionCellHeight));
     auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
         views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(0, 13), 9));
@@ -266,24 +284,38 @@ class NewGroupDropTargetView final : public views::View,
   bool AreDropTypesRequired() override { return true; }
 
   bool CanDrop(const ui::OSExchangeData& data) override {
-    return drag::ReadSidebarTabDragPayload(data).has_value();
+    return target_visible_ &&
+           drag::ReadSidebarTabDragPayload(data).has_value();
   }
 
   void OnDragEntered(const ui::DropTargetEvent&) override {
+    if (drop_target_claim_callback_) {
+      drop_target_claim_callback_.Run(this);
+    }
     SetHighlighted(true);
   }
 
-  int OnDragUpdated(const ui::DropTargetEvent&) override {
-    return ui::DragDropTypes::DRAG_MOVE;
+  int OnDragUpdated(const ui::DropTargetEvent& event) override {
+    const bool can_drop = CanDrop(event.data());
+    if (drop_target_claim_callback_) {
+      drop_target_claim_callback_.Run(can_drop ? this : nullptr);
+    }
+    SetHighlighted(can_drop);
+    return can_drop ? ui::DragDropTypes::DRAG_MOVE
+                    : ui::DragDropTypes::DRAG_NONE;
   }
 
-  void OnDragExited() override { SetHighlighted(false); }
+  void OnDragExited() override { ClearDropTargetPresentation(); }
 
   views::View::DropCallback GetDropCallback(
       const ui::DropTargetEvent& event) override {
     const std::optional<drag::SidebarTabDragPayload> payload =
         drag::ReadSidebarTabDragPayload(event.data());
-    if (!payload.has_value()) {
+    if (!payload.has_value() || !CanDrop(event.data())) {
+      if (drop_target_claim_callback_) {
+        drop_target_claim_callback_.Run(nullptr);
+      }
+      SetHighlighted(false);
       return {};
     }
     if (payload->saved_node_id.has_value()) {
@@ -298,8 +330,14 @@ class NewGroupDropTargetView final : public views::View,
                : views::View::DropCallback();
   }
 
+  void ClearDropTargetPresentation() { SetHighlighted(false); }
+
  private:
   void SetHighlighted(bool highlighted) {
+    if (highlighted_ == highlighted) {
+      return;
+    }
+    highlighted_ = highlighted;
     SetBackground(views::CreateRoundedRectBackground(
         highlighted ? visual_style::kDropTargetSurface
                     : visual_style::kRaisedSurface,
@@ -360,8 +398,10 @@ class NewGroupDropTargetView final : public views::View,
 
   const DropNodeCallback node_callback_;
   const DropRuntimeTabCallback runtime_tab_callback_;
+  const SidebarDropTargetClaimCallback drop_target_claim_callback_;
   gfx::SlideAnimation visibility_animation_{this};
   bool target_visible_ = false;
+  bool highlighted_ = true;
   base::WeakPtrFactory<NewGroupDropTargetView> weak_ptr_factory_{this};
 };
 
@@ -384,19 +424,27 @@ std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
       },
       std::move(callback));
   return CreateOpenTabsDropTargetView(std::move(can_drop_callback),
-                                      std::move(drop_callback));
+                                      std::move(drop_callback), {});
 }
 
 std::unique_ptr<views::View> CreateOpenTabsDropTargetView(
     CanDropOpenTabToTemporaryCallback can_drop_callback,
-    DropOpenTabToTemporaryCallback drop_callback) {
+    DropOpenTabToTemporaryCallback drop_callback,
+    SidebarDropTargetClaimCallback drop_target_claim_callback) {
   return std::make_unique<OpenTabsDropTargetView>(
-      std::move(can_drop_callback), std::move(drop_callback));
+      std::move(can_drop_callback), std::move(drop_callback),
+      std::move(drop_target_claim_callback));
 }
 
 void SetOpenTabsDropTargetAcceptingTab(views::View* view, bool accepting) {
   if (auto* target = views::AsViewClass<OpenTabsDropTargetView>(view)) {
     target->SetAcceptingTab(accepting);
+  }
+}
+
+void ClearOpenTabsDropTargetHighlight(views::View* view) {
+  if (auto* target = views::AsViewClass<OpenTabsDropTargetView>(view)) {
+    target->ClearDropTargetPresentation();
   }
 }
 
@@ -412,9 +460,11 @@ bool IsOpenTabsDropTargetHighlightedForTesting(const views::View* view) {
 
 std::unique_ptr<views::View> CreateNewGroupDropTargetView(
     CreateGroupForSavedNodeCallback node_callback,
-    CreateGroupForRuntimeTabCallback runtime_tab_callback) {
+    CreateGroupForRuntimeTabCallback runtime_tab_callback,
+    SidebarDropTargetClaimCallback drop_target_claim_callback) {
   return std::make_unique<NewGroupDropTargetView>(
       std::move(node_callback), std::move(runtime_tab_callback),
+      std::move(drop_target_claim_callback),
       l10n_util::GetStringUTF16(IDS_AHOI_NEW_GROUP_DROP_TARGET),
       l10n_util::GetStringUTF16(IDS_AHOI_NEW_GROUP_CREATE_ACCESSIBLE_NAME));
 }
@@ -425,11 +475,18 @@ void SetNewGroupDropTargetVisible(views::View* view, bool visible) {
   }
 }
 
+void ClearNewGroupDropTargetHighlight(views::View* view) {
+  if (auto* target = views::AsViewClass<NewGroupDropTargetView>(view)) {
+    target->ClearDropTargetPresentation();
+  }
+}
+
 std::unique_ptr<views::View> CreateNewGroupDropTargetViewForTesting(
     std::u16string label) {
   return std::make_unique<NewGroupDropTargetView>(
       base::BindRepeating([](const base::Uuid&) { return true; }),
-      base::BindRepeating([](int) { return true; }), label, label);
+      base::BindRepeating([](int) { return true; }),
+      SidebarDropTargetClaimCallback(), label, label);
 }
 
 }  // namespace ahoi::sidebar

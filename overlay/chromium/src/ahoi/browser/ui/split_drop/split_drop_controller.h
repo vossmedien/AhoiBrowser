@@ -91,7 +91,8 @@ class SplitDropController {
       const drag::SidebarTabDragPayload& payload,
       tabs::TabInterface* source_tab,
       const gfx::Point& point,
-      const std::vector<SplitDropPane>& visible_panes) const;
+      const std::vector<SplitDropPane>& visible_panes,
+      const std::optional<DropIntent>& retained_intent) const;
   tabs::TabInterface* FindTabByHandle(int tab_handle) const;
   std::optional<std::vector<int>> ResolveDesiredHandles(
       int source_tab_handle,
@@ -108,6 +109,9 @@ class SplitDropController {
   raw_ptr<TabStripModel> tab_strip_model_ = nullptr;
   views::ViewTracker browser_sidebar_host_tracker_;
   views::ViewTracker overlay_view_tracker_;
+  // This is also the commit capability: only an intent that was most recently
+  // presented by UpdateDrag may mutate the model in PerformDrop.
+  std::optional<DropIntent> preview_intent_;
   std::optional<size_t> fail_apply_desired_order_after_for_testing_;
   base::WeakPtrFactory<SplitDropController> weak_ptr_factory_{this};
 };
