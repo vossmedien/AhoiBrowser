@@ -13,6 +13,10 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
+#include "ui/gfx/geometry/insets.h"
+#include "ui/gfx/geometry/rect.h"
+#include "ui/views/controls/button/button.h"
+#include "ui/views/controls/focus_ring.h"
 #include "ui/views/controls/textfield/textfield.h"
 #include "ui/views/test/views_test_base.h"
 
@@ -63,6 +67,42 @@ TEST_F(SidebarDiscoveryViewTest, TabAndShiftTabUseNativeFocusTraversal) {
   EXPECT_FALSE(view->HandleKeyEvent(
       field, ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_TAB,
                           ui::EF_SHIFT_DOWN)));
+  EXPECT_EQ(close_count, 0);
+}
+
+TEST_F(SidebarDiscoveryViewTest,
+       NarrowSearchHeaderKeepsPaddedControlsInsideFocusSurface) {
+  int close_count = 0;
+  std::unique_ptr<SidebarDiscoveryView> view = CreateView(&close_count);
+  view->Open();
+  view->SetBoundsRect(gfx::Rect(0, 0, 180, 240));
+  view->DeprecatedLayoutImmediately();
+
+  views::View* const shell = view->input_shell_for_testing();
+  views::View* const icon = view->search_icon_for_testing();
+  views::Textfield* const field = view->search_field_for_testing();
+  views::Button* const close = view->close_button_for_testing();
+  ASSERT_NE(shell, nullptr);
+  ASSERT_NE(icon, nullptr);
+  ASSERT_NE(field, nullptr);
+  ASSERT_NE(close, nullptr);
+  ASSERT_TRUE(shell->GetVisible());
+
+  EXPECT_EQ(44, shell->height());
+  EXPECT_TRUE(shell->GetLocalBounds().Contains(icon->bounds()));
+  EXPECT_TRUE(shell->GetLocalBounds().Contains(field->bounds()));
+  EXPECT_TRUE(shell->GetLocalBounds().Contains(close->bounds()));
+  EXPECT_GT(field->width(), 0);
+  EXPECT_EQ(8, field->x() - icon->bounds().right());
+  EXPECT_EQ(8, close->x() - field->bounds().right());
+  EXPECT_GE(shell->width() - close->bounds().right(), 6);
+  EXPECT_GE(close->y(), 5);
+  EXPECT_EQ(gfx::Insets::VH(3, 8), field->GetInsets());
+
+  views::FocusRing* const focus_ring = views::FocusRing::Get(shell);
+  ASSERT_NE(focus_ring, nullptr);
+  EXPECT_TRUE(focus_ring->GetOutsetFocusRingDisabled());
+  EXPECT_EQ(0.0f, focus_ring->GetHaloInset());
   EXPECT_EQ(close_count, 0);
 }
 

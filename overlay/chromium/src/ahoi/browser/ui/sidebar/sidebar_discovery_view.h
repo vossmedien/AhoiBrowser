@@ -95,7 +95,10 @@ class SidebarDiscoveryView final : public views::View,
   void InvalidatePrimaryResultSelection();
 
   // Semantic test seams; callers never need to depend on child order.
+  views::View* input_shell_for_testing() { return input_shell_; }
+  views::View* search_icon_for_testing() { return search_icon_; }
   views::Textfield* search_field_for_testing() { return search_field_; }
+  views::Button* close_button_for_testing() { return close_button_; }
   size_t result_count_for_testing() const { return items_.size(); }
   std::optional<size_t> selected_index_for_testing() const {
     return selected_index_;
@@ -131,6 +134,7 @@ class SidebarDiscoveryView final : public views::View,
   const RestoreCallback restore_callback_;
   const CloseCallback close_callback_;
   raw_ptr<views::View> input_shell_ = nullptr;
+  raw_ptr<views::View> search_icon_ = nullptr;
   raw_ptr<views::View> primary_surface_ = nullptr;
   raw_ptr<views::Textfield> search_field_ = nullptr;
   raw_ptr<views::Button> close_button_ = nullptr;

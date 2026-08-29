@@ -55,6 +55,15 @@ constexpr size_t kMaxSupplementalRecentlyClosedResults = 4u;
 constexpr size_t kMaxFilteredRecentlyClosedResults = 3u;
 constexpr int kSupplementalResultRowHeight = 46;
 constexpr int kSupplementalResultSpacing = 2;
+constexpr int kSearchHeaderHeight = 44;
+constexpr int kSearchHeaderVerticalInset = 5;
+constexpr int kSearchHeaderLeadingInset = 8;
+constexpr int kSearchHeaderTrailingInset = 6;
+constexpr int kSearchHeaderControlSpacing = 8;
+constexpr int kSearchHeaderIconBoxSize = 20;
+constexpr int kSearchHeaderIconSize = 17;
+constexpr int kSearchHeaderCloseButtonSize = 32;
+constexpr int kSearchFieldVerticalInset = 3;
 
 bool IsRecentlyClosed(SidebarDiscoveryItemKind kind) {
   return kind == SidebarDiscoveryItemKind::kRecentlyClosedTab ||
@@ -213,7 +222,8 @@ class SidebarDiscoveryCloseButton final : public views::Button {
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetHasInkDropActionOnClick(false);
     SetShowInkDropWhenHotTracked(false);
-    SetPreferredSize(gfx::Size(32, 32));
+    SetPreferredSize(gfx::Size(kSearchHeaderCloseButtonSize,
+                               kSearchHeaderCloseButtonSize));
     const std::u16string close = l10n_util::GetStringUTF16(IDS_CLOSE);
     SetAccessibleName(close);
     SetTooltipText(close);
@@ -390,7 +400,7 @@ SidebarDiscoveryView::SidebarDiscoveryView(
   GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
 
   auto input_shell = std::make_unique<views::View>();
-  input_shell->SetPreferredSize(gfx::Size(0, 40));
+  input_shell->SetPreferredSize(gfx::Size(0, kSearchHeaderHeight));
   input_shell->SetBackground(views::CreateRoundedRectBackground(
       visual_style::kRaisedSurface, visual_style::kControlCornerRadius));
   input_shell->SetBorder(views::CreateRoundedRectBorder(
@@ -398,14 +408,23 @@ SidebarDiscoveryView::SidebarDiscoveryView(
       visual_style::kDivider));
   auto* input_layout =
       input_shell->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(0, 7),
-          6));
+          views::BoxLayout::Orientation::kHorizontal,
+          gfx::Insets::TLBR(kSearchHeaderVerticalInset,
+                            kSearchHeaderLeadingInset,
+                            kSearchHeaderVerticalInset,
+                            kSearchHeaderTrailingInset),
+          kSearchHeaderControlSpacing));
   input_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kCenter);
   auto* search_icon = input_shell->AddChildView(
       std::make_unique<views::ImageView>(ui::ImageModel::FromVectorIcon(
-          vector_icons::kSearchIcon, visual_style::kMutedText, 17)));
-  search_icon->SetPreferredSize(gfx::Size(20, 20));
+          vector_icons::kSearchIcon, visual_style::kMutedText,
+          kSearchHeaderIconSize)));
+  search_icon_ = search_icon;
+  search_icon->SetPreferredSize(
+      gfx::Size(kSearchHeaderIconBoxSize, kSearchHeaderIconBoxSize));
+  search_icon->SetImageSize(
+      gfx::Size(kSearchHeaderIconSize, kSearchHeaderIconSize));
   search_icon->SetCanProcessEventsWithinSubtree(false);
   search_icon->GetViewAccessibility().SetIsIgnored(true);
 
@@ -419,20 +438,26 @@ SidebarDiscoveryView::SidebarDiscoveryView(
   search_field_->SetAccessibleName(placeholder);
   search_field_->SetFocusBehavior(FocusBehavior::ALWAYS);
   search_field_->SetBorder(views::CreateEmptyBorder(
-      gfx::Insets::VH(0, visual_style::kSidebarSearchTextHorizontalInset)));
+      gfx::Insets::VH(kSearchFieldVerticalInset,
+                      visual_style::kSidebarSearchTextHorizontalInset)));
   search_field_->SetBackgroundColor(visual_style::kRaisedSurface);
   search_field_->SetTextColorId(visual_style::kText);
   search_field_->SetPlaceholderTextColorId(visual_style::kMutedText);
   search_field_->RemoveHoverEffect();
   views::FocusRing::Install(input_shell_);
-  views::FocusRing::Get(input_shell_)->SetOutsetFocusRingDisabled(true);
-  views::FocusRing::Get(input_shell_)->SetColorId(visual_style::kAccent);
-  views::FocusRing::Get(input_shell_)
-      ->SetHasFocusPredicate(base::BindRepeating(
-          [](const views::Textfield* search_field, const views::View*) {
-            return search_field->HasFocus();
-          },
-          search_field_.get()));
+  views::FocusRing* const input_focus_ring =
+      views::FocusRing::Get(input_shell_);
+  input_focus_ring->SetOutsetFocusRingDisabled(true);
+  // Keep the focus stroke inside the rounded header. This matters when the
+  // sidebar is at its minimum width and the header sits directly against the
+  // sidebar clip edge.
+  input_focus_ring->SetHaloInset(0.0f);
+  input_focus_ring->SetColorId(visual_style::kAccent);
+  input_focus_ring->SetHasFocusPredicate(base::BindRepeating(
+      [](const views::Textfield* search_field, const views::View*) {
+        return search_field->HasFocus();
+      },
+      search_field_.get()));
   views::InstallRoundRectHighlightPathGenerator(
       input_shell_, gfx::Insets(), visual_style::kControlCornerRadius);
   input_layout->SetFlexForView(search_field_, 1);
