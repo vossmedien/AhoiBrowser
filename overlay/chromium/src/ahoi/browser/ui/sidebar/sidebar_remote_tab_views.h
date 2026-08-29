@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_REMOTE_TAB_VIEWS_H_
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "ahoi/browser/sync/sync_model.h"
@@ -43,6 +44,8 @@ struct RemoteTabRowActions {
 std::unique_ptr<views::View> CreateRemoteTabRowView(
     RemoteTabRowModel model,
     RemoteTabRowActions actions);
+std::optional<sync::RemoteTabRecord> GetRemoteTabForView(views::View* view);
+void SetRemoteTabSearchSelected(views::View* view, bool selected);
 
 }  // namespace ahoi::sidebar
 

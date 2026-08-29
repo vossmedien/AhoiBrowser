@@ -128,7 +128,8 @@ bool BrowserSidebarHostView::CanDropOnRuntimeTab(
     std::optional<int> source_runtime_handle,
     base::WeakPtr<tabs::TabInterface> target,
     OpenTabDropPosition position) const {
-  if (!target || !controller_ || !session_bridge_ || !tab_strip_model_ ||
+  if (!sidebar_discovery_query_.empty() || !target || !controller_ ||
+      !session_bridge_ || !tab_strip_model_ ||
       source_node_id.has_value() == source_runtime_handle.has_value()) {
     return false;
   }
@@ -376,8 +377,8 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
 
 bool BrowserSidebarHostView::CanDropOpenTabToTemporary(
     const drag::SidebarTabDragPayload& payload) const {
-  if (!payload.is_valid() || !controller_ || !session_bridge_ ||
-      !tab_strip_model_) {
+  if (!sidebar_discovery_query_.empty() || !payload.is_valid() ||
+      !controller_ || !session_bridge_ || !tab_strip_model_) {
     return false;
   }
   if (payload.saved_node_id.has_value()) {
@@ -385,8 +386,7 @@ bool BrowserSidebarHostView::CanDropOpenTabToTemporary(
     return session_bridge_->tab_tree_store()->GetNode(*payload.saved_node_id,
                                                       &node) ==
                tab_tree::TabTreeStore::Result::kOk &&
-           !node.tombstone &&
-           node.type == tab_tree::TreeNodeType::kSavedPage;
+           !node.tombstone && node.type == tab_tree::TreeNodeType::kSavedPage;
   }
 
   tabs::TabInterface* const source =
@@ -439,8 +439,8 @@ bool BrowserSidebarHostView::DropOpenTabToTemporary(
         }
       },
       weak_host, std::move(*extraction_snapshot)));
-  source = weak_host ? weak_host->FindTemporaryTab(runtime_tab_handle)
-                     : nullptr;
+  source =
+      weak_host ? weak_host->FindTemporaryTab(runtime_tab_handle) : nullptr;
   if (!weak_host || !source || source->IsSplit() ||
       weak_host->session_bridge_->FindTabStripModelForTab(source) !=
           weak_host->tab_strip_model_) {

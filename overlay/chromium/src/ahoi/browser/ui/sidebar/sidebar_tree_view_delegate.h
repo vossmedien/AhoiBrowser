@@ -32,6 +32,10 @@ class SidebarTreeViewDelegate {
   virtual ~SidebarTreeViewDelegate() = default;
 
   virtual void ActivateSavedPage(const tab_tree::TreeNode&) {}
+  // Search forces matching ancestor paths open without changing the normal
+  // expansion state. Activating an exact folder match therefore belongs to
+  // the host, which can close discovery before revealing the real folder.
+  virtual void ActivateFolderSearchResult(const tab_tree::TreeNode&) {}
   virtual bool CanSplitSavedPages(const base::Uuid& source_node_id,
                                   const base::Uuid& target_node_id) const = 0;
   virtual bool SplitSavedPages(const base::Uuid& source_node_id,

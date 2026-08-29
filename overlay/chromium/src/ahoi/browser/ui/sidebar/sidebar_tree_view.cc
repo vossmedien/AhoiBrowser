@@ -79,6 +79,7 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
   insertion_marker_->SetCanProcessEventsWithinSubtree(false);
   insertion_marker_->GetViewAccessibility().SetIsIgnored(true);
   insertion_marker_->SetVisible(false);
+  SynchronizeSearchContextGroups();
   last_visual_height_ = GetVisualRowsHeight(BuildVisualRows());
   model().AddObserver(this);
 }
@@ -188,7 +189,8 @@ SidebarTreeView::VisibleRange SidebarTreeView::CalculateVisibleRange(
 }
 
 void SidebarTreeView::BeginRenameSelectedNode() {
-  if (!model().selected_node_id().has_value()) {
+  if (model().is_search_projection_active() ||
+      !model().selected_node_id().has_value()) {
     return;
   }
   const base::Uuid node_id = *model().selected_node_id();
@@ -264,6 +266,13 @@ void SidebarTreeView::OnRowReleased(SidebarTreeRowView* row,
        (node && node->type == tab_tree::TreeNodeType::kFolder &&
         event.GetClickCount() == 1)) &&
       node && node->type == tab_tree::TreeNodeType::kFolder) {
+    if (model().is_search_projection_active()) {
+      std::ignore = controller_->SelectNode(*pressed_node_id);
+      if (delegate_) {
+        delegate_->ActivateFolderSearchResult(*node);
+      }
+      return;
+    }
     if (!disclosure_hit) {
       std::ignore = controller_->SelectNode(*pressed_node_id);
     }
@@ -335,6 +344,13 @@ void SidebarTreeView::CommitRename(const base::Uuid& node_id,
   if (!editing_node_id_.has_value() || *editing_node_id_ != node_id) {
     return;
   }
+  if (model().is_search_projection_active()) {
+    if (SidebarTreeRowView* row = GetMaterializedRowForTesting(node_id)) {
+      row->StopEditing(/*restore_model_title=*/true);
+    }
+    editing_node_id_.reset();
+    return;
+  }
   if (title.empty()) {
     if (delegate_) {
       delegate_->OnMutationFailed(
@@ -374,6 +390,7 @@ void SidebarTreeView::OnRowDragDone() {
 }
 
 void SidebarTreeView::OnSplitGroupsChanged() {
+  SynchronizeSearchContextGroups();
   last_drop_probe_.reset();
   SetDropIndicator(std::nullopt);
   HandleVisualLayoutChanged();
@@ -417,6 +434,9 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
   }
   if ((event.IsControlDown() || event.IsCommandDown()) &&
       event.key_code() == ui::VKEY_Z) {
+    if (model().is_search_projection_active()) {
+      return true;
+    }
     const auto result = controller_->UndoLastMutation();
     if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
       delegate_->OnMutationFailed(result);
@@ -472,13 +492,14 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
       }
       return true;
     case ui::VKEY_F2:
-      if (!selected_node_suppressed) {
+      if (!selected_node_suppressed && !model().is_search_projection_active()) {
         BeginRenameSelectedNode();
       }
       return true;
     case ui::VKEY_BACK:
     case ui::VKEY_DELETE:
-      if (model().selected_node_id().has_value() && !selected_node_suppressed) {
+      if (model().selected_node_id().has_value() && !selected_node_suppressed &&
+          !model().is_search_projection_active()) {
         const auto result = controller_->DeleteNode(*model().selected_node_id(),
                                                     base::Time::Now());
         if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
@@ -545,6 +566,16 @@ void SidebarTreeView::SetRuntimeCompositeSuppressedNodes(
   }
   runtime_composite_suppressed_nodes_ = std::move(node_ids);
   OnSplitGroupsChanged();
+}
+
+void SidebarTreeView::SynchronizeSearchContextGroups() {
+  const tab_tree::TabTreeStore::Result result =
+      controller_->SetSearchContextGroups(
+          delegate_ ? delegate_->GetSplitSavedPageGroups()
+                    : std::vector<std::vector<base::Uuid>>());
+  if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
+    delegate_->OnMutationFailed(result);
+  }
 }
 
 void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
@@ -689,6 +720,11 @@ gfx::Point SidebarTreeView::GetKeyboardContextMenuLocation() {
 bool SidebarTreeView::GetDropFormats(
     int* formats,
     std::set<ui::ClipboardFormatType>* format_types) {
+  if (model().is_search_projection_active()) {
+    *formats = 0;
+    format_types->clear();
+    return false;
+  }
   *formats = ui::OSExchangeData::PICKLED_DATA;
   format_types->insert(drag::SavedSidebarTabDragFormat());
   format_types->insert(drag::RuntimeSidebarTabDragFormat());

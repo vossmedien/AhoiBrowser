@@ -119,11 +119,16 @@ void SidebarTreeRowView::Bind(size_t row_index,
   const bool title_changed = !same_node || title_ != node.title;
   const bool media_presence_changed =
       media_indicator_.IsEmpty() != media_indicator.IsEmpty();
-  const bool layout_changed = !same_node || depth_ != row.depth ||
-                              type_ != row.type ||
-                              split_segment_index_ != split_segment_index ||
-                              split_segment_count_ != split_segment_count ||
-                              title_changed || media_presence_changed;
+  const bool folder_navigation_result =
+      node.type == tab_tree::TreeNodeType::kFolder &&
+      owner_->IsSearchProjectionActiveForRow();
+  const bool folder_navigation_changed =
+      same_node && folder_navigation_result_ != folder_navigation_result;
+  const bool layout_changed =
+      !same_node || depth_ != row.depth || type_ != row.type ||
+      split_segment_index_ != split_segment_index ||
+      split_segment_count_ != split_segment_count || title_changed ||
+      media_presence_changed || folder_navigation_changed;
   const bool expanded_changed = same_node &&
                                 type_ == tab_tree::TreeNodeType::kFolder &&
                                 expanded_ != row.expanded;
@@ -141,7 +146,8 @@ void SidebarTreeRowView::Bind(size_t row_index,
   status_text_ = std::move(status_text);
   drag_thumbnails_ = std::move(drag_thumbnails);
   expanded_ = row.expanded;
-  if (!same_node) {
+  folder_navigation_result_ = folder_navigation_result;
+  if (!same_node || folder_navigation_changed) {
     chevron_animation_.Reset(expanded_ ? 1.0 : 0.0);
   } else if (!gfx::Animation::ShouldRenderRichAnimation()) {
     chevron_animation_.Reset(expanded_ ? 1.0 : 0.0);
@@ -192,6 +198,7 @@ void SidebarTreeRowView::Unbind() {
   hovered_ = false;
   running_ = false;
   sleeping_ = false;
+  folder_navigation_result_ = false;
   page_icon_ = ui::ImageModel();
   media_indicator_ = ui::ImageModel();
   status_text_.clear();
@@ -206,6 +213,10 @@ void SidebarTreeRowView::Unbind() {
 
 bool SidebarTreeRowView::title_visible_for_testing() const {
   return title_label_->GetVisible();
+}
+
+bool SidebarTreeRowView::disclosure_visible_for_testing() const {
+  return !DisclosureBounds().IsEmpty();
 }
 
 gfx::Rect SidebarTreeRowView::title_bounds_for_testing() const {
@@ -358,6 +369,12 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
     canvas->DrawRoundRect(
         background, visual_style::kRowCornerRadius,
         FillFlags(colors->GetColor(visual_style::kSelectedSurface)));
+  } else if (is_bound() && owner_->IsExactSearchMatchForRow(node_id_)) {
+    // Keep hierarchy context quiet while making the actual query hits
+    // scannable. Selection and hover still take precedence above/below.
+    canvas->DrawRoundRect(
+        background, visual_style::kRowCornerRadius,
+        FillFlags(colors->GetColor(visual_style::kHoverSurface)));
   } else if (hovered_) {
     canvas->DrawRoundRect(
         background, visual_style::kRowCornerRadius,
@@ -422,33 +439,36 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
 
   if (is_folder()) {
     const gfx::Rect disclosure = GetMirroredRect(DisclosureBounds());
-    const gfx::Point center = disclosure.CenterPoint();
-    const double expanded_progress = chevron_animation_.is_animating()
-                                         ? chevron_animation_.GetCurrentValue()
-                                         : (expanded_ ? 1.0 : 0.0);
-    const bool rtl = base::i18n::IsRTL();
-    const gfx::PointF start_top(center.x() + (rtl ? 2.0f : -2.0f),
-                                center.y() - 4.0f);
-    const gfx::PointF start_middle(center.x() + (rtl ? -2.0f : 2.0f),
-                                   center.y());
-    const gfx::PointF start_bottom(center.x() + (rtl ? 2.0f : -2.0f),
-                                   center.y() + 4.0f);
-    const gfx::PointF end_left(center.x() - 4.0f, center.y() - 2.0f);
-    const gfx::PointF end_middle(center.x(), center.y() + 2.0f);
-    const gfx::PointF end_right(center.x() + 4.0f, center.y() - 2.0f);
-    const auto interpolate = [expanded_progress](const gfx::PointF& from,
-                                                 const gfx::PointF& to) {
-      return gfx::PointF(from.x() + (to.x() - from.x()) * expanded_progress,
-                         from.y() + (to.y() - from.y()) * expanded_progress);
-    };
-    const gfx::PointF top = interpolate(start_top, end_left);
-    const gfx::PointF middle = interpolate(start_middle, end_middle);
-    const gfx::PointF bottom = interpolate(start_bottom, end_right);
-    SkPathBuilder chevron;
-    chevron.moveTo(top.x(), top.y());
-    chevron.lineTo(middle.x(), middle.y());
-    chevron.lineTo(bottom.x(), bottom.y());
-    canvas->DrawPath(chevron.detach(), StrokeFlags(icon_color, 1.5f));
+    if (!folder_navigation_result_) {
+      const gfx::Point center = disclosure.CenterPoint();
+      const double expanded_progress =
+          chevron_animation_.is_animating()
+              ? chevron_animation_.GetCurrentValue()
+              : (expanded_ ? 1.0 : 0.0);
+      const bool rtl = base::i18n::IsRTL();
+      const gfx::PointF start_top(center.x() + (rtl ? 2.0f : -2.0f),
+                                  center.y() - 4.0f);
+      const gfx::PointF start_middle(center.x() + (rtl ? -2.0f : 2.0f),
+                                     center.y());
+      const gfx::PointF start_bottom(center.x() + (rtl ? 2.0f : -2.0f),
+                                     center.y() + 4.0f);
+      const gfx::PointF end_left(center.x() - 4.0f, center.y() - 2.0f);
+      const gfx::PointF end_middle(center.x(), center.y() + 2.0f);
+      const gfx::PointF end_right(center.x() + 4.0f, center.y() - 2.0f);
+      const auto interpolate = [expanded_progress](const gfx::PointF& from,
+                                                   const gfx::PointF& to) {
+        return gfx::PointF(from.x() + (to.x() - from.x()) * expanded_progress,
+                           from.y() + (to.y() - from.y()) * expanded_progress);
+      };
+      const gfx::PointF top = interpolate(start_top, end_left);
+      const gfx::PointF middle = interpolate(start_middle, end_middle);
+      const gfx::PointF bottom = interpolate(start_bottom, end_right);
+      SkPathBuilder chevron;
+      chevron.moveTo(top.x(), top.y());
+      chevron.lineTo(middle.x(), middle.y());
+      chevron.lineTo(bottom.x(), bottom.y());
+      canvas->DrawPath(chevron.detach(), StrokeFlags(icon_color, 1.5f));
+    }
 
     const gfx::Rect icon_bounds = GetMirroredRect(IconBounds());
     const SkColor folder_color = accent_argb_.has_value()
@@ -697,7 +717,10 @@ gfx::Rect SidebarTreeRowView::DisclosureBounds() const {
   const int x =
       kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
   return gfx::Rect(
-      x, 0, is_folder() && split_segment_count_ == 1 ? kDisclosureWidth : 0,
+      x, 0,
+      is_folder() && !folder_navigation_result_ && split_segment_count_ == 1
+          ? kDisclosureWidth
+          : 0,
       height());
 }
 
@@ -788,11 +811,11 @@ void SidebarTreeRowView::UpdateAccessibility() {
   accessibility.SetPosInSet(base::saturated_cast<int>(position_in_parent_));
   accessibility.SetSetSize(base::saturated_cast<int>(sibling_count_));
   accessibility.SetIsSelected(selected_);
-  accessibility.SetDefaultActionVerb(is_folder()
+  accessibility.SetDefaultActionVerb(is_folder() && !folder_navigation_result_
                                          ? ax::mojom::DefaultActionVerb::kClick
                                          : ax::mojom::DefaultActionVerb::kOpen);
   accessibility.AddAction(ax::mojom::Action::kDoDefault);
-  if (is_folder()) {
+  if (is_folder() && !folder_navigation_result_) {
     if (expanded_) {
       accessibility.SetIsExpanded();
     } else {

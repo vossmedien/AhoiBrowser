@@ -78,6 +78,22 @@ class SidebarTreeViewModel {
 
   [[nodiscard]] bool SetExpanded(const base::Uuid& node_id, bool expanded);
   [[nodiscard]] bool SetSelectedNode(std::optional<base::Uuid> node_id);
+
+  // Replaces the ordinary expansion-driven rows with a transient search
+  // projection. Only exact matches, their complete loaded ancestor chains and
+  // loaded members of a matching split group are shown. The durable tree,
+  // expansion set and selection are deliberately not changed. An empty set is
+  // a valid active projection with no rows.
+  [[nodiscard]] bool SetSearchMatches(
+      std::unordered_set<base::Uuid, base::UuidHash> node_ids);
+  void ClearSearchMatches();
+  // Split membership belongs to the live browser presentation rather than the
+  // persisted tab tree. The controller hydrates missing group members before
+  // updating this context while search is active; direct callers must only use
+  // this setter when no hydration is required.
+  void SetSearchContextGroups(
+      std::vector<std::vector<base::Uuid>> context_groups);
+
   void BeginUpdate();
   void EndUpdate();
   void NormalizeSelection();
@@ -98,6 +114,22 @@ class SidebarTreeViewModel {
   const tab_tree::TreeNode* GetNode(const base::Uuid& node_id) const;
   std::optional<size_t> GetRowForNode(const base::Uuid& node_id) const;
   bool IsExpanded(const base::Uuid& node_id) const;
+  bool is_search_projection_active() const {
+    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+    return search_exact_match_node_ids_.has_value();
+  }
+  // Exact matches originate in the search result set. Context rows are the
+  // ancestors and saved split partners that keep those matches intelligible
+  // inside the hierarchy. IsSearchMatch() remains as the compatibility name
+  // for callers that only need exact-match semantics.
+  bool IsSearchExactMatch(const base::Uuid& node_id) const;
+  bool IsSearchContext(const base::Uuid& node_id) const;
+  bool IsSearchMatch(const base::Uuid& node_id) const;
+  std::vector<base::Uuid> GetSearchExactMatches() const;
+  const std::vector<std::vector<base::Uuid>>& search_context_groups() const {
+    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+    return search_context_groups_;
+  }
   bool AreChildrenLoaded(std::optional<base::Uuid> parent_id) const;
   // Returns transient pointers for same-sequence validation; callers must not
   // retain them across any model mutation.
@@ -119,9 +151,15 @@ class SidebarTreeViewModel {
   std::vector<Row> BuildVisibleChildren(
       const std::vector<base::Uuid>& child_ids,
       size_t depth) const;
+  void IncludeLoadedSearchChain(
+      const base::Uuid& leaf_id,
+      std::unordered_set<base::Uuid, base::UuidHash>* included) const;
+  std::vector<Row> BuildSearchProjection() const;
+  void RebuildCurrentProjection(bool preserve_selection);
   void ApplyVisibleSplice(size_t first_row,
                           size_t old_count,
-                          std::vector<Row> replacement);
+                          std::vector<Row> replacement,
+                          bool preserve_selection = false);
   void RebuildRowIndex(size_t first_row);
   void NotifyChangedRuns(size_t first_row,
                          const std::vector<Row>& old_rows,
@@ -137,6 +175,12 @@ class SidebarTreeViewModel {
   std::vector<base::Uuid> root_children_ GUARDED_BY_CONTEXT(sequence_checker_);
   bool root_children_loaded_ GUARDED_BY_CONTEXT(sequence_checker_) = false;
   std::unordered_set<base::Uuid, base::UuidHash> expanded_nodes_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  // std::nullopt means ordinary expansion-driven rows; an engaged empty set
+  // means an active search with zero saved-tree matches.
+  std::optional<std::unordered_set<base::Uuid, base::UuidHash>>
+      search_exact_match_node_ids_ GUARDED_BY_CONTEXT(sequence_checker_);
+  std::vector<std::vector<base::Uuid>> search_context_groups_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::vector<Row> rows_ GUARDED_BY_CONTEXT(sequence_checker_);
   std::unordered_map<base::Uuid, size_t, base::UuidHash> row_by_id_

@@ -79,6 +79,7 @@ class SidebarTreeRowView final : public views::View,
   bool is_native_drag_in_progress() const { return InDrag(); }
   bool is_split_segment_for_testing() const { return split_segment_count_ > 1; }
   bool is_split_drop_target_for_testing() const { return split_drop_target_; }
+  bool disclosure_visible_for_testing() const;
   bool title_visible_for_testing() const;
   gfx::Rect title_bounds_for_testing() const;
   gfx::Rect title_paint_bounds_for_testing() const;
@@ -148,6 +149,7 @@ class SidebarTreeRowView final : public views::View,
   bool hovered_ = false;
   bool running_ = false;
   bool sleeping_ = false;
+  bool folder_navigation_result_ = false;
   bool is_editing_ = false;
   bool pressed_disclosure_ = false;
   bool pressed_trailing_action_ = false;

@@ -25,6 +25,7 @@
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
+#include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_refresh_gate.h"
@@ -90,8 +91,8 @@ struct CommandItem;
 namespace ahoi::sidebar {
 
 class CachedTabThumbnail;
+struct SidebarDiscoveryItem;
 class SidebarDiscoveryModel;
-class SidebarDiscoveryView;
 class SidebarMediaOverlayView;
 class SidebarTreeView;
 
@@ -333,7 +334,10 @@ class BrowserSidebarHostView final
                                       const GURL& url,
                                       const gfx::ImageSkia& image);
 
-  void RefreshRuntimePresentation();
+  // `refresh_auxiliary` controls expensive thumbnail/media/sync enrichment.
+  // Typeahead filtering only needs to rebuild the visible projection and must
+  // not publish device state or capture thumbnails on every keystroke.
+  void RefreshRuntimePresentation(bool refresh_auxiliary = true);
 
   void PublishLocalDeviceTabs();
 
@@ -343,7 +347,7 @@ class BrowserSidebarHostView final
 
   ui::ImageModel GetFaviconForUrl(const GURL& page_url);
 
-  void OpenRemoteTab(sync::RemoteTabRecord tab);
+  bool OpenRemoteTab(sync::RemoteTabRecord tab);
 
   void ActivateRuntimeTab(base::WeakPtr<tabs::TabInterface> tab);
 
@@ -430,6 +434,20 @@ class BrowserSidebarHostView final
 
   void CloseSidebarDiscovery();
 
+  void ScheduleCloseSidebarDiscoveryAfterActivation();
+
+  bool HandleSidebarDiscoveryPrimaryResult(
+      SidebarDiscoveryView::PrimaryResultAction action);
+
+  void ClearSidebarDiscoveryPrimarySelection(
+      bool restore_tree_selection = true);
+
+  void RebuildSidebarDiscoveryPrimaryResults();
+
+  std::set<std::string> ApplySidebarDiscoveryFilter(
+      const std::u16string& query,
+      const std::vector<SidebarDiscoveryItem>& items);
+
   bool ActivateSidebarDiscoveryCommand(const CommandItem& item);
 
   bool RestoreSidebarDiscoveryEntry(SessionID entry_id);
@@ -440,6 +458,8 @@ class BrowserSidebarHostView final
 
   // SidebarTreeViewDelegate:
   void ActivateSavedPage(const tab_tree::TreeNode& node) override;
+
+  void ActivateFolderSearchResult(const tab_tree::TreeNode& node) override;
 
   BrowserSidebarSplitDropSource MaterializeSavedPage(
       const tab_tree::TreeNode& node,
@@ -670,6 +690,27 @@ class BrowserSidebarHostView final
   std::unique_ptr<SidebarDiscoveryModel> discovery_model_;
   raw_ptr<SidebarDiscoveryView> discovery_view_ = nullptr;
   views::ViewTracker discovery_focus_restore_tracker_;
+  std::u16string sidebar_discovery_query_;
+  std::set<int> sidebar_discovery_runtime_tab_handles_;
+  std::set<std::string> sidebar_discovery_device_tab_ids_;
+  enum class SidebarDiscoveryPrimaryResultKind {
+    kTreeNode,
+    kDeviceTab,
+    kRuntimeTab,
+  };
+  struct SidebarDiscoveryPrimaryResult {
+    SidebarDiscoveryPrimaryResultKind kind =
+        SidebarDiscoveryPrimaryResultKind::kTreeNode;
+    base::Uuid node_id;
+    std::string device_tab_stable_id;
+    int runtime_tab_handle = -1;
+    raw_ptr<views::View> row = nullptr;
+  };
+  std::vector<SidebarDiscoveryPrimaryResult> sidebar_discovery_primary_results_;
+  std::optional<size_t> sidebar_discovery_primary_selection_;
+  std::optional<int> discovery_scroll_offset_;
+  std::optional<base::Uuid> discovery_selection_before_search_;
+  bool discovery_activation_committed_ = false;
   raw_ptr<views::ScrollView> scroll_view_ = nullptr;
   raw_ptr<SidebarMediaOverlayView> media_overlay_view_ = nullptr;
   raw_ptr<views::View> sidebar_actions_ = nullptr;

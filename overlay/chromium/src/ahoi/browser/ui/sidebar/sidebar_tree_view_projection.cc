@@ -175,6 +175,9 @@ void SidebarTreeView::AnimationCanceled(const gfx::Animation* animation) {
 void SidebarTreeView::WriteDragDataForView(views::View* sender,
                                            const gfx::Point& press_pt,
                                            ui::OSExchangeData* data) {
+  if (model().is_search_projection_active()) {
+    return;
+  }
   auto* row = views::AsViewClass<SidebarTreeRowView>(sender);
   CHECK(row && row->is_bound());
 
@@ -250,6 +253,33 @@ std::vector<SidebarTreeView::VisualRow> SidebarTreeView::BuildVisualRows()
       }
       if (conflicts_with_existing_group || indices.size() < 2) {
         continue;
+      }
+      if (model().is_search_projection_active()) {
+        // Search is a hierarchy projection, so a live split must not visually
+        // reparent a partner from another folder into the exact match's row.
+        // Only panes that already occupy one contiguous sibling slot can be
+        // presented as a single segmented row inside that projection.
+        const tab_tree::TreeNode* first_node =
+            model().GetNode(rows[indices.front()].node_id);
+        const size_t common_depth = rows[indices.front()].depth;
+        size_t minimum_index = indices.front();
+        size_t maximum_index = indices.front();
+        bool shares_one_hierarchy_slot = first_node != nullptr;
+        for (const size_t index : indices) {
+          const tab_tree::TreeNode* node = model().GetNode(rows[index].node_id);
+          shares_one_hierarchy_slot =
+              shares_one_hierarchy_slot && node &&
+              node->parent_id == first_node->parent_id &&
+              rows[index].depth == common_depth;
+          minimum_index = std::min(minimum_index, index);
+          maximum_index = std::max(maximum_index, index);
+        }
+        shares_one_hierarchy_slot =
+            shares_one_hierarchy_slot &&
+            maximum_index - minimum_index + 1u == indices.size();
+        if (!shares_one_hierarchy_slot) {
+          continue;
+        }
       }
       std::vector<base::Uuid> node_ids;
       node_ids.reserve(indices.size());
@@ -391,6 +421,16 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     synchronization_pending_ = true;
     return;
   }
+  // A search result is a transient navigation surface. If filtering begins
+  // while a rename field is open, end that edit without stealing focus back
+  // from the search field or committing text against a projected row.
+  if (model().is_search_projection_active() && editing_node_id_.has_value()) {
+    if (SidebarTreeRowView* editing_row =
+            GetMaterializedRowForTesting(*editing_node_id_)) {
+      editing_row->StopEditing(/*restore_model_title=*/true);
+    }
+    editing_node_id_.reset();
+  }
   const bool native_drag_in_progress =
       std::ranges::any_of(materialized_rows_, [](const auto& entry) {
         return entry.second && entry.second->is_native_drag_in_progress();
@@ -488,6 +528,11 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
       row = AcquireRow();
       materialized_rows_.emplace(node_id, row);
     }
+    // Search rows preserve activation and keyboard navigation, but cannot be
+    // a reorder source. Clearing the projection restores the same recycled
+    // row's controller on the next synchronization.
+    row->set_drag_controller(model().is_search_projection_active() ? nullptr
+                                                                   : this);
     const VisualPosition& position = visual_positions[index];
     row->Bind(
         index, rows[index], *node, model().selected_node_id() == node_id,
@@ -658,7 +703,8 @@ void SidebarTreeView::CollapseOrSelectParent() {
     return;
   }
   const auto& row = model().rows()[*selected_index];
-  if (row.type == tab_tree::TreeNodeType::kFolder && row.expanded) {
+  if (row.type == tab_tree::TreeNodeType::kFolder && row.expanded &&
+      !model().is_search_projection_active()) {
     std::ignore = controller_->CollapseNode(selected_id);
     return;
   }
@@ -718,6 +764,12 @@ void SidebarTreeView::ActivateSelectedNode() {
     return;
   }
   if (node->type == tab_tree::TreeNodeType::kFolder) {
+    if (model().is_search_projection_active()) {
+      if (delegate_) {
+        delegate_->ActivateFolderSearchResult(*node);
+      }
+      return;
+    }
     if (model().IsExpanded(node_id)) {
       std::ignore = controller_->CollapseNode(node_id);
     } else {
@@ -759,11 +811,10 @@ std::optional<SidebarTreeView::VisualHit> SidebarTreeView::FindVisualHit(
       closest_segment = segment;
     }
   }
-  return VisualHit{
-      .visual_row = *visual_index,
-      .model_index = visual_row.model_indices[closest_segment],
-      .bounds = GetSegmentBounds(visual_row, closest_segment,
-                                 std::max(width(), 1))};
+  return VisualHit{.visual_row = *visual_index,
+                   .model_index = visual_row.model_indices[closest_segment],
+                   .bounds = GetSegmentBounds(visual_row, closest_segment,
+                                              std::max(width(), 1))};
 }
 
 std::optional<base::Uuid> SidebarTreeView::NodeAtPoint(

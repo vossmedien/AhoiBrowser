@@ -128,6 +128,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  std::u16string status_text,
                  bool active,
                  bool sleeping,
+                 bool drag_enabled,
                  TabCallback activate_callback,
                  TabCallback close_callback,
                  RuntimeTabThumbnailsCallback thumbnails_callback,
@@ -151,6 +152,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
         drop_target_claim_callback_(std::move(drop_target_claim_callback)),
         can_drop_callback_(std::move(can_drop_callback)),
         drop_callback_(std::move(drop_callback)),
+        drag_enabled_(drag_enabled),
         active_(active),
         sleeping_(sleeping) {
     CHECK(tab);
@@ -227,6 +229,15 @@ class OpenTabRowView final : public views::View, public views::DragController {
   base::WeakPtr<tabs::TabInterface> tab() const { return tab_; }
   const std::optional<base::Uuid>& saved_node_id() const {
     return saved_node_id_;
+  }
+
+  void SetSearchSelected(bool selected) {
+    if (search_selected_ == selected) {
+      return;
+    }
+    search_selected_ = selected;
+    GetViewAccessibility().SetIsSelected(active_ || search_selected_);
+    UpdateBackground();
   }
 
   void SetSplitSegmentPresentation(bool split_segment) {
@@ -354,8 +365,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
   bool CanStartDragForView(views::View* sender,
                            const gfx::Point& press_pt,
                            const gfx::Point&) override {
-    const bool allowed =
-        sender == this && tab_ && !CloseBounds().Contains(press_pt);
+    const bool allowed = drag_enabled_ && sender == this && tab_ &&
+                         !CloseBounds().Contains(press_pt);
     return allowed;
   }
 
@@ -654,11 +665,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
     const DropCallback drop_callback = drop_callback_;
     const base::WeakPtr<tabs::TabInterface> target = tab_;
     ClearDropPosition();
-    output_drag_op =
-        drop_callback && drop_callback.Run(source_node, source_tab, target,
-                                           position)
-            ? ui::mojom::DragOperation::kMove
-            : ui::mojom::DragOperation::kNone;
+    output_drag_op = drop_callback && drop_callback.Run(source_node, source_tab,
+                                                        target, position)
+                         ? ui::mojom::DragOperation::kMove
+                         : ui::mojom::DragOperation::kNone;
   }
 
   gfx::ImageSkia GetDragImage() {
@@ -686,8 +696,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
 
   void UpdateBackground() {
     const std::optional<ui::ColorId> color =
-        dragging_  ? std::nullopt
-        : active_  ? std::make_optional(visual_style::kSelectedSurface)
+        dragging_ ? std::nullopt
+        : active_ || search_selected_
+            ? std::make_optional(visual_style::kSelectedSurface)
         : hovered_ ? std::make_optional(visual_style::kHoverSurface)
                    : std::nullopt;
     SetBackground(
@@ -718,6 +729,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   raw_ptr<SidebarTabTitleLabel> title_ = nullptr;
   raw_ptr<views::ImageView> media_indicator_ = nullptr;
   raw_ptr<views::View> close_ = nullptr;
+  const bool drag_enabled_;
   const bool active_;
   const bool sleeping_;
   bool has_media_indicator_ = false;
@@ -727,6 +739,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   bool dragging_ = false;
   bool drag_started_since_press_ = false;
   bool drag_state_published_ = false;
+  bool search_selected_ = false;
   std::optional<OpenTabDropPosition> drop_position_;
   base::WeakPtrFactory<OpenTabRowView> weak_ptr_factory_{this};
 };
@@ -888,6 +901,7 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     std::u16string status_text,
     bool active,
     bool sleeping,
+    bool drag_enabled,
     RuntimeTabCallback activate_callback,
     RuntimeTabCallback close_callback,
     RuntimeTabThumbnailsCallback thumbnails_callback,
@@ -900,12 +914,12 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     views::ContextMenuController* context_menu_controller) {
   return std::make_unique<OpenTabRowView>(
       tab, std::move(saved_node_id), std::move(favicon), media_alert,
-      std::move(status_text), active, sleeping, std::move(activate_callback),
-      std::move(close_callback), std::move(thumbnails_callback),
-      std::move(hover_callback), std::move(saved_drag_state_callback),
-      std::move(drag_state_callback), std::move(drop_target_claim_callback),
-      std::move(can_drop_callback), std::move(drop_callback),
-      context_menu_controller);
+      std::move(status_text), active, sleeping, drag_enabled,
+      std::move(activate_callback), std::move(close_callback),
+      std::move(thumbnails_callback), std::move(hover_callback),
+      std::move(saved_drag_state_callback), std::move(drag_state_callback),
+      std::move(drop_target_claim_callback), std::move(can_drop_callback),
+      std::move(drop_callback), context_menu_controller);
 }
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {
@@ -916,6 +930,12 @@ base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {
 std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view) {
   auto* row = views::AsViewClass<OpenTabRowView>(view);
   return row ? row->saved_node_id() : std::nullopt;
+}
+
+void SetOpenTabSearchSelected(views::View* view, bool selected) {
+  if (auto* row = views::AsViewClass<OpenTabRowView>(view)) {
+    row->SetSearchSelected(selected);
+  }
 }
 
 void ClearOpenTabRowDropTargetPresentation(views::View* root,

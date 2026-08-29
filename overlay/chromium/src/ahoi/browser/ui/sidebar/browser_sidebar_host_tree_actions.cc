@@ -200,7 +200,7 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::ResolveSplitDropSource(
 
 void BrowserSidebarHostView::BeginSplitPaneDrag(
     const drag::SidebarTabDragPayload& payload) {
-  if (!payload.is_valid()) {
+  if (!sidebar_discovery_query_.empty() || !payload.is_valid()) {
     ResetDragPresentation();
     return;
   }
@@ -219,7 +219,12 @@ void BrowserSidebarHostView::CancelSplitDropDrag() {
 void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
   // A direct user activation commits the materialization. Transactional drop
   // callers retain and run the returned rollback closure only on failure.
-  MaterializeSavedPage(node, /*require_local_model=*/false);
+  discovery_activation_committed_ = true;
+  if (MaterializeSavedPage(node, /*require_local_model=*/false).valid) {
+    ScheduleCloseSidebarDiscoveryAfterActivation();
+  } else if (discovery_view_ && discovery_view_->is_open()) {
+    discovery_activation_committed_ = false;
+  }
 }
 
 BrowserSidebarSplitDropSource BrowserSidebarHostView::MaterializeSavedPage(
@@ -864,7 +869,8 @@ void BrowserSidebarHostView::OnTemporaryTabDragStateChanged(
 
 void BrowserSidebarHostView::UpdateNewGroupDropTargetVisibility() {
   const bool visible =
-      dragged_node_id_.has_value() || dragged_runtime_tab_handle_.has_value();
+      sidebar_discovery_query_.empty() &&
+      (dragged_node_id_.has_value() || dragged_runtime_tab_handle_.has_value());
   SetNewGroupDropTargetVisible(new_group_drop_target_, visible);
   new_group_drop_target_->SchedulePaint();
   SchedulePaint();

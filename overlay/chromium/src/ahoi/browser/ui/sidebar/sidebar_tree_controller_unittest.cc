@@ -141,6 +141,124 @@ TEST_F(SidebarTreeControllerTest,
 }
 
 TEST_F(SidebarTreeControllerTest,
+       SearchLoadsUncachedSplitPartnerAndPreservesTreeState) {
+  tab_tree::Workspace workspace = NewWorkspace(u"Development", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode exact_parent =
+      NewFolder(workspace, std::nullopt, u"Exact parent", "a");
+  tab_tree::TreeNode context_parent =
+      NewFolder(workspace, std::nullopt, u"Context parent", "b");
+  tab_tree::TreeNode exact =
+      NewPage(workspace, exact_parent.id, u"Matching page", "a");
+  tab_tree::TreeNode split_partner =
+      NewPage(workspace, context_parent.id, u"Split partner", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(exact_parent));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(context_parent));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(exact));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(split_partner));
+
+  SidebarTreeController controller(&store_);
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.ActivateWorkspace(workspace.id));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.ExpandNode(exact_parent.id));
+  ASSERT_TRUE(controller.SelectNode(exact.id));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.SetSearchContextGroups({{exact.id, split_partner.id}}));
+  ASSERT_EQ(nullptr, controller.view_model().GetNode(split_partner.id));
+
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.SetSearchMatches({exact.id}));
+  ASSERT_EQ(4U, controller.view_model().rows().size());
+  EXPECT_EQ(exact_parent.id, controller.view_model().rows()[0].node_id);
+  EXPECT_EQ(exact.id, controller.view_model().rows()[1].node_id);
+  EXPECT_EQ(context_parent.id, controller.view_model().rows()[2].node_id);
+  EXPECT_EQ(split_partner.id, controller.view_model().rows()[3].node_id);
+  EXPECT_TRUE(controller.view_model().IsSearchExactMatch(exact.id));
+  EXPECT_FALSE(controller.view_model().IsSearchContext(exact.id));
+  EXPECT_TRUE(controller.view_model().IsSearchContext(exact_parent.id));
+  EXPECT_TRUE(controller.view_model().IsSearchContext(context_parent.id));
+  EXPECT_TRUE(controller.view_model().IsSearchContext(split_partner.id));
+
+  controller.ClearSearchMatches();
+  ASSERT_EQ(3U, controller.view_model().rows().size());
+  EXPECT_EQ(exact_parent.id, controller.view_model().rows()[0].node_id);
+  EXPECT_EQ(exact.id, controller.view_model().rows()[1].node_id);
+  EXPECT_EQ(context_parent.id, controller.view_model().rows()[2].node_id);
+  EXPECT_TRUE(controller.view_model().IsExpanded(exact_parent.id));
+  EXPECT_FALSE(controller.view_model().IsExpanded(context_parent.id));
+  EXPECT_EQ(exact.id, controller.view_model().selected_node_id());
+}
+
+TEST_F(SidebarTreeControllerTest,
+       SearchLoadsNewSplitContextWhenLiveGroupsChange) {
+  tab_tree::Workspace workspace = NewWorkspace(u"Development", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode exact_parent =
+      NewFolder(workspace, std::nullopt, u"Exact parent", "a");
+  tab_tree::TreeNode context_parent =
+      NewFolder(workspace, std::nullopt, u"Context parent", "b");
+  tab_tree::TreeNode exact =
+      NewPage(workspace, exact_parent.id, u"Matching page", "a");
+  tab_tree::TreeNode split_partner =
+      NewPage(workspace, context_parent.id, u"Split partner", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(exact_parent));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(context_parent));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(exact));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(split_partner));
+
+  SidebarTreeController controller(&store_);
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.ActivateWorkspace(workspace.id));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.SetSearchMatches({exact.id}));
+  ASSERT_EQ(2U, controller.view_model().rows().size());
+  ASSERT_EQ(nullptr, controller.view_model().GetNode(split_partner.id));
+
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.SetSearchContextGroups({{exact.id, split_partner.id}}));
+  ASSERT_EQ(4U, controller.view_model().rows().size());
+  EXPECT_EQ(split_partner.id, controller.view_model().rows()[3].node_id);
+  EXPECT_TRUE(controller.view_model().IsSearchContext(split_partner.id));
+  EXPECT_TRUE(controller.view_model().IsSearchContext(context_parent.id));
+  EXPECT_TRUE(controller.view_model().IsSearchExactMatch(exact.id));
+}
+
+TEST_F(SidebarTreeControllerTest, SearchEvictsDeletedExactMatchImmediately) {
+  tab_tree::Workspace workspace = NewWorkspace(u"Development", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode folder =
+      NewFolder(workspace, std::nullopt, u"Project", "a");
+  tab_tree::TreeNode page =
+      NewPage(workspace, folder.id, u"Matching page", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(page));
+
+  SidebarTreeController controller(&store_);
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.ActivateWorkspace(workspace.id));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.SetSearchMatches({page.id}));
+  ASSERT_EQ(2U, controller.view_model().rows().size());
+
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.DeleteNode(page.id,
+                                  base::Time::UnixEpoch() + base::Seconds(2)));
+  EXPECT_EQ(nullptr, controller.view_model().GetNode(page.id));
+  EXPECT_TRUE(controller.view_model().rows().empty());
+  EXPECT_FALSE(controller.view_model().IsSearchExactMatch(page.id));
+}
+
+TEST_F(SidebarTreeControllerTest,
        ValidatesCycleCrossWorkspaceAndBeforeAfterInsertion) {
   tab_tree::Workspace source_workspace = NewWorkspace(u"Source", "a");
   tab_tree::Workspace target_workspace = NewWorkspace(u"Target", "b");
@@ -546,8 +664,7 @@ TEST_F(SidebarTreeControllerTest,
   tab_tree::Workspace workspace = NewWorkspace(u"Duplicate", "a");
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             store_.CreateWorkspace(workspace));
-  tab_tree::TreeNode source =
-      NewPage(workspace, std::nullopt, u"Source", "a");
+  tab_tree::TreeNode source = NewPage(workspace, std::nullopt, u"Source", "a");
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
 
   SidebarTreeController controller(&store_);

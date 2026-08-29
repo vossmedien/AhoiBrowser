@@ -485,6 +485,94 @@ TEST_F(SidebarTreeViewTest, CrossGroupSplitStaysAtDeepestVisibleParent) {
 }
 
 TEST_F(SidebarTreeViewTest,
+       SearchKeepsCrossFolderSplitPartnersInTheirRealHierarchy) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  const tab_tree::TreeNode first_folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"First folder", "a");
+  const tab_tree::TreeNode second_folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Second folder", "b");
+  const tab_tree::TreeNode first =
+      MakeNode(workspace, first_folder.id, tab_tree::TreeNodeType::kSavedPage,
+               u"Matching page", "a");
+  const tab_tree::TreeNode second =
+      MakeNode(workspace, second_folder.id, tab_tree::TreeNodeType::kSavedPage,
+               u"Split partner", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(first_folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateNode(second_folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(first));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(second));
+
+  auto view = NewTreeView();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  delegate_.split_groups = {{first.id, second.id}};
+  view->OnSplitGroupsChanged();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->SetSearchMatches({first.id}));
+  ASSERT_EQ(4U, controller_->view_model().rows().size());
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 160));
+
+  SidebarTreeRowView* first_row = view->GetMaterializedRowForTesting(first.id);
+  SidebarTreeRowView* second_row =
+      view->GetMaterializedRowForTesting(second.id);
+  ASSERT_NE(nullptr, first_row);
+  ASSERT_NE(nullptr, second_row);
+  EXPECT_FALSE(first_row->is_split_segment_for_testing());
+  EXPECT_FALSE(second_row->is_split_segment_for_testing());
+  EXPECT_EQ(SidebarTreeRowView::kRowHeight, first_row->y());
+  EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight, second_row->y());
+  EXPECT_EQ(4 * SidebarTreeRowView::kRowHeight,
+            view->GetPreferredSize().height());
+}
+
+TEST_F(SidebarTreeViewTest,
+       SearchFolderRowsExposeNavigationWithoutDisclosureState) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  const tab_tree::TreeNode folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
+  const tab_tree::TreeNode child =
+      MakeNode(workspace, folder.id, tab_tree::TreeNodeType::kSavedPage,
+               u"Matching page", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(child));
+
+  auto view = NewTreeView();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->SetSearchMatches({child.id}));
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+
+  SidebarTreeRowView* folder_row =
+      view->GetMaterializedRowForTesting(folder.id);
+  ASSERT_NE(nullptr, folder_row);
+  EXPECT_FALSE(folder_row->disclosure_visible_for_testing());
+  ui::AXNodeData folder_data;
+  folder_row->GetViewAccessibility().GetAccessibleNodeData(&folder_data);
+  EXPECT_FALSE(folder_data.HasState(ax::mojom::State::kExpanded));
+  EXPECT_FALSE(folder_data.HasState(ax::mojom::State::kCollapsed));
+  EXPECT_EQ(ax::mojom::DefaultActionVerb::kOpen,
+            folder_data.GetDefaultActionVerb());
+
+  ASSERT_TRUE(controller_->SelectNode(child.id));
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_LEFT, ui::EF_NONE)));
+  EXPECT_EQ(folder.id, controller_->view_model().selected_node_id());
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_RIGHT, ui::EF_NONE)));
+  EXPECT_EQ(child.id, controller_->view_model().selected_node_id());
+}
+
+TEST_F(SidebarTreeViewTest,
        RightArrowSelectsFirstVisibleChildPastRuntimeProxy) {
   const tab_tree::Workspace workspace = MakeWorkspace();
   const tab_tree::TreeNode folder =

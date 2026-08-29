@@ -19,6 +19,7 @@
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
+#include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
@@ -124,6 +125,9 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
     UpdateSidebarSyncControlsView(controls, profile_sync_service_,
                                   std::move(filter_devices));
   }
+  // Search is a direct navigation mode. Device-filter controls do not affect
+  // its exact matched rows and would otherwise imply a second active filter.
+  controls->SetVisible(sidebar_discovery_query_.empty());
   std::vector<views::View*> previous_rows;
   for (views::View* child : remote_tabs_container_->children()) {
     if (child != controls) {
@@ -141,7 +145,8 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
     if (tab.tombstone || !remote_url.is_valid() ||
         !remote_url.SchemeIsHTTPOrHTTPS() || remote_url.has_username() ||
         remote_url.has_password() ||
-        !SidebarSyncControlsMatchesDevice(controls, tab.device_id)) {
+        (sidebar_discovery_query_.empty() &&
+         !SidebarSyncControlsMatchesDevice(controls, tab.device_id))) {
       continue;
     }
     sync::DeviceType device_type = sync::DeviceType::kOther;
@@ -182,6 +187,12 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
         workspace_name = base::UTF8ToUTF16(workspace->name);
       }
     }
+    if (!sidebar_discovery_query_.empty() &&
+        !sidebar_discovery_device_tab_ids_.contains(
+            base::StrCat({tab.device_id.AsLowercaseString(), ":",
+                          tab.id.AsLowercaseString()}))) {
+      continue;
+    }
     const base::TimeDelta elapsed =
         std::max(base::TimeDelta(), base::Time::Now() - tab.last_active);
     remote_tabs_container_->AddChildView(CreateRemoteTabRowView(
@@ -195,9 +206,14 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
          .remote_status = std::move(remote_status),
          .favicon = GetFaviconForUrl(remote_url),
          .remote_actions_available = remote_actions_available},
-        {.open_here =
-             base::BindRepeating(&BrowserSidebarHostView::OpenRemoteTab,
-                                 weak_ptr_factory_.GetWeakPtr()),
+        {.open_here = base::BindRepeating(
+             [](base::WeakPtr<BrowserSidebarHostView> host,
+                sync::RemoteTabRecord remote_tab) {
+               if (host && host->OpenRemoteTab(std::move(remote_tab))) {
+                 host->ScheduleCloseSidebarDiscoveryAfterActivation();
+               }
+             },
+             weak_ptr_factory_.GetWeakPtr()),
          .take_over = base::BindRepeating(
              [](base::WeakPtr<BrowserSidebarHostView> host,
                 sync::RemoteTabRecord remote_tab) {
@@ -245,15 +261,16 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
   remote_tabs_container_->InvalidateLayout();
 }
 
-void BrowserSidebarHostView::OpenRemoteTab(sync::RemoteTabRecord tab) {
+bool BrowserSidebarHostView::OpenRemoteTab(sync::RemoteTabRecord tab) {
   const GURL url(tab.url);
   if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS() || url.has_username() ||
       url.has_password()) {
-    return;
+    return false;
   }
   NavigateParams params(browser_, url, ui::PAGE_TRANSITION_LINK);
   params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
   Navigate(&params);
+  return params.navigated_or_inserted_contents != nullptr;
 }
 
 void BrowserSidebarHostView::OnAhoiDeviceTabsChanged(

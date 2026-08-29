@@ -77,6 +77,9 @@ tab_tree::TabTreeStore::Result SidebarTreeController::ExpandNode(
       !view_model_.GetRowForNode(node_id).has_value()) {
     return tab_tree::TabTreeStore::Result::kNotFound;
   }
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kOk;
+  }
   if (!view_model_.AreChildrenLoaded(node_id)) {
     const tab_tree::TabTreeStore::Result result = RefreshChildren(node_id);
     if (result != tab_tree::TabTreeStore::Result::kOk) {
@@ -90,6 +93,11 @@ tab_tree::TabTreeStore::Result SidebarTreeController::ExpandNode(
 
 bool SidebarTreeController::CollapseNode(const base::Uuid& node_id) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    const tab_tree::TreeNode* node = view_model_.GetNode(node_id);
+    return node && node->type == tab_tree::TreeNodeType::kFolder &&
+           view_model_.GetRowForNode(node_id).has_value();
+  }
   return view_model_.SetExpanded(node_id, false);
 }
 
@@ -98,11 +106,210 @@ bool SidebarTreeController::SelectNode(std::optional<base::Uuid> node_id) {
   return view_model_.SetSelectedNode(std::move(node_id));
 }
 
+tab_tree::TabTreeStore::Result SidebarTreeController::SetSearchMatches(
+    const std::vector<base::Uuid>& match_node_ids) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return SetSearchProjection(match_node_ids,
+                             view_model_.search_context_groups());
+}
+
+tab_tree::TabTreeStore::Result SidebarTreeController::SetSearchContextGroups(
+    std::vector<std::vector<base::Uuid>> context_groups) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.search_context_groups() == context_groups) {
+    return tab_tree::TabTreeStore::Result::kOk;
+  }
+  if (!view_model_.is_search_projection_active()) {
+    view_model_.SetSearchContextGroups(std::move(context_groups));
+    return tab_tree::TabTreeStore::Result::kOk;
+  }
+  return SetSearchProjection(view_model_.GetSearchExactMatches(),
+                             std::move(context_groups));
+}
+
+tab_tree::TabTreeStore::Result SidebarTreeController::SetSearchProjection(
+    const std::vector<base::Uuid>& match_node_ids,
+    std::vector<std::vector<base::Uuid>> context_groups) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!view_model_.workspace_id().has_value()) {
+    return tab_tree::TabTreeStore::Result::kNotInitialized;
+  }
+  if (std::ranges::any_of(match_node_ids, [](const base::Uuid& id) {
+        return !id.is_valid();
+      })) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
+
+  const base::Uuid active_workspace = *view_model_.workspace_id();
+  std::unordered_map<base::Uuid, tab_tree::TreeNode, base::UuidHash>
+      fetched_nodes;
+  std::unordered_set<base::Uuid, base::UuidHash> missing_nodes;
+  const auto fetch_node = [&](const base::Uuid& node_id,
+                              tab_tree::TreeNode* node) {
+    if (const auto fetched = fetched_nodes.find(node_id);
+        fetched != fetched_nodes.end()) {
+      *node = fetched->second;
+      return tab_tree::TabTreeStore::Result::kOk;
+    }
+    if (missing_nodes.contains(node_id)) {
+      return tab_tree::TabTreeStore::Result::kNotFound;
+    }
+    if (const tab_tree::TreeNode* cached = view_model_.GetNode(node_id)) {
+      *node = *cached;
+      fetched_nodes.emplace(node_id, *node);
+      return tab_tree::TabTreeStore::Result::kOk;
+    }
+    const tab_tree::TabTreeStore::Result result =
+        store_->GetNode(node_id, node);
+    if (result == tab_tree::TabTreeStore::Result::kOk) {
+      fetched_nodes.emplace(node_id, *node);
+    } else if (result == tab_tree::TabTreeStore::Result::kNotFound) {
+      missing_nodes.insert(node_id);
+    }
+    return result;
+  };
+
+  const auto fetch_complete_chain =
+      [&](const base::Uuid& leaf_id,
+          std::optional<tab_tree::TreeNodeType> required_leaf_type,
+          std::vector<tab_tree::TreeNode>* chain) {
+        chain->clear();
+        tab_tree::TreeNode leaf;
+        const tab_tree::TabTreeStore::Result leaf_result =
+            fetch_node(leaf_id, &leaf);
+        if (leaf_result != tab_tree::TabTreeStore::Result::kOk) {
+          return leaf_result;
+        }
+        if (leaf.tombstone || leaf.workspace_id != active_workspace ||
+            (required_leaf_type.has_value() &&
+             leaf.type != *required_leaf_type)) {
+          return tab_tree::TabTreeStore::Result::kNotFound;
+        }
+
+        std::unordered_set<base::Uuid, base::UuidHash> visited;
+        tab_tree::TreeNode current = std::move(leaf);
+        while (visited.insert(current.id).second && !current.tombstone &&
+               current.workspace_id == active_workspace) {
+          chain->push_back(current);
+          if (!current.parent_id.has_value()) {
+            return tab_tree::TabTreeStore::Result::kOk;
+          }
+          tab_tree::TreeNode parent;
+          const tab_tree::TabTreeStore::Result parent_result =
+              fetch_node(*current.parent_id, &parent);
+          if (parent_result != tab_tree::TabTreeStore::Result::kOk) {
+            return parent_result;
+          }
+          if (parent.type != tab_tree::TreeNodeType::kFolder) {
+            return tab_tree::TabTreeStore::Result::kNotFound;
+          }
+          current = std::move(parent);
+        }
+        return tab_tree::TabTreeStore::Result::kNotFound;
+      };
+
+  std::unordered_set<base::Uuid, base::UuidHash> active_matches;
+  std::unordered_set<base::Uuid, base::UuidHash> active_saved_page_matches;
+  std::unordered_map<base::Uuid, tab_tree::TreeNode, base::UuidHash>
+      chain_nodes;
+  std::vector<std::optional<base::Uuid>> parent_lists_to_load;
+  const auto remember_chain =
+      [&](const std::vector<tab_tree::TreeNode>& chain) {
+        for (const tab_tree::TreeNode& node : chain) {
+          chain_nodes.insert_or_assign(node.id, node);
+          AddUniqueParent(&parent_lists_to_load, node.parent_id);
+        }
+      };
+
+  for (const base::Uuid& match_id : match_node_ids) {
+    if (active_matches.contains(match_id)) {
+      continue;
+    }
+    std::vector<tab_tree::TreeNode> chain;
+    const tab_tree::TabTreeStore::Result chain_result =
+        fetch_complete_chain(match_id, std::nullopt, &chain);
+    if (chain_result == tab_tree::TabTreeStore::Result::kNotFound) {
+      continue;
+    }
+    if (chain_result != tab_tree::TabTreeStore::Result::kOk) {
+      return chain_result;
+    }
+
+    active_matches.insert(match_id);
+    if (chain.front().type == tab_tree::TreeNodeType::kSavedPage) {
+      active_saved_page_matches.insert(match_id);
+    }
+    remember_chain(chain);
+  }
+
+  // A split is one visual/browser unit. Once one saved member is an exact
+  // match, project every valid saved partner together with each partner's
+  // hierarchy, even when those nodes were never expanded or cached before.
+  std::unordered_set<base::Uuid, base::UuidHash> loaded_context_ids;
+  for (const std::vector<base::Uuid>& group : context_groups) {
+    if (!std::ranges::any_of(
+            group, [&active_saved_page_matches](const base::Uuid& node_id) {
+              return active_saved_page_matches.contains(node_id);
+            })) {
+      continue;
+    }
+    for (const base::Uuid& context_id : group) {
+      if (!context_id.is_valid() || active_matches.contains(context_id) ||
+          !loaded_context_ids.insert(context_id).second) {
+        continue;
+      }
+      std::vector<tab_tree::TreeNode> chain;
+      const tab_tree::TabTreeStore::Result chain_result = fetch_complete_chain(
+          context_id, tab_tree::TreeNodeType::kSavedPage, &chain);
+      if (chain_result == tab_tree::TabTreeStore::Result::kNotFound) {
+        continue;
+      }
+      if (chain_result != tab_tree::TabTreeStore::Result::kOk) {
+        return chain_result;
+      }
+      remember_chain(chain);
+    }
+  }
+
+  view_model_.BeginUpdate();
+  for (const auto& entry : chain_nodes) {
+    if (!view_model_.CacheNode(entry.second)) {
+      view_model_.EndUpdate();
+      return tab_tree::TabTreeStore::Result::kInvalidArgument;
+    }
+  }
+  for (const std::optional<base::Uuid>& parent_id : parent_lists_to_load) {
+    if (view_model_.AreChildrenLoaded(parent_id)) {
+      continue;
+    }
+    const tab_tree::TabTreeStore::Result result = RefreshChildren(parent_id);
+    if (result != tab_tree::TabTreeStore::Result::kOk) {
+      view_model_.EndUpdate();
+      return result;
+    }
+  }
+  view_model_.SetSearchContextGroups(std::move(context_groups));
+  if (!view_model_.SetSearchMatches(std::move(active_matches))) {
+    view_model_.EndUpdate();
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
+  view_model_.EndUpdate();
+  return tab_tree::TabTreeStore::Result::kOk;
+}
+
+void SidebarTreeController::ClearSearchMatches() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  view_model_.ClearSearchMatches();
+}
+
 tab_tree::TabTreeStore::Result SidebarTreeController::RenameNode(
     const base::Uuid& node_id,
     std::u16string title,
     base::Time modified_at) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   return store_->RenameNode(node_id, std::move(title), modified_at);
 }
 
@@ -113,6 +320,9 @@ tab_tree::TabTreeStore::Result SidebarTreeController::UpdateFolderPresentation(
     std::optional<uint32_t> accent_argb,
     base::Time modified_at) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   return store_->UpdateFolderPresentation(
       node_id, std::move(title), std::move(icon), accent_argb, modified_at);
 }
@@ -134,6 +344,9 @@ tab_tree::TabTreeStore::Result SidebarTreeController::CreateGroupAroundNodes(
     std::u16string icon,
     std::optional<uint32_t> accent_argb) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   return store_->CreateStyledFolderAroundNodes(
       source_node_ids, std::move(title), std::move(icon), accent_argb,
       modified_at, folder_id);
@@ -147,6 +360,9 @@ tab_tree::TabTreeStore::Result SidebarTreeController::CreateFolder(
     std::u16string icon,
     std::optional<uint32_t> accent_argb) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   if (!view_model_.workspace_id().has_value() || title.empty() ||
       modified_at.is_null() || !folder_id ||
       (parent_id.has_value() && !parent_id->is_valid())) {
@@ -203,6 +419,9 @@ tab_tree::TabTreeStore::Result SidebarTreeController::DeleteNode(
     const base::Uuid& node_id,
     base::Time modified_at) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   return store_->DeleteNode(node_id, modified_at);
 }
 
@@ -210,6 +429,9 @@ tab_tree::TabTreeStore::Result SidebarTreeController::DeleteNodes(
     const std::vector<base::Uuid>& node_ids,
     base::Time modified_at) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   return node_ids.size() == 1
              ? store_->DeleteNode(node_ids.front(), modified_at)
              : store_->DeleteNodesAtomically(node_ids, modified_at);
@@ -217,12 +439,18 @@ tab_tree::TabTreeStore::Result SidebarTreeController::DeleteNodes(
 
 tab_tree::TabTreeStore::Result SidebarTreeController::UndoLastMutation() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   return store_->UndoLastMutation();
 }
 
 SidebarTreeController::DropValidationResult
 SidebarTreeController::ValidateNewSavedPageDrop(const DropTarget& target) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return DropValidationResult::kInvalidArgument;
+  }
   if (!target.workspace_id.is_valid() ||
       (target.target_node_id.has_value() &&
        !target.target_node_id->is_valid()) ||
@@ -252,6 +480,9 @@ tab_tree::TabTreeStore::Result SidebarTreeController::CreateSavedPageAtDrop(
     base::Time modified_at,
     tab_tree::TreeNode* created_node) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   if (title.empty() || !url.is_valid() || url.is_empty() ||
       modified_at.is_null() || !created_node) {
     return tab_tree::TabTreeStore::Result::kInvalidArgument;
@@ -288,6 +519,9 @@ SidebarTreeController::DropValidationResult SidebarTreeController::ValidateDrop(
     DropOperation operation,
     DropPlan* plan) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (view_model_.is_search_projection_active()) {
+    return DropValidationResult::kInvalidArgument;
+  }
   if (!source_node_id.is_valid() || !target.workspace_id.is_valid() || !plan ||
       (target.target_node_id.has_value() &&
        !target.target_node_id->is_valid()) ||

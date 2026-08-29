@@ -295,9 +295,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
                           base::Unretained(this)),
       base::BindRepeating(&BrowserSidebarHostView::DropOpenTabToTemporary,
                           base::Unretained(this)),
-      base::BindRepeating(
-          &BrowserSidebarHostView::ClaimDropTargetPresentation,
-          weak_ptr_factory_.GetWeakPtr()));
+      base::BindRepeating(&BrowserSidebarHostView::ClaimDropTargetPresentation,
+                          weak_ptr_factory_.GetWeakPtr()));
   open_tabs->GetViewAccessibility().SetRole(ax::mojom::Role::kTabList);
   open_tabs->GetViewAccessibility().SetName(
       l10n_util::GetStringUTF16(IDS_TAB_SEARCH_OPEN_TABS));
@@ -354,13 +353,26 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   // action remain at their old x position and are clipped by the new viewport.
   scroll->SetUseContentsPreferredSize(true);
   scroll->SetContents(std::move(tabs_surface));
-  media_overlay_view_ = AddChildView(
-      CreateMiniPlayerOverlay(std::move(scroll), mini_player_scroll_inset));
-  layout->SetFlexForView(media_overlay_view_, 1, /*use_min_size=*/true);
-
+  auto media_overlay =
+      CreateMiniPlayerOverlay(std::move(scroll), mini_player_scroll_inset);
+  media_overlay_view_ = media_overlay.get();
   if (discovery_model_) {
     auto discovery = std::make_unique<SidebarDiscoveryView>(
-        discovery_model_.get(),
+        discovery_model_.get(), std::move(media_overlay),
+        base::BindRepeating(
+            [](base::WeakPtr<BrowserSidebarHostView> host,
+               const std::u16string& query,
+               const std::vector<SidebarDiscoveryItem>& items) {
+              return host ? host->ApplySidebarDiscoveryFilter(query, items)
+                          : std::set<std::string>();
+            },
+            weak_ptr_factory_.GetWeakPtr()),
+        base::BindRepeating(
+            [](base::WeakPtr<BrowserSidebarHostView> host,
+               SidebarDiscoveryView::PrimaryResultAction action) {
+              return host && host->HandleSidebarDiscoveryPrimaryResult(action);
+            },
+            weak_ptr_factory_.GetWeakPtr()),
         base::BindRepeating(
             [](base::WeakPtr<BrowserSidebarHostView> host,
                const CommandItem& item) {
@@ -374,9 +386,11 @@ BrowserSidebarHostView::BrowserSidebarHostView(
             weak_ptr_factory_.GetWeakPtr()),
         base::BindRepeating(&BrowserSidebarHostView::CloseSidebarDiscovery,
                             weak_ptr_factory_.GetWeakPtr()));
-    discovery->SetVisible(false);
     discovery_view_ = AddChildView(std::move(discovery));
     layout->SetFlexForView(discovery_view_, 1, /*use_min_size=*/true);
+  } else {
+    media_overlay_view_ = AddChildView(std::move(media_overlay));
+    layout->SetFlexForView(media_overlay_view_, 1, /*use_min_size=*/true);
   }
 
   auto actions = std::make_unique<views::View>();
@@ -664,6 +678,11 @@ void BrowserSidebarHostView::ActivateInitialWorkspace() {
 }
 
 void BrowserSidebarHostView::ActivateWorkspace(const base::Uuid& workspace_id) {
+  // A workspace reset clears the tree projection. Close discovery first so a
+  // visible query can never be paired with an unfiltered replacement tree.
+  if (discovery_view_ && discovery_view_->is_open()) {
+    CloseSidebarDiscovery();
+  }
   if (controller_->ActivateWorkspace(workspace_id) !=
       tab_tree::TabTreeStore::Result::kOk) {
     return;

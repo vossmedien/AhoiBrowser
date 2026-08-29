@@ -65,7 +65,8 @@ bool SidebarTreeView::AreDropTypesRequired() {
 }
 
 bool SidebarTreeView::CanDrop(const ui::OSExchangeData& data) {
-  return model().workspace_id().has_value() &&
+  return !model().is_search_projection_active() &&
+         model().workspace_id().has_value() &&
          drag::ReadSidebarTabDragPayload(data).has_value();
 }
 
@@ -74,6 +75,10 @@ void SidebarTreeView::OnDragEntered(const ui::DropTargetEvent& event) {
 }
 
 int SidebarTreeView::OnDragUpdated(const ui::DropTargetEvent& event) {
+  if (model().is_search_projection_active()) {
+    ClearDropTargetPresentation();
+    return static_cast<int>(ui::mojom::DragOperation::kNone);
+  }
   const std::optional<drag::SidebarTabDragPayload> payload =
       drag::ReadSidebarTabDragPayload(event.data());
   if (!payload.has_value()) {
@@ -148,7 +153,8 @@ void SidebarTreeView::ClearDropTargetPresentation() {
 
 views::View::DropCallback SidebarTreeView::GetDropCallback(
     const ui::DropTargetEvent& /*event*/) {
-  if (!drop_indicator_.has_value()) {
+  if (model().is_search_projection_active() || !drop_indicator_.has_value()) {
+    ClearDropTargetPresentation();
     return base::NullCallback();
   }
   DropIndicator indicator = *drop_indicator_;
@@ -166,12 +172,16 @@ void SidebarTreeView::OnBatchUpdateStarted() {
 
 int SidebarTreeView::GetDragOperationsForView(views::View* sender,
                                               const gfx::Point& point) {
-  return ui::DragDropTypes::DRAG_MOVE;
+  return model().is_search_projection_active() ? ui::DragDropTypes::DRAG_NONE
+                                               : ui::DragDropTypes::DRAG_MOVE;
 }
 
 bool SidebarTreeView::CanStartDragForView(views::View* sender,
                                           const gfx::Point& press_pt,
                                           const gfx::Point& /*point*/) {
+  if (model().is_search_projection_active()) {
+    return false;
+  }
   auto* row = views::AsViewClass<SidebarTreeRowView>(sender);
   const bool allowed = row && row->is_bound() && !row->is_editing() &&
                        !row->IsTrailingActionAt(press_pt);
@@ -501,9 +511,8 @@ SidebarTreeView::StabilizeInsertionSlot(
 }
 
 std::optional<SidebarTreeView::DropIndicator>
-SidebarTreeView::StabilizeDropZone(
-    std::optional<DropIndicator> indicator,
-    const gfx::Point& point) const {
+SidebarTreeView::StabilizeDropZone(std::optional<DropIndicator> indicator,
+                                   const gfx::Point& point) const {
   if (!indicator.has_value() || !drop_indicator_.has_value() ||
       indicator->source_node_id != drop_indicator_->source_node_id ||
       indicator->source_runtime_tab_handle !=

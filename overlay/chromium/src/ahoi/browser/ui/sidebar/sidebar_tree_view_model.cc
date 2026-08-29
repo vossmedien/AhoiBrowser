@@ -66,6 +66,8 @@ bool SidebarTreeViewModel::ResetWorkspace(const base::Uuid& workspace_id) {
   root_children_.clear();
   root_children_loaded_ = false;
   expanded_nodes_.clear();
+  search_exact_match_node_ids_.reset();
+  search_context_groups_.clear();
   rows_.clear();
   row_by_id_.clear();
   selected_node_id_.reset();
@@ -148,6 +150,11 @@ bool SidebarTreeViewModel::ReplaceChildren(
     root_children_loaded_ = true;
   }
 
+  if (search_exact_match_node_ids_.has_value()) {
+    RebuildCurrentProjection(/*preserve_selection=*/true);
+    return true;
+  }
+
   if (parent_id.has_value() && old_count == 0 && !IsRowVisible(*parent_id)) {
     return true;
   }
@@ -189,12 +196,25 @@ bool SidebarTreeViewModel::CacheNode(const tab_tree::TreeNode& node) {
 void SidebarTreeViewModel::EraseCachedNodes(
     const std::vector<base::Uuid>& node_ids) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const bool search_active = search_exact_match_node_ids_.has_value();
+  bool search_projection_changed = false;
   for (const base::Uuid& node_id : node_ids) {
-    if (IsRowVisible(node_id)) {
+    // In the normal projection a visible row is owned by its parent's
+    // ReplaceChildren splice and cannot be erased out from under that update.
+    // Search rows are a derived projection, so a deleted exact match or
+    // ancestor must be evicted immediately or it survives as a ghost result.
+    if (!search_active && IsRowVisible(node_id)) {
       continue;
     }
     expanded_nodes_.erase(node_id);
-    nodes_.erase(node_id);
+    search_projection_changed |= nodes_.erase(node_id) > 0;
+    if (search_active) {
+      search_projection_changed |=
+          search_exact_match_node_ids_->erase(node_id) > 0;
+    }
+  }
+  if (search_active && search_projection_changed) {
+    RebuildCurrentProjection(/*preserve_selection=*/true);
   }
 }
 
@@ -207,6 +227,12 @@ bool SidebarTreeViewModel::SetExpanded(const base::Uuid& node_id,
       node->second.node.type != tab_tree::TreeNodeType::kFolder ||
       (expanded && !node->second.children_loaded)) {
     return false;
+  }
+  // Search forces only the ancestor paths needed by the projection to look
+  // expanded. Toggling one of those rows must not leak into the user's normal
+  // expansion state.
+  if (search_exact_match_node_ids_.has_value()) {
+    return true;
   }
   if (expanded_nodes_.contains(node_id) == expanded) {
     return true;
@@ -264,6 +290,62 @@ bool SidebarTreeViewModel::SetSelectedNode(std::optional<base::Uuid> node_id) {
   return true;
 }
 
+bool SidebarTreeViewModel::SetSearchMatches(
+    std::unordered_set<base::Uuid, base::UuidHash> node_ids) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!workspace_id_.has_value() ||
+      std::ranges::any_of(
+          node_ids, [](const base::Uuid& id) { return !id.is_valid(); })) {
+    return false;
+  }
+  if (search_exact_match_node_ids_.has_value() &&
+      *search_exact_match_node_ids_ == node_ids) {
+    return true;
+  }
+  search_exact_match_node_ids_ = std::move(node_ids);
+  RebuildCurrentProjection(/*preserve_selection=*/true);
+  return true;
+}
+
+void SidebarTreeViewModel::ClearSearchMatches() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!search_exact_match_node_ids_.has_value()) {
+    return;
+  }
+  search_exact_match_node_ids_.reset();
+  RebuildCurrentProjection(/*preserve_selection=*/true);
+  // Preserve the pre-search selection when it is still valid, but repair a
+  // stale identity if the underlying tree changed while the filter was open.
+  NormalizeSelection();
+}
+
+void SidebarTreeViewModel::SetSearchContextGroups(
+    std::vector<std::vector<base::Uuid>> context_groups) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  std::vector<std::vector<base::Uuid>> normalized;
+  normalized.reserve(context_groups.size());
+  for (std::vector<base::Uuid>& group : context_groups) {
+    std::unordered_set<base::Uuid, base::UuidHash> seen;
+    std::vector<base::Uuid> valid_group;
+    valid_group.reserve(group.size());
+    for (const base::Uuid& node_id : group) {
+      if (node_id.is_valid() && seen.insert(node_id).second) {
+        valid_group.push_back(node_id);
+      }
+    }
+    if (valid_group.size() >= 2) {
+      normalized.push_back(std::move(valid_group));
+    }
+  }
+  if (search_context_groups_ == normalized) {
+    return;
+  }
+  search_context_groups_ = std::move(normalized);
+  if (search_exact_match_node_ids_.has_value()) {
+    RebuildCurrentProjection(/*preserve_selection=*/true);
+  }
+}
+
 void SidebarTreeViewModel::BeginUpdate() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (update_depth_++ != 0) {
@@ -288,6 +370,9 @@ void SidebarTreeViewModel::EndUpdate() {
 
 void SidebarTreeViewModel::NormalizeSelection() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (search_exact_match_node_ids_.has_value()) {
+    return;
+  }
   if (!selected_node_id_.has_value() || IsRowVisible(*selected_node_id_)) {
     return;
   }
@@ -326,6 +411,32 @@ std::optional<size_t> SidebarTreeViewModel::GetRowForNode(
 bool SidebarTreeViewModel::IsExpanded(const base::Uuid& node_id) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   return expanded_nodes_.contains(node_id);
+}
+
+bool SidebarTreeViewModel::IsSearchExactMatch(const base::Uuid& node_id) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return search_exact_match_node_ids_.has_value() &&
+         search_exact_match_node_ids_->contains(node_id);
+}
+
+bool SidebarTreeViewModel::IsSearchContext(const base::Uuid& node_id) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return search_exact_match_node_ids_.has_value() &&
+         !search_exact_match_node_ids_->contains(node_id) &&
+         row_by_id_.contains(node_id);
+}
+
+bool SidebarTreeViewModel::IsSearchMatch(const base::Uuid& node_id) const {
+  return IsSearchExactMatch(node_id);
+}
+
+std::vector<base::Uuid> SidebarTreeViewModel::GetSearchExactMatches() const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!search_exact_match_node_ids_.has_value()) {
+    return {};
+  }
+  return {search_exact_match_node_ids_->begin(),
+          search_exact_match_node_ids_->end()};
 }
 
 bool SidebarTreeViewModel::AreChildrenLoaded(
@@ -414,9 +525,135 @@ SidebarTreeViewModel::BuildVisibleChildren(
   return visible;
 }
 
+void SidebarTreeViewModel::IncludeLoadedSearchChain(
+    const base::Uuid& leaf_id,
+    std::unordered_set<base::Uuid, base::UuidHash>* included) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CHECK(included);
+  CHECK(workspace_id_.has_value());
+  std::vector<base::Uuid> chain;
+  std::unordered_set<base::Uuid, base::UuidHash> visited;
+  std::optional<base::Uuid> cursor = leaf_id;
+  while (cursor.has_value() && visited.insert(*cursor).second) {
+    const auto node = nodes_.find(*cursor);
+    if (node == nodes_.end() ||
+        node->second.node.workspace_id != *workspace_id_ ||
+        node->second.node.tombstone) {
+      return;
+    }
+    chain.push_back(*cursor);
+    cursor = node->second.node.parent_id;
+  }
+  if (!cursor.has_value()) {
+    included->insert(chain.begin(), chain.end());
+  }
+}
+
+std::vector<SidebarTreeViewModel::Row>
+SidebarTreeViewModel::BuildSearchProjection() const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CHECK(search_exact_match_node_ids_.has_value());
+
+  std::unordered_set<base::Uuid, base::UuidHash> included;
+  included.reserve(search_exact_match_node_ids_->size() * 2U);
+
+  for (const base::Uuid& match_id : *search_exact_match_node_ids_) {
+    IncludeLoadedSearchChain(match_id, &included);
+  }
+  for (const std::vector<base::Uuid>& group : search_context_groups_) {
+    bool contains_match = false;
+    for (const base::Uuid& node_id : group) {
+      const auto node = nodes_.find(node_id);
+      if (search_exact_match_node_ids_->contains(node_id) &&
+          node != nodes_.end() &&
+          node->second.node.type == tab_tree::TreeNodeType::kSavedPage) {
+        contains_match = true;
+        break;
+      }
+    }
+    if (!contains_match) {
+      continue;
+    }
+    for (const base::Uuid& context_id : group) {
+      const auto context = nodes_.find(context_id);
+      if (context != nodes_.end() &&
+          context->second.node.type == tab_tree::TreeNodeType::kSavedPage) {
+        IncludeLoadedSearchChain(context_id, &included);
+      }
+    }
+  }
+
+  struct PendingRow {
+    base::Uuid node_id;
+    size_t depth;
+    size_t position_in_parent;
+    size_t sibling_count;
+  };
+  std::vector<PendingRow> pending;
+  pending.reserve(root_children_.size());
+  for (size_t index = root_children_.size(); index > 0; --index) {
+    if (included.contains(root_children_[index - 1])) {
+      pending.push_back(
+          {root_children_[index - 1], 0, index, root_children_.size()});
+    }
+  }
+
+  std::vector<Row> projection;
+  projection.reserve(included.size());
+  std::unordered_set<base::Uuid, base::UuidHash> visited;
+  while (!pending.empty()) {
+    PendingRow current = std::move(pending.back());
+    pending.pop_back();
+    if (!visited.insert(current.node_id).second) {
+      continue;
+    }
+    const auto node = nodes_.find(current.node_id);
+    if (node == nodes_.end()) {
+      continue;
+    }
+    bool has_projected_child = false;
+    if (node->second.children_loaded) {
+      has_projected_child = std::ranges::any_of(
+          node->second.children, [&included](const base::Uuid& child_id) {
+            return included.contains(child_id);
+          });
+    }
+    projection.push_back({.node_id = current.node_id,
+                          .depth = current.depth,
+                          .position_in_parent = current.position_in_parent,
+                          .sibling_count = current.sibling_count,
+                          .type = node->second.node.type,
+                          .expanded = node->second.node.type ==
+                                          tab_tree::TreeNodeType::kFolder &&
+                                      has_projected_child});
+    if (!node->second.children_loaded) {
+      continue;
+    }
+    for (size_t index = node->second.children.size(); index > 0; --index) {
+      const base::Uuid& child_id = node->second.children[index - 1];
+      if (included.contains(child_id)) {
+        pending.push_back(
+            {child_id, current.depth + 1, index, node->second.children.size()});
+      }
+    }
+  }
+  return projection;
+}
+
+void SidebarTreeViewModel::RebuildCurrentProjection(bool preserve_selection) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  std::vector<Row> replacement =
+      search_exact_match_node_ids_.has_value()
+          ? BuildSearchProjection()
+          : BuildVisibleChildren(root_children_, /*depth=*/0);
+  ApplyVisibleSplice(/*first_row=*/0, rows_.size(), std::move(replacement),
+                     preserve_selection);
+}
+
 void SidebarTreeViewModel::ApplyVisibleSplice(size_t first_row,
                                               size_t old_count,
-                                              std::vector<Row> replacement) {
+                                              std::vector<Row> replacement,
+                                              bool preserve_selection) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK_LE(first_row + old_count, rows_.size());
 
@@ -467,7 +704,7 @@ void SidebarTreeViewModel::ApplyVisibleSplice(size_t first_row,
   RebuildRowIndex(first_row);
   NotifyChangedRuns(first_row, old_rows, replacement, prefix_count,
                     suffix_count);
-  if (update_depth_ == 0) {
+  if (update_depth_ == 0 && !preserve_selection) {
     NormalizeSelection();
   }
 }

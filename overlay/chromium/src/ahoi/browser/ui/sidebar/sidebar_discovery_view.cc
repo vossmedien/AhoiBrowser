@@ -6,13 +6,16 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
+#include "base/i18n/string_search.h"
 #include "base/location.h"
+#include "base/strings/string_util.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
 #include "chrome/grit/generated_resources.h"
@@ -31,6 +34,7 @@
 #include "ui/views/border.h"
 #include "ui/views/controls/button/button.h"
 #include "ui/views/controls/focus_ring.h"
+#include "ui/views/controls/highlight_path_generator.h"
 #include "ui/views/controls/image_view.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/scroll_view.h"
@@ -41,8 +45,16 @@ namespace ahoi::sidebar {
 
 namespace {
 
-constexpr size_t kMaxSearchResults = 64u;
+// Search must see beyond a busy cross-workspace result head so current-
+// workspace tree matches are not accidentally omitted from the inline
+// projection. Only the compact supplemental sections are rendered below.
+constexpr size_t kMaxSearchResults = 256u;
 constexpr size_t kMaxRecentlyClosedResults = 24u;
+constexpr size_t kMaxSupplementalSearchResults = 4u;
+constexpr size_t kMaxSupplementalRecentlyClosedResults = 4u;
+constexpr size_t kMaxFilteredRecentlyClosedResults = 3u;
+constexpr int kSupplementalResultRowHeight = 46;
+constexpr int kSupplementalResultSpacing = 2;
 
 bool IsRecentlyClosed(SidebarDiscoveryItemKind kind) {
   return kind == SidebarDiscoveryItemKind::kRecentlyClosedTab ||
@@ -88,6 +100,19 @@ std::u16string TypeLabelForItem(SidebarDiscoveryItemKind kind) {
   return l10n_util::GetStringUTF16(message_id);
 }
 
+bool MatchesQuery(const SidebarDiscoveryItem& item,
+                  const std::u16string& query) {
+  if (query.empty()) {
+    return true;
+  }
+  return base::i18n::StringSearchIgnoringCaseAndAccents(query, item.title,
+                                                        nullptr, nullptr) ||
+         base::i18n::StringSearchIgnoringCaseAndAccents(
+             query, item.secondary_text, nullptr, nullptr) ||
+         base::i18n::StringSearchIgnoringCaseAndAccents(
+             query, TypeLabelForItem(item.kind), nullptr, nullptr);
+}
+
 const gfx::VectorIcon& IconForItem(SidebarDiscoveryItemKind kind) {
   if (IsRecentlyClosed(kind)) {
     return vector_icons::kHistoryIcon;
@@ -113,7 +138,12 @@ const gfx::VectorIcon& IconForItem(SidebarDiscoveryItemKind kind) {
 }
 
 std::u16string ItemSecondaryText(const SidebarDiscoveryItem& item) {
-  std::u16string secondary = TypeLabelForItem(item.kind);
+  // The section heading already provides the origin for restored entries.
+  // Repeating "recently closed tab" on every compact row crowds out the
+  // useful URL and relative time, especially at the minimum sidebar width.
+  std::u16string secondary = IsRecentlyClosed(item.kind)
+                                 ? std::u16string()
+                                 : TypeLabelForItem(item.kind);
   const auto append = [&secondary](std::u16string text) {
     if (text.empty()) {
       return;
@@ -148,6 +178,32 @@ std::u16string AccessibleItemName(const SidebarDiscoveryItem& item) {
   return name;
 }
 
+class SidebarDiscoverySearchField final : public views::Textfield {
+  METADATA_HEADER(SidebarDiscoverySearchField, views::Textfield)
+
+ public:
+  explicit SidebarDiscoverySearchField(views::View* focus_shell)
+      : focus_shell_(focus_shell) {
+    CHECK(focus_shell_);
+  }
+
+  void OnFocus() override {
+    views::Textfield::OnFocus();
+    views::FocusRing::Get(focus_shell_.get())->Refresh();
+  }
+
+  void OnBlur() override {
+    views::Textfield::OnBlur();
+    views::FocusRing::Get(focus_shell_.get())->Refresh();
+  }
+
+ private:
+  const raw_ptr<views::View> focus_shell_;
+};
+
+BEGIN_METADATA(SidebarDiscoverySearchField)
+END_METADATA
+
 class SidebarDiscoveryCloseButton final : public views::Button {
   METADATA_HEADER(SidebarDiscoveryCloseButton, views::Button)
 
@@ -157,7 +213,7 @@ class SidebarDiscoveryCloseButton final : public views::Button {
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetHasInkDropActionOnClick(false);
     SetShowInkDropWhenHotTracked(false);
-    SetPreferredSize(gfx::Size(28, 28));
+    SetPreferredSize(gfx::Size(32, 32));
     const std::u16string close = l10n_util::GetStringUTF16(IDS_CLOSE);
     SetAccessibleName(close);
     SetTooltipText(close);
@@ -177,7 +233,7 @@ class SidebarDiscoveryCloseButton final : public views::Button {
                              HasFocus();
     SetBackground(highlighted ? views::CreateRoundedRectBackground(
                                     visual_style::kHoverSurface,
-                                    visual_style::kControlCornerRadius)
+                                    visual_style::kRowCornerRadius)
                               : nullptr);
   }
 
@@ -207,12 +263,11 @@ class SidebarDiscoveryResultRow final : public views::Button {
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetHasInkDropActionOnClick(false);
     SetShowInkDropWhenHotTracked(false);
-    SetPreferredSize(gfx::Size(0, 50));
+    SetPreferredSize(gfx::Size(0, kSupplementalResultRowHeight));
     SetAccessibleName(AccessibleItemName(item));
-    GetViewAccessibility().SetRole(ax::mojom::Role::kListBoxOption);
 
     auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
-        views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(6, 9), 9));
+        views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(4, 9), 9));
     layout->set_cross_axis_alignment(
         views::BoxLayout::CrossAxisAlignment::kCenter);
 
@@ -256,7 +311,6 @@ class SidebarDiscoveryResultRow final : public views::Button {
       return;
     }
     selected_ = selected;
-    GetViewAccessibility().SetIsSelected(selected_);
     UpdateBackground();
   }
 
@@ -308,14 +362,22 @@ END_METADATA
 
 SidebarDiscoveryView::SidebarDiscoveryView(
     SidebarDiscoveryModel* model,
+    std::unique_ptr<views::View> primary_surface,
+    FilterCallback filter_callback,
+    PrimaryResultCallback primary_result_callback,
     ActivateCommandCallback activate_command_callback,
     RestoreCallback restore_callback,
     CloseCallback close_callback)
     : model_(model),
+      filter_callback_(std::move(filter_callback)),
+      primary_result_callback_(std::move(primary_result_callback)),
       activate_command_callback_(std::move(activate_command_callback)),
       restore_callback_(std::move(restore_callback)),
       close_callback_(std::move(close_callback)) {
   CHECK(model_);
+  CHECK(primary_surface);
+  CHECK(filter_callback_);
+  CHECK(primary_result_callback_);
   CHECK(activate_command_callback_);
   CHECK(restore_callback_);
   CHECK(close_callback_);
@@ -336,7 +398,7 @@ SidebarDiscoveryView::SidebarDiscoveryView(
       visual_style::kDivider));
   auto* input_layout =
       input_shell->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(0, 9),
+          views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(0, 7),
           6));
   input_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kCenter);
@@ -347,77 +409,152 @@ SidebarDiscoveryView::SidebarDiscoveryView(
   search_icon->SetCanProcessEventsWithinSubtree(false);
   search_icon->GetViewAccessibility().SetIsIgnored(true);
 
-  search_field_ =
-      input_shell->AddChildView(std::make_unique<views::Textfield>());
+  input_shell_ = input_shell.get();
+  search_field_ = input_shell->AddChildView(
+      std::make_unique<SidebarDiscoverySearchField>(input_shell_));
   const std::u16string placeholder =
       l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_DISCOVERY_SEARCH);
   search_field_->SetController(this);
   search_field_->SetPlaceholderText(placeholder);
   search_field_->SetAccessibleName(placeholder);
   search_field_->SetFocusBehavior(FocusBehavior::ALWAYS);
-  search_field_->SetBorder(nullptr);
+  search_field_->SetBorder(views::CreateEmptyBorder(
+      gfx::Insets::VH(0, visual_style::kSidebarSearchTextHorizontalInset)));
   search_field_->SetBackgroundColor(visual_style::kRaisedSurface);
   search_field_->SetTextColorId(visual_style::kText);
   search_field_->SetPlaceholderTextColorId(visual_style::kMutedText);
   search_field_->RemoveHoverEffect();
-  views::FocusRing::Install(search_field_);
-  views::FocusRing::Get(search_field_)->SetOutsetFocusRingDisabled(true);
+  views::FocusRing::Install(input_shell_);
+  views::FocusRing::Get(input_shell_)->SetOutsetFocusRingDisabled(true);
+  views::FocusRing::Get(input_shell_)->SetColorId(visual_style::kAccent);
+  views::FocusRing::Get(input_shell_)
+      ->SetHasFocusPredicate(base::BindRepeating(
+          [](const views::Textfield* search_field, const views::View*) {
+            return search_field->HasFocus();
+          },
+          search_field_.get()));
+  views::InstallRoundRectHighlightPathGenerator(
+      input_shell_, gfx::Insets(), visual_style::kControlCornerRadius);
   input_layout->SetFlexForView(search_field_, 1);
-  input_shell->AddChildView(
+  close_button_ = input_shell->AddChildView(
       std::make_unique<SidebarDiscoveryCloseButton>(base::BindRepeating(
           [](base::WeakPtr<SidebarDiscoveryView> view, const ui::Event&) {
             if (view) {
-              base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
-                  FROM_HERE,
-                  base::BindOnce(
-                      [](base::WeakPtr<SidebarDiscoveryView> pending_view) {
-                        if (pending_view) {
-                          pending_view->close_callback_.Run();
-                        }
-                      },
-                      view));
+              view->CloseOrClear();
             }
           },
           weak_ptr_factory_.GetWeakPtr())));
   AddChildView(std::move(input_shell));
+  input_shell_->SetVisible(false);
 
-  section_label_ = AddChildView(std::make_unique<views::Label>(
-      l10n_util::GetStringUTF16(IDS_TAB_SEARCH_RECENTLY_CLOSED)));
-  section_label_->SetSubpixelRenderingEnabled(false);
-  section_label_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-  section_label_->SetEnabledColor(visual_style::kMutedText);
-  section_label_->SetBorder(
-      views::CreateEmptyBorder(gfx::Insets::TLBR(2, 8, 0, 8)));
+  no_results_label_ = AddChildView(std::make_unique<views::Label>(
+      l10n_util::GetStringUTF16(IDS_TAB_SEARCH_NO_RESULTS_FOUND)));
+  no_results_label_->SetSubpixelRenderingEnabled(false);
+  no_results_label_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  no_results_label_->SetEnabledColor(visual_style::kMutedText);
+  no_results_label_->SetBorder(
+      views::CreateEmptyBorder(gfx::Insets::TLBR(2, 9, 4, 9)));
+  no_results_label_->SetVisible(false);
 
-  auto results_container = std::make_unique<views::View>();
-  auto* results_layout =
-      results_container->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kVertical, gfx::Insets(), 2));
-  results_layout->set_cross_axis_alignment(
+  primary_surface_ = AddChildView(std::move(primary_surface));
+  layout->SetFlexForView(primary_surface_, 1, /*use_min_size=*/true);
+
+  auto supplemental_section = std::make_unique<views::View>();
+  auto* supplemental_section_layout =
+      supplemental_section->SetLayoutManager(std::make_unique<views::BoxLayout>(
+          views::BoxLayout::Orientation::kVertical, gfx::Insets(), 3));
+  supplemental_section_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kStretch);
-  results_container->GetViewAccessibility().SetRole(ax::mojom::Role::kListBox);
-  results_container_ = results_container.get();
+  supplemental_section_label_ =
+      supplemental_section->AddChildView(std::make_unique<views::Label>());
+  supplemental_section_label_->SetSubpixelRenderingEnabled(false);
+  supplemental_section_label_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  supplemental_section_label_->SetEnabledColor(visual_style::kMutedText);
+  supplemental_section_label_->SetBorder(
+      views::CreateEmptyBorder(gfx::Insets::TLBR(2, 8, 0, 8)));
+  auto supplemental_results_container = std::make_unique<views::View>();
+  auto* supplemental_results_layout =
+      supplemental_results_container->SetLayoutManager(
+          std::make_unique<views::BoxLayout>(
+              views::BoxLayout::Orientation::kVertical, gfx::Insets(),
+              kSupplementalResultSpacing));
+  supplemental_results_layout->set_cross_axis_alignment(
+      views::BoxLayout::CrossAxisAlignment::kStretch);
+  supplemental_results_container->GetViewAccessibility().SetRole(
+      ax::mojom::Role::kList);
+  supplemental_results_container_ = supplemental_results_container.get();
 
-  auto scroll = std::make_unique<views::ScrollView>();
-  scroll->SetBackground(nullptr);
-  scroll->SetDrawOverflowIndicator(false);
-  scroll->SetHorizontalScrollBarMode(
+  auto supplemental_scroll = std::make_unique<views::ScrollView>();
+  supplemental_scroll->SetBackground(nullptr);
+  supplemental_scroll->SetDrawOverflowIndicator(false);
+  supplemental_scroll->SetHorizontalScrollBarMode(
       views::ScrollView::ScrollBarMode::kDisabled);
-  scroll->SetUseContentsPreferredSize(true);
-  scroll->SetContents(std::move(results_container));
-  results_scroll_view_ = AddChildView(std::move(scroll));
-  layout->SetFlexForView(results_scroll_view_, 1, /*use_min_size=*/true);
+  supplemental_scroll->SetUseContentsPreferredSize(true);
+  supplemental_scroll->ClipHeightTo(
+      0, static_cast<int>(kMaxSupplementalSearchResults) *
+                 kSupplementalResultRowHeight +
+             (static_cast<int>(kMaxSupplementalSearchResults) - 1) *
+                 kSupplementalResultSpacing);
+  supplemental_scroll->SetContents(std::move(supplemental_results_container));
+  supplemental_results_scroll_view_ =
+      supplemental_section->AddChildView(std::move(supplemental_scroll));
+  supplemental_section_ = AddChildView(std::move(supplemental_section));
+  supplemental_section_->SetVisible(false);
 
-  const ui::AXPlatformNodeId field_id =
-      search_field_->GetViewAccessibility().GetUniqueId();
-  const ui::AXPlatformNodeId results_id =
-      results_container_->GetViewAccessibility().GetUniqueId();
-  results_container_->GetViewAccessibility().SetPopupForId(field_id);
-  search_field_->GetViewAccessibility().SetControlIds({results_id});
-  search_field_->GetViewAccessibility().SetHasPopup(
-      ax::mojom::HasPopup::kListbox);
-  search_field_->GetViewAccessibility().SetIsExpanded();
-  RefreshResults();
+  auto recently_closed_section = std::make_unique<views::View>();
+  auto* recently_closed_section_layout =
+      recently_closed_section->SetLayoutManager(
+          std::make_unique<views::BoxLayout>(
+              views::BoxLayout::Orientation::kVertical, gfx::Insets(), 3));
+  recently_closed_section_layout->set_cross_axis_alignment(
+      views::BoxLayout::CrossAxisAlignment::kStretch);
+  auto* recently_closed_label =
+      recently_closed_section->AddChildView(std::make_unique<views::Label>(
+          l10n_util::GetStringUTF16(IDS_TAB_SEARCH_RECENTLY_CLOSED)));
+  recently_closed_label->SetSubpixelRenderingEnabled(false);
+  recently_closed_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  recently_closed_label->SetEnabledColor(visual_style::kMutedText);
+  recently_closed_label->SetBorder(
+      views::CreateEmptyBorder(gfx::Insets::TLBR(2, 8, 0, 8)));
+  auto recently_closed_results_container = std::make_unique<views::View>();
+  auto* recently_closed_results_layout =
+      recently_closed_results_container->SetLayoutManager(
+          std::make_unique<views::BoxLayout>(
+              views::BoxLayout::Orientation::kVertical, gfx::Insets(),
+              kSupplementalResultSpacing));
+  recently_closed_results_layout->set_cross_axis_alignment(
+      views::BoxLayout::CrossAxisAlignment::kStretch);
+  recently_closed_results_container->GetViewAccessibility().SetRole(
+      ax::mojom::Role::kList);
+  recently_closed_results_container->GetViewAccessibility().SetName(
+      l10n_util::GetStringUTF16(IDS_TAB_SEARCH_RECENTLY_CLOSED));
+  recently_closed_results_container_ = recently_closed_results_container.get();
+
+  auto recently_closed_scroll = std::make_unique<views::ScrollView>();
+  recently_closed_scroll->SetBackground(nullptr);
+  recently_closed_scroll->SetDrawOverflowIndicator(false);
+  recently_closed_scroll->SetHorizontalScrollBarMode(
+      views::ScrollView::ScrollBarMode::kDisabled);
+  recently_closed_scroll->SetUseContentsPreferredSize(true);
+  recently_closed_scroll->ClipHeightTo(
+      0, static_cast<int>(kMaxSupplementalRecentlyClosedResults) *
+                 kSupplementalResultRowHeight +
+             (static_cast<int>(kMaxSupplementalRecentlyClosedResults) - 1) *
+                 kSupplementalResultSpacing);
+  recently_closed_scroll->SetContents(
+      std::move(recently_closed_results_container));
+  recently_closed_results_scroll_view_ =
+      recently_closed_section->AddChildView(std::move(recently_closed_scroll));
+  recently_closed_section_ = AddChildView(std::move(recently_closed_section));
+  recently_closed_section_->SetVisible(false);
+
+  // Search filters these inline regions; it does not open a popup. Expose the
+  // real control relationship without claiming combobox/listbox state.
+  search_field_->GetViewAccessibility().SetControlIds(
+      {primary_surface_->GetViewAccessibility().GetUniqueId(),
+       supplemental_results_container_->GetViewAccessibility().GetUniqueId(),
+       recently_closed_results_container_->GetViewAccessibility()
+           .GetUniqueId()});
 }
 
 SidebarDiscoveryView::~SidebarDiscoveryView() {
@@ -429,9 +566,34 @@ SidebarDiscoveryView::~SidebarDiscoveryView() {
 }
 
 void SidebarDiscoveryView::Open() {
+  if (!is_open_) {
+    is_open_ = true;
+    input_shell_->SetVisible(true);
+  }
+  const base::WeakPtr<SidebarDiscoveryView> weak_this =
+      weak_ptr_factory_.GetWeakPtr();
   RefreshResults();
+  if (!weak_this || !is_open_) {
+    return;
+  }
   search_field_->RequestFocus();
   search_field_->SelectAll(/*reversed=*/false);
+}
+
+void SidebarDiscoveryView::Close() {
+  is_open_ = false;
+  const base::WeakPtr<SidebarDiscoveryView> weak_this =
+      weak_ptr_factory_.GetWeakPtr();
+  Reset();
+  if (!weak_this || is_open_) {
+    return;
+  }
+  input_shell_->SetVisible(false);
+  no_results_label_->SetVisible(false);
+  supplemental_section_->SetVisible(false);
+  recently_closed_section_->SetVisible(false);
+  InvalidateLayout();
+  PreferredSizeChanged();
 }
 
 void SidebarDiscoveryView::Reset() {
@@ -440,19 +602,36 @@ void SidebarDiscoveryView::Reset() {
   suppress_contents_refresh_ = false;
   selected_index_.reset();
   search_field_->GetViewAccessibility().ClearActiveDescendant();
+  RefreshResults();
 }
 
 bool SidebarDiscoveryView::CloseOrClear() {
   if (!search_field_->GetText().empty()) {
     const bool restore_search_focus = !search_field_->HasFocus();
-    search_field_->SetText(std::u16string());
+    const base::WeakPtr<SidebarDiscoveryView> weak_this =
+        weak_ptr_factory_.GetWeakPtr();
+    Reset();
+    if (!weak_this) {
+      return true;
+    }
     if (restore_search_focus) {
       search_field_->RequestFocus();
     }
     return true;
   }
-  close_callback_.Run();
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE, base::BindOnce(
+                     [](base::WeakPtr<SidebarDiscoveryView> view) {
+                       if (view) {
+                         view->close_callback_.Run();
+                       }
+                     },
+                     weak_ptr_factory_.GetWeakPtr()));
   return true;
+}
+
+void SidebarDiscoveryView::InvalidatePrimaryResultSelection() {
+  primary_selection_active_ = false;
 }
 
 void SidebarDiscoveryView::ContentsChanged(views::Textfield* sender,
@@ -477,17 +656,6 @@ bool SidebarDiscoveryView::HandleKeyEvent(views::Textfield* sender,
     case ui::VKEY_RETURN:
       return AcceptSelection();
     case ui::VKEY_ESCAPE:
-      if (search_field_->GetText().empty()) {
-        base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
-            FROM_HERE, base::BindOnce(
-                           [](base::WeakPtr<SidebarDiscoveryView> view) {
-                             if (view) {
-                               view->close_callback_.Run();
-                             }
-                           },
-                           weak_ptr_factory_.GetWeakPtr()));
-        return true;
-      }
       return CloseOrClear();
     default:
       return false;
@@ -495,7 +663,7 @@ bool SidebarDiscoveryView::HandleKeyEvent(views::Textfield* sender,
 }
 
 void SidebarDiscoveryView::OnSidebarDiscoveryModelChanged() {
-  if (GetVisible()) {
+  if (is_open_) {
     RefreshResults();
   }
 }
@@ -505,20 +673,106 @@ void SidebarDiscoveryView::RefreshResults() {
       selected_index_.has_value() && *selected_index_ < items_.size()
           ? std::optional<std::string>(items_[*selected_index_].stable_id)
           : std::nullopt;
+  ClearPrimarySelection();
   search_field_->GetViewAccessibility().ClearActiveDescendant();
   selected_index_.reset();
   rows_.clear();
-  results_container_->RemoveAllChildViews();
+  supplemental_results_container_->RemoveAllChildViews();
+  recently_closed_results_container_->RemoveAllChildViews();
 
-  const std::u16string query(search_field_->GetText());
-  section_label_->SetVisible(query.empty());
-  results_container_->GetViewAccessibility().SetName(
+  const std::u16string raw_query(search_field_->GetText());
+  const std::u16string query(base::TrimWhitespace(raw_query, base::TRIM_ALL));
+  const std::u16string close_action = l10n_util::GetStringUTF16(
+      raw_query.empty() ? IDS_CLOSE : IDS_CLEAR_SEARCH);
+  close_button_->SetAccessibleName(close_action);
+  close_button_->SetTooltipText(close_action);
+  const std::u16string supplemental_section_name =
       query.empty()
-          ? l10n_util::GetStringUTF16(IDS_TAB_SEARCH_RECENTLY_CLOSED)
-          : l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_DISCOVERY_SEARCH));
-  items_ = query.empty() ? model_->RecentlyClosed(kMaxRecentlyClosedResults)
-                         : model_->Search(query, kMaxSearchResults);
+          ? l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_DISCOVERY_SEARCH)
+          : l10n_util::GetStringFUTF16(IDS_SEARCH_RESULTS, query);
+  supplemental_section_label_->SetText(supplemental_section_name);
+  supplemental_results_container_->GetViewAccessibility().SetName(
+      supplemental_section_name);
+
+  std::vector<SidebarDiscoveryItem> search_results;
+  if (!query.empty()) {
+    search_results = model_->Search(query, kMaxSearchResults);
+  }
+  const base::WeakPtr<SidebarDiscoveryView> weak_this =
+      weak_ptr_factory_.GetWeakPtr();
+  const std::set<std::string> consumed_stable_ids =
+      filter_callback_.Run(query, search_results);
+  if (!weak_this) {
+    return;
+  }
+  if (!is_open_) {
+    items_.clear();
+    supplemental_result_count_ = 0;
+    no_results_label_->SetVisible(false);
+    supplemental_section_->SetVisible(false);
+    recently_closed_section_->SetVisible(false);
+    supplemental_results_container_->InvalidateLayout();
+    supplemental_results_scroll_view_->InvalidateLayout();
+    recently_closed_results_container_->InvalidateLayout();
+    recently_closed_results_scroll_view_->InvalidateLayout();
+    InvalidateLayout();
+    PreferredSizeChanged();
+    return;
+  }
+
+  items_.clear();
+  items_.reserve(kMaxSupplementalSearchResults +
+                 kMaxSupplementalRecentlyClosedResults);
+  if (!query.empty()) {
+    for (const SidebarDiscoveryItem& item : search_results) {
+      if (IsRecentlyClosed(item.kind) ||
+          consumed_stable_ids.contains(item.stable_id)) {
+        continue;
+      }
+      items_.push_back(item);
+      if (items_.size() == kMaxSupplementalSearchResults) {
+        break;
+      }
+    }
+  }
+  supplemental_result_count_ = items_.size();
+
+  std::set<std::string> listed_stable_ids;
   for (const SidebarDiscoveryItem& item : items_) {
+    listed_stable_ids.insert(item.stable_id);
+  }
+  size_t recently_closed_count = 0;
+  const size_t recently_closed_limit =
+      query.empty() ? kMaxSupplementalRecentlyClosedResults
+                    : kMaxFilteredRecentlyClosedResults;
+  for (SidebarDiscoveryItem& item :
+       model_->RecentlyClosed(kMaxRecentlyClosedResults)) {
+    if (!MatchesQuery(item, query) ||
+        listed_stable_ids.contains(item.stable_id)) {
+      continue;
+    }
+    listed_stable_ids.insert(item.stable_id);
+    items_.push_back(std::move(item));
+    ++recently_closed_count;
+    if (recently_closed_count == recently_closed_limit) {
+      break;
+    }
+  }
+
+  const bool show_empty_state =
+      !query.empty() && consumed_stable_ids.empty() && items_.empty();
+  for (size_t index = 0; index < items_.size(); ++index) {
+    const SidebarDiscoveryItem& item = items_[index];
+    views::View* const container =
+        index < supplemental_result_count_
+            ? supplemental_results_container_.get()
+            : recently_closed_results_container_.get();
+    const size_t section_index = index < supplemental_result_count_
+                                     ? index
+                                     : index - supplemental_result_count_;
+    const size_t section_size = index < supplemental_result_count_
+                                    ? supplemental_result_count_
+                                    : recently_closed_count;
     const std::string stable_id = item.stable_id;
     auto row = std::make_unique<SidebarDiscoveryResultRow>(
         item,
@@ -535,37 +789,27 @@ void SidebarDiscoveryView::RefreshResults() {
         base::BindRepeating(
             [](base::WeakPtr<SidebarDiscoveryView> view,
                const std::string& item_stable_id, const ui::KeyEvent& event) {
-              if (!view) {
-                return false;
-              }
-              return view->HandleResultKeyEvent(item_stable_id, event);
+              return view && view->HandleResultKeyEvent(item_stable_id, event);
             },
             weak_ptr_factory_.GetWeakPtr(), stable_id));
     row->GetViewAccessibility().SetPosInSet(
-        static_cast<int>(rows_.size() + 1u));
-    row->GetViewAccessibility().SetSetSize(static_cast<int>(items_.size()));
-    rows_.push_back(results_container_->AddChildView(std::move(row)));
-  }
-  if (items_.empty()) {
-    auto* empty =
-        results_container_->AddChildView(std::make_unique<views::Label>(
-            l10n_util::GetStringUTF16(IDS_TAB_SEARCH_NO_RESULTS_FOUND)));
-    empty->SetSubpixelRenderingEnabled(false);
-    empty->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    empty->SetEnabledColor(visual_style::kMutedText);
-    empty->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(16, 9)));
+        static_cast<int>(section_index + 1u));
+    row->GetViewAccessibility().SetSetSize(static_cast<int>(section_size));
+    rows_.push_back(container->AddChildView(std::move(row)));
   }
 
   std::optional<size_t> selection;
   if (selected_stable_id.has_value()) {
     selection = FindItemIndex(*selected_stable_id);
   }
-  if (!selection.has_value() && !items_.empty()) {
-    selection = 0u;
-  }
   SelectIndex(selection, /*request_focus=*/false);
-  results_container_->InvalidateLayout();
-  results_scroll_view_->InvalidateLayout();
+  no_results_label_->SetVisible(show_empty_state);
+  supplemental_section_->SetVisible(supplemental_result_count_ > 0u);
+  recently_closed_section_->SetVisible(recently_closed_count > 0u);
+  supplemental_results_container_->InvalidateLayout();
+  supplemental_results_scroll_view_->InvalidateLayout();
+  recently_closed_results_container_->InvalidateLayout();
+  recently_closed_results_scroll_view_->InvalidateLayout();
   InvalidateLayout();
   PreferredSizeChanged();
 }
@@ -577,6 +821,9 @@ void SidebarDiscoveryView::SelectIndex(std::optional<size_t> index,
   }
   if (selected_index_.has_value() && *selected_index_ < rows_.size()) {
     rows_[*selected_index_]->SetSelected(false);
+  }
+  if (index.has_value()) {
+    ClearPrimarySelection();
   }
   selected_index_ = index;
   if (!selected_index_.has_value()) {
@@ -593,24 +840,83 @@ void SidebarDiscoveryView::SelectIndex(std::optional<size_t> index,
 }
 
 bool SidebarDiscoveryView::MoveSelection(int delta, bool request_focus) {
-  if (rows_.empty()) {
-    return false;
+  CHECK(delta == -1 || delta == 1);
+  if (primary_selection_active_) {
+    const PrimaryResultAction action =
+        delta > 0 ? PrimaryResultAction::kSelectNext
+                  : PrimaryResultAction::kSelectPrevious;
+    if (RunPrimaryResultAction(action)) {
+      return true;
+    }
+    // The host leaves the edge item selected when it reports that movement
+    // cannot continue. Explicitly clear that transient highlight before
+    // entering the supplemental sections.
+    ClearPrimarySelection();
+    if (rows_.empty()) {
+      return true;
+    }
+    SelectIndex(delta > 0 ? 0u : rows_.size() - 1u, request_focus);
+    return true;
   }
-  const int count = static_cast<int>(rows_.size());
-  int selected = selected_index_.has_value()
-                     ? static_cast<int>(*selected_index_)
-                     : (delta > 0 ? -1 : 0);
-  selected = (selected + delta + count) % count;
-  SelectIndex(static_cast<size_t>(selected), request_focus);
-  return true;
+
+  if (selected_index_.has_value()) {
+    const int selected = static_cast<int>(*selected_index_);
+    const int next = selected + delta;
+    if (next >= 0 && next < static_cast<int>(rows_.size())) {
+      SelectIndex(static_cast<size_t>(next), request_focus);
+      return true;
+    }
+    SelectIndex(std::nullopt, /*request_focus=*/false);
+    const PrimaryResultAction action = delta > 0
+                                           ? PrimaryResultAction::kSelectFirst
+                                           : PrimaryResultAction::kSelectLast;
+    primary_selection_active_ = RunPrimaryResultAction(action);
+    if (primary_selection_active_ && request_focus) {
+      // Primary rows deliberately keep focus in the search field so further
+      // Up/Down events continue through the unified result order. Otherwise
+      // the previously focused supplemental row would handle the next key and
+      // jump back to the same boundary.
+      search_field_->RequestFocus();
+    }
+    return true;
+  }
+
+  // Down follows the visual order: primary hierarchy first, supplemental
+  // sources second. Up starts at the final visible item.
+  if (delta > 0) {
+    primary_selection_active_ =
+        RunPrimaryResultAction(PrimaryResultAction::kSelectFirst);
+    if (!primary_selection_active_ && !rows_.empty()) {
+      SelectIndex(0u, request_focus);
+    }
+  } else if (!rows_.empty()) {
+    SelectIndex(rows_.size() - 1u, request_focus);
+  } else {
+    primary_selection_active_ =
+        RunPrimaryResultAction(PrimaryResultAction::kSelectLast);
+  }
+  return primary_selection_active_ || selected_index_.has_value();
 }
 
 bool SidebarDiscoveryView::AcceptSelection() {
-  if (!selected_index_.has_value() || *selected_index_ >= items_.size()) {
-    return false;
+  if (selected_index_.has_value() && *selected_index_ < items_.size()) {
+    ScheduleAcceptStableId(items_[*selected_index_].stable_id);
+    return true;
   }
-  ScheduleAcceptStableId(items_[*selected_index_].stable_id);
-  return true;
+  return primary_selection_active_ &&
+         RunPrimaryResultAction(PrimaryResultAction::kActivateSelection);
+}
+
+bool SidebarDiscoveryView::RunPrimaryResultAction(PrimaryResultAction action) {
+  return primary_result_callback_.Run(action);
+}
+
+void SidebarDiscoveryView::ClearPrimarySelection() {
+  if (!primary_selection_active_) {
+    return;
+  }
+  primary_selection_active_ = false;
+  primary_result_callback_.Run(PrimaryResultAction::kClearSelection);
 }
 
 bool SidebarDiscoveryView::HandleResultKeyEvent(const std::string& stable_id,
@@ -675,7 +981,7 @@ void SidebarDiscoveryView::AcceptStableId(const std::string& stable_id) {
     activated = restore_callback.Run(*item.restore_id);
   }
   // Activating a cross-window tab can synchronously tear down this sidebar.
-  if (weak_this && activated) {
+  if (weak_this && weak_this->is_open_ && activated) {
     close_callback.Run();
   }
 }

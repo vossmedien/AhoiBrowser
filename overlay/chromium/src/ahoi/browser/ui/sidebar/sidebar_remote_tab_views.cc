@@ -32,6 +32,7 @@
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/view.h"
+#include "ui/views/view_utils.h"
 
 namespace ahoi::sidebar {
 namespace {
@@ -146,6 +147,17 @@ class RemoteTabRowView final : public views::Button,
   RemoteTabRowView& operator=(const RemoteTabRowView&) = delete;
   ~RemoteTabRowView() override = default;
 
+  const sync::RemoteTabRecord& tab() const { return model_.tab; }
+
+  void SetSearchSelected(bool selected) {
+    if (search_selected_ == selected) {
+      return;
+    }
+    search_selected_ = selected;
+    GetViewAccessibility().SetIsSelected(search_selected_);
+    UpdateBackground();
+  }
+
   void Layout(PassKey) override {
     const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
     favicon_->SetBoundsRect(icon_bounds);
@@ -155,6 +167,16 @@ class RemoteTabRowView final : public views::Button,
   }
 
   void StateChanged(ButtonState) override { UpdateBackground(); }
+
+  void OnFocus() override {
+    views::Button::OnFocus();
+    UpdateBackground();
+  }
+
+  void OnBlur() override {
+    views::Button::OnBlur();
+    UpdateBackground();
+  }
 
   // views::ContextMenuController:
   void ShowContextMenuForViewImpl(
@@ -219,12 +241,16 @@ class RemoteTabRowView final : public views::Button,
 
  private:
   void UpdateBackground() {
-    const bool highlighted =
+    const bool selected = search_selected_ || HasFocus();
+    const bool hovered =
         GetState() == STATE_HOVERED || GetState() == STATE_PRESSED;
-    SetBackground(highlighted ? views::CreateRoundedRectBackground(
-                                    visual_style::kHoverSurface,
-                                    visual_style::kRowCornerRadius)
-                              : nullptr);
+    SetBackground(selected  ? views::CreateRoundedRectBackground(
+                                  visual_style::kSelectedSurface,
+                                  visual_style::kRowCornerRadius)
+                  : hovered ? views::CreateRoundedRectBackground(
+                                  visual_style::kHoverSurface,
+                                  visual_style::kRowCornerRadius)
+                            : nullptr);
     SchedulePaint();
   }
 
@@ -234,6 +260,7 @@ class RemoteTabRowView final : public views::Button,
   raw_ptr<views::View> fallback_ = nullptr;
   raw_ptr<views::Label> title_ = nullptr;
   raw_ptr<views::ImageView> device_ = nullptr;
+  bool search_selected_ = false;
   std::unique_ptr<ui::SimpleMenuModel> menu_model_;
   std::unique_ptr<views::MenuRunner> menu_runner_;
 };
@@ -248,6 +275,17 @@ std::unique_ptr<views::View> CreateRemoteTabRowView(
     RemoteTabRowActions actions) {
   return std::make_unique<RemoteTabRowView>(std::move(model),
                                             std::move(actions));
+}
+
+std::optional<sync::RemoteTabRecord> GetRemoteTabForView(views::View* view) {
+  auto* row = views::AsViewClass<RemoteTabRowView>(view);
+  return row ? std::make_optional(row->tab()) : std::nullopt;
+}
+
+void SetRemoteTabSearchSelected(views::View* view, bool selected) {
+  if (auto* row = views::AsViewClass<RemoteTabRowView>(view)) {
+    row->SetSearchSelected(selected);
+  }
 }
 
 }  // namespace ahoi::sidebar

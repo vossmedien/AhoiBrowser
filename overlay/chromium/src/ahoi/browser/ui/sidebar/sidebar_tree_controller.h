@@ -98,6 +98,26 @@ class SidebarTreeController : public tab_tree::TabTreeObserver {
   [[nodiscard]] bool CollapseNode(const base::Uuid& node_id);
   [[nodiscard]] bool SelectNode(std::optional<base::Uuid> node_id);
 
+  // Installs a transient, hierarchy-preserving projection for exact saved
+  // tree matches in the active workspace. Parent chains and the child lists
+  // that establish their real sibling order are loaded once into the existing
+  // model cache. Missing or foreign-workspace IDs are ignored as stale search
+  // results; malformed IDs and storage failures are reported.
+  [[nodiscard]] tab_tree::TabTreeStore::Result SetSearchMatches(
+      const std::vector<base::Uuid>& match_node_ids);
+  // Updates live saved-split membership. If a search projection is active,
+  // every partner of an exact match and its complete parent chain are loaded
+  // before the projection is replaced. When search is inactive, the groups
+  // are retained as lightweight presentation context without touching the
+  // store.
+  [[nodiscard]] tab_tree::TabTreeStore::Result SetSearchContextGroups(
+      std::vector<std::vector<base::Uuid>> context_groups);
+  void ClearSearchMatches();
+  bool is_search_projection_active() const {
+    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+    return view_model_.is_search_projection_active();
+  }
+
   [[nodiscard]] tab_tree::TabTreeStore::Result RenameNode(
       const base::Uuid& node_id,
       std::u16string title,
@@ -169,6 +189,9 @@ class SidebarTreeController : public tab_tree::TabTreeObserver {
 
   [[nodiscard]] tab_tree::TabTreeStore::Result RefreshChildren(
       std::optional<base::Uuid> parent_id);
+  [[nodiscard]] tab_tree::TabTreeStore::Result SetSearchProjection(
+      const std::vector<base::Uuid>& match_node_ids,
+      std::vector<std::vector<base::Uuid>> context_groups);
   [[nodiscard]] DropValidationResult ResolveDropDestination(
       const tab_tree::TreeNode& source,
       const DropTarget& target,

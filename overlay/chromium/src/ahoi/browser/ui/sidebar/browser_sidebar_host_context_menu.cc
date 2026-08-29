@@ -289,6 +289,12 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
     std::optional<base::Uuid> node_id,
     const gfx::Point& screen_point,
     ui::mojom::MenuSourceType source_type) {
+  // Search rows are a transient projection. Mutating their normal-tree
+  // context menu would either fail in the controller or act on hidden
+  // siblings, so keep this state navigation-only.
+  if (!sidebar_discovery_query_.empty()) {
+    return;
+  }
   const tab_tree::TreeNode* node =
       node_id.has_value() ? controller_->view_model().GetNode(*node_id)
                           : nullptr;

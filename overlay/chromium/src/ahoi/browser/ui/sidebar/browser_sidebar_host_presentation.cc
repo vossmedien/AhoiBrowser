@@ -202,7 +202,7 @@ bool BrowserSidebarHostView::OnKeyPressed(const ui::KeyEvent& event) {
       (flags & ui::EF_COMMAND_DOWN) || (flags & ui::EF_CONTROL_DOWN);
   const bool shift = flags & ui::EF_SHIFT_DOWN;
   if (event.key_code() == ui::VKEY_ESCAPE && discovery_view_ &&
-      discovery_view_->GetVisible()) {
+      discovery_view_->is_open()) {
     return discovery_view_->CloseOrClear();
   }
   if (command_or_control && shift && event.key_code() == ui::VKEY_S) {
@@ -433,7 +433,8 @@ std::vector<gfx::ImageSkia> BrowserSidebarHostView::GetCachedDragThumbnails(
   return thumbnails;
 }
 
-void BrowserSidebarHostView::RefreshRuntimePresentation() {
+void BrowserSidebarHostView::RefreshRuntimePresentation(
+    bool refresh_auxiliary) {
   if (!runtime_refresh_gate_.BeginRefresh(IsSidebarDragActive())) {
     // Thumbnail capture, media state and remote-tab updates are asynchronous.
     // Rebuilding here would RemoveAllChildViews(), destroy the native drag
@@ -446,7 +447,19 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
   if (!tab_strip_model_ || !open_tabs_container_ || !open_tabs_header_) {
     return;
   }
-  if (runtime_auxiliary_ready_) {
+  // Search selection stores row pointers. Preserve its stable identity, then
+  // clear the old visual state while those rows are still alive. Async favicon,
+  // tab and sync updates must not reset a user's current keyboard position.
+  std::optional<SidebarDiscoveryPrimaryResult> primary_result_before_refresh;
+  if (sidebar_discovery_primary_selection_.has_value() &&
+      *sidebar_discovery_primary_selection_ <
+          sidebar_discovery_primary_results_.size()) {
+    primary_result_before_refresh = sidebar_discovery_primary_results_
+        [*sidebar_discovery_primary_selection_];
+    primary_result_before_refresh->row = nullptr;
+  }
+  ClearSidebarDiscoveryPrimarySelection(/*restore_tree_selection=*/false);
+  if (runtime_auxiliary_ready_ && refresh_auxiliary) {
     RefreshThumbnailCache();
     RefreshMediaTrackers();
     PublishLocalDeviceTabs();
@@ -475,13 +488,31 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
         return !active_workspace.has_value() || !tab_workspace.has_value() ||
                active_workspace == tab_workspace;
       };
-  const auto create_open_tab_row = [this](tabs::TabInterface* tab) {
+  const bool search_active = !sidebar_discovery_query_.empty();
+  const auto is_search_match_tab = [this,
+                                    search_active](tabs::TabInterface* tab) {
+    if (!search_active) {
+      return true;
+    }
+    if (!tab) {
+      return false;
+    }
+    if (const std::optional<base::Uuid> saved_node_id =
+            session_bridge_->FindTreeNodeIdForTab(tab);
+        saved_node_id.has_value()) {
+      return controller_->view_model().IsSearchMatch(*saved_node_id);
+    }
+    return sidebar_discovery_runtime_tab_handles_.contains(
+        tab->GetHandle().raw_value());
+  };
+  const auto create_open_tab_row = [this,
+                                    search_active](tabs::TabInterface* tab) {
     const std::optional<base::Uuid> saved_node_id =
         session_bridge_->FindTreeNodeIdForTab(tab);
     return CreateOpenTabRowView(
         tab, saved_node_id, GetLiveTabFavicon(tab), GetMediaAlertForTab(tab),
         GetTabAlertStatusText(tab), tab == tab_strip_model_->GetActiveTab(),
-        ahoi::memory::IsTabSleeping(tab),
+        ahoi::memory::IsTabSleeping(tab), /*drag_enabled=*/!search_active,
         base::BindRepeating(&BrowserSidebarHostView::ActivateRuntimeTab,
                             weak_ptr_factory_.GetWeakPtr()),
         base::BindRepeating(&BrowserSidebarHostView::CloseRuntimeTab,
@@ -569,6 +600,20 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
           saved_member_count < split_tabs.size() &&
           std::ranges::all_of(split_tabs, is_visible_workspace_tab);
       if (all_members_are_visible_temporary || is_visible_mixed_split) {
+        if (search_active &&
+            !std::ranges::any_of(split_tabs, is_search_match_tab)) {
+          // A split is one visual and interaction unit. Mark its temporary
+          // members as visited even when the complete unit is filtered out so
+          // a later pane cannot leak back as a detached ordinary row.
+          for (tabs::TabInterface* split_tab : split_tabs) {
+            if (is_visible_temporary_tab(split_tab)) {
+              presented_temporary_tabs.insert(split_tab);
+              presented_temporary_handles.insert(
+                  split_tab->GetHandle().raw_value());
+            }
+          }
+          continue;
+        }
         std::vector<std::unique_ptr<views::View>> split_rows;
         split_rows.reserve(split_tabs.size());
         for (tabs::TabInterface* split_tab : split_tabs) {
@@ -591,6 +636,9 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
 
     presented_temporary_tabs.insert(tab);
     presented_temporary_handles.insert(tab_handle);
+    if (!is_search_match_tab(tab)) {
+      continue;
+    }
     open_tabs_container_->AddChildView(create_open_tab_row(tab));
   }
   // Suppression is presentation-only and is recalculated from authoritative
@@ -599,7 +647,10 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
   tree_view_->SetRuntimeCompositeSuppressedNodes(
       std::move(mixed_split_saved_nodes));
   const bool has_open_tabs = !open_tabs_container_->children().empty();
-  open_tabs_header_->SetVisible(has_open_tabs);
+  // The action closes every temporary tab in the workspace, including rows
+  // hidden by the active filter. Do not present that destructive global
+  // action beside a partial search projection.
+  open_tabs_header_->SetVisible(has_open_tabs && !search_active);
   open_tabs_container_->SetVisible(true);
   open_tabs_container_->InvalidateLayout();
   if (runtime_auxiliary_ready_) {
@@ -612,6 +663,55 @@ void BrowserSidebarHostView::RefreshRuntimePresentation() {
     // height) on every coalesced runtime refresh so the actual SplitTabData
     // always wins over callback timing.
     tree_view_->OnSplitGroupsChanged();
+  }
+  RebuildSidebarDiscoveryPrimaryResults();
+  bool primary_selection_restored = false;
+  if (primary_result_before_refresh.has_value()) {
+    for (size_t index = 0; index < sidebar_discovery_primary_results_.size();
+         ++index) {
+      const SidebarDiscoveryPrimaryResult& candidate =
+          sidebar_discovery_primary_results_[index];
+      const bool same_identity =
+          candidate.kind == primary_result_before_refresh->kind &&
+          ((candidate.kind == SidebarDiscoveryPrimaryResultKind::kTreeNode &&
+            candidate.node_id == primary_result_before_refresh->node_id) ||
+           (candidate.kind == SidebarDiscoveryPrimaryResultKind::kDeviceTab &&
+            candidate.device_tab_stable_id ==
+                primary_result_before_refresh->device_tab_stable_id) ||
+           (candidate.kind == SidebarDiscoveryPrimaryResultKind::kRuntimeTab &&
+            candidate.runtime_tab_handle ==
+                primary_result_before_refresh->runtime_tab_handle));
+      if (!same_identity) {
+        continue;
+      }
+      sidebar_discovery_primary_selection_ = index;
+      switch (candidate.kind) {
+        case SidebarDiscoveryPrimaryResultKind::kTreeNode:
+          primary_selection_restored =
+              controller_->SelectNode(candidate.node_id);
+          break;
+        case SidebarDiscoveryPrimaryResultKind::kDeviceTab:
+          SetRemoteTabSearchSelected(candidate.row, true);
+          primary_selection_restored = candidate.row != nullptr;
+          break;
+        case SidebarDiscoveryPrimaryResultKind::kRuntimeTab:
+          SetOpenTabSearchSelected(candidate.row, true);
+          primary_selection_restored = candidate.row != nullptr;
+          break;
+      }
+      if (!primary_selection_restored) {
+        sidebar_discovery_primary_selection_.reset();
+      }
+      break;
+    }
+  }
+  if (!primary_selection_restored && discovery_view_) {
+    if (primary_result_before_refresh.has_value() &&
+        primary_result_before_refresh->kind ==
+            SidebarDiscoveryPrimaryResultKind::kTreeNode) {
+      std::ignore = controller_->SelectNode(std::nullopt);
+    }
+    discovery_view_->InvalidatePrimaryResultSelection();
   }
   PreferredSizeChanged();
 }
@@ -642,6 +742,7 @@ void BrowserSidebarHostView::ActivateRuntimeTab(
     tab_strip_model_->ActivateTabAt(
         index, TabStripUserGestureDetails(
                    TabStripUserGestureDetails::GestureType::kMouse));
+    ScheduleCloseSidebarDiscoveryAfterActivation();
   }
 }
 

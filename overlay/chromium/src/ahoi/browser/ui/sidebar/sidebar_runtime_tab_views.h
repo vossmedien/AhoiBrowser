@@ -89,6 +89,7 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     std::u16string status_text,
     bool active,
     bool sleeping,
+    bool drag_enabled,
     RuntimeTabCallback activate_callback,
     RuntimeTabCallback close_callback,
     RuntimeTabThumbnailsCallback thumbnails_callback,
@@ -102,6 +103,7 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view);
 std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view);
+void SetOpenTabSearchSelected(views::View* view, bool selected);
 
 std::unique_ptr<views::View> CreateOpenTabSplitRowView(
     std::vector<std::unique_ptr<views::View>> tabs,

@@ -179,6 +179,15 @@ class SidebarTreeView final : public views::View,
   void OnRowDragDone();
   void OnSplitGroupsChanged();
   void OnRuntimePresentationChanged();
+  bool IsSearchProjectionActiveForRow() const {
+    return model().is_search_projection_active();
+  }
+  bool IsExactSearchMatchForRow(const base::Uuid& node_id) const {
+    return model().IsSearchExactMatch(node_id);
+  }
+  bool IsRuntimeCompositeSuppressedNode(const base::Uuid& node_id) const {
+    return runtime_composite_suppressed_nodes_.contains(node_id);
+  }
 
   // views::View:
   void Layout(PassKey) override;
@@ -319,6 +328,7 @@ class SidebarTreeView final : public views::View,
                    const ui::DropTargetEvent& event,
                    ui::mojom::DragOperation& output_drag_op,
                    std::unique_ptr<ui::LayerTreeOwner> drag_image_owner);
+  void SynchronizeSearchContextGroups();
   void HandleVisualLayoutChanged();
   void StartPreferredHeightAnimation(int from_height, int to_height);
   const raw_ptr<SidebarTreeController> controller_;
