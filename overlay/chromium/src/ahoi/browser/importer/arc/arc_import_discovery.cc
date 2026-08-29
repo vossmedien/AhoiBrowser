@@ -566,17 +566,12 @@ bool IsArcApplicationRunning() {
     if (internal::IsArcBundleExecutablePath(executable)) {
       return true;
     }
-    if (!executable.empty()) {
-      continue;
-    }
-
-    const ProcessObservation observation = ObserveProcess(pid);
-    if (internal::ShouldBlockOnProcessInspectionFailure(
-            observation.metadata ? observation.metadata->ownership
-                                 : internal::ProcessOwnership::kUnknown,
-            observation.liveness)) {
-      return true;
-    }
+    // An unreadable executable path is not positive evidence that an unrelated
+    // process belongs to Arc. Sandboxed crash handlers commonly expose exactly
+    // that state on macOS. AreArcProfileFilesOpen() still inspects source-file
+    // descriptors before a snapshot is allowed and fails closed when that
+    // inspection cannot be completed, so skipping an unidentified executable
+    // here does not bypass the mutable-source guard.
   }
   return false;
 }
@@ -606,12 +601,6 @@ bool AreArcProfileFilesOpen(const ArcSource& source) {
       }
       continue;
     }
-    if (executable.empty() &&
-        internal::ShouldBlockOnProcessInspectionFailure(
-            observation.metadata->ownership, observation.liveness)) {
-      return true;
-    }
-
     const OpenFileInspectionResult result =
         InspectOpenFilesWithRetry(pid, *observation.metadata, source);
     const internal::OpenFileInspectionEvidence evidence =

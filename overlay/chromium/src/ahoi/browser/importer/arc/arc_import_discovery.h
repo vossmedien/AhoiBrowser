@@ -21,25 +21,25 @@ ArcDiscoveryResult DiscoverDefaultArcSource();
 
 // Returns true while any process whose executable is inside Arc.app is
 // present; every positively identified main or helper process blocks. PID
-// discovery is argv-independent. Enumeration failures and failures that
-// prevent a still-live current-user process from being ruled out as Arc fail
-// closed. PROC_FLAG_INEXIT is not proof that a process ended; only an ESRCH
-// liveness probe proves termination. Foreign-user processes do not block solely
-// because their executable path is inaccessible.
+// discovery is argv-independent and an enumeration failure fails closed. An
+// unreadable executable path alone is not treated as Arc evidence because
+// sandboxed, unrelated macOS helpers commonly have that state; the separate
+// source-handle inspection below remains mandatory before snapshotting.
 bool IsArcApplicationRunning();
 
 // Enumerates open vnode handles read-only and blocks while any process has the
 // sidebar file or a relevant file in one of this source's selected profiles
 // open. Relevant profile files include Preferences, Bookmarks, and the
 // History, Favicons, and Web Data databases with their WAL/SHM sidecars. PID
-// enumeration failures and executable, identity, or file-descriptor inspection
-// failures for a still-live current-user process fail closed. Every readable
-// process is inspected regardless of ownership, so a relevant handle held by a
-// foreign-user process also blocks. Descriptor races are retried from a fresh
-// snapshot while PID and process start time remain stable. ESRCH or a verified
-// PID/start-time replacement ends inspection of the originally enumerated
-// process; PROC_FLAG_INEXIT does not. A repeatedly inaccessible foreign-user
-// process does not block solely because its descriptors cannot be inspected.
+// enumeration, identity, or file-descriptor inspection failures for a
+// still-live current-user process fail closed. Every readable process is
+// inspected regardless of whether its executable path was available and
+// regardless of ownership, so a relevant handle held by a foreign-user process
+// also blocks. Descriptor races are retried from a fresh snapshot while PID and
+// process start time remain stable. ESRCH or a verified PID/start-time
+// replacement ends inspection of the originally enumerated process;
+// PROC_FLAG_INEXIT does not. A repeatedly inaccessible foreign-user process
+// does not block solely because its descriptors cannot be inspected.
 bool AreArcProfileFilesOpen(const ArcSource& source);
 
 namespace internal {
