@@ -11,7 +11,10 @@ public enum MobileStorageMigrator {
         "snapshot.json",
         "sync-records.json",
         "sync-engine-state.json",
+        "sync-engine-state.json.safety",
         "sync-quarantine.json",
+        // Kept for the short-lived development format used before the safety
+        // state became a sidecar of the CKSyncEngine serialization.
         "sync-safety-state.json",
     ]
 

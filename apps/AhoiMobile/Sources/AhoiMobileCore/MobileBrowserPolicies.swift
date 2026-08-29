@@ -1,6 +1,34 @@
 import Foundation
 import WebKit
 
+public enum MobileBrowserOriginFormatter {
+    public static func label(for url: URL) -> String {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let scheme = components.scheme?.lowercased(),
+              let host = components.host,
+              !host.isEmpty else {
+            return url.absoluteString
+        }
+        let port = components.port.map { ":\($0)" } ?? ""
+        return "\(scheme)://\(host)\(port)"
+    }
+
+    @MainActor
+    static func label(for origin: WKSecurityOrigin, fallbackURL: URL? = nil) -> String {
+        let scheme = origin.protocol.lowercased()
+        let host = origin.host
+        guard !scheme.isEmpty, !host.isEmpty else {
+            if let fallbackURL { return label(for: fallbackURL) }
+            return CompanionL10n.string(
+                "browser.origin.unknown",
+                fallback: "Unknown origin"
+            )
+        }
+        let port = origin.port > 0 ? ":\(origin.port)" : ""
+        return "\(scheme)://\(host)\(port)"
+    }
+}
+
 public struct MobilePermissionRequest: Identifiable, Equatable, Sendable {
     public enum Kind: String, Equatable, Sendable {
         case camera
@@ -33,7 +61,7 @@ public final class MobilePermissionCoordinator: ObservableObject {
     ) async -> WKPermissionDecision {
         resolve(.deny)
         let request = MobilePermissionRequest(
-            origin: Self.originLabel(origin),
+            origin: MobileBrowserOriginFormatter.label(for: origin),
             kind: Self.kind(permission)
         )
         pendingRequest = request
@@ -68,17 +96,34 @@ public final class MobilePermissionCoordinator: ObservableObject {
         }
     }
 
-    private static func originLabel(_ origin: WKSecurityOrigin) -> String {
-        let port = origin.port > 0 ? ":\(origin.port)" : ""
-        return "\(origin.protocol)://\(origin.host)\(port)"
+}
+
+struct MobileNavigationRequestTracker {
+    private(set) var requestsAwaitingResponse: [URLRequest] = []
+
+    mutating func record(_ request: URLRequest) {
+        requestsAwaitingResponse.append(request)
+        if requestsAwaitingResponse.count > 32 {
+            requestsAwaitingResponse.removeFirst(requestsAwaitingResponse.count - 32)
+        }
+    }
+
+    mutating func take(matching responseURL: URL?) -> URLRequest? {
+        if let responseURL,
+           let index = requestsAwaitingResponse.firstIndex(where: { $0.url == responseURL }) {
+            return requestsAwaitingResponse.remove(at: index)
+        }
+        guard !requestsAwaitingResponse.isEmpty else { return nil }
+        return requestsAwaitingResponse.removeFirst()
     }
 }
 
 @MainActor
 final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
     var onOpenNewTab: ((URL) -> Void)?
-    var onExternalScheme: ((URL) -> Void)?
+    var onExternalScheme: ((URL, String) -> Void)?
     var onDownload: ((URLRequest) -> Void)?
+    private var requestTracker = MobileNavigationRequestTracker()
 
     func decidePolicy(
         for action: WebPage.NavigationAction,
@@ -94,7 +139,13 @@ final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
         let scheme = url.scheme?.lowercased()
         guard scheme == "http" || scheme == "https" else {
             if action.navigationType == .linkActivated {
-                onExternalScheme?(url)
+                onExternalScheme?(
+                    url,
+                    MobileBrowserOriginFormatter.label(
+                        for: action.source.securityOrigin,
+                        fallbackURL: action.source.request.url
+                    )
+                )
             }
             return .cancel
         }
@@ -104,24 +155,22 @@ final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
             onOpenNewTab?(url)
             return .cancel
         }
+        requestTracker.record(action.request)
         return .allow
     }
 
     func decidePolicy(
         for response: WebPage.NavigationResponse
     ) async -> WKNavigationResponsePolicy {
+        let originalRequest = requestTracker.take(matching: response.response.url)
         if let httpResponse = response.response as? HTTPURLResponse,
            httpResponse.value(forHTTPHeaderField: "Content-Disposition")?
                .localizedCaseInsensitiveContains("attachment") == true {
-            if let url = response.response.url {
-                onDownload?(URLRequest(url: url))
-            }
+            if let originalRequest { onDownload?(originalRequest) }
             return .cancel
         }
         guard response.canShowMimeType else {
-            if let url = response.response.url {
-                onDownload?(URLRequest(url: url))
-            }
+            if let originalRequest { onDownload?(originalRequest) }
             return .cancel
         }
         return .allow
@@ -145,27 +194,46 @@ public enum MobileDownloadStatus: String, Codable, Sendable {
 public struct MobileDownloadRecord: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let sourceURL: URL
+    public let sourceOrigin: String
     public var suggestedFilename: String
     public var destinationURL: URL?
     public var status: MobileDownloadStatus
     public var errorMessage: String?
+    public var bytesReceived: Int64
+    public var totalBytesExpected: Int64?
+    public var progressFraction: Double?
     public let isPrivate: Bool
+
+    public var progressPercent: Int? {
+        guard let progressFraction, progressFraction.isFinite else { return nil }
+        return Int((min(max(progressFraction, 0), 1) * 100).rounded())
+    }
 
     public init(
         id: UUID = UUID(),
         sourceURL: URL,
+        sourceOrigin: String? = nil,
         suggestedFilename: String,
         destinationURL: URL? = nil,
         status: MobileDownloadStatus = .starting,
         errorMessage: String? = nil,
+        bytesReceived: Int64 = 0,
+        totalBytesExpected: Int64? = nil,
+        progressFraction: Double? = nil,
         isPrivate: Bool
     ) {
         self.id = id
         self.sourceURL = sourceURL
+        self.sourceOrigin = sourceOrigin ?? MobileBrowserOriginFormatter.label(for: sourceURL)
         self.suggestedFilename = suggestedFilename
         self.destinationURL = destinationURL
         self.status = status
         self.errorMessage = errorMessage
+        self.bytesReceived = max(bytesReceived, 0)
+        self.totalBytesExpected = totalBytesExpected.flatMap { $0 >= 0 ? $0 : nil }
+        self.progressFraction = progressFraction.flatMap { fraction in
+            fraction.isFinite ? min(max(fraction, 0), 1) : nil
+        }
         self.isPrivate = isPrivate
     }
 }
@@ -178,6 +246,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
     private var webViews: [UUID: WKWebView] = [:]
     private var activeDownloads: [UUID: WKDownload] = [:]
     private var recordIDByDownload: [ObjectIdentifier: UUID] = [:]
+    private var progressObservations: [UUID: NSKeyValueObservation] = [:]
 
     public init(directoryURL: URL) {
         self.directoryURL = directoryURL
@@ -195,6 +264,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
     public func start(
         request: URLRequest,
         websiteDataStore: WKWebsiteDataStore,
+        initiatingOrigin: String? = nil,
         isPrivate: Bool
     ) {
         guard let url = request.url,
@@ -203,6 +273,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
         downloads.insert(MobileDownloadRecord(
             id: id,
             sourceURL: url,
+            sourceOrigin: initiatingOrigin,
             suggestedFilename: Self.safeFilename(url.lastPathComponent, fallback: "download"),
             isPrivate: isPrivate
         ), at: 0)
@@ -217,6 +288,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
             self.recordIDByDownload[ObjectIdentifier(download)] = id
             download.delegate = self
             self.update(id) { $0.status = .downloading }
+            self.observeProgress(of: download, id: id)
         }
     }
 
@@ -250,6 +322,9 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
             update(id) {
                 $0.suggestedFilename = destination.lastPathComponent
                 $0.destinationURL = destination
+                if response.expectedContentLength >= 0 {
+                    $0.totalBytesExpected = response.expectedContentLength
+                }
             }
             return destination
         } catch {
@@ -263,7 +338,13 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
 
     public func downloadDidFinish(_ download: WKDownload) {
         guard let id = recordIDByDownload[ObjectIdentifier(download)] else { return }
-        update(id) { $0.status = .completed }
+        update(id) {
+            $0.status = .completed
+            if let totalBytesExpected = $0.totalBytesExpected {
+                $0.bytesReceived = max($0.bytesReceived, totalBytesExpected)
+            }
+            $0.progressFraction = 1
+        }
         finish(id: id, download: download)
     }
 
@@ -285,7 +366,48 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
         mutation(&downloads[index])
     }
 
+    private func observeProgress(of download: WKDownload, id: UUID) {
+        let observation = download.progress.observe(
+            \.fractionCompleted,
+            options: [.initial, .new]
+        ) { [weak self] progress, _ in
+            let completedUnitCount = progress.completedUnitCount
+            let totalUnitCount = progress.totalUnitCount
+            let fractionCompleted = progress.isIndeterminate || totalUnitCount <= 0
+                ? nil
+                : progress.fractionCompleted
+            Task { @MainActor [weak self] in
+                self?.updateProgress(
+                    id: id,
+                    completedUnitCount: completedUnitCount,
+                    totalUnitCount: totalUnitCount,
+                    fractionCompleted: fractionCompleted
+                )
+            }
+        }
+        progressObservations[id] = observation
+    }
+
+    private func updateProgress(
+        id: UUID,
+        completedUnitCount: Int64,
+        totalUnitCount: Int64,
+        fractionCompleted: Double?
+    ) {
+        update(id) {
+            guard $0.status == .starting || $0.status == .downloading else { return }
+            $0.bytesReceived = max(completedUnitCount, 0)
+            if totalUnitCount > 0 {
+                $0.totalBytesExpected = totalUnitCount
+            }
+            $0.progressFraction = fractionCompleted.flatMap { fraction in
+                fraction.isFinite ? min(max(fraction, 0), 1) : nil
+            }
+        }
+    }
+
     private func finish(id: UUID, download: WKDownload) {
+        progressObservations.removeValue(forKey: id)?.invalidate()
         activeDownloads.removeValue(forKey: id)
         webViews.removeValue(forKey: id)
         recordIDByDownload.removeValue(forKey: ObjectIdentifier(download))

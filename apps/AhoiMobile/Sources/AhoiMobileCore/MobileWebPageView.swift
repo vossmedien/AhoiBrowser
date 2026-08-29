@@ -1,0 +1,176 @@
+import SwiftUI
+import WebKit
+
+struct MobileWebPageView: View {
+    let page: WebPage
+    @Binding var findNavigatorPresented: Bool
+    let onRefresh: () -> Void
+    let onMetadataChange: () -> Void
+    @State private var findQuery = ""
+    @State private var findMatchCount = 0
+    @State private var pullDistance: CGFloat = 0
+    @State private var refreshArmed = false
+    @FocusState private var findFieldFocused: Bool
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            WebView(page)
+                .webViewLinkPreviews(.enabled)
+                .webViewBackForwardNavigationGestures(.enabled)
+                .webViewTextSelection(.enabled)
+                .webViewMagnificationGestures(.enabled)
+                .webViewElementFullscreenBehavior(.enabled)
+                .webViewOnScrollGeometryChange(
+                    for: CGFloat.self,
+                    of: { geometry in
+                        max(0, -(geometry.contentOffset.y + geometry.contentInsets.top))
+                    },
+                    action: handlePullDistance
+                )
+
+            if pullDistance > 4 {
+                ProgressView()
+                    .controlSize(.small)
+                    .padding(9)
+                    .background(.regularMaterial, in: Circle())
+                    .scaleEffect(min(1, 0.55 + pullDistance / 120))
+                    .opacity(min(1, pullDistance / 36))
+                    .padding(.top, 8)
+                    .accessibilityLabel(CompanionL10n.string(
+                        "browser.pull_to_refresh",
+                        fallback: "Pull to refresh"
+                    ))
+            }
+
+            if findNavigatorPresented {
+                findNavigator
+            }
+        }
+        .onChange(of: page.url) { _, _ in onMetadataChange() }
+        .onChange(of: page.title) { _, _ in onMetadataChange() }
+        .onChange(of: page.isLoading) { _, isLoading in
+            if !isLoading { onMetadataChange() }
+        }
+        .task(id: page.url) {
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            onMetadataChange()
+        }
+    }
+
+    private var findNavigator: some View {
+        HStack(spacing: 10) {
+            TextField(
+                CompanionL10n.string("browser.find", fallback: "Find on Page"),
+                text: $findQuery
+            )
+            .textFieldStyle(.roundedBorder)
+            .focused($findFieldFocused)
+            .submitLabel(.search)
+            .onSubmit { performFind(backwards: false, resetSelection: false) }
+            .accessibilityIdentifier("browser.find.field")
+
+            Text(CompanionL10n.format(
+                "browser.find.results",
+                fallback: "%d matches",
+                findMatchCount
+            ))
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+
+            Button { performFind(backwards: true, resetSelection: false) } label: {
+                Image(systemName: "chevron.up")
+            }
+            .disabled(findQuery.isEmpty)
+            .accessibilityLabel(CompanionL10n.string(
+                "browser.find.previous",
+                fallback: "Previous match"
+            ))
+
+            Button { performFind(backwards: false, resetSelection: false) } label: {
+                Image(systemName: "chevron.down")
+            }
+            .disabled(findQuery.isEmpty)
+            .accessibilityLabel(CompanionL10n.string(
+                "browser.find.next",
+                fallback: "Next match"
+            ))
+
+            Button(action: closeFindNavigator) {
+                Image(systemName: "xmark.circle.fill")
+            }
+            .accessibilityLabel(CompanionL10n.string(
+                "action.close",
+                fallback: "Close"
+            ))
+        }
+        .padding(10)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .padding(.horizontal, 10)
+        .padding(.top, 8)
+        .shadow(radius: 8, y: 3)
+        .accessibilityIdentifier("browser.find.navigator")
+        .onAppear { findFieldFocused = true }
+        .onChange(of: findQuery) { _, _ in
+            performFind(backwards: false, resetSelection: true)
+        }
+    }
+
+    private func closeFindNavigator() {
+        findNavigatorPresented = false
+        findQuery = ""
+        findMatchCount = 0
+        clearFindSelection()
+    }
+
+    private func handlePullDistance(_ oldValue: CGFloat, _ newValue: CGFloat) {
+        pullDistance = newValue
+        if newValue >= 72 {
+            refreshArmed = true
+        } else if refreshArmed && oldValue > 8 && newValue <= 8 {
+            refreshArmed = false
+            onRefresh()
+        }
+    }
+
+    private func performFind(backwards: Bool, resetSelection: Bool) {
+        let query = findQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else {
+            findMatchCount = 0
+            clearFindSelection()
+            return
+        }
+        Task { @MainActor in
+            do {
+                let result = try await page.callJavaScript(
+                    """
+                    const needle = query.toLocaleLowerCase();
+                    if (resetSelection) window.getSelection()?.removeAllRanges();
+                    window.find(query, false, backwards, true, false, false, false);
+                    const haystack = (document.body?.innerText || '').toLocaleLowerCase();
+                    return haystack.split(needle).length - 1;
+                    """,
+                    arguments: [
+                        "query": query,
+                        "backwards": backwards,
+                        "resetSelection": resetSelection,
+                    ]
+                )
+                if let count = result as? Int {
+                    findMatchCount = count
+                } else if let count = result as? NSNumber {
+                    findMatchCount = count.intValue
+                }
+            } catch {
+                findMatchCount = 0
+            }
+        }
+    }
+
+    private func clearFindSelection() {
+        Task { @MainActor in
+            _ = try? await page.callJavaScript("window.getSelection()?.removeAllRanges();")
+        }
+    }
+}

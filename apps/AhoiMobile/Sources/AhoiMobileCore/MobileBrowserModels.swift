@@ -15,6 +15,8 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     public var lastActiveAt: Date
     public var isSaved: Bool
     public var mode: MobileBrowsingMode
+    /// Local-only favicon candidate reported by the loaded document.
+    public var faviconURL: String?
     /// Local-only, contrast-filtered website accent for the browser chrome.
     /// It is deliberately absent from Ahoi sync wire records.
     public var websiteTintARGB: UInt32?
@@ -28,6 +30,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
         lastActiveAt: Date = Date(),
         isSaved: Bool = false,
         mode: MobileBrowsingMode = .normal,
+        faviconURL: String? = nil,
         websiteTintARGB: UInt32? = nil
     ) {
         self.id = id
@@ -38,6 +41,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
         self.lastActiveAt = lastActiveAt
         self.isSaved = isSaved
         self.mode = mode
+        self.faviconURL = faviconURL
         self.websiteTintARGB = websiteTintARGB
     }
 

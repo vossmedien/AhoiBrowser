@@ -69,6 +69,14 @@ final class CompanionCoreTests: XCTestCase {
         let repository = LocalFirstRepository(
             store: InMemoryCompanionStore()
         )
+        try await repository.upsert(Device(
+            deviceID: device,
+            name: "iPad Pro",
+            kind: .iPad,
+            lastSeenAt: version.modifiedAt,
+            isOnline: true,
+            version: version
+        ))
         try await repository.upsert(DeviceSession(
             sessionID: tab.sessionID,
             deviceID: device,
@@ -105,6 +113,14 @@ final class CompanionCoreTests: XCTestCase {
             isOnline: true,
             version: sessionVersion
         )
+        let sourceDevice = Device(
+            deviceID: device,
+            name: "Mac",
+            kind: .mac,
+            lastSeenAt: sessionVersion.modifiedAt,
+            isOnline: true,
+            version: sessionVersion
+        )
         let tab = try RemoteTab(
             tabID: TabID(),
             deviceID: device,
@@ -116,13 +132,34 @@ final class CompanionCoreTests: XCTestCase {
             lastActiveAt: sessionVersion.modifiedAt,
             version: sessionVersion
         )
-        let snapshot = CompanionSnapshot(sessions: [session], remoteTabs: [tab])
+        let snapshot = CompanionSnapshot(
+            devices: [sourceDevice],
+            sessions: [session],
+            remoteTabs: [tab]
+        )
 
         XCTAssertEqual(snapshot.visibleRemoteTabs(atMilliseconds: now), [tab])
         XCTAssertFalse(snapshot.isRemoteTabActionable(tab, atMilliseconds: now))
 
         let expiredNow = now + CompanionSnapshot.remoteSessionVisibleAgeMilliseconds + 1
         XCTAssertTrue(snapshot.visibleRemoteTabs(atMilliseconds: expiredNow).isEmpty)
+
+        let revokedDevice = Device(
+            deviceID: device,
+            name: "Mac",
+            kind: .mac,
+            lastSeenAt: sessionVersion.modifiedAt,
+            isOnline: true,
+            isRevoked: true,
+            version: sessionVersion
+        )
+        let revokedSnapshot = CompanionSnapshot(
+            devices: [revokedDevice],
+            sessions: [session],
+            remoteTabs: [tab]
+        )
+        XCTAssertTrue(revokedSnapshot.visibleRemoteTabs(atMilliseconds: now).isEmpty)
+        XCTAssertFalse(revokedSnapshot.isRemoteTabActionable(tab, atMilliseconds: now))
     }
 
     func testRemoteTabWireSchemaUsesStableSidebarFieldNames() throws {
@@ -469,6 +506,50 @@ final class CompanionCoreTests: XCTestCase {
         let second = try FileSyncRecordStore(fileURL: fileURL)
         let restored = try await second.record(for: record.recordID)
         XCTAssertEqual(restored, record)
+    }
+
+    func testFileSyncRecordStoreDurablyStagesDistinctFetchedEnvelopeBytes() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(
+                "AhoiFetchedRecordTests-\(UUID().uuidString)",
+                isDirectory: true
+            )
+        let fileURL = directory.appendingPathComponent("records.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let canonical = makeSyncRecord(dataClass: .workspace)
+        let fetched = SyncRecord(
+            recordID: canonical.recordID,
+            entityID: canonical.entityID,
+            schemaVersion: canonical.schemaVersion,
+            dataClass: canonical.dataClass,
+            modifiedAt: canonical.modifiedAt,
+            originatingDevice: canonical.originatingDevice,
+            orderKey: canonical.orderKey,
+            encryptedValue: .init(
+                keyVersion: 2,
+                nonce: Data(repeating: 0x51, count: 12),
+                ciphertextAndTag: Data(repeating: 0x52, count: 32)
+            ),
+            tombstone: canonical.tombstone
+        )
+        let first = try FileSyncRecordStore(fileURL: fileURL)
+        try await first.upsert(canonical)
+        try await first.stageFetchedRecord(fetched)
+        try await first.stageFetchedRecord(fetched)
+
+        let restarted = try FileSyncRecordStore(fileURL: fileURL)
+        let restoredCanonical = try await restarted.record(for: canonical.recordID)
+        let restoredFetched = try await restarted.fetchedRecords()
+        XCTAssertEqual(restoredCanonical, canonical)
+        XCTAssertEqual(restoredFetched, [fetched])
+
+        try await restarted.acknowledgeFetchedRecord(fetched)
+        let acknowledged = try FileSyncRecordStore(fileURL: fileURL)
+        let acknowledgedCanonical = try await acknowledged.record(for: canonical.recordID)
+        let acknowledgedFetched = try await acknowledged.fetchedRecords()
+        XCTAssertEqual(acknowledgedCanonical, canonical)
+        XCTAssertTrue(acknowledgedFetched.isEmpty)
     }
 
     func testTreeNodeSchemaRejectsInvalidPageAndFolderPayloads() throws {

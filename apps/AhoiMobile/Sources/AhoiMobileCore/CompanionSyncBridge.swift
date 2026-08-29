@@ -233,24 +233,71 @@ public actor CompanionSyncBridge {
     }
 
     public func importFetchedRecords() async throws {
-        let records = try await provider.allRecords()
-        for record in records where record.dataClass != .deviceTab
-            && record.dataClass != .deviceSession {
-            await importOrQuarantine(record)
+        let fetchedRecords = try await provider.pendingFetchedRecords()
+        let primaryRecords = try await provider.allRecords()
+        let candidates = Self.makeImportCandidates(
+            primaryRecords: primaryRecords,
+            fetchedRecords: fetchedRecords
+        )
+        for candidate in candidates where candidate.record.dataClass != .deviceTab
+            && candidate.record.dataClass != .deviceSession {
+            await importOrQuarantine(
+                candidate.record,
+                acknowledgeOnSuccess: candidate.acknowledgeOnSuccess
+            )
         }
-        for record in records where record.dataClass == .deviceSession {
-            await importOrQuarantine(record)
+        for candidate in candidates where candidate.record.dataClass == .deviceSession {
+            await importOrQuarantine(
+                candidate.record,
+                acknowledgeOnSuccess: candidate.acknowledgeOnSuccess
+            )
         }
-        for record in records where record.dataClass == .deviceTab {
-            await importOrQuarantine(record)
+        for candidate in candidates where candidate.record.dataClass == .deviceTab {
+            await importOrQuarantine(
+                candidate.record,
+                acknowledgeOnSuccess: candidate.acknowledgeOnSuccess
+            )
         }
+    }
+
+    struct ImportCandidate: Equatable, Sendable {
+        let record: SyncRecord
+        let acknowledgeOnSuccess: Bool
+    }
+
+    static func makeImportCandidates(
+        primaryRecords: [SyncRecord],
+        fetchedRecords: [SyncRecord]
+    ) -> [ImportCandidate] {
+        var candidates = primaryRecords.map {
+            ImportCandidate(record: $0, acknowledgeOnSuccess: false)
+        }
+        for record in fetchedRecords {
+            if let index = candidates.firstIndex(where: { $0.record == record }) {
+                // A fetched envelope may also be the selected transport
+                // snapshot. Import it once and acknowledge its inbox copy.
+                candidates[index] = ImportCandidate(
+                    record: record,
+                    acknowledgeOnSuccess: true
+                )
+            } else {
+                candidates.append(ImportCandidate(
+                    record: record,
+                    acknowledgeOnSuccess: true
+                ))
+            }
+        }
+        return candidates
     }
 
     public nonisolated func status() -> CloudKitSyncStatus {
         provider.status()
     }
 
-    private func importOrQuarantine(_ record: SyncRecord) async {
+    private func importOrQuarantine(
+        _ record: SyncRecord,
+        acknowledgeOnSuccess: Bool
+    ) async {
         do {
             try await importRecord(record)
         } catch {
@@ -260,6 +307,15 @@ public actor CompanionSyncBridge {
                 record.recordID,
                 reason: "plaintext_or_merge_validation_failed"
             )
+            // Retain the opaque inbox record. Key access and local persistence
+            // failures can be transient, and discarding it here would recreate
+            // the pre-domain-merge data-loss window.
+            return
+        }
+        if acknowledgeOnSuccess {
+            // A failed acknowledgement is safe to retry: domain merges are
+            // deterministic and the exact encrypted envelope stays durable.
+            try? await provider.acknowledgeFetchedRecord(record)
         }
     }
 

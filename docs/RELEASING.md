@@ -165,6 +165,40 @@ transaction and rollback implementation for an already stamped and signed
 `releaseEvidenceEligible=false`. It cannot consume release receipts, satisfy
 `assemble`, or replace Developer ID/notarization verification.
 
+## AhoiBrowser Mobile release boundary
+
+The Mobile target has a separate Apple distribution chain; a desktop release
+receipt cannot satisfy it. `apps/AhoiMobile/AhoiMobile.Release.xcconfig.template`
+points Release signing at
+`AhoiMobile.DefaultBrowser.entitlements.template`, which intentionally cannot
+be materialized honestly until Apple grants the managed default-browser
+entitlement to the final bundle ID and the Team provisions matching CloudKit,
+push and Keychain capabilities.
+
+A Mobile candidate requires all of the following, bound to one source commit and
+build number:
+
+1. final Team ID, App ID/bundle ID, development/distribution certificates and
+   profiles, including the Apple-managed default-browser entitlement;
+2. concrete private CloudKit container/environment and reviewed synchronizable
+   Keychain groups/keys without repository-held private material;
+3. generated Xcode project inputs, Release archive and exported IPA with exact
+   signature/profile/entitlement inspection;
+4. merged Privacy Manifest plus embedded-SDK manifests reconciled against actual
+   endpoints and App Store Connect privacy disclosures;
+5. the exact signed candidate installed on supported physical iPhone and iPad,
+   followed by `MOB-USER-01` through `MOB-USER-15` and `IOS-01` through
+   `IOS-15` with retained evidence;
+6. entitled Mac–Mobile CloudKit/Keychain convergence, offline, conflict,
+   account/zone recovery, key rotation/revocation and private-data exclusion;
+7. App Store Connect archive upload and processing receipts, tester access and
+   installation/launch of the processed TestFlight build on both form factors.
+
+The current worktree supplies source templates and policy seams only. It does
+not record a Mobile build, archive, physical installation, entitled roundtrip,
+App Store processing result or TestFlight installation. Granular ownership and
+states live in `config/external-gates.json`.
+
 ## Gates intentionally still closed
 
 The implementation does not manufacture production evidence.

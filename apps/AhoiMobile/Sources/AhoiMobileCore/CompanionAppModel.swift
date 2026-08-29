@@ -428,6 +428,37 @@ public final class CompanionAppModel: ObservableObject {
         }
     }
 
+    public func deleteHistoryVisit(_ id: HistoryVisitID) async {
+        do {
+            let tombstone = try await repository.deleteHistoryVisit(id)
+            try await syncBridge?.enqueue(tombstone)
+            try await refreshLocalState()
+            await syncIfNeeded(afterDeleting: [tombstone])
+        } catch {
+            loadError = error.localizedDescription
+        }
+    }
+
+    public func deleteHistory(sinceMilliseconds: UInt64) async {
+        do {
+            let tombstones = try await repository.deleteHistory(
+                sinceMilliseconds: sinceMilliseconds
+            )
+            for tombstone in tombstones {
+                try await syncBridge?.enqueue(tombstone)
+            }
+            try await refreshLocalState()
+            await syncIfNeeded(afterDeleting: tombstones)
+        } catch {
+            loadError = error.localizedDescription
+        }
+    }
+
+    private func syncIfNeeded(afterDeleting tombstones: [HistoryVisit]) async {
+        guard !tombstones.isEmpty, syncBridge != nil else { return }
+        await sync()
+    }
+
     public func confirmAccountTransition(allowLocalUpload: Bool) async {
         guard let syncProvider else { return }
         do {
@@ -522,6 +553,15 @@ public final class CompanionAppModel: ObservableObject {
         target: DeviceID,
         action: String
     ) async {
+        guard snapshot.devices.contains(where: {
+            $0.id == target && !$0.isDeleted && !$0.isRevoked
+        }) else {
+            remoteCommandStatus = CompanionL10n.string(
+                "remote.device_unavailable",
+                fallback: "This device is unavailable or has been revoked."
+            )
+            return
+        }
         guard let syncBridge else {
             remoteCommandStatus = CompanionL10n.string(
                 "remote.not_configured",

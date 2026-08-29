@@ -10,14 +10,21 @@ public final class MobileBrowserController: ObservableObject {
     @Published public private(set) var lastError: String?
     @Published public private(set) var recentlyClosedTab: MobileTabRecord?
     @Published public private(set) var pendingExternalURL: URL?
+    @Published public private(set) var pendingExternalOrigin: String?
+    @Published public private(set) var pendingLink: MobilePendingLink?
     @Published public private(set) var pageFailures: [UUID: MobilePageFailureKind] = [:]
 
     public let permissionCoordinator: MobilePermissionCoordinator
     public let downloadCoordinator: MobileDownloadCoordinator
 
     private let store: any MobileBrowserSessionStoring
+    private let saveCoordinator: MobileBrowserSessionSaveCoordinator
+    private let storagePreparation: (@Sendable () async throws -> Void)?
     private var pages: [UUID: WebPage] = [:]
+    private var dialogPresenters: [UUID: MobileWebDialogPresenter] = [:]
+    private var linkInteractionCoordinators: [UUID: MobileLinkInteractionCoordinator] = [:]
     private var websiteDataStores: [UUID: WKWebsiteDataStore] = [:]
+    private var privateWebsiteDataStore: WKWebsiteDataStore?
     private var lastRecordedHistoryURL: [UUID: String] = [:]
     private var desktopSiteTabIDs: Set<UUID> = []
     private var externalOpenDeduplicator = MobileExternalOpenDeduplicator()
@@ -25,14 +32,18 @@ public final class MobileBrowserController: ObservableObject {
     private var navigationObservationTasks: [UUID: Task<Void, Never>] = [:]
     private var expectedDownloadCancellationTabIDs: Set<UUID> = []
     private var didLoad = false
+    private var sessionRevision: UInt64 = 0
 
     public init(
         store: any MobileBrowserSessionStoring,
         permissionCoordinator: MobilePermissionCoordinator = MobilePermissionCoordinator(),
         downloadCoordinator: MobileDownloadCoordinator = MobileDownloadCoordinator(),
+        storagePreparation: (@Sendable () async throws -> Void)? = nil,
         startupError: String? = nil
     ) {
         self.store = store
+        self.saveCoordinator = MobileBrowserSessionSaveCoordinator(store: store)
+        self.storagePreparation = storagePreparation
         self.permissionCoordinator = permissionCoordinator
         self.downloadCoordinator = downloadCoordinator
         self.lastError = startupError
@@ -51,6 +62,11 @@ public final class MobileBrowserController: ObservableObject {
         return page(for: selectedTabID)
     }
 
+    public var selectedDialogPresenter: MobileWebDialogPresenter? {
+        guard let selectedTabID else { return nil }
+        return dialogPresenters[selectedTabID]
+    }
+
     public var selectedPageFailure: MobilePageFailureKind? {
         selectedTabID.flatMap { pageFailures[$0] }
     }
@@ -66,6 +82,7 @@ public final class MobileBrowserController: ObservableObject {
     public func load() async {
         guard !didLoad else { return }
         do {
+            try await storagePreparation?()
             let snapshot = try await store.load()
             tabs = snapshot.tabs
             selectedTabID = snapshot.selectedTabID
@@ -170,16 +187,30 @@ public final class MobileBrowserController: ObservableObject {
         }
     }
 
+    public func reload() {
+        guard let selectedTabID, let page = selectedPage else { return }
+        observeNavigations(of: page, tabID: selectedTabID)
+        page.reload()
+    }
+
     public func close(_ id: UUID) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         let removed = tabs.remove(at: index)
         pages.removeValue(forKey: id)
+        dialogPresenters.removeValue(forKey: id)?.cancelPending()
+        linkInteractionCoordinators.removeValue(forKey: id)?.invalidate()
+        if pendingLink?.sourceTabID == id { pendingLink = nil }
         websiteDataStores.removeValue(forKey: id)
         navigationObservationTasks.removeValue(forKey: id)?.cancel()
         pageFailures.removeValue(forKey: id)
         expectedDownloadCancellationTabIDs.remove(id)
         desktopSiteTabIDs.remove(id)
         recentlyClosedTab = removed
+        if removed.mode == .privateBrowsing && privateTabs.isEmpty {
+            // Closing the final private tab ends that ephemeral session. A
+            // replacement private tab receives a fresh non-persistent store.
+            privateWebsiteDataStore = nil
+        }
         if selectedTabID == id {
             if tabs.isEmpty {
                 selectedTabID = nil
@@ -212,9 +243,22 @@ public final class MobileBrowserController: ObservableObject {
         persistSoon()
     }
 
+    public func moveTab(_ id: UUID, to workspaceID: WorkspaceID?) {
+        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
+        tabs[index].workspaceID = workspaceID
+        persistSoon()
+    }
+
     public func setSelectedTabSaved(_ saved: Bool) {
         guard let selectedTabID,
               let index = tabs.firstIndex(where: { $0.id == selectedTabID }) else { return }
+        tabs[index].isSaved = saved
+        persistSoon()
+    }
+
+    public func setTabSaved(_ id: UUID, _ saved: Bool) {
+        guard let index = tabs.firstIndex(where: { $0.id == id }),
+              tabs[index].mode == .normal else { return }
         tabs[index].isSaved = saved
         persistSoon()
     }
@@ -233,6 +277,28 @@ public final class MobileBrowserController: ObservableObject {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         let value = title.trimmingCharacters(in: .whitespacesAndNewlines)
         tabs[index].title = String(value.prefix(160))
+        persistSoon()
+    }
+
+    public func reorderTabs(
+        _ orderedIDs: [UUID],
+        fromOffsets: IndexSet,
+        toOffset: Int
+    ) {
+        guard !orderedIDs.isEmpty,
+              orderedIDs.allSatisfy({ id in tabs.contains { $0.id == id } }) else {
+            return
+        }
+        var reorderedIDs = orderedIDs
+        reorderedIDs.move(fromOffsets: fromOffsets, toOffset: toOffset)
+        let records = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id, $0) })
+        let memberIDs = Set(orderedIDs)
+        let slots = tabs.indices.filter { memberIDs.contains(tabs[$0].id) }
+        guard slots.count == reorderedIDs.count else { return }
+        for (slot, id) in zip(slots, reorderedIDs) {
+            guard let record = records[id] else { return }
+            tabs[slot] = record
+        }
         persistSoon()
     }
 
@@ -312,6 +378,28 @@ public final class MobileBrowserController: ObservableObject {
         }
     }
 
+    public func refreshSelectedFavicon() async {
+        guard let tabID = selectedTabID, let page = selectedPage else { return }
+        let script = #"""
+        (() => {
+          const candidate = document.querySelector(
+            'link[rel~="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]'
+          )?.href;
+          if (candidate) return candidate;
+          try { return new URL('/favicon.ico', location.href).href; }
+          catch (_) { return null; }
+        })()
+        """#
+        guard let value = try? await page.callJavaScript(script) as? String,
+              let url = URL(string: value),
+              (try? MobileBrowserInputRouter.validateWebURL(url)) != nil,
+              value.utf8.count <= 2_048,
+              let index = tabs.firstIndex(where: { $0.id == tabID }),
+              tabs[index].faviconURL != value else { return }
+        tabs[index].faviconURL = value
+        persistSoon()
+    }
+
     public func handleExternalURL(_ url: URL) {
         do {
             let safeURL = try MobileBrowserInputRouter.validateWebURL(url)
@@ -331,25 +419,65 @@ public final class MobileBrowserController: ObservableObject {
     }
 
     public func confirmPendingExternalURL() -> URL? {
-        defer { pendingExternalURL = nil }
+        defer {
+            pendingExternalURL = nil
+            pendingExternalOrigin = nil
+        }
         return pendingExternalURL
     }
 
     public func cancelPendingExternalURL() {
         pendingExternalURL = nil
+        pendingExternalOrigin = nil
     }
 
     public func dismissError() {
         lastError = nil
     }
 
+    public func dismissPendingLink() {
+        pendingLink = nil
+    }
+
+    @discardableResult
+    public func openPendingLink(
+        mode: MobileBrowsingMode? = nil,
+        workspaceID: WorkspaceID? = nil
+    ) -> UUID? {
+        guard let pendingLink else { return nil }
+        self.pendingLink = nil
+        return createTab(
+            url: pendingLink.url,
+            workspaceID: workspaceID ?? pendingLink.workspaceID,
+            mode: mode ?? pendingLink.sourceMode
+        )
+    }
+
+    public func flushSession() async {
+        sessionRevision &+= 1
+        do {
+            try await saveCoordinator.enqueue(
+                persistentSnapshot(),
+                revision: sessionRevision
+            )
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
     public func clearPrivateTabs() {
         let privateIDs = Set(privateTabs.map(\.id))
         tabs.removeAll { privateIDs.contains($0.id) }
         for id in privateIDs { pages.removeValue(forKey: id) }
+        for id in privateIDs { dialogPresenters.removeValue(forKey: id)?.cancelPending() }
+        for id in privateIDs { linkInteractionCoordinators.removeValue(forKey: id)?.invalidate() }
+        if let pendingLink, privateIDs.contains(pendingLink.sourceTabID) {
+            self.pendingLink = nil
+        }
         for id in privateIDs { websiteDataStores.removeValue(forKey: id) }
         for id in privateIDs { navigationObservationTasks.removeValue(forKey: id)?.cancel() }
         for id in privateIDs { pageFailures.removeValue(forKey: id) }
+        privateWebsiteDataStore = nil
         if let selectedTabID, privateIDs.contains(selectedTabID) {
             self.selectedTabID = normalTabs.last?.id
             if self.selectedTabID == nil { _ = createTab() }
@@ -369,6 +497,9 @@ public final class MobileBrowserController: ObservableObject {
             .map(\.id))
         for id in Array(pages.keys) where !keepIDs.contains(id) {
             pages.removeValue(forKey: id)
+            dialogPresenters.removeValue(forKey: id)?.cancelPending()
+            linkInteractionCoordinators.removeValue(forKey: id)?.invalidate()
+            if pendingLink?.sourceTabID == id { pendingLink = nil }
             websiteDataStores.removeValue(forKey: id)
             navigationObservationTasks.removeValue(forKey: id)?.cancel()
             pageFailures.removeValue(forKey: id)
@@ -433,8 +564,13 @@ public final class MobileBrowserController: ObservableObject {
 
 #if DEBUG
     public func loadUITestFixture() {
+        dialogPresenters.values.forEach { $0.cancelPending() }
+        dialogPresenters.removeAll()
+        linkInteractionCoordinators.values.forEach { $0.invalidate() }
+        linkInteractionCoordinators.removeAll()
         pages.removeAll()
         websiteDataStores.removeAll()
+        privateWebsiteDataStore = nil
         tabs.removeAll()
         selectedTabID = nil
         recentlyClosedTab = nil
@@ -472,8 +608,13 @@ public final class MobileBrowserController: ObservableObject {
     }
 
     public func loadUITestOfflineFailure() {
+        dialogPresenters.values.forEach { $0.cancelPending() }
+        dialogPresenters.removeAll()
+        linkInteractionCoordinators.values.forEach { $0.invalidate() }
+        linkInteractionCoordinators.removeAll()
         pages.removeAll()
         websiteDataStores.removeAll()
+        privateWebsiteDataStore = nil
         tabs.removeAll()
         selectedTabID = nil
         pageFailures.removeAll()
@@ -609,9 +750,18 @@ public final class MobileBrowserController: ObservableObject {
 
     private func makePage(tabID: UUID, mode: MobileBrowsingMode) -> WebPage {
         var configuration = WebPage.Configuration()
-        let websiteDataStore: WKWebsiteDataStore = mode == .privateBrowsing
-            ? .nonPersistent()
-            : .default()
+        let websiteDataStore: WKWebsiteDataStore
+        if mode == .privateBrowsing {
+            if let privateWebsiteDataStore {
+                websiteDataStore = privateWebsiteDataStore
+            } else {
+                let created = WKWebsiteDataStore.nonPersistent()
+                privateWebsiteDataStore = created
+                websiteDataStore = created
+            }
+        } else {
+            websiteDataStore = .default()
+        }
         websiteDataStores[tabID] = websiteDataStore
         configuration.websiteDataStore = websiteDataStore
         configuration.upgradeKnownHostsToHTTPS = true
@@ -620,13 +770,43 @@ public final class MobileBrowserController: ObservableObject {
             guard let permissionCoordinator else { return .deny }
             return await permissionCoordinator.request(permission: permission, origin: origin)
         }
+        let linkCoordinator = MobileLinkInteractionCoordinator(
+            userContentController: configuration.userContentController
+        ) { [weak self] url in
+            guard let self,
+                  let sourceTab = self.tabs.first(where: { $0.id == tabID }) else {
+                return
+            }
+            self.pendingLink = MobilePendingLink(
+                url: url,
+                sourceTabID: tabID,
+                sourceOrigin: sourceTab.url.flatMap(URL.init(string:))
+                    .map(MobileBrowserOriginFormatter.label(for:))
+                    ?? CompanionL10n.string(
+                        "browser.origin.unknown",
+                        fallback: "Unknown origin"
+                    ),
+                workspaceID: sourceTab.workspaceID,
+                sourceMode: sourceTab.mode
+            )
+        }
+        linkInteractionCoordinators[tabID] = linkCoordinator
 
         let policy = MobileNavigationPolicyHandler()
+        let dialogPresenter = MobileWebDialogPresenter()
+        dialogPresenters[tabID] = dialogPresenter
         policy.onOpenNewTab = { [weak self] url in
-            _ = self?.createTab(url: url)
+            guard let self else { return }
+            let workspaceID = self.tabs.first(where: { $0.id == tabID })?.workspaceID
+            _ = self.createTab(
+                url: url,
+                workspaceID: workspaceID,
+                mode: mode
+            )
         }
-        policy.onExternalScheme = { [weak self] url in
+        policy.onExternalScheme = { [weak self] url, origin in
             self?.pendingExternalURL = url
+            self?.pendingExternalOrigin = origin
         }
         policy.onDownload = { [weak self] request in
             self?.expectedDownloadCancellationTabIDs.insert(tabID)
@@ -634,10 +814,17 @@ public final class MobileBrowserController: ObservableObject {
             self?.downloadCoordinator.start(
                 request: request,
                 websiteDataStore: websiteDataStore,
+                initiatingOrigin: self?.tabs.first(where: { $0.id == tabID })?.url
+                    .flatMap(URL.init(string:))
+                    .map(MobileBrowserOriginFormatter.label(for:)),
                 isPrivate: mode == .privateBrowsing
             )
         }
-        return WebPage(configuration: configuration, navigationDecider: policy)
+        return WebPage(
+            configuration: configuration,
+            navigationDecider: policy,
+            dialogPresenter: dialogPresenter
+        )
     }
 
     private func updateSelectedMetadata(url: URL?, title: String?) {
@@ -672,20 +859,26 @@ public final class MobileBrowserController: ObservableObject {
     }
 
     private func persistSoon() {
-        let persistentTabs = normalTabs
-        let persistentSelection = persistentTabs.contains { $0.id == selectedTabID }
-            ? selectedTabID
-            : persistentTabs.last?.id
-        let snapshot = MobileBrowserSessionSnapshot(
-            tabs: persistentTabs,
-            selectedTabID: persistentSelection
-        )
+        sessionRevision &+= 1
+        let revision = sessionRevision
+        let snapshot = persistentSnapshot()
         Task {
             do {
-                try await store.save(snapshot)
+                try await saveCoordinator.enqueue(snapshot, revision: revision)
             } catch {
                 await MainActor.run { self.lastError = error.localizedDescription }
             }
         }
+    }
+
+    private func persistentSnapshot() -> MobileBrowserSessionSnapshot {
+        let persistentTabs = normalTabs
+        let persistentSelection = persistentTabs.contains { $0.id == selectedTabID }
+            ? selectedTabID
+            : persistentTabs.last?.id
+        return MobileBrowserSessionSnapshot(
+            tabs: persistentTabs,
+            selectedTabID: persistentSelection
+        )
     }
 }

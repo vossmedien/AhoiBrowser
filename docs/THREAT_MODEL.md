@@ -1,41 +1,131 @@
 # Threat model
 
+This document describes source-level security contracts. It does not record a
+test result. Mobile journeys in `config/test-registry.json` remain `NOT_RUN`
+until evidence is bound to an exact signed candidate.
+
 ## Protected assets
 
-Browsing credentials and sessions, HTTP-auth secrets, password-manager data,
-history/tree metadata, developer header secrets, synced records, update signing
-keys, remote-command authorization, microphone/camera/screen data, downloaded
-files, and the integrity of browser navigation.
+- browsing credentials and normal-profile WebKit/Chromium sessions;
+- private-browsing website data and the boundary that keeps it out of normal
+  persistence, history, session restore, search and sync;
+- HTTP-auth secrets, password-manager data, Keychain keys and developer header
+  secrets;
+- history, workspace/tree, device-tab and encrypted sync metadata;
+- remote-command authorization, replay state and approved-device identity;
+- camera, microphone, motion, file-selection and external-app consent;
+- downloaded files, upload selections and the origin/tab attribution of each
+  browser-mediated action;
+- update, App Store and signing provenance; and
+- the integrity of browser navigation, native dialogs and displayed origins.
 
 ## Relevant adversaries
 
-- malicious or compromised websites and cross-origin content
-- malicious extensions or native-messaging hosts
-- network attackers, captive portals, and malicious proxies
-- compromised sync records or replayed remote commands
-- a local process attempting to read browser data or inject UI
-- compromised update infrastructure or a malicious downgrade
-- accidental disclosure through logs, crash reports, screenshots, or support data
+- malicious or compromised websites, frames, popups and cross-origin content;
+- a site attempting prompt fatigue, permission confusion, tab spoofing, unsafe
+  scheme launches or access to unintended local files;
+- malicious downloads, misleading filenames, executable content and responses
+  that change disposition or MIME type;
+- malicious extensions or native-messaging hosts on desktop;
+- network attackers, captive portals and malicious proxies;
+- compromised, reordered or replayed sync records and remote commands;
+- a local process attempting to read browser data, downloads or Keychain items,
+  or to inject UI;
+- compromised update, App Store Connect or TestFlight infrastructure; and
+- accidental disclosure through logs, crash reports, screenshots or support
+  data.
 
-## Trust boundaries
+## Desktop trust boundaries
 
-Renderer processes are untrusted. Browser-process services validate renderer
-messages and preserve Chromium's sandbox boundaries. Extension processes are not
-trusted with Ahoi secrets. CloudKit transports encrypted permitted records but
-is not trusted with plaintext encrypted-value contents. The iOS companion may
-request only enumerated normal-profile tab commands; the Mac validates device,
-signature, nonce, five-minute TTL, replay state, target, and scope.
+Chromium renderer processes are untrusted. Browser-process services validate
+renderer messages and retain Chromium's sandbox, Site Isolation, network,
+permission, download and storage boundaries. Extension processes are not trusted
+with Ahoi secrets. Ahoi UI must not create a second credential, permission,
+download or renderer authority.
+
+## Mobile WebKit boundary
+
+Web content is untrusted even though rendering, networking, TLS, cookies and
+website storage are supplied by system WebKit. `WebPage`/`WebView` and
+`WKWebsiteDataStore` remain the browser engine boundary; SwiftUI browser chrome
+owns presentation and policy, not webpage trust.
+
+Normal tabs use WebKit's persistent default data store. All private tabs in one
+running private session use one `WKWebsiteDataStore.nonPersistent()` instance,
+and the controller drops that instance when private tabs are cleared. Private
+tab records are excluded from the session file, history, search, device-tab
+publication and sync. These source properties do not prove process-death,
+backgrounding or physical-device isolation; `MOB-USER-05`, `MOB-USER-11` and
+`IOS-14` remain required runtime evidence.
+
+Each WebKit page owns a native dialog presenter. JavaScript alert, confirm,
+prompt and file-input requests carry the initiating security origin and are
+cancelled when their page is discarded or closed. Camera, microphone, combined
+capture and motion requests are fail-closed, origin-labelled and resolved one at
+a time; Ahoi does not persist a parallel permission allowlist. External schemes
+are cancelled in WebKit and require a native confirmation showing source origin
+and target scheme before system handoff. Physical system prompts and hostile
+frame/popup cases remain unexecuted gates.
+
+## Download and file boundary
+
+WebKit owns transfer execution through `WKDownload`; Ahoi retains the initiating
+HTTP(S) request so response-triggered downloads use the same WebKit data store as
+the source tab. Filenames are reduced to a leaf, control characters are removed,
+and collisions receive a numeric suffix before writing below the app's
+`Documents/Downloads` directory. The UI exposes origin, progress, cancellation,
+Quick Look and sharing.
+
+A private download may use the private in-memory WebKit session, but its
+user-requested output file is intentionally persistent. Private browsing does
+not erase or conceal downloaded files or items the user explicitly shares.
+Upload selection is gated by a native origin-labelled confirmation and the
+system file importer. Malware scanning, platform quarantine behavior, security
+scoped file access, filename edge cases and real file-provider behavior require
+candidate-bound device evidence; source code alone does not establish them.
+
+## Sync and key boundary
+
+CloudKit transports only encrypted allowlisted records and is not trusted with
+plaintext payload contents. Local mutations are durable before transport and
+enqueue CKSyncEngine changes; automatic transport and delegate events replace a
+foreground polling loop, while manual sync and foreground reconciliation remain
+explicit triggers. Every distinct fetched encrypted envelope is staged before
+domain merge and acknowledged only after successful import.
+
+CloudKit container identifiers, entitlements and AES/Ed25519 keys are external.
+A missing account, container, entitlement or Keychain item leaves the app
+local-only. The Mobile app may request only enumerated normal-profile tab
+commands; the Mac validates approved device, signature, nonce, five-minute TTL,
+replay state, target and scope. Entitled multi-device convergence, push delivery,
+background behavior, key rotation/revocation and account/zone recovery remain
+external `NOT_RUN` journeys.
+
+## Privacy manifest boundary
+
+The tracked app and package Privacy Manifests declare no tracking, no collected
+data types and the `CA92.1` reason for UserDefaults access. They are source
+declarations, not proof of the contents of a signed archive or App Store privacy
+answers. Release review must inspect the merged archive manifest, third-party SDK
+manifests, runtime endpoints and App Store Connect disclosures for the exact
+candidate.
 
 ## Explicit non-goals
 
-AhoiBrowser cannot protect data after full compromise of the logged-in macOS
-account or kernel, guarantee anonymity, bypass DRM restrictions, or make unsafe
-developer overrides harmless. Incognito limits local persistence but does not
-hide traffic from sites, employers, ISPs, or network observers.
+AhoiBrowser cannot protect data after full compromise of the logged-in device
+account or kernel, guarantee anonymity, bypass DRM restrictions, make unsafe
+developer overrides harmless, or make a downloaded file safe. Private browsing
+limits application persistence but does not hide traffic from sites, employers,
+ISPs or network observers and does not remove downloads or explicit shares.
 
-## Mandatory abuse cases
+## Required abuse evidence
 
-Tests cover cross-workspace session consistency, OTR isolation, auth credential
-realm confusion, plaintext HTTP warnings, remote-command replay/expiry, poisoned
-sync ordering, malicious extension attempts, hidden developer overrides, update
-signature failure, TLS error handling, and secret leakage into diagnostics.
+Release-critical evidence must cover cross-workspace session consistency,
+normal/private data-store isolation, origin confusion across prompts/popups,
+denial and cancellation of permissions/dialogs, malicious filenames and download
+responses, unintended upload scope, unsafe external schemes, plaintext HTTP and
+TLS errors, remote-command replay/expiry, poisoned sync ordering, revoked
+devices, malicious extension attempts, hidden developer overrides, update or
+archive signature failure and secret leakage into diagnostics. Registry entries
+stay `NOT_RUN` until those cases are executed against the appropriate installed
+candidate.

@@ -1,3 +1,4 @@
 "NSCameraUsageDescription" = "AhoiBrowser asks only when a website you are using requests the camera.";
 "NSMicrophoneUsageDescription" = "AhoiBrowser asks only when a website you are using requests the microphone.";
 "NSMotionUsageDescription" = "AhoiBrowser asks only when a website you are using requests motion sensors.";
+"NSLocationWhenInUseUsageDescription" = "AhoiBrowser asks only when a website you are using requests your location.";

@@ -229,11 +229,6 @@ public struct CompanionRootView: View {
         .task {
             await model.load()
             await model.sync()
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(300))
-                guard !Task.isCancelled else { break }
-                await model.sync()
-            }
         }
         .alert(creationTitle, isPresented: creationPresented) {
             TextField(L("field.name", "Name"), text: $draftTitle)

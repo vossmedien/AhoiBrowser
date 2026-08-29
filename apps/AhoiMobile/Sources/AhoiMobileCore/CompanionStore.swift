@@ -60,6 +60,9 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
             ? now - Self.remoteSessionVisibleAgeMilliseconds
             : 0
         var liveSessions: [DeviceSessionID: DeviceSession] = [:]
+        let permittedDeviceIDs = Set(devices.lazy.filter {
+            !$0.isDeleted && !$0.isRevoked
+        }.map(\.id))
         for session in sessions where !session.isDeleted && session.isOnline &&
             session.lastActiveAt.physicalMilliseconds >= cutoff {
             if liveSessions[session.id].map({
@@ -70,6 +73,7 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         }
         return remoteTabs.filter { tab in
             guard !tab.isDeleted, tab.context == .normal,
+                  permittedDeviceIDs.contains(tab.deviceID),
                   let session = liveSessions[tab.sessionID] else {
                 return false
             }
@@ -86,6 +90,9 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         let cutoff = now > Self.remoteSessionActionableAgeMilliseconds
             ? now - Self.remoteSessionActionableAgeMilliseconds
             : 0
+        guard devices.contains(where: {
+            $0.id == tab.deviceID && !$0.isDeleted && !$0.isRevoked
+        }) else { return false }
         return sessions.contains {
             $0.id == tab.sessionID && $0.deviceID == tab.deviceID &&
                 !$0.isDeleted && $0.isOnline &&
@@ -262,6 +269,15 @@ public actor LocalSearchIndex {
                 workspaceName: snapshot.workspaces.first { $0.id == node.workspaceID }?.name
             ))
         }
+        for visit in snapshot.visibleHistory {
+            result.append(.init(
+                id: visit.id.rawValue,
+                kind: .history,
+                title: visit.title,
+                detail: visit.url,
+                url: visit.url
+            ))
+        }
         for tab in snapshot.visibleRemoteTabs {
             result.append(.init(
                 id: tab.id.rawValue,
@@ -271,15 +287,6 @@ public actor LocalSearchIndex {
                 url: tab.url,
                 deviceName: tab.deviceName,
                 workspaceName: tab.workspaceName
-            ))
-        }
-        for visit in snapshot.visibleHistory {
-            result.append(.init(
-                id: visit.id.rawValue,
-                kind: .history,
-                title: visit.title,
-                detail: visit.url,
-                url: visit.url
             ))
         }
         records = result
@@ -895,6 +902,58 @@ public actor LocalFirstRepository {
             try await persist()
         }
         return deleted
+    }
+
+    /// Deletes one visible visit through the same tombstone path used by
+    /// retention so the operation converges on every synced device.
+    @discardableResult
+    public func deleteHistoryVisit(_ id: HistoryVisitID) async throws -> HistoryVisit {
+        try await load()
+        guard let index = snapshot.history.firstIndex(where: {
+            $0.id == id && !$0.isDeleted
+        }) else {
+            throw LocalCompanionStoreError.notFound
+        }
+        let deleted = try tombstoneHistoryVisit(at: index)
+        try await persist()
+        return deleted
+    }
+
+    /// Deletes visits at or after the supplied instant. Passing zero removes
+    /// all visible visits. Returned tombstones are ready for the sync outbox.
+    @discardableResult
+    public func deleteHistory(
+        sinceMilliseconds: UInt64
+    ) async throws -> [HistoryVisit] {
+        try await load()
+        let indexes = snapshot.history.indices.filter {
+            !snapshot.history[$0].isDeleted &&
+                snapshot.history[$0].visitedAt.physicalMilliseconds >= sinceMilliseconds
+        }
+        let deleted = try indexes.map(tombstoneHistoryVisit(at:))
+        if !deleted.isEmpty {
+            try await persist()
+        }
+        return deleted
+    }
+
+    private func tombstoneHistoryVisit(at index: Int) throws -> HistoryVisit {
+        let previous = snapshot.history[index]
+        let version = try nextVersion()
+        var candidate = previous
+        candidate.version = version
+        candidate.tombstone = makeTombstone(
+            entityID: previous.id.rawValue,
+            version: version,
+            parentID: nil,
+            orderKey: nil
+        )
+        candidate = CompanionReadModelFieldMerge.stampLocal(
+            previous: previous,
+            candidate: candidate
+        )
+        snapshot.history[index] = candidate
+        return candidate
     }
 
     func persist() async throws {

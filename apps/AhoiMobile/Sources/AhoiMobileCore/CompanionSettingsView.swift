@@ -7,6 +7,8 @@ public struct CompanionSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var accountRecoveryPresented = false
     @State private var zoneRecoveryPresented = false
+    @AppStorage(MobileBrowserPreferences.searchEngineKey)
+    private var searchEngineRawValue = MobileSearchEngine.duckDuckGo.rawValue
 
     public init(model: CompanionAppModel, syncEnabled: Binding<Bool>) {
         self.model = model
@@ -16,6 +18,30 @@ public struct CompanionSettingsView: View {
     public var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Picker(
+                        CompanionL10n.string(
+                            "settings.search_engine.title",
+                            fallback: "Search engine"
+                        ),
+                        selection: $searchEngineRawValue
+                    ) {
+                        ForEach(MobileSearchEngine.allCases) { engine in
+                            Text(engine.localizedName).tag(engine.rawValue)
+                        }
+                    }
+                } header: {
+                    Text(CompanionL10n.string(
+                        "settings.browser.section",
+                        fallback: "Browser"
+                    ))
+                } footer: {
+                    Text(CompanionL10n.string(
+                        "settings.search_engine.footer",
+                        fallback: "Search terms are sent only when you choose to navigate."
+                    ))
+                }
+
                 Section {
                     Toggle(
                         CompanionL10n.string(

@@ -81,11 +81,19 @@ by themselves.
 ## Required matrices
 
 The master target defines PKG, UI, A11Y, TREE, WS, SPLIT, CMD, QUICK, INC, NAV,
-DEFAULT, DL, AUTH, MEDIA, DRM, PERM, EXT, UBO, DEV, PRIV, SEC, SYNC, IOS,
-UPDATE, CRASH, and PERF suites. Each identifier gets a registry entry before
-implementation. Tests include fresh/existing profiles, German/English,
+DEFAULT, DL, AUTH, MEDIA, DRM, PERM, EXT, UBO, DEV, PRIV, SEC, SYNC, MOB-USER,
+IOS, UPDATE, CRASH, and PERF suites. Each identifier gets a registry entry
+before implementation. Tests include fresh/existing profiles, German/English,
 system/light/dark, glass on/off, restart/recovery, offline/error states, and
 migration from the preceding supported version where applicable.
+
+The Mobile matrix is deliberately split. `MOB-USER-01` through
+`MOB-USER-15` are release-critical `CU_E2E` journeys for the installed Mobile
+browser surface. `IOS-01` through `IOS-15` remain release-critical
+`ASSISTED_E2E` journeys for physical cross-device/default-browser/remote-command
+behavior. All 30 entries currently have status `NOT_RUN`; source presence,
+simulator screenshots, XCTest results, archives and uploads do not change those
+statuses without exact candidate-bound evidence.
 
 The native updater has deterministic unit coverage for config validation,
 stable/beta/nightly visibility, status transitions and de/en/en-GB strings.

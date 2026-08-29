@@ -34,7 +34,6 @@ public enum CloudKitSyncProviderError: Error, Equatable, Sendable {
     case rawRecordDeletionUnsupported
     case accountTransitionRequiresConfirmation
     case zoneRecoveryRequiresConfirmation
-    case equalVersionConflict
 }
 
 public enum CloudKitSyncPhase: String, Codable, Sendable {
@@ -347,6 +346,19 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         try await recordStore.allRecords()
     }
 
+    /// Returns opaque CloudKit envelopes that still need to cross the
+    /// authenticated plaintext/domain merge boundary. These are deliberately
+    /// separate from the single transport snapshot used by CKSyncEngine.
+    public func pendingFetchedRecords() async throws -> [SyncRecord] {
+        try await recordStore.fetchedRecords()
+    }
+
+    /// Removes exactly the envelope that completed domain import. A distinct
+    /// version (including distinct encrypted bytes) remains pending.
+    public func acknowledgeFetchedRecord(_ record: SyncRecord) async throws {
+        try await recordStore.acknowledgeFetchedRecord(record)
+    }
+
     public func quarantineImportedRecord(_ recordID: UUID, reason: String) async {
         await quarantineStore.quarantine(recordID: recordID, reason: reason)
     }
@@ -524,10 +536,12 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             do {
                 let incoming = try codec.decode(modification.record)
                 try boundary.authorize(incoming)
-                let existing = try await recordStore.record(for: incoming.recordID)
-                let winner = try resolve(existing, incoming)
-                resolvedConflict = resolvedConflict || existing != nil && winner != existing
-                try await recordStore.upsert(winner)
+                let retained = try await Self.retainFetchedEnvelope(
+                    incoming,
+                    in: recordStore
+                )
+                resolvedConflict = resolvedConflict || retained.existing != nil &&
+                    retained.snapshot != retained.existing
             } catch {
                 await quarantineStore.quarantine(
                     recordID: UUID(uuidString: modification.record.recordID.recordName) ?? UUID(),
@@ -599,9 +613,7 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         do {
             let incoming = try codec.decode(serverRecord)
             try boundary.authorize(incoming)
-            let local = try await recordStore.record(for: incoming.recordID)
-            let winner = try resolve(local, incoming)
-            try await recordStore.upsert(winner)
+            _ = try await Self.retainFetchedEnvelope(incoming, in: recordStore)
             syncEngine.state.add(pendingRecordZoneChanges: [
                 .saveRecord(serverRecord.recordID)
             ])
@@ -613,16 +625,36 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         }
     }
 
-    private func resolve(_ lhs: SyncRecord?, _ rhs: SyncRecord) throws -> SyncRecord {
-        guard let lhs else { return rhs }
-        if lhs.schemaVersion == rhs.schemaVersion,
-           lhs.modifiedAt == rhs.modifiedAt,
-           lhs.originatingDevice == rhs.originatingDevice {
-            guard lhs == rhs else {
-                throw CloudKitSyncProviderError.equalVersionConflict
-            }
-            return lhs
+    /// Durably stages every distinct inbound encrypted envelope before choosing
+    /// the one transport snapshot CKSyncEngine can address by record ID. The
+    /// snapshot choice is not a convergence decision: CompanionSyncBridge must
+    /// decrypt and import every staged candidate before acknowledging it.
+    @discardableResult
+    static func retainFetchedEnvelope(
+        _ incoming: SyncRecord,
+        in recordStore: any LocalSyncRecordStore
+    ) async throws -> (existing: SyncRecord?, snapshot: SyncRecord) {
+        let existing = try await recordStore.record(for: incoming.recordID)
+        if existing != incoming {
+            // Persist the lossless inbox first. If the process stops before the
+            // transport snapshot write, the domain candidate remains durable.
+            try await recordStore.stageFetchedRecord(incoming)
         }
+        let snapshot = resolveTransportSnapshot(existing, incoming)
+        if snapshot != existing {
+            try await recordStore.upsert(snapshot)
+        }
+        return (existing, snapshot)
+    }
+
+    /// Chooses only the opaque record used for future CloudKit upload. LWW is
+    /// safe here because retainFetchedEnvelope has already preserved `rhs` for
+    /// the authenticated domain/field merge, even when `lhs` wins this choice.
+    static func resolveTransportSnapshot(
+        _ lhs: SyncRecord?,
+        _ rhs: SyncRecord
+    ) -> SyncRecord {
+        guard let lhs else { return rhs }
         guard let left = try? VersionedValue(
             value: lhs.encryptedValue,
             modifiedAt: lhs.modifiedAt,

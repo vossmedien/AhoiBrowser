@@ -89,6 +89,9 @@ targets:
         Release:
           SWIFT_OPTIMIZATION_LEVEL: "-O"
           AHOI_APS_ENVIRONMENT: production
+          # This template intentionally fails signing until Apple has granted
+          # the managed entitlement to the final bundle/profile.
+          CODE_SIGN_ENTITLEMENTS: AhoiMobile.DefaultBrowser.entitlements.template
   AhoiMobileCoreTests:
     type: bundle.unit-test
     platform: iOS

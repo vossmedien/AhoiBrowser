@@ -16,16 +16,10 @@ struct AhoiMobileApp: App {
             .appendingPathComponent("AhoiCompanion", isDirectory: true)
         let supportURL = applicationSupportURL
             .appendingPathComponent("AhoiMobile", isDirectory: true)
-        let migrationError: String?
-        do {
-            try MobileStorageMigrator.migrateIfNeeded(
-                legacyDirectory: legacySupportURL,
-                destinationDirectory: supportURL
-            )
-            migrationError = nil
-        } catch {
-            migrationError = error.localizedDescription
-        }
+        let storagePreparation = MobileStoragePreparation(
+            legacyDirectory: legacySupportURL,
+            destinationDirectory: supportURL
+        )
         let store = FileCompanionStore(fileURL: supportURL.appendingPathComponent("snapshot.json"))
         let defaults = UserDefaults.standard
         let sourceDeviceUUID = CompanionDeviceIdentity.loadOrCreate(in: defaults)
@@ -112,7 +106,9 @@ struct AhoiMobileApp: App {
             store: FileMobileBrowserSessionStore(
                 fileURL: supportURL.appendingPathComponent("browser-session.json")
             ),
-            startupError: migrationError
+            storagePreparation: {
+                try await storagePreparation.prepare()
+            }
         ))
     }
 

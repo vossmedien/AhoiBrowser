@@ -12,19 +12,25 @@ public struct AhoiMobileBrowserView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var addressPresented = false
     @State private var tabsPresented = false
     @State private var libraryPresented = false
+    @State private var historyPresented = false
     @State private var settingsPresented = false
     @State private var downloadsPresented = false
     @State private var findNavigatorPresented = false
     @State private var clearWebsiteDataRequested = false
+    @State private var downloadPreviewURL: URL?
     @State private var renameTab: MobileTabRecord?
     @State private var renameText = ""
     @State private var addressText = ""
     @State private var addressSelection: TextSelection?
-    @FocusState private var addressFieldFocused: Bool
+    @State private var tabSwitcherMode: MobileBrowsingMode = .normal
+    @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
     @AppStorage(CompanionSyncPreferences.enabledKey) private var syncEnabled = false
+    @AppStorage(MobileBrowserPreferences.searchEngineKey)
+    private var searchEngineRawValue = MobileSearchEngine.duckDuckGo.rawValue
 
     public init(
         companionModel: CompanionAppModel,
@@ -39,7 +45,7 @@ public struct AhoiMobileBrowserView: View {
     public var body: some View {
         Group {
             if horizontalSizeClass == .regular {
-                NavigationSplitView {
+                NavigationSplitView(columnVisibility: $columnVisibility) {
                     librarySidebar
                 } detail: {
                     browserSurface
@@ -62,13 +68,6 @@ public struct AhoiMobileBrowserView: View {
             await companionModel.load()
             await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
             await companionModel.sync()
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(60))
-                guard !Task.isCancelled else { break }
-                guard scenePhase == .active else { continue }
-                await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
-                await companionModel.sync()
-            }
         }
         .onOpenURL { browser.handleExternalURL($0) }
         .onChange(of: syncEnabled) { _, enabled in
@@ -77,6 +76,7 @@ public struct AhoiMobileBrowserView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
                 browser.discardInactivePages(keeping: 2)
+                Task { await browser.flushSession() }
             } else if phase == .active {
                 Task {
                     await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
@@ -92,12 +92,27 @@ public struct AhoiMobileBrowserView: View {
         .sheet(isPresented: $addressPresented) { addressSheet }
         .sheet(isPresented: $tabsPresented) { tabSwitcher }
         .sheet(isPresented: $libraryPresented) { librarySheet }
+        .sheet(isPresented: $historyPresented) {
+            MobileBrowserHistoryView(model: companionModel) { url in
+                browser.handleExternalURL(url)
+            }
+        }
         .sheet(isPresented: $downloadsPresented) { downloadsSheet }
         .sheet(item: $renameTab) { tab in renameTabSheet(tab) }
         .sheet(isPresented: $settingsPresented) {
             CompanionSettingsView(
                 model: companionModel,
                 syncEnabled: $syncEnabled
+            )
+        }
+        .sheet(item: Binding<MobilePendingLink?>(
+            get: { browser.pendingLink },
+            set: { if $0 == nil { browser.dismissPendingLink() } }
+        )) { link in
+            MobileLinkActionSheet(
+                link: link,
+                companionModel: companionModel,
+                browser: browser
             )
         }
         .confirmationDialog(
@@ -182,9 +197,18 @@ public struct AhoiMobileBrowserView: View {
         } message: { url in
             Text(CompanionL10n.format(
                 "browser.external.message",
-                fallback: "The website wants to open %@.",
+                fallback: "%@ wants to open %@.",
+                browser.pendingExternalOrigin ?? CompanionL10n.string(
+                    "browser.external.unknown_origin",
+                    fallback: "This website"
+                ),
                 url.scheme ?? url.absoluteString
             ))
+        }
+        .overlay {
+            if let presenter = browser.selectedDialogPresenter {
+                MobileWebDialogHost(presenter: presenter)
+            }
         }
     }
 
@@ -196,9 +220,14 @@ public struct AhoiMobileBrowserView: View {
                 } else if let page = browser.selectedPage {
                     MobileWebPageView(
                         page: page,
-                        findNavigatorPresented: $findNavigatorPresented
+                        findNavigatorPresented: $findNavigatorPresented,
+                        onRefresh: browser.reload
                     ) {
-                        Task { await browser.refreshSelectedWebsiteTint() }
+                        Task {
+                            async let tint: Void = browser.refreshSelectedWebsiteTint()
+                            async let favicon: Void = browser.refreshSelectedFavicon()
+                            _ = await (tint, favicon)
+                        }
                         if let navigation = browser.synchronizeSelectedPageMetadata() {
                             Task {
                                 await companionModel.recordMobileNavigation(
@@ -225,12 +254,21 @@ public struct AhoiMobileBrowserView: View {
                             "browser.loading",
                             fallback: "Loading page"
                         ))
+                        .accessibilityValue(Text(CompanionL10n.format(
+                            "browser.loading.progress",
+                            fallback: "%d percent",
+                            Int(page.estimatedProgress * 100)
+                        )))
                 }
             }
             bottomBar
         }
         .background(Color(uiColor: .systemBackground))
         .tint(chromeTintColor)
+        .animation(
+            reduceMotion ? nil : .easeInOut(duration: 0.34),
+            value: browser.selectedTab?.websiteTintARGB
+        )
     }
 
     private var newTabLanding: some View {
@@ -295,12 +333,14 @@ public struct AhoiMobileBrowserView: View {
                 Image(systemName: "chevron.backward")
             }
             .disabled(browser.selectedPage?.backForwardList.backList.isEmpty != false)
+            .keyboardShortcut("[", modifiers: .command)
             .accessibilityLabel(CompanionL10n.string("browser.back", fallback: "Back"))
 
             Button(action: browser.goForward) {
                 Image(systemName: "chevron.forward")
             }
             .disabled(browser.selectedPage?.backForwardList.forwardList.isEmpty != false)
+            .keyboardShortcut("]", modifiers: .command)
             .accessibilityLabel(CompanionL10n.string("browser.forward", fallback: "Forward"))
 
             Button(action: presentAddress) {
@@ -350,9 +390,10 @@ public struct AhoiMobileBrowserView: View {
             Button(action: browser.reloadOrStop) {
                 Image(systemName: browser.selectedPage?.isLoading == true ? "xmark" : "arrow.clockwise")
             }
+            .keyboardShortcut("r", modifiers: .command)
             .accessibilityLabel(CompanionL10n.string("browser.reload", fallback: "Reload"))
 
-            Button { tabsPresented = true } label: {
+            Button(action: presentTabs) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 5)
                         .stroke(lineWidth: 1.5)
@@ -435,6 +476,46 @@ public struct AhoiMobileBrowserView: View {
                 Button { libraryPresented = true } label: {
                     Label(CompanionL10n.string("root.workspaces", fallback: "Workspaces"), systemImage: "sidebar.left")
                 }
+                Button { switchWorkspace(direction: -1) } label: {
+                    Label(
+                        CompanionL10n.string(
+                            "browser.workspace.previous",
+                            fallback: "Previous workspace"
+                        ),
+                        systemImage: "arrow.left"
+                    )
+                }
+                .disabled(companionModel.snapshot.visibleWorkspaces.isEmpty)
+                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
+                Button { switchWorkspace(direction: 1) } label: {
+                    Label(
+                        CompanionL10n.string(
+                            "browser.workspace.next",
+                            fallback: "Next workspace"
+                        ),
+                        systemImage: "arrow.right"
+                    )
+                }
+                .disabled(companionModel.snapshot.visibleWorkspaces.isEmpty)
+                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
+                if horizontalSizeClass == .regular {
+                    Button(action: toggleSidebar) {
+                        Label(
+                            CompanionL10n.string(
+                                "browser.sidebar.toggle",
+                                fallback: "Toggle sidebar"
+                            ),
+                            systemImage: "sidebar.left"
+                        )
+                    }
+                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                }
+                Button { historyPresented = true } label: {
+                    Label(
+                        CompanionL10n.string("browser.history.title", fallback: "History"),
+                        systemImage: "clock.arrow.circlepath"
+                    )
+                }
                 if browser.selectedPage?.url != nil,
                    browser.selectedTab?.mode == .normal,
                    !companionModel.snapshot.visibleWorkspaces.isEmpty {
@@ -509,6 +590,28 @@ public struct AhoiMobileBrowserView: View {
         .padding(.horizontal, horizontalSizeClass == .regular ? 16 : 8)
         .padding(.vertical, 7)
         .background(Color(uiColor: .systemBackground))
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 28).onEnded { value in
+                let horizontal = value.translation.width
+                let vertical = abs(value.translation.height)
+                guard abs(horizontal) >= 72, abs(horizontal) > vertical * 1.35 else {
+                    return
+                }
+                switchWorkspace(direction: horizontal < 0 ? 1 : -1)
+            }
+        )
+        .accessibilityAction(named: Text(CompanionL10n.string(
+            "browser.workspace.next",
+            fallback: "Next workspace"
+        ))) {
+            switchWorkspace(direction: 1)
+        }
+        .accessibilityAction(named: Text(CompanionL10n.string(
+            "browser.workspace.previous",
+            fallback: "Previous workspace"
+        ))) {
+            switchWorkspace(direction: -1)
+        }
     }
 
     private func pageFailureView(_ failure: MobilePageFailureKind) -> some View {
@@ -565,304 +668,33 @@ public struct AhoiMobileBrowserView: View {
     }
 
     private var addressSheet: some View {
-        NavigationStack {
-            VStack(spacing: 14) {
-                HStack(spacing: 8) {
-                    TextField(
-                        CompanionL10n.string(
-                            "browser.search_or_address",
-                            fallback: "Search or enter address"
-                        ),
-                        text: $addressText,
-                        selection: $addressSelection
-                    )
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.webSearch)
-                    .submitLabel(.go)
-                    .onSubmit(commitAddress)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.title3)
-                    .focused($addressFieldFocused)
-                    .onAppear {
-                        addressFieldFocused = true
-                        selectAllAddressText()
-                    }
-
-                    if !addressText.isEmpty {
-                        Button {
-                            addressText = ""
-                            addressSelection = TextSelection(insertionPoint: addressText.startIndex)
-                            addressFieldFocused = true
-                            browser.dismissError()
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("browser.address.clear")
-                        .accessibilityLabel(CompanionL10n.string(
-                            "browser.clear_address",
-                            fallback: "Clear address"
-                        ))
-                    }
-                }
-
-                if let error = browser.lastError {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .font(.callout)
-                        .foregroundStyle(.red)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityIdentifier("browser.error.message")
-                }
-
-                if !browser.searchOpenTabs(addressText).isEmpty || !companionModel.searchResults.isEmpty {
-                    List {
-                        let openTabs = browser.searchOpenTabs(addressText)
-                        if !openTabs.isEmpty {
-                            Section(CompanionL10n.string("browser.search.open_tabs", fallback: "Open Tabs")) {
-                                ForEach(openTabs.prefix(6)) { tab in
-                                    Button {
-                                        browser.select(tab.id)
-                                        addressPresented = false
-                                    } label: {
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(tab.displayTitle).lineLimit(1)
-                                            Text(tab.url ?? "")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                                .lineLimit(1)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                        if !companionModel.searchResults.isEmpty {
-                            Section(CompanionL10n.string("browser.search.library", fallback: "Ahoi Library")) {
-                                ForEach(companionModel.searchResults.prefix(8)) { result in
-                                    Button {
-                                        if let value = result.url {
-                                            addressText = value
-                                            commitAddress()
-                                        }
-                                    } label: {
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(result.title).lineLimit(1)
-                                            if !result.detail.isEmpty {
-                                                Text(result.detail)
-                                                    .font(.caption)
-                                                    .foregroundStyle(.secondary)
-                                                    .lineLimit(1)
-                                            }
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                    }
-                    .listStyle(.plain)
-                } else {
-                    ContentUnavailableView(
-                        CompanionL10n.string("browser.command.empty", fallback: "Ready to sail"),
-                        systemImage: "magnifyingglass",
-                        description: Text(CompanionL10n.string(
-                            "browser.command.empty.description",
-                            fallback: "Enter a website, search, workspace, tab or history item."
-                        ))
-                    )
-                }
-            }
-            .padding()
-            .navigationTitle(CompanionL10n.string("browser.command.title", fallback: "Go to"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
-                        addressPresented = false
-                    }
-                }
-            }
-            .onChange(of: addressText) { _, value in
-                Task { await companionModel.refreshSearch(query: value) }
-            }
-        }
-        .presentationDetents([.medium, .large])
+        MobileAddressCommandSheet(
+            companionModel: companionModel,
+            browser: browser,
+            isPresented: $addressPresented,
+            addressText: $addressText,
+            addressSelection: $addressSelection,
+            searchEngine: MobileSearchEngine.resolved(from: searchEngineRawValue)
+        )
     }
 
     private var tabSwitcher: some View {
-        NavigationStack {
-            List {
-                ForEach(companionModel.snapshot.visibleWorkspaces) { workspace in
-                    let workspaceTabs = browser.normalTabs.filter { $0.workspaceID == workspace.id }
-                    if !workspaceTabs.isEmpty {
-                        Section(workspace.name) {
-                            ForEach(workspaceTabs) { tab in tabRow(tab) }
-                        }
-                    }
-                }
-                if !unassignedNormalTabs.isEmpty {
-                    Section(CompanionL10n.string("browser.tabs.normal", fallback: "Tabs")) {
-                        ForEach(unassignedNormalTabs) { tab in tabRow(tab) }
-                    }
-                }
-                if !browser.privateTabs.isEmpty {
-                    Section(CompanionL10n.string("browser.tabs.private", fallback: "Private")) {
-                        ForEach(browser.privateTabs) { tab in tabRow(tab) }
-                    }
-                }
-                if let closed = browser.recentlyClosedTab {
-                    Section {
-                        Button {
-                            browser.undoClose()
-                            tabsPresented = false
-                            Task {
-                                await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
-                            }
-                        } label: {
-                            Label(
-                                CompanionL10n.format(
-                                    "browser.undo_close",
-                                    fallback: "Reopen %@",
-                                    closed.displayTitle
-                                ),
-                                systemImage: "arrow.uturn.backward"
-                            )
-                        }
-                    }
-                }
-            }
-            .navigationTitle(CompanionL10n.string("browser.tabs.title", fallback: "Tabs"))
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(CompanionL10n.string("action.done", fallback: "Done")) {
-                        tabsPresented = false
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button {
-                            _ = browser.createTab()
-                            tabsPresented = false
-                        } label: {
-                            Label(CompanionL10n.string("browser.new_tab", fallback: "New tab"), systemImage: "plus")
-                        }
-                        Button {
-                            _ = browser.createTab(mode: .privateBrowsing)
-                            tabsPresented = false
-                        } label: {
-                            Label(CompanionL10n.string("browser.new_private_tab", fallback: "New private tab"), systemImage: "hand.raised")
-                        }
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-        }
-    }
-
-    private func tabRow(_ tab: MobileTabRecord) -> some View {
-        HStack(spacing: 12) {
-            Button {
-                browser.select(tab.id)
-                tabsPresented = false
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: tab.mode == .privateBrowsing ? "hand.raised.fill" : "globe")
-                        .foregroundStyle(tab.mode == .privateBrowsing ? .purple : .secondary)
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 5) {
-                            Text(tab.displayTitle).lineLimit(1)
-                            if tab.isSaved {
-                                Image(systemName: "bookmark.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(.tint)
-                            }
-                        }
-                        Text(tab.url ?? CompanionL10n.string("browser.new_tab", fallback: "New tab"))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    Spacer()
-                }
-            }
-            .buttonStyle(.plain)
-            Button(role: .destructive) {
-                closeTab(tab.id)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondary)
-            }
-            .accessibilityLabel(CompanionL10n.string("action.close", fallback: "Close"))
-        }
-        .contextMenu {
-            Button {
-                renameText = tab.displayTitle
-                renameTab = tab
-            } label: {
-                Label(CompanionL10n.string("action.rename", fallback: "Rename"), systemImage: "pencil")
-            }
-            Button {
-                browser.select(tab.id)
-                _ = browser.duplicateSelectedTab()
-                tabsPresented = false
-            } label: {
-                Label(CompanionL10n.string("browser.duplicate_tab", fallback: "Duplicate Tab"), systemImage: "plus.square.on.square")
-            }
-        }
+        MobileTabSwitcherSheet(
+            companionModel: companionModel,
+            browser: browser,
+            isPresented: $tabsPresented,
+            selectedMode: $tabSwitcherMode,
+            renameTab: $renameTab,
+            renameText: $renameText
+        )
     }
 
     private var downloadsSheet: some View {
-        NavigationStack {
-            Group {
-                if downloads.downloads.isEmpty {
-                    ContentUnavailableView(
-                        CompanionL10n.string("browser.downloads.empty", fallback: "No Downloads"),
-                        systemImage: "arrow.down.circle"
-                    )
-                } else {
-                    List(downloads.downloads) { download in
-                        HStack(spacing: 12) {
-                            Image(systemName: download.status == .completed ? "checkmark.circle.fill" : "arrow.down.circle")
-                                .foregroundStyle(download.status == .completed ? Color.green : Color.accentColor)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(download.suggestedFilename).lineLimit(1)
-                                Text(downloadStatus(download))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            if download.status == .completed, let destination = download.destinationURL {
-                                ShareLink(item: destination) {
-                                    Image(systemName: "square.and.arrow.up")
-                                }
-                            } else if download.status == .starting || download.status == .downloading {
-                                Button(role: .destructive) { downloads.cancel(download.id) } label: {
-                                    Image(systemName: "xmark.circle")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .navigationTitle(CompanionL10n.string("browser.downloads", fallback: "Downloads"))
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(CompanionL10n.string("action.done", fallback: "Done")) {
-                        downloadsPresented = false
-                    }
-                }
-                if downloads.downloads.contains(where: { [.completed, .failed, .cancelled].contains($0.status) }) {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(CompanionL10n.string("action.clear", fallback: "Clear")) {
-                            downloads.removeFinished()
-                        }
-                    }
-                }
-            }
-        }
+        MobileDownloadsSheet(
+            downloads: downloads,
+            isPresented: $downloadsPresented,
+            previewURL: $downloadPreviewURL
+        )
     }
 
     private func renameTabSheet(_ tab: MobileTabRecord) -> some View {
@@ -955,15 +787,40 @@ public struct AhoiMobileBrowserView: View {
         addressPresented = true
     }
 
-    private func selectAllAddressText() {
-        addressSelection = TextSelection(range: addressText.startIndex..<addressText.endIndex)
+    private func presentTabs() {
+        tabSwitcherMode = browser.selectedTab?.mode ?? .normal
+        tabsPresented = true
     }
 
-    private func commitAddress() {
-        browser.navigate(addressText)
-        if browser.lastError == nil {
-            addressPresented = false
+    private func switchWorkspace(direction: Int) {
+        let workspaces = companionModel.snapshot.visibleWorkspaces
+        guard !workspaces.isEmpty else { return }
+        let currentID = browser.selectedTab?.workspaceID
+        let targetIndex: Int
+        if let currentIndex = workspaces.firstIndex(where: { $0.id == currentID }) {
+            targetIndex = (currentIndex + direction + workspaces.count) % workspaces.count
+        } else {
+            targetIndex = direction < 0 ? workspaces.count - 1 : 0
         }
+        let target = workspaces[targetIndex]
+        if let tab = browser.normalTabs
+            .filter({ $0.workspaceID == target.id })
+            .max(by: { $0.lastActiveAt < $1.lastActiveAt }) {
+            browser.select(tab.id)
+        } else {
+            _ = browser.createTab(workspaceID: target.id)
+        }
+        Task {
+            await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+        }
+    }
+
+    private func toggleSidebar() {
+        columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
+    }
+
+    private func selectAllAddressText() {
+        addressSelection = TextSelection(range: addressText.startIndex..<addressText.endIndex)
     }
 
     private func saveSelectedPage(to workspace: Workspace) {
@@ -1004,155 +861,6 @@ public struct AhoiMobileBrowserView: View {
             return CompanionL10n.string("browser.permission.camera_microphone", fallback: "the camera and microphone")
         case .motion:
             return CompanionL10n.string("browser.permission.motion", fallback: "motion sensors")
-        }
-    }
-
-    private func downloadStatus(_ download: MobileDownloadRecord) -> String {
-        if let error = download.errorMessage { return error }
-        switch download.status {
-        case .starting:
-            return CompanionL10n.string("browser.download.starting", fallback: "Starting…")
-        case .downloading:
-            return CompanionL10n.string("browser.download.downloading", fallback: "Downloading…")
-        case .completed:
-            return CompanionL10n.string("browser.download.completed", fallback: "Downloaded")
-        case .failed:
-            return CompanionL10n.string("browser.download.failed", fallback: "Download failed")
-        case .cancelled:
-            return CompanionL10n.string("browser.download.cancelled", fallback: "Cancelled")
-        }
-    }
-
-    private var unassignedNormalTabs: [MobileTabRecord] {
-        let workspaceIDs = Set(companionModel.snapshot.visibleWorkspaces.map(\.id))
-        return browser.normalTabs.filter { tab in
-            guard let workspaceID = tab.workspaceID else { return true }
-            return !workspaceIDs.contains(workspaceID)
-        }
-    }
-}
-
-private struct MobileWebPageView: View {
-    let page: WebPage
-    @Binding var findNavigatorPresented: Bool
-    let onMetadataChange: () -> Void
-    @State private var findQuery = ""
-    @State private var findMatchCount = 0
-    @FocusState private var findFieldFocused: Bool
-
-    var body: some View {
-        ZStack(alignment: .top) {
-            WebView(page)
-                .webViewLinkPreviews(.enabled)
-                .webViewBackForwardNavigationGestures(.enabled)
-                .webViewTextSelection(.enabled)
-                .webViewMagnificationGestures(.enabled)
-                .webViewElementFullscreenBehavior(.enabled)
-
-            if findNavigatorPresented {
-                HStack(spacing: 10) {
-                    TextField(
-                        CompanionL10n.string("browser.find", fallback: "Find on Page"),
-                        text: $findQuery
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .focused($findFieldFocused)
-                    .submitLabel(.search)
-                    .onSubmit { performFind(backwards: false, resetSelection: false) }
-                    .accessibilityIdentifier("browser.find.field")
-
-                    Text(CompanionL10n.format(
-                        "browser.find.results",
-                        fallback: "%d matches",
-                        findMatchCount
-                    ))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
-                    Button { performFind(backwards: true, resetSelection: false) } label: {
-                        Image(systemName: "chevron.up")
-                    }
-                    .disabled(findQuery.isEmpty)
-                    .accessibilityLabel(CompanionL10n.string("browser.find.previous", fallback: "Previous match"))
-
-                    Button { performFind(backwards: false, resetSelection: false) } label: {
-                        Image(systemName: "chevron.down")
-                    }
-                    .disabled(findQuery.isEmpty)
-                    .accessibilityLabel(CompanionL10n.string("browser.find.next", fallback: "Next match"))
-
-                    Button {
-                        findNavigatorPresented = false
-                        findQuery = ""
-                        findMatchCount = 0
-                        clearFindSelection()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                    }
-                    .accessibilityLabel(CompanionL10n.string("action.close", fallback: "Close"))
-                }
-                .padding(10)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-                .padding(.horizontal, 10)
-                .padding(.top, 8)
-                .shadow(radius: 8, y: 3)
-                .accessibilityIdentifier("browser.find.navigator")
-                .onAppear { findFieldFocused = true }
-                .onChange(of: findQuery) { _, _ in
-                    performFind(backwards: false, resetSelection: true)
-                }
-            }
-        }
-        .onChange(of: page.url) { _, _ in onMetadataChange() }
-        .onChange(of: page.title) { _, _ in onMetadataChange() }
-        .onChange(of: page.isLoading) { _, isLoading in
-            if !isLoading { onMetadataChange() }
-        }
-        .task(id: page.url) {
-            try? await Task.sleep(for: .milliseconds(250))
-            guard !Task.isCancelled else { return }
-            onMetadataChange()
-        }
-    }
-
-    private func performFind(backwards: Bool, resetSelection: Bool) {
-        let query = findQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else {
-            findMatchCount = 0
-            clearFindSelection()
-            return
-        }
-        Task { @MainActor in
-            do {
-                let result = try await page.callJavaScript(
-                    """
-                    const needle = query.toLocaleLowerCase();
-                    if (resetSelection) window.getSelection()?.removeAllRanges();
-                    window.find(query, false, backwards, true, false, false, false);
-                    const haystack = (document.body?.innerText || '').toLocaleLowerCase();
-                    return haystack.split(needle).length - 1;
-                    """,
-                    arguments: [
-                        "query": query,
-                        "backwards": backwards,
-                        "resetSelection": resetSelection,
-                    ]
-                )
-                if let count = result as? Int {
-                    findMatchCount = count
-                } else if let count = result as? NSNumber {
-                    findMatchCount = count.intValue
-                }
-            } catch {
-                findMatchCount = 0
-            }
-        }
-    }
-
-    private func clearFindSelection() {
-        Task { @MainActor in
-            _ = try? await page.callJavaScript("window.getSelection()?.removeAllRanges();")
         }
     }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-28T00:00:00+02:00",
+  "updatedAt": "2026-08-29T00:00:00+02:00",
   "gates": [
     {
       "id": "xcode-26.6",
@@ -31,6 +31,36 @@
       "state": "required",
       "owner": "apple-team-admin",
       "condition": "Register final Mac/iOS bundle IDs, iCloud container and Developer ID/iOS provisioning profiles."
+    },
+    {
+      "id": "ios-final-bundle-team-profile",
+      "state": "blocked-credential",
+      "owner": "apple-team-admin",
+      "condition": "Assign the final AhoiBrowser Mobile bundle ID to the owning Apple Developer Team, register the App ID and capabilities, and issue matching development and distribution certificates plus provisioning profiles for the exact iPhone/iPad target. Placeholder identifiers and unsigned or ad-hoc builds are source-development inputs only."
+    },
+    {
+      "id": "ios-managed-default-browser-entitlement",
+      "state": "blocked-entitlement",
+      "owner": "apple-team-admin",
+      "condition": "Obtain Apple's managed default-browser entitlement for the final Mobile bundle ID, attach the reviewed entitlement template to the matching signed profile, and validate system default-browser selection plus external HTTP(S) callbacks on physical iPhone and iPad. Source declarations and simulator routing are not entitlement evidence."
+    },
+    {
+      "id": "ios-cloudkit-keychain-capabilities",
+      "state": "blocked-entitlement",
+      "owner": "apple-team-admin",
+      "condition": "Provision the final private CloudKit container and environment, matching iCloud and push entitlements, reviewed synchronizable Keychain access groups, and externally managed AES-256-GCM payload plus Ed25519 command keys for the exact Mac and Mobile App IDs. Prove key availability, rotation, recovery and revocation without storing private material in the repository."
+    },
+    {
+      "id": "ios-physical-device-journeys",
+      "state": "required-user-assistance",
+      "owner": "compatibility-testing",
+      "condition": "Install the exact signed candidate on a real supported iPhone and iPad and execute MOB-USER-01 through MOB-USER-15 plus IOS-01 through IOS-15, including camera/microphone prompts, file import, downloads, external apps, accessibility, hardware keyboard/pointer, memory pressure, backgrounding and Mac-device sync. Every journey remains NOT_RUN until candidate-bound evidence exists."
+    },
+    {
+      "id": "ios-app-store-connect-testflight",
+      "state": "blocked-external-service",
+      "owner": "apple-team-admin",
+      "condition": "Create and review the final App Store Connect app record, agreements, privacy disclosures and tester access; archive and export the exact distribution-signed candidate, upload it, retain processing/export receipts, install the processed TestFlight build on physical iPhone and iPad, and repeat release-critical smoke journeys. A local archive or successful upload alone is not TestFlight or release evidence."
     },
     {
       "id": "signed-release-provenance",
