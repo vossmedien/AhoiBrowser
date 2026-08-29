@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 import AhoiCloudKitSpike
 
 struct MobileTabSwitcherSheet: View {
@@ -46,6 +47,8 @@ struct MobileTabSwitcherSheet: View {
                         "browser.tabs.mode",
                         fallback: "Browsing mode"
                     ))
+                    .accessibilityIdentifier("browser.tabs.mode")
+                    .frame(minHeight: 44)
                 }
 
                 if selectedMode == .normal {
@@ -109,10 +112,14 @@ struct MobileTabSwitcherSheet: View {
                     Button(CompanionL10n.string("action.done", fallback: "Done")) {
                         isPresented = false
                     }
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("browser.tabs.done")
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if selectedMode == .normal {
                         EditButton()
+                            .frame(minHeight: 44)
+                            .accessibilityIdentifier("browser.tabs.edit")
                     }
                     Menu {
                         Button {
@@ -136,6 +143,49 @@ struct MobileTabSwitcherSheet: View {
                         }
                     } label: {
                         Image(systemName: "plus")
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityIdentifier("browser.tabs.new")
+                    .accessibilityLabel(CompanionL10n.string(
+                        selectedMode == .privateBrowsing
+                            ? "browser.new_private_tab"
+                            : "browser.new_tab",
+                        fallback: selectedMode == .privateBrowsing
+                            ? "New private tab"
+                            : "New tab"
+                    ))
+                }
+            }
+        }
+        .sheet(item: $renameTab) { tab in
+            renameTabSheet(tab)
+        }
+    }
+
+    private func renameTabSheet(_ tab: MobileTabRecord) -> some View {
+        NavigationStack {
+            Form {
+                TextField(
+                    CompanionL10n.string("browser.tab_name", fallback: "Tab name"),
+                    text: $renameText
+                )
+            }
+            .navigationTitle(CompanionL10n.string(
+                "browser.rename_tab",
+                fallback: "Rename Tab"
+            ))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
+                        renameTab = nil
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(CompanionL10n.string("action.save", fallback: "Save")) {
+                        browser.renameTab(tab.id, title: renameText)
+                        publishTab(tab.id)
+                        renameTab = nil
                     }
                 }
             }
@@ -191,7 +241,8 @@ struct MobileTabSwitcherSheet: View {
     }
 
     private func tabRow(_ tab: MobileTabRecord) -> some View {
-        HStack(spacing: 12) {
+        let isSelected = browser.selectedTabID == tab.id
+        return HStack(spacing: 12) {
             Button {
                 browser.select(tab.id)
                 isPresented = false
@@ -200,11 +251,14 @@ struct MobileTabSwitcherSheet: View {
                     tabIcon(tab)
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 5) {
-                            Text(tab.displayTitle).lineLimit(1)
+                            Text(tab.displayTitle)
+                                .fontWeight(isSelected ? .semibold : .regular)
+                                .lineLimit(1)
                             if tab.isSaved {
                                 Image(systemName: "bookmark.fill")
                                     .font(.caption2)
                                     .foregroundStyle(.tint)
+                                    .accessibilityHidden(true)
                             }
                         }
                         Text(tab.url ?? CompanionL10n.string("browser.new_tab", fallback: "New tab"))
@@ -213,17 +267,40 @@ struct MobileTabSwitcherSheet: View {
                             .lineLimit(1)
                     }
                     Spacer()
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(
+                                tab.mode == .privateBrowsing
+                                    ? Color.purple
+                                    : Color.accentColor
+                            )
+                            .accessibilityHidden(true)
+                    }
                 }
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("browser.tab-row.\(tab.id.uuidString.lowercased())")
+            .accessibilityValue(Text(isSelected
+                ? CompanionL10n.string("browser.tabs.selected", fallback: "Selected")
+                : ""))
             Button(role: .destructive) {
                 closeTab(tab.id)
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
-            .accessibilityLabel(CompanionL10n.string("action.close", fallback: "Close"))
+            .accessibilityLabel(CompanionL10n.format(
+                "browser.tab.close_named",
+                fallback: "Close %@",
+                tab.displayTitle
+            ))
+            .accessibilityIdentifier("browser.tab-close.\(tab.id.uuidString.lowercased())")
         }
+        .listRowBackground(isSelected ? Color.accentColor.opacity(0.13) : Color.clear)
         .contextMenu {
             Button {
                 renameText = tab.displayTitle
@@ -285,26 +362,24 @@ struct MobileTabSwitcherSheet: View {
 
     @ViewBuilder
     private func tabIcon(_ tab: MobileTabRecord) -> some View {
-        if tab.mode == .privateBrowsing {
-            Image(systemName: "hand.raised.fill")
-                .foregroundStyle(.purple)
-                .frame(width: 24, height: 24)
-        } else if let value = tab.faviconURL, let url = URL(string: value) {
-            AsyncImage(url: url) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFit()
-                } else {
-                    Image(systemName: "globe")
-                        .foregroundStyle(.secondary)
-                }
+        Group {
+            if tab.mode == .privateBrowsing {
+                Image(systemName: "hand.raised.fill")
+                    .foregroundStyle(.purple)
+                    .frame(width: 24, height: 24)
+            } else if let data = tab.faviconData, let image = UIImage(data: data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+            } else {
+                Image(systemName: "globe")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24, height: 24)
             }
-            .frame(width: 24, height: 24)
-            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-        } else {
-            Image(systemName: "globe")
-                .foregroundStyle(.secondary)
-                .frame(width: 24, height: 24)
         }
+        .accessibilityHidden(true)
     }
 
     private func closeTab(_ id: UUID) {

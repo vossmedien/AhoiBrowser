@@ -420,6 +420,11 @@ public struct DeviceSession: Codable, Hashable, Sendable, Identifiable {
 /// model boundary rather than being filtered later by a view or CloudKit
 /// adapter, so it cannot leak into local search or an outbox by accident.
 public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
+    public static let maximumTitleUTF8Bytes = 1_024
+    public static let maximumURLUTF8Bytes = 16 * 1_024
+    public static let maximumDeviceNameUTF8Bytes = 256
+    public static let maximumWorkspaceNameUTF8Bytes = 256
+
     public let tabID: TabID
     public let deviceID: DeviceID
     public let deviceKind: DeviceKind
@@ -457,6 +462,12 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
     ) throws {
         guard context == .normal else {
             throw CompanionModelError.incognitoNotSyncable
+        }
+        guard title.utf8.count <= Self.maximumTitleUTF8Bytes,
+              url.utf8.count <= Self.maximumURLUTF8Bytes,
+              deviceName.utf8.count <= Self.maximumDeviceNameUTF8Bytes,
+              (workspaceName?.utf8.count ?? 0) <= Self.maximumWorkspaceNameUTF8Bytes else {
+            throw CompanionModelError.metadataTooLarge
         }
         guard let components = URLComponents(string: url),
               let scheme = components.scheme?.lowercased(),
@@ -521,6 +532,10 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
 }
 
 public struct HistoryVisit: Codable, Hashable, Sendable, Identifiable {
+    public static let maximumTitleUTF8Bytes = 1_024
+    public static let maximumURLUTF8Bytes = 16 * 1_024
+    public static let maximumTransitionUTF8Bytes = 128
+
     public let visitID: HistoryVisitID
     public let deviceID: DeviceID
     public var title: String
@@ -542,6 +557,11 @@ public struct HistoryVisit: Codable, Hashable, Sendable, Identifiable {
         version: SyncVersion,
         tombstone: Tombstone? = nil
     ) throws {
+        guard title.utf8.count <= Self.maximumTitleUTF8Bytes,
+              url.utf8.count <= Self.maximumURLUTF8Bytes,
+              transition.utf8.count <= Self.maximumTransitionUTF8Bytes else {
+            throw CompanionModelError.metadataTooLarge
+        }
         guard let components = URLComponents(string: url),
               let scheme = components.scheme?.lowercased(),
               (scheme == "http" || scheme == "https"),
@@ -587,6 +607,7 @@ public struct HistoryVisit: Codable, Hashable, Sendable, Identifiable {
 
 public enum CompanionModelError: Error, Equatable, Sendable {
     case incognitoNotSyncable
+    case metadataTooLarge
     case remoteTabURLNotAllowed
     case historyURLNotAllowed
     case savedPageRequiresURL

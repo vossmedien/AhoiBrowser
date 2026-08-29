@@ -5,6 +5,7 @@ struct MobileWebDialogHost: View {
     @ObservedObject var presenter: MobileWebDialogPresenter
     @State private var promptText = ""
     @State private var fileImporterPresented = false
+    @State private var activeFileInputRequest: MobileFileInputRequest?
 
     var body: some View {
         Color.clear
@@ -64,6 +65,7 @@ struct MobileWebDialogHost: View {
                     "browser.file_input.choose",
                     fallback: "Choose Files"
                 )) {
+                    activeFileInputRequest = request
                     fileImporterPresented = true
                 }
                 Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
@@ -82,34 +84,48 @@ struct MobileWebDialogHost: View {
             .fileImporter(
                 isPresented: $fileImporterPresented,
                 allowedContentTypes: allowedContentTypes,
-                allowsMultipleSelection: presenter.pendingFileInput?.allowsMultipleSelection == true
+                allowsMultipleSelection: activeFileInputRequest?.allowsMultipleSelection == true
             ) { result in
-                guard let requestID = presenter.pendingFileInput?.id else { return }
+                guard let request = activeFileInputRequest else { return }
+                activeFileInputRequest = nil
                 switch result {
                 case .success(let urls):
-                    presenter.selectFiles(requestID: requestID, urls: urls)
+                    presenter.selectFiles(requestID: request.id, urls: urls)
                 case .failure:
-                    presenter.cancel(requestID: requestID)
+                    presenter.cancel(requestID: request.id)
                 }
+            }
+            .onChange(of: presenter.pendingFileInput?.id) { _, requestID in
+                if let activeFileInputRequest,
+                   requestID != activeFileInputRequest.id {
+                    fileImporterPresented = false
+                    self.activeFileInputRequest = nil
+                } else if requestID == nil {
+                    fileImporterPresented = false
+                    self.activeFileInputRequest = nil
+                }
+            }
+            .onDisappear {
+                fileImporterPresented = false
+                activeFileInputRequest = nil
             }
     }
 
     private var javaScriptDialogPresented: Binding<Bool> {
         Binding(
             get: { presenter.pendingJavaScriptDialog != nil },
-            set: { presented in
-                guard !presented, let request = presenter.pendingJavaScriptDialog else {
-                    return
-                }
-                presenter.cancel(requestID: request.id)
-            }
+            // Every button resolves the exact request it was rendered for.
+            // Reading the presenter's *current* request from a stale dismissal
+            // callback could otherwise cancel the next page-owned dialog.
+            set: { _ in }
         )
     }
 
     private var fileInputConfirmationPresented: Binding<Bool> {
         Binding(
             get: {
-                presenter.pendingFileInput != nil && !fileImporterPresented
+                presenter.pendingFileInput != nil &&
+                    activeFileInputRequest == nil && !fileImporterPresented
             },
             set: { presented in
                 guard !presented, !fileImporterPresented,
@@ -127,6 +143,6 @@ struct MobileWebDialogHost: View {
     }
 
     private var allowedContentTypes: [UTType] {
-        presenter.pendingFileInput?.allowsDirectories == true ? [.folder] : [.item]
+        activeFileInputRequest?.allowsDirectories == true ? [.folder] : [.item]
     }
 }

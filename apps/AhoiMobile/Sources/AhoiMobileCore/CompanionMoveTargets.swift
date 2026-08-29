@@ -37,24 +37,26 @@ public enum CompanionMoveTargetBuilder {
                 folder.parentID.flatMap { folderIDs.contains($0) ? $0 : nil }
             }
             var visited = Set<TreeNodeID>()
-            func append(_ folder: TreeNode, depth: Int, path: String) {
-                guard visited.insert(folder.id).inserted else { return }
-                let label = path.isEmpty ? folder.title : path + " / " + folder.title
-                result.append(.init(
-                    workspaceID: workspace.id,
-                    parentID: folder.id,
-                    label: workspace.name + " / " + label,
-                    depth: depth
-                ))
-                for child in (children[folder.id] ?? []).sorted(by: nodeOrder) {
-                    append(child, depth: depth + 1, path: label)
+            func appendForest(_ roots: [TreeNode]) {
+                var pending = roots.reversed().map { ($0, 1, "") }
+                while let (folder, rawDepth, parentPath) = pending.popLast() {
+                    guard visited.insert(folder.id).inserted else { continue }
+                    let label = boundedPath(parentPath, appending: folder.title)
+                    result.append(.init(
+                        workspaceID: workspace.id,
+                        parentID: folder.id,
+                        label: workspace.name + " / " + label,
+                        depth: min(rawDepth, CompanionHierarchyPolicy.maximumDepth)
+                    ))
+                    let descendants = (children[folder.id] ?? []).sorted(by: nodeOrder)
+                    pending.append(contentsOf: descendants.reversed().map {
+                        ($0, rawDepth + 1, label)
+                    })
                 }
             }
-            for root in (children[nil] ?? []).sorted(by: nodeOrder) {
-                append(root, depth: 1, path: "")
-            }
+            appendForest((children[nil] ?? []).sorted(by: nodeOrder))
             for orphan in folders.sorted(by: nodeOrder) where !visited.contains(orphan.id) {
-                append(orphan, depth: 1, path: "")
+                appendForest([orphan])
             }
         }
         return result
@@ -64,14 +66,30 @@ public enum CompanionMoveTargetBuilder {
         of id: TreeNodeID,
         in nodes: [TreeNode]
     ) -> Set<TreeNodeID> {
+        let children = Dictionary(grouping: nodes, by: \.parentID)
         var pending = [id]
         var result = Set<TreeNodeID>()
         while let current = pending.popLast(), result.insert(current).inserted {
-            pending.append(contentsOf: nodes.filter {
-                $0.parentID == current
-            }.map(\.id))
+            pending.append(contentsOf: children[current, default: []].map(\.id))
         }
         return result
+    }
+
+    private static func boundedPath(_ parent: String, appending title: String) -> String {
+        let maximumBytes = 2_048
+        let candidate = parent.isEmpty ? title : parent + " / " + title
+        guard candidate.utf8.count > maximumBytes else { return candidate }
+        let suffix = "… / " + title
+        guard suffix.utf8.count <= maximumBytes else {
+            var result = ""
+            for character in title {
+                let next = result + String(character)
+                guard next.utf8.count <= maximumBytes - 3 else { break }
+                result = next
+            }
+            return "…" + result
+        }
+        return suffix
     }
 
     private static func nodeOrder(_ left: TreeNode, _ right: TreeNode) -> Bool {

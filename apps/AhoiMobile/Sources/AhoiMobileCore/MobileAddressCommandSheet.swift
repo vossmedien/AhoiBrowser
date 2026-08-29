@@ -3,6 +3,7 @@ import SwiftUI
 import AhoiCloudKitSpike
 
 struct MobileAddressCommandSheet: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ObservedObject private var companionModel: CompanionAppModel
     @ObservedObject private var browser: MobileBrowserController
     @Binding private var isPresented: Bool
@@ -205,8 +206,13 @@ struct MobileAddressCommandSheet: View {
             .onChange(of: addressText) { _, value in
                 Task { await companionModel.refreshSearch(query: value) }
             }
+            .frame(
+                minWidth: horizontalSizeClass == .regular ? 620 : nil,
+                minHeight: horizontalSizeClass == .regular ? 560 : nil
+            )
         }
         .presentationDetents([.medium, .large])
+        .modifier(MobileAddressPresentationSizing(isRegularWidth: horizontalSizeClass == .regular))
     }
 
     private func selectAllAddressText() {
@@ -256,5 +262,18 @@ struct MobileAddressCommandSheet: View {
             _ = browser.createTab(workspaceID: workspace.id)
         }
         isPresented = false
+    }
+}
+
+private struct MobileAddressPresentationSizing: ViewModifier {
+    let isRegularWidth: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isRegularWidth {
+            content.presentationSizing(.page)
+        } else {
+            content
+        }
     }
 }

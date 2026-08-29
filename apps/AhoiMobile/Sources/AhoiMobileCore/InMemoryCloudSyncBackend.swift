@@ -15,7 +15,10 @@ public actor InMemoryCloudSyncBackend: CloudRecordTransport {
         records: [SyncRecord] = []
     ) {
         self.boundary = boundary
-        self.records = Dictionary(uniqueKeysWithValues: records.map { ($0.recordID, $0) })
+        self.records = [:]
+        for record in records {
+            self.records[record.recordID] = record
+        }
     }
 
     public func ensureCustomZone() async throws {

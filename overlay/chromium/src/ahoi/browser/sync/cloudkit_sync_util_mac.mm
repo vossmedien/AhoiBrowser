@@ -117,7 +117,11 @@ std::string SafeCloudKitError(NSError* error) {
 }
 
 int64_t UnixMilliseconds(const HlcStamp& stamp) {
-  return (stamp.physical_time_us - kWindowsToUnixEpochMicros) / 1000;
+  return UnixMicroseconds(stamp) / 1000;
+}
+
+int64_t UnixMicroseconds(const HlcStamp& stamp) {
+  return stamp.physical_time_us - kWindowsToUnixEpochMicros;
 }
 
 }  // namespace ahoi::sync

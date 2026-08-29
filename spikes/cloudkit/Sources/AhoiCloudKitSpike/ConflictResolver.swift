@@ -125,6 +125,11 @@ public struct LastWriterWinsResolver: Sendable {
                 ? lhs
                 : rhs
         }
+        if lhs.modifiedAt.submillisecondMicroseconds !=
+            rhs.modifiedAt.submillisecondMicroseconds {
+            return lhs.modifiedAt.submillisecondMicroseconds >
+                rhs.modifiedAt.submillisecondMicroseconds ? lhs : rhs
+        }
         if lhs.modifiedAt.logicalCounter != rhs.modifiedAt.logicalCounter {
             return lhs.modifiedAt.logicalCounter > rhs.modifiedAt.logicalCounter ? lhs : rhs
         }

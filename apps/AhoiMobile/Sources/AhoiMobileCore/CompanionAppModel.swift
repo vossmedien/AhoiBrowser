@@ -25,6 +25,7 @@ public final class CompanionAppModel: ObservableObject {
     @Published public private(set) var remoteCommandStatus: String?
     @Published public private(set) var recentRemoteCommands: [CompanionRemoteCommandStatusItem] = []
     @Published public private(set) var syncSafetyState = CloudKitSyncSafetyState()
+    @Published public private(set) var physicalDeletionRecoveryRequired = false
     @Published public private(set) var historyRetentionDays: Int
     @Published public private(set) var isSyncConfigured: Bool
 
@@ -39,6 +40,17 @@ public final class CompanionAppModel: ObservableObject {
     private var providerPrepared = false
     private var commandLabels: [UUID: String] = [:]
     private var commandFollowUpTasks: [UUID: Task<Void, Never>] = [:]
+    private var syncGeneration: UInt64 = 0
+    private var syncInProgress = false
+    private var syncRequestedWhileInProgress = false
+    private var syncWaiters: [CheckedContinuation<Void, Never>] = []
+    private var syncRuntimeCancellation: Task<Void, Never>?
+    private var syncRuntimeCancellationGeneration: UInt64?
+    private var syncPreferenceIntentGeneration: UInt64 = 0
+    private var desiredSyncEnabled = false
+    private var eventDrivenSyncTask: Task<Void, Never>?
+    private var eventDrivenSyncRequested = false
+    private var eventDrivenSyncGeneration: UInt64 = 0
 
     public init(
         repository: LocalFirstRepository,
@@ -59,6 +71,7 @@ public final class CompanionAppModel: ObservableObject {
         self.mobileDeviceName = mobileDeviceName
         self.mobileDeviceKind = mobileDeviceKind
         self.isSyncConfigured = syncProvider != nil && syncBridge != nil
+        self.desiredSyncEnabled = syncProvider != nil && syncBridge != nil
         let storedRetention = defaults.integer(
             forKey: CompanionSyncPreferences.historyRetentionDaysKey
         )
@@ -66,6 +79,7 @@ public final class CompanionAppModel: ObservableObject {
             CompanionSyncPreferences.historyRetentionChoices.contains(storedRetention)
             ? storedRetention
             : CompanionSyncPreferences.defaultHistoryRetentionDays
+        bindEventDrivenSync(to: syncProvider)
     }
 
     public convenience init() {
@@ -349,43 +363,127 @@ public final class CompanionAppModel: ObservableObject {
     }
 
     public func sync() async {
+        if syncInProgress {
+            syncRequestedWhileInProgress = true
+            await withCheckedContinuation { continuation in
+                syncWaiters.append(continuation)
+            }
+            return
+        }
+        syncInProgress = true
+        defer {
+            syncInProgress = false
+            let completedWaiters = syncWaiters
+            syncWaiters.removeAll()
+            completedWaiters.forEach { $0.resume() }
+        }
+
+        repeat {
+            syncRequestedWhileInProgress = false
+            await performSync()
+        } while syncRequestedWhileInProgress && syncProvider != nil
+    }
+
+    private func performSync() async {
         guard let syncProvider else { return }
+        guard let bridge = syncBridge else {
+            loadError = CompanionL10n.string(
+                "sync.configuration_missing",
+                fallback: "CloudKit is not fully configured. Local data remains available."
+            )
+            return
+        }
+        let generation = syncGeneration
         do {
             if !providerPrepared {
                 try await syncProvider.prepare()
-                if let syncBridge {
-                    try await syncBridge.enqueueLocalSnapshot()
+                guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                    return
+                }
+                try await bridge.restorePersistedRemoteCommandStates()
+                guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                    return
+                }
+                try await bridge.enqueueLocalSnapshot()
+                guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                    return
                 }
                 providerPrepared = true
             }
-            if let syncBridge {
-                try await syncBridge.syncNow()
-                snapshot = try await repository.currentSnapshot()
-                searchResults = try await repository.search("")
-                await refreshRemoteCommandStates(using: syncBridge)
-            } else {
-                try await syncProvider.syncNow()
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
             }
+            try await bridge.syncNow()
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
+            }
+            snapshot = try await repository.currentSnapshot()
+            searchResults = try await repository.search("")
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
+            }
+            await refreshRemoteCommandStates(using: bridge)
         } catch {
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
+            }
             loadError = error.localizedDescription
+        }
+        guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+            return
         }
         syncStatus = syncProvider.status()
         syncSafetyState = syncProvider.safetyState()
+        physicalDeletionRecoveryRequired = await syncProvider
+            .hasPhysicalDeletionQuarantine()
+    }
+
+    private func isCurrentSyncRuntime(
+        _ provider: CloudKitSyncProvider,
+        generation: UInt64
+    ) -> Bool {
+        syncGeneration == generation && syncProvider === provider
     }
 
     /// Applies the user-owned transport preference at runtime. Disabling drops
     /// the CKSyncEngine/provider immediately while retaining all local data;
     /// enabling constructs CKContainer only after this call.
     public func setSyncEnabled(_ enabled: Bool) async {
+        syncPreferenceIntentGeneration &+= 1
+        let intentGeneration = syncPreferenceIntentGeneration
+        desiredSyncEnabled = enabled
         if !enabled {
-            await syncProvider?.cancel()
+            eventDrivenSyncGeneration &+= 1
+            eventDrivenSyncTask?.cancel()
+            eventDrivenSyncTask = nil
+            eventDrivenSyncRequested = false
+            if syncProvider == nil {
+                await waitForRuntimeCancellation()
+                return
+            }
+            syncGeneration &+= 1
+            let cancellationGeneration = syncGeneration
+            let providerToCancel = syncProvider
+            providerToCancel?.setEventDrivenSyncHandler(nil)
             providerPrepared = false
             syncProvider = nil
             syncBridge = nil
             isSyncConfigured = false
             syncStatus = nil
             syncSafetyState = .init()
+            physicalDeletionRecoveryRequired = false
             remoteControlIdentity = nil
+            let cancellation = Task<Void, Never> {
+                if let providerToCancel { await providerToCancel.cancel() }
+            }
+            syncRuntimeCancellation = cancellation
+            syncRuntimeCancellationGeneration = cancellationGeneration
+            await waitForRuntimeCancellation()
+            return
+        }
+        await waitForRuntimeCancellation()
+        guard syncPreferenceIntentGeneration == intentGeneration,
+              desiredSyncEnabled else {
             return
         }
         guard syncProvider == nil else { return }
@@ -397,11 +495,68 @@ public final class CompanionAppModel: ObservableObject {
             )
             return
         }
+        syncGeneration &+= 1
         syncProvider = runtime.provider
         syncBridge = runtime.bridge
+        bindEventDrivenSync(to: runtime.provider)
         isSyncConfigured = true
         remoteControlIdentity = try? await runtime.bridge.remoteControlIdentity()
         await sync()
+    }
+
+    private func waitForRuntimeCancellation() async {
+        guard let cancellation = syncRuntimeCancellation else { return }
+        let generation = syncRuntimeCancellationGeneration
+        await cancellation.value
+        guard syncRuntimeCancellationGeneration == generation else { return }
+        syncRuntimeCancellation = nil
+        syncRuntimeCancellationGeneration = nil
+    }
+
+    private func bindEventDrivenSync(to provider: CloudKitSyncProvider?) {
+        provider?.setEventDrivenSyncHandler { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.scheduleEventDrivenSync()
+            }
+        }
+    }
+
+    private func scheduleEventDrivenSync() {
+        guard desiredSyncEnabled else { return }
+        let providerStatus = syncProvider?.status()
+        if syncInProgress, providerStatus?.phase != .retryScheduled {
+            // A normal enqueue during an active pass belongs to the same
+            // coalesced sync loop and must not spawn a competing task.
+            syncRequestedWhileInProgress = true
+            return
+        }
+        eventDrivenSyncRequested = true
+        guard eventDrivenSyncTask == nil else { return }
+        eventDrivenSyncGeneration &+= 1
+        let taskGeneration = eventDrivenSyncGeneration
+        eventDrivenSyncTask = Task { @MainActor [weak self] in
+            await Task.yield()
+            guard let self else { return }
+            while !Task.isCancelled,
+                  self.desiredSyncEnabled,
+                  self.eventDrivenSyncRequested {
+                self.eventDrivenSyncRequested = false
+                let status = self.syncProvider?.status()
+                if status?.phase == .retryScheduled {
+                    let rawDelay = status?.retryAfterSeconds ?? 0
+                    let boundedDelay = rawDelay.isFinite && rawDelay > 0
+                        ? min(rawDelay, 3_600)
+                        : 2
+                    let delay = max(boundedDelay, 2)
+                    let delayMilliseconds = Int64((delay * 1_000).rounded(.up))
+                    try? await Task.sleep(for: .milliseconds(delayMilliseconds))
+                    guard !Task.isCancelled, self.desiredSyncEnabled else { break }
+                }
+                await self.sync()
+            }
+            guard self.eventDrivenSyncGeneration == taskGeneration else { return }
+            self.eventDrivenSyncTask = nil
+        }
     }
 
     public func setHistoryRetentionDays(_ days: Int) async {
@@ -466,7 +621,8 @@ public final class CompanionAppModel: ObservableObject {
                 allowLocalUpload: allowLocalUpload
             )
             syncSafetyState = syncProvider.safetyState()
-            await sync()
+            syncStatus = syncProvider.status()
+            if allowLocalUpload { await sync() }
         } catch {
             loadError = error.localizedDescription
             syncStatus = syncProvider.status()
@@ -485,6 +641,36 @@ public final class CompanionAppModel: ObservableObject {
             syncStatus = syncProvider.status()
             syncSafetyState = syncProvider.safetyState()
         }
+    }
+
+    public func retryQuarantinedSyncRecords() async {
+        guard let syncProvider else { return }
+        do {
+            try await syncProvider.retryQuarantinedRecords()
+            await sync()
+        } catch {
+            guard self.syncProvider === syncProvider else { return }
+            loadError = error.localizedDescription
+            syncStatus = syncProvider.status()
+        }
+        guard self.syncProvider === syncProvider else { return }
+        physicalDeletionRecoveryRequired = await syncProvider
+            .hasPhysicalDeletionQuarantine()
+    }
+
+    public func restorePhysicallyDeletedSyncRecords() async {
+        guard let syncProvider, let syncBridge else { return }
+        do {
+            try await syncBridge.restorePhysicallyDeletedRecords()
+            await sync()
+        } catch {
+            guard self.syncProvider === syncProvider else { return }
+            loadError = error.localizedDescription
+            syncStatus = syncProvider.status()
+        }
+        guard self.syncProvider === syncProvider else { return }
+        physicalDeletionRecoveryRequired = await syncProvider
+            .hasPhysicalDeletionQuarantine()
     }
 
     public func remotelyOpen(_ tab: RemoteTab) async {
@@ -562,7 +748,7 @@ public final class CompanionAppModel: ObservableObject {
             )
             return
         }
-        guard let syncBridge else {
+        guard let syncBridge, let provider = syncProvider else {
             remoteCommandStatus = CompanionL10n.string(
                 "remote.not_configured",
                 fallback: "Remote control is not configured."
@@ -586,15 +772,20 @@ public final class CompanionAppModel: ObservableObject {
                 fallback: "%@ was queued securely.",
                 action
             )
-            try await syncBridge.syncNow()
+            let generation = syncGeneration
+            await sync()
+            guard isCurrentSyncRuntime(provider, generation: generation),
+                  self.syncBridge === syncBridge else {
+                return
+            }
             let updated = await syncBridge.remoteCommandState(state.id)
             if let updated {
                 updateRemoteCommandStatusItem(updated, action: action)
             }
             remoteCommandStatus = statusText(updated?.status ?? .queued, action: action)
             snapshot = try await repository.currentSnapshot()
-            syncStatus = syncProvider?.status()
-            syncSafetyState = syncProvider?.safetyState() ?? .init()
+            syncStatus = provider.status()
+            syncSafetyState = provider.safetyState()
             loadError = nil
             beginCommandFollowUp(
                 commandID: state.id,
@@ -712,18 +903,21 @@ public final class CompanionAppModel: ObservableObject {
                 let now = UInt64(Date().timeIntervalSince1970 * 1_000)
                 guard now < expiresAtMilliseconds else { break }
                 try? await Task.sleep(for: .seconds(5))
-                guard let self, let bridge = self.syncBridge else { break }
-                do {
-                    try await bridge.syncNow()
-                    await self.refreshRemoteCommandStates(using: bridge)
-                    self.syncStatus = self.syncProvider?.status()
-                    if self.recentRemoteCommands.first(where: {
-                        $0.id == commandID
-                    })?.isTerminal == true {
-                        break
-                    }
-                } catch {
-                    self.syncStatus = self.syncProvider?.status()
+                guard let self,
+                      let bridge = self.syncBridge,
+                      let provider = self.syncProvider else { break }
+                let generation = self.syncGeneration
+                await self.sync()
+                guard self.isCurrentSyncRuntime(provider, generation: generation),
+                      self.syncBridge === bridge else {
+                    break
+                }
+                await self.refreshRemoteCommandStates(using: bridge)
+                self.syncStatus = provider.status()
+                if self.recentRemoteCommands.first(where: {
+                    $0.id == commandID
+                })?.isTerminal == true {
+                    break
                 }
             }
             self?.commandFollowUpTasks[commandID] = nil

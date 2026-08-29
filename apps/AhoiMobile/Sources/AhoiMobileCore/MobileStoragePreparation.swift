@@ -1,7 +1,9 @@
 import Foundation
 
 /// Runs the idempotent Companion-to-Mobile migration away from the main actor.
-/// The first SwiftUI surface can render while storage is being prepared.
+/// The bootstrap surface remains visible until this security boundary has
+/// completed, so no repository or CloudKit runtime can observe half-migrated
+/// state.
 public actor MobileStoragePreparation {
     private let legacyDirectory: URL
     private let destinationDirectory: URL

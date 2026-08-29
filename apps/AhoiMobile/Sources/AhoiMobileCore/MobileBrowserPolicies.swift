@@ -38,11 +38,18 @@ public struct MobilePermissionRequest: Identifiable, Equatable, Sendable {
     }
 
     public let id: UUID
+    public let tabID: UUID
     public let origin: String
     public let kind: Kind
 
-    public init(id: UUID = UUID(), origin: String, kind: Kind) {
+    public init(
+        id: UUID = UUID(),
+        tabID: UUID,
+        origin: String,
+        kind: Kind
+    ) {
         self.id = id
+        self.tabID = tabID
         self.origin = origin
         self.kind = kind
     }
@@ -57,21 +64,52 @@ public final class MobilePermissionCoordinator: ObservableObject {
 
     public func request(
         permission: WebPage.DeviceSensorAuthorization.Permission,
-        origin: WKSecurityOrigin
+        origin: WKSecurityOrigin,
+        tabID: UUID
     ) async -> WKPermissionDecision {
         resolve(.deny)
+        guard let kind = Self.kind(permission) else { return .deny }
         let request = MobilePermissionRequest(
+            tabID: tabID,
             origin: MobileBrowserOriginFormatter.label(for: origin),
-            kind: Self.kind(permission)
+            kind: kind
         )
         pendingRequest = request
-        return await withCheckedContinuation { continuation in
-            self.continuation = continuation
+        return await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                self.continuation = continuation
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in
+                self?.cancel(requestID: request.id)
+            }
         }
     }
 
-    public func allow() { resolve(.grant) }
-    public func deny() { resolve(.deny) }
+    public func allow(requestID: UUID) {
+        guard pendingRequest?.id == requestID else { return }
+        resolve(.grant)
+    }
+
+    public func deny(requestID: UUID) {
+        guard pendingRequest?.id == requestID else { return }
+        resolve(.deny)
+    }
+
+    public func cancelPending(forTabID tabID: UUID) {
+        guard pendingRequest?.tabID == tabID else { return }
+        resolve(.deny)
+    }
+
+    public func cancelPending(unlessTabID tabID: UUID?) {
+        guard let pendingRequest, pendingRequest.tabID != tabID else { return }
+        resolve(.deny)
+    }
+
+    private func cancel(requestID: UUID) {
+        guard pendingRequest?.id == requestID else { return }
+        resolve(.deny)
+    }
 
     private func resolve(_ decision: WKPermissionDecision) {
         pendingRequest = nil
@@ -81,7 +119,7 @@ public final class MobilePermissionCoordinator: ObservableObject {
 
     private static func kind(
         _ permission: WebPage.DeviceSensorAuthorization.Permission
-    ) -> MobilePermissionRequest.Kind {
+    ) -> MobilePermissionRequest.Kind? {
         switch permission {
         case .deviceOrientationAndMotion:
             return .motion
@@ -92,7 +130,7 @@ public final class MobilePermissionCoordinator: ObservableObject {
         case .mediaCapture(.cameraAndMicrophone):
             return .cameraAndMicrophone
         @unknown default:
-            return .cameraAndMicrophone
+            return nil
         }
     }
 
@@ -109,13 +147,38 @@ struct MobileNavigationRequestTracker {
     }
 
     mutating func take(matching responseURL: URL?) -> URLRequest? {
-        if let responseURL,
-           let index = requestsAwaitingResponse.firstIndex(where: { $0.url == responseURL }) {
-            return requestsAwaitingResponse.remove(at: index)
+        guard let responseURL,
+              let normalizedResponseURL = Self.networkURL(responseURL) else {
+            return nil
         }
-        guard !requestsAwaitingResponse.isEmpty else { return nil }
-        return requestsAwaitingResponse.removeFirst()
+        let matchingIndices = requestsAwaitingResponse.indices.filter { index in
+            requestsAwaitingResponse[index].url.flatMap(Self.networkURL)
+                == normalizedResponseURL
+        }
+        guard matchingIndices.count == 1, let index = matchingIndices.first else {
+            // Responses do not carry a navigation identity. If two requests
+            // share a URL, choosing either could replay the wrong body.
+            for index in matchingIndices.reversed() {
+                requestsAwaitingResponse.remove(at: index)
+            }
+            return nil
+        }
+        return requestsAwaitingResponse.remove(at: index)
     }
+
+    private static func networkURL(_ url: URL) -> URL? {
+        guard var components = URLComponents(
+            url: url,
+            resolvingAgainstBaseURL: false
+        ) else { return nil }
+        components.fragment = nil
+        return components.url
+    }
+}
+
+enum MobileDownloadRejectionReason: Equatable, Sendable {
+    case unsafeMethod(String)
+    case unmatchedResponse
 }
 
 @MainActor
@@ -123,6 +186,7 @@ final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
     var onOpenNewTab: ((URL) -> Void)?
     var onExternalScheme: ((URL, String) -> Void)?
     var onDownload: ((URLRequest) -> Void)?
+    var onDownloadRejected: ((URL?, MobileDownloadRejectionReason) -> Void)?
     private var requestTracker = MobileNavigationRequestTracker()
 
     func decidePolicy(
@@ -132,7 +196,7 @@ final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
         guard let url = action.request.url else { return .cancel }
 
         if action.shouldPerformDownload {
-            onDownload?(action.request)
+            routeReplayableDownload(action.request)
             return .cancel
         }
 
@@ -163,23 +227,42 @@ final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
         for response: WebPage.NavigationResponse
     ) async -> WKNavigationResponsePolicy {
         let originalRequest = requestTracker.take(matching: response.response.url)
-        if let httpResponse = response.response as? HTTPURLResponse,
-           httpResponse.value(forHTTPHeaderField: "Content-Disposition")?
-               .localizedCaseInsensitiveContains("attachment") == true {
-            if let originalRequest { onDownload?(originalRequest) }
+        let isAttachment = (response.response as? HTTPURLResponse)?
+            .value(forHTTPHeaderField: "Content-Disposition")?
+            .localizedCaseInsensitiveContains("attachment") == true
+        guard isAttachment || !response.canShowMimeType else { return .allow }
+
+        guard let originalRequest else {
+            onDownloadRejected?(response.response.url, .unmatchedResponse)
             return .cancel
         }
-        guard response.canShowMimeType else {
-            if let originalRequest { onDownload?(originalRequest) }
-            return .cancel
-        }
-        return .allow
+        routeReplayableDownload(originalRequest)
+        return .cancel
     }
 
     func decideAuthenticationChallengeDisposition(
         for challenge: URLAuthenticationChallenge
     ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         (.performDefaultHandling, nil)
+    }
+
+    private func routeReplayableDownload(_ request: URLRequest) {
+        // WebPage.NavigationDeciding can return `.download`, but WebKit for
+        // SwiftUI does not expose the delegate callback that hands its
+        // resulting WKDownload to the client. Until it does, only methods
+        // defined as safe to repeat may use the explicit download WebView.
+        let declaredMethod = (request.httpMethod ?? "GET")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .uppercased()
+        let method = declaredMethod.isEmpty ? "GET" : declaredMethod
+        let isSafeMethod = method == "GET" || method == "HEAD"
+        guard isSafeMethod,
+              request.httpBody == nil,
+              request.httpBodyStream == nil else {
+            onDownloadRejected?(request.url, .unsafeMethod(method))
+            return
+        }
+        onDownload?(request)
     }
 }
 
@@ -292,6 +375,28 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
         }
     }
 
+    public func recordFailure(
+        sourceURL: URL,
+        initiatingOrigin: String? = nil,
+        isPrivate: Bool,
+        message: String
+    ) {
+        guard (try? MobileBrowserInputRouter.validateWebURL(sourceURL)) != nil else {
+            return
+        }
+        downloads.insert(MobileDownloadRecord(
+            sourceURL: sourceURL,
+            sourceOrigin: initiatingOrigin,
+            suggestedFilename: Self.safeFilename(
+                sourceURL.lastPathComponent,
+                fallback: "download"
+            ),
+            status: .failed,
+            errorMessage: message,
+            isPrivate: isPrivate
+        ), at: 0)
+    }
+
     public func cancel(_ id: UUID) {
         guard let download = activeDownloads[id] else { return }
         download.cancel { [weak self] _ in
@@ -304,6 +409,13 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
 
     public func removeFinished() {
         downloads.removeAll { [.completed, .failed, .cancelled].contains($0.status) }
+    }
+
+    public func removeFinished(isPrivate: Bool) {
+        downloads.removeAll {
+            $0.isPrivate == isPrivate &&
+                [.completed, .failed, .cancelled].contains($0.status)
+        }
     }
 
     public func download(

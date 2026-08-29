@@ -203,7 +203,8 @@ final class MobileBrowserCoreTests: XCTestCase {
         try await coordinator.enqueue(.init(tabs: [newest]), revision: 2)
         try await coordinator.enqueue(.init(tabs: [stale]), revision: 1)
 
-        XCTAssertEqual(try await store.load().tabs, [newest])
+        let persistedSession = try await store.load()
+        XCTAssertEqual(persistedSession.tabs, [newest])
     }
 
     func testLocalNavigationCreatesSyncableHistoryWithoutPrivateState() async throws {
@@ -238,11 +239,13 @@ final class MobileBrowserCoreTests: XCTestCase {
         let firstTombstone = try await repository.deleteHistoryVisit(first.id)
         XCTAssertTrue(firstTombstone.isDeleted)
         XCTAssertNotNil(firstTombstone.tombstone)
-        XCTAssertEqual(try await repository.currentSnapshot().visibleHistory, [second])
+        let snapshotAfterIndividualDelete = try await repository.currentSnapshot()
+        XCTAssertEqual(snapshotAfterIndividualDelete.visibleHistory, [second])
 
         let remaining = try await repository.deleteHistory(sinceMilliseconds: 0)
         XCTAssertEqual(remaining.map(\.id), [second.id])
-        XCTAssertTrue(try await repository.currentSnapshot().visibleHistory.isEmpty)
+        let snapshotAfterRangeDelete = try await repository.currentSnapshot()
+        XCTAssertTrue(snapshotAfterRangeDelete.visibleHistory.isEmpty)
     }
 
     func testLocalMobileTabPublicationUsesMobileDeviceAndStableSession() async throws {

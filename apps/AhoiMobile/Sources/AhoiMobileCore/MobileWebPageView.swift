@@ -10,12 +10,17 @@ struct MobileWebPageView: View {
     @State private var findMatchCount = 0
     @State private var pullDistance: CGFloat = 0
     @State private var refreshArmed = false
+    @State private var findRequestGeneration: UInt64 = 0
+    @State private var findTask: Task<Void, Never>?
     @FocusState private var findFieldFocused: Bool
 
     var body: some View {
         ZStack(alignment: .top) {
             WebView(page)
-                .webViewLinkPreviews(.enabled)
+                // iOS does not expose WebKit for SwiftUI's context-menu hook.
+                // Ahoi owns link long-press actions through its isolated
+                // user-script bridge, so the native preview must not race it.
+                .webViewLinkPreviews(.disabled)
                 .webViewBackForwardNavigationGestures(.enabled)
                 .webViewTextSelection(.enabled)
                 .webViewMagnificationGestures(.enabled)
@@ -46,7 +51,13 @@ struct MobileWebPageView: View {
                 findNavigator
             }
         }
-        .onChange(of: page.url) { _, _ in onMetadataChange() }
+        .onChange(of: page.url) { _, _ in
+            findRequestGeneration &+= 1
+            findTask?.cancel()
+            findTask = nil
+            findMatchCount = 0
+            onMetadataChange()
+        }
         .onChange(of: page.title) { _, _ in onMetadataChange() }
         .onChange(of: page.isLoading) { _, isLoading in
             if !isLoading { onMetadataChange() }
@@ -55,6 +66,11 @@ struct MobileWebPageView: View {
             try? await Task.sleep(for: .milliseconds(250))
             guard !Task.isCancelled else { return }
             onMetadataChange()
+        }
+        .onDisappear {
+            findRequestGeneration &+= 1
+            findTask?.cancel()
+            findTask = nil
         }
     }
 
@@ -81,6 +97,8 @@ struct MobileWebPageView: View {
 
             Button { performFind(backwards: true, resetSelection: false) } label: {
                 Image(systemName: "chevron.up")
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .disabled(findQuery.isEmpty)
             .accessibilityLabel(CompanionL10n.string(
@@ -90,6 +108,8 @@ struct MobileWebPageView: View {
 
             Button { performFind(backwards: false, resetSelection: false) } label: {
                 Image(systemName: "chevron.down")
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .disabled(findQuery.isEmpty)
             .accessibilityLabel(CompanionL10n.string(
@@ -99,6 +119,8 @@ struct MobileWebPageView: View {
 
             Button(action: closeFindNavigator) {
                 Image(systemName: "xmark.circle.fill")
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityLabel(CompanionL10n.string(
                 "action.close",
@@ -118,6 +140,9 @@ struct MobileWebPageView: View {
     }
 
     private func closeFindNavigator() {
+        findRequestGeneration &+= 1
+        findTask?.cancel()
+        findTask = nil
         findNavigatorPresented = false
         findQuery = ""
         findMatchCount = 0
@@ -136,12 +161,21 @@ struct MobileWebPageView: View {
 
     private func performFind(backwards: Bool, resetSelection: Bool) {
         let query = findQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        findRequestGeneration &+= 1
+        let requestGeneration = findRequestGeneration
+        findTask?.cancel()
         guard !query.isEmpty else {
+            findTask = nil
             findMatchCount = 0
             clearFindSelection()
             return
         }
-        Task { @MainActor in
+        findTask = Task { @MainActor in
+            defer {
+                if findRequestGeneration == requestGeneration {
+                    findTask = nil
+                }
+            }
             do {
                 let result = try await page.callJavaScript(
                     """
@@ -157,13 +191,21 @@ struct MobileWebPageView: View {
                         "resetSelection": resetSelection,
                     ]
                 )
+                guard !Task.isCancelled,
+                      findRequestGeneration == requestGeneration,
+                      findQuery.trimmingCharacters(in: .whitespacesAndNewlines) == query,
+                      findNavigatorPresented else {
+                    return
+                }
                 if let count = result as? Int {
                     findMatchCount = count
                 } else if let count = result as? NSNumber {
                     findMatchCount = count.intValue
                 }
             } catch {
-                findMatchCount = 0
+                if !Task.isCancelled, findRequestGeneration == requestGeneration {
+                    findMatchCount = 0
+                }
             }
         }
     }

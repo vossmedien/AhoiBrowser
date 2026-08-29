@@ -38,6 +38,7 @@ struct MobileLinkActionSheet: View {
                 workspaceSection
                 linkUtilitySection
             }
+            .accessibilityIdentifier("browser.link-actions.sheet")
             .navigationTitle(CompanionL10n.string(
                 "browser.link_actions.title",
                 fallback: "Link Actions"
@@ -124,30 +125,28 @@ struct MobileLinkActionSheet: View {
             fallback: "Open"
         )) {
             Button {
-                open(mode: .normal)
+                open()
             } label: {
                 Label(
-                    CompanionL10n.string(
-                        "browser.link_actions.open_new_tab",
-                        fallback: "Open in New Tab"
-                    ),
-                    systemImage: "plus.square"
+                    sourceModeOpenTitle,
+                    systemImage: link.sourceMode == .privateBrowsing
+                        ? "hand.raised.fill"
+                        : "plus.square"
                 )
             }
-            .accessibilityIdentifier("browser.link-actions.open-normal")
+            .accessibilityIdentifier(sourceModeOpenIdentifier)
 
             Button {
-                open(mode: .privateBrowsing)
+                open(mode: alternateMode)
             } label: {
                 Label(
-                    CompanionL10n.string(
-                        "browser.link_actions.open_private",
-                        fallback: "Open Privately"
-                    ),
-                    systemImage: "hand.raised.fill"
+                    alternateModeOpenTitle,
+                    systemImage: alternateMode == .privateBrowsing
+                        ? "hand.raised.fill"
+                        : "safari"
                 )
             }
-            .accessibilityIdentifier("browser.link-actions.open-private")
+            .accessibilityIdentifier(alternateModeOpenIdentifier)
         }
     }
 
@@ -188,15 +187,11 @@ struct MobileLinkActionSheet: View {
 
                 Button {
                     open(
-                        mode: .normal,
                         workspaceID: selectedWorkspaceID
                     )
                 } label: {
                     Label(
-                        CompanionL10n.string(
-                            "browser.link_actions.open_workspace",
-                            fallback: "Open in Selected Workspace"
-                        ),
+                        workspaceOpenTitle,
                         systemImage: "folder"
                     )
                 }
@@ -259,8 +254,63 @@ struct MobileLinkActionSheet: View {
         companionModel.snapshot.visibleWorkspaces
     }
 
+    private var alternateMode: MobileBrowsingMode {
+        link.sourceMode == .normal ? .privateBrowsing : .normal
+    }
+
+    private var sourceModeOpenTitle: String {
+        if link.sourceMode == .privateBrowsing {
+            return CompanionL10n.string(
+                "browser.link_actions.open_new_private_tab",
+                fallback: "Open in New Private Tab"
+            )
+        }
+        return CompanionL10n.string(
+            "browser.link_actions.open_new_tab",
+            fallback: "Open in New Tab"
+        )
+    }
+
+    private var alternateModeOpenTitle: String {
+        if alternateMode == .privateBrowsing {
+            return CompanionL10n.string(
+                "browser.link_actions.open_private",
+                fallback: "Open Privately"
+            )
+        }
+        return CompanionL10n.string(
+            "browser.link_actions.open_normal",
+            fallback: "Open in Normal Browsing"
+        )
+    }
+
+    private var workspaceOpenTitle: String {
+        if link.sourceMode == .privateBrowsing {
+            return CompanionL10n.string(
+                "browser.link_actions.open_private_workspace",
+                fallback: "Open Privately in Selected Workspace"
+            )
+        }
+        return CompanionL10n.string(
+            "browser.link_actions.open_workspace",
+            fallback: "Open in Selected Workspace"
+        )
+    }
+
+    private var sourceModeOpenIdentifier: String {
+        link.sourceMode == .normal
+            ? "browser.link-actions.open-normal"
+            : "browser.link-actions.open-private"
+    }
+
+    private var alternateModeOpenIdentifier: String {
+        alternateMode == .normal
+            ? "browser.link-actions.open-normal"
+            : "browser.link-actions.open-private"
+    }
+
     private func open(
-        mode: MobileBrowsingMode,
+        mode: MobileBrowsingMode? = nil,
         workspaceID: WorkspaceID? = nil
     ) {
         _ = browser.openPendingLink(

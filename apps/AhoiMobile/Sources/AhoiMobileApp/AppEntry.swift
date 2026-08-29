@@ -4,10 +4,68 @@ import AhoiCloudKitSpike
 
 @main
 struct AhoiMobileApp: App {
-    @StateObject private var model: CompanionAppModel
-    @StateObject private var browser: MobileBrowserController
+    @StateObject private var bootstrap = AhoiMobileBootstrap()
 
-    init() {
+    var body: some Scene {
+        WindowGroup {
+            Group {
+                if let runtime = bootstrap.runtime {
+                    AhoiMobileBrowserView(
+                        companionModel: runtime.model,
+                        browser: runtime.browser
+                    )
+                } else if let error = bootstrap.error {
+                    ContentUnavailableView {
+                        Label("AhoiBrowser", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text(error)
+                    } actions: {
+                        Button(CompanionL10n.string(
+                            "action.try_again",
+                            fallback: "Try Again"
+                        )) {
+                            Task { await bootstrap.load() }
+                        }
+                        .accessibilityIdentifier("bootstrap.retry")
+                    }
+                } else {
+                    ProgressView(CompanionL10n.string(
+                        "bootstrap.progress",
+                        fallback: "Preparing AhoiBrowser…"
+                    ))
+                        .accessibilityIdentifier("bootstrap.progress")
+                }
+            }
+            .task { await bootstrap.load() }
+        }
+    }
+}
+
+@MainActor
+private final class AhoiMobileBootstrap: ObservableObject {
+    struct Runtime {
+        let model: CompanionAppModel
+        let browser: MobileBrowserController
+    }
+
+    @Published private(set) var runtime: Runtime?
+    @Published private(set) var error: String?
+    private var isLoading = false
+
+    func load() async {
+        guard runtime == nil, !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            runtime = try await makeRuntime()
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func makeRuntime() async throws -> Runtime {
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -20,6 +78,12 @@ struct AhoiMobileApp: App {
             legacyDirectory: legacySupportURL,
             destinationDirectory: supportURL
         )
+        // This is a security boundary, not merely a browser-session concern.
+        // CloudKit's provider eagerly reads its serialized engine and safety
+        // sidecars, so every legacy file must be migrated before any store,
+        // repository, provider, bridge, or sync factory can be constructed.
+        try await storagePreparation.prepare()
+
         let store = FileCompanionStore(fileURL: supportURL.appendingPathComponent("snapshot.json"))
         let defaults = UserDefaults.standard
         let sourceDeviceUUID = CompanionDeviceIdentity.loadOrCreate(in: defaults)
@@ -93,7 +157,7 @@ struct AhoiMobileApp: App {
         let runtime = defaults.bool(forKey: CompanionSyncPreferences.enabledKey)
             ? runtimeFactory()
             : nil
-        _model = StateObject(wrappedValue: CompanionAppModel(
+        let model = CompanionAppModel(
             repository: repository,
             syncProvider: runtime?.provider,
             syncBridge: runtime?.bridge,
@@ -101,24 +165,13 @@ struct AhoiMobileApp: App {
             mobileSessionID: mobileSessionID,
             mobileDeviceName: UIDevice.current.name,
             mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
-        ))
-        _browser = StateObject(wrappedValue: MobileBrowserController(
+        )
+        let browser = MobileBrowserController(
             store: FileMobileBrowserSessionStore(
                 fileURL: supportURL.appendingPathComponent("browser-session.json")
-            ),
-            storagePreparation: {
-                try await storagePreparation.prepare()
-            }
-        ))
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            AhoiMobileBrowserView(
-                companionModel: model,
-                browser: browser
             )
-        }
+        )
+        return Runtime(model: model, browser: browser)
     }
 }
 

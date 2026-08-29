@@ -130,6 +130,14 @@ public enum LocalCompanionStoreError: Error, Equatable, Sendable {
     case notFound
     case invalidParent
     case treeCycle
+    case hierarchyTooDeep
+}
+
+public enum CompanionHierarchyPolicy {
+    /// Keeps drag targets and indentation usable while bounding parent-chain
+    /// validation. Remote/corrupt trees are still rendered iteratively with a
+    /// capped visual depth, so they cannot overflow the process stack.
+    public static let maximumDepth = 64
 }
 
 /// Deterministic local backend used by previews and tests. It has no network,
@@ -179,8 +187,10 @@ public final class FileCompanionStore: LocalCompanionStore, @unchecked Sendable 
     }
 
     public func save(_ snapshot: CompanionSnapshot) async throws {
-        let data = try encoder.encode(snapshot)
         try lock.withLock {
+            // JSONEncoder is not Sendable/thread-safe. Keep encoding and the
+            // matching atomic write under the same file-store lock.
+            let data = try encoder.encode(snapshot)
             let directory = fileURL.deletingLastPathComponent()
             try FileManager.default.createDirectory(
                 at: directory,
@@ -242,6 +252,10 @@ public actor LocalSearchIndex {
                 + snapshot.remoteTabs.count
                 + snapshot.history.count
         )
+        var workspaceNames: [WorkspaceID: String] = [:]
+        for workspace in snapshot.workspaces where !workspace.isDeleted {
+            workspaceNames[workspace.id] = workspace.name
+        }
 
         for workspace in snapshot.visibleWorkspaces {
             result.append(.init(
@@ -266,7 +280,7 @@ public actor LocalSearchIndex {
                         fallback: "Saved page"
                     ),
                 url: node.url,
-                workspaceName: snapshot.workspaces.first { $0.id == node.workspaceID }?.name
+                workspaceName: workspaceNames[node.workspaceID]
             ))
         }
         for visit in snapshot.visibleHistory {
@@ -318,7 +332,10 @@ public actor LocalFirstRepository {
     private let localDeviceID: DeviceID
     private var clock: HybridLogicalClock
     var snapshot: CompanionSnapshot = .empty
+    private var persistedSnapshot: CompanionSnapshot = .empty
     private var didLoad = false
+    private var mutationInProgress = false
+    private var mutationWaiters: [CheckedContinuation<Void, Never>] = []
 
     public init(
         store: any LocalCompanionStore,
@@ -333,33 +350,50 @@ public actor LocalFirstRepository {
     }
 
     public func load() async throws {
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+    }
+
+    func loadIfNeeded() async throws {
         guard !didLoad else { return }
-        snapshot = try await store.load()
+        let loaded = try await store.load()
+        snapshot = loaded
+        persistedSnapshot = loaded
         observeStoredClocks()
         didLoad = true
-        await searchIndex.rebuild(snapshot: snapshot)
+        await searchIndex.rebuild(snapshot: loaded)
     }
 
     public func currentSnapshot() async throws -> CompanionSnapshot {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         return snapshot
     }
 
     public func search(_ query: String, limit: Int = 50) async throws -> [CompanionSearchResult] {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         return await searchIndex.search(query, limit: limit)
     }
 
     public func replace(_ snapshot: CompanionSnapshot) async throws {
+        await acquireMutation()
+        defer { releaseMutation() }
         try await store.save(snapshot)
         self.snapshot = snapshot
+        persistedSnapshot = snapshot
         didLoad = true
         await searchIndex.rebuild(snapshot: snapshot)
     }
 
     @discardableResult
     public func upsert(_ device: Device) async throws -> Device {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let merged: Device
         if let current = snapshot.devices.first(where: { $0.id == device.id }) {
             merged = try CompanionReadModelFieldMerge.merge(current, device)
@@ -374,7 +408,9 @@ public actor LocalFirstRepository {
 
     @discardableResult
     public func upsert(_ workspace: Workspace) async throws -> Workspace {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let merged: Workspace
         if let current = snapshot.workspaces.first(where: { $0.id == workspace.id }) {
             merged = try CompanionFieldMerge.merge(current, workspace)
@@ -389,7 +425,9 @@ public actor LocalFirstRepository {
 
     @discardableResult
     public func upsert(_ node: TreeNode) async throws -> TreeNode {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let merged: TreeNode
         if let current = snapshot.treeNodes.first(where: { $0.id == node.id }) {
             merged = try CompanionFieldMerge.merge(current, node)
@@ -404,7 +442,9 @@ public actor LocalFirstRepository {
 
     @discardableResult
     public func upsert(_ session: DeviceSession) async throws -> DeviceSession {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let merged: DeviceSession
         if let current = snapshot.sessions.first(where: { $0.id == session.id }) {
             merged = try CompanionReadModelFieldMerge.merge(current, session)
@@ -419,7 +459,9 @@ public actor LocalFirstRepository {
 
     @discardableResult
     public func upsert(_ tab: RemoteTab) async throws -> RemoteTab {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard tab.context == .normal else {
             throw CompanionModelError.incognitoNotSyncable
         }
@@ -437,7 +479,9 @@ public actor LocalFirstRepository {
 
     @discardableResult
     public func append(_ visit: HistoryVisit) async throws -> HistoryVisit {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let merged: HistoryVisit
         if let current = snapshot.history.first(where: { $0.id == visit.id }) {
             merged = try CompanionReadModelFieldMerge.merge(current, visit)
@@ -456,7 +500,9 @@ public actor LocalFirstRepository {
         url: String,
         transition: String = "link"
     ) async throws -> HistoryVisit {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let version = try nextVersion().normalized(for: [
             "device_id",
             "url",
@@ -490,7 +536,10 @@ public actor LocalFirstRepository {
         url: String,
         pinned: Bool
     ) async throws -> LocalMobileTabPublication {
-        let sessionPublication = try await publishLocalMobileSession(
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+        let sessionPublication = try publishLocalMobileSessionInSnapshot(
             sessionID: sessionID,
             deviceName: deviceName,
             deviceKind: deviceKind,
@@ -524,7 +573,8 @@ public actor LocalFirstRepository {
             pinned: pinned,
             version: tabVersion
         )
-        let storedTab = try await upsert(tab)
+        let storedTab = try mergeTabIntoSnapshot(tab)
+        try await persist()
         return LocalMobileTabPublication(
             device: storedDevice,
             session: storedSession,
@@ -538,7 +588,25 @@ public actor LocalFirstRepository {
         deviceKind: DeviceKind,
         workspaceID: WorkspaceID?
     ) async throws -> LocalMobileSessionPublication {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+        let publication = try publishLocalMobileSessionInSnapshot(
+            sessionID: sessionID,
+            deviceName: deviceName,
+            deviceKind: deviceKind,
+            workspaceID: workspaceID
+        )
+        try await persist()
+        return publication
+    }
+
+    private func publishLocalMobileSessionInSnapshot(
+        sessionID: DeviceSessionID,
+        deviceName: String,
+        deviceKind: DeviceKind,
+        workspaceID: WorkspaceID?
+    ) throws -> LocalMobileSessionPublication {
         let deviceVersion = try nextVersion().normalized(for: [
             "type", "display_name", "created_at", "last_seen", "retired", "tombstone",
         ])
@@ -552,7 +620,7 @@ public actor LocalFirstRepository {
             isOnline: true,
             version: deviceVersion
         )
-        let storedDevice = try await upsert(device)
+        let storedDevice = try mergeDeviceIntoSnapshot(device)
 
         let sessionVersion = try nextVersion().normalized(for: [
             "device_id", "started_at", "liveness", "tombstone",
@@ -569,7 +637,7 @@ public actor LocalFirstRepository {
             isOnline: true,
             version: sessionVersion
         )
-        let storedSession = try await upsert(session)
+        let storedSession = try mergeSessionIntoSnapshot(session)
         return LocalMobileSessionPublication(
             device: storedDevice,
             session: storedSession
@@ -579,7 +647,9 @@ public actor LocalFirstRepository {
     public func localOpenMobileTabs(
         sessionID: DeviceSessionID
     ) async throws -> [RemoteTab] {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         return snapshot.remoteTabs.filter {
             $0.deviceID == localDeviceID &&
                 $0.sessionID == sessionID &&
@@ -590,7 +660,9 @@ public actor LocalFirstRepository {
     }
 
     public func closeLocalMobileTab(_ tabID: UUID) async throws -> RemoteTab? {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let typedID = TabID(rawValue: tabID)
         guard let existing = snapshot.remoteTabs.first(where: {
             $0.id == typedID && $0.deviceID == localDeviceID && !$0.isDeleted
@@ -625,7 +697,9 @@ public actor LocalFirstRepository {
             version: version,
             tombstone: tombstone
         )
-        return try await upsert(closed)
+        let stored = try mergeTabIntoSnapshot(closed)
+        try await persist()
+        return stored
     }
 
     @discardableResult
@@ -634,7 +708,9 @@ public actor LocalFirstRepository {
         icon: String = "",
         accent: String? = nil
     ) async throws -> Workspace {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw LocalCompanionStoreError.invalidSnapshot }
         let version = try nextVersion()
@@ -662,7 +738,9 @@ public actor LocalFirstRepository {
         icon: String? = nil,
         accent: String?? = nil
     ) async throws -> Workspace {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard let index = snapshot.workspaces.firstIndex(where: { $0.id == id }) else {
             throw LocalCompanionStoreError.notFound
         }
@@ -686,7 +764,9 @@ public actor LocalFirstRepository {
     public func deleteWorkspace(
         _ id: WorkspaceID
     ) async throws -> (workspace: Workspace, nodes: [TreeNode]) {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard let index = snapshot.workspaces.firstIndex(where: { $0.id == id }) else {
             throw LocalCompanionStoreError.notFound
         }
@@ -734,7 +814,9 @@ public actor LocalFirstRepository {
         icon: String = "",
         accent: String? = nil
     ) async throws -> TreeNode {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard snapshot.workspaces.contains(where: {
             $0.id == workspaceID && !$0.isDeleted
         }) else {
@@ -778,7 +860,9 @@ public actor LocalFirstRepository {
         icon: String? = nil,
         accent: String?? = nil
     ) async throws -> TreeNode {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard let index = snapshot.treeNodes.firstIndex(where: { $0.id == id }) else {
             throw LocalCompanionStoreError.notFound
         }
@@ -801,7 +885,9 @@ public actor LocalFirstRepository {
         to workspaceID: WorkspaceID,
         parentID: TreeNodeID?
     ) async throws -> TreeNode {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard let index = snapshot.treeNodes.firstIndex(where: { $0.id == id }) else {
             throw LocalCompanionStoreError.notFound
         }
@@ -828,7 +914,9 @@ public actor LocalFirstRepository {
 
     @discardableResult
     public func deleteTreeNode(_ id: TreeNodeID) async throws -> [TreeNode] {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard snapshot.treeNodes.contains(where: { $0.id == id }) else {
             throw LocalCompanionStoreError.notFound
         }
@@ -868,7 +956,9 @@ public actor LocalFirstRepository {
         days: Int,
         nowMilliseconds: UInt64 = UInt64(Date().timeIntervalSince1970 * 1_000)
     ) async throws -> [HistoryVisit] {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard CompanionSyncPreferences.historyRetentionChoices.contains(days) else {
             throw LocalCompanionStoreError.invalidSnapshot
         }
@@ -908,7 +998,9 @@ public actor LocalFirstRepository {
     /// retention so the operation converges on every synced device.
     @discardableResult
     public func deleteHistoryVisit(_ id: HistoryVisitID) async throws -> HistoryVisit {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         guard let index = snapshot.history.firstIndex(where: {
             $0.id == id && !$0.isDeleted
         }) else {
@@ -925,7 +1017,9 @@ public actor LocalFirstRepository {
     public func deleteHistory(
         sinceMilliseconds: UInt64
     ) async throws -> [HistoryVisit] {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let indexes = snapshot.history.indices.filter {
             !snapshot.history[$0].isDeleted &&
                 snapshot.history[$0].visitedAt.physicalMilliseconds >= sinceMilliseconds
@@ -956,9 +1050,76 @@ public actor LocalFirstRepository {
         return candidate
     }
 
+    private func mergeDeviceIntoSnapshot(_ device: Device) throws -> Device {
+        if let current = snapshot.devices.first(where: { $0.id == device.id }) {
+            let merged = try CompanionReadModelFieldMerge.merge(current, device)
+            snapshot.devices.replace(merged, where: { $0.id == device.id })
+            return merged
+        }
+        snapshot.devices.append(device)
+        return device
+    }
+
+    private func mergeSessionIntoSnapshot(_ session: DeviceSession) throws -> DeviceSession {
+        if let current = snapshot.sessions.first(where: { $0.id == session.id }) {
+            let merged = try CompanionReadModelFieldMerge.merge(current, session)
+            snapshot.sessions.replace(merged, where: { $0.id == session.id })
+            return merged
+        }
+        snapshot.sessions.append(session)
+        return session
+    }
+
+    private func mergeTabIntoSnapshot(_ tab: RemoteTab) throws -> RemoteTab {
+        guard tab.context == .normal else {
+            throw CompanionModelError.incognitoNotSyncable
+        }
+        if let current = snapshot.remoteTabs.first(where: { $0.id == tab.id }) {
+            let merged = try CompanionReadModelFieldMerge.merge(current, tab)
+            snapshot.remoteTabs.replace(merged, where: { $0.id == tab.id })
+            return merged
+        }
+        snapshot.remoteTabs.append(tab)
+        return tab
+    }
+
     func persist() async throws {
-        try await store.save(snapshot)
-        await searchIndex.rebuild(snapshot: snapshot)
+        let candidate = snapshot
+        do {
+            try await store.save(candidate)
+            snapshot = candidate
+            persistedSnapshot = candidate
+            await searchIndex.rebuild(snapshot: candidate)
+        } catch {
+            snapshot = persistedSnapshot
+            await searchIndex.rebuild(snapshot: persistedSnapshot)
+            throw error
+        }
+    }
+
+    func commitImportedSnapshot(_ imported: CompanionSnapshot) async throws {
+        try await store.save(imported)
+        snapshot = imported
+        persistedSnapshot = imported
+        observeStoredClocks()
+        await searchIndex.rebuild(snapshot: imported)
+    }
+
+    func acquireMutation() async {
+        while mutationInProgress {
+            await withCheckedContinuation { continuation in
+                mutationWaiters.append(continuation)
+            }
+        }
+        mutationInProgress = true
+    }
+
+    func releaseMutation() {
+        precondition(mutationInProgress)
+        mutationInProgress = false
+        let waiters = mutationWaiters
+        mutationWaiters.removeAll(keepingCapacity: true)
+        for waiter in waiters { waiter.resume() }
     }
 
     private func nextVersion() throws -> SyncVersion {
@@ -1003,11 +1164,28 @@ public actor LocalFirstRepository {
             throw LocalCompanionStoreError.invalidParent
         }
         var cursor: TreeNode? = parent
+        var visited = Set<TreeNodeID>()
+        var depth = 0
         while let node = cursor {
-            if node.id == moving { throw LocalCompanionStoreError.treeCycle }
-            cursor = node.parentID.flatMap { ancestor in
-                snapshot.treeNodes.first { $0.id == ancestor && !$0.isDeleted }
+            guard visited.insert(node.id).inserted else {
+                throw LocalCompanionStoreError.treeCycle
             }
+            if node.id == moving { throw LocalCompanionStoreError.treeCycle }
+            depth += 1
+            guard depth <= CompanionHierarchyPolicy.maximumDepth else {
+                throw LocalCompanionStoreError.hierarchyTooDeep
+            }
+            guard let ancestorID = node.parentID else {
+                cursor = nil
+                continue
+            }
+            guard let ancestor = snapshot.treeNodes.first(where: {
+                $0.id == ancestorID && !$0.isDeleted
+            }), ancestor.kind == .folder,
+               ancestor.workspaceID == workspaceID else {
+                throw LocalCompanionStoreError.invalidParent
+            }
+            cursor = ancestor
         }
     }
 

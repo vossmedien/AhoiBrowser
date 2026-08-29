@@ -6,27 +6,30 @@ struct MobileDownloadsSheet: View {
     @ObservedObject private var downloads: MobileDownloadCoordinator
     @Binding private var isPresented: Bool
     @Binding private var previewURL: URL?
+    private let mode: MobileBrowsingMode
 
     init(
         downloads: MobileDownloadCoordinator,
         isPresented: Binding<Bool>,
-        previewURL: Binding<URL?>
+        previewURL: Binding<URL?>,
+        mode: MobileBrowsingMode
     ) {
         _downloads = ObservedObject(wrappedValue: downloads)
         _isPresented = isPresented
         _previewURL = previewURL
+        self.mode = mode
     }
 
     var body: some View {
         NavigationStack {
             Group {
-                if downloads.downloads.isEmpty {
+                if visibleDownloads.isEmpty {
                     ContentUnavailableView(
                         CompanionL10n.string("browser.downloads.empty", fallback: "No Downloads"),
                         systemImage: "arrow.down.circle"
                     )
                 } else {
-                    List(downloads.downloads) { download in
+                    List(visibleDownloads) { download in
                         HStack(spacing: 12) {
                             Image(systemName: download.status == .completed ? "checkmark.circle.fill" : "arrow.down.circle")
                                 .foregroundStyle(download.status == .completed ? Color.green : Color.accentColor)
@@ -75,16 +78,22 @@ struct MobileDownloadsSheet: View {
                         isPresented = false
                     }
                 }
-                if downloads.downloads.contains(where: { [.completed, .failed, .cancelled].contains($0.status) }) {
+                if visibleDownloads.contains(where: { [.completed, .failed, .cancelled].contains($0.status) }) {
                     ToolbarItem(placement: .primaryAction) {
                         Button(CompanionL10n.string("action.clear", fallback: "Clear")) {
-                            downloads.removeFinished()
+                            downloads.removeFinished(isPrivate: mode == .privateBrowsing)
                         }
                     }
                 }
             }
         }
         .quickLookPreview($previewURL)
+    }
+
+    private var visibleDownloads: [MobileDownloadRecord] {
+        downloads.downloads.filter {
+            $0.isPrivate == (mode == .privateBrowsing)
+        }
     }
 
     private func downloadStatus(_ download: MobileDownloadRecord) -> String {

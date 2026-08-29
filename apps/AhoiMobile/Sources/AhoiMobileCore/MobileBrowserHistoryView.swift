@@ -7,6 +7,7 @@ public struct MobileBrowserHistoryView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var pendingClearScope: HistoryClearScope?
+    @State private var pendingVisitDeletion: HistoryVisit?
 
     public init(
         model: CompanionAppModel,
@@ -100,6 +101,37 @@ public struct MobileBrowserHistoryView: View {
                 fallback: "Deleted visits are removed from Ahoi sync on your other devices too."
             ))
         }
+        .confirmationDialog(
+            pendingVisitDeletion.map {
+                CompanionL10n.format(
+                    "browser.history.delete.confirmation",
+                    fallback: "Delete %@ from history?",
+                    $0.title.isEmpty ? $0.url : $0.title
+                )
+            } ?? "",
+            isPresented: Binding(
+                get: { pendingVisitDeletion != nil },
+                set: { if !$0 { pendingVisitDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(
+                CompanionL10n.string("action.delete", fallback: "Delete"),
+                role: .destructive
+            ) {
+                guard let visit = pendingVisitDeletion else { return }
+                pendingVisitDeletion = nil
+                Task { await model.deleteHistoryVisit(visit.id) }
+            }
+            Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
+                pendingVisitDeletion = nil
+            }
+        } message: {
+            Text(CompanionL10n.string(
+                "browser.history.clear.message",
+                fallback: "Deleted visits are removed from Ahoi sync on your other devices too."
+            ))
+        }
     }
 
     @ViewBuilder
@@ -132,7 +164,7 @@ public struct MobileBrowserHistoryView: View {
         .buttonStyle(.plain)
         .swipeActions {
             Button(role: .destructive) {
-                Task { await model.deleteHistoryVisit(visit.id) }
+                pendingVisitDeletion = visit
             } label: {
                 Label(
                     CompanionL10n.string("action.delete", fallback: "Delete"),

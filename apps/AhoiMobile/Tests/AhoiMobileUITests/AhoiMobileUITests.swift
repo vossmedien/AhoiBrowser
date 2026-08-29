@@ -15,6 +15,9 @@ final class AhoiMobileUITests: XCTestCase {
         XCTAssertTrue(app.buttons["browser.tabs"].exists)
 
         app.buttons["browser.more"].tap()
+        XCTAssertTrue(app.buttons["browser.actions.new-tab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["browser.actions.workspaces"].exists)
+        XCTAssertTrue(app.buttons["browser.actions.share"].exists)
         XCTAssertTrue(app.buttons["browser.new-private-tab"].waitForExistence(timeout: 2))
         app.buttons["browser.new-private-tab"].tap()
         XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 3))

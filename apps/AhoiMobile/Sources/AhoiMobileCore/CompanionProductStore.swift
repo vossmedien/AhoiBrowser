@@ -6,7 +6,9 @@ extension LocalFirstRepository {
     public func upsert(
         _ incoming: CompanionAppearanceRecord
     ) async throws -> CompanionAppearanceRecord {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let result = try selectRecord(
             snapshot.productRecords.appearance.first { $0.id == incoming.id },
             incoming
@@ -20,7 +22,9 @@ extension LocalFirstRepository {
     public func upsert(
         _ incoming: CompanionPermittedSettingRecord
     ) async throws -> CompanionPermittedSettingRecord {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let result = try selectRecord(
             snapshot.productRecords.permittedSettings.first { $0.id == incoming.id },
             incoming
@@ -34,7 +38,9 @@ extension LocalFirstRepository {
     public func upsert(
         _ incoming: CompanionExtensionInventoryRecord
     ) async throws -> CompanionExtensionInventoryRecord {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let result = try selectRecord(
             snapshot.productRecords.extensionInventory.first { $0.id == incoming.id },
             incoming
@@ -48,7 +54,9 @@ extension LocalFirstRepository {
     public func upsert(
         _ incoming: CompanionDeveloperAssetRecord
     ) async throws -> CompanionDeveloperAssetRecord {
-        try await load()
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
         let result = try selectRecord(
             snapshot.productRecords.developerAssets.first { $0.id == incoming.id },
             incoming
@@ -58,7 +66,7 @@ extension LocalFirstRepository {
         return result
     }
 
-    private func selectRecord<Record: Equatable>(
+    func selectRecord<Record: Equatable>(
         _ existing: Record?,
         _ incoming: Record
     ) throws -> Record where Record: CompanionVersionedProductRecord {

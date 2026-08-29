@@ -7,6 +7,7 @@ public struct CompanionSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var accountRecoveryPresented = false
     @State private var zoneRecoveryPresented = false
+    @State private var physicalDeletionRecoveryPresented = false
     @AppStorage(MobileBrowserPreferences.searchEngineKey)
     private var searchEngineRawValue = MobileSearchEngine.duckDuckGo.rawValue
 
@@ -83,6 +84,35 @@ public struct CompanionSettingsView: View {
                         )
                     }
                     .disabled(!model.isSyncConfigured)
+                    if model.syncStatus?.phase == .quarantined {
+                        if model.physicalDeletionRecoveryRequired {
+                            Button {
+                                physicalDeletionRecoveryPresented = true
+                            } label: {
+                                Label(
+                                    CompanionL10n.string(
+                                        "settings.sync.restore_physical_deletions",
+                                        fallback: "Restore retained Cloud records"
+                                    ),
+                                    systemImage: "arrow.up.doc"
+                                )
+                            }
+                            .disabled(!model.isSyncConfigured)
+                        } else {
+                            Button {
+                                Task { await model.retryQuarantinedSyncRecords() }
+                            } label: {
+                                Label(
+                                    CompanionL10n.string(
+                                        "settings.sync.retry_quarantine",
+                                        fallback: "Retry quarantined records"
+                                    ),
+                                    systemImage: "arrow.clockwise.circle"
+                                )
+                            }
+                            .disabled(!model.isSyncConfigured)
+                        }
+                    }
                 } header: {
                     Text(CompanionL10n.string(
                         "settings.sync.section",
@@ -357,6 +387,30 @@ public struct CompanionSettingsView: View {
                     "action.cancel",
                     fallback: "Cancel"
                 ), role: .cancel) {}
+            }
+            .confirmationDialog(
+                CompanionL10n.string(
+                    "settings.recovery.physical_delete.prompt",
+                    fallback: "Restore retained local records to CloudKit?"
+                ),
+                isPresented: $physicalDeletionRecoveryPresented,
+                titleVisibility: .visible
+            ) {
+                Button(CompanionL10n.string(
+                    "settings.recovery.physical_delete.confirm",
+                    fallback: "Restore retained records"
+                )) {
+                    Task { await model.restorePhysicallyDeletedSyncRecords() }
+                }
+                Button(CompanionL10n.string(
+                    "action.cancel",
+                    fallback: "Cancel"
+                ), role: .cancel) {}
+            } message: {
+                Text(CompanionL10n.string(
+                    "settings.recovery.physical_delete.message",
+                    fallback: "A non-Ahoi client physically deleted CloudKit rows. Ahoi will upload the retained encrypted local versions; local data is never deleted by this recovery."
+                ))
             }
         }
     }

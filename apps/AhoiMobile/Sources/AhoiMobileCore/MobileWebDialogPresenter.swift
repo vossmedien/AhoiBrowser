@@ -85,6 +85,9 @@ public final class MobileWebDialogPresenter: ObservableObject, WebPage.DialogPre
     }
 
     private var pendingResolution: PendingResolution?
+    private static let maximumMessageBytes = 4_096
+    private static let maximumPromptBytes = 1_024
+    private static let maximumOriginBytes = 512
 
     public init() {}
 
@@ -151,9 +154,12 @@ public final class MobileWebDialogPresenter: ObservableObject, WebPage.DialogPre
         initiatedBy frame: WebPage.FrameInfo
     ) async -> WebPage.FileInputPromptResult {
         let request = MobileFileInputRequest(
-            origin: MobileBrowserOriginFormatter.label(
-                for: frame.securityOrigin,
-                fallbackURL: frame.request.url
+            origin: Self.bounded(
+                MobileBrowserOriginFormatter.label(
+                    for: frame.securityOrigin,
+                    fallbackURL: frame.request.url
+                ),
+                maximumUTF8Bytes: Self.maximumOriginBytes
             ),
             isMainFrame: frame.isMainFrame,
             allowsMultipleSelection: parameters.allowsMultipleSelection,
@@ -194,7 +200,10 @@ public final class MobileWebDialogPresenter: ObservableObject, WebPage.DialogPre
         guard case .prompt(_, let continuation)? = takeResolution(requestID: requestID) else {
             return
         }
-        continuation.resume(returning: .ok(submittedText))
+        continuation.resume(returning: .ok(Self.bounded(
+            submittedText,
+            maximumUTF8Bytes: Self.maximumPromptBytes
+        )))
     }
 
     public func selectFiles(requestID: UUID, urls: [URL]) {
@@ -242,14 +251,61 @@ public final class MobileWebDialogPresenter: ObservableObject, WebPage.DialogPre
         kind: MobileJavaScriptDialogKind,
         frame: WebPage.FrameInfo
     ) -> MobileJavaScriptDialogRequest {
-        MobileJavaScriptDialogRequest(
-            origin: MobileBrowserOriginFormatter.label(
-                for: frame.securityOrigin,
-                fallbackURL: frame.request.url
+        let boundedKind: MobileJavaScriptDialogKind
+        switch kind {
+        case .alert(let message):
+            boundedKind = .alert(message: Self.bounded(
+                message,
+                maximumUTF8Bytes: Self.maximumMessageBytes
+            ))
+        case .confirm(let message):
+            boundedKind = .confirm(message: Self.bounded(
+                message,
+                maximumUTF8Bytes: Self.maximumMessageBytes
+            ))
+        case .prompt(let message, let defaultText):
+            boundedKind = .prompt(
+                message: Self.bounded(
+                    message,
+                    maximumUTF8Bytes: Self.maximumMessageBytes
+                ),
+                defaultText: defaultText.map {
+                    Self.bounded($0, maximumUTF8Bytes: Self.maximumPromptBytes)
+                }
+            )
+        }
+        return MobileJavaScriptDialogRequest(
+            origin: Self.bounded(
+                MobileBrowserOriginFormatter.label(
+                    for: frame.securityOrigin,
+                    fallbackURL: frame.request.url
+                ),
+                maximumUTF8Bytes: Self.maximumOriginBytes
             ),
             isMainFrame: frame.isMainFrame,
-            kind: kind
+            kind: boundedKind
         )
+    }
+
+    private static func bounded(
+        _ value: String,
+        maximumUTF8Bytes: Int
+    ) -> String {
+        guard value.utf8.count > maximumUTF8Bytes else { return value }
+        let ellipsis = "…"
+        let payloadLimit = maximumUTF8Bytes - ellipsis.utf8.count
+        guard payloadLimit > 0 else {
+            var bytes = Data(value.utf8.prefix(maximumUTF8Bytes))
+            while !bytes.isEmpty, String(data: bytes, encoding: .utf8) == nil {
+                bytes.removeLast()
+            }
+            return String(data: bytes, encoding: .utf8) ?? ""
+        }
+        var bytes = Data(value.utf8.prefix(payloadLimit))
+        while !bytes.isEmpty, String(data: bytes, encoding: .utf8) == nil {
+            bytes.removeLast()
+        }
+        return (String(data: bytes, encoding: .utf8) ?? "") + ellipsis
     }
 
     private func takeResolution(requestID: UUID) -> PendingResolution? {
