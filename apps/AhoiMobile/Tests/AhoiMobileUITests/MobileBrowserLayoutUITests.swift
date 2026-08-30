@@ -136,10 +136,11 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3)
         )
 
-        webView.swipeUp()
+        dragPageUpKeepingFixtureActionsVisible(webView)
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
         let alertButton = webView.buttons["Show JavaScript alert"]
         XCTAssertTrue(alertButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(alertButton.isHittable)
         alertButton.tap()
 
         let alert = app.alerts.firstMatch
@@ -148,10 +149,11 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         XCTAssertTrue(workspace.waitForExistence(timeout: 3),
                       "A JavaScript dialog must leave the full Harbor Deck open.")
 
-        webView.swipeUp()
+        dragPageUpKeepingFixtureActionsVisible(webView)
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
         let fileInput = webView.buttons["Choose a fixture file"]
         XCTAssertTrue(fileInput.waitForExistence(timeout: 3))
+        XCTAssertTrue(fileInput.isHittable)
         fileInput.tap()
 
         let fileInputCancel = app.buttons["browser.file_input.cancel"].firstMatch
@@ -164,6 +166,10 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testReduceMotionSystemSettingAndHarborDeckJourney() throws {
+        try XCTSkipIf(
+            ProcessInfo.processInfo.environment["SIMULATOR_UDID"] == nil,
+            "Automating the system-wide Reduce Motion setting is a simulator-only journey."
+        )
         let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
         settings.launch()
         let accessibility = settings.staticTexts.matching(NSPredicate(
@@ -249,6 +255,21 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         element.coordinate(
             withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)
         ).tap()
+    }
+
+    @MainActor
+    private func dragPageUpKeepingFixtureActionsVisible(_ webView: XCUIElement) {
+        // A full XCUI swipe scales with the destination and can move the
+        // dialog/file controls outside WebKit's physical-device accessibility
+        // projection. This bounded drag still exceeds the 28-point chrome
+        // threshold while retaining the controls as visible tap targets.
+        let start = webView.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.68)
+        )
+        let end = webView.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.54)
+        )
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 
     @MainActor

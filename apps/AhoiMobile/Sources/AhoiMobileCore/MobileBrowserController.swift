@@ -449,11 +449,11 @@ public final class MobileBrowserController: ObservableObject {
     public func handleExternalURL(_ url: URL) {
         do {
             let safeURL = try MobileBrowserInputRouter.validateWebURL(url)
-            guard externalOpenDeduplicator.accepts(safeURL) else { return }
             guard didLoad else {
                 pendingStartupURL = safeURL
                 return
             }
+            guard externalOpenDeduplicator.accepts(safeURL) else { return }
             openValidatedExternalURL(safeURL)
             lastError = nil
         } catch {
@@ -634,6 +634,7 @@ public final class MobileBrowserController: ObservableObject {
     private func drainPendingStartupURL() {
         guard let pendingStartupURL else { return }
         self.pendingStartupURL = nil
+        guard externalOpenDeduplicator.accepts(pendingStartupURL) else { return }
         openValidatedExternalURL(pendingStartupURL)
     }
 

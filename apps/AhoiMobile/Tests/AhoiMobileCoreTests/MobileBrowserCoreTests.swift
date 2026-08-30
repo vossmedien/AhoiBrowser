@@ -73,6 +73,9 @@ final class MobileBrowserCoreTests: XCTestCase {
         browser.handleExternalURL(incoming)
         XCTAssertTrue(browser.tabs.isEmpty)
 
+        // The duplicate-suppression window begins when the pending URL is
+        // actually opened, even if session restoration outlives that window.
+        try? await Task.sleep(for: .milliseconds(1_600))
         await browser.load()
 
         XCTAssertEqual(browser.tabs.count, 2)
