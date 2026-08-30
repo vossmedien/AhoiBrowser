@@ -297,6 +297,7 @@ struct MobileBrowserActionsSheet: View {
                             systemImage: "gearshape"
                         )
                     }
+                    .accessibilityIdentifier("browser.actions.settings")
                 }
 
                 Section(CompanionL10n.string("browser.actions.data", fallback: "Privacy & Data")) {

@@ -55,6 +55,24 @@ public struct MobilePermissionRequest: Identifiable, Equatable, Sendable {
     }
 }
 
+extension MobilePermissionRequest.Kind {
+    var localizedLabel: String {
+        switch self {
+        case .camera:
+            return CompanionL10n.string("browser.permission.camera", fallback: "the camera")
+        case .microphone:
+            return CompanionL10n.string("browser.permission.microphone", fallback: "the microphone")
+        case .cameraAndMicrophone:
+            return CompanionL10n.string(
+                "browser.permission.camera_microphone",
+                fallback: "the camera and microphone"
+            )
+        case .motion:
+            return CompanionL10n.string("browser.permission.motion", fallback: "motion sensors")
+        }
+    }
+}
+
 @MainActor
 public final class MobilePermissionCoordinator: ObservableObject {
     @Published public private(set) var pendingRequest: MobilePermissionRequest?

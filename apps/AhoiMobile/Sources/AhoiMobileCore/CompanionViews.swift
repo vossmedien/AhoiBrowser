@@ -22,14 +22,16 @@ public struct CompanionRootView: View {
     @State private var selectedRemoteDeviceID: DeviceID?
     @State private var settingsPresented = false
     @State private var sendLinkPresented = false
-    @AppStorage(CompanionSyncPreferences.enabledKey) private var syncEnabled = false
+    @Binding private var syncEnabled: Bool
 
     public init(
         model: CompanionAppModel,
+        syncEnabled: Binding<Bool>,
         openURL: OpenURLAction? = nil,
         accentTint: Color = .accentColor
     ) {
         self.model = model
+        self._syncEnabled = syncEnabled
         self.overriddenOpenURL = openURL
         self.accentTint = accentTint
     }
@@ -163,9 +165,6 @@ public struct CompanionRootView: View {
         )
         .onChange(of: query) { _, value in
             Task { await model.refreshSearch(query: value) }
-        }
-        .onChange(of: syncEnabled) { _, enabled in
-            Task { await model.setSyncEnabled(enabled) }
         }
         .toolbar {
             ToolbarItem(placement: .automatic) {

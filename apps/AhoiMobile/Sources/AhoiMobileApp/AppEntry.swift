@@ -9,7 +9,10 @@ struct AhoiMobileApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if let runtime = bootstrap.runtime {
+                if AhoiMobileProcessMode.isCloudKitE2EHost {
+                    Color.clear
+                        .accessibilityIdentifier("cloudkit.e2e.inert-host")
+                } else if let runtime = bootstrap.runtime {
                     AhoiMobileBrowserView(
                         companionModel: runtime.model,
                         browser: runtime.browser
@@ -36,8 +39,28 @@ struct AhoiMobileApp: App {
                         .accessibilityIdentifier("bootstrap.progress")
                 }
             }
-            .task { await bootstrap.load() }
+            .task {
+                guard !AhoiMobileProcessMode.isCloudKitE2EHost else { return }
+                await bootstrap.load()
+            }
         }
+    }
+}
+
+/// A hosted unit-test bundle must never race the product bootstrap. In
+/// particular, persisted sync opt-in state must not construct the production
+/// CloudKit runtime while the isolated real-container transport harness is
+/// preparing its uniquely scoped synthetic zone. UI tests are out-of-process
+/// and therefore do not satisfy either hosted-test signal.
+private enum AhoiMobileProcessMode {
+    static var isCloudKitE2EHost: Bool {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["AHOI_CLOUDKIT_E2E_HOST_MODE"] == "1" else {
+            return false
+        }
+        return environment["XCTestConfigurationFilePath"] != nil ||
+            environment["XCInjectBundleInto"] != nil ||
+            NSClassFromString("XCTest.XCTestCase") != nil
     }
 }
 
@@ -95,9 +118,9 @@ private final class AhoiMobileBootstrap: ObservableObject {
             localDeviceID: DeviceID(rawValue: sourceDeviceUUID)
         )
         let bundle = Bundle.main
-        let keyVersion = (bundle.object(
+        let desiredKeyVersion = configuredUInt32(bundle.object(
             forInfoDictionaryKey: "AHOI_SYNC_KEY_VERSION"
-        ) as? String).flatMap(UInt32.init)
+        ))
         let keyService = configuredValue(bundle.object(
             forInfoDictionaryKey: "AHOI_SYNC_KEYCHAIN_SERVICE"
         ))
@@ -106,14 +129,14 @@ private final class AhoiMobileBootstrap: ObservableObject {
         ))
         let keyConfiguration = keyService.flatMap { service in
             keyAccount.flatMap { account in
-                keyVersion.map { version in
+                desiredKeyVersion.map { _ in
                     CompanionSyncKeyConfiguration(
                         service: service,
                         account: account,
                         accessGroup: configuredValue(bundle.object(
                             forInfoDictionaryKey: "AHOI_SYNC_KEYCHAIN_ACCESS_GROUP"
                         )),
-                        keyVersion: version
+                        keyVersion: CompanionSyncKeyFamily.anchorVersion
                     )
                 }
             }
@@ -139,28 +162,90 @@ private final class AhoiMobileBootstrap: ObservableObject {
         ))
         let recordsURL = supportURL.appendingPathComponent("sync-records.json")
         let stateURL = supportURL.appendingPathComponent("sync-engine-state.json")
-        let runtimeFactory: () -> CompanionCloudKitRuntime? = {
-            let commandSigner: (any RemoteCommandSigning)? = commandConfiguration.flatMap {
-                let candidate = KeychainRemoteCommandSigner(configuration: $0)
-                return (try? candidate.provisioningIdentity()) == nil ? nil : candidate
-            }
-            return CompanionCloudKitBootstrap.makeRuntime(
-                syncEnabled: true,
-                containerIdentifier: containerIdentifier,
-                keyConfiguration: keyConfiguration,
-                repository: repository,
-                recordsURL: recordsURL,
-                stateURL: stateURL,
-                commandSigner: commandSigner
+        let rotationJournalURL = supportURL.appendingPathComponent(
+            "sync-key-rotation.json"
+        )
+        let runtimeFactory: CompanionSyncRuntimeFactory?
+        if let keyConfiguration,
+           let desiredKeyVersion,
+           let containerIdentifier {
+            let keyStore = try KeychainCompanionPayloadKeyStore(
+                configuration: keyConfiguration
             )
+            let bootstrapTransport = try CloudKitKeyBootstrapTransport(
+                containerIdentifier: containerIdentifier,
+                zoneName: "AhoiBrowserSyncZone"
+            )
+            let keyLifecycle = CompanionKeyLifecycleCoordinator(
+                transport: bootstrapTransport,
+                keyStore: keyStore,
+                generator: CompanionSecureKeyGenerator.aes256
+            )
+            runtimeFactory = { @MainActor in
+                var status: CompanionKeyLifecycleStatus
+                do {
+                    status = try await keyLifecycle.activate(
+                        explicitOptIn: true,
+                        desiredKeyVersion: desiredKeyVersion
+                    )
+                } catch {
+                    await keyLifecycle.shutdown()
+                    throw error
+                }
+                await keyLifecycle.shutdown()
+                status = try await Self.resolveKeyRotationIfRequired(
+                    status: status,
+                    desiredKeyVersion: desiredKeyVersion,
+                    familyAnchorConfiguration: keyConfiguration,
+                    containerIdentifier: containerIdentifier,
+                    recordsURL: recordsURL,
+                    stateURL: stateURL,
+                    journalURL: rotationJournalURL,
+                    keyStore: keyStore
+                )
+                guard status.permitsEncryptedDomainRecords else {
+                    return .init(status: status, runtime: nil)
+                }
+                guard case let .ready(activeKeyVersion) = status else {
+                    return .init(status: status, runtime: nil)
+                }
+                let commandSigner: (any RemoteCommandSigning)?
+                if let commandConfiguration {
+                    let signer = KeychainRemoteCommandSigner(
+                        configuration: commandConfiguration
+                    )
+                    do {
+                        _ = try signer.ensureIdentity()
+                        commandSigner = signer
+                    } catch RemoteCommandSignerError.identityRevoked {
+                        // The signing identity is optional and deliberately
+                        // stays revoked across restart. Payload sync remains
+                        // available. Keep only the fail-closed signer facade so
+                        // Settings can perform an explicit re-enrolment; every
+                        // provisioning/signing call still rejects the marker.
+                        commandSigner = signer
+                    }
+                } else {
+                    commandSigner = nil
+                }
+                let runtime = try CompanionCloudKitBootstrap.makeRuntimeChecked(
+                    syncEnabled: true,
+                    containerIdentifier: containerIdentifier,
+                    keyConfiguration: keyConfiguration.canonicalConfiguration(
+                        for: activeKeyVersion
+                    ),
+                    repository: repository,
+                    recordsURL: recordsURL,
+                    stateURL: stateURL,
+                    commandSigner: commandSigner
+                )
+                return .init(status: status, runtime: runtime)
+            }
+        } else {
+            runtimeFactory = nil
         }
-        let runtime = defaults.bool(forKey: CompanionSyncPreferences.enabledKey)
-            ? runtimeFactory()
-            : nil
         let model = CompanionAppModel(
             repository: repository,
-            syncProvider: runtime?.provider,
-            syncBridge: runtime?.bridge,
             syncRuntimeFactory: runtimeFactory,
             mobileSessionID: mobileSessionID,
             mobileDeviceName: UIDevice.current.name,
@@ -173,6 +258,81 @@ private final class AhoiMobileBootstrap: ObservableObject {
         )
         return Runtime(model: model, browser: browser)
     }
+
+    private static func resolveKeyRotationIfRequired(
+        status: CompanionKeyLifecycleStatus,
+        desiredKeyVersion: UInt32,
+        familyAnchorConfiguration: CompanionSyncKeyConfiguration,
+        containerIdentifier: String,
+        recordsURL: URL,
+        stateURL: URL,
+        journalURL: URL,
+        keyStore: any CompanionPayloadKeyRotationStoring
+    ) async throws -> CompanionKeyLifecycleStatus {
+        guard case let .ready(activeKeyVersion) = status else { return status }
+        let journalStore = FileCompanionKeyRotationJournalStore(fileURL: journalURL)
+        let storedPlan = try await journalStore.loadRotationPlan()
+
+        let currentVersion: UInt32
+        let nextVersion: UInt32
+        let transitionEndsAt: Date
+        let shouldResume: Bool
+        if let storedPlan, storedPlan.stage != .completed {
+            guard activeKeyVersion == storedPlan.currentVersion ||
+                    activeKeyVersion == storedPlan.nextVersion else {
+                return .recovery(
+                    reason: .keyVersionMismatch,
+                    keyVersion: activeKeyVersion
+                )
+            }
+            currentVersion = storedPlan.currentVersion
+            nextVersion = storedPlan.nextVersion
+            transitionEndsAt = storedPlan.transitionEndsAt
+            shouldResume = true
+        } else if desiredKeyVersion > activeKeyVersion {
+            currentVersion = activeKeyVersion
+            nextVersion = desiredKeyVersion
+            transitionEndsAt = Date().addingTimeInterval(
+                CompanionSyncKeyFamily.rotationWindow
+            )
+            shouldResume = false
+        } else {
+            return status
+        }
+
+        let rotation = try await CompanionCloudKitKeyRotationBootstrap
+            .makeRuntimeChecked(
+                containerIdentifier: containerIdentifier,
+                familyAnchorConfiguration: familyAnchorConfiguration,
+                currentVersion: currentVersion,
+                nextVersion: nextVersion,
+                recordsURL: recordsURL,
+                stateURL: stateURL,
+                journalURL: journalURL,
+                keyStore: keyStore
+            )
+        do {
+            let completed: CompanionKeyRotationPlan
+            if shouldResume {
+                completed = try await rotation.coordinator.resume()
+            } else {
+                completed = try await rotation.coordinator.begin(
+                    currentVersion: currentVersion,
+                    nextVersion: nextVersion,
+                    transitionEndsAt: transitionEndsAt
+                )
+            }
+            await rotation.provider.cancel()
+            return completed.lifecycleStatus
+        } catch {
+            let durablePlan = try? await rotation.coordinator.currentPlan()
+            await rotation.provider.cancel()
+            if let durablePlan {
+                return durablePlan.lifecycleStatus
+            }
+            throw error
+        }
+    }
 }
 
 private func configuredValue(_ value: Any?) -> String? {
@@ -180,6 +340,18 @@ private func configuredValue(_ value: Any?) -> String? {
     let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty, !trimmed.contains("$(") else { return nil }
     return trimmed
+}
+
+private func configuredUInt32(_ value: Any?) -> UInt32? {
+    if let number = value as? NSNumber {
+        let raw = number.uint64Value
+        return raw > 0 && raw <= UInt64(UInt32.max) ? UInt32(raw) : nil
+    }
+    guard let string = configuredValue(value),
+          let parsed = UInt32(string), parsed > 0 else {
+        return nil
+    }
+    return parsed
 }
 
 private enum CompanionDeviceIdentity {
@@ -211,4 +383,9 @@ private enum CompanionDeviceIdentity {
         defaults.set(created.uuidString.lowercased(), forKey: sessionDefaultsKey)
         return created
     }
+}
+
+private enum CompanionSyncKeyFamily {
+    static let anchorVersion: UInt32 = 1
+    static let rotationWindow: TimeInterval = 7 * 24 * 60 * 60
 }

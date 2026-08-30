@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct MobileWebDialogHost: View {
     @ObservedObject var presenter: MobileWebDialogPresenter
+    let onPresentationRequested: () -> Void
     @State private var promptText = ""
     @State private var fileImporterPresented = false
     @State private var activeFileInputRequest: MobileFileInputRequest?
@@ -20,6 +21,7 @@ struct MobileWebDialogHost: View {
                     Button(CompanionL10n.string("action.ok", fallback: "OK")) {
                         presenter.acknowledgeAlert(requestID: request.id)
                     }
+                    .accessibilityIdentifier("browser.dialog.accept")
                 case .confirm:
                     Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                         presenter.respondToConfirmation(
@@ -27,12 +29,14 @@ struct MobileWebDialogHost: View {
                             confirmed: false
                         )
                     }
+                    .accessibilityIdentifier("browser.dialog.cancel")
                     Button(CompanionL10n.string("action.ok", fallback: "OK")) {
                         presenter.respondToConfirmation(
                             requestID: request.id,
                             confirmed: true
                         )
                     }
+                    .accessibilityIdentifier("browser.dialog.accept")
                 case .prompt(_, let defaultText):
                     TextField(
                         CompanionL10n.string(
@@ -45,20 +49,21 @@ struct MobileWebDialogHost: View {
                     Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                         presenter.cancel(requestID: request.id)
                     }
+                    .accessibilityIdentifier("browser.dialog.cancel")
                     Button(CompanionL10n.string("action.ok", fallback: "OK")) {
                         presenter.respondToPrompt(
                             requestID: request.id,
                             submittedText: promptText
                         )
                     }
+                    .accessibilityIdentifier("browser.dialog.accept")
                 }
             } message: { request in
                 Text(request.kind.message)
             }
-            .confirmationDialog(
+            .alert(
                 fileInputTitle,
                 isPresented: fileInputConfirmationPresented,
-                titleVisibility: .visible,
                 presenting: presenter.pendingFileInput
             ) { request in
                 Button(CompanionL10n.string(
@@ -68,9 +73,11 @@ struct MobileWebDialogHost: View {
                     activeFileInputRequest = request
                     fileImporterPresented = true
                 }
+                .accessibilityIdentifier("browser.file_input.choose")
                 Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                     presenter.cancel(requestID: request.id)
                 }
+                .accessibilityIdentifier("browser.file_input.cancel")
             } message: { request in
                 Text(CompanionL10n.format(
                     "browser.file_input.message",
@@ -93,6 +100,11 @@ struct MobileWebDialogHost: View {
                     presenter.selectFiles(requestID: request.id, urls: urls)
                 case .failure:
                     presenter.cancel(requestID: request.id)
+                }
+            }
+            .onChange(of: chromeResetContext) { previous, current in
+                if current.requiresExpansion(comparedTo: previous) {
+                    onPresentationRequested()
                 }
             }
             .onChange(of: presenter.pendingFileInput?.id) { _, requestID in
@@ -118,6 +130,13 @@ struct MobileWebDialogHost: View {
             // Reading the presenter's *current* request from a stale dismissal
             // callback could otherwise cancel the next page-owned dialog.
             set: { _ in }
+        )
+    }
+
+    private var chromeResetContext: MobileChromePresentationResetContext {
+        MobileChromePresentationResetContext(
+            javaScriptDialogID: presenter.pendingJavaScriptDialog?.id,
+            fileInputRequestID: presenter.pendingFileInput?.id
         )
     }
 

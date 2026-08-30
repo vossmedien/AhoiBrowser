@@ -2,8 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Fill only after the Apple Team has assigned a non-production development
-	     container. The repository intentionally carries no real entitlement. -->
+	<!-- Pre-grant CloudKit entitlement shared by CloudKitDevelopment and
+	     TestFlightBootstrap. Both environments use the same dedicated Ahoi
+	     container; the build mode selects Development or Production. -->
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
 		<string>$(AHOI_CLOUDKIT_CONTAINER_ID)</string>
@@ -12,8 +13,10 @@
 	<array>
 		<string>CloudKit</string>
 	</array>
-	<!-- Required only after the Apple Team provisions a shared synchronizable
-	     Keychain group for the externally managed E2E sync key. -->
+	<key>com.apple.developer.icloud-container-environment</key>
+	<string>$(AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT)</string>
+	<!-- The payload group is synchronizable; the command group stores a distinct
+	     per-device, non-synchronizable signing key. Profiles must authorize both. -->
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AHOI_SYNC_KEYCHAIN_ACCESS_GROUP)</string>

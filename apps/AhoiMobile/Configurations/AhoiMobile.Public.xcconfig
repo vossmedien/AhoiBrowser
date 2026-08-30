@@ -1,0 +1,18 @@
+// Public, non-secret Apple identifiers shared by every entitled Ahoi Mobile mode.
+// Apple capabilities and matching profiles still have to exist before signing.
+AHOI_APPLE_TEAM_ID = 248AJ5BN47
+AHOI_APP_IDENTIFIER_PREFIX = 248AJ5BN47
+AHOI_MOBILE_BUNDLE_ID = app.ahoibrowser.AhoiBrowser
+AHOI_MOBILE_CORE_BUNDLE_ID = app.ahoibrowser.AhoiBrowser.core
+AHOI_MOBILE_TEST_BUNDLE_ID = app.ahoibrowser.AhoiBrowser.tests
+AHOI_MOBILE_UI_TEST_BUNDLE_ID = app.ahoibrowser.AhoiBrowser.uitests
+AHOI_CLOUDKIT_CONTAINER_ID = iCloud.app.ahoibrowser.AhoiBrowser
+AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = 248AJ5BN47.app.ahoibrowser.sync
+AHOI_SYNC_KEYCHAIN_SERVICE = app.ahoibrowser.sync.payload-key
+AHOI_SYNC_KEYCHAIN_ACCOUNT = payload-key
+AHOI_SYNC_KEY_VERSION = 1
+AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP = 248AJ5BN47.app.ahoibrowser.commands
+AHOI_COMMAND_KEYCHAIN_SERVICE = app.ahoibrowser.remote-command.signing-key
+AHOI_COMMAND_KEYCHAIN_ACCOUNT = device-signing-key
+AHOI_PROVISIONING_PROFILE_SPECIFIER =
+AHOI_MANUAL_SIGNING_FALLBACK = NO

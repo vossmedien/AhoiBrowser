@@ -7,6 +7,15 @@ public struct CompanionCloudKitRuntime: Sendable {
     public let bridge: CompanionSyncBridge
 }
 
+public enum CompanionCloudKitBootstrapError: Error, Equatable, Sendable {
+    case invalidContainerIdentifier
+    case keyConfigurationMissing
+    case providerUnavailable
+    case recordStoreInitializationFailed
+    case quarantineStoreInitializationFailed
+    case systemFieldsStoreInitializationFailed
+}
+
 /// Creates the native provider only for a signed target that supplies a real
 /// development container. Empty or unresolved build settings keep the app
 /// local-first and cannot trigger an accidental CloudKit account request.
@@ -17,17 +26,49 @@ public enum CompanionCloudKitBootstrap {
         containerIdentifier: String?,
         recordsURL: URL,
         stateURL: URL,
+        automaticallySync: Bool = true,
         quarantineStore: (any SyncQuarantineStore)? = nil,
         systemFieldsStore: (any CloudKitSystemFieldsStore)? = nil
     ) -> CloudKitSyncProvider? {
+        do {
+            return try makeProviderChecked(
+                syncEnabled: syncEnabled,
+                containerIdentifier: containerIdentifier,
+                recordsURL: recordsURL,
+                stateURL: stateURL,
+                automaticallySync: automaticallySync,
+                quarantineStore: quarantineStore,
+                systemFieldsStore: systemFieldsStore
+            )
+        } catch {
+            // Compatibility-only probe used by provider-free tests. Production
+            // activation calls the checked API and surfaces the exact failure.
+            return nil
+        }
+    }
+
+    @available(iOS 17.0, macOS 14.0, *)
+    public static func makeProviderChecked(
+        syncEnabled: Bool,
+        containerIdentifier: String?,
+        recordsURL: URL,
+        stateURL: URL,
+        automaticallySync: Bool = true,
+        quarantineStore: (any SyncQuarantineStore)? = nil,
+        systemFieldsStore: (any CloudKitSystemFieldsStore)? = nil
+    ) throws -> CloudKitSyncProvider? {
+        guard syncEnabled else { return nil }
         guard syncEnabled,
               let containerIdentifier,
               !containerIdentifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               containerIdentifier.hasPrefix("iCloud.") else {
-            return nil
+            throw CompanionCloudKitBootstrapError.invalidContainerIdentifier
         }
-        guard let recordStore = try? FileSyncRecordStore(fileURL: recordsURL) else {
-            return nil
+        let recordStore: FileSyncRecordStore
+        do {
+            recordStore = try FileSyncRecordStore(fileURL: recordsURL)
+        } catch {
+            throw CompanionCloudKitBootstrapError.recordStoreInitializationFailed
         }
         let resolvedQuarantineStore: any SyncQuarantineStore
         if let quarantineStore {
@@ -35,10 +76,14 @@ public enum CompanionCloudKitBootstrap {
         } else {
             let quarantineURL = stateURL.deletingLastPathComponent()
                 .appendingPathComponent("sync-quarantine.json")
-            guard let durableStore = try? FileSyncQuarantineStore(fileURL: quarantineURL) else {
-                return nil
+            do {
+                resolvedQuarantineStore = try FileSyncQuarantineStore(
+                    fileURL: quarantineURL
+                )
+            } catch {
+                throw CompanionCloudKitBootstrapError
+                    .quarantineStoreInitializationFailed
             }
-            resolvedQuarantineStore = durableStore
         }
         let resolvedSystemFieldsStore: any CloudKitSystemFieldsStore
         if let systemFieldsStore {
@@ -46,15 +91,20 @@ public enum CompanionCloudKitBootstrap {
         } else {
             let systemFieldsURL = stateURL.deletingLastPathComponent()
                 .appendingPathComponent("sync-record-system-fields.json")
-            guard let durableStore = try? FileCloudKitSystemFieldsStore(
-                fileURL: systemFieldsURL
-            ) else {
-                return nil
+            do {
+                resolvedSystemFieldsStore = try FileCloudKitSystemFieldsStore(
+                    fileURL: systemFieldsURL
+                )
+            } catch {
+                throw CompanionCloudKitBootstrapError
+                    .systemFieldsStoreInitializationFailed
             }
-            resolvedSystemFieldsStore = durableStore
         }
-        return try? CloudKitSyncProvider(
-            configuration: .init(containerIdentifier: containerIdentifier),
+        return try CloudKitSyncProvider(
+            configuration: .init(
+                containerIdentifier: containerIdentifier,
+                automaticallySync: automaticallySync
+            ),
             recordStore: recordStore,
             stateStore: FileSyncEngineStateStore(fileURL: stateURL),
             quarantineStore: resolvedQuarantineStore,
@@ -73,19 +123,50 @@ public enum CompanionCloudKitBootstrap {
         commandSigner: (any RemoteCommandSigning)? = nil,
         quarantineStore: (any SyncQuarantineStore)? = nil
     ) -> CompanionCloudKitRuntime? {
-        guard syncEnabled,
-              let keyConfiguration,
-              let sealer = try? KeychainCompanionPayloadSealer(
-                configuration: keyConfiguration
-              ),
-              let provider = makeProvider(
-                syncEnabled: true,
+        do {
+            return try makeRuntimeChecked(
+                syncEnabled: syncEnabled,
                 containerIdentifier: containerIdentifier,
+                keyConfiguration: keyConfiguration,
+                repository: repository,
                 recordsURL: recordsURL,
                 stateURL: stateURL,
+                commandSigner: commandSigner,
                 quarantineStore: quarantineStore
-              ) else {
+            )
+        } catch {
+            // Compatibility-only optional API. Runtime activation uses the
+            // checked variant so Keychain/CloudKit failures remain visible.
             return nil
+        }
+    }
+
+    @available(iOS 17.0, macOS 14.0, *)
+    public static func makeRuntimeChecked(
+        syncEnabled: Bool,
+        containerIdentifier: String?,
+        keyConfiguration: CompanionSyncKeyConfiguration?,
+        repository: LocalFirstRepository,
+        recordsURL: URL,
+        stateURL: URL,
+        commandSigner: (any RemoteCommandSigning)? = nil,
+        quarantineStore: (any SyncQuarantineStore)? = nil
+    ) throws -> CompanionCloudKitRuntime? {
+        guard syncEnabled else { return nil }
+        guard let keyConfiguration else {
+            throw CompanionCloudKitBootstrapError.keyConfigurationMissing
+        }
+        let sealer = try KeychainCompanionPayloadSealer(
+            configuration: keyConfiguration
+        )
+        guard let provider = try makeProviderChecked(
+            syncEnabled: true,
+            containerIdentifier: containerIdentifier,
+            recordsURL: recordsURL,
+            stateURL: stateURL,
+            quarantineStore: quarantineStore
+        ) else {
+            throw CompanionCloudKitBootstrapError.providerUnavailable
         }
         return .init(
             provider: provider,

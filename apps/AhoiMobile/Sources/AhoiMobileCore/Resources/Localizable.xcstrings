@@ -171,6 +171,7 @@
         }
       }
     },
+    "action.continue_key_rotation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüsselwechsel fortsetzen"}},"en":{"stringUnit":{"state":"translated","value":"Continue key rotation"}}}},
     "action.allow": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erlauben"}},"en":{"stringUnit":{"state":"translated","value":"Allow"}}}},
     "action.clear": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Leeren"}},"en":{"stringUnit":{"state":"translated","value":"Clear"}}}},
     "action.close": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schließen"}},"en":{"stringUnit":{"state":"translated","value":"Close"}}}},
@@ -1766,6 +1767,23 @@
         }
       }
     },
+    "settings.sync.encryption": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsselung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encryption"
+          }
+        }
+      }
+    },
     "settings.sync.retry": {
       "extractionState": "manual",
       "localizations": {
@@ -1866,6 +1884,62 @@
             "value": "CloudKit is not fully configured. Local data remains available."
           }
         }
+      }
+    },
+    "sync.key.claiming": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erste Sync-Einrichtung wird abgesichert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Securing first-time sync setup"}}
+      }
+    },
+    "sync.key.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Sync-Schlüssel sind deaktiviert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Sync keys are off"}}
+      }
+    },
+    "sync.key.migration": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Vorhandener Sync-Schlüssel wird geprüft"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Verifying the existing sync key"}}
+      }
+    },
+    "sync.key.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselung bereit"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption ready"}}
+      }
+    },
+    "sync.key.recovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselungs-Wiederherstellung erforderlich"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption recovery required"}}
+      }
+    },
+    "sync.key.revoked": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselungsschlüssel widerrufen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption key revoked"}}
+      }
+    },
+    "sync.key.rotation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schlüsselwechsel erforderlich"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption key rotation required"}}
+      }
+    },
+    "sync.key.waiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Warten auf den gekoppelten Sync-Schlüssel"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Waiting for the paired sync key"}}
       }
     },
     "sync.retention.invalid": {
@@ -2606,6 +2680,14 @@
     "browser.workspace.previous": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vorheriger Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Previous workspace"}}}},
     "browser.workspace.next": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nächster Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Next workspace"}}}},
     "browser.sidebar.toggle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sidebar ein-/ausblenden"}},"en":{"stringUnit":{"state":"translated","value":"Toggle sidebar"}}}},
+    "browser.focus.journey": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Weitermachen"}},"en":{"stringUnit":{"state":"translated","value":"Continue"}}}},
+    "browser.focus.saved": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gespeichert"}},"en":{"stringUnit":{"state":"translated","value":"Saved"}}}},
+    "browser.focus.search": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Suchen, Adresse oder Befehl"}},"en":{"stringUnit":{"state":"translated","value":"Search, address or command"}}}},
+    "browser.focus.subtitle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Mach dort weiter, wo du aufgehört hast"}},"en":{"stringUnit":{"state":"translated","value":"Pick up where you left off"}}}},
+    "browser.focus.private.subtitle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Eine getrennte, flüchtige Reise"}},"en":{"stringUnit":{"state":"translated","value":"A separate, temporary voyage"}}}},
+    "browser.focus.private.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Private Tabs, Suchen und Seitendaten bleiben außerhalb von Focus Voyage und Ahoi Sync."}},"en":{"stringUnit":{"state":"translated","value":"Private tabs, searches and page data stay out of Focus Voyage and Ahoi Sync."}}}},
+    "browser.focus.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zuletzt verwendete normale Tabs und gespeicherte Seiten erscheinen hier."}},"en":{"stringUnit":{"state":"translated","value":"Recent normal tabs and saved pages will appear here."}}}},
+    "browser.stop": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Laden stoppen"}},"en":{"stringUnit":{"state":"translated","value":"Stop loading"}}}},
     "browser.sidebar.workspaces.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Noch keine Workspaces"}},"en":{"stringUnit":{"state":"translated","value":"No workspaces yet"}}}},
     "browser.sidebar.saved": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gespeichert"}},"en":{"stringUnit":{"state":"translated","value":"Saved"}}}},
     "browser.sidebar.saved.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine gespeicherten Seiten"}},"en":{"stringUnit":{"state":"translated","value":"No saved pages"}}}},
@@ -2633,6 +2715,7 @@
     "sync.status.domain_merge_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der lokale Sync-Abgleich wurde nicht abgeschlossen"}},"en":{"stringUnit":{"state":"translated","value":"The local sync merge did not complete"}}}},
     "settings.sync.retry_quarantine": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Quarantänisierte Datensätze erneut prüfen"}},"en":{"stringUnit":{"state":"translated","value":"Retry quarantined records"}}}},
     "settings.sync.restore_physical_deletions": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lokal gesicherte Cloud-Datensätze wiederherstellen"}},"en":{"stringUnit":{"state":"translated","value":"Restore retained Cloud records"}}}},
+    "settings.sync.rotation_paused": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der verschlüsselte Transport ist während des Schlüsselwechsels pausiert. Lokale Änderungen bleiben verfügbar und werden erst hochgeladen, wenn alle Sicherheitsbestätigungen erfolgreich sind."}},"en":{"stringUnit":{"state":"translated","value":"Encrypted transport is paused during key rotation. Local changes remain available and are uploaded only after every safety acknowledgement succeeds."}}}},
     "settings.recovery.physical_delete.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lokal gesicherte Datensätze in CloudKit wiederherstellen?"}},"en":{"stringUnit":{"state":"translated","value":"Restore retained local records to CloudKit?"}}}},
     "settings.recovery.physical_delete.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gesicherte Datensätze wiederherstellen"}},"en":{"stringUnit":{"state":"translated","value":"Restore retained records"}}}},
     "settings.recovery.physical_delete.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ein fremder CloudKit-Client hat Datensätze physisch gelöscht. Ahoi lädt die lokal gesicherten verschlüsselten Versionen erneut hoch; lokale Daten werden bei dieser Wiederherstellung niemals gelöscht."}},"en":{"stringUnit":{"state":"translated","value":"A non-Ahoi client physically deleted CloudKit rows. Ahoi will upload the retained encrypted local versions; local data is never deleted by this recovery."}}}},
@@ -2684,6 +2767,32 @@
     "browser.actions.browser": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Browser"}},"en":{"stringUnit":{"state":"translated","value":"Browser"}}}},
     "browser.actions.data": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Datenschutz & Daten"}},"en":{"stringUnit":{"state":"translated","value":"Privacy & Data"}}}},
     "browser.workspace.switch": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Workspace wechseln"}},"en":{"stringUnit":{"state":"translated","value":"Switch Workspace"}}}},
+    "remote.source_revoked": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Fernsteuerungs-Identität dieses Geräts wurde widerrufen."}},"en":{"stringUnit":{"state":"translated","value":"This device's remote-control identity is revoked."}}}},
+    "settings.devices.crypto_limit": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Entfernen stoppt Ahoi Sync und Fernbefehle für das Gerät in den aktuellen Datensätzen. Da der verschlüsselte Nutzdaten-Schlüssel derzeit geteilt wird, ist dies noch keine vollständige kryptografische Isolierung pro Gerät."}},"en":{"stringUnit":{"state":"translated","value":"Removing a device stops Ahoi Sync and remote-command targeting from current records. Because the encrypted payload key is currently shared, this is not complete per-device cryptographic isolation."}}}},
+    "settings.devices.current": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Dieses Gerät"}},"en":{"stringUnit":{"state":"translated","value":"This device"}}}},
+    "settings.devices.error.clock": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Zeitstempel für die Geräteentfernung konnte nicht sicher erstellt werden."}},"en":{"stringUnit":{"state":"translated","value":"The device removal timestamp could not be created safely."}}}},
+    "settings.devices.error.identity": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zum Entfernen wird die lokale Identität dieses Geräts benötigt."}},"en":{"stringUnit":{"state":"translated","value":"Device removal requires this device's local identity."}}}},
+    "settings.devices.error.not_found": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Gerät ist nicht mehr verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"The device is no longer available."}}}},
+    "settings.devices.error.signer": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die lokale Signatur-Identität konnte nicht sicher widerrufen werden."}},"en":{"stringUnit":{"state":"translated","value":"The local signing identity could not be revoked safely."}}}},
+    "settings.devices.remove.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Widerrufen und entfernen"}},"en":{"stringUnit":{"state":"translated","value":"Revoke and remove"}}}},
+    "settings.devices.remove.label": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ widerrufen und entfernen"}},"en":{"stringUnit":{"state":"translated","value":"Revoke and remove %@"}}}},
+    "settings.devices.remove.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ verschwindet aus synchronisierten Geräten und Fernbefehlszielen. Der gemeinsame verschlüsselte Nutzdaten-Schlüssel wird dadurch nicht gewechselt."}},"en":{"stringUnit":{"state":"translated","value":"%@ will disappear from synced devices and remote-command targets. This does not rotate the shared encrypted payload key."}}}},
+    "settings.devices.remove.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ widerrufen und entfernen?"}},"en":{"stringUnit":{"state":"translated","value":"Revoke and remove %@?"}}}},
+    "settings.devices.remove.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gerät entfernen"}},"en":{"stringUnit":{"state":"translated","value":"Remove device"}}}},
+    "settings.devices.removed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Gerät wurde widerrufen und für die Synchronisierung vorgemerkt."}},"en":{"stringUnit":{"state":"translated","value":"The device was revoked and queued for sync."}}}},
+    "settings.devices.removed_local": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Gerät wurde lokal widerrufen; die Synchronisierung steht noch aus."}},"en":{"stringUnit":{"state":"translated","value":"The device was revoked locally; sync is still pending."}}}},
+    "settings.remote.delete": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel löschen"}},"en":{"stringUnit":{"state":"translated","value":"Delete signing key"}}}},
+    "settings.remote.delete.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüssel löschen"}},"en":{"stringUnit":{"state":"translated","value":"Delete key"}}}},
+    "settings.remote.delete.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neue Fernbefehle bleiben blockiert, bis du ausdrücklich einen Schlüssel wechselst und erneut freigibst. Ahoi-Sync-Daten bleiben mit dem getrennten gemeinsamen Nutzdaten-Schlüssel verschlüsselt."}},"en":{"stringUnit":{"state":"translated","value":"New remote commands are blocked until you explicitly rotate and re-approve a key. Ahoi Sync data remains encrypted with the separate shared payload key."}}}},
+    "settings.remote.delete.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel dieses Geräts löschen?"}},"en":{"stringUnit":{"state":"translated","value":"Delete this device's signing key?"}}}},
+    "settings.remote.deleted": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der lokale Signaturschlüssel wurde gelöscht. Fernbefehle sind blockiert."}},"en":{"stringUnit":{"state":"translated","value":"The local signing key was deleted. Remote commands are blocked."}}}},
+    "settings.remote.footer": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Ed25519-Signaturschlüssel bleibt lokal auf diesem Gerät. Löschen blockiert neue Fernbefehle; nach einem Wechsel muss jeder Mac den neuen Schlüssel erneut freigeben."}},"en":{"stringUnit":{"state":"translated","value":"The Ed25519 signing key is local to this device. Deleting it blocks new remote-command authentication; rotating it requires fresh approval on every Mac."}}}},
+    "settings.remote.revoked": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der lokale Signaturschlüssel wurde gelöscht oder widerrufen. Wechsle ihn, um die Fernsteuerung neu zu registrieren."}},"en":{"stringUnit":{"state":"translated","value":"The local signing key is deleted or revoked. Rotate it to re-enrol remote control."}}}},
+    "settings.remote.rotate": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel wechseln"}},"en":{"stringUnit":{"state":"translated","value":"Rotate signing key"}}}},
+    "settings.remote.rotate.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüssel wechseln"}},"en":{"stringUnit":{"state":"translated","value":"Rotate key"}}}},
+    "settings.remote.rotate.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der bisherige private Schlüssel wird lokal ersetzt. Jeder Mac muss den neuen öffentlichen Fingerabdruck erneut freigeben, bevor er Befehle akzeptiert."}},"en":{"stringUnit":{"state":"translated","value":"The previous private key is replaced locally. Every Mac must approve the new public fingerprint before accepting commands."}}}},
+    "settings.remote.rotate.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel dieses Geräts wechseln?"}},"en":{"stringUnit":{"state":"translated","value":"Rotate this device's signing key?"}}}},
+    "settings.remote.rotated": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ein neuer lokaler Signaturschlüssel ist bereit. Die Macs müssen ihn erneut freigeben."}},"en":{"stringUnit":{"state":"translated","value":"A new local signing key is ready. Macs must approve it again."}}}},
     "workspace.title": {
       "extractionState": "manual",
       "localizations": {
