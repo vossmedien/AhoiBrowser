@@ -73,16 +73,19 @@ public enum RemoteCommandSignerError: Error, Equatable, Sendable {
     case invalidPrivateKey
     case wrongSourceDevice
     case randomGenerationFailed(Int32)
+    case privateKeyReadbackMismatch
 }
 
 #if canImport(CryptoKit) && canImport(Security)
-/// Ed25519 signer backed only by externally provisioned Keychain bytes. It
-/// never creates, derives, exports, or silently replaces a private key.
+/// Per-device Ed25519 signer. The private key is created at most once, remains
+/// non-synchronizable and ThisDeviceOnly, and is never exported by the public
+/// API. Only the public provisioning identity leaves this boundary.
 public struct KeychainRemoteCommandSigner: RemoteCommandSigning {
     public let sourceDeviceID: DeviceID
 
     private let configuration: RemoteCommandKeyConfiguration
     private let keyLoader: @Sendable () throws -> Data
+    private let keyCreator: @Sendable () throws -> Data
     private let nonceLoader: @Sendable () throws -> Data
 
     public init(configuration: RemoteCommandKeyConfiguration) {
@@ -91,17 +94,22 @@ public struct KeychainRemoteCommandSigner: RemoteCommandSigning {
         self.keyLoader = {
             try Self.loadPrivateKey(configuration: configuration)
         }
+        self.keyCreator = {
+            try Self.createPrivateKey(configuration: configuration)
+        }
         self.nonceLoader = { try Self.secureNonce() }
     }
 
     init(
         configuration: RemoteCommandKeyConfiguration,
         keyLoader: @escaping @Sendable () throws -> Data,
+        keyCreator: (@Sendable () throws -> Data)? = nil,
         nonceLoader: @escaping @Sendable () throws -> Data
     ) {
         self.configuration = configuration
         self.sourceDeviceID = configuration.sourceDeviceID
         self.keyLoader = keyLoader
+        self.keyCreator = keyCreator ?? keyLoader
         self.nonceLoader = nonceLoader
     }
 
@@ -129,13 +137,26 @@ public struct KeychainRemoteCommandSigner: RemoteCommandSigning {
         return .init(sourceDeviceID: sourceDeviceID, publicKey: publicKey)
     }
 
+    @discardableResult
+    public func ensureIdentity() throws -> RemoteControlProvisioningIdentity {
+        try provisioningIdentity()
+    }
+
     private func signingKey() throws -> Curve25519.Signing.PrivateKey {
-        let raw = try keyLoader()
-        guard raw.count == 32,
-              let key = try? Curve25519.Signing.PrivateKey(rawRepresentation: raw) else {
+        let raw: Data
+        do {
+            raw = try keyLoader()
+        } catch RemoteCommandSignerError.keychainStatus(errSecItemNotFound) {
+            raw = try keyCreator()
+        }
+        guard raw.count == 32 else {
             throw RemoteCommandSignerError.invalidPrivateKey
         }
-        return key
+        do {
+            return try Curve25519.Signing.PrivateKey(rawRepresentation: raw)
+        } catch {
+            throw RemoteCommandSignerError.invalidPrivateKey
+        }
     }
 
     private static func loadPrivateKey(
@@ -150,6 +171,7 @@ public struct KeychainRemoteCommandSigner: RemoteCommandSigning {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: configuration.service,
             kSecAttrAccount as String: configuration.account,
+            kSecAttrSynchronizable as String: kCFBooleanFalse as Any,
             kSecUseDataProtectionKeychain as String: kCFBooleanTrue as Any,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
@@ -166,6 +188,42 @@ public struct KeychainRemoteCommandSigner: RemoteCommandSigning {
             throw RemoteCommandSignerError.invalidPrivateKey
         }
         return data
+    }
+
+    private static func createPrivateKey(
+        configuration: RemoteCommandKeyConfiguration
+    ) throws -> Data {
+        guard isResolved(configuration.service),
+              isResolved(configuration.account),
+              configuration.accessGroup.map(isResolved) ?? true else {
+            throw RemoteCommandSignerError.unresolvedConfiguration
+        }
+        let generated = Curve25519.Signing.PrivateKey().rawRepresentation
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: configuration.service,
+            kSecAttrAccount as String: configuration.account,
+            kSecAttrSynchronizable as String: kCFBooleanFalse as Any,
+            kSecAttrAccessible as String:
+                kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+            kSecUseDataProtectionKeychain as String: kCFBooleanTrue as Any,
+            kSecValueData as String: generated,
+        ]
+        if let accessGroup = configuration.accessGroup, !accessGroup.isEmpty {
+            query[kSecAttrAccessGroup as String] = accessGroup
+        }
+        let status = SecItemAdd(query as CFDictionary, nil)
+        if status == errSecDuplicateItem {
+            return try loadPrivateKey(configuration: configuration)
+        }
+        guard status == errSecSuccess else {
+            throw RemoteCommandSignerError.keychainStatus(status)
+        }
+        let readback = try loadPrivateKey(configuration: configuration)
+        guard readback == generated else {
+            throw RemoteCommandSignerError.privateKeyReadbackMismatch
+        }
+        return readback
     }
 
     private static func secureNonce() throws -> Data {

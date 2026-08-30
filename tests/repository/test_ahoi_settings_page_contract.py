@@ -156,8 +156,11 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         self.assertIsNotNone(remote_control)
         self.assertIsNotNone(retention_control)
         self.assertNotIn("?disabled", sync_control.group(0))
-        self.assertIn("!this.cloudKitAvailable_", remote_control.group(0))
-        self.assertIn("!this.syncEnabledPref_?.value", remote_control.group(0))
+        self.assertIn(
+            "!this.remoteControlStatus_?.canEnable", remote_control.group(0)
+        )
+        self.assertNotIn("!this.cloudKitAvailable_", remote_control.group(0))
+        self.assertNotIn("!this.syncEnabledPref_?.value", remote_control.group(0))
         self.assertNotIn("!this.cloudKitAvailable_", retention_control.group(0))
         self.assertIn(
             "!this.syncEnabledPref_?.value", retention_control.group(0)

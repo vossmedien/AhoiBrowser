@@ -13,6 +13,7 @@ from .assets import create_release_assets
 from .chain import assemble_manifest, create_installed_receipt, validate_manifest
 from .common import (
     ReleaseError,
+    atomic_write_json,
     load_json,
     require_sha256,
     sha256_file,
@@ -21,7 +22,7 @@ from .common import (
 from .installation import install_release_app
 from .materials import create_materials
 from .packaging import notarize_and_package
-from .signing import sign_app, verify_signed_app
+from .signing import prepare_cloudkit_app, sign_app, verify_signed_app
 from .sparkle import (
     PINNED_ARCHIVE_SHA256,
     PINNED_COMMIT,
@@ -209,6 +210,53 @@ def _sign(args: argparse.Namespace) -> None:
         policy_path=ENTITLEMENTS_PATH,
         build_provenance_path=_path(args.build_provenance),
         output=_path(args.output),
+        provisioning_profile_path=_path(args.provisioning_profile),
+    )
+
+
+def _prepare_macos_cloudkit(args: argparse.Namespace) -> None:
+    _policy()
+    output = _path(args.output)
+    entitlements = _path(args.entitlements_output)
+    _require_common_parent([output, entitlements], "Mac CloudKit preparation")
+    preparation = prepare_cloudkit_app(
+        _path(args.app),
+        signing_profile_name=args.signing_profile,
+        provisioning_profile_path=_path(args.provisioning_profile),
+        policy_path=ENTITLEMENTS_PATH,
+        entitlements_output=entitlements,
+    )
+    atomic_write_json(
+        output,
+        {
+            "schemaVersion": 1,
+            "kind": "macos-cloudkit-preparation",
+            "preparedBundleTreeSha256": tree_sha256(_path(args.app)),
+            "entitlements": {
+                "file": entitlements.name,
+                "sha256": sha256_file(entitlements),
+            },
+            **preparation,
+        },
+    )
+
+
+def _verify_macos_cloudkit(args: argparse.Namespace) -> None:
+    _policy()
+    verification = verify_signed_app(
+        _path(args.app),
+        expected_team=_required_environment("AHOI_TEAM_ID"),
+        expected_authority=_required_environment("AHOI_CODESIGN_IDENTITY"),
+        policy_path=ENTITLEMENTS_PATH,
+        signing_profile_name=args.signing_profile,
+    )
+    atomic_write_json(
+        _path(args.output),
+        {
+            "schemaVersion": 1,
+            "kind": "macos-cloudkit-signing-verification",
+            "verification": verification,
+        },
     )
 
 
@@ -454,8 +502,37 @@ def parser() -> argparse.ArgumentParser:
     sign = commands.add_parser("sign", help="sign nested code and emit a receipt")
     sign.add_argument("--app", required=True)
     sign.add_argument("--build-provenance", required=True)
+    sign.add_argument("--provisioning-profile", required=True)
     sign.add_argument("--output", required=True)
     sign.set_defaults(handler=_sign)
+
+    prepare_cloudkit = commands.add_parser(
+        "prepare-macos-cloudkit",
+        help="embed and read back one concrete Mac CloudKit profile",
+    )
+    prepare_cloudkit.add_argument("--app", required=True)
+    prepare_cloudkit.add_argument(
+        "--signing-profile",
+        choices=["cloudkit-development", "cloudkit-production"],
+        required=True,
+    )
+    prepare_cloudkit.add_argument("--provisioning-profile", required=True)
+    prepare_cloudkit.add_argument("--entitlements-output", required=True)
+    prepare_cloudkit.add_argument("--output", required=True)
+    prepare_cloudkit.set_defaults(handler=_prepare_macos_cloudkit)
+
+    verify_cloudkit = commands.add_parser(
+        "verify-macos-cloudkit",
+        help="verify signed Mac CloudKit entitlements/profile/runtime readback",
+    )
+    verify_cloudkit.add_argument("--app", required=True)
+    verify_cloudkit.add_argument(
+        "--signing-profile",
+        choices=["cloudkit-development", "cloudkit-production"],
+        required=True,
+    )
+    verify_cloudkit.add_argument("--output", required=True)
+    verify_cloudkit.set_defaults(handler=_verify_macos_cloudkit)
 
     notarize = commands.add_parser(
         "notarize-package", help="notarize, staple, and package ZIP/DMG"

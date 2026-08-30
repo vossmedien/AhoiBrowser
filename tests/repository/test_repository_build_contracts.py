@@ -467,6 +467,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
             "tools/overlay_fingerprint.py",
             "tools/overlay_state.py",
             "tools/verify_macos_entitlements.py",
+            "tools/verify_mobile_release_evidence.py",
         ):
             path = ROOT / relative
             with self.subTest(path=relative):

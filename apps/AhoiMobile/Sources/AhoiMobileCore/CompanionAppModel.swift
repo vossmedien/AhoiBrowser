@@ -2,45 +2,33 @@ import Foundation
 import SwiftUI
 import AhoiCloudKitSpike
 
-public struct CompanionRemoteCommandStatusItem: Identifiable, Equatable, Sendable {
-    public let id: UUID
-    public let action: String
-    public let targetDeviceID: DeviceID
-    public let status: RemoteCommandStatus
-    public let resultCode: String
-    public let expiresAtMilliseconds: UInt64
-
-    public var isTerminal: Bool {
-        status == .executed || status == .failed
-    }
-}
-
 @MainActor
 public final class CompanionAppModel: ObservableObject {
-    @Published public private(set) var snapshot: CompanionSnapshot = .empty
+    @Published public internal(set) var snapshot: CompanionSnapshot = .empty
     @Published public private(set) var searchResults: [CompanionSearchResult] = []
-    @Published public private(set) var loadError: String?
-    @Published public private(set) var syncStatus: CloudKitSyncStatus?
+    @Published public internal(set) var loadError: String?
+    @Published public internal(set) var syncStatus: CloudKitSyncStatus?
     @Published public private(set) var remoteControlIdentity: RemoteControlProvisioningIdentity?
-    @Published public private(set) var remoteCommandStatus: String?
-    @Published public private(set) var recentRemoteCommands: [CompanionRemoteCommandStatusItem] = []
-    @Published public private(set) var syncSafetyState = CloudKitSyncSafetyState()
+    @Published public internal(set) var remoteCommandStatus: String?
+    @Published public internal(set) var recentRemoteCommands: [CompanionRemoteCommandStatusItem] = []
+    @Published public internal(set) var syncSafetyState = CloudKitSyncSafetyState()
     @Published public private(set) var physicalDeletionRecoveryRequired = false
     @Published public private(set) var historyRetentionDays: Int
     @Published public private(set) var isSyncConfigured: Bool
+    @Published public private(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
 
     public let repository: LocalFirstRepository
     private let defaults: UserDefaults
-    private var syncProvider: CloudKitSyncProvider?
-    private var syncBridge: CompanionSyncBridge?
-    private let syncRuntimeFactory: (() -> CompanionCloudKitRuntime?)?
+    var syncProvider: CloudKitSyncProvider?
+    var syncBridge: CompanionSyncBridge?
+    private let syncRuntimeFactory: CompanionSyncRuntimeFactory?
     private let mobileSessionID: DeviceSessionID?
     private let mobileDeviceName: String
     private let mobileDeviceKind: DeviceKind
     private var providerPrepared = false
-    private var commandLabels: [UUID: String] = [:]
-    private var commandFollowUpTasks: [UUID: Task<Void, Never>] = [:]
-    private var syncGeneration: UInt64 = 0
+    var commandLabels: [UUID: String] = [:]
+    var commandFollowUpTasks: [UUID: Task<Void, Never>] = [:]
+    var syncGeneration: UInt64 = 0
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, Never>] = []
@@ -56,7 +44,7 @@ public final class CompanionAppModel: ObservableObject {
         repository: LocalFirstRepository,
         syncProvider: CloudKitSyncProvider? = nil,
         syncBridge: CompanionSyncBridge? = nil,
-        syncRuntimeFactory: (() -> CompanionCloudKitRuntime?)? = nil,
+        syncRuntimeFactory: CompanionSyncRuntimeFactory? = nil,
         mobileSessionID: DeviceSessionID? = nil,
         mobileDeviceName: String = "Ahoi Mobile",
         mobileDeviceKind: DeviceKind = .iPhone,
@@ -72,6 +60,9 @@ public final class CompanionAppModel: ObservableObject {
         self.mobileDeviceKind = mobileDeviceKind
         self.isSyncConfigured = syncProvider != nil && syncBridge != nil
         self.desiredSyncEnabled = syncProvider != nil && syncBridge != nil
+        self.keyLifecycleStatus = syncProvider != nil && syncBridge != nil
+            ? .ready(keyVersion: 1)
+            : .disabled
         let storedRetention = defaults.integer(
             forKey: CompanionSyncPreferences.historyRetentionDaysKey
         )
@@ -99,7 +90,11 @@ public final class CompanionAppModel: ObservableObject {
             syncStatus = syncProvider?.status()
             syncSafetyState = syncProvider?.safetyState() ?? .init()
             if let syncBridge {
-                remoteControlIdentity = try? await syncBridge.remoteControlIdentity()
+                do {
+                    remoteControlIdentity = try await syncBridge.remoteControlIdentity()
+                } catch {
+                    loadError = error.localizedDescription
+                }
             }
         } catch {
             loadError = error.localizedDescription
@@ -438,7 +433,7 @@ public final class CompanionAppModel: ObservableObject {
             .hasPhysicalDeletionQuarantine()
     }
 
-    private func isCurrentSyncRuntime(
+    func isCurrentSyncRuntime(
         _ provider: CloudKitSyncProvider,
         generation: UInt64
     ) -> Bool {
@@ -473,6 +468,7 @@ public final class CompanionAppModel: ObservableObject {
             syncSafetyState = .init()
             physicalDeletionRecoveryRequired = false
             remoteControlIdentity = nil
+            keyLifecycleStatus = .disabled
             let cancellation = Task<Void, Never> {
                 if let providerToCancel { await providerToCancel.cancel() }
             }
@@ -487,7 +483,7 @@ public final class CompanionAppModel: ObservableObject {
             return
         }
         guard syncProvider == nil else { return }
-        guard let runtime = syncRuntimeFactory?() else {
+        guard let syncRuntimeFactory else {
             isSyncConfigured = false
             loadError = CompanionL10n.string(
                 "sync.configuration_missing",
@@ -495,12 +491,33 @@ public final class CompanionAppModel: ObservableObject {
             )
             return
         }
+        let activation: CompanionSyncRuntimeActivation
+        do {
+            activation = try await syncRuntimeFactory()
+        } catch {
+            keyLifecycleStatus = .recovery(reason: .keychainFailure, keyVersion: nil)
+            isSyncConfigured = false
+            loadError = error.localizedDescription
+            return
+        }
+        keyLifecycleStatus = activation.status
+        guard let runtime = activation.runtime,
+              activation.status.permitsEncryptedDomainRecords else {
+            isSyncConfigured = false
+            loadError = activation.status.localizedSummary
+            return
+        }
         syncGeneration &+= 1
         syncProvider = runtime.provider
         syncBridge = runtime.bridge
         bindEventDrivenSync(to: runtime.provider)
         isSyncConfigured = true
-        remoteControlIdentity = try? await runtime.bridge.remoteControlIdentity()
+        do {
+            remoteControlIdentity = try await runtime.bridge.remoteControlIdentity()
+        } catch {
+            remoteControlIdentity = nil
+            loadError = error.localizedDescription
+        }
         await sync()
     }
 
@@ -673,135 +690,6 @@ public final class CompanionAppModel: ObservableObject {
             .hasPhysicalDeletionQuarantine()
     }
 
-    public func remotelyOpen(_ tab: RemoteTab) async {
-        await sendRemoteCommand(
-            .open(.init(url: tab.url, workspaceID: tab.workspaceID)),
-            target: tab.deviceID,
-            action: CompanionL10n.string(
-                "remote.action.open",
-                fallback: "Open"
-            )
-        )
-    }
-
-    public func sendLink(
-        _ url: String,
-        to target: DeviceID,
-        workspaceID: WorkspaceID?
-    ) async {
-        await sendRemoteCommand(
-            .open(.init(url: url, workspaceID: workspaceID)),
-            target: target,
-            action: CompanionL10n.string(
-                "remote.action.send_link",
-                fallback: "Send link"
-            )
-        )
-    }
-
-    public func remotelyFocus(_ tab: RemoteTab) async {
-        await sendRemoteCommand(
-            .focus(.init(tabID: tab.id, context: .normal)),
-            target: tab.deviceID,
-            action: CompanionL10n.string(
-                "remote.action.focus",
-                fallback: "Focus"
-            )
-        )
-    }
-
-    public func remotelyClose(_ tab: RemoteTab) async {
-        await sendRemoteCommand(
-            .close([.init(tabID: tab.id, context: .normal)]),
-            target: tab.deviceID,
-            action: CompanionL10n.string(
-                "remote.action.close",
-                fallback: "Close"
-            )
-        )
-    }
-
-    public func visibleTabs(for workspaceID: WorkspaceID?) -> [RemoteTab] {
-        snapshot.visibleRemoteTabs.filter { tab in
-            guard let workspaceID else { return true }
-            return tab.workspaceID == workspaceID
-        }
-    }
-
-    public var actionableRemoteTabIDs: Set<TabID> {
-        Set(snapshot.visibleRemoteTabs.filter {
-            snapshot.isRemoteTabActionable($0)
-        }.map(\.id))
-    }
-
-    private func sendRemoteCommand(
-        _ command: RemoteCommand,
-        target: DeviceID,
-        action: String
-    ) async {
-        guard snapshot.devices.contains(where: {
-            $0.id == target && !$0.isDeleted && !$0.isRevoked
-        }) else {
-            remoteCommandStatus = CompanionL10n.string(
-                "remote.device_unavailable",
-                fallback: "This device is unavailable or has been revoked."
-            )
-            return
-        }
-        guard let syncBridge, let provider = syncProvider else {
-            remoteCommandStatus = CompanionL10n.string(
-                "remote.not_configured",
-                fallback: "Remote control is not configured."
-            )
-            return
-        }
-        do {
-            remoteCommandStatus = CompanionL10n.format(
-                "remote.signing",
-                fallback: "%@ is being signed…",
-                action
-            )
-            let state = try await syncBridge.enqueueRemoteCommand(
-                targetDeviceID: target,
-                command: command
-            )
-            commandLabels[state.id] = action
-            updateRemoteCommandStatusItem(state, action: action)
-            remoteCommandStatus = CompanionL10n.format(
-                "remote.queued_securely",
-                fallback: "%@ was queued securely.",
-                action
-            )
-            let generation = syncGeneration
-            await sync()
-            guard isCurrentSyncRuntime(provider, generation: generation),
-                  self.syncBridge === syncBridge else {
-                return
-            }
-            let updated = await syncBridge.remoteCommandState(state.id)
-            if let updated {
-                updateRemoteCommandStatusItem(updated, action: action)
-            }
-            remoteCommandStatus = statusText(updated?.status ?? .queued, action: action)
-            snapshot = try await repository.currentSnapshot()
-            syncStatus = provider.status()
-            syncSafetyState = provider.safetyState()
-            loadError = nil
-            beginCommandFollowUp(
-                commandID: state.id,
-                expiresAtMilliseconds: state.envelope.payload.expiresAtMilliseconds
-            )
-        } catch {
-            remoteCommandStatus = CompanionL10n.format(
-                "remote.send_failed",
-                fallback: "%@ was not sent.",
-                action
-            )
-            loadError = error.localizedDescription
-            syncStatus = syncProvider?.status()
-        }
-    }
-
     private func createNode(
         workspaceID: WorkspaceID,
         parentID: TreeNodeID?,
@@ -832,95 +720,4 @@ public final class CompanionAppModel: ObservableObject {
         loadError = nil
     }
 
-    private func statusText(_ status: RemoteCommandStatus, action: String) -> String {
-        switch status {
-        case .queued:
-            CompanionL10n.format(
-                "remote.status.queued",
-                fallback: "%@ was sent; confirmation is pending.",
-                action
-            )
-        case .delivered:
-            CompanionL10n.string(
-                "remote.status.delivered",
-                fallback: "The Mac verified the command."
-            )
-        case .executed:
-            CompanionL10n.format(
-                "remote.status.executed",
-                fallback: "%@ was completed on the Mac.",
-                action
-            )
-        case .failed:
-            CompanionL10n.string(
-                "remote.status.failed",
-                fallback: "The Mac rejected the command safely."
-            )
-        }
-    }
-
-    private func updateRemoteCommandStatusItem(
-        _ state: RemoteCommandState,
-        action: String
-    ) {
-        let item = CompanionRemoteCommandStatusItem(
-            id: state.id,
-            action: action,
-            targetDeviceID: state.envelope.payload.targetDeviceID,
-            status: state.status,
-            resultCode: state.resultCode,
-            expiresAtMilliseconds: state.envelope.payload.expiresAtMilliseconds
-        )
-        recentRemoteCommands.removeAll { $0.id == item.id }
-        recentRemoteCommands.insert(item, at: 0)
-        if recentRemoteCommands.count > 20 {
-            recentRemoteCommands.removeLast(recentRemoteCommands.count - 20)
-        }
-    }
-
-    private func refreshRemoteCommandStates(using bridge: CompanionSyncBridge) async {
-        let states = await bridge.remoteCommandStates(Set(commandLabels.keys))
-        for state in states {
-            let action = commandLabels[state.id] ?? CompanionL10n.string(
-                "remote.action.generic",
-                fallback: "Remote command"
-            )
-            updateRemoteCommandStatusItem(state, action: action)
-            if recentRemoteCommands.first(where: { $0.id == state.id })?.isTerminal == true {
-                commandFollowUpTasks[state.id]?.cancel()
-                commandFollowUpTasks[state.id] = nil
-            }
-        }
-    }
-
-    private func beginCommandFollowUp(
-        commandID: UUID,
-        expiresAtMilliseconds: UInt64
-    ) {
-        commandFollowUpTasks[commandID]?.cancel()
-        commandFollowUpTasks[commandID] = Task { [weak self] in
-            while !Task.isCancelled {
-                let now = UInt64(Date().timeIntervalSince1970 * 1_000)
-                guard now < expiresAtMilliseconds else { break }
-                try? await Task.sleep(for: .seconds(5))
-                guard let self,
-                      let bridge = self.syncBridge,
-                      let provider = self.syncProvider else { break }
-                let generation = self.syncGeneration
-                await self.sync()
-                guard self.isCurrentSyncRuntime(provider, generation: generation),
-                      self.syncBridge === bridge else {
-                    break
-                }
-                await self.refreshRemoteCommandStates(using: bridge)
-                self.syncStatus = provider.status()
-                if self.recentRemoteCommands.first(where: {
-                    $0.id == commandID
-                })?.isTerminal == true {
-                    break
-                }
-            }
-            self?.commandFollowUpTasks[commandID] = nil
-        }
-    }
 }

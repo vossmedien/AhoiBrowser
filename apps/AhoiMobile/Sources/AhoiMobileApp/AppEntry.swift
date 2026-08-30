@@ -95,9 +95,9 @@ private final class AhoiMobileBootstrap: ObservableObject {
             localDeviceID: DeviceID(rawValue: sourceDeviceUUID)
         )
         let bundle = Bundle.main
-        let keyVersion = (bundle.object(
+        let keyVersion = configuredUInt32(bundle.object(
             forInfoDictionaryKey: "AHOI_SYNC_KEY_VERSION"
-        ) as? String).flatMap(UInt32.init)
+        ))
         let keyService = configuredValue(bundle.object(
             forInfoDictionaryKey: "AHOI_SYNC_KEYCHAIN_SERVICE"
         ))
@@ -139,33 +139,69 @@ private final class AhoiMobileBootstrap: ObservableObject {
         ))
         let recordsURL = supportURL.appendingPathComponent("sync-records.json")
         let stateURL = supportURL.appendingPathComponent("sync-engine-state.json")
-        let runtimeFactory: () -> CompanionCloudKitRuntime? = {
-            let commandSigner: (any RemoteCommandSigning)? = commandConfiguration.flatMap {
-                let candidate = KeychainRemoteCommandSigner(configuration: $0)
-                return (try? candidate.provisioningIdentity()) == nil ? nil : candidate
-            }
-            return CompanionCloudKitBootstrap.makeRuntime(
-                syncEnabled: true,
-                containerIdentifier: containerIdentifier,
-                keyConfiguration: keyConfiguration,
-                repository: repository,
-                recordsURL: recordsURL,
-                stateURL: stateURL,
-                commandSigner: commandSigner
+        let runtimeFactory: CompanionSyncRuntimeFactory?
+        if let keyConfiguration, let containerIdentifier {
+            let keyStore = try KeychainCompanionPayloadKeyStore(
+                configuration: keyConfiguration
             )
+            let bootstrapTransport = try CloudKitKeyBootstrapTransport(
+                containerIdentifier: containerIdentifier,
+                zoneName: "AhoiBrowserSyncZone"
+            )
+            let keyLifecycle = CompanionKeyLifecycleCoordinator(
+                transport: bootstrapTransport,
+                keyStore: keyStore,
+                generator: CompanionSecureKeyGenerator.aes256
+            )
+            runtimeFactory = { @MainActor in
+                let status: CompanionKeyLifecycleStatus
+                do {
+                    status = try await keyLifecycle.activate(
+                        explicitOptIn: true,
+                        desiredKeyVersion: keyConfiguration.keyVersion
+                    )
+                } catch {
+                    await keyLifecycle.shutdown()
+                    throw error
+                }
+                await keyLifecycle.shutdown()
+                guard status.permitsEncryptedDomainRecords else {
+                    return .init(status: status, runtime: nil)
+                }
+                let commandSigner: (any RemoteCommandSigning)?
+                if let commandConfiguration {
+                    let signer = KeychainRemoteCommandSigner(
+                        configuration: commandConfiguration
+                    )
+                    _ = try signer.ensureIdentity()
+                    commandSigner = signer
+                } else {
+                    commandSigner = nil
+                }
+                let runtime = try CompanionCloudKitBootstrap.makeRuntimeChecked(
+                    syncEnabled: true,
+                    containerIdentifier: containerIdentifier,
+                    keyConfiguration: keyConfiguration,
+                    repository: repository,
+                    recordsURL: recordsURL,
+                    stateURL: stateURL,
+                    commandSigner: commandSigner
+                )
+                return .init(status: status, runtime: runtime)
+            }
+        } else {
+            runtimeFactory = nil
         }
-        let runtime = defaults.bool(forKey: CompanionSyncPreferences.enabledKey)
-            ? runtimeFactory()
-            : nil
         let model = CompanionAppModel(
             repository: repository,
-            syncProvider: runtime?.provider,
-            syncBridge: runtime?.bridge,
             syncRuntimeFactory: runtimeFactory,
             mobileSessionID: mobileSessionID,
             mobileDeviceName: UIDevice.current.name,
             mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
         )
+        if defaults.bool(forKey: CompanionSyncPreferences.enabledKey) {
+            await model.setSyncEnabled(true)
+        }
         let browser = MobileBrowserController(
             store: FileMobileBrowserSessionStore(
                 fileURL: supportURL.appendingPathComponent("browser-session.json")
@@ -180,6 +216,18 @@ private func configuredValue(_ value: Any?) -> String? {
     let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty, !trimmed.contains("$(") else { return nil }
     return trimmed
+}
+
+private func configuredUInt32(_ value: Any?) -> UInt32? {
+    if let number = value as? NSNumber {
+        let raw = number.uint64Value
+        return raw > 0 && raw <= UInt64(UInt32.max) ? UInt32(raw) : nil
+    }
+    guard let string = configuredValue(value),
+          let parsed = UInt32(string), parsed > 0 else {
+        return nil
+    }
+    return parsed
 }
 
 private enum CompanionDeviceIdentity {

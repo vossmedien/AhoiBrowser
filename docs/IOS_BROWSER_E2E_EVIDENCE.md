@@ -112,11 +112,11 @@ These bullets describe reviewable source boundaries only.
 
 | Gate | State | Closure evidence |
 | --- | --- | --- |
-| `ios-final-bundle-team-profile` | `blocked-credential` | A development build was signed and installed, but final Team/App/bundle identity plus a distribution certificate/profile are still absent. |
-| `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Apple grant, profile attachment and physical default-browser journey. |
-| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | No real container, entitled Mac counterparty, Keychain keys or operational provisioning/rotation/revocation path exists yet. |
+| `ios-final-bundle-team-profile` | `blocked-credential` | Team/App/bundle identity and one development profile are proven. The App ID has iCloud/CloudKit and Push enabled, but the live portal and cached profile both show zero assigned containers. The five fail-closed source modes use Automatic/Cloud-Managed Signing first; matching refreshed CloudKit/distribution/post-grant profiles and their candidate-bound runtime evidence are still absent. |
+| `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Both Default Web Browser and Browser App Installation show `No Requests`; Apple grant, profile attachment and physical default-browser journey remain absent. |
+| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | The intended Ahoi container is not registered or assigned; the Team's only visible container belongs to DisplayPilot and is rejected by preflight. An entitled Mac counterparty, Keychain keys and an operational provisioning/rotation/revocation path are also absent. |
 | `ios-physical-device-journeys` | `required-user-assistance` | One bounded iPhone development smoke is retained, but a supported iPad and complete Mobile/IOS journeys on the exact release candidate are still required. |
-| `ios-app-store-connect-testflight` | `blocked-external-service` | No distribution certificate, App Store Connect API key, reviewed record/disclosures, archive/export/upload/processing receipt or physical TestFlight install exists. |
+| `ios-app-store-connect-testflight` | `blocked-external-service` | App Store Connect has no app record and shows an unresolved trader-status warning; no reviewed agreements/disclosures, processed public-TestFlight-eligible bootstrap or physical TestFlight install exists. Organizer does not require a separately created App Store Connect API key, and Automatic Signing may use Cloud-Managed distribution assets. |
 
 This state records the bounded simulator results and physical development
 smoke above. It does not claim a complete physical-device journey,

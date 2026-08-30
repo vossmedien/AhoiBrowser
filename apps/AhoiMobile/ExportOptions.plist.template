@@ -2,8 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Materialize a private copy before export. The release preflight rejects
-	     every unresolved placeholder and never writes this template. -->
+	<!-- TestFlightBootstrap: inspect locally before Organizer upload. Automatic
+	     export may use Xcode Cloud-Managed Signing and remains external-TestFlight
+	     eligible. Never set testFlightInternalTestingOnly to true here. -->
 	<key>destination</key>
 	<string>export</string>
 	<key>distributionBundleIdentifier</key>
@@ -14,21 +15,14 @@
 	<false/>
 	<key>method</key>
 	<string>app-store-connect</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>$(AHOI_MOBILE_BUNDLE_ID)</key>
-		<string>$(AHOI_PROVISIONING_PROFILE_SPECIFIER)</string>
-	</dict>
-	<key>signingCertificate</key>
-	<string>Apple Distribution</string>
 	<key>signingStyle</key>
-	<string>manual</string>
+	<string>automatic</string>
 	<key>stripSwiftSymbols</key>
 	<true/>
 	<key>teamID</key>
 	<string>$(AHOI_APPLE_TEAM_ID)</string>
 	<key>testFlightInternalTestingOnly</key>
-	<true/>
+	<false/>
 	<key>uploadSymbols</key>
 	<true/>
 </dict>

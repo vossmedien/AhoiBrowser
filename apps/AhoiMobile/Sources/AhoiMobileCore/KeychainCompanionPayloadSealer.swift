@@ -27,25 +27,37 @@ public enum CompanionSyncKeyError: Error, Equatable, Sendable {
     case keyUnavailable(OSStatus)
     case invalidKeyLength
     case invalidCiphertext
+    case unsupportedKeyVersion(UInt32)
 }
 
-/// Reads an externally provisioned 256-bit key from the synchronizable data-
-/// protection Keychain and delegates AES-GCM to CryptoKit. It never creates,
-/// derives, rotates, exports, or recovers a key; those lifecycle operations
-/// remain an Apple-Team/product-security gate.
+/// Reads lifecycle-approved 256-bit keys from the synchronizable data-
+/// protection Keychain and delegates AES-GCM to CryptoKit. Sealing always uses
+/// the primary version. Explicit rotation windows may supply older read-only
+/// configurations; revoked or unknown versions fail closed.
 public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
-    private let configuration: CompanionSyncKeyConfiguration
-    private let keyLoader: @Sendable () throws -> Data
+    private let primaryConfiguration: CompanionSyncKeyConfiguration
+    private let configurations: [UInt32: CompanionSyncKeyConfiguration]
+    private let keyLoader: @Sendable (CompanionSyncKeyConfiguration) throws -> Data
 
-    public init(configuration: CompanionSyncKeyConfiguration) throws {
-        guard !configuration.service.isEmpty,
-              !configuration.account.isEmpty,
-              configuration.keyVersion > 0 else {
-            throw CompanionSyncKeyError.invalidConfiguration
+    public init(
+        configuration: CompanionSyncKeyConfiguration,
+        acceptedPreviousConfigurations: [CompanionSyncKeyConfiguration] = []
+    ) throws {
+        let allConfigurations = [configuration] + acceptedPreviousConfigurations
+        var byVersion: [UInt32: CompanionSyncKeyConfiguration] = [:]
+        for candidate in allConfigurations {
+            guard !candidate.service.isEmpty,
+                  !candidate.account.isEmpty,
+                  candidate.keyVersion > 0,
+                  byVersion[candidate.keyVersion] == nil else {
+                throw CompanionSyncKeyError.invalidConfiguration
+            }
+            byVersion[candidate.keyVersion] = candidate
         }
-        self.configuration = configuration
-        self.keyLoader = {
-            try Self.loadKey(configuration: configuration)
+        self.primaryConfiguration = configuration
+        self.configurations = byVersion
+        self.keyLoader = { candidate in
+            try Self.loadKey(configuration: candidate)
         }
     }
 
@@ -53,16 +65,31 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
         configuration: CompanionSyncKeyConfiguration,
         keyLoader: @escaping @Sendable () throws -> Data
     ) {
-        self.configuration = configuration
+        self.primaryConfiguration = configuration
+        self.configurations = [configuration.keyVersion: configuration]
+        self.keyLoader = { _ in try keyLoader() }
+    }
+
+    init(
+        configuration: CompanionSyncKeyConfiguration,
+        acceptedPreviousConfigurations: [CompanionSyncKeyConfiguration],
+        keyLoader: @escaping @Sendable (CompanionSyncKeyConfiguration) throws -> Data
+    ) {
+        self.primaryConfiguration = configuration
+        self.configurations = Dictionary(
+            uniqueKeysWithValues: ([configuration] + acceptedPreviousConfigurations).map {
+                ($0.keyVersion, $0)
+            }
+        )
         self.keyLoader = keyLoader
     }
 
     public func seal(_ plaintext: Data) throws -> EncryptedValue {
-        let keyData = try keyLoader()
+        let keyData = try keyLoader(primaryConfiguration)
         guard keyData.count == 32 else { throw CompanionSyncKeyError.invalidKeyLength }
         let sealed = try AES.GCM.seal(plaintext, using: SymmetricKey(data: keyData))
         return .init(
-            keyVersion: configuration.keyVersion,
+            keyVersion: primaryConfiguration.keyVersion,
             nonce: sealed.nonce.withUnsafeBytes { Data($0) },
             ciphertextAndTag: sealed.ciphertext + sealed.tag
         )
@@ -70,12 +97,14 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
 
     public func open(_ value: EncryptedValue) throws -> Data {
         guard value.algorithm == .aes256GCM,
-              value.keyVersion == configuration.keyVersion,
               value.nonce.count == 12,
               value.ciphertextAndTag.count >= 16 else {
             throw CompanionSyncKeyError.invalidCiphertext
         }
-        let keyData = try keyLoader()
+        guard let configuration = configurations[value.keyVersion] else {
+            throw CompanionSyncKeyError.unsupportedKeyVersion(value.keyVersion)
+        }
+        let keyData = try keyLoader(configuration)
         guard keyData.count == 32 else { throw CompanionSyncKeyError.invalidKeyLength }
         let tagOffset = value.ciphertextAndTag.count - 16
         let box = try AES.GCM.SealedBox(

@@ -4,7 +4,6 @@ import WebKit
 import UIKit
 import Combine
 import AhoiCloudKitSpike
-
 public struct AhoiMobileBrowserView: View {
     @ObservedObject private var companionModel: CompanionAppModel
     @ObservedObject private var browser: MobileBrowserController
@@ -12,7 +11,6 @@ public struct AhoiMobileBrowserView: View {
     @ObservedObject private var downloads: MobileDownloadCoordinator
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
     @State private var addressPresented = false
@@ -23,6 +21,7 @@ public struct AhoiMobileBrowserView: View {
     @State private var downloadsPresented = false
     @State private var browserActionsPresented = false
     @State private var findNavigatorPresented = false
+    @State private var harborDeckCollapsed = false
     @State private var clearWebsiteDataRequested = false
     @State private var clearPrivateTabsRequested = false
     @State private var downloadPreviewURL: URL?
@@ -31,7 +30,7 @@ public struct AhoiMobileBrowserView: View {
     @State private var addressText = ""
     @State private var addressSelection: TextSelection?
     @State private var tabSwitcherMode: MobileBrowsingMode = .normal
-    @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @AppStorage(CompanionSyncPreferences.enabledKey) private var syncEnabled = false
     @AppStorage(MobileBrowserPreferences.searchEngineKey)
     private var searchEngineRawValue = MobileSearchEngine.duckDuckGo.rawValue
@@ -45,7 +44,6 @@ public struct AhoiMobileBrowserView: View {
         _permissions = ObservedObject(wrappedValue: browser.permissionCoordinator)
         _downloads = ObservedObject(wrappedValue: browser.downloadCoordinator)
     }
-
     public var body: some View {
         ZStack {
             Group {
@@ -61,7 +59,9 @@ public struct AhoiMobileBrowserView: View {
             }
             .accessibilityHidden(privatePrivacyCoverPresented)
             .animation(
-                reduceMotion ? nil : .easeInOut(duration: 0.34),
+                reduceMotion ? nil : .easeInOut(
+                    duration: MobileBrowserChromeTheme.motionDuration
+                ),
                 value: browser.selectedTab?.websiteTintARGB
             )
 
@@ -252,17 +252,24 @@ public struct AhoiMobileBrowserView: View {
                 MobileWebDialogHost(presenter: presenter)
             }
         }
+        .onChange(of: browser.selectedTabID) { _, _ in expandHarborDeck() }
+        .onChange(of: browser.selectedPage?.isLoading) { _, _ in expandHarborDeck() }
+        .onChange(of: browser.selectedPageFailure != nil) { _, _ in expandHarborDeck() }
+        .onChange(of: permissions.pendingRequest?.id) { _, _ in expandHarborDeck() }
+        .onChange(of: findNavigatorPresented) { _, _ in expandHarborDeck() }
+        .onChange(of: addressPresented) { _, _ in expandHarborDeck() }
     }
 
     private var browserSurface: some View {
         VStack(spacing: 0) {
             ZStack {
                 if browser.selectedPage?.url == nil {
-                    newTabLanding
+                    focusVoyage
                 } else if let page = browser.selectedPage {
                     MobileWebPageView(
                         page: page,
                         findNavigatorPresented: $findNavigatorPresented,
+                        chromeCollapsed: $harborDeckCollapsed,
                         onRefresh: browser.reload
                     ) {
                         Task {
@@ -303,257 +310,72 @@ public struct AhoiMobileBrowserView: View {
                         )))
                 }
             }
-            bottomBar
+            harborDeck
         }
         .background(Color(uiColor: .systemBackground))
         .tint(chromeTintColor)
         .animation(
-            reduceMotion ? nil : .easeInOut(duration: 0.34),
+            reduceMotion ? nil : .easeInOut(
+                duration: MobileBrowserChromeTheme.motionDuration
+            ),
             value: browser.selectedTab?.websiteTintARGB
         )
     }
 
-    private var newTabLanding: some View {
-        ZStack {
-            if isPrivateBrowsing {
-                Color(red: 0.055, green: 0.060, blue: 0.085)
-                    .ignoresSafeArea()
-            }
-            LinearGradient(
-                colors: [
-                    chromeTintColor.opacity(isPrivateBrowsing ? 0.24 : 0.11),
-                    .clear,
-                    chromeTintColor.opacity(isPrivateBrowsing ? 0.10 : 0.045),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            VStack(spacing: 18) {
-                Image(systemName: browser.selectedTab?.mode == .privateBrowsing
-                      ? "hand.raised.fill"
-                      : "sailboat.fill")
-                    .font(.system(size: 42, weight: .semibold))
-                    .foregroundStyle(chromeTintColor)
-                    .accessibilityHidden(true)
-                Text(browser.selectedTab?.mode == .privateBrowsing
-                     ? CompanionL10n.string("browser.private", fallback: "Private")
-                     : "AhoiBrowser")
-                    .font(.title.bold())
-                    .accessibilityIdentifier(
-                        browser.selectedTab?.mode == .privateBrowsing
-                            ? "browser.private-indicator"
-                            : "browser.brand"
-                    )
-                    .foregroundStyle(isPrivateBrowsing ? Color.white : Color.primary)
-                Button {
-                    presentAddress()
-                } label: {
-                    Label(
-                        CompanionL10n.string(
-                            "browser.search_or_address",
-                            fallback: "Search or enter address"
-                        ),
-                        systemImage: "magnifyingglass"
-                    )
-                    .frame(maxWidth: 420, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 13)
-                    .background {
-                        if reduceTransparency {
-                            Capsule().fill(Color(uiColor: .secondarySystemBackground))
-                        } else {
-                            Capsule().fill(.thinMaterial)
-                        }
-                    }
-                    .overlay {
-                        Capsule().stroke(chromeTintColor.opacity(0.22), lineWidth: 1)
-                            .allowsHitTesting(false)
-                    }
-                    .shadow(color: chromeTintColor.opacity(0.10), radius: 14, y: 6)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(isPrivateBrowsing ? Color.white : Color.primary)
-            }
-            .padding(24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("browser.new-tab-landing")
+    private var focusVoyage: some View {
+        MobileFocusVoyageView(
+            mode: selectedMode,
+            workspaceName: selectedWorkspace?.name,
+            workspaceSystemImage: selectedWorkspaceSystemImage,
+            content: MobileFocusVoyageContent.make(
+                mode: selectedMode,
+                tabs: browser.normalTabs,
+                snapshot: companionModel.snapshot,
+                workspaceID: selectedWorkspace?.id
+            ),
+            accentTint: chromeTintColor,
+            onSearch: presentAddress,
+            onOpen: openFocusVoyageItem
+        )
+        .environment(\.colorScheme, isPrivateBrowsing ? .dark : colorScheme)
     }
 
-    private var bottomBar: some View {
-        HStack(spacing: 10) {
-            Button(action: browser.goBack) {
-                Image(systemName: "chevron.backward")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .disabled(browser.selectedPage?.backForwardList.backList.isEmpty != false)
-            .keyboardShortcut("[", modifiers: .command)
-            .accessibilityIdentifier("browser.back")
-            .accessibilityLabel(CompanionL10n.string("browser.back", fallback: "Back"))
-
-            Button(action: browser.goForward) {
-                Image(systemName: "chevron.forward")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .disabled(browser.selectedPage?.backForwardList.forwardList.isEmpty != false)
-            .keyboardShortcut("]", modifiers: .command)
-            .accessibilityIdentifier("browser.forward")
-            .accessibilityLabel(CompanionL10n.string("browser.forward", fallback: "Forward"))
-
-            Button(action: presentAddress) {
-                HStack(spacing: 7) {
-                    if browser.selectedTab?.mode == .normal {
-                        Image(systemName: "sailboat.fill")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(chromeTintColor)
-                    }
-                    Image(systemName: securitySymbol)
-                        .font(.caption)
-                    Text(addressLabel)
-                        .lineLimit(1)
-                        .font(.subheadline.weight(.medium))
-                }
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 44)
-                .padding(.horizontal, 12)
-                .background {
-                    if reduceTransparency {
-                        Capsule().fill(Color(uiColor: .secondarySystemBackground))
-                    } else {
-                        Capsule().fill(.ultraThinMaterial)
-                    }
-                }
-                .overlay {
-                    ZStack {
-                        Capsule()
-                            .fill(chromeTintColor.opacity(reduceTransparency ? 0.12 : 0.075))
-                        Capsule().stroke(chromeTintColor.opacity(0.18), lineWidth: 1)
-                    }
-                    .allowsHitTesting(false)
-                }
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut("l", modifiers: .command)
-            .accessibilityIdentifier(
-                browser.selectedTab?.mode == .privateBrowsing
-                    ? "browser.address.private"
-                    : "browser.address"
-            )
-            .accessibilityLabel(CompanionL10n.string(
-                browser.selectedTab?.mode == .privateBrowsing
-                    ? "browser.private.address.accessibility"
-                    : "browser.address.accessibility",
-                fallback: browser.selectedTab?.mode == .privateBrowsing
-                    ? "Private address and search"
-                    : "Address and search"
-            ))
-            .accessibilityValue(Text(addressAccessibilityValue))
-
-            Button(action: browser.reloadOrStop) {
-                Image(systemName: browser.selectedPage?.isLoading == true ? "xmark" : "arrow.clockwise")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .keyboardShortcut("r", modifiers: .command)
-            .accessibilityIdentifier("browser.reload-stop")
-            .accessibilityLabel(CompanionL10n.string("browser.reload", fallback: "Reload"))
-
-            Button(action: presentTabs) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 5)
-                        .stroke(lineWidth: 1.5)
-                        .frame(width: 24, height: 24)
-                    Text("\(visibleTabCount)")
-                        .font(.caption2.monospacedDigit().weight(.bold))
-                }
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
-            }
-            .accessibilityIdentifier("browser.tabs")
-            .accessibilityLabel(CompanionL10n.format(
-                "browser.tabs.count",
-                fallback: "%d tabs",
-                visibleTabCount
-            ))
-
-            Button {
+    private var harborDeck: some View {
+        MobileHarborDeckView(
+            mode: selectedMode,
+            isCollapsed: harborDeckCollapsed,
+            workspaceName: selectedWorkspace?.name,
+            workspaceSystemImage: selectedWorkspaceSystemImage,
+            accentTint: chromeTintColor,
+            addressLabel: addressLabel,
+            addressAccessibilityValue: addressAccessibilityValue,
+            securitySystemImage: securitySymbol,
+            visibleTabCount: visibleTabCount,
+            canGoBack: browser.selectedPage?.backForwardList.backList.isEmpty == false,
+            canGoForward: browser.selectedPage?.backForwardList.forwardList.isEmpty == false,
+            isLoading: browser.selectedPage?.isLoading == true,
+            canSwitchWorkspace: selectedMode == .normal &&
+                companionModel.snapshot.visibleWorkspaces.count > 1,
+            onGoBack: browser.goBack,
+            onGoForward: browser.goForward,
+            onPresentAddress: presentAddress,
+            onReloadOrStop: browser.reloadOrStop,
+            onPresentTabs: presentTabs,
+            onPresentMore: {
+                expandHarborDeck()
                 browserActionsPresented = true
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityIdentifier("browser.more")
-            .accessibilityLabel(CompanionL10n.string(
-                "browser.more.accessibility",
-                fallback: "More browser actions"
-            ))
-        }
-        .font(.body.weight(.semibold))
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background {
-            if reduceTransparency {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color(uiColor: .secondarySystemBackground))
-            } else {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(.regularMaterial)
-            }
-        }
-        .overlay {
-            ZStack {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(chromeTintColor.opacity(reduceTransparency ? 0.13 : 0.085))
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(chromeTintColor.opacity(0.20), lineWidth: 1)
-            }
-            .allowsHitTesting(false)
-        }
-        .shadow(color: Color.black.opacity(0.13), radius: 16, y: 7)
-        .padding(.horizontal, horizontalSizeClass == .regular ? 16 : 8)
-        .padding(.vertical, 7)
-        .background {
-            if isPrivateBrowsing {
-                Color(red: 0.055, green: 0.060, blue: 0.085)
-            } else {
-                Color(uiColor: .systemBackground)
-            }
-        }
-        .environment(\.colorScheme, isPrivateBrowsing ? .dark : colorScheme)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 28).onEnded { value in
-                let horizontal = value.translation.width
-                let vertical = abs(value.translation.height)
-                guard abs(horizontal) >= 72, abs(horizontal) > vertical * 1.35 else {
-                    return
-                }
-                switchWorkspace(direction: horizontal < 0 ? 1 : -1)
-            }
+            },
+            onSwitchWorkspace: switchWorkspace
         )
-        .accessibilityAction(named: Text(CompanionL10n.string(
-            "browser.workspace.next",
-            fallback: "Next workspace"
-        ))) {
-            switchWorkspace(direction: 1)
-        }
-        .accessibilityAction(named: Text(CompanionL10n.string(
-            "browser.workspace.previous",
-            fallback: "Previous workspace"
-        ))) {
-            switchWorkspace(direction: -1)
-        }
     }
 
     private func pageFailureView(_ failure: MobilePageFailureKind) -> some View {
         ContentUnavailableView {
-            Label(pageFailureTitle(failure), systemImage: failure == .offline
+            Label(failure.localizedTitle, systemImage: failure == .offline
                   ? "wifi.slash"
                   : "exclamationmark.icloud")
         } description: {
-            Text(pageFailureDescription(failure))
+            Text(failure.localizedDescription)
         } actions: {
             Button(action: browser.retrySelectedPage) {
                 Label(
@@ -568,36 +390,6 @@ public struct AhoiMobileBrowserView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground))
         .accessibilityIdentifier("browser.page-failure")
-    }
-
-    private func pageFailureTitle(_ failure: MobilePageFailureKind) -> String {
-        switch failure {
-        case .offline:
-            CompanionL10n.string("browser.failure.offline.title", fallback: "You're Offline")
-        case .timedOut:
-            CompanionL10n.string("browser.failure.timeout.title", fallback: "The Page Took Too Long")
-        case .webContentTerminated:
-            CompanionL10n.string("browser.failure.process.title", fallback: "Page Reload Required")
-        case .invalidURL:
-            CompanionL10n.string("browser.failure.invalid.title", fallback: "This Address Can't Be Opened")
-        case .failed:
-            CompanionL10n.string("browser.failure.generic.title", fallback: "Page Couldn't Load")
-        }
-    }
-
-    private func pageFailureDescription(_ failure: MobilePageFailureKind) -> String {
-        switch failure {
-        case .offline:
-            CompanionL10n.string("browser.failure.offline.message", fallback: "Check your connection and try again.")
-        case .timedOut:
-            CompanionL10n.string("browser.failure.timeout.message", fallback: "The website did not respond in time.")
-        case .webContentTerminated:
-            CompanionL10n.string("browser.failure.process.message", fallback: "iOS released the page process. Reload it to continue.")
-        case .invalidURL:
-            CompanionL10n.string("browser.failure.invalid.message", fallback: "Check the address and try again.")
-        case .failed:
-            CompanionL10n.string("browser.failure.generic.message", fallback: "The website could not be reached.")
-        }
     }
 
     private var addressSheet: some View {
@@ -664,6 +456,7 @@ public struct AhoiMobileBrowserView: View {
             model: companionModel,
             browser: browser,
             accentTint: chromeTintColor,
+            onPresentCommand: presentAddress,
             onSelectWorkspace: selectWorkspace,
             onSelectTab: browser.select,
             onOpenPage: openSidebarPage,
@@ -761,7 +554,7 @@ public struct AhoiMobileBrowserView: View {
 
     private var privatePrivacyCover: some View {
         ZStack {
-            Color(red: 0.055, green: 0.060, blue: 0.085)
+            MobileBrowserChromeTheme.privateBackground
                 .ignoresSafeArea()
             VStack(spacing: 12) {
                 Image(systemName: "hand.raised.fill")
@@ -805,76 +598,43 @@ public struct AhoiMobileBrowserView: View {
     }
 
     private var chromeTintColor: Color {
-        if isPrivateBrowsing {
-            return Color(red: 0.53, green: 0.48, blue: 0.88)
-        }
-        guard let argb = browser.selectedTab?.websiteTintARGB else {
-            return Color(red: 0.10, green: 0.43, blue: 0.84)
-        }
-        let channels = contrastAdjustedTint(
-            red: Double((argb >> 16) & 0xFF) / 255,
-            green: Double((argb >> 8) & 0xFF) / 255,
-            blue: Double(argb & 0xFF) / 255
+        MobileBrowserChromeTheme.chromeTint(
+            websiteTintARGB: browser.selectedTab?.websiteTintARGB,
+            mode: selectedMode,
+            colorScheme: colorScheme
         )
-        return Color(red: channels.red, green: channels.green, blue: channels.blue)
     }
 
     private var isPrivateBrowsing: Bool {
-        browser.selectedTab?.mode == .privateBrowsing
+        selectedMode == .privateBrowsing
     }
 
-    /// Website colors remain recognizable, but functional controls never use
-    /// a tint below the WCAG 3:1 non-text contrast floor against the active
-    /// system background.
-    private func contrastAdjustedTint(
-        red: Double,
-        green: Double,
-        blue: Double
-    ) -> (red: Double, green: Double, blue: Double) {
-        let backgroundLuminance = colorScheme == .dark ? 0.0 : 1.0
-        var candidate = (red, green, blue)
-        for _ in 0..<32 {
-            let luminance = relativeLuminance(
-                red: candidate.0,
-                green: candidate.1,
-                blue: candidate.2
-            )
-            let contrast = (max(luminance, backgroundLuminance) + 0.05) /
-                (min(luminance, backgroundLuminance) + 0.05)
-            if contrast >= 3 { break }
-            if colorScheme == .dark {
-                candidate = (
-                    candidate.0 + (1 - candidate.0) * 0.08,
-                    candidate.1 + (1 - candidate.1) * 0.08,
-                    candidate.2 + (1 - candidate.2) * 0.08
-                )
-            } else {
-                candidate = (
-                    candidate.0 * 0.90,
-                    candidate.1 * 0.90,
-                    candidate.2 * 0.90
-                )
-            }
-        }
-        return candidate
+    private var selectedMode: MobileBrowsingMode {
+        browser.selectedTab?.mode ?? .normal
     }
 
-    private func relativeLuminance(red: Double, green: Double, blue: Double) -> Double {
-        func linear(_ channel: Double) -> Double {
-            channel <= 0.04045
-                ? channel / 12.92
-                : pow((channel + 0.055) / 1.055, 2.4)
+    private var selectedWorkspace: Workspace? {
+        guard selectedMode == .normal,
+              let workspaceID = browser.selectedTab?.workspaceID else { return nil }
+        return companionModel.snapshot.visibleWorkspaces.first { $0.id == workspaceID }
+    }
+
+    private var selectedWorkspaceSystemImage: String {
+        guard let selectedWorkspace else {
+            return MobileWorkspaceIconPolicy.fallbackSystemName
         }
-        return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
+        return MobileWorkspaceIconPolicy.systemName(for: selectedWorkspace.icon)
     }
 
     private func presentAddress() {
+        expandHarborDeck()
         addressText = selectedAddressURL?.absoluteString ?? ""
         selectAllAddressText()
         addressPresented = true
     }
 
     private func presentTabs() {
+        expandHarborDeck()
         tabSwitcherMode = browser.selectedTab?.mode ?? .normal
         tabsPresented = true
     }
@@ -885,6 +645,10 @@ public struct AhoiMobileBrowserView: View {
             await Task.yield()
             action()
         }
+    }
+
+    private func expandHarborDeck() {
+        harborDeckCollapsed = false
     }
 
     private func switchWorkspace(direction: Int) {
@@ -927,8 +691,29 @@ public struct AhoiMobileBrowserView: View {
         reconcileSidebarTabs()
     }
 
-    private func createSidebarTab(_ workspaceID: WorkspaceID?) {
-        _ = browser.createTab(workspaceID: workspaceID)
+    private func openFocusVoyageItem(_ item: MobileFocusVoyageItem) {
+        if let tabID = item.existingTabID,
+           browser.normalTabs.contains(where: { $0.id == tabID }) {
+            browser.select(tabID)
+            return
+        }
+        guard (try? MobileBrowserInputRouter.validateWebURL(item.url)) != nil else { return }
+        if selectedMode == .normal, browser.selectedPage?.url == nil {
+            if let workspaceID = item.workspaceID {
+                browser.moveSelectedTab(to: workspaceID)
+            }
+            browser.navigate(item.url.absoluteString)
+        } else {
+            _ = browser.createTab(url: item.url, workspaceID: item.workspaceID)
+        }
+        reconcileSidebarTabs()
+    }
+
+    private func createSidebarTab(
+        _ workspaceID: WorkspaceID?,
+        _ mode: MobileBrowsingMode
+    ) {
+        _ = browser.createTab(workspaceID: workspaceID, mode: mode)
         reconcileSidebarTabs()
     }
 
@@ -996,165 +781,5 @@ public struct AhoiMobileBrowserView: View {
         case .motion:
             return CompanionL10n.string("browser.permission.motion", fallback: "motion sensors")
         }
-    }
-}
-
-@MainActor
-private final class MobileBackgroundTaskLease {
-    private let name: String
-    private var identifier: UIBackgroundTaskIdentifier = .invalid
-
-    init(name: String) {
-        self.name = name
-    }
-
-    func begin() {
-        guard identifier == .invalid else { return }
-        identifier = UIApplication.shared.beginBackgroundTask(withName: name) { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.end()
-            }
-        }
-    }
-
-    func end() {
-        guard identifier != .invalid else { return }
-        let activeIdentifier = identifier
-        identifier = .invalid
-        UIApplication.shared.endBackgroundTask(activeIdentifier)
-    }
-}
-
-/// SwiftUI presentations live above their presenting view, so a root overlay
-/// alone does not protect an already-open sheet or alert in the app-switcher
-/// snapshot. This marker installs a matching opaque shield at the owning
-/// window level and removes it with the conditional SwiftUI cover.
-@MainActor
-private struct MobilePrivateSceneShield: UIViewRepresentable {
-    let title: String
-    let message: String
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(title: title, message: message)
-    }
-
-    func makeUIView(context: Context) -> MobilePrivateSceneMarkerView {
-        let marker = MobilePrivateSceneMarkerView()
-        marker.backgroundColor = .clear
-        marker.isUserInteractionEnabled = false
-        marker.onWindowChange = { [weak coordinator = context.coordinator] window in
-            coordinator?.install(in: window)
-        }
-        return marker
-    }
-
-    func updateUIView(_ uiView: MobilePrivateSceneMarkerView, context: Context) {
-        context.coordinator.update(title: title, message: message)
-        context.coordinator.install(in: uiView.window)
-    }
-
-    static func dismantleUIView(
-        _ uiView: MobilePrivateSceneMarkerView,
-        coordinator: Coordinator
-    ) {
-        uiView.onWindowChange = nil
-        coordinator.remove()
-    }
-
-    @MainActor
-    final class Coordinator {
-        private let shield = UIView()
-        private let titleLabel = UILabel()
-        private let messageLabel = UILabel()
-
-        init(title: String, message: String) {
-            shield.backgroundColor = .systemBackground
-            shield.isOpaque = true
-            shield.isUserInteractionEnabled = true
-            shield.isAccessibilityElement = true
-            shield.accessibilityViewIsModal = true
-            shield.accessibilityIdentifier = "browser.private-window-shield"
-            shield.layer.zPosition = 10_000
-
-            let icon = UIImageView(image: UIImage(
-                systemName: "hand.raised.fill",
-                withConfiguration: UIImage.SymbolConfiguration(
-                    pointSize: 34,
-                    weight: .semibold
-                )
-            ))
-            icon.tintColor = .systemPurple
-            icon.contentMode = .scaleAspectFit
-            icon.isAccessibilityElement = false
-
-            titleLabel.font = .preferredFont(forTextStyle: .headline)
-            titleLabel.textAlignment = .center
-            titleLabel.adjustsFontForContentSizeCategory = true
-
-            messageLabel.font = .preferredFont(forTextStyle: .subheadline)
-            messageLabel.textColor = .secondaryLabel
-            messageLabel.textAlignment = .center
-            messageLabel.numberOfLines = 0
-            messageLabel.adjustsFontForContentSizeCategory = true
-
-            let stack = UIStackView(arrangedSubviews: [icon, titleLabel, messageLabel])
-            stack.axis = .vertical
-            stack.alignment = .center
-            stack.spacing = 12
-            stack.translatesAutoresizingMaskIntoConstraints = false
-            shield.addSubview(stack)
-            NSLayoutConstraint.activate([
-                icon.widthAnchor.constraint(equalToConstant: 48),
-                icon.heightAnchor.constraint(equalToConstant: 48),
-                stack.centerXAnchor.constraint(equalTo: shield.centerXAnchor),
-                stack.centerYAnchor.constraint(equalTo: shield.centerYAnchor),
-                stack.leadingAnchor.constraint(
-                    greaterThanOrEqualTo: shield.leadingAnchor,
-                    constant: 28
-                ),
-                stack.trailingAnchor.constraint(
-                    lessThanOrEqualTo: shield.trailingAnchor,
-                    constant: -28
-                )
-            ])
-            update(title: title, message: message)
-        }
-
-        func update(title: String, message: String) {
-            titleLabel.text = title
-            messageLabel.text = message
-            shield.accessibilityLabel = "\(title). \(message)"
-        }
-
-        func install(in window: UIWindow?) {
-            guard let window else {
-                remove()
-                return
-            }
-            window.endEditing(true)
-            if shield.superview !== window {
-                shield.removeFromSuperview()
-                shield.frame = window.bounds
-                shield.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                window.addSubview(shield)
-            } else {
-                shield.frame = window.bounds
-                window.bringSubviewToFront(shield)
-            }
-        }
-
-        func remove() {
-            shield.removeFromSuperview()
-        }
-    }
-}
-
-@MainActor
-private final class MobilePrivateSceneMarkerView: UIView {
-    var onWindowChange: (@MainActor (UIWindow?) -> Void)?
-
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        onWindowChange?(window)
     }
 }

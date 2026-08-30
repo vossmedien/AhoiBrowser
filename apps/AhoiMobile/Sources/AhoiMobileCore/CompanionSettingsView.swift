@@ -58,6 +58,15 @@ public struct CompanionSettingsView: View {
                         ),
                         value: syncStateText
                     )
+                    LabeledContent(
+                        CompanionL10n.string(
+                            "settings.sync.encryption",
+                            fallback: "Encryption"
+                        ),
+                        value: model.keyLifecycleStatus.localizedSummary
+                    )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("settings.sync.key-lifecycle")
                     if let status = model.syncStatus {
                         Text(status.detail)
                             .font(.caption)

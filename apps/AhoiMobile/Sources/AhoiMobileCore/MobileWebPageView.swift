@@ -4,12 +4,14 @@ import WebKit
 struct MobileWebPageView: View {
     let page: WebPage
     @Binding var findNavigatorPresented: Bool
+    @Binding var chromeCollapsed: Bool
     let onRefresh: () -> Void
     let onMetadataChange: () -> Void
     @State private var findQuery = ""
     @State private var findMatchCount = 0
     @State private var pullDistance: CGFloat = 0
     @State private var refreshArmed = false
+    @State private var chromeVisibilityPolicy = MobileChromeVisibilityPolicy()
     @State private var findRequestGeneration: UInt64 = 0
     @State private var findTask: Task<Void, Never>?
     @FocusState private var findFieldFocused: Bool
@@ -26,11 +28,15 @@ struct MobileWebPageView: View {
                 .webViewMagnificationGestures(.enabled)
                 .webViewElementFullscreenBehavior(.enabled)
                 .webViewOnScrollGeometryChange(
-                    for: CGFloat.self,
+                    for: MobileWebScrollState.self,
                     of: { geometry in
-                        max(0, -(geometry.contentOffset.y + geometry.contentInsets.top))
+                        let offset = geometry.contentOffset.y + geometry.contentInsets.top
+                        return MobileWebScrollState(
+                            pullDistance: max(0, -offset),
+                            contentOffsetY: max(0, offset)
+                        )
                     },
-                    action: handlePullDistance
+                    action: handleScroll
                 )
 
             if pullDistance > 4 {
@@ -52,6 +58,7 @@ struct MobileWebPageView: View {
             }
         }
         .onChange(of: page.url) { _, _ in
+            resetChromeVisibility()
             findRequestGeneration &+= 1
             findTask?.cancel()
             findTask = nil
@@ -60,7 +67,14 @@ struct MobileWebPageView: View {
         }
         .onChange(of: page.title) { _, _ in onMetadataChange() }
         .onChange(of: page.isLoading) { _, isLoading in
-            if !isLoading { onMetadataChange() }
+            if isLoading {
+                resetChromeVisibility()
+            } else {
+                onMetadataChange()
+            }
+        }
+        .onChange(of: findNavigatorPresented) { _, isPresented in
+            if isPresented { resetChromeVisibility() }
         }
         .task(id: page.url) {
             try? await Task.sleep(for: .milliseconds(250))
@@ -68,6 +82,7 @@ struct MobileWebPageView: View {
             onMetadataChange()
         }
         .onDisappear {
+            resetChromeVisibility()
             findRequestGeneration &+= 1
             findTask?.cancel()
             findTask = nil
@@ -159,6 +174,31 @@ struct MobileWebPageView: View {
         }
     }
 
+    private func handleScroll(
+        _ oldValue: MobileWebScrollState,
+        _ newValue: MobileWebScrollState
+    ) {
+        handlePullDistance(oldValue.pullDistance, newValue.pullDistance)
+        guard !findNavigatorPresented else { return }
+        let collapsed = chromeVisibilityPolicy.nextCollapsedState(
+            currentlyCollapsed: chromeCollapsed,
+            previousContentOffset: oldValue.contentOffsetY,
+            contentOffset: newValue.contentOffsetY,
+            pullDistance: newValue.pullDistance
+        )
+        reportChromeCollapsed(collapsed)
+    }
+
+    private func reportChromeCollapsed(_ collapsed: Bool) {
+        guard chromeCollapsed != collapsed else { return }
+        chromeCollapsed = collapsed
+    }
+
+    private func resetChromeVisibility() {
+        chromeVisibilityPolicy.reset()
+        reportChromeCollapsed(false)
+    }
+
     private func performFind(backwards: Bool, resetSelection: Bool) {
         let query = findQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         findRequestGeneration &+= 1
@@ -215,4 +255,9 @@ struct MobileWebPageView: View {
             _ = try? await page.callJavaScript("window.getSelection()?.removeAllRanges();")
         }
     }
+}
+
+private struct MobileWebScrollState: Hashable {
+    let pullDistance: CGFloat
+    let contentOffsetY: CGFloat
 }

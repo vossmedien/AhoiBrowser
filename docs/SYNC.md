@@ -127,15 +127,76 @@ persistent command-ID/source-nonce replay claim before dispatch on the UI
 thread. Incognito, bulk close, scripts, file/data URLs and credential URLs are
 not representable. Execution produces a delivered/executed/failed record ack.
 
-## External Apple boundary
+## Mac CloudKit signing boundary
 
-No Team ID, production container, signing identity, provisioning profile or
-secret is tracked. `config/macos-entitlements.json` intentionally remains the
-current exact no-CloudKit release allowlist. The external release owner must
-materialize matching App IDs, container/environment entitlements, Keychain
-access groups and provisioning profiles in the supplied templates, update the
-exact release allowlist for that signed build, and then prove an entitled
-Mac–iPhone/iPad roundtrip. The granular external contracts are
-`ios-final-bundle-team-profile`, `ios-cloudkit-keychain-capabilities` and
-`cloudkit-device-validation` in `config/external-gates.json`. Until those are
-closed, real CloudKit mutation remains `BLOCKED_ENTITLEMENT`/`NOT_RUN`.
+`config/macos-entitlements.json` is now the single exact Mac signing policy. Its
+default remains `provider-free`: the ordinary build has the upstream browser
+entitlements only, embeds no provisioning profile and must contain none of the
+CloudKit runtime keys. Two entitled profiles are separate and cannot be
+silently interchanged:
+
+| Profile | Identity and required readback |
+| --- | --- |
+| `cloudkit-development` | Apple Development, concrete Mac development profile, CloudKit `Development`, macOS APNs `development` and at least one provisioned Mac. |
+| `cloudkit-production` | Developer ID Application, concrete Developer ID provisioning profile, CloudKit `Production`, macOS APNs `production`, no development-device list and `ProvisionsAllDevices=true`. |
+
+Both profiles use bundle `app.ahoibrowser.AhoiBrowser`, container
+`iCloud.app.ahoibrowser.AhoiBrowser`, the exact sync-payload group
+`248AJ5BN47.app.ahoibrowser.sync` and the separate command-key group
+`248AJ5BN47.app.ahoibrowser.commands`. Wildcards, unresolved placeholders,
+additional groups and the DisplayPilot container fail closed. On macOS the push
+key is `com.apple.developer.aps-environment`; the iOS-only `aps-environment`
+spelling is rejected.
+
+The public identifiers and runtime names are mirrored without secrets in
+`AhoiBrowserCloudKit.xcconfig.template`. The existing entitlement template is
+the exact Development fragment; `AhoiBrowserCloudKit.Production.entitlements.template`
+is the distinct Production fragment. The release tooling derives the final
+browser entitlement set from the policy so the normal Chromium device/privacy
+permissions remain exact as well.
+
+For a development candidate, prepare the built app before Apple Development
+signing, then verify the signed readback:
+
+```sh
+python3 scripts/release/ahoi-release.py prepare-macos-cloudkit \
+  --app /path/AhoiBrowser.app \
+  --signing-profile cloudkit-development \
+  --provisioning-profile /private/path/AhoiBrowser-Development.provisionprofile \
+  --entitlements-output /private/evidence/AhoiBrowser-Development.entitlements \
+  --output /private/evidence/macos-cloudkit-development-preparation.json
+
+AHOI_CODESIGN_IDENTITY='Apple Development: EXACT OWNER (248AJ5BN47)'
+codesign --force --sign "$AHOI_CODESIGN_IDENTITY" --timestamp --options runtime \
+  --entitlements /private/evidence/AhoiBrowser-Development.entitlements \
+  /path/AhoiBrowser.app
+
+AHOI_TEAM_ID=248AJ5BN47 \
+AHOI_CODESIGN_IDENTITY='Apple Development: EXACT OWNER (248AJ5BN47)' \
+python3 scripts/release/ahoi-release.py verify-macos-cloudkit \
+  --app /path/AhoiBrowser.app \
+  --signing-profile cloudkit-development \
+  --output /private/evidence/macos-cloudkit-development-verification.json
+```
+
+Preparation decodes the Apple-signed profile, stamps the exact runtime values,
+embeds the same bytes at `Contents/embedded.provisionprofile`, writes the exact
+entitlements and re-reads profile plus Info.plist. It does not generate a key,
+certificate or profile and does not perform Apple-portal mutations.
+
+The production `sign` command is not profile-selectable: it is bound to
+`cloudkit-production`, requires `--provisioning-profile`, embeds and re-reads
+that profile, binds the actual signing leaf certificate to the profile's
+certificate inventory, signs leaf-to-root and records profile SHA-256, UUID,
+expiry, container, groups, environments, prepared-bundle identity and signed-bundle
+identity in `signed-package-provenance.json`. Later notarization, installation
+and live-chain validation repeat the Production profile/readback check.
+
+The live Apple snapshot still shows zero containers assigned to the Ahoi App ID
+and only the unrelated DisplayPilot container on the Team. Therefore the exact
+Ahoi Development and Developer ID profiles cannot yet exist. External closure
+still requires creating/assigning the dedicated Ahoi container, refreshing both
+profiles, provisioning the real payload/command keys, performing Development
+and Production Mac–Mobile roundtrips, and completing Developer ID notarization.
+Until candidate-bound receipts exist, real CloudKit mutation remains
+`BLOCKED_ENTITLEMENT`/`NOT_RUN`.

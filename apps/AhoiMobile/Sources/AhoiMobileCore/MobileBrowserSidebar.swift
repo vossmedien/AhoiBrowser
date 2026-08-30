@@ -7,27 +7,31 @@ import AhoiCloudKitSpike
 /// intentionally only a list column: the surrounding browser owns the one and
 /// only `NavigationSplitView` and every navigation action is routed back to it.
 struct MobileBrowserSidebar: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject private var model: CompanionAppModel
     @ObservedObject private var browser: MobileBrowserController
 
     private let accentTint: Color
+    private let onPresentCommand: () -> Void
     private let onSelectWorkspace: (WorkspaceID) -> Void
     private let onSelectTab: (UUID) -> Void
     private let onOpenPage: (URL, WorkspaceID?) -> Void
-    private let onCreateTab: (WorkspaceID?) -> Void
+    private let onCreateTab: (WorkspaceID?, MobileBrowsingMode) -> Void
 
     init(
         model: CompanionAppModel,
         browser: MobileBrowserController,
         accentTint: Color,
+        onPresentCommand: @escaping () -> Void,
         onSelectWorkspace: @escaping (WorkspaceID) -> Void,
         onSelectTab: @escaping (UUID) -> Void,
         onOpenPage: @escaping (URL, WorkspaceID?) -> Void,
-        onCreateTab: @escaping (WorkspaceID?) -> Void
+        onCreateTab: @escaping (WorkspaceID?, MobileBrowsingMode) -> Void
     ) {
         self.model = model
         self.browser = browser
         self.accentTint = accentTint
+        self.onPresentCommand = onPresentCommand
         self.onSelectWorkspace = onSelectWorkspace
         self.onSelectTab = onSelectTab
         self.onOpenPage = onOpenPage
@@ -36,19 +40,28 @@ struct MobileBrowserSidebar: View {
 
     var body: some View {
         List {
-            workspaceSection
-            savedHierarchySection
-            localTabsSection
-            remoteTabsSection
+            commandSection
+            if isPrivateBrowsing {
+                localTabsSection
+            } else {
+                workspaceSection
+                savedHierarchySection
+                localTabsSection
+                remoteTabsSection
+            }
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
-        .background(accentTint.opacity(0.055))
-        .navigationTitle("AhoiBrowser")
+        .background(isPrivateBrowsing
+                    ? MobileBrowserChromeTheme.privateBackground
+                    : accentTint.opacity(0.055))
+        .navigationTitle(isPrivateBrowsing
+                         ? CompanionL10n.string("browser.private", fallback: "Private")
+                         : "AhoiBrowser")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    onCreateTab(contentWorkspaceID)
+                    onCreateTab(contentWorkspaceID, selectedMode)
                 } label: {
                     Image(systemName: "plus")
                         .frame(width: 44, height: 44)
@@ -62,7 +75,39 @@ struct MobileBrowserSidebar: View {
             }
         }
         .tint(accentTint)
-        .accessibilityIdentifier("browser.sidebar")
+        .environment(\.colorScheme, isPrivateBrowsing ? .dark : colorScheme)
+    }
+
+    private var commandSection: some View {
+        Section {
+            Button(action: onPresentCommand) {
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(accentTint)
+                        .accessibilityHidden(true)
+                    Text(CompanionL10n.string(
+                        "browser.focus.search",
+                        fallback: "Search, address or command"
+                    ))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    Spacer(minLength: 4)
+                    Text("⌘L")
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
+                }
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("browser.sidebar.command")
+            .accessibilityLabel(CompanionL10n.string(
+                "browser.focus.search",
+                fallback: "Search, address or command"
+            ))
+        }
     }
 
     @ViewBuilder
@@ -195,13 +240,7 @@ struct MobileBrowserSidebar: View {
     }
 
     private func workspaceIcon(_ workspace: Workspace) -> some View {
-        Group {
-            if workspace.icon.isEmpty {
-                Image(systemName: "square.stack.3d.up")
-            } else {
-                Text(workspace.icon)
-            }
-        }
+        Image(systemName: MobileWorkspaceIconPolicy.systemName(for: workspace.icon))
         .font(.body.weight(.semibold))
         .foregroundStyle(accentTint)
         .frame(width: 32, height: 32)
@@ -384,9 +423,17 @@ struct MobileBrowserSidebar: View {
     }
 
     private var visibleLocalTabs: [MobileTabRecord] {
-        browser.selectedTab?.mode == .privateBrowsing
+        isPrivateBrowsing
             ? browser.privateTabs
             : browser.normalTabs
+    }
+
+    private var selectedMode: MobileBrowsingMode {
+        browser.selectedTab?.mode ?? .normal
+    }
+
+    private var isPrivateBrowsing: Bool {
+        selectedMode == .privateBrowsing
     }
 
     private var selectedAccessibilityValue: String {

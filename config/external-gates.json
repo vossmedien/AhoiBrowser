@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-30T01:58:41+02:00",
+  "updatedAt": "2026-08-30T10:41:25+02:00",
   "gates": [
     {
       "id": "xcode-26.6",
@@ -28,27 +28,27 @@
     },
     {
       "id": "cloudkit-identifiers",
-      "state": "required",
+      "state": "partially-verified-container-required",
       "owner": "apple-team-admin",
-      "condition": "Register final Mac/iOS bundle IDs, iCloud container and Developer ID/iOS provisioning profiles."
+      "condition": "Live Apple Developer readback proves Team 248AJ5BN47, explicit App ID app.ahoibrowser.AhoiBrowser, App ID prefix 248AJ5BN47, iCloud with CloudKit support and Push Notifications. The App ID has zero assigned containers and the team container list contains only iCloud.de.vossmedien.DisplayPilot; create and assign the separate iCloud.app.ahoibrowser.AhoiBrowser container, then refresh matching Mobile and Mac profiles without touching DisplayPilot."
     },
     {
       "id": "ios-final-bundle-team-profile",
-      "state": "blocked-credential",
+      "state": "registered-profile-refresh-required",
       "owner": "apple-team-admin",
-      "condition": "A Team-bound development App ID/profile for app.ahoibrowser.AhoiBrowser now signs and installs on the connected iPhone. Release remains blocked until the bundle identity is approved as final and a matching Apple Distribution certificate plus App Store provisioning profile exist for the exact iPhone/iPad target and required capabilities."
+      "condition": "Live Apple Developer readback and the existing signed-device receipt prove Team 248AJ5BN47, App ID prefix 248AJ5BN47, explicit bundle ID app.ahoibrowser.AhoiBrowser and one development installation. Refresh Automatic/Cloud-Managed profiles after the dedicated CloudKit container is assigned; archive, export and candidate-bound profile evidence remain required. A separately stored local Apple Distribution certificate or App Store Connect API key is not a prerequisite for Xcode-managed distribution."
     },
     {
       "id": "ios-managed-default-browser-entitlement",
       "state": "blocked-entitlement",
       "owner": "apple-team-admin",
-      "condition": "Obtain Apple's managed default-browser entitlement for the final Mobile bundle ID, attach the reviewed entitlement template to the matching signed profile, and validate system default-browser selection plus external HTTP(S) callbacks on physical iPhone and iPad. Source declarations and simulator routing are not entitlement evidence."
+      "condition": "Live Apple Developer readback reports Default Web Browser and Browser App Installation as No Requests. First produce an approved public TestFlight bootstrap and active public link, then separately confirm and submit the managed-entitlement request; after Apple's grant, refresh post-grant profiles and validate system default-browser selection plus external HTTP(S) callbacks on physical iPhone and iPad."
     },
     {
       "id": "ios-cloudkit-keychain-capabilities",
       "state": "blocked-entitlement",
       "owner": "apple-team-admin",
-      "condition": "Provision the final private CloudKit container and environment, matching iCloud and push entitlements, reviewed synchronizable Keychain access groups, and externally managed AES-256-GCM payload plus Ed25519 command keys for the exact Mac and Mobile App IDs. Prove key availability, rotation, recovery and revocation without storing private material in the repository."
+      "condition": "The existing App ID has iCloud/CloudKit and Push enabled but zero assigned containers. Create and assign only iCloud.app.ahoibrowser.AhoiBrowser, refresh matching iCloud/push/Keychain profiles, and prove the in-app AES-256-GCM plus per-device Ed25519 lifecycle, rotation, recovery and revocation on entitled Mac and Mobile builds without storing private material in the repository or CloudKit."
     },
     {
       "id": "ios-physical-device-journeys",
@@ -60,7 +60,7 @@
       "id": "ios-app-store-connect-testflight",
       "state": "blocked-external-service",
       "owner": "apple-team-admin",
-      "condition": "Create and review the final App Store Connect app record, agreements, privacy disclosures and tester access; archive and export the exact distribution-signed candidate, upload it, retain processing/export receipts, install the processed TestFlight build on physical iPhone and iPad, and repeat release-critical smoke journeys. A local archive or successful upload alone is not TestFlight or release evidence."
+      "condition": "Live App Store Connect readback reports no apps, so no Ahoi record, build, TestFlight group or public link exists. Separately confirm creation of the AhoiBrowser record, complete truthful metadata/privacy/beta-review inputs, archive and upload the exact TestFlightBootstrap candidate through Xcode, retain processing receipts, activate external TestFlight and install it on physical devices. The displayed EU trader-status declaration remains a human/legal gate and is not a technical upload failure."
     },
     {
       "id": "signed-release-provenance",

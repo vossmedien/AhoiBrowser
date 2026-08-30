@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AhoiBuildMode</key>
+	<string>$(AHOI_BUILD_MODE)</string>
+	<key>AhoiSourceCommit</key>
+	<string>$(AHOI_SOURCE_COMMIT)</string>
 	<key>AHOI_CLOUDKIT_CONTAINER_ID</key>
 	<string>$(AHOI_CLOUDKIT_CONTAINER_ID)</string>
 	<key>AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP</key>

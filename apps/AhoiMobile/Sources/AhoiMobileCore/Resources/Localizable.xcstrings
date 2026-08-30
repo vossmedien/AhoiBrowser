@@ -1766,6 +1766,23 @@
         }
       }
     },
+    "settings.sync.encryption": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsselung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encryption"
+          }
+        }
+      }
+    },
     "settings.sync.retry": {
       "extractionState": "manual",
       "localizations": {
@@ -1866,6 +1883,62 @@
             "value": "CloudKit is not fully configured. Local data remains available."
           }
         }
+      }
+    },
+    "sync.key.claiming": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erste Sync-Einrichtung wird abgesichert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Securing first-time sync setup"}}
+      }
+    },
+    "sync.key.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Sync-Schlüssel sind deaktiviert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Sync keys are off"}}
+      }
+    },
+    "sync.key.migration": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Vorhandener Sync-Schlüssel wird geprüft"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Verifying the existing sync key"}}
+      }
+    },
+    "sync.key.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselung bereit"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption ready"}}
+      }
+    },
+    "sync.key.recovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselungs-Wiederherstellung erforderlich"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption recovery required"}}
+      }
+    },
+    "sync.key.revoked": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselungsschlüssel widerrufen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption key revoked"}}
+      }
+    },
+    "sync.key.rotation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schlüsselwechsel erforderlich"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption key rotation required"}}
+      }
+    },
+    "sync.key.waiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Warten auf den gekoppelten Sync-Schlüssel"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Waiting for the paired sync key"}}
       }
     },
     "sync.retention.invalid": {
@@ -2606,6 +2679,14 @@
     "browser.workspace.previous": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vorheriger Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Previous workspace"}}}},
     "browser.workspace.next": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nächster Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Next workspace"}}}},
     "browser.sidebar.toggle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sidebar ein-/ausblenden"}},"en":{"stringUnit":{"state":"translated","value":"Toggle sidebar"}}}},
+    "browser.focus.journey": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Weitermachen"}},"en":{"stringUnit":{"state":"translated","value":"Continue"}}}},
+    "browser.focus.saved": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gespeichert"}},"en":{"stringUnit":{"state":"translated","value":"Saved"}}}},
+    "browser.focus.search": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Suchen, Adresse oder Befehl"}},"en":{"stringUnit":{"state":"translated","value":"Search, address or command"}}}},
+    "browser.focus.subtitle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Mach dort weiter, wo du aufgehört hast"}},"en":{"stringUnit":{"state":"translated","value":"Pick up where you left off"}}}},
+    "browser.focus.private.subtitle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Eine getrennte, flüchtige Reise"}},"en":{"stringUnit":{"state":"translated","value":"A separate, temporary voyage"}}}},
+    "browser.focus.private.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Private Tabs, Suchen und Seitendaten bleiben außerhalb von Focus Voyage und Ahoi Sync."}},"en":{"stringUnit":{"state":"translated","value":"Private tabs, searches and page data stay out of Focus Voyage and Ahoi Sync."}}}},
+    "browser.focus.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zuletzt verwendete normale Tabs und gespeicherte Seiten erscheinen hier."}},"en":{"stringUnit":{"state":"translated","value":"Recent normal tabs and saved pages will appear here."}}}},
+    "browser.stop": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Laden stoppen"}},"en":{"stringUnit":{"state":"translated","value":"Stop loading"}}}},
     "browser.sidebar.workspaces.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Noch keine Workspaces"}},"en":{"stringUnit":{"state":"translated","value":"No workspaces yet"}}}},
     "browser.sidebar.saved": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gespeichert"}},"en":{"stringUnit":{"state":"translated","value":"Saved"}}}},
     "browser.sidebar.saved.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine gespeicherten Seiten"}},"en":{"stringUnit":{"state":"translated","value":"No saved pages"}}}},
