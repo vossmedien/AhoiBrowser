@@ -1,697 +1,1034 @@
-# Zielprompt: AhoiBrowser Mobile end to end
-
-## Auftrag
-
-Entwickle den vorhandenen nativen iOS-/iPadOS-Companion zu **AhoiBrowser
-Mobile**, einer eigenstaendigen, als Standardbrowser nutzbaren Browser-App fuer
-iPhone und iPad. Die App verwendet Apples systemgeliefertes WebKit als Engine,
-eine native SwiftUI-Oberflaeche und die bereits vorhandenen Ahoi-Modelle fuer
-Workspaces, Baum, Suche, Verlauf, Geraete-Tabs, CloudKit und signierte
-Remote-Befehle.
-
-Das Vorbild ist die ruhige, such- und workspace-zentrierte Bedienidee moderner
-Mobile-Browser wie Arc. Es werden weder fremde Marken, Texte, Assets, Animationen
-noch pixelgenaue Oberflaechen kopiert. Visuell und sprachlich bleibt die App ein
-eigenstaendiges Ahoi-Produkt und uebertraegt die Informationsarchitektur,
-Farbtokens, Begriffe und Interaktionsprinzipien des AhoiBrowser-Desktops auf
-Touch, kleine Displays, iPad, Tastatur und Pointer.
-
-Arbeite bis zum real verifizierten Ergebnis. Ein Quellcode-, Simulator- oder
-Unit-Test-Pass darf nie als Geraete-, CloudKit-, TestFlight- oder Release-Pass
-bezeichnet werden.
-
-## Ziel-Lock und Laufzeitwahrheit vom 30. August 2026
-
-Dieser Zielprompt ist die autoritative Arbeitsgrundlage fuer die laufende
-Mobile-Welle. Er ersetzt keine reale Evidenz durch Absichtserklaerungen. Der
-aktuell gepruefte Arbeitsstand umfasst bereits einen nativen SwiftUI-/WebKit-
-Browser-Kandidaten unter `apps/AhoiMobile/` mit normalem und privatem Browsing,
-Adress-/Befehlssuche, Tab-Uebersicht, Workspaces/Mediathek, Verlauf, Downloads,
-Dialog-/Permission-Grenzen, lokaler Persistenz und dem vorhandenen
-Mac-Mobile-Sync-Core.
-
-Aktuell in dieser Welle belegt:
-
-- Xcode 26.6 / iOS-Simulator-SDK 26.5 kompiliert den Kandidaten in Debug auf
-  iPhone und in Release als universelles `arm64`-/`x86_64`-Simulatorprodukt mit
-  Exit 0 (`LOCAL_BUILD_PASS`);
-- frisch installierte iPhone- und iPad-Simulatoren zeigen die lokale Browser-
-  Fixture, Adress-/Befehlssuche, Tab-Uebersicht, privaten Modus, Browser-
-  Control-Center, Workspace-/Geraete-Mediathek und adaptive Sidebar
-  (`SIMULATOR_VISIBLE`, begrenzter Audit-Pass);
-- der P0-Slice ersetzt das abgeschnittene Langmenue durch ein gruppiertes
-  Control-Center, vergroessert die iPad-Suche auf eine ruhige Page-
-  Praesentation und uebersetzt den privaten Startzustand auf Ink/Graphite;
-- 56 Mobile-Core-Tests (davon zwei ehrlich wegen fehlendem entitlement
-  uebersprungen), 3 UI-Journeys und 36 CloudKit-/Remote-Command-Pakettests sind
-  ohne Fehler durchgelaufen;
-- die aktuelle sichtbare Evidenz liegt unter
-  `docs/audit-evidence/2026-08-30-ios-arc-alignment/`.
-
-Ausdruecklich noch nicht belegt sind der vollstaendige Alltagsflow auf iPhone
-und iPad, reale Websites unter variierenden Netz-/Medien-/Login-Bedingungen,
-physische Geraete, Default-Browser-Entitlement, echter Mac-Mobile-CloudKit-
-Roundtrip, signiertes Archive, TestFlight und Release. Die Dokumentation und
-`config/test-registry.json` muessen diese Trennung jederzeit ehrlich
-wiedergeben.
-
-## Referenzvergleich: Arc Search, Stand 30. August 2026
-
-Die Referenz ist Arc Search fuer iOS, nicht ein pixelgenauer Klon und nicht Arc
-Desktop. Verglichen werden die aktuelle App-Store-Fassung 1.48.0 und die
-offiziellen Produkt-/Hilfeseiten:
-
-- `https://apps.apple.com/us/app/arc-search-find-it-faster/id6472513080`
-- `https://arc.net/search`
-- `https://resources.arc.net/hc/en-us/articles/20887042551831-Arc-for-iOS-Arc-Search`
-- `https://resources.arc.net/hc/en-us/articles/20272860828823-Arc-Sync`
-- `https://arc.net/blog/arc-search-hidden-features`
-- `https://resources.arc.net/hc/en-us/articles/23528454620311-Arc-Search-for-iOS-Release-Notes`
-
-### Uebernehmen: Prinzipien und mobile Interaktionen
-
-- **Search first:** Ein leerer/neuer Tab bietet die Suche sofort und ohne
-  Zwischenansicht an. Eine Einstellung steuert, ob die Tastatur beim Start oder
-  beim letzten leeren Tab automatisch erscheint.
-- **Thumb first:** Primaeraktionen bleiben unten und mit einer Hand erreichbar.
-  Scrollen blendet Browser-Chrome kontrolliert ein und aus, ohne den Ursprung,
-  Ladezustand oder private Nutzung unklar zu machen.
-- **Direkte Gesten:** Horizontaler Wisch auf der unteren Leiste wechselt durch
-  zuletzt verwendete Tabs. Pull-to-refresh startet erst beim Loslassen und ist
-  vorher abbrechbar. Back/Forward bleibt mit WebKit-Gesten kompatibel.
-- **Schnelle Tab-/Space-Navigation:** Kurzer Tap oeffnet Tabs, Long-Press fuehrt
-  direkt zu Workspaces/Mediathek. Offene, gespeicherte und geraeteferne Seiten
-  sind strukturell unterscheidbar, aber keine getrennten Produkte.
-- **Ruhige Browserflaeche:** Die Website dominiert. Browser-Chrome darf sich
-  subtil an Workspace- oder Seitenfarbe anlehnen, bleibt aber kontrastfest,
-  sicherheitsklar und bei reduzierter Transparenz vollstaendig opak.
-- **Private Eindeutigkeit:** Privat ist bereits vor der Navigation durch
-  Hintergrund, Adressflaeche, Text und Symbol eindeutig. Ein Moduswechsel
-  braucht keine Suche in einem separaten Einstellungsmenue.
-- **Alltagsdetails:** Linkvorschau mit neuem Vorder-/Hintergrundtab, Reader,
-  Uebersetzung, Seitenzoom, Desktop-Site, Picture-in-Picture, Handoff,
-  Share-Action, Widget und Default-Browser-Einstieg werden als native
-  Plattformfaehigkeiten bewertet.
-
-### Nicht uebernehmen
-
-- kein `Browse for Me`, `Call Arc`, Pinch-to-Summarize oder sonstiger
-  verpflichtender AI-/Cloud-Antwortdienst;
-- kein eingebauter breiter Adblocker, Trackerblocker oder Cookie-Banner-
-  Automatismus in dieser Welle; Ahoi haelt die festgelegte Extension- und
-  Privacy-Grenze ein;
-- kein stilles Auto-Archivieren. Eine spaetere Aufraeumfunktion ist opt-in,
-  zeigt Vorschau/Undo und verwechselt nie temporaer, gespeichert oder
-  synchronisiert;
-- kein unsicherer Zertifikats-Bypass, kein stilles Oeffnen externer Apps und
-  keine fremden Marken, Texte, Illustrationen, Sounds oder Animationen;
-- keine Arc-Account-Abhaengigkeit. Ahoi startet local-first und bleibt ohne
-  CloudKit als vollwertiger Browser nutzbar.
-
-### Bewusster Ahoi-Vorsprung
-
-- bidirektionale, verschluesselte Mac-iPhone-iPad-Replikation normaler Tabs,
-  Workspaces und Baumzustand statt einer nur lesenden Mobile-Sidebar;
-- tiefere Ordner-/Workspace-Hierarchie mit stabilen IDs, Tombstones und
-  konfliktfester Reihenfolge;
-- signierte Remote-Aktionen wie `Auf Mac oeffnen`, `Fokussieren` und
-  bestaetigtes Schliessen;
-- keine Produkttelemetrie und keine Kontopflicht fuer lokales Browsing;
-- iPad als echte adaptive Ahoi-Oberflaeche mit Sidebar, Tastatur und Pointer,
-  nicht nur als vergroesserte iPhone-Ansicht.
-
-## Priorisierter Umsetzungsauftrag dieser Welle
-
-### P0 - sichtbare Produktqualitaet und belastbarer Browserkern
-
-1. Pruefe den aktuellen Dirty-Worktree, sichere fremde Aenderungen und arbeite
-   ausschliesslich im vorhandenen Mobile-Branch weiter. Vermische die Welle
-   nicht mit einem laufenden Ahoi-Chromium-Build.
-2. Behebe jede Start-, Restore-, Crash-, Blank-Screen- und Doppel-Tab-Ursache,
-   bevor weitere Oberflaeche hinzugefuegt wird.
-3. Reduziere die ueberladene iPhone-Aktionsliste. Primaere Aktionen bleiben
-   direkt erreichbar; seltene Seiten-, Daten- und App-Aktionen erhalten klar
-   benannte Gruppen in einem ruhigen Sheet/Control-Center statt eines langen,
-   abgeschnittenen Pop-up-Menues.
-4. Schaerfe die Befehlssuche: weniger optische Unruhe, stabiler Kontrast,
-   sichtbare Ergebnisarten, begrenzte Treffer, Tastatursteuerung, eindeutiger
-   aktiver Treffer und opaker Reduced-Transparency-Fallback.
-5. Mache die Tab-Uebersicht workspace-zentriert und inhaltsreich, ohne
-   Screenshot-Zwang: Favicon, Titel, Ursprung, saved/temporary, Aktivitaet,
-   Workspace, Auswahl und Close/Undo. Leerer Raum darf nicht die eigentliche
-   Hierarchie ersetzen.
-6. Stelle den privaten Modus in einer eigenstaendigen Ahoi-Sprache dar:
-   tiefes neutrales Ink/Graphit, eindeutiges Schutzsymbol und Text; kein
-   verspielter Magenta-Klon und keine persistente/synchronisierte Spur.
-7. Behebe sichtbare Accessibility-Luecken. Insbesondere muessen Sheet-
-   Navigationsbuttons, Plus, Fertig, Bearbeiten, Modusauswahl und alle
-   symbol-only controls als echte, fokussierbare Controls mit Namen, Wert,
-   Hinweis und mindestens 44x44 pt Zielgroesse erscheinen.
-8. Belege den Kernflow mit frischem Profil auf iPhone und iPad: Start, reale
-   HTTPS-Seite, Suche, Back/Forward/Reload, neuer Tab, Wechsel, Close/Undo,
-   Workspace speichern/verschieben, Privat, Kill/Restore und Offline/Retry.
-
-### P1 - mobile Geschwindigkeit nach Arc-Vorbild
-
-1. Implementiere optionales Auto-Fokus/Keyboard fuer neuen/leeren Tab.
-2. Implementiere Tab-Flick auf der unteren Leiste mit sauberer
-   Back/Forward-Gestenabgrenzung, Haptik nur bei tatsaechlichem Wechsel und
-   Reduced-Motion-Ersatz.
-3. Implementiere eine beim Scrollen kompakt werdende Bottom-Bar, die bei
-   Aufwaertsscrollen, Fokus, Navigation, Fehler oder privatem Status sofort
-   wieder voll verstaendlich wird.
-4. Implementiere Pull-to-refresh ueber WebKit/UIRefreshControl so, dass erst
-   beim Loslassen geladen wird und der Nutzer vorher abbrechen kann.
-5. Long-Press auf Tabzaehler/Tabstapel oeffnet direkt Workspaces/Mediathek;
-   kurzer Tap bleibt Tab-Uebersicht. VoiceOver erhaelt getrennte Aktionen.
-6. Fuehre lokale Top Sites aus explizit gespeicherten oder haeufig genutzten
-   normalen Seiten ein. Private Daten, Sync-Geheimnisse und externe
-   Empfehlungsdienste bleiben ausgeschlossen.
-
-### P2 - Desktop-Funktionen sinnvoll auf Mobile uebertragen
-
-- **Jetzt migrieren:** einheitliche Suche ueber lokale Tabs, Workspaces, Baum,
-  erlaubten Verlauf und Geraete-Tabs; saved/temporary; Remote-Tab-Oeffnen;
-  `Link an Mac`; Umbenennen, Speichern und Verschieben; Downloads/Verlauf;
-  Appearance-/Search-/Sync-Einstellungen; sichere Website-Daten-Aktionen.
-- **Mobil uebersetzen:** Desktop-Sidebar wird auf iPhone zu Mediathek/Sheet und
-  auf iPad zur persistenten, kollabierbaren Sidebar. Desktop-Cmd+T wird zur
-  mobilen Befehlssuche. Hover-Aktionen werden zu Swipe-/Context-Actions mit
-  Undo. Desktop-Workspace-Geste wird auf Mobile nur in konfliktfreien
-  Startbereichen angeboten.
-- **Plattformgerecht begrenzen:** Zwei echte Seiten duerfen auf iPad spaeter als
-  speichersicherer Split erscheinen. Drei-/Vier-Pane-Desktop-Splits, DevTools,
-  Extensions, Request-Header-/CSP-/CORS-Editoren und Little-Arc-Fenster werden
-  nicht als halb funktionierende iPhone-Kopie gebaut.
-- **Spaeter nach belastbarem Kern:** Reader, Uebersetzung, PiP, Handoff,
-  Share-Extension, Home-/Lock-Screen-Widget, Spotlight und optionales
-  tabbezogenes Aufraeumen mit Vorschau und Undo.
-
-## Code- und Architekturkonventionen
-
-- Swift 6 Strict Concurrency bleibt aktiv. UI, `WebPage` und Presenter gehoeren
-  auf `@MainActor`; Stores, Migration, Sync, Indizes und Dateischreibvorgaenge
-  sind Actors oder klar isolierte `Sendable`-Typen.
-- `@unchecked Sendable` ist nur fuer eine schmale, dokumentierte Apple-API-
-  Bruecke mit eigenem Synchronisationsbeweis erlaubt. Neue globale Singletons,
-  unstrukturierte Detached Tasks und versteckte Timer sind verboten.
-- `MobileBrowserController` bleibt alleinige Autoritaet fuer Tab-/Session-
-  Lebenszyklus. Views mutieren keine Persistenz, CloudKit-Records oder WebKit-
-  Stores direkt. Abhaengigkeiten werden ueber Protokolle/Initialisierer injiziert.
-- URL-/Scheme-/Origin-/External-App-/Download-/Permission-Entscheidungen laufen
-  durch zentrale Policies. Keine zweite, leicht abweichende Validierung in
-  View-Closures oder Sync-Code.
-- Normale und private `WKWebsiteDataStore` werden konstruktiv getrennt. Private
-  Tabs gelangen nie in Restore, Verlauf, Suche, Snapshot, Sync, Remote-Command,
-  Crash-Evidenz oder Logs.
-- Dateischreibvorgaenge sind versioniert und atomar (`temp -> fsync/replace` wo
-  erforderlich). Migrationen besitzen Backup, Versionsmarker, Dry-/Read-Proof
-  und idempotenten No-op-Zweitlauf.
-- Stabile Domaenen-IDs bleiben unabhaengig von SwiftUI-/WebKit-Objektidentitaet.
-  Wire-Format, kanonische JSON-Bytes, HLC-Semantik und Tombstones werden nicht
-  fuer UI-Komfort umdefiniert.
-- Neue oder wesentlich ueberarbeitete Swift-Dateien bleiben moeglichst unter
-  800 Zeilen und haben genau eine Hauptverantwortung. Bereits uebergrosse
-  Dateien werden bei beruehrten, klar trennbaren Bereichen schrittweise
-  zerlegt; keine kosmetische Grossmigration ohne Testnutzen.
-- Produktionsstrings stehen ausschliesslich im String Catalog mit Deutsch und
-  Englisch. Keine Stringverkettung fuer Saetze, keine festen Textbreiten und
-  keine sichtbaren Debug-/Fixture-Texte im Release.
-- Verwende SF Symbols beziehungsweise vorhandene echte Ahoi-Assets. Keine
-  Emojis, Unicode-Piktogramme, handgebauten SVG-/Canvas-Ersatzicons oder aus
-  ImageGen ausgeschnittenen Bedienelemente.
-- `project.yml` ist fuer generierte Xcode-Projektstruktur autoritativ. Wenn
-  Targets/Dateien/Build Settings geaendert werden, XcodeGen reproduzierbar
-  ausfuehren und `project.pbxproj` gemeinsam pruefen.
-- Jeder Fehler hat einen lokalisierten, handlungsfaehigen Zustand. `try?` darf
-  an Sicherheits-, Persistenz-, Sync- und Navigationsgrenzen keinen Fehler
-  verschlucken.
-- Tests folgen dem Risiko: Policy-/Model-/Migration-/Wire-Unit-Tests,
-  Controller-Integration mit Fakes, danach wenige stabile UI-Tests und immer
-  sichtbarer Simulator-/Geraetepass fuer die geaenderte Journey.
-
-## Verbindliche Ahoi-Designsprache Mobile
-
-### Charakter
-
-Ruhig, maritim, warm, praezise und content-first. Ahoi uebernimmt Arcs raeumliche
-Klarheit, nicht dessen Marke oder verspielte Gesten um ihrer selbst willen. Eine
-Ansicht beantwortet sofort: Wo bin ich, welche Seite ist aktiv, in welchem
-Workspace liegt sie, ist sie privat, und was ist die naechste Hauptaktion?
-
-### Farbe und Material
-
-- Grundflaechen: warme, leicht getoente System-Neutrals statt kaltem Vollweiss;
-- Hauptakzent: Ahoi-Orange fuer aktive Handlungen und Markenmomente, nicht fuer
-  jeden Text oder jede Flaeche;
-- Strukturakzente: maritime Blau-/Petroltoene und benutzerdefinierte
-  Workspace-Farben;
-- Privat: tiefes Ink/Graphit mit ruhigem Violett nur als sparsame
-  Sekundaerinformation;
-- Glass/Blur nur fuer kurze Browser-Chrome- und Sheet-Ueberlagerungen. Kein
-  mehrfaches Blur, das Text, Website und Ergebnistypen gleichzeitig verwascht;
-- alle Kombinationen muessen in Hell/Dunkel, Increase Contrast, Differentiate
-  Without Color und Reduce Transparency verstaendlich bleiben.
-
-### Typografie, Raster und Controls
-
-- ausschliesslich Dynamic-Type-faehige Systemtypografie mit klarer Hierarchie;
-- 8-pt-Raster, 16-20 pt Seitenabstand auf iPhone, 20-28 pt auf iPad;
-- mindestens 44x44 pt Touchziele, mindestens 8 pt Abstand zwischen
-  konkurrierenden destruktiven/positiven Aktionen;
-- Radien folgen Groesse und Bedeutung: kompakte Controls 10-14 pt, Karten und
-  Sheets 18-28 pt; keine zufaellige Mischung;
-- Browser-Chrome respektiert Safe Area, Tastatur, Home Indicator, Rotation,
-  Stage Manager und Split View;
-- Favicons sind echt oder neutrale, konsistente Fallbacks. Auswahl, saved,
-  temporary, private, remote und offline sind nicht allein farbcodiert.
-
-### Bewegung und Feedback
-
-- Standarduebergaenge 180-240 ms, direkt und abbrechbar; Federn nur fuer
-  raeumliche Tab-/Workspace-Bewegung;
-- ein Tab-Flick folgt dem Finger und rastet anhand Distanz/Geschwindigkeit ein;
-- Schliessen/Loeschen bietet Undo und entfernt die Zeile erst nachvollziehbar;
-- Haptik bestaetigt Zustandswechsel, nicht jeden Tap;
-- Reduce Motion ersetzt raeumliche Bewegungen durch kurze Crossfades ohne
-  Informationsverlust.
-
-## ImageGen-2-Layoutphase
-
-ImageGen dient nur als visuelle Layoutstudie, nicht als Quelle fuer
-Produktionsicons, Texte oder unpruefbare Browserfunktionen. Verwende als
-Referenzen die frisch akzeptierten iPhone-/iPad-Screenshots, aktuelle Ahoi-
-Desktop-Evidenz und die oben definierte Designsprache. Erzeuge zwei klar
-unterschiedliche, jeweils zusammenhaengende Layoutboards:
-
-1. **Richtung A - Content Deck:** maximal kleine, beim Scrollen kollabierende
-   Bottom-Bar; zentrale Search-/Command-Karte; kompakte tab cards nach
-   Workspace; dunkler privater Zustand; iPad mit schmaler einklappbarer Sidebar.
-2. **Richtung B - Workspace Canvas:** Bottom-Bar mit staerker sichtbarer
-   Workspace-Identitaet; Mediathek als raeumliche Hauptnavigation; Tabs als
-   flache Zeilen mit saved/temporary-Sektionen; iPad mit persistenter breiter
-   Baum-Sidebar und optionalem Zwei-Pane-Ziel.
-
-Jedes Board zeigt mindestens: iPhone Website, Suche offen, Tab-/Workspace-
-Uebersicht, Privat sowie iPad Sidebar. Gleiche Inhalte, Viewports und
-Systemzustaende erlauben den direkten Vergleich. Bewerte danach Lesbarkeit,
-Thumb-Reach, Website-Flaeche, Informationsdichte, Ahoi-Eigenstaendigkeit,
-Dynamic Type, Reduced Transparency und Umsetzungsrisiko. Ohne ausdrueckliche
-Nutzerwahl wird nur die konservativere, besser messbare Richtung fuer einen
-kleinen P0-Slice umgesetzt; die andere bleibt versionierte Referenz.
-
-## Verbindlicher Ausgangsstand
-
-- Der fruehere Companion ist in `apps/AhoiMobile/` aufgegangen. Der aktuelle
-  Kandidat ist ein echter nativer WebKit-Browser und enthaelt weiterhin lokale
-  Persistenz, Suche, Workspaces/Baum, Geraete-Tabs, CKSyncEngine-Transport,
-  verschluesselte Payloads sowie signierte Remote-Befehle.
-- Vorhandensein im Quellcode ist kein Abschlussbeleg. Der vollstaendige
-  Browser-, Sync-, Accessibility-, Performance- und Releasevertrag wird in
-  dieser Welle gegen den aktuellen Kandidaten neu ausgefuehrt.
-- Die Dokumentation nennt teilweise iOS/iPadOS 17+, waehrend SwiftPM und das
-  generierte Xcode-Projekt iOS 26.0 konfigurieren. Das wird in dieser Welle
-  bewusst und einheitlich auf **iOS 26.0 und iPadOS 26.0** festgelegt.
-- Alle vorhandenen `IOS-01` bis `IOS-15` sind reale `ASSISTED_E2E`-Faelle und
-  bleiben bis zur Ausfuehrung auf echter Hardware `NOT_RUN`.
-- Es gibt zu Beginn weder ein releasefaehiges `.xcarchive`/`.ipa` noch
-  TestFlight-Evidenz noch einen realen Mac-iPhone-CloudKit-Roundtrip.
-- Die macOS-App bleibt ein Chromium-`//chrome`-Produkt. Der Mobile-Browser ist
-  kein Chromium-Port und keine alternative Browser-Engine.
-
-## Ergebnisdefinition
-
-Die Umsetzung ist erst abgeschlossen, wenn:
-
-1. `AhoiBrowser Mobile` als eigenstaendiges iPhone-/iPad-App-Target startet,
-   Websites in der App rendert und normale sowie private Browsing-Sessions
-   korrekt trennt;
-2. Adress-/Suchfeld, Navigation, Tabs, Workspaces, Baum, Verlauf, Favoriten,
-   Teilen, Downloads, Website-Suche, Wiederherstellung und iPad-Anpassung als
-   zusammenhaengende User Journey funktionieren;
-3. lokale Mobile-Tabs und Mobile-Verlauf ueber die bestehende Ahoi-Sync-Grenze
-   publiziert werden, ohne Cookies, Zugangsdaten, Site Storage, Permissions,
-   Downloads, Inkognito oder Keychain-Secrets zu synchronisieren;
-4. die bisherigen Companion-Funktionen in die Browser-App integriert und nicht
-   als zweite parallele App weitergefuehrt werden;
-5. die App die Voraussetzungen fuer Apples Managed Default Browser Entitlement
-   erfuellt und HTTP-/HTTPS-Links korrekt annimmt;
-6. sichtbare User-Tests zuerst ausgefuehrt und dokumentiert wurden, danach die
-   fokussierten und breiten programmatischen Gates;
-7. ein signiertes Archive und eine installierte echte Geraeteversion verifiziert
-   wurden; TestFlight/App-Store-Zustaende werden nur behauptet, wenn sie real
-   vorliegen;
-8. Dokumentation, Testregister, externe Gates, Datenschutz, Threat Model und
-   Release-Status den tatsaechlichen Stand ohne Widerspruch beschreiben.
-
-## Produktgrenze und Engine-Entscheidung
-
-- Nutze auf iOS/iPadOS ausschliesslich das vom Betriebssystem gelieferte WebKit.
-- Bevorzugte Schicht auf iOS 26 ist WebKit for SwiftUI mit `WebView` und
-  `WebPage`. Wo ein Browservertrag damit nicht vollstaendig ausdrueckbar ist,
-  darf eine schmale, testbare UIKit-Bridge um `WKWebView` verwendet werden.
-- Erzeuge niemals einen eigenen Renderer, Cookie-Store, TLS-Stack,
-  Zertifikatsspeicher, JavaScript-Interpreter oder Download-Netzwerkstack.
-- Ein eigener Chromium-/Blink-Port, BrowserEngineKit oder ein alternatives
-  Browser-Engine-Entitlement ist nicht Teil dieses Ziels.
-- Workspaces teilen in normalem Browsing denselben persistenten
-  `WKWebsiteDataStore`. Workspace-Wechsel duerfen Logins nicht trennen.
-- Private Tabs verwenden ausschliesslich einen nicht persistenten Data Store,
-  werden nie wiederhergestellt, nie indiziert und nie synchronisiert.
-
-## Projekt- und Migrationsstruktur
-
-- Migriere `apps/AhoiCompanion/` nach `apps/AhoiMobile/` und das App-Produkt zu
-  `AhoiMobile` beziehungsweise dem sichtbaren Namen `AhoiBrowser`.
-- Ein eigenstaendiger Core darf `AhoiMobileCore` heissen. Vorhandene Typen mit
-  stabilem Wire-Vertrag muessen nicht kosmetisch umbenannt werden, wenn das
-  Sync-Kompatibilitaet gefaehrdet.
-- Bewahre die Lesbarkeit vorhandener lokaler Companion-Snapshots. Implementiere
-  eine explizite, idempotente Migration mit Versionsmarker und Backup vor der
-  ersten Mutation.
-- Bestehende CloudKit-Record-Types, UUIDs, HLCs, Feldversionen, Tombstones und
-  kanonische JSON-Bytes bleiben kompatibel.
-- Entferne nach erfolgreicher Migration kein historisches Format, solange ein
-  Upgrade von der letzten Companion-Version noch unterstuetzt werden muss.
-- Es bleibt genau ein mobiles App-Produkt. Kein dauerhaftes paralleles
-  Companion-Bundle und kein zweiter aktiver Datenbestand.
-
-## Browser-Domaene
-
-Fuehre eine vom synchronisierten Baum getrennte Browser-Laufzeit ein:
-
-- `MobileTabID`: stabile UUID unabhaengig von WebKit-Objektidentitaeten;
-- `MobileTabRecord`: Workspace, Parent/Position, aktuelle URL, Titel, Favicon,
-  Erstellungs-/Aktivzeit, saved/temporary, normal/private, Restore-Metadaten und
-  optionaler Snapshot-Verweis;
-- `BrowserSessionController`: alleinige Autoritaet fuer aktive normale und
-  private Tabs, Auswahl, Navigation, Wiederherstellung und Memory Pressure;
-- `BrowserPageController`: genau eine WebKit-Seite samt beobachtbarem Zustand,
-  Progress, Titel, URL, Lade-/Fehlerstatus, Back/Forward und Dialogen;
-- `BrowserSessionStore`: atomare, versionierte Persistenz fuer normale
-  Tab-Sessions. Private Sessions existieren nur im Speicher;
-- `BrowsingHistoryWriter`: schreibt nur erlaubte Hauptframe-Navigationen in den
-  lokalen Ahoi-Verlauf und die bestehende Sync-Outbox;
-- `DownloadCoordinator`: uebergibt WebKit-Downloads an systemeigene APIs,
-  praesentiert Fortschritt/Fehler und speichert keine Downloadinhalte in
-  CloudKit;
-- `BrowserPermissionCoordinator`: zeigt Kamera, Mikrofon, Standort,
-  Zwischenablage, Popups und externe Schemes mit sichtbarem Ursprung und
-  sicherem Default;
-- `BrowserOpenURLRouter`: verarbeitet HTTP/HTTPS, Universal Links, Share Sheet,
-  App-Deep-Links und Default-Browser-Aufrufe; unbekannte/custom Schemes werden
-  nicht still ausgefuehrt.
-
-Ein synchronisierter `RemoteTab` ist eine Sicht auf einen Tab eines anderen
-Geraets. Er darf nicht als lokales WebKit-Laufzeitobjekt missbraucht werden.
-Lokale normale Mobile-Tabs werden aus der Browser-Laufzeit in den bestehenden
-Remote-Tab-Vertrag publiziert.
-
-## Informationsarchitektur und Ahoi-UI
-
-### iPhone
-
-- Die Webseite ist die primaere Flaeche.
-- Eine kompakte untere Navigationsleiste enthaelt Zurueck, eine kombinierte
-  Adress-/Sucheinstiegsflaeche, Tab-/Workspace-Einstieg und Mehr.
-- Tippen oder Herunterziehen auf die Adressflaeche oeffnet die zentrale
-  Ahoi-Befehlssuche als eigenes, ruhiges Sheet mit gedimmtem Hintergrund.
-- Die Suche priorisiert in dieser Reihenfolge: Eingabe als URL/Suche,
-  offene lokale Tabs, Workspace-/Baumtreffer, Verlauf, Geraete-Tabs und
-  Aktionen. Ergebnisse sind begrenzt, tastaturbedienbar und visuell eindeutig.
-- Der Tab-Switcher gruppiert nach Workspace, trennt saved und temporary,
-  bietet echte Close-/Undo-Aktionen und zeigt private Tabs nur im expliziten
-  privaten Modus.
-- Workspace-Wechsel sind mit horizontaler Geste moeglich, duerfen aber niemals
-  die normale Back/Forward-Webgeste abfangen. Konflikte werden durch klare
-  Startbereiche und Accessibility-Alternativen geloest.
-
-### iPad
-
-- Nutze eine kollabierbare Ahoi-Sidebar mit Workspaces, Baum, offenen Tabs und
-  Geraete-Tabs sowie dieselben Flush-/Abstands-/Farbprinzipien wie Desktop.
-- Unterstuetze Tastaturkuerzel und Pointer fuer neues Tab, Suche, Close,
-  Workspace-Wechsel, Zurueck/Vor, Reload und Sidebar.
-- Ein iPad-spezifischer Zwei-Pane-Modus ist erlaubt, wenn beide WebKit-Seiten
-  sichtbar, fokussierbar und speichersicher bleiben. Drei-/Vier-Pane-Desktop-
-  Layouts werden auf Mobile nicht imitiert; sie werden als klar dokumentierte
-  Plattformaequivalenz behandelt.
-
-### Visuelle Sprache
-
-- Uebernimm Ahoi-Tokens fuer System/hell/dunkel, Akzent, Workspace-Farbe,
-  Typografiehierarchie, Radien, Abstaende, Fokus und Fehlermeldungen.
-- Liquid Glass/Material ist Dekoration, keine Layoutabhaengigkeit. Reduzierte
-  Transparenz, erhoehter Kontrast, reduzierte Bewegung und Strom-/Memory-Druck
-  erhalten einen vollstaendigen opaken Fallback.
-- Nutze echte Favicons oder neutrale, konsistente Fallbacks; keine Emojis als
-  Ersatz fuer Produkticons.
-- Alle destruktiven Aktionen brauchen Undo oder eine passende Bestaetigung.
-
-## Funktionsumfang der oeffentlichen v1
-
-### Navigation und Seiten
-
-- URL- und Suchbegrifferkennung mit konfigurierbarer Suchmaschine;
-- HTTP und HTTPS, Back, Forward, Reload/Stop, Pull-to-Refresh;
-- Fortschritt, Ladefehler, Offlinezustand und Retry;
-- Link-Kontextmenue: neues Tab, neuer Workspace-Tab, privat oeffnen, kopieren,
-  teilen, Leseliste/speichern;
-- Seitensuche, Reader sofern WebKit sauber unterstuetzt, Desktop-/Mobile-Site,
-  Zoom/Textskalierung und Share Sheet;
-- JavaScript-Dialoge, neue Fenster/`target=_blank`, Datei-Upload,
-  Medienwiedergabe, Fullscreen und systemeigene Auth-Challenges;
-- Downloads mit Fortschritt, Abbruch, Teilen/Oeffnen und nachvollziehbaren
-  Fehlern;
-- externe App-Schemes nur nach sichtbarer User-Aktion und Bestaetigung.
-
-### Tabs, Workspaces und Baum
-
-- neues normales und privates Tab;
-- temporare und gespeicherte Tabs;
-- Tab umbenennen, speichern, verschieben, duplizieren, schliessen, Undo Close;
+# Zielprompt: AhoiBrowser Mobile – Apple-, CloudKit- und E2E-Abschluss
+
+> Autoritative Umsetzungs-, Konfigurations- und Abnahmespezifikation, Stand
+> 30. August 2026. Tatsächliche Portal-, Geräte- und Buildzustände sind vor
+> jeder Mutation erneut zu prüfen und mit zeitgestempelter Evidenz zu binden.
+
+## Rollenauftrag
+
+Du agierst als verantwortlicher Staff-iOS-Engineer, Apple-Release-Engineer,
+Security-Reviewer, Product-Designer und QA-Lead für **AhoiBrowser Mobile**.
+Arbeite die vorhandene iPhone-/iPad-App im kanonischen AhoiBrowser-Repository
+vollständig bis zum real nachgewiesenen Ergebnis aus. Dazu gehören Produkt- und
+UX-Angleichung, Architektur, Refactoring, Apple-Konfiguration, Signing,
+CloudKit, App Store Connect, TestFlight, physische Geräte, Dokumentation und
+Evidenz.
+
+AhoiBrowser Mobile ist eine eigenständige native Browser-App mit SwiftUI und
+Apples systemgeliefertem WebKit. Arc Search/Arc Mobile ist ein
+Interaktions- und Qualitätsmaßstab, kein zu kopierendes Produkt. Übernimm keine
+Marken, Texte, Grafiken, Animationen, Sounds oder pixelgenauen Oberflächen von
+Arc. Arc Desktop und die lokal installierte DisplayPilot-App dürfen zusätzlich
+als Apple-Signing-/Provisioning-Vergleich dienen; ihre Container, Profile,
+Schlüssel oder Sync-Architektur dürfen niemals für Ahoi wiederverwendet werden.
+
+Arbeite selbstständig und end to end. Ein vorhandener Codepfad, grüner Unit-Test,
+Simulator-Screenshot, erfolgreicher Upload oder gestellter Apple-Antrag ist
+jeweils nur die exakt bezeichnete Evidenzstufe und niemals Ersatz für die
+nächste Stufe. Wenn ein externer Apple- oder Human-Gate offen bleibt, schließe
+zuerst alle kontrollierbaren Arbeiten ab, dokumentiere den exakten Restzustand
+und schwäche keine Abnahmeregel ab.
+
+## Oberste Prioritäten und Entscheidungsregel
+
+Bei jedem Konflikt gilt diese Reihenfolge:
+
+1. Sicherheit, Datenschutz, Datenintegrität und korrekte Signatur;
+2. funktionale Korrektheit, Idempotenz, Recovery und Rückwärtskompatibilität;
+3. Apple-Plattformkonformität und Barrierefreiheit;
+4. native Bedienbarkeit, Stabilität, Energie- und Speicherverhalten;
+5. visuelle Qualität und erst danach zusätzliche Featurebreite.
+
+Reduziere bei Zeit-, Risiko- oder Plattformkonflikten den Funktionsumfang. Senke
+niemals Signing-, Privacy-, Sync-, Accessibility-, Test- oder Evidenzstandards,
+um einen Termin oder ein gewünschtes Label zu erreichen.
+
+## Verifizierte Laufzeitwahrheit zu Beginn
+
+Behandle folgenden Stand als Ausgangshypothese und verifiziere ihn vor der
+ersten Änderung erneut gegen Repository, Apple Developer Portal, App Store
+Connect und angeschlossene Geräte:
+
+- kanonisches Repository:
+  `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`;
+- maßgeblicher Remote-Stand beim Erstellen dieses Prompts: `origin/main` bei
+  `fbb18e4`; Implementierung nur in isoliertem, aktuellem Worktree;
+- bestehender nativer Kandidat unter `apps/AhoiMobile/`, Deployment Target
+  iOS/iPadOS 26.0, Swift 6 und WebKit;
+- Apple Team ID `248AJ5BN47`;
+- registrierte Multi-Platform App ID `app.ahoibrowser.AhoiBrowser`;
+- iCloud, CloudKit und Push sind an der App ID aktiviert;
+- der App ID ist noch kein iCloud-Container zugeordnet;
+- der einzige bereits vorhandene Container gehört DisplayPilot und darf nicht
+  verwendet werden;
+- für Ahoi ist der dedizierte Container
+  `iCloud.app.ahoibrowser.AhoiBrowser` anzulegen und ausschließlich den
+  geprüften Ahoi-App-IDs zuzuordnen;
+- Development-Signing und ein begrenzter physischer iPhone-Smoke funktionieren;
+  dieser Smoke ist jedoch an einen älteren Kandidaten `f4cf038…` gebunden und
+  kein vollständiger E2E-Pass des aktuellen Remote-Stands;
+- ein kompatibles physisches iPad mit iPadOS 26+ fehlt derzeit; ein vorhandenes
+  iPad mit iPadOS 17.7.10 kann den aktuellen Deployment Target nicht ausführen;
+- lokal sind Apple-Development- und Developer-ID-Application-Identitäten
+  vorhanden; das Fehlen eines lokalen Apple-Distribution-Zertifikats ist bei
+  Automatic/Cloud-Managed Signing nicht automatisch ein Blocker;
+- App Store Connect enthält noch keinen Ahoi-App-Datensatz;
+- vorbereitete Sollwerte: Plattform iOS, Name `AhoiBrowser`, Primärsprache
+  Deutsch, Bundle ID `app.ahoibrowser.AhoiBrowser`, SKU
+  `AHOIBROWSER-IOS`, Zugriff `Full Access`;
+- der Managed-Default-Browser-Status lautet noch `No Requests`;
+- Apple verlangt für die Prüfung dieses Managed Entitlements bereits eine
+  veröffentlichte App oder einen öffentlichen TestFlight-Link;
+- `https://ahoibrowser.org` löst derzeit nicht auf; bis eine dedizierte
+  öffentliche Produkt-/Supportseite existiert, ist das öffentliche Repository
+  `https://github.com/vossmedien/AhoiBrowser` die spezifischste vorhandene
+  Produktreferenz, sofern die jeweilige Apple-Maske sie akzeptiert;
+- App Store Connect meldet fehlenden EU-Trader-Status. Keine juristischen oder
+  personenbezogenen Angaben erfinden; dies ist separat vor öffentlichem
+  EU-Vertrieb zu klären und darf nicht fälschlich als technischer TestFlight-
+  Fehler beschrieben werden.
+
+Bestehende Simulator-, Unit- und UI-Test-Evidenz bleibt wertvoll, ersetzt aber
+nicht die unten verlangte, frisch an den finalen Commit, Build, Archive und die
+installierten Bits gebundene Matrix. Aktualisiere `config/product.json` und die
+externen Gate-Dateien erst nach Live-Nachweis; der aktuelle Status
+`provisional-unregistered` ist anschließend durch die verifizierte Wahrheit zu
+ersetzen. `config/test-registry.json` bleibt gemäß Repository-Vertrag der
+Anforderungskatalog mit `NOT_RUN`; kandidatgebundene Resultate werden separat
+unter `artifacts/e2e/<candidate>/` geführt und dürfen den Katalog nicht
+überschreiben.
+
+## Zielbild und Arc-Mobile-Vergleich
+
+### Übernehmen und als Benchmark messen
+
+- **Search first:** Neuer/leerer Tab fokussiert Suche und Navigation ohne
+  Zwischenmenüs; automatischer Tastaturfokus bleibt konfigurierbar.
+- **Thumb first:** Häufige Aktionen liegen auf dem iPhone in der unteren
+  Daumenzone und haben mindestens 44 × 44 pt große Ziele.
+- **Content first:** Die Webseite dominiert; Browser-Chrome kollabiert
+  kontrolliert und stellt Ursprung, Ladezustand, Privatsphäre und Fehler sofort
+  wieder vollständig dar.
+- **Schneller Tabwechsel:** Tap öffnet Tabs, Long-Press öffnet
+  Workspaces/Mediathek, horizontaler Flick kann durch letzte Tabs wechseln,
+  ohne WebKit-Back/Forward-Gesten zu blockieren.
+- **Ruhige Suche:** URL/Suche, offene Tabs, Workspaces, Verlauf, Geräte-Tabs und
+  Aktionen sind begrenzt, typisiert und per Tastatur/VoiceOver bedienbar.
+- **Eindeutiges Private Browsing:** Privat ist schon vor der ersten Navigation
+  durch Text, Symbol und Material eindeutig und hinterlässt keine automatische
+  Session-, Verlaufs-, Such-, Snapshot-, Sync- oder Geräte-Tab-Spur. Vom Nutzer
+  ausdrücklich exportierte, geteilte oder heruntergeladene Dateien bleiben als
+  bewusste Systemartefakte möglich und werden nicht heimlich gelöscht.
+- **Native Alltagsqualität:** Linkvorschau, Pull-to-refresh, Share Sheet,
+  Downloads, Uploads, Auth, Medien, Reader/Übersetzung soweit sauber
+  systemgestützt sowie Default-Browser-Aufrufe wirken wie iOS/iPadOS und nicht
+  wie eine Desktop-Verkleinerung.
+
+### Nicht übernehmen
+
+- keine Arc-Marke, keine fremden Assets und kein pixelgenauer Klon;
+- kein verpflichtender AI-Antwortdienst wie Browse for Me;
+- kein Arc-Account und keine von Arc abgeleitete Sync-Architektur;
+- kein stilles Auto-Archivieren oder Löschen; Aufräumen nur opt-in mit Vorschau
+  und Undo;
+- kein Zertifikats-Bypass, kein stilles Öffnen fremder Apps und kein eigener
+  Netzwerk-, TLS-, Cookie- oder Rendering-Stack;
+- kein breiter Ad-/Tracker-/Cookie-Banner-Blocker in dieser Welle, solange
+  Lizenz-, Privacy-, Review- und Extension-Grenzen nicht separat gelöst sind.
+
+### Ahois bewusster Mehrwert
+
+- local-first Browser ohne Konto- oder Cloud-Zwang;
+- verschlüsselte bidirektionale Mac–iPhone–iPad-Replikation normaler Tabs,
+  Workspaces und Baumzustände;
+- stabile IDs, HLCs, Tombstones und konfliktfeste Reihenfolge;
+- signierte Remote-Aktionen wie „Auf Mac öffnen“, „Fokussieren“ und nur nach
+  Bestätigung „Schließen“;
+- keine Produkttelemetrie;
+- echte adaptive iPad-Oberfläche mit Sidebar, Tastatur und Pointer.
+
+## Verbindliche Designsynthese
+
+Es ist keine weitere Richtungswahl nötig. Implementiere die folgende
+zusammenhängende Ahoi-Sprache:
+
+1. **Harbor Deck – aktives Browsing auf dem iPhone**
+   - Webseite als dominante Fläche;
+   - kompakte, sicher kontrastierende Bottom-Bar mit Zurück, kombinierter
+     Adress-/Sucheinstiegsfläche, Tab-/Workspace-Einstieg und Mehr;
+   - beim Scrollen verdichtet, bei Aufwärtsscrollen, Fokus, Navigation, Fehler,
+     Permission oder Privatstatus wieder vollständig verständlich;
+   - ruhiges gruppiertes Browser-Control-Center statt langer abgeschnittener
+     Aktionsliste.
+2. **Focus Voyage – neuer und privater Tab**
+   - sofort fokussierbare URL-/Befehlssuche;
+   - lokale Top Sites nur aus erlaubten normalen Daten;
+   - klare Workspace-Zuordnung und optionaler Keyboard-Autofokus;
+   - privater Zustand in tiefem Ink/Graphit mit sparsamem Violett, Schutzsymbol
+     und explizitem Text, ohne Arc-Magenta-Kopie.
+3. **Workspace Canvas – iPad und Regular Width**
+   - persistente, kollabierbare Sidebar für Workspaces, Baum, offene Tabs und
+     Geräte-Tabs;
+   - Detailfläche für die aktive Website;
+   - Unterstützung von Stage Manager, Split View, Rotation, Hardwaretastatur
+     und Pointer;
+   - ein optionaler Zwei-Pane-Webmodus erst nach Speicher-/Fokusnachweis; keine
+     imitierte Drei-/Vier-Pane-Desktopansicht.
+
+### Designsprache
+
+- Charakter: ruhig, maritim, warm, präzise, eigenständig und content-first;
+- warme System-Neutrals statt kaltem Vollweiß;
+- Ahoi-Orange nur für primäre Aktionen und Markenmomente;
+- maritime Blau-/Petroltöne und Workspace-Farben als Strukturakzente;
+- Systemtypografie mit Dynamic Type, klarer Hierarchie und ohne feste
+  Textbreiten;
+- 8-pt-Raster, 16–20 pt Seitenabstand auf iPhone, 20–28 pt auf iPad;
+- mindestens 44 × 44 pt Touchziele und sicherer Abstand zwischen destruktiven
+  und positiven Aktionen;
+- kompakte Controls mit 10–14 pt, Karten/Sheets mit 18–28 pt Radius, konsistent
+  aus bestehenden Ahoi-Tokens abgeleitet;
+- Material/Blur nur für kurze Chrome-/Sheet-Überlagerungen; bei Reduce
+  Transparency vollständig opak;
+- Zustand nie allein durch Farbe ausdrücken; normale/private, lokal/remote,
+  saved/temporary, online/offline und Auswahl brauchen Form, Symbol oder Text;
+- 180–240 ms für direkte, abbrechbare Standardübergänge; Reduce Motion erhält
+  Crossfades ohne Informationsverlust;
+- Haptik nur bei tatsächlichem Zustandswechsel;
+- ausschließlich SF Symbols oder geprüfte vorhandene Ahoi-Assets, keine Emojis,
+  Unicode-Piktogramme oder aus Mockups ausgeschnittene Bedienelemente.
+
+### ImageGen-2-Layout- und Prüfphase
+
+Nutze bei der Umsetzung ImageGen 2 beziehungsweise das aktuelle integrierte
+ImageGen mit Use Case `ui-mockup`, um die festgelegte Synthese zu prüfen – nicht
+um erneut zwischen Produktkonzepten wählen zu lassen.
+
+- Label jede Eingabe explizit, zum Beispiel „Referenz A: aktueller iPhone-
+  Kandidat“, „Referenz B: aktueller iPad-Kandidat“, „Referenz C: Ahoi Desktop-
+  Tokens“. Beschreibe die Rolle jeder Referenz.
+- Promptstruktur: intended use, Gerät/Viewport, Informationshierarchie,
+  Zustände, Material/Farbe/Typografie, Accessibility-Varianten und ausdrücklich
+  verbotene Elemente.
+- Board 1 zeigt dieselben realistischen Inhalte auf dem iPhone in vier Zuständen:
+  aktive Website/Harbor Deck, Focus Voyage, Tab-/Workspace-Übersicht und Privat.
+- Board 2 zeigt iPad Regular Width mit Workspace Canvas, aktiver Website,
+  Sidebar, Suche und Pointer-/Keyboard-Fokus.
+- Optionales Board 3 legt iPhone/iPad nebeneinander und prüft Token-,
+  Komponenten- und Zustandskonsistenz.
+- Nutze die bestehenden Referenzen unter
+  `docs/design/2026-08-30-mobile-directions/` und aktualisiere sie nur mit
+  nachvollziehbarer Build-/Promptbindung.
+- Generierte Bilder sind Layoutreferenzen. Texte, Icons, Browserinhalt,
+  Abstände und Accessibility müssen im echten SwiftUI-Build neu konstruiert und
+  gemessen werden.
+- Übernimm kein generiertes Bitmap als Produktionsicon oder UI-Text. Ausgewählte
+  Referenzen müssen in den kanonischen Workspace kopiert, versioniert und mit
+  Prompt/Seed beziehungsweise verfügbarer Generationsmetadaten dokumentiert
+  werden; nichts darf nur in einem temporären Generationsordner verbleiben.
+- Vergleiche Implementierung und Board anschließend bei identischen Viewports
+  visuell. Das echte Gerät und die Accessibility-Abnahme entscheiden, nicht die
+  Ähnlichkeit eines Screenshots allein.
+
+## Funktionsmigration vom Desktop
+
+### Jetzt migrieren beziehungsweise fertigstellen
+
+- URL-/Befehlssuche über lokale normale Tabs, Workspaces, Baum, erlaubten
+  Verlauf, Geräte-Tabs und sichere Aktionen;
+- normale und private Tabs, saved/temporary, Close/Undo, Restore und
+  Memory-Pressure-Recovery;
 - Workspaces/Ordner/Seiten anlegen, umbenennen, sortieren, verschieben und
-  tombstone-sicher loeschen;
-- Session Restore normaler Tabs nach Prozessende/Crash;
-- sichere Degradation, wenn eine Seite nicht restauriert werden kann;
-- Memory-Pressure-Discard inaktiver Seiten mit URL/Titel/Snapshot-Erhalt und
-  transparentem Reload bei Reaktivierung;
-- keine Phantom-, Doppel- oder falschen Workspace-Tabs.
+  tombstone-sicher löschen;
+- normale Mobile-Tabs und erlaubten Verlauf publizieren;
+- Geräte-Tabs öffnen, Link an Mac, signiertes Öffnen/Fokussieren und bestätigtes
+  Remote-Schließen;
+- Verlauf, Downloads, Share Sheet, Website-Suche, Suchmaschinen-, Appearance-,
+  Sync- und sichere Website-Daten-Einstellungen;
+- iPhone-Mediathek/Sheet und iPad-Sidebar als plattformgerechte Entsprechung der
+  Desktop-Sidebar.
 
-### Suche und Verlauf
+### Mobil übersetzen statt kopieren
 
-- gemeinsame lokale Suche ueber Workspaces, Baum, lokale normale Tabs,
-  erlaubten Verlauf und normale Geraete-Tabs;
-- Suchdaten verlassen das Geraet nur als ausdrueckliche Navigation zur
-  gewaehlten Suchmaschine;
-- Verlauf anzeigen, durchsuchen, einzelne/zeitliche Eintraege loeschen und die
-  konfigurierte Retention anwenden;
-- private oder nicht erlaubte Navigationen gelangen nie in Index/Verlauf/Sync.
+- Desktop `Cmd+T` wird Focus Voyage/Befehlssuche;
+- Hover-Aktionen werden Swipe-/Context-Actions mit Undo und VoiceOver-
+  Alternativen;
+- Workspace-Gesten beginnen nur in konfliktfreien Bereichen und verdrängen
+  keine WebKit-Navigation;
+- komplexe Baumoperationen erhalten klare Sheets und Edit-Modi;
+- Desktop-Splits werden höchstens zu einem speichersicheren iPad-Zwei-Pane-
+  Modus.
 
-### Desktop- und Geraeteintegration
+### Nach stabilem Kern bewerten
 
-- alle bisherigen Companion-Funktionen bleiben innerhalb der Browser-App
-  erreichbar;
-- Link an konkreten Mac/Workspace senden;
-- normalen Mac-Tab signiert oeffnen, fokussieren und nach Bestaetigung schliessen;
-- normale Mac-/iPhone-/iPad-Tabs lokal filtern und im eigenen Mobile-Browser
-  oeffnen;
-- lokale Mobile-Tab-Aktivitaet wird mit richtigem Geraetetyp, Workspace und
-  Freshness publiziert;
-- keine Remote-Aktion auf veraltete, widerrufene, private oder ungueltige Tabs.
+- Reader, Übersetzung, Picture-in-Picture, Handoff/NSUserActivity;
+- Share Extension, Spotlight, Home-/Lock-Screen-Widgets;
+- opt-in Tab-Aufräumen mit Vorschau und Undo;
+- Split-Webansicht auf iPad.
 
-### Default Browser und Systemintegration
+### Bewusst nicht migrieren
 
-- Registriere HTTP-/HTTPS-Handling und alle von Apple geforderten
-  Default-Browser-Contracts.
-- Fordere das Managed Default Browser Entitlement fuer das finale Bundle an;
-  ein Antrag ist kein erteiltes Entitlement.
-- Verarbeite Kaltstart, Warmstart und bereits laufende Szene fuer externe
-  HTTP-/HTTPS-URLs idempotent und ohne leeres Doppel-Tab.
-- Unterstuetze mehrere iPad-Szenen nur mit einer expliziten Session-Autoritaet;
-  andernfalls deaktiviere Mehrfenster ehrlich.
-- Universal Links, Handoff/NSUserActivity, Share Extension und Spotlight sind
-  optionale Folgefunktionen und duerfen v1 nicht destabilisieren.
+- Chromium-/Desktop-DevTools;
+- Header-, CSP-, CORS- oder Zertifikatseditoren;
+- Little-Arc-Fenster oder drei-/viergeteilte Desktop-Splits;
+- Chromium/Blink oder ein alternatives Browser-Engine-Entitlement.
 
-## Datenschutz und Sicherheit
+## Browser-, Daten- und Sync-Architektur
+
+- Nutze ausschließlich Apples systemgeliefertes WebKit. Bevorzugt sind WebKit
+  for SwiftUI `WebView`/`WebPage`; eine schmale testbare `WKWebView`-Bridge ist
+  nur für nachgewiesene Vertragslücken erlaubt.
+- WebKit bleibt alleinige Autorität für Rendering, Netzwerk, TLS, Cookies,
+  Website-Storage, HTTP-Auth, Permissions, Medien, Uploads und Downloads. Baue
+  keinen parallelen Browserstack.
+- `MobileBrowserController` bleibt alleinige lokale Autorität für Tab-, Page-,
+  Auswahl-, Restore- und Session-Lebenszyklus. Views mutieren weder Persistenz
+  noch CloudKit noch WebKit-Stores direkt.
+- `LocalFirstRepository` bleibt Domänenautorität. `CloudKitSyncProvider`
+  transportiert Änderungen, entscheidet aber nicht eigenmächtig über
+  Domänenzustand, Konflikte oder UI.
+- Ein synchronisierter `RemoteTab` ist niemals eine lokale WebKit-Instanz.
+- Normale Workspaces teilen einen persistenten `WKWebsiteDataStore`, damit
+  Logins nicht versehentlich getrennt werden.
+- Private Tabs nutzen ausschließlich einen nicht persistenten Store und werden
+  konstruktiv aus Restore, Verlauf, Index, Snapshot, Sync, Remote Command,
+  Crash-Evidenz und Logs ausgeschlossen.
+- URL-, Scheme-, Origin-, External-App-, Download- und Permission-Entscheidungen
+  laufen durch zentrale, fail-closed Policies.
+- Lokale Persistenz ist versioniert und atomar. Migrationen besitzen
+  unveränderliches Backup, Versionsmarker, Readback und idempotenten No-op-
+  Zweitlauf.
+- Stabile IDs sind unabhängig von SwiftUI-/WebKit-Objektidentität.
+- Wire v1 bleibt lesbar. Wire v2, kanonische Bytes, HLC-Semantik, Record-Typen,
+  Tombstones und Reihenfolge werden nur durch eine explizit versionierte,
+  golden-getestete Migration verändert.
+- Für CloudKit ausschließlich `CKSyncEngine`; keine versteckten Polling-
+  Schleifen oder parallele Sync-Implementierung.
+- Verschlüsselte Nutzpayloads werden ausschließlich über
+  `CKRecord.encryptedValues` geschrieben. Querybare Klartextfelder enthalten
+  nur minimierte, nicht sensitive Routing-, Versions- und Konfliktmetadaten.
+  Diese Grenze ist durch Record-Inspection in Development und Production zu
+  belegen.
+
+## Verbindliche Code- und Repository-Konventionen
+
+- Lies vor Änderungen `CONTRIBUTING.md`, `docs/PRODUCT_PRINCIPLES.md`,
+  `docs/ARCHITECTURE.md` und relevante ADRs vollständig.
+- `apps/AhoiMobile/project.yml` ist die alleinige Quelle für Targets,
+  Build-Konfigurationen und generierte Xcode-Projektstruktur. XcodeGen muss
+  deterministisch sein; eine zweite Regeneration ohne Eingabeänderung ist ein
+  No-op.
+- Swift 6 und `SWIFT_STRICT_CONCURRENCY=complete` gelten für App, Core und Tests.
+- UI, `WebPage` und Presenter liegen auf `@MainActor`; Stores, Migration, Sync,
+  Index und Dateizugriff sind Actors oder nachweislich isolierte `Sendable`-
+  Typen.
+- Kein neues `@unchecked Sendable` ohne enge Apple-API-Grenze, schriftlichen
+  Synchronisationsbeweis und fokussierten Race-Test.
+- Kein `Task.detached`, kein versteckter Timer, kein globaler veränderlicher
+  Singleton und keine unstrukturierte Nebenläufigkeit.
+- Abhängigkeiten werden über Protokolle/Initialisierer injiziert; Tests verwenden
+  deterministische Clocks, UUIDs, Stores und Provider.
+- Kein stilles `try?` an Navigation, Persistenz, Migration, Signing, Keychain,
+  Sync, Download, Permission oder Security Boundary. Fehler sind lokalisiert,
+  handlungsfähig und observierbar, ohne Secrets zu loggen.
+- Produktionsstrings liegen ausschließlich im String Catalog auf Deutsch und
+  Englisch; keine Satzverkettung und keine sichtbaren Fixture-/Debug-Texte.
+- VoiceOver, Dynamic Type, Full Keyboard Access, Switch Control, Pointer,
+  Reduce Motion, Reduce Transparency, Increase Contrast und Differentiate
+  Without Color sind Produktanforderungen, keine spätere Politur.
+- Keine neue Dependency ohne begründete Notwendigkeit, gepinnte Version,
+  Lizenz-, Privacy-, Security- und Wartungsprüfung.
+- Keine Secrets, privaten Schlüssel, Zertifikatsexporte, Provisioning Profiles,
+  App-Store-Connect-API-Keys, Cookies, Browserdaten oder echte Kundendaten in
+  Git, Logs oder Evidenz. Team-, Bundle- und Container-IDs sind öffentliche
+  Konfiguration und dürfen versioniert werden.
+- Jeder Ahoi-eigene Quelltext einschließlich Tests hat **höchstens 800
+  physische Zeilen**. Dies ist ein harter Repository-Vertrag, kein Zielwert.
+- Vor einem grünen Repository-Gate sind mindestens die folgenden für die
+  Mobile-Welle zentralen übergroßen Dateien entlang kohärenter
+  Verantwortlichkeiten zu zerlegen:
+  - `CloudKitSyncProvider.swift`;
+  - `MobileBrowserController.swift`;
+  - `CompanionStore.swift`;
+  - `AhoiMobileBrowserView.swift`;
+  - `CompanionSyncBridge.swift`;
+  - `CompanionAppModel.swift`;
+  - `CompanionCoreTests.swift`.
+- Die Liste ist nicht exhaustiv. Sämtliche Ahoi-eigenen Dateien, die
+  `python3 tools/source_line_budget.py` auf dem unmittelbar vor Integration
+  aktuellen Remote-Stand meldet – einschließlich C++/Objective-C++, Python und
+  Repository-Tests außerhalb von Mobile – müssen vor einem behaupteten grünen
+  Repository-Gate ebenfalls verantwortungsbasiert unter 800 Zeilen liegen.
+- Keine bloße Zeilenverschiebung: extrahiere Modelle, Policies, Mapper,
+  Persistenzadapter, Sync-Phasen, View-Komponenten und Test-Helpers mit jeweils
+  einer Hauptverantwortung und eigener Testabdeckung.
+- Commits sind klein, thematisch und enthalten `git commit -s`/DCO-Sign-off.
+  Keine fremden Dirty-Worktree-Änderungen übernehmen, verwerfen oder verstecken.
+
+## Apple-Konfiguration als Source of Truth
+
+### Öffentliche Kennungen
+
+| Zweck | Sollwert |
+|---|---|
+| Apple Team | `248AJ5BN47` |
+| iOS/iPadOS Bundle ID | `app.ahoibrowser.AhoiBrowser` |
+| CloudKit Container | `iCloud.app.ahoibrowser.AhoiBrowser` |
+| App Store Name | `AhoiBrowser` |
+| Primärsprache | Deutsch |
+| SKU | `AHOIBROWSER-IOS` |
+| CloudKit Record Type | `AhoiSyncRecord` |
+| Custom Zone | `AhoiBrowserSyncZone` |
+| Subscription ID | `AhoiBrowserSyncSubscription` |
+
+Bundle-, Container- und Teamwerte werden einmalig in einer geprüften
+versionierten Konfiguration definiert und nicht als widersprüchliche Literale
+über Projektdatei, Plists und Skripte verteilt. `config/product.json`,
+xcconfigs, Entitlements, Release-Preflight und Dokumentation müssen dieselbe
+Live-Wahrheit ausdrücken.
+
+### Portal-Automation und menschliche Grenzen
+
+- Nutze für read-only Prüfung und Routinekonfiguration vorhandene authentisierte
+  Apple-/Xcode-Sitzungen und Computer Use, statt den Nutzer durch bekannte
+  Masken klicken zu lassen.
+- Zeige vor jeder eigenständig repräsentativen oder schwer reversiblen Apple-
+  Mutation einen kompakten Aktionsplan mit Team ID, Zielobjekt, Änderung,
+  Nicht-Zielen und Rückweg und hole dafür eine aktionsnahe Bestätigung ein.
+  Getrennte Bestätigungsgrenzen sind mindestens: Container/App-ID-
+  Konfiguration, App-Store-Connect-App-Datensatz, CloudKit-Production-Promotion,
+  externe Beta-Review/öffentlicher TestFlight-Link, Managed-Entitlement-Antrag
+  und öffentlicher App-Store-Release. Fasse sie nicht irreführend als einen
+  vollständig reversiblen Batch zusammen.
+- Innerhalb eines bestätigten, exakt abgegrenzten Schritts führe Routinefelder,
+  Profile-Refresh, Upload, Readback und Evidenz selbstständig zu Ende, solange
+  Portalzustand und Zielwerte dem bestätigten Plan entsprechen.
+- Stoppe nur bei Passworteingabe, 2FA, neuen Verträgen, Steuer-/Bankangaben,
+  personenbezogener Trader-Erklärung, rechtlicher Export-Compliance-
+  Attestierung, Zahlung, Löschung/Ersetzung oder öffentlicher App-Store-
+  Veröffentlichung. Formuliere dann genau die eine benötigte Nutzeraktion.
+- Erfinde keine personenbezogenen, rechtlichen oder Review-Antworten. Eine
+  öffentliche Veröffentlichung benötigt zusätzlich eine ausdrückliche
+  Release-Freigabe.
+- Erzeuge keinen App-Store-Connect-API-Key nur für einen Upload. Verwende
+  Xcode/Organizer mit dem vorhandenen Account; ein späterer Automation-Key muss
+  separat genehmigt, minimal privilegiert und außerhalb des Repositories
+  verwahrt werden.
+
+### Reihenfolge im Apple Developer Portal
+
+1. Team `248AJ5BN47`, Rollen, App ID und aktuelle Capabilities live prüfen.
+2. Namens-/Identifier-Kollision für
+   `iCloud.app.ahoibrowser.AhoiBrowser` prüfen.
+3. Dedizierten Ahoi-iCloud-Container anlegen; DisplayPilot-Container niemals
+   zuordnen oder umbenennen.
+4. Den neuen Container der Ahoi-App-ID zuordnen; iCloud/CloudKit und Push
+   weiterhin aktiviert lassen.
+5. Den realen App-Identifier-Prefix aus Profil und signierten Entitlements
+   ableiten; nicht ungeprüft mit der Team ID gleichsetzen. Daraus stabile,
+   getrennte Ahoi-Keychain-Access-Groups für Sync-Payload und Remote Commands
+   definieren.
+6. Keychain-Sharing nach Least Privilege konfigurieren: Die Sync-Payload-Gruppe
+   ist für Mobile und Mac gemeinsam; Command-Private-Key-Gruppen erhalten nur
+   Targets, die tatsächlich Commands signieren. Der Mac erhält eine solche
+   Gruppe nur bei implementierten ausgehenden Mac-Commands. Validatoren prüfen
+   pro Plattform die exakte erlaubte Teilmenge; richtige Gruppe positiv sowie
+   zusätzliche/falsche Gruppe negativ testen.
+7. Development-Profiles über Automatic Signing neu erzeugen/aktualisieren und
+   Entitlements im gebauten Produkt sowie eingebetteten Profil vergleichen.
+8. Für CloudKit Development einen Apple-Development-signierten Mac-Build mit
+   passendem Development-Profil und Development-Environment erzeugen.
+9. Für den direkten macOS-Production-Build ein eigenes passendes Developer-ID-
+   Provisioning Profile mit derselben Ahoi-Containerberechtigung erstellen.
+   Developer-ID-Signierung, Provisioning und Notarisierung sind drei getrennte
+   Nachweise.
+10. Die aktuell CloudKit verbietende macOS-Entitlement-Allowlist bewusst und
+    eng in `config/macos-entitlements.json` sowie
+    `tools/verify_macos_entitlements.py` erweitern; die beiden Ahoi-CloudKit-
+    Templates im Chromium-Overlay bleiben Source of Truth. Positive und
+    absichtlich falsche Container-/Gruppen-Fixtures müssen den Validator
+    bestehen beziehungsweise fail-closed scheitern.
+11. Erst nach Apple-Grant Profile mit Managed Default Browser Entitlement neu
+   erzeugen. Das Entitlement vorher nicht in ein Profil oder Archive erzwingen.
+
+### Fünf explizite Signing-/Build-Modi
+
+Ersetze den heutigen zirkulären Release-Vertrag durch klar benannte,
+fail-closed Konfigurationen:
+
+1. **DebugLocal**
+   - provider-freier lokaler/Simulator-Build ohne CloudKit-Container,
+     Production-Keys, Push oder Default-Browser-Entitlement;
+   - muss auch ohne Apple-Account, Profile und private Konfiguration
+     reproduzierbar bauen und testen;
+   - keine leeren Platzhalter dürfen zur Laufzeit fälschlich CloudKit aktivieren.
+2. **CloudKitDevelopment**
+   - Apple Development/Automatic Signing;
+   - CloudKit `Development`, APNs `development`;
+   - dedizierter Ahoi-Container und geprüfte Development-Keychain-Gruppen;
+   - bereits **vor** dem Managed-Default-Browser-Grant für echten CloudKit-
+     Development-E2E nutzbar;
+   - kein `com.apple.developer.web-browser`.
+3. **TestFlightBootstrap**
+   - Apple Distribution über Automatic/Cloud-Managed Signing bevorzugt;
+   - CloudKit `Production`, APNs `production`, Production-Keychain-Vertrag;
+   - **kein** Default-Browser-Entitlement;
+   - App-Store-Connect-Export, externer TestFlight und öffentlicher Link
+     erlaubt; `testFlightInternalTestingOnly` fehlt oder ist `false`.
+4. **DefaultBrowserDevelopment**
+   - erst nach dokumentiertem Apple-Grant;
+   - Apple Development, CloudKit `Development`, APNs `development` und Managed
+     Entitlement für direkte post-grant Gerätetests;
+   - eigenes frisches Profil; keine semantische Mutation von
+     `CloudKitDevelopment`.
+5. **ReleasePostGrant**
+   - erst nach dokumentiertem Apple-Grant;
+   - Apple Distribution, neue Buildnummer, frisches Profil, frisches Archive
+     und Production CloudKit/APNs;
+   - `com.apple.developer.web-browser=true` muss in
+     `DefaultBrowserDevelopment` und `ReleasePostGrant` jeweils im Source-
+     Entitlement, signierten Produkt und eingebetteten Profil übereinstimmen;
+   - niemals ein Bootstrap-Archive nachträglich umsignieren oder als
+     post-grant Candidate umetikettieren.
+
+Passe `project.yml`, xcconfigs, Entitlement-Dateien, ExportOptions und
+`release-preflight.sh` an diese Modi an. Der Preflight prüft den gewählten Modus
+und darf nicht für jeden `Release` blind das noch nicht erteilte
+Default-Browser-Entitlement verlangen. Automatic/Cloud-Managed Signing ist der
+bevorzugte Weg; manuelle Profile sind nur dokumentierter Fallback. Eine lokale
+Apple-Distribution-Identität darf nicht voreilig als Voraussetzung behauptet
+werden.
+
+## CloudKit-, Schlüssel- und Recovery-Vertrag
+
+### Entwicklungs- und Produktionsreihenfolge
+
+1. App und Desktop auf denselben dedizierten Ahoi-Container, private database
+   und Custom Zone konfigurieren.
+2. Development-Schema ausschließlich mit synthetischen Daten initialisieren.
+3. Auf mindestens zwei realen Ahoi-Installationen den vollständigen Roundtrip
+   prüfen: Create, Update, Delete/Tombstone, Reihenfolge, Offline-Outbox,
+   Wiederverbindung, Konflikt, Accountwechsel, Zoneverlust und Recovery.
+4. Negative Evidenz erbringen: Cookies, Passwörter, Autofill, Site Storage,
+   Permissions, Downloads, HTTP-Auth, private Tabs und Keychain-Secrets tauchen
+   weder in Records noch Logs auf.
+5. Zusätzlich jeden Record prüfen: verschlüsselte Nutzpayload nur in
+   `encryptedValues`; querybare Klartextfelder nur für genehmigte, minimierte
+   Routing-/Versions-/Konfliktmetadaten.
+6. Schema und Indizes überprüfen; keine temporären/Debug-Felder promoten.
+7. Erst nach Development-Abnahme das CloudKit-Schema kontrolliert nach
+   Production deployen. Die Promotion ist eine bewusste externe Mutation mit
+   Vorher-/Nachher-Evidenz.
+8. Mobile Production ausschließlich über einen verarbeiteten
+   TestFlightBootstrap-Build testen; der Mac-Gegenpart verwendet den separat
+   signierten, Developer-ID-provisionierten und notarisierten Production-Build.
+   Development-Erfolg ist kein Production-Nachweis.
+9. Nach post-grant Archive den Production-Roundtrip erneut ausführen und
+   sicherstellen, dass Buildmodus/Entitlement den Syncvertrag nicht verändern.
+
+### Push-, Hintergrund- und Reconciliation-Vertrag
+
+- CKSyncEngine-Push auf physischen Geräten in Vordergrund und Hintergrund
+  prüfen. Nach OS-/Jetsam-Termination ist Wiederaufnahme best effort und wird
+  separat beobachtet. Nach explizitem User-Force-Quit wird kein Push-Pass
+  erwartet; Konvergenz muss nach manuellem Relaunch über begrenzte Foreground-
+  Reconciliation erfolgen.
+- Deaktivierte sichtbare Notifications, ausbleibender/verspäteter Push,
+  Netzwerkwechsel und Retry müssen durch eine begrenzte Foreground-
+  Reconciliation konvergieren.
+- Kein verstecktes Polling und kein periodischer Fünf-Minuten-Timer als Ersatz
+  für CKSyncEngine-Ereignisse.
+- Diese Matrix einmal in CloudKit Development und erneut mit Mobile-
+  TestFlight-Production plus Developer-ID-Mac-Production ausführen.
+
+### Kryptografischer Schlüsselvertrag
+
+- Nutzdaten bleiben mit AES-256-GCM verschlüsselt; Key-Version, Rotation,
+  Recovery und Widerruf sind explizit und getestet.
+- Beim ersten ausdrücklichen Sync-Opt-in erzeugt das erste Gerät genau einmal
+  kryptografisch sicher einen AES-Payload-Key, aber nur wenn nach verifiziertem
+  Readback noch keine verschlüsselten Remote-Daten beziehungsweise bestehende
+  Key-Version existieren.
+- Sichere parallele First-Opt-ins durch einen atomaren Bootstrap-Claim in der
+  Custom Zone ab. Claim enthält nur Key-Version, nicht sensibles Fingerprint-
+  und Konfliktmetadatum, niemals den Rohschlüssel, und wird mit serverseitiger
+  Create-/Change-Tag-Bedingung geschrieben. Genau ein Gerät gewinnt; erst nach
+  Server-Readback dieses Gewinners dürfen Domain-Records entstehen. Verlierer
+  verwerfen ihren unpublizierten Kandidaten und wechseln in Join/Waiting.
+- Teste zwei zeitgleich erstmals aktivierte Geräte deterministisch end to end;
+  sie müssen ohne Split-Key, Doppelbootstrap oder Datenüberschreibung
+  konvergieren.
+- Existieren Remote-Daten ohne lokal verfügbaren passenden Key, darf niemals
+  still ein neuer Key erzeugt oder Remote-Inhalt überschrieben werden. Die App
+  zeigt einen klaren Join-/Waiting-/Pairing-/Recovery-Zustand.
+- Weitere Geräte erhalten den Payload-Key nur über den überprüften
+  synchronisierbaren Keychain-/Pairing-Vertrag. Kein Rohschlüssel in CloudKit,
+  UserDefaults, Logs, Fixtures oder Git.
+- Bereits extern provisionierte Payload-Keys werden über eine versionierte,
+  readback-geprüfte und idempotente Migration übernommen; keine automatische
+  Rotation während der Migration.
+- Jedes Gerät erzeugt beim ersten Pairing einen eigenen Ed25519-Private-Key,
+  speichert ihn nicht synchronisierbar und möglichst `ThisDeviceOnly` und
+  publiziert nur den Public Key über den genehmigten Pairing-/CloudKit-Vertrag.
+- Join, Waiting, Migration, Rotation, Widerruf, Geräteentzug und verlorener Key
+  brauchen sichtbare Produktzustände sowie reale Cross-Device-E2E-Fälle.
+- Rotation unterstützt eine explizit begrenzte Übergangszeit mit alter und
+  neuer Key-Version, re-encrypted Daten und anschließendem Widerruf; ein
+  Neuinstallations-/Geräteverlustfall darf weder still überschreiben noch
+  dauerhaft in einer unauflösbaren Ladeansicht hängen.
+- Verlorener, rotierter oder widerrufener Schlüssel führt fail-closed zu einem
+  sichtbaren Recovery-Zustand, nicht zu stiller Neuerzeugung mit Datenverlust.
+- Accountwechsel und Zoneverlust dürfen lokale Daten nicht ungefragt löschen;
+  jeder destruktive Recovery-Schritt braucht Vorschau, Backup und bewusste
+  Bestätigung.
+
+## App Store Connect, TestFlight und Default Browser
+
+### App-Datensatz und Metadaten
+
+1. App-Datensatz mit den festgelegten Werten erstellen und Zugriff prüfen.
+2. Versions-/Buildnummern monoton und an Commit/Archive binden.
+3. App-Name, Subtitle, Beschreibung, Keywords, Kategorie, Altersfreigabe,
+   Copyright, Support-/Marketing-/Privacy-URLs, Review Notes und Kontaktangaben
+   vollständig und wahrheitsgemäß pflegen.
+4. Eine belastbare öffentliche Ahoi-Produkt-, Support- und Privacy-Seite
+   spätestens vor externer Beta, öffentlichem TestFlight-Link und Managed-
+   Entitlement-Antrag bereitstellen. Falls Apple bis dahin das öffentliche
+   Repository akzeptiert, diesen konkreten Formular-/Review-Nachweis festhalten
+   und nicht aus bloßer Erreichbarkeit ableiten.
+5. Privacy Manifest/Required-Reason APIs gegen den tatsächlichen Binärcode und
+   alle Dependencies prüfen. App-Privacy-Angaben aus realem Datenfluss ableiten.
+   Der aktuelle Manifeststand deklariert Browsing History, Search History,
+   Other User Content und Device ID als unlinked/non-tracking App
+   Functionality; dies gegen den finalen Build verifizieren und alte pauschale
+   Aussagen „no collected data“ entfernen.
+6. Export Compliance wegen TLS und eigener AES-/Ed25519-Nutzung fachlich
+   dokumentieren und die Apple-Fragen korrekt beantworten; keine pauschale
+   Freistellung raten.
+7. Beta-Review-Informationen, Testhinweise und gegebenenfalls Demoablauf
+   hinterlegen. EU-Trader-Status separat durch die berechtigte Person klären.
+
+### Verbindliche TestFlight-/Entitlement-Reihenfolge
+
+1. `TestFlightBootstrap` ohne Default-Browser-Entitlement archivieren.
+2. Signatur, embedded profile, Production-CloudKit-Entitlements, Hash,
+   Commit-SHA und Buildnummer lokal prüfen.
+3. Mit Xcode Organizer hochladen und Processing abwarten.
+4. Intern über TestFlight auf exakt diesem Build installieren und die
+   releasekritischen Journeys auf iPhone und kompatiblem iPad ausführen.
+5. Externe Testgruppe konfigurieren, Beta App Review bestehen und einen
+   **öffentlichen TestFlight-Link** aktivieren. Ein nur interner Build reicht für
+   den Managed-Entitlement-Antrag nicht.
+6. Unmittelbar vor dem Antrag Apples aktuelle offizielle Default-Browser-
+   Anforderungen erneut prüfen und als Antragsevidenz abhaken: browserfähige
+   Startoberfläche, direkte URL/Suche, WebKit statt `UIWebView`, HTTP-/HTTPS-
+   Deklaration und Routing, Info.plist/Privacy Keys, Kalt-/Warm-/Hintergrund-
+   Verhalten sowie exakte Profil-/Bundle-Bindung.
+7. Managed Default Browser Entitlement für
+   `app.ahoibrowser.AhoiBrowser` beantragen; Produktreferenz und öffentlicher
+   TestFlight-Link verwenden. Einen Antrag als `REQUESTED`, nicht als
+   `GRANTED`, dokumentieren.
+8. Nach tatsächlichem Grant App ID/Profile aktualisieren, neue Buildnummer
+   vergeben, `ReleasePostGrant` frisch archivieren und hochladen.
+9. Verarbeiteten post-grant Build über TestFlight neu installieren. Prüfe in den
+   aktuellen Systemeinstellungen die Auswahl als Standardbrowser und öffne
+   HTTP-/HTTPS-Links aus mindestens Mail/Notizen sowie einer Dritt-App bei
+   Kaltstart, Warmstart, Hintergrundzustand und Weiterleitung innerhalb der
+   expliziten Single-Scene-Autorität. Mehrszenen erst nach bewusster
+   Implementierung und eigener Session-Ownership-Migration testen.
+10. Kein leerer Doppel-Tab, kein verlorener Link, kein falscher privater Modus,
+   keine ungefragte externe App und keine falsche URL-Normalisierung.
+11. Öffentliche App-Store-Einreichung oder Release erst nach separater
+    ausdrücklicher Nutzerfreigabe; TestFlight-Freigabe ist keine Store-
+    Releasefreigabe.
+
+## Datenschutz und Security
 
 - Keine Produkttelemetrie, Usage-Pings oder automatischen Crash-Uploads.
-- Kein Google-Browserkonto und kein Chrome Sync.
-- Cookies, Passwoerter, Autofill, Site Storage, Permissions, Downloadinhalte,
-  HTTP-Auth-Zugangsdaten, Header-Secrets, private Tabs und Extension Storage
-  werden nie in Ahoi CloudKit geschrieben.
-- CloudKit bleibt default-off, local-first, private database, custom zone und
-  verschluesselte Payload.
-- Accountwechsel, Zoneverlust, Keyverlust und physische Deletes bleiben
-  fail-closed und benoetigen die vorhandenen ausdruecklichen Recovery-Gates.
-- URL-Validierung lehnt Userinfo, unsichere Remote-Befehls-Schemes,
-  `javascript:`, `data:`, `file:` und willkuerliche Custom Schemes an allen
-  Sync-/Command-Grenzen ab.
-- Private WebKit-Daten werden beim Verlassen des privaten Modus verworfen.
-- Website-Ursprung ist in Permission-, Download-, Auth- und External-App-
-  Dialogen immer sichtbar.
-- Aktualisiere Threat Model, Privacy Policy, App Privacy Angaben und
-  Datenflussdokumentation vor TestFlight.
+- CloudKit ist opt-in/default-off und der Browser bleibt offline/local-first
+  voll nutzbar.
+- Synchronisiert werden nur explizit erlaubte normale Domänenobjekte. Nie:
+  Cookies, Credentials, Autofill, Website Storage, Permissions, Downloads,
+  Header-Secrets, HTTP-Auth, private Tabs oder Keychain-Material.
+- Private Website-Daten werden beim Schließen der gesamten privaten Session
+  verworfen. Mehrere gleichzeitig offene private Tabs dürfen den gemeinsam
+  genutzten nonpersistent Store bis zum Ende dieser Session benötigen.
+- Userinfo, `javascript:`, `data:`, `file:` und beliebige Custom Schemes werden
+  an Navigation-, Sync- und Remote-Command-Grenzen fail-closed behandelt.
+- Der Ursprung ist in Permission-, Auth-, Download- und External-App-Dialogen
+  sichtbar.
+- Remote Commands prüfen Signatur, Freshness, Device Trust, erlaubte Aktion,
+  Zielobjekt und Replay-Schutz. Destruktives Remote-Schließen erfordert
+  sichtbare Bestätigung.
+- Threat Model, Privacy Policy, Datenfluss, Retention und Apple App Privacy
+  werden vor TestFlight anhand des realen Builds aktualisiert.
 
-## Barrierefreiheit, Sprache und Bedienung
+## Performance-, Energie- und Lebenszyklusbudgets
 
-- Vollstaendige VoiceOver-Namen, Werte, Hinweise, Rotor-Reihenfolge und
-  dynamische Statusankuendigungen fuer Navigation, Ladefortschritt, Tabs,
-  Workspace und Dialoge.
-- Dynamic Type bis zu Accessibility-Groessen ohne abgeschnittene Kernaktionen.
-- Mindest-Touchflaechen, Switch Control, Full Keyboard Access, Pointer und
-  reduzierte Bewegung.
-- Deutsche und englische Strings ausschliesslich ueber String Catalogs; keine
-  produktionssichtbaren Hardcodes.
-- URLs, Domains und sicherheitsrelevante Meldungen bleiben verstaendlich und
-  werden nicht durch dekorative UI verdeckt.
+- Vor UI-/Controller-Optimierungen auf repräsentativen Geräten eine reproduzierbare
+  Baseline für Cold Launch, Warm Launch, erste Navigation, Tabwechsel,
+  Workspace-Wechsel, Speicher bei 1/5/20 normalen und privaten Tabs,
+  Discard/Restore, Idle-Energie, Background-Laufzeit und Wakeups erfassen.
+- Vor der Implementierung messbare akzeptierte Regressionsgrenzen pro Metrik
+  festlegen und im kandidatgebundenen Evidenzmanifest versionieren. Nachträglich
+  verschobene Budgets brauchen Begründung und Review.
+- Die erste Browserfläche wartet nicht auf CloudKit, Favicon-Netzwerk oder eine
+  nicht notwendige Migration. Background-Sync bleibt ereignisgetrieben und
+  begrenzt.
+- Auf dem finalen Kandidaten dieselben Messungen mit identischen Fixtures und
+  Gerätezuständen wiederholen; Mittelwert und Ausreißer/p95 dokumentieren und
+  jede Überschreitung beheben oder als expliziten Release-Gate behandeln.
 
-## Performance- und Lebenszyklusbudgets
+## Umsetzungsreihenfolge
 
-- Kaltstart mit lokalem Datensatz ohne CloudKit-Abhaengigkeit.
-- Erste Browserflaeche darf nicht auf Sync, Favicon-Netzwerk oder Migration
-  warten.
-- Nur aktive/kurz zuvor verwendete Seiten bleiben live; bei Memory Pressure
-  werden Hintergrundseiten kontrolliert freigegeben.
-- Keine fuenfminuetigen Timer im Vordergrund, wenn CKSyncEngine bereits
-  geeignete Ereignisse liefert; periodischer Fallback muss suspendierbar sein.
-- Tab-Switch und Workspace-Wechsel bleiben bei realistischem Bestand flussig.
-- Favicon-, Snapshot- und Suchindizes haben klare Groessen-/Retention-Limits.
-- Miss Kaltstart, Warmstart, erste Navigation, Tab-Switch, Memory nach
-  1/5/20 Tabs und Energie im Idle auf mindestens einem echten iPhone und iPad.
+### Phase 0 – Isolation, Baseline und Vertragsreparatur
 
-## Verbindliche Reihenfolge der Umsetzung und Verifikation
+1. Branch, Remotes, Dirty Worktree, Stashes und fremde Änderungen prüfen.
+2. Von aktuellem `origin/main` einen isolierten Worktree verwenden.
+3. Vor CPU-intensiven Arbeiten prüfen, ob ein AhoiBrowser-/Chromium-Build mit
+   `ninja`, `autoninja`, `siso`, `gn` oder Compiler/Linker in `out/AhoiDev`
+   aktiv ist. Eigene CPU-intensive Arbeit bei Start eines solchen Builds nur
+   über ihre exakt ermittelten PIDs pausieren/beenden und später inkrementell
+   fortsetzen.
+4. Zielprompt, Product Config, externe Gates, Testanforderungskatalog und
+   Dokumentation gegen Live-Wahrheit abgleichen. Statusresultate nicht in
+   `config/test-registry.json`, sondern kandidatgebunden unter `artifacts/e2e/`
+   führen.
+5. Zirkulären Signing-/Export-/Preflight-Vertrag in die fünf Buildmodi
+   aufteilen.
+6. Mindestens die sieben genannten Mobile-Swift-Dateien und darüber hinaus jede
+   vom aktuellen `tools/source_line_budget.py` gemeldete Ahoi-Quelldatei
+   verantwortungsbasiert unter das harte 800-Zeilen-Limit bringen, ohne
+   Verhalten oder Wire-Kompatibilität zu ändern.
 
-### Phase 0 - Baseline und sichere Migration
+### Phase 1 – kleinster belastbarer Browsing-Slice
 
-1. Dirty Worktree, Branch, Remotes und laufende Ahoi-Chromium-Builds pruefen.
-2. In isolierter Branch/Worktree arbeiten und fremde Aenderungen erhalten.
-3. Zielprompt, Status und Plattformziel iOS/iPadOS 26 vereinheitlichen.
-4. Companion-Code inventarisieren und wiederverwendbare Core-/UI-Teile
-   markieren.
-5. App-/Core-Migration plus lokale Datenmigration implementieren.
+Erst diesen vertikalen Pfad stabilisieren und sichtbar prüfen:
 
-### Phase 1 - kleinster sichtbarer Browser-Slice
+`Kaltstart → Adresse/Suche → HTTPS-Seite → Zurück/Vor/Reload → neues Tab →
+Tabwechsel → Close/Undo → Prozess beenden → normales Restore`
 
-Implementiere zuerst genau den vertikalen Weg:
+Behebe Crash, Blank Screen, Doppel-Tab, verlorene Navigation, falsche
+Workspace-Zuordnung und Restore-Fehler vor zusätzlicher Breite.
 
-`Start -> Adresse/Suche -> Webseite -> Zurueck/Vor/Reload -> neues Tab ->
-Tab wechseln -> App beenden -> normales Tab wiederherstellen`.
+### Phase 2 – Designsynthese und Kernjourneys
 
-Erst wenn dieser Slice kompiliert, wird er sichtbar getestet. Keine breite
-Testsuite vor dieser sichtbaren Kontrolle.
+1. Die bereits vorhandenen anonymisierten PNG-Referenzen unter
+   `docs/design/2026-08-30-mobile-directions/` als autoritative lokale
+   Layoutbasis verwenden. Neue ImageGen-Boards nur bei einer konkret ungelösten
+   Layoutfrage erzeugen und versionieren; ein noch nicht vollständig
+   synchronisierter Figma-Abschnitt darf die lokalen Referenzen nicht
+   überschreiben.
+2. Harbor Deck, Focus Voyage und Workspace Canvas mit Ahoi-Tokens umsetzen.
+3. Suche, Tabs, Workspaces/Mediathek, Privat, Control-Center und iPad-Sidebar
+   visuell sowie accessibility-seitig schließen.
+4. P1-Gesten nur ergänzen, wenn sie WebKit-, VoiceOver- und Reduced-Motion-
+   Verhalten nicht verschlechtern.
+5. Reale Fixtures für Auth, Popup, Upload, Download, Medien, Permission,
+   Offline und externe Schemes nutzen; keine ausschließlich kosmetische Demo.
 
-### Phase 2 - User Tests zuerst
+### Phase 3 – lokale und Simulator-Gates
 
-Fuehre mit frischem Profil zuerst sichtbare, reale Bedienpfade aus und bewahre
-Screenshots/Video/Notizen mit Buildbindung:
+1. Policy-, Model-, Migration-, Key-, Wire- und Tombstone-Unit-Tests.
+2. Controller-/Repository-/CloudKit-Integration mit deterministischen Fakes.
+3. Xcode-UI-Tests für Kernjourneys und Accessibility-Identifier.
+4. Small/large iPhone und iPad in Compact/Regular Width, Hell/Dunkel, große
+   Dynamic-Type-Stufen, Reduce Motion/Transparency und erhöhten Kontrast.
+5. XcodeGen-No-op, Source-Line-Budget, Secret Scan, DCO, `git diff --check`,
+   statische Analyse und kompletter Repository-Vertrag.
 
-- `MOB-USER-01`: Kaltstart, URL eingeben, reale HTTPS-Seite laden;
-- `MOB-USER-02`: Suchbegriff, Ergebnis, Back/Forward/Reload;
-- `MOB-USER-03`: drei Tabs anlegen, wechseln, schliessen, Undo, Restore;
-- `MOB-USER-04`: Workspace wechseln und Seite speichern/verschieben;
-- `MOB-USER-05`: privates Tab, normaler/private Modus visuell eindeutig,
-  nach Schliessen keine Restore-/Verlaufsspur;
-- `MOB-USER-06`: externe HTTP-/HTTPS-URL bei Kalt-/Warmstart;
-- `MOB-USER-07`: Datei-Upload, Download, Teilen und `target=_blank`;
-- `MOB-USER-08`: Permission- und External-App-Dialog mit sichtbarem Ursprung;
-- `MOB-USER-09`: Rotation, Dynamic Type, VoiceOver und Reduced Motion;
-- `MOB-USER-10`: iPad Sidebar, Tastatur, Pointer und optional Zwei-Pane;
-- `MOB-USER-11`: Offline, Prozesskill, Memory Pressure und Restore;
-- `MOB-USER-12`: Mac-/Mobile-Geraete-Tabs und Link an Mac;
-- `MOB-USER-13`: unerlaubte Schemes/Remote-Aktionen werden erklaert abgewiesen;
-- `MOB-USER-14`: 1/5/20 Tabs ohne Phantom-/Doppeltabs;
-- `MOB-USER-15`: visuelle Ahoi-Konsistenz in hell/dunkel, hoher Kontrast und
-  reduzierte Transparenz.
+### Phase 4 – Apple Development und CloudKit Development
 
-Simulator-Evidenz ist als `SIMULATOR_VISIBLE` zu kennzeichnen. `DEVICE_VISIBLE`
-und `ASSISTED_E2E` erfordern eine frisch installierte, exakt gebundene App auf
-echter Hardware.
+1. Die jeweils separat bestätigten Portal-Konfigurationen ausführen.
+2. Development-Profile refreshen und signierten `CloudKitDevelopment`-Build
+   auf physischem iPhone installieren. Parallel einen Apple-Development-
+   signierten Mac mit Development-Profil und Development-Environment
+   bereitstellen; dies ist nicht der Developer-ID-Production-Pfad.
+3. Verfügbare physische iPads inventarisieren und ein bereits autorisiertes
+   kompatibles Gerät mit iPadOS 26+ registrieren. Kein Gerät kaufen oder externe
+   Hardwareorganisation voraussetzen. Falls keines existiert, alle
+   kontrollierbaren Arbeiten abschließen und `PHYSICAL_IPAD_REQUIRED` als
+   exakten externen Gate dokumentieren.
+4. Alle auf diesem pre-grant Kandidaten ausführbaren `MOB-USER-*` und
+   `IOS-01` bis `IOS-15` auf dem exakten Build ausführen. `MOB-USER-06` und
+   `IOS-04` bleiben ausdrücklich `NOT_RUN`/extern entitlement-blockiert; ihre
+   Quellen-, Routing- und Negativtests dürfen diesen Gerätepass nicht ersetzen.
+5. Mac und Mobile gegen CloudKit Development samt Offline, Konflikt,
+   Tombstone, Key-/Account-/Zone-Recovery und Privacy-Negativbeweis testen.
+6. Die beiden im provider-freien Lauf dokumentiert entitlement-bedingt
+   übersprungenen CloudKit-Tests in einem dedizierten signierten Testtarget mit
+   `AHOI_CLOUDKIT_TEST_ENTITLED=1` real ausführen. Kein releasekritischer Skip
+   darf im finalen Kandidaten offen bleiben.
+7. Das Schema nach erfolgreicher CloudKit-/Key-/Push-Development-Matrix
+   promoten. Offene, sachlich unabhängige UI-/Hardwarejourneys sind ehrlich zu
+   dokumentieren, aber nicht als künstliche Voraussetzung der Schema-Promotion
+   zu behandeln.
 
-### Phase 3 - fokussierte programmatische Tests
+### Phase 5 – TestFlightBootstrap und öffentlicher Test
 
-Erst nach dem ersten sichtbaren User-Pass:
+1. Mobile-Production-Archive ohne Default-Browser-Entitlement und separat den
+   Developer-ID-provisionierten/notarisierten Mac-Production-Build erzeugen.
+2. Archive/Export/Signatur/Profile/Entitlements/Hash/Commit belegen.
+3. App Store Connect Record und Metadaten vervollständigen, Upload verarbeiten.
+4. Internen TestFlight-Build auf iPhone und iPad installieren und E2E wiederholen.
+5. Externe Beta Review, öffentliche Testgruppe und öffentlichen Link abschließen.
+6. Production-CloudKit-Roundtrip mit den installierten TestFlight-Bits belegen.
 
-- Unit-Tests fuer URL-/Suchrouting, Tabzustand, Sessionmigration,
-  saved/temporary, private Filter, Restore, Reihenfolge und Undo;
-- Tests fuer lokale History-/RemoteTab-Publikation und Ausschlussklassen;
-- Tests fuer Kalt-/Warmstart-Deep-Links und Doppel-Tab-Vermeidung;
-- UI-Tests fuer Navigation, Tab-Switcher, Workspace, private UI,
-  Accessibility-Identifier und Fehlerdialoge;
-- Golden-/Konvergenztests fuer unveraenderte CloudKit-Wire-Bytes;
-- Test der Migration von realistischen Companion-Snapshots und no-op rerun;
-- deterministische Fake-/Fixture-Seiten fuer Auth, Popup, Download, Upload,
-  Media, Permission und Offline.
+### Phase 6 – Managed Entitlement und finaler Kandidat
 
-### Phase 4 - breite Gates
+1. Antrag mit öffentlichem TestFlight-Link stellen und Status nachvollziehen.
+2. Nach Grant neue Profile und Buildnummer erzeugen.
+3. Frisches post-grant Archive erstellen, verarbeiten und über TestFlight
+   installieren.
+4. Default-Browser-Systemauswahl und HTTP-/HTTPS-Handling end to end auf
+   physischem iPhone und iPad prüfen.
+5. Dabei `MOB-USER-06` und `IOS-04` erstmals real ausführen und anschließend
+   die komplette `MOB-USER-*`-/`IOS-*`-Matrix für den finalen Kandidaten
+   wiederholen.
+6. Vollständige Regression, Upgrade-/Migration, CloudKit Production,
+   Accessibility, Performance und Privacy-Negativbeweis erneut ausführen.
 
-- kompletter Swift-Package-Testlauf;
-- iPhone- und iPad-Simulator-Builds in Debug und Release;
-- statische Analyse, Concurrency-Warnungen, String-/Privacy-/Entitlement-Audit;
-- bestehende Repository-, CloudKit- und Companion/jetzt-Mobile-Gates;
-- keine Chromium-Vollsuite fuer reine Mobile-Aenderungen, sofern keine
-  Chromium-Sync-Grenze geaendert wurde;
-- bei Ahoi-Chromium-Buildaktivitaet keine konkurrierende CPU-intensive Suite.
+### Phase 7 – Abschluss und optionaler öffentlicher Release
 
-### Phase 5 - signierte Geraete- und CloudKit-E2E-Welle
+1. Dokumentation und externe Gate-Registry auf belegte Zustände aktualisieren;
+   `config/test-registry.json` bleibt unveränderter Anforderungskatalog mit
+   `NOT_RUN`, Resultate liegen im kandidatgebundenen E2E-Evidenzmanifest.
+2. Fokuscommits mit DCO pushen; vor Integration Remote-SHA erneut vergleichen.
+3. Lokale/self-hosted Gates verwenden. GitHub-hosted Jobs, die wegen Billing
+   null Schritte ausführen, nicht wiederholen oder als grün bezeichnen.
+4. Öffentliche Store-Einreichung/Veröffentlichung nur nach ausdrücklicher
+   Releasefreigabe; danach Store-Build installieren und kritischen Smoke erneut
+   belegen.
 
-- finale Bundle IDs, Team, CloudKit-Container, Keychain-Gruppen und Profile;
-- signierter Development-/Ad-Hoc-Build auf echtem iPhone und iPad;
-- reale Mac-Mobile-CloudKit-Online/Offline/Konflikt/Tombstone/Recovery-Welle;
-- bisherige `IOS-01` bis `IOS-15` real ausfuehren und Evidenz binden;
-- neue `MOB-USER-01` bis `MOB-USER-15` auf echter Hardware wiederholen;
-- Default-Browser-Entitlement und Systemauswahl real verifizieren;
-- Archive erzeugen, exportieren, installierte Bits gegen Archive hashen und
-  Crash-/Log-/Privacy-Evidenz sichern.
+## Verbindliche End-to-End-Matrix
 
-### Phase 6 - TestFlight und Release
+### Repository und Build
 
-- App Store Connect Record, Signing, Privacy Manifest, App Privacy,
-  Screenshots, Altersfreigabe, Export Compliance und Review Notes;
-- interner TestFlight-Build mit exakter Buildnummer und Commitbindung;
-- Upgrade von der letzten Companion-Version mit Backup/Migration/no-op proof;
-- TestFlight-Journeys auf mindestens einem iPhone und iPad;
-- verbleibende externe Apple-/Review-Gates ehrlich als Blocker dokumentieren;
-- kein `RELEASE_PASS`, bevor Build, Archive, Upload, Processing, Installation
-  und Journeys real belegt sind.
+- `git diff --check`;
+- `python3 tools/source_line_budget.py`;
+- `./scripts/test-repository.sh`;
+- DCO- und Secret-Scan;
+- `xcodegen generate --spec apps/AhoiMobile/project.yml` aus geeignetem
+  Arbeitsverzeichnis und deterministischer No-op-Zweitlauf;
+- Swift 6 Strict-Concurrency-Compile ohne neue Warnungen;
+- DebugLocal-, CloudKitDevelopment-, TestFlightBootstrap-,
+  DefaultBrowserDevelopment- und ReleasePostGrant-Preflights jeweils mit
+  positiven und absichtlich negativen Fixtures;
+- provider-freier Standardlauf darf die zwei entitlement-abhängigen CloudKit-
+  Tests nur explizit/dokumentiert skippen; das signierte Testtarget führt sie
+  mit `AHOI_CLOUDKIT_TEST_ENTITLED=1` aus;
+- iPhone-/iPad-Simulator Debug und Release sowie `xcodebuild analyze`.
 
-## Abnahmematrix
+Fokussierte Referenzbefehle dürfen an den realen Workspace angepasst werden:
 
-Nutze folgende Evidenzstufen strikt:
+```bash
+cd apps/AhoiMobile
+xcodegen generate --spec project.yml
+cd ../..
+git diff --check
+python3 tools/source_line_budget.py
+./scripts/test-repository.sh
+swift test --package-path spikes/cloudkit --jobs 1 --disable-index-store
+swift test --package-path apps/AhoiMobile --jobs 1 --disable-index-store
+xcrun simctl list devices available -j
+xcrun devicectl list devices
+```
 
-- `SOURCE_COMPLETE`: Quellcode und Dokumentation vorhanden;
-- `LOCAL_BUILD_PASS`: lokaler Compile-/Link-Pass;
-- `SIMULATOR_VISIBLE`: frisch installierter Simulatorbuild sichtbar geprueft;
-- `UNIT_PASS` / `INTEGRATION_PASS`: exakt benannte Suiten mit Exit 0;
-- `DEVICE_VISIBLE`: frisch installierter, buildgebundener Geraetepass;
-- `ASSISTED_E2E_PASS`: reale Accounts, CloudKit, physische Aktion und
-  anschliessende technische Verifikation;
-- `ARCHIVE_PASS`: `.xcarchive`/Export samt Signatur, Entitlements und Hash;
-- `TESTFLIGHT_PASS`: verarbeiteter Build real ueber TestFlight installiert;
-- `RELEASE_PASS`: alle releasekritischen Gates einschliesslich Default Browser,
-  Datenschutz und Upgrade erfuellt.
+Führe `xcodebuild test` und `xcodebuild analyze` mit explizitem Scheme,
+Configuration, Destination/UDID und abgeleitetem Datenpfad aus. Speichere
+Exitcode, Toolchain, Zielgerät und `.xcresult`; ein generisches Beispiel ist
+keine ausgeführte Evidenz.
 
-Keine Stufe impliziert automatisch die naechste.
+### Sichtbare Browserjourneys
 
-## Commit-, Integrations- und Liefervertrag
+- `MOB-USER-01`: AhoiBrowser Mobile kalt starten, URL eingeben, HTTPS-
+  Navigation und sichtbare Origin-Zuordnung im aktiven WebKit-Tab prüfen;
+- `MOB-USER-02`: Suchbegriff eingeben, konfigurierten Suchanbieter öffnen und
+  Ergebnisnavigation mit Zurück, Vor, Neu laden und Stop ohne Doppelload
+  bedienen;
+- `MOB-USER-03`: normale Tabs anlegen, wechseln, umordnen, umbenennen, schließen,
+  per Undo wiederherstellen und die Session nach Beenden/Kaltstart konsistent
+  restaurieren;
+- `MOB-USER-04`: aktive Seite in Workspace speichern, zwischen Workspaces
+  verschieben und aus Baum, Suche und Browser erneut öffnen;
+- `MOB-USER-05`: private Tabs teilen genau einen flüchtigen WebKit-Datenspeicher,
+  bleiben vom normalen persistenten Store getrennt und erscheinen weder in
+  Session, Verlauf, Suche, Sync noch Geräte-Tabs; Ausschluss auch nach
+  Prozess-Tod belegen;
+- `MOB-USER-06`: externe HTTP(S)-Links über die registrierte Default-Browser-
+  Rolle sicher routen: einen leeren normalen aktiven Tab wiederverwenden,
+  andernfalls genau einen neuen normalen Tab erzeugen, niemals eine aktive
+  geladene Seite oder einen privaten Tab überschreiben und mehrfach
+  zugestellte Callbacks deduplizieren;
+- `MOB-USER-07`: echten File-Provider-Upload, normale/private authentifizierte
+  Downloads, Fortschritt, Abbruch, Quick Look, Teilen und `target=_blank` mit
+  korrekter Origin-, Tab- und Datenschutz-Zuordnung bedienen;
+- `MOB-USER-08`: Kamera-/Mikrofonberechtigung originbezogen erlauben, ablehnen
+  und abbrechen,
+  JavaScript-/Dateiauswahl-Dialoge dem auslösenden WebKit-Tab zuordnen und
+  externe App-Schemes erst nach Bestätigung öffnen;
+- `MOB-USER-09`: Portrait/Landscape, Dynamic Type, VoiceOver, hoher Kontrast
+  sowie reduzierte Bewegung/Transparenz auf echtem Gerät durchgängig bedienen;
+- `MOB-USER-10`: iPad-Sidebar, Multitasking, Rotation, Hardwaretastatur,
+  Pointer, Tab-Reorder und Workspace-Wechsel auf echtem iPad prüfen;
+- `MOB-USER-11`: Offline-, TLS-, Renderer-/WebContent-, Speicher- und
+  Prozessabbruchfälle sowie Background/Termination und unvollständigen Download
+  auslösen; lokale Daten, Session-Restore und deterministische verständliche
+  Wiederaufnahme prüfen;
+- `MOB-USER-12`: normale Tabs und Workspace-Änderungen zwischen signiertem Mac
+  und echtem iPhone/iPad über den finalen CloudKit-/Keychain-Vertrag abgleichen;
+  private Daten bleiben ausgeschlossen;
+- `MOB-USER-13`: unsichere, lokale, skriptbasierte, credentialtragende und
+  unbekannte Schemes ablehnen; erlaubte externe Schemes zeigen vor Übergabe
+  Origin und Ziel;
+- `MOB-USER-14`: mit 1, 5 und 20 normalen sowie privaten Tabs Navigation,
+  Wechsel, Umordnung, Discard/Speicherabbau, Session-Speicherung und
+  Wiederherstellung ohne Phantomtabs prüfen;
+- `MOB-USER-15`: visuelle/interaktive Konsistenz auf iPhone/iPad,
+  normal/privat, Hell/Dunkel, Website-Tint/Fallback und allen unterstützten
+  Barrierefreiheitsmodi prüfen.
 
-- Kleine, thematisch fokussierte Commits mit Tests/Evidenzhinweisen.
-- Keine fremden Dirty-Worktree-Aenderungen committen oder verwerfen.
-- Branch und Remote-SHA vor Merge/Push vergleichen.
-- Nach jeder CPU-intensiven Phase erneut auf Ahoi-Chromium-Buildaktivitaet
-  pruefen und eigene Prozesse bei neuem Ahoi-Build gezielt pausieren/beenden.
-- GitHub-hosted Actions mit Billing-/Zero-step-Grenze nicht verwenden oder
-  endlos wiederholen; lokale Gates und vorhandene Self-hosted Runner bevorzugen.
-- Implementierung, Tests, Dokumentation und Evidenz gemeinsam pushen.
-- Am Ende exakt berichten: umgesetzt, lokal gebaut, sichtbar im Simulator,
-  sichtbar auf Geraet, CloudKit-E2E, Archive, TestFlight, Release sowie jeder
-  verbleibende externe/manual Gate.
+### Bestehende Companion-/Remote-Journeys
+
+- `IOS-01`: Workspaces, Baum, Tabs und Verlauf auf realem iPhone/iPad
+  durchsuchen;
+- `IOS-02`: gespeicherte Seite und Ordner anlegen;
+- `IOS-03`: Baumknoten verschieben, umbenennen und löschen; am Mac gegenprüfen;
+- `IOS-04`: Link im ausgewählten System-Standardbrowser öffnen;
+- `IOS-05`: Link an bestimmten Mac und Workspace senden;
+- `IOS-06`: normalen Mac-Tab remote öffnen;
+- `IOS-07`: normalen Mac-Tab remote fokussieren;
+- `IOS-08`: normalen Mac-Tab nach Bestätigung schließen;
+- `IOS-09`: Offline-Command und TTL prüfen;
+- `IOS-10`: `queued/delivered/executed/failed` prüfen;
+- `IOS-11`: Replay über Neustart hinweg abweisen;
+- `IOS-12`: falsches Zielgerät und ungültige Signatur abweisen;
+- `IOS-13`: Gerätefreigabe und Geräteentzug;
+- `IOS-14`: private Tabs bleiben unsichtbar und unsteuerbar;
+- `IOS-15`: beliebige Custom Schemes, Shellbefehle und Massenaktionen abweisen.
+
+### Geräte, Sync und Distribution
+
+- exakter Development-Candidate auf physischem iPhone;
+- exakter Development-Candidate auf kompatiblem physischem iPad iPadOS 26+;
+- vollständige bestehende `IOS-01` bis `IOS-15` Matrix;
+- vollständige `SYNC-01` bis `SYNC-27` Matrix mit zwei signierten Macs und
+  mindestens einem realen iPhone/iPad;
+- Mac–iPhone–iPad CloudKit Development mit Apple-Development-signiertem Mac und
+  passendem Development-Profil;
+- Developer-ID-signierter, passend provisionierter und notarisiert geprüfter
+  Mac-Production-Build; installierte Runtime erneut gegen Entitlements,
+  Container und tatsächlichen Sync prüfen;
+- Privacy-Negativprüfung der CloudKit-Records und Logs;
+- CloudKit Production über verarbeiteten TestFlightBootstrap-Build;
+- lokales Archive gebunden an Source SHA, Buildnummer, Signatur, Profil,
+  Entitlements und eigenen Hash;
+- intern installierter TestFlightBootstrap-Build sowie externer Build mit
+  aktivem öffentlichem TestFlight-Link;
+- Default-Browser-Antrag und tatsächlicher Grant als getrennte Zustände;
+- post-grant TestFlight-Installation und Default-Browser-E2E auf iPhone/iPad;
+- Upgrade von der letzten unterstützten Companion-/Mobile-Version mit Backup,
+  Migration, Readback und No-op-Zweitlauf;
+- öffentlicher Release-Smoke nur falls separat freigegeben.
+
+## Evidenzstufen
+
+- `SOURCE_COMPLETE`: Code/Dokumentation vorhanden;
+- `LOCAL_BUILD_PASS`: exakt benannter Compile-/Link-Pass;
+- `UNIT_PASS` / `INTEGRATION_PASS`: benannte Suite mit Exit 0;
+- `SIMULATOR_VISIBLE`: frisch installierter Simulatorbuild sichtbar geprüft;
+- `DEVICE_VISIBLE`: frisch installierter, buildgebundener physischer Pass;
+- `ASSISTED_E2E_PASS`: reale Accounts/CloudKit/physische Aktion plus technische
+  Readback-Evidenz;
+- `ARCHIVE_PASS`: `.xcarchive`/Export mit Signatur, Profil, Entitlements, Hash
+  und Commitbindung;
+- `TESTFLIGHT_INTERNAL_PASS`: verarbeiteter interner Build installiert;
+- `TESTFLIGHT_PUBLIC_PASS`: externe Beta freigegeben und öffentlicher Link aktiv;
+- `DEFAULT_BROWSER_REQUESTED`: Antrag eingereicht;
+- `DEFAULT_BROWSER_GRANTED`: Apple-Grant nachgewiesen;
+- `DEFAULT_BROWSER_E2E_PASS`: post-grant TestFlight-Build als Systemdefault auf
+  physischem iPhone und iPad vollständig geprüft;
+- `RELEASE_PASS`: alle releasekritischen Gates inklusive Upgrade, Datenschutz,
+  Production Sync und gegebenenfalls Store-Installation erfüllt.
+
+Keine Stufe impliziert automatisch die nächste. Jede Evidenz enthält Datum,
+Commit, Buildnummer, Konfiguration, Gerät/OS, Installationsquelle, relevante
+Hashes, erwartetes Ergebnis, tatsächliches Ergebnis und Artefaktpfad. Screenshots
+allein beweisen weder Persistenz noch Sync, Security oder Binärprovenienz.
+TestFlight kann thinnen, verschlüsseln und neu signieren; verlange daher keine
+Bytegleichheit mit dem lokalen Archive. Binde die Installation stattdessen über
+App-Store-Connect-Build-ID, Version/Build, Bundle ID, Team, Receipt,
+Installationsquelle und Processing-Metadaten an den Upload.
+
+Implementiere dafür `tools/verify_mobile_release_evidence.py` als Mobile-
+spezifischen maschinenlesbaren Evidenzvalidator, der
+mindestens `.xcresult`, Gerät/OS, Source SHA, Archive, lokale Hashes,
+App-Store-Connect-Build-ID, Processing und TestFlight-Installation
+kreuzvalidiert. Der bestehende Desktop-Validator für
+`/Applications/AhoiBrowser.app` ist dafür nicht ausreichend.
+
+## Zu prüfende und aktualisierende Artefakte
+
+Mindestens folgende Dateien müssen am Ende konsistent sein:
+
+- `outputs/AhoiBrowser-Mobile-Zielprompt.md`;
+- `config/product.json`;
+- `config/external-gates.json`;
+- `config/test-registry.json` als unveränderter Anforderungskatalog;
+- `artifacts/e2e/<candidate>/manifest.json` plus referenzierte Logs, xcresults,
+  Screenshots/Videos und maschinenlesbare Resultate;
+- `docs/IOS_BROWSER.md`;
+- `docs/IOS_BROWSER_E2E_EVIDENCE.md`;
+- `docs/RELEASING.md`;
+- `docs/SYNC.md`;
+- `docs/PRIVACY.md`;
+- `docs/THREAT_MODEL.md`;
+- `config/macos-entitlements.json`;
+- `tools/verify_macos_entitlements.py`;
+- `tools/verify_mobile_release_evidence.py`;
+- `overlay/chromium/src/ahoi/browser/sync/AhoiBrowserCloudKit.xcconfig.template`;
+- `overlay/chromium/src/ahoi/browser/sync/AhoiBrowserCloudKit.entitlements.template`;
+- `apps/AhoiMobile/project.yml`;
+- passende xcconfigs, Entitlements, ExportOptions und
+  `apps/AhoiMobile/scripts/release-preflight.sh`;
+- versionierte Design-/ImageGen-Referenzen und Testartefakte.
 
 ## Definition of Done
 
-`AhoiBrowser Mobile` ist nicht deshalb fertig, weil eine WebView sichtbar ist.
-Fertig bedeutet eine alltagstaugliche native Browser-App mit koharenter
-Ahoi-Bedienung, sicherem normalen/privaten Lebenszyklus, belastbarer
-Tab-/Workspace-Wiederherstellung, bestehender verschluesselter
-Mac-Mobile-Integration, sichtbarer User-Abnahme vor den automatisierten Gates,
-signierter Hardware-Evidenz und ehrlich getrenntem TestFlight-/Release-Status.
+AhoiBrowser Mobile ist erst abgeschlossen, wenn alle folgenden Aussagen durch
+frische Evidenz für denselben finalen Kandidaten wahr sind:
+
+1. Harbor Deck, Focus Voyage und Workspace Canvas bilden eine kohärente,
+   eigenständige Ahoi-Oberfläche auf iPhone und iPad.
+2. Browsing, Tabs, Workspaces, Verlauf, Downloads, Permissions, Privatmodus,
+   Restore, Offline und Accessibility funktionieren als zusammenhängende
+   Alltagsjourney.
+3. Jeder Ahoi-Quelltext hält das 800-Zeilen-Limit ein; Repository-, Unit-,
+   Integration-, UI-, Analyse-, Concurrency-, DCO- und Secret-Gates sind grün.
+4. App ID, dedizierter CloudKit-Container, Profile und die fünf Signing-Modi sind
+   korrekt und ohne fremde Container/Schlüssel konfiguriert.
+5. Mac–iPhone–iPad-Sync ist in Development und Production real geprüft,
+   verschlüsselt, konflikt-/recovery-fest und schließt private beziehungsweise
+   verbotene Daten nachweisbar aus.
+6. Ein verarbeiteter öffentlicher TestFlightBootstrap-Build und Link existieren.
+7. Apple hat das Managed Default Browser Entitlement tatsächlich erteilt; ein
+   neuer post-grant Build ist über TestFlight installiert und als Systemdefault
+   auf physischem iPhone und kompatiblem iPad end to end geprüft.
+8. Lokales Archive, Commit, Buildnummer, Signatur, Profile, Entitlements und
+   Hash sind belegt; die installierte TestFlight-App ist ohne falsche
+   Bytegleichheitsannahme über App-Store-Build-ID, Receipt und Processing-
+   Metadaten nachvollziehbar mit dem Upload verbunden.
+9. Dokumentation, Privacy, Threat Model, Product Config und externe Gate-
+   Registry beschreiben ohne Widerspruch genau den realen Stand; der
+   Test-Registry-Katalog bleibt `NOT_RUN`, während das kandidatgebundene
+   E2E-Manifest die tatsächlichen Ergebnisse enthält.
+10. Eine öffentliche App-Store-Veröffentlichung wird nur dann als erledigt
+    bezeichnet, wenn sie separat freigegeben, von Apple verarbeitet, aus dem
+    Store installiert und erneut sichtbar geprüft wurde.
+
+Liefere zum Abschluss eine knappe Wahrheitsmatrix mit: umgesetzt, lokal gebaut,
+Simulator, physisches iPhone, physisches iPad, CloudKit Development, CloudKit
+Production, Archive, interner TestFlight, öffentlicher TestFlight,
+Default-Browser-Antrag, Grant, post-grant E2E, öffentlicher Release sowie jedem
+noch offenen externen oder menschlichen Gate. Keine Absichtserklärung darf als
+Pass markiert werden.
