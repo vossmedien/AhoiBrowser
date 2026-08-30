@@ -1,11 +1,15 @@
 # AhoiBrowser Mobile E2E evidence contract
 
-- Source state: current Mobile worktree on 2026-08-29
-- Candidate binding: none
-- Execution in this documentation update: no build or test run
+- Source state: integrated Mobile worktree on 2026-08-30
+- Candidate binding: development evidence only; no distribution/TestFlight
+  candidate is bound
+- Execution recorded for this state: simulator builds/tests plus one signed
+  physical-iPhone development installation and bounded visible smoke; no full
+  candidate-bound physical journey
 
-This file is an evidence plan, not an execution receipt. The authoritative
-machine-readable status is `config/test-registry.json`. Every
+This file is the evidence contract and a bounded status summary, not a Mobile
+release receipt. The authoritative machine-readable status is
+`config/test-registry.json`. Every
 `MOB-USER-01` through `MOB-USER-15` entry is release-critical `CU_E2E`
 with status `NOT_RUN`. Every `IOS-01` through `IOS-15` entry remains
 release-critical `ASSISTED_E2E` with status `NOT_RUN`.
@@ -16,6 +20,31 @@ support a later evidence chain, but none changes a registry status by itself.
 Evidence must name the repository commit, generated Xcode project inputs,
 bundle/build version, Team ID, bundle ID, profile, entitlements, device model,
 OS build and retained artifact paths.
+
+## Bounded development evidence from 2026-08-30
+
+| Check | Result | Evidence boundary |
+| --- | --- | --- |
+| Debug simulator build, iPhone destination | `PASS` | Buildability only; not signing, installation or device behavior. |
+| Release simulator build, iPad destination | `PASS` for `arm64` and `x86_64` | Release configuration compiled for the simulator; this is not an archive or distribution signature. |
+| `AhoiMobileCoreTests` | 56 executed, 0 failures, 2 skips | Both skips require a real CloudKit entitlement. They remain skips, not passes. |
+| `AhoiMobileUITests` | 3 executed, 0 failures | Deterministic simulator fixture, private restore, offline/retry and unsafe-scheme coverage only. |
+| CloudKit/security package tests | 36 executed, 0 failures | Offline model, convergence and security contracts; no real CloudKit mutation. |
+| Physical iPhone development build | Signed, installed and visibly smoke-tested on an iPhone 16 Pro Max running iOS 26.6 | The first CLI launch was rejected while the device was locked. After unlock, launch through the host's iPhone device-management/synchronization flow visibly proved Ahoi cold start, HTTPS `example.com`, Browser Actions, a new private tab and normal-tab restore with the private tab excluded after targeted Ahoi process termination. This launch path is unrelated to Ahoi CloudKit sync. |
+| Physical iPad | Not runnable | The available iPad (6th generation) runs iPadOS 17.7.10 and is incompatible with the app's iOS/iPadOS 26 deployment target. |
+
+None of these bounded results changes a `MOB-USER-*` or `IOS-*` registry
+status. The physical smoke proves only the exact visible steps named above; it
+does not complete the broader cold-start/navigation, tab lifecycle, private
+isolation, VoiceOver, default-browser or CloudKit journeys.
+
+Retained screenshots:
+
+- [`iphone-16-pro-max-01-cold-launch.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-01-cold-launch.png)
+- [`iphone-16-pro-max-02-example-https.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-02-example-https.png)
+- [`iphone-16-pro-max-03-browser-actions.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-03-browser-actions.png)
+- [`iphone-16-pro-max-04-private-tab.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-04-private-tab.png)
+- [`iphone-16-pro-max-05-normal-restore.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-05-normal-restore.png)
 
 ## Source seams awaiting runtime evidence
 
@@ -30,8 +59,10 @@ OS build and retained artifact paths.
   external-scheme consent surfaces;
 - browser-session persistence that excludes private tabs and serializes writes
   by revision;
-- tracked Privacy Manifests declaring no tracking/no collected data and
-  UserDefaults reason `CA92.1`;
+- tracked Privacy Manifests declaring no tracking and no tracking domains,
+  plus browsing history, search history, other user content and device ID as
+  unlinked, non-tracking data used for app functionality, and UserDefaults
+  reason `CA92.1`;
 - local-first encrypted CloudKit records, a durable fetched-envelope inbox and
   event-driven CKSyncEngine transport without a foreground polling loop.
 
@@ -81,11 +112,13 @@ These bullets describe reviewable source boundaries only.
 
 | Gate | State | Closure evidence |
 | --- | --- | --- |
-| `ios-final-bundle-team-profile` | `blocked-credential` | Final Team/App/bundle identity plus matching development and distribution signing profiles. |
+| `ios-final-bundle-team-profile` | `blocked-credential` | A development build was signed and installed, but final Team/App/bundle identity plus a distribution certificate/profile are still absent. |
 | `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Apple grant, profile attachment and physical default-browser journey. |
-| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | Final container/environment, entitlements, Keychain groups/keys and key-lifecycle proof. |
-| `ios-physical-device-journeys` | `required-user-assistance` | Exact signed candidate installed and all Mobile/IOS journeys executed on real iPhone and iPad. |
-| `ios-app-store-connect-testflight` | `blocked-external-service` | Reviewed App Store record/disclosures, archive/export/upload/processing receipts and physical TestFlight install. |
+| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | No real container, entitled Mac counterparty, Keychain keys or operational provisioning/rotation/revocation path exists yet. |
+| `ios-physical-device-journeys` | `required-user-assistance` | One bounded iPhone development smoke is retained, but a supported iPad and complete Mobile/IOS journeys on the exact release candidate are still required. |
+| `ios-app-store-connect-testflight` | `blocked-external-service` | No distribution certificate, App Store Connect API key, reviewed record/disclosures, archive/export/upload/processing receipt or physical TestFlight install exists. |
 
-The source state does not claim a simulator result, device result, CloudKit
-roundtrip, archive, TestFlight installation or Mobile release.
+This state records the bounded simulator results and physical development
+smoke above. It does not claim a complete physical-device journey,
+default-browser entitlement, CloudKit roundtrip, distribution archive,
+TestFlight installation or Mobile release.

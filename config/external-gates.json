@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-29T00:00:00+02:00",
+  "updatedAt": "2026-08-30T01:58:41+02:00",
   "gates": [
     {
       "id": "xcode-26.6",
@@ -36,7 +36,7 @@
       "id": "ios-final-bundle-team-profile",
       "state": "blocked-credential",
       "owner": "apple-team-admin",
-      "condition": "Assign the final AhoiBrowser Mobile bundle ID to the owning Apple Developer Team, register the App ID and capabilities, and issue matching development and distribution certificates plus provisioning profiles for the exact iPhone/iPad target. Placeholder identifiers and unsigned or ad-hoc builds are source-development inputs only."
+      "condition": "A Team-bound development App ID/profile for app.ahoibrowser.AhoiBrowser now signs and installs on the connected iPhone. Release remains blocked until the bundle identity is approved as final and a matching Apple Distribution certificate plus App Store provisioning profile exist for the exact iPhone/iPad target and required capabilities."
     },
     {
       "id": "ios-managed-default-browser-entitlement",
@@ -54,7 +54,7 @@
       "id": "ios-physical-device-journeys",
       "state": "required-user-assistance",
       "owner": "compatibility-testing",
-      "condition": "Install the exact signed candidate on a real supported iPhone and iPad and execute MOB-USER-01 through MOB-USER-15 plus IOS-01 through IOS-15, including camera/microphone prompts, file import, downloads, external apps, accessibility, hardware keyboard/pointer, memory pressure, backgrounding and Mac-device sync. Every journey remains NOT_RUN until candidate-bound evidence exists."
+      "condition": "A bounded development smoke on iPhone 16 Pro Max/iOS 26.6 now proves install, launch, HTTPS example.com, Browser Actions, a private tab and normal restore with the private tab excluded. A supported iPad and the complete exact-release-candidate MOB-USER-01 through MOB-USER-15 plus IOS-01 through IOS-15 matrix are still required; every registry journey remains NOT_RUN."
     },
     {
       "id": "ios-app-store-connect-testflight",

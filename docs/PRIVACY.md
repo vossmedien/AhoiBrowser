@@ -69,11 +69,33 @@ verified on physical devices.
 
 ## Mobile Privacy Manifest
 
-The app and package source include `PrivacyInfo.xcprivacy` manifests declaring
-no tracking, no tracking domains, no collected data types and UserDefaults
-access reason `CA92.1`. These declarations must be reconciled with the final
-archive, embedded SDK manifests, actual runtime endpoints and App Store Connect
-privacy answers. Their presence in source is not distribution evidence.
+The app and package source include matching `PrivacyInfo.xcprivacy` manifests.
+They currently declare:
+
+- no tracking and no tracking domains;
+- browsing history, search history, other user content and device ID as
+  unlinked, non-tracking data used for app functionality; and
+- UserDefaults accessed-API reason `CA92.1`.
+
+This is a conservative source declaration intended to cover the browser's
+local-first records and optional private-CloudKit functionality. It is not a
+conclusion that every device-resident value necessarily counts as
+"collected" under Apple's current App Store definition, nor is it proof that
+the final archive or App Store Connect answers use the right classification.
+Release review must reconcile the exact candidate's merged manifest, embedded
+SDK manifests, runtime endpoints, retention and account behavior with Apple's
+definitions and the submitted privacy answers.
+
+The 2026-08-30 simulator builds and tests do not close that review. A signed
+development build was installed and visibly smoke-tested on a physical iPhone
+16 Pro Max running iOS 26.6. After an initial lock-related CLI launch rejection,
+the host's iPhone device-management/synchronization flow launched the app; this
+was unrelated to Ahoi CloudKit sync. The bounded smoke covered cold start,
+HTTPS `example.com`, Browser Actions, a new private tab and restoration of the
+normal Example tab with the private tab excluded after targeted process
+termination. This is useful private-session surface evidence, but it does not
+establish complete WebKit storage isolation, endpoint inventory, permission
+behavior, archive-manifest correctness or App Store privacy classification.
 
 ## Diagnostics
 

@@ -5,8 +5,18 @@
 AHOI_APPLE_TEAM_ID =
 AHOI_MOBILE_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile
 AHOI_MOBILE_CORE_BUNDLE_ID = invalid.ahoibrowser.unconfigured.core
+// Replace both sentinels with the exact App Store version and a monotonically
+// increasing positive integer build number for every uploaded candidate.
+AHOI_MOBILE_MARKETING_VERSION = __AHOI_MARKETING_VERSION_UNRESOLVED__
+AHOI_MOBILE_BUILD_NUMBER = __AHOI_BUILD_NUMBER_UNRESOLVED__
+AHOI_MOBILE_TEST_BUNDLE_ID = __AHOI_TEST_BUNDLE_ID_UNRESOLVED__
+AHOI_MOBILE_UI_TEST_BUNDLE_ID = __AHOI_UI_TEST_BUNDLE_ID_UNRESOLVED__
+// Legal/export-compliance must explicitly classify the exact candidate as YES
+// or NO. Any other value blocks Release in release-preflight.sh.
+AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = __AHOI_EXPORT_COMPLIANCE_UNRESOLVED__
 AHOI_PROVISIONING_PROFILE_SPECIFIER =
 AHOI_APS_ENVIRONMENT = production
+AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT = Production
 AHOI_CLOUDKIT_CONTAINER_ID =
 AHOI_SYNC_KEYCHAIN_ACCESS_GROUP =
 AHOI_SYNC_KEYCHAIN_SERVICE =
@@ -16,3 +26,5 @@ AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP =
 AHOI_COMMAND_KEYCHAIN_SERVICE =
 AHOI_COMMAND_KEYCHAIN_ACCOUNT =
 CODE_SIGN_ENTITLEMENTS = AhoiMobile.DefaultBrowser.entitlements.template
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Apple Distribution

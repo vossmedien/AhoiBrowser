@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Materialize a private copy before export. The release preflight rejects
+	     every unresolved placeholder and never writes this template. -->
+	<key>destination</key>
+	<string>export</string>
+	<key>distributionBundleIdentifier</key>
+	<string>$(AHOI_MOBILE_BUNDLE_ID)</string>
+	<key>iCloudContainerEnvironment</key>
+	<string>Production</string>
+	<key>manageAppVersionAndBuildNumber</key>
+	<false/>
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>$(AHOI_MOBILE_BUNDLE_ID)</key>
+		<string>$(AHOI_PROVISIONING_PROFILE_SPECIFIER)</string>
+	</dict>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
+	<key>signingStyle</key>
+	<string>manual</string>
+	<key>stripSwiftSymbols</key>
+	<true/>
+	<key>teamID</key>
+	<string>$(AHOI_APPLE_TEAM_ID)</string>
+	<key>testFlightInternalTestingOnly</key>
+	<true/>
+	<key>uploadSymbols</key>
+	<true/>
+</dict>
+</plist>

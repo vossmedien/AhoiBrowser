@@ -12,6 +12,8 @@
 	<array>
 		<string>CloudKit</string>
 	</array>
+	<key>com.apple.developer.icloud-container-environment</key>
+	<string>$(AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT)</string>
 	<!-- Required only after the Apple Team provisions a shared synchronizable
 	     Keychain group for the externally managed E2E sync key. -->
 	<key>keychain-access-groups</key>

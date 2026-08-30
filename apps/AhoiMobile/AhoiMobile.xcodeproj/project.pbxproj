@@ -416,6 +416,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E6180503385A9B833068DDB9 /* Build configuration list for PBXNativeTarget "AhoiMobile" */;
 			buildPhases = (
+				D84126ECAC005A44C5821E06 /* Mobile release settings preflight */,
 				9D762E00B56F05F2666FA481 /* Sources */,
 				9DF3B63CA9A1DB60396C7108 /* Resources */,
 				4222C0045083C8CE12928D8F /* Frameworks */,
@@ -498,6 +499,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D84126ECAC005A44C5821E06 /* Mobile release settings preflight */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Mobile release settings preflight";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/release-preflight.sh\" --build-settings\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1BC2BE87E020A5CFA227A55C /* Sources */ = {
@@ -615,6 +638,7 @@
 		3E4DD2FC97AAF8C21888781E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				AHOI_MOBILE_UI_TEST_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile.uitests;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -623,7 +647,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = invalid.ahoibrowser.unconfigured.mobile.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_MOBILE_UI_TEST_BUNDLE_ID)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -634,6 +658,7 @@
 		666EEC4D150E5315FBA3141C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				AHOI_MOBILE_TEST_BUNDLE_ID = __AHOI_TEST_BUNDLE_ID_UNRESOLVED__;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -642,7 +667,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = invalid.ahoibrowser.unconfigured.mobile.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_MOBILE_TEST_BUNDLE_ID)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -653,12 +678,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				AHOI_APPLE_TEAM_ID = "";
+				AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = __AHOI_EXPORT_COMPLIANCE_UNRESOLVED__;
 				AHOI_APS_ENVIRONMENT = production;
+				AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT = Production;
 				AHOI_CLOUDKIT_CONTAINER_ID = "";
 				AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_COMMAND_KEYCHAIN_ACCOUNT = "";
 				AHOI_COMMAND_KEYCHAIN_SERVICE = "";
+				AHOI_MOBILE_BUILD_NUMBER = __AHOI_BUILD_NUMBER_UNRESOLVED__;
 				AHOI_MOBILE_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile;
+				AHOI_MOBILE_MARKETING_VERSION = __AHOI_MARKETING_VERSION_UNRESOLVED__;
+				AHOI_MOBILE_TEST_BUNDLE_ID = __AHOI_TEST_BUNDLE_ID_UNRESOLVED__;
+				AHOI_MOBILE_UI_TEST_BUNDLE_ID = __AHOI_UI_TEST_BUNDLE_ID_UNRESOLVED__;
 				AHOI_PROVISIONING_PROFILE_SPECIFIER = "";
 				AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_SYNC_KEYCHAIN_ACCOUNT = "";
@@ -668,18 +699,23 @@
 				CODE_SIGN_ENTITLEMENTS = AhoiMobile.DefaultBrowser.entitlements.template;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(AHOI_MOBILE_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = "$(AHOI_APPLE_TEAM_ID)";
+				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = "$(AHOI_APP_USES_NON_EXEMPT_ENCRYPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = "$(AHOI_MOBILE_MARKETING_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_MOBILE_BUNDLE_ID)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(AHOI_PROVISIONING_PROFILE_SPECIFIER)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
@@ -743,12 +779,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				AHOI_APPLE_TEAM_ID = "";
+				AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = NO;
 				AHOI_APS_ENVIRONMENT = development;
+				AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT = Development;
 				AHOI_CLOUDKIT_CONTAINER_ID = "";
 				AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_COMMAND_KEYCHAIN_ACCOUNT = "";
 				AHOI_COMMAND_KEYCHAIN_SERVICE = "";
+				AHOI_MOBILE_BUILD_NUMBER = 1;
 				AHOI_MOBILE_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile;
+				AHOI_MOBILE_MARKETING_VERSION = 0.1;
+				AHOI_MOBILE_TEST_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile.tests;
+				AHOI_MOBILE_UI_TEST_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile.uitests;
 				AHOI_PROVISIONING_PROFILE_SPECIFIER = "";
 				AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = "";
 				AHOI_SYNC_KEYCHAIN_ACCOUNT = "";
@@ -758,24 +800,30 @@
 				CODE_SIGN_ENTITLEMENTS = AhoiMobile.entitlements.template;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(AHOI_MOBILE_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = "$(AHOI_APPLE_TEAM_ID)";
+				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = "$(AHOI_APP_USES_NON_EXEMPT_ENCRYPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = "$(AHOI_MOBILE_MARKETING_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_MOBILE_BUNDLE_ID)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(AHOI_PROVISIONING_PROFILE_SPECIFIER)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
 		A25DEE8F953C5A4AF8DCA5FF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				AHOI_MOBILE_TEST_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile.tests;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -784,7 +832,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = invalid.ahoibrowser.unconfigured.mobile.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_MOBILE_TEST_BUNDLE_ID)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -794,6 +842,7 @@
 		B17D757F491F4BB8581589F1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				AHOI_MOBILE_UI_TEST_BUNDLE_ID = __AHOI_UI_TEST_BUNDLE_ID_UNRESOLVED__;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -802,7 +851,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = invalid.ahoibrowser.unconfigured.mobile.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(AHOI_MOBILE_UI_TEST_BUNDLE_ID)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

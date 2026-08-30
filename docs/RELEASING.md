@@ -175,6 +175,97 @@ be materialized honestly until Apple grants the managed default-browser
 entitlement to the final bundle ID and the Team provisions matching CloudKit,
 push and Keychain capabilities.
 
+### Development readiness snapshot — 2026-08-30
+
+The current Mobile state has bounded development evidence, not a distribution
+candidate:
+
+- the Debug iPhone simulator build succeeded;
+- the Release iPad simulator build succeeded for `arm64` and `x86_64`;
+- 56 Mobile Core test cases were reported with zero failures and two
+  entitlement-dependent skips;
+- all three Mobile UI tests passed;
+- all 36 CloudKit/security package tests passed without constituting a real
+  cloud mutation;
+- a development build was signed and installed on an iPhone 16 Pro Max running
+  iOS 26.6; after an initial lock-related CLI launch rejection, a visible smoke
+  through the host's iPhone device-management/synchronization flow proved cold
+  start, HTTPS `example.com`, Browser Actions, a new private tab and normal-tab
+  restore with the private tab excluded after targeted Ahoi process termination;
+  this path was unrelated to Ahoi CloudKit sync and remains bounded development
+  evidence, not a journey pass; and
+- the available iPad (6th generation) runs iPadOS 17.7.10 and is incompatible
+  with the Mobile target's iOS/iPadOS 26 deployment floor.
+
+Every `MOB-USER-*` and `IOS-*` registry entry therefore remains `NOT_RUN`.
+The retained screenshots are indexed under
+[`audit-evidence/2026-08-30-ios-device-preflight/`](audit-evidence/2026-08-30-ios-device-preflight/).
+There is no distribution certificate/profile, App Store Connect API key or
+processed TestFlight build. Apple has not granted the managed default-browser
+entitlement. No real CloudKit container or AES/Ed25519 keys are configured, no
+operational provisioning/rotation/revocation path has been demonstrated, and
+the Mac development app is not an entitled CloudKit counterparty.
+
+### Mobile release preflight
+
+`apps/AhoiMobile/scripts/release-preflight.sh` is wired into the Mobile target
+as a pre-build phase. Debug validates the tracked source contract. Release also
+fails closed unless Team, bundle/test identifiers, version/build, CloudKit,
+Keychain, profile and export-compliance values are concrete. The export-
+compliance Boolean is an explicit legal/release input; the repository does not
+decide whether the exact candidate is exempt.
+
+Materialize private copies of `AhoiMobile.Release.xcconfig.template` and
+`ExportOptions.plist.template` outside version control, replace every sentinel
+with the candidate's reviewed value, regenerate the tracked project and create
+the archive with the private xcconfig explicitly attached:
+
+```sh
+cd apps/AhoiMobile
+xcodegen generate --spec project.yml
+
+xcodebuild \
+  -project AhoiMobile.xcodeproj \
+  -scheme AhoiMobile \
+  -configuration Release \
+  -destination 'generic/platform=iOS' \
+  -archivePath /private/path/AhoiMobile.xcarchive \
+  -xcconfig /private/path/AhoiMobile.Release.xcconfig \
+  archive
+cd ../..
+```
+
+The tracked Release template enforces manual Apple Distribution signing. Do not
+add either materialized file to Git. Bind the archive inspection to the same
+reviewed candidate values before exporting:
+
+```sh
+env \
+  AHOI_APP_USES_NON_EXEMPT_ENCRYPTION=YES_OR_NO \
+  AHOI_CLOUDKIT_CONTAINER_ID=iCloud.example.replace-me \
+  AHOI_SYNC_KEYCHAIN_ACCESS_GROUP=TEAMID.example.sync \
+  AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP=TEAMID.example.commands \
+  AHOI_MOBILE_BUNDLE_ID=example.replace-me \
+  AHOI_MOBILE_MARKETING_VERSION=1.0 \
+  AHOI_MOBILE_BUILD_NUMBER=1 \
+  apps/AhoiMobile/scripts/release-preflight.sh --archive \
+  /path/to/AhoiMobile.xcarchive \
+  --export-options /path/to/ExportOptions.plist
+
+xcodebuild \
+  -exportArchive \
+  -archivePath /path/to/AhoiMobile.xcarchive \
+  -exportOptionsPlist /path/to/ExportOptions.plist \
+  -exportPath /private/path/AhoiMobile-export
+```
+
+The archive check is read-only. It verifies version/build, Boolean export
+declaration, distribution profile expiry, Team/bundle binding, managed default-
+browser entitlement, production CloudKit/push environment, both Keychain
+groups, Privacy Manifests, signature and opaque compiled AppIcon renditions
+before export. The tracked 1024-point icon is now RGB without an alpha channel;
+the conversion changed no visible pixel values.
+
 A Mobile candidate requires all of the following, bound to one source commit and
 build number:
 
@@ -185,7 +276,10 @@ build number:
 3. generated Xcode project inputs, Release archive and exported IPA with exact
    signature/profile/entitlement inspection;
 4. merged Privacy Manifest plus embedded-SDK manifests reconciled against actual
-   endpoints and App Store Connect privacy disclosures;
+   endpoints, Apple's collection definitions and App Store Connect privacy
+   disclosures; the current conservative source manifests declare no tracking
+   while listing browsing history, search history, other user content and
+   device ID as unlinked, non-tracking app-functionality data;
 5. the exact signed candidate installed on supported physical iPhone and iPad,
    followed by `MOB-USER-01` through `MOB-USER-15` and `IOS-01` through
    `IOS-15` with retained evidence;
@@ -194,10 +288,12 @@ build number:
 7. App Store Connect archive upload and processing receipts, tester access and
    installation/launch of the processed TestFlight build on both form factors.
 
-The current worktree supplies source templates and policy seams only. It does
-not record a Mobile build, archive, physical installation, entitled roundtrip,
-App Store processing result or TestFlight installation. Granular ownership and
-states live in `config/external-gates.json`.
+The current worktree supplies source templates, policy seams and the bounded
+development evidence above. It records simulator builds/tests and one signed
+physical development installation/smoke, but not a complete physical journey,
+distribution archive/export, entitled roundtrip, App Store processing result or
+TestFlight installation. Granular ownership and states live in
+`config/external-gates.json`.
 
 ## Gates intentionally still closed
 

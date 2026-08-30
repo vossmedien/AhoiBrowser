@@ -33,8 +33,8 @@ targets:
       path: Info.plist
       properties:
         CFBundleDisplayName: AhoiBrowser
-        CFBundleShortVersionString: "0.1"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "$(AHOI_MOBILE_MARKETING_VERSION)"
+        CFBundleVersion: "$(AHOI_MOBILE_BUILD_NUMBER)"
         AHOI_CLOUDKIT_CONTAINER_ID: "$(AHOI_CLOUDKIT_CONTAINER_ID)"
         AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP: "$(AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP)"
         AHOI_COMMAND_KEYCHAIN_ACCOUNT: "$(AHOI_COMMAND_KEYCHAIN_ACCOUNT)"
@@ -54,6 +54,8 @@ targets:
           NSAllowsArbitraryLoadsInWebContent: true
         UILaunchScreen: {}
         UIFileSharingEnabled: true
+        UIBackgroundModes:
+          - remote-notification
         LSSupportsOpeningDocumentsInPlace: true
         CFBundleURLTypes:
           - CFBundleURLName: AhoiBrowser Web Links
@@ -69,6 +71,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: "$(AHOI_MOBILE_BUNDLE_ID)"
         AHOI_MOBILE_BUNDLE_ID: invalid.ahoibrowser.unconfigured.mobile
+        AHOI_MOBILE_MARKETING_VERSION: __AHOI_MARKETING_VERSION_UNRESOLVED__
+        AHOI_MOBILE_BUILD_NUMBER: __AHOI_BUILD_NUMBER_UNRESOLVED__
+        AHOI_MOBILE_TEST_BUNDLE_ID: __AHOI_TEST_BUNDLE_ID_UNRESOLVED__
+        AHOI_MOBILE_UI_TEST_BUNDLE_ID: __AHOI_UI_TEST_BUNDLE_ID_UNRESOLVED__
+        AHOI_APP_USES_NON_EXEMPT_ENCRYPTION: __AHOI_EXPORT_COMPLIANCE_UNRESOLVED__
+        MARKETING_VERSION: "$(AHOI_MOBILE_MARKETING_VERSION)"
+        CURRENT_PROJECT_VERSION: "$(AHOI_MOBILE_BUILD_NUMBER)"
+        VERSIONING_SYSTEM: apple-generic
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "$(AHOI_APP_USES_NON_EXEMPT_ENCRYPTION)"
         SWIFT_VERSION: "6.0"
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -79,6 +91,7 @@ targets:
         AHOI_APPLE_TEAM_ID: ""
         AHOI_PROVISIONING_PROFILE_SPECIFIER: ""
         AHOI_APS_ENVIRONMENT: development
+        AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT: Development
         AHOI_CLOUDKIT_CONTAINER_ID: ""
         AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP: ""
         AHOI_COMMAND_KEYCHAIN_ACCOUNT: ""
@@ -90,12 +103,26 @@ targets:
       configs:
         Debug:
           SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+          AHOI_MOBILE_MARKETING_VERSION: "0.1"
+          AHOI_MOBILE_BUILD_NUMBER: "1"
+          AHOI_MOBILE_TEST_BUNDLE_ID: invalid.ahoibrowser.unconfigured.mobile.tests
+          AHOI_MOBILE_UI_TEST_BUNDLE_ID: invalid.ahoibrowser.unconfigured.mobile.uitests
+          # Debug is deliberately classified as exempt so unsigned simulator and
+          # local development builds remain available. Release must override the
+          # unresolved base value after an explicit export-compliance decision.
+          AHOI_APP_USES_NON_EXEMPT_ENCRYPTION: NO
         Release:
           SWIFT_OPTIMIZATION_LEVEL: "-O"
           AHOI_APS_ENVIRONMENT: production
+          AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT: Production
           # This template intentionally fails signing until Apple has granted
           # the managed entitlement to the final bundle/profile.
           CODE_SIGN_ENTITLEMENTS: AhoiMobile.DefaultBrowser.entitlements.template
+    preBuildScripts:
+      - name: Mobile release settings preflight
+        script: |
+          "$SRCROOT/scripts/release-preflight.sh" --build-settings
+        basedOnDependencyAnalysis: false
   AhoiMobileCoreTests:
     type: bundle.unit-test
     platform: iOS
@@ -105,10 +132,14 @@ targets:
       - target: AhoiMobileCore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: invalid.ahoibrowser.unconfigured.mobile.tests
+        PRODUCT_BUNDLE_IDENTIFIER: "$(AHOI_MOBILE_TEST_BUNDLE_ID)"
+        AHOI_MOBILE_TEST_BUNDLE_ID: __AHOI_TEST_BUNDLE_ID_UNRESOLVED__
         SWIFT_VERSION: "6.0"
         IPHONEOS_DEPLOYMENT_TARGET: "26.0"
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        Debug:
+          AHOI_MOBILE_TEST_BUNDLE_ID: invalid.ahoibrowser.unconfigured.mobile.tests
   AhoiMobileUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -118,10 +149,14 @@ targets:
       - target: AhoiMobile
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: invalid.ahoibrowser.unconfigured.mobile.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: "$(AHOI_MOBILE_UI_TEST_BUNDLE_ID)"
+        AHOI_MOBILE_UI_TEST_BUNDLE_ID: __AHOI_UI_TEST_BUNDLE_ID_UNRESOLVED__
         SWIFT_VERSION: "6.0"
         IPHONEOS_DEPLOYMENT_TARGET: "26.0"
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        Debug:
+          AHOI_MOBILE_UI_TEST_BUNDLE_ID: invalid.ahoibrowser.unconfigured.mobile.uitests
 
 schemes:
   AhoiMobile:

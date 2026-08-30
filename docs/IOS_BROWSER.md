@@ -1,12 +1,30 @@
 # Native AhoiBrowser for iOS and iPadOS
 
-Status: **SOURCE_ONLY**. The former local-first Companion has been migrated into
-the `AhoiBrowser Mobile` source product and a native WebKit browser slice is
-present in the worktree. No build, simulator journey, physical-device journey,
-signed archive, entitled CloudKit roundtrip or TestFlight installation is
-recorded for this source state. `MOB-USER-01` through `MOB-USER-15` and
-`IOS-01` through `IOS-15` are release-critical and remain `NOT_RUN` in
-`config/test-registry.json`. The evidence contract is documented in
+Status: **DEVELOPMENT_EVIDENCE_ONLY — NOT A RELEASE CANDIDATE**. The former
+local-first Companion has been migrated into the `AhoiBrowser Mobile` source
+product and a native WebKit browser slice is present in the worktree. On
+2026-08-30 the Debug iPhone simulator build and the universal (`arm64` and
+`x86_64`) Release iPad simulator build succeeded. The run also completed 56
+Mobile Core tests with zero failures and two entitlement-dependent skips, three
+UI tests with zero failures, and 36 CloudKit/security package tests with zero
+failures.
+
+A development build was signed and installed on a physical iPhone 16 Pro Max
+running iOS 26.6. The first CLI launch was rejected while the device was locked;
+after unlock, launch through the host's iPhone device-management/synchronization
+flow visibly proved Ahoi cold start, HTTPS `example.com`, Browser Actions, a new
+private tab and, after targeted termination of the Ahoi process, restoration of
+the normal Example tab with the private tab excluded. This launch path is
+unrelated to Ahoi CloudKit sync. Screenshots are retained under
+[`audit-evidence/2026-08-30-ios-device-preflight/`](audit-evidence/2026-08-30-ios-device-preflight/).
+This is a bounded physical-development smoke, not completion of any full
+registry journey. The available iPad (6th generation) runs iPadOS 17.7.10 and
+cannot install this iOS/iPadOS 26 target. There is still no distribution
+archive, default-browser entitlement, entitled CloudKit roundtrip or TestFlight
+installation.
+`MOB-USER-01` through `MOB-USER-15` and `IOS-01` through `IOS-15` are
+release-critical and remain `NOT_RUN` in `config/test-registry.json`. The
+evidence contract is documented in
 [`IOS_BROWSER_E2E_EVIDENCE.md`](IOS_BROWSER_E2E_EVIDENCE.md).
 
 The mobile product is a native SwiftUI browser for **iOS/iPadOS 26 and later**.
@@ -234,6 +252,12 @@ Mobile uses the analogous `AhoiMobile.entitlements.template`; its sync
 and command Keychain groups are independent placeholders and may be the same
 approved group only by an explicit Apple security decision.
 
+The current source only reads the configured AES and Ed25519 items from
+Keychain. No real payload/command keys or audited operational path for their
+provisioning, rotation, recovery and revocation has been supplied. The installed
+Mac development app is not CloudKit-entitled and has no concrete CloudKit
+configuration, so it cannot serve as the counterparty for a real roundtrip.
+
 Private payloads are first sealed with AES-256-GCM and then stored only in
 `CKRecord.encryptedValues`. The 32-byte key must already exist in the shared,
 data-protected, synchronizable Keychain item named by the configuration. The
@@ -334,19 +358,24 @@ not inferred from these source seams.
 ## Privacy Manifest source contract
 
 `Sources/AhoiMobileApp/PrivacyInfo.xcprivacy` and the package resource manifest
-declare no tracking, no tracking domains, no collected data types and
-`NSPrivacyAccessedAPICategoryUserDefaults` reason `CA92.1`. The Xcode project
-includes the app manifest as a target resource. Release engineering must inspect
-the final archive's merged Privacy Manifest, every embedded SDK manifest,
-runtime endpoint behavior and matching App Store Connect privacy answers. A
-tracked manifest is not archive or review evidence.
+declare no tracking and no tracking domains. They conservatively declare
+browsing history, search history, other user content and device ID as unlinked,
+non-tracking data used for app functionality, plus
+`NSPrivacyAccessedAPICategoryUserDefaults` reason `CA92.1`. This source
+declaration does not itself decide whether each local or private-CloudKit use is
+"collected" under Apple's current App Store definition; that classification and
+the corresponding App Store Connect answers require explicit review. The Xcode
+project includes the app manifest as a target resource. Release engineering
+must inspect the final archive's merged Privacy Manifest, every embedded SDK
+manifest and actual runtime endpoints. A tracked manifest is not archive or
+review evidence.
 
 SwiftPM's `.build` directories are build products, not source artifacts. The
 repository-wide `**/.build/` ignore rule excludes both Companion and spike
 artifacts from Git and source packaging; Xcode/SwiftPM may recreate them
 locally at any time.
 
-## Verification commands (not run for this source update)
+## Repeatable verification commands
 
 From the repository root:
 
@@ -362,7 +391,12 @@ swift build --target AhoiMobileApp --jobs 1 --disable-index-store \
   --sdk "$(xcrun --sdk iphoneos --show-sdk-path)" --triple arm64-apple-ios26.5
 ```
 
-When executed, the package tests are intended to exercise browser input
+The 2026-08-30 development run established the bounded simulator/build/test
+results listed at the top of this document. The commands above remain a
+repeatable source-level subset; they do not by themselves reproduce the full
+Xcode simulator matrix or physical installation evidence.
+
+The package tests exercise browser input
 routing, normal/private session persistence, Companion-to-Mobile migration,
 model validation, local search,
 boundary enforcement, tombstone-safe in-memory sync, and conflict ordering.
@@ -375,7 +409,8 @@ repository performs a real cloud mutation by default.
 CKSyncEngine construction tests are compile-checked but skipped unless an
 explicit entitled test target sets `AHOI_CLOUDKIT_TEST_ENTITLED=1`; this keeps
 the default test run offline and prevents a placeholder container from making
-an account/network claim.
+an account/network claim. The two entitlement-dependent skips in the current
+56-test Core run remain skips; they are not CloudKit passes.
 
 ## External Apple and distribution gates
 
@@ -405,5 +440,8 @@ The authoritative machine-readable gates live in
    iPhone and iPad.
 
 Until candidate-bound artifacts exist, this document records source coverage
-only. The registry status for every Mobile user/device journey remains
-`NOT_RUN`.
+plus bounded simulator/build/test and physical-development-smoke evidence only.
+No distribution certificate, App Store Connect API key, managed default-browser
+entitlement, real CloudKit container/key lifecycle, entitled Mac counterparty
+or TestFlight candidate is available. The registry status for every Mobile
+user/device journey remains `NOT_RUN`.

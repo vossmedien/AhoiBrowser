@@ -1,8 +1,20 @@
 # Threat model
 
-This document describes source-level security contracts. It does not record a
-test result. Mobile journeys in `config/test-registry.json` remain `NOT_RUN`
-until evidence is bound to an exact signed candidate.
+This document describes source-level security contracts. The 2026-08-30
+development state adds bounded simulator/build/test evidence: 56 Mobile Core
+test cases were reported with zero failures and two entitlement-dependent
+skips, three UI tests passed, and 36 CloudKit/security package tests passed. A
+signed development build was also installed on a physical iPhone 16 Pro Max
+running iOS 26.6. After the first CLI launch was rejected while the device was
+locked, the host's iPhone device-management/synchronization flow visibly
+launched the app; this was unrelated to Ahoi CloudKit sync. The smoke proved
+cold start, HTTPS `example.com`, Browser Actions, a new private tab and
+restoration of the normal Example tab with the private tab excluded after
+targeted Ahoi process termination. This bounded smoke supports those exact
+observations but does not establish a complete physical security journey.
+Mobile journeys in
+`config/test-registry.json` remain `NOT_RUN` until evidence is bound to the
+appropriate exact signed candidate.
 
 ## Protected assets
 
@@ -101,14 +113,24 @@ replay state, target and scope. Entitled multi-device convergence, push delivery
 background behavior, key rotation/revocation and account/zone recovery remain
 external `NOT_RUN` journeys.
 
+For the current development state those dependencies are absent, not merely
+unverified: no real CloudKit container or payload/command keys are configured,
+no operational key-provisioning/rotation/revocation path has been demonstrated,
+and the installed Mac development app is not CloudKit-entitled. Consequently
+the Mac cannot serve as a real sync counterparty and the successful offline
+CloudKit/security tests do not reduce the external roundtrip boundary.
+
 ## Privacy manifest boundary
 
-The tracked app and package Privacy Manifests declare no tracking, no collected
-data types and the `CA92.1` reason for UserDefaults access. They are source
-declarations, not proof of the contents of a signed archive or App Store privacy
-answers. Release review must inspect the merged archive manifest, third-party SDK
-manifests, runtime endpoints and App Store Connect disclosures for the exact
-candidate.
+The tracked app and package Privacy Manifests declare no tracking and no
+tracking domains. They conservatively identify browsing history, search
+history, other user content and device ID as unlinked, non-tracking data used
+for app functionality, and declare the `CA92.1` reason for UserDefaults access.
+These are source declarations pending review against Apple's App Store
+definition of collection; they are not proof of the contents of a signed
+archive or of correct App Store privacy answers. Release review must inspect
+the merged archive manifest, third-party SDK manifests, runtime endpoints and
+App Store Connect disclosures for the exact candidate.
 
 ## Explicit non-goals
 
