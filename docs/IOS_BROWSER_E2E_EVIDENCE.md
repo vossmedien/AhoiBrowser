@@ -1,23 +1,123 @@
 # AhoiBrowser Mobile E2E evidence contract
 
-- Source state: current Mobile worktree on 2026-08-29
-- Candidate binding: none
-- Execution in this documentation update: no build or test run
+- Repository: `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`
+- Shared branch: `codex/desktop-core-feature-wave-20260830`
+- Mobile product implementation commit at the latest development runs:
+  `88e9b12e629aaad4e69a590f530754b983d38774`
+- Preserved pre-consolidation Mobile Git snapshot commit:
+  `7bd492fa9d669868dceb1dbd91450cae5ae3bd3a`
+- Source state: shared Mobile/Desktop development tree on 2026-08-30; the
+  visible results below predate the final history-consolidation candidate
+- Candidate binding: no signed distribution `.xcarchive`, installed
+  distribution bundle or TestFlight candidate is bound to these results; a
+  final commit-bound simulator repeat remains required after the
+  documentation/history integration
 
-This file is an evidence plan, not an execution receipt. The authoritative
-machine-readable status is `config/test-registry.json`. Every
-`MOB-USER-01` through `MOB-USER-15` entry is release-critical `CU_E2E`
-with status `NOT_RUN`. Every `IOS-01` through `IOS-15` entry remains
-release-critical `ASSISTED_E2E` with status `NOT_RUN`.
+This file is an evidence contract and bounded development status summary, not
+a Mobile release receipt. The authoritative machine-readable status remains
+`config/test-registry.json`. Every `MOB-USER-01` through `MOB-USER-15` entry
+is release-critical `CU_E2E` with status `NOT_RUN`. Every `IOS-01` through
+`IOS-15` entry remains release-critical `ASSISTED_E2E` with status `NOT_RUN`.
 
-Source presence, previews, screenshots from another revision, an XCTest result,
-a simulator launch, an archive, an upload or a processed TestFlight build may
-support a later evidence chain, but none changes a registry status by itself.
-Evidence must name the repository commit, generated Xcode project inputs,
-bundle/build version, Team ID, bundle ID, profile, entitlements, device model,
-OS build and retained artifact paths.
+Source presence, a screenshot, an XCTest result, a simulator launch, an
+archive, an upload or a processed TestFlight build can support a later
+candidate chain, but none changes a registry status by itself. Candidate-bound
+evidence must name the commit, generated project inputs, bundle/build version,
+Team ID, bundle ID, profile, entitlements, device and OS build, and retained
+artifacts.
 
-## Source seams awaiting runtime evidence
+## Required test ordering
+
+Visible E2E on the exact build has priority whenever the requested behavior
+can be exercised safely. Build, signing, installation and deterministic
+fixture setup may run first because they are prerequisites to that visible
+interaction. Programmatic tests run after the visible pass. A substantial code
+or project adjustment requires the affected visible journey to be repeated
+before relying on the later programmatic results.
+
+If visible E2E is genuinely blocked or impossible, the exact blocker and the
+last reachable boundary are retained. Independent programmatic tests still run
+so their scope can be validated; they do not convert a blocked journey into a
+pass.
+
+## Bounded visible development evidence from 2026-08-30
+
+Simulator destinations:
+
+- `AhoiBrowser E2E iPhone`, iOS 26.5 Simulator,
+  `15C1EB97-A65C-4D93-842D-AB889339BE8D`
+- `AhoiBrowser E2E iPad`, iOS 26.5 Simulator,
+  `712F0CD5-D7F9-4B4B-8254-CFBCA4D138F9`
+
+| Check | Result | Retained evidence and boundary |
+| --- | --- | --- |
+| Current broad iPhone DebugLocal regression | 12 total: 9 passed, 1 obsolete UI-harness ambiguity, 2 explicitly skipped | `/private/tmp/ahoi-mobile-ui-current-iphone-03.xcresult`, `/private/tmp/ahoi-mobile-ui-current-iphone-03.log`, `/private/tmp/ahoi-mobile-current-iphone-e2e-03.mp4`. Passed scope includes local-only sync opt-in/persistence/fail-closed state, private lifecycle, offline failure, unsafe-scheme rejection, Focus Voyage, document and nested-scroller Harbor collapse/reverse restore, presentation restore and private isolation. The one failure was a duplicate XCUI match for a single visible revocation-confirmation button, not a second product control; the original aggregate run remains truthfully non-green. |
+| Corrected revocation confirmation | `PASS`, 1/1 focused visible check | `/private/tmp/ahoi-mobile-ui-current-iphone-corrected-01.xcresult`; the harness now selects the first matching accessibility element and the product confirmation journey passed. The same follow-up exposed a separate Settings-harness issue while trying to toggle Reduce Motion, which was corrected and rerun independently below. |
+| Current system Reduce Motion journey | `PASS`, 1/1 focused visible check | `/private/tmp/ahoi-mobile-ui-current-iphone-reduce-motion-02.xcresult`, `/private/tmp/ahoi-mobile-ui-current-iphone-reduce-motion-02.log`, `/private/tmp/ahoi-mobile-current-iphone-reduce-motion-e2e-02.mp4`; the system setting was visibly enabled through its switch, the Harbor compact/expanded journey passed without spatial motion, and the setting was restored to off. |
+| Current iPad DebugLocal regression | `PASS`, 3/3 focused visible checks | `/private/tmp/ahoi-mobile-ui-current-ipad-workspace-01.xcresult`, `/private/tmp/ahoi-mobile-ui-current-ipad-workspace-01.log`, `/private/tmp/ahoi-mobile-current-ipad-workspace-e2e-01.mp4`; Focus Voyage/core, Harbor collapse/reverse restore and persistent Workspace Canvas sidebar passed on the dedicated iPad simulator. |
+| Earlier iPhone Harbor Deck document scroll and interactive restore | `PASS`, 2/2 focused visible checks | `/private/tmp/ahoi-mobile-harbor-stable-motion-20260830-01.mp4`; visibly covers expanded-to-compact document travel and restoration for browser interaction. It is a transient development recording, not candidate proof. |
+| Earlier iPad Harbor Deck and Workspace Canvas | `PASS`, 2/2 focused UI tests | `/private/tmp/ahoi-mobile-harbor-stable-motion-ipad-01.xcresult`, `/private/tmp/ahoi-mobile-harbor-stable-motion-ipad-20260830-01.mp4`; `testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll` and `testInteractiveWebPresentationsExpandCollapsedHarborDeck` passed. Sidebar, fixture content and both expanded/compact states are retained. |
+| Earlier iPhone document and nested-scroller policy | `PASS`, 2/2 focused UI tests | `/private/tmp/ahoi-mobile-scroll-e2e-fixed-02.xcresult`, `/private/tmp/ahoi-mobile-scroll-e2e-fixed-20260830-02.mp4`, `/private/tmp/ahoi-mobile-scroll-e2e-fixed-02.log`; both document and nested-container collapse/restore journeys passed. |
+| Earlier system Reduce Motion journey | `PASS`, 1/1 focused UI test; an earlier 1/1 repeat also passed | `/private/tmp/ahoi-mobile-reduce-motion-crossfade-e2e-01.xcresult`, `/private/tmp/ahoi-mobile-reduce-motion-crossfade-e2e-20260830-01.mp4`, `/private/tmp/ahoi-mobile-reduce-motion-crossfade-e2e-01.log`; earlier repeat: `/private/tmp/ahoi-mobile-reduce-motion-e2e-02.xcresult`. The system switch was visibly enabled, the stable hierarchy crossfaded compact/expanded state, and the setting was restored to off after the run. |
+| Earlier DebugLocal local-only sync persistence | `PASS`, 1/1 focused UI test | `/private/tmp/ahoi-mobile-sync-local-only-03.xcresult`, `/private/tmp/ahoi-mobile-sync-local-only-20260830-03.mp4`, `/private/tmp/ahoi-mobile-sync-local-only-test-03.log`; opt-in shows `Nur lokal`, transport/key actions remain disabled, the state persists across app restart, and cleanup turns it off. This is local UI/persistence evidence only, not CloudKit or cross-device sync. |
+| Earlier combined iPhone UI/sync regression | `PASS`, 4/4 focused visible checks | `/private/tmp/ahoi-mobile-ui-sync-candidate-06.xcresult` and `/private/tmp/ahoi-mobile-ui-sync-candidate-06.log`; on the iPhone 17 Pro iOS 26.5 simulator, local-only sync opt-in/restart, document scrolling, nested-scroller collapse/restore and JavaScript/file-presentation restoration all passed in one 114.597-second test execution. This binds the related dirty-tree changes to one simulator build, but it is still not a clean release candidate or real CloudKit proof. |
+| Earlier normal CloudKitDevelopment browser UI | `PASS`, 1/1 focused UI test after deterministic project regeneration; earlier 1/1 run also passed | Latest retained run: `/private/tmp/ahoi-mobile-cloudkit-normal-ui-e2e-03.xcresult`, `/private/tmp/ahoi-mobile-cloudkit-normal-ui-e2e-20260830-03.mp4`, `/private/tmp/ahoi-mobile-cloudkit-normal-ui-e2e-03.log`. The scheme's implicit build products are under `CloudKitDevelopment-iphonesimulator`, and the regular app opens Focus Voyage and Harbor Deck rather than the inert E2E host. Earlier screenshot source: 02 artifacts in the still-image manifest. No CloudKit mutation was attempted. |
+| Physical iPhone development smoke | Bounded visible smoke on iPhone 16 Pro Max, iOS 26.6 | A signed development app was installed. The initial CLI launch was rejected while the device was locked; after unlock, visible host device-management launch covered Ahoi cold start, HTTPS `example.com`, Browser Actions, a private tab and normal-tab restore with the private tab excluded after targeted Ahoi process termination. This is not a full candidate journey or sync proof. |
+| Physical iPad | Blocked before run | The available iPad (6th generation) runs iPadOS 17.7.10 and cannot run the app's iOS/iPadOS 26 deployment target. Programmatic and simulator tests remain valid only in their stated scopes. |
+
+The 12 retained UI stills, provenance and SHA-256 manifest are in
+[`audit-evidence/2026-08-30-mobile-ui-sync/README.md`](audit-evidence/2026-08-30-mobile-ui-sync/README.md).
+The large videos and `.xcresult` bundles remain transient under `/private/tmp`.
+
+The earlier physical-iPhone stills remain bounded separately:
+
+- [`iphone-16-pro-max-01-cold-launch.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-01-cold-launch.png)
+- [`iphone-16-pro-max-02-example-https.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-02-example-https.png)
+- [`iphone-16-pro-max-03-browser-actions.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-03-browser-actions.png)
+- [`iphone-16-pro-max-04-private-tab.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-04-private-tab.png)
+- [`iphone-16-pro-max-05-normal-restore.png`](audit-evidence/2026-08-30-ios-device-preflight/iphone-16-pro-max-05-normal-restore.png)
+
+None of the bounded visible results above changes a `MOB-USER-*` or `IOS-*`
+registry status.
+
+## Programmatic development evidence
+
+These checks followed reachable visible E2E boundaries or ran after the real
+CloudKit/device journey had failed closed at an external prerequisite.
+
+| Check | Result | Retained evidence and boundary |
+| --- | --- | --- |
+| Current full `AhoiMobileCoreTests` DebugLocal run | 113 total: 111 passed, 0 failed, 2 expected entitlement skips | `/private/tmp/ahoi-mobile-full-core-01.xcresult`, `/private/tmp/ahoi-mobile-full-core-01.log`. `testCloudKitProviderQueuesAllowedRecordWithoutNetworkRoundTrip` and `testCloudKitProviderStopsSensitiveRecordBeforeOutbox` require a real CloudKit entitlement and remain skips, not passes. |
+| Current focused Mobile Core contracts | `PASS`, 49/49 | `/private/tmp/ahoi-mobile-focused-core-01.xcresult`, `/private/tmp/ahoi-mobile-focused-core-01.log`; selected browser presentation, policy, sync, crypto and key-lifecycle scope, not real transport proof. |
+| First persistence-failure harness attempt | Historical `FAILED`: 4 sync tests passed and 3 provider-construction tests crashed | `/private/tmp/ahoi-mobile-sync-persistence-focused-03.xcresult` and `.log`; those tests constructed `CKContainer` inside the intentionally provider-free `DebugLocal` host and trapped on its missing entitlement. The provider-independent failure seam and the current 113-test run now pass, but this original red artifact remains part of the audit trail. |
+| Current CloudKit/security Swift package | `PASS`, 36/36 | `/private/tmp/ahoi-mobile-cloudkit-swift-test-current-01.log`; offline model, convergence and security contracts only. |
+| Scroll policy/bridge focus | 6 executed, 0 failures | `/private/tmp/ahoi-mobile-scroll-programmatic-01.xcresult`; validates reducer/decoder contracts, not pixels. |
+| Motion contract focus | 1 executed, 0 failures | `/private/tmp/ahoi-mobile-motion-programmatic-01.xcresult`; validates the approved timing window, not the visible transition by itself. |
+| Mobile repository contracts | `PASS`, 20/20 | All `test_mobile_*.py` repository contracts passed. The separate synthetic five-mode preflight matrix also passed 5/5 positive and 5/5 expected-negative cases; its 11 focused repository fixtures passed under Python 3.14. No distribution or entitlement grant is inferred. Evidence: `/private/tmp/ahoi-mobile-static-gates-20260830.KiOFxO/` and `/private/tmp/ahoi-mobile-preflight.cqoUpM/`. |
+| Swift parse and static gate | `PASS`, 94/94 Swift files; 0 parse failures | 78 source and 16 test files parsed. `bash -n` also passed for `release-preflight.sh`. Evidence: `/private/tmp/ahoi-mobile-static-gates-20260830.KiOFxO/gate-verification-summary.log`. |
+| DebugLocal static analysis | `ANALYZE SUCCEEDED` | `/private/tmp/ahoi-mobile-analyze-debuglocal-02.log`; no source/analyzer errors. Two Xcode AppIntents metadata warnings remain build-tool warnings rather than analyzer failures. The earlier `-parallelizeTargets NO` invocation failed before building because the harness supplied an invalid flag/value pair. |
+| Deterministic XcodeGen project generation | 2 successful no-op generations with identical combined project/scheme SHA-256 `49e503d5da232d2067094999b653096c9e5b923f7a8b8ebd561273a7f7f42643` | Generated-project determinism only. It does not make the development runs a distribution candidate. |
+| 800-line convention | All Mobile Swift sources/tests are at or below 800 lines; maximum exactly 800 | `CompanionStore.swift` is exactly at the limit. This Mobile evidence does not claim unrelated Desktop/shared line-budget findings as green. |
+
+## CloudKit and sync truth
+
+No real CloudKit transport, encrypted Mac-iPhone/iPad roundtrip or Keychain
+key lifecycle was completed.
+
+| Gate attempt | Observed result | Meaning |
+| --- | --- | --- |
+| Unsigned harness compile | `PASS` with real mutation off | `/private/tmp/ahoi-mobile-cloudkit-harness-compile-04.log`; source compile only. |
+| Simulator `AhoiMobile-CloudKitE2E` build-for-testing | `PASS` with `AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN=NO` | `/private/tmp/ahoi-mobile-cloudkit-e2e-mutation-off-build-01.log`; app code-sign entitlements are `{}`. The simulated `.xcent` contains requested container/service/environment values but no real team identifier, so this is not an entitled candidate. |
+| Simulator-hosted queue/deny tests | Expected fail-closed boundary: 2 tests stopped before provider/CloudKit construction | `/private/tmp/ahoi-mobile-cloudkit-hosted-mutation-off-01.xcresult` and `.log`; both report missing `com.apple.developer.team-identifier`. The XCTest invocation is red by design at the missing entitlement and is negative safety evidence, not a green CloudKit suite. |
+| Physical iPhone mutation-off build-for-testing | Blocked in provisioning before compile/install/test | `/private/tmp/ahoi-mobile-cloudkit-e2e-physical-preflight-01.log`; the profile does not support `iCloud.app.ahoibrowser.AhoiBrowser`, lacks `com.apple.developer.icloud-container-environment`, and does not match the requested container identifiers. No portal mutation or CloudKit call occurred. |
+
+The dedicated E2E harness remains fail closed: a real run additionally needs
+`AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN=YES`, a unique run token, exact bundle,
+team, build, container and SecTask entitlement validation, a fresh read-only
+scope probe, UUID-scoped synthetic records and marker-first cleanup. These
+guards must not be weakened to make a simulator test green.
+
+## Source seams awaiting candidate-bound runtime evidence
 
 - system `WebPage`/`WebView` rendering with WebKit-owned networking, TLS,
   dialogs, permissions and website storage;
@@ -30,8 +130,10 @@ OS build and retained artifact paths.
   external-scheme consent surfaces;
 - browser-session persistence that excludes private tabs and serializes writes
   by revision;
-- tracked Privacy Manifests declaring no tracking/no collected data and
-  UserDefaults reason `CA92.1`;
+- tracked Privacy Manifests declaring no tracking and no tracking domains,
+  plus browsing history, search history, other user content and device ID as
+  unlinked, non-tracking data used for app functionality, and UserDefaults
+  reason `CA92.1`;
 - local-first encrypted CloudKit records, a durable fetched-envelope inbox and
   event-driven CKSyncEngine transport without a foreground polling loop.
 
@@ -52,7 +154,7 @@ These bullets describe reviewable source boundaries only.
 | `MOB-USER-09` rotation and accessibility | `NOT_RUN` | Portrait/landscape, Dynamic Type, VoiceOver, high contrast, Reduce Motion and Reduce Transparency on device. |
 | `MOB-USER-10` iPad interaction | `NOT_RUN` | Real iPad sidebar, multitasking, keyboard, pointer, rotation, reorder and workspace gestures. |
 | `MOB-USER-11` failure and restore | `NOT_RUN` | Offline/TLS/WebContent failure, background/termination, memory pressure, incomplete download and deterministic recovery. |
-| `MOB-USER-12` cross-device tabs | `NOT_RUN` | Final entitled Mac–iPhone/iPad CloudKit and Keychain roundtrip, offline queue, conflict, revoke and private-data exclusion. |
+| `MOB-USER-12` cross-device tabs | `NOT_RUN` | Final entitled Mac-iPhone/iPad CloudKit and Keychain roundtrip, offline queue, conflict, revoke and private-data exclusion. |
 | `MOB-USER-13` unsafe actions | `NOT_RUN` | Reject local/script/credential/unknown schemes and verify labelled confirmation for permitted external schemes. |
 | `MOB-USER-14` 1/5/20 tabs | `NOT_RUN` | Normal/private scale, switching, reorder, discard, persistence and absence of phantom tabs. |
 | `MOB-USER-15` visual consistency | `NOT_RUN` | iPhone/iPad, normal/private, light/dark, tint/fallback and accessibility appearance matrix. |
@@ -81,11 +183,13 @@ These bullets describe reviewable source boundaries only.
 
 | Gate | State | Closure evidence |
 | --- | --- | --- |
-| `ios-final-bundle-team-profile` | `blocked-credential` | Final Team/App/bundle identity plus matching development and distribution signing profiles. |
-| `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Apple grant, profile attachment and physical default-browser journey. |
-| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | Final container/environment, entitlements, Keychain groups/keys and key-lifecycle proof. |
-| `ios-physical-device-journeys` | `required-user-assistance` | Exact signed candidate installed and all Mobile/IOS journeys executed on real iPhone and iPad. |
-| `ios-app-store-connect-testflight` | `blocked-external-service` | Reviewed App Store record/disclosures, archive/export/upload/processing receipts and physical TestFlight install. |
+| `ios-final-bundle-team-profile` | `blocked-credential` | Team `248AJ5BN47`, bundle `app.ahoibrowser.AhoiBrowser` and one development profile are known. The target CloudKit container is absent/unassigned, and matching refreshed CloudKit/distribution/post-grant profiles plus candidate-bound runtime evidence are still absent. |
+| `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Both Default Web Browser and Browser App Installation showed `No Requests`; Apple grant, profile attachment and the physical system-default journey remain absent. |
+| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | The intended container `iCloud.app.ahoibrowser.AhoiBrowser` is not registered/assigned to the profile. The Team's visible DisplayPilot container is foreign and rejected. An entitled Mac counterpart, Keychain keys and operational provisioning/rotation/revocation evidence are also absent. |
+| `ios-physical-device-journeys` | `required-user-assistance` | One bounded iPhone development smoke exists, but a supported physical iPad and all complete Mobile/IOS journeys on the exact release candidate are still required. |
+| `ios-app-store-connect-testflight` | `blocked-external-service` | App Store Connect has no bound app/candidate and showed an unresolved trader-status warning; reviewed agreements/disclosures, processed public-TestFlight bootstrap and physical TestFlight install are absent. |
 
-The source state does not claim a simulator result, device result, CloudKit
-roundtrip, archive, TestFlight installation or Mobile release.
+This state records only the bounded development results above. It does not
+claim a complete physical-device journey, real CloudKit sync, encrypted
+cross-device roundtrip, default-browser entitlement, distribution archive,
+TestFlight installation or Mobile release.
