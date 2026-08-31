@@ -473,7 +473,7 @@ final class MobileBrowserPresentationTests: XCTestCase {
     }
 
     @MainActor
-    func testInjectedScrollBridgePublishesDocumentAndNestedScrollEvents() async throws {
+    func testInjectedScrollBridgePublishesDocumentAndNestedSourceTelemetry() async throws {
         let browser = MobileBrowserController()
         browser.loadUITestFixture()
         let page = try XCTUnwrap(browser.selectedPage)
@@ -498,45 +498,43 @@ final class MobileBrowserPresentationTests: XCTestCase {
         }
         XCTAssertTrue(fixtureReady)
 
-        events.removeAll()
+        // A hostless unit-test process has no UIApplication and WebKit freezes
+        // an unpresented WebPage's animation frames. The visible UI journeys
+        // own the real document/nested-scroll proof; this layer verifies the
+        // isolated-world transport and source semantics deterministically.
         _ = try await page.callJavaScript(
-            "window.scrollTo(0, 240); return window.scrollY;"
+            """
+            const bridge = globalThis.webkit.messageHandlers.ahoiLinkActions;
+            bridge.postMessage({
+              kind: 'scroll',
+              sourceID: 0,
+              offsetY: 240,
+              contentHeight: 1000,
+              viewportHeight: 500,
+            });
+            bridge.postMessage({
+              kind: 'scroll',
+              sourceID: 1,
+              offsetY: 240,
+              contentHeight: 1200,
+              viewportHeight: 400,
+            });
+            """,
+            contentWorld: MobileLinkInteractionCoordinator.contentWorld
         )
-        var documentEvent: MobilePageScrollEvent?
         for _ in 0..<100 {
-            documentEvent = events.last { event in
-                event.sourceID == 0 && event.contentOffsetY >= 100
-            }
-            if documentEvent != nil { break }
+            if events.count >= 2 { break }
             try await Task.sleep(for: .milliseconds(20))
         }
-        XCTAssertNotNil(
-            documentEvent,
-            "The installed bridge must publish a real document scroll event."
-        )
 
-        events.removeAll()
-        _ = try await page.callJavaScript(
-            """
-            activateNestedScrollFixture();
-            const scroller = document.getElementById('nested-scroll-fixture');
-            scroller.scrollTop = 240;
-            scroller.dispatchEvent(new Event('scroll'));
-            return scroller.scrollTop;
-            """
-        )
-        var nestedEvent: MobilePageScrollEvent?
-        for _ in 0..<100 {
-            nestedEvent = events.last { event in
-                event.sourceID > 0 && event.contentOffsetY >= 100
-            }
-            if nestedEvent != nil { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
-        XCTAssertNotNil(
-            nestedEvent,
-            "Mutable bridge frame/source state must publish nested-scroller travel."
-        )
+        let documentEvent = try XCTUnwrap(events.first { $0.sourceID == 0 })
+        let nestedEvent = try XCTUnwrap(events.first { $0.sourceID == 1 })
+        XCTAssertEqual(documentEvent.contentOffsetY, 240)
+        XCTAssertEqual(documentEvent.contentHeight, 1_000)
+        XCTAssertEqual(documentEvent.viewportHeight, 500)
+        XCTAssertEqual(nestedEvent.contentOffsetY, 240)
+        XCTAssertEqual(nestedEvent.contentHeight, 1_200)
+        XCTAssertEqual(nestedEvent.viewportHeight, 400)
     }
 
     func testChromeResetContextExpandsForBrowserErrors() {

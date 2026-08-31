@@ -510,7 +510,9 @@ final class AhoiMobileCloudKitE2ECleanupOwner:
         self.key = key
         super.init()
         AhoiMobileCloudKitE2ECleanupRegistry.shared.add(self)
-        XCTestObservationCenter.shared.addTestObserver(self)
+        withXCTestObservationCenterOnMainThread {
+            XCTestObservationCenter.shared.addTestObserver(self)
+        }
     }
 
     func register(_ provider: CloudKitSyncProvider) {
@@ -673,8 +675,23 @@ final class AhoiMobileCloudKitE2ECleanupOwner:
             return true
         }
         guard shouldUnregister else { return }
-        XCTestObservationCenter.shared.removeTestObserver(self)
+        withXCTestObservationCenterOnMainThread {
+            XCTestObservationCenter.shared.removeTestObserver(self)
+        }
         AhoiMobileCloudKitE2ECleanupRegistry.shared.remove(self)
+    }
+
+    /// XCTest requires observer mutations on the process main thread even
+    /// when an async test resumes on its cooperative executor. Keep the
+    /// registration synchronous so cleanup is armed before any CloudKit write.
+    private func withXCTestObservationCenterOnMainThread(
+        _ action: @escaping @Sendable () -> Void
+    ) {
+        if Thread.isMainThread {
+            action()
+        } else {
+            DispatchQueue.main.sync(execute: action)
+        }
     }
 
     private func recordFallbackFailure(
