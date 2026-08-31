@@ -362,7 +362,7 @@ final class MobileBrowserCoreTests: XCTestCase {
 
         XCTAssertTrue(deduplicator.accepts(url, now: start))
         XCTAssertFalse(deduplicator.accepts(url, now: start.addingTimeInterval(4.5)))
-        XCTAssertFalse(deduplicator.accepts(url, now: start.addingTimeInterval(7.5)))
+        XCTAssertFalse(deduplicator.accepts(url, now: start.addingTimeInterval(14.5)))
         XCTAssertTrue(
             deduplicator.accepts(
                 url,

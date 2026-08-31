@@ -577,7 +577,11 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
 }
 
 public struct MobileExternalOpenDeduplicator: Sendable {
-    public static let activationRedeliveryWindow: TimeInterval = 8
+    /// iOS can spend several seconds restoring a terminated WebKit process
+    /// before the same handoff is delivered again. Keep the gate bounded, but
+    /// cover the complete cold-activation journey observed on real simulator
+    /// scheduling rather than only the time spent inside application code.
+    public static let activationRedeliveryWindow: TimeInterval = 15
 
     public var interval: TimeInterval
     private var lastURL: URL?
