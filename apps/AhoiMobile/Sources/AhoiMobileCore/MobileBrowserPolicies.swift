@@ -576,7 +576,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
 }
 
 public struct MobileExternalOpenDeduplicator: Sendable {
-    static let activationRedeliveryWindow: TimeInterval = 8
+    public static let activationRedeliveryWindow: TimeInterval = 8
 
     public var interval: TimeInterval
     private var lastURL: URL?
