@@ -2,17 +2,26 @@
 
 - Repository: `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`
 - Shared branch: `codex/desktop-core-feature-wave-20260830`
-- Exact Mobile source candidate:
+- Latest visible Mobile product candidate:
+  `954643d2bc940c79dfc77df67ab23176ce2f00b6`, configuration `DebugLocal`,
+  bundle `app.ahoibrowser.AhoiBrowser`
+- Current test/evidence head:
+  `3c1af8349b1e5ceac8f0a5dd41fe0716f789a22b`; product code is unchanged
+  after `954643d`, while the later commits harden the CloudKit E2E harness and
+  bind this completion wave
+- Latest signed physical-device build: version/build `0.1 (6)`, configuration
+  `CloudKitDevelopment`, source `954643d2bc940c79dfc77df67ab23176ce2f00b6`,
+  Team `248AJ5BN47`
+- Retained baseline candidate ID: `0.1-1-4113c14-debuglocal`; source
   `4113c14c1e0d21061a1c5927e25ab55663d547a7`
-- Candidate ID: `0.1-1-4113c14-debuglocal`; version/build `0.1 (1)`,
-  configuration `DebugLocal`, bundle `app.ahoibrowser.AhoiBrowser`, Team
-  `248AJ5BN47`
 - Retained machine-readable receipt:
   [`artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json`](../artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json)
 - Preserved pre-consolidation Mobile Git snapshot commit:
   `7bd492fa9d669868dceb1dbd91450cae5ae3bd3a`
-- Source state: the retained builds and visible runs bind to the clean source
-  commit above. Later documentation/evidence changes do not alter product bits.
+- Source state: every result below names its exact source boundary. The
+  retained baseline manifest still binds the older `4113c14` candidate; the
+  newer completion-wave artifacts remain transient under `/private/tmp` and
+  are not silently reclassified as release evidence.
 - Claimed development stages: `SOURCE_COMPLETE`, `LOCAL_BUILD_PASS`,
   `UNIT_PASS`, `SIMULATOR_VISIBLE`, `DEVICE_VISIBLE`
 - Candidate boundary: this is a local development candidate, not a signed
@@ -44,6 +53,26 @@ If visible E2E is genuinely blocked or impossible, the exact blocker and the
 last reachable boundary are retained. Independent programmatic tests still run
 so their scope can be validated; they do not convert a blocked journey into a
 pass.
+
+## Mobile completion wave from 2026-08-31
+
+Visible E2E ran first on exact product source `954643d`. The later test-only
+head `3c1af83` fixes two defects found by the subsequent real-device CloudKit
+attempts; it does not change the already exercised browser product code.
+
+| Surface | Result | Retained evidence and boundary |
+| --- | --- | --- |
+| Cold external-URL lifecycle | `PASS`, 1/1 visible journey | `/private/tmp/ahoi-mobile-954643d-url-e2e-01.xcresult`, `.log` and `.mp4`; `testColdExternalURLIsVisiblyDeduplicatedWithoutDefaultBrowserGrant` passed on the iPhone 17 Pro, iOS 26.5 simulator. The repeated cold URL remained one claimed activation instead of creating a phantom third tab. This does not claim system-default routing without Apple's grant. |
+| Harbor Deck and bottom address chrome | `PASS`, 5/5 visible journeys | `/private/tmp/ahoi-mobile-954643d-visible-suite-e2e-01.xcresult` and `.log`; document and nested scrolling, jitter rejection, intentional reverse travel, alert/file-presentation restoration and the system Reduce Motion journey passed. Hidden controls are removed from the compact hierarchy and the address, tab and menu slots remain stable. |
+| Provider-free sync UI | `PASS`, 1/1 visible journey | The same six-test result bundle includes `testDebugLocalSyncOptInStaysLocalAndFailClosed`: local opt-in persists across restart, CloudKit/key actions remain unavailable, and opt-out cleans the local state. This is intentionally not Apple transport or cross-device evidence. |
+| Physical `CloudKitDevelopment` build | `BUILD AND SIGNATURE PASS`; no install/runtime claim | `/private/tmp/ahoi-mobile-954643d-physical-cloudkit-build-01.xcresult`, `.log` and `/private/tmp/ahoi-mobile-954643d-physical-cloudkit-derived/Build/Products/CloudKitDevelopment-iphoneos/AhoiMobile.app`. `codesign --verify --deep --strict` passed for thin `arm64`; Team `248AJ5BN47`, exact app ID, Development push/iCloud environment, container `iCloud.app.ahoibrowser.AhoiBrowser`, CloudKit service and dedicated sync/command Keychain groups are present. The device-specific profile is valid through 2027-08-31 and contains only the connected iPhone `Servusla`; no Default Browser entitlement is present. |
+| Real Development CloudKit smoke | `BLOCKED` before the current test started; no full-roundtrip pass | Attempt 1 (`954643d`) exposed an invalid off-main XCTest observer before any write and was fixed in `469d00d`. Attempt 2 (`444e995`) reached provider preparation, correctly required explicit account-transition confirmation, wrote no payload/tombstone and refused unverified cleanup without an owner marker; the confirmation path and async teardown were fixed in `3c1af83`. Attempt 3 (`3c1af83`) built and signed successfully, then stopped at Xcode's `Unlock Servusla to Continue` preflight before test launch: `/private/tmp/ahoi-mobile-3c1af83-cloudkit-real-e2e-03.xcresult` and `.log`. |
+
+The guarded real smoke is designed to write a UUID-scoped encrypted owner
+marker and active record, read them back, publish/read a tombstone, assert that
+server records expose no plaintext user data, then delete only marker-authored
+scope. That sequence has not yet completed. The current blocker is the locked
+physical iPhone, not a green or red CloudKit product result.
 
 ## Exact-candidate visible development evidence from 2026-08-30
 
@@ -104,6 +133,16 @@ registry status.
 These checks followed reachable visible E2E boundaries or ran after the real
 CloudKit/device journey had failed closed at an external prerequisite.
 
+### Current test/evidence head `3c1af83`
+
+| Check | Result | Retained evidence and boundary |
+| --- | --- | --- |
+| Complete `AhoiMobileCoreTests` DebugLocal suite | `PASS`: 115 passed, 0 failed, 2 expected entitlement skips out of 117 | `/private/tmp/ahoi-mobile-3c1af83-core-full-01.xcresult` and `.log`. The new isolated-world source-telemetry contract is included; the two skips still require real CloudKit entitlements. |
+| Provider-free CloudKit/security package | `PASS`, 36/36 | `/private/tmp/ahoi-mobile-3c1af83-cloudkit-package-01.log`; offline crypto, convergence, account-transition and cleanup contracts, not Apple transport. |
+| Mobile repository contracts | `PASS`, 20/20 | `/private/tmp/ahoi-mobile-3c1af83-repository-contracts-01.log`. |
+| Development signing contracts | `PASS`, 5/5 | `/private/tmp/ahoi-mobile-3c1af83-development-signing-01.log`; validates the separated build/signing modes without claiming an Apple distribution grant. |
+| Swift parse, shell syntax and Mobile line budget | `PASS`: 94/94 Swift files parsed; maximum exactly 800 lines | `/private/tmp/ahoi-mobile-3c1af83-swift-parse-01.log` and `/private/tmp/ahoi-mobile-3c1af83-line-budget-01.log`; `release-preflight.sh` also passed `bash -n` and the Mobile-scoped diff passed `git diff --check`. |
+
 ### Exact candidate `4113c14`
 
 | Check | Result | Retained evidence and boundary |
@@ -139,8 +178,10 @@ The hashes and boundaries for these four post-E2E gates are indexed in
 
 ## CloudKit and sync truth
 
-No real CloudKit transport, encrypted Mac-iPhone/iPad roundtrip or Keychain
-key lifecycle was completed.
+Development signing and provider preparation now reach the real target
+container, but no complete real CloudKit active-record/tombstone transport,
+encrypted Mac-iPhone/iPad roundtrip or end-to-end Keychain lifecycle has
+completed.
 
 | Gate attempt | Observed result | Meaning |
 | --- | --- | --- |
@@ -148,6 +189,10 @@ key lifecycle was completed.
 | Simulator `AhoiMobile-CloudKitE2E` build-for-testing | `PASS` with `AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN=NO` | `/private/tmp/ahoi-mobile-cloudkit-e2e-mutation-off-build-01.log`; app code-sign entitlements are `{}`. The simulated `.xcent` contains requested container/service/environment values but no real team identifier, so this is not an entitled candidate. |
 | Simulator-hosted queue/deny tests | Expected fail-closed boundary: 2 tests stopped before provider/CloudKit construction | `/private/tmp/ahoi-mobile-cloudkit-hosted-mutation-off-01.xcresult` and `.log`; both report missing `com.apple.developer.team-identifier`. The XCTest invocation is red by design at the missing entitlement and is negative safety evidence, not a green CloudKit suite. |
 | Physical iPhone mutation-off build-for-testing | Blocked in provisioning before compile/install/test | `/private/tmp/ahoi-mobile-cloudkit-e2e-physical-preflight-01.log`; the profile does not support `iCloud.app.ahoibrowser.AhoiBrowser`, lacks `com.apple.developer.icloud-container-environment`, and does not match the requested container identifiers. No portal mutation or CloudKit call occurred. |
+| Current physical Development signing | `PASS` for build, signature and provisioning | The `0.1 (6)` `954643d` candidate is correctly signed for Team `248AJ5BN47`, the target Development container and `Servusla`. This supersedes the older provisioning absence for Development only; it is not a transport or distribution pass. |
+| Real mutation attempt 1 | Harness failure before any CloudKit write; corrected | `/private/tmp/ahoi-mobile-954643d-cloudkit-real-e2e-01.xcresult` and `.log`; XCTest rejected observer registration off the main thread. Commit `469d00d` removed that invalid boundary. |
+| Real mutation attempt 2 | Expected account safety gate reached; harness then corrected | `/private/tmp/ahoi-mobile-444e995-cloudkit-real-e2e-02.xcresult` and `.log`; `accountTransitionRequiresConfirmation` stopped local upload, and marker-first cleanup refused deletion because no marker existed. Commit `3c1af83` explicitly confirms only the empty synthetic E2E scope and uses async idempotent teardown. |
+| Real mutation attempt 3 | `BLOCKED` at locked device before launch | `/private/tmp/ahoi-mobile-3c1af83-cloudkit-real-e2e-03.xcresult` and `.log`; build/sign completed, but Xcode waited at `Unlock Servusla to Continue`. No current-head test or CloudKit mutation started. |
 
 The dedicated E2E harness remains fail closed: a real run additionally needs
 `AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN=YES`, a unique run token, exact bundle,
@@ -221,10 +266,10 @@ These bullets describe reviewable source boundaries only.
 
 | Gate | State | Closure evidence |
 | --- | --- | --- |
-| `ios-final-bundle-team-profile` | `blocked-credential` | Team `248AJ5BN47`, bundle `app.ahoibrowser.AhoiBrowser` and one development profile are known. The target CloudKit container is absent/unassigned, and matching refreshed CloudKit/distribution/post-grant profiles plus candidate-bound runtime evidence are still absent. |
+| `ios-final-bundle-team-profile` | Development proven; release open | Team `248AJ5BN47`, bundle `app.ahoibrowser.AhoiBrowser`, the exact Development container and the `Servusla` provisioning profile are bound in the signed `0.1 (6)` build. Distribution, TestFlight and post-grant profiles plus release-candidate runtime evidence remain absent. |
 | `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Both Default Web Browser and Browser App Installation showed `No Requests`; Apple grant, profile attachment and the physical system-default journey remain absent. |
-| `ios-cloudkit-keychain-capabilities` | `blocked-entitlement` | The intended container `iCloud.app.ahoibrowser.AhoiBrowser` is not registered/assigned to the profile. The Team's visible DisplayPilot container is foreign and rejected. An entitled Mac counterpart, Keychain keys and operational provisioning/rotation/revocation evidence are also absent. |
-| `ios-physical-device-journeys` | `required-user-assistance` | One bounded iPhone development smoke exists, but a supported physical iPad and all complete Mobile/IOS journeys on the exact release candidate are still required. |
+| `ios-cloudkit-keychain-capabilities` | Development capability present; runtime open | The signed Development build carries the intended `iCloud.app.ahoibrowser.AhoiBrowser` container, CloudKit service and dedicated Keychain groups. The full physical transport smoke is blocked on the locked iPhone; an entitled Mac counterpart, Mac-iPhone/iPad encrypted roundtrip and operational key rotation/revocation evidence remain absent. |
+| `ios-physical-device-journeys` | `required-user-assistance` | One bounded earlier iPhone smoke and one current signed build exist, but the current CloudKit run needs an unlocked `Servusla`; a supported physical iPad and all complete Mobile/IOS journeys on the exact release candidate are still required. |
 | `ios-app-store-connect-testflight` | `blocked-external-service` | App Store Connect has no bound app/candidate and showed an unresolved trader-status warning; reviewed agreements/disclosures, processed public-TestFlight bootstrap and physical TestFlight install are absent. |
 
 This state records only the bounded development results above. It does not
