@@ -472,6 +472,73 @@ final class MobileBrowserPresentationTests: XCTestCase {
         XCTAssertEqual(event.viewportHeight, 200)
     }
 
+    @MainActor
+    func testInjectedScrollBridgePublishesDocumentAndNestedScrollEvents() async throws {
+        let browser = MobileBrowserController()
+        browser.loadUITestFixture()
+        let page = try XCTUnwrap(browser.selectedPage)
+        let coordinator = try XCTUnwrap(browser.selectedLinkInteractionCoordinator)
+        var events: [MobilePageScrollEvent] = []
+        let observation = coordinator.scrollEvents.sink { event in
+            events.append(event)
+        }
+        defer { observation.cancel() }
+
+        var fixtureReady = false
+        for _ in 0..<100 {
+            let state = try? await page.callJavaScript(
+                "return document.readyState === 'complete' && " +
+                    "typeof activateNestedScrollFixture === 'function';"
+            )
+            if state as? Bool == true {
+                fixtureReady = true
+                break
+            }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertTrue(fixtureReady)
+
+        events.removeAll()
+        _ = try await page.callJavaScript(
+            "window.scrollTo(0, 240); return window.scrollY;"
+        )
+        var documentEvent: MobilePageScrollEvent?
+        for _ in 0..<100 {
+            documentEvent = events.last { event in
+                event.sourceID == 0 && event.contentOffsetY >= 100
+            }
+            if documentEvent != nil { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertNotNil(
+            documentEvent,
+            "The installed bridge must publish a real document scroll event."
+        )
+
+        events.removeAll()
+        _ = try await page.callJavaScript(
+            """
+            activateNestedScrollFixture();
+            const scroller = document.getElementById('nested-scroll-fixture');
+            scroller.scrollTop = 240;
+            scroller.dispatchEvent(new Event('scroll'));
+            return scroller.scrollTop;
+            """
+        )
+        var nestedEvent: MobilePageScrollEvent?
+        for _ in 0..<100 {
+            nestedEvent = events.last { event in
+                event.sourceID > 0 && event.contentOffsetY >= 100
+            }
+            if nestedEvent != nil { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertNotNil(
+            nestedEvent,
+            "Mutable bridge frame/source state must publish nested-scroller travel."
+        )
+    }
+
     func testChromeResetContextExpandsForBrowserErrors() {
         let baseline = chromeResetContext(browserErrorMessage: nil)
         let error = chromeResetContext(browserErrorMessage: "Fixture failure")

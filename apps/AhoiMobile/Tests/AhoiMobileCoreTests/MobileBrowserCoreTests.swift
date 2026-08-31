@@ -350,6 +350,40 @@ final class MobileBrowserCoreTests: XCTestCase {
         )
     }
 
+    func testExternalOpenDeduplicationSurvivesProcessStateWithoutPersistingURL() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "AhoiMobileExternalOpenTests-\(UUID())",
+            isDirectory: true
+        )
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let receiptURL = directory.appendingPathComponent("receipt.json")
+        let store = FileMobileExternalOpenReceiptStore(fileURL: receiptURL)
+        let url = try XCTUnwrap(URL(string: "https://private.example/process-redelivery"))
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+
+        var firstProcess = MobileExternalOpenDeduplicator(receiptStore: store)
+        XCTAssertTrue(firstProcess.accepts(url, now: start))
+
+        var relaunchedProcess = MobileExternalOpenDeduplicator(receiptStore: store)
+        XCTAssertFalse(
+            relaunchedProcess.accepts(url, now: start.addingTimeInterval(4.5))
+        )
+        let receiptData = try Data(contentsOf: receiptURL)
+        XCTAssertFalse(
+            String(decoding: receiptData, as: UTF8.self).contains(url.absoluteString),
+            "The short-lived process receipt must not persist browsing URLs in plaintext."
+        )
+        XCTAssertTrue(
+            relaunchedProcess.accepts(
+                url,
+                now: start.addingTimeInterval(
+                    MobileExternalOpenDeduplicator.activationRedeliveryWindow + 0.01
+                )
+            ),
+            "A deliberate later open must remain possible after the bounded window."
+        )
+    }
+
     func testDownloadFilenameCannotEscapeDestinationDirectory() {
         XCTAssertEqual(
             MobileDownloadCoordinator.safeFilename("../../account.txt", fallback: "download"),

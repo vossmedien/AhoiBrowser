@@ -59,7 +59,7 @@ public final class MobileBrowserController: ObservableObject {
     var privateWebsiteDataStore: WKWebsiteDataStore?
     private var lastRecordedHistoryURL: [UUID: String] = [:]
     private var desktopSiteTabIDs: Set<UUID> = []
-    private var externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+    private var externalOpenDeduplicator: MobileExternalOpenDeduplicator
     private var pendingStartupURL: URL?
     var navigationObservationTasks: [UUID: Task<Void, Never>] = [:]
     var expectedDownloadCancellationTabIDs: Set<UUID> = []
@@ -92,7 +92,8 @@ public final class MobileBrowserController: ObservableObject {
         permissionCoordinator: MobilePermissionCoordinator = MobilePermissionCoordinator(),
         downloadCoordinator: MobileDownloadCoordinator = MobileDownloadCoordinator(),
         storagePreparation: (@Sendable () async throws -> Void)? = nil,
-        startupError: String? = nil
+        startupError: String? = nil,
+        externalOpenReceiptURL: URL? = nil
     ) {
         self.store = store
         self.saveCoordinator = MobileBrowserSessionSaveCoordinator(store: store)
@@ -100,6 +101,15 @@ public final class MobileBrowserController: ObservableObject {
         self.permissionCoordinator = permissionCoordinator
         self.downloadCoordinator = downloadCoordinator
         self.lastError = startupError
+        if let externalOpenReceiptURL {
+            self.externalOpenDeduplicator = MobileExternalOpenDeduplicator(
+                receiptStore: FileMobileExternalOpenReceiptStore(
+                    fileURL: externalOpenReceiptURL
+                )
+            )
+        } else {
+            self.externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+        }
     }
 
     public convenience init() {

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import WebKit
 
@@ -581,15 +582,30 @@ public struct MobileExternalOpenDeduplicator: Sendable {
     public var interval: TimeInterval
     private var lastURL: URL?
     private var lastAcceptedAt: Date?
+    private let receiptStore: (any MobileExternalOpenReceiptStoring)?
 
     public init(interval: TimeInterval = activationRedeliveryWindow) {
         self.interval = interval
+        self.receiptStore = nil
+    }
+
+    init(
+        interval: TimeInterval = activationRedeliveryWindow,
+        receiptStore: any MobileExternalOpenReceiptStoring
+    ) {
+        self.interval = interval
+        self.receiptStore = receiptStore
     }
 
     public mutating func accepts(_ url: URL, now: Date = Date()) -> Bool {
-        if lastURL == url,
-           let lastAcceptedAt,
-           now.timeIntervalSince(lastAcceptedAt) <= interval {
+        let fingerprint = Self.fingerprint(for: url)
+        if lastURL == url, isInsideWindow(lastAcceptedAt, now: now) {
+            return false
+        }
+        let persisted = receiptStore.flatMap { try? $0.load() }
+        if let persisted,
+           persisted.fingerprint == fingerprint,
+           isInsideWindow(persisted.acceptedAt, now: now) {
             return false
         }
         // Rejected redeliveries do not extend the window. A bounded window is
@@ -597,6 +613,56 @@ public struct MobileExternalOpenDeduplicator: Sendable {
         // deliberate later open of the same URL.
         lastURL = url
         lastAcceptedAt = now
+        if let receiptStore {
+            try? receiptStore.save(.init(
+                fingerprint: fingerprint,
+                acceptedAt: now
+            ))
+        }
         return true
+    }
+
+    private func isInsideWindow(_ acceptedAt: Date?, now: Date) -> Bool {
+        guard let acceptedAt else { return false }
+        let elapsed = now.timeIntervalSince(acceptedAt)
+        return elapsed >= 0 && elapsed <= interval
+    }
+
+    private static func fingerprint(for url: URL) -> String {
+        Data(SHA256.hash(data: Data(url.absoluteString.utf8))).base64EncodedString()
+    }
+}
+
+struct MobileExternalOpenReceipt: Codable, Equatable, Sendable {
+    let fingerprint: String
+    let acceptedAt: Date
+}
+
+protocol MobileExternalOpenReceiptStoring: Sendable {
+    func load() throws -> MobileExternalOpenReceipt?
+    func save(_ receipt: MobileExternalOpenReceipt) throws
+}
+
+struct FileMobileExternalOpenReceiptStore: MobileExternalOpenReceiptStoring {
+    private static let maximumReceiptBytes = 4 * 1_024
+    let fileURL: URL
+
+    func load() throws -> MobileExternalOpenReceipt? {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            return nil
+        }
+        let data = try Data(contentsOf: fileURL, options: .mappedIfSafe)
+        guard data.count <= Self.maximumReceiptBytes else { return nil }
+        return try JSONDecoder().decode(MobileExternalOpenReceipt.self, from: data)
+    }
+
+    func save(_ receipt: MobileExternalOpenReceipt) throws {
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        let data = try JSONEncoder().encode(receipt)
+        guard data.count <= Self.maximumReceiptBytes else { return }
+        try data.write(to: fileURL, options: .atomic)
     }
 }

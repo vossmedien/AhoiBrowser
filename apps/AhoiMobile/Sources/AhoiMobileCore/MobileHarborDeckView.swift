@@ -82,10 +82,13 @@ struct MobileHarborDeckView: View {
             workspaceRail
                 .opacity(isCollapsed ? 0 : 1)
                 .animation(contentAnimation, value: isCollapsed)
+                // A custom Layout is not an accessibility container. Hide the
+                // semantic rail on the actual HStack so its zero-height visual
+                // placeholder cannot remain discoverable after compaction.
+                .accessibilityHidden(isCollapsed)
         }
         .clipped()
         .allowsHitTesting(!isCollapsed)
-        .accessibilityHidden(isCollapsed)
     }
 
     private var workspaceRail: some View {
@@ -274,9 +277,9 @@ struct MobileHarborDeckView: View {
             content()
                 .opacity(isCollapsed ? 0 : 1)
                 .animation(contentAnimation, value: isCollapsed)
+                .allowsHitTesting(!isCollapsed)
+                .accessibilityHidden(isCollapsed)
         }
-        .allowsHitTesting(!isCollapsed)
-        .accessibilityHidden(isCollapsed)
     }
 
     private func chromeIcon(_ systemName: String) -> some View {

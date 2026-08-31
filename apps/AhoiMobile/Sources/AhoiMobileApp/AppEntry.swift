@@ -254,6 +254,9 @@ private final class AhoiMobileBootstrap: ObservableObject {
         let browser = MobileBrowserController(
             store: FileMobileBrowserSessionStore(
                 fileURL: supportURL.appendingPathComponent("browser-session.json")
+            ),
+            externalOpenReceiptURL: supportURL.appendingPathComponent(
+                "external-open-receipt.json"
             )
         )
         return Runtime(model: model, browser: browser)

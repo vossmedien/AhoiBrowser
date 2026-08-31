@@ -258,8 +258,11 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
         return true;
       };
 
-      let scrollSourceIDs = new WeakMap();
-      let maximumScrollSourceID = 1_000_000;
+      const scrollSourceIDs = new WeakMap();
+      const maximumScrollSourceID = 1_000_000;
+      // These values are intentionally mutable. Every real scroll frame
+      // reassigns at least one of them; declaring them `const` disables the
+      // bridge before it can publish document or nested-scroller telemetry.
       let scrollFrame = 0;
       let nextScrollSourceID = 1;
       let pendingScrollTarget = null;
