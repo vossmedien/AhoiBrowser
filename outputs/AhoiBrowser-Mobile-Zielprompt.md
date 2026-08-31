@@ -1,8 +1,128 @@
 # Zielprompt: AhoiBrowser Mobile – Apple-, CloudKit- und E2E-Abschluss
 
 > Autoritative Umsetzungs-, Konfigurations- und Abnahmespezifikation, Stand
-> 30. August 2026. Tatsächliche Portal-, Geräte- und Buildzustände sind vor
+> 31. August 2026. Tatsächliche Portal-, Geräte- und Buildzustände sind vor
 > jeder Mutation erneut zu prüfen und mit zeitgestempelter Evidenz zu binden.
+
+## Verbindlicher Ausführungszusatz: parallele Mobile-Abschlusswelle
+
+Dieser Zusatz ist für die aktuelle Abschlusswelle vorrangig, soweit ältere,
+breiter formulierte Phasen dieses Dokuments damit kollidieren. Ziel ist kein
+neuer Onboarding-Wizard und keine weitere Konzeptschleife, sondern ein
+alltagstauglicher, sichtbar geprüfter Mobile-Browser auf Basis des vorhandenen
+Produkts.
+
+### Gemeinsamer Branch ohne gegenseitige Einschränkung
+
+- Desktop und Mobile arbeiten ausdrücklich parallel im selben Branch und
+  Arbeitsbaum. Mobile besitzt ausschließlich `apps/AhoiMobile/**`, diesen
+  Mobile-Zielprompt sowie eindeutig Mobile-spezifische E2E-Artefakte und
+  Nachweise. Desktop besitzt Chromium, `.work/chromium`, `overlay/`, `patches/`,
+  Desktop-Import, Desktop-Extensions und Desktop-UI.
+- Gemeinsame Registries, Produktkonfigurationen und gemischte Release-
+  Dokumente bleiben während paralleler Arbeit unverändert. Eine nötige
+  gemeinsame Änderung wird erst nach expliziter Übergabe oder mit einem
+  pfadgenauen, konfliktfreien Patch vorgenommen.
+- Vor jedem Stage, Commit oder Push werden Branch, `HEAD`, Remote-SHA,
+  `git status`, bereits gestagte Pfade und die aktuelle Besitzlage erneut
+  geprüft. Mobile staged und committet nur seine exakten Pfade; fremde
+  Änderungen werden weder bereinigt, versteckt, zurückgesetzt noch unbemerkt
+  mitcommittet. Wenn der Desktop-Agent gerade den gemeinsamen Index oder Branch-
+  Ref mutiert, wartet Mobile nur an diesem kurzen Git-Gate und arbeitet danach
+  weiter.
+- Mobile-Quellarbeit darf parallel zu Desktop-Quellarbeit erfolgen. Vor jedem
+  CPU-intensiven Mobile-Build wird auf einen aktiven AhoiBrowser-/Chromium-
+  `ninja`-, `autoninja`-, `siso`-, `gn`-, Compiler- oder Linkerprozess geprüft.
+  Läuft ein solcher Build, startet Mobile keinen schweren Konkurrenzprozess
+  und greift niemals in den Desktop-Build ein; nach dessen Ende werden
+  vorhandene inkrementelle Mobile-Ausgaben weiterverwendet.
+
+### Frisch verifizierter Ausgangspunkt und rote Laufzeitbefunde
+
+- Letzter gebundener Mobile-Quellcommit ist
+  `087695eb21f701daa0305f54bda0e5c6783b5124` (`fix(ios): stabilize harbor deck
+  scroll motion`). Er wurde erfolgreich als iPhone-Simulator-Kandidat gebaut;
+  Buildlog und Result Bundle liegen unter
+  `/private/tmp/ahoi-mobile-087695e-sim-build-01.{log,xcresult}`.
+- Der anschließende sichtbare E2E-Erstlauf ist korrekt als rot zu behandeln:
+  `/private/tmp/ahoi-mobile-087695e-visible-e2e-01.{mp4,xcresult}`. Eine kalt
+  erneut zugestellte identische URL erzeugte sichtbar `3 Tabs` statt `2 Tabs`.
+  Der aktuelle Default-Deduplizierungszeitraum von 1,5 Sekunden ist kürzer als
+  der gemessene iOS-Aktivierungs-/Zustellpfad.
+- Derselbe Lauf zeigte, dass die in `087695e` neu eingeführte native
+  Dokument-Scrollquelle die zuvor grüne Dokument- und Nested-Scroller-
+  Erkennung regressierte. Der vorherige isolierte, numerisch validierte
+  WebKit-Script-Bridge-Pfad aus `4113c14` war für beide Scrollarten bereits
+  sichtbar funktionsfähig.
+- Die neue Harbor-Deck-Layoutstruktur aus `087695e` bleibt die Basis für eine
+  ruhige Größenänderung. Sie gilt erst dann als angenommen, wenn Workspace-
+  Rail, Adressbereich und Controls ohne Sprung, Restkante oder inkonsistentes
+  Ein-/Ausblenden kollabieren und expandieren. Reduce Motion muss den
+  geometrischen Übergang deaktivieren, darf aber einen informationsneutralen
+  Crossfade behalten.
+
+### Konkretes Featurepaket dieser Welle
+
+1. **Externe URL exakt einmal öffnen:** Den Deduplizierungsvertrag an den real
+   gemessenen Scene-/Activation-Lifecycle anpassen, ohne unterschiedliche URLs
+   oder bewusst spätere Öffnungen zu verschlucken. Derselbe normalisierte
+   HTTP(S)-Callback darf innerhalb eines begrenzten Aktivierungsfensters nur
+   einen normalen Tab erzeugen; private Tabs oder geladene normale Tabs werden
+   nie überschrieben.
+2. **Scroll-Autorität reparieren:** Den regressiven nativen Dokument-
+   Scrollquellenwechsel vollständig zurücknehmen. Die native WebKit-Geometrie
+   bleibt ausschließlich für Pull-to-refresh und Layoutstabilität zuständig;
+   die isolierte, datensparsame Script-Bridge liefert validierte Dokument- und
+   Nested-Scrollereignisse. Layoutsprünge, Source-Wechsel und Mikrojitter dürfen
+   nicht als Nutzer-Scroll akkumulieren.
+3. **Harbor Deck und untere Adressleiste polieren:** Workspace-Rail,
+   Adressbereich, Navigation, Tabs und Mehr bleiben in einem stabilen View-
+   Baum. Beim Abwärtsscrollen verdichtet sich die Leiste kontrolliert, beim
+   echten Gegenlauf sowie bei Navigation, Loading, Fehler, Berechtigung, Suche,
+   Tab-/Workspace-Wechsel und Pull-to-refresh expandiert sie zuverlässig. Die
+   Bewegung bleibt direkt, abbrechbar und im Korridor von 180 bis 240 ms; keine
+   neue dekorative Animation und keine Zeitsteuerung als Zustandsautorität.
+4. **Sichtbare Abnahme vor Programmatik:** Nach einem nötigen Build-/Signatur-
+   Preflight wird zuerst der exakte neue Kandidat installiert und sichtbar auf
+   dem benannten iPhone-Simulator geprüft: kalte doppelte URL-Zustellung,
+   Dokument-Scroll, Nested Scroller, Gegenlauf/Reset, interaktive
+   Präsentationen sowie Reduce Motion. Nach jeder größeren Korrektur werden nur
+   die betroffenen sichtbaren Journeys erneut ausgeführt. Ist ein sichtbarer
+   Pfad technisch oder extern blockiert, wird die genaue Grenze dokumentiert
+   und die davon unabhängige Programmatik trotzdem ausgeführt.
+5. **Erst danach fokussierte Tests:** Deduplizierungs-, Scroll-Reducer-, Layout-
+   Policy-, Private-Browsing-, Session- und Accessibility-Tests; Swift-Parse,
+   Strict Concurrency, Source-Line-Budget, `git diff --check`, DCO und die
+   Mobile-spezifischen Repository-Verträge. Keine breite neue Testsuite ohne
+   reproduzierbaren Befund.
+6. **Sync wirklich prüfen:** Zuerst eine sichtbare provider-freie Simulator-
+   Journey für Opt-in, den expliziten Zustand `Local only`, deaktivierte Sync-
+   Schlüssel und `Sync now`, Neustartpersistenz sowie sauberes Opt-out. Danach
+   prüfen fokussierte programmgesteuerte Journeys lokalen Publish/Pull,
+   Geräte-Tab-/Workspace-Readback, Offline-Wiederaufnahme, Private-
+   Negativbeweis sowie Key-, Codec-, Merge-, Tombstone-, Replay-, Revocation-
+   und In-Memory-Transportverträge. CloudKit Development beziehungsweise
+   Production, Mac-iPhone-iPad-Roundtrip und Push werden nur mit tatsächlich
+   passenden Signaturen, Entitlements, Container und Geräten als bestanden
+   bezeichnet.
+7. **Kandidat und Release-Grenzen binden:** Danach Archive-/Signatur-
+   Preflights und alle lokal kontrollierbaren Artefakte an Source-SHA,
+   Buildnummer, Bundle-ID, Team, Profile, Entitlements und Hash binden.
+   Physisches Gerät, CloudKit Production, TestFlight, App Store Connect und
+   Managed-Default-Browser-Grant jeweils höchstens einmal real versuchen, wenn
+   die Voraussetzungen tatsächlich vorliegen; sonst den konkreten externen
+   Handoff ausweisen und nicht im Kreis wiederholen.
+
+### Abschlussbedingung der parallelen Welle
+
+Die kontrollierbare Welle ist abgeschlossen, wenn der neue Mobile-Kandidat die
+betroffenen sichtbaren iPhone-Journeys besteht, die nachgelagerten fokussierten
+Tests einschließlich Sync grün sind, Archive/Signing soweit lokal möglich
+gebunden wurden und ausschließlich Mobile-Pfade in fokussierten DCO-Commits auf
+dem gemeinsamen Branch gepusht sind. Externe Apple-, CloudKit-Production- oder
+Hardware-Gates bleiben als präzise `NOT_RUN`-/Handoff-Zeile sichtbar; sie dürfen
+weder als Pass ausgegeben werden noch den Abschluss bereits vollständig
+kontrollierbarer Arbeit verhindern.
 
 ## Rollenauftrag
 
@@ -71,8 +191,8 @@ Connect und angeschlossene Geräte:
 - kanonisches Repository:
   `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`;
 - gemeinsamer Integrationsbranch beim letzten Live-Abgleich:
-  `codex/desktop-core-feature-wave-20260830` mit kanonischem Mobile-
-  Produktcommit `88e9b12e629aaad4e69a590f530754b983d38774`; vor jeder
+  `codex/desktop-core-feature-wave-20260830` mit letztem gebundenem Mobile-
+  Quellcommit `087695eb21f701daa0305f54bda0e5c6783b5124`; vor jeder
   Fortsetzung Branch, HEAD und Remote erneut prüfen;
 - Desktop und Mobile dürfen auf ausdrücklichen Wunsch im selben Branch und
   Arbeitsbaum parallel arbeiten, aber nur mit klar disjunkter Pfadverantwortung:
