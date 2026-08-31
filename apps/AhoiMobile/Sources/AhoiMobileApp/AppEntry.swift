@@ -43,6 +43,10 @@ struct AhoiMobileApp: App {
                 guard !AhoiMobileProcessMode.isCloudKitE2EHost else { return }
                 await bootstrap.load()
             }
+            .onOpenURL { url in
+                guard !AhoiMobileProcessMode.isCloudKitE2EHost else { return }
+                bootstrap.handleExternalURL(url)
+            }
         }
     }
 }
@@ -74,6 +78,20 @@ private final class AhoiMobileBootstrap: ObservableObject {
     @Published private(set) var runtime: Runtime?
     @Published private(set) var error: String?
     private var isLoading = false
+    private var pendingExternalURL: URL?
+    private var externalOpenDeduplicator: MobileExternalOpenDeduplicator
+
+    init() {
+        let applicationSupportURL = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        )[0]
+        externalOpenDeduplicator = MobileExternalOpenDeduplicator(
+            receiptURL: applicationSupportURL
+                .appendingPathComponent("AhoiMobile", isDirectory: true)
+                .appendingPathComponent("external-open-receipt.json")
+        )
+    }
 
     func load() async {
         guard runtime == nil, !isLoading else { return }
@@ -82,9 +100,38 @@ private final class AhoiMobileBootstrap: ObservableObject {
         defer { isLoading = false }
 
         do {
-            runtime = try await makeRuntime()
+            let loadedRuntime = try await makeRuntime()
+            runtime = loadedRuntime
+            if let pendingExternalURL {
+                self.pendingExternalURL = nil
+                loadedRuntime.browser.handleClaimedExternalURL(pendingExternalURL)
+            }
         } catch {
             self.error = error.localizedDescription
+        }
+    }
+
+    func handleExternalURL(_ url: URL) {
+        let safeURL: URL
+        do {
+            safeURL = try MobileBrowserInputRouter.validateWebURL(url)
+        } catch {
+            deliverUnclaimedExternalURL(url)
+            return
+        }
+        guard externalOpenDeduplicator.accepts(safeURL) else { return }
+        if let runtime {
+            runtime.browser.handleClaimedExternalURL(safeURL)
+        } else {
+            pendingExternalURL = safeURL
+        }
+    }
+
+    private func deliverUnclaimedExternalURL(_ url: URL) {
+        if let runtime {
+            runtime.browser.handleExternalURL(url)
+        } else {
+            pendingExternalURL = url
         }
     }
 

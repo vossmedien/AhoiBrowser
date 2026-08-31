@@ -66,6 +66,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
         webView.swipeUp()
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        assertCompactHarborDeckSemantics(app)
         assertReachableHitTarget(app.buttons["browser.address"])
         assertReachableHitTarget(app.buttons["browser.tabs"])
         assertReachableHitTarget(app.buttons["browser.more"])
@@ -115,6 +116,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             workspace.waitForNonExistence(timeout: 3),
             "A nested page scroller must collapse the Harbor Deck like document scrolling."
         )
+        assertCompactHarborDeckSemantics(app)
 
         nestedScroller.swipeDown()
         XCTAssertTrue(
@@ -137,11 +139,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
         drag(webView, fromY: 0.72, toY: 0.52)
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
-        XCTAssertEqual(
-            app.buttons.matching(identifier: "browser.address").count,
-            1,
-            "Chrome compaction must retain one stable address control."
-        )
+        assertCompactHarborDeckSemantics(app)
 
         // A tiny opposite-direction correction is common while a finger is
         // settling. It must move the document, yet remain below the 14-point
@@ -189,6 +187,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
         dragPageUpKeepingFixtureActionsVisible(webView)
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        assertCompactHarborDeckSemantics(app)
         let alertButton = webView.buttons["Show JavaScript alert"]
         XCTAssertTrue(alertButton.waitForExistence(timeout: 3))
         XCTAssertTrue(alertButton.isHittable)
@@ -202,6 +201,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
         dragPageUpKeepingFixtureActionsVisible(webView)
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        assertCompactHarborDeckSemantics(app)
         let fileInput = webView.buttons["Choose a fixture file"]
         XCTAssertTrue(fileInput.waitForExistence(timeout: 3))
         XCTAssertTrue(fileInput.isHittable)
@@ -290,6 +290,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
         webView.swipeUp()
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        assertCompactHarborDeckSemantics(app)
         assertReachableHitTarget(app.buttons["browser.address"])
         assertReachableHitTarget(app.buttons["browser.tabs"])
         assertReachableHitTarget(app.buttons["browser.more"])
@@ -358,6 +359,45 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         )
         XCTAssertGreaterThanOrEqual(element.frame.width, 44, file: file, line: line)
         XCTAssertGreaterThanOrEqual(element.frame.height, 44, file: file, line: line)
+    }
+
+    @MainActor
+    private func assertCompactHarborDeckSemantics(
+        _ app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(
+            app.descendants(matching: .any)
+                .matching(identifier: "browser.harbor-deck.workspace").count,
+            0,
+            "Compact chrome must remove the workspace rail from accessibility.",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            app.buttons.matching(identifier: "browser.forward").count,
+            0,
+            "Compact chrome must not project its hidden forward control.",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            app.buttons.matching(identifier: "browser.reload-stop").count,
+            0,
+            "Compact chrome must not project its hidden reload control.",
+            file: file,
+            line: line
+        )
+        for identifier in ["browser.address", "browser.tabs", "browser.more"] {
+            XCTAssertEqual(
+                app.buttons.matching(identifier: identifier).count,
+                1,
+                "Compact chrome must retain one stable \(identifier) control.",
+                file: file,
+                line: line
+            )
+        }
     }
 
     @MainActor

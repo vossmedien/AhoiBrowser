@@ -73,8 +73,8 @@ final class MobileBrowserCoreTests: XCTestCase {
         browser.handleExternalURL(incoming)
         XCTAssertTrue(browser.tabs.isEmpty)
 
-        // The duplicate-suppression window begins when the pending URL is
-        // actually opened, even if session restoration outlives that window.
+        // The duplicate-suppression window begins at the incoming activation,
+        // before session restoration can consume the bounded window.
         try? await Task.sleep(for: .milliseconds(1_600))
         await browser.load()
 
@@ -82,6 +82,30 @@ final class MobileBrowserCoreTests: XCTestCase {
         XCTAssertEqual(browser.selectedTab?.url, incoming.absoluteString)
         browser.handleExternalURL(incoming)
         XCTAssertEqual(browser.tabs.count, 2)
+    }
+
+    @MainActor
+    func testAppClaimedColdURLSurvivesChildRedeliveryBeforeBrowserLoad() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "AhoiMobileClaimedExternalOpenTests-\(UUID())",
+            isDirectory: true
+        )
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let receiptURL = directory.appendingPathComponent("receipt.json")
+        let incoming = try XCTUnwrap(URL(string: "https://incoming.example/cold-claim"))
+        var appGate = MobileExternalOpenDeduplicator(receiptURL: receiptURL)
+        let browser = MobileBrowserController(
+            store: InMemoryMobileBrowserSessionStore(),
+            externalOpenReceiptURL: receiptURL
+        )
+
+        XCTAssertTrue(appGate.accepts(incoming))
+        browser.handleClaimedExternalURL(incoming)
+        browser.handleExternalURL(incoming)
+        await browser.load()
+
+        XCTAssertEqual(browser.tabs.count, 1)
+        XCTAssertEqual(browser.selectedTab?.url, incoming.absoluteString)
     }
 
     func testSessionSnapshotNeverPersistsPrivateTabs() {

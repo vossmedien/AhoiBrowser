@@ -4,6 +4,8 @@ struct MobileHarborDeckView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorScheme) private var colorScheme
+    @ScaledMetric(relativeTo: .subheadline)
+    private var workspaceRailMinimumHeight: CGFloat = 44
 
     let mode: MobileBrowsingMode
     let isCollapsed: Bool
@@ -79,16 +81,24 @@ struct MobileHarborDeckView: View {
             expansion: isCollapsed ? 0 : 1,
             bottomSpacing: 7
         ) {
-            workspaceRail
-                .opacity(isCollapsed ? 0 : 1)
-                .animation(contentAnimation, value: isCollapsed)
-                // A custom Layout is not an accessibility container. Hide the
-                // semantic rail on the actual HStack so its zero-height visual
-                // placeholder cannot remain discoverable after compaction.
-                .accessibilityHidden(isCollapsed)
+            // Geometry remains stable and animatable without retaining a
+            // semantic workspace subtree in the compact state.
+            Color.clear
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: workspaceRailMinimumHeight
+                )
+                .accessibilityHidden(true)
+        }
+        .overlay(alignment: .topLeading) {
+            if !isCollapsed {
+                workspaceRail
+                    .transition(chromeVisibilityTransition)
+            }
         }
         .clipped()
         .allowsHitTesting(!isCollapsed)
+        .accessibilityHidden(isCollapsed)
     }
 
     private var workspaceRail: some View {
@@ -269,17 +279,20 @@ struct MobileHarborDeckView: View {
     }
 
     /// The layout owns the stable outer node and changes its geometry without
-    /// a reduced-motion transaction. Only this inner content opacity animates.
+    /// a reduced-motion transaction. The actual button subtree is removed
+    /// after its opacity transition so compact chrome cannot expose controls
+    /// which are no longer visible.
     private func collapsingControl<Content: View>(
         @ViewBuilder content: () -> Content
     ) -> some View {
         ZStack {
-            content()
-                .opacity(isCollapsed ? 0 : 1)
-                .animation(contentAnimation, value: isCollapsed)
-                .allowsHitTesting(!isCollapsed)
-                .accessibilityHidden(isCollapsed)
+            if !isCollapsed {
+                content()
+                    .transition(chromeVisibilityTransition)
+            }
         }
+        .allowsHitTesting(!isCollapsed)
+        .accessibilityHidden(isCollapsed)
     }
 
     private func chromeIcon(_ systemName: String) -> some View {
@@ -308,6 +321,10 @@ struct MobileHarborDeckView: View {
 
     private var layoutAnimation: Animation? {
         MobileBrowserChromeTheme.chromeAnimation(reduceMotion: reduceMotion)
+    }
+
+    private var chromeVisibilityTransition: AnyTransition {
+        .opacity.animation(contentAnimation)
     }
 
     private var symbolContentTransition: ContentTransition {

@@ -589,6 +589,14 @@ public struct MobileExternalOpenDeduplicator: Sendable {
         self.receiptStore = nil
     }
 
+    public init(
+        interval: TimeInterval = activationRedeliveryWindow,
+        receiptURL: URL
+    ) {
+        self.interval = interval
+        self.receiptStore = FileMobileExternalOpenReceiptStore(fileURL: receiptURL)
+    }
+
     init(
         interval: TimeInterval = activationRedeliveryWindow,
         receiptStore: any MobileExternalOpenReceiptStoring
@@ -620,6 +628,11 @@ public struct MobileExternalOpenDeduplicator: Sendable {
             ))
         }
         return true
+    }
+
+    mutating func rememberAccepted(_ url: URL, now: Date = Date()) {
+        lastURL = url
+        lastAcceptedAt = now
     }
 
     private func isInsideWindow(_ acceptedAt: Date?, now: Date) -> Bool {
