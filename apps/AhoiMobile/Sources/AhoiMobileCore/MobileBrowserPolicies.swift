@@ -576,20 +576,27 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
 }
 
 public struct MobileExternalOpenDeduplicator: Sendable {
+    static let activationRedeliveryWindow: TimeInterval = 8
+
     public var interval: TimeInterval
     private var lastURL: URL?
     private var lastAcceptedAt: Date?
 
-    public init(interval: TimeInterval = 1.5) {
+    public init(interval: TimeInterval = activationRedeliveryWindow) {
         self.interval = interval
     }
 
     public mutating func accepts(_ url: URL, now: Date = Date()) -> Bool {
-        defer {
-            lastURL = url
-            lastAcceptedAt = now
+        if lastURL == url,
+           let lastAcceptedAt,
+           now.timeIntervalSince(lastAcceptedAt) <= interval {
+            return false
         }
-        guard lastURL == url, let lastAcceptedAt else { return true }
-        return now.timeIntervalSince(lastAcceptedAt) > interval
+        // Rejected redeliveries do not extend the window. A bounded window is
+        // long enough for a cold iOS scene activation, while still allowing a
+        // deliberate later open of the same URL.
+        lastURL = url
+        lastAcceptedAt = now
+        return true
     }
 }

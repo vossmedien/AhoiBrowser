@@ -17,7 +17,6 @@ struct MobileWebPageView: View {
     @State private var pullDistance: CGFloat = 0
     @State private var refreshArmed = false
     @State private var chromeScrollReducer = MobileChromeScrollReducer()
-    @State private var nativeScrollSequence: UInt64 = 0
     @State private var findRequestGeneration: UInt64 = 0
     @State private var findTask: Task<Void, Never>?
     @FocusState private var findFieldFocused: Bool
@@ -41,7 +40,6 @@ struct MobileWebPageView: View {
                         let rawOffset = geometry.contentOffset.y + topInset
                         return MobileWebScrollState(
                             pullDistance: max(0, -rawOffset),
-                            contentOffsetY: max(0, rawOffset),
                             contentWidth: geometry.contentSize.width,
                             contentHeight: geometry.contentSize.height,
                             containerWidth: geometry.containerSize.width,
@@ -72,13 +70,9 @@ struct MobileWebPageView: View {
             }
         }
         .onAppear {
-            chromeScrollReducer.reset(baseline: nil)
+            chromeScrollReducer.reset(baseline: scrollCoordinator.latestScrollEvent)
         }
         .onReceive(scrollCoordinator.scrollEvents) { event in
-            // SwiftUI's WebKit geometry is the authoritative document-scroll
-            // source. The isolated script bridge remains necessary only for
-            // independently scrolling page elements.
-            guard event.sourceID != 0 else { return }
             handlePageScroll(event)
         }
         .onChange(of: page.url) { _, _ in
@@ -101,7 +95,7 @@ struct MobileWebPageView: View {
             if isPresented { resetChromeVisibility() }
         }
         .onChange(of: chromeResetGeneration) { _, _ in
-            chromeScrollReducer.reset(baseline: nil)
+            chromeScrollReducer.reset(baseline: scrollCoordinator.latestScrollEvent)
         }
         .task(id: page.url) {
             try? await Task.sleep(for: .milliseconds(250))
@@ -211,19 +205,9 @@ struct MobileWebPageView: View {
             reportChromeCollapsed(false)
             return
         }
-        nativeScrollSequence &+= 1
-        guard let event = newValue.pageScrollEvent(sequence: nativeScrollSequence) else {
-            chromeScrollReducer.reset(baseline: nil)
-            return
+        if !newValue.hasStableLayout(comparedTo: oldValue) {
+            chromeScrollReducer.resetAccumulation()
         }
-        guard newValue.hasStableLayout(comparedTo: oldValue) else {
-            // Insets, rotation and viewport resizing may move the reported
-            // offset without user intent. Treat that sample as the new
-            // baseline instead of counting the geometry jump as travel.
-            chromeScrollReducer.reset(baseline: event)
-            return
-        }
-        handlePageScroll(event)
     }
 
     private func handlePageScroll(_ event: MobilePageScrollEvent) {
@@ -244,8 +228,9 @@ struct MobileWebPageView: View {
     }
 
     private func resetChromeVisibility(clearScrollBaseline: Bool = false) {
-        if clearScrollBaseline { nativeScrollSequence = 0 }
-        chromeScrollReducer.reset(baseline: nil)
+        chromeScrollReducer.reset(baseline: clearScrollBaseline
+                                  ? nil
+                                  : scrollCoordinator.latestScrollEvent)
         reportChromeCollapsed(false)
     }
 
@@ -309,23 +294,12 @@ struct MobileWebPageView: View {
 
 private struct MobileWebScrollState: Hashable {
     let pullDistance: CGFloat
-    let contentOffsetY: CGFloat
     let contentWidth: CGFloat
     let contentHeight: CGFloat
     let containerWidth: CGFloat
     let containerHeight: CGFloat
     let topInset: CGFloat
     let bottomInset: CGFloat
-
-    func pageScrollEvent(sequence: UInt64) -> MobilePageScrollEvent? {
-        MobilePageScrollEvent(
-            sequence: sequence,
-            sourceID: 0,
-            contentOffsetY: Double(contentOffsetY),
-            contentHeight: Double(contentHeight),
-            viewportHeight: Double(containerHeight)
-        )
-    }
 
     func hasStableLayout(comparedTo other: Self) -> Bool {
         abs(contentWidth - other.contentWidth) < 0.5 &&

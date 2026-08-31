@@ -331,6 +331,25 @@ final class MobileBrowserCoreTests: XCTestCase {
         XCTAssertTrue(deduplicator.accepts(url, now: start.addingTimeInterval(3)))
     }
 
+    func testDefaultExternalOpenDeduplicationCoversColdActivationWithoutSliding() throws {
+        let url = try XCTUnwrap(URL(string: "https://example.com/cold-open"))
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+        var deduplicator = MobileExternalOpenDeduplicator()
+
+        XCTAssertTrue(deduplicator.accepts(url, now: start))
+        XCTAssertFalse(deduplicator.accepts(url, now: start.addingTimeInterval(4.5)))
+        XCTAssertFalse(deduplicator.accepts(url, now: start.addingTimeInterval(7.5)))
+        XCTAssertTrue(
+            deduplicator.accepts(
+                url,
+                now: start.addingTimeInterval(
+                    MobileExternalOpenDeduplicator.activationRedeliveryWindow + 0.01
+                )
+            ),
+            "Rejected callbacks must not extend the bounded activation window."
+        )
+    }
+
     func testDownloadFilenameCannotEscapeDestinationDirectory() {
         XCTAssertEqual(
             MobileDownloadCoordinator.safeFilename("../../account.txt", fallback: "download"),
