@@ -37,6 +37,9 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
             scope: scope,
             key: key
         )
+        addTeardownBlock {
+            try await cleanup.cleanup()
+        }
         do {
             try await runTransportSmoke(
                 contract: contract,
@@ -150,7 +153,15 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
             createsSubscription: true
         )
         cleanup.register(writer)
-        try await writer.prepare()
+        do {
+            try await writer.prepare()
+        } catch CloudKitSyncProviderError.accountTransitionRequiresConfirmation {
+            // The provider deliberately treats the first observed account as
+            // an upload boundary. This synthetic scope has no prior local
+            // payload, so the E2E host explicitly approves that transition.
+            try await writer.confirmAccountTransition(allowLocalUpload: true)
+        }
+        XCTAssertFalse(writer.safetyState().accountTransitionPending)
 
         let now = UInt64(Date().timeIntervalSince1970 * 1_000)
         let ownerClock = HybridLogicalClock(

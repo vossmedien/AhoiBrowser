@@ -1,7 +1,6 @@
 import CloudKit
 import CoreFoundation
 import CryptoKit
-import Dispatch
 import Foundation
 import Security
 import XCTest
@@ -482,10 +481,7 @@ private final class AhoiMobileCloudKitE2EScopeFreshnessProbe: @unchecked Sendabl
 }
 
 @available(iOS 17.0, *)
-final class AhoiMobileCloudKitE2ECleanupOwner:
-    NSObject,
-    @unchecked Sendable,
-    XCTestObservation {
+final class AhoiMobileCloudKitE2ECleanupOwner: @unchecked Sendable {
     private struct CleanupAttempt {
         let id: UUID
         let task: Task<Void, Error>
@@ -498,7 +494,6 @@ final class AhoiMobileCloudKitE2ECleanupOwner:
     private var providers: [ObjectIdentifier: CloudKitSyncProvider] = [:]
     private var cleanupAttempt: CleanupAttempt?
     private var didFinish = false
-    private var isObserving = true
 
     init(
         containerIdentifier: String,
@@ -508,11 +503,6 @@ final class AhoiMobileCloudKitE2ECleanupOwner:
         self.containerIdentifier = containerIdentifier
         self.scope = scope
         self.key = key
-        super.init()
-        AhoiMobileCloudKitE2ECleanupRegistry.shared.add(self)
-        withXCTestObservationCenterOnMainThread {
-            XCTestObservationCenter.shared.addTestObserver(self)
-        }
     }
 
     func register(_ provider: CloudKitSyncProvider) {
@@ -546,48 +536,6 @@ final class AhoiMobileCloudKitE2ECleanupOwner:
         }
     }
 
-    /// XCTest invokes this even when the async test unwinds through a failure or
-    /// cancellation path. Normal explicit cleanup removes the observer before
-    /// this callback. The bounded wait keeps the test process alive while the
-    /// detached cleanup task ignores caller cancellation and finishes.
-    func testCaseDidFinish(_ testCase: XCTestCase) {
-        guard needsFallbackCleanup else {
-            unregisterObservation()
-            return
-        }
-        let completion = AhoiMobileCloudKitE2ETeardownCompletion()
-        _ = Task.detached(priority: .utility) { [self] in
-            do {
-                try await cleanup()
-                completion.complete(.success)
-            } catch {
-                completion.complete(.failure(error.localizedDescription))
-            }
-        }
-        let outcome = completion.wait(timeout: 60)
-        switch outcome {
-        case .success:
-            return
-        case .failure(let detail):
-            recordFallbackFailure(
-                "CloudKit E2E teardown could not prove ownership or clean its " +
-                    "synthetic scope: \(detail). No unverified delete was attempted.",
-                on: testCase
-            )
-        case nil:
-            recordFallbackFailure(
-                "CloudKit E2E teardown timed out. Its detached cleanup may still " +
-                    "finish, but no unverified delete was attempted.",
-                on: testCase
-            )
-        }
-        unregisterObservation()
-    }
-
-    private var needsFallbackCleanup: Bool {
-        stateLock.withLock { !didFinish }
-    }
-
     private func beginCleanupAttempt() -> CleanupAttempt? {
         stateLock.withLock {
             guard !didFinish else { return nil }
@@ -613,14 +561,10 @@ final class AhoiMobileCloudKitE2ECleanupOwner:
     }
 
     private func finishCleanupAttempt(_ id: UUID, succeeded: Bool) {
-        let shouldUnregister = stateLock.withLock {
-            guard cleanupAttempt?.id == id else { return false }
+        stateLock.withLock {
+            guard cleanupAttempt?.id == id else { return }
             cleanupAttempt = nil
             if succeeded { didFinish = true }
-            return succeeded
-        }
-        if shouldUnregister {
-            unregisterObservation()
         }
     }
 
@@ -668,89 +612,4 @@ final class AhoiMobileCloudKitE2ECleanupOwner:
         _ = try await database.deleteRecordZone(withID: scope.zoneID)
     }
 
-    private func unregisterObservation() {
-        let shouldUnregister = stateLock.withLock {
-            guard isObserving else { return false }
-            isObserving = false
-            return true
-        }
-        guard shouldUnregister else { return }
-        withXCTestObservationCenterOnMainThread {
-            XCTestObservationCenter.shared.removeTestObserver(self)
-        }
-        AhoiMobileCloudKitE2ECleanupRegistry.shared.remove(self)
-    }
-
-    /// XCTest requires observer mutations on the process main thread even
-    /// when an async test resumes on its cooperative executor. Keep the
-    /// registration synchronous so cleanup is armed before any CloudKit write.
-    private func withXCTestObservationCenterOnMainThread(
-        _ action: @escaping @Sendable () -> Void
-    ) {
-        if Thread.isMainThread {
-            action()
-        } else {
-            DispatchQueue.main.sync(execute: action)
-        }
-    }
-
-    private func recordFallbackFailure(
-        _ message: String,
-        on testCase: XCTestCase
-    ) {
-        testCase.record(XCTIssue(
-            type: .assertionFailure,
-            compactDescription: message
-        ))
-        FileHandle.standardError.write(Data((message + "\n").utf8))
-    }
-}
-
-@available(iOS 17.0, *)
-private final class AhoiMobileCloudKitE2ECleanupRegistry: @unchecked Sendable {
-    static let shared = AhoiMobileCloudKitE2ECleanupRegistry()
-
-    private let lock = NSLock()
-    private var owners: [
-        ObjectIdentifier: AhoiMobileCloudKitE2ECleanupOwner
-    ] = [:]
-
-    func add(_ owner: AhoiMobileCloudKitE2ECleanupOwner) {
-        lock.withLock {
-            owners[ObjectIdentifier(owner)] = owner
-        }
-    }
-
-    func remove(_ owner: AhoiMobileCloudKitE2ECleanupOwner) {
-        lock.withLock {
-            _ = owners.removeValue(forKey: ObjectIdentifier(owner))
-        }
-    }
-}
-
-@available(iOS 17.0, *)
-private final class AhoiMobileCloudKitE2ETeardownCompletion: @unchecked Sendable {
-    enum Outcome {
-        case success
-        case failure(String)
-    }
-
-    private let lock = NSLock()
-    private let semaphore = DispatchSemaphore(value: 0)
-    private var outcome: Outcome?
-
-    func complete(_ outcome: Outcome) {
-        lock.withLock {
-            guard self.outcome == nil else { return }
-            self.outcome = outcome
-            semaphore.signal()
-        }
-    }
-
-    func wait(timeout: TimeInterval) -> Outcome? {
-        guard semaphore.wait(timeout: .now() + timeout) == .success else {
-            return nil
-        }
-        return lock.withLock { outcome }
-    }
 }
