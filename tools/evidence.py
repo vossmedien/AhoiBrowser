@@ -42,9 +42,10 @@ RELEASE_PUBLIC_KEY_REQUIRED = (
 )
 UBO_11_LOCAL_FAIL_CLOSED_RECEIPT = {
     "schemaVersion": 1,
-    "kind": "ubo-11-local-unprovisioned-fail-closed",
+    "kind": "ubo-11-local-foreign-mv2-fail-closed",
     "testId": "UBO-11",
-    "productionTrustRootsProvisioned": False,
+    "staticBootstrapProvisioned": True,
+    "signedCatalogTrustRootProvisioned": False,
     "foreignMv2Rejected": True,
     "networkRequestCount": 0,
     "positiveUboInstallAttempted": False,

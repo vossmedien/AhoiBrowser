@@ -1,0 +1,19 @@
+diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
+--- a/chrome/browser/resources/settings/BUILD.gn
++++ b/chrome/browser/resources/settings/BUILD.gn
+@@ -258,7 +258,6 @@ build_webui("build") {
+       "languages_page/languages_page_index.ts",
+       "languages_page/spell_check_page.ts",
+       "languages_page/translate_page.ts",
+-      "people_page/ahoi_arc_import_section.ts",
+       "people_page/import_data_dialog.ts",
+       "people_page/manage_profile.ts",
+       "relaunch_confirmation_dialog.ts",
+@@ -407,6 +406,7 @@ build_webui("build") {
+       "languages_page/languages_settings_metrics_proxy.ts",
+       "languages_page/languages_types.ts",
+       "languages_page/languages_util.ts",
+       "people_page/ahoi_arc_import_section.html.ts",
++      "people_page/ahoi_arc_import_section.ts",
+       "people_page/import_data_browser_proxy.ts",
+       "people_page/manage_profile_browser_proxy.ts",

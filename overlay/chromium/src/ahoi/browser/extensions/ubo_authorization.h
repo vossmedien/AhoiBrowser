@@ -56,10 +56,11 @@ CheckUboCatalogAgainstCommittedAuthorization(const PrefService& prefs,
 // security state, never synced, and must not survive an uninstall.
 void ClearCommittedUboAuthorization(PrefService* prefs);
 
-// This is the only runtime MV2 exception predicate. It accepts exactly an
-// internal MV2 extension matching a verified pending transaction or the last
-// atomically committed authorization. MV3 and all unrelated extension paths
-// return false and continue through Chromium's normal policy.
+// This is the only runtime MV2 exception predicate. It first requires the
+// compile-time dogfood gate, then accepts exactly an internal MV2 extension
+// matching a verified pending transaction or the last atomically committed
+// authorization. MV3 and all unrelated extension paths return false and
+// continue through Chromium's normal policy.
 bool IsUboManifestV2ExtensionAllowed(const PrefService& prefs,
                                      const ::extensions::Extension& extension);
 

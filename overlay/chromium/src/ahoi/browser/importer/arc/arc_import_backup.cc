@@ -3,6 +3,11 @@
 
 #include "ahoi/browser/importer/arc/arc_import_backup.h"
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <set>
@@ -15,7 +20,9 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "base/files/file.h"
 #include "base/files/file_util.h"
+#include "base/files/scoped_file.h"
 #include "base/json/json_writer.h"
+#include "base/posix/eintr_wrapper.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
@@ -43,6 +50,14 @@ struct BackupFileSpec {
   base::FilePath::StringType destination_name;
   bool required;
   bool is_arc_sidebar = false;
+};
+
+struct BackupFileState {
+  bool present = false;
+  std::string sha256;
+  int64_t size = 0;
+  int64_t modified_unix_ms = 0;
+  int64_t created_unix_ms = 0;
 };
 
 bool IsLowerSha256(const std::string& value) {
@@ -77,31 +92,92 @@ bool IsSafeManifestSourcePath(std::string_view value) {
           base::StartsWith(value, "AhoiProfile/"));
 }
 
-bool HashRegularFile(const base::FilePath& path,
-                     std::string* hash,
-                     int64_t* size,
-                     int64_t* modified_unix_ms) {
-  if (base::IsLink(path)) {
-    return false;
+bool BackupFileStatesMatch(const BackupFileState& left,
+                           const BackupFileState& right) {
+  return left.present == right.present && left.sha256 == right.sha256 &&
+         left.size == right.size &&
+         left.modified_unix_ms == right.modified_unix_ms &&
+         left.created_unix_ms == right.created_unix_ms;
+}
+
+base::File OpenSafeRegularFile(const base::FilePath& path) {
+  base::ScopedFD fd(HANDLE_EINTR(open(
+      path.value().c_str(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK)));
+  struct stat file_stat;
+  if (!fd.is_valid() || fstat(fd.get(), &file_stat) != 0 ||
+      !S_ISREG(file_stat.st_mode) || file_stat.st_nlink != 1) {
+    return base::File(base::File::FILE_ERROR_NOT_A_FILE);
   }
-  base::File file(path, base::File::FLAG_OPEN | base::File::FLAG_READ |
-                            base::File::FLAG_NO_FOLLOW);
-  base::File::Info info;
-  if (!file.IsValid() || !file.GetInfo(&info) || info.is_directory ||
-      info.is_symbolic_link || info.size < 0) {
+  return base::File(std::move(fd));
+}
+
+bool HashOpenedRegularFile(base::File* file, BackupFileState* state) {
+  struct stat links_before;
+  base::File::Info info_before;
+  if (!file || !state || !file->IsValid() ||
+      file->Seek(base::File::FROM_BEGIN, 0) != 0 ||
+      fstat(file->GetPlatformFile(), &links_before) != 0 ||
+      links_before.st_nlink != 1 || !file->GetInfo(&info_before) ||
+      info_before.is_directory || info_before.is_symbolic_link ||
+      info_before.size < 0) {
     return false;
   }
   std::array<uint8_t, crypto::hash::kSha256Size> digest{};
-  if (!crypto::hash::HashFile(crypto::hash::kSha256, &file, digest)) {
+  if (!crypto::hash::HashFile(crypto::hash::kSha256, file, digest)) {
     return false;
   }
-  *hash = base::HexEncodeLower(digest);
-  *size = info.size;
-  *modified_unix_ms = info.last_modified.InMillisecondsSinceUnixEpoch();
+  struct stat links_after;
+  base::File::Info info_after;
+  if (fstat(file->GetPlatformFile(), &links_after) != 0 ||
+      links_after.st_nlink != 1 || !file->GetInfo(&info_after) ||
+      info_after.is_directory || info_after.is_symbolic_link ||
+      info_after.size < 0 || info_before.size != info_after.size ||
+      info_before.last_modified != info_after.last_modified ||
+      info_before.creation_time != info_after.creation_time) {
+    return false;
+  }
+  state->present = true;
+  state->sha256 = base::HexEncodeLower(digest);
+  state->size = info_after.size;
+  state->modified_unix_ms =
+      info_after.last_modified.InMillisecondsSinceUnixEpoch();
+  state->created_unix_ms =
+      info_after.creation_time.InMillisecondsSinceUnixEpoch();
   return true;
 }
 
+bool HashRegularFile(const base::FilePath& path, BackupFileState* state) {
+  base::File file = OpenSafeRegularFile(path);
+  return HashOpenedRegularFile(&file, state);
+}
+
+bool FsyncDirectory(const base::FilePath& path) {
+  base::ScopedFD descriptor(HANDLE_EINTR(
+      open(path.value().c_str(),
+           O_RDONLY | O_CLOEXEC | O_DIRECTORY | O_NOFOLLOW | O_NONBLOCK)));
+  struct stat state;
+  return descriptor.is_valid() && fstat(descriptor.get(), &state) == 0 &&
+         S_ISDIR(state.st_mode) && state.st_uid == getuid() &&
+         HANDLE_EINTR(fsync(descriptor.get())) == 0;
+}
+
+bool CaptureBackupFileState(const BackupFileSpec& spec,
+                            BackupFileState* state) {
+  if (base::IsLink(spec.source)) {
+    return false;
+  }
+  if (!base::PathExists(spec.source)) {
+    if (spec.required) {
+      return false;
+    }
+    *state = BackupFileState();
+    return true;
+  }
+  return HashRegularFile(spec.source, state);
+}
+
 bool CopyAndVerify(const BackupFileSpec& spec,
+                   const BackupFileState& expected,
                    const base::FilePath& backup_directory,
                    base::ListValue* manifest_files,
                    const std::string& expected_snapshot_token) {
@@ -111,8 +187,11 @@ bool CopyAndVerify(const BackupFileSpec& spec,
   base::DictValue entry;
   entry.Set("role", spec.role);
   entry.Set("source_path", spec.manifest_source_path);
-  if (!base::PathExists(spec.source)) {
-    if (spec.required) {
+  entry.Set("backup_name",
+            base::FilePath(spec.destination_name).AsUTF8Unsafe());
+  if (!expected.present) {
+    if (spec.required || base::IsLink(spec.source) ||
+        base::PathExists(spec.source)) {
       return false;
     }
     entry.Set("present", false);
@@ -123,35 +202,58 @@ bool CopyAndVerify(const BackupFileSpec& spec,
     return false;
   }
 
-  std::string source_hash;
-  int64_t source_size = 0;
-  int64_t source_modified_unix_ms = 0;
-  if (!HashRegularFile(spec.source, &source_hash, &source_size,
-                       &source_modified_unix_ms) ||
-      (spec.is_arc_sidebar && source_hash != expected_snapshot_token)) {
+  BackupFileState current;
+  if (!CaptureBackupFileState(spec, &current) ||
+      !BackupFileStatesMatch(expected, current) ||
+      (spec.is_arc_sidebar && expected.sha256 != expected_snapshot_token)) {
     return false;
   }
 
   const base::FilePath destination =
       backup_directory.Append(spec.destination_name);
-  if (base::PathExists(destination) ||
-      !base::CopyFile(spec.source, destination) ||
-      !base::SetPosixFilePermissions(destination, 0600)) {
+  base::File source_file = OpenSafeRegularFile(spec.source);
+  BackupFileState opened_source_state;
+  if (!HashOpenedRegularFile(&source_file, &opened_source_state) ||
+      !BackupFileStatesMatch(expected, opened_source_state) ||
+      source_file.Seek(base::File::FROM_BEGIN, 0) != 0 ||
+      base::PathExists(destination)) {
     return false;
   }
-  std::string destination_hash;
-  int64_t destination_size = 0;
-  int64_t destination_modified_unix_ms = 0;
-  if (!HashRegularFile(destination, &destination_hash, &destination_size,
-                       &destination_modified_unix_ms) ||
-      source_hash != destination_hash || source_size != destination_size) {
+  base::File destination_file(destination, base::File::FLAG_CREATE |
+                                               base::File::FLAG_WRITE |
+                                               base::File::FLAG_NO_FOLLOW);
+  if (!destination_file.IsValid() ||
+      !base::SetPosixFilePermissions(destination, 0600) ||
+      !base::CopyFileContents(source_file, destination_file) ||
+      !destination_file.Flush()) {
+    destination_file.Close();
+    base::DeleteFile(destination);
+    return false;
+  }
+  destination_file.Close();
+
+  // Verify the exact opened inode once more after copying. A leaf swap cannot
+  // redirect the copy because the source descriptor was opened with
+  // O_NOFOLLOW; in-place mutation invalidates the generation as well.
+  BackupFileState source_after_copy;
+  if (!HashOpenedRegularFile(&source_file, &source_after_copy) ||
+      !BackupFileStatesMatch(expected, source_after_copy) ||
+      !base::SetPosixFilePermissions(destination, 0600)) {
+    base::DeleteFile(destination);
+    return false;
+  }
+  BackupFileState destination_state;
+  if (!HashRegularFile(destination, &destination_state) ||
+      expected.sha256 != destination_state.sha256 ||
+      expected.size != destination_state.size) {
     return false;
   }
 
   entry.Set("present", true);
-  entry.Set("bytes", base::NumberToString(source_size));
-  entry.Set("modified_unix_ms", base::NumberToString(source_modified_unix_ms));
-  entry.Set("sha256", source_hash);
+  entry.Set("bytes", base::NumberToString(expected.size));
+  entry.Set("modified_unix_ms",
+            base::NumberToString(expected.modified_unix_ms));
+  entry.Set("sha256", expected.sha256);
   manifest_files->Append(std::move(entry));
   return true;
 }
@@ -160,9 +262,10 @@ void AddDatabaseSpecs(std::vector<BackupFileSpec>* specs,
                       std::string role_prefix,
                       const base::FilePath& source,
                       std::string manifest_source_path,
-                      const base::FilePath::StringType& destination_name) {
-  specs->push_back(
-      {role_prefix, source, manifest_source_path, destination_name, false});
+                      const base::FilePath::StringType& destination_name,
+                      bool primary_required = false) {
+  specs->push_back({role_prefix, source, manifest_source_path, destination_name,
+                    primary_required});
   specs->push_back({base::StrCat({role_prefix, "_wal"}),
                     base::FilePath(source.value() + FILE_PATH_LITERAL("-wal")),
                     base::StrCat({manifest_source_path, "-wal"}),
@@ -224,46 +327,79 @@ ArcImportBackupResult CreateArcImportBackup(
        FILE_PATH_LITERAL("Arc-StorableSidebar.json"), true, true},
   };
   for (const ArcBrowserProfile& arc_profile : arc_source.browser_profiles) {
-    std::string slug = base::ToLowerASCII(arc_profile.directory_name);
-    std::ranges::replace(slug, ' ', '_');
+    const std::string profile_key =
+        base::HexEncodeLower(crypto::hash::Sha256(arc_profile.directory_name));
     const std::string manifest_profile_prefix =
         base::StrCat({"Arc/User Data/", arc_profile.directory_name, "/"});
-    specs.push_back({base::StrCat({"arc_", slug, "_bookmarks"}),
+    specs.push_back({base::StrCat({"arc_", profile_key, "_bookmarks"}),
                      arc_profile.path.AppendASCII("Bookmarks"),
                      base::StrCat({manifest_profile_prefix, "Bookmarks"}),
                      base::FilePath::FromUTF8Unsafe(
-                         base::StrCat({"Arc-", slug, "-Bookmarks.json"}))
+                         base::StrCat({"Arc-", profile_key, "-Bookmarks.json"}))
                          .value(),
                      false});
-    AddDatabaseSpecs(&specs, base::StrCat({"arc_", slug, "_history"}),
+    AddDatabaseSpecs(&specs, base::StrCat({"arc_", profile_key, "_history"}),
                      arc_profile.path.AppendASCII("History"),
                      base::StrCat({manifest_profile_prefix, "History"}),
                      base::FilePath::FromUTF8Unsafe(
-                         base::StrCat({"Arc-", slug, "-History.sqlite"}))
+                         base::StrCat({"Arc-", profile_key, "-History.sqlite"}))
                          .value());
-    AddDatabaseSpecs(&specs, base::StrCat({"arc_", slug, "_favicons"}),
-                     arc_profile.path.AppendASCII("Favicons"),
-                     base::StrCat({manifest_profile_prefix, "Favicons"}),
-                     base::FilePath::FromUTF8Unsafe(
-                         base::StrCat({"Arc-", slug, "-Favicons.sqlite"}))
-                         .value());
-    AddDatabaseSpecs(&specs, base::StrCat({"arc_", slug, "_web_data"}),
-                     arc_profile.path.AppendASCII("Web Data"),
-                     base::StrCat({manifest_profile_prefix, "Web Data"}),
-                     base::FilePath::FromUTF8Unsafe(
-                         base::StrCat({"Arc-", slug, "-Web-Data.sqlite"}))
-                         .value());
+    AddDatabaseSpecs(
+        &specs, base::StrCat({"arc_", profile_key, "_favicons"}),
+        arc_profile.path.AppendASCII("Favicons"),
+        base::StrCat({manifest_profile_prefix, "Favicons"}),
+        base::FilePath::FromUTF8Unsafe(
+            base::StrCat({"Arc-", profile_key, "-Favicons.sqlite"}))
+            .value());
+    AddDatabaseSpecs(
+        &specs, base::StrCat({"arc_", profile_key, "_web_data"}),
+        arc_profile.path.AppendASCII("Web Data"),
+        base::StrCat({manifest_profile_prefix, "Web Data"}),
+        base::FilePath::FromUTF8Unsafe(
+            base::StrCat({"Arc-", profile_key, "-Web-Data.sqlite"}))
+            .value());
   }
   AddDatabaseSpecs(&specs, "ahoi_tab_tree",
                    ahoi_profile_path.AppendASCII(kTabTreeDatabaseFilename),
                    base::StrCat({"AhoiProfile/", kTabTreeDatabaseFilename}),
-                   FILE_PATH_LITERAL("Ahoi-Tab-Tree.sqlite"));
+                   FILE_PATH_LITERAL("Ahoi-Tab-Tree.sqlite"),
+                   /*primary_required=*/true);
+
+  // Capture one complete source generation before copying. A later full pass
+  // must match byte-for-byte and metadata-for-metadata, including optional
+  // SQLite WAL/SHM presence. This permits unrelated inaccessible processes
+  // without ever accepting a source that changed during the backup window.
+  std::vector<BackupFileState> source_states(specs.size());
+  bool source_changed = false;
+  bool source_generation_captured = true;
+  for (size_t index = 0; index < specs.size(); ++index) {
+    if (!CaptureBackupFileState(specs[index], &source_states[index])) {
+      source_generation_captured = false;
+      break;
+    }
+    if (specs[index].is_arc_sidebar &&
+        source_states[index].sha256 != expected_snapshot_token) {
+      source_generation_captured = false;
+      source_changed = true;
+      break;
+    }
+  }
 
   base::ListValue manifest_files;
-  bool success = true;
-  for (const BackupFileSpec& spec : specs) {
-    if (!CopyAndVerify(spec, backup_directory, &manifest_files,
-                       expected_snapshot_token)) {
+  bool success = source_generation_captured;
+  for (size_t index = 0; success && index < specs.size(); ++index) {
+    if (!CopyAndVerify(specs[index], source_states[index], backup_directory,
+                       &manifest_files, expected_snapshot_token)) {
+      success = false;
+      break;
+    }
+  }
+  for (size_t index = 0; source_generation_captured && index < specs.size();
+       ++index) {
+    BackupFileState after;
+    if (!CaptureBackupFileState(specs[index], &after) ||
+        !BackupFileStatesMatch(source_states[index], after)) {
+      source_changed = true;
       success = false;
       break;
     }
@@ -286,19 +422,33 @@ ArcImportBackupResult CreateArcImportBackup(
   success = success && base::JSONWriter::Write(manifest, &json) &&
             base::WriteFile(temporary_manifest, json) &&
             base::SetPosixFilePermissions(temporary_manifest, 0600);
+  if (success) {
+    base::File manifest_file(temporary_manifest,
+                             base::File::FLAG_OPEN | base::File::FLAG_WRITE |
+                                 base::File::FLAG_NO_FOLLOW);
+    success = manifest_file.IsValid() && manifest_file.Flush();
+  }
   base::File::Error replace_error = base::File::FILE_OK;
   success =
       success &&
       base::ReplaceFile(temporary_manifest, manifest_path, &replace_error) &&
       base::SetPosixFilePermissions(manifest_path, 0600);
+  success = success && FsyncDirectory(backup_directory) &&
+            FsyncDirectory(backup_root) && FsyncDirectory(ahoi_directory) &&
+            FsyncDirectory(ahoi_profile_path);
   if (!success) {
     base::DeleteFile(temporary_manifest);
     base::DeletePathRecursively(backup_directory);
+    if (source_changed) {
+      result.status = ArcImportStatus::kSourceChanged;
+    }
     return result;
   }
 
   result.status = ArcImportStatus::kOk;
   result.backup_directory = backup_directory;
+  result.backup_identifier = directory_name;
+  result.manifest_sha256 = base::HexEncodeLower(crypto::hash::Sha256(json));
   return result;
 }
 

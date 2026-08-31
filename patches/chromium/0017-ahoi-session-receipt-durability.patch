@@ -1,0 +1,196 @@
+diff --git a/components/sessions/core/command_storage_backend.cc b/components/sessions/core/command_storage_backend.cc
+--- a/components/sessions/core/command_storage_backend.cc
++++ b/components/sessions/core/command_storage_backend.cc
+@@ -37,11 +37,31 @@
+ #include "components/sessions/core/session_service_commands.h"
+ #include "third_party/abseil-cpp/absl/strings/str_format.h"
+ 
++#if BUILDFLAG(IS_POSIX)
++#include <fcntl.h>
++#include <unistd.h>
++
++#include "base/files/scoped_file.h"
++#include "base/posix/eintr_wrapper.h"
++#endif  // BUILDFLAG(IS_POSIX)
++
+ namespace sessions {
+ 
+ namespace {
+ 
+ using SessionType = CommandStorageManager::SessionType;
++
++bool FlushContainingDirectory(const base::FilePath& file_path) {
++#if BUILDFLAG(IS_POSIX)
++  base::ScopedFD directory_fd(
++      HANDLE_EINTR(open(file_path.DirName().value().c_str(),
++                        O_RDONLY | O_CLOEXEC | O_DIRECTORY | O_NOFOLLOW)));
++  return directory_fd.is_valid() &&
++         HANDLE_EINTR(fsync(directory_fd.get())) == 0;
++#else
++  return !file_path.empty();
++#endif
++}
+ 
+ // File version numbers:
+ // kFileVersion1 = 1; No longer supported. Used in production prior to commit
+@@ -627,17 +647,20 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
+   CommandStorageBackend::ReadCommandsResult result;
+   if (!open_file_ || !open_file_->file || !open_file_->file->IsValid() ||
+       !open_file_->did_write_marker) {
++    CloseFile();
+     result.error_reading = true;
+     return result;
+   }
+   if (is_encrypted() && (!encryptor_->IsEncryptionAvailable() ||
+                          !encryptor_->IsDecryptionAvailable())) {
++    CloseFile();
+     result.error_reading = true;
+     return result;
+   }
+ 
+   const base::FilePath current_path = open_file_->path;
+-  if (!open_file_->file->Flush()) {
++  if (!open_file_->file->Flush() || !FlushContainingDirectory(current_path)) {
++    CloseFile();
+     result.error_reading = true;
+     return result;
+   }
+@@ -652,6 +675,11 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
+   if (!read_result.has_marker) {
+     read_result.commands.clear();
+     read_result.status = ReadStatus::kInvalidCommand;
++  }
++  if (IsError(read_result.status)) {
++    CloseFile();
++    result.error_reading = true;
++    return result;
+   }
+ 
+   std::unique_ptr<base::File> append_file = std::make_unique<base::File>(
+@@ -667,10 +695,6 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
+   open_file_->file = std::move(append_file);
+ 
+   result.commands = std::move(read_result.commands);
+-  result.error_reading = IsError(read_result.status);
+-  if (result.error_reading) {
+-    result.commands.clear();
+-  }
+   return result;
+ }
+ 
+diff --git a/components/sessions/core/command_storage_manager.cc b/components/sessions/core/command_storage_manager.cc
+--- a/components/sessions/core/command_storage_manager.cc
++++ b/components/sessions/core/command_storage_manager.cc
+@@ -473,8 +473,8 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+           base::BindOnce(
+               &CommandStorageBackend::FlushAndReadCurrentSessionCommands,
+               backend_.get()),
+-          base::BindOnce(&OnBackendReadFinished, /*saved_result=*/nullptr,
+-                         std::move(callback)));
++          base::BindOnce(&CommandStorageManager::OnCurrentSessionReceiptRead,
++                         weak_factory_.GetWeakPtr(), std::move(callback)));
+       return;
+     case EncryptSessionStorageStage::kWriteBothReadOnlyClear:
+     case EncryptSessionStorageStage::kWriteBothReadPreferEncrypted:
+@@ -484,8 +484,8 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+               &FlushAndReadDualBackends, backend_, encrypted_backend_,
+               encrypt_stage ==
+                   EncryptSessionStorageStage::kWriteBothReadPreferEncrypted),
+-          base::BindOnce(&OnBackendReadFinished, /*saved_result=*/nullptr,
+-                         std::move(callback)));
++          base::BindOnce(&CommandStorageManager::OnCurrentSessionReceiptRead,
++                         weak_factory_.GetWeakPtr(), std::move(callback)));
+       return;
+     case EncryptSessionStorageStage::kWriteEncryptedReadPreferEncrypted:
+       backend_task_runner_->PostTaskAndReplyWithResult(
+@@ -493,12 +493,23 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+           base::BindOnce(
+               &CommandStorageBackend::FlushAndReadCurrentSessionCommands,
+               encrypted_backend_.get()),
+-          base::BindOnce(&OnBackendReadFinished, /*saved_result=*/nullptr,
+-                         std::move(callback)));
++          base::BindOnce(&CommandStorageManager::OnCurrentSessionReceiptRead,
++                         weak_factory_.GetWeakPtr(), std::move(callback)));
+       return;
+   }
+ }
+ 
++void CommandStorageManager::OnCurrentSessionReceiptRead(
++    GetCommandsCallback callback,
++    std::vector<std::unique_ptr<SessionCommand>> commands,
++    bool read_error) {
++  if (read_error) {
++    OnErrorWritingToFile();
++    commands.clear();
++  }
++  std::move(callback).Run(std::move(commands), read_error);
++}
++
+ bool CommandStorageManager::HasPendingSave() const {
+   return weak_factory_for_timer_.HasWeakPtrs();
+ }
+diff --git a/components/sessions/core/command_storage_manager.h b/components/sessions/core/command_storage_manager.h
+--- a/components/sessions/core/command_storage_manager.h
++++ b/components/sessions/core/command_storage_manager.h
+@@ -151,6 +151,14 @@ class SESSIONS_EXPORT CommandStorageManager {
+   // Called by the backend if writing to the file failed.
+   void OnErrorWritingToFile();
+ 
++  // Treats an unreadable just-flushed Current Session as a write failure so
++  // the delegate schedules the same complete rebuild as any other corrupt
++  // persistence result before the receipt callback observes the error.
++  void OnCurrentSessionReceiptRead(
++      GetCommandsCallback callback,
++      std::vector<std::unique_ptr<SessionCommand>> commands,
++      bool read_error);
++
+   // Returns true if cleartext files should be written.
+   bool ShouldWriteCleartextFiles() const;
+ 
+diff --git a/components/sessions/core/command_storage_backend_unittest.cc b/components/sessions/core/command_storage_backend_unittest.cc
+--- a/components/sessions/core/command_storage_backend_unittest.cc
++++ b/components/sessions/core/command_storage_backend_unittest.cc
+@@ -677,7 +677,32 @@ TEST_P(CommandStorageBackendParamTest,
+   EXPECT_TRUE(result.commands.empty());
+   EXPECT_FALSE(backend->IsFileOpenForTesting());
+ }
++
++TEST_P(CommandStorageBackendParamTest,
++       FlushAndReadCurrentSessionCommandsClosesCorruptFileAndAllowsReset) {
++  scoped_refptr<CommandStorageBackend> backend = CreateBackend();
++  SessionCommands commands;
++  commands.push_back(std::make_unique<SessionCommand>(101, 0));
++  backend->AppendCommands(std::move(commands), /*truncate=*/true,
++                          base::DoNothing());
++  ASSERT_TRUE(base::AppendToFile(backend->current_path_for_testing(),
++                                 "corrupt trailing command"));
+ 
++  ReadCommandsResult result = backend->FlushAndReadCurrentSessionCommands();
++
++  EXPECT_TRUE(result.error_reading);
++  EXPECT_TRUE(result.commands.empty());
++  EXPECT_FALSE(backend->IsFileOpenForTesting());
++
++  commands.push_back(std::make_unique<SessionCommand>(102, 0));
++  backend->AppendCommands(std::move(commands), /*truncate=*/true,
++                          base::DoNothing());
++  result = backend->FlushAndReadCurrentSessionCommands();
++  EXPECT_FALSE(result.error_reading);
++  ASSERT_EQ(1u, result.commands.size());
++  EXPECT_EQ(102u, result.commands.front()->id());
++}
++
+ TEST_P(CommandStorageBackendParamTest, RandomData) {
+   auto data = std::to_array<TestData>({
+       {1, "a"},
+diff --git a/components/sessions/core/command_storage_manager_unittest.cc b/components/sessions/core/command_storage_manager_unittest.cc
+--- a/components/sessions/core/command_storage_manager_unittest.cc
++++ b/components/sessions/core/command_storage_manager_unittest.cc
+@@ -301,6 +301,7 @@ TEST_P(CommandStorageManagerTest,
+ 
+   EXPECT_TRUE(error);
+   EXPECT_TRUE(commands.empty());
++  EXPECT_EQ(1, delegate.error_count());
+ }
+ 
+ TEST_P(CommandStorageManagerTest,

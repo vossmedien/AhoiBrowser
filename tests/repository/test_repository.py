@@ -19,20 +19,22 @@ class RepositoryContractTests(unittest.TestCase):
     def test_registry_covers_every_master_test_id(self):
         master = (ROOT / "outputs/AhoiBrowser-Master-Zielprompt.md").read_text(encoding="utf-8")
         expected_rows = re.findall(
-            r"^- `([A-Z][A-Z0-9]{1,9}-\d{2,3})`: (.+)$",
+            r"^- `([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-\d{2,3}[A-Z]?)`: (.+)$",
             master,
             re.MULTILINE,
         )
         expected = dict(expected_rows)
+        self.assertEqual(len(expected_rows), len(expected), "master test IDs must be unique")
+        mobile_ids = {f"MOB-USER-{number:02d}" for number in range(1, 16)}
         registry = load_json("config/test-registry.json")["tests"]
         actual = {entry["id"]: entry for entry in registry}
-        self.assertEqual(349, len(registry))
         self.assertEqual(len(registry), len(actual), "test IDs must be unique")
-        self.assertEqual(set(expected), set(actual))
+        self.assertEqual(set(expected) | mobile_ids, set(actual))
         for entry in registry:
             with self.subTest(test_id=entry["id"]):
-                self.assertEqual(expected[entry["id"]], entry["description"])
-                self.assertEqual(entry["id"].split("-", 1)[0], entry["suite"])
+                if entry["id"] in expected:
+                    self.assertEqual(expected[entry["id"]], entry["description"])
+                self.assertEqual(entry["id"].rsplit("-", 1)[0], entry["suite"])
                 self.assertEqual("NOT_RUN", entry["status"])
                 self.assertTrue(entry["releaseCritical"])
                 self.assertIn(entry["primaryClass"], {"UNIT", "INTEGRATION", "CU_E2E", "ASSISTED_E2E"})
@@ -62,6 +64,7 @@ class RepositoryContractTests(unittest.TestCase):
             "PERM-01",
             "PERM-02",
             "PERM-03",
+            "RECOVERY-MAC-07",
         }
         for test_id in assisted:
             with self.subTest(test_id=test_id):
@@ -401,11 +404,25 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("NOT_RUN", statuses["allowed"])
         self.assertIn("BLOCKED_ENTITLEMENT", statuses["allowed"])
 
-    def test_external_features_default_off(self):
+    def test_external_feature_and_static_bootstrap_defaults(self):
         gates = load_json("config/feature-gates.json")["gates"]
-        for name in ("proprietaryCodecs", "widevine", "selectiveUboClassicMv2", "crashUpload"):
+        for name in ("proprietaryCodecs", "widevine", "crashUpload"):
             with self.subTest(name=name):
                 self.assertFalse(gates[name]["default"])
+        self.assertFalse(gates["selectiveUboClassicMv2"]["default"])
+        self.assertEqual(
+            ["dev"],
+            gates["selectiveUboClassicMv2"]["dogfoodBuildProfiles"],
+        )
+        self.assertEqual(
+            [
+                "signed-browser-static-bootstrap",
+                "package-and-key-hash",
+                "normal-permission-prompt",
+                "runtime-e2e",
+            ],
+            gates["selectiveUboClassicMv2"]["requires"],
+        )
         external = {entry["id"]: entry for entry in load_json("config/external-gates.json")["gates"]}
         self.assertEqual("blocked-entitlement", external["widevine-mla"]["state"])
         self.assertEqual("blocked-legal-review", external["proprietary-codecs"]["state"])
@@ -416,10 +433,67 @@ class RepositoryContractTests(unittest.TestCase):
                 "safe-browsing-service",
                 "onepassword-additional-browser",
                 "ubo-catalog-hosting-and-signing",
-                "ubo-fixed-id-crx-publisher-provenance",
+                "ubo-official-github-release-bootstrap-provenance",
                 "ubo-redistribution",
             }.issubset(external)
         )
+
+    def test_ubo_official_github_release_pin_is_exact(self):
+        pin = load_json("config/third-party-pins.json")["dependencies"][
+            "uBlockOriginClassic"
+        ]
+        self.assertTrue(pin["enabled"])
+        self.assertEqual("1.74.0", pin["version"])
+        self.assertEqual(
+            "6dd2d95e50d134a477a4e183343c0b26e9147123", pin["commit"]
+        )
+        self.assertEqual("Official GitHub release", pin["distribution"])
+        self.assertEqual("selectiveUboClassicMv2", pin["gate"])
+        self.assertEqual(
+            "https://github.com/gorhill/uBlock/releases/tag/1.74.0",
+            pin["source"],
+        )
+        archive = pin["archive"]
+        self.assertEqual(
+            "https://github.com/gorhill/uBlock/releases/download/1.74.0/"
+            "uBlock0_1.74.0.chromium.crx",
+            archive["url"],
+        )
+        self.assertEqual(4535482, archive["size"])
+        self.assertEqual(
+            "b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e",
+            archive["sha256"],
+        )
+        self.assertEqual(
+            "5a6a81097514fb940453d5d46329eca78100e3cc0c5fca508e1a413f77f567bf",
+            archive["crxPublicKeySha256"],
+        )
+        self.assertEqual(
+            "fkgkibajhfbepljeaefdnfnegdcjomkh", archive["extensionId"]
+        )
+        self.assertEqual(
+            "/github-production-release-asset/33263118/"
+            "ade4daf2-50e8-4953-8821-5c2d43f07a65",
+            archive["releaseAssetPath"],
+        )
+
+        product_config = (
+            ROOT
+            / "overlay/chromium/src/ahoi/browser/extensions/ubo_product_config.h"
+        ).read_text(encoding="utf-8")
+        product_config = re.sub(r'"\s*"', "", product_config)
+        for value in (
+            pin["version"],
+            pin["commit"],
+            pin["distribution"],
+            archive["url"],
+            archive["sha256"],
+            archive["crxPublicKeySha256"],
+            archive["extensionId"],
+            archive["releaseAssetPath"],
+        ):
+            with self.subTest(browser_pin=value):
+                self.assertIn(value, product_config)
 
     def test_build_profiles_preserve_security(self):
         forbidden = ("--no-sandbox", "--ignore-certificate-errors", "site_isolation=false")
@@ -435,6 +509,20 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("proprietary_codecs = false", release)
         self.assertIn('branding_file_path = "//ahoi/branding/BRANDING"', release)
         self.assertIn('branding_path_component = "chromium"', release)
+        dogfood = (ROOT / "config/build/ahoi-dev.gn").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("enable_ahoi_ubo_classic = true", dogfood)
+        for profile in (
+            "ahoi-full-dev.gn",
+            "ahoi-release.gn",
+            "ahoi-full-release.gn",
+        ):
+            with self.subTest(ubo_disabled_profile=profile):
+                content = (ROOT / "config/build" / profile).read_text(
+                    encoding="utf-8"
+                )
+                self.assertIn("enable_ahoi_ubo_classic = false", content)
         branding = (ROOT / "overlay/chromium/src/ahoi/branding/BRANDING").read_text(encoding="utf-8")
         self.assertIn("PRODUCT_FULLNAME=AhoiBrowser", branding)
         self.assertIn("MAC_BUNDLE_ID=app.ahoibrowser.AhoiBrowser", branding)

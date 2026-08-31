@@ -1,0 +1,138 @@
+diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -89,6 +89,7 @@ source_set("browser_actions_impl") {
+       ":browser_select_file_dialog_controller",
+       ":chrome_pages",
+       ":ui",
++      "//ahoi/browser/extensions:policy",
+       "//build:branding_buildflags",
+       "//chrome/app:command_ids",
+       "//chrome/app/vector_icons",
+@@ -1509,6 +1510,7 @@ static_library("ui") {
+   } else {
+     # !is_android
+     deps += [
++      "//ahoi/browser/extensions:policy",
+       "//ahoi/browser/http_auth",
+       "//ahoi/browser/session:session_restore_integration",
+     ]
+diff --git a/chrome/browser/ui/browser_actions.cc b/chrome/browser/ui/browser_actions.cc
+--- a/chrome/browser/ui/browser_actions.cc
++++ b/chrome/browser/ui/browser_actions.cc
+@@ -10,6 +10,7 @@
+ #include <utility>
+ #include <vector>
+ 
++#include "ahoi/browser/extensions/ubo_product_config.h"
+ #include "base/check_deref.h"
+ #include "base/check_op.h"
+ #include "base/functional/bind.h"
+@@ -1712,17 +1713,19 @@ void BrowserActions::InitializeChromeMenuActions() {
+           .SetActionId(kActionExtensionsSubmenuVisitChromeWebStore)
+           .Build());
+ 
+-  root_action_item_->AddChild(
+-      actions::ActionItem::Builder(
+-          base::BindRepeating(
+-              [](BrowserWindowInterface* bwi, actions::ActionItem* item,
+-                 actions::ActionInvocationContext context) {
+-                chrome::ExecuteCommand(bwi->GetBrowserForMigrationOnly(),
+-                                       IDC_AHOI_UBO_CLASSIC);
+-              },
+-              bwi))
+-          .SetActionId(kActionAhoiUboClassic)
+-          .Build());
++  if (ahoi::extensions::IsUboClassicEnabled()) {
++    root_action_item_->AddChild(
++        actions::ActionItem::Builder(
++            base::BindRepeating(
++                [](BrowserWindowInterface* bwi, actions::ActionItem* item,
++                   actions::ActionInvocationContext context) {
++                  chrome::ExecuteCommand(bwi->GetBrowserForMigrationOnly(),
++                                         IDC_AHOI_UBO_CLASSIC);
++                },
++                bwi))
++            .SetActionId(kActionAhoiUboClassic)
++            .Build());
++  }
+ }
+ 
+ void BrowserActions::InitializeToolbarAndMiscActions() {
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -9,6 +9,7 @@
+ #include <algorithm>
+ #include <string>
+ 
++#include "ahoi/browser/extensions/ubo_product_config.h"
+ #include "ahoi/browser/ui/extensions/ubo_install_dialog.h"
+ #include "base/check_deref.h"
+ #include "base/command_line.h"
+@@ -1267,7 +1268,9 @@ bool BrowserCommandController::ExecuteCommandWithDisposition(
+       ShowWebStore(browser_, extension_urls::kAppMenuUtmSource);
+       break;
+     case IDC_AHOI_UBO_CLASSIC:
+-      ahoi::extensions::ShowUboInstallDialog(browser_);
++      if (ahoi::extensions::IsUboClassicEnabled()) {
++        ahoi::extensions::ShowUboInstallDialog(browser_);
++      }
+       break;
+     case IDC_PERFORMANCE:
+       ShowSettingsSubPage(browser_->GetBrowserForOpeningWebUi(),
+@@ -2107,8 +2110,9 @@ void BrowserCommandController::UpdateCommandsForExtensionsMenu() {
+       IDC_EXTENSIONS_SUBMENU_VISIT_CHROME_WEB_STORE, /*state=*/true);
+   command_updater_->UpdateCommandEnabled(IDC_FIND_EXTENSIONS,
+                                          /*state=*/true);
+-  command_updater_->UpdateCommandEnabled(IDC_AHOI_UBO_CLASSIC,
+-                                         profile()->IsRegularProfile());
++  command_updater_->UpdateCommandEnabled(
++      IDC_AHOI_UBO_CLASSIC,
++      ahoi::extensions::IsUboClassicEnabled() && profile()->IsRegularProfile());
+ }
+ 
+ void BrowserCommandController::UpdateCommandsForTabState() {
+diff --git a/chrome/browser/ui/toolbar/BUILD.gn b/chrome/browser/ui/toolbar/BUILD.gn
+--- a/chrome/browser/ui/toolbar/BUILD.gn
++++ b/chrome/browser/ui/toolbar/BUILD.gn
+@@ -112,6 +112,7 @@ source_set("impl") {
+     ]
+ 
+     deps += [
++      "//ahoi/browser/extensions:policy",
+       "//base",
+       "//base:debugging_buildflags",
+       "//base:i18n",
+diff --git a/chrome/browser/ui/toolbar/app_menu_model.cc b/chrome/browser/ui/toolbar/app_menu_model.cc
+--- a/chrome/browser/ui/toolbar/app_menu_model.cc
++++ b/chrome/browser/ui/toolbar/app_menu_model.cc
+@@ -9,6 +9,7 @@
+ #include <memory>
+ #include <optional>
+ 
++#include "ahoi/browser/extensions/ubo_product_config.h"
+ #include "base/command_line.h"
+ #include "base/debug/debugging_buildflags.h"
+ #include "base/debug/profiler.h"
+@@ -1333,12 +1334,14 @@ void ExtensionsMenuModel::Build(Browser* browser) {
+   SetCommandIcon(this, IDC_EXTENSIONS_SUBMENU_VISIT_CHROME_WEB_STORE,
+                  vector_icons::kGoogleChromeWebstoreIcon);
+ #endif
+-  AddSeparator(ui::NORMAL_SEPARATOR);
+-  AddItemWithStringIdAndVectorIcon(
+-      this, IDC_AHOI_UBO_CLASSIC, IDS_AHOI_UBO_MENU,
+-      features::IsRoundedIconsEnabled()
+-          ? vector_icons::kChromeExtensionIcon
+-          : vector_icons::kExtensionChromeRefreshOldIcon);
++  if (ahoi::extensions::IsUboClassicEnabled()) {
++    AddSeparator(ui::NORMAL_SEPARATOR);
++    AddItemWithStringIdAndVectorIcon(
++        this, IDC_AHOI_UBO_CLASSIC, IDS_AHOI_UBO_MENU,
++        features::IsRoundedIconsEnabled()
++            ? vector_icons::kChromeExtensionIcon
++            : vector_icons::kExtensionChromeRefreshOldIcon);
++  }
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////

@@ -5,6 +5,9 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCH = ROOT / "patches/chromium/0001-ahoi-m152-integration-seams.patch"
+STANDARD_IMPORT_PATCH = (
+    ROOT / "patches/chromium/0013-ahoi-standard-import-surface.patch"
+)
 PAGE_ROOT = (
     ROOT
     / "overlay/chromium/src/chrome/browser/resources/settings/ahoi_page"
@@ -12,6 +15,15 @@ PAGE_ROOT = (
 WEBUI_TEST = (
     ROOT
     / "overlay/chromium/src/chrome/test/data/webui/settings/ahoi_page_test.ts"
+)
+ARC_IMPORT_UI_ROOT = (
+    ROOT
+    / "overlay/chromium/src/chrome/browser/resources/settings/people_page"
+)
+ARC_IMPORT_WEBUI_TEST = (
+    ROOT
+    / "overlay/chromium/src/chrome/test/data/webui/settings/"
+    "ahoi_arc_import_section_test.ts"
 )
 ARC_IMPORT_ROOT = (
     ROOT / "overlay/chromium/src/ahoi/browser/importer/arc"
@@ -21,9 +33,21 @@ ARC_IMPORT_ROOT = (
 class AhoiSettingsPageContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.patch = PATCH.read_text(encoding="utf-8")
+        self.standard_import_patch = STANDARD_IMPORT_PATCH.read_text(
+            encoding="utf-8"
+        )
         self.page = (PAGE_ROOT / "ahoi_page.html.ts").read_text(encoding="utf-8")
         self.controller = (PAGE_ROOT / "ahoi_page.ts").read_text(encoding="utf-8")
         self.webui_test = WEBUI_TEST.read_text(encoding="utf-8")
+        self.arc_import_component = (
+            ARC_IMPORT_UI_ROOT / "ahoi_arc_import_section.html.ts"
+        ).read_text(encoding="utf-8")
+        self.arc_import_controller = (
+            ARC_IMPORT_UI_ROOT / "ahoi_arc_import_section.ts"
+        ).read_text(encoding="utf-8")
+        self.arc_import_webui_test = ARC_IMPORT_WEBUI_TEST.read_text(
+            encoding="utf-8"
+        )
 
     def test_route_menu_main_and_build_are_first_class(self):
         for marker in (
@@ -156,8 +180,11 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         self.assertIsNotNone(remote_control)
         self.assertIsNotNone(retention_control)
         self.assertNotIn("?disabled", sync_control.group(0))
-        self.assertIn("!this.cloudKitAvailable_", remote_control.group(0))
-        self.assertIn("!this.syncEnabledPref_?.value", remote_control.group(0))
+        self.assertIn(
+            "!this.remoteControlStatus_?.canEnable", remote_control.group(0)
+        )
+        self.assertNotIn("!this.cloudKitAvailable_", remote_control.group(0))
+        self.assertNotIn("!this.syncEnabledPref_?.value", remote_control.group(0))
         self.assertNotIn("!this.cloudKitAvailable_", retention_control.group(0))
         self.assertIn(
             "!this.syncEnabledPref_?.value", retention_control.group(0)
@@ -184,7 +211,7 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.webui_test + self.patch)
 
-    def test_arc_import_is_visible_confirmed_and_transactional(self):
+    def test_arc_import_uses_standard_surface_and_remains_transactional(self):
         combined_backend = "\n".join(
             (ARC_IMPORT_ROOT / name).read_text(encoding="utf-8")
             for name in (
@@ -201,20 +228,42 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "Aus Arc importieren",
         ):
             self.assertIn(marker, self.patch)
+        self.assertNotIn('id="ahoiArcImportAssistant"', self.page)
+        self.assertNotIn("ahoiArcDiscover", self.controller)
+        self.assertIn(
+            "doesNotOwnASeparateArcImportAssistant", self.webui_test
+        )
         for marker in (
-            'id="ahoiArcImportAssistant"',
             'id="ahoiArcBackupConfirmation"',
             'id="ahoiArcCommitConfirmation"',
             'id="ahoiArcCommit"',
+            "this.arcImportPreview_.stats.splits > 0",
+            'id="ahoiArcResultSkipped"',
+            'id="ahoiArcResultDegraded"',
+            'id="ahoiArcResultExcluded"',
+            'id="ahoiArcResultFourPane"',
         ):
-            self.assertIn(marker, self.page)
+            self.assertIn(marker, self.arc_import_component)
         for marker in (
             "ahoiArcDiscover",
             "ahoiArcCommit",
             "this.arcBackupConfirmed_",
             "this.arcCommitConfirmed_",
         ):
-            self.assertIn(marker, self.controller)
+            self.assertIn(marker, self.arc_import_controller)
+        for marker in (
+            "import './ahoi_arc_import_section.js';",
+            "ahoiImportKind?: 'arc'",
+            "if (this.isArcImportSelected_())",
+            'id="ahoiArcImport"',
+            "arcImportSelected_",
+            '"people_page/ahoi_arc_import_section.ts"',
+            '"people_page/ahoi_arc_import_section.html.ts"',
+            '"people_page/ahoi_arc_import_section.css"',
+            "IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE",
+            "Annähernd übernommene Vier-Pane-Verhältnisse",
+        ):
+            self.assertIn(marker, self.standard_import_patch)
         for marker in (
             "IsArcApplicationRunning()",
             "AreArcProfileFilesOpen",
@@ -222,13 +271,16 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "CreateArcImportBackup",
             "RollbackAndFinish",
             "ExistingSplitMatches",
-            "committed_snapshot_hash_ == snapshot_token",
+            "committed_journal_state_->idempotency_key == idempotency_key",
         ):
             self.assertIn(marker, combined_backend)
-        self.assertIn(
-            "arcPreviewRequiresBothExplicitConfirmationsBeforeCommit",
-            self.webui_test,
-        )
+        for marker in (
+            "arcUsesTheStandardSourceSelectAndCannotCallStandardImport",
+            "splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitIsConfirmed",
+            "resultReportsImportedSkippedDegradedExcludedAndFourPane",
+            "assertEquals(0, browserProxy.getCallCount('importData'))",
+        ):
+            self.assertIn(marker, self.arc_import_webui_test)
 
     def test_pref_service_imports_are_available_on_every_platform(self):
         chromeos_guard = self.controller.index(

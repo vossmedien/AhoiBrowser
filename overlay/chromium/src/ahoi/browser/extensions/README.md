@@ -10,41 +10,79 @@ Chromium continues to own ordinary extension installation and execution. This
 code does not special-case extension actions, popups, options pages, service
 workers, content scripts, permissions, native messaging, or extension UI.
 Manifest V3 extensions and all non-uBO extensions therefore keep Chromium's
-normal behavior and security model. In particular, this feature grants no
-extension privileged access to AhoiBrowser's own UI.
+normal behavior and security model. The feature grants no extension privileged
+access to AhoiBrowser's own UI.
 
-The MV2 handler's manifest-only installation preflight also remains unchanged
-and fail-closed. The embedder exception is consulted only after a complete CRX
-has been verified and materialized as an `Extension` object. The exception
-accepts all of the following or nothing:
+The MV2 handler's manifest-only installation preflight remains fail-closed. The
+embedder exception is consulted only after a complete CRX has been verified and
+materialized as an `Extension` object. The exception accepts all of the
+following or nothing:
 
+- the compile-time `enable_ahoi_ubo_classic` gate, which defaults to false and
+  is enabled only by the local `ahoi-dev` dogfood profile;
 - internal location, ordinary extension type, and manifest version 2;
-- fixed ID `cjpalhdlnbpafiamejdnhcphjbkeiagm`;
-- exact catalog version and CRX signing-public-key SHA-256;
+- fixed ID `fkgkibajhfbepljeaefdnfnegdcjomkh`;
+- exact authorized version, complete-CRX SHA-256, and CRX signing-public-key
+  SHA-256;
 - no package-controlled `update_url`;
 - either the currently verified installation transaction or atomically
   committed, local-only authorization state.
 
 Foreign, unpacked, repackaged, differently signed, or merely ID-spoofed MV2
 packages remain blocked. Authorization is intentionally not a syncable pref.
+The authorization schema migration invalidates state for the former identity;
+no package is silently carried across the identity change. A build with the
+compile-time gate disabled hides every uBO product entry point, rejects the MV2
+exception, clears stale local authorization, and leaves an installed Classic
+copy disabled rather than silently uninstalling it.
 
-## Trust chain
+## Initial dogfood trust root
 
-`ubo_product_config.cc` is the single production trust root. It pins the exact
-catalog URL, artifact origin, fixed extension ID, and Ed25519 catalog public
-key. The checked-in configuration is intentionally unprovisioned and thus
-cannot install anything.
+`ubo_product_config.cc` is the single production trust root. The signed browser
+contains one static initial-install entry for the **Official GitHub release**:
 
-The signed catalog envelope has exactly two keys:
+```text
+version                    1.74.0
+upstream tag               1.74.0
+upstream commit            6dd2d95e50d134a477a4e183343c0b26e9147123
+extension ID               fkgkibajhfbepljeaefdnfnegdcjomkh
+CRX SHA-256                b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e
+CRX public-key SHA-256     5a6a81097514fb940453d5d46329eca78100e3cc0c5fca508e1a413f77f567bf
+release page               https://github.com/gorhill/uBlock/releases/tag/1.74.0
+package URL                https://github.com/gorhill/uBlock/releases/download/1.74.0/uBlock0_1.74.0.chromium.crx
+license                    GPL-3.0-or-later
+```
+
+A manual initial check constructs that exact entry locally. It performs no
+catalog request. The package request starts only at the exact URL above, omits
+credentials, disables cache, and accepts at most one redirect: HTTP 302 with a
+GET to host `release-assets.githubusercontent.com`, no credentials, port, or
+fragment, and exact immutable path
+`/github-production-release-asset/33263118/ade4daf2-50e8-4953-8821-5c2d43f07a65`.
+The signed query must be present. Authorization and cookie headers are removed
+at the boundary. A second redirect, another host/path, another method/status,
+or a changed initial URL fails closed.
+
+The redirect does not establish package trust. After download the verifier
+requires the SHA-256 of the complete CRX, verifies its CRX3 proof with the
+required public-key hash, derives the fixed extension ID from that key, and
+checks the manifest version. `SandboxedUnpacker` enforces the package hash
+again; its opt-in flag defaults to false for every existing Chromium caller.
+
+## Signed catalog for later updates
+
+The existing signed-catalog path remains separate and is intentionally
+unprovisioned in production until its hosting and Ed25519 trust root pass the
+release gate. Its envelope has exactly two keys:
 
 ```json
 {"payload":"<exact JSON bytes>","signature":"<base64 Ed25519 signature>"}
 ```
 
-The payload has exactly these 13 keys:
+Schema 2 has exactly these 14 payload keys:
 
 ```text
-schema_version              integer, exactly 1
+schema_version              integer, exactly 2
 sequence                    decimal uint64 string, nonzero
 valid_from                  Unix seconds as decimal string
 valid_until                 Unix seconds as decimal string, at most 45 days
@@ -55,140 +93,95 @@ update_manifest_url         HTTPS, pinned artifact origin
 sha256                      lowercase SHA-256 of the complete CRX
 crx_public_key_sha256       lowercase SHA-256 of the CRX signing public key
 upstream_tag                exact uBlock release tag
+upstream_commit             full 40-character lowercase commit
 upstream_source_url         exact GitHub release/tag URL
 license                     GPL-3.0-or-later
 ```
 
-The verifier checks the signature over the exact payload bytes before parsing
-them. It rejects extra fields, oversized or expired catalogs, origin changes,
-bad hashes, non-uBO IDs, and invalid provenance. Package verification then
-uses Chromium's CRX3 verifier with both the full-file hash and required signing
-key hash pinned. `SandboxedUnpacker` is instructed to enforce the hash again;
-the new opt-in flag defaults to false for every existing Chromium caller.
+The verifier checks the Ed25519 signature over the exact payload bytes before
+parsing. It rejects extra fields, oversized or expired catalogs, origin
+changes, bad hashes, non-uBO IDs, and invalid provenance. Sequence and extension
+version are monotonic. A lower sequence or version is rejected; reusing a
+version with a different package hash is rejected even at a higher sequence.
+The first signed update must use a sequence greater than the static bootstrap
+sequence `174000`.
 
-The catalog sequence and extension version are monotonic. A lower sequence or
-version is rejected. Reusing a version with a different package hash is also
-rejected, even with a higher sequence. Chromium's `CrxInstaller` provides its
-normal permission prompt and atomic on-disk installation. Authorization is
-committed only after the installed extension matches the verified metadata. If
-that final state write fails, the new MV2 extension is immediately disabled.
+Periodic checks exist only after the fixed extension is installed and locally
+authorized and only when the signed catalog is provisioned. They fetch catalog
+metadata, expose an available update in the manual dialog, and never download
+or install a package. Uninstalling stops the timer, deletes any temporary
+candidate, and clears local authorization.
 
-## Profile service and native install surface
+## Native install surface and authorization
 
-`UboServiceFactory` eagerly owns exactly one service for each regular profile.
-It creates no service for off-the-record profiles. The service uses Chromium's
-browser-process `URLLoaderFactory` with credentials omitted, cache disabled, a
-30-second timeout, a 64-KiB catalog limit, and a 32-MiB package limit. Both
-requests require an exact HTTPS URL. Any redirect, final-URL change, HTTP or
-network failure, or oversize response fails closed. The CRX is held in a
-temporary file and deleted after rejection, cancellation, shutdown, or the
+`UboServiceFactory` owns one service per regular profile and none for
+off-the-record profiles. Requests use Chromium's browser-process
+`URLLoaderFactory` with credentials omitted, cache disabled, a 30-second
+timeout, a 64-KiB catalog limit, and a 32-MiB package limit. The CRX lives in a
+temporary file that is deleted after rejection, cancellation, shutdown, or
 installer hand-off.
 
-The Extensions submenu opens a native, browser-modal surface. It shows the
-catalog version, fixed extension ID, upstream release tag and source, package
-SHA-256, and GPL license before the user can download. The only progression is:
+The Extensions submenu opens a native, browser-modal surface. For the initial
+entry it visibly names **Official GitHub release** and shows the version, fixed
+ID, full upstream commit and release URL, complete package hash, and GPL license
+before download. The only progression is:
 
 ```text
-explicit check -> signed catalog ready -> explicit download
-               -> package verified -> explicit install
-               -> Chromium permission prompt -> atomic authorization commit
+manual check -> browser-pinned entry -> explicit download
+             -> hash + key + ID + CRX3 verification -> explicit install
+             -> Chromium permission prompt -> atomic authorization commit
 ```
 
 Opening the dialog, checking, or downloading never installs or enables an
-extension. The install action is rejected unless it comes from an active tab in
-the same regular profile. The standard Chromium prompt remains authoritative.
-No Ahoi UI privilege is added to the installed extension.
+extension. Installation is rejected unless requested from an active tab in the
+same regular profile. Chromium's standard permission prompt remains
+authoritative. Authorization is committed only after the installed extension
+matches the verified metadata. If the final state write fails after a fresh
+install, the normal Chromium uninstall path removes the new extension and
+waits for its file/site-data cleanup before reporting failure. A previously
+installed copy is never silently removed; its old authorization is restored
+when possible and it stays disabled if rollback cannot be completed safely.
+There is no preinstallation, silent update, automatic enablement, broad MV2
+allowlist, or unpacked-install exception.
 
-An optional 24-hour timer exists only while the fixed extension is both
-installed and locally authorized. It fetches and verifies only the signed
-catalog, exposing an update in the same manual dialog. It never downloads a
-package or starts installation. Uninstalling the fixed extension stops the
-timer, removes any temporary candidate, and clears local authorization.
-
-## Reproducible release procedure
+## Release verification procedure
 
 No uBlock source tree, CRX, private key, filter list, logo, or other third-party
-asset is copied into this repository. A release operator must perform these
-steps in a clean, hermetic builder and retain the resulting attestation:
+asset is copied into this repository. For the pinned dogfood artifact a release
+operator must retain an attestation containing:
 
-1. Fetch `https://github.com/gorhill/uBlock` and check out the exact catalog
-   tag and commit. Verify the tag/commit according to the project's published
-   release process. Record the remote URL, tag, commit, builder image digest,
-   toolchain versions, and submodule state.
-2. Run the upstream `tools/make-chromium.sh <version>` from that checkout. Run
-   the same clean build twice and require identical unpacked-file hashes and
-   ZIP bytes. Any required normalization must be documented in the builder
-   recipe, not patched into this repository.
-3. Package the result as CRX3 with the approved publisher key. Record
-   `sha256sum <package.crx>`. Use Chromium's CRX verifier to extract the
-   signing public key and require both its SHA-256 and the derived extension ID
-   to match the release allowlist.
-4. Upload the immutable, hash-addressed CRX and update manifest to the pinned
-   HTTPS artifact origin. Do not publish redirects to another origin. Stage
-   both objects before publishing the catalog.
-5. Generate the 13-field payload above. Have an offline signer or HSM sign the
-   exact UTF-8 payload bytes with Ed25519. Store no signing secret in source,
-   build arguments, CI logs, catalog, or the browser bundle.
-6. Verify the finished envelope with the public key embedded in the intended
-   AhoiBrowser build, then atomically publish it. Retain the previous immutable
-   artifacts for operational rollback; never reduce catalog sequence or
-   extension version. A bad new release is rolled forward with a greater
-   sequence and version.
-7. Run `ahoi_extension_policy_unittests`,
-   `ahoi_extension_ui_unittests`, plus the Chromium extension browser
-   tests covering actions/popups, service workers, content scripts,
-   permissions, native messaging, and MV3 before release.
+1. the exact Official GitHub release page, tag, full release commit, package
+   URL, response chain, retrieval time, and downloaded byte size;
+2. the SHA-256 of the complete downloaded CRX;
+3. the DER bytes and SHA-256 of the CRX3 `sha256_with_rsa` public key;
+4. the extension ID derived from the first 128 bits of that key hash using
+   Chromium's nibble-to-`a`..`p` mapping;
+5. independent CRX3 verification plus extracted manifest version and absence
+   of a package-controlled `update_url`;
+6. `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`, focused
+   redirect/package tests, and installed-app extension regression tests.
 
-The native surface invokes `InstallUboPackageFromVerifiedCatalog` only after
-the explicit sequence above. There is no preinstallation, silent update, or
-automatic enablement.
+Never rebuild, repack, or re-sign while claiming these pins. Any changed
+version, commit, package bytes, public key, ID, release asset object, or URL is a
+new product-security migration requiring explicit review and new browser pins.
 
-Focused test contracts are named for release traceability: UBO-01 covers the
-complete explicit verified install hand-off, UBO-02 covers catalog-only
-periodic checks, UBO-09 covers rollback rejection before package download, and
-UBO-13 covers the unprovisioned fail-closed product state. UBO-10 remains the
-uninstall journey defined by the product test registry. Additional tests
-cover foreign MV2 and unchanged MV3 behavior, catalog tampering, redirected,
-oversized and offline fetches, package hash failure, and uninstall cleanup.
+Focused release contracts are UBO-01 for the explicit initial install hand-off,
+UBO-02 for exact provenance/hash/key/ID verification, UBO-09 for a later signed
+catalog update and rollback rejection, UBO-11 for rejection of foreign MV2, and
+UBO-13 for builds with neither bootstrap nor signed-catalog trust roots. UBO-10
+remains the uninstall journey. The unpacked MV2 fixture is always a negative
+control and never positive uBO evidence.
 
-UBO-11 remains a real installed-app CU_E2E negative test but is locally
-controllable while production trust roots are unprovisioned. Its only
-release-chain exception requires one hashed fixture receipt whose complete JSON
-value is `schemaVersion: 1`, kind
-`ubo-11-local-unprovisioned-fail-closed`, test ID `UBO-11`, unprovisioned
-production trust roots, a rejected foreign MV2 package, zero network requests,
-and no positive uBO installation attempt. Signature, Hardened Runtime,
-notarization, installed-bundle binding, visual evidence, reports, artifact
-hashes, and repeat-run validation remain mandatory. No positive uBO journey or
-other CU_E2E test inherits this exception.
+## External release gates
 
-## External release gate
+The static pins make the dogfood package technically verifiable; they do not by
+themselves grant public redistribution rights. Public release still requires
+source/license/GPL, name/logo, redistribution, provenance-retention, Release QA,
+and rollback review.
 
-The public ID above is the Chrome Web Store identity documented by uBlock
-Origin upstream. Rebuilding source does not provide the private key that owns
-that identity. Shipping with this ID therefore requires an authentic CRX whose
-signing key derives that exact ID and whose redistribution provenance and GPL
-obligations are approved.
-
-Before enabling the production configuration, AhoiBrowser still needs:
-
-- an owned HTTPS catalog/artifact origin and immutable publishing workflow;
-- an offline/HSM Ed25519 catalog key, with only its public key checked in;
-- proof of authorization to distribute a CRX signed by the key for the fixed
-  ID, plus recorded upstream/tag/build provenance;
-- release QA and retained reproducible-build/signing attestations.
-
-These dependencies are tracked independently in
-`config/external-gates.json` as `ubo-catalog-hosting-and-signing`,
-`ubo-fixed-id-crx-publisher-provenance`, and `ubo-redistribution`. Passing one
-gate never substitutes for either of the others.
-
-If AhoiBrowser instead uses its own CRX publisher key, the derived extension ID
-will be different. That is a deliberate product/security migration: change the
-central fixed ID, document that the package is Ahoi-built from upstream source,
-and re-review all trust roots and tests. Never claim the Web Store identity for
-a CRX signed by another key, and never weaken the ID/key checks to make a
-repackaged bundle install.
-
-Until those gates are complete, `GetProductionUboProductConfig()` remains
-unprovisioned and the whole path fails closed.
+Later updates additionally require an owned HTTPS catalog/artifact origin, an
+immutable publishing workflow, and an offline/HSM Ed25519 catalog key with only
+its public key embedded in AhoiBrowser. These dependencies remain tracked in
+`config/external-gates.json`. Passing the initial package-verification gate does
+not provision the future network catalog, and provisioning the catalog does not
+waive the redistribution review.

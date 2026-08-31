@@ -647,4 +647,108 @@ bool BrowserSidebarHostView::MakeSavedPageTemporary(
   return true;
 }
 
+void BrowserSidebarHostView::ActivateRuntimeTab(
+    base::WeakPtr<tabs::TabInterface> tab) {
+  if (!tab || !tab_strip_model_) {
+    return;
+  }
+  const int index = tab_strip_model_->GetIndexOfTab(tab.get());
+  if (index >= 0) {
+    tab_strip_model_->ActivateTabAt(
+        index, TabStripUserGestureDetails(
+                   TabStripUserGestureDetails::GestureType::kMouse));
+    ScheduleCloseSidebarDiscoveryAfterActivation();
+  }
+}
+
+base::WeakPtr<tabs::TabInterface>
+BrowserSidebarHostView::ResolveRelativeRuntimeTab(int delta) const {
+  if (!tab_strip_model_ || tab_strip_model_->empty() || delta == 0) {
+    return nullptr;
+  }
+
+  const std::optional<base::Uuid> active_workspace =
+      controller_->view_model().workspace_id();
+  tabs::TabInterface* const active_tab = tab_strip_model_->GetActiveTab();
+  std::vector<tabs::TabInterface*> workspace_tabs;
+  workspace_tabs.reserve(tab_strip_model_->count());
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (!tab) {
+      continue;
+    }
+    const std::optional<base::Uuid> tab_workspace =
+        session_bridge_->GetWorkspaceForTab(tab);
+    if (!active_workspace.has_value() || tab_workspace == active_workspace ||
+        (tab == active_tab && !tab_workspace.has_value())) {
+      workspace_tabs.push_back(tab);
+    }
+  }
+  if (workspace_tabs.size() < 2u) {
+    return nullptr;
+  }
+
+  auto current = std::ranges::find(workspace_tabs, active_tab);
+  size_t target_index = delta > 0 ? 0u : workspace_tabs.size() - 1u;
+  if (current != workspace_tabs.end()) {
+    const size_t current_index =
+        static_cast<size_t>(std::distance(workspace_tabs.begin(), current));
+    target_index = delta > 0 ? (current_index + 1u) % workspace_tabs.size()
+                             : (current_index + workspace_tabs.size() - 1u) %
+                                   workspace_tabs.size();
+  }
+
+  return workspace_tabs[target_index]->GetWeakPtr();
+}
+
+bool BrowserSidebarHostView::ActivateRelativeRuntimeTab(int delta) {
+  base::WeakPtr<tabs::TabInterface> target = ResolveRelativeRuntimeTab(delta);
+  if (!target || !tab_strip_model_) {
+    return false;
+  }
+  const int tab_strip_index = tab_strip_model_->GetIndexOfTab(target.get());
+  if (tab_strip_index < 0) {
+    return false;
+  }
+  tab_strip_model_->ActivateTabAt(
+      tab_strip_index, TabStripUserGestureDetails(
+                           TabStripUserGestureDetails::GestureType::kWheel));
+  return true;
+}
+
+void BrowserSidebarHostView::CloseRuntimeTab(
+    base::WeakPtr<tabs::TabInterface> tab) {
+  if (tab) {
+    tab->Close();
+  }
+}
+
+void BrowserSidebarHostView::CloseAllTemporaryTabs(const ui::Event&) {
+  if (!tab_strip_model_) {
+    return;
+  }
+  const std::optional<base::Uuid> active_workspace =
+      controller_->view_model().workspace_id();
+  std::vector<base::WeakPtr<tabs::TabInterface>> tabs_to_close;
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (!tab || session_bridge_->FindTreeNodeIdForTab(tab).has_value()) {
+      continue;
+    }
+    const std::optional<base::Uuid> tab_workspace =
+        session_bridge_->GetWorkspaceForTab(tab);
+    if (!active_workspace.has_value() || !tab_workspace.has_value() ||
+        active_workspace == tab_workspace) {
+      tabs_to_close.push_back(tab->GetWeakPtr());
+    }
+  }
+
+  // Ahoi intentionally keeps the browser window and workspace alive when the
+  // last temporary tab is closed. The empty native surface is owned by
+  // BrowserView; never create a synthetic replacement WebContents here.
+  for (auto tab : tabs_to_close) {
+    if (tab) {
+      tab->Close();
+    }
+  }
+}
+
 }  // namespace ahoi::sidebar

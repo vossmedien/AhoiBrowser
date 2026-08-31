@@ -10,6 +10,7 @@
 
 #include "base/base64.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/values.h"
 #include "components/sync_preferences/testing_pref_service_syncable.h"
 #include "crypto/hash.h"
 #include "extensions/common/extension.h"
@@ -23,6 +24,16 @@ namespace {
 
 constexpr char kPackageHash[] =
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+constexpr char kFormerUboClassicExtensionId[] =
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm";
+constexpr char kPinnedCrxPublicKeyBase64[] =
+    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsgdkJHEX8xHAytYy3Rih"
+    "qn5FoU/cbPKhoorkCCsgF8HR2y2OSWGM1Ojrmnr0ebgM9WA1pl1hr1CmOH7DjgQ"
+    "VKRhzBjK7/Zb6RVJNPVGEQvV9CdCUwOTKsu1qQGRbjm9Z/DkYxgu6B2sLo0ZpQ/"
+    "IBsmBvs+FGR4CqrWra8GZPwn7n3FibeoxcArWiAx85N2Oyiaef2Geytoog4hS+I"
+    "5Fs3ymKkEeTYM3tzeC0U5nZ010LCnlQe0cQ3UDOro8VzLosuhaxAsrPFErIOfIUf"
+    "vV3sNhQJrySqgii9Xv6RWT8TI3pHL1yjevKKTxNb2VbPlTOi5MyzPowWV8hHJEO"
+    "kwq2dQIDAQAB";
 
 class UboAuthorizationTest : public ::testing::Test {
  public:
@@ -48,6 +59,16 @@ class UboAuthorizationTest : public ::testing::Test {
                              "https://attacker.example/update.xml");
     }
     return builder.Build();
+  }
+
+  scoped_refptr<const ::extensions::Extension> MakePinnedBootstrapExtension() {
+    return ::extensions::ExtensionBuilder("uBlock Origin")
+        .SetManifestVersion(2)
+        .SetVersion(kUboClassicVersion)
+        .SetLocation(::extensions::mojom::ManifestLocation::kInternal)
+        .SetID(kUboClassicExtensionId)
+        .SetManifestKey("key", kPinnedCrxPublicKeyBase64)
+        .Build();
   }
 
   std::string KeyHash(uint8_t key_byte = 0x42) {
@@ -98,6 +119,63 @@ TEST_F(UboAuthorizationTest, AllowsOnlyMatchingPendingThenCommittedMv2) {
   ASSERT_TRUE(state.has_value());
   EXPECT_EQ(1u, state->sequence);
   EXPECT_EQ("1.55.0", state->version.GetString());
+}
+
+TEST_F(UboAuthorizationTest, AllowsExactPinnedBootstrapWithNoGuessedUpdateUrl) {
+  UboCatalogEntry entry = GetPinnedUboBootstrapCatalogEntry();
+  scoped_refptr<const ::extensions::Extension> extension =
+      MakePinnedBootstrapExtension();
+
+  auto authorization =
+      BeginUboInstallAuthorization(&prefs_, entry, MakePackage(entry));
+  ASSERT_TRUE(authorization.has_value());
+  EXPECT_TRUE(IsUboManifestV2ExtensionAllowed(prefs_, *extension));
+  ASSERT_TRUE((*authorization)->Commit(*extension).has_value());
+
+  std::optional<UboAuthorizationState> state =
+      ReadCommittedUboAuthorization(prefs_);
+  ASSERT_TRUE(state.has_value());
+  EXPECT_TRUE(state->update_manifest_url.is_empty());
+  EXPECT_EQ(kUboClassicCrxPublicKeySha256, state->crx_public_key_sha256);
+}
+
+TEST_F(UboAuthorizationTest,
+       RejectsSchemaOneAndFormerIdentityAuthorizationState) {
+  auto authorization_state = []() {
+    return base::DictValue()
+        .Set("schema_version", 1)
+        .Set("sequence", base::NumberToString(kUboClassicBootstrapSequence))
+        .Set("extension_id", kUboClassicExtensionId)
+        .Set("version", kUboClassicVersion)
+        .Set("package_sha256", kUboClassicPackageSha256)
+        .Set("crx_public_key_sha256", kUboClassicCrxPublicKeySha256)
+        .Set("update_manifest_url", "");
+  };
+
+  prefs_.SetDict(kUboAuthorizationPref, authorization_state());
+  EXPECT_FALSE(ReadCommittedUboAuthorization(prefs_));
+  EXPECT_FALSE(
+      IsUboManifestV2ExtensionAllowed(prefs_, *MakePinnedBootstrapExtension()));
+
+  base::DictValue former_identity = authorization_state();
+  former_identity.Set("schema_version", 2);
+  former_identity.Set("extension_id", kFormerUboClassicExtensionId);
+  prefs_.SetDict(kUboAuthorizationPref, std::move(former_identity));
+  EXPECT_FALSE(ReadCommittedUboAuthorization(prefs_));
+  EXPECT_FALSE(IsUboManifestV2ExtensionAllowed(
+      prefs_,
+      *MakeExtension(2, kFormerUboClassicExtensionId, kUboClassicVersion)));
+}
+
+TEST_F(UboAuthorizationTest, RejectsModifiedBootstrapMetadata) {
+  UboCatalogEntry entry = GetPinnedUboBootstrapCatalogEntry();
+  entry.upstream_commit[0] = entry.upstream_commit[0] == '0' ? '1' : '0';
+
+  auto authorization =
+      BeginUboInstallAuthorization(&prefs_, entry, MakePackage(entry));
+  ASSERT_FALSE(authorization.has_value());
+  EXPECT_EQ(UboVerificationError::kInstalledExtensionMismatch,
+            authorization.error());
 }
 
 TEST_F(UboAuthorizationTest, AbortedTransactionLeavesNoMv2Exception) {

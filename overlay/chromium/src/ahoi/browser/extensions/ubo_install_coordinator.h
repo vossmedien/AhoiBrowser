@@ -21,10 +21,10 @@ using UboInstallResult = base::expected<void, UboVerificationError>;
 using UboInstallCallback = base::OnceCallback<void(UboInstallResult)>;
 
 // Backend for an explicit user-initiated install/update. The caller must first
-// display the catalog's version, source, fixed ID, hash and GPL license. This
-// function re-verifies the package off-thread, uses Chromium's normal
-// permission prompt, and commits the MV2 authorization only after successful
-// installation.
+// display the verified entry's distribution, version, source, fixed ID, hash,
+// and GPL license. This function re-verifies the package off-thread, uses
+// Chromium's normal permission prompt, and commits the MV2 authorization only
+// after successful installation.
 void InstallUboPackageFromVerifiedCatalog(Profile* profile,
                                           content::WebContents* web_contents,
                                           UboCatalogEntry entry,

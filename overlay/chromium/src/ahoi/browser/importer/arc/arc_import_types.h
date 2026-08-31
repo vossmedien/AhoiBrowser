@@ -58,6 +58,10 @@ enum class ArcImportStatus {
   kJournalError,
   kSourceInUse,
   kBackupError,
+  // A durable prepared transaction was found. The importer remains locked
+  // until its verified backup has been restored; native split uncertainty is
+  // intentionally surfaced instead of being reported as recovered.
+  kRecoveryRequired,
 };
 
 struct ArcBrowserProfile {

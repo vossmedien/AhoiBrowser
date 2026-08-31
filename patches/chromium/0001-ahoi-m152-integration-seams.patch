@@ -130,7 +130,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
        </message>
-@@ -20042,6 +20045,1434 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20042,6 +20045,1446 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
        Relaunch
      </message>
@@ -1463,22 +1463,28 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    <message name="IDS_AHOI_UBO_TITLE" desc="Title of AhoiBrowser's verified uBlock Origin Classic installer dialog." meaning="AhoiBrowser uBO Classic installer">
 +      Install uBlock Origin Classic
 +    </message>
-+    <message name="IDS_AHOI_UBO_UNPROVISIONED" desc="Status when this AhoiBrowser build has no production uBO catalog trust root." meaning="AhoiBrowser uBO Classic installer">
++    <message name="IDS_AHOI_UBO_UNPROVISIONED" desc="Status when this AhoiBrowser build has neither a trusted browser-pinned bootstrap nor the required update trust roots." meaning="AhoiBrowser uBO Classic installer">
 +      Secure distribution is not provisioned for this build. Installation is unavailable.
 +    </message>
-+    <message name="IDS_AHOI_UBO_IDLE" desc="Initial status of AhoiBrowser's uBO installer before a user requests a catalog check." meaning="AhoiBrowser uBO Classic installer">
++    <message name="IDS_AHOI_UBO_IDLE" desc="Initial status of AhoiBrowser's uBO installer before a user requests trusted metadata verification." meaning="AhoiBrowser uBO Classic installer">
 +      No package has been requested.
++    </message>
++    <message name="IDS_AHOI_UBO_PINNED_BOOTSTRAP_IDLE" desc="Initial status when AhoiBrowser can verify its exact browser-pinned Official GitHub release without a network catalog." meaning="AhoiBrowser uBO Classic installer">
++      Official GitHub release 1.74.0 is browser-pinned. Check the exact release metadata without a catalog request.
 +    </message>
 +    <message name="IDS_AHOI_UBO_CHECKING" desc="Status while AhoiBrowser downloads and verifies the signed uBO catalog." meaning="AhoiBrowser uBO Classic installer">
 +      Checking the signed catalog…
 +    </message>
-+    <message name="IDS_AHOI_UBO_CATALOG_READY" desc="Status after AhoiBrowser verifies a new-install uBO catalog entry." meaning="AhoiBrowser uBO Classic installer">
++    <message name="IDS_AHOI_UBO_CATALOG_READY" desc="Status after AhoiBrowser accepts its exact browser-pinned initial uBO entry." meaning="AhoiBrowser uBO Classic installer">
 +      The signed catalog is valid. Review the package details before downloading.
++    </message>
++    <message name="IDS_AHOI_UBO_PINNED_BOOTSTRAP_READY" desc="Status after AhoiBrowser verifies its exact browser-pinned Official GitHub release metadata." meaning="AhoiBrowser uBO Classic installer">
++      Official GitHub release pin verified. Review the package details before downloading.
 +    </message>
 +    <message name="IDS_AHOI_UBO_UPDATE_READY" desc="Status after AhoiBrowser verifies an available uBO update." meaning="AhoiBrowser uBO Classic installer">
 +      A verified update is available. Review the details before downloading.
 +    </message>
-+    <message name="IDS_AHOI_UBO_DOWNLOADING" desc="Status while AhoiBrowser downloads the exact uBO package from the signed catalog." meaning="AhoiBrowser uBO Classic installer">
++    <message name="IDS_AHOI_UBO_DOWNLOADING" desc="Status while AhoiBrowser downloads the exact uBO package from trusted pinned metadata." meaning="AhoiBrowser uBO Classic installer">
 +      Downloading the package to temporary storage…
 +    </message>
 +    <message name="IDS_AHOI_UBO_VERIFYING" desc="Status while AhoiBrowser verifies the downloaded uBO package." meaning="AhoiBrowser uBO Classic installer">
@@ -1526,7 +1532,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    <message name="IDS_AHOI_UBO_ERROR_PROFILE" desc="Safe uBO installer error for incognito or unavailable profile state." meaning="AhoiBrowser uBO Classic installer">
 +      Installation is available only from a regular profile and active tab.
 +    </message>
-+    <message name="IDS_AHOI_UBO_VERSION_LABEL" desc="Label for the uBO version signed into the catalog." meaning="AhoiBrowser uBO Classic installer">
++    <message name="IDS_AHOI_UBO_VERSION_LABEL" desc="Label for the uBO version in trusted pinned entry metadata." meaning="AhoiBrowser uBO Classic installer">
 +      Version
 +    </message>
 +    <message name="IDS_AHOI_UBO_ID_LABEL" desc="Label for the fixed uBO extension ID." meaning="AhoiBrowser uBO Classic installer">
@@ -1535,7 +1541,13 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    <message name="IDS_AHOI_UBO_UPSTREAM_LABEL" desc="Label for the pinned uBO upstream release source." meaning="AhoiBrowser uBO Classic installer">
 +      Upstream release source
 +    </message>
-+    <message name="IDS_AHOI_UBO_HASH_LABEL" desc="Label for the uBO package SHA-256 from the signed catalog." meaning="AhoiBrowser uBO Classic installer">
++    <message name="IDS_AHOI_UBO_OFFICIAL_GITHUB_RELEASE_LABEL" desc="Source label for the exact browser-pinned official uBlock Origin Classic GitHub release." meaning="AhoiBrowser uBO Classic installer">
++      Official GitHub release
++    </message>
++    <message name="IDS_AHOI_UBO_SIGNED_CATALOG_LABEL" desc="Source label for a later uBO update accepted from AhoiBrowser's signed catalog." meaning="AhoiBrowser uBO Classic installer">
++      Signed Ahoi catalog
++    </message>
++    <message name="IDS_AHOI_UBO_HASH_LABEL" desc="Label for the uBO package SHA-256 from trusted pinned entry metadata." meaning="AhoiBrowser uBO Classic installer">
 +      Package SHA-256
 +    </message>
 +    <message name="IDS_AHOI_UBO_LICENSE_LABEL" desc="Label for the uBO upstream software license." meaning="AhoiBrowser uBO Classic installer">
@@ -1550,7 +1562,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    <message name="IDS_AHOI_UBO_CONFIRM_NOTICE" desc="Explicit-action notice before uBO download and install." meaning="AhoiBrowser uBO Classic installer">
 +      Checking and downloading never installs automatically. Use the install action below, then review Chromium's permission prompt.
 +    </message>
-+    <message name="IDS_AHOI_UBO_BUTTON_CHECK" desc="Button that explicitly checks AhoiBrowser's signed uBO catalog." meaning="AhoiBrowser uBO Classic installer">
++    <message name="IDS_AHOI_UBO_BUTTON_CHECK" desc="Button that verifies either AhoiBrowser's browser-pinned initial uBO entry or its later signed update catalog." meaning="AhoiBrowser uBO Classic installer">
 +      Check securely
 +    </message>
 +    <message name="IDS_AHOI_UBO_BUTTON_DOWNLOAD" desc="Button that explicitly downloads the exact verified uBO package candidate." meaning="AhoiBrowser uBO Classic installer">
@@ -1569,7 +1581,7 @@ diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resour
 index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426c3a2c7c2 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -10730,4 +10730,475 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -10730,4 +10730,479 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
  <translation id="998747458861718449">Untersuchen</translation>
  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
@@ -1761,8 +1773,10 @@ index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426
 +<translation id="5451389916173906161">uBlock Origin Classic installieren</translation>
 +<translation id="3124656130049220920">Die sichere Verteilung ist für diesen Build nicht eingerichtet. Die Installation ist nicht verfügbar.</translation>
 +<translation id="1083946856181214471">Es wurde noch kein Paket angefordert.</translation>
++<translation id="8926204376771478095">Offizieller GitHub-Release 1.74.0 ist im Browser gepinnt. Prüfe die exakten Release-Metadaten ohne Kataloganfrage.</translation>
 +<translation id="173678054573921521">Signierten Katalog prüfen…</translation>
 +<translation id="7839795442695278720">Der signierte Katalog ist gültig. Prüfe die Paketdetails vor dem Download.</translation>
++<translation id="6544569287198270558">Der Pin für den offiziellen GitHub-Release wurde verifiziert. Prüfe die Paketdetails vor dem Download.</translation>
 +<translation id="1361090806492448217">Ein verifiziertes Update ist verfügbar. Prüfe die Details vor dem Download.</translation>
 +<translation id="7592246281050900442">Paket in den temporären Speicher laden…</translation>
 +<translation id="5651272255701416838">Pakethash, Signatur, ID und Version prüfen…</translation>
@@ -1770,6 +1784,7 @@ index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426
 +<translation id="569297405678413980">Auf den Abschluss der Chromium-Erweiterungsinstallation warten…</translation>
 +<translation id="3885962246529486409">uBlock Origin Classic wurde installiert und lokal autorisiert.</translation>
 +<translation id="2636020566600618581">Die installierte autorisierte Version ist aktuell.</translation>
++<translation id="540566029112770731">Offizieller GitHub-Release</translation>
 +<translation id="692133611196176358">Der sichere Katalog war nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.</translation>
 +<translation id="2348845941918604449">Der Server hat eine Weiterleitung versucht. AhoiBrowser hat die Anfrage aus Sicherheitsgründen abgebrochen.</translation>
 +<translation id="4907645441718552825">Die Serverantwort hat die Sicherheitsgrößenbegrenzung überschritten.</translation>
@@ -1783,6 +1798,7 @@ index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426
 +<translation id="7590930846933917843">Version</translation>
 +<translation id="2051545981007264011">Feste Erweiterungs-ID</translation>
 +<translation id="8288783506291281272">Upstream-Veröffentlichungsquelle</translation>
++<translation id="5663715289724126649">Signierter Ahoi-Katalog</translation>
 +<translation id="1552303245816573842">Paket-SHA-256</translation>
 +<translation id="8252480639562948911">Lizenz</translation>
 +<translation id="2696701806059024233">Diese Ausnahme gilt nur für das exakte, verifizierte uBlock-Origin-Classic-Paket. Manifest V2 wird dadurch nicht für andere Erweiterungen aktiviert.</translation>
@@ -2051,7 +2067,7 @@ diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/res
 index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b124a900547 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -10750,4 +10750,271 @@ This can include information about installed software, files, your browser, the
+@@ -10750,4 +10750,275 @@ This can include information about installed software, files, your browser, the
  <translation id="998347228911661591">Sync your tab groups</translation>
  <translation id="998747458861718449">I&amp;nspect</translation>
  <translation id="998852291477823323">The action was disallowed by the configured policies.</translation>
@@ -2061,8 +2077,10 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b12
 +<translation id="5451389916173906161">Install uBlock Origin Classic</translation>
 +<translation id="3124656130049220920">Secure distribution is not provisioned for this build. Installation is unavailable.</translation>
 +<translation id="1083946856181214471">No package has been requested.</translation>
++<translation id="8926204376771478095">Official GitHub release 1.74.0 is browser-pinned. Check the exact release metadata without a catalog request.</translation>
 +<translation id="173678054573921521">Checking the signed catalog…</translation>
 +<translation id="7839795442695278720">The signed catalog is valid. Review the package details before downloading.</translation>
++<translation id="6544569287198270558">Official GitHub release pin verified. Review the package details before downloading.</translation>
 +<translation id="1361090806492448217">A verified update is available. Review the details before downloading.</translation>
 +<translation id="7592246281050900442">Downloading the package to temporary storage…</translation>
 +<translation id="5651272255701416838">Verifying package hash, signature, ID and version…</translation>
@@ -2070,6 +2088,7 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b12
 +<translation id="569297405678413980">Waiting for the Chromium extension installation to finish…</translation>
 +<translation id="3885962246529486409">uBlock Origin Classic was installed and locally authorised.</translation>
 +<translation id="2636020566600618581">The installed authorised version is up to date.</translation>
++<translation id="540566029112770731">Official GitHub release</translation>
 +<translation id="692133611196176358">The secure catalogue could not be reached. Check your connection and try again.</translation>
 +<translation id="2348845941918604449">The server attempted a redirect. For security, AhoiBrowser stopped the request.</translation>
 +<translation id="4907645441718552825">The server response exceeded the security size limit.</translation>
@@ -2083,6 +2102,7 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b12
 +<translation id="7590930846933917843">Version</translation>
 +<translation id="2051545981007264011">Fixed extension ID</translation>
 +<translation id="8288783506291281272">Upstream release source</translation>
++<translation id="5663715289724126649">Signed Ahoi catalogue</translation>
 +<translation id="1552303245816573842">Package SHA-256</translation>
 +<translation id="8252480639562948911">Licence</translation>
 +<translation id="2696701806059024233">This exception applies only to the exact, verified uBlock Origin Classic package. It does not enable Manifest V2 for other extensions.</translation>
@@ -7923,7 +7943,7 @@ index 7d2a563ee65174de57745ad1c40f4bc230c98dfb..43f94a6b56125c75349c20a8eee6dccd
    // scoped.
    side_panel_registry_->Deregister(
 diff --git a/chrome/browser/ui/tabs/tab_strip_model.cc b/chrome/browser/ui/tabs/tab_strip_model.cc
-index 5807c30e140fb09857b8488e22cf7bc788e18cf2..df3c753a44255301cb0de6c82cf806c573c21760 100644
+index 5807c30e140fb09857b8488e22cf7bc788e18cf2..05175e20ae94677f8f399311ba8ed3bf7722ca4b 100644
 --- a/chrome/browser/ui/tabs/tab_strip_model.cc
 +++ b/chrome/browser/ui/tabs/tab_strip_model.cc
 @@ -1570,7 +1570,9 @@ void TabStripModel::DeselectTabAt(int index) {
@@ -7937,7 +7957,7 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..df3c753a44255301cb0de6c82cf806c5
      // One tab must be selected and this tab is currently selected so we can't
      // unselect it.
      return;
-@@ -1908,20 +1910,56 @@ void TabStripModel::UpdateSplitLayout(
+@@ -1908,20 +1910,68 @@ void TabStripModel::UpdateSplitLayout(
  void TabStripModel::UpdateSplitRatio(split_tabs::SplitTabId split_id,
                                       double split_ratio,
                                       bool is_intermediate) {
@@ -7956,8 +7976,22 @@ index 5807c30e140fb09857b8488e22cf7bc788e18cf2..df3c753a44255301cb0de6c82cf806c5
 +      divider_index == 0 ? split_data->visual_data()->split_ratio()
 +                         : split_data->visual_data()->secondary_split_ratio();
 +  if (old_ratio == split_ratio) {
-     return;
-   }
+-    return;
+-  }
++    if (is_intermediate) {
++      return;
++    }
++    // A drag normally writes its final pixel as an intermediate update before
++    // mouse-up. Emit the equal-valued final boundary as well so SessionService
++    // persists that ratio instead of silently retaining the pre-drag value.
++    const split_tabs::SplitTabVisualData unchanged_visual_data =
++        *split_data->visual_data();
++    NotifySplitTabVisualsChanged(
++        split_id, unchanged_visual_data, unchanged_visual_data,
++        SplitTabChange::SplitVisualChangeReason::kRatioUpdated,
++        /*is_intermediate=*/false);
++    return;
++  }
  
    split_tabs::SplitTabVisualData old_visual_data = *split_data->visual_data();
 -  split_data->visual_data()->set_split_ratio(split_ratio);
@@ -18878,14 +18912,15 @@ diff --git a/extensions/browser/crx_file_info.h b/extensions/browser/crx_file_in
 index 2e90ba673c275ee0fbbdca111c98cec46323b120..1b617489d2867c46b902882f4e12be5374371ce7 100644
 --- a/extensions/browser/crx_file_info.h
 +++ b/extensions/browser/crx_file_info.h
-@@ -34,6 +34,11 @@ struct CRXFileInfo {
+@@ -34,6 +34,12 @@ struct CRXFileInfo {
    ExtensionId extension_id;
    std::string expected_hash;
    base::Version expected_version;
 +
-+  // Forces `expected_hash` verification for an embedder-owned, signed catalog
-+  // flow even when the legacy command-line hash-check switch is absent. This
-+  // is false for every existing Chromium caller.
++  // Forces `expected_hash` verification for an embedder-owned trusted
++  // distribution entry (static bootstrap or signed update catalog), even when
++  // the legacy command-line hash-check switch is absent. This is false for
++  // every existing Chromium caller.
 +  bool require_expected_hash = false;
  };
  
@@ -18894,12 +18929,14 @@ diff --git a/extensions/browser/crx_installer.h b/extensions/browser/crx_install
 index 27352c236270b9b4122272c0d4373da0a82614a8..715558415f76ace494af125dbf6be25d6ae16ca8 100644
 --- a/extensions/browser/crx_installer.h
 +++ b/extensions/browser/crx_installer.h
-@@ -93,6 +93,9 @@ class CrxInstaller : public SandboxedUnpackerClient {
+@@ -93,6 +93,11 @@ class CrxInstaller : public SandboxedUnpackerClient {
      OffStoreInstallAllowedFromSettingsPage,
      OffStoreInstallAllowedBecausePref,
      OffStoreInstallAllowedInTest,
-+    // An embedder-owned flow verified a signed catalog, CRX identity, signing
-+    // key, version, and mandatory package hash before invoking CrxInstaller.
++    // An embedder-owned flow verified trusted browser-owned entry metadata,
++    // CRX identity, signing key, version, and mandatory package hash before
++    // invoking CrxInstaller. The stable enum name covers both the static
++    // bootstrap and the later signed update catalog.
 +    OffStoreInstallAllowedByVerifiedCatalog,
      NumOffStoreInstallAllowReasons
    };

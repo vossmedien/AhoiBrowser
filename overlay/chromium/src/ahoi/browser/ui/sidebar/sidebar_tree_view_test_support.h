@@ -58,6 +58,10 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::vector<std::vector<base::Uuid>> GetSplitSavedPageGroups() const override;
   std::optional<split_tabs::SplitTabVisualData> GetSplitSavedPageVisualData(
       const std::vector<base::Uuid>&) const override;
+  bool ResizeSavedPageSplit(const std::vector<base::Uuid>& node_ids,
+                            size_t divider_index,
+                            double ratio,
+                            bool done_resizing) override;
   std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const override;
   bool CanExtractSavedSplitPaneForDrop(
@@ -114,6 +118,14 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::vector<std::pair<int, base::Uuid>> reorder_temporary_split_requests;
   std::vector<std::vector<base::Uuid>> split_groups;
   std::optional<split_tabs::SplitTabVisualData> split_visual_data;
+  struct ResizeRequest {
+    std::vector<base::Uuid> node_ids;
+    size_t divider_index = 0;
+    double ratio = 0.5;
+    bool done_resizing = false;
+  };
+  std::vector<ResizeRequest> resize_requests;
+  bool resize_split_succeeds = true;
 };
 
 class SidebarTreeViewTest : public views::ViewsTestBase {

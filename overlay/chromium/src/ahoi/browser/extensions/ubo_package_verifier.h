@@ -19,9 +19,9 @@ struct VerifiedUboPackage {
   std::string crx_public_key_sha256;
 };
 
-// Uses Chromium's CRX3 verifier with both the catalog package hash and the
-// catalog CRX signing-key hash pinned. The returned ID is also compared with
-// the fixed uBO identity.
+// Uses Chromium's CRX3 verifier with both the verified-entry package hash and
+// CRX signing-key hash pinned. The returned ID is also compared with the fixed
+// uBO identity.
 base::expected<VerifiedUboPackage, UboVerificationError> VerifyUboPackage(
     const UboCatalogEntry& entry,
     const base::FilePath& package_path);

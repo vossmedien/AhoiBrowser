@@ -25,10 +25,19 @@
       }
     },
     "uBlockOriginClassic": {
-      "version": "1.73.0",
-      "commit": "ac55a03",
-      "source": "https://github.com/gorhill/uBlock/releases/tag/1.73.0",
-      "enabled": false,
+      "version": "1.74.0",
+      "commit": "6dd2d95e50d134a477a4e183343c0b26e9147123",
+      "source": "https://github.com/gorhill/uBlock/releases/tag/1.74.0",
+      "distribution": "Official GitHub release",
+      "archive": {
+        "url": "https://github.com/gorhill/uBlock/releases/download/1.74.0/uBlock0_1.74.0.chromium.crx",
+        "sha256": "b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e",
+        "size": 4535482,
+        "crxPublicKeySha256": "5a6a81097514fb940453d5d46329eca78100e3cc0c5fca508e1a413f77f567bf",
+        "extensionId": "fkgkibajhfbepljeaefdnfnegdcjomkh",
+        "releaseAssetPath": "/github-production-release-asset/33263118/ade4daf2-50e8-4953-8821-5c2d43f07a65"
+      },
+      "enabled": true,
       "gate": "selectiveUboClassicMv2"
     }
   }

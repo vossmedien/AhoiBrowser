@@ -54,6 +54,13 @@ class SidebarTreeViewDelegate {
   // keeps embedders/tests on the legacy balanced horizontal presentation.
   virtual std::optional<split_tabs::SplitTabVisualData>
   GetSplitSavedPageVisualData(const std::vector<base::Uuid>&) const = 0;
+  // Updates the Chromium-owned ratio represented by this saved split row.
+  // Intermediate pointer updates are deliberately distinguished from the
+  // final persistence boundary, matching MultiContentsView resize semantics.
+  virtual bool ResizeSavedPageSplit(const std::vector<base::Uuid>& node_ids,
+                                    size_t divider_index,
+                                    double ratio,
+                                    bool done_resizing) = 0;
   // Returns the complete saved-page unit that must follow a dragged pane.
   // Non-split pages return a one-element vector containing `source_node_id`.
   virtual std::vector<base::Uuid> GetMoveGroupNodeIds(

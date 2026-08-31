@@ -1,0 +1,474 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20158,6 +20158,8 @@
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION" desc="Second explicit confirmation to commit the previewed additive import." meaning="AhoiBrowser Arc import">I reviewed this preview and want to add these items now</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT" desc="Button that commits the explicitly confirmed Arc import." meaning="AhoiBrowser Arc import">Import selected data</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS" desc="Text preceding the number of natively reconstructed Arc splits." meaning="AhoiBrowser Arc import">Reconstructed split views:</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES" desc="Text preceding the number of Arc workspaces skipped by the selected conflict policy." meaning="AhoiBrowser Arc import">Skipped workspaces:</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE" desc="Text preceding the number of imported four-pane layouts whose ratios required a bounded approximation." meaning="AhoiBrowser Arc import">Four-pane ratios approximated:</message>
+ 
+     <!-- AhoiBrowser feature activation and discoverability -->
+     <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11195,6 +11195,8 @@
+ <translation id="604366452320429368">Ich habe die Vorschau geprüft und möchte diese Elemente jetzt hinzufügen</translation>
+ <translation id="536686936509624394">Ausgewählte Daten importieren</translation>
+ <translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
++<translation id="8933186299020613227">Übersprungene Arbeitsbereiche:</translation>
++<translation id="4082790717577320066">Annähernd übernommene Vier-Pane-Verhältnisse:</translation>
+ <translation id="6666862080270678315">Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen</translation>
+ <translation id="1323743597646662877">Geöffneter Tab</translation>
+ <translation id="5052185113772701312">Schlafender Tab</translation>
+diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
+--- a/chrome/browser/resources/settings/BUILD.gn
++++ b/chrome/browser/resources/settings/BUILD.gn
+@@ -257,6 +257,7 @@
+       "languages_page/languages_page_index.ts",
+       "languages_page/spell_check_page.ts",
+       "languages_page/translate_page.ts",
++      "people_page/ahoi_arc_import_section.ts",
+       "people_page/import_data_dialog.ts",
+       "people_page/manage_profile.ts",
+       "relaunch_confirmation_dialog.ts",
+@@ -406,6 +407,7 @@
+       "languages_page/languages_settings_metrics_proxy.ts",
+       "languages_page/languages_types.ts",
+       "languages_page/languages_util.ts",
++      "people_page/ahoi_arc_import_section.html.ts",
+       "people_page/import_data_browser_proxy.ts",
+       "people_page/manage_profile_browser_proxy.ts",
+       "system_page/system_page.html.ts",
+@@ -483,6 +485,10 @@
+     "site_settings/site_settings_shared.css",
+     "system_page/system_page.css",
+   ]
++
++  if (!is_chromeos) {
++    css_files += [ "people_page/ahoi_arc_import_section.css" ]
++  }
+ 
+   mojo_files_deps = [ "//components/autofill/core/browser/data_model/autofill_ai:mojo_bindings_ts__generator" ]
+   mojo_files = [ "$root_gen_dir/components/autofill/core/browser/data_model/autofill_ai/autofill_ai_enums.mojom-webui.ts" ]
+diff --git a/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts b/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
+--- a/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
+@@ -19,6 +19,7 @@
+   passwords: boolean;
+   search: boolean;
+   autofillFormData: boolean;
++  ahoiImportKind?: 'arc';
+ }
+ 
+ /**
+diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.html b/chrome/browser/resources/settings/people_page/import_data_dialog.html
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.html
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html
+@@ -42,6 +42,7 @@
+               importStatusEnum_.SUCCEEDED, importStatus_)]]">
+           <select id="browserSelect" class="md-select"
+               aria-label="$i18n{importFromLabel}"
++              disabled$="[[arcImportBusy_]]"
+               on-change="onBrowserProfileSelectionChange_">
+             <template is="dom-repeat" items="[[browserProfiles_]]">
+               <option value="[[item.index]]">
+@@ -49,68 +50,76 @@
+               </option>
+             </template>
+           </select>
+-          <div class="description">$i18n{importDescription}</div>
++          <div hidden$="[[arcImportSelected_]]">
++            <div class="description">$i18n{importDescription}</div>
+ 
+-          <!--
+-            A parent div is needed here to prevent bugs caused by elements
+-            becoming hidden interfering with NVDA reading out changes to the
+-            select menu. The checkboxes just need to have a different parent
+-            than the select menu.
+-            See https://github.com/nvaccess/nvda/issues/13116.
+-          -->
+-          <div>
+-            <settings-checkbox id="importDialogHistory"
+-                hidden="[[!selected_.history]]"
+-                pref="{{prefs.import_dialog_history}}"
+-                label="$i18n{importHistory}" no-set-pref>
+-            </settings-checkbox>
+-            <settings-checkbox id="importDialogBookmarks"
+-                hidden="[[!selected_.favorites]]"
+-                pref="{{prefs.import_dialog_bookmarks}}"
+-                label="$i18n{importFavorites}" no-set-pref>
+-            </settings-checkbox>
+-            <settings-checkbox id="importDialogSavedPasswords"
+-                hidden="[[!selected_.passwords]]"
+-                pref="{{prefs.import_dialog_saved_passwords}}"
+-                label="$i18n{importPasswords}" no-set-pref>
+-            </settings-checkbox>
+-            <settings-checkbox id="importDialogSearchEngine"
+-                hidden="[[!selected_.search]]"
+-                pref="{{prefs.import_dialog_search_engine}}"
+-                label="$i18n{importSearch}" no-set-pref>
+-            </settings-checkbox>
+-            <settings-checkbox id="importDialogAutofillFormData"
+-                hidden="[[!selected_.autofillFormData]]"
+-                pref="{{prefs.import_dialog_autofill_form_data}}"
+-                label="$i18n{importAutofillFormData}" no-set-pref>
+-            </settings-checkbox>
++            <!--
++              A parent div is needed here to prevent bugs caused by elements
++              becoming hidden interfering with NVDA reading out changes to the
++              select menu. The checkboxes just need to have a different parent
++              than the select menu.
++              See https://github.com/nvaccess/nvda/issues/13116.
++            -->
++            <div>
++              <settings-checkbox id="importDialogHistory"
++                  hidden="[[!selected_.history]]"
++                  pref="{{prefs.import_dialog_history}}"
++                  label="$i18n{importHistory}" no-set-pref>
++              </settings-checkbox>
++              <settings-checkbox id="importDialogBookmarks"
++                  hidden="[[!selected_.favorites]]"
++                  pref="{{prefs.import_dialog_bookmarks}}"
++                  label="$i18n{importFavorites}" no-set-pref>
++              </settings-checkbox>
++              <settings-checkbox id="importDialogSavedPasswords"
++                  hidden="[[!selected_.passwords]]"
++                  pref="{{prefs.import_dialog_saved_passwords}}"
++                  label="$i18n{importPasswords}" no-set-pref>
++              </settings-checkbox>
++              <settings-checkbox id="importDialogSearchEngine"
++                  hidden="[[!selected_.search]]"
++                  pref="{{prefs.import_dialog_search_engine}}"
++                  label="$i18n{importSearch}" no-set-pref>
++              </settings-checkbox>
++              <settings-checkbox id="importDialogAutofillFormData"
++                  hidden="[[!selected_.autofillFormData]]"
++                  pref="{{prefs.import_dialog_autofill_form_data}}"
++                  label="$i18n{importAutofillFormData}" no-set-pref>
++              </settings-checkbox>
++            </div>
+           </div>
++          <settings-ahoi-arc-import-section id="ahoiArcImport"
++              hidden$="[[!arcImportSelected_]]"
++              on-ahoi-arc-import-busy-changed="onArcImportBusyChanged_"
++              on-ahoi-arc-import-complete="onArcImportComplete_">
++          </settings-ahoi-arc-import-section>
+         </div>
+       </div>
+       <div slot="button-container">
+-        <div class="spinner" hidden$="[[!hasImportStatus_(
+-            importStatusEnum_.IN_PROGRESS, importStatus_)]]">
++        <div class="spinner" hidden$="[[shouldHideSpinner_(
++            importStatus_, arcImportBusy_)]]">
+         </div>
+         <cr-button id="cancel" class="cancel-button"
+-            hidden="[[hasImportStatus_(
+-                importStatusEnum_.SUCCEEDED, importStatus_)]]"
+-            disabled="[[hasImportStatus_(
+-                importStatusEnum_.IN_PROGRESS, importStatus_)]]"
++            hidden="[[shouldHideCancel_(
++                importStatus_, arcImportComplete_)]]"
++            disabled="[[shouldDisableCancel_(
++                importStatus_, arcImportBusy_)]]"
+             on-click="closeDialog_">
+           $i18n{cancel}
+         </cr-button>
+         <cr-button id="import" class="action-button"
+-            hidden="[[hasImportStatus_(
+-                importStatusEnum_.SUCCEEDED, importStatus_)]]"
++            hidden="[[shouldHideStandardImport_(
++                importStatus_, arcImportSelected_)]]"
+             disabled="[[shouldDisableImport_(
+-                importStatus_, noImportDataTypeSelected_)]]"
++                importStatus_, noImportDataTypeSelected_,
++                arcImportSelected_)]]"
+             on-click="onActionButtonClick_">
+           [[getActionButtonText_(selected_)]]
+         </cr-button>
+ 
+         <cr-button id="done" class="action-button"
+-            hidden$="[[!hasImportStatus_(
+-                importStatusEnum_.SUCCEEDED, importStatus_)]]"
++            hidden$="[[shouldHideDone_(
++                importStatus_, arcImportComplete_)]]"
+             on-click="closeDialog_">$i18n{done}</cr-button>
+       </div>
+     </cr-dialog>
+diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
+@@ -16,6 +16,7 @@
+ import '../controls/settings_toggle_button.js';
+ import '../settings_vars.css.js';
+ import '../i18n_setup.js';
++import './ahoi_arc_import_section.js';
+ 
+ import {PrefsMixin} from '/shared/settings/prefs/prefs_mixin.js';
+ import type {CrButtonElement} from 'chrome://resources/cr_elements/cr_button/cr_button.js';
+@@ -26,6 +27,7 @@
+ 
+ import type {SettingsCheckboxElement} from '../controls/settings_checkbox.js';
+ 
++import type {SettingsAhoiArcImportSectionElement} from './ahoi_arc_import_section.js';
+ import type {BrowserProfile, ImportDataBrowserProxy} from './import_data_browser_proxy.js';
+ import {ImportDataBrowserProxyImpl, ImportDataStatus} from './import_data_browser_proxy.js';
+ import {getTemplate} from './import_data_dialog.html.js';
+@@ -38,6 +40,7 @@
+     done: CrButtonElement,
+     import: CrButtonElement,
+     successIcon: HTMLElement,
++    ahoiArcImport: SettingsAhoiArcImportSectionElement,
+   };
+ }
+ 
+@@ -84,6 +87,21 @@
+         value: ImportDataStatus,
+       },
+ 
++      arcImportSelected_: {
++        type: Boolean,
++        value: false,
++      },
++
++      arcImportBusy_: {
++        type: Boolean,
++        value: false,
++      },
++
++      arcImportComplete_: {
++        type: Boolean,
++        value: false,
++      },
++
+     };
+   }
+ 
+@@ -91,6 +109,9 @@
+   declare private selected_: BrowserProfile;
+   declare private noImportDataTypeSelected_: boolean;
+   declare private importStatus_: ImportDataStatus;
++  declare private arcImportSelected_: boolean;
++  declare private arcImportBusy_: boolean;
++  declare private arcImportComplete_: boolean;
+   private browserProxy_: ImportDataBrowserProxy =
+       ImportDataBrowserProxyImpl.getInstance();
+ 
+@@ -110,7 +131,13 @@
+         return;
+       }
+ 
+-      this.browserProfiles_ = data;
++      const browserProfiles = data.slice();
++      // <if expr="is_macosx">
++      browserProfiles.splice(
++          Math.max(0, browserProfiles.length - 1), 0,
++          this.createArcBrowserProfile_());
++      // </if>
++      this.browserProfiles_ = browserProfiles;
+       this.selected_ = this.browserProfiles_[0];
+ 
+       // Show the dialog only after the browser profiles data is populated
+@@ -131,6 +158,22 @@
+     return profileName ? `${name} - ${profileName}` : name;
+   }
+ 
++  // <if expr="is_macosx">
++  private createArcBrowserProfile_(): BrowserProfile {
++    return {
++      ahoiImportKind: 'arc',
++      autofillFormData: false,
++      favorites: true,
++      history: false,
++      index: -1,
++      name: this.i18n('ahoiArcImportSection'),
++      passwords: false,
++      profileName: '',
++      search: false,
++    };
++  }
++  // </if>
++
+   private updateImportDataTypesSelected_() {
+     const checkboxes =
+         this.shadowRoot!.querySelectorAll<SettingsCheckboxElement>(
+@@ -148,9 +191,14 @@
+   private isImportFromFileSelected_() {
+     // The last entry in |browserProfiles_| always refers to dummy profile for
+     // importing from a bookmarks file.
+-    return this.selected_.index === this.browserProfiles_.length - 1;
++    return this.browserProfiles_.indexOf(this.selected_) ===
++        this.browserProfiles_.length - 1;
+   }
+ 
++  private isArcImportSelected_(): boolean {
++    return this.selected_?.ahoiImportKind === 'arc';
++  }
++
+   private getActionButtonText_(): string {
+     return this.i18n(
+         this.isImportFromFileSelected_() ? 'importChooseFile' : 'importCommit');
+@@ -158,9 +206,16 @@
+ 
+   private onBrowserProfileSelectionChange_() {
+     this.selected_ = this.browserProfiles_[this.$.browserSelect.selectedIndex];
++    this.arcImportSelected_ = this.isArcImportSelected_();
++    this.arcImportBusy_ = false;
++    this.arcImportComplete_ =
++        this.arcImportSelected_ && this.$.ahoiArcImport.isComplete();
+   }
+ 
+   private onActionButtonClick_() {
++    if (this.isArcImportSelected_()) {
++      return;
++    }
+     const checkboxes = this.shadowRoot!.querySelectorAll('settings-checkbox');
+     if (this.isImportFromFileSelected_()) {
+       this.browserProxy_.importFromBookmarksFile();
+@@ -178,12 +233,45 @@
+     this.$.dialog.close();
+   }
+ 
++  private onArcImportBusyChanged_(event: CustomEvent<{busy: boolean}>) {
++    this.arcImportBusy_ = event.detail.busy;
++  }
++
++  private onArcImportComplete_(event: CustomEvent<{complete: boolean}>) {
++    this.arcImportComplete_ = event.detail.complete;
++  }
++
++  private shouldHideCancel_(): boolean {
++    return this.hasImportStatus_(ImportDataStatus.SUCCEEDED) ||
++        this.arcImportComplete_;
++  }
++
++  private shouldDisableCancel_(): boolean {
++    return this.hasImportStatus_(ImportDataStatus.IN_PROGRESS) ||
++        this.arcImportBusy_;
++  }
++
++  private shouldHideStandardImport_(): boolean {
++    return this.hasImportStatus_(ImportDataStatus.SUCCEEDED) ||
++        this.arcImportSelected_;
++  }
++
++  private shouldHideDone_(): boolean {
++    return !this.hasImportStatus_(ImportDataStatus.SUCCEEDED) &&
++        !this.arcImportComplete_;
++  }
++
++  private shouldHideSpinner_(): boolean {
++    return !this.hasImportStatus_(ImportDataStatus.IN_PROGRESS) &&
++        !this.arcImportBusy_;
++  }
++
+   /**
+    * @return Whether the import button should be disabled.
+    */
+   private shouldDisableImport_(): boolean {
+     return this.hasImportStatus_(ImportDataStatus.IN_PROGRESS) ||
+-        this.noImportDataTypeSelected_;
++        this.noImportDataTypeSelected_ || this.arcImportSelected_;
+   }
+ }
+ 
+diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+--- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
++++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+@@ -663,6 +663,10 @@
+        IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION},
+       {"ahoiArcImportCommit", IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT},
+       {"ahoiArcImportResultSplits", IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS},
++      {"ahoiArcImportResultSkippedWorkspaces",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES},
++      {"ahoiArcImportResultFourPane",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE},
+       {"ahoiFeatures", IDS_SETTINGS_AHOI_FEATURES},
+       {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
+       {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
+diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/settings/BUILD.gn
+--- a/chrome/test/data/webui/settings/BUILD.gn
++++ b/chrome/test/data/webui/settings/BUILD.gn
+@@ -257,7 +257,10 @@
+   }
+ 
+   if (is_mac) {
+-    files += [ "passkey_edit_dialog_test.ts" ]
++    files += [
++      "ahoi_arc_import_section_test.ts",
++      "passkey_edit_dialog_test.ts",
++    ]
+   }
+ 
+   if (!is_mac && !is_chromeos) {
+diff --git a/chrome/test/data/webui/settings/import_data_dialog_test.ts b/chrome/test/data/webui/settings/import_data_dialog_test.ts
+--- a/chrome/test/data/webui/settings/import_data_dialog_test.ts
++++ b/chrome/test/data/webui/settings/import_data_dialog_test.ts
+@@ -4,6 +4,7 @@
+ 
+ // clang-format off
+ import {webUIListenerCallback} from 'chrome://resources/js/cr.js';
++import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
+ import {dashToCamelCase, flush} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
+ import type {BrowserProfile, ImportDataBrowserProxy, SettingsCheckboxElement, SettingsImportDataDialogElement} from 'chrome://settings/lazy_load.js';
+ import {ImportDataBrowserProxyImpl, ImportDataStatus} from 'chrome://settings/lazy_load.js';
+@@ -129,6 +130,10 @@
+     dialog.$.browserSelect.dispatchEvent(new CustomEvent('change'));
+   }
+ 
++  function selectBookmarksFile() {
++    simulateBrowserProfileChange(dialog.$.browserSelect.options.length - 1);
++  }
++
+   test('Initialization', function() {
+     assertFalse(dialog.$.import.hidden);
+     assertFalse(dialog.$.import.disabled);
+@@ -142,8 +147,11 @@
+     const expectedText = [
+       'Mozilla Firefox',
+       'Mozilla Firefox - My profile',
+-      'Bookmarks HTML File',
+     ];
++    // <if expr="is_macosx">
++    expectedText.push(loadTimeData.getString('ahoiArcImportSection'));
++    // </if>
++    expectedText.push('Bookmarks HTML File');
+ 
+     Array.from(dialog.$.browserSelect.options).forEach((option, i) => {
+       assertEquals(expectedText[i], option.textContent.trim());
+@@ -160,7 +168,7 @@
+     assertTrue(dialog.$.import.disabled);
+ 
+     // Change browser selection to "Import from Bookmarks HTML file".
+-    simulateBrowserProfileChange(2);
++    selectBookmarksFile();
+     assertTrue(dialog.$.import.disabled);
+ 
+     // Ensure everything except |import_dialog_bookmarks| is ignored.
+@@ -196,7 +204,7 @@
+   }
+ 
+   test('ImportFromBookmarksFile', async function() {
+-    simulateBrowserProfileChange(2);
++    selectBookmarksFile();
+     dialog.$.import.click();
+     await browserProxy.whenCalled('importFromBookmarksFile');
+     simulateImportStatusChange(ImportDataStatus.IN_PROGRESS);
+diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
+--- a/chrome/test/data/webui/settings/settings_browsertest.cc
++++ b/chrome/test/data/webui/settings/settings_browsertest.cc
+@@ -92,7 +92,13 @@
+ 
+ IN_PROC_BROWSER_TEST_F(SettingsTest, AccountPage) {
+   RunTest("settings/account_page_test.js", "mocha.run()");
++}
++
++#if BUILDFLAG(IS_MAC)
++IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiArcStandardImportSurface) {
++  RunTest("settings/ahoi_arc_import_section_test.js", "mocha.run()");
+ }
++#endif  // BUILDFLAG(IS_MAC)
+ 
+ IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiPage) {
+   RunTest("settings/ahoi_page_test.js", "mocha.run()");

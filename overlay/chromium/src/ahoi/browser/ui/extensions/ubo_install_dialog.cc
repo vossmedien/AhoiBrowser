@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include "ahoi/browser/extensions/ubo_product_config.h"
 #include "ahoi/browser/extensions/ubo_service_factory.h"
 #include "ahoi/browser/ui/extensions/ubo_ui_tokens.h"
 #include "base/check.h"
@@ -140,9 +141,21 @@ void UboInstallDialog::OnUboServiceStatusChanged(
 
 void UboInstallDialog::Update(const UboServiceStatus& status) {
   UboDialogPresentation presentation = PresentUboStatus(status);
+  const bool pinned_official_release =
+      status.catalog && IsPinnedUboBootstrapCatalogEntry(*status.catalog);
   action_ = presentation.action;
-  status_label_->SetText(
-      l10n_util::GetStringUTF16(presentation.status_string_id));
+  if (status.pinned_bootstrap_available &&
+      status.state == UboServiceState::kIdle) {
+    status_label_->SetText(
+        l10n_util::GetStringUTF16(IDS_AHOI_UBO_PINNED_BOOTSTRAP_IDLE));
+  } else if (pinned_official_release &&
+             status.state == UboServiceState::kCatalogReady) {
+    status_label_->SetText(
+        l10n_util::GetStringUTF16(IDS_AHOI_UBO_PINNED_BOOTSTRAP_READY));
+  } else {
+    status_label_->SetText(
+        l10n_util::GetStringUTF16(presentation.status_string_id));
+  }
   progress_->SetVisible(presentation.show_progress);
   metadata_->SetVisible(presentation.show_metadata);
   SetButtonLabel(
@@ -155,9 +168,14 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
                                    status.catalog->version.GetString()));
     extension_id_->SetText(
         MetadataText(IDS_AHOI_UBO_ID_LABEL, status.catalog->extension_id));
+    const std::string source_label =
+        base::UTF16ToUTF8(l10n_util::GetStringUTF16(
+            pinned_official_release ? IDS_AHOI_UBO_OFFICIAL_GITHUB_RELEASE_LABEL
+                                    : IDS_AHOI_UBO_SIGNED_CATALOG_LABEL));
     upstream_->SetText(MetadataText(
         IDS_AHOI_UBO_UPSTREAM_LABEL,
-        base::StrCat({status.catalog->upstream_tag, " — ",
+        base::StrCat({source_label, " — ", status.catalog->upstream_tag, " @ ",
+                      status.catalog->upstream_commit, " — ",
                       status.catalog->upstream_source_url.spec()})));
     hash_->SetText(
         MetadataText(IDS_AHOI_UBO_HASH_LABEL, status.catalog->package_sha256));
@@ -170,7 +188,7 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
 }
 
 void ShowUboInstallDialog(Browser* browser) {
-  if (!browser || !browser->GetProfile() ||
+  if (!IsUboClassicEnabled() || !browser || !browser->GetProfile() ||
       !browser->GetProfile()->IsRegularProfile() || !browser->GetWindow()) {
     return;
   }

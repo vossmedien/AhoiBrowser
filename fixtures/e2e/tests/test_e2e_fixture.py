@@ -8,11 +8,13 @@ import hashlib
 import http.client
 import io
 import json
+import plistlib
 import ssl
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 from typing import Mapping, Optional, Sequence, Tuple
 from urllib.parse import urlsplit
@@ -22,6 +24,7 @@ FIXTURE_DIRECTORY = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(FIXTURE_DIRECTORY))
 
 import certificates  # noqa: E402
+import custom_protocol  # noqa: E402
 import manage  # noqa: E402
 import receipts  # noqa: E402
 import server  # noqa: E402
@@ -166,7 +169,7 @@ class HTTPSClusterTests(unittest.TestCase):
         cls.temporary.cleanup()
 
     def setUp(self) -> None:
-        self.cluster.context.receipts.reset()
+        self.cluster.context.reset()
 
     def request(
         self,
@@ -220,6 +223,12 @@ class HTTPSClusterTests(unittest.TestCase):
         self.assertTrue(manifest["loopbackOnly"])
         self.assertTrue(manifest["tlsValidationMustRemainEnabled"])
         self.assertEqual(server.DOWNLOAD_SHA256, manifest["payloads"]["rangeDownload"]["sha256"])
+        self.assertEqual(server.PDF_SHA256, manifest["payloads"]["syntheticPdf"]["sha256"])
+        self.assertEqual(server.LARGE_ZIP_SHA256, manifest["payloads"]["largeRangeZip"]["sha256"])
+        self.assertEqual(
+            server.LARGE_ZIP_SHA256,
+            manifest["payloads"]["disconnectResumeZip"]["sha256"],
+        )
         self.assertEqual(server.MEDIA_SHA256, manifest["payloads"]["h264AacMp4"]["sha256"])
         expected = {
             "downloadUploadDnD",
@@ -235,6 +244,7 @@ class HTTPSClusterTests(unittest.TestCase):
             "headersCspCors",
             "developerInjection",
             "syntheticLogin",
+            "safeCustomProtocol",
         }
         self.assertEqual(expected, set(manifest["journeys"]))
         self.assertIn("ASSISTED", manifest["boundaries"]["passkey"])
@@ -250,6 +260,44 @@ class HTTPSClusterTests(unittest.TestCase):
         invalid, invalid_headers, _body = self.request(url, headers={"Range": "bytes=999999999-"})
         self.assertEqual(416, invalid)
         self.assertIn(("Content-Range", "bytes */%d" % len(server.DOWNLOAD_BYTES)), invalid_headers)
+
+    def test_pdf_large_zip_and_disconnect_resume_are_deterministic(self) -> None:
+        first = self.cluster.context.urls["firstPartyHttpsUrl"]
+        status, pdf_headers, pdf = self.request(first + "/document/synthetic.pdf")
+        self.assertEqual(200, status)
+        self.assertTrue(pdf.startswith(b"%PDF-1.4"))
+        self.assertEqual(server.PDF_SHA256, hashlib.sha256(pdf).hexdigest())
+        self.assertEqual("application/pdf", dict(pdf_headers)["Content-Type"])
+
+        status, zip_headers, first_chunk = self.request(
+            first + "/download/large-range.zip", headers={"Range": "bytes=0-65535"}
+        )
+        self.assertEqual(206, status)
+        self.assertEqual(server.LARGE_ZIP_BYTES[:65536], first_chunk)
+        self.assertIn(("Accept-Ranges", "bytes"), zip_headers)
+
+        split = urlsplit(first + "/download/disconnect-once.zip")
+        connection = http.client.HTTPSConnection(
+            split.hostname, split.port, timeout=5, context=self.tls
+        )
+        try:
+            connection.request("GET", split.path)
+            response = connection.getresponse()
+            with self.assertRaises(http.client.IncompleteRead) as interrupted:
+                response.read()
+            partial = interrupted.exception.partial
+        finally:
+            connection.close()
+        self.assertEqual(server.DISCONNECT_AFTER_BYTES, len(partial))
+        status, range_headers, remainder = self.request(
+            first + "/download/disconnect-once.zip",
+            headers={"Range": "bytes=%d-" % len(partial)},
+        )
+        self.assertEqual(206, status)
+        self.assertIn(("Accept-Ranges", "bytes"), range_headers)
+        self.assertEqual(
+            server.LARGE_ZIP_SHA256, hashlib.sha256(partial + remainder).hexdigest()
+        )
 
     def test_upload_hashes_raw_bytes_without_storing_content(self) -> None:
         body = b"synthetic upload\x00with bytes"
@@ -274,9 +322,19 @@ class HTTPSClusterTests(unittest.TestCase):
         first = self.cluster.context.urls["firstPartyHttpsUrl"]
         media = self.cluster.context.urls["mediaHttpsUrl"]
         expectations = {
-            first + "/download-upload": (b"upload-drop", b"warning-download"),
+            first + "/download-upload": (
+                b"upload-drop",
+                b"warning-download",
+                b"large-range-download",
+                b"disconnect-resume-download",
+                b"pdf-document",
+            ),
             first + "/split": (b"three-pane", b"text/uri-list"),
-            first + "/navigation": (b"open-popup", b"cross-redirect"),
+            first + "/navigation": (
+                b"open-popup",
+                b"cross-redirect",
+                b"ahoi-e2e-safe://open/fixture",
+            ),
             first + "/webrtc": (b"getUserMedia", b"getDisplayMedia", b"RTCPeerConnection"),
             first + "/permissions": (b"geolocation", b"Notification", b"clipboard"),
             first + "/privacy": (b"third-party-cookie", b"CHIPS"),
@@ -390,6 +448,9 @@ class HTTPSClusterTests(unittest.TestCase):
         status, _headers, reset = self.json_request(first + "/__fixture/reset", method="POST", body=b"")
         self.assertEqual(200, status)
         self.assertTrue(reset["reset"])
+        status, _headers, reset_asset = self.json_request(first + "/assets/v1/data.json")
+        self.assertEqual(200, status)
+        self.assertEqual(1, reset_asset["accessCount"])
 
     def test_header_echo_csp_and_cors_controls(self) -> None:
         first = self.cluster.context.urls["firstPartyHttpsUrl"]
@@ -434,6 +495,280 @@ class PrivacyUnitTests(unittest.TestCase):
     def test_unknown_and_dynamic_paths_do_not_persist_user_values(self) -> None:
         self.assertEqual("/pane/:id", receipts.sanitized_path("/pane/personal-name"))
         self.assertEqual("/__unmatched__", receipts.sanitized_path("/private/token-8472"))
+
+
+class CustomProtocolUnitTests(unittest.TestCase):
+    def test_handler_source_accepts_one_url_without_forwarding_it(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            directory = Path(temporary)
+            app_path = directory / custom_protocol.APP_NAME
+            helper_path = custom_protocol._record_helper_path(app_path)
+            helper_sha256 = "a" * 64
+            source = custom_protocol._source(
+                helper_path, helper_sha256, app_path
+            )
+        self.assertIn(custom_protocol.ACCEPTED_URL, source)
+        self.assertIn("considering case", source)
+        self.assertIn("/usr/bin/codesign --verify --deep --strict", source)
+        self.assertIn("/usr/bin/grep -Fx", source)
+        self.assertIn("Identifier=" + custom_protocol.BUNDLE_ID, source)
+        self.assertIn("/usr/bin/shasum -a 256", source)
+        self.assertIn(helper_sha256, source)
+        self.assertIn(str(helper_path), source)
+        self.assertNotIn(str(Path(custom_protocol.__file__).resolve()), source)
+        self.assertNotIn("_record --state-dir", source)
+        self.assertNotIn("quoted form of incomingUrl", source)
+
+    def test_bundle_record_helper_is_self_contained_and_retains_no_url(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            payload = custom_protocol._record_helper_source(Path(temporary))
+        self.assertIn(b"exact-custom-protocol-open", payload)
+        self.assertIn(b"O_NOFOLLOW", payload)
+        self.assertNotIn(custom_protocol.ACCEPTED_URL.encode("utf-8"), payload)
+        self.assertNotIn(str(Path(custom_protocol.__file__).resolve()).encode(), payload)
+
+    def test_existing_handler_requires_exact_config_hashes_and_signature(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            directory = Path(temporary)
+            app_path = directory / custom_protocol.APP_NAME
+            resources = app_path / "Contents" / "Resources"
+            executable_directory = app_path / "Contents" / "MacOS"
+            resources.mkdir(parents=True)
+            executable_directory.mkdir(parents=True)
+            info = {
+                "CFBundleDisplayName": "AhoiBrowser E2E Protocol Handler",
+                "CFBundleExecutable": "handler",
+                "CFBundleIdentifier": custom_protocol.BUNDLE_ID,
+                "CFBundleName": "AhoiBrowser E2E Protocol Handler",
+                "CFBundleURLTypes": [
+                    {
+                        "CFBundleURLName": custom_protocol.BUNDLE_ID,
+                        "CFBundleURLSchemes": [custom_protocol.SCHEME],
+                    }
+                ],
+                "LSUIElement": True,
+            }
+            with (app_path / "Contents" / "Info.plist").open("wb") as stream:
+                plistlib.dump(info, stream, sort_keys=True)
+            (executable_directory / "handler").write_bytes(b"compiled-handler")
+            installation_id = "1" * 32
+            helper_payload = custom_protocol._record_helper_source(directory)
+            helper_path = resources / custom_protocol.RECORD_HELPER_NAME
+            helper_path.write_bytes(helper_payload)
+            helper_path.chmod(0o400)
+            helper_sha256 = hashlib.sha256(helper_payload).hexdigest()
+            marker_path = resources / custom_protocol.MARKER_NAME
+            marker_path.write_text(
+                json.dumps(
+                    custom_protocol._expected_marker(
+                        app_path, installation_id, helper_sha256
+                    ),
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            marker_path.chmod(0o600)
+            hashes = custom_protocol._artifact_hashes(app_path, info)
+            receipt = {
+                "schemaVersion": custom_protocol.RECEIPT_SCHEMA_VERSION,
+                "managedBy": custom_protocol.MANAGED_BY,
+                "installationId": installation_id,
+                "explicitConsent": True,
+                "appPath": str(app_path),
+                "bundleIdentifier": custom_protocol.BUNDLE_ID,
+                "scheme": custom_protocol.SCHEME,
+                "acceptedUrl": custom_protocol.ACCEPTED_URL,
+                "artifactHashes": hashes,
+            }
+
+            def codesign_runner(command, **_kwargs):
+                detail = (
+                    "Identifier=%s\n" % custom_protocol.BUNDLE_ID
+                    if "-d" in command
+                    else ""
+                )
+                return subprocess.CompletedProcess(command, 0, "", detail)
+
+            with mock.patch.object(custom_protocol.sys, "platform", "darwin"):
+                self.assertTrue(
+                    custom_protocol._valid_app(
+                        app_path, receipt, runner=codesign_runner
+                    )
+                )
+                (executable_directory / "handler").write_bytes(b"tampered-handler")
+                self.assertFalse(
+                    custom_protocol._valid_app(
+                        app_path, receipt, runner=codesign_runner
+                    )
+                )
+
+    def test_receipt_without_an_exact_matching_marker_cannot_own_mutation(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            directory = Path(temporary)
+            app_path = directory / custom_protocol.APP_NAME
+            resources = app_path / "Contents" / "Resources"
+            resources.mkdir(parents=True)
+            (app_path / "Contents" / "MacOS").mkdir()
+            installation_id = "2" * 32
+            helper_sha256 = "3" * 64
+            hashes = {key: "4" * 64 for key in custom_protocol.HASH_KEYS}
+            receipt = {
+                "schemaVersion": custom_protocol.RECEIPT_SCHEMA_VERSION,
+                "managedBy": custom_protocol.MANAGED_BY,
+                "installationId": installation_id,
+                "explicitConsent": True,
+                "appPath": str(app_path),
+                "bundleIdentifier": custom_protocol.BUNDLE_ID,
+                "scheme": custom_protocol.SCHEME,
+                "acceptedUrl": custom_protocol.ACCEPTED_URL,
+                "artifactHashes": hashes,
+            }
+            self.assertFalse(
+                custom_protocol._receipt_marker_owns_app(receipt, app_path)
+            )
+            marker_path = resources / custom_protocol.MARKER_NAME
+            marker_path.write_text(
+                json.dumps(
+                    custom_protocol._expected_marker(
+                        app_path, installation_id, helper_sha256
+                    ),
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            marker_path.chmod(0o600)
+            hashes["recordHelperSha256"] = helper_sha256
+            hashes["markerSha256"] = hashlib.sha256(marker_path.read_bytes()).hexdigest()
+            self.assertTrue(
+                custom_protocol._receipt_marker_owns_app(receipt, app_path)
+            )
+            marker_path.write_text("{}\n", encoding="utf-8")
+            self.assertFalse(
+                custom_protocol._receipt_marker_owns_app(receipt, app_path)
+            )
+
+    def test_launchservices_paths_are_exact_and_foreign_claims_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            directory = Path(temporary)
+            expected = directory / custom_protocol.APP_NAME
+            foreign = directory / "other-state" / custom_protocol.APP_NAME
+            dump = (
+                "------------------------------\n"
+                "bundle id: %s\nbundle path: %s\nbindings: %s:\n"
+                "------------------------------\n"
+                "identifier: foreign.bundle\npath: %s\nschemes: %s\n"
+                % (
+                    custom_protocol.BUNDLE_ID,
+                    expected,
+                    custom_protocol.SCHEME,
+                    foreign,
+                    custom_protocol.SCHEME,
+                )
+            )
+            paths = custom_protocol._parse_registered_handler_paths(dump)
+            self.assertEqual({str(expected), str(foreign)}, set(paths))
+            with self.assertRaisesRegex(
+                custom_protocol.ProtocolHandlerError, "foreign"
+            ):
+                custom_protocol._assert_registration_scope(paths, expected)
+            custom_protocol._assert_registration_scope(
+                frozenset((str(expected),)), expected
+            )
+
+    def test_launchservices_claim_without_path_fails_closed(self) -> None:
+        with self.assertRaisesRegex(
+            custom_protocol.ProtocolHandlerError, "without an exact path"
+        ):
+            custom_protocol._parse_registered_handler_paths(
+                "bundle id: %s\nbindings: %s:\n"
+                % (custom_protocol.BUNDLE_ID, custom_protocol.SCHEME)
+            )
+
+    def test_launchservices_noncanonical_path_fails_closed(self) -> None:
+        with self.assertRaisesRegex(
+            custom_protocol.ProtocolHandlerError, "non-canonical"
+        ):
+            custom_protocol._parse_registered_handler_paths(
+                "bundle id: %s\npath: /private/tmp/state/../other/%s\n"
+                "bindings: %s:\n"
+                % (
+                    custom_protocol.BUNDLE_ID,
+                    custom_protocol.APP_NAME,
+                    custom_protocol.SCHEME,
+                )
+            )
+
+    def test_status_reports_foreign_registration_without_disclosing_its_path(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            directory = Path(temporary)
+            foreign = directory / "private-other-state" / custom_protocol.APP_NAME
+            with mock.patch.object(
+                custom_protocol.sys, "platform", "darwin"
+            ), mock.patch.object(
+                custom_protocol,
+                "_registered_handler_paths",
+                return_value=frozenset((str(foreign),)),
+            ):
+                result = custom_protocol.status(directory)
+            self.assertFalse(result["installed"])
+            self.assertTrue(result["foreignRegistrationPresent"])
+            self.assertEqual(1, result["registeredPathCount"])
+            self.assertNotIn(str(foreign), json.dumps(result, sort_keys=True))
+
+    def test_removal_rechecks_ownership_and_restores_registration(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            directory = Path(temporary)
+            app_path = directory / custom_protocol.APP_NAME
+            app_path.mkdir()
+            receipt = {"installationId": "5" * 32}
+            expected_paths = frozenset((str(app_path),))
+            with mock.patch.object(
+                custom_protocol.sys, "platform", "darwin"
+            ), mock.patch.object(
+                custom_protocol,
+                "_registered_handler_paths",
+                return_value=expected_paths,
+            ), mock.patch.object(
+                custom_protocol,
+                "_read_receipt",
+                return_value=receipt,
+            ), mock.patch.object(
+                custom_protocol,
+                "_receipt_marker_owns_app",
+                side_effect=(True, False),
+            ), mock.patch.object(
+                custom_protocol, "_unregister_exact"
+            ) as unregister, mock.patch.object(
+                custom_protocol, "_restore_registration"
+            ) as restore, mock.patch.object(
+                custom_protocol, "_remove_app_tree"
+            ) as remove_tree:
+                with self.assertRaisesRegex(
+                    custom_protocol.ProtocolHandlerError, "ownership changed"
+                ):
+                    custom_protocol.remove(
+                        directory,
+                        confirmation=custom_protocol.REMOVE_CONFIRMATION,
+                    )
+            unregister.assert_called_once_with(app_path, runner=subprocess.run)
+            restore.assert_called_once_with(app_path, True, runner=subprocess.run)
+            remove_tree.assert_not_called()
+
+    def test_fixed_protocol_event_retains_no_incoming_value(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="ahoi-e2e-protocol-") as temporary:
+            directory = Path(temporary)
+            custom_protocol.record_invocation(directory)
+            events = (directory / custom_protocol.EVENTS_NAME).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("exact-custom-protocol-open", events)
+            self.assertIn('"incomingValueRetained": false', events)
+            self.assertEqual(
+                0o600,
+                (directory / custom_protocol.EVENTS_NAME).stat().st_mode & 0o777,
+            )
 
 
 if __name__ == "__main__":

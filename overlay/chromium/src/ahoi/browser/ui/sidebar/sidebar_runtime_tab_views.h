@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/ui/sidebar/sidebar_split_resize_area.h"
 #include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
 #include "base/uuid.h"
@@ -105,9 +106,14 @@ base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view);
 std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view);
 void SetOpenTabSearchSelected(views::View* view, bool selected);
 
+// Marks a row created by CreateOpenTabRowView() as one pane of a composite
+// split row. Returns false when `view` is not a runtime tab row.
+bool SetOpenTabSplitSegmentPresentation(views::View* view);
+
 std::unique_ptr<views::View> CreateOpenTabSplitRowView(
     std::vector<std::unique_ptr<views::View>> tabs,
-    split_tabs::SplitTabVisualData visual_data);
+    split_tabs::SplitTabVisualData visual_data,
+    SidebarSplitResizeCallback resize_callback = {});
 
 using DropSavedNodeToTemporaryCallback =
     base::RepeatingCallback<bool(const base::Uuid&)>;

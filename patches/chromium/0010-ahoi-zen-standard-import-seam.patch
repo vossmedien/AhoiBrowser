@@ -1,0 +1,285 @@
+diff --git a/chrome/browser/importer/BUILD.gn b/chrome/browser/importer/BUILD.gn
+--- a/chrome/browser/importer/BUILD.gn
++++ b/chrome/browser/importer/BUILD.gn
+@@ -65,6 +65,10 @@ source_set("impl") {
+     "//components/password_manager/core/browser/password_store:password_store_interface",
+   ]
+ 
++  if (is_mac) {
++    deps += [ "//ahoi/browser/importer/zen:profile_discovery" ]
++  }
++
+   if (is_win) {
+     sources += [ "firefox_profile_lock_win.cc" ]
+   } else {
+diff --git a/chrome/browser/importer/DEPS b/chrome/browser/importer/DEPS
+--- a/chrome/browser/importer/DEPS
++++ b/chrome/browser/importer/DEPS
+@@ -1,3 +1,4 @@
+ include_rules = [
++  "+ahoi/browser/importer/zen",
+   "+components/user_data_importer/mojom",
+ ]
+diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/importer_list.cc
+--- a/chrome/browser/importer/importer_list.cc
++++ b/chrome/browser/importer/importer_list.cc
+@@ -19,6 +19,7 @@
+ #include "ui/base/l10n/l10n_util.h"
+ 
+ #if BUILDFLAG(IS_MAC)
++#include "ahoi/browser/importer/zen/zen_profile_discovery.h"
+ #include "base/apple/foundation_util.h"
+ #include "chrome/common/importer/safari_importer_utils.h"
+ #endif
+@@ -183,8 +184,11 @@ std::vector<user_data_importer::SourceProfile> DetectSourceProfilesWorker(
+     DetectSafariProfiles(&profiles);
+     DetectFirefoxProfiles(locale, &profiles);
+   }
+ #else
+   DetectFirefoxProfiles(locale, &profiles);
+ #endif
+   if (include_interactive_profiles) {
++#if BUILDFLAG(IS_MAC)
++    ahoi::importer::zen::AppendZenSourceProfiles(locale, &profiles);
++#endif
+     user_data_importer::SourceProfile bookmarks_profile;
+diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
+--- a/chrome/utility/BUILD.gn
++++ b/chrome/utility/BUILD.gn
+@@ -59,6 +59,7 @@ static_library("utility") {
+     "//content/public/child",
+     "//content/public/common",
+     "//content/public/utility",
++    "//crypto",
+     "//extensions/buildflags",
+     "//ipc",
+     "//media",
+diff --git a/chrome/utility/importer/firefox_importer.cc b/chrome/utility/importer/firefox_importer.cc
+--- a/chrome/utility/importer/firefox_importer.cc
++++ b/chrome/utility/importer/firefox_importer.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/utility/importer/firefox_importer.h"
+ 
++#include <array>
+ #include <memory>
+ #include <set>
+ #include <string_view>
+@@ -32,6 +33,16 @@
+ #include "sql/statement.h"
+ #include "url/gurl.h"
+ 
++#if BUILDFLAG(IS_POSIX)
++#include <fcntl.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++#include "base/files/scoped_file.h"
++#include "base/posix/eintr_wrapper.h"
++#include "crypto/hash.h"
++#endif  // BUILDFLAG(IS_POSIX)
++
+ #if !BUILDFLAG(IS_MAC)
+ #include "chrome/utility/importer/nss_decryptor.h"
+ #endif  // !BUILDFLAG(IS_MAC)
+@@ -40,6 +51,34 @@ namespace {
+ 
+ inline constexpr sql::Database::Tag kDatabaseTag{"FirefoxImporter"};
+ 
++#if BUILDFLAG(IS_POSIX)
++base::File OpenSafeRegularFileForCopy(const base::FilePath& path) {
++  base::ScopedFD fd(HANDLE_EINTR(open(path.value().c_str(),
++                                     O_RDONLY | O_CLOEXEC | O_NOFOLLOW |
++                                         O_NONBLOCK)));
++  struct stat file_stat;
++  if (!fd.is_valid() || HANDLE_EINTR(fstat(fd.get(), &file_stat)) != 0 ||
++      !S_ISREG(file_stat.st_mode)) {
++    return base::File();
++  }
++  return base::File(std::move(fd));
++}
++
++bool IsSameFileGeneration(const base::File::Info& before,
++                          const base::File::Info& after) {
++  return before.size == after.size &&
++         before.last_modified == after.last_modified &&
++         before.creation_time == after.creation_time;
++}
++
++using Sha256Digest = std::array<uint8_t, crypto::hash::kSha256Size>;
++
++bool HashFileFromStart(base::File* file, Sha256Digest* digest) {
++  return file && digest && file->Seek(base::File::FROM_BEGIN, 0) == 0 &&
++         crypto::hash::HashFile(crypto::hash::HashKind::kSha256, file, *digest);
++}
++#endif  // BUILDFLAG(IS_POSIX)
++
+ // Original definition is in:
+ //   toolkit/components/places/nsINavBookmarksService.idl
+ enum BookmarkItemType {
+@@ -725,14 +764,67 @@ void FirefoxImporter::LoadFavicons(
+ 
+ base::FilePath FirefoxImporter::GetCopiedSourcePath(
+     std::string_view base_file_name) {
+-  const base::FilePath file = source_path_.AppendASCII(base_file_name);
+-  if (!base::PathExists(file))
+-    return {};
++  const base::FilePath source = source_path_.AppendASCII(base_file_name);
+   // Temporary directory must be initialized.
+   DCHECK(source_path_copy_.IsValid());
+   const base::FilePath destination =
+       source_path_copy_.GetPath().AppendASCII(base_file_name);
+-  if (!base::CopyFile(file, destination))
++
++#if !BUILDFLAG(IS_POSIX)
++  if (!base::PathExists(source) || !base::CopyFile(source, destination)) {
+     return {};
++  }
++#else
++  base::File source_file = OpenSafeRegularFileForCopy(source);
++  base::File::Info source_before;
++  if (!source_file.IsValid() || !source_file.GetInfo(&source_before) ||
++      source_before.is_directory || source_before.is_symbolic_link ||
++      source_before.size < 0) {
++    base::DeleteFile(destination);
++    return {};
++  }
++
++  Sha256Digest source_hash_before;
++  if (!HashFileFromStart(&source_file, &source_hash_before) ||
++      source_file.Seek(base::File::FROM_BEGIN, 0) != 0) {
++    source_file.Close();
++    base::DeleteFile(destination);
++    return {};
++  }
++
++  base::File destination_file(
++      destination, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_READ |
++                       base::File::FLAG_WRITE | base::File::FLAG_NO_FOLLOW);
++  if (!destination_file.IsValid()) {
++    source_file.Close();
++    base::DeleteFile(destination);
++    return {};
++  }
++
++  const bool copied = base::CopyFileContents(source_file, destination_file);
++  Sha256Digest source_hash_after;
++  Sha256Digest destination_hash;
++  base::File::Info source_after;
++  base::File::Info destination_info;
++  const bool stable_copy =
++      copied && HashFileFromStart(&source_file, &source_hash_after) &&
++      source_file.GetInfo(&source_after) &&
++      !source_after.is_directory && !source_after.is_symbolic_link &&
++      source_after.size >= 0 &&
++      IsSameFileGeneration(source_before, source_after) &&
++      HashFileFromStart(&destination_file, &destination_hash) &&
++      destination_file.GetInfo(&destination_info) &&
++      !destination_info.is_directory && !destination_info.is_symbolic_link &&
++      destination_info.size == source_before.size &&
++      source_hash_before == source_hash_after &&
++      source_hash_before == destination_hash;
++  destination_file.Close();
++  source_file.Close();
++  if (!stable_copy) {
++    base::DeleteFile(destination);
++    return {};
++  }
++#endif
++
+   return destination;
+ }
+diff --git a/chrome/utility/importer/firefox_importer.h b/chrome/utility/importer/firefox_importer.h
+--- a/chrome/utility/importer/firefox_importer.h
++++ b/chrome/utility/importer/firefox_importer.h
+@@ -72,6 +72,12 @@ class FirefoxImporter : public Importer {
+   ~FirefoxImporter() override;
+ 
+   FRIEND_TEST_ALL_PREFIXES(FirefoxImporterTest, ImportBookmarksV25);
++  FRIEND_TEST_ALL_PREFIXES(FirefoxImporterTest,
++                           CopiesAndRecopiesRegularSourceFile);
++#if BUILDFLAG(IS_POSIX)
++  FRIEND_TEST_ALL_PREFIXES(FirefoxImporterTest, RejectsFifoSourceFile);
++  FRIEND_TEST_ALL_PREFIXES(FirefoxImporterTest, RejectsSymlinkedSourceFile);
++#endif  // BUILDFLAG(IS_POSIX)
+ 
+   void ImportBookmarks();
+   void ImportRemainingItems();
+diff --git a/chrome/utility/importer/firefox_importer_unittest.cc b/chrome/utility/importer/firefox_importer_unittest.cc
+--- a/chrome/utility/importer/firefox_importer_unittest.cc
++++ b/chrome/utility/importer/firefox_importer_unittest.cc
+@@ -28,6 +28,10 @@
+ #include "sql/test/test_helpers.h"
+ #include "testing/gtest/include/gtest/gtest.h"
+ 
++#if BUILDFLAG(IS_POSIX)
++#include <sys/stat.h>
++#endif  // BUILDFLAG(IS_POSIX)
++
+ using ::testing::_;
+ 
+ class FirefoxImporterTest : public testing::Test {
+@@ -76,6 +80,63 @@ class FirefoxImporterTest : public testing::Test {
+       &fake_parser_};
+ };
+ 
++TEST_F(FirefoxImporterTest, CopiesAndRecopiesRegularSourceFile) {
++  base::ScopedTempDir source_dir;
++  ASSERT_TRUE(source_dir.CreateUniqueTempDir());
++  const base::FilePath source =
++      source_dir.GetPath().AppendASCII("places.sqlite");
++  ASSERT_TRUE(base::WriteFile(source, "first payload"));
++
++  importer_->source_path_ = source_dir.GetPath();
++  ASSERT_TRUE(importer_->source_path_copy_.CreateUniqueTempDir());
++  const base::FilePath first_copy =
++      importer_->GetCopiedSourcePath("places.sqlite");
++  ASSERT_FALSE(first_copy.empty());
++  std::string copied_contents;
++  ASSERT_TRUE(base::ReadFileToString(first_copy, &copied_contents));
++  EXPECT_EQ(copied_contents, "first payload");
++
++  ASSERT_TRUE(base::WriteFile(source, "x"));
++  const base::FilePath second_copy =
++      importer_->GetCopiedSourcePath("places.sqlite");
++  EXPECT_EQ(second_copy, first_copy);
++  ASSERT_TRUE(base::ReadFileToString(second_copy, &copied_contents));
++  EXPECT_EQ(copied_contents, "x");
++}
++
++#if BUILDFLAG(IS_POSIX)
++TEST_F(FirefoxImporterTest, RejectsSymlinkedSourceFile) {
++  base::ScopedTempDir source_dir;
++  ASSERT_TRUE(source_dir.CreateUniqueTempDir());
++  const base::FilePath target = source_dir.GetPath().AppendASCII("target");
++  ASSERT_TRUE(base::WriteFile(target, "database"));
++  ASSERT_TRUE(base::CreateSymbolicLink(
++      target, source_dir.GetPath().AppendASCII("places.sqlite")));
++
++  importer_->source_path_ = source_dir.GetPath();
++  ASSERT_TRUE(importer_->source_path_copy_.CreateUniqueTempDir());
++  const base::FilePath stale_destination =
++      importer_->source_path_copy_.GetPath().AppendASCII("places.sqlite");
++  ASSERT_TRUE(base::WriteFile(stale_destination, "stale"));
++  EXPECT_TRUE(importer_->GetCopiedSourcePath("places.sqlite").empty());
++  EXPECT_FALSE(base::PathExists(stale_destination));
++}
++
++TEST_F(FirefoxImporterTest, RejectsFifoSourceFile) {
++  base::ScopedTempDir source_dir;
++  ASSERT_TRUE(source_dir.CreateUniqueTempDir());
++  const base::FilePath fifo =
++      source_dir.GetPath().AppendASCII("places.sqlite");
++  ASSERT_EQ(mkfifo(fifo.value().c_str(), 0600), 0);
++
++  importer_->source_path_ = source_dir.GetPath();
++  ASSERT_TRUE(importer_->source_path_copy_.CreateUniqueTempDir());
++  EXPECT_TRUE(importer_->GetCopiedSourcePath("places.sqlite").empty());
++  EXPECT_FALSE(base::PathExists(
++      importer_->source_path_copy_.GetPath().AppendASCII("places.sqlite")));
++}
++#endif  // BUILDFLAG(IS_POSIX)
++
+ TEST_F(FirefoxImporterTest, ImportBookmarks_Firefox48) {
+   std::vector<user_data_importer::ImportedBookmarkEntry> bookmarks;
+   favicon_base::FaviconUsageDataList favicons;

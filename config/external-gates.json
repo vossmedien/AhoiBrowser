@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-29T00:00:00+02:00",
+  "updatedAt": "2026-08-30T11:45:25+02:00",
   "gates": [
     {
       "id": "xcode-26.6",
@@ -28,39 +28,39 @@
     },
     {
       "id": "cloudkit-identifiers",
-      "state": "required",
+      "state": "partially-verified-container-required",
       "owner": "apple-team-admin",
-      "condition": "Register final Mac/iOS bundle IDs, iCloud container and Developer ID/iOS provisioning profiles."
+      "condition": "Live Apple Developer readback proves Team 248AJ5BN47, explicit App ID app.ahoibrowser.AhoiBrowser, App ID prefix 248AJ5BN47, iCloud with CloudKit support and Push Notifications. The App ID has zero assigned containers and the team container list contains only iCloud.de.vossmedien.DisplayPilot; create and assign the separate iCloud.app.ahoibrowser.AhoiBrowser container, then refresh matching Mobile and Mac profiles without touching DisplayPilot."
     },
     {
       "id": "ios-final-bundle-team-profile",
-      "state": "blocked-credential",
+      "state": "registered-profile-refresh-required",
       "owner": "apple-team-admin",
-      "condition": "Assign the final AhoiBrowser Mobile bundle ID to the owning Apple Developer Team, register the App ID and capabilities, and issue matching development and distribution certificates plus provisioning profiles for the exact iPhone/iPad target. Placeholder identifiers and unsigned or ad-hoc builds are source-development inputs only."
+      "condition": "Live Apple Developer readback and the existing signed-device receipt prove Team 248AJ5BN47, App ID prefix 248AJ5BN47, explicit bundle ID app.ahoibrowser.AhoiBrowser and one development installation. Refresh Automatic/Cloud-Managed profiles after the dedicated CloudKit container is assigned; archive, export and candidate-bound profile evidence remain required. A separately stored local Apple Distribution certificate or App Store Connect API key is not a prerequisite for Xcode-managed distribution."
     },
     {
       "id": "ios-managed-default-browser-entitlement",
       "state": "blocked-entitlement",
       "owner": "apple-team-admin",
-      "condition": "Obtain Apple's managed default-browser entitlement for the final Mobile bundle ID, attach the reviewed entitlement template to the matching signed profile, and validate system default-browser selection plus external HTTP(S) callbacks on physical iPhone and iPad. Source declarations and simulator routing are not entitlement evidence."
+      "condition": "Live Apple Developer readback reports Default Web Browser and Browser App Installation as No Requests. First produce an approved public TestFlight bootstrap and active public link, then separately confirm and submit the managed-entitlement request; after Apple's grant, refresh post-grant profiles and validate system default-browser selection plus external HTTP(S) callbacks on physical iPhone and iPad."
     },
     {
       "id": "ios-cloudkit-keychain-capabilities",
       "state": "blocked-entitlement",
       "owner": "apple-team-admin",
-      "condition": "Provision the final private CloudKit container and environment, matching iCloud and push entitlements, reviewed synchronizable Keychain access groups, and externally managed AES-256-GCM payload plus Ed25519 command keys for the exact Mac and Mobile App IDs. Prove key availability, rotation, recovery and revocation without storing private material in the repository."
+      "condition": "The existing App ID has iCloud/CloudKit and Push enabled but zero assigned containers. Create and assign only iCloud.app.ahoibrowser.AhoiBrowser, refresh matching iCloud/push/Keychain profiles, and prove the in-app AES-256-GCM plus per-device Ed25519 lifecycle, rotation, recovery and revocation on entitled Mac and Mobile builds without storing private material in the repository or CloudKit."
     },
     {
       "id": "ios-physical-device-journeys",
       "state": "required-user-assistance",
       "owner": "compatibility-testing",
-      "condition": "Install the exact signed candidate on a real supported iPhone and iPad and execute MOB-USER-01 through MOB-USER-15 plus IOS-01 through IOS-15, including camera/microphone prompts, file import, downloads, external apps, accessibility, hardware keyboard/pointer, memory pressure, backgrounding and Mac-device sync. Every journey remains NOT_RUN until candidate-bound evidence exists."
+      "condition": "A bounded development smoke on iPhone 16 Pro Max/iOS 26.6 now proves install, launch, HTTPS example.com, Browser Actions, a private tab and normal restore with the private tab excluded. A supported iPad and the complete exact-release-candidate MOB-USER-01 through MOB-USER-15 plus IOS-01 through IOS-15 matrix are still required; every registry journey remains NOT_RUN."
     },
     {
       "id": "ios-app-store-connect-testflight",
       "state": "blocked-external-service",
       "owner": "apple-team-admin",
-      "condition": "Create and review the final App Store Connect app record, agreements, privacy disclosures and tester access; archive and export the exact distribution-signed candidate, upload it, retain processing/export receipts, install the processed TestFlight build on physical iPhone and iPad, and repeat release-critical smoke journeys. A local archive or successful upload alone is not TestFlight or release evidence."
+      "condition": "Live App Store Connect readback reports no apps, so no Ahoi record, build, TestFlight group or public link exists. Separately confirm creation of the AhoiBrowser record, complete truthful metadata/privacy/beta-review inputs, archive and upload the exact TestFlightBootstrap candidate through Xcode, retain processing receipts, activate external TestFlight and install it on physical devices. The displayed EU trader-status declaration remains a human/legal gate and is not a technical upload failure."
     },
     {
       "id": "signed-release-provenance",
@@ -114,7 +114,7 @@
       "id": "password-manager-test-access",
       "state": "required-user-assistance",
       "owner": "compatibility-testing",
-      "condition": "Provide synthetic 1Password and Bitwarden test vaults and approve Touch ID/System Authentication prompts on the test Mac; no real credentials may be used or recorded."
+      "condition": "Provide synthetic 1Password and Bitwarden test vaults plus a synthetic passkey account, and approve Touch ID/System Authentication prompts on the test Mac for PASS-03, NAV-07 and AUTH-24; no real credentials may be used or recorded."
     },
     {
       "id": "physical-input-and-tcc",
@@ -126,19 +126,19 @@
       "id": "cloudkit-device-validation",
       "state": "blocked-entitlement",
       "owner": "apple-team-admin",
-      "condition": "After final identifiers and entitlements exist, validate the production CloudKit container with two Macs and one real iPhone or iPad; simulator and provider-free tests are not substitutes."
+      "condition": "After final identifiers and entitlements exist, validate the production CloudKit container with two Macs and one real iPhone or iPad. PASS-07 and AUTH-23 additionally require candidate-bound negative proof that browser, Autofill, passkey and HTTP-Auth secrets never arrive on the second Mac, in device tabs or on iOS; simulator, provider-free tests and a local redaction scan are not substitutes."
     },
     {
       "id": "ubo-catalog-hosting-and-signing",
       "state": "blocked-external-service",
       "owner": "release-engineering",
-      "condition": "Provision an owned and reviewed HTTPS catalog/artifact origin, immutable hash-addressed publishing, an offline or HSM-backed Ed25519 catalog key with only its public key checked in, retained rollback artifacts, and real signed-catalog runtime evidence. Private signing material must remain outside the repository."
+      "condition": "Required for later uBlock Origin Classic updates only: provision an owned and reviewed HTTPS catalog/artifact origin, immutable hash-addressed publishing, an offline or HSM-backed Ed25519 catalog key with only its public key checked in, retained rollback artifacts, and real signed-catalog runtime evidence. The initial Official GitHub release bootstrap performs no catalog request. Private signing material must remain outside the repository."
     },
     {
-      "id": "ubo-fixed-id-crx-publisher-provenance",
-      "state": "blocked-publisher-provenance",
+      "id": "ubo-official-github-release-bootstrap-provenance",
+      "state": "verified-static-dogfood",
       "owner": "security-engineering",
-      "condition": "Before enabling the fixed uBlock Origin Classic Web Store ID, provide an authentic CRX whose publisher signing key derives exactly that ID, proof of authorization to distribute it, and recorded upstream tag, source, build and signing provenance. An Ahoi-owned publisher key requires an explicit new-ID migration and complete trust-root review; repackaging must never impersonate the Web Store identity."
+      "condition": "The signed browser pins Official GitHub release 1.74.0, release commit 6dd2d95e50d134a477a4e183343c0b26e9147123, CRX SHA-256 b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e, CRX public-key SHA-256 5a6a81097514fb940453d5d46329eca78100e3cc0c5fca508e1a413f77f567bf and derived ID fkgkibajhfbepljeaefdnfnegdcjomkh. This is an explicit identity migration and never claims a different publisher identity."
     },
     {
       "id": "ubo-redistribution",

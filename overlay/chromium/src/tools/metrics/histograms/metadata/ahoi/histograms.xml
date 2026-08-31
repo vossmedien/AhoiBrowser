@@ -1,0 +1,22 @@
+<!--
+Copyright 2026 The AhoiBrowser Authors
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
+<histogram-configuration>
+
+<histograms>
+
+<histogram name="Ahoi.CommandBar.QueryLatency" units="microseconds"
+    expires_after="2027-08-30">
+  <owner>chromium-metrics-reviews@google.com</owner>
+  <summary>
+    Time spent normalizing, scoring, sorting, URL-deduplicating and limiting one
+    synchronous local Ahoi command-bar query. No query text, URL, title, stable
+    identity or result content is recorded.
+  </summary>
+</histogram>
+
+</histograms>
+
+</histogram-configuration>

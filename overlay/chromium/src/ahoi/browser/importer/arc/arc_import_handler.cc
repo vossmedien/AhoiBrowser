@@ -71,6 +71,8 @@ const char* StatusName(ArcImportStatus status) {
       return "sourceInUse";
     case ArcImportStatus::kBackupError:
       return "backupError";
+    case ArcImportStatus::kRecoveryRequired:
+      return "recoveryRequired";
   }
   return "transactionFailed";
 }

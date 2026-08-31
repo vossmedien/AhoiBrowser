@@ -72,6 +72,7 @@ enum class UboServiceError {
 struct UboServiceStatus {
   UboServiceState state = UboServiceState::kUnprovisioned;
   UboServiceError error = UboServiceError::kNone;
+  bool pinned_bootstrap_available = false;
   std::optional<UboCatalogEntry> catalog;
   std::string installed_version;
   uint64_t downloaded_bytes = 0;
@@ -114,8 +115,9 @@ class UboService : public KeyedService,
   void AddObserver(Observer* observer);
   void RemoveObserver(Observer* observer);
 
-  // Manual checks are always explicit. Periodic checks are catalog-only and
-  // accepted solely for an installed, locally authorized extension.
+  // Manual checks are always explicit. The initial pinned check is local;
+  // periodic checks are signed-catalog-only and accepted solely for an
+  // installed, locally authorized extension.
   void CheckForCatalog(UboCheckReason reason);
   void PreparePackage();
   void InstallPreparedPackage(content::WebContents* web_contents);
@@ -138,6 +140,7 @@ class UboService : public KeyedService,
   bool IsBusy() const;
   bool RefreshInstalledState();
   void MaybeStartPeriodicChecks();
+  void AcceptCatalogEntry(UboCatalogEntry entry);
   void OnCatalogDownloaded(UboCheckReason reason,
                            UboNetworkResult<UboCatalogDownload> result);
   void OnPackageProgress(uint64_t downloaded_bytes);

@@ -59,6 +59,11 @@ class ModalOverlayController final : public views::ViewObserver,
 
   bool IsShowingPanel(const views::Widget* panel_widget) const;
 
+  // Returns whether this browser window currently owns any open or closing
+  // Ahoi modal panel. Runtime input gates use this instead of inspecting the
+  // always-present scrim view.
+  bool IsShowingAnyPanel() const;
+
   views::View* scrim_view_for_testing() const;
 
  private:

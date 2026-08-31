@@ -78,8 +78,11 @@ def download_upload(urls: Mapping[str, str]) -> bytes:
     body = """
 <section class='card'><h2>Range download</h2>
 <a id='download' class='button' download href='/download/deterministic.bin'>Download deterministic payload</a>
+<a id='large-range-download' class='button' download href='/download/large-range.zip'>Large throttled ZIP</a>
+<a id='disconnect-resume-download' class='button' download href='/download/disconnect-once.zip'>Disconnect-once ZIP</a>
+<a id='pdf-document' class='button' href='/document/synthetic.pdf'>Open deterministic PDF</a>
 <a id='warning-download' class='button' download href='/download/harmless-warning.exe'>Harmless warning file</a>
-<p>The manifest publishes size and SHA-256. Pause/resume must produce Range requests and the same hash.</p></section>
+<p>The manifest publishes size and SHA-256. Pause/resume must produce Range requests and the same hash. The disconnect-once route intentionally truncates only its first full response after each fixture reset.</p></section>
 <section class='card'><h2>Upload and drag/drop</h2>
 <form id='upload-form'><input id='upload-file' name='file' type='file' required><button>Upload</button></form>
 <div id='upload-drop' class='drop' tabindex='0'>Drop a file here</div><output id='upload-result'></output></section>
@@ -120,7 +123,9 @@ def navigation(urls: Mapping[str, str]) -> bytes:
     body = f"""
 <section class='card'><a id='same-redirect' class='button' href='/redirect/same?utm_source=fixture'>Same-origin redirect</a>
 <a id='cross-redirect' class='button' href='/redirect/cross?gclid=synthetic'>Cross-origin redirect</a>
-<button id='open-popup'>Requested popup</button><a class='button' target='_blank' rel='noopener' href='{third}/popup'>noopener popup</a></section>
+<button id='open-popup'>Requested popup</button><a class='button' target='_blank' rel='noopener' href='{third}/popup'>noopener popup</a>
+<a id='safe-custom-protocol' class='button' href='ahoi-e2e-safe://open/fixture'>Fixture-only custom protocol</a></section>
+<p class='notice'>The custom-protocol link is inert unless the separately consented fixture handler is installed. That handler accepts this exact URL only.</p>
 <script>document.querySelector('#open-popup').onclick=()=>window.open('/popup','ahoi-fixture-popup','popup,width=520,height=480')</script>"""
     return document("Redirect and popup controls", body, urls)
 

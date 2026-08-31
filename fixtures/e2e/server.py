@@ -3,15 +3,16 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 import html
 import json
 import re
+import socket
 import socketserver
 import ssl
 import threading
+import time
 import uuid
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -20,6 +21,22 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pages
+from payloads import (
+    ASSET_CHUNK_BYTES,
+    DISCONNECT_AFTER_BYTES,
+    DOWNLOAD_BYTES,
+    DOWNLOAD_SHA256,
+    LARGE_ZIP_BYTES,
+    LARGE_ZIP_SHA256,
+    LARGE_ZIP_THROTTLE_SECONDS,
+    MEDIA_BYTES,
+    MEDIA_SHA256,
+    PDF_BYTES,
+    PDF_SHA256,
+    WARNING_BYTES,
+    WARNING_SHA256,
+    parse_range as _parse_range,
+)
 from receipts import ReceiptStore, query_key_summary
 
 
@@ -28,29 +45,8 @@ FIRST_HOST_NAME = "first-party.localhost"
 THIRD_HOST_NAME = "third-party.localhost"
 MEDIA_HOST_NAME = "media.localhost"
 MAX_UPLOAD_BYTES = 16 * 1024 * 1024
-DOWNLOAD_BYTES = bytes((index * 37 + 11) % 256 for index in range(2 * 1024 * 1024))
-DOWNLOAD_SHA256 = hashlib.sha256(DOWNLOAD_BYTES).hexdigest()
-WARNING_BYTES = (
-    b"AhoiBrowser harmless dangerous-download warning fixture.\n"
-    b"This file is plain text, contains no executable program, no macro, and no malware.\n"
-)
-WARNING_SHA256 = hashlib.sha256(WARNING_BYTES).hexdigest()
-MEDIA_SHA256 = "c195edb6dee6e3465fb5fd5fa0a0b7f3fbbd8ac48d7c953ae7108cff777f5436"
 SYNTHETIC_USERNAME = "fixture-user"
 SYNTHETIC_PASSWORD = "fixture-password"
-
-
-def _load_media() -> bytes:
-    encoded = (Path(__file__).parent / "assets" / "h264-aac.mp4.b64").read_text(
-        encoding="ascii"
-    )
-    decoded = base64.b64decode(encoded, validate=False)
-    if hashlib.sha256(decoded).hexdigest() != MEDIA_SHA256:
-        raise RuntimeError("committed H.264/AAC fixture asset hash mismatch")
-    return decoded
-
-
-MEDIA_BYTES = _load_media()
 
 
 def _json_bytes(value: object) -> bytes:
@@ -82,29 +78,6 @@ def _safe_referrer(value: str) -> Optional[str]:
     return "%s://%s%s" % (split.scheme, split.netloc, split.path)
 
 
-def _parse_range(value: str, size: int) -> Optional[Tuple[int, int]]:
-    if not value:
-        return None
-    match = re.fullmatch(r"bytes=(\d*)-(\d*)", value.strip())
-    if not match:
-        raise ValueError("only one byte range is supported")
-    start_text, end_text = match.groups()
-    if not start_text and not end_text:
-        raise ValueError("empty range")
-    if not start_text:
-        suffix = int(end_text)
-        if suffix <= 0:
-            raise ValueError("invalid suffix range")
-        start = max(0, size - suffix)
-        end = size - 1
-    else:
-        start = int(start_text)
-        end = int(end_text) if end_text else size - 1
-    if start >= size or end < start:
-        raise ValueError("unsatisfiable range")
-    return start, min(end, size - 1)
-
-
 class FixtureContext:
     def __init__(self, runtime_directory: Path) -> None:
         self.runtime_directory = runtime_directory
@@ -122,6 +95,11 @@ class FixtureContext:
             self._counters[name] = self._counters.get(name, 0) + 1
             return self._counters[name]
 
+    def reset(self) -> None:
+        with self._counter_lock:
+            self._counters.clear()
+        self.receipts.reset()
+
     def manifest(self) -> Mapping[str, object]:
         first = self.urls["firstPartyHttpsUrl"]
         third = self.urls["thirdPartyHttpsUrl"]
@@ -137,6 +115,26 @@ class FixtureContext:
                     "bytes": len(DOWNLOAD_BYTES),
                     "sha256": DOWNLOAD_SHA256,
                     "supportsRange": True,
+                },
+                "syntheticPdf": {
+                    "url": first + "/document/synthetic.pdf",
+                    "bytes": len(PDF_BYTES),
+                    "sha256": PDF_SHA256,
+                    "supportsRange": True,
+                },
+                "largeRangeZip": {
+                    "url": first + "/download/large-range.zip",
+                    "bytes": len(LARGE_ZIP_BYTES),
+                    "sha256": LARGE_ZIP_SHA256,
+                    "supportsRange": True,
+                    "throttled": True,
+                },
+                "disconnectResumeZip": {
+                    "url": first + "/download/disconnect-once.zip",
+                    "bytes": len(LARGE_ZIP_BYTES),
+                    "sha256": LARGE_ZIP_SHA256,
+                    "supportsRange": True,
+                    "intentionalDisconnectsBeforeFirstFullResponse": True,
                 },
                 "harmlessWarning": {
                     "url": first + "/download/harmless-warning.exe",
@@ -165,11 +163,13 @@ class FixtureContext:
                 "headersCspCors": first + "/developer",
                 "developerInjection": first + "/injection",
                 "syntheticLogin": first + "/login",
+                "safeCustomProtocol": "ahoi-e2e-safe://open/fixture",
             },
             "boundaries": {
                 "passkey": "local simulation only; platform WebAuthn remains ASSISTED_E2E",
                 "webrtc": "loopback peer only; real conferencing remains ASSISTED_E2E",
                 "media": "fixture capability only; licensed codec/legal acceptance remains external",
+                "customProtocol": "requires the separately consented, fixture-only macOS handler; arbitrary URLs are rejected",
             },
             "receipts": first + "/__fixture/receipts",
         }
@@ -281,6 +281,8 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
         filename: str,
         *,
         attachment: bool,
+        throttle_seconds: float = 0,
+        disconnect_after_bytes: Optional[int] = None,
     ) -> None:
         range_value = self.headers.get("Range", "")
         try:
@@ -306,24 +308,78 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             headers.append(("Content-Disposition", 'attachment; filename="%s"' % filename))
         if selected:
             headers.append(("Content-Range", "bytes %d-%d/%d" % (start, end, len(payload))))
-        self._send(
-            status,
-            response,
-            content_type=content_type,
-            headers=headers,
+        should_disconnect = (
+            disconnect_after_bytes is not None
+            and not selected
+            and self.command != "HEAD"
+            and 0 < disconnect_after_bytes < len(response)
+        )
+        planned_bytes = disconnect_after_bytes if should_disconnect else len(response)
+        self.context.receipts.record(
+            role=self.fixture_server.role,
+            method=self.command,
+            target=self.path,
+            status=status,
+            headers=self._headers_for_receipt(),
             facts={
                 "payloadSha256": hashlib.sha256(payload).hexdigest(),
                 "payloadBytes": len(payload),
-                "responseBytes": len(response),
+                "declaredResponseBytes": len(response),
+                "plannedBytesBeforeDisconnect": planned_bytes,
+                "intentionalDisconnect": should_disconnect,
                 "rangeStart": start if selected else None,
                 "rangeEnd": end if selected else None,
+                "throttled": throttle_seconds > 0,
             },
         )
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(response)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        for name, value in headers:
+            self.send_header(name, value)
+        self.end_headers()
+        if self.command == "HEAD":
+            return
+        limit = int(planned_bytes)
+        try:
+            for offset in range(0, limit, ASSET_CHUNK_BYTES):
+                self.wfile.write(response[offset : min(offset + ASSET_CHUNK_BYTES, limit)])
+                self.wfile.flush()
+                if throttle_seconds > 0 and offset + ASSET_CHUNK_BYTES < limit:
+                    time.sleep(throttle_seconds)
+        except (BrokenPipeError, ConnectionResetError, ssl.SSLError):
+            self.close_connection = True
+            return
+        if should_disconnect:
+            self.close_connection = True
+            try:
+                self.connection.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
 
     def do_HEAD(self) -> None:
         split = urlsplit(self.path)
         if split.path == "/download/deterministic.bin":
             self._asset(DOWNLOAD_BYTES, "application/octet-stream", "ahoi-range.bin", attachment=True)
+        elif split.path == "/download/large-range.zip":
+            self._asset(
+                LARGE_ZIP_BYTES,
+                "application/zip",
+                "ahoi-large-range.zip",
+                attachment=True,
+                throttle_seconds=LARGE_ZIP_THROTTLE_SECONDS,
+            )
+        elif split.path == "/download/disconnect-once.zip":
+            self._asset(
+                LARGE_ZIP_BYTES,
+                "application/zip",
+                "ahoi-disconnect-resume.zip",
+                attachment=True,
+            )
+        elif split.path == "/document/synthetic.pdf":
+            self._asset(PDF_BYTES, "application/pdf", "ahoi-synthetic.pdf", attachment=False)
         elif split.path == "/media/sample.mp4":
             self._asset(MEDIA_BYTES, "video/mp4", "ahoi-h264-aac.mp4", attachment=False)
         else:
@@ -386,6 +442,31 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             return
         if route == "/download/deterministic.bin":
             self._asset(DOWNLOAD_BYTES, "application/octet-stream", "ahoi-range.bin", attachment=True)
+            return
+        if route == "/download/large-range.zip":
+            self._asset(
+                LARGE_ZIP_BYTES,
+                "application/zip",
+                "ahoi-large-range.zip",
+                attachment=True,
+                throttle_seconds=LARGE_ZIP_THROTTLE_SECONDS,
+            )
+            return
+        if route == "/download/disconnect-once.zip":
+            disconnect = None
+            if not self.headers.get("Range") and self.context.increment("disconnect-once") == 1:
+                disconnect = DISCONNECT_AFTER_BYTES
+            self._asset(
+                LARGE_ZIP_BYTES,
+                "application/zip",
+                "ahoi-disconnect-resume.zip",
+                attachment=True,
+                throttle_seconds=LARGE_ZIP_THROTTLE_SECONDS,
+                disconnect_after_bytes=disconnect,
+            )
+            return
+        if route == "/document/synthetic.pdf":
+            self._asset(PDF_BYTES, "application/pdf", "ahoi-synthetic.pdf", attachment=False)
             return
         if route == "/download/harmless-warning.exe":
             self._asset(WARNING_BYTES, "application/x-msdownload", "ahoi-harmless-warning.exe", attachment=True)
@@ -628,7 +709,7 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             )
             return
         if route == "/__fixture/reset":
-            self.context.receipts.reset()
+            self.context.reset()
             self._json(HTTPStatus.OK, {"reset": True})
             return
         self._json(HTTPStatus.NOT_FOUND, {"error": "fixture POST route not found", "path": route})

@@ -24,6 +24,7 @@
 #include "ahoi/browser/ui/appearance/sidebar_tint_transition.h"
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+#include "ahoi/browser/ui/sidebar/browser_sidebar_host_types.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
@@ -46,6 +47,7 @@
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/prefs/pref_change_registrar.h"
+#include "components/split_tabs/split_tab_id.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/base/metadata/metadata_header_macros.h"
@@ -96,75 +98,6 @@ class SidebarDiscoveryModel;
 class SidebarMediaOverlayView;
 class SidebarTreeView;
 
-enum SidebarContextMenuCommand {
-  kActivateNode = 1,
-  kToggleGroupExpanded,
-  kCreateRootGroup,
-  kCreateSubgroup,
-  kCreateGroupAroundNode,
-  kDuplicateNode,
-  kRenameNode,
-  kDeleteNode,
-  kSeparateSplit,
-  kSaveTemporaryTab,
-  kKeepOpenOnly,
-  kCloseRuntimeTab,
-  kSplitSideBySide,
-  kSplitStacked,
-  kReverseSplit,
-  kCustomizeGroup,
-  kCopyAllLinks,
-  kMoveTo,
-  kCreateWorkspace,
-  kDuplicateWorkspace,
-  kEditWorkspace,
-  kDeleteWorkspace,
-  kToggleFloatingSidebar,
-  kToggleSidebarVisibility,
-  kRestoreSidebar,
-  kSleepTab,
-  kWakeTab,
-  kToggleNeverSleep,
-  kToggleWorkspaceSwipe,
-  kToggleCmdScrollTabSwitching,
-  kToggleMiddleClickAutoscroll,
-};
-
-constexpr int kActivateWorkspaceCommandBase = 1000;
-constexpr int kMoveToDestinationCommandBase = 2000;
-// The persistent tree supports far more than one thousand folders. Keep
-// submenu identifiers well above the destination range so a large workspace
-// cannot make a destination look like a submenu command.
-constexpr int kMoveToWorkspaceSubmenuCommandBase = 1000000;
-
-struct ContextMoveDestination {
-  base::Uuid workspace_id;
-  std::optional<base::Uuid> folder_id;
-};
-
-enum class ContextMenuScope {
-  kNone = 0,
-  kTree,
-  kWorkspace,
-  kOpenTab,
-};
-
-enum class PendingGroupAction {
-  kNone = 0,
-  kWrapNode,
-  kWrapTemporaryTab,
-  kCreateFolder,
-  kEditFolder,
-};
-
-enum class PendingWorkspaceAction {
-  kNone = 0,
-  kCreate,
-  kDuplicate,
-  kEdit,
-  kDelete,
-};
-
 class BrowserSidebarHostView final
     : public views::View,
       public content::WebContentsObserver,
@@ -194,6 +127,8 @@ class BrowserSidebarHostView final
   bool ActivateRelativeWorkspace(int delta);
 
   bool ActivateRelativeWorkspaceByGesture(int delta);
+
+  base::WeakPtr<tabs::TabInterface> ResolveRelativeRuntimeTab(int delta) const;
 
   bool ActivateRelativeRuntimeTab(int delta);
 
@@ -483,6 +418,16 @@ class BrowserSidebarHostView final
   std::optional<split_tabs::SplitTabVisualData> GetSplitSavedPageVisualData(
       const std::vector<base::Uuid>& node_ids) const override;
 
+  bool ResizeSavedPageSplit(const std::vector<base::Uuid>& node_ids,
+                            size_t divider_index,
+                            double ratio,
+                            bool done_resizing) override;
+
+  bool ResizeSidebarSplit(split_tabs::SplitTabId split_id,
+                          size_t divider_index,
+                          double ratio,
+                          bool done_resizing);
+
   std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const override;
 
@@ -760,6 +705,11 @@ class BrowserSidebarHostView final
   uint64_t runtime_refresh_generation_ = 0;
   bool runtime_auxiliary_prime_scheduled_ = false;
   bool runtime_auxiliary_ready_ = false;
+  // Split ratio notifications are synchronous. Suppressing the ordinary
+  // runtime rebuild while a sidebar ResizeArea owns mouse capture keeps that
+  // source View alive until its final commit.
+  bool sidebar_split_resize_update_in_progress_ = false;
+  bool sidebar_split_resize_active_ = false;
   raw_ptr<sync::ProfileSyncService> profile_sync_service_ = nullptr;
   bool profile_sync_ui_attached_ = false;
   sync::DeviceTabsSnapshot device_tabs_snapshot_;

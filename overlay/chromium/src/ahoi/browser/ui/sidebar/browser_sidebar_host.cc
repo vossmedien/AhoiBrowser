@@ -156,6 +156,13 @@ bool ActivateRelativeBrowserWorkspaceByGesture(views::View* sidebar_host,
   return host && host->ActivateRelativeWorkspaceByGesture(delta);
 }
 
+base::WeakPtr<tabs::TabInterface> ResolveRelativeBrowserRuntimeTab(
+    views::View* sidebar_host,
+    int delta) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host ? host->ResolveRelativeRuntimeTab(delta) : nullptr;
+}
+
 bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->ActivateRelativeRuntimeTab(delta);

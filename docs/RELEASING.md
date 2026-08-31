@@ -70,6 +70,8 @@ Run the CLI help for exact arguments:
 ```sh
 python3 scripts/release/ahoi-release.py --help
 python3 scripts/release/ahoi-release.py sign --help
+python3 scripts/release/ahoi-release.py prepare-macos-cloudkit --help
+python3 scripts/release/ahoi-release.py verify-macos-cloudkit --help
 python3 scripts/release/ahoi-release.py notarize-package --help
 python3 scripts/release/ahoi-release.py materials --help
 python3 scripts/release/ahoi-release.py release-assets --help
@@ -80,11 +82,38 @@ python3 scripts/release/ahoi-release.py verify-chain --help
 python3 scripts/release/ahoi-release.py sparkle-appcast --help
 ```
 
-`sign` requires `AHOI_CODESIGN_IDENTITY` and `AHOI_TEAM_ID`. It signs Mach-O
+`sign` requires `AHOI_CODESIGN_IDENTITY`, `AHOI_TEAM_ID` and the concrete
+Developer ID provisioning profile passed through `--provisioning-profile`. It signs Mach-O
 leaves before nested `.app`/`.xpc`/framework containers and signs the outer app
 last; every code object must match exactly one role in
 `config/macos-entitlements.json`. It never uses `codesign --deep` to sign.
 `--deep --strict` is used only as an additional verification pass.
+
+### Mac CloudKit signing profiles
+
+The standalone entitlement validator defaults to the exact provider-free
+profile and rejects CloudKit runtime keys or an embedded provisioning profile.
+Entitled builds must explicitly choose `cloudkit-development` or
+`cloudkit-production`; both require the same dedicated Ahoi container and the
+two separate exact Keychain groups. The modes differ in signing identity,
+CloudKit/APNs environment, `get-task-allow` authorization and device scope.
+
+The production release CLI is deliberately fixed to `cloudkit-production`.
+Before signing it CMS-decodes the supplied Developer ID profile, checks Team,
+App-Identifier-Prefix, bundle, container, environments, groups, certificate
+inventory, expiry and distribution device scope, then embeds it and stamps the
+exact runtime configuration. After signing it re-reads the signed entitlements,
+embedded profile and Info.plist and requires the actual signing leaf certificate
+to be present in that profile. The preparation and signed receipt bind the
+profile SHA-256/UUID/expiry plus pre-provision, provisioned and signed bundle
+identities. Development preparation/readback uses the separate
+`prepare-macos-cloudkit` and `verify-macos-cloudkit` commands documented in
+`docs/SYNC.md`; it cannot satisfy the production release chain.
+
+Neither workflow creates Apple resources. The dedicated container assignment,
+matching Apple Development and Developer ID profiles, real Developer ID
+identity, Notary Keychain profile and successful notarization/stapling remain
+external gates. The existing DisplayPilot container is never a fallback.
 
 `notarize-package` requires only the name of an existing Keychain profile in
 `AHOI_NOTARY_KEYCHAIN_PROFILE`; secrets are never command arguments or receipt
@@ -168,36 +197,183 @@ transaction and rollback implementation for an already stamped and signed
 ## AhoiBrowser Mobile release boundary
 
 The Mobile target has a separate Apple distribution chain; a desktop release
-receipt cannot satisfy it. `apps/AhoiMobile/AhoiMobile.Release.xcconfig.template`
-points Release signing at
-`AhoiMobile.DefaultBrowser.entitlements.template`, which intentionally cannot
-be materialized honestly until Apple grants the managed default-browser
-entitlement to the final bundle ID and the Team provisions matching CloudKit,
-push and Keychain capabilities.
+receipt cannot satisfy it. The XcodeGen project has five explicit, fail-closed
+configurations instead of one overloaded `Release` configuration:
+
+| Configuration | Signing/capability contract |
+| --- | --- |
+| `DebugLocal` | Provider-free local/simulator build. No Team, CloudKit, Push, Keychain-group or default-browser source entitlement. |
+| `CloudKitDevelopment` | Automatic Apple Development signing, Development CloudKit/APNs and the dedicated Ahoi container; no default-browser entitlement. |
+| `TestFlightBootstrap` | Automatic/Cloud-Managed distribution signing, Production CloudKit/APNs and no default-browser entitlement. This is the pre-grant public-TestFlight candidate. |
+| `DefaultBrowserDevelopment` | Post-grant Apple Development mode with a fresh managed-entitlement profile. |
+| `ReleasePostGrant` | Post-grant distribution mode with a new build number, fresh profile and fresh archive. |
+
+`AhoiMobile.entitlements.template` is the pre-grant CloudKit contract;
+`AhoiMobile.DefaultBrowser.entitlements.template` is used only by the two
+post-grant modes. Never relabel or re-sign a bootstrap archive after Apple grants
+the entitlement.
+
+### Development readiness snapshot — 2026-08-30
+
+The current Mobile state has bounded development evidence, not a distribution
+candidate:
+
+- the Debug iPhone simulator build succeeded;
+- the Release iPad simulator build succeeded for `arm64` and `x86_64`;
+- 56 Mobile Core test cases were reported with zero failures and two
+  entitlement-dependent skips;
+- all three Mobile UI tests passed;
+- all 36 CloudKit/security package tests passed without constituting a real
+  cloud mutation;
+- a development build was signed and installed on an iPhone 16 Pro Max running
+  iOS 26.6; after an initial lock-related CLI launch rejection, a visible smoke
+  through the host's iPhone device-management/synchronization flow proved cold
+  start, HTTPS `example.com`, Browser Actions, a new private tab and normal-tab
+  restore with the private tab excluded after targeted Ahoi process termination;
+  this path was unrelated to Ahoi CloudKit sync and remains bounded development
+  evidence, not a journey pass; and
+- the available iPad (6th generation) runs iPadOS 17.7.10 and is incompatible
+  with the Mobile target's iOS/iPadOS 26 deployment floor.
+
+Every `MOB-USER-*` and `IOS-*` registry entry therefore remains `NOT_RUN`.
+The retained screenshots are indexed under
+[`audit-evidence/2026-08-30-ios-device-preflight/`](audit-evidence/2026-08-30-ios-device-preflight/).
+There is no processed distribution archive or TestFlight build. The live Apple
+portal snapshot retained under
+[`audit-evidence/2026-08-30-apple-mobile-live-preflight/`](audit-evidence/2026-08-30-apple-mobile-live-preflight/)
+proves Team/App ID/prefix `248AJ5BN47`, with iCloud/CloudKit and Push enabled on
+the App ID, but **zero assigned iCloud containers**. The only container visible
+to the Team belongs to DisplayPilot; it must never be reused by Ahoi. Both
+Default Web Browser and Browser App Installation show `No Requests`, so Apple
+has not granted either managed capability. App Store Connect currently has no
+app record and shows an unresolved trader-status warning. The cached Ahoi
+development profile likewise proves Team/App-ID development signing but
+contains no iCloud container assignment. No real AES/Ed25519 key lifecycle has
+been demonstrated, and the Mac development app is not an entitled CloudKit
+counterparty. A local Apple Distribution identity and an App Store Connect API
+key are not mandatory prerequisites: Xcode Automatic Signing/Organizer is the
+primary path and may use Cloud-Managed distribution assets. It cannot, however,
+create or assign the dedicated CloudKit container, submit managed-capability
+requests, create the App Store Connect record or resolve legal agreements.
+
+### Mobile release preflight
+
+`apps/AhoiMobile/scripts/release-preflight.sh` runs for every configuration. It
+requires `CONFIGURATION == AHOI_BUILD_MODE`, validates the exact public
+Team/bundle/container/groups, enforces each mode's environment and entitlement
+file, and rejects unresolved candidate version, build, export-compliance or
+source-commit values. `TestFlightBootstrap` and `ReleasePostGrant` stamp and
+require a lowercase 40-character `AhoiSourceCommit`; every product also stamps
+`AhoiBuildMode`. These keys bind later archive/TestFlight evidence directly to
+the candidate. The export-compliance Boolean remains an explicit legal/release
+input; the repository does not guess it.
+
+The tracked files under `apps/AhoiMobile/Configurations/` are the public mode
+contract. Materialize only a candidate overlay from
+`AhoiMobile.Release.xcconfig.template` outside version control, then regenerate
+the project and archive the pre-grant bootstrap:
+
+```sh
+cd apps/AhoiMobile
+xcodegen generate --spec project.yml
+
+xcodebuild \
+  -project AhoiMobile.xcodeproj \
+  -scheme AhoiMobile-TestFlightBootstrap \
+  -configuration TestFlightBootstrap \
+  -destination 'generic/platform=iOS' \
+  -archivePath /private/path/AhoiMobile.xcarchive \
+  -xcconfig /private/path/AhoiMobile.Release.xcconfig \
+  -allowProvisioningUpdates \
+  archive
+cd ../..
+```
+
+Automatic/Cloud-Managed Signing is preferred. A manual fallback is accepted only
+when the private overlay explicitly sets `AHOI_MANUAL_SIGNING_FALLBACK=YES`, a
+matching profile specifier and the mode-appropriate signing identity. Do not add
+materialized overlays or profiles to Git.
+
+Materialize `ExportOptions.plist.template` by replacing its two public
+placeholders with the exact tracked Team and bundle values. It intentionally uses
+`signingStyle=automatic` and `testFlightInternalTestingOnly=false`; therefore the
+same processed bootstrap build can be installed internally, pass external Beta
+App Review and receive a public TestFlight link. Bind inspection to the same
+candidate before export:
+
+```sh
+env \
+  AHOI_APP_USES_NON_EXEMPT_ENCRYPTION=YES_OR_NO \
+  AHOI_SOURCE_COMMIT=EXACT_40_CHARACTER_LOWERCASE_SHA \
+  apps/AhoiMobile/scripts/release-preflight.sh --archive \
+  /path/to/AhoiMobile.xcarchive \
+  --export-options /path/to/ExportOptions.plist \
+  --mode TestFlightBootstrap
+
+xcodebuild \
+  -exportArchive \
+  -archivePath /path/to/AhoiMobile.xcarchive \
+  -exportOptionsPlist /path/to/ExportOptions.plist \
+  -exportPath /private/path/AhoiMobile-export
+```
+
+The archive check is read-only. It verifies version/build, Boolean export
+declaration, stamped source/mode, distribution profile expiry, Team/bundle
+binding, Production CloudKit/push environment, both Keychain groups, Privacy
+Manifests and signature. For `TestFlightBootstrap`, the default-browser
+entitlement must be absent from source, signed app and profile. For
+`ReleasePostGrant`, it must be true in all three and the separate
+`ExportOptions.ReleasePostGrant.plist.template` is used.
+
+The Apple sequence is strict:
+
+1. create the dedicated Ahoi container, assign it to the verified App ID and
+   refresh the development profile (the live snapshot currently shows zero
+   assignments; never use the existing DisplayPilot container);
+2. complete CloudKit Development E2E;
+3. promote the reviewed schema to Production;
+4. resolve the App Store Connect trader-status warning, create the exact app
+   record and complete required agreements/disclosures;
+5. upload and process `TestFlightBootstrap`, install it internally, complete
+   external Beta App Review and activate a public link;
+6. submit the managed default-browser request using that public link;
+7. after an actual grant, refresh profiles, increment the build number and create
+   a new `ReleasePostGrant` archive;
+8. install the processed post-grant TestFlight build and run system-default
+   HTTP/HTTPS E2E on supported physical iPhone and iPad.
+
+Submitting or publishing to the public App Store remains a separate explicit
+authorization.
 
 A Mobile candidate requires all of the following, bound to one source commit and
 build number:
 
-1. final Team ID, App ID/bundle ID, development/distribution certificates and
-   profiles, including the Apple-managed default-browser entitlement;
-2. concrete private CloudKit container/environment and reviewed synchronizable
-   Keychain groups/keys without repository-held private material;
-3. generated Xcode project inputs, Release archive and exported IPA with exact
+1. the verified Team/App ID, a newly created and assigned dedicated Ahoi
+   CloudKit container, matching development/distribution profiles and later a
+   separate post-grant profile;
+2. reviewed synchronizable payload-key and per-device command-key groups/lifecycle
+   without repository-held private material;
+3. generated Xcode project inputs, mode-specific archive and exported IPA with exact
    signature/profile/entitlement inspection;
 4. merged Privacy Manifest plus embedded-SDK manifests reconciled against actual
-   endpoints and App Store Connect privacy disclosures;
+   endpoints, Apple's collection definitions and App Store Connect privacy
+   disclosures; the current conservative source manifests declare no tracking
+   while listing browsing history, search history, other user content and
+   device ID as unlinked, non-tracking app-functionality data;
 5. the exact signed candidate installed on supported physical iPhone and iPad,
    followed by `MOB-USER-01` through `MOB-USER-15` and `IOS-01` through
    `IOS-15` with retained evidence;
 6. entitled Mac–Mobile CloudKit/Keychain convergence, offline, conflict,
    account/zone recovery, key rotation/revocation and private-data exclusion;
-7. App Store Connect archive upload and processing receipts, tester access and
-   installation/launch of the processed TestFlight build on both form factors.
+7. App Store Connect processing receipts, internal/external tester access,
+   public TestFlight link and installation of bootstrap plus post-grant builds on
+   both form factors.
 
-The current worktree supplies source templates and policy seams only. It does
-not record a Mobile build, archive, physical installation, entitled roundtrip,
-App Store processing result or TestFlight installation. Granular ownership and
-states live in `config/external-gates.json`.
+The current worktree supplies source templates, policy seams and the bounded
+development evidence above plus the five-mode source/preflight contract. It does
+not yet prove a complete physical journey, entitled roundtrip, processed archive,
+public TestFlight link, Apple grant or post-grant installation. Granular
+ownership and states live in `config/external-gates.json`.
 
 ## Gates intentionally still closed
 

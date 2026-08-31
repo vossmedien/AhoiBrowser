@@ -517,13 +517,26 @@ bool SidebarTreeView::GetNeedsNotificationWhenVisibleBoundsChange() const {
 }
 
 void SidebarTreeView::OnVisibleBoundsChanged() {
+  ScheduleVisibleBoundsSynchronization();
+}
+
+void SidebarTreeView::VisibilityChanged(views::View* starting_from,
+                                        bool is_visible) {
+  views::View::VisibilityChanged(starting_from, is_visible);
+  if (is_visible) {
+    ScheduleVisibleBoundsSynchronization();
+  }
+}
+
+void SidebarTreeView::ScheduleVisibleBoundsSynchronization() {
   // View::SetBoundsRect() notifies registered descendants by iterating a
   // raw-pointer vector owned by each ancestor. SynchronizeRows() can recycle
   // rows, and every row owns a Textfield that unregisters itself from those
   // same vectors. Doing that synchronously invalidates Chromium's active
   // iterator and can leave a null entry behind while the sidebar collapses.
-  // Coalesce the virtualized-row update onto the next UI task so the Views
-  // notification pass always finishes before the child hierarchy changes.
+  // VisibilityChanged() has the same hierarchy-walk constraint. Coalesce both
+  // paths onto the next UI task so the notification pass and any restore layout
+  // always finish before the virtualized child hierarchy changes.
   if (visible_bounds_synchronization_pending_) {
     return;
   }

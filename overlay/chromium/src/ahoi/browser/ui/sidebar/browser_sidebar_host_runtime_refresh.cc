@@ -1,9 +1,8 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
-
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
 #include "base/task/single_thread_task_runner.h"
@@ -48,7 +47,8 @@ void BrowserSidebarHostView::PrimeRuntimeAuxiliaryPresentation() {
 
 bool BrowserSidebarHostView::IsSidebarDragActive() const {
   return dragged_node_id_.has_value() ||
-         dragged_runtime_tab_handle_.has_value();
+         dragged_runtime_tab_handle_.has_value() ||
+         sidebar_split_resize_active_;
 }
 
 void BrowserSidebarHostView::MaybeScheduleDeferredRuntimePresentationRefresh() {

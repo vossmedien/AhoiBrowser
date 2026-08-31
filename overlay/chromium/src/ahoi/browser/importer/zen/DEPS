@@ -1,0 +1,4 @@
+include_rules = [
+  "+chrome/common/ini_parser.h",
+  "+components/user_data_importer/common/importer_data_types.h",
+]

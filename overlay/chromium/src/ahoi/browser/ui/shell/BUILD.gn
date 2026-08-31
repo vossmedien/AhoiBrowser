@@ -62,6 +62,7 @@ source_set("floating_browser_view_browser_tests") {
     "//chrome/app:generated_resources",
     "//chrome/browser",
     "//chrome/browser/ui",
+    "//chrome/browser/ui/tabs:tab_strip",
     "//chrome/browser/ui/views/location_bar",
     "//chrome/browser/ui/views/tabs/vertical",
     "//chrome/test:test_support",

@@ -62,9 +62,16 @@ struct UboCatalogEntry {
   std::string package_sha256;
   std::string crx_public_key_sha256;
   std::string upstream_tag;
+  std::string upstream_commit;
   GURL upstream_source_url;
   std::string license;
 };
+
+// Initial dogfood install metadata is compiled into the signed browser. It
+// never authorizes arbitrary MV2 packages and does not replace the signed
+// catalog used for later updates.
+UboCatalogEntry GetPinnedUboBootstrapCatalogEntry();
+bool IsPinnedUboBootstrapCatalogEntry(const UboCatalogEntry& entry);
 
 // The envelope contains exactly {"payload": <raw JSON string>,
 // "signature": <base64 Ed25519 signature>}. The exact payload bytes are

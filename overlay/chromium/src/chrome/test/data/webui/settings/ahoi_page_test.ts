@@ -132,55 +132,8 @@ suite('AhoiPage', () => {
     assertEquals('/ahoi', item.getAttribute('href'));
   });
 
-  test('arcPreviewRequiresBothExplicitConfirmationsBeforeCommit', async () => {
-    const mutablePage = page as unknown as {
-      arcImportStage_: string,
-      arcImportPreview_: object,
-      arcSelectedProfiles_: string[],
-    };
-    mutablePage.arcImportStage_ = 'preview';
-    mutablePage.arcImportPreview_ = {
-      status: 'ok',
-      snapshotToken: 'test-token-without-source-data',
-      stats: {
-        sourceWorkspaces: 1,
-        sourceItems: 2,
-        workspaces: 1,
-        folders: 0,
-        pages: 2,
-        splits: 1,
-        degradedSplits: 0,
-        topApps: 0,
-        unsafeUrls: 0,
-        unsupportedItems: 0,
-      },
-      conflictingWorkspaces: 0,
-      alreadyImported: false,
-      sourceInUse: false,
-      targetWorkspaces: ['Imported workspace'],
-      profiles: ['Default'],
-    };
-    mutablePage.arcSelectedProfiles_ = ['Default'];
-    page.requestUpdate();
-    await microtasksFinished();
-
-    const backup = page.shadowRoot.querySelector<HTMLElement&{checked: boolean}>(
-        '#ahoiArcBackupConfirmation')!;
-    const commit = page.shadowRoot.querySelector<HTMLElement&{checked: boolean}>(
-        '#ahoiArcCommitConfirmation')!;
-    const button = page.shadowRoot.querySelector<HTMLElement&{disabled: boolean}>(
-        '#ahoiArcCommit')!;
-    assertTrue(!!backup);
-    assertTrue(!!commit);
-    assertTrue(button.disabled);
-
-    backup.click();
-    await microtasksFinished();
-    assertTrue(button.disabled);
-
-    commit.click();
-    await microtasksFinished();
-    assertFalse(button.disabled);
+  test('doesNotOwnASeparateArcImportAssistant', () => {
+    assertFalse(!!page.shadowRoot.querySelector('#ahoiArcImportAssistant'));
   });
 
   test('syncOptInCanPrepareLocalStateWithoutCloudKitTransport', async () => {

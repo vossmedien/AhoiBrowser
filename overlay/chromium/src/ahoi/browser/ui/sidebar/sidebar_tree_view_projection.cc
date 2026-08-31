@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <limits>
 #include <set>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -13,6 +14,7 @@
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_resize_area.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
@@ -516,6 +518,20 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
   // contents width clips titles and trailing actions during sidebar resize.
   const int row_width = visible_bounds.width() > 0 ? visible_bounds.width()
                                                    : std::max(width(), 1);
+  std::vector<std::optional<gfx::Rect>> split_group_bounds(visual_rows.size());
+  for (size_t visual_index = 0; visual_index < visual_rows.size();
+       ++visual_index) {
+    const VisualRow& visual_row = visual_rows[visual_index];
+    if (visual_row.model_indices.size() < 2) {
+      continue;
+    }
+    gfx::Rect group_bounds;
+    for (size_t segment = 0; segment < visual_row.model_indices.size();
+         ++segment) {
+      group_bounds.Union(GetSegmentBounds(visual_row, segment, row_width));
+    }
+    split_group_bounds[visual_index] = group_bounds;
+  }
   size_t child_order = 0;
   for (const size_t index : desired_indices) {
     CHECK_LT(index, rows.size());
@@ -577,12 +593,131 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     } else {
       row->SetBoundsRect(target_bounds);
     }
+    row->SetSplitGroupClipBounds(position.segment_count > 1
+                                     ? split_group_bounds[position.visual_row]
+                                     : std::nullopt);
     ReorderChildView(row, child_order++);
   }
   row_bounds_animation_pending_ = false;
   row_bounds_animation_from_height_.reset();
+  SynchronizeSplitResizeAreas(visual_rows, range, row_width,
+                              native_drag_in_progress);
   UpdateInsertionMarker();
+  ReorderChildView(insertion_marker_, children().size() - 1u);
   UpdateActiveDescendant();
+}
+
+void SidebarTreeView::SynchronizeSplitResizeAreas(
+    const std::vector<VisualRow>& visual_rows,
+    const VisibleRange& visible_range,
+    int row_width,
+    bool native_drag_in_progress) {
+  std::set<std::string> desired_keys;
+  if (!delegate_ || model().is_search_projection_active()) {
+    for (auto iterator = split_resize_areas_.begin();
+         iterator != split_resize_areas_.end();) {
+      if (iterator->second->is_resizing()) {
+        ++iterator;
+        continue;
+      }
+      RemoveChildViewT(iterator->second);
+      iterator = split_resize_areas_.erase(iterator);
+    }
+    return;
+  }
+
+  const auto& rows = model().rows();
+  for (size_t visual_index = visible_range.first;
+       visual_index < visible_range.past_last; ++visual_index) {
+    const VisualRow& visual_row = visual_rows[visual_index];
+    if (visual_row.model_indices.size() < 2 ||
+        !visual_row.split_visual_data.has_value()) {
+      continue;
+    }
+    std::vector<base::Uuid> node_ids;
+    std::vector<gfx::Rect> segment_bounds;
+    node_ids.reserve(visual_row.model_indices.size());
+    segment_bounds.reserve(visual_row.model_indices.size());
+    gfx::Rect group_bounds;
+    for (size_t segment = 0; segment < visual_row.model_indices.size();
+         ++segment) {
+      const size_t model_index = visual_row.model_indices[segment];
+      if (model_index >= rows.size()) {
+        node_ids.clear();
+        break;
+      }
+      node_ids.push_back(rows[model_index].node_id);
+      segment_bounds.push_back(
+          GetSegmentBounds(visual_row, segment, row_width));
+      group_bounds.Union(segment_bounds.back());
+    }
+    if (node_ids.size() < 2) {
+      continue;
+    }
+    gfx::RectF paint_bounds(group_bounds);
+    paint_bounds.Inset(
+        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+                         visual_style::kSidebarTabRowHorizontalInset));
+    for (const SidebarSplitDivider& divider :
+         GetSidebarSplitDividers(group_bounds, segment_bounds, paint_bounds,
+                                 *visual_row.split_visual_data)) {
+      const std::string key = node_ids.front().AsLowercaseString() + ":" +
+                              std::to_string(divider.divider_index);
+      desired_keys.insert(key);
+      const SidebarSplitResizeCallback callback = base::BindRepeating(
+          [](base::WeakPtr<SidebarTreeView> tree_view,
+             const std::vector<base::Uuid>& split_node_ids,
+             size_t divider_index, double ratio, bool done_resizing) {
+            return tree_view &&
+                   tree_view->ResizeSavedSplit(split_node_ids, divider_index,
+                                               ratio, done_resizing);
+          },
+          weak_ptr_factory_.GetWeakPtr(), node_ids);
+      SidebarSplitResizeArea* resize_area = nullptr;
+      if (const auto existing = split_resize_areas_.find(key);
+          existing != split_resize_areas_.end()) {
+        resize_area = existing->second;
+        resize_area->UpdateConfiguration(divider, callback);
+      } else {
+        resize_area = AddChildView(
+            std::make_unique<SidebarSplitResizeArea>(divider, callback));
+        split_resize_areas_.emplace(key, resize_area);
+      }
+      gfx::Rect hit_bounds = GetSidebarSplitDividerHitBounds(divider);
+      hit_bounds.Intersect(GetLocalBounds());
+      resize_area->SetBoundsRect(hit_bounds);
+      resize_area->SetEnabled(!native_drag_in_progress);
+      resize_area->SetVisible(!hit_bounds.IsEmpty());
+      ReorderChildView(resize_area, children().size() - 1u);
+    }
+  }
+
+  for (auto iterator = split_resize_areas_.begin();
+       iterator != split_resize_areas_.end();) {
+    if (desired_keys.contains(iterator->first) ||
+        iterator->second->is_resizing()) {
+      ++iterator;
+      continue;
+    }
+    RemoveChildViewT(iterator->second);
+    iterator = split_resize_areas_.erase(iterator);
+  }
+}
+
+bool SidebarTreeView::ResizeSavedSplit(const std::vector<base::Uuid>& node_ids,
+                                       size_t divider_index,
+                                       double ratio,
+                                       bool done_resizing) {
+  if (!delegate_ || !delegate_->ResizeSavedPageSplit(node_ids, divider_index,
+                                                     ratio, done_resizing)) {
+    return false;
+  }
+  // The callback updated SplitTabVisualData synchronously. Re-layout the same
+  // materialized rows in place; rebuilding/recycling them while a child owns
+  // mouse capture would invalidate the native resize gesture.
+  InvalidateLayout();
+  SchedulePaint();
+  return true;
 }
 
 SidebarTreeRowView* SidebarTreeView::AcquireRow() {
@@ -607,224 +742,6 @@ void SidebarTreeView::RecycleRow(const base::Uuid& node_id) {
   row_bounds_animator_.StopAnimatingView(row);
   row->Unbind();
   recycled_rows_.push_back(RemoveChildViewT(row));
-}
-
-void SidebarTreeView::UpdateActiveDescendant() {
-  if (!model().selected_node_id().has_value()) {
-    GetViewAccessibility().ClearActiveDescendant();
-    return;
-  }
-  SidebarTreeRowView* selected =
-      GetMaterializedRowForTesting(*model().selected_node_id());
-  if (selected) {
-    GetViewAccessibility().SetActiveDescendant(*selected);
-  } else {
-    GetViewAccessibility().ClearActiveDescendant();
-  }
-}
-
-void SidebarTreeView::EnsureRowVisible(size_t row_index) {
-  const std::vector<VisualRow> visual_rows = BuildVisualRows();
-  const std::vector<VisualPosition> positions =
-      BuildVisualPositions(visual_rows);
-  if (row_index >= positions.size() || !positions[row_index].present) {
-    return;
-  }
-  const VisualRow& visual_row = visual_rows[positions[row_index].visual_row];
-  ScrollRectToVisible(
-      gfx::Rect(0, visual_row.y, std::max(width(), 1), visual_row.height));
-  SynchronizeRows(GetVisibleBounds());
-}
-
-void SidebarTreeView::SelectRow(size_t row_index) {
-  if (row_index >= model().rows().size() ||
-      runtime_composite_suppressed_nodes_.contains(
-          model().rows()[row_index].node_id)) {
-    return;
-  }
-  std::ignore = controller_->SelectNode(model().rows()[row_index].node_id);
-  EnsureRowVisible(row_index);
-}
-
-void SidebarTreeView::SelectRelativeRow(int delta) {
-  const auto& rows = model().rows();
-  if (rows.empty()) {
-    return;
-  }
-  if (!model().selected_node_id().has_value()) {
-    size_t target = delta < 0 ? rows.size() : 0;
-    while (delta < 0 && target > 0) {
-      --target;
-      if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
-        SelectRow(target);
-        return;
-      }
-    }
-    while (delta >= 0 && target < rows.size()) {
-      if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
-        SelectRow(target);
-        return;
-      }
-      ++target;
-    }
-    return;
-  }
-  const std::optional<size_t> selected =
-      model().GetRowForNode(*model().selected_node_id());
-  if (!selected.has_value()) {
-    SelectRow(0);
-    return;
-  }
-  size_t target = *selected;
-  while (delta < 0 && target > 0) {
-    --target;
-    if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
-      SelectRow(target);
-      return;
-    }
-  }
-  while (delta >= 0 && target + 1 < rows.size()) {
-    ++target;
-    if (!runtime_composite_suppressed_nodes_.contains(rows[target].node_id)) {
-      SelectRow(target);
-      return;
-    }
-  }
-}
-
-void SidebarTreeView::CollapseOrSelectParent() {
-  if (!model().selected_node_id().has_value()) {
-    return;
-  }
-  const base::Uuid selected_id = *model().selected_node_id();
-  const std::optional<size_t> selected_index =
-      model().GetRowForNode(selected_id);
-  if (!selected_index.has_value()) {
-    return;
-  }
-  const auto& row = model().rows()[*selected_index];
-  if (row.type == tab_tree::TreeNodeType::kFolder && row.expanded &&
-      !model().is_search_projection_active()) {
-    std::ignore = controller_->CollapseNode(selected_id);
-    return;
-  }
-  if (row.depth == 0) {
-    return;
-  }
-  for (size_t index = *selected_index; index > 0; --index) {
-    if (model().rows()[index - 1].depth < row.depth) {
-      SelectRow(index - 1);
-      return;
-    }
-  }
-}
-
-void SidebarTreeView::ExpandOrSelectChild() {
-  if (!model().selected_node_id().has_value()) {
-    return;
-  }
-  const base::Uuid selected_id = *model().selected_node_id();
-  const std::optional<size_t> selected_index =
-      model().GetRowForNode(selected_id);
-  if (!selected_index.has_value()) {
-    return;
-  }
-  const auto& row = model().rows()[*selected_index];
-  if (row.type != tab_tree::TreeNodeType::kFolder) {
-    return;
-  }
-  if (!row.expanded) {
-    const auto result = controller_->ExpandNode(selected_id);
-    if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
-      delegate_->OnMutationFailed(result);
-    }
-    return;
-  }
-  for (size_t index = *selected_index + 1; index < model().rows().size();
-       ++index) {
-    const auto& child = model().rows()[index];
-    if (child.depth <= row.depth) {
-      return;
-    }
-    if (child.depth == row.depth + 1 &&
-        !runtime_composite_suppressed_nodes_.contains(child.node_id)) {
-      SelectRow(index);
-      return;
-    }
-  }
-}
-
-void SidebarTreeView::ActivateSelectedNode() {
-  if (!model().selected_node_id().has_value()) {
-    return;
-  }
-  const base::Uuid node_id = *model().selected_node_id();
-  const tab_tree::TreeNode* node = model().GetNode(node_id);
-  if (!node) {
-    return;
-  }
-  if (node->type == tab_tree::TreeNodeType::kFolder) {
-    if (model().is_search_projection_active()) {
-      if (delegate_) {
-        delegate_->ActivateFolderSearchResult(*node);
-      }
-      return;
-    }
-    if (model().IsExpanded(node_id)) {
-      std::ignore = controller_->CollapseNode(node_id);
-    } else {
-      const auto result = controller_->ExpandNode(node_id);
-      if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
-        delegate_->OnMutationFailed(result);
-      }
-    }
-  } else if (delegate_) {
-    delegate_->ActivateSavedPage(*node);
-  }
-}
-
-std::optional<SidebarTreeView::VisualHit> SidebarTreeView::FindVisualHit(
-    const std::vector<VisualRow>& visual_rows,
-    const gfx::Point& point) const {
-  if (point.y() < 0) {
-    return std::nullopt;
-  }
-  const std::optional<size_t> visual_index =
-      FindVisualRowAtY(visual_rows, point.y());
-  if (!visual_index.has_value()) {
-    return std::nullopt;
-  }
-  const VisualRow& visual_row = visual_rows[*visual_index];
-  size_t closest_segment = 0;
-  int closest_distance = std::numeric_limits<int>::max();
-  for (size_t segment = 0; segment < visual_row.model_indices.size();
-       ++segment) {
-    const gfx::Rect bounds =
-        GetSegmentBounds(visual_row, segment, std::max(width(), 1));
-    if (bounds.Contains(point)) {
-      closest_segment = segment;
-      break;
-    }
-    const int distance = std::abs(point.x() - bounds.CenterPoint().x());
-    if (distance < closest_distance) {
-      closest_distance = distance;
-      closest_segment = segment;
-    }
-  }
-  return VisualHit{.visual_row = *visual_index,
-                   .model_index = visual_row.model_indices[closest_segment],
-                   .bounds = GetSegmentBounds(visual_row, closest_segment,
-                                              std::max(width(), 1))};
-}
-
-std::optional<base::Uuid> SidebarTreeView::NodeAtPoint(
-    const gfx::Point& point) const {
-  const std::vector<VisualRow> visual_rows = BuildVisualRows();
-  const std::optional<VisualHit> hit = FindVisualHit(visual_rows, point);
-  if (!hit.has_value() || hit->model_index >= model().rows().size()) {
-    return std::nullopt;
-  }
-  return model().rows()[hit->model_index].node_id;
 }
 
 }  // namespace ahoi::sidebar

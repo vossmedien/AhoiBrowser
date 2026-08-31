@@ -1,0 +1,109 @@
+/* Copyright 2026 The AhoiBrowser Authors
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* #css_wrapper_metadata_start
+ * #type=style-lit
+ * #import=chrome://resources/cr_elements/md_select_lit.css.js
+ * #import=../settings_shared_lit.css.js
+ * #include=md-select-lit settings-shared-lit
+ * #css_wrapper_metadata_end */
+
+:host {
+  display: block;
+  margin-top: 14px;
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+.section-title,
+.subheading {
+  font-weight: 500;
+}
+
+.section-title + .secondary {
+  margin-top: 4px;
+}
+
+.subheading {
+  margin-top: 16px;
+}
+
+.action-button {
+  margin-top: 12px;
+}
+
+.status:not(:empty),
+.warning,
+.exclusions,
+.result {
+  margin-top: 12px;
+}
+
+.warning {
+  background: var(--cr-fallback-color-error-container);
+  border-radius: 8px;
+  color: var(--cr-fallback-color-on-error-container);
+  padding: 12px;
+}
+
+.counts {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  margin: 10px 0 0;
+}
+
+.counts > div {
+  background: var(--cr-fallback-color-surface-variant);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.counts dd {
+  font-size: 18px;
+  margin: 3px 0 0;
+}
+
+.targets {
+  margin-block: 6px 0;
+  overflow-wrap: anywhere;
+  padding-inline-start: 24px;
+}
+
+.options {
+  border: 0;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.options cr-checkbox {
+  display: block;
+  margin-top: 7px;
+}
+
+.select-label {
+  display: block;
+  margin-top: 14px;
+}
+
+#ahoiArcConflictPolicy {
+  margin-block: 7px;
+  min-width: 180px;
+}
+
+.exclusions {
+  border-inline-start: 3px solid var(--cr-separator-color);
+  padding-inline-start: 10px;
+}
+
+.exclusions + cr-checkbox,
+.exclusions + cr-checkbox + cr-checkbox {
+  display: block;
+  margin-top: 8px;
+}
+
+.result-counts {
+  margin-bottom: 4px;
+}

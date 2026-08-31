@@ -88,8 +88,7 @@ std::optional<std::vector<pid_t>> ListAllPids() {
   }
 
   size_t capacity = static_cast<size_t>(estimated_count);
-  if (capacity > std::numeric_limits<size_t>::max() -
-                     kPidEnumerationHeadroom) {
+  if (capacity > std::numeric_limits<size_t>::max() - kPidEnumerationHeadroom) {
     return std::nullopt;
   }
   capacity += kPidEnumerationHeadroom;
@@ -138,8 +137,8 @@ std::optional<ProcessMetadata> ReadProcessMetadata(pid_t pid) {
     return std::nullopt;
   }
 
-  const bool is_current_user = process_info.pbi_uid == geteuid() ||
-                               process_info.pbi_ruid == getuid();
+  const bool is_current_user =
+      process_info.pbi_uid == geteuid() || process_info.pbi_ruid == getuid();
   return ProcessMetadata{
       .identity =
           ProcessIdentity{
@@ -147,9 +146,8 @@ std::optional<ProcessMetadata> ReadProcessMetadata(pid_t pid) {
               .start_time_seconds = process_info.pbi_start_tvsec,
               .start_time_microseconds = process_info.pbi_start_tvusec,
           },
-      .ownership = is_current_user
-                       ? internal::ProcessOwnership::kCurrentUser
-                       : internal::ProcessOwnership::kForeignUser,
+      .ownership = is_current_user ? internal::ProcessOwnership::kCurrentUser
+                                   : internal::ProcessOwnership::kForeignUser,
       .open_file_count = process_info.pbi_nfiles,
   };
 }
@@ -183,7 +181,8 @@ ProcessObservation ObserveProcess(pid_t pid) {
   }
 
   // A process may become inspectable between the metadata and signal probes.
-  // Re-read metadata so any usable liveness evidence is bound to PID+start time.
+  // Re-read metadata so any usable liveness evidence is bound to PID+start
+  // time.
   metadata = ReadProcessMetadata(pid);
   if (metadata) {
     return {.metadata = std::move(metadata),
@@ -207,24 +206,21 @@ internal::ProcessIdentityMatch CompareProcessIdentity(
   return internal::ProcessIdentityMatch::kDifferentProcess;
 }
 
-OpenFileInspectionResult InspectOpenFilesOnce(
-    pid_t pid,
-    uint32_t expected_open_file_count,
-    const ArcSource& source) {
+OpenFileInspectionResult InspectOpenFilesOnce(pid_t pid,
+                                              uint32_t expected_open_file_count,
+                                              const ArcSource& source) {
   if (expected_open_file_count == 0) {
     return OpenFileInspectionResult::kClear;
   }
 
-  const int required_bytes =
-      proc_pidinfo(pid, PROC_PIDLISTFDS, 0, nullptr, 0);
+  const int required_bytes = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, nullptr, 0);
   if (required_bytes <= 0 ||
       required_bytes % static_cast<int>(sizeof(proc_fdinfo)) != 0) {
     return OpenFileInspectionResult::kFailed;
   }
 
   size_t capacity = static_cast<size_t>(required_bytes) / sizeof(proc_fdinfo);
-  if (capacity > std::numeric_limits<size_t>::max() -
-                     kFileDescriptorHeadroom) {
+  if (capacity > std::numeric_limits<size_t>::max() - kFileDescriptorHeadroom) {
     return OpenFileInspectionResult::kFailed;
   }
   capacity += kFileDescriptorHeadroom;
@@ -236,17 +232,15 @@ OpenFileInspectionResult InspectOpenFilesOnce(
   }
 
   std::vector<proc_fdinfo> descriptors(capacity);
-  const int buffer_bytes =
-      static_cast<int>(capacity * sizeof(proc_fdinfo));
-  const int received_bytes = proc_pidinfo(pid, PROC_PIDLISTFDS, 0,
-                                          descriptors.data(), buffer_bytes);
+  const int buffer_bytes = static_cast<int>(capacity * sizeof(proc_fdinfo));
+  const int received_bytes =
+      proc_pidinfo(pid, PROC_PIDLISTFDS, 0, descriptors.data(), buffer_bytes);
   if (received_bytes <= 0 || received_bytes > buffer_bytes ||
       received_bytes % static_cast<int>(sizeof(proc_fdinfo)) != 0 ||
       received_bytes == buffer_bytes) {
     return OpenFileInspectionResult::kFailed;
   }
-  descriptors.resize(static_cast<size_t>(received_bytes) /
-                     sizeof(proc_fdinfo));
+  descriptors.resize(static_cast<size_t>(received_bytes) / sizeof(proc_fdinfo));
 
   bool had_descriptor_failure = false;
   for (const proc_fdinfo& descriptor : descriptors) {
@@ -270,10 +264,9 @@ OpenFileInspectionResult InspectOpenFilesOnce(
                                 : OpenFileInspectionResult::kClear;
 }
 
-OpenFileInspectionResult InspectOpenFilesWithRetry(
-    pid_t pid,
-    ProcessMetadata metadata,
-    const ArcSource& source) {
+OpenFileInspectionResult InspectOpenFilesWithRetry(pid_t pid,
+                                                   ProcessMetadata metadata,
+                                                   const ArcSource& source) {
   int consecutive_same_process_failures = 0;
   for (int attempt = 0; attempt < kMaxOpenFileInspectionAttempts; ++attempt) {
     // A descriptor can disappear between PROC_PIDLISTFDS and proc_pidfdinfo.
@@ -288,8 +281,7 @@ OpenFileInspectionResult InspectOpenFilesWithRetry(
     const ProcessObservation observation = ObserveProcess(pid);
     const internal::ProcessIdentityMatch identity_match =
         CompareProcessIdentity(metadata.identity, observation.metadata);
-    if (identity_match ==
-        internal::ProcessIdentityMatch::kDifferentProcess) {
+    if (identity_match == internal::ProcessIdentityMatch::kDifferentProcess) {
       // This PID now names a process created after ListAllPids(). Do not carry
       // the original process's failure history into its replacement.
       return OpenFileInspectionResult::kClear;
@@ -324,7 +316,7 @@ OpenFileInspectionResult InspectOpenFilesWithRetry(
         break;
       case internal::ProcessInspectionFailureDisposition::kIgnore:
         return OpenFileInspectionResult::kClear;
-      case internal::ProcessInspectionFailureDisposition::kBlock:
+      case internal::ProcessInspectionFailureDisposition::kInconclusive:
         return OpenFileInspectionResult::kFailed;
     }
   }
@@ -369,8 +361,8 @@ bool HasSafeOpenFileSource(const ArcSource& source) {
 
 namespace internal {
 
-bool ShouldBlockOnProcessInspectionFailure(ProcessOwnership ownership,
-                                           ProcessLiveness liveness) {
+bool IsProcessInspectionFailureInconclusive(ProcessOwnership ownership,
+                                            ProcessLiveness liveness) {
   if (liveness == ProcessLiveness::kExited ||
       ownership == ProcessOwnership::kForeignUser) {
     return false;
@@ -392,17 +384,16 @@ ProcessInspectionFailureDisposition DecideOpenFileInspectionFailure(
     return ProcessInspectionFailureDisposition::kIgnore;
   }
   if (identity_match == ProcessIdentityMatch::kSameProcess &&
-      consecutive_same_process_failures >=
-          kMaxOpenFileInspectionAttempts) {
-    return ShouldBlockOnProcessInspectionFailure(ownership, liveness)
-               ? ProcessInspectionFailureDisposition::kBlock
+      consecutive_same_process_failures >= kMaxOpenFileInspectionAttempts) {
+    return IsProcessInspectionFailureInconclusive(ownership, liveness)
+               ? ProcessInspectionFailureDisposition::kInconclusive
                : ProcessInspectionFailureDisposition::kIgnore;
   }
   if (can_retry) {
     return ProcessInspectionFailureDisposition::kRetry;
   }
-  return ShouldBlockOnProcessInspectionFailure(ownership, liveness)
-             ? ProcessInspectionFailureDisposition::kBlock
+  return IsProcessInspectionFailureInconclusive(ownership, liveness)
+             ? ProcessInspectionFailureDisposition::kInconclusive
              : ProcessInspectionFailureDisposition::kIgnore;
 }
 
@@ -448,10 +439,10 @@ bool IsRelevantArcSourcePath(const ArcSource& source,
     for (std::string_view filename : kArcProfileDatabases) {
       const base::FilePath database = profile.path.AppendASCII(filename);
       if (open_path == database ||
-          open_path == base::FilePath(database.value() +
-                                     FILE_PATH_LITERAL("-wal")) ||
-          open_path == base::FilePath(database.value() +
-                                     FILE_PATH_LITERAL("-shm"))) {
+          open_path ==
+              base::FilePath(database.value() + FILE_PATH_LITERAL("-wal")) ||
+          open_path ==
+              base::FilePath(database.value() + FILE_PATH_LITERAL("-shm"))) {
         return true;
       }
     }
@@ -594,11 +585,11 @@ bool AreArcProfileFilesOpen(const ArcSource& source) {
 
     const ProcessObservation observation = ObserveProcess(pid);
     if (!observation.metadata) {
-      if (internal::ShouldBlockOnProcessInspectionFailure(
-              internal::ProcessOwnership::kUnknown,
-              observation.liveness)) {
-        return true;
-      }
+      // Arc processes already block above through their bundle executable.
+      // Treat an unrelated process that cannot be inspected as inconclusive,
+      // not as positive evidence that Arc still owns a source file. This is
+      // common for sandboxed macOS helpers and otherwise makes a real import
+      // impossible while those helpers are alive.
       continue;
     }
     const OpenFileInspectionResult result =
@@ -606,14 +597,20 @@ bool AreArcProfileFilesOpen(const ArcSource& source) {
     const internal::OpenFileInspectionEvidence evidence =
         result == OpenFileInspectionResult::kRelevantFileOpen
             ? internal::OpenFileInspectionEvidence::kRelevantSourceHandle
+        : result == OpenFileInspectionResult::kFailed
+            ? internal::OpenFileInspectionEvidence::kInspectionInconclusive
             : internal::OpenFileInspectionEvidence::kNoRelevantSourceHandle;
     if (internal::ShouldBlockOnOpenFileInspectionEvidence(
             evidence, observation.metadata->ownership)) {
       return true;
     }
-    if (result == OpenFileInspectionResult::kFailed) {
-      return true;
-    }
+    // An incomplete descriptor snapshot remains inconclusive. The importer
+    // still blocks every positively identified Arc executable and every
+    // readable relevant handle. CaptureArcSnapshot() verifies the sidebar
+    // identity and metadata before and after reading; backup creation hashes
+    // and verifies every copied source and revalidates the sidebar token.
+    // Those consistency gates safely catch mutation without turning unrelated
+    // high-churn browser/helper processes into permanent false positives.
   }
   return false;
 }

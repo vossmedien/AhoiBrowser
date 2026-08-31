@@ -4,6 +4,8 @@
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 
 #include <algorithm>
+#include <cmath>
+#include <optional>
 
 #include "ahoi/browser/ui/visual_style.h"
 
@@ -12,11 +14,71 @@ namespace ahoi::sidebar {
 namespace {
 
 constexpr int kGap = visual_style::kSidebarSplitPaneGap;
+constexpr int kDividerHitThickness = 10;
 
 int SplitAt(int extent, double ratio, int gap) {
   const int available_extent = std::max(0, extent - gap);
   return std::clamp(static_cast<int>(available_extent * ratio), 0,
                     available_extent);
+}
+
+bool IsVertical(const SidebarSplitSeparator& separator) {
+  return separator.start.x() == separator.end.x();
+}
+
+std::optional<SidebarSplitDivider> MergeSeparators(
+    const std::vector<SidebarSplitSeparator>& separators,
+    bool vertical,
+    size_t divider_index,
+    double ratio,
+    int ratio_extent,
+    bool reverse_ratio_direction) {
+  std::optional<float> coordinate;
+  float leading = 0.0f;
+  float trailing = 0.0f;
+  for (const SidebarSplitSeparator& separator : separators) {
+    if (IsVertical(separator) != vertical) {
+      continue;
+    }
+    const float candidate =
+        vertical ? separator.start.x() : separator.start.y();
+    if (!coordinate.has_value()) {
+      coordinate = candidate;
+      leading = vertical ? std::min(separator.start.y(), separator.end.y())
+                         : std::min(separator.start.x(), separator.end.x());
+      trailing = vertical ? std::max(separator.start.y(), separator.end.y())
+                          : std::max(separator.start.x(), separator.end.x());
+      continue;
+    }
+    // This helper merges only collinear pieces. Callers split linear layouts
+    // by coordinate first, while grid/main layouts deliberately share one
+    // logical ratio across every collinear piece.
+    if (std::abs(candidate - *coordinate) > 0.5f) {
+      continue;
+    }
+    leading = std::min(
+        leading, vertical ? std::min(separator.start.y(), separator.end.y())
+                          : std::min(separator.start.x(), separator.end.x()));
+    trailing = std::max(
+        trailing, vertical ? std::max(separator.start.y(), separator.end.y())
+                           : std::max(separator.start.x(), separator.end.x()));
+  }
+  if (!coordinate.has_value() || trailing <= leading || ratio_extent <= 0) {
+    return std::nullopt;
+  }
+  return SidebarSplitDivider{
+      .divider_index = divider_index,
+      .start = vertical ? gfx::PointF(*coordinate, leading)
+                        : gfx::PointF(leading, *coordinate),
+      .end = vertical ? gfx::PointF(*coordinate, trailing)
+                      : gfx::PointF(trailing, *coordinate),
+      .ratio = ratio,
+      .ratio_extent = ratio_extent,
+      .reverse_ratio_direction = reverse_ratio_direction};
+}
+
+int AxisExtent(const gfx::Rect& bounds, bool horizontal) {
+  return horizontal ? bounds.width() : bounds.height();
 }
 
 }  // namespace
@@ -111,6 +173,109 @@ std::vector<SidebarSplitSeparator> GetSidebarSplitSeparators(
   return separators;
 }
 
+std::vector<SidebarSplitDivider> GetSidebarSplitDividers(
+    const gfx::Rect& group_bounds,
+    const std::vector<gfx::Rect>& segment_bounds,
+    const gfx::RectF& paint_bounds,
+    const split_tabs::SplitTabVisualData& visual_data) {
+  std::vector<SidebarSplitDivider> dividers;
+  const size_t pane_count = segment_bounds.size();
+  if (pane_count < 2 || pane_count > 4 || group_bounds.IsEmpty()) {
+    return dividers;
+  }
+
+  const std::vector<SidebarSplitSeparator> separators =
+      GetSidebarSplitSeparators(segment_bounds, paint_bounds);
+  const bool primary_vertical =
+      visual_data.split_layout() == split_tabs::SplitTabLayout::kSideBySide;
+  if (pane_count == 2) {
+    if (auto divider = MergeSeparators(
+            separators, primary_vertical, 0, visual_data.split_ratio(),
+            std::max(0, AxisExtent(group_bounds, primary_vertical) - kGap),
+            /*reverse_ratio_direction=*/false)) {
+      dividers.push_back(*divider);
+    }
+    return dividers;
+  }
+
+  if (pane_count == 3 &&
+      visual_data.arrangement() == split_tabs::SplitTabArrangement::kLinear) {
+    std::vector<float> coordinates;
+    for (const SidebarSplitSeparator& separator : separators) {
+      if (IsVertical(separator) == primary_vertical) {
+        coordinates.push_back(primary_vertical ? separator.start.x()
+                                               : separator.start.y());
+      }
+    }
+    std::ranges::sort(coordinates);
+    coordinates.erase(
+        std::unique(coordinates.begin(), coordinates.end(),
+                    [](float a, float b) { return std::abs(a - b) <= 0.5f; }),
+        coordinates.end());
+    for (size_t index = 0; index < std::min<size_t>(2, coordinates.size());
+         ++index) {
+      std::vector<SidebarSplitSeparator> collinear;
+      for (const SidebarSplitSeparator& separator : separators) {
+        const float coordinate =
+            primary_vertical ? separator.start.x() : separator.start.y();
+        if (IsVertical(separator) == primary_vertical &&
+            std::abs(coordinate - coordinates[index]) <= 0.5f) {
+          collinear.push_back(separator);
+        }
+      }
+      const int ratio_extent =
+          index == 0
+              ? std::max(0,
+                         AxisExtent(group_bounds, primary_vertical) - 2 * kGap)
+              : std::max(0,
+                         AxisExtent(segment_bounds[1], primary_vertical) +
+                             AxisExtent(segment_bounds[2], primary_vertical));
+      if (auto divider = MergeSeparators(
+              collinear, primary_vertical, index,
+              index == 0 ? visual_data.split_ratio()
+                         : visual_data.secondary_split_ratio(),
+              ratio_extent, /*reverse_ratio_direction=*/false)) {
+        dividers.push_back(*divider);
+      }
+    }
+    return dividers;
+  }
+
+  const bool primary_reversed =
+      pane_count == 3 &&
+      visual_data.arrangement() == split_tabs::SplitTabArrangement::kMainEnd;
+  if (auto primary = MergeSeparators(
+          separators, primary_vertical, 0, visual_data.split_ratio(),
+          std::max(0, AxisExtent(group_bounds, primary_vertical) - kGap),
+          primary_reversed)) {
+    dividers.push_back(*primary);
+  }
+  if (auto secondary = MergeSeparators(
+          separators, !primary_vertical, 1, visual_data.secondary_split_ratio(),
+          std::max(0, AxisExtent(group_bounds, !primary_vertical) - kGap),
+          /*reverse_ratio_direction=*/false)) {
+    dividers.push_back(*secondary);
+  }
+  return dividers;
+}
+
+gfx::Rect GetSidebarSplitDividerHitBounds(const SidebarSplitDivider& divider) {
+  const bool vertical = divider.resizes_horizontally();
+  const int leading = static_cast<int>(
+      std::floor(vertical ? std::min(divider.start.y(), divider.end.y())
+                          : std::min(divider.start.x(), divider.end.x())));
+  const int trailing = static_cast<int>(
+      std::ceil(vertical ? std::max(divider.start.y(), divider.end.y())
+                         : std::max(divider.start.x(), divider.end.x())));
+  const int coordinate = static_cast<int>(
+      std::round(vertical ? divider.start.x() : divider.start.y()));
+  return vertical
+             ? gfx::Rect(coordinate - kDividerHitThickness / 2, leading,
+                         kDividerHitThickness, std::max(0, trailing - leading))
+             : gfx::Rect(leading, coordinate - kDividerHitThickness / 2,
+                         std::max(0, trailing - leading), kDividerHitThickness);
+}
+
 int GetSidebarEdgeDropTargetExtent(int row_height) {
   if (row_height <= 0) {
     return 0;
@@ -169,29 +334,30 @@ gfx::Rect GetSplitSegmentBounds(
   }
 
   if (segment_count > 3) {
-    constexpr size_t kColumns = 2;
-    const size_t rows = (segment_count + kColumns - 1) / kColumns;
-    const int content_width =
-        std::max(0, bounds.width() - visual_style::kSidebarSplitPaneGap);
-    const int content_height =
-        std::max(0, bounds.height() - static_cast<int>(rows - 1) *
-                                          visual_style::kSidebarSplitPaneGap);
-    const size_t row = segment / kColumns;
-    const size_t column = segment % kColumns;
-    const int x = bounds.x() + static_cast<int>(column) *
-                                   (content_width / kColumns +
-                                    visual_style::kSidebarSplitPaneGap);
-    const int y = bounds.y() + static_cast<int>(row) *
-                                   (content_height / static_cast<int>(rows) +
-                                    visual_style::kSidebarSplitPaneGap);
-    const int right =
-        bounds.x() + static_cast<int>(column + 1) * content_width / kColumns +
-        static_cast<int>(column) * visual_style::kSidebarSplitPaneGap;
-    const int bottom =
-        bounds.y() +
-        static_cast<int>(row + 1) * content_height / static_cast<int>(rows) +
-        static_cast<int>(row) * visual_style::kSidebarSplitPaneGap;
-    return gfx::Rect(x, y, std::max(0, right - x), std::max(0, bottom - y));
+    // Match MultiContentsView's ratio-aware 2x2 geometry. Pane identity stays
+    // row-major in the sidebar (0/1 above 2/3), while the primary layout axis
+    // and shared secondary ratio mirror the live WebContents grid.
+    const int content_width = std::max(0, bounds.width() - kGap);
+    const int content_height = std::max(0, bounds.height() - kGap);
+    const int leading_width =
+        SplitAt(bounds.width(), visual_data.split_ratio(), kGap);
+    const int leading_height =
+        SplitAt(bounds.height(), visual_data.split_ratio(), kGap);
+    const int secondary_width =
+        SplitAt(bounds.width(), visual_data.secondary_split_ratio(), kGap);
+    const int secondary_height =
+        SplitAt(bounds.height(), visual_data.secondary_split_ratio(), kGap);
+    const bool side_by_side =
+        visual_data.split_layout() == split_tabs::SplitTabLayout::kSideBySide;
+    const size_t row = segment / 2;
+    const size_t column = segment % 2;
+    const int first_width = side_by_side ? leading_width : secondary_width;
+    const int first_height = side_by_side ? secondary_height : leading_height;
+    const int x = column == 0 ? bounds.x() : bounds.x() + first_width + kGap;
+    const int y = row == 0 ? bounds.y() : bounds.y() + first_height + kGap;
+    const int width = column == 0 ? first_width : content_width - first_width;
+    const int height = row == 0 ? first_height : content_height - first_height;
+    return gfx::Rect(x, y, std::max(0, width), std::max(0, height));
   }
 
   const bool side_by_side =
@@ -201,7 +367,7 @@ gfx::Rect GetSplitSegmentBounds(
   if (visual_data.arrangement() == split_tabs::SplitTabArrangement::kLinear) {
     if (side_by_side) {
       const int first_width =
-          SplitAt(bounds.width(), visual_data.split_ratio(), kGap);
+          SplitAt(bounds.width(), visual_data.split_ratio(), 2 * kGap);
       const int remaining_width =
           std::max(0, bounds.width() - first_width - 2 * kGap);
       const int second_width =
@@ -218,7 +384,7 @@ gfx::Rect GetSplitSegmentBounds(
                        bounds.height());
     }
     const int first_height =
-        SplitAt(bounds.height(), visual_data.split_ratio(), kGap);
+        SplitAt(bounds.height(), visual_data.split_ratio(), 2 * kGap);
     const int remaining_height =
         std::max(0, bounds.height() - first_height - 2 * kGap);
     const int second_height =

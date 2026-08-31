@@ -12,10 +12,14 @@
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/visual_style.h"
+#include "base/memory/weak_ptr.h"
 #include "base/test/run_until.h"
 #include "build/build_config.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_commands.h"
+#include "chrome/browser/ui/tabs/split_tab_metrics.h"
+#include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/multi_contents_view.h"
 #include "chrome/browser/ui/views/frame/scrim_view.h"
@@ -29,6 +33,8 @@
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
 #include "components/prefs/pref_service.h"
+#include "components/split_tabs/split_tab_id.h"
+#include "components/split_tabs/split_tab_visual_data.h"
 #include "content/public/test/browser_test.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/accessibility/ax_action_data.h"
@@ -104,6 +110,20 @@ bool IsInsideOrEqual(views::View* ancestor, views::View* candidate) {
   return candidate && (candidate == ancestor || ancestor->Contains(candidate));
 }
 
+void CollectProjectedOpenTabs(views::View* root,
+                              std::set<tabs::TabInterface*>* open_tabs) {
+  if (!root) {
+    return;
+  }
+  if (base::WeakPtr<tabs::TabInterface> tab =
+          ahoi::sidebar::GetOpenTabForView(root)) {
+    open_tabs->insert(tab.get());
+  }
+  for (views::View* const child : root->children()) {
+    CollectProjectedOpenTabs(child, open_tabs);
+  }
+}
+
 }  // namespace
 
 class VerticalTabStripRegionViewTest
@@ -119,6 +139,64 @@ class VerticalTabStripRegionViewTest
     return tabs::VerticalTabStripStateController::From(browser());
   }
 };
+
+IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
+                       AhoiZeroTabSplitUpdatesMountedSidebar) {
+  BrowserView& browser_view = browser()->GetBrowserView();
+  views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
+  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  ASSERT_TRUE(sidebar);
+  ASSERT_TRUE(tab_strip_model);
+  ASSERT_EQ(1, tab_strip_model->count());
+
+  tab_strip_model->DetachAndDeleteWebContentsAt(0);
+  ASSERT_EQ(0, tab_strip_model->count());
+  ASSERT_EQ(TabStripModel::kNoTab, tab_strip_model->active_index());
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    views::View* const current_sidebar =
+        region_view()->ahoi_sidebar_tree_view();
+    if (current_sidebar != sidebar) {
+      return false;
+    }
+    std::set<tabs::TabInterface*> projected_tabs;
+    CollectProjectedOpenTabs(current_sidebar, &projected_tabs);
+    return projected_tabs.empty() &&
+           browser_view.multi_contents_view()
+               ->IsAhoiEmptyStateVisibleForTesting();
+  }));
+
+  chrome::NewSplitTab(browser(), split_tabs::SplitTabLayout::kSideBySide,
+                      split_tabs::SplitTabCreatedSource::kToolbarButton);
+
+  ASSERT_EQ(2, tab_strip_model->count());
+  const std::optional<split_tabs::SplitTabId> split_id =
+      tab_strip_model->GetSplitForTab(0);
+  ASSERT_TRUE(split_id.has_value());
+  EXPECT_EQ(split_id, tab_strip_model->GetSplitForTab(1));
+  tabs::TabInterface* const first_tab = tab_strip_model->GetTabAtIndex(0);
+  tabs::TabInterface* const second_tab = tab_strip_model->GetTabAtIndex(1);
+  ASSERT_TRUE(first_tab);
+  ASSERT_TRUE(second_tab);
+
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    browser_view.DeprecatedLayoutImmediately();
+    views::View* const current_sidebar =
+        region_view()->ahoi_sidebar_tree_view();
+    if (current_sidebar != sidebar) {
+      return false;
+    }
+    std::set<tabs::TabInterface*> projected_tabs;
+    CollectProjectedOpenTabs(current_sidebar, &projected_tabs);
+    return browser_view.multi_contents_view()->IsInSplitView() &&
+           browser_view.multi_contents_view()->GetVisiblePaneCount() == 2u &&
+           projected_tabs.size() == 2u &&
+           projected_tabs.contains(first_tab) &&
+           projected_tabs.contains(second_tab);
+  }));
+  EXPECT_EQ(sidebar, region_view()->ahoi_sidebar_tree_view());
+  EXPECT_FALSE(browser_view.multi_contents_view()
+                   ->IsAhoiEmptyStateVisibleForTesting());
+}
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiResizeAreaHandlesAccessibleIncrement) {
@@ -302,8 +380,6 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   browser_view.DeprecatedLayoutImmediately();
   const gfx::Rect sidebar_bounds = BoundsInTarget(sidebar, root);
   const gfx::Rect new_group_bounds = BoundsInTarget(new_group_target, root);
-  const gfx::Rect top_container_bounds =
-      BoundsInTarget(browser_view.top_container(), root);
   EXPECT_EQ(BoundsInTarget(workspace_selector, root), new_group_bounds);
   const gfx::Point floating_new_group_point = new_group_bounds.CenterPoint();
   EXPECT_TRUE(new_group_bounds.Contains(floating_new_group_point));
@@ -317,21 +393,11 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
             drop_helper.CalculateTargetView(floating_new_group_point, drag_data,
                                             /*check_can_drop=*/true));
 
-  // The address bar paints above the card, but once a sidebar drag is active
-  // its transparent overlap must route to the sidebar rather than to the
-  // BrowserView content/split target below it.
-  const gfx::Rect floating_chrome_overlap =
-      gfx::IntersectRects(top_container_bounds, sidebar_bounds);
-  ASSERT_FALSE(floating_chrome_overlap.IsEmpty());
-  const gfx::Point floating_chrome_padding(
-      sidebar_bounds.x() + 1, floating_chrome_overlap.CenterPoint().y());
-  EXPECT_TRUE(top_container_bounds.Contains(floating_chrome_padding));
-  EXPECT_TRUE(sidebar_bounds.Contains(floating_chrome_padding));
-  EXPECT_TRUE(IsInsideOrEqual(
-      sidebar, root->GetEventHandlerForPoint(floating_chrome_padding)));
-  EXPECT_EQ(sidebar,
-            drop_helper.CalculateTargetView(floating_chrome_padding, drag_data,
-                                            /*check_can_drop=*/true));
+  // Browser chrome and the mounted sidebar are separate physical surfaces.
+  // Drag routing must never depend on a toolbar/sidebar overlap.
+  EXPECT_TRUE(gfx::IntersectRects(BoundsInTarget(browser_view.toolbar(), root),
+                                  sidebar_bounds)
+                  .IsEmpty());
 
   const gfx::Point row_point = [&]() {
     gfx::Point point = drag_source->GetLocalBounds().CenterPoint();
@@ -367,72 +433,36 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   EXPECT_FALSE(ahoi::sidebar::IsAnyBrowserSidebarDragActive());
 }
 
-IN_PROC_BROWSER_TEST_F(
-    VerticalTabStripRegionViewTest,
-    AhoiFloatingSidebarTransparentTopChromeDoesNotStealInput) {
+IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
+                       AhoiMountedOverlaySidebarDoesNotOverlapTopChrome) {
   BrowserView& browser_view = browser()->GetBrowserView();
   views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
-  views::View* const top_container = browser_view.top_container();
   views::View* const root = browser_view.GetWidget()->GetRootView();
   ASSERT_TRUE(sidebar);
-  ASSERT_TRUE(top_container);
   ASSERT_TRUE(root);
   browser()->GetProfile()->GetPrefs()->SetBoolean(
       ahoi::appearance::kFloatingNavigationAutoHideEnabledPref, false);
+
+  const auto expect_no_overlap = [&]() {
+    browser_view.DeprecatedLayoutImmediately();
+    const gfx::Rect sidebar_bounds = BoundsInTarget(sidebar, root);
+    const gfx::Rect toolbar_bounds =
+        BoundsInTarget(browser_view.toolbar(), root);
+    EXPECT_FALSE(sidebar_bounds.IsEmpty());
+    EXPECT_FALSE(toolbar_bounds.IsEmpty());
+    EXPECT_TRUE(gfx::IntersectRects(sidebar_bounds, toolbar_bounds).IsEmpty());
+  };
+
   ASSERT_TRUE(browser_view.SetAhoiSidebarPresentationMode(
       ahoi::sidebar::SidebarPresentationMode::kFloating));
-  browser_view.DeprecatedLayoutImmediately();
+  expect_no_overlap();
 
-  const gfx::Rect overlap = gfx::IntersectRects(
-      BoundsInTarget(sidebar, root), BoundsInTarget(top_container, root));
-  ASSERT_FALSE(overlap.IsEmpty());
-
-  std::optional<gfx::Point> transparent_overlap;
-  std::optional<gfx::Point> semantic_chrome_overlap;
-  for (int y = overlap.y(); y < overlap.bottom(); ++y) {
-    for (int x = overlap.x(); x < overlap.right(); ++x) {
-      const gfx::Point root_point(x, y);
-      gfx::Point sidebar_point = root_point;
-      views::View::ConvertPointToTarget(root, sidebar, &sidebar_point);
-      if (!sidebar->HitTestPoint(sidebar_point)) {
-        continue;
-      }
-
-      gfx::Point top_point = root_point;
-      views::View::ConvertPointToTarget(root, top_container, &top_point);
-      const bool hits_semantic_chrome = std::ranges::any_of(
-          top_container->children(), [&](views::View* child) {
-            if (!child->GetVisible() ||
-                !child->GetCanProcessEventsWithinSubtree()) {
-              return false;
-            }
-            gfx::Point child_point = top_point;
-            views::View::ConvertPointToTarget(top_container, child,
-                                              &child_point);
-            return child->HitTestPoint(child_point);
-          });
-      if (hits_semantic_chrome && !semantic_chrome_overlap.has_value()) {
-        semantic_chrome_overlap = root_point;
-      } else if (!hits_semantic_chrome && !transparent_overlap.has_value()) {
-        transparent_overlap = root_point;
-      }
-      if (transparent_overlap.has_value() &&
-          semantic_chrome_overlap.has_value()) {
-        break;
-      }
-    }
-    if (transparent_overlap.has_value() &&
-        semantic_chrome_overlap.has_value()) {
-      break;
-    }
-  }
-
-  ASSERT_TRUE(transparent_overlap.has_value());
-  EXPECT_TRUE(IsInsideOrEqual(
-      sidebar, root->GetEventHandlerForPoint(*transparent_overlap)));
-  ASSERT_TRUE(semantic_chrome_overlap.has_value());
-  EXPECT_TRUE(IsInsideOrEqual(
-      top_container, root->GetEventHandlerForPoint(*semantic_chrome_overlap)));
+  ASSERT_TRUE(browser_view.SetAhoiSidebarPresentationMode(
+      ahoi::sidebar::SidebarPresentationMode::kHidden));
+  ASSERT_TRUE(base::test::RunUntil([&]() { return !sidebar->GetVisible(); }));
+  region_view()->SetAhoiSidebarEdgeRevealed(true);
+  ASSERT_TRUE(base::test::RunUntil([&]() { return sidebar->GetVisible(); }));
+  expect_no_overlap();
 }
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
@@ -459,6 +489,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   browser()->GetBrowserView().DeprecatedLayoutImmediately();
   const gfx::Insets docked_margins = *sidebar->GetProperty(views::kMarginsKey);
   EXPECT_EQ(ahoi::visual_style::kSidebarTitlebarHeight, docked_margins.top());
+  EXPECT_EQ(ahoi::visual_style::kContentCardInset,
+            region_view()->GetAhoiContentCardLeadingInsetForLayout());
 
   region_view()->SetAhoiSidebarPresentationMode(
       ahoi::sidebar::SidebarPresentationMode::kHidden);
@@ -466,24 +498,40 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   // intercepting clicks intended for the page below it.
   EXPECT_TRUE(sidebar->GetVisible());
   EXPECT_FALSE(region_view()->GetCanProcessEventsWithinSubtree());
+  EXPECT_FALSE(region_view()->resize_area_for_testing()->GetVisible());
+  EXPECT_FLOAT_EQ(1.0f, region_view()->layer()->opacity());
+  EXPECT_TRUE(region_view()->layer()->transform().IsIdentity());
   EXPECT_GT(region_view()->GetPreferredSize().width(), 0);
   ASSERT_TRUE(base::test::RunUntil([&]() { return !sidebar->GetVisible(); }));
   EXPECT_EQ(0, region_view()->GetPreferredSize().width());
-  EXPECT_FLOAT_EQ(0.0f, region_view()->layer()->opacity());
+  EXPECT_FLOAT_EQ(0.0f, sidebar->layer()->opacity());
+  EXPECT_EQ(0, region_view()->GetAhoiContentCardLeadingInsetForLayout());
 
   region_view()->SetAhoiSidebarEdgeRevealed(true);
   EXPECT_TRUE(sidebar->GetVisible());
   EXPECT_TRUE(region_view()->IsAhoiSidebarEdgeRevealed());
   EXPECT_TRUE(region_view()->IsAhoiSidebarFloating());
+  EXPECT_EQ(0, region_view()->GetAhoiSidebarVisibleExtentForLayout(
+                   region_view()->GetPreferredSize().width()));
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return region_view()->GetAhoiSidebarVisibleExtentForLayout(
+               region_view()->GetPreferredSize().width()) > 0;
+  }));
+  EXPECT_GT(region_view()->GetAhoiSidebarVisibleExtentForLayout(
+                region_view()->GetPreferredSize().width()),
+            0);
+  EXPECT_EQ(0, region_view()->GetAhoiSidebarViewportReservationForLayout(
+                   region_view()->GetPreferredSize().width()));
+  EXPECT_EQ(0, region_view()->GetAhoiContentCardLeadingInsetForLayout());
   EXPECT_TRUE(region_view()->GetCanProcessEventsWithinSubtree());
   ASSERT_TRUE(base::test::RunUntil(
-      [&]() { return region_view()->layer()->opacity() == 1.0f; }));
+      [&]() { return sidebar->layer()->opacity() == 1.0f; }));
 
   const gfx::Insets* margins = sidebar->GetProperty(views::kMarginsKey);
   ASSERT_TRUE(margins);
-  EXPECT_EQ(ahoi::visual_style::kFloatingSidebarLeadingInset, margins->left());
-  EXPECT_EQ(margins->left(), margins->top());
-  EXPECT_EQ(margins->left(), margins->bottom());
+  EXPECT_EQ(ahoi::visual_style::kContentCardInset, margins->left());
+  EXPECT_EQ(ahoi::visual_style::kFloatingSidebarOuterInset, margins->top());
+  EXPECT_EQ(ahoi::visual_style::kFloatingSidebarOuterInset, margins->bottom());
   EXPECT_EQ(ahoi::visual_style::kFloatingSidebarTrailingInset,
             margins->right());
   EXPECT_EQ(
@@ -499,12 +547,21 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   region_view()->SetAhoiSidebarPresentationMode(
       ahoi::sidebar::SidebarPresentationMode::kHidden);
   EXPECT_TRUE(region_view()->IsAhoiSidebarFloating());
+  EXPECT_GT(region_view()->GetAhoiSidebarVisibleExtentForLayout(
+                region_view()->GetPreferredSize().width()),
+            0);
   ASSERT_TRUE(base::test::RunUntil([&]() { return !sidebar->GetVisible(); }));
   EXPECT_FALSE(region_view()->IsAhoiSidebarFloating());
+  EXPECT_EQ(0, region_view()->GetAhoiSidebarVisibleExtentForLayout(
+                   region_view()->GetPreferredSize().width()));
 
   region_view()->SetAhoiSidebarPresentationMode(
       ahoi::sidebar::SidebarPresentationMode::kDocked);
   EXPECT_EQ(docked_margins, *sidebar->GetProperty(views::kMarginsKey));
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return region_view()->GetAhoiContentCardLeadingInsetForLayout() ==
+           ahoi::visual_style::kContentCardInset;
+  }));
   EXPECT_TRUE(sidebar->layer()->rounded_corner_radii().IsEmpty());
   EXPECT_FALSE(sidebar->layer()->is_fast_rounded_corner());
   EXPECT_FALSE(sidebar->layer()->GetMasksToBounds());
@@ -513,6 +570,7 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
       region_view()->SetAhoiSidebarTreeView(std::move(previous_sidebar));
   EXPECT_TRUE(dummy_sidebar);
   EXPECT_FLOAT_EQ(1.0f, region_view()->layer()->opacity());
+  EXPECT_TRUE(region_view()->layer()->transform().IsIdentity());
   EXPECT_TRUE(region_view()->GetCanProcessEventsWithinSubtree());
 }
 

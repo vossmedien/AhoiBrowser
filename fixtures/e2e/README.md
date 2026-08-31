@@ -41,6 +41,8 @@ After an installed-browser run, always clean up in this order:
 
 ```sh
 python3 tools/ahoi_e2e_fixture.py stop
+python3 tools/ahoi_e2e_fixture.py protocol-remove \
+  --confirm remove-the-isolated-ahoi-e2e-protocol-handler
 python3 tools/ahoi_e2e_fixture.py trust-remove \
   --confirm remove-the-local-test-CA
 python3 tools/ahoi_e2e_fixture.py cleanup
@@ -74,17 +76,74 @@ CA can be used by a strict test client.
 The first-party root links every visual journey. The machine-readable contract
 is available at `/__fixture/manifest`; `/__fixture/health` provides readiness,
 `/__fixture/receipts` returns sanitized receipts, and `POST
-/__fixture/reset` clears only fixture receipts.
+/__fixture/reset` clears fixture receipts and counters, including re-arming the
+single intentional download disconnect.
+
+## Isolated custom-protocol workflow
+
+The navigation page includes exactly one non-web URL:
+`ahoi-e2e-safe://open/fixture`. It remains inert unless the optional fixture
+handler is installed with explicit consent:
+
+```sh
+python3 tools/ahoi_e2e_fixture.py protocol-install \
+  --confirm install-the-isolated-ahoi-e2e-protocol-handler
+python3 tools/ahoi_e2e_fixture.py protocol-status
+```
+
+The installer creates an ad-hoc-signed AppleScript application only at
+`$STATE_DIR/AhoiBrowser E2E Protocol Handler.app`. Its fixed event recorder is a
+self-contained, owner-readable Python helper inside that signed bundle; it does
+not import or execute the repository copy of `custom_protocol.py`. The handler
+compares the one accepted URL case-sensitively, then verifies the exact bundle
+with `codesign --verify --deep --strict` and the embedded helper with its pinned
+SHA-256 before invoking it without arguments. Arbitrary hosts, paths, queries,
+fragments, case variants and other schemes are ignored. The incoming value is
+never passed to a shell or retained; an accepted invocation appends only a
+fixed, owner-only event to `protocol-handler-events.jsonl` through no-follow
+directory/file descriptors.
+
+An existing handler is reused only when its owner-only receipt, exact marker,
+installation identifier, compiled handler hash, bundled-helper hash,
+`Info.plist` hash, marker hash and strict code-signature/identifier verification
+all agree. Replacement and removal authority requires the receipt and the
+in-bundle marker to match each other byte-for-byte through the recorded marker
+hash; a stale receipt alone never authorizes deletion. A damaged or legacy app
+whose marker/receipt contract no longer matches must be inspected and manually
+quarantined rather than automatically replaced or removed.
+
+Before any registration mutation, the installer reads the LaunchServices
+database and requires that every claim for the fixture bundle ID or
+`ahoi-e2e-safe` scheme is either absent or the exact current state-directory app
+path. A foreign handler, a handler from another state directory, a pathless
+claim or an unreadable registry fails closed without exposing the foreign path
+in status output. Registration and unregistration are polled until the exact
+path set is observed, and transactional rollback preserves the prior
+registration state and restores the app and receipt if staging, registration,
+integrity verification or receipt commit fails; removal restores a prior
+registration when app-tree deletion fails.
+
+Removal still requires the exact phrase shown in the cleanup workflow.
+`cleanup` refuses while any handler app, receipt or transaction-backup artifact
+remains, including a damaged fixture that reports `needsRepair`. If rollback or
+backup cleanup itself cannot complete, the tool stops with a manual-cleanup
+requirement instead of deleting an ownership-ambiguous artifact. This unique
+test scheme has no production handler to replace, and the fixture never
+registers AhoiBrowser itself.
 
 ## Journey and endpoint contract
 
 | Area | Pages/endpoints | What the fixture proves |
 |---|---|---|
 | download | `/download-upload`, `/download/deterministic.bin` | `Accept-Ranges`, single byte ranges, pause/resume reconstruction, stable SHA-256 |
+| large/resume download | `/download/large-range.zip` | deterministic 12 MiB stored ZIP, throttled 64 KiB chunks, Range and stable SHA-256 |
+| disconnect/resume | `/download/disconnect-once.zip` | first full response after reset is deliberately truncated; subsequent Range/full requests serve the same stable ZIP |
+| PDF | `/document/synthetic.pdf` | generated timestamp-free one-page PDF for built-in viewer, print and download journeys |
 | warning download | `/download/harmless-warning.exe` | attachment with warning-prone extension/MIME; plain text only, no executable code or malware |
 | upload/DnD | `/download-upload`, `POST /upload` | picker and drop-zone raw upload, size/hash receipt, bytes never stored |
 | split/DnD | `/split`, `/pane/a`, `/pane/b`, `/pane/c` | three independent panes plus a web-URL-only drop target |
 | navigation | `/navigation`, `/redirect/same`, `/redirect/cross`, `/popup` | same-/cross-origin redirects and requested/`noopener` popups |
+| custom protocol | `ahoi-e2e-safe://open/fixture` | exact-match dispatch to the separately consented isolated handler; no arbitrary URL forwarding |
 | OAuth | `/oauth/authorize`, `POST /oauth/approve`, `/oauth/callback` | explicitly synthetic consent/callback plumbing with no real IdP or token |
 | passkey | `/passkey`, `/passkey/challenge`, `POST /passkey/verify` | local UI/challenge simulation only; no `navigator.credentials`; real platform WebAuthn remains `ASSISTED_E2E` |
 | media | `/media`, `/media/sample.mp4` | committed, hash-pinned fragmented H.264 Baseline/AAC-LC MP4, Range, MSE and PiP controls |

@@ -220,6 +220,10 @@ bool ModalOverlayController::IsShowingPanel(
          state_ != State::kIdle;
 }
 
+bool ModalOverlayController::IsShowingAnyPanel() const {
+  return panel_widget_ && state_ != State::kIdle;
+}
+
 views::View* ModalOverlayController::scrim_view_for_testing() const {
   return const_cast<views::View*>(scrim_tracker_.view());
 }

@@ -15,6 +15,7 @@
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/json/json_writer.h"
+#include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/test/simple_test_clock.h"
 #include "base/time/time.h"
@@ -38,6 +39,15 @@ namespace {
 constexpr int64_t kNowSeconds = 2000000000;
 constexpr char kPackageHash[] =
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+constexpr char kUpstreamCommit[] = "cccccccccccccccccccccccccccccccccccccccc";
+constexpr char kPinnedCrxPublicKeyBase64[] =
+    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsgdkJHEX8xHAytYy3Rih"
+    "qn5FoU/cbPKhoorkCCsgF8HR2y2OSWGM1Ojrmnr0ebgM9WA1pl1hr1CmOH7DjgQ"
+    "VKRhzBjK7/Zb6RVJNPVGEQvV9CdCUwOTKsu1qQGRbjm9Z/DkYxgu6B2sLo0ZpQ/"
+    "IBsmBvs+FGR4CqrWra8GZPwn7n3FibeoxcArWiAx85N2Oyiaef2Geytoog4hS+I"
+    "5Fs3ymKkEeTYM3tzeC0U5nZ010LCnlQe0cQ3UDOro8VzLosuhaxAsrPFErIOfIUf"
+    "vV3sNhQJrySqgii9Xv6RWT8TI3pHL1yjevKKTxNb2VbPlTOi5MyzPowWV8hHJEO"
+    "kwq2dQIDAQAB";
 
 class FakeNetworkClient final : public UboNetworkClient {
  public:
@@ -113,7 +123,7 @@ class UboServiceTest : public ::testing::Test {
   base::DictValue Payload(uint64_t sequence = 42,
                           std::string version = "1.55.0") const {
     return base::DictValue()
-        .Set("schema_version", 1)
+        .Set("schema_version", 2)
         .Set("sequence", base::NumberToString(sequence))
         .Set("valid_from", "1999999900")
         .Set("valid_until", "2000001000")
@@ -125,6 +135,7 @@ class UboServiceTest : public ::testing::Test {
         .Set("sha256", kPackageHash)
         .Set("crx_public_key_sha256", KeyHash())
         .Set("upstream_tag", "1.55.0")
+        .Set("upstream_commit", kUpstreamCommit)
         .Set("upstream_source_url",
              "https://github.com/gorhill/uBlock/releases/tag/1.55.0")
         .Set("license", kUboLicense);
@@ -164,6 +175,17 @@ class UboServiceTest : public ::testing::Test {
         .SetLocation(::extensions::mojom::ManifestLocation::kInternal)
         .SetID(kUboClassicExtensionId)
         .SetManifestKey("key", base::Base64Encode(key))
+        .Build();
+  }
+
+  scoped_refptr<const ::extensions::Extension> PinnedBootstrapExtension()
+      const {
+    return ::extensions::ExtensionBuilder("uBlock Origin")
+        .SetManifestVersion(2)
+        .SetVersion(kUboClassicVersion)
+        .SetLocation(::extensions::mojom::ManifestLocation::kInternal)
+        .SetID(kUboClassicExtensionId)
+        .SetManifestKey("key", kPinnedCrxPublicKeyBase64)
         .Build();
   }
 
@@ -216,9 +238,74 @@ TEST_F(UboServiceTest, UBO13UnprovisionedFailsClosedWithoutNetwork) {
   EXPECT_EQ(0, network_ptr->catalog_fetches);
 }
 
-// UBO-01: signed catalog, bounded temporary package and verifier must all
-// complete before the explicit install delegate can run.
-TEST_F(UboServiceTest, UBO01ExplicitVerifiedInstallFlow) {
+TEST_F(UboServiceTest, UBO01PinnedOfficialGithubBootstrapSkipsCatalogNetwork) {
+  auto network = std::make_unique<FakeNetworkClient>();
+  FakeNetworkClient* network_ptr = network.get();
+  network->package_path = package_path_;
+  network->package_final_url = GURL(
+      base::StrCat({"https://release-assets.githubusercontent.com",
+                    kUboClassicReleaseAssetPath, "?jwt=signed-by-github"}));
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig());
+  ASSERT_EQ(UboServiceState::kIdle, service->status().state);
+  EXPECT_TRUE(service->status().pinned_bootstrap_available);
+
+  service->CheckForCatalog(UboCheckReason::kManual);
+  ASSERT_EQ(UboServiceState::kCatalogReady, service->status().state);
+  ASSERT_TRUE(service->status().catalog);
+  EXPECT_TRUE(IsPinnedUboBootstrapCatalogEntry(*service->status().catalog));
+  EXPECT_EQ(0, network_ptr->catalog_fetches);
+
+  service->PreparePackage();
+  task_environment_.RunUntilIdle();
+  EXPECT_EQ(1, network_ptr->package_fetches);
+  EXPECT_EQ(UboServiceState::kPackageReady, service->status().state);
+}
+
+TEST_F(UboServiceTest, PinnedBootstrapRejectsForeignPackageRedirect) {
+  auto network = std::make_unique<FakeNetworkClient>();
+  network->package_path = package_path_;
+  network->package_final_url = GURL("https://attacker.example/ubo.crx");
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig());
+
+  service->CheckForCatalog(UboCheckReason::kManual);
+  service->PreparePackage();
+  task_environment_.RunUntilIdle();
+  EXPECT_EQ(UboServiceState::kError, service->status().state);
+  EXPECT_EQ(UboServiceError::kInvalidPackage, service->status().error);
+}
+
+TEST_F(UboServiceTest, SignedCatalogCannotAuthorizeFirstInstall) {
+  auto network = std::make_unique<FakeNetworkClient>();
+  FakeNetworkClient* network_ptr = network.get();
+  network->catalog_body = Sign(Payload());
+  auto service = MakeService(std::move(network), Config());
+
+  service->CheckForCatalog(UboCheckReason::kManual);
+
+  EXPECT_EQ(UboServiceState::kUnprovisioned, service->status().state);
+  EXPECT_EQ(UboServiceError::kUnprovisioned, service->status().error);
+  EXPECT_EQ(0, network_ptr->catalog_fetches);
+  EXPECT_EQ(0, network_ptr->package_fetches);
+}
+
+// The signed-catalog update path retains the same bounded temporary package,
+// verifier, explicit install, and atomic authorization hand-off as bootstrap.
+TEST_F(UboServiceTest, SignedCatalogExplicitVerifiedUpdateFlow) {
+  UboCatalogEntry committed = Entry(41, "1.54.0");
+  auto installed = Extension("1.54.0");
+  auto authorization = BeginUboInstallAuthorization(
+      profile_->GetPrefs(), committed,
+      VerifiedUboPackage{
+          .extension_id = committed.extension_id,
+          .package_sha256 = committed.package_sha256,
+          .crx_public_key_sha256 = committed.crx_public_key_sha256});
+  ASSERT_TRUE(authorization.has_value());
+  ASSERT_TRUE((*authorization)->Commit(*installed).has_value());
+  ASSERT_TRUE(::extensions::ExtensionRegistry::Get(profile_.get())
+                  ->AddEnabled(installed));
+
   auto network = std::make_unique<FakeNetworkClient>();
   FakeNetworkClient* network_ptr = network.get();
   network->catalog_body = Sign(Payload());
@@ -235,7 +322,7 @@ TEST_F(UboServiceTest, UBO01ExplicitVerifiedInstallFlow) {
                              std::move(installer));
 
   service->CheckForCatalog(UboCheckReason::kManual);
-  ASSERT_EQ(UboServiceState::kCatalogReady, service->status().state);
+  ASSERT_EQ(UboServiceState::kUpdateAvailable, service->status().state);
   service->PreparePackage();
   task_environment_.RunUntilIdle();
   ASSERT_EQ(UboServiceState::kPackageReady, service->status().state);
@@ -249,6 +336,19 @@ TEST_F(UboServiceTest, UBO01ExplicitVerifiedInstallFlow) {
 }
 
 TEST_F(UboServiceTest, RedirectOversizeAndOfflineAreDistinctSafeErrors) {
+  UboCatalogEntry committed = Entry(41, "1.54.0");
+  auto installed = Extension("1.54.0");
+  auto authorization = BeginUboInstallAuthorization(
+      profile_->GetPrefs(), committed,
+      VerifiedUboPackage{
+          .extension_id = committed.extension_id,
+          .package_sha256 = committed.package_sha256,
+          .crx_public_key_sha256 = committed.crx_public_key_sha256});
+  ASSERT_TRUE(authorization.has_value());
+  ASSERT_TRUE((*authorization)->Commit(*installed).has_value());
+  ASSERT_TRUE(::extensions::ExtensionRegistry::Get(profile_.get())
+                  ->AddEnabled(installed));
+
   for (const auto& [network_error, service_error] : std::array{
            std::pair{UboNetworkError::kRedirect, UboServiceError::kRedirect},
            std::pair{UboNetworkError::kResponseTooLarge,
@@ -264,6 +364,19 @@ TEST_F(UboServiceTest, RedirectOversizeAndOfflineAreDistinctSafeErrors) {
 }
 
 TEST_F(UboServiceTest, ManipulatedCatalogAndPackageHashFailClosed) {
+  UboCatalogEntry committed = Entry(41, "1.54.0");
+  auto installed = Extension("1.54.0");
+  auto authorization = BeginUboInstallAuthorization(
+      profile_->GetPrefs(), committed,
+      VerifiedUboPackage{
+          .extension_id = committed.extension_id,
+          .package_sha256 = committed.package_sha256,
+          .crx_public_key_sha256 = committed.crx_public_key_sha256});
+  ASSERT_TRUE(authorization.has_value());
+  ASSERT_TRUE((*authorization)->Commit(*installed).has_value());
+  ASSERT_TRUE(::extensions::ExtensionRegistry::Get(profile_.get())
+                  ->AddEnabled(installed));
+
   auto catalog_network = std::make_unique<FakeNetworkClient>();
   catalog_network->catalog_body = Sign(Payload());
   catalog_network->catalog_body.replace(
@@ -288,8 +401,9 @@ TEST_F(UboServiceTest, ManipulatedCatalogAndPackageHashFailClosed) {
   EXPECT_EQ(UboServiceError::kInvalidPackage, package_service->status().error);
 }
 
-TEST_F(UboServiceTest, UBO09CatalogRollbackRejectedBeforePackageDownload) {
-  UboCatalogEntry committed = Entry(10, "1.55.0");
+TEST_F(UboServiceTest, UBO09SignedCatalogMustAdvancePinnedBootstrapSequence) {
+  UboCatalogEntry committed = GetPinnedUboBootstrapCatalogEntry();
+  auto installed = PinnedBootstrapExtension();
   auto authorization = BeginUboInstallAuthorization(
       profile_->GetPrefs(), committed,
       VerifiedUboPackage{
@@ -297,14 +411,31 @@ TEST_F(UboServiceTest, UBO09CatalogRollbackRejectedBeforePackageDownload) {
           .package_sha256 = committed.package_sha256,
           .crx_public_key_sha256 = committed.crx_public_key_sha256});
   ASSERT_TRUE(authorization.has_value());
-  ASSERT_TRUE((*authorization)->Commit(*Extension()).has_value());
+  ASSERT_TRUE((*authorization)->Commit(*installed).has_value());
+  ASSERT_TRUE(::extensions::ExtensionRegistry::Get(profile_.get())
+                  ->AddEnabled(installed));
+
+  auto update_network = std::make_unique<FakeNetworkClient>();
+  FakeNetworkClient* update_network_ptr = update_network.get();
+  base::DictValue update = Payload(kUboClassicBootstrapSequence + 1, "1.75.0");
+  update.Set("upstream_tag", "1.75.0");
+  update.Set("upstream_source_url",
+             "https://github.com/gorhill/uBlock/releases/tag/1.75.0");
+  update_network->catalog_body = Sign(std::move(update));
+  auto update_service = MakeService(std::move(update_network), Config());
+  update_service->CheckForCatalog(UboCheckReason::kManual);
+
+  EXPECT_EQ(UboServiceState::kUpdateAvailable, update_service->status().state);
+  EXPECT_EQ(1, update_network_ptr->catalog_fetches);
+  EXPECT_EQ(0, update_network_ptr->package_fetches);
 
   auto network = std::make_unique<FakeNetworkClient>();
   FakeNetworkClient* network_ptr = network.get();
-  base::DictValue rollback = Payload(9, "1.56.0");
-  rollback.Set("upstream_tag", "1.56.0");
+  base::DictValue rollback =
+      Payload(kUboClassicBootstrapSequence - 1, "1.75.0");
+  rollback.Set("upstream_tag", "1.75.0");
   rollback.Set("upstream_source_url",
-               "https://github.com/gorhill/uBlock/releases/tag/1.56.0");
+               "https://github.com/gorhill/uBlock/releases/tag/1.75.0");
   network->catalog_body = Sign(std::move(rollback));
   auto service = MakeService(std::move(network), Config());
   service->CheckForCatalog(UboCheckReason::kManual);
@@ -313,9 +444,9 @@ TEST_F(UboServiceTest, UBO09CatalogRollbackRejectedBeforePackageDownload) {
   EXPECT_EQ(0, network_ptr->package_fetches);
 }
 
-// UBO-02: periodic operation is catalog-only and exists only after the fixed
-// package is installed and its local authorization is committed.
-TEST_F(UboServiceTest, UBO02PeriodicCheckNeverDownloadsOrInstalls) {
+// Later signed-catalog operation is metadata-only and exists only after the
+// fixed package is installed and its local authorization is committed.
+TEST_F(UboServiceTest, SignedCatalogPeriodicCheckNeverDownloadsOrInstalls) {
   UboCatalogEntry committed = Entry();
   auto extension = Extension();
   auto authorization = BeginUboInstallAuthorization(

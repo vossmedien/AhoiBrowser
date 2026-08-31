@@ -81,6 +81,25 @@ RecordingDelegate::GetSplitSavedPageVisualData(
   return split_visual_data;
 }
 
+bool RecordingDelegate::ResizeSavedPageSplit(
+    const std::vector<base::Uuid>& node_ids,
+    size_t divider_index,
+    double ratio,
+    bool done_resizing) {
+  resize_requests.push_back({.node_ids = node_ids,
+                             .divider_index = divider_index,
+                             .ratio = ratio,
+                             .done_resizing = done_resizing});
+  if (resize_split_succeeds && split_visual_data.has_value()) {
+    if (divider_index == 0) {
+      split_visual_data->set_split_ratio(ratio);
+    } else {
+      split_visual_data->set_secondary_split_ratio(ratio);
+    }
+  }
+  return resize_split_succeeds;
+}
+
 std::vector<base::Uuid> RecordingDelegate::GetMoveGroupNodeIds(
     const base::Uuid& source_node_id) const {
   for (const std::vector<base::Uuid>& group : split_groups) {

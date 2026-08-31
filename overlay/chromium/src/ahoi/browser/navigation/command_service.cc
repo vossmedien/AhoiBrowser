@@ -10,8 +10,10 @@
 #include "base/check.h"
 #include "base/i18n/case_conversion.h"
 #include "base/memory/raw_ptr.h"
+#include "base/metrics/histogram_functions.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
+#include "base/timer/elapsed_timer.h"
 #include "components/omnibox/browser/autocomplete_input.h"
 #include "components/omnibox/browser/autocomplete_scheme_classifier.h"
 
@@ -196,6 +198,7 @@ std::vector<RankedCommand> CommandService::Query(
   if (options.max_results == 0u) {
     return {};
   }
+  base::ElapsedTimer query_timer;
 
   struct ScoredItem {
     raw_ptr<const IndexedItem> indexed = nullptr;
@@ -256,6 +259,10 @@ std::vector<RankedCommand> CommandService::Query(
       break;
     }
   }
+  // CMD-06: measure only the local synchronous ranking path. The query text,
+  // result identities and URLs are deliberately never recorded.
+  base::UmaHistogramMicrosecondsTimes("Ahoi.CommandBar.QueryLatency",
+                                      query_timer.Elapsed());
   return results;
 }
 

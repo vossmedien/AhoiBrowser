@@ -14,6 +14,10 @@ namespace ahoi::importer::arc {
 struct ArcImportBackupResult {
   ArcImportStatus status = ArcImportStatus::kBackupError;
   base::FilePath backup_directory;
+  // Single path component below `Ahoi/Arc Import Backups`; safe to persist in
+  // the privacy-minimal transaction journal.
+  std::string backup_identifier;
+  std::string manifest_sha256;
 };
 
 // Creates a new write-once backup directory. The manifest contains controlled

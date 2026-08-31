@@ -1,9 +1,52 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "chromiumCommit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
   "chromiumVersion": "152.0.7977.65",
   "frameworkVersion": "152.0.7977.65",
   "upstreamPolicySource": "Chromium 152.0.7977.65 chrome/installer/mac/signing/parts.py, chrome/app/*-entitlements.plist, chrome/version.gni and chrome/BUILD.gn",
+  "defaultSigningProfile": "provider-free",
+  "publicIdentity": {
+    "teamIdentifier": "248AJ5BN47",
+    "appIdentifierPrefix": "248AJ5BN47",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "cloudKitContainerIdentifier": "iCloud.app.ahoibrowser.AhoiBrowser",
+    "keychainAccessGroups": [
+      "248AJ5BN47.app.ahoibrowser.sync",
+      "248AJ5BN47.app.ahoibrowser.commands"
+    ]
+  },
+  "runtimeConfiguration": {
+    "zoneName": "AhoiBrowserSyncZone",
+    "subscriptionIdentifier": "AhoiBrowserSyncSubscription",
+    "syncKeychainService": "app.ahoibrowser.sync.payload-key",
+    "syncKeychainAccount": "payload-key",
+    "syncKeyVersion": "1",
+    "commandKeychainService": "app.ahoibrowser.remote-command.signing-key",
+    "commandKeychainAccount": "device-signing-key"
+  },
+  "signingProfiles": {
+    "provider-free": {
+      "signingAuthorityPrefix": "Developer ID Application: ",
+      "embeddedProvisioningProfile": "forbidden",
+      "cloudKitEnvironment": null,
+      "apsEnvironment": null,
+      "getTaskAllow": null
+    },
+    "cloudkit-development": {
+      "signingAuthorityPrefix": "Apple Development: ",
+      "embeddedProvisioningProfile": "required",
+      "cloudKitEnvironment": "Development",
+      "apsEnvironment": "development",
+      "getTaskAllow": true
+    },
+    "cloudkit-production": {
+      "signingAuthorityPrefix": "Developer ID Application: ",
+      "embeddedProvisioningProfile": "required",
+      "cloudKitEnvironment": "Production",
+      "apsEnvironment": "production",
+      "getTaskAllow": false
+    }
+  },
   "rules": [
     {
       "id": "browser-app",

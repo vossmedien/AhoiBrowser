@@ -1,15 +1,23 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <sys/stat.h>
+
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
+#include "ahoi/browser/importer/arc/arc_import_backup.h"
 #include "ahoi/browser/importer/arc/arc_import_discovery.h"
 #include "ahoi/browser/importer/arc/arc_import_parser.h"
 #include "ahoi/browser/importer/arc/arc_import_snapshot.h"
+#include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/strings/string_number_conversions.h"
 #include "crypto/hash.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -265,10 +273,21 @@ class ArcImportFileTest : public testing::Test {
         .Append(FILE_PATH_LITERAL("Default"));
   }
 
+  base::FilePath AhoiProfile() const {
+    return temp_dir_.GetPath().Append(FILE_PATH_LITERAL("AhoiProfile"));
+  }
+
   void CreateArcRootAndProfile() {
     ASSERT_TRUE(base::CreateDirectory(BrowserProfile()));
     ASSERT_TRUE(
         base::WriteFile(BrowserProfile().AppendASCII("Preferences"), "{}"));
+  }
+
+  void CreateAhoiTreeDatabase() {
+    ASSERT_TRUE(base::CreateDirectory(AhoiProfile()));
+    tab_tree::TabTreeStore store;
+    ASSERT_TRUE(
+        store.Initialize(AhoiProfile().AppendASCII(kTabTreeDatabaseFilename)));
   }
 
   base::ScopedTempDir temp_dir_;
@@ -340,36 +359,33 @@ TEST(ArcImportDiscoveryTest, RecognizesMainAndHelperExecutablesInArcBundle) {
 }
 
 TEST(ArcImportDiscoveryTest,
-     InspectionFailuresBlockOnlyRelevantLiveProcesses) {
+     InspectionFailuresClassifyOnlyRelevantLiveProcessesAsInconclusive) {
   using internal::ProcessLiveness;
   using internal::ProcessOwnership;
 
-  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_TRUE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive));
-  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
-      ProcessOwnership::kCurrentUser,
-      ProcessLiveness::kAliveButNotSignalable));
-  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_TRUE(internal::IsProcessInspectionFailureInconclusive(
+      ProcessOwnership::kCurrentUser, ProcessLiveness::kAliveButNotSignalable));
+  EXPECT_TRUE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kCurrentUser, ProcessLiveness::kUnknown));
-  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_FALSE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kCurrentUser, ProcessLiveness::kExited));
 
-  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_FALSE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kForeignUser, ProcessLiveness::kAlive));
-  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
-      ProcessOwnership::kForeignUser,
-      ProcessLiveness::kAliveButNotSignalable));
-  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_FALSE(internal::IsProcessInspectionFailureInconclusive(
+      ProcessOwnership::kForeignUser, ProcessLiveness::kAliveButNotSignalable));
+  EXPECT_FALSE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kForeignUser, ProcessLiveness::kUnknown));
 
-  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_TRUE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kUnknown, ProcessLiveness::kAlive));
-  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_TRUE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kUnknown, ProcessLiveness::kUnknown));
-  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
-      ProcessOwnership::kUnknown,
-      ProcessLiveness::kAliveButNotSignalable));
-  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_FALSE(internal::IsProcessInspectionFailureInconclusive(
+      ProcessOwnership::kUnknown, ProcessLiveness::kAliveButNotSignalable));
+  EXPECT_FALSE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kUnknown, ProcessLiveness::kExited));
 }
 
@@ -377,13 +393,12 @@ TEST(ArcImportDiscoveryTest, InExitFlagNeverProvesThatProcessExited) {
   using internal::ProcessLiveness;
   using internal::ProcessOwnership;
 
-  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_TRUE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kCurrentUser,
       ProcessLiveness::kInExitWithoutExitEvidence));
-  EXPECT_TRUE(internal::ShouldBlockOnProcessInspectionFailure(
-      ProcessOwnership::kUnknown,
-      ProcessLiveness::kInExitWithoutExitEvidence));
-  EXPECT_FALSE(internal::ShouldBlockOnProcessInspectionFailure(
+  EXPECT_TRUE(internal::IsProcessInspectionFailureInconclusive(
+      ProcessOwnership::kUnknown, ProcessLiveness::kInExitWithoutExitEvidence));
+  EXPECT_FALSE(internal::IsProcessInspectionFailureInconclusive(
       ProcessOwnership::kCurrentUser, ProcessLiveness::kExited));
 }
 
@@ -401,51 +416,51 @@ TEST(ArcImportDiscoveryTest,
                 ProcessIdentityMatch::kSameProcess,
                 /*consecutive_same_process_failures=*/1,
                 /*can_retry=*/true));
-  EXPECT_EQ(ProcessInspectionFailureDisposition::kRetry,
-            DecideOpenFileInspectionFailure(
-                ProcessOwnership::kForeignUser,
-                ProcessLiveness::kAliveButNotSignalable,
-                ProcessIdentityMatch::kSameProcess,
-                /*consecutive_same_process_failures=*/1,
-                /*can_retry=*/true));
+  EXPECT_EQ(
+      ProcessInspectionFailureDisposition::kRetry,
+      DecideOpenFileInspectionFailure(ProcessOwnership::kForeignUser,
+                                      ProcessLiveness::kAliveButNotSignalable,
+                                      ProcessIdentityMatch::kSameProcess,
+                                      /*consecutive_same_process_failures=*/1,
+                                      /*can_retry=*/true));
   EXPECT_EQ(ProcessInspectionFailureDisposition::kRetry,
             DecideOpenFileInspectionFailure(
                 ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
                 ProcessIdentityMatch::kSameProcess,
                 /*consecutive_same_process_failures=*/2,
                 /*can_retry=*/true));
-  EXPECT_EQ(ProcessInspectionFailureDisposition::kBlock,
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kInconclusive,
             DecideOpenFileInspectionFailure(
                 ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
                 ProcessIdentityMatch::kSameProcess,
                 /*consecutive_same_process_failures=*/3,
                 /*can_retry=*/false));
-  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
-            DecideOpenFileInspectionFailure(
-                ProcessOwnership::kForeignUser,
-                ProcessLiveness::kAliveButNotSignalable,
-                ProcessIdentityMatch::kSameProcess,
-                /*consecutive_same_process_failures=*/3,
-                /*can_retry=*/false));
+  EXPECT_EQ(
+      ProcessInspectionFailureDisposition::kIgnore,
+      DecideOpenFileInspectionFailure(ProcessOwnership::kForeignUser,
+                                      ProcessLiveness::kAliveButNotSignalable,
+                                      ProcessIdentityMatch::kSameProcess,
+                                      /*consecutive_same_process_failures=*/3,
+                                      /*can_retry=*/false));
   EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
             DecideOpenFileInspectionFailure(
                 ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
                 ProcessIdentityMatch::kDifferentProcess,
                 /*consecutive_same_process_failures=*/0,
                 /*can_retry=*/true));
-  EXPECT_EQ(ProcessInspectionFailureDisposition::kBlock,
+  EXPECT_EQ(ProcessInspectionFailureDisposition::kInconclusive,
             DecideOpenFileInspectionFailure(
                 ProcessOwnership::kCurrentUser, ProcessLiveness::kAlive,
                 ProcessIdentityMatch::kUnknown,
                 /*consecutive_same_process_failures=*/0,
                 /*can_retry=*/false));
-  EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
-            DecideOpenFileInspectionFailure(
-                ProcessOwnership::kForeignUser,
-                ProcessLiveness::kAliveButNotSignalable,
-                ProcessIdentityMatch::kUnknown,
-                /*consecutive_same_process_failures=*/0,
-                /*can_retry=*/false));
+  EXPECT_EQ(
+      ProcessInspectionFailureDisposition::kIgnore,
+      DecideOpenFileInspectionFailure(ProcessOwnership::kForeignUser,
+                                      ProcessLiveness::kAliveButNotSignalable,
+                                      ProcessIdentityMatch::kUnknown,
+                                      /*consecutive_same_process_failures=*/0,
+                                      /*can_retry=*/false));
   EXPECT_EQ(ProcessInspectionFailureDisposition::kIgnore,
             DecideOpenFileInspectionFailure(
                 ProcessOwnership::kCurrentUser, ProcessLiveness::kExited,
@@ -455,13 +470,22 @@ TEST(ArcImportDiscoveryTest,
 }
 
 TEST(ArcImportDiscoveryTest,
-     RelevantForeignProcessHandleBlocksWhenInspectionSucceeds) {
+     OnlyPositiveRelevantHandleEvidenceBlocksTheSource) {
   EXPECT_TRUE(internal::ShouldBlockOnOpenFileInspectionEvidence(
       internal::OpenFileInspectionEvidence::kRelevantSourceHandle,
       internal::ProcessOwnership::kForeignUser));
   EXPECT_FALSE(internal::ShouldBlockOnOpenFileInspectionEvidence(
       internal::OpenFileInspectionEvidence::kNoRelevantSourceHandle,
       internal::ProcessOwnership::kForeignUser));
+  EXPECT_FALSE(internal::ShouldBlockOnOpenFileInspectionEvidence(
+      internal::OpenFileInspectionEvidence::kNoRelevantSourceHandle,
+      internal::ProcessOwnership::kCurrentUser));
+  EXPECT_FALSE(internal::ShouldBlockOnOpenFileInspectionEvidence(
+      internal::OpenFileInspectionEvidence::kNoRelevantSourceHandle,
+      internal::ProcessOwnership::kUnknown));
+  EXPECT_FALSE(internal::ShouldBlockOnOpenFileInspectionEvidence(
+      internal::OpenFileInspectionEvidence::kInspectionInconclusive,
+      internal::ProcessOwnership::kCurrentUser));
 }
 
 TEST_F(ArcImportFileTest, ProtectsSidebarAndSelectedProfileDatabaseFiles) {
@@ -473,12 +497,11 @@ TEST_F(ArcImportFileTest, ProtectsSidebarAndSelectedProfileDatabaseFiles) {
   ASSERT_TRUE(discovery.source.has_value());
   const ArcSource& source = *discovery.source;
 
-  EXPECT_TRUE(
-      internal::IsRelevantArcSourcePath(source, source.sidebar_file));
-  for (std::string_view filename : {"Preferences", "Bookmarks", "History",
-                                    "History-wal", "History-shm", "Favicons",
-                                    "Favicons-wal", "Favicons-shm", "Web Data",
-                                    "Web Data-wal", "Web Data-shm"}) {
+  EXPECT_TRUE(internal::IsRelevantArcSourcePath(source, source.sidebar_file));
+  for (std::string_view filename :
+       {"Preferences", "Bookmarks", "History", "History-wal", "History-shm",
+        "Favicons", "Favicons-wal", "Favicons-shm", "Web Data", "Web Data-wal",
+        "Web Data-shm"}) {
     EXPECT_TRUE(internal::IsRelevantArcSourcePath(
         source, BrowserProfile().AppendASCII(filename)))
         << filename;
@@ -488,11 +511,110 @@ TEST_F(ArcImportFileTest, ProtectsSidebarAndSelectedProfileDatabaseFiles) {
       source, BrowserProfile().AppendASCII("Cache/Cache_Data/index")));
   EXPECT_FALSE(internal::IsRelevantArcSourcePath(
       source, BrowserProfile().AppendASCII("History-journal")));
-  EXPECT_FALSE(internal::IsRelevantArcSourcePath(
-      source, BrowserProfile()
-                  .DirName()
-                  .AppendASCII("Profile 2")
-                  .AppendASCII("History")));
+  EXPECT_FALSE(
+      internal::IsRelevantArcSourcePath(source, BrowserProfile()
+                                                    .DirName()
+                                                    .AppendASCII("Profile 2")
+                                                    .AppendASCII("History")));
+}
+
+TEST_F(ArcImportFileTest, CreatesVerifiedOwnerOnlyBackupFromStableGeneration) {
+  CreateArcRootAndProfile();
+  CreateAhoiTreeDatabase();
+  ASSERT_TRUE(base::WriteFile(SidebarFile(), kValidArcSidebar));
+  ASSERT_TRUE(base::WriteFile(BrowserProfile().AppendASCII("Bookmarks"),
+                              R"json({"roots":{}})json"));
+  const ArcDiscoveryResult discovery =
+      DiscoverArcSourceAt(application_support_);
+  ASSERT_EQ(ArcImportStatus::kOk, discovery.status);
+  ASSERT_TRUE(discovery.source.has_value());
+  const std::string token =
+      base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar));
+
+  const ArcImportBackupResult backup =
+      CreateArcImportBackup(AhoiProfile(), *discovery.source, token);
+
+  ASSERT_EQ(ArcImportStatus::kOk, backup.status);
+  EXPECT_TRUE(base::PathExists(
+      backup.backup_directory.AppendASCII("Arc-StorableSidebar.json")));
+  EXPECT_TRUE(
+      base::PathExists(backup.backup_directory.AppendASCII("manifest.json")));
+  int permissions = 0;
+  ASSERT_TRUE(base::GetPosixFilePermissions(
+      backup.backup_directory.AppendASCII("Arc-StorableSidebar.json"),
+      &permissions));
+  EXPECT_EQ(0600, permissions & 0777);
+}
+
+TEST_F(ArcImportFileTest, BackupRejectsFifoWithoutBlocking) {
+  CreateArcRootAndProfile();
+  ASSERT_TRUE(base::CreateDirectory(AhoiProfile()));
+  ASSERT_TRUE(base::WriteFile(SidebarFile(), kValidArcSidebar));
+  ASSERT_EQ(0, mkfifo(BrowserProfile().AppendASCII("Bookmarks").value().c_str(),
+                      0600));
+  const ArcDiscoveryResult discovery =
+      DiscoverArcSourceAt(application_support_);
+  ASSERT_EQ(ArcImportStatus::kOk, discovery.status);
+  ASSERT_TRUE(discovery.source.has_value());
+
+  const ArcImportBackupResult backup = CreateArcImportBackup(
+      AhoiProfile(), *discovery.source,
+      base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
+
+  EXPECT_EQ(ArcImportStatus::kBackupError, backup.status);
+  EXPECT_TRUE(backup.backup_directory.empty());
+}
+
+TEST_F(ArcImportFileTest, BackupRejectsLeafSymlinkInsteadOfFollowingIt) {
+  CreateArcRootAndProfile();
+  ASSERT_TRUE(base::CreateDirectory(AhoiProfile()));
+  ASSERT_TRUE(base::WriteFile(SidebarFile(), kValidArcSidebar));
+  const base::FilePath actual =
+      temp_dir_.GetPath().AppendASCII("actual-bookmarks.json");
+  ASSERT_TRUE(base::WriteFile(actual, R"json({"roots":{}})json"));
+  ASSERT_TRUE(base::CreateSymbolicLink(
+      actual, BrowserProfile().AppendASCII("Bookmarks")));
+  const ArcDiscoveryResult discovery =
+      DiscoverArcSourceAt(application_support_);
+  ASSERT_EQ(ArcImportStatus::kOk, discovery.status);
+  ASSERT_TRUE(discovery.source.has_value());
+
+  const ArcImportBackupResult backup = CreateArcImportBackup(
+      AhoiProfile(), *discovery.source,
+      base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
+
+  EXPECT_EQ(ArcImportStatus::kBackupError, backup.status);
+  EXPECT_TRUE(backup.backup_directory.empty());
+}
+
+TEST_F(ArcImportFileTest, BackupNamesRemainUniqueForSimilarProfileNames) {
+  CreateAhoiTreeDatabase();
+  ASSERT_TRUE(
+      base::CreateDirectory(ArcRoot().Append(FILE_PATH_LITERAL("User Data"))));
+  ASSERT_TRUE(base::WriteFile(SidebarFile(), kValidArcSidebar));
+  ArcSource source{.arc_root = ArcRoot(), .sidebar_file = SidebarFile()};
+  for (std::string name : {"A B", "A_B"}) {
+    const base::FilePath profile = BrowserProfile().DirName().AppendASCII(name);
+    ASSERT_TRUE(base::CreateDirectory(profile));
+    ASSERT_TRUE(base::WriteFile(profile.AppendASCII("Bookmarks"), name));
+    source.browser_profiles.push_back(
+        {.directory_name = std::move(name), .path = profile});
+  }
+
+  const ArcImportBackupResult backup = CreateArcImportBackup(
+      AhoiProfile(), source,
+      base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
+
+  ASSERT_EQ(ArcImportStatus::kOk, backup.status);
+  const std::string first_key =
+      base::HexEncodeLower(crypto::hash::Sha256("A B"));
+  const std::string second_key =
+      base::HexEncodeLower(crypto::hash::Sha256("A_B"));
+  EXPECT_NE(first_key, second_key);
+  EXPECT_TRUE(base::PathExists(backup.backup_directory.AppendASCII(
+      "Arc-" + first_key + "-Bookmarks.json")));
+  EXPECT_TRUE(base::PathExists(backup.backup_directory.AppendASCII(
+      "Arc-" + second_key + "-Bookmarks.json")));
 }
 
 TEST_F(ArcImportFileTest, RejectsSymlinkedArcRoot) {

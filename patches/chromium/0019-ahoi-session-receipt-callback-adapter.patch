@@ -1,0 +1,40 @@
+diff --git a/components/sessions/core/command_storage_manager.cc b/components/sessions/core/command_storage_manager.cc
+--- a/components/sessions/core/command_storage_manager.cc
++++ b/components/sessions/core/command_storage_manager.cc
+@@ -473,6 +473,9 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+           base::BindOnce(
+               &CommandStorageBackend::FlushAndReadCurrentSessionCommands,
+               backend_.get()),
+-          base::BindOnce(&CommandStorageManager::OnCurrentSessionReceiptRead,
+-                         weak_factory_.GetWeakPtr(), std::move(callback)));
++          base::BindOnce(
++              &OnBackendReadFinished, /*saved_result=*/nullptr,
++              base::BindOnce(
++                  &CommandStorageManager::OnCurrentSessionReceiptRead,
++                  weak_factory_.GetWeakPtr(), std::move(callback))));
+       return;
+@@ -483,7 +486,10 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+           base::BindOnce(
+               &FlushAndReadDualBackends, backend_, encrypted_backend_,
+               encrypt_stage ==
+                   EncryptSessionStorageStage::kWriteBothReadPreferEncrypted),
+-          base::BindOnce(&CommandStorageManager::OnCurrentSessionReceiptRead,
+-                         weak_factory_.GetWeakPtr(), std::move(callback)));
++          base::BindOnce(
++              &OnBackendReadFinished, /*saved_result=*/nullptr,
++              base::BindOnce(
++                  &CommandStorageManager::OnCurrentSessionReceiptRead,
++                  weak_factory_.GetWeakPtr(), std::move(callback))));
+       return;
+@@ -493,6 +499,9 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+           base::BindOnce(
+               &CommandStorageBackend::FlushAndReadCurrentSessionCommands,
+               encrypted_backend_.get()),
+-          base::BindOnce(&CommandStorageManager::OnCurrentSessionReceiptRead,
+-                         weak_factory_.GetWeakPtr(), std::move(callback)));
++          base::BindOnce(
++              &OnBackendReadFinished, /*saved_result=*/nullptr,
++              base::BindOnce(
++                  &CommandStorageManager::OnCurrentSessionReceiptRead,
++                  weak_factory_.GetWeakPtr(), std::move(callback))));
+       return;

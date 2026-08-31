@@ -30,6 +30,7 @@ from certificates import (
     remove_trust,
     trust_installation_is_valid,
 )
+import custom_protocol
 from server import FixtureCluster, SYNTHETIC_PASSWORD, SYNTHETIC_USERNAME
 
 
@@ -232,13 +233,24 @@ def command_status(args: argparse.Namespace) -> int:
     trust = read_trust_receipt(state_directory)
     trust_valid = trust is not None and trust_installation_is_valid(state_directory)
     if state is None:
-        print(json.dumps({"running": False, "trustInstalledByFixture": trust_valid}, indent=2))
+        print(
+            json.dumps(
+                {
+                    "running": False,
+                    "trustInstalledByFixture": trust_valid,
+                    "customProtocolHandler": custom_protocol.status(state_directory),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 1
     pid = int(state.get("pid", 0))
     running = pid > 0 and _pid_alive(pid) and _pid_is_fixture(pid, state_directory)
     value = dict(state)
     value["running"] = running
     value["trustInstalledByFixture"] = trust_valid
+    value["customProtocolHandler"] = custom_protocol.status(state_directory)
     print(json.dumps(value, indent=2, sort_keys=True))
     return 0 if running else 1
 
@@ -280,6 +292,9 @@ def command_stop(args: argparse.Namespace) -> int:
 
 def command_cleanup(args: argparse.Namespace) -> int:
     state_directory = args.state_dir.resolve()
+    if custom_protocol.is_installed(state_directory):
+        print("remove the isolated custom-protocol handler before cleanup", file=sys.stderr)
+        return 1
     state = _read_state(state_directory)
     if state is not None:
         pid = int(state.get("pid", 0))
@@ -293,6 +308,41 @@ def command_cleanup(args: argparse.Namespace) -> int:
         print(str(error), file=sys.stderr)
         return 1
     print("Removed local CA/leaf certificates and private keys. Privacy-safe logs were retained.")
+    return 0
+
+
+def command_protocol_install(args: argparse.Namespace) -> int:
+    try:
+        value = custom_protocol.install(
+            args.state_dir, confirmation=args.confirm
+        )
+    except custom_protocol.ProtocolHandlerError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    print(json.dumps(value, indent=2, sort_keys=True))
+    print("Installed only the exact fixture URL handler in the fixture state directory.")
+    return 0
+
+
+def command_protocol_status(args: argparse.Namespace) -> int:
+    value = custom_protocol.status(args.state_dir)
+    print(json.dumps(value, indent=2, sort_keys=True))
+    return 0 if value["installed"] else 1
+
+
+def command_protocol_remove(args: argparse.Namespace) -> int:
+    try:
+        removed = custom_protocol.remove(
+            args.state_dir, confirmation=args.confirm
+        )
+    except custom_protocol.ProtocolHandlerError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    print(
+        "Removed the exact fixture custom-protocol handler."
+        if removed
+        else "No fixture custom-protocol handler exists; nothing was removed."
+    )
     return 0
 
 
@@ -432,6 +482,35 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup = subparsers.add_parser("cleanup", help="delete keys/certificates after stop and trust-remove; retain logs")
     add_state_dir(cleanup)
     cleanup.set_defaults(function=command_cleanup)
+
+    protocol_install = subparsers.add_parser(
+        "protocol-install",
+        help="explicitly install the fixture-only exact custom-protocol handler",
+    )
+    add_state_dir(protocol_install)
+    protocol_install.add_argument(
+        "--confirm",
+        required=True,
+        help="exact consent phrase documented in fixtures/e2e/README.md",
+    )
+    protocol_install.set_defaults(function=command_protocol_install)
+
+    protocol_status = subparsers.add_parser(
+        "protocol-status", help="show the isolated custom-protocol handler state"
+    )
+    add_state_dir(protocol_status)
+    protocol_status.set_defaults(function=command_protocol_status)
+
+    protocol_remove = subparsers.add_parser(
+        "protocol-remove", help="unregister and remove only the marked fixture handler"
+    )
+    add_state_dir(protocol_remove)
+    protocol_remove.add_argument(
+        "--confirm",
+        required=True,
+        help="exact cleanup phrase documented in fixtures/e2e/README.md",
+    )
+    protocol_remove.set_defaults(function=command_protocol_remove)
 
     config = subparsers.add_parser("print-config", help="print repository-public synthetic credentials")
     add_state_dir(config)

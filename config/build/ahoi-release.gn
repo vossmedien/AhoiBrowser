@@ -21,3 +21,4 @@ ffmpeg_branding = "Chromium"
 mac_min_system_version = "26.0"
 enable_compose = false
 enable_pdf_save_to_drive = false
+enable_ahoi_ubo_classic = false

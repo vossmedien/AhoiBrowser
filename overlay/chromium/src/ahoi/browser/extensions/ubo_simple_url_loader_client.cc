@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/extensions/ubo_product_config.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/task/thread_pool.h"
@@ -18,8 +19,10 @@
 #include "content/public/browser/storage_partition.h"
 #include "net/base/load_flags.h"
 #include "net/base/net_errors.h"
+#include "net/http/http_request_headers.h"
 #include "net/http/http_response_headers.h"
 #include "net/traffic_annotation/network_traffic_annotation.h"
+#include "net/url_request/redirect_info.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/simple_url_loader.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
@@ -35,15 +38,17 @@ constexpr net::NetworkTrafficAnnotationTag kTrafficAnnotation =
       semantics {
         sender: "AhoiBrowser uBlock Origin Classic installer"
         description:
-          "Fetches a product-pinned signed catalog and, only after explicit "
-          "user action, the exact uBlock Origin Classic CRX named by it."
+          "Fetches a product-pinned signed catalog or, only after explicit "
+          "user action, the exact Official GitHub release CRX pinned into the "
+          "browser."
         trigger:
           "A user opens the uBlock Origin Classic installer and requests a "
           "check or download. An optional catalog-only check may run for an "
           "already installed and locally authorized copy."
         data: "No user data. Requests contain no cookies or credentials."
         destination: OTHER
-        destination_other: "AhoiBrowser-owned pinned HTTPS distribution origin"
+        destination_other:
+          "Pinned AhoiBrowser catalog origin or exact GitHub release asset"
       }
       policy {
         cookies_allowed: NO
@@ -143,6 +148,20 @@ void UboSimpleUrlLoaderClient::OnRedirect(
     const net::RedirectInfo& redirect_info,
     const network::mojom::URLResponseHead& response_head,
     std::vector<std::string>* removed_headers) {
+  const bool allowed_official_release_redirect =
+      kind_ == RequestKind::kPackage && redirect_info.status_code == 302 &&
+      redirect_info.new_method == "GET" &&
+      IsAllowedUboPackageRedirect(expected_url_, before, redirect_info.new_url);
+  if (allowed_official_release_redirect) {
+    // Credentials are already omitted on the request. Explicit stripping keeps
+    // that invariant visible at the one redirect boundary as well.
+    if (removed_headers) {
+      removed_headers->push_back(net::HttpRequestHeaders::kAuthorization);
+      removed_headers->push_back(net::HttpRequestHeaders::kCookie);
+    }
+    return;
+  }
+
   loader_.reset();
   if (kind_ == RequestKind::kCatalog && catalog_callback_) {
     std::move(catalog_callback_)
@@ -196,7 +215,7 @@ void UboSimpleUrlLoaderClient::OnPackageComplete(base::FilePath path) {
     return;
   }
   if (path.empty() || loader_->NetError() != net::OK ||
-      loader_->GetFinalURL() != expected_url_) {
+      !IsAllowedUboPackageFinalUrl(expected_url_, loader_->GetFinalURL())) {
     UboNetworkError error = ClassifyFailure();
     loader_.reset();
     if (!path.empty()) {

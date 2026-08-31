@@ -11,7 +11,8 @@
     },
     "selectiveUboClassicMv2": {
       "default": false,
-      "requires": ["signed-allowlist", "package-hash", "update-path", "runtime-e2e"]
+      "dogfoodBuildProfiles": ["dev"],
+      "requires": ["signed-browser-static-bootstrap", "package-and-key-hash", "normal-permission-prompt", "runtime-e2e"]
     },
     "crashUpload": {
       "default": false,

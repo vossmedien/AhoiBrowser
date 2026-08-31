@@ -18,6 +18,7 @@
 #include "base/numerics/safe_conversions.h"
 #include "chrome/grit/generated_resources.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
+#include "third_party/skia/include/core/SkRRect.h"
 #include "ui/accessibility/ax_action_data.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -31,7 +32,9 @@
 #include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/rect_f.h"
+#include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/gfx/image/image_skia.h"
+#include "ui/gfx/skia_util.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/textfield/textfield.h"
@@ -40,11 +43,7 @@ namespace ahoi::sidebar {
 
 namespace {
 
-constexpr int kLeadingPadding = 8;
-constexpr int kDisclosureWidth = 16;
 constexpr int kIconSize = 16;
-constexpr int kIconTitleSpacing = 6;
-constexpr int kTrailingActionSize = 24;
 constexpr float kDropStrokeWidth = 2.0f;
 constexpr float kSelectedDotRadius = 3.0f;
 
@@ -208,6 +207,8 @@ void SidebarTreeRowView::Unbind() {
   pressed_trailing_action_ = false;
   split_segment_index_ = 0;
   split_segment_count_ = 1;
+  split_group_bounds_.reset();
+  SetClipPath(SkPath());
   GetViewAccessibility().SetIsInvisible(true);
 }
 
@@ -267,6 +268,37 @@ void SidebarTreeRowView::SetSplitDropTarget(bool split_drop_target) {
   UpdateTitleBounds();
   InvalidateLayout();
   SchedulePaint();
+}
+
+void SidebarTreeRowView::SetSplitGroupClipBounds(
+    std::optional<gfx::Rect> group_bounds) {
+  if (split_group_bounds_ == group_bounds) {
+    return;
+  }
+  split_group_bounds_ = std::move(group_bounds);
+  if (!split_group_bounds_.has_value()) {
+    SetClipPath(SkPath());
+    SchedulePaint();
+    return;
+  }
+  UpdateSplitGroupClipPath();
+  SchedulePaint();
+}
+
+void SidebarTreeRowView::UpdateSplitGroupClipPath() {
+  if (!split_group_bounds_.has_value()) {
+    return;
+  }
+  gfx::RectF local_clip(*split_group_bounds_);
+  local_clip.Offset(-x(), -y());
+  local_clip.Inset(
+      gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+                       visual_style::kSidebarTabRowHorizontalInset));
+  SkPathBuilder clip_builder;
+  clip_builder.addRRect(SkRRect::MakeRectXY(gfx::RectFToSkRect(local_clip),
+                                            visual_style::kRowCornerRadius,
+                                            visual_style::kRowCornerRadius));
+  SetClipPath(clip_builder.detach());
 }
 
 gfx::ImageSkia SidebarTreeRowView::GetDragImage() {
@@ -331,6 +363,11 @@ void SidebarTreeRowView::Layout(PassKey) {
   UpdateTitleBounds();
 }
 
+void SidebarTreeRowView::OnBoundsChanged(const gfx::Rect& previous_bounds) {
+  views::View::OnBoundsChanged(previous_bounds);
+  UpdateSplitGroupClipPath();
+}
+
 void SidebarTreeRowView::UpdateTitleBounds() {
   const gfx::Rect title_bounds = GetMirroredRect(TitleBounds());
   gfx::Rect title_pane_bounds = GetLocalBounds();
@@ -356,29 +393,38 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
       split_segment_count_ > 1 ? visual_style::kSidebarSplitPaneHorizontalInset
                                : visual_style::kSidebarTabRowHorizontalInset));
 
+  std::optional<ui::ColorId> surface_color;
   if (dragging_) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kHoverSurface)));
+    surface_color = visual_style::kHoverSurface;
   } else if (split_drop_target_ ||
              drop_position_ == SidebarTreeController::DropPosition::kInside) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kDropTargetSurface)));
+    surface_color = visual_style::kDropTargetSurface;
   } else if (selected_) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kSelectedSurface)));
+    surface_color = visual_style::kSelectedSurface;
   } else if (is_bound() && owner_->IsExactSearchMatchForRow(node_id_)) {
     // Keep hierarchy context quiet while making the actual query hits
     // scannable. Selection and hover still take precedence above/below.
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kHoverSurface)));
+    surface_color = visual_style::kHoverSurface;
   } else if (hovered_) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kHoverSurface)));
+    surface_color = visual_style::kHoverSurface;
+  }
+  if (surface_color.has_value()) {
+    if (split_segment_count_ > 1 && split_group_bounds_.has_value() &&
+        !split_drop_target_) {
+      // The parent paints one shared rounded group. Segment state is a calm,
+      // flat cell clipped to that group instead of another rounded button.
+      gfx::RectF split_surface(GetLocalBounds());
+      const gfx::Rect& group = *split_group_bounds_;
+      split_surface.Inset(gfx::InsetsF::TLBR(
+          y() == group.y() ? 1.0f : 0.0f, x() == group.x() ? 1.0f : 0.0f,
+          bounds().bottom() == group.bottom() ? 1.0f : 0.0f,
+          bounds().right() == group.right() ? 1.0f : 0.0f));
+      canvas->DrawRect(split_surface,
+                       FillFlags(colors->GetColor(*surface_color)));
+    } else {
+      canvas->DrawRoundRect(background, visual_style::kRowCornerRadius,
+                            FillFlags(colors->GetColor(*surface_color)));
+    }
   }
 
   if (drop_position_ == SidebarTreeController::DropPosition::kBefore ||
@@ -419,7 +465,7 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
         StrokeFlags(colors->GetColor(visual_style::kAccent), kDropStrokeWidth));
   }
 
-  if (selected_ && owner_->HasFocus()) {
+  if (selected_ && owner_->HasFocus() && split_segment_count_ == 1) {
     gfx::RectF focus = background;
     focus.Inset(1.0f);
     canvas->DrawRoundRect(
@@ -682,148 +728,6 @@ void SidebarTreeRowView::OnDragDone() {
   SetIsDragging(false);
   owner_->OnRowDragDone();
   views::View::OnDragDone();
-}
-
-bool SidebarTreeRowView::HandleAccessibleAction(
-    const ui::AXActionData& action_data) {
-  if (is_bound()) {
-    if (action_data.action == ax::mojom::Action::kFocus) {
-      return owner_->OnRowAccessibilityFocused(this);
-    }
-    if (action_data.action == ax::mojom::Action::kDoDefault) {
-      return owner_->OnRowAccessibilityActivated(this);
-    }
-  }
-  return views::View::HandleAccessibleAction(action_data);
-}
-
-bool SidebarTreeRowView::HandleKeyEvent(views::Textfield* sender,
-                                        const ui::KeyEvent& key_event) {
-  if (sender != editor_ || key_event.type() != ui::EventType::kKeyPressed) {
-    return false;
-  }
-  if (key_event.key_code() == ui::VKEY_RETURN) {
-    owner_->CommitRename(node_id_, std::u16string(editor_->GetText()));
-    return true;
-  }
-  if (key_event.key_code() == ui::VKEY_ESCAPE) {
-    owner_->CancelRename(node_id_);
-    return true;
-  }
-  return false;
-}
-
-gfx::Rect SidebarTreeRowView::DisclosureBounds() const {
-  const int x =
-      kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
-  return gfx::Rect(
-      x, 0,
-      is_folder() && !folder_navigation_result_ && split_segment_count_ == 1
-          ? kDisclosureWidth
-          : 0,
-      height());
-}
-
-gfx::Rect SidebarTreeRowView::IconBounds() const {
-  const int x =
-      is_folder()
-          ? DisclosureBounds().right() + 2
-          : kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
-  return gfx::Rect(x, std::max(0, (height() - kIconSize) / 2), kIconSize,
-                   kIconSize);
-}
-
-gfx::Rect SidebarTreeRowView::TitleBounds() const {
-  constexpr int kTitleTrailingGap = 7;
-  const int x = IconBounds().right() + kIconTitleSpacing;
-  int title_end = media_indicator_.IsEmpty() ? TrailingActionBounds().x()
-                                             : MediaIndicatorBounds().x();
-  title_end -= kTitleTrailingGap;
-  // A split-drop preview labels the destination in the logical leading half.
-  // The Label already tail-elides, so the trailing half stays visually clear
-  // for the incoming pane preview in both LTR and RTL layouts.
-  if (split_drop_target_) {
-    title_end = std::min(title_end, width() / 2 - kTitleTrailingGap);
-  }
-  return gfx::Rect(x, 0, std::max(0, title_end - x), height());
-}
-
-gfx::Rect SidebarTreeRowView::MediaIndicatorBounds() const {
-  const gfx::Rect action = TrailingActionBounds();
-  gfx::Rect bounds(std::max(0, action.x() - kTrailingActionSize - 2),
-                   action.y(), kTrailingActionSize, action.height());
-  bounds.Intersect(GetLocalBounds());
-  return bounds;
-}
-
-gfx::Rect SidebarTreeRowView::TrailingActionBounds() const {
-  gfx::Rect bounds(std::max(0, width() - kTrailingActionSize - 4),
-                   std::max(0, (height() - kTrailingActionSize) / 2),
-                   kTrailingActionSize,
-                   std::min(kTrailingActionSize, std::max(0, height())));
-  bounds.Intersect(GetLocalBounds());
-  return bounds;
-}
-
-bool SidebarTreeRowView::ShouldShowTrailingAction() const {
-  // Selection/focus describes browser state, not pointer intent. Keep both the
-  // loaded-tab power action and the unloaded saved-page remove action hidden
-  // until the pointer is genuinely over this row, matching temporary tabs and
-  // preventing a persistent close affordance from crowding the active title.
-  return !split_drop_target_ && !is_folder() && hovered_;
-}
-
-bool SidebarTreeRowView::ShouldPaintTrailingState() const {
-  return !split_drop_target_;
-}
-
-bool SidebarTreeRowView::IsTrailingActionAt(const gfx::Point& point) const {
-  return ShouldShowTrailingAction() &&
-         GetMirroredRect(TrailingActionBounds()).Contains(point);
-}
-
-void SidebarTreeRowView::UpdateAccessibility() {
-  auto& accessibility = GetViewAccessibility();
-  accessibility.SetIsInvisible(false);
-  std::u16string accessible_name =
-      split_drop_target_ ? split_with_prefix_ + u" " + title_ : title_;
-  if (sleeping_) {
-    accessible_name += u" — ";
-    accessible_name += l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
-  }
-  if (!status_text_.empty()) {
-    accessible_name += u" — ";
-    accessible_name += status_text_;
-  }
-  accessibility.SetName(accessible_name);
-  std::u16string tooltip;
-  if (sleeping_) {
-    tooltip = l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
-  }
-  if (!status_text_.empty()) {
-    if (!tooltip.empty()) {
-      tooltip += u" — ";
-    }
-    tooltip += status_text_;
-  }
-  SetTooltipText(tooltip);
-  accessibility.SetHierarchicalLevel(base::saturated_cast<int>(depth_ + 1));
-  accessibility.SetPosInSet(base::saturated_cast<int>(position_in_parent_));
-  accessibility.SetSetSize(base::saturated_cast<int>(sibling_count_));
-  accessibility.SetIsSelected(selected_);
-  accessibility.SetDefaultActionVerb(is_folder() && !folder_navigation_result_
-                                         ? ax::mojom::DefaultActionVerb::kClick
-                                         : ax::mojom::DefaultActionVerb::kOpen);
-  accessibility.AddAction(ax::mojom::Action::kDoDefault);
-  if (is_folder() && !folder_navigation_result_) {
-    if (expanded_) {
-      accessibility.SetIsExpanded();
-    } else {
-      accessibility.SetIsCollapsed();
-    }
-  } else {
-    accessibility.RemoveExpandCollapseState();
-  }
 }
 
 void SidebarTreeRowView::AnimationProgressed(const gfx::Animation* animation) {

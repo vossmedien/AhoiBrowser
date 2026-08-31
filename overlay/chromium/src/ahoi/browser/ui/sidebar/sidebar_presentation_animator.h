@@ -19,7 +19,8 @@ struct SidebarPresentationVisualState {
 };
 
 SidebarPresentationVisualState CalculateSidebarPresentationVisualState(
-    double progress);
+    double progress,
+    int horizontal_travel);
 
 // Small reusable motion controller for docked, floating and edge-revealed
 // sidebar presentation. Keeping the clock outside BrowserView avoids coupling
@@ -51,7 +52,8 @@ class SidebarPresentationAnimator final : public gfx::AnimationDelegate {
   bool target_visible() const { return target_visible_; }
   bool is_animating() const { return animation_.is_animating(); }
   bool ShouldKeepSurfaceMounted() const;
-  SidebarPresentationVisualState visual_state() const;
+  double visibility_fraction() const;
+  SidebarPresentationVisualState visual_state(int horizontal_travel) const;
 
   gfx::SlideAnimation* animation_for_testing() { return &animation_; }
 

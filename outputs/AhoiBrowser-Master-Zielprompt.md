@@ -1,8 +1,8 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 29. August 2026, User-First-Recovery-Welle.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das neue AhoiBrowser-Mac-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet. Die unten definierte Mac-Recovery-Welle hat bis zu ihrem belegten Abschluss Vorrang vor breiter Featurearbeit, Lean-Optimierung und Mobile-Integration.
+**Geltungsstand: 30. August 2026, Desktop-Kernfeaturepaket mit User-First-Recovery.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das neue AhoiBrowser-Mac-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet. Die unten definierte Mac-Recovery-Welle und das daraus abgeleitete kompakte Desktop-Kernfeaturepaket haben bis zu ihrem belegten Abschluss Vorrang vor Lean-Optimierung und Mobile-Integration.
 
-**Verbindliche Ausführungsabgrenzung vom 27. August 2026:** Der native iOS-/iPadOS-Companion wird ab sofort von einem anderen Agenten verantwortet. Dieser macOS-/Chromium-Arbeitsstrom verändert, baut, testet oder installiert keine iOS-Dateien oder -Targets und wartet nicht auf deren Abschluss. Die Companion-Anforderungen bleiben Produktziel und Integrationsvertrag, sind aber ausdrücklich kein Schreib- oder Build-Scope dieses Arbeitsstroms.
+**Verbindliche Ausführungsabgrenzung vom 29. August 2026:** Nach dem Stoppen des parallelen Agents werden macOS-/Chromium-Recovery und AhoiBrowser Mobile in diesem Arbeitsstrom aus einem gemeinsamen, nachvollziehbaren Integrationsstand abgeschlossen. Die Mac-Recovery bleibt die erste Stop-the-line-Welle; danach folgt Mobile. Es gibt keine konkurrierenden Builds, keine voneinander abweichenden Overlay-Stände und keine Übergabe an einen zweiten Agenten, bevor der gemeinsame Hauptbranch gebaut, sichtbar geprüft und gepusht ist.
 
 ## Rolle und Gesamtauftrag
 
@@ -28,7 +28,7 @@ Halte kontrollierbare Arbeit nicht wegen externer Blocker an. Schließe alle una
 ## Aktiver technischer Ausgangspunkt
 
 - Chromium-Basis ist der vollständig ausgerollte Mac-Stable-Pin `152.0.7977.65` am exakten Commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. Dies ist weder Nightly noch Canary; die eigenen Ahoi-Kanalnamen `nightly`, `beta` und `stable` sind davon getrennte Produkt-/Updatekanäle.
-- Die aktive Quellkomposition besteht aus dem getrackten Overlay und genau drei geordneten Patches: `0001-ahoi-m152-integration-seams.patch`, `0002-ahoi-deterministic-platform-tests.patch` und `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`.
+- Die aktive Quellkomposition besteht aus dem getrackten Overlay und ausschließlich der vollständig geordneten Patchserie in `patches/chromium/series`. Die Serie ist die einzige Wahrheit für Integrationsreihenfolge und muss sich vor jedem Build deterministisch auf den M152-Pin materialisieren lassen; eine in diesem Prompt festgeschriebene veraltete Patchanzahl ist ausdrücklich unzulässig.
 - Alle M152-Profile pinnen dieselbe Xcode-Installation 26.6/17F113 mit macOS SDK 26.5/25F70 und iOS SDK 26.5/23F81a. `pinned-reference` für Upstream/Release und `compatible-development` für Development bleiben getrennte Provenienzlabels und Abnahmewege, obwohl die Toolchain-Bits identisch sind.
 - Die gesicherte M151-Quellfreeze, Recovery-Bundle und frühere grüne Testmatrix bleiben historische Recovery-/Regressionsbelege. Sie sind keine M152-Pässe. Ein M152-Build-, Installations- oder sichtbarer Runtime-Pass darf erst nach dem jeweils real durchgelaufenen Gate behauptet werden.
 
@@ -52,7 +52,7 @@ Verbindliche Regeln:
 - Führe den sichtbaren echten Computer-Use-/User-E2E-Pfad jeder betroffenen Funktion vor den zugehörigen programmatischen Unit-, Browser-, Integrations- und Repository-Tests aus.
 - Findet ein nachgelagerter programmatischer Test einen Fehler, sichere die Diagnose, behebe ihn, baue und installiere den Kandidaten neu und wiederhole zuerst den exakt betroffenen sichtbaren E2E-Pfad; erst danach darf die Programmatik erneut laufen.
 - Terminal, Datenbank-Readback, interne APIs und Logs dürfen den sichtbaren User-Flow verifizieren, aber nicht ersetzen.
-- Kontrollierte lokale Testseiten sind Pflicht, ersetzen aber keine realen Tests von Chrome Web Store, 1Password, Bitwarden, uBlock Origin, YouTube, WebRTC/Meet, CloudKit, dem echten Updater und Widevine-Diensten.
+- Kontrollierte lokale Testseiten sind Pflicht, ersetzen aber keine realen Tests von gewöhnlichen MV3-Erweiterungen aus dem Chrome Web Store, 1Password, Bitwarden, uBlock Origin über den gepinnten Official GitHub release, YouTube, WebRTC/Meet, CloudKit, dem echten Updater und Widevine-Diensten.
 - Sichere bei einem sichtbaren Fehler zuerst Evidenz, diagnostiziere dann, behebe ihn und wiederhole exakt denselben User-Flow.
 - Ein einmaliger Screenshot reicht bei zustandsabhängigen Funktionen nicht; Reload, Fensterwechsel und App-Neustart gehören je nach Funktion zur Abnahme.
 - Keine Passwörter, Tokens, Cookies, Vault-Inhalte, Authorization-Header oder privaten Browserdaten in Screenshots, Videos, Logs oder Commits.
@@ -67,10 +67,10 @@ Die folgenden aktuell real beobachteten Mac-Defekte sind Stop-the-line-Arbeit. B
 - `RECOVERY-MAC-01`: Einstellungen aus Menü und Command Bar wiederholt öffnen, die vollständige Ahoi-Seite bis zum Ende scrollen, Unterseiten wechseln, schließen und nach App-Neustart erneut öffnen; kein Browser- oder Renderer-Crash, insbesondere kein Accessibility-Abbruch durch benannte generische WebUI-Container, keine verlorene Sitzung und keine verspätete Service-Registrierung. Der eigene Menüeintrag `AhoiBrowser` zeigt in allen unterstützten Settings-Iconmodi ein reales, korrekt ausgerichtetes und kontrastierendes Icon statt einer leeren Aussparung.
 - `RECOVERY-MAC-02`: jedes sichtbare Aktionsicon der Adressleiste mit der Maus bedienen. Copy, Privacy, Cookies, Cache, Developer Toolkit/DevTools, Workspace und weitere sichtbare Aktionen öffnen ausschließlich ihr eigenes Ziel; kein Icon darf durch Event-Fallthrough die `Cmd+T`-/Command-Bar-Oberfläche öffnen. Jede zustandsbehaftete Oberfläche folgt demselben Toggle-Vertrag: erster Klick öffnet genau eine Instanz, zweiter Klick auf dasselbe Icon schließt diese Instanz, ein Klick auf ein anderes Icon wechselt ohne Doppel-Bubble oder sofortiges Wiederöffnen, und Schließen per `Escape`, Außenklick, Tab-/Pane-/Fensterwechsel setzt den Buttonzustand deterministisch zurück. Ein sichtbares, aber deaktiviertes Icon ist nur bei einem sachlich nicht unterstützten Ziel erlaubt, besitzt dann eindeutige Disabled-Darstellung und erklärt den Grund; auf normalen HTTP-/HTTPS-Seiten reagieren alle angebotenen Aktionen auf den ersten echten Mausklick.
 - `RECOVERY-MAC-03`: gespeicherte Tabs innerhalb einer Gruppe und zwischen Gruppen mehrfach per Drag-and-drop vor und nach andere Tabs verschieben. Die vollständige wirksame obere beziehungsweise untere Dropfläche ist ruhig eingefärbt und zusätzlich durch eine klare Einfügemarkierung erkennbar; eine bloße dünne, schwer anzielbare Linie ist nicht zulässig. Vor dem Drop ist genau eine stabile Einfügeposition sichtbar; während des Drags springt oder verschiebt sich die Sidebar nicht; nach Drop, Workspace-Wechsel und App-Neustart stimmen sichtbare und persistierte Reihenfolge überein.
-- `RECOVERY-MAC-04`: gespeicherte sowie temporäre Tabs per Drag-and-drop auf gespeicherte Tabs ziehen und echte Zwei-Pane-Splits in beiden Richtungen erzeugen. Temporäre und gespeicherte Zeilen verwenden dasselbe großzügige Vorher/Nachher-/Split-Zonenmodell; ein abgelehnter Split fällt auf die nächstgelegene gültige Einfügekante zurück und erzeugt keine tote Mitte. Jeder Pane eines Zwei-, Drei- oder Vier-Pane-Splits lässt sich unabhängig von Index, Fokus, linker/rechter beziehungsweise oberer/unterer Position symmetrisch aus dem Split herausziehen, in die vollständig sichtbare freie Temporärfläche oder eine orientierungskorrekte äußere Ablösezone als normaler Tab ablegen, neu anordnen oder erneut splitten; all-temporäre und gemischte Saved-/Temporary-Splits verwenden dabei identitätstreue Payloads und kein führender Pane erhält Sonderrechte. Zusammengehörige Split-Tabs bilden in der Sidebar bei horizontalen wie vertikalen Pane-Anordnungen eine klar erkennbare gemeinsame visuelle Einheit mit zusammenhängender Kontur, eindeutiger Pane-Reihenfolge und ruhigen Innenverbindern statt lediglich geringerer Einzelzeilenhöhe. Beide Seiten bleiben interaktiv; Fokus, Adressleiste, Reihenfolge, Split-Mitgliedschaft und Session-Restore stimmen. Zusätzlich wird der native Drag-Griff jedes sichtbaren Split-Panes innerhalb des WebContents benutzt, zwischen allen Zielzonen bewegt und für jeden Pane jeweils erfolgreich sowie per `Escape` abgebrochen; Drag-Start, Hover, Drop, Abbruch, Reorder, Heraustrennen, Split-Auflösung und Fensterwechsel crashen niemals und stellen bei jedem Fehler den vollständigen Vorzustand wieder her.
+- `RECOVERY-MAC-04`: gespeicherte sowie temporäre Tabs per Drag-and-drop auf gespeicherte Tabs ziehen und echte Zwei-Pane-Splits in beiden Richtungen erzeugen. Temporäre und gespeicherte Zeilen verwenden dasselbe großzügige Vorher/Nachher-/Split-Zonenmodell; ein abgelehnter Split fällt auf die nächstgelegene gültige Einfügekante zurück und erzeugt keine tote Mitte. Jeder Pane eines Zwei-, Drei- oder Vier-Pane-Splits lässt sich unabhängig von Index, Fokus, linker/rechter beziehungsweise oberer/unterer Position symmetrisch aus dem Split herausziehen, in die vollständig sichtbare freie Temporärfläche oder eine orientierungskorrekte äußere Ablösezone als normaler Tab ablegen, neu anordnen oder erneut splitten; all-temporäre und gemischte Saved-/Temporary-Splits verwenden dabei identitätstreue Payloads und kein führender Pane erhält Sonderrechte. Zusammengehörige Split-Tabs bilden in der Sidebar bei horizontalen wie vertikalen Pane-Anordnungen eine klar erkennbare gemeinsame visuelle Einheit mit zusammenhängender Kontur, eindeutiger Pane-Reihenfolge und ruhigen Innenverbindern statt lediglich geringerer Einzelzeilenhöhe. Die Sidebar projiziert Chromiums reale primäre und sekundäre Split-Ratios; ihre ruhigen Trennlinien besitzen großzügige, per Maus, Trackpad und Tastatur bedienbare Resize-Flächen und verändern denselben Chromium-Splitzustand wie die Divider im WebContents, ohne ein zweites Layoutmodell einzuführen. Größenänderung, Neustart und Wechsel zwischen horizontaler, vertikaler, linearer sowie Haupt-/Nebenpane-Anordnung behalten Pane-Identität, Reihenfolge und Ratio. Beide Seiten bleiben interaktiv; Fokus, Adressleiste, Reihenfolge, Split-Mitgliedschaft und Session-Restore stimmen. Zusätzlich wird der native Drag-Griff jedes sichtbaren Split-Panes innerhalb des WebContents benutzt, zwischen allen Zielzonen bewegt und für jeden Pane jeweils erfolgreich sowie per `Escape` abgebrochen; Drag-Start, Hover, Drop, Abbruch, Reorder, Heraustrennen, Split-Auflösung, Divider-Resize und Fensterwechsel crashen niemals und stellen bei jedem Fehler den vollständigen Vorzustand wieder her.
 - `RECOVERY-MAC-05`: `Neue Gruppe` existiert im Ruhezustand nicht als eigene Sidebar-Zeile und reserviert keinerlei Layoutplatz. Ausschließlich während eines passenden Drags liegt die Dropfläche als Overlay über dem Workspace-Namen ganz oben, verschiebt keine Tabs, zeigt den Zielzustand eindeutig und verschwindet nach erfolgreichem Drop, `Escape`, Pointer-Abbruch, Fensterwechsel und App-Neustart vollständig.
 - `RECOVERY-MAC-06`: die Chromium-Neuer-Tab-Seite zeigt auf einer echten Ahoi-Oberfläche weder den konkurrierenden Saved-Tab-Group-Streifen noch dessen Vier-Kästchen-Icon oder Separator. Ahois Gruppenmodell bleibt ausschließlich in der Sidebar; auf nicht von Ahoi gehosteten Chromium-Oberflächen bleibt die Standardfunktion unverändert. Resize, Hell/Dunkel und deutsche/englische Oberfläche bleiben korrekt.
-- `RECOVERY-MAC-07`: Arc-Import, AnyChat, 1Password und uBlock Origin Classic werden im installierten AhoiBrowser sichtbar geprüft. Der Arc-Import zeigt reale Erkennung, auswählbare Profile, redigierte Vorschau und transaktionale Bestätigung, bevor Quelldaten unverändert übernommen werden. AnyChat nutzt den normalen Web-Store-Pfad. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.
+- `RECOVERY-MAC-07`: Ein gemeinsamer Chrome-üblicher Import-Hub erkennt alle von Chromiums vorhandenen macOS-Importern tatsächlich unterstützten lokalen Browser und Profile, zeigt nur real verfügbare Kategorien und führt den jeweiligen Upstream-Importer aus. Chrome/Chromium-Derivate, Safari und Firefox werden nicht durch eine Ahoi-Sonderkopie ersetzt; fehlende Quellen oder Kategorien werden präzise erklärt. Arc und Zen erhalten zusätzlich einen strukturtreuen Import ihrer Sidebar: reale Erkennung ohne False Positive durch fremde oder nicht lesbare Prozesse, auswählbare Profile, redigierte Vorschau, Workspaces/Spaces, verschachtelte Ordner, gespeicherte beziehungsweise angeheftete Tabs, Reihenfolge und soweit sicher rekonstruierbar Split-Zustände. Snapshot, Bestätigung, atomarer Commit, Rollback und idempotente Wiederholung gelten für beide Strukturimporte; Quelldaten bleiben unverändert. AnyChat nutzt den normalen Web-Store-Pfad. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.
 - `RECOVERY-MAC-08`: die native Drag-Vorschau zeigt mit konstantem Abstand rechts neben dem Cursor statt darunter eine sichtbare Favicon-/Titelkarte und bei Splits die tatsächliche Pane-Anordnung. Sie ist bereits beim ersten Drag sichtbar und hängt nicht von einem zuvor geöffneten Preview-Fenster oder einer vorherigen Tab-Aktivierung ab. Nach kurzem Hover auf jedem aktiven oder gespeicherten Sidebar-Tab erscheint dieselbe Vorschau rechts der Zeile in den WebContents hinein, ohne Fokus, Klicks oder Seitenlayout zu beeinflussen. Ein noch nicht gerasterter Tab zeigt einen bewussten Favicon-/Titel-Fallback statt eines inhaltslosen grauen Kastens; sobald ein URL-gebundenes Thumbnail vorliegt, wird es ohne Fremd-Origin-Altdaten aktualisiert. Tabtitel werden in normalen Zeilen, echten horizontalen und vertikalen Split-Segmenten sowie jeder Split-Drop-Projektion hart auf ihr eigenes Segment begrenzt und vor Trennlinie und Aktionsflächen mit `…` gekürzt; sie laufen weder bei Hover noch während eines aktiven Drags in oder über die Trennlinie. Navigation, Scroll, Workspace-Wechsel, Dragstart, Hover-Ende, Cold Start und App-Neustart schließen beziehungsweise aktualisieren die Vorschau deterministisch.
 - `RECOVERY-MAC-09`: die Sidebar übernimmt standardmäßig die kontrastgeprüfte Hauptfarbe des aktiven Tabs dezent aus `theme-color` beziehungsweise dem bereits lokal vorhandenen Favicon. Rot, Orange, Blau, Hell/Dunkel, transparente oder fehlende Farben, Tab-/Workspace-Wechsel, hoher Kontrast und der Theme-Fallback werden sichtbar geprüft; ein explizites Nutzer-Aus bleibt verbindlich.
 - `RECOVERY-MAC-10`: die Ahoi-Einstellungen erklären an jeder deaktivierten Sync-/Fernsteuerungsaktion unmittelbar die fehlende Voraussetzung. Lokaler Sync bleibt unabhängig von CloudKit bedienbar; geräteübergreifende Fernsteuerung bleibt ohne signierten CloudKit-Transport und verifizierten öffentlichen Geräteschlüssel fail-closed, bietet aber einen eindeutigen Aktivierungs-/Pairingpfad, sobald die Voraussetzungen vorliegen. Im macOS-AhoiBrowser-Menü existiert genau eine nicht redundante Softwareupdate-Oberfläche; sie zeigt Status, Kanal, automatische Prüfungen/Downloads und eine echte manuelle Prüfung, ohne parallele Einträge mit überlappender Funktion.
@@ -78,6 +78,7 @@ Die folgenden aktuell real beobachteten Mac-Defekte sind Stop-the-line-Arbeit. B
 - `RECOVERY-MAC-12`: AhoiBrowser verwendet eine eigenständige, professionell lesbare Produktmarke mit klarer Silhouette bei 16, 32, 128 und 1024 Pixeln. Dasselbe geprüfte Motiv erscheint ohne Chromium-Platzhalter oder leere Aussparung in App-Bundle, Dock, Finder, App-Umschalter, Hilfsprozessen und beim AhoiBrowser-Eintrag der Einstellungen. Maritime und leicht sprudelnde Anklänge bleiben originell und zurückhaltend; fremde Wortmarken, Verpackungen, Maskottchen oder Browserlogos werden nicht kopiert.
 - `RECOVERY-MAC-13`: der blaue Aktivindikator gehört ausschließlich zu der tatsächlich aktiven Seite beziehungsweise bei einem Split zu den eindeutig als aktiv dargestellten Pane-/Seitenelementen. Workspace- und Gruppenzeilen erhalten keinen irreführenden Seiten-Aktivpunkt; Expansion, Auswahl, eigener Farbakzent, laufende Kinder und Drop-Zustand verwenden jeweils ihre bereits definierten, semantisch getrennten Darstellungen. Hell/Dunkel, Workspace-Wechsel, Split-Fokus und Neustart dürfen diese Zustände nicht vermischen.
 - `RECOVERY-MAC-14`: der gesamte native Tab-Drag besitzt zu jeder Cursorposition exakt eine starke Zielhervorhebung. Gespeicherter Bereich, temporärer Bereich, einzelne Tabzeile, `Neue Gruppe` und WebContents-Split-Overlay dürfen niemals gleichzeitig als angenommenes Ziel erscheinen; bloße Berechtigung bleibt visuell passiv. Vorher/Nachher/Split verwenden identische gemalte und wirksame Flächen, eine kleine symmetrische Hysterese verhindert Flackern an Zonengrenzen, und die beim Loslassen ausgeführte Aktion entspricht ausschließlich der zuletzt sichtbar bestätigten Vorschau. Die Pane-Mitte ist neutral statt implizit `links`; ein abgebrochener, ungültiger oder zwischen nativen WebViews wechselnder Drag hinterlässt weder Highlight noch Einfügemarker. Sidebar-Gap, WebView-Wechsel, `Escape`, Drop, Fensterwechsel, Quell-View-Zerstörung und AppKit-Drag-Ende werden jeweils in angedockter und schwebender Sidebar sowie mit Saved-, Temporary-, Mixed- und Zwei-/Drei-/Vier-Pane-Quellen sichtbar geprüft.
+- `RECOVERY-MAC-15`: das Erweiterungsmenü bleibt in einem absichtlich tablosen Ahoi-Fenster vollständig crashfrei. Bereits installierte Erweiterungen bleiben mit korrektem Namen, Icon und generischen Verwaltungsaktionen sichtbar; alle an eine konkrete Seite gebundenen Aktionen, Hostzugriffs-, Berechtigungs- und Reload-Steuerungen sind ohne aktives `WebContents` ausgeblendet oder deaktiviert und werden erst nach Aktivierung eines realen Tabs freigegeben. Öffnen, Schließen, erneutes Öffnen, Browserstart, Browserneustart sowie erfolgreiche, abgebrochene und fehlgeschlagene Web-Store-Installationen hinterlassen weder Null-Dereferenz noch halbfertige Extension-Einträge. Eine fehlgeschlagene AnyChat-Installation wird als fehlgeschlagen ausgewiesen und atomar zurückgerollt; erst die persistierte Store-ID `khpefodpgnkegiohbolbaaeabnfdegln` zählt als Installation. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und der tatsächlich signierte offizielle Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) werden in Inventar, Oberfläche und Abnahme strikt unterschieden; Lite darf niemals als bestandene Classic-Installation gelten und der GitHub-Release darf niemals als Web-Store-Paket ausgegeben werden.
 
 Für jeden dieser Fälle gilt ohne Ausnahme diese Reihenfolge:
 
@@ -97,6 +98,34 @@ Der angehaltene parallele Ahoi-Agent darf erst wieder an derselben Produktlinie 
 - `FEATURE-SIDEBAR-SEARCH-01` ist bereits implementiert und bleibt Teil der installierten Abnahme: Die direkt integrierte Discovery-Suche verwendet den bestehenden `CommandService` für sichtbare, gespeicherte, schlafende und Geräte-Tabs sowie Gruppen und Workspaces statt einer zweiten Suchlogik. Treffer bleiben nach Typ und Herkunft verständlich, sind vollständig tastaturbedienbar und öffnen beziehungsweise fokussieren die bestehende Identität statt Duplikate zu erzeugen.
 - `FEATURE-TAB-RESTORE-01` ist im selben Paket bereits implementiert und wird nach der Stop-the-line-DnD-Welle sichtbar regressionsgeprüft: Der klar getrennte Bereich `Zuletzt geschlossen` verwendet Chromiums vorhandenen `TabRestoreService` für kurzfristig wiederherstellbare Tabs, Splits, Gruppen und Fenster. Es entsteht kein zweites Verlaufsarchiv, keine automatische Archivierung gespeicherter Seiten und keine Kopie sensibler Sitzungsdaten; Wiederherstellung bleibt explizit, profil- und Inkognito-sicher, identitätstreu und nach erfolgreicher Aktion unmittelbar sichtbar.
 - Weitere neue Featurepakete sind ausdrücklich keine Freigabe, die laufende Mac-Recovery-Welle zu unterbrechen oder deren Definition of Done zu verschieben.
+
+### Aktives Desktop-Kernfeaturepaket vom 30. August 2026
+
+Setze als nächste zusammenhängende Produktwelle kein neues Onboarding-Produkt und keinen eigenständigen Transfer-Center-Wizard um. Verwende stattdessen die browserübliche, kompakte Importoberfläche in den Einstellungen: Quelle und Profil wählen, real verfügbare Kategorien anzeigen, Import bewusst bestätigen und ein verständliches Ergebnis melden. Quellspezifische Snapshot-, Parser-, Transaktions-, Rollback- und Idempotenzlogik bleibt technische Sicherheit hinter dieser vertrauten Oberfläche.
+
+Das Paket umfasst gemeinsam und in dieser Priorität:
+
+1. den Null-Tab-Crash des nativen Erweiterungsmenüs vollständig beheben und den Menü-/Installationszustand für erfolgreiche, abgebrochene und fehlgeschlagene Installationen transaktional stabilisieren;
+2. uBlock Origin Classic/MV2 ausschließlich über den eng allowlisteten, signierten Sonderpfad real prüfen, seine Wirksamkeit gegenüber uBlock Origin Lite/MV3 belegen und Lite erst nach bestandenem Classic-Neustarttest entfernen; bei fehlender authentischer Paket-/Publisher-Vertrauenskette bleibt der positive Classic-Pass `BLOCKED_EXTERNAL`, ohne Sicherheitsregeln abzusenken;
+3. AnyChat über den normalen Chrome-Web-Store-Pfad installieren und Action, Side Panel, Berechtigungen, Neustart sowie rückstandsfreien Abbruch/Fehler sichtbar prüfen;
+4. den vorhandenen Arc-Importer hinter der normalen Importoberfläche vollständig produktisieren, echte lokale Arc-Daten nach immutable Backup und Dry Run importieren und den zweiten identischen Lauf als No-op belegen;
+5. Zen als normale Browserquelle mit realer Profil- und Capability-Erkennung vorbereiten. Verwende Chromiums beziehungsweise Firefox-kompatible Importpfade für unterstützte Standardkategorien und mappe Zen-spezifische Workspaces, Ordner, Pins oder Splits nur bei einem nachgewiesenen, versionsgebundenen Schema; unbekannte Daten werden erklärt statt geraten;
+6. die laufende Split-/Resize-Recovery integrieren, sodass Sidebar-Divider und WebContents-Divider denselben Chromium-Splitzustand projizieren und jede Pane-Position symmetrisch bedienbar bleibt;
+7. anschließend `Daily-Driver I – Navigation, Dateien und Identität` als großen, bereits im ursprünglichen Ziel enthaltenen Browser-Kernblock abschließen: Command Bar, Quick Window, echtes Inkognito, Navigation und Systemübergaben, Upload/Download/PDF/Druck, lokalen Passwortmanager/Autofill und HTTP-Authentifizierung; keine neue Produktoberfläche und kein paralleles Browserdatenmodell.
+
+Für dieses Paket gilt die Testreihenfolge verbindlich: statische Read-only-Diagnose und Build sind zulässig, aber keine zugehörige Unit-, Browser-, Integrations- oder breite Repository-Testsuite läuft vor dem ersten sichtbaren User-Flow im frisch signierten und nach `/Applications` installierten Kandidaten. Nach jeder Korrektur wird zuerst der betroffene sichtbare Flow wiederholt. Fokussierte Programmatik folgt erst auf sichtbares Verhalten, breite Tests und Release-Gates folgen zuletzt.
+
+### Daily-Driver I – Navigation, Dateien und Identität
+
+Dieses Paket ergänzt keinen Onboarding-Wizard. Es schließt die bereits unten einzeln definierten Standard-Browserverträge `CMD-01` bis `CMD-06`, `QUICK-01` bis `QUICK-04`, `INC-01` bis `INC-05`, `NAV-01` bis `NAV-13`, `DEFAULT-01` bis `DEFAULT-02`, `DL-01` bis `DL-08`, `PASS-01` bis `PASS-07` und `AUTH-01` bis `AUTH-27` über vorhandene Chromium- und macOS-Systempfade.
+
+- Command Bar und Quick Window teilen `CommandService`, normales Profil sowie Tab-/Tree-Identitäten; Inkognito bleibt ausschließlich Chromiums `OffTheRecordProfile`.
+- Navigation, Popups, Datei-/Ordnerupload, Datei-Drop, OAuth, Passkeys, Custom Protocols, Standardbrowser und externe Links werden als vertraute Browserfunktionen sichtbar bedient.
+- Downloads einschließlich Pause, Fortsetzen, Netzverlust, Warnung, Abbruch, Finder-Übergabe und Hashprüfung sowie PDF/Druck verwenden synthetische Dateien.
+- Lokaler Passwortmanager, Autofill, Passkeys, 1Password, Bitwarden und HTTP-Auth bleiben getrennt; Basic/Digest/Proxy-Auth und alle Realm-, Port-, Pfad-, Origin-, HTTPS- und Inkognito-Grenzen werden nur mit synthetischen Credentials geprüft.
+- Implementiere Ahoi-eigenen Code nur für einen sichtbar belegten Defekt oder eine bereits zugesagte Produktintegration. Upstream-Verhalten wird nicht vorsorglich dupliziert.
+
+Die 72 Verträge bleiben bis zum realen Lauf `NOT_RUN`. `NAV-07`, `NAV-09`, `PASS-03`, `PASS-07`, `AUTH-23` und `AUTH-24` benötigen echte Plattform-, Mehrgeräte-, physische beziehungsweise Systemauthentifizierungs-Unterstützung und dürfen ohne sie nicht als bestanden gelten; alle davon unabhängigen sichtbaren Journeys werden zuerst abgeschlossen. Fokussierte Programmatik folgt je Funktionsgruppe erst nach dem installierten sichtbaren Lauf, breite Repository- und Release-Gates zuletzt.
 
 Wenn ein externer Blocker auftritt:
 
@@ -756,13 +785,13 @@ Der lokale Chromium-Passwortmanager bleibt nicht nur technisch vorhanden, sonder
 
 1Password muss mit einer signierten App in `/Applications`, einmaliger Freigabe als zusätzlicher vertrauenswürdiger Browser, Desktop-App-Verbindung, Touch ID und einem künstlichen Test-Vault real geprüft werden.
 
-Für die konkrete Dogfood-Abnahme werden Erweiterungen ausschließlich im AhoiBrowser-Profil installiert, eingerichtet und geprüft. Google Chrome und Arc sind dabei nur mögliche, strikt read-only Inventarquellen und dürfen weder verändert noch als Laufzeitnachweis für AhoiBrowser gewertet werden. Pflichtkandidaten sind uBlock Origin Classic (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) über den signierten Ahoi-Sonderpfad, AnyChat (`khpefodpgnkegiohbolbaaeabnfdegln`) und 1Password Stable (`aeblfdkhhhdcdjpifhhbdiojplfjncoa`) über den normalen Chrome-Web-Store-/Chromium-Pfad. Jede Installation zeigt Quelle, Identität und Berechtigungen sichtbar an und benötigt eine bewusste Bestätigung; es gibt keine stille Installation, keine pauschale Allowlist und kein Übertragen von Extension Storage oder Kontositzungen.
+Für die konkrete Dogfood-Abnahme werden Erweiterungen ausschließlich im AhoiBrowser-Profil installiert, eingerichtet und geprüft. Google Chrome und Arc sind dabei nur mögliche, strikt read-only Inventarquellen und dürfen weder verändert noch als Laufzeitnachweis für AhoiBrowser gewertet werden. Pflichtkandidaten sind uBlock Origin Classic als browserseitig gepinnter **Official GitHub release** 1.74.0 über den signierten Ahoi-Sonderpfad, AnyChat (`khpefodpgnkegiohbolbaaeabnfdegln`) und 1Password Stable (`aeblfdkhhhdcdjpifhhbdiojplfjncoa`) über den normalen Chrome-Web-Store-/Chromium-Pfad. Für Classic ist die tatsächlich gelieferte Identität maßgeblich: Das unveränderte offizielle gorhill-CRX trägt `fkgkibajhfbepljeaefdnfnegdcjomkh`; die historische Web-Store-ID `cjpalhdlnbpafiamejdnhcphjbkeiagm` darf nur mit einem authentischen, genau diese ID ableitenden Store-Publisher-Schlüssel akzeptiert werden. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`) bleibt ein eigenständiger MV3-Kandidat und erfüllt keine Classic-Anforderung. Jede Installation zeigt Quelle, Identität und Berechtigungen sichtbar an und benötigt eine bewusste Bestätigung; es gibt keine stille Installation, keine pauschale Allowlist und kein Übertragen von Extension Storage oder Kontositzungen. Der Installationsvorgang ist transaktional: vor der Bestätigung wird nichts aktiviert, bei Abbruch oder Fehler werden Verzeichnis-, Preferences-, Secure-Preferences-, Cache- und Updatezustand konsistent zurückgerollt, und nach Erfolg stimmen UI, Profilinventar und Neustartzustand überein.
 
 1Password-Native-Messaging wird nicht aus einem fremden Browserprofil kopiert. Die 1Password-Desktop-App muss die signierte Ahoi-App über ihren offiziellen Additional-Browsers-Prozess als vertrauenswürdig aufnehmen und das Manifest für Ahois eigenes Profil beziehungsweise den unterstützten systemweiten Hostpfad selbst provisionieren. Login, Entsperren und Touch ID bleiben nutzerassistiert; AhoiBrowser oder die Testautomation lesen, speichern oder protokollieren keine realen Tresorgeheimnisse.
 
 ## Migration aus Arc
 
-Implementiere einen erstklassigen, wiederholbaren Assistenten `Aus Arc importieren`. Er migriert Arc-Seitenleisten- und Browserdaten in das vorhandene Ahoi-Domänenmodell; er kopiert niemals ein komplettes fremdes Chromium-Profil und führt Arc-Code nicht aus.
+Implementiere Arc als erstklassige, wiederholbare Quelle in Ahois normaler kompakter Oberfläche `Browserdaten importieren`. Quelle, Profil, verfügbare Kategorien, eine kurze Vorschau, Bestätigung und Ergebnis folgen dem vertrauten Browsermuster; es entsteht kein eigener Onboarding- oder Transfer-Wizard. Intern migriert der Import Arc-Seitenleisten- und Browserdaten in das vorhandene Ahoi-Domänenmodell, kopiert niemals ein komplettes fremdes Chromium-Profil und führt Arc-Code nicht aus.
 
 ### Discovery und sicherer Snapshot
 
@@ -784,17 +813,25 @@ Implementiere einen erstklassigen, wiederholbaren Assistenten `Aus Arc importier
 
 Passwörter, Cookies, Login Data, Web Sessions, Tokens, `Secure Preferences`, Extension Storage, Service-Worker-/Site-Storage, Native-Messaging-Manifeste, Keychain-Geheimnisse und Inkognito-Daten werden niemals direkt aus Arc kopiert. Für Passwörter ist ausschließlich ein ausdrücklich vom Nutzer erzeugter, von Chromium sicher unterstützter Export-/Importweg zulässig.
 
-### Parser, Vorschau und Commit
+### Parser, kompakte Vorschau und Commit
 
 - Der `StorableSidebar.json`-Parser ist versionsgebunden. Für Schema 1 verarbeitet er typisiert Container, Spaces, Lists, Tabs und Split Views; unbekannte Schema-Versionen oder Varianten werden nicht geraten.
 - Setze harte Grenzen für Dateigröße, Objektanzahl, Stringlängen, Verschachtelung und Split-Mitglieder. Erkenne doppelte IDs, Zyklen, Waisen, ungültige URLs, interne Arc-/Extension-URLs und beschädigte Referenzen.
-- Der Assistent zeigt vor jeder Mutation Kategorien, Objektzahlen, Ziel-Workspaces, Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Datentypen. Titel und URLs dürfen in dieser lokalen Nutzervorschau erscheinen, nicht aber unredigiert in Logs, Crash Reports oder veröffentlichter Evidenz.
+- Die kompakte Importoberfläche zeigt vor jeder Mutation auf derselben vertrauten Fläche Kategorien, Objektzahlen, Ziel-Workspaces, Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Datentypen. Titel und URLs dürfen in dieser lokalen Nutzervorschau erscheinen, nicht aber unredigiert in Logs, Crash Reports oder veröffentlichter Evidenz.
 - Erzeuge deterministische Ziel-IDs und einen `ImportPlan`, sodass derselbe Snapshot bei Wiederholung keine Duplikate erzeugt.
 - Führe den Plan als additive, atomare Mehr-Workspace-Transaktion aus. Bei Fehler oder Prozessabsturz muss das `ImportJournal` vollständig zurückrollen oder beim Neustart deterministisch fortsetzen können; ein halb importierter Baum ist unzulässig.
-- Überschreibe bestehende Ahoi-Inhalte nie still. Gleichnamige Workspaces und Ordner erhalten eine sichtbare Merge-, Umbenennen- oder Überspringen-Entscheidung.
+- Überschreibe bestehende Ahoi-Inhalte nie still. Für gleichnamige Workspaces und Ordner gilt eine klar beschriftete, browserübliche Konfliktstrategie für den ganzen Lauf – beispielsweise zusammenführen, neue Kopie anlegen oder überspringen – statt eines Dialogs pro Objekt.
 - Der Ergebnisbericht nennt importierte, übersprungene, deduplizierte und degradierte Objekte sowie sicher ausgeschlossene Kategorien, ohne Geheimnisse offenzulegen.
 
 Für die reale Dogfood-Migration wird der vorhandene lokale Arc-Datenstand zuerst unveränderlich gesichert, dann als Vorschau ohne Mutation geprüft, anschließend nach Bestätigung in das installierte AhoiBrowser-Profil importiert und direkt danach mit demselben Snapshot erneut ausgeführt. Der zweite Lauf muss nachweislich idempotent beziehungsweise ein erklärter No-op sein. Workspace-, Ordner-, Tab- und rekonstruierte Split-Ergebnisse werden sichtbar im installierten AhoiBrowser geprüft.
+
+### Zen als browserübliche Importquelle
+
+Zen wird in derselben kompakten Importoberfläche wie andere Browser angeboten und erhält keinen separaten Onboarding-Wizard. Die erste Ausbaustufe erkennt Installation, `profiles.ini`, reguläre Profile, laufende Prozesse und ausschließlich die Kategorien, die aus dem tatsächlich vorliegenden Firefox-/Zen-Profil sicher gelesen werden können. Lesezeichen, Verlauf, Suchmaschinen, gespeicherte Formulardaten und andere upstream unterstützte Standardkategorien verwenden nach Möglichkeit vorhandene Chromium-/Firefox-Importer-Seams statt einer Ahoi-Kopie.
+
+Zen-spezifische Seitenleisten-, Workspace-, Ordner-, Pin- oder Splitdaten werden nur verarbeitet, wenn ihr lokaler Speicherort und Schema für die konkrete Zen-Version nachgewiesen, gebunden, begrenzt und mit Fixtures dokumentiert sind. Fehlt dieses Wissen, zeigt die Oberfläche die Standardkategorien und erklärt den noch nicht unterstützten Strukturimport; sie erzeugt keine leeren Workspaces, Phantom-Tabs oder geratenen Beziehungen. Discovery und Preview bleiben read-only. Ein späterer Strukturimport übernimmt die für Arc geltenden Invarianten für immutable Snapshot, explizite Konfliktentscheidung, deterministische IDs, atomaren Commit, Rollback, No-op-Wiederholung und Geheimnisausschluss.
+
+Ist Zen auf dem Testsystem nicht installiert, muss ein realistisches, temporäres Fixture die Erkennung und Capability-Anzeige sichtbar belegbar machen. Das Fehlen einer echten lokalen Zen-Quelle ist kein Grund, Arc-, Standardimport- oder andere kontrollierbare Arbeit anzuhalten; ein realer Zen-Datenimport bleibt dann präzise als `BLOCKED_EXTERNAL` beziehungsweise nicht vorhanden ausgewiesen.
 
 ## Erstklassige HTTP-Authentifizierung für `.htaccess`
 
@@ -920,8 +957,11 @@ Baue keinen eigenen Adblocker, keine eigene Filterlisten-Engine und keine Brave-
 Erhalte ausschließlich für **uBlock Origin Classic** die kleinstmögliche, wartbare MV2-Kompatibilität:
 
 - Allgemeines Manifest V2 bleibt im Release deaktiviert.
-- Nur feste, browserseitig erlaubte Extension-IDs erhalten die Ausnahme.
-- Die Ausnahme prüft zusätzlich signierten Katalog, erlaubte Herkunft, Version und Hash.
+- Nur die aus dem gepinnten offiziellen CRX-Schlüssel abgeleitete Identität
+  `fkgkibajhfbepljeaefdnfnegdcjomkh` erhält diese singuläre Ausnahme.
+- Die initiale Ausnahme prüft die statisch im signierten Browser gepinnte
+  CatalogEntry, erlaubte Herkunft, Version, Vollhash, CRX-Schlüssel und daraus
+  abgeleitete ID; erst spätere Updates verwenden den separaten signierten Katalog.
 - Erhalte nur die tatsächlich von uBO benötigten MV2-Background-Page-, Lifecycle- und blocking-`webRequest`-Funktionen.
 - Gewöhnliche MV3-Erweiterungen bleiben unverändert.
 - Webseiten oder beliebige Extension-Pakete dürfen die Ausnahme nicht beanspruchen.
@@ -930,19 +970,41 @@ Distribution:
 
 - uBO ist nicht vorinstalliert und nicht automatisch aktiviert.
 - Eine optionale Ein-Klick-Installation wird in AhoiBrowser angeboten.
-- Vor Installation zeigt die UI Version, Upstream-Quelle, Extension-ID und GPL-Lizenz.
-- Das Paket wird reproduzierbar und unverändert aus einem festen offiziellen Upstream-Tag erzeugt.
-- Ein signierter AhoiBrowser-Katalog liefert Metadaten und erwartete Hashes.
-- Ein eigener sicherer Updatepfad aktualisiert das Extension-Paket, weil der Chrome Web Store uBO Classic nicht mehr verteilt.
+- Vor Installation zeigt die UI Version, Upstream-Quelle, Extension-ID,
+  GPL-Lizenz, den vollständigen Release-Commit
+  `6dd2d95e50d134a477a4e183343c0b26e9147123` und den vollständigen CRX-SHA-256
+  `b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e`.
+- Die UI bezeichnet dieses Paket exakt als `Official GitHub release` und niemals
+  als Chrome-Web-Store-Paket. Entpackte ZIPs, Developer-Mode-Installationen und
+  neu signierte Ahoi-Repackages zählen nicht als dieser Pass.
+- Der initiale Dogfood-Pass verwendet eine statisch in der signierten App
+  kompilierte `CatalogEntry` für genau Version `1.74.0` und die daraus
+  abgeleitete Extension-ID `fkgkibajhfbepljeaefdnfnegdcjomkh`; beim Öffnen
+  dieses Dialogs oder beim Auflösen dieser Metadaten wird kein Netzwerkkatalog
+  abgefragt.
+- Ausschließlich das unveränderte, vom offiziellen gorhill-GitHub-Release
+  veröffentlichte CRX wird akzeptiert. Die signierte Ahoi-App pinnt Release,
+  Commit, vollständigen CRX-Hash, CRX-Public-Key-Hash, daraus abgeleitete
+  Extension-ID und Upstream-URL. Der Download darf höchstens einen
+  credentiallosen `302/GET`-Redirect zum exakt gepinnten
+  `release-assets.githubusercontent.com`-Host und Release-Asset-Pfad folgen;
+  anschließend müssen CRX3-Struktur, Key, ID, Version und alle Pins erneut
+  passen.
+- Jede Änderung irgendeines Release-, URL-, Redirect-, Paket-, Key-, ID- oder
+  Versions-Pins erfordert die erneute vollständige Trust-Root-Prüfung; ein
+  isolierter Versionsbump ist nicht zulässig.
+- Ein späterer signierter AhoiBrowser-Katalog darf neue Versionen liefern, wenn er mindestens dieselbe Paket-, Key-, ID-, Provenienz-, Monotonie- und Rollback-Sicherheit bewahrt. Solange dieser Updatepfad nicht provisioniert ist, bleibt automatisches Extension-Update deaktiviert und die nächste Classic-Version erfordert einen neuen signierten AhoiBrowser-Build mit aktualisierten Pins.
+- Der statische Bootstrap provisioniert keinen Update-Katalog und hebt weder das
+  Redistribution-Gate noch dessen Lizenz-/Releaseprüfung auf.
 - Filterlistenupdates bleiben uBOs eigener Mechanismus.
 
 Externe Release-Gates, die unabhängig voneinander geschlossen sein müssen:
 
-- Ein eigener, überprüfter HTTPS-Katalog-/Artefakt-Host, ein unveränderlicher hash-adressierter Publishing-Workflow und ein offline beziehungsweise per HSM geschützter Ed25519-Katalogschlüssel sind provisioniert; nur der öffentliche Schlüssel liegt im Repository.
-- Für die feste Chrome-Web-Store-ID liegt ein authentisches CRX vor, dessen Publisher-Signierschlüssel genau diese ID ableitet, einschließlich nachprüfbarer Distributionsberechtigung sowie Upstream-/Tag-/Build-Provenienz. Ein Ahoi-eigener Publisher-Schlüssel erfordert stattdessen eine bewusst migrierte neue Extension-ID und erneute Prüfung aller Trust Roots und Tests.
-- Source-/Lizenz-/GPL-Pflichten, Name und Logo, Redistribution, reproduzierbarer Build, Signing-Attestierungen, Release-QA und Rückrollartefakte sind vollständig geliefert und unabhängig freigegeben.
+- Der direkte offizielle Release-Asset-Pfad, dessen Tag-/Commit-Signatur, CRX-Key, abgeleitete ID, Paket-Hash und veröffentlichte Release-Metadaten sind unabhängig gegengeprüft und im signierten Build gepinnt.
+- Für einen automatischen Katalog-/Updatepfad sind ein überprüfter HTTPS-Katalog, ein unveränderlicher hash-adressierter Publishing-Workflow und ein offline beziehungsweise per HSM geschützter Ed25519-Katalogschlüssel provisioniert; nur der öffentliche Schlüssel liegt im Repository.
+- Source-/Lizenz-/GPL-Pflichten, Name und Logo, direkte Upstream-Distribution beziehungsweise Redistribution, Release-QA und Rückrollinformationen sind für den exakt verwendeten Classic-Kandidaten dokumentiert.
 
-Bis alle drei Gates erfüllt und durch reale Release-Evidenz belegt sind, bleibt die Produktionskonfiguration unprovisioniert und der Installationspfad schlägt ohne Netzwerkzugriff fail-closed fehl. Kein Gate darf durch ein anderes ersetzt werden.
+Der manuelle Dogfood-Installationspfad darf nach bestandenem erstem und drittem Gate mit statisch im signierten Browser gepinnten 1.74.0-Metadaten arbeiten. Das zweite Gate bleibt für automatische Extension-Updates erforderlich und wird nicht durch einen Dogfood-Installpass ersetzt. Fehlt ein für die jeweilige Aktion erforderliches Gate, schlägt ausschließlich diese Aktion fail-closed fehl.
 
 Pflichttests:
 
@@ -955,7 +1017,8 @@ Pflichttests:
 - Filterlistenupdate;
 - Extension-Update;
 - Deinstallation;
-- Ablehnung eines nicht allowlisteten MV2-Pakets;
+- Ablehnung jedes fremden, unpacked, umsignierten oder nur ID-gefälschten
+  MV2-Pakets außerhalb der exakten Paket-/Schlüssel-/Transaktionsgrenze;
 - unveränderte Funktion gewöhnlicher MV3-Erweiterungen.
 
 Wenn die Funktion nur durch eine allgemeine MV2-Freigabe oder eine große, unwartbare Extension-Forkfläche möglich wäre, dokumentiere ein Architektur-No-Go. Implementiere keinen unsicheren Workaround.
@@ -1143,7 +1206,9 @@ Erstelle eine maschinenlesbare Endpoint-Allowlist und einen dynamischen Netzwerk
 - Keine Secrets im Repository.
 - Header-, Injection-, HTTP-Auth-, Sync-, Remote-Control- und Updatefunktionen benötigen Threat Model und Security Review.
 - Remote Commands erlauben keine Shellbefehle und keine beliebigen Custom Schemes.
-- Update-, Extension- und uBO-Kataloge werden signiert.
+- Update-, Extension- und spätere uBO-Updatekataloge werden signiert; der
+  initiale uBO-Bootstrap verwendet ohne Netzwerk-Katalog ausschließlich die
+  statischen Pins des signierten Browsers.
 - manipulierte Artefakte werden sicher abgewiesen.
 
 ## CloudKit-Sync
@@ -1424,8 +1489,9 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - AnyChat;
 - Bitwarden;
 - uBlock Origin Classic;
-- sicherer Arc-Importassistent mit Vorschau, atomarem Commit, Rollback und idempotenter Wiederholung;
+- kompakter sicherer Arc-Import mit Vorschau, atomarem Commit, Rollback und idempotenter Wiederholung;
 - realer Import des vorhandenen lokalen Arc-Datenstands nach unveränderlichem Backup;
+- Zen-Erkennung und browserübliche Standardkategorien über vorhandene Importer-Seams; strukturtreue Zen-Migration nur für nachgewiesene, versionsgebundene Schemata;
 - reale User-E2E-Abnahme.
 
 ### Phase 4 – Developer Toolkit und Privacy
@@ -1682,8 +1748,8 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `CMD-03`: `g Suchbegriff` führt direkte Google-Suche aus.
 - `CMD-04`: offene Tabs, Baum, Ordner, Workspaces, Verlauf und Befehle finden.
 - `CMD-05`: gesamte Command-Bar-Reise nur per Tastatur.
-- `CMD-06`: Ranking und Command-Bar-Latenz messen.
-- `QUICK-01`: globalen Shortcut bei inaktiver App verwenden.
+- `CMD-06`: Ranking und Command-Bar-Latenz im installierten sichtbaren Lauf messen; `Ahoi.CommandBar.QueryLatency` erfasst nur die synchrone lokale Rankingdauer und niemals Query-/URL-/Identitäts- oder Ergebnisinhalt.
+- `QUICK-01`: globalen Shortcut bei inaktiver App verwenden; Registrierung ist retryfähig, wird nach dem letzten regulären Fenster abgemeldet und Cooldown startet erst nach tatsächlich geöffnetem Quick Window.
 - `QUICK-02`: eingeloggte Website öffnen; Quick Window nutzt dasselbe normale Profil.
 - `QUICK-03`: Seite in normalen Tab beziehungsweise Baum übernehmen.
 - `QUICK-04`: Quick Window schließen, ohne normale Sitzung zu beschädigen.
@@ -1708,7 +1774,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `NAV-04`: Drag-and-drop einer Datei in Website und Browser-Chrome.
 - `NAV-05`: Drucken und PDF-Vorschau.
 - `NAV-06`: OAuth-Testlogin.
-- `NAV-07`: Passkey/WebAuthn-Test.
+- `NAV-07`: echte Plattform-Passkey-/WebAuthn-Zeremonie mit macOS-Systemauthentifizierung; die lokale simulierte Challenge zählt nur als Plumbing-Teilbeleg.
 - `NAV-08`: sicherer Custom-Protocol-Prompt.
 - `NAV-09`: Chromiums unveränderte Trackpad-/Magic-Mouse-Wischgeste über einer Seite für Zurück und Vor als Regression prüfen; langsame, schnelle und abgebrochene Bewegung mit sichtbarem Fortschritt, aber keine Ahoi-Parallelimplementierung.
 - `NAV-10`: Seiten-, Workspace- und horizontale Website-Scrollgeste gegeneinander testen; genau eine erkannte Aktion, kein Doppelwechsel und konfigurierbare Deaktivierung.
@@ -1753,9 +1819,9 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `AUTH-20`: Digest Auth funktioniert ohne Vermischung mit Basic-Auth-Einträgen.
 - `AUTH-21`: Inkognito kann vorhandenes Konto nur explizit auswählen und speichert keine Änderungen.
 - `AUTH-22`: Schließen des letzten Inkognito-Fensters verwirft dessen Auth-Cache.
-- `AUTH-23`: HTTP-Auth-Credentials erscheinen weder auf Mac B noch in CloudKit oder iOS.
+- `AUTH-23`: HTTP-Auth-Credentials erscheinen nach kandidatgebundener Mehrgeräte-Negativprüfung weder auf Mac B noch in CloudKit oder iOS; lokale Provider-/Scanner-Nachweise reichen allein nicht.
 - `AUTH-24`: Passwortanzeige in der HTTP-Zugangsverwaltung erfordert Touch ID/Systemauthentifizierung.
-- `AUTH-25`: Logs, NetLog, Crash Reports und Evidenz enthalten weder Passwort noch vollständigen Authorization-Header.
+- `AUTH-25`: kandidatgebundene Logs, NetLog, Crash Reports und Evidenz enthalten weder synthetisch injizierte Passwort-/Authorization-Canaries noch unredigierte Credential-Felder, Cookie- oder vollständige Authorization-Header; der wertblinde Scanner läuft erst nach den sichtbaren installierten Journeys über die exakten Capture-Wurzeln.
 - `AUTH-26`: Subresource-Auth-Challenge kann keine unklare oder irreführende Credential-Abfrage erzeugen.
 - `AUTH-27`: vollständige sichtbare Reise – Speichern, Neustart, Autocomplete, Kontowahl, Fehlerkorrektur, Wechsel und Abmeldung – via Computer Use im installierten Build.
 
@@ -1800,19 +1866,22 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `EXT-11`: AnyChat mit exakt der erwarteten Store-ID im AhoiBrowser-Profil installieren, sichtbare Berechtigungen prüfen, Action beziehungsweise Side Panel öffnen und nach Browserneustart erneut bedienen.
 - `EXT-12`: nachweisen, dass AnyChat, 1Password und uBlock ausschließlich im getesteten AhoiBrowser-Profil installiert beziehungsweise konfiguriert wurden; Google-Chrome- und Arc-Profile bleiben byte- beziehungsweise zustandsseitig unverändert.
 - `EXT-13`: 1Password-Native-Messaging wird über den offiziellen Additional-Browsers-Prozess für die signierte Ahoi-App provisioniert; ein aus Arc oder Chrome kopiertes Manifest wird abgewiesen und zählt nicht als Pass.
-- `UBO-01`: uBlock Origin Classic über AhoiBrowser-Ein-Klick-Flow installieren.
-- `UBO-02`: Version, ID, Quelle und Hash gegen Katalog prüfen.
+- `EXT-14`: das Erweiterungsmenü in einem echten Null-Tab-Fenster mit installierten Erweiterungen mehrfach öffnen und schließen; Namen, Icons und Verwaltung bleiben sichtbar, während Action, Site Access, Site Permissions und Reload ohne aktiven Tab ausgeblendet oder deaktiviert sind. Danach einen normalen HTTP-/HTTPS-Tab aktivieren und dieselben Controls ohne Neustart korrekt aktualisiert bedienen.
+- `EXT-15`: AnyChat-Installation jeweils vor der Bestätigung abbrechen, mit einem kontrollierten Installationsfehler scheitern lassen und erfolgreich abschließen. Abbruch und Fehler hinterlassen weder Extension-Verzeichnis noch Preference-, Cache-, Update- oder Toolbar-Rest und crashen weder sofort noch beim Neustart; nur der erfolgreiche Lauf persistiert exakt `khpefodpgnkegiohbolbaaeabnfdegln` und besteht anschließend `EXT-11`.
+- `UBO-00`: Inventar und UI unterscheiden uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und den tatsächlich signierten offiziellen Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) sichtbar; eine Lite-Installation wird in keinem Bericht, Gate oder Screenshot als Classic-Pass gewertet und der GitHub-Release wird nicht als Store-Paket bezeichnet.
+- `UBO-01`: uBlock Origin Classic 1.74.0 aus dem browserseitig gepinnten Official GitHub release ohne Katalogrequest explizit herunterladen, Chromium-Berechtigungsdialog bestätigen und atomare Autorisierung nachweisen.
+- `UBO-02`: Version, vollständigen Release-Commit, exakte GitHub-Start-URL, höchstens einen credentiallosen Release-Asset-Redirect, vollständigen CRX-Hash, CRX-Public-Key-Hash und daraus abgeleitete ID gegen die Browser-Pins prüfen.
 - `UBO-03`: Netzwerkrequest auf kontrollierter Testseite blockieren.
 - `UBO-04`: kosmetischen Filter prüfen.
 - `UBO-05`: eigene Filterregel anlegen.
 - `UBO-06`: Dashboard und Einstellungen verwenden.
 - `UBO-07`: Browserneustart und Persistenz.
 - `UBO-08`: Filterlistenupdate.
-- `UBO-09`: Extension-Update über signierten Katalog.
+- `UBO-09`: späteres Extension-Update ausschließlich über den separat provisionierten signierten Katalog mit Sequenz größer 174000; Rollback vor Paketdownload abweisen.
 - `UBO-10`: Deinstallation.
-- `UBO-11`: fremdes, nicht allowlistetes MV2-Paket wird abgewiesen.
+- `UBO-11`: fremdes, unpacked, umsigniertes oder nur ID-gefälschtes MV2-Paket wird abgewiesen.
 - `UBO-12`: gewöhnliche MV3-Erweiterungen funktionieren parallel unverändert.
-- `UBO-13`: unprovisionierte Katalog-, Signing- oder Publisher-Trust-Roots bleiben sichtbar deaktiviert und lösen keinen Netzwerkrequest aus.
+- `UBO-13`: Build-Konfiguration ohne statischen Bootstrap und ohne signierte Katalog-Trust-Roots bleibt sichtbar deaktiviert und löst keinen Netzwerkrequest aus; statischer Bootstrap allein löst keinen Katalogrequest aus.
 
 ### Arc-Import
 
@@ -1828,6 +1897,15 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `IMPORT-ARC-10`: denselben Snapshot zweimal importieren; der zweite Lauf ist ohne Duplikate ein nachvollziehbarer No-op.
 - `IMPORT-ARC-11`: Cookies, Login Data, Passwörter, Tokens, Sessions, `Secure Preferences`, Extension Storage, Native-Messaging-Manifeste, Keychain- und Inkognito-Daten bleiben ausgeschlossen; Logs und Evidenz sind redigiert.
 - `IMPORT-ARC-12`: vorhandenen realen lokalen Arc-Datenstand nach immutable Backup und Dry Run in das installierte AhoiBrowser-Profil importieren; Workspaces, Ordner, gespeicherte Seiten und rekonstruierbare Splits sichtbar prüfen und den No-op-Wiederholungslauf belegen.
+
+### Zen-Importvorbereitung
+
+- `IMPORT-ZEN-01`: installierte Zen-App, `profiles.ini`, alle regulären Profile und einen wirklich laufenden Zen-Prozess erkennen; fehlende Installation und verwaiste Lockdateien verursachen keinen False Positive.
+- `IMPORT-ZEN-02`: pro Profil ausschließlich real unterstützte Standardkategorien anzeigen und über vorhandene Chromium-/Firefox-Importer-Seams importieren; nicht verfügbare Kategorien bleiben verborgen oder verständlich deaktiviert.
+- `IMPORT-ZEN-03`: unbekannte oder nicht belegte Zen-Seitenleistenschemata fail-closed als noch nicht strukturimportfähig ausweisen; keine geratenen Workspaces, Pins, Ordner, Tabs oder Splits erzeugen.
+- `IMPORT-ZEN-04`: ein versionsgebundenes Zen-Fixture mit nachgewiesenem Schema read-only erkennen, begrenzt parsen und als redigierte Vorschau darstellen; Symlink-, Traversal-, Größen-, Lock- und Malformed-Fälle ablehnen.
+- `IMPORT-ZEN-05`: sobald ein Strukturadapter freigegeben ist, dieselben atomaren Commit-, Rollback-, Deduplizierungs-, Konflikt- und No-op-Verträge wie der Arc-Importer erfüllen.
+- `IMPORT-ZEN-06`: ist auf dem Test-Mac kein reales Zen-Profil vorhanden, den normalen sichtbaren „nicht gefunden“-Zustand und die Capability-Erkennung mit einem temporären realistischen Fixture belegen, ohne einen realen Importpass zu behaupten.
 
 ### Lokaler Passwortmanager und Autofill
 
@@ -2130,14 +2208,16 @@ Bei externen Blockern dokumentiere:
 - Bitwarden bestanden;
 - lokaler Chromium-Passwortmanager einschließlich Mehrkontoauswahl, Bearbeitung, sicherer Klartextanzeige, Autofill-/Passkey-Abgrenzung und Inkognito-Policy bestanden;
 - uBlock Origin Classic einschließlich Updates bestanden;
-- nicht allowlistetes MV2 bleibt gesperrt.
+- fremdes, unpacked, umsigniertes oder nur ID-gefälschtes MV2 bleibt außerhalb der exakten Paket-/Schlüssel-/Transaktionsgrenze gesperrt.
 
-### Arc-Migrations-Gate
+### Browser-Import-Gate
 
 - Arc-Discovery, immutable Snapshot, WAL-/SHM-Konsistenz, Parserlimits und sichere Ausschlussregeln bestanden;
 - Spaces, Listen, Tabs und valide Splits werden deterministisch in das native Ahoi-Modell übernommen; beschädigte Splits degradieren ohne Datenverlust oder Phantom-Tabs;
 - Vorschau, Konfliktauflösung, atomarer Commit, Crash-Rollback und idempotenter No-op-Wiederholungslauf bestanden;
 - ein realer lokaler Arc-Datenstand wurde nach Backup und Dry Run in das installierte AhoiBrowser-Profil importiert und sichtbar geprüft;
+- Zen wird in derselben browserüblichen Importoberfläche korrekt erkannt oder als nicht vorhanden ausgewiesen; Standardkategorien verwenden vorhandene Importer-Seams, und ein Zen-Strukturadapter bleibt ohne nachgewiesenes versionsgebundenes Schema fail-closed;
+- bei fehlendem realem Zen-Profil sind Fixture-Capability- und sichtbarer Nicht-gefunden-Pass ehrlich vom realen Importpass getrennt;
 - Arc, Google Chrome, fremde Extension Storage, Native-Messaging-Manifeste, Cookies, Sessions, Passwörter und Geheimnisse blieben unverändert beziehungsweise ausgeschlossen.
 
 ### HTTP-Auth Gate
@@ -2208,7 +2288,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 5. Nested Tree, vollständiges Sidebar-Drag-and-drop, Zwei-/Drei-/Vier-Pane-Split Views einschließlich persistiertem 2×2, Workspaces samt Dots/Swipe, echter Null-Tab-/Empty-Workspace-Zustand, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
 6. Schwebende Auto-Hide-Navigationszeile mit Reveal-Notch und Extensions, abgerundeter WebContents-Container, Glass, Floating Sidebar und Web-Popup-Overlays funktionieren ohne falschen Viewport-Reflow und bestehen die vollständigen CU-E2E-Fälle.
 7. Downloads, Uploads, PDF, Drucken, Medien, Sidebar-MiniPlayer, PiP, WebRTC und Permissions bestehen reale Tests.
-8. Chrome-Web-Store-Extensions, AnyChat, lokaler Passwortmanager, 1Password, Bitwarden und uBlock Origin Classic funktionieren ausschließlich im installierten AhoiBrowser-Profil; fremde Browserprofile blieben unverändert.
+8. Chrome-Web-Store-Extensions, AnyChat, lokaler Passwortmanager, 1Password und Bitwarden sowie uBlock Origin Classic über den browserseitig gepinnten Official GitHub release funktionieren ausschließlich im installierten AhoiBrowser-Profil; fremde Browserprofile blieben unverändert.
 9. HTTP Basic Auth/`.htaccess` bietet Speicherung, mehrere Konten, Auswahl, Autocomplete, Update, Wechsel und Abmeldung und besteht die vollständige Auth-Testgruppe.
 10. Developer Toolkit und beide Privacy-Modi sind vollständig abgenommen.
 11. Chromiums unveränderte Zurück-/Vor-Geste ist regressionsfrei; Ahois Workspace-Swipe, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling sind konfliktfrei, konfigurierbar und real abgenommen.

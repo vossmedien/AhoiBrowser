@@ -28,6 +28,9 @@ class GeneralE2EFixtureRepositoryTests(unittest.TestCase):
             "start",
             "stop",
             "cleanup",
+            "protocol-install",
+            "protocol-status",
+            "protocol-remove",
             "run-tests",
         ):
             with self.subTest(command=command):
@@ -37,12 +40,19 @@ class GeneralE2EFixtureRepositoryTests(unittest.TestCase):
         readme = (ROOT / "fixtures/e2e/README.md").read_text(encoding="utf-8")
         self.assertIn("I-understand-this-adds-a-local-test-CA", readme)
         self.assertIn("remove-the-local-test-CA", readme)
+        self.assertIn("install-the-isolated-ahoi-e2e-protocol-handler", readme)
+        self.assertIn("remove-the-isolated-ahoi-e2e-protocol-handler", readme)
         self.assertIn("never invokes either trust-changing command", readme)
         self.assertIn("TLS validation enabled", readme)
+        self.assertIn("self-contained, owner-readable Python helper", readme)
+        self.assertIn("stale receipt alone never authorizes deletion", readme)
+        self.assertIn("foreign handler", readme)
+        self.assertIn("transactional rollback", readme)
 
     def test_required_fixture_assets_exist(self):
         required = (
             "fixtures/e2e/certificates.py",
+            "fixtures/e2e/custom_protocol.py",
             "fixtures/e2e/manage.py",
             "fixtures/e2e/pages.py",
             "fixtures/e2e/receipts.py",

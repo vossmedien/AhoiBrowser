@@ -11,6 +11,7 @@
 
 #include "base/base64.h"
 #include "base/json/json_writer.h"
+#include "base/strings/strcat.h"
 #include "base/time/time.h"
 #include "base/values.h"
 #include "crypto/keypair.h"
@@ -26,6 +27,7 @@ constexpr char kPackageHash[] =
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 constexpr char kCrxKeyHash[] =
     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+constexpr char kUpstreamCommit[] = "cccccccccccccccccccccccccccccccccccccccc";
 
 struct SigningFixture {
   SigningFixture()
@@ -46,7 +48,7 @@ UboProductConfig MakeConfig(const SigningFixture& keys) {
 
 base::DictValue MakePayload() {
   return base::DictValue()
-      .Set("schema_version", 1)
+      .Set("schema_version", 2)
       .Set("sequence", "42")
       .Set("valid_from", "1999999900")
       .Set("valid_until", "2000001000")
@@ -57,6 +59,7 @@ base::DictValue MakePayload() {
       .Set("sha256", kPackageHash)
       .Set("crx_public_key_sha256", kCrxKeyHash)
       .Set("upstream_tag", "1.55.0")
+      .Set("upstream_commit", kUpstreamCommit)
       .Set("upstream_source_url",
            "https://github.com/gorhill/uBlock/releases/tag/1.55.0")
       .Set("license", kUboLicense);
@@ -77,7 +80,7 @@ base::Time TestNow() {
   return base::Time::FromSecondsSinceUnixEpoch(kNowSeconds);
 }
 
-TEST(UboCatalogTest, AcceptsExactlySignedAllowlistedCatalog) {
+TEST(UboCatalogTest, AcceptsExactlySignedLaterUpdateCatalog) {
   SigningFixture keys;
   UboProductConfig config = MakeConfig(keys);
 
@@ -89,6 +92,49 @@ TEST(UboCatalogTest, AcceptsExactlySignedAllowlistedCatalog) {
   EXPECT_EQ(kUboClassicExtensionId, result->extension_id);
   EXPECT_EQ("1.55.0", result->version.GetString());
   EXPECT_EQ(kPackageHash, result->package_sha256);
+  EXPECT_EQ(kUpstreamCommit, result->upstream_commit);
+}
+
+TEST(UboCatalogTest, RejectsSignedSchemaOneCatalog) {
+  SigningFixture keys;
+  UboProductConfig config = MakeConfig(keys);
+  base::DictValue payload = MakePayload();
+  payload.Set("schema_version", 1);
+
+  auto result =
+      VerifyUboCatalog(config, config.catalog_url,
+                       SignPayload(keys, std::move(payload)), TestNow());
+
+  ASSERT_FALSE(result.has_value());
+  EXPECT_EQ(UboVerificationError::kUnsupportedSchema, result.error());
+}
+
+TEST(UboCatalogTest, RejectsSignedCatalogWithoutUpstreamCommit) {
+  SigningFixture keys;
+  UboProductConfig config = MakeConfig(keys);
+  base::DictValue payload = MakePayload();
+  payload.Remove("upstream_commit");
+
+  auto result =
+      VerifyUboCatalog(config, config.catalog_url,
+                       SignPayload(keys, std::move(payload)), TestNow());
+
+  ASSERT_FALSE(result.has_value());
+  EXPECT_EQ(UboVerificationError::kMalformedPayload, result.error());
+}
+
+TEST(UboCatalogTest, RejectsSignedCatalogWithInvalidUpstreamCommit) {
+  SigningFixture keys;
+  UboProductConfig config = MakeConfig(keys);
+  base::DictValue payload = MakePayload();
+  payload.Set("upstream_commit", "ABCDEF");
+
+  auto result =
+      VerifyUboCatalog(config, config.catalog_url,
+                       SignPayload(keys, std::move(payload)), TestNow());
+
+  ASSERT_FALSE(result.has_value());
+  EXPECT_EQ(UboVerificationError::kInvalidUpstreamSource, result.error());
 }
 
 TEST(UboCatalogTest, RejectsPayloadTamperingAfterSignature) {
@@ -153,14 +199,52 @@ TEST(UboCatalogTest, RejectsInsecureOrRedirectedArtifactsAndManifests) {
             manifest_result.error());
 }
 
-TEST(UboCatalogTest, ProductionConfigFailsClosedUntilProvisioned) {
+TEST(UboCatalogTest, ProductionConfigBootstrapsWithoutCatalogTrustRoot) {
   UboProductConfig config = GetProductionUboProductConfig();
-  EXPECT_FALSE(config.IsProvisioned());
+  EXPECT_TRUE(config.IsProvisioned());
+  EXPECT_TRUE(config.IsPinnedBootstrapProvisioned());
+  EXPECT_FALSE(config.IsSignedCatalogProvisioned());
+
+  UboCatalogEntry bootstrap = GetPinnedUboBootstrapCatalogEntry();
+  EXPECT_TRUE(IsPinnedUboBootstrapCatalogEntry(bootstrap));
+  EXPECT_EQ(kUboClassicVersion, bootstrap.version.GetString());
+  EXPECT_EQ(kUboClassicReleaseCommit, bootstrap.upstream_commit);
+  EXPECT_EQ(kUboClassicPackageSha256, bootstrap.package_sha256);
+  EXPECT_EQ(kUboClassicCrxPublicKeySha256, bootstrap.crx_public_key_sha256);
+
+  // A compiled bootstrap does not make unsigned catalog bytes acceptable.
   auto result = VerifyUboCatalog(
       config, GURL("https://updates.ahoi.example/catalog.json"), "{}",
       TestNow());
   ASSERT_FALSE(result.has_value());
   EXPECT_EQ(UboVerificationError::kNotProvisioned, result.error());
+}
+
+TEST(UboCatalogTest, AllowsOnlyExactOfficialGithubReleaseAssetRedirect) {
+  const GURL requested(kUboClassicPackageUrl);
+  const GURL allowed(
+      base::StrCat({"https://release-assets.githubusercontent.com",
+                    kUboClassicReleaseAssetPath, "?jwt=signed-by-github"}));
+  EXPECT_TRUE(IsAllowedUboPackageFinalUrl(requested, requested));
+  EXPECT_TRUE(IsAllowedUboPackageFinalUrl(requested, allowed));
+  EXPECT_TRUE(IsAllowedUboPackageRedirect(requested, requested, allowed));
+  EXPECT_FALSE(IsAllowedUboPackageRedirect(requested, requested, requested));
+
+  EXPECT_FALSE(IsAllowedUboPackageFinalUrl(
+      requested,
+      GURL("https://release-assets.githubusercontent.com/"
+           "github-production-release-asset/33263118/foreign?jwt=x")));
+  EXPECT_FALSE(IsAllowedUboPackageFinalUrl(
+      requested, GURL(base::StrCat({"https://attacker.example",
+                                    kUboClassicReleaseAssetPath, "?jwt=x"}))));
+  EXPECT_FALSE(IsAllowedUboPackageFinalUrl(
+      allowed,
+      GURL(base::StrCat({"https://release-assets.githubusercontent.com",
+                         kUboClassicReleaseAssetPath, "?jwt=second"}))));
+  EXPECT_FALSE(IsAllowedUboPackageRedirect(
+      requested, allowed,
+      GURL(base::StrCat({"https://release-assets.githubusercontent.com",
+                         kUboClassicReleaseAssetPath, "?jwt=second"}))));
 }
 
 }  // namespace

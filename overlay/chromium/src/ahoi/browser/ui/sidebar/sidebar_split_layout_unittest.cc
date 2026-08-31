@@ -39,6 +39,67 @@ TEST(SidebarSplitLayoutTest, SplitRatiosExcludeGapsFromAvailableExtent) {
   EXPECT_EQ(24, GetSplitSegmentBounds(bounds, 2, 3, three_main).height());
 }
 
+TEST(SidebarSplitLayoutTest,
+     ThreePaneLinearPrimaryRatioExcludesBothDividerGaps) {
+  const gfx::Rect horizontal_bounds(0, 0, 100, 50);
+  auto horizontal = split_tabs::SplitTabVisualData::ForThreePane(
+      split_tabs::SplitTabLayout::kSideBySide,
+      split_tabs::SplitTabArrangement::kLinear);
+  ASSERT_TRUE(horizontal.set_split_ratio(0.5));
+  ASSERT_TRUE(horizontal.set_secondary_split_ratio(0.5));
+
+  EXPECT_EQ(gfx::Rect(0, 0, 48, 50),
+            GetSplitSegmentBounds(horizontal_bounds, 0, 3, horizontal));
+  EXPECT_EQ(gfx::Rect(50, 0, 24, 50),
+            GetSplitSegmentBounds(horizontal_bounds, 1, 3, horizontal));
+  EXPECT_EQ(gfx::Rect(76, 0, 24, 50),
+            GetSplitSegmentBounds(horizontal_bounds, 2, 3, horizontal));
+
+  const gfx::Rect vertical_bounds(0, 0, 50, 100);
+  auto vertical = split_tabs::SplitTabVisualData::ForThreePane(
+      split_tabs::SplitTabLayout::kStacked,
+      split_tabs::SplitTabArrangement::kLinear);
+  ASSERT_TRUE(vertical.set_split_ratio(0.5));
+  ASSERT_TRUE(vertical.set_secondary_split_ratio(0.5));
+
+  EXPECT_EQ(gfx::Rect(0, 0, 50, 48),
+            GetSplitSegmentBounds(vertical_bounds, 0, 3, vertical));
+  EXPECT_EQ(gfx::Rect(0, 50, 50, 24),
+            GetSplitSegmentBounds(vertical_bounds, 1, 3, vertical));
+  EXPECT_EQ(gfx::Rect(0, 76, 50, 24),
+            GetSplitSegmentBounds(vertical_bounds, 2, 3, vertical));
+}
+
+TEST(SidebarSplitLayoutTest,
+     ThreePaneLinearDividersUseChromiumRatioExtentsAndIndices) {
+  const gfx::Rect group_bounds(0, 0, 100, 50);
+  auto visual_data = split_tabs::SplitTabVisualData::ForThreePane(
+      split_tabs::SplitTabLayout::kSideBySide,
+      split_tabs::SplitTabArrangement::kLinear);
+  ASSERT_TRUE(visual_data.set_split_ratio(0.5));
+  ASSERT_TRUE(visual_data.set_secondary_split_ratio(0.5));
+  std::vector<gfx::Rect> segments;
+  for (size_t index = 0; index < 3; ++index) {
+    segments.push_back(
+        GetSplitSegmentBounds(group_bounds, index, 3, visual_data));
+  }
+
+  const std::vector<SidebarSplitDivider> dividers = GetSidebarSplitDividers(
+      group_bounds, segments, gfx::RectF(group_bounds), visual_data);
+
+  ASSERT_EQ(2u, dividers.size());
+  EXPECT_EQ(0u, dividers[0].divider_index);
+  EXPECT_EQ(96, dividers[0].ratio_extent);
+  EXPECT_EQ(gfx::PointF(49.0f, 0.0f), dividers[0].start);
+  EXPECT_EQ(gfx::PointF(49.0f, 50.0f), dividers[0].end);
+  EXPECT_EQ(1u, dividers[1].divider_index);
+  EXPECT_EQ(48, dividers[1].ratio_extent);
+  EXPECT_EQ(gfx::PointF(75.0f, 0.0f), dividers[1].start);
+  EXPECT_EQ(gfx::PointF(75.0f, 50.0f), dividers[1].end);
+  EXPECT_EQ(gfx::Rect(44, 0, 10, 50),
+            GetSidebarSplitDividerHitBounds(dividers[0]));
+}
+
 TEST(SidebarSplitLayoutTest, RuntimeHeightKeepsStackedSegmentsReadable) {
   constexpr int kStandardRowHeight = 32;
   const split_tabs::SplitTabVisualData side_by_side(

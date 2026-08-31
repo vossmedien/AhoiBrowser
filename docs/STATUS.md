@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-08-27
+Last updated: 2026-08-31
 
 This page separates completed, reproducible evidence from explicitly pending
 gates for the active source state. A running suite is not counted as a pass,
@@ -9,15 +9,23 @@ and development signing or an app copied to `/Applications` is not release or
 
 ## Active M152 source state
 
+The table preserves earlier development evidence while distinguishing it from
+the currently growing feature wave. A prior green patch-series or installed
+candidate does not prove the present 23-entry series, the dirty working tree,
+or the combined master-prompt feature package.
+
 | Gate | Result | Evidence boundary |
 | --- | --- | --- |
 | Chromium Stable pin | `PASS` | `config/chromium.json` selects Mac Stable `152.0.7977.65` at exact commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`; `./scripts/verify-pin-online.sh` confirmed that pair against the official Mac Stable release and also confirmed the pinned depot_tools revision. This Chromium base is not Nightly or Canary. |
 | Target-object hydration | `PASS` | `artifacts/build/chromium-checkout-hydration-m152.json` records all 461,863 unique target blobs present, zero remaining, and an unchanged worktree, index, `HEAD`, refs, `FETCH_HEAD`, and shallow boundary. This proves object availability, not dependency sync or a build. |
-| Overlay/patch preflight | `PASS` (`3/3 applies`) | The tracked overlay and active series (`0001-ahoi-m152-integration-seams.patch`, `0002-ahoi-deterministic-platform-tests.patch`, `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`) compose non-mutatingly to tree `d5d32d524f909da7043577d204d726b289a6d757`; see `artifacts/build/chromium-roll-preflight-m152-final.json`. |
+| Previous three-entry overlay/patch preflight | `PASS` (superseded baseline) | `artifacts/build/chromium-roll-preflight-m152-final.json` covers only the former `0001`–`0003` series and compose tree `d5d32d524f909da7043577d204d726b289a6d757`. It is retained as historical development evidence and is not evidence for the active series. |
+| Active feature-wave overlay/patch composition | `IN PROGRESS` | `patches/chromium/series` currently contains 23 entries through `0023-ahoi-sidebar-presentation-geometry.patch`. A complete current-source preflight, source-matched build/sign/install chain and combined visible E2E result have not yet been recorded. |
+| Requirement registry | `412 NOT_RUN` | The registry contains 397 unique Master IDs plus 15 separately governed `MOB-USER` IDs: 303 `CU_E2E`, 36 `ASSISTED_E2E`, 72 `INTEGRATION` and one `UNIT`. This is contract coverage only, not execution evidence. |
 | M152 development toolchain and dependencies | `PASS` | The development build completed with pinned Xcode 26.6/17F113, macOS SDK 26.5/25F70, iOS SDK 26.5/23F81a, checkout-pinned depot_tools, and verified temporary Chromium/V8 path workarounds. Upstream/release and development labels remain provenance-separated even though they select the same installation. |
-| M152 focused tests | `PASS` | The complete sidebar suite passed `79/79`, including `CollapsingViewportDefersRegisteredTextfieldRecycling`. The current outer repository gate also passed 185 repository tests, 13 HTTP-auth fixture tests, 17 HTTPS fixture tests, and 36 CloudKit model tests. These focused development results are not the full product matrix. |
+| Prior M152 focused tests | `PASS` (superseded baseline) | The earlier sidebar suite passed `79/79`, including `CollapsingViewportDefersRegisteredTextfieldRecycling`; its outer repository gate recorded 185 repository tests, 13 HTTP-auth fixture tests, 17 HTTPS fixture tests and 36 CloudKit model tests. Those counts predate the current registry and feature wave and have not been rerun as a combined gate. |
 | M152 development build and installation | `PASS` | The component runtime staged 525 dynamic libraries and 238 resources. The ARM64 app was stamped to the current source, signed with the configured Apple Development identity, installed atomically at `/Applications/AhoiBrowser.app`, and verified against the built executable. Chromium is Stable; `config/version.json` still labels this Ahoi development product channel `nightly`, so this is not an Ahoi Stable release. |
 | Installed visible compatibility smoke | `PASS` (development scope) | Computer Use visibly confirmed `chrome://version` as Chromium `152.0.7977.65` and the executable below `/Applications/AhoiBrowser.app`. Four fresh sidebar collapse/restore cycles and a native sidebar resize completed while the installed browser stayed alive, with no post-fix Crashpad dump. See `artifacts/computer-use/m152/README.md`. This scoped smoke is not the master prompt's full `CU_E2E PASS`. |
+| Zero-tab extension-menu crash regression | `PASS` (development-only scoped candidate) | Installed executable `c56d2a23f214934973704a36d501ab77f5d2b9bf8475b9fb99df3420f8fdf9fe` opened the extension menu four times without a tab, updated it on HTTPS, survived restart, and produced no new crash report. See `docs/audit-evidence/2026-08-30-extension-menu-zero-tab/README.md`. This does not prove the active combined source, AnyChat transaction paths, uBlock Classic, import, or split journeys. |
 | M152 interaction-regression gate | `PASS` (development scope) | Source `f332dd7011c1aca566f919e5d6d955dcfcab7f99` passed 402/402 focused unit tests and 14/14 retry-disabled browser tests. The latter cover floating native drag routing, appearance settings, exact quick-window handoff, two-to-four-pane split preservation/extraction, and lazy developer-style-compiler lifecycle. |
 | Source-matched build and installed binding | `PASS` (development scope) | The official build wrapper completed at `f332dd7`; its incremental Ninja phase linked eight targets. The ARM64 development app was signed, installed atomically, deep/strict codesign-verified, independently verified, and matched the built executable at SHA-256 `1453ef09b84104002f798ee1e83d0788939c5c3e6bc08bb0f09b01a39db6b259`. |
 | Installed interaction smoke | `PASS` with explicit native-drag boundary | Fresh-profile Computer Use visibly proved exact FPN resolution in normal and Command-T entry, the independent CloudKit/developer settings, restored Developer menu and opened DevTools, `URL kopieren`, floating-card geometry, and address-bar-over-sidebar layering. The Computer Use primitive did not initiate native AppKit drag in either floating or docked mode; therefore the installed drag is not mislabeled `CU_E2E PASS`. The retry-disabled native-routing browser test is green. See `artifacts/computer-use/m152/README.md`. |

@@ -4,6 +4,7 @@
 #ifndef AHOI_BROWSER_IMPORTER_ARC_ARC_IMPORT_SERVICE_H_
 #define AHOI_BROWSER_IMPORTER_ARC_ARC_IMPORT_SERVICE_H_
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -11,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/importer/arc/arc_import_journal.h"
 #include "ahoi/browser/importer/arc/arc_import_transaction.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback.h"
@@ -20,12 +22,20 @@
 
 class BrowserWindowInterface;
 class Profile;
+class SessionID;
+
+namespace sessions {
+struct SessionWindow;
+}
 
 namespace ahoi {
 class SessionBridge;
 }
 
 namespace ahoi::importer::arc {
+
+struct ArcImportBackupRecoveryResult;
+struct ArcImportBackupResult;
 
 struct ArcImportPreview {
   ArcImportStatus status = ArcImportStatus::kNotFound;
@@ -95,45 +105,88 @@ class ArcImportService : public KeyedService {
   void OnDiscoveryComplete(uint64_t generation,
                            ArcImportPreviewCallback callback,
                            DiscoveryResult result);
+  void BeginPreparedRecovery(ArcImportPreviewCallback callback,
+                             ArcImportPreparedState prepared);
+  void OnRecoveryBackupLoaded(ArcImportPreviewCallback callback,
+                              ArcImportPreparedState prepared,
+                              tab_tree::TabTreeSnapshot recovery_start_tree,
+                              ArcImportBackupRecoveryResult recovery);
+  void OnRecoveryFingerprintsComputed(
+      ArcImportPreviewCallback callback,
+      ArcImportPreparedState prepared,
+      tab_tree::TabTreeSnapshot recovery_start_tree,
+      tab_tree::TabTreeSnapshot previous_tree,
+      std::array<std::string, 2> fingerprints);
+  void OnRecoveryPersistenceFlushed(ArcImportPreviewCallback callback,
+                                    ArcImportPreparedState prepared,
+                                    tab_tree::TabTreeSnapshot expected_tree,
+                                    bool restore_previous_journal,
+                                    bool persistence_flushed);
+  void RestorePreparedRecoveryJournal(
+      ArcImportPreviewCallback callback,
+      std::optional<ArcImportCommittedState> previous_committed);
+  void OnRecoveryJournalRestored(ArcImportPreviewCallback callback,
+                                 bool journal_restored);
+  void MarkPreparedRecoveryManual(ArcImportPreviewCallback callback,
+                                  ArcImportPreparedState prepared);
+  void FinishPreparedRecoveryManual(ArcImportPreviewCallback callback,
+                                    bool journal_written);
   void OnCommitSourceValidated(std::string snapshot_token,
                                ArcConflictResolution conflict_resolution,
                                ArcImportSelection selection,
                                base::WeakPtr<BrowserWindowInterface> browser,
                                ArcImportCommitCallback callback,
                                ArcImportStatus validation_status);
-  void OnPersistenceFlushedBeforeBackup(
-      std::string snapshot_token,
-      ArcConflictResolution conflict_resolution,
-      ArcImportSelection selection,
-      base::WeakPtr<BrowserWindowInterface> browser,
-      ArcImportCommitCallback callback,
-      bool persistence_flushed);
-  void OnBackupComplete(std::string snapshot_token,
-                        ArcConflictResolution conflict_resolution,
-                        ArcImportSelection selection,
-                        base::WeakPtr<BrowserWindowInterface> browser,
-                        ArcImportCommitCallback callback,
-                        ArcImportStatus backup_status);
+  void OnPersistenceFlushedBeforeBackup(std::unique_ptr<CommitContext> context,
+                                        bool persistence_flushed);
+  void OnBackupComplete(std::unique_ptr<CommitContext> context,
+                        ArcImportBackupResult backup);
+  void OnBackupVerified(std::unique_ptr<CommitContext> context,
+                        ArcImportBackupRecoveryResult recovery);
+  void OnPreparedTreeFingerprintsComputed(
+      std::unique_ptr<CommitContext> context,
+      tab_tree::TabTreeSnapshot fingerprint_start_tree,
+      std::array<std::string, 2> fingerprints);
+  void OnPreparedJournalWritten(std::unique_ptr<CommitContext> context,
+                                bool journal_written);
+  void OnPreparedTreeFlushed(std::unique_ptr<CommitContext> context,
+                             bool persistence_flushed);
+  void OnRuntimePhaseWritten(std::unique_ptr<CommitContext> context,
+                             bool journal_written);
+  void BeginNativeSessionReceipt(std::unique_ptr<CommitContext> context);
+  void OnNativeSessionReadback(
+      std::unique_ptr<CommitContext> context,
+      std::vector<std::unique_ptr<sessions::SessionWindow>> windows,
+      SessionID active_window_id,
+      bool read_error);
+  void OnRuntimePersistedJournalWritten(std::unique_ptr<CommitContext> context,
+                                        bool journal_written);
   void OnCommittedPersistenceFlushed(std::unique_ptr<CommitContext> context,
                                      bool persistence_flushed);
   void FinishJournalWrite(std::unique_ptr<CommitContext> context,
                           bool journal_written);
+  void OnPreparedAfterCommitFailure(std::unique_ptr<CommitContext> context,
+                                    bool journal_written);
+  void AbortPreparedAndFinish(std::unique_ptr<CommitContext> context,
+                              ArcImportStatus failure_status);
   void RollbackAndFinish(std::unique_ptr<CommitContext> context,
                          ArcImportStatus failure_status);
+  void MarkManualRecoveryAndFinish(std::unique_ptr<CommitContext> context);
+  void FinishRecoveryRequired(std::unique_ptr<CommitContext> context,
+                              bool journal_written);
   void FinishRollback(std::unique_ptr<CommitContext> context,
                       ArcImportStatus failure_status,
                       bool persistence_flushed);
-  void FinishNoChangeJournalWrite(ArcImportCommitCallback callback,
-                                  ArcImportCommitResult result,
-                                  std::string snapshot_hash,
-                                  bool journal_written);
+  void FinishRollbackJournal(std::unique_ptr<CommitContext> context,
+                             ArcImportStatus failure_status,
+                             bool journal_restored);
 
   raw_ptr<Profile> profile_ = nullptr;
   raw_ptr<SessionBridge> session_bridge_ = nullptr;
   std::optional<ArcImportPlan> pending_plan_;
   std::optional<ArcSource> pending_source_;
   std::string pending_snapshot_token_;
-  std::string committed_snapshot_hash_;
+  std::optional<ArcImportCommittedState> committed_journal_state_;
   uint64_t discovery_generation_ = 0;
   bool operation_in_progress_ = false;
 

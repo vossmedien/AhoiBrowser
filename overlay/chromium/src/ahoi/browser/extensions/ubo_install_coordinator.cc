@@ -25,6 +25,7 @@
 #include "extensions/browser/extension_registry.h"
 #include "extensions/browser/install/crx_install_error.h"
 #include "extensions/browser/install_prompt_data.h"
+#include "extensions/browser/uninstall_reason.h"
 
 namespace ahoi::extensions {
 
@@ -98,6 +99,7 @@ class UboInstallCoordinator : public base::RefCounted<UboInstallCoordinator> {
     const ::extensions::Extension* existing =
         ::extensions::ExtensionRegistry::Get(profile_.get())
             ->GetInstalledExtension(entry_.extension_id);
+    installed_as_new_ = existing == nullptr;
     installer_->set_is_update(existing != nullptr);
     installer_->AddInstallerCallback(
         base::BindOnce(&UboInstallCoordinator::OnInstalled, this));
@@ -128,14 +130,36 @@ class UboInstallCoordinator : public base::RefCounted<UboInstallCoordinator> {
     UboInstallResult result = authorization_->Commit(*installed);
     authorization_.reset();
     if (!result.has_value()) {
-      // If the security state cannot be committed, leave no transiently
-      // enabled MV2 exception behind. Chromium's installer already preserves
-      // the previous on-disk version on failures before this point.
+      // A fresh package is not a successful install until its browser-owned
+      // authorization has been durably committed. Remove it through Chromium's
+      // normal uninstall path and wait for file/site-data cleanup before
+      // reporting the failed transaction.
+      if (installed_as_new_) {
+        std::u16string uninstall_error;
+        UboInstallResult cleanup_result = base::unexpected(result.error());
+        if (::extensions::ExtensionRegistrar::Get(profile_.get())
+                ->UninstallExtension(
+                    entry_.extension_id,
+                    ::extensions::UNINSTALL_REASON_INSTALL_CANCELED,
+                    &uninstall_error,
+                    base::BindOnce(
+                        &UboInstallCoordinator::OnRollbackUninstallComplete,
+                        this, std::move(cleanup_result)))) {
+          return;
+        }
+      }
+      // A future signed-catalog update cannot be removed without also
+      // removing the user's prior install. Keep it disabled if rollback could
+      // not be completed; that update path remains externally gated.
       ::extensions::ExtensionRegistrar::Get(profile_.get())
           ->DisableExtension(entry_.extension_id,
                              {::extensions::disable_reason::
                                   DISABLE_UNSUPPORTED_MANIFEST_VERSION});
     }
+    Finish(std::move(result));
+  }
+
+  void OnRollbackUninstallComplete(UboInstallResult result) {
     Finish(std::move(result));
   }
 
@@ -158,6 +182,7 @@ class UboInstallCoordinator : public base::RefCounted<UboInstallCoordinator> {
   UboInstallCallback callback_;
   std::unique_ptr<UboInstallAuthorization> authorization_;
   scoped_refptr<::extensions::CrxInstaller> installer_;
+  bool installed_as_new_ = false;
 };
 
 }  // namespace

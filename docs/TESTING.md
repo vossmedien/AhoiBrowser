@@ -129,11 +129,18 @@ incognito, persistence, localization, accessibility, and visible account
 chooser remain separate AUTH release gates.
 
 The general cluster at `fixtures/e2e/` provides three CA-signed loopback HTTPS
-origins and deterministic journeys for Range download/resume, upload and DnD,
-three-pane split state, redirects/popups, synthetic OAuth, explicitly simulated
-passkey plumbing, H.264/AAC/MSE/PiP, WebRTC/capture and permission prompts,
-cookies/CHIPS/GPC, storage/service-worker/cache behavior, CSP/CORS/header echo,
-developer injection controls, and artificial login forms. Its machine-readable
+origins and deterministic journeys for Range download/resume, a timestamp-free
+PDF, a large throttled ZIP, a deliberately disconnecting resume target, upload
+and DnD, three-pane split state, redirects/popups, synthetic OAuth, explicitly
+simulated passkey plumbing, H.264/AAC/MSE/PiP, WebRTC/capture and permission
+prompts, cookies/CHIPS/GPC, storage/service-worker/cache behavior,
+CSP/CORS/header echo, developer injection controls, artificial login forms,
+and an optional exact-match custom-protocol handler with an explicit
+install/remove lifecycle. The optional handler uses a hash-pinned,
+self-contained recorder inside its signed bundle, requires matching
+marker/receipt ownership for every destructive change, refuses foreign or
+other-state-directory LaunchServices claims, and verifies the exact registered
+path with transactional rollback. Its machine-readable
 receipts retain signal presence and public hashes but never secret/query/cookie
 values or uploaded bytes. Certificate generation never changes trust; the
 documented macOS user-keychain install and exact-fingerprint removal commands
@@ -145,6 +152,49 @@ The fixture README also records the media asset's observed encoder metadata,
 unknown copyright/license provenance and replacement recipe; its presence is
 not evidence of redistribution clearance for H.264/AAC.
 
+## Late forbidden-secret gate
+
+`AUTH-25` is evaluated only after the installed-browser journeys have produced
+their candidate-bound NetLog, crash output, and evidence package. Do not run
+this scanner in place of those visible journeys, and do not move broad
+programmatic suites ahead of the visible acceptance sequence merely to obtain
+a local green result.
+
+Before capture, create an owner-only canary file containing one unique value per
+line. Every value must start with `AHOI_SYNTHETIC_SECRET_`; use those values only
+as the synthetic fixture password/Authorization material for the run. Then scan
+the exact capture roots:
+
+```sh
+umask 077
+printf '%s\n' \
+  'AHOI_SYNTHETIC_SECRET_AUTH25_PASSWORD_unique-run-id' \
+  'AHOI_SYNTHETIC_SECRET_AUTH25_AUTHORIZATION_unique-run-id' \
+  > /private/tmp/ahoi-auth25-canaries.txt
+
+python3 tools/forbidden_secret_scan.py \
+  --canary-file /private/tmp/ahoi-auth25-canaries.txt \
+  --netlog artifacts/e2e/<version>/AUTH-25/diagnostics/netlog.json \
+  --crash artifacts/e2e/<version>/AUTH-25/diagnostics/crash \
+  --evidence artifacts/e2e/<version>/AUTH-25
+```
+
+The scanner opens the canary, every requested root, every traversed directory,
+and every regular evidence file through no-follow descriptors. Any symlink in a
+requested evidence tree, identity/generation change during enumeration or read,
+short read, or I/O error fails closed. The canary file itself is excluded by
+device/inode identity, broad filesystem/home roots are rejected, and every
+requested root must contribute at least one eligible regular file. Reports emit
+only scope, opaque scan-local file identifier, rule and byte offset; neither raw
+filenames, paths, matched values nor canary values are retained. Exit `0` means
+every root was completely and stably scanned with no synthetic canary or
+unredacted credential shape found, `1` means a finding, and `2` means the gate
+was misconfigured or its evidence could not be read safely. Preserve the JSON
+output as a hash-bound test report, delete the canary file after the run, then
+perform the normal evidence validation. This local negative scan supports
+`AUTH-25`; it does not prove `AUTH-23` or `PASS-07` cross-device/CloudKit
+exclusion.
+
 The CloudKit model spike under `spikes/cloudkit/` is also part of the repository
 test run. Its local Swift tests cover model convergence, sync-boundary policy,
 and remote-command validation. They do not replace an entitled CloudKit
@@ -153,7 +203,9 @@ roundtrip between signed, installed Mac and iOS applications.
 `fixtures/extensions/mv3-smoke/` provides a no-host-access unpacked MV3 control,
 while `fixtures/extensions/mv2-denied-control/` is a negative control that must
 remain blocked. Neither counts as Chrome Web Store, vendor-extension, or uBlock
-Origin evidence.
+Origin evidence. In particular, the MV2 control cannot satisfy the pinned
+**Official GitHub release** hash, signing-key, derived-ID, or CRX3 checks even
+if someone edits its manifest ID.
 
 ## Performance
 

@@ -1,7 +1,14 @@
 # Copyright 2026 The AhoiBrowser Authors
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import("//ahoi/browser/extensions/ubo_buildflags.gni")
+import("//build/buildflag_header.gni")
 import("//testing/test.gni")
+
+buildflag_header("buildflags") {
+  header = "ubo_buildflags.h"
+  flags = [ "ENABLE_AHOI_UBO_CLASSIC=$enable_ahoi_ubo_classic" ]
+}
 
 source_set("policy") {
   sources = [
@@ -15,6 +22,7 @@ source_set("policy") {
     "ubo_product_config.h",
   ]
   public_deps = [
+    ":buildflags",
     "//base",
     "//components/prefs",
     "//components/sync_preferences",

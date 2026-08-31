@@ -60,6 +60,9 @@ bool ActivateRelativeBrowserWorkspaceByGesture(views::View* sidebar_host,
 // Cycles through live tabs that belong to the currently active workspace.
 // This deliberately does not use TabStripModel's global next/previous helpers,
 // because one native tab strip backs every Ahoi workspace.
+base::WeakPtr<tabs::TabInterface> ResolveRelativeBrowserRuntimeTab(
+    views::View* sidebar_host,
+    int delta);
 bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta);
 bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index);
 // Activates the folder's workspace, expands its complete ancestor path and

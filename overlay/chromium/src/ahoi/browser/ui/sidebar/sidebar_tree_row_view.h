@@ -64,6 +64,10 @@ class SidebarTreeRowView final : public views::View,
   void SetDropPosition(
       std::optional<SidebarTreeController::DropPosition> position);
   void SetSplitDropTarget(bool split_drop_target);
+  // Clips a split segment to the one shared group bubble. The bounds are in
+  // the tree parent's coordinate space; ordinary rows pass std::nullopt to
+  // restore their independent rounded surface.
+  void SetSplitGroupClipBounds(std::optional<gfx::Rect> group_bounds);
   gfx::ImageSkia GetDragImage();
   void SetIsDragging(bool dragging);
   void StartEditing();
@@ -103,6 +107,7 @@ class SidebarTreeRowView final : public views::View,
 
   // views::View:
   void Layout(PassKey) override;
+  void OnBoundsChanged(const gfx::Rect& previous_bounds) override;
   void OnPaintBackground(gfx::Canvas* canvas) override;
   void OnPaint(gfx::Canvas* canvas) override;
   bool OnMousePressed(const ui::MouseEvent& event) override;
@@ -126,6 +131,7 @@ class SidebarTreeRowView final : public views::View,
   bool ShouldShowTrailingAction() const;
   bool ShouldPaintTrailingState() const;
   void UpdateAccessibility();
+  void UpdateSplitGroupClipPath();
 
   const raw_ptr<SidebarTreeView> owner_;
   const std::u16string split_with_prefix_;
@@ -158,6 +164,7 @@ class SidebarTreeRowView final : public views::View,
   size_t split_segment_index_ = 0;
   size_t split_segment_count_ = 1;
   std::optional<SidebarTreeController::DropPosition> drop_position_;
+  std::optional<gfx::Rect> split_group_bounds_;
   gfx::SlideAnimation chevron_animation_{this};
 };
 

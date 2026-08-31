@@ -19,9 +19,13 @@ Legal review is required before public binary distribution for:
 - Sparkle 2.9.6 MIT license and bundled third-party notices, pinned by exact
   release commit and archive SHA-256 in `config/third-party-pins.json`
 
-Feature gates in `config/feature-gates.json` remain off until their recorded
-technical and legal requirements pass. A successful local experiment is not
-permission to publish it.
+External feature gates in `config/feature-gates.json` remain off until their
+recorded technical and legal requirements pass. The narrowly scoped uBlock
+Origin Classic path also defaults off and is compiled in only by the explicit
+local `ahoi-dev` dogfood profile. That profile enables only the statically
+browser-pinned Official GitHub release bootstrap for local testing. It does not
+grant public redistribution rights or provision later signed catalog updates.
+A successful local experiment is not permission to publish it.
 
 The explicit name/logo and public-fork rules live in `docs/TRADEMARKS.md`.
 Candidate-specific third-party and brand review follows

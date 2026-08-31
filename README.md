@@ -16,11 +16,13 @@ architecture decision, test, or release gate.
 
 Phase 0 is in progress on Chromium Mac Stable `152.0.7977.65` at exact commit
 `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. The active source delta is the
-tracked overlay plus the four-entry series in `patches/chromium/series`: the
-M152 integration seams, deterministic platform tests, upstream page-load
-tracing isolation, and Lean-profile Compose guards. It contains the
-profile-backed sidebar, SQLite-backed nested
-tree, saved/temporary live-tab lifecycle, drag-and-drop, command bar, shared
+tracked overlay plus the complete ordered series declared in
+`patches/chromium/series`; that file is the single source of truth for patch
+count and order. It contains the M152 integration seams, deterministic
+platform tests, Compose guards, native sidebar/split fixes, the null-tab
+extension-menu guard, and the compact Zen importer seam. The product contains
+the profile-backed sidebar, SQLite-backed nested tree, saved/temporary live-tab
+lifecycle, drag-and-drop, command bar, shared
 visual language, and bounded split-view integration. The current M152 ARM64
 development build is installed at `/Applications/AhoiBrowser.app`; focused
 tests and a visible installed-app compatibility smoke, including repeated
@@ -43,9 +45,10 @@ remains recovery/history evidence only.
 - Split panes are two, three, or four normal Chromium tabs/`WebContents` inside the
   existing tab model, never a parallel WebView host. See
   [`docs/SPLIT_VIEW.md`](docs/SPLIT_VIEW.md).
-- No built-in broad ad blocker. Selective legacy support exists only for an
-  explicitly allowlisted uBlock Origin Classic package when legally and
-  technically viable.
+- No built-in broad ad blocker. Dogfood legacy support is limited to the pinned
+  **Official GitHub release** uBlock Origin Classic 1.74.0 package with
+  key-derived ID `fkgkibajhfbepljeaefdnfnegdcjomkh`; arbitrary and unpacked
+  Manifest V2 remain blocked, and public redistribution remains gated.
 - Secrets, cookies, passwords, autofill, site data, extension storage,
   incognito state, HTTP-auth credentials, and secret headers never sync.
 - No product telemetry, usage pings, automatic crash uploads, or experiments.

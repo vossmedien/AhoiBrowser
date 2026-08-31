@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_TREE_VIEW_H_
 
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -39,6 +40,8 @@ class ScrollView;
 }  // namespace views
 
 namespace ahoi::sidebar {
+
+class SidebarSplitResizeArea;
 
 // Native virtualized viewport over SidebarTreeViewModel. Ordinary rows keep a
 // fixed semantic height; multi-row split collections reserve enough height for
@@ -196,6 +199,7 @@ class SidebarTreeView final : public views::View,
   bool OnKeyPressed(const ui::KeyEvent& event) override;
   bool GetNeedsNotificationWhenVisibleBoundsChange() const override;
   void OnVisibleBoundsChanged() override;
+  void VisibilityChanged(views::View* starting_from, bool is_visible) override;
   void OnBoundsChanged(const gfx::Rect& previous_bounds) override;
   void OnPaintBackground(gfx::Canvas* canvas) override;
   gfx::Point GetKeyboardContextMenuLocation() override;
@@ -270,6 +274,7 @@ class SidebarTreeView final : public views::View,
     return controller_->view_model();
   }
   void ScheduleSynchronization(bool preferred_size_changed);
+  void ScheduleVisibleBoundsSynchronization();
   void SynchronizeRowsAfterVisibleBoundsChange();
   std::vector<VisualRow> BuildVisualRows() const;
   std::vector<VisualPosition> BuildVisualPositions(
@@ -286,6 +291,14 @@ class SidebarTreeView final : public views::View,
                              size_t segment_index,
                              int row_width) const;
   void SynchronizeRows(const gfx::Rect& visible_bounds);
+  void SynchronizeSplitResizeAreas(const std::vector<VisualRow>& visual_rows,
+                                   const VisibleRange& visible_range,
+                                   int row_width,
+                                   bool native_drag_in_progress);
+  bool ResizeSavedSplit(const std::vector<base::Uuid>& node_ids,
+                        size_t divider_index,
+                        double ratio,
+                        bool done_resizing);
   SidebarTreeRowView* AcquireRow();
   void RecycleRow(const base::Uuid& node_id);
   void UpdateActiveDescendant();
@@ -336,6 +349,7 @@ class SidebarTreeView final : public views::View,
   const std::u16string split_with_prefix_;
   std::unordered_map<base::Uuid, raw_ptr<SidebarTreeRowView>, base::UuidHash>
       materialized_rows_;
+  std::map<std::string, raw_ptr<SidebarSplitResizeArea>> split_resize_areas_;
   // Paint-only overlay. The full row edge zone communicates target area;
   // this fixed semantic slot edge disambiguates before from after without
   // participating in layout or following raw pointer coordinates.

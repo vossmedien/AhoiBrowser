@@ -24,13 +24,26 @@ loading remain useful test paths but are not substitutes for consumer delivery.
 
 ## uBlock Origin Classic
 
-AhoiBrowser contains no broad built-in ad blocker. If the legal and technical
-gates pass, one signed, hash-pinned catalog entry may enable only uBlock Origin
-Classic's required legacy Manifest V2 behaviors. The exception is keyed to an
-explicit extension identity/version policy, has a dedicated updater and kill
-switch, and does not re-enable arbitrary MV2 extensions. It must not weaken MV3,
-extension isolation, or Web Store policy for other extensions.
+AhoiBrowser contains no broad built-in ad blocker. Dogfood builds expose one
+manual initial-install candidate for the **Official GitHub release** 1.74.0.
+The signed browser pins release commit
+`6dd2d95e50d134a477a4e183343c0b26e9147123`, complete CRX hash, CRX public-key
+hash, and the key-derived identity `fkgkibajhfbepljeaefdnfnegdcjomkh`.
+The initial metadata is compiled into AhoiBrowser, so opening the dialog causes
+no catalog request.
 
-Until the selective prototype passes install, update, filtering, performance,
-restart, incognito, and malicious-package tests, the feature remains disabled
-and the product makes no uBO Classic compatibility claim.
+The package download may start only at the exact pinned GitHub release URL. It
+accepts at most one credentialless GitHub release-asset redirect, then verifies
+the complete-file hash, CRX3 proof, public-key hash, derived ID, version, and
+manifest before Chromium shows its normal permission prompt. Authorization is
+committed only after installation succeeds.
+
+This exception remains identity/version-bound and does not enable arbitrary or
+unpacked MV2. Ordinary MV3, extension isolation, permission handling, and
+non-uBO update behavior are unchanged. A separately provisioned signed catalog
+is retained only for later updates; it is not a prerequisite for the pinned
+initial check and is not currently enabled as a network trust root.
+
+Installed-app tests for install, filtering, update, performance, restart,
+incognito, tamper, malicious package, and uninstall remain release gates. The
+static technical pins do not by themselves grant public redistribution rights.

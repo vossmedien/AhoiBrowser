@@ -1,8 +1,143 @@
 {
   "schemaVersion": 1,
   "source": "outputs/AhoiBrowser-Master-Zielprompt.md",
-  "generatedAt": "2026-08-29T00:00:00Z",
+  "generatedAt": "2026-08-30T00:00:00Z",
   "tests": [
+    {
+      "id": "RECOVERY-MAC-01",
+      "suite": "RECOVERY-MAC",
+      "description": "Einstellungen aus Menü und Command Bar wiederholt öffnen, die vollständige Ahoi-Seite bis zum Ende scrollen, Unterseiten wechseln, schließen und nach App-Neustart erneut öffnen; kein Browser- oder Renderer-Crash, insbesondere kein Accessibility-Abbruch durch benannte generische WebUI-Container, keine verlorene Sitzung und keine verspätete Service-Registrierung. Der eigene Menüeintrag `AhoiBrowser` zeigt in allen unterstützten Settings-Iconmodi ein reales, korrekt ausgerichtetes und kontrastierendes Icon statt einer leeren Aussparung.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-02",
+      "suite": "RECOVERY-MAC",
+      "description": "jedes sichtbare Aktionsicon der Adressleiste mit der Maus bedienen. Copy, Privacy, Cookies, Cache, Developer Toolkit/DevTools, Workspace und weitere sichtbare Aktionen öffnen ausschließlich ihr eigenes Ziel; kein Icon darf durch Event-Fallthrough die `Cmd+T`-/Command-Bar-Oberfläche öffnen. Jede zustandsbehaftete Oberfläche folgt demselben Toggle-Vertrag: erster Klick öffnet genau eine Instanz, zweiter Klick auf dasselbe Icon schließt diese Instanz, ein Klick auf ein anderes Icon wechselt ohne Doppel-Bubble oder sofortiges Wiederöffnen, und Schließen per `Escape`, Außenklick, Tab-/Pane-/Fensterwechsel setzt den Buttonzustand deterministisch zurück. Ein sichtbares, aber deaktiviertes Icon ist nur bei einem sachlich nicht unterstützten Ziel erlaubt, besitzt dann eindeutige Disabled-Darstellung und erklärt den Grund; auf normalen HTTP-/HTTPS-Seiten reagieren alle angebotenen Aktionen auf den ersten echten Mausklick.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-03",
+      "suite": "RECOVERY-MAC",
+      "description": "gespeicherte Tabs innerhalb einer Gruppe und zwischen Gruppen mehrfach per Drag-and-drop vor und nach andere Tabs verschieben. Die vollständige wirksame obere beziehungsweise untere Dropfläche ist ruhig eingefärbt und zusätzlich durch eine klare Einfügemarkierung erkennbar; eine bloße dünne, schwer anzielbare Linie ist nicht zulässig. Vor dem Drop ist genau eine stabile Einfügeposition sichtbar; während des Drags springt oder verschiebt sich die Sidebar nicht; nach Drop, Workspace-Wechsel und App-Neustart stimmen sichtbare und persistierte Reihenfolge überein.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-04",
+      "suite": "RECOVERY-MAC",
+      "description": "gespeicherte sowie temporäre Tabs per Drag-and-drop auf gespeicherte Tabs ziehen und echte Zwei-Pane-Splits in beiden Richtungen erzeugen. Temporäre und gespeicherte Zeilen verwenden dasselbe großzügige Vorher/Nachher-/Split-Zonenmodell; ein abgelehnter Split fällt auf die nächstgelegene gültige Einfügekante zurück und erzeugt keine tote Mitte. Jeder Pane eines Zwei-, Drei- oder Vier-Pane-Splits lässt sich unabhängig von Index, Fokus, linker/rechter beziehungsweise oberer/unterer Position symmetrisch aus dem Split herausziehen, in die vollständig sichtbare freie Temporärfläche oder eine orientierungskorrekte äußere Ablösezone als normaler Tab ablegen, neu anordnen oder erneut splitten; all-temporäre und gemischte Saved-/Temporary-Splits verwenden dabei identitätstreue Payloads und kein führender Pane erhält Sonderrechte. Zusammengehörige Split-Tabs bilden in der Sidebar bei horizontalen wie vertikalen Pane-Anordnungen eine klar erkennbare gemeinsame visuelle Einheit mit zusammenhängender Kontur, eindeutiger Pane-Reihenfolge und ruhigen Innenverbindern statt lediglich geringerer Einzelzeilenhöhe. Die Sidebar projiziert Chromiums reale primäre und sekundäre Split-Ratios; ihre ruhigen Trennlinien besitzen großzügige, per Maus, Trackpad und Tastatur bedienbare Resize-Flächen und verändern denselben Chromium-Splitzustand wie die Divider im WebContents, ohne ein zweites Layoutmodell einzuführen. Größenänderung, Neustart und Wechsel zwischen horizontaler, vertikaler, linearer sowie Haupt-/Nebenpane-Anordnung behalten Pane-Identität, Reihenfolge und Ratio. Beide Seiten bleiben interaktiv; Fokus, Adressleiste, Reihenfolge, Split-Mitgliedschaft und Session-Restore stimmen. Zusätzlich wird der native Drag-Griff jedes sichtbaren Split-Panes innerhalb des WebContents benutzt, zwischen allen Zielzonen bewegt und für jeden Pane jeweils erfolgreich sowie per `Escape` abgebrochen; Drag-Start, Hover, Drop, Abbruch, Reorder, Heraustrennen, Split-Auflösung, Divider-Resize und Fensterwechsel crashen niemals und stellen bei jedem Fehler den vollständigen Vorzustand wieder her.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-05",
+      "suite": "RECOVERY-MAC",
+      "description": "`Neue Gruppe` existiert im Ruhezustand nicht als eigene Sidebar-Zeile und reserviert keinerlei Layoutplatz. Ausschließlich während eines passenden Drags liegt die Dropfläche als Overlay über dem Workspace-Namen ganz oben, verschiebt keine Tabs, zeigt den Zielzustand eindeutig und verschwindet nach erfolgreichem Drop, `Escape`, Pointer-Abbruch, Fensterwechsel und App-Neustart vollständig.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-06",
+      "suite": "RECOVERY-MAC",
+      "description": "die Chromium-Neuer-Tab-Seite zeigt auf einer echten Ahoi-Oberfläche weder den konkurrierenden Saved-Tab-Group-Streifen noch dessen Vier-Kästchen-Icon oder Separator. Ahois Gruppenmodell bleibt ausschließlich in der Sidebar; auf nicht von Ahoi gehosteten Chromium-Oberflächen bleibt die Standardfunktion unverändert. Resize, Hell/Dunkel und deutsche/englische Oberfläche bleiben korrekt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-07",
+      "suite": "RECOVERY-MAC",
+      "description": "Ein gemeinsamer Chrome-üblicher Import-Hub erkennt alle von Chromiums vorhandenen macOS-Importern tatsächlich unterstützten lokalen Browser und Profile, zeigt nur real verfügbare Kategorien und führt den jeweiligen Upstream-Importer aus. Chrome/Chromium-Derivate, Safari und Firefox werden nicht durch eine Ahoi-Sonderkopie ersetzt; fehlende Quellen oder Kategorien werden präzise erklärt. Arc und Zen erhalten zusätzlich einen strukturtreuen Import ihrer Sidebar: reale Erkennung ohne False Positive durch fremde oder nicht lesbare Prozesse, auswählbare Profile, redigierte Vorschau, Workspaces/Spaces, verschachtelte Ordner, gespeicherte beziehungsweise angeheftete Tabs, Reihenfolge und soweit sicher rekonstruierbar Split-Zustände. Snapshot, Bestätigung, atomarer Commit, Rollback und idempotente Wiederholung gelten für beide Strukturimporte; Quelldaten bleiben unverändert. AnyChat nutzt den normalen Web-Store-Pfad. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "ASSISTED_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-08",
+      "suite": "RECOVERY-MAC",
+      "description": "die native Drag-Vorschau zeigt mit konstantem Abstand rechts neben dem Cursor statt darunter eine sichtbare Favicon-/Titelkarte und bei Splits die tatsächliche Pane-Anordnung. Sie ist bereits beim ersten Drag sichtbar und hängt nicht von einem zuvor geöffneten Preview-Fenster oder einer vorherigen Tab-Aktivierung ab. Nach kurzem Hover auf jedem aktiven oder gespeicherten Sidebar-Tab erscheint dieselbe Vorschau rechts der Zeile in den WebContents hinein, ohne Fokus, Klicks oder Seitenlayout zu beeinflussen. Ein noch nicht gerasterter Tab zeigt einen bewussten Favicon-/Titel-Fallback statt eines inhaltslosen grauen Kastens; sobald ein URL-gebundenes Thumbnail vorliegt, wird es ohne Fremd-Origin-Altdaten aktualisiert. Tabtitel werden in normalen Zeilen, echten horizontalen und vertikalen Split-Segmenten sowie jeder Split-Drop-Projektion hart auf ihr eigenes Segment begrenzt und vor Trennlinie und Aktionsflächen mit `…` gekürzt; sie laufen weder bei Hover noch während eines aktiven Drags in oder über die Trennlinie. Navigation, Scroll, Workspace-Wechsel, Dragstart, Hover-Ende, Cold Start und App-Neustart schließen beziehungsweise aktualisieren die Vorschau deterministisch.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-09",
+      "suite": "RECOVERY-MAC",
+      "description": "die Sidebar übernimmt standardmäßig die kontrastgeprüfte Hauptfarbe des aktiven Tabs dezent aus `theme-color` beziehungsweise dem bereits lokal vorhandenen Favicon. Rot, Orange, Blau, Hell/Dunkel, transparente oder fehlende Farben, Tab-/Workspace-Wechsel, hoher Kontrast und der Theme-Fallback werden sichtbar geprüft; ein explizites Nutzer-Aus bleibt verbindlich.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-10",
+      "suite": "RECOVERY-MAC",
+      "description": "die Ahoi-Einstellungen erklären an jeder deaktivierten Sync-/Fernsteuerungsaktion unmittelbar die fehlende Voraussetzung. Lokaler Sync bleibt unabhängig von CloudKit bedienbar; geräteübergreifende Fernsteuerung bleibt ohne signierten CloudKit-Transport und verifizierten öffentlichen Geräteschlüssel fail-closed, bietet aber einen eindeutigen Aktivierungs-/Pairingpfad, sobald die Voraussetzungen vorliegen. Im macOS-AhoiBrowser-Menü existiert genau eine nicht redundante Softwareupdate-Oberfläche; sie zeigt Status, Kanal, automatische Prüfungen/Downloads und eine echte manuelle Prüfung, ohne parallele Einträge mit überlappender Funktion.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-11",
+      "suite": "RECOVERY-MAC",
+      "description": "beim Cold Start erscheinen Workspace, Gruppen, gespeicherte und temporäre Tabs, Titel, Favicons, Auswahl und persistierte Reihenfolge sofort aus dem lokalen Session-/Baummodell und sind bedienbar, ohne auf Renderer, Thumbnail-Capture, CloudKit oder Preview-Cache zu warten. Teure Vorschauarbeit startet erst danach asynchron, ist auf sichtbare beziehungsweise aktuell angeforderte Ziele begrenzt und darf die erste interaktive Sidebar weder verzögern noch sichtbar in mehreren instabilen Schüben aufbauen. Start bis erste bedienbare Sidebar sowie Start bis vollständig projizierte Session werden mit Warm- und Cold-Cache sichtbar und zeitlich belegt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-12",
+      "suite": "RECOVERY-MAC",
+      "description": "AhoiBrowser verwendet eine eigenständige, professionell lesbare Produktmarke mit klarer Silhouette bei 16, 32, 128 und 1024 Pixeln. Dasselbe geprüfte Motiv erscheint ohne Chromium-Platzhalter oder leere Aussparung in App-Bundle, Dock, Finder, App-Umschalter, Hilfsprozessen und beim AhoiBrowser-Eintrag der Einstellungen. Maritime und leicht sprudelnde Anklänge bleiben originell und zurückhaltend; fremde Wortmarken, Verpackungen, Maskottchen oder Browserlogos werden nicht kopiert.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-13",
+      "suite": "RECOVERY-MAC",
+      "description": "der blaue Aktivindikator gehört ausschließlich zu der tatsächlich aktiven Seite beziehungsweise bei einem Split zu den eindeutig als aktiv dargestellten Pane-/Seitenelementen. Workspace- und Gruppenzeilen erhalten keinen irreführenden Seiten-Aktivpunkt; Expansion, Auswahl, eigener Farbakzent, laufende Kinder und Drop-Zustand verwenden jeweils ihre bereits definierten, semantisch getrennten Darstellungen. Hell/Dunkel, Workspace-Wechsel, Split-Fokus und Neustart dürfen diese Zustände nicht vermischen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-14",
+      "suite": "RECOVERY-MAC",
+      "description": "der gesamte native Tab-Drag besitzt zu jeder Cursorposition exakt eine starke Zielhervorhebung. Gespeicherter Bereich, temporärer Bereich, einzelne Tabzeile, `Neue Gruppe` und WebContents-Split-Overlay dürfen niemals gleichzeitig als angenommenes Ziel erscheinen; bloße Berechtigung bleibt visuell passiv. Vorher/Nachher/Split verwenden identische gemalte und wirksame Flächen, eine kleine symmetrische Hysterese verhindert Flackern an Zonengrenzen, und die beim Loslassen ausgeführte Aktion entspricht ausschließlich der zuletzt sichtbar bestätigten Vorschau. Die Pane-Mitte ist neutral statt implizit `links`; ein abgebrochener, ungültiger oder zwischen nativen WebViews wechselnder Drag hinterlässt weder Highlight noch Einfügemarker. Sidebar-Gap, WebView-Wechsel, `Escape`, Drop, Fensterwechsel, Quell-View-Zerstörung und AppKit-Drag-Ende werden jeweils in angedockter und schwebender Sidebar sowie mit Saved-, Temporary-, Mixed- und Zwei-/Drei-/Vier-Pane-Quellen sichtbar geprüft.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "RECOVERY-MAC-15",
+      "suite": "RECOVERY-MAC",
+      "description": "das Erweiterungsmenü bleibt in einem absichtlich tablosen Ahoi-Fenster vollständig crashfrei. Bereits installierte Erweiterungen bleiben mit korrektem Namen, Icon und generischen Verwaltungsaktionen sichtbar; alle an eine konkrete Seite gebundenen Aktionen, Hostzugriffs-, Berechtigungs- und Reload-Steuerungen sind ohne aktives `WebContents` ausgeblendet oder deaktiviert und werden erst nach Aktivierung eines realen Tabs freigegeben. Öffnen, Schließen, erneutes Öffnen, Browserstart, Browserneustart sowie erfolgreiche, abgebrochene und fehlgeschlagene Web-Store-Installationen hinterlassen weder Null-Dereferenz noch halbfertige Extension-Einträge. Eine fehlgeschlagene AnyChat-Installation wird als fehlgeschlagen ausgewiesen und atomar zurückgerollt; erst die persistierte Store-ID `khpefodpgnkegiohbolbaaeabnfdegln` zählt als Installation. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und der tatsächlich signierte offizielle Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) werden in Inventar, Oberfläche und Abnahme strikt unterschieden; Lite darf niemals als bestandene Classic-Installation gelten und der GitHub-Release darf niemals als Web-Store-Paket ausgegeben werden.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
     {
       "id": "PKG-01",
       "suite": "PKG",
@@ -1041,7 +1176,7 @@
     {
       "id": "SPLIT-38",
       "suite": "SPLIT",
-      "description": "Split-Drop-Vorschautext mit langem Titel prüfen; Titel, Status- und Aktionsicons bleiben innerhalb des Zielsegments und ragen weder über die Segment- noch über die Gruppen-Trennlinie hinaus.",
+      "description": "Split-Drop-Vorschautext und echte Split-Segmente mit langen Titeln horizontal wie vertikal in Ruhe, Hover und aktivem Drag prüfen; Titel ellipsieren sichtbar mit `…`, Status- und Aktionsicons bleiben innerhalb des Zielsegments und nichts ragt in oder über die Segment- beziehungsweise Gruppen-Trennlinie hinaus.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -1132,7 +1267,7 @@
     {
       "id": "CMD-06",
       "suite": "CMD",
-      "description": "Ranking und Command-Bar-Latenz messen.",
+      "description": "Ranking und Command-Bar-Latenz im installierten sichtbaren Lauf messen; `Ahoi.CommandBar.QueryLatency` erfasst ausschließlich die synchrone lokale Normalize-/Score-/Sort-/Dedup-/Limit-Dauer und niemals Suchtext, URL, Titel, Identität oder Ergebnisinhalt.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -1145,7 +1280,7 @@
     {
       "id": "QUICK-01",
       "suite": "QUICK",
-      "description": "globalen Shortcut bei inaktiver App verwenden.",
+      "description": "globalen Shortcut bei inaktiver App verwenden; eine zunächst fehlgeschlagene Registrierung wird im Browser-/Focus-Lebenszyklus erneut versucht, nach dem letzten regulären Fenster abgemeldet und der Cooldown beginnt erst nach tatsächlich geöffnetem Quick Window.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -1340,12 +1475,12 @@
     {
       "id": "NAV-07",
       "suite": "NAV",
-      "description": "Passkey/WebAuthn-Test.",
-      "primaryClass": "CU_E2E",
+      "description": "echte Plattform-Passkey-/WebAuthn-Zeremonie mit macOS-Systemauthentifizierung ausführen; die lokale simulierte Challenge belegt nur das Browser-Plumbing und zählt nicht als Plattform-Pass.",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -1783,11 +1918,11 @@
       "id": "AUTH-23",
       "suite": "AUTH",
       "description": "HTTP-Auth-Credentials erscheinen weder auf Mac B noch in CloudKit oder iOS.",
-      "primaryClass": "CU_E2E",
+      "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
         "INTEGRATION",
-        "CU_E2E"
+        "ASSISTED_E2E"
       ],
       "releaseCritical": true,
       "status": "NOT_RUN"
@@ -1808,7 +1943,7 @@
     {
       "id": "AUTH-25",
       "suite": "AUTH",
-      "description": "Logs, NetLog, Crash Reports und Evidenz enthalten weder Passwort noch vollständigen Authorization-Header.",
+      "description": "kandidatgebundene Logs, NetLog, Crash Reports und Evidenz enthalten weder die ausschließlich synthetisch injizierten Passwort-/Authorization-Canaries noch unredigierte Credential-Felder, Cookie- oder vollständige Authorization-Header. Der wertblinde Scanner läuft erst nach den sichtbaren installierten Journeys über die exakten Capture-Wurzeln und ersetzt diese Journeys nicht.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2248,9 +2383,40 @@
       "status": "NOT_RUN"
     },
     {
+      "id": "EXT-14",
+      "suite": "EXT",
+      "description": "das Erweiterungsmenü in einem echten Null-Tab-Fenster mit installierten Erweiterungen mehrfach öffnen und schließen; Namen, Icons und Verwaltung bleiben sichtbar, während Action, Site Access, Site Permissions und Reload ohne aktiven Tab ausgeblendet oder deaktiviert sind. Danach einen normalen HTTP-/HTTPS-Tab aktivieren und dieselben Controls ohne Neustart korrekt aktualisiert bedienen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXT-15",
+      "suite": "EXT",
+      "description": "AnyChat-Installation jeweils vor der Bestätigung abbrechen, mit einem kontrollierten Installationsfehler scheitern lassen und erfolgreich abschließen. Abbruch und Fehler hinterlassen weder Extension-Verzeichnis noch Preference-, Cache-, Update- oder Toolbar-Rest und crashen weder sofort noch beim Neustart; nur der erfolgreiche Lauf persistiert exakt `khpefodpgnkegiohbolbaaeabnfdegln` und besteht anschließend `EXT-11`.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "UBO-00",
+      "suite": "UBO",
+      "description": "Inventar und UI unterscheiden uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und den tatsächlich signierten offiziellen Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) sichtbar; eine Lite-Installation wird in keinem Bericht, Gate oder Screenshot als Classic-Pass gewertet und der GitHub-Release wird nicht als Store-Paket bezeichnet.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
       "id": "UBO-01",
       "suite": "UBO",
-      "description": "uBlock Origin Classic über AhoiBrowser-Ein-Klick-Flow installieren.",
+      "description": "uBlock Origin Classic 1.74.0 aus dem browserseitig gepinnten Official GitHub release ohne Katalogrequest explizit herunterladen, Chromium-Berechtigungsdialog bestätigen und atomare Autorisierung nachweisen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2263,7 +2429,7 @@
     {
       "id": "UBO-02",
       "suite": "UBO",
-      "description": "Version, ID, Quelle und Hash gegen Katalog prüfen.",
+      "description": "Version, vollständigen Release-Commit, exakte GitHub-Start-URL, höchstens einen credentiallosen Release-Asset-Redirect, vollständigen CRX-Hash, CRX-Public-Key-Hash und daraus abgeleitete ID gegen die Browser-Pins prüfen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2354,7 +2520,7 @@
     {
       "id": "UBO-09",
       "suite": "UBO",
-      "description": "Extension-Update über signierten Katalog.",
+      "description": "späteres Extension-Update ausschließlich über den separat provisionierten signierten Katalog mit Sequenz größer 174000; Rollback vor Paketdownload abweisen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2380,7 +2546,7 @@
     {
       "id": "UBO-11",
       "suite": "UBO",
-      "description": "fremdes, nicht allowlistetes MV2-Paket wird abgewiesen.",
+      "description": "fremdes, unpacked, umsigniertes oder nur ID-gefälschtes MV2-Paket wird abgewiesen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2406,7 +2572,7 @@
     {
       "id": "UBO-13",
       "suite": "UBO",
-      "description": "unprovisionierte Katalog-, Signing- oder Publisher-Trust-Roots bleiben sichtbar deaktiviert und lösen keinen Netzwerkrequest aus.",
+      "description": "Build-Konfiguration ohne statischen Bootstrap und ohne signierte Katalog-Trust-Roots bleibt sichtbar deaktiviert und löst keinen Netzwerkrequest aus; statischer Bootstrap allein löst keinen Katalogrequest aus.",
       "primaryClass": "UNIT",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -4237,11 +4403,11 @@
         "id": "PASS-07",
         "suite": "PASS",
         "description": "Webformular- und HTTP-Auth-Passwörter, Autofill und Passkeys erscheinen weder in CloudKit, Geräte-Tabs, iOS noch in E2E-Evidenz oder Logs.",
-        "primaryClass": "CU_E2E",
+        "primaryClass": "ASSISTED_E2E",
         "requiredEvidenceClasses": [
           "UNIT",
           "INTEGRATION",
-          "CU_E2E"
+          "ASSISTED_E2E"
         ],
         "releaseCritical": true,
         "status": "NOT_RUN"
@@ -4647,7 +4813,7 @@
       {
         "id": "IMPORT-ARC-01",
         "suite": "IMPORT-ARC",
-        "description": "Arc-Hauptprozess, Helper, offene Profildateien und alle auswählbaren Chromium-Profile erkennen; erst nach vollständig beendetem Arc eine mutationsfreie Vorschau zulassen.",
+        "description": "Arc-App und mehrere Profile erkennen; verwaiste `Singleton*`-Symlinks nicht als laufende Instanz fehlinterpretieren.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4656,7 +4822,7 @@
       {
         "id": "IMPORT-ARC-02",
         "suite": "IMPORT-ARC",
-        "description": "Bei laufendem Arc oder offenem Datenbank-Handle sichtbar und fail-closed stoppen, ohne Arc-Quelle oder Ahoi-Zielprofil zu verändern.",
+        "description": "bei laufendem Arc verständlich stoppen, ohne Quellprofil oder Ahoi-Zielprofil zu verändern.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4665,7 +4831,7 @@
       {
         "id": "IMPORT-ARC-03",
         "suite": "IMPORT-ARC",
-        "description": "Owner-only Sicherung mit Manifest, ausgewählten Profildatenbanken, vorhandenen WAL-/SHM-Dateien und Ahoi-Tabbaum vor dem Commit erstellen und Hashes prüfen.",
+        "description": "Snapshot von `StorableSidebar.json` und ausgewählten Chromium-Datenbanken einschließlich konsistenter WAL-/SHM-Dateien erstellen; Manifest und Hashes verifizieren.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4674,7 +4840,7 @@
       {
         "id": "IMPORT-ARC-04",
         "suite": "IMPORT-ARC",
-        "description": "Symlinks, Traversal, Limits, unbekannte Schema-Versionen, fehlerhafte serialisierte Maps, Duplikate, Zyklen und Orphans vollständig fail-closed ablehnen.",
+        "description": "Symlink-, Traversal-, Größenlimit-, unbekannte-Schema-, Malformed-JSON-/SQLite- und Lock-Fixtures fail-closed ablehnen.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4683,7 +4849,7 @@
       {
         "id": "IMPORT-ARC-05",
         "suite": "IMPORT-ARC",
-        "description": "Reale Schema-1-Paarmaps einschließlich String-Containerdeskriptoren und partieller Split-Faktoren deterministisch in einen sicheren ImportPlan überführen.",
+        "description": "Schema-1-Fixture mit Spaces, verschachtelten Lists, Tabs, Containern und Split Views vollständig in einen deterministischen `ImportPlan` überführen.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4692,7 +4858,7 @@
       {
         "id": "IMPORT-ARC-06",
         "suite": "IMPORT-ARC",
-        "description": "Lokale Vorschau mit Profilen, Kategorien, Zielworkspaces, Konflikten, Degradierungen und ausgeschlossenen Geheimdaten prüfen; erst zwei getrennte Bestätigungen schalten Commit frei.",
+        "description": "Vorschau und Kategorien einzeln an-/abwählen; Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Geheimdaten korrekt anzeigen.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4701,7 +4867,7 @@
       {
         "id": "IMPORT-ARC-07",
         "suite": "IMPORT-ARC",
-        "description": "Arbeitsbereiche, Ordner und sichere Seiten additiv und atomar importieren; Rename, Skip und Merge bewahren bestehende Inhalte ohne stilles Überschreiben.",
+        "description": "Spaces, Listen und Tabs atomar als Workspaces, Ordner und gespeicherte Seiten importieren; Reihenfolge, Hierarchie und sichere URLs prüfen.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4710,7 +4876,7 @@
       {
         "id": "IMPORT-ARC-08",
         "suite": "IMPORT-ARC",
-        "description": "Valide Zwei-, Drei- und Vier-Pane-Splits als echte Chromium-Tabs in Reihenfolge, Orientierung und Fokus rekonstruieren; ungültige Splits ohne Phantomtabs als Ordner bewahren.",
+        "description": "valide Zwei-Pane-Splits über echte Chromium-Tabs und `SplitViewService` mit Orientierung, Fokus und Ratio rekonstruieren; ungültige Splits verlustarm als Ordner degradieren.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4719,7 +4885,7 @@
       {
         "id": "IMPORT-ARC-09",
         "suite": "IMPORT-ARC",
-        "description": "Fehler an Transaktions-, Persistenz-, Runtime- und Journal-Grenzen injizieren und vollständigen Rollback oder deterministische Crash-Recovery ohne halben Baum beweisen.",
+        "description": "Crash beziehungsweise Fehler vor, während und nach der Commit-Grenze injizieren; vollständigen Rollback oder deterministische Recovery ohne halben Baum beweisen.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4728,7 +4894,7 @@
       {
         "id": "IMPORT-ARC-10",
         "suite": "IMPORT-ARC",
-        "description": "Denselben Snapshot ein zweites Mal bestätigen; ohne neue Sicherung, Duplikate oder Runtime-Tabs als nachvollziehbaren No-op abschließen.",
+        "description": "denselben Snapshot zweimal importieren; der zweite Lauf ist ohne Duplikate ein nachvollziehbarer No-op.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4737,7 +4903,7 @@
       {
         "id": "IMPORT-ARC-11",
         "suite": "IMPORT-ARC",
-        "description": "Passwörter, Cookies, Formulardaten, Verlauf, Extension-State, URL-Credentials, lokale Dateien und nicht unterstützte Arc-Elemente bleiben aus Import, Journal, Logs und Evidenz ausgeschlossen.",
+        "description": "Cookies, Login Data, Passwörter, Tokens, Sessions, `Secure Preferences`, Extension Storage, Native-Messaging-Manifeste, Keychain- und Inkognito-Daten bleiben ausgeschlossen; Logs und Evidenz sind redigiert.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4746,7 +4912,61 @@
       {
         "id": "IMPORT-ARC-12",
         "suite": "IMPORT-ARC",
-        "description": "Den realen lokalen Arc-Snapshot nach redigierter Vorschau in die installierte Ahoi-App importieren, sichtbare Workspaces und Splits prüfen und den No-op-Wiederholungslauf belegen.",
+        "description": "vorhandenen realen lokalen Arc-Datenstand nach immutable Backup und Dry Run in das installierte AhoiBrowser-Profil importieren; Workspaces, Ordner, gespeicherte Seiten und rekonstruierbare Splits sichtbar prüfen und den No-op-Wiederholungslauf belegen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "IMPORT-ZEN-01",
+        "suite": "IMPORT-ZEN",
+        "description": "installierte Zen-App, `profiles.ini`, alle regulären Profile und einen wirklich laufenden Zen-Prozess erkennen; fehlende Installation und verwaiste Lockdateien verursachen keinen False Positive.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "IMPORT-ZEN-02",
+        "suite": "IMPORT-ZEN",
+        "description": "pro Profil ausschließlich real unterstützte Standardkategorien anzeigen und über vorhandene Chromium-/Firefox-Importer-Seams importieren; nicht verfügbare Kategorien bleiben verborgen oder verständlich deaktiviert.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "IMPORT-ZEN-03",
+        "suite": "IMPORT-ZEN",
+        "description": "unbekannte oder nicht belegte Zen-Seitenleistenschemata fail-closed als noch nicht strukturimportfähig ausweisen; keine geratenen Workspaces, Pins, Ordner, Tabs oder Splits erzeugen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "IMPORT-ZEN-04",
+        "suite": "IMPORT-ZEN",
+        "description": "ein versionsgebundenes Zen-Fixture mit nachgewiesenem Schema read-only erkennen, begrenzt parsen und als redigierte Vorschau darstellen; Symlink-, Traversal-, Größen-, Lock- und Malformed-Fälle ablehnen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "IMPORT-ZEN-05",
+        "suite": "IMPORT-ZEN",
+        "description": "sobald ein Strukturadapter freigegeben ist, dieselben atomaren Commit-, Rollback-, Deduplizierungs-, Konflikt- und No-op-Verträge wie der Arc-Importer erfüllen.",
+        "primaryClass": "CU_E2E",
+        "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
+        "releaseCritical": true,
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "IMPORT-ZEN-06",
+        "suite": "IMPORT-ZEN",
+        "description": "ist auf dem Test-Mac kein reales Zen-Profil vorhanden, den normalen sichtbaren „nicht gefunden“-Zustand und die Capability-Erkennung mit einem temporären realistischen Fixture belegen, ohne einen realen Importpass zu behaupten.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
         "releaseCritical": true,
@@ -4807,7 +5027,7 @@
       {
         "id": "LEAN-01",
         "suite": "LEAN",
-        "description": "Gegen unverändertes Chromium derselben Revision und einen Ahoi-Vollbuild reproduzierbare Baselines für Bundle, Mach-O, Ressourcen, Libraries, Prozesse, Start, Idle, Netzwerk, GPU und RAM erstellen.",
+        "description": "Gegen unverändertes Chromium derselben Revision und einen Ahoi-Vollbuild mit aktivierten Auditkandidaten reproduzierbare Baselines für installiertes App-/DMG-Volumen, Mach-O-Segmente, Resource Packs, geladene Libraries, Prozesse, Start, Idle, Netzwerk, GPU und RAM erstellen.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4819,7 +5039,7 @@
       {
         "id": "LEAN-02",
         "suite": "LEAN",
-        "description": "Maschinenlesbare Komponentenmatrix vollständig gegen GN-Graph, Feature-Defaults, Einstellungen, Policies, Strings, Migrationen, Component-Updater und Runtime-Registrierungen abgleichen.",
+        "description": "Die maschinenlesbare Komponentenmatrix vollständig gegen GN-Graph, Feature-Defaults, Einstellungen, Policies, Strings, Migrationen, Component-Updater und Runtime-Registrierungen abgleichen; jeder Ausschluss besitzt Begründung, Messwert, Rollback und Test-ID.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4831,7 +5051,7 @@
       {
         "id": "LEAN-03",
         "suite": "LEAN",
-        "description": "Google-/Chrome-Konto, Chrome Sync, Promotions, Commerce, Feed, Lens, AI/Actor/On-Device-Model, gebündelte Apps und Background-Services einzeln statt pauschal auditieren.",
+        "description": "Google-/Chrome-Konto und Chrome Sync, Promotions/Onboarding, Commerce/Shopping, Feed/Discover, Lens, Glic/AI/Actor/On-Device-Model, gebündelte Apps und funktionsgebundene Background-Services einzeln auditieren; keine Kategorie wird pauschal entfernt.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4843,7 +5063,7 @@
       {
         "id": "LEAN-04",
         "suite": "LEAN",
-        "description": "Für jeden Build-Ausschluss belegen, dass Code, Ressourcen, Strings, Settings-Routen und alleinige transitive Abhängigkeiten nicht mehr im Releasebundle liegen.",
+        "description": "Für jede als `exclude-from-build` markierte Funktion nachweisen, dass Code, Ressourcen, Strings, Settings-Routen und alleinige transitive Abhängigkeiten nicht mehr im Releasebundle liegen; `runtime-disable` ist nur mit begründetem Roll-/Rollbackvorteil zulässig.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4855,7 +5075,7 @@
       {
         "id": "LEAN-05",
         "suite": "LEAN",
-        "description": "Mit frischem und Daily-Driver-Profil nachweisen, dass deaktivierte Komponenten keine periodischen Tasks, Wakeups, Netzwerkzugriffe, Downloads, Component-Registrierungen oder Lazy-Loads erzeugen.",
+        "description": "Mit frischem Profil und anschließendem Daily-Driver-Profil nachweisen, dass deaktivierte Komponenten keine periodischen Tasks, Wakeups, Netzwerkzugriffe, Downloads, Component-Registrierungen oder Lazy-Loads erzeugen.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4867,7 +5087,7 @@
       {
         "id": "LEAN-06",
         "suite": "LEAN",
-        "description": "Installiertes Ahoi-Bundle höchstens drei Prozent über identischem Upstream halten und mindestens zehn Prozent gegenüber dem dokumentierten Ahoi-Vollbuild einsparen oder das definierte Produktentscheidungs-Gate auslösen.",
+        "description": "Das installierte Ahoi-Releasebundle bleibt höchstens 3 Prozent größer als das identisch gebaute unveränderte Chromium-Bundle; gegenüber dem dokumentierten Ahoi-Vollbuild werden mindestens 10 Prozent Bundle-Footprint eingespart oder das ausdrücklich definierte Produktentscheidungs-Gate wird mit vollständiger Größenbilanz ausgelöst.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4879,7 +5099,7 @@
       {
         "id": "LEAN-07",
         "suite": "LEAN",
-        "description": "Browserfähigkeit, Webplattform, Security, Extensions, DevTools, Medien, Downloads, PDF/Druck, Credentials, Permissions, Accessibility, Übersetzung und Recovery nach jeder Entschlackungswelle regressionsfrei bestätigen.",
+        "description": "Vollständige Browserfähigkeit, Webplattform, Sandbox, Site Isolation, Safe Browsing, Zertifikats-/Netzwerksicherheit, Extensions/Native Messaging, DevTools, Medien, Downloads, PDF/Druck, Passwörter, Passkeys, HTTP Auth, Permissions, Accessibility, Übersetzung sowie Crash-/Session-Recovery nach jeder Entschlackungswelle regressionsfrei bestätigen.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4892,7 +5112,7 @@
       {
         "id": "LEAN-08",
         "suite": "LEAN",
-        "description": "AnyChat, 1Password, Bitwarden, uBlock Origin Classic, CloudKit-Sync, Arc-Import, Split Views und Developer Toolkit nach der finalen Entschlackungswelle im installierten Ahoi-Profil real bedienen.",
+        "description": "AnyChat, 1Password, Bitwarden, uBlock Origin Classic, CloudKit-Sync, Arc-Import, Split Views und Developer Toolkit im installierten Ahoi-Profil nach der finalen Entschlackungswelle real bedienen; fremde Browserprofile bleiben unverändert.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4905,7 +5125,7 @@
       {
         "id": "LEAN-09",
         "suite": "LEAN",
-        "description": "Nach Chromium-Stable-/Security-Roll stille Reaktivierungen, verwaiste Buildabhängigkeiten und versehentlich ausgeschlossene neue Security-Komponenten ausschließen.",
+        "description": "Einen Chromium-Stable-/Security-Roll durchführen und beweisen, dass ausgeschlossene Funktionen weder still reaktiviert noch als verwaiste Buildabhängigkeit zurückgebracht werden und sicherheitsrelevante neue Upstream-Komponenten nicht versehentlich ausgeschlossen sind.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4917,7 +5137,7 @@
       {
         "id": "LEAN-10",
         "suite": "LEAN",
-        "description": "Jede Entschlackungswelle separat zurückrollen, neu bauen und die erwartete Größen-/Runtime-Differenz reproduzieren; nicht eindeutig zurechenbare Eingriffe ablehnen.",
+        "description": "Jede Entschlackungswelle separat zurückrollen, erneut bauen und die erwartete Größen-/Runtime-Differenz reproduzieren; nicht eindeutig zurechenbare oder nicht sicher rückbaubare Eingriffe werden nicht übernommen.",
         "primaryClass": "INTEGRATION",
         "requiredEvidenceClasses": [
           "UNIT",

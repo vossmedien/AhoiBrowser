@@ -15,6 +15,8 @@
 #include "base/time/default_clock.h"
 #include "chrome/browser/profiles/profile.h"
 #include "content/public/browser/web_contents.h"
+#include "extensions/browser/disable_reason.h"
+#include "extensions/browser/extension_registrar.h"
 #include "extensions/browser/extension_registry.h"
 #include "extensions/common/extension.h"
 
@@ -61,6 +63,22 @@ void DeleteTemporaryFile(base::FilePath path) {
   }
 }
 
+void EnforceDisabledBuildState(Profile* profile) {
+  if (IsUboClassicEnabled() || !profile || !profile->IsRegularProfile()) {
+    return;
+  }
+
+  ClearCommittedUboAuthorization(profile->GetPrefs());
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile);
+  if (!registry ||
+      !registry->GetInstalledExtension(kUboClassicExtensionId)) {
+    return;
+  }
+  ::extensions::ExtensionRegistrar::Get(profile)->DisableExtension(
+      kUboClassicExtensionId,
+      {::extensions::disable_reason::DISABLE_UNSUPPORTED_MANIFEST_VERSION});
+}
+
 }  // namespace
 
 UboService::UboService(Profile* profile)
@@ -69,7 +87,12 @@ UboService::UboService(Profile* profile)
                  std::make_unique<UboSimpleUrlLoaderClient>(profile),
                  base::BindRepeating(&VerifyPackage),
                  base::BindRepeating(&InstallPackage),
-                 base::DefaultClock::GetInstance()) {}
+                 base::DefaultClock::GetInstance()) {
+  // The service is created eagerly for regular profiles so a build with the
+  // gate disabled can revoke stale local authorization and disable the exact
+  // MV2 extension before any product surface becomes reachable.
+  EnforceDisabledBuildState(profile);
+}
 
 UboService::UboService(Profile* profile,
                        UboProductConfig config,
@@ -83,6 +106,7 @@ UboService::UboService(Profile* profile,
       verifier_(std::move(verifier)),
       installer_(std::move(installer)),
       clock_(clock) {
+  status_.pinned_bootstrap_available = config_.IsPinnedBootstrapProvisioned();
   if (!profile_ || !profile_->IsRegularProfile() || !network_ || !verifier_ ||
       !installer_ || !clock_) {
     status_.state = UboServiceState::kError;
@@ -155,8 +179,8 @@ bool UboService::RefreshInstalledState() {
 }
 
 bool UboService::IsPeriodicCheckEnabled() const {
-  return profile_ && config_.IsProvisioned() && status_.authorized &&
-         !status_.installed_version.empty();
+  return profile_ && config_.IsSignedCatalogProvisioned() &&
+         status_.authorized && !status_.installed_version.empty();
 }
 
 void UboService::MaybeStartPeriodicChecks() {
@@ -196,6 +220,22 @@ void UboService::CheckForCatalog(UboCheckReason reason) {
   status_.catalog.reset();
   status_.downloaded_bytes = 0;
   status_.error = UboServiceError::kNone;
+  const bool installed_and_authorized = RefreshInstalledState();
+  if (reason == UboCheckReason::kManual &&
+      config_.IsPinnedBootstrapProvisioned() &&
+      (!installed_and_authorized || !config_.IsSignedCatalogProvisioned())) {
+    AcceptCatalogEntry(GetPinnedUboBootstrapCatalogEntry());
+    return;
+  }
+  // The network catalog is update-only. It must never become an alternate
+  // first-install authority when the statically pinned bootstrap is absent.
+  if (!config_.IsSignedCatalogProvisioned() || !installed_and_authorized) {
+    status_.state = UboServiceState::kUnprovisioned;
+    status_.error = UboServiceError::kUnprovisioned;
+    Publish();
+    return;
+  }
+
   status_.state = UboServiceState::kCheckingCatalog;
   Publish();
   network_->FetchCatalog(config_.catalog_url,
@@ -218,16 +258,30 @@ void UboService::OnCatalogDownloaded(
                  : UboServiceError::kInvalidCatalog);
     return;
   }
+  AcceptCatalogEntry(std::move(verified.value()));
+}
+
+void UboService::AcceptCatalogEntry(UboCatalogEntry entry) {
+  const bool pinned_bootstrap = IsPinnedUboBootstrapCatalogEntry(entry);
+  const bool installed_and_authorized = RefreshInstalledState();
+  // Recheck after the asynchronous catalog fetch. Uninstall or authorization
+  // removal while the request is in flight must not turn an update candidate
+  // into a new-install candidate.
+  if (!pinned_bootstrap && !installed_and_authorized) {
+    status_.state = UboServiceState::kUnprovisioned;
+    status_.error = UboServiceError::kUnprovisioned;
+    Publish();
+    return;
+  }
   auto rollback = CheckUboCatalogAgainstCommittedAuthorization(
-      *profile_->GetPrefs(), verified.value());
+      *profile_->GetPrefs(), entry);
   if (!rollback.has_value()) {
     SetError(UboServiceError::kRollback);
     return;
   }
 
-  status_.catalog = std::move(verified.value());
+  status_.catalog = std::move(entry);
   status_.error = UboServiceError::kNone;
-  const bool installed_and_authorized = RefreshInstalledState();
   if (installed_and_authorized) {
     base::Version installed(status_.installed_version);
     status_.state = installed.IsValid() && installed >= status_.catalog->version
@@ -277,7 +331,9 @@ void UboService::OnPackageDownloaded(
     SetError(NetworkErrorToServiceError(result.error()));
     return;
   }
-  if (!status_.catalog || result->final_url != status_.catalog->package_url ||
+  if (!status_.catalog ||
+      !IsAllowedUboPackageFinalUrl(status_.catalog->package_url,
+                                   result->final_url) ||
       result->path.empty()) {
     if (!result->path.empty()) {
       base::ThreadPool::PostTask(

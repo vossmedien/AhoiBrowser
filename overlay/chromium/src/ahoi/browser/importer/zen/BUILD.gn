@@ -1,0 +1,44 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+assert(is_mac, "Zen profile discovery is currently supported on macOS only")
+
+source_set("profile_discovery") {
+  sources = [
+    "zen_application_discovery.cc",
+    "zen_application_discovery.h",
+    "zen_profile_discovery.cc",
+    "zen_profile_discovery.h",
+  ]
+  public_deps = [
+    "//base",
+    "//components/user_data_importer/common",
+  ]
+  deps = [
+    "//chrome/common:ini_parser",
+  ]
+  frameworks = [ "CoreFoundation.framework" ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "zen_application_discovery_unittest.cc",
+    "zen_profile_discovery_unittest.cc",
+  ]
+  deps = [
+    ":profile_discovery",
+    "//base/test:test_support",
+    "//testing/gtest",
+  ]
+}
+
+test("ahoi_zen_profile_discovery_unittests") {
+  deps = [
+    ":unit_tests",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

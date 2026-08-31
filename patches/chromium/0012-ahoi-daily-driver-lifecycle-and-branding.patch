@@ -1,0 +1,536 @@
+diff --git a/chrome/app/chromium_strings.grd b/chrome/app/chromium_strings.grd
+index eb7dcad69a..60aec1f0ec 100644
+--- a/chrome/app/chromium_strings.grd
++++ b/chrome/app/chromium_strings.grd
+@@ -605,26 +605,26 @@ New bookmarks can’t be saved in your account until you delete some. If you sig
+       </if>
+       <!-- Default Browser messages -->
+       <message name="IDS_FR_CUSTOMIZE_DEFAULT_BROWSER" desc="Default browser checkbox label">
+-        Make Chromium the default browser
++        Make AhoiBrowser the default browser
+       </message>
+       <message name="IDS_DEFAULT_BROWSER_CHANGED_MESSAGE" desc="Body of the notification shown when Chrome is no longer the default browser.">
+-        Chromium is no longer your default browser. Make Chromium the default browser?
++        AhoiBrowser is no longer your default browser. Make AhoiBrowser the default browser?
+       </message>
+       <if expr="is_win">
+         <message name="IDS_DEFAULT_BROWSER_VISUAL_GUIDED_SETTER_PAGE_TITLE" desc="Title of the default browser visual guided setter page.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_VISUAL_GUIDED_SETTER_HEADER_TITLE" desc="Header text of the default browser visual guided setter.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_VISUAL_GUIDED_SETTER_CONTENT_TITLE" desc="Content title of the default browser visual guided setter.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_VISUAL_GUIDED_SETTER_CONTENT_DESCRIPTION" desc="Body text of the default browser visual guided setter.">
+-          Keep your passwords, bookmarks, and history perfectly synced across devices by setting Chromium as your default browser.
++          Keep your passwords, bookmarks, and history perfectly synced across devices by setting AhoiBrowser as your default browser.
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_VISUAL_GUIDED_SETTER_INSTRUCTION_STEP_2" desc="Instruction step 2 of the default browser visual guided setter. $1 is the bold button name.">
+-          Click <ph name="BEGIN_BOLD">&lt;strong&gt;</ph>Yes<ph name="END_BOLD">&lt;/strong&gt;</ph> in the Windows notification to pin Chromium to your taskbar for quick access.
++          Click <ph name="BEGIN_BOLD">&lt;strong&gt;</ph>Yes<ph name="END_BOLD">&lt;/strong&gt;</ph> in the Windows notification to pin AhoiBrowser to your taskbar for quick access.
+         </message>
+       </if>
+       <if expr="use_titlecase">
+@@ -796,46 +796,46 @@ Chromium is unable to recover your settings.
+         </message>
+       </if>
+       <message name="IDS_DEFAULT_BROWSER_INFOBAR_TEXT" desc="Text to show in an infobar when Chromium is not the current default browser.">
+-        Chromium isn't your default browser
++        AhoiBrowser isn't your default browser
+       </message>
+       <message name="IDS_DEFAULT_BROWSER_PIN_INFOBAR_TEXT" desc="Text to show in an infobar when Chromium is not the current default browser and can be pinned to the taskbar.">
+-        Set Chromium as your default browser and pin it to your taskbar
++        Set AhoiBrowser as your default browser and pin it to your taskbar
+       </message>
+       <if expr="not is_android and not is_chromeos">
+         <message name="IDS_DEFAULT_BROWSER_MODAL_TITLE_WITH_SETTINGS_ILLUSTRATION" desc="Title of the default browser modal with settings illustration.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_MODAL_BODY_WITH_SETTINGS_ILLUSTRATION" desc="Body text of the default browser modal with settings illustration.">
+-          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to Chromium.
++          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to AhoiBrowser.
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_MODAL_BODY_WITH_SETTINGS_ILLUSTRATION_UNPINNED" desc="Body text of the default browser modal with settings illustration when Chromium is not pinned to the taskbar.">
+-          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to Chromium. Chromium will be pinned to your taskbar for quick access.
++          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to AhoiBrowser. AhoiBrowser will be pinned to your taskbar for quick access.
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_MODAL_TITLE_WITHOUT_SETTINGS_ILLUSTRATION" desc="Title of the default browser modal without settings illustration.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_MODAL_BODY_WITHOUT_SETTINGS_ILLUSTRATION" desc="Body text of the default browser modal without settings illustration.">
+-          Get easy access to the features you know, love, and trust by setting Chromium as your default browser.
++          Get easy access to the features you know, love, and trust by setting AhoiBrowser as your default browser.
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_MODAL_BODY_WITHOUT_SETTINGS_ILLUSTRATION_UNPINNED" desc="Body text of the default browser modal without settings illustration when Chromium is not pinned to the taskbar.">
+-          Get easy access to the features you know, love, and trust by setting Chromium as your default browser. Chromium will be pinned to your taskbar for quick access.
++          Get easy access to the features you know, love, and trust by setting AhoiBrowser as your default browser. AhoiBrowser will be pinned to your taskbar for quick access.
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_BUBBLE_DIALOG_TITLE" desc="Title of the dialog prompting the user to set Chromium as the default browser.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_BUBBLE_DIALOG_BODY" desc="Main explanatory text in the default browser dialog.">
+-          Get easy access to the features you know, love, and trust by setting Chromium as your default browser.
++          Get easy access to the features you know, love, and trust by setting AhoiBrowser as your default browser.
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_SUCCESS_TOAST_BODY" desc="Body text of the toast shown when Chromium is successfully set as the default browser.">
+-          Chromium is now your default browser
++          AhoiBrowser is now your default browser
+         </message>
+         <message name="IDS_DEFAULT_BROWSER_BUBBLE_DIALOG_STEPS_PINNED_COMBINED" desc="Numbered instructions. $1, $2 and $3 are the bold button names.">
+-          1. Click <ph name="BUTTON_LABEL">$1<ex>Open settings</ex></ph> below&#xA;2. Click <ph name="BUTTON_2">$2<ex>Set default</ex></ph> in your Windows settings&#xA;3. Click <ph name="BUTTON_3">$3<ex>Yes</ex></ph> in the Windows notification to pin Chromium to your taskbar for quick access
++          1. Click <ph name="BUTTON_LABEL">$1<ex>Open settings</ex></ph> below&#xA;2. Click <ph name="BUTTON_2">$2<ex>Set default</ex></ph> in your Windows settings&#xA;3. Click <ph name="BUTTON_3">$3<ex>Yes</ex></ph> in the Windows notification to pin AhoiBrowser to your taskbar for quick access
+         </message>
+       </if>
+       <if expr="is_win or is_macosx">
+         <message name="IDS_PDF_INFOBAR_TEXT" desc="Text to show in an infobar when Chromium is not the default PDF viewer.">
+-          Set Chromium as your default PDF viewer
++          Set AhoiBrowser as your default PDF viewer
+         </message>
+       </if>
+       <if expr="enable_pdf">
+@@ -1601,7 +1601,7 @@ Chromium is unable to recover your settings.
+       <!-- Mac First-run dialog messages -->
+       <if expr="is_macosx">
+         <message name="IDS_FIRSTRUN_DLG_MAC_SET_DEFAULT_BROWSER_LABEL" desc="Label for checkbox that sets the default browser">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+       </if>
+ 
+@@ -2551,36 +2551,36 @@ Chromium is unable to recover your settings.
+ 
+         <!-- Default Browser Promo -->
+         <message name="IDS_FRE_DEFAULT_BROWSER_TITLE" desc="Title for the page that prompts user to set Chromium as their default browser in the first run experience.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+         <message name="IDS_FRE_DEFAULT_BROWSER_AND_PINNING_TITLE" desc="Title for the page that prompts user to set Chromium as their default browser and pin to taskbar in the first run experience.">
+-          Use Chromium by default and get it pinned
++          Use AhoiBrowser by default and get it pinned
+         </message>
+         <message name="IDS_FRE_DEFAULT_BROWSER_SUBTITLE_NEW" desc="Subtitle for the page that prompts user to set Chromium as their default browser in the first run experience.">
+-          Use Chromium anytime you click links in messages, documents, and other apps
++          Use AhoiBrowser anytime you click links in messages, documents, and other apps
+         </message>
+         <message name="IDS_FRE_DEFAULT_BROWSER_AND_PINNING_SUBTITLE" desc="Subtitle for the page that prompts user to set Chromium as their default browser and pin to taskbar in the first run experience.">
+-          Open links in Chromium from any app. Plus for easy access, it gets pinned to your taskbar.
++          Open links in AhoiBrowser from any app. Plus for easy access, it gets pinned to your taskbar.
+         </message>
+         <message name="IDS_FRE_DEFAULT_BROWSER_ILLUSTRATION_ALT_TEXT" desc="Alt text for the illustration in the page that prompts user to set Chromium as their default browser.">
+-          Chromium logo inside a computer screen.
++          AhoiBrowser logo inside a computer screen.
+         </message>
+         <message name="IDS_APP_MENU_TOOLTIP_DEFAULT_PROMPT" desc="The tooltip to show for the browser menu when the default browser prompt is displayed">
+-          Customize and control Chromium. Set Chromium as your default.
++          Customize and control AhoiBrowser. Set AhoiBrowser as your default.
+         </message>
+         <message name="IDS_APP_MENU_BUTTON_DEFAULT_PROMPT" desc="Text in the browser menu chip indicating that the user can change their default browser">
+-          Set Chromium as your default
++          Set AhoiBrowser as your default
+         </message>
+         <message name="IDS_SET_BROWSER_AS_DEFAULT_MENU_ITEM" desc="Menu item that prompts user to set Chromium as their default browser.">
+-          Set Chromium as your default browser
++          Set AhoiBrowser as your default browser
+         </message>
+ 
+         <!-- Default Browser Promo Refresh -->
+         <message name="IDS_FRE_REFRESH_DEFAULT_BROWSER_TITLE" desc="Title for the page that prompts user to set Chromium as their default browser in the refreshed first run experience.">
+-          Set Chromium as default and pin it to taskbar
++          Set AhoiBrowser as default and pin it to taskbar
+         </message>
+         <message name="IDS_FRE_REFRESH_DEFAULT_BROWSER_SUBTITLE" desc="Subtitle for the page that prompts user to set Chromium as their default browser in the refreshed first run experience.">
+-          Open links in Chromium from any app and keep the browser accessible on your taskbar
++          Open links in AhoiBrowser from any app and keep the browser accessible on your taskbar
+         </message>
+ 
+         <!-- Profile switch IPH -->
+diff --git a/chrome/app/resources/chromium_strings_de.xtb b/chrome/app/resources/chromium_strings_de.xtb
+index 487d5747cb..13b0e21ddc 100644
+--- a/chrome/app/resources/chromium_strings_de.xtb
++++ b/chrome/app/resources/chromium_strings_de.xtb
+@@ -40,14 +40,17 @@
+ <translation id="1388276868779258475">Mit der Chromium App kannst du unterwegs weiter surfen</translation>
+ <translation id="1397530502368084401">&amp;Chromium-Profile verwalten</translation>
+ <translation id="141901961143729572">Lass uns wissen, was du denkst</translation>
++<translation id="1439732492303421126">Vielen Dank, dass du AhoiBrowser als Standardbrowser ausgewählt hast.</translation>
+ <translation id="1465192221147974788">Wenn du dein Fenster teilen möchtest, musst du in den Systemeinstellungen die Bildschirmaufzeichnung für Chromium zulassen.</translation>
+ <translation id="1478370723027452770">Hilfe zu Chrome for Testing</translation>
+ <translation id="1497802159252041924">Installationsfehler: <ph name="INSTALL_ERROR" /></translation>
+ <translation id="1518627427551567882">Diese Seite ist geschützt</translation>
+ <translation id="1524282610922162960">Chromium-Tab freigeben</translation>
++<translation id="1542795583005117522">Passwörter, Lesezeichen und Verlauf werden auf allen Geräten synchronisiert. Wenn du deinen Standardbrowser auf AhoiBrowser aktualisierst, kannst du ganz einfach auf die vertrauten Funktionen zugreifen.</translation>
+ <translation id="154404805518949443">In Chromium anmelden</translation>
+ <translation id="1547469039832541117">Beendet den ausgewählten Task.</translation>
+ <translation id="1562320819937089394">Chromium anpinnen</translation>
++<translation id="156964193869921574">Dies ist eine Zweitinstallation von AhoiBrowser und kann nicht als Standardbrowser festgelegt werden.</translation>
+ <translation id="1574377791422810894">Sicherheitstools von Chromium</translation>
+ <translation id="1594928384848033697">Chromium möchte deine Passwortmanager-Daten löschen. Gib dein Windows-Passwort ein, um dies zuzulassen.</translation>
+ <translation id="1607715478322902680">{COUNT,plural, =0{Laut deinem Administrator musst du Chromium neu starten, um ein Update durchzuführen}=1{Laut deinem Administrator musst du Chromium neu starten, um ein Update durchzuführen. Dein Inkognitofenster wird nicht wieder geöffnet.}other{Laut deinem Administrator musst du Chromium neu starten, um ein Update durchzuführen. Deine # Inkognitofenster werden nicht wieder geöffnet.}}</translation>
+@@ -76,6 +79,7 @@
+ <translation id="1862852878885210965">Mit der Bildersuche suchen</translation>
+ <translation id="1880677175115548835">Text auswählen</translation>
+ <translation id="1881322772814446296">Du meldest dich mit einem verwalteten Konto an und ermöglichst dessen Administrator Zugriff auf dein Chromium-Profil. Deine Chromium-Daten, wie Apps, Lesezeichen, Verlauf, Passwörter und andere Einstellungen, werden dauerhaft mit <ph name="USER_NAME" /> verknüpft. Du kannst diese Daten über das Google Konten-Dashboard löschen, aber nicht mit einem anderen Konto verknüpfen. Wenn du deine bestehenden Chromium-Daten getrennt verwenden möchtest, kannst du ein neues Profil erstellen. <ph name="LEARN_MORE" /></translation>
++<translation id="1882797069634824530">AhoiBrowser als Standardbrowser festlegen und an die Taskleiste anpinnen</translation>
+ <translation id="1896836275755235458">In Chromium wird der Akkuverbrauch reduziert, indem Hintergrundaktivitäten und visuelle Effekte wie optimiertes Scrollen und Video-Framerates eingeschränkt werden. <ph name="BEGIN_LINK" />Weitere Informationen zum Energiesparmodus<ph name="END_LINK" /></translation>
+ <translation id="1900969832270057921">Chromium Updater Service</translation>
+ <translation id="1911763535808217981">Wenn du diese Einstellung deaktivierst, kannst du dich auf Websites von Google wie beispielsweise Gmail anmelden, ohne dich auch in Chromium anmelden zu müssen</translation>
+@@ -153,7 +157,9 @@
+ <translation id="2637732208198500597">{COUNT,plural, =0{Das erweiterte Sicherheitsprogramm erfordert, dass du Chromium neu startest, um ein Update durchzuführen}=1{Das erweiterte Sicherheitsprogramm erfordert, dass du Chromium neu startest, um ein Update durchzuführen. Dein Inkognitofenster wird nicht wieder geöffnet.}other{Das erweiterte Sicherheitsprogramm erfordert, dass du Chromium neu startest, um ein Update durchzuführen. Deine # Inkognitofenster werden nicht wieder geöffnet.}}</translation>
+ <translation id="2648074677641340862">Während der Installation ist ein Fehler im Betriebssystem aufgetreten. Bitte lade Chromium erneut herunter.</translation>
+ <translation id="2661879430930417727">Auf gemeinsam genutzten Geräten können die verschiedenen Nutzer separat surfen und Chromium jeweils nach ihren Wünschen einrichten</translation>
++<translation id="2662211830026417309">AhoiBrowser als Standardbrowser festlegen</translation>
+ <translation id="2676569452213089702">Du kannst Gemini ganz einfach in Chromium auf deinem Gerät verwenden, auch wenn Chromium minimiert ist.</translation>
++<translation id="2702530280025062255">Links aus jeder App in AhoiBrowser öffnen. Für schnellen Zugriff wird AhoiBrowser außerdem an die Taskleiste angepinnt.</translation>
+ <translation id="2711502716910134313">Chromium-Tab</translation>
+ <translation id="2718390899429598676">Chromium verschlüsselt deine Daten zur Erhöhung der Sicherheit.</translation>
+ <translation id="2721354645805494590">Wenn du dein Google-Konto von Chromium entfernen möchtest, melde dich ab</translation>
+@@ -170,6 +176,7 @@
+ <translation id="2846251086934905009">Installationsfehler: Die Installation konnte nicht abgeschlossen werden und wurde abgebrochen.</translation>
+ <translation id="2847479871509788944">Aus Chromium entfernen...</translation>
+ <translation id="2850691299438350830">Schützt dich in Chromium und erhöht möglicherweise die Sicherheit in anderen Google-Apps, wenn du angemeldet bist.</translation>
++<translation id="2871336518980689679">Wenn du AhoiBrowser als Standardbrowser festlegst, hast du ganz einfach Zugriff auf die vertrauten Funktionen. AhoiBrowser wird für den Schnellzugriff an die Taskleiste angepinnt.</translation>
+ <translation id="2885378588091291677">Task-Manager</translation>
+ <translation id="2910007522516064972">Über &amp;Chromium</translation>
+ <translation id="2915996080311180594">Später neu starten</translation>
+@@ -180,6 +187,7 @@
+ <translation id="2977470724722393594">Chromium ist auf dem neuesten Stand</translation>
+ <translation id="2977506796191543575">Wenn eine Website versucht, dein Passwort zu stehlen, oder wenn du eine schädliche Datei herunterlädst, kann Chromium auch URLs, einschließlich Teile von Seiteninhalten, an Safe Browsing senden</translation>
+ <translation id="2981563588585023386">Wenn du die von deinen Eltern festgelegten Einstellungen nutzen möchtest, um im Internet besser geschützt zu sein, melde dich in Chromium an</translation>
++<translation id="2981772111378368404">Du kannst AhoiBrowser immer verwenden, wenn du in Nachrichten, Dokumenten und anderen Apps auf Links klickst</translation>
+ <translation id="3003694935412297923">Alle Tasks</translation>
+ <translation id="3012615494352020668">{count,plural, =1{Chromium muss deine Identität bestätigen, damit einige Daten in deinem Google-Konto gespeichert und auf allen deinen Geräten verwendet werden können. Wenn du dich jetzt abmeldest, werden diese Daten (1 Element) gelöscht.}other{Chromium muss deine Identität bestätigen, damit einige Daten in deinem Google-Konto gespeichert und auf allen deinen Geräten verwendet werden können. Wenn du dich jetzt abmeldest, werden diese Daten ({count} Elemente) gelöscht.}}</translation>
+ <translation id="3013473503895162900"><ph name="URL" /> in einem neuen Tab in Chromium öffnen.</translation>
+@@ -220,6 +228,7 @@
+ <translation id="3313189106987092621">Chromium warnt dich, bevor eine Website über eine unsichere Verbindung geladen wird</translation>
+ <translation id="3316771292331273802">Wenn du alle Chromium-Fenster schließt, wirst du auf den meisten Websites abgemeldet – mit Ausnahme deines Google-Kontos, falls du in Chromium angemeldet bist. Wenn du möchtest, dass Websites dich wiedererkennen, <ph name="SETTINGS_LINK" />.</translation>
+ <translation id="3352986031709923790">Rechte obere Ecke des Suchbereichs: rechts <ph name="RIGHT" /> %, oben <ph name="TOP" /> %</translation>
++<translation id="3363172095099769006">Links aus jeder App in AhoiBrowser öffnen und den Browser über die Taskleiste griffbereit halten</translation>
+ <translation id="3366305173356742781">Chromium-Daten in deinem Konto</translation>
+ <translation id="3375770072980084583">Passwörter mit Chromium auf deinem Smartphone verwenden</translation>
+ <translation id="3387527074123400161">Chromium OS</translation>
+@@ -269,6 +278,7 @@
+ <translation id="3954172517175569325">Deine Passwörter, Zahlungsmethoden und Adressen, die du in deinem Google-Konto gespeichert hast, werden von diesem Gerät entfernt. Wenn du sie in Zukunft in Chromium verwenden möchtest, melde dich einfach wieder an.</translation>
+ <translation id="395904275706073188">Geschützte Seiten können nicht gelesen werden. Versuche es mit einer anderen Seite.</translation>
+ <translation id="3962647064319009959">So trägt Chromium zu deinem Schutz bei</translation>
++<translation id="396482065222673316">AhoiBrowser ist nicht mehr dein Standardbrowser. AhoiBrowser als Standardbrowser verwenden?</translation>
+ <translation id="3967822245660637423">Download abgeschlossen</translation>
+ <translation id="3971865010372729242">Wenn du etwas in die Adressleiste oder das Suchfeld eingibst, sendet Chromium deine Eingabe an die Such-, KI- und Hilfetools deiner Organisation, um Vorschläge zu erhalten.</translation>
+ <translation id="3975724895399328945">Über &amp;Google Chrome for Testing</translation>
+@@ -280,6 +290,7 @@
+ <translation id="4023601594785368013">Originalsprache: <ph name="LANGUAGE" /></translation>
+ <translation id="4023845192681161785">Du kannst über jede App Links in Chromium öffnen. Außerdem wird Chromium für einen einfachen Zugriff an die Taskleiste angepinnt.</translation>
+ <translation id="4036079820698952681">Hilf uns mit deinem Feedback zu den <ph name="BEGIN_LINK" />aktuellen Einstellungen<ph name="END_LINK" /> bei der Verbesserung von Chromium</translation>
++<translation id="404687246668999203">AhoiBrowser als Standardbrowser festlegen und an die Taskleiste anpinnen</translation>
+ <translation id="4050175100176540509">Wichtige Sicherheitsverbesserungen und neue Funktionen sind in der aktuellen Version verfügbar.</translation>
+ <translation id="4055805654398742145">P&amp;asswortmanager</translation>
+ <translation id="4095980151185649725">{COUNT,plural, =1{Deine Organisation hat festgelegt, dass Chromium automatisch geschlossen wird, wenn der Browser eine Minute lang nicht verwendet wird. Browserdaten werden gelöscht. Dazu können der Verlauf, Autofill-Daten und Downloads gehören.}other{Deine Organisation hat festgelegt, dass Chromium automatisch geschlossen wird, wenn der Browser # Minuten lang nicht verwendet wird. Browserdaten werden gelöscht. Dazu können der Verlauf, Autofill-Daten und Downloads gehören.}}</translation>
+@@ -334,6 +345,7 @@
+ <translation id="4621240073146040695">Fast fertig! Starte Chromium neu, um die Aktualisierung abzuschließen.</translation>
+ <translation id="4625064703209785397">Websites werden mit der V8-Engine von Chromium beschleunigt, Chromium wird dadurch aber etwas anfälliger für Angriffe</translation>
+ <translation id="4665829708273112819">Achtung: Chromium kann nicht verhindern, dass dein Browserverlauf von Erweiterungen protokolliert wird. Du kannst diese Erweiterung für den Inkognitomodus deaktivieren, indem du die Auswahl für die entsprechende Option aufhebst.</translation>
++<translation id="4672969016402661100">Wenn du AhoiBrowser als Standardbrowser festlegst, hast du ganz einfach Zugriff auf die vertrauten Funktionen.</translation>
+ <translation id="4673151026126227699">Wenn du Chromium-Nutzungsberichte teilst, enthalten diese Berichte die von dir aufgerufenen URLs</translation>
+ <translation id="4673710618874938871">Angemeldet als <ph name="USER_NAME" />, Abo. Kontomenü öffnen.</translation>
+ <translation id="4677944499843243528">Das Profil wird offenbar gerade von einem Chromium-Prozess (<ph name="PROCESS_ID" />) auf einem anderen Computer (<ph name="HOST_NAME" />) verwendet. Das Profil wurde von Chromium gesperrt, damit es nicht beschädigt wird. Wenn du sicher bist, dass das Profil nicht von anderen Prozessen verwendet wird, kannst du das Profil entsperren und Chromium neu starten.</translation>
+@@ -376,6 +388,7 @@
+ <translation id="5294316920224716406">Wenn du im Inkognitomodus surfst, warnt Chromium dich, bevor eine Website über eine unsichere Verbindung geladen wird</translation>
+ <translation id="5313228254328109263">Chromium Updater Internal Service</translation>
+ <translation id="5324450571874973775">Du kannst sie zusammen mit anderen Gemini-Funktionen in Chromium verwenden</translation>
++<translation id="5344088092438028145">AhoiBrowser-Logo auf einem Computerbildschirm.</translation>
+ <translation id="5346389065299425353">Die Suche verfeinern, indem du mehrere Tabs, Dateien und Tools hinzufügst</translation>
+ <translation id="5348677704241861105">Mit Gemini in Chromium eine schnelle Übersicht über dieses Dokument erhalten und Fragen dazu stellen</translation>
+ <translation id="5352264705793813212">Chromium hat einige Sicherheitsempfehlungen gefunden, die du überprüfen solltest</translation>
+@@ -397,6 +410,7 @@
+ <translation id="549669000822060376">Bitte warte, bis die aktuellen Systemupdates von Chromium installiert wurden.</translation>
+ <translation id="5496810170689441661">Chromium versucht, Passwörter zu bearbeiten. Gib dein Windows-Passwort ein, um dies zuzulassen.</translation>
+ <translation id="549975168243349205">Mit Chromium kannst du unterwegs nahtlos mit deinen bevorzugten Apps wie Google Drive und YouTube arbeiten.</translation>
++<translation id="5516473420962893307">AhoiBrowser ist jetzt dein Standardbrowser</translation>
+ <translation id="5524890928877629608">Linke obere Ecke des Suchbereichs: links <ph name="LEFT" /> %, oben <ph name="TOP" /> %</translation>
+ <translation id="5527463683072221100">PDFs in Chromium öffnen</translation>
+ <translation id="5536164441519929134">Stelle eine Frage<ph name="LINE_BREAK" />zu diesem Tab</translation>
+@@ -430,6 +444,10 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
+ <translation id="5889361821821684993">Chromium prüft regelmäßig, ob dein Browser die sichersten Einstellungen hat. Solltest du etwas überprüfen müssen, informieren wir dich.</translation>
+ <translation id="5895138241574237353">Neu starten</translation>
+ <translation id="5903106910045431592"><ph name="PAGE_TITLE" /> – Netzwerkanmeldung</translation>
++<translation id="5922032298552745053">1. Klicke unten auf <ph name="BUTTON_LABEL" />
++2. Klicke in den Windows-Einstellungen auf <ph name="BUTTON_2" />
++3. Klicke in der Windows-Benachrichtigung auf <ph name="BUTTON_3" />, um AhoiBrowser für den Schnellzugriff an die Taskleiste anzupinnen</translation>
++<translation id="5922847975329512945">Klicke in der Windows-Benachrichtigung auf <ph name="BEGIN_BOLD" />Ja<ph name="END_BOLD" />, um AhoiBrowser für den Schnellzugriff an die Taskleiste anzupinnen.</translation>
+ <translation id="5924017743176219022">Internetverbindung wird hergestellt…</translation>
+ <translation id="5939553720811388432">Lass uns Chromium für dich einrichten</translation>
+ <translation id="5941711191222866238">Minimieren</translation>
+@@ -451,6 +469,7 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
+ <translation id="6107893135096467929">Aktiviert • Chromium kann nicht bestätigen, woher diese Erweiterung stammt</translation>
+ <translation id="611228897408671387">Mein Konto in Chromium</translation>
+ <translation id="6119438414301547735">Zulassen, dass die Erweiterung Zugriffsanfragen in der Chromium-Symbolleiste anzeigt</translation>
++<translation id="6120737065377351070">Du kannst AhoiBrowser immer verwenden, wenn du in Nachrichten, Dokumenten und anderen Apps auf Links klickst. AhoiBrowser wird außerdem an die Taskleiste angepinnt.</translation>
+ <translation id="6129621093834146363"><ph name="FILE_NAME" /> ist schädlich und wurde daher von Chromium blockiert.</translation>
+ <translation id="6132897690380286411">Browserdaten in Chromium werden bald gelöscht und der Browser geschlossen</translation>
+ <translation id="6145820983052037069">Hier kannst du zwischen Chromium-Profilen wechseln</translation>
+@@ -487,6 +506,7 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
+ <translation id="6403826409255603130">Chromium ist ein Webbrowser, der Webseiten und Apps in Sekundenschnelle lädt und dabei äußerst stabil und nutzerfreundlich ist. Dank des integrierten Malware- und Phishing-Schutzes kannst du bedenkenlos im Internet surfen.</translation>
+ <translation id="6414624068245092115">Damit du Chromium-Daten in deinem Google-Konto jederzeit verwenden und speichern kannst, bestätige deine Identität</translation>
+ <translation id="642132557830635295">Chrome wird schneller ausgeführt und Funktionen, die JavaScript verwenden, sollten wie vorgesehen funktionieren (empfohlen)</translation>
++<translation id="6430828732872077686">AhoiBrowser als standardmäßigen PDF-Viewer festlegen</translation>
+ <translation id="6436260184216827876">Die Bildersuche ist nicht verfügbar. Versuche es später noch einmal.</translation>
+ <translation id="6442900851116057561">Chromium OS neu starten</translation>
+ <translation id="6443470774889161065">Chromium lädt noch mehr Seiten vorab, die du wahrscheinlich besuchen wirst, sodass sie dann schneller zur Verfügung stehen</translation>
+@@ -558,6 +578,7 @@ Du kannst erst neue Lesezeichen in deinem Konto speichern, wenn du einige gelös
+ <translation id="6964305034639999644">Link in Chromium-Inkognitofenster öffnen</translation>
+ <translation id="6965382102122355670">OK</translation>
+ <translation id="6985329841647292029">Chromium OS-Nutzungsbedingungen</translation>
++<translation id="7002764428931702888">AhoiBrowser anpassen und verwalten. AhoiBrowser als Standardbrowser festlegen.</translation>
+ <translation id="7003299027384820442">Gib deine Passphrase ein, um Chromium-Daten in deinem Konto <ph name="ACCOUNT_EMAIL" /> zu verwenden und zu speichern</translation>
+ <translation id="7011190694940573312">Die Installation ist fehlgeschlagen, da diese Version des Betriebssystems nicht unterstützt wird.</translation>
+ <translation id="7024536598735240744">Fehler beim Entpacken: <ph name="UNPACK_ERROR" />.</translation>
+@@ -568,12 +589,14 @@ Du kannst erst neue Lesezeichen in deinem Konto speichern, wenn du einige gelös
+ <translation id="7074836723476134809">Mit der Chromium App auf deinem <ph name="DEVICE_TYPE" /> die Möglichkeiten von KI nutzen</translation>
+ <translation id="7134687062119989071">Mit der Chromium App auf deinem Smartphone Passwörter, Tabs und andere Daten unterwegs nutzen</translation>
+ <translation id="7141270731789036260">Chrome for Testing personalisieren</translation>
++<translation id="7145496603861305145">AhoiBrowser als Standardbrowser festlegen</translation>
+ <translation id="7147227333672430807">Du kannst Chromium immer verwenden, wenn du auf Links in Nachrichten, Dokumenten und Apps klickst</translation>
+ <translation id="7163519456498498587"><ph name="EXTENSION_NAME" /> aus Chromium entfernen</translation>
+ <translation id="7173822816570314652">In deiner Organisation werden Chromium-Daten nach <ph name="TIMEOUT_DURATION" /> Inaktivität gelöscht. Dazu können der Verlauf, Autofill-Daten und Downloads gehören.</translation>
+ <translation id="718435575166326686">Chromium benötigt die Kameraberechtigung für diese Website</translation>
+ <translation id="7196312274710523067">Chromium konnte nicht gestartet werden. Versuche es noch einmal.</translation>
+ <translation id="7204669035546236137">Mit Gemini in Chromium zu allem, was du siehst, Fragen stellen</translation>
++<translation id="7204745961621051590">AhoiBrowser standardmäßig verwenden und anpinnen</translation>
+ <translation id="7213008767289637091">Du kannst Chromium im Dock behalten, um jederzeit schnell darauf zugreifen zu können</translation>
+ <translation id="7213407614656404070">Chromium immer verwenden, wenn du auf Links in Nachrichten, Dokumenten und anderen Apps klickst</translation>
+ <translation id="7216228761061470870">Wenn du die Bildersuche auf dem Computer verwendest, werden der Seitentitel, die URL und der Inhalt, einschließlich PDFs, an den Server gesendet</translation>
+@@ -602,6 +625,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+ <translation id="744815265653811511">1. Klicke unten auf <ph name="BUTTON_LABEL" />
+ 2. Klicke in den Windows-Einstellungen auf <ph name="BUTTON_2" />
+ 3. Klicke in der Windows-Benachrichtigung auf <ph name="BUTTON_3" />, um Chromium für den Schnellzugriff an die Taskleiste anzupinnen</translation>
++<translation id="7448488406984081817">Passwörter, Lesezeichen und Verlauf werden auf allen Geräten synchronisiert. Wenn du deinen Standardbrowser auf AhoiBrowser aktualisierst, kannst du ganz einfach auf die vertrauten Funktionen zugreifen. AhoiBrowser wird für den Schnellzugriff an die Taskleiste angepinnt.</translation>
+ <translation id="7449453770951226939"><ph name="PAGE_TITLE" /> – Chromium Dev</translation>
+ <translation id="7450541714075000668">Text kopiert</translation>
+ <translation id="7458892263350425044">Wenn du dein Mikrofon verwenden möchtest, erlaube Chromium über die <ph name="BEGIN_LINK" />Systemeinstellungen<ph name="END_LINK" /> den Zugriff darauf</translation>
+@@ -621,6 +645,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+ <translation id="7649070708921625228">Hilfe</translation>
+ <translation id="7650134251917003571">Chromium App herunterladen</translation>
+ <translation id="7658239707568436148">Abbrechen</translation>
++<translation id="7666959978695150388">Passwörter, Lesezeichen und Verlauf werden auf allen Geräten synchronisiert, wenn du AhoiBrowser als Standardbrowser festlegst.</translation>
+ <translation id="7686590090926151193">Chromium ist nicht als dein Standardbrowser festgelegt</translation>
+ <translation id="7689606757190482937">Chromium wird auf allen deinen Geräten synchronisiert und personalisiert</translation>
+ <translation id="7699779824407626136">Chromium-Update</translation>
+@@ -648,6 +673,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+ <translation id="7888981273428720788">Chromium als Standardbrowser festlegen</translation>
+ <translation id="7934340546140346950">Chromium stellt unsichere Verbindungen nach Möglichkeit automatisch auf HTTPS um</translation>
+ <translation id="7937630085815544518">Du warst in Chromium als <ph name="USER_EMAIL_ADDRESS" /> angemeldet. Melde dich bitte wieder mit demselben Konto an.</translation>
++<translation id="7968956491425954239">AhoiBrowser kann den Standardbrowser nicht bestimmen oder festlegen</translation>
+ <translation id="7975919845073681630">Dies ist eine Zweitinstallation, daher kann Chromium nicht als Standardbrowser festgelegt werden.</translation>
+ <translation id="7997934263947464652">Erweiterungen, Apps und Designs aus unbekannten Quellen können Schäden auf deinem Gerät verursachen. Chromium empfiehlt, sie nur über den <ph name="IDS_EXTENSION_WEB_STORE_TITLE" /> zu installieren.</translation>
+ <translation id="8000759043835159571">Mit der Chromium App auf deinem <ph name="DEVICE_TYPE" /> das Beste von Google nutzen</translation>
+@@ -669,11 +695,13 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+ <translation id="8130609355518033382">Chromium personalisieren</translation>
+ <translation id="8133124826068723441">Chromium OS konnte deine Daten nicht synchronisieren, da die Synchronisierung für deine Domain nicht verfügbar ist.</translation>
+ <translation id="813913629614996137">Initialisierung…</translation>
++<translation id="8151558536911336883">Du kannst AhoiBrowser immer verwenden, wenn du in Nachrichten, Dokumenten und anderen Apps auf Links klickst.</translation>
+ <translation id="8161503455832158203">Gemini in Chromium mit einer Tastenkombination öffnen.</translation>
+ <translation id="8164014945047474187">Zusatzbedingungen für Chromium</translation>
+ <translation id="81770708095080097">Diese Datei ist schädlich und wurde von Chromium blockiert.</translation>
+ <translation id="8177472873527554730">Inhalt auf der Seite nicht gefunden</translation>
+ <translation id="8200109504272824693">Gib deine Passphrase ein, um Chromium-Daten in deinem Konto <ph name="USER_EMAIL" /> zu verwenden und zu speichern</translation>
++<translation id="8213679946583013366">AhoiBrowser ist dein Standardbrowser</translation>
+ <translation id="8221491193165283816">Normalerweise blockierst du Benachrichtigungen. Klicke hier, wenn du von dieser Website Benachrichtigungen erhalten möchtest.</translation>
+ <translation id="8223363452568144035">Wenn du deine Kamera verwenden möchtest, erlaube Chromium über die <ph name="BEGIN_LINK" />Systemeinstellungen<ph name="END_LINK" /> den Zugriff darauf</translation>
+ <translation id="8232193495299001329">Chromium kann nicht überprüfen, woher diese Erweiterung stammt. Sie könnte unsicher sein. Entferne sie aus Chromium, damit sie deine Daten auf von dir besuchten Websites nicht mehr abrufen oder ändern kann, auch nicht personenbezogene Daten.</translation>
+@@ -719,9 +747,11 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+ <translation id="8576826849825683917">Chromium wird von mehreren Organisationen verwaltet</translation>
+ <translation id="8586442755830160949">Copyright <ph name="YEAR" /> Die Chromium-Autoren. Alle Rechte vorbehalten.</translation>
+ <translation id="8601359445272098721">Neu! Du kannst sowohl Text als auch Bilder auf deinem Bildschirm übersetzen, indem du den Button „Bildschirm übersetzen“ auswählst</translation>
++<translation id="8611105887519167537">AhoiBrowser ist nicht dein Standardbrowser</translation>
+ <translation id="8619360774459241877">Chromium wird gestartet…</translation>
+ <translation id="8624541899164515475">Einstellungen, werden in neuem Tab geöffnet.</translation>
+ <translation id="8648201657708811153">Google Chrome for Testing kann nicht als Standardbrowser festgelegt werden.</translation>
++<translation id="8655993906227611888">AhoiBrowser als Standard festlegen und an die Taskleiste anpinnen</translation>
+ <translation id="8697124171261953979">Die Erweiterung legt auch fest, welche Seite beim Start von Chromium oder bei der Suche über die Omnibox angezeigt wird.</translation>
+ <translation id="8704119203788522458">Dies ist dein persönlicher Chromium-Browser</translation>
+ <translation id="8712637175834984815">Ok</translation>
+@@ -762,6 +792,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+ <translation id="9053882453960391422">Passwörter, Lesezeichen und Verlauf werden auf allen Geräten synchronisiert. Wenn du deinen Standardbrowser auf Chromium aktualisierst, kannst du ganz einfach auf die vertrauten Funktionen zugreifen. Chromium wird für den Schnellzugriff an die Taskleiste angepinnt.</translation>
+ <translation id="9056398481763999048">Mit der Chromium App auf deinem Smartphone die besten KI-Tools von Google nutzen</translation>
+ <translation id="9062666675513499497">In Chromium anmelden, wenn du dich in anderen Google-Diensten anmeldest</translation>
++<translation id="9076877110065784602">AhoiBrowser als Standard festlegen</translation>
+ <translation id="9078733879136747090">Chromium wurde automatisch geschlossen</translation>
+ <translation id="9089354809943900324">Chromium ist veraltet.</translation>
+ <translation id="9093206154853821181">{0,plural, =1{Chromium wird in einer Stunde neu gestartet}other{Chromium wird in # Stunden neu gestartet}}</translation>
+@@ -786,4 +817,4 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+ <translation id="985602178874221306">Die Chromium-Autoren</translation>
+ <translation id="989970834842471429">Wähle einen beliebigen Text oder ein beliebiges Bild aus, um mit der Bildersuche zu suchen</translation>
+ <translation id="992780518932311116">Wenn du deinen Standort verwenden möchtest, erlaube Chromium über die <ph name="BEGIN_LINK" />Systemeinstellungen<ph name="END_LINK" /> den Zugriff darauf</translation>
+-</translationbundle>
+\ No newline at end of file
++</translationbundle>
+diff --git a/chrome/app/settings_chromium_strings.grdp b/chrome/app/settings_chromium_strings.grdp
+index 0c1f37b3d0..34c4b74059 100644
+--- a/chrome/app/settings_chromium_strings.grdp
++++ b/chrome/app/settings_chromium_strings.grdp
+@@ -61,25 +61,25 @@
+   <!-- Default Browser Page -->
+   <if expr="not is_chromeos">
+     <message name="IDS_SETTINGS_DEFAULT_BROWSER_DEFAULT" desc="The text displayed when Chrome is the default browser">
+-      Chromium is your default browser
++      AhoiBrowser is your default browser
+     </message>
+     <message name="IDS_SETTINGS_DEFAULT_BROWSER_DEFAULT_THANK_YOU" desc="The text displayed when Chromium is the default browser">
+-      Thanks for choosing Chromium as your default browser!
++      Thanks for choosing AhoiBrowser as your default browser!
+     </message>
+     <message name="IDS_SETTINGS_DEFAULT_BROWSER_MAKE_DEFAULT" desc="Default browser checkbox label">
+-      Make Chromium the default browser
++      Make AhoiBrowser the default browser
+     </message>
+     <message name="IDS_SETTINGS_DEFAULT_BROWSER_MAKE_DEFAULT_USER_VALUE" desc="The text displayed when Chromium is not the default browser. This string describes the effect (user benefit) of setting a browser as the default.">
+-      You can use Chromium anytime you click links in messages, documents, and other apps
++      You can use AhoiBrowser anytime you click links in messages, documents, and other apps
+     </message>
+     <message name="IDS_SETTINGS_DEFAULT_BROWSER_MAKE_DEFAULT_AND_PIN" desc="The text of the button to make Chromium the default browser and pin it to the taskbar.">
+-      Make Chromium the default browser and pin to the taskbar
++      Make AhoiBrowser the default browser and pin to the taskbar
+     </message>
+     <message name="IDS_SETTINGS_DEFAULT_BROWSER_MAKE_DEFAULT_AND_PIN_USER_VALUE" desc="The text of the button to make Chromium the default browser and pin it to the taskbar.">
+-      You can use Chromium anytime you click links in messages, documents, and other apps. It will also be pinned to your taskbar.
++      You can use AhoiBrowser anytime you click links in messages, documents, and other apps. It will also be pinned to your taskbar.
+     </message>
+     <message name="IDS_SETTINGS_DEFAULT_BROWSER_ERROR" desc="The text displayed when Chrome cannot determine or set the default browser">
+-      Chromium cannot determine or set the default browser
++      AhoiBrowser cannot determine or set the default browser
+     </message>
+     <if expr="_is_chrome_for_testing_branded">
+       <then>
+@@ -89,7 +89,7 @@
+       </then>
+       <else>
+         <message name="IDS_SETTINGS_DEFAULT_BROWSER_SECONDARY" desc="The text displayed when Chromium is installed in side-by-side mode, which does not support setting as the default browser.">
+-          This is a secondary installation of Chromium, and cannot be made your default browser.
++          This is a secondary installation of AhoiBrowser, and cannot be made your default browser.
+         </message>
+       </else>
+     </if>
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -736,17 +736,41 @@
+   AhoiQuickWindowGlobalShortcut& operator=(
+       const AhoiQuickWindowGlobalShortcut&) = delete;
+ 
++  void RetainForRegularBrowser() {
++    ++regular_browser_count_;
++    EnsureRegistered();
++  }
++
++  void ReleaseForRegularBrowser() {
++    DCHECK_GT(regular_browser_count_, 0u);
++    --regular_browser_count_;
++    if (regular_browser_count_ == 0u) {
++      Unregister();
++    }
++  }
++
+   void EnsureRegistered() {
+-    if (registration_attempted_) {
++    if (regular_browser_count_ == 0u || registered_) {
+       return;
+     }
+-    registration_attempted_ = true;
+     auto* listener = ui::GlobalAcceleratorListener::GetInstance();
+     if (!listener) {
+       return;
+     }
+     registered_ = listener->RegisterAccelerator(
+         ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN), this);
++  }
++
++  void Unregister() {
++    if (!registered_) {
++      return;
++    }
++    auto* listener = ui::GlobalAcceleratorListener::GetInstance();
++    if (listener) {
++      listener->UnregisterAccelerator(
++          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN), this);
++    }
++    registered_ = false;
+   }
+ 
+   bool registered() const { return registered_; }
+@@ -756,8 +780,11 @@
+     if (!ahoi::quick_window::ShouldActivateQuickWindow(last_activation_, now)) {
+       return true;
+     }
++    if (!ShowAhoiQuickWindow(FindLastRegularAhoiBrowser())) {
++      return false;
++    }
+     last_activation_ = now;
+-    return ShowAhoiQuickWindow(FindLastRegularAhoiBrowser());
++    return true;
+   }
+ 
+   // ui::GlobalAcceleratorListener::Observer:
+@@ -778,7 +805,7 @@
+   AhoiQuickWindowGlobalShortcut() = default;
+   ~AhoiQuickWindowGlobalShortcut() override = default;
+ 
+-  bool registration_attempted_ = false;
++  size_t regular_browser_count_ = 0u;
+   bool registered_ = false;
+   base::TimeTicks last_activation_;
+ };
+@@ -1103,7 +1130,7 @@
+       browser_(browser) {
+ #if BUILDFLAG(IS_MAC)
+   if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile()) {
+-    AhoiQuickWindowGlobalShortcut::GetInstance()->EnsureRegistered();
++    AhoiQuickWindowGlobalShortcut::GetInstance()->RetainForRegularBrowser();
+   }
+ #endif
+   if (auto* manager = InitialWebUIWindowMetricsManager::From(browser_.get())) {
+@@ -1410,6 +1437,11 @@
+ }
+ 
+ BrowserView::~BrowserView() {
++#if BUILDFLAG(IS_MAC)
++  if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile()) {
++    AhoiQuickWindowGlobalShortcut::GetInstance()->ReleaseForRegularBrowser();
++  }
++#endif
+   ahoi_split_drop_controller_.reset();
+   ahoi_command_bar_controller_.reset();
+   ahoi_developer_toolkit_controller_.reset();
+@@ -6009,8 +6041,10 @@
+ #if BUILDFLAG(IS_MAC)
+   if (HandleAhoiSplitAccelerator(accelerator)) {
+     return true;
+   }
+-  if (ahoi::quick_window::IsQuickWindowAccelerator(accelerator) &&
++  if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
++      !browser_->GetProfile()->IsOffTheRecord() &&
++      ahoi::quick_window::IsQuickWindowAccelerator(accelerator) &&
+       !AhoiQuickWindowGlobalShortcut::GetInstance()->registered() &&
+       AhoiQuickWindowGlobalShortcut::GetInstance()->Activate()) {
+     return true;
+@@ -6672,6 +6707,13 @@
+   focus_manager->RegisterAccelerator(
+       ui::Accelerator(ui::VKEY_Z, ui::EF_COMMAND_DOWN),
+       ui::AcceleratorManager::kHighPriority, this);
++  const bool is_regular_ahoi_browser =
++      browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
++      !browser_->GetProfile()->IsOffTheRecord();
++  if (is_regular_ahoi_browser) {
++    AhoiQuickWindowGlobalShortcut::GetInstance()->EnsureRegistered();
++  }
+-  if (!AhoiQuickWindowGlobalShortcut::GetInstance()->registered()) {
++  if (is_regular_ahoi_browser &&
++      !AhoiQuickWindowGlobalShortcut::GetInstance()->registered()) {
+     focus_manager->RegisterAccelerator(
+         ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),

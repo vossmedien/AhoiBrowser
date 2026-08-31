@@ -1,6 +1,6 @@
 # Phase 0 feasibility record
 
-Snapshot date: 2026-08-20. This record separates what is technically available
+Snapshot date: 2026-08-30. This record separates what is technically available
 in Chromium from what AhoiBrowser is authorized and able to distribute.
 
 ## Extension platform and Chrome Web Store — green/yellow
@@ -30,22 +30,37 @@ Ahoi is already vendor-allowlisted: <https://support.1password.com/additional-br
 ## Selective uBlock Origin Classic — yellow
 
 General MV2 is not restored. Chrome removed the legacy enterprise escape path,
-and remaining MV2 Web Store items are scheduled for removal on 2026-08-31. Ahoi
-must maintain an extension-ID-bound exception, its required runtime seams, and
-an independent signed CRX3 catalog/updater. The initial upstream evaluation pin
-is uBO `1.73.0` (`ac55a03`, 2026-08-05).
+and remaining legacy-distribution items are scheduled for removal on
+2026-08-31. Ahoi maintains an extension-ID-bound exception and the smallest
+required runtime seams. The dogfood bootstrap uses the **Official GitHub
+release** `1.74.0`, full release commit
+`6dd2d95e50d134a477a4e183343c0b26e9147123`, and key-derived ID
+`fkgkibajhfbepljeaefdnfnegdcjomkh`.
+
+The signed browser statically pins the complete CRX SHA-256
+`b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e`
+and CRX public-key SHA-256
+`5a6a81097514fb940453d5d46329eca78100e3cc0c5fca508e1a413f77f567bf`.
+A manual initial check creates the exact entry without a catalog network
+request. Download begins only at the pinned release URL, accepts at most one
+credentialless GitHub release-asset redirect, and then requires hash, CRX3 key,
+derived ID, version, normal Chromium permission prompt, and atomic local
+authorization checks. The separately signed catalog remains unprovisioned and
+is reserved for later updates.
 
 Primary references:
 
 - <https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline>
-- <https://github.com/gorhill/uBlock/releases/tag/1.73.0>
+- <https://github.com/gorhill/uBlock/releases/tag/1.74.0>
 - <https://chromium.googlesource.com/chromium/src.git/+/df12ca035ced7f8026c717eea14a4b406e9df574%5E%21/>
 
-Phase-0 probe `P0-UBO-MV2`: reproducibly build/package the pinned upstream source
-with an Ahoi test key, allow exactly that ID, reject a second random MV2 package,
-and exercise network/cosmetic filtering, popup, logger, picker, custom filters,
-list updates, restart, signed extension update, tamper, downgrade, and kill switch.
-Public redistribution remains disabled pending license/name/logo review.
+Phase-0 probe `P0-UBO-MV2`: fetch the exact pinned Official GitHub release CRX
+without rebuilding, repacking, or re-signing it; verify its complete hash,
+public-key hash, derived ID, release commit, and bounded redirect; reject a
+second random or unpacked MV2 package; and exercise network/cosmetic filtering,
+popup, logger, picker, custom filters, list updates, restart, later signed
+extension update, tamper, downgrade, and kill switch. Public redistribution
+remains disabled pending license/name/logo and redistribution review.
 
 ## Widevine — red until contract
 

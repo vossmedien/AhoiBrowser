@@ -1,0 +1,477 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20161,6 +20161,9 @@
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES" desc="Text preceding the number of Arc workspaces skipped by the selected conflict policy." meaning="AhoiBrowser Arc import">Skipped workspaces:</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE" desc="Text preceding the number of imported four-pane layouts whose ratios required a bounded approximation." meaning="AhoiBrowser Arc import">Four-pane ratios approximated:</message>
+ 
++    <!-- AhoiBrowser Zen import availability -->
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_CLOSE_SOURCE" desc="Instruction shown when Zen must be closed before its profile can be imported." meaning="AhoiBrowser Zen import">Close Zen before importing</message>
++
+     <!-- AhoiBrowser feature activation and discoverability -->
+     <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
+       AhoiBrowser
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11197,6 +11197,7 @@
+ <translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
+ <translation id="8933186299020613227">Übersprungene Arbeitsbereiche:</translation>
+ <translation id="4082790717577320066">Annähernd übernommene Vier-Pane-Verhältnisse:</translation>
++<translation id="6428146992608115427">Zen vor dem Import schließen</translation>
+ <translation id="6666862080270678315">Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen</translation>
+ <translation id="1323743597646662877">Geöffneter Tab</translation>
+ <translation id="5052185113772701312">Schlafender Tab</translation>
+diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/importer_list.cc
+--- a/chrome/browser/importer/importer_list.cc
++++ b/chrome/browser/importer/importer_list.cc
+@@ -6,6 +6,9 @@
+ 
+ #include <stdint.h>
+ 
++#include <utility>
++
++#include "base/check_op.h"
+ #include "base/functional/bind.h"
+ #include "base/task/task_traits.h"
+ #include "base/task/thread_pool.h"
+@@ -158,13 +161,15 @@
+   }
+ }
+ 
+-std::vector<user_data_importer::SourceProfile> DetectSourceProfilesWorker(
++DetectedImporterSourceProfiles DetectSourceProfilesWorker(
+     const std::string& locale,
+     bool include_interactive_profiles) {
+   base::ScopedBlockingCall scoped_blocking_call(FROM_HERE,
+                                                 base::BlockingType::MAY_BLOCK);
+ 
+-  std::vector<user_data_importer::SourceProfile> profiles;
++  DetectedImporterSourceProfiles detected_profiles;
++  std::vector<user_data_importer::SourceProfile>& profiles =
++      detected_profiles.profiles;
+ 
+   // The first run import will automatically take settings from the first
+   // profile detected, which should be the user's current default.
+@@ -187,9 +192,31 @@
+ #else
+   DetectFirefoxProfiles(locale, &profiles);
+ #endif
++  detected_profiles.metadata.resize(profiles.size());
+   if (include_interactive_profiles) {
+ #if BUILDFLAG(IS_MAC)
+-    ahoi::importer::zen::AppendZenSourceProfiles(locale, &profiles);
++    const size_t first_zen_profile = profiles.size();
++    const ahoi::importer::zen::ZenImportAvailability zen_availability =
++        ahoi::importer::zen::AppendZenSourceProfiles(locale, &profiles);
++    if (zen_availability ==
++        ahoi::importer::zen::ZenImportAvailability::kSourceRunning) {
++      user_data_importer::SourceProfile zen_profile;
++      zen_profile.importer_name = u"Zen";
++      zen_profile.importer_type = user_data_importer::TYPE_FIREFOX;
++      zen_profile.services_supported = user_data_importer::NONE;
++      zen_profile.locale = locale;
++      profiles.push_back(std::move(zen_profile));
++    }
++    detected_profiles.metadata.resize(profiles.size());
++    for (size_t index = first_zen_profile; index < profiles.size(); ++index) {
++      detected_profiles.metadata[index].kind =
++          ImporterSourceProfileKind::kZen;
++      if (zen_availability ==
++          ahoi::importer::zen::ZenImportAvailability::kSourceRunning) {
++        detected_profiles.metadata[index].disabled_reason =
++            ImporterSourceProfileDisabledReason::kSourceRunning;
++      }
++    }
+ #endif
+     user_data_importer::SourceProfile bookmarks_profile;
+     bookmarks_profile.importer_name =
+@@ -197,9 +224,12 @@
+     bookmarks_profile.importer_type = user_data_importer::TYPE_BOOKMARKS_FILE;
+     bookmarks_profile.services_supported = user_data_importer::FAVORITES;
+     profiles.push_back(bookmarks_profile);
++    detected_profiles.metadata.resize(profiles.size());
+   }
+ 
+-  return profiles;
++  CHECK_EQ(detected_profiles.profiles.size(),
++           detected_profiles.metadata.size());
++  return detected_profiles;
+ }
+ 
+ }  // namespace
+@@ -232,11 +262,25 @@
+   return source_profiles_[index];
+ }
+ 
++const ImporterSourceProfileMetadata&
++ImporterList::GetSourceProfileMetadataAt(size_t index) const {
++  DCHECK_LT(index, count());
++  DCHECK_EQ(source_profile_metadata_.size(), count());
++  return source_profile_metadata_[index];
++}
++
++bool ImporterList::IsSourceProfileAvailable(size_t index) const {
++  return GetSourceProfileMetadataAt(index).disabled_reason ==
++         ImporterSourceProfileDisabledReason::kNone;
++}
++
+ void ImporterList::SourceProfilesLoaded(
+     base::OnceClosure profiles_loaded_callback,
+-    const std::vector<user_data_importer::SourceProfile>& profiles) {
++    DetectedImporterSourceProfiles profiles) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  CHECK_EQ(profiles.profiles.size(), profiles.metadata.size());
+ 
+-  source_profiles_.assign(profiles.begin(), profiles.end());
++  source_profiles_ = std::move(profiles.profiles);
++  source_profile_metadata_ = std::move(profiles.metadata);
+   std::move(profiles_loaded_callback).Run();
+ }
+diff --git a/chrome/browser/importer/importer_list.h b/chrome/browser/importer/importer_list.h
+--- a/chrome/browser/importer/importer_list.h
++++ b/chrome/browser/importer/importer_list.h
+@@ -15,6 +15,29 @@
+ #include "base/sequence_checker.h"
+ #include "components/user_data_importer/common/importer_data_types.h"
+ 
++enum class ImporterSourceProfileKind {
++  kStandard,
++  kZen,
++};
++
++enum class ImporterSourceProfileDisabledReason {
++  kNone,
++  kSourceRunning,
++};
++
++struct ImporterSourceProfileMetadata {
++  ImporterSourceProfileKind kind = ImporterSourceProfileKind::kStandard;
++  ImporterSourceProfileDisabledReason disabled_reason =
++      ImporterSourceProfileDisabledReason::kNone;
++};
++
++// Keeps embedder-owned source metadata index-aligned with Chromium's source
++// profiles while detection runs off the UI thread.
++struct DetectedImporterSourceProfiles {
++  std::vector<user_data_importer::SourceProfile> profiles;
++  std::vector<ImporterSourceProfileMetadata> metadata;
++};
++
+ // ImporterList detects installed browsers and profiles via
+ // DetectSourceProfilesWorker(). ImporterList lives on the UI thread.
+ class ImporterList {
+@@ -48,15 +71,22 @@
+   const user_data_importer::SourceProfile& GetSourceProfileAt(
+       size_t index) const;
+ 
++  const ImporterSourceProfileMetadata& GetSourceProfileMetadataAt(
++      size_t index) const;
++
++  // Availability is authoritative. Callers must reject a disabled source even
++  // if a renderer sends a forged import request for its index.
++  bool IsSourceProfileAvailable(size_t index) const;
++
+  private:
+-  // Called when the source profiles are loaded. Copies the loaded profiles
+-  // in |profiles| and calls |profiles_loaded_callback|.
++  // Called when source profiles and their index-aligned metadata are loaded.
+   void SourceProfilesLoaded(
+       base::OnceClosure profiles_loaded_callback,
+-      const std::vector<user_data_importer::SourceProfile>& profiles);
++      DetectedImporterSourceProfiles profiles);
+ 
+   // The list of profiles with the default one first.
+   std::vector<user_data_importer::SourceProfile> source_profiles_;
++  std::vector<ImporterSourceProfileMetadata> source_profile_metadata_;
+ 
+   SEQUENCE_CHECKER(sequence_checker_);
+ 
+diff --git a/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts b/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
+--- a/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
+@@ -10,6 +10,8 @@
+  * An object describing a source browser profile that may be imported.
+  * The structure of this data must be kept in sync with C++ ImportDataHandler.
+  */
++export type ImportSourceDisabledReason = ''|'sourceRunning';
++
+ export interface BrowserProfile {
+   name: string;
+   index: number;
+@@ -19,7 +21,10 @@
+   passwords: boolean;
+   search: boolean;
+   autofillFormData: boolean;
+-  ahoiImportKind?: 'arc';
++  ahoiImportKind?: 'arc'|'zen';
++  present?: boolean;
++  available?: boolean;
++  disabledReason?: ImportSourceDisabledReason;
+ }
+ 
+ /**
+diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.html b/chrome/browser/resources/settings/people_page/import_data_dialog.html
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.html
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html
+@@ -21,6 +21,10 @@
+         margin-top: 2px;
+       }
+ 
++      #sourceDisabledReason {
++        color: var(--cr-secondary-text-color);
++      }
++
+     </style>
+     <cr-dialog id="dialog" close-text="$i18n{close}"
+         ignore-popstate>
+@@ -45,12 +49,20 @@
+               disabled$="[[arcImportBusy_]]"
+               on-change="onBrowserProfileSelectionChange_">
+             <template is="dom-repeat" items="[[browserProfiles_]]">
+-              <option value="[[item.index]]">
+-                [[getProfileDisplayName_(item.name, item.profileName)]]
++              <option value="[[item.index]]"
++                  disabled$="[[isSourceUnavailable_(item.available)]]">
++                [[getProfileDisplayName_(item.name, item.profileName,
++                    item.disabledReason)]]
+               </option>
+             </template>
+           </select>
+-          <div hidden$="[[arcImportSelected_]]">
++          <div id="sourceDisabledReason" class="description" role="status"
++              aria-live="polite"
++              hidden$="[[!isSourceUnavailable_(selected_.available)]]">
++            [[getSourceDisabledReason_(selected_.disabledReason)]]
++          </div>
++          <div hidden$="[[shouldHideStandardCategories_(
++              arcImportSelected_, selected_.available)]]">
+             <div class="description">$i18n{importDescription}</div>
+ 
+             <!--
+@@ -112,7 +124,7 @@
+                 importStatus_, arcImportSelected_)]]"
+             disabled="[[shouldDisableImport_(
+                 importStatus_, noImportDataTypeSelected_,
+-                arcImportSelected_)]]"
++                arcImportSelected_, selected_.available)]]"
+             on-click="onActionButtonClick_">
+           [[getActionButtonText_(selected_)]]
+         </cr-button>
+diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
+@@ -28,7 +28,11 @@
+ import type {SettingsCheckboxElement} from '../controls/settings_checkbox.js';
+ 
+ import type {SettingsAhoiArcImportSectionElement} from './ahoi_arc_import_section.js';
+-import type {BrowserProfile, ImportDataBrowserProxy} from './import_data_browser_proxy.js';
++import type {
++  BrowserProfile,
++  ImportDataBrowserProxy,
++  ImportSourceDisabledReason,
++} from './import_data_browser_proxy.js';
+ import {ImportDataBrowserProxyImpl, ImportDataStatus} from './import_data_browser_proxy.js';
+ import {getTemplate} from './import_data_dialog.html.js';
+ 
+@@ -40,6 +44,7 @@
+     done: CrButtonElement,
+     import: CrButtonElement,
+     successIcon: HTMLElement,
++    sourceDisabledReason: HTMLElement,
+     ahoiArcImport: SettingsAhoiArcImportSectionElement,
+   };
+ }
+@@ -139,6 +144,7 @@
+       // </if>
+       this.browserProfiles_ = browserProfiles;
+       this.selected_ = this.browserProfiles_[0];
++      this.arcImportSelected_ = this.isArcImportSelected_();
+ 
+       // Show the dialog only after the browser profiles data is populated
+       // to avoid UI flicker.
+@@ -154,20 +160,38 @@
+         });
+   }
+ 
+-  private getProfileDisplayName_(name: string, profileName: string): string {
+-    return profileName ? `${name} - ${profileName}` : name;
++  private getProfileDisplayName_(
++      name: string, profileName: string,
++      disabledReason?: ImportSourceDisabledReason): string {
++    const profileDisplayName = profileName ? `${name} - ${profileName}` : name;
++    const reason = this.getSourceDisabledReason_(disabledReason);
++    return reason ? `${profileDisplayName} — ${reason}` : profileDisplayName;
+   }
+ 
++  private getSourceDisabledReason_(
++      disabledReason?: ImportSourceDisabledReason): string {
++    return disabledReason === 'sourceRunning' ?
++        this.i18n('ahoiZenImportCloseSource') :
++        '';
++  }
++
++  private isSourceUnavailable_(available?: boolean): boolean {
++    return available === false;
++  }
++
+   // <if expr="is_macosx">
+   private createArcBrowserProfile_(): BrowserProfile {
+     return {
+       ahoiImportKind: 'arc',
++      available: true,
+       autofillFormData: false,
++      disabledReason: '',
+       favorites: true,
+       history: false,
+       index: -1,
+       name: this.i18n('ahoiArcImportSection'),
+       passwords: false,
++      present: true,
+       profileName: '',
+       search: false,
+     };
+@@ -213,7 +237,8 @@
+   }
+ 
+   private onActionButtonClick_() {
+-    if (this.isArcImportSelected_()) {
++    if (this.isArcImportSelected_() ||
++        this.isSourceUnavailable_(this.selected_?.available)) {
+       return;
+     }
+     const checkboxes = this.shadowRoot!.querySelectorAll('settings-checkbox');
+@@ -224,7 +249,7 @@
+       checkboxes.forEach(checkbox => {
+         types[checkbox.pref!.key] = checkbox.checked && !checkbox.hidden;
+       });
+-      this.browserProxy_.importData(this.$.browserSelect.selectedIndex, types);
++      this.browserProxy_.importData(this.selected_.index, types);
+     }
+     checkboxes.forEach(checkbox => checkbox.sendPrefChange());
+   }
+@@ -256,6 +281,11 @@
+         this.arcImportSelected_;
+   }
+ 
++  private shouldHideStandardCategories_(): boolean {
++    return this.arcImportSelected_ ||
++        this.isSourceUnavailable_(this.selected_?.available);
++  }
++
+   private shouldHideDone_(): boolean {
+     return !this.hasImportStatus_(ImportDataStatus.SUCCEEDED) &&
+         !this.arcImportComplete_;
+@@ -271,7 +301,8 @@
+    */
+   private shouldDisableImport_(): boolean {
+     return this.hasImportStatus_(ImportDataStatus.IN_PROGRESS) ||
+-        this.noImportDataTypeSelected_ || this.arcImportSelected_;
++        this.noImportDataTypeSelected_ || this.arcImportSelected_ ||
++        this.isSourceUnavailable_(this.selected_?.available);
+   }
+ }
+ 
+diff --git a/chrome/browser/ui/webui/settings/import_data_handler.cc b/chrome/browser/ui/webui/settings/import_data_handler.cc
+--- a/chrome/browser/ui/webui/settings/import_data_handler.cc
++++ b/chrome/browser/ui/webui/settings/import_data_handler.cc
+@@ -41,6 +41,8 @@
+ const char kImportStatusInProgress[] = "inProgress";
+ const char kImportStatusSucceeded[] = "succeeded";
+ const char kImportStatusFailed[] = "failed";
++const char kAhoiImportKindZen[] = "zen";
++const char kDisabledReasonSourceRunning[] = "sourceRunning";
+ }  // namespace
+ 
+ ImportDataHandler::ImportDataHandler() : importer_host_(nullptr) {
+@@ -123,16 +125,18 @@
+   CHECK_GE(list.size(), 2u);
+ 
+   int browser_index = list[0].GetInt();
+-
+-  const base::Value& types = list[1];
+-  CHECK(types.is_dict());
+-
+   if (!importer_list_loaded_ || browser_index < 0 ||
+       browser_index >= static_cast<int>(importer_list_->count())) {
+     // Prevent out-of-bounds access.
+     return;
+   }
++  if (!importer_list_->IsSourceProfileAvailable(browser_index)) {
++    LOG(WARNING) << "Rejected import request for a disabled source profile.";
++    return;
++  }
+ 
++  const base::Value& types = list[1];
++  CHECK(types.is_dict());
+   const base::DictValue& type_dict = types.GetDict();
+   uint16_t selected_items = user_data_importer::NONE;
+   if (*type_dict.FindBool(prefs::kImportDialogAutofillFormData)) {
+@@ -214,12 +218,26 @@
+   for (size_t i = 0; i < importer_list_->count(); ++i) {
+     const user_data_importer::SourceProfile& source_profile =
+         importer_list_->GetSourceProfileAt(i);
++    const ImporterSourceProfileMetadata& source_metadata =
++        importer_list_->GetSourceProfileMetadataAt(i);
+     uint16_t browser_services = source_profile.services_supported;
+ 
+     base::DictValue browser_profile;
+     browser_profile.Set("name", source_profile.importer_name);
+     browser_profile.Set("index", static_cast<int>(i));
+     browser_profile.Set("profileName", source_profile.profile);
++    browser_profile.Set("present", true);
++    browser_profile.Set("available",
++                        importer_list_->IsSourceProfileAvailable(i));
++    browser_profile.Set(
++        "disabledReason",
++        source_metadata.disabled_reason ==
++                ImporterSourceProfileDisabledReason::kSourceRunning
++            ? kDisabledReasonSourceRunning
++            : "");
++    if (source_metadata.kind == ImporterSourceProfileKind::kZen) {
++      browser_profile.Set("ahoiImportKind", kAhoiImportKindZen);
++    }
+     browser_profile.Set("history",
+                         (browser_services & user_data_importer::HISTORY) != 0);
+     browser_profile.Set(
+diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+--- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
++++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+@@ -667,6 +667,8 @@
+        IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES},
+       {"ahoiArcImportResultFourPane",
+        IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE},
++      {"ahoiZenImportCloseSource",
++       IDS_SETTINGS_AHOI_ZEN_IMPORT_CLOSE_SOURCE},
+       {"ahoiFeatures", IDS_SETTINGS_AHOI_FEATURES},
+       {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
+       {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
+diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/settings/BUILD.gn
+--- a/chrome/test/data/webui/settings/BUILD.gn
++++ b/chrome/test/data/webui/settings/BUILD.gn
+@@ -259,6 +259,7 @@
+   if (is_mac) {
+     files += [
+       "ahoi_arc_import_section_test.ts",
++      "ahoi_zen_import_availability_test.ts",
+       "passkey_edit_dialog_test.ts",
+     ]
+   }
+diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
+--- a/chrome/test/data/webui/settings/settings_browsertest.cc
++++ b/chrome/test/data/webui/settings/settings_browsertest.cc
+@@ -102,7 +102,13 @@
+ 
+ IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiPage) {
+   RunTest("settings/ahoi_page_test.js", "mocha.run()");
++}
++
++#if BUILDFLAG(IS_MAC)
++IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiZenImportAvailability) {
++  RunTest("settings/ahoi_zen_import_availability_test.js", "mocha.run()");
+ }
++#endif  // BUILDFLAG(IS_MAC)
+ 
+ IN_PROC_BROWSER_TEST_F(SettingsTest, GoogleServicesPage) {
+   RunTest("settings/google_services_page_test.js", "mocha.run()");
+

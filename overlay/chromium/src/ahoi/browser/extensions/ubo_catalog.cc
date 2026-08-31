@@ -27,6 +27,7 @@ namespace ahoi::extensions {
 namespace {
 
 constexpr size_t kMaximumCatalogBytes = 64 * 1024;
+constexpr int kCatalogSchemaVersion = 2;
 constexpr base::TimeDelta kMaximumValidityWindow = base::Days(45);
 constexpr base::TimeDelta kClockSkew = base::Minutes(5);
 
@@ -44,6 +45,13 @@ bool IsLowercaseSha256(std::string_view value) {
   return std::ranges::all_of(value, [](char c) {
     return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
   });
+}
+
+bool IsLowercaseGitCommit(std::string_view value) {
+  return value.size() == 40 && base::IsStringASCII(value) &&
+         std::ranges::all_of(value, [](char c) {
+           return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+         });
 }
 
 bool IsHttpsUrlFromOrigin(const GURL& url, const GURL& origin) {
@@ -67,12 +75,12 @@ base::expected<UboCatalogEntry, UboVerificationError> ParsePayload(
     base::Time now) {
   std::optional<base::DictValue> parsed =
       base::JSONReader::ReadDict(payload, base::JSON_PARSE_RFC);
-  if (!parsed || parsed->size() != 13u) {
+  if (!parsed || parsed->size() != 14u) {
     return base::unexpected(UboVerificationError::kMalformedPayload);
   }
 
   const std::optional<int> schema_version = parsed->FindInt("schema_version");
-  if (!schema_version || *schema_version != 1) {
+  if (!schema_version || *schema_version != kCatalogSchemaVersion) {
     return base::unexpected(UboVerificationError::kUnsupportedSchema);
   }
 
@@ -155,6 +163,11 @@ base::expected<UboCatalogEntry, UboVerificationError> ParsePayload(
     return base::unexpected(UboVerificationError::kInvalidUpstreamSource);
   }
   entry.upstream_tag = *upstream_tag;
+  const std::string* upstream_commit = parsed->FindString("upstream_commit");
+  if (!upstream_commit || !IsLowercaseGitCommit(*upstream_commit)) {
+    return base::unexpected(UboVerificationError::kInvalidUpstreamSource);
+  }
+  entry.upstream_commit = *upstream_commit;
   entry.upstream_source_url =
       GURL(upstream_source ? *upstream_source : std::string());
   if (!IsPinnedUpstreamTagUrl(entry.upstream_source_url, entry.upstream_tag)) {
@@ -170,6 +183,43 @@ base::expected<UboCatalogEntry, UboVerificationError> ParsePayload(
 }
 
 }  // namespace
+
+UboCatalogEntry GetPinnedUboBootstrapCatalogEntry() {
+  UboCatalogEntry entry;
+  entry.sequence = kUboClassicBootstrapSequence;
+  entry.valid_from = base::Time::Min();
+  entry.valid_until = base::Time::Max();
+  entry.extension_id = kUboClassicExtensionId;
+  entry.version = base::Version(kUboClassicVersion);
+  entry.package_url = GURL(kUboClassicPackageUrl);
+  // No extension-controlled or guessed update endpoint is assigned. A later
+  // update must arrive through the separately provisioned signed catalog.
+  entry.update_manifest_url = GURL();
+  entry.package_sha256 = kUboClassicPackageSha256;
+  entry.crx_public_key_sha256 = kUboClassicCrxPublicKeySha256;
+  entry.upstream_tag = kUboClassicVersion;
+  entry.upstream_commit = kUboClassicReleaseCommit;
+  entry.upstream_source_url = GURL(base::StrCat(
+      {kUboUpstreamRepository, "/releases/tag/", kUboClassicVersion}));
+  entry.license = kUboLicense;
+  return entry;
+}
+
+bool IsPinnedUboBootstrapCatalogEntry(const UboCatalogEntry& entry) {
+  return entry.sequence == kUboClassicBootstrapSequence &&
+         entry.extension_id == kUboClassicExtensionId &&
+         entry.version == base::Version(kUboClassicVersion) &&
+         entry.package_url == GURL(kUboClassicPackageUrl) &&
+         entry.update_manifest_url.is_empty() &&
+         entry.package_sha256 == kUboClassicPackageSha256 &&
+         entry.crx_public_key_sha256 == kUboClassicCrxPublicKeySha256 &&
+         entry.upstream_tag == kUboClassicVersion &&
+         entry.upstream_commit == kUboClassicReleaseCommit &&
+         entry.upstream_source_url ==
+             GURL(base::StrCat({kUboUpstreamRepository, "/releases/tag/",
+                                kUboClassicVersion})) &&
+         entry.license == kUboLicense;
+}
 
 std::string_view UboVerificationErrorToString(UboVerificationError error) {
   switch (error) {
@@ -198,7 +248,7 @@ std::string_view UboVerificationErrorToString(UboVerificationError error) {
     case UboVerificationError::kValidityWindowTooLong:
       return "catalog validity window is too long";
     case UboVerificationError::kUnexpectedExtensionId:
-      return "extension ID is not allowlisted";
+      return "extension ID is not the fixed pinned uBO identity";
     case UboVerificationError::kInvalidVersion:
       return "extension version is invalid";
     case UboVerificationError::kInsecureOrUnexpectedArtifactUrl:
@@ -220,9 +270,9 @@ std::string_view UboVerificationErrorToString(UboVerificationError error) {
     case UboVerificationError::kPackageSignatureInvalid:
       return "CRX signature is invalid";
     case UboVerificationError::kPackageHashMismatch:
-      return "package hash does not match the signed catalog";
+      return "package hash does not match trusted entry metadata";
     case UboVerificationError::kPackageKeyMismatch:
-      return "CRX signing key does not match the signed catalog";
+      return "CRX signing key does not match trusted entry metadata";
     case UboVerificationError::kPackageIdMismatch:
       return "CRX ID does not match the fixed uBO identity";
     case UboVerificationError::kInstallFailed:
@@ -241,7 +291,7 @@ base::expected<UboCatalogEntry, UboVerificationError> VerifyUboCatalog(
     const GURL& fetched_from,
     std::string_view envelope_json,
     base::Time now) {
-  if (!config.IsProvisioned()) {
+  if (!config.IsSignedCatalogProvisioned()) {
     return base::unexpected(UboVerificationError::kNotProvisioned);
   }
   if (fetched_from != config.catalog_url || !fetched_from.SchemeIs("https")) {
