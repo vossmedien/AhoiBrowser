@@ -1,0 +1,5 @@
+# Preserve candidate evidence byte-for-byte. Several retained Apple/Xcode
+# receipts contain CRLF or significant trailing whitespace, and their hashes
+# are validated after a Git roundtrip.
+** -text
+.gitattributes text eol=lf

@@ -1,0 +1,13 @@
+candidate=4113c14c1e0d21061a1c5927e25ab55663d547a7
+scanner=8.30.1
+redaction=100%
+8:28AM INF scanned ~1445807 bytes (1.45 MB) in 460ms
+8:28AM INF no leaks found
+mobile_source_exit=0
+8:28AM INF scanned ~128611 bytes (128.61 KB) in 35ms
+8:28AM INF no leaks found
+cloudkit_package_exit=0
+8:28AM INF scanned ~1817750 bytes (1.82 MB) in 459ms
+8:28AM INF no leaks found
+candidate_evidence_exit=0
+result=PASS

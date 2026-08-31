@@ -1,0 +1,309 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj -scheme AhoiMobile -configuration DebugLocal -destination "platform=iOS Simulator,id=15C1EB97-A65C-4D93-842D-AB889339BE8D" -derivedDataPath /private/tmp/ahoi-mobile-4113c14-sim-derived -resultBundlePath /private/tmp/ahoi-mobile-4113c14-core-03.xcresult -parallel-testing-enabled NO "-only-testing:AhoiMobileCoreTests" AHOI_SOURCE_COMMIT=4113c14c1e0d21061a1c5927e25ab55663d547a7 AHOI_MOBILE_MARKETING_VERSION=0.1 AHOI_MOBILE_BUILD_NUMBER=1 AHOI_APP_USES_NON_EXEMPT_ENCRYPTION=NO test-without-building
+
+Build settings from command line:
+    AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = NO
+    AHOI_MOBILE_BUILD_NUMBER = 1
+    AHOI_MOBILE_MARKETING_VERSION = 0.1
+    AHOI_SOURCE_COMMIT = 4113c14c1e0d21061a1c5927e25ab55663d547a7
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  AhoiCloudKitSpike: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/spikes/cloudkit
+
+Writing result bundle at path:
+	/private/tmp/ahoi-mobile-4113c14-core-03.xcresult
+
+Test Suite 'All tests' started at 2026-08-30 19:47:30.705.
+Test Suite 'AhoiMobileCoreTests.xctest' started at 2026-08-30 19:47:30.706.
+Test Suite 'CloudKitKeyRotationAdapterTests' started at 2026-08-30 19:47:30.707.
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testBoundedPublishRequiresAllWritersThenReturnsServerReadback]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testBoundedPublishRequiresAllWritersThenReturnsServerReadback]' passed (0.009 seconds).
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testFetchedInboxBlocksRotationAndClosesBoundedPass]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testFetchedInboxBlocksRotationAndClosesBoundedPass]' passed (0.012 seconds).
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testMissingWriterAcknowledgementFailsBeforeServerReadback]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testMissingWriterAcknowledgementFailsBeforeServerReadback]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testMissingWriterInfrastructureFailsBeforeTransportMutation]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testMissingWriterInfrastructureFailsBeforeTransportMutation]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testServerReadbackMustContainExactManifestRecordSet]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testServerReadbackMustContainExactManifestRecordSet]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testUnpromotedBootstrapClaimFailsBeforeServerReadback]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitKeyRotationAdapterTests testUnpromotedBootstrapClaimFailsBeforeServerReadback]' passed (0.003 seconds).
+Test Suite 'CloudKitKeyRotationAdapterTests' passed at 2026-08-30 19:47:30.750.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.034 (0.043) seconds
+Test Suite 'CloudKitSyncProviderPersistenceFailureTests' started at 2026-08-30 19:47:30.767.
+Test Case '-[AhoiMobileCoreTests.CloudKitSyncProviderPersistenceFailureTests testEngineStateClearFailureReturnsBlockWithoutHidingError]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitSyncProviderPersistenceFailureTests testEngineStateClearFailureReturnsBlockWithoutHidingError]' passed (0.007 seconds).
+Test Case '-[AhoiMobileCoreTests.CloudKitSyncProviderPersistenceFailureTests testSafetyStateFallbackFailureReportsBothAttemptsAndReturnsBlock]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitSyncProviderPersistenceFailureTests testSafetyStateFallbackFailureReportsBothAttemptsAndReturnsBlock]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.CloudKitSyncProviderPersistenceFailureTests testSafetyStateWriteFailureReturnsBlockAfterDurableFallback]' started.
+Test Case '-[AhoiMobileCoreTests.CloudKitSyncProviderPersistenceFailureTests testSafetyStateWriteFailureReturnsBlockAfterDurableFallback]' passed (0.004 seconds).
+Test Suite 'CloudKitSyncProviderPersistenceFailureTests' passed at 2026-08-30 19:47:30.788.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.017 (0.021) seconds
+Test Suite 'CompanionConvergenceTests' started at 2026-08-30 19:47:30.789.
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testFetchedEnvelopeLosingTransportLWWStillReachesDomainMerge]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testFetchedEnvelopeLosingTransportLWWStillReachesDomainMerge]' passed (0.011 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testRemoteTabDisjointFieldsMergeAndMintDominatingRecordClock]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testRemoteTabDisjointFieldsMergeAndMintDominatingRecordClock]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testTreeOrderTieBreakerRoundTripsIndependentlyOfRecordWriter]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testTreeOrderTieBreakerRoundTripsIndependentlyOfRecordWriter]' passed (0.008 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testUnknownDeviceDoesNotBecomeMacDuringRemoteTabDecode]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testUnknownDeviceDoesNotBecomeMacDuringRemoteTabDecode]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testWorkspaceARGBAndModifiedTimeMatchDesktopIntegerSemantics]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testWorkspaceARGBAndModifiedTimeMatchDesktopIntegerSemantics]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testWorkspaceCreationClockKeepsItsFieldWriterAcrossRemoteEdit]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionConvergenceTests testWorkspaceCreationClockKeepsItsFieldWriterAcrossRemoteEdit]' passed (0.002 seconds).
+Test Suite 'CompanionConvergenceTests' passed at 2026-08-30 19:47:30.838.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.037 (0.049) seconds
+Test Suite 'CompanionCoreTests' started at 2026-08-30 19:47:30.839.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitBootstrapDoesNotConstructProviderBeforeOptIn]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitBootstrapDoesNotConstructProviderBeforeOptIn]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitBootstrapStaysLocalWithoutContainerSetting]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitBootstrapStaysLocalWithoutContainerSetting]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderQueuesAllowedRecordWithoutNetworkRoundTrip]' started.
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionCoreTests.swift:623: -[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderQueuesAllowedRecordWithoutNetworkRoundTrip] : Test skipped - CKSyncEngine requires an entitled Apple test target; compile-only gate here
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderQueuesAllowedRecordWithoutNetworkRoundTrip]' skipped (0.018 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderStopsSensitiveRecordBeforeOutbox]' started.
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionCoreTests.swift:646: -[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderStopsSensitiveRecordBeforeOutbox] : Test skipped - CKSyncEngine requires an entitled Apple test target; compile-only gate here
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderStopsSensitiveRecordBeforeOutbox]' skipped (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderValidatesConfigurationWithoutContactingCloudKit]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitProviderValidatesConfigurationWithoutContactingCloudKit]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitSafetyGateSurvivesEngineStateClearAndRestart]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testCloudKitSafetyGateSurvivesEngineStateClearAndRestart]' passed (0.008 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testDesktopRemoteTabMatchesMacGoldenPayload]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testDesktopRemoteTabMatchesMacGoldenPayload]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testDeviceAndWorkspaceWireSchemaUsesSidebarMetadataNames]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testDeviceAndWorkspaceWireSchemaUsesSidebarMetadataNames]' passed (0.014 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileQuarantineMetadataSurvivesRestartWithoutPayload]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileQuarantineMetadataSurvivesRestartWithoutPayload]' passed (0.009 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileStoreRoundTripIsAtomicPersistenceSeam]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileStoreRoundTripIsAtomicPersistenceSeam]' passed (0.017 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileSyncRecordStoreDurablyStagesDistinctFetchedEnvelopeBytes]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileSyncRecordStoreDurablyStagesDistinctFetchedEnvelopeBytes]' passed (0.014 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileSyncRecordStoreRestoresPendingPayloadAfterRestart]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testFileSyncRecordStoreRestoresPendingPayloadAfterRestart]' passed (0.008 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testHistoryModelRejectsPrivateAndNonNetworkURLs]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testHistoryModelRejectsPrivateAndNonNetworkURLs]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testInMemoryBackendExercisesCoordinatorWithoutNetwork]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testInMemoryBackendExercisesCoordinatorWithoutNetwork]' passed (0.010 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testLocalWorkspaceTreeCRUDKeepsOrderAndTombstonesDescendants]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testLocalWorkspaceTreeCRUDKeepsOrderAndTombstonesDescendants]' passed (0.014 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testPayloadCodecSealsModelBeforeSyncEnvelope]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testPayloadCodecSealsModelBeforeSyncEnvelope]' passed (0.013 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabDecodeReappliesIncognitoBoundary]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabDecodeReappliesIncognitoBoundary]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabRejectsIncognitoAndURLUserInfo]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabRejectsIncognitoAndURLUserInfo]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabsRequireFreshMatchingSessionAndSeparateActionWindow]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabsRequireFreshMatchingSessionAndSeparateActionWindow]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabWireSchemaUsesStableSidebarFieldNames]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRemoteTabWireSchemaUsesStableSidebarFieldNames]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRepositoryKeepsRemoteTabsSearchableLocally]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testRepositoryKeepsRemoteTabsSearchableLocally]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testTreeNodeSchemaRejectsInvalidPageAndFolderPayloads]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testTreeNodeSchemaRejectsInvalidPageAndFolderPayloads]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testWorkspaceFieldMergeConvergesDisjointOfflineEdits]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCoreTests testWorkspaceFieldMergeConvergesDisjointOfflineEdits]' passed (0.002 seconds).
+Test Suite 'CompanionCoreTests' passed at 2026-08-30 19:47:31.046.
+	 Executed 23 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.176 (0.207) seconds
+Test Suite 'CompanionCryptographyTests' started at 2026-08-30 19:47:31.046.
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testEd25519SignerUsesProvisionedBytesWithoutCreatingKeys]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testEd25519SignerUsesProvisionedBytesWithoutCreatingKeys]' passed (0.018 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testKeychainSealerCryptoKitInteropShapeWithoutKeychainMutation]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testKeychainSealerCryptoKitInteropShapeWithoutKeychainMutation]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testOpensSharedDesktopAESGCMGoldenEnvelope]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testOpensSharedDesktopAESGCMGoldenEnvelope]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testRemoteCommandWireMatchesMacGoldenPayloadAndRoundTrips]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testRemoteCommandWireMatchesMacGoldenPayloadAndRoundTrips]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testWorkspaceWirePreservesIconColorAndCanonicalOrder]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionCryptographyTests testWorkspaceWirePreservesIconColorAndCanonicalOrder]' passed (0.003 seconds).
+Test Suite 'CompanionCryptographyTests' passed at 2026-08-30 19:47:31.087.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.035 (0.041) seconds
+Test Suite 'CompanionDeviceRevocationTests' started at 2026-08-30 19:47:31.088.
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testDeviceRevocationPersistsTombstoneMetadataAndThirtyDayRetention]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testDeviceRevocationPersistsTombstoneMetadataAndThirtyDayRetention]' passed (0.007 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testExplicitRotationReEnrolsWithNewIdentityAfterRevocation]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testExplicitRotationReEnrolsWithNewIdentityAfterRevocation]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testRemoteTargetGuardRejectsRevokedDeletedAndUnknownDevices]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testRemoteTargetGuardRejectsRevokedDeletedAndUnknownDevices]' passed (0.009 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testRepeatedDeviceRevocationIsByteIdenticalNoOp]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testRepeatedDeviceRevocationIsByteIdenticalNoOp]' passed (0.008 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testSelfRevocationSurvivesRestartAndSignerStaysFailClosed]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionDeviceRevocationTests testSelfRevocationSurvivesRestartAndSignerStaysFailClosed]' passed (0.006 seconds).
+Test Suite 'CompanionDeviceRevocationTests' passed at 2026-08-30 19:47:31.127.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.034 (0.039) seconds
+Test Suite 'CompanionKeyLifecycleTests' started at 2026-08-30 19:47:31.129.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testAcceptedReceiptRecoversCrashWithoutGeneratingAnotherKey]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testAcceptedReceiptRecoversCrashWithoutGeneratingAnotherKey]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testConcurrentFirstOptInCreatesOneClaimAndNoSplitKey]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testConcurrentFirstOptInCreatesOneClaimAndNoSplitKey]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testDeviceSignerCreatesOnePrivateKeyAndPublishesOnlyPublicIdentity]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testDeviceSignerCreatesOnePrivateKeyAndPublishesOnlyPublicIdentity]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testExistingProvisionedKeyMigratesIdempotentlyWithoutRotation]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testExistingProvisionedKeyMigratesIdempotentlyWithoutRotation]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testMismatchedLocalVersionRequiresRecovery]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testMismatchedLocalVersionRequiresRecovery]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testRemoteClaimWaitsForSynchronizablePairingKey]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testRemoteClaimWaitsForSynchronizablePairingKey]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testRemoteEncryptedDataWithoutClaimNeverGeneratesOrOverwrites]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testRemoteEncryptedDataWithoutClaimNeverGeneratesOrOverwrites]' passed (0.112 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testRotationRevocationAndRecoveryStatusesNeverPermitWrites]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testRotationRevocationAndRecoveryStatusesNeverPermitWrites]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testSealerReadsOldVersionOnlyDuringExplicitRotationWindow]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testSealerReadsOldVersionOnlyDuringExplicitRotationWindow]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testSplitKeyReadbackFailsClosedToRecovery]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testSplitKeyReadbackFailsClosedToRecovery]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testUnverifiedCrashCandidateStaysRecoveryAndIsNotPublished]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyLifecycleTests testUnverifiedCrashCandidateStaysRecoveryAndIsNotPublished]' passed (0.015 seconds).
+Test Suite 'CompanionKeyLifecycleTests' passed at 2026-08-30 19:47:31.300.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.159 (0.172) seconds
+Test Suite 'CompanionKeyRotationTests' started at 2026-08-30 19:47:31.301.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testCrashAfterRecordWriteResumesFromReadbackWithoutCiphertextChurn]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testCrashAfterRecordWriteResumesFromReadbackWithoutCiphertextChurn]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testExpiredUnacknowledgedPlanKeepsBothKeys]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testExpiredUnacknowledgedPlanKeepsBothKeys]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testIncompleteRemoteReadbackNeverRevokesPreviousKey]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testIncompleteRemoteReadbackNeverRevokesPreviousKey]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testKeychainRotationSealerAuthenticatesNextEnvelopeWithoutChangingIt]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testKeychainRotationSealerAuthenticatesNextEnvelopeWithoutChangingIt]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testRemoteFailureKeepsPreviousKeyAndResumeDoesNotResealAgain]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testRemoteFailureKeepsPreviousKeyAndResumeDoesNotResealAgain]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testRotationRejectsVersionRollbackBeforeAnyMutation]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testRotationRejectsVersionRollbackBeforeAnyMutation]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testRotationResealsNormalAndTombstoneThenRevokesPreviousKey]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testRotationResealsNormalAndTombstoneThenRevokesPreviousKey]' passed (0.008 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testUnknownEnvelopeVersionFailsBeforeRemoteOrRevocation]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testUnknownEnvelopeVersionFailsBeforeRemoteOrRevocation]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testUnknownRotationJournalFormatFailsClosed]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionKeyRotationTests testUnknownRotationJournalFormatFailsClosed]' passed (0.010 seconds).
+Test Suite 'CompanionKeyRotationTests' passed at 2026-08-30 19:47:31.354.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.044 (0.053) seconds
+Test Suite 'CompanionProductRecordTests' started at 2026-08-30 19:47:31.354.
+Test Case '-[AhoiMobileCoreTests.CompanionProductRecordTests testDeveloperHeaderProfileCannotCarryLiteralSecret]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionProductRecordTests testDeveloperHeaderProfileCannotCarryLiteralSecret]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionProductRecordTests testLegacySnapshotDefaultsNewProductRecordsToEmpty]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionProductRecordTests testLegacySnapshotDefaultsNewProductRecordsToEmpty]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionProductRecordTests testProductWireRecordsRoundTrip]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionProductRecordTests testProductWireRecordsRoundTrip]' passed (0.003 seconds).
+Test Suite 'CompanionProductRecordTests' passed at 2026-08-30 19:47:31.367.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.009 (0.013) seconds
+Test Suite 'CompanionSyncPreferenceTests' started at 2026-08-30 19:47:31.368.
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testDisableAfterActivationFailureClearsSyncPresentationState]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testDisableAfterActivationFailureClearsSyncPresentationState]' passed (0.012 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testDuplicateEnableIntentSharesOneActivation]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testDuplicateEnableIntentSharesOneActivation]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testOptOutWhileFactoryAwaitsDiscardsStaleActivation]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testOptOutWhileFactoryAwaitsDiscardsStaleActivation]' passed (0.007 seconds).
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testRapidEnableDisableEnableHonorsLatestIntent]' started.
+Test Case '-[AhoiMobileCoreTests.CompanionSyncPreferenceTests testRapidEnableDisableEnableHonorsLatestIntent]' passed (0.008 seconds).
+Test Suite 'CompanionSyncPreferenceTests' passed at 2026-08-30 19:47:31.405.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.033 (0.037) seconds
+Test Suite 'MobileBrowserCoreTests' started at 2026-08-30 19:47:31.405.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testColdStartExternalURLWaitsForRestoreAndOpensExactlyOnce]' started.
+2026-08-30 19:47:33.232418+0200 xctest[49084:143882503] [ProcessSuspension] endowmentsForHandle: Process with PID 49084 is not running
+2026-08-30 19:47:33.240125+0200 xctest[49084:143883627] [default] Failed to resolve host network app id to config: bundleID: com.apple.WebKit.Networking instance ID: Optional([_EXExtensionInstanceIdentifier: C113EA90-EF2E-4FEB-9F30-37B35810E495])
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testColdStartExternalURLWaitsForRestoreAndOpensExactlyOnce]' passed (1.870 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testCompanionStorageMigrationCopiesBackupAndIsIdempotent]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testCompanionStorageMigrationCopiesBackupAndIsIdempotent]' passed (0.015 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testCompanionStorageMigrationPreservesSyncSafetySidecar]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testCompanionStorageMigrationPreservesSyncSafetySidecar]' passed (0.009 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testConfiguredSearchEnginesProduceHTTPSSearchURLs]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testConfiguredSearchEnginesProduceHTTPSSearchURLs]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testDownloadFilenameCannotEscapeDestinationDirectory]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testDownloadFilenameCannotEscapeDestinationDirectory]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testDownloadRecordCarriesVisibleOriginAndByteProgress]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testDownloadRecordCarriesVisibleOriginAndByteProgress]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testExternalOpenDeduplicatorSuppressesOnlyImmediateDuplicate]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testExternalOpenDeduplicatorSuppressesOnlyImmediateDuplicate]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testFileSessionStoreRoundtripIsStableAndPrivateFree]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testFileSessionStoreRoundtripIsStableAndPrivateFree]' passed (0.023 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testHistoryIndividualAndTimeRangeDeletesCreateTombstones]' started.
+2026-08-30 19:47:33.340558+0200 xctest[49084:143882503] [RuntimeIssues] This process does not have a UIApplication object and will not receive events!
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testHistoryIndividualAndTimeRangeDeletesCreateTombstones]' passed (0.024 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testInputRouterDistinguishesURLsDomainsAndSearches]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testInputRouterDistinguishesURLsDomainsAndSearches]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testInputRouterRejectsCredentialsAndUnsafeSchemes]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testInputRouterRejectsCredentialsAndUnsafeSchemes]' passed (0.006 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testLegacySessionWithoutWebsiteTintStillDecodes]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testLegacySessionWithoutWebsiteTintStillDecodes]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testLocalMobileTabPublicationUsesMobileDeviceAndStableSession]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testLocalMobileTabPublicationUsesMobileDeviceAndStableSession]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testLocalNavigationCreatesSyncableHistoryWithoutPrivateState]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testLocalNavigationCreatesSyncableHistoryWithoutPrivateState]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testMobileSessionReconciliationPublishesNormalAndTombstonesStaleTabs]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testMobileSessionReconciliationPublishesNormalAndTombstonesStaleTabs]' passed (0.009 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testNavigationDownloadRequestPreservesMethodHeadersAndBody]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testNavigationDownloadRequestPreservesMethodHeadersAndBody]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testNavigationFailureClassificationKeepsOfflineAndTimeoutDistinct]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testNavigationFailureClassificationKeepsOfflineAndTimeoutDistinct]' passed (0.005 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testSessionSaveCoordinatorRejectsOlderRevisionAfterNewerCommit]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testSessionSaveCoordinatorRejectsOlderRevisionAfterNewerCommit]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testSessionSnapshotNeverPersistsPrivateTabs]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserCoreTests testSessionSnapshotNeverPersistsPrivateTabs]' passed (0.001 seconds).
+Test Suite 'MobileBrowserCoreTests' passed at 2026-08-30 19:47:33.411.
+	 Executed 19 tests, with 0 failures (0 unexpected) in 1.988 (2.005) seconds
+Test Suite 'MobileBrowserPresentationTests' started at 2026-08-30 19:47:33.411.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseAccumulatesIntentionalScrollAndReversesQuickly]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseAccumulatesIntentionalScrollAndReversesQuickly]' passed (0.003 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseDoesNotTreatViewportSettlingAsThePageTop]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseDoesNotTreatViewportSettlingAsThePageTop]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseExpandsAfterReverseTravelAtTopAndDuringPullToRefresh]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseExpandsAfterReverseTravelAtTopAndDuringPullToRefresh]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseIgnoresLayoutFeedbackAndNormalizesLargeScrollSamples]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseIgnoresLayoutFeedbackAndNormalizesLargeScrollSamples]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseResetDropsPartialScrollIntent]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeCollapseResetDropsPartialScrollIntent]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeMotionStaysWithinTheApprovedWindow]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeMotionStaysWithinTheApprovedWindow]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromePresentationResetOnlyExpandsForNewRequests]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromePresentationResetOnlyExpandsForNewRequests]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeResetContextExpandsForBrowserErrors]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testChromeResetContextExpandsForBrowserErrors]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testInjectedScrollBridgeAcceptsValidatedIsolatedWorldMessage]' started.
+2026-08-30 19:47:34.228215+0200 xctest[49084:143882503] [Process] WebContent process (0x1120cc0c0) took 1.053823 seconds to launch
+2026-08-30 19:47:34.468265+0200 xctest[49084:143882503] [Process] GPU process (0x1121201e0) took 1.262822 seconds to launch
+2026-08-30 19:47:34.711242+0200 xctest[49084:143882503] [Process] Networking process (0x112150190) took 1.473427 seconds to launch
+2026-08-30 19:47:35.000394+0200 xctest[49084:143882503] [Process] WebContent process (0x1120cc680) took 1.734067 seconds to launch
+2026-08-30 19:47:35.055788+0200 xctest[49084:143882503] [Process] 0x108d38018 - [pageProxyID=9, webPageID=10, PID=49813] WebPageProxy::didFailProvisionalLoadForFrame: frameID=8589934593, isMainFrame=1, domain=NSURLErrorDomain, code=-1003, isMainFrame=1, willInternallyHandleFailure=0
+2026-08-30 19:47:35.159640+0200 xctest[49084:143882503] [Process] 0x108d38718 - [pageProxyID=22, webPageID=23, PID=49824] WebPageProxy::didFailProvisionalLoadForFrame: frameID=8589934594, isMainFrame=1, domain=NSURLErrorDomain, code=-1003, isMainFrame=1, willInternallyHandleFailure=0
+2026-08-30 19:47:35.746827+0200 xctest[49084:143882503] [Process] WebContent process (0x1120ccc40) took 2.248371 seconds to launch
+2026-08-30 19:47:35.997421+0200 xctest[49084:143884062] [ResourceLoadStatistics] WebContent[49827] Unable to hide query parameters from script (missing data)
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testInjectedScrollBridgeAcceptsValidatedIsolatedWorldMessage]' passed (3.053 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testNormalFocusVoyageIsBoundedDeduplicatedAndPrivateFree]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testNormalFocusVoyageIsBoundedDeduplicatedAndPrivateFree]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testOpenTabSearchNeverProjectsPrivateMetadata]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testOpenTabSearchNeverProjectsPrivateMetadata]' passed (0.317 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollDecoderRejectsSubframesAndOtherMessageKinds]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollDecoderRejectsSubframesAndOtherMessageKinds]' passed (0.029 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventAcceptsNumericZeroAndOneButRejectsBooleans]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventAcceptsNumericZeroAndOneButRejectsBooleans]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventDistinguishesLayoutChangesFromScrollTravel]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventDistinguishesLayoutChangesFromScrollTravel]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventRejectsMalformedOrUnboundedTelemetry]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventRejectsMalformedOrUnboundedTelemetry]' passed (0.011 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventValidatesAndClampsNumericLayoutTelemetry]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPageScrollEventValidatesAndClampsNumericLayoutTelemetry]' passed (0.001 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPrivateFocusVoyageIsConstructedWithoutNormalOrPrivateRecords]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testPrivateFocusVoyageIsConstructedWithoutNormalOrPrivateRecords]' passed (0.008 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testScrollReducerPublishesOnlyOneCollapseAcrossRepeatedFrames]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testScrollReducerPublishesOnlyOneCollapseAcrossRepeatedFrames]' passed (0.010 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testWorkspaceIconPolicyOnlyEmitsResolvedSFSymbols]' started.
+Test Case '-[AhoiMobileCoreTests.MobileBrowserPresentationTests testWorkspaceIconPolicyOnlyEmitsResolvedSFSymbols]' passed (0.050 seconds).
+Test Suite 'MobileBrowserPresentationTests' passed at 2026-08-30 19:47:36.931.
+	 Executed 19 tests, with 0 failures (0 unexpected) in 3.499 (3.520) seconds
+Test Suite 'AhoiMobileCoreTests.xctest' passed at 2026-08-30 19:47:36.932.
+	 Executed 113 tests, with 2 tests skipped and 0 failures (0 unexpected) in 6.065 (6.226) seconds
+Test Suite 'All tests' passed at 2026-08-30 19:47:36.935.
+	 Executed 113 tests, with 2 tests skipped and 0 failures (0 unexpected) in 6.065 (6.230) seconds
+2026-08-30 19:47:37.297 xcodebuild[47660:143879776] [MT] IDETestOperationsObserverDebug: 12.638 elapsed -- Testing started completed.
+2026-08-30 19:47:37.297 xcodebuild[47660:143879776] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-08-30 19:47:37.297 xcodebuild[47660:143879776] [MT] IDETestOperationsObserverDebug: 12.638 sec, +12.638 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/ahoi-mobile-4113c14-core-03.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

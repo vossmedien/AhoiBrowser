@@ -1,41 +1,42 @@
 # Native AhoiBrowser for iOS and iPadOS
 
 Status: **DEVELOPMENT_EVIDENCE_ONLY — NOT A RELEASE CANDIDATE**. The former
-local-first Companion has been migrated into the `AhoiBrowser Mobile` source
-product and a native WebKit browser slice is present in the worktree. On
-2026-08-30 the Debug iPhone simulator build and the universal (`arm64` and
-`x86_64`) Release iPad simulator build succeeded. The latest broad iPhone
-development suite recorded 9 passes, one obsolete UI-harness ambiguity and two
-explicit skips; the corrected revocation and Reduce Motion journeys then each
-passed independently. The current iPad suite passed 3/3. The subsequent full
-Mobile Core run recorded 111 passes, zero failures and two entitlement-dependent
-skips out of 113 tests; the focused Core run passed 49/49 and the
-CloudKit/security package passed 36/36.
+local-first Companion has been migrated into the native SwiftUI/WebKit
+`AhoiBrowser Mobile` product. The exact DebugLocal source candidate is
+`4113c14c1e0d21061a1c5927e25ab55663d547a7`, version/build `0.1 (1)`, bundle
+`app.ahoibrowser.AhoiBrowser`, Team `248AJ5BN47`. Its retained, hash-bound
+development receipt is
+[`artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json`](../artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json).
 
-Mobile repository contracts passed 20/20, Swift parsing passed 94/94 and
-`xcodebuild analyze` succeeded. Two deterministic XcodeGen generations matched
-SHA-256 `49e503d5da232d2067094999b653096c9e5b923f7a8b8ebd561273a7f7f42643`.
-The current product implementation is commit
-`88e9b12e629aaad4e69a590f530754b983d38774`; Git snapshot commit
-`7bd492fa9d669868dceb1dbd91450cae5ae3bd3a` preserves the earlier source
-history and is not a distribution archive.
+Visible E2E ran before the programmatic suites on that exact candidate. The
+iPhone 17 Pro simulator passed 11/11 selected browser, private-mode, local-sync,
+failure-recovery and Harbor Deck journeys; the iPad Pro simulator passed 3/3
+Focus Voyage, Harbor Deck and Workspace Canvas journeys. A development-signed
+iPhone 16 Pro Max running iOS 26.6 passed 7/7 selected journeys, and a bounded
+`devicectl` invocation additionally proved that an HTTPS payload launches the
+app. The payload invocation does not prove system-default routing or a visible
+duplicate-tab count. No product source changed after these visible runs.
 
-A development build was signed and installed on a physical iPhone 16 Pro Max
-running iOS 26.6. The first CLI launch was rejected while the device was locked;
-after unlock, launch through the host's iPhone device-management/synchronization
-flow visibly proved Ahoi cold start, HTTPS `example.com`, Browser Actions, a new
-private tab and, after targeted termination of the Ahoi process, restoration of
-the normal Example tab with the private tab excluded. This launch path is
-unrelated to Ahoi CloudKit sync. Screenshots are retained under
-[`audit-evidence/2026-08-30-ios-device-preflight/`](audit-evidence/2026-08-30-ios-device-preflight/).
-This is a bounded physical-development smoke, not completion of any full
-registry journey. The available iPad (6th generation) runs iPadOS 17.7.10 and
-cannot install this iOS/iPadOS 26 target. There is still no distribution
-archive, default-browser entitlement, entitled CloudKit roundtrip or TestFlight
-installation.
-`MOB-USER-01` through `MOB-USER-15` and `IOS-01` through `IOS-15` are
-release-critical and remain `NOT_RUN` in `config/test-registry.json`. The
-evidence contract is documented in
+The subsequent full Mobile Core run recorded 111 passes, zero failures and two
+expected entitlement-dependent skips out of 113 tests. Mobile repository
+contracts passed 20/20, the provider-free CloudKit/security package passed
+36/36, Swift parsing passed 94/94 with every Mobile Swift file at or below 800
+lines, and exact-candidate `xcodebuild analyze` succeeded. Two detached
+XcodeGen 2.46.0 generations were content-identical and Git-clean, the three
+post-snapshot Mobile focus commits passed DCO, and redacted Gitleaks scans of
+the exact Mobile source, shared CloudKit package and retained candidate evidence
+found no leaks. These checks prove their local scopes only; the offline CloudKit
+package is not real provider or cross-device evidence.
+
+The machine-readable receipt claims only `SOURCE_COMPLETE`, `LOCAL_BUILD_PASS`,
+`UNIT_PASS`, `SIMULATOR_VISIBLE` and `DEVICE_VISIBLE`. The available physical
+iPad (6th generation) runs iPadOS 17.7.10 and cannot install this iOS/iPadOS 26
+target. There is still no compatible physical-iPad pass, distribution archive,
+entitled CloudKit roundtrip, TestFlight installation, managed default-browser
+grant or post-grant system-default E2E. `MOB-USER-01` through `MOB-USER-15` and
+`IOS-01` through `IOS-15` therefore remain release-critical `NOT_RUN`
+requirements in `config/test-registry.json`. The evidence contract and exact
+boundaries are documented in
 [`IOS_BROWSER_E2E_EVIDENCE.md`](IOS_BROWSER_E2E_EVIDENCE.md).
 
 The mobile product is a native SwiftUI browser for **iOS/iPadOS 26 and later**.

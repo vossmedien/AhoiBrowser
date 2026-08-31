@@ -1,0 +1,309 @@
+AHOI MOBILE XCODEGEN REPRODUCIBILITY EVIDENCE
+============================================
+
+Result: PASS (byte/content/path deterministic and Git no-op)
+Requested source commit: 4113c14c1e0d21061a1c5927e25ab55663d547a7
+Repository: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser
+Mobile directory: apps/AhoiMobile
+Command under test: /opt/homebrew/bin/xcodegen generate --spec project.yml
+Evidence timestamp (UTC): 2026-08-31T06:20:14Z
+
+Important interpretation:
+- Both generation commands exited 0.
+- Run 1 exactly reproduced the committed AhoiMobile.xcodeproj content.
+- Run 2 exactly reproduced Run 1, including all six shared schemes.
+- Git status and Git diff were empty after each run, across the whole detached worktree.
+- XcodeGen recreates project files, so inode/mtime metadata changed on Run 2. Therefore Run 2 is a byte/content/path and Git no-op, but not a filesystem-metadata no-op.
+- XcodeGen printed /tmp/... while the requested worktree was created below /private/tmp; on macOS those are the same temporary filesystem location.
+
+1. HOST AND TOOL PROVENANCE
+---------------------------
+host_os=26.6
+host_build=25G72
+machine=arm64
+xcodegen_path=/opt/homebrew/bin/xcodegen
+xcodegen_realpath=/opt/homebrew/Cellar/xcodegen/2.46.0/bin/xcodegen
+xcodegen_binary_sha256=5b5d393779d405bbe78a2de8130f0bfaa4f90f7295cd3c8436d620b04aaee49a
+xcodegen_version=2.46.0
+
+2. NARROW AHOI CHROMIUM BUILD-PROCESS GATE
+------------------------------------------
+Exact process filter used before worktree creation and again at phase boundaries:
+
+  ps -axo pid=,ppid=,etime=,command= | awk '
+    BEGIN { IGNORECASE=1; found=0 }
+    /(^|[[:space:]\/])(ninja|autoninja|siso|gn)([[:space:]\/]|$)/ &&
+    (/AhoiBrowser/ || /out\/AhoiDev/) { print; found=1 }
+    END { if (!found) print "NO_AHOI_CHROMIUM_BUILD_PROCESS" }
+  '
+
+Pre-flight output:
+NO_AHOI_CHROMIUM_BUILD_PROCESS
+
+Pre-Run-2 output:
+NO_AHOI_CHROMIUM_BUILD_PROCESS
+
+Final pre-cleanup output:
+NO_AHOI_CHROMIUM_BUILD_PROCESS
+
+3. SOURCE AND ISOLATION PROVENANCE
+----------------------------------
+canonical_toplevel=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser
+canonical_head_at_start=4113c14c1e0d21061a1c5927e25ab55663d547a7
+canonical_branch_at_start=codex/desktop-core-feature-wave-20260830
+requested_commit=4113c14c1e0d21061a1c5927e25ab55663d547a7
+resolved_commit=4113c14c1e0d21061a1c5927e25ab55663d547a7
+object_type=commit
+commit_subject=fix(ios): dedupe delayed external opens
+temporary_root=/private/tmp/ahoi-mobile-4113c14-xcodegen.djiyBU
+temporary_worktree=/private/tmp/ahoi-mobile-4113c14-xcodegen.djiyBU/worktree
+detached_head=4113c14c1e0d21061a1c5927e25ab55663d547a7
+detached_branch=DETACHED
+
+Command:
+  git worktree add --detach /private/tmp/ahoi-mobile-4113c14-xcodegen.djiyBU/worktree 4113c14c1e0d21061a1c5927e25ab55663d547a7
+
+Output:
+  Preparing worktree (detached HEAD 4113c14)
+  HEAD is now at 4113c14 fix(ios): dedupe delayed external opens
+
+Initial detached status (`git status --porcelain=v2 --branch`):
+  # branch.oid 4113c14c1e0d21061a1c5927e25ab55663d547a7
+  # branch.head (detached)
+
+The canonical checkout already contained unrelated user work. It was only inspected; all generation occurred in the detached temporary worktree.
+
+4. INPUT AND HASH METHOD
+------------------------
+project_yml_sha256=81cfab13e9033e4d867a9008ad15f789db1069f2eb9c947d9c472f1ba1f4bd8f
+committed_project_tracked_file_count=8
+project_file_count_before_generation=8
+
+Deterministic project hash method:
+1. Enumerate every regular file below AhoiMobile.xcodeproj with find -print0.
+2. Sort paths bytewise with LC_ALL=C sort -z.
+3. Emit one manifest row per file: SHA-256, two spaces, relative path.
+4. SHA-256 the complete manifest.
+
+The scheme hash uses the same method, restricted to */xcschemes/*.xcscheme.
+Because manifests use paths relative to apps/AhoiMobile, the temporary worktree path does not influence the hash.
+
+Baseline project manifest before generation:
+0a944a6801a7ca57bd3e03a76fb31a98c5c6632427faeddd04c03b7ee23a2580  AhoiMobile.xcodeproj/project.pbxproj
+7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f  AhoiMobile.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+c80760a1b7ddf62fd03bc3def77c535790914b36054149b5ad7467fc571bda85  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitDevelopment.xcscheme
+7eac80f0eb47b457816b04371dd3cc8221c38e49d84718d1b0053210f7ef6003  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitE2E.xcscheme
+fb7c48f8b63c0cb084396bf25b379aab7d8c5d285665342b7ee8adb2f5499285  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-DefaultBrowserDevelopment.xcscheme
+03189fc4e4fdfd7db467d2cc0936759c8ef3538e63916515e71ae2523f984fda  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-ReleasePostGrant.xcscheme
+cc9a129b84fe53cd4b51386c5b85db50d32cb1873bd380dd06e45852aa6a9332  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-TestFlightBootstrap.xcscheme
+b73538fbba7bf82a143d80289e81c9623efa8ce040736769c5ab5dd8789afe70  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile.xcscheme
+
+before_project_path_content_sha256=a5dc0cad689c623b6e4013b59b93099115d64a43024d7a1059b604eeee0e134e
+before_scheme_path_content_sha256=dec669a5a8ebd8b499bf9d750aa26f44ff31bca8864a583d58cee5f72eaced65
+
+5. XCODEGEN RUN 1
+----------------
+Working directory:
+  /private/tmp/ahoi-mobile-4113c14-xcodegen.djiyBU/worktree/apps/AhoiMobile
+
+Command:
+  /opt/homebrew/bin/xcodegen generate --spec project.yml
+
+Output:
+  Generating plists...
+  Generating project...
+  Writing project...
+  Created project at /tmp/ahoi-mobile-4113c14-xcodegen.djiyBU/worktree/apps/AhoiMobile/AhoiMobile.xcodeproj
+
+run1_exit=0
+run1_project_file_count=8
+run1_project_path_content_sha256=a5dc0cad689c623b6e4013b59b93099115d64a43024d7a1059b604eeee0e134e
+run1_scheme_file_count=6
+run1_scheme_path_content_sha256=dec669a5a8ebd8b499bf9d750aa26f44ff31bca8864a583d58cee5f72eaced65
+
+Run 1 project manifest:
+0a944a6801a7ca57bd3e03a76fb31a98c5c6632427faeddd04c03b7ee23a2580  AhoiMobile.xcodeproj/project.pbxproj
+7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f  AhoiMobile.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+c80760a1b7ddf62fd03bc3def77c535790914b36054149b5ad7467fc571bda85  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitDevelopment.xcscheme
+7eac80f0eb47b457816b04371dd3cc8221c38e49d84718d1b0053210f7ef6003  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitE2E.xcscheme
+fb7c48f8b63c0cb084396bf25b379aab7d8c5d285665342b7ee8adb2f5499285  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-DefaultBrowserDevelopment.xcscheme
+03189fc4e4fdfd7db467d2cc0936759c8ef3538e63916515e71ae2523f984fda  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-ReleasePostGrant.xcscheme
+cc9a129b84fe53cd4b51386c5b85db50d32cb1873bd380dd06e45852aa6a9332  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-TestFlightBootstrap.xcscheme
+b73538fbba7bf82a143d80289e81c9623efa8ce040736769c5ab5dd8789afe70  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile.xcscheme
+
+Run 1 scheme manifest:
+c80760a1b7ddf62fd03bc3def77c535790914b36054149b5ad7467fc571bda85  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitDevelopment.xcscheme
+7eac80f0eb47b457816b04371dd3cc8221c38e49d84718d1b0053210f7ef6003  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitE2E.xcscheme
+fb7c48f8b63c0cb084396bf25b379aab7d8c5d285665342b7ee8adb2f5499285  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-DefaultBrowserDevelopment.xcscheme
+03189fc4e4fdfd7db467d2cc0936759c8ef3538e63916515e71ae2523f984fda  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-ReleasePostGrant.xcscheme
+cc9a129b84fe53cd4b51386c5b85db50d32cb1873bd380dd06e45852aa6a9332  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-TestFlightBootstrap.xcscheme
+b73538fbba7bf82a143d80289e81c9623efa8ce040736769c5ab5dd8789afe70  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile.xcscheme
+
+Baseline versus Run 1:
+before_vs_run1_project_manifest=IDENTICAL
+before_vs_run1_scheme_manifest=IDENTICAL
+
+Run 1 whole-worktree status (`git status --porcelain=v2 --branch --untracked-files=all`):
+  # branch.oid 4113c14c1e0d21061a1c5927e25ab55663d547a7
+  # branch.head (detached)
+
+Run 1 mobile-only status (`git status --porcelain=v2 --untracked-files=all -- apps/AhoiMobile`):
+  [empty]
+
+Run 1 mobile diff (`git diff --stat -- apps/AhoiMobile`):
+  [empty]
+
+Run 1 mobile name-status diff (`git diff --name-status -- apps/AhoiMobile`):
+  [empty]
+
+run1_unstaged_diff_exit=0 (0 means no diff)
+run1_staged_diff_exit=0 (0 means no diff)
+run1_whole_worktree_clean=yes
+run1_status_all_sha256=9c45fd889226c26d9202aaa0b8b5c8414d70d2ca244f106d877532ed64ecfe4c
+run1_status_mobile_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+run1_diff_stat_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+run1_diff_name_status_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+6. XCODEGEN RUN 2
+----------------
+Working directory:
+  /private/tmp/ahoi-mobile-4113c14-xcodegen.djiyBU/worktree/apps/AhoiMobile
+
+Command:
+  /opt/homebrew/bin/xcodegen generate --spec project.yml
+
+Output:
+  Generating plists...
+  Generating project...
+  Writing project...
+  Created project at /tmp/ahoi-mobile-4113c14-xcodegen.djiyBU/worktree/apps/AhoiMobile/AhoiMobile.xcodeproj
+
+run2_exit=0
+run2_project_file_count=8
+run2_project_path_content_sha256=a5dc0cad689c623b6e4013b59b93099115d64a43024d7a1059b604eeee0e134e
+run2_scheme_file_count=6
+run2_scheme_path_content_sha256=dec669a5a8ebd8b499bf9d750aa26f44ff31bca8864a583d58cee5f72eaced65
+
+Run 2 project manifest:
+0a944a6801a7ca57bd3e03a76fb31a98c5c6632427faeddd04c03b7ee23a2580  AhoiMobile.xcodeproj/project.pbxproj
+7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f  AhoiMobile.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+c80760a1b7ddf62fd03bc3def77c535790914b36054149b5ad7467fc571bda85  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitDevelopment.xcscheme
+7eac80f0eb47b457816b04371dd3cc8221c38e49d84718d1b0053210f7ef6003  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitE2E.xcscheme
+fb7c48f8b63c0cb084396bf25b379aab7d8c5d285665342b7ee8adb2f5499285  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-DefaultBrowserDevelopment.xcscheme
+03189fc4e4fdfd7db467d2cc0936759c8ef3538e63916515e71ae2523f984fda  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-ReleasePostGrant.xcscheme
+cc9a129b84fe53cd4b51386c5b85db50d32cb1873bd380dd06e45852aa6a9332  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-TestFlightBootstrap.xcscheme
+b73538fbba7bf82a143d80289e81c9623efa8ce040736769c5ab5dd8789afe70  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile.xcscheme
+
+Run 2 scheme manifest:
+c80760a1b7ddf62fd03bc3def77c535790914b36054149b5ad7467fc571bda85  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitDevelopment.xcscheme
+7eac80f0eb47b457816b04371dd3cc8221c38e49d84718d1b0053210f7ef6003  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitE2E.xcscheme
+fb7c48f8b63c0cb084396bf25b379aab7d8c5d285665342b7ee8adb2f5499285  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-DefaultBrowserDevelopment.xcscheme
+03189fc4e4fdfd7db467d2cc0936759c8ef3538e63916515e71ae2523f984fda  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-ReleasePostGrant.xcscheme
+cc9a129b84fe53cd4b51386c5b85db50d32cb1873bd380dd06e45852aa6a9332  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-TestFlightBootstrap.xcscheme
+b73538fbba7bf82a143d80289e81c9623efa8ce040736769c5ab5dd8789afe70  AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile.xcscheme
+
+Run 1 versus Run 2:
+run1_vs_run2_project_manifest=IDENTICAL
+run1_vs_run2_scheme_manifest=IDENTICAL
+
+Run 2 whole-worktree status (`git status --porcelain=v2 --branch --untracked-files=all`):
+  # branch.oid 4113c14c1e0d21061a1c5927e25ab55663d547a7
+  # branch.head (detached)
+
+Run 2 mobile-only status (`git status --porcelain=v2 --untracked-files=all -- apps/AhoiMobile`):
+  [empty]
+
+Run 2 mobile diff (`git diff --stat -- apps/AhoiMobile`):
+  [empty]
+
+Run 2 mobile name-status diff (`git diff --name-status -- apps/AhoiMobile`):
+  [empty]
+
+run2_unstaged_diff_exit=0 (0 means no diff)
+run2_staged_diff_exit=0 (0 means no diff)
+run2_whole_worktree_clean=yes
+run2_status_all_sha256=9c45fd889226c26d9202aaa0b8b5c8414d70d2ca244f106d877532ed64ecfe4c
+run2_status_mobile_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+run2_diff_stat_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+run2_diff_name_status_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+Run 1 versus Run 2 Git evidence:
+status_all_cmp_exit=0 (0 means identical)
+status_mobile_cmp_exit=0 (0 means identical)
+diff_stat_cmp_exit=0 (0 means identical)
+diff_name_status_cmp_exit=0 (0 means identical)
+
+7. FILESYSTEM-METADATA DRIFT (NON-CONTENT)
+-----------------------------------------
+Format: epoch_mtime size inode relative_path
+
+Immediately before Run 2:
+1788157083 106913 868043482 AhoiMobile.xcodeproj/project.pbxproj
+1788157037 135 868043484 AhoiMobile.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+1788157083 6317 868043488 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitDevelopment.xcscheme
+1788157083 5495 868043489 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitE2E.xcscheme
+1788157083 6347 868043487 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-DefaultBrowserDevelopment.xcscheme
+1788157083 6302 868043492 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-ReleasePostGrant.xcscheme
+1788157083 6317 868043490 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-TestFlightBootstrap.xcscheme
+1788157083 6290 868043491 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile.xcscheme
+
+Immediately after Run 2:
+1788157163 106913 868044122 AhoiMobile.xcodeproj/project.pbxproj
+1788157037 135 868044124 AhoiMobile.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+1788157163 6317 868044128 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitDevelopment.xcscheme
+1788157163 5495 868044129 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-CloudKitE2E.xcscheme
+1788157163 6347 868044127 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-DefaultBrowserDevelopment.xcscheme
+1788157163 6302 868044132 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-ReleasePostGrant.xcscheme
+1788157163 6317 868044130 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile-TestFlightBootstrap.xcscheme
+1788157163 6290 868044131 AhoiMobile.xcodeproj/xcshareddata/xcschemes/AhoiMobile.xcscheme
+
+run1_vs_run2_metadata_manifest=DIFFERENT
+Interpretation: XcodeGen recreated the project tree. File sizes stayed identical, and all path/content SHA-256 values stayed identical. This metadata-only drift does not produce any Git change.
+
+8. PRE-CLEANUP SAFETY PROOF
+---------------------------
+detached_head=4113c14c1e0d21061a1c5927e25ab55663d547a7
+detached_status_porcelain_count=0
+detached_unstaged_diff_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+detached_staged_diff_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+canonical_head_precleanup=4113c14c1e0d21061a1c5927e25ab55663d547a7
+canonical_branch_precleanup=codex/desktop-core-feature-wave-20260830
+canonical_status_line_count_precleanup=231
+canonical_status_sha256_precleanup=72fe5160007091d3586c1e388d72310902488ebd11f69e53a2a79a2775ef987f
+canonical_unstaged_diff_sha256_precleanup=15c4cda5c5e2b6adb2e05ee8fa4d6c4ce0178cd4caa589315c5cd74fb6fac3dc
+canonical_staged_diff_sha256_precleanup=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+9. CLEANUP AND CANONICAL PRESERVATION
+-------------------------------------
+Validated cleanup targets:
+temporary_root=/private/tmp/ahoi-mobile-4113c14-xcodegen.djiyBU
+temporary_worktree=/private/tmp/ahoi-mobile-4113c14-xcodegen.djiyBU/worktree
+worktree_head_before_remove=4113c14c1e0d21061a1c5927e25ab55663d547a7
+worktree_dirty_count_before_remove=0
+git_worktree_remove=PASS
+worktree_registry_absent=PASS
+temporary_root_removed=PASS
+
+canonical_head_postcleanup=4113c14c1e0d21061a1c5927e25ab55663d547a7
+canonical_branch_postcleanup=codex/desktop-core-feature-wave-20260830
+canonical_status_line_count_postcleanup=232
+canonical_status_sha256_postcleanup=6e295ec69b28a6edd86b040864019fc0ccd898088e0d3614385ee241800dd9f3
+canonical_unstaged_diff_sha256_postcleanup=966d4f0ca7fec5880253a083e219e5b87dc0a6c4513cf7a6502e04dc0220ec53
+canonical_staged_diff_sha256_postcleanup=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+The full canonical status/diff fingerprint changed during cleanup because concurrent desktop work modified one additional non-Mobile file after the pre-cleanup snapshot:
+  1 .M N... 100644 100644 100644 9d527e1557fd92bcd7c3fb1b8d7482ecd1407c35 9d527e1557fd92bcd7c3fb1b8d7482ecd1407c35 overlay/chromium/src/ahoi/browser/ui/shell/floating_browser_view_browsertest.cc
+  mtime=2026-08-31T08:21:50+0200
+
+This concurrent change is outside apps/AhoiMobile and outside the temporary worktree. The canonical Mobile scope remained clean after cleanup:
+canonical_mobile_status=empty
+canonical_mobile_diff_name_status=empty
+canonical_mobile_status_sha256_postcleanup=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+canonical_mobile_diff_sha256_postcleanup=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+Preservation conclusion: no files below canonical apps/AhoiMobile were changed, staged, or created by this check. HEAD and branch remained unchanged. The temporary detached worktree and its disposable manifests were removed. Existing and concurrent canonical changes were not touched.
+
+10. FINAL VERDICT
+-----------------
+PASS: With XcodeGen 2.46.0, source commit 4113c14c1e0d21061a1c5927e25ab55663d547a7 reproducibly generates the committed AhoiMobile.xcodeproj. Run 1, Run 2, and the committed baseline all have project hash a5dc0cad689c623b6e4013b59b93099115d64a43024d7a1059b604eeee0e134e and scheme hash dec669a5a8ebd8b499bf9d750aa26f44ff31bca8864a583d58cee5f72eaced65. Both runs exit 0 and leave no staged, unstaged, or untracked changes. There is no content/version drift; only expected inode/mtime churn from XcodeGen recreating the project directory.

@@ -1,0 +1,170 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj -scheme AhoiMobile -configuration DebugLocal -destination "platform=iOS Simulator,id=712F0CD5-D7F9-4B4B-8254-CFBCA4D138F9" -derivedDataPath /private/tmp/ahoi-mobile-4113c14-ipad-derived -resultBundlePath /private/tmp/ahoi-mobile-4113c14-ipad-ui-02.xcresult -parallel-testing-enabled NO "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testWorkspaceCanvasExposesPersistentCommandSidebarOnIPad" AHOI_SOURCE_COMMIT=4113c14c1e0d21061a1c5927e25ab55663d547a7 AHOI_MOBILE_MARKETING_VERSION=0.1 AHOI_MOBILE_BUILD_NUMBER=1 AHOI_APP_USES_NON_EXEMPT_ENCRYPTION=NO test-without-building
+
+Build settings from command line:
+    AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = NO
+    AHOI_MOBILE_BUILD_NUMBER = 1
+    AHOI_MOBILE_MARKETING_VERSION = 0.1
+    AHOI_SOURCE_COMMIT = 4113c14c1e0d21061a1c5927e25ab55663d547a7
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  AhoiCloudKitSpike: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/spikes/cloudkit
+
+Writing result bundle at path:
+	/private/tmp/ahoi-mobile-4113c14-ipad-ui-02.xcresult
+
+2026-08-30 19:34:37.291753+0200 AhoiMobileUITests-Runner[91298:143749835] [Default] Running tests...
+2026-08-30 19:34:37.365142+0200 AhoiMobileUITests-Runner[91298:143749835] [UIKit App Config] Update the Info.plist: Launch screens will soon be required.
+objc[91298]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108568310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x107fb8398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-08-30 19:34:46.483.
+Test Suite 'AhoiMobileUITests.xctest' started at 2026-08-30 19:34:46.484.
+Test Suite 'MobileBrowserLayoutUITests' started at 2026-08-30 19:34:46.484.
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable]' started.
+    t =     0.00s Start Test at 2026-08-30 19:34:46.486
+    t =     0.39s Set Up
+    t =     0.41s Open app.ahoibrowser.AhoiBrowser
+    t =     0.41s     Launch app.ahoibrowser.AhoiBrowser
+2026-08-30 19:34:47.364 xcodebuild[89707:143744393] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:34:47.365 xcodebuild[89707:143744393] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     4.35s         Setting up automation session
+    t =     6.72s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.29s Waiting 8.0s for "browser.more" Button to exist
+    t =     9.30s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =     9.41s         Checking existence of `"browser.more" Button`
+    t =    10.55s Tap "browser.more" Button
+    t =    10.55s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.67s     Find the "browser.more" Button
+    t =    10.89s     Check for interrupting elements affecting "browser.more" Button
+    t =    11.11s         Wait for com.apple.springboard to idle
+    t =    12.15s     Synthesize event
+    t =    12.60s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.09s Waiting 3.0s for "browser.actions.new-tab" Button to exist
+    t =    14.10s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.new-tab" Button`
+    t =    14.10s         Checking existence of `"browser.actions.new-tab" Button`
+    t =    16.35s         Capturing element debug description
+    t =    16.35s     Checking existence of `"browser.actions.new-tab" Button`
+    t =    17.68s Tap "browser.actions.new-tab" Button
+    t =    17.68s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.73s     Find the "browser.actions.new-tab" Button
+    t =    18.13s     Check for interrupting elements affecting "browser.actions.new-tab" Button
+    t =    18.41s         Wait for com.apple.springboard to idle
+    t =    18.46s     Synthesize event
+    t =    18.79s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    19.90s Waiting 3.0s for "browser.focus-voyage.header" Any to exist
+    t =    20.97s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.focus-voyage.header" Any`
+    t =    20.97s         Checking existence of `"browser.focus-voyage.header" Any`
+    t =    21.06s Checking existence of `"browser.focus-voyage.search" Button`
+    t =    21.14s Checking existence of `"browser.back" Button`
+    t =    21.22s Checking existence of `"browser.forward" Button`
+    t =    21.29s Checking existence of `"browser.reload-stop" Button`
+    t =    21.37s Checking existence of `"browser.tabs" Button`
+    t =    21.44s Checking existence of `"browser.more" Button`
+    t =    21.52s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable]' passed (21.773 seconds).
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll]' started.
+    t =     0.00s Start Test at 2026-08-30 19:35:08.260
+    t =     0.03s Set Up
+    t =     0.03s Open app.ahoibrowser.AhoiBrowser
+    t =     0.03s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.03s         Terminate app.ahoibrowser.AhoiBrowser:93135
+2026-08-30 19:35:09.363 xcodebuild[89707:143744393] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:35:09.363 xcodebuild[89707:143744393] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.53s         Setting up automation session
+    t =     3.94s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.36s Waiting 8.0s for "browser.harbor-deck.workspace" Any to exist
+    t =     6.41s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =     6.42s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =     7.74s Waiting 3.0s for WebView (First Match) to exist
+    t =     8.81s     Checking `Expect predicate `existsNoRetry == 1` for object WebView (First Match)`
+    t =     8.82s         Checking existence of `WebView (First Match)`
+    t =     9.00s Waiting 3.0s for "Ahoi fixture page" StaticText to exist
+    t =    10.02s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi fixture page" StaticText`
+    t =    10.02s         Checking existence of `"Ahoi fixture page" StaticText`
+    t =    10.39s Swipe up WebView (First Match)
+    t =    10.39s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.40s     Find the WebView (First Match)
+    t =    10.50s     Check for interrupting elements affecting WebView
+    t =    10.64s         Wait for com.apple.springboard to idle
+    t =    10.69s     Synthesize event
+    t =    11.43s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.37s Waiting 3.0s for "browser.harbor-deck.workspace" Any to not exist
+    t =    14.44s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.harbor-deck.workspace" Any`
+    t =    14.44s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    14.76s Waiting 3.0s for "browser.address" Button to exist
+    t =    15.85s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    15.85s         Checking existence of `"browser.address" Button`
+    t =    17.13s Checking `Expect predicate `hittable == 1` for object "browser.address" Button`
+    t =    17.13s     Find the "browser.address" Button
+    t =    17.75s Find the "browser.address" Button
+    t =    18.10s Find the "browser.address" Button
+    t =    18.33s Waiting 3.0s for "browser.tabs" Button to exist
+    t =    19.40s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.tabs" Button`
+    t =    19.40s         Checking existence of `"browser.tabs" Button`
+    t =    20.63s Checking `Expect predicate `hittable == 1` for object "browser.tabs" Button`
+    t =    20.63s     Find the "browser.tabs" Button
+    t =    20.77s Find the "browser.tabs" Button
+    t =    20.90s Find the "browser.tabs" Button
+    t =    21.03s Waiting 3.0s for "browser.more" Button to exist
+    t =    22.03s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =    22.03s         Checking existence of `"browser.more" Button`
+    t =    23.30s Checking `Expect predicate `hittable == 1` for object "browser.more" Button`
+    t =    23.31s     Find the "browser.more" Button
+    t =    23.46s Find the "browser.more" Button
+    t =    23.63s Find the "browser.more" Button
+    t =    23.79s Swipe up WebView at {{0.0, 0.0}, {1032.0, 1229.0}}
+    t =    23.79s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.80s     Find the WebView at {{0.0, 0.0}, {1032.0, 1229.0}}
+    t =    23.90s     Check for interrupting elements affecting WebView
+    t =    24.00s         Wait for com.apple.springboard to idle
+    t =    24.05s     Synthesize event
+    t =    24.58s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    25.96s Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    26.27s Swipe down WebView at {{0.0, 0.0}, {1032.0, 1280.0}}
+    t =    26.27s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    26.28s     Find the WebView at {{0.0, 0.0}, {1032.0, 1280.0}}
+    t =    26.35s     Check for interrupting elements affecting WebView
+    t =    26.45s         Wait for com.apple.springboard to idle
+    t =    26.49s     Synthesize event
+    t =    26.98s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    29.08s Waiting 3.0s for "browser.harbor-deck.workspace" Any to exist
+    t =    30.11s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =    30.11s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    30.34s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll]' passed (30.655 seconds).
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testWorkspaceCanvasExposesPersistentCommandSidebarOnIPad]' started.
+    t =     0.01s Start Test at 2026-08-30 19:35:38.921
+    t =     0.03s Set Up
+    t =     0.04s Open app.ahoibrowser.AhoiBrowser
+    t =     0.04s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.04s         Terminate app.ahoibrowser.AhoiBrowser:94379
+2026-08-30 19:35:39.968 xcodebuild[89707:143744393] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:35:39.968 xcodebuild[89707:143744393] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.26s         Setting up automation session
+    t =     3.43s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.92s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     5.77s Waiting 8.0s for "browser.sidebar.command" Button to exist
+    t =     6.86s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.sidebar.command" Button`
+    t =     6.86s         Checking existence of `"browser.sidebar.command" Button`
+    t =     7.20s Checking existence of `"browser.sidebar.new-tab" Button`
+    t =     7.42s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testWorkspaceCanvasExposesPersistentCommandSidebarOnIPad]' passed (7.731 seconds).
+Test Suite 'MobileBrowserLayoutUITests' passed at 2026-08-30 19:35:46.651.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 60.159 (60.166) seconds
+Test Suite 'AhoiMobileUITests.xctest' passed at 2026-08-30 19:35:46.652.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 60.159 (60.168) seconds
+Test Suite 'Selected tests' passed at 2026-08-30 19:35:46.652.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 60.159 (60.170) seconds
+2026-08-30 19:35:47.259 xcodebuild[89707:143744393] [MT] IDETestOperationsObserverDebug: 101.059 elapsed -- Testing started completed.
+2026-08-30 19:35:47.261 xcodebuild[89707:143744393] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-08-30 19:35:47.262 xcodebuild[89707:143744393] [MT] IDETestOperationsObserverDebug: 101.059 sec, +101.059 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/ahoi-mobile-4113c14-ipad-ui-02.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

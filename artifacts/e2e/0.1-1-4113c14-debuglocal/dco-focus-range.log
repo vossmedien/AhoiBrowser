@@ -1,0 +1,36 @@
+AhoiBrowser Mobile DCO gate
+Timestamp UTC: 2026-08-31T06:23:08Z
+
+RESULT=PASS
+CANDIDATE_HEAD=4113c14c1e0d21061a1c5927e25ab55663d547a7
+FOCUS_BASE_EXCLUSIVE=7bd492fa9d669868dceb1dbd91450cae5ae3bd3a
+FIRST_FOCUS_COMMIT_INCLUSIVE=88e9b12e629aaad4e69a590f530754b983d38774
+
+Exact gate command:
+python3 tools/check_dco.py --base 7bd492fa9d669868dceb1dbd91450cae5ae3bd3a --head 4113c14c1e0d21061a1c5927e25ab55663d547a7
+
+Tool output:
+DCO check passed for 3 non-merge commit(s)
+Exit code: 0
+
+Range semantics:
+- tools/check_dco.py treats --base as exclusive and --head as inclusive.
+- 7bd492fa9d669868dceb1dbd91450cae5ae3bd3a is the preserved pre-consolidation snapshot and therefore the release-focus baseline.
+- This focus range starts with 88e9b12e629aaad4e69a590f530754b983d38774 and ends at the exact candidate head.
+- Merge commit b2e38fbeeaf78e16dfd9cb7a66b9c6d5b06cf72f (merge: preserve pre-consolidation mobile history) is intentionally ignored because the tool checks --no-merges.
+
+Focused non-merge commit inventory:
+PASS 88e9b12e629aaad4e69a590f530754b983d38774 | feat(ios): complete mobile browser and sync contracts | affected: apps/AhoiMobile application sources, project/signing configurations, core/UI/CloudKit tests
+PASS fe2650670e5a92dfc996a32af16dae08c8f3ca2f | docs(ios): bind mobile evidence and release contracts | affected: iOS release/E2E documentation, mobile audit/design evidence, mobile evidence validators and repository tests
+PASS 4113c14c1e0d21061a1c5927e25ab55663d547a7 | fix(ios): dedupe delayed external opens | affected: MobileBrowserController plus focused core and UI tests
+
+Historical topology observation, not the focused release gate:
+Command:
+python3 tools/check_dco.py --base f4cf038580c3622772960532eb0a167ec9156f6f --head 4113c14c1e0d21061a1c5927e25ab55663d547a7
+Outcome: FAIL, exit code 1.
+Reason: using the parent of 88e9b12 as an exclusive base traverses history later introduced by the preserve merge and therefore also checks fbb18e42c03119401d40c646f6c1908ceb35ae2b, 9feeeddf5a05a1aeb6e74bfce9253a27db8256ae, and 7bd492fa9d669868dceb1dbd91450cae5ae3bd3a. The historical commit fbb18e42c03119401d40c646f6c1908ceb35ae2b lacks an author-matching Signed-off-by trailer. The other five non-merge commits in that broad reachability range pass. This historical side-line result is retained for transparency but is not used to reclassify the corrected 7bd492fa..4113c14 focus gate.
+
+Boundaries:
+- DCO validation checks exact author-name/email Signed-off-by trailers on non-merge commits only.
+- It does not verify cryptographic commit signatures, code contents, runtime behavior, or external CI.
+- Repository and index were not modified.

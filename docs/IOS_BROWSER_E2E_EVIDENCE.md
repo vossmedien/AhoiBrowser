@@ -2,16 +2,21 @@
 
 - Repository: `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`
 - Shared branch: `codex/desktop-core-feature-wave-20260830`
-- Mobile product implementation commit at the latest development runs:
-  `88e9b12e629aaad4e69a590f530754b983d38774`
+- Exact Mobile source candidate:
+  `4113c14c1e0d21061a1c5927e25ab55663d547a7`
+- Candidate ID: `0.1-1-4113c14-debuglocal`; version/build `0.1 (1)`,
+  configuration `DebugLocal`, bundle `app.ahoibrowser.AhoiBrowser`, Team
+  `248AJ5BN47`
+- Retained machine-readable receipt:
+  [`artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json`](../artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json)
 - Preserved pre-consolidation Mobile Git snapshot commit:
   `7bd492fa9d669868dceb1dbd91450cae5ae3bd3a`
-- Source state: shared Mobile/Desktop development tree on 2026-08-30; the
-  visible results below predate the final history-consolidation candidate
-- Candidate binding: no signed distribution `.xcarchive`, installed
-  distribution bundle or TestFlight candidate is bound to these results; a
-  final commit-bound simulator repeat remains required after the
-  documentation/history integration
+- Source state: the retained builds and visible runs bind to the clean source
+  commit above. Later documentation/evidence changes do not alter product bits.
+- Claimed development stages: `SOURCE_COMPLETE`, `LOCAL_BUILD_PASS`,
+  `UNIT_PASS`, `SIMULATOR_VISIBLE`, `DEVICE_VISIBLE`
+- Candidate boundary: this is a local development candidate, not a signed
+  distribution `.xcarchive`, App Store Connect build or TestFlight installation
 
 This file is an evidence contract and bounded development status summary, not
 a Mobile release receipt. The authoritative machine-readable status remains
@@ -40,7 +45,19 @@ last reachable boundary are retained. Independent programmatic tests still run
 so their scope can be validated; they do not convert a blocked journey into a
 pass.
 
-## Bounded visible development evidence from 2026-08-30
+## Exact-candidate visible development evidence from 2026-08-30
+
+| Surface | Result | Retained evidence and boundary |
+| --- | --- | --- |
+| iPhone 17 Pro simulator, iOS 26.5 | `PASS`, 11/11 selected visible journeys across two result bundles | `ui-iphone-simulator.xcresult`, `ui-iphone-simulator-additional.xcresult`, their logs and `visible-iphone-simulator.png` in the retained candidate directory. Coverage includes local/private lifecycle, local-only sync opt-in, revocation scope, Harbor document/nested scroll collapse and reverse restore, interactive-presentation expansion, unsafe-scheme rejection, offline recovery and private Focus Voyage isolation. |
+| Physical iPhone 16 Pro Max, iOS 26.6 | `PASS`, 7/7 selected visible journeys | `ui-iphone-device.xcresult` and log in the retained candidate directory. The app was Apple-Development-signed for Team `248AJ5BN47`. A separate retained `devicectl` receipt proves an HTTPS payload launched the app; it does not prove system-default routing or the visible duplicate-tab count. |
+| iPad Pro 13-inch (M5) simulator, iOS 26.5 | `PASS`, 3/3 selected visible journeys | `ui-ipad-simulator.xcresult` and log in the retained candidate directory. Focus Voyage/core controls, Harbor Deck collapse/reverse restore and persistent Workspace Canvas passed. |
+| Physical iPad | `BLOCKED` before install | The available iPad (6th generation) runs iPadOS 17.7.10 and cannot run the iOS/iPadOS 26 target. Simulator and programmatic evidence remains bounded to its own scope. |
+
+Every file named above is hash-bound by the candidate manifest. No product
+source changed after these visible runs.
+
+## Historical and auxiliary visible development evidence from 2026-08-30
 
 Simulator destinations:
 
@@ -67,7 +84,9 @@ Simulator destinations:
 
 The 12 retained UI stills, provenance and SHA-256 manifest are in
 [`audit-evidence/2026-08-30-mobile-ui-sync/README.md`](audit-evidence/2026-08-30-mobile-ui-sync/README.md).
-The large videos and `.xcresult` bundles remain transient under `/private/tmp`.
+The historical large videos and result bundles in this section remain transient
+under `/private/tmp`. The exact-candidate result bundles named in the preceding
+section are retained with the candidate manifest.
 
 The earlier physical-iPhone stills remain bounded separately:
 
@@ -84,6 +103,25 @@ registry status.
 
 These checks followed reachable visible E2E boundaries or ran after the real
 CloudKit/device journey had failed closed at an external prerequisite.
+
+### Exact candidate `4113c14`
+
+| Check | Result | Retained evidence and boundary |
+| --- | --- | --- |
+| Complete `AhoiMobileCoreTests` DebugLocal suite | `PASS`: 111 passed, 0 failed, 2 expected entitlement skips out of 113 | `unit-core.xcresult` and `unit-core.log` in the retained candidate directory. The two skipped tests require real CloudKit entitlements and remain skips. |
+| Mobile repository contracts | `PASS`, 20/20 | `repository-tests.log` in the retained candidate directory. |
+| Provider-free CloudKit/security package | `PASS`, 36/36 | `cloudkit-package-tests.log` in the retained candidate directory. This verifies offline model, crypto, convergence and safety contracts, not Apple transport. |
+| Swift parse, shell syntax and 800-line limit | `PASS`: 94/94 Swift files parsed; Mobile maximum exactly 800 lines | `static-checks.log` in the retained candidate directory. |
+| DebugLocal static analysis | `ANALYZE SUCCEEDED` | `analyze-debuglocal.log` in the retained candidate directory; one AppIntents metadata warning only, no source/analyzer errors. |
+| Deterministic project generation | `PASS`: two XcodeGen 2.46.0 generations matched and left Git clean | `xcodegen-determinism.log`; project path/content SHA-256 `a5dc0cad689c623b6e4013b59b93099115d64a43024d7a1059b604eeee0e134e`, six-scheme SHA-256 `dec669a5a8ebd8b499bf9d750aa26f44ff31bca8864a583d58cee5f72eaced65`. |
+| DCO focus range | `PASS`, 3/3 non-merge focus commits | `dco-focus-range.log`; exclusive baseline `7bd492fa9d669868dceb1dbd91450cae5ae3bd3a`, inclusive head `4113c14c1e0d21061a1c5927e25ab55663d547a7`. The log separately records that the preserved historical side lineage contains one older unsigned commit; it is not silently reclassified. |
+| Redacted secret scan | `PASS`, no leaks found in all three scopes | `gitleaks-mobile.log`; Gitleaks 8.30.1 scanned exact-commit `apps/AhoiMobile`, exact-commit `spikes/cloudkit` and the retained candidate evidence with 100% redaction. An untracked scanner from parallel Desktop work was absent from the candidate and is not used for this claim. |
+| Evidence validator | `PASS` against a detached source worktree | The manifest, paths, hashes, source commit, claimed stages, devices and result counts passed `verify_mobile_release_evidence.py`. A second Git-roundtripped validation is required after the evidence commit. |
+
+The hashes and boundaries for these four post-E2E gates are indexed in
+`post-e2e-gates.json` beside the candidate manifest.
+
+### Earlier and auxiliary programmatic evidence
 
 | Check | Result | Retained evidence and boundary |
 | --- | --- | --- |

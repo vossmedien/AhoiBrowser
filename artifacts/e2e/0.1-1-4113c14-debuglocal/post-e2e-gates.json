@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-08-31T08:28:45+02:00",
+  "candidateId": "0.1-1-4113c14-debuglocal",
+  "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+  "ordering": "All listed programmatic gates ran after the retained visible E2E journeys.",
+  "gates": [
+    {
+      "kind": "xcodebuild-analyze",
+      "status": "PASS",
+      "configuration": "DebugLocal",
+      "receipt": {
+        "path": "analyze-debuglocal.log",
+        "sha256": "6b8a2e5d233305b88f3770109774351699fa1b4975a6b248f8234d8296f2fa14"
+      },
+      "actualResult": "ANALYZE SUCCEEDED with no source or analyzer errors; one AppIntents metadata warning remained."
+    },
+    {
+      "kind": "xcodegen-determinism",
+      "status": "PASS",
+      "tool": "XcodeGen 2.46.0",
+      "projectPathContentSha256": "a5dc0cad689c623b6e4013b59b93099115d64a43024d7a1059b604eeee0e134e",
+      "schemePathContentSha256": "dec669a5a8ebd8b499bf9d750aa26f44ff31bca8864a583d58cee5f72eaced65",
+      "receipt": {
+        "path": "xcodegen-determinism.log",
+        "sha256": "df80297457ee711cd83b0c6fc2b4b2bd896319354f7f38a52580c8fe7a842a90"
+      },
+      "actualResult": "Two detached-worktree generations were byte-, content- and path-identical and left Git status and diff empty."
+    },
+    {
+      "kind": "dco",
+      "status": "PASS",
+      "baseExclusive": "7bd492fa9d669868dceb1dbd91450cae5ae3bd3a",
+      "headInclusive": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "checkedNonMergeCommits": 3,
+      "receipt": {
+        "path": "dco-focus-range.log",
+        "sha256": "1b0e75b6573f6aaec25a78aca7bace20e8484321a607dc217e47938b8df9dc1a"
+      },
+      "actualResult": "Every non-merge Mobile focus commit after the preserved pre-consolidation snapshot carries an author-matching Signed-off-by trailer."
+    },
+    {
+      "kind": "secret-scan",
+      "status": "PASS",
+      "tool": "gitleaks 8.30.1",
+      "redactionPercent": 100,
+      "scopes": [
+        "apps/AhoiMobile at the detached source commit",
+        "spikes/cloudkit at the detached source commit",
+        "the retained candidate evidence directory"
+      ],
+      "receipt": {
+        "path": "gitleaks-mobile.log",
+        "sha256": "8f8714b921a6be1a403689e062a26340159af5879165f041d4b5c48f4b223710"
+      },
+      "actualResult": "All three redacted directory scans exited zero with no leaks found."
+    }
+  ],
+  "boundaries": [
+    "These gates do not prove real CloudKit transport, distribution signing, TestFlight, managed default-browser entitlement, or release status.",
+    "A separate forbidden-secret scanner present only as untracked parallel Desktop work was not part of the source candidate and was not used for this PASS."
+  ]
+}
