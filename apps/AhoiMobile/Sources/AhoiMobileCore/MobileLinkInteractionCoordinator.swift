@@ -40,6 +40,33 @@ struct MobilePageScrollEvent: Equatable, Sendable {
     let viewportHeight: Double
 
     init?(
+        sequence: UInt64,
+        sourceID: UInt32,
+        contentOffsetY: Double,
+        contentHeight: Double,
+        viewportHeight: Double
+    ) {
+        guard Double(sourceID) <= Self.maximumSourceID,
+              contentOffsetY.isFinite,
+              contentHeight.isFinite,
+              viewportHeight.isFinite,
+              contentOffsetY >= 0,
+              contentHeight > 0,
+              viewportHeight > 0,
+              contentOffsetY <= Self.maximumLayoutExtent,
+              contentHeight <= Self.maximumLayoutExtent,
+              viewportHeight <= Self.maximumLayoutExtent else {
+            return nil
+        }
+        let maximumOffset = max(0, contentHeight - viewportHeight)
+        self.sequence = sequence
+        self.sourceID = sourceID
+        self.contentOffsetY = min(contentOffsetY, maximumOffset)
+        self.contentHeight = contentHeight
+        self.viewportHeight = viewportHeight
+    }
+
+    init?(
         messageBody: [String: Any],
         sequence: UInt64
     ) {
@@ -51,12 +78,13 @@ struct MobilePageScrollEvent: Equatable, Sendable {
               viewportHeight > 0 else {
             return nil
         }
-        let maximumOffset = max(0, contentHeight - viewportHeight)
-        self.sequence = sequence
-        self.sourceID = sourceID
-        self.contentOffsetY = min(max(0, contentOffsetY), maximumOffset)
-        self.contentHeight = contentHeight
-        self.viewportHeight = viewportHeight
+        self.init(
+            sequence: sequence,
+            sourceID: sourceID,
+            contentOffsetY: contentOffsetY,
+            contentHeight: contentHeight,
+            viewportHeight: viewportHeight
+        )
     }
 
     func hasStableLayout(comparedTo other: Self) -> Bool {

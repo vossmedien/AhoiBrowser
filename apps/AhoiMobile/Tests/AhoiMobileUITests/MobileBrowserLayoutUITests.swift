@@ -124,6 +124,57 @@ final class MobileBrowserLayoutUITests: XCTestCase {
     }
 
     @MainActor
+    func testHarborDeckIgnoresJitterAndExpandsOnIntentionalReverseTravel() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-AhoiUITestFixture"]
+        app.launch()
+
+        let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
+        let webView = app.webViews.firstMatch
+        XCTAssertTrue(workspace.waitForExistence(timeout: 8))
+        XCTAssertTrue(webView.waitForExistence(timeout: 3))
+        XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3))
+
+        drag(webView, fromY: 0.72, toY: 0.52)
+        XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        XCTAssertEqual(
+            app.buttons.matching(identifier: "browser.address").count,
+            1,
+            "Chrome compaction must retain one stable address control."
+        )
+
+        // A tiny opposite-direction correction is common while a finger is
+        // settling. It must move the document, yet remain below the 14-point
+        // expand threshold so the deck cannot flicker open.
+        let marker = webView.staticTexts["Ahoi fixture page"]
+        let markerYBeforeJitter = marker.frame.minY
+        drag(webView, fromY: 0.52, toY: 0.537)
+        Thread.sleep(forTimeInterval: 0.35)
+        let jitterTravel = marker.frame.minY - markerYBeforeJitter
+        XCTAssertGreaterThan(
+            jitterTravel,
+            1,
+            "The reverse correction must move the visible document rather than pass as touch slop."
+        )
+        XCTAssertLessThan(
+            jitterTravel,
+            14,
+            "The fixture correction must stay below the production expand threshold."
+        )
+        XCTAssertFalse(
+            workspace.exists,
+            "Sub-threshold reverse travel must keep the compact deck stable."
+        )
+
+        drag(webView, fromY: 0.48, toY: 0.62)
+        XCTAssertTrue(
+            workspace.waitForExistence(timeout: 3),
+            "A deliberate reverse gesture must restore the complete deck."
+        )
+        XCTAssertEqual(app.buttons.matching(identifier: "browser.address").count, 1)
+    }
+
+    @MainActor
     func testInteractiveWebPresentationsExpandCollapsedHarborDeck() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-AhoiUITestFixture"]
@@ -270,6 +321,21 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             withNormalizedOffset: CGVector(dx: 0.5, dy: 0.54)
         )
         start.press(forDuration: 0.05, thenDragTo: end)
+    }
+
+    @MainActor
+    private func drag(
+        _ element: XCUIElement,
+        fromY: CGFloat,
+        toY: CGFloat
+    ) {
+        let start = element.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.5, dy: fromY)
+        )
+        let end = element.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.5, dy: toY)
+        )
+        start.press(forDuration: 0.08, thenDragTo: end)
     }
 
     @MainActor

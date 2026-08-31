@@ -55,13 +55,8 @@ struct MobileHarborDeckView: View {
     }
 
     private var deckContent: some View {
-        VStack(spacing: isCollapsed ? 0 : 7) {
-            if !isCollapsed {
-                workspaceRail
-                    .allowsHitTesting(!isCollapsed)
-                    .accessibilityHidden(isCollapsed)
-                    .transition(workspaceRailTransition)
-            }
+        VStack(spacing: 0) {
+            workspaceRailSlot
             MobileHarborControlsLayout(isCollapsed: isCollapsed) {
                 backButton
                 collapsingControl {
@@ -76,6 +71,21 @@ struct MobileHarborDeckView: View {
             }
             .fixedSize(horizontal: false, vertical: true)
         }
+        .animation(layoutAnimation, value: isCollapsed)
+    }
+
+    private var workspaceRailSlot: some View {
+        MobileHarborRailLayout(
+            expansion: isCollapsed ? 0 : 1,
+            bottomSpacing: 7
+        ) {
+            workspaceRail
+                .opacity(isCollapsed ? 0 : 1)
+                .animation(contentAnimation, value: isCollapsed)
+        }
+        .clipped()
+        .allowsHitTesting(!isCollapsed)
+        .accessibilityHidden(isCollapsed)
     }
 
     private var workspaceRail: some View {
@@ -293,9 +303,8 @@ struct MobileHarborDeckView: View {
         MobileBrowserChromeTheme.chromeContentAnimation(reduceMotion: reduceMotion)
     }
 
-    private var workspaceRailTransition: AnyTransition {
-        guard reduceMotion else { return .opacity }
-        return .opacity.animation(contentAnimation)
+    private var layoutAnimation: Animation? {
+        MobileBrowserChromeTheme.chromeAnimation(reduceMotion: reduceMotion)
     }
 
     private var symbolContentTransition: ContentTransition {
@@ -320,6 +329,60 @@ struct MobileHarborDeckView: View {
             return AnyShapeStyle(Color(uiColor: .tertiarySystemBackground))
         }
         return AnyShapeStyle(.ultraThinMaterial)
+    }
+}
+
+/// Keeps the workspace rail alive while its intrinsic height collapses to zero.
+/// The layout value animates only in the normal-motion transaction; the rail's
+/// opacity owns its separate reduced-motion-safe cross-fade.
+private struct MobileHarborRailLayout: Layout {
+    var expansion: CGFloat
+    let bottomSpacing: CGFloat
+
+    var animatableData: CGFloat {
+        get { expansion }
+        set { expansion = newValue }
+    }
+
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        guard let subview = subviews.first else { return .zero }
+        let proposedWidth = proposal.width.flatMap { width in
+            width.isFinite ? width : nil
+        }
+        let size = subview.sizeThatFits(ProposedViewSize(
+            width: proposedWidth,
+            height: nil
+        ))
+        return CGSize(
+            width: proposedWidth ?? size.width,
+            height: max(0, size.height + bottomSpacing) * clampedExpansion
+        )
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        guard let subview = subviews.first else { return }
+        let size = subview.sizeThatFits(ProposedViewSize(
+            width: bounds.width,
+            height: nil
+        ))
+        subview.place(
+            at: bounds.origin,
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: size.height)
+        )
+    }
+
+    private var clampedExpansion: CGFloat {
+        min(max(expansion, 0), 1)
     }
 }
 
