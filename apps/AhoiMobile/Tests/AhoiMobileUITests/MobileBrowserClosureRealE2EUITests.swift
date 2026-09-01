@@ -545,7 +545,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         in app: XCUIApplication
     ) -> XCUIElement {
         let expectedText = "Search phrase: \(token)"
-        let visibleIdentities = app.staticTexts[expectedText]
+        let visibleIdentities = app.staticTexts.matching(identifier: expectedText)
             .allElementsBoundByIndex.filter {
                 $0.exists && $0.isHittable
             }
