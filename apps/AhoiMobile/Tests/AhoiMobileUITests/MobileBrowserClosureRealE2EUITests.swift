@@ -291,7 +291,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
             .notRunning,
             "A terminated process is not evidence for the background-discard policy."
         )
-        Thread.sleep(forTimeInterval: 0.75)
+        try await Task.sleep(for: .milliseconds(750))
         app.activate()
         XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
 
@@ -366,6 +366,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         )
     }
 
+    @MainActor
     private func selectedSearchEngineName(from picker: XCUIElement) -> String? {
         let projection = "\(picker.label) \(picker.value as? String ?? "")"
         return ["DuckDuckGo", "Google", "Bing"].first { projection.contains($0) }
@@ -626,6 +627,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         confirm.tap()
     }
 
+    @MainActor
     private func attachScreenshot(named name: String, of app: XCUIApplication) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name
