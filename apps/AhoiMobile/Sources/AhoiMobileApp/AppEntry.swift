@@ -102,6 +102,13 @@ private final class AhoiMobileBootstrap: ObservableObject {
         case .notRequested:
             break
         }
+#if DEBUG
+        if CompanionSyncVisibleUITestLaunch.isRequested(
+            arguments: ProcessInfo.processInfo.arguments
+        ) {
+            return makeSyncVisibleUITestRuntime()
+        }
+#endif
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -344,6 +351,24 @@ private final class AhoiMobileBootstrap: ObservableObject {
     }
 
 #if DEBUG
+    private func makeSyncVisibleUITestRuntime() -> Runtime {
+        let repository = LocalFirstRepository(
+            store: InMemoryCompanionStore(),
+            localDeviceID: DeviceID()
+        )
+        let model = CompanionAppModel(
+            repository: repository,
+            mobileSessionID: DeviceSessionID(),
+            mobileDeviceName: UIDevice.current.name,
+            mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+        )
+        let browser = MobileBrowserController(
+            store: InMemoryMobileBrowserSessionStore(),
+            performanceRecorder: performanceRecorder
+        )
+        return Runtime(model: model, browser: browser)
+    }
+
     private func makePerformanceRuntime(
         _ request: MobilePerformanceLaunchRequest
     ) throws -> Runtime {

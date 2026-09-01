@@ -97,6 +97,9 @@ public struct AhoiMobileBrowserView: View {
             await companionModel.load()
             await companionModel.setSyncEnabled(syncEnabled)
             await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+#if DEBUG
+            await companionModel.loadSyncVisibleUITestConflictIfRequested()
+#endif
             await companionModel.sync()
         }
         .onOpenURL { browser.handleExternalURL($0) }

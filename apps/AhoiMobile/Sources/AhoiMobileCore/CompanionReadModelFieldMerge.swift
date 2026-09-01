@@ -159,6 +159,72 @@ public enum CompanionReadModelFieldMerge {
         return result
     }
 
+    /// Local publications mint one new record clock, but fields whose values did
+    /// not change must retain their original field clocks. Otherwise an encode /
+    /// decode round trip combines an immutable timestamp value with a newer field
+    /// clock and makes the value appear to have changed remotely.
+    public static func stampLocal(previous: Device, candidate: Device) -> Device {
+        var result = candidate
+        var version = candidate.version.normalized(for: deviceFields)
+        let oldVersion = previous.version.normalized(for: deviceFields)
+        let equality: [String: Bool] = [
+            "type": previous.kind == candidate.kind,
+            "display_name": previous.name == candidate.name,
+            "created_at": previous.createdAt == candidate.createdAt,
+            "last_seen": previous.lastSeenAt == candidate.lastSeenAt,
+            "retired": previous.isRevoked == candidate.isRevoked,
+            "tombstone": previous.tombstone == candidate.tombstone,
+        ]
+        for field in deviceFields where equality[field] == true {
+            version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        result.version = version
+        return result
+    }
+
+    public static func stampLocal(
+        previous: DeviceSession,
+        candidate: DeviceSession
+    ) -> DeviceSession {
+        var result = candidate
+        var version = candidate.version.normalized(for: sessionFields)
+        let oldVersion = previous.version.normalized(for: sessionFields)
+        let equality: [String: Bool] = [
+            "device_id": previous.deviceID == candidate.deviceID,
+            "started_at": previous.startedAt == candidate.startedAt,
+            "liveness": Liveness(previous) == Liveness(candidate),
+            "tombstone": previous.tombstone == candidate.tombstone,
+        ]
+        for field in sessionFields where equality[field] == true {
+            version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        result.version = version
+        return result
+    }
+
+    public static func stampLocal(previous: RemoteTab, candidate: RemoteTab) -> RemoteTab {
+        var result = candidate
+        var version = candidate.version.normalized(for: tabFields)
+        let oldVersion = previous.version.normalized(for: tabFields)
+        let equality: [String: Bool] = [
+            "device_id": previous.deviceID == candidate.deviceID,
+            "session_id": previous.sessionID == candidate.sessionID,
+            "workspace_id": previous.workspaceID == candidate.workspaceID,
+            "url": previous.url == candidate.url,
+            "title": previous.title == candidate.title,
+            "opened_at": previous.openedAt == candidate.openedAt,
+            "last_active": previous.lastActiveAt == candidate.lastActiveAt,
+            "pinned": previous.pinned == candidate.pinned,
+            "is_incognito": previous.context == candidate.context,
+            "tombstone": previous.tombstone == candidate.tombstone,
+        ]
+        for field in tabFields where equality[field] == true {
+            version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        result.version = version
+        return result
+    }
+
     public static func merge(
         _ existing: HistoryVisit,
         _ incoming: HistoryVisit

@@ -325,12 +325,13 @@ final class MobileBrowserCoreTests: XCTestCase {
     func testLocalMobileTabPublicationUsesMobileDeviceAndStableSession() async throws {
         let deviceID = DeviceID()
         let sessionID = DeviceSessionID()
+        let tabID = UUID()
         let repository = LocalFirstRepository(
             store: InMemoryCompanionStore(),
             localDeviceID: deviceID
         )
         let first = try await repository.publishLocalMobileTab(
-            tabID: UUID(),
+            tabID: tabID,
             sessionID: sessionID,
             deviceName: "Test iPhone",
             deviceKind: .iPhone,
@@ -344,6 +345,33 @@ final class MobileBrowserCoreTests: XCTestCase {
         XCTAssertEqual(first.tab.deviceKind, .iPhone)
         XCTAssertEqual(first.tab.context, .normal)
         XCTAssertTrue(first.tab.isOpen)
+
+        let updated = try await repository.publishLocalMobileTab(
+            tabID: tabID,
+            sessionID: sessionID,
+            deviceName: "Test iPhone",
+            deviceKind: .iPhone,
+            workspaceID: nil,
+            title: "Updated",
+            url: "https://example.com",
+            pinned: false
+        )
+        XCTAssertEqual(
+            updated.tab.version.fieldVersions["opened_at"],
+            first.tab.version.fieldVersions["opened_at"]
+        )
+        XCTAssertEqual(
+            updated.device.version.fieldVersions["created_at"],
+            first.device.version.fieldVersions["created_at"]
+        )
+        XCTAssertEqual(
+            updated.session.version.fieldVersions["started_at"],
+            first.session.version.fieldVersions["started_at"]
+        )
+        XCTAssertGreaterThan(
+            try XCTUnwrap(updated.tab.version.fieldVersions["title"]),
+            try XCTUnwrap(first.tab.version.fieldVersions["title"])
+        )
 
         let closed = try await repository.closeLocalMobileTab(first.tab.id.rawValue)
         XCTAssertEqual(closed?.isDeleted, true)

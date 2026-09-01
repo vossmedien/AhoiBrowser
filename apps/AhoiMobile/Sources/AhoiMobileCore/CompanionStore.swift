@@ -232,7 +232,7 @@ public actor LocalFirstRepository {
         let workspaceName = workspaceID.flatMap { id in
             snapshot.workspaces.first { $0.id == id && !$0.isDeleted }?.name
         }
-        let tab = try RemoteTab(
+        var tab = try RemoteTab(
             tabID: typedTabID,
             deviceID: localDeviceID,
             deviceKind: deviceKind,
@@ -248,6 +248,12 @@ public actor LocalFirstRepository {
             pinned: pinned,
             version: tabVersion
         )
+        if let existingTab {
+            tab = CompanionReadModelFieldMerge.stampLocal(
+                previous: existingTab,
+                candidate: tab
+            )
+        }
         let storedTab = try mergeTabIntoSnapshot(tab)
         try await persist()
         return LocalMobileTabPublication(
@@ -286,7 +292,7 @@ public actor LocalFirstRepository {
             "type", "display_name", "created_at", "last_seen", "retired", "tombstone",
         ])
         let existingDevice = snapshot.devices.first { $0.id == localDeviceID }
-        let device = Device(
+        var device = Device(
             deviceID: localDeviceID,
             name: deviceName,
             kind: deviceKind,
@@ -295,13 +301,19 @@ public actor LocalFirstRepository {
             isOnline: true,
             version: deviceVersion
         )
+        if let existingDevice {
+            device = CompanionReadModelFieldMerge.stampLocal(
+                previous: existingDevice,
+                candidate: device
+            )
+        }
         let storedDevice = try mergeDeviceIntoSnapshot(device)
 
         let sessionVersion = try nextVersion().normalized(for: [
             "device_id", "started_at", "liveness", "tombstone",
         ])
         let existingSession = snapshot.sessions.first { $0.id == sessionID }
-        let session = DeviceSession(
+        var session = DeviceSession(
             sessionID: sessionID,
             deviceID: localDeviceID,
             deviceName: deviceName,
@@ -312,6 +324,12 @@ public actor LocalFirstRepository {
             isOnline: true,
             version: sessionVersion
         )
+        if let existingSession {
+            session = CompanionReadModelFieldMerge.stampLocal(
+                previous: existingSession,
+                candidate: session
+            )
+        }
         let storedSession = try mergeSessionIntoSnapshot(session)
         return LocalMobileSessionPublication(
             device: storedDevice,
@@ -355,7 +373,7 @@ public actor LocalFirstRepository {
             purgeAfterMilliseconds: version.modifiedAt.physicalMilliseconds
                 + 30 * 24 * 60 * 60 * 1_000
         )
-        let closed = try RemoteTab(
+        var closed = try RemoteTab(
             tabID: existing.id,
             deviceID: existing.deviceID,
             deviceKind: existing.deviceKind,
@@ -371,6 +389,10 @@ public actor LocalFirstRepository {
             pinned: existing.pinned,
             version: version,
             tombstone: tombstone
+        )
+        closed = CompanionReadModelFieldMerge.stampLocal(
+            previous: existing,
+            candidate: closed
         )
         let stored = try mergeTabIntoSnapshot(closed)
         try await persist()

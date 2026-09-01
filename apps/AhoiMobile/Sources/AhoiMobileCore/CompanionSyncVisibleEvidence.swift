@@ -157,9 +157,16 @@ extension CompanionAppModel {
 }
 
 #if DEBUG
+public enum CompanionSyncVisibleUITestLaunch {
+    public static let argument = "-AhoiUITestSyncProjection"
+
+    public static func isRequested(arguments: [String]) -> Bool {
+        arguments.contains(argument)
+    }
+}
+
 @MainActor
 final class CompanionSyncVisibleUITestRuntime {
-    static let launchArgument = "-AhoiUITestSyncProjection"
     static let conflictArgument = "-AhoiUITestSyncConflict"
     static let conflictWinnerTitle = "Sync conflict resolved"
 
@@ -200,7 +207,7 @@ final class CompanionSyncVisibleUITestRuntime {
 extension CompanionAppModel {
     func configureSyncVisibleUITestRuntimeIfRequested() {
         let arguments = ProcessInfo.processInfo.arguments
-        guard arguments.contains(CompanionSyncVisibleUITestRuntime.launchArgument) else {
+        guard CompanionSyncVisibleUITestLaunch.isRequested(arguments: arguments) else {
             return
         }
         do {
