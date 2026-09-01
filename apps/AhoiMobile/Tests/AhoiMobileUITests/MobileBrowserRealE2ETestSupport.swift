@@ -116,7 +116,7 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         openAddressEditor(in: app)
         let field = app.textFields["browser.address.field"]
         XCTAssertTrue(field.waitForExistence(timeout: 3))
-        clearAddressEditor(in: app)
+        clearAddressEditor(field, in: app)
         enterExactAddress(url.absoluteString, into: field, in: app)
         let navigate = app.buttons["browser.search.navigate"]
         XCTAssertTrue(navigate.waitForExistence(timeout: 3))
@@ -133,7 +133,7 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
     }
 
     @MainActor
-    func clearAddressEditor(in app: XCUIApplication) {
+    func clearAddressEditor(_: XCUIElement, in app: XCUIApplication) {
         let clear = app.buttons["browser.address.clear"]
         if clear.waitForExistence(timeout: 1) {
             clear.tap()
@@ -157,7 +157,7 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
             // complete URL into SwiftUI's selection-aware TextField. Retry via
             // distinct key events so a test-runner input loss cannot be
             // mistaken for an application navigation failure.
-            clearAddressEditor(in: app)
+            clearAddressEditor(field, in: app)
             field.tap()
             for character in expectedValue {
                 field.typeText(String(character))
