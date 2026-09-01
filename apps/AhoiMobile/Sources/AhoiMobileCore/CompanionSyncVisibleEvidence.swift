@@ -10,7 +10,7 @@ public enum CompanionSyncVisibleConflictState: String, Equatable, Sendable {
 
 /// Privacy-safe counters exposed only when the explicit DEBUG projection is
 /// active. The values are derived from the real repository, encrypted outbox,
-/// CKSyncEngine pending state, and field-merge path; no page metadata is shown.
+/// sync transport pending state, and field-merge path; no page metadata is shown.
 public struct CompanionSyncVisibleEvidence: Equatable, Sendable {
     public let currentSessionOpenTabCount: Int
     public let currentSessionOutboxTabCount: Int
@@ -66,7 +66,7 @@ extension CompanionAppModel {
                 historyOutboxCount: records.lazy.filter {
                     $0.dataClass == .historyVisit
                 }.count,
-                pendingRecordCount: runtime.provider.pendingRecordCount(),
+                pendingRecordCount: runtime.transport.pendingRecordCount(),
                 encryptedRecordCount: encryptedCount,
                 totalOutboxRecordCount: records.count,
                 deniedRecordCount: records.lazy.filter {
@@ -163,7 +163,7 @@ final class CompanionSyncVisibleUITestRuntime {
     static let conflictArgument = "-AhoiUITestSyncConflict"
     static let conflictWinnerTitle = "Sync conflict resolved"
 
-    let provider: CloudKitSyncProvider
+    let transport: CompanionSyncVisibleTestTransport
     let bridge: CompanionSyncBridge
     let recordStore: InMemorySyncRecordStore
     let payloadCodec: CompanionPayloadCodec
@@ -174,15 +174,7 @@ final class CompanionSyncVisibleUITestRuntime {
 
     init(repository: LocalFirstRepository, arguments: [String]) throws {
         let recordStore = InMemorySyncRecordStore()
-        let provider = try CloudKitSyncProvider(
-            configuration: .init(
-                containerIdentifier: "iCloud.app.ahoibrowser.AhoiBrowser.ui-test",
-                zoneName: "AhoiBrowserSyncVisibleE2E",
-                automaticallySync: false
-            ),
-            recordStore: recordStore,
-            stateStore: InMemorySyncEngineStateStore()
-        )
+        let transport = CompanionSyncVisibleTestTransport(recordStore: recordStore)
         let keyConfiguration = CompanionSyncKeyConfiguration(
             service: "app.ahoibrowser.AhoiBrowser.ui-test",
             account: "sync-visible-e2e",
@@ -192,12 +184,12 @@ final class CompanionSyncVisibleUITestRuntime {
             configuration: keyConfiguration,
             keyLoader: { Data(repeating: 0xA7, count: 32) }
         )
-        self.provider = provider
+        self.transport = transport
         self.recordStore = recordStore
         self.payloadCodec = CompanionPayloadCodec(sealer: sealer)
         self.bridge = CompanionSyncBridge(
             repository: repository,
-            provider: provider,
+            transport: transport,
             sealer: sealer
         )
         self.conflictRequested = arguments.contains(Self.conflictArgument)
@@ -217,13 +209,11 @@ extension CompanionAppModel {
                 arguments: arguments
             )
             syncVisibleUITestRuntime = runtime
-            syncProvider = runtime.provider
             syncBridge = runtime.bridge
-            bindEventDrivenSync(to: runtime.provider)
             isSyncConfigured = true
             desiredSyncEnabled = true
             keyLifecycleStatus = .ready(keyVersion: 1)
-            syncStatus = runtime.provider.status()
+            syncStatus = runtime.transport.status()
             loadError = nil
         } catch {
             syncVisibleEvidence = .init(

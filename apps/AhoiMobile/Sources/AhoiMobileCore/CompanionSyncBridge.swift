@@ -12,7 +12,7 @@ public enum CompanionSyncBridgeError: Error, Equatable, Sendable {
 /// delay transport but can never roll back or hide the local mutation.
 public actor CompanionSyncBridge {
     let repository: LocalFirstRepository
-    let provider: CloudKitSyncProvider
+    let provider: any CompanionSyncTransporting
     let codec: CompanionPayloadCodec
     let wireCodec = DesktopWirePayloadCodec()
     let commandSigner: (any RemoteCommandSigning)?
@@ -34,6 +34,22 @@ public actor CompanionSyncBridge {
     ) {
         self.repository = repository
         self.provider = provider
+        self.codec = CompanionPayloadCodec(sealer: sealer)
+        self.commandSigner = commandSigner
+        self.commandOwnershipStore = commandOwnershipStore
+        self.remoteControlConfigured = commandSigner != nil
+    }
+
+    init(
+        repository: LocalFirstRepository,
+        transport: any CompanionSyncTransporting,
+        sealer: any CompanionPayloadSealer,
+        commandSigner: (any RemoteCommandSigning)? = nil,
+        commandOwnershipStore: any RemoteCommandOwnershipStoring =
+            InMemoryRemoteCommandOwnershipStore()
+    ) {
+        self.repository = repository
+        self.provider = transport
         self.codec = CompanionPayloadCodec(sealer: sealer)
         self.commandSigner = commandSigner
         self.commandOwnershipStore = commandOwnershipStore
