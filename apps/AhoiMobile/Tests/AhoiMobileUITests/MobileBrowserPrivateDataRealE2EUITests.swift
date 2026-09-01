@@ -535,6 +535,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         XCTAssertEqual(closeButtons.count, expectedCount)
     }
 
+    @MainActor
     private func tabCloseButtons(in app: XCUIApplication) -> XCUIElementQuery {
         app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@",
@@ -542,6 +543,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         ))
     }
 
+    @MainActor
     private func tabRows(in app: XCUIApplication) -> XCUIElementQuery {
         app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@",
@@ -549,6 +551,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         ))
     }
 
+    @MainActor
     private func historyRows(in app: XCUIApplication) -> XCUIElementQuery {
         app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@",
@@ -556,6 +559,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         ))
     }
 
+    @MainActor
     private func privateEmptyState(in app: XCUIApplication) -> XCUIElement {
         app.staticTexts.matching(NSPredicate(
             format: "label IN %@",
@@ -563,6 +567,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         )).firstMatch
     }
 
+    @MainActor
     private func firstHittableElement(in query: XCUIElementQuery) -> XCUIElement? {
         (0..<query.count)
             .map { query.element(boundBy: $0) }
