@@ -128,8 +128,17 @@ final class MobileBrowserRealE2EUITests: MobileBrowserRealE2ETestCase {
         XCTAssertTrue(renameField.waitForExistence(timeout: 3))
         try replaceText(in: renameField, with: renamedTitle, app: app)
         app.buttons["browser.tabs.rename.save"].tap()
-        row = tabRow(containing: renamedTitle, in: app)
-        XCTAssertTrue(row.waitForExistence(timeout: 4))
+        XCTAssertTrue(renameField.waitForNonExistence(timeout: 3))
+        row = app.descendants(matching: .any)["browser.tab-row.\(rowSuffix)"]
+        XCTAssertTrue(row.waitForExistence(timeout: 4), "Rename must preserve the exact tab identity.")
+        XCTAssertTrue(
+            waitForLabelContaining(renamedTitle, of: row, timeout: 4),
+            "The preserved tab row must visibly publish its new title."
+        )
+        XCTAssertFalse(
+            app.buttons["browser.tabs.undo-close"].exists,
+            "The rename action must never fall through to the adjacent close control."
+        )
         app.buttons["browser.tabs.done"].tap()
 
         createNormalTab(in: app)

@@ -467,7 +467,10 @@ struct MobileTabSwitcherSheet: View {
               let currentTab = browser.tabs.first(where: { $0.id == tab.id }) else {
             return
         }
-        tabEditMode = .inactive
+        // Keep the tapped trailing action structurally alive while the
+        // navigation destination is pushed. Removing it synchronously lets
+        // SwiftUI reuse the same List slot for the adjacent close button and
+        // can deliver the in-flight tap to that destructive action.
         renameText = currentTab.displayTitle
         renameTab = currentTab
     }
