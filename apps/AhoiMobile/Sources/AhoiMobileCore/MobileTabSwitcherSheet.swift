@@ -329,6 +329,23 @@ struct MobileTabSwitcherSheet: View {
             .accessibilityValue(Text(isSelected
                 ? CompanionL10n.string("browser.tabs.selected", fallback: "Selected")
                 : ""))
+            if tabEditMode.isEditing {
+                Button {
+                    beginRename(tab)
+                } label: {
+                    Image(systemName: "pencil")
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel(CompanionL10n.format(
+                    "browser.tab.rename_named",
+                    fallback: "Rename %@",
+                    tab.displayTitle
+                ))
+                .accessibilityIdentifier(
+                    "browser.tab-rename.\(tab.id.uuidString.lowercased())"
+                )
+            }
             Button(role: .destructive) {
                 closeTab(tab.id)
             } label: {
@@ -349,12 +366,7 @@ struct MobileTabSwitcherSheet: View {
             Button {
                 Task { @MainActor in
                     await Task.yield()
-                    guard isPresented,
-                          let currentTab = browser.tabs.first(where: { $0.id == tab.id }) else {
-                        return
-                    }
-                    renameText = currentTab.displayTitle
-                    renameTab = currentTab
+                    beginRename(tab)
                 }
             } label: {
                 Label(CompanionL10n.string("action.rename", fallback: "Rename"), systemImage: "pencil")
@@ -448,6 +460,16 @@ struct MobileTabSwitcherSheet: View {
         guard let tab = browser.tabs.first(where: { $0.id == id }),
               tab.mode == .normal else { return }
         Task { await companionModel.publishMobileTab(tab) }
+    }
+
+    private func beginRename(_ tab: MobileTabRecord) {
+        guard isPresented,
+              let currentTab = browser.tabs.first(where: { $0.id == tab.id }) else {
+            return
+        }
+        tabEditMode = .inactive
+        renameText = currentTab.displayTitle
+        renameTab = currentTab
     }
 
     private func dismissSwitcher() {

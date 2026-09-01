@@ -113,7 +113,13 @@ final class MobileBrowserRealE2EUITests: MobileBrowserRealE2ETestCase {
         var row = tabRow(containing: tabURL.absoluteString, in: app)
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         let rowSuffix = try tabIdentifierSuffix(from: row)
-        row.press(forDuration: 1.1)
+        let edit = app.buttons["browser.tabs.edit"]
+        XCTAssertTrue(edit.waitForExistence(timeout: 3))
+        edit.tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.tabs.reorder-list"]
+                .waitForExistence(timeout: 3)
+        )
         let rename = app.buttons["browser.tab-rename.\(rowSuffix)"]
         XCTAssertTrue(rename.waitForExistence(timeout: 3))
         rename.tap()
