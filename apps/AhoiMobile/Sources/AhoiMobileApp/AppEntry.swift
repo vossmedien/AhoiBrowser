@@ -106,7 +106,8 @@ private final class AhoiMobileBootstrap: ObservableObject {
         if CompanionSyncVisibleUITestLaunch.isRequested(
             arguments: ProcessInfo.processInfo.arguments
         ) {
-            return makeSyncVisibleUITestRuntime()
+            externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+            return
         }
 #endif
         let applicationSupportURL = FileManager.default.urls(
@@ -176,6 +177,13 @@ private final class AhoiMobileBootstrap: ObservableObject {
         case .notRequested:
             break
         }
+#if DEBUG
+        if CompanionSyncVisibleUITestLaunch.isRequested(
+            arguments: ProcessInfo.processInfo.arguments
+        ) {
+            return makeSyncVisibleUITestRuntime()
+        }
+#endif
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
