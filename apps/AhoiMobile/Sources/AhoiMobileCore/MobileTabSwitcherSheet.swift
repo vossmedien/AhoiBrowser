@@ -120,6 +120,16 @@ struct MobileTabSwitcherSheet: View {
                     ? "browser.tabs.reorder-list"
                     : "browser.tabs.list"
             )
+            .navigationDestination(isPresented: Binding(
+                get: { renameTab != nil },
+                set: { presented in
+                    if !presented { renameTab = nil }
+                }
+            )) {
+                if let renameTab {
+                    renameTabPage(renameTab)
+                }
+            }
             .navigationTitle(CompanionL10n.string("browser.tabs.title", fallback: "Tabs"))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -186,45 +196,43 @@ struct MobileTabSwitcherSheet: View {
         .onChange(of: isPresented) { _, presented in
             if !presented {
                 tabEditMode = .inactive
+                renameTab = nil
+                renameText = ""
             }
-        }
-        .sheet(item: $renameTab) { tab in
-            renameTabSheet(tab)
         }
         .accessibilityAction(.escape) { dismissSwitcher() }
     }
 
-    private func renameTabSheet(_ tab: MobileTabRecord) -> some View {
-        NavigationStack {
-            Form {
-                TextField(
-                    CompanionL10n.string("browser.tab_name", fallback: "Tab name"),
-                    text: $renameText
-                )
-                .accessibilityIdentifier("browser.tabs.rename.field")
+    private func renameTabPage(_ tab: MobileTabRecord) -> some View {
+        Form {
+            TextField(
+                CompanionL10n.string("browser.tab_name", fallback: "Tab name"),
+                text: $renameText
+            )
+            .accessibilityIdentifier("browser.tabs.rename.field")
+        }
+        .accessibilityIdentifier("browser.tabs.rename.sheet")
+        .navigationTitle(CompanionL10n.string(
+            "browser.rename_tab",
+            fallback: "Rename Tab"
+        ))
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
+                    renameTab = nil
+                }
+                .accessibilityIdentifier("browser.tabs.rename.cancel")
             }
-            .accessibilityIdentifier("browser.tabs.rename.sheet")
-            .navigationTitle(CompanionL10n.string(
-                "browser.rename_tab",
-                fallback: "Rename Tab"
-            ))
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
-                        renameTab = nil
-                    }
-                    .accessibilityIdentifier("browser.tabs.rename.cancel")
+            ToolbarItem(placement: .confirmationAction) {
+                Button(CompanionL10n.string("action.save", fallback: "Save")) {
+                    browser.renameTab(tab.id, title: renameText)
+                    publishTab(tab.id)
+                    renameTab = nil
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(CompanionL10n.string("action.save", fallback: "Save")) {
-                        browser.renameTab(tab.id, title: renameText)
-                        publishTab(tab.id)
-                        renameTab = nil
-                    }
-                    .accessibilityIdentifier("browser.tabs.rename.save")
-                }
+                .accessibilityIdentifier("browser.tabs.rename.save")
             }
         }
+        .accessibilityAction(.escape) { renameTab = nil }
     }
 
     @ViewBuilder
@@ -339,8 +347,15 @@ struct MobileTabSwitcherSheet: View {
         .listRowBackground(isSelected ? Color.accentColor.opacity(0.13) : Color.clear)
         .contextMenu {
             Button {
-                renameText = tab.displayTitle
-                renameTab = tab
+                Task { @MainActor in
+                    await Task.yield()
+                    guard isPresented,
+                          let currentTab = browser.tabs.first(where: { $0.id == tab.id }) else {
+                        return
+                    }
+                    renameText = currentTab.displayTitle
+                    renameTab = currentTab
+                }
             } label: {
                 Label(CompanionL10n.string("action.rename", fallback: "Rename"), systemImage: "pencil")
             }
@@ -437,6 +452,8 @@ struct MobileTabSwitcherSheet: View {
 
     private func dismissSwitcher() {
         tabEditMode = .inactive
+        renameTab = nil
+        renameText = ""
         isPresented = false
     }
 

@@ -533,44 +533,7 @@ public struct AhoiMobileBrowserView: View {
         return downloads.downloads.lazy.filter { $0.isPrivate == isPrivate }.count
     }
     private var privatePrivacyCover: some View {
-        ZStack {
-            MobileBrowserChromeTheme.privateBackground
-                .ignoresSafeArea()
-            VStack(spacing: 12) {
-                Image(systemName: "hand.raised.fill")
-                    .font(.system(size: 34, weight: .semibold))
-                    .foregroundStyle(chromeTintColor)
-                Text(CompanionL10n.string(
-                    "browser.private.cover.title",
-                    fallback: "Private browsing protected"
-                ))
-                .font(.headline)
-                .foregroundStyle(.white)
-                Text(CompanionL10n.string(
-                    "browser.private.cover.message",
-                    fallback: "Return to AhoiBrowser to view this private tab."
-                ))
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.72))
-                .multilineTextAlignment(.center)
-            }
-            .padding(28)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("browser.private-privacy-cover")
-        .background {
-            MobilePrivateSceneShield(
-                title: CompanionL10n.string(
-                    "browser.private.cover.title",
-                    fallback: "Private browsing protected"
-                ),
-                message: CompanionL10n.string(
-                    "browser.private.cover.message",
-                    fallback: "Return to AhoiBrowser to view this private tab."
-                )
-            )
-        }
+        MobilePrivatePrivacyCoverView(accentTint: chromeTintColor)
     }
     private var securitySymbol: String {
         selectedAddressURL?.scheme?.lowercased() == "https" ? "lock.fill" : "globe"
@@ -799,5 +762,4 @@ public struct AhoiMobileBrowserView: View {
             Task { await companionModel.closePublishedMobileTab(id) }
         }
     }
-
 }
