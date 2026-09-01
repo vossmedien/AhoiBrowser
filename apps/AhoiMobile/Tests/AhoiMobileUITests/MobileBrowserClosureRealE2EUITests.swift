@@ -549,18 +549,18 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         // an accessibility identifier. The XCUI subscript resolves either,
         // while `matching(identifier:)` only inspects the latter and therefore
         // falsely reported zero visible documents for a clearly rendered page.
-        let visibleIdentities = app.staticTexts.matching(NSPredicate(
+        let documentIdentities = app.staticTexts.matching(NSPredicate(
             format: "label == %@ OR identifier == %@",
             expectedText,
             expectedText
         ))
             .allElementsBoundByIndex.filter {
-                $0.exists && $0.isHittable
+                $0.exists
             }
         XCTAssertEqual(
-            visibleIdentities.count,
+            documentIdentities.count,
             1,
-            "Exactly one visible selected document must render its unique per-tab token."
+            "Exactly one selected document must expose its unique per-tab token."
         )
         let matchingWebViews = app.webViews.containing(
             .staticText,
@@ -576,7 +576,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         // one page. The deepest token-owning node is the actual scroll surface;
         // counting its ancestors would misreport one rendered page as several.
         let webView = matchingWebViews.last ?? app.webViews.firstMatch
-        let identity = visibleIdentities.first ?? app.staticTexts[expectedText]
+        let identity = documentIdentities.first ?? app.staticTexts[expectedText]
         reveal(identity, in: webView)
         XCTAssertTrue(
             identity.isHittable,
