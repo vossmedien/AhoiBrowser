@@ -26,6 +26,7 @@ sys.path.insert(0, str(FIXTURE_DIRECTORY))
 import certificates  # noqa: E402
 import custom_protocol  # noqa: E402
 import manage  # noqa: E402
+import pages  # noqa: E402
 import receipts  # noqa: E402
 import server  # noqa: E402
 
@@ -70,8 +71,10 @@ class CertificateLifecycleTests(unittest.TestCase):
             manifest = certificates.generate(directory)
             keychain = directory / "isolated-test.keychain-db"
             commands = []
+            trusted = False
 
             def runner(command, **_kwargs):
+                nonlocal trusted
                 commands.append(list(command))
                 if command[0] == "openssl" and "-fingerprint" in command:
                     algorithm = command[-1]
@@ -81,9 +84,17 @@ class CertificateLifecycleTests(unittest.TestCase):
                     return subprocess.CompletedProcess(
                         command,
                         0,
-                        "SHA-256 hash: %s\n" % manifest["caSha256"].upper(),
+                        (
+                            "SHA-256 hash: %s\n" % manifest["caSha256"].upper()
+                            if trusted
+                            else ""
+                        ),
                         "",
                     )
+                if command[:2] == ["security", "add-trusted-cert"]:
+                    trusted = True
+                if command[:2] == ["security", "delete-certificate"]:
+                    trusted = False
                 return subprocess.CompletedProcess(command, 0, "", "")
 
             with self.assertRaisesRegex(certificates.CertificateError, "exact confirmation"):
@@ -208,7 +219,13 @@ class HTTPSClusterTests(unittest.TestCase):
                     self.cluster.context.urls[key] + "/__fixture/health"
                 )
                 self.assertEqual(200, status)
-                self.assertTrue(json.loads(body)["ready"])
+                health = json.loads(body)
+                self.assertTrue(health["ready"])
+                self.assertEqual(
+                    server.MOBILE_REAL_E2E_CONTRACT_VERSION,
+                    health["mobileRealE2EContractVersion"],
+                )
+                self.assertEqual(self.cluster.context.instance_id, health["fixtureRunId"])
         rejecting = ssl.create_default_context()
         split = urlsplit(self.cluster.context.urls["firstPartyHttpsUrl"])
         connection = http.client.HTTPSConnection(split.hostname, split.port, timeout=5, context=rejecting)
@@ -222,9 +239,19 @@ class HTTPSClusterTests(unittest.TestCase):
         self.assertEqual(200, status)
         self.assertTrue(manifest["loopbackOnly"])
         self.assertTrue(manifest["tlsValidationMustRemainEnabled"])
+        self.assertEqual(
+            server.MOBILE_REAL_E2E_CONTRACT_VERSION,
+            manifest["mobileRealE2EContractVersion"],
+        )
+        self.assertEqual(self.cluster.context.instance_id, manifest["fixtureRunId"])
         self.assertEqual(server.DOWNLOAD_SHA256, manifest["payloads"]["rangeDownload"]["sha256"])
         self.assertEqual(server.PDF_SHA256, manifest["payloads"]["syntheticPdf"]["sha256"])
         self.assertEqual(server.LARGE_ZIP_SHA256, manifest["payloads"]["largeRangeZip"]["sha256"])
+        self.assertEqual("no-store", manifest["payloads"]["largeRangeZip"]["cacheControl"])
+        self.assertEqual(
+            server.LARGE_ZIP_THROTTLE_SECONDS,
+            manifest["payloads"]["largeRangeZip"]["throttleSeconds"],
+        )
         self.assertEqual(
             server.LARGE_ZIP_SHA256,
             manifest["payloads"]["disconnectResumeZip"]["sha256"],
@@ -260,6 +287,82 @@ class HTTPSClusterTests(unittest.TestCase):
         invalid, invalid_headers, _body = self.request(url, headers={"Range": "bytes=999999999-"})
         self.assertEqual(416, invalid)
         self.assertIn(("Content-Range", "bytes */%d" % len(server.DOWNLOAD_BYTES)), invalid_headers)
+
+    def test_large_throttled_download_cannot_be_satisfied_from_cache(self) -> None:
+        url = self.cluster.context.urls["firstPartyHttpsUrl"] + "/download/large-range.zip"
+        status, headers, _body = self.request(url, method="HEAD")
+        self.assertEqual(200, status)
+        self.assertIn(("Cache-Control", "no-store"), headers)
+
+    def _assert_http_recovery_sequence(self, requested_status: int, token: str) -> None:
+        url = (
+            self.cluster.context.urls["firstPartyHttpsUrl"]
+            + "/failure/recover-once?status=%d&token=%s" % (requested_status, token)
+        )
+        first_status, first_headers, first_body = self.request(url)
+        self.assertEqual(requested_status, first_status)
+        self.assertIn(("Cache-Control", "no-store"), first_headers)
+        self.assertNotIn(b"http-recovery-ready", first_body)
+        self.assertNotIn(b"HTTP recovery complete", first_body)
+
+        second_status, second_headers, second_body = self.request(url)
+        self.assertEqual(200, second_status)
+        self.assertIn(("Cache-Control", "no-store"), second_headers)
+        self.assertIn(b"id='http-recovery-ready'", second_body)
+        self.assertIn(b"HTTP recovery complete", second_body)
+
+        third_status, third_headers, third_body = self.request(url)
+        self.assertEqual(200, third_status)
+        self.assertIn(("Cache-Control", "no-store"), third_headers)
+        self.assertIn(b"id='http-recovery-ready'", third_body)
+        self.assertIn(b"HTTP recovery complete", third_body)
+
+    def test_http_404_recovers_after_the_first_get(self) -> None:
+        self._assert_http_recovery_sequence(404, "not-found-case")
+
+    def test_http_500_recovers_after_the_first_get(self) -> None:
+        self._assert_http_recovery_sequence(500, "server-error-case")
+
+    def test_subframe_failures_and_dns_redirect_are_deterministic(self) -> None:
+        first = self.cluster.context.urls["firstPartyHttpsUrl"]
+        for status in (404, 500):
+            with self.subTest(status=status):
+                response_status, headers, body = self.request(
+                    first + "/failure/subframe-%d" % status
+                )
+                self.assertEqual(status, response_status)
+                self.assertIn(("Cache-Control", "no-store"), headers)
+                self.assertIn(
+                    ("id='subframe-http-%d-loaded'" % status).encode("ascii"),
+                    body,
+                )
+
+        status, headers, body = self.request(first + "/redirect/dns-failure")
+        self.assertEqual(302, status)
+        self.assertEqual(b"", body)
+        self.assertIn(("Cache-Control", "no-store"), headers)
+        self.assertIn(("Location", pages.DNS_REDIRECT_FAILURE_URL), headers)
+
+    def test_http_recovery_rejects_unsafe_or_ambiguous_queries_without_incrementing(self) -> None:
+        first = self.cluster.context.urls["firstPartyHttpsUrl"]
+        invalid_queries = (
+            "status=418&token=validation-case",
+            "status=404&token=../validation-case",
+            "status=404&token=validation-case&token=other",
+            "status=404&token=validation-case&extra=value",
+        )
+        for query in invalid_queries:
+            with self.subTest(query=query):
+                status, headers, _body = self.request(
+                    first + "/failure/recover-once?" + query
+                )
+                self.assertEqual(400, status)
+                self.assertIn(("Cache-Control", "no-store"), headers)
+
+        status, _headers, _body = self.request(
+            first + "/failure/recover-once?status=404&token=validation-case"
+        )
+        self.assertEqual(404, status)
 
     def test_pdf_large_zip_and_disconnect_resume_are_deterministic(self) -> None:
         first = self.cluster.context.urls["firstPartyHttpsUrl"]
@@ -334,12 +437,30 @@ class HTTPSClusterTests(unittest.TestCase):
                 b"open-popup",
                 b"cross-redirect",
                 b"ahoi-e2e-safe://open/fixture",
+                b"dns-link-failure",
+                b"dns-redirect-failure",
+                b"subframe-404",
+                b"subframe-500",
             ),
+            first + "/slow-document": (b"slow-resource.svg", b"Slow document body ready"),
             first + "/webrtc": (b"getUserMedia", b"getDisplayMedia", b"RTCPeerConnection"),
             first + "/permissions": (b"geolocation", b"Notification", b"clipboard"),
-            first + "/privacy": (b"third-party-cookie", b"CHIPS"),
+            first + "/privacy": (
+                b"third-party-cookie",
+                b"CHIPS",
+                b"set-normal-marker",
+                b"set-private-marker",
+                b"inspect-private-data",
+                b"clear-private-data",
+            ),
             first + "/storage": (b"localStorage", b"sessionStorage", b"indexedDB", b"caches", b"serviceWorker"),
-            first + "/injection": (b"LESS", b"SASS", b"apply-js"),
+            first + "/injection": (
+                b"LESS",
+                b"SASS",
+                b"apply-js",
+                b"Run confirm control",
+                b"Open blocked Ahoi scheme",
+            ),
             first + "/login": (b"fixture-user", b"current-password"),
             media + "/media": (b"requestPictureInPicture", b"MediaSource", b"avc1.42c00c", b"mp4a.40.2"),
         }
@@ -349,6 +470,14 @@ class HTTPSClusterTests(unittest.TestCase):
                 self.assertEqual(200, status)
                 for marker in markers:
                     self.assertIn(marker, body)
+
+        status, headers, body = self.request(first + "/slow-resource.svg", method="HEAD")
+        self.assertEqual(200, status)
+        self.assertEqual(b"", body)
+        header_map = dict(headers)
+        self.assertEqual("image/svg+xml", header_map["Content-Type"])
+        self.assertEqual(str(len(server.SLOW_RESOURCE_BYTES)), header_map["Content-Length"])
+        self.assertGreater(server.SLOW_RESOURCE_THROTTLE_SECONDS, 0)
 
     def test_media_is_valid_deterministic_mp4_with_range_support(self) -> None:
         url = self.cluster.context.urls["mediaHttpsUrl"] + "/media/sample.mp4"
@@ -405,6 +534,80 @@ class HTTPSClusterTests(unittest.TestCase):
         partitioned = [value for name, value in headers if name.lower() == "set-cookie"]
         self.assertEqual(1, len(partitioned))
         self.assertIn("SameSite=None; Partitioned", partitioned[0])
+
+    def test_private_data_marker_controls_expose_presence_without_values(self) -> None:
+        first = self.cluster.context.urls["firstPartyHttpsUrl"]
+        cookie_pairs = []
+        for marker in ("normal", "private"):
+            status, headers, result = self.json_request(
+                first + "/privacy/marker/set",
+                method="POST",
+                body=("marker=" + marker).encode("ascii"),
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            self.assertEqual(200, status)
+            self.assertEqual(marker, result["marker"])
+            self.assertFalse(result["valueExposed"])
+            set_cookies = [
+                value for name, value in headers if name.lower() == "set-cookie"
+            ]
+            self.assertEqual(1, len(set_cookies))
+            self.assertIn("Secure; HttpOnly; SameSite=Strict", set_cookies[0])
+            cookie_pairs.append(set_cookies[0].split(";", 1)[0])
+
+        status, headers, result = self.json_request(
+            first + "/privacy/marker/inspect",
+            headers={"Cookie": "; ".join(cookie_pairs)},
+        )
+        self.assertEqual(200, status)
+        self.assertIn(("Cache-Control", "no-store"), headers)
+        self.assertEqual({"normal": True, "private": True}, result["markers"])
+        self.assertFalse(result["valuesExposed"])
+
+        status, headers, result = self.json_request(
+            first + "/privacy/marker/clear",
+            method="POST",
+            body=b"",
+        )
+        self.assertEqual(200, status)
+        self.assertTrue(result["cleared"])
+        expired = [value for name, value in headers if name.lower() == "set-cookie"]
+        self.assertEqual(2, len(expired))
+        self.assertTrue(all("Max-Age=0" in value for value in expired))
+
+        serialized = self.cluster.context.receipts.path.read_text(encoding="utf-8")
+        self.assertNotIn(server.PRIVATE_DATA_MARKER_COOKIE_VALUE, serialized)
+        self.assertNotIn("ahoi_e2e_normal_marker=", serialized)
+        self.assertNotIn("ahoi_e2e_private_marker=", serialized)
+
+    def test_private_data_marker_controls_reject_ambiguous_input(self) -> None:
+        first = self.cluster.context.urls["firstPartyHttpsUrl"]
+        for body in (
+            b"marker=unknown",
+            b"marker=normal&marker=private",
+            b"marker=normal&extra=value",
+            b"marker=",
+            b"\xff",
+        ):
+            with self.subTest(body=body):
+                status, headers, result = self.json_request(
+                    first + "/privacy/marker/set",
+                    method="POST",
+                    body=body,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+                self.assertEqual(400, status)
+                self.assertIn(("Cache-Control", "no-store"), headers)
+                self.assertEqual("invalid private-data marker", result["error"])
+
+        status, headers, result = self.json_request(
+            first + "/privacy/marker/clear",
+            method="POST",
+            body=b"unexpected",
+        )
+        self.assertEqual(400, status)
+        self.assertIn(("Cache-Control", "no-store"), headers)
+        self.assertEqual("private-data clear body must be empty", result["error"])
 
     def test_receipts_are_machine_readable_and_do_not_retain_secret_values(self) -> None:
         secret = "must-not-be-persisted-8472"

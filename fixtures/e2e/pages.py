@@ -8,6 +8,10 @@ import json
 from typing import Mapping
 
 
+DNS_LINK_FAILURE_URL = "https://missing-link.ahoibrowser.invalid/path"
+DNS_REDIRECT_FAILURE_URL = "https://missing-redirect.ahoibrowser.invalid/final"
+
+
 STYLE = """
 :root{color-scheme:dark;--bg:#102334;--card:#19364d;--ink:#f4f8fb;--accent:#56d6c9}
 *{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui;background:var(--bg);color:var(--ink)}
@@ -49,6 +53,7 @@ def index(urls: Mapping[str, str]) -> bytes:
         ("Download and upload", "/download-upload"),
         ("Three-pane split and DnD", "/split"),
         ("Redirect and popup", "/navigation"),
+        ("Slow document loading", "/slow-document"),
         ("Synthetic OAuth", "/oauth/authorize?client_id=ahoi-local&state=public-test-state"),
         ("Simulated passkey", "/passkey"),
         ("H.264/AAC, MSE and PiP", "/media"),
@@ -120,14 +125,44 @@ def pane(name: str, urls: Mapping[str, str]) -> bytes:
 
 def navigation(urls: Mapping[str, str]) -> bytes:
     third = html.escape(urls["thirdPartyHttpsUrl"])
+    dns_link_failure = html.escape(DNS_LINK_FAILURE_URL, quote=True)
     body = f"""
 <section class='card'><a id='same-redirect' class='button' href='/redirect/same?utm_source=fixture'>Same-origin redirect</a>
 <a id='cross-redirect' class='button' href='/redirect/cross?gclid=synthetic'>Cross-origin redirect</a>
 <button id='open-popup'>Requested popup</button><a class='button' target='_blank' rel='noopener' href='{third}/popup'>noopener popup</a>
 <a id='safe-custom-protocol' class='button' href='ahoi-e2e-safe://open/fixture'>Fixture-only custom protocol</a></section>
+<section class='card'><h2>Navigation failure isolation</h2>
+<a id='dns-link-failure' class='button' href='{dns_link_failure}'>Link DNS failure</a>
+<a id='dns-redirect-failure' class='button' href='/redirect/dns-failure'>Redirect DNS failure</a>
+<iframe id='subframe-404' title='Subframe HTTP 404' src='/failure/subframe-404'></iframe>
+<iframe id='subframe-500' title='Subframe HTTP 500' src='/failure/subframe-500'></iframe></section>
+<section class='card' aria-labelledby='fixture-search-heading'>
+<h2 id='fixture-search-heading'>Ahoi Fixture Search</h2>
+<p id='fixture-search-query' aria-live='polite'>Search phrase pending.</p>
+<a id='fixture-search-result' class='button' href='/popup?from=fixture-search'>Open fixture search result</a>
+</section>
+<section class='card' aria-labelledby='recovery-marker-heading'>
+<h2 id='recovery-marker-heading'>Page recovery marker</h2>
+<p>This marker exists only in the current document process and resets after a real document reload.</p>
+<button id='activate-recovery-marker'>Activate page-only recovery marker</button>
+<output id='recovery-marker' aria-label='Page-only recovery marker' aria-live='polite'>Page-only marker reset after document load.</output>
+</section>
 <p class='notice'>The custom-protocol link is inert unless the separately consented fixture handler is installed. That handler accepts this exact URL only.</p>
-<script>document.querySelector('#open-popup').onclick=()=>window.open('/popup','ahoi-fixture-popup','popup,width=520,height=480')</script>"""
+<script>
+document.querySelector('#open-popup').onclick=()=>window.open('/popup','ahoi-fixture-popup','popup,width=520,height=480');
+const fixtureSearchQuery=new URL(location.href).searchParams.get('fixtureSearch')||'';
+document.querySelector('#fixture-search-query').textContent=fixtureSearchQuery?'Search phrase: '+fixtureSearchQuery:'Search phrase pending.';
+document.querySelector('#activate-recovery-marker').onclick=()=>document.querySelector('#recovery-marker').textContent='Page-only marker active.';
+</script>"""
     return document("Redirect and popup controls", body, urls)
+
+
+def slow_document(urls: Mapping[str, str]) -> bytes:
+    body = """
+<p class='notice'>This document loads one deterministic loopback resource slowly so the browser's visible Stop control can be exercised.</p>
+<img src='/slow-resource.svg' alt='Slow local resource' width='1' height='1'>
+<p id='slow-document-ready'>Slow document body ready.</p>"""
+    return document("Slow document loading", body, urls)
 
 
 def popup(urls: Mapping[str, str]) -> bytes:
@@ -208,8 +243,48 @@ def privacy(urls: Mapping[str, str]) -> bytes:
     third = html.escape(urls["thirdPartyHttpsUrl"])
     body = f"""
 <section class='card'><a class='button' href='/cookies/set'>Set first-party cookies</a><a class='button' href='/privacy/echo?utm_source=fixture&gclid=synthetic'>Echo GPC/referrer/tracking shape</a></section>
+<section class='card' aria-labelledby='private-data-heading'>
+<h2 id='private-data-heading'>Normal and private data isolation</h2>
+<p>These controls use synthetic first-party cookies and local storage markers. Inspection exposes presence only, never values.</p>
+<button id='set-normal-marker'>Set normal marker</button>
+<button id='set-private-marker'>Set private marker</button>
+<button id='inspect-private-data'>Inspect markers</button>
+<button id='clear-private-data'>Clear markers in this session</button>
+<output id='private-data-result' aria-label='Private data marker state' aria-live='polite'>Marker state not inspected.</output>
+</section>
 <iframe id='third-party-cookie' title='Third-party CHIPS control' src='{third}/cookies/third-party'></iframe>
-<p>Receipts record only whether Cookie, Sec-GPC and Referer exist plus tracking parameter names. Values are never retained.</p>"""
+<p>Receipts record only whether Cookie, Sec-GPC and Referer exist plus tracking parameter names. Values are never retained.</p>
+<script>
+const markerResult=document.querySelector('#private-data-result');
+const localMarkerKeys={{normal:'ahoi-e2e-normal-marker',private:'ahoi-e2e-private-marker'}};
+function markerPresence(value){{return value?'present':'absent'}}
+async function inspectMarkers(){{
+  const response=await fetch('/privacy/marker/inspect',{{cache:'no-store'}});
+  if(!response.ok)throw Error('marker inspection failed');
+  const remote=await response.json();
+  const normalStorage=localStorage.getItem(localMarkerKeys.normal)==='synthetic';
+  const privateStorage=localStorage.getItem(localMarkerKeys.private)==='synthetic';
+  markerResult.textContent='Normal marker: cookie '+markerPresence(remote.markers.normal)+', storage '+markerPresence(normalStorage)+'. Private marker: cookie '+markerPresence(remote.markers.private)+', storage '+markerPresence(privateStorage)+'.';
+}}
+async function setMarker(kind){{
+  const response=await fetch('/privacy/marker/set',{{method:'POST',headers:{{'Content-Type':'application/x-www-form-urlencoded'}},body:'marker='+encodeURIComponent(kind)}});
+  if(!response.ok)throw Error('marker setup failed');
+  localStorage.setItem(localMarkerKeys[kind],'synthetic');
+  await inspectMarkers();
+}}
+async function clearMarkers(){{
+  const response=await fetch('/privacy/marker/clear',{{method:'POST'}});
+  if(!response.ok)throw Error('marker clear failed');
+  localStorage.removeItem(localMarkerKeys.normal);
+  localStorage.removeItem(localMarkerKeys.private);
+  await inspectMarkers();
+}}
+async function runMarkerControl(action){{try{{await action()}}catch(error){{markerResult.textContent='Marker control failed.'}}}}
+document.querySelector('#set-normal-marker').onclick=()=>runMarkerControl(()=>setMarker('normal'));
+document.querySelector('#set-private-marker').onclick=()=>runMarkerControl(()=>setMarker('private'));
+document.querySelector('#inspect-private-data').onclick=()=>runMarkerControl(inspectMarkers);
+document.querySelector('#clear-private-data').onclick=()=>runMarkerControl(clearMarkers);
+</script>"""
     return document("Cookies, CHIPS, GPC, referrer and tracking", body, urls)
 
 
@@ -239,13 +314,25 @@ document.querySelector('#headers').onclick=()=>request('/headers/echo');document
 def injection(urls: Mapping[str, str]) -> bytes:
     body = """
 <p class='notice'>Developer-toolkit fixture: LESS/SASS inputs are text controls; Ahoi's toolkit performs compilation. This page itself never executes LESS or SASS.</p>
+<section class='card'>
+<button id='confirm-control'>Run confirm control</button>
+<button id='prompt-control'>Run prompt control</button>
+<a class='button' href='mailto:browser-test@example.com'>Open mail app</a>
+<a class='button' href='ahoi-unknown://blocked'>Open blocked Ahoi scheme</a>
+</section>
 <label>CSS<textarea id='css'>#injection-target { color: rgb(86, 214, 201); }</textarea></label>
 <label>LESS<textarea id='less'>@accent: #56d6c9; #injection-target { color: @accent; }</textarea></label>
 <label>SASS<textarea id='sass'>$accent: #56d6c9; #injection-target { color: $accent; }</textarea></label>
 <label>JavaScript<textarea id='javascript'>document.querySelector('#injection-target').dataset.injected = 'yes';</textarea></label>
 <button id='apply-css'>Apply CSS control</button><button id='apply-js'>Apply JavaScript control</button>
 <p id='injection-target'>Injection target</p><output id='injection-result'></output>
-<script>document.querySelector('#apply-css').onclick=()=>{const node=document.createElement('style');node.textContent=document.querySelector('#css').value;document.head.append(node);document.querySelector('#injection-result').textContent='CSS applied'};document.querySelector('#apply-js').onclick=()=>{Function(document.querySelector('#javascript').value)();document.querySelector('#injection-result').textContent='JavaScript applied'}</script>"""
+<script>
+const target=document.querySelector('#injection-target');
+document.querySelector('#confirm-control').onclick=()=>{target.textContent=confirm('Ahoi confirm fixture')?'Confirm accepted':'Confirm cancelled'};
+document.querySelector('#prompt-control').onclick=()=>{const value=prompt('Ahoi prompt fixture','default');target.textContent=value===null?'Prompt cancelled':'Prompt accepted '+value};
+document.querySelector('#apply-css').onclick=()=>{const node=document.createElement('style');node.textContent=document.querySelector('#css').value;document.head.append(node);document.querySelector('#injection-result').textContent='CSS applied'};
+document.querySelector('#apply-js').onclick=()=>{Function(document.querySelector('#javascript').value)();document.querySelector('#injection-result').textContent='JavaScript applied'};
+</script>"""
     return document("CSS, LESS, SASS and JavaScript injection controls", body, urls)
 
 

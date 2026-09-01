@@ -100,7 +100,7 @@ final class CompanionKeyRotationTests: XCTestCase {
         }
 
         let interruptedVersions = await keys.versionsSnapshot()
-        let interruptedPlan = try await journal.loadRotationPlan()
+        let interruptedPlan = await journal.loadRotationPlan()
         let interruptedRecord = try await recordStore.record(
             for: original.recordID
         )
@@ -202,7 +202,7 @@ final class CompanionKeyRotationTests: XCTestCase {
 
         let versions = await keys.versionsSnapshot()
         let removalCalls = await keys.removalCalls()
-        let storedPlan = try await journal.loadRotationPlan()
+        let storedPlan = await journal.loadRotationPlan()
         XCTAssertEqual(versions, Set<UInt32>([1, 2]))
         XCTAssertEqual(removalCalls, [])
         XCTAssertNil(storedPlan?.acknowledgement)

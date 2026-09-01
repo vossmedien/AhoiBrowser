@@ -197,12 +197,13 @@ transaction and rollback implementation for an already stamped and signed
 ## AhoiBrowser Mobile release boundary
 
 The Mobile target has a separate Apple distribution chain; a desktop release
-receipt cannot satisfy it. The XcodeGen project has five explicit, fail-closed
+receipt cannot satisfy it. The XcodeGen project has six explicit, fail-closed
 configurations instead of one overloaded `Release` configuration:
 
 | Configuration | Signing/capability contract |
 | --- | --- |
 | `DebugLocal` | Provider-free local/simulator build. No Team, CloudKit, Push, Keychain-group or default-browser source entitlement. |
+| `PerformanceDevelopment` | Optimized (`-O`), source-bound development diagnostics for a physical device. Provider-free and without CloudKit, Push, shared-Keychain or default-browser capability; it cannot become a distribution archive. |
 | `CloudKitDevelopment` | Automatic Apple Development signing, Development CloudKit/APNs and the dedicated Ahoi container; no default-browser entitlement. |
 | `TestFlightBootstrap` | Automatic/Cloud-Managed distribution signing, Production CloudKit/APNs and no default-browser entitlement. This is the pre-grant public-TestFlight candidate. |
 | `DefaultBrowserDevelopment` | Post-grant Apple Development mode with a fresh managed-entitlement profile. |
@@ -370,7 +371,7 @@ build number:
    both form factors.
 
 The current worktree supplies source templates, policy seams and the bounded
-development evidence above plus the five-mode source/preflight contract. It does
+development evidence above plus the six-mode source/preflight contract. It does
 not yet prove a complete physical journey, entitled roundtrip, processed archive,
 public TestFlight link, Apple grant or post-grant installation. Granular
 ownership and states live in `config/external-gates.json`.

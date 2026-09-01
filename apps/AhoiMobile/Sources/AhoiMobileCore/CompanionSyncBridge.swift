@@ -16,6 +16,7 @@ public actor CompanionSyncBridge {
     let codec: CompanionPayloadCodec
     let wireCodec = DesktopWirePayloadCodec()
     let commandSigner: (any RemoteCommandSigning)?
+    let commandOwnershipStore: any RemoteCommandOwnershipStoring
     var commandStates: [UUID: RemoteCommandState] = [:]
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
@@ -27,12 +28,15 @@ public actor CompanionSyncBridge {
         repository: LocalFirstRepository,
         provider: CloudKitSyncProvider,
         sealer: any CompanionPayloadSealer,
-        commandSigner: (any RemoteCommandSigning)? = nil
+        commandSigner: (any RemoteCommandSigning)? = nil,
+        commandOwnershipStore: any RemoteCommandOwnershipStoring =
+            InMemoryRemoteCommandOwnershipStore()
     ) {
         self.repository = repository
         self.provider = provider
         self.codec = CompanionPayloadCodec(sealer: sealer)
         self.commandSigner = commandSigner
+        self.commandOwnershipStore = commandOwnershipStore
         self.remoteControlConfigured = commandSigner != nil
     }
 
@@ -358,6 +362,8 @@ public actor CompanionSyncBridge {
                 commandStates[state.id] = state
             }
         }
+        try await persistRemoteCommandOwnership(for: remoteCommandImports.map(\.state))
+        pruneRemoteCommandReadModel()
 
         var fetchedToAcknowledge: [SyncRecord] = []
         for token in successfulTokens.sorted() {
@@ -557,6 +563,7 @@ public actor CompanionSyncBridge {
                   value.envelope.payload.sourceDeviceID == commandSigner.sourceDeviceID else {
                 return .ignored
             }
+            try validateLocallyOwnedRemoteCommand(value)
             if let existing = commandStates[value.id], existing.envelope != value.envelope {
                 throw CompanionSyncBridgeError.envelopeMismatch
             }
@@ -710,6 +717,7 @@ public actor CompanionSyncBridge {
                   value.envelope.payload.sourceDeviceID == commandSigner.sourceDeviceID else {
                 throw CompanionSyncBridgeError.remoteCommandSigningUnavailable
             }
+            try validateLocallyOwnedRemoteCommand(value)
         case .appearance:
             let value = try wireCodec.decodeAppearance(record, plaintext: plaintext)
             try validate(record, identity: value.id, version: value.version,

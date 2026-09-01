@@ -194,14 +194,25 @@
     "browser.download.cancelled": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Abgebrochen"}},"en":{"stringUnit":{"state":"translated","value":"Cancelled"}}}},
     "browser.download.completed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geladen"}},"en":{"stringUnit":{"state":"translated","value":"Downloaded"}}}},
     "browser.download.downloading": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird geladen …"}},"en":{"stringUnit":{"state":"translated","value":"Downloading…"}}}},
+    "browser.download.error.destination": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte diesen Download nicht speichern. Prüfe den verfügbaren Speicher und versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not save this download. Check available storage and try again."}}}},
+    "browser.download.error.policy": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte diesen Download nicht sicher starten."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not start this download safely."}}}},
+    "browser.download.error.transfer": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Download wurde unterbrochen. Versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"The download was interrupted. Try again."}}}},
     "browser.download.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download fehlgeschlagen"}},"en":{"stringUnit":{"state":"translated","value":"Download failed"}}}},
     "browser.download.starting": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird gestartet …"}},"en":{"stringUnit":{"state":"translated","value":"Starting…"}}}},
     "browser.downloads": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Downloads"}},"en":{"stringUnit":{"state":"translated","value":"Downloads"}}}},
     "browser.downloads.count": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Downloads (%d)"}},"en":{"stringUnit":{"state":"translated","value":"Downloads (%d)"}}}},
     "browser.downloads.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Downloads"}},"en":{"stringUnit":{"state":"translated","value":"No Downloads"}}}},
     "browser.duplicate_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab duplizieren"}},"en":{"stringUnit":{"state":"translated","value":"Duplicate Tab"}}}},
-    "browser.error.blocked_scheme": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser öffnet hier nur HTTP- und HTTPS-Links."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser only opens HTTP and HTTPS links here."}}}},
+    "browser.error.blocked_scheme": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser öffnet nur sichere Weblinks und freigegebene App-Links."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser only opens safe web links and approved app links."}}}},
     "browser.error.invalid_address": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gib eine gültige Adresse oder einen Suchbegriff ein."}},"en":{"stringUnit":{"state":"translated","value":"Enter a valid address or search term."}}}},
+    "browser.session.restore_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte die vorherige Sitzung nicht wiederherstellen. Ein neuer Tab wurde geöffnet; die gespeicherte Sitzung blieb unverändert."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser couldn't restore the previous session. A new tab was opened, and the saved session was left unchanged."}}}},
+    "browser.session.save_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte die aktuelle Sitzung nicht speichern. Deine geöffneten Seiten bleiben verfügbar; versuche eine weitere Änderung, um erneut zu speichern."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser couldn't save the current session. Your open pages remain available; try another change to save again."}}}},
+    "browser.failure.dns.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Prüfe den Namen der Website in der Adresse und versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"Check the website name in the address and try again."}}}},
+    "browser.failure.dns.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website nicht gefunden"}},"en":{"stringUnit":{"state":"translated","value":"Website Not Found"}}}},
+    "browser.failure.http_client.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite nicht verfügbar"}},"en":{"stringUnit":{"state":"translated","value":"Page Not Available"}}}},
+    "browser.failure.http_client.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Website konnte diese Seite nicht bereitstellen. Prüfe die Adresse oder versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"The website could not provide this page. Check the address or try again."}}}},
+    "browser.failure.http_server.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website-Fehler"}},"en":{"stringUnit":{"state":"translated","value":"Website Error"}}}},
+    "browser.failure.http_server.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Bei der Website ist ein Problem aufgetreten. Versuche es gleich noch einmal."}},"en":{"stringUnit":{"state":"translated","value":"The website encountered a problem. Try again in a moment."}}}},
     "browser.error.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser"}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser"}}}},
     "browser.external.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ möchte %@ öffnen."}},"en":{"stringUnit":{"state":"translated","value":"%@ wants to open %@."}}}},
     "browser.external.open": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"App öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open App"}}}},
@@ -214,6 +225,8 @@
     "browser.failure.offline.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Du bist offline"}},"en":{"stringUnit":{"state":"translated","value":"You're Offline"}}}},
     "browser.failure.process.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"iOS hat den Seitenprozess freigegeben. Lade die Seite neu, um fortzufahren."}},"en":{"stringUnit":{"state":"translated","value":"iOS released the page process. Reload it to continue."}}}},
     "browser.failure.process.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite muss neu geladen werden"}},"en":{"stringUnit":{"state":"translated","value":"Page Reload Required"}}}},
+    "browser.failure.security.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte die sichere Verbindung dieser Website nicht verifizieren."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not verify this website's secure connection."}}}},
+    "browser.failure.security.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sichere Verbindung fehlgeschlagen"}},"en":{"stringUnit":{"state":"translated","value":"Secure Connection Failed"}}}},
     "browser.failure.timeout.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Website hat nicht rechtzeitig geantwortet."}},"en":{"stringUnit":{"state":"translated","value":"The website did not respond in time."}}}},
     "browser.failure.timeout.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Seite braucht zu lange"}},"en":{"stringUnit":{"state":"translated","value":"The Page Took Too Long"}}}},
     "browser.find": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf Seite suchen"}},"en":{"stringUnit":{"state":"translated","value":"Find on Page"}}}},
@@ -257,6 +270,7 @@
     "browser.private.close_all.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Offene private Tabs und ihre flüchtige Browsing-Sitzung werden verworfen."}},"en":{"stringUnit":{"state":"translated","value":"Open private tabs and their in-memory browsing session will be discarded."}}}},
     "browser.reload": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neu laden"}},"en":{"stringUnit":{"state":"translated","value":"Reload"}}}},
     "browser.retry": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erneut versuchen"}},"en":{"stringUnit":{"state":"translated","value":"Try Again"}}}},
+    "browser.retrying": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neuer Versuch…"}},"en":{"stringUnit":{"state":"translated","value":"Trying again…"}}}},
     "browser.rename_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab umbenennen"}},"en":{"stringUnit":{"state":"translated","value":"Rename Tab"}}}},
     "browser.save_to_workspace": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"In Workspace sichern"}},"en":{"stringUnit":{"state":"translated","value":"Save to workspace"}}}},
     "browser.search.library": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ahoi-Mediathek"}},"en":{"stringUnit":{"state":"translated","value":"Ahoi Library"}}}},
@@ -265,12 +279,16 @@
     "browser.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite teilen"}},"en":{"stringUnit":{"state":"translated","value":"Share Page"}}}},
     "browser.tab_name": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab-Name"}},"en":{"stringUnit":{"state":"translated","value":"Tab name"}}}},
     "browser.tabs.count": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%d Tabs"}},"en":{"stringUnit":{"state":"translated","value":"%d tabs"}}}},
+    "browser.tabs.count.one": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"1 Tab"}},"en":{"stringUnit":{"state":"translated","value":"1 tab"}}}},
+    "browser.tabs.next": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nächster Tab"}},"en":{"stringUnit":{"state":"translated","value":"Next Tab"}}}},
     "browser.tabs.normal": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tabs"}},"en":{"stringUnit":{"state":"translated","value":"Tabs"}}}},
+    "browser.tabs.previous": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vorheriger Tab"}},"en":{"stringUnit":{"state":"translated","value":"Previous Tab"}}}},
     "browser.tabs.private": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privat"}},"en":{"stringUnit":{"state":"translated","value":"Private"}}}},
     "browser.tabs.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tabs"}},"en":{"stringUnit":{"state":"translated","value":"Tabs"}}}},
     "browser.text_larger": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Größerer Text"}},"en":{"stringUnit":{"state":"translated","value":"Larger Text"}}}},
     "browser.text_smaller": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Kleinerer Text"}},"en":{"stringUnit":{"state":"translated","value":"Smaller Text"}}}},
     "browser.undo_close": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ wieder öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Reopen %@"}}}},
+    "browser.undo_close_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geschlossenen Tab wieder öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Reopen closed tab"}}}},
     "device_filter.accessibility": {
       "extractionState": "manual",
       "localizations": {
@@ -832,6 +850,23 @@
         }
       }
     },
+    "remote.state.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgelaufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        }
+      }
+    },
     "remote.state.failed": {
       "extractionState": "manual",
       "localizations": {
@@ -896,6 +931,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ was completed on the Mac."
+          }
+        }
+      }
+    },
+    "remote.status.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ist vor der Bestätigung abgelaufen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ expired before confirmation."
           }
         }
       }
@@ -2503,6 +2555,10 @@
         }
       }
     },
+    "library.operation.dismiss": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Bibliotheksfehler schließen"}},"en":{"stringUnit":{"state":"translated","value":"Dismiss library error"}}}},
+    "library.operation.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Diese Änderung konnte nicht gespeichert werden. Deine bestehende Bibliothek blieb unverändert. Versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"That change could not be saved. Your existing library is unchanged. Try again."}}}},
+    "library.operation.local_projection_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Änderung wurde auf diesem Gerät gespeichert, aber die Bibliotheksansicht konnte nicht aktualisiert werden. Öffne die Bibliothek erneut und versuche es noch einmal."}},"en":{"stringUnit":{"state":"translated","value":"The change was saved on this device, but the library view could not refresh. Reopen the library and try again."}}}},
+    "library.operation.sync_queue_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Änderung wurde auf diesem Gerät gespeichert, konnte aber nicht für die Synchronisierung vorgemerkt werden. Verwende 'Sync erneut versuchen', sobald die Verbindung verfügbar ist."}},"en":{"stringUnit":{"state":"translated","value":"The change was saved on this device, but could not be queued for sync. Use Retry Sync when the connection is available."}}}},
     "tree.move": {
       "extractionState": "manual",
       "localizations": {
@@ -2520,6 +2576,8 @@
         }
       }
     },
+    "tree.move_down": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach unten"}},"en":{"stringUnit":{"state":"translated","value":"Move down"}}}},
+    "tree.move_up": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach oben"}},"en":{"stringUnit":{"state":"translated","value":"Move up"}}}},
     "tree.delete.confirmation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ und enthaltene Elemente löschen?"}},"en":{"stringUnit":{"state":"translated","value":"Delete %@ and its contents?"}}}},
     "tree.delete.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gelöschte Elemente werden auch über Ahoi Sync von deinen anderen Geräten entfernt."}},"en":{"stringUnit":{"state":"translated","value":"Deleted items are removed from Ahoi sync on your other devices too."}}}},
     "tree.rename": {
@@ -2733,13 +2791,17 @@
     "browser.file_input.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ möchte %@ von diesem Gerät auswählen."}},"en":{"stringUnit":{"state":"translated","value":"%@ wants to select %@ from this device."}}}},
     "browser.file_input.files": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Dateien"}},"en":{"stringUnit":{"state":"translated","value":"files"}}}},
     "browser.file_input.folders": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ordner"}},"en":{"stringUnit":{"state":"translated","value":"folders"}}}},
+    "browser.file_input.error.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Dateien konnten nicht ausgewählt werden"}},"en":{"stringUnit":{"state":"translated","value":"Files Could Not Be Selected"}}}},
+    "browser.file_input.error.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte diese Auswahl nicht sicher vorbereiten. Wähle die Dateien erneut aus."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not safely prepare that selection. Choose the files again."}}}},
     "browser.download.open": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open download"}}}},
     "browser.download.progress": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%d%% · %@"}},"en":{"stringUnit":{"state":"translated","value":"%d%% · %@"}}}},
     "browser.download.progress.indeterminate": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird geladen · %@"}},"en":{"stringUnit":{"state":"translated","value":"Downloading · %@"}}}},
+    "browser.download.recovery.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Download-Wiederherstellung konnte nicht gespeichert werden."}},"en":{"stringUnit":{"state":"translated","value":"Download recovery could not be saved."}}}},
     "browser.download.bytes": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ von %@"}},"en":{"stringUnit":{"state":"translated","value":"%@ of %@"}}}},
     "browser.download.error.unsafe_method": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download blockiert: Die %@-Anfrage kann nicht sicher wiederholt werden."}},"en":{"stringUnit":{"state":"translated","value":"Download blocked: the %@ request cannot be safely repeated."}}}},
     "browser.download.error.unmatched_response": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download blockiert: Die Antwort konnte keiner eindeutigen Anfrage zugeordnet werden."}},"en":{"stringUnit":{"state":"translated","value":"Download blocked: the response could not be matched to a unique request."}}}},
     "browser.external.unknown_origin": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Diese Website"}},"en":{"stringUnit":{"state":"translated","value":"This website"}}}},
+    "browser.external.unknown_target": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"eine andere App"}},"en":{"stringUnit":{"state":"translated","value":"another app"}}}},
     "browser.origin.unknown": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Unbekannter Ursprung"}},"en":{"stringUnit":{"state":"translated","value":"Unknown origin"}}}},
     "browser.tabs.mode": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Browsermodus"}},"en":{"stringUnit":{"state":"translated","value":"Browsing mode"}}}},
     "browser.tabs.unassigned": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ohne Workspace"}},"en":{"stringUnit":{"state":"translated","value":"No workspace"}}}},

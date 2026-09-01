@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct MobileFocusVoyageView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.mobileBrowserReduceMotionOverride) private var reduceMotionOverride
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let mode: MobileBrowsingMode
@@ -11,6 +12,10 @@ struct MobileFocusVoyageView: View {
     let accentTint: Color
     let onSearch: () -> Void
     let onOpen: (MobileFocusVoyageItem) -> Void
+
+    private var reduceMotion: Bool {
+        reduceMotionOverride ?? systemReduceMotion
+    }
 
     var body: some View {
         ScrollView {

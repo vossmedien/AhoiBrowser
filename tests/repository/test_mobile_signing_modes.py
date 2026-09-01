@@ -29,6 +29,7 @@ PUBLIC = {
 
 MODE_CONTRACT = {
     "DebugLocal": ("", "", ""),
+    "PerformanceDevelopment": ("", "", ""),
     "CloudKitDevelopment": (
         "AhoiMobile.entitlements.template",
         "development",
@@ -61,7 +62,7 @@ def mode_environment(mode: str) -> dict[str, str]:
         "CONFIGURATION": mode,
         "AHOI_BUILD_MODE": mode,
         "AHOI_SOURCE_COMMIT": COMMIT
-        if mode in {"TestFlightBootstrap", "ReleasePostGrant"}
+        if mode in {"PerformanceDevelopment", "TestFlightBootstrap", "ReleasePostGrant"}
         else "NOT_AVAILABLE",
         "AHOI_MOBILE_MARKETING_VERSION": "1.0",
         "AHOI_MOBILE_BUILD_NUMBER": "42",
@@ -73,10 +74,15 @@ def mode_environment(mode: str) -> dict[str, str]:
         "AHOI_PROVISIONING_PROFILE_SPECIFIER": "",
         "AHOI_MANUAL_SIGNING_FALLBACK": "NO",
         "CODE_SIGN_IDENTITY": "",
+        "SWIFT_OPTIMIZATION_LEVEL": "-O"
+        if mode == "PerformanceDevelopment"
+        else "-Onone",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG"
+        if mode == "PerformanceDevelopment"
+        else "",
     }
-    if mode == "DebugLocal":
+    if mode in {"DebugLocal", "PerformanceDevelopment"}:
         for name in (
-            "AHOI_APPLE_TEAM_ID",
             "AHOI_CLOUDKIT_CONTAINER_ID",
             "AHOI_SYNC_KEYCHAIN_ACCESS_GROUP",
             "AHOI_SYNC_KEYCHAIN_SERVICE",
@@ -87,6 +93,8 @@ def mode_environment(mode: str) -> dict[str, str]:
             "AHOI_COMMAND_KEYCHAIN_ACCOUNT",
         ):
             values[name] = ""
+    if mode == "DebugLocal":
+        values["AHOI_APPLE_TEAM_ID"] = ""
     return values
 
 
@@ -122,7 +130,7 @@ class MobileSigningModeTests(unittest.TestCase):
         self.assertNotEqual(0, completed.returncode, completed.stdout)
         self.assertIn("ERROR:", completed.stderr)
 
-    def test_all_five_modes_accept_only_their_exact_positive_contract(self):
+    def test_all_modes_accept_only_their_exact_positive_contract(self):
         for mode in MODE_CONTRACT:
             with self.subTest(mode=mode):
                 self.assert_preflight_passes(mode)
@@ -134,6 +142,25 @@ class MobileSigningModeTests(unittest.TestCase):
         )
         self.assert_preflight_rejects(
             "DebugLocal", CODE_SIGN_ENTITLEMENTS="AhoiMobile.entitlements.template"
+        )
+
+    def test_performance_mode_is_optimized_source_bound_and_provider_free(self):
+        self.assert_preflight_rejects(
+            "PerformanceDevelopment", SWIFT_OPTIMIZATION_LEVEL="-Onone"
+        )
+        self.assert_preflight_rejects(
+            "PerformanceDevelopment", SWIFT_ACTIVE_COMPILATION_CONDITIONS=""
+        )
+        self.assert_preflight_rejects(
+            "PerformanceDevelopment", AHOI_SOURCE_COMMIT="NOT_AVAILABLE"
+        )
+        self.assert_preflight_rejects(
+            "PerformanceDevelopment",
+            CODE_SIGN_ENTITLEMENTS="AhoiMobile.entitlements.template",
+        )
+        self.assert_preflight_rejects(
+            "PerformanceDevelopment",
+            AHOI_CLOUDKIT_CONTAINER_ID=PUBLIC["AHOI_CLOUDKIT_CONTAINER_ID"],
         )
 
     def test_pregrant_modes_reject_default_browser_entitlement(self):
@@ -256,7 +283,7 @@ class MobileSigningModeTests(unittest.TestCase):
             )
             self.assertEqual(0, completed.returncode, completed.stderr)
 
-    def test_project_and_entitlement_sources_expose_the_five_mode_topology(self):
+    def test_project_and_entitlement_sources_expose_the_six_mode_topology(self):
         project = (MOBILE / "project.yml").read_text(encoding="utf-8")
         for mode in MODE_CONTRACT:
             self.assertIn(f"  {mode}:", project)

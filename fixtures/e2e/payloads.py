@@ -16,7 +16,10 @@ DOWNLOAD_BYTES = bytes(
 )
 DOWNLOAD_SHA256 = hashlib.sha256(DOWNLOAD_BYTES).hexdigest()
 ASSET_CHUNK_BYTES = 64 * 1024
-LARGE_ZIP_THROTTLE_SECONDS = 0.015
+# Leave enough wall-clock time for a real user to open the native downloads
+# sheet and cancel the transfer. At 64 KiB per chunk, 0.20 seconds keeps this
+# deterministic 12 MiB payload active for roughly 38 seconds even on loopback.
+LARGE_ZIP_THROTTLE_SECONDS = 0.20
 DISCONNECT_AFTER_BYTES = 384 * 1024
 WARNING_BYTES = (
     b"AhoiBrowser harmless dangerous-download warning fixture.\n"

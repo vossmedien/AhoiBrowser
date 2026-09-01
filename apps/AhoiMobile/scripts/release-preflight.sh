@@ -256,7 +256,7 @@ ahoi_check_signing_style() {
       ahoi_require_resolved_setting AHOI_PROVISIONING_PROFILE_SPECIFIER
       ahoi_require_resolved_setting CODE_SIGN_IDENTITY
       case "$mode" in
-        CloudKitDevelopment|DefaultBrowserDevelopment)
+        CloudKitDevelopment|DefaultBrowserDevelopment|PerformanceDevelopment)
           [ "$CODE_SIGN_IDENTITY" = "Apple Development" ] ||
             ahoi_die "$mode manual fallback must use Apple Development"
           ;;
@@ -297,7 +297,7 @@ ahoi_check_build_settings() {
   mode="${AHOI_BUILD_MODE:-}"
   ahoi_check_source_contract "$source_root"
   case "$mode" in
-    DebugLocal|CloudKitDevelopment|TestFlightBootstrap|DefaultBrowserDevelopment|ReleasePostGrant) ;;
+    DebugLocal|PerformanceDevelopment|CloudKitDevelopment|TestFlightBootstrap|DefaultBrowserDevelopment|ReleasePostGrant) ;;
     *) ahoi_die "AHOI_BUILD_MODE is missing or unsupported: $mode" ;;
   esac
   [ "${CONFIGURATION:-$mode}" = "$mode" ] ||
@@ -327,6 +327,27 @@ ahoi_check_build_settings() {
     ahoi_require_source_commit NO
     ahoi_check_signing_style "$mode"
     ahoi_note "DebugLocal is provider-free and contains no CloudKit, Push, Keychain-group or browser entitlement"
+    return
+  fi
+
+  if [ "$mode" = "PerformanceDevelopment" ]; then
+    local performance_local_setting
+    ahoi_require_exact_setting AHOI_APPLE_TEAM_ID \
+      "$(ahoi_public_value "$source_root" AHOI_APPLE_TEAM_ID)"
+    for performance_local_setting in \
+      AHOI_APS_ENVIRONMENT AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT \
+      AHOI_CLOUDKIT_CONTAINER_ID AHOI_SYNC_KEYCHAIN_ACCESS_GROUP \
+      AHOI_SYNC_KEYCHAIN_SERVICE AHOI_SYNC_KEYCHAIN_ACCOUNT AHOI_SYNC_KEY_VERSION \
+      AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP AHOI_COMMAND_KEYCHAIN_SERVICE \
+      AHOI_COMMAND_KEYCHAIN_ACCOUNT CODE_SIGN_ENTITLEMENTS; do
+      ahoi_require_empty "$performance_local_setting"
+    done
+    ahoi_require_source_commit YES
+    ahoi_require_exact_setting SWIFT_OPTIMIZATION_LEVEL -O
+    printf ' %s ' "${SWIFT_ACTIVE_COMPILATION_CONDITIONS:-}" | grep -Fq ' DEBUG ' ||
+      ahoi_die "PerformanceDevelopment must retain the DEBUG compilation condition"
+    ahoi_check_signing_style "$mode"
+    ahoi_note "PerformanceDevelopment is optimized, source-bound and provider-free"
     return
   fi
 

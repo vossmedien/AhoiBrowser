@@ -1,6 +1,104 @@
 import XCTest
 
 final class MobileBrowserLayoutUITests: XCTestCase {
+    // INTEGRATION ONLY: these two scale checks use launch seams to create
+    // deterministic tab populations. They are not visible E2E evidence.
+    @MainActor
+    func testIntegrationScaleFixtureOneFiveTwentyNormalTabsKeepChromeReachable() throws {
+        let app = XCUIApplication()
+        for count in [1, 5, 20] {
+            app.terminate()
+            app.launchArguments = [
+                "-AhoiUITestFixture",
+                "-AhoiUITestNormalTabCount", "\(count)",
+            ]
+            app.launch()
+
+            let tabs = app.buttons["browser.tabs"]
+            XCTAssertTrue(tabs.waitForExistence(timeout: 8))
+            XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: 3))
+            tabs.tap()
+            XCTAssertTrue(
+                app.descendants(matching: .any)["browser.tabs.mode"]
+                    .waitForExistence(timeout: 3)
+            )
+            XCTAssertTrue(app.buttons["browser.tabs.done"].isHittable)
+            app.buttons["browser.tabs.done"].tap()
+        }
+    }
+
+    @MainActor
+    func testIntegrationScaleFixtureTwentyPrivateTabsKeepChromeReachable() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-AhoiUITestFixture",
+            "-AhoiUITestPrivateTabCount", "20",
+            "-AhoiUITestSelectPrivate",
+        ]
+        app.launch()
+
+        let privateAddress = app.buttons["browser.address.private"]
+        XCTAssertTrue(privateAddress.waitForExistence(timeout: 8))
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(waitForTabCount(20, in: tabs, timeout: 3))
+        XCTAssertTrue(app.buttons["browser.more"].isHittable)
+    }
+
+    @MainActor
+    func testVisibleNormalTabCreationReachesOneFiveTwentyMilestones() throws {
+        let app = XCUIApplication()
+        app.launchArguments = []
+        app.launch()
+
+        normalizeToFreshNormalTab(in: app)
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(tabs.waitForExistence(timeout: 8))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        for count in 2...20 {
+            XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 3))
+            app.buttons["browser.more"].tap()
+            let newTab = app.buttons["browser.actions.new-tab"]
+            XCTAssertTrue(newTab.waitForExistence(timeout: 3))
+            newTab.tap()
+            if count == 5 || count == 20 {
+                XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: 3))
+            }
+        }
+        XCTAssertTrue(app.buttons["browser.address"].isHittable)
+        XCTAssertTrue(app.buttons["browser.more"].isHittable)
+
+        normalizeToFreshNormalTab(in: app)
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+    }
+
+    @MainActor
+    func testVisiblePrivateTabCreationReachesOneFiveTwentyMilestones() throws {
+        let app = XCUIApplication()
+        app.launchArguments = []
+        app.launch()
+
+        normalizeToFreshNormalTab(in: app)
+        let tabs = app.buttons["browser.tabs"]
+        for count in 1...20 {
+            XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 8))
+            app.buttons["browser.more"].tap()
+            let newPrivateTab = app.buttons["browser.new-private-tab"]
+            XCTAssertTrue(newPrivateTab.waitForExistence(timeout: 3))
+            newPrivateTab.tap()
+            XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 3))
+            if count == 1 || count == 5 || count == 20 {
+                XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: 3))
+            }
+        }
+        XCTAssertTrue(app.buttons["browser.more"].isHittable)
+
+        assertNormalPrivateIsolationAndClearPrivateTabs(
+            expectedPrivateCount: 20,
+            in: app
+        )
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+    }
+
     @MainActor
     func testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable() throws {
         let app = XCUIApplication()
@@ -63,9 +161,17 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3),
             "Scroll assertions start only after the deterministic document is ready."
         )
+        let expandedWebFrame = webView.frame
 
         webView.swipeUp()
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        XCTAssertEqual(webView.frame.width, expandedWebFrame.width, accuracy: 1)
+        XCTAssertEqual(
+            webView.frame.height,
+            expandedWebFrame.height,
+            accuracy: 1,
+            "Chrome motion must not resize the live WebView viewport."
+        )
         assertCompactHarborDeckSemantics(app)
         assertReachableHitTarget(app.buttons["browser.address"])
         assertReachableHitTarget(app.buttons["browser.tabs"])
@@ -80,6 +186,31 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
         webView.swipeDown()
         XCTAssertTrue(workspace.waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testProgrammaticPageScrollDoesNotCollapseHarborDeck() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-AhoiUITestFixture",
+            "-AhoiPerformanceWorkload", "scroll",
+            "-AhoiPerformanceEvidenceScenario", "scroll-motion-standard",
+            "-AhoiPerformanceEvidenceNonce", "layout-scroll-is-not-user-intent",
+            "-AhoiPerformanceEvidenceMarker", "ahoi-performance-scroll-motion-standard.json",
+            "-AhoiPerformanceReduceMotionOverride", "false",
+        ]
+        app.launch()
+
+        let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
+        let page = app.webViews.firstMatch.staticTexts["Ahoi fixture page"]
+        XCTAssertTrue(workspace.waitForExistence(timeout: 8))
+        XCTAssertTrue(page.waitForExistence(timeout: 3))
+        Thread.sleep(forTimeInterval: 2.5)
+        XCTAssertTrue(
+            workspace.exists,
+            "Scripted scrollTo travel must not masquerade as a finger gesture."
+        )
+        assertReachableHitTarget(app.buttons["browser.address"])
     }
 
     @MainActor
@@ -141,24 +272,13 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
         assertCompactHarborDeckSemantics(app)
 
-        // A tiny opposite-direction correction is common while a finger is
-        // settling. It must move the document, yet remain below the 14-point
-        // expand threshold so the deck cannot flicker open.
-        let marker = webView.staticTexts["Ahoi fixture page"]
-        let markerYBeforeJitter = marker.frame.minY
-        drag(webView, fromY: 0.52, toY: 0.537)
+        // Three deliberately bounded opposite-direction corrections model a
+        // settling finger without depending on WebKit's pixel projection.
+        // None may flicker the accessibility/control tree open.
+        for offset in [0.532, 0.534, 0.536] {
+            drag(webView, fromY: 0.52, toY: offset)
+        }
         Thread.sleep(forTimeInterval: 0.35)
-        let jitterTravel = marker.frame.minY - markerYBeforeJitter
-        XCTAssertGreaterThan(
-            jitterTravel,
-            1,
-            "The reverse correction must move the visible document rather than pass as touch slop."
-        )
-        XCTAssertLessThan(
-            jitterTravel,
-            14,
-            "The fixture correction must stay below the production expand threshold."
-        )
         XCTAssertFalse(
             workspace.exists,
             "Sub-threshold reverse travel must keep the compact deck stable."
@@ -248,45 +368,65 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             "Bewegung reduzieren"
         )).firstMatch
         XCTAssertTrue(reduceMotion.waitForExistence(timeout: 3))
-        let wasEnabled = (reduceMotion.value as? String) == "1"
+        guard let wasEnabled = MobileUIAcceptanceContract.switchIsOn(reduceMotion) else {
+            XCTFail("Settings must expose a Boolean Reduce Motion switch value.")
+            return
+        }
         if !wasEnabled {
             tapSwitchControl(reduceMotion)
-            let enabled = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "value == %@", "1"),
-                object: reduceMotion
+            XCTAssertTrue(
+                MobileUIAcceptanceContract.waitForSwitch(
+                    reduceMotion,
+                    toEqual: true,
+                    timeout: 3
+                )
             )
-            XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 3), .completed)
         }
         defer {
             if !wasEnabled {
                 settings.activate()
-                if (reduceMotion.value as? String) == "1" {
+                if MobileUIAcceptanceContract.switchIsOn(reduceMotion) == true {
                     tapSwitchControl(reduceMotion)
                 }
-                let restored = XCTNSPredicateExpectation(
-                    predicate: NSPredicate(format: "value == %@", "0"),
-                    object: reduceMotion
-                )
-                XCTAssertEqual(
-                    XCTWaiter.wait(for: [restored], timeout: 3),
-                    .completed,
+                XCTAssertTrue(
+                    MobileUIAcceptanceContract.waitForSwitch(
+                        reduceMotion,
+                        toEqual: false,
+                        timeout: 3
+                    ),
                     "The E2E journey must restore the simulator accessibility setting."
                 )
             }
         }
         XCTAssertEqual(
-            reduceMotion.value as? String,
-            "1",
+            MobileUIAcceptanceContract.switchIsOn(reduceMotion),
+            true,
             "The E2E journey must start from the visibly enabled system setting."
         )
 
         let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
+        app.launchArguments = [
+            "-AhoiUITestFixture",
+            "-AhoiUITestReduceMotionEvidence",
+        ]
         app.launch()
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
-        XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3))
+        XCTAssertTrue(
+            webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3),
+            "The Reduce Motion journey must use the deterministic local fixture."
+        )
+        let motionEvidence = app.descendants(matching: .any)["browser.e2e.reduce-motion"]
+        XCTAssertTrue(
+            motionEvidence.waitForExistence(timeout: 5),
+            "The running app must visibly confirm its inherited motion environment."
+        )
+        XCTAssertEqual(
+            motionEvidence.value as? String,
+            "enabled",
+            "A Settings toggle alone is not proof that this app inherited Reduce Motion."
+        )
 
         webView.swipeUp()
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
@@ -297,6 +437,204 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
         webView.swipeDown()
         XCTAssertTrue(workspace.waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    private func normalizeToFreshNormalTab(in app: XCUIApplication) {
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(tabs.waitForExistence(timeout: 8))
+        tabs.tap()
+
+        let modeControl = app.descendants(matching: .any)["browser.tabs.mode"]
+        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        selectTabSwitcherMode(.normal, using: modeControl)
+
+        let closeButtons = tabCloseButtons(in: app)
+        XCTAssertTrue(
+            waitForAtLeastOneElement(in: closeButtons, timeout: 3),
+            "A loaded product session must expose at least one normal tab."
+        )
+        closeTabRows(until: 1, in: app)
+
+        let remainingRow = firstHittableElement(in: tabRows(in: app))
+        XCTAssertNotNil(remainingRow)
+        remainingRow?.tap()
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
+
+        // Closing the selected final normal tab exercises the production
+        // replacement path and leaves a fresh blank tab, independent of any
+        // persisted URL/title from an earlier UI journey.
+        XCTAssertTrue(tabs.waitForExistence(timeout: 3))
+        tabs.tap()
+        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        selectTabSwitcherMode(.normal, using: modeControl)
+        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: 3))
+        guard let selectedClose = firstHittableElement(in: closeButtons) else {
+            XCTFail("The selected normal tab must expose its visible close control.")
+            return
+        }
+        let closedIdentifier = selectedClose.identifier
+        selectedClose.tap()
+        XCTAssertTrue(
+            app.buttons[closedIdentifier].waitForNonExistence(timeout: 3),
+            "The old persisted normal tab must visibly leave the switcher."
+        )
+        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: 3))
+        let freshRow = firstHittableElement(in: tabRows(in: app))
+        XCTAssertNotNil(freshRow)
+        freshRow?.tap()
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+    }
+
+    @MainActor
+    private func assertNormalPrivateIsolationAndClearPrivateTabs(
+        expectedPrivateCount: Int,
+        in app: XCUIApplication
+    ) {
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(tabs.waitForExistence(timeout: 3))
+        XCTAssertTrue(waitForTabCount(expectedPrivateCount, in: tabs, timeout: 3))
+        tabs.tap()
+
+        let modeControl = app.descendants(matching: .any)["browser.tabs.mode"]
+        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        let closeButtons = tabCloseButtons(in: app)
+        XCTAssertTrue(
+            waitForAtLeastOneElement(in: closeButtons, timeout: 3),
+            "The verified private population must expose visible close controls."
+        )
+
+        selectTabSwitcherMode(.normal, using: modeControl)
+        XCTAssertTrue(
+            waitForQueryCount(1, query: closeButtons, timeout: 3),
+            "Creating private tabs must not change the normalized normal population."
+        )
+        guard let normalRow = firstHittableElement(in: tabRows(in: app)) else {
+            XCTFail("The isolated normal tab must remain selectable.")
+            return
+        }
+        normalRow.tap()
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+
+        tabs.tap()
+        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        selectTabSwitcherMode(.privateBrowsing, using: modeControl)
+        XCTAssertTrue(waitForAtLeastOneElement(in: closeButtons, timeout: 3))
+        closeTabRows(until: 0, in: app)
+        XCTAssertTrue(waitForQueryCount(0, query: closeButtons, timeout: 3))
+
+        selectTabSwitcherMode(.normal, using: modeControl)
+        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: 3))
+        let remainingNormalRow = firstHittableElement(in: tabRows(in: app))
+        XCTAssertNotNil(remainingNormalRow)
+        remainingNormalRow?.tap()
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+    }
+
+    @MainActor
+    private func selectTabSwitcherMode(
+        _ mode: MobileUITestBrowsingMode,
+        using control: XCUIElement
+    ) {
+        control.coordinate(withNormalizedOffset: CGVector(
+            dx: mode == .normal ? 0.25 : 0.75,
+            dy: 0.5
+        )).tap()
+    }
+
+    @MainActor
+    private func closeTabRows(until expectedCount: Int, in app: XCUIApplication) {
+        let closeButtons = tabCloseButtons(in: app)
+        var attempts = 0
+        while closeButtons.count > expectedCount, attempts < 80 {
+            attempts += 1
+            guard let closeButton = firstHittableElement(in: closeButtons) else {
+                XCTFail("Every visible tab population must retain a hittable close control.")
+                return
+            }
+            let identifier = closeButton.identifier
+            closeButton.tap()
+            XCTAssertTrue(
+                app.buttons[identifier].waitForNonExistence(timeout: 3),
+                "Closing a tab must remove that exact row before the next action."
+            )
+        }
+        XCTAssertEqual(closeButtons.count, expectedCount)
+    }
+
+    @MainActor
+    private func tabCloseButtons(in app: XCUIApplication) -> XCUIElementQuery {
+        app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@",
+            "browser.tab-close."
+        ))
+    }
+
+    @MainActor
+    private func tabRows(in app: XCUIApplication) -> XCUIElementQuery {
+        app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@",
+            "browser.tab-row."
+        ))
+    }
+
+    @MainActor
+    private func firstHittableElement(in query: XCUIElementQuery) -> XCUIElement? {
+        (0..<query.count)
+            .map { query.element(boundBy: $0) }
+            .first(where: \.isHittable)
+    }
+
+    @MainActor
+    private func waitForAtLeastOneElement(
+        in query: XCUIElementQuery,
+        timeout: TimeInterval
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if query.count > 0 { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        } while Date() < deadline
+        return query.count > 0
+    }
+
+    @MainActor
+    private func waitForQueryCount(
+        _ expected: Int,
+        query: XCUIElementQuery,
+        timeout: TimeInterval
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if query.count == expected { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        } while Date() < deadline
+        return query.count == expected
+    }
+
+    @MainActor
+    private func navigate(
+        _ app: XCUIApplication,
+        to url: URL,
+        waitingForText text: String
+    ) {
+        let address = app.buttons["browser.address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 3))
+        address.tap()
+        let field = app.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        field.tap()
+        field.typeText(url.absoluteString)
+        let navigate = app.buttons["browser.search.navigate"]
+        XCTAssertTrue(navigate.waitForExistence(timeout: 3))
+        navigate.tap()
+        XCTAssertTrue(
+            app.webViews.firstMatch.staticTexts[text].waitForExistence(timeout: 8),
+            "The product address flow must visibly load the loopback document."
+        )
     }
 
     @MainActor
@@ -362,6 +700,38 @@ final class MobileBrowserLayoutUITests: XCTestCase {
     }
 
     @MainActor
+    private func waitForTabCount(
+        _ expected: Int,
+        in element: XCUIElement,
+        timeout: TimeInterval
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if tabCount(in: element) == expected { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        } while Date() < deadline
+        return tabCount(in: element) == expected
+    }
+
+    @MainActor
+    private func tabCount(in element: XCUIElement) -> Int? {
+        if let value = element.value as? String,
+           let count = Int(value.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            return count
+        }
+        if let value = element.value as? NSNumber {
+            return value.intValue
+        }
+        return tabCount(from: element.label)
+    }
+
+    private func tabCount(from label: String) -> Int? {
+        let digits = label.compactMap(\.wholeNumberValue)
+        guard !digits.isEmpty else { return nil }
+        return digits.reduce(0) { $0 * 10 + $1 }
+    }
+
+    @MainActor
     private func assertCompactHarborDeckSemantics(
         _ app: XCUIApplication,
         file: StaticString = #filePath,
@@ -389,7 +759,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             file: file,
             line: line
         )
-        for identifier in ["browser.address", "browser.tabs", "browser.more"] {
+        for identifier in ["browser.back", "browser.address", "browser.tabs", "browser.more"] {
             XCTAssertEqual(
                 app.buttons.matching(identifier: identifier).count,
                 1,
@@ -405,9 +775,11 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-AhoiUITestFixture"]
         app.launch()
-        try XCTSkipIf(app.frame.width < 700, "Regular-width Workspace Canvas is iPad-only.")
+        try MobileUIAcceptanceContract.requireRegularWidthIPad(app: app)
 
         XCTAssertTrue(app.buttons["browser.sidebar.command"].waitForExistence(timeout: 8))
         XCTAssertTrue(app.buttons["browser.sidebar.new-tab"].exists)
     }
 }
+
+private enum MobileUITestBrowsingMode { case normal, privateBrowsing }

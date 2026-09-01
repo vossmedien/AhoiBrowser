@@ -4,7 +4,8 @@ import SwiftUI
 import WebKit
 
 struct MobileWebPageView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.mobileBrowserReduceMotionOverride) private var reduceMotionOverride
     let page: WebPage
     let scrollCoordinator: MobileLinkInteractionCoordinator
     @Binding var findNavigatorPresented: Bool
@@ -20,6 +21,10 @@ struct MobileWebPageView: View {
     @State private var findRequestGeneration: UInt64 = 0
     @State private var findTask: Task<Void, Never>?
     @FocusState private var findFieldFocused: Bool
+
+    private var reduceMotion: Bool {
+        reduceMotionOverride ?? systemReduceMotion
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -201,12 +206,12 @@ struct MobileWebPageView: View {
     ) {
         handlePullDistance(oldValue.pullDistance, newValue.pullDistance)
         guard newValue.pullDistance <= 0.5 else {
-            chromeScrollReducer.resetAccumulation()
+            chromeScrollReducer.invalidateBaseline()
             reportChromeCollapsed(false)
             return
         }
         if !newValue.hasStableLayout(comparedTo: oldValue) {
-            chromeScrollReducer.resetAccumulation()
+            chromeScrollReducer.invalidateBaseline()
         }
     }
 
@@ -222,7 +227,10 @@ struct MobileWebPageView: View {
 
     private func reportChromeCollapsed(_ collapsed: Bool) {
         guard chromeCollapsed != collapsed else { return }
-        withAnimation(MobileBrowserChromeTheme.chromeAnimation(reduceMotion: reduceMotion)) {
+        withAnimation(MobileBrowserChromeTheme.chromeAnimation(
+            toCollapsed: collapsed,
+            reduceMotion: reduceMotion
+        )) {
             chromeCollapsed = collapsed
         }
     }

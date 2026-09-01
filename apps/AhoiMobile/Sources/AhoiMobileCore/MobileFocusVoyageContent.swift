@@ -56,7 +56,7 @@ struct MobileFocusVoyageContent: Equatable, Sendable {
                   seenJourneyURLs.insert(url.absoluteString).inserted else { return nil }
             return MobileFocusVoyageItem(
                 id: "tab:\(tab.id.uuidString.lowercased())",
-                title: displayTitle(tab.title, url: url),
+                title: displayTitle(tab.effectiveTitle, url: url),
                 subtitle: displayOrigin(url),
                 url: url,
                 source: .openTab,

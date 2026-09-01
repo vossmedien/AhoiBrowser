@@ -1,6 +1,128 @@
 import Foundation
 import AhoiCloudKitSpike
 
+enum CompanionRemoteCommandRetention {
+    static let maximumHydrationScanCount = 1_000
+    static let maximumReadModelCount = 100
+    static let terminalHistoryCount = 20
+
+    static func newestTransportRecords(
+        _ records: [SyncRecord],
+        limit: Int = maximumHydrationScanCount
+    ) -> [SyncRecord] {
+        guard limit > 0 else { return [] }
+        return Array(records.lazy.filter { $0.dataClass == .remoteCommand }
+            .sorted(by: transportNewestFirst)
+            .prefix(limit))
+    }
+
+    struct HydrationOutcome {
+        let ownedStates: [RemoteCommandState]
+        let rejectedRecords: [SyncRecord]
+    }
+
+    struct HydrationBatches {
+        let exact: [SyncRecord]
+        let migration: [SyncRecord]
+    }
+
+    static func hydrationBatches(
+        exactRecords: [SyncRecord],
+        migrationRecords: [SyncRecord],
+        migrationCompleted: Bool
+    ) -> HydrationBatches {
+        let exact = newestTransportRecords(exactRecords)
+        guard !migrationCompleted else {
+            return .init(exact: exact, migration: [])
+        }
+        let exactIDs = Set(exact.map(\.recordID))
+        return .init(
+            exact: exact,
+            migration: newestTransportRecords(migrationRecords.filter {
+                !exactIDs.contains($0.recordID)
+            })
+        )
+    }
+
+    static func decodeOwnedStates(
+        from records: [SyncRecord],
+        sourceDeviceID: DeviceID,
+        requireOwnedSource: Bool = false,
+        decode: (SyncRecord) throws -> RemoteCommandState,
+        validateOwned: (RemoteCommandState) throws -> Void
+    ) -> HydrationOutcome {
+        var restored: [UUID: RemoteCommandState] = [:]
+        var rejected: [SyncRecord] = []
+        for record in newestTransportRecords(records) {
+            do {
+                let state = try decode(record)
+                guard state.envelope.payload.sourceDeviceID == sourceDeviceID else {
+                    if requireOwnedSource { rejected.append(record) }
+                    continue
+                }
+                try validateOwned(state)
+                if let existing = restored[state.id],
+                   existing.envelope != state.envelope {
+                    rejected.append(record)
+                    continue
+                }
+                if restored[state.id].map({ $0.version >= state.version }) != true {
+                    restored[state.id] = state
+                }
+            } catch {
+                rejected.append(record)
+            }
+        }
+        return HydrationOutcome(
+            ownedStates: Array(restored.values),
+            rejectedRecords: rejected
+        )
+    }
+
+    static func boundedStates(
+        _ states: some Sequence<RemoteCommandState>,
+        nowMilliseconds: UInt64,
+        limit: Int = maximumReadModelCount,
+        terminalLimit: Int = terminalHistoryCount
+    ) -> [RemoteCommandState] {
+        guard limit > 0 else { return [] }
+        let ordered = states.sorted(by: CompanionRemoteCommandOrdering.newestFirst)
+        let active = Array(ordered.lazy.filter {
+            !$0.status.isTerminal &&
+                $0.envelope.payload.expiresAtMilliseconds > nowMilliseconds
+        }.prefix(limit))
+        let remaining = max(0, limit - active.count)
+        let history = ordered.lazy.filter {
+            $0.status.isTerminal ||
+                $0.envelope.payload.expiresAtMilliseconds <= nowMilliseconds
+        }.prefix(min(max(0, terminalLimit), remaining))
+        return (active + Array(history))
+            .sorted(by: CompanionRemoteCommandOrdering.newestFirst)
+    }
+
+    private static func transportNewestFirst(
+        _ lhs: SyncRecord,
+        _ rhs: SyncRecord
+    ) -> Bool {
+        if lhs.modifiedAt != rhs.modifiedAt {
+            return lhs.modifiedAt > rhs.modifiedAt
+        }
+        if lhs.originatingDevice != rhs.originatingDevice {
+            return lhs.originatingDevice > rhs.originatingDevice
+        }
+        if lhs.schemaVersion != rhs.schemaVersion {
+            return lhs.schemaVersion > rhs.schemaVersion
+        }
+        return lhs.recordID.uuidString > rhs.recordID.uuidString
+    }
+}
+
+private extension RemoteCommandStatus {
+    var isTerminal: Bool {
+        self == .executed || self == .failed
+    }
+}
+
 extension CompanionSyncBridge {
     public func enqueue(_ device: Device) async throws {
         try await provider.enqueue(codec.makeRecord(
@@ -153,14 +275,45 @@ extension CompanionSyncBridge {
                 modifiedBy: commandSigner.sourceDeviceID
             )
         )
-        try await provider.enqueue(codec.makeRecord(
+        let record = try codec.makeRecord(
             recordID: commandID,
             entityID: commandID,
             dataClass: .remoteCommand,
             version: state.version,
             plaintext: try wireCodec.encode(state)
+        )
+        let previousOwnership = try await commandOwnershipStore.load()
+        let nextOwnership = previousOwnership.inserting(.init(
+            recordID: commandID,
+            issuedAtMilliseconds: issuedAtMilliseconds
         ))
+        try await commandOwnershipStore.save(nextOwnership)
+        do {
+            try await provider.enqueue(record)
+        } catch {
+            let enqueueError = error
+            let shouldRollback: Bool
+            do {
+                shouldRollback = try await provider.locallyPersistedRecord(
+                    forRecordID: commandID
+                ) != record
+            } catch {
+                // An unreadable transport store leaves the privacy-safe ID in
+                // place. Removing it could make a durably written command
+                // permanently undiscoverable after a later store recovery.
+                throw enqueueError
+            }
+            if shouldRollback {
+                do {
+                    try await commandOwnershipStore.save(previousOwnership)
+                } catch {
+                    throw RemoteCommandOwnershipStoreError.rollbackFailed
+                }
+            }
+            throw enqueueError
+        }
         commandStates[commandID] = state
+        pruneRemoteCommandReadModel(nowMilliseconds: issuedAtMilliseconds)
         return state
     }
 
@@ -177,10 +330,16 @@ extension CompanionSyncBridge {
 
     public func remoteCommandStates(_ commandIDs: Set<UUID>) -> [RemoteCommandState] {
         commandIDs.compactMap { commandStates[$0] }
-            .sorted {
-                $0.envelope.payload.issuedAtMilliseconds >
-                    $1.envelope.payload.issuedAtMilliseconds
-            }
+            .sorted(by: CompanionRemoteCommandOrdering.newestFirst)
+    }
+
+    public func remoteCommandStates(
+        limit: Int = 100
+    ) -> [RemoteCommandState] {
+        guard limit > 0 else { return [] }
+        return Array(commandStates.values
+            .sorted(by: CompanionRemoteCommandOrdering.newestFirst)
+            .prefix(limit))
     }
 
     /// Rehydrates the in-memory command read model from the encrypted,
@@ -192,19 +351,51 @@ extension CompanionSyncBridge {
             commandStates.removeAll(keepingCapacity: false)
             return
         }
+        // A failed restart restore may never leave a previous in-memory view
+        // visible. Only the fully revalidated durable set is republished.
+        commandStates.removeAll(keepingCapacity: false)
 
-        var restored: [UUID: RemoteCommandState] = [:]
-        for record in try await provider.allRecords()
-            where record.dataClass == .remoteCommand {
-            let plaintext = try codec.openData(record)
-            let state = try wireCodec.decodeRemoteCommand(
-                record,
-                plaintext: plaintext
-            )
-            try validate(record, identity: state.id, version: state.version)
-            guard state.envelope.payload.sourceDeviceID == commandSigner.sourceDeviceID else {
-                continue
+        let ownership = try await commandOwnershipStore.load()
+        let localIdentity = try commandSigner.provisioningIdentity()
+        let exactRecords = try await provider.records(
+            forRecordIDs: ownership.entries.map(\.recordID)
+        )
+        let migrationRecords: [SyncRecord]
+        if ownership.migrationCompleted {
+            migrationRecords = []
+        } else {
+            migrationRecords = try await provider.allRecords()
+        }
+        let batches = CompanionRemoteCommandRetention.hydrationBatches(
+            exactRecords: exactRecords,
+            migrationRecords: migrationRecords,
+            migrationCompleted: ownership.migrationCompleted
+        )
+        let exactOutcome = CompanionRemoteCommandRetention.decodeOwnedStates(
+            from: batches.exact,
+            sourceDeviceID: commandSigner.sourceDeviceID,
+            requireOwnedSource: true,
+            decode: decodeRemoteCommandRecord,
+            validateOwned: {
+                try validateLocallyOwnedRemoteCommand($0, identity: localIdentity)
             }
+        )
+        let migrationOutcome = CompanionRemoteCommandRetention.decodeOwnedStates(
+            from: batches.migration,
+            sourceDeviceID: commandSigner.sourceDeviceID,
+            decode: decodeRemoteCommandRecord,
+            validateOwned: {
+                try validateLocallyOwnedRemoteCommand($0, identity: localIdentity)
+            }
+        )
+        for record in exactOutcome.rejectedRecords + migrationOutcome.rejectedRecords {
+            try await provider.quarantineImportedRecord(
+                record,
+                reason: "persisted_remote_command_validation_failed"
+            )
+        }
+        var restored: [UUID: RemoteCommandState] = [:]
+        for state in exactOutcome.ownedStates + migrationOutcome.ownedStates {
             if let existing = restored[state.id], existing.envelope != state.envelope {
                 throw CompanionSyncBridgeError.envelopeMismatch
             }
@@ -212,6 +403,27 @@ extension CompanionSyncBridge {
                 restored[state.id] = state
             }
         }
+        let nextOwnership = ownership.replacingEntries(
+            restored.values.map {
+                .init(
+                    recordID: $0.id,
+                    issuedAtMilliseconds: $0.envelope.payload.issuedAtMilliseconds
+                )
+            },
+            migrationCompleted: true
+        )
+        try await commandOwnershipStore.save(nextOwnership)
         commandStates = restored
+        pruneRemoteCommandReadModel()
+    }
+
+    func pruneRemoteCommandReadModel(
+        nowMilliseconds: UInt64 = UInt64(Date().timeIntervalSince1970 * 1_000)
+    ) {
+        let retained = CompanionRemoteCommandRetention.boundedStates(
+            commandStates.values,
+            nowMilliseconds: nowMilliseconds
+        )
+        commandStates = Dictionary(uniqueKeysWithValues: retained.map { ($0.id, $0) })
     }
 }

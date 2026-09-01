@@ -575,7 +575,10 @@ final class CompanionCoreTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: directory) }
         let recordID = UUID()
         let first = try FileSyncQuarantineStore(fileURL: fileURL)
-        try await first.quarantine(recordID: recordID, reason: "bad payload: https://secret")
+        _ = try await first.quarantine(
+            recordID: recordID,
+            reason: "bad payload: https://secret"
+        )
 
         let second = try FileSyncQuarantineStore(fileURL: fileURL)
         let values = await second.allQuarantined()

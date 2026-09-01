@@ -108,6 +108,19 @@ final class CompanionCryptographyTests: XCTestCase {
             signed.signature,
             for: try payload.canonicalData()
         ))
+        XCTAssertTrue(try signer.verify(signed))
+        let tamperedPayload = RemoteCommandPayload(
+            commandID: payload.commandID,
+            sourceDeviceID: source,
+            targetDeviceID: payload.targetDeviceID,
+            nonce: payload.nonce,
+            issuedAtMilliseconds: payload.issuedAtMilliseconds,
+            command: .open(.init(url: "https://tampered.example.test"))
+        )
+        XCTAssertFalse(try signer.verify(.init(
+            payload: tamperedPayload,
+            signature: signed.signature
+        )))
         XCTAssertEqual(
             try signer.provisioningIdentity().publicKeyBase64,
             privateKey.publicKey.rawRepresentation.base64EncodedString()

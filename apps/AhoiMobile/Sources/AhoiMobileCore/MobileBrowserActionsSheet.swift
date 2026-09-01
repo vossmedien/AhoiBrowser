@@ -3,6 +3,7 @@ import UIKit
 import AhoiCloudKitSpike
 
 struct MobileBrowserActionsSheet: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject private var companionModel: CompanionAppModel
     @ObservedObject private var browser: MobileBrowserController
     @Binding private var isPresented: Bool
@@ -62,7 +63,13 @@ struct MobileBrowserActionsSheet: View {
             List {
                 Section {
                     LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 78, maximum: 110), spacing: 10)],
+                        columns: [GridItem(
+                            .adaptive(
+                                minimum: dynamicTypeSize.isAccessibilitySize ? 140 : 78,
+                                maximum: dynamicTypeSize.isAccessibilitySize ? 220 : 110
+                            ),
+                            spacing: 10
+                        )],
                         spacing: 10
                     ) {
                         actionTile(
@@ -108,6 +115,7 @@ struct MobileBrowserActionsSheet: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .hoverEffect(.highlight)
                             .accessibilityIdentifier("browser.actions.share")
                         }
                     }
@@ -210,6 +218,7 @@ struct MobileBrowserActionsSheet: View {
                             systemImage: "sidebar.left"
                         )
                     }
+                    .accessibilityIdentifier("browser.actions.library")
 
                     Menu {
                         Button { onSwitchWorkspace(-1) } label: {
@@ -221,6 +230,7 @@ struct MobileBrowserActionsSheet: View {
                                 systemImage: "arrow.left"
                             )
                         }
+                        .accessibilityIdentifier("browser.actions.workspace-previous")
                         Button { onSwitchWorkspace(1) } label: {
                             Label(
                                 CompanionL10n.string(
@@ -230,6 +240,7 @@ struct MobileBrowserActionsSheet: View {
                                 systemImage: "arrow.right"
                             )
                         }
+                        .accessibilityIdentifier("browser.actions.workspace-next")
                     } label: {
                         Label(
                             CompanionL10n.string(
@@ -240,12 +251,16 @@ struct MobileBrowserActionsSheet: View {
                         )
                     }
                     .disabled(companionModel.snapshot.visibleWorkspaces.isEmpty)
+                    .accessibilityIdentifier("browser.actions.workspace-switch")
 
                     if browser.selectedTab?.mode == .normal,
                        !companionModel.snapshot.visibleWorkspaces.isEmpty {
                         Menu {
                             ForEach(companionModel.snapshot.visibleWorkspaces) { workspace in
                                 Button(workspace.name) { onSaveToWorkspace(workspace) }
+                                    .accessibilityIdentifier(
+                                        "browser.actions.save-to-workspace.\(workspace.id.rawValue.uuidString.lowercased())"
+                                    )
                             }
                         } label: {
                             Label(
@@ -256,6 +271,7 @@ struct MobileBrowserActionsSheet: View {
                                 systemImage: "bookmark"
                             )
                         }
+                        .accessibilityIdentifier("browser.actions.save-to-workspace")
                     }
 
                     Button(action: onPresentHistory) {
@@ -264,6 +280,7 @@ struct MobileBrowserActionsSheet: View {
                             systemImage: "clock.arrow.circlepath"
                         )
                     }
+                    .accessibilityIdentifier("browser.actions.history")
 
                     Button(action: onPresentDownloads) {
                         Label(
@@ -275,6 +292,7 @@ struct MobileBrowserActionsSheet: View {
                             systemImage: "arrow.down.circle"
                         )
                     }
+                    .accessibilityIdentifier("browser.actions.downloads")
 
                     if isRegularWidth {
                         Button(action: onToggleSidebar) {
@@ -298,6 +316,21 @@ struct MobileBrowserActionsSheet: View {
                         )
                     }
                     .accessibilityIdentifier("browser.actions.settings")
+
+#if DEBUG
+                    if exposesMemoryPressureE2EControl {
+                        Button {
+                            NotificationCenter.default.post(
+                                name: UIApplication.didReceiveMemoryWarningNotification,
+                                object: nil
+                            )
+                            isPresented = false
+                        } label: {
+                            Label("Simulate Memory Warning", systemImage: "memorychip")
+                        }
+                        .accessibilityIdentifier("browser.e2e.memory-warning")
+                    }
+#endif
                 }
 
                 Section(CompanionL10n.string("browser.actions.data", fallback: "Privacy & Data")) {
@@ -335,11 +368,13 @@ struct MobileBrowserActionsSheet: View {
                     Button(CompanionL10n.string("action.done", fallback: "Done")) {
                         isPresented = false
                     }
+                    .accessibilityIdentifier("browser.actions.done")
                 }
             }
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .accessibilityAction(.escape) { isPresented = false }
     }
 
     private func actionTile(
@@ -351,7 +386,16 @@ struct MobileBrowserActionsSheet: View {
             actionTileLabel(title: title, systemImage: systemImage)
         }
         .buttonStyle(.plain)
+        .hoverEffect(.highlight)
     }
+
+#if DEBUG
+    private var exposesMemoryPressureE2EControl: Bool {
+        ProcessInfo.processInfo.arguments.filter {
+            $0 == "-AhoiUITestMemoryPressureControl"
+        }.count == 1
+    }
+#endif
 
     private func actionTileLabel(title: String, systemImage: String) -> some View {
         VStack(spacing: 8) {
@@ -361,7 +405,7 @@ struct MobileBrowserActionsSheet: View {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
         }
         .frame(maxWidth: .infinity, minHeight: 78)
         .padding(.horizontal, 6)

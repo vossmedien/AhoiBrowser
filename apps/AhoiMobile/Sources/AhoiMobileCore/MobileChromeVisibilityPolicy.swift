@@ -114,8 +114,8 @@ final class MobileChromeScrollReducer {
         previousEvent = baseline
     }
 
-    func resetAccumulation() {
-        visibilityPolicy.reset()
+    func invalidateBaseline() {
+        reset(baseline: nil)
     }
 
     func nextCollapsedState(
@@ -125,7 +125,13 @@ final class MobileChromeScrollReducer {
         suspended: Bool
     ) -> Bool {
         defer { previousEvent = event }
-        guard !suspended, let previousEvent else {
+        guard !suspended, event.isUserInitiated else {
+            visibilityPolicy.reset()
+            return currentlyCollapsed
+        }
+        guard let previousEvent,
+              previousEvent.isUserInitiated,
+              previousEvent.interactionID == event.interactionID else {
             visibilityPolicy.reset()
             return currentlyCollapsed
         }

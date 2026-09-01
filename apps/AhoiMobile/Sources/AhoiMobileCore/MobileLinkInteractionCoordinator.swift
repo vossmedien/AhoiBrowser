@@ -29,12 +29,19 @@ public struct MobilePendingLink: Identifiable, Equatable, Sendable {
     }
 }
 
+enum MobilePageScrollIntent: String, Equatable, Sendable {
+    case layout
+    case user
+}
+
 struct MobilePageScrollEvent: Equatable, Sendable {
     private static let maximumLayoutExtent = 10_000_000.0
     private static let maximumSourceID = 1_000_000.0
 
     let sequence: UInt64
     let sourceID: UInt32
+    let interactionID: UInt32
+    let intent: MobilePageScrollIntent
     let contentOffsetY: Double
     let contentHeight: Double
     let viewportHeight: Double
@@ -43,10 +50,14 @@ struct MobilePageScrollEvent: Equatable, Sendable {
         messageBody: [String: Any],
         sequence: UInt64
     ) {
+        let rawIntent = (messageBody["intent"] as? String) ?? "layout"
         guard let contentOffsetY = Self.validatedNumber(messageBody["offsetY"]),
               let contentHeight = Self.validatedNumber(messageBody["contentHeight"]),
               let viewportHeight = Self.validatedNumber(messageBody["viewportHeight"]),
               let sourceID = Self.validatedSourceID(messageBody["sourceID"]),
+              let interactionID = Self.validatedSourceID(messageBody["interactionID"]),
+              let intent = MobilePageScrollIntent(rawValue: rawIntent),
+              (intent == .user) == (interactionID > 0),
               contentHeight > 0,
               viewportHeight > 0 else {
             return nil
@@ -54,10 +65,14 @@ struct MobilePageScrollEvent: Equatable, Sendable {
         let maximumOffset = max(0, contentHeight - viewportHeight)
         self.sequence = sequence
         self.sourceID = sourceID
+        self.interactionID = interactionID
+        self.intent = intent
         self.contentOffsetY = min(max(0, contentOffsetY), maximumOffset)
         self.contentHeight = contentHeight
         self.viewportHeight = viewportHeight
     }
+
+    var isUserInitiated: Bool { intent == .user }
 
     func hasStableLayout(comparedTo other: Self) -> Bool {
         sourceID == other.sourceID &&
@@ -99,9 +114,8 @@ enum MobilePageScrollMessageDecoder {
     }
 }
 
-/// Captures user-initiated link actions and bounded numeric page-scroll layout
-/// telemetry. It runs in an isolated content world, never reads page text or
-/// form data, and validates every value again before crossing into UI.
+/// Captures user-initiated link actions and bounded page-scroll geometry plus
+/// anonymous gesture identity. It never reads page text or form data.
 @MainActor
 final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
     static let handlerName = "ahoiLinkActions"
@@ -266,6 +280,11 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
       let scrollFrame = 0;
       let nextScrollSourceID = 1;
       let pendingScrollTarget = null;
+      const scrollMomentumWindow = 1_200;
+      let nextScrollInteractionID = 1;
+      let activeScrollGesture = null;
+      let recentScrollGesture = null;
+      let scrollGestureTimer = 0;
 
       const sourceIDFor = element => {
         const existing = scrollSourceIDs.get(element);
@@ -274,6 +293,89 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
         nextScrollSourceID = Math.min(sourceID + 1, maximumScrollSourceID);
         scrollSourceIDs.set(element, sourceID);
         return sourceID;
+      };
+
+      const clearRecentScrollGesture = () => {
+        if (scrollGestureTimer) clearTimeout(scrollGestureTimer);
+        scrollGestureTimer = 0;
+        recentScrollGesture = null;
+      };
+
+      const clearScrollGesture = () => {
+        activeScrollGesture = null;
+        clearRecentScrollGesture();
+      };
+
+      const takeScrollInteractionID = () => {
+        const interactionID = nextScrollInteractionID;
+        nextScrollInteractionID = interactionID >= maximumScrollSourceID
+          ? 1
+          : interactionID + 1;
+        return interactionID;
+      };
+
+      const beginScrollGesture = (identifier, x, y) => {
+        clearRecentScrollGesture();
+        activeScrollGesture = {
+          identifier,
+          interactionID: takeScrollInteractionID(),
+          x,
+          y,
+          moved: false,
+          sourceID: null,
+        };
+      };
+
+      const updateScrollGesture = (identifier, x, y) => {
+        if (!activeScrollGesture || activeScrollGesture.identifier !== identifier) return;
+        if (Math.hypot(x - activeScrollGesture.x, y - activeScrollGesture.y) >= 2) {
+          activeScrollGesture.moved = true;
+        }
+      };
+
+      const finishScrollGesture = identifier => {
+        if (!activeScrollGesture || activeScrollGesture.identifier !== identifier) return;
+        if (activeScrollGesture.moved) {
+          recentScrollGesture = activeScrollGesture;
+          recentScrollGesture.expiresAt = performance.now() + scrollMomentumWindow;
+          scrollGestureTimer = setTimeout(
+            clearRecentScrollGesture,
+            scrollMomentumWindow
+          );
+        }
+        activeScrollGesture = null;
+      };
+
+      const noteWheelGesture = () => {
+        if (!recentScrollGesture || recentScrollGesture.kind !== 'wheel') {
+          clearRecentScrollGesture();
+          recentScrollGesture = {
+            kind: 'wheel',
+            interactionID: takeScrollInteractionID(),
+            moved: true,
+            sourceID: null,
+          };
+        } else if (scrollGestureTimer) {
+          clearTimeout(scrollGestureTimer);
+        }
+        recentScrollGesture.expiresAt = performance.now() + scrollMomentumWindow;
+        scrollGestureTimer = setTimeout(clearRecentScrollGesture, scrollMomentumWindow);
+      };
+
+      const scrollIntentFor = sourceID => {
+        const now = performance.now();
+        if (recentScrollGesture && now > recentScrollGesture.expiresAt) {
+          clearRecentScrollGesture();
+        }
+        const gesture = activeScrollGesture?.moved
+          ? activeScrollGesture
+          : recentScrollGesture;
+        if (!gesture) return { intent: 'layout', interactionID: 0 };
+        if (gesture.sourceID === null) gesture.sourceID = sourceID;
+        if (gesture.sourceID !== sourceID) {
+          return { intent: 'layout', interactionID: 0 };
+        }
+        return { intent: 'user', interactionID: gesture.interactionID };
       };
 
       const documentScrollMetrics = () => {
@@ -324,9 +426,12 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
         );
         const rawOffset = metrics.offsetY;
         const offsetY = Math.min(maximumOffset, Math.max(0, rawOffset));
+        const scrollIntent = scrollIntentFor(metrics.sourceID);
         bridge.postMessage({
           kind: 'scroll',
           sourceID: metrics.sourceID,
+          interactionID: scrollIntent.interactionID,
+          intent: scrollIntent.intent,
           offsetY,
           contentHeight: metrics.contentHeight,
           viewportHeight: metrics.viewportHeight,
@@ -383,34 +488,58 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
         event.stopImmediatePropagation();
       }, true);
 
+      window.addEventListener('wheel', event => {
+        if (event.isTrusted) noteWheelGesture();
+      }, { capture: true, passive: true });
+
       if ('PointerEvent' in globalThis) {
         window.addEventListener('pointerdown', event => {
           if (!event.isTrusted || !event.isPrimary || event.button !== 0) return;
           if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+          beginScrollGesture(event.pointerId, event.clientX, event.clientY);
           const url = linkForEvent(event);
           if (!url) return;
           startPress(url, event.pointerId, event.clientX, event.clientY);
         }, { capture: true, passive: true });
         window.addEventListener('pointermove', event => {
+          updateScrollGesture(event.pointerId, event.clientX, event.clientY);
           movePress(event.pointerId, event.clientX, event.clientY);
         }, { capture: true, passive: true });
-        window.addEventListener('pointerup', clearPress, {
+        window.addEventListener('pointerup', event => {
+          finishScrollGesture(event.pointerId);
+          clearPress();
+        }, {
           capture: true,
           passive: true,
         });
-        window.addEventListener('pointercancel', clearPress, {
+        window.addEventListener('pointercancel', event => {
+          finishScrollGesture(event.pointerId);
+          clearPress();
+        }, {
           capture: true,
           passive: true,
         });
       } else {
         window.addEventListener('touchstart', event => {
           if (!event.isTrusted || event.touches.length !== 1) return;
-          const url = linkForEvent(event);
           const touch = event.touches[0];
-          if (!url || !touch) return;
+          if (!touch) return;
+          beginScrollGesture(touch.identifier, touch.clientX, touch.clientY);
+          const url = linkForEvent(event);
+          if (!url) return;
           startPress(url, touch.identifier, touch.clientX, touch.clientY);
         }, { capture: true, passive: true });
         window.addEventListener('touchmove', event => {
+          const scrollingTouch = Array.from(event.touches).find(
+            candidate => candidate.identifier === activeScrollGesture?.identifier
+          );
+          if (scrollingTouch) {
+            updateScrollGesture(
+              scrollingTouch.identifier,
+              scrollingTouch.clientX,
+              scrollingTouch.clientY
+            );
+          }
           if (!activePress) return;
           const touch = Array.from(event.touches).find(
             candidate => candidate.identifier === activePress.identifier
@@ -421,11 +550,21 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
           }
           movePress(touch.identifier, touch.clientX, touch.clientY);
         }, { capture: true, passive: true });
-        window.addEventListener('touchend', clearPress, {
+        window.addEventListener('touchend', () => {
+          if (activeScrollGesture) {
+            finishScrollGesture(activeScrollGesture.identifier);
+          }
+          clearPress();
+        }, {
           capture: true,
           passive: true,
         });
-        window.addEventListener('touchcancel', clearPress, {
+        window.addEventListener('touchcancel', () => {
+          if (activeScrollGesture) {
+            finishScrollGesture(activeScrollGesture.identifier);
+          }
+          clearPress();
+        }, {
           capture: true,
           passive: true,
         });
@@ -450,6 +589,9 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
           once: true,
           passive: true,
         });
+        window.addEventListener('scrollend', () => {
+          if (!activeScrollGesture) clearRecentScrollGesture();
+        }, { capture: true, passive: true });
         scheduleScroll();
       } else {
         window.addEventListener('scroll', clearPress, {
@@ -457,9 +599,18 @@ final class MobileLinkInteractionCoordinator: NSObject, WKScriptMessageHandler {
           passive: true,
         });
       }
-      window.addEventListener('blur', clearPress, true);
-      document.addEventListener('visibilitychange', clearPress, true);
-      window.addEventListener('pagehide', clearPress, true);
+      window.addEventListener('blur', () => {
+        clearPress();
+        clearScrollGesture();
+      }, true);
+      document.addEventListener('visibilitychange', () => {
+        clearPress();
+        clearScrollGesture();
+      }, true);
+      window.addEventListener('pagehide', () => {
+        clearPress();
+        clearScrollGesture();
+      }, true);
     })();
     """#
 }

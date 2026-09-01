@@ -5,6 +5,7 @@ import AhoiCloudKitSpike
 @main
 struct AhoiMobileApp: App {
     @StateObject private var bootstrap = AhoiMobileBootstrap()
+    @StateObject private var browserCommands = MobileBrowserCommandRouter()
 
     var body: some Scene {
         WindowGroup {
@@ -17,6 +18,7 @@ struct AhoiMobileApp: App {
                         companionModel: runtime.model,
                         browser: runtime.browser
                     )
+                    .environment(\.mobileBrowserCommandRouter, browserCommands)
                 } else if let error = bootstrap.error {
                     ContentUnavailableView {
                         Label("AhoiBrowser", systemImage: "exclamationmark.triangle")
@@ -47,6 +49,9 @@ struct AhoiMobileApp: App {
                 guard !AhoiMobileProcessMode.isCloudKitE2EHost else { return }
                 bootstrap.handleExternalURL(url)
             }
+        }
+        .commands {
+            MobileBrowserSceneCommands(router: browserCommands)
         }
     }
 }
@@ -80,8 +85,23 @@ private final class AhoiMobileBootstrap: ObservableObject {
     private var isLoading = false
     private var pendingExternalURL: URL?
     private var externalOpenDeduplicator: MobileExternalOpenDeduplicator
+    private let performanceRecorder = MobileBrowserPerformanceRecorder()
+    private let performanceLaunchValidation: MobilePerformanceLaunchValidation
 
     init() {
+        let launchValidation = MobilePerformanceLaunchRequest.validate(
+            arguments: ProcessInfo.processInfo.arguments
+        )
+        performanceLaunchValidation = launchValidation
+        switch launchValidation {
+        case .valid, .invalid:
+            // Performance flags are a process-start boundary. A malformed
+            // request must not fall through to any product persistence.
+            externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+            return
+        case .notRequested:
+            break
+        }
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -112,6 +132,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
     }
 
     func handleExternalURL(_ url: URL) {
+        guard case .notRequested = performanceLaunchValidation else { return }
         let safeURL: URL
         do {
             safeURL = try MobileBrowserInputRouter.validateWebURL(url)
@@ -136,6 +157,18 @@ private final class AhoiMobileBootstrap: ObservableObject {
     }
 
     private func makeRuntime() async throws -> Runtime {
+        switch performanceLaunchValidation {
+        case .invalid:
+            throw AhoiMobileBootstrapError.invalidPerformanceLaunch
+        case let .valid(request):
+#if DEBUG
+            return try makePerformanceRuntime(request)
+#else
+            throw AhoiMobileBootstrapError.performanceLaunchRequiresDebug
+#endif
+        case .notRequested:
+            break
+        }
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -302,12 +335,39 @@ private final class AhoiMobileBootstrap: ObservableObject {
             store: FileMobileBrowserSessionStore(
                 fileURL: supportURL.appendingPathComponent("browser-session.json")
             ),
+            performanceRecorder: performanceRecorder,
             externalOpenReceiptURL: supportURL.appendingPathComponent(
                 "external-open-receipt.json"
             )
         )
         return Runtime(model: model, browser: browser)
     }
+
+#if DEBUG
+    private func makePerformanceRuntime(
+        _ request: MobilePerformanceLaunchRequest
+    ) throws -> Runtime {
+        let defaultsSuite = "app.ahoibrowser.AhoiBrowser.performance.\(request.nonce)"
+        guard let isolatedDefaults = UserDefaults(suiteName: defaultsSuite) else {
+            throw AhoiMobileBootstrapError.performanceIsolationUnavailable
+        }
+        let model = CompanionAppModel(
+            repository: LocalFirstRepository(store: InMemoryCompanionStore()),
+            defaults: isolatedDefaults
+        )
+        let downloadDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AhoiPerformanceDownloads", isDirectory: true)
+            .appendingPathComponent(request.nonce, isDirectory: true)
+        let browser = MobileBrowserController(
+            store: InMemoryMobileBrowserSessionStore(),
+            downloadCoordinator: MobileDownloadCoordinator(
+                directoryURL: downloadDirectory
+            ),
+            performanceRecorder: performanceRecorder
+        )
+        return Runtime(model: model, browser: browser)
+    }
+#endif
 
     private static func resolveKeyRotationIfRequired(
         status: CompanionKeyLifecycleStatus,
@@ -381,6 +441,23 @@ private final class AhoiMobileBootstrap: ObservableObject {
                 return durablePlan.lifecycleStatus
             }
             throw error
+        }
+    }
+}
+
+private enum AhoiMobileBootstrapError: LocalizedError {
+    case invalidPerformanceLaunch
+    case performanceLaunchRequiresDebug
+    case performanceIsolationUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidPerformanceLaunch:
+            return "The performance launch request is incomplete or inconsistent."
+        case .performanceLaunchRequiresDebug:
+            return "Performance evidence workloads require a DEBUG candidate."
+        case .performanceIsolationUnavailable:
+            return "The isolated performance runtime could not be created."
         }
     }
 }

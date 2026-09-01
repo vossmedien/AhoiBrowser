@@ -60,6 +60,28 @@ final class MobileBrowserCoreTests: XCTestCase {
     }
 
     @MainActor
+    func testUndoCloseRebindsNavigationObservationBeforeReload() throws {
+        let browser = MobileBrowserController(
+            store: InMemoryMobileBrowserSessionStore()
+        )
+        let url = try XCTUnwrap(URL(string: "https://undo-observer.example"))
+        let tabID = browser.createTab(url: url)
+
+        XCTAssertNotNil(browser.navigationObservationTasks[tabID])
+        browser.close(tabID)
+        XCTAssertNil(browser.navigationObservationTasks[tabID])
+
+        browser.undoClose()
+
+        XCTAssertEqual(browser.selectedTabID, tabID)
+        XCTAssertNotNil(
+            browser.navigationObservationTasks[tabID],
+            "A restored tab must observe in-page navigations and failures immediately."
+        )
+        browser.close(tabID)
+    }
+
+    @MainActor
     func testColdStartExternalURLWaitsForRestoreAndOpensExactlyOnce() async {
         let existing = MobileTabRecord(url: "https://restored.example")
         let store = InMemoryMobileBrowserSessionStore(snapshot: .init(
@@ -130,6 +152,7 @@ final class MobileBrowserCoreTests: XCTestCase {
             fileURL: directory.appendingPathComponent("session.json")
         )
         let normal = MobileTabRecord(
+            customTitle: "Named voyage",
             title: "Example",
             url: "https://example.com",
             createdAt: Date(timeIntervalSince1970: 1_700_000_000),
@@ -143,6 +166,29 @@ final class MobileBrowserCoreTests: XCTestCase {
         XCTAssertEqual(loaded.selectedTabID, normal.id)
     }
 
+    @MainActor
+    func testManualTabTitleSurvivesPageMetadataAndCanBeCleared() throws {
+        let browser = MobileBrowserController()
+        let tabID = browser.createTab()
+        let url = try XCTUnwrap(URL(string: "https://titles.example/document"))
+
+        browser.updateSelectedMetadata(url: url, title: "Document title")
+        browser.renameTab(tabID, title: "  Named voyage  ")
+        browser.updateSelectedMetadata(url: url, title: "Updated document title")
+
+        XCTAssertEqual(browser.selectedTab?.title, "Updated document title")
+        XCTAssertEqual(browser.selectedTab?.customTitle, "Named voyage")
+        XCTAssertEqual(browser.selectedTab?.displayTitle, "Named voyage")
+        XCTAssertEqual(browser.searchOpenTabs("Named voyage").map(\.id), [tabID])
+
+        browser.renameTab(tabID, title: String(repeating: "a", count: 200))
+        XCTAssertEqual(browser.selectedTab?.customTitle?.count, 160)
+        browser.renameTab(tabID, title: "   ")
+
+        XCTAssertNil(browser.selectedTab?.customTitle)
+        XCTAssertEqual(browser.selectedTab?.displayTitle, "Updated document title")
+    }
+
     func testLegacySessionWithoutWebsiteTintStillDecodes() throws {
         let tab = MobileTabRecord(title: "Legacy", url: "https://legacy.example")
         let encoder = JSONEncoder()
@@ -151,6 +197,7 @@ final class MobileBrowserCoreTests: XCTestCase {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .millisecondsSince1970
         let decoded = try decoder.decode(MobileTabRecord.self, from: encoded)
+        XCTAssertNil(decoded.customTitle)
         XCTAssertNil(decoded.websiteTintARGB)
         XCTAssertEqual(decoded.url, tab.url)
     }
@@ -323,6 +370,7 @@ final class MobileBrowserCoreTests: XCTestCase {
         )
         await model.load()
         let normal = MobileTabRecord(
+            customTitle: "Named voyage",
             title: "Published",
             url: "https://example.com",
             mode: .normal,
@@ -338,7 +386,7 @@ final class MobileBrowserCoreTests: XCTestCase {
         await model.reconcilePublishedMobileTabs([normal, privateTab])
         XCTAssertEqual(model.snapshot.visibleRemoteTabs.map(\.id.rawValue), [normal.id])
         XCTAssertEqual(model.snapshot.visibleRemoteTabs.first?.deviceKind, .iPad)
-        XCTAssertEqual(model.snapshot.visibleRemoteTabs.first?.title, "Published")
+        XCTAssertEqual(model.snapshot.visibleRemoteTabs.first?.title, "Named voyage")
 
         await model.reconcilePublishedMobileTabs([])
         XCTAssertTrue(model.snapshot.visibleRemoteTabs.isEmpty)
@@ -431,15 +479,62 @@ final class MobileBrowserCoreTests: XCTestCase {
         original.httpBody = Data(#"{"format":"pdf"}"#.utf8)
 
         var tracker = MobileNavigationRequestTracker()
-        tracker.record(original)
+        tracker.record(
+            original,
+            sourceOrigin: "https://frame.example",
+            isMainFrame: true
+        )
         let retained = try XCTUnwrap(tracker.take(matching: original.url))
 
-        XCTAssertEqual(retained.url, original.url)
-        XCTAssertEqual(retained.httpMethod, "POST")
-        XCTAssertEqual(retained.value(forHTTPHeaderField: "Content-Type"), "application/json")
-        XCTAssertEqual(retained.value(forHTTPHeaderField: "X-Ahoi-Token"), "request-token")
-        XCTAssertEqual(retained.httpBody, original.httpBody)
+        XCTAssertEqual(retained.request.url, original.url)
+        XCTAssertEqual(retained.request.httpMethod, "POST")
+        XCTAssertEqual(
+            retained.request.value(forHTTPHeaderField: "Content-Type"),
+            "application/json"
+        )
+        XCTAssertEqual(
+            retained.request.value(forHTTPHeaderField: "X-Ahoi-Token"),
+            "request-token"
+        )
+        XCTAssertEqual(retained.request.httpBody, original.httpBody)
+        XCTAssertEqual(
+            retained.sourceOrigin,
+            "https://frame.example",
+            "A response-triggered download must retain its initiating frame origin."
+        )
+        XCTAssertTrue(retained.isMainFrame)
         XCTAssertNil(tracker.take(matching: original.url))
+    }
+
+    func testNavigationRequestTrackerRetainsFrameIdentityAndRejectsAmbiguousMatches() throws {
+        let subframeURL = try XCTUnwrap(URL(string: "https://example.com/frame"))
+        var tracker = MobileNavigationRequestTracker()
+        tracker.record(
+            URLRequest(url: subframeURL),
+            sourceOrigin: "https://example.com",
+            isMainFrame: false
+        )
+
+        let retainedSubframe = try XCTUnwrap(tracker.take(matching: subframeURL))
+        XCTAssertFalse(retainedSubframe.isMainFrame)
+
+        let sharedURL = try XCTUnwrap(URL(string: "https://example.com/shared"))
+        tracker.record(
+            URLRequest(url: sharedURL),
+            sourceOrigin: "https://example.com",
+            isMainFrame: true
+        )
+        tracker.record(
+            URLRequest(url: sharedURL),
+            sourceOrigin: "https://frame.example",
+            isMainFrame: false
+        )
+
+        XCTAssertNil(
+            tracker.take(matching: sharedURL),
+            "A response without a unique action match must never be assumed to be main-frame."
+        )
+        XCTAssertTrue(tracker.requestsAwaitingResponse.isEmpty)
     }
 
     func testDownloadRecordCarriesVisibleOriginAndByteProgress() throws {

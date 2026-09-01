@@ -34,6 +34,7 @@ public struct CompanionSettingsView: View {
                             Text(engine.localizedName).tag(engine.rawValue)
                         }
                     }
+                    .accessibilityIdentifier("settings.search.engine")
                 } header: {
                     Text(CompanionL10n.string(
                         "settings.browser.section",
@@ -75,6 +76,9 @@ public struct CompanionSettingsView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("settings.sync.key-lifecycle")
                     .accessibilityValue(Text(model.keyLifecycleStatus.localizedSummary))
+                    if let evidence = model.syncVisibleEvidence {
+                        CompanionSyncVisibleEvidenceView(evidence: evidence)
+                    }
                     if let status = model.syncStatus {
                         Text(status.detail)
                             .font(.caption)
@@ -392,7 +396,7 @@ public struct CompanionSettingsView: View {
                     ForEach(model.recentRemoteCommands) { item in
                         VStack(alignment: .leading, spacing: 3) {
                             Text(item.action)
-                            Text(commandStatusText(item.status))
+                            Text(commandStatusText(item))
                                 .font(.caption)
                                 .foregroundStyle(item.status == .failed ? .red : .secondary)
                             if !item.resultCode.isEmpty {
@@ -604,6 +608,7 @@ public struct CompanionSettingsView: View {
             }
             .task {
                 await model.loadDeviceRevocationUITestFixtureIfRequested()
+                await model.loadSyncVisibleUITestConflictIfRequested()
             }
         }
     }
@@ -688,8 +693,11 @@ public struct CompanionSettingsView: View {
         } ?? CompanionL10n.string("sync.state.ready", fallback: "Ready")
     }
 
-    private func commandStatusText(_ status: RemoteCommandStatus) -> String {
-        switch status {
+    private func commandStatusText(_ item: CompanionRemoteCommandStatusItem) -> String {
+        if item.isExpired {
+            return CompanionL10n.string("remote.state.expired", fallback: "Expired")
+        }
+        return switch item.status {
         case .queued:
             CompanionL10n.string("remote.state.queued", fallback: "Queued")
         case .delivered:

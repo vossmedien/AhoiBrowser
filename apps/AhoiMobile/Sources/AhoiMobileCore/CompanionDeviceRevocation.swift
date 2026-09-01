@@ -177,21 +177,23 @@ extension CompanionSyncBridge {
     }
 
     @discardableResult
-    public func deleteRemoteControlIdentity() throws -> RemoteControlProvisioningIdentity {
+    public func deleteRemoteControlIdentity() async throws -> RemoteControlProvisioningIdentity {
         guard let commandSigner else {
             throw CompanionDeviceRevocationError.localSignerUnavailable
         }
         let archived = try commandSigner.deleteIdentity()
         commandStates.removeAll(keepingCapacity: false)
+        try await clearRemoteCommandOwnership()
         return archived
     }
 
-    public func rotateRemoteControlIdentity() throws -> RemoteControlProvisioningIdentity {
+    public func rotateRemoteControlIdentity() async throws -> RemoteControlProvisioningIdentity {
         guard let commandSigner else {
             throw CompanionDeviceRevocationError.localSignerUnavailable
         }
         let identity = try commandSigner.rotateIdentity()
         commandStates.removeAll(keepingCapacity: false)
+        try await clearRemoteCommandOwnership()
         return identity
     }
 }
@@ -236,9 +238,9 @@ public extension CompanionAppModel {
             }
             do {
                 _ = try await bridge.deleteRemoteControlIdentity()
-                remoteControlIdentity = nil
+                applyDeletedRemoteControlIdentityState()
             } catch {
-                loadError = error.localizedDescription
+                presentOperationFailure(error)
                 return nil
             }
         }
@@ -250,9 +252,8 @@ public extension CompanionAppModel {
                 revokedBy: authorDeviceID
             )
             snapshot = try await repository.currentSnapshot()
-            cancelRemoteCommandFollowUp(targeting: deviceID)
         } catch {
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
             return nil
         }
 
@@ -265,7 +266,7 @@ public extension CompanionAppModel {
             } catch {
                 // The local tombstone is already durable and will seed the
                 // encrypted outbox on a later healthy sync activation.
-                loadError = error.localizedDescription
+                presentOperationFailure(error)
             }
         }
         snapshot = (try? await repository.currentSnapshot()) ?? snapshot
@@ -294,15 +295,19 @@ public extension CompanionAppModel {
         }
         do {
             _ = try await bridge.deleteRemoteControlIdentity()
-            remoteControlIdentity = nil
-            resetRemoteCommandPresentation()
+            applyDeletedRemoteControlIdentityState()
             remoteCommandStatus = CompanionL10n.string(
                 "settings.remote.deleted",
                 fallback: "The local signing key was deleted. Remote commands are blocked."
             )
             loadError = nil
         } catch {
-            loadError = error.localizedDescription
+            // Keychain mutation is deliberately marker-first. A thrown delete
+            // can therefore mean that revocation is already durable even when
+            // private-byte cleanup or readback failed. Never leave commands or
+            // an expiry task presented across that ambiguous boundary.
+            applyDeletedRemoteControlIdentityState()
+            presentOperationFailure(error)
         }
     }
 
@@ -321,24 +326,21 @@ public extension CompanionAppModel {
             )
             loadError = nil
         } catch {
-            remoteControlIdentity = nil
-            loadError = error.localizedDescription
+            // Rotation also commits the revocation marker before replacement.
+            // Any partial failure is fail-closed until load can prove an active
+            // identity again; stale commands must not survive the key boundary.
+            applyDeletedRemoteControlIdentityState()
+            presentOperationFailure(error)
         }
     }
 
-    private func cancelRemoteCommandFollowUp(targeting deviceID: DeviceID) {
-        let commandIDs = recentRemoteCommands.lazy
-            .filter { $0.targetDeviceID == deviceID }
-            .map(\.id)
-        for commandID in commandIDs {
-            commandFollowUpTasks[commandID]?.cancel()
-            commandFollowUpTasks[commandID] = nil
-        }
+    func applyDeletedRemoteControlIdentityState() {
+        remoteControlIdentity = nil
+        resetRemoteCommandPresentation()
     }
 
     private func resetRemoteCommandPresentation() {
-        commandFollowUpTasks.values.forEach { $0.cancel() }
-        commandFollowUpTasks.removeAll()
+        cancelRemoteCommandExpiryRefresh()
         commandLabels.removeAll()
         recentRemoteCommands.removeAll()
     }
@@ -396,7 +398,7 @@ extension CompanionAppModel {
             snapshot = try await repository.currentSnapshot()
             loadError = nil
         } catch {
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
         }
 #endif
     }

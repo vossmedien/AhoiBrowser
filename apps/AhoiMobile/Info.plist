@@ -24,6 +24,8 @@
 	<string>$(AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN)</string>
 	<key>AhoiCloudKitE2ERunToken</key>
 	<string>$(AHOI_CLOUDKIT_E2E_RUN_TOKEN)</string>
+	<key>AhoiOptimizationLevel</key>
+	<string>$(SWIFT_OPTIMIZATION_LEVEL)</string>
 	<key>AhoiSourceCommit</key>
 	<string>$(AHOI_SOURCE_COMMIT)</string>
 	<key>CFBundleDevelopmentRegion</key>

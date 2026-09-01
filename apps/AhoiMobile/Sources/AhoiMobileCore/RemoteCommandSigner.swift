@@ -26,15 +26,40 @@ public struct RemoteControlProvisioningIdentity: Equatable, Sendable {
     }
 }
 
+public extension RemoteControlProvisioningIdentity {
+    func verify(_ envelope: SignedRemoteCommand) throws -> Bool {
+        guard envelope.payload.sourceDeviceID == sourceDeviceID else { return false }
+#if canImport(CryptoKit)
+        guard let publicKey = Data(base64Encoded: publicKeyBase64) else { return false }
+        let verifier = try Curve25519.Signing.PublicKey(rawRepresentation: publicKey)
+        return verifier.isValidSignature(
+            envelope.signature,
+            for: try envelope.payload.canonicalData()
+        )
+#else
+        throw RemoteCommandSignerError.unavailable
+#endif
+    }
+}
+
 public protocol RemoteCommandSigning: Sendable {
     var sourceDeviceID: DeviceID { get }
     func makeNonce() throws -> Data
     func sign(_ payload: RemoteCommandPayload) throws -> SignedRemoteCommand
+    func verify(_ envelope: SignedRemoteCommand) throws -> Bool
     func provisioningIdentity() throws -> RemoteControlProvisioningIdentity
     func identityIsRevoked() throws -> Bool
     @discardableResult
     func deleteIdentity() throws -> RemoteControlProvisioningIdentity
     func rotateIdentity() throws -> RemoteControlProvisioningIdentity
+}
+
+public extension RemoteCommandSigning {
+    /// Verifies only with the public provisioning identity. Implementations do
+    /// not need to expose or reload private signing bytes for restore/import.
+    func verify(_ envelope: SignedRemoteCommand) throws -> Bool {
+        try provisioningIdentity().verify(envelope)
+    }
 }
 
 public struct RemoteCommandKeyConfiguration: Equatable, Sendable {

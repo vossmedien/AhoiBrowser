@@ -47,6 +47,7 @@ struct MobileAddressCommandSheet: View {
                     .onSubmit(commitAddress)
                     .textFieldStyle(.roundedBorder)
                     .font(.title3)
+                    .accessibilityIdentifier("browser.address.field")
                     .focused($addressFieldFocused)
                     .onAppear {
                         addressFieldFocused = true
@@ -113,6 +114,7 @@ struct MobileAddressCommandSheet: View {
         }
         .presentationDetents([.medium, .large])
         .modifier(MobileAddressPresentationSizing(isRegularWidth: horizontalSizeClass == .regular))
+        .accessibilityAction(.escape) { isPresented = false }
     }
 
     private func selectAllAddressText() {

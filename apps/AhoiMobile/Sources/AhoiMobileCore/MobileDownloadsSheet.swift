@@ -43,10 +43,16 @@ struct MobileDownloadsSheet: View {
                                    download.status == .starting || download.status == .downloading {
                                     ProgressView(value: fraction)
                                         .accessibilityValue(Text(downloadStatus(download)))
+                                        .accessibilityIdentifier(
+                                            "browser.downloads.progress.\(download.id.uuidString.lowercased())"
+                                        )
                                 }
                                 Text(downloadStatus(download))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier(
+                                        "browser.downloads.status.\(download.id.uuidString.lowercased())"
+                                    )
                             }
                             Spacer()
                             if download.status == .completed, let destination = download.destinationURL {
@@ -59,35 +65,68 @@ struct MobileDownloadsSheet: View {
                                     "browser.download.open",
                                     fallback: "Open download"
                                 ))
+                                .accessibilityIdentifier(
+                                    "browser.downloads.open.\(download.id.uuidString.lowercased())"
+                                )
                                 ShareLink(item: destination) {
                                     Image(systemName: "square.and.arrow.up")
                                 }
+                                .accessibilityIdentifier(
+                                    "browser.downloads.share.\(download.id.uuidString.lowercased())"
+                                )
                             } else if download.status == .starting || download.status == .downloading {
                                 Button(role: .destructive) { downloads.cancel(download.id) } label: {
                                     Image(systemName: "xmark.circle")
                                 }
+                                .accessibilityLabel(CompanionL10n.string(
+                                    "browser.download.cancel",
+                                    fallback: "Cancel download"
+                                ))
+                                .accessibilityIdentifier(
+                                    "browser.downloads.cancel.\(download.id.uuidString.lowercased())"
+                                )
                             }
                         }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier(
+                            "browser.downloads.row.\(download.id.uuidString.lowercased())"
+                        )
                     }
                 }
             }
             .navigationTitle(CompanionL10n.string("browser.downloads", fallback: "Downloads"))
+            .safeAreaInset(edge: .top) {
+                if let recoveryError = downloads.recoveryErrorMessage {
+                    Label(recoveryError, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.red)
+                        .accessibilityIdentifier("browser.downloads.recovery-error")
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(CompanionL10n.string("action.done", fallback: "Done")) {
                         isPresented = false
                     }
+                    .accessibilityIdentifier("browser.downloads.done")
                 }
                 if visibleDownloads.contains(where: { [.completed, .failed, .cancelled].contains($0.status) }) {
                     ToolbarItem(placement: .primaryAction) {
                         Button(CompanionL10n.string("action.clear", fallback: "Clear")) {
                             downloads.removeFinished(isPrivate: mode == .privateBrowsing)
                         }
+                        .accessibilityIdentifier("browser.downloads.clear")
                     }
                 }
             }
         }
+        .accessibilityIdentifier("browser.downloads.sheet")
         .quickLookPreview($previewURL)
+        .accessibilityAction(.escape) { isPresented = false }
     }
 
     private var visibleDownloads: [MobileDownloadRecord] {

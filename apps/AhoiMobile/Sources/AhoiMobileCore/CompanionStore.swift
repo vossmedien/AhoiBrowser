@@ -4,7 +4,7 @@ import AhoiCloudKitSpike
 public actor LocalFirstRepository {
     private let store: any LocalCompanionStore
     private let searchIndex = LocalSearchIndex()
-    private let localDeviceID: DeviceID
+    let localDeviceID: DeviceID
     private var clock: HybridLogicalClock
     var snapshot: CompanionSnapshot = .empty
     private var persistedSnapshot: CompanionSnapshot = .empty

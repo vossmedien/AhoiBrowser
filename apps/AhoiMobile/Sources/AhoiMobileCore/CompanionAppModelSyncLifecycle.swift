@@ -46,7 +46,7 @@ extension CompanionAppModel {
             if isCurrentSyncIntent(intentGeneration) {
                 keyLifecycleStatus = .recovery(reason: .keychainFailure, keyVersion: nil)
                 isSyncConfigured = false
-                loadError = error.localizedDescription
+                presentOperationFailure(error)
             }
             finishSyncActivation(for: intentGeneration)
             return
@@ -102,7 +102,7 @@ extension CompanionAppModel {
                 return
             }
             remoteControlIdentity = nil
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
         }
         guard isCurrentSyncIntent(intentGeneration),
               isCurrentSyncRuntime(runtime.provider, generation: runtimeGeneration) else {
@@ -125,6 +125,7 @@ extension CompanionAppModel {
         syncProvider = nil
         syncBridge = nil
         providerPrepared = false
+        clearSyncVisibleUITestRuntime()
         resetDisabledSyncPresentation()
 
         if let providerToCancel {
@@ -138,6 +139,7 @@ extension CompanionAppModel {
     }
 
     private func resetDisabledSyncPresentation() {
+        cancelRemoteCommandExpiryRefresh()
         isSyncConfigured = false
         syncStatus = nil
         syncSafetyState = .init()
@@ -145,8 +147,6 @@ extension CompanionAppModel {
         remoteControlIdentity = nil
         remoteCommandStatus = nil
         recentRemoteCommands = []
-        commandFollowUpTasks.values.forEach { $0.cancel() }
-        commandFollowUpTasks.removeAll()
         commandLabels.removeAll()
         keyLifecycleStatus = .disabled
         loadError = nil

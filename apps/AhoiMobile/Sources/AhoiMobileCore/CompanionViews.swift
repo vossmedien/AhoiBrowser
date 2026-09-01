@@ -6,6 +6,15 @@ private func L(_ key: String, _ fallback: String) -> String {
     CompanionL10n.string(key, fallback: fallback)
 }
 
+private func stableUUID(_ id: UUID) -> String {
+    id.uuidString.lowercased()
+}
+
+private func stableMoveTarget(_ target: CompanionTreeMoveTarget) -> String {
+    let parent = target.parentID.map { stableUUID($0.rawValue) } ?? "root"
+    return "\(stableUUID(target.workspaceID.rawValue)).\(parent)"
+}
+
 public struct CompanionRootView: View {
     @ObservedObject private var model: CompanionAppModel
     @Environment(\.openURL) private var systemOpenURL
@@ -48,14 +57,23 @@ public struct CompanionRootView: View {
                             Text(workspace.name)
                         }
                         .tag(workspace.id)
+                        .accessibilityIdentifier(
+                            "browser.library.workspace.\(stableUUID(workspace.id.rawValue))"
+                        )
                         .contextMenu {
                             Button(L("action.rename", "Rename")) {
                                 renameDraft = workspace.name
                                 workspacePendingRename = workspace
                             }
+                            .accessibilityIdentifier(
+                                "browser.library.workspace.rename.\(stableUUID(workspace.id.rawValue))"
+                            )
                             Button(L("workspace.delete", "Delete workspace"), role: .destructive) {
                                 workspacePendingDeletion = workspace.id
                             }
+                            .accessibilityIdentifier(
+                                "browser.library.workspace.delete.\(stableUUID(workspace.id.rawValue))"
+                            )
                         }
                     }
                 }
@@ -99,7 +117,71 @@ public struct CompanionRootView: View {
             }
             .scrollContentBackground(.hidden)
             .background(accentTint.opacity(0.055))
+            .accessibilityIdentifier("browser.library.root")
             .navigationTitle("AhoiBrowser")
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Menu {
+                        Button(L("workspace.title", "Workspace")) { beginCreation(.workspace) }
+                            .accessibilityIdentifier("browser.library.create.workspace")
+                        Button(L("folder.title", "Folder")) { beginCreation(.folder) }
+                            .disabled(selectedWorkspaceID == nil)
+                            .accessibilityIdentifier("browser.library.create.folder")
+                        Button(L("saved_page.title", "Saved page")) { beginCreation(.savedPage) }
+                            .disabled(selectedWorkspaceID == nil)
+                            .accessibilityIdentifier("browser.library.create.saved-page")
+                        Divider()
+                        Toggle(L("settings.sync.enabled", "CloudKit sync"), isOn: $syncEnabled)
+                        if syncEnabled && !model.isSyncConfigured {
+                            Text(L(
+                                "settings.sync.configuration_short",
+                                "Apple configuration or encryption key is missing"
+                            ))
+                        }
+                    } label: {
+                        Label(L("action.manage", "Manage"), systemImage: "plus.circle")
+                    }
+                    .accessibilityIdentifier("browser.library.manage")
+                }
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        Task { await model.sync() }
+                    } label: {
+                        Label(L("action.sync_now", "Sync now"), systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .accessibilityHint(L(
+                        "sync.action.hint",
+                        "Starts a CloudKit sync when a provider is configured."
+                    ))
+                    .disabled(!model.isSyncConfigured)
+                }
+                ToolbarItemGroup(placement: .automatic) {
+                    Button {
+                        sendLinkPresented = true
+                    } label: {
+                        Label(
+                            CompanionL10n.string(
+                                "send_link.title",
+                                fallback: "Send link"
+                            ),
+                            systemImage: "paperplane"
+                        )
+                    }
+                    .disabled(!model.isRemoteControlAvailable || remoteDevices.isEmpty)
+
+                    Button {
+                        settingsPresented = true
+                    } label: {
+                        Label(
+                            CompanionL10n.string(
+                                "settings.title",
+                                fallback: "Settings"
+                            ),
+                            systemImage: "gearshape"
+                        )
+                    }
+                }
+            }
             .overlay {
                 if model.snapshot.visibleWorkspaces.isEmpty && model.snapshot.visibleRemoteTabs.isEmpty {
                     Text(L("root.empty", "No synced data yet"))
@@ -144,6 +226,14 @@ public struct CompanionRootView: View {
                                 parentID: target.parentID
                             )
                         }
+                    },
+                    onReorderNode: { node, successorID in
+                        Task {
+                            await model.reorderTreeNode(
+                                node.id,
+                                before: successorID
+                            )
+                        }
                     }
                 )
             } else {
@@ -163,67 +253,9 @@ public struct CompanionRootView: View {
             placement: .sidebar,
             prompt: L("search.prompt", "Workspaces, tabs, history")
         )
+        .accessibilityIdentifier("browser.library.search")
         .onChange(of: query) { _, value in
             Task { await model.refreshSearch(query: value) }
-        }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Menu {
-                    Button(L("workspace.title", "Workspace")) { beginCreation(.workspace) }
-                    Button(L("folder.title", "Folder")) { beginCreation(.folder) }
-                        .disabled(selectedWorkspaceID == nil)
-                    Button(L("saved_page.title", "Saved page")) { beginCreation(.savedPage) }
-                        .disabled(selectedWorkspaceID == nil)
-                    Divider()
-                    Toggle(L("settings.sync.enabled", "CloudKit sync"), isOn: $syncEnabled)
-                    if syncEnabled && !model.isSyncConfigured {
-                        Text(L(
-                            "settings.sync.configuration_short",
-                            "Apple configuration or encryption key is missing"
-                        ))
-                    }
-                } label: {
-                    Label(L("action.manage", "Manage"), systemImage: "plus.circle")
-                }
-            }
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    Task { await model.sync() }
-                } label: {
-                    Label(L("action.sync_now", "Sync now"), systemImage: "arrow.triangle.2.circlepath")
-                }
-                .accessibilityHint(L(
-                    "sync.action.hint",
-                    "Starts a CloudKit sync when a provider is configured."
-                ))
-                .disabled(!model.isSyncConfigured)
-            }
-            ToolbarItemGroup(placement: .automatic) {
-                Button {
-                    sendLinkPresented = true
-                } label: {
-                    Label(
-                        CompanionL10n.string(
-                            "send_link.title",
-                            fallback: "Send link"
-                        ),
-                        systemImage: "paperplane"
-                    )
-                }
-                .disabled(!model.isRemoteControlAvailable || remoteDevices.isEmpty)
-
-                Button {
-                    settingsPresented = true
-                } label: {
-                    Label(
-                        CompanionL10n.string(
-                            "settings.title",
-                            fallback: "Settings"
-                        ),
-                        systemImage: "gearshape"
-                    )
-                }
-            }
         }
         .task {
             await model.load()
@@ -231,11 +263,15 @@ public struct CompanionRootView: View {
         }
         .alert(creationTitle, isPresented: creationPresented) {
             TextField(L("field.name", "Name"), text: $draftTitle)
+                .accessibilityIdentifier("browser.library.create.name")
             if creationKind == .savedPage {
                 TextField("https://…", text: $draftURL)
+                    .accessibilityIdentifier("browser.library.create.url")
             }
             Button(L("action.cancel", "Cancel"), role: .cancel) { resetCreation() }
+                .accessibilityIdentifier("browser.library.create.cancel")
             Button(L("action.create", "Create")) { commitCreation() }
+                .accessibilityIdentifier("browser.library.create.confirm")
         }
         .confirmationDialog(
             L("workspace.delete.confirmation", "Delete workspace and its tree?"),
@@ -250,9 +286,11 @@ public struct CompanionRootView: View {
                 Task { await model.deleteWorkspace(id) }
                 workspacePendingDeletion = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.delete.confirm")
             Button(L("action.cancel", "Cancel"), role: .cancel) {
                 workspacePendingDeletion = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.delete.cancel")
         }
         .alert(
             L("workspace.rename", "Rename workspace"),
@@ -262,20 +300,28 @@ public struct CompanionRootView: View {
             )
         ) {
             TextField(L("field.name", "Name"), text: $renameDraft)
+                .accessibilityIdentifier("browser.library.workspace.rename.field")
             Button(L("action.cancel", "Cancel"), role: .cancel) {
                 workspacePendingRename = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.rename.cancel")
             Button(L("action.save", "Save")) {
                 guard let workspace = workspacePendingRename else { return }
                 Task { await model.renameWorkspace(workspace.id, name: renameDraft) }
                 workspacePendingRename = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.rename.save")
         }
         .sheet(isPresented: $settingsPresented) {
             CompanionSettingsView(model: model, syncEnabled: $syncEnabled)
         }
         .sheet(isPresented: $sendLinkPresented) {
             CompanionSendLinkView(model: model)
+        }
+        .safeAreaInset(edge: .top) {
+            if let message = model.loadError {
+                CompanionOperationErrorBanner(message: message, dismiss: model.dismissLoadError)
+            }
         }
     }
 
@@ -386,6 +432,7 @@ public struct WorkspaceDetailView: View {
     public let onDeleteNode: ((TreeNode) -> Void)?
     public let onRenameNode: ((TreeNode, String) -> Void)?
     public let onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)?
+    public let onReorderNode: ((TreeNode, TreeNodeID?) -> Void)?
     @State private var nodePendingRename: TreeNode?
     @State private var nodePendingDeletion: TreeNode?
     @State private var renameDraft = ""
@@ -403,7 +450,8 @@ public struct WorkspaceDetailView: View {
         onRemoteClose: ((RemoteTab) -> Void)? = nil,
         onDeleteNode: ((TreeNode) -> Void)? = nil,
         onRenameNode: ((TreeNode, String) -> Void)? = nil,
-        onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)? = nil
+        onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)? = nil,
+        onReorderNode: ((TreeNode, TreeNodeID?) -> Void)? = nil
     ) {
         self.workspace = workspace
         self.nodes = nodes
@@ -418,6 +466,7 @@ public struct WorkspaceDetailView: View {
         self.onDeleteNode = onDeleteNode
         self.onRenameNode = onRenameNode
         self.onMoveNode = onMoveNode
+        self.onReorderNode = onReorderNode
     }
 
     public var body: some View {
@@ -431,6 +480,9 @@ public struct WorkspaceDetailView: View {
                                 nodePendingRename = item.node
                             }
                             .disabled(onRenameNode == nil)
+                            .accessibilityIdentifier(
+                                "browser.library.node.rename.\(stableUUID(item.node.id.rawValue))"
+                            )
                             Menu(CompanionL10n.string(
                                 "tree.move",
                                 fallback: "Move to"
@@ -440,13 +492,42 @@ public struct WorkspaceDetailView: View {
                                         onMoveNode?(item.node, target)
                                     }
                                     .disabled(isInvalidMoveTarget(target, for: item.node))
+                                    .accessibilityIdentifier(
+                                        "browser.library.node.move-target.\(stableMoveTarget(target))"
+                                    )
                                 }
                             }
                             .disabled(onMoveNode == nil)
+                            .accessibilityIdentifier(
+                                "browser.library.node.move.\(stableUUID(item.node.id.rawValue))"
+                            )
+                            Button(L("tree.move_up", "Move up")) {
+                                onReorderNode?(
+                                    item.node,
+                                    successorWhenMovingUp(item.node)
+                                )
+                            }
+                            .disabled(!canMoveUp(item.node) || onReorderNode == nil)
+                            .accessibilityIdentifier(
+                                "browser.library.node.move-up.\(stableUUID(item.node.id.rawValue))"
+                            )
+                            Button(L("tree.move_down", "Move down")) {
+                                onReorderNode?(
+                                    item.node,
+                                    successorWhenMovingDown(item.node)
+                                )
+                            }
+                            .disabled(!canMoveDown(item.node) || onReorderNode == nil)
+                            .accessibilityIdentifier(
+                                "browser.library.node.move-down.\(stableUUID(item.node.id.rawValue))"
+                            )
                             Button(L("action.delete", "Delete"), role: .destructive) {
                                 nodePendingDeletion = item.node
                             }
                             .disabled(onDeleteNode == nil)
+                            .accessibilityIdentifier(
+                                "browser.library.node.delete.\(stableUUID(item.node.id.rawValue))"
+                            )
                         }
                 }
             }
@@ -472,6 +553,9 @@ public struct WorkspaceDetailView: View {
                 }
             }
         }
+        .accessibilityIdentifier(
+            "browser.library.workspace-detail.\(stableUUID(workspace.id.rawValue))"
+        )
         .navigationTitle(workspace.name)
         .alert(
             L("tree.rename", "Rename item"),
@@ -481,14 +565,17 @@ public struct WorkspaceDetailView: View {
             )
         ) {
             TextField(L("field.name", "Name"), text: $renameDraft)
+                .accessibilityIdentifier("browser.library.node.rename.field")
             Button(L("action.cancel", "Cancel"), role: .cancel) {
                 nodePendingRename = nil
             }
+            .accessibilityIdentifier("browser.library.node.rename.cancel")
             Button(L("action.save", "Save")) {
                 guard let node = nodePendingRename else { return }
                 onRenameNode?(node, renameDraft)
                 nodePendingRename = nil
             }
+            .accessibilityIdentifier("browser.library.node.rename.save")
         }
         .confirmationDialog(
             nodePendingDeletion.map {
@@ -509,9 +596,11 @@ public struct WorkspaceDetailView: View {
                 nodePendingDeletion = nil
                 onDeleteNode?(node)
             }
+            .accessibilityIdentifier("browser.library.node.delete.confirm")
             Button(L("action.cancel", "Cancel"), role: .cancel) {
                 nodePendingDeletion = nil
             }
+            .accessibilityIdentifier("browser.library.node.delete.cancel")
         } message: {
             Text(CompanionL10n.string(
                 "tree.delete.message",
@@ -554,6 +643,35 @@ public struct WorkspaceDetailView: View {
             return left.syncSortKey < right.syncSortKey
         }
         return left.id < right.id
+    }
+
+    private func orderedSiblings(of node: TreeNode) -> [TreeNode] {
+        nodes.filter {
+            $0.workspaceID == node.workspaceID && $0.parentID == node.parentID
+        }.sorted(by: nodeOrder)
+    }
+
+    private func canMoveUp(_ node: TreeNode) -> Bool {
+        orderedSiblings(of: node).first?.id != node.id
+    }
+
+    private func canMoveDown(_ node: TreeNode) -> Bool {
+        orderedSiblings(of: node).last?.id != node.id
+    }
+
+    private func successorWhenMovingUp(_ node: TreeNode) -> TreeNodeID? {
+        let siblings = orderedSiblings(of: node)
+        guard let index = siblings.firstIndex(where: { $0.id == node.id }),
+              index > 0 else { return node.id }
+        return siblings[index - 1].id
+    }
+
+    private func successorWhenMovingDown(_ node: TreeNode) -> TreeNodeID? {
+        let siblings = orderedSiblings(of: node)
+        guard let index = siblings.firstIndex(where: { $0.id == node.id }),
+              index + 1 < siblings.count else { return node.id }
+        let successorIndex = index + 2
+        return successorIndex < siblings.count ? siblings[successorIndex].id : nil
     }
 
     private func isInvalidMoveTarget(
@@ -609,6 +727,11 @@ private struct TreeNodeRow: View {
         }
         .buttonStyle(.plain)
         .disabled(node.kind == .folder || node.url == nil)
+        .accessibilityIdentifier(
+            node.kind == .folder
+                ? "browser.library.folder.\(stableUUID(node.id.rawValue))"
+                : "browser.library.saved-page.\(stableUUID(node.id.rawValue))"
+        )
     }
 }
 
@@ -665,7 +788,11 @@ private struct SearchResultsView: View {
             }
             .buttonStyle(.plain)
             .disabled(result.url == nil)
+            .accessibilityIdentifier(
+                "browser.library.search-result.\(result.kind.rawValue).\(stableUUID(result.id))"
+            )
         }
+        .accessibilityIdentifier("browser.library.search-results")
         .navigationTitle(L("search.title", "Search"))
     }
 }

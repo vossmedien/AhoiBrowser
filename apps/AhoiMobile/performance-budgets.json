@@ -1,0 +1,540 @@
+{
+  "amendmentPolicy": "Create a reviewed new budgetVersion before measuring a new feature-freeze candidate; never edit thresholds to make an observed candidate pass.",
+  "budgetVersion": "2026-09-01-pre-freeze-v2",
+  "candidatePolicy": {
+    "bundleId": "app.ahoibrowser.AhoiBrowser",
+    "captureMode": "record",
+    "captureStatus": "CAPTURED_RAW_EVIDENCE",
+    "cleanHostRequired": true,
+    "deviceKind": "physical",
+    "hostCleanliness": {
+      "maximumLoadPerLogicalCPU": 1.0,
+      "maximumSingleForeignProcessCPUPercent": 80.0,
+      "maximumTotalForeignCPUPercentPerLogicalCPU": 75.0
+    },
+    "platform": "iOS",
+    "requiredBuildMode": "PerformanceDevelopment",
+    "requiredOptimizationLevel": "-O",
+    "signingTeamIdentifier": "248AJ5BN47",
+    "simulatorOnlyAccepted": false,
+    "strictCodeSignatureRequired": true
+  },
+  "frozenBeforeFeatureCandidate": true,
+  "frozenAtBaseCommit": "7265d734e529f91f92c9b0feb57f61ad393aa6c9",
+  "frozenOn": "2026-09-01",
+  "kind": "mobile-performance-budgets",
+  "metrics": [
+    {
+      "condition": {
+        "cacheState": "cold",
+        "journey": "process-launch-to-first-browser-surface"
+      },
+      "description": "Cold operating-system launch to the first usable browser surface.",
+      "id": "launch.cold.duration_ms",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "launch-cold"
+      ],
+      "thresholds": {
+        "maximumMean": 2500,
+        "maximumP95": 3000,
+        "maximumSample": 3500
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "cacheState": "warm",
+        "journey": "process-launch-to-first-browser-surface"
+      },
+      "description": "Warm-cache relaunch to the first usable browser surface.",
+      "id": "launch.warm.duration_ms",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "launch-warm-cache"
+      ],
+      "thresholds": {
+        "maximumMean": 1000,
+        "maximumP95": 1300,
+        "maximumSample": 1600
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "journey": "browser-session-ready",
+        "storage": "normal-session"
+      },
+      "description": "Controller session readiness from the privacy-safe app performance log.",
+      "id": "session.ready.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "launch-cold",
+        "launch-warm-cache"
+      ],
+      "thresholds": {
+        "maximumMean": 1500,
+        "maximumP95": 2500,
+        "maximumSample": 3000
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "journey": "background-session-flush",
+        "result": "success"
+      },
+      "description": "Successful browser-session persistence latency.",
+      "id": "session.flush.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "controller-pressure-policy"
+      ],
+      "thresholds": {
+        "maximumMean": 500,
+        "maximumP95": 1000,
+        "maximumSample": 1000
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "journey": "background-session-flush",
+        "result": "all-attempts"
+      },
+      "description": "Session flush failures; every normalized sample must be zero.",
+      "id": "session.flush.failure_count",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "controller-pressure-policy"
+      ],
+      "thresholds": {
+        "maximumMean": 0,
+        "maximumP95": 0,
+        "maximumSample": 0
+      },
+      "unit": "count"
+    },
+    {
+      "condition": {
+        "pressure": "foreground",
+        "state": "after-policy-enforcement"
+      },
+      "description": "Foreground live WebPage cap after policy enforcement.",
+      "id": "live_pages.foreground.count",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "controller-pressure-policy"
+      ],
+      "thresholds": {
+        "maximumMean": 5,
+        "maximumP95": 5,
+        "maximumSample": 5
+      },
+      "unit": "count"
+    },
+    {
+      "condition": {
+        "pressure": "background",
+        "state": "after-policy-enforcement"
+      },
+      "description": "Background live WebPage cap after policy enforcement.",
+      "id": "live_pages.background.count",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "controller-pressure-policy"
+      ],
+      "thresholds": {
+        "maximumMean": 2,
+        "maximumP95": 2,
+        "maximumSample": 2
+      },
+      "unit": "count"
+    },
+    {
+      "condition": {
+        "pressure": "memory-warning",
+        "state": "after-policy-enforcement"
+      },
+      "description": "Memory-warning live WebPage cap after policy enforcement.",
+      "id": "live_pages.memory_warning.count",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "controller-pressure-policy"
+      ],
+      "thresholds": {
+        "maximumMean": 1,
+        "maximumP95": 1,
+        "maximumSample": 1
+      },
+      "unit": "count"
+    },
+    {
+      "condition": {
+        "mode": "normal",
+        "tabCount": 1
+      },
+      "description": "Resident footprint with one normal synthetic WebKit tab.",
+      "id": "memory.normal.1_tab.resident_mib",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "memory-normal-1"
+      ],
+      "thresholds": {
+        "maximumMean": 350,
+        "maximumP95": 400,
+        "maximumSample": 450
+      },
+      "unit": "mebibytes"
+    },
+    {
+      "condition": {
+        "mode": "normal",
+        "tabCount": 5
+      },
+      "description": "Resident footprint with five normal synthetic WebKit tabs.",
+      "id": "memory.normal.5_tabs.resident_mib",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "memory-normal-5"
+      ],
+      "thresholds": {
+        "maximumMean": 500,
+        "maximumP95": 600,
+        "maximumSample": 650
+      },
+      "unit": "mebibytes"
+    },
+    {
+      "condition": {
+        "mode": "normal",
+        "tabCount": 20
+      },
+      "description": "Resident footprint with twenty normal tabs under discard policy.",
+      "id": "memory.normal.20_tabs.resident_mib",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "memory-normal-20-discard-restore"
+      ],
+      "thresholds": {
+        "maximumMean": 650,
+        "maximumP95": 750,
+        "maximumSample": 850
+      },
+      "unit": "mebibytes"
+    },
+    {
+      "condition": {
+        "mode": "private",
+        "tabCount": 1
+      },
+      "description": "Resident footprint with one private nonpersistent WebKit tab.",
+      "id": "memory.private.1_tab.resident_mib",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "memory-private-1"
+      ],
+      "thresholds": {
+        "maximumMean": 375,
+        "maximumP95": 425,
+        "maximumSample": 475
+      },
+      "unit": "mebibytes"
+    },
+    {
+      "condition": {
+        "mode": "private",
+        "tabCount": 5
+      },
+      "description": "Resident footprint with five private nonpersistent WebKit tabs.",
+      "id": "memory.private.5_tabs.resident_mib",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "memory-private-5"
+      ],
+      "thresholds": {
+        "maximumMean": 525,
+        "maximumP95": 625,
+        "maximumSample": 675
+      },
+      "unit": "mebibytes"
+    },
+    {
+      "condition": {
+        "mode": "private",
+        "tabCount": 20
+      },
+      "description": "Resident footprint with twenty private tabs under discard policy.",
+      "id": "memory.private.20_tabs.resident_mib",
+      "minimumSamples": 5,
+      "sourceStageSlugs": [
+        "memory-private-20-discard-restore"
+      ],
+      "thresholds": {
+        "maximumMean": 675,
+        "maximumP95": 775,
+        "maximumSample": 875
+      },
+      "unit": "mebibytes"
+    },
+    {
+      "condition": {
+        "durationBucketSeconds": 1,
+        "journey": "synthetic-page-idle"
+      },
+      "description": "Idle process CPU in one-second clean-host buckets.",
+      "id": "idle.cpu.percent",
+      "minimumSamples": 30,
+      "sourceStageSlugs": [
+        "idle-resources"
+      ],
+      "thresholds": {
+        "maximumMean": 2,
+        "maximumP95": 5,
+        "maximumSample": 10
+      },
+      "unit": "percent"
+    },
+    {
+      "condition": {
+        "durationBucketSeconds": 1,
+        "journey": "synthetic-page-idle"
+      },
+      "description": "Idle wakeups in one-second clean-host buckets.",
+      "id": "idle.wakeups.per_second",
+      "minimumSamples": 30,
+      "sourceStageSlugs": [
+        "idle-resources"
+      ],
+      "thresholds": {
+        "maximumMean": 20,
+        "maximumP95": 50,
+        "maximumSample": 75
+      },
+      "unit": "wakeups-per-second"
+    },
+    {
+      "condition": {
+        "durationBucketSeconds": 60,
+        "journey": "synthetic-page-idle"
+      },
+      "description": "Idle application network bytes per clean-host minute.",
+      "id": "idle.network.bytes_per_minute",
+      "minimumSamples": 3,
+      "sourceStageSlugs": [
+        "idle-network"
+      ],
+      "thresholds": {
+        "maximumMean": 1024,
+        "maximumP95": 4096,
+        "maximumSample": 8192
+      },
+      "unit": "bytes-per-minute"
+    },
+    {
+      "condition": {
+        "durationBucketSeconds": 60,
+        "journey": "synthetic-page-idle"
+      },
+      "description": "Idle application network request count per clean-host minute.",
+      "id": "idle.network.requests_per_minute",
+      "minimumSamples": 3,
+      "sourceStageSlugs": [
+        "idle-network"
+      ],
+      "thresholds": {
+        "maximumMean": 0,
+        "maximumP95": 0,
+        "maximumSample": 0
+      },
+      "unit": "requests-per-minute"
+    },
+    {
+      "condition": {
+        "mode": "normal",
+        "tabCount": 20
+      },
+      "description": "Normal-tab discard policy completion latency.",
+      "id": "discard.normal.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "memory-normal-20-discard-restore"
+      ],
+      "thresholds": {
+        "maximumMean": 250,
+        "maximumP95": 500,
+        "maximumSample": 800
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "mode": "normal",
+        "tabCount": 20
+      },
+      "description": "Normal-tab restore to usable synthetic content latency.",
+      "id": "restore.normal.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "memory-normal-20-discard-restore"
+      ],
+      "thresholds": {
+        "maximumMean": 500,
+        "maximumP95": 1000,
+        "maximumSample": 1500
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "mode": "private",
+        "tabCount": 20
+      },
+      "description": "Private-tab discard policy completion latency.",
+      "id": "discard.private.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "memory-private-20-discard-restore"
+      ],
+      "thresholds": {
+        "maximumMean": 250,
+        "maximumP95": 500,
+        "maximumSample": 800
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "mode": "private",
+        "tabCount": 20
+      },
+      "description": "Private-tab restore to usable synthetic content latency.",
+      "id": "restore.private.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "memory-private-20-discard-restore"
+      ],
+      "thresholds": {
+        "maximumMean": 500,
+        "maximumP95": 1000,
+        "maximumSample": 1500
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "journey": "controller-foreground-to-background-policy",
+        "tabCount": 20
+      },
+      "description": "In-process foreground-to-background resource-policy completion; real OS backgrounding remains a visible E2E gate.",
+      "id": "controller.background_policy.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "controller-pressure-policy"
+      ],
+      "thresholds": {
+        "maximumMean": 300,
+        "maximumP95": 600,
+        "maximumSample": 1000
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "journey": "controller-background-to-foreground-restore",
+        "tabCount": 20
+      },
+      "description": "In-process controller restore after background policy; real OS foregrounding remains a visible E2E gate.",
+      "id": "controller.foreground_restore.duration_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "controller-pressure-policy"
+      ],
+      "thresholds": {
+        "maximumMean": 500,
+        "maximumP95": 1000,
+        "maximumSample": 1500
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "journey": "browser-scroll-and-chrome-collapse",
+        "reduceMotion": false
+      },
+      "description": "Animation hitch ratio while scrolling with standard motion.",
+      "id": "animation.standard.hitch_percent",
+      "minimumSamples": 30,
+      "sourceStageSlugs": [
+        "scroll-motion-standard"
+      ],
+      "thresholds": {
+        "maximumMean": 1,
+        "maximumP95": 3,
+        "maximumSample": 5
+      },
+      "unit": "percent"
+    },
+    {
+      "condition": {
+        "journey": "browser-scroll-and-chrome-collapse",
+        "reduceMotion": false
+      },
+      "description": "Longest animation hitch window with standard motion.",
+      "id": "animation.standard.maximum_hitch_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "scroll-motion-standard"
+      ],
+      "thresholds": {
+        "maximumMean": 100,
+        "maximumP95": 200,
+        "maximumSample": 300
+      },
+      "unit": "milliseconds"
+    },
+    {
+      "condition": {
+        "journey": "browser-scroll-and-chrome-collapse",
+        "reduceMotion": true
+      },
+      "description": "Animation hitch ratio while scrolling with Reduce Motion enabled.",
+      "id": "animation.reduce_motion.hitch_percent",
+      "minimumSamples": 30,
+      "sourceStageSlugs": [
+        "scroll-motion-reduced"
+      ],
+      "thresholds": {
+        "maximumMean": 1,
+        "maximumP95": 2,
+        "maximumSample": 3
+      },
+      "unit": "percent"
+    },
+    {
+      "condition": {
+        "journey": "browser-scroll-and-chrome-collapse",
+        "reduceMotion": true
+      },
+      "description": "Longest animation hitch window with Reduce Motion enabled.",
+      "id": "animation.reduce_motion.maximum_hitch_ms",
+      "minimumSamples": 10,
+      "sourceStageSlugs": [
+        "scroll-motion-reduced"
+      ],
+      "thresholds": {
+        "maximumMean": 80,
+        "maximumP95": 160,
+        "maximumSample": 240
+      },
+      "unit": "milliseconds"
+    }
+  ],
+  "normalizationBoundary": "The repository evaluator derives every sample directly from checksum-indexed xctrace XML, HAR, privacy-bounded app markers, and numeric host samples. Caller-supplied normalized measurements, screenshots, manual review, and claimed PASS fields are forbidden.",
+  "schemaVersion": 2,
+  "statistics": {
+    "comparison": "less-than-or-equal",
+    "mean": "arithmetic-mean",
+    "p95": "nearest-rank-ceiling"
+  }
+}

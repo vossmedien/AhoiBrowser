@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct MobileHarborDeckView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.mobileBrowserReduceMotionOverride) private var reduceMotionOverride
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @ScaledMetric(relativeTo: .subheadline)
     private var workspaceRailMinimumHeight: CGFloat = 44
 
@@ -28,27 +30,33 @@ struct MobileHarborDeckView: View {
     let onPresentMore: () -> Void
     let onSwitchWorkspace: (Int) -> Void
 
+    private var reduceMotion: Bool { reduceMotionOverride ?? systemReduceMotion }
+
     var body: some View {
         deckContent
         .font(.body.weight(.semibold))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 9)
+        .padding(.horizontal, isCollapsed ? 7 : 10)
+        .padding(.vertical, isCollapsed ? 4 : 9)
         .background(cardBackground, in: RoundedRectangle(
-            cornerRadius: 24,
+            cornerRadius: deckCornerRadius,
             style: .continuous
         ))
         .overlay {
             ZStack {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                RoundedRectangle(cornerRadius: deckCornerRadius, style: .continuous)
                     .fill(accentTint.opacity(reduceTransparency ? 0.13 : 0.085))
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(accentTint.opacity(0.20), lineWidth: 1)
+                RoundedRectangle(cornerRadius: deckCornerRadius, style: .continuous)
+                    .stroke(accentTint.opacity(chromeStrokeOpacity), lineWidth: 1)
             }
             .allowsHitTesting(false)
         }
-        .shadow(color: Color.black.opacity(0.13), radius: 16, y: 7)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 7)
+        .shadow(
+            color: Color.black.opacity(isCollapsed ? 0.09 : 0.13),
+            radius: isCollapsed ? 8 : 16,
+            y: isCollapsed ? 3 : 7
+        )
+        .padding(.horizontal, isCollapsed ? 6 : 8)
+        .padding(.vertical, isCollapsed ? 4 : 7)
         .background(mode == .privateBrowsing
                     ? MobileBrowserChromeTheme.privateBackground
                     : Color(uiColor: .systemBackground))
@@ -73,7 +81,6 @@ struct MobileHarborDeckView: View {
             }
             .fixedSize(horizontal: false, vertical: true)
         }
-        .animation(layoutAnimation, value: isCollapsed)
     }
 
     private var workspaceRailSlot: some View {
@@ -197,7 +204,7 @@ struct MobileHarborDeckView: View {
             .overlay {
                 ZStack {
                     Capsule().fill(accentTint.opacity(reduceTransparency ? 0.12 : 0.075))
-                    Capsule().stroke(accentTint.opacity(0.18), lineWidth: 1)
+                    Capsule().stroke(accentTint.opacity(addressStrokeOpacity), lineWidth: 1)
                 }
                 .allowsHitTesting(false)
             }
@@ -246,11 +253,16 @@ struct MobileHarborDeckView: View {
             .contentShape(Rectangle())
         }
         .accessibilityIdentifier("browser.tabs")
-        .accessibilityLabel(CompanionL10n.format(
-            "browser.tabs.count",
-            fallback: "%d tabs",
-            visibleTabCount
-        ))
+        .accessibilityLabel(
+            visibleTabCount == 1
+                ? CompanionL10n.string("browser.tabs.count.one", fallback: "1 tab")
+                : CompanionL10n.format(
+                    "browser.tabs.count",
+                    fallback: "%d tabs",
+                    visibleTabCount
+                )
+        )
+        .accessibilityValue(Text(String(visibleTabCount)))
     }
 
     private var moreButton: some View {
@@ -316,15 +328,17 @@ struct MobileHarborDeckView: View {
     }
 
     private var contentAnimation: Animation {
-        MobileBrowserChromeTheme.chromeContentAnimation(reduceMotion: reduceMotion)
-    }
-
-    private var layoutAnimation: Animation? {
-        MobileBrowserChromeTheme.chromeAnimation(reduceMotion: reduceMotion)
+        MobileBrowserChromeTheme.chromeContentAnimation(
+            toCollapsed: isCollapsed,
+            reduceMotion: reduceMotion
+        )
     }
 
     private var chromeVisibilityTransition: AnyTransition {
-        .opacity.animation(contentAnimation)
+        if reduceMotion {
+            return .opacity.animation(contentAnimation)
+        }
+        return .opacity.combined(with: .offset(y: 8))
     }
 
     private var symbolContentTransition: ContentTransition {
@@ -350,6 +364,16 @@ struct MobileHarborDeckView: View {
         }
         return AnyShapeStyle(.ultraThinMaterial)
     }
+
+    private var chromeStrokeOpacity: Double {
+        colorSchemeContrast == .increased ? 0.42 : 0.20
+    }
+
+    private var addressStrokeOpacity: Double {
+        colorSchemeContrast == .increased ? 0.36 : 0.18
+    }
+
+    private var deckCornerRadius: CGFloat { isCollapsed ? 18 : 24 }
 }
 
 /// Keeps the workspace rail alive while its intrinsic height collapses to zero.
@@ -422,7 +446,7 @@ private struct MobileHarborControlsLayout: Layout {
     private enum Arrangement {
         case collapsed
         case expandedRow
-        case expandedStack
+        case stacked
     }
 
     let isCollapsed: Bool
@@ -464,8 +488,8 @@ private struct MobileHarborControlsLayout: Layout {
             placeCollapsed(in: bounds, sizes: sizes, subviews: subviews)
         case .expandedRow:
             placeExpandedRow(in: bounds, sizes: sizes, subviews: subviews)
-        case .expandedStack:
-            placeExpandedStack(in: bounds, sizes: sizes, subviews: subviews)
+        case .stacked:
+            placeStacked(in: bounds, sizes: sizes, subviews: subviews)
         }
     }
 
@@ -480,44 +504,25 @@ private struct MobileHarborControlsLayout: Layout {
     }
 
     private func resolvedWidth(_ proposedWidth: CGFloat?, sizes: [CGSize]) -> CGFloat {
-        let minimumWidth = minimumLayoutWidth(sizes: sizes)
-        guard let proposedWidth, proposedWidth.isFinite else {
-            let addressWidth = max(
-                minimumAddressWidth,
-                sizes[Control.address.rawValue].width
-            )
-            let controls = isCollapsed ? collapsedControls : expandedRowControls
-            return controls.reduce(addressWidth) { result, control in
-                result + sizes[control.rawValue].width
-            } + itemSpacing * CGFloat(controls.count)
-        }
-        return max(minimumWidth, proposedWidth)
-    }
-
-    private func minimumLayoutWidth(sizes: [CGSize]) -> CGFloat {
-        if isCollapsed {
-            return collapsedControls.reduce(minimumAddressWidth) { result, control in
-                result + sizes[control.rawValue].width
-            } + itemSpacing * CGFloat(collapsedControls.count)
-        }
-        let bottomRowWidth = expandedStackControls.reduce(CGFloat.zero) {
-            result, control in
-            result + sizes[control.rawValue].width
-        }
-        return max(
-            minimumAddressWidth,
-            bottomRowWidth + itemSpacing * CGFloat(expandedStackControls.count - 1)
+        let controls = isCollapsed ? collapsedControls : expandedRowControls
+        let naturalWidth = controls.reduce(minimumAddressWidth) {
+            $0 + sizes[$1.rawValue].width
+        } + itemSpacing * CGFloat(controls.count)
+        return MobileHarborLayoutPolicy.resolvedWidth(
+            proposedWidth: proposedWidth,
+            naturalWidth: naturalWidth
         )
     }
 
     private func arrangement(for width: CGFloat, sizes: [CGSize]) -> Arrangement {
-        guard !isCollapsed else { return .collapsed }
-        let fixedWidth = expandedRowControls.reduce(CGFloat.zero) { result, control in
+        let controls = isCollapsed ? collapsedControls : expandedRowControls
+        let fixedWidth = controls.reduce(CGFloat.zero) { result, control in
             result + sizes[control.rawValue].width
         }
         let requiredWidth = fixedWidth + minimumAddressWidth +
-            itemSpacing * CGFloat(expandedRowControls.count)
-        return width >= requiredWidth ? .expandedRow : .expandedStack
+            itemSpacing * CGFloat(controls.count)
+        guard width >= requiredWidth else { return .stacked }
+        return isCollapsed ? .collapsed : .expandedRow
     }
 
     private func layoutHeight(
@@ -551,9 +556,14 @@ private struct MobileHarborControlsLayout: Layout {
                 ),
                 maximumHeight(of: expandedRowControls, sizes: sizes)
             )
-        case .expandedStack:
+        case .stacked:
+            let controls = isCollapsed ? collapsedControls : expandedStackControls
+            let rows = controlRows(controls, width: width, sizes: sizes)
             return addressHeight(width: width, subviews: subviews) + rowSpacing +
-                maximumHeight(of: expandedStackControls, sizes: sizes)
+                rows.enumerated().reduce(CGFloat.zero) { result, item in
+                    result + maximumHeight(of: item.element, sizes: sizes) +
+                        (item.offset == 0 ? 0 : rowSpacing)
+                }
         }
     }
 
@@ -629,7 +639,7 @@ private struct MobileHarborControlsLayout: Layout {
         )
     }
 
-    private func placeExpandedStack(
+    private func placeStacked(
         in bounds: CGRect,
         sizes: [CGSize],
         subviews: Subviews
@@ -645,32 +655,59 @@ private struct MobileHarborControlsLayout: Layout {
             subviews: subviews
         )
 
-        let rowHeight = maximumHeight(of: expandedStackControls, sizes: sizes)
-        let controlsWidth = expandedStackControls.reduce(CGFloat.zero) {
-            result, control in
-            result + sizes[control.rawValue].width
+        let controls = isCollapsed ? collapsedControls : expandedStackControls
+        var rowY = bounds.minY + addressHeight + rowSpacing
+        for row in controlRows(controls, width: bounds.width, sizes: sizes) {
+            let widths = row.map {
+                min(sizes[$0.rawValue].width, max(0, bounds.width))
+            }
+            let controlsWidth = widths.reduce(0, +)
+            let spacing = row.count > 1
+                ? max(itemSpacing, (bounds.width - controlsWidth) / CGFloat(row.count - 1))
+                : 0
+            let rowHeight = maximumHeight(of: row, sizes: sizes)
+            var x = bounds.minX + (row.count == 1
+                ? max(0, bounds.width - controlsWidth) / 2
+                : 0)
+            for (control, width) in zip(row, widths) {
+                place(
+                    control,
+                    atX: x,
+                    rowY: rowY,
+                    rowHeight: rowHeight,
+                    width: width,
+                    sizes: sizes,
+                    subviews: subviews
+                )
+                x += width + spacing
+            }
+            rowY += rowHeight + rowSpacing
         }
-        let distributedSpacing = max(
-            itemSpacing,
-            (bounds.width - controlsWidth) /
-                CGFloat(expandedStackControls.count - 1)
-        )
-        var x = bounds.minX
-        let rowY = bounds.minY + addressHeight + rowSpacing
-        for control in expandedStackControls {
-            place(
-                control,
-                atX: x,
-                rowY: rowY,
-                rowHeight: rowHeight,
-                width: sizes[control.rawValue].width,
-                sizes: sizes,
-                subviews: subviews
-            )
-            x += sizes[control.rawValue].width + distributedSpacing
+        if isCollapsed {
+            for control in [Control.forward, .reload] {
+                place(
+                    control,
+                    atX: bounds.minX,
+                    rowY: bounds.minY + addressHeight + rowSpacing,
+                    rowHeight: minimumHitSize,
+                    width: min(sizes[control.rawValue].width, max(0, bounds.width)),
+                    sizes: sizes,
+                    subviews: subviews
+                )
+            }
         }
     }
-
+    private func controlRows(
+        _ controls: [Control],
+        width: CGFloat,
+        sizes: [CGSize]
+    ) -> [[Control]] {
+        MobileHarborLayoutPolicy.rows(
+            itemWidths: controls.map { sizes[$0.rawValue].width },
+            availableWidth: width,
+            spacing: itemSpacing
+        ).map { row in row.map { controls[$0] } }
+    }
     private func placeRow(
         _ controls: [Control],
         in bounds: CGRect,
@@ -696,7 +733,6 @@ private struct MobileHarborControlsLayout: Layout {
             x += width + itemSpacing
         }
     }
-
     private func place(
         _ control: Control,
         atX x: CGFloat,
@@ -760,19 +796,5 @@ private struct MobileHarborControlsLayout: Layout {
 
     private var expandedStackControls: [Control] {
         expandedRowControls
-    }
-}
-
-private struct MobileChromeButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .opacity(configuration.isPressed ? 0.72 : 1)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
-            .animation(
-                MobileBrowserChromeTheme.chromeAnimation(reduceMotion: reduceMotion),
-                value: configuration.isPressed
-            )
     }
 }

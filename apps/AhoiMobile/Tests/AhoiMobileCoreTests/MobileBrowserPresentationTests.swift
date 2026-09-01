@@ -97,7 +97,13 @@ final class MobileBrowserPresentationTests: XCTestCase {
 
     func testChromeMotionStaysWithinTheApprovedWindow() {
         XCTAssertGreaterThanOrEqual(MobileBrowserChromeTheme.motionDuration, 0.18)
-        XCTAssertLessThanOrEqual(MobileBrowserChromeTheme.motionDuration, 0.24)
+        XCTAssertLessThanOrEqual(MobileBrowserChromeTheme.motionDuration, 0.20)
+        XCTAssertGreaterThanOrEqual(MobileBrowserChromeTheme.collapseMotionDuration, 0.13)
+        XCTAssertLessThanOrEqual(MobileBrowserChromeTheme.collapseMotionDuration, 0.16)
+        XCTAssertLessThan(
+            MobileBrowserChromeTheme.collapseMotionDuration,
+            MobileBrowserChromeTheme.motionDuration
+        )
         XCTAssertGreaterThanOrEqual(
             MobileBrowserChromeTheme.reducedMotionCrossfadeDuration,
             0.18
@@ -107,6 +113,10 @@ final class MobileBrowserPresentationTests: XCTestCase {
             0.22
         )
         XCTAssertNil(MobileBrowserChromeTheme.chromeAnimation(reduceMotion: true))
+        XCTAssertNil(MobileBrowserChromeTheme.chromeAnimation(
+            toCollapsed: true,
+            reduceMotion: true
+        ))
     }
 
     func testChromeCollapseAccumulatesIntentionalScrollAndReversesQuickly() {
@@ -256,6 +266,8 @@ final class MobileBrowserPresentationTests: XCTestCase {
 
         XCTAssertEqual(event.sequence, 7)
         XCTAssertEqual(event.sourceID, 0)
+        XCTAssertEqual(event.interactionID, 0)
+        XCTAssertEqual(event.intent, .layout)
         XCTAssertEqual(event.contentOffsetY, 300)
         XCTAssertEqual(event.contentHeight, 900)
         XCTAssertEqual(event.viewportHeight, 600)
@@ -313,6 +325,12 @@ final class MobileBrowserPresentationTests: XCTestCase {
             valid.merging(["sourceID": NSNumber(value: -1)]) { _, new in new },
             valid.merging(["sourceID": NSNumber(value: 1.25)]) { _, new in new },
             valid.merging(["sourceID": NSNumber(value: 1_000_001)]) { _, new in new },
+            valid.merging(["intent": "user"]) { _, new in new },
+            valid.merging([
+                "intent": "layout",
+                "interactionID": NSNumber(value: 1),
+            ]) { _, new in new },
+            valid.merging(["intent": "unknown"]) { _, new in new },
             ["offsetY": NSNumber(value: 20), "contentHeight": NSNumber(value: 900)],
         ] {
             XCTAssertNil(MobilePageScrollEvent(
@@ -395,6 +413,8 @@ final class MobileBrowserPresentationTests: XCTestCase {
         let baseline = try XCTUnwrap(MobilePageScrollEvent(
             messageBody: [
                 "offsetY": NSNumber(value: 40),
+                "intent": "user",
+                "interactionID": NSNumber(value: 7),
                 "contentHeight": NSNumber(value: 2_000),
                 "viewportHeight": NSNumber(value: 600),
             ],
@@ -408,6 +428,8 @@ final class MobileBrowserPresentationTests: XCTestCase {
             let event = try XCTUnwrap(MobilePageScrollEvent(
                 messageBody: [
                     "offsetY": NSNumber(value: 40 + sequence * 5),
+                    "intent": "user",
+                    "interactionID": NSNumber(value: 7),
                     "contentHeight": NSNumber(value: 2_000),
                     "viewportHeight": NSNumber(value: 600),
                 ],
@@ -425,6 +447,73 @@ final class MobileBrowserPresentationTests: XCTestCase {
 
         XCTAssertTrue(collapsed)
         XCTAssertEqual(transitions, 1)
+    }
+
+    func testScrollReducerIgnoresProgrammaticTravelUntilAUserGestureMoves() {
+        let reducer = MobileChromeScrollReducer()
+        reducer.reset(baseline: scrollEvent(offset: 40, sequence: 1, intent: .layout))
+
+        var collapsed = reducer.nextCollapsedState(
+            event: scrollEvent(offset: 300, sequence: 2, intent: .layout),
+            currentlyCollapsed: false,
+            pullDistance: 0,
+            suspended: false
+        )
+        XCTAssertFalse(collapsed)
+
+        collapsed = reducer.nextCollapsedState(
+            event: scrollEvent(offset: 300, sequence: 3, interactionID: 8),
+            currentlyCollapsed: collapsed,
+            pullDistance: 0,
+            suspended: false
+        )
+        XCTAssertFalse(collapsed, "The first gesture sample establishes its own baseline.")
+        collapsed = reducer.nextCollapsedState(
+            event: scrollEvent(offset: 328, sequence: 4, interactionID: 8),
+            currentlyCollapsed: collapsed,
+            pullDistance: 0,
+            suspended: false
+        )
+        XCTAssertTrue(collapsed)
+
+        XCTAssertTrue(reducer.nextCollapsedState(
+            event: scrollEvent(offset: 40, sequence: 5, intent: .layout),
+            currentlyCollapsed: collapsed,
+            pullDistance: 0,
+            suspended: false
+        ), "Programmatic reverse travel must not reveal browser chrome.")
+    }
+
+    func testScrollReducerRebasesAcrossGestureAndNativeGeometryBoundaries() {
+        let reducer = MobileChromeScrollReducer()
+        reducer.reset(baseline: scrollEvent(offset: 40, sequence: 1, interactionID: 1))
+
+        XCTAssertFalse(reducer.nextCollapsedState(
+            event: scrollEvent(offset: 60, sequence: 2, interactionID: 1),
+            currentlyCollapsed: false,
+            pullDistance: 0,
+            suspended: false
+        ))
+        XCTAssertFalse(reducer.nextCollapsedState(
+            event: scrollEvent(offset: 80, sequence: 3, interactionID: 2),
+            currentlyCollapsed: false,
+            pullDistance: 0,
+            suspended: false
+        ), "A new physical gesture cannot inherit partial travel.")
+
+        reducer.invalidateBaseline()
+        XCTAssertFalse(reducer.nextCollapsedState(
+            event: scrollEvent(offset: 120, sequence: 4, interactionID: 2),
+            currentlyCollapsed: false,
+            pullDistance: 0,
+            suspended: false
+        ), "The first sample after rotation or resize is baseline-only.")
+        XCTAssertTrue(reducer.nextCollapsedState(
+            event: scrollEvent(offset: 148, sequence: 5, interactionID: 2),
+            currentlyCollapsed: false,
+            pullDistance: 0,
+            suspended: false
+        ))
     }
 
     @MainActor
@@ -584,5 +673,27 @@ final class MobileBrowserPresentationTests: XCTestCase {
             addressPresented: false,
             regularWidth: false
         )
+    }
+
+    private func scrollEvent(
+        offset: Int,
+        sequence: UInt64,
+        sourceID: Int = 0,
+        interactionID: Int? = nil,
+        intent: MobilePageScrollIntent = .user
+    ) -> MobilePageScrollEvent {
+        MobilePageScrollEvent(
+            messageBody: [
+                "offsetY": NSNumber(value: offset),
+                "sourceID": NSNumber(value: sourceID),
+                "interactionID": NSNumber(
+                    value: interactionID ?? (intent == .user ? 1 : 0)
+                ),
+                "intent": intent.rawValue,
+                "contentHeight": NSNumber(value: 2_000),
+                "viewportHeight": NSNumber(value: 600),
+            ],
+            sequence: sequence
+        )!
     }
 }

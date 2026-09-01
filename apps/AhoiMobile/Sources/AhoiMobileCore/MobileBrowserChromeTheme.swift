@@ -1,6 +1,17 @@
 import Foundation
 import SwiftUI
 
+private struct MobileBrowserReduceMotionOverrideKey: EnvironmentKey {
+    static let defaultValue: Bool? = nil
+}
+
+extension EnvironmentValues {
+    var mobileBrowserReduceMotionOverride: Bool? {
+        get { self[MobileBrowserReduceMotionOverrideKey.self] }
+        set { self[MobileBrowserReduceMotionOverrideKey.self] = newValue }
+    }
+}
+
 enum MobileBrowserChromeTheme {
     struct RGB: Equatable, Sendable {
         let red: Double
@@ -8,34 +19,47 @@ enum MobileBrowserChromeTheme {
         let blue: Double
     }
 
-    static let motionDuration = 0.22
-    static let reducedMotionCrossfadeDuration = 0.20
+    static let motionDuration = 0.18
+    static let collapseMotionDuration = 0.145
+    static let reducedMotionCrossfadeDuration = 0.18
+    static let pressMotionDuration = 0.11
+    static let compactHarborDeckHeight: CGFloat = 60
     static let privateBackground = Color(red: 0.055, green: 0.060, blue: 0.085)
     static let privateAccent = Color(red: 0.53, green: 0.48, blue: 0.88)
     static let functionalAccent = Color(red: 0.10, green: 0.43, blue: 0.84)
     static let brandMoment = Color(red: 0.95, green: 0.45, blue: 0.15)
 
     static func chromeAnimation(reduceMotion: Bool) -> Animation? {
+        chromeAnimation(toCollapsed: false, reduceMotion: reduceMotion)
+    }
+
+    static func chromeAnimation(
+        toCollapsed: Bool,
+        reduceMotion: Bool
+    ) -> Animation? {
         guard !reduceMotion else { return nil }
-        return standardChromeAnimation
+        return toCollapsed
+            ? .timingCurve(0.4, 0, 1, 1, duration: collapseMotionDuration)
+            : .timingCurve(0.2, 0, 0, 1, duration: motionDuration)
     }
 
     /// Content changes may still cross-fade when Reduce Motion is enabled.
     /// Keep this animation scoped to opacity/content transitions so layout,
     /// position, scale, and symbol motion continue to update immediately.
-    static func chromeContentAnimation(reduceMotion: Bool) -> Animation {
+    static func chromeContentAnimation(
+        toCollapsed: Bool = false,
+        reduceMotion: Bool
+    ) -> Animation {
         guard !reduceMotion else {
             return .easeInOut(duration: reducedMotionCrossfadeDuration)
         }
-        return standardChromeAnimation
+        return chromeAnimation(toCollapsed: toCollapsed, reduceMotion: false)
+            ?? .linear(duration: 0)
     }
 
-    private static var standardChromeAnimation: Animation {
-        return .spring(
-            response: motionDuration,
-            dampingFraction: 0.88,
-            blendDuration: 0.08
-        )
+    static func chromePressAnimation(reduceMotion: Bool) -> Animation? {
+        guard !reduceMotion else { return nil }
+        return .easeOut(duration: pressMotionDuration)
     }
 
     static func chromeTint(
@@ -96,5 +120,21 @@ enum MobileBrowserChromeTheme {
         return 0.2126 * linear(color.red) +
             0.7152 * linear(color.green) +
             0.0722 * linear(color.blue)
+    }
+}
+
+struct MobileChromeButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.mobileBrowserReduceMotionOverride) private var reduceMotionOverride
+    private var reduceMotion: Bool { reduceMotionOverride ?? systemReduceMotion }
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.72 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
+            .animation(
+                MobileBrowserChromeTheme.chromePressAnimation(reduceMotion: reduceMotion),
+                value: configuration.isPressed
+            )
     }
 }

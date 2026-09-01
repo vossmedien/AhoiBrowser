@@ -23,18 +23,17 @@ extension CloudKitSyncProvider {
         defer { endActivity() }
         _ = try activeEngine()
         let currentAccountIdentifier = try await container.userRecordID().recordName
+        let plan = CloudKitRecoveryPolicy.accountTransitionPlan(
+            allowLocalUpload: allowLocalUpload
+        )
         try updateSafetyState(
-            accountTransitionPending: !allowLocalUpload,
+            accountTransitionPending: plan.accountTransitionPending,
             lastKnownAccountIdentifier: currentAccountIdentifier
         )
-        guard allowLocalUpload else {
-            setStatus(.init(
-                phase: .accountRequired,
-                detail: SyncText(
-                    "sync.status.account_upload_not_approved",
-                    "Local data remains isolated until upload is approved"
-                )
-            ))
+        guard plan.shouldRebuildTransport else {
+            if let declinedStatus = plan.declinedStatus {
+                setStatus(declinedStatus)
+            }
             return
         }
         do {
@@ -68,9 +67,9 @@ extension CloudKitSyncProvider {
         guard beginActivity() else { throw CloudKitSyncProviderError.unavailable }
         defer { endActivity() }
         try await ensureAccountContinuity()
-        guard !statusLock.withLock({ accountTransitionPending }) else {
-            throw CloudKitSyncProviderError.accountTransitionRequiresConfirmation
-        }
+        try CloudKitRecoveryPolicy.validateZoneRecovery(
+            accountTransitionPending: statusLock.withLock { accountTransitionPending }
+        )
         let engine = try activeEngine()
         do {
             try await systemFieldsStore.clear()

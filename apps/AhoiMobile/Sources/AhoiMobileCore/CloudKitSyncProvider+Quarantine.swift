@@ -16,6 +16,31 @@ extension CloudKitSyncProvider {
         return try await recordStore.allRecords()
     }
 
+    /// Rehydrates a bounded caller-owned record index without depending on the
+    /// global transport ordering. Missing IDs are omitted and never replaced by
+    /// unrelated records.
+    public func records(forRecordIDs recordIDs: [UUID]) async throws -> [SyncRecord] {
+        guard beginActivity() else { throw CloudKitSyncProviderError.unavailable }
+        defer { endActivity() }
+        _ = try activeEngine()
+        var records: [SyncRecord] = []
+        for recordID in Set(recordIDs).sorted(by: {
+            $0.uuidString < $1.uuidString
+        }) {
+            if let record = try await recordStore.record(for: recordID) {
+                records.append(record)
+            }
+        }
+        return records
+    }
+
+    /// Internal post-failure probe for the bridge's two-store enqueue. It does
+    /// not require a live CKSyncEngine because it only inspects the durable
+    /// encrypted record cache.
+    func locallyPersistedRecord(forRecordID recordID: UUID) async throws -> SyncRecord? {
+        try await recordStore.record(for: recordID)
+    }
+
     /// Returns opaque CloudKit envelopes that still need to cross the
     /// authenticated plaintext/domain merge boundary. These are deliberately
     /// separate from the single transport snapshot used by CKSyncEngine.

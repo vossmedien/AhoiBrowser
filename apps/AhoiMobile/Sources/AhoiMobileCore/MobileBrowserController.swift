@@ -45,9 +45,12 @@ public final class MobileBrowserController: ObservableObject {
     @Published public internal(set) var pendingExternalOpen: MobilePendingExternalOpen?
     @Published public internal(set) var pendingLink: MobilePendingLink?
     @Published public internal(set) var pageFailures: [UUID: MobilePageFailureKind] = [:]
+    @Published var pageRetryFeedbackTabIDs: Set<UUID> = []
+    var pageRetryFeedbackRegistry = MobilePageRetryFeedbackRegistry()
 
     public let permissionCoordinator: MobilePermissionCoordinator
     public let downloadCoordinator: MobileDownloadCoordinator
+    public let performanceRecorder: MobileBrowserPerformanceRecorder
 
     private let store: any MobileBrowserSessionStoring
     private let saveCoordinator: MobileBrowserSessionSaveCoordinator
@@ -63,7 +66,7 @@ public final class MobileBrowserController: ObservableObject {
     private var pendingStartupURL: URL?
     private var pendingStartupURLWasClaimed = false
     var navigationObservationTasks: [UUID: Task<Void, Never>] = [:]
-    var expectedDownloadCancellationTabIDs: Set<UUID> = []
+    var expectedPolicyCancellationTabIDs: Set<UUID> = []
     var faviconFetchInFlight: [UUID: String] = [:]
     var faviconAttemptedDocumentURLs: [UUID: String] = [:]
     var navigationDocumentGenerations: [UUID: UInt64] = [:]
@@ -92,6 +95,7 @@ public final class MobileBrowserController: ObservableObject {
         store: any MobileBrowserSessionStoring,
         permissionCoordinator: MobilePermissionCoordinator = MobilePermissionCoordinator(),
         downloadCoordinator: MobileDownloadCoordinator = MobileDownloadCoordinator(),
+        performanceRecorder: MobileBrowserPerformanceRecorder = MobileBrowserPerformanceRecorder(),
         storagePreparation: (@Sendable () async throws -> Void)? = nil,
         startupError: String? = nil,
         externalOpenReceiptURL: URL? = nil
@@ -101,6 +105,7 @@ public final class MobileBrowserController: ObservableObject {
         self.storagePreparation = storagePreparation
         self.permissionCoordinator = permissionCoordinator
         self.downloadCoordinator = downloadCoordinator
+        self.performanceRecorder = performanceRecorder
         self.lastError = startupError
         if let externalOpenReceiptURL {
             self.externalOpenDeduplicator = MobileExternalOpenDeduplicator(
@@ -150,6 +155,8 @@ public final class MobileBrowserController: ObservableObject {
 
     public func load() async {
         guard !didLoad else { return }
+        defer { recordLaunchCompletion() }
+        async let downloadRecovery: Void = downloadCoordinator.loadRecoveryState()
         do {
             try await storagePreparation?()
             let snapshot = try await store.load()
@@ -172,10 +179,11 @@ public final class MobileBrowserController: ObservableObject {
             tabs = []
             selectedTabID = nil
             didLoad = true
-            lastError = error.localizedDescription
+            lastError = MobileBrowserSessionFailurePresentation.restoreMessage
             _ = createTab()
             drainPendingStartupURL()
         }
+        await downloadRecovery
     }
 
     @discardableResult
@@ -212,6 +220,17 @@ public final class MobileBrowserController: ObservableObject {
         _ = page(for: id)
         discardInactivePages(keeping: 5)
         persistSoon()
+    }
+
+    public func switchSelectedTab(direction: Int) {
+        guard direction != 0, let selectedTab else { return }
+        let visibleTabs = selectedTab.mode == .privateBrowsing ? privateTabs : normalTabs
+        guard visibleTabs.count > 1,
+              let currentIndex = visibleTabs.firstIndex(where: { $0.id == selectedTab.id })
+        else { return }
+        let step = direction < 0 ? -1 : 1
+        let targetIndex = (currentIndex + step + visibleTabs.count) % visibleTabs.count
+        select(visibleTabs[targetIndex].id)
     }
 
     public func navigate(
@@ -279,7 +298,9 @@ public final class MobileBrowserController: ObservableObject {
         websiteDataStores.removeValue(forKey: id)
         navigationObservationTasks.removeValue(forKey: id)?.cancel()
         pageFailures.removeValue(forKey: id)
-        expectedDownloadCancellationTabIDs.remove(id)
+        pageRetryFeedbackTabIDs.remove(id)
+        pageRetryFeedbackRegistry.cancel(tabID: id)
+        expectedPolicyCancellationTabIDs.remove(id)
         faviconFetchInFlight.removeValue(forKey: id)
         faviconAttemptedDocumentURLs.removeValue(forKey: id)
         navigationDocumentGenerations.removeValue(forKey: id)
@@ -294,6 +315,7 @@ public final class MobileBrowserController: ObservableObject {
             // Closing the final private tab ends that ephemeral session. A
             // replacement private tab receives a fresh non-persistent store.
             privateWebsiteDataStore = nil
+            downloadCoordinator.endPrivateSession()
         }
         if selectedTabID == id {
             if tabs.isEmpty {
@@ -303,6 +325,7 @@ public final class MobileBrowserController: ObservableObject {
                 selectedTabID = tabs[min(index, tabs.count - 1)].id
             }
         }
+        recordTabState()
         persistSoon()
     }
 
@@ -318,8 +341,10 @@ public final class MobileBrowserController: ObservableObject {
         if let value = record.url, let url = URL(string: value) {
             let restoredPage = makePage(tabID: record.id, mode: record.mode)
             pages[record.id] = restoredPage
+            observeNavigations(of: restoredPage, tabID: record.id)
             restoredPage.load(url)
         }
+        discardInactivePages(keeping: 5)
         persistSoon()
     }
 
@@ -362,8 +387,7 @@ public final class MobileBrowserController: ObservableObject {
 
     public func renameTab(_ id: UUID, title: String) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
-        let value = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        tabs[index].title = String(value.prefix(160))
+        tabs[index].customTitle = MobileTabRecord.normalizedCustomTitle(title)
         persistSoon()
     }
 
@@ -433,7 +457,7 @@ public final class MobileBrowserController: ObservableObject {
         guard !normalized.isEmpty, selectedTab?.mode == .normal else { return [] }
         return tabs.filter { tab in
             guard tab.mode == .normal else { return false }
-            let haystack = "\(tab.title) \(tab.url ?? "")"
+            let haystack = "\(tab.effectiveTitle) \(tab.title) \(tab.url ?? "")"
                 .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
             return haystack.contains(normalized)
         }.sorted { $0.lastActiveAt > $1.lastActiveAt }
@@ -441,6 +465,11 @@ public final class MobileBrowserController: ObservableObject {
 
     public func synchronizeSelectedPageMetadata() -> MobileNavigationObservation? {
         guard let selectedTabID, let page = selectedPage else { return nil }
+        // A cancelled or failed provisional navigation can leave `page.url`
+        // pointing at the previous committed document. The failure handlers
+        // retain the attempted destination in the tab record, which must stay
+        // authoritative for the address bar, retry, history, and sync.
+        guard pageFailures[selectedTabID] == nil else { return nil }
         updateSelectedMetadata(url: page.url, title: page.title)
         guard let tab = selectedTab,
               let value = tab.url,
@@ -497,9 +526,12 @@ public final class MobileBrowserController: ObservableObject {
     }
 
     public func confirmPendingExternalOpen(requestID: UUID) -> URL? {
-        guard pendingExternalOpen?.id == requestID else { return nil }
+        guard let request = pendingExternalOpen,
+              request.id == requestID else { return nil }
         defer { pendingExternalOpen = nil }
-        return pendingExternalOpen?.url
+        guard case .externalApp(let safeURL) = MobileNavigationTargetPolicy.decide(request.url)
+        else { return nil }
+        return safeURL
     }
 
     public func cancelPendingExternalOpen(requestID: UUID? = nil) {
@@ -530,14 +562,23 @@ public final class MobileBrowserController: ObservableObject {
     }
 
     public func flushSession() async {
+        let performanceStart = performanceRecorder.beginSessionFlush()
         sessionRevision &+= 1
         do {
             try await saveCoordinator.enqueue(
                 persistentSnapshot(),
                 revision: sessionRevision
             )
+            performanceRecorder.completeSessionFlush(
+                startedAt: performanceStart,
+                succeeded: true
+            )
         } catch {
-            lastError = error.localizedDescription
+            performanceRecorder.completeSessionFlush(
+                startedAt: performanceStart,
+                succeeded: false
+            )
+            lastError = MobileBrowserSessionFailurePresentation.saveMessage
         }
     }
 
@@ -572,15 +613,18 @@ public final class MobileBrowserController: ObservableObject {
         for id in privateIDs { uiTestRetryResponses.removeValue(forKey: id) }
 #endif
         privateWebsiteDataStore = nil
+        downloadCoordinator.endPrivateSession()
         if let selectedTabID, privateIDs.contains(selectedTabID) {
             self.selectedTabID = normalTabs.last?.id
             if self.selectedTabID == nil { _ = createTab() }
         }
+        recordTabState()
         persistSoon()
     }
 
     public func discardInactivePages(keeping maximumLivePages: Int) {
         let limit = max(1, maximumLivePages)
+        let previousLivePageCount = pages.count
         let rankedTabs = tabs.enumerated().sorted { lhs, rhs in
             let lhsIsSelected = lhs.element.id == selectedTabID
             let rhsIsSelected = rhs.element.id == selectedTabID
@@ -605,7 +649,7 @@ public final class MobileBrowserController: ObservableObject {
             websiteDataStores.removeValue(forKey: id)
             navigationObservationTasks.removeValue(forKey: id)?.cancel()
             pageFailures.removeValue(forKey: id)
-            expectedDownloadCancellationTabIDs.remove(id)
+            expectedPolicyCancellationTabIDs.remove(id)
             faviconFetchInFlight.removeValue(forKey: id)
             faviconAttemptedDocumentURLs.removeValue(forKey: id)
             navigationDocumentGenerations.removeValue(forKey: id)
@@ -613,34 +657,15 @@ public final class MobileBrowserController: ObservableObject {
             uiTestRetryResponses.removeValue(forKey: id)
 #endif
         }
+        performanceRecorder.recordDiscard(
+            removedPages: previousLivePageCount - pages.count,
+            pressure: resourcePressure(forLivePageLimit: limit),
+            observedLivePagesBeforeDiscard: previousLivePageCount,
+            normalTabs: normalTabs.count,
+            privateTabs: privateTabs.count,
+            livePages: pages.count
+        )
     }
-
-    public func retrySelectedPage() {
-        guard let selectedTabID, let page = selectedPage else { return }
-        pageFailures.removeValue(forKey: selectedTabID)
-        observeNavigations(of: page, tabID: selectedTabID)
-#if DEBUG
-        if let retryResponse = uiTestRetryResponses.removeValue(
-            forKey: selectedTabID
-        ) {
-            page.load(
-                simulatedRequest: retryResponse.request,
-                responseHTML: retryResponse.html
-            )
-            updateSelectedMetadata(
-                url: retryResponse.request.url,
-                title: "Ahoi Retry Fixture"
-            )
-            return
-        }
-#endif
-        if page.url != nil {
-            page.reload()
-        } else if let value = selectedTab?.url, let url = URL(string: value) {
-            page.load(url)
-        }
-    }
-
 
     func updateSelectedMetadata(url: URL?, title: String?) {
         guard let selectedTabID,
@@ -705,7 +730,9 @@ public final class MobileBrowserController: ObservableObject {
             do {
                 try await saveCoordinator.enqueue(snapshot, revision: revision)
             } catch {
-                await MainActor.run { self.lastError = error.localizedDescription }
+                await MainActor.run {
+                    self.lastError = MobileBrowserSessionFailurePresentation.saveMessage
+                }
             }
         }
     }
@@ -719,5 +746,35 @@ public final class MobileBrowserController: ObservableObject {
             tabs: persistentTabs,
             selectedTabID: persistentSelection
         )
+    }
+
+    private func recordLaunchCompletion() {
+        performanceRecorder.completeLaunch(
+            normalTabs: normalTabs.count,
+            privateTabs: privateTabs.count,
+            livePages: pages.count
+        )
+    }
+
+    private func recordTabState() {
+        performanceRecorder.recordTabState(
+            normalTabs: normalTabs.count,
+            privateTabs: privateTabs.count,
+            livePages: pages.count
+        )
+    }
+
+    private func resourcePressure(
+        forLivePageLimit limit: Int
+    ) -> MobileBrowserResourcePressure {
+        if limit <= MobileBrowserPerformanceBudget.releaseDiagnostic
+            .maximumLivePagesAfterMemoryWarning {
+            return .memoryWarning
+        }
+        if limit <= MobileBrowserPerformanceBudget.releaseDiagnostic
+            .maximumLivePagesBackground {
+            return .background
+        }
+        return .foreground
     }
 }

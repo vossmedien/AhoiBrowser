@@ -9,69 +9,191 @@ extension MobileBrowserController {
         let page = makePage(tabID: tabID, mode: record.mode)
         pages[tabID] = page
         observeNavigations(of: page, tabID: tabID)
-        if let value = record.url, let url = URL(string: value) { page.load(url) }
+        if record.url != nil {
+            guard let url = Self.validatedRecoveryURL(for: record) else {
+                pageFailures[tabID] = .invalidURL
+                return page
+            }
+            page.load(url)
+        }
         return page
     }
 
     func observeNavigations(of page: WebPage, tabID: UUID) {
+        guard pages[tabID] === page,
+              tabs.contains(where: { $0.id == tabID }) else {
+            return
+        }
         navigationObservationTasks.removeValue(forKey: tabID)?.cancel()
+        navigationDocumentGenerations[tabID, default: 0] &+= 1
+        let initialGeneration = navigationDocumentGenerations[tabID, default: 0]
+        // Apple documents that a navigation sequence starts tracking when it
+        // is created. Capture it synchronously before callers invoke load(); a
+        // MainActor Task may otherwise start after an immediate DNS/URL error.
+        let initialNavigations = page.navigations
         navigationObservationTasks[tabID] = Task { @MainActor [weak self, weak page] in
             guard let self, let page else { return }
-            do {
-                for try await event in page.navigations {
-                    guard !Task.isCancelled else { return }
-                    switch event {
-                    case .startedProvisionalNavigation:
-                        self.navigationDocumentGenerations[tabID, default: 0] &+= 1
-                        self.expectedDownloadCancellationTabIDs.remove(tabID)
-                        self.permissionCoordinator.cancelPending(forTabID: tabID)
-                        self.dialogPresenters[tabID]?.cancelPending()
-                        if self.pendingLink?.sourceTabID == tabID {
-                            self.pendingLink = nil
+            var callbackGeneration = initialGeneration
+            var recoveryGate = MobileWebContentRecoveryGate()
+            var pendingRecoveryURL: URL?
+            var navigations = initialNavigations
+
+            while !Task.isCancelled {
+                do {
+                    if let recoveryURL = pendingRecoveryURL {
+                        guard self.isCurrentNavigationCallback(
+                            page: page,
+                            tabID: tabID,
+                            generation: callbackGeneration
+                        ) else { return }
+                        pendingRecoveryURL = nil
+                        navigations = page.navigations
+                        // A fresh URL load is an idempotent GET. It restores a
+                        // terminated content process without resubmitting a
+                        // possibly state-changing form request.
+                        page.load(recoveryURL)
+                    }
+
+                    for try await event in navigations {
+                        guard !Task.isCancelled,
+                              self.isCurrentNavigationCallback(
+                                  page: page,
+                                  tabID: tabID,
+                                  generation: callbackGeneration
+                              ) else {
+                            return
                         }
-                        if self.pendingExternalOpen?.sourceTabID == tabID {
-                            self.pendingExternalOpen = nil
+                        switch event {
+                        case .startedProvisionalNavigation:
+                            self.navigationDocumentGenerations[tabID, default: 0] &+= 1
+                            callbackGeneration = self.navigationDocumentGenerations[
+                                tabID,
+                                default: 0
+                            ]
+                            self.resetTransientNavigationState(for: tabID)
+                            self.pageFailures.removeValue(forKey: tabID)
+                        case .committed:
+                            self.pageFailures.removeValue(forKey: tabID)
+                        case .finished:
+                            recoveryGate.resetAfterFinishedNavigation()
+                            self.expectedPolicyCancellationTabIDs.remove(tabID)
+                            self.pageFailures.removeValue(forKey: tabID)
+                            await self.sampleWebsiteTint(from: page, tabID: tabID)
+                            guard self.isCurrentNavigationCallback(
+                                page: page,
+                                tabID: tabID,
+                                generation: callbackGeneration
+                            ) else { return }
+                        case .receivedServerRedirect:
+                            break
+                        @unknown default:
+                            break
                         }
-                        self.faviconFetchInFlight.removeValue(forKey: tabID)
-                        self.faviconAttemptedDocumentURLs.removeValue(forKey: tabID)
-                        self.pageFailures.removeValue(forKey: tabID)
-                    case .committed:
-                        self.pageFailures.removeValue(forKey: tabID)
-                    case .finished:
-                        self.expectedDownloadCancellationTabIDs.remove(tabID)
-                        self.pageFailures.removeValue(forKey: tabID)
-                        await self.sampleWebsiteTint(from: page, tabID: tabID)
-                    case .receivedServerRedirect:
-                        break
-                    @unknown default:
+                    }
+                    return
+                } catch {
+                    guard !Task.isCancelled,
+                          self.isCurrentNavigationCallback(
+                              page: page,
+                              tabID: tabID,
+                              generation: callbackGeneration
+                          ) else {
+                        return
+                    }
+                    let expectedPolicyCancellation =
+                        self.expectedPolicyCancellationTabIDs.remove(tabID) != nil
+                    switch MobileNavigationObservationFailurePolicy.action(
+                        expectedPolicyCancellation: expectedPolicyCancellation,
+                        isNavigationCancellation: Self.isNavigationCancellation(error)
+                    ) {
+                    case .resubscribeAfterCancellation:
+                        if !expectedPolicyCancellation || self.pageFailures[tabID] == nil {
+                            self.pageFailures.removeValue(forKey: tabID)
+                        }
+                        // Downloads, stopLoading(), and superseded in-page
+                        // loads can all cancel a WebKit navigation sequence.
+                        // Rebind after yielding so later page-owned navigation
+                        // remains observable without spinning on a completed
+                        // AsyncSequence.
+                        let resubscribeGeneration = callbackGeneration
+                        Task { @MainActor [weak self, weak page] in
+                            await Task.yield()
+                            guard let self, let page,
+                                  self.isCurrentNavigationCallback(
+                                      page: page,
+                                      tabID: tabID,
+                                      generation: resubscribeGeneration
+                                  ) else { return }
+                            self.observeNavigations(of: page, tabID: tabID)
+                        }
+                        return
+                    case .classifyFailure:
                         break
                     }
-                }
-            } catch {
-                guard !Task.isCancelled else { return }
-                if self.expectedDownloadCancellationTabIDs.remove(tabID) != nil {
-                    self.pageFailures.removeValue(forKey: tabID)
+                    let classification = Self.navigationFailureClassification(error)
+                    self.retainNavigationFailureDestination(
+                        from: error,
+                        tabID: tabID
+                    )
+                    if let tab = self.tabs.first(where: { $0.id == tabID }),
+                       let recoveryURL = Self.validatedRecoveryURL(
+                           for: tab,
+                           preferredURL: page.url
+                       ),
+                       recoveryGate.claim(for: classification) {
+                        self.pageFailures.removeValue(forKey: tabID)
+                        pendingRecoveryURL = recoveryURL
+                        continue
+                    }
+                    self.pageFailures[tabID] = classification.pageFailureKind
                     return
                 }
-                guard !Self.isNavigationCancellation(error) else { return }
-                self.pageFailures[tabID] = Self.classifyNavigationFailure(error)
             }
         }
     }
 
-    private static func isNavigationCancellation(_ error: Error) -> Bool {
-        if let navigationError = error as? WebPage.NavigationError,
-           case .failedProvisionalNavigation(let underlying) = navigationError {
-            return isNavigationCancellation(underlying)
+    private func isCurrentNavigationCallback(
+        page: WebPage,
+        tabID: UUID,
+        generation: UInt64
+    ) -> Bool {
+        MobileNavigationCallbackValidity.accepts(
+            expectedGeneration: generation,
+            currentGeneration: navigationDocumentGenerations[tabID],
+            tabExists: tabs.contains(where: { $0.id == tabID }),
+            pageIsCurrent: pages[tabID] === page
+        )
+    }
+
+    private func retainNavigationFailureDestination(
+        from error: Error,
+        tabID: UUID
+    ) {
+        guard let failedURL = Self.validatedNavigationFailureURL(error),
+              let tabIndex = tabs.firstIndex(where: { $0.id == tabID }),
+              MobileNavigationFailureDestinationPolicy.apply(
+                  failedURL,
+                  to: &tabs[tabIndex]
+              ) else {
+            return
         }
-        let failure = error as NSError
-        if failure.domain == NSURLErrorDomain, failure.code == NSURLErrorCancelled {
-            return true
+        faviconFetchInFlight.removeValue(forKey: tabID)
+        faviconAttemptedDocumentURLs.removeValue(forKey: tabID)
+        persistSoon()
+    }
+
+    private func resetTransientNavigationState(for tabID: UUID) {
+        expectedPolicyCancellationTabIDs.remove(tabID)
+        permissionCoordinator.cancelPending(forTabID: tabID)
+        dialogPresenters[tabID]?.cancelPending()
+        if pendingLink?.sourceTabID == tabID {
+            pendingLink = nil
         }
-        if let underlying = failure.userInfo[NSUnderlyingErrorKey] as? Error {
-            return isNavigationCancellation(underlying)
+        if pendingExternalOpen?.sourceTabID == tabID {
+            pendingExternalOpen = nil
         }
-        return false
+        faviconFetchInFlight.removeValue(forKey: tabID)
+        faviconAttemptedDocumentURLs.removeValue(forKey: tabID)
     }
 
     func makePage(tabID: UUID, mode: MobileBrowsingMode) -> WebPage {
@@ -91,6 +213,8 @@ extension MobileBrowserController {
         websiteDataStores[tabID] = websiteDataStore
         configuration.websiteDataStore = websiteDataStore
         configuration.upgradeKnownHostsToHTTPS = true
+        // Certificate trust and ATS policy deliberately stay with WebKit's
+        // default handling. Never install a permissive challenge override.
         configuration.mediaPlaybackBehavior = .allowsInlinePlayback
         configuration.deviceSensorAuthorization = .init { [weak self] permission, _, origin in
             guard let self,
@@ -145,19 +269,40 @@ extension MobileBrowserController {
                 sourceTabID: tabID
             )
         }
-        policy.onDownload = { [weak self] request in
-            self?.expectedDownloadCancellationTabIDs.insert(tabID)
+        policy.onBlockedNavigation = { [weak self] _ in
+            guard let self, self.selectedTabID == tabID else { return }
+            self.lastError = CompanionL10n.string(
+                "browser.error.blocked_scheme",
+                fallback: "AhoiBrowser only opens safe web links and approved app links."
+            )
+        }
+        policy.onHTTPFailure = { [weak self] url, _, failure in
+            guard let self,
+                  let tabIndex = self.tabs.firstIndex(where: { $0.id == tabID }) else {
+                return
+            }
+            self.expectedPolicyCancellationTabIDs.insert(tabID)
+            self.pageFailures[tabID] = failure
+            if MobileNavigationFailureDestinationPolicy.apply(
+                url,
+                to: &self.tabs[tabIndex]
+            ) {
+                self.faviconFetchInFlight.removeValue(forKey: tabID)
+                self.faviconAttemptedDocumentURLs.removeValue(forKey: tabID)
+                self.persistSoon()
+            }
+        }
+        policy.onDownload = { [weak self] request, sourceOrigin in
+            self?.expectedPolicyCancellationTabIDs.insert(tabID)
             self?.pageFailures.removeValue(forKey: tabID)
             self?.downloadCoordinator.start(
                 request: request,
                 websiteDataStore: websiteDataStore,
-                initiatingOrigin: self?.tabs.first(where: { $0.id == tabID })?.url
-                    .flatMap(URL.init(string:))
-                    .map(MobileBrowserOriginFormatter.label(for:)),
+                initiatingOrigin: sourceOrigin,
                 isPrivate: mode == .privateBrowsing
             )
         }
-        policy.onDownloadRejected = { [weak self] url, reason in
+        policy.onDownloadRejected = { [weak self] url, initiatingOrigin, reason in
             guard let self else { return }
             let message: String
             switch reason {
@@ -173,16 +318,13 @@ extension MobileBrowserController {
                     fallback: "AhoiBrowser could not safely match this download response to its original request, so no request was repeated."
                 )
             }
-            self.expectedDownloadCancellationTabIDs.insert(tabID)
+            self.expectedPolicyCancellationTabIDs.insert(tabID)
             self.pageFailures.removeValue(forKey: tabID)
             self.lastError = message
             guard let url else { return }
-            let sourceOrigin = self.tabs.first(where: { $0.id == tabID })?.url
-                .flatMap(URL.init(string:))
-                .map(MobileBrowserOriginFormatter.label(for:))
             self.downloadCoordinator.recordFailure(
                 sourceURL: url,
-                initiatingOrigin: sourceOrigin,
+                initiatingOrigin: initiatingOrigin,
                 isPrivate: mode == .privateBrowsing,
                 message: message
             )

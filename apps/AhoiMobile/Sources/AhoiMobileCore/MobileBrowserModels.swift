@@ -8,11 +8,15 @@ public enum MobileBrowsingMode: String, Codable, CaseIterable, Sendable {
 
 public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     public static let maximumFaviconDataBytes = 128 * 1_024
+    public static let maximumCustomTitleCharacters = 160
     public static let maximumTitleUTF8Bytes = 1_024
     public static let maximumURLUTF8Bytes = 16 * 1_024
 
     public let id: UUID
     public var workspaceID: WorkspaceID?
+    /// A page-independent title chosen explicitly by the user. Keeping it
+    /// separate prevents later WebKit metadata from erasing that choice.
+    public var customTitle: String?
     public var title: String
     public var url: String?
     public var createdAt: Date
@@ -29,6 +33,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     public init(
         id: UUID = UUID(),
         workspaceID: WorkspaceID? = nil,
+        customTitle: String? = nil,
         title: String = "",
         url: String? = nil,
         createdAt: Date = Date(),
@@ -40,6 +45,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     ) {
         self.id = id
         self.workspaceID = workspaceID
+        self.customTitle = Self.normalizedCustomTitle(customTitle)
         self.title = Self.normalizedTitle(title)
         self.url = Self.normalizedURLString(url)
         self.createdAt = createdAt
@@ -55,6 +61,15 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     public static func normalizedTitle(_ value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return utf8Prefix(trimmed, maximumBytes: maximumTitleUTF8Bytes)
+    }
+
+    public static func normalizedCustomTitle(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = normalizedTitle(
+            String(trimmed.prefix(maximumCustomTitleCharacters))
+        )
+        return normalized.isEmpty ? nil : normalized
     }
 
     public static func normalizedURLString(_ value: String?) -> String? {
@@ -81,8 +96,12 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
         return result
     }
 
+    public var effectiveTitle: String {
+        customTitle ?? title
+    }
+
     public var displayTitle: String {
-        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedTitle = effectiveTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedTitle.isEmpty { return trimmedTitle }
         if let url, let host = URL(string: url)?.host(), !host.isEmpty { return host }
         return CompanionL10n.string("browser.new_tab", fallback: "New tab")
@@ -110,6 +129,9 @@ public struct MobileBrowserSessionSnapshot: Codable, Equatable, Sendable {
                 return nil
             }
             var sanitized = tab
+            sanitized.customTitle = MobileTabRecord.normalizedCustomTitle(
+                sanitized.customTitle
+            )
             sanitized.title = MobileTabRecord.normalizedTitle(sanitized.title)
             sanitized.url = MobileTabRecord.normalizedURLString(sanitized.url)
             if let faviconData = sanitized.faviconData,
@@ -137,7 +159,11 @@ public enum MobileBrowserInputError: Error, Equatable, Sendable {
 
 public enum MobilePageFailureKind: String, Equatable, Sendable {
     case offline
+    case dnsLookupFailed
     case timedOut
+    case transportSecurity
+    case httpClientError
+    case httpServerError
     case webContentTerminated
     case invalidURL
     case failed
@@ -265,7 +291,12 @@ public actor FileMobileBrowserSessionStore: MobileBrowserSessionStoring {
             throw MobileBrowserSessionStoreError.invalidSnapshot
         }
         let data = try Data(contentsOf: fileURL)
-        let snapshot = try decoder.decode(MobileBrowserSessionSnapshot.self, from: data)
+        let snapshot: MobileBrowserSessionSnapshot
+        do {
+            snapshot = try decoder.decode(MobileBrowserSessionSnapshot.self, from: data)
+        } catch {
+            throw MobileBrowserSessionStoreError.invalidSnapshot
+        }
         guard snapshot.schemaVersion == MobileBrowserSessionSnapshot.currentSchemaVersion else {
             throw MobileBrowserSessionStoreError.unsupportedSchema
         }

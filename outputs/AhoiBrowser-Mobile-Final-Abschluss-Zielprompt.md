@@ -122,6 +122,24 @@ CPU-intensiven Prozesse und setze sie später inkrementell fort.
 - Swift 6 Strict Concurrency, Main-Actor-Grenzen, `Sendable`-Verträge,
   deterministische Persistenz und idempotentes Cleanup bleiben verbindlich.
 
+### Mobile Content Blocking / uBlock-Origin-Machbarkeitsgate
+
+Prüfe einmalig und quellengestützt, ob die autoritative GitHub-Version von
+uBlock Origin im System-WebKit-Aufbau von AhoiBrowser Mobile als echte,
+wartbare Extension-Runtime betrieben werden kann. Eine bloße Übernahme von
+Filterlisten, eine umbenannte Teilportierung oder eine Safari-App-Extension,
+die nur in Safari läuft, darf nicht als uBlock-Origin-Integration ausgegeben
+werden.
+
+Falls WebKit die echte Extension-Runtime nicht bereitstellt, dokumentiere die
+Grenze fail-closed und schließe das Mobile-Hauptziel ohne eine irreführende
+Integration ab. Ein späterer eigener `WKContentRuleListStore`-basierter
+Content-Blocker ist nur als separates Featurepaket zulässig, mit eigener
+Benennung, Lizenz- und Signaturprüfung, per-site Semantik, Offline-Fallback,
+Performancebudgets und sichtbaren Ad-/Tracker-/Breakage-Journeys. Der
+quellengestützte Entscheid ist in
+`outputs/AhoiBrowser-Mobile-uBlock-Feasibility.md` festzuhalten.
+
 ## Phase A – vollständige lokale Feature-Fertigstellung
 
 Während Phase A dürfen gezielte Compile-, Unit-, Integration-, statische und

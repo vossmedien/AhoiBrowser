@@ -46,11 +46,13 @@ public struct MobileBrowserHistoryView: View {
                     fallback: "Search history"
                 )
             )
+            .accessibilityIdentifier("browser.history.search")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(CompanionL10n.string("action.done", fallback: "Done")) {
                         dismiss()
                     }
+                    .accessibilityIdentifier("browser.history.done")
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
@@ -60,6 +62,9 @@ public struct MobileBrowserHistoryView: View {
                             } label: {
                                 Label(scope.title, systemImage: "trash")
                             }
+                            .accessibilityIdentifier(
+                                "browser.history.clear.\(scope.rawValue)"
+                            )
                         }
                     } label: {
                         Image(systemName: "trash")
@@ -69,9 +74,11 @@ public struct MobileBrowserHistoryView: View {
                         "browser.history.clear",
                         fallback: "Clear history"
                     ))
+                    .accessibilityIdentifier("browser.history.clear")
                 }
             }
         }
+        .accessibilityIdentifier("browser.history.sheet")
         .confirmationDialog(
             pendingClearScope?.confirmationTitle ?? "",
             isPresented: Binding(
@@ -92,15 +99,18 @@ public struct MobileBrowserHistoryView: View {
                     )
                 }
             }
+            .accessibilityIdentifier("browser.history.clear.confirm")
             Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                 pendingClearScope = nil
             }
+            .accessibilityIdentifier("browser.history.clear.cancel")
         } message: {
             Text(CompanionL10n.string(
                 "browser.history.clear.message",
                 fallback: "Deleted visits are removed from Ahoi sync on your other devices too."
             ))
         }
+        .accessibilityAction(.escape) { dismiss() }
         .confirmationDialog(
             pendingVisitDeletion.map {
                 CompanionL10n.format(
@@ -123,9 +133,11 @@ public struct MobileBrowserHistoryView: View {
                 pendingVisitDeletion = nil
                 Task { await model.deleteHistoryVisit(visit.id) }
             }
+            .accessibilityIdentifier("browser.history.delete.confirm")
             Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                 pendingVisitDeletion = nil
             }
+            .accessibilityIdentifier("browser.history.delete.cancel")
         } message: {
             Text(CompanionL10n.string(
                 "browser.history.clear.message",
@@ -162,6 +174,9 @@ public struct MobileBrowserHistoryView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(
+            "browser.history.row.\(visit.id.rawValue.uuidString.lowercased())"
+        )
         .swipeActions {
             Button(role: .destructive) {
                 pendingVisitDeletion = visit
@@ -171,6 +186,9 @@ public struct MobileBrowserHistoryView: View {
                     systemImage: "trash"
                 )
             }
+            .accessibilityIdentifier(
+                "browser.history.delete.\(visit.id.rawValue.uuidString.lowercased())"
+            )
         }
         .accessibilityHint(CompanionL10n.string(
             "browser.history.open_hint",

@@ -6,12 +6,14 @@ options:
     iOS: "26.0"
 configs:
   DebugLocal: debug
+  PerformanceDevelopment: debug
   CloudKitDevelopment: debug
   TestFlightBootstrap: release
   DefaultBrowserDevelopment: debug
   ReleasePostGrant: release
 configFiles:
   DebugLocal: Configurations/DebugLocal.xcconfig
+  PerformanceDevelopment: Configurations/PerformanceDevelopment.xcconfig
   CloudKitDevelopment: Configurations/CloudKitDevelopment.xcconfig
   TestFlightBootstrap: Configurations/TestFlightBootstrap.xcconfig
   DefaultBrowserDevelopment: Configurations/DefaultBrowserDevelopment.xcconfig
@@ -35,6 +37,9 @@ targets:
         SWIFT_STRICT_CONCURRENCY: complete
         IPHONEOS_DEPLOYMENT_TARGET: "26.0"
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        PerformanceDevelopment:
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
   AhoiMobile:
     type: application
     platform: iOS
@@ -52,6 +57,7 @@ targets:
         CFBundleVersion: "$(AHOI_MOBILE_BUILD_NUMBER)"
         AhoiSourceCommit: "$(AHOI_SOURCE_COMMIT)"
         AhoiBuildMode: "$(AHOI_BUILD_MODE)"
+        AhoiOptimizationLevel: "$(SWIFT_OPTIMIZATION_LEVEL)"
         AhoiCloudKitE2ERealMutationOptIn: "$(AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN)"
         AhoiCloudKitE2ERunToken: "$(AHOI_CLOUDKIT_E2E_RUN_TOKEN)"
         AHOI_CLOUDKIT_CONTAINER_ID: "$(AHOI_CLOUDKIT_CONTAINER_ID)"
@@ -106,6 +112,9 @@ targets:
       configs:
         DebugLocal:
           SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+          CODE_SIGN_ENTITLEMENTS: ""
+        PerformanceDevelopment:
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
           CODE_SIGN_ENTITLEMENTS: ""
         CloudKitDevelopment:
           SWIFT_OPTIMIZATION_LEVEL: "-Onone"
@@ -216,6 +225,26 @@ schemes:
       config: CloudKitDevelopment
     archive:
       config: CloudKitDevelopment
+  AhoiMobile-PerformanceDevelopment:
+    build:
+      targets:
+        AhoiMobile: all
+        AhoiMobileCore: all
+        AhoiMobileCoreTests: [test]
+        AhoiMobileUITests: [test]
+    run:
+      config: PerformanceDevelopment
+    test:
+      config: PerformanceDevelopment
+      targets:
+        - AhoiMobileCoreTests
+        - AhoiMobileUITests
+    analyze:
+      config: PerformanceDevelopment
+    profile:
+      config: PerformanceDevelopment
+    archive:
+      config: PerformanceDevelopment
   AhoiMobile-CloudKitE2E:
     build:
       targets:

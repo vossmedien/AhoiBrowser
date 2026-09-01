@@ -14,6 +14,7 @@ public enum CompanionCloudKitBootstrapError: Error, Equatable, Sendable {
     case recordStoreInitializationFailed
     case quarantineStoreInitializationFailed
     case systemFieldsStoreInitializationFailed
+    case remoteCommandOwnershipStoreInitializationFailed
 }
 
 /// Creates the native provider only for a signed target that supplies a real
@@ -121,7 +122,8 @@ public enum CompanionCloudKitBootstrap {
         recordsURL: URL,
         stateURL: URL,
         commandSigner: (any RemoteCommandSigning)? = nil,
-        quarantineStore: (any SyncQuarantineStore)? = nil
+        quarantineStore: (any SyncQuarantineStore)? = nil,
+        remoteCommandOwnershipStore: (any RemoteCommandOwnershipStoring)? = nil
     ) -> CompanionCloudKitRuntime? {
         do {
             return try makeRuntimeChecked(
@@ -132,7 +134,8 @@ public enum CompanionCloudKitBootstrap {
                 recordsURL: recordsURL,
                 stateURL: stateURL,
                 commandSigner: commandSigner,
-                quarantineStore: quarantineStore
+                quarantineStore: quarantineStore,
+                remoteCommandOwnershipStore: remoteCommandOwnershipStore
             )
         } catch {
             // Compatibility-only optional API. Runtime activation uses the
@@ -150,7 +153,8 @@ public enum CompanionCloudKitBootstrap {
         recordsURL: URL,
         stateURL: URL,
         commandSigner: (any RemoteCommandSigning)? = nil,
-        quarantineStore: (any SyncQuarantineStore)? = nil
+        quarantineStore: (any SyncQuarantineStore)? = nil,
+        remoteCommandOwnershipStore: (any RemoteCommandOwnershipStoring)? = nil
     ) throws -> CompanionCloudKitRuntime? {
         guard syncEnabled else { return nil }
         guard let keyConfiguration else {
@@ -159,6 +163,21 @@ public enum CompanionCloudKitBootstrap {
         let sealer = try KeychainCompanionPayloadSealer(
             configuration: keyConfiguration
         )
+        let resolvedOwnershipStore: any RemoteCommandOwnershipStoring
+        if let remoteCommandOwnershipStore {
+            resolvedOwnershipStore = remoteCommandOwnershipStore
+        } else {
+            let ownershipURL = stateURL.deletingLastPathComponent()
+                .appendingPathComponent("remote-command-ownership-v1.json")
+            do {
+                resolvedOwnershipStore = try FileRemoteCommandOwnershipStore(
+                    fileURL: ownershipURL
+                )
+            } catch {
+                throw CompanionCloudKitBootstrapError
+                    .remoteCommandOwnershipStoreInitializationFailed
+            }
+        }
         guard let provider = try makeProviderChecked(
             syncEnabled: true,
             containerIdentifier: containerIdentifier,
@@ -174,7 +193,8 @@ public enum CompanionCloudKitBootstrap {
                 repository: repository,
                 provider: provider,
                 sealer: sealer,
-                commandSigner: commandSigner
+                commandSigner: commandSigner,
+                commandOwnershipStore: resolvedOwnershipStore
             )
         )
     }

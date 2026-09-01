@@ -74,6 +74,119 @@ enum CloudKitStatePersistence {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
+struct CloudKitAccountTransitionPlan {
+    let accountTransitionPending: Bool
+    let shouldRebuildTransport: Bool
+    let declinedStatus: CloudKitSyncStatus?
+}
+
+/// Pure policy seam for account, zone, and retry decisions. Production and
+/// entitlement-free tests consume the same result without constructing a
+/// CKContainer or touching a live iCloud account.
+@available(iOS 17.0, macOS 14.0, *)
+enum CloudKitRecoveryPolicy {
+    static func accountTransitionPlan(
+        allowLocalUpload: Bool
+    ) -> CloudKitAccountTransitionPlan {
+        guard allowLocalUpload else {
+            return .init(
+                accountTransitionPending: true,
+                shouldRebuildTransport: false,
+                declinedStatus: .init(
+                    phase: .accountRequired,
+                    detail: SyncText(
+                        "sync.status.account_upload_not_approved",
+                        "Local data remains isolated until upload is approved"
+                    )
+                )
+            )
+        }
+        return .init(
+            accountTransitionPending: false,
+            shouldRebuildTransport: true,
+            declinedStatus: nil
+        )
+    }
+
+    static func validateZoneRecovery(
+        accountTransitionPending: Bool
+    ) throws {
+        guard !accountTransitionPending else {
+            throw CloudKitSyncProviderError.accountTransitionRequiresConfirmation
+        }
+    }
+
+    static func status(for error: Error) -> CloudKitSyncStatus {
+        guard let cloudError = cloudErrorComponents(for: error) else {
+            return .init(phase: .failed, detail: error.localizedDescription)
+        }
+        switch cloudError.code {
+        case .notAuthenticated, .permissionFailure:
+            return .init(
+                phase: .accountRequired,
+                detail: SyncText(
+                    "sync.status.account_required",
+                    "iCloud sign-in or permission is required"
+                ),
+                retryAfterSeconds: cloudError.retryAfterSeconds
+            )
+        case .networkUnavailable, .networkFailure:
+            return .init(
+                phase: .offline,
+                detail: SyncText(
+                    "sync.status.offline",
+                    "CloudKit is offline; local changes remain pending"
+                ),
+                retryAfterSeconds: cloudError.retryAfterSeconds
+            )
+        case .requestRateLimited, .serviceUnavailable, .zoneBusy, .limitExceeded:
+            return .init(
+                phase: .retryScheduled,
+                detail: SyncText(
+                    "sync.status.temporary_limit",
+                    "CloudKit reported a temporary limit"
+                ),
+                retryAfterSeconds: cloudError.retryAfterSeconds
+            )
+        case .changeTokenExpired, .zoneNotFound, .userDeletedZone:
+            return .init(
+                phase: .retryScheduled,
+                detail: SyncText(
+                    "sync.status.zone_reinitialization",
+                    "CloudKit zone requires reinitialization"
+                ),
+                retryAfterSeconds: cloudError.retryAfterSeconds
+            )
+        default:
+            return .init(
+                phase: .failed,
+                detail: CompanionL10n.format(
+                    "sync.status.error_code",
+                    fallback: "CloudKit error: %d",
+                    cloudError.code.rawValue
+                ),
+                retryAfterSeconds: cloudError.retryAfterSeconds
+            )
+        }
+    }
+
+    private static func cloudErrorComponents(
+        for error: Error
+    ) -> (code: CKError.Code, retryAfterSeconds: Double?)? {
+        if let cloudError = error as? CKError {
+            return (cloudError.code, cloudError.retryAfterSeconds)
+        }
+        let nsError = error as NSError
+        guard nsError.domain == CKErrorDomain,
+              let code = CKError.Code(rawValue: nsError.code) else {
+            return nil
+        }
+        let retryAfter = (nsError.userInfo[CKErrorRetryAfterKey] as? NSNumber)?.doubleValue
+        return (code, retryAfter)
+    }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
 extension CloudKitSyncProvider {
     func markStatePersistenceFailure() {
         statusLock.withLock {
@@ -94,58 +207,7 @@ extension CloudKitSyncProvider {
     }
 
     func classify(_ error: Error) -> ClassifiedError {
-        guard let cloudError = error as? CKError else {
-            return .init(status: .init(phase: .failed, detail: error.localizedDescription))
-        }
-        let retryAfter = cloudError.retryAfterSeconds
-        switch cloudError.code {
-        case .notAuthenticated, .permissionFailure:
-            return .init(status: .init(
-                phase: .accountRequired,
-                detail: SyncText(
-                    "sync.status.account_required",
-                    "iCloud sign-in or permission is required"
-                ),
-                retryAfterSeconds: retryAfter
-            ))
-        case .networkUnavailable, .networkFailure:
-            return .init(status: .init(
-                phase: .offline,
-                detail: SyncText(
-                    "sync.status.offline",
-                    "CloudKit is offline; local changes remain pending"
-                ),
-                retryAfterSeconds: retryAfter
-            ))
-        case .requestRateLimited, .serviceUnavailable, .zoneBusy, .limitExceeded:
-            return .init(status: .init(
-                phase: .retryScheduled,
-                detail: SyncText(
-                    "sync.status.temporary_limit",
-                    "CloudKit reported a temporary limit"
-                ),
-                retryAfterSeconds: retryAfter
-            ))
-        case .changeTokenExpired, .zoneNotFound, .userDeletedZone:
-            return .init(status: .init(
-                phase: .retryScheduled,
-                detail: SyncText(
-                    "sync.status.zone_reinitialization",
-                    "CloudKit zone requires reinitialization"
-                ),
-                retryAfterSeconds: retryAfter
-            ))
-        default:
-            return .init(status: .init(
-                phase: .failed,
-                detail: CompanionL10n.format(
-                    "sync.status.error_code",
-                    fallback: "CloudKit error: %d",
-                    cloudError.code.rawValue
-                ),
-                retryAfterSeconds: retryAfter
-            ))
-        }
+        .init(status: CloudKitRecoveryPolicy.status(for: error))
     }
 
     func beginActivity() -> Bool {
