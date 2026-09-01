@@ -409,10 +409,15 @@ class RepositoryContractTests(unittest.TestCase):
         for name in ("proprietaryCodecs", "widevine", "crashUpload"):
             with self.subTest(name=name):
                 self.assertFalse(gates[name]["default"])
-        self.assertFalse(gates["selectiveUboClassicMv2"]["default"])
+        self.assertTrue(gates["selectiveUboClassicMv2"]["default"])
         self.assertEqual(
-            ["dev"],
-            gates["selectiveUboClassicMv2"]["dogfoodBuildProfiles"],
+            [
+                "ahoi-dev",
+                "ahoi-full-dev",
+                "ahoi-release",
+                "ahoi-full-release",
+            ],
+            gates["selectiveUboClassicMv2"]["enabledBuildProfiles"],
         )
         self.assertEqual(
             [

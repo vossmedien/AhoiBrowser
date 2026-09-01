@@ -630,6 +630,17 @@ std::unique_ptr<views::View> CreateSidebarHeaderActionButton(
       /*hover_bottom_radius=*/visual_style::kSidebarHeaderActionSize / 2.0f);
 }
 
+void SetSidebarHeaderActionToggleState(views::View* button, bool checked) {
+  auto* action = views::AsViewClass<SidebarActionButton>(button);
+  if (!action) {
+    return;
+  }
+  action->GetViewAccessibility().SetRole(ax::mojom::Role::kToggleButton);
+  action->GetViewAccessibility().SetCheckedState(
+      checked ? ax::mojom::CheckedState::kTrue
+              : ax::mojom::CheckedState::kFalse);
+}
+
 std::unique_ptr<views::View> CreateSidebarSectionDivider(
     views::Button::PressedCallback callback,
     std::u16string action_name) {

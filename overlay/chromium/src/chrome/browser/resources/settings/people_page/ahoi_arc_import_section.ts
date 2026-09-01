@@ -245,6 +245,15 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
         return 'ahoiArcImportBackupQuotaExceeded';
       case 'recoveryRequired':
         return 'ahoiArcImportRecoveryRequired';
+      case 'limitExceeded':
+      case 'invalidJson':
+      case 'unsupportedSchema':
+      case 'missingRequiredField':
+      case 'malformedSerializedMap':
+      case 'duplicateIdentifier':
+      case 'graphViolation':
+      case 'invalidText':
+        return 'ahoiArcImportUnsupportedData';
       default:
         return 'ahoiArcImportError';
     }

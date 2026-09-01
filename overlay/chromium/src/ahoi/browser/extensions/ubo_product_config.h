@@ -55,7 +55,8 @@ struct UboProductConfig {
 };
 
 // Compile-time product gate for the narrowly scoped uBO Classic MV2 path.
-// It defaults to false and is enabled only by an explicit dogfood GN profile.
+// Every supported Ahoi desktop profile enables it; non-Ahoi embedders can opt
+// out and revoke stale authorization fail-closed.
 bool IsUboClassicEnabled();
 
 bool IsPinnedUboBootstrapIdentity(std::string_view extension_id,
@@ -71,10 +72,9 @@ bool IsAllowedUboPackageRedirect(const GURL& requested_url,
                                  const GURL& before_url,
                                  const GURL& redirect_url);
 
-// The single production configuration seam enables the browser-pinned Official
-// GitHub release bootstrap only in an explicitly opted-in dogfood build.
-// Catalog networking remains unprovisioned until its separate signing and
-// hosting gate passes.
+// The single production configuration seam enables only the browser-pinned
+// Official GitHub release bootstrap. Catalog networking remains unprovisioned
+// until its separate signing and hosting gate passes.
 UboProductConfig GetProductionUboProductConfig();
 
 }  // namespace ahoi::extensions

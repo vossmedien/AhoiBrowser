@@ -20,7 +20,8 @@ tracked overlay plus the complete ordered series declared in
 `patches/chromium/series`; that file is the single source of truth for patch
 count and order. It contains the M152 integration seams, deterministic
 platform tests, Compose guards, native sidebar/split fixes, the null-tab
-extension-menu guard, and the compact Zen importer seam. The product contains
+extension-menu guard, Arc 1.162 sidebar-schema compatibility, the accessible
+docked/floating sidebar toggle, and the compact Zen importer seam. The product contains
 the profile-backed sidebar, SQLite-backed nested tree, saved/temporary live-tab
 lifecycle, drag-and-drop, command bar, shared
 visual language, and bounded split-view integration. The current M152 ARM64

@@ -348,21 +348,23 @@ as a second active patch stack.
   Arc import surface.
 - **Affected paths:** Chromium's browser command controller, app/extension menu
   action construction, toolbar target, and direct GN dependencies.
-- **Rationale:** the narrow uBlock Origin Classic MV2 exception must be absent
-  from normal and release products unless an explicit dogfood GN profile
-  compiles it in. Disabled builds expose no menu/action entry point, reject the
-  command again at execution, revoke stale authorization, and disable the
-  exact Classic ID if it was retained by an older opted-in build.
+- **Rationale:** the narrow uBlock Origin Classic MV2 exception is compiled into
+  every supported Ahoi desktop profile so its explicit one-click path works in
+  the product. The generated build flag still lets the unmodified control or a
+  non-Ahoi embedder opt out. Disabled builds expose no menu/action entry point,
+  reject the command again at execution, revoke stale authorization, and
+  disable the exact Classic ID if it was retained by an enabled build.
 - **Rejected alternatives:** a mutable preference, Finch/remote configuration,
   hiding only one menu item, leaving stale MV2 authorization loadable, or
   enabling the exception in every development/release profile.
-- **Tests:** visible dogfood menu/install behavior and a gate-off installed
+- **Tests:** visible installed menu/install behavior and a gate-off control
   profile first; then focused policy/service tests, build-profile contracts,
   release GN inspection, and ordered patch composition.
-- **Security/privacy impact:** default-deny is a generated compile-time build
-  flag. Release profiles explicitly keep it false; a disabled build clears
-  only Ahoi's local authorization for the exact pinned ID and uses Chromium's
-  unsupported-manifest disable reason without widening MV2 support.
+- **Security/privacy impact:** the generated compile-time build flag scopes the
+  exception to supported Ahoi products while preserving an explicit opt-out. A
+  disabled build clears only Ahoi's local authorization for the exact pinned ID
+  and uses Chromium's unsupported-manifest disable reason without widening MV2
+  support.
 - **Expected rebase risk:** low-to-medium because command/action dependency
   ownership and the extensions submenu implementation can move upstream.
 - **Removal/upstream plan:** remove only after the Classic path is retired or
@@ -685,6 +687,45 @@ as a second active patch stack.
 - **Removal/upstream plan:** fold the priority constant into the base Ahoi seam
   after runtime acceptance, or remove only if Ahoi shortcuts move to an
   upstream conflict-aware registration facility.
+
+## `0027-ahoi-arc-schema-preview-and-sidebar-a11y.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the extension
+  accelerator-compatibility patch.
+- **Affected paths:** Chromium's generated Settings resources and localized
+  string provider. Companion overlay changes cover the Arc parser, discovery
+  orchestration and WebUI, plus the docked/floating sidebar header action.
+- **Rationale:** Arc 1.162 serializes `newContainerIDs` as strict selector/ID
+  pairs, while the previous parser expected the pair in reverse order. The
+  parser now recognizes the bounded current and legacy map shapes, rejects
+  duplicate or unknown selectors, and canonicalizes pinned before unpinned
+  independently of serialized map order. Invalid schemas receive a precise
+  fail-closed message. Immutable snapshot parsing now precedes the expensive
+  process-wide open-file scan, while a preview is still withheld until that
+  scan succeeds and commit/backup retain their independent source checks. The
+  visually working presentation button also publishes its actual toggle role
+  and checked state.
+- **Rejected alternatives:** rewriting or normalizing Arc source data, guessing
+  unknown selector shapes, falling back to legacy data after a malformed
+  current map, skipping the source-use gate, adding polling, or changing the
+  sidebar's geometry merely to work around an accessibility-state omission.
+- **Tests:** first repeat the real installed Arc preview and the visible
+  docked/floating toggle journey; then run the current/legacy/order/negative Arc
+  parser cases, the specific WebUI status test, and the sidebar action
+  accessibility unit. A confirmed real import still requires immutable backup,
+  visible result inspection and a second identical no-op run.
+- **Security/privacy impact:** Arc remains read-only; malformed data fails
+  closed, source generation is captured immutably, open files still block every
+  published preview, and commit plus backup revalidate process, handle and hash
+  state. No source path, secret category or imported data is added to logs.
+- **Expected rebase risk:** medium because generated localization catalogs and
+  the importer WebUI are milestone-sensitive; the overlay parser and sidebar
+  helper are Ahoi-owned.
+- **Removal/upstream plan:** retain the explicit Arc schema adapter while Arc
+  has no stable export contract; retire only with a documented upstream export
+  or migrate the resource seam if Chromium gains an equivalent custom importer
+  status facility.
 
 ## Overlay-owned M152 compile corrections
 

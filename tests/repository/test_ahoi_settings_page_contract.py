@@ -48,6 +48,9 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         self.arc_import_webui_test = ARC_IMPORT_WEBUI_TEST.read_text(
             encoding="utf-8"
         )
+        self.arc_import_service = (
+            ARC_IMPORT_ROOT / "arc_import_service.cc"
+        ).read_text(encoding="utf-8")
 
     def test_route_menu_main_and_build_are_first_class(self):
         for marker in (
@@ -291,6 +294,23 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "import {PrefServiceObserverMixinLit} from",
         ):
             self.assertLess(self.controller.index(marker), chromeos_guard)
+
+    def test_arc_preview_parses_immutable_snapshot_before_handle_scan(self):
+        start = self.arc_import_service.index(
+            "ArcImportService::DiscoverImport("
+        )
+        end = self.arc_import_service.index("ArcImportService::CommitResult")
+        discovery = self.arc_import_service[start:end]
+        ordered_markers = (
+            "InspectDefaultArcApplication()",
+            "DiscoverArcSourceAt(application_support_dir)",
+            "CaptureArcSnapshot(*discovery.source)",
+            "ParseArcSnapshot(std::move(*snapshot.snapshot))",
+            "AreArcProfileFilesOpen(*discovery.source)",
+        )
+        positions = [discovery.index(marker) for marker in ordered_markers]
+        self.assertEqual(sorted(positions), positions)
+        self.assertNotIn("IsArcApplicationRunning()", discovery)
 
     def test_webui_build_entry_has_mocha_browser_launcher(self):
         build_diff = re.search(

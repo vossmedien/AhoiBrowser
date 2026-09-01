@@ -32,7 +32,7 @@ Ahoi is already vendor-allowlisted: <https://support.1password.com/additional-br
 General MV2 is not restored. Chrome removed the legacy enterprise escape path,
 and remaining legacy-distribution items are scheduled for removal on
 2026-08-31. Ahoi maintains an extension-ID-bound exception and the smallest
-required runtime seams. The dogfood bootstrap uses the **Official GitHub
+required runtime seams. The product bootstrap uses the **Official GitHub
 release** `1.74.0`, full release commit
 `6dd2d95e50d134a477a4e183343c0b26e9147123`, and key-derived ID
 `fkgkibajhfbepljeaefdnfnegdcjomkh`.

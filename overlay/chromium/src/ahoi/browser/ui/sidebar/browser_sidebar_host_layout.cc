@@ -254,12 +254,18 @@ BrowserSidebarHostView::BrowserSidebarHostView(
         vector_icons::kSearchIcon,
         l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_DISCOVERY_SEARCH)));
   }
-  workspace_header->AddChildView(CreateSidebarHeaderActionButton(
-      base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
-                          weak_ptr_factory_.GetWeakPtr(),
-                          /*toggle_visibility=*/false),
-      kDockToLeftIcon,
-      l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_FLOATING_SIDEBAR)));
+  floating_sidebar_button_ =
+      workspace_header->AddChildView(CreateSidebarHeaderActionButton(
+          base::BindRepeating(
+              &BrowserSidebarHostView::OnSidebarHeaderActionPressed,
+              weak_ptr_factory_.GetWeakPtr(),
+              /*toggle_visibility=*/false),
+          kDockToLeftIcon,
+          l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_FLOATING_SIDEBAR)));
+  SetSidebarHeaderActionToggleState(
+      floating_sidebar_button_,
+      browser_->GetBrowserView().GetAhoiSidebarPresentationMode() ==
+          SidebarPresentationMode::kFloating);
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
                           weak_ptr_factory_.GetWeakPtr(),

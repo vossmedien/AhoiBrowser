@@ -51,10 +51,10 @@ constexpr char kValidArcSidebar[] = R"json({
           "title": "Work",
           "containerIDs": [],
           "newContainerIDs": [
-            "root-pinned",
-            "thebrowser.company.defaultPersonalSpacePinnedContainerID",
+            {"unpinned": {"_0": {"shared": {}}}},
             "root-unpinned",
-            "thebrowser.company.defaultPersonalSpaceUnpinnedContainerID"
+            {"pinned": {}},
+            "root-pinned"
           ]
         }
       }
@@ -980,6 +980,118 @@ TEST(ArcImportParserTest, BuildsDeterministicDetachedPlan) {
   EXPECT_EQ('5', workspace_id[14]);
   EXPECT_NE(std::string::npos, std::string("89ab").find(workspace_id[19]));
   EXPECT_TRUE(first.plan->tree.undo_operations.empty());
+}
+
+TEST(ArcImportParserTest, CurrentContainerMapOrderIsNotSemantic) {
+  const ArcParseResult unpinned_first =
+      ParseArcSnapshot(SnapshotFor(kValidArcSidebar));
+  std::string pinned_first_json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(
+      &pinned_first_json,
+      R"json({"unpinned": {"_0": {"shared": {}}}},
+            "root-unpinned",
+            {"pinned": {}},
+            "root-pinned")json",
+      R"json({"pinned": {}},
+            "root-pinned",
+            {"unpinned": {"_0": {"shared": {}}}},
+            "root-unpinned")json"));
+  const ArcParseResult pinned_first =
+      ParseArcSnapshot(SnapshotFor(std::move(pinned_first_json)));
+
+  ASSERT_EQ(ArcImportStatus::kOk, unpinned_first.status);
+  ASSERT_EQ(ArcImportStatus::kOk, pinned_first.status);
+  ASSERT_TRUE(unpinned_first.plan.has_value());
+  ASSERT_TRUE(pinned_first.plan.has_value());
+  EXPECT_EQ(*unpinned_first.plan, *pinned_first.plan);
+  ASSERT_FALSE(unpinned_first.plan->tree.nodes.empty());
+  EXPECT_EQ(u"Pinned page", unpinned_first.plan->tree.nodes.front().title);
+}
+
+TEST(ArcImportParserTest, SupportsLegacyContainerMapPairs) {
+  std::string json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(
+      &json,
+      R"json("containerIDs": [],
+          "newContainerIDs": [
+            {"unpinned": {"_0": {"shared": {}}}},
+            "root-unpinned",
+            {"pinned": {}},
+            "root-pinned"
+          ])json",
+      R"json("containerIDs": [
+            "unpinned", "root-unpinned",
+            "pinned", "root-pinned"
+          ])json"));
+
+  const ArcParseResult parsed = ParseArcSnapshot(SnapshotFor(std::move(json)));
+  ASSERT_EQ(ArcImportStatus::kOk, parsed.status);
+  ASSERT_TRUE(parsed.plan.has_value());
+  EXPECT_EQ(1u, parsed.plan->stats.imported_workspace_count);
+  EXPECT_EQ(4u, parsed.plan->stats.imported_page_count);
+  ASSERT_FALSE(parsed.plan->tree.nodes.empty());
+  EXPECT_EQ(u"Pinned page", parsed.plan->tree.nodes.front().title);
+}
+
+TEST(ArcImportParserTest, RejectsNonListCurrentMapInsteadOfFallingBack) {
+  std::string json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(
+      &json,
+      R"json("containerIDs": [],
+          "newContainerIDs": [
+            {"unpinned": {"_0": {"shared": {}}}},
+            "root-unpinned",
+            {"pinned": {}},
+            "root-pinned"
+          ])json",
+      R"json("containerIDs": [
+            "unpinned", "root-unpinned",
+            "pinned", "root-pinned"
+          ],
+          "newContainerIDs": {"unexpected": true})json"));
+
+  EXPECT_EQ(ArcImportStatus::kMalformedSerializedMap,
+            ParseArcSnapshot(SnapshotFor(std::move(json))).status);
+}
+
+TEST(ArcImportParserTest, RejectsUnknownCurrentContainerSelector) {
+  std::string json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(
+      &json, R"json({"pinned": {}},
+            "root-pinned")json",
+      R"json({"archived": {}},
+            "root-pinned")json"));
+  EXPECT_EQ(ArcImportStatus::kMalformedSerializedMap,
+            ParseArcSnapshot(SnapshotFor(std::move(json))).status);
+}
+
+TEST(ArcImportParserTest, RejectsNonStringCurrentContainerId) {
+  std::string json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(&json, R"json("root-unpinned",
+            {"pinned": {}})json",
+                          R"json({"unexpected": true},
+            {"pinned": {}})json"));
+  EXPECT_EQ(ArcImportStatus::kMalformedSerializedMap,
+            ParseArcSnapshot(SnapshotFor(std::move(json))).status);
+}
+
+TEST(ArcImportParserTest, RejectsDuplicateCurrentContainerKind) {
+  std::string json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(&json,
+                          R"json({"unpinned": {"_0": {"shared": {}}}})json",
+                          R"json({"pinned": {}})json"));
+  EXPECT_EQ(ArcImportStatus::kMalformedSerializedMap,
+            ParseArcSnapshot(SnapshotFor(std::move(json))).status);
+}
+
+TEST(ArcImportParserTest, RejectsDuplicateCurrentContainerId) {
+  std::string json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(&json, R"json("root-unpinned",
+            {"pinned": {}})json",
+                          R"json("root-pinned",
+            {"pinned": {}})json"));
+  EXPECT_EQ(ArcImportStatus::kDuplicateIdentifier,
+            ParseArcSnapshot(SnapshotFor(std::move(json))).status);
 }
 
 TEST(ArcImportParserTest, DomainSeparatesDeterministicIds) {

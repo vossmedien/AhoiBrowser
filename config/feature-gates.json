@@ -10,8 +10,8 @@
       "requires": ["cdm-license", "distribution-approval", "runtime-e2e"]
     },
     "selectiveUboClassicMv2": {
-      "default": false,
-      "dogfoodBuildProfiles": ["dev"],
+      "default": true,
+      "enabledBuildProfiles": ["ahoi-dev", "ahoi-full-dev", "ahoi-release", "ahoi-full-release"],
       "requires": ["signed-browser-static-bootstrap", "package-and-key-hash", "normal-permission-prompt", "runtime-e2e"]
     },
     "crashUpload": {

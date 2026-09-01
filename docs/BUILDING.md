@@ -314,11 +314,15 @@ distribution review and remains separate from core browsing.
 
 - `upstream-release`: unmodified Chromium control, ARM64, non-component.
 - `ahoi-dev`: faster local Ahoi iteration while retaining sandbox behavior;
-  uses the development provenance label for the pinned Xcode 26.6 toolchain
-  and is the sole profile that explicitly compiles in the local uBO Classic
-  dogfood gate.
+  uses the development provenance label for the pinned Xcode 26.6 toolchain.
 - `ahoi-release`: optimized, non-component, unsigned candidate for the later
-  signing and notarization pipeline; the uBO Classic path remains compiled out.
+  signing and notarization pipeline.
+
+Every supported Ahoi desktop profile compiles the exact, narrowly gated uBO
+Classic bootstrap so the one-click product path can be tested and used. The
+unmodified `upstream-release` control does not. Public redistribution and a
+future signed update catalog remain separate fail-closed legal and operational
+gates.
 
 All profiles keep Chromium M152's `mac_deployment_target = "13.0"` while
 setting `mac_min_system_version = "26.0"`. The first value controls SDK symbol

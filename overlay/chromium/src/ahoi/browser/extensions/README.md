@@ -36,7 +36,7 @@ compile-time gate disabled hides every uBO product entry point, rejects the MV2
 exception, clears stale local authorization, and leaves an installed Classic
 copy disabled rather than silently uninstalling it.
 
-## Initial dogfood trust root
+## Initial product-bootstrap trust root
 
 `ubo_product_config.cc` is the single production trust root. The signed browser
 contains one static initial-install entry for the **Official GitHub release**:
@@ -179,7 +179,7 @@ control and never positive uBO evidence.
 
 ## External release gates
 
-The static pins make the dogfood package technically verifiable; they do not by
+The static pins make the bootstrap package technically verifiable; they do not by
 themselves grant public redistribution rights. Public release still requires
 source/license/GPL, name/logo, redistribution, provenance-retention, Release QA,
 and rollback review.

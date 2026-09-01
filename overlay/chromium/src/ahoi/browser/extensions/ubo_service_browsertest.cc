@@ -227,7 +227,7 @@ class UboServiceBrowserTest : public InProcessBrowserTest {
 IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
                        OneClickSkipsCatalogAndHandsOffPromptOwnership) {
   if (!IsUboClassicEnabled()) {
-    GTEST_SKIP() << "uBO Classic dogfood buildflag is disabled";
+    GTEST_SKIP() << "uBO Classic product buildflag is disabled";
   }
 
   auto network = std::make_unique<BrowserTestNetworkClient>();
@@ -316,7 +316,7 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
 IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
                        ExplicitClickSeedsPromptHostFromZeroTabs) {
   if (!IsUboClassicEnabled()) {
-    GTEST_SKIP() << "uBO Classic dogfood buildflag is disabled";
+    GTEST_SKIP() << "uBO Classic product buildflag is disabled";
   }
 
   browser()->tab_strip_model()->DetachAndDeleteWebContentsAt(0);
@@ -383,7 +383,7 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
 IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
                        LostTabBeforePromptDeletesPackageAndAuthorization) {
   if (!IsUboClassicEnabled()) {
-    GTEST_SKIP() << "uBO Classic dogfood buildflag is disabled";
+    GTEST_SKIP() << "uBO Classic product buildflag is disabled";
   }
 
   auto network = std::make_unique<BrowserTestNetworkClient>();
@@ -412,7 +412,7 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
 IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
                        InventoriesAllThreeExactIdsIndependently) {
   if (!IsUboClassicEnabled()) {
-    GTEST_SKIP() << "uBO Classic dogfood buildflag is disabled";
+    GTEST_SKIP() << "uBO Classic product buildflag is disabled";
   }
 
   auto* registry =
@@ -448,7 +448,7 @@ IN_PROC_BROWSER_TEST_F(
     UboServiceBrowserTest,
     LiteRemovalNeedsReadyAuthorizedClassicAndLaterProcessToken) {
   if (!IsUboClassicEnabled()) {
-    GTEST_SKIP() << "uBO Classic dogfood buildflag is disabled";
+    GTEST_SKIP() << "uBO Classic product buildflag is disabled";
   }
 
   Profile* profile = browser()->GetProfile();

@@ -136,7 +136,13 @@ bool BrowserSidebarHostView::SetSidebarPresentationMode(
       !SetPresentationMode(browser_->GetProfile()->GetPrefs(), mode)) {
     return false;
   }
-  return browser_->GetBrowserView().SetAhoiSidebarPresentationMode(mode);
+  const bool applied =
+      browser_->GetBrowserView().SetAhoiSidebarPresentationMode(mode);
+  if (applied) {
+    SetSidebarHeaderActionToggleState(
+        floating_sidebar_button_, mode == SidebarPresentationMode::kFloating);
+  }
+  return applied;
 }
 
 bool BrowserSidebarHostView::ToggleFloatingSidebar() {

@@ -25,8 +25,10 @@
 #include "ahoi/browser/importer/arc/arc_split_runtime.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
+#include "base/base_paths.h"
 #include "base/files/file_path.h"
 #include "base/functional/bind.h"
+#include "base/path_service.h"
 #include "base/task/task_traits.h"
 #include "base/task/thread_pool.h"
 #include "base/uuid.h"
@@ -60,19 +62,25 @@ ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
   }
   result.committed = journal.committed;
 
-  if (IsArcApplicationRunning()) {
+  const ArcApplicationState application = InspectDefaultArcApplication();
+  if (!application.installed) {
+    result.status = ArcImportStatus::kNotFound;
+    return result;
+  }
+  if (application.running) {
     result.status = ArcImportStatus::kSourceInUse;
     result.arc_is_running = true;
     return result;
   }
-  const ArcDiscoveryResult discovery = DiscoverDefaultArcSource();
+  base::FilePath application_support_dir;
+  if (!base::PathService::Get(base::DIR_APP_DATA, &application_support_dir)) {
+    result.status = ArcImportStatus::kIoError;
+    return result;
+  }
+  const ArcDiscoveryResult discovery =
+      DiscoverArcSourceAt(application_support_dir);
   if (discovery.status != ArcImportStatus::kOk || !discovery.source) {
     result.status = discovery.status;
-    return result;
-  }
-  if (AreArcProfileFilesOpen(*discovery.source)) {
-    result.status = ArcImportStatus::kSourceInUse;
-    result.arc_is_running = true;
     return result;
   }
   ArcSnapshotResult snapshot = CaptureArcSnapshot(*discovery.source);
@@ -84,6 +92,15 @@ ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
   ArcParseResult parsed = ParseArcSnapshot(*snapshot.snapshot);
   if (parsed.status != ArcImportStatus::kOk || !parsed.plan) {
     result.status = parsed.status;
+    return result;
+  }
+  // The process-wide vnode scan is by far the most expensive discovery step.
+  // Parse the immutable, generation-checked in-memory snapshot first, then
+  // require the source to be closed before publishing a usable preview. Commit
+  // and backup independently repeat both source-use and generation checks.
+  if (AreArcProfileFilesOpen(*discovery.source)) {
+    result.status = ArcImportStatus::kSourceInUse;
+    result.arc_is_running = true;
     return result;
   }
   result.status = ArcImportStatus::kOk;

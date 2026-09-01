@@ -1,6 +1,6 @@
 # ADR 0004: No general MV2; one gated uBO Classic exception
 
-Status: accepted for pinned dogfood bootstrap; public release still gated
+Status: accepted for the pinned product bootstrap; public release still gated
 
 ## Decision
 
@@ -13,7 +13,7 @@ catalog remains the only path for later updates.
 
 ## Consequences
 
-Ahoi can dogfood the exact upstream-signed package without freezing the entire
+Ahoi can install the exact upstream-signed package without freezing the entire
 extension platform. General and unpacked MV2 remain blocked, download is bound
 to the exact release URL and at most one credentialless release-asset redirect,
 and Chromium's permission prompt plus atomic authorization remain mandatory.

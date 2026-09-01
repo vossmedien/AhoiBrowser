@@ -32,11 +32,12 @@ namespace {
 
 constexpr std::string_view kWorkspaceIdDomain = "arc-workspace-v1";
 constexpr std::string_view kItemIdDomain = "arc-item-v1";
-constexpr std::string_view kPinnedContainerDescriptor =
-    "thebrowser.company.defaultPersonalSpacePinnedContainerID";
-constexpr std::string_view kUnpinnedContainerDescriptor =
-    "thebrowser.company.defaultPersonalSpaceUnpinnedContainerID";
 constexpr size_t kMaxSplitMembers = 4;
+
+enum class SpaceRootKind {
+  kPinned,
+  kUnpinned,
+};
 
 enum class SourceItemKind {
   kContainer,
@@ -187,29 +188,73 @@ class ArcParser {
 
   bool ReadSpaceRoots(const base::DictValue& value,
                       std::vector<std::string>* roots) {
+    const base::Value* new_container_ids_value =
+        value.Find("newContainerIDs");
     const base::ListValue* new_container_ids =
-        value.FindList("newContainerIDs");
-    if (new_container_ids && !new_container_ids->empty()) {
-      if (new_container_ids->size() % 2 != 0 ||
-          new_container_ids->size() / 2 > kMaxChildrenPerItem) {
+        new_container_ids_value ? new_container_ids_value->GetIfList()
+                                : nullptr;
+    if (new_container_ids_value && !new_container_ids) {
+      return Fail(ArcImportStatus::kMalformedSerializedMap);
+    }
+    if (new_container_ids) {
+      if (new_container_ids->size() != 4) {
         return Fail(ArcImportStatus::kMalformedSerializedMap);
       }
-      std::set<std::string> seen;
+
+      std::optional<std::string> pinned_root;
+      std::optional<std::string> unpinned_root;
+      std::set<std::string> seen_root_ids;
       for (size_t index = 0; index < new_container_ids->size(); index += 2) {
+        const base::DictValue* selector =
+            (*new_container_ids)[index].GetIfDict();
         const std::string* identifier =
-            (*new_container_ids)[index].GetIfString();
-        const std::string* descriptor =
             (*new_container_ids)[index + 1].GetIfString();
-        if (!ValidateIdentifier(identifier) || !descriptor ||
-            (*descriptor != kPinnedContainerDescriptor &&
-             *descriptor != kUnpinnedContainerDescriptor)) {
+        if (!selector || !identifier) {
           return Fail(ArcImportStatus::kMalformedSerializedMap);
         }
-        if (!seen.insert(*identifier).second) {
+        if (!ValidateIdentifier(identifier)) {
+          return Fail(ArcImportStatus::kLimitExceeded);
+        }
+        if (!seen_root_ids.insert(*identifier).second) {
           return Fail(ArcImportStatus::kDuplicateIdentifier);
         }
-        roots->push_back(*identifier);
+
+        std::optional<SpaceRootKind> kind;
+        if (selector->size() == 1) {
+          if (const base::DictValue* pinned = selector->FindDict("pinned");
+              pinned && pinned->empty()) {
+            kind = SpaceRootKind::kPinned;
+          } else if (const base::DictValue* unpinned =
+                         selector->FindDict("unpinned");
+                     unpinned && unpinned->size() == 1) {
+            const base::DictValue* payload = unpinned->FindDict("_0");
+            const base::DictValue* shared =
+                payload && payload->size() == 1
+                    ? payload->FindDict("shared")
+                    : nullptr;
+            if (shared && shared->empty()) {
+              kind = SpaceRootKind::kUnpinned;
+            }
+          }
+        }
+        if (!kind.has_value()) {
+          return Fail(ArcImportStatus::kMalformedSerializedMap);
+        }
+
+        std::optional<std::string>& destination =
+            *kind == SpaceRootKind::kPinned ? pinned_root : unpinned_root;
+        if (destination.has_value()) {
+          return Fail(ArcImportStatus::kMalformedSerializedMap);
+        }
+        destination = *identifier;
       }
+      if (!pinned_root.has_value() || !unpinned_root.has_value()) {
+        return Fail(ArcImportStatus::kMalformedSerializedMap);
+      }
+      // Arc serializes a map, so source pair order is not semantic. Preserve a
+      // stable product order with pinned items before unpinned items.
+      roots->push_back(std::move(*pinned_root));
+      roots->push_back(std::move(*unpinned_root));
       return true;
     }
 
@@ -218,8 +263,41 @@ class ArcParser {
     if (!legacy_container_ids) {
       return Fail(ArcImportStatus::kMissingRequiredField);
     }
-    return ReadIdentifierList(*legacy_container_ids, kMaxChildrenPerItem,
-                              roots);
+    if (legacy_container_ids->size() != 4) {
+      return Fail(ArcImportStatus::kMalformedSerializedMap);
+    }
+
+    std::optional<std::string> pinned_root;
+    std::optional<std::string> unpinned_root;
+    std::set<std::string> seen_root_ids;
+    for (size_t index = 0; index < legacy_container_ids->size(); index += 2) {
+      const std::string* selector =
+          (*legacy_container_ids)[index].GetIfString();
+      const std::string* identifier =
+          (*legacy_container_ids)[index + 1].GetIfString();
+      if (!selector || !identifier ||
+          (*selector != "pinned" && *selector != "unpinned")) {
+        return Fail(ArcImportStatus::kMalformedSerializedMap);
+      }
+      if (!ValidateIdentifier(identifier)) {
+        return Fail(ArcImportStatus::kLimitExceeded);
+      }
+      if (!seen_root_ids.insert(*identifier).second) {
+        return Fail(ArcImportStatus::kDuplicateIdentifier);
+      }
+      std::optional<std::string>& destination =
+          *selector == "pinned" ? pinned_root : unpinned_root;
+      if (destination.has_value()) {
+        return Fail(ArcImportStatus::kMalformedSerializedMap);
+      }
+      destination = *identifier;
+    }
+    if (!pinned_root.has_value() || !unpinned_root.has_value()) {
+      return Fail(ArcImportStatus::kMalformedSerializedMap);
+    }
+    roots->push_back(std::move(*pinned_root));
+    roots->push_back(std::move(*unpinned_root));
+    return true;
   }
 
   bool ParseSpaces(const base::ListValue& serialized) {

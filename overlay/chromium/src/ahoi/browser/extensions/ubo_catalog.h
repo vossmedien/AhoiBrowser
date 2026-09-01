@@ -67,7 +67,7 @@ struct UboCatalogEntry {
   std::string license;
 };
 
-// Initial dogfood install metadata is compiled into the signed browser. It
+// Initial bootstrap install metadata is compiled into the signed browser. It
 // never authorizes arbitrary MV2 packages and does not replace the signed
 // catalog used for later updates.
 UboCatalogEntry GetPinnedUboBootstrapCatalogEntry();

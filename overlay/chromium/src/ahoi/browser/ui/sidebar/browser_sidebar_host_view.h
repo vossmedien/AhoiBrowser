@@ -632,6 +632,7 @@ class BrowserSidebarHostView final
   std::unique_ptr<SidebarTreeController> controller_;
   raw_ptr<SidebarTreeView> tree_view_ = nullptr;
   raw_ptr<views::Button> workspace_button_ = nullptr;
+  raw_ptr<views::View> floating_sidebar_button_ = nullptr;
   raw_ptr<CommandService> command_service_ = nullptr;
   std::unique_ptr<SidebarDiscoveryModel> discovery_model_;
   raw_ptr<SidebarDiscoveryView> discovery_view_ = nullptr;

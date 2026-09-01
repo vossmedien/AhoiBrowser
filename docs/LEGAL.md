@@ -21,11 +21,13 @@ Legal review is required before public binary distribution for:
 
 External feature gates in `config/feature-gates.json` remain off until their
 recorded technical and legal requirements pass. The narrowly scoped uBlock
-Origin Classic path also defaults off and is compiled in only by the explicit
-local `ahoi-dev` dogfood profile. That profile enables only the statically
-browser-pinned Official GitHub release bootstrap for local testing. It does not
-grant public redistribution rights or provision later signed catalog updates.
-A successful local experiment is not permission to publish it.
+Origin Classic path is the explicit exception: it is compiled into every
+supported Ahoi desktop profile so the user-selected, statically browser-pinned
+Official GitHub release bootstrap can work in the product. This technical
+availability does not grant public redistribution rights or provision later
+signed catalog updates. A successful local or installed runtime test is not
+permission to publish it; `ubo-redistribution` remains fail-closed until its
+independent legal review passes.
 
 The explicit name/logo and public-fork rules live in `docs/TRADEMARKS.md`.
 Candidate-specific third-party and brand review follows

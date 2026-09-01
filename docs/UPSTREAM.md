@@ -59,7 +59,7 @@ modifying the checkout's HEAD, index, worktree, or object database. Composition
 uses temporary index and object storage, with the real object database mounted
 read-only as an alternate. The flag defaults to `HEAD`; the requested ref is
 resolved once to an exact commit before composition. The active M152 series has
-26 entries through `0026-ahoi-extension-accelerator-compatibility.patch`; the
+27 entries through `0027-ahoi-arc-schema-preview-and-sidebar-a11y.patch`; the
 former 21-entry M151 series and its green matrix remain
 historical recovery evidence rather than inputs to the active checkout.
 

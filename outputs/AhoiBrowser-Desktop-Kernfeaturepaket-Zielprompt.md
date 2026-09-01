@@ -22,7 +22,7 @@ Arbeite selbstständig bis zum belegten Ergebnis. Frage nur bei echter externer 
 
 - Chromium-Pin: `152.0.7977.65`, Commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`.
 - Kanonischer Workspace: `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`.
-- Der frühere AnyChat-nahe Crash ist eine generische Null-Tab-Dereferenz im nativen `ExtensionsMenuViewModel`; AnyChat benötigt dafür keinen eigenen Installer oder Produktsonderpfad. Ein späterer separater Null-Tab-Crash lief über `NewSplitTab` nach `TabStripModel::IsTabPinned(-1)` und gehört zum generischen Split-Command-Fix.
+- Zwei frühere normale AnyChat-Web-Store-Installationen abortierten beim erfolgreichen Laden der Erweiterung, weil AnyChats benannter `Command+Shift+S`-Befehl und Ahois Sidebar-Befehl gleichzeitig den einzigen High-Priority-Accelerator beanspruchten. Ahois Browser-Shortcuts sind deshalb normale Fallthrough-Handler; AnyChat benötigt weiterhin keinen eigenen Installer oder Produktsonderpfad. Davon unabhängig existierten ein Null-Tab-Crash im nativen `ExtensionsMenuViewModel` und ein späterer Null-Tab-Split-Crash über `NewSplitTab` nach `TabStripModel::IsTabPinned(-1)`; beide gehören zu ihren generischen Null-Tab-Fixes.
 - Im Ahoi-Profil sind 1Password Stable und uBlock Origin Lite/MV3 vorhanden. AnyChat und uBlock Origin Classic sind nicht persistiert.
 - Die exakten IDs sind:
   - 1Password Stable: `aeblfdkhhhdcdjpifhhbdiojplfjncoa`;

@@ -62,7 +62,7 @@ void ClearCommittedUboAuthorization(PrefService* prefs);
 void ClearPendingUboInstallAuthorization(PrefService* prefs);
 
 // This is the only runtime MV2 exception predicate. It first requires the
-// compile-time dogfood gate, then accepts exactly an internal MV2 extension
+// compile-time product gate, then accepts exactly an internal MV2 extension
 // matching a verified pending transaction or the last atomically committed
 // authorization. MV3 and all unrelated extension paths return false and
 // continue through Chromium's normal policy.

@@ -1,6 +1,7 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {flush} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
 import type {BrowserProfile, ImportDataBrowserProxy, SettingsImportDataDialogElement} from 'chrome://settings/lazy_load.js';
 import {ImportDataBrowserProxyImpl} from 'chrome://settings/lazy_load.js';
@@ -251,5 +252,22 @@ suite('AhoiArcStandardImportSurface', () => {
     assertEquals('7', resultText('#ahoiArcResultExcluded'));
     assertEquals('4', resultText('#ahoiArcResultDeduplicated'));
     assertEquals('3', resultText('#ahoiArcResultFourPane'));
+  });
+
+  test('unsupportedArcSchemaHasSpecificFailClosedStatus', async () => {
+    selectSource(1);
+    const arcSection = getArcSection();
+    arcSection.arcImportPreview_ = {
+      ...preview(0),
+      status: 'malformedSerializedMap',
+    };
+    arcSection.arcImportStage_ = 'error';
+    arcSection.requestUpdate();
+    await arcSection.updateComplete;
+
+    assertEquals(
+        loadTimeData.getString('ahoiArcImportUnsupportedData'),
+        arcSection.shadowRoot!.querySelector(
+                                  '#ahoiArcImportStatus')!.textContent!.trim());
   });
 });

@@ -47,7 +47,8 @@ ArcDiscoveryResult DiscoverDefaultArcSource();
 // discovery is argv-independent and an enumeration failure fails closed. An
 // unreadable executable path alone is not treated as Arc evidence because
 // sandboxed, unrelated macOS helpers commonly have that state; the separate
-// source-handle inspection below remains mandatory before snapshotting.
+// source-handle inspection below remains mandatory before publishing a usable
+// preview and is repeated independently before commit and backup.
 bool IsArcApplicationRunning();
 
 // Enumerates open vnode handles read-only and blocks while any process has the
