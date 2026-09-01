@@ -205,6 +205,10 @@ suite('AhoiArcStandardImportSurface', () => {
     arcSection.requestUpdate();
     await arcSection.updateComplete;
 
+    assertEquals(7, arcSection.shadowRoot!.querySelectorAll(
+                       '.counts > li').length);
+    assertFalse(!!arcSection.shadowRoot!.querySelector(
+        'dt, dd, [role="term"]'));
     assertFalse(!!arcSection.shadowRoot!.querySelector(
         '#ahoiArcReconstructSplits'));
     const commit = arcSection.shadowRoot!.querySelector<HTMLElement&{
@@ -246,6 +250,10 @@ suite('AhoiArcStandardImportSurface', () => {
 
     const resultText = (id: string) =>
       arcSection.shadowRoot!.querySelector(id)!.textContent!.trim();
+    assertEquals(9, arcSection.shadowRoot!.querySelectorAll(
+                       '.result-counts > li').length);
+    assertFalse(!!arcSection.shadowRoot!.querySelector(
+        'dt, dd, [role="term"]'));
     assertEquals('2', resultText('#ahoiArcResultWorkspaces'));
     assertEquals('1', resultText('#ahoiArcResultSkipped'));
     assertEquals('1', resultText('#ahoiArcResultDegraded'));

@@ -37,24 +37,36 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
           <div id="ahoiArcPreviewHeading" class="subheading">
             $i18n{ahoiArcImportPreview}
           </div>
-          <dl class="counts">
-            <div><dt>$i18n{ahoiArcImportWorkspaces}</dt>
-              <dd>${this.arcImportPreview_.stats.workspaces}</dd></div>
-            <div><dt>$i18n{ahoiArcImportFolders}</dt>
-              <dd>${this.arcImportPreview_.stats.folders}</dd></div>
-            <div><dt>$i18n{ahoiArcImportPages}</dt>
-              <dd>${this.arcImportPreview_.stats.pages}</dd></div>
-            <div><dt>$i18n{ahoiArcImportSplits}</dt>
-              <dd>${this.arcImportPreview_.stats.splits}</dd></div>
-            <div><dt>$i18n{ahoiArcImportDegradations}</dt>
-              <dd>${this.arcImportPreview_.stats.degradedSplits}</dd></div>
-            <div><dt>$i18n{ahoiArcImportExcluded}</dt>
-              <dd>${this.excludedItemCount_(this.arcImportPreview_.stats)}</dd>
-            </div>
-            <div><dt>$i18n{ahoiArcImportDeduplicated}</dt>
-              <dd>${this.deduplicatedItemCount_(
-                  this.arcImportPreview_.stats)}</dd></div>
-          </dl>
+          <ul class="counts">
+            <li><span class="count-label">$i18n{ahoiArcImportWorkspaces}</span>
+              <span class="count-value">
+                ${this.arcImportPreview_.stats.workspaces}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportFolders}</span>
+              <span class="count-value">
+                ${this.arcImportPreview_.stats.folders}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportPages}</span>
+              <span class="count-value">
+                ${this.arcImportPreview_.stats.pages}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportSplits}</span>
+              <span class="count-value">
+                ${this.arcImportPreview_.stats.splits}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportDegradations}</span>
+              <span class="count-value">
+                ${this.arcImportPreview_.stats.degradedSplits}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportExcluded}</span>
+              <span class="count-value">
+                ${this.excludedItemCount_(this.arcImportPreview_.stats)}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportDeduplicated}</span>
+              <span class="count-value">
+                ${this.deduplicatedItemCount_(this.arcImportPreview_.stats)}
+              </span></li>
+          </ul>
 
           <div class="subheading">$i18n{ahoiArcImportTargets}</div>
           <ul class="targets">
@@ -132,39 +144,47 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
           <div id="ahoiArcImportResultHeading" class="subheading">
             ${this.arcStatusText_()}
           </div>
-          <dl class="counts result-counts">
-            <div><dt>$i18n{ahoiArcImportWorkspaces}</dt>
-              <dd id="ahoiArcResultWorkspaces">
+          <ul class="counts result-counts">
+            <li><span class="count-label">$i18n{ahoiArcImportWorkspaces}</span>
+              <span id="ahoiArcResultWorkspaces" class="count-value">
                 ${this.arcImportResult_.stats.workspaces}
-              </dd></div>
-            <div><dt>$i18n{ahoiArcImportFolders}</dt>
-              <dd>${this.arcImportResult_.stats.folders}</dd></div>
-            <div><dt>$i18n{ahoiArcImportPages}</dt>
-              <dd>${this.arcImportResult_.stats.pages}</dd></div>
-            <div><dt>$i18n{ahoiArcImportResultSkippedWorkspaces}</dt>
-              <dd id="ahoiArcResultSkipped">
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportFolders}</span>
+              <span class="count-value">
+                ${this.arcImportResult_.stats.folders}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportPages}</span>
+              <span class="count-value">
+                ${this.arcImportResult_.stats.pages}
+              </span></li>
+            <li>
+              <span class="count-label">
+                $i18n{ahoiArcImportResultSkippedWorkspaces}
+              </span>
+              <span id="ahoiArcResultSkipped" class="count-value">
                 ${this.arcImportResult_.skippedWorkspaces}
-              </dd></div>
-            <div><dt>$i18n{ahoiArcImportDegradations}</dt>
-              <dd id="ahoiArcResultDegraded">
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportDegradations}</span>
+              <span id="ahoiArcResultDegraded" class="count-value">
                 ${this.arcImportResult_.stats.degradedSplits}
-              </dd></div>
-            <div><dt>$i18n{ahoiArcImportExcluded}</dt>
-              <dd id="ahoiArcResultExcluded">
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportExcluded}</span>
+              <span id="ahoiArcResultExcluded" class="count-value">
                 ${this.excludedItemCount_(this.arcImportResult_.stats)}
-              </dd>
-            </div>
-            <div><dt>$i18n{ahoiArcImportDeduplicated}</dt>
-              <dd id="ahoiArcResultDeduplicated">
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportDeduplicated}</span>
+              <span id="ahoiArcResultDeduplicated" class="count-value">
                 ${this.deduplicatedItemCount_(this.arcImportResult_.stats)}
-              </dd></div>
-            <div><dt>$i18n{ahoiArcImportResultSplits}</dt>
-              <dd>${this.arcImportResult_.reconstructedSplits}</dd></div>
-            <div><dt>$i18n{ahoiArcImportResultFourPane}</dt>
-              <dd id="ahoiArcResultFourPane">
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportResultSplits}</span>
+              <span class="count-value">
+                ${this.arcImportResult_.reconstructedSplits}
+              </span></li>
+            <li><span class="count-label">$i18n{ahoiArcImportResultFourPane}</span>
+              <span id="ahoiArcResultFourPane" class="count-value">
                 ${this.arcImportResult_.approximatedFourPaneRatios}
-              </dd></div>
-          </dl>
+              </span></li>
+          </ul>
         </section>
       ` : ''}
     </section>
