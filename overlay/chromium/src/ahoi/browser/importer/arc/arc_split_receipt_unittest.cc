@@ -274,8 +274,11 @@ TEST(ArcSplitReceiptTest, ChecksFocusOnlyWhenRequested) {
             Verify(plan, fixture, /*require_focus=*/true).verification);
 
   fixture.windows[0]->selected_tab_index = 1;
-  EXPECT_EQ(ArcSplitVerification::kExact,
+  EXPECT_EQ(ArcSplitVerification::kConflict,
             Verify(plan, fixture, /*require_focus=*/true, SessionId(42))
+                .verification);
+  EXPECT_EQ(ArcSplitVerification::kExact,
+            Verify(plan, fixture, /*require_focus=*/true, SessionId(41))
                 .verification);
 }
 

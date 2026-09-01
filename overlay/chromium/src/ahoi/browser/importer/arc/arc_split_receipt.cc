@@ -264,7 +264,7 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
     const ArcImportPlan& plan,
     SessionID target_window_id,
     const std::vector<std::unique_ptr<sessions::SessionWindow>>& windows,
-    SessionID /*active_window_id*/,
+    SessionID active_window_id,
     bool require_focus) {
   ArcSplitReceipt receipt;
   receipt.structure_sha256 = ComputeArcSplitStructureFingerprint(plan);
@@ -433,7 +433,8 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
 
   receipt_writer.WriteBool(require_focus);
   if (require_focus) {
-    if (plan.splits.empty() || target_window->selected_tab_index < 0 ||
+    if (active_window_id != target_window_id || plan.splits.empty() ||
+        target_window->selected_tab_index < 0 ||
         static_cast<size_t>(target_window->selected_tab_index) >=
             target_window->tabs.size()) {
       return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);

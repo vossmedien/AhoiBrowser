@@ -23,6 +23,10 @@ export interface ArcImportStats {
   topApps: number;
   unsafeUrls: number;
   unsupportedItems: number;
+  unreachableItems: number;
+  deduplicatedWorkspaces: number;
+  deduplicatedItems: number;
+  deduplicatedSplits: number;
 }
 
 export interface ArcImportPreviewResponse {
@@ -196,7 +200,12 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   }
 
   protected excludedItemCount_(stats: ArcImportStats): number {
-    return stats.unsafeUrls + stats.unsupportedItems;
+    return stats.unsafeUrls + stats.unsupportedItems + stats.unreachableItems;
+  }
+
+  protected deduplicatedItemCount_(stats: ArcImportStats): number {
+    return stats.deduplicatedWorkspaces + stats.deduplicatedItems +
+        stats.deduplicatedSplits;
   }
 
   protected arcStatusText_(): string {
@@ -213,9 +222,31 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
                 'ahoiArcImportNoChanges' :
                 'ahoiArcImportSuccess');
       case 'error':
-        return loadTimeData.getString('ahoiArcImportError');
+        return loadTimeData.getString(this.arcErrorStatusKey_());
       default:
         return '';
+    }
+  }
+
+  private arcErrorStatusKey_(): string {
+    const status = this.arcImportResult_?.status ??
+        this.arcImportPreview_?.status ?? '';
+    switch (status) {
+      case 'notFound':
+        return 'ahoiArcImportNotFound';
+      case 'noImportableWorkspaces':
+        return 'ahoiArcImportNoSafeProfiles';
+      case 'sourceChanged':
+      case 'stalePreview':
+        return 'ahoiArcImportSourceChanged';
+      case 'insufficientDiskSpace':
+        return 'ahoiArcImportInsufficientDiskSpace';
+      case 'backupQuotaExceeded':
+        return 'ahoiArcImportBackupQuotaExceeded';
+      case 'recoveryRequired':
+        return 'ahoiArcImportRecoveryRequired';
+      default:
+        return 'ahoiArcImportError';
     }
   }
 

@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/extensions/ubo_migration_state.h"
 #include "ahoi/browser/extensions/ubo_product_config.h"
 #include "base/base64.h"
 #include "base/no_destructor.h"
@@ -182,6 +183,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // Intentionally not SYNCABLE_PREF. Extension authorization and storage are
   // local security state and never cross Ahoi CloudKit or Chrome Sync.
   registry->RegisterDictionaryPref(kUboAuthorizationPref);
+  RegisterUboMigrationProfilePrefs(registry);
 }
 
 std::optional<UboAuthorizationState> ReadCommittedUboAuthorization(
@@ -215,15 +217,20 @@ void ClearCommittedUboAuthorization(PrefService* prefs) {
   if (!prefs) {
     return;
   }
-  PendingRegistry& registry = GetPendingRegistry();
-  {
-    base::AutoLock lock(registry.lock);
-    registry.entries.erase(prefs);
-  }
+  ClearPendingUboInstallAuthorization(prefs);
   if (prefs->FindPreference(kUboAuthorizationPref) &&
       !prefs->IsManagedPreference(kUboAuthorizationPref)) {
     prefs->ClearPref(kUboAuthorizationPref);
   }
+}
+
+void ClearPendingUboInstallAuthorization(PrefService* prefs) {
+  if (!prefs) {
+    return;
+  }
+  PendingRegistry& registry = GetPendingRegistry();
+  base::AutoLock lock(registry.lock);
+  registry.entries.erase(prefs);
 }
 
 bool IsUboManifestV2ExtensionAllowed(const PrefService& prefs,

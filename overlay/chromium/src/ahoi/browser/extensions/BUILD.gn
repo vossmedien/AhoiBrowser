@@ -16,6 +16,8 @@ source_set("policy") {
     "ubo_authorization.h",
     "ubo_catalog.cc",
     "ubo_catalog.h",
+    "ubo_migration_state.cc",
+    "ubo_migration_state.h",
     "ubo_package_verifier.cc",
     "ubo_package_verifier.h",
     "ubo_product_config.cc",
@@ -58,6 +60,8 @@ source_set("runtime") {
 
 source_set("service") {
   sources = [
+    "ubo_extension_inventory.cc",
+    "ubo_extension_inventory.h",
     "ubo_network_client.h",
     "ubo_service.cc",
     "ubo_service.h",
@@ -94,22 +98,61 @@ source_set("unit_tests") {
     ":policy",
     ":service",
     "//base/test:test_support",
+    "//chrome/test:test_support",
     "//components/sync_preferences:test_support",
+    "//content/test:test_support",
     "//crypto",
     "//crypto:test_support",
     "//extensions:test_support",
     "//extensions/common",
-    "//chrome/test:test_support",
-    "//content/test:test_support",
     "//testing/gtest",
   ]
 }
 
+source_set("browser_tests") {
+  testonly = true
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  sources = [ "ubo_service_browsertest.cc" ]
+  deps = [
+    ":service",
+    "//ahoi/browser/ui/extensions:ubo_install_presenter",
+    "//base",
+    "//base/test:test_support",
+    "//chrome/browser",
+    "//chrome/browser/extensions",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//chrome/test:test_support",
+    "//chrome/test:test_support_ui",
+    "//components/constrained_window",
+    "//content/public/browser",
+    "//content/test:test_support",
+    "//extensions/browser",
+    "//extensions/common",
+    "//testing/gtest",
+    "//ui/views",
+    "//ui/views:test_support",
+  ]
+}
+
 test("ahoi_extension_policy_unittests") {
-  data_deps = [ "//third_party/sparkle:sparkle_framework_test_runtime" ]
+  if (is_mac) {
+    data_deps = [ "//third_party/sparkle:sparkle_framework_test_runtime" ]
+  }
   deps = [
     ":unit_tests",
     "//chrome/test:test_support_unit",
     "//testing/gtest",
   ]
+}
+
+if (!is_android) {
+  test("ahoi_ubo_browsertests") {
+    deps = [
+      ":browser_tests",
+      "//chrome:packed_resources",
+      "//chrome/test:browser_tests_runner",
+      "//chrome/test:test_support",
+    ]
+  }
 }

@@ -29,6 +29,7 @@ class UboInstallDialog final : public views::DialogDelegate,
 
   std::u16string GetWindowTitle() const override;
   bool Accept() override;
+  bool Cancel() override;
 
   void OnUboServiceStatusChanged(const UboServiceStatus& status) override;
 
@@ -37,6 +38,7 @@ class UboInstallDialog final : public views::DialogDelegate,
 
   raw_ptr<Browser> browser_;
   raw_ptr<UboService> service_;
+  bool prompt_handoff_pending_ = false;
   UboDialogAction action_ = UboDialogAction::kNone;
   raw_ptr<views::Label> status_label_ = nullptr;
   raw_ptr<views::ProgressBar> progress_ = nullptr;
@@ -46,6 +48,9 @@ class UboInstallDialog final : public views::DialogDelegate,
   raw_ptr<views::Label> upstream_ = nullptr;
   raw_ptr<views::Label> hash_ = nullptr;
   raw_ptr<views::Label> license_ = nullptr;
+  raw_ptr<views::Label> pinned_classic_inventory_ = nullptr;
+  raw_ptr<views::Label> former_classic_inventory_ = nullptr;
+  raw_ptr<views::Label> lite_inventory_ = nullptr;
 };
 
 void ShowUboInstallDialog(Browser* browser);

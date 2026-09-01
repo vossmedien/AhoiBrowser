@@ -1,0 +1,87 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -6764,13 +6764,19 @@ void BrowserView::LoadAccelerators() {
+   }
+ 
+ #if BUILDFLAG(IS_MAC)
++  // Extension commands intentionally register as the only high-priority
++  // handler for their accelerator. Keep Ahoi's browser-local shortcuts as
++  // fallthrough handlers so an extension can override a matching shortcut
++  // while enabled without colliding during registration.
++  constexpr auto kAhoiFallthroughPriority =
++      ui::AcceleratorManager::kNormalPriority;
+   // Cmd+Z is normally left to the focused native editor on macOS and is not
+   // part of Chromium's browser accelerator table. Register it as a fallthrough
+   // accelerator so Ahoi can undo sidebar mutations while the pointer/focus is
+   // in the sidebar; AcceleratorPressed() returns false everywhere else.
+   focus_manager->RegisterAccelerator(
+       ui::Accelerator(ui::VKEY_Z, ui::EF_COMMAND_DOWN),
+-      ui::AcceleratorManager::kHighPriority, this);
++      kAhoiFallthroughPriority, this);
+   const bool is_regular_ahoi_browser =
+       browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
+       !browser_->GetProfile()->IsOffTheRecord();
+@@ -6781,51 +6787,51 @@ void BrowserView::LoadAccelerators() {
+       !AhoiQuickWindowGlobalShortcut::GetInstance()->registered()) {
+     focus_manager->RegisterAccelerator(
+         ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),
+-        ui::AcceleratorManager::kHighPriority, this);
++        kAhoiFallthroughPriority, this);
+   }
+   focus_manager->RegisterAccelerator(
+       ui::Accelerator(ui::VKEY_LEFT, ui::EF_COMMAND_DOWN | ui::EF_ALT_DOWN),
+-      ui::AcceleratorManager::kHighPriority, this);
++      kAhoiFallthroughPriority, this);
+   focus_manager->RegisterAccelerator(
+       ui::Accelerator(ui::VKEY_RIGHT, ui::EF_COMMAND_DOWN | ui::EF_ALT_DOWN),
+-      ui::AcceleratorManager::kHighPriority, this);
++      kAhoiFallthroughPriority, this);
+   focus_manager->RegisterAccelerator(
+       ui::Accelerator(ui::VKEY_S, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
+-      ui::AcceleratorManager::kHighPriority, this);
++      kAhoiFallthroughPriority, this);
+   focus_manager->RegisterAccelerator(
+       ui::Accelerator(ui::VKEY_H, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
+-      ui::AcceleratorManager::kHighPriority, this);
++      kAhoiFallthroughPriority, this);
+   focus_manager->RegisterAccelerator(
+       ui::Accelerator(ui::VKEY_F, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
+-      ui::AcceleratorManager::kHighPriority, this);
++      kAhoiFallthroughPriority, this);
+   for (int key = ui::VKEY_1; key <= ui::VKEY_9; ++key) {
+     focus_manager->RegisterAccelerator(
+         ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+                         ui::EF_CONTROL_DOWN),
+-        ui::AcceleratorManager::kHighPriority, this);
++        kAhoiFallthroughPriority, this);
+   }
+   for (int key = ui::VKEY_1; key <= ui::VKEY_4; ++key) {
+     focus_manager->RegisterAccelerator(
+         ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+                         ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN),
+-        ui::AcceleratorManager::kHighPriority, this);
++        kAhoiFallthroughPriority, this);
+   }
+   for (int key : {ui::VKEY_LEFT, ui::VKEY_RIGHT}) {
+     focus_manager->RegisterAccelerator(
+         ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+                         ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN),
+-        ui::AcceleratorManager::kHighPriority, this);
++        kAhoiFallthroughPriority, this);
+     focus_manager->RegisterAccelerator(
+         ui::Accelerator(
+             static_cast<ui::KeyboardCode>(key),
+             ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN | ui::EF_SHIFT_DOWN),
+-        ui::AcceleratorManager::kHighPriority, this);
++        kAhoiFallthroughPriority, this);
+   }
+   for (int key : {ui::VKEY_L, ui::VKEY_0, ui::VKEY_W}) {
+     focus_manager->RegisterAccelerator(
+         ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+                         ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN),
+-        ui::AcceleratorManager::kHighPriority, this);
++        kAhoiFallthroughPriority, this);
+   }
+ #endif
+ 

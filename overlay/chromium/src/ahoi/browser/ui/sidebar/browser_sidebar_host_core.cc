@@ -328,6 +328,12 @@ void BrowserSidebarHostView::OnSessionPresentationChanged() {
   ScheduleRuntimePresentationRefresh();
 }
 
+void BrowserSidebarHostView::OnSidebarPresentationSettled() {
+  if (tree_view_) {
+    tree_view_->OnPresentationAnimationSettled();
+  }
+}
+
 void BrowserSidebarHostView::ActivateInitialWorkspace() {
   std::optional<base::Uuid> workspace_id =
       session_bridge_->GetActiveWorkspaceForWindow(browser_);

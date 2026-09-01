@@ -656,6 +656,7 @@ class ArcParser {
         plan_.splits.push_back(*split_descriptor);
         ++plan_.stats.imported_split_count;
       } else {
+        plan_.degraded_split_folder_node_ids.push_back(folder_id);
         ++plan_.stats.degraded_split_count;
       }
     }
@@ -692,6 +693,7 @@ class ArcParser {
         .modified_at = base::Time::UnixEpoch(),
     });
     ++plan_.stats.imported_folder_count;
+    const size_t nodes_before = plan_.tree.nodes.size();
     const size_t pages_before = plan_.stats.imported_page_count;
     size_t child_position = 0;
     for (const std::string& child_id : top_apps->children) {
@@ -703,6 +705,13 @@ class ArcParser {
     }
     plan_.stats.imported_global_top_app_count +=
         plan_.stats.imported_page_count - pages_before;
+    for (size_t index = nodes_before; index < plan_.tree.nodes.size();
+         ++index) {
+      if (plan_.tree.nodes[index].type == tab_tree::TreeNodeType::kSavedPage) {
+        plan_.global_top_app_page_node_ids.push_back(
+            plan_.tree.nodes[index].id);
+      }
+    }
     return true;
   }
 

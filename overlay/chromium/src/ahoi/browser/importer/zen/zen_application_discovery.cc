@@ -4,7 +4,7 @@
 #include "ahoi/browser/importer/zen/zen_application_discovery.h"
 
 #include <CoreFoundation/CoreFoundation.h>
-
+#include <Security/Security.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -14,10 +14,12 @@
 #include <string>
 #include <vector>
 
+#include "base/apple/foundation_util.h"
 #include "base/apple/scoped_cftyperef.h"
 #include "base/base_paths.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_file.h"
+#include "base/functional/bind.h"
 #include "base/path_service.h"
 #include "base/posix/eintr_wrapper.h"
 #include "base/process/process_handle.h"
@@ -33,6 +35,10 @@ constexpr std::array<base::FilePath::StringViewType, 3> kZenBundleNames = {
     FILE_PATH_LITERAL("Zen Twilight.app"),
 };
 constexpr int64_t kMaxInfoPlistBytes = 1024 * 1024;
+const CFStringRef kOfficialZenCodeRequirement = CFSTR(
+    "anchor apple generic and "
+    "identifier \"app.zen-browser.zen\" and "
+    "certificate leaf[subject.OU] = \"9V5K9TP787\"");
 
 bool IsKnownZenBundleName(const base::FilePath& path) {
   for (base::FilePath::StringViewType name : kZenBundleNames) {
@@ -86,8 +92,7 @@ bool HasOfficialZenBundleIdentifier(const base::FilePath& info_plist) {
   }
 
   base::apple::ScopedCFTypeRef<CFDataRef> data(CFDataCreate(
-      kCFAllocatorDefault,
-      reinterpret_cast<const UInt8*>(contents.data()),
+      kCFAllocatorDefault, reinterpret_cast<const UInt8*>(contents.data()),
       static_cast<CFIndex>(contents.size())));
   if (!data) {
     return false;
@@ -106,12 +111,35 @@ bool HasOfficialZenBundleIdentifier(const base::FilePath& info_plist) {
   const auto dictionary = static_cast<CFDictionaryRef>(property_list.get());
   const CFTypeRef identifier =
       CFDictionaryGetValue(dictionary, CFSTR("CFBundleIdentifier"));
-  // Zen's official stable and Twilight macOS bundles currently share this
-  // identifier. Do not add a Team ID until Zen publishes one that Ahoi can pin.
+  // Zen's official stable and Twilight macOS bundles share this identifier.
   return identifier && CFGetTypeID(identifier) == CFStringGetTypeID() &&
          CFStringCompare(static_cast<CFStringRef>(identifier),
                          CFSTR("app.zen-browser.zen"),
                          /*compareOptions=*/0) == kCFCompareEqualTo;
+}
+
+bool AuthenticatesOfficialZenBundle(const base::FilePath& bundle_path) {
+  base::apple::ScopedCFTypeRef<CFURLRef> bundle_url =
+      base::apple::FilePathToCFURL(bundle_path);
+  if (!bundle_url) {
+    return false;
+  }
+  base::apple::ScopedCFTypeRef<SecStaticCodeRef> static_code;
+  if (SecStaticCodeCreateWithPath(bundle_url.get(), kSecCSDefaultFlags,
+                                  static_code.InitializeInto()) !=
+      errSecSuccess) {
+    return false;
+  }
+  base::apple::ScopedCFTypeRef<SecRequirementRef> requirement;
+  if (SecRequirementCreateWithString(
+          kOfficialZenCodeRequirement, kSecCSDefaultFlags,
+          requirement.InitializeInto()) != errSecSuccess) {
+    return false;
+  }
+  return SecStaticCodeCheckValidity(
+             static_code.get(),
+             kSecCSCheckAllArchitectures | kSecCSCheckNestedCode,
+             requirement.get()) == errSecSuccess;
 }
 
 std::optional<base::FilePath> ZenBundleAncestor(
@@ -160,9 +188,30 @@ std::vector<base::FilePath> RunningExecutablePaths() {
 
 namespace internal {
 
-bool IsZenBundleExecutablePath(const base::FilePath& executable) {
+bool IsSafeZenApplicationBundleWithAuthenticator(
+    const base::FilePath& bundle_path,
+    const ZenBundleAuthenticationCallback& bundle_authenticator) {
+  const base::FilePath contents = bundle_path.AppendASCII("Contents");
+  const base::FilePath macos = contents.AppendASCII("MacOS");
+  if (!IsKnownZenBundleName(bundle_path) || base::IsLink(bundle_path) ||
+      base::IsLink(contents) || base::IsLink(macos) ||
+      !base::DirectoryExists(macos)) {
+    return false;
+  }
+  const base::FilePath executable = macos.AppendASCII("zen");
+  struct stat file_stat;
+  return lstat(executable.value().c_str(), &file_stat) == 0 &&
+         S_ISREG(file_stat.st_mode) && (file_stat.st_mode & 0111) != 0 &&
+         HasOfficialZenBundleIdentifier(contents.AppendASCII("Info.plist")) &&
+         bundle_authenticator && bundle_authenticator.Run(bundle_path);
+}
+
+bool IsZenBundleExecutablePathWithAuthenticator(
+    const base::FilePath& executable,
+    const ZenBundleAuthenticationCallback& bundle_authenticator) {
   const std::optional<base::FilePath> bundle = ZenBundleAncestor(executable);
-  if (!bundle || !IsSafeZenApplicationBundle(*bundle)) {
+  if (!bundle || !IsSafeZenApplicationBundleWithAuthenticator(
+                     *bundle, bundle_authenticator)) {
     return false;
   }
   base::FilePath relative;
@@ -177,24 +226,10 @@ bool IsZenBundleExecutablePath(const base::FilePath& executable) {
           components[1] == FILE_PATH_LITERAL("Frameworks"));
 }
 
-bool IsSafeZenApplicationBundle(const base::FilePath& bundle_path) {
-  const base::FilePath contents = bundle_path.AppendASCII("Contents");
-  const base::FilePath macos = contents.AppendASCII("MacOS");
-  if (!IsKnownZenBundleName(bundle_path) || base::IsLink(bundle_path) ||
-      base::IsLink(contents) || base::IsLink(macos) ||
-      !base::DirectoryExists(macos)) {
-    return false;
-  }
-  const base::FilePath executable = macos.AppendASCII("zen");
-  struct stat file_stat;
-  return lstat(executable.value().c_str(), &file_stat) == 0 &&
-         S_ISREG(file_stat.st_mode) &&
-         HasOfficialZenBundleIdentifier(contents.AppendASCII("Info.plist"));
-}
-
-ZenApplicationState InspectZenApplicationAt(
+ZenApplicationState InspectZenApplicationAtWithAuthenticator(
     const std::vector<base::FilePath>& application_roots,
-    const std::vector<base::FilePath>& running_executables) {
+    const std::vector<base::FilePath>& running_executables,
+    const ZenBundleAuthenticationCallback& bundle_authenticator) {
   ZenApplicationState state;
   for (const base::FilePath& root : application_roots) {
     if (root.empty() || !root.IsAbsolute() || root.ReferencesParent() ||
@@ -203,7 +238,8 @@ ZenApplicationState InspectZenApplicationAt(
     }
     for (base::FilePath::StringViewType name : kZenBundleNames) {
       const base::FilePath candidate = root.Append(name);
-      if (IsSafeZenApplicationBundle(candidate)) {
+      if (IsSafeZenApplicationBundleWithAuthenticator(candidate,
+                                                      bundle_authenticator)) {
         state.bundle_path = candidate;
         state.installed = true;
         break;
@@ -214,12 +250,46 @@ ZenApplicationState InspectZenApplicationAt(
     }
   }
   for (const base::FilePath& executable : running_executables) {
-    if (IsZenBundleExecutablePath(executable)) {
+    if (IsZenBundleExecutablePathWithAuthenticator(executable,
+                                                   bundle_authenticator)) {
       state.running = true;
       break;
     }
   }
   return state;
+}
+
+bool IsSafeZenApplicationBundle(const base::FilePath& bundle_path) {
+  return IsSafeZenApplicationBundleWithAuthenticator(
+      bundle_path, base::BindRepeating(&AuthenticatesOfficialZenBundle));
+}
+
+bool IsZenBundleExecutablePath(const base::FilePath& executable) {
+  return IsZenBundleExecutablePathWithAuthenticator(
+      executable, base::BindRepeating(&AuthenticatesOfficialZenBundle));
+}
+
+ZenApplicationState InspectZenApplicationAt(
+    const std::vector<base::FilePath>& application_roots,
+    const std::vector<base::FilePath>& running_executables) {
+  return InspectZenApplicationAtWithAuthenticator(
+      application_roots, running_executables,
+      base::BindRepeating(&AuthenticatesOfficialZenBundle));
+}
+
+bool IsZenBundleExecutablePathForTesting(
+    const base::FilePath& executable,
+    const ZenBundleAuthenticationCallback& bundle_authenticator) {
+  return IsZenBundleExecutablePathWithAuthenticator(executable,
+                                                    bundle_authenticator);
+}
+
+ZenApplicationState InspectZenApplicationAtForTesting(
+    const std::vector<base::FilePath>& application_roots,
+    const std::vector<base::FilePath>& running_executables,
+    ZenBundleAuthenticationCallback bundle_authenticator) {
+  return InspectZenApplicationAtWithAuthenticator(
+      application_roots, running_executables, bundle_authenticator);
 }
 
 }  // namespace internal

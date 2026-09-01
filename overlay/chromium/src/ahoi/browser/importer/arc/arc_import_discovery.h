@@ -4,10 +4,33 @@
 #ifndef AHOI_BROWSER_IMPORTER_ARC_ARC_IMPORT_DISCOVERY_H_
 #define AHOI_BROWSER_IMPORTER_ARC_ARC_IMPORT_DISCOVERY_H_
 
+#include <vector>
+
 #include "ahoi/browser/importer/arc/arc_import_types.h"
 #include "base/files/file_path.h"
+#include "base/functional/callback.h"
 
 namespace ahoi::importer::arc {
+
+struct ArcApplicationState {
+  base::FilePath bundle_path;
+  bool installed = false;
+  bool running = false;
+};
+
+enum class ArcImportAvailability {
+  kNotInstalled,
+  kNoSafeProfiles,
+  kSourceRunning,
+  kAvailable,
+};
+
+// Authenticates Arc.app in the normal system/user Applications roots by bundle
+// identifier and executable, then binds running main/helper processes to that
+// exact bundle. A stale Application Support directory is never installation
+// evidence.
+ArcApplicationState InspectDefaultArcApplication();
+ArcImportAvailability GetDefaultArcImportAvailability();
 
 // Discovers Arc below a trusted macOS Application Support directory. The
 // function reads metadata only and rejects traversal and symlinks at every
@@ -43,6 +66,9 @@ bool IsArcApplicationRunning();
 bool AreArcProfileFilesOpen(const ArcSource& source);
 
 namespace internal {
+
+using ArcBundleAuthenticationCallback =
+    base::RepeatingCallback<bool(const base::FilePath&)>;
 
 enum class ProcessOwnership {
   kCurrentUser,
@@ -81,6 +107,17 @@ enum class OpenFileInspectionEvidence {
 
 // Pure path predicates shared by production discovery and focused unit tests.
 bool IsArcBundleExecutablePath(const base::FilePath& executable);
+bool IsSafeArcApplicationBundle(const base::FilePath& bundle_path);
+ArcApplicationState InspectArcApplicationAt(
+    const std::vector<base::FilePath>& application_roots,
+    const std::vector<base::FilePath>& running_executables);
+// Test fixtures are intentionally unsigned. Tests may inject only the
+// code-signature decision; bundle structure and Info.plist identity are still
+// validated by production code, and this seam is never used for real roots.
+ArcApplicationState InspectArcApplicationAtForTesting(
+    const std::vector<base::FilePath>& application_roots,
+    const std::vector<base::FilePath>& running_executables,
+    ArcBundleAuthenticationCallback bundle_authenticator);
 bool IsRelevantArcSourcePath(const ArcSource& source,
                              const base::FilePath& open_path);
 

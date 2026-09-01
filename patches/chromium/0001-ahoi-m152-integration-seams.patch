@@ -130,7 +130,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
        </message>
-@@ -20042,6 +20045,1446 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20042,6 +20045,1503 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
        Relaunch
      </message>
@@ -1461,7 +1461,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +      uBlock Origin Classic…
 +    </message>
 +    <message name="IDS_AHOI_UBO_TITLE" desc="Title of AhoiBrowser's verified uBlock Origin Classic installer dialog." meaning="AhoiBrowser uBO Classic installer">
-+      Install uBlock Origin Classic
++      uBlock Origin Classic
 +    </message>
 +    <message name="IDS_AHOI_UBO_UNPROVISIONED" desc="Status when this AhoiBrowser build has neither a trusted browser-pinned bootstrap nor the required update trust roots." meaning="AhoiBrowser uBO Classic installer">
 +      Secure distribution is not provisioned for this build. Installation is unavailable.
@@ -1470,7 +1470,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +      No package has been requested.
 +    </message>
 +    <message name="IDS_AHOI_UBO_PINNED_BOOTSTRAP_IDLE" desc="Initial status when AhoiBrowser can verify its exact browser-pinned Official GitHub release without a network catalog." meaning="AhoiBrowser uBO Classic installer">
-+      Official GitHub release 1.74.0 is browser-pinned. Check the exact release metadata without a catalog request.
++      Official GitHub release 1.74.0 is browser-pinned. Review the exact metadata below; one action downloads, verifies and hands it to Chromium's permission prompt.
 +    </message>
 +    <message name="IDS_AHOI_UBO_CHECKING" desc="Status while AhoiBrowser downloads and verifies the signed uBO catalog." meaning="AhoiBrowser uBO Classic installer">
 +      Checking the signed catalog…
@@ -1491,7 +1491,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +      Verifying package hash, signature, ID and version…
 +    </message>
 +    <message name="IDS_AHOI_UBO_PACKAGE_READY" desc="Status after AhoiBrowser verifies the uBO package and awaits explicit installation." meaning="AhoiBrowser uBO Classic installer">
-+      Package verified. Installation still requires your confirmation and Chromium's permission prompt.
++      Package verified. Handing it to Chromium's permission prompt…
 +    </message>
 +    <message name="IDS_AHOI_UBO_INSTALLING" desc="Status while Chromium runs the normal uBO extension installation prompt and atomic installer." meaning="AhoiBrowser uBO Classic installer">
 +      Waiting for the Chromium extension installation to finish…
@@ -1501,6 +1501,21 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    </message>
 +    <message name="IDS_AHOI_UBO_UP_TO_DATE" desc="Status when the installed authorized uBO version is current." meaning="AhoiBrowser uBO Classic installer">
 +      The installed authorized version is up to date.
++    </message>
++    <message name="IDS_AHOI_UBO_CLASSIC_AWAITING_READY" desc="Status while Classic is installed but not yet both enabled and runtime-ready; Lite is retained." meaning="AhoiBrowser uBO Classic installer">
++      Classic is installed but has not reached enabled and runtime-ready state. uBO Lite remains installed.
++    </message>
++    <message name="IDS_AHOI_UBO_CLASSIC_AWAITING_RESTART" desc="Status after Classic is ready in its install process but before the required full browser restart; Lite is retained." meaning="AhoiBrowser uBO Classic installer">
++      Classic is enabled and runtime-ready. Fully quit and reopen AhoiBrowser before Lite removal can be offered. uBO Lite remains installed.
++    </message>
++    <message name="IDS_AHOI_UBO_LITE_REMOVAL_ELIGIBLE" desc="Status after Classic was revalidated in a later browser process and Lite may be removed by a separate action." meaning="AhoiBrowser uBO Classic installer">
++      Classic was revalidated as enabled and runtime-ready after a full browser restart. Removing uBO Lite is now a separate action.
++    </message>
++    <message name="IDS_AHOI_UBO_REMOVING_LITE" desc="Status while Chromium removes the exact uBO Lite identity and completes cleanup." meaning="AhoiBrowser uBO Classic installer">
++      Removing only the exact uBO Lite extension and waiting for Chromium cleanup…
++    </message>
++    <message name="IDS_AHOI_UBO_LITE_REMOVED" desc="Status after Lite was removed following Classic restart and runtime checks." meaning="AhoiBrowser uBO Classic installer">
++      uBO Lite was removed after Classic passed the restart and runtime checks.
 +    </message>
 +    <message name="IDS_AHOI_UBO_ERROR_OFFLINE" desc="Safe uBO installer error for an unavailable network." meaning="AhoiBrowser uBO Classic installer">
 +      The secure catalog could not be reached. Check your connection and try again.
@@ -1532,6 +1547,18 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    <message name="IDS_AHOI_UBO_ERROR_PROFILE" desc="Safe uBO installer error for incognito or unavailable profile state." meaning="AhoiBrowser uBO Classic installer">
 +      Installation is available only from a regular profile and active tab.
 +    </message>
++    <message name="IDS_AHOI_UBO_ERROR_CONFLICT" desc="Safe error when a Classic identity is already present but is not the exact authorized pinned installation." meaning="AhoiBrowser uBO Classic installer">
++      A Classic identity is already present but does not match the pinned authorized installation. AhoiBrowser left every extension unchanged.
++    </message>
++    <message name="IDS_AHOI_UBO_ERROR_MIGRATION_INTEGRITY" desc="Safe error when local Lite migration state does not match the installed authorized Classic identity." meaning="AhoiBrowser uBO Classic installer">
++      The local Lite migration record does not match the installed authorized Classic identity. uBO Lite was left installed.
++    </message>
++    <message name="IDS_AHOI_UBO_ERROR_MIGRATION_WRITE" desc="Safe error when AhoiBrowser cannot persist its local-only Lite migration checkpoint." meaning="AhoiBrowser uBO Classic installer">
++      AhoiBrowser could not persist its local migration checkpoint. uBO Lite was left installed.
++    </message>
++    <message name="IDS_AHOI_UBO_ERROR_LITE_REMOVAL" desc="Safe error when Chromium does not complete exact-ID uBO Lite removal." meaning="AhoiBrowser uBO Classic installer">
++      Chromium did not complete uBO Lite removal. uBO Lite remains installed.
++    </message>
 +    <message name="IDS_AHOI_UBO_VERSION_LABEL" desc="Label for the uBO version in trusted pinned entry metadata." meaning="AhoiBrowser uBO Classic installer">
 +      Version
 +    </message>
@@ -1553,6 +1580,33 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    <message name="IDS_AHOI_UBO_LICENSE_LABEL" desc="Label for the uBO upstream software license." meaning="AhoiBrowser uBO Classic installer">
 +      License
 +    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_PINNED_CLASSIC" desc="Inventory label for AhoiBrowser's exact pinned uBO Classic identity." meaning="AhoiBrowser uBO Classic installer">
++      Pinned Classic
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_FORMER_CLASSIC" desc="Inventory label for the former Chrome Web Store uBO Classic identity." meaning="AhoiBrowser uBO Classic installer">
++      Former Web Store Classic
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_LITE" desc="Inventory label for the exact uBO Lite identity." meaning="AhoiBrowser uBO Classic installer">
++      uBO Lite
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_NOT_INSTALLED" desc="Inventory state for an absent exact extension identity." meaning="AhoiBrowser uBO Classic installer">
++      not installed
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_INSTALLED" desc="Inventory state prefix for an installed exact extension identity followed by its version." meaning="AhoiBrowser uBO Classic installer">
++      installed version
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_ENABLED" desc="Inventory state for an enabled exact extension identity." meaning="AhoiBrowser uBO Classic installer">
++      enabled
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_DISABLED" desc="Inventory state for a disabled exact extension identity." meaning="AhoiBrowser uBO Classic installer">
++      disabled
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_READY" desc="Inventory state for an exact extension identity that Chromium marks runtime-ready." meaning="AhoiBrowser uBO Classic installer">
++      runtime ready
++    </message>
++    <message name="IDS_AHOI_UBO_INVENTORY_NOT_READY" desc="Inventory state for an exact extension identity that Chromium does not mark runtime-ready." meaning="AhoiBrowser uBO Classic installer">
++      not runtime ready
++    </message>
 +    <message name="IDS_AHOI_UBO_SECURITY_NOTICE" desc="Security-scope notice in AhoiBrowser's uBO installer." meaning="AhoiBrowser uBO Classic installer">
 +      This exception applies only to the exact, verified uBlock Origin Classic package. It does not enable Manifest V2 for other extensions.
 +    </message>
@@ -1560,7 +1614,7 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +      uBlock Origin is GPL-3.0-or-later software from its upstream project. AhoiBrowser does not embed an unverified third-party package.
 +    </message>
 +    <message name="IDS_AHOI_UBO_CONFIRM_NOTICE" desc="Explicit-action notice before uBO download and install." meaning="AhoiBrowser uBO Classic installer">
-+      Checking and downloading never installs automatically. Use the install action below, then review Chromium's permission prompt.
++      One Ahoi action starts the pinned download and verification. Chromium's normal permission prompt remains mandatory. Closing before that handoff cancels the operation and discards temporary data.
 +    </message>
 +    <message name="IDS_AHOI_UBO_BUTTON_CHECK" desc="Button that verifies either AhoiBrowser's browser-pinned initial uBO entry or its later signed update catalog." meaning="AhoiBrowser uBO Classic installer">
 +      Check securely
@@ -1570,6 +1624,9 @@ index 7e4c3abea6cc649f8785c782b8c238ec87b5cde7..e35d3a8f16d4944af269c0ac89ed351f
 +    </message>
 +    <message name="IDS_AHOI_UBO_BUTTON_INSTALL" desc="Button that explicitly starts Chromium's uBO install flow." meaning="AhoiBrowser uBO Classic installer">
 +      Install uBlock Origin Classic
++    </message>
++    <message name="IDS_AHOI_UBO_BUTTON_REMOVE_LITE" desc="Separate button removing only the exact uBO Lite identity after Classic restart and runtime validation." meaning="AhoiBrowser uBO Classic installer">
++      Separately remove uBO Lite now
 +    </message>
 +    <message name="IDS_AHOI_UBO_BUTTON_CLOSE" desc="Button closing AhoiBrowser's uBO installer after a terminal success status." meaning="AhoiBrowser uBO Classic installer">
 +      Close
@@ -1581,7 +1638,7 @@ diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resour
 index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426c3a2c7c2 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -10730,4 +10730,479 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -10730,4 +10730,499 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
  <translation id="998747458861718449">Untersuchen</translation>
  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
@@ -1771,19 +1828,25 @@ index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426
 +<translation id="5932911131614515847">Datenschutzeinstellungen öffnen</translation>
 +<translation id="6723983196975760082">uBlock Origin Classic…</translation>
 +<translation id="5451389916173906161">uBlock Origin Classic installieren</translation>
++<translation id="8715677350639000479">uBlock Origin Classic</translation>
 +<translation id="3124656130049220920">Die sichere Verteilung ist für diesen Build nicht eingerichtet. Die Installation ist nicht verfügbar.</translation>
 +<translation id="1083946856181214471">Es wurde noch kein Paket angefordert.</translation>
-+<translation id="8926204376771478095">Offizieller GitHub-Release 1.74.0 ist im Browser gepinnt. Prüfe die exakten Release-Metadaten ohne Kataloganfrage.</translation>
++<translation id="4008618948000793010">Offizieller GitHub-Release 1.74.0 ist im Browser gepinnt. Prüfe die exakten Metadaten unten; eine Aktion lädt das Paket, verifiziert es und übergibt es an Chromiums Berechtigungsdialog.</translation>
 +<translation id="173678054573921521">Signierten Katalog prüfen…</translation>
 +<translation id="7839795442695278720">Der signierte Katalog ist gültig. Prüfe die Paketdetails vor dem Download.</translation>
 +<translation id="6544569287198270558">Der Pin für den offiziellen GitHub-Release wurde verifiziert. Prüfe die Paketdetails vor dem Download.</translation>
 +<translation id="1361090806492448217">Ein verifiziertes Update ist verfügbar. Prüfe die Details vor dem Download.</translation>
 +<translation id="7592246281050900442">Paket in den temporären Speicher laden…</translation>
 +<translation id="5651272255701416838">Pakethash, Signatur, ID und Version prüfen…</translation>
-+<translation id="8904514611208326125">Das Paket wurde verifiziert. Die Installation erfordert weiterhin deine Bestätigung und Chromiums Berechtigungsdialog.</translation>
++<translation id="4251395657953038877">Paket verifiziert. Übergabe an Chromiums Berechtigungsdialog…</translation>
 +<translation id="569297405678413980">Auf den Abschluss der Chromium-Erweiterungsinstallation warten…</translation>
 +<translation id="3885962246529486409">uBlock Origin Classic wurde installiert und lokal autorisiert.</translation>
 +<translation id="2636020566600618581">Die installierte autorisierte Version ist aktuell.</translation>
++<translation id="1067766907891352618">Classic ist installiert, aber noch nicht aktiviert und laufzeitbereit. uBO Lite bleibt installiert.</translation>
++<translation id="4368012051415501618">Classic ist aktiviert und laufzeitbereit. Beende AhoiBrowser vollständig und öffne ihn erneut, bevor die Entfernung von Lite angeboten werden kann. uBO Lite bleibt installiert.</translation>
++<translation id="4805851063630167119">Classic wurde nach einem vollständigen Browserneustart erneut als aktiviert und laufzeitbereit geprüft. Das Entfernen von uBO Lite ist jetzt eine separate Aktion.</translation>
++<translation id="5167071086680525936">Nur die exakte uBO-Lite-Erweiterung wird entfernt; Chromium-Bereinigung wird abgewartet…</translation>
++<translation id="8514728929001700393">uBO Lite wurde entfernt, nachdem Classic die Neustart- und Laufzeitprüfungen bestanden hat.</translation>
 +<translation id="540566029112770731">Offizieller GitHub-Release</translation>
 +<translation id="692133611196176358">Der sichere Katalog war nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.</translation>
 +<translation id="2348845941918604449">Der Server hat eine Weiterleitung versucht. AhoiBrowser hat die Anfrage aus Sicherheitsgründen abgebrochen.</translation>
@@ -1795,17 +1858,31 @@ index f630847b474cfde5341923bbd6776b17d6773102..c22138f384529218b633c103d8f16426
 +<translation id="4763118978906950486">Chromium hat die Erweiterungsinstallation nicht abgeschlossen. Es wurde keine neue Autorisierung gespeichert.</translation>
 +<translation id="155928304438760378">Ein sicherer Paketvorgang läuft bereits.</translation>
 +<translation id="2655545787720060668">Die Installation ist nur in einem regulären Profil mit aktivem Tab verfügbar.</translation>
++<translation id="3444766070153168489">Eine Classic-Identität ist bereits vorhanden, entspricht aber nicht der gepinnten autorisierten Installation. AhoiBrowser hat keine Erweiterung verändert.</translation>
++<translation id="9219649102685379401">Der lokale Lite-Migrationsdatensatz stimmt nicht mit der installierten autorisierten Classic-Identität überein. uBO Lite wurde nicht entfernt.</translation>
++<translation id="2044627825814659919">AhoiBrowser konnte den lokalen Migrationsprüfpunkt nicht speichern. uBO Lite wurde nicht entfernt.</translation>
++<translation id="923018760099566168">Chromium hat die Entfernung von uBO Lite nicht abgeschlossen. uBO Lite bleibt installiert.</translation>
 +<translation id="7590930846933917843">Version</translation>
 +<translation id="2051545981007264011">Feste Erweiterungs-ID</translation>
 +<translation id="8288783506291281272">Upstream-Veröffentlichungsquelle</translation>
 +<translation id="5663715289724126649">Signierter Ahoi-Katalog</translation>
 +<translation id="1552303245816573842">Paket-SHA-256</translation>
 +<translation id="8252480639562948911">Lizenz</translation>
++<translation id="1131376389723777650">Gepinntes Classic</translation>
++<translation id="2801008531935687334">Ehemaliges Web-Store-Classic</translation>
++<translation id="807254023929334896">uBO Lite</translation>
++<translation id="8371954569848672402">nicht installiert</translation>
++<translation id="7584095920881965974">installierte Version</translation>
++<translation id="4751560407338876166">aktiviert</translation>
++<translation id="1054005172868081961">deaktiviert</translation>
++<translation id="3731676283204210111">laufzeitbereit</translation>
++<translation id="6957403946484881253">nicht laufzeitbereit</translation>
 +<translation id="2696701806059024233">Diese Ausnahme gilt nur für das exakte, verifizierte uBlock-Origin-Classic-Paket. Manifest V2 wird dadurch nicht für andere Erweiterungen aktiviert.</translation>
 +<translation id="1534265608999454361">uBlock Origin ist GPL-3.0-or-later-Software des Upstream-Projekts. AhoiBrowser bettet kein unverifiziertes Drittanbieterpaket ein.</translation>
-+<translation id="8330831598193981585">Prüfen und Herunterladen installiert niemals automatisch. Verwende unten die Installationsaktion und prüfe danach Chromiums Berechtigungsdialog.</translation>
++<translation id="122162540404133384">Eine Ahoi-Aktion startet den gepinnten Download und die Verifizierung. Chromiums normaler Berechtigungsdialog bleibt verpflichtend. Schließen vor der Übergabe bricht den Vorgang ab und verwirft temporäre Daten.</translation>
 +<translation id="9030962707116024642">Sicher prüfen</translation>
 +<translation id="9007404635647866290">Verifiziertes Paket herunterladen</translation>
++<translation id="4141907175393886058">uBO Lite jetzt separat entfernen</translation>
 +<translation id="2850946408202449630">Schließen</translation>
 +<translation id="1276566962351511406">Globale Hauptfarbe</translation>
 +<translation id="3715463435630814891">Wird für Auswahl, Fokus und Aktivität auf allen Browserflächen verwendet</translation>
@@ -2067,7 +2144,7 @@ diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/res
 index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b124a900547 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -10750,4 +10750,275 @@ This can include information about installed software, files, your browser, the
+@@ -10750,4 +10750,295 @@ This can include information about installed software, files, your browser, the
  <translation id="998347228911661591">Sync your tab groups</translation>
  <translation id="998747458861718449">I&amp;nspect</translation>
  <translation id="998852291477823323">The action was disallowed by the configured policies.</translation>
@@ -2075,19 +2152,25 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b12
 \ No newline at end of file
 +<translation id="6723983196975760082">uBlock Origin Classic…</translation>
 +<translation id="5451389916173906161">Install uBlock Origin Classic</translation>
++<translation id="8715677350639000479">uBlock Origin Classic</translation>
 +<translation id="3124656130049220920">Secure distribution is not provisioned for this build. Installation is unavailable.</translation>
 +<translation id="1083946856181214471">No package has been requested.</translation>
-+<translation id="8926204376771478095">Official GitHub release 1.74.0 is browser-pinned. Check the exact release metadata without a catalog request.</translation>
++<translation id="4008618948000793010">Official GitHub release 1.74.0 is browser-pinned. Review the exact metadata below; one action downloads, verifies and hands it to Chromium's permission prompt.</translation>
 +<translation id="173678054573921521">Checking the signed catalog…</translation>
 +<translation id="7839795442695278720">The signed catalog is valid. Review the package details before downloading.</translation>
 +<translation id="6544569287198270558">Official GitHub release pin verified. Review the package details before downloading.</translation>
 +<translation id="1361090806492448217">A verified update is available. Review the details before downloading.</translation>
 +<translation id="7592246281050900442">Downloading the package to temporary storage…</translation>
 +<translation id="5651272255701416838">Verifying package hash, signature, ID and version…</translation>
-+<translation id="8904514611208326125">Package verified. Installation still requires your confirmation and Chromium's permission prompt.</translation>
++<translation id="4251395657953038877">Package verified. Handing it to Chromium's permission prompt…</translation>
 +<translation id="569297405678413980">Waiting for the Chromium extension installation to finish…</translation>
 +<translation id="3885962246529486409">uBlock Origin Classic was installed and locally authorised.</translation>
 +<translation id="2636020566600618581">The installed authorised version is up to date.</translation>
++<translation id="1067766907891352618">Classic is installed but has not reached enabled and runtime-ready state. uBO Lite remains installed.</translation>
++<translation id="4368012051415501618">Classic is enabled and runtime-ready. Fully quit and reopen AhoiBrowser before Lite removal can be offered. uBO Lite remains installed.</translation>
++<translation id="4805851063630167119">Classic was revalidated as enabled and runtime-ready after a full browser restart. Removing uBO Lite is now a separate action.</translation>
++<translation id="5167071086680525936">Removing only the exact uBO Lite extension and waiting for Chromium cleanup…</translation>
++<translation id="8514728929001700393">uBO Lite was removed after Classic passed the restart and runtime checks.</translation>
 +<translation id="540566029112770731">Official GitHub release</translation>
 +<translation id="692133611196176358">The secure catalogue could not be reached. Check your connection and try again.</translation>
 +<translation id="2348845941918604449">The server attempted a redirect. For security, AhoiBrowser stopped the request.</translation>
@@ -2099,17 +2182,31 @@ index 6c79b3df90a4e60574df0c53719df20b8ad8c91a..a647ad1a76b8c5d9b16f4476b4e61b12
 +<translation id="4763118978906950486">Chromium did not complete the extension installation. No new authorisation was committed.</translation>
 +<translation id="155928304438760378">A secure package operation is already running.</translation>
 +<translation id="2655545787720060668">Installation is available only from a regular profile and active tab.</translation>
++<translation id="3444766070153168489">A Classic identity is already present but does not match the pinned authorised installation. AhoiBrowser left every extension unchanged.</translation>
++<translation id="9219649102685379401">The local Lite migration record does not match the installed authorised Classic identity. uBO Lite was left installed.</translation>
++<translation id="2044627825814659919">AhoiBrowser could not persist its local migration checkpoint. uBO Lite was left installed.</translation>
++<translation id="923018760099566168">Chromium did not complete uBO Lite removal. uBO Lite remains installed.</translation>
 +<translation id="7590930846933917843">Version</translation>
 +<translation id="2051545981007264011">Fixed extension ID</translation>
 +<translation id="8288783506291281272">Upstream release source</translation>
 +<translation id="5663715289724126649">Signed Ahoi catalogue</translation>
 +<translation id="1552303245816573842">Package SHA-256</translation>
 +<translation id="8252480639562948911">Licence</translation>
++<translation id="1131376389723777650">Pinned Classic</translation>
++<translation id="2801008531935687334">Former Web Store Classic</translation>
++<translation id="807254023929334896">uBO Lite</translation>
++<translation id="8371954569848672402">not installed</translation>
++<translation id="7584095920881965974">installed version</translation>
++<translation id="4751560407338876166">enabled</translation>
++<translation id="1054005172868081961">disabled</translation>
++<translation id="3731676283204210111">runtime ready</translation>
++<translation id="6957403946484881253">not runtime ready</translation>
 +<translation id="2696701806059024233">This exception applies only to the exact, verified uBlock Origin Classic package. It does not enable Manifest V2 for other extensions.</translation>
 +<translation id="1534265608999454361">uBlock Origin is GPL-3.0-or-later software from its upstream project. AhoiBrowser does not embed an unverified third-party package.</translation>
-+<translation id="8330831598193981585">Checking and downloading never installs automatically. Use the install action below, then review Chromium's permission prompt.</translation>
++<translation id="122162540404133384">One Ahoi action starts the pinned download and verification. Chromium's normal permission prompt remains mandatory. Closing before that handoff cancels the operation and discards temporary data.</translation>
 +<translation id="9030962707116024642">Check securely</translation>
 +<translation id="9007404635647866290">Download verified package</translation>
++<translation id="4141907175393886058">Separately remove uBO Lite now</translation>
 +<translation id="2850946408202449630">Close</translation>
 +<translation id="1276566962351511406">Global primary colour</translation>
 +<translation id="3715463435630814891">Used for selection, focus and activity across browser surfaces</translation>
@@ -4937,7 +5034,7 @@ index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..bd2b7d89a0ea589dfd25e748419f03b9
        "//chrome/browser:app_controller_mac",
        "//chrome/browser:chrome_browser_application_mac",
        "//chrome/browser:global_keyboard_shortcuts_mac",
-@@ -3654,6 +3659,36 @@ static_library("ui") {
+@@ -3654,6 +3659,41 @@ static_library("ui") {
    }
  
    if (toolkit_views) {
@@ -4951,7 +5048,8 @@ index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..bd2b7d89a0ea589dfd25e748419f03b9
 +      "//ahoi/browser/ui/developer_toolkit:developer_toolkit_ui",
 +      "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
 +      "//ahoi/browser/ui/empty_state",
-+      "//ahoi/browser/ui/extensions:ubo_install_ui",
++      "//ahoi/browser/extensions:service",
++      "//ahoi/browser/ui/extensions:ubo_install_presenter",
 +      "//ahoi/browser/ui/popup:popup_overlay",
 +      "//ahoi/browser/ui/privacy:privacy_mode_ui",
 +      "//ahoi/browser/ui/shell:navigation_surface_controller",
@@ -4965,10 +5063,14 @@ index 4ecd2c257938e9bf2bc270da28f5fcee68617fe6..bd2b7d89a0ea589dfd25e748419f03b9
 +      "//ahoi/browser/command_bar",
 +      "//ahoi/browser/ui/popup:popup_overlay",
 +      "//ahoi/browser/ui/developer_toolkit:developer_toolkit_ui",
-+      "//ahoi/browser/ui/extensions:ubo_install_ui",
 +      "//ahoi/browser/ui/privacy:privacy_mode_ui",
 +      "//ahoi/browser/ui/sidebar:browser_sidebar",
 +      "//ahoi/browser/ui/split_drop",
++    ]
++
++    sources += [
++      "//ahoi/browser/ui/extensions/ubo_install_dialog.cc",
++      "//ahoi/browser/ui/extensions/ubo_install_dialog.h",
 +    ]
 +
      sources += [
@@ -16922,10 +17024,11 @@ diff --git a/chrome/test/BUILD.gn b/chrome/test/BUILD.gn
 index a7bd79373d0031ac224461e98a812847e880f27e..4d7c1949cddde743dddd7690bebbbeb863b41986 100644
 --- a/chrome/test/BUILD.gn
 +++ b/chrome/test/BUILD.gn
-@@ -1984,6 +1984,7 @@ if (!is_android) {
+@@ -1984,6 +1984,8 @@ if (!is_android) {
        ":platform_browser_tests",
        ":test_support",
        ":test_support_ui",
++      "//ahoi/browser/extensions:browser_tests",
 +      "//ahoi/browser/ui/popup:browser_tests",
        "//base",
        "//base:build_time",

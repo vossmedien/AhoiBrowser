@@ -1,6 +1,6 @@
 # AhoiBrowser – Zielprompt Desktop-Kernfeaturepaket
 
-**Geltungsstand: 30. August 2026.** Dieser Zielprompt operationalisiert die aktuelle Desktop-Welle aus `AhoiBrowser-Master-Zielprompt.md`. Der Master bleibt für das vollständige Produktziel maßgeblich; bei Widersprüchen gilt die spätere ausdrückliche Nutzerentscheidung: kein übergroßer Onboarding-/Transfer-Wizard, sondern browserübliche Importbedienung und mehr Fokus auf die noch offenen Kernfunktionen.
+**Geltungsstand: 1. September 2026.** Dieser Zielprompt operationalisiert die aktuelle Desktop-Welle aus `AhoiBrowser-Master-Zielprompt.md`. Der Master bleibt für das vollständige Produktziel maßgeblich; bei Widersprüchen gelten die späteren ausdrücklichen Nutzerentscheidungen: kein übergroßer Onboarding-/Transfer-Wizard, AnyChat ausschließlich über Chromiums normalen Chrome-Web-Store-Pfad, uBlock Origin Classic mit genau einem Ahoi-Installationsklick bis zum normalen Chromium-Berechtigungsdialog sowie größere zusammenhängende Featurepakete vor einem neuen Build.
 
 ## Ziel
 
@@ -22,7 +22,7 @@ Arbeite selbstständig bis zum belegten Ergebnis. Frage nur bei echter externer 
 
 - Chromium-Pin: `152.0.7977.65`, Commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`.
 - Kanonischer Workspace: `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`.
-- Der beobachtete Crash ist eine Null-Dereferenz im nativen `ExtensionsMenuViewModel` bei fehlendem aktivem `WebContents`; die Stackfolge beginnt mit `GetMainPageState` und `GetOptionalSection`.
+- Der frühere AnyChat-nahe Crash ist eine generische Null-Tab-Dereferenz im nativen `ExtensionsMenuViewModel`; AnyChat benötigt dafür keinen eigenen Installer oder Produktsonderpfad. Ein späterer separater Null-Tab-Crash lief über `NewSplitTab` nach `TabStripModel::IsTabPinned(-1)` und gehört zum generischen Split-Command-Fix.
 - Im Ahoi-Profil sind 1Password Stable und uBlock Origin Lite/MV3 vorhanden. AnyChat und uBlock Origin Classic sind nicht persistiert.
 - Die exakten IDs sind:
   - 1Password Stable: `aeblfdkhhhdcdjpifhhbdiojplfjncoa`;
@@ -67,6 +67,7 @@ Erhalte die selektive MV2-Ausnahme ausschließlich für ein konkret gepinntes uB
 - Migriere die Produktidentität bewusst von der nicht lieferbaren historischen Web-Store-ID auf die tatsächliche ID des offiziellen gorhill-GitHub-CRX, wenn und nur wenn CRX3-Schlüssel, Paket-ID, Releaseversion, vollständiger Paket-Hash und Upstream-Provenienz exakt übereinstimmen.
 - Zeige in UI und Evidenz ausdrücklich `Offizieller GitHub-Release`; behaupte niemals die Chrome-Web-Store-Identität für dieses Paket.
 - Pinne Version `1.74.0`, Release-Commit, SHA-256 und CRX-Key zentral. Keine Wildcards, kein entpacktes ZIP, kein Entwicklermodus und keine bloße Manifest-ID genügen.
+- Ein einziger bewusster Ahoi-CTA startet den gepinnten Download, die vollständige Verifikation und den Handoff an Chromiums normalen Permission-Prompt. Vor diesem Klick sind Quelle, Version, Commit, Hash und abgeleitete ID sichtbar; zwischen Prüfen, Herunterladen und Installieren gibt es keine weiteren Ahoi-Bestätigungsstufen.
 - Behalte Chromiums normalen Permission-Prompt und atomare Installation bei. Autorisierung wird erst nach finalem ID-/Version-/Hash-/Key-Readback persistiert.
 - Updates benötigen mindestens gleich starke Authentizität, Monotonie, Rollback- und Downgrade-Schutz. Bis dieser Pfad geschlossen ist, bleibt ein automatisches Extension-Update deaktiviert und wird nicht als Pass behauptet; uBOs Filterlistenupdate bleibt davon getrennt.
 - Installiere Classic und Lite nie gleichzeitig für den Wirksamkeitsvergleich. Nutze getrennte frische Vergleichsprofile auf demselben signierten Bundle.

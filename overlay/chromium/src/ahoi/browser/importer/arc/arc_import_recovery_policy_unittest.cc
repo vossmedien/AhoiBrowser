@@ -19,9 +19,22 @@ constexpr char kForeign[] =
     "3333333333333333333333333333333333333333333333333333333333333333";
 
 ArcImportPreparedState Prepared(ArcImportPreparedPhase phase) {
-  return {.previous_tree_sha256 = kPrevious,
-          .expected_tree_sha256 = kExpected,
-          .phase = phase};
+  ArcImportPreparedState prepared{.snapshot_hash = kPrevious,
+                                  .selection_fingerprint = kExpected,
+                                  .idempotency_key = kForeign,
+                                  .previous_tree_sha256 = kPrevious,
+                                  .expected_tree_sha256 = kExpected,
+                                  .phase = phase};
+  if (phase == ArcImportPreparedPhase::kRuntimePersisted) {
+    prepared.expected_native_structure_sha256 = kPrevious;
+    prepared.native_receipt_sha256 = kExpected;
+    prepared.runtime_mutation_planned = true;
+    prepared.intended_committed =
+        ArcImportCommittedState{.snapshot_hash = kPrevious,
+                                .selection_fingerprint = kExpected,
+                                .idempotency_key = kForeign};
+  }
+  return prepared;
 }
 
 TEST(ArcImportRecoveryPolicyTest,
@@ -89,11 +102,58 @@ TEST(ArcImportRecoveryPolicyTest,
 }
 
 TEST(ArcImportRecoveryPolicyTest,
-     RuntimePersistedReceiptStillNeverAuthorizesOneSidedTreeRecovery) {
+     RuntimePersistedReceiptCannotPublishWithoutFreshRuntimeRevalidation) {
   const ArcImportRecoveryDecision decision = DecideArcImportPreparedRecovery(
       Prepared(ArcImportPreparedPhase::kRuntimePersisted), kExpected);
 
   EXPECT_EQ(ArcImportRecoveryTreeAction::kNone, decision.tree_action);
+  EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
+            decision.completion);
+}
+
+TEST(ArcImportRecoveryPolicyTest,
+     RuntimePersistedReceiptKeepsPreviousOrForeignTreeManual) {
+  ArcImportPreparedState prepared =
+      Prepared(ArcImportPreparedPhase::kRuntimePersisted);
+  ArcImportRecoveryDecision decision =
+      DecideArcImportPreparedRecovery(prepared, kPrevious);
+  EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
+            decision.completion);
+  decision = DecideArcImportPreparedRecovery(prepared, kForeign);
+  EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
+            decision.completion);
+
+  prepared.intended_committed.reset();
+  decision = DecideArcImportPreparedRecovery(prepared, kExpected);
+  EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
+            decision.completion);
+}
+
+TEST(ArcImportRecoveryPolicyTest,
+     RuntimePersistedRemainsManualForEveryJournalizedReceiptVariant) {
+  ArcImportPreparedState prepared =
+      Prepared(ArcImportPreparedPhase::kRuntimePersisted);
+  ASSERT_TRUE(prepared.intended_committed.has_value());
+
+  ArcImportRecoveryDecision decision =
+      DecideArcImportPreparedRecovery(prepared, kExpected);
+  EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
+            decision.completion);
+
+  prepared.intended_committed->snapshot_hash = kForeign;
+  decision = DecideArcImportPreparedRecovery(prepared, kExpected);
+  EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
+            decision.completion);
+
+  prepared = Prepared(ArcImportPreparedPhase::kRuntimePersisted);
+  prepared.native_receipt_sha256.clear();
+  decision = DecideArcImportPreparedRecovery(prepared, kExpected);
+  EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
+            decision.completion);
+
+  prepared = Prepared(ArcImportPreparedPhase::kRuntimePersisted);
+  prepared.runtime_mutation_planned = false;
+  decision = DecideArcImportPreparedRecovery(prepared, kExpected);
   EXPECT_EQ(ArcImportRecoveryCompletion::kManualRecoveryRequired,
             decision.completion);
 }

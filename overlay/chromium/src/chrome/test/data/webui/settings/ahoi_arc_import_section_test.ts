@@ -21,6 +21,10 @@ interface ArcImportStatsFixture {
   topApps: number;
   unsafeUrls: number;
   unsupportedItems: number;
+  unreachableItems: number;
+  deduplicatedWorkspaces: number;
+  deduplicatedItems: number;
+  deduplicatedSplits: number;
 }
 
 interface MutableArcImportSection extends HTMLElement {
@@ -69,10 +73,24 @@ suite('AhoiArcStandardImportSurface', () => {
       search: true,
     },
     {
+      ahoiImportKind: 'arc',
+      available: true,
       autofillFormData: false,
+      disabledReason: '',
       favorites: true,
       history: false,
       index: 1,
+      name: 'Arc',
+      passwords: false,
+      present: true,
+      profileName: '',
+      search: false,
+    },
+    {
+      autofillFormData: false,
+      favorites: true,
+      history: false,
+      index: 2,
       name: 'Bookmarks HTML File',
       passwords: false,
       profileName: '',
@@ -91,6 +109,10 @@ suite('AhoiArcStandardImportSurface', () => {
     topApps: 0,
     unsafeUrls: 2,
     unsupportedItems: 1,
+    unreachableItems: 4,
+    deduplicatedWorkspaces: 1,
+    deduplicatedItems: 2,
+    deduplicatedSplits: 1,
   };
 
   let dialog: SettingsImportDataDialogElement;
@@ -226,7 +248,8 @@ suite('AhoiArcStandardImportSurface', () => {
     assertEquals('2', resultText('#ahoiArcResultWorkspaces'));
     assertEquals('1', resultText('#ahoiArcResultSkipped'));
     assertEquals('1', resultText('#ahoiArcResultDegraded'));
-    assertEquals('3', resultText('#ahoiArcResultExcluded'));
+    assertEquals('7', resultText('#ahoiArcResultExcluded'));
+    assertEquals('4', resultText('#ahoiArcResultDeduplicated'));
     assertEquals('3', resultText('#ahoiArcResultFourPane'));
   });
 });

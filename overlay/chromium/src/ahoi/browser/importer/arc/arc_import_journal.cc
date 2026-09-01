@@ -33,7 +33,7 @@ namespace ahoi::importer::arc {
 
 namespace {
 
-constexpr int kJournalSchemaVersion = 4;
+constexpr int kJournalSchemaVersion = 5;
 constexpr int64_t kMaxJournalBytes = 1024 * 1024;
 constexpr size_t kMaxAffectedIds = kMaxItemCount + kMaxWorkspaceCount;
 constexpr char kJournalDirectory[] = "Ahoi";
@@ -350,7 +350,9 @@ bool IsValidPrepared(const ArcImportPreparedState& prepared) {
       !IsValidPreparedPhase(prepared.phase,
                             prepared.runtime_mutation_planned) ||
       (prepared.previous_committed &&
-       !IsValidCommitted(*prepared.previous_committed))) {
+       !IsValidCommitted(*prepared.previous_committed)) ||
+      (prepared.intended_committed &&
+       !IsValidCommitted(*prepared.intended_committed))) {
     return false;
   }
   const bool receipt_is_required =
@@ -372,6 +374,20 @@ bool IsValidPrepared(const ArcImportPreparedState& prepared) {
              !prepared.native_receipt_sha256.empty() ||
              !prepared.native_member_ids.empty() || receipt_is_required ||
              prepared.phase == ArcImportPreparedPhase::kRuntimeMayHaveStarted) {
+    return false;
+  }
+  if (receipt_is_required) {
+    if (!prepared.intended_committed ||
+        prepared.intended_committed->snapshot_hash != prepared.snapshot_hash ||
+        prepared.intended_committed->selection_fingerprint !=
+            prepared.selection_fingerprint ||
+        prepared.intended_committed->idempotency_key !=
+            prepared.idempotency_key) {
+      return false;
+    }
+  } else if (prepared.phase !=
+                 ArcImportPreparedPhase::kManualRecoveryRequired &&
+             prepared.intended_committed) {
     return false;
   }
   std::set<std::string> ids;
@@ -432,6 +448,10 @@ base::DictValue BuildPreparedJournal(const ArcImportPreparedState& prepared) {
   if (prepared.previous_committed) {
     journal.Set("previous_committed",
                 CommittedToValue(*prepared.previous_committed));
+  }
+  if (prepared.intended_committed) {
+    journal.Set("intended_committed",
+                CommittedToValue(*prepared.intended_committed));
   }
   return journal;
 }
@@ -585,10 +605,22 @@ ArcImportJournalReadResult ReadArcImportJournal(
                : ArcImportJournalReadResult{.status =
                                                 ArcImportStatus::kJournalError};
   }
-  if ((*version == 2 || *version == 3) && *status == "prepared") {
+  if (*version == 4 && *status == "committed") {
+    std::optional<ArcImportCommittedState> committed = CommittedFromValue(dict);
+    return committed
+               ? ArcImportJournalReadResult{.state = ArcImportJournalState::
+                                                kCommitted,
+                                            .committed = std::move(committed)}
+               : ArcImportJournalReadResult{.status =
+                                                ArcImportStatus::kJournalError};
+  }
+  if ((*version == 2 || *version == 3 || *version == 4) &&
+      *status == "prepared") {
     // Version 2 did not bind either tree, and version 3 did not bind the
-    // native current-session receipt. Neither may authorize mutation after an
-    // upgrade; retain the durable gate as an explicit manual recovery state.
+    // native current-session receipt. Version 4 did not persist the exact new
+    // committed-state intent. None may authorize mutation or publication
+    // after an upgrade; retain the durable gate as an explicit manual
+    // recovery state.
     return {.state = ArcImportJournalState::kPrepared,
             .prepared = ArcImportPreparedState{
                 .phase = ArcImportPreparedPhase::kManualRecoveryRequired}};
@@ -668,6 +700,12 @@ ArcImportJournalReadResult ReadArcImportJournal(
   if (const base::DictValue* previous = dict->FindDict("previous_committed")) {
     prepared.previous_committed = CommittedFromValue(previous);
     if (!prepared.previous_committed) {
+      return {.status = ArcImportStatus::kJournalError};
+    }
+  }
+  if (const base::DictValue* intended = dict->FindDict("intended_committed")) {
+    prepared.intended_committed = CommittedFromValue(intended);
+    if (!prepared.intended_committed) {
       return {.status = ArcImportStatus::kJournalError};
     }
   }

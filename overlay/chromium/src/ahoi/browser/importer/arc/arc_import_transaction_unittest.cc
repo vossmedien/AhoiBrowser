@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/importer/arc/arc_import_transaction.h"
 
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <utility>
@@ -116,6 +117,10 @@ TEST(ArcImportTransactionTest, RenameIsAdditiveAndLeavesInputUntouched) {
   EXPECT_EQ(4u, merged.merged_tree->nodes.size());
   EXPECT_EQ(1u, merged.renamed_workspace_count);
   EXPECT_EQ(1u, merged.applied_plan->splits.size());
+  EXPECT_EQ(1u, merged.applied_plan->stats.imported_workspace_count);
+  EXPECT_EQ(1u, merged.applied_plan->stats.imported_folder_count);
+  EXPECT_EQ(2u, merged.applied_plan->stats.imported_page_count);
+  EXPECT_EQ(1u, merged.applied_plan->stats.imported_split_count);
 }
 
 TEST(ArcImportTransactionTest, RenamedWorkspaceSecondMergeIsNoOp) {
@@ -134,6 +139,14 @@ TEST(ArcImportTransactionTest, RenamedWorkspaceSecondMergeIsNoOp) {
   EXPECT_EQ(*first.merged_tree, *second.merged_tree);
   EXPECT_FALSE(second.changed);
   EXPECT_EQ(0u, second.renamed_workspace_count);
+  ASSERT_TRUE(second.applied_plan.has_value());
+  EXPECT_EQ(0u, second.applied_plan->stats.imported_workspace_count);
+  EXPECT_EQ(0u, second.applied_plan->stats.imported_folder_count);
+  EXPECT_EQ(0u, second.applied_plan->stats.imported_page_count);
+  EXPECT_EQ(0u, second.applied_plan->stats.imported_split_count);
+  EXPECT_EQ(1u, second.applied_plan->stats.deduplicated_workspace_count);
+  EXPECT_EQ(3u, second.applied_plan->stats.deduplicated_item_count);
+  EXPECT_EQ(1u, second.applied_plan->stats.deduplicated_split_count);
 }
 
 TEST(ArcImportTransactionTest, SkipConflictProducesNoMutation) {
@@ -149,6 +162,10 @@ TEST(ArcImportTransactionTest, SkipConflictProducesNoMutation) {
   EXPECT_TRUE(merged.applied_plan->tree.workspaces.empty());
   EXPECT_TRUE(merged.applied_plan->tree.nodes.empty());
   EXPECT_TRUE(merged.applied_plan->splits.empty());
+  EXPECT_EQ(0u, merged.applied_plan->stats.imported_workspace_count);
+  EXPECT_EQ(0u, merged.applied_plan->stats.imported_folder_count);
+  EXPECT_EQ(0u, merged.applied_plan->stats.imported_page_count);
+  EXPECT_EQ(0u, merged.applied_plan->stats.deduplicated_split_count);
 }
 
 TEST(ArcImportTransactionTest, MergeTargetsExistingWorkspaceWithoutOverwrite) {
@@ -168,6 +185,98 @@ TEST(ArcImportTransactionTest, MergeTargetsExistingWorkspaceWithoutOverwrite) {
     EXPECT_EQ(existing_workspace_id,
               merged.merged_tree->nodes[index].workspace_id);
   }
+}
+
+TEST(ArcImportTransactionTest,
+     MergeNoOpRetainsRemappedRuntimeSplitAndDeduplicationReceipt) {
+  const tab_tree::TabTreeSnapshot current = ExistingTree(u"Arc");
+  const base::Uuid target_workspace_id = current.workspaces.front().id;
+  const ArcImportPlan plan = ImportPlan(u"Arc");
+  const ArcImportMergeResult first =
+      MergeArcImportPlan(current, plan, ArcConflictResolution::kMerge);
+  ASSERT_EQ(ArcImportStatus::kOk, first.status);
+  ASSERT_TRUE(first.merged_tree.has_value());
+
+  const ArcImportMergeResult replay = MergeArcImportPlan(
+      *first.merged_tree, plan, ArcConflictResolution::kMerge);
+
+  ASSERT_EQ(ArcImportStatus::kNoChanges, replay.status);
+  ASSERT_TRUE(replay.merged_tree.has_value());
+  ASSERT_TRUE(replay.applied_plan.has_value());
+  EXPECT_EQ(*first.merged_tree, *replay.merged_tree);
+  EXPECT_FALSE(replay.changed);
+  ASSERT_EQ(1u, replay.applied_plan->tree.workspaces.size());
+  EXPECT_EQ(target_workspace_id,
+            replay.applied_plan->tree.workspaces.front().id);
+  ASSERT_EQ(3u, replay.applied_plan->tree.nodes.size());
+  for (const tab_tree::TreeNode& node : replay.applied_plan->tree.nodes) {
+    EXPECT_EQ(target_workspace_id, node.workspace_id);
+  }
+  ASSERT_EQ(1u, replay.applied_plan->splits.size());
+  EXPECT_EQ(1u, replay.applied_plan->stats.deduplicated_workspace_count);
+  EXPECT_EQ(3u, replay.applied_plan->stats.deduplicated_item_count);
+  EXPECT_EQ(1u, replay.applied_plan->stats.deduplicated_split_count);
+}
+
+TEST(ArcImportTransactionTest,
+     PartialIdempotentSplitKeepsCompleteRuntimeStructure) {
+  const ArcImportPlan plan = ImportPlan();
+  tab_tree::TabTreeSnapshot current;
+  current.workspaces.push_back(plan.tree.workspaces.front());
+  current.nodes.push_back(plan.tree.nodes[0]);
+  current.nodes.push_back(plan.tree.nodes[1]);
+
+  const ArcImportMergeResult merged =
+      MergeArcImportPlan(current, plan, ArcConflictResolution::kRename);
+
+  ASSERT_EQ(ArcImportStatus::kOk, merged.status);
+  ASSERT_TRUE(merged.merged_tree.has_value());
+  ASSERT_TRUE(merged.applied_plan.has_value());
+  EXPECT_EQ(3u, merged.merged_tree->nodes.size());
+  EXPECT_EQ(1u, merged.applied_plan->tree.workspaces.size());
+  EXPECT_EQ(3u, merged.applied_plan->tree.nodes.size());
+  EXPECT_EQ(1u, merged.applied_plan->splits.size());
+  EXPECT_EQ(0u, merged.applied_plan->stats.imported_workspace_count);
+  EXPECT_EQ(0u, merged.applied_plan->stats.imported_folder_count);
+  EXPECT_EQ(1u, merged.applied_plan->stats.imported_page_count);
+  EXPECT_EQ(1u, merged.applied_plan->stats.imported_split_count);
+  EXPECT_EQ(1u, merged.applied_plan->stats.deduplicated_workspace_count);
+  EXPECT_EQ(2u, merged.applied_plan->stats.deduplicated_item_count);
+  EXPECT_EQ(0u, merged.applied_plan->stats.deduplicated_split_count);
+  for (const tab_tree::TreeNode& node : merged.applied_plan->tree.nodes) {
+    EXPECT_EQ(plan.tree.workspaces.front().id, node.workspace_id);
+  }
+}
+
+TEST(ArcImportTransactionTest,
+     PartialSplitMergedIntoExistingWorkspaceUsesRemappedRuntimeNodes) {
+  const ArcImportPlan plan = ImportPlan(u"Arc");
+  const ArcImportMergeResult complete = MergeArcImportPlan(
+      ExistingTree(u"Arc"), plan, ArcConflictResolution::kMerge);
+  ASSERT_EQ(ArcImportStatus::kOk, complete.status);
+  ASSERT_TRUE(complete.merged_tree.has_value());
+  tab_tree::TabTreeSnapshot partial = *complete.merged_tree;
+  const base::Uuid missing_id = plan.tree.nodes.back().id;
+  std::erase_if(partial.nodes, [&](const tab_tree::TreeNode& node) {
+    return node.id == missing_id;
+  });
+
+  const ArcImportMergeResult merged =
+      MergeArcImportPlan(partial, plan, ArcConflictResolution::kMerge);
+
+  ASSERT_EQ(ArcImportStatus::kOk, merged.status);
+  ASSERT_TRUE(merged.applied_plan.has_value());
+  ASSERT_EQ(1u, merged.applied_plan->tree.workspaces.size());
+  ASSERT_EQ(3u, merged.applied_plan->tree.nodes.size());
+  const base::Uuid target_workspace_id = partial.workspaces.front().id;
+  EXPECT_EQ(target_workspace_id,
+            merged.applied_plan->tree.workspaces.front().id);
+  for (const tab_tree::TreeNode& node : merged.applied_plan->tree.nodes) {
+    EXPECT_EQ(target_workspace_id, node.workspace_id);
+  }
+  EXPECT_EQ(1u, merged.applied_plan->stats.imported_page_count);
+  EXPECT_EQ(2u, merged.applied_plan->stats.deduplicated_item_count);
+  EXPECT_EQ(1u, merged.applied_plan->stats.imported_split_count);
 }
 
 TEST(ArcImportTransactionTest, IdentityConflictReturnsNoReplacementSnapshot) {

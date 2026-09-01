@@ -14,6 +14,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_window.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/grit/generated_resources.h"
@@ -47,6 +48,30 @@ std::unique_ptr<views::Label> MakeBodyLabel(int string_id) {
 std::u16string MetadataText(int label_id, std::string_view value) {
   return base::StrCat(
       {l10n_util::GetStringUTF16(label_id), u": ", base::UTF8ToUTF16(value)});
+}
+
+std::u16string InventoryStateText(const UboExtensionState& state) {
+  if (!state.installed) {
+    return l10n_util::GetStringUTF16(IDS_AHOI_UBO_INVENTORY_NOT_INSTALLED);
+  }
+  return base::StrCat(
+      {l10n_util::GetStringUTF16(IDS_AHOI_UBO_INVENTORY_INSTALLED), u" ",
+       base::UTF8ToUTF16(state.version), u", ",
+       l10n_util::GetStringUTF16(state.enabled
+                                     ? IDS_AHOI_UBO_INVENTORY_ENABLED
+                                     : IDS_AHOI_UBO_INVENTORY_DISABLED),
+       u", ",
+       l10n_util::GetStringUTF16(state.ready
+                                     ? IDS_AHOI_UBO_INVENTORY_READY
+                                     : IDS_AHOI_UBO_INVENTORY_NOT_READY)});
+}
+
+std::u16string InventoryText(int label_id,
+                             std::string_view extension_id,
+                             const UboExtensionState& state) {
+  return base::StrCat({l10n_util::GetStringUTF16(label_id), u": ",
+                       base::UTF8ToUTF16(extension_id), u" — ",
+                       InventoryStateText(state)});
 }
 
 }  // namespace
@@ -97,6 +122,28 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
     label->SetSelectable(true);
   }
 
+  views::View* inventory =
+      contents->AddChildView(std::make_unique<views::View>());
+  auto* inventory_layout =
+      inventory->SetLayoutManager(std::make_unique<views::BoxLayout>());
+  inventory_layout->SetOrientation(views::BoxLayout::Orientation::kVertical);
+  inventory_layout->set_cross_axis_alignment(
+      views::BoxLayout::CrossAxisAlignment::kStretch);
+  inventory_layout->set_between_child_spacing(ui_tokens::kRelatedSpacing);
+  pinned_classic_inventory_ =
+      inventory->AddChildView(std::make_unique<views::Label>());
+  former_classic_inventory_ =
+      inventory->AddChildView(std::make_unique<views::Label>());
+  lite_inventory_ = inventory->AddChildView(std::make_unique<views::Label>());
+  for (views::Label* label :
+       {pinned_classic_inventory_.get(), former_classic_inventory_.get(),
+        lite_inventory_.get()}) {
+    label->SetSubpixelRenderingEnabled(false);
+    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    label->SetMultiLine(true);
+    label->SetSelectable(true);
+  }
+
   contents->AddChildView(MakeBodyLabel(IDS_AHOI_UBO_SECURITY_NOTICE));
   contents->AddChildView(MakeBodyLabel(IDS_AHOI_UBO_GPL_NOTICE));
   contents->AddChildView(MakeBodyLabel(IDS_AHOI_UBO_CONFIRM_NOTICE));
@@ -108,6 +155,11 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
 UboInstallDialog::~UboInstallDialog() {
   if (service_) {
     service_->RemoveObserver(this);
+    if (prompt_handoff_pending_) {
+      service_->ContinueInstallAfterDialogClosed();
+    } else {
+      service_->CancelUserInstall();
+    }
   }
 }
 
@@ -117,15 +169,34 @@ std::u16string UboInstallDialog::GetWindowTitle() const {
 
 bool UboInstallDialog::Accept() {
   switch (action_) {
-    case UboDialogAction::kCheck:
-      service_->CheckForCatalog(UboCheckReason::kManual);
+    case UboDialogAction::kBeginPinnedInstall: {
+      content::WebContents* prompt_host =
+          browser_->tab_strip_model()->GetActiveWebContents();
+      if (!prompt_host) {
+        // Ahoi intentionally supports a real zero-tab window. Seed only the
+        // normal Chromium prompt host in response to this explicit install
+        // gesture; the extension still requires its permission confirmation.
+        prompt_host = chrome::AddAndReturnTabAt(browser_, GURL(), -1, true);
+      }
+      service_->BeginPinnedBootstrapInstall(
+          prompt_host, /*wait_for_install_dialog_close=*/true);
       return false;
-    case UboDialogAction::kDownload:
+    }
+    case UboDialogAction::kDownloadUpdate:
       service_->PreparePackage();
       return false;
-    case UboDialogAction::kInstall:
-      service_->InstallPreparedPackage(
-          browser_->tab_strip_model()->GetActiveWebContents());
+    case UboDialogAction::kInstallPreparedUpdate: {
+      content::WebContents* prompt_host =
+          browser_->tab_strip_model()->GetActiveWebContents();
+      if (!prompt_host) {
+        prompt_host = chrome::AddAndReturnTabAt(browser_, GURL(), -1, true);
+      }
+      service_->InstallPreparedPackage(prompt_host,
+                                       /*wait_for_install_dialog_close=*/true);
+      return false;
+    }
+    case UboDialogAction::kRemoveLite:
+      service_->RequestRemoveUboLite();
       return false;
     case UboDialogAction::kClose:
       return true;
@@ -134,9 +205,28 @@ bool UboInstallDialog::Accept() {
   }
 }
 
+bool UboInstallDialog::Cancel() {
+  // Widget::Close() is used to detach this sheet before the browser-owned
+  // permission prompt is created. Even if a platform maps that close through
+  // the dialog cancel path, the accepted handoff must remain committed.
+  if (!prompt_handoff_pending_) {
+    service_->CancelUserInstall();
+  }
+  return true;
+}
+
 void UboInstallDialog::OnUboServiceStatusChanged(
     const UboServiceStatus& status) {
   Update(status);
+  if (status.prompt_handoff_pending && !prompt_handoff_pending_) {
+    prompt_handoff_pending_ = true;
+    if (GetWidget()) {
+      // The Chromium permission prompt is another window-modal surface. Close
+      // this sheet first; its destructor posts the actual installer handoff
+      // only after the native sheet has detached from the browser window.
+      GetWidget()->Close();
+    }
+  }
 }
 
 void UboInstallDialog::Update(const UboServiceStatus& status) {
@@ -144,12 +234,9 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
   const bool pinned_official_release =
       status.catalog && IsPinnedUboBootstrapCatalogEntry(*status.catalog);
   action_ = presentation.action;
-  if (status.pinned_bootstrap_available &&
-      status.state == UboServiceState::kIdle) {
-    status_label_->SetText(
-        l10n_util::GetStringUTF16(IDS_AHOI_UBO_PINNED_BOOTSTRAP_IDLE));
-  } else if (pinned_official_release &&
-             status.state == UboServiceState::kCatalogReady) {
+  if (pinned_official_release &&
+      status.state == UboServiceState::kCatalogReady &&
+      !status.one_click_install_in_progress) {
     status_label_->SetText(
         l10n_util::GetStringUTF16(IDS_AHOI_UBO_PINNED_BOOTSTRAP_READY));
   } else {
@@ -182,6 +269,15 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
     license_->SetText(
         MetadataText(IDS_AHOI_UBO_LICENSE_LABEL, status.catalog->license));
   }
+  pinned_classic_inventory_->SetText(
+      InventoryText(IDS_AHOI_UBO_INVENTORY_PINNED_CLASSIC,
+                    kUboClassicExtensionId, status.inventory.classic));
+  former_classic_inventory_->SetText(
+      InventoryText(IDS_AHOI_UBO_INVENTORY_FORMER_CLASSIC,
+                    kUboFormerClassicWebStoreExtensionId,
+                    status.inventory.former_classic_web_store));
+  lite_inventory_->SetText(InventoryText(
+      IDS_AHOI_UBO_INVENTORY_LITE, kUboLiteExtensionId, status.inventory.lite));
   if (GetWidget()) {
     GetWidget()->SetSize(GetWidget()->non_client_view()->GetPreferredSize());
   }

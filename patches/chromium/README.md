@@ -595,6 +595,97 @@ as a second active patch stack.
 - **Removal/upstream plan:** fold into the navigation non-overlap patch after
   runtime acceptance, or rebase onto an upstream presentation-progress API.
 
+## `0024-ahoi-sidebar-settled-viewport-refresh.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the sidebar
+  presentation-geometry correction.
+- **Affected paths:** Chromium's vertical sidebar region implementation and
+  header; the Ahoi-owned refresh endpoint remains in the tracked overlay.
+- **Rationale:** the sidebar reveal is compositor-driven, so its final frame
+  can restore pixels without changing descendant bounds. A single pending
+  refresh is consumed only by the final visible layout pass, allowing the
+  virtualized saved tree to reconcile changes made while hidden.
+- **Rejected alternatives:** polling timers, retaining a permanently eager
+  tree, forcing layout from the animation callback, or rematerializing while
+  Views is traversing visible-bounds observers.
+- **Tests:** reproduce hide/mutate/reveal on the exact installed candidate
+  first, followed by the focused transient-empty-viewport unit and production
+  host browser regression.
+- **Security/privacy impact:** none; the callback only reconciles already
+  profile-scoped sidebar model rows after presentation settles.
+- **Expected rebase risk:** low-to-medium because Chromium owns vertical-tab
+  animation and layout sequencing.
+- **Removal/upstream plan:** fold into the presentation-geometry patch after
+  runtime acceptance, or remove when upstream publishes a settled-visibility
+  lifecycle hook to descendants.
+
+## `0025-ahoi-import-source-truth.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the settled
+  sidebar viewport refresh.
+- **Affected paths:** Chromium's macOS importer registry and metadata bridge,
+  the standard Settings import dialog, localized resources, and focused Arc
+  and Zen WebUI tests.
+- **Rationale:** Arc and Zen must be rendered only from authenticated backend
+  discovery. The dialog receives global not-installed, no-safe-profile,
+  source-running and available states; Arc no longer has a frontend-created
+  phantom row; and Zen exposes its bounded structure capability, rejection
+  reason and validated upstream revision without advertising unsupported
+  structure import.
+- **Rejected alternatives:** inferring installation from support directories,
+  synthesizing source options in the renderer, treating file names as verified
+  structure support, or collapsing safety failures into a successful empty
+  preview.
+- **Tests:** installed-browser source-state, Arc preview/commit/no-op and Zen
+  capability journeys first; then the focused discovery, transaction,
+  recovery, backup-retention and WebUI sources carried by the overlay and this
+  patch.
+- **Security/privacy impact:** application bundles and source files are
+  authenticated before they influence availability; running sources and
+  changing snapshots fail closed; backup retention deletes only fully
+  revalidated Ahoi-owned payloads and protects the active prepared journal.
+- **Expected rebase risk:** medium because Chromium's importer registry,
+  Polymer dialog contract and generated localization catalogs are
+  milestone-sensitive.
+- **Removal/upstream plan:** keep the metadata bridge while Chromium has no
+  authenticated custom-source provider; retire individual fields if upstream
+  gains equivalent discovery and capability contracts.
+
+## `0026-ahoi-extension-accelerator-compatibility.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the import
+  source-truth patch.
+- **Affected paths:** the macOS Ahoi shortcut registrations in Chromium's
+  `BrowserView::LoadAccelerators()` focus-manager block.
+- **Rationale:** Chromium extension commands intentionally own the sole
+  high-priority handler for a matching accelerator. Ahoi's additional
+  browser-local shortcuts are normal-priority fallthrough handlers, so an
+  enabled extension can override them and Ahoi resumes automatically after
+  the extension unregisters. This prevents the duplicate-high-priority DCHECK
+  observed during two normal AnyChat Web Store installation attempts, whose
+  `toggle-sidebar` command uses `Command+Shift+S`.
+- **Rejected alternatives:** an AnyChat-specific installer or exception,
+  remapping only `Command+Shift+S`, demoting extension commands, weakening
+  Chromium's single-priority invariant, or lifecycle-specific unregister
+  workarounds.
+- **Tests:** install AnyChat through the normal Chrome Web Store path on the
+  exact installed candidate, covering cancellation, accepted permission,
+  action and Side Panel use, disable/enable and restart without a crash;
+  afterward run the repository priority assertion and focused extension and
+  accelerator checks.
+- **Security/privacy impact:** none; Chromium continues to own extension
+  installation, permissions and command registration. No permission bypass,
+  unpacked-extension path or Ahoi-managed AnyChat distribution is added.
+- **Expected rebase risk:** low because the change is confined to Ahoi-added
+  registrations, although the surrounding BrowserView accelerator setup is
+  milestone-sensitive.
+- **Removal/upstream plan:** fold the priority constant into the base Ahoi seam
+  after runtime acceptance, or remove only if Ahoi shortcuts move to an
+  upstream conflict-aware registration facility.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

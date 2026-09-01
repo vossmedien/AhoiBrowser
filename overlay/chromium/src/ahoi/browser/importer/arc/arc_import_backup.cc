@@ -9,7 +9,10 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cstdint>
+#include <limits>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
@@ -17,15 +20,21 @@
 #include <vector>
 
 #include "ahoi/browser/importer/arc/arc_import_discovery.h"
+#include "ahoi/browser/importer/arc/arc_import_journal.h"
 #include "ahoi/browser/session/session_bridge.h"
+#include "base/containers/span.h"
 #include "base/files/file.h"
+#include "base/files/file_enumerator.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_file.h"
+#include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/posix/eintr_wrapper.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
+#include "base/system/sys_info.h"
+#include "base/time/time.h"
 #include "base/uuid.h"
 #include "base/values.h"
 #include "crypto/hash.h"
@@ -35,6 +44,8 @@ namespace ahoi::importer::arc {
 namespace {
 
 constexpr int kBackupManifestVersion = 1;
+constexpr int64_t kMaxManifestBytes = 1024 * 1024;
+constexpr size_t kMaxManifestFiles = kMaxBrowserProfileCount * 10 + 4;
 constexpr base::FilePath::CharType kAhoiDirectory[] = FILE_PATH_LITERAL("Ahoi");
 constexpr base::FilePath::CharType kBackupRootDirectory[] =
     FILE_PATH_LITERAL("Arc Import Backups");
@@ -90,6 +101,13 @@ bool IsSafeManifestSourcePath(std::string_view value) {
   return !value.empty() && !path.IsAbsolute() && !path.ReferencesParent() &&
          (base::StartsWith(value, "Arc/") ||
           base::StartsWith(value, "AhoiProfile/"));
+}
+
+bool IsSafeBackupName(std::string_view value) {
+  const base::FilePath path = base::FilePath::FromUTF8Unsafe(value);
+  return !value.empty() && value.size() <= 160 && !path.IsAbsolute() &&
+         !path.ReferencesParent() && path.BaseName() == path &&
+         (base::StartsWith(value, "Arc-") || base::StartsWith(value, "Ahoi-"));
 }
 
 bool BackupFileStatesMatch(const BackupFileState& left,
@@ -149,6 +167,43 @@ bool HashOpenedRegularFile(base::File* file, BackupFileState* state) {
 bool HashRegularFile(const base::FilePath& path, BackupFileState* state) {
   base::File file = OpenSafeRegularFile(path);
   return HashOpenedRegularFile(&file, state);
+}
+
+bool IsOwnerOnlyOpenedRegularFile(base::File* file) {
+  struct stat state;
+  return file && file->IsValid() &&
+         fstat(file->GetPlatformFile(), &state) == 0 &&
+         S_ISREG(state.st_mode) && state.st_nlink == 1 &&
+         state.st_uid == getuid() && (state.st_mode & 0077) == 0;
+}
+
+bool ReadStableOwnerOnlyFile(base::File* file,
+                             int64_t max_bytes,
+                             std::string* contents) {
+  if (!contents || max_bytes < 0 || !IsOwnerOnlyOpenedRegularFile(file)) {
+    return false;
+  }
+  BackupFileState state_before;
+  if (!HashOpenedRegularFile(file, &state_before) ||
+      state_before.size > max_bytes) {
+    return false;
+  }
+  contents->resize(static_cast<size_t>(state_before.size));
+  if (!file->ReadAndCheck(0, base::as_writable_byte_span(*contents))) {
+    return false;
+  }
+  BackupFileState state_after;
+  return HashOpenedRegularFile(file, &state_after) &&
+         BackupFileStatesMatch(state_before, state_after) &&
+         IsOwnerOnlyOpenedRegularFile(file);
+}
+
+bool IsPathMissingNoFollow(const base::FilePath& path) {
+  struct stat state;
+  if (lstat(path.value().c_str(), &state) == 0) {
+    return false;
+  }
+  return errno == ENOENT;
 }
 
 bool FsyncDirectory(const base::FilePath& path) {
@@ -276,7 +331,247 @@ void AddDatabaseSpecs(std::vector<BackupFileSpec>* specs,
                     destination_name + FILE_PATH_LITERAL("-shm"), false});
 }
 
+bool IsSafeBackupIdentifier(std::string_view value) {
+  if (value.size() != 49 || value[12] != '-') {
+    return false;
+  }
+  for (size_t index = 0; index < 12; ++index) {
+    if (!base::IsAsciiDigit(value[index]) &&
+        !(value[index] >= 'a' && value[index] <= 'f')) {
+      return false;
+    }
+  }
+  const base::Uuid uuid = base::Uuid::ParseLowercase(value.substr(13));
+  return uuid.is_valid() && uuid.AsLowercaseString() == value.substr(13);
+}
+
+bool IsOwnerOnlyDirectory(const base::FilePath& path) {
+  struct stat state;
+  return lstat(path.value().c_str(), &state) == 0 && S_ISDIR(state.st_mode) &&
+         !S_ISLNK(state.st_mode) && state.st_uid == getuid() &&
+         (state.st_mode & 0077) == 0;
+}
+
+bool IsValidatedBackupDirectory(const base::FilePath& path) {
+  if (!IsSafeBackupIdentifier(path.BaseName().MaybeAsASCII()) ||
+      !IsOwnerOnlyDirectory(path)) {
+    return false;
+  }
+  const std::string identifier = path.BaseName().MaybeAsASCII();
+  const base::FilePath manifest = path.Append(kManifestFilename);
+  base::File manifest_file = OpenSafeRegularFile(manifest);
+  std::string manifest_json;
+  if (!ReadStableOwnerOnlyFile(&manifest_file, kMaxManifestBytes,
+                               &manifest_json)) {
+    return false;
+  }
+  const std::optional<base::Value> parsed =
+      base::JSONReader::Read(manifest_json, base::JSON_PARSE_RFC);
+  const base::DictValue* manifest_dict =
+      parsed.has_value() ? parsed->GetIfDict() : nullptr;
+  const std::optional<int> version =
+      manifest_dict ? manifest_dict->FindInt("version") : std::nullopt;
+  const std::string* manifest_identifier =
+      manifest_dict ? manifest_dict->FindString("backup_identifier") : nullptr;
+  const std::string* snapshot_hash =
+      manifest_dict ? manifest_dict->FindString("snapshot_sha256") : nullptr;
+  const base::ListValue* files =
+      manifest_dict ? manifest_dict->FindList("files") : nullptr;
+  if (!manifest_dict || manifest_dict->size() != 4u || !version.has_value() ||
+      *version != kBackupManifestVersion || !manifest_identifier ||
+      *manifest_identifier != identifier || !snapshot_hash ||
+      !IsLowerSha256(*snapshot_hash) || !files || files->empty() ||
+      files->size() > kMaxManifestFiles) {
+    return false;
+  }
+
+  std::set<std::string> expected_entries = {"manifest.json"};
+  std::set<std::string> backup_names;
+  std::set<std::string> roles;
+  std::set<std::string> source_paths;
+  bool has_sidebar = false;
+  bool has_ahoi_tree = false;
+  for (const base::Value& value : *files) {
+    const base::DictValue* entry = value.GetIfDict();
+    const std::string* role = entry ? entry->FindString("role") : nullptr;
+    const std::string* source_path =
+        entry ? entry->FindString("source_path") : nullptr;
+    const std::string* backup_name =
+        entry ? entry->FindString("backup_name") : nullptr;
+    const std::optional<bool> present =
+        entry ? entry->FindBool("present") : std::nullopt;
+    if (!entry || !role || role->empty() || role->size() > 160 ||
+        !roles.insert(*role).second || !source_path ||
+        source_path->size() > 1024 || !IsSafeManifestSourcePath(*source_path) ||
+        !source_paths.insert(*source_path).second || !backup_name ||
+        !IsSafeBackupName(*backup_name) ||
+        !backup_names.insert(*backup_name).second || !present.has_value() ||
+        entry->size() != (*present ? 7u : 4u)) {
+      return false;
+    }
+    const base::FilePath payload = path.AppendASCII(*backup_name);
+    if (*present) {
+      const std::string* bytes = entry->FindString("bytes");
+      const std::string* modified_unix_ms =
+          entry->FindString("modified_unix_ms");
+      const std::string* sha256 = entry->FindString("sha256");
+      int64_t parsed_bytes = -1;
+      int64_t parsed_modified_unix_ms = 0;
+      if (!bytes || !base::StringToInt64(*bytes, &parsed_bytes) ||
+          parsed_bytes < 0 || !modified_unix_ms ||
+          !base::StringToInt64(*modified_unix_ms, &parsed_modified_unix_ms) ||
+          !sha256 || !IsLowerSha256(*sha256) ||
+          !expected_entries.insert(*backup_name).second) {
+        return false;
+      }
+      base::File payload_file = OpenSafeRegularFile(payload);
+      BackupFileState payload_state;
+      if (!IsOwnerOnlyOpenedRegularFile(&payload_file) ||
+          !HashOpenedRegularFile(&payload_file, &payload_state) ||
+          !IsOwnerOnlyOpenedRegularFile(&payload_file) ||
+          payload_state.size != parsed_bytes ||
+          payload_state.sha256 != *sha256) {
+        return false;
+      }
+    } else if (!IsPathMissingNoFollow(payload)) {
+      return false;
+    }
+    if (*role == "arc_sidebar") {
+      has_sidebar = *present && *source_path == "Arc/StorableSidebar.json" &&
+                    *backup_name == "Arc-StorableSidebar.json";
+    } else if (*role == "ahoi_tab_tree") {
+      has_ahoi_tree = *present && *source_path == "AhoiProfile/Ahoi Tab Tree" &&
+                      *backup_name == "Ahoi-Tab-Tree.sqlite";
+    }
+  }
+  if (!has_sidebar || !has_ahoi_tree) {
+    return false;
+  }
+
+  base::FileEnumerator entries(
+      path, true,
+      base::FileEnumerator::FILES | base::FileEnumerator::DIRECTORIES |
+          base::FileEnumerator::SHOW_SYM_LINKS,
+      base::FilePath::StringType(),
+      base::FileEnumerator::FolderSearchPolicy::ALL,
+      base::FileEnumerator::ErrorPolicy::STOP_ENUMERATION);
+  size_t entry_count = 0;
+  for (base::FilePath entry = entries.Next(); !entry.empty();
+       entry = entries.Next()) {
+    if (++entry_count > 512) {
+      return false;
+    }
+    struct stat state;
+    if (lstat(entry.value().c_str(), &state) != 0 || S_ISLNK(state.st_mode) ||
+        state.st_uid != getuid() || (state.st_mode & 0077) != 0 ||
+        (!S_ISREG(state.st_mode) && !S_ISDIR(state.st_mode)) ||
+        (S_ISREG(state.st_mode) && state.st_nlink != 1)) {
+      return false;
+    }
+    if (S_ISDIR(state.st_mode) ||
+        !expected_entries.erase(entry.BaseName().AsUTF8Unsafe())) {
+      return false;
+    }
+  }
+  return entries.GetError() == base::File::FILE_OK && expected_entries.empty();
+}
+
 }  // namespace
+
+namespace internal {
+
+ArcImportStatus CheckArcImportBackupResources(
+    const std::vector<int64_t>& present_file_sizes,
+    int64_t free_disk_bytes,
+    const ArcImportBackupLimits& limits,
+    uint64_t* total_bytes) {
+  if (!total_bytes || limits.max_file_count == 0 ||
+      limits.minimum_free_headroom_bytes < 0 || free_disk_bytes < 0 ||
+      present_file_sizes.size() > limits.max_file_count) {
+    return ArcImportStatus::kBackupQuotaExceeded;
+  }
+  uint64_t total = 0;
+  for (int64_t size : present_file_sizes) {
+    if (size < 0 || static_cast<uint64_t>(size) > limits.max_total_bytes ||
+        total > limits.max_total_bytes - static_cast<uint64_t>(size)) {
+      return ArcImportStatus::kBackupQuotaExceeded;
+    }
+    total += static_cast<uint64_t>(size);
+  }
+  *total_bytes = total;
+  const uint64_t headroom =
+      static_cast<uint64_t>(limits.minimum_free_headroom_bytes);
+  if (total > std::numeric_limits<uint64_t>::max() - headroom ||
+      static_cast<uint64_t>(free_disk_bytes) < total + headroom) {
+    return ArcImportStatus::kInsufficientDiskSpace;
+  }
+  return ArcImportStatus::kOk;
+}
+
+bool PruneArcImportBackupsForTesting(
+    const base::FilePath& backup_root,
+    const std::set<std::string>& protected_identifiers,
+    size_t max_retained_backups) {
+  if (!IsOwnerOnlyDirectory(backup_root)) {
+    return false;
+  }
+  struct Candidate {
+    base::FilePath path;
+    std::string identifier;
+    base::Time modified;
+  };
+  std::vector<Candidate> candidates;
+  base::FileEnumerator directories(
+      backup_root, false,
+      base::FileEnumerator::DIRECTORIES | base::FileEnumerator::SHOW_SYM_LINKS,
+      base::FilePath::StringType(),
+      base::FileEnumerator::FolderSearchPolicy::ALL,
+      base::FileEnumerator::ErrorPolicy::STOP_ENUMERATION);
+  for (base::FilePath path = directories.Next(); !path.empty();
+       path = directories.Next()) {
+    if (!IsValidatedBackupDirectory(path)) {
+      continue;
+    }
+    base::File::Info info;
+    if (!base::GetFileInfo(path, &info)) {
+      return false;
+    }
+    candidates.push_back(
+        {path, path.BaseName().MaybeAsASCII(), info.last_modified});
+  }
+  if (directories.GetError() != base::File::FILE_OK) {
+    return false;
+  }
+  std::ranges::sort(candidates,
+                    [](const Candidate& left, const Candidate& right) {
+                      if (left.modified != right.modified) {
+                        return left.modified > right.modified;
+                      }
+                      return left.identifier > right.identifier;
+                    });
+  size_t retained =
+      std::ranges::count_if(candidates, [&](const Candidate& candidate) {
+        return protected_identifiers.contains(candidate.identifier);
+      });
+  for (const Candidate& candidate : candidates) {
+    if (protected_identifiers.contains(candidate.identifier)) {
+      continue;
+    }
+    if (retained < max_retained_backups) {
+      ++retained;
+      continue;
+    }
+    // Revalidate immediately before deletion. A backup that changed after the
+    // initial bounded enumeration is no longer importer-owned deletion input.
+    if (!IsValidatedBackupDirectory(candidate.path) ||
+        !base::DeletePathRecursively(candidate.path)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+}  // namespace internal
 
 ArcImportBackupResult CreateArcImportBackup(
     const base::FilePath& ahoi_profile_path,
@@ -316,11 +611,6 @@ ArcImportBackupResult CreateArcImportBackup(
       base::Uuid::GenerateRandomV4().AsLowercaseString();
   const base::FilePath backup_directory =
       backup_root.AppendASCII(directory_name);
-  if (base::PathExists(backup_directory) ||
-      !base::CreateDirectory(backup_directory) ||
-      !base::SetPosixFilePermissions(backup_directory, 0700)) {
-    return result;
-  }
 
   std::vector<BackupFileSpec> specs = {
       {"arc_sidebar", arc_source.sidebar_file, "Arc/StorableSidebar.json",
@@ -384,6 +674,58 @@ ArcImportBackupResult CreateArcImportBackup(
       break;
     }
   }
+  if (!source_generation_captured) {
+    result.status = source_changed ? ArcImportStatus::kSourceChanged
+                                   : ArcImportStatus::kBackupError;
+    return result;
+  }
+
+  std::vector<int64_t> present_file_sizes;
+  present_file_sizes.reserve(source_states.size());
+  for (const BackupFileState& state : source_states) {
+    if (state.present) {
+      present_file_sizes.push_back(state.size);
+    }
+  }
+  constexpr ArcImportBackupLimits limits;
+  static_assert(limits.max_retained_backups > 0);
+  const std::optional<int64_t> free_disk_bytes =
+      base::SysInfo::AmountOfFreeDiskSpace(ahoi_profile_path);
+  uint64_t total_bytes = 0;
+  if (!free_disk_bytes) {
+    result.status = ArcImportStatus::kInsufficientDiskSpace;
+    return result;
+  }
+  result.status = internal::CheckArcImportBackupResources(
+      present_file_sizes, *free_disk_bytes, limits, &total_bytes);
+  if (result.status != ArcImportStatus::kOk) {
+    return result;
+  }
+
+  const ArcImportJournalReadResult journal =
+      ReadArcImportJournal(ahoi_profile_path);
+  if (journal.status != ArcImportStatus::kOk) {
+    result.status = ArcImportStatus::kBackupError;
+    return result;
+  }
+  std::set<std::string> protected_backups;
+  if (journal.state == ArcImportJournalState::kPrepared &&
+      (!journal.prepared || journal.prepared->backup_identifier.empty())) {
+    result.status = ArcImportStatus::kBackupError;
+    return result;
+  }
+  if (journal.state == ArcImportJournalState::kPrepared) {
+    protected_backups.insert(journal.prepared->backup_identifier);
+  }
+  const size_t retained_before_creation = limits.max_retained_backups - 1;
+  if (!internal::PruneArcImportBackupsForTesting(backup_root, protected_backups,
+                                                 retained_before_creation) ||
+      base::PathExists(backup_directory) ||
+      !base::CreateDirectory(backup_directory) ||
+      !base::SetPosixFilePermissions(backup_directory, 0700)) {
+    result.status = ArcImportStatus::kBackupError;
+    return result;
+  }
 
   base::ListValue manifest_files;
   bool success = source_generation_captured;
@@ -412,6 +754,7 @@ ArcImportBackupResult CreateArcImportBackup(
 
   base::DictValue manifest;
   manifest.Set("version", kBackupManifestVersion);
+  manifest.Set("backup_identifier", directory_name);
   manifest.Set("snapshot_sha256", expected_snapshot_token);
   manifest.Set("files", std::move(manifest_files));
   std::string json;

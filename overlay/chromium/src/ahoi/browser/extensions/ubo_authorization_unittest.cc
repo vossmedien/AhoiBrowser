@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 
+#include "ahoi/browser/extensions/ubo_migration_state.h"
 #include "base/base64.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/values.h"
@@ -24,8 +25,6 @@ namespace {
 
 constexpr char kPackageHash[] =
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-constexpr char kFormerUboClassicExtensionId[] =
-    "cjpalhdlnbpafiamejdnhcphjbkeiagm";
 constexpr char kPinnedCrxPublicKeyBase64[] =
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsgdkJHEX8xHAytYy3Rih"
     "qn5FoU/cbPKhoorkCCsgF8HR2y2OSWGM1Ojrmnr0ebgM9WA1pl1hr1CmOH7DjgQ"
@@ -121,6 +120,32 @@ TEST_F(UboAuthorizationTest, AllowsOnlyMatchingPendingThenCommittedMv2) {
   EXPECT_EQ("1.55.0", state->version.GetString());
 }
 
+TEST_F(UboAuthorizationTest, AuthorizationAndMigrationPrefsAreLocalOnly) {
+  EXPECT_EQ(0u, prefs_.registry()->GetRegistrationFlags(kUboAuthorizationPref));
+  EXPECT_EQ(0u, prefs_.registry()->GetRegistrationFlags(kUboMigrationPref));
+}
+
+TEST_F(UboAuthorizationTest,
+       MigrationCheckpointRoundTripsExactAuthorizationLocally) {
+  UboCatalogEntry entry = GetPinnedUboBootstrapCatalogEntry();
+  auto authorization =
+      BeginUboInstallAuthorization(&prefs_, entry, MakePackage(entry));
+  ASSERT_TRUE(authorization.has_value());
+  ASSERT_TRUE(
+      (*authorization)->Commit(*MakePinnedBootstrapExtension()).has_value());
+  std::optional<UboAuthorizationState> committed =
+      ReadCommittedUboAuthorization(prefs_);
+  ASSERT_TRUE(committed);
+
+  ASSERT_TRUE(WriteUboPersistedMigrationState(&prefs_, *committed,
+                                              "browser-process-a"));
+  std::optional<UboPersistedMigrationState> migration =
+      ReadUboPersistedMigrationState(prefs_);
+  ASSERT_TRUE(migration);
+  EXPECT_EQ("browser-process-a", migration->install_process_token);
+  EXPECT_TRUE(UboMigrationMatchesAuthorization(*migration, *committed));
+}
+
 TEST_F(UboAuthorizationTest, AllowsExactPinnedBootstrapWithNoGuessedUpdateUrl) {
   UboCatalogEntry entry = GetPinnedUboBootstrapCatalogEntry();
   scoped_refptr<const ::extensions::Extension> extension =
@@ -159,12 +184,12 @@ TEST_F(UboAuthorizationTest,
 
   base::DictValue former_identity = authorization_state();
   former_identity.Set("schema_version", 2);
-  former_identity.Set("extension_id", kFormerUboClassicExtensionId);
+  former_identity.Set("extension_id", kUboFormerClassicWebStoreExtensionId);
   prefs_.SetDict(kUboAuthorizationPref, std::move(former_identity));
   EXPECT_FALSE(ReadCommittedUboAuthorization(prefs_));
   EXPECT_FALSE(IsUboManifestV2ExtensionAllowed(
-      prefs_,
-      *MakeExtension(2, kFormerUboClassicExtensionId, kUboClassicVersion)));
+      prefs_, *MakeExtension(2, kUboFormerClassicWebStoreExtensionId,
+                             kUboClassicVersion)));
 }
 
 TEST_F(UboAuthorizationTest, RejectsModifiedBootstrapMetadata) {
@@ -188,6 +213,22 @@ TEST_F(UboAuthorizationTest, AbortedTransactionLeavesNoMv2Exception) {
     EXPECT_TRUE(IsUboManifestV2ExtensionAllowed(prefs_, *ubo));
   }
   EXPECT_FALSE(IsUboManifestV2ExtensionAllowed(prefs_, *ubo));
+}
+
+TEST_F(UboAuthorizationTest,
+       ProfileShutdownClearsPendingAddressWithoutCommitting) {
+  UboCatalogEntry entry = MakeEntry();
+  scoped_refptr<const ::extensions::Extension> ubo = MakeExtension();
+  auto authorization =
+      BeginUboInstallAuthorization(&prefs_, entry, MakePackage(entry));
+  ASSERT_TRUE(authorization.has_value());
+  ASSERT_TRUE(IsUboManifestV2ExtensionAllowed(prefs_, *ubo));
+
+  ClearPendingUboInstallAuthorization(&prefs_);
+
+  EXPECT_FALSE(IsUboManifestV2ExtensionAllowed(prefs_, *ubo));
+  EXPECT_FALSE((*authorization)->Commit(*ubo).has_value());
+  EXPECT_FALSE(ReadCommittedUboAuthorization(prefs_));
 }
 
 TEST_F(UboAuthorizationTest, RejectsForeignMv2ManipulatedKeyAndUpdateUrl) {

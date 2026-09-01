@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // clang-format off
+import {webUIListenerCallback} from 'chrome://resources/js/cr.js';
 import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {flush} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
 import type {BrowserProfile, ImportDataBrowserProxy, SettingsImportDataDialogElement} from 'chrome://settings/lazy_load.js';
@@ -76,6 +77,11 @@ suite('AhoiZenImportAvailability', () => {
       present: true,
       profileName: 'Personal',
       search: false,
+      structureCapability: available ? 'detectionOnly' : undefined,
+      structureDisabledReason: available ? 'unverifiedMozLz4' : undefined,
+      structureRevision: available ?
+          'e89bd7796e2dcecaf0c483a795225ed9ec549bbd' :
+          undefined,
     };
   }
 
@@ -144,14 +150,37 @@ suite('AhoiZenImportAvailability', () => {
     assertEquals(0, proxy.getCallCount('importFromBookmarksFile'));
   });
 
-  test('notInstalledZenDoesNotCreateAPhantomOption', async () => {
+  test('globalSourceStatesNeverCreatePhantomOptions', async () => {
     const {dialog} = await createDialog([
       firefoxProfile,
       {...bookmarksProfile, index: 1},
     ]);
+    webUIListenerCallback('ahoi-import-source-states-changed', {
+      arc: 'notInstalled',
+      zen: 'noSafeProfiles',
+    });
+    flush();
     const optionLabels = Array.from(dialog.$.browserSelect.options).map(
         option => option.textContent.trim());
     assertFalse(optionLabels.some(label => label.startsWith('Zen')));
+    assertFalse(optionLabels.some(label => label.startsWith('Arc')));
+    const sourceStatus = dialog.shadowRoot!.querySelector<HTMLElement>(
+        '#sourceDiscoveryStatus')!;
+    assertFalse(sourceStatus.hidden);
+    assertTrue(sourceStatus.textContent.includes(
+        loadTimeData.getString('ahoiArcImportNotInstalled')));
+    assertTrue(sourceStatus.textContent.includes(
+        loadTimeData.getString('ahoiZenImportNoSafeProfiles')));
+
+    webUIListenerCallback('ahoi-import-source-states-changed', {
+      arc: 'sourceRunning',
+      zen: 'available',
+    });
+    flush();
+    assertTrue(sourceStatus.textContent.includes(
+        loadTimeData.getString('ahoiArcImportCloseSource')));
+    assertFalse(sourceStatus.textContent.includes(
+        loadTimeData.getString('ahoiZenImportNotInstalled')));
   });
 
   test('availableZenUsesItsStableBackendIndexAndRealCategories', async () => {
@@ -165,6 +194,14 @@ suite('AhoiZenImportAvailability', () => {
 
     selectSource(dialog, 1);
     assertFalse(dialog.$.import.disabled);
+    const structureStatus = dialog.shadowRoot!.querySelector<HTMLElement>(
+        '#zenStructureStatus')!;
+    assertFalse(structureStatus.hidden);
+    assertTrue(structureStatus.textContent.includes(
+        loadTimeData.getString('ahoiZenImportStructureUnverifiedMozLz4')));
+    assertTrue(structureStatus.textContent.includes(loadTimeData.getStringF(
+        'ahoiZenImportStructureRevision',
+        'e89bd7796e2dcecaf0c483a795225ed9ec549bbd')));
     dialog.$.import.click();
     const [index, types] = await proxy.whenCalled('importData');
     assertEquals(1, index);

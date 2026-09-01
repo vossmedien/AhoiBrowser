@@ -140,6 +140,7 @@ class BrowserSidebarHostView final
   bool ToggleFloatingSidebar();
   bool ToggleSidebarVisibility();
   bool RestoreSidebar();
+  void OnSidebarPresentationSettled();
 
   BrowserSidebarSplitDropSource ResolveSplitDropSource(
       const drag::SidebarTabDragPayload& payload,

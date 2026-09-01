@@ -22,3 +22,6 @@
 0021-ahoi-zero-tab-extension-context-menu.patch
 0022-ahoi-zero-tab-split-command.patch
 0023-ahoi-sidebar-presentation-geometry.patch
+0024-ahoi-sidebar-settled-viewport-refresh.patch
+0025-ahoi-import-source-truth.patch
+0026-ahoi-extension-accelerator-compatibility.patch

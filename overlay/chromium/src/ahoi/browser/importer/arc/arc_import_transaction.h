@@ -19,6 +19,8 @@ enum class ArcConflictResolution {
 struct ArcImportMergeResult {
   ArcImportStatus status = ArcImportStatus::kTransactionFailed;
   std::optional<tab_tree::TabTreeSnapshot> merged_tree;
+  // Carries exact add/dedup statistics while retaining every remapped folder
+  // and member node required to reconstruct selected splits at runtime.
   std::optional<ArcImportPlan> applied_plan;
   size_t renamed_workspace_count = 0;
   size_t skipped_workspace_count = 0;

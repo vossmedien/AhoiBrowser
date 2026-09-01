@@ -71,6 +71,10 @@ const char* StatusName(ArcImportStatus status) {
       return "sourceInUse";
     case ArcImportStatus::kBackupError:
       return "backupError";
+    case ArcImportStatus::kInsufficientDiskSpace:
+      return "insufficientDiskSpace";
+    case ArcImportStatus::kBackupQuotaExceeded:
+      return "backupQuotaExceeded";
     case ArcImportStatus::kRecoveryRequired:
       return "recoveryRequired";
   }
@@ -104,6 +108,14 @@ base::DictValue StatsValue(const ArcImportStats& stats) {
   value.Set("unsafeUrls", static_cast<int>(stats.skipped_unsafe_url_count));
   value.Set("unsupportedItems",
             static_cast<int>(stats.skipped_unsupported_item_count));
+  value.Set("unreachableItems",
+            static_cast<int>(stats.ignored_unreachable_item_count));
+  value.Set("deduplicatedWorkspaces",
+            static_cast<int>(stats.deduplicated_workspace_count));
+  value.Set("deduplicatedItems",
+            static_cast<int>(stats.deduplicated_item_count));
+  value.Set("deduplicatedSplits",
+            static_cast<int>(stats.deduplicated_split_count));
   return value;
 }
 

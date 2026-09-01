@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "base/files/file_path.h"
+#include "base/functional/callback.h"
 
 namespace ahoi::importer::zen {
 
@@ -18,6 +19,7 @@ struct ZenApplicationState {
 
 enum class ZenImportAvailability {
   kNotInstalled,
+  kNoSafeProfiles,
   kSourceRunning,
   kAvailable,
 };
@@ -35,12 +37,25 @@ ZenApplicationState InspectDefaultZenApplication();
 
 namespace internal {
 
+using ZenBundleAuthenticationCallback =
+    base::RepeatingCallback<bool(const base::FilePath&)>;
+
 // Pure predicates and injected discovery used by focused false-positive tests.
 bool IsZenBundleExecutablePath(const base::FilePath& executable);
 bool IsSafeZenApplicationBundle(const base::FilePath& bundle_path);
 ZenApplicationState InspectZenApplicationAt(
     const std::vector<base::FilePath>& application_roots,
     const std::vector<base::FilePath>& running_executables);
+// Unsigned test bundles can inject only the code-signature result. Production
+// structure and Info.plist validation remain active, and this seam never
+// advertises a fixture as an installed application outside its explicit roots.
+bool IsZenBundleExecutablePathForTesting(
+    const base::FilePath& executable,
+    const ZenBundleAuthenticationCallback& bundle_authenticator);
+ZenApplicationState InspectZenApplicationAtForTesting(
+    const std::vector<base::FilePath>& application_roots,
+    const std::vector<base::FilePath>& running_executables,
+    ZenBundleAuthenticationCallback bundle_authenticator);
 
 }  // namespace internal
 

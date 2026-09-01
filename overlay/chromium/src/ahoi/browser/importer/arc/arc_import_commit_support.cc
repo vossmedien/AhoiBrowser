@@ -98,6 +98,9 @@ ArcImportPlan SelectArcImportCategories(const ArcImportPlan& plan,
                                         const ArcImportSelection& selection) {
   ArcImportPlan selected = plan;
   if (!selection.reconstruct_splits) {
+    for (const ArcSplitDescriptor& split : selected.splits) {
+      selected.degraded_split_folder_node_ids.push_back(split.folder_node_id);
+    }
     selected.stats.degraded_split_count += selected.stats.imported_split_count;
     selected.stats.imported_split_count = 0;
     selected.splits.clear();

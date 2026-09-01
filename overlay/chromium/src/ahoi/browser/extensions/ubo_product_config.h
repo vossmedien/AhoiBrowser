@@ -18,6 +18,10 @@ namespace ahoi::extensions {
 // product-security migration, not a release bump.
 inline constexpr char kUboClassicExtensionId[] =
     "fkgkibajhfbepljeaefdnfnegdcjomkh";
+inline constexpr char kUboFormerClassicWebStoreExtensionId[] =
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm";
+inline constexpr char kUboLiteExtensionId[] =
+    "ddkjiahejlhfcafbddmgiahcphecmpfh";
 inline constexpr char kUboClassicVersion[] = "1.74.0";
 inline constexpr uint64_t kUboClassicBootstrapSequence = 174000;
 inline constexpr char kUboClassicReleaseCommit[] =

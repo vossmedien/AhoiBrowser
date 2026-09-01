@@ -18,8 +18,8 @@ embedder exception is consulted only after a complete CRX has been verified and
 materialized as an `Extension` object. The exception accepts all of the
 following or nothing:
 
-- the compile-time `enable_ahoi_ubo_classic` gate, which defaults to false and
-  is enabled only by the local `ahoi-dev` dogfood profile;
+- the compile-time `enable_ahoi_ubo_classic` gate, enabled by default and in
+  the dev, full-dev, release, and full-release desktop profiles;
 - internal location, ordinary extension type, and manifest version 2;
 - fixed ID `fkgkibajhfbepljeaefdnfnegdcjomkh`;
 - exact authorized version, complete-CRX SHA-256, and CRX signing-public-key
@@ -119,7 +119,10 @@ off-the-record profiles. Requests use Chromium's browser-process
 `URLLoaderFactory` with credentials omitted, cache disabled, a 30-second
 timeout, a 64-KiB catalog limit, and a 32-MiB package limit. The CRX lives in a
 temporary file that is deleted after rejection, cancellation, shutdown, or
-installer hand-off.
+installer completion. The service owns a cancellable install operation until a
+terminal result; the operation observes profile destruction, uses weak
+callbacks into Chromium's installer, and retains source-file cleanup even when
+the installer produces no callback.
 
 The Extensions submenu opens a native, browser-modal surface. For the initial
 entry it visibly names **Official GitHub release** and shows the version, fixed
@@ -134,11 +137,13 @@ manual check -> browser-pinned entry -> explicit download
 
 Opening the dialog, checking, or downloading never installs or enables an
 extension. Installation is rejected unless requested from an active tab in the
-same regular profile. Chromium's standard permission prompt remains
-authoritative. Authorization is committed only after the installed extension
-matches the verified metadata. If the final state write fails after a fresh
-install, the normal Chromium uninstall path removes the new extension and
-waits for its file/site-data cleanup before reporting failure. A previously
+same regular profile. Once verification completes, the Ahoi sheet closes and
+detaches before a posted task creates Chromium's standard permission prompt;
+destruction of the sheet cannot cancel that accepted handoff. Chromium's prompt
+remains authoritative. Authorization is committed only after the installed
+extension matches the verified metadata. If the final state write fails after
+a fresh install, the normal Chromium uninstall path removes the new extension
+and waits for its file/site-data cleanup before reporting failure. A previously
 installed copy is never silently removed; its old authorization is restored
 when possible and it stays disabled if rollback cannot be completed safely.
 There is no preinstallation, silent update, automatic enablement, broad MV2
@@ -147,7 +152,7 @@ allowlist, or unpacked-install exception.
 ## Release verification procedure
 
 No uBlock source tree, CRX, private key, filter list, logo, or other third-party
-asset is copied into this repository. For the pinned dogfood artifact a release
+asset is copied into this repository. For the pinned artifact a release
 operator must retain an attestation containing:
 
 1. the exact Official GitHub release page, tag, full release commit, package

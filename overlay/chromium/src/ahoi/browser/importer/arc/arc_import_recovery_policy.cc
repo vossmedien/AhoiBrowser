@@ -17,6 +17,12 @@ ArcImportRecoveryDecision DecideArcImportPreparedRecovery(
     return decision;
   }
 
+  if (prepared.phase == ArcImportPreparedPhase::kRuntimePersisted) {
+    // The journal persists hashes and the intended committed marker, but not
+    // the complete runtime plan required to obtain a fresh Current Session
+    // receipt after restart. Never turn a stale receipt into a success claim.
+    return decision;
+  }
   if (prepared.phase != ArcImportPreparedPhase::kTreeOnly &&
       prepared.phase != ArcImportPreparedPhase::kRuntimeMayHaveStarted) {
     return decision;
@@ -32,8 +38,7 @@ ArcImportRecoveryDecision DecideArcImportPreparedRecovery(
     return decision;
   }
   if (current_tree_fingerprint == prepared.previous_tree_sha256) {
-    decision.completion =
-        ArcImportRecoveryCompletion::kRestorePreviousJournal;
+    decision.completion = ArcImportRecoveryCompletion::kRestorePreviousJournal;
     return decision;
   }
   if (current_tree_fingerprint != prepared.expected_tree_sha256) {

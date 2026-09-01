@@ -1,12 +1,15 @@
 diff --git a/chrome/browser/importer/BUILD.gn b/chrome/browser/importer/BUILD.gn
 --- a/chrome/browser/importer/BUILD.gn
 +++ b/chrome/browser/importer/BUILD.gn
-@@ -65,6 +65,10 @@ source_set("impl") {
+@@ -65,6 +65,13 @@ source_set("impl") {
      "//components/password_manager/core/browser/password_store:password_store_interface",
    ]
  
 +  if (is_mac) {
-+    deps += [ "//ahoi/browser/importer/zen:profile_discovery" ]
++    deps += [
++      "//ahoi/browser/importer/arc:arc_import",
++      "//ahoi/browser/importer/zen:profile_discovery",
++    ]
 +  }
 +
    if (is_win) {
@@ -15,8 +18,9 @@ diff --git a/chrome/browser/importer/BUILD.gn b/chrome/browser/importer/BUILD.gn
 diff --git a/chrome/browser/importer/DEPS b/chrome/browser/importer/DEPS
 --- a/chrome/browser/importer/DEPS
 +++ b/chrome/browser/importer/DEPS
-@@ -1,3 +1,4 @@
+@@ -1,3 +1,5 @@
  include_rules = [
++  "+ahoi/browser/importer/arc",
 +  "+ahoi/browser/importer/zen",
    "+components/user_data_importer/mojom",
  ]

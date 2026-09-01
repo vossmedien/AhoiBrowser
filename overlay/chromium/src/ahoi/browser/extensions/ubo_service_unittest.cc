@@ -11,12 +11,16 @@
 #include <vector>
 
 #include "ahoi/browser/extensions/ubo_authorization.h"
+#include "ahoi/browser/extensions/ubo_migration_state.h"
 #include "base/base64.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/functional/bind.h"
 #include "base/json/json_writer.h"
+#include "base/memory/raw_ptr.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/task/thread_pool.h"
 #include "base/test/simple_test_clock.h"
 #include "base/time/time.h"
 #include "base/values.h"
@@ -67,6 +71,12 @@ class FakeNetworkClient final : public UboNetworkClient {
                     UboDownloadProgressCallback progress,
                     UboPackageDownloadCallback callback) override {
     ++package_fetches;
+    if (defer_package) {
+      deferred_package_url = exact_url;
+      deferred_package_progress = std::move(progress);
+      deferred_package_callback = std::move(callback);
+      return;
+    }
     if (package_error) {
       std::move(callback).Run(base::unexpected(*package_error));
       return;
@@ -79,16 +89,73 @@ class FakeNetworkClient final : public UboNetworkClient {
         package_path});
   }
 
-  void Cancel() override {}
+  void Cancel() override { ++cancellations; }
+
+  void CompleteDeferredPackage() {
+    ASSERT_TRUE(deferred_package_callback);
+    if (deferred_package_progress) {
+      deferred_package_progress.Run(4);
+    }
+    std::move(deferred_package_callback)
+        .Run(UboPackageDownload{package_final_url.is_valid()
+                                    ? package_final_url
+                                    : deferred_package_url,
+                                package_path});
+  }
 
   int catalog_fetches = 0;
   int package_fetches = 0;
+  int cancellations = 0;
+  bool defer_package = false;
   std::optional<UboNetworkError> catalog_error;
   std::optional<UboNetworkError> package_error;
   GURL catalog_final_url;
   GURL package_final_url;
   std::string catalog_body;
   base::FilePath package_path;
+  GURL deferred_package_url;
+  UboDownloadProgressCallback deferred_package_progress;
+  UboPackageDownloadCallback deferred_package_callback;
+};
+
+class HangingInstallOperation final : public UboInstallOperation {
+ public:
+  HangingInstallOperation(base::FilePath package_path,
+                          UboInstallCallback callback,
+                          int* cancellation_count,
+                          bool* terminal_callback_run)
+      : package_path_(std::move(package_path)),
+        callback_(std::move(callback)),
+        cancellation_count_(cancellation_count),
+        terminal_callback_run_(terminal_callback_run) {}
+
+  ~HangingInstallOperation() override { Cancel(); }
+
+  void Cancel() override {
+    if (cancelled_) {
+      return;
+    }
+    cancelled_ = true;
+    ++*cancellation_count_;
+    if (!package_path_.empty()) {
+      base::ThreadPool::PostTask(
+          FROM_HERE, {base::MayBlock(), base::TaskPriority::BEST_EFFORT},
+          base::BindOnce([](base::FilePath path) { base::DeleteFile(path); },
+                         std::move(package_path_)));
+    }
+    if (callback_) {
+      *terminal_callback_run_ = true;
+      std::move(callback_).Run(
+          base::unexpected(UboVerificationError::kInstallFailed));
+    }
+  }
+
+ private:
+  base::FilePath package_path_;
+  UboInstallCallback callback_;
+  raw_ptr<int> cancellation_count_;
+  raw_ptr<bool> terminal_callback_run_;
+  bool cancelled_ = false;
 };
 
 class UboServiceTest : public ::testing::Test {
@@ -189,11 +256,24 @@ class UboServiceTest : public ::testing::Test {
         .Build();
   }
 
+  scoped_refptr<const ::extensions::Extension> ExtensionWithId(
+      std::string id,
+      std::string version,
+      int manifest_version) const {
+    return ::extensions::ExtensionBuilder("uBlock variant")
+        .SetManifestVersion(manifest_version)
+        .SetVersion(std::move(version))
+        .SetLocation(::extensions::mojom::ManifestLocation::kInternal)
+        .SetID(std::move(id))
+        .Build();
+  }
+
   std::unique_ptr<UboService> MakeService(
       std::unique_ptr<FakeNetworkClient> network,
       UboProductConfig config,
       UboPackageVerifier verifier = UboPackageVerifier(),
-      UboInstallFunction installer = UboInstallFunction()) {
+      UboInstallFunction installer = UboInstallFunction(),
+      std::string process_token = "test-process") {
     if (!verifier) {
       verifier = base::BindRepeating(
           [](const UboCatalogEntry& entry, const base::FilePath&) {
@@ -205,15 +285,17 @@ class UboServiceTest : public ::testing::Test {
           });
     }
     if (!installer) {
-      installer = base::BindRepeating([](Profile*, content::WebContents*,
-                                         UboCatalogEntry, base::FilePath,
-                                         UboInstallCallback callback) {
-        std::move(callback).Run(base::ok());
-      });
+      installer = base::BindRepeating(
+          [](Profile*, content::WebContents*, UboCatalogEntry, base::FilePath,
+             UboInstallCallback callback) -> UboInstallOperationPtr {
+            std::move(callback).Run(base::ok());
+            return nullptr;
+          });
     }
     return std::make_unique<UboService>(profile_.get(), std::move(config),
                                         std::move(network), std::move(verifier),
-                                        std::move(installer), &clock_);
+                                        std::move(installer), &clock_,
+                                        std::move(process_token));
   }
 
   content::BrowserTaskEnvironment task_environment_;
@@ -260,6 +342,442 @@ TEST_F(UboServiceTest, UBO01PinnedOfficialGithubBootstrapSkipsCatalogNetwork) {
   task_environment_.RunUntilIdle();
   EXPECT_EQ(1, network_ptr->package_fetches);
   EXPECT_EQ(UboServiceState::kPackageReady, service->status().state);
+}
+
+TEST_F(UboServiceTest,
+       OneClickDownloadsVerifiesAndHandsOffWithoutCatalogOrSecondCta) {
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(lite));
+
+  auto network = std::make_unique<FakeNetworkClient>();
+  FakeNetworkClient* network_ptr = network.get();
+  network->package_path = package_path_;
+  network->package_final_url = GURL(
+      base::StrCat({"https://release-assets.githubusercontent.com",
+                    kUboClassicReleaseAssetPath, "?jwt=signed-by-github"}));
+  int installs = 0;
+  base::FilePath handed_off_package;
+  UboInstallCallback prompt_callback;
+  UboInstallFunction installer = base::BindRepeating(
+      [](int* installs, base::FilePath* handed_off_package,
+         UboInstallCallback* prompt_callback, Profile*, content::WebContents*,
+         UboCatalogEntry, base::FilePath package,
+         UboInstallCallback callback) -> UboInstallOperationPtr {
+        ++*installs;
+        *handed_off_package = std::move(package);
+        *prompt_callback = std::move(callback);
+        return nullptr;
+      },
+      &installs, &handed_off_package, &prompt_callback);
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig(),
+                  UboPackageVerifier(), std::move(installer));
+  ASSERT_TRUE(service->status().catalog);
+  EXPECT_TRUE(IsPinnedUboBootstrapCatalogEntry(*service->status().catalog));
+
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+  service->BeginPinnedBootstrapInstall(web_contents.get());
+  task_environment_.RunUntilIdle();
+
+  EXPECT_EQ(0, network_ptr->catalog_fetches);
+  EXPECT_EQ(1, network_ptr->package_fetches);
+  EXPECT_EQ(1, installs);
+  EXPECT_EQ(UboServiceState::kInstalling, service->status().state);
+  EXPECT_TRUE(service->status().one_click_install_in_progress);
+
+  // After handoff Chromium owns cancellation; closing Ahoi's status surface
+  // must not race or bypass the normal permission prompt.
+  service->CancelUserInstall();
+  EXPECT_EQ(UboServiceState::kInstalling, service->status().state);
+  ASSERT_TRUE(prompt_callback);
+  std::move(prompt_callback)
+      .Run(base::unexpected(UboVerificationError::kInstallFailed));
+  EXPECT_EQ(UboServiceState::kError, service->status().state);
+  EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+  EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  EXPECT_TRUE(base::DeleteFile(handed_off_package));
+}
+
+TEST_F(UboServiceTest,
+       ShutdownCancelsNoCallbackInstallAndReleasesTemporaryPackage) {
+  auto network = std::make_unique<FakeNetworkClient>();
+  network->package_path = package_path_;
+  network->package_final_url = GURL(
+      base::StrCat({"https://release-assets.githubusercontent.com",
+                    kUboClassicReleaseAssetPath, "?jwt=signed-by-github"}));
+  int cancellation_count = 0;
+  bool terminal_callback_run = false;
+  UboInstallFunction installer = base::BindRepeating(
+      [](int* cancellation_count, bool* terminal_callback_run, Profile*,
+         content::WebContents*, UboCatalogEntry, base::FilePath package,
+         UboInstallCallback callback) -> UboInstallOperationPtr {
+        return std::make_unique<HangingInstallOperation>(
+            std::move(package), std::move(callback), cancellation_count,
+            terminal_callback_run);
+      },
+      &cancellation_count, &terminal_callback_run);
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig(),
+                  UboPackageVerifier(), std::move(installer));
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+
+  service->BeginPinnedBootstrapInstall(web_contents.get());
+  task_environment_.RunUntilIdle();
+  ASSERT_EQ(UboServiceState::kInstalling, service->status().state);
+  ASSERT_TRUE(base::PathExists(package_path_));
+
+  service->Shutdown();
+  task_environment_.RunUntilIdle();
+
+  EXPECT_EQ(1, cancellation_count);
+  EXPECT_TRUE(terminal_callback_run);
+  EXPECT_FALSE(base::PathExists(package_path_));
+}
+
+TEST_F(UboServiceTest,
+       CancelWhileDialogOwnsPreHandoffDownloadDiscardsLatePackage) {
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(lite));
+
+  auto network = std::make_unique<FakeNetworkClient>();
+  FakeNetworkClient* network_ptr = network.get();
+  network->defer_package = true;
+  network->package_path = package_path_;
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig());
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+
+  service->BeginPinnedBootstrapInstall(web_contents.get(),
+                                       /*wait_for_install_dialog_close=*/true);
+  ASSERT_EQ(UboServiceState::kDownloadingPackage, service->status().state);
+  EXPECT_FALSE(service->status().prompt_handoff_pending);
+  service->CancelUserInstall();
+  EXPECT_EQ(1, network_ptr->cancellations);
+  EXPECT_EQ(UboServiceState::kIdle, service->status().state);
+  EXPECT_FALSE(service->status().one_click_install_in_progress);
+
+  network_ptr->CompleteDeferredPackage();
+  task_environment_.RunUntilIdle();
+  EXPECT_FALSE(base::PathExists(package_path_));
+  EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+  EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+}
+
+TEST_F(UboServiceTest, LostTabBeforePromptFailsClosedAndDeletesPackage) {
+  auto network = std::make_unique<FakeNetworkClient>();
+  network->package_path = package_path_;
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig());
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+
+  service->BeginPinnedBootstrapInstall(web_contents.get());
+  web_contents.reset();
+  task_environment_.RunUntilIdle();
+
+  EXPECT_EQ(UboServiceState::kError, service->status().state);
+  EXPECT_EQ(UboServiceError::kProfileUnavailable, service->status().error);
+  EXPECT_FALSE(base::PathExists(package_path_));
+  EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+}
+
+TEST_F(UboServiceTest,
+       HashAndKeyVerificationFailuresKeepLiteWithoutSecurityState) {
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(lite));
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+
+  {
+    auto network = std::make_unique<FakeNetworkClient>();
+    network->package_path = package_path_;
+    UboPackageVerifier bad_hash =
+        base::BindRepeating([](const UboCatalogEntry&, const base::FilePath&) {
+          return base::expected<VerifiedUboPackage, UboVerificationError>(
+              base::unexpected(UboVerificationError::kPackageHashMismatch));
+        });
+    auto service =
+        MakeService(std::move(network), GetProductionUboProductConfig(),
+                    std::move(bad_hash));
+    service->BeginPinnedBootstrapInstall(web_contents.get());
+    task_environment_.RunUntilIdle();
+
+    EXPECT_EQ(UboServiceError::kInvalidPackage, service->status().error);
+    EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+    EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+    EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  }
+
+  ASSERT_TRUE(base::WriteFile(package_path_, "test"));
+  {
+    auto network = std::make_unique<FakeNetworkClient>();
+    network->package_path = package_path_;
+    UboPackageVerifier bad_key = base::BindRepeating(
+        [](const UboCatalogEntry& entry, const base::FilePath&) {
+          return base::expected<VerifiedUboPackage, UboVerificationError>(
+              VerifiedUboPackage{
+                  .extension_id = entry.extension_id,
+                  .package_sha256 = entry.package_sha256,
+                  .crx_public_key_sha256 = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                                           "bbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              });
+        });
+    auto service =
+        MakeService(std::move(network), GetProductionUboProductConfig(),
+                    std::move(bad_key));
+    service->BeginPinnedBootstrapInstall(web_contents.get());
+    task_environment_.RunUntilIdle();
+
+    EXPECT_EQ(UboServiceError::kInvalidPackage, service->status().error);
+    EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+    EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+    EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  }
+}
+
+TEST_F(UboServiceTest, FormerClassicBlocksInitialOneClickByExactIdentity) {
+  auto former = ExtensionWithId(kUboFormerClassicWebStoreExtensionId, "1.60.0",
+                                /*manifest_version=*/2);
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(former));
+  ASSERT_TRUE(registry->AddEnabled(lite));
+  auto network = std::make_unique<FakeNetworkClient>();
+  FakeNetworkClient* network_ptr = network.get();
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig());
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+
+  service->BeginPinnedBootstrapInstall(web_contents.get());
+
+  EXPECT_EQ(UboServiceError::kConflictingExtension, service->status().error);
+  EXPECT_EQ(0, network_ptr->catalog_fetches);
+  EXPECT_EQ(0, network_ptr->package_fetches);
+  EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+  EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+  EXPECT_TRUE(
+      registry->GetInstalledExtension(kUboFormerClassicWebStoreExtensionId));
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+}
+
+TEST_F(UboServiceTest,
+       UnauthorizedPinnedClassicBlocksInitialOneClickByExactIdentity) {
+  auto classic = PinnedBootstrapExtension();
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(classic));
+  ASSERT_TRUE(registry->AddEnabled(lite));
+  auto network = std::make_unique<FakeNetworkClient>();
+  FakeNetworkClient* network_ptr = network.get();
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig());
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+
+  service->BeginPinnedBootstrapInstall(web_contents.get());
+
+  EXPECT_EQ(UboServiceError::kConflictingExtension, service->status().error);
+  EXPECT_EQ(0, network_ptr->catalog_fetches);
+  EXPECT_EQ(0, network_ptr->package_fetches);
+  EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+  EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboClassicExtensionId));
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+}
+
+TEST_F(UboServiceTest,
+       RegistryInstallBeforeAuthorizationCommitDoesNotFakeMigrationError) {
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto classic = PinnedBootstrapExtension();
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(lite));
+  auto network = std::make_unique<FakeNetworkClient>();
+  network->package_path = package_path_;
+  UboService* service_ptr = nullptr;
+  base::FilePath handed_off_package;
+  UboInstallCallback prompt_callback;
+  UboInstallFunction installer = base::BindRepeating(
+      [](UboService** service_ptr,
+         scoped_refptr<const ::extensions::Extension> classic,
+         base::FilePath* handed_off_package,
+         UboInstallCallback* prompt_callback, Profile* profile,
+         content::WebContents*, UboCatalogEntry, base::FilePath package,
+         UboInstallCallback callback) -> UboInstallOperationPtr {
+        auto* registry = ::extensions::ExtensionRegistry::Get(profile);
+        if (!registry || !registry->AddEnabled(classic)) {
+          ADD_FAILURE() << "test extension could not enter the registry";
+          std::move(callback).Run(
+              base::unexpected(UboVerificationError::kInstallFailed));
+          return nullptr;
+        }
+        (*service_ptr)->OnExtensionInstalled(profile, classic.get(), false);
+        *handed_off_package = std::move(package);
+        *prompt_callback = std::move(callback);
+        return nullptr;
+      },
+      &service_ptr, classic, &handed_off_package, &prompt_callback);
+  auto service =
+      MakeService(std::move(network), GetProductionUboProductConfig(),
+                  UboPackageVerifier(), std::move(installer));
+  service_ptr = service.get();
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), nullptr);
+
+  service->BeginPinnedBootstrapInstall(web_contents.get());
+  task_environment_.RunUntilIdle();
+
+  EXPECT_EQ(UboServiceState::kInstalling, service->status().state);
+  EXPECT_NE(UboServiceError::kMigrationStateInvalid, service->status().error);
+  EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+  EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  ASSERT_TRUE(prompt_callback);
+  std::move(prompt_callback)
+      .Run(base::unexpected(UboVerificationError::kInstallFailed));
+  EXPECT_EQ(UboServiceError::kInstallFailed, service->status().error);
+  EXPECT_NE(UboServiceError::kMigrationStateInvalid, service->status().error);
+  EXPECT_FALSE(ReadCommittedUboAuthorization(*profile_->GetPrefs()));
+  EXPECT_FALSE(ReadUboPersistedMigrationState(*profile_->GetPrefs()));
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  EXPECT_TRUE(base::DeleteFile(handed_off_package));
+}
+
+TEST_F(UboServiceTest, InventoriesPinnedFormerAndLiteByExactIdentity) {
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  auto former = ExtensionWithId(kUboFormerClassicWebStoreExtensionId, "1.60.0",
+                                /*manifest_version=*/2);
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  ASSERT_TRUE(registry->AddDisabled(former));
+  ASSERT_TRUE(registry->AddEnabled(lite));
+  ASSERT_TRUE(registry->AddReady(lite));
+
+  auto service = MakeService(std::make_unique<FakeNetworkClient>(),
+                             GetProductionUboProductConfig());
+  EXPECT_FALSE(service->status().inventory.classic.installed);
+  EXPECT_TRUE(service->status().inventory.former_classic_web_store.installed);
+  EXPECT_FALSE(service->status().inventory.former_classic_web_store.enabled);
+  EXPECT_EQ("1.60.0",
+            service->status().inventory.former_classic_web_store.version);
+  EXPECT_TRUE(service->status().inventory.lite.installed);
+  EXPECT_TRUE(service->status().inventory.lite.enabled);
+  EXPECT_TRUE(service->status().inventory.lite.ready);
+  EXPECT_EQ("2026.8.31.0", service->status().inventory.lite.version);
+}
+
+TEST_F(UboServiceTest, LiteRemovalRequiresReadyClassicInLaterBrowserProcess) {
+  UboCatalogEntry entry = GetPinnedUboBootstrapCatalogEntry();
+  auto classic = PinnedBootstrapExtension();
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto authorization = BeginUboInstallAuthorization(
+      profile_->GetPrefs(), entry,
+      VerifiedUboPackage{.extension_id = entry.extension_id,
+                         .package_sha256 = entry.package_sha256,
+                         .crx_public_key_sha256 = entry.crx_public_key_sha256});
+  ASSERT_TRUE(authorization.has_value());
+  ASSERT_TRUE((*authorization)->Commit(*classic).has_value());
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(classic));
+  ASSERT_TRUE(registry->AddReady(classic));
+  ASSERT_TRUE(registry->AddEnabled(lite));
+  ASSERT_TRUE(WriteUboPersistedMigrationState(
+      profile_->GetPrefs(),
+      *ReadCommittedUboAuthorization(*profile_->GetPrefs()), "process-a"));
+
+  {
+    auto install_process = MakeService(
+        std::make_unique<FakeNetworkClient>(), GetProductionUboProductConfig(),
+        UboPackageVerifier(), UboInstallFunction(), "process-a");
+    EXPECT_EQ(UboLiteMigrationState::kClassicAwaitingRestart,
+              install_process->status().lite_migration);
+    EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  }
+
+  {
+    auto same_browser_process = MakeService(
+        std::make_unique<FakeNetworkClient>(), GetProductionUboProductConfig(),
+        UboPackageVerifier(), UboInstallFunction(), "process-a");
+    EXPECT_EQ(UboLiteMigrationState::kClassicAwaitingRestart,
+              same_browser_process->status().lite_migration);
+    EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  }
+
+  auto later_process = MakeService(
+      std::make_unique<FakeNetworkClient>(), GetProductionUboProductConfig(),
+      UboPackageVerifier(), UboInstallFunction(), "process-b");
+  EXPECT_EQ(UboLiteMigrationState::kEligibleForLiteRemoval,
+            later_process->status().lite_migration);
+  // Eligibility is informational until the user invokes the distinct removal
+  // action. Service construction and install success never remove or disable
+  // Lite.
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+  EXPECT_TRUE(registry->enabled_extensions().Contains(kUboLiteExtensionId));
+}
+
+TEST_F(UboServiceTest, MalformedMigrationStateIsIntegrityBlockedAndKeepsLite) {
+  profile_->GetPrefs()->SetDict(
+      kUboMigrationPref,
+      base::DictValue().Set("schema_version", 999).Set("tampered", true));
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(lite));
+
+  auto service = MakeService(std::make_unique<FakeNetworkClient>(),
+                             GetProductionUboProductConfig());
+  EXPECT_EQ(UboLiteMigrationState::kBlocked, service->status().lite_migration);
+  EXPECT_EQ(UboServiceError::kMigrationStateInvalid, service->status().error);
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
+}
+
+TEST_F(UboServiceTest, MismatchedMigrationStateIsIntegrityBlockedAndKeepsLite) {
+  UboCatalogEntry entry = GetPinnedUboBootstrapCatalogEntry();
+  auto classic = PinnedBootstrapExtension();
+  auto lite = ExtensionWithId(kUboLiteExtensionId, "2026.8.31.0",
+                              /*manifest_version=*/3);
+  auto authorization = BeginUboInstallAuthorization(
+      profile_->GetPrefs(), entry,
+      VerifiedUboPackage{.extension_id = entry.extension_id,
+                         .package_sha256 = entry.package_sha256,
+                         .crx_public_key_sha256 = entry.crx_public_key_sha256});
+  ASSERT_TRUE(authorization.has_value());
+  ASSERT_TRUE((*authorization)->Commit(*classic).has_value());
+  auto* registry = ::extensions::ExtensionRegistry::Get(profile_.get());
+  ASSERT_TRUE(registry->AddEnabled(classic));
+  ASSERT_TRUE(registry->AddReady(classic));
+  ASSERT_TRUE(registry->AddEnabled(lite));
+  ASSERT_TRUE(WriteUboPersistedMigrationState(
+      profile_->GetPrefs(),
+      *ReadCommittedUboAuthorization(*profile_->GetPrefs()), "process-a"));
+  base::DictValue mismatched =
+      profile_->GetPrefs()->GetDict(kUboMigrationPref).Clone();
+  mismatched.Set("version", "1.73.0");
+  profile_->GetPrefs()->SetDict(kUboMigrationPref, std::move(mismatched));
+
+  auto service = MakeService(
+      std::make_unique<FakeNetworkClient>(), GetProductionUboProductConfig(),
+      UboPackageVerifier(), UboInstallFunction(), "process-b");
+  EXPECT_EQ(UboLiteMigrationState::kBlocked, service->status().lite_migration);
+  EXPECT_EQ(UboServiceError::kMigrationStateInvalid, service->status().error);
+  EXPECT_NE(UboServiceError::kMigrationStateWriteFailed,
+            service->status().error);
+  EXPECT_TRUE(registry->GetInstalledExtension(kUboLiteExtensionId));
 }
 
 TEST_F(UboServiceTest, PinnedBootstrapRejectsForeignPackageRedirect) {
@@ -312,10 +830,35 @@ TEST_F(UboServiceTest, SignedCatalogExplicitVerifiedUpdateFlow) {
   network->package_path = package_path_;
   int installs = 0;
   UboInstallFunction installer = base::BindRepeating(
-      [](int* installs, Profile*, content::WebContents*, UboCatalogEntry,
-         base::FilePath, UboInstallCallback callback) {
+      [](int* installs, Profile* profile, content::WebContents*,
+         UboCatalogEntry entry, base::FilePath,
+         UboInstallCallback callback) -> UboInstallOperationPtr {
         ++*installs;
+        std::array<uint8_t, 32> key;
+        key.fill(0x42);
+        auto updated =
+            ::extensions::ExtensionBuilder("uBlock Origin")
+                .SetManifestVersion(2)
+                .SetVersion(entry.version.GetString())
+                .SetLocation(::extensions::mojom::ManifestLocation::kInternal)
+                .SetID(kUboClassicExtensionId)
+                .SetManifestKey("key", base::Base64Encode(key))
+                .Build();
+        auto authorization = BeginUboInstallAuthorization(
+            profile->GetPrefs(), entry,
+            VerifiedUboPackage{
+                .extension_id = entry.extension_id,
+                .package_sha256 = entry.package_sha256,
+                .crx_public_key_sha256 = entry.crx_public_key_sha256});
+        if (!authorization.has_value() ||
+            !(*authorization)->Commit(*updated).has_value()) {
+          std::move(callback).Run(
+              base::unexpected(UboVerificationError::kStateWriteFailed));
+          return UboInstallOperationPtr();
+        }
+        ::extensions::ExtensionRegistry::Get(profile)->AddEnabled(updated);
         std::move(callback).Run(base::ok());
+        return UboInstallOperationPtr();
       },
       &installs);
   auto service = MakeService(std::move(network), Config(), UboPackageVerifier(),
@@ -466,7 +1009,10 @@ TEST_F(UboServiceTest, SignedCatalogPeriodicCheckNeverDownloadsOrInstalls) {
   int installs = 0;
   UboInstallFunction installer = base::BindRepeating(
       [](int* installs, Profile*, content::WebContents*, UboCatalogEntry,
-         base::FilePath, UboInstallCallback) { ++*installs; },
+         base::FilePath, UboInstallCallback) -> UboInstallOperationPtr {
+        ++*installs;
+        return nullptr;
+      },
       &installs);
   auto service = MakeService(std::move(network), Config(), UboPackageVerifier(),
                              std::move(installer));

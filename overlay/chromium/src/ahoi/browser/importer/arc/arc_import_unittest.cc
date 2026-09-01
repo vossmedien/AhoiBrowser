@@ -2,9 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <sys/stat.h>
+#include <unistd.h>
 
+#include <algorithm>
+#include <initializer_list>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -17,7 +22,11 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/functional/bind.h"
+#include "base/json/json_reader.h"
+#include "base/json/json_writer.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/values.h"
 #include "crypto/hash.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -231,6 +240,99 @@ constexpr char kValidArcSidebar[] = R"json({
   }
 })json";
 
+base::FilePath CreateArcBundleFixture(const base::FilePath& root) {
+  const base::FilePath bundle = root.AppendASCII("Arc.app");
+  const base::FilePath contents = bundle.AppendASCII("Contents");
+  const base::FilePath executable = contents.AppendASCII("MacOS/Arc");
+  EXPECT_TRUE(base::CreateDirectory(executable.DirName()));
+  EXPECT_TRUE(
+      base::WriteFile(contents.AppendASCII("Info.plist"),
+                      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                      "<plist version=\"1.0\"><dict>"
+                      "<key>CFBundleIdentifier</key>"
+                      "<string>company.thebrowser.Browser</string>"
+                      "<key>CFBundleExecutable</key><string>Arc</string>"
+                      "</dict></plist>"));
+  EXPECT_TRUE(base::WriteFile(executable, "#!/bin/sh\n"));
+  EXPECT_TRUE(base::SetPosixFilePermissions(executable, 0755));
+  return bundle;
+}
+
+std::string CreateBackupFixture(const base::FilePath& backup_root,
+                                std::string hash_prefix,
+                                base::Time modified) {
+  const std::string identifier =
+      std::move(hash_prefix) + "-" +
+      base::Uuid::GenerateRandomV4().AsLowercaseString();
+  const base::FilePath directory = backup_root.AppendASCII(identifier);
+  EXPECT_TRUE(base::CreateDirectory(directory));
+  EXPECT_TRUE(base::SetPosixFilePermissions(directory, 0700));
+  constexpr std::string_view kPayload = "{}";
+  const std::string payload_hash =
+      base::HexEncodeLower(crypto::hash::Sha256(kPayload));
+  base::ListValue files;
+  for (const auto& [role, source_path, backup_name] : std::initializer_list<
+           std::tuple<std::string_view, std::string_view, std::string_view>>{
+           {"arc_sidebar", "Arc/StorableSidebar.json",
+            "Arc-StorableSidebar.json"},
+           {"ahoi_tab_tree", "AhoiProfile/Ahoi Tab Tree",
+            "Ahoi-Tab-Tree.sqlite"}}) {
+    EXPECT_TRUE(base::WriteFile(directory.AppendASCII(backup_name), kPayload));
+    EXPECT_TRUE(base::SetPosixFilePermissions(
+        directory.AppendASCII(backup_name), 0600));
+    base::DictValue file;
+    file.Set("role", role);
+    file.Set("source_path", source_path);
+    file.Set("backup_name", backup_name);
+    file.Set("present", true);
+    file.Set("bytes", "2");
+    file.Set("modified_unix_ms", "0");
+    file.Set("sha256", payload_hash);
+    files.Append(std::move(file));
+  }
+  base::DictValue manifest_value;
+  manifest_value.Set("version", 1);
+  manifest_value.Set("backup_identifier", identifier);
+  manifest_value.Set(
+      "snapshot_sha256",
+      "1111111111111111111111111111111111111111111111111111111111111111");
+  manifest_value.Set("files", std::move(files));
+  std::string manifest_json;
+  EXPECT_TRUE(base::JSONWriter::Write(manifest_value, &manifest_json));
+  const base::FilePath manifest = directory.AppendASCII("manifest.json");
+  EXPECT_TRUE(base::WriteFile(manifest, manifest_json));
+  EXPECT_TRUE(base::SetPosixFilePermissions(manifest, 0600));
+  EXPECT_TRUE(base::TouchFile(directory, modified, modified));
+  return identifier;
+}
+
+bool SetBackupManifestEntryString(const base::FilePath& backup_directory,
+                                  size_t entry_index,
+                                  std::string_view key,
+                                  std::string value) {
+  const base::FilePath manifest = backup_directory.AppendASCII("manifest.json");
+  std::string manifest_json;
+  if (!base::ReadFileToString(manifest, &manifest_json)) {
+    return false;
+  }
+  std::optional<base::Value> parsed =
+      base::JSONReader::Read(manifest_json, base::JSON_PARSE_RFC);
+  base::DictValue* manifest_dict =
+      parsed.has_value() ? parsed->GetIfDict() : nullptr;
+  base::ListValue* files =
+      manifest_dict ? manifest_dict->FindList("files") : nullptr;
+  base::DictValue* entry = files && entry_index < files->size()
+                               ? (*files)[entry_index].GetIfDict()
+                               : nullptr;
+  if (!entry) {
+    return false;
+  }
+  entry->Set(key, std::move(value));
+  return base::JSONWriter::Write(*parsed, &manifest_json) &&
+         base::WriteFile(manifest, manifest_json) &&
+         base::SetPosixFilePermissions(manifest, 0600);
+}
+
 ArcImportSnapshot SnapshotFor(std::string json) {
   ArcImportSnapshot snapshot;
   snapshot.source_size = static_cast<int64_t>(json.size());
@@ -356,6 +458,67 @@ TEST(ArcImportDiscoveryTest, RecognizesMainAndHelperExecutablesInArcBundle) {
       FILE_PATH_LITERAL("/Applications/Arc.app.backup/Contents/MacOS/Arc"))));
   EXPECT_FALSE(internal::IsArcBundleExecutablePath(base::FilePath(
       FILE_PATH_LITERAL("relative/Arc.app/Contents/MacOS/Arc"))));
+}
+
+TEST(ArcImportDiscoveryTest,
+     PrefersRunningInjectedBundleFixtureAcrossApplicationRoots) {
+  base::ScopedTempDir temp_dir;
+  ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
+  const base::FilePath system_root = temp_dir.GetPath().AppendASCII("System");
+  const base::FilePath user_root = temp_dir.GetPath().AppendASCII("User");
+  ASSERT_TRUE(base::CreateDirectory(system_root));
+  ASSERT_TRUE(base::CreateDirectory(user_root));
+  const base::FilePath system_bundle = CreateArcBundleFixture(system_root);
+  const base::FilePath user_bundle = CreateArcBundleFixture(user_root);
+  const base::FilePath user_helper = user_bundle.AppendASCII(
+      "Contents/Frameworks/Arc Helper.app/Contents/MacOS/Arc Helper");
+
+  const ArcApplicationState state = internal::InspectArcApplicationAtForTesting(
+      {system_root, user_root}, {user_helper},
+      base::BindRepeating([](const base::FilePath&) { return true; }));
+
+  EXPECT_TRUE(state.installed);
+  EXPECT_TRUE(state.running);
+  EXPECT_EQ(user_bundle, state.bundle_path);
+  EXPECT_NE(system_bundle, state.bundle_path);
+}
+
+TEST(ArcImportDiscoveryTest,
+     ProductionAuthenticationRejectsUnsignedOfficialIdentityFixture) {
+  base::ScopedTempDir temp_dir;
+  ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
+  const base::FilePath root = temp_dir.GetPath().AppendASCII("Applications");
+  ASSERT_TRUE(base::CreateDirectory(root));
+  const base::FilePath bundle = CreateArcBundleFixture(root);
+
+  const ArcApplicationState state = internal::InspectArcApplicationAt(
+      {root}, {bundle.AppendASCII("Contents/MacOS/Arc")});
+
+  EXPECT_FALSE(state.installed);
+  EXPECT_FALSE(state.running);
+  EXPECT_TRUE(state.bundle_path.empty());
+}
+
+TEST(ArcImportDiscoveryTest, RejectsStructurallyNamedUnauthenticatedBundle) {
+  base::ScopedTempDir temp_dir;
+  ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
+  const base::FilePath root = temp_dir.GetPath().AppendASCII("Applications");
+  const base::FilePath fake_executable =
+      root.AppendASCII("Arc.app/Contents/MacOS/Arc");
+  ASSERT_TRUE(base::CreateDirectory(fake_executable.DirName()));
+  ASSERT_TRUE(base::WriteFile(fake_executable, "#!/bin/sh\n"));
+  ASSERT_TRUE(base::SetPosixFilePermissions(fake_executable, 0755));
+  ASSERT_TRUE(base::WriteFile(
+      fake_executable.DirName().DirName().AppendASCII("Info.plist"),
+      "<plist><dict><key>CFBundleIdentifier</key>"
+      "<string>test.fake.Arc</string><key>CFBundleExecutable</key>"
+      "<string>Arc</string></dict></plist>"));
+
+  const ArcApplicationState state =
+      internal::InspectArcApplicationAt({root}, {fake_executable});
+
+  EXPECT_FALSE(state.installed);
+  EXPECT_FALSE(state.running);
 }
 
 TEST(ArcImportDiscoveryTest,
@@ -617,6 +780,128 @@ TEST_F(ArcImportFileTest, BackupNamesRemainUniqueForSimilarProfileNames) {
       "Arc-" + second_key + "-Bookmarks.json")));
 }
 
+TEST(ArcImportBackupResourceTest, RejectsQuotaOverflowAndLowFreeSpace) {
+  ArcImportBackupLimits limits;
+  limits.max_total_bytes = 100;
+  limits.max_file_count = 3;
+  limits.minimum_free_headroom_bytes = 20;
+  uint64_t total = 0;
+
+  EXPECT_EQ(
+      ArcImportStatus::kBackupQuotaExceeded,
+      internal::CheckArcImportBackupResources({60, 41}, 1000, limits, &total));
+  EXPECT_EQ(ArcImportStatus::kBackupQuotaExceeded,
+            internal::CheckArcImportBackupResources({1, 1, 1, 1}, 1000, limits,
+                                                    &total));
+  EXPECT_EQ(ArcImportStatus::kInsufficientDiskSpace,
+            internal::CheckArcImportBackupResources({60}, 79, limits, &total));
+  EXPECT_EQ(ArcImportStatus::kOk,
+            internal::CheckArcImportBackupResources({60}, 80, limits, &total));
+  EXPECT_EQ(60u, total);
+}
+
+TEST(ArcImportBackupRetentionTest,
+     PreservesPreparedForeignAndSymlinkEntriesWhilePruningOwnedBackups) {
+  base::ScopedTempDir temp_dir;
+  ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
+  const base::FilePath root = temp_dir.GetPath().AppendASCII("backups");
+  ASSERT_TRUE(base::CreateDirectory(root));
+  ASSERT_TRUE(base::SetPosixFilePermissions(root, 0700));
+  const base::Time now = base::Time::Now();
+  const std::string protected_id =
+      CreateBackupFixture(root, "aaaaaaaaaaaa", now - base::Days(4));
+  const std::string old_id =
+      CreateBackupFixture(root, "bbbbbbbbbbbb", now - base::Days(3));
+  const std::string middle_id =
+      CreateBackupFixture(root, "cccccccccccc", now - base::Days(2));
+  const std::string newest_id =
+      CreateBackupFixture(root, "dddddddddddd", now - base::Days(1));
+  const base::FilePath foreign = root.AppendASCII("foreign-backup");
+  ASSERT_TRUE(base::CreateDirectory(foreign));
+  const base::FilePath invalid_manifest =
+      root.AppendASCII("ffffffffffff-22222222-2222-4222-8222-222222222222");
+  ASSERT_TRUE(base::CreateDirectory(invalid_manifest));
+  ASSERT_TRUE(base::SetPosixFilePermissions(invalid_manifest, 0700));
+  ASSERT_TRUE(
+      base::WriteFile(invalid_manifest.AppendASCII("manifest.json"), "{}"));
+  ASSERT_TRUE(base::SetPosixFilePermissions(
+      invalid_manifest.AppendASCII("manifest.json"), 0600));
+  const base::FilePath outside = temp_dir.GetPath().AppendASCII("outside");
+  ASSERT_TRUE(base::CreateDirectory(outside));
+  const base::FilePath symlink =
+      root.AppendASCII("eeeeeeeeeeee-11111111-1111-4111-8111-111111111111");
+  ASSERT_TRUE(base::CreateSymbolicLink(outside, symlink));
+
+  ASSERT_TRUE(internal::PruneArcImportBackupsForTesting(
+      root, {protected_id}, /*max_retained_backups=*/2));
+
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(protected_id)));
+  EXPECT_FALSE(base::PathExists(root.AppendASCII(old_id)));
+  EXPECT_FALSE(base::PathExists(root.AppendASCII(middle_id)));
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(newest_id)));
+  EXPECT_TRUE(base::DirectoryExists(foreign));
+  EXPECT_TRUE(base::DirectoryExists(invalid_manifest));
+  EXPECT_TRUE(base::IsLink(symlink));
+}
+
+TEST(ArcImportBackupRetentionTest,
+     DeletesOnlyContentVerifiedBackupsAndProtectsPreparedJournalIdentifier) {
+  base::ScopedTempDir temp_dir;
+  ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
+  const base::FilePath root = temp_dir.GetPath().AppendASCII("backups");
+  ASSERT_TRUE(base::CreateDirectory(root));
+  ASSERT_TRUE(base::SetPosixFilePermissions(root, 0700));
+  const base::Time now = base::Time::Now();
+  const std::string valid_id =
+      CreateBackupFixture(root, "111111111111", now - base::Days(7));
+  const std::string prepared_id =
+      CreateBackupFixture(root, "222222222222", now - base::Days(6));
+  const std::string wrong_hash_id =
+      CreateBackupFixture(root, "333333333333", now - base::Days(5));
+  const std::string wrong_size_id =
+      CreateBackupFixture(root, "444444444444", now - base::Days(4));
+  const std::string extra_file_id =
+      CreateBackupFixture(root, "555555555555", now - base::Days(3));
+  const std::string symlink_id =
+      CreateBackupFixture(root, "666666666666", now - base::Days(2));
+  const std::string hardlink_id =
+      CreateBackupFixture(root, "777777777777", now - base::Days(1));
+
+  ASSERT_TRUE(base::WriteFile(
+      root.AppendASCII(wrong_hash_id).AppendASCII("Arc-StorableSidebar.json"),
+      "[]"));
+  ASSERT_TRUE(SetBackupManifestEntryString(root.AppendASCII(wrong_size_id), 0,
+                                           "bytes", "1"));
+  const base::FilePath extra_file =
+      root.AppendASCII(extra_file_id).AppendASCII("Arc-Unlisted.json");
+  ASSERT_TRUE(base::WriteFile(extra_file, "{}"));
+  ASSERT_TRUE(base::SetPosixFilePermissions(extra_file, 0600));
+
+  const base::FilePath outside = temp_dir.GetPath().AppendASCII("outside");
+  ASSERT_TRUE(base::WriteFile(outside, "{}"));
+  ASSERT_TRUE(base::SetPosixFilePermissions(outside, 0600));
+  const base::FilePath symlink_payload =
+      root.AppendASCII(symlink_id).AppendASCII("Arc-StorableSidebar.json");
+  ASSERT_TRUE(base::DeleteFile(symlink_payload));
+  ASSERT_TRUE(base::CreateSymbolicLink(outside, symlink_payload));
+
+  const base::FilePath hardlink_payload =
+      root.AppendASCII(hardlink_id).AppendASCII("Arc-StorableSidebar.json");
+  ASSERT_TRUE(base::DeleteFile(hardlink_payload));
+  ASSERT_EQ(0, link(outside.value().c_str(), hardlink_payload.value().c_str()));
+
+  ASSERT_TRUE(internal::PruneArcImportBackupsForTesting(
+      root, {prepared_id}, /*max_retained_backups=*/0));
+
+  EXPECT_FALSE(base::PathExists(root.AppendASCII(valid_id)));
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(prepared_id)));
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(wrong_hash_id)));
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(wrong_size_id)));
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(extra_file_id)));
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(symlink_id)));
+  EXPECT_TRUE(base::DirectoryExists(root.AppendASCII(hardlink_id)));
+}
+
 TEST_F(ArcImportFileTest, RejectsSymlinkedArcRoot) {
   const base::FilePath actual_root =
       temp_dir_.GetPath().Append(FILE_PATH_LITERAL("ActualArc"));
@@ -754,8 +1039,44 @@ TEST(ArcImportParserTest, InvalidSplitDegradesWithoutPhantomPages) {
   EXPECT_TRUE(parsed.plan->splits.empty());
   EXPECT_EQ(0u, parsed.plan->stats.imported_split_count);
   EXPECT_EQ(1u, parsed.plan->stats.degraded_split_count);
+  ASSERT_EQ(1u, parsed.plan->degraded_split_folder_node_ids.size());
+  const base::Uuid degraded_id =
+      parsed.plan->degraded_split_folder_node_ids.front();
+  const auto degraded = std::ranges::find(parsed.plan->tree.nodes, degraded_id,
+                                          &tab_tree::TreeNode::id);
+  ASSERT_NE(parsed.plan->tree.nodes.end(), degraded);
+  EXPECT_EQ(tab_tree::TreeNodeType::kFolder, degraded->type);
   EXPECT_EQ(4u, parsed.plan->stats.imported_page_count);
   EXPECT_EQ(6u, parsed.plan->tree.nodes.size());
+}
+
+TEST(ArcImportParserTest, GlobalTopAppPagesCarryExplicitSemanticMarkers) {
+  std::string json = kValidArcSidebar;
+  ASSERT_TRUE(ReplaceOnce(&json, R"json("childrenIds": ["tab-a"])json",
+                          R"json("childrenIds": [])json"));
+  ASSERT_TRUE(ReplaceOnce(&json,
+                          R"json("id": "topapps-root",
+          "parentID": null,
+          "childrenIds": [])json",
+                          R"json("id": "topapps-root",
+          "parentID": null,
+          "childrenIds": ["tab-a"])json"));
+  ASSERT_TRUE(ReplaceOnce(&json, R"json("parentID": "root-pinned")json",
+                          R"json("parentID": "topapps-root")json"));
+
+  const ArcParseResult parsed = ParseArcSnapshot(SnapshotFor(std::move(json)));
+
+  ASSERT_EQ(ArcImportStatus::kOk, parsed.status);
+  ASSERT_TRUE(parsed.plan.has_value());
+  EXPECT_EQ(1u, parsed.plan->stats.imported_global_top_app_count);
+  ASSERT_EQ(1u, parsed.plan->global_top_app_page_node_ids.size());
+  const base::Uuid top_app_id =
+      parsed.plan->global_top_app_page_node_ids.front();
+  const auto top_app = std::ranges::find(parsed.plan->tree.nodes, top_app_id,
+                                         &tab_tree::TreeNode::id);
+  ASSERT_NE(parsed.plan->tree.nodes.end(), top_app);
+  EXPECT_EQ(tab_tree::TreeNodeType::kSavedPage, top_app->type);
+  EXPECT_EQ(u"Pinned page", top_app->title);
 }
 
 TEST(ArcImportParserTest, RejectsMalformedSerializedMap) {

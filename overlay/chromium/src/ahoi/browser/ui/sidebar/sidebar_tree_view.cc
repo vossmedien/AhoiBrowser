@@ -528,6 +528,12 @@ void SidebarTreeView::VisibilityChanged(views::View* starting_from,
   }
 }
 
+void SidebarTreeView::OnPresentationAnimationSettled() {
+  if (IsDrawn()) {
+    ScheduleVisibleBoundsSynchronization();
+  }
+}
+
 void SidebarTreeView::ScheduleVisibleBoundsSynchronization() {
   // View::SetBoundsRect() notifies registered descendants by iterating a
   // raw-pointer vector owned by each ancestor. SynchronizeRows() can recycle

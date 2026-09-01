@@ -30,8 +30,9 @@ enum class ArcImportPreparedPhase {
   kRuntimeMayHaveStarted,
   // The native Chromium current-session file was reset from live state,
   // flushed, read back, decoded, and matched against the exact runtime split
-  // structure. The committed marker may now be published without another
-  // native mutation.
+  // structure. The same live transaction may now publish its committed marker.
+  // A restarted process cannot revalidate without the full runtime plan and
+  // therefore remains in manual recovery.
   kRuntimePersisted,
   // A concurrent tree mutation made automatic rollback unsafe. Recovery must
   // remain blocked without replacing the user's newer authoritative tree.
@@ -49,6 +50,8 @@ struct ArcImportJournalMetrics {
   int merged_workspaces = 0;
   int reconstructed_splits = 0;
   int approximated_four_pane_ratios = 0;
+
+  bool operator==(const ArcImportJournalMetrics&) const = default;
 };
 
 struct ArcImportCommittedState {
@@ -56,6 +59,8 @@ struct ArcImportCommittedState {
   std::string selection_fingerprint;
   std::string idempotency_key;
   ArcImportJournalMetrics metrics;
+
+  bool operator==(const ArcImportCommittedState&) const = default;
 };
 
 struct ArcImportPreparedState {
@@ -78,6 +83,10 @@ struct ArcImportPreparedState {
   ArcImportPreparedPhase phase = ArcImportPreparedPhase::kTreeOnly;
   bool runtime_mutation_planned = false;
   std::optional<ArcImportCommittedState> previous_committed;
+  // Exact new-state intent published only by the live transaction after the
+  // native current-session receipt has been durably verified. It remains
+  // diagnostic crash state; restart recovery never publishes it verbatim.
+  std::optional<ArcImportCommittedState> intended_committed;
 };
 
 struct ArcImportJournalReadResult {

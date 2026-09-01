@@ -45,6 +45,10 @@ std::unique_ptr<views::View> CreateBrowserSidebarHost(
     Browser* browser,
     ModalOverlayController* modal_overlay_controller);
 
+// Notifies a production Ahoi host that its presentation animation and final
+// layout pass have settled. Dummy/non-Ahoi hosts are deliberately ignored.
+void NotifyBrowserSidebarPresentationSettled(views::View* sidebar_host);
+
 // Applies the most recent persistent sidebar mutation when keyboard focus or
 // the pointer is inside this Ahoi sidebar. This intentionally declines the
 // shortcut elsewhere so page and text-field undo semantics remain untouched.

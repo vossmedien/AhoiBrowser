@@ -236,12 +236,57 @@ TEST_F(ZenProfileDiscoveryTest, AppendsAvailableApplicationWithResourcePath) {
   application.installed = true;
   std::vector<user_data_importer::SourceProfile> profiles;
 
-  EXPECT_EQ(internal::AppendZenSourceProfilesForApplication(
-                application, root, "de", &profiles),
+  EXPECT_EQ(internal::AppendZenSourceProfilesForApplication(application, root,
+                                                            "de", &profiles),
             ZenImportAvailability::kAvailable);
   ASSERT_EQ(profiles.size(), 1u);
   EXPECT_EQ(profiles[0].app_path,
             application.bundle_path.AppendASCII("Contents/Resources"));
+}
+
+TEST_F(ZenProfileDiscoveryTest,
+       PreservesDetectionOnlyStructureMetadataForAvailableProfile) {
+  const base::FilePath root = CreateRoot();
+  const base::FilePath profile = root.AppendASCII("Profiles/default");
+  ASSERT_TRUE(base::CreateDirectory(profile));
+  ASSERT_TRUE(base::WriteFile(root.AppendASCII("profiles.ini"),
+                              "[Profile0]\nIsRelative=1\n"
+                              "Path=Profiles/default\n"));
+  ASSERT_TRUE(base::WriteFile(profile.AppendASCII("places.sqlite"), "db"));
+  ASSERT_TRUE(base::WriteFile(profile.AppendASCII("compatibility.ini"),
+                              "[Compatibility]\nLastVersion=154.0.1_1\n"));
+  ASSERT_TRUE(base::WriteFile(profile.AppendASCII(kZenSessionStoreName),
+                              std::string("mozLz40\0", 8) + "fixture"));
+  ZenApplicationState application;
+  application.bundle_path = base::FilePath("/Applications/Zen.app");
+  application.installed = true;
+  std::vector<user_data_importer::SourceProfile> profiles;
+
+  const ZenSourceProfilesResult result =
+      internal::AppendZenSourceProfilesForApplicationWithMetadata(
+          application, root, "de", &profiles);
+
+  EXPECT_EQ(result.availability, ZenImportAvailability::kAvailable);
+  ASSERT_EQ(profiles.size(), 1u);
+  ASSERT_EQ(result.metadata.size(), 1u);
+  EXPECT_EQ(result.metadata[0].structure_capability,
+            ZenStructureCapability::kMozLz4Candidate);
+}
+
+TEST_F(ZenProfileDiscoveryTest,
+       InstalledApplicationWithoutSafeProfilesReturnsGlobalReason) {
+  ZenApplicationState application;
+  application.bundle_path = base::FilePath("/Applications/Zen.app");
+  application.installed = true;
+  std::vector<user_data_importer::SourceProfile> profiles;
+
+  const ZenSourceProfilesResult result =
+      internal::AppendZenSourceProfilesForApplicationWithMetadata(
+          application, CreateRoot(), "de", &profiles);
+
+  EXPECT_EQ(result.availability, ZenImportAvailability::kNoSafeProfiles);
+  EXPECT_TRUE(result.metadata.empty());
+  EXPECT_TRUE(profiles.empty());
 }
 
 }  // namespace

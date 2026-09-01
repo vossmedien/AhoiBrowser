@@ -261,17 +261,72 @@ TEST_F(ArcImportJournalTest, RuntimePersistedReceiptRoundTrips) {
       .native_member_ids = {kAffectedId},
       .affected_ids = {kAffectedId},
       .phase = ArcImportPreparedPhase::kRuntimePersisted,
-      .runtime_mutation_planned = true};
+      .runtime_mutation_planned = true,
+      .intended_committed =
+          ArcImportCommittedState{.snapshot_hash = kSecondHash,
+                                  .selection_fingerprint = kFirstHash,
+                                  .idempotency_key = kSecondHash}};
   ASSERT_TRUE(WriteArcImportPreparedJournal(profile_path_, prepared));
 
   const ArcImportJournalReadResult read = ReadArcImportJournal(profile_path_);
   ASSERT_EQ(ArcImportJournalState::kPrepared, read.state);
   ASSERT_TRUE(read.prepared.has_value());
-  EXPECT_EQ(ArcImportPreparedPhase::kRuntimePersisted,
-            read.prepared->phase);
+  EXPECT_EQ(ArcImportPreparedPhase::kRuntimePersisted, read.prepared->phase);
   EXPECT_EQ(kFirstHash, read.prepared->expected_native_structure_sha256);
   EXPECT_EQ(kSecondHash, read.prepared->native_receipt_sha256);
   EXPECT_EQ(prepared.native_member_ids, read.prepared->native_member_ids);
+  ASSERT_TRUE(read.prepared->intended_committed.has_value());
+  EXPECT_EQ(*prepared.intended_committed, *read.prepared->intended_committed);
+}
+
+TEST_F(ArcImportJournalTest,
+       RuntimePersistedWithoutExactCommittedIntentIsRejected) {
+  ArcImportPreparedState prepared{
+      .transaction_id = kTransactionId,
+      .snapshot_hash = kSecondHash,
+      .selection_fingerprint = kFirstHash,
+      .idempotency_key = kSecondHash,
+      .backup_identifier = "222222222222-10000000-0000-4000-8000-000000000001",
+      .manifest_sha256 = kFirstHash,
+      .previous_tree_sha256 = kFirstHash,
+      .expected_tree_sha256 = kSecondHash,
+      .expected_native_structure_sha256 = kFirstHash,
+      .native_receipt_sha256 = kSecondHash,
+      .native_member_ids = {kAffectedId},
+      .affected_ids = {kAffectedId},
+      .phase = ArcImportPreparedPhase::kRuntimePersisted,
+      .runtime_mutation_planned = true,
+      .intended_committed =
+          ArcImportCommittedState{.snapshot_hash = kSecondHash,
+                                  .selection_fingerprint = kFirstHash,
+                                  .idempotency_key = kSecondHash}};
+  ASSERT_TRUE(WriteArcImportPreparedJournal(profile_path_, prepared));
+
+  std::string json;
+  ASSERT_TRUE(base::ReadFileToString(JournalPath(), &json));
+  std::optional<base::Value> parsed =
+      base::JSONReader::Read(json, base::JSON_PARSE_RFC);
+  ASSERT_TRUE(parsed.has_value());
+  ASSERT_TRUE(parsed->is_dict());
+  EXPECT_TRUE(parsed->GetDict().Remove("intended_committed"));
+  ASSERT_TRUE(base::JSONWriter::Write(*parsed, &json));
+  ASSERT_TRUE(base::WriteFile(JournalPath(), json));
+  ASSERT_TRUE(base::SetPosixFilePermissions(JournalPath(), 0600));
+  EXPECT_EQ(ArcImportStatus::kJournalError,
+            ReadArcImportJournal(profile_path_).status);
+
+  ASSERT_TRUE(WriteArcImportPreparedJournal(profile_path_, prepared));
+  ASSERT_TRUE(base::ReadFileToString(JournalPath(), &json));
+  parsed = base::JSONReader::Read(json, base::JSON_PARSE_RFC);
+  ASSERT_TRUE(parsed.has_value());
+  base::DictValue* intended = parsed->GetDict().FindDict("intended_committed");
+  ASSERT_TRUE(intended);
+  intended->Set("snapshot_sha256", kFirstHash);
+  ASSERT_TRUE(base::JSONWriter::Write(*parsed, &json));
+  ASSERT_TRUE(base::WriteFile(JournalPath(), json));
+  ASSERT_TRUE(base::SetPosixFilePermissions(JournalPath(), 0600));
+  EXPECT_EQ(ArcImportStatus::kJournalError,
+            ReadArcImportJournal(profile_path_).status);
 }
 
 TEST_F(ArcImportJournalTest, FirstImportRollbackDeletesPreparedMarker) {
@@ -390,6 +445,38 @@ TEST_F(ArcImportJournalTest, LegacyV3PreparedStateIsManualAndNeverMutable) {
   ASSERT_TRUE(read.prepared.has_value());
   EXPECT_EQ(ArcImportPreparedPhase::kManualRecoveryRequired,
             read.prepared->phase);
+}
+
+TEST_F(ArcImportJournalTest, LegacyV4PreparedStateIsManualAndNeverPublished) {
+  ArcImportPreparedState prepared{
+      .transaction_id = kTransactionId,
+      .snapshot_hash = kSecondHash,
+      .selection_fingerprint = kFirstHash,
+      .idempotency_key = kSecondHash,
+      .backup_identifier = "222222222222-10000000-0000-4000-8000-000000000001",
+      .manifest_sha256 = kFirstHash,
+      .previous_tree_sha256 = kFirstHash,
+      .expected_tree_sha256 = kSecondHash,
+      .affected_ids = {kAffectedId}};
+  ASSERT_TRUE(WriteArcImportPreparedJournal(profile_path_, prepared));
+  std::string json;
+  ASSERT_TRUE(base::ReadFileToString(JournalPath(), &json));
+  std::optional<base::Value> parsed =
+      base::JSONReader::Read(json, base::JSON_PARSE_RFC);
+  ASSERT_TRUE(parsed.has_value());
+  ASSERT_TRUE(parsed->is_dict());
+  parsed->GetDict().Set("version", 4);
+  ASSERT_TRUE(base::JSONWriter::Write(*parsed, &json));
+  ASSERT_TRUE(base::WriteFile(JournalPath(), json));
+  ASSERT_TRUE(base::SetPosixFilePermissions(JournalPath(), 0600));
+
+  const ArcImportJournalReadResult read = ReadArcImportJournal(profile_path_);
+  ASSERT_EQ(ArcImportStatus::kOk, read.status);
+  ASSERT_EQ(ArcImportJournalState::kPrepared, read.state);
+  ASSERT_TRUE(read.prepared.has_value());
+  EXPECT_EQ(ArcImportPreparedPhase::kManualRecoveryRequired,
+            read.prepared->phase);
+  EXPECT_FALSE(read.prepared->intended_committed.has_value());
 }
 
 TEST_F(ArcImportJournalTest, RejectsOversizedJournal) {

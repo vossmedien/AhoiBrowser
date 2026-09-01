@@ -158,6 +158,9 @@ void ArcImportService::OnNativeSessionReadback(
     return;
   }
   context->prepared.native_receipt_sha256 = receipt.receipt_sha256;
+  context->prepared.intended_committed = MakeArcImportCommittedState(
+      context->snapshot_hash, context->selection_fingerprint,
+      context->idempotency_key, context->result);
   context->prepared.phase = ArcImportPreparedPhase::kRuntimePersisted;
   base::ThreadPool::PostTaskAndReplyWithResult(
       FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
@@ -221,6 +224,12 @@ void ArcImportService::OnCommittedPersistenceFlushed(
   context->next_committed = MakeArcImportCommittedState(
       context->snapshot_hash, context->selection_fingerprint,
       context->idempotency_key, context->result);
+  if (context->runtime_started &&
+      (!context->prepared.intended_committed ||
+       *context->prepared.intended_committed != *context->next_committed)) {
+    FinishRecoveryRequired(std::move(context), false);
+    return;
+  }
   base::ThreadPool::PostTaskAndReplyWithResult(
       FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
       base::BindOnce(

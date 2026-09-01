@@ -51,6 +51,9 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
             <div><dt>$i18n{ahoiArcImportExcluded}</dt>
               <dd>${this.excludedItemCount_(this.arcImportPreview_.stats)}</dd>
             </div>
+            <div><dt>$i18n{ahoiArcImportDeduplicated}</dt>
+              <dd>${this.deduplicatedItemCount_(
+                  this.arcImportPreview_.stats)}</dd></div>
           </dl>
 
           <div class="subheading">$i18n{ahoiArcImportTargets}</div>
@@ -151,6 +154,10 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
                 ${this.excludedItemCount_(this.arcImportResult_.stats)}
               </dd>
             </div>
+            <div><dt>$i18n{ahoiArcImportDeduplicated}</dt>
+              <dd id="ahoiArcResultDeduplicated">
+                ${this.deduplicatedItemCount_(this.arcImportResult_.stats)}
+              </dd></div>
             <div><dt>$i18n{ahoiArcImportResultSplits}</dt>
               <dd>${this.arcImportResult_.reconstructedSplits}</dd></div>
             <div><dt>$i18n{ahoiArcImportResultFourPane}</dt>

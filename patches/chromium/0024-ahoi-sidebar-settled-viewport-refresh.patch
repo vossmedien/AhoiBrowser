@@ -1,0 +1,100 @@
+diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
+index 3f6c5be6adb9f07933dec9434ab23f1822c4b145..89fa6e571bd89b7a6c74d42a7531ddc9a32045f3 100644
+--- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
++++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
+@@ -5,10 +5,11 @@
+ #include "chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h"
+ 
+ #include <algorithm>
+ #include <optional>
+ 
++#include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_presentation_animator.h"
+ #include "ahoi/browser/ui/visual_style.h"
+ #include "base/callback_list.h"
+ #include "base/functional/bind.h"
+ #include "base/i18n/number_formatting.h"
+@@ -260,10 +261,11 @@ VerticalTabStripRegionView::~VerticalTabStripRegionView() {
+ 
+ std::unique_ptr<views::View> VerticalTabStripRegionView::SetAhoiSidebarTreeView(
+     std::unique_ptr<views::View> view,
+     views::View* default_focus_view) {
+   CHECK(!default_focus_view || (view && view->Contains(default_focus_view)));
++  ahoi_sidebar_viewport_refresh_pending_ = false;
+   std::unique_ptr<views::View> previous;
+   if (ahoi_sidebar_tree_view_) {
+     ResetAhoiSidebarAnimationForStockChrome();
+     ahoi_sidebar_default_focus_view_tracker_.SetView(nullptr);
+     previous =
+@@ -469,10 +471,11 @@ void VerticalTabStripRegionView::SetAhoiSidebarRoundedClip(bool enabled) {
+   // corners during scroll, drag and presentation animations.
+   sidebar_layer->SetMasksToBounds(enabled);
+ }
+ 
+ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
++  ahoi_sidebar_viewport_refresh_pending_ = false;
+   SetAhoiSidebarRoundedClip(false);
+   ahoi_sidebar_presentation_animator_.Reset(true);
+   ahoi_sidebar_presentation_initialized_ = false;
+   ahoi_sidebar_visual_floating_ = false;
+   ahoi_sidebar_visual_edge_revealed_ = false;
+@@ -491,10 +494,18 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+   }
+ }
+ 
+ void VerticalTabStripRegionView::OnSidebarPresentationAnimationUpdated() {
+   ApplyAhoiSidebarAnimationState();
++  // A compositor-only reveal does not necessarily change descendant bounds on
++  // its final frame. Arm one refresh for the completed visible state; Layout()
++  // consumes it only after the host has reached its stable geometry.
++  ahoi_sidebar_viewport_refresh_pending_ =
++      ahoi_sidebar_tree_view_ &&
++      ahoi_sidebar_presentation_animator_.target_visible() &&
++      !ahoi_sidebar_presentation_animator_.is_animating() &&
++      ahoi_sidebar_presentation_animator_.visibility_fraction() == 1.0;
+   // Top chrome, viewport reservation and the content-card leading gutter all
+   // consume this animation fraction. Recompute BrowserView on every tick so
+   // they track the card's physical trailing edge instead of jumping at unmount.
+   browser_view()->InvalidateLayout();
+   if (!ahoi_sidebar_presentation_animator_.is_animating()) {
+@@ -791,10 +802,24 @@ void VerticalTabStripRegionView::Layout(PassKey) {
+   // Ensure that we update the drop arrow position so that it does not render in
+   // the collapsed state when expand on hover is active.
+   if (drop_arrow()) {
+     drop_arrow()->SetIndex(drop_arrow()->index());
+   }
++
++  if (ahoi_sidebar_viewport_refresh_pending_) {
++    const bool settled_visible =
++        ahoi_sidebar_tree_view_ &&
++        ahoi_sidebar_presentation_animator_.target_visible() &&
++        !ahoi_sidebar_presentation_animator_.is_animating() &&
++        ahoi_sidebar_presentation_animator_.visibility_fraction() == 1.0 &&
++        ahoi_sidebar_tree_view_->GetVisible();
++    ahoi_sidebar_viewport_refresh_pending_ = false;
++    if (settled_visible) {
++      ahoi::sidebar::NotifyBrowserSidebarPresentationSettled(
++          ahoi_sidebar_tree_view_);
++    }
++  }
+ }
+ 
+ views::View* VerticalTabStripRegionView::GetDefaultFocusableChild() {
+   if (ahoi_sidebar_tree_view_) {
+     return ahoi_sidebar_default_focus_view_tracker_.view()
+diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
+index 478383591cf86177f371defdc2c6978ee82dd528..c3837de48741e9d8df32bf57ffdc57a116276ae7 100644
+--- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
++++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
+@@ -308,10 +308,11 @@ class VerticalTabStripRegionView final
+       ahoi::sidebar::SidebarPresentationMode::kDocked;
+   bool ahoi_sidebar_edge_revealed_ = false;
+   bool ahoi_sidebar_visual_floating_ = false;
+   bool ahoi_sidebar_visual_edge_revealed_ = false;
+   bool ahoi_sidebar_presentation_initialized_ = false;
++  bool ahoi_sidebar_viewport_refresh_pending_ = false;
+   ahoi::sidebar::SidebarPresentationAnimator
+       ahoi_sidebar_presentation_animator_{this};
+   base::OneShotTimer ahoi_sidebar_edge_hide_timer_;
+   views::ViewTracker ahoi_sidebar_default_focus_view_tracker_;
+   int resize_area_width_;

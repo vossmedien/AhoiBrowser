@@ -53,6 +53,18 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
 void CloseArcImportRuntimeTabs(
     std::vector<base::WeakPtr<tabs::TabInterface>> opened_tabs);
 
+namespace internal {
+
+// Pure focus classifier shared with the focused unit test. Any missing target
+// window activation or focused-tab binding is repairable runtime state, never
+// an exact receipt.
+ArcSplitVerification ClassifyArcSplitFocus(bool target_window_active,
+                                           bool focused_tab_present,
+                                           bool focused_tab_in_target_window,
+                                           bool focused_tab_active);
+
+}  // namespace internal
+
 }  // namespace ahoi::importer::arc
 
 #endif  // AHOI_BROWSER_IMPORTER_ARC_ARC_SPLIT_RUNTIME_H_

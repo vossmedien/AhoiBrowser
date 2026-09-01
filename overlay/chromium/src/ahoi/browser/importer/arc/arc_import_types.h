@@ -58,6 +58,8 @@ enum class ArcImportStatus {
   kJournalError,
   kSourceInUse,
   kBackupError,
+  kInsufficientDiskSpace,
+  kBackupQuotaExceeded,
   // A durable prepared transaction was found. The importer remains locked
   // until its verified backup has been restored; native split uncertainty is
   // intentionally surfaced instead of being reported as recovered.
@@ -114,6 +116,9 @@ struct ArcImportStats {
   size_t skipped_unsafe_url_count = 0;
   size_t skipped_unsupported_item_count = 0;
   size_t ignored_unreachable_item_count = 0;
+  size_t deduplicated_workspace_count = 0;
+  size_t deduplicated_item_count = 0;
+  size_t deduplicated_split_count = 0;
 
   bool operator==(const ArcImportStats&) const = default;
 };
@@ -144,6 +149,11 @@ struct ArcImportPlan {
   int schema_version = kArcImportPlanSchemaVersion;
   tab_tree::TabTreeSnapshot tree;
   std::vector<ArcSplitDescriptor> splits;
+  // Parser-authored semantic markers make result accounting deterministic.
+  // They are node IDs rather than presentation heuristics, and are filtered
+  // alongside the corresponding nodes during merge/skip/dedup.
+  std::vector<base::Uuid> degraded_split_folder_node_ids;
+  std::vector<base::Uuid> global_top_app_page_node_ids;
   ArcImportStats stats;
 
   bool operator==(const ArcImportPlan&) const = default;

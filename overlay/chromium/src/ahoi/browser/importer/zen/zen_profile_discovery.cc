@@ -267,49 +267,15 @@ std::vector<ZenProfileDetail> DiscoverZenProfilesAtRoot(
   return profiles;
 }
 
-ZenImportAvailability AppendZenSourceProfiles(
-    const std::string& locale,
-    std::vector<user_data_importer::SourceProfile>* profiles) {
-  if (!profiles) {
-    return ZenImportAvailability::kNotInstalled;
-  }
-  return internal::AppendZenSourceProfilesForApplication(
-      InspectDefaultZenApplication(), GetZenDataRoot(), locale, profiles);
-}
+namespace {
 
-namespace internal {
-
-ZenImportAvailability AppendZenSourceProfilesForApplication(
-    const ZenApplicationState& application,
+std::vector<ZenSourceProfileMetadata> AppendZenProfilesAtRootWithMetadata(
     const base::FilePath& zen_data_root,
     const std::string& locale,
     std::vector<user_data_importer::SourceProfile>* profiles) {
+  std::vector<ZenSourceProfileMetadata> metadata;
   if (!profiles) {
-    return ZenImportAvailability::kNotInstalled;
-  }
-  const ZenImportAvailability availability =
-      GetZenImportAvailability(application);
-  if (availability != ZenImportAvailability::kAvailable) {
-    return availability;
-  }
-  const size_t first_zen_profile = profiles->size();
-  AppendZenSourceProfilesAtRoot(zen_data_root, locale, profiles);
-  const base::FilePath resource_path =
-      application.bundle_path.AppendASCII("Contents/Resources");
-  for (size_t index = first_zen_profile; index < profiles->size(); ++index) {
-    (*profiles)[index].app_path = resource_path;
-  }
-  return availability;
-}
-
-}  // namespace internal
-
-void AppendZenSourceProfilesAtRoot(
-    const base::FilePath& zen_data_root,
-    const std::string& locale,
-    std::vector<user_data_importer::SourceProfile>* profiles) {
-  if (!profiles) {
-    return;
+    return metadata;
   }
   for (const ZenProfileDetail& detail :
        DiscoverZenProfilesAtRoot(zen_data_root)) {
@@ -329,7 +295,73 @@ void AppendZenSourceProfilesAtRoot(
     source.services_supported = detail.services_supported;
     source.locale = locale;
     profiles->push_back(std::move(source));
+    metadata.push_back({.structure_capability = detail.structure_capability});
   }
+  return metadata;
+}
+
+}  // namespace
+
+ZenImportAvailability AppendZenSourceProfiles(
+    const std::string& locale,
+    std::vector<user_data_importer::SourceProfile>* profiles) {
+  return AppendZenSourceProfilesWithMetadata(locale, profiles).availability;
+}
+
+ZenSourceProfilesResult AppendZenSourceProfilesWithMetadata(
+    const std::string& locale,
+    std::vector<user_data_importer::SourceProfile>* profiles) {
+  return internal::AppendZenSourceProfilesForApplicationWithMetadata(
+      InspectDefaultZenApplication(), GetZenDataRoot(), locale, profiles);
+}
+
+namespace internal {
+
+ZenImportAvailability AppendZenSourceProfilesForApplication(
+    const ZenApplicationState& application,
+    const base::FilePath& zen_data_root,
+    const std::string& locale,
+    std::vector<user_data_importer::SourceProfile>* profiles) {
+  return AppendZenSourceProfilesForApplicationWithMetadata(
+             application, zen_data_root, locale, profiles)
+      .availability;
+}
+
+ZenSourceProfilesResult AppendZenSourceProfilesForApplicationWithMetadata(
+    const ZenApplicationState& application,
+    const base::FilePath& zen_data_root,
+    const std::string& locale,
+    std::vector<user_data_importer::SourceProfile>* profiles) {
+  ZenSourceProfilesResult result;
+  if (!profiles) {
+    return result;
+  }
+  result.availability = GetZenImportAvailability(application);
+  if (result.availability != ZenImportAvailability::kAvailable) {
+    return result;
+  }
+  const size_t first_zen_profile = profiles->size();
+  result.metadata =
+      AppendZenProfilesAtRootWithMetadata(zen_data_root, locale, profiles);
+  if (result.metadata.empty()) {
+    result.availability = ZenImportAvailability::kNoSafeProfiles;
+    return result;
+  }
+  const base::FilePath resource_path =
+      application.bundle_path.AppendASCII("Contents/Resources");
+  for (size_t index = first_zen_profile; index < profiles->size(); ++index) {
+    (*profiles)[index].app_path = resource_path;
+  }
+  return result;
+}
+
+}  // namespace internal
+
+void AppendZenSourceProfilesAtRoot(
+    const base::FilePath& zen_data_root,
+    const std::string& locale,
+    std::vector<user_data_importer::SourceProfile>* profiles) {
+  AppendZenProfilesAtRootWithMetadata(zen_data_root, locale, profiles);
 }
 
 }  // namespace ahoi::importer::zen

@@ -27,8 +27,7 @@ TEST_F(SidebarTreeViewTest, EmptyRootKeepsAVisibleSavedDropViewport) {
   EXPECT_EQ(0U, view->materialized_row_count_for_testing());
 }
 
-TEST_F(SidebarTreeViewTest,
-       CollapsingViewportDefersRegisteredTextfieldRecycling) {
+TEST_F(SidebarTreeViewTest, TransientEmptyViewportPreservesMaterializedRows) {
   const tab_tree::Workspace workspace = MakeWorkspace();
   std::vector<tab_tree::TreeNode> pages;
   for (int index = 0; index < 8; ++index) {
@@ -43,7 +42,9 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_TRUE(controller_->view_model().ReplaceChildren(std::nullopt,
                                                         std::move(pages)));
   tree->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-  ASSERT_GT(tree->materialized_row_count_for_testing(), 0U);
+  const size_t materialized_before_collapse =
+      tree->materialized_row_count_for_testing();
+  ASSERT_GT(materialized_before_collapse, 0U);
 
   auto scroll = SidebarTreeView::CreateScrollView(std::move(tree));
   views::ScrollView* const scroll_ptr = scroll.get();
@@ -57,26 +58,27 @@ TEST_F(SidebarTreeViewTest,
   widget->Show();
 
   // The collapse synchronously walks ScrollView's visible-bounds subscribers.
-  // Row recycling must happen only after that traversal has completed because
-  // every recycled row removes its registered Textfield descendant.
+  // A zero effective viewport is presentation state, not an empty model; keep
+  // the already bounded rows instead of removing their registered Textfields
+  // during that traversal.
   scroll_ptr->SetBoundsRect(gfx::Rect());
   task_environment()->RunUntilIdle();
-  EXPECT_EQ(0U, tree_ptr->materialized_row_count_for_testing());
+  EXPECT_EQ(materialized_before_collapse,
+            tree_ptr->materialized_row_count_for_testing());
 
-  // The sidebar presentation host restores visibility without necessarily
-  // changing the tree's numerical bounds. Restore the viewport while hidden,
-  // then rely on VisibilityChanged() to rematerialize the saved rows after the
-  // hierarchy and layout transition has completed.
+  // The production presentation host starts the reveal while the effective
+  // viewport is still empty. The immediate visibility task must not discard
+  // the previous bounded materialization before animated layout settles.
   scroll_ptr->SetVisible(false);
-  scroll_ptr->SetBoundsRect(gfx::Rect(0, 0, 240, 96));
-  scroll_ptr->DeprecatedLayoutImmediately();
   task_environment()->RunUntilIdle();
-  EXPECT_EQ(0U, tree_ptr->materialized_row_count_for_testing());
-
   scroll_ptr->SetVisible(true);
   task_environment()->RunUntilIdle();
-  EXPECT_EQ(8U, controller_->view_model().rows().size());
-  EXPECT_GT(tree_ptr->materialized_row_count_for_testing(), 0U);
+  EXPECT_EQ(materialized_before_collapse,
+            tree_ptr->materialized_row_count_for_testing());
+
+  // Stable bounds are covered by the production-host browser regression. This
+  // focused unit verifies the safety property that the transient empty frame
+  // itself cannot recycle registered row/Textfield descendants.
 }
 
 TEST_F(SidebarTreeViewTest, DefersWidthToResizableSidebarViewport) {

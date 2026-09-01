@@ -212,6 +212,11 @@ void UboSimpleUrlLoaderClient::OnPackageComplete(base::FilePath path) {
   UboPackageDownloadCallback callback = std::move(package_callback_);
   if (!callback) {
     loader_.reset();
+    if (!path.empty()) {
+      base::ThreadPool::PostTask(
+          FROM_HERE, {base::MayBlock(), base::TaskPriority::BEST_EFFORT},
+          base::BindOnce(&DeleteTemporaryFile, std::move(path)));
+    }
     return;
   }
   if (path.empty() || loader_->NetError() != net::OK ||

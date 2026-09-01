@@ -16,10 +16,11 @@ source_set("profile_discovery") {
     "//base",
     "//components/user_data_importer/common",
   ]
-  deps = [
-    "//chrome/common:ini_parser",
+  deps = [ "//chrome/common:ini_parser" ]
+  frameworks = [
+    "CoreFoundation.framework",
+    "Security.framework",
   ]
-  frameworks = [ "CoreFoundation.framework" ]
 }
 
 source_set("unit_tests") {

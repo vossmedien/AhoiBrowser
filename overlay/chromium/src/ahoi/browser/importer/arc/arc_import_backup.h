@@ -4,7 +4,11 @@
 #ifndef AHOI_BROWSER_IMPORTER_ARC_ARC_IMPORT_BACKUP_H_
 #define AHOI_BROWSER_IMPORTER_ARC_ARC_IMPORT_BACKUP_H_
 
+#include <cstddef>
+#include <cstdint>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "ahoi/browser/importer/arc/arc_import_types.h"
 #include "base/files/file_path.h"
@@ -20,6 +24,13 @@ struct ArcImportBackupResult {
   std::string manifest_sha256;
 };
 
+struct ArcImportBackupLimits {
+  uint64_t max_total_bytes = 2ull * 1024 * 1024 * 1024;
+  size_t max_file_count = 384;
+  int64_t minimum_free_headroom_bytes = 256ll * 1024 * 1024;
+  size_t max_retained_backups = 3;
+};
+
 // Creates a new write-once backup directory. The manifest contains controlled
 // role names and privacy-safe root-relative source paths plus presence, source
 // modification time, byte count and SHA-256--never absolute user paths,
@@ -28,6 +39,25 @@ ArcImportBackupResult CreateArcImportBackup(
     const base::FilePath& ahoi_profile_path,
     const ArcSource& arc_source,
     const std::string& expected_snapshot_token);
+
+namespace internal {
+
+// Pure resource-boundary seam for deterministic overflow/quota tests.
+ArcImportStatus CheckArcImportBackupResources(
+    const std::vector<int64_t>& present_file_sizes,
+    int64_t free_disk_bytes,
+    const ArcImportBackupLimits& limits,
+    uint64_t* total_bytes);
+
+// Deletes only old, fully validated importer-owned backup directories.
+// Prepared-journal backup identifiers passed in |protected_identifiers| are
+// never eligible, even when they exceed the normal retention count.
+bool PruneArcImportBackupsForTesting(
+    const base::FilePath& backup_root,
+    const std::set<std::string>& protected_identifiers,
+    size_t max_retained_backups);
+
+}  // namespace internal
 
 }  // namespace ahoi::importer::arc
 

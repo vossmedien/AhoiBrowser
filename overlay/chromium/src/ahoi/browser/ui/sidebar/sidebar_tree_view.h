@@ -124,6 +124,13 @@ class SidebarTreeView final : public views::View,
   // model and its selection/order remain untouched.
   void SetRuntimeCompositeSuppressedNodes(std::set<base::Uuid> node_ids);
 
+  // Called by the frame host after a sidebar reveal has reached its final
+  // compositor state and the corresponding layout pass has completed. The
+  // actual row reconciliation stays posted through the existing weak-pointer
+  // path so it cannot mutate Views' visible-bounds observer hierarchy while
+  // that hierarchy is being traversed.
+  void OnPresentationAnimationSettled();
+
   size_t materialized_row_count_for_testing() const {
     return materialized_rows_.size();
   }

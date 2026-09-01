@@ -56,6 +56,11 @@ CheckUboCatalogAgainstCommittedAuthorization(const PrefService& prefs,
 // security state, never synced, and must not survive an uninstall.
 void ClearCommittedUboAuthorization(PrefService* prefs);
 
+// Removes only the process-local, uncommitted exception for a profile. Profile
+// shutdown must call this before PrefService destruction so the registry never
+// retains a dangling address.
+void ClearPendingUboInstallAuthorization(PrefService* prefs);
+
 // This is the only runtime MV2 exception predicate. It first requires the
 // compile-time dogfood gate, then accepts exactly an internal MV2 extension
 // matching a verified pending transaction or the last atomically committed

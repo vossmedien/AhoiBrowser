@@ -38,6 +38,18 @@ struct ZenProfileDetail {
       ZenStructureCapability::kNotPresent;
 };
 
+struct ZenSourceProfileMetadata {
+  ZenStructureCapability structure_capability =
+      ZenStructureCapability::kNotPresent;
+};
+
+struct ZenSourceProfilesResult {
+  ZenImportAvailability availability = ZenImportAvailability::kNotInstalled;
+  // Index-aligned only with the Zen profiles appended by the corresponding
+  // discovery call, never with profiles already present in the destination.
+  std::vector<ZenSourceProfileMetadata> metadata;
+};
+
 // Discovers regular Zen profiles under |zen_data_root|. The INI and every
 // profile must remain below that root and may not traverse a symbolic link.
 // The function performs bounded blocking I/O and must run off the UI thread.
@@ -49,6 +61,13 @@ std::vector<ZenProfileDetail> DiscoverZenProfilesAtRoot(
 // actual, safe profile files are advertised; passwords remain excluded on
 // macOS. Zen sidebar structure is not advertised by this seam.
 ZenImportAvailability AppendZenSourceProfiles(
+    const std::string& locale,
+    std::vector<user_data_importer::SourceProfile>* profiles);
+
+// Metadata-preserving variant used by ImporterList. Structure detection stays
+// read-only and disabled; the result exists solely so Settings can explain why
+// Zen structure is unavailable without pretending that it can be imported.
+ZenSourceProfilesResult AppendZenSourceProfilesWithMetadata(
     const std::string& locale,
     std::vector<user_data_importer::SourceProfile>* profiles);
 
@@ -65,6 +84,12 @@ namespace internal {
 // Application- and root-injected seam for deterministic availability tests.
 // Unavailable applications never append a source profile.
 ZenImportAvailability AppendZenSourceProfilesForApplication(
+    const ZenApplicationState& application,
+    const base::FilePath& zen_data_root,
+    const std::string& locale,
+    std::vector<user_data_importer::SourceProfile>* profiles);
+
+ZenSourceProfilesResult AppendZenSourceProfilesForApplicationWithMetadata(
     const ZenApplicationState& application,
     const base::FilePath& zen_data_root,
     const std::string& locale,

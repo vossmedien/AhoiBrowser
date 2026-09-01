@@ -9,31 +9,36 @@
 
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/functional/bind.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace ahoi::importer::zen::internal {
 
 namespace {
 
-constexpr std::string_view kOfficialZenBundleIdentifier =
-    "app.zen-browser.zen";
+constexpr std::string_view kOfficialZenBundleIdentifier = "app.zen-browser.zen";
 
-base::FilePath CreateZenBundle(const base::FilePath& root,
-                               std::string_view name,
-                               std::string_view bundle_identifier =
-                                   kOfficialZenBundleIdentifier) {
+ZenBundleAuthenticationCallback FixtureAuthenticator() {
+  return base::BindRepeating([](const base::FilePath&) { return true; });
+}
+
+base::FilePath CreateZenBundle(
+    const base::FilePath& root,
+    std::string_view name,
+    std::string_view bundle_identifier = kOfficialZenBundleIdentifier) {
   const base::FilePath bundle = root.AppendASCII(name);
   const base::FilePath executable = bundle.AppendASCII("Contents/MacOS/zen");
   EXPECT_TRUE(base::CreateDirectory(executable.DirName()));
   EXPECT_TRUE(base::WriteFile(executable, "fixture"));
+  EXPECT_TRUE(base::SetPosixFilePermissions(executable, 0755));
   if (!bundle_identifier.empty()) {
     std::string info_plist =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         "<plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>";
     info_plist.append(bundle_identifier);
     info_plist.append("</string></dict></plist>\n");
-    EXPECT_TRUE(base::WriteFile(
-        bundle.AppendASCII("Contents/Info.plist"), info_plist));
+    EXPECT_TRUE(
+        base::WriteFile(bundle.AppendASCII("Contents/Info.plist"), info_plist));
   }
   return bundle;
 }
@@ -46,8 +51,9 @@ TEST(ZenApplicationDiscoveryTest, FindsExactSafeBundleAndRunningExecutable) {
   ASSERT_TRUE(base::CreateDirectory(applications));
   const base::FilePath bundle = CreateZenBundle(applications, "Zen.app");
 
-  const ZenApplicationState state = InspectZenApplicationAt(
-      {applications}, {bundle.AppendASCII("Contents/MacOS/zen")});
+  const ZenApplicationState state = InspectZenApplicationAtForTesting(
+      {applications}, {bundle.AppendASCII("Contents/MacOS/zen")},
+      FixtureAuthenticator());
   EXPECT_TRUE(state.installed);
   EXPECT_TRUE(state.running);
   EXPECT_EQ(state.bundle_path, bundle);
@@ -56,8 +62,7 @@ TEST(ZenApplicationDiscoveryTest, FindsExactSafeBundleAndRunningExecutable) {
 }
 
 TEST(ZenApplicationDiscoveryTest, DistinguishesImportAvailabilityReasons) {
-  EXPECT_EQ(GetZenImportAvailability({}),
-            ZenImportAvailability::kNotInstalled);
+  EXPECT_EQ(GetZenImportAvailability({}), ZenImportAvailability::kNotInstalled);
 
   ZenApplicationState installed;
   installed.bundle_path =
@@ -81,8 +86,9 @@ TEST(ZenApplicationDiscoveryTest, RejectsSimilarNamesAndStaleLockEvidence) {
   ASSERT_TRUE(
       base::WriteFile(temp_dir.GetPath().AppendASCII("parent.lock"), "stale"));
 
-  const ZenApplicationState state = InspectZenApplicationAt(
-      {applications}, {backup.AppendASCII("Contents/MacOS/zen")});
+  const ZenApplicationState state = InspectZenApplicationAtForTesting(
+      {applications}, {backup.AppendASCII("Contents/MacOS/zen")},
+      FixtureAuthenticator());
   EXPECT_FALSE(state.installed);
   EXPECT_FALSE(state.running);
   EXPECT_TRUE(state.bundle_path.empty());
@@ -101,7 +107,8 @@ TEST(ZenApplicationDiscoveryTest, RejectsSymlinkedBundle) {
   ASSERT_TRUE(base::CreateSymbolicLink(external_bundle,
                                        applications.AppendASCII("Zen.app")));
 
-  const ZenApplicationState state = InspectZenApplicationAt({applications}, {});
+  const ZenApplicationState state = InspectZenApplicationAtForTesting(
+      {applications}, {}, FixtureAuthenticator());
   EXPECT_FALSE(state.installed);
   EXPECT_TRUE(state.bundle_path.empty());
 }
@@ -119,16 +126,16 @@ TEST(ZenApplicationDiscoveryTest,
       CreateZenBundle(applications, "Zen Twilight.app");
   const base::FilePath external_info =
       temp_dir.GetPath().AppendASCII("ExternalInfo.plist");
-  ASSERT_TRUE(base::WriteFile(
-      external_info,
-      "<plist><dict><key>CFBundleIdentifier</key>"
-      "<string>app.zen-browser.zen</string></dict></plist>"));
-  ASSERT_TRUE(base::DeleteFile(
-      twilight.AppendASCII("Contents/Info.plist")));
+  ASSERT_TRUE(
+      base::WriteFile(external_info,
+                      "<plist><dict><key>CFBundleIdentifier</key>"
+                      "<string>app.zen-browser.zen</string></dict></plist>"));
+  ASSERT_TRUE(base::DeleteFile(twilight.AppendASCII("Contents/Info.plist")));
   ASSERT_TRUE(base::CreateSymbolicLink(
       external_info, twilight.AppendASCII("Contents/Info.plist")));
 
-  const ZenApplicationState state = InspectZenApplicationAt({applications}, {});
+  const ZenApplicationState state = InspectZenApplicationAtForTesting(
+      {applications}, {}, FixtureAuthenticator());
   EXPECT_FALSE(state.installed);
   EXPECT_TRUE(state.bundle_path.empty());
 }
@@ -149,20 +156,43 @@ TEST(ZenApplicationDiscoveryTest,
   const base::FilePath spoofed =
       CreateZenBundle(untrusted, "Zen Browser.app", "com.example.zen");
 
-  EXPECT_TRUE(IsZenBundleExecutablePath(
-      bundle.AppendASCII("Contents/MacOS/zen")));
-  EXPECT_TRUE(IsZenBundleExecutablePath(bundle.AppendASCII(
-      "Contents/Frameworks/Zen Helper.app/Contents/MacOS/Zen Helper")));
-  EXPECT_TRUE(IsZenBundleExecutablePath(
-      twilight.AppendASCII("Contents/MacOS/zen")));
-  EXPECT_FALSE(IsZenBundleExecutablePath(
-      spoofed.AppendASCII("Contents/MacOS/zen")));
-  EXPECT_FALSE(IsZenBundleExecutablePath(applications.AppendASCII(
-      "Zen Helper.app/Contents/MacOS/Zen Helper")));
-  EXPECT_FALSE(IsZenBundleExecutablePath(applications.AppendASCII(
-      "Zen.app.backup/Contents/MacOS/zen")));
-  EXPECT_FALSE(IsZenBundleExecutablePath(base::FilePath(
-      FILE_PATH_LITERAL("relative/Zen.app/Contents/MacOS/zen"))));
+  const ZenBundleAuthenticationCallback authenticator = FixtureAuthenticator();
+  EXPECT_TRUE(IsZenBundleExecutablePathForTesting(
+      bundle.AppendASCII("Contents/MacOS/zen"), authenticator));
+  EXPECT_TRUE(IsZenBundleExecutablePathForTesting(
+      bundle.AppendASCII(
+          "Contents/Frameworks/Zen Helper.app/Contents/MacOS/Zen Helper"),
+      authenticator));
+  EXPECT_TRUE(IsZenBundleExecutablePathForTesting(
+      twilight.AppendASCII("Contents/MacOS/zen"), authenticator));
+  EXPECT_FALSE(IsZenBundleExecutablePathForTesting(
+      spoofed.AppendASCII("Contents/MacOS/zen"), authenticator));
+  EXPECT_FALSE(IsZenBundleExecutablePathForTesting(
+      applications.AppendASCII("Zen Helper.app/Contents/MacOS/Zen Helper"),
+      authenticator));
+  EXPECT_FALSE(IsZenBundleExecutablePathForTesting(
+      applications.AppendASCII("Zen.app.backup/Contents/MacOS/zen"),
+      authenticator));
+  EXPECT_FALSE(IsZenBundleExecutablePathForTesting(
+      base::FilePath(FILE_PATH_LITERAL("relative/Zen.app/Contents/MacOS/zen")),
+      authenticator));
+}
+
+TEST(ZenApplicationDiscoveryTest,
+     ProductionAuthenticationRejectsUnsignedOfficialIdentityFixture) {
+  base::ScopedTempDir temp_dir;
+  ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
+  const base::FilePath applications =
+      temp_dir.GetPath().AppendASCII("Applications");
+  ASSERT_TRUE(base::CreateDirectory(applications));
+  const base::FilePath bundle = CreateZenBundle(applications, "Zen.app");
+
+  const ZenApplicationState state = InspectZenApplicationAt(
+      {applications}, {bundle.AppendASCII("Contents/MacOS/zen")});
+
+  EXPECT_FALSE(state.installed);
+  EXPECT_FALSE(state.running);
+  EXPECT_TRUE(state.bundle_path.empty());
 }
 
 }  // namespace

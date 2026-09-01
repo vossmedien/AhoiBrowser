@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/importer/arc/arc_split_receipt.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/strings/string_number_conversions.h"
 
@@ -61,16 +62,8 @@ bool WorkspacesEquivalentForIdempotence(const tab_tree::Workspace& first,
          WorkspacesEquivalentExceptName(first, second);
 }
 
-std::string RootSortPrefix(const tab_tree::TabTreeSnapshot& current,
-                           const base::Uuid& workspace_id) {
-  std::string last;
-  for (const tab_tree::TreeNode& node : current.nodes) {
-    if (node.workspace_id == workspace_id && !node.parent_id.has_value() &&
-        !node.tombstone && node.sort_key > last) {
-      last = node.sort_key;
-    }
-  }
-  return last.empty() ? std::string("@") : last + "@";
+std::string MergeRootSortPrefix(const base::Uuid& source_workspace_id) {
+  return "arc@" + source_workspace_id.AsLowercaseString() + "@";
 }
 
 bool ValidateSnapshot(const tab_tree::TabTreeSnapshot& snapshot) {
@@ -88,7 +81,8 @@ ArcImportMergeResult MergeArcImportPlan(
     ArcConflictResolution conflict_resolution) {
   ArcImportMergeResult result;
   if (import_plan.schema_version != kArcImportPlanSchemaVersion ||
-      !ValidateSnapshot(current) || !ValidateSnapshot(import_plan.tree)) {
+      !ValidateSnapshot(current) || !ValidateSnapshot(import_plan.tree) ||
+      !IsValidArcSplitStructure(import_plan)) {
     result.status = ArcImportStatus::kTransactionFailed;
     return result;
   }
@@ -97,6 +91,19 @@ ArcImportMergeResult MergeArcImportPlan(
   ArcImportPlan applied = import_plan;
   applied.tree = {};
   applied.splits.clear();
+  applied.degraded_split_folder_node_ids.clear();
+  applied.global_top_app_page_node_ids.clear();
+  // Parser statistics describe the source plan. Commit/preview result
+  // statistics must instead describe exactly what this merge would add.
+  applied.stats.imported_workspace_count = 0;
+  applied.stats.imported_folder_count = 0;
+  applied.stats.imported_page_count = 0;
+  applied.stats.imported_split_count = 0;
+  applied.stats.degraded_split_count = 0;
+  applied.stats.imported_global_top_app_count = 0;
+  applied.stats.deduplicated_workspace_count = 0;
+  applied.stats.deduplicated_item_count = 0;
+  applied.stats.deduplicated_split_count = 0;
 
   std::map<base::Uuid, tab_tree::Workspace> current_workspaces;
   std::map<base::Uuid, tab_tree::TreeNode> current_nodes;
@@ -134,6 +141,7 @@ ArcImportMergeResult MergeArcImportPlan(
         }
       }
       workspace_remap.emplace(workspace.id, workspace.id);
+      ++applied.stats.deduplicated_workspace_count;
       continue;
     }
 
@@ -164,10 +172,45 @@ ArcImportMergeResult MergeArcImportPlan(
     workspace_remap.emplace(workspace.id, workspace.id);
     merged.workspaces.push_back(workspace);
     applied.tree.workspaces.push_back(std::move(workspace));
+    ++applied.stats.imported_workspace_count;
     result.changed = true;
   }
 
-  std::map<base::Uuid, std::string> merge_sort_prefixes;
+  const std::set<base::Uuid> global_top_app_page_ids(
+      import_plan.global_top_app_page_node_ids.begin(),
+      import_plan.global_top_app_page_node_ids.end());
+  const std::set<base::Uuid> degraded_split_folder_ids(
+      import_plan.degraded_split_folder_node_ids.begin(),
+      import_plan.degraded_split_folder_node_ids.end());
+  std::map<base::Uuid, base::Uuid> source_node_workspaces;
+  for (const tab_tree::TreeNode& node : import_plan.tree.nodes) {
+    source_node_workspaces.emplace(node.id, node.workspace_id);
+    if ((global_top_app_page_ids.contains(node.id) &&
+         node.type != tab_tree::TreeNodeType::kSavedPage) ||
+        (degraded_split_folder_ids.contains(node.id) &&
+         node.type != tab_tree::TreeNodeType::kFolder)) {
+      result.status = ArcImportStatus::kTransactionFailed;
+      return result;
+    }
+  }
+  if (global_top_app_page_ids.size() !=
+          import_plan.global_top_app_page_node_ids.size() ||
+      degraded_split_folder_ids.size() !=
+          import_plan.degraded_split_folder_node_ids.size() ||
+      !std::ranges::all_of(global_top_app_page_ids,
+                           [&](const base::Uuid& id) {
+                             return source_node_workspaces.contains(id);
+                           }) ||
+      !std::ranges::all_of(degraded_split_folder_ids,
+                           [&](const base::Uuid& id) {
+                             return source_node_workspaces.contains(id);
+                           })) {
+    result.status = ArcImportStatus::kTransactionFailed;
+    return result;
+  }
+
+  std::map<base::Uuid, tab_tree::TreeNode> runtime_candidate_nodes;
+  std::set<base::Uuid> added_node_ids;
   for (tab_tree::TreeNode node : import_plan.tree.nodes) {
     if (skipped_source_workspaces.contains(node.workspace_id)) {
       continue;
@@ -181,11 +224,11 @@ ArcImportMergeResult MergeArcImportPlan(
     node.workspace_id = workspace_it->second;
     if (node.workspace_id != source_workspace_id &&
         !node.parent_id.has_value()) {
-      std::string& prefix = merge_sort_prefixes[node.workspace_id];
-      if (prefix.empty()) {
-        prefix = RootSortPrefix(current, node.workspace_id);
-      }
-      node.sort_key = prefix + node.sort_key;
+      node.sort_key = MergeRootSortPrefix(source_workspace_id) + node.sort_key;
+    }
+    if (!runtime_candidate_nodes.emplace(node.id, node).second) {
+      result.status = ArcImportStatus::kTransactionFailed;
+      return result;
     }
 
     const auto existing_it = current_nodes.find(node.id);
@@ -194,28 +237,79 @@ ArcImportMergeResult MergeArcImportPlan(
         result.status = ArcImportStatus::kConflict;
         return result;
       }
+      ++applied.stats.deduplicated_item_count;
       continue;
     }
+    if (node.type == tab_tree::TreeNodeType::kFolder) {
+      ++applied.stats.imported_folder_count;
+      if (degraded_split_folder_ids.contains(node.id)) {
+        applied.degraded_split_folder_node_ids.push_back(node.id);
+        ++applied.stats.degraded_split_count;
+      }
+    } else {
+      ++applied.stats.imported_page_count;
+      if (global_top_app_page_ids.contains(node.id)) {
+        applied.global_top_app_page_node_ids.push_back(node.id);
+        ++applied.stats.imported_global_top_app_count;
+      }
+    }
     merged.nodes.push_back(node);
+    added_node_ids.insert(node.id);
     applied.tree.nodes.push_back(std::move(node));
     result.changed = true;
   }
 
-  std::set<base::Uuid> applied_node_ids;
+  std::set<base::Uuid> runtime_node_ids;
   for (const tab_tree::TreeNode& node : applied.tree.nodes) {
-    applied_node_ids.insert(node.id);
+    runtime_node_ids.insert(node.id);
   }
   for (const ArcSplitDescriptor& split : import_plan.splits) {
-    if (!applied_node_ids.contains(split.folder_node_id)) {
-      continue;
-    }
-    if (!std::ranges::all_of(split.member_node_ids, [&](const base::Uuid& id) {
-          return applied_node_ids.contains(id);
-        })) {
+    const auto source_workspace =
+        source_node_workspaces.find(split.folder_node_id);
+    if (source_workspace == source_node_workspaces.end()) {
       result.status = ArcImportStatus::kTransactionFailed;
       return result;
     }
+    if (skipped_source_workspaces.contains(source_workspace->second)) {
+      continue;
+    }
+
+    bool split_changed = added_node_ids.contains(split.folder_node_id);
+    std::vector<base::Uuid> runtime_ids = {split.folder_node_id};
+    runtime_ids.insert(runtime_ids.end(), split.member_node_ids.begin(),
+                       split.member_node_ids.end());
+    for (const base::Uuid& id : runtime_ids) {
+      const auto node_it = runtime_candidate_nodes.find(id);
+      if (node_it == runtime_candidate_nodes.end()) {
+        result.status = ArcImportStatus::kTransactionFailed;
+        return result;
+      }
+      split_changed = split_changed || added_node_ids.contains(id);
+      if (runtime_node_ids.insert(id).second) {
+        applied.tree.nodes.push_back(node_it->second);
+      }
+    }
     applied.splits.push_back(split);
+    if (split_changed) {
+      ++applied.stats.imported_split_count;
+    } else {
+      ++applied.stats.deduplicated_split_count;
+    }
+  }
+
+  std::set<base::Uuid> runtime_workspace_ids;
+  for (const tab_tree::TreeNode& node : applied.tree.nodes) {
+    runtime_workspace_ids.insert(node.workspace_id);
+  }
+  std::set<base::Uuid> applied_workspace_ids;
+  for (const tab_tree::Workspace& workspace : applied.tree.workspaces) {
+    applied_workspace_ids.insert(workspace.id);
+  }
+  for (const tab_tree::Workspace& workspace : merged.workspaces) {
+    if (runtime_workspace_ids.contains(workspace.id) &&
+        applied_workspace_ids.insert(workspace.id).second) {
+      applied.tree.workspaces.push_back(workspace);
+    }
   }
 
   if (!result.changed) {

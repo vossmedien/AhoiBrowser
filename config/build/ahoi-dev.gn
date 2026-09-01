@@ -22,5 +22,6 @@ mac_min_system_version = "26.0"
 enable_compose = false
 enable_pdf_save_to_drive = false
 
-# Local security dogfood only. Release and full build profiles remain off.
+# Product feature: every supported AhoiBrowser desktop profile uses the same
+# pinned Classic identity and fail-closed authorization contract.
 enable_ahoi_ubo_classic = true

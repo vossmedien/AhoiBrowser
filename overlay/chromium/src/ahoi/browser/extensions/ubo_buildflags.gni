@@ -3,7 +3,7 @@
 
 declare_args() {
   # uBlock Origin Classic keeps a narrowly scoped MV2 exception and therefore
-  # remains compiled out of every build unless an explicit dogfood profile
-  # opts in. Release build profiles must leave this disabled.
-  enable_ahoi_ubo_classic = false
+  # ships in every supported AhoiBrowser desktop profile. Embedders may still
+  # explicitly opt out, which revokes stale authorization fail-closed.
+  enable_ahoi_ubo_classic = true
 }

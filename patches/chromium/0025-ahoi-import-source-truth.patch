@@ -1,0 +1,740 @@
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20126,7 +20126,26 @@
+     </message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR" desc="Generic fail-closed Arc import error." meaning="AhoiBrowser Arc import">
+       The import stopped safely without leaving a partial sidebar change. Try discovery again.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_NOT_INSTALLED" desc="Status shown when no authenticated Arc application is installed." meaning="AhoiBrowser Arc import">
++      Arc is not installed, so no Arc import source is shown.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_NO_SAFE_PROFILES" desc="Status shown when Arc is installed but no safe importable source exists." meaning="AhoiBrowser Arc import">
++      Arc is installed, but no safe importable profile was found.
+     </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SOURCE_CHANGED" desc="Fail-closed status shown when Arc data changed during discovery or backup." meaning="AhoiBrowser Arc import">
++      Arc data changed while the preview or backup was being created. Close Arc and try again.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_INSUFFICIENT_DISK_SPACE" desc="Status shown when the Arc safety backup cannot preserve the free-space reserve." meaning="AhoiBrowser Arc import">
++      There is not enough free disk space for the private safety backup.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_QUOTA_EXCEEDED" desc="Status shown when Arc backup size or file-count limits are exceeded." meaning="AhoiBrowser Arc import">
++      The Arc safety backup exceeds the bounded local backup quota.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_REQUIRED" desc="Fail-closed status shown when a previous Arc import requires manual recovery." meaning="AhoiBrowser Arc import">
++      A previous Arc import needs manual recovery before another import can start.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_SOURCE" desc="Instruction shown when Arc must be closed before importing." meaning="AhoiBrowser Arc import">Close Arc before importing</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE" desc="Instruction to close Arc before import discovery." meaning="AhoiBrowser Arc import">
+       Close Arc completely
+     </message>
+@@ -20142,6 +20161,7 @@
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SPLITS" desc="Arc preview valid split count label." meaning="AhoiBrowser Arc import">Split views</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_DEGRADATIONS" desc="Arc preview degraded split count label." meaning="AhoiBrowser Arc import">Splits kept as folders</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_EXCLUDED" desc="Arc preview excluded unsafe or unsupported item count label." meaning="AhoiBrowser Arc import">Excluded items</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_DEDUPLICATED" desc="Arc preview/result count label for items already present in AhoiBrowser." meaning="AhoiBrowser Arc import">Already present</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_TARGETS" desc="Heading for target Ahoi workspace names." meaning="AhoiBrowser Arc import">Target workspaces</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PROFILES" desc="Legend for selectable Arc Chromium profiles included in the safety backup." meaning="AhoiBrowser Arc import">Arc profiles to back up</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CATEGORIES" desc="Legend for selectable Arc import categories." meaning="AhoiBrowser Arc import">Import categories</message>
+@@ -20163,6 +20183,13 @@
+ 
+     <!-- AhoiBrowser Zen import availability -->
+     <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_CLOSE_SOURCE" desc="Instruction shown when Zen must be closed before its profile can be imported." meaning="AhoiBrowser Zen import">Close Zen before importing</message>
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_NOT_INSTALLED" desc="Status shown when no authenticated Zen application is installed." meaning="AhoiBrowser Zen import">Zen is not installed, so no Zen import source is shown.</message>
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_NO_SAFE_PROFILES" desc="Status shown when Zen is installed but no safe importable profile exists." meaning="AhoiBrowser Zen import">Zen is installed, but no safe importable profile was found.</message>
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_NOT_PRESENT" desc="Reason Zen workspace structure is unavailable when no session store exists." meaning="AhoiBrowser Zen import">No Zen workspace or session structure file was found for this profile.</message>
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_UNVERIFIED_MOZLZ4" desc="Reason detected Zen mozLz4 structure remains read-only." meaning="AhoiBrowser Zen import">Zen structure was detected read-only, but this build does not import its unverified mozLz4 schema.</message>
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_UNSUPPORTED_HEADER" desc="Reason Zen structure remains unavailable for an unsupported container header." meaning="AhoiBrowser Zen import">Zen structure uses an unsupported container header and remains excluded.</message>
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_UNSAFE_OR_OVERSIZED" desc="Reason Zen structure remains unavailable after a safety or size rejection." meaning="AhoiBrowser Zen import">Zen structure is unsafe or exceeds the read limit and remains excluded.</message>
++    <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_REVISION" desc="Label containing the validated upstream Zen revision." meaning="AhoiBrowser Zen import">Validated Zen revision: <ph name="REVISION">$1<ex>e89bd7796e2dcecaf0c483a795225ed9ec549bbd</ex></ph></message>
+ 
+     <!-- AhoiBrowser feature activation and discoverability -->
+     <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11198,6 +11198,21 @@
+ <translation id="8933186299020613227">Übersprungene Arbeitsbereiche:</translation>
+ <translation id="4082790717577320066">Annähernd übernommene Vier-Pane-Verhältnisse:</translation>
+ <translation id="6428146992608115427">Zen vor dem Import schließen</translation>
++<translation id="5940834464135426934">Arc ist nicht installiert; daher wird keine Arc-Importquelle angezeigt.</translation>
++<translation id="5530610212852828795">Arc ist installiert, aber es wurde kein sicher importierbares Profil gefunden.</translation>
++<translation id="8081497600249672429">Arc-Daten haben sich während der Vorschau oder Sicherung geändert. Beende Arc und versuche es erneut.</translation>
++<translation id="7427813879682332258">Für die private Sicherheitssicherung ist nicht genügend freier Speicherplatz vorhanden.</translation>
++<translation id="7042619094514733571">Die Arc-Sicherheitssicherung überschreitet das begrenzte lokale Sicherungskontingent.</translation>
++<translation id="1213277914961484584">Ein vorheriger Arc-Import muss manuell wiederhergestellt werden, bevor ein neuer Import beginnen kann.</translation>
++<translation id="4080630566148518376">Arc vor dem Import schließen</translation>
++<translation id="3045042910071747732">Bereits vorhanden</translation>
++<translation id="2172944817001062656">Zen ist nicht installiert; daher wird keine Zen-Importquelle angezeigt.</translation>
++<translation id="9008154659628539391">Zen ist installiert, aber es wurde kein sicher importierbares Profil gefunden.</translation>
++<translation id="5009258266201764990">Für dieses Profil wurde keine Zen-Arbeitsbereichs- oder Sitzungsstrukturdatei gefunden.</translation>
++<translation id="7165446433483472338">Die Zen-Struktur wurde schreibgeschützt erkannt, aber dieser Build importiert das ungeprüfte mozLz4-Schema nicht.</translation>
++<translation id="4189489113104988866">Die Zen-Struktur verwendet einen nicht unterstützten Container-Header und bleibt ausgeschlossen.</translation>
++<translation id="8692331121257558378">Die Zen-Struktur ist unsicher oder überschreitet das Leselimit und bleibt ausgeschlossen.</translation>
++<translation id="1117533002819714878">Validierte Zen-Revision: <ph name="REVISION"/></translation>
+ <translation id="6666862080270678315">Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen</translation>
+ <translation id="1323743597646662877">Geöffneter Tab</translation>
+ <translation id="5052185113772701312">Schlafender Tab</translation>
+--- a/chrome/browser/importer/importer_list.cc
++++ b/chrome/browser/importer/importer_list.cc
+@@ -22,6 +22,7 @@
+ #include "ui/base/l10n/l10n_util.h"
+ 
+ #if BUILDFLAG(IS_MAC)
++#include "ahoi/browser/importer/arc/arc_import_discovery.h"
+ #include "ahoi/browser/importer/zen/zen_profile_discovery.h"
+ #include "base/apple/foundation_util.h"
+ #include "chrome/common/importer/safari_importer_utils.h"
+@@ -76,6 +77,70 @@
+ #endif  // BUILDFLAG(IS_WIN)
+ 
+ #if BUILDFLAG(IS_MAC)
++ImporterSourceDiscoveryState ToDiscoveryState(
++    ahoi::importer::arc::ArcImportAvailability availability) {
++  switch (availability) {
++    case ahoi::importer::arc::ArcImportAvailability::kNotInstalled:
++      return ImporterSourceDiscoveryState::kNotInstalled;
++    case ahoi::importer::arc::ArcImportAvailability::kNoSafeProfiles:
++      return ImporterSourceDiscoveryState::kNoSafeProfiles;
++    case ahoi::importer::arc::ArcImportAvailability::kSourceRunning:
++      return ImporterSourceDiscoveryState::kSourceRunning;
++    case ahoi::importer::arc::ArcImportAvailability::kAvailable:
++      return ImporterSourceDiscoveryState::kAvailable;
++  }
++  return ImporterSourceDiscoveryState::kNotInstalled;
++}
++
++ImporterSourceDiscoveryState ToDiscoveryState(
++    ahoi::importer::zen::ZenImportAvailability availability) {
++  switch (availability) {
++    case ahoi::importer::zen::ZenImportAvailability::kNotInstalled:
++      return ImporterSourceDiscoveryState::kNotInstalled;
++    case ahoi::importer::zen::ZenImportAvailability::kNoSafeProfiles:
++      return ImporterSourceDiscoveryState::kNoSafeProfiles;
++    case ahoi::importer::zen::ZenImportAvailability::kSourceRunning:
++      return ImporterSourceDiscoveryState::kSourceRunning;
++    case ahoi::importer::zen::ZenImportAvailability::kAvailable:
++      return ImporterSourceDiscoveryState::kAvailable;
++  }
++  return ImporterSourceDiscoveryState::kNotInstalled;
++}
++
++void SetZenStructureMetadata(
++    ahoi::importer::zen::ZenStructureCapability source_capability,
++    ImporterSourceProfileMetadata* metadata) {
++  CHECK(metadata);
++  metadata->structure_revision =
++      ahoi::importer::zen::kValidatedZenUpstreamRevision;
++  switch (source_capability) {
++    case ahoi::importer::zen::ZenStructureCapability::kNotPresent:
++      metadata->structure_capability =
++          ImporterSourceStructureCapability::kUnavailable;
++      metadata->structure_disabled_reason =
++          ImporterSourceStructureDisabledReason::kNotPresent;
++      return;
++    case ahoi::importer::zen::ZenStructureCapability::kMozLz4Candidate:
++      metadata->structure_capability =
++          ImporterSourceStructureCapability::kDetectionOnly;
++      metadata->structure_disabled_reason =
++          ImporterSourceStructureDisabledReason::kUnverifiedMozLz4;
++      return;
++    case ahoi::importer::zen::ZenStructureCapability::kUnsupportedHeader:
++      metadata->structure_capability =
++          ImporterSourceStructureCapability::kUnavailable;
++      metadata->structure_disabled_reason =
++          ImporterSourceStructureDisabledReason::kUnsupportedHeader;
++      return;
++    case ahoi::importer::zen::ZenStructureCapability::kUnsafeOrOversized:
++      metadata->structure_capability =
++          ImporterSourceStructureCapability::kUnavailable;
++      metadata->structure_disabled_reason =
++          ImporterSourceStructureDisabledReason::kUnsafeOrOversized;
++      return;
++  }
++}
++
+ void DetectSafariProfiles(
+     std::vector<user_data_importer::SourceProfile>* profiles) {
+   base::ScopedBlockingCall scoped_blocking_call(FROM_HERE,
+@@ -195,10 +260,36 @@
+   detected_profiles.metadata.resize(profiles.size());
+   if (include_interactive_profiles) {
+ #if BUILDFLAG(IS_MAC)
++    const ahoi::importer::arc::ArcImportAvailability arc_availability =
++        ahoi::importer::arc::GetDefaultArcImportAvailability();
++    detected_profiles.arc_state = ToDiscoveryState(arc_availability);
++    if (arc_availability ==
++            ahoi::importer::arc::ArcImportAvailability::kAvailable ||
++        arc_availability ==
++            ahoi::importer::arc::ArcImportAvailability::kSourceRunning) {
++      user_data_importer::SourceProfile arc_profile;
++      arc_profile.importer_name = u"Arc";
++      arc_profile.importer_type = user_data_importer::TYPE_UNKNOWN;
++      arc_profile.services_supported = user_data_importer::FAVORITES;
++      arc_profile.locale = locale;
++      profiles.push_back(std::move(arc_profile));
++      detected_profiles.metadata.resize(profiles.size());
++      ImporterSourceProfileMetadata& arc_metadata =
++          detected_profiles.metadata.back();
++      arc_metadata.kind = ImporterSourceProfileKind::kArc;
++      if (arc_availability ==
++          ahoi::importer::arc::ArcImportAvailability::kSourceRunning) {
++        arc_metadata.disabled_reason =
++            ImporterSourceProfileDisabledReason::kSourceRunning;
++      }
++    }
++
+     const size_t first_zen_profile = profiles.size();
+-    const ahoi::importer::zen::ZenImportAvailability zen_availability =
+-        ahoi::importer::zen::AppendZenSourceProfiles(locale, &profiles);
+-    if (zen_availability ==
++    const ahoi::importer::zen::ZenSourceProfilesResult zen_result =
++        ahoi::importer::zen::AppendZenSourceProfilesWithMetadata(locale,
++                                                                 &profiles);
++    detected_profiles.zen_state = ToDiscoveryState(zen_result.availability);
++    if (zen_result.availability ==
+         ahoi::importer::zen::ZenImportAvailability::kSourceRunning) {
+       user_data_importer::SourceProfile zen_profile;
+       zen_profile.importer_name = u"Zen";
+@@ -208,13 +299,24 @@
+       profiles.push_back(std::move(zen_profile));
+     }
+     detected_profiles.metadata.resize(profiles.size());
++    if (zen_result.availability ==
++        ahoi::importer::zen::ZenImportAvailability::kAvailable) {
++      CHECK_EQ(zen_result.metadata.size(), profiles.size() - first_zen_profile);
++    } else {
++      CHECK(zen_result.metadata.empty());
++    }
+     for (size_t index = first_zen_profile; index < profiles.size(); ++index) {
+-      detected_profiles.metadata[index].kind =
+-          ImporterSourceProfileKind::kZen;
+-      if (zen_availability ==
++      ImporterSourceProfileMetadata& zen_metadata =
++          detected_profiles.metadata[index];
++      zen_metadata.kind = ImporterSourceProfileKind::kZen;
++      if (zen_result.availability ==
+           ahoi::importer::zen::ZenImportAvailability::kSourceRunning) {
+-        detected_profiles.metadata[index].disabled_reason =
++        zen_metadata.disabled_reason =
+             ImporterSourceProfileDisabledReason::kSourceRunning;
++      } else {
++        SetZenStructureMetadata(
++            zen_result.metadata[index - first_zen_profile].structure_capability,
++            &zen_metadata);
+       }
+     }
+ #endif
+@@ -282,5 +384,7 @@
+ 
+   source_profiles_ = std::move(profiles.profiles);
+   source_profile_metadata_ = std::move(profiles.metadata);
++  arc_state_ = profiles.arc_state;
++  zen_state_ = profiles.zen_state;
+   std::move(profiles_loaded_callback).Run();
+ }
+--- a/chrome/browser/importer/importer_list.h
++++ b/chrome/browser/importer/importer_list.h
+@@ -17,6 +17,7 @@
+ 
+ enum class ImporterSourceProfileKind {
+   kStandard,
++  kArc,
+   kZen,
+ };
+ 
+@@ -25,10 +26,36 @@
+   kSourceRunning,
+ };
+ 
++enum class ImporterSourceDiscoveryState {
++  kNotInstalled,
++  kNoSafeProfiles,
++  kSourceRunning,
++  kAvailable,
++};
++
++enum class ImporterSourceStructureCapability {
++  kNotApplicable,
++  kUnavailable,
++  kDetectionOnly,
++};
++
++enum class ImporterSourceStructureDisabledReason {
++  kNone,
++  kNotPresent,
++  kUnverifiedMozLz4,
++  kUnsupportedHeader,
++  kUnsafeOrOversized,
++};
++
+ struct ImporterSourceProfileMetadata {
+   ImporterSourceProfileKind kind = ImporterSourceProfileKind::kStandard;
+   ImporterSourceProfileDisabledReason disabled_reason =
+       ImporterSourceProfileDisabledReason::kNone;
++  ImporterSourceStructureCapability structure_capability =
++      ImporterSourceStructureCapability::kNotApplicable;
++  ImporterSourceStructureDisabledReason structure_disabled_reason =
++      ImporterSourceStructureDisabledReason::kNone;
++  std::string structure_revision;
+ };
+ 
+ // Keeps embedder-owned source metadata index-aligned with Chromium's source
+@@ -36,6 +63,10 @@
+ struct DetectedImporterSourceProfiles {
+   std::vector<user_data_importer::SourceProfile> profiles;
+   std::vector<ImporterSourceProfileMetadata> metadata;
++  ImporterSourceDiscoveryState arc_state =
++      ImporterSourceDiscoveryState::kNotInstalled;
++  ImporterSourceDiscoveryState zen_state =
++      ImporterSourceDiscoveryState::kNotInstalled;
+ };
+ 
+ // ImporterList detects installed browsers and profiles via
+@@ -78,6 +109,9 @@
+   // if a renderer sends a forged import request for its index.
+   bool IsSourceProfileAvailable(size_t index) const;
+ 
++  ImporterSourceDiscoveryState arc_state() const { return arc_state_; }
++  ImporterSourceDiscoveryState zen_state() const { return zen_state_; }
++
+  private:
+   // Called when source profiles and their index-aligned metadata are loaded.
+   void SourceProfilesLoaded(
+@@ -87,6 +121,10 @@
+   // The list of profiles with the default one first.
+   std::vector<user_data_importer::SourceProfile> source_profiles_;
+   std::vector<ImporterSourceProfileMetadata> source_profile_metadata_;
++  ImporterSourceDiscoveryState arc_state_ =
++      ImporterSourceDiscoveryState::kNotInstalled;
++  ImporterSourceDiscoveryState zen_state_ =
++      ImporterSourceDiscoveryState::kNotInstalled;
+ 
+   SEQUENCE_CHECKER(sequence_checker_);
+ 
+--- a/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
+@@ -11,7 +11,19 @@
+  * The structure of this data must be kept in sync with C++ ImportDataHandler.
+  */
+ export type ImportSourceDisabledReason = ''|'sourceRunning';
++export type ImportSourceDiscoveryState =
++    'notInstalled'|'noSafeProfiles'|'sourceRunning'|'available';
++export type ImportSourceStructureCapability =
++    'notApplicable'|'unavailable'|'detectionOnly';
++export type ImportSourceStructureDisabledReason =
++    ''|'notPresent'|'unverifiedMozLz4'|'unsupportedHeader'|
++    'unsafeOrOversized';
+ 
++export interface ImportSourceStates {
++  arc: ImportSourceDiscoveryState;
++  zen: ImportSourceDiscoveryState;
++}
++
+ export interface BrowserProfile {
+   name: string;
+   index: number;
+@@ -25,6 +37,9 @@
+   present?: boolean;
+   available?: boolean;
+   disabledReason?: ImportSourceDisabledReason;
++  structureCapability?: ImportSourceStructureCapability;
++  structureDisabledReason?: ImportSourceStructureDisabledReason;
++  structureRevision?: string;
+ }
+ 
+ /**
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.html
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html
+@@ -25,6 +25,11 @@
+         color: var(--cr-secondary-text-color);
+       }
+ 
++      #sourceDiscoveryStatus,
++      #zenStructureStatus {
++        color: var(--cr-secondary-text-color);
++      }
++
+     </style>
+     <cr-dialog id="dialog" close-text="$i18n{close}"
+         ignore-popstate>
+@@ -44,6 +49,11 @@
+ 
+         <div hidden$="[[hasImportStatus_(
+               importStatusEnum_.SUCCEEDED, importStatus_)]]">
++          <div id="sourceDiscoveryStatus" class="description" role="status"
++              aria-live="polite"
++              hidden$="[[!hasSourceDiscoveryStatus_(sourceStates_)]]">
++            [[getSourceDiscoveryStatus_(sourceStates_)]]
++          </div>
+           <select id="browserSelect" class="md-select"
+               aria-label="$i18n{importFromLabel}"
+               disabled$="[[arcImportBusy_]]"
+@@ -51,16 +61,21 @@
+             <template is="dom-repeat" items="[[browserProfiles_]]">
+               <option value="[[item.index]]"
+                   disabled$="[[isSourceUnavailable_(item.available)]]">
+-                [[getProfileDisplayName_(item.name, item.profileName,
+-                    item.disabledReason)]]
++                [[getProfileDisplayName_(item)]]
+               </option>
+             </template>
+           </select>
+           <div id="sourceDisabledReason" class="description" role="status"
+               aria-live="polite"
+               hidden$="[[!isSourceUnavailable_(selected_.available)]]">
+-            [[getSourceDisabledReason_(selected_.disabledReason)]]
++            [[getSourceDisabledReason_(selected_.ahoiImportKind,
++                selected_.disabledReason)]]
+           </div>
++          <div id="zenStructureStatus" class="description" role="status"
++              aria-live="polite"
++              hidden$="[[!hasZenStructureStatus_(selected_)]]">
++            [[getZenStructureStatus_(selected_)]]
++          </div>
+           <div hidden$="[[shouldHideStandardCategories_(
+               arcImportSelected_, selected_.available)]]">
+             <div class="description">$i18n{importDescription}</div>
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
+@@ -32,6 +32,9 @@
+   BrowserProfile,
+   ImportDataBrowserProxy,
+   ImportSourceDisabledReason,
++  ImportSourceDiscoveryState,
++  ImportSourceStates,
++  ImportSourceStructureDisabledReason,
+ } from './import_data_browser_proxy.js';
+ import {ImportDataBrowserProxyImpl, ImportDataStatus} from './import_data_browser_proxy.js';
+ import {getTemplate} from './import_data_dialog.html.js';
+@@ -107,6 +110,14 @@
+         value: false,
+       },
+ 
++      sourceStates_: {
++        type: Object,
++        value: () => ({
++          arc: 'notInstalled',
++          zen: 'notInstalled',
++        }),
++      },
++
+     };
+   }
+ 
+@@ -117,6 +128,7 @@
+   declare private arcImportSelected_: boolean;
+   declare private arcImportBusy_: boolean;
+   declare private arcImportComplete_: boolean;
++  declare private sourceStates_: ImportSourceStates;
+   private browserProxy_: ImportDataBrowserProxy =
+       ImportDataBrowserProxyImpl.getInstance();
+ 
+@@ -129,6 +141,19 @@
+   override connectedCallback() {
+     super.connectedCallback();
+ 
++    this.addWebUiListener(
++        'ahoi-import-source-states-changed',
++        (sourceStates: ImportSourceStates) => {
++          this.sourceStates_ = sourceStates;
++        });
++    this.addWebUiListener(
++        'import-data-status-changed', (importStatus: ImportDataStatus) => {
++          this.importStatus_ = importStatus;
++          if (this.hasImportStatus_(ImportDataStatus.FAILED)) {
++            this.closeDialog_();
++          }
++        });
++
+     this.browserProxy_.initializeImportDialog().then(data => {
+       if (!this.isConnected) {
+         // Element was disconnected while waiting for the backend call to
+@@ -136,13 +161,7 @@
+         return;
+       }
+ 
+-      const browserProfiles = data.slice();
+-      // <if expr="is_macosx">
+-      browserProfiles.splice(
+-          Math.max(0, browserProfiles.length - 1), 0,
+-          this.createArcBrowserProfile_());
+-      // </if>
+-      this.browserProfiles_ = browserProfiles;
++      this.browserProfiles_ = data;
+       this.selected_ = this.browserProfiles_[0];
+       this.arcImportSelected_ = this.isArcImportSelected_();
+ 
+@@ -150,54 +169,85 @@
+       // to avoid UI flicker.
+       this.$.dialog.showModal();
+     });
+-
+-    this.addWebUiListener(
+-        'import-data-status-changed', (importStatus: ImportDataStatus) => {
+-          this.importStatus_ = importStatus;
+-          if (this.hasImportStatus_(ImportDataStatus.FAILED)) {
+-            this.closeDialog_();
+-          }
+-        });
+   }
+ 
+-  private getProfileDisplayName_(
+-      name: string, profileName: string,
+-      disabledReason?: ImportSourceDisabledReason): string {
+-    const profileDisplayName = profileName ? `${name} - ${profileName}` : name;
+-    const reason = this.getSourceDisabledReason_(disabledReason);
++  private getProfileDisplayName_(profile: BrowserProfile): string {
++    const profileDisplayName = profile.profileName ?
++        `${profile.name} - ${profile.profileName}` :
++        profile.name;
++    const reason = this.getSourceDisabledReason_(
++        profile.ahoiImportKind, profile.disabledReason);
+     return reason ? `${profileDisplayName} — ${reason}` : profileDisplayName;
+   }
+ 
+   private getSourceDisabledReason_(
++      kind?: 'arc'|'zen',
+       disabledReason?: ImportSourceDisabledReason): string {
+-    return disabledReason === 'sourceRunning' ?
+-        this.i18n('ahoiZenImportCloseSource') :
+-        '';
++    if (disabledReason !== 'sourceRunning') {
++      return '';
++    }
++    return this.i18n(
++        kind === 'arc' ? 'ahoiArcImportCloseSource' :
++                         'ahoiZenImportCloseSource');
+   }
+ 
+-  private isSourceUnavailable_(available?: boolean): boolean {
+-    return available === false;
++  private getDiscoveryStateText_(
++      source: 'arc'|'zen', state: ImportSourceDiscoveryState): string {
++    if (state === 'available') {
++      return '';
++    }
++    const keys = source === 'arc' ?
++        {
++          noSafeProfiles: 'ahoiArcImportNoSafeProfiles',
++          notInstalled: 'ahoiArcImportNotInstalled',
++          sourceRunning: 'ahoiArcImportCloseSource',
++        } :
++        {
++          noSafeProfiles: 'ahoiZenImportNoSafeProfiles',
++          notInstalled: 'ahoiZenImportNotInstalled',
++          sourceRunning: 'ahoiZenImportCloseSource',
++        };
++    return this.i18n(keys[state]);
+   }
+ 
+-  // <if expr="is_macosx">
+-  private createArcBrowserProfile_(): BrowserProfile {
+-    return {
+-      ahoiImportKind: 'arc',
+-      available: true,
+-      autofillFormData: false,
+-      disabledReason: '',
+-      favorites: true,
+-      history: false,
+-      index: -1,
+-      name: this.i18n('ahoiArcImportSection'),
+-      passwords: false,
+-      present: true,
+-      profileName: '',
+-      search: false,
++  private getSourceDiscoveryStatus_(states: ImportSourceStates): string {
++    return [
++      this.getDiscoveryStateText_('arc', states.arc),
++      this.getDiscoveryStateText_('zen', states.zen),
++    ].filter(Boolean).join(' ');
++  }
++
++  private hasSourceDiscoveryStatus_(states: ImportSourceStates): boolean {
++    return !!this.getSourceDiscoveryStatus_(states);
++  }
++
++  private getZenStructureStatus_(profile: BrowserProfile): string {
++    if (profile?.ahoiImportKind !== 'zen' ||
++        !profile.structureDisabledReason) {
++      return '';
++    }
++    const keys: Record<Exclude<ImportSourceStructureDisabledReason, ''>,
++                       string> = {
++      notPresent: 'ahoiZenImportStructureNotPresent',
++      unverifiedMozLz4: 'ahoiZenImportStructureUnverifiedMozLz4',
++      unsupportedHeader: 'ahoiZenImportStructureUnsupportedHeader',
++      unsafeOrOversized: 'ahoiZenImportStructureUnsafeOrOversized',
+     };
++    const reason = this.i18n(keys[profile.structureDisabledReason]);
++    return profile.structureRevision ?
++        `${reason} ${this.i18n(
++            'ahoiZenImportStructureRevision', profile.structureRevision)}` :
++        reason;
+   }
+-  // </if>
+ 
++  private hasZenStructureStatus_(profile: BrowserProfile): boolean {
++    return !!this.getZenStructureStatus_(profile);
++  }
++
++  private isSourceUnavailable_(available?: boolean): boolean {
++    return available === false;
++  }
++
+   private updateImportDataTypesSelected_() {
+     const checkboxes =
+         this.shadowRoot!.querySelectorAll<SettingsCheckboxElement>(
+--- a/chrome/browser/ui/webui/settings/import_data_handler.cc
++++ b/chrome/browser/ui/webui/settings/import_data_handler.cc
+@@ -41,8 +41,53 @@
+ const char kImportStatusInProgress[] = "inProgress";
+ const char kImportStatusSucceeded[] = "succeeded";
+ const char kImportStatusFailed[] = "failed";
++const char kAhoiImportKindArc[] = "arc";
+ const char kAhoiImportKindZen[] = "zen";
+ const char kDisabledReasonSourceRunning[] = "sourceRunning";
++
++const char* DiscoveryStateName(ImporterSourceDiscoveryState state) {
++  switch (state) {
++    case ImporterSourceDiscoveryState::kNotInstalled:
++      return "notInstalled";
++    case ImporterSourceDiscoveryState::kNoSafeProfiles:
++      return "noSafeProfiles";
++    case ImporterSourceDiscoveryState::kSourceRunning:
++      return "sourceRunning";
++    case ImporterSourceDiscoveryState::kAvailable:
++      return "available";
++  }
++  return "notInstalled";
++}
++
++const char* StructureCapabilityName(
++    ImporterSourceStructureCapability capability) {
++  switch (capability) {
++    case ImporterSourceStructureCapability::kNotApplicable:
++      return "notApplicable";
++    case ImporterSourceStructureCapability::kUnavailable:
++      return "unavailable";
++    case ImporterSourceStructureCapability::kDetectionOnly:
++      return "detectionOnly";
++  }
++  return "notApplicable";
++}
++
++const char* StructureDisabledReasonName(
++    ImporterSourceStructureDisabledReason reason) {
++  switch (reason) {
++    case ImporterSourceStructureDisabledReason::kNone:
++      return "";
++    case ImporterSourceStructureDisabledReason::kNotPresent:
++      return "notPresent";
++    case ImporterSourceStructureDisabledReason::kUnverifiedMozLz4:
++      return "unverifiedMozLz4";
++    case ImporterSourceStructureDisabledReason::kUnsupportedHeader:
++      return "unsupportedHeader";
++    case ImporterSourceStructureDisabledReason::kUnsafeOrOversized:
++      return "unsafeOrOversized";
++  }
++  return "";
++}
+ }  // namespace
+ 
+ ImportDataHandler::ImportDataHandler() : importer_host_(nullptr) {
+@@ -134,6 +179,11 @@
+     LOG(WARNING) << "Rejected import request for a disabled source profile.";
+     return;
+   }
++  if (importer_list_->GetSourceProfileMetadataAt(browser_index).kind ==
++      ImporterSourceProfileKind::kArc) {
++    LOG(WARNING) << "Rejected standard import request for the Arc source.";
++    return;
++  }
+ 
+   const base::Value& types = list[1];
+   CHECK(types.is_dict());
+@@ -235,8 +285,22 @@
+                 ImporterSourceProfileDisabledReason::kSourceRunning
+             ? kDisabledReasonSourceRunning
+             : "");
++    if (source_metadata.kind != ImporterSourceProfileKind::kStandard) {
++      browser_profile.Set(
++          "ahoiImportKind",
++          source_metadata.kind == ImporterSourceProfileKind::kArc
++              ? kAhoiImportKindArc
++              : kAhoiImportKindZen);
++    }
+     if (source_metadata.kind == ImporterSourceProfileKind::kZen) {
+-      browser_profile.Set("ahoiImportKind", kAhoiImportKindZen);
++      browser_profile.Set(
++          "structureCapability",
++          StructureCapabilityName(source_metadata.structure_capability));
++      browser_profile.Set("structureDisabledReason",
++                          StructureDisabledReasonName(
++                              source_metadata.structure_disabled_reason));
++      browser_profile.Set("structureRevision",
++                          source_metadata.structure_revision);
+     }
+     browser_profile.Set("history",
+                         (browser_services & user_data_importer::HISTORY) != 0);
+@@ -253,6 +317,12 @@
+     browser_profiles.Append(std::move(browser_profile));
+   }
+ 
++  base::DictValue source_states;
++  source_states.Set("arc", DiscoveryStateName(importer_list_->arc_state()));
++  source_states.Set("zen", DiscoveryStateName(importer_list_->zen_state()));
++  FireWebUIListener("ahoi-import-source-states-changed",
++                    base::Value(std::move(source_states)));
++
+   ResolveJavascriptCallback(base::Value(callback_id), browser_profiles);
+ }
+ 
+--- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
++++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+@@ -628,6 +628,19 @@
+       {"ahoiArcImportNoChanges", IDS_SETTINGS_AHOI_ARC_IMPORT_NO_CHANGES},
+       {"ahoiArcImportSuccess", IDS_SETTINGS_AHOI_ARC_IMPORT_SUCCESS},
+       {"ahoiArcImportError", IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR},
++      {"ahoiArcImportNotFound", IDS_SETTINGS_AHOI_ARC_IMPORT_NOT_INSTALLED},
++      {"ahoiArcImportNotInstalled", IDS_SETTINGS_AHOI_ARC_IMPORT_NOT_INSTALLED},
++      {"ahoiArcImportNoSafeProfiles",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_NO_SAFE_PROFILES},
++      {"ahoiArcImportSourceChanged",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_SOURCE_CHANGED},
++      {"ahoiArcImportInsufficientDiskSpace",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_INSUFFICIENT_DISK_SPACE},
++      {"ahoiArcImportBackupQuotaExceeded",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_QUOTA_EXCEEDED},
++      {"ahoiArcImportRecoveryRequired",
++       IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_REQUIRED},
++      {"ahoiArcImportCloseSource", IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_SOURCE},
+       {"ahoiArcImportCloseArcTitle",
+        IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE},
+       {"ahoiArcImportCloseArcSublabel",
+@@ -639,6 +652,7 @@
+       {"ahoiArcImportSplits", IDS_SETTINGS_AHOI_ARC_IMPORT_SPLITS},
+       {"ahoiArcImportDegradations", IDS_SETTINGS_AHOI_ARC_IMPORT_DEGRADATIONS},
+       {"ahoiArcImportExcluded", IDS_SETTINGS_AHOI_ARC_IMPORT_EXCLUDED},
++      {"ahoiArcImportDeduplicated", IDS_SETTINGS_AHOI_ARC_IMPORT_DEDUPLICATED},
+       {"ahoiArcImportTargets", IDS_SETTINGS_AHOI_ARC_IMPORT_TARGETS},
+       {"ahoiArcImportProfiles", IDS_SETTINGS_AHOI_ARC_IMPORT_PROFILES},
+       {"ahoiArcImportCategories", IDS_SETTINGS_AHOI_ARC_IMPORT_CATEGORIES},
+@@ -669,6 +683,19 @@
+        IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE},
+       {"ahoiZenImportCloseSource",
+        IDS_SETTINGS_AHOI_ZEN_IMPORT_CLOSE_SOURCE},
++      {"ahoiZenImportNotInstalled", IDS_SETTINGS_AHOI_ZEN_IMPORT_NOT_INSTALLED},
++      {"ahoiZenImportNoSafeProfiles",
++       IDS_SETTINGS_AHOI_ZEN_IMPORT_NO_SAFE_PROFILES},
++      {"ahoiZenImportStructureNotPresent",
++       IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_NOT_PRESENT},
++      {"ahoiZenImportStructureUnverifiedMozLz4",
++       IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_UNVERIFIED_MOZLZ4},
++      {"ahoiZenImportStructureUnsupportedHeader",
++       IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_UNSUPPORTED_HEADER},
++      {"ahoiZenImportStructureUnsafeOrOversized",
++       IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_UNSAFE_OR_OVERSIZED},
++      {"ahoiZenImportStructureRevision",
++       IDS_SETTINGS_AHOI_ZEN_IMPORT_STRUCTURE_REVISION},
+       {"ahoiFeatures", IDS_SETTINGS_AHOI_FEATURES},
+       {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
+       {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},

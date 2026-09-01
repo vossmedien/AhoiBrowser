@@ -22,6 +22,10 @@ source_set("arc_import") {
     "//url",
   ]
   deps = [ "//crypto" ]
+  frameworks = [
+    "CoreFoundation.framework",
+    "Security.framework",
+  ]
 }
 
 source_set("service") {
@@ -103,6 +107,7 @@ source_set("unit_tests") {
     "arc_import_tree_fingerprint_unittest.cc",
     "arc_import_unittest.cc",
     "arc_split_receipt_unittest.cc",
+    "arc_split_runtime_unittest.cc",
   ]
   deps = [
     ":arc_import",

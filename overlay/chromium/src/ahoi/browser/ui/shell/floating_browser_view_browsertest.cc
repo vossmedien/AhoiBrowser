@@ -8,12 +8,16 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/appearance/appearance_prefs.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/memory/weak_ptr.h"
 #include "base/test/run_until.h"
+#include "base/time/time.h"
 #include "build/build_config.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
@@ -53,6 +57,7 @@
 #include "ui/views/view_class_properties.h"
 #include "ui/views/widget/drop_helper.h"
 #include "ui/views/widget/widget.h"
+#include "url/gurl.h"
 
 namespace {
 
@@ -124,6 +129,21 @@ void CollectProjectedOpenTabs(views::View* root,
   }
 }
 
+ahoi::sidebar::SidebarTreeView* FindSidebarTreeView(views::View* root) {
+  if (!root) {
+    return nullptr;
+  }
+  if (auto* tree = views::AsViewClass<ahoi::sidebar::SidebarTreeView>(root)) {
+    return tree;
+  }
+  for (views::View* const child : root->children()) {
+    if (auto* tree = FindSidebarTreeView(child)) {
+      return tree;
+    }
+  }
+  return nullptr;
+}
+
 }  // namespace
 
 class VerticalTabStripRegionViewTest
@@ -160,9 +180,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
     }
     std::set<tabs::TabInterface*> projected_tabs;
     CollectProjectedOpenTabs(current_sidebar, &projected_tabs);
-    return projected_tabs.empty() &&
-           browser_view.multi_contents_view()
-               ->IsAhoiEmptyStateVisibleForTesting();
+    return projected_tabs.empty() && browser_view.multi_contents_view()
+                                         ->IsAhoiEmptyStateVisibleForTesting();
   }));
 
   chrome::NewSplitTab(browser(), split_tabs::SplitTabLayout::kSideBySide,
@@ -189,13 +208,12 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
     CollectProjectedOpenTabs(current_sidebar, &projected_tabs);
     return browser_view.multi_contents_view()->IsInSplitView() &&
            browser_view.multi_contents_view()->GetVisiblePaneCount() == 2u &&
-           projected_tabs.size() == 2u &&
-           projected_tabs.contains(first_tab) &&
+           projected_tabs.size() == 2u && projected_tabs.contains(first_tab) &&
            projected_tabs.contains(second_tab);
   }));
   EXPECT_EQ(sidebar, region_view()->ahoi_sidebar_tree_view());
-  EXPECT_FALSE(browser_view.multi_contents_view()
-                   ->IsAhoiEmptyStateVisibleForTesting());
+  EXPECT_FALSE(
+      browser_view.multi_contents_view()->IsAhoiEmptyStateVisibleForTesting());
 }
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
@@ -572,6 +590,85 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   EXPECT_FLOAT_EQ(1.0f, region_view()->layer()->opacity());
   EXPECT_TRUE(region_view()->layer()->transform().IsIdentity());
   EXPECT_TRUE(region_view()->GetCanProcessEventsWithinSubtree());
+}
+
+IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
+                       AhoiSidebarRevealRebindsHiddenTreeMutations) {
+  gfx::ScopedAnimationDurationScaleMode duration_mode(
+      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+  [[maybe_unused]] const auto render_mode =
+      gfx::AnimationTestApi::SetRichAnimationRenderMode(
+          gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
+
+  BrowserView& browser_view = browser()->GetBrowserView();
+  views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
+  ASSERT_TRUE(sidebar);
+  auto* const tree = FindSidebarTreeView(sidebar);
+  ASSERT_TRUE(tree);
+  ahoi::SessionBridge* const bridge =
+      ahoi::SessionBridgeFactory::GetForProfile(browser()->GetProfile());
+  ASSERT_TRUE(bridge);
+  ASSERT_TRUE(bridge->tab_tree_store());
+  tabs::TabInterface* const active_tab =
+      browser()->tab_strip_model()->GetActiveTab();
+  ASSERT_TRUE(active_tab);
+  const std::optional<base::Uuid> saved_id =
+      bridge->SaveTabAtWorkspaceRoot(browser(), active_tab);
+  ASSERT_TRUE(saved_id.has_value());
+
+  browser_view.DeprecatedLayoutImmediately();
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return tree->GetMaterializedRowForTesting(*saved_id) != nullptr;
+  }));
+  const gfx::Rect settled_bounds = sidebar->bounds();
+  ASSERT_FALSE(settled_bounds.IsEmpty());
+
+  region_view()->SetAhoiSidebarPresentationMode(
+      ahoi::sidebar::SidebarPresentationMode::kHidden);
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return !region_view()->IsAhoiSidebarPresentationAnimating() &&
+           region_view()->GetAhoiSidebarVisibilityFractionForLayout() == 0.0 &&
+           !sidebar->GetVisible();
+  }));
+
+  ahoi::tab_tree::TreeNode saved;
+  ASSERT_EQ(ahoi::tab_tree::TabTreeStore::Result::kOk,
+            bridge->tab_tree_store()->GetNode(*saved_id, &saved));
+  const base::Time now = base::Time::Now();
+  ASSERT_EQ(ahoi::tab_tree::TabTreeStore::Result::kOk,
+            bridge->tab_tree_store()->RenameNode(*saved_id,
+                                                 u"Renamed while hidden", now));
+  const ahoi::tab_tree::TreeNode inserted{
+      .id = base::Uuid::GenerateRandomV4(),
+      .workspace_id = saved.workspace_id,
+      .type = ahoi::tab_tree::TreeNodeType::kSavedPage,
+      .title = u"Inserted while hidden",
+      .url = GURL("https://example.test/inserted-while-hidden"),
+      .sort_key = saved.sort_key + '@',
+      .created_at = now,
+      .modified_at = now,
+  };
+  ASSERT_EQ(ahoi::tab_tree::TabTreeStore::Result::kOk,
+            bridge->tab_tree_store()->CreateNode(inserted));
+
+  region_view()->SetAhoiSidebarPresentationMode(
+      ahoi::sidebar::SidebarPresentationMode::kDocked);
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    if (region_view()->IsAhoiSidebarPresentationAnimating() ||
+        region_view()->GetAhoiSidebarVisibilityFractionForLayout() != 1.0 ||
+        !sidebar->GetVisible() || !sidebar->layer() ||
+        !sidebar->layer()->transform().IsIdentity() ||
+        sidebar->layer()->opacity() != 1.0f) {
+      return false;
+    }
+    auto* const rebound_saved = tree->GetMaterializedRowForTesting(*saved_id);
+    auto* const rebound_inserted =
+        tree->GetMaterializedRowForTesting(inserted.id);
+    return rebound_saved && rebound_inserted &&
+           rebound_saved->title() == u"Renamed while hidden" &&
+           rebound_inserted->title() == u"Inserted while hidden";
+  }));
+  EXPECT_EQ(settled_bounds, sidebar->bounds());
 }
 
 class LocationBarViewBrowserTest : public InProcessBrowserTest {

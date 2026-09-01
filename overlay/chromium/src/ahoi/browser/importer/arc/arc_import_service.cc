@@ -179,12 +179,19 @@ void ArcImportService::OnDiscoveryComplete(uint64_t generation,
   }
   const ArcImportMergeResult idempotence =
       MergeArcImportPlan(current, *result.plan, ArcConflictResolution::kRename);
+  if (idempotence.status != ArcImportStatus::kOk &&
+      idempotence.status != ArcImportStatus::kNoChanges) {
+    preview.status = idempotence.status;
+    std::move(callback).Run(std::move(preview));
+    return;
+  }
   preview.already_imported =
       result.committed &&
       result.committed->snapshot_hash == result.snapshot_token &&
       idempotence.status == ArcImportStatus::kNoChanges;
   preview.snapshot_token = result.snapshot_token;
-  preview.stats = result.plan->stats;
+  preview.stats = idempotence.applied_plan ? idempotence.applied_plan->stats
+                                           : ArcImportStats();
   committed_journal_state_ = std::move(result.committed);
   pending_snapshot_token_ = result.snapshot_token;
   pending_source_ = std::move(result.source);
@@ -256,7 +263,6 @@ void ArcImportService::OnCommitSourceValidated(
   ArcImportMergeResult merge =
       MergeArcImportPlan(current, selected_plan, conflict_resolution);
   result.status = merge.status;
-  result.stats = selected_plan.stats;
   result.renamed_workspace_count = merge.renamed_workspace_count;
   result.skipped_workspace_count = merge.skipped_workspace_count;
   result.merged_workspace_count = merge.merged_workspace_count;
@@ -283,6 +289,7 @@ void ArcImportService::OnCommitSourceValidated(
     std::move(callback).Run(std::move(result));
     return;
   }
+  result.stats = merge.applied_plan->stats;
 
   auto context = std::make_unique<CommitContext>();
   context->callback = std::move(callback);
@@ -290,7 +297,6 @@ void ArcImportService::OnCommitSourceValidated(
   context->browser = std::move(browser);
   context->selected_source =
       SelectArcImportBrowserProfiles(*pending_source_, selection);
-  context->selected_plan = selected_plan;
   context->tree_changed = merge.status == ArcImportStatus::kOk;
   context->merged_tree = std::move(merge.merged_tree);
   context->previous_tree = std::move(current);
@@ -299,12 +305,10 @@ void ArcImportService::OnCommitSourceValidated(
   context->idempotency_key = idempotency_key;
   context->prepared.previous_committed = committed_journal_state_;
   context->same_key_replay = same_key_replay;
-  const bool recover_existing_snapshot =
-      merge.status == ArcImportStatus::kNoChanges &&
-      merge.skipped_workspace_count == 0;
-  context->runtime_plan = recover_existing_snapshot
-                              ? context->selected_plan
-                              : std::move(*merge.applied_plan);
+  // Runtime work must always consume the merge result. In particular, a
+  // kMerge replay can be a tree no-op while its split descriptors and member
+  // nodes still need the existing target workspace ID selected by the merge.
+  context->runtime_plan = std::move(*merge.applied_plan);
 
   if (!context->runtime_plan.splits.empty()) {
     context->prepared.expected_native_structure_sha256 =

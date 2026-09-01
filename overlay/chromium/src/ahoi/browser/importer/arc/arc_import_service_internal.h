@@ -25,7 +25,6 @@ struct ArcImportService::CommitContext {
   ArcImportCommitResult result;
   base::WeakPtr<BrowserWindowInterface> browser;
   ArcSource selected_source;
-  ArcImportPlan selected_plan;
   ArcImportPlan runtime_plan;
   std::optional<tab_tree::TabTreeSnapshot> merged_tree;
   tab_tree::TabTreeSnapshot previous_tree;

@@ -182,11 +182,30 @@ bool ActivateExpectedFocus(BrowserWindowInterface* browser,
       model->GetIndexOfTab(focused_tab) < 0) {
     return false;
   }
+  ui::BaseWindow* const window = browser->GetWindow();
+  if (!window) {
+    return false;
+  }
+  window->Activate();
   model->ActivateTab(focused_tab);
-  return model->GetActiveTab() == focused_tab;
+  return browser->IsActive() && model->GetActiveTab() == focused_tab;
 }
 
 }  // namespace
+
+namespace internal {
+
+ArcSplitVerification ClassifyArcSplitFocus(bool target_window_active,
+                                           bool focused_tab_present,
+                                           bool focused_tab_in_target_window,
+                                           bool focused_tab_active) {
+  return target_window_active && focused_tab_present &&
+                 focused_tab_in_target_window && focused_tab_active
+             ? ArcSplitVerification::kExact
+             : ArcSplitVerification::kRepairableMissing;
+}
+
+}  // namespace internal
 
 void CloseArcImportRuntimeTabs(
     std::vector<base::WeakPtr<tabs::TabInterface>> opened_tabs) {
@@ -239,10 +258,13 @@ ArcSplitVerification VerifyArcSplitRuntime(BrowserWindowInterface* browser,
     tabs::TabInterface* const expected_focus =
         session_bridge->FindTabByTreeNodeId(
             applied_plan.splits.back().focused_member_node_id);
-    if (!expected_focus ||
-        expected_focus->GetBrowserWindowInterface() != browser ||
-        model->GetActiveTab() != expected_focus) {
-      return ArcSplitVerification::kRepairableMissing;
+    const ArcSplitVerification focus = internal::ClassifyArcSplitFocus(
+        browser->IsActive(), expected_focus != nullptr,
+        expected_focus &&
+            expected_focus->GetBrowserWindowInterface() == browser,
+        expected_focus && model->GetActiveTab() == expected_focus);
+    if (focus != ArcSplitVerification::kExact) {
+      return focus;
     }
   }
   return aggregate;

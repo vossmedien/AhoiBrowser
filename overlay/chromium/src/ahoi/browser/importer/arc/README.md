@@ -9,7 +9,10 @@ owns import state.
 The user-visible workflow is deliberately two-phase:
 
 1. Discovery verifies that the Arc app, its helpers, and all Arc profile file
-   handles are closed. It reads an immutable, bounded snapshot and returns a
+   handles are closed. The application bundle must satisfy Arc's Apple code
+   requirement for `company.thebrowser.Browser` and Team ID `S6N382Y83G`; an
+   Info.plist claim alone is not installation evidence. Discovery then reads
+   an immutable, bounded snapshot and returns a
    detached preview with selectable Chromium profiles, categories, destination
    workspaces, conflict counts, degradations, and excluded-item counts. This
    ordinary discovery path cannot mutate AhoiBrowser or Arc. If a durable
@@ -28,6 +31,9 @@ Security invariants:
 
 - only schema version 1 of `Arc/StorableSidebar.json` below the macOS
   Application Support directory is accepted;
+- only an intact Apple-signed Arc bundle matching the official identifier and
+  Team ID is accepted; unsigned, ad-hoc, differently signed, malformed, or
+  structurally spoofed bundles fail closed;
 - traversal, a symlinked Application Support root, Arc root, or source file is
   rejected;
 - selectable browser profiles are immediate, regular `Default` or `Profile N`
@@ -54,12 +60,17 @@ Security invariants:
   timestamp, creation-time, and presence fingerprint is captured before and
   after the whole copy window, so any database/WAL/SHM generation change
   rejects and removes the backup;
-- journal schema 4 stores transaction/selection/idempotency metadata, backup and
+- each backup is limited to 2 GiB across at most 384 present payload files and
+  must leave at least 256 MiB free after its payload estimate. Before creating
+  a backup, retention keeps room for a maximum of three validated backups;
+  directories referenced by a prepared journal are never deleted and can
+  temporarily exceed that ordinary retention count;
+- journal schema 5 stores transaction/selection/idempotency metadata, backup and
   manifest identifiers, affected deterministic Ahoi IDs, state/counters,
   canonical SHA-256 fingerprints of the previous and expected tab trees, and
   privacy-safe expected/native-session receipt hashes. It never stores imported
   titles, URLs, source identifiers, profile paths, native split IDs, or secrets.
-  Schema-2/3 committed records remain readable; older prepared records are
+  Schema-1/2/3/4 committed records remain readable; older prepared records are
   manual recovery gates and never authorize mutation;
 - prepared recovery recomputes the verified backup and current tree
   fingerprints off the UI sequence. A current previous tree restores only the
@@ -70,8 +81,14 @@ Security invariants:
   only before native split/window mutation may have started and while the live
   tree is still importer-owned. After that boundary, no one-sided compensation
   is attempted: both stores remain untouched behind a durable manual-recovery
-  gate. A successful commit requires exact tree, topology, order, visual data,
-  focus, flushed Current Session readback, and post-worker live revalidation;
+  gate. A `runtimeMayHaveStarted` restart is therefore always manual. A live
+  transaction may publish after its freshly flushed `runtimePersisted` Current
+  Session receipt, but a restart cannot: schema 5 does not store the full
+  runtime plan needed for exact revalidation, so startup preserves the prepared
+  journal as a manual-recovery gate rather than reporting false success. A
+  successful live commit requires exact tree, topology, order, visual data,
+  the focused tab in the active target window, flushed Current Session
+  readback, and post-worker live revalidation;
 
 Arc remains read-only throughout. Passwords, cookies, form data, browsing
 history, extension state, credential-bearing URLs, local files, and unsupported
@@ -87,8 +104,7 @@ machine, backup tamper/link rejection, and the two-confirmation UI contract.
 Installed-product and native interaction evidence must still be collected with
 the real app in addition to those programmatic tests.
 
-Known boundary: backup payloads are hash-verified and owner-only but currently
-have no aggregate byte quota, free-space preflight, or automatic retention
-policy. A crash after native-session persistence but before final committed
-journal publication intentionally remains a manual recovery gate; startup never
-guesses at native-window rollback.
+Recovery deliberately remains fail-closed after the native mutation boundary:
+a crash after Current Session persistence but before final committed-journal
+publication requires explicit manual recovery. Startup never infers window
+focus from a stale receipt and never guesses at native-window rollback.

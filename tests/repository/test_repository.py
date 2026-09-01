@@ -509,20 +509,19 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("proprietary_codecs = false", release)
         self.assertIn('branding_file_path = "//ahoi/branding/BRANDING"', release)
         self.assertIn('branding_path_component = "chromium"', release)
-        dogfood = (ROOT / "config/build/ahoi-dev.gn").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("enable_ahoi_ubo_classic = true", dogfood)
         for profile in (
+            "ahoi-dev.gn",
             "ahoi-full-dev.gn",
             "ahoi-release.gn",
             "ahoi-full-release.gn",
         ):
-            with self.subTest(ubo_disabled_profile=profile):
+            with self.subTest(ubo_enabled_profile=profile):
                 content = (ROOT / "config/build" / profile).read_text(
                     encoding="utf-8"
                 )
-                self.assertIn("enable_ahoi_ubo_classic = false", content)
+                self.assertEqual(
+                    1, content.splitlines().count("enable_ahoi_ubo_classic = true")
+                )
         branding = (ROOT / "overlay/chromium/src/ahoi/branding/BRANDING").read_text(encoding="utf-8")
         self.assertIn("PRODUCT_FULLNAME=AhoiBrowser", branding)
         self.assertIn("MAC_BUNDLE_ID=app.ahoibrowser.AhoiBrowser", branding)
@@ -535,6 +534,21 @@ class RepositoryContractTests(unittest.TestCase):
             if not entry or entry.startswith("#"):
                 continue
             self.assertTrue((series.parent / entry).is_file(), entry)
+
+    def test_ahoi_shortcuts_remain_extension_compatible_fallthroughs(self):
+        patch = (
+            ROOT
+            / "patches/chromium/0026-ahoi-extension-accelerator-compatibility.patch"
+        ).read_text(encoding="utf-8")
+        added_lines = "\n".join(
+            line[1:]
+            for line in patch.splitlines()
+            if line.startswith("+") and not line.startswith("+++")
+        )
+        self.assertIn("kAhoiFallthroughPriority =", added_lines)
+        self.assertIn("ui::AcceleratorManager::kNormalPriority", added_lines)
+        self.assertNotIn("kHighPriority", added_lines)
+        self.assertGreaterEqual(added_lines.count("kAhoiFallthroughPriority"), 13)
 
     def test_installed_app_verifier_targets_only_ahoibrowser(self):
         verifier = (ROOT / "scripts/verify-installed-app.sh").read_text(encoding="utf-8")

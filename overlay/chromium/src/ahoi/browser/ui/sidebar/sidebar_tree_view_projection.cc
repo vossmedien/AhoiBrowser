@@ -423,6 +423,17 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     synchronization_pending_ = true;
     return;
   }
+  if (visible_bounds.IsEmpty()) {
+    // A presentation animation can temporarily clip the effective viewport to
+    // zero even though the persistent model and the tree's own bounds are
+    // unchanged. Treat that as deferred materialization. Recycling here makes
+    // the saved section stay blank after reveal because the final compositor
+    // frame need not change any descendant's numerical bounds. The retained
+    // set is already bounded to the previous viewport plus overscan. The frame
+    // host explicitly schedules a stable non-empty synchronization after a
+    // completed reveal so hidden mutations are still reconciled.
+    return;
+  }
   // A search result is a transient navigation surface. If filtering begins
   // while a rename field is open, end that edit without stealing focus back
   // from the search field or committing text against a projected row.

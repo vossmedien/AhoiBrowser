@@ -19,4 +19,4 @@ use_remoteexec = false
 proprietary_codecs = false
 ffmpeg_branding = "Chromium"
 mac_min_system_version = "26.0"
-enable_ahoi_ubo_classic = false
+enable_ahoi_ubo_classic = true

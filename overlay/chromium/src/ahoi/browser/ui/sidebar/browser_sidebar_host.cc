@@ -140,6 +140,13 @@ std::unique_ptr<views::View> CreateBrowserSidebarHost(
       browser, session_bridge, workspace_service, modal_overlay_controller);
 }
 
+void NotifyBrowserSidebarPresentationSettled(views::View* sidebar_host) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (host) {
+    host->OnSidebarPresentationSettled();
+  }
+}
+
 bool UndoBrowserSidebarMutation(views::View* sidebar_host) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->UndoLastMutationIfAvailable();
