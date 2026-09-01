@@ -249,7 +249,7 @@ suite('AhoiArcStandardImportSurface', () => {
     await arcSection.updateComplete;
 
     const resultText = (id: string) =>
-      arcSection.shadowRoot!.querySelector(id)!.textContent!.trim();
+      arcSection.shadowRoot!.querySelector(id)!.textContent.trim();
     assertEquals(9, arcSection.shadowRoot!.querySelectorAll(
                        '.result-counts > li').length);
     assertFalse(!!arcSection.shadowRoot!.querySelector(
@@ -276,6 +276,6 @@ suite('AhoiArcStandardImportSurface', () => {
     assertEquals(
         loadTimeData.getString('ahoiArcImportUnsupportedData'),
         arcSection.shadowRoot!.querySelector(
-                                  '#ahoiArcImportStatus')!.textContent!.trim());
+                                  '#ahoiArcImportStatus')!.textContent.trim());
   });
 });
