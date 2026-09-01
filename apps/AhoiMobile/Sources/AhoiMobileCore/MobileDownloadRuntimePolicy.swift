@@ -75,6 +75,89 @@ extension MobileDownloadCoordinator {
     }
 }
 
+enum MobileDownloadCookiePolicy {
+    @MainActor
+    static func prepare(
+        _ request: URLRequest,
+        websiteDataStore: WKWebsiteDataStore,
+        initiatingOrigin: String?,
+        completion: @escaping @MainActor (URLRequest) -> Void
+    ) {
+        guard request.value(forHTTPHeaderField: "Cookie") == nil,
+              let url = request.url,
+              isSameOrigin(initiatingOrigin, as: url) else {
+            completion(request)
+            return
+        }
+        websiteDataStore.httpCookieStore.getAllCookies { cookies in
+            completion(addingApplicableCookies(cookies, to: request))
+        }
+    }
+
+    static func addingApplicableCookies(
+        _ cookies: [HTTPCookie],
+        to request: URLRequest,
+        now: Date = Date()
+    ) -> URLRequest {
+        guard request.value(forHTTPHeaderField: "Cookie") == nil,
+              let url = request.url else { return request }
+        let applicable = cookies.filter { applies($0, to: url, now: now) }
+        guard !applicable.isEmpty,
+              let header = HTTPCookie.requestHeaderFields(with: applicable)["Cookie"] else {
+            return request
+        }
+        var prepared = request
+        prepared.setValue(header, forHTTPHeaderField: "Cookie")
+        return prepared
+    }
+
+    static func isSameOrigin(_ origin: String?, as url: URL) -> Bool {
+        guard let origin,
+              let source = URL(string: origin),
+              source.scheme?.lowercased() == url.scheme?.lowercased(),
+              source.host?.lowercased() == url.host?.lowercased() else {
+            return false
+        }
+        return effectivePort(source) == effectivePort(url)
+    }
+
+    private static func applies(_ cookie: HTTPCookie, to url: URL, now: Date) -> Bool {
+        guard let host = url.host?.lowercased(),
+              let scheme = url.scheme?.lowercased(),
+              cookie.expiresDate.map({ $0 > now }) ?? true,
+              !cookie.isSecure || scheme == "https",
+              matchesDomain(cookie.domain.lowercased(), host: host),
+              matchesPath(cookie.path, requestPath: url.path.isEmpty ? "/" : url.path) else {
+            return false
+        }
+        guard let ports = cookie.portList, !ports.isEmpty else { return true }
+        guard let port = effectivePort(url) else { return false }
+        return ports.contains { $0.intValue == port }
+    }
+
+    private static func matchesDomain(_ cookieDomain: String, host: String) -> Bool {
+        guard cookieDomain.hasPrefix(".") else { return host == cookieDomain }
+        let domain = String(cookieDomain.dropFirst())
+        return host == domain || host.hasSuffix(".\(domain)")
+    }
+
+    private static func matchesPath(_ cookiePath: String, requestPath: String) -> Bool {
+        let path = cookiePath.isEmpty ? "/" : cookiePath
+        guard requestPath.hasPrefix(path) else { return false }
+        guard requestPath.count > path.count, !path.hasSuffix("/") else { return true }
+        return requestPath[requestPath.index(requestPath.startIndex, offsetBy: path.count)] == "/"
+    }
+
+    private static func effectivePort(_ url: URL) -> Int? {
+        if let port = url.port { return port }
+        switch url.scheme?.lowercased() {
+        case "http": return 80
+        case "https": return 443
+        default: return nil
+        }
+    }
+}
+
 struct MobileDownloadRetryContext {
     let request: URLRequest
     let websiteDataStore: WKWebsiteDataStore

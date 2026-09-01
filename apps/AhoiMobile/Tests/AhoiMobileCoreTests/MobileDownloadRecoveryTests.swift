@@ -39,6 +39,78 @@ final class MobileDownloadRecoveryTests: XCTestCase {
         ))
     }
 
+    func testCookieHydrationIsOriginAndScopeBound() throws {
+        let url = try XCTUnwrap(URL(string: "https://downloads.example/private/report.zip"))
+        let origin = "https://downloads.example"
+        XCTAssertTrue(MobileDownloadCookiePolicy.isSameOrigin(origin, as: url))
+        XCTAssertTrue(MobileDownloadCookiePolicy.isSameOrigin(
+            "https://downloads.example:443",
+            as: url
+        ))
+        XCTAssertFalse(MobileDownloadCookiePolicy.isSameOrigin(
+            "https://other.example",
+            as: url
+        ))
+        XCTAssertFalse(MobileDownloadCookiePolicy.isSameOrigin(
+            "http://downloads.example",
+            as: url
+        ))
+
+        let scoped = try makeCookie(domain: "downloads.example", path: "/private")
+        let sibling = try makeCookie(domain: "other.example", path: "/")
+        let wrongPath = try makeCookie(domain: "downloads.example", path: "/public")
+        let expired = try makeCookie(
+            name: "expired",
+            domain: "downloads.example",
+            path: "/",
+            expires: Date(timeIntervalSince1970: 1)
+        )
+        let prepared = MobileDownloadCookiePolicy.addingApplicableCookies(
+            [scoped, sibling, wrongPath, expired],
+            to: URLRequest(url: url),
+            now: Date(timeIntervalSince1970: 2)
+        )
+        XCTAssertEqual(prepared.value(forHTTPHeaderField: "Cookie"), "session=synthetic")
+
+        var existing = URLRequest(url: url)
+        existing.setValue("caller=preserved", forHTTPHeaderField: "Cookie")
+        XCTAssertEqual(
+            MobileDownloadCookiePolicy.addingApplicableCookies([scoped], to: existing)
+                .value(forHTTPHeaderField: "Cookie"),
+            "caller=preserved"
+        )
+    }
+
+    func testCookieHydrationHonorsSecureDomainPathAndPortBoundaries() throws {
+        let secure = try makeCookie(domain: ".example", path: "/reports")
+        let boundaryMiss = try makeCookie(
+            name: "boundary",
+            domain: ".example",
+            path: "/report"
+        )
+        let portBound = try makeCookie(
+            name: "port",
+            domain: "downloads.example",
+            path: "/",
+            port: "8443"
+        )
+        let target = try XCTUnwrap(URL(string: "https://downloads.example:8443/reports/one"))
+        let prepared = MobileDownloadCookiePolicy.addingApplicableCookies(
+            [secure, boundaryMiss, portBound],
+            to: URLRequest(url: target)
+        )
+        let header = try XCTUnwrap(prepared.value(forHTTPHeaderField: "Cookie"))
+        XCTAssertTrue(header.contains("session=synthetic"))
+        XCTAssertTrue(header.contains("port=synthetic"))
+        XCTAssertFalse(header.contains("boundary="))
+
+        let insecure = try XCTUnwrap(URL(string: "http://downloads.example:8443/reports/one"))
+        XCTAssertNil(MobileDownloadCookiePolicy.addingApplicableCookies(
+            [secure],
+            to: URLRequest(url: insecure)
+        ).value(forHTTPHeaderField: "Cookie"))
+    }
+
     func testConcurrentSameNameDestinationReservationsAreCollisionFree() throws {
         let fixture = try makeFixture()
         let first = MobileDownloadCoordinator.uniqueDestination(
@@ -614,6 +686,25 @@ final class MobileDownloadRecoveryTests: XCTestCase {
         let projected = try XCTUnwrap(coordinator.downloads.first?.errorMessage)
         XCTAssertFalse(projected.contains("token-secret"))
         XCTAssertFalse(projected.contains("/Users/person"))
+    }
+
+    private func makeCookie(
+        name: String = "session",
+        domain: String,
+        path: String,
+        expires: Date? = nil,
+        port: String? = nil
+    ) throws -> HTTPCookie {
+        var properties: [HTTPCookiePropertyKey: Any] = [
+            .name: name,
+            .value: "synthetic",
+            .domain: domain,
+            .path: path,
+            .secure: "TRUE",
+        ]
+        properties[.expires] = expires
+        properties[.port] = port
+        return try XCTUnwrap(HTTPCookie(properties: properties))
     }
 
     private func makeFixture() throws -> Fixture {

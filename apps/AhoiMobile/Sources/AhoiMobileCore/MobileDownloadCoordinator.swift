@@ -107,27 +107,34 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
         }
         persistRecoveryState()
 
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = websiteDataStore
-        let webView = WKWebView(frame: .zero, configuration: configuration)
-        webViews[id] = webView
-        webView.startDownload(using: request) { [weak self] download in
+        MobileDownloadCookiePolicy.prepare(
+            request,
+            websiteDataStore: websiteDataStore,
+            initiatingOrigin: initiatingOrigin
+        ) { [weak self] preparedRequest in
             guard let self else { return }
-            self.activeDownloads[id] = download
-            self.recordIDByDownload[ObjectIdentifier(download)] = id
-            guard self.downloads.contains(where: {
-                $0.id == id && $0.status != .cancelled
-            }) else {
-                download.cancel { [weak self] _ in
-                    Task { @MainActor in
-                        self?.finish(id: id, download: download)
+            let configuration = WKWebViewConfiguration()
+            configuration.websiteDataStore = websiteDataStore
+            let webView = WKWebView(frame: .zero, configuration: configuration)
+            self.webViews[id] = webView
+            webView.startDownload(using: preparedRequest) { [weak self] download in
+                guard let self else { return }
+                self.activeDownloads[id] = download
+                self.recordIDByDownload[ObjectIdentifier(download)] = id
+                guard self.downloads.contains(where: {
+                    $0.id == id && $0.status != .cancelled
+                }) else {
+                    download.cancel { [weak self] _ in
+                        Task { @MainActor in
+                            self?.finish(id: id, download: download)
+                        }
                     }
+                    return
                 }
-                return
+                download.delegate = self
+                self.update(id) { $0.status = .downloading }
+                self.observeProgress(of: download, id: id)
             }
-            download.delegate = self
-            self.update(id) { $0.status = .downloading }
-            self.observeProgress(of: download, id: id)
         }
     }
 

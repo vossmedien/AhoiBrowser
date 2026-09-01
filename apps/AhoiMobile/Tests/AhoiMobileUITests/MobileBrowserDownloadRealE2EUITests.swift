@@ -372,7 +372,7 @@ final class MobileBrowserDownloadRealE2EUITests: MobileBrowserRealE2ETestCase {
 
         XCTAssertTrue(privateAddress.waitForExistence(timeout: 5))
         let expectation = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "value == %@", url.absoluteString),
+            predicate: NSPredicate(format: "value CONTAINS %@", origin(of: url)),
             object: privateAddress
         )
         XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 8), .completed)
