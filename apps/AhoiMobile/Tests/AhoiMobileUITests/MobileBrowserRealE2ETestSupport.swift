@@ -128,20 +128,41 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
     @MainActor
     func openAddressEditor(in app: XCUIApplication) {
         let address = app.buttons["browser.address"]
-        XCTAssertTrue(address.waitForExistence(timeout: 8))
+        XCTAssertTrue(
+            waitForHittable(address, timeout: 8),
+            "The visible address control must be actionable before presenting the editor."
+        )
         address.tap()
+        let field = app.textFields["browser.address.field"]
+        XCTAssertTrue(
+            waitForHittable(field, timeout: 4),
+            "The address editor must finish presenting before test input begins."
+        )
     }
 
     @MainActor
-    func clearAddressEditor(_: XCUIElement, in app: XCUIApplication) {
+    func clearAddressEditor(_ field: XCUIElement, in app: XCUIApplication) {
         let clear = app.buttons["browser.address.clear"]
         if clear.waitForExistence(timeout: 1) {
+            XCTAssertTrue(
+                waitForHittable(clear, timeout: 2),
+                "The address clear control must remain actionable while the editor is visible."
+            )
             clear.tap()
             XCTAssertTrue(
                 clear.waitForNonExistence(timeout: 2),
                 "The clear control must disappear once the address binding is empty."
             )
         }
+        XCTAssertTrue(
+            waitForHittable(field, timeout: 2),
+            "Clearing the address must not dismiss its editor."
+        )
+        XCTAssertEqual(
+            addressFieldValue(field),
+            "",
+            "The address binding must be empty after its visible clear action."
+        )
     }
 
     @MainActor
@@ -150,26 +171,31 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         into field: XCUIElement,
         in app: XCUIApplication
     ) {
+        guard waitForHittable(field, timeout: 2) else {
+            XCTFail("The address editor disappeared before exact input could begin.")
+            return
+        }
         field.tap()
         field.typeText(expectedValue)
         if !waitForAddressField(field, toEqual: expectedValue, timeout: 1) {
             // XCUI occasionally coalesces repeated characters when it injects a
-            // complete URL into SwiftUI's selection-aware TextField. Retry via
-            // distinct key events so a test-runner input loss cannot be
-            // mistaken for an application navigation failure.
+            // complete URL into SwiftUI's selection-aware TextField. Retry in
+            // bounded chunks so input loss cannot masquerade as navigation
+            // failure without paying one failed XCUI resolution per character.
             clearAddressEditor(field, in: app)
-            field.tap()
-            for character in expectedValue {
-                field.typeText(String(character))
-                Thread.sleep(forTimeInterval: 0.02)
+            guard waitForHittable(field, timeout: 2) else {
+                XCTFail("The address editor disappeared before its bounded input retry.")
+                return
             }
+            field.tap()
+            typeAddressInChunks(expectedValue, into: field)
         }
         let exactValueWasEntered = waitForAddressField(
             field,
             toEqual: expectedValue,
             timeout: 2
         )
-        let actualValue = field.value as? String ?? ""
+        let actualValue = addressFieldValue(field)
         XCTAssertTrue(
             exactValueWasEntered,
             "The E2E runner must inject the exact address before navigation. "
@@ -177,14 +203,64 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         )
     }
 
+    @MainActor
     private func waitForAddressField(
         _ field: XCUIElement,
         toEqual expectedValue: String,
         timeout: TimeInterval
     ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            guard field.exists else { return false }
+            if addressFieldValue(field) == expectedValue { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        } while Date() < deadline
+        return field.exists && addressFieldValue(field) == expectedValue
+    }
+
+    @MainActor
+    private func typeAddressInChunks(_ value: String, into field: XCUIElement) {
+        var consumed = ""
+        var start = value.startIndex
+        while start < value.endIndex {
+            guard waitForHittable(field, timeout: 1) else {
+                XCTFail("The address editor disappeared during its bounded input retry.")
+                return
+            }
+            let end = value.index(
+                start,
+                offsetBy: 10,
+                limitedBy: value.endIndex
+            ) ?? value.endIndex
+            let chunk = String(value[start..<end])
+            field.typeText(chunk)
+            consumed += chunk
+            guard waitForAddressField(field, toEqual: consumed, timeout: 1) else {
+                XCTFail(
+                    "The address retry lost input after prefix \(consumed). "
+                        + "Actual value: \(addressFieldValue(field))."
+                )
+                return
+            }
+            start = end
+        }
+    }
+
+    @MainActor
+    private func addressFieldValue(_ field: XCUIElement) -> String {
+        let rawValue = field.value as? String ?? ""
+        if let placeholder = field.placeholderValue, rawValue == placeholder {
+            return ""
+        }
+        return rawValue
+    }
+
+    @MainActor
+    func waitForHittable(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+        guard element.waitForExistence(timeout: timeout) else { return false }
         let expectation = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "value == %@", expectedValue),
-            object: field
+            predicate: NSPredicate(format: "hittable == true"),
+            object: element
         )
         return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
     }

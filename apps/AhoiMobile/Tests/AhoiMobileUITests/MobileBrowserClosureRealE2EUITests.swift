@@ -407,7 +407,16 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         let newTab = app.buttons["browser.actions.new-tab"]
         XCTAssertTrue(newTab.waitForExistence(timeout: 3))
         newTab.tap()
-        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 4))
+        XCTAssertTrue(
+            app.buttons["browser.actions.done"].waitForNonExistence(timeout: 4),
+            "The actions sheet must finish dismissing after visible tab creation."
+        )
+        let address = app.buttons["browser.address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 4))
+        XCTAssertTrue(
+            waitUntil(timeout: 4) { address.isHittable },
+            "The new tab's address control must be actionable before its next navigation."
+        )
     }
 
     @MainActor
@@ -483,11 +492,11 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         in app: XCUIApplication
     ) {
         let webView = visibleWebView(rendering: renderedToken, in: app)
-        let markerButton = webView.buttons["Activate page-only recovery marker"]
+        let markerButton = app.buttons["Activate page-only recovery marker"]
         reveal(markerButton, in: webView)
         markerButton.tap()
         XCTAssertTrue(
-            webView.staticTexts["Page-only marker active."]
+            app.staticTexts["Page-only marker active."]
                 .waitForExistence(timeout: 4)
         )
     }
@@ -501,16 +510,16 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
     ) {
         let webView = visibleWebView(rendering: renderedToken, in: app)
         XCTAssertTrue(
-            webView.staticTexts["Redirect and popup controls"]
+            app.staticTexts["Redirect and popup controls"]
                 .waitForExistence(timeout: 10),
             "Selecting a discarded tab must recreate its real HTTPS document."
         )
-        let resetMarker = webView.staticTexts[
+        let resetMarker = app.staticTexts[
             "Page-only marker reset after document load."
         ]
         reveal(resetMarker, in: webView)
         XCTAssertFalse(
-            webView.staticTexts["Page-only marker active."].exists,
+            app.staticTexts["Page-only marker active."].exists,
             "Document-only state must not survive page discard and reload."
         )
         assertAddress(url, containsOrigin: fixture.origin, in: app)
@@ -522,10 +531,10 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         in app: XCUIApplication
     ) {
         let webView = visibleWebView(rendering: renderedToken, in: app)
-        let activeMarker = webView.staticTexts["Page-only marker active."]
+        let activeMarker = app.staticTexts["Page-only marker active."]
         reveal(activeMarker, in: webView)
         XCTAssertFalse(
-            webView.staticTexts["Page-only marker reset after document load."].exists,
+            app.staticTexts["Page-only marker reset after document load."].exists,
             "A retained page must preserve its document-only marker."
         )
     }
@@ -536,16 +545,30 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         in app: XCUIApplication
     ) -> XCUIElement {
         let expectedText = "Search phrase: \(token)"
-        let visibleWebViews = app.webViews.allElementsBoundByIndex.filter {
-            $0.exists && $0.isHittable
-        }
+        let visibleIdentities = app.staticTexts[expectedText]
+            .allElementsBoundByIndex.filter {
+                $0.exists && $0.isHittable
+            }
         XCTAssertEqual(
-            visibleWebViews.count,
+            visibleIdentities.count,
             1,
-            "Exactly one active, hittable WebView must back the selected tab."
+            "Exactly one visible selected document must render its unique per-tab token."
         )
-        let webView = visibleWebViews.first ?? app.webViews.element(boundBy: 0)
-        let identity = webView.staticTexts[expectedText]
+        let matchingWebViews = app.webViews.containing(
+            .staticText,
+            identifier: expectedText
+        ).allElementsBoundByIndex.filter {
+            $0.exists
+        }
+        XCTAssertFalse(
+            matchingWebViews.isEmpty,
+            "The unique selected-document token must belong to WebKit's AX hierarchy."
+        )
+        // WebKit exposes several nested AX nodes as XCUIElementTypeWebView for
+        // one page. The deepest token-owning node is the actual scroll surface;
+        // counting its ancestors would misreport one rendered page as several.
+        let webView = matchingWebViews.last ?? app.webViews.firstMatch
+        let identity = app.staticTexts[expectedText]
         reveal(identity, in: webView)
         XCTAssertTrue(
             identity.isHittable,
