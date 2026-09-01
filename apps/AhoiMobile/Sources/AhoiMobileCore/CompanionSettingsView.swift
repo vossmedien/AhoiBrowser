@@ -418,6 +418,7 @@ public struct CompanionSettingsView: View {
                     ))
                 }
             }
+            .accessibilityIdentifier("settings.form")
             .navigationTitle(CompanionL10n.string(
                 "settings.title",
                 fallback: "Settings"

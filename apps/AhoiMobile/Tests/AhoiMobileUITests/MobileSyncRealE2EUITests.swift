@@ -70,11 +70,15 @@ final class MobileSyncRealE2EUITests: MobileBrowserRealE2ETestCase {
     private func openSettings(in app: XCUIApplication) {
         app.buttons["browser.more"].tap()
         let settings = app.buttons["browser.actions.settings"]
-        for _ in 0..<5 where !settings.exists {
-            app.swipeUp()
-        }
+        let actionsList = app.descendants(matching: .any)["browser.actions.list"]
+        XCTAssertTrue(actionsList.waitForExistence(timeout: 4))
+        reveal(settings, in: actionsList)
         XCTAssertTrue(settings.waitForExistence(timeout: 3))
         settings.tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any)["settings.form"]
+                .waitForExistence(timeout: 4)
+        )
     }
 
     @MainActor
@@ -132,10 +136,22 @@ final class MobileSyncRealE2EUITests: MobileBrowserRealE2ETestCase {
         in app: XCUIApplication
     ) -> XCUIElement {
         let element = app.descendants(matching: .any)[identifier]
-        for _ in 0..<10 where !element.exists || !element.isHittable {
-            app.swipeUp()
-        }
-        XCTAssertTrue(element.waitForExistence(timeout: 4))
+        let form = app.descendants(matching: .any)["settings.form"]
+        XCTAssertTrue(form.waitForExistence(timeout: 4))
+        reveal(element, in: form)
         return element
+    }
+
+    @MainActor
+    private func reveal(_ element: XCUIElement, in container: XCUIElement) {
+        for _ in 0..<10 {
+            if element.exists, element.isHittable { return }
+            container.swipeUp()
+        }
+        XCTAssertTrue(element.waitForExistence(timeout: 2))
+        XCTAssertTrue(
+            element.isHittable,
+            "The requested element must become visibly reachable after scrolling."
+        )
     }
 }
