@@ -266,11 +266,13 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   // before Browser::window_ points at that BrowserView. Read the same persisted
   // mode that BrowserView applied to its vertical-tab region instead of calling
   // Browser::GetBrowserView() during this construction boundary.
-  PrefService* const prefs = profile ? profile->GetPrefs() : nullptr;
+  PrefService* const presentation_prefs =
+      profile ? profile->GetPrefs() : nullptr;
   SetSidebarHeaderActionToggleState(
       floating_sidebar_button_,
-      prefs && prefs->FindPreference(kSidebarPresentationModePref) &&
-          GetPresentationMode(*prefs) ==
+      presentation_prefs &&
+          presentation_prefs->FindPreference(kSidebarPresentationModePref) &&
+          GetPresentationMode(*presentation_prefs) ==
           SidebarPresentationMode::kFloating);
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
