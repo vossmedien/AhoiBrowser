@@ -262,9 +262,15 @@ BrowserSidebarHostView::BrowserSidebarHostView(
               /*toggle_visibility=*/false),
           kDockToLeftIcon,
           l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_FLOATING_SIDEBAR)));
+  // BrowserSidebarHostView is created from inside BrowserView's constructor,
+  // before Browser::window_ points at that BrowserView. Read the same persisted
+  // mode that BrowserView applied to its vertical-tab region instead of calling
+  // Browser::GetBrowserView() during this construction boundary.
+  PrefService* const prefs = profile ? profile->GetPrefs() : nullptr;
   SetSidebarHeaderActionToggleState(
       floating_sidebar_button_,
-      browser_->GetBrowserView().GetAhoiSidebarPresentationMode() ==
+      prefs && prefs->FindPreference(kSidebarPresentationModePref) &&
+          GetPresentationMode(*prefs) ==
           SidebarPresentationMode::kFloating);
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
