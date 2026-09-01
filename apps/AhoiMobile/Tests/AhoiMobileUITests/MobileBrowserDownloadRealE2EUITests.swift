@@ -305,7 +305,7 @@ final class MobileBrowserDownloadRealE2EUITests: MobileBrowserRealE2ETestCase {
                 row.exists,
                 "Private request state must not reappear after the process boundary."
             )
-            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+            try await Task.sleep(for: .milliseconds(100))
         } while Date() < stableDeadline
     }
 
