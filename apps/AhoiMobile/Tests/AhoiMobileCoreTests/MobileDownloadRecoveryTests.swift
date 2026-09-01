@@ -3,6 +3,42 @@ import XCTest
 @testable import AhoiMobileCore
 
 final class MobileDownloadRecoveryTests: XCTestCase {
+    func testSameProcessRetryAcceptsOnlySafeNormalRequests() throws {
+        let url = try XCTUnwrap(URL(string: "https://downloads.example/archive.zip"))
+        var get = URLRequest(url: url)
+        get.httpMethod = "GET"
+        XCTAssertTrue(MobileDownloadCoordinator.isSameProcessRetryEligible(
+            get,
+            isPrivate: false
+        ))
+        XCTAssertFalse(MobileDownloadCoordinator.isSameProcessRetryEligible(
+            get,
+            isPrivate: true
+        ))
+
+        var head = URLRequest(url: url)
+        head.httpMethod = " head "
+        XCTAssertTrue(MobileDownloadCoordinator.isSameProcessRetryEligible(
+            head,
+            isPrivate: false
+        ))
+
+        var post = URLRequest(url: url)
+        post.httpMethod = "POST"
+        XCTAssertFalse(MobileDownloadCoordinator.isSameProcessRetryEligible(
+            post,
+            isPrivate: false
+        ))
+
+        var body = URLRequest(url: url)
+        body.httpMethod = "GET"
+        body.httpBody = Data("sensitive".utf8)
+        XCTAssertFalse(MobileDownloadCoordinator.isSameProcessRetryEligible(
+            body,
+            isPrivate: false
+        ))
+    }
+
     func testConcurrentSameNameDestinationReservationsAreCollisionFree() throws {
         let fixture = try makeFixture()
         let first = MobileDownloadCoordinator.uniqueDestination(
@@ -107,6 +143,7 @@ final class MobileDownloadRecoveryTests: XCTestCase {
         await secondLaunch.loadRecoveryState()
         XCTAssertEqual(secondLaunch.downloads, firstLaunch.downloads)
         XCTAssertEqual(secondLaunch.downloads.map(\.status), [.failed])
+        XCTAssertFalse(secondLaunch.canRetry(active.id))
     }
 
     @MainActor
@@ -430,6 +467,9 @@ final class MobileDownloadRecoveryTests: XCTestCase {
         )
 
         XCTAssertEqual(coordinator.downloads.filter(\.isPrivate).count, 2)
+        XCTAssertTrue(coordinator.downloads.filter(\.isPrivate).allSatisfy {
+            !coordinator.canRetry($0.id)
+        })
         coordinator.endPrivateSession()
         await coordinator.flushRecoveryState()
 

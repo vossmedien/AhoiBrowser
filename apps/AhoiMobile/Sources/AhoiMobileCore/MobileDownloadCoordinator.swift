@@ -1,61 +1,6 @@
 import Foundation
 import WebKit
 
-public enum MobileDownloadStatus: String, Codable, Sendable {
-    case starting
-    case downloading
-    case completed
-    case failed
-    case cancelled
-}
-
-public struct MobileDownloadRecord: Identifiable, Equatable, Sendable {
-    public let id: UUID
-    public let sourceURL: URL
-    public let sourceOrigin: String
-    public var suggestedFilename: String
-    public var destinationURL: URL?
-    public var status: MobileDownloadStatus
-    public var errorMessage: String?
-    public var bytesReceived: Int64
-    public var totalBytesExpected: Int64?
-    public var progressFraction: Double?
-    public let isPrivate: Bool
-
-    public var progressPercent: Int? {
-        guard let progressFraction, progressFraction.isFinite else { return nil }
-        return Int((min(max(progressFraction, 0), 1) * 100).rounded())
-    }
-
-    public init(
-        id: UUID = UUID(),
-        sourceURL: URL,
-        sourceOrigin: String? = nil,
-        suggestedFilename: String,
-        destinationURL: URL? = nil,
-        status: MobileDownloadStatus = .starting,
-        errorMessage: String? = nil,
-        bytesReceived: Int64 = 0,
-        totalBytesExpected: Int64? = nil,
-        progressFraction: Double? = nil,
-        isPrivate: Bool
-    ) {
-        self.id = id
-        self.sourceURL = sourceURL
-        self.sourceOrigin = sourceOrigin ?? MobileBrowserOriginFormatter.label(for: sourceURL)
-        self.suggestedFilename = suggestedFilename
-        self.destinationURL = destinationURL
-        self.status = status
-        self.errorMessage = errorMessage
-        self.bytesReceived = max(bytesReceived, 0)
-        self.totalBytesExpected = totalBytesExpected.flatMap { $0 >= 0 ? $0 : nil }
-        self.progressFraction = progressFraction.flatMap { fraction in
-            fraction.isFinite ? min(max(fraction, 0), 1) : nil
-        }
-        self.isPrivate = isPrivate
-    }
-}
-
 @MainActor
 public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDownloadDelegate {
     @Published public private(set) var downloads: [MobileDownloadRecord] = []
@@ -68,6 +13,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
     private var recordIDByDownload: [ObjectIdentifier: UUID] = [:]
     private var progressObservations: [UUID: NSKeyValueObservation] = [:]
     private var persistedProgressBuckets: [UUID: Int] = [:]
+    private var retryContexts: [UUID: MobileDownloadRetryContext] = [:]
     private var pendingRecoverySnapshot: [MobileDownloadRecord]?
     private var recoveryPersistenceTask: Task<Void, Never>?
     private var recoveryLoadTask: Task<[MobileDownloadRecord], Never>?
@@ -151,6 +97,14 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
             suggestedFilename: Self.safeFilename(url.lastPathComponent, fallback: "download"),
             isPrivate: isPrivate
         ), at: 0)
+        if let retryContext = MobileDownloadRetryContext(
+            request: request,
+            websiteDataStore: websiteDataStore,
+            initiatingOrigin: initiatingOrigin,
+            isPrivate: isPrivate
+        ) {
+            retryContexts[id] = retryContext
+        }
         persistRecoveryState()
 
         let configuration = WKWebViewConfiguration()
@@ -175,6 +129,32 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
             self.update(id) { $0.status = .downloading }
             self.observeProgress(of: download, id: id)
         }
+    }
+
+    /// A failed normal download can be attempted again only while its original
+    /// request and WebKit data store still exist in this process. No request
+    /// descriptor or opaque resume data is written to the recovery archive.
+    public func canRetry(_ id: UUID) -> Bool {
+        guard let record = downloads.first(where: { $0.id == id }) else { return false }
+        return record.status == .failed && !record.isPrivate && retryContexts[id] != nil
+    }
+
+    /// Starts a fresh WebKit download with the original safe request and data
+    /// store. This deliberately creates a new attempt instead of reusing
+    /// opaque `WKDownload` resume data or claiming byte-range continuation.
+    @discardableResult
+    public func retry(_ id: UUID) -> Bool {
+        guard canRetry(id), let context = retryContexts[id] else { return false }
+        discardRuntimeAttempt(id)
+        retryContexts.removeValue(forKey: id)
+        downloads.removeAll { $0.id == id }
+        start(
+            request: context.request,
+            websiteDataStore: context.websiteDataStore,
+            initiatingOrigin: context.initiatingOrigin,
+            isPrivate: false
+        )
+        return true
     }
 
     public func recordFailure(
@@ -206,6 +186,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
             $0.id == id && ($0.status == .starting || $0.status == .downloading)
         }) else { return }
         update(id) { $0.status = .cancelled }
+        retryContexts.removeValue(forKey: id)
         guard let download = activeDownloads[id] else {
             progressObservations.removeValue(forKey: id)?.invalidate()
             persistedProgressBuckets.removeValue(forKey: id)
@@ -220,15 +201,21 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
     }
 
     public func removeFinished() {
-        downloads.removeAll { [.completed, .failed, .cancelled].contains($0.status) }
+        let removedIDs = Set(downloads.lazy.filter {
+            [.completed, .failed, .cancelled].contains($0.status)
+        }.map(\.id))
+        downloads.removeAll { removedIDs.contains($0.id) }
+        retryContexts = retryContexts.filter { !removedIDs.contains($0.key) }
         persistRecoveryState()
     }
 
     public func removeFinished(isPrivate: Bool) {
-        downloads.removeAll {
+        let removedIDs = Set(downloads.lazy.filter {
             $0.isPrivate == isPrivate &&
                 [.completed, .failed, .cancelled].contains($0.status)
-        }
+        }.map(\.id))
+        downloads.removeAll { removedIDs.contains($0.id) }
+        retryContexts = retryContexts.filter { !removedIDs.contains($0.key) }
         persistRecoveryState()
     }
 
@@ -246,6 +233,7 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
             persistedProgressBuckets.removeValue(forKey: id)
             activeDownloads.removeValue(forKey: id)
             webViews.removeValue(forKey: id)
+            retryContexts.removeValue(forKey: id)
         }
         recordIDByDownload = recordIDByDownload.filter {
             !privateIDs.contains($0.value)
@@ -409,6 +397,18 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
         activeDownloads.removeValue(forKey: id)
         webViews.removeValue(forKey: id)
         recordIDByDownload.removeValue(forKey: ObjectIdentifier(download))
+        if downloads.first(where: { $0.id == id })?.status != .failed {
+            retryContexts.removeValue(forKey: id)
+        }
+    }
+
+    private func discardRuntimeAttempt(_ id: UUID) {
+        progressObservations.removeValue(forKey: id)?.invalidate()
+        persistedProgressBuckets.removeValue(forKey: id)
+        webViews.removeValue(forKey: id)
+        guard let download = activeDownloads.removeValue(forKey: id) else { return }
+        recordIDByDownload.removeValue(forKey: ObjectIdentifier(download))
+        download.cancel { _ in }
     }
 
     private func persistRecoveryState() {

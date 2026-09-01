@@ -85,6 +85,17 @@ struct MobileDownloadsSheet: View {
                                 .accessibilityIdentifier(
                                     "browser.downloads.cancel.\(download.id.uuidString.lowercased())"
                                 )
+                            } else if downloads.canRetry(download.id) {
+                                Button { downloads.retry(download.id) } label: {
+                                    Image(systemName: "arrow.clockwise")
+                                }
+                                .accessibilityLabel(CompanionL10n.string(
+                                    "browser.retry",
+                                    fallback: "Try Again"
+                                ))
+                                .accessibilityIdentifier(
+                                    "browser.downloads.retry.\(download.id.uuidString.lowercased())"
+                                )
                             }
                         }
                         .accessibilityElement(children: .contain)
