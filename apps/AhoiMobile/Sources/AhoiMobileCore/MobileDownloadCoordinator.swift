@@ -113,6 +113,9 @@ public final class MobileDownloadCoordinator: NSObject, ObservableObject, WKDown
             initiatingOrigin: initiatingOrigin
         ) { [weak self] preparedRequest in
             guard let self else { return }
+            guard self.downloads.contains(where: {
+                $0.id == id && $0.status == .starting
+            }) else { return }
             let configuration = WKWebViewConfiguration()
             configuration.websiteDataStore = websiteDataStore
             let webView = WKWebView(frame: .zero, configuration: configuration)
