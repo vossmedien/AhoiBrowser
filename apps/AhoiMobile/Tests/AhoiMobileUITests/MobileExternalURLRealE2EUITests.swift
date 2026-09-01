@@ -9,9 +9,10 @@ final class MobileExternalURLRealE2EUITests: MobileBrowserRealE2ETestCase {
         }
 
         let fixtureURL = "https://fixture.ahoibrowser.test/start"
-        let externalURL = try XCTUnwrap(
-            URL(string: "https://external-url-dedupe.ahoibrowser.test/pre-grant")
-        )
+        let runToken = UUID().uuidString.lowercased()
+        let externalURL = try XCTUnwrap(URL(
+            string: "https://external-url-dedupe.ahoibrowser.test/pre-grant?run=\(runToken)"
+        ))
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
         let address = app.buttons["browser.address"]
         let tabs = app.buttons["browser.tabs"]
