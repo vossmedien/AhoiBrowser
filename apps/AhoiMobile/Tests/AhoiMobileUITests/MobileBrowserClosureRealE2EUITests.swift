@@ -235,8 +235,8 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         reveal(memoryWarning, in: actionsList)
         memoryWarning.tap()
         XCTAssertTrue(
-            memoryWarning.waitForNonExistence(timeout: 4),
-            "The visible event control must dismiss before tab restoration."
+            app.buttons["browser.actions.done"].waitForNonExistence(timeout: 4),
+            "The visible event control must dismiss its action sheet before tab restoration."
         )
 
         assertAddress(selectedURL, containsOrigin: fixture.origin, in: app)
@@ -612,7 +612,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
     @MainActor
     private func reveal(_ element: XCUIElement, in container: XCUIElement) {
         for _ in 0..<10 {
-            if element.waitForExistence(timeout: 0.5), element.isHittable { return }
+            if element.exists, element.isHittable { return }
             container.swipeUp()
         }
         XCTAssertTrue(element.waitForExistence(timeout: 2))
