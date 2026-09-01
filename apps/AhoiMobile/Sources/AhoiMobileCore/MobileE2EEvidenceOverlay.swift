@@ -102,6 +102,12 @@ private enum MobileE2EIntrinsicEvidence {
               let data = try? Data(contentsOf: executableURL, options: .mappedIfSafe) else {
             return nil
         }
-        return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        // Keep this byte-for-byte compatible with
+        // mobile_evidence_artifacts.sha256_path(file). The domain prefix
+        // prevents a file digest from being confused with a tree digest.
+        var digest = SHA256()
+        digest.update(data: Data("file\0".utf8))
+        digest.update(data: data)
+        return digest.finalize().map { String(format: "%02x", $0) }.joined()
     }()
 }
