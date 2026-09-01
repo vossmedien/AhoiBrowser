@@ -49,7 +49,7 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         let app = exactCandidateApplication(arguments: arguments)
         app.terminate()
         app.launch()
-        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
+        XCTAssertTrue(waitForAddressControl(in: app))
         assertExactCandidateBinding(in: app)
         return app
     }
@@ -62,8 +62,17 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         app.terminate()
         app.launchArguments = arguments
         app.launch()
-        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
+        XCTAssertTrue(waitForAddressControl(in: app))
         assertExactCandidateBinding(in: app)
+    }
+
+    @MainActor
+    private func waitForAddressControl(in app: XCUIApplication) -> Bool {
+        app.buttons.matching(NSPredicate(
+            format: "identifier == %@ OR identifier == %@",
+            "browser.address",
+            "browser.address.private"
+        )).firstMatch.waitForExistence(timeout: 8)
     }
 
     @MainActor
