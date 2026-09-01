@@ -358,6 +358,7 @@ struct MobileBrowserActionsSheet: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .accessibilityIdentifier("browser.actions.list")
             .navigationTitle(CompanionL10n.string(
                 "browser.actions.title",
                 fallback: "Browser Actions"

@@ -230,7 +230,9 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
 
         openActions(in: app)
         let memoryWarning = app.buttons["browser.e2e.memory-warning"]
-        reveal(memoryWarning, in: app)
+        let actionsList = app.descendants(matching: .any)["browser.actions.list"]
+        XCTAssertTrue(actionsList.waitForExistence(timeout: 4))
+        reveal(memoryWarning, in: actionsList)
         memoryWarning.tap()
         XCTAssertTrue(
             memoryWarning.waitForNonExistence(timeout: 4),
@@ -609,11 +611,15 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
 
     @MainActor
     private func reveal(_ element: XCUIElement, in container: XCUIElement) {
-        XCTAssertTrue(element.waitForExistence(timeout: 8))
-        for _ in 0..<10 where !element.isHittable {
+        for _ in 0..<10 {
+            if element.waitForExistence(timeout: 0.5), element.isHittable { return }
             container.swipeUp()
         }
-        XCTAssertTrue(element.isHittable)
+        XCTAssertTrue(element.waitForExistence(timeout: 2))
+        XCTAssertTrue(
+            element.isHittable,
+            "The requested element must become visibly reachable after scrolling."
+        )
     }
 
     @MainActor
