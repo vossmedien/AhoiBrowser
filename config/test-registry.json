@@ -4709,7 +4709,7 @@
       {
         "id": "WS-09",
         "suite": "WS",
-        "description": "Workspace per Dot, Tastatur und echter Wischgeste wechseln; Animation abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab und WebContents niemals auseinanderlaufen.",
+        "description": "Workspace per Dot, Tastatur und echter Wischgeste vorwärts und rückwärts wechseln; ausschließlich der Sidebar-Inhalt gleitet horizontal in Ordnungsrichtung, während der Webview nie seitlich verschoben wird. Falls ein anderes aktives Tab beziehungsweise WebContents gewählt wird, blendet nur der Webview-Bereich kurz über; bei unverändertem WebContents bleibt er effektfrei. Animation beziehungsweise Geste abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab, Split-Fokus und WebContents niemals auseinanderlaufen. Mit Bewegung reduzieren gibt es keinen räumlichen Slide und nur bei tatsächlichem Inhaltswechsel eine kurze dezente Überblendung.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": [
           "UNIT",

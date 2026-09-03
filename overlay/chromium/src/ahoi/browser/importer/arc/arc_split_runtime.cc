@@ -171,10 +171,64 @@ bool ReorderCreatedSplit(
   return true;
 }
 
+bool ActivateSplitWorkspace(BrowserWindowInterface* browser,
+                            SessionBridge* session_bridge,
+                            const NodeMap& nodes,
+                            const ArcSplitDescriptor& split,
+                            tabs::TabInterface* target_tab) {
+  const auto folder_it = nodes.find(split.folder_node_id);
+  if (!browser || browser->IsDeleteScheduled() || !session_bridge ||
+      !target_tab || target_tab->GetBrowserWindowInterface() != browser ||
+      folder_it == nodes.end() || !folder_it->second ||
+      !folder_it->second->workspace_id.is_valid()) {
+    return false;
+  }
+  const base::Uuid& workspace_id = folder_it->second->workspace_id;
+  if (session_bridge->GetWorkspaceForTab(target_tab) != workspace_id) {
+    return false;
+  }
+  return session_bridge->SetActiveWorkspaceForWindow(
+             browser, workspace_id,
+             WorkspaceActivationSource::kDataReconciliation) &&
+         session_bridge->GetActiveWorkspaceForWindow(browser) == workspace_id;
+}
+
+bool RestoreRuntimeSurface(
+    BrowserWindowInterface* browser,
+    TabStripModel* model,
+    SessionBridge* session_bridge,
+    const std::optional<base::Uuid>& previous_workspace,
+    const base::WeakPtr<tabs::TabInterface>& previous_active_tab) {
+  if (!browser || browser->IsDeleteScheduled() || !model || !session_bridge) {
+    return false;
+  }
+  if (previous_workspace.has_value() &&
+      (!session_bridge->SetActiveWorkspaceForWindow(
+           browser, *previous_workspace,
+           WorkspaceActivationSource::kDataReconciliation) ||
+       session_bridge->GetActiveWorkspaceForWindow(browser) !=
+           previous_workspace)) {
+    return false;
+  }
+  if (!previous_active_tab) {
+    return true;
+  }
+  if (previous_active_tab->GetBrowserWindowInterface() != browser ||
+      model->GetIndexOfTab(previous_active_tab.get()) < 0) {
+    return false;
+  }
+  model->ActivateTab(previous_active_tab.get());
+  return model->GetActiveTab() == previous_active_tab.get();
+}
+
 bool ActivateExpectedFocus(BrowserWindowInterface* browser,
                            TabStripModel* model,
                            SessionBridge* session_bridge,
+                           const NodeMap& nodes,
                            const ArcSplitDescriptor& split) {
+  if (!session_bridge) {
+    return false;
+  }
   tabs::TabInterface* const focused_tab =
       session_bridge->FindTabByTreeNodeId(split.focused_member_node_id);
   if (!browser || browser->IsDeleteScheduled() || !focused_tab ||
@@ -184,6 +238,14 @@ bool ActivateExpectedFocus(BrowserWindowInterface* browser,
   }
   ui::BaseWindow* const window = browser->GetWindow();
   if (!window) {
+    return false;
+  }
+  // Workspace observers run synchronously and are allowed to select that
+  // workspace's current surface. Activate the imported workspace before the
+  // split member so the sidebar cannot immediately steal focus back to the
+  // previously active Settings/tab surface.
+  if (!ActivateSplitWorkspace(browser, session_bridge, nodes, split,
+                              focused_tab)) {
     return false;
   }
   window->Activate();
@@ -275,18 +337,31 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
                                            const ArcImportPlan& applied_plan) {
   ArcSplitRuntimeResult result;
   TabStripModel* const model = browser ? browser->GetTabStripModel() : nullptr;
+  const std::optional<base::Uuid> previous_workspace =
+      session_bridge && browser
+          ? session_bridge->GetActiveWorkspaceForWindow(browser)
+          : std::nullopt;
+  const base::WeakPtr<tabs::TabInterface> previous_active_tab =
+      model && model->GetActiveTab()
+          ? model->GetActiveTab()->GetWeakPtr()
+          : base::WeakPtr<tabs::TabInterface>();
   const ArcSplitVerification initial =
       VerifyArcSplitRuntime(browser, session_bridge, applied_plan);
+  const NodeMap nodes = BuildNodeMap(applied_plan);
   if (initial == ArcSplitVerification::kExact) {
     if (!applied_plan.splits.empty() &&
-        !ActivateExpectedFocus(browser, model, session_bridge,
+        !ActivateExpectedFocus(browser, model, session_bridge, nodes,
                                applied_plan.splits.back())) {
+      RestoreRuntimeSurface(browser, model, session_bridge, previous_workspace,
+                            previous_active_tab);
       return result;
     }
     if (!applied_plan.splits.empty() &&
         VerifyArcSplitRuntime(browser, session_bridge, applied_plan,
                               /*require_focus=*/true) !=
             ArcSplitVerification::kExact) {
+      RestoreRuntimeSurface(browser, model, session_bridge, previous_workspace,
+                            previous_active_tab);
       return result;
     }
     result.status = ArcImportStatus::kOk;
@@ -303,7 +378,6 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
     return result;
   }
 
-  const NodeMap nodes = BuildNodeMap(applied_plan);
   std::map<base::Uuid, tabs::TabInterface*> runtime_tabs;
 
   // Materialize every missing member before creating any native split. This
@@ -361,17 +435,25 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
   }
 
   std::vector<split_tabs::SplitTabId> created_split_ids;
+  const auto fail_after_workspace_activation = [&]() {
+    RollBackCreatedSplits(model, created_split_ids);
+    RestoreRuntimeSurface(browser, model, session_bridge, previous_workspace,
+                          previous_active_tab);
+    CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
+    result.opened_tabs.clear();
+    result.reconstructed_split_count = 0;
+    result.approximated_four_pane_ratio_count = 0;
+    return std::move(result);
+  };
   for (const ArcSplitDescriptor& split : applied_plan.splits) {
     const ArcSplitVisualExpectation visual =
         *BuildArcSplitVisualExpectation(split);
     RuntimeSplitObservation observation = InspectRuntimeSplit(
         browser, session_bridge, model, split, visual.visual_data);
     if (observation.verification == ArcSplitVerification::kExact) {
-      if (!ActivateExpectedFocus(browser, model, session_bridge, split)) {
-        RollBackCreatedSplits(model, created_split_ids);
-        CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-        result.opened_tabs.clear();
-        return result;
+      if (!ActivateExpectedFocus(browser, model, session_bridge, nodes,
+                                 split)) {
+        return fail_after_workspace_activation();
       }
       ++result.reconstructed_split_count;
       if (visual.approximated_four_pane_ratios) {
@@ -381,30 +463,30 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
     }
     if (observation.verification != ArcSplitVerification::kRepairableMissing ||
         observation.member_tabs.size() != split.member_node_ids.size()) {
-      RollBackCreatedSplits(model, created_split_ids);
-      CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-      result.opened_tabs.clear();
-      return result;
+      return fail_after_workspace_activation();
     }
 
     tabs::TabInterface* const leading_tab = observation.member_tabs.front();
+    // AddToNewSplit intentionally uses the model's active tab as its pivot.
+    // BrowserSidebarHostView observes ActivateTab synchronously and restores
+    // the active workspace surface, so switch workspaces first and verify the
+    // pivot survived that observer before creating any native split state.
+    if (!ActivateSplitWorkspace(browser, session_bridge, nodes, split,
+                                leading_tab)) {
+      return fail_after_workspace_activation();
+    }
     model->ActivateTab(leading_tab);
     const int leading_index = model->GetIndexOfTab(leading_tab);
-    if (leading_index < 0 || model->GetSplitForTab(leading_index).has_value()) {
-      RollBackCreatedSplits(model, created_split_ids);
-      CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-      result.opened_tabs.clear();
-      return result;
+    if (leading_index < 0 || model->GetActiveTab() != leading_tab ||
+        model->GetSplitForTab(leading_index).has_value()) {
+      return fail_after_workspace_activation();
     }
     std::vector<int> remaining_indices;
     for (size_t index = 1; index < observation.member_tabs.size(); ++index) {
       const int tab_index =
           model->GetIndexOfTab(observation.member_tabs[index]);
       if (tab_index < 0 || model->GetSplitForTab(tab_index).has_value()) {
-        RollBackCreatedSplits(model, created_split_ids);
-        CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-        result.opened_tabs.clear();
-        return result;
+        return fail_after_workspace_activation();
       }
       remaining_indices.push_back(tab_index);
     }
@@ -414,25 +496,16 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
                              split_tabs::SplitTabCreatedSource::kExtensionsApi);
     created_split_ids.push_back(split_id);
     if (!ReorderCreatedSplit(model, split_id, observation.member_tabs)) {
-      RollBackCreatedSplits(model, created_split_ids);
-      CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-      result.opened_tabs.clear();
-      return result;
+      return fail_after_workspace_activation();
     }
     const RuntimeSplitObservation exact = InspectRuntimeSplit(
         browser, session_bridge, model, split, visual.visual_data);
     if (exact.verification != ArcSplitVerification::kExact) {
-      RollBackCreatedSplits(model, created_split_ids);
-      CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-      result.opened_tabs.clear();
-      return result;
+      return fail_after_workspace_activation();
     }
 
-    if (!ActivateExpectedFocus(browser, model, session_bridge, split)) {
-      RollBackCreatedSplits(model, created_split_ids);
-      CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-      result.opened_tabs.clear();
-      return result;
+    if (!ActivateExpectedFocus(browser, model, session_bridge, nodes, split)) {
+      return fail_after_workspace_activation();
     }
     ++result.reconstructed_split_count;
     if (visual.approximated_four_pane_ratios) {
@@ -443,12 +516,7 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
   if (VerifyArcSplitRuntime(browser, session_bridge, applied_plan,
                             /*require_focus=*/true) !=
       ArcSplitVerification::kExact) {
-    RollBackCreatedSplits(model, created_split_ids);
-    CloseArcImportRuntimeTabs(std::move(result.opened_tabs));
-    result.opened_tabs.clear();
-    result.reconstructed_split_count = 0;
-    result.approximated_four_pane_ratio_count = 0;
-    return result;
+    return fail_after_workspace_activation();
   }
   result.status = ArcImportStatus::kOk;
   return result;

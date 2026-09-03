@@ -80,10 +80,15 @@ The surface is fast without a remote service or model dependency.
 
 ## Workspaces and gesture
 
-Workspace changes are interactive: sidebar content follows the horizontal Magic
-Mouse gesture and settles or cancels based on distance/velocity. Reduced Motion
-uses a short cross-fade. Gesture direction, sensitivity, and disable control are
-settings. Keyboard/sidebar switching remains first-class and deterministic.
+Workspace changes are interactive: only the sidebar content slides horizontally
+and follows the Magic Mouse gesture, settling or cancelling based on
+distance/velocity. The website never slides. If the completed workspace change
+also selects a different active tab/WebContents, the WebContents area uses a
+short cross-fade; it remains visually unchanged when the active WebContents is
+unchanged. Reduced Motion removes the spatial sidebar transition and uses only
+a short, subtle cross-fade where content actually changes. Gesture direction,
+sensitivity, and disable control are settings. Keyboard/sidebar switching
+remains first-class and deterministic.
 The workspace context menu exposes persistent checked controls for workspace
 swipe, `Command`+scroll tab cycling, and middle-click auto-scroll. Preference
 changes propagate live to every open browser window or renderer as applicable;

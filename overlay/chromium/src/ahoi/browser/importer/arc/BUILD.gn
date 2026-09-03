@@ -129,3 +129,36 @@ test("ahoi_arc_import_unittests") {
     "//testing/gtest",
   ]
 }
+
+source_set("browser_tests") {
+  testonly = true
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  sources = [ "arc_split_runtime_browsertest.cc" ]
+  deps = [
+    ":service",
+    "//ahoi/browser/session",
+    "//ahoi/browser/ui/sidebar:browser_sidebar",
+    "//base",
+    "//base/test:test_support",
+    "//chrome/browser",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//chrome/test:test_support",
+    "//chrome/test:test_support_ui",
+    "//components/split_tabs",
+    "//components/tabs:public",
+    "//content/test:test_support",
+    "//testing/gtest",
+    "//ui/base",
+    "//url",
+  ]
+}
+
+test("ahoi_arc_import_browsertests") {
+  deps = [
+    ":browser_tests",
+    "//chrome:packed_resources",
+    "//chrome/test:browser_tests_runner",
+    "//chrome/test:test_support",
+  ]
+}

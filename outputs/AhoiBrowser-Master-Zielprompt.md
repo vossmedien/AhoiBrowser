@@ -687,6 +687,7 @@ Implementiere eine native, latenzarme Command Bar:
 
 - Chromiums auf macOS bereits vorhandene Zwei-Finger-/Magic-Mouse-Geste für Zurück beziehungsweise Vor bleibt unverändert erhalten und wird nur als Regression geprüft; AhoiBrowser implementiert dafür keinen zweiten Gestenpfad.
 - Der eigene Workspace-Wechsel muss sich eindeutig von Chromiums vorhandener Seitennavigation und horizontalem Website-Scroll unterscheiden. Die Gesture-Arena entscheidet erst nach Schwelle eindeutig und löst niemals zwei Aktionen aus.
+- Beim Workspace-Wechsel gleitet ausschließlich der Inhalt der Sidebar horizontal und richtungsgetreu; die Webseite beziehungsweise der Webview wird niemals seitlich verschoben. Wechselt mit dem Workspace auch das aktive Tab beziehungsweise `WebContents`, blendet nur der Webview-Bereich kurz über. Bleibt dasselbe `WebContents` aktiv, gibt es dort keinen künstlichen Effekt. Ein abgebrochener Wechsel stellt Sidebar, aktiven Dot, Baum, Tab, Split-Fokus und `WebContents` atomar wieder her. `Bewegung reduzieren` deaktiviert die räumliche Sidebar-Bewegung und verwendet nur dort eine kurze dezente Überblendung, wo sich Inhalt tatsächlich ändert.
 - `⌘` plus Scroll beziehungsweise Trackpad-Scroll wechselt mit Delta-Schwelle, Rate-Limit und sichtbarer Vorschau zyklisch zwischen den aktuell laufenden/aktiven Tabs des Workspaces; die Funktion ist konfigurierbar und kollidiert nicht mit Webseitenzoom, horizontalem Seiten-Scroll oder Systemgesten.
 - Mittelklick in einer scrollbaren Webseite aktiviert Firefox-artiges Auto-Scrolling: Entfernung und Richtung des Cursors bestimmen kontinuierlich Richtung und Geschwindigkeit. Erneuter Mittelklick, primärer Klick, Escape, Tab-/Workspace-Wechsel oder Fokusverlust beendet es sofort.
 - Auto-Scrolling bleibt im Renderer-/Input-Pfad sicher, respektiert nicht scrollbare Flächen, verschachtelte Scroller, Zoom, reduzierte Bewegung und Pointer-Lock und darf keinen Browser-Chrome-Drag auslösen.
@@ -1698,7 +1699,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `WS-06`: temporäre Tabs und aktive Auswahl wandern nicht unerwartet zwischen Fenstern.
 - `WS-07`: Cookies und Logins bleiben beim Workspace-Wechsel erhalten.
 - `WS-08`: aktiven Workspace mit Icon/Name und alle inaktiven Workspaces als stabile Dots darstellen; Hover und Tastaturfokus zeigen jeweils korrekte Vorschau ohne Wechsel.
-- `WS-09`: Workspace per Dot, Tastatur und echter Wischgeste wechseln; Animation abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab und WebContents niemals auseinanderlaufen.
+- `WS-09`: Workspace per Dot, Tastatur und echter Wischgeste vorwärts und rückwärts wechseln; ausschließlich der Sidebar-Inhalt gleitet horizontal in Ordnungsrichtung, während der Webview nie seitlich verschoben wird. Falls ein anderes aktives Tab beziehungsweise `WebContents` gewählt wird, blendet nur der Webview-Bereich kurz über; bei unverändertem `WebContents` bleibt er effektfrei. Animation beziehungsweise Geste abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab, Split-Fokus und `WebContents` niemals auseinanderlaufen. Mit `Bewegung reduzieren` gibt es keinen räumlichen Slide und nur bei tatsächlichem Inhaltswechsel eine kurze dezente Überblendung.
 
 ### Sidebar Drag-and-drop und Split View
 
