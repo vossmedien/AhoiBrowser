@@ -321,9 +321,9 @@ final class MobileBrowserKeyboardCommandController: UIViewController {
         title: String
     ) -> UIKeyCommand {
         let command = UIKeyCommand(
+            action: action,
             input: input,
             modifierFlags: modifiers,
-            action: action,
             discoverabilityTitle: title
         )
         command.wantsPriorityOverSystemBehavior = true
