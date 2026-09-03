@@ -49,6 +49,7 @@ public struct CompanionRootView: View {
 
     public var body: some View {
         NavigationSplitView {
+            if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             List(selection: $selectedWorkspaceID) {
                 Section(L("root.workspaces", "Workspaces")) {
                     ForEach(model.snapshot.visibleWorkspaces) { workspace in
@@ -189,10 +190,11 @@ public struct CompanionRootView: View {
                         .padding()
                 }
             }
-        } detail: {
-            if !model.searchResults.isEmpty && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            } else {
                 SearchResultsView(results: model.searchResults, openURL: openURL)
-            } else if let workspace = model.snapshot.visibleWorkspaces.first(where: { $0.id == selectedWorkspaceID }) {
+            }
+        } detail: {
+            if let workspace = model.snapshot.visibleWorkspaces.first(where: { $0.id == selectedWorkspaceID }) {
                 WorkspaceDetailView(
                     workspace: workspace,
                     nodes: model.snapshot.visibleTreeNodes.filter { $0.workspaceID == workspace.id },
