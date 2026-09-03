@@ -279,7 +279,7 @@ index 591c171e2d94c342ca622df936086db404951bca..9b424d96c96a6de1fc5e93ce41d528ae
 +  const GURL request_url("https://auth.example.test/protected");
 +  std::unique_ptr<content::WebContents> standalone_contents =
 +      content::WebContents::Create(
-+          content::WebContents::CreateParams(browser()->profile()));
++          content::WebContents::CreateParams(browser()->GetProfile()));
 +
 +  net::AuthChallengeInfo auth_info;
 +  auth_info.scheme = "basic";
