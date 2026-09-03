@@ -345,6 +345,7 @@ struct MobileTabSwitcherSheet: View {
                 .accessibilityIdentifier(
                     "browser.tab-rename.\(tab.id.uuidString.lowercased())"
                 )
+                .buttonStyle(.borderless)
             }
             Button(role: .destructive) {
                 closeTab(tab.id)
@@ -360,6 +361,7 @@ struct MobileTabSwitcherSheet: View {
                 tab.displayTitle
             ))
             .accessibilityIdentifier("browser.tab-close.\(tab.id.uuidString.lowercased())")
+            .buttonStyle(.borderless)
         }
         .listRowBackground(isSelected ? Color.accentColor.opacity(0.13) : Color.clear)
         .contextMenu {
