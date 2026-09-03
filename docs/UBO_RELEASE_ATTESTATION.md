@@ -20,8 +20,10 @@ requires Manifest V2, version 1.74.0, and no package-controlled `update_url`.
 
 The same receipt is bound to the reviewed release commit, clean Ahoi source
 SHA, the combined overlay/patch fingerprint, separate patch-series and overlay
-tree fingerprints, the candidate bundle hash, and the matching atomic
-installation receipt. Absolute local receipt paths, cookies, credentials,
+tree fingerprints, the legacy files-only bundle hash, the exact bundle-tree
+hash, and the matching atomic installation receipt. The installation binding
+uses the exact tree hash, which includes entry types, modes, symlink targets,
+directories, and file bytes. Absolute local receipt paths, cookies, credentials,
 private profile data, and CRX bytes are not retained. The public signed final
 asset URL is retained exactly so the one-hop response chain remains auditable;
 the authorization is transient and is not derived from a user account.

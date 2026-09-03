@@ -144,6 +144,8 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertNotIn("optional_output", provenance)
         self.assertIn("verify_build_tool_identity", provenance)
         self.assertIn("verify_profile_binding", provenance)
+        self.assertIn('"bundleSha256": bundle_hash(app)', provenance)
+        self.assertIn('"bundleTreeSha256": tree_sha256(app)', provenance)
         self.assertIn('"version": clang_version_line', provenance)
         self.assertNotIn('"version": clang_version,', provenance)
         for key in (

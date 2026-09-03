@@ -14,6 +14,69 @@ import ubo_attestation_crx3 as crx3  # noqa: E402
 
 
 class UboReleaseAttestationContractTests(unittest.TestCase):
+    def candidate_receipts(self):
+        source_commit = "1" * 40
+        chromium_commit = "2" * 40
+        legacy_bundle_hash = "3" * 64
+        bundle_tree_hash = "4" * 64
+        gn_args_hash = attestation.sha256_file(attestation.DEV_GN_PATH)
+        build = {
+            "schemaVersion": 2,
+            "kind": "ahoi-dev",
+            "app": {
+                "sourceCommit": source_commit,
+                "chromiumCommit": chromium_commit,
+                "chromiumVersion": "152.0.7977.65",
+                "gnArgsSha256": gn_args_hash,
+                "buildProfile": "dev",
+                "bundleSha256": legacy_bundle_hash,
+                "bundleTreeSha256": bundle_tree_hash,
+            },
+            "source": {
+                "repositoryCommit": source_commit,
+                "repositoryDirty": False,
+                "overlayFingerprint": attestation.overlay_and_patch_fingerprint(
+                    ROOT
+                ),
+                "checkoutDeltaFingerprint": "5" * 64,
+            },
+        }
+        installation = {
+            "schemaVersion": 1,
+            "kind": "development-installation-receipt",
+            "releaseEvidenceEligible": False,
+            "bundle": {
+                "sourceCommit": source_commit,
+                "chromiumCommit": chromium_commit,
+                "chromiumVersion": "152.0.7977.65",
+                "gnArgsSha256": gn_args_hash,
+                "buildProfile": "dev",
+                "bundleTreeSha256": bundle_tree_hash,
+                "executableSha256": "6" * 64,
+            },
+            "installation": {
+                "candidateBundleTreeSha256": bundle_tree_hash,
+                "target": "/Applications/AhoiBrowser.app",
+                "sameVolumeStaging": True,
+                "processesQuiescent": True,
+                "automaticRollbackOnVerificationFailure": True,
+                "postInstallVerification": True,
+            },
+            "verification": {
+                "candidateVerifiedBeforeStaging": True,
+                "sameVolumeCopyVerified": True,
+                "installedBundleVerifiedAfterActivation": True,
+            },
+        }
+        return build, installation, legacy_bundle_hash, bundle_tree_hash
+
+    def bind_receipts(self, root, build, installation, suffix):
+        build_path = root / f"build-{suffix}.json"
+        installation_path = root / f"installation-{suffix}.json"
+        build_path.write_text(json.dumps(build), encoding="utf-8")
+        installation_path.write_text(json.dumps(installation), encoding="utf-8")
+        return attestation.bind_candidate(build_path, installation_path)
+
     def test_reviewed_identity_matches_repository_pin(self):
         pins = attestation.load_pins()
         self.assertEqual("1.74.0", pins.version)
@@ -87,6 +150,39 @@ class UboReleaseAttestationContractTests(unittest.TestCase):
             )
             with self.assertRaises(attestation.AttestationError):
                 attestation.publish_atomic(output, {"schemaVersion": 2})
+
+    def test_candidate_binding_uses_exact_tree_hash_and_fails_closed(self):
+        build, installation, legacy_hash, tree_hash = self.candidate_receipts()
+        with tempfile.TemporaryDirectory(
+            dir=ROOT, prefix="ubo-attestation-test-"
+        ) as raw:
+            root = pathlib.Path(raw)
+            candidate = self.bind_receipts(root, build, installation, "valid")
+            self.assertNotEqual(legacy_hash, tree_hash)
+            self.assertEqual(tree_hash, candidate["bundleTreeSha256"])
+
+            legacy_installation = json.loads(json.dumps(installation))
+            legacy_installation["bundle"]["bundleTreeSha256"] = legacy_hash
+            legacy_installation["installation"][
+                "candidateBundleTreeSha256"
+            ] = legacy_hash
+            with self.assertRaisesRegex(
+                attestation.AttestationError,
+                "candidate and atomic installation receipt are not bound",
+            ):
+                self.bind_receipts(
+                    root, build, legacy_installation, "legacy-mismatch"
+                )
+
+            missing_tree_hash = json.loads(json.dumps(build))
+            del missing_tree_hash["app"]["bundleTreeSha256"]
+            with self.assertRaisesRegex(
+                attestation.AttestationError,
+                "candidate bundle-tree hash",
+            ):
+                self.bind_receipts(
+                    root, missing_tree_hash, installation, "missing-tree-hash"
+                )
 
     def test_tool_has_no_configurable_url_or_persistent_crx_output(self):
         option_strings = {

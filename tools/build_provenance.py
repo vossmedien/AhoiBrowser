@@ -16,6 +16,7 @@ from typing import Optional
 from chromium_dependencies import collect_revisions, verify_revisions
 from evidence import bundle_hash
 from overlay_state import OverlayStateError, verify_overlay_state
+from release.common import tree_sha256
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -440,6 +441,7 @@ def main() -> int:
     app_payload = {
         "path": logical_path(app),
         "bundleSha256": bundle_hash(app),
+        "bundleTreeSha256": tree_sha256(app),
         "binarySha256": sha256(executable),
         "bundleName": plist["CFBundleName"],
         "bundleIdentifier": plist["CFBundleIdentifier"],

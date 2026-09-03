@@ -487,7 +487,10 @@ def bind_candidate(
     current_fingerprint = overlay_and_patch_fingerprint(ROOT)
     if combined_fingerprint != current_fingerprint:
         raise AttestationError("current overlay/patch inputs differ from the candidate")
-    candidate_hash = _require_sha256(app.get("bundleSha256"), "candidate bundle hash")
+    _require_sha256(app.get("bundleSha256"), "legacy candidate bundle hash")
+    candidate_tree_hash = _require_sha256(
+        app.get("bundleTreeSha256"), "candidate bundle-tree hash"
+    )
     gn_args_sha256 = _require_sha256(
         app.get("gnArgsSha256"), "candidate GN-args SHA-256"
     )
@@ -517,8 +520,8 @@ def bind_candidate(
         raise AttestationError("installation receipt lacks required sections")
     if (
         bundle.get("sourceCommit") != source_commit
-        or bundle.get("bundleTreeSha256") != candidate_hash
-        or transaction.get("candidateBundleTreeSha256") != candidate_hash
+        or bundle.get("bundleTreeSha256") != candidate_tree_hash
+        or transaction.get("candidateBundleTreeSha256") != candidate_tree_hash
         or transaction.get("target") != "/Applications/AhoiBrowser.app"
         or transaction.get("sameVolumeStaging") is not True
         or transaction.get("processesQuiescent") is not True
@@ -552,7 +555,7 @@ def bind_candidate(
         "overlayTreeFingerprint": overlay_tree_fingerprint(),
         "checkoutDeltaFingerprint": checkout_delta,
         "gnArgsSha256": gn_args_sha256,
-        "bundleTreeSha256": candidate_hash,
+        "bundleTreeSha256": candidate_tree_hash,
         "executableSha256": _require_sha256(
             bundle.get("executableSha256"), "installed executable SHA-256"
         ),
