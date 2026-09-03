@@ -664,7 +664,9 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         )).firstMatch
         guard delete.waitForExistence(timeout: 3) else { return }
         delete.tap()
-        let confirm = app.buttons["browser.library.workspace.delete.confirm"]
+        let confirm = app.alerts.firstMatch
+            .buttons["browser.library.workspace.delete.confirm"]
+            .firstMatch
         guard confirm.waitForExistence(timeout: 3) else { return }
         confirm.tap()
     }
