@@ -229,7 +229,7 @@ final class MobileBrowserIPadInteractionUITests: MobileBrowserRealE2ETestCase {
             )).firstMatch
             guard delete.waitForExistence(timeout: 3) else { continue }
             delete.tap()
-            let confirm = app.alerts.firstMatch
+            let confirm = app.sheets.firstMatch
                 .buttons["browser.library.workspace.delete.confirm"]
                 .firstMatch
             guard confirm.waitForExistence(timeout: 3) else { continue }
