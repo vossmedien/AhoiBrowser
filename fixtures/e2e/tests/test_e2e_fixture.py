@@ -477,6 +477,7 @@ class HTTPSClusterTests(unittest.TestCase):
         header_map = dict(headers)
         self.assertEqual("image/svg+xml", header_map["Content-Type"])
         self.assertEqual(str(len(server.SLOW_RESOURCE_BYTES)), header_map["Content-Length"])
+        self.assertEqual("no-store", header_map["Cache-Control"])
         self.assertGreater(server.SLOW_RESOURCE_THROTTLE_SECONDS, 0)
 
     def test_media_is_valid_deterministic_mp4_with_range_support(self) -> None:

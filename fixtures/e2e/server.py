@@ -487,6 +487,7 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
                 "ahoi-slow-resource.svg",
                 attachment=False,
                 throttle_seconds=SLOW_RESOURCE_THROTTLE_SECONDS,
+                cache_control="no-store",
             )
         else:
             self._send(HTTPStatus.NOT_FOUND, b"", send_body=False)
@@ -625,6 +626,7 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
                 "ahoi-slow-resource.svg",
                 attachment=False,
                 throttle_seconds=SLOW_RESOURCE_THROTTLE_SECONDS,
+                cache_control="no-store",
             )
             return
         if route == "/download/large-range.zip":
