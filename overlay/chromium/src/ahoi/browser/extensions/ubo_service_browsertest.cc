@@ -285,7 +285,7 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
   auto dialog = std::make_unique<UboInstallDialog>(browser(), service.get());
   UboInstallDialog* dialog_ptr = dialog.get();
   views::Widget* widget = constrained_window::CreateBrowserModalDialogViews(
-      std::move(dialog), browser()->window()->GetNativeWindow());
+      std::move(dialog), browser()->GetWindow()->GetNativeWindow());
   WidgetDestructionFlag destruction_flag(widget, &dialog_destroyed);
   widget->Show();
   EXPECT_FALSE(dialog_ptr->Accept());
@@ -355,7 +355,7 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
   auto dialog = std::make_unique<UboInstallDialog>(browser(), service.get());
   UboInstallDialog* dialog_ptr = dialog.get();
   views::Widget* widget = constrained_window::CreateBrowserModalDialogViews(
-      std::move(dialog), browser()->window()->GetNativeWindow());
+      std::move(dialog), browser()->GetWindow()->GetNativeWindow());
   WidgetDestructionFlag destruction_flag(widget, &dialog_destroyed);
   widget->Show();
 

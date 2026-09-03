@@ -28,6 +28,7 @@
 #include "ui/base/dragdrop/os_exchange_data.h"
 #include "ui/gfx/geometry/point.h"
 #include "ui/gfx/geometry/rect.h"
+#include "ui/views/drag_controller.h"
 
 namespace ahoi::split_drop {
 namespace {
@@ -526,10 +527,14 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   ASSERT_TRUE(drag_handle);
 
   const gfx::Point press_point(8, 8);
+  views::DragController* const drag_controller =
+      drag_handle->drag_controller();
+  ASSERT_TRUE(drag_controller);
   EXPECT_EQ(ui::DragDropTypes::DRAG_MOVE,
-            drag_handle->GetDragOperations(press_point));
+            drag_controller->GetDragOperationsForView(drag_handle,
+                                                       press_point));
   ui::OSExchangeData data;
-  drag_handle->WriteDragData(press_point, &data);
+  drag_controller->WriteDragDataForView(drag_handle, press_point, &data);
 
   const std::optional<drag::SidebarTabDragPayload> payload =
       drag::ReadSidebarTabDragPayload(data);

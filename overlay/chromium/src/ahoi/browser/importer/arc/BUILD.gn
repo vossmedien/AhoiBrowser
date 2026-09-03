@@ -125,7 +125,7 @@ test("ahoi_arc_import_unittests") {
   deps = [
     ":unit_tests",
     "//ahoi/browser/session",
-    "//base/test:run_all_unittests",
+    "//chrome/test:test_support_unit",
     "//testing/gtest",
   ]
 }

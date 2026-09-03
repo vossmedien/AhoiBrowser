@@ -52,18 +52,21 @@
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  list-style: none;
   margin: 10px 0 0;
+  padding: 0;
 }
 
-.counts > div {
+.counts > li {
   background: var(--cr-fallback-color-surface-variant);
   border-radius: 8px;
   padding: 8px 10px;
 }
 
-.counts dd {
+.count-value {
+  display: block;
   font-size: 18px;
-  margin: 3px 0 0;
+  margin-top: 3px;
 }
 
 .targets {
