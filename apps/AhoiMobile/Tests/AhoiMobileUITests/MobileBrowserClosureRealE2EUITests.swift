@@ -460,7 +460,12 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         XCTAssertTrue(field.waitForExistence(timeout: 3))
         field.tap()
         field.typeText(name)
-        let confirm = app.buttons["browser.library.create.confirm"]
+        // SwiftUI alerts can expose the same semantic action through both the
+        // alert host and its rendered button on some iOS runtimes. Scope the
+        // query to the active alert and operate on that single visible action.
+        let confirm = app.alerts.firstMatch
+            .buttons["browser.library.create.confirm"]
+            .firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 3))
         confirm.tap()
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
