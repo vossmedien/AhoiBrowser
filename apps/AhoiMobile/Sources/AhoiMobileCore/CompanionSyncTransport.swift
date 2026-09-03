@@ -230,7 +230,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
     }
 
     func quarantineImportedRecord(_ record: SyncRecord, reason: String) async throws {
-        try await quarantineStore.quarantine(recordID: record.recordID, reason: reason)
+        _ = await quarantineStore.quarantine(recordID: record.recordID, reason: reason)
     }
 
     func resolveQuarantinedRecord(_ record: SyncRecord) async throws {
@@ -238,7 +238,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
               entry.reason != "physical_delete_without_validated_tombstone" else {
             return
         }
-        _ = try await quarantineStore.remove(
+        _ = await quarantineStore.remove(
             recordID: record.recordID,
             expectedGeneration: entry.generation
         )
@@ -283,12 +283,12 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
             return false
         }
         try boundary.authorize(record)
-        let removed = try await quarantineStore.remove(
+        let removed = await quarantineStore.remove(
             recordID: record.recordID,
             expectedGeneration: expectedGeneration
         )
         if removed {
-            lock.withLock { pendingRecordIDs.insert(record.recordID) }
+            _ = lock.withLock { pendingRecordIDs.insert(record.recordID) }
         }
         return removed
     }
@@ -297,7 +297,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
         recordID: UUID,
         expectedGeneration: UUID
     ) async throws -> Bool {
-        try await quarantineStore.remove(
+        await quarantineStore.remove(
             recordID: recordID,
             expectedGeneration: expectedGeneration
         )
