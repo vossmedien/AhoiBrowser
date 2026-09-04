@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-04T21:36:04+02:00",
+  "updatedAt": "2026-09-04T22:51:32+02:00",
   "gates": [
     {
       "id": "xcode-26.6",
@@ -28,15 +28,15 @@
     },
     {
       "id": "cloudkit-identifiers",
-      "state": "distribution-capabilities-verified-runtime-required",
+      "state": "distribution-and-development-runtime-verified-production-roundtrip-required",
       "owner": "apple-team-admin",
-      "condition": "The exported and processed TestFlightBootstrap 0.1 (8) binds Team 248AJ5BN47 and app.ahoibrowser.AhoiBrowser to the dedicated iCloud.app.ahoibrowser.AhoiBrowser container with Production CloudKit/APNs in the signed app. DisplayPilot was not reused. Development/Production schema state and a real Mac-Mobile CloudKit roundtrip remain separate runtime gates."
+      "condition": "The exported and internally distributed TestFlightBootstrap 0.1 (10), source ab2e709d9cf77c4e73d548bb8d2869090940c0a0, binds Team 248AJ5BN47 and app.ahoibrowser.AhoiBrowser to the dedicated iCloud.app.ahoibrowser.AhoiBrowser container with Production CloudKit/APNs in the signed app. DisplayPilot was not reused. The same Mobile sources passed a real encrypted active-record and tombstone Development-container roundtrip plus cleanup on a physical iPhone; Production schema deployment and a real Mac-Mobile Production roundtrip remain separate runtime gates."
     },
     {
       "id": "ios-final-bundle-team-profile",
       "state": "testflight-bootstrap-profile-verified",
       "owner": "apple-team-admin",
-      "condition": "Source 95241c6efa56d5a90c3aa105ac8e3d7de71b5c0e was archived and exported as TestFlightBootstrap 0.1 (8), signed by Apple Distribution: Christian Voss (248AJ5BN47) with the cloud-managed App Store profile for app.ahoibrowser.AhoiBrowser. The processed build is ready for internal testing; physical TestFlight installation and a fresh post-grant profile/build remain open."
+      "condition": "Source ab2e709d9cf77c4e73d548bb8d2869090940c0a0 was archived and exported as TestFlightBootstrap 0.1 (10), signed by Apple Distribution: Christian Voss (248AJ5BN47) with the cloud-managed App Store profile for app.ahoibrowser.AhoiBrowser. App Store Connect processed build 84cf0b2e-c1b9-4ff7-b104-8d99cce8ae9f and reports it as Im Test in the internal group; physical TestFlight installation and a fresh post-grant profile/build remain open."
     },
     {
       "id": "ios-managed-default-browser-entitlement",
@@ -46,9 +46,9 @@
     },
     {
       "id": "ios-cloudkit-keychain-capabilities",
-      "state": "distribution-capabilities-verified-e2e-required",
+      "state": "distribution-and-development-transport-verified-cross-device-required",
       "owner": "apple-team-admin",
-      "condition": "The processed TestFlightBootstrap 0.1 (8) carries Production CloudKit/APNs, iCloud.app.ahoibrowser.AhoiBrowser and the dedicated sync and command Keychain groups with get-task-allow=false. A real TestFlight/Mac AES-256-GCM and per-device Ed25519 roundtrip, rotation, recovery, revocation and private-data exclusion remain required before sync is called release-verified."
+      "condition": "The processed TestFlightBootstrap 0.1 (10) carries Production CloudKit/APNs, iCloud.app.ahoibrowser.AhoiBrowser and the dedicated sync and command Keychain groups with get-task-allow=false. A physical iPhone Development-container E2E passed encrypted active-record and tombstone transport, privacy-field exclusion and cleanup; a real TestFlight/Mac Production AES-256-GCM and per-device Ed25519 roundtrip, rotation, recovery, revocation and cross-device private-data exclusion remain required before sync is called fully release-verified."
     },
     {
       "id": "ios-physical-device-journeys",
@@ -60,7 +60,7 @@
       "id": "ios-app-store-connect-testflight",
       "state": "internal-testflight-ready",
       "owner": "apple-team-admin",
-      "condition": "App Store Connect app 6808754773 contains processed iOS build 0.1 (8), build ID e8a175b4-1ab8-4bc2-a8c9-b65410a2b5e5, from source 95241c6efa56d5a90c3aa105ac8e3d7de71b5c0e. Internal group AhoiBrowser Intern (eecba011-68ca-4fe2-9c3a-12dd859ee78f) has automatic distribution, one assigned build and christian@vossmedien.de invited; the group reports the build as Ready to Test. Physical installation, external Beta Review/public link, truthful public metadata/privacy/trader inputs and the later default-browser request remain open."
+      "condition": "App Store Connect app 6808754773 contains processed iOS build 0.1 (10), build ID 84cf0b2e-c1b9-4ff7-b104-8d99cce8ae9f, from source ab2e709d9cf77c4e73d548bb8d2869090940c0a0. Internal group AhoiBrowser Intern (eecba011-68ca-4fe2-9c3a-12dd859ee78f) contains builds 0.1 (8) and 0.1 (10), has christian@vossmedien.de invited and reports build 10 as Im Test. Physical installation, external Beta Review/public link, truthful public metadata/privacy/trader inputs and the later default-browser request remain open."
     },
     {
       "id": "signed-release-provenance",
@@ -124,9 +124,9 @@
     },
     {
       "id": "cloudkit-device-validation",
-      "state": "blocked-entitlement",
+      "state": "required-cross-device-runtime",
       "owner": "apple-team-admin",
-      "condition": "After final identifiers and entitlements exist, validate the production CloudKit container with two Macs and one real iPhone or iPad. PASS-07 and AUTH-23 additionally require candidate-bound negative proof that browser, Autofill, passkey and HTTP-Auth secrets never arrive on the second Mac, in device tabs or on iOS; simulator, provider-free tests and a local redaction scan are not substitutes."
+      "condition": "Final identifiers and Production entitlements now exist in internally distributed TestFlight build 0.1 (10), and the same Mobile sources passed a real encrypted Development-container transport journey on physical iPhone. The remaining gate is a Production CloudKit roundtrip with two Macs and one real iPhone or supported iPad. PASS-07 and AUTH-23 additionally require candidate-bound negative proof that browser, Autofill, passkey and HTTP-Auth secrets never arrive on the second Mac, in device tabs or on iOS; simulator, provider-free tests and a local redaction scan are not substitutes."
     },
     {
       "id": "ubo-catalog-hosting-and-signing",
