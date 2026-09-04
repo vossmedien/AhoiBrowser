@@ -10115,7 +10115,7 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..056ea93bdf4c76839a506a762b1db68d
    // TODO(jamescook): Why was this in the middle of layout code?
    toolbar_->location_bar()->UpdateFocusBehavior(IsToolbarVisible());
    GetFrameView()->UpdateMinimumSize();
-@@ -4880,6 +5417,58 @@ void BrowserView::ViewHierarchyChanged(
+@@ -4880,6 +5417,59 @@ void BrowserView::ViewHierarchyChanged(
  }
  
  void BrowserView::AddedToWidget() {
@@ -10151,7 +10151,8 @@ index 4b4697c29715c922037635a40141a3efb2bdbae4..056ea93bdf4c76839a506a762b1db68d
 +                          : nullptr;
 +                  display::Screen* const screen = display::Screen::Get();
 +                  return region && region->GetVisible() && screen &&
-+                         region->GetBoundsInScreen().Contains(
++                         ahoi::sidebar::CanStartBrowserWorkspaceGesture(
++                             region->ahoi_sidebar_tree_view(),
 +                             screen->GetCursorScreenPoint());
 +                },
 +                base::Unretained(this)),

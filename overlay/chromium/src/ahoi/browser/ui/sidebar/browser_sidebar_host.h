@@ -15,6 +15,10 @@
 
 class Browser;
 
+namespace gfx {
+class Point;
+}
+
 namespace tabs {
 class TabInterface;
 }
@@ -61,6 +65,9 @@ bool ActivateRelativeBrowserWorkspace(views::View* sidebar_host, int delta);
 // truthful source while keyboard commands keep their existing semantics.
 bool ActivateRelativeBrowserWorkspaceByGesture(views::View* sidebar_host,
                                                int delta);
+// Horizontal bookmark scrolling owns gestures that begin over its shelf.
+bool CanStartBrowserWorkspaceGesture(views::View* sidebar_host,
+                                     const gfx::Point& screen_point);
 // Cycles through live tabs that belong to the currently active workspace.
 // This deliberately does not use TabStripModel's global next/previous helpers,
 // because one native tab strip backs every Ahoi workspace.

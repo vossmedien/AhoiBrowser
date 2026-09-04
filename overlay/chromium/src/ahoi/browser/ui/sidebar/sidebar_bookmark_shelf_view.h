@@ -5,14 +5,18 @@
 #define AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_BOOKMARK_SHELF_VIEW_H_
 
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <optional>
+#include <set>
+#include <string>
 
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/uuid.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service_observer.h"
 #include "chrome/browser/bookmarks/bookmark_parent_folder.h"
+#include "ui/base/models/image_model.h"
 #include "ui/views/view.h"
 #include "ui/views/view_tracker.h"
 
@@ -29,20 +33,24 @@ class Event;
 
 namespace views {
 class Button;
+class Label;
 class ScrollView;
 }  // namespace views
 
 namespace ahoi::sidebar {
 
 class SidebarBookmarkMenu;
+class SidebarBookmarkButton;
 
 // A compact bookmark shelf that stays above the independently scrolling saved
-// and temporary tab surfaces. URL items are favicon tiles, folders are
-// labelled chips, and the strip itself scrolls horizontally without exposing
+// and temporary tab surfaces. URL items and folders have labelled buttons,
+// and the strip itself scrolls horizontally without exposing
 // a second scrollbar in the narrow sidebar.
 class SidebarBookmarkShelfView final
     : public views::View,
       public BookmarkMergedSurfaceServiceObserver {
+  METADATA_HEADER(SidebarBookmarkShelfView, views::View)
+
  public:
   explicit SidebarBookmarkShelfView(Browser* browser);
   SidebarBookmarkShelfView(const SidebarBookmarkShelfView&) = delete;
@@ -86,6 +94,8 @@ class SidebarBookmarkShelfView final
   void AddBookmarkButton(const bookmarks::BookmarkNode* node);
   void AddPermanentFolderButton(BookmarkParentFolder::PermanentFolderType type,
                                 int title_string_id);
+  std::string KeyForNode(const bookmarks::BookmarkNode* node) const;
+  ui::ImageModel IconForNode(const bookmarks::BookmarkNode* node) const;
   const bookmarks::BookmarkNode* ResolveNode(
       const BookmarkNodeReference& reference) const;
   void OnBookmarkPressed(BookmarkNodeReference reference,
@@ -107,6 +117,9 @@ class SidebarBookmarkShelfView final
   raw_ptr<views::ScrollView> scroll_view_ = nullptr;
   raw_ptr<views::View> bookmark_items_ = nullptr;
   raw_ptr<views::Button> manager_button_ = nullptr;
+  raw_ptr<views::Label> empty_label_ = nullptr;
+  std::map<std::string, raw_ptr<SidebarBookmarkButton>> buttons_;
+  std::set<std::string> desired_keys_;
   std::unique_ptr<SidebarBookmarkMenu> folder_menu_;
   views::ViewTracker folder_menu_anchor_;
   size_t bookmark_item_count_ = 0;
