@@ -87,8 +87,7 @@ struct MobileHarborDeckView: View {
             expansion: isCollapsed ? 0 : 1,
             bottomSpacing: 7
         ) {
-            // Geometry remains stable and animatable without retaining a
-            // semantic workspace subtree in the compact state.
+            // Keep stable geometry without a semantic compact-state subtree.
             Color.clear
                 .frame(
                     maxWidth: .infinity,
@@ -120,8 +119,9 @@ struct MobileHarborDeckView: View {
                     .foregroundStyle(accentTint)
                     .contentTransition(symbolContentTransition)
                     .animation(contentAnimation, value: workspaceSymbol)
-                    .accessibilityHidden(true)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(deckTitle)
             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             .accessibilityIdentifier("browser.harbor-deck.workspace")
 
