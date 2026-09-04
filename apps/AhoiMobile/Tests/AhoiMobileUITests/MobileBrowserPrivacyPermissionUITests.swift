@@ -50,7 +50,7 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
     }
 
     @MainActor
-    func testMotionPermissionTraversesSystemAndAhoiOriginGates() throws {
+    func testMotionPermissionUsesSystemOriginGateAndResolvesGrantedState() throws {
         let app = launchFixture()
         let webView = app.webViews.firstMatch
         XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
@@ -59,8 +59,9 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
         reveal(motion, in: webView)
         motion.tap()
 
-        // iOS owns the first motion/orientation disclosure. Once the user
-        // grants that system gate, Ahoi still applies its per-origin policy.
+        // iOS/WebKit owns the motion/orientation disclosure and presents the
+        // requesting website origin directly. Unlike media capture, this
+        // platform-owned decision completes the request in one step.
         let systemAlert = app.alerts.firstMatch
         XCTAssertTrue(systemAlert.waitForExistence(timeout: 3))
         let systemMessage = renderedAlertText(in: systemAlert).lowercased()
@@ -80,22 +81,12 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
         XCTAssertTrue(systemAllow.exists)
         XCTAssertEqual(systemAlert.buttons.count, 2)
         systemAllow.tap()
-
-        assertPermissionPrompt(in: app, containsAll: [["motion", "bewegung"]])
-        app.buttons["browser.permission.cancel"].firstMatch.tap()
         XCTAssertTrue(
-            app.buttons["browser.permission.allow"].firstMatch
+            systemAlert
                 .waitForNonExistence(timeout: 3)
         )
-
-        // The system decision is retained, while Ahoi's one-shot origin
-        // choice can deliberately be requested and denied again.
-        motion.tap()
-        assertPermissionPrompt(in: app, containsAll: [["motion", "bewegung"]])
-        app.buttons["browser.permission.deny"].firstMatch.tap()
         XCTAssertTrue(
-            app.buttons["browser.permission.allow"].firstMatch
-                .waitForNonExistence(timeout: 3)
+            webView.staticTexts["motion granted."].waitForExistence(timeout: 5)
         )
     }
 
@@ -179,7 +170,10 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
 
         let cancel = app.buttons["browser.external.cancel"].firstMatch
         XCTAssertTrue(cancel.waitForExistence(timeout: 3))
-        let messageElement = app.staticTexts["browser.external.message"].firstMatch
+        let messageElement = app.alerts.firstMatch.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@",
+            fixtureOrigin
+        )).firstMatch
         XCTAssertTrue(messageElement.waitForExistence(timeout: 3))
         let message = renderedText(of: messageElement)
         XCTAssertTrue(message.contains(fixtureOrigin))
