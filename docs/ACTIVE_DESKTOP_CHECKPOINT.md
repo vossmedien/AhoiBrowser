@@ -20,6 +20,12 @@ The earlier goal-control limitation is resolved; do not request that action agai
 - Branch: `codex/desktop-core-feature-wave-20260830`; reviewed product baseline
   `d6cfa71`. Read current Git HEAD; later documentation commits do not change the
   installed product.
+- Package-1 source is frozen in `fe0afa41007f5ce152aa0e9513b12c42e46b9ea5`,
+  including integrated bookmark/composer commits `124429a` and `5a763c2`.
+  This is the next build candidate, not an installed or tested pass.
+- Clean detached build snapshot:
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo` at exactly `fe0afa4`.
+  Use the shared `.work` via `AHOI_WORK_ROOT`; do not create another snapshot.
 - Committed presentation package `b045dbf`: all-five-checkbox layout,
   caret-free open/closed folders, sidebar-only committed slide,
   same-WebContents fade suppression and early product split-feature enablement.
@@ -46,6 +52,11 @@ The earlier goal-control limitation is resolved; do not request that action agai
   incomplete output or continue polling those dead handles.
 - No current build is owned by this thread. Recheck live CPU/ownership before
   the next CPU-intensive phase. Process absence is not checkout handoff.
+- Host preflight from the clean snapshot passed: Xcode 26.6/17F113,
+  matching SDKs, arm64, about 109 GiB free versus the 64 GiB build requirement.
+  The bookmark checkpoint still explicitly retains its lease for the `.83`
+  preflight. User coordination was requested asynchronously; no lease release
+  or new-source build was assumed from the absence of a compiler process.
 - Computer Use can select and raise the installed app. Current old-candidate
   baseline is open on the read-only Arc preview; no import was committed.
 
@@ -95,9 +106,10 @@ are complete as documentation. JSON validity, all 412 unique registry IDs,
 unchanged master test-ID coverage and whitespace were checked. No runtime pass
 or browser rebuild is implied.
 
-1. Commit only this Desktop package's source and this checkpoint, then make one
-   clean integrated build snapshot. Keep foreign Mobile files and guidance out
-   of the commit. Source freeze is not runtime acceptance.
+1. Source freeze `fe0afa4` is complete. Create/use one clean detached build
+   snapshot of that integrated revision. No further product edits before its
+   build unless a concrete new blocker is found. The Desktop owner is ready
+   for the explicit shared-checkout lease release in the bookmark checkpoint.
 2. Obtain bookmark-owner handoff and use one clean integrated source snapshot.
    Reuse any appropriate complete candidate; otherwise apply the exact overlay
    and run one combined browser/focused-test-target build. Keep its real handle,
