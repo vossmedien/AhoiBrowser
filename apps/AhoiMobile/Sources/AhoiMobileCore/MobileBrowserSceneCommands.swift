@@ -179,7 +179,6 @@ struct MobileBrowserKeyboardFocusAnchor: UIViewControllerRepresentable {
         context: Context
     ) {
         uiViewController.router = router
-        uiViewController.setNeedsUpdateOfKeyCommands()
         uiViewController.claimUnownedResponderChain()
     }
 }
