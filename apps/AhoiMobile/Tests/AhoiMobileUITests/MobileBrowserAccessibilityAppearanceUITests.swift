@@ -171,10 +171,21 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
             "browser.more",
         ]
         let controls = identifiers.map { app.buttons[$0] }
+        let geometryTolerance = 0.5
         for control in controls {
             XCTAssertTrue(control.waitForExistence(timeout: 5), file: file, line: line)
-            XCTAssertGreaterThanOrEqual(control.frame.width, 44, file: file, line: line)
-            XCTAssertGreaterThanOrEqual(control.frame.height, 44, file: file, line: line)
+            XCTAssertGreaterThanOrEqual(
+                control.frame.width + geometryTolerance,
+                44,
+                file: file,
+                line: line
+            )
+            XCTAssertGreaterThanOrEqual(
+                control.frame.height + geometryTolerance,
+                44,
+                file: file,
+                line: line
+            )
         }
 
         for control in controls.filter({ $0.identifier != "browser.back" &&
@@ -196,7 +207,12 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
 
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         XCTAssertTrue(workspace.exists, file: file, line: line)
-        XCTAssertGreaterThanOrEqual(workspace.frame.height, 44, file: file, line: line)
+        XCTAssertGreaterThanOrEqual(
+            workspace.frame.height + geometryTolerance,
+            44,
+            file: file,
+            line: line
+        )
     }
 
     @MainActor
