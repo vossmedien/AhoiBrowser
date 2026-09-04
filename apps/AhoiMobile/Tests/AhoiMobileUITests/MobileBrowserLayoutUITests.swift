@@ -1,18 +1,15 @@
 import XCTest
 
-final class MobileBrowserLayoutUITests: XCTestCase {
+final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
     // INTEGRATION ONLY: these two scale checks use launch seams to create
     // deterministic tab populations. They are not visible E2E evidence.
     @MainActor
     func testIntegrationScaleFixtureOneFiveTwentyNormalTabsKeepChromeReachable() throws {
-        let app = XCUIApplication()
         for count in [1, 5, 20] {
-            app.terminate()
-            app.launchArguments = [
+            let app = launchExactCandidate(arguments: [
                 "-AhoiUITestFixture",
                 "-AhoiUITestNormalTabCount", "\(count)",
-            ]
-            app.launch()
+            ])
 
             let tabs = app.buttons["browser.tabs"]
             XCTAssertTrue(tabs.waitForExistence(timeout: 8))
@@ -29,13 +26,11 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testIntegrationScaleFixtureTwentyPrivateTabsKeepChromeReachable() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchExactCandidate(arguments: [
             "-AhoiUITestFixture",
             "-AhoiUITestPrivateTabCount", "20",
             "-AhoiUITestSelectPrivate",
-        ]
-        app.launch()
+        ])
 
         let privateAddress = app.buttons["browser.address.private"]
         XCTAssertTrue(privateAddress.waitForExistence(timeout: 8))
@@ -46,9 +41,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testVisibleNormalTabCreationReachesOneFiveTwentyMilestones() throws {
-        let app = XCUIApplication()
-        app.launchArguments = []
-        app.launch()
+        let app = coldLaunchApplication()
 
         normalizeToFreshNormalTab(in: app)
         let tabs = app.buttons["browser.tabs"]
@@ -73,9 +66,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testVisiblePrivateTabCreationReachesOneFiveTwentyMilestones() throws {
-        let app = XCUIApplication()
-        app.launchArguments = []
-        app.launch()
+        let app = coldLaunchApplication()
 
         normalizeToFreshNormalTab(in: app)
         let tabs = app.buttons["browser.tabs"]
@@ -101,9 +92,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 8))
         app.buttons["browser.more"].tap()
@@ -124,9 +113,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testPrivateFocusVoyageDoesNotExposeNormalJourneySections() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 8))
         app.buttons["browser.more"].tap()
@@ -149,9 +136,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
@@ -190,16 +175,14 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testProgrammaticPageScrollDoesNotCollapseHarborDeck() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchExactCandidate(arguments: [
             "-AhoiUITestFixture",
             "-AhoiPerformanceWorkload", "scroll",
             "-AhoiPerformanceEvidenceScenario", "scroll-motion-standard",
             "-AhoiPerformanceEvidenceNonce", "layout-scroll-is-not-user-intent",
             "-AhoiPerformanceEvidenceMarker", "ahoi-performance-scroll-motion-standard.json",
             "-AhoiPerformanceReduceMotionOverride", "false",
-        ]
-        app.launch()
+        ])
 
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let page = app.webViews.firstMatch.staticTexts["Ahoi fixture page"]
@@ -215,9 +198,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testHarborDeckTracksNestedScrollerAndRestoresOnReverseScroll() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
@@ -258,9 +239,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testHarborDeckIgnoresJitterAndExpandsOnIntentionalReverseTravel() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
@@ -304,9 +283,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testInteractiveWebPresentationsExpandCollapsedHarborDeck() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
@@ -417,12 +394,10 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             "The E2E journey must start from the visibly enabled system setting."
         )
 
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchExactCandidate(arguments: [
             "-AhoiUITestFixture",
             "-AhoiUITestReduceMotionEvidence",
-        ]
-        app.launch()
+        ])
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
@@ -787,9 +762,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
 
     @MainActor
     func testWorkspaceCanvasExposesPersistentCommandSidebarOnIPad() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
         try MobileUIAcceptanceContract.requireRegularWidthIPad(app: app)
 
         XCTAssertTrue(app.buttons["browser.sidebar.command"].waitForExistence(timeout: 8))

@@ -1,6 +1,6 @@
 import XCTest
 
-final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
+final class MobileBrowserPrivacyPermissionUITests: MobileBrowserUITestCase {
     private let fixtureOrigin = "https://fixture.ahoibrowser.test"
 
     @MainActor
@@ -191,10 +191,9 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
 
     @MainActor
     private func launchFixture(extraArguments: [String] = []) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"] + extraArguments
-        app.launch()
-        return app
+        launchExactCandidate(
+            arguments: ["-AhoiUITestFixture"] + extraArguments
+        )
     }
 
     @MainActor

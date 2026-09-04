@@ -492,6 +492,7 @@ final class MobileBrowserRealE2EUITests: MobileBrowserRealE2ETestCase {
             "file:///etc/passwd",
             "about:blank",
             "chrome://settings",
+            "https://user:secret@fixture.ahoibrowser.test/",
         ]
 
         openAddressEditor(in: app)

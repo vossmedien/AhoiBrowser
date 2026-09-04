@@ -1,11 +1,9 @@
 import XCTest
 
-final class AhoiMobileUITests: XCTestCase {
+final class AhoiMobileUITests: MobileBrowserUITestCase {
     @MainActor
     func testLocalFixtureAndPrivateTabLifecycle() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         XCTAssertTrue(
             app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8),
@@ -23,8 +21,7 @@ final class AhoiMobileUITests: XCTestCase {
         XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 3))
 
         app.terminate()
-        app.launchArguments = []
-        app.launch()
+        relaunchExactCandidate(app)
         XCTAssertFalse(
             app.buttons["browser.address.private"].waitForExistence(timeout: 1),
             "Private tabs must never survive process restart."
@@ -34,9 +31,7 @@ final class AhoiMobileUITests: XCTestCase {
 
     @MainActor
     func testUnsafeSchemeIsExplainedAndRejected() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 5))
         app.buttons["browser.address"].tap()
@@ -61,9 +56,7 @@ final class AhoiMobileUITests: XCTestCase {
 
     @MainActor
     func testOfflineFailureExplainsAndOffersRetry() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestOffline"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestOffline"])
 
         XCTAssertTrue(
             app.descendants(matching: .any)["browser.page-failure"].waitForExistence(timeout: 8)
@@ -77,9 +70,7 @@ final class AhoiMobileUITests: XCTestCase {
 
     @MainActor
     func testDebugLocalSyncOptInStaysLocalAndFailClosed() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         openSettings(in: app)
         let toggle = app.switches["settings.sync.enabled"]
@@ -113,7 +104,7 @@ final class AhoiMobileUITests: XCTestCase {
 
         app.buttons["settings.done"].tap()
         app.terminate()
-        app.launch()
+        relaunchExactCandidate(app, arguments: ["-AhoiUITestFixture"])
 
         openSettings(in: app)
         let restoredToggle = app.switches["settings.sync.enabled"]
@@ -136,12 +127,10 @@ final class AhoiMobileUITests: XCTestCase {
 
     @MainActor
     func testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchExactCandidate(arguments: [
             "-AhoiUITestFixture",
             "-AhoiUITestDeviceRevocation",
-        ]
-        app.launch()
+        ])
 
         openSettings(in: app)
         let removeFixtureMac = app.buttons[

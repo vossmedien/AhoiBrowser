@@ -221,6 +221,135 @@ final class MobileBrowserDownloadRealE2EUITests: MobileBrowserRealE2ETestCase {
     }
 
     @MainActor
+    func testActiveNormalDownloadBecomesHonestFailedRecoveryAfterProcessRelaunch() async throws {
+        let fixture = try await requireReachableFixture()
+        try await resetFixture(fixture)
+        let app = coldLaunchApplication()
+        navigate(to: fixture.url(path: "/download-upload"), in: app)
+
+        let webView = app.webViews.firstMatch
+        XCTAssertTrue(
+            webView.staticTexts["Download, pause/resume, upload and DnD"]
+                .waitForExistence(timeout: 8)
+        )
+        clearFinishedDownloads(in: app)
+
+        let download = webView.links["Large throttled ZIP"]
+        XCTAssertTrue(download.waitForExistence(timeout: 5))
+        download.tap()
+        openDownloads(in: app)
+
+        let cancel = firstElement(withIdentifierPrefix: cancelIdentifierPrefix, in: app)
+        XCTAssertTrue(
+            cancel.waitForExistence(timeout: 6),
+            "The throttled normal download must be visibly active before termination."
+        )
+        XCTAssertTrue(cancel.isHittable)
+        let identifierSuffix = try identifierSuffix(
+            from: cancel,
+            prefix: cancelIdentifierPrefix
+        )
+        let activeRow = app.descendants(matching: .any)[
+            "browser.downloads.row.\(identifierSuffix)"
+        ]
+        XCTAssertTrue(activeRow.waitForExistence(timeout: 3))
+        let filename = activeRow.staticTexts.matching(NSPredicate(
+            format: "label MATCHES[c] %@",
+            "ahoi-large-range(-[0-9]+)?\\.zip"
+        )).firstMatch
+        XCTAssertTrue(
+            filename.waitForExistence(timeout: 5),
+            "The active row must expose the fixture's safe destination filename."
+        )
+        XCTAssertTrue(
+            activeRow.staticTexts[fixture.securityOrigin].waitForExistence(timeout: 3),
+            "Normal recovery may retain the sanitized origin, never the request path."
+        )
+
+        let transferReceiptsBeforeRelaunch = (try await fixtureReceipts(fixture)).filter {
+            $0["path"] as? String == "/download/large-range.zip"
+                && $0["method"] as? String == "GET"
+        }
+        XCTAssertFalse(
+            transferReceiptsBeforeRelaunch.isEmpty,
+            "The visible active row must be backed by the real throttled HTTPS transfer."
+        )
+        XCTAssertTrue(
+            transferReceiptsBeforeRelaunch.contains { receipt in
+                (receipt["facts"] as? [String: Any])?["throttled"] as? Bool == true
+            }
+        )
+
+        let recoveredFilename = filename.label
+        relaunchExactCandidate(app)
+        openDownloads(in: app)
+
+        let recoveredRow = app.descendants(matching: .any)[
+            "browser.downloads.row.\(identifierSuffix)"
+        ]
+        XCTAssertTrue(
+            recoveredRow.waitForExistence(timeout: 8),
+            "The same sanitized normal-download record must survive the process boundary."
+        )
+        XCTAssertTrue(recoveredRow.staticTexts[recoveredFilename].exists)
+        XCTAssertTrue(recoveredRow.staticTexts[fixture.securityOrigin].exists)
+
+        let recoveredStatus = app.descendants(matching: .any)[
+            "browser.downloads.status.\(identifierSuffix)"
+        ]
+        XCTAssertTrue(recoveredStatus.waitForExistence(timeout: 3))
+        XCTAssertTrue(
+            waitForLabel(
+                in: ["Download failed", "Download fehlgeschlagen"],
+                of: recoveredStatus,
+                timeout: 5
+            ),
+            "A killed WKDownload must recover as failed, never as active or completed."
+        )
+
+        let unavailableControls = [
+            app.buttons["browser.downloads.cancel.\(identifierSuffix)"],
+            app.buttons["browser.downloads.retry.\(identifierSuffix)"],
+            app.buttons["browser.downloads.open.\(identifierSuffix)"],
+            app.descendants(matching: .any)[
+                "browser.downloads.share.\(identifierSuffix)"
+            ],
+            app.descendants(matching: .any)[
+                "browser.downloads.progress.\(identifierSuffix)"
+            ],
+        ]
+        for control in unavailableControls {
+            XCTAssertFalse(
+                control.exists,
+                "Recovered metadata must not imply an unavailable resume or completed file."
+            )
+        }
+
+        let stableDeadline = Date().addingTimeInterval(3)
+        repeat {
+            XCTAssertTrue(
+                ["Download failed", "Download fehlgeschlagen"].contains(recoveredStatus.label),
+                "The recovered terminal state must remain stable after relaunch."
+            )
+            try await Task.sleep(for: .milliseconds(100))
+        } while Date() < stableDeadline
+
+        let transferReceiptsAfterRelaunch = (try await fixtureReceipts(fixture)).filter {
+            $0["path"] as? String == "/download/large-range.zip"
+                && $0["method"] as? String == "GET"
+        }
+        XCTAssertEqual(
+            transferReceiptsAfterRelaunch.count,
+            transferReceiptsBeforeRelaunch.count,
+            "Relaunch must not silently issue a fresh or Range request and call it resume."
+        )
+        let clear = app.buttons["browser.downloads.clear"]
+        XCTAssertTrue(clear.isHittable)
+        clear.tap()
+        XCTAssertTrue(recoveredRow.waitForNonExistence(timeout: 3))
+    }
+
+    @MainActor
     func testNormalDownloadKeepsTheActiveCookieSessionWithoutExposingValues() async throws {
         let fixture = try await requireReachableFixture()
         try await resetFixture(fixture)

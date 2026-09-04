@@ -1,10 +1,6 @@
 import XCTest
 
-final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-    }
-
+final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase {
     @MainActor
     func testMaximumSystemTextSizeKeepsNormalAndPrivateHarborDeckReachableAcrossRotation() throws {
         try requireSimulator(
@@ -18,13 +14,11 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
         addTeardownBlock { textSize.restore() }
         try textSize.selectMaximumSize()
 
-        let app = XCUIApplication()
-        app.launchArguments = []
+        let app = launchExactCandidate(arguments: [])
         defer {
             app.terminate()
             restore(originalOrientation, on: device)
         }
-        app.launch()
 
         assertNormalSemantics(in: app)
         assertExpandedHarborGeometry(in: app)
@@ -61,9 +55,7 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
         for style in SystemAppearanceStyle.allCases {
             try appearance.select(style)
 
-            let app = XCUIApplication()
-            app.launchArguments = []
-            app.launch()
+            let app = launchExactCandidate(arguments: [])
             assertNormalSemantics(in: app)
             assertExpandedHarborGeometry(in: app)
             attachScreenshot(named: "System \(style.rawValue) - normal", of: app)
@@ -77,10 +69,43 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
     }
 
     @MainActor
+    func testHighContrastAndReduceTransparencyKeepNormalAndPrivateChromeOperable() throws {
+        try requireSimulator(
+            reason: "The contrast/transparency journey changes Settings and is simulator-only."
+        )
+        let display = try SystemAccessibilityDisplayController.openControls()
+        addTeardownBlock { display.restore() }
+        try display.enableIncreasedContrastAndReducedTransparency()
+        attachScreenshot(
+            named: "System increased contrast and reduced transparency enabled",
+            of: display.application
+        )
+
+        let app = launchExactCandidate(arguments: [])
+        defer { app.terminate() }
+
+        assertNormalSemantics(in: app)
+        assertExpandedHarborGeometry(in: app)
+        assertPrimaryChromeIsOperable(in: app)
+        attachScreenshot(
+            named: "Increased contrast and reduced transparency - normal",
+            of: app
+        )
+
+        createPrivateTab(in: app)
+        assertPrivateSemantics(in: app)
+        assertExpandedHarborGeometry(in: app, privateBrowsing: true)
+        assertPrimaryChromeIsOperable(in: app, privateBrowsing: true)
+        attachScreenshot(
+            named: "Increased contrast and reduced transparency - private",
+            of: app
+        )
+    }
+
+    @MainActor
     func testHardwareEscapeDismissesAddressAndTabPresentationsWhenXCUIDeliversIt() throws {
-        let app = XCUIApplication()
-        app.launchArguments = []
-        app.launch()
+        let app = coldLaunchApplication()
+        defer { app.terminate() }
         XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
 
         app.buttons["browser.address"].tap()
@@ -103,6 +128,31 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
             mode.waitForNonExistence(timeout: 3),
             "Escape must dismiss the native tab presentation on the selected candidate."
         )
+    }
+
+    @MainActor
+    private func assertPrimaryChromeIsOperable(
+        in app: XCUIApplication,
+        privateBrowsing: Bool = false,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let addressID = privateBrowsing ? "browser.address.private" : "browser.address"
+        for identifier in [addressID, "browser.tabs", "browser.more"] {
+            let control = app.buttons[identifier]
+            XCTAssertTrue(
+                control.waitForExistence(timeout: 4),
+                "Accessibility appearance must retain the visible \(identifier) control.",
+                file: file,
+                line: line
+            )
+            XCTAssertTrue(
+                control.isHittable,
+                "Accessibility appearance must retain an operable \(identifier) control.",
+                file: file,
+                line: line
+            )
+        }
     }
 
     @MainActor
@@ -276,6 +326,137 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
         default:
             device.orientation = .portrait
         }
+    }
+}
+
+@MainActor
+private final class SystemAccessibilityDisplayController {
+    let application: XCUIApplication
+    private let increaseContrast: XCUIElement
+    private let reduceTransparency: XCUIElement
+    private let originalIncreaseContrastEnabled: Bool
+    private let originalReduceTransparencyEnabled: Bool
+
+    private init(
+        application: XCUIApplication,
+        increaseContrast: XCUIElement,
+        reduceTransparency: XCUIElement
+    ) throws {
+        self.application = application
+        self.increaseContrast = increaseContrast
+        self.reduceTransparency = reduceTransparency
+        guard let increaseContrastEnabled =
+                MobileUIAcceptanceContract.switchIsOn(increaseContrast),
+              let reduceTransparencyEnabled =
+                MobileUIAcceptanceContract.switchIsOn(reduceTransparency) else {
+            throw XCTSkip(
+                "Settings does not expose stable contrast/transparency switch values through XCUI."
+            )
+        }
+        originalIncreaseContrastEnabled = increaseContrastEnabled
+        originalReduceTransparencyEnabled = reduceTransparencyEnabled
+    }
+
+    static func openControls() throws -> SystemAccessibilityDisplayController {
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        settings.launch()
+        try openSettingsRoot(in: settings)
+        try tapLocalizedRow(
+            labels: ["Accessibility", "Bedienungshilfen"],
+            in: settings
+        )
+        try tapLocalizedRow(
+            labels: ["Display & Text Size", "Anzeige & Textgröße"],
+            in: settings
+        )
+
+        let increaseContrast = try visibleSwitch(
+            labels: ["Increase Contrast", "Kontrast erhöhen"],
+            in: settings
+        )
+        let reduceTransparency = try visibleSwitch(
+            labels: ["Reduce Transparency", "Transparenz reduzieren"],
+            in: settings
+        )
+        return try SystemAccessibilityDisplayController(
+            application: settings,
+            increaseContrast: increaseContrast,
+            reduceTransparency: reduceTransparency
+        )
+    }
+
+    func enableIncreasedContrastAndReducedTransparency() throws {
+        for (control, name) in controls {
+            guard update(control, enabled: true) else {
+                throw XCTSkip("XCUI could not enable \(name).")
+            }
+        }
+    }
+
+    func restore() {
+        application.activate()
+        let originals = [
+            originalIncreaseContrastEnabled,
+            originalReduceTransparencyEnabled,
+        ]
+        for ((control, name), original) in zip(controls, originals) {
+            XCTAssertTrue(
+                update(control, enabled: original),
+                "The E2E journey must restore the original \(name) setting."
+            )
+        }
+    }
+
+    private var controls: [(XCUIElement, String)] {
+        [
+            (increaseContrast, "Increase Contrast"),
+            (reduceTransparency, "Reduce Transparency"),
+        ]
+    }
+
+    private func update(_ control: XCUIElement, enabled: Bool) -> Bool {
+        application.activate()
+        guard Self.reveal(control, in: application) else { return false }
+        if MobileUIAcceptanceContract.switchIsOn(control) != enabled {
+            control.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        }
+        return MobileUIAcceptanceContract.waitForSwitch(
+            control,
+            toEqual: enabled,
+            timeout: 4
+        )
+    }
+
+    private static func visibleSwitch(
+        labels: [String],
+        in settings: XCUIApplication
+    ) throws -> XCUIElement {
+        let control = settings.switches.matching(NSPredicate(
+            format: "label IN %@",
+            labels
+        )).firstMatch
+        guard reveal(control, in: settings) else {
+            throw XCTSkip(
+                "Settings switch \(labels.joined(separator: "/")) is not XCUI-visible."
+            )
+        }
+        return control
+    }
+
+    private static func reveal(
+        _ control: XCUIElement,
+        in application: XCUIApplication
+    ) -> Bool {
+        if control.exists, control.isHittable { return true }
+        for _ in 0..<6 {
+            application.swipeUp()
+            if control.exists, control.isHittable { return true }
+        }
+        for _ in 0..<6 {
+            application.swipeDown()
+            if control.exists, control.isHittable { return true }
+        }
+        return control.exists && control.isHittable
     }
 }
 

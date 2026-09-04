@@ -2,6 +2,8 @@ import Foundation
 import XCTest
 
 final class MobileExternalURLRealE2EUITests: MobileBrowserRealE2ETestCase {
+    private let externalURLStabilityWindow: TimeInterval = 12
+
     @MainActor
     func testColdExternalURLIsVisiblyDeduplicatedWithoutDefaultBrowserGrant() throws {
         guard #available(iOS 16.4, *) else {
@@ -49,7 +51,7 @@ final class MobileExternalURLRealE2EUITests: MobileBrowserRealE2ETestCase {
             expectedURL: externalURL.absoluteString,
             tabs: tabs,
             expectedTabLabel: firstDeliveryTabLabel,
-            duration: 1.75
+            duration: externalURLStabilityWindow
         )
         XCTAssertEqual(tabCount(from: tabs.label), 2)
         attachExternalURLReceipt(
@@ -58,6 +60,190 @@ final class MobileExternalURLRealE2EUITests: MobileBrowserRealE2ETestCase {
             firstDeliveryTabLabel: firstDeliveryTabLabel,
             finalTabLabel: tabs.label
         )
+    }
+
+    @MainActor
+    func testWarmExternalURLCallbackCreatesExactlyOneNormalTab() async throws {
+        guard #available(iOS 16.4, *) else {
+            throw XCTSkip("XCUIApplication.open(_:) requires iOS 16.4 or newer.")
+        }
+
+        let fixture = try await requireReachableFixture()
+        let externalURL = fixture.url(
+            path: "/navigation?external-url=warm-callback&run=\(UUID().uuidString.lowercased())"
+        )
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        let address = app.buttons["browser.address"]
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(
+            waitForAccessibilityValue(
+                "https://fixture.ahoibrowser.test/start",
+                of: address,
+                timeout: 8
+            )
+        )
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 5))
+
+        // The candidate remains foregrounded between launch and delivery, so
+        // this exercises the running-scene callback rather than cold bootstrap.
+        app.open(externalURL)
+        assertExactCandidateBinding(in: app)
+        XCTAssertTrue(
+            waitForAccessibilityValue(externalURL.absoluteString, of: address, timeout: 8),
+            "A warm external callback must select its newly created normal tab."
+        )
+        XCTAssertTrue(
+            waitForTabCount(2, in: tabs, timeout: 8),
+            "A loaded normal page must remain intact while one new normal tab is created."
+        )
+        XCTAssertTrue(
+            app.webViews.staticTexts["Redirect and popup controls"]
+                .waitForExistence(timeout: 8),
+            "The warm callback must render through the production WebPage path."
+        )
+        let firstDeliveryTabLabel = tabs.label
+
+        app.open(externalURL)
+        assertExternalURLStateRemainsStable(
+            address: address,
+            expectedURL: externalURL.absoluteString,
+            tabs: tabs,
+            expectedTabLabel: firstDeliveryTabLabel,
+            duration: externalURLStabilityWindow
+        )
+        XCTAssertEqual(tabCount(from: tabs.label), 2)
+    }
+
+    @MainActor
+    func testWarmExternalURLReusesSelectedEmptyNormalTab() async throws {
+        guard #available(iOS 16.4, *) else {
+            throw XCTSkip("XCUIApplication.open(_:) requires iOS 16.4 or newer.")
+        }
+
+        let fixture = try await requireReachableFixture()
+        let externalURL = fixture.url(
+            path: "/navigation?external-url=reuse-empty&run=\(UUID().uuidString.lowercased())"
+        )
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        let address = app.buttons["browser.address"]
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(
+            waitForAccessibilityValue(
+                "https://fixture.ahoibrowser.test/start",
+                of: address,
+                timeout: 8
+            )
+        )
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 5))
+
+        createEmptyNormalTab(in: app)
+        XCTAssertTrue(waitForTabCount(2, in: tabs, timeout: 5))
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.focus-voyage.header"]
+                .waitForExistence(timeout: 4),
+            "The selected normal tab must visibly be empty before external delivery."
+        )
+        let preDeliveryTabLabel = tabs.label
+
+        app.open(externalURL)
+        assertExactCandidateBinding(in: app)
+        XCTAssertTrue(
+            waitForAccessibilityValue(externalURL.absoluteString, of: address, timeout: 8),
+            "The incoming URL must replace the selected empty normal tab's address."
+        )
+        XCTAssertTrue(
+            app.webViews.staticTexts["Redirect and popup controls"]
+                .waitForExistence(timeout: 8),
+            "The reused normal tab must render the real HTTPS fixture."
+        )
+        assertExternalURLStateRemainsStable(
+            address: address,
+            expectedURL: externalURL.absoluteString,
+            tabs: tabs,
+            expectedTabLabel: preDeliveryTabLabel,
+            duration: externalURLStabilityWindow
+        )
+        XCTAssertEqual(
+            tabCount(from: tabs.label),
+            2,
+            "Reusing the empty normal tab must not create a third tab."
+        )
+    }
+
+    @MainActor
+    func testWarmExternalURLLeavesActivePrivateTabUntouchedAndUnpersisted() async throws {
+        guard #available(iOS 16.4, *) else {
+            throw XCTSkip("XCUIApplication.open(_:) requires iOS 16.4 or newer.")
+        }
+
+        let fixture = try await requireReachableFixture()
+        let externalURL = fixture.url(
+            path: "/navigation?external-url=private-isolation&run=\(UUID().uuidString.lowercased())"
+        )
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        let normalAddress = app.buttons["browser.address"]
+        let privateAddress = app.buttons["browser.address.private"]
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(
+            waitForAccessibilityValue(
+                "https://fixture.ahoibrowser.test/start",
+                of: normalAddress,
+                timeout: 8
+            )
+        )
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 5))
+
+        createEmptyPrivateTab(in: app)
+        XCTAssertTrue(privateAddress.waitForExistence(timeout: 4))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 4))
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.focus-voyage.private"]
+                .waitForExistence(timeout: 4),
+            "The selected private tab must visibly be empty before external delivery."
+        )
+
+        app.open(externalURL)
+        assertExactCandidateBinding(in: app)
+        XCTAssertTrue(
+            normalAddress.waitForExistence(timeout: 5),
+            "An external URL received over a private tab must select a normal tab."
+        )
+        XCTAssertTrue(
+            waitForAccessibilityValue(externalURL.absoluteString, of: normalAddress, timeout: 8)
+        )
+        XCTAssertTrue(
+            waitForTabCount(2, in: tabs, timeout: 8),
+            "The external URL must create one normal tab without replacing the fixture tab."
+        )
+        XCTAssertTrue(
+            app.webViews.staticTexts["Redirect and popup controls"]
+                .waitForExistence(timeout: 8)
+        )
+
+        selectPrivateTab(in: app)
+        XCTAssertTrue(privateAddress.waitForExistence(timeout: 4))
+        XCTAssertNotEqual(privateAddress.value as? String, externalURL.absoluteString)
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.focus-voyage.private"]
+                .waitForExistence(timeout: 4),
+            "Selecting the original private tab must reveal the untouched blank private surface."
+        )
+
+        relaunchExactCandidate(app)
+        XCTAssertFalse(
+            privateAddress.waitForExistence(timeout: 1),
+            "The active private tab must not survive process termination."
+        )
+        XCTAssertTrue(
+            waitForAccessibilityValue(externalURL.absoluteString, of: normalAddress, timeout: 8),
+            "The normal external-URL tab must remain selected after private-free restoration."
+        )
+        XCTAssertTrue(waitForTabCount(2, in: tabs, timeout: 5))
+        XCTAssertTrue(
+            app.webViews.staticTexts["Redirect and popup controls"]
+                .waitForExistence(timeout: 10)
+        )
+        assertPrivateTabSwitcherIsEmpty(in: app)
     }
 
     @MainActor
@@ -88,6 +274,96 @@ final class MobileExternalURLRealE2EUITests: MobileBrowserRealE2ETestCase {
 
     private func tabCount(from accessibilityLabel: String) -> Int? {
         Int(accessibilityLabel.prefix(while: { $0.isNumber }))
+    }
+
+    @MainActor
+    private func createEmptyNormalTab(in app: XCUIApplication) {
+        let more = app.buttons["browser.more"]
+        XCTAssertTrue(waitForHittable(more, timeout: 4))
+        more.tap()
+        let newTab = app.buttons["browser.actions.new-tab"]
+        XCTAssertTrue(waitForHittable(newTab, timeout: 3))
+        newTab.tap()
+    }
+
+    @MainActor
+    private func createEmptyPrivateTab(in app: XCUIApplication) {
+        let more = app.buttons["browser.more"]
+        XCTAssertTrue(waitForHittable(more, timeout: 4))
+        more.tap()
+        let newPrivateTab = app.buttons["browser.new-private-tab"]
+        XCTAssertTrue(waitForHittable(newPrivateTab, timeout: 3))
+        newPrivateTab.tap()
+    }
+
+    @MainActor
+    private func selectPrivateTab(in app: XCUIApplication) {
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(waitForHittable(tabs, timeout: 4))
+        tabs.tap()
+        let mode = app.descendants(matching: .any)["browser.tabs.mode"]
+        XCTAssertTrue(mode.waitForExistence(timeout: 3))
+        selectPrivateMode(using: mode)
+
+        let privateRows = tabRows(in: app)
+        XCTAssertTrue(
+            waitForQueryCount(1, query: privateRows, timeout: 4),
+            "The untouched private population must contain exactly one visible row."
+        )
+        let privateRow = privateRows.firstMatch
+        XCTAssertTrue(waitForHittable(privateRow, timeout: 3))
+        privateRow.tap()
+        XCTAssertTrue(mode.waitForNonExistence(timeout: 3))
+    }
+
+    @MainActor
+    private func assertPrivateTabSwitcherIsEmpty(in app: XCUIApplication) {
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(waitForHittable(tabs, timeout: 4))
+        tabs.tap()
+        let mode = app.descendants(matching: .any)["browser.tabs.mode"]
+        XCTAssertTrue(mode.waitForExistence(timeout: 3))
+        selectPrivateMode(using: mode)
+
+        XCTAssertTrue(
+            waitForQueryCount(0, query: tabRows(in: app), timeout: 4),
+            "No private tab row may be restored after process termination."
+        )
+        let emptyState = app.staticTexts.matching(NSPredicate(
+            format: "label IN %@",
+            ["No Private Tabs", "Keine privaten Tabs"]
+        )).firstMatch
+        XCTAssertTrue(
+            emptyState.waitForExistence(timeout: 4),
+            "The restored candidate must visibly expose an empty private population."
+        )
+    }
+
+    @MainActor
+    private func selectPrivateMode(using mode: XCUIElement) {
+        mode.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5)).tap()
+    }
+
+    @MainActor
+    private func tabRows(in app: XCUIApplication) -> XCUIElementQuery {
+        app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@",
+            "browser.tab-row."
+        ))
+    }
+
+    @MainActor
+    private func waitForQueryCount(
+        _ expectedCount: Int,
+        query: XCUIElementQuery,
+        timeout: TimeInterval
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if query.count == expectedCount { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        } while Date() < deadline
+        return query.count == expectedCount
     }
 
     @MainActor

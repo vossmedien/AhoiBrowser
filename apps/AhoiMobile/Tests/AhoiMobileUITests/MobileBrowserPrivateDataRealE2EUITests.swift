@@ -67,6 +67,12 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
             in: app,
             message: "Private browsing must not modify the persistent normal store."
         )
+        assertVisibleAddressSuggestionProjection(
+            contains: normalToken, excludes: privateToken, in: app
+        )
+        assertVisibleDeviceTabProjection(
+            contains: normalToken, excludes: privateToken, in: app
+        )
 
         clearAllPrivateTabs(in: app)
         assertTabCountOne(in: app)
@@ -408,6 +414,114 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
             line: line
         )
         dismissHistory(in: app, file: file, line: line)
+    }
+
+    @MainActor
+    private func assertVisibleAddressSuggestionProjection(
+        contains normalToken: String,
+        excludes privateToken: String,
+        in app: XCUIApplication
+    ) {
+        openAddressEditor(in: app)
+        let field = app.textFields["browser.address.field"]
+        clearAddressEditor(field, in: app)
+        enterExactAddress(normalToken, into: field, in: app)
+        XCTAssertTrue(
+            addressSuggestionRows(containing: normalToken, in: app).firstMatch
+                .waitForExistence(timeout: 5),
+            "The normal open URL must provide a visible positive suggestion control."
+        )
+        clearAddressEditor(field, in: app)
+        enterExactAddress(privateToken, into: field, in: app)
+        XCTAssertTrue(
+            remainsEmpty(
+                addressSuggestionRows(containing: privateToken, in: app),
+                for: 2
+            ),
+            "No private tab title or URL may enter the address suggestion projection."
+        )
+        let cancel = app.buttons.matching(NSPredicate(
+            format: "label IN %@",
+            ["Cancel", "Abbrechen"]
+        )).firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 3))
+        cancel.tap()
+        XCTAssertTrue(field.waitForNonExistence(timeout: 4))
+    }
+
+    @MainActor
+    private func assertVisibleDeviceTabProjection(
+        contains normalToken: String,
+        excludes privateToken: String,
+        in app: XCUIApplication
+    ) {
+        let more = app.buttons["browser.more"]
+        XCTAssertTrue(more.waitForExistence(timeout: 5))
+        more.tap()
+        let workspaces = app.buttons["browser.actions.workspaces"]
+        XCTAssertTrue(workspaces.waitForExistence(timeout: 3))
+        workspaces.tap()
+        let library = app.descendants(matching: .any)["browser.library.root"]
+        XCTAssertTrue(library.waitForExistence(timeout: 5))
+        let identifiedSearch = app.searchFields["browser.library.search"]
+        let search = identifiedSearch.exists ? identifiedSearch : app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 4))
+        replaceSearchText(normalToken, in: search)
+        XCTAssertTrue(
+            deviceTabSearchRows(containing: normalToken, in: app).firstMatch
+                .waitForExistence(timeout: 8),
+            "The normal URL must reach the visible local-first device-tab projection."
+        )
+        replaceSearchText(privateToken, in: search)
+        XCTAssertTrue(
+            remainsEmpty(deviceTabSearchRows(containing: privateToken, in: app), for: 2),
+            "No private tab title or URL may enter the visible device/sync projection."
+        )
+        let done = app.buttons["browser.library.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 3))
+        done.tap()
+        XCTAssertTrue(library.waitForNonExistence(timeout: 4))
+    }
+
+    @MainActor
+    private func addressSuggestionRows(
+        containing token: String,
+        in app: XCUIApplication
+    ) -> XCUIElementQuery {
+        app.buttons.matching(NSPredicate(
+            format: "identifier != 'browser.search.navigate' AND label CONTAINS[c] %@",
+            token
+        ))
+    }
+
+    @MainActor
+    private func deviceTabSearchRows(
+        containing token: String,
+        in app: XCUIApplication
+    ) -> XCUIElementQuery {
+        app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH 'browser.library.search-result.remoteTab.' "
+                + "AND label CONTAINS[c] %@",
+            token
+        ))
+    }
+
+    @MainActor
+    private func replaceSearchText(_ value: String, in field: XCUIElement) {
+        field.tap()
+        field.typeKey("a", modifierFlags: .command)
+        field.typeText(value)
+        XCTAssertEqual(field.value as? String, value)
+    }
+
+    @MainActor
+    private func remainsEmpty(_ query: XCUIElementQuery, for duration: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(duration)
+        repeat {
+            if query.count > 0 { return false }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        } while Date() < deadline
+        return query.count == 0
     }
 
     @MainActor

@@ -3,7 +3,7 @@ import Foundation
 import UIKit
 import XCTest
 
-class MobileBrowserRealE2ETestCase: XCTestCase {
+class MobileBrowserUITestCase: XCTestCase {
     private static let optInEnvironmentKey = "AHOI_MOBILE_REAL_E2E"
     private static let baseURLEnvironmentKey = "AHOI_MOBILE_E2E_BASE_URL"
     private static let sourceCommitEnvironmentKey = "AHOI_MOBILE_EXPECTED_SOURCE_COMMIT"
@@ -13,18 +13,21 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         "AHOI_MOBILE_CANDIDATE_RECEIPT_BASE64"
     private static let requiredFixtureContractVersion = 2
     private var candidateBinding: MobileRealE2ECandidateBinding?
+    var requiresRealE2EOptIn: Bool { false }
 
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false
-        guard ProcessInfo.processInfo.environment[Self.optInEnvironmentKey] == "1" else {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment[Self.optInEnvironmentKey] == "1" else {
+            guard requiresRealE2EOptIn else { return }
             throw XCTSkip(
                 "Set AHOI_MOBILE_REAL_E2E=1 to run visible journeys against the local HTTPS fixture."
             )
         }
         do {
             candidateBinding = try MobileRealE2ECandidateBinding(
-                environment: ProcessInfo.processInfo.environment,
+                environment: environment,
                 sourceCommitKey: Self.sourceCommitEnvironmentKey,
                 buildModeKey: Self.buildModeEnvironmentKey,
                 receiptSHAKey: Self.receiptSHAEnvironmentKey,
@@ -80,7 +83,9 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = arguments
         guard let candidateBinding else {
-            XCTFail("The exact-candidate binding must be validated before launching the app.")
+            if requiresRealE2EOptIn {
+                XCTFail("The exact-candidate binding must be validated before launching the app.")
+            }
             return app
         }
         app.launchEnvironment["AHOI_MOBILE_E2E_EXPECTED_SOURCE_COMMIT"] =
@@ -101,7 +106,13 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         line: UInt = #line
     ) {
         guard let candidateBinding else {
-            XCTFail("The runner did not retain its exact-candidate binding.", file: file, line: line)
+            if requiresRealE2EOptIn {
+                XCTFail(
+                    "The runner did not retain its exact-candidate binding.",
+                    file: file,
+                    line: line
+                )
+            }
             return
         }
         let evidence = app.descendants(matching: .any)["browser.e2e.candidate-binding"]
@@ -381,6 +392,10 @@ class MobileBrowserRealE2ETestCase: XCTestCase {
         guard let port = url.port else { return host }
         return "\(host):\(port)"
     }
+}
+
+class MobileBrowserRealE2ETestCase: MobileBrowserUITestCase {
+    override var requiresRealE2EOptIn: Bool { true }
 }
 
 private enum MobileRealE2EFixtureContractError: Error {

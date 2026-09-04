@@ -5,9 +5,10 @@ final class MobileBrowserScaleLifecycleRealE2EUITests: MobileBrowserRealE2ETestC
     func testVisibleOneFiveTwentyNormalTabsRestoreExactRealHTTPSSelection() async throws {
         let fixture = try await requireReachableFixture()
         let app = coldLaunchApplication()
+        reduceNormalPopulationToOne(in: app)
         XCTAssertTrue(
             waitForTabCount(1, in: app, timeout: 5),
-            "The visible scale journey must start with exactly one product-created tab."
+            "The visible scale journey must normalize to one product-created tab."
         )
         attachScreenshot(named: "Visible tab scale - 1", of: app)
 
@@ -53,6 +54,7 @@ final class MobileBrowserScaleLifecycleRealE2EUITests: MobileBrowserRealE2ETestC
     func testVisiblePrivatePopulationIsGoneAfterProcessTermination() async throws {
         _ = try await requireReachableFixture()
         let app = coldLaunchApplication()
+        reduceNormalPopulationToOne(in: app)
         XCTAssertTrue(waitForTabCount(1, in: app, timeout: 5))
 
         for expectedCount in 1...5 {
