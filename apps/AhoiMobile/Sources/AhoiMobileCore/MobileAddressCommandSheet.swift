@@ -114,6 +114,10 @@ struct MobileAddressCommandSheet: View {
         }
         .presentationDetents([.medium, .large])
         .modifier(MobileAddressPresentationSizing(isRegularWidth: horizontalSizeClass == .regular))
+        .onKeyPress(.escape) {
+            isPresented = false
+            return .handled
+        }
         .accessibilityAction(.escape) { isPresented = false }
     }
 
