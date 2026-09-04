@@ -103,7 +103,7 @@ final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase
     }
 
     @MainActor
-    func testHardwareEscapeDismissesAddressAndTabPresentationsWhenXCUIDeliversIt() throws {
+    func testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt() throws {
         let app = coldLaunchApplication()
         defer { app.terminate() }
         XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
@@ -114,13 +114,25 @@ final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase
             addressField.waitForExistence(timeout: 3),
             "The visible address action must present the native address sheet."
         )
+        XCTAssertTrue(
+            waitForFocus(addressField, timeout: 3),
+            "The Escape journey must exercise the focused UIKit-backed address field."
+        )
         app.typeKey(XCUIKeyboardKey.escape.rawValue, modifierFlags: [])
         XCTAssertTrue(
             addressField.waitForNonExistence(timeout: 3),
             "Escape must dismiss the address presentation on the selected candidate."
         )
+    }
 
-        app.buttons["browser.tabs"].tap()
+    @MainActor
+    func testHardwareEscapeDismissesTabPresentationWhenXCUIDeliversIt() throws {
+        let app = coldLaunchApplication()
+        defer { app.terminate() }
+
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(waitForHittable(tabs, timeout: 4))
+        tabs.tap()
         let mode = app.descendants(matching: .any)["browser.tabs.mode"]
         XCTAssertTrue(mode.waitForExistence(timeout: 3))
         app.typeKey(XCUIKeyboardKey.escape.rawValue, modifierFlags: [])
@@ -128,6 +140,16 @@ final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase
             mode.waitForNonExistence(timeout: 3),
             "Escape must dismiss the native tab presentation on the selected candidate."
         )
+    }
+
+    @MainActor
+    private func waitForFocus(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if element.hasFocus { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        } while Date() < deadline
+        return element.hasFocus
     }
 
     @MainActor
