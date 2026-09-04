@@ -103,7 +103,10 @@ extension CloudKitSyncProvider {
         case let .didSendChanges(result):
             _ = result
         case let .fetchedDatabaseChanges(changes):
-            if !changes.deletions.isEmpty {
+            // Database-change feeds may include historical deletions for other
+            // custom zones in the same private database. Only losing this
+            // provider's configured zone is a recovery boundary.
+            if changes.deletions.contains(where: { $0.zoneID == zoneID }) {
                 guard persistZoneRecoveryRequirement() else { return }
                 setStatus(.init(
                     phase: .accountRequired,
