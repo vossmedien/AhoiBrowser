@@ -46,6 +46,7 @@ final class MobileBrowserScaleLifecycleRealE2EUITests: MobileBrowserRealE2ETestC
             "The selected restored tab must reload its exact real HTTPS document."
         )
         attachScreenshot(named: "Visible tab scale - 20 restored", of: app)
+        reduceNormalPopulationToOne(in: app)
     }
 
     @MainActor
@@ -132,6 +133,42 @@ final class MobileBrowserScaleLifecycleRealE2EUITests: MobileBrowserRealE2ETestC
         XCTAssertTrue(newPrivateTab.waitForExistence(timeout: 3))
         newPrivateTab.tap()
         XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 4))
+    }
+
+    @MainActor
+    private func reduceNormalPopulationToOne(in app: XCUIApplication) {
+        let tabs = app.buttons["browser.tabs"]
+        tabs.tap()
+        let mode = app.descendants(matching: .any)["browser.tabs.mode"]
+        XCTAssertTrue(mode.waitForExistence(timeout: 4))
+        mode.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)).tap()
+        let closeButtons = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@",
+            "browser.tab-close."
+        ))
+        var attempts = 0
+        while closeButtons.count > 1, attempts < 40 {
+            attempts += 1
+            let close = (0..<closeButtons.count)
+                .map { closeButtons.element(boundBy: $0) }
+                .first(where: \.isHittable)
+            guard let close else {
+                XCTFail("The visible scale cleanup must retain a hittable close control.")
+                return
+            }
+            let identifier = close.identifier
+            close.tap()
+            XCTAssertTrue(app.buttons[identifier].waitForNonExistence(timeout: 3))
+        }
+        XCTAssertEqual(closeButtons.count, 1)
+        let remainingRow = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@",
+            "browser.tab-row."
+        )).firstMatch
+        XCTAssertTrue(remainingRow.waitForExistence(timeout: 3))
+        remainingRow.tap()
+        XCTAssertTrue(mode.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: app, timeout: 3))
     }
 
     @MainActor

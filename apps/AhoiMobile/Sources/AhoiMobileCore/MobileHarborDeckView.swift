@@ -6,9 +6,9 @@ struct MobileHarborDeckView: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .subheadline)
     private var workspaceRailMinimumHeight: CGFloat = 44
-
     let mode: MobileBrowsingMode
     let isCollapsed: Bool
     let workspaceName: String?
@@ -29,9 +29,7 @@ struct MobileHarborDeckView: View {
     let onPresentTabs: () -> Void
     let onPresentMore: () -> Void
     let onSwitchWorkspace: (Int) -> Void
-
     private var reduceMotion: Bool { reduceMotionOverride ?? systemReduceMotion }
-
     var body: some View {
         deckContent
         .font(.body.weight(.semibold))
@@ -63,11 +61,13 @@ struct MobileHarborDeckView: View {
         .buttonStyle(MobileChromeButtonStyle())
         .environment(\.colorScheme, mode == .privateBrowsing ? .dark : colorScheme)
     }
-
     private var deckContent: some View {
         VStack(spacing: 0) {
             workspaceRailSlot
-            MobileHarborControlsLayout(isCollapsed: isCollapsed) {
+            MobileHarborControlsLayout(
+                isCollapsed: isCollapsed,
+                usesAccessibilityLayout: dynamicTypeSize.isAccessibilitySize
+            ) {
                 backButton
                 collapsingControl {
                     forwardButton
@@ -82,7 +82,6 @@ struct MobileHarborDeckView: View {
             .fixedSize(horizontal: false, vertical: true)
         }
     }
-
     private var workspaceRailSlot: some View {
         MobileHarborRailLayout(
             expansion: isCollapsed ? 0 : 1,
@@ -450,7 +449,7 @@ private struct MobileHarborControlsLayout: Layout {
     }
 
     let isCollapsed: Bool
-
+    let usesAccessibilityLayout: Bool
     private let itemSpacing: CGFloat = 6
     private let rowSpacing: CGFloat = 6
     private let minimumAddressWidth: CGFloat = 96
@@ -515,6 +514,7 @@ private struct MobileHarborControlsLayout: Layout {
     }
 
     private func arrangement(for width: CGFloat, sizes: [CGSize]) -> Arrangement {
+        if usesAccessibilityLayout { return .stacked }
         let controls = isCollapsed ? collapsedControls : expandedRowControls
         let fixedWidth = controls.reduce(CGFloat.zero) { result, control in
             result + sizes[control.rawValue].width

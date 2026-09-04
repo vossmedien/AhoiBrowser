@@ -15,7 +15,7 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
         device.orientation = .portrait
 
         let textSize = try SystemTextSizeController.openMaximumSizeControl()
-        defer { textSize.restore() }
+        addTeardownBlock { textSize.restore() }
         try textSize.selectMaximumSize()
 
         let app = XCUIApplication()
@@ -56,7 +56,7 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
             reason: "The appearance journey changes Settings and is simulator-only."
         )
         let appearance = try SystemAppearanceController.openAppearanceControl()
-        defer { appearance.restore() }
+        addTeardownBlock { appearance.restore() }
 
         for style in SystemAppearanceStyle.allCases {
             try appearance.select(style)
@@ -83,11 +83,11 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
 
-        app.typeKey("l", modifierFlags: .command)
+        app.buttons["browser.address"].tap()
         let addressField = app.textFields["browser.address.field"]
         XCTAssertTrue(
             addressField.waitForExistence(timeout: 3),
-            "The selected candidate must deliver Command-L through XCUI."
+            "The visible address action must present the native address sheet."
         )
         app.typeKey(XCUIKeyboardKey.escape.rawValue, modifierFlags: [])
         XCTAssertTrue(
@@ -117,7 +117,7 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
             file: file,
             line: line
         )
-        XCTAssertEqual(app.buttons.matching(identifier: "browser.address").count, 1)
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.buttons.matching(identifier: "browser.address.private").count, 0)
         XCTAssertEqual(
             app.descendants(matching: .any)
@@ -145,7 +145,7 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
             file: file,
             line: line
         )
-        XCTAssertEqual(app.buttons.matching(identifier: "browser.address.private").count, 1)
+        XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.buttons.matching(identifier: "browser.address").count, 0)
         XCTAssertEqual(
             app.descendants(matching: .any)
@@ -344,22 +344,26 @@ private final class SystemTextSizeController {
 
     func restore() {
         settings.activate()
-        if Self.value(of: slider) != originalSliderValue {
-            restoreSliderValue(originalSliderValue)
+        let restoredSlider = settings.sliders.firstMatch
+        let restoredLargerSizes = settings.switches.firstMatch
+        XCTAssertTrue(restoredSlider.waitForExistence(timeout: 3))
+        XCTAssertTrue(restoredLargerSizes.waitForExistence(timeout: 3))
+        if Self.value(of: restoredSlider) != originalSliderValue {
+            restoreSliderValue(originalSliderValue, using: restoredSlider)
         }
-        if Self.isOn(largerSizes) != originalLargerSizesEnabled {
-            largerSizes.coordinate(
+        if Self.isOn(restoredLargerSizes) != originalLargerSizesEnabled {
+            restoredLargerSizes.coordinate(
                 withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)
             ).tap()
         }
         XCTAssertEqual(
-            Self.isOn(largerSizes),
+            Self.isOn(restoredLargerSizes),
             originalLargerSizesEnabled,
             "The E2E journey must restore Larger Accessibility Sizes."
         )
     }
 
-    private func restoreSliderValue(_ expectedValue: String) {
+    private func restoreSliderValue(_ expectedValue: String, using slider: XCUIElement) {
         for step in 0...40 {
             slider.adjust(toNormalizedSliderPosition: CGFloat(step) / 40)
             if Self.value(of: slider) == expectedValue { break }

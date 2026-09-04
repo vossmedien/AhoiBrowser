@@ -99,6 +99,7 @@ struct MobileAddressCommandSheet: View {
                     Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
                         isPresented = false
                     }
+                    .keyboardShortcut(.cancelAction)
                 }
             }
             .task(id: addressText) {

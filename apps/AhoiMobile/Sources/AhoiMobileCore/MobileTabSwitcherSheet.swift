@@ -136,6 +136,7 @@ struct MobileTabSwitcherSheet: View {
                     Button(CompanionL10n.string("action.done", fallback: "Done")) {
                         dismissSwitcher()
                     }
+                    .keyboardShortcut(.cancelAction)
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("browser.tabs.done")
                 }
@@ -221,6 +222,7 @@ struct MobileTabSwitcherSheet: View {
                 Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
                     renameTab = nil
                 }
+                .keyboardShortcut(.cancelAction)
                 .accessibilityIdentifier("browser.tabs.rename.cancel")
             }
             ToolbarItem(placement: .confirmationAction) {
