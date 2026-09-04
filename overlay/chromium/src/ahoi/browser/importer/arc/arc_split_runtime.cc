@@ -23,7 +23,6 @@
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/referrer.h"
-#include "ui/base/base_window.h"
 #include "ui/base/page_transition_types.h"
 
 namespace ahoi::importer::arc {
@@ -236,10 +235,6 @@ bool ActivateExpectedFocus(BrowserWindowInterface* browser,
       model->GetIndexOfTab(focused_tab) < 0) {
     return false;
   }
-  ui::BaseWindow* const window = browser->GetWindow();
-  if (!window) {
-    return false;
-  }
   // Workspace observers run synchronously and are allowed to select that
   // workspace's current surface. Activate the imported workspace before the
   // split member so the sidebar cannot immediately steal focus back to the
@@ -248,21 +243,19 @@ bool ActivateExpectedFocus(BrowserWindowInterface* browser,
                               focused_tab)) {
     return false;
   }
-  window->Activate();
   model->ActivateTab(focused_tab);
-  return browser->IsActive() && model->GetActiveTab() == focused_tab;
+  return model->GetActiveTab() == focused_tab;
 }
 
 }  // namespace
 
 namespace internal {
 
-ArcSplitVerification ClassifyArcSplitFocus(bool target_window_active,
-                                           bool focused_tab_present,
+ArcSplitVerification ClassifyArcSplitFocus(bool focused_tab_present,
                                            bool focused_tab_in_target_window,
                                            bool focused_tab_active) {
-  return target_window_active && focused_tab_present &&
-                 focused_tab_in_target_window && focused_tab_active
+  return focused_tab_present && focused_tab_in_target_window &&
+                 focused_tab_active
              ? ArcSplitVerification::kExact
              : ArcSplitVerification::kRepairableMissing;
 }
@@ -321,7 +314,7 @@ ArcSplitVerification VerifyArcSplitRuntime(BrowserWindowInterface* browser,
         session_bridge->FindTabByTreeNodeId(
             applied_plan.splits.back().focused_member_node_id);
     const ArcSplitVerification focus = internal::ClassifyArcSplitFocus(
-        browser->IsActive(), expected_focus != nullptr,
+        expected_focus != nullptr,
         expected_focus &&
             expected_focus->GetBrowserWindowInterface() == browser,
         expected_focus && model->GetActiveTab() == expected_focus);

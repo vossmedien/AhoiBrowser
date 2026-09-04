@@ -368,8 +368,10 @@ IN_PROC_BROWSER_TEST_F(
 
   TabStripModel* const tab_strip_model = browser()->tab_strip_model();
   ASSERT_EQ(3, tab_strip_model->count());
+  // AddToNewSplit() includes the active tab implicitly; only pass the two
+  // background tabs that complete this three-pane split.
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {1, 2},
+      {0, 1},
       split_tabs::SplitTabVisualData::ForThreePane(
           split_tabs::SplitTabLayout::kSideBySide),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -533,6 +535,11 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   EXPECT_EQ(ui::DragDropTypes::DRAG_MOVE,
             drag_controller->GetDragOperationsForView(drag_handle,
                                                        press_point));
+  // Widget::RunDragDropLoop() invokes this hook before requesting drag data.
+  // Mirror that runtime order so the source pane is active before its payload
+  // identity is captured.
+  drag_controller->OnWillStartDragForView(drag_handle);
+  EXPECT_EQ(panes[0], tab_strip_model->GetActiveTab());
   ui::OSExchangeData data;
   drag_controller->WriteDragDataForView(drag_handle, press_point, &data);
 

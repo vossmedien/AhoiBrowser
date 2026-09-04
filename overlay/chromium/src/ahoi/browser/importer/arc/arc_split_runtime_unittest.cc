@@ -7,26 +7,22 @@
 
 namespace ahoi::importer::arc::internal {
 
-TEST(ArcSplitRuntimeTest, ExactFocusRequiresActiveTargetWindowAndTab) {
+TEST(ArcSplitRuntimeTest, ExactFocusRequiresActiveTabInsideTargetWindow) {
   EXPECT_EQ(ArcSplitVerification::kExact,
-            ClassifyArcSplitFocus(/*target_window_active=*/true,
-                                  /*focused_tab_present=*/true,
+            ClassifyArcSplitFocus(/*focused_tab_present=*/true,
                                   /*focused_tab_in_target_window=*/true,
                                   /*focused_tab_active=*/true));
   EXPECT_EQ(ArcSplitVerification::kRepairableMissing,
-            ClassifyArcSplitFocus(/*target_window_active=*/false,
-                                  /*focused_tab_present=*/true,
-                                  /*focused_tab_in_target_window=*/true,
-                                  /*focused_tab_active=*/true));
-  EXPECT_EQ(ArcSplitVerification::kRepairableMissing,
-            ClassifyArcSplitFocus(/*target_window_active=*/true,
-                                  /*focused_tab_present=*/true,
+            ClassifyArcSplitFocus(/*focused_tab_present=*/true,
                                   /*focused_tab_in_target_window=*/false,
                                   /*focused_tab_active=*/true));
   EXPECT_EQ(ArcSplitVerification::kRepairableMissing,
-            ClassifyArcSplitFocus(/*target_window_active=*/true,
-                                  /*focused_tab_present=*/true,
+            ClassifyArcSplitFocus(/*focused_tab_present=*/true,
                                   /*focused_tab_in_target_window=*/true,
+                                  /*focused_tab_active=*/false));
+  EXPECT_EQ(ArcSplitVerification::kRepairableMissing,
+            ClassifyArcSplitFocus(/*focused_tab_present=*/false,
+                                  /*focused_tab_in_target_window=*/false,
                                   /*focused_tab_active=*/false));
 }
 

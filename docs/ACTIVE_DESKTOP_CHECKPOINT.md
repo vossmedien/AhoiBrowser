@@ -33,23 +33,33 @@ Close this package in order:
 - Canonical repository:
   `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`
 - Branch: `codex/desktop-core-feature-wave-20260830`
-- Installed candidate source: `e01e77ba02c8d4d640bb2646926c6c25574b406e`
+- Installed candidate source: `f1475d6d6937aa832c745a58d18750bea8359ba8`
 - Chromium: `152.0.7977.65` at
   `fc4d67f1788019a27e32511137ceccbd2fafdaaa`
 - Installed executable SHA-256:
-  `8ece61e280024ff596a84b9534eb3539ab9d7bc34850db838423eaad3079c3e2`
+  `a29b95e2cad7ed28295a66e9e95b6265ef126ecaea5dd4ac2bbd1fa46c48a32a`
 - Installed bundle-tree SHA-256:
-  `a2b00628b15420b4431f7c7ec21444869dcf94cc00e4e629e2183081cb6d3e8e`
+  `603459b30acb07e436b868e8ac7b1035570660db98e1936c00c02bd357de7029`
 - Installed candidate evidence:
-  `artifacts/build/installed-ahoi-dev-e01e77ba02c-20260904T091100Z.json`.
+  `artifacts/build/installed-ahoi-dev-f1475d6d6937-20260904T103443Z.json`
+  (SHA-256
+  `d14f3f089e17a1f17d6f969625913998445bb05f6501cc0fba7d898c351d8ced`).
   This development receipt binds the installed executable and exact app-tree
-  hashes to clean Desktop source `e01e77b`.
+  hashes to clean Desktop source `f1475d6`.
+- Exact clean build evidence:
+  `artifacts/build/ahoi-dev-build-f1475d6d6937.json` (SHA-256
+  `3075e930e29249a9fe1be5e156fe397da96b3ee310064729af9644f930c546b7`).
+  The combined incremental build completed all requested package targets,
+  staged 533 component dylibs and 238 framework resources, signed with the
+  stable Apple Development identity, and passed strict deep code-signature and
+  installed-app verification.
 - The installed app contains the Arc accessibility correction and the later
   inactive-workspace split reconstruction fix from Desktop commit `285990c`.
   Exact-tree uBO attestation hardening is integrated in Desktop commit
-  `69b1720`. The incremental compile/link completed, the app was staged, signed
-  and verified, then provenance was restamped from a clean detached authority
-  worktree without recompiling byte-identical outputs.
+  `69b1720`. The native-sheet handoff correction and its regression coverage are
+  integrated in Desktop commit `f1475d6`. The final candidate was generated
+  from a clean detached authority worktree, installed atomically and verified
+  byte-for-byte against its build and installation receipts.
 - Existing visible passes on the previous `ab0d97d` candidate: exact installed executable,
   cold/empty start, docked/floating sidebar persistence, zero-tab extension
   menu, zero-tab two-pane split and public HTTPS split.
@@ -111,17 +121,44 @@ Close this package in order:
 ## Current continuation (2026-09-04)
 
 - Fresh visible-test root: `/private/tmp/ahoi-arc-green.tphjWS`, with profile
-  `/private/tmp/ahoi-arc-green.tphjWS/profile`. The installed candidate remains
-  running and stable; its window is currently closed, so a new real tab/window
-  is required before invoking the standard Chromium import command.
+  `/private/tmp/ahoi-arc-green.tphjWS/profile`. The exact `f1475d6` candidate is
+  installed and still running from that isolated profile. Preserve this failed
+  import state until the corrected candidate is ready for the recovery/retry
+  journey.
 - The standard menu path was visibly confirmed from a zero-tab window as
   `Lesezeichen und Listen` -> `Lesezeichen und Einstellungen importieren...`.
   A zero-tab invocation correctly did not start an import because it had no
   active WebContents.
-- Sky Computer Use currently fails before app selection with
-  `Sky Computer Use native pipe startup failed`. A read-only macOS Accessibility
-  probe succeeds but reports no current Ahoi window. Do not claim the installed
-  Arc journey green until a visible window can be driven and inspected.
+- Sky Computer Use still fails before app selection with
+  `Sky Computer Use native pipe startup failed`. Codex diagnostics identify the
+  lower-level failure as `browser-use native pipe peer authorization failed` /
+  `failed to read peer code signing identity`. Both `SkyComputerUseClient` and
+  `Codex Computer Use.app` independently pass code-signature verification with
+  the same Team ID, so the current gate is the running Computer Use transport,
+  not the Ahoi candidate. Do not claim Arc, AnyChat, uBO or held-Command-Q
+  visibly green until a real window can be driven and inspected.
+- A visible fallback journey using macOS Accessibility/System Events plus CDP
+  input reached the real installed Settings surface. It is not a formal
+  Computer Use pass, but it did exercise the real app and real read-only Arc
+  source. Preview was exact: one workspace, 36 folders, 133 pages, three
+  horizontal native splits with 2/2/3 members, four top apps, one unsupported
+  item, and no unsafe, unreachable, degraded or deduplicated entries.
+- After both confirmations the commit wrote a verified 210 MB backup and the
+  intended durable tree, then failed closed with `manual_recovery_required`.
+  The v5 journal remained at `prepared`, all seven native member IDs were
+  present in the target database, and all seven transient runtime tabs were
+  rolled back. Arc remained unmodified and Ahoi did not crash. This localizes
+  the installed failure to native split reconstruction before its durable
+  receipt; the preserved backup/journal paths remain below the isolated profile.
+- The exact 36-folder/133-page/2+2+3 regression initially failed because
+  `ReconstructArcSplits()` activated the backgrounded import window. Split
+  creation itself succeeded. Runtime success and verification are now defined
+  by the active imported tab inside the target Ahoi window, independent of OS
+  app/window activation; the import neither steals focus nor fails merely
+  because the user changes windows during the long commit. The focused browser
+  regression is green 1/1 and the pure focus-contract unit test is green 1/1,
+  both with retries disabled. The real installed recovery/retry remains the
+  next acceptance gate for the corrected candidate.
 - One real browser regression is green:
   `ArcSplitRuntimeBrowserTest.ReconstructsTwoTwoThreeAcrossInactiveWorkspace`
   (1/1). Evidence lives below
@@ -151,10 +188,12 @@ Close this package in order:
   refactor symbols with the current runtime and durable split verifiers and the
   current `ArcImportService::Commit` boundary. `git diff --check` is clean.
 - The deterministic overlay parity refresh completed after these corrections.
-  Clean Desktop source `e01e77b` was then built, signed, atomically installed
-  and hash-verified. Sky Computer Use failed twice at native-pipe startup before
-  app selection, so this candidate still has no acceptable visible Arc,
-  AnyChat or uBO result.
+  Clean Desktop source `f1475d6` was then built, signed, atomically installed
+  and hash-verified. The installation receipt records same-volume staging,
+  `renameatx_np(RENAME_SWAP)`, quiescent processes, rollback protection and
+  successful post-install verification. Sky Computer Use again failed at
+  native-pipe startup before app selection, so this candidate still has no
+  acceptable visible Arc, AnyChat, uBO or held-Command-Q result.
 - The exact installed `e01e77b` candidate now has a green uBO technical
   preflight at
   `artifacts/e2e/ubo-1.74.0-release-attestation-e01e77b.json`.
@@ -172,10 +211,25 @@ Close this package in order:
   5/5, and the extension-policy/attestation unit target is green 43/43, all
   with retries disabled. Evidence is retained below
   `artifacts/e2e/0.0.1-dev/UBO-13/diagnostics/programmatic/`.
-- The uBO lifecycle correction and its regression coverage are the only pending
-  Desktop source edits. After their owned commit, produce one new exact
-  candidate and run the locked Arc, AnyChat and uBO visible journeys before any
-  acceptance rerun of focused tests.
+- The uBO lifecycle correction and its regression coverage are committed in
+  `f1475d6`, and the exact combined candidate is installed. The next product
+  action is the locked Arc, AnyChat and uBO visible journeys as soon as Computer
+  Use recovers. Because that external UI gate is presently real, exact-candidate
+  programmatic reruns may proceed but remain diagnostic and cannot substitute
+  for visible acceptance.
+- The exact-candidate diagnostic matrix is now green 173/173. The initial
+  split-layout run contributed 8/10 because two tests modeled Chromium M152
+  incorrectly: `AddToNewSplit()` already includes the active tab, and the real
+  `Widget::RunDragDropLoop()` invokes `OnWillStartDragForView()` before asking
+  the drag controller to publish its payload. The test-only correction mirrors
+  those two public lifecycle contracts. Both formerly red cases then passed
+  2/2 and the complete focused split-layout target passed 10/10, all with
+  retries disabled. Evidence is retained as
+  `split-layout-two-regressions-workingtree-20260904T110135Z.json` and
+  `split-layout-full-workingtree-20260904T110156Z.json` below
+  `artifacts/e2e/0.0.1-dev/DESKTOP-SHELL/diagnostics/programmatic/`. No browser
+  product source changed, so this test correction does not require another app
+  build or installation and does not alter the installed `f1475d6` candidate.
 - Chromium's macOS default is still active for `browser.confirm_to_quit`: a
   quick Command-Q does not exit; the keys must be held for about 1.5 seconds.
   The visible restart journey must exercise the held shortcut rather than a
@@ -191,6 +245,10 @@ Close this package in order:
 - `overlay/chromium/src/ahoi/browser/ui/extensions/ubo_install_dialog.cc`
 - `overlay/chromium/src/ahoi/browser/ui/extensions/ubo_install_dialog.h`
 - `overlay/chromium/src/ahoi/browser/importer/arc/BUILD.gn`
+- `overlay/chromium/src/ahoi/browser/importer/arc/arc_split_runtime.cc`
+- `overlay/chromium/src/ahoi/browser/importer/arc/arc_split_runtime.h`
+- `overlay/chromium/src/ahoi/browser/importer/arc/arc_split_runtime_unittest.cc`
+- `overlay/chromium/src/ahoi/browser/importer/arc/arc_split_runtime_browsertest.cc`
 - `overlay/chromium/src/ahoi/browser/ui/shell/floating_browser_view_browsertest.cc`
 - `overlay/chromium/src/ahoi/browser/ui/split_drop/split_layout_menu_browsertest.cc`
 - `tests/repository/test_ahoi_settings_page_contract.py`
@@ -198,10 +256,12 @@ Close this package in order:
 - `patches/chromium/0011-ahoi-command-scroll-and-auth-policy-hardening.patch`
 - `patches/chromium/README.md`
 
-The previously integrated changes are clean through Desktop commit `e01e77b`.
-The three uBO lifecycle paths above and this checkpoint are the current owned
-Desktop delta. The next candidate must include that delta; visible product
-journeys remain pending, so the package is not yet a pass.
+The previously integrated implementation changes are clean through Desktop
+commit `f1475d6`. The focus-independent Arc runtime correction, its exact-shape
+regressions, the split-layout test correction and this checkpoint are the
+current owned Desktop delta. Build one combined candidate from their owned
+commit before retrying the visible Arc, AnyChat and uBO journeys; the package is
+not yet a pass.
 
 ## Exit criteria
 

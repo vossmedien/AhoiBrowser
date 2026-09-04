@@ -34,9 +34,11 @@ struct ArcSplitRuntimeResult {
 // exact. Missing tabs and correctly bound but unsplit members are repairable;
 // partial, foreign, differently ordered, or visually different splits are a
 // conflict. Unavailable is reserved for a missing runtime observation seam.
-// When require_focus is true, exact additionally requires the target window to
-// be active and its active tab to be the focused member of the final source
-// descriptor; a different active window or tab is classified as repairable.
+// When require_focus is true, exact additionally requires the focused member of
+// the final source descriptor to be the active tab inside the target window.
+// Operating-system window/app activation is deliberately outside the receipt:
+// a long-running import must neither steal focus nor fail when the user changes
+// apps while it commits.
 ArcSplitVerification VerifyArcSplitRuntime(BrowserWindowInterface* browser,
                                            SessionBridge* session_bridge,
                                            const ArcImportPlan& applied_plan,
@@ -55,11 +57,10 @@ void CloseArcImportRuntimeTabs(
 
 namespace internal {
 
-// Pure focus classifier shared with the focused unit test. Any missing target
-// window activation or focused-tab binding is repairable runtime state, never
-// an exact receipt.
-ArcSplitVerification ClassifyArcSplitFocus(bool target_window_active,
-                                           bool focused_tab_present,
+// Pure focus classifier shared with the focused unit test. Missing focused-tab
+// binding in the target window is repairable runtime state, never an exact
+// receipt. Operating-system window activation is intentionally not an input.
+ArcSplitVerification ClassifyArcSplitFocus(bool focused_tab_present,
                                            bool focused_tab_in_target_window,
                                            bool focused_tab_active);
 
