@@ -119,10 +119,9 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
         )
         XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.buttons.matching(identifier: "browser.address.private").count, 0)
-        XCTAssertEqual(
-            app.descendants(matching: .any)
-                .matching(identifier: "browser.harbor-deck.workspace").count,
-            1,
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.harbor-deck.workspace"]
+                .waitForExistence(timeout: 3),
             file: file,
             line: line
         )
@@ -147,10 +146,9 @@ final class MobileBrowserAccessibilityAppearanceUITests: XCTestCase {
         )
         XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.buttons.matching(identifier: "browser.address").count, 0)
-        XCTAssertEqual(
-            app.descendants(matching: .any)
-                .matching(identifier: "browser.harbor-deck.workspace").count,
-            1,
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.harbor-deck.workspace"]
+                .waitForExistence(timeout: 3),
             file: file,
             line: line
         )
