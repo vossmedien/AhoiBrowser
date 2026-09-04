@@ -4,7 +4,7 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
     private let fixtureOrigin = "https://fixture.ahoibrowser.test"
 
     @MainActor
-    func testWebsitePermissionKindsExposeOriginAndAllExplicitChoices() throws {
+    func testWebsiteMediaPermissionKindsExposeOriginAndAllExplicitChoices() throws {
         let app = launchFixture()
         let webView = app.webViews.firstMatch
         XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
@@ -16,7 +16,6 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
                 "Request camera and microphone permission",
                 [["camera", "kamera"], ["microphone", "mikrofon"]]
             ),
-            ("Request motion permission", [["motion", "bewegung"]]),
         ]
 
         for request in requests {
@@ -48,6 +47,56 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
                     .waitForNonExistence(timeout: 3)
             )
         }
+    }
+
+    @MainActor
+    func testMotionPermissionTraversesSystemAndAhoiOriginGates() throws {
+        let app = launchFixture()
+        let webView = app.webViews.firstMatch
+        XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+
+        let motion = webView.buttons["Request motion permission"]
+        reveal(motion, in: webView)
+        motion.tap()
+
+        // iOS owns the first motion/orientation disclosure. Once the user
+        // grants that system gate, Ahoi still applies its per-origin policy.
+        let systemAlert = app.alerts.firstMatch
+        XCTAssertTrue(systemAlert.waitForExistence(timeout: 3))
+        let systemMessage = renderedAlertText(in: systemAlert).lowercased()
+        XCTAssertTrue(systemMessage.contains("fixture.ahoibrowser.test"))
+        XCTAssertTrue(containsAny(["motion", "bewegung"], in: systemMessage))
+        XCTAssertTrue(containsAny(["orientation", "ausrichtung"], in: systemMessage))
+
+        let systemCancel = localizedButton(
+            in: systemAlert,
+            labels: ["Cancel", "Abbrechen"]
+        )
+        let systemAllow = localizedButton(
+            in: systemAlert,
+            labels: ["Allow", "Erlauben"]
+        )
+        XCTAssertTrue(systemCancel.exists)
+        XCTAssertTrue(systemAllow.exists)
+        XCTAssertEqual(systemAlert.buttons.count, 2)
+        systemAllow.tap()
+
+        assertPermissionPrompt(in: app, containsAll: [["motion", "bewegung"]])
+        app.buttons["browser.permission.cancel"].firstMatch.tap()
+        XCTAssertTrue(
+            app.buttons["browser.permission.allow"].firstMatch
+                .waitForNonExistence(timeout: 3)
+        )
+
+        // The system decision is retained, while Ahoi's one-shot origin
+        // choice can deliberately be requested and denied again.
+        motion.tap()
+        assertPermissionPrompt(in: app, containsAll: [["motion", "bewegung"]])
+        app.buttons["browser.permission.deny"].firstMatch.tap()
+        XCTAssertTrue(
+            app.buttons["browser.permission.allow"].firstMatch
+                .waitForNonExistence(timeout: 3)
+        )
     }
 
     @MainActor
@@ -89,8 +138,9 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
             cancel.tap()
             XCTAssertTrue(cancel.waitForNonExistence(timeout: 3))
         }
-        let result = webView.descendants(matching: .any)["File selection result"]
-        XCTAssertTrue(waitForText("No file selected.", in: result, timeout: 3))
+        XCTAssertTrue(
+            webView.staticTexts["No file selected."].waitForExistence(timeout: 3)
+        )
     }
 
     /// Integration seam: the native document picker cannot be populated from
@@ -107,10 +157,10 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
         let choose = app.buttons["browser.file_input.choose"].firstMatch
         XCTAssertTrue(choose.waitForExistence(timeout: 3))
         choose.tap()
-        let result = webView.descendants(matching: .any)["File selection result"]
         let expectedResult = "Selected file: ahoi-upload-fixture.txt · 20 bytes."
+        let result = webView.staticTexts[expectedResult]
         XCTAssertTrue(
-            waitForText(expectedResult, in: result, timeout: 8),
+            result.waitForExistence(timeout: 8),
             "WebKit must receive the app-owned staged selection and materialize its FileList."
         )
         let rendered = result.label + " " + ((result.value as? String) ?? "")
@@ -129,7 +179,9 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
 
         let cancel = app.buttons["browser.external.cancel"].firstMatch
         XCTAssertTrue(cancel.waitForExistence(timeout: 3))
-        let message = renderedAlertText(in: app)
+        let messageElement = app.staticTexts["browser.external.message"].firstMatch
+        XCTAssertTrue(messageElement.waitForExistence(timeout: 3))
+        let message = renderedText(of: messageElement)
         XCTAssertTrue(message.contains(fixtureOrigin))
         XCTAssertTrue(message.contains("mailto:•••@example.com"))
         XCTAssertFalse(message.contains("browser-test"))
@@ -179,27 +231,33 @@ final class MobileBrowserPrivacyPermissionUITests: XCTestCase {
 
     @MainActor
     private func renderedAlertText(in app: XCUIApplication) -> String {
-        app.alerts.firstMatch.staticTexts.allElementsBoundByIndex
+        renderedAlertText(in: app.alerts.firstMatch)
+    }
+
+    @MainActor
+    private func renderedAlertText(in alert: XCUIElement) -> String {
+        alert.staticTexts.allElementsBoundByIndex
             .map(\.label)
             .joined(separator: " ")
     }
 
     @MainActor
-    private func waitForText(
-        _ expected: String,
-        in element: XCUIElement,
-        timeout: TimeInterval
-    ) -> Bool {
-        guard element.waitForExistence(timeout: timeout) else { return false }
-        let expectation = XCTNSPredicateExpectation(
-            predicate: NSPredicate(
-                format: "label == %@ OR value == %@",
-                expected,
-                expected
-            ),
-            object: element
-        )
-        return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
+    private func renderedText(of element: XCUIElement) -> String {
+        [element.label, element.value as? String]
+            .compactMap { $0 }
+            .joined(separator: " ")
+    }
+
+    @MainActor
+    private func localizedButton(
+        in container: XCUIElement,
+        labels: [String]
+    ) -> XCUIElement {
+        container.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
+    }
+
+    private func containsAny(_ tokens: [String], in text: String) -> Bool {
+        tokens.contains(where: text.contains)
     }
 
     @MainActor
