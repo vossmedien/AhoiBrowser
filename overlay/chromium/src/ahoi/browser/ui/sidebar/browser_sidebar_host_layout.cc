@@ -23,6 +23,7 @@
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_bookmark_shelf_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
@@ -284,6 +285,12 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   SetWorkspaceSelectorPresentation(workspace_button_, u"Ahoi", u"A",
                                    visual_style::kDefaultAccent);
   workspace_button_->set_context_menu_controller(this);
+
+  // Bookmarks are durable navigation shortcuts, not saved or temporary tabs.
+  // Keep their horizontally scrolling shelf fixed above the independently
+  // scrolling tab surface so the three concepts remain visually and
+  // behaviorally separate at every sidebar height.
+  AddChildView(CreateSidebarBookmarkShelfView(browser_));
 
   auto tabs_surface = CreateSidebarTabsSurfaceView();
   auto* tabs_surface_layout =

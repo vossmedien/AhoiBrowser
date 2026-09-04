@@ -109,6 +109,18 @@ inline constexpr int kSidebarSectionDividerSpacing = kSidebarFooterSpacing;
 inline constexpr int kSidebarSectionDividerActionHorizontalInset = 4;
 inline constexpr int kSidebarSplitActionGap = 2;
 inline constexpr int kSidebarIconSize = 16;
+// Native bookmark shelf between the workspace selector and tab surfaces. URL
+// bookmarks remain compact favicon targets; folders gain enough width for an
+// elided label while the complete row scrolls independently on the x axis.
+inline constexpr int kBookmarkShelfHeight = 36;
+inline constexpr int kBookmarkShelfVerticalInset = 2;
+inline constexpr int kBookmarkShelfItemSize = 32;
+inline constexpr int kBookmarkShelfSpacing = 4;
+inline constexpr int kBookmarkShelfItemHorizontalInset = 8;
+inline constexpr int kBookmarkShelfFolderHorizontalInset = 9;
+inline constexpr int kBookmarkShelfFolderMinimumWidth = 44;
+inline constexpr int kBookmarkShelfFolderMaximumWidth = 112;
+inline constexpr float kBookmarkShelfCornerRadius = 8.0f;
 
 // The normal browsing surface is deliberately inset from the window chrome.
 // Besides creating the Arc-like card treatment this inset is part of layout,
