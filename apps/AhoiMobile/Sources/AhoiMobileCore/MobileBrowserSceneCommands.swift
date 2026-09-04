@@ -55,6 +55,7 @@ public struct MobileBrowserCommandActions {
     public let canReopenClosedTab: Bool
     public let canSwitchWorkspace: Bool
     public let canToggleSidebar: Bool
+    public let canDismissPresentation: Bool
     let newTab: () -> Void
     let newPrivateTab: () -> Void
     let reopenClosedTab: () -> Void
@@ -65,12 +66,14 @@ public struct MobileBrowserCommandActions {
     let switchWorkspace: (Int) -> Void
     let switchTab: (Int) -> Void
     let selectNumberedTab: (Int) -> Void
+    let dismissPresentation: () -> Void
 
     public init(
         tabCount: Int,
         canReopenClosedTab: Bool,
         canSwitchWorkspace: Bool,
         canToggleSidebar: Bool,
+        canDismissPresentation: Bool = false,
         newTab: @escaping () -> Void,
         newPrivateTab: @escaping () -> Void,
         reopenClosedTab: @escaping () -> Void,
@@ -80,12 +83,14 @@ public struct MobileBrowserCommandActions {
         toggleSidebar: @escaping () -> Void,
         switchWorkspace: @escaping (Int) -> Void,
         switchTab: @escaping (Int) -> Void,
-        selectNumberedTab: @escaping (Int) -> Void
+        selectNumberedTab: @escaping (Int) -> Void,
+        dismissPresentation: @escaping () -> Void = {}
     ) {
         self.tabCount = max(0, tabCount)
         self.canReopenClosedTab = canReopenClosedTab
         self.canSwitchWorkspace = canSwitchWorkspace
         self.canToggleSidebar = canToggleSidebar
+        self.canDismissPresentation = canDismissPresentation
         self.newTab = newTab
         self.newPrivateTab = newPrivateTab
         self.reopenClosedTab = reopenClosedTab
@@ -96,6 +101,7 @@ public struct MobileBrowserCommandActions {
         self.switchWorkspace = switchWorkspace
         self.switchTab = switchTab
         self.selectNumberedTab = selectNumberedTab
+        self.dismissPresentation = dismissPresentation
     }
 
     func selectTab(number: Int) {
@@ -112,12 +118,14 @@ private struct MobileBrowserCommandAvailability: Equatable {
     let canReopenClosedTab: Bool
     let canSwitchWorkspace: Bool
     let canToggleSidebar: Bool
+    let canDismissPresentation: Bool
 
     init(_ actions: MobileBrowserCommandActions) {
         tabCount = actions.tabCount
         canReopenClosedTab = actions.canReopenClosedTab
         canSwitchWorkspace = actions.canSwitchWorkspace
         canToggleSidebar = actions.canToggleSidebar
+        canDismissPresentation = actions.canDismissPresentation
     }
 }
 
@@ -171,6 +179,7 @@ struct MobileBrowserKeyboardFocusAnchor: UIViewControllerRepresentable {
         context: Context
     ) {
         uiViewController.router = router
+        uiViewController.setNeedsUpdateOfKeyCommands()
         uiViewController.claimUnownedResponderChain()
     }
 }
@@ -227,6 +236,14 @@ final class MobileBrowserKeyboardCommandController: UIViewController {
                     "browser.sidebar.toggle",
                     fallback: "Toggle sidebar"
                 )
+            ))
+        }
+        if actions.canDismissPresentation {
+            commands.append(fallbackKeyCommand(
+                input: UIKeyCommand.inputEscape,
+                modifiers: [],
+                action: #selector(dismissPresentation(_:)),
+                title: CompanionL10n.string("action.close", fallback: "Close")
             ))
         }
         if actions.canSwitchWorkspace {
@@ -347,6 +364,9 @@ final class MobileBrowserKeyboardCommandController: UIViewController {
         )
 #endif
         switch (input, modifiers) {
+        case (UIKeyCommand.inputEscape, []):
+            guard router?.actions?.canDismissPresentation == true else { return false }
+            router?.actions?.dismissPresentation()
         case ("l", .command):
             router?.actions?.presentAddress()
         case ("s", [.command, .control]):
@@ -390,6 +410,10 @@ final class MobileBrowserKeyboardCommandController: UIViewController {
         MobileBrowserCommandDiagnostics.logger.notice("fallback next workspace")
 #endif
         router?.actions?.switchWorkspace(1)
+    }
+
+    @objc private func dismissPresentation(_ command: UIKeyCommand) {
+        router?.actions?.dismissPresentation()
     }
 }
 
@@ -467,6 +491,12 @@ public struct MobileBrowserSceneCommands: Commands {
                 actions?.presentTabs()
             }
             .keyboardShortcut("\\", modifiers: [.command, .shift])
+            if actions?.canDismissPresentation == true {
+                Button(CompanionL10n.string("action.close", fallback: "Close")) {
+                    actions?.dismissPresentation()
+                }
+                .keyboardShortcut(.escape, modifiers: [])
+            }
             Divider()
             Button(CompanionL10n.string(
                 "browser.tabs.previous",

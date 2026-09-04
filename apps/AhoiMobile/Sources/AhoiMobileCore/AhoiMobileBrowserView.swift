@@ -561,6 +561,7 @@ public struct AhoiMobileBrowserView: View {
             canSwitchWorkspace: selectedMode == .normal &&
                 companionModel.snapshot.visibleWorkspaces.count > 1,
             canToggleSidebar: horizontalSizeClass == .regular,
+            canDismissPresentation: addressPresented || tabsPresented,
             newTab: { createSidebarTab(nil, .normal) },
             newPrivateTab: { createSidebarTab(nil, .privateBrowsing) },
             reopenClosedTab: { browser.undoClose(); reconcileSidebarTabs() },
@@ -572,7 +573,8 @@ public struct AhoiMobileBrowserView: View {
             toggleSidebar: toggleSidebar,
             switchWorkspace: switchWorkspace,
             switchTab: browser.switchSelectedTab,
-            selectNumberedTab: selectNumberedTab
+            selectNumberedTab: selectNumberedTab,
+            dismissPresentation: dismissKeyboardPresentation
         )
     }
     private var chromeResetContext: MobileChromeResetContext {
@@ -606,6 +608,15 @@ public struct AhoiMobileBrowserView: View {
         expandHarborDeck()
         tabSwitcherMode = browser.selectedTab?.mode ?? .normal
         tabsPresented = true
+    }
+    private func dismissKeyboardPresentation() {
+        if renameTab != nil {
+            renameTab = nil
+        } else if addressPresented {
+            addressPresented = false
+        } else if tabsPresented {
+            tabsPresented = false
+        }
     }
     private func presentAfterBrowserActions(_ action: @escaping @MainActor () -> Void) {
         browserActionsPresented = false

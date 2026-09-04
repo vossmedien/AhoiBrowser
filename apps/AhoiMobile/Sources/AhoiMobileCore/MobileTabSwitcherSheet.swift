@@ -136,7 +136,6 @@ struct MobileTabSwitcherSheet: View {
                     Button(CompanionL10n.string("action.done", fallback: "Done")) {
                         dismissSwitcher()
                     }
-                    .keyboardShortcut(.cancelAction)
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("browser.tabs.done")
                 }
@@ -201,7 +200,6 @@ struct MobileTabSwitcherSheet: View {
                 renameText = ""
             }
         }
-        .onExitCommand { dismissSwitcher() }
         .accessibilityAction(.escape) { dismissSwitcher() }
     }
 
@@ -223,7 +221,6 @@ struct MobileTabSwitcherSheet: View {
                 Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
                     renameTab = nil
                 }
-                .keyboardShortcut(.cancelAction)
                 .accessibilityIdentifier("browser.tabs.rename.cancel")
             }
             ToolbarItem(placement: .confirmationAction) {
@@ -235,7 +232,6 @@ struct MobileTabSwitcherSheet: View {
                 .accessibilityIdentifier("browser.tabs.rename.save")
             }
         }
-        .onExitCommand { renameTab = nil }
         .accessibilityAction(.escape) { renameTab = nil }
     }
 
