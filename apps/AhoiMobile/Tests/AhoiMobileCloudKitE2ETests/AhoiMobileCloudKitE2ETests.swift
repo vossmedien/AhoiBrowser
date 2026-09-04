@@ -333,10 +333,11 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
                 fields.tombstonePurgeAfter,
             ])
         }
-        let clearKeys = Set(record.allKeys())
+        let encryptedKeys = Set(record.encryptedValues.allKeys())
+        let clearKeys = Set(record.allKeys()).subtracting(encryptedKeys)
         XCTAssertEqual(clearKeys, expectedClearKeys, file: file, line: line)
         XCTAssertEqual(
-            Set(record.encryptedValues.allKeys()),
+            encryptedKeys,
             Set([fields.encryptedValue]),
             file: file,
             line: line
