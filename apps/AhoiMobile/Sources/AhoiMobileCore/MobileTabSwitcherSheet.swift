@@ -201,6 +201,7 @@ struct MobileTabSwitcherSheet: View {
                 renameText = ""
             }
         }
+        .onExitCommand { dismissSwitcher() }
         .accessibilityAction(.escape) { dismissSwitcher() }
     }
 
@@ -234,6 +235,7 @@ struct MobileTabSwitcherSheet: View {
                 .accessibilityIdentifier("browser.tabs.rename.save")
             }
         }
+        .onExitCommand { renameTab = nil }
         .accessibilityAction(.escape) { renameTab = nil }
     }
 
