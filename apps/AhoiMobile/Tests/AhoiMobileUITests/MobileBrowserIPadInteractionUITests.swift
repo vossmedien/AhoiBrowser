@@ -298,6 +298,7 @@ final class MobileBrowserIPadInteractionUITests: MobileBrowserRealE2ETestCase {
         return condition()
     }
 
+    @MainActor
     private func restore(_ orientation: UIDeviceOrientation, on device: XCUIDevice) {
         switch orientation {
         case .portrait, .portraitUpsideDown, .landscapeLeft, .landscapeRight:

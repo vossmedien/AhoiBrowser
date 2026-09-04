@@ -100,9 +100,9 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
             ).waitForExistence(timeout: 5),
             "The save must visibly settle in the source workspace before it is moved."
         )
-        let row = row(containing: pageURL.absoluteString, in: app)
-        XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.press(forDuration: 1.1)
+        let sourceRow = row(containing: pageURL.absoluteString, in: app)
+        XCTAssertTrue(sourceRow.waitForExistence(timeout: 5))
+        sourceRow.press(forDuration: 1.1)
 
         let move = localizedButton(
             labels: ["Move to Workspace", "In Workspace verschieben"],
