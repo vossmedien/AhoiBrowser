@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-30T11:45:25+02:00",
+  "updatedAt": "2026-09-04T21:36:04+02:00",
   "gates": [
     {
       "id": "xcode-26.6",
@@ -28,15 +28,15 @@
     },
     {
       "id": "cloudkit-identifiers",
-      "state": "partially-verified-container-required",
+      "state": "distribution-capabilities-verified-runtime-required",
       "owner": "apple-team-admin",
-      "condition": "Live Apple Developer readback proves Team 248AJ5BN47, explicit App ID app.ahoibrowser.AhoiBrowser, App ID prefix 248AJ5BN47, iCloud with CloudKit support and Push Notifications. The App ID has zero assigned containers and the team container list contains only iCloud.de.vossmedien.DisplayPilot; create and assign the separate iCloud.app.ahoibrowser.AhoiBrowser container, then refresh matching Mobile and Mac profiles without touching DisplayPilot."
+      "condition": "The exported and processed TestFlightBootstrap 0.1 (8) binds Team 248AJ5BN47 and app.ahoibrowser.AhoiBrowser to the dedicated iCloud.app.ahoibrowser.AhoiBrowser container with Production CloudKit/APNs in the signed app. DisplayPilot was not reused. Development/Production schema state and a real Mac-Mobile CloudKit roundtrip remain separate runtime gates."
     },
     {
       "id": "ios-final-bundle-team-profile",
-      "state": "registered-profile-refresh-required",
+      "state": "testflight-bootstrap-profile-verified",
       "owner": "apple-team-admin",
-      "condition": "Live Apple Developer readback and the existing signed-device receipt prove Team 248AJ5BN47, App ID prefix 248AJ5BN47, explicit bundle ID app.ahoibrowser.AhoiBrowser and one development installation. Refresh Automatic/Cloud-Managed profiles after the dedicated CloudKit container is assigned; archive, export and candidate-bound profile evidence remain required. A separately stored local Apple Distribution certificate or App Store Connect API key is not a prerequisite for Xcode-managed distribution."
+      "condition": "Source 95241c6efa56d5a90c3aa105ac8e3d7de71b5c0e was archived and exported as TestFlightBootstrap 0.1 (8), signed by Apple Distribution: Christian Voss (248AJ5BN47) with the cloud-managed App Store profile for app.ahoibrowser.AhoiBrowser. The processed build is ready for internal testing; physical TestFlight installation and a fresh post-grant profile/build remain open."
     },
     {
       "id": "ios-managed-default-browser-entitlement",
@@ -46,9 +46,9 @@
     },
     {
       "id": "ios-cloudkit-keychain-capabilities",
-      "state": "blocked-entitlement",
+      "state": "distribution-capabilities-verified-e2e-required",
       "owner": "apple-team-admin",
-      "condition": "The existing App ID has iCloud/CloudKit and Push enabled but zero assigned containers. Create and assign only iCloud.app.ahoibrowser.AhoiBrowser, refresh matching iCloud/push/Keychain profiles, and prove the in-app AES-256-GCM plus per-device Ed25519 lifecycle, rotation, recovery and revocation on entitled Mac and Mobile builds without storing private material in the repository or CloudKit."
+      "condition": "The processed TestFlightBootstrap 0.1 (8) carries Production CloudKit/APNs, iCloud.app.ahoibrowser.AhoiBrowser and the dedicated sync and command Keychain groups with get-task-allow=false. A real TestFlight/Mac AES-256-GCM and per-device Ed25519 roundtrip, rotation, recovery, revocation and private-data exclusion remain required before sync is called release-verified."
     },
     {
       "id": "ios-physical-device-journeys",
@@ -58,9 +58,9 @@
     },
     {
       "id": "ios-app-store-connect-testflight",
-      "state": "blocked-external-service",
+      "state": "internal-testflight-ready",
       "owner": "apple-team-admin",
-      "condition": "Live App Store Connect readback reports no apps, so no Ahoi record, build, TestFlight group or public link exists. Separately confirm creation of the AhoiBrowser record, complete truthful metadata/privacy/beta-review inputs, archive and upload the exact TestFlightBootstrap candidate through Xcode, retain processing receipts, activate external TestFlight and install it on physical devices. The displayed EU trader-status declaration remains a human/legal gate and is not a technical upload failure."
+      "condition": "App Store Connect app 6808754773 contains processed iOS build 0.1 (8), build ID e8a175b4-1ab8-4bc2-a8c9-b65410a2b5e5, from source 95241c6efa56d5a90c3aa105ac8e3d7de71b5c0e. Internal group AhoiBrowser Intern (eecba011-68ca-4fe2-9c3a-12dd859ee78f) has automatic distribution, one assigned build and christian@vossmedien.de invited; the group reports the build as Ready to Test. Physical installation, external Beta Review/public link, truthful public metadata/privacy/trader inputs and the later default-browser request remain open."
     },
     {
       "id": "signed-release-provenance",
