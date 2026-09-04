@@ -123,6 +123,10 @@ final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase
             addressField.waitForNonExistence(timeout: 3),
             "Escape must dismiss the address presentation on the selected candidate."
         )
+        XCTAssertEqual(app.state, .runningForeground)
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["browser.tabs"].isHittable)
+        assertExactCandidateBinding(in: app)
     }
 
     @MainActor
@@ -140,6 +144,10 @@ final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase
             mode.waitForNonExistence(timeout: 3),
             "Escape must dismiss the native tab presentation on the selected candidate."
         )
+        XCTAssertEqual(app.state, .runningForeground)
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["browser.tabs"].isHittable)
+        assertExactCandidateBinding(in: app)
     }
 
     @MainActor
