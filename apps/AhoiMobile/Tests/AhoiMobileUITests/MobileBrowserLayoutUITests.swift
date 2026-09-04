@@ -268,10 +268,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         XCTAssertTrue(webView.waitForExistence(timeout: 3))
         XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3))
 
-        // Switch to the fixture's full-page nested scroller before measuring
-        // deliberately tiny corrections. That mode removes every interactive
-        // control from the hit-test tree, so WebKit cannot reinterpret a
-        // sub-threshold drag as an unrelated button or file-input tap.
+        // The nested fixture is an interactive-control-free production scroll path.
         let activate = webView.buttons["Activate nested scroll fixture"]
         XCTAssertTrue(activate.waitForExistence(timeout: 3))
         activate.tap()
@@ -374,12 +371,12 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         }
         XCTAssertTrue(motion.waitForExistence(timeout: 3))
         motion.tap()
-
-        let reduceMotion = settings.switches.matching(NSPredicate(
+        let reduceMotionPredicate = NSPredicate(
             format: "label == %@ OR label == %@",
             "Reduce Motion",
             "Bewegung reduzieren"
-        )).firstMatch
+        )
+        let reduceMotion = settings.switches.matching(reduceMotionPredicate).firstMatch
         XCTAssertTrue(reduceMotion.waitForExistence(timeout: 3))
         guard let wasEnabled = MobileUIAcceptanceContract.switchIsOn(reduceMotion) else {
             XCTFail("Settings must expose a Boolean Reduce Motion switch value.")
@@ -398,12 +395,15 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         defer {
             if !wasEnabled {
                 settings.activate()
-                if MobileUIAcceptanceContract.switchIsOn(reduceMotion) == true {
-                    tapSwitchControl(reduceMotion)
+                XCTAssertTrue(settings.wait(for: .runningForeground, timeout: 3))
+                let restoredControl = settings.switches.matching(reduceMotionPredicate).firstMatch
+                XCTAssertTrue(restoredControl.waitForExistence(timeout: 3))
+                if MobileUIAcceptanceContract.switchIsOn(restoredControl) == true {
+                    tapSwitchControl(restoredControl)
                 }
                 XCTAssertTrue(
                     MobileUIAcceptanceContract.waitForSwitch(
-                        reduceMotion,
+                        restoredControl,
                         toEqual: false,
                         timeout: 3
                     ),
