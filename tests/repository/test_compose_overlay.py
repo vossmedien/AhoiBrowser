@@ -26,6 +26,10 @@ class ComposeOverlayTests(unittest.TestCase):
         run("git", "init", "-q", cwd=checkout)
         run("git", "config", "user.name", "Ahoi Test", cwd=checkout)
         run("git", "config", "user.email", "test@example.invalid", cwd=checkout)
+        # Snapshot tests must not race a user's globally configured background
+        # maintenance task started by the fixture's initial commit.
+        run("git", "config", "maintenance.auto", "false", cwd=checkout)
+        run("git", "config", "gc.auto", "0", cwd=checkout)
         (checkout / "base.txt").write_text("base\n", encoding="utf-8")
         run("git", "add", "base.txt", cwd=checkout)
         run("git", "commit", "-q", "-m", "base", cwd=checkout)
@@ -282,6 +286,63 @@ class ComposeOverlayTests(unittest.TestCase):
                 b"licensed vendor line with trailing space \n",
                 (checkout / "vendor.txt").read_bytes(),
             )
+
+    def test_batch_preserves_names_bytes_modes_and_links_without_mutation(self):
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = pathlib.Path(raw_root)
+            checkout = self.create_checkout(root)
+            overlay = root / "overlay"
+            overlay.mkdir()
+            payloads = {
+                "base.txt": b"replacement\n",
+                "-literal, name\twith\nnewline.txt": b"exact\x00binary\xff",
+                "ausführbar.sh": b"#!/bin/sh\nexit 0\n",
+            }
+            for name, payload in payloads.items():
+                (overlay / name).write_bytes(payload)
+            (overlay / "ausführbar.sh").chmod(0o755)
+            (overlay / "symbolic link").symlink_to("base.txt")
+            patch_root = root / "patches"
+            patch_root.mkdir()
+            series = patch_root / "series"
+            series.write_text("# no patches\n", encoding="utf-8")
+            objects_before = self.object_inventory(checkout)
+            index_before = (checkout / ".git/index").read_bytes()
+            combined = root / "combined.patch"
+
+            self.invoke(checkout, overlay, series, patch_root, combined)
+
+            self.assertEqual(objects_before, self.object_inventory(checkout))
+            self.assertEqual(index_before, (checkout / ".git/index").read_bytes())
+            self.assertEqual(b"base\n", (checkout / "base.txt").read_bytes())
+            run("git", "apply", str(combined), cwd=checkout)
+            for name, payload in payloads.items():
+                self.assertEqual(payload, (checkout / name).read_bytes())
+            self.assertTrue((checkout / "ausführbar.sh").stat().st_mode & 0o111)
+            self.assertFalse((checkout / "base.txt").stat().st_mode & 0o111)
+            self.assertEqual("base.txt", os.readlink(checkout / "symbolic link"))
+
+    def test_empty_overlay_is_rejected_and_preserves_real_index(self):
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = pathlib.Path(raw_root)
+            checkout = self.create_checkout(root)
+            overlay = root / "overlay"
+            overlay.mkdir()
+            patch_root = root / "patches"
+            patch_root.mkdir()
+            series = patch_root / "series"
+            series.write_text("", encoding="utf-8")
+            index_before = (checkout / ".git/index").read_bytes()
+            combined = root / "combined.patch"
+
+            result = self.invoke(
+                checkout, overlay, series, patch_root, combined, check=False
+            )
+
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn("produced no checkout delta", result.stderr)
+            self.assertFalse(combined.exists())
+            self.assertEqual(index_before, (checkout / ".git/index").read_bytes())
 
 
 if __name__ == "__main__":
