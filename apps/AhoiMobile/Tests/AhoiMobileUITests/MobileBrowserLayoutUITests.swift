@@ -268,7 +268,20 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         XCTAssertTrue(webView.waitForExistence(timeout: 3))
         XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3))
 
-        drag(webView, fromY: 0.72, toY: 0.52)
+        // Switch to the fixture's full-page nested scroller before measuring
+        // deliberately tiny corrections. That mode removes every interactive
+        // control from the hit-test tree, so WebKit cannot reinterpret a
+        // sub-threshold drag as an unrelated button or file-input tap.
+        let activate = webView.buttons["Activate nested scroll fixture"]
+        XCTAssertTrue(activate.waitForExistence(timeout: 3))
+        activate.tap()
+        let scrollSurface = webView.descendants(matching: .any).matching(NSPredicate(
+            format: "label BEGINSWITH %@",
+            "Nested scroll fixture"
+        )).firstMatch
+        XCTAssertTrue(scrollSurface.waitForExistence(timeout: 3))
+
+        drag(scrollSurface, fromY: 0.72, toY: 0.52)
         XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
         assertCompactHarborDeckSemantics(app)
 
@@ -276,7 +289,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         // settling finger without depending on WebKit's pixel projection.
         // None may flicker the accessibility/control tree open.
         for offset in [0.532, 0.534, 0.536] {
-            drag(webView, fromY: 0.52, toY: offset)
+            drag(scrollSurface, fromY: 0.52, toY: offset)
         }
         Thread.sleep(forTimeInterval: 0.35)
         XCTAssertFalse(
@@ -284,7 +297,7 @@ final class MobileBrowserLayoutUITests: XCTestCase {
             "Sub-threshold reverse travel must keep the compact deck stable."
         )
 
-        drag(webView, fromY: 0.48, toY: 0.62)
+        drag(scrollSurface, fromY: 0.48, toY: 0.62)
         XCTAssertTrue(
             workspace.waitForExistence(timeout: 3),
             "A deliberate reverse gesture must restore the complete deck."
@@ -668,16 +681,13 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         fromY: CGFloat,
         toY: CGFloat
     ) {
-        // Keep the deliberately tiny jitter gestures in the fixture's empty
-        // right body margin. At the horizontal center, a sub-threshold drag
-        // can be interpreted as a tap on the file input after the first page
-        // scroll, which would measure a modal presentation instead of chrome
-        // stability.
+        // The jitter journey passes the fixture's non-interactive nested
+        // scroller, so its center remains a stable scroll target throughout.
         let start = element.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.94, dy: fromY)
+            withNormalizedOffset: CGVector(dx: 0.5, dy: fromY)
         )
         let end = element.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.94, dy: toY)
+            withNormalizedOffset: CGVector(dx: 0.5, dy: toY)
         )
         start.press(forDuration: 0.08, thenDragTo: end)
     }
