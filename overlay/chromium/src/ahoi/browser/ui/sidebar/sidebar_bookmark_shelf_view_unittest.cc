@@ -6,9 +6,14 @@
 #include <memory>
 
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+#include "ahoi/browser/ui/sidebar/sidebar_bookmark_context_menu.h"
+#include "ahoi/browser/ui/sidebar/sidebar_bookmark_menu.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/test/bind.h"
+#include "base/test/run_until.h"
+#include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service_factory.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
@@ -31,10 +36,15 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/accessibility/ax_node_data.h"
+#include "ui/base/clipboard/clipboard.h"
+#include "ui/base/clipboard/test/test_clipboard.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/base/mojom/menu_source_type.mojom.h"
 #include "ui/events/event.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/controls/button/label_button.h"
+#include "ui/views/controls/menu/menu_item_view.h"
+#include "ui/views/controls/menu/submenu_view.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/focus/focus_manager.h"
 #include "ui/views/test/button_test_api.h"
@@ -64,6 +74,7 @@ class SidebarBookmarkShelfViewTest : public ChromeViewsTestBase {
  public:
   void SetUp() override {
     ChromeViewsTestBase::SetUp();
+    ui::TestClipboard::CreateForCurrentThread();
 
     TestingProfile::Builder profile_builder;
     profile_builder.AddTestingFactory(
@@ -105,6 +116,8 @@ class SidebarBookmarkShelfViewTest : public ChromeViewsTestBase {
     browser_.reset();
     bookmark_service_ = nullptr;
     profile_.reset();
+    BookmarkContextMenu::InstallPreRunCallback({});
+    ui::Clipboard::DestroyClipboardForCurrentThread();
     ChromeViewsTestBase::TearDown();
   }
 
@@ -289,6 +302,135 @@ TEST_F(SidebarBookmarkShelfViewTest,
   ASSERT_EQ(2u, navigation.urls.size());
   EXPECT_EQ(WindowOpenDisposition::NEW_BACKGROUND_TAB,
             navigation.dispositions[1]);
+}
+
+TEST_F(SidebarBookmarkShelfViewTest, OverflowCuesAndFocusFollowAReorderedItem) {
+  const bookmarks::BookmarkNode* first = nullptr;
+  for (size_t i = 0; i < 12; ++i) {
+    const auto* node =
+        bookmark_model()->AddFolder(bookmark_model()->bookmark_bar_node(), i,
+                                    u"Folder " + base::NumberToString16(i));
+    if (!first) {
+      first = node;
+    }
+  }
+  RunPendingModelUpdates();
+  MountShelf();
+  ASSERT_TRUE(shelf_->trailing_overflow_for_testing()->IsDrawn());
+  EXPECT_FALSE(shelf_->leading_overflow_for_testing()->IsDrawn());
+  auto* focused = shelf_->bookmark_item_at_for_testing(0);
+  focused->RequestFocus();
+
+  bookmark_model()->Move(first, bookmark_model()->bookmark_bar_node(), 12);
+  RunPendingModelUpdates();
+  views::test::RunScheduledLayout(widget_.get());
+
+  // A second layout can arrive before the first frame callback. A stale
+  // callback must not consume the new request with its older layer geometry.
+  bookmark_model()->SetTitle(
+      bookmark_model()->bookmark_bar_node()->children()[0].get(),
+      u"A much longer folder title before the focused item",
+      bookmarks::metrics::BookmarkEditSource::kOther);
+  RunPendingModelUpdates();
+  views::test::RunScheduledLayout(widget_.get());
+
+  ASSERT_TRUE(base::test::RunUntil([&] {
+    return shelf_->scroll_view_for_testing()
+        ->contents()
+        ->GetVisibleRect()
+        .Contains(focused->bounds());
+  }));
+  EXPECT_EQ(focused, shelf_->bookmark_item_at_for_testing(11));
+  EXPECT_EQ(focused, widget_->GetFocusManager()->GetFocusedView());
+  EXPECT_TRUE(shelf_->leading_overflow_for_testing()->IsDrawn());
+  EXPECT_FALSE(shelf_->trailing_overflow_for_testing()->IsDrawn());
+}
+
+TEST_F(SidebarBookmarkShelfViewTest, NativeContextActionCanDeleteItsOwnButton) {
+  bookmark_model()->AddURL(bookmark_model()->bookmark_bar_node(), 0,
+                           u"Bookmark", GURL("https://example.test/context"));
+  RunPendingModelUpdates();
+  MountShelf();
+  auto* button = shelf_->bookmark_item_at_for_testing(0);
+  bool opened = false;
+  BookmarkContextMenu::InstallPreRunCallback(
+      base::BindLambdaForTesting([&] { opened = true; }));
+  shelf_->ShowContextMenuForView(button,
+                                 button->GetBoundsInScreen().CenterPoint(),
+                                 ui::mojom::MenuSourceType::kMouse);
+  ASSERT_TRUE(base::test::RunUntil([&] { return opened; }));
+  ASSERT_TRUE(shelf_->context_menu_for_testing());
+  auto* menu = shelf_->context_menu_for_testing()->native_menu_for_testing();
+  ASSERT_TRUE(menu);
+  EXPECT_TRUE(menu->IsCommandEnabled(IDC_BOOKMARK_BAR_REMOVE));
+  if (auto* bar_option =
+          menu->menu()->GetMenuItemByID(IDC_BOOKMARK_BAR_SUBMENU)) {
+    EXPECT_FALSE(bar_option->GetVisible());
+  }
+
+  menu->ExecuteCommand(IDC_BOOKMARK_BAR_REMOVE, 0);
+  RunPendingModelUpdates();
+
+  EXPECT_TRUE(bookmark_model()->bookmark_bar_node()->children().empty());
+  EXPECT_EQ(0u, shelf_->bookmark_item_count_for_testing());
+  EXPECT_TRUE(shelf_->manager_button_for_testing()->GetVisible());
+}
+
+TEST_F(SidebarBookmarkShelfViewTest,
+       NestedContextIsConfiguredAfterClipboardCheck) {
+  const auto* folder = bookmark_model()->AddFolder(
+      bookmark_model()->bookmark_bar_node(), 0, u"Folder");
+  bookmark_model()->AddURL(folder, 0, u"Child",
+                           GURL("https://example.test/child"));
+  RunPendingModelUpdates();
+  MountShelf();
+  auto* button = views::AsViewClass<views::LabelButton>(
+      shelf_->bookmark_item_at_for_testing(0));
+  views::test::ButtonTestApi(button).NotifyDefaultMouseClick();
+  ASSERT_TRUE(shelf_->folder_menu_for_testing());
+  auto* folder_menu = shelf_->folder_menu_for_testing();
+  ASSERT_TRUE(folder_menu->menu_for_testing());
+  auto items = folder_menu->menu_for_testing()->GetSubmenu()->GetMenuItems();
+  ASSERT_FALSE(items.empty());
+  auto* child = items.front();
+  bool prepared = false;
+  BookmarkContextMenu::InstallPreRunCallback(base::BindLambdaForTesting([&] {
+    auto* context = folder_menu->context_menu_for_testing();
+    ASSERT_TRUE(context);
+    for (int id : {IDC_BOOKMARK_BAR_ALWAYS_SHOW, IDC_BOOKMARK_BAR_SUBMENU}) {
+      if (auto* option = context->GetMenuItemByID(id)) {
+        EXPECT_FALSE(option->GetVisible());
+      }
+    }
+    prepared = true;
+  }));
+  EXPECT_TRUE(folder_menu->ShowContextMenu(
+      child, child->GetCommand(), button->GetBoundsInScreen().CenterPoint(),
+      ui::mojom::MenuSourceType::kKeyboard));
+  ASSERT_TRUE(base::test::RunUntil([&] { return prepared; }));
+  folder_menu->Cancel();
+  RunPendingModelUpdates();
+}
+
+TEST_F(SidebarBookmarkShelfViewTest,
+       ContextQueryRejectsANoLongerVisibleSource) {
+  const auto* node = bookmark_model()->AddURL(
+      bookmark_model()->bookmark_bar_node(), 0, u"Bookmark",
+      GURL("https://example.test/context"));
+  RunPendingModelUpdates();
+  MountShelf();
+  auto* button = shelf_->bookmark_item_at_for_testing(0);
+  const gfx::Point point = button->GetBoundsInScreen().CenterPoint();
+  shelf_->SetVisible(false);
+  bool closed = false;
+  SidebarBookmarkContextMenu context(
+      browser_.get(), bookmark_service_,
+      base::BindLambdaForTesting([&] { closed = true; }));
+
+  context.RunAt(button, {node}, point, ui::mojom::MenuSourceType::kMouse);
+
+  ASSERT_TRUE(base::test::RunUntil([&] { return closed; }));
+  EXPECT_EQ(nullptr, context.native_menu_for_testing());
 }
 
 }  // namespace

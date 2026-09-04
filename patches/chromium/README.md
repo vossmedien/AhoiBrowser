@@ -773,6 +773,27 @@ as a second active patch stack.
 - **Rebase/removal:** low-risk message-context hunk; the German ID is computed
   by Chromium GRIT from the exact new English text and preserved meaning.
 
+## `0030-ahoi-bookmark-context-menu-presentation.patch`
+
+- **Owner:** AhoiBrowser bookmark shelf.
+- **Affected paths:** `bookmark_menu_delegate.h` and `.cc` under
+  `chrome/browser/ui/views/bookmarks`.
+- **Rationale:** an optional presentation callback runs after the asynchronous
+  clipboard-capability check creates a native bookmark context menu, immediately
+  before display. It can decline display when the originating surface was
+  closed or hidden. Ahoi uses it to hide stock bookmark-bar/Apps/tab-group display
+  options which do not control its sidebar shelf.
+- **Rejected alternatives:** filtering a null menu before clipboard completion,
+  polling/PostTask timing, a global test hook, or duplicating Chromium's node,
+  clipboard, mutation, context-menu and permission controllers.
+- **Security/privacy:** unchanged Chromium model and permission ownership; an
+  unset callback preserves upstream behavior. The Ahoi callback only hides
+  inapplicable presentation options.
+- **Tests:** direct and nested native context-menu visible journeys, focused
+  shelf regressions and the complete ordered roll/composition preflight.
+- **Rebase/removal:** low risk at the existing creation seam; remove when an
+  equivalent upstream per-client presentation hook is available.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

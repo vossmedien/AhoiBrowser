@@ -5,7 +5,9 @@
 
 #include <utility>
 
+#include "ahoi/browser/ui/sidebar/sidebar_bookmark_context_menu.h"
 #include "base/check.h"
+#include "base/functional/bind.h"
 #include "base/memory/ptr_util.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service.h"
 #include "chrome/browser/ui/bookmarks/bookmark_utils_desktop.h"
@@ -19,6 +21,7 @@
 #include "ui/events/event.h"
 #include "ui/views/controls/menu/menu_item_view.h"
 #include "ui/views/controls/menu/menu_runner.h"
+#include "ui/views/widget/widget.h"
 
 namespace ahoi::sidebar {
 
@@ -51,12 +54,18 @@ SidebarBookmarkMenu::SidebarBookmarkMenu(
   }
 }
 
-SidebarBookmarkMenu::~SidebarBookmarkMenu() = default;
+SidebarBookmarkMenu::~SidebarBookmarkMenu() {
+  weak_ptr_factory_.InvalidateWeakPtrs();
+  closed_callback_.Reset();
+  Cancel();
+}
 
 void SidebarBookmarkMenu::RunAt(views::View* anchor, const ui::Event& event) {
   CHECK(anchor);
   CHECK(anchor->GetWidget());
   CHECK(!runner_);
+  anchor_.SetView(anchor);
+  anchor_widget_ = anchor->GetWidget()->GetWeakPtr();
   const auto folder = ResolveFolder();
   if (!folder) {
     OnMenuClosed(nullptr);
@@ -64,17 +73,21 @@ void SidebarBookmarkMenu::RunAt(views::View* anchor, const ui::Event& event) {
   }
   delegate_ = std::make_unique<BookmarkMenuDelegate>(
       browser_, anchor->GetWidget(), this, BookmarkLaunchLocation::kSubfolder);
+  delegate_->SetContextMenuPresentationCallback(base::BindRepeating(
+      [](base::WeakPtr<SidebarBookmarkMenu> owner, views::MenuItemView* menu) {
+        return owner && owner->PrepareContextMenu(menu);
+      },
+      weak_ptr_factory_.GetWeakPtr()));
   delegate_->SetActiveMenu(*folder, 0);
   auto menu = base::WrapUnique(delegate_->menu());
   const auto nodes = bookmark_service_->GetUnderlyingNodes(*folder);
   std::vector<raw_ptr<const bookmarks::BookmarkNode, VectorExperimental>>
       selection(nodes.begin(), nodes.end());
-  const int open_count = bookmarks::OpenCount(selection);
-  if (open_count > 0) {
+  if (bookmarks::HasBookmarkURLs(selection)) {
     menu->AppendSeparator();
-    menu->AppendMenuItem(kOpenAllCommand,
-                         l10n_util::GetPluralStringFUTF16(
-                             IDS_BOOKMARK_BAR_OPEN_ALL_COUNT, open_count));
+    open_all_item_ = menu->AppendMenuItem(
+        kOpenAllCommand,
+        l10n_util::GetPluralStringFUTF16(IDS_BOOKMARK_BAR_OPEN_ALL_COUNT, 0));
   }
   // Nested content is populated by BookmarkMenuDelegate::WillShowMenu only
   // when opened. Views supplies the standard empty-folder item.
@@ -92,12 +105,23 @@ void SidebarBookmarkMenu::Cancel() {
   if (runner_) {
     runner_->Cancel();
   }
-  runner_.reset();
+  open_all_item_ = nullptr;
+  // Release the native delegate's borrowed menu-item references while the
+  // runner still owns those views. Cancel has already stopped UI dispatch.
   delegate_.reset();
+  runner_.reset();
 }
 
 bool SidebarBookmarkMenu::is_mutating_model() const {
   return delegate_ && delegate_->is_mutating_model();
+}
+
+views::MenuItemView* SidebarBookmarkMenu::menu_for_testing() const {
+  return delegate_ ? delegate_->menu() : nullptr;
+}
+
+views::MenuItemView* SidebarBookmarkMenu::context_menu_for_testing() const {
+  return delegate_ ? delegate_->context_menu() : nullptr;
 }
 
 std::u16string SidebarBookmarkMenu::GetTooltipText(
@@ -113,7 +137,23 @@ bool SidebarBookmarkMenu::IsTriggerableEvent(views::MenuItemView* menu,
 }
 
 bool SidebarBookmarkMenu::IsCommandEnabled(int id) const {
-  return !cancelled_;
+  if (cancelled_ || id != kOpenAllCommand) {
+    return !cancelled_;
+  }
+  const auto folder = ResolveFolder();
+  if (!folder) {
+    return false;
+  }
+  const auto nodes = bookmark_service_->GetUnderlyingNodes(*folder);
+  std::vector<raw_ptr<const bookmarks::BookmarkNode, VectorExperimental>>
+      selection(nodes.begin(), nodes.end());
+  return bookmarks::HasBookmarkURLs(selection);
+}
+
+void SidebarBookmarkMenu::RefreshOpenAllState() {
+  if (open_all_item_) {
+    open_all_item_->SetEnabled(IsCommandEnabled(kOpenAllCommand));
+  }
 }
 
 void SidebarBookmarkMenu::ExecuteCommand(int id, int event_flags) {
@@ -155,8 +195,10 @@ bool SidebarBookmarkMenu::ShowContextMenu(
     int id,
     const gfx::Point& point,
     ui::mojom::MenuSourceType source_type) {
-  return !cancelled_ && id != kOpenAllCommand &&
-         delegate_->ShowContextMenu(source, id, point, source_type);
+  if (cancelled_ || id == kOpenAllCommand) {
+    return false;
+  }
+  return delegate_->ShowContextMenu(source, id, point, source_type);
 }
 
 int SidebarBookmarkMenu::GetMaxWidthForMenu(views::MenuItemView* view) {
@@ -172,9 +214,20 @@ bool SidebarBookmarkMenu::ShouldTryPositioningBesideAnchor() const {
 }
 
 void SidebarBookmarkMenu::OnMenuClosed(views::MenuItemView* menu) {
+  cancelled_ = true;
   if (closed_callback_) {
     std::exchange(closed_callback_, {}).Run();
   }
+}
+
+bool SidebarBookmarkMenu::PrepareContextMenu(views::MenuItemView* menu) {
+  if (cancelled_ || !anchor_ || !anchor_widget_ || !anchor_.view()->IsDrawn() ||
+      anchor_.view()->GetWidget() != anchor_widget_.get() ||
+      anchor_.view()->GetVisibleRect().IsEmpty()) {
+    return false;
+  }
+  HideStockBookmarkBarOptions(menu);
+  return true;
 }
 
 std::optional<BookmarkParentFolder> SidebarBookmarkMenu::ResolveFolder() const {

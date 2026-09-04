@@ -9,6 +9,7 @@
 
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_button.h"
+#include "ahoi/browser/ui/sidebar/sidebar_bookmark_context_menu.h"
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_menu.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
@@ -39,8 +40,10 @@
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/views/accessibility/view_accessibility.h"
+#include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/button/label_button.h"
+#include "ui/views/controls/image_view.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/focus/focus_manager.h"
@@ -72,11 +75,23 @@ ui::ImageModel FolderIcon(ui::ColorId color) {
                                         color, visual_style::kSidebarIconSize);
 }
 
+std::unique_ptr<views::View> OverflowArrow(const gfx::VectorIcon& icon) {
+  auto view = std::make_unique<views::ImageView>();
+  view->SetImage(
+      ui::ImageModel::FromVectorIcon(icon, visual_style::kMutedText, 12));
+  view->SetBackground(
+      views::CreateSolidBackground(visual_style::kRaisedSurface));
+  view->SetCanProcessEventsWithinSubtree(false);
+  view->GetViewAccessibility().SetIsIgnored(true);
+  return view;
+}
+
 }  // namespace
 
 SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
     : browser_(browser) {
   CHECK(browser_);
+  set_context_menu_controller(this);
   SetPreferredSize(gfx::Size(0, visual_style::kBookmarkShelfHeight));
   SetBackground(nullptr);
   SetBorder(views::CreateEmptyBorder(
@@ -105,15 +120,29 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
   scroll_view_ = scroll.get();
   scroll_view_->SetUseContentsPreferredSize(true);
   scroll_view_->SetBackgroundColor(std::nullopt);
-  scroll_view_->SetDrawOverflowIndicator(false);
+  scroll_view_->SetDrawOverflowIndicator(true);
   scroll_view_->SetHorizontalScrollBarMode(
       views::ScrollView::ScrollBarMode::kHiddenButEnabled);
   scroll_view_->SetVerticalScrollBarMode(
       views::ScrollView::ScrollBarMode::kDisabled);
   scroll_view_->SetTreatAllScrollEventsAsHorizontal(true);
-  scroll_view_->SetOverflowGradientMask(
-      views::ScrollView::GradientDirection::kHorizontal);
   scroll_view_->SetContents(std::move(items));
+  leading_overflow_ = scroll_view_->SetCustomOverflowIndicator(
+      views::OverflowIndicatorAlignment::kLeft,
+      OverflowArrow(vector_icons::kArrowBackIcon), 14,
+      /*fills_opaquely=*/false);
+  trailing_overflow_ = scroll_view_->SetCustomOverflowIndicator(
+      views::OverflowIndicatorAlignment::kRight,
+      OverflowArrow(vector_icons::kArrowForwardIcon), 14,
+      /*fills_opaquely=*/false);
+  scroll_view_->RegisterPostLayoutCallback(base::BindRepeating(
+      [](base::WeakPtr<SidebarBookmarkShelfView> shelf,
+         views::ScrollView* scroll) {
+        if (shelf && !scroll->contents()->layer()) {
+          shelf->RevealPendingFocusedBookmark(shelf->focus_reveal_generation_);
+        }
+      },
+      weak_ptr_factory_.GetWeakPtr()));
   views::View* const scroll_ptr = AddChildView(std::move(scroll));
   layout->SetFlexForView(scroll_ptr, 1);
   auto empty_label = std::make_unique<views::Label>(
@@ -148,6 +177,8 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
 }
 
 SidebarBookmarkShelfView::~SidebarBookmarkShelfView() {
+  weak_ptr_factory_.InvalidateWeakPtrs();
+  context_menu_.reset();
   folder_menu_.reset();
   if (bookmark_service_) {
     bookmark_service_->RemoveObserver(this);
@@ -178,6 +209,10 @@ void SidebarBookmarkShelfView::BookmarkMergedSurfaceServiceLoaded() {
 }
 
 void SidebarBookmarkShelfView::BookmarkMergedSurfaceServiceBeingDeleted() {
+  ++focus_reveal_generation_;
+  pending_focus_reveal_key_.reset();
+  ++context_menu_generation_;
+  context_menu_.reset();
   ++folder_menu_generation_;
   folder_menu_.reset();
   bookmark_service_ = nullptr;
@@ -250,11 +285,16 @@ void SidebarBookmarkShelfView::ExtensiveBookmarkChangesEnded() {
 
 void SidebarBookmarkShelfView::Rebuild() {
   rebuild_scheduled_ = false;
+  ++focus_reveal_generation_;
   if (!bookmark_service_ || !bookmark_service_->loaded()) {
     return;
   }
   ++folder_menu_generation_;
   folder_menu_.reset();
+  if (folder_menu_anchor_) {
+    static_cast<SidebarBookmarkButton*>(folder_menu_anchor_.view())
+        ->SetMenuOpen(false);
+  }
   folder_menu_anchor_.SetView(nullptr);
   std::optional<size_t> focused_index;
   for (size_t i = 0; i < bookmark_items_->children().size(); ++i) {
@@ -301,6 +341,32 @@ void SidebarBookmarkShelfView::Rebuild() {
           ->RequestFocus();
     }
   }
+  pending_focus_reveal_key_.reset();
+  for (const auto& [key, button] : buttons_) {
+    if (button->HasFocus()) {
+      pending_focus_reveal_key_ = key;
+      break;
+    }
+  }
+  if (pending_focus_reveal_key_ && scroll_view_->contents()->layer()) {
+    scroll_view_->RegisterNextSuccessfulFramePostLayoutCallback(base::BindOnce(
+        &SidebarBookmarkShelfView::RevealPendingFocusedBookmark,
+        weak_ptr_factory_.GetWeakPtr(), focus_reveal_generation_));
+  }
+}
+
+void SidebarBookmarkShelfView::RevealPendingFocusedBookmark(size_t generation) {
+  if (generation != focus_reveal_generation_) {
+    return;
+  }
+  const auto key = std::exchange(pending_focus_reveal_key_, std::nullopt);
+  if (!key) {
+    return;
+  }
+  const auto found = buttons_.find(*key);
+  if (found != buttons_.end() && found->second->HasFocus()) {
+    found->second->ScrollRectToVisible(found->second->GetLocalBounds());
+  }
 }
 
 void SidebarBookmarkShelfView::ScheduleRebuild() {
@@ -318,8 +384,18 @@ void SidebarBookmarkShelfView::ScheduleRebuild() {
 }
 
 void SidebarBookmarkShelfView::ModelChanged() {
+  if (context_menu_) {
+    if (context_menu_->pending()) {
+      ++context_menu_generation_;
+      context_menu_.reset();
+    } else {
+      rebuild_after_context_closes_ = true;
+      return;
+    }
+  }
   if (folder_menu_) {
     if (folder_menu_->is_mutating_model()) {
+      folder_menu_->RefreshOpenAllState();
       // A native bookmark context action may remove an item inside its own
       // callback. Chromium updates that menu; keep its anchor alive until
       // close.
@@ -365,6 +441,7 @@ void SidebarBookmarkShelfView::AddBookmarkButton(
       base::BindRepeating(&SidebarBookmarkShelfView::OnBookmarkPressed,
                           weak_ptr_factory_.GetWeakPtr(), reference, anchor));
   auto* added = bookmark_items_->AddChildView(std::move(button));
+  added->set_context_menu_controller(this);
   buttons_.emplace(key, added);
   bookmark_items_->ReorderChildView(added, bookmark_item_count_++);
 }
@@ -393,6 +470,7 @@ void SidebarBookmarkShelfView::AddPermanentFolderButton(
       base::BindRepeating(&SidebarBookmarkShelfView::OnPermanentFolderPressed,
                           weak_ptr_factory_.GetWeakPtr(), type, anchor));
   auto* added = bookmark_items_->AddChildView(std::move(button));
+  added->set_context_menu_controller(this);
   buttons_.emplace(key, added);
   bookmark_items_->ReorderChildView(added, bookmark_item_count_++);
 }
@@ -494,6 +572,8 @@ void SidebarBookmarkShelfView::ShowFolderMenu(
   if (!bookmark_service_ || !anchor || !anchor->GetWidget()) {
     return;
   }
+  ++context_menu_generation_;
+  context_menu_.reset();
   const size_t generation = ++folder_menu_generation_;
   if (folder_menu_) {
     if (folder_menu_anchor_) {
@@ -540,6 +620,73 @@ void SidebarBookmarkShelfView::ResetClosedMenu(size_t generation) {
 
 void SidebarBookmarkShelfView::OpenBookmarkManager(const ui::Event& event) {
   chrome::ShowBookmarkManager(browser_);
+}
+
+void SidebarBookmarkShelfView::ShowContextMenuForViewImpl(
+    views::View* source,
+    const gfx::Point& point,
+    ui::mojom::MenuSourceType source_type) {
+  if (!bookmark_service_ || !bookmark_service_->loaded() || !GetWidget()) {
+    return;
+  }
+  std::vector<const bookmarks::BookmarkNode*> selection;
+  if (source == this) {
+    selection = bookmark_service_->GetUnderlyingNodes(
+        BookmarkParentFolder::BookmarkBarFolder());
+  } else {
+    for (const auto* node : bookmark_service_->GetChildren(
+             BookmarkParentFolder::BookmarkBarFolder())) {
+      const auto found = buttons_.find(KeyForNode(node));
+      if (found != buttons_.end() && found->second == source) {
+        selection.push_back(node);
+        break;
+      }
+    }
+    for (auto type :
+         {PermanentFolderType::kOtherNode, PermanentFolderType::kMobileNode,
+          PermanentFolderType::kManagedNode}) {
+      const auto found = buttons_.find(
+          "permanent/" + base::NumberToString(static_cast<int>(type)));
+      if (found != buttons_.end() && found->second == source) {
+        selection =
+            bookmark_service_->GetUnderlyingNodes(PermanentFolder(type));
+        break;
+      }
+    }
+  }
+  if (selection.empty()) {
+    return;
+  }
+  ++folder_menu_generation_;
+  folder_menu_.reset();
+  if (folder_menu_anchor_) {
+    static_cast<SidebarBookmarkButton*>(folder_menu_anchor_.view())
+        ->SetMenuOpen(false);
+  }
+  folder_menu_anchor_.SetView(nullptr);
+  const size_t generation = ++context_menu_generation_;
+  context_menu_ = std::make_unique<SidebarBookmarkContextMenu>(
+      browser_, bookmark_service_,
+      base::BindRepeating(&SidebarBookmarkShelfView::ContextMenuClosed,
+                          weak_ptr_factory_.GetWeakPtr(), generation));
+  context_menu_->RunAt(source, selection, point, source_type);
+}
+
+void SidebarBookmarkShelfView::ContextMenuClosed(size_t generation) {
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE, base::BindOnce(&SidebarBookmarkShelfView::ResetContextMenu,
+                                weak_ptr_factory_.GetWeakPtr(), generation));
+}
+
+void SidebarBookmarkShelfView::ResetContextMenu(size_t generation) {
+  if (generation != context_menu_generation_) {
+    return;
+  }
+  context_menu_.reset();
+  if (rebuild_after_context_closes_) {
+    rebuild_after_context_closes_ = false;
+    ScheduleRebuild();
+  }
 }
 
 std::unique_ptr<views::View> CreateSidebarBookmarkShelfView(Browser* browser) {
