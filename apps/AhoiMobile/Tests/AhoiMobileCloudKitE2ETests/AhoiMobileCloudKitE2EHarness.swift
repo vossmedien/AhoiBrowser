@@ -587,10 +587,19 @@ final class AhoiMobileCloudKitE2ECleanupOwner: @unchecked Sendable {
             recordName: scope.ownerRecordID.uuidString.lowercased(),
             zoneID: scope.zoneID
         )
-        let marker = try await AhoiMobileCloudKitE2EHarness.fetchServerRecord(
-            database: database,
-            recordID: markerID
-        )
+        let marker: CKRecord
+        do {
+            marker = try await AhoiMobileCloudKitE2EHarness.fetchServerRecord(
+                database: database,
+                recordID: markerID
+            )
+        } catch let error as CKError where error.code == .unknownItem {
+            // The primary journey may fail before publishing its ownership
+            // marker. With no authenticated marker there is deliberately no
+            // destructive cleanup; a missing record is therefore already the
+            // safe terminal state, not a second test failure.
+            return
+        }
         let decoded = try AppleCloudKitRecordCodec().decode(marker)
         guard marker.recordType == AppleCloudKitRecordCodec.recordType,
               decoded.recordID == scope.ownerRecordID,

@@ -23,9 +23,11 @@ extension CloudKitSyncProvider {
                     !statePersistenceBlocked && engine === syncEngine
             }
             guard canPersistState else {
-                if !statusLock.withLock({ statePersistenceBlocked }) {
-                    markStatePersistenceFailure()
-                }
+                // A fresh CKSyncEngine may emit its initial serialization before
+                // the asynchronous account proof has completed. Discarding that
+                // unbound snapshot is intentional; prepare/rebuild will produce
+                // another state update after continuity is verified. Treating it
+                // as a persistence failure creates a permanent bootstrap loop.
                 return
             }
             do {
@@ -33,7 +35,27 @@ extension CloudKitSyncProvider {
             } catch {
                 markStatePersistenceFailure()
             }
-        case .accountChange:
+        case let .accountChange(change):
+            let requiresTransitionBoundary = statusLock.withLock {
+                switch change.changeType {
+                case let .signIn(currentUser):
+                    // CKSyncEngine also reports sign-in when a fresh or
+                    // deliberately rebuilt engine attaches to the already
+                    // verified account. Initial binding is audited by
+                    // ensureAccountContinuity(); a matching replay must not
+                    // reopen the explicit account-switch confirmation gate.
+                    guard let known = lastKnownAccountIdentifier else {
+                        return false
+                    }
+                    return accountTransitionPending ||
+                        known != currentUser.recordName
+                case .signOut, .switchAccounts:
+                    return true
+                @unknown default:
+                    return true
+                }
+            }
+            guard requiresTransitionBoundary else { return }
             // CKSyncEngine resets its pending state on account changes. Keep
             // local records, clear the persisted engine token, and require a
             // new account-aware setup instead of deleting user data.
