@@ -14,6 +14,7 @@ class Browser;
 namespace views {
 class Label;
 class ProgressBar;
+class Widget;
 }  // namespace views
 
 namespace ahoi::extensions {
@@ -21,8 +22,12 @@ namespace ahoi::extensions {
 class UboInstallDialog final : public views::DialogDelegate,
                                public UboService::Observer {
  public:
-  UboInstallDialog(Browser* browser, UboService* service);
   ~UboInstallDialog() override;
+
+  static views::Widget* CreateWidget(
+      Browser* browser,
+      UboService* service,
+      UboInstallDialog** dialog_for_testing = nullptr);
 
   UboInstallDialog(const UboInstallDialog&) = delete;
   UboInstallDialog& operator=(const UboInstallDialog&) = delete;
@@ -34,6 +39,8 @@ class UboInstallDialog final : public views::DialogDelegate,
   void OnUboServiceStatusChanged(const UboServiceStatus& status) override;
 
  private:
+  UboInstallDialog(Browser* browser, UboService* service);
+  void HandleDialogClosed();
   void Update(const UboServiceStatus& status);
 
   raw_ptr<Browser> browser_;

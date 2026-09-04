@@ -5,11 +5,13 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "ahoi/browser/extensions/ubo_product_config.h"
 #include "ahoi/browser/extensions/ubo_service_factory.h"
 #include "ahoi/browser/ui/extensions/ubo_ui_tokens.h"
 #include "base/check.h"
+#include "base/functional/bind.h"
 #include "base/strings/strcat.h"
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/browser/profiles/profile.h"
@@ -34,6 +36,25 @@
 namespace ahoi::extensions {
 
 namespace {
+
+// `DialogDelegate` is deliberately kept separate from its contents view. The
+// widget owns the view hierarchy, and this contents view owns the delegate until
+// that hierarchy is torn down. This follows the client-ownership direction of
+// Views without extending WidgetDelegate's deprecated ownership pass-key list.
+class UboDialogContents final : public views::View {
+ public:
+  UboDialogContents() = default;
+  ~UboDialogContents() override = default;
+
+  void SetDialogOwner(std::unique_ptr<UboInstallDialog> dialog) {
+    CHECK(dialog);
+    CHECK(!dialog_owner_);
+    dialog_owner_ = std::move(dialog);
+  }
+
+ private:
+  std::unique_ptr<UboInstallDialog> dialog_owner_;
+};
 
 std::unique_ptr<views::Label> MakeBodyLabel(int string_id) {
   auto label =
@@ -80,6 +101,8 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
     : browser_(browser), service_(service) {
   CHECK(browser_);
   CHECK(service_);
+  RegisterWindowClosingCallback(base::BindOnce(
+      &UboInstallDialog::HandleDialogClosed, base::Unretained(this)));
   SetModalType(ui::mojom::ModalType::kWindow);
   SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk) |
              static_cast<int>(ui::mojom::DialogButton::kCancel));
@@ -88,7 +111,8 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
   set_margins(views::LayoutProvider::Get()->GetInsetsMetric(
       views::InsetsMetric::INSETS_DIALOG));
 
-  views::View* contents = SetContentsView(std::make_unique<views::View>());
+  views::View* contents =
+      SetContentsView(std::make_unique<UboDialogContents>());
   auto* layout =
       contents->SetLayoutManager(std::make_unique<views::BoxLayout>());
   layout->SetOrientation(views::BoxLayout::Orientation::kVertical);
@@ -152,13 +176,41 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
   Update(service_->status());
 }
 
+// static
+views::Widget* UboInstallDialog::CreateWidget(
+    Browser* browser,
+    UboService* service,
+    UboInstallDialog** dialog_for_testing) {
+  CHECK(browser);
+  CHECK(browser->GetWindow());
+  CHECK(service);
+  auto dialog = std::unique_ptr<UboInstallDialog>(
+      new UboInstallDialog(browser, service));
+  UboInstallDialog* dialog_ptr = dialog.get();
+  auto* contents =
+      static_cast<UboDialogContents*>(dialog_ptr->GetContentsView());
+  views::Widget* widget = constrained_window::CreateBrowserModalDialogViews(
+      dialog_ptr, browser->GetWindow()->GetNativeWindow());
+  contents->SetDialogOwner(std::move(dialog));
+  if (dialog_for_testing) {
+    *dialog_for_testing = dialog_ptr;
+  }
+  return widget;
+}
+
 UboInstallDialog::~UboInstallDialog() {
+  HandleDialogClosed();
+}
+
+void UboInstallDialog::HandleDialogClosed() {
   if (service_) {
-    service_->RemoveObserver(this);
+    UboService* service = service_.get();
+    service_ = nullptr;
+    service->RemoveObserver(this);
     if (prompt_handoff_pending_) {
-      service_->ContinueInstallAfterDialogClosed();
+      service->ContinueInstallAfterDialogClosed();
     } else {
-      service_->CancelUserInstall();
+      service->CancelUserInstall();
     }
   }
 }
@@ -222,8 +274,9 @@ void UboInstallDialog::OnUboServiceStatusChanged(
     prompt_handoff_pending_ = true;
     if (GetWidget()) {
       // The Chromium permission prompt is another window-modal surface. Close
-      // this sheet first; its destructor posts the actual installer handoff
-      // only after the native sheet has detached from the browser window.
+      // this sheet first. HandleDialogClosed() runs only once Chromium has
+      // received the native window-closing notification; the service then
+      // posts the actual installer handoff to the next UI task.
       GetWidget()->Close();
     }
   }
@@ -292,10 +345,7 @@ void ShowUboInstallDialog(Browser* browser) {
   if (!service) {
     return;
   }
-  constrained_window::CreateBrowserModalDialogViews(
-      std::make_unique<UboInstallDialog>(browser, service),
-      browser->GetWindow()->GetNativeWindow())
-      ->Show();
+  UboInstallDialog::CreateWidget(browser, service)->Show();
 }
 
 }  // namespace ahoi::extensions

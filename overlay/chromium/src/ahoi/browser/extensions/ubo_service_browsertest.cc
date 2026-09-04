@@ -20,6 +20,7 @@
 #include "base/run_loop.h"
 #include "base/scoped_observation.h"
 #include "base/task/thread_pool/thread_pool_instance.h"
+#include "base/threading/thread_restrictions.h"
 #include "base/time/default_clock.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
@@ -282,10 +283,9 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
   content::WebContents* active_tab =
       browser()->tab_strip_model()->GetActiveWebContents();
   ASSERT_TRUE(active_tab);
-  auto dialog = std::make_unique<UboInstallDialog>(browser(), service.get());
-  UboInstallDialog* dialog_ptr = dialog.get();
-  views::Widget* widget = constrained_window::CreateBrowserModalDialogViews(
-      std::move(dialog), browser()->GetWindow()->GetNativeWindow());
+  UboInstallDialog* dialog_ptr = nullptr;
+  views::Widget* widget =
+      UboInstallDialog::CreateWidget(browser(), service.get(), &dialog_ptr);
   WidgetDestructionFlag destruction_flag(widget, &dialog_destroyed);
   widget->Show();
   EXPECT_FALSE(dialog_ptr->Accept());
@@ -302,15 +302,18 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
   EXPECT_TRUE(handoff_after_dialog_destroyed);
 
   // The production handoff uses ExtensionInstallPrompt + CrxInstaller. Ahoi's
-  // modal sheet has already closed automatically, so its destructor cannot
-  // cancel the browser-owned prompt.
+  // modal sheet has already closed automatically, and its window-closing
+  // callback has committed ownership of the browser-owned prompt.
   EXPECT_EQ(UboServiceState::kInstalling, service->status().state);
   ASSERT_TRUE(prompt_result);
   std::move(prompt_result)
       .Run(base::unexpected(UboVerificationError::kInstallFailed));
   EXPECT_FALSE(
       ReadCommittedUboAuthorization(*browser()->GetProfile()->GetPrefs()));
-  EXPECT_TRUE(base::DeleteFile(handed_off_package));
+  {
+    const base::ScopedAllowBlockingForTesting allow_blocking;
+    EXPECT_TRUE(base::DeleteFile(handed_off_package));
+  }
 }
 
 IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
@@ -352,10 +355,9 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
       &dialog_destroyed, &handoff_after_dialog_destroyed,
       prompt_handoff.QuitClosure());
   auto service = MakeService(std::move(network), std::move(installer));
-  auto dialog = std::make_unique<UboInstallDialog>(browser(), service.get());
-  UboInstallDialog* dialog_ptr = dialog.get();
-  views::Widget* widget = constrained_window::CreateBrowserModalDialogViews(
-      std::move(dialog), browser()->GetWindow()->GetNativeWindow());
+  UboInstallDialog* dialog_ptr = nullptr;
+  views::Widget* widget =
+      UboInstallDialog::CreateWidget(browser(), service.get(), &dialog_ptr);
   WidgetDestructionFlag destruction_flag(widget, &dialog_destroyed);
   widget->Show();
 
@@ -377,7 +379,10 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
       ReadCommittedUboAuthorization(*browser()->GetProfile()->GetPrefs()));
   EXPECT_FALSE(
       ReadUboPersistedMigrationState(*browser()->GetProfile()->GetPrefs()));
-  EXPECT_TRUE(base::DeleteFile(handed_off_package));
+  {
+    const base::ScopedAllowBlockingForTesting allow_blocking;
+    EXPECT_TRUE(base::DeleteFile(handed_off_package));
+  }
 }
 
 IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
@@ -404,7 +409,10 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
   base::RunLoop().RunUntilIdle();
 
   EXPECT_EQ(UboServiceError::kProfileUnavailable, service->status().error);
-  EXPECT_FALSE(base::PathExists(package_path_));
+  {
+    const base::ScopedAllowBlockingForTesting allow_blocking;
+    EXPECT_FALSE(base::PathExists(package_path_));
+  }
   EXPECT_FALSE(
       ReadCommittedUboAuthorization(*browser()->GetProfile()->GetPrefs()));
 }

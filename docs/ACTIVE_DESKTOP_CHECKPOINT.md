@@ -33,19 +33,17 @@ Close this package in order:
 - Canonical repository:
   `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`
 - Branch: `codex/desktop-core-feature-wave-20260830`
-- Installed candidate source: `69b17203e172a65fc1be9d12c58977cc7c40a43f`
+- Installed candidate source: `e01e77ba02c8d4d640bb2646926c6c25574b406e`
 - Chromium: `152.0.7977.65` at
   `fc4d67f1788019a27e32511137ceccbd2fafdaaa`
 - Installed executable SHA-256:
-  `d91dcd086bba982586b957f48813e9979c0495fc57d79f5161d1e38501f13ec4`
+  `8ece61e280024ff596a84b9534eb3539ab9d7bc34850db838423eaad3079c3e2`
 - Installed bundle-tree SHA-256:
-  `9684e1b3771711925f50e8645f105e20dcddc354a886679209ddc785fdbe7c88`
+  `a2b00628b15420b4431f7c7ec21444869dcf94cc00e4e629e2183081cb6d3e8e`
 - Installed candidate evidence:
-  `artifacts/build/installed-ahoi-dev-69b17203e172-20260903T094641Z.json`.
-  Its receipt SHA-256 is
-  `0aaf599257e3309f406c96010e26ba50226bb7f8ac80c5e50f4b4dadc83551f1`.
-  Build provenance is schema 2 and binds both the legacy bundle hash and the
-  exact app-tree hash to clean Desktop source `69b1720`.
+  `artifacts/build/installed-ahoi-dev-e01e77ba02c-20260904T091100Z.json`.
+  This development receipt binds the installed executable and exact app-tree
+  hashes to clean Desktop source `e01e77b`.
 - The installed app contains the Arc accessibility correction and the later
   inactive-workspace split reconstruction fix from Desktop commit `285990c`.
   Exact-tree uBO attestation hardening is integrated in Desktop commit
@@ -153,19 +151,31 @@ Close this package in order:
   refactor symbols with the current runtime and durable split verifiers and the
   current `ArcImportService::Commit` boundary. `git diff --check` is clean.
 - The deterministic overlay parity refresh completed after these corrections.
-  The next executable boundary is an owned Desktop checkpoint commit, then one
-  incremental candidate build. The installed-app
-  Arc, AnyChat and uBO journeys must be repeated on that exact new candidate
-  before the focused suites are rerun for acceptance.
-- The exact installed `69b1720` candidate now has a green uBO technical
+  Clean Desktop source `e01e77b` was then built, signed, atomically installed
+  and hash-verified. Sky Computer Use failed twice at native-pipe startup before
+  app selection, so this candidate still has no acceptable visible Arc,
+  AnyChat or uBO result.
+- The exact installed `e01e77b` candidate now has a green uBO technical
   preflight at
-  `artifacts/e2e/ubo-1.74.0-release-attestation-69b1720.json` (receipt SHA-256
-  `603c1ffcaa885067d738b17117702cdd1c184b550fd2be69ab1c43127295eb93`).
+  `artifacts/e2e/ubo-1.74.0-release-attestation-e01e77b.json`.
   It verifies Official GitHub release 1.74.0, upstream commit `6dd2d95`,
   package SHA-256 `b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e`,
   Manifest V2 and matching declared/derived ID
   `fkgkibajhfbepljeaefdnfnegdcjomkh`. This is only the required technical
   preflight; it does not claim a browser installation or permission grant.
+- The first focused uBO browser run exposed a real native-sheet lifecycle bug:
+  `UboInstallDialog` relied on delegate destruction to hand off to Chromium's
+  permission prompt, while macOS tears the sheet down asynchronously. The
+  contents hierarchy now owns the delegate and an idempotent window-closing
+  callback performs the handoff only after the native sheet closes. The three
+  formerly red journeys are green 3/3, the complete uBO browser target is green
+  5/5, and the extension-policy/attestation unit target is green 43/43, all
+  with retries disabled. Evidence is retained below
+  `artifacts/e2e/0.0.1-dev/UBO-13/diagnostics/programmatic/`.
+- The uBO lifecycle correction and its regression coverage are the only pending
+  Desktop source edits. After their owned commit, produce one new exact
+  candidate and run the locked Arc, AnyChat and uBO visible journeys before any
+  acceptance rerun of focused tests.
 - Chromium's macOS default is still active for `browser.confirm_to_quit`: a
   quick Command-Q does not exit; the keys must be held for about 1.5 seconds.
   The visible restart journey must exercise the held shortcut rather than a
@@ -178,6 +188,8 @@ Close this package in order:
 - `overlay/chromium/src/chrome/test/data/webui/settings/ahoi_arc_import_section_test.ts`
 - `overlay/chromium/src/ahoi/browser/extensions/ubo_service_unittest.cc`
 - `overlay/chromium/src/ahoi/browser/extensions/ubo_service_browsertest.cc`
+- `overlay/chromium/src/ahoi/browser/ui/extensions/ubo_install_dialog.cc`
+- `overlay/chromium/src/ahoi/browser/ui/extensions/ubo_install_dialog.h`
 - `overlay/chromium/src/ahoi/browser/importer/arc/BUILD.gn`
 - `overlay/chromium/src/ahoi/browser/ui/shell/floating_browser_view_browsertest.cc`
 - `overlay/chromium/src/ahoi/browser/ui/split_drop/split_layout_menu_browsertest.cc`
@@ -186,10 +198,10 @@ Close this package in order:
 - `patches/chromium/0011-ahoi-command-scroll-and-auth-policy-hardening.patch`
 - `patches/chromium/README.md`
 
-`git diff --check` was clean for these edits and commit `218b4d0` contains only
-the twelve listed Desktop paths. The corrected app has been produced, signed,
-atomically installed and bundle-verified; visible product journeys and focused
-programmatic execution remain pending, so the package is not yet a pass.
+The previously integrated changes are clean through Desktop commit `e01e77b`.
+The three uBO lifecycle paths above and this checkpoint are the current owned
+Desktop delta. The next candidate must include that delta; visible product
+journeys remain pending, so the package is not yet a pass.
 
 ## Exit criteria
 
