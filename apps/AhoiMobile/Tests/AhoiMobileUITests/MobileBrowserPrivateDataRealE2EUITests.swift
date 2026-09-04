@@ -229,9 +229,10 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
             return false
         }
 
-        // Start from a known document edge before moving toward controls that
-        // WebKit may keep in its accessibility tree while they are offscreen.
-        for _ in 0..<4 where !element.isHittable { webView.swipeDown() }
+        // Every fixture control used by this journey appears at or below the
+        // initial viewport. A downward swipe at the document's top edge is a
+        // real Ahoi pull-to-refresh gesture, so it must never be used as a
+        // generic attempt to reveal an element.
         for _ in 0..<8 where !element.isHittable { webView.swipeUp() }
 
         guard element.isHittable else {
