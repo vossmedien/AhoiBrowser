@@ -179,7 +179,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
     ) {
         let webView = app.webViews.firstMatch
         let control = webView.buttons[label]
-        reveal(control, in: webView, file: file, line: line)
+        guard reveal(control, in: webView, file: file, line: line) else { return }
         control.tap()
     }
 
@@ -198,7 +198,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
                 expected
             )
         ).firstMatch
-        reveal(
+        _ = reveal(
             renderedState,
             in: app.webViews.firstMatch,
             message: "\(message) Expected the rendered fixture state: \(expected)",
@@ -214,26 +214,35 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         message: String = "The fixture element must become visibly hittable.",
         file: StaticString = #filePath,
         line: UInt = #line
-    ) {
-        XCTAssertTrue(webView.waitForExistence(timeout: 5), file: file, line: line)
+    ) -> Bool {
+        guard webView.waitForExistence(timeout: 5) else {
+            XCTFail("The fixture web view must exist.", file: file, line: line)
+            return false
+        }
+
+        // Dynamic fixture output can take a moment to appear after a real
+        // network roundtrip. Never swipe while the node is still absent:
+        // swiping down at the document edge intentionally invokes Ahoi's
+        // pull-to-refresh and would cancel the very request under test.
+        guard element.waitForExistence(timeout: 5) else {
+            XCTFail(message, file: file, line: line)
+            return false
+        }
 
         // Start from a known document edge before moving toward controls that
         // WebKit may keep in its accessibility tree while they are offscreen.
         for _ in 0..<4 where !element.isHittable { webView.swipeDown() }
         for _ in 0..<8 where !element.isHittable { webView.swipeUp() }
 
-        XCTAssertTrue(
-            element.waitForExistence(timeout: 3),
-            message,
-            file: file,
-            line: line
-        )
-        XCTAssertTrue(
-            element.isHittable,
-            "\(message) The accessibility node existed but remained offscreen.",
-            file: file,
-            line: line
-        )
+        guard element.isHittable else {
+            XCTFail(
+                "\(message) The accessibility node existed but remained offscreen.",
+                file: file,
+                line: line
+            )
+            return false
+        }
+        return true
     }
 
     @MainActor
