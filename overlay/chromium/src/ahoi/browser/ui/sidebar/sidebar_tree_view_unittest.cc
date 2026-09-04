@@ -281,12 +281,13 @@ TEST_F(SidebarTreeViewTest, RebindingUnchangedRowDoesNotInvalidateLayout) {
   EXPECT_FALSE(row->needs_layout());
 }
 
-TEST_F(SidebarTreeViewTest, BindsCustomEmojiIconToFolderRow) {
+TEST_F(SidebarTreeViewTest,
+       ImportedFolderMetadataUsesClosedFolderVisualWithoutDisclosure) {
   const tab_tree::Workspace workspace = MakeWorkspace();
   tab_tree::TreeNode folder =
       MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
                u"Tooling", "a");
-  folder.icon = u"🛠️";
+  folder.icon = u"star";
   folder.accent_argb = 0xFF4F8DE8u;
 
   auto view = NewTreeView();
@@ -298,7 +299,8 @@ TEST_F(SidebarTreeViewTest, BindsCustomEmojiIconToFolderRow) {
   SidebarTreeRowView* row = view->GetMaterializedRowForTesting(folder.id);
   ASSERT_NE(nullptr, row);
   EXPECT_TRUE(row->is_folder());
-  EXPECT_EQ(u"🛠️", row->folder_icon_for_testing());
+  EXPECT_FALSE(row->disclosure_visible_for_testing());
+  EXPECT_FALSE(row->uses_open_folder_icon_for_testing());
 }
 
 TEST_F(SidebarTreeViewTest, SplitTabsShareOneSegmentedVisualRow) {
@@ -728,6 +730,8 @@ TEST_F(SidebarTreeViewTest, SingleClickOnFolderRowCollapsesAndExpands) {
   SidebarTreeRowView* folder_row =
       view->GetMaterializedRowForTesting(folder.id);
   ASSERT_NE(nullptr, folder_row);
+  EXPECT_FALSE(folder_row->disclosure_visible_for_testing());
+  EXPECT_TRUE(folder_row->uses_open_folder_icon_for_testing());
   const gfx::Point click_point(80, SidebarTreeRowView::kRowHeight / 2);
   ui::MouseEvent press(ui::EventType::kMousePressed, click_point, click_point,
                        base::TimeTicks::Now(), ui::EF_LEFT_MOUSE_BUTTON,
@@ -751,10 +755,16 @@ TEST_F(SidebarTreeViewTest, SingleClickOnFolderRowCollapsesAndExpands) {
   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
   folder_row = view->GetMaterializedRowForTesting(folder.id);
   ASSERT_NE(nullptr, folder_row);
+  EXPECT_FALSE(folder_row->uses_open_folder_icon_for_testing());
   ASSERT_TRUE(folder_row->OnMousePressed(press));
   folder_row->OnMouseReleased(release);
   EXPECT_TRUE(model.IsExpanded(folder.id));
   EXPECT_EQ(2U, model.rows().size());
+
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+  folder_row = view->GetMaterializedRowForTesting(folder.id);
+  ASSERT_NE(nullptr, folder_row);
+  EXPECT_TRUE(folder_row->uses_open_folder_icon_for_testing());
 }
 
 }  // namespace

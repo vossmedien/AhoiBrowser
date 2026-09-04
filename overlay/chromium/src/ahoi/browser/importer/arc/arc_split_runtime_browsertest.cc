@@ -14,9 +14,9 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
+#include "base/feature_list.h"
 #include "base/run_loop.h"
 #include "base/strings/stringprintf.h"
-#include "base/test/scoped_feature_list.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "chrome/browser/ui/browser.h"
@@ -155,18 +155,12 @@ ArcImportPlan RealSplitShapePlan() {
   return plan;
 }
 
-class ArcSplitRuntimeBrowserTest : public InProcessBrowserTest {
- public:
-  ArcSplitRuntimeBrowserTest() {
-    scoped_feature_list_.InitAndEnableFeature(tabs::kSplitViewHorizontal);
-  }
-
- private:
-  base::test::ScopedFeatureList scoped_feature_list_;
-};
+class ArcSplitRuntimeBrowserTest : public InProcessBrowserTest {};
 
 IN_PROC_BROWSER_TEST_F(ArcSplitRuntimeBrowserTest,
                        ReconstructsRealShapeWhileImportWindowIsBackgrounded) {
+  ASSERT_TRUE(base::FeatureList::IsEnabled(tabs::kSplitViewHorizontal));
+
   BrowserView* const browser_view =
       BrowserView::GetBrowserViewForBrowser(browser());
   ASSERT_TRUE(browser_view);

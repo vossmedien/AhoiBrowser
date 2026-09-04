@@ -235,6 +235,35 @@ Close this package in order:
   The visible restart journey must exercise the held shortcut rather than a
   synthetic tap.
 
+## Current presentation and split correction wave (2026-09-04 evening)
+
+- Installed-candidate feedback found that all five visible Arc preview
+  checkboxes were misaligned. The component stylesheet overrode
+  `cr-checkbox`'s internal flex host with `display: block`; one shared class now
+  restores the flex contract, top alignment, label spacing and line height for
+  the profile, sidebar, split, backup and commit choices.
+- The imported Arc Favorites metadata value `star` was rendered literally into
+  a 16 px icon box, producing the clipped text `sta`. Sidebar tree rows no
+  longer paint arbitrary folder metadata as text or expose a separate caret.
+  They retain the existing tree indentation, use roomier 18 px folder glyphs,
+  and visually distinguish closed and open state while the complete row remains
+  the expand/collapse target and accessibility keeps expanded/collapsed state.
+- The existing workspace compositor transition moved and faded both the
+  sidebar and page area. The correction slides only the sidebar; the contents
+  layer remains spatially stable and fades only when workspace activation
+  actually changes the active `WebContents`. Reduced-motion behavior remains a
+  no-animation path.
+- Chromium M152 still declares `SplitViewHorizontal` disabled by default while
+  Ahoi exposes and relies on native split tabs. The early product policy now
+  enables it, removes hostile/stale disable entries, and the real-shape Arc
+  browser regression no longer privately enables the feature and masks the
+  product configuration.
+- These owned changes are source-reviewed and `git diff --check` clean, but
+  deliberately have no build or runtime pass yet. The next candidate must be
+  built once from an exact clean source after the concurrent unowned bookmark
+  shelf work is handed off; then visible Arc/sidebar/workspace/Cmd-Q journeys
+  precede focused programmatic tests.
+
 ## Integrated owned source changes
 
 - `overlay/chromium/src/chrome/browser/resources/settings/people_page/ahoi_arc_import_section.css`

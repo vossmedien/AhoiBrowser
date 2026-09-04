@@ -77,7 +77,8 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
           <fieldset class="options">
             <legend>$i18n{ahoiArcImportProfiles}</legend>
             ${this.arcImportPreview_.profiles.map(profile => html`
-              <cr-checkbox data-profile="${profile}"
+              <cr-checkbox class="arc-import-checkbox"
+                  data-profile="${profile}"
                   .checked="${this.arcSelectedProfiles_.includes(profile)}"
                   @change="${this.onArcProfileChange_}">
                 ${profile}
@@ -88,12 +89,14 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
           <fieldset class="options">
             <legend>$i18n{ahoiArcImportCategories}</legend>
             <cr-checkbox id="ahoiArcImportSidebar"
+                class="arc-import-checkbox"
                 .checked="${this.arcImportSidebar_}"
                 @change="${this.onArcImportSidebarChange_}">
               $i18n{ahoiArcImportSidebarCategory}
             </cr-checkbox>
             ${this.arcImportPreview_.stats.splits > 0 ? html`
               <cr-checkbox id="ahoiArcReconstructSplits"
+                  class="arc-import-checkbox"
                   .checked="${this.arcReconstructSplits_}"
                   @change="${this.onArcReconstructSplitsChange_}">
                 $i18n{ahoiArcImportSplitCategory}
@@ -121,11 +124,13 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
             <div class="secondary">$i18n{ahoiArcImportPrivacySublabel}</div>
           </div>
           <cr-checkbox id="ahoiArcBackupConfirmation"
+              class="arc-import-checkbox"
               .checked="${this.arcBackupConfirmed_}"
               @change="${this.onArcBackupConfirmedChange_}">
             $i18n{ahoiArcImportBackupConfirmation}
           </cr-checkbox>
           <cr-checkbox id="ahoiArcCommitConfirmation"
+              class="arc-import-checkbox"
               .checked="${this.arcCommitConfirmed_}"
               @change="${this.onArcCommitConfirmedChange_}">
             $i18n{ahoiArcImportCommitConfirmation}

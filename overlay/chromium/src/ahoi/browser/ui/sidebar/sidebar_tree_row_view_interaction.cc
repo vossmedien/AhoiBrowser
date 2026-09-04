@@ -43,9 +43,11 @@ namespace ahoi::sidebar {
 namespace {
 
 constexpr int kLeadingPadding = 8;
-constexpr int kDisclosureWidth = 16;
-constexpr int kIconSize = 16;
-constexpr int kIconTitleSpacing = 6;
+// Preserve the familiar tree inset after removing the standalone caret. The
+// folder itself now communicates collapsed/expanded state, as in Arc.
+constexpr int kFolderLeadingReserve = 18;
+constexpr int kIconSize = 18;
+constexpr int kIconTitleSpacing = 8;
 constexpr int kTrailingActionSize = 24;
 
 }  // namespace
@@ -80,21 +82,13 @@ bool SidebarTreeRowView::HandleKeyEvent(views::Textfield* sender,
 }
 
 gfx::Rect SidebarTreeRowView::DisclosureBounds() const {
-  const int x =
-      kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
-  return gfx::Rect(
-      x, 0,
-      is_folder() && !folder_navigation_result_ && split_segment_count_ == 1
-          ? kDisclosureWidth
-          : 0,
-      height());
+  return gfx::Rect();
 }
 
 gfx::Rect SidebarTreeRowView::IconBounds() const {
-  const int x =
-      is_folder()
-          ? DisclosureBounds().right() + 2
-          : kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
+  const int x = kLeadingPadding +
+                base::saturated_cast<int>(depth_) * kIndentWidth +
+                (is_folder() ? kFolderLeadingReserve : 0);
   return gfx::Rect(x, std::max(0, (height() - kIconSize) / 2), kIconSize,
                    kIconSize);
 }

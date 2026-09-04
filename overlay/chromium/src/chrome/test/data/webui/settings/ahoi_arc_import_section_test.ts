@@ -224,6 +224,25 @@ suite('AhoiArcStandardImportSurface', () => {
         assertTrue(!!arcSection.shadowRoot!.querySelector(
             '#ahoiArcReconstructSplits'));
 
+        const checkboxes = Array.from(
+            arcSection.shadowRoot!.querySelectorAll<HTMLElement>(
+                '.arc-import-checkbox'));
+        assertEquals(5, checkboxes.length);
+        for (const checkbox of checkboxes) {
+          const checkboxStyle = getComputedStyle(checkbox);
+          assertEquals('flex', checkboxStyle.display);
+          assertEquals('flex-start', checkboxStyle.alignItems);
+          assertEquals(
+              '12px',
+              checkboxStyle.getPropertyValue(
+                               '--cr-checkbox-label-padding-start')
+                  .trim());
+          const label =
+              checkbox.shadowRoot!.querySelector<HTMLElement>(
+                  '#labelContainer')!;
+          assertEquals('12px', getComputedStyle(label).paddingInlineStart);
+        }
+
         arcSection.shadowRoot!
             .querySelector<HTMLElement>('#ahoiArcBackupConfirmation')!.click();
         await microtasksFinished();

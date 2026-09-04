@@ -16,8 +16,6 @@
 #include "base/uuid.h"
 #include "ui/base/metadata/metadata_header_macros.h"
 #include "ui/base/models/image_model.h"
-#include "ui/gfx/animation/animation_delegate.h"
-#include "ui/gfx/animation/slide_animation.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/views/controls/textfield/textfield_controller.h"
 #include "ui/views/view.h"
@@ -34,8 +32,7 @@ class SidebarTreeView;
 // A recycled visual row. It never owns model data and is rebound by UUID when
 // it enters the viewport.
 class SidebarTreeRowView final : public views::View,
-                                 public views::TextfieldController,
-                                 public gfx::AnimationDelegate {
+                                 public views::TextfieldController {
   METADATA_HEADER(SidebarTreeRowView, views::View)
 
  public:
@@ -84,6 +81,9 @@ class SidebarTreeRowView final : public views::View,
   bool is_split_segment_for_testing() const { return split_segment_count_ > 1; }
   bool is_split_drop_target_for_testing() const { return split_drop_target_; }
   bool disclosure_visible_for_testing() const;
+  bool uses_open_folder_icon_for_testing() const {
+    return is_folder() && expanded_ && !folder_navigation_result_;
+  }
   bool title_visible_for_testing() const;
   gfx::Rect title_bounds_for_testing() const;
   gfx::Rect title_paint_bounds_for_testing() const;
@@ -91,7 +91,6 @@ class SidebarTreeRowView final : public views::View,
   bool should_paint_trailing_state_for_testing() const {
     return ShouldPaintTrailingState();
   }
-  const std::u16string& folder_icon_for_testing() const { return folder_icon_; }
   const std::u16string& title() const { return title_; }
   std::u16string editor_text_for_testing() const;
   bool IsTrailingActionAt(const gfx::Point& point) const;
@@ -99,11 +98,6 @@ class SidebarTreeRowView final : public views::View,
       const {
     return drop_position_;
   }
-
-  // gfx::AnimationDelegate:
-  void AnimationProgressed(const gfx::Animation* animation) override;
-  void AnimationEnded(const gfx::Animation* animation) override;
-  void AnimationCanceled(const gfx::Animation* animation) override;
 
   // views::View:
   void Layout(PassKey) override;
@@ -144,7 +138,6 @@ class SidebarTreeRowView final : public views::View,
   size_t sibling_count_ = 0;
   tab_tree::TreeNodeType type_ = tab_tree::TreeNodeType::kFolder;
   std::u16string title_;
-  std::u16string folder_icon_;
   std::optional<uint32_t> accent_argb_;
   ui::ImageModel page_icon_;
   ui::ImageModel media_indicator_;
@@ -165,7 +158,6 @@ class SidebarTreeRowView final : public views::View,
   size_t split_segment_count_ = 1;
   std::optional<SidebarTreeController::DropPosition> drop_position_;
   std::optional<gfx::Rect> split_group_bounds_;
-  gfx::SlideAnimation chevron_animation_{this};
 };
 
 }  // namespace ahoi::sidebar

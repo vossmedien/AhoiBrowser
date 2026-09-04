@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <string_view>
 #include <utility>
 
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
@@ -14,7 +13,6 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
-#include "base/i18n/rtl.h"
 #include "base/numerics/safe_conversions.h"
 #include "chrome/grit/generated_resources.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
@@ -27,9 +25,7 @@
 #include "ui/color/color_provider.h"
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
-#include "ui/gfx/animation/animation.h"
 #include "ui/gfx/canvas.h"
-#include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/skia_conversions.h"
@@ -43,7 +39,7 @@ namespace ahoi::sidebar {
 
 namespace {
 
-constexpr int kIconSize = 16;
+constexpr int kIconSize = 18;
 constexpr float kDropStrokeWidth = 2.0f;
 constexpr float kSelectedDotRadius = 3.0f;
 
@@ -66,11 +62,6 @@ cc::PaintFlags StrokeFlags(SkColor color, float width) {
   return flags;
 }
 
-bool IsCustomGroupIcon(std::u16string_view icon) {
-  return !icon.empty() && icon != u"folder" && icon != u"code" &&
-         icon != u"lock" && icon != u"archive" && icon != u"moon";
-}
-
 }  // namespace
 
 SidebarTreeRowView::SidebarTreeRowView(SidebarTreeView* owner,
@@ -78,7 +69,6 @@ SidebarTreeRowView::SidebarTreeRowView(SidebarTreeView* owner,
     : owner_(owner), split_with_prefix_(std::move(split_with_prefix)) {
   CHECK(owner_);
   CHECK(!split_with_prefix_.empty());
-  chevron_animation_.SetSlideDuration(visual_style::kTreeMotionDuration);
   set_context_menu_controller(owner_);
   SetFocusBehavior(FocusBehavior::ACCESSIBLE_ONLY);
   SetNotifyEnterExitOnChild(true);
@@ -128,9 +118,6 @@ void SidebarTreeRowView::Bind(size_t row_index,
       split_segment_index_ != split_segment_index ||
       split_segment_count_ != split_segment_count || title_changed ||
       media_presence_changed || folder_navigation_changed;
-  const bool expanded_changed = same_node &&
-                                type_ == tab_tree::TreeNodeType::kFolder &&
-                                expanded_ != row.expanded;
   row_index_ = row_index;
   node_id_ = row.node_id;
   depth_ = row.depth;
@@ -138,7 +125,6 @@ void SidebarTreeRowView::Bind(size_t row_index,
   sibling_count_ = row.sibling_count;
   type_ = row.type;
   title_ = node.title;
-  folder_icon_ = node.icon;
   accent_argb_ = node.accent_argb;
   page_icon_ = std::move(page_icon);
   media_indicator_ = std::move(media_indicator);
@@ -146,15 +132,6 @@ void SidebarTreeRowView::Bind(size_t row_index,
   drag_thumbnails_ = std::move(drag_thumbnails);
   expanded_ = row.expanded;
   folder_navigation_result_ = folder_navigation_result;
-  if (!same_node || folder_navigation_changed) {
-    chevron_animation_.Reset(expanded_ ? 1.0 : 0.0);
-  } else if (!gfx::Animation::ShouldRenderRichAnimation()) {
-    chevron_animation_.Reset(expanded_ ? 1.0 : 0.0);
-  } else if (expanded_changed && expanded_) {
-    chevron_animation_.Show();
-  } else if (expanded_changed) {
-    chevron_animation_.Hide();
-  }
   selected_ = selected;
   running_ = running;
   sleeping_ = sleeping;
@@ -189,7 +166,6 @@ void SidebarTreeRowView::Unbind() {
   editor_->SetVisible(false);
   node_id_ = base::Uuid();
   title_.clear();
-  folder_icon_.clear();
   accent_argb_.reset();
   drop_position_.reset();
   split_drop_target_ = false;
@@ -484,104 +460,34 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
       selected_ ? visual_style::kText : visual_style::kMutedText);
 
   if (is_folder()) {
-    const gfx::Rect disclosure = GetMirroredRect(DisclosureBounds());
-    if (!folder_navigation_result_) {
-      const gfx::Point center = disclosure.CenterPoint();
-      const double expanded_progress =
-          chevron_animation_.is_animating()
-              ? chevron_animation_.GetCurrentValue()
-              : (expanded_ ? 1.0 : 0.0);
-      const bool rtl = base::i18n::IsRTL();
-      const gfx::PointF start_top(center.x() + (rtl ? 2.0f : -2.0f),
-                                  center.y() - 4.0f);
-      const gfx::PointF start_middle(center.x() + (rtl ? -2.0f : 2.0f),
-                                     center.y());
-      const gfx::PointF start_bottom(center.x() + (rtl ? 2.0f : -2.0f),
-                                     center.y() + 4.0f);
-      const gfx::PointF end_left(center.x() - 4.0f, center.y() - 2.0f);
-      const gfx::PointF end_middle(center.x(), center.y() + 2.0f);
-      const gfx::PointF end_right(center.x() + 4.0f, center.y() - 2.0f);
-      const auto interpolate = [expanded_progress](const gfx::PointF& from,
-                                                   const gfx::PointF& to) {
-        return gfx::PointF(from.x() + (to.x() - from.x()) * expanded_progress,
-                           from.y() + (to.y() - from.y()) * expanded_progress);
-      };
-      const gfx::PointF top = interpolate(start_top, end_left);
-      const gfx::PointF middle = interpolate(start_middle, end_middle);
-      const gfx::PointF bottom = interpolate(start_bottom, end_right);
-      SkPathBuilder chevron;
-      chevron.moveTo(top.x(), top.y());
-      chevron.lineTo(middle.x(), middle.y());
-      chevron.lineTo(bottom.x(), bottom.y());
-      canvas->DrawPath(chevron.detach(), StrokeFlags(icon_color, 1.5f));
-    }
-
     const gfx::Rect icon_bounds = GetMirroredRect(IconBounds());
     const SkColor folder_color = accent_argb_.has_value()
                                      ? static_cast<SkColor>(*accent_argb_)
                                      : icon_color;
     const cc::PaintFlags folder_stroke = StrokeFlags(folder_color, 1.5f);
-    const gfx::Point icon_center = icon_bounds.CenterPoint();
-    if (IsCustomGroupIcon(folder_icon_)) {
-      canvas->DrawStringRectWithFlags(
-          folder_icon_,
-          title_label_->font_list().DeriveWithHeightUpperBound(kIconSize),
-          folder_color, icon_bounds,
-          gfx::Canvas::TEXT_ALIGN_CENTER | gfx::Canvas::NO_ELLIPSIS);
-    } else if (folder_icon_ == u"code") {
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() - 1.0f, icon_center.y() - 4.0f),
-          gfx::PointF(icon_center.x() - 5.0f, icon_center.y()), folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() - 5.0f, icon_center.y()),
-          gfx::PointF(icon_center.x() - 1.0f, icon_center.y() + 4.0f),
-          folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() + 1.0f, icon_center.y() - 4.0f),
-          gfx::PointF(icon_center.x() + 5.0f, icon_center.y()), folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() + 5.0f, icon_center.y()),
-          gfx::PointF(icon_center.x() + 1.0f, icon_center.y() + 4.0f),
-          folder_stroke);
-    } else if (folder_icon_ == u"lock") {
-      gfx::RectF body(icon_bounds.x() + 3.0f, icon_bounds.y() + 7.0f, 10.0f,
-                      7.0f);
-      canvas->DrawRoundRect(body, 2.0f, folder_stroke);
-      gfx::RectF shackle(icon_bounds.x() + 5.0f, icon_bounds.y() + 2.0f, 6.0f,
-                         9.0f);
-      canvas->DrawRoundRect(shackle, 3.0f, folder_stroke);
-    } else if (folder_icon_ == u"archive") {
-      gfx::RectF archive(icon_bounds.x() + 2.0f, icon_bounds.y() + 5.0f, 12.0f,
-                         9.0f);
-      canvas->DrawRoundRect(archive, 1.5f, folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_bounds.x() + 1.0f, icon_bounds.y() + 4.0f),
-          gfx::PointF(icon_bounds.right() - 1.0f, icon_bounds.y() + 4.0f),
-          folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() - 2.0f, icon_center.y() + 1.0f),
-          gfx::PointF(icon_center.x() + 2.0f, icon_center.y() + 1.0f),
-          folder_stroke);
-    } else if (folder_icon_ == u"moon") {
-      SkPathBuilder moon;
-      moon.moveTo(icon_center.x() + 2.5f, icon_center.y() - 6.0f);
-      moon.cubicTo(icon_center.x() - 4.0f, icon_center.y() - 5.0f,
-                   icon_center.x() - 5.0f, icon_center.y() + 4.0f,
-                   icon_center.x() + 2.5f, icon_center.y() + 6.0f);
-      moon.cubicTo(icon_center.x() - 0.5f, icon_center.y() + 3.0f,
-                   icon_center.x() - 0.5f, icon_center.y() - 3.0f,
-                   icon_center.x() + 2.5f, icon_center.y() - 6.0f);
-      canvas->DrawPath(moon.detach(), folder_stroke);
-    } else {
-      SkPathBuilder folder;
-      folder.moveTo(icon_bounds.x() + 1.0f, icon_bounds.y() + 5.0f);
-      folder.lineTo(icon_bounds.x() + 6.0f, icon_bounds.y() + 5.0f);
-      folder.lineTo(icon_bounds.x() + 8.0f, icon_bounds.y() + 7.0f);
-      folder.lineTo(icon_bounds.right() - 1.0f, icon_bounds.y() + 7.0f);
-      folder.lineTo(icon_bounds.right() - 1.0f, icon_bounds.bottom() - 2.0f);
-      folder.lineTo(icon_bounds.x() + 1.0f, icon_bounds.bottom() - 2.0f);
-      folder.close();
-      canvas->DrawPath(folder.detach(), folder_stroke);
+    SkPathBuilder folder_back;
+    folder_back.moveTo(icon_bounds.x() + 1.0f, icon_bounds.y() + 5.0f);
+    folder_back.lineTo(icon_bounds.x() + 7.0f, icon_bounds.y() + 5.0f);
+    folder_back.lineTo(icon_bounds.x() + 9.0f, icon_bounds.y() + 7.0f);
+    folder_back.lineTo(icon_bounds.right() - 1.0f,
+                       icon_bounds.y() + 7.0f);
+    folder_back.lineTo(icon_bounds.right() - 1.0f,
+                       icon_bounds.bottom() - 2.0f);
+    folder_back.lineTo(icon_bounds.x() + 1.0f,
+                       icon_bounds.bottom() - 2.0f);
+    folder_back.close();
+    canvas->DrawPath(folder_back.detach(), folder_stroke);
+
+    if (uses_open_folder_icon_for_testing()) {
+      SkPathBuilder folder_front;
+      folder_front.moveTo(icon_bounds.x() + 3.0f,
+                          icon_bounds.y() + 9.0f);
+      folder_front.lineTo(icon_bounds.right(), icon_bounds.y() + 9.0f);
+      folder_front.lineTo(icon_bounds.right() - 3.0f,
+                          icon_bounds.bottom() - 1.0f);
+      folder_front.lineTo(icon_bounds.x(), icon_bounds.bottom() - 1.0f);
+      folder_front.close();
+      canvas->DrawPath(folder_front.detach(), folder_stroke);
     }
 
   } else {
@@ -728,22 +634,6 @@ void SidebarTreeRowView::OnDragDone() {
   SetIsDragging(false);
   owner_->OnRowDragDone();
   views::View::OnDragDone();
-}
-
-void SidebarTreeRowView::AnimationProgressed(const gfx::Animation* animation) {
-  if (animation == &chevron_animation_) {
-    SchedulePaint();
-  }
-}
-
-void SidebarTreeRowView::AnimationEnded(const gfx::Animation* animation) {
-  if (animation == &chevron_animation_) {
-    SchedulePaint();
-  }
-}
-
-void SidebarTreeRowView::AnimationCanceled(const gfx::Animation* animation) {
-  AnimationEnded(animation);
 }
 
 BEGIN_METADATA(SidebarTreeRowView)

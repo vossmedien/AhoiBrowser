@@ -43,6 +43,14 @@ constexpr auto kProductDisabledFeatures = std::to_array<std::string_view>({
     "AIWriterAPI",
 });
 
+// Ahoi exposes Chromium's native split-tab surface as a first-class product
+// feature. Keep it enabled at the same early boundary as the deny-list above;
+// otherwise the toolbar can expose split actions while the underlying tab
+// model still runs with the upstream default-disabled feature state.
+constexpr auto kProductEnabledFeatures = std::to_array<std::string_view>({
+    "SplitViewHorizontal",
+});
+
 std::string_view FeatureName(std::string_view entry) {
   if (entry.starts_with('*')) {
     entry.remove_prefix(1);
@@ -55,6 +63,16 @@ bool IsProductDisabledFeature(std::string_view entry) {
   const std::string_view name = FeatureName(entry);
   for (std::string_view disabled : kProductDisabledFeatures) {
     if (name == disabled) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool IsProductEnabledFeature(std::string_view entry) {
+  const std::string_view name = FeatureName(entry);
+  for (std::string_view enabled : kProductEnabledFeatures) {
+    if (name == enabled) {
       return true;
     }
   }
@@ -87,12 +105,19 @@ void WriteFeatureSwitch(base::CommandLine& command_line,
 void ApplyEarlyStartupPolicy(base::CommandLine& command_line) {
   std::vector<std::string> enabled =
       ReadFeatureSwitch(command_line, switches::kEnableFeatures);
-  std::erase_if(enabled, IsProductDisabledFeature);
+  std::erase_if(enabled, [](std::string_view entry) {
+    return IsProductDisabledFeature(entry) || IsProductEnabledFeature(entry);
+  });
+  for (std::string_view feature : kProductEnabledFeatures) {
+    enabled.emplace_back(feature);
+  }
   WriteFeatureSwitch(command_line, switches::kEnableFeatures, enabled);
 
   std::vector<std::string> disabled =
       ReadFeatureSwitch(command_line, switches::kDisableFeatures);
-  std::erase_if(disabled, IsProductDisabledFeature);
+  std::erase_if(disabled, [](std::string_view entry) {
+    return IsProductDisabledFeature(entry) || IsProductEnabledFeature(entry);
+  });
   for (std::string_view feature : kProductDisabledFeatures) {
     disabled.emplace_back(feature);
   }

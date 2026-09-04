@@ -201,7 +201,7 @@ class BrowserSidebarHostView final
       int delta,
       WorkspaceActivationSource source);
 
-  void StartWorkspaceTransition(int delta);
+  void StartWorkspaceTransition(int delta, bool active_web_contents_changed);
 
   void CancelWorkspaceTransition();
 

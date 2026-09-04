@@ -81,9 +81,18 @@
   padding: 0;
 }
 
-.options cr-checkbox {
-  display: block;
-  margin-top: 7px;
+.arc-import-checkbox {
+  --cr-checkbox-label-padding-start: 12px;
+  align-items: flex-start;
+  display: flex;
+  margin-top: 8px;
+  min-height: 20px;
+  padding-block: 2px;
+}
+
+.arc-import-checkbox::part(label-container) {
+  line-height: 20px;
+  min-width: 0;
 }
 
 .select-label {
@@ -99,12 +108,6 @@
 .exclusions {
   border-inline-start: 3px solid var(--cr-separator-color);
   padding-inline-start: 10px;
-}
-
-.exclusions + cr-checkbox,
-.exclusions + cr-checkbox + cr-checkbox {
-  display: block;
-  margin-top: 8px;
 }
 
 .result-counts {

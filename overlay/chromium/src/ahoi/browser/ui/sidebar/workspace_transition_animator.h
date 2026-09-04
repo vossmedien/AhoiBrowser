@@ -27,8 +27,9 @@ struct WorkspaceTransitionVisualState {
 WorkspaceTransitionVisualState CalculateWorkspaceTransitionInitialState(
     WorkspaceTransitionDirection direction);
 
-// Applies one synchronized compositor transition to the already-committed
-// workspace chrome and page surface. Domain state never lives here: identity,
+// Slides the already-committed sidebar in the workspace direction. The page
+// surface remains spatially stable and only fades when the activation actually
+// selected a different WebContents. Domain state never lives here: identity,
 // dots, tree selection, runtime tab and WebContents are switched atomically by
 // the existing observer path before these layers receive their first frame.
 class WorkspaceTransitionAnimator final {
@@ -42,6 +43,7 @@ class WorkspaceTransitionAnimator final {
   void Start(ui::Layer* sidebar_layer,
              ui::Layer* contents_layer,
              WorkspaceTransitionDirection direction,
+             bool fade_contents,
              bool reduced_motion);
 
   // Immediately finishes any in-flight transition at the stable committed
@@ -52,8 +54,12 @@ class WorkspaceTransitionAnimator final {
 
  private:
   void ResetLayer(ui::Layer* layer);
-  void AnimateLayer(ui::Layer* layer,
-                    const WorkspaceTransitionVisualState& initial_state);
+  void AnimateSidebarLayer(
+      ui::Layer* layer,
+      const WorkspaceTransitionVisualState& initial_state);
+  void AnimateContentsLayer(
+      ui::Layer* layer,
+      const WorkspaceTransitionVisualState& initial_state);
 
   base::WeakPtr<ui::Layer> sidebar_layer_;
   base::WeakPtr<ui::Layer> contents_layer_;

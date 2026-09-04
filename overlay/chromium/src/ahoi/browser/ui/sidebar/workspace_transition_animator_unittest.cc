@@ -41,8 +41,11 @@ TEST(WorkspaceTransitionAnimatorTest, CancelNormalizesBothCommittedSurfaces) {
 
   animator.Start(sidebar_layer.get(), contents_layer.get(),
                  WorkspaceTransitionDirection::kNext,
+                 /*fade_contents=*/true,
                  /*reduced_motion=*/false);
   EXPECT_TRUE(animator.is_animating());
+  EXPECT_TRUE(sidebar_layer->GetAnimator()->is_animating());
+  EXPECT_TRUE(contents_layer->GetAnimator()->is_animating());
 
   animator.Cancel();
   EXPECT_FALSE(animator.is_animating());
@@ -59,12 +62,37 @@ TEST(WorkspaceTransitionAnimatorTest, ReducedMotionNeverStartsAnimation) {
 
   animator.Start(sidebar_layer.get(), contents_layer.get(),
                  WorkspaceTransitionDirection::kPrevious,
+                 /*fade_contents=*/true,
                  /*reduced_motion=*/true);
 
   EXPECT_FALSE(animator.is_animating());
   EXPECT_FLOAT_EQ(1.0f, sidebar_layer->opacity());
   EXPECT_FLOAT_EQ(1.0f, contents_layer->opacity());
   EXPECT_TRUE(sidebar_layer->transform().IsIdentity());
+  EXPECT_TRUE(contents_layer->transform().IsIdentity());
+}
+
+TEST(WorkspaceTransitionAnimatorTest,
+     SameWebContentsSlidesSidebarWithoutMovingOrFadingPage) {
+  base::test::TaskEnvironment task_environment;
+  gfx::ScopedAnimationDurationScaleMode duration_mode(
+      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+  const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
+      gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
+  ASSERT_TRUE(render_mode);
+  auto sidebar_layer = ui::Layer::Create(ui::LAYER_NOT_DRAWN);
+  auto contents_layer = ui::Layer::Create(ui::LAYER_NOT_DRAWN);
+  WorkspaceTransitionAnimator animator;
+
+  animator.Start(sidebar_layer.get(), contents_layer.get(),
+                 WorkspaceTransitionDirection::kNext,
+                 /*fade_contents=*/false,
+                 /*reduced_motion=*/false);
+
+  EXPECT_TRUE(animator.is_animating());
+  EXPECT_TRUE(sidebar_layer->GetAnimator()->is_animating());
+  EXPECT_FALSE(contents_layer->GetAnimator()->is_animating());
+  EXPECT_FLOAT_EQ(1.0f, contents_layer->opacity());
   EXPECT_TRUE(contents_layer->transform().IsIdentity());
 }
 
@@ -82,6 +110,7 @@ TEST(WorkspaceTransitionAnimatorTest,
 
   animator.Start(sidebar_layer.get(), contents_layer.get(),
                  WorkspaceTransitionDirection::kNext,
+                 /*fade_contents=*/true,
                  /*reduced_motion=*/false);
   contents_layer.reset();
 

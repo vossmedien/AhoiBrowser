@@ -6,6 +6,7 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "ui/views/view.h"
 
@@ -35,6 +36,8 @@ bool BrowserSidebarHostView::ActivateRelativeWorkspaceWithTransition(
   CancelWorkspaceTransition();
   const std::optional<base::Uuid> previous_workspace =
       session_bridge_->GetActiveWorkspaceForWindow(browser_);
+  content::WebContents* const previous_contents =
+      tab_strip_model_ ? tab_strip_model_->GetActiveWebContents() : nullptr;
   const std::optional<base::Uuid> activated_workspace =
       session_bridge_->ActivateRelativeWorkspaceForWindow(browser_, delta,
                                                           source);
@@ -46,12 +49,16 @@ bool BrowserSidebarHostView::ActivateRelativeWorkspaceWithTransition(
     // inactive dots, tree projection, runtime selection, empty state and live
     // WebContents surface all represent `activated_workspace` and enter as one
     // Arc-like surface rather than repainting in separate stages.
-    StartWorkspaceTransition(delta);
+    content::WebContents* const activated_contents =
+        tab_strip_model_ ? tab_strip_model_->GetActiveWebContents() : nullptr;
+    StartWorkspaceTransition(delta, previous_contents != activated_contents);
   }
   return true;
 }
 
-void BrowserSidebarHostView::StartWorkspaceTransition(int delta) {
+void BrowserSidebarHostView::StartWorkspaceTransition(
+    int delta,
+    bool active_web_contents_changed) {
   if (delta == 0 || !browser_ || !browser_->GetWindow() || !layer()) {
     return;
   }
@@ -63,6 +70,7 @@ void BrowserSidebarHostView::StartWorkspaceTransition(int delta) {
       layer(), contents->layer(),
       delta > 0 ? WorkspaceTransitionDirection::kNext
                 : WorkspaceTransitionDirection::kPrevious,
+      active_web_contents_changed,
       reduced_motion_);
 }
 

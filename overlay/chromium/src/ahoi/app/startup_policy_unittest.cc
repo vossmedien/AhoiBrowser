@@ -46,23 +46,28 @@ TEST(StartupPolicyTest, DisablesBackgroundAccountAndAiFeatures) {
   EXPECT_NE(disabled.end(),
             std::ranges::find(disabled, "OptimizationGuideManifestBroker"));
   EXPECT_NE(disabled.end(), std::ranges::find(disabled, "AIPromptAPI"));
+
+  const std::vector<std::string> enabled =
+      FeaturesForSwitch(command_line, switches::kEnableFeatures);
+  EXPECT_NE(enabled.end(), std::ranges::find(enabled, "SplitViewHorizontal"));
 }
 
 TEST(StartupPolicyTest, OverridesHostileEnablesAndPreservesOtherArguments) {
   base::CommandLine command_line(base::CommandLine::NO_PROGRAM);
   command_line.AppendSwitchASCII(switches::kEnableFeatures,
                                  "UnrelatedFeature,AimEnabled<AimTrial,"
-                                 "OptimizationGuideModelExecution:param/value");
+                                 "OptimizationGuideModelExecution:param/value,"
+                                 "SplitViewHorizontal<StaleTrial");
   command_line.AppendSwitchASCII(
       switches::kDisableFeatures,
-      "UnrelatedDisabled,OptimizationHints<StaleTrial");
+      "UnrelatedDisabled,OptimizationHints<StaleTrial,SplitViewHorizontal");
   command_line.AppendArg("https://accounts.google.com/");
   const base::CommandLine::StringVector original_args = command_line.GetArgs();
 
   ApplyEarlyStartupPolicy(command_line);
   ApplyEarlyStartupPolicy(command_line);
 
-  EXPECT_EQ("UnrelatedFeature",
+  EXPECT_EQ("UnrelatedFeature,SplitViewHorizontal",
             command_line.GetSwitchValueASCII(switches::kEnableFeatures));
   EXPECT_EQ(original_args, command_line.GetArgs());
 
@@ -71,6 +76,7 @@ TEST(StartupPolicyTest, OverridesHostileEnablesAndPreservesOtherArguments) {
   EXPECT_EQ(1, std::ranges::count(disabled, "OptimizationHints"));
   EXPECT_EQ(1, std::ranges::count(disabled, "AimEnabled"));
   EXPECT_EQ(1, std::ranges::count(disabled, "UnrelatedDisabled"));
+  EXPECT_EQ(0, std::ranges::count(disabled, "SplitViewHorizontal"));
 }
 
 }  // namespace
