@@ -99,9 +99,13 @@ worktree. It predates new patch `0030` and the final standalone context changes;
 refresh the final preflight after source freeze and before a real roll.
 
 Reports are preserved under `artifacts/build/bookmarks-chromium-20260905/`.
-DEPS changes V8, Skia, ANGLE, DevTools frontend and Dawn. The V8 build-workaround
-revision must be revalidated/rebound; no workaround or production pin was
-blindly changed.
+DEPS changes V8, Skia, ANGLE, DevTools frontend and Dawn. Direct official Gitiles
+readback of the candidate's Rust wrapper and V8 Inspector-Protocol generator
+confirmed byte-identical original SHA-256 values against both configured
+workarounds. The candidate V8 commit is
+`4323497a6a73839e6d5260f6acd7ec0212cb3321`; the revision bindings still need
+updating during the real roll. Evidence: `dependency-workaround-review.json`
+beside the reports. No workaround or production pin was changed.
 
 The last free-space check was about 107 GiB, below the configured hard 120-GiB
 checkout floor. Only the active `AhoiDev` output exists; this thread's disposable
