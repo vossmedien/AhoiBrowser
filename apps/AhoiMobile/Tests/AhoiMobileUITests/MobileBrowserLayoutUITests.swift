@@ -668,11 +668,16 @@ final class MobileBrowserLayoutUITests: XCTestCase {
         fromY: CGFloat,
         toY: CGFloat
     ) {
+        // Keep the deliberately tiny jitter gestures in the fixture's empty
+        // right body margin. At the horizontal center, a sub-threshold drag
+        // can be interpreted as a tap on the file input after the first page
+        // scroll, which would measure a modal presentation instead of chrome
+        // stability.
         let start = element.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.5, dy: fromY)
+            withNormalizedOffset: CGVector(dx: 0.94, dy: fromY)
         )
         let end = element.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.5, dy: toY)
+            withNormalizedOffset: CGVector(dx: 0.94, dy: toY)
         )
         start.press(forDuration: 0.08, thenDragTo: end)
     }
