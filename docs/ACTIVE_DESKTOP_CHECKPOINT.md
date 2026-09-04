@@ -101,6 +101,24 @@ The earlier goal-control limitation is resolved; do not request that action agai
 
 ## Next actions
 
+### External build handoff block (2026-09-05)
+
+The same missing explicit bookmark-owner lease release has persisted for three
+consecutive goal turns after the source freeze. The goal is externally blocked,
+not complete. User coordination has already been requested. Repeated unchanged
+checkpoint reads must not replace the actual handoff.
+
+At the latest live check, FillIt Unity PID `15530` was at 100% CPU and a separate
+ConversationCopilot simulator test app was above 390% CPU. These are foreign
+workloads; do not stop them. Recheck both CPU capacity and the bookmark owner's
+explicit lease release on resume. Read any later bookmark fix commit named in
+that handoff and incorporate it by updating the existing clean snapshot if
+needed; preserve Desktop source `fe0afa4` and do not create another build path.
+
+No new build, installation, visible corrected-checkbox pass or product test
+pass has occurred. The installed app remains the old candidate. Resume with the
+guarded overlay refresh and one combined build only after those gates clear.
+
 The review, master corrections, archived chronology and `PERF-04` clarification
 are complete as documentation. JSON validity, all 412 unique registry IDs,
 unchanged master test-ID coverage and whitespace were checked. No runtime pass
