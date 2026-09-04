@@ -77,8 +77,8 @@ class SidebarBookmarkMenu final : public ui::SimpleMenuModel::Delegate {
   };
 
   int NextCommandId();
-  static BookmarkNodeReference ReferenceForNode(
-      const bookmarks::BookmarkNode* node);
+  BookmarkNodeReference ReferenceForNode(
+      const bookmarks::BookmarkNode* node) const;
   size_t PopulateFolder(const BookmarkParentFolder& folder,
                         ui::SimpleMenuModel* menu);
   const bookmarks::BookmarkNode* ResolveNode(

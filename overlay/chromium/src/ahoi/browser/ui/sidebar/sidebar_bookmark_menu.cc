@@ -141,8 +141,14 @@ int SidebarBookmarkMenu::NextCommandId() {
 }
 
 SidebarBookmarkMenu::BookmarkNodeReference
-SidebarBookmarkMenu::ReferenceForNode(const bookmarks::BookmarkNode* node) {
-  return {.uuid = node->uuid(), .is_account_node = node->is_account_node()};
+SidebarBookmarkMenu::ReferenceForNode(
+    const bookmarks::BookmarkNode* node) const {
+  const bool is_account_node =
+      bookmark_service_->bookmark_model()->GetNodeByUuid(
+          node->uuid(),
+          bookmarks::BookmarkModel::NodeTypeForUuidLookup::kAccountNodes) ==
+      node;
+  return {.uuid = node->uuid(), .is_account_node = is_account_node};
 }
 
 size_t SidebarBookmarkMenu::PopulateFolder(const BookmarkParentFolder& folder,

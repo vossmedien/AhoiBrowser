@@ -48,6 +48,8 @@ namespace {
 using PermanentFolderType = BookmarkParentFolder::PermanentFolderType;
 
 class SidebarBookmarkButton final : public views::LabelButton {
+  METADATA_HEADER(SidebarBookmarkButton, views::LabelButton)
+
  public:
   SidebarBookmarkButton(PressedCallback callback,
                         std::u16string text,
@@ -142,6 +144,9 @@ class SidebarBookmarkButton final : public views::LabelButton {
   const bool folder_;
   bool menu_open_ = false;
 };
+
+BEGIN_METADATA(SidebarBookmarkButton)
+END_METADATA
 
 BookmarkParentFolder PermanentFolder(PermanentFolderType type) {
   switch (type) {
@@ -376,8 +381,13 @@ void SidebarBookmarkShelfView::ModelChanged() {
 void SidebarBookmarkShelfView::AddBookmarkButton(
     const bookmarks::BookmarkNode* node) {
   CHECK(node);
-  const BookmarkNodeReference reference{
-      .uuid = node->uuid(), .is_account_node = node->is_account_node()};
+  const bool is_account_node =
+      bookmark_service_->bookmark_model()->GetNodeByUuid(
+          node->uuid(),
+          bookmarks::BookmarkModel::NodeTypeForUuidLookup::kAccountNodes) ==
+      node;
+  const BookmarkNodeReference reference{.uuid = node->uuid(),
+                                        .is_account_node = is_account_node};
   ui::ImageModel icon;
   if (node->is_folder()) {
     icon = FolderIcon(visual_style::kMutedText);
