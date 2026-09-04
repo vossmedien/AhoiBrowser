@@ -4110,7 +4110,7 @@
     {
       "id": "PERF-04",
       "suite": "PERF",
-      "description": "sichtbarer Workspace-Wechsel unter 100 ms.",
+      "description": "sichtbare Reaktion und Commit eines vorbereiteten lokalen Workspace-Wechsels unter 100 ms; Daten-/Fokusumschaltung, erste präsentierte Rückmeldung und Animationsende getrennt messen. Die kurze optionale Auslaufanimation darf länger dauern, aber Eingabe und WebContents nicht blockieren. Renderer-/Netzwerk-Ladezeit wird separat ausgewiesen.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",

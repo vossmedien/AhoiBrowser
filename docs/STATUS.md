@@ -2,6 +2,11 @@
 
 Last updated: 2026-09-01
 
+Historical status snapshot. For the current Desktop source, installed candidate,
+ownership and next action, use `docs/ACTIVE_DESKTOP_CHECKPOINT.md`; for Mobile,
+use `docs/ACTIVE_MOBILE_CHECKPOINT.md`. The 2026-09-05 product review updates
+`outputs/AhoiBrowser-Master-Zielprompt.md` without upgrading any evidence below.
+
 This page separates completed, reproducible evidence from explicitly pending
 gates for the active source state. A running suite is not counted as a pass,
 and development signing or an app copied to `/Applications` is not release or

@@ -1,8 +1,98 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 1. September 2026, großes Desktop-Kernfeaturepaket mit User-First-Recovery.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das neue AhoiBrowser-Mac-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet. Die unten definierte Mac-Recovery-Welle und das daraus abgeleitete Desktop-Kernfeaturepaket haben bis zu ihrem belegten Abschluss Vorrang vor Lean-Optimierung und Mobile-Integration.
+**Geltungsstand: 5. September 2026, Produkt- und Ausführungsreview.** Diese Datei ist die autoritative vollständige Produktvorgabe. Das Gesamtziel bleibt Feature-Vollständigkeit einschließlich sichtbarer Abnahme, Sync, AnyChat, uBlock Origin Classic, Arc-Import, Entgooglifizierung, Entschlackung und Performance. Die vom Nutzer am 5. September beauftragte Revue löst widersprüchliche Altvorgaben auf und verbessert die Ausführung. Sie ist kein Neustart des Projekts und kein Nachweis bereits fertiger Funktionen. Der aktuelle Arbeitsstand liegt ausschließlich in `docs/ACTIVE_DESKTOP_CHECKPOINT.md`; historische Fehlerchronologien gehören in Evidenzdokumente.
 
 **Verbindliche Ausführungsabgrenzung, fortgeschrieben am 1. September 2026:** Desktop und Mobile bleiben klar getrennte, explizit übergebene Arbeitslinien. Innerhalb der aktiven Desktop-Linie ist parallele Implementierungsarbeit nur an überschneidungsfreien Teilpaketen im selben kanonischen Workstate zulässig. Es gibt keine konkurrierenden Chromium-Builds, keine voneinander abweichenden Overlay-Stände und keine stillschweigende Übernahme fremder Mobile-Änderungen. Integration, Build, Installation, sichtbare Abnahme und Push erfolgen aus genau einem nachvollziehbaren Desktop-Stand.
+
+## Verbindliches Gesamtziel und Ausführung ab 5. September 2026
+
+Führe AhoiBrowser im vorhandenen kanonischen Repository bis zur vollständigen
+Umsetzung und Abnahme dieses Master-Zielprompts. Schließe zuerst das integrierte
+Desktop-Paket aus Arc-Import, Sidebar-Darstellung, Workspace-Wechsel,
+Null-Tab-/Split-Stabilität, AnyChat und uBlock Origin Classic einschließlich
+beabsichtigter Lite-Ablösung ab. Arbeite danach die folgenden kohärenten Pakete
+bis zur gesamten Definition of Done ab. Ein grünes Teilpaket beendet den
+Gesamtauftrag nicht. Mobile bleibt beim benannten Mobile-Owner; gemeinsame
+Sync-Verträge, Integrationsnachweise und Release-Gates werden explizit übergeben
+und im Gesamtstatus mitgeführt.
+
+Behalte echte Chromium-Tabs, `WebContents`, Services und Sicherheitsgrenzen als
+technische Grundlage. Implementiere die zugesagte Bedienung vollständig, mit
+möglichst wenig eigenem langlebigem Zustand und möglichst kleiner Fork-Fläche.
+Neue Abstraktionen benötigen einen konkreten zweiten Verbraucher oder einen
+nachgewiesenen Lebenszyklus-/Ownership-Grund. Modellwechsel rechtfertigen weder
+eine Neuentwicklung funktionierender Komponenten noch eine pauschale Abwertung
+bereits belegter Arbeit.
+
+### Paketfolge und Abschlusskriterien
+
+| Reihenfolge | Zusammenhängendes Paket | Konkreter Abschluss |
+| --- | --- | --- |
+| Vor dem nächsten notwendigen Build | Build-Ausführung und Übergabe | Ein Owner für Checkout und Ausgabeverzeichnis; Kandidat, Terminalstatus, Receipt und nächste Aktion bekannt. Wiederholte Overlay-Komposition messen und sicher beschleunigen; vorhandene passende Kandidaten zuerst prüfen. |
+| 1 | Import, Erweiterungen und sichtbare Sidebar-Fixes | Standardmenü öffnet denselben Importdialog auch ohne Tab; alle fünf bisher sichtbaren Checkboxen korrekt; Ordnericons, Hierarchie und Abstände stimmig; realer Arc-Import mit gültigen Splits, Neustart und No-op; AnyChat normal aus dem Store; Classic filtert und überlebt Neustart; Lite erst danach bewusst ablösen; Null-Tab-Split und Beenden stabil. |
+| 2 | Daily Driver, Fenster, Tabs und Medien | Navigation, Command Bar, Quick Window, Inkognito, Sessions, sämtliche zugesagten Split-/DnD-/Resize-Wege, Popup-Promotion, MiniPlayer/PiP, Dateien, Passwörter und HTTP Auth in zusammenhängenden Nutzerreisen abgenommen. Bereits bestandene Teilverträge gezielt wiederverwenden. |
+| 3 | Sync und Geräteintegration | Lokaler Zustand und Outbox, echter CloudKit-Transport, Konflikte, Geräte-Tabs, Pairing/Remote Control und Mobile-Handoff erfüllen die bestehenden Mehrgeräte-Verträge; ausgeschlossene Daten bleiben ausgeschlossen. Externe Gerätevoraussetzungen früh vorbereiten. |
+| 4 | Developer Toolkit, Privacy und Entgooglifizierung | Vorhandene Werkzeuge vollständig bedienen; Produktdienste zentral konfigurieren; nachvollziehbares frisches Profil ohne ungefragte Produkttelemetrie; dokumentierte Sicherheitsdienste und normale Google-Webseiten funktionieren. |
+| 5 | Entschlackung und Performance | Gemessene, rückbaubare GN-/Runtime-Ausschlüsse, schnelles Starten/Suchen/Wechseln, Memory Saver und die bestehenden Bundle-/CPU-/RAM-/Netzwerkbudgets mit vergleichbaren Builds belegen. |
+| 6 | Release und Gesamtabschluss | Verbleibende vollständige Abnahmematrix, Security-/Upstream-Roll, Geräte-/Account-Nachweise, Updates, Recht/DRM, signierte Distribution und Daily-Driver-Soak bestanden; eigene Änderungen dokumentiert und gepusht. |
+
+Die Folge steuert die Integration, nicht eine künstliche Serienabhängigkeit:
+ein externer Account- oder Geräteblocker hält unabhängige Arbeit nicht an.
+Nachgewiesene Crashes, Datenverlust oder Sicherheitsfehler haben Vorrang.
+Vorhandene, integrierte Funktionen werden zuerst abgenommen; die Liste ist keine
+Anweisung, sie neu zu bauen. Keine zusätzliche Produktfläche allein zur
+Vervollständigung eines internen Services erfinden.
+
+### Kompakte Steuerung statt verlorener Fortschritte
+
+- Der Master beschreibt das Soll. `config/test-registry.json` enthält die
+  registrierten Abnahmefälle; kandidatgebundene Ergebnisartefakte belegen deren
+  Ausführung. Ein vorhandener Testname, Quelltext-String oder Testzähler beweist
+  kein sichtbares Verhalten.
+- Der aktive Checkpoint bleibt kurz: Owner, Branch, integrierter Quellstand,
+  tatsächlich installiertes Bundle, laufender Handle mit letzter Beobachtung,
+  offene rote Fälle und exakt nächste Aktion. Nach jeder materiellen Änderung
+  aktualisieren. Alte Zustände stehen ausdrücklich als historisch in Evidenz.
+- Nach Compaction zuerst diesen Checkpoint und die dort genannten aktuellen
+  Belege prüfen. Kein erneuter Projektstart, keine vollständige Historien- oder
+  Testsuche ohne konkrete fehlende Information.
+- Ein Paket erhält vor dem Build eine feste Liste zusammengehöriger Änderungen
+  und betroffener Journeys. Alle bekannten Paketfehler gemeinsam korrigieren,
+  dann einmal bauen/installieren und sichtbar prüfen. Weitere Builds benötigen
+  neue ausführbare Änderungen oder einen konkret diagnostizierten Buildfehler.
+- Dokumentationsänderungen benötigen keinen Browserbuild. Ein vorhandenes
+  Bundle mit passendem Produktquellstand behält seinen echten Receipt und seine
+  echte Revision; es wird weder auf einen Dokumentations-SHA umgestempelt noch
+  wegen fremder Mobile-/Dokumentationscommits vorsorglich neu gebaut.
+- Ein fremder Build benötigt einen bestätigten Live-Handle; bloße Lockdateien,
+  langsame Beobachtung oder eine alte PID reichen nicht. CPU-Gate, Ownership
+  und explizite Checkout-Übergabe bleiben bindend. Beim Warten unabhängige
+  Arbeit erledigen und Zustandsänderungen berichten; Prozessaktivität ist kein
+  Beweis einer erfolgreichen Kompilation oder eines bestimmten Restfortschritts.
+- Nach grünem sichtbarem Flow fokussierte, verhaltensbezogene Programmatik
+  ausführen. Breite Suites nur bei passender Integrations-/Releasefläche oder
+  einem neuen konkreten Befund wiederholen. Bei real unmöglichem sichtbarem
+  E2E die genaue technische Grenze festhalten und unabhängige Tests ausführen;
+  der fehlende sichtbare Pass bleibt offen.
+
+### Entwicklung, Feature-Vollständigkeit und öffentlicher Release
+
+Entwicklungsabnahme verwendet den exakt zugeordneten, signierten und atomar
+installierten Kandidaten unter `/Applications/AhoiBrowser.app`, mit normaler
+Produktkonfiguration, Sandbox und Site Isolation. DMG, Developer ID,
+Notarisierung, Stapling und ein funktionierender öffentlicher Updater sind
+zusätzliche Release-Gates; sie sind keine Vorbedingung für jeden lokalen
+UI-Korrekturlauf. Ein Development-Pass wird entsprechend bezeichnet.
+
+Feature-Vollständigkeit erfordert den gesamten zugesagten Funktionsumfang und
+die dafür vorgeschriebenen realen Nachweise. `BLOCKED_*` und `NOT_RUN` werden
+nicht in Erfolge umgedeutet. Öffentliche Releasebereitschaft verlangt darüber
+hinaus alle bestehenden Distributions-, Rechts-, DRM- und Release-Gates.
+Keine dieser Bezeichnungen darf den kleineren Stand eines einzelnen Pakets
+als Gesamtabschluss ausgeben.
+
+Der begründete Review mit Quellbelegen und weiterhin offenen Produktbefunden
+steht in `docs/reviews/2026-09-05-product-and-execution-review.md`.
 
 ## Rolle und Gesamtauftrag
 
@@ -21,7 +111,7 @@ Das Ziel ist ausdrücklich:
 - keine Web-App, die einen Browser simuliert;
 - sondern ein echter Chromium-`//chrome`-Fork mit nativer Oberfläche, Chromiums vollständiger Mehrprozessarchitektur, Sandbox, Extensions, DevTools, Downloads, Medien, Berechtigungen, Passwortfunktionen, HTTP-Authentifizierung, verschlüsseltem Sync und einem signierten, unter `/Applications/AhoiBrowser.app` installierten Daily-Driver-Build.
 
-Arbeite selbstständig und persistent durch die in diesem Prompt festgelegten Phasen. Beginne nach einer kurzen Bestandsaufnahme unmittelbar mit der Machbarkeitsphase. Frage nur dann nach, wenn eine Entscheidung nicht aus dem Repository, der Umgebung oder diesem Prompt ableitbar ist oder wenn tatsächlich eine externe Freigabe, ein Account, ein Vertrag, echte Hardware, biometrische Bestätigung oder eine andere Nutzeraktion erforderlich ist.
+Arbeite selbstständig und persistent durch die festgelegten Pakete. Setze das bestehende Projekt nach einer kurzen Prüfung des aktiven Checkpoints unmittelbar am belegten nächsten Schritt fort. Die Machbarkeitsphase gilt nur für einen tatsächlich fehlenden Bootstrap. Frage nur dann nach, wenn eine Entscheidung nicht aus Repository, Umgebung, Nutzerauftrag oder diesem Prompt ableitbar ist oder wenn tatsächlich eine externe Freigabe, ein Account, ein Vertrag, echte Hardware, biometrische Bestätigung oder eine andere Nutzeraktion erforderlich ist.
 
 Halte kontrollierbare Arbeit nicht wegen externer Blocker an. Schließe alle unabhängigen Arbeiten ab, dokumentiere den Blocker exakt und fahre mit dem nächsten möglichen Arbeitspaket fort.
 
@@ -37,13 +127,13 @@ Halte kontrollierbare Arbeit nicht wegen externer Blocker an. Schließe alle una
 Unterscheide bei jeder Funktion und jedem Meilenstein strikt zwischen folgenden Zuständen:
 
 1. `IMPLEMENTED`: Der Quellcode ist vorhanden.
-2. `PROGRAMMATIC_PASS`: Unit-, Integration-, Browser- und relevante Security-Tests sind grün.
-3. `INSTALLED_PASS`: Die Funktion wurde im tatsächlich installierten Release-Bundle geprüft.
+2. `PROGRAMMATIC_PASS`: Die für den Fall relevanten verhaltensbezogenen Tests sind grün; dies ist kein sichtbarer Produktnachweis.
+3. `INSTALLED_PASS`: Die Funktion wurde im tatsächlich installierten Bundle geprüft; Development beziehungsweise Release wird ausdrücklich angegeben. Reine Build-, Signatur- und Installationsprüfung sind nur Voraussetzungen dafür.
 4. `CU_E2E_PASS`: Die Funktion wurde über Computer Use wie von einem echten Nutzer sichtbar bedient und bestätigt.
 5. `ASSISTED_E2E_PASS`: Zusätzlich erforderliche Hardware-, Account-, Touch-ID- oder physische Nutzeraktion wurde real ausgeführt und das Ergebnis danach verifiziert.
 6. `BLOCKED_EXTERNAL`: Eine konkret benannte externe Voraussetzung verhindert ausschließlich den betroffenen Nachweis.
 
-„Build erfolgreich“, „Code ist vorhanden“, „Unit-Test grün“ oder „funktioniert im Debug-Build“ ist kein Fertignachweis.
+Diese Belege sind getrennte Dimensionen, keine vorgeschriebene Ausführungsreihenfolge. Sichtbarer User-E2E geht der zugehörigen Testausführung voraus. „Build erfolgreich“, „Code ist vorhanden“, „Unit-Test grün“ oder „funktioniert im Debug-Build“ ist kein Fertignachweis.
 
 Verbindliche Regeln:
 
@@ -80,14 +170,14 @@ Die folgenden aktuell real beobachteten Mac-Defekte sind Stop-the-line-Arbeit. B
 - `RECOVERY-MAC-14`: der gesamte native Tab-Drag besitzt zu jeder Cursorposition exakt eine starke Zielhervorhebung. Gespeicherter Bereich, temporärer Bereich, einzelne Tabzeile, `Neue Gruppe` und WebContents-Split-Overlay dürfen niemals gleichzeitig als angenommenes Ziel erscheinen; bloße Berechtigung bleibt visuell passiv. Vorher/Nachher/Split verwenden identische gemalte und wirksame Flächen, eine kleine symmetrische Hysterese verhindert Flackern an Zonengrenzen, und die beim Loslassen ausgeführte Aktion entspricht ausschließlich der zuletzt sichtbar bestätigten Vorschau. Die Pane-Mitte ist neutral statt implizit `links`; ein abgebrochener, ungültiger oder zwischen nativen WebViews wechselnder Drag hinterlässt weder Highlight noch Einfügemarker. Sidebar-Gap, WebView-Wechsel, `Escape`, Drop, Fensterwechsel, Quell-View-Zerstörung und AppKit-Drag-Ende werden jeweils in angedockter und schwebender Sidebar sowie mit Saved-, Temporary-, Mixed- und Zwei-/Drei-/Vier-Pane-Quellen sichtbar geprüft.
 - `RECOVERY-MAC-15`: das Erweiterungsmenü bleibt in einem absichtlich tablosen Ahoi-Fenster vollständig crashfrei. Bereits installierte Erweiterungen bleiben mit korrektem Namen, Icon und generischen Verwaltungsaktionen sichtbar; alle an eine konkrete Seite gebundenen Aktionen, Hostzugriffs-, Berechtigungs- und Reload-Steuerungen sind ohne aktives `WebContents` ausgeblendet oder deaktiviert und werden erst nach Aktivierung eines realen Tabs freigegeben. Öffnen, Schließen, erneutes Öffnen, Browserstart, Browserneustart sowie erfolgreiche, abgebrochene und fehlgeschlagene Web-Store-Installationen hinterlassen weder Null-Dereferenz noch halbfertige Extension-Einträge. Eine fehlgeschlagene AnyChat-Installation wird als fehlgeschlagen ausgewiesen und atomar zurückgerollt; erst die persistierte Store-ID `khpefodpgnkegiohbolbaaeabnfdegln` zählt als Installation. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und der tatsächlich signierte offizielle Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) werden in Inventar, Oberfläche und Abnahme strikt unterschieden; Lite darf niemals als bestandene Classic-Installation gelten und der GitHub-Release darf niemals als Web-Store-Paket ausgegeben werden.
 
-Für jeden dieser Fälle gilt ohne Ausnahme diese Reihenfolge:
+Für jeden dieser Fälle gilt die folgende User-First-Reihenfolge mit der oben definierten Ausnahme bei technisch unmöglichem sichtbarem E2E:
 
 1. Den Fehler im aktuell installierten Kandidaten sichtbar reproduzieren und Evidenz sichern.
 2. Ursache diagnostizieren und beheben; dabei Nutzerarbeit, Profil und fremde Browser unverändert lassen.
-   Vor jedem Build folgt ein vollständiger Best-Practice-Codeaudit der betroffenen Integrationsfläche: Aufruf- und Objektlebenszyklus, zentrale Registrierung, Plattform- und Buildflag-Guards, `BUILD.gn`-/`DEPS`-Kanten, Ownership und `WeakPtr`-Sicherheit, Threading/Reentrancy, Event-Targeting, Accessibility, Lokalisierung, Persistenz/Migration, Fehler-/Abbruchpfade sowie Security- und Privacy-Grenzen. Ein lokaler Einzeiler oder ein nur am beobachteten Symptom funktionierender Sonderfall ist kein ausreichender Fix.
+   Vor dem Paketbuild die tatsächlich betroffene Integrationsfläche risikobezogen reviewen: Aufruf- und Objektlebenszyklus, Registrierung, Plattform-/Buildflags, `BUILD.gn`-/`DEPS`-Kanten, Ownership, Threading/Reentrancy, Event-Targeting, Accessibility, Lokalisierung, Persistenz und Fehler-/Abbruchpfade. Bereits geprüfte unveränderte Flächen nicht erneut vollständig auditieren. Die kleinste nachweislich vollständige Ursachenbehebung ist ausreichend; die Zeilenzahl eines Fixes ist kein Qualitätsmaß.
 3. Den exakten neuen SHA als signiertes Bundle bauen und atomar nach `/Applications/AhoiBrowser.app` installieren. Build-, Signatur- und Installationsprüfungen sind Voraussetzungen für den Nutzertest, aber kein Ersatz dafür.
 4. Zuerst den betroffenen Fall vollständig per Computer Use wie ein echter Nutzer bedienen. Zustandsabhängige Fälle umfassen Drop oder Bestätigung, Abbruch, Workspace-/Fensterwechsel und App-Neustart; bloßes Öffnen, AX-Auslesen oder ein einzelner Screenshot genügt nicht.
-5. Erst nach dem sichtbaren `CU_E2E_PASS` dieses Falls dürfen seine fokussierten Unit-, Browser-, Integrations- und Repository-Tests laufen. Breite Suites folgen erst, wenn alle kontrollierbaren Recovery-Fälle sichtbar bestanden sind.
+5. Erst nach dem sichtbaren `CU_E2E_PASS` dieses Falls dürfen seine fokussierten Unit-, Browser-, Integrations- und Repository-Tests laufen. Ist dieser sichtbare Lauf durch eine konkret belegte technische Grenze unmöglich, bleiben unabhängige Tests zulässig; sie schließen den sichtbaren Fall nicht. Breite Suites folgen erst, wenn alle kontrollierbaren Recovery-Fälle sichtbar bestanden sind. Eng notwendige Sicherheitsprüfungen von Build-Werkzeugen dürfen deren erstem Einsatz vorausgehen.
 6. Meldet irgendein nachgelagerter programmatischer Test einen Defekt, wird korrigiert, neu gebaut und installiert und zuerst der betroffene sichtbare Computer-Use-Fall wiederholt. Erst danach wird der programmatische Test erneut ausgeführt.
 7. Jeder Lauf erhält SHA, Bundle-Hash, installiertes Bundle, Ausgangszustand, sichtbare Schritte, Ergebnis, Screenshots beziehungsweise zustandsbezogene Evidenz und gegebenenfalls exakt abgegrenzten externen Blocker. Quellcode, Buildgrün oder Prozentfortschritt zählen nicht als User-Pass.
 
@@ -300,7 +390,7 @@ Für jeden Patch müssen dokumentiert sein:
 
 Verwende eigene GN-Targets und klar getrennte Komponenten statt dauerhafter Shell-Kopiertricks. Jeder Chromium-Roll muss Patchkonflikte einzeln sichtbar machen.
 
-Für den aktiven M152-Pin ist die wartbare Serie auf drei Einträge konsolidiert: den Ahoi-Integrationspatch, deterministische Plattformtests und die isolierte Upstream-Tracing-Testkorrektur. Die frühere 21-Patch-M151-Serie bleibt über Recovery-Artefakte nachvollziehbar, ist aber keine parallel zu pflegende aktive Patchserie.
+Die aktive Serie ergibt sich ausschließlich aus `patches/chromium/series`. Frühere Drei-Eintrag-M152- und 21-Patch-M151-Stände bleiben historische Belege. Weder eine feste Patchanzahl noch ein älterer Kompositionspass darf den aktuellen Inhalt ersetzen. Große Sammelpatches nur entlang echter Upstream-Integrationsgrenzen aufteilen; keine kosmetische Neuordnung während eines laufenden Kandidatenbuilds.
 
 Entschlackung muss updatesicher erfolgen: Deaktiviere nicht benötigte Produktflächen bevorzugt über zentrale Branding-/Feature-Konfiguration, Dependency- und Build-Flags oder kleine dokumentierte Integrationspunkte. Entferne keine gemeinsam genutzten Chromium-Kernpfade nur für eine kleinere sichtbare Oberfläche. Jeder deaktivierte Upstream-Dienst besitzt Begründung, Privacy-/Security-Auswirkung, Abhängigkeitstest und Roll-Check; ein Chromium-Update darf keine Funktion still reaktivieren oder einen sicherheitsrelevanten Dienst versehentlich abschalten.
 
@@ -417,6 +507,29 @@ ohne Arc pixelgenau zu kopieren:
   konfigurierte Gruppenfarbe erzeugen abgerundete Hintergründe; der
   Grundzustand bleibt flach und ruhig.
 
+Für Ordner gilt verbindlich die Nutzerreferenz vom 4. September: kein separates
+Caret und keine dafür reservierte Leerfläche. Geschlossene und geöffnete Ordner
+haben optisch eindeutig unterschiedliche, gemeinsam definierte Vektoricons.
+Der ganze Zeilenkörper schaltet den Zustand; Drag, Kontextmenü und Umbenennen
+behalten ihre eigene Semantik. Pfeiltasten und VoiceOver exponieren weiterhin
+Baumebene, Auswahl und expanded/collapsed.
+
+Gültige benutzerdefinierte Ordnericons bleiben erhalten. Bekannte importierte
+Bezeichner wie `star` werden auf ein freigegebenes Icon abgebildet; unbekannte
+Werte erhalten einen sauberen Ordner-Fallback. Kein Bezeichner wird als Text in
+ein Favicon-Rechteck gemalt. Dekoration und Offen-/Geschlossen-Zustand müssen
+gleichzeitig erkennbar sein. Sidebar, Bookmark-Shelf und Menüs verwenden ein
+gemeinsames Icon- und Abstandsvokabular, aber weiterhin ihre vorhandenen Modelle.
+
+Zeilenhöhe, Einrückung, Iconfläche, Titelabstand und Aktionsreserve werden über
+wenige gemeinsame Tokens gesteuert. Ausgangspunkt sind die vorhandenen 40-DIP-
+Zeilen, 18-DIP-Ordnericons und etwa 8 DIP Titelabstand; die sichtbare Abnahme
+entscheidet über optische Korrekturen. Ordner-, Seiten- und Split-Titel haben
+ruhige Ausrichtung und echte Ellipse ohne Layoutsprung bei Hover. Lange deutsche
+Titel, tiefe Verschachtelung, schmale Sidebar, normale/Retina-Skalierung,
+Hell/Dunkel und hoher Kontrast gehören zu `TREE-12`, `TREE-13` und `A11Y-02`.
+Zusätzliche Luft darf die Dichte und erreichbare Titellänge nicht unnötig opfern.
+
 Verwende Chromium Views für Browsernavigation, Sidebar, Workspaces und Command Bar. Objective-C++/AppKit dient macOS-Integration, Fenstern, Menüs, Gesten, Systemappearance und Liquid Glass. Interne WebUI ist nur für komplexe Settings oder Editoren erlaubt, nicht als Browser-Orchestrator.
 
 ### Web-Popups als sichere Overlays
@@ -464,7 +577,7 @@ Implementiere:
 - Glass als normal aktivierbare Produktoption für Sidebar, schwebende Browserflächen, Popups und MiniPlayer mit einem einheitlichen Materialsystem;
 - auf unterstütztem macOS 26 ist Glass im Systemmodus standardmäßig aktiv, solange Accessibility-, Energie- oder Performancebedingungen keinen dokumentierten Fallback erfordern;
 - semantische Farben und Zustände;
-- optional aktivierbare, standardmäßig ausgeschaltete Seitenfarb-Tönung der Sidebar: bevorzugt wird die bereits geladene deklarierte `theme-color` des aktiven Panes, sonst eine lokal und auf feste Pixelzahl begrenzte Analyse des bereits geladenen Favicons; daraus entsteht nur ein dezenter Pastell-Overlay auf der semantischen Hell-/Dunkel-/Glass-Fläche;
+- abschaltbare, standardmäßig aktivierte Seitenfarb-Tönung der Sidebar entsprechend `RECOVERY-MAC-09` und der bestehenden Produktpräferenz: bevorzugt wird die bereits geladene deklarierte `theme-color` des aktiven Panes, sonst eine lokal und auf feste Pixelzahl begrenzte Analyse des bereits geladenen Favicons; daraus entsteht nur ein dezenter Pastell-Overlay auf der semantischen Hell-/Dunkel-/Glass-Fläche. Bestehende explizite Nutzerentscheidungen bleiben erhalten;
 - die Seitenfarb-Tönung löst niemals Netzwerkzugriffe, Seitenscreenshots oder unbeschränkte Bildanalyse aus, folgt dem aktiven Split-Pane ohne Flackern und ist bei hohem Kontrast vollständig deaktiviert.
 
 Nicht Bestandteil von v1 sind importierbare Theme-Pakete, frei programmierbare CSS-Themes für das Browser-Chrome oder ein Theme-Marktplatz.
@@ -683,11 +796,23 @@ Implementiere eine native, latenzarme Command Bar:
 - Extensions nur nach expliziter Inkognito-Freigabe;
 - vollständige Trennung von normalen Cookies und Website-Speichern.
 
+### Beenden auf macOS
+
+`⌘Q` und der Menüpunkt `AhoiBrowser beenden` müssen zuverlässig denselben
+geordneten Shutdown erreichen, einschließlich Before-Unload, Downloads und
+Session-Persistenz. Für neue Profile ist normales kurzes `⌘Q` die gewünschte
+macOS-Bedienung. Chromiums optionaler Halten-zum-Beenden-Schutz bleibt als klar
+benannte Einstellung nutzbar; eine bereits ausdrücklich gespeicherte Präferenz
+wird respektiert. Ist der Schutz aktiv, muss der Hinweis sichtbar erscheinen
+und gehaltenes `⌘Q` tatsächlich beenden. Ein synthetischer kurzer Tastendruck
+allein beweist weder einen Shutdown-Fehler noch den erfolgreichen Haltepfad.
+
 ### Navigation und Gesten
 
 - Chromiums auf macOS bereits vorhandene Zwei-Finger-/Magic-Mouse-Geste für Zurück beziehungsweise Vor bleibt unverändert erhalten und wird nur als Regression geprüft; AhoiBrowser implementiert dafür keinen zweiten Gestenpfad.
 - Der eigene Workspace-Wechsel muss sich eindeutig von Chromiums vorhandener Seitennavigation und horizontalem Website-Scroll unterscheiden. Die Gesture-Arena entscheidet erst nach Schwelle eindeutig und löst niemals zwei Aktionen aus.
 - Beim Workspace-Wechsel gleitet ausschließlich der Inhalt der Sidebar horizontal und richtungsgetreu; die Webseite beziehungsweise der Webview wird niemals seitlich verschoben. Wechselt mit dem Workspace auch das aktive Tab beziehungsweise `WebContents`, blendet nur der Webview-Bereich kurz über. Bleibt dasselbe `WebContents` aktiv, gibt es dort keinen künstlichen Effekt. Ein abgebrochener Wechsel stellt Sidebar, aktiven Dot, Baum, Tab, Split-Fokus und `WebContents` atomar wieder her. `Bewegung reduzieren` deaktiviert die räumliche Sidebar-Bewegung und verwendet nur dort eine kurze dezente Überblendung, wo sich Inhalt tatsächlich ändert.
+- Workspace-Dots, Tastatur und Geste verwenden denselben Wechselvertrag. Der animierte Bereich ist innerhalb der Sidebar geclippt; Fensterrahmen, feste Fußaktionen und fremde Browser-Layer werden nicht mitverschoben. Gesture-Preview und Commit/Abbruch sind explizite Zustände. Ein erst nach dem Commit abgespielter kurzer Slide ist nur ein Übergangseffekt und kein Nachweis einer interaktiven, abbrechbaren Wischgeste. Animationsabbruch setzt nur die von dieser Animation besessenen Eigenschaften zurück.
 - `⌘` plus Scroll beziehungsweise Trackpad-Scroll wechselt mit Delta-Schwelle, Rate-Limit und sichtbarer Vorschau zyklisch zwischen den aktuell laufenden/aktiven Tabs des Workspaces; die Funktion ist konfigurierbar und kollidiert nicht mit Webseitenzoom, horizontalem Seiten-Scroll oder Systemgesten.
 - Mittelklick in einer scrollbaren Webseite aktiviert Firefox-artiges Auto-Scrolling: Entfernung und Richtung des Cursors bestimmen kontinuierlich Richtung und Geschwindigkeit. Erneuter Mittelklick, primärer Klick, Escape, Tab-/Workspace-Wechsel oder Fokusverlust beendet es sofort.
 - Auto-Scrolling bleibt im Renderer-/Input-Pfad sicher, respektiert nicht scrollbare Flächen, verschachtelte Scroller, Zoom, reduzierte Bewegung und Pointer-Lock und darf keinen Browser-Chrome-Drag auslösen.
@@ -795,6 +920,16 @@ Für die konkrete Dogfood-Abnahme werden Erweiterungen ausschließlich im AhoiBr
 ## Migration aus Arc
 
 Implementiere Arc als erstklassige, wiederholbare Quelle in Ahois normaler kompakter Oberfläche `Browserdaten importieren`. Quelle, Profil, verfügbare Kategorien, eine kurze Vorschau, Bestätigung und Ergebnis folgen dem vertrauten Browsermuster; es entsteht kein eigener Onboarding- oder Transfer-Wizard. Intern migriert der Import Arc-Seitenleisten- und Browserdaten in das vorhandene Ahoi-Domänenmodell, kopiert niemals ein komplettes fremdes Chromium-Profil und führt Arc-Code nicht aus.
+
+Der macOS-Menüeintrag und die Einstellungen öffnen dieselbe Oberfläche, auch
+aus einem leeren Fenster. Im existierenden Dialog werden alle fünf sichtbaren
+Checkboxen gemeinsam ausgerichtet; mehrzeilige Labels, Fokus, Fehler und
+Disabled-Zustände bleiben korrekt. Bei der anschließenden Produktvereinfachung
+bleiben nur echte Kategorieentscheidungen Checkboxen: die automatisch und
+verpflichtend erstellte Sicherung ist ein verständlicher Status, und eine klar
+beschriftete primäre Importaktion ist die bewusste Zustimmung. Keine zwei
+gleichbedeutenden Zustimmungen zu derselben Mutation. Diese Vereinfachung darf
+Snapshot, Vorschau, Zielauswahl, Grenzen oder Rollback nicht umgehen.
 
 ### Discovery und sicherer Snapshot
 
@@ -973,10 +1108,16 @@ Distribution:
 
 - uBO ist nicht vorinstalliert und nicht automatisch aktiviert.
 - Eine optionale Ein-Klick-Installation wird in AhoiBrowser angeboten.
-- Vor Installation zeigt die UI Version, Upstream-Quelle, Extension-ID,
+- Vor Installation macht ein zugänglicher Detailbereich Version, Upstream-Quelle, Extension-ID,
   GPL-Lizenz, den vollständigen Release-Commit
   `6dd2d95e50d134a477a4e183343c0b26e9147123` und den vollständigen CRX-SHA-256
-  `b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e`.
+  `b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e` vollständig einsehbar.
+- Die Hauptfläche zeigt Name, Version, offizielle Quelle und verständliche
+  Berechtigungsfolgen. Vollständige IDs, Hashes, Release-Commit und Lizenz sind
+  über einen zugänglichen Detailbereich erreichbar und bleiben vollständig
+  geprüft. Technische Prüfdaten dürfen den Ein-Klick-Einstieg nicht zu einem
+  mehrseitigen Installationsassistenten machen. Chromiums Berechtigungsdialog
+  bleibt die maßgebliche Zugriffsentscheidung.
 - Die UI bezeichnet dieses Paket exakt als `Official GitHub release` und niemals
   als Chrome-Web-Store-Paket. Entpackte ZIPs, Developer-Mode-Installationen und
   neu signierte Ahoi-Repackages zählen nicht als dieser Pass.
@@ -1140,6 +1281,14 @@ Jede Cache-/Cookie-/Website-Daten-Löschung erzeugt vor der Bestätigung ein unv
 ## Privacy ohne Funktionsverlust
 
 Implementiere zwei klare Datenschutzmodi.
+
+Produktweite Entgooglifizierung gilt in beiden Modi: kein Chrome-Kontosync,
+keine Produkttelemetrie, Usage-Pings oder automatischen Crash-Uploads und keine
+ungefragten Produktdienste. Die Modi steuern zusätzliche Eingriffe in Websites,
+nicht die Freigabe dieser Hintergrunddienste. Normale Google-Webseiten, Logins
+und die konfigurierte Suchmaschine bleiben ausdrücklich unterstützt. Benötigte
+Sicherheitsendpunkte werden dokumentiert und gezielt erhalten; es gibt keine
+pauschale DNS-/Host-Sperre auf Google-Domains.
 
 ### `Mehr Schutz` – explizit aktivierbarer Zusatzschutz
 
@@ -1566,7 +1715,12 @@ Computer Use bedient AhoiBrowser wie ein echter Nutzer:
 
 Terminal oder interne APIs dienen ausschließlich für Build, Prozess-, Netzwerk-, Dateisystem- und Datenbank-Readback. Sie dürfen keinen sichtbaren User-Flow umgehen.
 
-Vor jedem CU-E2E-Lauf:
+Vor jedem sichtbaren Entwicklungs-E2E-Lauf gelten Kandidatenzuordnung,
+signierte atomare Installation, normale Produktflags und aktive
+Chromium-Sicherheitsgrenzen aus dem Abschnitt zur Entwicklungsabnahme.
+Vor einer Release-CU-E2E-Abnahme gelten zusätzlich die folgenden Schritte;
+unveränderte, bereits belegte Packaging-Schritte desselben Kandidaten werden
+nicht vor jeder einzelnen Journey wiederholt:
 
 1. Git-SHA und Chromium-Revision festhalten.
 2. Releaseartefakt bauen.
@@ -2075,7 +2229,7 @@ Vergleiche immer gegen unverändertes Chromium derselben Revision, auf derselben
 - `PERF-01`: Speedometer-Regression höchstens 3 Prozent.
 - `PERF-02`: Startzeit höchstens 10 Prozent schlechter.
 - `PERF-03`: Command Bar p95 unter 50 ms.
-- `PERF-04`: sichtbarer Workspace-Wechsel unter 100 ms.
+- `PERF-04`: sichtbare Reaktion und Commit eines vorbereiteten lokalen Workspace-Wechsels unter 100 ms; Daten-/Fokusumschaltung, erste präsentierte Rückmeldung und Animationsende getrennt messen. Die kurze optionale Auslaufanimation darf länger dauern, aber Eingabe und WebContents nicht blockieren. Renderer-/Netzwerk-Ladezeit wird separat ausgewiesen.
 - `PERF-05`: flüssiges Scrollen und Interagieren mit 10.000 Baumknoten, Ziel 120-Hz-tauglich.
 - `PERF-06`: eigener Memory-Overhead bei identischer 20-Tab-Sitzung höchstens 5 Prozent.
 - `PERF-07`: keine messbare eigene Idle-CPU-Last.
@@ -2315,8 +2469,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 - Linux;
 - Intel-Macs;
 - getrennte Chromium-Profile pro Workspace;
-- vollständiger iOS-Browser;
-- eingebettete iOS-WebView als Browserersatz;
+- Chromium als iOS-Engine oder ein zweites Companion-App-Produkt; der oben definierte native WebKit-Browser für iOS/iPadOS 26 ist ausdrücklich Bestandteil des Gesamtziels;
 - Chrome Sync;
 - Google-Browserkonto;
 - Cookie-Sync;
@@ -2365,16 +2518,15 @@ Kurze Statusmeldungen während langer Builds und Tests sollen Ergebnis, Beweisni
 
 ## Startanweisung
 
-Beginne jetzt mit Phase 0.
+Setze das vorhandene Projekt am belegten Checkpoint fort.
 
-1. Lies alle lokalen Agenten- und Skill-Anweisungen.
-2. Inventarisiere die reale Umgebung, ohne Annahmen über vorhandene Repositories oder Tools.
-3. Prüfe Hardware, Speicher, Xcode und Chromium-Voraussetzungen.
-4. Erstelle einen kurzen ausführbaren Arbeitsplan.
-5. Initialisiere die lokale Projektgrundlage.
-6. Starte den echten Chromium-ARM64-Bootstrap und Machbarkeitsspike.
-7. Führe nach dem ersten installierbaren Build unmittelbar den ersten Computer-Use-Smoke auf `/Applications/AhoiBrowser.app` aus.
-8. Fahre bei positivem Spike ohne erneute allgemeine Planungsrunde mit Phase 1 fort.
+1. Lies geltende Agenten-/Skill-Anweisungen und `docs/ACTIVE_DESKTOP_CHECKPOINT.md`.
+2. Prüfe nur den für die nächste Aktion relevanten aktuellen Quell-, Kandidaten-, Prozess- und Ownership-Stand.
+3. Bewahre gültige Implementierung und Evidenz; löse Widersprüche anhand des Nutzerauftrags und dieses Master-Prompts.
+4. Führe die dort festgehaltene nächste sichere Aktion aus. Prüfe vor einem benötigten Build vorhandene Kandidaten, Paketumfang, CPU-Gate und Checkout-Übergabe.
+5. Teste sichtbare Änderungen zuerst im exakt installierten Kandidaten, anschließend fokussiert programmatisch.
+6. Aktualisiere Checkpoint und zugehörige Evidenz, committe und pushe abgeschlossene eigene Arbeit, dann gehe zum nächsten definierten Paket über.
+7. Nur bei tatsächlich fehlender Projektgrundlage beginnt Phase 0 mit Bootstrap und Machbarkeitsspike.
 
 Antworte nicht lediglich mit einer weiteren Architekturübersicht und frage nicht pauschal, ob du beginnen sollst.
 
