@@ -554,6 +554,7 @@ class HTTPSClusterTests(unittest.TestCase):
             ]
             self.assertEqual(1, len(set_cookies))
             self.assertIn("Secure; HttpOnly; SameSite=Strict", set_cookies[0])
+            self.assertIn("Max-Age=86400", set_cookies[0])
             cookie_pairs.append(set_cookies[0].split(";", 1)[0])
 
         status, headers, result = self.json_request(

@@ -876,7 +876,7 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
                 headers=(
                     (
                         "Set-Cookie",
-                        "%s=%s; Path=/; Secure; HttpOnly; SameSite=Strict"
+                        "%s=%s; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400"
                         % (cookie_name, PRIVATE_DATA_MARKER_COOKIE_VALUE),
                     ),
                     ("Cache-Control", "no-store"),

@@ -177,9 +177,9 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        let webView = app.webViews.firstMatch
+        let webView = privacyWebView(in: app)
         let control = webView.buttons[label]
-        guard reveal(control, in: webView, file: file, line: line) else { return }
+        guard reveal(control, in: webView, app: app, file: file, line: line) else { return }
         control.tap()
     }
 
@@ -200,7 +200,8 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         ).firstMatch
         _ = reveal(
             renderedState,
-            in: app.webViews.firstMatch,
+            in: privacyWebView(in: app),
+            app: app,
             message: "\(message) Expected the rendered fixture state: \(expected)",
             file: file,
             line: line
@@ -211,6 +212,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
     private func reveal(
         _ element: XCUIElement,
         in webView: XCUIElement,
+        app: XCUIApplication,
         message: String = "The fixture element must become visibly hittable.",
         file: StaticString = #filePath,
         line: UInt = #line
@@ -233,17 +235,54 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         // initial viewport. A downward swipe at the document's top edge is a
         // real Ahoi pull-to-refresh gesture, so it must never be used as a
         // generic attempt to reveal an element.
-        for _ in 0..<8 where !element.isHittable { webView.swipeUp() }
+        for _ in 0..<8 {
+            let safeBottom = visibleContentBottom(in: app) - 12
+            if element.isHittable, element.frame.maxY <= safeBottom {
+                return true
+            }
+            webView.swipeUp()
+        }
 
-        guard element.isHittable else {
+        guard element.isHittable,
+              element.frame.maxY <= visibleContentBottom(in: app) - 12 else {
             XCTFail(
-                "\(message) The accessibility node existed but remained offscreen.",
+                "\(message) The accessibility node existed but remained outside the unobscured content area.",
                 file: file,
                 line: line
             )
             return false
         }
         return true
+    }
+
+    @MainActor
+    private func visibleContentBottom(in app: XCUIApplication) -> CGFloat {
+        let identifiers = [
+            "browser.harbor-deck.workspace",
+            "browser.back",
+            "browser.forward",
+            "browser.address",
+            "browser.address.private",
+            "browser.reload-stop",
+            "browser.tabs",
+            "browser.more",
+        ]
+        let chromeTop = identifiers.compactMap { identifier -> CGFloat? in
+            let element = app.descendants(matching: .any)
+                .matching(identifier: identifier).firstMatch
+            guard element.exists, !element.frame.isEmpty else { return nil }
+            return element.frame.minY
+        }.min()
+        return chromeTop ?? app.frame.maxY
+    }
+
+    @MainActor
+    private func privacyWebView(in app: XCUIApplication) -> XCUIElement {
+        let matchingWebViews = app.webViews.containing(
+            .staticText,
+            identifier: "Normal and private data isolation"
+        ).allElementsBoundByIndex.filter(\.exists)
+        return matchingWebViews.last ?? app.webViews.firstMatch
     }
 
     @MainActor
@@ -431,11 +470,27 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         file: StaticString,
         line: UInt
     ) {
+        let sheet = app.descendants(matching: .any)["browser.history.sheet"]
         let done = app.buttons["browser.history.done"]
+
+        // Activating SwiftUI's searchable field temporarily replaces the
+        // navigation toolbar with a search presentation. Close that search
+        // presentation through its visible system control before looking for
+        // the History sheet's own Done button.
+        if !done.exists {
+            let closeSearch = sheet.buttons.matching(NSPredicate(
+                format: "label IN %@",
+                ["Close", "Schließen", "Cancel", "Abbrechen"]
+            )).firstMatch
+            XCTAssertTrue(closeSearch.waitForExistence(timeout: 3), file: file, line: line)
+            XCTAssertTrue(closeSearch.isHittable, file: file, line: line)
+            closeSearch.tap()
+        }
+
         XCTAssertTrue(done.waitForExistence(timeout: 3), file: file, line: line)
         done.tap()
         XCTAssertTrue(
-            done.waitForNonExistence(timeout: 3),
+            sheet.waitForNonExistence(timeout: 3),
             file: file,
             line: line
         )
