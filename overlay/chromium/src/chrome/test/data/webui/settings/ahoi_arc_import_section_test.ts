@@ -7,6 +7,7 @@ import type {BrowserProfile, ImportDataBrowserProxy, SettingsImportDataDialogEle
 import {ImportDataBrowserProxyImpl} from 'chrome://settings/lazy_load.js';
 import {assertEquals, assertFalse, assertTrue} from 'chrome://webui-test/chai_assert.js';
 import {TestBrowserProxy} from 'chrome://webui-test/test_browser_proxy.js';
+import {microtasksFinished} from 'chrome://webui-test/test_util.js';
 
 type ArcImportStage =
     'idle'|'discovering'|'preview'|'committing'|'sourceInUse'|'done'|'error';
@@ -126,12 +127,12 @@ suite('AhoiArcStandardImportSurface', () => {
 
     dialog = document.createElement('settings-import-data-dialog');
     const prefs: {[key: string]: chrome.settingsPrivate.PrefObject} = {};
-    for (const key of [
-      'import_dialog_history',
-      'import_dialog_bookmarks',
-      'import_dialog_saved_passwords',
-      'import_dialog_search_engine',
-      'import_dialog_autofill_form_data',
+    for (const key
+             of ['import_dialog_history',
+                 'import_dialog_bookmarks',
+                 'import_dialog_saved_passwords',
+                 'import_dialog_search_engine',
+                 'import_dialog_autofill_form_data',
     ]) {
       prefs[key] = {
         key,
@@ -169,68 +170,71 @@ suite('AhoiArcStandardImportSurface', () => {
     };
   }
 
-  test('arcUsesTheStandardSourceSelectAndCannotCallStandardImport', async () => {
-    const optionLabels =
-        Array.from(dialog.$.browserSelect.options).map(option =>
-          option.textContent.trim());
-    assertEquals(3, optionLabels.length);
-    assertTrue(optionLabels[1]!.includes('Arc'));
-    assertEquals('Bookmarks HTML File', optionLabels[2]);
+  test(
+      'arcUsesTheStandardSourceSelectAndCannotCallStandardImport', async () => {
+        const optionLabels = Array.from(dialog.$.browserSelect.options)
+                                 .map(option => option.textContent.trim());
+        assertEquals(3, optionLabels.length);
+        assertTrue(optionLabels[1]!.includes('Arc'));
+        assertEquals('Bookmarks HTML File', optionLabels[2]);
 
-    selectSource(1);
-    const arcSection = getArcSection();
-    assertFalse(arcSection.hidden);
-    assertTrue(dialog.$.import.hidden);
-    assertTrue(dialog.$.import.disabled);
+        selectSource(1);
+        const arcSection = getArcSection();
+        assertFalse(arcSection.hidden);
+        assertTrue(dialog.$.import.hidden);
+        assertTrue(dialog.$.import.disabled);
 
-    dialog.$.import.click();
-    assertEquals(0, browserProxy.getCallCount('importData'));
-    assertEquals(0, browserProxy.getCallCount('importFromBookmarksFile'));
+        dialog.$.import.click();
+        assertEquals(0, browserProxy.getCallCount('importData'));
+        assertEquals(0, browserProxy.getCallCount('importFromBookmarksFile'));
 
-    selectSource(2);
-    assertTrue(arcSection.hidden);
-    assertFalse(dialog.$.import.hidden);
-    dialog.$.import.click();
-    await browserProxy.whenCalled('importFromBookmarksFile');
-    assertEquals(0, browserProxy.getCallCount('importData'));
-  });
+        selectSource(2);
+        assertTrue(arcSection.hidden);
+        assertFalse(dialog.$.import.hidden);
+        dialog.$.import.click();
+        await browserProxy.whenCalled('importFromBookmarksFile');
+        assertEquals(0, browserProxy.getCallCount('importData'));
+      });
 
-  test('splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitIsConfirmed',
-       async () => {
-    selectSource(1);
-    const arcSection = getArcSection();
-    arcSection.arcImportStage_ = 'preview';
-    arcSection.arcImportPreview_ = preview(0);
-    arcSection.arcSelectedProfiles_ = ['Default'];
-    arcSection.requestUpdate();
-    await arcSection.updateComplete;
+  test(
+      'splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitIsConfirmed',
+      async () => {
+        selectSource(1);
+        const arcSection = getArcSection();
+        arcSection.arcImportStage_ = 'preview';
+        arcSection.arcImportPreview_ = preview(0);
+        arcSection.arcSelectedProfiles_ = ['Default'];
+        arcSection.requestUpdate();
+        await arcSection.updateComplete;
 
-    assertEquals(7, arcSection.shadowRoot!.querySelectorAll(
-                       '.counts > li').length);
-    assertFalse(!!arcSection.shadowRoot!.querySelector(
-        'dt, dd, [role="term"]'));
-    assertFalse(!!arcSection.shadowRoot!.querySelector(
-        '#ahoiArcReconstructSplits'));
-    const commit = arcSection.shadowRoot!.querySelector<HTMLElement&{
-      disabled: boolean,
-    }>('#ahoiArcCommit')!;
-    assertTrue(commit.disabled);
+        assertEquals(
+            7, arcSection.shadowRoot!.querySelectorAll('.counts > li').length);
+        assertFalse(
+            !!arcSection.shadowRoot!.querySelector('dt, dd, [role="term"]'));
+        assertFalse(!!arcSection.shadowRoot!.querySelector(
+            '#ahoiArcReconstructSplits'));
+        const commit = arcSection.shadowRoot!.querySelector<HTMLElement&{
+          disabled: boolean,
+        }>('#ahoiArcCommit')!;
+        assertTrue(commit.disabled);
 
-    arcSection.arcImportPreview_ = preview(2);
-    arcSection.requestUpdate();
-    await arcSection.updateComplete;
-    assertTrue(!!arcSection.shadowRoot!.querySelector(
-        '#ahoiArcReconstructSplits'));
+        arcSection.arcImportPreview_ = preview(2);
+        arcSection.requestUpdate();
+        await arcSection.updateComplete;
+        assertTrue(!!arcSection.shadowRoot!.querySelector(
+            '#ahoiArcReconstructSplits'));
 
-    arcSection.shadowRoot!.querySelector<HTMLElement>(
-        '#ahoiArcBackupConfirmation')!.click();
-    await arcSection.updateComplete;
-    assertTrue(commit.disabled);
-    arcSection.shadowRoot!.querySelector<HTMLElement>(
-        '#ahoiArcCommitConfirmation')!.click();
-    await arcSection.updateComplete;
-    assertFalse(commit.disabled);
-  });
+        arcSection.shadowRoot!
+            .querySelector<HTMLElement>('#ahoiArcBackupConfirmation')!.click();
+        await microtasksFinished();
+        assertTrue(commit.disabled);
+        arcSection.shadowRoot!
+            .querySelector<HTMLElement>('#ahoiArcCommitConfirmation')!.click();
+        await microtasksFinished();
+        assertFalse(arcSection.shadowRoot!
+                        .querySelector<HTMLElement&{disabled: boolean}>(
+                            '#ahoiArcCommit')!.disabled);
+      });
 
   test('resultReportsImportedSkippedDegradedExcludedAndFourPane', async () => {
     selectSource(1);
@@ -249,11 +253,12 @@ suite('AhoiArcStandardImportSurface', () => {
     await arcSection.updateComplete;
 
     const resultText = (id: string) =>
-      arcSection.shadowRoot!.querySelector(id)!.textContent.trim();
-    assertEquals(9, arcSection.shadowRoot!.querySelectorAll(
-                       '.result-counts > li').length);
-    assertFalse(!!arcSection.shadowRoot!.querySelector(
-        'dt, dd, [role="term"]'));
+        arcSection.shadowRoot!.querySelector(id)!.textContent.trim();
+    assertEquals(
+        9,
+        arcSection.shadowRoot!.querySelectorAll('.result-counts > li').length);
+    assertFalse(
+        !!arcSection.shadowRoot!.querySelector('dt, dd, [role="term"]'));
     assertEquals('2', resultText('#ahoiArcResultWorkspaces'));
     assertEquals('1', resultText('#ahoiArcResultSkipped'));
     assertEquals('1', resultText('#ahoiArcResultDegraded'));

@@ -180,6 +180,9 @@ TEST(ArcImportTransactionTest, MergeTargetsExistingWorkspaceWithoutOverwrite) {
   EXPECT_EQ(4u, merged.merged_tree->nodes.size());
   EXPECT_EQ(current.nodes.front(), merged.merged_tree->nodes.front());
   EXPECT_EQ(1u, merged.merged_workspace_count);
+  ASSERT_TRUE(merged.applied_plan.has_value());
+  EXPECT_EQ(0u, merged.applied_plan->stats.imported_workspace_count);
+  EXPECT_EQ(1u, merged.applied_plan->stats.deduplicated_workspace_count);
   for (size_t index = current.nodes.size();
        index < merged.merged_tree->nodes.size(); ++index) {
     EXPECT_EQ(existing_workspace_id,

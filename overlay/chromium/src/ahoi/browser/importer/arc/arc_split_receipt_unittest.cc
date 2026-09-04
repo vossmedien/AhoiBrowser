@@ -170,6 +170,7 @@ TEST(ArcSplitReceiptTest, VerifiesExactDurableStructureAndFocus) {
   const SessionFixture fixture = Fixture(plan, SplitId(1));
   const ArcSplitReceipt receipt = Verify(plan, fixture, /*require_focus=*/true);
 
+  EXPECT_EQ(ArcSplitReceiptFailure::kNone, receipt.failure);
   EXPECT_EQ(ArcSplitVerification::kExact, receipt.verification);
   EXPECT_EQ(1u, receipt.verified_split_count);
   EXPECT_TRUE(receipt.focus_verified);
@@ -184,6 +185,8 @@ TEST(ArcSplitReceiptTest, ReceiptDoesNotHashEphemeralSplitId) {
 
   const ArcSplitReceipt first_receipt = Verify(plan, first);
   const ArcSplitReceipt second_receipt = Verify(plan, second);
+  EXPECT_EQ(ArcSplitReceiptFailure::kNone, first_receipt.failure);
+  EXPECT_EQ(ArcSplitReceiptFailure::kNone, second_receipt.failure);
   ASSERT_EQ(ArcSplitVerification::kExact, first_receipt.verification);
   ASSERT_EQ(ArcSplitVerification::kExact, second_receipt.verification);
   EXPECT_EQ(first_receipt.receipt_sha256, second_receipt.receipt_sha256);
@@ -266,10 +269,10 @@ TEST(ArcSplitReceiptTest, ChecksFocusOnlyWhenRequested) {
   SessionFixture fixture = Fixture(plan, SplitId(1));
   fixture.windows[0]->selected_tab_index = 0;
 
-  EXPECT_EQ(
-      ArcSplitVerification::kExact,
-      Verify(plan, fixture, /*require_focus=*/false, SessionID::InvalidValue())
-          .verification);
+  const ArcSplitReceipt without_focus =
+      Verify(plan, fixture, /*require_focus=*/false, SessionID::InvalidValue());
+  EXPECT_EQ(ArcSplitReceiptFailure::kNone, without_focus.failure);
+  EXPECT_EQ(ArcSplitVerification::kExact, without_focus.verification);
   EXPECT_EQ(ArcSplitVerification::kConflict,
             Verify(plan, fixture, /*require_focus=*/true).verification);
 
@@ -277,9 +280,10 @@ TEST(ArcSplitReceiptTest, ChecksFocusOnlyWhenRequested) {
   EXPECT_EQ(ArcSplitVerification::kConflict,
             Verify(plan, fixture, /*require_focus=*/true, SessionId(42))
                 .verification);
-  EXPECT_EQ(ArcSplitVerification::kExact,
-            Verify(plan, fixture, /*require_focus=*/true, SessionId(41))
-                .verification);
+  const ArcSplitReceipt exact_focus =
+      Verify(plan, fixture, /*require_focus=*/true, SessionId(41));
+  EXPECT_EQ(ArcSplitReceiptFailure::kNone, exact_focus.failure);
+  EXPECT_EQ(ArcSplitVerification::kExact, exact_focus.verification);
 }
 
 }  // namespace

@@ -341,6 +341,15 @@ ArcImportSnapshot SnapshotFor(std::string json) {
   return snapshot;
 }
 
+ArcImportBackupResult CreateArcImportBackupWithoutLiveSourceCheck(
+    const base::FilePath& ahoi_profile_path,
+    const ArcSource& source,
+    const std::string& snapshot_token) {
+  return internal::CreateArcImportBackupForTesting(
+      ahoi_profile_path, source, snapshot_token,
+      base::BindRepeating([](const ArcSource&) { return false; }));
+}
+
 bool ReplaceOnce(std::string* value,
                  std::string_view needle,
                  std::string_view replacement) {
@@ -695,7 +704,8 @@ TEST_F(ArcImportFileTest, CreatesVerifiedOwnerOnlyBackupFromStableGeneration) {
       base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar));
 
   const ArcImportBackupResult backup =
-      CreateArcImportBackup(AhoiProfile(), *discovery.source, token);
+      CreateArcImportBackupWithoutLiveSourceCheck(AhoiProfile(),
+                                                  *discovery.source, token);
 
   ASSERT_EQ(ArcImportStatus::kOk, backup.status);
   EXPECT_TRUE(base::PathExists(
@@ -720,9 +730,10 @@ TEST_F(ArcImportFileTest, BackupRejectsFifoWithoutBlocking) {
   ASSERT_EQ(ArcImportStatus::kOk, discovery.status);
   ASSERT_TRUE(discovery.source.has_value());
 
-  const ArcImportBackupResult backup = CreateArcImportBackup(
-      AhoiProfile(), *discovery.source,
-      base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
+  const ArcImportBackupResult backup =
+      CreateArcImportBackupWithoutLiveSourceCheck(
+          AhoiProfile(), *discovery.source,
+          base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
 
   EXPECT_EQ(ArcImportStatus::kBackupError, backup.status);
   EXPECT_TRUE(backup.backup_directory.empty());
@@ -742,9 +753,10 @@ TEST_F(ArcImportFileTest, BackupRejectsLeafSymlinkInsteadOfFollowingIt) {
   ASSERT_EQ(ArcImportStatus::kOk, discovery.status);
   ASSERT_TRUE(discovery.source.has_value());
 
-  const ArcImportBackupResult backup = CreateArcImportBackup(
-      AhoiProfile(), *discovery.source,
-      base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
+  const ArcImportBackupResult backup =
+      CreateArcImportBackupWithoutLiveSourceCheck(
+          AhoiProfile(), *discovery.source,
+          base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
 
   EXPECT_EQ(ArcImportStatus::kBackupError, backup.status);
   EXPECT_TRUE(backup.backup_directory.empty());
@@ -764,9 +776,10 @@ TEST_F(ArcImportFileTest, BackupNamesRemainUniqueForSimilarProfileNames) {
         {.directory_name = std::move(name), .path = profile});
   }
 
-  const ArcImportBackupResult backup = CreateArcImportBackup(
-      AhoiProfile(), source,
-      base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
+  const ArcImportBackupResult backup =
+      CreateArcImportBackupWithoutLiveSourceCheck(
+          AhoiProfile(), source,
+          base::HexEncodeLower(crypto::hash::Sha256(kValidArcSidebar)));
 
   ASSERT_EQ(ArcImportStatus::kOk, backup.status);
   const std::string first_key =

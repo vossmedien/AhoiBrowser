@@ -30,6 +30,25 @@ enum class ArcSplitVerification {
   kUnavailable,
 };
 
+// Privacy-safe classification for a failed durable-session verification. It
+// deliberately contains no tab titles, URLs, source paths, or runtime IDs.
+enum class ArcSplitReceiptFailure {
+  kNotAttempted = 0,
+  kNone,
+  kInvalidStructure,
+  kInvalidTargetWindowId,
+  kDuplicateTargetWindow,
+  kInvalidTargetWindow,
+  kDuplicateMemberMetadata,
+  kInvalidMember,
+  kMemberOrderMismatch,
+  kInvalidSplitMembership,
+  kUnexpectedSplitMembership,
+  kInvalidSplitVisualRecord,
+  kInvalidFocusContext,
+  kFocusMismatch,
+};
+
 struct ArcSplitVisualExpectation {
   split_tabs::SplitTabVisualData visual_data;
   bool approximated_four_pane_ratios = false;
@@ -37,6 +56,7 @@ struct ArcSplitVisualExpectation {
 
 struct ArcSplitReceipt {
   ArcSplitVerification verification = ArcSplitVerification::kUnavailable;
+  ArcSplitReceiptFailure failure = ArcSplitReceiptFailure::kNotAttempted;
   size_t verified_split_count = 0;
   bool focus_verified = false;
   std::string structure_sha256;

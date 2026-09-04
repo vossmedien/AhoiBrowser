@@ -117,8 +117,10 @@ bool MembersFollowSourceOrder(
 }
 
 ArcSplitReceipt FailReceipt(ArcSplitReceipt receipt,
-                            ArcSplitVerification verification) {
+                            ArcSplitVerification verification,
+                            ArcSplitReceiptFailure failure) {
   receipt.verification = verification;
+  receipt.failure = failure;
   receipt.verified_split_count = 0;
   receipt.focus_verified = false;
   receipt.receipt_sha256.clear();
@@ -269,15 +271,18 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
   ArcSplitReceipt receipt;
   receipt.structure_sha256 = ComputeArcSplitStructureFingerprint(plan);
   if (receipt.structure_sha256.empty()) {
-    return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+    return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                       ArcSplitReceiptFailure::kInvalidStructure);
   }
   if (!target_window_id.is_valid()) {
-    return FailReceipt(std::move(receipt), ArcSplitVerification::kUnavailable);
+    return FailReceipt(std::move(receipt), ArcSplitVerification::kUnavailable,
+                       ArcSplitReceiptFailure::kInvalidTargetWindowId);
   }
 
   NodeMap nodes;
   if (!BuildNodeMap(plan, &nodes)) {
-    return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+    return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                       ArcSplitReceiptFailure::kInvalidStructure);
   }
   std::set<base::Uuid> expected_member_ids;
   for (const ArcSplitDescriptor& split : plan.splits) {
@@ -293,7 +298,8 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
     }
     if (window->window_id == target_window_id) {
       if (target_window) {
-        return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+        return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                           ArcSplitReceiptFailure::kDuplicateTargetWindow);
       }
       target_window = window.get();
     }
@@ -314,20 +320,26 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
           !expected_member_ids.contains(*metadata.tree_node_id)) {
         continue;
       }
+      // Preserve the key before moving `metadata` into the map value. Function
+      // argument evaluation order must not allow the move to invalidate the
+      // UUID that is also used as the map key.
+      const base::Uuid tree_node_id = *metadata.tree_node_id;
       if (!decoded_members
-               .emplace(*metadata.tree_node_id,
+               .emplace(tree_node_id,
                         DecodedSessionMember{.window = window.get(),
                                              .tab = tab,
                                              .position = position,
                                              .metadata = std::move(metadata)})
                .second) {
-        return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+        return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                           ArcSplitReceiptFailure::kDuplicateMemberMetadata);
       }
     }
   }
   if (!target_window ||
       target_window->type != sessions::SessionWindow::TYPE_NORMAL) {
-    return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+    return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                       ArcSplitReceiptFailure::kInvalidTargetWindow);
   }
 
   std::set<SessionID> claimed_session_tab_ids;
@@ -353,13 +365,15 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
               nodes.at(member_id)->workspace_id ||
           !claimed_session_tab_ids.insert(decoded_it->second.tab->tab_id)
                .second) {
-        return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+        return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                           ArcSplitReceiptFailure::kInvalidMember);
       }
       members.push_back(&decoded_it->second);
       verified_members.emplace(member_id, &decoded_it->second);
     }
     if (!MembersFollowSourceOrder(members)) {
-      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                         ArcSplitReceiptFailure::kMemberOrderMismatch);
     }
 
     const std::optional<split_tabs::SplitTabId> split_id =
@@ -369,7 +383,8 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
         !std::ranges::all_of(members, [&](const DecodedSessionMember* member) {
           return member->tab->split_id == split_id;
         })) {
-      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                         ArcSplitReceiptFailure::kInvalidSplitMembership);
     }
 
     size_t observed_member_count = 0;
@@ -385,13 +400,15 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
         if (window.get() != target_window ||
             std::ranges::find(members, tab.get(), &DecodedSessionMember::tab) ==
                 members.end()) {
-          return FailReceipt(std::move(receipt),
-                             ArcSplitVerification::kConflict);
+          return FailReceipt(
+              std::move(receipt), ArcSplitVerification::kConflict,
+              ArcSplitReceiptFailure::kUnexpectedSplitMembership);
         }
       }
     }
     if (observed_member_count != members.size()) {
-      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                         ArcSplitReceiptFailure::kUnexpectedSplitMembership);
     }
 
     const sessions::SessionSplitTab* matching_split = nullptr;
@@ -408,14 +425,16 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
         ++matching_split_count;
         if (window.get() != target_window) {
           return FailReceipt(std::move(receipt),
-                             ArcSplitVerification::kConflict);
+                             ArcSplitVerification::kConflict,
+                             ArcSplitReceiptFailure::kInvalidSplitVisualRecord);
         }
         matching_split = candidate.get();
       }
     }
     if (matching_split_count != 1u || !matching_split ||
         matching_split->split_visual_data_ != visual.visual_data) {
-      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                         ArcSplitReceiptFailure::kInvalidSplitVisualRecord);
     }
 
     receipt_writer.WriteString("split");
@@ -437,7 +456,8 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
         target_window->selected_tab_index < 0 ||
         static_cast<size_t>(target_window->selected_tab_index) >=
             target_window->tabs.size()) {
-      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                         ArcSplitReceiptFailure::kInvalidFocusContext);
     }
     const base::Uuid& expected_focus =
         plan.splits.back().focused_member_node_id;
@@ -446,7 +466,8 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
         target_window->tabs[target_window->selected_tab_index].get();
     if (focused_it == verified_members.end() || !selected_tab ||
         selected_tab != focused_it->second->tab) {
-      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict);
+      return FailReceipt(std::move(receipt), ArcSplitVerification::kConflict,
+                         ArcSplitReceiptFailure::kFocusMismatch);
     }
     receipt.focus_verified = true;
     receipt_writer.WriteUuid(expected_focus);
@@ -454,6 +475,7 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
   }
 
   receipt.verification = ArcSplitVerification::kExact;
+  receipt.failure = ArcSplitReceiptFailure::kNone;
   receipt.receipt_sha256 = receipt_writer.Finish();
   return receipt;
 }

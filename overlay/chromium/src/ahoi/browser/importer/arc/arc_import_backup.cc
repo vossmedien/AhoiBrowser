@@ -27,6 +27,7 @@
 #include "base/files/file_enumerator.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_file.h"
+#include "base/functional/bind.h"
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/posix/eintr_wrapper.h"
@@ -573,12 +574,15 @@ bool PruneArcImportBackupsForTesting(
 
 }  // namespace internal
 
-ArcImportBackupResult CreateArcImportBackup(
+namespace {
+
+ArcImportBackupResult CreateArcImportBackupWithSourceUseCheck(
     const base::FilePath& ahoi_profile_path,
     const ArcSource& arc_source,
-    const std::string& expected_snapshot_token) {
+    const std::string& expected_snapshot_token,
+    const internal::ArcSourceUseCheck& source_use_check) {
   ArcImportBackupResult result;
-  if (IsArcApplicationRunning() || AreArcProfileFilesOpen(arc_source)) {
+  if (!source_use_check || source_use_check.Run(arc_source)) {
     result.status = ArcImportStatus::kSourceInUse;
     return result;
   }
@@ -746,8 +750,7 @@ ArcImportBackupResult CreateArcImportBackup(
       break;
     }
   }
-  if (success &&
-      (IsArcApplicationRunning() || AreArcProfileFilesOpen(arc_source))) {
+  if (success && source_use_check.Run(arc_source)) {
     result.status = ArcImportStatus::kSourceInUse;
     success = false;
   }
@@ -794,5 +797,31 @@ ArcImportBackupResult CreateArcImportBackup(
   result.manifest_sha256 = base::HexEncodeLower(crypto::hash::Sha256(json));
   return result;
 }
+
+}  // namespace
+
+ArcImportBackupResult CreateArcImportBackup(
+    const base::FilePath& ahoi_profile_path,
+    const ArcSource& arc_source,
+    const std::string& expected_snapshot_token) {
+  return CreateArcImportBackupWithSourceUseCheck(
+      ahoi_profile_path, arc_source, expected_snapshot_token,
+      base::BindRepeating([](const ArcSource& source) {
+        return IsArcApplicationRunning() || AreArcProfileFilesOpen(source);
+      }));
+}
+
+namespace internal {
+
+ArcImportBackupResult CreateArcImportBackupForTesting(
+    const base::FilePath& ahoi_profile_path,
+    const ArcSource& arc_source,
+    const std::string& expected_snapshot_token,
+    ArcSourceUseCheck source_use_check) {
+  return CreateArcImportBackupWithSourceUseCheck(
+      ahoi_profile_path, arc_source, expected_snapshot_token, source_use_check);
+}
+
+}  // namespace internal
 
 }  // namespace ahoi::importer::arc

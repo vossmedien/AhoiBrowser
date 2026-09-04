@@ -12,6 +12,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/functional/bind.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
@@ -59,7 +60,9 @@ class ArcImportRecoveryTest : public testing::Test {
                      .browser_profiles = {{.directory_name = "Default",
                                            .path = arc_profile_}},
                      .sidebar_file = sidebar_path_};
-    return CreateArcImportBackup(profile_path_, source, SnapshotHash());
+    return internal::CreateArcImportBackupForTesting(
+        profile_path_, source, SnapshotHash(),
+        base::BindRepeating([](const ArcSource&) { return false; }));
   }
 
   std::string SnapshotHash() const {

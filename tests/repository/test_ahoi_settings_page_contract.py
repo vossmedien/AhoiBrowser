@@ -221,6 +221,7 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
                 "arc_import_backup.cc",
                 "arc_import_discovery.cc",
                 "arc_import_service.cc",
+                "arc_split_receipt.cc",
                 "arc_split_runtime.cc",
             )
         )
@@ -273,7 +274,8 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "FlushPersistenceForBackup",
             "CreateArcImportBackup",
             "RollbackAndFinish",
-            "ExistingSplitMatches",
+            "InspectRuntimeSplit",
+            "VerifyArcSplitSessionWindows",
             "committed_journal_state_->idempotency_key == idempotency_key",
         ):
             self.assertIn(marker, combined_backend)
@@ -304,13 +306,15 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         start = self.arc_import_service.index(
             "ArcImportService::DiscoverImport("
         )
-        end = self.arc_import_service.index("ArcImportService::CommitResult")
+        end = self.arc_import_service.index(
+            "void ArcImportService::Commit(", start
+        )
         discovery = self.arc_import_service[start:end]
         ordered_markers = (
             "InspectDefaultArcApplication()",
             "DiscoverArcSourceAt(application_support_dir)",
             "CaptureArcSnapshot(*discovery.source)",
-            "ParseArcSnapshot(std::move(*snapshot.snapshot))",
+            "ParseArcSnapshot(*snapshot.snapshot)",
             "AreArcProfileFilesOpen(*discovery.source)",
         )
         positions = [discovery.index(marker) for marker in ordered_markers]

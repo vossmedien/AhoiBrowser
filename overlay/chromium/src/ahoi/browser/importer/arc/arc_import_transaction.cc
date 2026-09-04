@@ -159,6 +159,7 @@ ArcImportMergeResult MergeArcImportPlan(
       if (conflict_resolution == ArcConflictResolution::kMerge) {
         workspace_remap.emplace(workspace.id, name_it->id);
         ++result.merged_workspace_count;
+        ++applied.stats.deduplicated_workspace_count;
         continue;
       }
       workspace.name = UniqueWorkspaceName(workspace.name, workspace_names);

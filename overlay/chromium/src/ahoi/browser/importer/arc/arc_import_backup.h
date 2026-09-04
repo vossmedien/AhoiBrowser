@@ -12,6 +12,7 @@
 
 #include "ahoi/browser/importer/arc/arc_import_types.h"
 #include "base/files/file_path.h"
+#include "base/functional/callback_forward.h"
 
 namespace ahoi::importer::arc {
 
@@ -41,6 +42,16 @@ ArcImportBackupResult CreateArcImportBackup(
     const std::string& expected_snapshot_token);
 
 namespace internal {
+
+using ArcSourceUseCheck = base::RepeatingCallback<bool(const ArcSource&)>;
+
+// Hermetic seam for backup tests. Production always supplies the fail-closed
+// live Arc process/open-file check through CreateArcImportBackup().
+ArcImportBackupResult CreateArcImportBackupForTesting(
+    const base::FilePath& ahoi_profile_path,
+    const ArcSource& arc_source,
+    const std::string& expected_snapshot_token,
+    ArcSourceUseCheck source_use_check);
 
 // Pure resource-boundary seam for deterministic overflow/quota tests.
 ArcImportStatus CheckArcImportBackupResources(
