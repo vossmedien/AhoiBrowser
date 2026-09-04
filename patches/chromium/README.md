@@ -734,6 +734,45 @@ as a second active patch stack.
   or migrate the resource seam if Chromium gains an equivalent custom importer
   status facility.
 
+## `0028-ahoi-empty-window-commands-and-quit.patch`
+
+- **Owner:** AhoiBrowser Desktop.
+- **Upstream baseline:** the pinned M152 tree after the preceding series.
+- **Affected paths:** central browser command dispatch and macOS quit preference.
+- **Rationale:** the real native Import menu action returned success without
+  executing in a zero-tab Ahoi window. An explicit list of tab-independent
+  window/profile commands can now execute in constructed normal windows.
+  Tab-dependent operations and other window types retain Chromium's guard.
+  Fresh local state uses normal short Command-Q; explicit hold-to-quit choices
+  are preserved by changing only the registered default.
+- **Tests:** visible empty-window native menu import first, then
+  `VerticalTabStripRegionViewTest.AhoiImportCommandFromEmptyWindowOpensSettings`,
+  which uses the actual command dispatcher and expects exactly one Settings tab.
+  Normal menu/short/held quit, Before-Unload and restart are visible gates.
+- **Security/privacy impact:** no new privilege or importer route, no synthetic
+  page needed to enable window actions, no change to permission/policy checks.
+  Imports still use Chromium's normal Settings route and explicit import consent.
+- **Expected rebase risk:** low-to-medium at the command-dispatch guard.
+- **Removal/upstream plan:** remove the whitelist when upstream command
+  eligibility correctly supports a persistent zero-tab normal window. The
+  product quit default remains an intentional, reversible preference choice.
+
+## `0029-ahoi-arc-import-backup-notice.patch`
+
+- **Owner:** AhoiBrowser Desktop.
+- **Affected paths:** English GRIT message and its matching German translation.
+- **Rationale:** the mandatory backup is explained as a status next to the
+  explicit Import action, replacing two redundant confirmation checkboxes.
+  The overlay keeps genuine profile/category choices and its flex layout fix.
+- **Security/privacy impact:** backend snapshot, backup, confirmation, journal
+  and rollback checks are unchanged. Both authorizations are sent only by the
+  primary click on a valid preview; the synchronous committing stage prevents
+  duplicate submissions. No source or profile mutation occurs during preview.
+- **Tests:** visible source/preview/category selection and deliberate import,
+  then focused Settings WebUI and Arc transaction regression coverage.
+- **Rebase/removal:** low-risk message-context hunk; the German ID is computed
+  by Chromium GRIT from the exact new English text and preserved meaning.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

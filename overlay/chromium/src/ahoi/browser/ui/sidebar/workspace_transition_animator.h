@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_UI_SIDEBAR_WORKSPACE_TRANSITION_ANIMATOR_H_
 
 #include "base/memory/weak_ptr.h"
+#include "ui/gfx/geometry/transform.h"
 
 namespace ui {
 class Layer;
@@ -53,16 +54,18 @@ class WorkspaceTransitionAnimator final {
   bool is_animating() const;
 
  private:
-  void ResetLayer(ui::Layer* layer);
-  void AnimateSidebarLayer(
-      ui::Layer* layer,
-      const WorkspaceTransitionVisualState& initial_state);
-  void AnimateContentsLayer(
-      ui::Layer* layer,
-      const WorkspaceTransitionVisualState& initial_state);
+  void AnimateSidebarLayer(ui::Layer* layer,
+                           const WorkspaceTransitionVisualState& initial_state);
+  void AnimateContentsLayer(ui::Layer* layer,
+                            const WorkspaceTransitionVisualState& initial_state,
+                            float resting_opacity);
 
   base::WeakPtr<ui::Layer> sidebar_layer_;
   base::WeakPtr<ui::Layer> contents_layer_;
+  gfx::Transform sidebar_resting_transform_;
+  float sidebar_resting_opacity_ = 1.0f;
+  float contents_resting_opacity_ = 1.0f;
+  bool sidebar_fades_ = false;
 };
 
 }  // namespace ahoi::sidebar

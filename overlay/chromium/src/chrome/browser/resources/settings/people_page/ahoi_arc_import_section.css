@@ -37,6 +37,7 @@
 .status:not(:empty),
 .warning,
 .exclusions,
+.backup-notice,
 .result {
   margin-top: 12px;
 }
@@ -92,6 +93,8 @@
 
 .arc-import-checkbox::part(label-container) {
   line-height: 20px;
+  /* Center the native 16px control on the first line, including wrapped text. */
+  margin-block-start: calc((var(--cr-checkbox-size, 16px) - 20px) / 2);
   min-width: 0;
 }
 

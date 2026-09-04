@@ -26,3 +26,5 @@
 0025-ahoi-import-source-truth.patch
 0026-ahoi-extension-accelerator-compatibility.patch
 0027-ahoi-arc-schema-preview-and-sidebar-a11y.patch
+0028-ahoi-empty-window-commands-and-quit.patch
+0029-ahoi-arc-import-backup-notice.patch

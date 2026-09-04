@@ -81,8 +81,11 @@ class SidebarTreeRowView final : public views::View,
   bool is_split_segment_for_testing() const { return split_segment_count_ > 1; }
   bool is_split_drop_target_for_testing() const { return split_drop_target_; }
   bool disclosure_visible_for_testing() const;
-  bool uses_open_folder_icon_for_testing() const {
+  bool uses_open_folder_icon() const {
     return is_folder() && expanded_ && !folder_navigation_result_;
+  }
+  bool uses_open_folder_icon_for_testing() const {
+    return uses_open_folder_icon();
   }
   bool title_visible_for_testing() const;
   gfx::Rect title_bounds_for_testing() const;
@@ -138,6 +141,9 @@ class SidebarTreeRowView final : public views::View,
   size_t sibling_count_ = 0;
   tab_tree::TreeNodeType type_ = tab_tree::TreeNodeType::kFolder;
   std::u16string title_;
+  std::u16string folder_icon_id_;
+  ui::ImageModel folder_emblem_;
+  std::u16string folder_glyph_;
   std::optional<uint32_t> accent_argb_;
   ui::ImageModel page_icon_;
   ui::ImageModel media_indicator_;

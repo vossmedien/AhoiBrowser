@@ -25,9 +25,12 @@
 #include "ui/base/mojom/dialog_button.mojom.h"
 #include "ui/base/mojom/ui_base_types.mojom-shared.h"
 #include "ui/gfx/geometry/insets.h"
+#include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/border.h"
+#include "ui/views/controls/button/label_button.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/progress_bar.h"
+#include "ui/views/controls/scroll_view.h"
 #include "ui/views/layout/box_layout.h"
 #include "ui/views/layout/layout_provider.h"
 #include "ui/views/view.h"
@@ -38,9 +41,10 @@ namespace ahoi::extensions {
 namespace {
 
 // `DialogDelegate` is deliberately kept separate from its contents view. The
-// widget owns the view hierarchy, and this contents view owns the delegate until
-// that hierarchy is torn down. This follows the client-ownership direction of
-// Views without extending WidgetDelegate's deprecated ownership pass-key list.
+// widget owns the view hierarchy, and this contents view owns the delegate
+// until that hierarchy is torn down. This follows the client-ownership
+// direction of Views without extending WidgetDelegate's deprecated ownership
+// pass-key list.
 class UboDialogContents final : public views::View {
  public:
   UboDialogContents() = default;
@@ -66,6 +70,17 @@ std::unique_ptr<views::Label> MakeBodyLabel(int string_id) {
   return label;
 }
 
+std::unique_ptr<views::Label> MakeMetadataLabel(std::u16string text = {}) {
+  auto label = std::make_unique<views::Label>(
+      text, views::style::CONTEXT_DIALOG_BODY_TEXT);
+  label->SetSubpixelRenderingEnabled(false);
+  label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  label->SetMultiLine(true);
+  label->SetAllowCharacterBreak(true);
+  label->SetSelectable(true);
+  return label;
+}
+
 std::u16string MetadataText(int label_id, std::string_view value) {
   return base::StrCat(
       {l10n_util::GetStringUTF16(label_id), u": ", base::UTF8ToUTF16(value)});
@@ -87,12 +102,9 @@ std::u16string InventoryStateText(const UboExtensionState& state) {
                                      : IDS_AHOI_UBO_INVENTORY_NOT_READY)});
 }
 
-std::u16string InventoryText(int label_id,
-                             std::string_view extension_id,
-                             const UboExtensionState& state) {
-  return base::StrCat({l10n_util::GetStringUTF16(label_id), u": ",
-                       base::UTF8ToUTF16(extension_id), u" — ",
-                       InventoryStateText(state)});
+std::u16string InventoryText(int label_id, const UboExtensionState& state) {
+  return base::StrCat(
+      {l10n_util::GetStringUTF16(label_id), u": ", InventoryStateText(state)});
 }
 
 }  // namespace
@@ -126,25 +138,15 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
   progress_->SetPreferredHeight(ui_tokens::kProgressHeight);
   progress_->SetValue(-1);
 
-  metadata_ = contents->AddChildView(std::make_unique<views::View>());
-  auto* metadata_layout =
-      metadata_->SetLayoutManager(std::make_unique<views::BoxLayout>());
-  metadata_layout->SetOrientation(views::BoxLayout::Orientation::kVertical);
-  metadata_layout->set_cross_axis_alignment(
+  summary_ = contents->AddChildView(std::make_unique<views::View>());
+  auto* summary_layout =
+      summary_->SetLayoutManager(std::make_unique<views::BoxLayout>());
+  summary_layout->SetOrientation(views::BoxLayout::Orientation::kVertical);
+  summary_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kStretch);
-  metadata_layout->set_between_child_spacing(ui_tokens::kRelatedSpacing);
-  version_ = metadata_->AddChildView(std::make_unique<views::Label>());
-  extension_id_ = metadata_->AddChildView(std::make_unique<views::Label>());
-  upstream_ = metadata_->AddChildView(std::make_unique<views::Label>());
-  hash_ = metadata_->AddChildView(std::make_unique<views::Label>());
-  license_ = metadata_->AddChildView(std::make_unique<views::Label>());
-  for (views::Label* label : {version_.get(), extension_id_.get(),
-                              upstream_.get(), hash_.get(), license_.get()}) {
-    label->SetSubpixelRenderingEnabled(false);
-    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    label->SetMultiLine(true);
-    label->SetSelectable(true);
-  }
+  summary_layout->set_between_child_spacing(ui_tokens::kRelatedSpacing);
+  version_ = summary_->AddChildView(MakeMetadataLabel());
+  source_ = summary_->AddChildView(MakeMetadataLabel());
 
   views::View* inventory =
       contents->AddChildView(std::make_unique<views::View>());
@@ -154,23 +156,56 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
   inventory_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kStretch);
   inventory_layout->set_between_child_spacing(ui_tokens::kRelatedSpacing);
-  pinned_classic_inventory_ =
-      inventory->AddChildView(std::make_unique<views::Label>());
-  former_classic_inventory_ =
-      inventory->AddChildView(std::make_unique<views::Label>());
-  lite_inventory_ = inventory->AddChildView(std::make_unique<views::Label>());
-  for (views::Label* label :
-       {pinned_classic_inventory_.get(), former_classic_inventory_.get(),
-        lite_inventory_.get()}) {
-    label->SetSubpixelRenderingEnabled(false);
-    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    label->SetMultiLine(true);
-    label->SetSelectable(true);
-  }
+  pinned_classic_inventory_ = inventory->AddChildView(MakeMetadataLabel());
+  former_classic_inventory_ = inventory->AddChildView(MakeMetadataLabel());
+  lite_inventory_ = inventory->AddChildView(MakeMetadataLabel());
 
   contents->AddChildView(MakeBodyLabel(IDS_AHOI_UBO_SECURITY_NOTICE));
-  contents->AddChildView(MakeBodyLabel(IDS_AHOI_UBO_GPL_NOTICE));
   contents->AddChildView(MakeBodyLabel(IDS_AHOI_UBO_CONFIRM_NOTICE));
+
+  details_button_ = contents->AddChildView(std::make_unique<views::LabelButton>(
+      base::BindRepeating(&UboInstallDialog::ToggleDetails,
+                          weak_ptr_factory_.GetWeakPtr()),
+      l10n_util::GetStringUTF16(IDS_EXTENSIONS_SHOW_DETAILS)));
+  details_button_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  details_button_->SetFocusBehavior(views::View::FocusBehavior::ALWAYS);
+  details_button_->GetViewAccessibility().SetIsCollapsed();
+
+  details_ = contents->AddChildView(std::make_unique<views::ScrollView>());
+  details_->SetHorizontalScrollBarMode(
+      views::ScrollView::ScrollBarMode::kDisabled);
+  details_->ClipHeightTo(
+      0, views::LayoutProvider::Get()->GetDistanceMetric(
+             views::DISTANCE_DIALOG_SCROLLABLE_AREA_MAX_HEIGHT));
+  auto details_contents = std::make_unique<views::View>();
+  auto* details_layout =
+      details_contents->SetLayoutManager(std::make_unique<views::BoxLayout>());
+  details_layout->SetOrientation(views::BoxLayout::Orientation::kVertical);
+  details_layout->set_cross_axis_alignment(
+      views::BoxLayout::CrossAxisAlignment::kStretch);
+  details_layout->set_between_child_spacing(ui_tokens::kRelatedSpacing);
+
+  metadata_ = details_contents->AddChildView(std::make_unique<views::View>());
+  auto* metadata_layout =
+      metadata_->SetLayoutManager(std::make_unique<views::BoxLayout>());
+  metadata_layout->SetOrientation(views::BoxLayout::Orientation::kVertical);
+  metadata_layout->set_cross_axis_alignment(
+      views::BoxLayout::CrossAxisAlignment::kStretch);
+  metadata_layout->set_between_child_spacing(ui_tokens::kRelatedSpacing);
+  extension_id_ = metadata_->AddChildView(MakeMetadataLabel());
+  upstream_ = metadata_->AddChildView(MakeMetadataLabel());
+  hash_ = metadata_->AddChildView(MakeMetadataLabel());
+  license_ = metadata_->AddChildView(MakeMetadataLabel());
+  details_contents->AddChildView(MakeMetadataLabel(MetadataText(
+      IDS_AHOI_UBO_INVENTORY_PINNED_CLASSIC, kUboClassicExtensionId)));
+  details_contents->AddChildView(
+      MakeMetadataLabel(MetadataText(IDS_AHOI_UBO_INVENTORY_FORMER_CLASSIC,
+                                     kUboFormerClassicWebStoreExtensionId)));
+  details_contents->AddChildView(MakeMetadataLabel(
+      MetadataText(IDS_AHOI_UBO_INVENTORY_LITE, kUboLiteExtensionId)));
+  details_contents->AddChildView(MakeBodyLabel(IDS_AHOI_UBO_GPL_NOTICE));
+  details_->SetContents(std::move(details_contents));
+  details_->SetVisible(false);
 
   service_->AddObserver(this);
   Update(service_->status());
@@ -184,8 +219,8 @@ views::Widget* UboInstallDialog::CreateWidget(
   CHECK(browser);
   CHECK(browser->GetWindow());
   CHECK(service);
-  auto dialog = std::unique_ptr<UboInstallDialog>(
-      new UboInstallDialog(browser, service));
+  auto dialog =
+      std::unique_ptr<UboInstallDialog>(new UboInstallDialog(browser, service));
   UboInstallDialog* dialog_ptr = dialog.get();
   auto* contents =
       static_cast<UboDialogContents*>(dialog_ptr->GetContentsView());
@@ -282,6 +317,21 @@ void UboInstallDialog::OnUboServiceStatusChanged(
   }
 }
 
+void UboInstallDialog::ToggleDetails() {
+  const bool expanded = !details_->GetVisible();
+  details_->SetVisible(expanded);
+  details_button_->SetText(l10n_util::GetStringUTF16(
+      expanded ? IDS_EXTENSIONS_HIDE_DETAILS : IDS_EXTENSIONS_SHOW_DETAILS));
+  if (expanded) {
+    details_button_->GetViewAccessibility().SetIsExpanded();
+  } else {
+    details_button_->GetViewAccessibility().SetIsCollapsed();
+  }
+  if (GetWidget()) {
+    GetWidget()->SetSize(GetWidget()->non_client_view()->GetPreferredSize());
+  }
+}
+
 void UboInstallDialog::Update(const UboServiceStatus& status) {
   UboDialogPresentation presentation = PresentUboStatus(status);
   const bool pinned_official_release =
@@ -297,6 +347,7 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
         l10n_util::GetStringUTF16(presentation.status_string_id));
   }
   progress_->SetVisible(presentation.show_progress);
+  summary_->SetVisible(presentation.show_metadata);
   metadata_->SetVisible(presentation.show_metadata);
   SetButtonLabel(
       ui::mojom::DialogButton::kOk,
@@ -312,6 +363,7 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
         base::UTF16ToUTF8(l10n_util::GetStringUTF16(
             pinned_official_release ? IDS_AHOI_UBO_OFFICIAL_GITHUB_RELEASE_LABEL
                                     : IDS_AHOI_UBO_SIGNED_CATALOG_LABEL));
+    source_->SetText(MetadataText(IDS_AHOI_UBO_UPSTREAM_LABEL, source_label));
     upstream_->SetText(MetadataText(
         IDS_AHOI_UBO_UPSTREAM_LABEL,
         base::StrCat({source_label, " — ", status.catalog->upstream_tag, " @ ",
@@ -322,15 +374,13 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
     license_->SetText(
         MetadataText(IDS_AHOI_UBO_LICENSE_LABEL, status.catalog->license));
   }
-  pinned_classic_inventory_->SetText(
-      InventoryText(IDS_AHOI_UBO_INVENTORY_PINNED_CLASSIC,
-                    kUboClassicExtensionId, status.inventory.classic));
+  pinned_classic_inventory_->SetText(InventoryText(
+      IDS_AHOI_UBO_INVENTORY_PINNED_CLASSIC, status.inventory.classic));
   former_classic_inventory_->SetText(
       InventoryText(IDS_AHOI_UBO_INVENTORY_FORMER_CLASSIC,
-                    kUboFormerClassicWebStoreExtensionId,
                     status.inventory.former_classic_web_store));
-  lite_inventory_->SetText(InventoryText(
-      IDS_AHOI_UBO_INVENTORY_LITE, kUboLiteExtensionId, status.inventory.lite));
+  lite_inventory_->SetText(
+      InventoryText(IDS_AHOI_UBO_INVENTORY_LITE, status.inventory.lite));
   if (GetWidget()) {
     GetWidget()->SetSize(GetWidget()->non_client_view()->GetPreferredSize());
   }

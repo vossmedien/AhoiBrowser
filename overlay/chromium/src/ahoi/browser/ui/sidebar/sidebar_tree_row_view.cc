@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
@@ -13,8 +14,12 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
+#include "base/i18n/break_iterator.h"
+#include "base/i18n/char_iterator.h"
 #include "base/numerics/safe_conversions.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/vector_icons/vector_icons.h"
+#include "third_party/icu/source/common/unicode/uchar.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
 #include "third_party/skia/include/core/SkRRect.h"
 #include "ui/accessibility/ax_action_data.h"
@@ -26,10 +31,12 @@
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/gfx/canvas.h"
+#include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/gfx/image/image_skia.h"
+#include "ui/gfx/paint_vector_icon.h"
 #include "ui/gfx/skia_util.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/controls/label.h"
@@ -40,6 +47,7 @@ namespace ahoi::sidebar {
 namespace {
 
 constexpr int kIconSize = 18;
+constexpr int kFolderEmblemSize = 12;
 constexpr float kDropStrokeWidth = 2.0f;
 constexpr float kSelectedDotRadius = 3.0f;
 
@@ -60,6 +68,38 @@ cc::PaintFlags StrokeFlags(SkColor color, float width) {
   flags.setStrokeJoin(cc::PaintFlags::kRound_Join);
   flags.setStyle(cc::PaintFlags::kStroke_Style);
   return flags;
+}
+
+const gfx::VectorIcon* FolderEmblem(std::u16string_view id) {
+  if (id == u"star") {
+    return &vector_icons::kStarFilledIcon;
+  }
+  if (id == u"code") {
+    return &vector_icons::kCodeIcon;
+  }
+  if (id == u"lock") {
+    return &vector_icons::kLockIcon;
+  }
+  if (id == u"archive") {
+    return &vector_icons::kDatabaseIcon;
+  }
+  if (id == u"moon") {
+    // Keep the identity shown by the existing Personal group icon picker.
+    return &vector_icons::kAccountCircleIcon;
+  }
+  return nullptr;
+}
+
+bool IsSingleFolderGlyph(std::u16string_view text) {
+  // A custom emoji/monogram is one printable grapheme, never a raw imported
+  // asset name. Bound both shaping work and stored presentation data.
+  if (text.empty() || text.size() > 32 ||
+      !u_isprint(base::i18n::UTF16CharIterator(text).get())) {
+    return false;
+  }
+  base::i18n::BreakIterator glyph(text,
+                                  base::i18n::BreakIterator::BREAK_CHARACTER);
+  return glyph.Init() && glyph.Advance() && glyph.pos() == text.size();
 }
 
 }  // namespace
@@ -125,6 +165,17 @@ void SidebarTreeRowView::Bind(size_t row_index,
   sibling_count_ = row.sibling_count;
   type_ = row.type;
   title_ = node.title;
+  if (!same_node || folder_icon_id_ != node.icon) {
+    folder_icon_id_ = node.icon;
+    folder_emblem_ = ui::ImageModel();
+    folder_glyph_.clear();
+    if (const auto* emblem = FolderEmblem(folder_icon_id_)) {
+      folder_emblem_ = ui::ImageModel::FromVectorIcon(
+          *emblem, visual_style::kText, kFolderEmblemSize);
+    } else if (IsSingleFolderGlyph(folder_icon_id_)) {
+      folder_glyph_ = folder_icon_id_;
+    }
+  }
   accent_argb_ = node.accent_argb;
   page_icon_ = std::move(page_icon);
   media_indicator_ = std::move(media_indicator);
@@ -166,6 +217,9 @@ void SidebarTreeRowView::Unbind() {
   editor_->SetVisible(false);
   node_id_ = base::Uuid();
   title_.clear();
+  folder_icon_id_.clear();
+  folder_emblem_ = ui::ImageModel();
+  folder_glyph_.clear();
   accent_argb_.reset();
   drop_position_.reset();
   split_drop_target_ = false;
@@ -464,30 +518,32 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
     const SkColor folder_color = accent_argb_.has_value()
                                      ? static_cast<SkColor>(*accent_argb_)
                                      : icon_color;
-    const cc::PaintFlags folder_stroke = StrokeFlags(folder_color, 1.5f);
-    SkPathBuilder folder_back;
-    folder_back.moveTo(icon_bounds.x() + 1.0f, icon_bounds.y() + 5.0f);
-    folder_back.lineTo(icon_bounds.x() + 7.0f, icon_bounds.y() + 5.0f);
-    folder_back.lineTo(icon_bounds.x() + 9.0f, icon_bounds.y() + 7.0f);
-    folder_back.lineTo(icon_bounds.right() - 1.0f,
-                       icon_bounds.y() + 7.0f);
-    folder_back.lineTo(icon_bounds.right() - 1.0f,
-                       icon_bounds.bottom() - 2.0f);
-    folder_back.lineTo(icon_bounds.x() + 1.0f,
-                       icon_bounds.bottom() - 2.0f);
-    folder_back.close();
-    canvas->DrawPath(folder_back.detach(), folder_stroke);
-
-    if (uses_open_folder_icon_for_testing()) {
-      SkPathBuilder folder_front;
-      folder_front.moveTo(icon_bounds.x() + 3.0f,
-                          icon_bounds.y() + 9.0f);
-      folder_front.lineTo(icon_bounds.right(), icon_bounds.y() + 9.0f);
-      folder_front.lineTo(icon_bounds.right() - 3.0f,
-                          icon_bounds.bottom() - 1.0f);
-      folder_front.lineTo(icon_bounds.x(), icon_bounds.bottom() - 1.0f);
-      folder_front.close();
-      canvas->DrawPath(folder_front.detach(), folder_stroke);
+    const gfx::ImageSkia folder = gfx::CreateVectorIcon(
+        uses_open_folder_icon() ? vector_icons::kFolderOpenIcon
+                                : vector_icons::kFolderFlippableIcon,
+        kIconSize, folder_color);
+    canvas->DrawImageInt(folder, icon_bounds.CenterPoint().x() - kIconSize / 2,
+                         icon_bounds.CenterPoint().y() - kIconSize / 2);
+    if (!folder_emblem_.IsEmpty() || !folder_glyph_.empty()) {
+      // Keep the expansion silhouette and the custom identity simultaneously
+      // visible. The badge remains inside the fixed icon slot in both states.
+      const gfx::Rect emblem_bounds(icon_bounds.right() - kFolderEmblemSize,
+                                    icon_bounds.bottom() - kFolderEmblemSize,
+                                    kFolderEmblemSize, kFolderEmblemSize);
+      canvas->DrawRoundRect(gfx::RectF(emblem_bounds), 3.0f,
+                            FillFlags(GetColorProvider()->GetColor(
+                                visual_style::kRaisedSurface)));
+      if (!folder_emblem_.IsEmpty()) {
+        canvas->DrawImageInt(folder_emblem_.Rasterize(GetColorProvider()),
+                             emblem_bounds.x(), emblem_bounds.y());
+      } else {
+        const gfx::FontList glyph_font =
+            title_label_->font_list().DeriveWithSizeDelta(
+                kFolderEmblemSize - title_label_->font_list().GetFontSize());
+        canvas->DrawStringRectWithFlags(folder_glyph_, glyph_font, icon_color,
+                                        emblem_bounds,
+                                        gfx::Canvas::TEXT_ALIGN_CENTER);
+      }
     }
 
   } else {
@@ -497,8 +553,8 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
       const int image_width = std::min(kIconSize, favicon.width());
       const int image_height = std::min(kIconSize, favicon.height());
       canvas->DrawImageInt(favicon, 0, 0, favicon.width(), favicon.height(),
-                           icon_bounds.x() + (kIconSize - image_width) / 2,
-                           icon_bounds.y() + (kIconSize - image_height) / 2,
+                           icon_bounds.CenterPoint().x() - image_width / 2,
+                           icon_bounds.CenterPoint().y() - image_height / 2,
                            image_width, image_height, true);
     } else {
       gfx::RectF page_icon(icon_bounds);

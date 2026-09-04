@@ -19,6 +19,7 @@
 #include "base/test/run_until.h"
 #include "base/time/time.h"
 #include "build/build_config.h"
+#include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -40,7 +41,9 @@
 #include "components/prefs/pref_service.h"
 #include "components/split_tabs/split_tab_id.h"
 #include "components/split_tabs/split_tab_visual_data.h"
+#include "content/public/browser/web_contents.h"
 #include "content/public/test/browser_test.h"
+#include "content/public/test/browser_test_utils.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/accessibility/ax_action_data.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
@@ -160,6 +163,26 @@ class VerticalTabStripRegionViewTest
     return tabs::VerticalTabStripStateController::From(browser());
   }
 };
+
+IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
+                       AhoiImportCommandFromEmptyWindowOpensSettings) {
+  TabStripModel* const model = browser()->tab_strip_model();
+  ASSERT_EQ(1, model->count());
+  model->DetachAndDeleteWebContentsAt(0);
+  ASSERT_EQ(0, model->count());
+  ASSERT_EQ(TabStripModel::kNoTab, model->active_index());
+
+  // Exercise the same command dispatcher as the native menu. Calling
+  // ShowImportDialog directly would hide its former successful no-op.
+  ASSERT_TRUE(chrome::ExecuteCommand(browser(), IDC_IMPORT_SETTINGS));
+  ASSERT_EQ(1, model->count());
+  auto* const contents = model->GetActiveWebContents();
+  ASSERT_TRUE(contents);
+  ASSERT_TRUE(content::WaitForLoadStop(contents));
+  EXPECT_EQ(GURL("chrome://settings/importData"),
+            contents->GetLastCommittedURL());
+  EXPECT_EQ(1, model->count());
+}
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiZeroTabSplitUpdatesMountedSidebar) {

@@ -7,6 +7,8 @@
 #include "base/test/task_environment.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/compositor/layer.h"
+#include "ui/compositor/layer_animation_element.h"
+#include "ui/compositor/scoped_layer_animation_settings.h"
 #include "ui/gfx/animation/animation_test_api.h"
 #include "ui/gfx/scoped_animation_duration_scale_mode.h"
 
@@ -55,7 +57,13 @@ TEST(WorkspaceTransitionAnimatorTest, CancelNormalizesBothCommittedSurfaces) {
   EXPECT_TRUE(contents_layer->transform().IsIdentity());
 }
 
-TEST(WorkspaceTransitionAnimatorTest, ReducedMotionNeverStartsAnimation) {
+TEST(WorkspaceTransitionAnimatorTest, ReducedMotionFadesWithoutSpatialMotion) {
+  base::test::TaskEnvironment task_environment;
+  gfx::ScopedAnimationDurationScaleMode duration_mode(
+      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+  const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
+      gfx::Animation::RichAnimationRenderMode::FORCE_DISABLED);
+  ASSERT_TRUE(render_mode);
   auto sidebar_layer = ui::Layer::Create(ui::LAYER_NOT_DRAWN);
   auto contents_layer = ui::Layer::Create(ui::LAYER_NOT_DRAWN);
   WorkspaceTransitionAnimator animator;
@@ -65,11 +73,49 @@ TEST(WorkspaceTransitionAnimatorTest, ReducedMotionNeverStartsAnimation) {
                  /*fade_contents=*/true,
                  /*reduced_motion=*/true);
 
-  EXPECT_FALSE(animator.is_animating());
+  EXPECT_TRUE(animator.is_animating());
+  EXPECT_TRUE(sidebar_layer->transform().IsIdentity());
+  EXPECT_TRUE(contents_layer->transform().IsIdentity());
+  animator.Cancel();
   EXPECT_FLOAT_EQ(1.0f, sidebar_layer->opacity());
   EXPECT_FLOAT_EQ(1.0f, contents_layer->opacity());
   EXPECT_TRUE(sidebar_layer->transform().IsIdentity());
   EXPECT_TRUE(contents_layer->transform().IsIdentity());
+}
+
+TEST(WorkspaceTransitionAnimatorTest,
+     CancelPreservesUnownedPropertiesAndAnimations) {
+  base::test::TaskEnvironment task_environment;
+  gfx::ScopedAnimationDurationScaleMode duration_mode(
+      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+  const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
+      gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
+  ASSERT_TRUE(render_mode);
+  auto sidebar = ui::Layer::Create(ui::LAYER_NOT_DRAWN);
+  auto contents = ui::Layer::Create(ui::LAYER_NOT_DRAWN);
+  sidebar->SetOpacity(0.65f);
+  contents->SetOpacity(0.8f);
+  gfx::Transform page_transform;
+  page_transform.Translate(5, 7);
+  contents->SetTransform(page_transform);
+  contents->SetBounds(gfx::Rect(0, 0, 100, 100));
+  {
+    ui::ScopedLayerAnimationSettings resize(contents->GetAnimator());
+    resize.SetTransitionDuration(base::Seconds(2));
+    contents->SetBounds(gfx::Rect(0, 0, 200, 200));
+  }
+  WorkspaceTransitionAnimator animator;
+  animator.Start(sidebar.get(), contents.get(),
+                 WorkspaceTransitionDirection::kNext,
+                 /*fade_contents=*/true, /*reduced_motion=*/false);
+  animator.Cancel();
+
+  EXPECT_FALSE(animator.is_animating());
+  EXPECT_FLOAT_EQ(0.65f, sidebar->opacity());
+  EXPECT_FLOAT_EQ(0.8f, contents->opacity());
+  EXPECT_EQ(page_transform, contents->transform());
+  EXPECT_TRUE(contents->GetAnimator()->IsAnimatingProperty(
+      ui::LayerAnimationElement::BOUNDS));
 }
 
 TEST(WorkspaceTransitionAnimatorTest,

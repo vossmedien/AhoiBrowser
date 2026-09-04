@@ -43,10 +43,9 @@ namespace ahoi::sidebar {
 namespace {
 
 constexpr int kLeadingPadding = 8;
-// Preserve the familiar tree inset after removing the standalone caret. The
-// folder itself now communicates collapsed/expanded state, as in Arc.
-constexpr int kFolderLeadingReserve = 18;
-constexpr int kIconSize = 18;
+// One aligned slot for folders (including a small custom emblem) and pages.
+// Expansion is in the folder silhouette; no empty caret column remains.
+constexpr int kIconSlotSize = 24;
 constexpr int kIconTitleSpacing = 8;
 constexpr int kTrailingActionSize = 24;
 
@@ -86,11 +85,10 @@ gfx::Rect SidebarTreeRowView::DisclosureBounds() const {
 }
 
 gfx::Rect SidebarTreeRowView::IconBounds() const {
-  const int x = kLeadingPadding +
-                base::saturated_cast<int>(depth_) * kIndentWidth +
-                (is_folder() ? kFolderLeadingReserve : 0);
-  return gfx::Rect(x, std::max(0, (height() - kIconSize) / 2), kIconSize,
-                   kIconSize);
+  const int x =
+      kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
+  return gfx::Rect(x, std::max(0, (height() - kIconSlotSize) / 2),
+                   kIconSlotSize, kIconSlotSize);
 }
 
 gfx::Rect SidebarTreeRowView::TitleBounds() const {

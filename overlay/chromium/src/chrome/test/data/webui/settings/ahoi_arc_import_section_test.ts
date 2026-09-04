@@ -1,11 +1,12 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import {webUIResponse} from 'chrome://resources/js/cr.js';
 import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {flush} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
 import type {BrowserProfile, ImportDataBrowserProxy, SettingsImportDataDialogElement} from 'chrome://settings/lazy_load.js';
 import {ImportDataBrowserProxyImpl} from 'chrome://settings/lazy_load.js';
-import {assertEquals, assertFalse, assertTrue} from 'chrome://webui-test/chai_assert.js';
+import {assertDeepEquals, assertEquals, assertFalse, assertTrue} from 'chrome://webui-test/chai_assert.js';
 import {TestBrowserProxy} from 'chrome://webui-test/test_browser_proxy.js';
 import {microtasksFinished} from 'chrome://webui-test/test_util.js';
 
@@ -197,13 +198,13 @@ suite('AhoiArcStandardImportSurface', () => {
       });
 
   test(
-      'splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitIsConfirmed',
+      'splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitNeedsSelectedData',
       async () => {
         selectSource(1);
         const arcSection = getArcSection();
         arcSection.arcImportStage_ = 'preview';
         arcSection.arcImportPreview_ = preview(0);
-        arcSection.arcSelectedProfiles_ = ['Default'];
+        arcSection.arcSelectedProfiles_ = [];
         arcSection.requestUpdate();
         await arcSection.updateComplete;
 
@@ -219,41 +220,103 @@ suite('AhoiArcStandardImportSurface', () => {
         assertTrue(commit.disabled);
 
         arcSection.arcImportPreview_ = preview(2);
+        arcSection.arcSelectedProfiles_ = ['Default'];
         arcSection.requestUpdate();
         await arcSection.updateComplete;
         assertTrue(!!arcSection.shadowRoot!.querySelector(
             '#ahoiArcReconstructSplits'));
 
-        const checkboxes = Array.from(
-            arcSection.shadowRoot!.querySelectorAll<HTMLElement>(
+        const checkboxes =
+            Array.from(arcSection.shadowRoot!.querySelectorAll<HTMLElement>(
                 '.arc-import-checkbox'));
-        assertEquals(5, checkboxes.length);
+        assertEquals(3, checkboxes.length);
         for (const checkbox of checkboxes) {
           const checkboxStyle = getComputedStyle(checkbox);
           assertEquals('flex', checkboxStyle.display);
           assertEquals('flex-start', checkboxStyle.alignItems);
           assertEquals(
               '12px',
-              checkboxStyle.getPropertyValue(
-                               '--cr-checkbox-label-padding-start')
+              checkboxStyle
+                  .getPropertyValue('--cr-checkbox-label-padding-start')
                   .trim());
-          const label =
-              checkbox.shadowRoot!.querySelector<HTMLElement>(
-                  '#labelContainer')!;
+          const label = checkbox.shadowRoot!.querySelector<HTMLElement>(
+              '#labelContainer')!;
           assertEquals('12px', getComputedStyle(label).paddingInlineStart);
+          const box =
+              checkbox.shadowRoot!.querySelector<HTMLElement>(
+                                      '#checkbox')!.getBoundingClientRect();
+          const firstLineCenter = label.getBoundingClientRect().top +
+              parseFloat(getComputedStyle(label).lineHeight) / 2;
+          assertTrue(Math.abs(box.top + box.height / 2 - firstLineCenter) < 1);
         }
 
-        arcSection.shadowRoot!
-            .querySelector<HTMLElement>('#ahoiArcBackupConfirmation')!.click();
+        assertTrue(
+            !!arcSection.shadowRoot!.querySelector('#ahoiArcBackupNotice'));
+        assertFalse(!!arcSection.shadowRoot!.querySelector(
+            '#ahoiArcBackupConfirmation, #ahoiArcCommitConfirmation'));
+        assertFalse(commit.disabled);
+
+        const sidebarChoice = arcSection.shadowRoot!.querySelector<HTMLElement>(
+            '#ahoiArcImportSidebar')!;
+        sidebarChoice.click();
         await microtasksFinished();
-        assertTrue(commit.disabled);
-        arcSection.shadowRoot!
-            .querySelector<HTMLElement>('#ahoiArcCommitConfirmation')!.click();
+        assertTrue(arcSection.shadowRoot!
+                       .querySelector<HTMLElement&{disabled: boolean}>(
+                           '#ahoiArcCommit')!.disabled);
+        sidebarChoice.click();
         await microtasksFinished();
         assertFalse(arcSection.shadowRoot!
                         .querySelector<HTMLElement&{disabled: boolean}>(
                             '#ahoiArcCommit')!.disabled);
       });
+
+  test('primaryClickConfirmsTheCurrentPlanAndBackupOnlyOnce', async () => {
+    selectSource(1);
+    const arcSection = getArcSection();
+    arcSection.arcImportStage_ = 'preview';
+    arcSection.arcImportPreview_ = preview(2);
+    arcSection.arcSelectedProfiles_ = ['Default'];
+    arcSection.requestUpdate();
+    await arcSection.updateComplete;
+
+    const requests: unknown[][] = [];
+    const originalSend = chrome.send;
+    chrome.send = (message: string, args?: unknown[]) => {
+      if (message === 'ahoiArcCommit') {
+        requests.push(args ?? []);
+      } else {
+        originalSend(message, args);
+      }
+    };
+    try {
+      const commit =
+          arcSection.shadowRoot!.querySelector<HTMLElement>('#ahoiArcCommit')!;
+      commit.click();
+      commit.click();
+      assertEquals(1, requests.length);
+      const request = requests[0]!;
+      assertEquals('fixture-token-without-source-data', request[1]);
+      assertEquals('rename', request[2]);
+      assertDeepEquals(['Default'], request[3]);
+      assertEquals(true, request[4]);
+      assertEquals(true, request[6]);
+      assertEquals(true, request[7]);
+      assertEquals('committing', arcSection.arcImportStage_);
+      webUIResponse(request[0] as string, true, {
+        status: 'noChanges',
+        stats,
+        renamedWorkspaces: 0,
+        skippedWorkspaces: 0,
+        mergedWorkspaces: 0,
+        reconstructedSplits: 0,
+        approximatedFourPaneRatios: 0,
+      });
+      await microtasksFinished();
+      assertEquals('done', arcSection.arcImportStage_);
+    } finally {
+      chrome.send = originalSend;
+    }
+  });
 
   test('resultReportsImportedSkippedDegradedExcludedAndFourPane', async () => {
     selectSource(1);

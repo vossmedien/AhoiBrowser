@@ -1,0 +1,38 @@
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -635,3 +635,23 @@
+   if (browser_->tab_strip_model()->active_index() == TabStripModel::kNoTab) {
+-    return true;
++    // Ahoi keeps normal windows alive with no selected tab. Only commands
++    // whose implementations own a window/profile (not a page) can run here.
++    // Preserve Chromium's construction guard for other window types.
++    if (!browser_->is_type_normal() || !browser_->GetWindow()) {
++      return true;
++    }
++    switch (id) {
++      case IDC_NEW_TAB:
++      case IDC_NEW_WINDOW:
++      case IDC_NEW_INCOGNITO_WINDOW:
++      case IDC_NEW_SPLIT_TAB:
++      case IDC_OPTIONS:
++      case IDC_IMPORT_SETTINGS:
++      case IDC_SHOW_HISTORY:
++      case IDC_SHOW_DOWNLOADS:
++      case IDC_SHOW_BOOKMARK_MANAGER:
++      case IDC_MANAGE_EXTENSIONS:
++        break;
++      default:
++        return true;
++    }
+   }
+diff --git a/chrome/browser/ui/cocoa/confirm_quit.cc b/chrome/browser/ui/cocoa/confirm_quit.cc
+--- a/chrome/browser/ui/cocoa/confirm_quit.cc
++++ b/chrome/browser/ui/cocoa/confirm_quit.cc
+@@ -17,3 +17,5 @@
+ void RegisterLocalState(PrefRegistrySimple* registry) {
+-  registry->RegisterBooleanPref(prefs::kConfirmToQuitEnabled, true);
++  // Ahoi follows the normal macOS short-Command-Q convention. This changes
++  // only the default; an explicitly stored hold-to-quit choice is preserved.
++  registry->RegisterBooleanPref(prefs::kConfirmToQuitEnabled, false);
+ }

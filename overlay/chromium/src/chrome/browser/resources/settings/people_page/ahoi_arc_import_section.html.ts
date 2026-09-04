@@ -123,19 +123,12 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
             <div>$i18n{ahoiArcImportPrivacyTitle}</div>
             <div class="secondary">$i18n{ahoiArcImportPrivacySublabel}</div>
           </div>
-          <cr-checkbox id="ahoiArcBackupConfirmation"
-              class="arc-import-checkbox"
-              .checked="${this.arcBackupConfirmed_}"
-              @change="${this.onArcBackupConfirmedChange_}">
+          <div id="ahoiArcBackupNotice" class="secondary backup-notice"
+              role="note">
             $i18n{ahoiArcImportBackupConfirmation}
-          </cr-checkbox>
-          <cr-checkbox id="ahoiArcCommitConfirmation"
-              class="arc-import-checkbox"
-              .checked="${this.arcCommitConfirmed_}"
-              @change="${this.onArcCommitConfirmedChange_}">
-            $i18n{ahoiArcImportCommitConfirmation}
-          </cr-checkbox>
+          </div>
           <cr-button id="ahoiArcCommit" class="action-button"
+              aria-describedby="ahoiArcBackupNotice"
               ?disabled="${!this.canCommitArcImport_()}"
               @click="${this.onArcCommitClick_}">
             $i18n{ahoiArcImportCommit}

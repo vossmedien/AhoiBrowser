@@ -238,8 +238,7 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "doesNotOwnASeparateArcImportAssistant", self.webui_test
         )
         for marker in (
-            'id="ahoiArcBackupConfirmation"',
-            'id="ahoiArcCommitConfirmation"',
+            'id="ahoiArcBackupNotice"',
             'id="ahoiArcCommit"',
             "this.arcImportPreview_.stats.splits > 0",
             'id="ahoiArcResultSkipped"',
@@ -251,8 +250,6 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         for marker in (
             "ahoiArcDiscover",
             "ahoiArcCommit",
-            "this.arcBackupConfirmed_",
-            "this.arcCommitConfirmed_",
         ):
             self.assertIn(marker, self.arc_import_controller)
         for marker in (

@@ -1,0 +1,20 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20178,5 +20178,5 @@
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PRIVACY_TITLE" desc="Title for Arc data excluded from import." meaning="AhoiBrowser Arc import">Private browser data stays excluded</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PRIVACY_SUBLABEL" desc="List of sensitive Arc categories never imported." meaning="AhoiBrowser Arc import">Passwords, cookies, form data, browsing history, extension state, credentials in URLs, local files, and unsupported Arc items are not imported.</message>
+-    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_CONFIRMATION" desc="First explicit confirmation that a private local safety backup will be made." meaning="AhoiBrowser Arc import">Create the owner-only local safety backup before changing my sidebar</message>
++    <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_CONFIRMATION" desc="Explains the mandatory private backup before the explicit import action." meaning="AhoiBrowser Arc import">A private local safety backup will be created before your sidebar changes. Arc stays unchanged.</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION" desc="Second explicit confirmation to commit the previewed additive import." meaning="AhoiBrowser Arc import">I reviewed this preview and want to add these items now</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT" desc="Button that commits the explicitly confirmed Arc import." meaning="AhoiBrowser Arc import">Import selected data</message>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11213,5 +11213,5 @@
+ <translation id="1198927285460833452">Private Browserdaten bleiben ausgeschlossen</translation>
+ <translation id="4739458892153680222">Passwörter, Cookies, Formulardaten, Browserverlauf, Erweiterungsstatus, Zugangsdaten in URLs, lokale Dateien und nicht unterstützte Arc-Elemente werden nicht importiert.</translation>
+-<translation id="4246816671769361727">Vor der Änderung meiner Seitenleiste die lokale, nur für mich lesbare Sicherheitssicherung erstellen</translation>
++<translation id="2912167936871233267">Vor dem Import wird eine private lokale Sicherheitssicherung erstellt. Arc bleibt unverändert.</translation>
+ <translation id="604366452320429368">Ich habe die Vorschau geprüft und möchte diese Elemente jetzt hinzufügen</translation>
+ <translation id="536686936509624394">Ausgewählte Daten importieren</translation>

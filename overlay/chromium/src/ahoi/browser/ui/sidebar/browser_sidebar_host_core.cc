@@ -212,15 +212,6 @@ bool BrowserSidebarHostView::UndoLastMutationIfAvailable() {
   return true;
 }
 
-bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
-  if (index >= workspace_service_->ordered_workspaces().size()) {
-    return false;
-  }
-  return session_bridge_->SetActiveWorkspaceForWindow(
-      browser_, workspace_service_->ordered_workspaces()[index].id,
-      WorkspaceActivationSource::kKeyboard);
-}
-
 bool BrowserSidebarHostView::RevealFolder(const base::Uuid& folder_id) {
   tab_tree::TreeNode folder;
   if (!folder_id.is_valid() ||

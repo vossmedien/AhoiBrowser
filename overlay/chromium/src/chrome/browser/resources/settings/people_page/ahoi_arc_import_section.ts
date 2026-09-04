@@ -75,8 +75,6 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
       arcImportSidebar_: {type: Boolean},
       arcReconstructSplits_: {type: Boolean},
       arcSelectedProfiles_: {type: Array},
-      arcBackupConfirmed_: {type: Boolean},
-      arcCommitConfirmed_: {type: Boolean},
     };
   }
 
@@ -87,8 +85,6 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   protected accessor arcImportSidebar_: boolean = true;
   protected accessor arcReconstructSplits_: boolean = false;
   protected accessor arcSelectedProfiles_: string[] = [];
-  protected accessor arcBackupConfirmed_: boolean = false;
-  protected accessor arcCommitConfirmed_: boolean = false;
 
   isComplete(): boolean {
     return this.arcImportStage_ === 'done';
@@ -98,13 +94,11 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
     this.arcImportStage_ = 'discovering';
     this.arcImportPreview_ = null;
     this.arcImportResult_ = null;
-    this.arcBackupConfirmed_ = false;
-    this.arcCommitConfirmed_ = false;
     this.notifyComplete_(false);
     this.notifyBusy_(true);
     try {
-      const preview = await sendWithPromise<ArcImportPreviewResponse>(
-          'ahoiArcDiscover');
+      const preview =
+          await sendWithPromise<ArcImportPreviewResponse>('ahoiArcDiscover');
       if (!this.isConnected) {
         return;
       }
@@ -130,14 +124,16 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
     if (!preview || !this.canCommitArcImport_()) {
       return;
     }
+    // This primary action confirms the displayed plan and its mandatory
+    // backup together. Lock synchronously so a second click cannot submit it.
     this.arcImportStage_ = 'committing';
     this.notifyBusy_(true);
     try {
       const result = await sendWithPromise<ArcImportCommitResponse>(
           'ahoiArcCommit', preview.snapshotToken, this.arcConflictPolicy_,
           this.arcSelectedProfiles_, this.arcImportSidebar_,
-          this.arcReconstructSplits_, this.arcBackupConfirmed_,
-          this.arcCommitConfirmed_);
+          this.arcReconstructSplits_,
+          /*backupConfirmed=*/ true, /*commitConfirmed=*/ true);
       if (!this.isConnected) {
         return;
       }
@@ -159,7 +155,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   }
 
   protected onArcProfileChange_(event: Event) {
-    const checkbox = event.currentTarget as HTMLElement&{checked: boolean};
+    const checkbox = event.currentTarget as HTMLElement & {checked: boolean};
     const profile = checkbox.dataset['profile'];
     if (!profile) {
       return;
@@ -175,28 +171,18 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
 
   protected onArcImportSidebarChange_(event: Event) {
     this.arcImportSidebar_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
+        (event.currentTarget as HTMLElement & {checked: boolean}).checked;
   }
 
   protected onArcReconstructSplitsChange_(event: Event) {
     this.arcReconstructSplits_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
-  }
-
-  protected onArcBackupConfirmedChange_(event: Event) {
-    this.arcBackupConfirmed_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
-  }
-
-  protected onArcCommitConfirmedChange_(event: Event) {
-    this.arcCommitConfirmed_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
+        (event.currentTarget as HTMLElement & {checked: boolean}).checked;
   }
 
   protected canCommitArcImport_(): boolean {
     return this.arcImportStage_ === 'preview' && this.arcImportSidebar_ &&
-        this.arcSelectedProfiles_.length > 0 && this.arcBackupConfirmed_ &&
-        this.arcCommitConfirmed_;
+        this.arcSelectedProfiles_.length > 0 &&
+        this.arcImportPreview_?.status === 'ok';
   }
 
   protected excludedItemCount_(stats: ArcImportStats): number {
@@ -229,8 +215,8 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   }
 
   private arcErrorStatusKey_(): string {
-    const status = this.arcImportResult_?.status ??
-        this.arcImportPreview_?.status ?? '';
+    const status =
+        this.arcImportResult_?.status ?? this.arcImportPreview_?.status ?? '';
     switch (status) {
       case 'notFound':
         return 'ahoiArcImportNotFound';
