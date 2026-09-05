@@ -112,6 +112,17 @@ Shared checkout/out are still92694fe. Next: fresh CPU gate, guarded overlay and
 same full cached build from c986090; install and visibly relaunch only if green.
 No new sync format/default/header WIP is included or native runtime slot granted.
 
+**Verified CPU wait, 2026-09-05 19:54:46 UTC:** Rechnungs-Automation's
+`make test-gate`46054 / pytest46060 is live, identified by ancestry and exact
+cwd, at93.9–98.7% after nearly15min. Earlier samples were90–99%; a transient65%
+did not remain below the threshold at the next full check. Owner
+`01a07033-0479-7b50-bd7c-b7ad51fd4420` was asked for its natural terminal/quiet
+phase in `01a0731b-d612-7071-a939-123f767f9647`, not to stop/pause the active job.
+No c986090 overlay/build/test has started. Recheck before the prepared guarded
+cached correction; do not treat this sample as a permanent blocker. All source
+and startup-fix ownership gates are resolved; existing runtime/build lease stays
+with Desktop. Installed926 remains closed and startup-red.
+
 ## Completed 92694fe baseline build and installation
 
 **Previous fixture blocker RESOLVED, 2026-09-05 18:41 UTC:** the user explicitly
