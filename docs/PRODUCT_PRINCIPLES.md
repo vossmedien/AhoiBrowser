@@ -20,13 +20,16 @@ runtime, and a browser-shaped web app are forbidden product architectures.
 Every upstream modification must explain why an extension point or Ahoi-owned
 target was insufficient and how the patch is tested across a Chromium roll.
 
-## Organization without profile fragmentation
+## Workspace accounts without duplicated browser services
 
-A single normal Chromium profile owns cookies, passwords, extensions, history,
-permissions, and site storage. Workspaces own only visible tree/session state
-and appearance. Users can move between workspaces without signing in again.
+The renewed user contract in `WORKSPACE_SESSIONS.md` requires persistent local
+website-session isolation for work/private workspaces. Cookies, site storage,
+workers and authentication remain engine-owned and never sync. History,
+password storage and installed extensions remain global; workspace action pins
+may differ. Prefer narrow native storage partition routing over duplicated full
+Profiles/services. Existing login state is not silently copied, reset or moved.
 True incognito uses a Chromium off-the-record profile. Quick Window/Little Arc
-uses the normal profile and must be communicated distinctly.
+uses the selected normal workspace session and is not private browsing.
 
 Sidebar drag-and-drop is a first-class organization surface: page rows reorder,
 folders nest, and page-on-page creates a real split. Split view contains two or

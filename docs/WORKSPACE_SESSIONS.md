@@ -12,7 +12,7 @@ workspace cookie/login rule, not the no-cookie-sync or native-engine boundaries.
 | Cookies, authenticated website sessions, HTTP-auth cache | Local website-session context assigned to the workspace | Never |
 | Local Storage, IndexedDB, Cache Storage, service/shared workers and network context | Same native website-session context; Session Storage also retains upstream tab semantics | Never |
 | History and password store | Global, using existing services | Existing permitted History policy only; passwords never |
-| Extension installation, enablement and extension-owned storage | Global; not duplicated for each workspace | No extension storage or automatic remote installation/permission grant |
+| Extension installation, enablement and extension-owned storage | Global; not duplicated for each workspace | No raw extension storage; pins alone cannot install software or grant permissions |
 | Extension action pins/order, workspace name/icon/accent | Workspace presentation | Suitable metadata; exact fields/category owned by Sync |
 | Site permission decisions | Local session/origin context; native authority | Never; no inherited remote or other-context grant |
 | Downloads | Global manager; any later preferred directory is device-local | No filesystem paths |
@@ -65,7 +65,9 @@ Use existing Workspace identity/appearance where possible. Review action-pin
 metadata and, only if needed, a portable logical context assignment. Local
 profile paths, native partition identifiers, permission grants and all website
 state are not portable payloads. Unsupported extension IDs may be retained as
-inert presentation metadata, never install or grant access automatically.
+inert presentation metadata; a pin alone never installs or grants access.
+A separately authorized extension-restoration/settings feature remains with the
+Sync owner and must use its own reviewed source/consent/secret-filter contract.
 No writer bump, new entity or modification of the current unified WIP is
 authorized by a guessed field name. Freeze the smallest matching contract with
 its owner; do not block the independent current startup correction on it.

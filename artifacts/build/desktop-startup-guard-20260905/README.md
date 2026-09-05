@@ -39,6 +39,11 @@ in the same existing disposable worktree. Product build first, then atomic
 installation and this exact visible launch/new-window/fullscreen journey again.
 New workspace-session requirements and Unified Sync WIP remain outside it.
 
+Publication note: the signed follow-up carrying this note attests the author's
+DCO for the AI-assisted owned changes in7de7fac,390bb2c and296571f. Those already
+published commits are not rewritten. This does not claim that their original
+per-commit DCO-trailer check passed; subsequent commits use `git commit -s`.
+
 ## Verified build/install, failed visible startup
 
 Full guarded build17302 / source92694fe exited0. Portable runtime and stable
