@@ -18,6 +18,11 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 - The user additionally rejected the normal sidebar folder expand/collapse
   motion. Desktop owns its reproduction/correction after the current import
   blocker. Continuous workspace gesture preview/cancel also remains open.
+- The user also reported a dark rectangular step at the sidebar/rounded-toolbar
+  seam. The preserved image was viewed at
+  `artifacts/computer-use/bookmarks-coordination-20260905/user-sidebar-seam-091918.png`.
+  Reproduce and correct bounds/clipping with the owned sidebar UI package; the
+  image is a reported defect, not a passing runtime check.
 
 ## Exact installed candidate
 
@@ -45,6 +50,11 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Repeated samples were above 80%; coordination message
   `01a0707f-0f51-7321-a939-6292b0416a50` requests notification only, no interruption.
   Recheck live ownership/usage; do not treat these old PIDs as authority.
+- Delayed bookmark handoff messages referring to `8bf309d` and a 1% Unity sample
+  are historical. They do not request another build. A fresh 07:42–07:43 UTC
+  check still found Unity above 80%. Bookmark owner received the terminal build,
+  exact receipt and retained Desktop UI ownership in queue message
+  `01a07085-b24d-7ed3-80bc-04fc29f2e53c`.
 
 ## Visible acceptance and current defect
 
@@ -83,10 +93,10 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 1. The reviewed four-file fix and regressions are committed in `3d413ef`; its
    clean snapshot is selected. Recheck all-project CPU ownership and free space
    before each intensive phase.
-2. Refresh the overlay through `scripts/apply-overlay.sh --compatible-dev-xcode`
-   and use `scripts/build-ahoi.sh dev` for one combined correction build. Include
-   new `ahoi_tab_tree_unittests` and `ahoi_session_unittests` plus the existing
-   package targets: `ahoi_startup_policy_unittests`, `ahoi_arc_import_unittests`,
+2. Overlay and combined guarded build are ALREADY COMPLETE for `3d413ef`; do
+   not rerun them for a delayed coordination message. Built targets include
+   `ahoi_tab_tree_unittests`, `ahoi_session_unittests`,
+   `ahoi_startup_policy_unittests`, `ahoi_arc_import_unittests`,
    `ahoi_arc_import_browsertests`, `ahoi_sidebar_tree_unittests`,
    `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
    `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
