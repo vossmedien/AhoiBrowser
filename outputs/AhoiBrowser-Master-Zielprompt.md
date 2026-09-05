@@ -57,6 +57,7 @@ seine bisherigen Sync-Ergebnisse sind keine Endabnahme des neuen Formats.
 | --- | --- | --- |
 | Vor dem nächsten notwendigen Build | Build-Ausführung und Übergabe | Ein Owner für Checkout und Ausgabeverzeichnis; Kandidat, Terminalstatus, Receipt und nächste Aktion bekannt. Wiederholte Overlay-Komposition messen und sicher beschleunigen; vorhandene passende Kandidaten zuerst prüfen. |
 | 1 | Import, Erweiterungen und sichtbare Sidebar-Fixes | Standardmenü öffnet denselben Importdialog auch ohne Tab; alle fünf bisher sichtbaren Checkboxen korrekt; Ordnericons, Hierarchie und Abstände stimmig; realer Arc-Import mit gültigen Splits, Neustart und No-op; AnyChat normal aus dem Store; Classic filtert und überlebt Neustart; Lite erst danach bewusst ablösen; Null-Tab-Split und Beenden stabil. |
+| 1b | Lokale Website-Sitzungen pro Workspace | Nach Abschluss des laufenden Browser-Fixpakets: Arbeit und Privat können dieselbe Website mit getrennten Accounts verwenden; vollständige native Site-Storage-Isolation, Neustart und sichere Tab-/Popup-Kontextbindung sichtbar geprüft. History, Passwortspeicher und installierte Erweiterungen bleiben global. Geeignete Workspace-Metadaten mit dem Sync-Owner integrieren, niemals Website-Sitzungsdaten synchronisieren. |
 | 2 | Daily Driver, Fenster, Tabs und Medien | Navigation, Command Bar, Quick Window, Inkognito, Sessions, sämtliche zugesagten Split-/DnD-/Resize-Wege, Popup-Promotion, MiniPlayer/PiP, Dateien, Passwörter und HTTP Auth in zusammenhängenden Nutzerreisen abgenommen. Bereits bestandene Teilverträge gezielt wiederverwenden. |
 | 3 | Sync und Geräteintegration | Ein aktives Format für alle erlaubten Entitytypen auf macOS/iOS; gemeinsame normale Tabs und separate Lesezeichen, lokaler Zustand/Outbox, echter CloudKit-Transport, Konflikte sowie Pairing/Remote Control an passenden frischen isolierten Kandidaten abgenommen. Kein Altclient-Mischbetrieb; ausgeschlossene Daten bleiben ausgeschlossen. Externe Gerätevoraussetzungen früh vorbereiten. |
 | 4 | Developer Toolkit, Privacy und Entgooglifizierung | Vorhandene Werkzeuge vollständig bedienen; Produktdienste zentral konfigurieren; nachvollziehbares frisches Profil ohne ungefragte Produkttelemetrie; dokumentierte Sicherheitsdienste und normale Google-Webseiten funktionieren. |
@@ -69,6 +70,35 @@ Nachgewiesene Crashes, Datenverlust oder Sicherheitsfehler haben Vorrang.
 Vorhandene, integrierte Funktionen werden zuerst abgenommen; die Liste ist keine
 Anweisung, sie neu zu bauen. Keine zusätzliche Produktfläche allein zur
 Vervollständigung eines internen Services erfinden.
+
+### Verbindliche Workspace-Sitzungsentscheidung vom 5. September 2026
+
+Die erneuerte Nutzerentscheidung ersetzt die frühere Vorgabe, Cookies und
+Website-Logins grundsätzlich zwischen allen Workspaces zu teilen. Implementiere
+nach dem laufenden Browser-Fixpaket lokale, persistente Website-Sitzungen für
+Workspaces, damit z. B. Arbeits- und Privataccount derselben Site getrennt bleiben.
+Nur Cookies zu trennen genügt nicht: Site Storage, Worker und der zugehörige
+Netzwerk-/Auth-Kontext müssen dieselbe native Isolationsgrenze respektieren.
+Chromiums `Profile`-/`StoragePartition`-Autorität bleibt erhalten; keine eigene
+Cookie-Verwaltung, Credential-Kopie oder nachträgliche Kontext-Umetikettierung.
+
+History, Passwortspeicher, installierte/aktivierte Erweiterungen und deren
+eigener Storage bleiben global. Erweiterungs-Action-Pins und Darstellung können
+Workspace-bezogen sein. Site-Berechtigungen sollen im lokalen Sitzungskontext
+gelten, ohne automatische Übernahme einer Freigabe aus einem anderen Kontext.
+Getrennte History-Silos sind nicht beauftragt; eine mögliche spätere Filteransicht
+rechtfertigt keine zweite Datenhaltung. Das ist Account-/Sitzungstrennung, kein
+Inkognito-Modus und keine Benutzer-Sicherheitsgrenze gegenüber globalen Extensions.
+
+Geeignete nicht geheime Workspace-Metadaten gehören in die abgestimmte Sync-
+Integration. Cookies, Login-/Auth-Zustand, Site Storage, Berechtigungsfreigaben,
+lokale Profil-/Downloadpfade und Extension Storage bleiben vollständig lokal.
+Eine entfernte Tab-/Workspace-Änderung darf keine laufende lokale Seite ungefragt
+in einen anderen Account-Kontext versetzen oder neu laden. Bestehende Sitzungen
+werden weder still kopiert noch gelöscht oder ausgeloggt. Der konkrete native
+Integrationsvertrag steht in `docs/WORKSPACE_SESSIONS.md`; Common C++/Swift/Wire
+bleiben beim benannten Sync-Owner. Diese neue Anforderung erweitert das aktive
+Gesamtziel, nicht den bereits eingefrorenen Startup-Korrekturkandidaten.
 
 ### Kompakte Steuerung statt verlorener Fortschritte
 
@@ -263,8 +293,8 @@ Wenn ein externer Blocker auftritt:
 - Mobile Ergänzung zum ersten öffentlichen Release: nativer iOS-/iPadOS-26-Browser auf Basis des systemgelieferten WebKit und des vorhandenen Companion-Cores.
 - Browserbasis: vollständiger Chromium-`//chrome`-Fork.
 - UI: Chromium Views plus Objective-C++/AppKit für macOS-spezifische Integration und Liquid Glass.
-- Ein gemeinsames normales Chromium-Profil für alle Workspaces.
-- Workspaces trennen Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Darstellung, nicht Cookies, Logins, Verlauf, Downloads, Site Permissions oder Extensions.
+- Globale normale Browserdienste für History, Passwörter und Erweiterungen; native lokale Website-Sitzungen pro Workspace gemäß `docs/WORKSPACE_SESSIONS.md`.
+- Workspaces trennen Seitenbaum, aktive Auswahl, Darstellung und ihren zugeordneten Website-Sitzungskontext. Die konkrete Chromium-Integration darf keine parallelen Browserdienste oder eigene Cookie-Jar erzeugen.
 - Echte Inkognito-Fenster verwenden Chromiums `OffTheRecordProfile`.
 - Split View verwendet zwei bis vier echte Chromium-Tabs und `WebContents`; Tab-auf-Tab-Drag-and-drop ist Kernfunktion und eine Vierergruppe besitzt insbesondere ein echtes persistierbares 2×2-Layout.
 - Eigener CloudKit-first-Sync; kein Chrome Sync und kein Google-Konto zur Browsersynchronisation.
@@ -780,8 +810,8 @@ Accessibility und Lokalisierung:
 
 ### Workspaces
 
-- Alle Workspaces verwenden dasselbe normale Browserprofil.
-- Cookies, Logins, Verlauf, Extensions, Downloads, Passwortspeicher und Site Permissions sind gemeinsam.
+- Workspaces können dieselbe Website in getrennten, persistenten lokalen Website-Sitzungen verwenden. Cookies, Site Storage, Worker und laufender Auth-Kontext dürfen nicht zwischen diesen Sitzungen vermischt werden.
+- Verlauf, Passwortspeicher, installierte/aktivierte Extensions und der Downloadmanager bleiben global; Action-Pins können je Workspace variieren. Site-Berechtigungsfreigaben gelten lokal im zugehörigen Sitzungskontext.
 - Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Akzent sind Workspace-bezogen.
 - Wechsel über Sidebar, Tastatur und horizontale Zwei-Finger-/Magic-Mouse-Geste innerhalb der Sidebar.
 - Richtung, Empfindlichkeit und Deaktivierung der Geste sind konfigurierbar.
@@ -792,7 +822,8 @@ Accessibility und Lokalisierung:
 - Mehrere Fenster werden unterstützt.
 - Der gespeicherte Baum ist fensterübergreifend gemeinsam.
 - Temporäre Tabs und aktive Auswahl bleiben fensterbezogen.
-- Echte getrennte Browserprofile sind nicht Bestandteil von v1, das Datenmodell darf eine spätere Erweiterung aber nicht unnötig verhindern.
+- Lokale Workspace-Website-Sitzungen sind ausdrücklich Teil des Gesamtziels. Dies verlangt keine Kopie vollständiger Chromium-Profile je Workspace: eine geeignete native StoragePartition-Integration ist zuerst zu prüfen.
+- Quick Window, neue Tabs, Popups, Redirects, Restore und externe Links erhalten ihren Sitzungskontext vor dem ersten Request. Ein Transfer innerhalb desselben Kontextes erhält das vorhandene WebContents; ein Kontextwechsel darf es nicht still umetikettieren oder Form-/Login-Zustand in einen anderen Kontext tragen.
 
 ## Navigation, Command Bar und Fensterarten
 
@@ -817,7 +848,7 @@ Implementiere eine native, latenzarme Command Bar:
 
 - konfigurierbarer globaler Default-Shortcut `⌥Space`;
 - kleines fokussiertes Fenster;
-- verwendet das normale Profil einschließlich Cookies, Logins und Extensions;
+- verwendet die normale Sitzung des bewusst gewählten beziehungsweise aufrufenden Workspaces; Cookies/Logins werden nicht zwischen Workspace-Kontexten vermischt, Extensions bleiben global;
 - kann eine Seite in normalen Tab oder Baum überführen;
 - kann optional Ziel externer Links sein;
 - ist kein Inkognito-Modus.
@@ -2514,13 +2545,13 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 22. Der Arc-Import besteht sichere Snapshot-, Vorschau-, Atomizitäts-, Rollback-, Idempotenz- und reale installierte UI-Abnahmen; der vorhandene lokale Arc-Datenstand ist mit redigierter Evidenz migriert.
 23. Releaseartefakte, SBOM, Checksums, Lizenzen, Revisionen und E2E-Evidenz sind vollständig.
 24. Lean-Chromium-Matrix, Bundle-/Runtime-Bilanz, Null-Aktivitätsnachweise und Roll-Regressionen sind vollständig; Ahoi ist innerhalb der definierten Größenbudgets schlanker, ohne zugesagte Browserfähigkeit, Extension-Kompatibilität, Webkompatibilität oder Security zu verlieren.
+25. Lokale Workspace-Website-Sitzungen trennen zwei Accounts derselben Site einschließlich Site Storage, Worker, Popup-/Restore- und Tab-Transfer-Pfaden; History, Passwörter und Extensions bleiben global. Nur abgestimmte nicht geheime Workspace-Metadaten werden synchronisiert; laufende Gegenseiten wechseln dadurch weder Fokus noch Account-Kontext.
 
 ## Explizit nicht Bestandteil von v1
 
 - Windows;
 - Linux;
 - Intel-Macs;
-- getrennte Chromium-Profile pro Workspace;
 - Chromium als iOS-Engine oder ein zweites Companion-App-Produkt; der oben definierte native WebKit-Browser für iOS/iPadOS 26 ist ausdrücklich Bestandteil des Gesamtziels;
 - Chrome Sync;
 - Google-Browserkonto;

@@ -84,14 +84,19 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current installed startup failure and prepared correction
+## Current candidate: startup fixed, fullscreen correction next
 
-**Current action:** exact installed92694fe is build/install verified but RED at
-visible startup. Two real launch attempts (native CUA, then exact Finder item)
-produced the same EXC_BAD_ACCESS0x160 in BrowserView's constructor appearance
-callback: IsFullscreen() dereferences missing widget ownership. No further
-launch or programmatic test suite; fix and repeat visible startup first.
-No import/recovery UI action ran. Detailed safe evidence and crash hashes:
+**Current action:** c986090 build59738 and atomic install3416 are TERMINAL
+EXIT0. Build/install receipts match source, executable and full bundle tree.
+Visible CUA launch, session continuation and a second browser window succeeded.
+The subsequent green window-button/fullscreen action crashed with SIGABRT:
+CustomCornersBackground::Paint checks that its layer is not marked as entirely
+opaque. NavigationSurfaceController's fullscreen material wrongly set that
+coverage flag. This is a new concrete product failure, not the old startup null
+dereference or a tool-only failure. No import/recovery or programmatic test ran.
+Fix that flag in its owning controller, then product build/install and the same
+short visible journey first; do not expand test matrices while UI is red.
+Detailed safe evidence and crash hashes:
 `artifacts/build/desktop-startup-guard-20260905/README.md`.
 
 Own canonical correction88ebbe9 guards GetWidget()/browser_widget() before
@@ -100,7 +105,7 @@ New real-browser regression covers creation before preference/mode repair,
 native painter/color/alpha/radius, fullscreen return and normal close. Source
 review + patch syntax/pinned-format checks only, no claimed test pass.
 
-The EXISTING detached snapshot is now clean at
+The previously built detached snapshot was clean at
 `c986090d99c22318aef4d45378208cece6878d27` =92694fe plus ONLY those two owned files.
 The same fix is already committed/pushed on main as88ebbe9. This isolates the
 UI baseline from newer committed Common interface/golden work and all WIP,
@@ -108,26 +113,37 @@ without creating another worktree/development branch. Exact derived source is
 retained in canonical Git ref `refs/ahoi/build-candidates/desktop-startup-c986090`
 and verified incremental `artifacts/build/desktop-startup-guard-20260905/source.bundle`
 (requires published92694fe). Do not delete the provenance bundle/ref during cleanup.
-Guarded overlay5741 is TERMINAL EXIT0, full delta verified. Same full-target
-cached build is RUNNING59738 from exact c986090 in the same snapshot/out.
-Fresh CPU gate clear20:05:23UTC; disk75,099,256KiB. Both actual callback widget
-guards were read back in the checkout. Do not restart or change source/output
-while running. Install and visibly relaunch only if green; logs remain in the
-startup-guard directory.
+Guarded overlay5741, build59738 and installer3416 all completed EXIT0.
+Receipts `artifacts/build/ahoi-dev-build-c986090d99c2.json` and
+`artifacts/install/ahoi-dev-c986090-20260905T201925Z.json` are retained unchanged.
+The installed Info.plist confirms c986090. The older926 and3d bundles remain
+at their installer-recorded rollback paths; no rollback or profile reset ran.
+
+The six-line fullscreen correction is canonical7de7fac (one product source,
+one assertion in each of two existing regressions). The SAME existing clean
+detached worktree cherry-picks only this correction onto c986090, yielding
+`4cb622a0bffc602051bf72e6e95b6100948f861e`. No new branch/worktree or Common WIP.
+Fresh full process gate clear20:24UTC, disk79,777,988KiB. Guarded overlay31405
+is TERMINAL EXIT0; log `fullscreen-overlay.log`. After another fresh CPU gate,
+product-only `build-ahoi.sh dev` is RUNNING73875, `fullscreen-build.log` in the
+same directory. Do not restart/change the snapshot or require unrelated test
+links before installing the runnable fix. Retained exact source also exists in
+`refs/ahoi/build-candidates/desktop-fullscreen-4cb622a` and verified incremental
+`fullscreen-source.bundle`, requiring published92694fe.
 No new sync format/default/header WIP is included or native runtime slot granted.
 
-**CPU wait CLEARED at the current 20:04UTC continuation:** Rechnungs-Automation's
-`make test-gate`46054 / pytest46060 is live, identified by ancestry and exact
-cwd, at93.9–98.7% after nearly15min. Earlier samples were90–99%; a transient65%
-did not remain below the threshold at the next full check. Owner
-`01a07033-0479-7b50-bd7c-b7ad51fd4420` was asked for its natural terminal/quiet
-phase in `01a0731b-d612-7071-a939-123f767f9647`, not to stop/pause the active job.
-Those processes and the intervening ConversationCopilot67100/Shopify67113 trees
-are now terminal/absent; a fresh whole-system check found no busy build. Overlay
-5741 finished and compilation59738 started after its own fresh gate. Old samples
-are history. All source
-and startup-fix ownership gates are resolved; existing runtime/build lease stays
-with Desktop. Installed926 remains closed and startup-red.
+## Accepted next package: workspace-local website sessions
+
+Latest user addition is now normative in the master goal and
+`docs/WORKSPACE_SESSIONS.md`: finish the current browser fixes first, then local
+workspace cookies/accounts AND native site-storage isolation. History, passwords
+and installed extensions remain global; action pins may be workspace-specific.
+Only appropriate non-secret metadata may sync, never website sessions/storage,
+local paths or permission grants. Native design/implementation remains Desktop;
+Common+Swift/Wire owner received request01a07337-b020-7211-b95b-06878f84178f,
+coordinator01a07337-b056-7d73-95a1-9e3f0e6fce63. No reply/field freeze assumed.
+The active full-master goal includes this package; requirement recording is not
+runtime implementation or acceptance, and does not widen the current snapshot.
 
 ## Completed 92694fe baseline build and installation
 

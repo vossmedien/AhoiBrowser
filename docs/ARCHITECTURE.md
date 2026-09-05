@@ -69,6 +69,13 @@ and exact Sparkle upstream artifact. See `docs/UPDATES.md`.
 
 ## Profile and window invariants
 
+The table below describes the existing runtime, not completion of the renewed
+workspace-session goal. The user now requires isolated local website sessions
+while retaining global History/password/extension services. The superseding
+target, native integration constraints and Sync boundary are in
+`WORKSPACE_SESSIONS.md`. Do not infer that all normal-workspace cookies must
+remain shared or that each workspace needs a duplicated full Chromium Profile.
+
 | Surface | Chromium context | Persistent | Normal cookies/extensions | Synced |
 | --- | --- | --- | --- | --- |
 | Workspace window | shared normal profile | yes | yes | permitted UI records |

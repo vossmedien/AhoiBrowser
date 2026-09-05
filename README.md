@@ -40,8 +40,10 @@ remains recovery/history evidence only.
 - Chromium's multi-process model, sandbox, site isolation, GPU process,
   network service, extensions, downloads, media, permissions, DevTools,
   password store, and session restoration stay authoritative.
-- Workspaces are UI/session organization inside one normal profile, never
-  separate cookie or extension profiles.
+- Workspaces retain global history, password and extension services. The renewed
+  product goal adds local isolated website sessions per workspace, not cookie
+  sync or duplicated extension installations. See
+  [`docs/WORKSPACE_SESSIONS.md`](docs/WORKSPACE_SESSIONS.md); not yet implemented.
 - Incognito is a true off-the-record profile. Little Arc/Quick Window is not.
 - Split panes are two, three, or four normal Chromium tabs/`WebContents` inside the
   existing tab model, never a parallel WebView host. See

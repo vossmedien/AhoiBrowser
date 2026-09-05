@@ -1,4 +1,43 @@
-# Installed 92694fe startup failure and isolated correction source
+# Startup/fullscreen failures and exact isolated corrections
+
+## Current result: c986090 starts, fullscreen is red
+
+Guarded c986090 build59738 and installer3416 both exited0. Build receipt
+`artifacts/build/ahoi-dev-build-c986090d99c2.json`, SHA256
+`0ffac1eb62d5289eab473e9a95ce1f6154bb249cf37d85171febc6e9a03e7010`.
+Install receipt `artifacts/install/ahoi-dev-c986090-20260905T201925Z.json`, SHA256
+`922b7e32190f21007697ce96e3580c58d200e103960281a0e1f462b9893d4ffb`.
+The filename is only an immutable identifier; actual build/install timing is
+in the receipts, not inferred from that filename. Executable SHA256
+`dbd2c25bb8e22af6cd2424db7fa967972fa19f178031fde8c269eac2925c9cc5`, tree SHA256
+`b41ad737b6c603e08f45b973d600061cc7a940eb2eb2b720fe20067328d1ae1e` match both
+receipts. RENAME_SWAP, process quiescence and post-install verification true.
+Prior926 is retained at the install receipt's exact rollback path.
+
+Native CUA launched the installed app, displayed the startup choice, then
+continued the existing session. The real NTP/sidebar/toolbar rendered. Cmd+N
+opened a second rendered browser window. Pressing its native green window /
+fullscreen button terminated the process. ReportCrash finished a new report:
+`artifacts/diagnostics/desktop-c986090-fullscreen-20260905/AhoiBrowser-2026-09-05-222110.ips`
+(local raw evidence, not published), SHA256
+`e4c2bea1c53df8567871ff22a9494608e22da0c59900314419ee7887b67524fd`.
+Capture20:18:25UTC, launch20:17:43UTC. EXC_CRASH/SIGABRT at
+CustomCornersBackground::Paint, custom_corners_background.cc:277:
+`CHECK(!view->layer()->fills_bounds_opaquely())`. The stack also records the
+native zoom-widget accessibility press. This is not the prior ctor null access.
+
+Source cause: fullscreen sets the navigation surface to opaque/radius0 and the
+generic material helper consequently advertises full opaque coverage. The real
+ToolbarView retains Chromium's cutout-capable CustomCornersBackground, which
+requires non-opaque layer coverage even for opaque material. Canonical7de7fac
+corrects only that owner-side flag and adds one assertion to each of the two
+existing regressions. The CHECK/painter and upstream fullscreen layout are not
+weakened. No new test matrix. No programmatic tests or Arc UI mutation ran.
+
+Exact next clean snapshot4cb622a = c986090 plus ONLY those three owned files,
+in the same existing disposable worktree. Product build first, then atomic
+installation and this exact visible launch/new-window/fullscreen journey again.
+New workspace-session requirements and Unified Sync WIP remain outside it.
 
 ## Verified build/install, failed visible startup
 
