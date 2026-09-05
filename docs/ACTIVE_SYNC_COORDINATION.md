@@ -1,6 +1,6 @@
 # Active sync coordination
 
-Updated: 2026-09-05. Coordinator: `01a044d6-1545-7532-8394-6b7df1144bb1`.
+Updated: 2026-09-06 (local time). Coordinator: `01a044d6-1545-7532-8394-6b7df1144bb1`.
 Registered goal: joint sync-model integration and candidate-bound acceptance.
 Contract: `outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` plus ADR 0009,
 binding browser-setup extension ADR 0010 (`79d2102`), and the domain/privacy
@@ -27,7 +27,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 `01a07314-fafd-7a91-a437-86af1e577625`, Sync in
 `01a07314-fcdd-7831-a259-ca32ec9a6e0e`. No ACK loop requested.
 
-## Latest material readback — 20:54 UTC
+## Latest material readback
 
 - The user confirmed scope additions made directly in both owner sessions.
   Desktop owns workspace-local cookie/session isolation after its current
@@ -57,10 +57,21 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   No runtime lease was handed over. Live details are in
   `docs/ACTIVE_DESKTOP_CHECKPOINT.md` and `desktop-startup-guard-20260905` logs.
 - Sync continuation is `docs/UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md`
-  (`3e9552f`): actual common service/capture and Mobile live binding remain next.
-  Swift canonical-Golden assertions are now written but unexecuted; optional
-  assertion expansion remains deferred. The same signed commit supplies the
-  requested DCO follow-up without rewriting published history.
+  (`7518c2f`): Mobile Page/Presence capture, explicit closing and intent/projection
+  separation are now WIP code. The old URL-filter/absence-delete publisher is
+  removed; restart duplicate rows have a source correction using binding readback
+  before mirrors. Still open: Common native capture, Mobile lifecycle/navigation/
+  unsave completion and ADR0010 setup adapters. No build/test/runtime pass or
+  B-D API handoff is claimed. Old codec/marker/ownership fixes are not reopened.
+  Golden assertions remain unexecuted and optional expansion deferred; the
+  earlier `3e9552f` DCO follow-up remains preserved.
+- On the same installed4cb candidate, AnyChat1.0.8 reached the native permissions
+  dialog and the Cancel journey passed. Actual installation remains user-gated
+  because of the disclosed AI-site/NTP/favicon permissions. Arc still needs the
+  already requested regular close; neither import nor recovery has mutated data.
+  The owner resolved background-start menu-only UI by raising the observed
+  native window before keyboard input, not by another build/reset. See513ae54
+  and58a32ae; no duplicate user question or new runtime handoff here.
 - Coordinator observed repeated delayed 92694fe/SQL replies at 20:50–20:52 and
   sent `01a07359-5e4f-7242-a33b-0b407858ba53`: no repeated old handoff checks;
   continue the actual Service/capture/backend and Mobile binding work. ADR0010
@@ -123,6 +134,9 @@ headers and dependencies; no writer/model/store changes. Desktop has the exact
 code/dependency handoff for its alias; no further A format/ownership ACK needed.
 B-D still await the actual service/getter/capture/backend implementation handoff;
 these interfaces alone are not working native behavior. Baseline work is separate.
+Desktop has consumed Native A in906dac8: exactly the Session target-type aliases
+and their GN leaf dependency, documented in e4df043. This is source-only and is
+not included in the unchanged installed4cb candidate; do not request A again.
 
 ## Historical evidence (superseded by the latest readback above)
 
