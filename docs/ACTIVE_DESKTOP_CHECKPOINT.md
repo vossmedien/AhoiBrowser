@@ -27,29 +27,33 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 ## Exact installed candidate
 
 - `/Applications/AhoiBrowser.app`: source
-  `0a13e22ff4e9cd1ac43a508e304fcaa0fe64a997`, Chromium `152.0.7977.65`.
+  `3d413efb5b6f196403e92f51631c346c9c55b2e5`, Chromium `152.0.7977.65`.
 - Successful guarded build/sign and atomic install; both commands exited 0.
-  Receipts: `artifacts/build/ahoi-dev-build-0a13e22ff4e9.json` and
-  `artifacts/install/ahoi-dev-0a13e22-20260905T062114Z.json`.
+  Receipts: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json` and
+  `artifacts/install/ahoi-dev-3d413ef-20260905T074543Z.json`.
 - Executable SHA-256:
-  `cd8f56dfbd6a9277c49cb304e073b3c86e21e3327cfdd138b3541031006b6878`.
+  `ab4d0a7664fb8ec871391be1130ee002e79ef8bc4084ff49877d4042e387aa99`.
   Bundle tree SHA-256:
-  `1f017281cec7845d76bcc4807aa2346c898dfc4ecc23a6d66dbb8734d2f5525e`.
+  `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
   `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at correction `3d413ef`.
   It shares `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
   log `/private/tmp/ahoi-package1-3d413ef-build.log`. All requested test targets
-  compiled/linked; no test binaries have been run. Install and corrected visible
-  E2E remain pending. Compilation is not acceptance.
+  compiled/linked. Independent tree-store tests passed 20/20; SessionBridge
+  passed 14/15 including the new production-flush regression. One older privacy
+  test has a diagnosed fuzzy-query oracle failure; the test-only correction is
+  prepared for the next package, not yet rebuilt/rerun. Corrected visible E2E
+  remains pending. Details and exact test-binary hashes are in the evidence file.
 - Ready bundle tree SHA-256:
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
-  Installation verification currently waits for a foreign Unity simulation
-  CPU window (PID 15530, owner thread `01a04a1b-ab7d-70f3-814f-fe2ab061e65e`).
-  Repeated samples were above 80%; coordination message
-  `01a0707f-0f51-7321-a939-6292b0416a50` requests notification only, no interruption.
-  Recheck live ownership/usage; do not treat these old PIDs as authority.
+  The foreign Unity CPU gate cleared at 07:45 UTC (0%, no active compilers).
+  Guarded atomic installation session `89774` exited 0, log
+  `/private/tmp/ahoi-package1-3d413ef-install.log`. Published receipt confirms
+  `renameatx_np(RENAME_SWAP)` and post-install verification; installed plist and
+  executable hash were read back independently. No foreign process was stopped,
+  paused or reprioritized.
 - Delayed bookmark handoff messages referring to `8bf309d` and a 1% Unity sample
   are historical. They do not request another build. A fresh 07:42–07:43 UTC
   check still found Unity above 80%. Bookmark owner received the terminal build,
@@ -57,6 +61,19 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   `01a07085-b24d-7ed3-80bc-04fc29f2e53c`.
 
 ## Visible acceptance and current defect
+
+Current technical boundary: Computer Use fails before app access with
+`Sky Computer Use native pipe startup failed` (app selection, explicit runtime
+reset/reselection, then inventory all failed). No successful launch or visible
+`3d413ef` journey is claimed. The documented technical-E2E exception permits
+independent persistence regressions, without substituting them for Arc acceptance.
+UI slot is explicitly handed to the bookmark owner for isolated-profile Bookmark
+E2E via queue message `01a0708d-ebf7-7da1-bc02-70b4026b9da6`. Main must not act in
+the UI before explicit handback. No default-profile Arc mutation, rebuild,
+installation or pin change was delegated; shared build/checkout stays Desktop-owned.
+
+The following scoped visible results and original import failure are from
+the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 - PASS (scoped): native App-menu Import opens the real dialog from a zero-tab
   normal window. The existing restored user window was preserved.
@@ -100,8 +117,9 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
    `ahoi_arc_import_browsertests`, `ahoi_sidebar_tree_unittests`,
    `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
    `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
-3. Install atomically only after a successful terminal build and receipt. Repeat
-   the real Arc journey first: successful backup/import, 2/2/3-pane splits,
+3. `3d413ef` is ALREADY INSTALLED and verified; do not repeat installation.
+   After explicit UI handback and a working Computer Use connection, repeat
+   the real Arc journey: successful backup/import, 2/2/3-pane splits,
    folder state, restart and identical second no-op import. Preserve existing
    source/profile and old recovery evidence. A red visible flow blocks its
    programmatic acceptance; fix its actual cause, not assertions.
@@ -114,6 +132,8 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 6. Run focused programmatic checks after each corrected visible journey;
    record exact candidate/results, commit/push owned work and advance the master
    packages. Sync/lean/privacy/performance and all other contracts remain in scope.
+   Include the stricter credential-index test oracle in the next coherent
+   package; no extra build was started for this test-only source change.
 
 ## Evidence and independent boundaries
 

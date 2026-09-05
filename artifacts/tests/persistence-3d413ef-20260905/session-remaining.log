@@ -1,0 +1,98 @@
+objc[66699]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x143620a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126918a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[66701]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141698a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x124990a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection:SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation:SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar:SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage:SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching:SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab:SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource:SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently:SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex:SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SessionBridgeTest
+[ RUN      ] SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection
+[       OK ] SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection (290 ms)
+[ RUN      ] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation (454 ms)
+[ RUN      ] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar (178 ms)
+[ RUN      ] SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage (203 ms)
+[ RUN      ] SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching (177 ms)
+[ RUN      ] SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab (203 ms)
+[ RUN      ] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource
+[       OK ] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource (111 ms)
+[ RUN      ] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[66701:172813395:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently (204 ms)
+[ RUN      ] SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex
+[       OK ] SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex (111 ms)
+[ RUN      ] SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing
+../../ahoi/browser/session/session_bridge_unittest.cc:531: Failure
+Value of: command_service->Query(u"username", 10u).empty()
+  Actual: false
+Expected: true
+Stack trace:
+0   ahoi_session_unittests              0x0000000102c8f944 ahoi::(anonymous namespace)::SessionBridgeTest_RemovesUrlUserinfoBeforeCommandIndexing_Test::TestBody() + 2908
+
+[  FAILED  ] SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing (129 ms)
+[----------] 10 tests from SessionBridgeTest (2274 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (2274 ms total)
+[  PASSED  ] 9 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing
+
+ 1 FAILED TEST
+[1/14] SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection (290 ms)
+[2/14] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation (454 ms)
+[3/14] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar (178 ms)
+[4/14] SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage (203 ms)
+[5/14] SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching (177 ms)
+[6/14] SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab (203 ms)
+[7/14] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource (111 ms)
+[8/14] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently (204 ms)
+[9/14] SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex (111 ms)
+[10/14] SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing (129 ms)
+objc[66718]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141648a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x124940a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace:SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove:SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed:SessionBridgeTest.ShutdownDetachesAndFailsClosed
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from SessionBridgeTest
+[ RUN      ] SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace
+[66718:172813763:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[66718:172813763:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace (287 ms)
+[ RUN      ] SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove
+[66718:172813763:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[66718:172813763:ERROR:chrome/browser/ui/tabs/tab_strip_api/tab_strip_model_impl/tab_strip_model_event_bridge.cc:109] Not implemented reached in virtual void tabs_api::tab_strip_model::TabStripModelEventBridge::OnTabStripModelChanged(TabStripModel *, const TabStripModelChange &, const TabStripSelectionChange &). 
+[       OK ] SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove (186 ms)
+[ RUN      ] SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed
+[66718:172813763:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed (219 ms)
+[ RUN      ] SessionBridgeTest.ShutdownDetachesAndFailsClosed
+[66718:172813763:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[66718:172813763:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.ShutdownDetachesAndFailsClosed (203 ms)
+[----------] 4 tests from SessionBridgeTest (935 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (935 ms total)
+[  PASSED  ] 4 tests.
+[11/14] SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace (287 ms)
+[12/14] SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove (186 ms)
+[13/14] SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed (219 ms)
+[14/14] SessionBridgeTest.ShutdownDetachesAndFailsClosed (203 ms)
+1 test failed:
+    SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing (../../ahoi/browser/session/session_bridge_unittest.cc:504)
+Tests took 5 seconds.

@@ -502,13 +502,15 @@ TEST_F(SessionBridgeTest, PublishesNestedSavedPagesToCommandBarIndex) {
 }
 
 TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
-  CommandService* command_service =
+  CommandService *command_service =
       CommandServiceFactory::GetForProfile(profile());
   ASSERT_TRUE(command_service);
   ASSERT_FALSE(workspace_service_->ordered_workspaces().empty());
 
+  // These credential-only sentinels cannot be fuzzy subsequences of the safe
+  // URL/path. Generic "username" can match across repeated sanitized fields.
   const GURL credential_url(
-      "https://username:password@example.test/private-document");
+      "https://userinfo-qzx987:secret-qzx654@example.test/private-document");
   tab_tree::TreeNode page = MakeSavedPage(
       workspace_service_->ordered_workspaces().front().id, credential_url);
   page.title = base::UTF8ToUTF16(credential_url.spec());
@@ -519,7 +521,7 @@ TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
   const std::vector<RankedCommand> results =
       command_service->Query(u"private-document", 10u);
   const auto result =
-      std::ranges::find_if(results, [&page](const RankedCommand& ranked) {
+      std::ranges::find_if(results, [&page](const RankedCommand &ranked) {
         return ranked.item.type == CommandItemType::kSavedPage &&
                ranked.item.stable_id == page.id.AsLowercaseString();
       });
@@ -528,8 +530,13 @@ TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
   EXPECT_EQ(result->item.url, safe_url);
   EXPECT_EQ(result->item.title, base::UTF8ToUTF16(safe_url.spec()));
   EXPECT_EQ(result->item.secondary_text, base::UTF8ToUTF16(safe_url.spec()));
-  EXPECT_TRUE(command_service->Query(u"username", 10u).empty());
-  EXPECT_TRUE(command_service->Query(u"password", 10u).empty());
+  ASSERT_EQ(2u, result->item.keywords.size());
+  EXPECT_EQ(base::UTF8ToUTF16(safe_url.spec()), result->item.keywords[0]);
+  EXPECT_EQ(workspace_service_->ordered_workspaces().front().name + u" / " +
+                base::UTF8ToUTF16(safe_url.spec()),
+            result->item.keywords[1]);
+  EXPECT_TRUE(command_service->Query(u"userinfo-qzx987", 10u).empty());
+  EXPECT_TRUE(command_service->Query(u"secret-qzx654", 10u).empty());
 }
 
 TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
