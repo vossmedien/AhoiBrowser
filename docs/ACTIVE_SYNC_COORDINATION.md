@@ -17,15 +17,14 @@ supersedes migration/legacy-reader work in the initial coordination wording.
 
 - Sync: `01a06d69-1034-7372-b784-0b05a53c87e0`, observed Terminal `ttys011`.
   Existing common C++ scope plus Swift `spikes/cloudkit` / `apps/AhoiMobile`
-  transferred cleanly through source `f25eea5`. Assignment queued as
-  `01a07275-a813-73b2-aabb-40399075fa5d`; acceptance/short package plan pending.
-  A subsequently delivered format notice still used the old split (Swift here,
-  common C++ there). Coordinator clarified the newer user-approved C++/Swift
-  ownership in `01a0728d-7fd1-7df3-8c1d-b130414c6847`; no product writes resumed
-  here. Format 3 for every existing permitted entity, including Bookmark and
-  Capability, is now committed as ADR 0009 / `config/sync-format.json` in
-  `1bfae11`. Its Common/Mobile role labels and the Sync checkpoint still use
-  the old split; the queued newer ownership clarification remains to be accepted.
+  transferred cleanly through source `f25eea5`; explicitly accepted in
+  `ae740b5192ac7e64e149bc58aa64de306690e2a8`. ADR 0009 and the Sync checkpoint
+  now assign both languages to this one owner. No further ownership ACK or
+  separate Mobile implementer is needed. The agreed sequence is common format/
+  fixtures and fresh C++ store, matching Swift, native/Mobile binding, then a
+  coordinated candidate/E2E/focused-test wave. Initial handoff message was
+  `01a07275-a813-73b2-aabb-40399075fa5d`; delayed notices using the old split
+  do not reopen it. The unified contract remains `1bfae11`.
 - Desktop: `01a04f97-e3ba-70f2-a031-220b214d352d`, observed `ttys002`.
   Browser package, native Tree/Session/UI and adapter, Chromium checkout/out,
   build/sign/install/native runtime retained. Explicit role acceptance received
@@ -64,6 +63,15 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
 - Later Desktop readback (17:31 UTC) reports the Blender job ended and a new
   FillIt Unity phase around 191% CPU blocking the start. Coordinator observed
   Unity PID 25581 / parent 51136 at 188.6%; no old PID is a permanent blocker.
+- The later CPU gate cleared: Desktop recorded overlay `65019` EXIT 0 and
+  compiler session `7945` on `22e2f2b`. Coordinator's newer log read shows Ninja
+  stopped at the two `kLegacyRows[i]` unsafe-buffer errors in
+  `bookmark_sync_store_unittest.cc:435/436`; the other three corrected test files
+  and `ahoi_sidebar_tree_unittests` progressed/linked. The guarded terminal result
+  still needs the owner's explicit readback; there is no total-build receipt or
+  new install inferred here. Feedback was queued to Desktop and Sync as
+  `01a072c7-ef7b-72f0-8bda-01c1d754904b` /
+  `01a072c7-f155-76a0-89ba-4a9fb81d4ec3` for a bounded separate test-only fix.
 - Installed Desktop remains `3d413ef` per current Desktop checkpoint; that
   native candidate is provider-free and is not a real cross-client sync pass.
 - Swift `3964bcb` is frozen-contract preparation; `895daf9` and `f25eea5`
@@ -84,6 +92,11 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
   profile types and the two new shared-tab leaf headers. Coordinator inspected
   the leaf types, separate presence/logical IDs and default-false native support.
   This is WIP, not a header freeze, compiled result or writer activation.
+- Swift implementation has now started too: central `SharedSyncFormat`, exact
+  live class/version boundary and Capability `[3]` defaults are visible WIP.
+  The coordinator's remaining-path review is
+  `docs/reviews/2026-09-05-unified-sync-swift-checklist.md`; it is source-only,
+  not a claim that unfinished codecs, snapshot markers or live bindings pass.
 - Direct Terminal Computer Use was denied by the tool's safety boundary. No
   workaround or process interruption was attempted. Coordination continues via
   the existing CLI queue and scoped read-only process/log/checkpoint evidence;
@@ -91,8 +104,8 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
 
 ## Next actions
 
-1. Obtain the remaining Sync-owner acceptance and short package plan; Desktop
-   has explicitly accepted its retained role. Do not repeat the Desktop ACK.
+1. Both owners have accepted their roles. Follow the concrete package sequence
+   and native header handoffs; no further role-confirmation loop.
 2. Track the next bounded native correction handoff/build without starting
    competing intensive work. Source, build, tests, signing and install
    remain separate gates.
