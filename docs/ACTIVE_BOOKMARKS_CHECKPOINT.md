@@ -2,6 +2,23 @@
 
 Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 
+## Current external block
+
+The same prerequisites remain unresolved after three consecutive goal turns:
+FillIt Unity Play mode is still live around 99% CPU; free space is about
+105 GiB against the hard 120-GiB checkout floor; the Desktop task has not resumed
+its combined candidate build after the explicit handoff; and the user's choice
+of a shared Desktop/Mobile bookmark collection is still missing. Current build
+receipts remain older than the frozen bookmark source. The bounded Ahoi-only
+capacity audit found no sufficient cleanup that this owner may perform safely.
+
+The goal is externally blocked, not complete. No new source rewrites, repeated
+unchanged audits, competing builds or unverified feature push should substitute
+for these prerequisites. Resume from the source/ownership handoff below once
+capacity and task coordination are restored and the mobile collection decision
+is available. All remaining build, visible E2E, behavioral tests and actual
+Chromium roll requirements remain intact.
+
 ## Explicit shared-checkout / build handoff
 
 **RELEASED to Desktop owner `01a04f97-e3ba-70f2-a031-220b214d352d`.**
