@@ -45,6 +45,15 @@ final file list. No shared checkout refresh, build, test or install has
 started for this wave. `ahoi_sync_unittests` is reserved in the one combined
 build. Do not integrate the common Bookmark Sync WIP before its handoff.
 
+A fresh visible baseline attempt exposed sustained native CPU and UI timeouts.
+The bounded follow-up now adds patch `0033`: unchanged computed sidebar margins
+no longer invalidate layout from inside every layout pass. Material reapply
+also guards unchanged radius, fast-corner mode and opacity setters that otherwise
+request more compositor work. Three native invalidation/geometry tests and one
+real-compositor no-op regression are written, not run. Source proves those
+redundant invalidations, not the complete runtime hang cause. Include this
+follow-up in the same package; do not start a separate one-guard build.
+
 The additional Arc code waits for real non-initial native navigation commits
 before taking a SessionService receipt; it does not wait for full page loading.
 A scoped SessionBridge guard defers only automatic title/URL mirroring for
@@ -152,6 +161,19 @@ Mobile runtime reservation remains; no automatic retry is authorized.
 
 ## Visible acceptance and current defect
 
+**Latest live readback (13:41–13:50 CEST):** Computer Use inventory briefly
+recovered and Desktop opened installed `3d413ef` with **Fortsetzen**. AX and a
+real screenshot showed the NTP/sidebar, docked at width `302`; the toolbar was
+hidden on NTP, so the seam was not yet reproduced. Cmd+L/internal Settings
+navigation+readback timed out at 120 seconds, then a read-only AX request timed
+out at 10 seconds and reset only this thread's JS kernel. Completion of the
+navigation is unknown. Native app PID `37773` is still running, sampled near
+95–105% CPU; do not retain the earlier "app quit" state or force-kill it.
+One read-only sample ended Exit 0 and showed only five main-thread observations
+in compositor/property-tree work, not a proven source cause. Journal remains
+`prepared/manual_recovery_required`; no new import or recovery was attempted.
+Details/hash: `artifacts/diagnostics/desktop-3d413ef-ui-hang-20260905/README.md`.
+
 Computer Use briefly RECOVERED: installed `3d413ef` was opened, session continued,
 and real Arc preview/import executed. The transaction ended in manual recovery,
 not success. Backup/manifest now exist, tree is 2 workspaces/174 nodes/155 nested,
@@ -232,19 +254,24 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. The reviewed four-file fix and regressions are committed in `3d413ef`; its
-   clean snapshot is selected. Recheck all-project CPU ownership and free space
-   before each intensive phase.
-2. Overlay and combined guarded build are ALREADY COMPLETE for `3d413ef`; do
-   not rerun them for a delayed coordination message. Built targets include
+1. Keep Desktop source `ef0f965` + `96b5a2f` frozen. Await the explicit committed
+   Bookmark source SHA/file list, then select the complete committed package
+   in the existing clean snapshot. No WIP integration or competing build.
+   Recheck all-project CPU ownership and disk before intensive work.
+2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
+   those old commands for delayed messages. Its built targets were
    `ahoi_tab_tree_unittests`, `ahoi_session_unittests`,
    `ahoi_startup_policy_unittests`, `ahoi_arc_import_unittests`,
    `ahoi_arc_import_browsertests`, `ahoi_sidebar_tree_unittests`,
    `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
    `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
-3. `3d413ef` is ALREADY INSTALLED and verified; do not repeat installation.
-   UI handback is accepted. Once Computer Use is working again, repeat
-   the real Arc journey: successful backup/import, 2/2/3-pane splits,
+   The next combined guarded build includes those relevant targets, the missing
+   `ahoi_sync_unittests`, `ahoi_navigation_surface_state_unittests` and
+   `ahoi_floating_browser_view_browsertests`, after the new source handoff.
+3. `3d413ef` remains installed and its failed import must not be retried.
+   Once the corrected candidate is built/installed and UI is usable, explicitly
+   recover the exact failed transaction through the verified-backup UI first.
+   Then repeat the real Arc journey: successful backup/import, 2/2/3-pane splits,
    folder state, restart and identical second no-op import. Preserve existing
    source/profile and old recovery evidence. A red visible flow blocks its
    programmatic acceptance; fix its actual cause, not assertions.
@@ -262,6 +289,14 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Evidence and independent boundaries
 
+- Mobile source `313e351` / DebugLocal 15 is independently accepted locally,
+  not as native cross-client sync. Main read its clean matching-source receipt
+  and terminal logs: visible Bookmark journey 1/1, Core 70 passed + 2 entitlement
+  skips, shared Swift 36 passed and repository 2 passed. Its default writers
+  remain v2. Report: `docs/audit-evidence/2026-09-05-mobile-bookmark-wire2/README.md`.
+  No Mobile runtime reservation remains; its further Swift WIP stays owned by
+  Mobile. The actual C++/Swift roundtrip, native transport/key bootstrap and
+  shared-normal-tab runtime are separate open gates.
 - Mac Sync readiness was read back from installed `3d413ef`: it remains
   provider-free, without CloudKit runtime keys, entitlement or provisioning
   profile. No separate verified CloudKit Mac candidate exists in this wave.

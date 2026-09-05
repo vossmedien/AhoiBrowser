@@ -7,14 +7,19 @@
 
 #include "ahoi/browser/ui/appearance/appearance_views.h"
 #include "base/functional/bind.h"
+#include "base/test/run_until.h"
+#include "cc/trees/layer_tree_host.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/compositor/compositor.h"
 #include "ui/compositor/layer.h"
+#include "ui/compositor/test/draw_waiter_for_test.h"
 #include "ui/gfx/geometry/rounded_corners_f.h"
 #include "ui/gfx/geometry/transform.h"
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/test/views_test_base.h"
 #include "ui/views/view.h"
+#include "ui/views/widget/widget.h"
 
 namespace ahoi {
 namespace {
@@ -115,6 +120,34 @@ TEST_F(NavigationSurfaceControllerTest,
                     surface_view.layer()->background_blur());
     surface_view.SetSize(gfx::Size(140, 60));
     EXPECT_EQ(expected_radii, surface_view.layer()->rounded_corner_radii());
+  }
+}
+
+TEST_F(NavigationSurfaceControllerTest,
+       ReapplyingIdenticalLayerMaterialDoesNotRequestAnotherFrame) {
+  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  auto* const view = widget->SetContentsView(std::make_unique<views::View>());
+  view->SetPaintToLayer();
+  widget->SetBounds(gfx::Rect(0, 0, 220, 80));
+  widget->Show();
+  auto* const compositor = widget->GetCompositor();
+  ASSERT_TRUE(compositor);
+  appearance::GlassPolicy policy;
+  policy.enabled = false;
+  auto surface = appearance::AppearanceResolver::Resolve(
+      appearance::SurfaceRole::kFloatingNavigation, policy);
+
+  for (int radius : {14, 0}) {
+    surface.corner_radius = radius;
+    appearance::ApplySurfaceLayerAppearance(view->layer(), surface);
+    ui::DrawWaiterForTest::WaitForCommit(compositor);
+    ASSERT_TRUE(base::test::RunUntil(
+        [&]() { return !compositor->host_for_testing()->CommitRequested(); }));
+    EXPECT_EQ(radius != 0, view->layer()->is_fast_rounded_corner());
+    for (int repeated_layout = 0; repeated_layout < 4; ++repeated_layout) {
+      appearance::ApplySurfaceLayerAppearance(view->layer(), surface);
+      EXPECT_FALSE(compositor->host_for_testing()->CommitRequested());
+    }
   }
 }
 

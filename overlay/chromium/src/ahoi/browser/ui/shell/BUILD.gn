@@ -44,7 +44,10 @@ source_set("unit_tests") {
     ":navigation_surface_controller",
     ":navigation_surface_state",
     "//base/test:test_support",
+    "//cc",
     "//testing/gtest",
+    "//ui/compositor",
+    "//ui/compositor:test_support",
     "//ui/views",
     "//ui/views:test_support",
   ]
@@ -53,7 +56,10 @@ source_set("unit_tests") {
 source_set("floating_browser_view_browser_tests") {
   testonly = true
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
-  sources = [ "floating_browser_view_browsertest.cc" ]
+  sources = [
+    "floating_browser_view_browsertest.cc",
+    "sidebar_layout_invalidation_browsertest.cc",
+  ]
   deps = [
     "//ahoi/browser/ui:visual_style",
     "//ahoi/browser/ui/appearance:appearance_preferences",

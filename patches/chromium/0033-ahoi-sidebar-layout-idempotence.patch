@@ -1,0 +1,37 @@
+From: AhoiBrowser Authors
+Subject: [PATCH] Do not invalidate the sidebar for unchanged layout inputs
+
+CalculateProposedLayout supplies the toolbar height on every pass. Preserve
+native top-container handling, but only update actual changed Ahoi margins and
+use the same during-layout propagation guard as Chromium's top container.
+
+diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
+--- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
++++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
+@@ -706,12 +706,19 @@
+ void VerticalTabStripRegionView::SetToolbarHeightForLayout(int toolbar_height) {
+   toolbar_height_for_layout_ = std::max(0, toolbar_height);
+-  top_button_container_->SetToolbarHeightForLayout(toolbar_height);
++  top_button_container_->SetToolbarHeightForLayout(toolbar_height_for_layout_);
+   if (ahoi_sidebar_tree_view_) {
+-    ahoi_sidebar_tree_view_->SetProperty(
+-        views::kMarginsKey,
+-        GetAhoiSidebarMargins(ahoi_sidebar_visual_floating_,
+-                              ahoi_sidebar_visual_edge_revealed_,
+-                              toolbar_height_for_layout_));
+-    InvalidateLayout();
++    const gfx::Insets margins =
++        GetAhoiSidebarMargins(ahoi_sidebar_visual_floating_,
++                              ahoi_sidebar_visual_edge_revealed_,
++                              toolbar_height_for_layout_);
++    const gfx::Insets* current =
++        ahoi_sidebar_tree_view_->GetProperty(views::kMarginsKey);
++    if (current && *current == margins) {
++      return;
++    }
++    // Called by CalculateProposedLayout on every pass. Unchanged inputs must
++    // not schedule another root layout; mode changes still update the margins.
++    ahoi_sidebar_tree_view_->SetProperty(views::kMarginsKey, margins);
++    InvalidateLayout(/*avoid_propagate_during_layout=*/true);
+   }
+ }

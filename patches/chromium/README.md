@@ -827,6 +827,23 @@ as a second active patch stack.
   browser tests and Settings single-submit/busy/no-auto-retry WebUI tests.
 - **Rebase/removal:** low risk; keep while this local recovery path is exposed.
 
+## `0033-ahoi-sidebar-layout-idempotence.patch`
+
+- **Owner/baseline:** Desktop; the same M152 pin after the ordered stack.
+- **Scope:** the Ahoi branch of `SetToolbarHeightForLayout`. The layout engine
+  calls it every pass; unchanged computed margins must not invalidate the root
+  again. Changed margins retain native propagation protection during layout,
+  and docked/floating/edge-revealed transitions keep their existing geometry.
+- **Evidence:** installed `3d413ef` timed out during UI access with sustained
+  native CPU near one core. A short stack sample showed compositor property-tree
+  work. Source proves redundant layout invalidation; it does not yet prove the
+  complete runtime hang cause. See the candidate-bound diagnostic README.
+- **Tests:** three native layout/observer regressions plus an overlay test for
+  repeated material application not requesting another compositor commit.
+  Visible interaction/CPU readback on the corrected candidate remains required.
+- **Security/rebase:** no profile or permission change; narrow Views seam,
+  matching the native top-container guard. Low rebase risk.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`
