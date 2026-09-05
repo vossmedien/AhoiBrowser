@@ -129,6 +129,10 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
         let deleted = try await phone.repository.deleteTreeNode(page.id)
         for node in deleted { try await phone.bridge.enqueue(node) }
         try await phone.bridge.syncNow()
+        // Queue the retained live page on the still-stale peer before fetching
+        // the server tombstone. Merge-before-send must prevent resurrection.
+        try await mac.bridge.enqueue(macPage)
+        XCTAssertGreaterThan(mac.provider.pendingRecordCount(), 0)
         try await mac.bridge.syncNow()
         // A second publication of the complete local state may not resurrect
         // a deleted saved page or create duplicate device tabs.
@@ -205,7 +209,7 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
                 recordID: CKRecord.ID(recordName: id.uuidString.lowercased(), zoneID: scope.zoneID)
             )
             let decoded = try AppleCloudKitRecordCodec().decode(record)
-            assertServerPrivacy(record, isTombstone: decoded.tombstone != nil,
+            assertServerPrivacy(record, expected: decoded,
                                 plaintext: try Harness.open(decoded.encryptedValue, using: key))
         }
     }
@@ -530,14 +534,14 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
         )
         assertServerPrivacy(
             serverRecord,
-            isTombstone: expected.tombstone != nil,
+            expected: expected,
             plaintext: expectedPlaintext
         )
     }
 
     private func assertServerPrivacy(
         _ record: CKRecord,
-        isTombstone: Bool,
+        expected: SyncRecord,
         plaintext: Data,
         file: StaticString = #filePath,
         line: UInt = #line
@@ -554,7 +558,12 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
             fields.originatingDeviceID,
             fields.isTombstone,
         ]
-        if isTombstone {
+        if expected.orderKey != nil {
+            expectedClearKeys.formUnion([
+                fields.orderComponents, fields.orderTieBreaker, fields.orderSortKey,
+            ])
+        }
+        if expected.tombstone != nil {
             expectedClearKeys.formUnion([
                 fields.tombstoneEntityID,
                 fields.tombstoneDeletedPhysical,
@@ -563,6 +572,16 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
                 fields.tombstoneDeletedNodeID,
                 fields.tombstoneDeletedBy,
                 fields.tombstonePurgeAfter,
+            ])
+        }
+        if expected.tombstone?.originalParentID != nil {
+            expectedClearKeys.insert(fields.tombstoneOriginalParentID)
+        }
+        if expected.tombstone?.originalOrderKey != nil {
+            expectedClearKeys.formUnion([
+                fields.tombstoneOriginalOrderComponents,
+                fields.tombstoneOriginalOrderTieBreaker,
+                fields.tombstoneOriginalOrderSortKey,
             ])
         }
         let encryptedKeys = Set(record.encryptedValues.allKeys())
