@@ -20,9 +20,18 @@ page uses a per-tab in-flight guard and the initiating runtime ID, even if the
 user selects/closes another tab during the async save. A linked saved page is
 updated/moved atomically without allocating a replacement identity.
 
-Regressions are written in `MobileTabReorderTests`,
-`MobileSharedPageSaveTests` and the existing visible Library journey. These
-changes are not yet compiled or tested. Shared temporary publication,
+Source `30d73fa`, DebugLocal `0.1 (12)`, now built successfully from a clean
+snapshot. The exact-candidate visible Library save/tree/search journey passed
+**1/1**, including unchanged runtime Tab-ID sets on reopening. Then
+`MobileTabReorderTests`, `MobileSharedPageSaveTests` and
+`CompanionOperationFailureTests` passed **11/11**; the provider-event/no-polling
+repository contract passed **2/2**. The Save callback binds before exposing the
+new row and also updates the initiating tab's matching Undo record.
+Report: `docs/audit-evidence/2026-09-05-mobile-shared-tab-identity/README.md`.
+No Mobile build/test remains running; the dedicated fixture simulator was
+returned to its previous shutdown state. TestFlight Build 10 is unchanged.
+
+Shared temporary publication,
 auto-projection on remote arrival, provenance badges and authoritative
 TabSwitcher Save/Unsave still require the coordinated wire step. The earlier
 internal-beta and encrypted relay results do not accept this new behavior.
@@ -35,6 +44,12 @@ lease. Local Mobile implementation may proceed in disjoint files on the same
 branch. Queued field-freeze requests: Desktop
 `01a07071-5aa1-7e41-86bc-db14e0f24e68`, Bookmark
 `01a07071-5750-7d70-99ca-7628947f2329`; no response is assumed.
+
+Next: obtain the combined ADR 0006/0007 field/version handoff, then implement
+the shared Swift wire/domain and Mobile live projection together with the
+Desktop owner. Do not repeat the completed local identity tests unchanged or
+mistake this foundation for complete all-device tab sync. Preserve pending
+signed real-CloudKit runner outputs below while working on the new package.
 
 ## Previous request: close technical sync verification
 
