@@ -39,6 +39,16 @@ in the same existing disposable worktree. Product build first, then atomic
 installation and this exact visible launch/new-window/fullscreen journey again.
 New workspace-session requirements and Unified Sync WIP remain outside it.
 
+Guarded overlay31405 and product-only build73875 subsequently exited0. The
+source-bound build receipt `artifacts/build/ahoi-dev-build-4cb622a0bffc.json` was
+copied byte-identically from the clean snapshot, SHA256
+`2d94480da797419e9ab9a755a73fbfffff2de4fb822399c0b352a6a2e3f9de76`.
+Signed executable SHA256
+`55301ccbda32e32d3ee57420bd10adc3581b96a918047dbbb82815a56134770b`.
+This build contains the product, not newly rebuilt test executables. Its initial
+installation was held at the fresh CPU gate (FillIt Unity18495 at118.7–119.6%).
+No foreign process stop and no4cb runtime pass are implied.
+
 Publication note: the signed follow-up carrying this note attests the author's
 DCO for the AI-assisted owned changes in7de7fac,390bb2c and296571f. Those already
 published commits are not rewritten. This does not claim that their original

@@ -86,7 +86,14 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Current candidate: startup fixed, fullscreen correction next
 
-**Current action:** c986090 build59738 and atomic install3416 are TERMINAL
+**Current action:** corrected4cb622a product build73875 is TERMINAL EXIT0 and
+signed. Installation has NOT started: fresh20:37–20:38UTC CPU samples identify
+FillIt Unity18495/Parent51136, OpenSavedPlayablePreview/party-progression-02.log,
+at118.7–119.6%. Owner was asked for a natural quiet phase in
+01a0734b-0fe9-7423-a6dd-76fbcaf8c310; no foreign process was touched. Recheck
+the live CPU/process gate before the canonical installer, do not rebuild.
+
+Currently installed c986090 build59738 and atomic install3416 are TERMINAL
 EXIT0. Build/install receipts match source, executable and full bundle tree.
 Visible CUA launch, session continuation and a second browser window succeeded.
 The subsequent green window-button/fullscreen action crashed with SIGABRT:
@@ -125,8 +132,13 @@ detached worktree cherry-picks only this correction onto c986090, yielding
 `4cb622a0bffc602051bf72e6e95b6100948f861e`. No new branch/worktree or Common WIP.
 Fresh full process gate clear20:24UTC, disk79,777,988KiB. Guarded overlay31405
 is TERMINAL EXIT0; log `fullscreen-overlay.log`. After another fresh CPU gate,
-product-only `build-ahoi.sh dev` is RUNNING73875, `fullscreen-build.log` in the
-same directory. Do not restart/change the snapshot or require unrelated test
+product-only `build-ahoi.sh dev`73875 completed EXIT0, `fullscreen-build.log`
+in the same directory. Canonical receipt
+`artifacts/build/ahoi-dev-build-4cb622a0bffc.json`, SHA256
+`2d94480da797419e9ab9a755a73fbfffff2de4fb822399c0b352a6a2e3f9de76`,
+copied byte-identically from the same clean snapshot. Signed executable SHA256
+`55301ccbda32e32d3ee57420bd10adc3581b96a918047dbbb82815a56134770b`.
+No compiler or test is running here. Do not rebuild or require unrelated test
 links before installing the runnable fix. Retained exact source also exists in
 `refs/ahoi/build-candidates/desktop-fullscreen-4cb622a` and verified incremental
 `fullscreen-source.bundle`, requiring published92694fe.
