@@ -6,6 +6,12 @@ macOS and excludes an elaborate development-data migration. This supersedes
 ADR 0006/0008 wherever they require continuing wire-v2 authoring, parallel
 v2/v3 operation, legacy promotion or mixed-version merge support.
 
+Additional user scope is binding in ADR 0010: transferable native Chromium
+settings, real extension restore/enabled state and safely supported extension
+settings. The 13 classes below are the initial base, not a final full-sync scope
+ceiling. One active format 3 remains; the corresponding new maps/fixtures must
+be delivered before those additional consumers are activated.
+
 ## One current contract
 
 The single target wire/model version is **3**, for every allowed entity below.

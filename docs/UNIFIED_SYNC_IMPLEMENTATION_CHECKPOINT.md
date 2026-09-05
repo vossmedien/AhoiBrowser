@@ -3,6 +3,13 @@
 Updated 2026-09-05. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation continuation pointer, not a source-freeze or acceptance.
 
+**New binding scope:** ADR 0010 adds actual Chromium-settings and extension
+installation/configuration restore after linking a second Mac. Earlier five
+Ahoi settings + inventory-only code is insufficient. The one-format decision
+remains; new corresponding field maps/native hooks/fixture coverage are not yet
+implemented. Cookies/passwords stay local; unknown extension storage is not
+silently approved. The goal prompt now includes this expanded runtime acceptance.
+
 ## Binding scope and delivered code
 
 ADR 0009 / `config/sync-format.json` implement the direct pre-launch user

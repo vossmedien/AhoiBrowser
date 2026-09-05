@@ -16,6 +16,21 @@ Altclient-Kompatibilitätswelle. Verwende für die neue Abnahme frische isoliert
 Datenbestände; lösche alte Profile, Journale oder Serverdaten nicht stillschweigend.
 Privacy, explizite Zustimmungen und disjunkte Agenten-Ownership bleiben bindend.
 
+Zusätzlicher verbindlicher Nutzerauftrag: Eine zweite macOS-Installation soll
+nach Installation und Verknüpfung nicht nur dieselben Workspaces/Tabs/Lesezeichen,
+sondern auch die übertragbaren nativen Chromium-Einstellungen und tatsächlich
+installierte, konfigurierte Erweiterungen erhalten. Eine reine Erweiterungsliste
+und fünf Ahoi-Optionen reichen dafür nicht. Implementiere den Wiederherstellungs-
+und laufenden Abgleich gemäß `docs/decisions/0010-full-browser-setup-sync.md` über
+native Chromium-Dienste und den einen bestehenden Ahoi-Transport. Übertrage
+geeignete eigene Erweiterungseinstellungen, soweit ein sicherer unterstützter
+Datenvertrag besteht; keine blinde Kopie lokaler Extension-Speicher. Cookies,
+Passwörter und andere Zugangsdaten bleiben lokal. iOS übernimmt gemeinsame
+Daten und passende Einstellungen, nicht eine behauptete Chromium-Extension-
+Laufzeit. Belege die tatsächliche frische Zwei-Mac-Einrichtung sichtbar, bevor
+programmatische Abnahme daraus abgeleitet wird. Der bisherige Umfang bleibt offen,
+bis auch diese zusätzliche Vollsync-Anforderung erfüllt ist.
+
 Implementiere im kanonischen AhoiBrowser-Repository eine kompakte, horizontal
 scrollbare Lesezeichenzeile oben in der Desktop-Sidebar, inspiriert von der
 Referenz des Nutzers. Ordner öffnen native, kaskadierende Menüs. Temporäre Tabs,
@@ -100,6 +115,12 @@ präzise. Committe und pushe nur die eigenen Änderungen nach bestandenen Gates.
 
 ## Verbindliche Abnahme
 
+- Frische Browser-Einrichtung: Mac A konfigurieren, Mac B installieren/verknüpfen;
+  übertragbare Chrome-/Ahoi-Einstellungen sind dort tatsächlich gesetzt,
+  unterstützte Erweiterungen installiert und funktionsfähig. Geeignete eigene
+  Erweiterungseinstellungen gleichen sich ab. Uninstall/Disable/Default-Reset,
+  Offline/Neustart und benötigte native Freigaben behalten klare Zustände.
+  iOS zeigt denselben logischen Bestand und wendet unterstützte Einstellungen an.
 - Desktop: Leiste sichtbar; Überlauf in beide Richtungen bedienbar; Ordner und
   Unterordner öffnen; URL und mehrere Seiten öffnen; Abbruch mit Escape;
   Tastaturfokus und Scrollposition bleiben bei Favicon-Updates erhalten;
