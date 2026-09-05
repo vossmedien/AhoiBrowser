@@ -583,7 +583,7 @@
     {
       "id": "TREE-13",
       "suite": "TREE",
-      "description": "direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen.",
+      "description": "direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen. Normale Ordner langsam, schnell und mit Richtungswechsel im Zwischenframe öffnen/schließen; Fokus und Scrollanker bleiben stabil, Titel überlagern sich nicht, ein Split darunter bleibt sichtbar. Viewportrand, Inhaltsende und reduzierte Bewegung ausdrücklich prüfen.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",

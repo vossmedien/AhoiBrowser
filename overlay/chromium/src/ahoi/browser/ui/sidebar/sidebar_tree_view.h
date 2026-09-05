@@ -16,6 +16,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
+#include "base/callback_list.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/timer/timer.h"
@@ -26,6 +27,7 @@
 #include "ui/gfx/animation/animation_delegate.h"
 #include "ui/gfx/animation/slide_animation.h"
 #include "ui/views/animation/bounds_animator.h"
+#include "ui/views/animation/bounds_animator_observer.h"
 #include "ui/views/context_menu_controller.h"
 #include "ui/views/drag_controller.h"
 #include "ui/views/view.h"
@@ -51,6 +53,7 @@ class SidebarTreeView final : public views::View,
                               public SidebarTreeViewModelObserver,
                               public views::ContextMenuController,
                               public views::DragController,
+                              public views::BoundsAnimatorObserver,
                               public gfx::AnimationDelegate {
   METADATA_HEADER(SidebarTreeView, views::View)
 
@@ -166,6 +169,12 @@ class SidebarTreeView final : public views::View,
   void CompleteRowBoundsAnimationForTesting() {
     row_bounds_animator_.Complete();
   }
+  gfx::SlideAnimation* height_animation_for_testing() {
+    return &preferred_height_animation_;
+  }
+  gfx::AnimationContainer* row_bounds_animation_container_for_testing() {
+    return row_bounds_animator_.container();
+  }
   const std::optional<base::Uuid>& editing_node_id_for_testing() const {
     return editing_node_id_;
   }
@@ -248,7 +257,16 @@ class SidebarTreeView final : public views::View,
   void AnimationEnded(const gfx::Animation* animation) override;
   void AnimationCanceled(const gfx::Animation* animation) override;
 
+  // views::BoundsAnimatorObserver:
+  void OnBoundsAnimatorProgressed(views::BoundsAnimator* animator) override;
+  void OnBoundsAnimatorDone(views::BoundsAnimator* animator) override;
+
  private:
+  struct DeferredSelectionReveal {
+    base::Uuid node_id;
+    gfx::Point visible_origin;
+  };
+
   struct VisualRow {
     std::vector<size_t> model_indices;
     size_t anchor_depth = 0;
@@ -351,6 +369,11 @@ class SidebarTreeView final : public views::View,
   void SynchronizeSearchContextGroups();
   void HandleVisualLayoutChanged();
   void StartPreferredHeightAnimation(int from_height, int to_height);
+  int GetAnimatedHeight() const;
+  void UpdateAnimatedSplitClips();
+  void MaybeScheduleSelectionReveal();
+  void FinishSelectionReveal();
+  void CancelSelectionReveal();
   const raw_ptr<SidebarTreeController> controller_;
   const raw_ptr<SidebarTreeViewDelegate> delegate_;
   const std::u16string split_with_prefix_;
@@ -378,6 +401,9 @@ class SidebarTreeView final : public views::View,
   std::optional<base::Uuid> pending_folder_expand_id_;
   base::OneShotTimer folder_expand_timer_;
   views::BoundsAnimator row_bounds_animator_{this};
+  // Only materialized split groups; a frame update must not traverse the full
+  // persistent tree or retain raw row pointers through virtualization.
+  std::vector<std::vector<base::Uuid>> materialized_split_clip_groups_;
   bool row_bounds_animation_pending_ = false;
   std::optional<int> row_bounds_animation_from_height_;
   bool in_batch_update_ = false;
@@ -390,6 +416,10 @@ class SidebarTreeView final : public views::View,
   int animated_height_from_ = 0;
   int animated_height_to_ = 0;
   bool preferred_height_animation_active_ = false;
+  std::optional<DeferredSelectionReveal> deferred_selection_reveal_;
+  std::vector<base::CallbackListSubscription>
+      selection_reveal_scroll_subscriptions_;
+  bool selection_reveal_task_pending_ = false;
   base::WeakPtrFactory<SidebarTreeView> weak_ptr_factory_{this};
 };
 

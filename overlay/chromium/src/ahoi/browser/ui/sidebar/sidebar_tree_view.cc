@@ -70,6 +70,7 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
   preferred_height_animation_.SetSlideDuration(
       visual_style::kTreeMotionDuration);
   row_bounds_animator_.SetAnimationDuration(visual_style::kTreeMotionDuration);
+  row_bounds_animator_.AddObserver(this);
   // This paint-only child is deliberately outside materialized_rows_. The
   // full target surface is painted by the row; this topmost fixed edge only
   // disambiguates before/after and never participates in layout.
@@ -85,6 +86,7 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
 }
 
 SidebarTreeView::~SidebarTreeView() {
+  row_bounds_animator_.RemoveObserver(this);
   model().RemoveObserver(this);
   set_context_menu_controller(nullptr);
   for (auto& entry : materialized_rows_) {
@@ -414,10 +416,7 @@ gfx::Size SidebarTreeView::CalculatePreferredSize(
   // temporary tab cannot be pinned without creating a folder first.
   int height = std::max(visual_height, SidebarTreeRowView::kRowHeight);
   if (preferred_height_animation_active_) {
-    const double value = preferred_height_animation_.GetCurrentValue();
-    height =
-        animated_height_from_ +
-        static_cast<int>((animated_height_to_ - animated_height_from_) * value);
+    height = GetAnimatedHeight();
   }
   // The host owns the sidebar width. Advertising the design-time default here
   // makes ScrollView keep a wider contents layer after the native resize strip
@@ -426,6 +425,12 @@ gfx::Size SidebarTreeView::CalculatePreferredSize(
   // the virtualized tree to the live viewport while preserving the exact row
   // height and the host's independent default/min/max width contract.
   return gfx::Size(0, height);
+}
+
+int SidebarTreeView::GetAnimatedHeight() const {
+  return animated_height_from_ +
+         static_cast<int>((animated_height_to_ - animated_height_from_) *
+                          preferred_height_animation_.GetCurrentValue());
 }
 
 bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
@@ -517,6 +522,11 @@ bool SidebarTreeView::GetNeedsNotificationWhenVisibleBoundsChange() const {
 }
 
 void SidebarTreeView::OnVisibleBoundsChanged() {
+  if (deferred_selection_reveal_ &&
+      GetVisibleBounds().origin() !=
+          deferred_selection_reveal_->visible_origin) {
+    CancelSelectionReveal();
+  }
   ScheduleVisibleBoundsSynchronization();
 }
 

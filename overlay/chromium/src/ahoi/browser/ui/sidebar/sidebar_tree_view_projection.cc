@@ -65,9 +65,11 @@ void SidebarTreeView::OnBatchUpdateEnded() {
 }
 
 void SidebarTreeView::OnTreeReset() {
+  CancelSelectionReveal();
   editing_node_id_.reset();
   last_drop_probe_.reset();
   SetDropIndicator(std::nullopt);
+  materialized_split_clip_groups_.clear();
   row_bounds_animator_.Cancel();
   row_bounds_animation_pending_ = false;
   row_bounds_animation_from_height_.reset();
@@ -141,8 +143,17 @@ void SidebarTreeView::HandleVisualLayoutChanged() {
 
 void SidebarTreeView::StartPreferredHeightAnimation(int from_height,
                                                     int to_height) {
-  animated_height_from_ = std::max(from_height, 0);
-  animated_height_to_ = std::max(to_height, 0);
+  const int current_height =
+      preferred_height_animation_active_
+          ? GetAnimatedHeight()
+          : std::max(from_height, SidebarTreeRowView::kRowHeight);
+  // Reset synchronously cancels an in-flight animation and clears active_ in
+  // AnimationCanceled(). Establish the replacement state only afterwards, and
+  // start at the displayed intermediate height rather than the previous target.
+  preferred_height_animation_.Reset(0.0);
+  preferred_height_animation_active_ = false;
+  animated_height_from_ = current_height;
+  animated_height_to_ = std::max(to_height, SidebarTreeRowView::kRowHeight);
   if (animated_height_from_ == animated_height_to_ ||
       !gfx::Animation::ShouldRenderRichAnimation()) {
     preferred_height_animation_.Reset(1.0);
@@ -151,7 +162,6 @@ void SidebarTreeView::StartPreferredHeightAnimation(int from_height,
     return;
   }
   preferred_height_animation_active_ = true;
-  preferred_height_animation_.Reset(0.0);
   preferred_height_animation_.Show();
 }
 
@@ -167,11 +177,40 @@ void SidebarTreeView::AnimationEnded(const gfx::Animation* animation) {
     preferred_height_animation_active_ = false;
     PreferredSizeChanged();
     InvalidateLayout();
+    MaybeScheduleSelectionReveal();
   }
 }
 
 void SidebarTreeView::AnimationCanceled(const gfx::Animation* animation) {
   AnimationEnded(animation);
+}
+
+void SidebarTreeView::OnBoundsAnimatorProgressed(views::BoundsAnimator*) {
+  UpdateAnimatedSplitClips();
+}
+
+void SidebarTreeView::OnBoundsAnimatorDone(views::BoundsAnimator*) {
+  UpdateAnimatedSplitClips();
+  MaybeScheduleSelectionReveal();
+}
+
+void SidebarTreeView::UpdateAnimatedSplitClips() {
+  // BoundsAnimator notifies after every row in its shared container has moved.
+  // Use that same current geometry for the group bubble, never its end
+  // position.
+  for (const auto& group : materialized_split_clip_groups_) {
+    gfx::Rect group_bounds;
+    for (const base::Uuid& id : group) {
+      if (auto* row = GetMaterializedRowForTesting(id)) {
+        group_bounds.Union(row->bounds());
+      }
+    }
+    for (const base::Uuid& id : group) {
+      if (auto* row = GetMaterializedRowForTesting(id)) {
+        row->SetSplitGroupClipBounds(group_bounds);
+      }
+    }
+  }
 }
 
 void SidebarTreeView::WriteDragDataForView(views::View* sender,
@@ -453,6 +492,10 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
   if (!rich_motion && row_bounds_animator_.IsAnimating()) {
     row_bounds_animator_.Cancel();
   }
+  if (!rich_motion && preferred_height_animation_active_) {
+    preferred_height_animation_.Reset(1.0);
+    preferred_height_animation_active_ = false;
+  }
   const std::vector<SidebarTreeViewModel::Row>& rows = model().rows();
   const std::vector<VisualRow> visual_rows = BuildVisualRows();
   const std::vector<VisualPosition> visual_positions =
@@ -529,20 +572,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
   // contents width clips titles and trailing actions during sidebar resize.
   const int row_width = visible_bounds.width() > 0 ? visible_bounds.width()
                                                    : std::max(width(), 1);
-  std::vector<std::optional<gfx::Rect>> split_group_bounds(visual_rows.size());
-  for (size_t visual_index = 0; visual_index < visual_rows.size();
-       ++visual_index) {
-    const VisualRow& visual_row = visual_rows[visual_index];
-    if (visual_row.model_indices.size() < 2) {
-      continue;
-    }
-    gfx::Rect group_bounds;
-    for (size_t segment = 0; segment < visual_row.model_indices.size();
-         ++segment) {
-      group_bounds.Union(GetSegmentBounds(visual_row, segment, row_width));
-    }
-    split_group_bounds[visual_index] = group_bounds;
-  }
+  materialized_split_clip_groups_.clear();
   size_t child_order = 0;
   for (const size_t index : desired_indices) {
     CHECK_LT(index, rows.size());
@@ -561,6 +591,12 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     row->set_drag_controller(model().is_search_projection_active() ? nullptr
                                                                    : this);
     const VisualPosition& position = visual_positions[index];
+    if (position.segment == 0 && position.segment_count > 1) {
+      auto& group = materialized_split_clip_groups_.emplace_back();
+      for (size_t member : visual_rows[position.visual_row].model_indices) {
+        group.push_back(rows[member].node_id);
+      }
+    }
     row->Bind(
         index, rows[index], *node, model().selected_node_id() == node_id,
         position.segment, position.segment_count,
@@ -604,13 +640,14 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     } else {
       row->SetBoundsRect(target_bounds);
     }
-    row->SetSplitGroupClipBounds(position.segment_count > 1
-                                     ? split_group_bounds[position.visual_row]
-                                     : std::nullopt);
+    if (position.segment_count == 1) {
+      row->SetSplitGroupClipBounds(std::nullopt);
+    }
     ReorderChildView(row, child_order++);
   }
   row_bounds_animation_pending_ = false;
   row_bounds_animation_from_height_.reset();
+  UpdateAnimatedSplitClips();
   SynchronizeSplitResizeAreas(visual_rows, range, row_width,
                               native_drag_in_progress);
   UpdateInsertionMarker();

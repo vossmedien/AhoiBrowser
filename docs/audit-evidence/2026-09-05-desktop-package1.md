@@ -132,10 +132,10 @@ default `SizeBounds` argument and required no change. Header availability and
 whitespace were checked; no new build or test execution occurred. The refinement
 will be compiled with the next coherent package, not treated as a `3d413ef` pass.
 
-## Normal-folder motion follow-through (read-only review, not yet fixed)
+## Normal-folder motion follow-through (source preparation, not yet accepted)
 
 The bookmark owner relayed the user's rejection of expand/collapse motion.
-Three concrete source findings are retained for Desktop's next correction:
+Three concrete source findings were identified for Desktop's next correction:
 
 1. `sidebar_tree_view_projection.cc::StartPreferredHeightAnimation` sets its
    active flag before `SlideAnimation::Reset`; interrupting a running animation
@@ -154,3 +154,41 @@ Visible acceptance must cover multi-child expansion, fast reversals, viewport
 edges, and a split below the folder. Check intermediate frames, focus and hit
 targets as well as endpoints. No causal connection to the sampled idle CPU is
 established. These findings do not modify the frozen `3d413ef` build.
+
+Source preparation now addresses the height interruption, split clip geometry,
+Reduced Motion cancellation of both existing paths, and selection-induced
+scrolling towards a future row endpoint. Split clip updates are bounded to
+materialized groups, use stable IDs rather than retained row pointers, and are
+driven by the existing BoundsAnimator container after its frame update. They
+introduce no additional timer/animation owner. Current row/group geometry is
+also used for reveal-on-selection; ScrollView retains content-end clamping.
+After both existing animations complete, one weakly queued reveal keeps the
+selected row visible only if the selection/viewport request remains current.
+Subscriptions to actual ancestor ScrollView scroll callbacks cancel this request
+even after scrolling away and back. A targeted source review caught that layer
+scrolling does not necessarily trigger View bounds notifications; the callback
+seam closes that gap without adding a timer or changing focus every frame.
+
+Symmetric entry/exit remains open. The existing per-new-row predecessor start
+and immediate descendant recycling have not yet been replaced. Any retained
+visual exit must be noninteractive/inaccessible, bounded to the viewport, safe
+against reopen-before-cleanup and native drag ownership, and use the existing
+animator. The user requirement is not closed by the prepared partial fixes.
+No new candidate, visible journey or programmatic test pass is claimed.
+
+Prepared tests in `sidebar_tree_view_interaction_unittest.cc`:
+
+- `RapidFolderReversalPreservesIntermediatePreferredHeight`
+- `MovingSplitClipFollowsEveryFolderAnimationFrame`
+- `ReducedMotionFinishesHeightAndRowsMidTransition`
+- `SelectingVisibleMovingRowDoesNotScrollToItsFuturePosition`
+- `InterveningLayerScrollAwayAndBackCancelsDeferredSelectionReveal`
+
+The existing animation containers are stepped directly; split clips are checked
+without re-synchronizing the rows between intermediate frames, and the scroll
+case has a genuinely scrollable range. Main checked the fixtures and M152 APIs;
+completion visibility and cancellation after real layer-scroll away/back are
+also checked. An independent production-diff review found no remaining concrete
+source blocker after the scroll-callback correction. No
+compiler or test was run. The expanded master/registry `TREE-13` descriptions
+match; 412 unique IDs remain and the visible acceptance status is `NOT_RUN`.

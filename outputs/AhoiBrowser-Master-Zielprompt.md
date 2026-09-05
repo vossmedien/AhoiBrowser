@@ -625,6 +625,14 @@ Darstellungskonfiguration:
   Hierarchie erkennbar;
 - Ein-/Ausklappen, Drag-Vorschau, Drop-Zonen, Auswahl, Hover und Split-Segmente
   dürfen die optische Gruppenzugehörigkeit nicht aufbrechen;
+- normale Workspace-Ordner öffnen und schließen mit einer ruhigen, symmetrischen
+  Enthüllung unterhalb des Ordners: keine überlagerten Titel, keine abrupt
+  verschwindenden Kinder oder Split-Zeilen; schnelles Umkehren setzt am sichtbaren
+  Zwischenstand an und bewahrt Fokus sowie Scrollanker, soweit das Inhaltsende
+  nicht unvermeidbar begrenzt;
+- reduzierte Bewegung beendet die räumliche Bewegung unmittelbar. Die vorhandenen
+  Animations- und Virtualisierungspfade bleiben zuständig; es entsteht keine
+  parallele Animationsarchitektur und kein pro Frame erzwungener Fokus;
 - ohne eigene Farbe verwendet eine Gruppe ausschließlich semantische
   Theme-Farben; Hell, Dunkel, hoher Kontrast und reduzierte Transparenz bleiben
   vollständig unterstützt.
@@ -1842,7 +1850,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `TREE-10`: 10.000-Knoten-Fixture laden, suchen, scrollen, öffnen und verschieben.
 - `TREE-11`: kontrollierter Crash während Baumänderung; atomare, reparierbare Daten nach Neustart.
 - `TREE-12`: Gruppenname, Icon und Farbe ändern; in Hell/Dunkel, nach Neustart und nach Workspace-Wechsel korrekt und kontrastreich wiederherstellen.
-- `TREE-13`: direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen.
+- `TREE-13`: direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen. Normale Ordner langsam, schnell und mit Richtungswechsel im Zwischenframe öffnen/schließen; Fokus und Scrollanker bleiben stabil, Titel überlagern sich nicht, ein Split darunter bleibt sichtbar. Viewportrand, Inhaltsende und reduzierte Bewegung ausdrücklich prüfen.
 - `TREE-14`: leeren Workspace aktivieren, ohne automatisch einen Tab zu erzeugen; zwischen leerem und gefülltem Workspace wechseln und korrekten aktiven Nullzustand sowie Session Restore prüfen.
 - `TREE-15`: `Alle temporären Tabs leeren` einschließlich des aktiven letzten Tabs ausführen; kein Ersatz-Tab, kein fremder Workspace-Tab und kein Fenster-Close.
 - `WS-01`: Workspace-Wechsel per Sidebar.

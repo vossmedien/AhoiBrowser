@@ -41,6 +41,37 @@ freedom, cleans up only its exact host/runner/test data, and returns source,
 destination, environment, xcresult/log and cleanup evidence. This is not a
 Chromium-Mac or cross-device-Keychain pass. Shared checkout/out remain Desktop-owned.
 
+## Owned folder-motion source follow-through — not built
+
+Desktop is preparing the user's normal workspace-folder motion corrections in
+`sidebar_tree_view.{h,cc}`, `_projection.cc`, `_navigation.cc` and the focused
+`_interaction_unittest.cc`. These are canonical overlay edits only; the shared
+checkout and installed `3d413ef` are unchanged. No build/test/UI action is allowed
+during the Mobile runtime window above.
+
+Prepared source captures the current interpolated height before resetting a
+reversed animation, computes split clips from the current materialized group
+bounds via the existing BoundsAnimator observer, stops both motion paths for
+Reduced Motion/native drag, and reveals a selected row at its current on-screen
+position instead of its future endpoint. No additional animator/timer was added.
+One final reveal after both animations finish keeps a selected row visible;
+real ancestor ScrollView callbacks cancel it on intervening scrolling, including
+away-and-back scrolling. Changed selection/reset also supersedes it; focus is
+never re-requested per frame and queued work is weakly bound.
+Five focused intermediate-frame/reversal/clip/reduced-motion/scroll tests are
+written and the helper returned source ownership. Main reviewed their fixtures
+and pinned animation APIs; independent production-diff review found no concrete
+remaining source blocker. The final review caught the layer-scroll notification
+gap and the actual scroll-callback seam now covers it. This is not compilation,
+execution or visible acceptance.
+Master and registry now agree on the expanded `TREE-13` requirement; all 412
+unique IDs are preserved and its status remains `NOT_RUN`.
+
+The symmetrical child-row entry/exit reveal and native visible acceptance are
+still OPEN. Retained exiting rows would need bounded recycling, UUID-safe
+reversal, no events/accessibility/focus while exiting, and native-drag lifetime
+guards. Do not label the full folder UX fixed or launch a separate small build.
+
 ## Exact installed candidate
 
 - `/Applications/AhoiBrowser.app`: source
