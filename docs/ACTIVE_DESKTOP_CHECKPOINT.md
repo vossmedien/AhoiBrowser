@@ -12,9 +12,14 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 - Bookmark owner `01a06d69-1034-7372-b784-0b05a53c87e0` explicitly released the
   shared Chromium checkout/build/install path to this Desktop thread. Read
   `docs/ACTIVE_BOOKMARKS_CHECKPOINT.md`; do not infer a new handoff from idle PIDs.
-- Mobile is owned by `01a044d6-1545-7532-8394-6b7df1144bb1`. Preserve its dirty
-  files. Shared-bookmark schema/adapter work is coordinated by the bookmark
-  owner through `docs/decisions/0006-shared-bookmark-collection.md`.
+- Unified Sync implementation is now owned by
+  `01a06d69-1034-7372-b784-0b05a53c87e0`: existing common C++ scope plus the
+  explicitly transferred Swift/Mobile scope. The former Mobile owner
+  `01a044d6-1545-7532-8394-6b7df1144bb1` is the coordinator/read-only reviewer.
+  Read `docs/ACTIVE_SYNC_COORDINATION.md` and its goal prompt (48b1ef4).
+  Desktop explicitly accepted its retained Native Tree/Session/UI/adapter and
+  sole build/install/UI role in `01a07281-9afb-7dc2-8f92-51fbcd2ec0bf`.
+  Preserve the unified owner's work; no competing Swift/Common implementation.
 - The user additionally rejected the normal sidebar folder expand/collapse
   motion. Desktop owns its reproduction/correction after the current import
   blocker. Continuous workspace gesture preview/cancel also remains open.
@@ -38,7 +43,7 @@ explicit slot once its exact host is ready.
 
 ## Owned combined correction package — terminal test compile failure
 
-**Current phase, 2026-09-05 16:45 UTC:** the existing clean detached snapshot
+**Current phase, 2026-09-05 17:01 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
 `225df88f4e6dbe692390f52b8687b653541723ac`. Guarded overlay session `54118` is
 TERMINAL EXIT 0 with the full checkout delta verified. ONE combined guarded
@@ -52,13 +57,33 @@ hashes, dependency restoration and unchanged installed source. Desktop's
 independent-height-clock test fix is committed in `5794d37`. Bookmark owns the
 bounded three SQL test-file correction requested in
 `01a07264-6e02-7fc2-85b9-cfb263b9a18e` and terminal feedback
-`01a07277-73a1-7ba1-b399-77d852964363`; its observed WIP is NOT integrated.
+`01a07277-73a1-7ba1-b399-77d852964363`. Its exact three-test-file correction is
+now committed as `22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`, 13+/8-, and main
+reviewed against the actual M152 SQL/cstring APIs. Read the sender's final
+handoff before integration; no need to recreate or apply a proposal. The next
+candidate should use that exact source (including 5794d37), not later Sync WIP.
 The same complete target set below is requested, including `ahoi_sync_unittests`
 and `ahoi_sidebar_tree_unittests`, with `AHOI_NINJA_KEEP_GOING=1`. No tests have
 run, and no successful new build/sign/install receipt exists yet. Installed
 bundle remains `3d413ef`; common v3 writers remain off.
 
-This exact source includes Desktop corrections `ef0f965`, `96b5a2f`, `6bd3b70`,
+The new start gate is a foreign CPU workload, not the old compiler/source gate:
+FillIt Blender PID `93670`, parent `51136`, was identified by command AND cwd
+as `calibration-radius075-01/source.blend`, six-thread data bake. Fresh samples
+214.5%, 302.3%, 144.1%, 175.2% and 438.0% (last at 17:01 UTC) exceed the 80%
+threshold. No overlay/build/test/sign/install phase has been started since
+30212 ended. The process is untouched; owner notification
+`01a07281-9b39-7753-ab8b-d22f579cda33` does not ask it to stop or pause.
+Recheck before starting; do not carry this PID/sample forward as a permanent
+block. Latest free space 82,614,640 KiB, above the incremental build floor.
+
+Fresh `cua.getState()` now succeeds and reports Ahoi closed; this is connection
+inventory, not native-window or E2E acceptance. Arc is reported running. The
+user was asked asynchronously to quit Arc normally when convenient for the
+later real import; no Arc app/data action was taken. Recovery of the preserved
+Ahoi transaction still comes first once a corrected candidate is installed.
+
+The built source 225df88 includes Desktop corrections `ef0f965`, `96b5a2f`, `6bd3b70`,
 the native target-policy test preparation `dc01cb5` and its explicit string-copy
 fix `1ea90da`, plus the explicitly handed-over Bookmark package `c28ec4a`.
 The common compiler-only fix `3035529` and the separate 25-file effective-consent
@@ -320,9 +345,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 1. Builds `30212` and `90068` are both terminal Exit 1; do not resume either.
    Snapshot/overlay are at exact `225df88`; compiler-only `3035529`, owned
    `1ea90da`, and the renewed consent freeze are already integrated. There is
-   no remaining product handoff wait. Obtain the bounded three SQL test-file
-   correction handoff, combine it with owned `5794d37`, then integrate one cached
-   incremental correction after a fresh CPU gate. Do not copy the owner's WIP.
+   no remaining product handoff wait. Read the final bounded SQL test handoff
+   for committed `22e2f2b` (already contains owned `5794d37`), then integrate one
+   cached correction only after the fresh FillIt 93670 CPU gate clears. Do not
+   copy subsequent unified Sync WIP or stop the foreign workload.
    A successful complete build receipt is required before installation. Preserve both logs,
    bind the final receipt and recheck CPU/process/disk gates before the next
    intensive phase. Old FillIt 10906/57077 and Shopify build samples are history,
