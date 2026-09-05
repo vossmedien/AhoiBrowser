@@ -228,7 +228,7 @@ TEST_F(SidebarBookmarkShelfViewTest,
   views::test::RunScheduledLayout(widget_.get());
   ASSERT_EQ(last_button, widget_->GetFocusManager()->GetFocusedView());
   const int offset =
-      shelf_->scroll_view_for_testing()->contents()->GetVisibleRect().x();
+      shelf_->scroll_view_for_testing()->contents()->GetVisibleBounds().x();
   ASSERT_GT(offset, 0);
 
   shelf_->BookmarkNodeFaviconChanged(last);
@@ -239,7 +239,7 @@ TEST_F(SidebarBookmarkShelfViewTest,
   EXPECT_EQ(last_button, widget_->GetFocusManager()->GetFocusedView());
   EXPECT_EQ(
       offset,
-      shelf_->scroll_view_for_testing()->contents()->GetVisibleRect().x());
+      shelf_->scroll_view_for_testing()->contents()->GetVisibleBounds().x());
 }
 
 TEST_F(SidebarBookmarkShelfViewTest,
@@ -337,7 +337,7 @@ TEST_F(SidebarBookmarkShelfViewTest, OverflowCuesAndFocusFollowAReorderedItem) {
   ASSERT_TRUE(base::test::RunUntil([&] {
     return shelf_->scroll_view_for_testing()
         ->contents()
-        ->GetVisibleRect()
+        ->GetVisibleBounds()
         .Contains(focused->bounds());
   }));
   EXPECT_EQ(focused, shelf_->bookmark_item_at_for_testing(11));

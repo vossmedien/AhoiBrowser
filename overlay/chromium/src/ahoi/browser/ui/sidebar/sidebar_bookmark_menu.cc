@@ -223,7 +223,7 @@ void SidebarBookmarkMenu::OnMenuClosed(views::MenuItemView* menu) {
 bool SidebarBookmarkMenu::PrepareContextMenu(views::MenuItemView* menu) {
   if (cancelled_ || !anchor_ || !anchor_widget_ || !anchor_.view()->IsDrawn() ||
       anchor_.view()->GetWidget() != anchor_widget_.get() ||
-      anchor_.view()->GetVisibleRect().IsEmpty()) {
+      anchor_.view()->GetVisibleBounds().IsEmpty()) {
     return false;
   }
   HideStockBookmarkBarOptions(menu);

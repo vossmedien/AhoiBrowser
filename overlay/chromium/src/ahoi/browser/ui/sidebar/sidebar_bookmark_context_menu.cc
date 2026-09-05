@@ -83,7 +83,7 @@ void SidebarBookmarkContextMenu::ClipboardChecked(
     OnContextMenuClosed();
     return;
   }
-  gfx::Rect visible = source_.view()->GetVisibleRect();
+  gfx::Rect visible = source_.view()->GetVisibleBounds();
   views::View::ConvertRectToScreen(source_.view(), &visible);
   if (visible.IsEmpty() || (source_type == ui::mojom::MenuSourceType::kMouse &&
                             !visible.Contains(point))) {
