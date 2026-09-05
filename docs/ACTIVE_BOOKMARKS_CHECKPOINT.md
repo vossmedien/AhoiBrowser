@@ -107,9 +107,14 @@ workarounds. The candidate V8 commit is
 updating during the real roll. Evidence: `dependency-workaround-review.json`
 beside the reports. No workaround or production pin was changed.
 
-The last free-space check was about 107 GiB, below the configured hard 120-GiB
+The last free-space check was about 105 GiB, below the configured hard 120-GiB
 checkout floor. Only the active `AhoiDev` output exists; this thread's disposable
-files cannot recover the roughly 13-GiB gap. Do not weaken the floor or delete
+files cannot recover the roughly 15-GiB gap. A read-only inventory also found
+eight old `/Applications/.AhoiBrowser.rollback-*.app` bundles totaling about
+8.9 GiB by `du`; all source commits are ancestors of current HEAD. The immediate
+rollback named by the current installation receipt is `f1475d6` and must remain
+available. Even deleting all eight would not bridge the gap, and APFS shared
+blocks may reduce actual reclamation. Nothing was deleted. Do not weaken the floor or delete
 another owner's output. Actual pin/sync, unmodified upstream control, Ahoi build,
 installed runtime and focused post-E2E regression remain open.
 
