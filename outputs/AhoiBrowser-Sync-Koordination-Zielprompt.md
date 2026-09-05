@@ -7,18 +7,22 @@ branches, writers, transports or release paths.
 ## Objective
 
 Finish one coherent, active sync wire model for Desktop and Mobile, with matching
-C++ and Swift behavior, preservation/migration of existing data and an exact-
-candidate cross-client acceptance. The agreed target is model v3. Legacy readers
-and a bounded transition/bootstrap path may remain where needed, but indefinitely
-maintaining competing active writer models is not the product goal.
+C++ and Swift behavior and exact-candidate cross-client acceptance. The agreed
+target is model v3. The user's explicit clarification in the Sync thread at
+2026-09-05 16:42 UTC says the app is not actively used and a complex data migration
+is unnecessary. Use fresh isolated acceptance stores/collections; do not retain
+parallel active writers or build a permanent legacy-compatibility product.
+Preserve existing profiles and CloudKit data unchanged outside those test stores;
+fresh acceptance is not permission to reset/delete old data or reuse old keys.
 
 Wire-model versions are separate from SQLite schema versions, encryption-key
 versions, app build numbers and extension Manifest versions. Do not change those
 unrelated numbers merely to make them identical.
 
 Use the existing ADR 0006/0007/0008 contracts and canonical golden files. The
-Sync owner coordinates any necessary explicit contract evolution, including the
-transition from v2 capability bootstrap to the unified active model. Preserve
+Sync owner coordinates any necessary explicit contract evolution, including
+replacing transitional v2 capability bootstrap with the unified active model
+where the fresh-client setup makes it unnecessary. Preserve
 consent/account/key isolation, local-only private/cookie/login state, stable
 logical TreeNode IDs, separate presence/runtime IDs, immutable TreeNode creation
 time and honest creation provenance. A writer-constant bump is not integration.
@@ -50,10 +54,12 @@ continue to apply. Never interrupt another owner's build.
 1. Obtain one explicit role acceptance from each owner. Resolve concrete file
    overlaps once; do not recreate field/ownership questions already frozen.
 2. Sync owner produces a short bounded package sequence: remaining matching
-   C++/Swift implementation, data migration/bootstrap, native/Mobile bindings,
+   C++/Swift implementation, fresh isolated bootstrap, native/Mobile bindings,
    activation and acceptance. Existing source and tests are reused.
 3. Preserve the already committed Swift source fixes `895daf9` and `f25eea5`
-   and their seven unexecuted provenance regressions. They are not test passes.
+   and their seven unexecuted provenance regressions as source evidence. They
+   are not test passes. If retired legacy code makes a case obsolete, document
+   that precisely rather than perpetuating the compatibility path for its test.
 4. Owners send only material progress, conflicts, source freezes and terminal
    build/runtime handoffs. Coordinator verifies the actual relevant files,
    commits, logs, receipts and test counts rather than treating messages or
@@ -71,7 +77,7 @@ Bookmark collection remains separate from Workspace Saved Pages; normal tabs
 appear on an already-open peer without stealing focus or eagerly loading;
 save/unsave preserves logical identity; temporary and persistent behavior and
 local-only targets remain coherent. Exercise persistence/restart and a bounded
-edit/delete roundtrip, followed by focused migration, provenance, consent,
+edit/delete roundtrip, followed by focused version-rejection, provenance, consent,
 conflict/no-echo and private-data exclusion regressions.
 
 Keep source, compiled tests, installed app, real Development transport, simulated

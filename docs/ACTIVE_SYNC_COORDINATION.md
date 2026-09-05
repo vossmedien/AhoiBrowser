@@ -8,6 +8,11 @@ Contract: `outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` plus ADR 0006/7/
 
 The user explicitly approved one unified Sync implementation owner while the
 other existing Terminal agent continues its Desktop package, on the same branch.
+Additional direct user messages in the Sync session at 16:35/16:42 UTC request
+one format across relevant data and explicitly avoid complex migration because
+the app is not actively used. Fresh isolated acceptance stores are authorized;
+existing profiles/CloudKit data are not to be deleted. This clarification
+supersedes migration/legacy-reader work in the initial coordination wording.
 
 - Sync: `01a06d69-1034-7372-b784-0b05a53c87e0`, observed Terminal `ttys011`.
   Existing common C++ scope plus Swift `spikes/cloudkit` / `apps/AhoiMobile`
@@ -26,11 +31,15 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
 ## Current evidence boundary
 
 - Branch: `codex/desktop-core-feature-wave-20260830`.
-- Native correction build: owner reports Session `30212`, clean source
-  `225df88f4e6dbe692390f52b8687b653541723ac`, Chromium `.65`, after successful
-  guarded overlay `54118`. Coordinator read the active log through action
-  `380/441` and observed native Ninja/compiler children; no terminal result
-  or successful new candidate was observed. Do not restart/widen this build.
+- Native correction build: Desktop's updated checkpoint confirms Session
+  `30212` TERMINAL EXIT 1, clean `225df88`, Chromium `.65`, after successful
+  overlay `54118`. Coordinator read the Ninja terminal failure: two string
+  argument errors and two Database constructor diagnostics in three SQL test
+  files, plus protected animation-container access in one sidebar test.
+  Browser/large browser-test linking is not full-build success or installation.
+- Corrective source now exists as `5794d37` (Desktop animation test) and
+  `22e2f2b` (three SQL test files). Exact subsequent freeze/build handoff belongs
+  to Desktop; no unchanged restart or new candidate is inferred.
 - Canonical log: `artifacts/build/desktop-correction-225df88-20260905/build.log`.
 - Installed Desktop remains `3d413ef` per current Desktop checkpoint; that
   native candidate is provider-free and is not a real cross-client sync pass.
@@ -43,12 +52,12 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
 ## Next actions
 
 1. Read the two owners' explicit assignment acceptances and the Sync package plan.
-2. Track the current native build to its owner's actual terminal result without
-   starting competing intensive work. Source, build, tests, signing and install
+2. Track the next bounded native correction handoff/build without starting
+   competing intensive work. Source, build, tests, signing and install
    remain separate gates.
-3. Sync owner closes matching C++/Swift, migration/bootstrap and live binding
+3. Sync owner closes matching C++/Swift, fresh bootstrap and live binding
    gaps, using exact native adapter handoffs where needed; target one active
-   model, not perpetual v2/v3 writer coexistence.
+   model, not perpetual v2/v3 writer coexistence or complex old-data migration.
 4. Agree the next coherent source freeze and candidate-bound verification.
    A native Development-capable app/profile/key-bootstrap and a real roundtrip
    are still unproven; no account/portal/Production authority is implied.
