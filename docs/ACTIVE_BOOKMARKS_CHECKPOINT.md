@@ -11,7 +11,35 @@ first found 125,586,816 KiB (119.77 GiB), below the hard 120-GiB roll floor desp
 snapshot found 126,506,552 KiB (120.65 GiB). Only 53 MiB of the change is explained
 by this thread's cleanup; do not attribute unrelated free-space changes to it.
 After installation, readback was 125,553,560 KiB (119.74 GiB), below the floor
-again. Recheck exact space before the roll. The mobile collection decision is pending.
+again. Recheck exact space before the roll.
+
+## New binding user decisions — 2026-09-05
+
+The user explicitly answered **yes** to the same Desktop/Mobile bookmark
+collection after being told that additional coordinated sync work is required.
+The mobile collection question is resolved; the existing Workspace Library is
+not sufficient. The goal contract now requires an adapter from native Chromium
+bookmarks into the existing encrypted Ahoi sync/domain path, with a matching
+Mobile projection, stable identities and lossless migration/merge behavior.
+No new Production-CloudKit or release authority is inferred.
+
+The user also reported that sidebar folder expand/collapse animation is not
+pleasant. The stated working assumption is normal Desktop workspace folders.
+Desktop was asked to own reproduction and correction in its existing tree/motion
+modules after the current import step, with visible acceptance before tests.
+The bookmark owner will not edit `sidebar_tree_view*` or its animation modules
+in parallel. Coordination messages:
+Desktop `01a0704e-c481-7f61-8cfd-7cb913353072`,
+Mobile `01a0704e-c41f-7393-9b16-571d3454d397`.
+
+For the new shared-bookmark work, the bookmark owner is defining the cross-
+platform record/adapter contract in
+`docs/decisions/0006-shared-bookmark-collection.md`. A read-only helper checked
+native Desktop BookmarkModel identity/root/observer seams; Mobile has a bounded read-only
+request for its domain/transport and UI attachment points. Existing record
+policies are explicit allowlists and currently have no bookmark record class.
+Do not introduce concurrent schema definitions or silently map bookmarks to
+workspace saved pages. Current Mobile CloudKit peer tests remain separate scope.
 
 Direct coordination is now available through the documented `codex queue`
 command in installed CLI 0.153.2. Explicit handoff/resume message
@@ -187,10 +215,10 @@ installed runtime and focused post-E2E regression remain open.
 
 ## Other pending input / resources
 
-The user has been asked whether Desktop and Mobile should expose the same
-bookmark collection. Current Mobile Library contains Ahoi workspace saved pages;
-it does not prove access to Chromium bookmarks. No new mobile schema or sync
-migration has been started without that decision and the Mobile owner's handoff.
+The former mobile decision gate is resolved as recorded above. Current Mobile
+Library contains Ahoi workspace saved pages, not Chromium bookmarks. The shared
+bookmark implementation now requires the coordinated domain/adapter work;
+historical Library evidence must not be upgraded to a pass for that feature.
 
 Mobile supplied historical Library evidence at
 `artifacts/e2e/mobile-library-6405167/`. Readback confirms both clean source and

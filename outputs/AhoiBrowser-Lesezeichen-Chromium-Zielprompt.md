@@ -1,7 +1,9 @@
 # AhoiBrowser: Lesezeichen und Chromium-Aktualisierung
 
-Stand: 2026-09-05. Präzisierung des aktiven Ziels nach der zweiten technischen
-und UI/UX-Review; der ursprüngliche Umfang bleibt vollständig erhalten.
+Stand: 2026-09-05. Präzisierung nach technischer/UI-Review und der ausdrücklichen
+Nutzerentscheidung für dieselbe Desktop-/Mobile-Lesezeichensammlung. Zusätzlich
+ist die beanstandete Auf-/Zuklappbewegung der Sidebar-Ordner zu verbessern.
+Der ursprüngliche Umfang bleibt vollständig erhalten.
 
 ## Zielprompt
 
@@ -26,12 +28,31 @@ Modeländerungen, Löschung, Menüabbruch, Fensterabbau und verzögerte Callback
 dürfen weder ungültige Zeiger noch verlorene Bedienzustände erzeugen. Das
 Scrollen der Leiste darf keinen Workspace-Wechsel auslösen.
 
-Prüfe den mobilen Zugriff anhand der tatsächlichen Datenmodelle und der
-sichtbaren Navigation. Eine Mediathek mit gespeicherten Workspace-Seiten ist
-nicht automatisch ein Zugriff auf Chromium-Lesezeichen. Dokumentiere diesen
-Unterschied und kläre die gewünschte gemeinsame Sammlung, bevor eine neue
-plattformübergreifende Datenmigration oder Sync-Schema-Erweiterung erfolgt.
-Ergänze fehlende mobile Bedienwege in Abstimmung mit dem aktiven Mobile-Agenten.
+Desktop und Mobile müssen dieselbe logische Lesezeichensammlung anbieten. Die
+Nutzerentscheidung dafür ist ausdrücklich erteilt; eine Mediathek mit
+gespeicherten Workspace-Seiten ist kein Ersatz. Chromiums natives BookmarkModel
+bleibt die Desktop-Autorität. Binde es über einen klar abgegrenzten Adapter an
+den bestehenden verschlüsselten, lokalen Ahoi-Sync-Vertrag an und ergänze die
+mobile Projektion/Bedienung gemeinsam mit dem Mobile-Owner. Verwende stabile
+Identitäten, Ordnerhierarchie, deterministische Reihenfolge, Feldkonfliktlösung
+und dauerhafte Löschinformationen. Änderungen dürfen keine Rückkopplungsschleifen,
+Dubletten oder wiederauferstandenen Löschungen erzeugen. Erweiterungen müssen
+bestehende Workspace-Daten und ältere Datensätze verlustfrei erhalten; weder
+eine zweite Sync-Engine noch ein stilles Umdeuten gespeicherter Seiten ist erlaubt.
+Profile, verwaltete Einträge, privates Browsen, Sync-Opt-in, Account-/Schlüsselwechsel
+und unbekannte Versionen behalten explizite sichere Grenzen. Eine neue
+Production-CloudKit-/Release-Freigabe wird aus dieser Produktentscheidung nicht
+abgeleitet.
+
+Prüfe und verbessere mit dem Desktop-Owner die beanstandete Auf-/Zuklappanimation
+der normalen Workspace-Ordner in der Sidebar. Diese Desktop-Zuordnung ist die
+transparent mitgeteilte Arbeitsannahme. Die Bewegung folgt den vorhandenen
+semantischen Motion-Tokens, bleibt kurz und unterbrechbar und erhält Fokus,
+Scrollanker und eine stabile Hierarchie ohne sichtbare Sprünge, Überlappung oder
+Flackern. Schnelles Richtungswechseln und verschachtelte Ordner gehören dazu.
+Reduced Motion muss die Bewegung sofort abschließen; Animation ist ausschließlich
+Präsentation und darf weder die Datenmutation verzögern noch native Drag-Sessions
+stören. Keine parallele Animationsarchitektur und keine überlappenden Writes.
 
 Prüfe den aktuellen vollständig ausgerollten Mac-ARM64-Stable-Upstream über
 offizielle Quellen und führe ein verfügbares, sicheres Chromium-Update über den
@@ -67,8 +88,15 @@ präzise. Committe und pushe nur die eigenen Änderungen nach bestandenen Gates.
   Verwaltung und native Kontextaktionen sind erreichbar.
 - Regression: persistente/temporäre Tabs, Workspace-Swipe und Sidebar-Suche
   behalten ihre bestehenden Verträge; Menü-Löschung und Fensterabbau sind sicher.
-- Mobile: Quelle und Umfang des Lesezeichenzugriffs sind belegt; eine etwaige
-  gemeinsame Sammlung ist tatsächlich plattformübergreifend erreichbar.
+- Ordnerbewegung: die beanstandete Desktop-Auf-/Zuklappbewegung ist am exakten
+  installierten Kandidaten sichtbar verbessert, auch bei Verschachtelung,
+  schnellem Richtungswechsel, Scrollposition und Reduced Motion.
+- Mobile/Sync: dieselbe Lesezeichensammlung ist über den echten Desktop-Adapter
+  und die mobile Ansicht erreichbar. Ordner, Öffnen, Änderungen, Reihenfolge,
+  Offline-Konflikte, Neustart und Löschung konvergieren ohne Vermischung mit
+  Workspace-Seiten. Historische Library-Tests oder zwei simulierte Swift-Peers
+  allein beweisen keinen Chromium-/Mobile-Roundtrip. Externe Account-, Geräte-
+  oder Provisioning-Grenzen bleiben ausdrücklich benannt und gelten nicht als Pass.
 - Chromium: offizieller aktueller Kandidat und vorhandener Pin sind belegt;
   die tatsächlich ausgelieferte Version ist durch Build und Laufzeit bestätigt.
 - Qualität: sinnvolle Verhaltenstests, Dateigrenzen, keine fremden Änderungen,
