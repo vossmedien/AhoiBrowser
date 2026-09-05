@@ -67,10 +67,17 @@ Current technical boundary: Computer Use fails before app access with
 reset/reselection, then inventory all failed). No successful launch or visible
 `3d413ef` journey is claimed. The documented technical-E2E exception permits
 independent persistence regressions, without substituting them for Arc acceptance.
-UI slot is explicitly handed to the bookmark owner for isolated-profile Bookmark
-E2E via queue message `01a0708d-ebf7-7da1-bc02-70b4026b9da6`. Main must not act in
-the UI before explicit handback. No default-profile Arc mutation, rebuild,
-installation or pin change was delegated; shared build/checkout stays Desktop-owned.
+The bookmark owner returned the isolated-profile UI slot explicitly in
+`01a0709c-556c-70c1-b59b-17fb3d9cdc30` after the same native-pipe error in its own
+fresh/reset session. It launched no app and changed no profile. Desktop accepted
+the handback in `01a070b8-90f0-7cd1-9a05-108a24700fb1`, which also cancels the
+redundant re-offer prompted by a delayed coordination message. UI, build and
+checkout are Desktop-owned again; do not recreate an old slot or repeat tests.
+A subsequent main-thread `cua.getState()` still failed before app access.
+The owner's existing `3d413ef` Shelf suite passed 11/11 under the technical-E2E
+exception. Main checked log, JSON status counts, summary hash and executable
+hash; this is not a visible Bookmark pass. Evidence is in
+`artifacts/tests/bookmarks-3d413ef-20260905/` and the package evidence report.
 For that Bookmark E2E, create native Chromium bookmarks through the mouse menu,
 native Bookmark Manager or a context action. Cmd+D intentionally saves to the
 Ahoi tree and does not prove the native bookmark collection.
@@ -133,7 +140,7 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
    `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
 3. `3d413ef` is ALREADY INSTALLED and verified; do not repeat installation.
-   After explicit UI handback and a working Computer Use connection, repeat
+   UI handback is accepted. Once Computer Use is working again, repeat
    the real Arc journey: successful backup/import, 2/2/3-pane splits,
    folder state, restart and identical second no-op import. Preserve existing
    source/profile and old recovery evidence. A red visible flow blocks its

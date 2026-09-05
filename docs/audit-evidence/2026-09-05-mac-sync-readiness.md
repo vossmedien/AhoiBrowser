@@ -36,6 +36,8 @@ cross-device Keychain bootstrap or Production transport. Use Mobile's checkpoint
 for its exact run/device/server evidence; do not relabel historical Workspace
 Library tests as Chromium bookmark or shared-normal-tab acceptance.
 
-The isolated desktop UI slot remains with the bookmark owner. A Mobile test host
-running on My Mac with the same bundle identifier requires an explicit runtime
-handoff before launch; it must not collide with the installed Chromium candidate.
+The isolated desktop UI slot was subsequently returned by the bookmark owner
+after the same native-pipe failure; see the current Desktop checkpoint. A Mobile
+test host running on My Mac with the same bundle identifier still requires an
+explicit runtime handoff before launch; it must not collide with the installed
+Chromium candidate.

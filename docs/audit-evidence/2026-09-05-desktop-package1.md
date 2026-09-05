@@ -108,6 +108,21 @@ Exact test executable SHA-256 at execution:
 
 ## Bookmark viewport test refinement (source only)
 
+The bookmark owner independently encountered the same native-pipe failure,
+returned UI ownership without launching the app/changing a profile, and ran
+the existing `3d413ef` Shelf tests under the technical-E2E exception:
+**11/11 SUCCESS**, reported exit 0, no retries. Main verified the log and all
+11 JSON statuses and matched the reported hashes:
+
+- `ahoi_sidebar_tree_unittests`:
+  `4072e793f28643cd40a1d4a4c45ebeb4b68246cd4601688ddf48ba3fab5eeeca`
+- `artifacts/tests/bookmarks-3d413ef-20260905/summary.json`:
+  `fec00796a2518713367e4edb5f7b504b5e9877412e4d103aee71fc62bb2ac176`
+
+This does not cover visible behavior or the later test-source refinement below.
+The main UI inventory was retried after the documented handback and still
+failed with `Sky Computer Use native pipe startup failed`.
+
 All three viewport/offset assertions in `sidebar_bookmark_shelf_view_unittest.cc`
 now query `ScrollView::GetVisibleRect()` directly. The actual M152 implementation
 returns `CurrentOffset()` plus the content viewport size; `View::GetVisibleBounds()`
