@@ -85,16 +85,21 @@ void CloudKitSyncProviderMac::Core::RequestOperationCancellation() {
   CKSyncEngine* engine = engine_;
   // Do not call a potentially reentrant framework completion while holding
   // the Core lock. The category and record-provider fences are already active.
-  owner_runner_->PostTask(FROM_HERE, base::BindOnce([weak, engine, generation] {
-                            [engine cancelOperationsWithCompletionHandler:^{
-                              if (const auto core = weak.lock()) {
-                                base::AutoLock guard(core->lock_);
-                                if (generation == core->transport_generation_) {
-                                  core->operations_cancelling_ = false;
-                                }
-                              }
-                            }];
-                          }));
+  owner_runner_->PostTask(
+      FROM_HERE,
+      base::BindOnce(
+          [](std::weak_ptr<Core> weak_core, CKSyncEngine* sync_engine,
+             uint64_t expected_generation) {
+            [sync_engine cancelOperationsWithCompletionHandler:^{
+              if (const auto core = weak_core.lock()) {
+                base::AutoLock guard(core->lock_);
+                if (expected_generation == core->transport_generation_) {
+                  core->operations_cancelling_ = false;
+                }
+              }
+            }];
+          },
+          std::move(weak), engine, generation));
 }
 
 void CloudKitSyncProviderMac::Core::SetBookmarkSyncEnabled(bool enabled) {

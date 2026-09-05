@@ -245,7 +245,6 @@ class ProfileSyncService final : public KeyedService,
   bool bookmarks_seeded_ = false;
   BookmarkSyncIssue bookmark_sync_issue_ = BookmarkSyncIssue::kNone;
   base::RepeatingClosureList bookmark_status_callbacks_;
-  base::WeakPtrFactory<ProfileSyncService> bookmark_weak_ptr_factory_{this};
   base::ObserverList<Observer> observers_;
   base::OneShotTimer publish_timer_;
   base::RepeatingTimer sync_timer_;
@@ -263,6 +262,7 @@ class ProfileSyncService final : public KeyedService,
   bool extension_inventory_seeded_ = false;
   int pending_remote_history_deletions_ = 0;
   bool shutting_down_ = false;
+  base::WeakPtrFactory<ProfileSyncService> bookmark_weak_ptr_factory_{this};
   base::WeakPtrFactory<ProfileSyncService> backend_weak_ptr_factory_{this};
   base::WeakPtrFactory<ProfileSyncService> weak_ptr_factory_{this};
 };

@@ -4,6 +4,7 @@
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
 
 #include <algorithm>
+#include <array>
 
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
@@ -50,7 +51,9 @@ base::Uuid InitialBookmarkSyncId(const std::string& native_key) {
       "ahoi:bookmark:native-binding:v1:" + native_key)));
   hex.resize(32);
   hex[12] = '8';  // RFC 9562 UUIDv8: application-defined SHA-256 derivation.
-  hex[16] = "89ab"[(hex[16] >= 'a' ? hex[16] - 'a' + 10 : hex[16] - '0') & 3];
+  constexpr std::array<char, 4> kVariantDigits = {'8', '9', 'a', 'b'};
+  hex[16] = kVariantDigits[
+      (hex[16] >= 'a' ? hex[16] - 'a' + 10 : hex[16] - '0') & 3];
   return base::Uuid::ParseLowercase(hex.substr(0, 8) + "-" + hex.substr(8, 4) +
                                     "-" + hex.substr(12, 4) + "-" +
                                     hex.substr(16, 4) + "-" + hex.substr(20));
