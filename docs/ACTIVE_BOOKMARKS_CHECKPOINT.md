@@ -54,8 +54,15 @@ requested a combined field/version handoff in `01a0709c-55d0-7ef2-992c-ef36a31cd
 do not independently alter shared C++ seams or silently extend wire-v2. Existing
 bookmark-v2 payloads must remain readable after a global version increase.
 The bookmark fields/golden fixture were sent in `01a07087-d324-7400-a943-c7c1565811ec`.
-Swift wire/domain ownership and matching-client capability gating still need
-an explicit coordinated response; do not infer it from a queued message.
+Swift wire/domain ownership has now been explicitly assigned to Mobile for both
+ADR 0006/0007; C++ common seams remain here, while `tab_tree_sync_adapter.{h,cc}`
+is assigned to Desktop. The combined technical contract and deterministic Inbox
+IDs are in `docs/decisions/0008-sync-wire-v3-coordination.md`. Mobile/Native
+acknowledgment of capability bootstrap, legacy-clock/provenance handling and
+nonportable-tab representation remains open. Do not infer agreement or an
+implementation start from a queued message. The shared Bookmark golden fixture
+now uses UUID clock-device strings required by the real Swift wire decoder;
+its earlier descriptive device alias was not cross-client-decodable.
 
 Next: finish the combined wire-version agreement; integrate the native adapter
 and coordinated Mobile implementation. Use the existing installed candidate for
