@@ -70,15 +70,23 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Owned combined correction package — live test-API build
+## Owned combined correction package — terminal remaining fixture error
 
-**Current phase, 2026-09-05 17:59 UTC:** the existing clean detached snapshot
+**Current phase, 2026-09-05 18:08 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
 `22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`, clean after the explicit test-only
 handoff. Guarded overlay session `65019` is TERMINAL EXIT 0, full delta verified.
-ONE combined guarded incremental Dev build is RUNNING as session `7945`, same
-full target set below and existing cached outputs. Do not restart either command
-or change snapshot/shared checkout until 7945 is terminal. The compiler-start
+Combined guarded incremental Dev build `7945` is TERMINAL EXIT1, same full
+target set below and existing cached outputs. Do not poll that terminal handle
+or restart unchanged source. All previous five API diagnostics are resolved;
+Sidebar tests compiled/linked, but one fixture array has two newly surfaced
+unsafe-buffer diagnostics at bookmark_sync_store_unittest.cc:435/436. Exact
+report: `artifacts/build/desktop-test-api-22e2f2b-20260905/README.md`.
+The file remains Sync-owned; bounded safe-container/span correction or exact
+hunk ownership requested in `01a072c4-5524-7270-9d9f-526ba9906062`. Do not
+disable warnings, weaken assertions or integrate its unrelated format-3 WIP.
+This is a new concrete compiler finding, not a missing 22e2f2b handoff.
+The compiler-start
 CPU gate was freshly clear at 17:59:12 UTC; disk 83,947,400 KiB.
 Only the four agreed test files differ in the Desktop build surface; newer
 format-3 work is excluded. Canonical logs:
@@ -255,7 +263,7 @@ Mobile runtime reservation remains; no automatic retry is authorized.
 - Existing clean detached build snapshot:
   `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at accepted source `22e2f2b`
   for the test-API correction; shared checkout refresh65019 succeeded and build7945
-  is running. This is not a new built/installed candidate yet. It shares
+  is terminal Exit1. This is not a new built/installed candidate. It shares
   `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
@@ -388,8 +396,11 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    `1ea90da`, and the renewed consent freeze are already integrated. There is
    no remaining product or test-source handoff wait. The exact `22e2f2b`
    correction (already contains owned `5794d37`) is explicitly accepted and the
-   clean snapshot is already selected. Resume live combined build7945;
-   overlay65019 already succeeded and both preceding CPU gates cleared. Do not
+   clean snapshot is already selected. Build7945 is also terminal Exit1; obtain
+   the bounded remaining kLegacyRows fixture-access correction/hunk ownership,
+   then select its committed baseline source and use the same guarded cached
+   target set after a fresh CPU gate. No warning suppression or unrelated
+   format-3 source integration. Overlay65019 already succeeded. Do not
    copy subsequent unified Sync WIP or stop the foreign workload.
    A successful complete build receipt is required before installation. Preserve both logs,
    bind the final receipt and recheck CPU/process/disk gates before the next
