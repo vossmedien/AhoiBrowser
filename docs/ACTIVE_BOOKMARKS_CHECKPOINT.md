@@ -48,8 +48,11 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 The Bookmark owner owns common C++ sync model/codec/merge/SQLite/provider,
 native BookmarkModel adapter and identity journal, explicit consent UI, GN,
 `config/sync-policy.json`, ADR 0006/0008 and canonical goldens. This bounded
-package is being frozen as compile-candidate source, NOT a tested feature or
-release. No shared-checkout refresh, build, behavior test, app launch or install
+package is frozen in `c28ec4af0d46c0d1b62a8ea67d95cf5a0c05aff8`, committed and
+pushed as compile-candidate source, NOT a tested feature or release. Explicit
+Desktop build handoff: `01a0718c-6641-7821-837f-7190f517ad0d`; Mobile coordination:
+`01a0718c-66c2-7a50-ab34-b84f9fd3aa42`. These 60 owned files stay unchanged until
+combined-build feedback. No shared-checkout refresh, build, behavior test, app launch or install
 was performed by this source wave. The installed plist was freshly read as
 `3d413ef`; it contains none of the new adapter/consent implementation.
 

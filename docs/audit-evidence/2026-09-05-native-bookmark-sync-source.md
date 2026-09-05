@@ -2,6 +2,11 @@
 
 Status: **SOURCE ONLY / NOT BUILT / NOT E2E-ACCEPTED**.
 
+Exact source freeze: `c28ec4af0d46c0d1b62a8ea67d95cf5a0c05aff8`, committed and
+pushed. Desktop build handoff `01a0718c-6641-7821-837f-7190f517ad0d` explicitly
+releases integration of these 60 files; checkout/build/install/UI ownership stays
+with Desktop. No further product-source edits are planned before its build reply.
+
 Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`. Canonical branch:
 `codex/desktop-core-feature-wave-20260830`. Desktop owns the single combined
 checkout/build/install/UI path; Mobile owns Swift. This manifest authorizes only
