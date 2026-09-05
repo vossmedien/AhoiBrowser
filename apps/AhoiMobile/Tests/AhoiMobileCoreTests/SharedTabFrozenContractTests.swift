@@ -16,7 +16,7 @@ final class SharedTabFrozenContractTests: XCTestCase {
         for payload in try capabilityPayloads(fixture) {
             let capability = try decodeCapability(payload)
             XCTAssertEqual(capability.id, SharedTabContract.capabilityID(for: capability.deviceID))
-            XCTAssertEqual(try codec.encode(capability), canonical(payload))
+            XCTAssertEqual(try codec.encode(capability), try canonical(payload))
             XCTAssertEqual(capability.version.schemaVersion, 2)
             XCTAssertThrowsError(try codec.decodeCapability(envelope(payload, .deviceCapability),
                                                             plaintext: canonical(payload), knownDevices: [:]))
@@ -61,7 +61,7 @@ final class SharedTabFrozenContractTests: XCTestCase {
         let legacy = try dictionary(fixture, "legacy")
         let remote = try decodeNode(dictionary(legacy, "tree_v2"))
         var locallyObserved = remote
-        locallyObserved.creationProvenanceKnown = true
+        locallyObserved.creationProvenanceClock = remote.version.fieldVersions["created_at"]
         XCTAssertEqual(locallyObserved, remote)
         XCTAssertEqual(Set([locallyObserved, remote]).count, 1)
         let restored = try JSONDecoder().decode(TreeNode.self, from: JSONEncoder().encode(locallyObserved))

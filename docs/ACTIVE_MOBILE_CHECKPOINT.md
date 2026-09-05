@@ -3,6 +3,33 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
+## Current P2 correction — retained creation evidence, source only
+
+The review of `3964bcb` found that a later synthetic v2 `created_at` clock
+could erase the Boolean-only local creation evidence. The correction retains
+the original observed HLC in local snapshot metadata, independently of the
+replicated field clock and its legacy `createdAt` framing. Old Boolean snapshots
+decode compatibly; unknown provenance stays unknown. Promotion and origin
+projection use the retained observation, never the later editor. Local-only
+evidence changes persist but are excluded from replicated equality/re-enqueue.
+
+Five focused regressions are written and referenced by the generated Xcode
+project: both merge directions, newer/repeated legacy rewrites, file-store
+restart/replay, evidence-only persistence/no echo, old Boolean decoding and
+subsequent local edits/promotion. They are **NOT RUN**. XcodeGen and whitespace
+checks succeeded; no build, simulator, host or CloudKit action was started.
+Fresh CPU samples found FillIt's `Lagoon420/source-03` Blender data bake
+(PID 57077, parent 51136; command and cwd verified) at 261.3% then 174.3%.
+No competing intensive phase was started and the foreign job was untouched.
+
+Next Swift candidate must include this correction and run
+`SharedTabCreationProvenanceTests` with the existing frozen/read/merge suites.
+Visible v3 promotion remains technically unavailable while writer/live-tab
+activation is off; independent domain tests are permitted under the documented
+E2E exception, not a native runtime pass. Build15 Bookmark acceptance is not
+repeated. C++/GN/Golden/ADR and the independent Desktop build freeze are unchanged.
+Details: `docs/audit-evidence/2026-09-05-mobile-creation-provenance.md`.
+
 ## Current source wave — matching frozen ADR 0008, not built
 
 The owner froze the concrete contract in `09cae9f`. The one canonical fixture
@@ -27,9 +54,10 @@ Actual automatic UI materialization remains for the later native/mobile wiring.
 
 Legacy new-field Bottom is recognized semantically as absence, not UUID tie
 order. Pure promotion preserves immutable TreeNode creation *time* and defaults
-unknown creation *provenance* to Bottom. Locally observed creation evidence is
-a persisted Boolean, never a creator ID or wire field, and is excluded from
-replicated equality to prevent re-enqueue loops. Bookmark creation time remains
+unknown creation *provenance* to Bottom. The original Boolean-only local
+creation marker is superseded by the retained-clock correction above, still
+never a creator ID or wire field and excluded from replicated equality to
+prevent re-enqueue loops. Bookmark creation time remains
 the independent positive Int64 native value and its wire-v2 codec is unchanged.
 
 `SharedTabFrozenContractTests` consumes the canonical fixture directly for

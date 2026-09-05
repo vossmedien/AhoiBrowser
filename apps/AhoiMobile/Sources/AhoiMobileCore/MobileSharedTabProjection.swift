@@ -19,8 +19,7 @@ struct MobileSharedTabProjection: Equatable, Identifiable {
         title = node.title
         isTemporary = node.isTemporary
         self.target = target
-        if node.creationProvenanceKnown,
-           let clock = node.version.fieldVersions["created_at"], SharedTabContract.isActualMutation(clock) {
+        if let clock = node.creationProvenanceClock, SharedTabContract.isActualMutation(clock) {
             originDevice = clock.nodeID
         } else {
             originDevice = nil

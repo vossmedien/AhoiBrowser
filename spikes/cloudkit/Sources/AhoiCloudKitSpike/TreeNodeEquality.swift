@@ -1,7 +1,7 @@
 import Foundation
 
 extension TreeNode {
-    /// Local knowledge of provenance is persisted for promotion, but is not a
+    /// The retained local provenance clock is persisted for promotion, but is not a
     /// replicated value. Including it in domain equality would make an inbound
     /// v2 row trigger endless re-enqueues solely because another device cannot
     /// know which local creation event this device actually observed.

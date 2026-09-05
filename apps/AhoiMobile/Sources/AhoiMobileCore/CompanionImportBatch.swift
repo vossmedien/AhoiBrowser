@@ -61,7 +61,12 @@ extension LocalFirstRepository {
         try await loadIfNeeded()
         guard !mutations.isEmpty else { return [] }
         let result = try mergeImportedBatch(mutations, into: snapshot)
-        if result.snapshot != snapshot {
+        // Replicated equality deliberately ignores local creation evidence.
+        // Still persist newly retained evidence without echoing a wire record.
+        let evidenceChanged = zip(result.snapshot.treeNodes, snapshot.treeNodes).contains {
+            $0.0.creationProvenanceClock != $0.1.creationProvenanceClock
+        }
+        if result.snapshot != snapshot || evidenceChanged {
             try await commitImportedSnapshot(result.snapshot)
         }
         return result.outcomes

@@ -262,8 +262,10 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
     public var orderKey: OrderKey
     public var wireSortKey: String?
     public var isTemporary: Bool
-    /// Local evidence, never a wire field or a second creator identity.
-    public var creationProvenanceKnown: Bool
+    /// Retained creation evidence, independent of later legacy field clocks.
+    /// Local snapshot metadata only; never a wire field or a second creator ID.
+    public var creationProvenanceClock: HybridLogicalClock?
+    public var creationProvenanceKnown: Bool { creationProvenanceClock != nil }
     public var targetKind: SharedTabTargetKind?
     public var localScheme: SharedTabLocalScheme?
     public let createdAt: HybridLogicalClock
@@ -284,6 +286,7 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         wireSortKey: String? = nil,
         isTemporary: Bool = false,
         creationProvenanceKnown: Bool = false,
+        creationProvenanceClock: HybridLogicalClock? = nil,
         targetKind: SharedTabTargetKind? = nil,
         localScheme: SharedTabLocalScheme? = nil,
         createdAt: HybridLogicalClock? = nil,
@@ -322,7 +325,8 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         self.orderKey = orderKey
         self.wireSortKey = wireSortKey
         self.isTemporary = isTemporary
-        self.creationProvenanceKnown = creationProvenanceKnown
+        self.creationProvenanceClock = creationProvenanceClock ?? (creationProvenanceKnown
+            ? version.fieldVersions["created_at"] ?? createdAt ?? version.modifiedAt : nil)
         self.targetKind = targetKind
         self.localScheme = localScheme
         self.createdAt = createdAt ?? version.modifiedAt
@@ -347,6 +351,7 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
             wireSortKey: container.decodeIfPresent(String.self, forKey: .wireSortKey),
             isTemporary: container.decodeIfPresent(Bool.self, forKey: .isTemporary) ?? false,
             creationProvenanceKnown: container.decodeIfPresent(Bool.self, forKey: .creationProvenanceKnown) ?? false,
+            creationProvenanceClock: container.decodeIfPresent(HybridLogicalClock.self, forKey: .creationProvenanceClock),
             targetKind: container.decodeIfPresent(SharedTabTargetKind.self, forKey: .targetKind),
             localScheme: container.decodeIfPresent(SharedTabLocalScheme.self, forKey: .localScheme),
             createdAt: container.decodeIfPresent(
@@ -362,11 +367,33 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         )
     }
 
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(treeNodeID, forKey: .treeNodeID)
+        try container.encode(workspaceID, forKey: .workspaceID)
+        try container.encodeIfPresent(parentID, forKey: .parentID)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(url, forKey: .url)
+        try container.encode(icon, forKey: .icon)
+        try container.encodeIfPresent(accent, forKey: .accent)
+        try container.encode(orderKey, forKey: .orderKey)
+        try container.encodeIfPresent(wireSortKey, forKey: .wireSortKey)
+        try container.encode(isTemporary, forKey: .isTemporary)
+        try container.encodeIfPresent(creationProvenanceClock, forKey: .creationProvenanceClock)
+        try container.encodeIfPresent(targetKind, forKey: .targetKind)
+        try container.encodeIfPresent(localScheme, forKey: .localScheme)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(modifiedAt, forKey: .modifiedAt)
+        try container.encode(version, forKey: .version)
+        try container.encodeIfPresent(tombstone, forKey: .tombstone)
+    }
+
     private enum CodingKeys: String, CodingKey {
         case treeNodeID, workspaceID, parentID, kind, title, url, icon, accent, orderKey
         case wireSortKey
         case isTemporary, createdAt, modifiedAt, version, tombstone
-        case creationProvenanceKnown
+        case creationProvenanceKnown, creationProvenanceClock
         case targetKind, localScheme
     }
 

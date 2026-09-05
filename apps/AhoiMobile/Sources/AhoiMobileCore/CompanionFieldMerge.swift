@@ -191,13 +191,13 @@ public enum CompanionFieldMerge {
         for field in treeNodeFields where equality[field] == true {
             version.fieldVersions[field] = old.fieldVersions[field]
         }
+        result.creationProvenanceClock = previous.creationProvenanceClock
         if previous.version.schemaVersion == 3 && candidate.version.schemaVersion < 3 {
             result.isTemporary = previous.isTemporary
             version = SharedTabFieldReadMerge.retainingExistingField(
                 "is_temporary", previous: previous.version, candidate: version
             )
             version.fieldVersions["created_at"] = previous.version.fieldVersions["created_at"]
-            result.creationProvenanceKnown = previous.creationProvenanceKnown
             if previous.url == candidate.url {
                 result.targetKind = previous.targetKind
                 result.localScheme = previous.localScheme

@@ -21,24 +21,32 @@ enum SharedTabCreationProvenance {
             }
             let selected = real.max() ?? SharedTabContract.bottom
             result.version.fieldVersions["created_at"] = selected
-            return try reframe(result, provenance: selected, known: !SharedTabContract.isBottom(selected))
+            return try reframe(result, provenance: selected,
+                               evidence: SharedTabContract.isBottom(selected) ? nil : selected)
         }
-        let selected = result.version.fieldVersions["created_at"]
-        result.creationProvenanceKnown = [old, new].contains {
-            $0.creationProvenanceKnown && $0.version.fieldVersions["created_at"] == selected
+        guard let selected = result.version.fieldVersions["created_at"] else {
+            throw SharedTabFieldReadMergeError.missingFieldClock
         }
-        guard let selected else { throw SharedTabFieldReadMergeError.missingFieldClock }
-        return try reframe(result, provenance: selected, known: result.creationProvenanceKnown)
+        // Keep the actual observation, not a Boolean attached to the winning
+        // legacy clock. A synthetic last-editor clock may win the v2 register
+        // without becoming creation evidence or erasing our original clock.
+        let evidence = [old.creationProvenanceClock, new.creationProvenanceClock].compactMap { $0 }
+        guard evidence.allSatisfy(SharedTabContract.isActualMutation) else {
+            throw SharedTabFieldReadMergeError.invalidLegacyField
+        }
+        return try reframe(result, provenance: selected, evidence: evidence.max())
     }
 
-    static func reframe(_ node: TreeNode, provenance: HybridLogicalClock, known: Bool) throws -> TreeNode {
+    static func reframe(
+        _ node: TreeNode, provenance: HybridLogicalClock, evidence: HybridLogicalClock?
+    ) throws -> TreeNode {
         let time = HybridLogicalClock(physicalMilliseconds: node.createdAt.physicalMilliseconds,
                                       submillisecondMicroseconds: node.createdAt.submillisecondMicroseconds,
                                       logicalCounter: provenance.logicalCounter, nodeID: provenance.nodeID)
         return try TreeNode(treeNodeID: node.id, workspaceID: node.workspaceID, parentID: node.parentID,
                             kind: node.kind, title: node.title, url: node.url, icon: node.icon, accent: node.accent,
                             orderKey: node.orderKey, wireSortKey: node.wireSortKey, isTemporary: node.isTemporary,
-                            creationProvenanceKnown: known, targetKind: node.targetKind, localScheme: node.localScheme,
+                            creationProvenanceClock: evidence, targetKind: node.targetKind, localScheme: node.localScheme,
                             createdAt: time, modifiedAt: node.modifiedAt, version: node.version, tombstone: node.tombstone)
     }
 
@@ -52,8 +60,7 @@ enum SharedTabCreationProvenance {
         let old = node.version.normalized(for: CompanionFieldMerge.treeNodeFields)
         var fields = old.fieldVersions
         fields["is_temporary"] = SharedTabContract.bottom
-        let provenance = node.creationProvenanceKnown
-            ? node.version.fieldVersions["created_at"] ?? SharedTabContract.bottom : SharedTabContract.bottom
+        let provenance = node.creationProvenanceClock ?? SharedTabContract.bottom
         guard SharedTabContract.isBottom(provenance) || SharedTabContract.isActualMutation(provenance) else {
             throw SharedTabFieldReadMergeError.invalidLegacyField
         }
@@ -64,7 +71,8 @@ enum SharedTabCreationProvenance {
             try SharedTabTarget(kind: .web, url: node.url ?? "").validatePage(isTemporary: false)
             result.targetKind = .web
         }
-        return try reframe(result, provenance: provenance, known: !SharedTabContract.isBottom(provenance))
+        return try reframe(result, provenance: provenance,
+                           evidence: SharedTabContract.isBottom(provenance) ? nil : provenance)
     }
 }
 
