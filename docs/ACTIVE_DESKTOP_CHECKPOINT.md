@@ -24,6 +24,23 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
+## Active runtime window — Mobile CloudKit test
+
+Mobile thread `01a044d6-1545-7532-8394-6b7df1144bb1` has an explicit runtime
+window for one focused AhoiMobile CloudKit E2E run on My Mac (Designed for
+iPad/iPhone), plus its own host setup/cleanup. Grant:
+`01a070c7-7b59-78d0-b224-bfab8a57b998`. At the 2026-09-05 08:52 UTC readback,
+the native Desktop app/helpers and Chromium build were absent.
+
+Until explicit handback, do not start/use the Desktop app or its UI, build
+Chromium, sign/stamp a bundle, or install another candidate. Only the inert Mobile
+test host, fresh Development UUID test zone and local test stores are in scope.
+No Production, Desktop profile, installed app, existing key or Apple account/
+provisioning changes are authorized by this slot. Mobile rechecks CPU/process
+freedom, cleans up only its exact host/runner/test data, and returns source,
+destination, environment, xcresult/log and cleanup evidence. This is not a
+Chromium-Mac or cross-device-Keychain pass. Shared checkout/out remain Desktop-owned.
+
 ## Exact installed candidate
 
 - `/Applications/AhoiBrowser.app`: source
@@ -71,8 +88,9 @@ The bookmark owner returned the isolated-profile UI slot explicitly in
 `01a0709c-556c-70c1-b59b-17fb3d9cdc30` after the same native-pipe error in its own
 fresh/reset session. It launched no app and changed no profile. Desktop accepted
 the handback in `01a070b8-90f0-7cd1-9a05-108a24700fb1`, which also cancels the
-redundant re-offer prompted by a delayed coordination message. UI, build and
-checkout are Desktop-owned again; do not recreate an old slot or repeat tests.
+redundant re-offer prompted by a delayed coordination message. That bookmark
+slot is closed; the separate active Mobile runtime window above now governs
+app use. Build/checkout ownership remains Desktop; do not repeat old tests.
 A subsequent main-thread `cua.getState()` still failed before app access.
 The owner's existing `3d413ef` Shelf suite passed 11/11 under the technical-E2E
 exception. Main checked log, JSON status counts, summary hash and executable

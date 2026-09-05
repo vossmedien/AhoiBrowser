@@ -69,7 +69,12 @@ while the bookmark owner holds those files. Mobile keeps its Swift/test ownershi
 Desktop owns C++ build integration and the candidate-bound execution handoff.
 
 The isolated desktop UI slot was subsequently returned by the bookmark owner
-after the same native-pipe failure; see the current Desktop checkpoint. A Mobile
-test host running on My Mac with the same bundle identifier still requires an
-explicit runtime handoff before launch; it must not collide with the installed
-Chromium candidate.
+after the same native-pipe failure. Desktop then granted Mobile one focused
+My-Mac CloudKit test window in `01a070c7-7b59-78d0-b224-bfab8a57b998`, following
+a fresh readback with no native Desktop app/helpers or Chromium build. The main
+agent holds Desktop app use/build/install until explicit handback; the Mobile
+host may use only its fresh Development test zone and local test stores, not
+Desktop profiles, the installed bundle, existing keys or Production. The shared
+bundle ID is why this is an explicit runtime lease. Test outcome and cleanup
+remain pending, not inferred from the grant. See the Desktop checkpoint for
+current lease state.
