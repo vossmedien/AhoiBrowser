@@ -84,7 +84,7 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Owned combined correction package — fixture handoff received
+## Owned combined correction package — final fixture build running
 
 **Previous fixture blocker RESOLVED, 2026-09-05 18:41 UTC:** the user explicitly
 handed over `92694fe36539d024af6567646103f1cf246d5364`. Main reviewed its exact
@@ -93,21 +93,24 @@ fixture data/order/assertions. The former three-turn blocked audit is historical
 no further fixture permission, SQL22 handoff or format-freeze request is needed.
 The user handoff authorizes resuming this independent baseline correction.
 
-**Current phase, 2026-09-05 18:46 UTC:** the existing clean detached snapshot
+**Current phase, 2026-09-05 18:56 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
-`92694fe36539d024af6567646103f1cf246d5364`, clean. Shared checkout/out remain at
-the previous 22e2f2b failure; no new overlay/build has started. From22 the only
+`92694fe36539d024af6567646103f1cf246d5364`, clean. Guarded overlay60701 completed
+EXIT0 with full delta verified. ONE same-full-target cached Dev build is RUNNING
+as session17302. Do not restart these commands or change snapshot/shared out
+before terminal. Fresh all-project CPU gate was clear at18:56:15UTC, disk
+82,379,196KiB. Canonical logs: `artifacts/build/desktop-fixture-92694fe-20260905/`.
+No successful new build receipt, install or test execution yet. From22 the only
 executable source change is the fixture test. Additional committed config diffs
 are the non-consumed `sync-format.json` contract and two registry descriptions;
 no matching consumer in this frozen source and no unified writer/default change.
 All canonical Common/Swift/entitlement WIP stays outside this snapshot.
 
-Fresh18:45/18:46 checks identify new FillIt Unity84761, parent51136, matching
-project cwd and `finale-features-01.log` / OpenSavedPlayablePreview, at189.1/188.9%
-CPU. Owner was asked for the next naturally quiet window after its active step,
-without stopping/pausing any job (`01a072e5-07ca-7652-b3a5-a5a9c810c9c5`). Recheck
-the current all-project CPU gate before starting; this is a fresh wait, not the
-resolved fixture blocker or any older Unity PID. Disk last82,492,392KiB.
+The new CPU gate cleared at18:52: Unity84761 ended; the intervening
+ConversationCopilot test/app/runner was freshly below20% aggregate, with no
+active compiler or other busy build found. No foreign process was touched.
+The earlier189% Unity samples are historical, not a retained blocker. Recheck
+before compiler start. Disk last82,492,392KiB.
 Next logs are under `artifacts/build/desktop-fixture-92694fe-20260905/`.
 
 Historical guarded overlay session `65019` is TERMINAL EXIT 0, full delta verified.
@@ -295,7 +298,7 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
   `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at accepted source `92694fe`
-  for the fixture correction; shared checkout remains22e2f2b from terminal7945.
+  for the fixture correction; overlay60701 succeeded and build17302 is running.
   This is not a new built/installed candidate. It shares
   `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
@@ -430,9 +433,9 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    no remaining product or test-source handoff wait. The exact `22e2f2b`
    correction (already contains owned `5794d37`) is explicitly accepted and the
    fixture correction92694fe is now explicitly received and the clean snapshot
-   selected. Build7945 is terminal Exit1. Start guarded overlay from92694fe,
-   then the same cached full target set after fresh CPU gates (latest foreign
-   phaseUnity84761, not older retired jobs). No warning suppression or unrelated
+   selected. Build7945 is terminal Exit1. Resume live full cached build17302
+   from92694fe; overlay60701 already succeeded. The previous Unity84761 CPU
+   gate is cleared and compiler-start gate passed. No warning suppression or unrelated
    format-3 source integration. Overlay65019 already succeeded. Do not
    copy subsequent unified Sync WIP or stop the foreign workload.
    A successful complete build receipt is required before installation. Preserve both logs,
