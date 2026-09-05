@@ -67,9 +67,12 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
   compiler session `7945` on `22e2f2b`. Coordinator's newer log read shows Ninja
   stopped at the two `kLegacyRows[i]` unsafe-buffer errors in
   `bookmark_sync_store_unittest.cc:435/436`; the other three corrected test files
-  and `ahoi_sidebar_tree_unittests` progressed/linked. The guarded terminal result
-  still needs the owner's explicit readback; there is no total-build receipt or
-  new install inferred here. Feedback was queued to Desktop and Sync as
+  and `ahoi_sidebar_tree_unittests` progressed/linked. Desktop has now confirmed
+  `7945` TERMINAL EXIT 1 in `752723f` / its 18:08 UTC checkpoint. Do not poll or
+  restart that terminal handle. There is no total-build receipt or new install.
+  Desktop's original bounded correction/hunk request is
+  `01a072c4-5524-7270-9d9f-526ba9906062`; no duplicate assignment is needed.
+  Coordinator readback was queued to Desktop and Sync as
   `01a072c7-ef7b-72f0-8bda-01c1d754904b` /
   `01a072c7-f155-76a0-89ba-4a9fb81d4ec3` for a bounded separate test-only fix.
 - Installed Desktop remains `3d413ef` per current Desktop checkpoint; that
