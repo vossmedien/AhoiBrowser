@@ -22,6 +22,7 @@
 #include "third_party/icu/source/common/unicode/uchar.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
 #include "third_party/skia/include/core/SkRRect.h"
+#include "third_party/skia/include/pathops/SkPathOps.h"
 #include "ui/accessibility/ax_action_data.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -206,6 +207,7 @@ void SidebarTreeRowView::Bind(size_t row_index,
 }
 
 void SidebarTreeRowView::Unbind() {
+  SetExiting(false);
   if (hovered_ && is_bound()) {
     owner_->OnRowHoverChanged(this, false);
   }
@@ -240,6 +242,29 @@ void SidebarTreeRowView::Unbind() {
   split_group_bounds_.reset();
   SetClipPath(SkPath());
   GetViewAccessibility().SetIsInvisible(true);
+}
+
+void SidebarTreeRowView::SetExiting(bool exiting) {
+  if (exiting_ == exiting) {
+    return;
+  }
+  exiting_ = exiting;
+  if (exiting) {
+    StopEditing(/*restore_model_title=*/true);
+    if (hovered_) {
+      owner_->OnRowHoverChanged(this, false);
+    }
+    hovered_ = false;
+    pressed_disclosure_ = false;
+    pressed_trailing_action_ = false;
+    selected_ = false;
+  }
+  SetCanProcessEventsWithinSubtree(!exiting);
+  SetFocusBehavior(exiting ? FocusBehavior::NEVER
+                           : FocusBehavior::ACCESSIBLE_ONLY);
+  GetViewAccessibility().SetIsLeaf(exiting);
+  GetViewAccessibility().SetIsInvisible(exiting);
+  SchedulePaint();
 }
 
 bool SidebarTreeRowView::title_visible_for_testing() const {
@@ -328,7 +353,13 @@ void SidebarTreeRowView::UpdateSplitGroupClipPath() {
   clip_builder.addRRect(SkRRect::MakeRectXY(gfx::RectFToSkRect(local_clip),
                                             visual_style::kRowCornerRadius,
                                             visual_style::kRowCornerRadius));
-  SetClipPath(clip_builder.detach());
+  // A shared split bubble can extend beyond this segment. During a fold its
+  // changing row height must still clip all glyphs/children to that row, rather
+  // than allowing the explicit group path to replace View's ordinary bounds
+  // clip and paint over neighbouring rows.
+  const SkPath row_clip = SkPath::Rect(gfx::RectToSkRect(GetLocalBounds()));
+  SetClipPath(Op(clip_builder.detach(), row_clip, kIntersect_SkPathOp)
+                  .value_or(row_clip));
 }
 
 gfx::ImageSkia SidebarTreeRowView::GetDragImage() {
@@ -639,7 +670,7 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
 }
 
 bool SidebarTreeRowView::OnMousePressed(const ui::MouseEvent& event) {
-  if (!event.IsOnlyLeftMouseButton() || !is_bound()) {
+  if (!event.IsOnlyLeftMouseButton() || !is_bound() || exiting_) {
     return false;
   }
   const bool disclosure_hit =
@@ -655,7 +686,7 @@ bool SidebarTreeRowView::OnMousePressed(const ui::MouseEvent& event) {
 }
 
 void SidebarTreeRowView::OnMouseReleased(const ui::MouseEvent& event) {
-  if (!event.IsLeftMouseButton()) {
+  if (!event.IsLeftMouseButton() || exiting_) {
     pressed_disclosure_ = false;
     pressed_trailing_action_ = false;
     return;

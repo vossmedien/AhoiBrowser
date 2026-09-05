@@ -1,0 +1,73 @@
+From: AhoiBrowser Authors
+Subject: [PATCH] Preserve native navigation background ownership and material
+
+The Views-only navigation controller owns material state, but BrowserView and
+its layout keep the real ToolbarView CustomCornersBackground. Apply the resolved
+color/alpha to that painter after native initialization and layout, without
+replacing it or competing with the native fullscreen treatment.
+
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -181,6 +181,7 @@
+ #include "chrome/browser/ui/views/frame/contents_container_view.h"
+ #include "chrome/browser/ui/views/frame/contents_layout_manager.h"
+ #include "chrome/browser/ui/views/frame/contents_separator.h"
++#include "chrome/browser/ui/views/frame/custom_corners_background.h"
+ #include "chrome/browser/ui/views/frame/custom_floating_corner.h"
+ #include "chrome/browser/ui/views/frame/horizontal_tab_strip_region_view.h"
+ #include "chrome/browser/ui/views/frame/layout/browser_view_layout.h"
+@@ -1296,7 +1297,38 @@
+         std::make_unique<ahoi::NavigationSurfaceController>(
+             this, top_container_, toolbar_,
+             l10n_util::GetStringUTF16(IDS_AHOI_REVEAL_NAVIGATION),
+-            browser_->GetProfile()->GetPrefs());
++            browser_->GetProfile()->GetPrefs(),
++            base::BindRepeating(
++                [](base::WeakPtr<BrowserView> view,
++                   const ahoi::appearance::SurfaceAppearance& surface) {
++                  if (!view || !view->toolbar_ || view->IsFullscreen()) {
++                    return;
++                  }
++                  auto* const painter = view->toolbar_->background();
++                  auto* const background =
++                      painter ? painter->AsA<CustomCornersBackground>() : nullptr;
++                  if (!background) {
++                    // ToolbarView::Init has not installed its native painter
++                    // yet. NavigationSurfaceController retries after layout.
++                    return;
++                  }
++                  background->SetPrimaryColor(
++                      CustomCornersBackground::ColorChoiceWithAlpha(
++                          surface.background_color, surface.opacity));
++                  CustomCornersBackground::Corners corners;
++                  for (CornerOrientation corner : {
++                           CornerOrientation::kTopLeading,
++                           CornerOrientation::kTopTrailing,
++                           CornerOrientation::kBottomTrailing,
++                           CornerOrientation::kBottomLeading,
++                       }) {
++                    corners[corner].type =
++                        CustomCornersBackground::CornerType::kRounded;
++                    corners[corner].radius = surface.corner_radius;
++                  }
++                  background->SetCorners(corners);
++                },
++                weak_ptr_factory_.GetWeakPtr()));
+ 
+     vertical_tab_strip_top_corner_ =
+         AddChildView(std::make_unique<CustomFloatingCorner>(
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1729,7 +1729,9 @@
+   // Set toolbar corners.
+   CustomCornersBackground::Corners toolbar_corners;
+   if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
+-    toolbar_background->SetPrimaryColor(ahoi::visual_style::kRaisedSurface);
++    // The navigation material callback updates this native painter after
++    // initialization/layout and on appearance changes. Do not replace its
++    // resolved alpha with an opaque color on every layout.
+     for (CornerOrientation corner : {
+              CornerOrientation::kTopLeading,
+              CornerOrientation::kTopTrailing,

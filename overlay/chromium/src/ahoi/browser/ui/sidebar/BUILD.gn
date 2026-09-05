@@ -10,6 +10,7 @@ source_set("sidebar_tree") {
     "sidebar_tree_controller.h",
     "sidebar_tree_controller_drop.cc",
     "sidebar_tree_view_model.cc",
+    "sidebar_tree_view_model_expansion.cc",
     "sidebar_tree_view_model.h",
   ]
 
@@ -85,6 +86,7 @@ source_set("sidebar_views") {
     "sidebar_tree_view_drag.cc",
     "sidebar_tree_view_drop_execution.cc",
     "sidebar_tree_view_navigation.cc",
+    "sidebar_tree_view_motion.cc",
     "sidebar_tree_view_projection.cc",
   ]
 

@@ -66,11 +66,16 @@ std::string MergeRootSortPrefix(const base::Uuid& source_workspace_id) {
   return "arc@" + source_workspace_id.AsLowercaseString() + "@";
 }
 
-bool ValidateSnapshot(const tab_tree::TabTreeSnapshot& snapshot) {
+bool ValidateSnapshot(
+    const tab_tree::TabTreeSnapshot& snapshot,
+    tab_tree::TabTreeSnapshot* canonical_snapshot = nullptr) {
   tab_tree::TabTreeStore validator;
   return validator.InitializeInMemory() &&
          validator.ReplaceWithSnapshot(snapshot) ==
-             tab_tree::TabTreeStore::Result::kOk;
+             tab_tree::TabTreeStore::Result::kOk &&
+         (!canonical_snapshot ||
+          validator.ExportSnapshot(canonical_snapshot) ==
+              tab_tree::TabTreeStore::Result::kOk);
 }
 
 }  // namespace
@@ -319,12 +324,18 @@ ArcImportMergeResult MergeArcImportPlan(
     result.applied_plan = std::move(applied);
     return result;
   }
-  if (!ValidateSnapshot(merged)) {
+  tab_tree::TabTreeSnapshot canonical_merged;
+  if (!ValidateSnapshot(merged, &canonical_merged)) {
     result.status = ArcImportStatus::kTransactionFailed;
     return result;
   }
   result.status = ArcImportStatus::kOk;
-  result.merged_tree = std::move(merged);
+  // The service compares this snapshot exactly with the real store readback.
+  // Appending source rows preserves their fields, but not ExportSnapshot's
+  // canonical workspace/node/undo ordering. Reuse the validation store's
+  // export so a successful persistence write cannot look like a foreign edit.
+  // The runtime plan keeps its independent source/member ordering unchanged.
+  result.merged_tree = std::move(canonical_merged);
   result.applied_plan = std::move(applied);
   return result;
 }

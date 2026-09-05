@@ -11,6 +11,7 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/appearance/appearance_prefs.h"
+#include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -26,6 +27,7 @@
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/frame/custom_corners_background.h"
 #include "chrome/browser/ui/views/frame/multi_contents_view.h"
 #include "chrome/browser/ui/views/frame/scrim_view.h"
 #include "chrome/browser/ui/views/frame/top_container_view.h"
@@ -505,6 +507,59 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   region_view()->SetAhoiSidebarEdgeRevealed(true);
   ASSERT_TRUE(base::test::RunUntil([&]() { return sidebar->GetVisible(); }));
   expect_no_overlap();
+}
+
+IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
+                       AhoiNavigationMaterialPreservesNativeBackground) {
+  BrowserView& browser_view = browser()->GetBrowserView();
+  ToolbarView* const toolbar = browser_view.toolbar();
+  PrefService* const prefs = browser()->GetProfile()->GetPrefs();
+  ASSERT_TRUE(toolbar->background());
+  auto* const background =
+      toolbar->background()->AsA<CustomCornersBackground>();
+  ASSERT_TRUE(background);
+  const auto* const border = toolbar->GetBorder();
+  ASSERT_TRUE(toolbar->layer());
+  ahoi::appearance::AppearanceRuntimeSignalSource signals(prefs, {});
+
+  for (const auto mode : {ahoi::sidebar::SidebarPresentationMode::kDocked,
+                          ahoi::sidebar::SidebarPresentationMode::kFloating}) {
+    ASSERT_TRUE(browser_view.SetAhoiSidebarPresentationMode(mode));
+    ASSERT_TRUE(base::test::RunUntil([&]() {
+      return !region_view()->IsAhoiSidebarPresentationAnimating();
+    }));
+    for (const bool glass_enabled : {false, true, false}) {
+      prefs->SetBoolean(ahoi::appearance::kGlassEnabledPref, glass_enabled);
+      // The native type must survive the policy notification BEFORE layout;
+      // layout itself expects that type and must not repair it by replacement.
+      ASSERT_EQ(background, toolbar->background());
+      browser_view.DeprecatedLayoutImmediately();
+      EXPECT_EQ(background, toolbar->background());
+      EXPECT_EQ(border, toolbar->GetBorder());
+      const auto surface = ahoi::appearance::AppearanceResolver::Resolve(
+          ahoi::appearance::SurfaceRole::kFloatingNavigation, signals.policy());
+      EXPECT_EQ(CustomCornersBackground::ColorChoiceWithAlpha(
+                    surface.background_color, surface.opacity),
+                background->primary_color());
+      EXPECT_EQ(gfx::RoundedCornersF(surface.corner_radius),
+                toolbar->layer()->rounded_corner_radii());
+      EXPECT_FALSE(toolbar->layer()->fills_bounds_opaquely());
+      EXPECT_FLOAT_EQ(surface.background_blur_sigma,
+                      toolbar->layer()->background_blur());
+
+      // A material preference is not a dock/float command. It must preserve
+      // the native region's independently owned final sidebar geometry.
+      const gfx::RoundedCornersF sidebar_corners(
+          mode == ahoi::sidebar::SidebarPresentationMode::kFloating
+              ? ahoi::visual_style::kFloatingSidebarCornerRadius
+              : 0);
+      EXPECT_EQ(sidebar_corners,
+                region_view()
+                    ->ahoi_sidebar_tree_view()
+                    ->layer()
+                    ->rounded_corner_radii());
+    }
+  }
 }
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,

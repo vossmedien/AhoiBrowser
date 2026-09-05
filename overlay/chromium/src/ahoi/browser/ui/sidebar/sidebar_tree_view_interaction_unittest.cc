@@ -8,6 +8,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "third_party/skia/include/core/SkRect.h"
+#include "ui/accessibility/ax_action_data.h"
 #include "ui/gfx/animation/animation_test_api.h"
 #include "ui/gfx/scoped_animation_duration_scale_mode.h"
 #include "ui/views/accessibility/view_accessibility.h"
@@ -427,6 +428,145 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_TRUE(selected_row);
   EXPECT_EQ(4 * SidebarTreeRowView::kRowHeight, selected_row->y());
   EXPECT_FALSE(scroll_view->GetVisibleRect().Contains(selected_row->bounds()));
+}
+
+TEST_F(SidebarTreeViewTest, FolderChildrenFoldSymmetricallyAndReopenInPlace) {
+  gfx::ScopedAnimationDurationScaleMode duration_mode(
+      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+  const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
+      gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
+  ASSERT_TRUE(render_mode);
+  const auto workspace = MakeWorkspace();
+  const auto folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
+  const auto after =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"After", "b");
+  const auto children = MakeMotionChildren(workspace, folder);
+  auto view = NewTreeView();
+  auto* tree = view.get();
+  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  widget->SetBounds(gfx::Rect(0, 0, 240, 320));
+  widget->SetContentsView(std::move(view));
+  widget->Show();
+  auto& model = controller_->view_model();
+  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
+  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder, after}));
+  ASSERT_TRUE(model.ReplaceChildren(folder.id, children));
+  const gfx::Rect viewport(0, 0, 240, 320);
+  tree->SynchronizeRowsForTesting(viewport);
+  SettleTreeMotion(tree);
+  ASSERT_TRUE(model.SetExpanded(folder.id, true));
+  tree->SynchronizeRowsForTesting(viewport);
+
+  std::vector<SidebarTreeRowView*> rows;
+  for (const auto& child : children) {
+    auto* row = tree->GetMaterializedRowForTesting(child.id);
+    ASSERT_TRUE(row);
+    EXPECT_EQ(SidebarTreeRowView::kRowHeight, row->y());
+    EXPECT_EQ(0, row->height());
+    rows.push_back(row);
+  }
+  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 3);
+  for (size_t i = 0; i < rows.size(); ++i) {
+    EXPECT_GT(rows[i]->height(), 0);
+    EXPECT_LT(rows[i]->height(), SidebarTreeRowView::kRowHeight);
+    EXPECT_GE(rows[i]->y(), SidebarTreeRowView::kRowHeight);
+    if (i + 1 < rows.size()) {
+      // Independent integer Rect interpolation can round adjacent edges by 1.
+      EXPECT_LE(rows[i]->bounds().bottom(), rows[i + 1]->y() + 1);
+    }
+  }
+  SettleTreeMotion(tree);
+  ASSERT_TRUE(model.SetSelectedNode(children[1].id));
+  ASSERT_TRUE(model.SetExpanded(folder.id, false));
+  tree->SynchronizeRowsForTesting(viewport);
+  EXPECT_EQ(folder.id, model.selected_node_id());
+  ui::AXActionData activate;
+  activate.action = ax::mojom::Action::kDoDefault;
+  for (size_t i = 0; i < rows.size(); ++i) {
+    EXPECT_EQ(rows[i], tree->GetMaterializedRowForTesting(children[i].id));
+    EXPECT_TRUE(rows[i]->is_exiting());
+    EXPECT_EQ(views::View::FocusBehavior::NEVER, rows[i]->GetFocusBehavior());
+    EXPECT_FALSE(rows[i]->HandleAccessibleAction(activate));
+    ui::MouseEvent press(ui::EventType::kMousePressed, gfx::Point(30, 10),
+                         gfx::Point(30, 10), base::TimeTicks::Now(),
+                         ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
+    EXPECT_FALSE(rows[i]->OnMousePressed(press));
+  }
+  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 3);
+  const gfx::Rect intermediate = rows.front()->bounds();
+  EXPECT_GT(intermediate.height(), 0);
+  EXPECT_LT(intermediate.height(), SidebarTreeRowView::kRowHeight);
+  ASSERT_TRUE(model.SetExpanded(folder.id, true));
+  tree->SynchronizeRowsForTesting(viewport);
+  EXPECT_EQ(intermediate, rows.front()->bounds());
+  for (size_t i = 0; i < rows.size(); ++i) {
+    EXPECT_EQ(rows[i], tree->GetMaterializedRowForTesting(children[i].id));
+    EXPECT_FALSE(rows[i]->is_exiting());
+  }
+  SettleTreeMotion(tree);
+
+  // Finish a collapse, but reopen before its queued cleanup executes.
+  ASSERT_TRUE(model.SetExpanded(folder.id, false));
+  tree->SynchronizeRowsForTesting(viewport);
+  SettleTreeMotion(tree);
+  ASSERT_TRUE(model.SetExpanded(folder.id, true));
+  tree->SynchronizeRowsForTesting(viewport);
+  RunPendingMessages();
+  for (size_t i = 0; i < rows.size(); ++i) {
+    EXPECT_EQ(rows[i], tree->GetMaterializedRowForTesting(children[i].id));
+  }
+  SettleTreeMotion(tree);
+  ASSERT_TRUE(model.SetExpanded(folder.id, false));
+  tree->SynchronizeRowsForTesting(viewport);
+  SettleTreeMotion(tree);
+  RunPendingMessages();
+  for (const auto& child : children) {
+    EXPECT_EQ(nullptr, tree->GetMaterializedRowForTesting(child.id));
+  }
+}
+
+TEST_F(SidebarTreeViewTest, ReducedMotionCollapseDoesNotRetainExitRows) {
+  gfx::ScopedAnimationDurationScaleMode duration_mode(
+      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+  auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
+      gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
+  ASSERT_TRUE(render_mode);
+  const auto workspace = MakeWorkspace();
+  const auto folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
+  const auto children = MakeMotionChildren(workspace, folder);
+  auto view = NewTreeView();
+  auto* tree = view.get();
+  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  widget->SetBounds(gfx::Rect(0, 0, 240, 320));
+  widget->SetContentsView(std::move(view));
+  widget->Show();
+  auto& model = controller_->view_model();
+  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
+  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder}));
+  ASSERT_TRUE(model.ReplaceChildren(folder.id, children));
+  const gfx::Rect viewport(0, 0, 240, 320);
+  tree->SynchronizeRowsForTesting(viewport);
+  SettleTreeMotion(tree);
+  ASSERT_TRUE(model.SetExpanded(folder.id, true));
+  tree->SynchronizeRowsForTesting(viewport);
+  SettleTreeMotion(tree);
+  render_mode.reset();
+  const auto reduced = gfx::AnimationTestApi::SetRichAnimationRenderMode(
+      gfx::Animation::RichAnimationRenderMode::FORCE_DISABLED);
+  ASSERT_TRUE(reduced);
+  ASSERT_TRUE(model.SetExpanded(folder.id, false));
+  tree->SynchronizeRowsForTesting(viewport);
+  EXPECT_FALSE(tree->row_bounds_animation_running_for_testing());
+  EXPECT_FALSE(tree->height_animation_for_testing()->is_animating());
+  EXPECT_EQ(SidebarTreeRowView::kRowHeight, tree->GetPreferredSize().height());
+  for (const auto& child : children) {
+    EXPECT_EQ(nullptr, tree->GetMaterializedRowForTesting(child.id));
+  }
 }
 
 TEST_F(SidebarTreeViewTest, ExpandLandsImmediatelyWhenRichMotionIsDisabled) {

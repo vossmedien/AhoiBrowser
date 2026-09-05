@@ -66,13 +66,14 @@ void SidebarTreeView::OnBatchUpdateEnded() {
 
 void SidebarTreeView::OnTreeReset() {
   CancelSelectionReveal();
+  pending_folder_reveal_.reset();
+  exiting_split_clip_groups_.clear();
   editing_node_id_.reset();
   last_drop_probe_.reset();
   SetDropIndicator(std::nullopt);
   materialized_split_clip_groups_.clear();
   row_bounds_animator_.Cancel();
   row_bounds_animation_pending_ = false;
-  row_bounds_animation_from_height_.reset();
   preferred_height_animation_.Reset(1.0);
   preferred_height_animation_active_ = false;
   last_visual_height_ = GetVisualRowsHeight(BuildVisualRows());
@@ -81,12 +82,19 @@ void SidebarTreeView::OnTreeReset() {
 }
 
 void SidebarTreeView::OnRowsInserted(size_t /*first_row*/, size_t /*count*/) {
+  if (pending_folder_reveal_ && pending_folder_reveal_->expanded) {
+    pending_folder_reveal_->splice_ready = true;
+  }
   last_drop_probe_.reset();
   HandleVisualLayoutChanged();
   ScheduleSynchronization(/*preferred_size_changed=*/true);
 }
 
-void SidebarTreeView::OnRowsRemoved(size_t /*first_row*/, size_t /*count*/) {
+void SidebarTreeView::OnRowsRemoved(size_t first_row, size_t count) {
+  if (pending_folder_reveal_ && !pending_folder_reveal_->expanded) {
+    pending_folder_reveal_->splice_ready = true;
+  }
+  PrepareFolderExit(first_row, count);
   if (editing_node_id_.has_value() &&
       !model().GetRowForNode(*editing_node_id_).has_value()) {
     editing_node_id_.reset();
@@ -124,94 +132,6 @@ void SidebarTreeView::OnSelectionChanged(
   UpdateActiveDescendant();
 }
 
-void SidebarTreeView::HandleVisualLayoutChanged() {
-  const int target_height = GetVisualRowsHeight(BuildVisualRows());
-  row_bounds_animation_pending_ = target_height != last_visual_height_ &&
-                                  gfx::Animation::ShouldRenderRichAnimation();
-  row_bounds_animation_from_height_ =
-      row_bounds_animation_pending_ ? std::make_optional(last_visual_height_)
-                                    : std::nullopt;
-  if (in_batch_update_) {
-    if (!pending_animation_from_height_.has_value()) {
-      pending_animation_from_height_ = last_visual_height_;
-    }
-  } else {
-    StartPreferredHeightAnimation(last_visual_height_, target_height);
-  }
-  last_visual_height_ = target_height;
-}
-
-void SidebarTreeView::StartPreferredHeightAnimation(int from_height,
-                                                    int to_height) {
-  const int current_height =
-      preferred_height_animation_active_
-          ? GetAnimatedHeight()
-          : std::max(from_height, SidebarTreeRowView::kRowHeight);
-  // Reset synchronously cancels an in-flight animation and clears active_ in
-  // AnimationCanceled(). Establish the replacement state only afterwards, and
-  // start at the displayed intermediate height rather than the previous target.
-  preferred_height_animation_.Reset(0.0);
-  preferred_height_animation_active_ = false;
-  animated_height_from_ = current_height;
-  animated_height_to_ = std::max(to_height, SidebarTreeRowView::kRowHeight);
-  if (animated_height_from_ == animated_height_to_ ||
-      !gfx::Animation::ShouldRenderRichAnimation()) {
-    preferred_height_animation_.Reset(1.0);
-    preferred_height_animation_active_ = false;
-    PreferredSizeChanged();
-    return;
-  }
-  preferred_height_animation_active_ = true;
-  preferred_height_animation_.Show();
-}
-
-void SidebarTreeView::AnimationProgressed(const gfx::Animation* animation) {
-  if (animation == &preferred_height_animation_) {
-    PreferredSizeChanged();
-    InvalidateLayout();
-  }
-}
-
-void SidebarTreeView::AnimationEnded(const gfx::Animation* animation) {
-  if (animation == &preferred_height_animation_) {
-    preferred_height_animation_active_ = false;
-    PreferredSizeChanged();
-    InvalidateLayout();
-    MaybeScheduleSelectionReveal();
-  }
-}
-
-void SidebarTreeView::AnimationCanceled(const gfx::Animation* animation) {
-  AnimationEnded(animation);
-}
-
-void SidebarTreeView::OnBoundsAnimatorProgressed(views::BoundsAnimator*) {
-  UpdateAnimatedSplitClips();
-}
-
-void SidebarTreeView::OnBoundsAnimatorDone(views::BoundsAnimator*) {
-  UpdateAnimatedSplitClips();
-  MaybeScheduleSelectionReveal();
-}
-
-void SidebarTreeView::UpdateAnimatedSplitClips() {
-  // BoundsAnimator notifies after every row in its shared container has moved.
-  // Use that same current geometry for the group bubble, never its end
-  // position.
-  for (const auto& group : materialized_split_clip_groups_) {
-    gfx::Rect group_bounds;
-    for (const base::Uuid& id : group) {
-      if (auto* row = GetMaterializedRowForTesting(id)) {
-        group_bounds.Union(row->bounds());
-      }
-    }
-    for (const base::Uuid& id : group) {
-      if (auto* row = GetMaterializedRowForTesting(id)) {
-        row->SetSplitGroupClipBounds(group_bounds);
-      }
-    }
-  }
-}
 
 void SidebarTreeView::WriteDragDataForView(views::View* sender,
                                            const gfx::Point& press_pt,
@@ -458,7 +378,11 @@ gfx::Rect SidebarTreeView::GetSegmentBounds(const VisualRow& visual_row,
 }
 
 void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
-  if (in_batch_update_) {
+  if (in_batch_update_ ||
+      (pending_folder_reveal_ && !pending_folder_reveal_->splice_ready)) {
+    // A folder changes its own expanded flag before the child splice. Do not
+    // recycle completed exit rows against that intermediate model: reopening
+    // must get the chance to reclaim those same UUIDs in OnRowsInserted.
     synchronization_pending_ = true;
     return;
   }
@@ -533,7 +457,16 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
   // remains valid through OnDragDone(), even when the source would otherwise
   // move outside the overscan range.
   for (const auto& entry : materialized_rows_) {
-    if (!entry.second || !entry.second->is_dragging_for_presentation()) {
+    if (!entry.second) {
+      continue;
+    }
+    const bool moving_through_viewport =
+        rich_motion &&
+        (row_bounds_animation_pending_ ||
+         row_bounds_animator_.IsAnimating(entry.second)) &&
+        entry.second->bounds().Intersects(visible_bounds);
+    if (!entry.second->is_dragging_for_presentation() &&
+        !moving_through_viewport) {
       continue;
     }
     const std::optional<size_t> dragged_index =
@@ -563,6 +496,11 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     }
   }
   for (const base::Uuid& node_id : stale) {
+    auto* row = GetMaterializedRowForTesting(node_id);
+    if (exiting_rows_.contains(node_id) && rich_motion && row &&
+        row_bounds_animator_.IsAnimating(row)) {
+      continue;
+    }
     RecycleRow(node_id);
   }
 
@@ -585,6 +523,10 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
       row = AcquireRow();
       materialized_rows_.emplace(node_id, row);
     }
+    // Reopening during collapse restores the very same row/UUID and retargets
+    // from its current bounds; a queued old cleanup cannot recycle it.
+    exiting_rows_.erase(node_id);
+    row->SetExiting(false);
     // Search rows preserve activation and keyboard navigation, but cannot be
     // a reorder source. Clearing the projection restores the same recycled
     // row's controller on the next synchronization.
@@ -618,6 +560,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
                                 DropIndicator::Action::kSplit);
     const gfx::Rect target_bounds = GetSegmentBounds(
         visual_rows[position.visual_row], position.segment, row_width);
+    const std::optional<int> entry_origin = FolderEntryOrigin(index);
     if (row_bounds_animator_.IsAnimating(row)) {
       if (row_bounds_animator_.GetTargetBounds(row) != target_bounds) {
         if (row_bounds_animation_pending_ && rich_motion) {
@@ -630,11 +573,10 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
                was_materialized && row->bounds() != target_bounds) {
       row_bounds_animator_.AnimateViewTo(row, target_bounds);
     } else if (row_bounds_animation_pending_ && rich_motion &&
-               !was_materialized &&
-               row_bounds_animation_from_height_.value_or(0) > 0 &&
-               position.visual_row > 0) {
+               !was_materialized && entry_origin.has_value()) {
       gfx::Rect start_bounds = target_bounds;
-      start_bounds.set_y(visual_rows[position.visual_row - 1].y);
+      start_bounds.set_y(*entry_origin);
+      start_bounds.set_height(0);
       row->SetBoundsRect(start_bounds);
       row_bounds_animator_.AnimateViewTo(row, target_bounds);
     } else {
@@ -646,7 +588,14 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     ReorderChildView(row, child_order++);
   }
   row_bounds_animation_pending_ = false;
-  row_bounds_animation_from_height_.reset();
+  if (pending_folder_reveal_ && pending_folder_reveal_->splice_ready) {
+    pending_folder_reveal_.reset();
+  }
+  std::erase_if(exiting_split_clip_groups_, [this](const auto& group) {
+    return std::ranges::none_of(group, [this](const base::Uuid& id) {
+      return exiting_rows_.contains(id);
+    });
+  });
   UpdateAnimatedSplitClips();
   SynchronizeSplitResizeAreas(visual_rows, range, row_width,
                               native_drag_in_progress);
@@ -786,7 +735,14 @@ void SidebarTreeView::RecycleRow(const base::Uuid& node_id) {
     return;
   }
   SidebarTreeRowView* row = found->second;
+  // AppKit still owns the source until OnDragDone, even if its model row was
+  // removed by a concurrent fold/reset. The drag-end synchronization retries.
+  if (row->is_native_drag_in_progress() ||
+      row->is_dragging_for_presentation()) {
+    return;
+  }
   materialized_rows_.erase(found);
+  exiting_rows_.erase(node_id);
   row_bounds_animator_.StopAnimatingView(row);
   row->Unbind();
   recycled_rows_.push_back(RemoveChildViewT(row));

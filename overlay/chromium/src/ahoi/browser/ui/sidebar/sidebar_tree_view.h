@@ -233,6 +233,8 @@ class SidebarTreeView final : public views::View,
   void OnBatchUpdateStarted() override;
   void OnBatchUpdateEnded() override;
   void OnTreeReset() override;
+  void OnFolderExpansionChanging(const base::Uuid& node_id,
+                                 bool expanded) override;
   void OnRowsInserted(size_t first_row, size_t count) override;
   void OnRowsRemoved(size_t first_row, size_t count) override;
   void OnRowsChanged(size_t first_row, size_t count) override;
@@ -262,6 +264,12 @@ class SidebarTreeView final : public views::View,
   void OnBoundsAnimatorDone(views::BoundsAnimator* animator) override;
 
  private:
+  struct FolderReveal {
+    base::Uuid folder_id;
+    bool expanded;
+    int origin_y;
+    bool splice_ready = false;
+  };
   struct DeferredSelectionReveal {
     base::Uuid node_id;
     gfx::Point visible_origin;
@@ -371,6 +379,10 @@ class SidebarTreeView final : public views::View,
   void StartPreferredHeightAnimation(int from_height, int to_height);
   int GetAnimatedHeight() const;
   void UpdateAnimatedSplitClips();
+  void PrepareFolderExit(size_t first_row, size_t count);
+  std::optional<int> FolderEntryOrigin(size_t row_index) const;
+  void ScheduleExitedRowCleanup();
+  void CleanupExitedRows();
   void MaybeScheduleSelectionReveal();
   void FinishSelectionReveal();
   void CancelSelectionReveal();
@@ -404,8 +416,11 @@ class SidebarTreeView final : public views::View,
   // Only materialized split groups; a frame update must not traverse the full
   // persistent tree or retain raw row pointers through virtualization.
   std::vector<std::vector<base::Uuid>> materialized_split_clip_groups_;
+  std::vector<std::vector<base::Uuid>> exiting_split_clip_groups_;
+  std::optional<FolderReveal> pending_folder_reveal_;
+  std::set<base::Uuid> exiting_rows_;
+  bool exited_row_cleanup_pending_ = false;
   bool row_bounds_animation_pending_ = false;
-  std::optional<int> row_bounds_animation_from_height_;
   bool in_batch_update_ = false;
   bool synchronization_pending_ = false;
   bool visible_bounds_synchronization_pending_ = false;

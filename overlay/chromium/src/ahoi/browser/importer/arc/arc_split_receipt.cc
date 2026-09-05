@@ -266,7 +266,7 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
     const ArcImportPlan& plan,
     SessionID target_window_id,
     const std::vector<std::unique_ptr<sessions::SessionWindow>>& windows,
-    SessionID active_window_id,
+    SessionID /*active_window_id*/,
     bool require_focus) {
   ArcSplitReceipt receipt;
   receipt.structure_sha256 = ComputeArcSplitStructureFingerprint(plan);
@@ -452,7 +452,10 @@ ArcSplitReceipt VerifyArcSplitSessionWindows(
 
   receipt_writer.WriteBool(require_focus);
   if (require_focus) {
-    if (active_window_id != target_window_id || plan.splits.empty() ||
+    // Focus belongs to the selected member inside the import's target window.
+    // The user may activate a different window while the asynchronous native
+    // receipt is written; importing must neither steal that focus nor fail.
+    if (plan.splits.empty() ||
         target_window->selected_tab_index < 0 ||
         static_cast<size_t>(target_window->selected_tab_index) >=
             target_window->tabs.size()) {

@@ -102,7 +102,8 @@ void BrowserSidebarHostView::OnAppearanceChanged(
       appearance::AppearanceResolver::Resolve(appearance::SurfaceRole::kSidebar,
                                               policy);
   surface_corner_radius_ = surface.corner_radius;
-  appearance::ApplySurfaceAppearance(this, surface);
+  appearance::ApplySurfaceAppearance(
+      this, surface, appearance::SurfaceCornerOwnership::kCaller);
   // This surface is rounded in floating mode. Even an opaque theme must keep
   // transparent corner pixels truthful to CoreAnimation; otherwise the layer
   // can substitute the browser background while scrolling or dragging.

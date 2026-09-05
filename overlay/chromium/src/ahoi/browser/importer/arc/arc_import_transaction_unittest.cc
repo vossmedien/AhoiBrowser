@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 
+#include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -104,16 +105,21 @@ tab_tree::TabTreeSnapshot ExistingTree(std::u16string workspace_name) {
 TEST(ArcImportTransactionTest, RenameIsAdditiveAndLeavesInputUntouched) {
   const tab_tree::TabTreeSnapshot current = ExistingTree(u"Arc");
   const tab_tree::TabTreeSnapshot unchanged = current;
+  const ArcImportPlan plan = ImportPlan(u"Arc");
 
   const ArcImportMergeResult merged = MergeArcImportPlan(
-      current, ImportPlan(u"Arc"), ArcConflictResolution::kRename);
+      current, plan, ArcConflictResolution::kRename);
 
   ASSERT_EQ(ArcImportStatus::kOk, merged.status);
   ASSERT_TRUE(merged.merged_tree.has_value());
   ASSERT_TRUE(merged.applied_plan.has_value());
   EXPECT_EQ(unchanged, current);
   EXPECT_EQ(2u, merged.merged_tree->workspaces.size());
-  EXPECT_EQ(u"Arc (Arc)", merged.merged_tree->workspaces.back().name);
+  const auto imported_workspace = std::ranges::find(
+      merged.merged_tree->workspaces, plan.tree.workspaces.front().id,
+      &tab_tree::Workspace::id);
+  ASSERT_NE(merged.merged_tree->workspaces.end(), imported_workspace);
+  EXPECT_EQ(u"Arc (Arc)", imported_workspace->name);
   EXPECT_EQ(4u, merged.merged_tree->nodes.size());
   EXPECT_EQ(1u, merged.renamed_workspace_count);
   EXPECT_EQ(1u, merged.applied_plan->splits.size());
@@ -178,15 +184,17 @@ TEST(ArcImportTransactionTest, MergeTargetsExistingWorkspaceWithoutOverwrite) {
   ASSERT_TRUE(merged.merged_tree.has_value());
   EXPECT_EQ(1u, merged.merged_tree->workspaces.size());
   EXPECT_EQ(4u, merged.merged_tree->nodes.size());
-  EXPECT_EQ(current.nodes.front(), merged.merged_tree->nodes.front());
+  const auto existing_node = std::ranges::find(
+      merged.merged_tree->nodes, current.nodes.front().id,
+      &tab_tree::TreeNode::id);
+  ASSERT_NE(merged.merged_tree->nodes.end(), existing_node);
+  EXPECT_EQ(current.nodes.front(), *existing_node);
   EXPECT_EQ(1u, merged.merged_workspace_count);
   ASSERT_TRUE(merged.applied_plan.has_value());
   EXPECT_EQ(0u, merged.applied_plan->stats.imported_workspace_count);
   EXPECT_EQ(1u, merged.applied_plan->stats.deduplicated_workspace_count);
-  for (size_t index = current.nodes.size();
-       index < merged.merged_tree->nodes.size(); ++index) {
-    EXPECT_EQ(existing_workspace_id,
-              merged.merged_tree->nodes[index].workspace_id);
+  for (const auto& node : merged.merged_tree->nodes) {
+    EXPECT_EQ(existing_workspace_id, node.workspace_id);
   }
 }
 
@@ -314,6 +322,105 @@ TEST(ArcImportTransactionTest, SameSnapshotSecondMergeIsDeterministicNoOp) {
   ASSERT_TRUE(second.merged_tree.has_value());
   EXPECT_EQ(*first.merged_tree, *second.merged_tree);
   EXPECT_FALSE(second.changed);
+}
+
+TEST(ArcImportTransactionTest,
+     CanonicalMergeMatchesStoreReadbackAndPreservesUndoAndSourceOrdering) {
+  using Store = tab_tree::TabTreeStore;
+  const base::Uuid existing_workspace_id =
+      Id("aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa");
+  const base::Uuid existing_folder_id =
+      Id("eeeeeeee-eeee-5eee-8eee-eeeeeeeeeeee");
+  // This node sorts BETWEEN the imported members, not before/after the entire
+  // source plan. The existing folder sorts after its child, exercising the
+  // store's parent-safe replacement independently of export ordering.
+  const base::Uuid existing_page_id =
+      Id("35000000-0000-5000-8000-000000000000");
+  auto workspace = Workspace(existing_workspace_id, u"Existing workspace");
+  workspace.sort_key = "z-existing";
+  workspace.icon = u"W";
+  workspace.accent_argb = 0xff4682b4u;
+  auto folder =
+      Folder(existing_folder_id, existing_workspace_id, u"Existing folder");
+  folder.icon = u"code";
+  folder.accent_argb = 0xff77aaccu;
+  const auto original_page = Page(existing_page_id, existing_workspace_id,
+                                  u"Before rename", existing_folder_id);
+  tab_tree::TabTreeSnapshot seed;
+  seed.workspaces = {workspace};
+  seed.nodes = {folder, original_page};
+  Store store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  ASSERT_EQ(Store::Result::kOk, store.ReplaceWithSnapshot(seed));
+  ASSERT_EQ(Store::Result::kOk,
+            store.RenameNode(existing_page_id, u"After rename",
+                             base::Time::UnixEpoch() + base::Seconds(30)));
+  tab_tree::TabTreeSnapshot current;
+  ASSERT_EQ(Store::Result::kOk, store.ExportSnapshot(&current));
+  ASSERT_EQ(1u, current.undo_operations.size());
+  const tab_tree::TabTreeSnapshot unchanged_current = current;
+
+  ArcImportPlan plan = ImportPlan(u"Imported workspace");
+  plan.tree.workspaces.front().sort_key = "a-imported";
+  // Source projection order and split member order are separate from the
+  // canonical persistence vector; neither may be silently sorted in-place.
+  std::ranges::reverse(plan.tree.nodes);
+  std::ranges::reverse(plan.splits.front().member_node_ids);
+  std::ranges::reverse(plan.splits.front().normalized_ratios);
+  const ArcImportPlan unchanged_plan = plan;
+  const ArcImportMergeResult merged =
+      MergeArcImportPlan(current, plan, ArcConflictResolution::kRename);
+  ASSERT_EQ(ArcImportStatus::kOk, merged.status);
+  ASSERT_TRUE(merged.merged_tree);
+  ASSERT_TRUE(merged.applied_plan);
+  EXPECT_EQ(unchanged_current, current);
+  EXPECT_EQ(unchanged_plan, plan);
+  EXPECT_EQ(plan.tree, merged.applied_plan->tree);
+  EXPECT_EQ(plan.splits, merged.applied_plan->splits);
+  EXPECT_EQ(current.undo_operations, merged.merged_tree->undo_operations);
+  ASSERT_EQ(2u, merged.merged_tree->workspaces.size());
+  EXPECT_EQ(plan.tree.workspaces.front(), merged.merged_tree->workspaces.front());
+  EXPECT_EQ(workspace, merged.merged_tree->workspaces.back());
+  ASSERT_EQ(5u, merged.merged_tree->nodes.size());
+  EXPECT_EQ(existing_page_id, merged.merged_tree->nodes[2].id);
+  for (const auto& node : current.nodes) {
+    const auto actual = std::ranges::find(merged.merged_tree->nodes, node.id,
+                                          &tab_tree::TreeNode::id);
+    ASSERT_NE(merged.merged_tree->nodes.end(), actual);
+    EXPECT_EQ(node, *actual);
+  }
+  for (const auto& node : plan.tree.nodes) {
+    const auto actual = std::ranges::find(merged.merged_tree->nodes, node.id,
+                                          &tab_tree::TreeNode::id);
+    ASSERT_NE(merged.merged_tree->nodes.end(), actual);
+    EXPECT_EQ(node, *actual);
+  }
+
+  ASSERT_EQ(Store::Result::kOk, store.ReplaceWithSnapshot(*merged.merged_tree));
+  tab_tree::TabTreeSnapshot durable;
+  ASSERT_EQ(Store::Result::kOk, store.ExportSnapshot(&durable));
+  EXPECT_EQ(*merged.merged_tree, durable);
+  const ArcImportMergeResult replay =
+      MergeArcImportPlan(durable, plan, ArcConflictResolution::kRename);
+  ASSERT_EQ(ArcImportStatus::kNoChanges, replay.status);
+  ASSERT_TRUE(replay.merged_tree);
+  ASSERT_TRUE(replay.applied_plan);
+  EXPECT_FALSE(replay.changed);
+  EXPECT_EQ(durable, *replay.merged_tree);
+  EXPECT_EQ(plan.splits, replay.applied_plan->splits);
+
+  // The preserved undo operation still restores only the original local page,
+  // without deleting or rewriting any of the imported rows.
+  ASSERT_EQ(Store::Result::kOk, store.UndoLastMutation());
+  tab_tree::TreeNode restored;
+  ASSERT_EQ(Store::Result::kOk, store.GetNode(existing_page_id, &restored));
+  EXPECT_EQ(original_page, restored);
+  ASSERT_EQ(Store::Result::kOk, store.ExportSnapshot(&durable));
+  EXPECT_EQ(5u, durable.nodes.size());
+  for (const auto& node : plan.tree.nodes) {
+    ASSERT_EQ(Store::Result::kOk, store.GetNode(node.id, &restored));
+    EXPECT_EQ(node, restored);
+  }
 }
 
 TEST(ArcImportTransactionTest, InvalidPlanFailsClosedWithoutCandidateTree) {

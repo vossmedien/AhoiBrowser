@@ -794,6 +794,26 @@ as a second active patch stack.
 - **Rebase/removal:** low risk at the existing creation seam; remove when an
   equivalent upstream per-client presentation hook is available.
 
+## `0031-ahoi-rounded-navigation-surface.patch`
+
+- **Owner:** AhoiBrowser Desktop.
+- **Affected paths:** `browser_view.cc` and
+  `layout/browser_view_tabbed_layout_impl.cc` under `chrome/browser/ui/views/frame`.
+- **Rationale:** a typed material callback updates the existing native
+  `CustomCornersBackground`; appearance changes must not replace the painter
+  required by Chromium layout. Layout retains geometry ownership without
+  resetting the resolved material alpha. The overlay applies matching rounded
+  output clipping and truthful nonopaque corners, preserving caller-owned
+  sidebar geometry, external shadows and rectangular blur-input sampling.
+- **Tests:** visible sidebar/navigation seam and Glass/fallback journeys first,
+  then `NavigationSurfaceControllerTest.*` and
+  `VerticalTabStripRegionViewTest.AhoiNavigationMaterialPreservesNativeBackground`.
+  Source preparation does not establish the reported screenshot's exact cause.
+- **Security/privacy:** presentation only; profile, permissions and native
+  toolbar ownership stay unchanged.
+- **Rebase/removal:** low-to-medium risk at native toolbar initialization/layout;
+  retain while Ahoi uses its floating navigation material.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

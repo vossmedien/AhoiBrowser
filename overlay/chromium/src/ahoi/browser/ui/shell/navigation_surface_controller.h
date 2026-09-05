@@ -10,6 +10,7 @@
 #include "ahoi/browser/ui/appearance/appearance_prefs.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
 #include "ahoi/browser/ui/shell/navigation_surface_state.h"
+#include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/scoped_observation.h"
 #include "base/timer/timer.h"
@@ -45,11 +46,18 @@ class NavigationSurfaceController final : public gfx::AnimationDelegate,
                                           public views::MouseWatcherListener,
                                           public views::ViewObserver {
  public:
+  // BrowserView owns the native ToolbarView background type. This callback
+  // updates that painter without making this Views-only controller depend on
+  // Chromium's browser UI or replacing its CustomCornersBackground.
+  using ApplyBackgroundAppearance =
+      base::RepeatingCallback<void(const appearance::SurfaceAppearance&)>;
+
   NavigationSurfaceController(views::View* host,
                               views::View* top_container,
                               views::View* toolbar,
                               std::u16string reveal_accessible_name,
-                              PrefService* prefs = nullptr);
+                              PrefService* prefs = nullptr,
+                              ApplyBackgroundAppearance apply_background = {});
   NavigationSurfaceController(const NavigationSurfaceController&) = delete;
   NavigationSurfaceController& operator=(const NavigationSurfaceController&) =
       delete;
@@ -96,6 +104,7 @@ class NavigationSurfaceController final : public gfx::AnimationDelegate,
   void UpdateInteractionReasons(views::View* focused_view);
   void ReleaseInitialPresentationLease();
   void OnAppearancePolicyChanged(const appearance::GlassPolicy& policy);
+  void ApplyToolbarAppearance();
   void RefreshNavigationPreferences();
 
   raw_ptr<views::View> host_ = nullptr;
@@ -104,6 +113,8 @@ class NavigationSurfaceController final : public gfx::AnimationDelegate,
   raw_ptr<views::View> reveal_notch_ = nullptr;
   raw_ptr<views::FocusManager> focus_manager_ = nullptr;
   raw_ptr<PrefService> prefs_ = nullptr;
+  ApplyBackgroundAppearance apply_background_appearance_;
+  appearance::SurfaceAppearance toolbar_appearance_;
   std::unique_ptr<views::MouseWatcher> mouse_watcher_;
   NavigationSurfaceState state_;
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>

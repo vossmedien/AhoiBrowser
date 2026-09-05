@@ -10,8 +10,8 @@
 #include "base/check.h"
 #include "cc/paint/paint_flags.h"
 #include "third_party/skia/include/core/SkColor.h"
-#include "ui/compositor/layer.h"
 #include "ui/color/color_provider.h"
+#include "ui/compositor/layer.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/geometry/rounded_corners_f.h"
 #include "ui/views/background.h"
@@ -70,7 +70,8 @@ uint8_t OpacityToAlpha(float opacity) {
 
 void ApplySurfaceBackgroundAppearance(
     views::View* view,
-    const SurfaceAppearance& appearance) {
+    const SurfaceAppearance& appearance,
+    SurfaceCornerOwnership corner_ownership) {
   CHECK(view);
   if (appearance.uses_glass()) {
     view->SetBackground(std::make_unique<AlphaRoundedRectBackground>(
@@ -81,10 +82,12 @@ void ApplySurfaceBackgroundAppearance(
         appearance.background_color, appearance.corner_radius));
   }
   view->SetPaintToLayer();
-  ApplySurfaceLayerAppearance(view->layer(), appearance);
+  ApplySurfaceLayerAppearance(view->layer(), appearance, corner_ownership);
 }
 
-void ClearSurfaceBackgroundAppearance(views::View* view) {
+void ClearSurfaceBackgroundAppearance(
+    views::View* view,
+    SurfaceCornerOwnership corner_ownership) {
   CHECK(view);
   view->SetBackground(nullptr);
   if (!view->layer()) {
@@ -94,11 +97,16 @@ void ClearSurfaceBackgroundAppearance(views::View* view) {
   view->layer()->SetOpacity(1.0f);
   view->layer()->SetBackgroundBlur(0.0f);
   view->layer()->SetBackdropFilterQuality(0.0f);
+  if (corner_ownership == SurfaceCornerOwnership::kAppearance) {
+    view->layer()->SetRoundedCornerRadius(gfx::RoundedCornersF());
+    view->layer()->SetIsFastRoundedCorner(false);
+  }
 }
 
 void ApplySurfaceAppearance(views::View* view,
-                            const SurfaceAppearance& appearance) {
-  ApplySurfaceBackgroundAppearance(view, appearance);
+                            const SurfaceAppearance& appearance,
+                            SurfaceCornerOwnership corner_ownership) {
+  ApplySurfaceBackgroundAppearance(view, appearance, corner_ownership);
   if (appearance.border_thickness > 0) {
     view->SetBorder(views::CreateRoundedRectBorder(
         appearance.border_thickness, appearance.corner_radius,
@@ -112,9 +120,23 @@ void ApplySurfaceAppearance(views::View* view,
 }
 
 void ApplySurfaceLayerAppearance(ui::Layer* layer,
-                                 const SurfaceAppearance& appearance) {
+                                 const SurfaceAppearance& appearance,
+                                 SurfaceCornerOwnership corner_ownership) {
   CHECK(layer);
-  layer->SetFillsBoundsOpaquely(!appearance.uses_glass());
+  if (corner_ownership == SurfaceCornerOwnership::kAppearance) {
+    const gfx::RoundedCornersF radii(std::max(0, appearance.corner_radius));
+    // Rounded background paint alone does not clip the compositor's backdrop
+    // output or independently layered descendants. Keep blur INPUT sampling
+    // rectangular; Layer applies these corners to the final rendered output.
+    layer->SetRoundedCornerRadius(radii);
+    layer->SetIsFastRoundedCorner(!radii.IsEmpty());
+  }
+  // Even an opaque material leaves transparent pixels outside a rounded
+  // background. Advertising the whole rectangle as opaque lets the compositor
+  // cull pixels which should remain visible through those corners.
+  layer->SetFillsBoundsOpaquely(
+      !appearance.uses_glass() && appearance.corner_radius <= 0 &&
+      layer->rounded_corner_radii().IsEmpty());
   // Keep the layer fully opaque so child content remains crisp. The alpha is
   // painted only by AlphaRoundedRectBackground above.
   layer->SetOpacity(1.0f);

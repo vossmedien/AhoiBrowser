@@ -389,6 +389,9 @@ void SidebarTreeView::OnRowDragDone() {
   if (delegate_) {
     delegate_->OnSidebarDragStateChanged(std::nullopt);
   }
+  // A removed/folded drag source stays parented until Views clears InDrag().
+  // Reconcile only after the native callback returns, never from inside it.
+  ScheduleVisibleBoundsSynchronization();
 }
 
 void SidebarTreeView::OnSplitGroupsChanged() {

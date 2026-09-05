@@ -24,30 +24,25 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Active runtime window — Mobile CloudKit test
+## Runtime ownership — both temporary slots returned
 
-Mobile thread `01a044d6-1545-7532-8394-6b7df1144bb1` has an explicit runtime
-window for one focused AhoiMobile CloudKit E2E run on My Mac (Designed for
-iPad/iPhone), plus its own host setup/cleanup. Grant:
-`01a070c7-7b59-78d0-b224-bfab8a57b998`. At the 2026-09-05 08:52 UTC readback,
-the native Desktop app/helpers and Chromium build were absent.
+Mobile explicitly returned the My-Mac window
+`01a070c7-7b59-78d0-b224-bfab8a57b998` unused in
+`01a070ef-f293-7c53-971d-411deac9db53` and again in the conversation. No host,
+runner, install, zone, account or key was changed. The last Bookmark slot was
+also returned after the native-pipe failure. Both handbacks are accepted;
+Desktop app/UI, checkout/build/sign/install are available to this Desktop owner
+subject to fresh CPU and live-state checks. Do not retain a stale runtime block
+or repeat the grants/acknowledgements. New Mobile My-Mac work needs a fresh
+explicit slot once its exact host is ready.
 
-Until explicit handback, do not start/use the Desktop app or its UI, build
-Chromium, sign/stamp a bundle, or install another candidate. Only the inert Mobile
-test host, fresh Development UUID test zone and local test stores are in scope.
-No Production, Desktop profile, installed app, existing key or Apple account/
-provisioning changes are authorized by this slot. Mobile rechecks CPU/process
-freedom, cleans up only its exact host/runner/test data, and returns source,
-destination, environment, xcresult/log and cleanup evidence. This is not a
-Chromium-Mac or cross-device-Keychain pass. Shared checkout/out remain Desktop-owned.
-
-## Owned folder-motion source follow-through — not built
+## Owned combined correction package — not yet built
 
 Desktop is preparing the user's normal workspace-folder motion corrections in
 `sidebar_tree_view.{h,cc}`, `_projection.cc`, `_navigation.cc` and the focused
 `_interaction_unittest.cc`. These are canonical overlay edits only; the shared
-checkout and installed `3d413ef` are unchanged. No build/test/UI action is allowed
-during the Mobile runtime window above.
+checkout and installed `3d413ef` are unchanged. The temporary Mobile runtime
+window has ended; recheck CPU before the next intensive phase.
 
 Prepared source captures the current interpolated height before resetting a
 reversed animation, computes split clips from the current materialized group
@@ -67,10 +62,25 @@ execution or visible acceptance.
 Master and registry now agree on the expanded `TREE-13` requirement; all 412
 unique IDs are preserved and its status remains `NOT_RUN`.
 
-The symmetrical child-row entry/exit reveal and native visible acceptance are
-still OPEN. Retained exiting rows would need bounded recycling, UUID-safe
-reversal, no events/accessibility/focus while exiting, and native-drag lifetime
-guards. Do not label the full folder UX fixed or launch a separate small build.
+Symmetric child-row folding is now in source: nonempty folder splices notify
+presentation intent, entering rows unfold from zero height under the folder,
+and closing retains only materialized rows until the existing BoundsAnimator
+finishes. Exit rows reject events/focus/AX/drag and reuse their UUIDs on reversal;
+cleanup is weakly deferred and native drag sources remain parented through drag
+completion. Moving visible rows are retained even if their target leaves the
+viewport. New regressions cover intermediate bounds, reverse-before-cleanup,
+noninteractive exits and Reduced Motion. Native acceptance is still OPEN.
+
+The same package includes patch `0031` and the appearance/navigation changes:
+truthful rounded-layer opacity/output clips, explicit caller-owned sidebar
+corners, and the native CustomCornersBackground retained by a typed callback.
+No cover pixels or extra animation architecture. Unit/native regression source
+is prepared; the screenshot's exact cause remains unproven until visible E2E.
+
+It also includes the canonical Arc merge and native receipt focus corrections
+from the fresh runtime failure described below. Include all related targets in
+one build plus `ahoi_sync_unittests`; do not integrate the bookmark owner's
+uncommitted common Sync WIP. Use the existing clean snapshot after owned commit.
 
 ## Exact installed candidate
 
@@ -110,18 +120,30 @@ guards. Do not label the full folder UX fixed or launch a separate small build.
 
 ## Visible acceptance and current defect
 
-Current technical boundary: Computer Use fails before app access with
-`Sky Computer Use native pipe startup failed` (app selection, explicit runtime
-reset/reselection, then inventory all failed). No successful launch or visible
-`3d413ef` journey is claimed. The documented technical-E2E exception permits
-independent persistence regressions, without substituting them for Arc acceptance.
+Computer Use briefly RECOVERED: installed `3d413ef` was opened, session continued,
+and real Arc preview/import executed. The transaction ended in manual recovery,
+not success. Backup/manifest now exist, tree is 2 workspaces/174 nodes/155 nested,
+0 FK violations. Journal v5 is `prepared/manual_recovery_required`, 170 affected
+IDs and 7 planned native members, no completed native receipt. Those planned
+fields do not prove runtime reconstruction started. No second import or
+recovery mutation occurred. Preserve the real Default-profile journal and backup.
+Diagnosis and next safe recovery boundary:
+`docs/audit-evidence/2026-09-05-arc-canonical-recovery.md`.
+
+The concrete cause is append-ordered merged snapshot versus canonically exported
+store vectors, causing false post-write and rollback mismatches. Canonical export
+via the existing validator fixes the cause without weakening equality. The
+independently incorrect global active-window receipt check is also corrected,
+retaining target-pane and ownership checks. Both have new regression source.
+After dismissing the terminal error dialog, CUA again returns only window titles
+without controls/screenshots, even after reset; no further visible pass is claimed.
 The bookmark owner returned the isolated-profile UI slot explicitly in
 `01a0709c-556c-70c1-b59b-17fb3d9cdc30` after the same native-pipe error in its own
 fresh/reset session. It launched no app and changed no profile. Desktop accepted
 the handback in `01a070b8-90f0-7cd1-9a05-108a24700fb1`, which also cancels the
 redundant re-offer prompted by a delayed coordination message. That bookmark
-slot is closed; the separate active Mobile runtime window above now governs
-app use. Build/checkout ownership remains Desktop; do not repeat old tests.
+slot is closed, and the separate Mobile runtime window was returned unused.
+Build/checkout/UI ownership remains Desktop; do not repeat old tests.
 A subsequent main-thread `cua.getState()` still failed before app access.
 The owner's existing `3d413ef` Shelf suite passed 11/11 under the technical-E2E
 exception. Main checked log, JSON status counts, summary hash and executable

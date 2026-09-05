@@ -65,6 +65,10 @@ class SidebarTreeRowView final : public views::View,
   // the tree parent's coordinate space; ordinary rows pass std::nullopt to
   // restore their independent rounded surface.
   void SetSplitGroupClipBounds(std::optional<gfx::Rect> group_bounds);
+  // Retained solely for the bounded fold-out animation after model removal.
+  // No pointer, keyboard, accessibility or drag action may target this row.
+  void SetExiting(bool exiting);
+  bool is_exiting() const { return exiting_; }
   gfx::ImageSkia GetDragImage();
   void SetIsDragging(bool dragging);
   void StartEditing();
@@ -160,6 +164,7 @@ class SidebarTreeRowView final : public views::View,
   bool pressed_trailing_action_ = false;
   bool split_drop_target_ = false;
   bool dragging_ = false;
+  bool exiting_ = false;
   size_t split_segment_index_ = 0;
   size_t split_segment_count_ = 1;
   std::optional<SidebarTreeController::DropPosition> drop_position_;

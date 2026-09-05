@@ -86,11 +86,13 @@ NavigationSurfaceController::NavigationSurfaceController(
     views::View* top_container,
     views::View* toolbar,
     std::u16string reveal_accessible_name,
-    PrefService* prefs)
+    PrefService* prefs,
+    ApplyBackgroundAppearance apply_background)
     : host_(host),
       top_container_(top_container),
       toolbar_(toolbar),
       prefs_(prefs),
+      apply_background_appearance_(std::move(apply_background)),
       state_(base::BindRepeating(&NavigationSurfaceController::OnStateChanged,
                                  base::Unretained(this)),
              NavigationSurfaceState::Configuration{
@@ -154,6 +156,10 @@ NavigationSurfaceController::~NavigationSurfaceController() {
 }
 
 void NavigationSurfaceController::Layout(const gfx::Rect& content_card_bounds) {
+  // ToolbarView::Init creates the native background after this controller's
+  // construction. Reapply the material to that same painter after layout; the
+  // callback's setters are no-ops when appearance and geometry are unchanged.
+  ApplyToolbarAppearance();
   if (!reveal_notch_) {
     return;
   }
@@ -171,6 +177,7 @@ void NavigationSurfaceController::Layout(const gfx::Rect& content_card_bounds) {
 
 void NavigationSurfaceController::SetFullscreenActive(bool active) {
   state_.SetReasonActive(NavigationSurfaceState::Reason::kFullscreen, active);
+  ApplyToolbarAppearance();
 }
 
 void NavigationSurfaceController::AnimationProgressed(
@@ -390,9 +397,9 @@ void NavigationSurfaceController::OnAppearancePolicyChanged(
   if (!toolbar_) {
     return;
   }
-  appearance::ApplySurfaceAppearance(
-      toolbar_, appearance::AppearanceResolver::Resolve(
-                    appearance::SurfaceRole::kFloatingNavigation, policy));
+  toolbar_appearance_ = appearance::AppearanceResolver::Resolve(
+      appearance::SurfaceRole::kFloatingNavigation, policy);
+  ApplyToolbarAppearance();
   reduced_motion_ = policy.reduced_motion;
   state_.SetReducedMotion(reduced_motion_);
   if (reduced_motion_) {
@@ -400,6 +407,26 @@ void NavigationSurfaceController::OnAppearancePolicyChanged(
         state_.state() == NavigationSurfaceState::State::kHidden ? 0.0 : 1.0;
     visibility_animation_.Reset(target);
     ApplyVisibilityFraction(target);
+  }
+}
+
+void NavigationSurfaceController::ApplyToolbarAppearance() {
+  if (!toolbar_) {
+    return;
+  }
+  auto surface = toolbar_appearance_;
+  if (state_.IsReasonActive(NavigationSurfaceState::Reason::kFullscreen)) {
+    // Chromium owns the immersive toolbar's square, opaque surface. Keep the
+    // floating card's output clip and blur out of that presentation.
+    surface.corner_radius = 0;
+    surface.mode = appearance::GlassMode::kOpaque;
+    surface.opacity = 1.0f;
+    surface.background_blur_sigma = 0.0f;
+  }
+  toolbar_->SetPaintToLayer();
+  appearance::ApplySurfaceLayerAppearance(toolbar_->layer(), surface);
+  if (apply_background_appearance_) {
+    apply_background_appearance_.Run(surface);
   }
 }
 

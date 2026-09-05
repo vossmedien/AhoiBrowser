@@ -53,6 +53,9 @@ constexpr int kTrailingActionSize = 24;
 
 bool SidebarTreeRowView::HandleAccessibleAction(
     const ui::AXActionData& action_data) {
+  if (exiting_) {
+    return false;
+  }
   if (is_bound()) {
     if (action_data.action == ax::mojom::Action::kFocus) {
       return owner_->OnRowAccessibilityFocused(this);
@@ -142,7 +145,7 @@ bool SidebarTreeRowView::IsTrailingActionAt(const gfx::Point& point) const {
 
 void SidebarTreeRowView::UpdateAccessibility() {
   auto& accessibility = GetViewAccessibility();
-  accessibility.SetIsInvisible(false);
+  accessibility.SetIsInvisible(exiting_);
   std::u16string accessible_name =
       split_drop_target_ ? split_with_prefix_ + u" " + title_ : title_;
   if (sleeping_) {

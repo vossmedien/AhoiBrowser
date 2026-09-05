@@ -273,17 +273,71 @@ TEST(ArcSplitReceiptTest, ChecksFocusOnlyWhenRequested) {
       Verify(plan, fixture, /*require_focus=*/false, SessionID::InvalidValue());
   EXPECT_EQ(ArcSplitReceiptFailure::kNone, without_focus.failure);
   EXPECT_EQ(ArcSplitVerification::kExact, without_focus.verification);
-  EXPECT_EQ(ArcSplitVerification::kConflict,
-            Verify(plan, fixture, /*require_focus=*/true).verification);
+  const ArcSplitReceipt wrong_focus =
+      Verify(plan, fixture, /*require_focus=*/true);
+  EXPECT_EQ(ArcSplitVerification::kConflict, wrong_focus.verification);
+  EXPECT_EQ(ArcSplitReceiptFailure::kFocusMismatch, wrong_focus.failure);
 
   fixture.windows[0]->selected_tab_index = 1;
-  EXPECT_EQ(ArcSplitVerification::kConflict,
-            Verify(plan, fixture, /*require_focus=*/true, SessionId(42))
-                .verification);
   const ArcSplitReceipt exact_focus =
       Verify(plan, fixture, /*require_focus=*/true, SessionId(41));
   EXPECT_EQ(ArcSplitReceiptFailure::kNone, exact_focus.failure);
   EXPECT_EQ(ArcSplitVerification::kExact, exact_focus.verification);
+}
+
+TEST(ArcSplitReceiptTest, OtherActiveWindowDoesNotInvalidateTargetMemberFocus) {
+  const ArcImportPlan plan = Plan();
+  SessionFixture fixture = Fixture(plan, SplitId(1));
+  auto other_window = std::make_unique<sessions::SessionWindow>();
+  other_window->window_id = SessionId(42);
+  other_window->selected_tab_index = 0;
+  auto other_tab = std::make_unique<sessions::SessionTab>();
+  other_tab->window_id = other_window->window_id;
+  other_tab->tab_id = SessionId(201);
+  other_tab->tab_visual_index = 0;
+  other_window->tabs.push_back(std::move(other_tab));
+  fixture.windows.push_back(std::move(other_window));
+  const ArcSplitReceipt foreground =
+      Verify(plan, fixture, /*require_focus=*/true, fixture.window_id);
+  ASSERT_EQ(ArcSplitVerification::kExact, foreground.verification);
+
+  for (SessionID active_window : {SessionId(42), SessionID::InvalidValue()}) {
+    const ArcSplitReceipt receipt =
+        Verify(plan, fixture, /*require_focus=*/true, active_window);
+    EXPECT_EQ(ArcSplitVerification::kExact, receipt.verification);
+    EXPECT_EQ(ArcSplitReceiptFailure::kNone, receipt.failure);
+    EXPECT_TRUE(receipt.focus_verified);
+    EXPECT_EQ(foreground.receipt_sha256, receipt.receipt_sha256);
+  }
+
+  // Changing application/window activation is harmless; changing the selected
+  // pane inside the actual target window is still a failed focus receipt.
+  fixture.windows[0]->selected_tab_index = 0;
+  const ArcSplitReceipt wrong_member =
+      Verify(plan, fixture, /*require_focus=*/true, SessionId(42));
+  EXPECT_EQ(ArcSplitVerification::kConflict, wrong_member.verification);
+  EXPECT_EQ(ArcSplitReceiptFailure::kFocusMismatch, wrong_member.failure);
+  EXPECT_FALSE(wrong_member.focus_verified);
+  EXPECT_TRUE(wrong_member.receipt_sha256.empty());
+
+  fixture.windows[0]->selected_tab_index = -1;
+  const ArcSplitReceipt missing_selection =
+      Verify(plan, fixture, /*require_focus=*/true, SessionId(42));
+  EXPECT_EQ(ArcSplitVerification::kConflict, missing_selection.verification);
+  EXPECT_EQ(ArcSplitReceiptFailure::kInvalidFocusContext,
+            missing_selection.failure);
+}
+
+TEST(ArcSplitReceiptTest, OtherActiveWindowDoesNotRelaxMemberWindowOwnership) {
+  const ArcImportPlan plan = Plan();
+  SessionFixture fixture = Fixture(plan, SplitId(1));
+  fixture.windows[0]->tabs[1]->window_id = SessionId(42);
+  const ArcSplitReceipt receipt =
+      Verify(plan, fixture, /*require_focus=*/true, SessionId(42));
+  EXPECT_EQ(ArcSplitVerification::kConflict, receipt.verification);
+  EXPECT_EQ(ArcSplitReceiptFailure::kInvalidMember, receipt.failure);
+  EXPECT_FALSE(receipt.focus_verified);
+  EXPECT_TRUE(receipt.receipt_sha256.empty());
 }
 
 }  // namespace

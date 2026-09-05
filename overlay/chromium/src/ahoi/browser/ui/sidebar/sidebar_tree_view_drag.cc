@@ -183,8 +183,8 @@ bool SidebarTreeView::CanStartDragForView(views::View* sender,
     return false;
   }
   auto* row = views::AsViewClass<SidebarTreeRowView>(sender);
-  const bool allowed = row && row->is_bound() && !row->is_editing() &&
-                       !row->IsTrailingActionAt(press_pt);
+  const bool allowed = row && row->is_bound() && !row->is_exiting() &&
+                       !row->is_editing() && !row->IsTrailingActionAt(press_pt);
   return allowed;
 }
 
@@ -225,10 +225,14 @@ void SidebarTreeView::NotifyNativeDragStarted(base::Uuid node_id) {
 }
 
 void SidebarTreeView::ShowContextMenuForViewImpl(
-    views::View* /*source*/,
+    views::View* source,
     const gfx::Point& screen_point,
     ui::mojom::MenuSourceType source_type) {
   if (!delegate_) {
+    return;
+  }
+  if (auto* row = views::AsViewClass<SidebarTreeRowView>(source);
+      row && row->is_exiting()) {
     return;
   }
   std::optional<base::Uuid> node_id;

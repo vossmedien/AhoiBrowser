@@ -26,6 +26,10 @@ class SidebarTreeViewModelObserver : public base::CheckedObserver {
   virtual void OnBatchUpdateStarted() {}
   virtual void OnBatchUpdateEnded() {}
   virtual void OnTreeReset() = 0;
+  // Emitted immediately before a nonempty expansion splice. It carries intent
+  // only; observers must not mutate the model or delay its authoritative delta.
+  virtual void OnFolderExpansionChanging(const base::Uuid& node_id,
+                                         bool expanded) {}
   virtual void OnRowsInserted(size_t first_row, size_t count) = 0;
   virtual void OnRowsRemoved(size_t first_row, size_t count) = 0;
   virtual void OnRowsChanged(size_t first_row, size_t count) = 0;
