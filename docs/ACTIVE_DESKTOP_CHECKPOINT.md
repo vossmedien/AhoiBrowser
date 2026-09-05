@@ -84,7 +84,35 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Owned combined correction package — final fixture build running
+## Current installed startup failure and prepared correction
+
+**Current action:** exact installed92694fe is build/install verified but RED at
+visible startup. Two real launch attempts (native CUA, then exact Finder item)
+produced the same EXC_BAD_ACCESS0x160 in BrowserView's constructor appearance
+callback: IsFullscreen() dereferences missing widget ownership. No further
+launch or programmatic test suite; fix and repeat visible startup first.
+No import/recovery UI action ran. Detailed safe evidence and crash hashes:
+`artifacts/build/desktop-startup-guard-20260905/README.md`.
+
+Own canonical correction88ebbe9 guards GetWidget()/browser_widget() before
+IsFullscreen; layout replays the saved appearance after native initialization.
+New real-browser regression covers creation before preference/mode repair,
+native painter/color/alpha/radius, fullscreen return and normal close. Source
+review + patch syntax/pinned-format checks only, no claimed test pass.
+
+The EXISTING detached snapshot is now clean at
+`c986090d99c22318aef4d45378208cece6878d27` =92694fe plus ONLY those two owned files.
+The same fix is already committed/pushed on main as88ebbe9. This isolates the
+UI baseline from newer committed Common interface/golden work and all WIP,
+without creating another worktree/development branch. Exact derived source is
+retained in canonical Git ref `refs/ahoi/build-candidates/desktop-startup-c986090`
+and verified incremental `artifacts/build/desktop-startup-guard-20260905/source.bundle`
+(requires published92694fe). Do not delete the provenance bundle/ref during cleanup.
+Shared checkout/out are still92694fe. Next: fresh CPU gate, guarded overlay and
+same full cached build from c986090; install and visibly relaunch only if green.
+No new sync format/default/header WIP is included or native runtime slot granted.
+
+## Completed 92694fe baseline build and installation
 
 **Previous fixture blocker RESOLVED, 2026-09-05 18:41 UTC:** the user explicitly
 handed over `92694fe36539d024af6567646103f1cf246d5364`. Main reviewed its exact
@@ -93,14 +121,21 @@ fixture data/order/assertions. The former three-turn blocked audit is historical
 no further fixture permission, SQL22 handoff or format-freeze request is needed.
 The user handoff authorizes resuming this independent baseline correction.
 
-**Current phase, 2026-09-05 18:56 UTC:** the existing clean detached snapshot
+**Current phase, 2026-09-05 19:05 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
 `92694fe36539d024af6567646103f1cf246d5364`, clean. Guarded overlay60701 completed
-EXIT0 with full delta verified. ONE same-full-target cached Dev build is RUNNING
-as session17302. Do not restart these commands or change snapshot/shared out
-before terminal. Fresh all-project CPU gate was clear at18:56:15UTC, disk
-82,379,196KiB. Canonical logs: `artifacts/build/desktop-fixture-92694fe-20260905/`.
-No successful new build receipt, install or test execution yet. From22 the only
+EXIT0 with full delta verified. Full cached Dev build17302 is TERMINAL EXIT0;
+all requested targets compiled, including the previously missing Sync binary.
+Portable runtime staged and Apple-Development-signed, 533 dylibs/238 resources
+verified. Canonical receipt `artifacts/build/ahoi-dev-build-92694fe36539.json`,
+SHA256 `dec35aefe6a4095fa784dcd5f2cf186a8005e9ac53c5f81e4b6ed4163f3772a1`,
+was copied byte-identically from the clean snapshot. No tests have run.
+Guarded atomic installer19738 is TERMINAL EXIT0. Receipt
+`artifacts/install/ahoi-dev-92694fe-20260905T190452Z.json` matches build source,
+executable and full bundle tree; SHA256
+`502d6ac0bb82153c9e227534a20034785621e1e56ec4f842c3eb7678676d00aa`.
+Post-install verification and renameatx_np(RENAME_SWAP) confirmed. Logs:
+`artifacts/build/desktop-fixture-92694fe-20260905/`. From22 the only
 executable source change is the fixture test. Additional committed config diffs
 are the non-consumed `sync-format.json` contract and two registry descriptions;
 no matching consumer in this frozen source and no unified writer/default change.
@@ -288,7 +323,16 @@ Mobile runtime reservation remains; no automatic retry is authorized.
 ## Exact installed candidate
 
 - `/Applications/AhoiBrowser.app`: source
-  `3d413efb5b6f196403e92f51631c346c9c55b2e5`, Chromium `152.0.7977.65`.
+  `92694fe36539d024af6567646103f1cf246d5364`, Chromium `152.0.7977.65`,
+  build/install verified but startup RED; do not describe it as accepted/daily-ready.
+- Current receipts: `artifacts/build/ahoi-dev-build-92694fe36539.json` and
+  `artifacts/install/ahoi-dev-92694fe-20260905T190452Z.json`.
+- Current executable SHA256:
+  `717827e792a4882665334dc834ec54680696ae8b2cc93a88399b176741b945ca`;
+  current bundle tree:
+  `083286c952f1b6c542c8177ca9c5cf1c8c9f7edc092b11ac5b8525c753620b6f`.
+- Rollback3d remains at the install receipt's exact backup path. No rollback
+  or profile/journal reset was performed. The following3d receipts are HISTORY:
 - Successful guarded build/sign and atomic install; both commands exited 0.
   Receipts: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json` and
   `artifacts/install/ahoi-dev-3d413ef-20260905T074543Z.json`.
@@ -297,9 +341,9 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   Bundle tree SHA-256:
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at accepted source `92694fe`
-  for the fixture correction; overlay60701 succeeded and build17302 is running.
-  This is not a new built/installed candidate. It shares
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at isolated correction
+  `c986090`; overlay60701/build17302/install19738 all completed for92694fe.
+  The next startup-fix integration is pending a fresh CPU gate. It shares
   `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
@@ -427,15 +471,21 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
+0. Startup is RED on installed92694fe; first integrate/build the clean isolated
+   c986090 startup correction after fresh CPU gates. Its exact Source bundle
+   is retained; do not incorporate Common WIP or mutate the frozen snapshot.
+   Then atomic install and repeat visible app start before any programmatic
+   suite. The older compiler/source handoff waits below are already resolved.
 1. Builds `30212` and `90068` are both terminal Exit 1; do not resume either.
    Snapshot/overlay are at exact `225df88`; compiler-only `3035529`, owned
    `1ea90da`, and the renewed consent freeze are already integrated. There is
    no remaining product or test-source handoff wait. The exact `22e2f2b`
    correction (already contains owned `5794d37`) is explicitly accepted and the
    fixture correction92694fe is now explicitly received and the clean snapshot
-   selected. Build7945 is terminal Exit1. Resume live full cached build17302
-   from92694fe; overlay60701 already succeeded. The previous Unity84761 CPU
-   gate is cleared and compiler-start gate passed. No warning suppression or unrelated
+   selected. Old7945 is terminal Exit1; overlay60701 and full92694fe build17302
+   now succeeded, as did install19738. Its startup failed; the prepared c986090
+   correction above supersedes the next action. No test suite before its corrected journey or
+   a fresh genuine technical-E2E boundary. No warning suppression or unrelated
    format-3 source integration. Overlay65019 already succeeded. Do not
    copy subsequent unified Sync WIP or stop the foreign workload.
    A successful complete build receipt is required before installation. Preserve both logs,
