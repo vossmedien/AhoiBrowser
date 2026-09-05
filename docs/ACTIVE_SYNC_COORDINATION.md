@@ -2,7 +2,8 @@
 
 Updated: 2026-09-05. Coordinator: `01a044d6-1545-7532-8394-6b7df1144bb1`.
 Registered goal: joint sync-model integration and candidate-bound acceptance.
-Contract: `outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` plus ADR 0006/7/8.
+Contract: `outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` plus ADR 0009,
+retaining the domain/privacy contracts of ADR 0006/7/8 where not superseded.
 
 ## Assignment and current acknowledgments
 
@@ -22,7 +23,9 @@ supersedes migration/legacy-reader work in the initial coordination wording.
   common C++ there). Coordinator clarified the newer user-approved C++/Swift
   ownership in `01a0728d-7fd1-7df3-8c1d-b130414c6847`; no product writes resumed
   here. Format 3 for every existing permitted entity, including Bookmark and
-  Capability, agrees with the unified target; exact updated ADR/Golden is pending.
+  Capability, is now committed as ADR 0009 / `config/sync-format.json` in
+  `1bfae11`. Its Common/Mobile role labels and the Sync checkpoint still use
+  the old split; the queued newer ownership clarification remains to be accepted.
 - Desktop: `01a04f97-e3ba-70f2-a031-220b214d352d`, observed `ttys002`.
   Browser package, native Tree/Session/UI and adapter, Chromium checkout/out,
   build/sign/install/native runtime retained. Explicit role acceptance received
@@ -48,15 +51,19 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
   `22e2f2b` (three SQL test files). Exact subsequent freeze/build handoff belongs
   to Desktop; no unchanged restart or new candidate is inferred. Coordinator
   reviewed the exact three-file `22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`
-  manifest and requested the missing direct Sync freeze confirmation in
-  `01a0728a-90fe-7b62-9063-952b294b1fc7`, notifying Desktop separately. This
-  bounded test-API handoff must not wait for the larger unified-format package.
+  manifest. Desktop has since explicitly accepted the direct sender handoff in
+  its checkpoint / 17:27 UTC readback. No SQL-source wait remains. Desktop's
+  clean cached build snapshot is now `22e2f2b`, including `5794d37`, not the later
+  unified-format WIP. Do not repeat or recreate this handoff.
 - Canonical log: `artifacts/build/desktop-correction-225df88-20260905/build.log`.
 - Desktop explicitly confirms terminal `30212` at 16:45:34 UTC, report `813adb8`,
   no current Ahoi compiler and no new install. Its next intensive start was
   blocked by identified FillIt Blender PID `93670`, measured 214.5/302.3/144.1%
   CPU. These are Desktop's point-in-time measurements; every new phase needs
   its own fresh gate. The message grants no My-Mac/native UI or shared-out lease.
+- Later Desktop readback (17:31 UTC) reports the Blender job ended and a new
+  FillIt Unity phase around 191% CPU blocking the start. Coordinator observed
+  Unity PID 25581 / parent 51136 at 188.6%; no old PID is a permanent blocker.
 - Installed Desktop remains `3d413ef` per current Desktop checkpoint; that
   native candidate is provider-free and is not a real cross-client sync pass.
 - Swift `3964bcb` is frozen-contract preparation; `895daf9` and `f25eea5`
@@ -64,6 +71,23 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
   not executed. No Mobile build/test/host or My-Mac lease is owned here.
 - Earlier `313e351` / Build15 Bookmark acceptance remains its own evidence;
   it neither covers the new source nor needs an unchanged repetition.
+
+## Verified unified-format progress (not acceptance)
+
+- ADR 0009 and `config/sync-format.json` are committed in `1bfae11`; Desktop
+  aligned its master/native contracts in `006930f`. The manifest reads as exactly
+  13 entity IDs 0–12, all authored/accepted at 3; obsolete input must not turn
+  into a deletion or an authoritative empty snapshot. Its golden path is
+  `overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json`, not yet
+  observed as a delivered all-entity fixture.
+- Actual uncommitted C++ implementation is now visible in common model/store/
+  profile types and the two new shared-tab leaf headers. Coordinator inspected
+  the leaf types, separate presence/logical IDs and default-false native support.
+  This is WIP, not a header freeze, compiled result or writer activation.
+- Direct Terminal Computer Use was denied by the tool's safety boundary. No
+  workaround or process interruption was attempted. Coordination continues via
+  the existing CLI queue and scoped read-only process/log/checkpoint evidence;
+  a queued message is still not an immediate steering or acceptance proof.
 
 ## Next actions
 

@@ -19,7 +19,9 @@ Wire-model versions are separate from SQLite schema versions, encryption-key
 versions, app build numbers and extension Manifest versions. Do not change those
 unrelated numbers merely to make them identical.
 
-Use the existing ADR 0006/0007/0008 contracts and canonical golden files. The
+Use ADR 0009 / `config/sync-format.json` for the unified model, retaining ADR
+0006/0007/0008 domain/privacy rules where not superseded, and the canonical
+all-entity golden once delivered. The
 Sync owner coordinates any necessary explicit contract evolution, including
 replacing transitional v2 capability bootstrap with the unified active model
 where the fresh-client setup makes it unnecessary. Preserve
