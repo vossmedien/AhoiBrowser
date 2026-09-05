@@ -28,12 +28,13 @@ Wire-model versions are separate from SQLite schema versions, encryption-key
 versions, app build numbers and extension Manifest versions. Do not change those
 unrelated numbers merely to make them identical.
 
-Use ADR 0009 / `config/sync-format.json` for the unified model, retaining ADR
-0006/0007/0008 domain/privacy rules where not superseded, and the canonical
-all-entity golden once delivered. The
-Sync owner coordinates any necessary explicit contract evolution, including
-replacing transitional v2 capability bootstrap with the unified active model
-where the fresh-client setup makes it unnecessary. Preserve
+Use ADR 0009 / `config/sync-format.json` for the unified model and binding
+[ADR 0010](../docs/decisions/0010-full-browser-setup-sync.md), published in
+`79d21020755c9eed78176ded6dd14ddf81a094ce`, for full browser-setup restoration.
+Retain ADR 0006/0007/0008 domain/privacy rules only where not superseded.
+The Sync owner extends the same current-format C++/Swift contract and canonical
+golden before activating additional consumers; neither the original 13 classes
+nor their 26 examples cap the authorized product scope. Preserve
 consent/account/key isolation, local-only private/cookie/login state, stable
 logical TreeNode IDs, separate presence/runtime IDs, immutable TreeNode creation
 time and honest creation provenance. A writer-constant bump is not integration.
@@ -48,15 +49,26 @@ the current startup-fix candidate:
   current package. History, passwords and extensions remain global by default;
   workspace-specific toolbar pins may be added. Use an explicit native
   BrowserContext/storage design, not custom credential handling.
-- Sync implements eligible Chrome settings and extension restoration on linked
-  Macs, including safely portable extension settings where supported. Mobile
-  receives only supported equivalents, not Chromium extension execution.
+- Sync implements transferable native Chrome user preferences, actual trusted
+  extension installation/enabled state and positively reviewed extension-owned
+  settings. Five Ahoi preferences plus an inventory are explicitly insufficient.
+  Publish the supported/excluded settings catalogue; use real native user
+  preferences, not copied effective managed/extension-controlled values.
+  Distinguish installed, pending, blocked, confirmation-required and failed.
+  Preserve native permission prompts, source/signature checks and MV2/uBO limits.
+- Extension settings require reviewed ID/key/value schemas or an equally
+  explicit safe contract. `storage.sync` alone is no secret-free guarantee;
+  unknown opaque data and raw local/session/managed stores remain local.
+  Mobile applies supported mappings and retains recognized desktop-only metadata
+  without claiming Chromium extension execution.
 - Cookies, passwords, login tokens, secrets and machine-local paths remain
   excluded. Do not copy whole profiles, Preferences files or extension stores;
   use native restoration and trusted extension sources with explicit eligibility.
 - The original 13-class manifest is a baseline, not a prohibition on this newly
   authorized scope. The Sync owner evolves the single shared contract where
   necessary and coordinates native settings/workspace metadata with Desktop.
+  New upstream/native install, preference and storage hooks require concrete
+  file-level handoffs; do not take over Google's sync processors concurrently.
 
 Finish working integration and representative E2E, not a new exhaustive test
 matrix. Existing runtime, CPU, privacy and non-destructive boundaries remain.
@@ -113,6 +125,15 @@ save/unsave preserves logical identity; temporary and persistent behavior and
 local-only targets remain coherent. Exercise persistence/restart and a bounded
 edit/delete roundtrip, followed by focused version-rejection, provenance, consent,
 conflict/no-echo and private-data exclusion regressions.
+
+ADR 0010 additionally requires a configured Mac A -> fresh install/link Mac B
+journey with native settings actually applied, a supported extension installed
+and usable, and a supported extension setting visibly converging. Exercise
+representative reverse edits, already-open peers, restart/offline and genuine
+disable/uninstall/default-reset intent without echo or unwanted restoration.
+Fresh defaults or an empty inventory are not deletion intent. Show unsupported
+and consent-required states honestly, including iOS's supported mappings.
+This is working-product acceptance, not another exhaustive test matrix.
 
 Keep source, compiled tests, installed app, real Development transport, simulated
 peer, native Chromium/mobile roundtrip, cross-device key bootstrap and Production

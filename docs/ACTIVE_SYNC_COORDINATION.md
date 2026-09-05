@@ -3,7 +3,16 @@
 Updated: 2026-09-05. Coordinator: `01a044d6-1545-7532-8394-6b7df1144bb1`.
 Registered goal: joint sync-model integration and candidate-bound acceptance.
 Contract: `outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` plus ADR 0009,
-retaining the domain/privacy contracts of ADR 0006/7/8 where not superseded.
+binding browser-setup extension ADR 0010 (`79d2102`), and the domain/privacy
+contracts of ADR 0006/7/8 where not superseded.
+
+ADR 0010 is included in the coordinator's scope and acceptance: native user
+preferences with an explicit supported/excluded catalogue, real trusted
+extension install/enable restoration and positively reviewed extension settings.
+Five Ahoi preferences/inventory and the original 13-class/26-example fixture
+are not completion or a scope ceiling. One format 3, existing Common+Swift
+ownership, exact native-hook handoffs, native consent and secret exclusion
+remain binding. No product, policy, golden, build or runtime change by this update.
 
 ## Immediate user priority: working app before test expansion
 
