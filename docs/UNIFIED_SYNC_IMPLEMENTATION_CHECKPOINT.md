@@ -44,6 +44,25 @@ or passed. Subsequent commits must use `git commit -s`.
 
 ## Current implementation WIP — not integrated or built
 
+- Additional live-integration source since `3e9552f`: profile-wide original
+  authorization is now passed from Service through Backend into the Mac
+  provider; opt-out/shutdown cancels it synchronously. Provider callbacks and
+  SyncPump recheck the same scope after asynchronous hops for every data class.
+  `SyncStore` writes actual acknowledged-record versions plus initial-fetch
+  completion; recovery clears those facts instead of treating an empty outbox
+  as acknowledgment. These facts are NOT yet connected to final shared-tab
+  readiness/capture. New ProfileSyncBackend callers/tests must explicitly supply
+  their authorization; no implicit authorization is granted by the default.
+- Mobile identity/passive projection source is now implemented in
+  `MobileBrowserModels.swift`, `MobileBrowserControllerSharedTabs.swift` and
+  bounded `MobileBrowserController.swift` lifecycle hunks. APIs: distinct
+  `presenceID: TabID?`, safe `sharedTarget`, `participatesInSharedTabs`, local
+  `MobileSharedTabBindingState`, `reconcileSharedTabs(snapshot:)`, and value-bound
+  `bindTab(_:to: TreeNode)`. Automatic/recovery placeholders do not participate;
+  dormant mirrors have no Presence ID and do not load WebKit. Existing runtime
+  URL/selection/order survives passive updates. Root must still wire actual
+  Repository/AppModel capture, distinct close/undo identities and before-unload
+  handling; unavailable/deleted/missing bindings must not become inferred deletes.
 - C++ current-only model 3 / SQLite schema 6, all 13 variant/discriminator
   branches, exact field maps, lossless HLC UInt32 and canonical UUID/time parsing.
   Field value dispatch is extracted into `sync_field_values.{h,cc}`; targets
