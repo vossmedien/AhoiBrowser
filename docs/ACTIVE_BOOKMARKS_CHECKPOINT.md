@@ -10,7 +10,9 @@ without an elaborate migration or permanent v2/v3 operation. ADR 0009 and
 `config/sync-format.json` supersede the older mixed-version instructions below.
 Fresh isolated stores/test zones are the acceptance basis; no old profile,
 journal or server data is silently deleted. Common C++/contract remains here,
-Swift remains Mobile-owned, Native Tree/Session/build remains Desktop-owned.
+Swift is now also owned by this unified Sync implementation thread. The former
+Mobile owner is the coordinator/read-only reviewer. Native Tree/Session/build
+remains Desktop-owned; no further Swift ownership request is required.
 
 The current `225df88` correction build stays immutable with Desktop. It is a
 compiler/UI baseline, not the final unified-format candidate. Its three Common

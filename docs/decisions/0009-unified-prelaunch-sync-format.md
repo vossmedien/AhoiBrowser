@@ -117,19 +117,28 @@ Device-local split topology remains local unless separately decided by the user.
 
 One canonical branch; no competing development branches or build paths.
 
-1. Common owner: C++ model/codec/validation/merge/store/provider/config/GN and the
-   canonical format-3 fixtures. First define the current fields and rejection
-   contract, then matching C++ implementation; do not merely bump constants.
-2. Mobile owner: matching Swift models, one-format codec/boundary, fresh snapshot
-   persistence, provider/bridge, Mobile binding/UI and tests. Legacy-only
-   preparation can be removed from active production paths in its owned files.
-3. Desktop owner: native Tree/Session/UI and target/capture/projection bindings,
+1. Unified Sync owner `01a06d69-1034-7372-b784-0b05a53c87e0`: C++ model/codec/
+   validation/merge/store/provider/config/GN and canonical format-3 fixtures,
+   PLUS matching Swift models/wire/domain/persistence/provider/bridge/Mobile
+   binding/UI/tests in `spikes/cloudkit` and `apps/AhoiMobile`. The explicit
+   handoff through `f25eea5` supersedes the earlier separate Mobile owner. Do
+   not wait for another Swift implementation or retain obsolete migration code
+   merely to satisfy its historical tests.
+2. Coordinator `01a044d6-1545-7532-8394-6b7df1144bb1`: read-only product review,
+   coordination and its own checkpoint/prompt; no parallel Swift product writes.
+3. Desktop owner `01a04f97-e3ba-70f2-a031-220b214d352d`: native Tree/Session/UI and target/capture/projection bindings,
    plus shared checkout/out/build/install. Common types are handed off explicitly.
 
 The currently running 225df88 build stays immutable and may finish as a UI/
 compiler baseline. It is not the final unified-format sync candidate. The three
 bounded test-API fixes in 22e2f2b do not activate or implement this format.
 Future integration uses only agreed committed source, not another owner's WIP.
+
+Concrete package sequence: common format/fixtures and strict fresh-store C++;
+matching Swift one-format domain/wire/persistence; native/Mobile capture and
+live projection on the agreed headers; then one coordinated candidate wave,
+representative visible E2E and the focused cross-language/consent suites. Native
+Tree/Session/UI files require a specific Desktop handoff rather than silent edits.
 
 ## Acceptance
 
