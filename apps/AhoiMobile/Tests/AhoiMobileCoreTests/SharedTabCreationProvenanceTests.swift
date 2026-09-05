@@ -109,6 +109,100 @@ final class SharedTabCreationProvenanceTests: XCTestCase {
         _ = try assertOriginalPromotion(stamped, original: original)
     }
 
+    func testPeerPromotesFirstWithoutErasingLocalEvidenceOrChangingWireBottom() throws {
+        let original = try localNode()
+        for temporary in [false, true] {
+            let peer = try peerPromotionWithoutEvidence(original, temporary: temporary)
+            for (old, new) in [(original, peer), (peer, original)] {
+                let merged = try CompanionFieldMerge.merge(old, new)
+                assertPeerPromotion(merged, peer: peer, original: original)
+                let restarted = try JSONDecoder().decode(TreeNode.self, from: JSONEncoder().encode(merged))
+                assertPeerPromotion(restarted, peer: peer, original: original)
+                for (lhs, rhs) in [(restarted, peer), (peer, restarted)] {
+                    assertPeerPromotion(try CompanionFieldMerge.merge(lhs, rhs), peer: peer, original: original)
+                }
+
+                // A still later legacy editor remains unrelated to either
+                // local creation evidence or the unchanged v3 Wire Bottom.
+                let legacy = try legacyRewrite(original, milliseconds: 7_000)
+                let later = try CompanionFieldMerge.merge(restarted, legacy)
+                XCTAssertEqual(later.version.fieldVersions["created_at"], SharedTabContract.bottom)
+                XCTAssertEqual(later.creationProvenanceClock, original.creationProvenanceClock)
+                XCTAssertTrue(SharedTabCreationProvenance.sameTime(later.createdAt, original.createdAt))
+                XCTAssertEqual(later.isTemporary, temporary)
+                XCTAssertThrowsError(try SharedTabCreationProvenance.preparePromotion(later),
+                                     "Retaining local evidence does not repromote or rewrite v3 state.")
+            }
+            var unknown = original
+            unknown.creationProvenanceClock = nil
+            let withoutEvidence = try CompanionFieldMerge.merge(unknown, peer)
+            XCTAssertNil(withoutEvidence.creationProvenanceClock)
+            XCTAssertNil(MobileSharedTabProjection(withoutEvidence)?.originDevice)
+        }
+    }
+
+    func testPeerPromotionFirstSurvivesFileRestartAndRepeatedImportWithoutEcho() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AhoiPeerPromotionEvidence-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let original = try localNode()
+        for temporary in [false, true] {
+            let peer = try peerPromotionWithoutEvidence(original, temporary: temporary)
+            for (index, pair) in [(original, peer), (peer, original)].enumerated() {
+                let file = directory.appendingPathComponent("\(temporary)-\(index).json")
+                let store = FileCompanionStore(fileURL: file)
+                try await store.save(CompanionSnapshot(treeNodes: [pair.0]))
+                let repository = LocalFirstRepository(store: store, localDeviceID: creator)
+                let first = try await repository.mergeImportedBatch([.init(token: 1, value: .treeNode(pair.1))])
+                guard case .some(.accepted) = first.first?.disposition else { return XCTFail("Merge rejected") }
+                if index == 0 { try assertNoReenqueue(first) }
+                // In the reverse direction a v2 incoming record legitimately
+                // differs from the already-v3 row; only its v3 replay is an echo.
+                let replay = try await repository.mergeImportedBatch([.init(token: 2, value: .treeNode(peer))])
+                try assertNoReenqueue(replay)
+                let restarted = LocalFirstRepository(store: FileCompanionStore(fileURL: file), localDeviceID: creator)
+                let snapshot = try await restarted.currentSnapshot()
+                assertPeerPromotion(try XCTUnwrap(snapshot.treeNodes.first), peer: peer, original: original)
+                let repeated = try await restarted.mergeImportedBatch([.init(token: 3, value: .treeNode(peer))])
+                try assertNoReenqueue(repeated)
+                let afterReplay = try await restarted.currentSnapshot()
+                assertPeerPromotion(try XCTUnwrap(afterReplay.treeNodes.first), peer: peer, original: original)
+            }
+        }
+    }
+
+    private func peerPromotionWithoutEvidence(_ original: TreeNode, temporary: Bool) throws -> TreeNode {
+        var unknown = original
+        unknown.creationProvenanceClock = nil
+        var promoted = try SharedTabCreationProvenance.preparePromotion(unknown)
+        if temporary {
+            let clock = HybridLogicalClock(physicalMilliseconds: 5_000, nodeID: editor)
+            var fields = promoted.version.fieldVersions
+            fields["is_temporary"] = clock
+            fields["modified_at"] = clock
+            promoted.isTemporary = true
+            promoted.modifiedAt = clock
+            promoted.version = SyncVersion(schemaVersion: 3, modifiedAt: clock,
+                                           modifiedBy: editor, fieldVersions: fields)
+        }
+        XCTAssertNil(promoted.creationProvenanceClock)
+        XCTAssertEqual(promoted.version.fieldVersions["created_at"], SharedTabContract.bottom)
+        return promoted
+    }
+
+    private func assertPeerPromotion(_ node: TreeNode, peer: TreeNode, original: TreeNode) {
+        XCTAssertEqual(node, peer, "Retained local evidence does not alter the replicated row.")
+        XCTAssertEqual(Set([node, peer]).count, 1)
+        XCTAssertEqual(node.version, peer.version, "No synthetic dominating clock or wire mutation.")
+        XCTAssertEqual(node.version.schemaVersion, 3)
+        XCTAssertEqual(node.version.fieldVersions["created_at"], SharedTabContract.bottom)
+        XCTAssertEqual(node.creationProvenanceClock, original.creationProvenanceClock)
+        XCTAssertTrue(SharedTabCreationProvenance.sameTime(node.createdAt, original.createdAt))
+        XCTAssertEqual(MobileSharedTabProjection(node)?.originDevice, creator)
+        XCTAssertEqual(SharedTabWireReadPolicy.defaultWriteVersion, 2)
+        XCTAssertThrowsError(try codec.encode(node), "Local evidence does not activate a v3 writer.")
+    }
+
     private func localNode() throws -> TreeNode {
         let clock = HybridLogicalClock(physicalMilliseconds: 1_000, nodeID: creator)
         return try TreeNode(

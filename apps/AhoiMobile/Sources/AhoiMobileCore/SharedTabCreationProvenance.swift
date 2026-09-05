@@ -9,6 +9,13 @@ enum SharedTabCreationProvenance {
 
     static func finishMerge(_ result: TreeNode, old: TreeNode, new: TreeNode) throws -> TreeNode {
         var result = result
+        // Retained observations are local metadata, not candidates for the
+        // replicated creation register. A peer's unknown/Bottom promotion
+        // cannot withdraw genuine evidence already held by this repository.
+        let evidence = [old.creationProvenanceClock, new.creationProvenanceClock].compactMap { $0 }
+        guard evidence.allSatisfy(SharedTabContract.isActualMutation) else {
+            throw SharedTabFieldReadMergeError.invalidLegacyField
+        }
         if result.version.schemaVersion == 3 {
             // A later v2 write cannot turn unknown v3 creation provenance into
             // a spurious last-editor badge. Bottom has semantic absence order.
@@ -22,7 +29,7 @@ enum SharedTabCreationProvenance {
             let selected = real.max() ?? SharedTabContract.bottom
             result.version.fieldVersions["created_at"] = selected
             return try reframe(result, provenance: selected,
-                               evidence: SharedTabContract.isBottom(selected) ? nil : selected)
+                               evidence: SharedTabContract.isBottom(selected) ? evidence.max() : selected)
         }
         guard let selected = result.version.fieldVersions["created_at"] else {
             throw SharedTabFieldReadMergeError.missingFieldClock
@@ -30,10 +37,6 @@ enum SharedTabCreationProvenance {
         // Keep the actual observation, not a Boolean attached to the winning
         // legacy clock. A synthetic last-editor clock may win the v2 register
         // without becoming creation evidence or erasing our original clock.
-        let evidence = [old.creationProvenanceClock, new.creationProvenanceClock].compactMap { $0 }
-        guard evidence.allSatisfy(SharedTabContract.isActualMutation) else {
-            throw SharedTabFieldReadMergeError.invalidLegacyField
-        }
         return try reframe(result, provenance: selected, evidence: evidence.max())
     }
 

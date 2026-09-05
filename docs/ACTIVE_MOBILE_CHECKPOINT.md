@@ -3,7 +3,7 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
-## Current P2 correction — retained creation evidence, source only
+## Current P2 corrections — retained creation evidence, source only
 
 The review of `3964bcb` found that a later synthetic v2 `created_at` clock
 could erase the Boolean-only local creation evidence. The correction retains
@@ -13,14 +13,23 @@ decode compatibly; unknown provenance stays unknown. Promotion and origin
 projection use the retained observation, never the later editor. Local-only
 evidence changes persist but are excluded from replicated equality/re-enqueue.
 
-Five focused regressions are written and referenced by the generated Xcode
+The follow-up review of `895daf9` found the second order: an uninformed peer
+promotes to v3/Bottom before the locally observed v2 node is promoted here.
+V3-result merges now retain existing local evidence even while their replicated
+`created_at` clock remains Bottom. No v2 top clock is promoted into wire state,
+no second promotion is enabled, and the original creation time stays immutable.
+
+Seven focused regressions are written and referenced by the generated Xcode
 project: both merge directions, newer/repeated legacy rewrites, file-store
 restart/replay, evidence-only persistence/no echo, old Boolean decoding and
-subsequent local edits/promotion. They are **NOT RUN**. XcodeGen and whitespace
-checks succeeded; no build, simulator, host or CloudKit action was started.
-Fresh CPU samples found FillIt's `Lagoon420/source-03` Blender data bake
-(PID 57077, parent 51136; command and cwd verified) at 261.3% then 174.3%.
-No competing intensive phase was started and the foreign job was untouched.
+subsequent local edits/promotion, plus peer-first v3/Bottom promotion with and
+without an explicit temporary-state change. They are **NOT RUN**. The existing
+Xcode project already includes this test file; only source/whitespace review
+was performed for the follow-up. No build, simulator, host or CloudKit action.
+The previous `895daf9` CPU gate observed FillIt's source-03 bake at
+261.3%/174.3%; those are historical samples. This follow-up respects the
+Desktop owner's reported active `225df88` guarded build, Session `30212`,
+without taking a CPU or runtime slot. No competing intensive phase was started.
 
 Next Swift candidate must include this correction and run
 `SharedTabCreationProvenanceTests` with the existing frozen/read/merge suites.

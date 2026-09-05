@@ -26,6 +26,29 @@ TreeNode equality/hash deliberately exclude it; the import commit separately
 detects evidence-only changes so they persist without a wire echo or an
 artificial dominating merge clock. The v3 writer/live-import gates remain off.
 
+## Follow-up: the peer promotes before this device
+
+The read-only review of `895daf99c7b33610532dfe0ee4654a8bbe0fb9fa`
+identified a remaining order-dependent loss: the local v2 node has genuine
+evidence C, while an uninformed peer first promotes that same node to v3 with
+the creation-provenance field clock Bottom. The v3 branch previously selected
+the correct Wire Bottom but also cleared the independent local evidence.
+
+Retained evidence is now collected independently of the result version. If
+v3 selects Bottom, the result keeps the existing local observation rather than
+clearing it. Wire Bottom remains untouched, even after later synthetic legacy
+rewrites. Real v3 field-clock selection is unchanged. Creation-time values,
+wire maps, record equality/hash, default writer 2 and the activation gate remain
+unchanged. An already-v3 node is not repromoted merely to preserve local evidence.
+
+Two additional regressions cover peer-first promotion with both saved/default
+and explicitly temporary v3 states: both merge directions, JSON restart,
+file-backed repository restart, repeated v3 import/no echo, unchanged replica
+version/hash, preserved creation time and a subsequent newer legacy edit.
+The reverse-order file test also exercises persisting only newly learned local
+evidence when the replicated v3 row was already present. The unknown/unknown
+case still has no origin. These tests are **source only, not executed**.
+
 ## Focused regression source
 
 `SharedTabCreationProvenanceTests` exercises the actual v2 codec and field
@@ -69,3 +92,10 @@ The native Desktop Bookmark-v2 freeze/build does not depend on this Swift-only
 fix. No common C++, GN, Golden fixture, ADR or installed Desktop candidate
 was changed or reserved. Matching-client activation and the native cross-client
 CloudKit roundtrip remain separate gates.
+
+For the peer-first follow-up, the Desktop owner reported the active guarded
+`225df88` build as Session `30212`. Mobile starts no competing intensive work
+and does not infer a My-Mac/UI slot. The existing generated Xcode project already
+references the extended test file. Source review and whitespace checking are
+not compiler or test execution; both provenance corrections remain pending the
+next separately permitted Swift verification phase.
