@@ -7,8 +7,10 @@
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h"
 #include "ahoi/browser/ui/visual_style.h"
+#include "base/memory/scoped_refptr.h"
 #include "third_party/skia/include/core/SkRect.h"
 #include "ui/accessibility/ax_action_data.h"
+#include "ui/gfx/animation/animation_container.h"
 #include "ui/gfx/animation/animation_test_api.h"
 #include "ui/gfx/scoped_animation_duration_scale_mode.h"
 #include "ui/views/accessibility/view_accessibility.h"
@@ -38,9 +40,21 @@ void SettleTreeMotion(SidebarTreeView* tree) {
   tree->CompleteRowBoundsAnimationForTesting();
 }
 
-void AdvanceTreeMotion(SidebarTreeView* tree, base::TimeDelta elapsed) {
-  gfx::AnimationContainerTestApi height_clock(
-      tree->height_animation_for_testing()->container());
+scoped_refptr<gfx::AnimationContainer> BindHeightTestContainer(
+    SidebarTreeView* tree) {
+  // Bind once before model changes start motion. Rebinding a running animation
+  // would reset its start time; sharing the row container would also change the
+  // BoundsAnimator observer's frame/completion boundaries.
+  EXPECT_FALSE(tree->height_animation_for_testing()->is_animating());
+  auto container = base::MakeRefCounted<gfx::AnimationContainer>();
+  tree->height_animation_for_testing()->SetContainer(container.get());
+  return container;
+}
+
+void AdvanceTreeMotion(SidebarTreeView* tree,
+                       gfx::AnimationContainer* height_container,
+                       base::TimeDelta elapsed) {
+  gfx::AnimationContainerTestApi height_clock(height_container);
   gfx::AnimationContainerTestApi row_clock(
       tree->row_bounds_animation_container_for_testing());
   height_clock.IncrementTime(elapsed);
@@ -51,11 +65,10 @@ void ExpectVisibleSplitRowClip(SidebarTreeRowView* row) {
   ASSERT_TRUE(row);
   ASSERT_FALSE(row->clip_path().isEmpty());
   SkRect visible_clip = row->clip_path().getBounds();
-  EXPECT_TRUE(visible_clip.intersect(
-      SkRect::MakeWH(static_cast<float>(row->width()),
-                     static_cast<float>(row->height()))));
-  EXPECT_TRUE(row->clip_path().contains(row->width() / 2.0f,
-                                        row->height() / 2.0f));
+  EXPECT_TRUE(visible_clip.intersect(SkRect::MakeWH(
+      static_cast<float>(row->width()), static_cast<float>(row->height()))));
+  EXPECT_TRUE(
+      row->clip_path().contains(row->width() / 2.0f, row->height() / 2.0f));
 }
 
 TEST_F(SidebarTreeViewTest, ExpandAnimatesExistingRowsAndCompletes) {
@@ -110,12 +123,14 @@ TEST_F(SidebarTreeViewTest,
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
   const auto workspace = MakeWorkspace();
-  const auto folder = MakeNode(workspace, std::nullopt,
-                               tab_tree::TreeNodeType::kFolder, u"Project", "a");
+  const auto folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
   const auto page = MakeNode(workspace, std::nullopt,
                              tab_tree::TreeNodeType::kSavedPage, u"After", "b");
   auto view = NewTreeView();
   auto* tree = view.get();
+  const auto height_container = BindHeightTestContainer(tree);
   auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
   widget->SetBounds(gfx::Rect(0, 0, 240, 320));
   widget->SetContentsView(std::move(view));
@@ -123,8 +138,8 @@ TEST_F(SidebarTreeViewTest,
   auto& model = controller_->view_model();
   ASSERT_TRUE(model.ResetWorkspace(workspace.id));
   ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder, page}));
-  ASSERT_TRUE(model.ReplaceChildren(folder.id,
-                                    MakeMotionChildren(workspace, folder)));
+  ASSERT_TRUE(
+      model.ReplaceChildren(folder.id, MakeMotionChildren(workspace, folder)));
   const gfx::Rect viewport(0, 0, 240, 320);
   tree->SynchronizeRowsForTesting(viewport);
   SettleTreeMotion(tree);
@@ -134,7 +149,8 @@ TEST_F(SidebarTreeViewTest,
 
   ASSERT_TRUE(model.SetExpanded(folder.id, true));
   tree->SynchronizeRowsForTesting(viewport);
-  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 3);
+  AdvanceTreeMotion(tree, height_container.get(),
+                    visual_style::kTreeMotionDuration / 3);
   const int expanding_height = tree->GetPreferredSize().height();
   ASSERT_GT(expanding_height, collapsed_height);
   ASSERT_LT(expanding_height, expanded_height);
@@ -143,7 +159,8 @@ TEST_F(SidebarTreeViewTest,
   EXPECT_EQ(expanding_height, tree->GetPreferredSize().height());
   ASSERT_TRUE(tree->height_animation_for_testing()->is_animating());
   tree->SynchronizeRowsForTesting(viewport);
-  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 3);
+  AdvanceTreeMotion(tree, height_container.get(),
+                    visual_style::kTreeMotionDuration / 3);
   const int collapsing_height = tree->GetPreferredSize().height();
   ASSERT_GT(collapsing_height, collapsed_height);
   ASSERT_LT(collapsing_height, expanding_height);
@@ -152,7 +169,8 @@ TEST_F(SidebarTreeViewTest,
   EXPECT_EQ(collapsing_height, tree->GetPreferredSize().height());
   ASSERT_TRUE(tree->height_animation_for_testing()->is_animating());
   tree->SynchronizeRowsForTesting(viewport);
-  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration);
+  AdvanceTreeMotion(tree, height_container.get(),
+                    visual_style::kTreeMotionDuration);
   EXPECT_FALSE(tree->height_animation_for_testing()->is_animating());
   EXPECT_EQ(expanded_height, tree->GetPreferredSize().height());
   EXPECT_FALSE(tree->row_bounds_animation_running_for_testing());
@@ -165,14 +183,18 @@ TEST_F(SidebarTreeViewTest, MovingSplitClipFollowsEveryFolderAnimationFrame) {
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
   const auto workspace = MakeWorkspace();
-  const auto folder = MakeNode(workspace, std::nullopt,
-                               tab_tree::TreeNodeType::kFolder, u"Project", "a");
-  const auto first = MakeNode(workspace, std::nullopt,
-                              tab_tree::TreeNodeType::kSavedPage, u"First", "b");
-  const auto second = MakeNode(workspace, std::nullopt,
-                               tab_tree::TreeNodeType::kSavedPage, u"Second", "c");
+  const auto folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
+  const auto first =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"First", "b");
+  const auto second =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Second", "c");
   auto view = NewTreeView();
   auto* tree = view.get();
+  const auto height_container = BindHeightTestContainer(tree);
   auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
   widget->SetBounds(gfx::Rect(0, 0, 240, 320));
   widget->SetContentsView(std::move(view));
@@ -180,8 +202,8 @@ TEST_F(SidebarTreeViewTest, MovingSplitClipFollowsEveryFolderAnimationFrame) {
   auto& model = controller_->view_model();
   ASSERT_TRUE(model.ResetWorkspace(workspace.id));
   ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder, first, second}));
-  ASSERT_TRUE(model.ReplaceChildren(folder.id,
-                                    MakeMotionChildren(workspace, folder)));
+  ASSERT_TRUE(
+      model.ReplaceChildren(folder.id, MakeMotionChildren(workspace, folder)));
   delegate_.split_groups = {{first.id, second.id}};
   tree->OnSplitGroupsChanged();
   const gfx::Rect viewport(0, 0, 240, 320);
@@ -208,7 +230,8 @@ TEST_F(SidebarTreeViewTest, MovingSplitClipFollowsEveryFolderAnimationFrame) {
       SCOPED_TRACE(frame);
       // Do not synchronize rows here: the animator's completed frame must
       // update shared clips after all segment bounds have moved.
-      AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 4);
+      AdvanceTreeMotion(tree, height_container.get(),
+                        visual_style::kTreeMotionDuration / 4);
       EXPECT_NE(start_y, first_row->y());
       EXPECT_NE(target_y, first_row->y());
       EXPECT_EQ(first_row->y(), second_row->y());
@@ -223,20 +246,21 @@ TEST_F(SidebarTreeViewTest, MovingSplitClipFollowsEveryFolderAnimationFrame) {
   }
 }
 
-TEST_F(SidebarTreeViewTest,
-       ReducedMotionFinishesHeightAndRowsMidTransition) {
+TEST_F(SidebarTreeViewTest, ReducedMotionFinishesHeightAndRowsMidTransition) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
       gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
   auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
   const auto workspace = MakeWorkspace();
-  const auto folder = MakeNode(workspace, std::nullopt,
-                               tab_tree::TreeNodeType::kFolder, u"Project", "a");
+  const auto folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
   const auto page = MakeNode(workspace, std::nullopt,
                              tab_tree::TreeNodeType::kSavedPage, u"After", "b");
   auto view = NewTreeView();
   auto* tree = view.get();
+  const auto height_container = BindHeightTestContainer(tree);
   auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
   widget->SetBounds(gfx::Rect(0, 0, 240, 320));
   widget->SetContentsView(std::move(view));
@@ -244,14 +268,15 @@ TEST_F(SidebarTreeViewTest,
   auto& model = controller_->view_model();
   ASSERT_TRUE(model.ResetWorkspace(workspace.id));
   ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder, page}));
-  ASSERT_TRUE(model.ReplaceChildren(folder.id,
-                                    MakeMotionChildren(workspace, folder)));
+  ASSERT_TRUE(
+      model.ReplaceChildren(folder.id, MakeMotionChildren(workspace, folder)));
   const gfx::Rect viewport(0, 0, 240, 320);
   tree->SynchronizeRowsForTesting(viewport);
   SettleTreeMotion(tree);
   ASSERT_TRUE(model.SetExpanded(folder.id, true));
   tree->SynchronizeRowsForTesting(viewport);
-  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 3);
+  AdvanceTreeMotion(tree, height_container.get(),
+                    visual_style::kTreeMotionDuration / 3);
   ASSERT_TRUE(tree->height_animation_for_testing()->is_animating());
   ASSERT_TRUE(tree->row_bounds_animation_running_for_testing());
   ASSERT_LT(tree->GetPreferredSize().height(),
@@ -281,8 +306,9 @@ TEST_F(SidebarTreeViewTest,
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
   const auto workspace = MakeWorkspace();
-  const auto folder = MakeNode(workspace, std::nullopt,
-                               tab_tree::TreeNodeType::kFolder, u"Project", "a");
+  const auto folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
   const auto page = MakeNode(workspace, std::nullopt,
                              tab_tree::TreeNodeType::kSavedPage, u"After", "b");
   const auto trailing_first =
@@ -299,7 +325,8 @@ TEST_F(SidebarTreeViewTest,
   auto scroll = std::make_unique<views::ScrollView>(
       views::ScrollView::ScrollWithLayers::kEnabled);
   auto* scroll_view = scroll.get();
-  scroll->SetHorizontalScrollBarMode(views::ScrollView::ScrollBarMode::kDisabled);
+  scroll->SetHorizontalScrollBarMode(
+      views::ScrollView::ScrollBarMode::kDisabled);
   scroll->SetVerticalScrollBarMode(
       views::ScrollView::ScrollBarMode::kHiddenButEnabled);
   scroll->SetContents(std::move(view));
@@ -314,8 +341,8 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_TRUE(model.ReplaceChildren(
       std::nullopt,
       {folder, page, trailing_first, trailing_second, trailing_third}));
-  ASSERT_TRUE(model.ReplaceChildren(folder.id,
-                                    MakeMotionChildren(workspace, folder)));
+  ASSERT_TRUE(
+      model.ReplaceChildren(folder.id, MakeMotionChildren(workspace, folder)));
   SettleTreeMotion(tree);
   views::test::RunScheduledLayout(widget.get());
   tree->SynchronizeRowsForTesting(scroll_view->GetVisibleRect());
@@ -357,8 +384,9 @@ TEST_F(SidebarTreeViewTest,
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
   const auto workspace = MakeWorkspace();
-  const auto folder = MakeNode(workspace, std::nullopt,
-                               tab_tree::TreeNodeType::kFolder, u"Project", "a");
+  const auto folder =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
+               u"Project", "a");
   const auto page = MakeNode(workspace, std::nullopt,
                              tab_tree::TreeNodeType::kSavedPage, u"After", "b");
   const auto trailing_first =
@@ -375,7 +403,8 @@ TEST_F(SidebarTreeViewTest,
   auto scroll = std::make_unique<views::ScrollView>(
       views::ScrollView::ScrollWithLayers::kEnabled);
   auto* scroll_view = scroll.get();
-  scroll->SetHorizontalScrollBarMode(views::ScrollView::ScrollBarMode::kDisabled);
+  scroll->SetHorizontalScrollBarMode(
+      views::ScrollView::ScrollBarMode::kDisabled);
   scroll->SetVerticalScrollBarMode(
       views::ScrollView::ScrollBarMode::kHiddenButEnabled);
   scroll->SetContents(std::move(view));
@@ -390,8 +419,8 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_TRUE(model.ReplaceChildren(
       std::nullopt,
       {folder, page, trailing_first, trailing_second, trailing_third}));
-  ASSERT_TRUE(model.ReplaceChildren(folder.id,
-                                    MakeMotionChildren(workspace, folder)));
+  ASSERT_TRUE(
+      model.ReplaceChildren(folder.id, MakeMotionChildren(workspace, folder)));
   SettleTreeMotion(tree);
   views::test::RunScheduledLayout(widget.get());
   RunPendingMessages();
@@ -446,6 +475,7 @@ TEST_F(SidebarTreeViewTest, FolderChildrenFoldSymmetricallyAndReopenInPlace) {
   const auto children = MakeMotionChildren(workspace, folder);
   auto view = NewTreeView();
   auto* tree = view.get();
+  const auto height_container = BindHeightTestContainer(tree);
   auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
   widget->SetBounds(gfx::Rect(0, 0, 240, 320));
   widget->SetContentsView(std::move(view));
@@ -468,7 +498,8 @@ TEST_F(SidebarTreeViewTest, FolderChildrenFoldSymmetricallyAndReopenInPlace) {
     EXPECT_EQ(0, row->height());
     rows.push_back(row);
   }
-  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 3);
+  AdvanceTreeMotion(tree, height_container.get(),
+                    visual_style::kTreeMotionDuration / 3);
   for (size_t i = 0; i < rows.size(); ++i) {
     EXPECT_GT(rows[i]->height(), 0);
     EXPECT_LT(rows[i]->height(), SidebarTreeRowView::kRowHeight);
@@ -495,7 +526,8 @@ TEST_F(SidebarTreeViewTest, FolderChildrenFoldSymmetricallyAndReopenInPlace) {
                          ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
     EXPECT_FALSE(rows[i]->OnMousePressed(press));
   }
-  AdvanceTreeMotion(tree, visual_style::kTreeMotionDuration / 3);
+  AdvanceTreeMotion(tree, height_container.get(),
+                    visual_style::kTreeMotionDuration / 3);
   const gfx::Rect intermediate = rows.front()->bounds();
   EXPECT_GT(intermediate.height(), 0);
   EXPECT_LT(intermediate.height(), SidebarTreeRowView::kRowHeight);
