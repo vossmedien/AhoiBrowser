@@ -36,6 +36,38 @@ cross-device Keychain bootstrap or Production transport. Use Mobile's checkpoint
 for its exact run/device/server evidence; do not relabel historical Workspace
 Library tests as Chromium bookmark or shared-normal-tab acceptance.
 
+## Next combined build / focused C++ test handoff
+
+Build the actual `ahoi_sync_unittests` executable with the next suitable guarded
+incremental package. A `runtime_deps` file alone is not a built/testable candidate.
+Do not restart the completed `3d413ef` build or give a test-execution handoff
+before a binary, exact source/build receipt and executable hash exist.
+
+These requested suites are present in the current source and must be retained
+in the focused run (verify discovery/nonzero matches on the actual executable):
+
+- `SyncWireV2Test.*`
+- `SyncPayloadCryptorTest.*`
+- `SyncStoreV3Test.*`
+- `SyncPumpTest.*`
+- `DeviceTabsServiceTest.*`
+- `TabTreeSyncAdapterTest.*`
+- `RemoteCommandSecurityTest.*`
+
+The new Mobile scenario has separate repositories, bridges and CKSyncEngines
+against a fresh real Development zone for bidirectional workspace/saved-page/tab
+changes, offline field merge, tombstones and privacy. Its Mac identity remains
+simulated; test design must not be reported as completed execution.
+
+Shared C++/Swift Workspace and SavedPage transcripts remain a specific missing
+gate. Existing domain tests and Tab/AES/Ed25519 golden contracts do not close it.
+After the shared field/version handoff, both actual language implementations
+must consume one version-bound fixture for wire/state expectations, including
+both directions, offline field edits and delayed records after deletion. Do not
+create independent duplicated goldens or alter shared schema/clock semantics
+while the bookmark owner holds those files. Mobile keeps its Swift/test ownership;
+Desktop owns C++ build integration and the candidate-bound execution handoff.
+
 The isolated desktop UI slot was subsequently returned by the bookmark owner
 after the same native-pipe failure; see the current Desktop checkpoint. A Mobile
 test host running on My Mac with the same bundle identifier still requires an
