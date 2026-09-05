@@ -43,8 +43,13 @@ Desktop explicitly accepted all native packages A-D in `59a0378`, detailed in
 `docs/SHARED_TAB_NATIVE_SEAMS.md`: target-type alias, SessionBridge/TabTree
 identity and persistence, adapter projection, sidebar capture/close. No native
 files are delegated back. Common test files/GN need separate exact coordination.
-Implementation awaits the unified owner's committed common-header/seam handoff,
-not another conceptual format or ownership ACK. Baseline compiler work is separate.
+Native A is now unblocked by the explicitly delivered `5885d01` five-file
+common code handoff: shared target/capture/state types, default-false UI bridge
+and isolated GN `shared_tab_types` leaf. Coordinator inspected the full manifest,
+headers and dependencies; no writer/model/store changes. Desktop has the exact
+code/dependency handoff for its alias; no further A format/ownership ACK needed.
+B-D still await the actual service/getter/capture/backend implementation handoff;
+these interfaces alone are not working native behavior. Baseline work is separate.
 
 ## Current evidence boundary
 
@@ -68,6 +73,10 @@ not another conceptual format or ownership ACK. Baseline compiler work is separa
   overlay verification, logging to
   `artifacts/build/desktop-fixture-92694fe-20260905/build.log`.
   Work has resumed; a terminal build result/new candidate is not yet proved.
+- Desktop's later checkpoint binds this to overlay `60701` EXIT 0 and live
+  full-target Dev session `17302` on the unchanged clean `92694fe` snapshot.
+  Coordinator read the current hook-verification output; no completion/test or
+  install pass is inferred. New unified/header changes stay outside this baseline.
 - Minor convention follow-up: the read 92694fe commit body lacked a DCO trailer.
   Sync was asked for a traceable attestation without silently rewriting published
   history (`01a072e3-bcd5-7b03-9dfb-3e114c1f26b7`). This is separate from whether
