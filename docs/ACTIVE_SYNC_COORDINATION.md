@@ -18,6 +18,27 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 `01a07314-fafd-7a91-a437-86af1e577625`, Sync in
 `01a07314-fcdd-7831-a259-ca32ec9a6e0e`. No ACK loop requested.
 
+## Latest material readback — 20:23 UTC
+
+- The user confirmed scope additions made directly in both owner sessions.
+  Desktop owns workspace-local cookie/session isolation after its current
+  package; Sync owns eligible Chrome settings and extension restoration/settings.
+  Cookies/passwords/secrets remain local; no raw profile/extension-store copying.
+  See the scope addition in the coordination prompt. Existing ownership stands;
+  neither addition widens the already frozen startup correction.
+- Startup correction `c986090d99c22318aef4d45378208cece6878d27` is built and
+  installed. Coordinator read the completion/install logs and receipt
+  `artifacts/install/ahoi-dev-c986090-20260905T201925Z.json`, then independently
+  matched the installed plist and executable SHA256
+  `dbd2c25bb8e22af6cd2424db7fa967972fa19f178031fde8c269eac2925c9cc5`.
+  This supersedes installed926 below; visible startup acceptance is still
+  pending, not inferred from the build. Desktop retains UI/runtime ownership.
+- Sync continuation is `docs/UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md`
+  (`3e9552f`): actual common service/capture and Mobile live binding remain next.
+  Swift canonical-Golden assertions are now written but unexecuted; optional
+  assertion expansion remains deferred. The same signed commit supplies the
+  requested DCO follow-up without rewriting published history.
+
 ## Assignment and current acknowledgments
 
 The user explicitly approved one unified Sync implementation owner while the

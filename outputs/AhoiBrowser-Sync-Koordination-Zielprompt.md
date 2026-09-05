@@ -38,6 +38,29 @@ consent/account/key isolation, local-only private/cookie/login state, stable
 logical TreeNode IDs, separate presence/runtime IDs, immutable TreeNode creation
 time and honest creation provenance. A writer-constant bump is not integration.
 
+## Authorized scope additions — 2026-09-05 20:08/20:12 UTC
+
+The user's direct instructions in both owner sessions, confirmed to the
+coordinator, extend the product scope without changing ownership or reopening
+the current startup-fix candidate:
+
+- Desktop implements local workspace-specific cookies/site sessions after its
+  current package. History, passwords and extensions remain global by default;
+  workspace-specific toolbar pins may be added. Use an explicit native
+  BrowserContext/storage design, not custom credential handling.
+- Sync implements eligible Chrome settings and extension restoration on linked
+  Macs, including safely portable extension settings where supported. Mobile
+  receives only supported equivalents, not Chromium extension execution.
+- Cookies, passwords, login tokens, secrets and machine-local paths remain
+  excluded. Do not copy whole profiles, Preferences files or extension stores;
+  use native restoration and trusted extension sources with explicit eligibility.
+- The original 13-class manifest is a baseline, not a prohibition on this newly
+  authorized scope. The Sync owner evolves the single shared contract where
+  necessary and coordinates native settings/workspace metadata with Desktop.
+
+Finish working integration and representative E2E, not a new exhaustive test
+matrix. Existing runtime, CPU, privacy and non-destructive boundaries remain.
+
 ## Roles
 
 - Sync implementation/integration owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
