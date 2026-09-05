@@ -24,6 +24,8 @@ class Statement;
 
 namespace ahoi::sync {
 
+class BookmarkSyncJournal;
+
 class SyncStoreObserver : public base::CheckedObserver {
  public:
   ~SyncStoreObserver() override = default;
@@ -48,7 +50,8 @@ class SyncStore {
     kDatabaseError,
   };
 
-  static constexpr int kCurrentSchemaVersion = 4;
+  static constexpr int kCurrentSchemaVersion =
+      ::ahoi::sync::kCurrentSchemaVersion;
   static constexpr int kLowestSupportedSchemaVersion = 1;
 
   SyncStore();
@@ -84,8 +87,10 @@ class SyncStore {
   [[nodiscard]] Result GetRemoteTabs(
       std::vector<RemoteTabRecord>* records) const;
 
+  // Category filtering happens before the limit and never changes queued rows.
   [[nodiscard]] Result ReadOutbox(size_t limit,
-                                  std::vector<SyncChange>* changes) const;
+                                  std::vector<SyncChange>* changes,
+                                  bool include_bookmarks = true) const;
   [[nodiscard]] Result AcknowledgeOutbox(
       const std::vector<std::string>& mutation_ids);
   // Rebuilds transport work without changing the canonical records. Passing
@@ -120,6 +125,8 @@ class SyncStore {
                                             base::Time now);
 
  private:
+  friend class BookmarkSyncJournal;
+
   struct StoredRecord {
     SyncRecord record;
     std::string payload;

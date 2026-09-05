@@ -11,6 +11,7 @@ namespace ahoi::sync {
 
 void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterBooleanPref(kSyncEnabledPref, false);
+  registry->RegisterBooleanPref(kBookmarkSyncEnabledPref, false);
   registry->RegisterStringPref(kDeviceIdPref, std::string());
   registry->RegisterStringPref(kDeviceDisplayNamePref, std::string());
   registry->RegisterIntegerPref(kHistoryRetentionDaysPref, 90);

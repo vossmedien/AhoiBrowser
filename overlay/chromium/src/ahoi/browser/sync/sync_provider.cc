@@ -5,6 +5,12 @@
 
 namespace ahoi::sync {
 
+void SyncProvider::SetBookmarkSyncEnabled(bool enabled) {}
+
+bool SyncProvider::IsBookmarkConsentRevoked() {
+  return false;
+}
+
 bool SyncProvider::IsAccountTransitionPending() {
   return false;
 }

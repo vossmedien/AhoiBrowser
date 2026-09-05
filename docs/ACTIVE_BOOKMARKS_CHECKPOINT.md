@@ -15,6 +15,16 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
   No app was launched and no profile was changed. UI was explicitly returned
   to Desktop in `01a0709c-556c-70c1-b59b-17fb3d9cdc30`. Do not assume this thread
   still holds UI access. Checkout/build/install remain Desktop-owned.
+- Both temporary Bookmark UI and Mobile My-Mac windows were explicitly returned
+  and accepted by Desktop. No old slot remains reserved. Desktop owns app/UI,
+  checkout/out and build/sign/install. Its checkpoint at `e6a7e66` waits for this
+  source-freeze for one combined build; do not start a competing build or act on
+  delayed repetitions of earlier offers.
+- A further explicit UI offer was checked at 11:44 CEST: installed plist still
+  `3d413ef`, but a read-only CUA inventory again failed before app access with
+  the same native-pipe error. No app/profile/UI action followed. That offered
+  slot was explicitly returned as well; the newer Mobile runtime reservation
+  was not overridden. Do not retry merely for another delayed copy of the grant.
 - Under the documented technical-E2E exception, the already-built
   `SidebarBookmarkShelfViewTest.*` ran on `3d413ef`, one job, zero retries:
   **11/11 SUCCESS**, process exit 0, about six seconds. This is NOT visible E2E.
@@ -25,51 +35,75 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
   `fec00796a2518713367e4edb5f7b504b5e9877412e4d103aee71fc62bb2ac176`.
   The component runtime emitted an `ANGLESwapCGLLayer` duplicate-class warning;
   it did not fail these tests and is not a diagnosed cause of the screenshot.
+- Current test source has later commits `55187e8` and `192aad9`: all three
+  viewport/offset assertions now use `ScrollView::GetVisibleRect()` directly;
+  product anchors correctly retain `View::GetVisibleBounds()`. These commits
+  are after `3d413ef`, so the recorded 11/11 does not cover that refinement.
+  Rebuild only in the next coherent package and rerun the two affected focus/
+  overflow tests after its relevant visible journey (or a freshly documented
+  technical-E2E exception). No additional build/test ran for the refinement.
 
-### New shared-bookmark implementation: owned, uncommitted, not compiled
+### Native shared-bookmark package: source freeze, no compiled acceptance
 
-The bookmark owner is editing common C++ sync model, codec, field merge,
-validation, SQLite schema/store, provider type mapping, backend snapshot, GN,
-`config/sync-policy.json`, ADR 0006 and the shared golden fixture. Do not stage
-or overwrite these in another thread. No shared-checkout refresh was performed.
+The Bookmark owner owns common C++ sync model/codec/merge/SQLite/provider,
+native BookmarkModel adapter and identity journal, explicit consent UI, GN,
+`config/sync-policy.json`, ADR 0006/0008 and canonical goldens. This bounded
+package is being frozen as compile-candidate source, NOT a tested feature or
+release. No shared-checkout refresh, build, behavior test, app launch or install
+was performed by this source wave. The installed plist was freshly read as
+`3d413ef`; it contains none of the new adapter/consent implementation.
 
-Current source has Bookmark entity `11`, a separate record/atomic location,
-iterative graph validation, wire-v2 codec, schema `4 -> 5` migration and backend
-snapshot projection. `SyncStore` now aliases the global schema constant instead
-of shadowing it with a second literal. Local writes now enforce the already
-declared immutable-field policy, matching remote merge behavior. The codec
-helper extracted existing common serialization helpers without a second clock
-implementation. All edited modules remain below 800 lines at the latest count.
+Current source has Bookmark entity 11, atomic location, iterative graph
+validation, wire-v2 codec and transactionally migrated SQLite schema 5. The
+native adapter uses storage-qualified identities and pre-apply receipts in the
+existing SyncStore. Native MetaInfo is checked against that ledger and logical
+identity; copied tokens do not grant identity. Baseline/receipt/session separation
+protects local edits when an in-memory native apply has not reached Chromium's
+JSON save. Pre-move keys, move-then-delete, explicit Undo/new identity, subtree
+deletion and account detachment have focused regression source.
 
-There are 28 newly written codec/golden/model/store tests, none compiled or run.
-GN includes their sources and the canonical fixture. The native BookmarkModel
-adapter, crash-safe first-bind/clone/move identity reconciliation, opt-in UI and
-Mobile bookmark projection are still unimplemented. MetaInfo alone is not a
-trusted identity ledger: it is cloned and saved asynchronously. Preserve this
-boundary in the adapter implementation; do not assign fresh IDs blindly.
+Category approval is local/default-off and separate from global Sync. It guards
+native seeding, outbox dispatch and CloudKit inbox decryption/recovery; revocation
+retains opaque data and pending work rather than fake-acking. Account changes
+invalidate prior approval. Existing engine/container/crypto stay authoritative.
+The control distinguishes approval from readiness and shows reconciliation
+failure. Unsupported local content pauses Bookmark reconciliation without
+exporting credentials, rewriting native data, or replacing a failed local
+mutation with an older projection. Other categories remain independent; this
+conservative pause is not a partial-sync success.
 
-Mobile's new shared-normal-tab contract in ADR 0007 also needs common wire-v3
-changes. Its local session bindings are Mobile-owned. The bookmark owner has
-requested a combined field/version handoff in `01a0709c-55d0-7ef2-992c-ef36a31cd4e5`:
-do not independently alter shared C++ seams or silently extend wire-v2. Existing
-bookmark-v2 payloads must remain readable after a global version increase.
-The bookmark fields/golden fixture were sent in `01a07087-d324-7400-a943-c7c1565811ec`.
-Swift wire/domain ownership has now been explicitly assigned to Mobile for both
-ADR 0006/0007; C++ common seams remain here, while `tab_tree_sync_adapter.{h,cc}`
-is assigned to Desktop. The combined technical contract and deterministic Inbox
-IDs are in `docs/decisions/0008-sync-wire-v3-coordination.md`. Mobile/Native
-acknowledgment of capability bootstrap, legacy-clock/provenance handling and
-nonportable-tab representation remains open. Do not infer agreement or an
-implementation start from a queued message. The shared Bookmark golden fixture
-now uses UUID clock-device strings required by the real Swift wire decoder;
-its earlier descriptive device alias was not cross-client-decodable.
+Independent source review found a real double-owner BubbleDialogModelHost bug;
+the Widget is now its sole owner. All 95 new sync tests are source-only,
+including 14 native adapter cases. Three additional Views/TestingProfile popup
+tests cover Cancel/reopen, owner teardown and category-only approval, also NOT
+RUN. No count here is a test pass. File/test handoff and remaining
+risks: `docs/audit-evidence/2026-09-05-native-bookmark-sync-source.md`.
 
-Next: finish the combined wire-version agreement; integrate the native adapter
-and coordinated Mobile implementation. Use the existing installed candidate for
-the missing visible shelf journey when Computer Use recovers. Build new source
-only after checkout/build handoff and a fresh CPU/disk gate. Actual Chromium
-roll, shared collection roundtrip, folder-motion/rendering acceptance and final
-commit/push remain open. Android was a future-options question, not a new build.
+Matching Mobile Bookmark source `313e3518c1d6daa8ee4d6a3ae25a01ec99a0d39b`,
+DebugLocal 0.1 (15), has separate candidate-bound visible acceptance 1/1; then
+70 Core passes / 2 entitlement skips, 36 shared Swift and 2 event-contract passes.
+See Mobile's checkpoint and canonical receipts. This does not prove native
+Chromium roundtrip, real cross-device keys or Production. Bookmark Golden
+`ae38ed7` uses valid UUID device strings and raw positive Int64 Windows-epoch
+creation metadata, including pre-1970 values; wire-v2 stays unchanged.
+
+ADR 0007 shared-normal-tab Swift remains Mobile-owned. Native Tree/Session/
+`tab_tree_sync_adapter` remains Desktop-owned. Common C++ v3 implementation is
+still future work; no global v3 writer is enabled. ADR 0008 and the canonical
+`shared_tab_wire_v3_contract.json` are frozen in `09cae9f`: v2 Capability12,
+exact maps/IDs, conservative verified-peer gate, legacy absence/Bottom sentinel,
+and atomic web/new-tab/local-only target metadata. The fixture is a contract,
+not executed C++/Swift or live activation evidence. Mobile/Desktop handoffs:
+`01a07159-6d94-7ab3-bd9b-cb56c1606056` and
+`01a07159-6dfd-7391-8672-c20aedc8453f`.
+
+Next: hand the exact committed Bookmark package to Desktop for its single guarded
+combined build, including `ahoi_sync_unittests` and shelf/control tests. Visible
+Bookmark E2E needs that exact runnable candidate and a fresh explicit UI handoff;
+only a freshly established technical E2E gate permits independent programmatic
+checks without visible acceptance. Actual Chromium roll, shared collection
+roundtrip, folder-motion/rendering acceptance and final tested delivery remain
+open. Android was a future-options question, not a new build.
 
 ## Earlier coordination (historical)
 

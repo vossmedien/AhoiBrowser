@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
 #include "ahoi/browser/sync/remote_command_security.h"
@@ -38,7 +39,8 @@ class ProfileSyncBackend {
                      base::Uuid session_id,
                      std::string device_name,
                      bool transport_enabled,
-                     int history_retention_days);
+                     int history_retention_days,
+                     bool bookmark_sync_enabled = false);
   ProfileSyncBackend(const ProfileSyncBackend&) = delete;
   ProfileSyncBackend& operator=(const ProfileSyncBackend&) = delete;
   ~ProfileSyncBackend();
@@ -79,6 +81,11 @@ class ProfileSyncBackend {
       std::vector<ExtensionInventoryRecord> records);
   std::optional<SyncStateSnapshot> UpsertDeveloperAsset(
       DeveloperAssetRecord record);
+  std::optional<SyncStateSnapshot> SetBookmarkSyncEnabled(bool enabled);
+  std::optional<BookmarkSyncProjection> MergeLocalBookmarks(
+      NativeBookmarkSnapshot snapshot);
+  std::optional<BookmarkSyncProjection> ReadBookmarkProjection();
+  bool AcknowledgeNativeBookmarks(NativeBookmarkSnapshot snapshot);
 
   void SyncNow(
       base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback);
@@ -109,6 +116,7 @@ class ProfileSyncBackend {
   const base::Uuid session_id_;
   const std::string device_name_;
   bool transport_enabled_ = false;
+  bool bookmark_sync_enabled_ = false;
   int history_retention_days_ = 90;
   base::Time last_retention_run_;
   HybridLogicalClock clock_;

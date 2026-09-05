@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "ahoi/browser/sync/history_sync_filter.h"
+#include "ahoi/browser/sync/native_bookmark_sync_adapter.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/sync_policy.h"
@@ -84,6 +85,7 @@ ProfileSyncService::ProfileSyncService(Profile* profile)
       base::BindRepeating(&ProfileSyncService::OnRemoteControlPolicyPrefChanged,
                           weak_ptr_factory_.GetWeakPtr()));
   InitializeProductSync();
+  InitializeBookmarkSync();
   if (history_service_) {
     history_service_->AddObserver(this);
   }
@@ -117,7 +119,8 @@ void ProfileSyncService::StartBackend() {
       profile_->GetPath().AppendASCII("Ahoi Sync").AppendASCII("sync.sqlite"),
       local_device_id_, local_session_id_, DeviceDisplayName(*profile_),
       /*transport_enabled=*/true,
-      profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref));
+      profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref),
+      bookmark_sync_enabled());
   backend_.AsyncCall(&ProfileSyncBackend::Initialize)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
                            backend_weak_ptr_factory_.GetWeakPtr()));
@@ -135,6 +138,7 @@ void ProfileSyncService::StartBackend() {
 }
 
 void ProfileSyncService::StopBackend() {
+  StopBookmarkSync();
   publish_timer_.Stop();
   sync_timer_.Stop();
   history_task_tracker_.TryCancelAll();
@@ -371,6 +375,7 @@ void ProfileSyncService::Shutdown() {
   }
   history_service_ = nullptr;
   ShutdownProductSync();
+  StopBookmarkSync();
   ui_bridge_.reset();
   ui_bridge_attachment_count_ = 0;
   profile_ = nullptr;
@@ -511,6 +516,11 @@ void ProfileSyncService::OnBackendState(
   initialized_ = true;
   const bool transport_changed = transport_status_ != state->transport;
   transport_status_ = state->transport;
+  if ((transport_status_.account_transition_pending ||
+       transport_status_.bookmark_consent_revoked) &&
+      bookmark_sync_enabled()) {
+    SetBookmarkSyncEnabled(false);
+  }
   if (profile_->GetPrefs()->GetBoolean(kRemoteControlEnabledPref) &&
       remote_control_prerequisite() != RemoteControlPrerequisite::kReady) {
     profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, false);
@@ -606,6 +616,7 @@ void ProfileSyncService::ApplyDomainState(const SyncStateSnapshot& state) {
   }
   ApplyRemoteHistory(state.history);
   ApplyProductState(state);
+  RefreshBookmarkProjection();
 }
 
 RemoteCommandPolicy ProfileSyncService::CurrentRemoteCommandPolicy() const {
@@ -700,6 +711,7 @@ void ProfileSyncService::CompleteRemoteCommand(
 }
 
 void ProfileSyncService::NotifyObservers() {
+  bookmark_status_callbacks_.Notify();
   for (Observer& observer : observers_) {
     observer.OnAhoiDeviceTabsChanged(snapshot_);
     observer.OnAhoiSyncStatusChanged(transport_status_);

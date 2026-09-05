@@ -21,10 +21,14 @@ namespace {
 std::string SafeProviderError(std::string error) {
   // Provider implementations return categories, never raw CKError text or
   // payloads. Fail closed if a future provider violates that boundary.
-  static constexpr const char* kAllowedErrors[] = {
-      "account_unavailable", "cancelled",      "network",
-      "provider_error",      "quota",          "rate_limited",
-      "server",              "temporarily_unavailable"};
+  static constexpr const char* kAllowedErrors[] = {"account_unavailable",
+                                                   "cancelled",
+                                                   "network",
+                                                   "provider_error",
+                                                   "quota",
+                                                   "rate_limited",
+                                                   "server",
+                                                   "temporarily_unavailable"};
   base::TrimWhitespaceASCII(error, base::TRIM_ALL, &error);
   for (const char* allowed : kAllowedErrors) {
     if (error == allowed) {
@@ -39,9 +43,7 @@ std::string SafeProviderError(std::string error) {
 SyncPump::SyncPump(SyncStore* store, SyncProvider* provider)
     : SyncPump(store, provider, Options()) {}
 
-SyncPump::SyncPump(SyncStore* store,
-                   SyncProvider* provider,
-                   Options options)
+SyncPump::SyncPump(SyncStore* store, SyncProvider* provider, Options options)
     : store_(store),
       provider_(provider),
       options_(std::move(options)),
@@ -51,6 +53,9 @@ SyncPump::SyncPump(SyncStore* store,
   CHECK_GT(options_.upload_batch_size, 0u);
   CHECK_GT(options_.initial_retry_delay, base::TimeDelta());
   CHECK_GE(options_.maximum_retry_delay, options_.initial_retry_delay);
+  bookmark_sync_enabled_ =
+      options_.bookmark_sync_enabled && !provider_->IsBookmarkConsentRevoked();
+  provider_->SetBookmarkSyncEnabled(bookmark_sync_enabled_);
 }
 
 SyncPump::~SyncPump() {
@@ -80,6 +85,20 @@ void SyncPump::Cancel() {
   RunCallbacks(false, "cancelled");
 }
 
+void SyncPump::SetBookmarkSyncEnabled(bool enabled) {
+  if (bookmark_sync_enabled_ == enabled) {
+    provider_->SetBookmarkSyncEnabled(enabled);
+    return;
+  }
+  bookmark_sync_enabled_ = enabled;
+  // Invalidate first: a provider may finish old work while applying the gate.
+  weak_ptr_factory_.InvalidateWeakPtrs();
+  syncing_ = false;
+  cycle_requested_ = false;
+  provider_->SetBookmarkSyncEnabled(enabled);
+  RunCallbacks(false, "cancelled");
+}
+
 void SyncPump::StartCycle() {
   cycle_requested_ = false;
   const RetryState retry = store_->GetRetryState();
@@ -93,8 +112,8 @@ void SyncPump::StartCycle() {
 
 void SyncPump::UploadNextPage() {
   std::vector<SyncChange> changes;
-  if (store_->ReadOutbox(options_.upload_batch_size, &changes) !=
-      SyncStore::Result::kOk) {
+  if (store_->ReadOutbox(options_.upload_batch_size, &changes,
+                         bookmark_sync_enabled_) != SyncStore::Result::kOk) {
     FinishFailure("provider_error");
     return;
   }
@@ -106,18 +125,16 @@ void SyncPump::UploadNextPage() {
   std::vector<SyncChange> attempted = changes;
   provider_->Upload(
       std::move(changes),
-      base::BindPostTask(
-          task_runner_,
-          base::BindOnce(&SyncPump::OnUploadFinished,
-                         weak_ptr_factory_.GetWeakPtr(),
-                         std::move(attempted))));
+      base::BindPostTask(task_runner_,
+                         base::BindOnce(&SyncPump::OnUploadFinished,
+                                        weak_ptr_factory_.GetWeakPtr(),
+                                        std::move(attempted))));
 }
 
-void SyncPump::OnUploadFinished(
-    std::vector<SyncChange> attempted,
-    bool success,
-    std::vector<std::string> acknowledged_ids,
-    std::string error) {
+void SyncPump::OnUploadFinished(std::vector<SyncChange> attempted,
+                                bool success,
+                                std::vector<std::string> acknowledged_ids,
+                                std::string error) {
   if (!success) {
     FinishFailure(SafeProviderError(std::move(error)));
     return;
@@ -141,8 +158,7 @@ void SyncPump::OnUploadFinished(
 
   acknowledged_ids.assign(unique_acknowledgements.begin(),
                           unique_acknowledgements.end());
-  if (store_->AcknowledgeOutbox(acknowledged_ids) !=
-      SyncStore::Result::kOk) {
+  if (store_->AcknowledgeOutbox(acknowledged_ids) != SyncStore::Result::kOk) {
     FinishFailure("provider_error");
     return;
   }
@@ -167,6 +183,15 @@ void SyncPump::OnDownloadFinished(std::string requested_token,
     return;
   }
   if (batch.has_more && batch.next_change_token == requested_token) {
+    FinishFailure("provider_error");
+    return;
+  }
+  if (!bookmark_sync_enabled_ &&
+      std::ranges::any_of(batch.changes, [](const SyncChange& change) {
+        return change.entity_type == EntityType::kBookmark;
+      })) {
+    // A provider that ignored category consent must not hydrate the store or
+    // advance its token past records it failed to retain safely.
     FinishFailure("provider_error");
     return;
   }
@@ -202,8 +227,8 @@ void SyncPump::FinishFailure(std::string error) {
 base::TimeDelta SyncPump::NextRetryDelay() const {
   base::TimeDelta delay = options_.initial_retry_delay;
   const int attempts = std::max(0, store_->GetRetryState().attempt);
-  for (int index = 0;
-       index < attempts && delay < options_.maximum_retry_delay; ++index) {
+  for (int index = 0; index < attempts && delay < options_.maximum_retry_delay;
+       ++index) {
     delay = std::min(delay * 2, options_.maximum_retry_delay);
   }
   return delay;

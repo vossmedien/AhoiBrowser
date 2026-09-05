@@ -31,6 +31,13 @@ source_set("profile_sync_ui_bridge") {
 
 source_set("sync") {
   sources = [
+    "bookmark_sync_bridge_types.cc",
+    "bookmark_sync_bridge_types.h",
+    "bookmark_sync_journal.cc",
+    "bookmark_sync_journal.h",
+    "bookmark_sync_journal_receipts.cc",
+    "bookmark_sync_serialization.cc",
+    "bookmark_sync_serialization.h",
     "cloudkit_sync_quarantine.cc",
     "cloudkit_sync_quarantine.h",
     "device_tabs_service.cc",
@@ -54,6 +61,8 @@ source_set("sync") {
     "sync_pump.h",
     "sync_serialization.cc",
     "sync_serialization.h",
+    "sync_serialization_internal.cc",
+    "sync_serialization_internal.h",
     "sync_store.cc",
     "sync_store.h",
     "sync_store_maintenance.cc",
@@ -79,8 +88,10 @@ source_set("sync") {
       "cloudkit_sync_configuration_mac.h",
       "cloudkit_sync_configuration_mac.mm",
       "cloudkit_sync_provider_mac.h",
-      "cloudkit_sync_provider_mac_internal.h",
       "cloudkit_sync_provider_mac.mm",
+      "cloudkit_sync_provider_mac_consent.mm",
+      "cloudkit_sync_provider_mac_internal.h",
+      "cloudkit_sync_provider_mac_persistence.mm",
       "cloudkit_sync_record_codec_mac.h",
       "cloudkit_sync_record_codec_mac.mm",
       "cloudkit_sync_util_mac.h",
@@ -98,13 +109,18 @@ source_set("sync") {
 
 source_set("profile_sync_service") {
   sources = [
+    "native_bookmark_sync_adapter.cc",
+    "native_bookmark_sync_adapter.h",
+    "native_bookmark_sync_apply.cc",
     "profile_sync_backend.cc",
     "profile_sync_backend.h",
+    "profile_sync_backend_bookmarks.cc",
     "profile_sync_service.cc",
     "profile_sync_service.h",
-    "profile_sync_service_history.cc",
+    "profile_sync_service_bookmarks.cc",
     "profile_sync_service_factory.cc",
     "profile_sync_service_factory.h",
+    "profile_sync_service_history.cc",
     "profile_sync_service_product.cc",
     "profile_sync_types.h",
     "sync_product_settings.cc",
@@ -122,9 +138,11 @@ source_set("profile_sync_service") {
     ":profile_sync_preferences",
     "//ahoi/browser/tab_tree",
     "//ahoi/browser/ui/appearance:appearance_preferences",
+    "//chrome/browser/bookmarks",
     "//chrome/browser/history",
     "//chrome/browser/themes",
     "//chrome/common",
+    "//components/bookmarks/browser",
     "//components/history/core/browser",
     "//components/keyed_service/content",
     "//components/prefs",
@@ -140,14 +158,27 @@ source_set("profile_sync_service") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "bookmark_profile_consent_unittest.cc",
+    "bookmark_sync_bridge_types_unittest.cc",
+    "bookmark_sync_consent_unittest.cc",
+    "bookmark_sync_journal_unittest.cc",
+    "bookmark_sync_model_unittest.cc",
+    "bookmark_sync_recovery_unittest.cc",
+    "bookmark_sync_serialization_unittest.cc",
+    "bookmark_sync_store_unittest.cc",
+    "native_bookmark_sync_adapter_unittest.cc",
     "profile_sync_service_unittest.cc",
     "sync_convergence_unittest.cc",
     "sync_product_settings_unittest.cc",
     "sync_security_tree_unittest.cc",
     "sync_unittest.cc",
   ]
+  data = [ "testdata/bookmark_wire_v2.json" ]
   if (is_mac) {
-    sources += [ "cloudkit_sync_provider_mac_unittest.cc" ]
+    sources += [
+      "cloudkit_bookmark_sync_consent_unittest.mm",
+      "cloudkit_sync_provider_mac_unittest.cc",
+    ]
   }
   deps = [
     ":profile_sync_preferences",
@@ -155,7 +186,9 @@ source_set("unit_tests") {
     ":sync",
     "//ahoi/browser/ui/appearance:appearance_preferences",
     "//base/test:test_support",
+    "//chrome/browser/bookmarks",
     "//chrome/test:test_support",
+    "//components/bookmarks/test",
     "//components/history/core/browser",
     "//components/prefs",
     "//components/sync_preferences:test_support",

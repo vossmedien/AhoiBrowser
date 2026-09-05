@@ -22,7 +22,9 @@ namespace ahoi::sync {
 // describe storage, while this version is part of a record exchanged with an
 // iOS client or another desktop build.
 inline constexpr int kCurrentModelVersion = 2;
-inline constexpr int kCurrentSchemaVersion = 4;
+// Bookmark authoring is deliberately not coupled to future tab read support.
+inline constexpr int kBookmarkWireModelVersion = 2;
+inline constexpr int kCurrentSchemaVersion = 5;
 
 enum class DeviceType {
   kMacDesktop = 0,
@@ -43,6 +45,7 @@ enum class EntityType {
   kPermittedSetting = 8,
   kExtensionInventory = 9,
   kDeveloperAsset = 10,
+  kBookmark = 11,
 };
 
 enum class ChangeKind {
@@ -337,6 +340,41 @@ struct DeveloperAssetRecord {
                          const DeveloperAssetRecord&) = default;
 };
 
+enum class BookmarkKind {
+  kFolder = 0,
+  kUrl = 1,
+};
+
+enum class BookmarkRoot {
+  kBookmarkBar = 0,
+  kOther = 1,
+  kMobile = 2,
+};
+
+// One logical bookmark identity, independent from a workspace, native numeric
+// Node ID or Local/Account storage. The native adapter owns that local mapping.
+// Exactly one of root_kind/parent_id is set: root_kind attaches a top-level
+// entry to a permanent native root; descendants inherit their root through
+// their parent. A folder move therefore never rewrites its whole subtree.
+// Location (root_kind, parent_id, sort_key) is one atomic merge field.
+struct BookmarkRecord {
+  int model_version = kBookmarkWireModelVersion;
+  base::Uuid id;
+  BookmarkKind kind = BookmarkKind::kFolder;
+  std::optional<BookmarkRoot> root_kind;
+  std::optional<base::Uuid> parent_id;
+  std::string sort_key;
+  std::string title;
+  std::string url;
+  base::Time created_at;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+
+  friend bool operator==(const BookmarkRecord&,
+                         const BookmarkRecord&) = default;
+};
+
 // Deletions are retained separately from the materialized record payload so a
 // provider can carry a delete after the last visible copy has been compacted.
 // The SQLite store mirrors this value in `sync_tombstones` and keeps the full
@@ -362,7 +400,8 @@ using SyncRecord = std::variant<DeviceRecord,
                                 AppearanceRecord,
                                 PermittedSettingRecord,
                                 ExtensionInventoryRecord,
-                                DeveloperAssetRecord>;
+                                DeveloperAssetRecord,
+                                BookmarkRecord>;
 
 struct SyncChange {
   std::string mutation_id;
@@ -395,6 +434,7 @@ struct SyncTransportStatus {
   bool provider_available = false;
   bool account_transition_pending = false;
   bool zone_recovery_pending = false;
+  bool bookmark_consent_revoked = false;
   int pending_outbox = 0;
   RetryState retry;
 
@@ -429,6 +469,7 @@ struct SyncStateSnapshot {
   std::vector<PermittedSettingRecord> permitted_settings;
   std::vector<ExtensionInventoryRecord> extension_inventory;
   std::vector<DeveloperAssetRecord> developer_assets;
+  std::vector<BookmarkRecord> bookmarks;
 
   friend bool operator==(const SyncStateSnapshot&,
                          const SyncStateSnapshot&) = default;

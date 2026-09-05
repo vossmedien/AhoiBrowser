@@ -6,13 +6,14 @@
 #include <memory>
 
 #include "ahoi/browser/sync/profile_sync_service.h"
+#include "chrome/browser/bookmarks/bookmark_merged_surface_service_factory.h"
+#include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 
 namespace ahoi::sync {
 
-ProfileSyncService* ProfileSyncServiceFactory::GetForProfile(
-    Profile* profile) {
+ProfileSyncService* ProfileSyncServiceFactory::GetForProfile(Profile* profile) {
   if (!profile) {
     return nullptr;
   }
@@ -29,6 +30,8 @@ ProfileSyncServiceFactory::ProfileSyncServiceFactory()
     : ProfileKeyedServiceFactory("AhoiProfileSyncService",
                                  ProfileSelections::BuildForRegularProfile()) {
   DependsOn(HistoryServiceFactory::GetInstance());
+  DependsOn(BookmarkModelFactory::GetInstance());
+  DependsOn(BookmarkMergedSurfaceServiceFactory::GetInstance());
 }
 
 ProfileSyncServiceFactory::~ProfileSyncServiceFactory() = default;

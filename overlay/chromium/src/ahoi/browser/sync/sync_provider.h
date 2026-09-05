@@ -22,9 +22,8 @@ class SyncProvider {
       base::OnceCallback<void(bool success,
                               std::vector<std::string> acknowledged_ids,
                               std::string error)>;
-  using DownloadCallback =
-      base::OnceCallback<void(bool success, ProviderBatch batch,
-                              std::string error)>;
+  using DownloadCallback = base::OnceCallback<
+      void(bool success, ProviderBatch batch, std::string error)>;
 
   virtual ~SyncProvider() = default;
 
@@ -32,6 +31,12 @@ class SyncProvider {
                       UploadCallback callback) = 0;
   virtual void Download(std::string change_token,
                         DownloadCallback callback) = 0;
+  // Local category consent, additional to the caller's global sync gate.
+  // Providers must retain blocked remote bookmarks without
+  // decrypting/delivering them and recheck consent before delayed uploads.
+  // Never infer it from sync.
+  virtual void SetBookmarkSyncEnabled(bool enabled);
+  virtual bool IsBookmarkConsentRevoked();
   virtual bool IsAccountTransitionPending();
   virtual bool IsZoneRecoveryPending();
   virtual bool ConfirmAccountTransition(bool allow_local_upload);

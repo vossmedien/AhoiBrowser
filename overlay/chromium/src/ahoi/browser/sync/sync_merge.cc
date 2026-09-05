@@ -124,6 +124,38 @@ MergeDecision DecideMerge(const SyncVersion& existing_version,
                                               : MergeDecision::kInvalid;
 }
 
+bool ValidateBookmarkContent(BookmarkKind kind,
+                             const std::string& title,
+                             const std::string& url,
+                             base::Time created_at,
+                             std::string* error) {
+  if (kind < BookmarkKind::kFolder || kind > BookmarkKind::kUrl ||
+      created_at.is_null() ||
+      created_at.ToDeltaSinceWindowsEpoch().is_negative() ||
+      !ValidText(title, 64u * 1024u, true, "invalid bookmark title", error) ||
+      !ValidText(url, 128u * 1024u, kind == BookmarkKind::kFolder,
+                 "invalid bookmark url", error)) {
+    SetError("invalid bookmark content", error);
+    return false;
+  }
+  if (kind == BookmarkKind::kFolder) {
+    if (!url.empty()) {
+      SetError("bookmark folder contains url", error);
+      return false;
+    }
+    return true;
+  }
+  // Native schemes remain metadata, not a navigation instruction. Embedded
+  // credentials have no representation in sync; never sanitize them into a
+  // different bookmark or include the offending value in diagnostics.
+  const GURL parsed(url);
+  if (!parsed.is_valid() || parsed.has_username() || parsed.has_password()) {
+    SetError("invalid bookmark url", error);
+    return false;
+  }
+  return true;
+}
+
 bool ValidateRecord(const SyncRecord& record, std::string* error) {
   SyncRecord normalized = record;
   if (!NormalizeFieldVersions(&normalized, error)) {
@@ -274,6 +306,28 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
             return false;
           }
           return true;
+        } else if constexpr (std::is_same_v<T, BookmarkRecord>) {
+          if (value.model_version != kBookmarkWireModelVersion ||
+              value.kind < BookmarkKind::kFolder ||
+              value.kind > BookmarkKind::kUrl ||
+              value.root_kind.has_value() == value.parent_id.has_value() ||
+              (value.root_kind &&
+               (*value.root_kind < BookmarkRoot::kBookmarkBar ||
+                *value.root_kind > BookmarkRoot::kMobile)) ||
+              (value.parent_id && (!value.parent_id->is_valid() ||
+                                   *value.parent_id == value.id)) ||
+              !ValidText(value.sort_key, 1024u, false,
+                         "invalid bookmark order key", error) ||
+              !std::ranges::all_of(value.sort_key,
+                                   [](unsigned char value) {
+                                     return value >= 0x21 && value <= 0x7e;
+                                   }) ||
+              !ValidateBookmarkContent(value.kind, value.title, value.url,
+                                       value.created_at, error)) {
+            SetError("invalid bookmark", error);
+            return false;
+          }
+          return true;
         } else {
           static_assert(std::is_same_v<T, DeveloperAssetRecord>);
           if (value.kind < DeveloperAssetKind::kCss ||
@@ -361,6 +415,60 @@ bool ValidateTreeGraph(const std::vector<TreeNodeRecord>& nodes,
   for (const auto& [id, node] : active) {
     if (!visit(id)) {
       return false;
+    }
+  }
+  return true;
+}
+
+bool ValidateBookmarkGraph(const std::vector<BookmarkRecord>& records,
+                           std::string* error) {
+  std::unordered_map<base::Uuid, const BookmarkRecord*, base::UuidHash> nodes;
+  for (const auto& record : records) {
+    if (!ValidateRecord(record, error)) {
+      return false;
+    }
+    if (!nodes.emplace(record.id, &record).second) {
+      SetError("duplicate bookmark", error);
+      return false;
+    }
+  }
+  for (const auto& [id, node] : nodes) {
+    if (node->tombstone || !node->parent_id) {
+      continue;
+    }
+    const auto parent = nodes.find(*node->parent_id);
+    // Cloud pages may contain a child before its parent. Keep the record, but
+    // the native adapter must not materialize it until its full ancestry is
+    // available. A known URL can never become a parent by arrival order.
+    if (parent != nodes.end() &&
+        parent->second->kind != BookmarkKind::kFolder) {
+      SetError("bookmark parent is not a folder", error);
+      return false;
+    }
+  }
+
+  // Iterative traversal keeps deep bookmark hierarchies independent of the
+  // C++ call stack. Deleted/missing parents terminate a detached branch.
+  std::unordered_map<base::Uuid, uint8_t, base::UuidHash> colors;
+  for (const auto& [id, node] : nodes) {
+    if (node->tombstone || colors[id] == 2) {
+      continue;
+    }
+    std::vector<base::Uuid> path;
+    const BookmarkRecord* current = node;
+    while (current && !current->tombstone && colors[current->id] != 2) {
+      if (colors[current->id] == 1) {
+        SetError("bookmark cycle", error);
+        return false;
+      }
+      colors[current->id] = 1;
+      path.push_back(current->id);
+      const auto parent =
+          current->parent_id ? nodes.find(*current->parent_id) : nodes.end();
+      current = parent == nodes.end() ? nullptr : parent->second;
+    }
+    for (const auto& visited : path) {
+      colors[visited] = 2;
     }
   }
   return true;

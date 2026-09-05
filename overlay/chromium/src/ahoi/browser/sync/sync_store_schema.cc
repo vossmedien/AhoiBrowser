@@ -73,14 +73,51 @@ bool SyncStore::MigrateSchema(sql::MetaTable* meta_table) {
       return false;
     }
   }
+  // v5 adds a separate bookmark entity, never a workspace tree-node subtype.
+  // Copy every existing payload/version byte-for-byte in the same transaction
+  // as the schema change. Outbox, tombstones and deletion watermarks stay
+  // intact.
+  if (meta_table->GetVersionNumber() == 4) {
+    if (!db_.Execute(
+            "CREATE TABLE sync_records_v5("
+            "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 11),"
+            "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
+            "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT NULL,"
+            "version_physical INTEGER NOT NULL,version_logical INTEGER NOT "
+            "NULL,version_device TEXT NOT NULL,PRIMARY "
+            "KEY(entity_type,entity_id))") ||
+        !db_.Execute(
+            "INSERT INTO sync_records_v5 SELECT * FROM sync_records") ||
+        !db_.Execute("DROP TABLE sync_records") ||
+        !db_.Execute("ALTER TABLE sync_records_v5 RENAME TO sync_records") ||
+        !meta_table->SetVersionNumber(5)) {
+      return false;
+    }
+  }
   return meta_table->GetVersionNumber() == kCurrentSchemaVersion;
 }
 
 bool SyncStore::CreateSchema() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   return db_.Execute(
+             "CREATE TABLE IF NOT EXISTS sync_bookmark_bindings("
+             "native_key TEXT PRIMARY KEY NOT NULL,entity_id TEXT NOT NULL,"
+             "baseline TEXT NOT NULL,native_index INTEGER NOT NULL "
+             "CHECK(native_index>=0),materialized INTEGER NOT NULL "
+             "CHECK(materialized IN (0,1)),last_observed TEXT NOT NULL DEFAULT "
+             "'',"
+             "observed_receipt TEXT NOT NULL DEFAULT '',"
+             "observation_session TEXT NOT NULL DEFAULT '')") &&
+         db_.Execute(
+             "CREATE TABLE IF NOT EXISTS sync_bookmark_apply_receipts("
+             "receipt_id TEXT PRIMARY KEY NOT NULL,entity_id TEXT NOT NULL,"
+             "payload TEXT NOT NULL)") &&
+         db_.Execute(
+             "CREATE INDEX IF NOT EXISTS sync_bookmark_receipts_entity "
+             "ON sync_bookmark_apply_receipts(entity_id)") &&
+         db_.Execute(
              "CREATE TABLE IF NOT EXISTS sync_records("
-             "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 10),"
+             "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 11),"
              "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
              "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT "
              "NULL,"

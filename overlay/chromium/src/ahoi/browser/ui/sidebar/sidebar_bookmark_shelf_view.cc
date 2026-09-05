@@ -11,6 +11,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_button.h"
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_context_menu.h"
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_menu.h"
+#include "ahoi/browser/ui/sidebar/sidebar_bookmark_sync_control.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -164,6 +165,9 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
       /*folder=*/false);
   manager_button_ = manager.get();
   AddChildView(std::move(manager));
+  if (auto sync_control = CreateBookmarkSyncControl(browser_->GetProfile())) {
+    AddChildView(std::move(sync_control));
+  }
 
   bookmark_service_ = BookmarkMergedSurfaceServiceFactory::GetForProfile(
       browser_->GetProfile());

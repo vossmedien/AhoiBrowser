@@ -30,6 +30,7 @@ class SyncPump final {
     size_t upload_batch_size = 100;
     base::TimeDelta initial_retry_delay = base::Seconds(5);
     base::TimeDelta maximum_retry_delay = base::Hours(1);
+    bool bookmark_sync_enabled = false;
   };
 
   using CompletionCallback =
@@ -45,6 +46,9 @@ class SyncPump final {
   // completing callers. Returns false only when this object cannot start.
   bool SyncNow(CompletionCallback callback);
   void Cancel();
+  // Separate local approval, default off. A transition cancels old cycle
+  // callbacks without acknowledging or removing queued records.
+  void SetBookmarkSyncEnabled(bool enabled);
 
   bool syncing_for_testing() const { return syncing_; }
 
@@ -72,6 +76,7 @@ class SyncPump final {
   std::vector<CompletionCallback> callbacks_;
   bool syncing_ = false;
   bool cycle_requested_ = false;
+  bool bookmark_sync_enabled_ = false;
   base::WeakPtrFactory<SyncPump> weak_ptr_factory_{this};
 };
 

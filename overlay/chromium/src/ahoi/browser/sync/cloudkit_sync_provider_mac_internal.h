@@ -7,6 +7,7 @@
 #import <CloudKit/CloudKit.h>
 #import <Foundation/Foundation.h>
 
+#include <cstdint>
 #include <map>
 #include <set>
 #include <utility>
@@ -33,8 +34,8 @@ API_AVAILABLE(macos(14.0))
     (std::weak_ptr<ahoi::sync::CloudKitSyncProviderMac::Core>)core;
 - (void)invalidate;
 - (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core>)lockCore;
-- (void)completeUpload:(NSError*)error;
-- (void)completeDownload:(NSError*)error;
+- (void)completeUpload:(NSError*)error generation:(uint64_t)generation;
+- (void)completeDownload:(NSError*)error generation:(uint64_t)generation;
 @end
 namespace ahoi::sync {
 class CloudKitSyncProviderMac::Core
@@ -42,8 +43,17 @@ class CloudKitSyncProviderMac::Core
  public:
   Core(const CloudKitSyncConfigurationMac& configuration,
        base::FilePath state_path,
-       std::unique_ptr<SyncPayloadCryptor> cryptor);
+       std::unique_ptr<SyncPayloadCryptor> cryptor,
+       bool bookmark_sync_enabled);
   ~Core();
+  void SetBookmarkSyncEnabled(bool enabled);
+  void ReceiveRecordForTesting(CKRecord* record);
+  base::RepeatingCallback<bool()> MakeDelayedRecordDeliveryForTesting(
+      CKRecord* record);
+  void ReadCachedChangesForTesting(std::string token,
+                                   DownloadCallback callback);
+  void AccountChangedForTesting();
+  void LoadInboxForTesting();
 
   void Shutdown() {
     __strong CKSyncEngine* engine = nil;
@@ -84,8 +94,13 @@ class CloudKitSyncProviderMac::Core
                ownerName:CKCurrentUserDefaultName];
     delegate_core_ =
         [[AhoiCloudKitSyncDelegate alloc] initWithCore:weak_from_this()];
-    LoadInbox();
-    CKSyncEngineStateSerialization* state = LoadState();
+    CKSyncEngineStateSerialization* state;
+    {
+      base::AutoLock guard(lock_);
+      LoadInbox();
+      state = LoadState();
+      HydrateDeferredBookmarks();
+    }
     CKSyncEngineConfiguration* engine_configuration =
         [[CKSyncEngineConfiguration alloc] initWithDatabase:database
                                          stateSerialization:state
@@ -104,153 +119,10 @@ class CloudKitSyncProviderMac::Core
     }
     return engine_ != nil;
   }
-  void Upload(std::vector<SyncChange> changes, UploadCallback callback) {
-    {
-      base::AutoLock guard(lock_);
-      if (shutting_down_ || !engine_ || account_transition_pending_ ||
-          zone_recovery_pending_) {
-        std::move(callback).Run(false, {}, "account_unavailable");
-        return;
-      }
-    }
-    NSMutableArray<CKSyncEnginePendingRecordZoneChange*>* pending =
-        [NSMutableArray array];
-    for (SyncChange& change : changes) {
-      SyncRecord decoded;
-      if (!ValidateChangeEnvelope(change, &decoded)) {
-        std::move(callback).Run(false, {}, "provider_error");
-        return;
-      }
-      std::optional<std::string> sealed = cryptor_->Seal(change.payload);
-      if (!sealed) {
-        std::move(callback).Run(false, {}, "account_unavailable");
-        return;
-      }
-      CKRecordID* record_id = [[CKRecordID alloc]
-          initWithRecordName:ToNSString(change.entity_id.AsLowercaseString())
-                      zoneID:zone_id_];
-      CKRecord* record = Encode(change, *sealed, record_id);
-      if (!record) {
-        std::move(callback).Run(false, {}, "provider_error");
-        return;
-      }
-      const std::string key = change.entity_id.AsLowercaseString();
-      {
-        base::AutoLock guard(lock_);
-        pending_records_[key] = record;
-        pending_mutations_[key] = change.mutation_id;
-      }
-      [pending
-          addObject:
-              [[CKSyncEnginePendingRecordZoneChange alloc]
-                  initWithRecordID:record_id
-                              type:
-                                  CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]];
-    }
-    {
-      base::AutoLock guard(lock_);
-      upload_callback_ = std::move(callback);
-      upload_acknowledgements_.clear();
-      upload_error_.clear();
-    }
-    [engine_.state addPendingRecordZoneChanges:pending];
-    CKSyncEngineSendChangesScope* scope = [[CKSyncEngineSendChangesScope alloc]
-        initWithZoneIDs:[NSSet setWithObject:zone_id_]];
-    CKSyncEngineSendChangesOptions* options =
-        [[CKSyncEngineSendChangesOptions alloc] initWithScope:scope];
-    __weak AhoiCloudKitSyncDelegate* weak_delegate = delegate_core_;
-    [engine_ sendChangesWithOptions:options
-                  completionHandler:^(NSError* error) {
-                    AhoiCloudKitSyncDelegate* strong_delegate = weak_delegate;
-                    if (strong_delegate) {
-                      [strong_delegate completeUpload:error];
-                    }
-                  }];
-  }
-  void Download(std::string change_token, DownloadCallback callback) {
-    {
-      base::AutoLock guard(lock_);
-      if (shutting_down_ || !engine_ || account_transition_pending_ ||
-          zone_recovery_pending_) {
-        std::move(callback).Run(false, {}, "account_unavailable");
-        return;
-      }
-      AcknowledgeLastDelivery(change_token);
-      download_base_token_ = std::move(change_token);
-      download_callback_ = std::move(callback);
-      download_error_.clear();
-    }
-    CKSyncEngineFetchChangesScope* scope =
-        [[CKSyncEngineFetchChangesScope alloc]
-            initWithZoneIDs:[NSSet setWithObject:zone_id_]];
-    CKSyncEngineFetchChangesOptions* options =
-        [[CKSyncEngineFetchChangesOptions alloc] initWithScope:scope];
-    __weak AhoiCloudKitSyncDelegate* weak_delegate = delegate_core_;
-    [engine_ fetchChangesWithOptions:options
-                   completionHandler:^(NSError* error) {
-                     AhoiCloudKitSyncDelegate* strong_delegate = weak_delegate;
-                     if (strong_delegate) {
-                       [strong_delegate completeDownload:error];
-                     }
-                   }];
-  }
-  void CompleteUpload(NSError* error) {
-    UploadCallback callback;
-    std::string safe_error;
-    std::vector<std::string> acknowledged;
-    {
-      base::AutoLock guard(lock_);
-      if (shutting_down_) {
-        return;
-      }
-      callback = std::move(upload_callback_);
-      if (!callback) {
-        return;
-      }
-      safe_error =
-          !upload_error_.empty() ? upload_error_ : SafeCloudKitError(error);
-      acknowledged.assign(upload_acknowledgements_.begin(),
-                          upload_acknowledgements_.end());
-    }
-    owner_runner_->PostTask(
-        FROM_HERE, base::BindOnce(std::move(callback), safe_error.empty(),
-                                  std::move(acknowledged), safe_error));
-  }
-  void CompleteDownload(NSError* error) {
-    DownloadCallback callback;
-    std::string safe_error;
-    ProviderBatch batch;
-    {
-      base::AutoLock guard(lock_);
-      if (shutting_down_) {
-        return;
-      }
-      callback = std::move(download_callback_);
-      if (!callback) {
-        return;
-      }
-      safe_error =
-          !download_error_.empty() ? download_error_ : SafeCloudKitError(error);
-      if (safe_error.empty()) {
-        for (const auto& [id, change] : fetched_changes_) {
-          batch.changes.push_back(change);
-          last_delivery_mutations_[id] = change.mutation_id;
-        }
-        if (!batch.changes.empty()) {
-          last_delivery_token_ = base::StringPrintf(
-              "cksync-%llu",
-              static_cast<unsigned long long>(++download_generation_));
-          batch.next_change_token = last_delivery_token_;
-          PersistInbox();
-        } else {
-          batch.next_change_token = download_base_token_;
-        }
-      }
-    }
-    owner_runner_->PostTask(
-        FROM_HERE, base::BindOnce(std::move(callback), safe_error.empty(),
-                                  std::move(batch), safe_error));
-  }
+  void Upload(std::vector<SyncChange> changes, UploadCallback callback);
+  void Download(std::string change_token, DownloadCallback callback);
+  void CompleteUpload(NSError* error, uint64_t generation);
+  void CompleteDownload(NSError* error, uint64_t generation);
   void HandleEvent(CKSyncEngineEvent* event) API_AVAILABLE(macos(14.0)) {
     base::AutoLock guard(lock_);
     if (shutting_down_) {
@@ -261,18 +133,7 @@ class CloudKitSyncProviderMac::Core
         PersistState(event.stateUpdateEvent.stateSerialization);
       } break;
       case CKSyncEngineEventTypeAccountChange: {
-        account_transition_pending_ = true;
-        fetched_changes_.clear();
-        last_delivery_mutations_.clear();
-        last_delivery_token_.clear();
-        pending_records_.clear();
-        server_records_.clear();
-        pending_mutations_.clear();
-        [engine_.state
-            removePendingRecordZoneChanges:engine_.state
-                                               .pendingRecordZoneChanges];
-        (void)base::DeleteFile(state_path_);
-        PersistInbox();
+        ResetAccountState();
       } break;
       case CKSyncEngineEventTypeFetchedDatabaseChanges:
         if (event.fetchedDatabaseChangesEvent.deletions.count > 0) {
@@ -281,20 +142,12 @@ class CloudKitSyncProviderMac::Core
         }
         break;
       case CKSyncEngineEventTypeFetchedRecordZoneChanges: {
+        if (account_transition_pending_ || zone_recovery_pending_) {
+          break;
+        }
         for (CKRecord* record in event.fetchedRecordZoneChangesEvent
                  .modifications) {
-          std::optional<SyncChange> change = Decode(record);
-          if (change) {
-            fetched_changes_[change->entity_id.AsLowercaseString()] =
-                std::move(*change);
-          } else {
-            std::optional<EntityType> claimed =
-                EntityTypeForDataClass(record[@"dataClass"]);
-            SyncChange marker = MakeCloudKitQuarantineMarker(
-                claimed.value_or(EntityType::kDevice));
-            fetched_changes_[marker.entity_id.AsLowercaseString()] =
-                std::move(marker);
-          }
+          ReceiveFetchedRecord(record);
         }
         PersistInbox();
       }
@@ -322,19 +175,25 @@ class CloudKitSyncProviderMac::Core
   CKSyncEngineRecordZoneChangeBatch* NextBatch(
       CKSyncEngine* engine,
       CKSyncEngineSendChangesContext* context) API_AVAILABLE(macos(14.0)) {
+    uint64_t generation;
+    NSMutableArray* changes = [NSMutableArray array];
     {
       base::AutoLock guard(lock_);
       if (shutting_down_ || account_transition_pending_ ||
-          zone_recovery_pending_) {
+          zone_recovery_pending_ || operations_cancelling_) {
         return nil;
       }
-    }
-    NSMutableArray* changes = [NSMutableArray array];
-    for (CKSyncEnginePendingRecordZoneChange* change in engine.state
-             .pendingRecordZoneChanges) {
-      if ([context.options.scope containsRecordID:change.recordID] &&
-          change.type == CKSyncEnginePendingRecordZoneChangeTypeSaveRecord) {
-        [changes addObject:change];
+      generation = transport_generation_;
+      for (CKSyncEnginePendingRecordZoneChange* change in engine.state
+               .pendingRecordZoneChanges) {
+        const auto record =
+            pending_records_.find(ToString(change.recordID.recordName));
+        if (record != pending_records_.end() &&
+            (!IsBookmarkRecord(record->second) || BookmarkAllowed()) &&
+            [context.options.scope containsRecordID:change.recordID] &&
+            change.type == CKSyncEnginePendingRecordZoneChangeTypeSaveRecord) {
+          [changes addObject:change];
+        }
       }
     }
     if (changes.count == 0) {
@@ -348,20 +207,17 @@ class CloudKitSyncProviderMac::Core
                   if (!core) {
                     return nil;
                   }
-                  base::AutoLock guard(core->lock_);
-                  if (core->shutting_down_) {
-                    return nil;
-                  }
-                  auto record = core->pending_records_.find(
-                      ToString(record_id.recordName));
-                  return record == core->pending_records_.end()
-                             ? nil
-                             : record->second;
+                  return core->PendingRecordForGeneration(
+                      ToString(record_id.recordName), generation);
                 }];
   }
   bool IsAccountTransitionPending() {
     base::AutoLock guard(lock_);
     return !shutting_down_ && account_transition_pending_;
+  }
+  bool IsBookmarkConsentRevoked() {
+    base::AutoLock guard(lock_);
+    return bookmark_consent_revoked_;
   }
   bool IsZoneRecoveryPending() {
     base::AutoLock guard(lock_);
@@ -369,7 +225,7 @@ class CloudKitSyncProviderMac::Core
   }
   bool ConfirmRecovery(bool account_transition, bool allow_local_upload) {
     base::AutoLock guard(lock_);
-    if (shutting_down_ || !engine_) {
+    if (shutting_down_ || !engine_ || operations_cancelling_) {
       return false;
     }
     bool& pending = account_transition ? account_transition_pending_
@@ -409,32 +265,50 @@ class CloudKitSyncProviderMac::Core
   }
 
  private:
-  CKRecord* Encode(const SyncChange& change,
-                   const std::string& sealed,
-                   CKRecordID* record_id) API_AVAILABLE(macos(14.0)) {
-    CKRecord* server_record = nil;
-    {
-      base::AutoLock guard(lock_);
-      if (shutting_down_) {
-        return nil;
-      }
-      auto server = server_records_.find(change.entity_id.AsLowercaseString());
-      if (server != server_records_.end()) {
-        server_record = server->second;
-      }
-    }
-    return EncodeCloudKitSyncRecord(change, sealed, record_id, server_record);
+  static bool IsBookmarkRecord(CKRecord* record) {
+    return EntityTypeForDataClass(record[@"dataClass"]) ==
+           EntityType::kBookmark;
   }
-
+  static bool SameUploadedPayload(CKRecord* left, CKRecord* right) {
+    NSData* left_payload = left.encryptedValues[@"encryptedValue"];
+    NSData* right_payload = right.encryptedValues[@"encryptedValue"];
+    return [left.recordID isEqual:right.recordID] &&
+           [left_payload isKindOfClass:[NSData class]] &&
+           [right_payload isKindOfClass:[NSData class]] &&
+           [left_payload isEqualToData:right_payload];
+  }
+  bool BookmarkAllowed() const {
+    lock_.AssertAcquired();
+    return bookmark_sync_enabled_ && !account_transition_pending_ &&
+           !zone_recovery_pending_ && !bookmark_consent_revoked_;
+  }
   std::optional<SyncChange> Decode(CKRecord* record) {
+    lock_.AssertAcquired();
+    if (!cryptor_ || (IsBookmarkRecord(record) && !BookmarkAllowed())) {
+      return std::nullopt;
+    }
     return DecodeCloudKitSyncRecord(record, *cryptor_);
   }
 
   void HandleSent(CKSyncEngineSentRecordZoneChangesEvent* event)
       API_AVAILABLE(macos(14.0)) {
     lock_.AssertAcquired();
+    if (account_transition_pending_ || zone_recovery_pending_ ||
+        operations_cancelling_) {
+      return;
+    }
     for (CKRecord* record in event.savedRecords) {
+      if (IsBookmarkRecord(record) && !BookmarkAllowed()) {
+        continue;
+      }
       const std::string key = ToString(record.recordID.recordName);
+      const auto attempted = pending_records_.find(key);
+      if (attempted != pending_records_.end() &&
+          !SameUploadedPayload(record, attempted->second)) {
+        // A cancelled older operation must not acknowledge a newer mutation
+        // that reused this record ID after category approval changed.
+        continue;
+      }
       server_records_[key] = record;
       auto mutation = pending_mutations_.find(key);
       if (mutation != pending_mutations_.end()) {
@@ -447,6 +321,18 @@ class CloudKitSyncProviderMac::Core
       NSError* error = failure.error;
       CKRecord* server = error.userInfo[CKRecordChangedErrorServerRecordKey];
       const std::string key = ToString(failure.record.recordID.recordName);
+      if (IsBookmarkRecord(failure.record) && !BookmarkAllowed()) {
+        if (server && IsBookmarkRecord(server)) {
+          ReceiveFetchedRecord(server);
+          PersistInbox();
+        }
+        continue;
+      }
+      const auto attempted = pending_records_.find(key);
+      if (attempted == pending_records_.end() ||
+          !SameUploadedPayload(failure.record, attempted->second)) {
+        continue;
+      }
       if (server) {
         server_records_[key] = server;
         std::optional<SyncChange> remote = Decode(server);
@@ -456,7 +342,11 @@ class CloudKitSyncProviderMac::Core
              (local->version == remote->version &&
               local->payload == remote->payload))) {
           if (local->version < remote->version) {
-            fetched_changes_[key] = std::move(*remote);
+            if (IsBookmarkRecord(server)) {
+              ReceiveFetchedRecord(server);
+            } else {
+              fetched_changes_[key] = std::move(*remote);
+            }
             PersistInbox();
           }
           auto mutation = pending_mutations_.find(key);
@@ -477,187 +367,31 @@ class CloudKitSyncProviderMac::Core
     }
   }
 
-  CKSyncEngineStateSerialization* LoadState() API_AVAILABLE(macos(14.0)) {
-    NSData* data =
-        [NSData dataWithContentsOfFile:ToNSString(state_path_.value())];
-    if (!data) {
-      return nil;
-    }
-    NSError* error = nil;
-    CKSyncEngineStateSerialization* state = [NSKeyedUnarchiver
-        unarchivedObjectOfClass:[CKSyncEngineStateSerialization class]
-                       fromData:data
-                          error:&error];
-    if (!state || error) {
-      account_transition_pending_ = zone_recovery_pending_ = true;
-      PersistInbox();
-      return nil;
-    }
-    return state;
-  }
-
+  CKSyncEngineStateSerialization* LoadState() API_AVAILABLE(macos(14.0));
   void PersistState(CKSyncEngineStateSerialization* state)
-      API_AVAILABLE(macos(14.0)) {
-    NSError* error = nil;
-    NSData* data = [NSKeyedArchiver archivedDataWithRootObject:state
-                                         requiringSecureCoding:YES
-                                                         error:&error];
-    if (!data || error) {
-      return;
-    }
-    base::CreateDirectory(state_path_.DirName());
-    [data writeToFile:ToNSString(state_path_.value())
-              options:NSDataWritingAtomic
-                error:nil];
-  }
-
-  void AcknowledgeLastDelivery(const std::string& change_token) {
-    if (change_token.empty() || change_token != last_delivery_token_) {
-      return;
-    }
-    for (const auto& [id, mutation_id] : last_delivery_mutations_) {
-      auto current = fetched_changes_.find(id);
-      if (current != fetched_changes_.end() &&
-          current->second.mutation_id == mutation_id) {
-        fetched_changes_.erase(current);
-      }
-    }
-    last_delivery_mutations_.clear();
-    last_delivery_token_.clear();
-    PersistInbox();
-  }
-
-  void LoadInbox() {
-    NSData* data =
-        [NSData dataWithContentsOfFile:ToNSString(inbox_path_.value())];
-    if (!data) {
-      return;
-    }
-    NSError* error = nil;
-    id root = [NSJSONSerialization JSONObjectWithData:data
-                                              options:0
-                                                error:&error];
-    if (error || ![root isKindOfClass:[NSDictionary class]]) {
-      account_transition_pending_ = zone_recovery_pending_ = true;
-      return;
-    }
-    NSDictionary* dictionary = root;
-    NSNumber* generation = dictionary[@"generation"];
-    if ([generation isKindOfClass:[NSNumber class]]) {
-      download_generation_ = generation.unsignedLongLongValue;
-    }
-    account_transition_pending_ =
-        [dictionary[@"accountTransitionPending"] boolValue];
-    zone_recovery_pending_ = [dictionary[@"zoneRecoveryPending"] boolValue];
-    NSString* delivery_token = dictionary[@"lastDeliveryToken"];
-    if ([delivery_token isKindOfClass:[NSString class]]) {
-      last_delivery_token_ = ToString(delivery_token);
-    }
-    NSDictionary* delivered_mutations = dictionary[@"deliveredMutations"];
-    if ([delivered_mutations isKindOfClass:[NSDictionary class]]) {
-      for (id key in delivered_mutations) {
-        id mutation_id = delivered_mutations[key];
-        if ([key isKindOfClass:[NSString class]] &&
-            [mutation_id isKindOfClass:[NSString class]]) {
-          last_delivery_mutations_[ToString(key)] = ToString(mutation_id);
-        }
-      }
-    }
-    NSArray* changes = dictionary[@"changes"];
-    if (![changes isKindOfClass:[NSArray class]]) {
-      return;
-    }
-    for (id value in changes) {
-      if (![value isKindOfClass:[NSDictionary class]]) {
-        continue;
-      }
-      NSDictionary* item = value;
-      NSString* mutation_id = item[@"mutationID"];
-      NSString* entity_id = item[@"entityID"];
-      NSString* device = item[@"device"];
-      NSString* payload = item[@"payload"];
-      NSNumber* entity_type = item[@"entityType"];
-      NSNumber* kind = item[@"kind"];
-      NSNumber* model = item[@"model"];
-      NSNumber* physical = item[@"physical"];
-      NSNumber* logical = item[@"logical"];
-      if (![mutation_id isKindOfClass:[NSString class]] ||
-          ![entity_id isKindOfClass:[NSString class]] ||
-          ![device isKindOfClass:[NSString class]] ||
-          ![payload isKindOfClass:[NSString class]] ||
-          ![entity_type isKindOfClass:[NSNumber class]] ||
-          ![kind isKindOfClass:[NSNumber class]] ||
-          ![model isKindOfClass:[NSNumber class]] ||
-          ![physical isKindOfClass:[NSNumber class]] ||
-          ![logical isKindOfClass:[NSNumber class]]) {
-        continue;
-      }
-      const int raw_type = entity_type.intValue;
-      const int raw_kind = kind.intValue;
-      if (raw_type < static_cast<int>(EntityType::kDevice) ||
-          raw_type > static_cast<int>(EntityType::kDeveloperAsset) ||
-          raw_kind < static_cast<int>(ChangeKind::kUpsert) ||
-          raw_kind > static_cast<int>(ChangeKind::kDelete)) {
-        continue;
-      }
-      SyncChange change{
-          .mutation_id = ToString(mutation_id),
-          .entity_type = static_cast<EntityType>(raw_type),
-          .entity_id = base::Uuid::ParseLowercase(ToString(entity_id)),
-          .kind = static_cast<ChangeKind>(raw_kind),
-          .version = {.model_version = model.intValue,
-                      .stamp = {.physical_time_us = physical.longLongValue,
-                                .logical = logical.unsignedIntValue,
-                                .device_tiebreak = ToString(device)}},
-          .payload = ToString(payload)};
-      SyncRecord decoded;
-      if (ValidateChangeEnvelope(change, &decoded) ||
-          IsCloudKitQuarantineMarker(change)) {
-        fetched_changes_[change.entity_id.AsLowercaseString()] =
-            std::move(change);
-      }
-    }
-  }
-
-  bool PersistInbox() {
-    NSMutableArray* changes = [NSMutableArray array];
-    for (const auto& entry : fetched_changes_) {
-      const SyncChange& change = entry.second;
-      [changes addObject:@{
-        @"mutationID" : ToNSString(change.mutation_id),
-        @"entityType" : @(static_cast<int>(change.entity_type)),
-        @"entityID" : ToNSString(change.entity_id.AsLowercaseString()),
-        @"kind" : @(static_cast<int>(change.kind)),
-        @"model" : @(change.version.model_version),
-        @"physical" : @(change.version.stamp.physical_time_us),
-        @"logical" : @(change.version.stamp.logical),
-        @"device" : ToNSString(change.version.stamp.device_tiebreak),
-        @"payload" : ToNSString(change.payload),
-      }];
-    }
-    NSMutableDictionary* delivered_mutations = [NSMutableDictionary dictionary];
-    for (const auto& [id, mutation_id] : last_delivery_mutations_) {
-      delivered_mutations[ToNSString(id)] = ToNSString(mutation_id);
-    }
-    NSDictionary* root = @{
-      @"generation" : @(download_generation_),
-      @"accountTransitionPending" : @(account_transition_pending_),
-      @"zoneRecoveryPending" : @(zone_recovery_pending_),
-      @"lastDeliveryToken" : ToNSString(last_delivery_token_),
-      @"deliveredMutations" : delivered_mutations,
-      @"changes" : changes,
-    };
-    NSError* error = nil;
-    NSData* data = [NSJSONSerialization dataWithJSONObject:root
-                                                   options:0
-                                                     error:&error];
-    if (!data || error || !base::CreateDirectory(inbox_path_.DirName())) {
-      return false;
-    }
-    return [data writeToFile:ToNSString(inbox_path_.value())
-                     options:NSDataWritingAtomic
-                       error:nil];
-  }
+      API_AVAILABLE(macos(14.0));
+  void AcknowledgeLastDelivery(const std::string& change_token);
+  void LoadInbox();
+  bool PersistInbox();
+  void LoadCachedChange(NSDictionary* item);
+  void HydrateLegacyBookmarks();
+  void ReceiveFetchedRecord(CKRecord* record);
+  void MaterializeBookmarkRecord(const std::string& key, CKRecord* record);
+  void HydrateDeferredBookmarks();
+  void ResetAccountState();
+  void RequestOperationCancellation();
+  CKRecord* PendingRecordForGeneration(const std::string& key,
+                                       uint64_t generation);
+  void DispatchUpload(UploadCallback callback,
+                      uint64_t generation,
+                      bool success,
+                      std::vector<std::string> acknowledged,
+                      std::string error);
+  void DispatchDownload(DownloadCallback callback,
+                        uint64_t generation,
+                        bool success,
+                        ProviderBatch batch,
+                        std::string error);
 
   const CloudKitSyncConfigurationMac configuration_;
   const base::FilePath state_path_;
@@ -671,6 +405,12 @@ class CloudKitSyncProviderMac::Core
   std::map<std::string, __strong CKRecord*> server_records_;
   std::map<std::string, std::string> pending_mutations_;
   std::map<std::string, SyncChange> fetched_changes_;
+  // Keep native encrypted records until their decoded delivery is acknowledged.
+  // The persisted cache never grants permission to decrypt them after restart.
+  std::map<std::string, __strong CKRecord*> opaque_bookmark_records_;
+  std::map<std::string, __strong NSDictionary*> legacy_bookmark_changes_;
+  std::map<std::string, std::string> materialized_bookmark_keys_;
+  std::map<std::string, base::Uuid> bookmark_quarantine_ids_;
   std::set<std::string> upload_acknowledgements_;
   UploadCallback upload_callback_;
   DownloadCallback download_callback_;
@@ -680,6 +420,11 @@ class CloudKitSyncProviderMac::Core
   std::string last_delivery_token_;
   std::map<std::string, std::string> last_delivery_mutations_;
   uint64_t download_generation_ = 0;
+  uint64_t transport_generation_ = 0;
+  bool bookmark_sync_enabled_ = false;
+  bool bookmark_consent_revoked_ = false;
+  bool operations_cancelling_ = false;
+  bool inbox_persistence_failed_ = false;
   bool account_transition_pending_ = false;
   bool zone_recovery_pending_ = false;
   bool shutting_down_ = false;

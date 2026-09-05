@@ -32,9 +32,11 @@ EntityType GetEntityType(const SyncRecord& record) {
           return EntityType::kPermittedSetting;
         } else if constexpr (std::is_same_v<T, ExtensionInventoryRecord>) {
           return EntityType::kExtensionInventory;
-        } else {
-          static_assert(std::is_same_v<T, DeveloperAssetRecord>);
+        } else if constexpr (std::is_same_v<T, DeveloperAssetRecord>) {
           return EntityType::kDeveloperAsset;
+        } else {
+          static_assert(std::is_same_v<T, BookmarkRecord>);
+          return EntityType::kBookmark;
         }
       },
       record);

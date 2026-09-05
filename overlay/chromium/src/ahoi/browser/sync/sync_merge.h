@@ -56,12 +56,26 @@ MergeDecision MergeRecordFields(const SyncRecord& existing,
 // transport-independent and can be reused by a future iOS decoder.
 bool ValidateRecord(const SyncRecord& record, std::string* error = nullptr);
 
+// Shared native/wire content boundary. This does not invent record identity or
+// field clocks merely to check local metadata before any journal write.
+bool ValidateBookmarkContent(BookmarkKind kind,
+                             const std::string& title,
+                             const std::string& url,
+                             base::Time created_at,
+                             std::string* error = nullptr);
+
 // Validates all active tree rows as one graph. A provider may deliver parents
 // and children in either order; callers should pass the candidate post-merge
 // set so this catches self-parenting, cross-workspace links, non-folder
 // parents, and cycles before committing a batch.
 bool ValidateTreeGraph(const std::vector<TreeNodeRecord>& nodes,
                        std::string* error = nullptr);
+
+// Validates the known bookmark graph without recursion. Missing ancestors may
+// arrive on a later provider page and remain detached; callers must not apply
+// such a branch to BookmarkModel until its complete live ancestry is known.
+bool ValidateBookmarkGraph(const std::vector<BookmarkRecord>& records,
+                           std::string* error = nullptr);
 
 }  // namespace ahoi::sync
 

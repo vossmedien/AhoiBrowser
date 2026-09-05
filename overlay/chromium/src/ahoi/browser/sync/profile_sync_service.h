@@ -6,10 +6,12 @@
 
 #include <cstddef>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
 #include "ahoi/browser/sync/profile_sync_ui_bridge.h"
 #include "ahoi/browser/sync/remote_command_security.h"
@@ -45,6 +47,7 @@ namespace ahoi::sync {
 
 class ProfileSyncBackend;
 class ProfileSyncServiceTest;
+class NativeBookmarkSyncAdapter;
 
 // Profile-scoped UI facade around the blocking local-first SQLite store. Disk
 // work remains on one MayBlock sequence; views only receive immutable copies.
@@ -52,6 +55,12 @@ class ProfileSyncService final : public KeyedService,
                                  public history::HistoryServiceObserver,
                                  public extensions::ExtensionRegistryObserver {
  public:
+  enum class BookmarkSyncIssue {
+    kNone,
+    kUnsupportedLocalData,
+    kReconciliationFailed,
+  };
+
   enum class RemoteControlPrerequisite {
     kReady = 0,
     kSyncDisabled,
@@ -126,6 +135,15 @@ class ProfileSyncService final : public KeyedService,
   [[nodiscard]] bool SetDeveloperAssetSyncEnabled(const base::Uuid& asset_id,
                                                   bool enabled);
   [[nodiscard]] bool PublishDeveloperAsset(DeveloperAssetRecord record);
+  bool bookmark_sync_enabled() const;
+  // Deliberate category action only; never called by shelf construction or
+  // bookmark creation/navigation. Global opt-in remains a separate
+  // prerequisite.
+  bool SetBookmarkSyncEnabled(bool enabled);
+  BookmarkSyncIssue bookmark_sync_issue() const { return bookmark_sync_issue_; }
+  // Subscription lifetime is independent of the profile service's lifetime.
+  base::CallbackListSubscription ObserveBookmarkSync(
+      base::RepeatingClosure callback);
 
   // KeyedService:
   void Shutdown() override;
@@ -164,6 +182,19 @@ class ProfileSyncService final : public KeyedService,
   void PublishExtensionInventory();
   void OnPermittedProductSettingChanged(std::string setting_id);
   void NotifyObservers();
+  void InitializeBookmarkSync();
+  void StopBookmarkSync();
+  void SetBookmarkSyncIssue(BookmarkSyncIssue issue);
+  void OnBookmarkSyncPrefChanged();
+  void RefreshBookmarkProjection();
+  void OnNativeBookmarkSnapshot(uint64_t generation,
+                                NativeBookmarkSnapshot snapshot);
+  void OnBookmarkProjection(uint64_t generation,
+                            bool local_change,
+                            std::optional<BookmarkSyncProjection> projection);
+  void OnBookmarkProjectionAcknowledged(uint64_t generation,
+                                        bool local_change,
+                                        bool success);
 
   // extensions::ExtensionRegistryObserver:
   void OnExtensionLoaded(content::BrowserContext* browser_context,
@@ -210,6 +241,11 @@ class ProfileSyncService final : public KeyedService,
   std::vector<PermittedSettingRecord> permitted_settings_;
   std::vector<ExtensionInventoryRecord> extension_inventory_;
   std::vector<DeveloperAssetRecord> developer_assets_;
+  std::unique_ptr<NativeBookmarkSyncAdapter> bookmark_adapter_;
+  bool bookmarks_seeded_ = false;
+  BookmarkSyncIssue bookmark_sync_issue_ = BookmarkSyncIssue::kNone;
+  base::RepeatingClosureList bookmark_status_callbacks_;
+  base::WeakPtrFactory<ProfileSyncService> bookmark_weak_ptr_factory_{this};
   base::ObserverList<Observer> observers_;
   base::OneShotTimer publish_timer_;
   base::RepeatingTimer sync_timer_;

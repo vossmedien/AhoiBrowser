@@ -29,7 +29,7 @@ int ToInt(ChangeKind kind) {
 
 bool IsValidEntityType(int value) {
   return value >= static_cast<int>(EntityType::kDevice) &&
-         value <= static_cast<int>(EntityType::kDeveloperAsset);
+         value <= static_cast<int>(EntityType::kBookmark);
 }
 
 bool IsValidChangeKind(int value) {
@@ -552,9 +552,9 @@ SyncStore::Result SyncStore::GetRemoteTabs(
   return Result::kOk;
 }
 
-SyncStore::Result SyncStore::ReadOutbox(
-    size_t limit,
-    std::vector<SyncChange>* changes) const {
+SyncStore::Result SyncStore::ReadOutbox(size_t limit,
+                                        std::vector<SyncChange>* changes,
+                                        bool include_bookmarks) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
@@ -566,8 +566,13 @@ SyncStore::Result SyncStore::ReadOutbox(
   sql::Statement statement(db_.GetUniqueStatement(
       "SELECT mutation_id,entity_type,entity_id,change_kind,payload,"
       "version_model,version_physical,version_logical,version_device "
-      "FROM sync_outbox ORDER BY created_at,mutation_id LIMIT ?"));
-  statement.BindInt64(0, static_cast<int64_t>(limit));
+      "FROM sync_outbox WHERE (? OR entity_type<>?) "
+      "ORDER BY created_at,mutation_id LIMIT ?"));
+  // Filter before LIMIT so retained, unapproved bookmarks cannot starve later
+  // records from categories that are allowed to make progress.
+  statement.BindBool(0, include_bookmarks);
+  statement.BindInt(1, static_cast<int>(EntityType::kBookmark));
+  statement.BindInt64(2, static_cast<int64_t>(limit));
   while (statement.Step()) {
     const int type = statement.ColumnInt(1);
     const int kind = statement.ColumnInt(3);

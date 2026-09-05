@@ -13,6 +13,10 @@ namespace ahoi::sync {
 // Stable, profile-local identity used by HLC tie-breaking and device-tab
 // ownership. It is deliberately not a Chrome account or GAIA identifier.
 inline constexpr char kSyncEnabledPref[] = "ahoi.sync.enabled";
+// Separate, profile-local consent. A legacy global opt-in does not authorize
+// this newly added category, and opening the bookmark shelf never changes it.
+inline constexpr char kBookmarkSyncEnabledPref[] =
+    "ahoi.sync.bookmarks.enabled";
 inline constexpr char kDeviceIdPref[] = "ahoi.sync.device_id";
 inline constexpr char kDeviceDisplayNamePref[] =
     "ahoi.sync.device_display_name";

@@ -87,12 +87,14 @@ ProfileSyncBackend::ProfileSyncBackend(base::FilePath database_path,
                                        base::Uuid session_id,
                                        std::string device_name,
                                        bool transport_enabled,
-                                       int history_retention_days)
+                                       int history_retention_days,
+                                       bool bookmark_sync_enabled)
     : database_path_(std::move(database_path)),
       device_id_(std::move(device_id)),
       session_id_(std::move(session_id)),
       device_name_(std::move(device_name)),
       transport_enabled_(transport_enabled),
+      bookmark_sync_enabled_(bookmark_sync_enabled),
       history_retention_days_(
           IsValidHistoryRetentionDays(history_retention_days)
               ? history_retention_days
@@ -117,7 +119,7 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
   // device row. This prevents a restart from issuing versions below a remote
   // future-skewed record that was already accepted.
   for (int raw = static_cast<int>(EntityType::kDevice);
-       raw <= static_cast<int>(EntityType::kDeveloperAsset); ++raw) {
+       raw <= static_cast<int>(EntityType::kBookmark); ++raw) {
     std::vector<SyncRecord> records;
     if (store_->GetRecords(static_cast<EntityType>(raw), &records) !=
         SyncStore::Result::kOk) {
@@ -605,9 +607,14 @@ void ProfileSyncBackend::InitializeProviderIfAvailable() {
   }
   provider_ = CloudKitSyncProviderMac::Create(
       *configuration, database_path_.DirName().AppendASCII("cksync.state"),
-      std::move(cryptor));
+      std::move(cryptor), bookmark_sync_enabled_);
   if (provider_) {
-    pump_ = std::make_unique<SyncPump>(store_.get(), provider_.get());
+    if (provider_->IsBookmarkConsentRevoked()) {
+      bookmark_sync_enabled_ = false;
+    }
+    pump_ = std::make_unique<SyncPump>(
+        store_.get(), provider_.get(),
+        SyncPump::Options{.bookmark_sync_enabled = bookmark_sync_enabled_});
   }
 #endif
 }
@@ -704,6 +711,8 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::CurrentState() {
                         provider_ && provider_->IsAccountTransitionPending(),
                     .zone_recovery_pending =
                         provider_ && provider_->IsZoneRecoveryPending(),
+                    .bookmark_consent_revoked =
+                        provider_ && provider_->IsBookmarkConsentRevoked(),
                     .pending_outbox =
                         base::saturated_cast<int>(store_->PendingOutboxCount()),
                     .retry = store_->GetRetryState()},
@@ -744,6 +753,13 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::CurrentState() {
     return std::nullopt;
   }
   state.developer_assets = RecordsOfType<DeveloperAssetRecord>(records);
+  if (store_->GetRecords(EntityType::kBookmark, &records) !=
+      SyncStore::Result::kOk) {
+    return std::nullopt;
+  }
+  if (bookmark_sync_enabled_) {
+    state.bookmarks = RecordsOfType<BookmarkRecord>(records);
+  }
   return state;
 }
 

@@ -54,6 +54,8 @@ Fields FieldNames(EntityType type) {
     case EntityType::kDeveloperAsset:
       return {"kind",    "name",     "scope",    "source",
               "enabled", "opted_in", "tombstone"};
+    case EntityType::kBookmark:
+      return {"location", "kind", "title", "url", "created_at", "tombstone"};
   }
   return {};
 }
@@ -113,6 +115,8 @@ bool IsImmutableField(EntityType type, std::string_view field) {
     case EntityType::kExtensionInventory:
       return field == "device_id" || field == "extension_id";
     case EntityType::kDeveloperAsset:
+      return field == "kind";
+    case EntityType::kBookmark:
       return field == "kind";
   }
   return false;
@@ -301,6 +305,24 @@ bool FieldEqual(const SyncRecord& left,
             return a.enabled == b.enabled;
           }
           return field == "tombstone" && a.tombstone == b.tombstone;
+        } else if constexpr (std::is_same_v<A, BookmarkRecord>) {
+          if (field == "location") {
+            return a.root_kind == b.root_kind && a.parent_id == b.parent_id &&
+                   a.sort_key == b.sort_key;
+          }
+          if (field == "kind") {
+            return a.kind == b.kind;
+          }
+          if (field == "title") {
+            return a.title == b.title;
+          }
+          if (field == "url") {
+            return a.url == b.url;
+          }
+          if (field == "created_at") {
+            return a.created_at == b.created_at;
+          }
+          return field == "tombstone" && a.tombstone == b.tombstone;
         } else {
           static_assert(std::is_same_v<A, DeveloperAssetRecord>);
           if (field == "kind") {
@@ -487,6 +509,22 @@ void CopyField(const SyncRecord& source,
           } else if (field == "tombstone") {
             to.tombstone = from.tombstone;
           }
+        } else if constexpr (std::is_same_v<From, BookmarkRecord>) {
+          if (field == "location") {
+            to.root_kind = from.root_kind;
+            to.parent_id = from.parent_id;
+            to.sort_key = from.sort_key;
+          } else if (field == "kind") {
+            to.kind = from.kind;
+          } else if (field == "title") {
+            to.title = from.title;
+          } else if (field == "url") {
+            to.url = from.url;
+          } else if (field == "created_at") {
+            to.created_at = from.created_at;
+          } else if (field == "tombstone") {
+            to.tombstone = from.tombstone;
+          }
         } else {
           static_assert(std::is_same_v<From, DeveloperAssetRecord>);
           if (field == "kind") {
@@ -614,6 +652,11 @@ bool StampLocalMutation(const SyncRecord* existing,
     return false;
   }
   for (std::string_view field : FieldNames(GetEntityType(*local))) {
+    if (IsImmutableField(GetEntityType(*local), field) &&
+        !FieldEqual(normalized_existing, *local, field)) {
+      SetError("local immutable field conflict", error);
+      return false;
+    }
     Versions(local).insert_or_assign(
         std::string(field), FieldEqual(normalized_existing, *local, field)
                                 ? FieldStamp(normalized_existing, field)

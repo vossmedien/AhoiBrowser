@@ -79,6 +79,11 @@ atomically. Only `kind` is immutable. Older workspace/entity semantics remain
 unchanged. Non-web native URLs remain metadata, not automatic navigation;
 Mobile must surface unsupported activation without deleting the record.
 
+`created_at` is a positive signed-Int64 count of Windows-epoch microseconds,
+not an HLC or an unsigned Unix timestamp. Keep it as lossless raw metadata in
+Swift, including valid pre-1970 values. HLC record/field timestamps have their
+own cross-client bounds; do not apply those bounds to bookmark creation time.
+
 Known parent links must lead to folders and cannot cycle. A missing parent may
 arrive on a later provider page; retain the detached record but never materialize
 it natively until its live ancestry is available. Do not persist a redundant
@@ -110,6 +115,22 @@ mutate synchronously during a merged Move notification, and do not use
 notifications are batching, not a transaction. Resolve GUID/storage collisions
 before native APIs can hit CHECKs. Register factory dependencies and remove
 observers/weak callbacks during profile shutdown.
+
+The Desktop journal shares the existing SyncStore transaction. Before applying
+remote metadata, it durably records the intended value and a local receipt;
+Chromium saves that token alongside the native fields. A receipt is trusted only
+after its logical identity is resolved through the profile ledger, never to
+assign identity to a clone/import. Original baseline, acknowledged observation
+and per-adapter observation session stay distinct for asynchronous-save recovery.
+No test-only flush API or second persistence authority is introduced.
+
+Invalid native content (including embedded URL credentials) is not sanitized or
+exported. It pauses the Bookmark reconciliation with a visible local explanation
+until a complete valid capture exists. Existing local data remains usable and
+unchanged, and other categories continue independently. A failed local journal
+write must likewise block an older remote projection from replacing that local
+mutation. This conservative pause is not a partial-sync success; native schemes
+allowed by the frozen content contract do not themselves trigger that pause.
 
 ## Ownership and acceptance
 

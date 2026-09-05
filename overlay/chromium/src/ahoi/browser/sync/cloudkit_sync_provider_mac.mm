@@ -46,16 +46,16 @@
   base::AutoLock guard(_lock);
   return _core.lock();
 }
-- (void)completeUpload:(NSError*)error {
+- (void)completeUpload:(NSError*)error generation:(uint64_t)generation {
   if (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core> core =
           [self lockCore]) {
-    core->CompleteUpload(error);
+    core->CompleteUpload(error, generation);
   }
 }
-- (void)completeDownload:(NSError*)error {
+- (void)completeDownload:(NSError*)error generation:(uint64_t)generation {
   if (std::shared_ptr<ahoi::sync::CloudKitSyncProviderMac::Core> core =
           [self lockCore]) {
-    core->CompleteDownload(error);
+    core->CompleteDownload(error, generation);
   }
 }
 - (void)syncEngine:(CKSyncEngine*)syncEngine
@@ -84,12 +84,14 @@ namespace ahoi::sync {
 CloudKitSyncProviderMac::Core::Core(
     const CloudKitSyncConfigurationMac& configuration,
     base::FilePath state_path,
-    std::unique_ptr<SyncPayloadCryptor> cryptor)
+    std::unique_ptr<SyncPayloadCryptor> cryptor,
+    bool bookmark_sync_enabled)
     : configuration_(configuration),
       state_path_(std::move(state_path)),
       inbox_path_(state_path_.AddExtensionASCII("inbox")),
       cryptor_(std::move(cryptor)),
-      owner_runner_(base::SequencedTaskRunner::GetCurrentDefault()) {}
+      owner_runner_(base::SequencedTaskRunner::GetCurrentDefault()),
+      bookmark_sync_enabled_(bookmark_sync_enabled) {}
 
 CloudKitSyncProviderMac::Core::~Core() {
   Shutdown();
@@ -98,13 +100,14 @@ CloudKitSyncProviderMac::Core::~Core() {
 std::unique_ptr<CloudKitSyncProviderMac> CloudKitSyncProviderMac::Create(
     const CloudKitSyncConfigurationMac& configuration,
     const base::FilePath& state_path,
-    std::unique_ptr<SyncPayloadCryptor> cryptor) {
+    std::unique_ptr<SyncPayloadCryptor> cryptor,
+    bool bookmark_sync_enabled) {
   if (!configuration.IsTransportConfigured() || !cryptor) {
     return nullptr;
   }
   if (@available(macOS 14.0, *)) {
-    auto core =
-        std::make_shared<Core>(configuration, state_path, std::move(cryptor));
+    auto core = std::make_shared<Core>(
+        configuration, state_path, std::move(cryptor), bookmark_sync_enabled);
     if (!core->Initialize()) {
       return nullptr;
     }
@@ -126,7 +129,8 @@ CloudKitSyncProviderMac::~CloudKitSyncProviderMac() {
 std::unique_ptr<CloudKitSyncProviderMac>
 CloudKitSyncProviderMac::CreateForTesting(const base::FilePath& state_path) {
   auto core = std::make_shared<Core>(CloudKitSyncConfigurationMac(), state_path,
-                                     /*cryptor=*/nullptr);
+                                     /*cryptor=*/nullptr,
+                                     /*bookmark_sync_enabled=*/false);
   return std::unique_ptr<CloudKitSyncProviderMac>(
       new CloudKitSyncProviderMac(std::move(core)));
 }
@@ -146,6 +150,14 @@ void CloudKitSyncProviderMac::Upload(std::vector<SyncChange> changes,
 void CloudKitSyncProviderMac::Download(std::string change_token,
                                        DownloadCallback callback) {
   core_->Download(std::move(change_token), std::move(callback));
+}
+
+void CloudKitSyncProviderMac::SetBookmarkSyncEnabled(bool enabled) {
+  core_->SetBookmarkSyncEnabled(enabled);
+}
+
+bool CloudKitSyncProviderMac::IsBookmarkConsentRevoked() {
+  return core_->IsBookmarkConsentRevoked();
 }
 
 bool CloudKitSyncProviderMac::IsAccountTransitionPending() {
