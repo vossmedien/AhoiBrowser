@@ -57,8 +57,13 @@ Master and native seams are bound to this decision in
 `outputs/AhoiBrowser-Master-Zielprompt.md` and
 `docs/SHARED_TAB_NATIVE_SEAMS.md`. Common C++/policy/canonical contract remains
 with the Sync owner; matching Swift work follows its coordinated ownership.
-The simplified canonical format/header/default handoff comes from that owner
-before integration. Desktop does not introduce Common schema or writer changes.
+The simplified canonical format is now published in
+`docs/decisions/0009-unified-prelaunch-sync-format.md` and `config/sync-format.json`;
+Desktop has read both completely. Format 3 covers all 13 entity classes; this
+contract publication is not implementation or acceptance. Common/native code
+and default changes still require their concrete coordinated source integration.
+No further format-freeze question is needed for the independent 22e2f2b baseline.
+Desktop does not introduce Common schema or writer changes.
 
 225df88 and the test-only 22e2f2b follow-up remain frozen UI/compile baselines,
 NOT final acceptance of the new unified format. Do not restart/widen that
@@ -67,11 +72,15 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Owned combined correction package — terminal test compile failure
 
-**Current phase, 2026-09-05 17:01 UTC:** the existing clean detached snapshot
+**Current phase, 2026-09-05 after 17:39 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
-`225df88f4e6dbe692390f52b8687b653541723ac`. Guarded overlay session `54118` is
-TERMINAL EXIT 0 with the full checkout delta verified. ONE combined guarded
-incremental Dev correction build `30212` is TERMINAL EXIT 1, using the existing
+`22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`, clean after the explicit test-only
+handoff. Shared `.work` is still at 225df88: no new overlay/build has started.
+Only the four agreed test files differ in the Desktop build surface; newer
+format-3 work is excluded. The prepared next log directory is
+`artifacts/build/desktop-test-api-22e2f2b-20260905/` (not a build receipt).
+Historical guarded overlay session `54118` at 225df88 is TERMINAL EXIT 0.
+Combined Dev correction build `30212` at 225df88 is TERMINAL EXIT 1, using the existing
 shared `.work/chromium/src/out/AhoiDev` outputs. Do not resume it or rerun the
 unchanged source. Product code and the two large browser test binaries compiled/
 linked; five diagnostics remain in four test files. Canonical report/logs:
@@ -92,15 +101,19 @@ and `ahoi_sidebar_tree_unittests`, with `AHOI_NINJA_KEEP_GOING=1`. No tests have
 run, and no successful new build/sign/install receipt exists yet. Installed
 bundle remains `3d413ef`; common v3 writers remain off.
 
-The new start gate is a foreign CPU workload, not the old compiler/source gate:
-FillIt Blender PID `93670`, parent `51136`, was identified by command AND cwd
-as `calibration-radius075-01/source.blend`, six-thread data bake. Fresh samples
-214.5%, 302.3%, 144.1%, 175.2% and 438.0% (last at 17:01 UTC) exceed the 80%
-threshold. No overlay/build/test/sign/install phase has been started since
-30212 ended. The process is untouched; owner notification
-`01a07281-9b39-7753-ab8b-d22f579cda33` does not ask it to stop or pause.
-Recheck before starting; do not carry this PID/sample forward as a permanent
-block. Latest free space 82,614,640 KiB, above the incremental build floor.
+The start gate is a fresh foreign CPU/phase check, not a source handoff:
+old Blender 93670 and Shopify Playwright tree 23566 are finished. New FillIt
+Unity PID `25581`, parent `51136`, is identified by command AND cwd as
+`OpenSavedPlayablePreview` / `material-boundary-review-01.log`. Samples
+191.1%, 193.0%, 188.8%, 190.3%, 195.9% (17:39:51 UTC) exceed 80%. The log shows
+a loaded running Playground shell; shader worker 25989 is idle and there is
+no observed compiler. Do not call this a compile merely from the Unity name.
+Owner was asked whether its focused simulation/E2E phase remains active or
+only an unattended preview remains (`01a072a8-dace-7fc1-888e-7a09fbfc75ed`),
+and for the next naturally quiet phase boundary. No stop/pause/reprioritize
+request or process action was made. Recheck CPU/phase before the pending overlay
+and again before compilation; no permanent blocker or runtime lease is inferred.
+Latest measured disk 83,166,276 KiB, above the incremental build floor.
 
 Fresh `cua.getState()` now succeeds and reports Ahoi closed; this is connection
 inventory, not native-window or E2E acceptance. Arc is reported running. The
@@ -238,8 +251,9 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   Bundle tree SHA-256:
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at source `225df88` for
-  terminal failed build `30212`, not a new built/installed candidate. It shares
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at accepted source `22e2f2b`
+  for the pending test-API correction; shared checkout remains 225df88 from
+  terminal failed build `30212`. This is not a new built/installed candidate. It shares
   `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
@@ -371,8 +385,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    Snapshot/overlay are at exact `225df88`; compiler-only `3035529`, owned
    `1ea90da`, and the renewed consent freeze are already integrated. There is
    no remaining product or test-source handoff wait. The exact `22e2f2b`
-   correction (already contains owned `5794d37`) is explicitly accepted; integrate one
-   cached correction only after the fresh FillIt 93670 CPU gate clears. Do not
+   correction (already contains owned `5794d37`) is explicitly accepted and the
+   clean snapshot is already selected. Integrate one cached correction after
+   the current all-project CPU/phase gate clears (latest Unity25581, not retired
+   Blender93670). Do not
    copy subsequent unified Sync WIP or stop the foreign workload.
    A successful complete build receipt is required before installation. Preserve both logs,
    bind the final receipt and recheck CPU/process/disk gates before the next
