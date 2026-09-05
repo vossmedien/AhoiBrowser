@@ -4,6 +4,16 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 
 ## Current next action and evidence — 2026-09-05
 
+**Current implementation continuation:**
+`docs/UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md` records the actual C++ AND
+Swift WIP, committed handoffs `92694fe` / `5885d01` / `c3c3d20`, source-only
+checks and exact remaining live-binding work. The larger unified package is
+NOT source-frozen, built or end-to-end accepted. Native A has committed types;
+Common Service/backend capture and matching Mobile binding remain here.
+Desktop's separate `92694fe` baseline has since built/installed but its startup
+E2E is red and Desktop owns the correction. Do not resume historical build
+handles or old UI handoffs from the evidence chronology below.
+
 **NEW BINDING USER DIRECTION:** the app is pre-launch and not actively used.
 Implement ONE current format for every allowed sync data class on iOS/macOS,
 without an elaborate migration or permanent v2/v3 operation. ADR 0009 and
