@@ -5,6 +5,7 @@ public enum CompanionSearchResultKind: String, Codable, Sendable {
     case workspace
     case folder
     case savedPage
+    case bookmark
     case remoteTab
     case history
 }
@@ -90,6 +91,14 @@ public actor LocalSearchIndex {
                 title: visit.title,
                 detail: visit.url,
                 url: visit.url
+            ))
+        }
+        for bookmark in snapshot.visibleBookmarks where bookmark.kind == .url {
+            result.append(.init(
+                id: bookmark.id.rawValue, kind: .bookmark,
+                title: bookmark.title.isEmpty ? bookmark.url : bookmark.title,
+                detail: CompanionL10n.string("bookmark.library.title", fallback: "Bookmarks"),
+                url: bookmark.url
             ))
         }
         for tab in snapshot.visibleRemoteTabs {

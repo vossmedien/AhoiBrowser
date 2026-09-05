@@ -32,6 +32,7 @@ public struct CompanionRootView: View {
     @State private var selectedRemoteDeviceID: DeviceID?
     @State private var settingsPresented = false
     @State private var sendLinkPresented = false
+    @State private var bookmarksPresented = false
     @Binding private var syncEnabled: Bool
 
     public init(
@@ -54,6 +55,9 @@ public struct CompanionRootView: View {
         NavigationSplitView {
             if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             List(selection: $selectedWorkspaceID) {
+                Section {
+                    CompanionBookmarkLibraryEntry { bookmarksPresented = true }
+                }
                 Section(L("root.workspaces", "Workspaces")) {
                     ForEach(model.snapshot.visibleWorkspaces) { workspace in
                         HStack(spacing: 8) {
@@ -258,6 +262,9 @@ public struct CompanionRootView: View {
             }
         }
         .tint(accentTint)
+        .sheet(isPresented: $bookmarksPresented) {
+            BookmarkLibraryView(model: model, openURL: openURL)
+        }
         .searchable(
             text: $query,
             placement: .sidebar,
@@ -752,39 +759,6 @@ private struct TreeNodeRow: View {
             node.kind == .folder
                 ? "browser.library.folder.\(stableUUID(node.id.rawValue))"
                 : "browser.library.saved-page.\(stableUUID(node.id.rawValue))"
-        )
-    }
-}
-
-private struct WorkspaceIcon: View {
-    let workspace: Workspace
-
-    var body: some View {
-        HStack(spacing: 4) {
-            if workspace.icon.isEmpty {
-                Image(systemName: "square.stack.3d.up")
-            } else {
-                Text(workspace.icon)
-            }
-            if let accent = workspace.accent.flatMap(Color.init(argbHex:)) {
-                Circle().fill(accent).frame(width: 7, height: 7)
-            }
-        }
-    }
-}
-
-private extension Color {
-    init?(argbHex: String) {
-        let raw = argbHex.trimmingCharacters(
-            in: CharacterSet(charactersIn: "#")
-        )
-        guard let value = UInt32(raw, radix: 16), raw.count == 8 else { return nil }
-        self.init(
-            .sRGB,
-            red: Double((value >> 16) & 0xff) / 255,
-            green: Double((value >> 8) & 0xff) / 255,
-            blue: Double(value & 0xff) / 255,
-            opacity: Double((value >> 24) & 0xff) / 255
         )
     }
 }

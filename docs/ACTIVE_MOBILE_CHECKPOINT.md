@@ -3,7 +3,47 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
-## Current task: shared normal tabs, not only a device catalogue
+## Current task: matching Mobile bookmarks — owner handoff received
+
+The Bookmark owner explicitly handed off the Swift/Mobile implementation of
+the frozen wire-v2 contract in ADR 0006. Mobile owns typed Swift bookmarks,
+compatible snapshot persistence, field merge, bridge integration, Mobile
+Library/search UI and tests, including necessary `spikes/cloudkit` model and
+boundary seams. Native Desktop adapter/Core/GN, C++ schema/merge/serialization,
+`config/sync-policy.json` and the one canonical Golden fixture remain with the
+Bookmark owner. No new engine/crypto/container or Production rollout is allowed.
+
+Source integration now includes typed Bookmark records/codec, compatible
+snapshot decode, a separate field merge/store/hierarchy, existing Bridge
+seeding/import/recovery hooks and a native Library with CRUD, roots/folders,
+safe activation, lookup/search and browser Add Bookmark action. One-time local
+category approval is explicit and still requires configured global Sync;
+before approval the Bridge neither seeds local bookmarks nor decrypts imported
+bookmark payloads. Cached opaque records hydrate on approval, without a new
+engine or erasing prior corruption quarantine. The large Bridge snapshot-seed
+method and repository clock observation were moved into cohesive small files.
+
+The helper delivered model/codec, UI and focused tests in disjoint modules;
+the main agent owns final integration/review. No build/test phase has started.
+The owner corrected the Golden's device aliases to UUIDs and committed the one
+canonical fixture at `ae38ed7`; `project.yml` references it as a test resource.
+Bookmark creation time retains positive Int64 Windows-epoch microseconds,
+including pre-1970 native metadata. New tests cover wire negatives, legacy
+decode, hierarchy/CRUD/merge, privacy consent and encrypted two-repository relay;
+`MobileBookmarkRealE2EUITests` exercises the real Library before those suites.
+
+Desktop granted My-Mac runtime slot `01a070c7-7b59-78d0-b224-bfab8a57b998`, but
+Mobile immediately returned it unused in `01a070ef-f293-7c53-971d-411deac9db53`.
+No host was started/installed and no account/zone/key was touched. Do not reserve
+or block Desktop while this separate source wave is being prepared. Recheck
+CPU/build ownership before the first matching Mobile candidate build.
+
+The completed local SavedPage foundation below remains separate evidence.
+ADR 0008 now explicitly assigns future shared-tab Swift ownership and stable
+Inbox identities. Its capability/bootstrap, legacy-clock and nonportable-tab
+freeze points remain pending agreement; this Bookmark wave does not enable v3.
+
+## Shared normal tabs foundation — previous bounded step
 
 The user now explicitly requires all normal tabs to stay synchronized across
 Desktop, iPhone and iPad. Saved pages remain one uniform structure; temporary

@@ -18,6 +18,7 @@ struct MobileBrowserActionsSheet: View {
     private let onToggleSidebar: @MainActor () -> Void
     private let onSwitchWorkspace: @MainActor (Int) -> Void
     private let onSaveToWorkspace: @MainActor (Workspace) -> Void
+    private let onSaveBookmark: @MainActor () -> Void
     private let onCloseSelectedTab: @MainActor () -> Void
     private let onClearPrivateTabs: @MainActor () -> Void
     private let onClearWebsiteData: @MainActor () -> Void
@@ -36,6 +37,7 @@ struct MobileBrowserActionsSheet: View {
         onToggleSidebar: @escaping @MainActor () -> Void,
         onSwitchWorkspace: @escaping @MainActor (Int) -> Void,
         onSaveToWorkspace: @escaping @MainActor (Workspace) -> Void,
+        onSaveBookmark: @escaping @MainActor () -> Void,
         onCloseSelectedTab: @escaping @MainActor () -> Void,
         onClearPrivateTabs: @escaping @MainActor () -> Void,
         onClearWebsiteData: @escaping @MainActor () -> Void
@@ -53,6 +55,7 @@ struct MobileBrowserActionsSheet: View {
         self.onToggleSidebar = onToggleSidebar
         self.onSwitchWorkspace = onSwitchWorkspace
         self.onSaveToWorkspace = onSaveToWorkspace
+        self.onSaveBookmark = onSaveBookmark
         self.onCloseSelectedTab = onCloseSelectedTab
         self.onClearPrivateTabs = onClearPrivateTabs
         self.onClearWebsiteData = onClearWebsiteData
@@ -253,6 +256,13 @@ struct MobileBrowserActionsSheet: View {
                     .disabled(companionModel.snapshot.visibleWorkspaces.isEmpty)
                     .accessibilityIdentifier("browser.actions.workspace-switch")
 
+                    if browser.selectedTab?.mode == .normal, browser.selectedTab?.url != nil {
+                        Button(action: onSaveBookmark) {
+                            Label(CompanionL10n.string("bookmark.add", fallback: "Add Bookmark"),
+                                  systemImage: "bookmark")
+                        }
+                        .accessibilityIdentifier("browser.actions.add-bookmark")
+                    }
                     if browser.selectedTab?.mode == .normal,
                        !companionModel.snapshot.visibleWorkspaces.isEmpty {
                         Menu {

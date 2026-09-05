@@ -153,6 +153,21 @@ struct MobileAddressCommandSheet: View {
     }
 
     private func activateSearchResult(_ result: CompanionSearchResult) {
+        if result.kind == .bookmark {
+            guard let bookmark = companionModel.snapshot.visibleBookmarks.first(where: {
+                $0.id.rawValue == result.id && $0.kind == .url
+            }), let url = URL(string: bookmark.url),
+                (try? MobileBrowserInputRouter.validateWebURL(url)) != nil else {
+                browser.lastError = CompanionL10n.string(
+                    "bookmark.unsupported.message",
+                    fallback: "The address remains saved as bookmark metadata, but iPhone and iPad open only web addresses here."
+                )
+                return
+            }
+            _ = browser.createTab(url: url)
+            dismissAddressEditor()
+            return
+        }
         if result.kind == .savedPage {
             onOpenTreeNode(TreeNodeID(rawValue: result.id))
             dismissAddressEditor()
@@ -178,7 +193,7 @@ struct MobileAddressCommandSheet: View {
                     $0.id == node.workspaceID
                 }
             }
-        case .savedPage, .remoteTab, .history:
+        case .savedPage, .bookmark, .remoteTab, .history:
             workspace = nil
         }
         guard let workspace else { return }

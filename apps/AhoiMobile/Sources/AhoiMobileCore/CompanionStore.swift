@@ -5,7 +5,7 @@ public actor LocalFirstRepository {
     private let store: any LocalCompanionStore
     private let searchIndex = LocalSearchIndex()
     let localDeviceID: DeviceID
-    private var clock: HybridLogicalClock
+    var clock: HybridLogicalClock
     var snapshot: CompanionSnapshot = .empty
     private var persistedSnapshot: CompanionSnapshot = .empty
     private var didLoad = false
@@ -728,25 +728,6 @@ public actor LocalFirstRepository {
         return SyncVersion(modifiedAt: clock, modifiedBy: localDeviceID)
     }
 
-    private func observeStoredClocks() {
-        let clocks = snapshot.devices.map(\.version.modifiedAt)
-            + snapshot.workspaces.map(\.version.modifiedAt)
-            + snapshot.treeNodes.map(\.version.modifiedAt)
-            + snapshot.sessions.map(\.version.modifiedAt)
-            + snapshot.remoteTabs.map(\.version.modifiedAt)
-            + snapshot.history.map(\.version.modifiedAt)
-            + snapshot.productRecords.appearance.map(\.version.modifiedAt)
-            + snapshot.productRecords.permittedSettings.map(\.version.modifiedAt)
-            + snapshot.productRecords.extensionInventory.map(\.version.modifiedAt)
-            + snapshot.productRecords.developerAssets.map(\.version.modifiedAt)
-        guard let newest = clocks.max(), newest >= clock else { return }
-        clock = HybridLogicalClock(
-            physicalMilliseconds: newest.physicalMilliseconds,
-            submillisecondMicroseconds: newest.submillisecondMicroseconds,
-            logicalCounter: newest.logicalCounter,
-            nodeID: localDeviceID
-        )
-    }
 
     private func validateParent(
         _ parentID: TreeNodeID?,

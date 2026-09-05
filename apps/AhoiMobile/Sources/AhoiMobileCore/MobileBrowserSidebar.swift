@@ -10,6 +10,7 @@ struct MobileBrowserSidebar: View {
     @Environment(\.colorScheme) private var colorScheme
     @ObservedObject private var model: CompanionAppModel
     @ObservedObject private var browser: MobileBrowserController
+    @State private var bookmarksPresented = false
 
     private let accentTint: Color
     private let onPresentCommand: () -> Void
@@ -47,6 +48,9 @@ struct MobileBrowserSidebar: View {
             if isPrivateBrowsing {
                 localTabsSection
             } else {
+                Section {
+                    CompanionBookmarkLibraryEntry { bookmarksPresented = true }
+                }
                 workspaceSection
                 savedHierarchySection
                 localTabsSection
@@ -78,6 +82,12 @@ struct MobileBrowserSidebar: View {
             }
         }
         .tint(accentTint)
+        .sheet(isPresented: $bookmarksPresented) {
+            BookmarkLibraryView(model: model, openURL: OpenURLAction { url in
+                onOpenPage(url, contentWorkspaceID)
+                return .handled
+            })
+        }
         .environment(\.colorScheme, isPrivateBrowsing ? .dark : colorScheme)
     }
 

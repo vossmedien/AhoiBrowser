@@ -39,6 +39,16 @@ public struct TreeNodeID: UUIDIdentifier {
     }
 }
 
+/// Stable identity of one logical bookmark or bookmark folder. Native browser
+/// node identifiers remain adapter-local and must never be used on the wire.
+public struct BookmarkID: UUIDIdentifier {
+    public let rawValue: UUID
+
+    public init(rawValue: UUID) {
+        self.rawValue = rawValue
+    }
+}
+
 public struct TabID: UUIDIdentifier {
     public let rawValue: UUID
 

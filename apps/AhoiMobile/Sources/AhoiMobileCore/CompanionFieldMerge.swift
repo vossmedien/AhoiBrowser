@@ -175,7 +175,7 @@ public enum CompanionFieldMerge {
         return result
     }
 
-    private static func incomingWins<Value: Equatable>(
+    static func incomingWins<Value: Equatable>(
         _ field: String,
         _ oldValue: Value,
         _ newValue: Value,

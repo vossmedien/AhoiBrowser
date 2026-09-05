@@ -17,6 +17,7 @@ public struct AhoiMobileBrowserView: View {
     @State private var addressPresented = false
     @State private var tabsPresented = false
     @State private var libraryPresented = false
+    @State private var bookmarkCapture: MobileBookmarkCapture?
     @State private var historyPresented = false
     @State private var settingsPresented = false
     @State private var downloadsPresented = false
@@ -134,6 +135,10 @@ public struct AhoiMobileBrowserView: View {
         .sheet(isPresented: $addressPresented) { addressSheet }
         .sheet(isPresented: $tabsPresented) { tabSwitcher }
         .sheet(isPresented: $libraryPresented) { librarySheet }
+        .sheet(item: $bookmarkCapture) { capture in
+            BookmarkLibraryView(model: companionModel, openURL: browserOpenURLAction,
+                                initialTitle: capture.title, initialURL: capture.url)
+        }
         .sheet(isPresented: $historyPresented) {
             MobileBrowserHistoryView(model: companionModel) { url in
                 browser.handleExternalURL(url)
@@ -426,6 +431,13 @@ public struct AhoiMobileBrowserView: View {
             onToggleSidebar: toggleSidebar,
             onSwitchWorkspace: switchWorkspace,
             onSaveToWorkspace: saveSelectedPage,
+            onSaveBookmark: {
+                guard let tab = browser.selectedTab, tab.mode == .normal,
+                      let url = MobileTabRecord.normalizedURLString(tab.url) else { return }
+                presentAfterBrowserActions {
+                    bookmarkCapture = .init(title: tab.effectiveTitle, url: url)
+                }
+            },
             onCloseSelectedTab: {
                 guard let selectedTabID = browser.selectedTabID else { return }
                 closeTab(selectedTabID)
@@ -471,7 +483,9 @@ public struct AhoiMobileBrowserView: View {
     }
     private var browserOpenURLAction: OpenURLAction {
         OpenURLAction { url in
-            browser.handleExternalURL(url)
+            guard (try? MobileBrowserInputRouter.validateWebURL(url)) != nil else { return .discarded }
+            _ = browser.createTab(url: url)
+            reconcileSidebarTabs()
             libraryPresented = false
             return .handled
         }

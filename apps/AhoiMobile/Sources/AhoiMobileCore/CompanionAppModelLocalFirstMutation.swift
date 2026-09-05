@@ -20,9 +20,9 @@ extension CompanionAppModel {
     /// mutation failure or invite the user to create a duplicate.
     @discardableResult
     func performLocalFirstMutation<Value>(
-        _ localMutation: () async throws -> Value,
+        _ localMutation: @MainActor () async throws -> Value,
         didCommit: @MainActor (Value) -> Void = { _ in },
-        enqueue: (Value) async throws -> Void
+        enqueue: @MainActor (Value) async throws -> Void
     ) async -> Value? {
         let committed: Value
         do {

@@ -18,6 +18,8 @@ public actor CompanionSyncBridge {
     let commandSigner: (any RemoteCommandSigning)?
     let commandOwnershipStore: any RemoteCommandOwnershipStoring
     var commandStates: [UUID: RemoteCommandState] = [:]
+    var bookmarkSyncEnabled = false
+    var bookmarkHydrationRequired = false
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, any Error>] = []
@@ -56,176 +58,6 @@ public actor CompanionSyncBridge {
         self.remoteControlConfigured = commandSigner != nil
     }
 
-    /// Seeds transport from the durable local authority when sync is enabled
-    /// after offline-only edits. Existing envelopes with the same authoritative
-    /// version/tombstone metadata are reused byte-for-byte: AES-GCM nonces stay
-    /// stable for unchanged data and the file-backed record store persists at
-    /// most once for the complete seed.
-    public func enqueueLocalSnapshot() async throws {
-        let authorizationMutationEpoch = provider
-            .currentDeveloperAssetAuthorizationMutationEpoch()
-        let snapshot = try await repository.currentSnapshot()
-        var existingByID: [UUID: SyncRecord] = [:]
-        for record in try await provider.allRecords() {
-            existingByID[record.recordID] = record
-        }
-        var records: [SyncRecord] = []
-        var developerAssetIDs = Set<UUID>()
-
-        func appendIfRequired(
-            id: UUID,
-            dataClass: SyncDataClass,
-            version: SyncVersion,
-            orderKey: OrderKey? = nil,
-            tombstone: Tombstone?,
-            plaintext: () throws -> Data
-        ) throws {
-            let canonicalPlaintext = try plaintext()
-            guard shouldSeedTransport(
-                existing: existingByID[id],
-                id: id,
-                dataClass: dataClass,
-                version: version,
-                orderKey: orderKey,
-                canonicalPlaintext: canonicalPlaintext,
-                tombstone: tombstone
-            ) else { return }
-            records.append(try codec.makeRecord(
-                recordID: id,
-                entityID: id,
-                dataClass: dataClass,
-                version: version,
-                plaintext: canonicalPlaintext,
-                orderKey: orderKey,
-                tombstone: tombstone
-            ))
-        }
-
-        for device in snapshot.devices {
-            try appendIfRequired(
-                id: device.id.rawValue,
-                dataClass: .device,
-                version: device.version,
-                tombstone: device.tombstone
-            ) { try wireCodec.encode(device) }
-        }
-        for workspace in snapshot.workspaces {
-            try appendIfRequired(
-                id: workspace.id.rawValue,
-                dataClass: .workspace,
-                version: workspace.version,
-                tombstone: workspace.tombstone
-            ) { try wireCodec.encode(workspace) }
-        }
-        for node in snapshot.treeNodes {
-            try appendIfRequired(
-                id: node.id.rawValue,
-                dataClass: .treeNode,
-                version: node.version,
-                orderKey: node.orderKey,
-                tombstone: node.tombstone
-            ) { try wireCodec.encode(node) }
-        }
-        for session in snapshot.sessions {
-            try appendIfRequired(
-                id: session.id.rawValue,
-                dataClass: .deviceSession,
-                version: session.version,
-                tombstone: session.tombstone
-            ) { try wireCodec.encode(session) }
-        }
-        for tab in snapshot.remoteTabs where tab.context == .normal {
-            try appendIfRequired(
-                id: tab.id.rawValue,
-                dataClass: .deviceTab,
-                version: tab.version,
-                tombstone: tab.tombstone
-            ) { try wireCodec.encode(tab) }
-        }
-        for visit in snapshot.history {
-            try appendIfRequired(
-                id: visit.id.rawValue,
-                dataClass: .historyVisit,
-                version: visit.version,
-                tombstone: visit.tombstone
-            ) { try wireCodec.encode(visit) }
-        }
-        for value in snapshot.productRecords.appearance {
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .appearance,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        for value in snapshot.productRecords.permittedSettings {
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .permittedSetting,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        for value in snapshot.productRecords.extensionInventory {
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .extensionInventory,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        for value in snapshot.productRecords.developerAssets
-            where value.isDeleted || value.optedIn {
-            developerAssetIDs.insert(value.id)
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .developerAsset,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        try await provider.enqueueLocalSnapshot(
-            records,
-            authorizedDeveloperAssetIDs: developerAssetIDs,
-            scanStartedAtMutationEpoch: authorizationMutationEpoch
-        )
-    }
-
-    private func shouldSeedTransport(
-        existing: SyncRecord?,
-        id: UUID,
-        dataClass: SyncDataClass,
-        version: SyncVersion,
-        orderKey: OrderKey?,
-        canonicalPlaintext: Data,
-        tombstone: Tombstone?
-    ) -> Bool {
-        guard let existing else { return true }
-        let metadataMatches = existing.recordID == id && existing.entityID == id &&
-            existing.dataClass == dataClass &&
-            existing.schemaVersion == version.schemaVersion &&
-            existing.modifiedAt == version.modifiedAt &&
-            existing.originatingDevice == version.modifiedBy &&
-            existing.orderKey == orderKey &&
-            existing.tombstone == tombstone
-        if metadataMatches,
-           let existingPlaintext = try? codec.openData(existing),
-           existingPlaintext == canonicalPlaintext {
-            return false
-        }
-        if existing.modifiedAt != version.modifiedAt {
-            return existing.modifiedAt < version.modifiedAt
-        }
-        if existing.originatingDevice != version.modifiedBy {
-            return existing.originatingDevice < version.modifiedBy
-        }
-        if existing.schemaVersion != version.schemaVersion {
-            return existing.schemaVersion < version.schemaVersion
-        }
-        // Equal authority metadata with a different class/entity/tombstone is
-        // corrupt transport metadata. Replace it from the durable domain model.
-        return true
-    }
 
     public func syncNow() async throws {
         if syncInProgress {
@@ -283,10 +115,13 @@ public actor CompanionSyncBridge {
         defer { provider.endDomainMergeActivity() }
         let fetchedRecords = try await provider.pendingFetchedRecords()
         let recoveryRecords = try await provider.pendingQuarantineRecoveryRecords()
+        let hydrateBookmarks = bookmarkSyncEnabled && bookmarkHydrationRequired
+        let bookmarkRecords = hydrateBookmarks
+            ? try await provider.allRecords().filter { $0.dataClass == .bookmark } : []
         let snapshot = try await repository.currentSnapshot()
         let importContext = ImportContext(snapshot: snapshot)
         let candidates = Self.makeImportCandidates(
-            primaryRecords: recoveryRecords,
+            primaryRecords: recoveryRecords + bookmarkRecords,
             fetchedRecords: fetchedRecords
         )
         let ordered = candidates.enumerated().sorted { lhs, rhs in
@@ -384,12 +219,18 @@ public actor CompanionSyncBridge {
         var fetchedToAcknowledge: [SyncRecord] = []
         for token in successfulTokens.sorted() {
             let candidate = candidates[token]
-            try await provider.resolveQuarantinedRecord(candidate.record)
+            // No consent means no payload validation. It must not clear an
+            // older corruption/quarantine decision merely by acknowledging a
+            // newly fetched opaque copy of that same bookmark record.
+            if candidate.record.dataClass != .bookmark || bookmarkSyncEnabled {
+                try await provider.resolveQuarantinedRecord(candidate.record)
+            }
             if candidate.acknowledgeOnSuccess {
                 fetchedToAcknowledge.append(candidate.record)
             }
         }
         try await provider.acknowledgeFetchedRecords(fetchedToAcknowledge)
+        if hydrateBookmarks { bookmarkHydrationRequired = false }
     }
 
     private final class ImportContext {
@@ -519,6 +360,7 @@ public actor CompanionSyncBridge {
         _ record: SyncRecord,
         context: ImportContext
     ) throws -> DecodedImport {
+        if record.dataClass == .bookmark && !bookmarkSyncEnabled { return .ignored }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
         case .device:
@@ -543,6 +385,8 @@ public actor CompanionSyncBridge {
                 context.workspaces[value.id] = value
             }
             return .domain(.workspace(value))
+        case .bookmark:
+            return .domain(.bookmark(try decodeBookmarkRecord(record, plaintext: plaintext)))
         case .treeNode:
             let value = try wireCodec.decodeTreeNode(record, plaintext: plaintext)
             try validate(record, identity: value.id.rawValue, version: value.version,
@@ -618,6 +462,8 @@ public actor CompanionSyncBridge {
 
     private func makeRecord(for value: CompanionImportedValue) throws -> SyncRecord {
         switch value {
+        case .bookmark(let value):
+            return try makeBookmarkRecord(value)
         case .device(let value):
             return try codec.makeRecord(
                 recordID: value.id.rawValue, entityID: value.id.rawValue,
@@ -693,6 +539,11 @@ public actor CompanionSyncBridge {
     ) throws -> PhysicalDeletionRecoveryDecision {
         let plaintext = try codec.openData(record)
         switch record.dataClass {
+        case .bookmark:
+            guard bookmarkSyncEnabled else {
+                throw CompanionSyncBridgeError.unsupportedDataClass(.bookmark)
+            }
+            _ = try decodeBookmarkRecord(record, plaintext: plaintext)
         case .device:
             let value = try wireCodec.decodeDevice(record, plaintext: plaintext)
             try validate(record, identity: value.id.rawValue, version: value.version,

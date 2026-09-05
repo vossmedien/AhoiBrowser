@@ -18,11 +18,12 @@ public final class CompanionAppModel: ObservableObject {
     @Published public internal(set) var physicalDeletionRecoveryRequired = false
     @Published public private(set) var historyRetentionDays: Int
     @Published public internal(set) var isSyncConfigured: Bool
+    @Published public internal(set) var isBookmarkSyncEnabled: Bool
     @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
 
     public let repository: LocalFirstRepository
-    private let defaults: UserDefaults
+    let defaults: UserDefaults
     var syncProvider: CloudKitSyncProvider?
     var syncBridge: CompanionSyncBridge?
     let syncRuntimeFactory: CompanionSyncRuntimeFactory?
@@ -82,6 +83,7 @@ public final class CompanionAppModel: ObservableObject {
         self.remoteCommandClock = remoteCommandClock
         self.remoteCommandSleeper = remoteCommandSleeper
         self.isSyncConfigured = syncProvider != nil && syncBridge != nil
+        self.isBookmarkSyncEnabled = defaults.bool(forKey: Self.bookmarkSyncApprovalKey)
         self.desiredSyncEnabled = syncProvider != nil && syncBridge != nil
         self.keyLifecycleStatus = syncProvider != nil && syncBridge != nil
             ? .ready(keyVersion: 1)
@@ -431,6 +433,8 @@ public final class CompanionAppModel: ObservableObject {
         }
         let generation = syncGeneration
         do {
+            await bridge.setBookmarkSyncEnabled(isBookmarkSyncEnabled)
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else { return }
             if !providerPrepared {
                 try await syncProvider.prepare()
                 guard isCurrentSyncRuntime(syncProvider, generation: generation) else {

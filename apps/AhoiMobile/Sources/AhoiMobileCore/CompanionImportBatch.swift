@@ -5,6 +5,7 @@ enum CompanionImportedValue: Sendable {
     case device(Device)
     case workspace(Workspace)
     case treeNode(TreeNode)
+    case bookmark(BookmarkRecord)
     case session(DeviceSession)
     case tab(RemoteTab)
     case history(HistoryVisit)
@@ -18,6 +19,7 @@ enum CompanionImportedValue: Sendable {
         case .device(let value): return value.id.rawValue
         case .workspace(let value): return value.id.rawValue
         case .treeNode(let value): return value.id.rawValue
+        case .bookmark(let value): return value.id.rawValue
         case .session(let value): return value.id.rawValue
         case .tab(let value): return value.id.rawValue
         case .history(let value): return value.id.rawValue
@@ -144,6 +146,18 @@ extension LocalFirstRepository {
                         working.treeNodes.append(merged)
                     }
                     accepted = .treeNode(merged)
+                    shouldReenqueue = merged != incoming
+                case .bookmark(let incoming):
+                    let existingIndex = working.bookmarks.firstIndex { $0.id == incoming.id }
+                    let merged = try existingIndex.map {
+                        try CompanionBookmarkFieldMerge.merge(working.bookmarks[$0], incoming)
+                    } ?? incoming
+                    var bookmarks = working.bookmarks
+                    if let existingIndex { bookmarks[existingIndex] = merged }
+                    else { bookmarks.append(merged) }
+                    try CompanionBookmarkHierarchy.validate(bookmarks)
+                    working.bookmarks = bookmarks
+                    accepted = .bookmark(merged)
                     shouldReenqueue = merged != incoming
                 case .session(let incoming):
                     let merged = if let index = sessionIndexes[incoming.id] {

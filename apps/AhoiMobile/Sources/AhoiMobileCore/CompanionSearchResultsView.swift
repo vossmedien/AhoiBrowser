@@ -6,6 +6,7 @@ struct CompanionSearchResultsView: View {
     let results: [CompanionSearchResult]
     let openURL: OpenURLAction
     let onOpenTreeNode: ((TreeNodeID) -> Void)?
+    @State private var unsupportedAddress = false
 
     var body: some View {
         List(results) { result in
@@ -15,6 +16,11 @@ struct CompanionSearchResultsView: View {
                     return
                 }
                 guard let url = result.url.flatMap(URL.init(string:)) else { return }
+                if result.kind == .bookmark,
+                   (try? MobileBrowserInputRouter.validateWebURL(url)) == nil {
+                    unsupportedAddress = true
+                    return
+                }
                 openURL(url)
             } label: {
                 VStack(alignment: .leading, spacing: 3) {
@@ -33,5 +39,14 @@ struct CompanionSearchResultsView: View {
         }
         .accessibilityIdentifier("browser.library.search-results")
         .navigationTitle(CompanionL10n.string("search.title", fallback: "Search"))
+        .alert(CompanionL10n.string("bookmark.unsupported.title", fallback: "This address cannot be opened here"),
+               isPresented: $unsupportedAddress) {
+            Button(CompanionL10n.string("action.ok", fallback: "OK"), role: .cancel) {}
+        } message: {
+            Text(CompanionL10n.string(
+                "bookmark.unsupported.message",
+                fallback: "The address remains saved as bookmark metadata, but iPhone and iPad open only web addresses here."
+            ))
+        }
     }
 }

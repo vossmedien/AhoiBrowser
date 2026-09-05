@@ -30,7 +30,7 @@ public struct SyncBoundary: Sendable {
         case .workspace, .treeNode, .orderKey, .tombstone,
              .recoveryMetadata, .device, .deviceSession, .deviceTab,
              .history, .historyVisit, .remoteCommand, .appearance,
-             .permittedSetting, .extensionInventory:
+             .permittedSetting, .extensionInventory, .bookmark:
             return .allowed
         case .developerAsset:
             return .requiresExplicitOptIn
@@ -87,7 +87,7 @@ public struct SyncBoundary: Sendable {
         switch dataClass {
         case .device, .workspace, .treeNode, .deviceSession, .deviceTab,
              .historyVisit, .appearance, .permittedSetting, .extensionInventory,
-             .developerAsset, .tombstone:
+             .developerAsset, .bookmark, .tombstone:
             return true
         case .orderKey, .recoveryMetadata, .history, .remoteCommand,
              .cookie, .password, .autofill, .siteData, .cache, .permission,
