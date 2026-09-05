@@ -1,5 +1,31 @@
 # Arc canonical snapshot / native receipt — corrective package
 
+## Latest installed readback — 4cb622a, 21:23 UTC
+
+The corrected candidate starts and its native window can be activated with the
+advertised Raise action before keyboard commands. After normal restart the
+Ahoi Settings body and standard Import dialog were both rendered and readable.
+The prior menu-only CUA observation is not an unresolved browser crash or a
+reason to rebuild. The recovery widget lives in `people_page/ahoi_arc_import_section`,
+inside the standard Import dialog's Arc selection, not in the Ahoi Settings page.
+
+Opening the real native source picker showed Arc disabled while its process
+was running. No hidden WebUI message or disabled-item bypass was used. The user
+was asked to close Arc normally; process42725 was still live at21:23:43UTC.
+Source picker/dialog were cancelled without starting an import. Ahoi67242 was
+then quit normally; its process disappeared. No journal/backup write or recovery
+action occurred in this continuation.
+
+Read-only metadata still shows journal version5/prepared/manual_recovery_required,
+170 affected IDs, 7 native members, planned mutation true and no completed native
+receipt. The referenced manifest is a regular file, mode0600, owned by the current
+user; its raw SHA256 equals the journal's manifest hash. This does not replace
+the recovery service's full backup, exact-tree and native-session validation.
+After Arc closes, select it in the same installed candidate's standard Import
+dialog, use the explicit verified recovery action, then create a fresh preview.
+
+## Historical 3d413ef failure and source diagnosis
+
 The live `3d413ef` UI became available in the current continuation. The app was
 opened normally and the previous session continued. Fresh Arc discovery showed
 1 workspace, 36 folders, 133 pages, 3 splits, 0 degraded, 1 excluded, 0 already

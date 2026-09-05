@@ -112,15 +112,33 @@ category checkboxes were aligned. Cancelled; NO Firefox/Arc import or failed-
 journal recovery ran. This is not a pass for all five Arc checkbox rows or the
 real Arc transaction. Native File/Bookmarks menus did not expose an import item.
 
-After navigating to Ahoi Settings, CUA returned only the Settings sidebar menu
-and "Screenshot unavailable". Tab/Cmd+L/Cancel and one own JS reset did not
-expose its body. Browser PID39926 remained live/idle and no new crash report
-appeared; do not label this a proven product crash/hang. Subsequent Cmd+Q worked
-and PID39926 disappeared. App is now closed normally; no transaction started.
-Next: resume the preserved Arc recovery UI on this SAME candidate with a fresh
-native-window binding. Keep real Arc import gated until Arc is closed normally.
-If UI capture stays unavailable, record that precise boundary and run only
-meaningful independent focused checks, not another app rebuild.
+**Latest continuation, 21:23 UTC:** normal reopen/Continue on SAME4cb exposed the
+full Ahoi Settings page; the earlier menu-only capture is not a retained pipe or
+product-crash blocker. `getApp` launches in the background. Explicitly Raise the
+observed native window BEFORE keyboard navigation: Raise + Cmd+L worked where
+background Cmd+L had no effect. Do not repeat the old reset/build loop. A
+settings-menu-only AX tree can recur after dialog cancellation/backgrounding;
+the successful normal restart/window activation is the known recovery path.
+
+The actual Arc recovery section is under Arc in the STANDARD import dialog
+`chrome://settings/importData`, not in `chrome://settings/ahoi`. Its native
+source picker visibly contains a DISABLED "Arc — Arc vor dem Import schließen"
+row. Therefore the current user-visible recovery entry also waits for Arc to
+close; do not invoke hidden WebUI messages or bypass the disabled row. User was
+asked asynchronously to quit Arc normally after saving their work. At21:23:43UTC
+Arc42725 was still live; Ahoi67242 had been closed with normal Cmd+Q. No import
+or recovery transaction was started, no Arc process was stopped, no new build.
+
+Read-only Default journal: version5, status prepared, manual_recovery_required,
+170 affected IDs, 7 planned native members, no completed native receipt. The
+referenced manifest is a regular owner-owned0600 file and its raw SHA matches
+the journal. This is metadata/manifest evidence, not a complete restore-safety
+pass; native recovery must still validate the backup/tree/session boundaries.
+Next: after fresh proof that Arc is closed, reopen the SAME installed4cb,
+Raise its native window, open the standard import dialog and select Arc, then
+perform its explicit verified recovery before a new preview/import. Keep the
+real journal and backup intact. Independent work need not await new type/format
+handoffs for Native A, which is already source-complete in906dac8.
 
 The earlier FillIt Unity18495 samples are historical; the fresh20:41UTC overall
 gate cleared before installation. No foreign process was touched. Desktop still
