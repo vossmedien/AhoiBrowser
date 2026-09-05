@@ -69,3 +69,24 @@ their production path is removed, with their old evidence kept historical.
 
 No source files, stores, keys, profiles, app bundles or server data were changed
 by this review. No compiler, unit/integration/E2E test or host was started.
+
+## Subsequent common-test review
+
+The new C++ `sync_unified_serialization_unittest.cc` now reads the actual
+canonical file, verifies its hash/26 cases, asserts all 13 entity types and
+compares exact reserialized payload bytes. Mobile `project.yml` also includes
+the one canonical resource. These are source-level bindings, not execution.
+
+Two focused assertion-isolation issues were sent to the unified owner as
+`01a0730e-2e27-7b02-aeba-0efd288e7660`:
+
+- `IncomingMissingOrUnknownFieldsNeverGetSyntheticClocks` removes a required
+  field and then inserts the unknown field without restoring the first. Restore
+  the required field (or use a fresh valid copy) before the unknown-only case.
+- `LogicalNumbersRejectBooleanFractionNegativeAndOverflow` changes only
+  `version_logical`. Add isolated `field_versions[*].logical` cases; Boolean
+  `false` and fractional `0.5` avoid a spurious pass caused merely by the field
+  clock exceeding the record clock after permissive integer conversion.
+
+Status: reported against WIP, no test execution and no fix assumed. Swift test
+assertions consuming the new fixture remain separately to be observed.

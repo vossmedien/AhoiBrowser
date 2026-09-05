@@ -93,6 +93,10 @@ these interfaces alone are not working native behavior. Baseline work is separat
   the new app also exits after a targeted Finder start and produced two new
   crash reports. Desktop is analyzing them without repeated launches. Exact
   diagnosis/evidence handoff is pending; build/install success is not E2E success.
+  Its 19:20 UTC update localizes the crash to a toolbar callback asking for
+  fullscreen state before BrowserView has a Widget. Desktop owns the lifecycle
+  correction and its independent attachment/reapply review; no duplicate
+  coordinator implementation or app launch.
 - Minor convention follow-up: the read 92694fe commit body lacked a DCO trailer.
   Sync was asked for a traceable attestation without silently rewriting published
   history (`01a072e3-bcd5-7b03-9dfb-3e114c1f26b7`). This is separate from whether
@@ -118,9 +122,14 @@ these interfaces alone are not working native behavior. Baseline work is separat
   `overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json`.
   Coordinator verified SHA256
   `f1886032c54931f8dfd4180c5ff150698f85576ac70e52e3523f95291c3d8d00` and 26
-  records. No direct new-fixture consumption was yet found in the checked C++/
-  Swift test paths; actual binding/execution remains for the candidate wave.
+  records. C++ `sync_unified_serialization_unittest.cc` now directly reads that
+  file and asserts hash, 26 cases/13 types and exact byte roundtrip; Mobile
+  `project.yml` includes the canonical resource. Actual Swift codec-test
+  assertions and both languages' execution remain for the candidate wave.
   The remote-command example is shape-only, not cryptographic authorization proof.
+  Two WIP test-isolation gaps were reported in `01a0730e-2e27-7b02-aeba-0efd288e7660`
+  (unknown-only field map; malformed field logical counters); see the appended
+  section in the coordinator's Swift integration checklist. No fix/test pass inferred.
 - Actual uncommitted C++ implementation is now visible in common model/store/
   profile types and the two new shared-tab leaf headers. Coordinator inspected
   the leaf types, separate presence/logical IDs and default-false native support.
