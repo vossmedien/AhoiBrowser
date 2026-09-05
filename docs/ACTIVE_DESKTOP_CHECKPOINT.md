@@ -152,6 +152,12 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Evidence and independent boundaries
 
+- Mac Sync readiness was read back from installed `3d413ef`: it remains
+  provider-free, without CloudKit runtime keys, entitlement or provisioning
+  profile. No separate verified CloudKit Mac candidate exists in this wave.
+  `ahoi_sync_unittests` is a planned addition to the next combined package,
+  not part of the completed target list above. Exact evidence and outstanding
+  signing/key/bootstrap gates: `docs/audit-evidence/2026-09-05-mac-sync-readiness.md`.
 - Current import diagnosis: `docs/audit-evidence/2026-09-05-desktop-package1.md`.
   Older chronology: `docs/audit-evidence/2026-09-04-desktop-checkpoint-history.md`.
   Historical 173-test runs and old recovery attempts are not current passes.
