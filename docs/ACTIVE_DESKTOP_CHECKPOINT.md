@@ -42,21 +42,40 @@ explicit slot once its exact host is ready.
 committed. Bookmark source `c28ec4a` is now explicitly frozen and handed off in
 `2210446` / queue `01a0718c-6641-7821-837f-7190f517ad0d`; its 60-file manifest
 is `docs/audit-evidence/2026-09-05-native-bookmark-sync-source.md`. Desktop
-accepts that integration handoff and is preparing the existing clean snapshot
-for ONE combined guarded build after source/CPU checks. No overlay refresh,
-build, test or install has started for this wave yet. Common v3 writers remain
-off. New uncommitted work from other owners is never included implicitly.
+accepts that integration handoff. Guarded overlay session `62030` completed
+Exit 0 with the full checkout delta verified. The ONE combined guarded Dev
+build is now RUNNING as session `90068`, started 2026-09-05 13:28:24 UTC from
+the clean `dc01cb5` snapshot. It uses `AHOI_NINJA_KEEP_GOING=1` and all listed
+targets, including Sync/Sidebar/Arc/navigation/native/browser tests. Log:
+`artifacts/build/desktop-combined-dc01cb5-20260905/build.log`.
+No test execution or install has occurred for this candidate. Common v3 writers
+remain off. No checkout/out changes or second build until this session is terminal.
 
-The existing clean snapshot is now selected at `dc01cb5` (including the committed
+The existing clean snapshot is selected at `dc01cb5` (including the committed
 Bookmark package and native target-policy test preparation); the shared Chromium
-checkout/out and installed bundle are still the older `3d413ef` candidate.
+source is refreshed to it. Build outputs are in progress and must not be called
+a candidate until the build receipt succeeds. Installed bundle remains `3d413ef`.
 A bounded integration review found a separate live-account/consent race:
 provider revocation is immediate, while local Bookmark backend/projection
 methods can still use their cached approval until a later status reply. Provider
 upload/decryption are separately protected; no network leak is claimed.
 Bookmark owns the requested effective-gate/late-reply assessment/correction
-(`01a0719b-0215-7cf0-947d-3696483fe29d`). Hold compiler start for that disposition
-or revised freeze; do not reintroduce "missing initial Bookmark handoff".
+(`01a0719b-0215-7cf0-947d-3696483fe29d`). The subsequent explicit user build
+handoff of `c28ec4a` authorizes compiling the frozen candidate now; that does not
+resolve or accept this separate issue. Keep it open for candidate acceptance,
+not as a missing source handoff. Do not claim a passing cross-account journey.
+
+Current start gate (2026-09-05 13:03 UTC): FillIt Blender PID `10906`, parent
+`51136`, was independently identified by command AND cwd as the six-thread
+`Lagoon420/source-02` data bake. Samples were 258.2% and 204.4% CPU, so no
+intensive overlay/build phase was started. It is untouched; owner was notified
+without asking it to stop or pause (`01a071aa-8b32-7b21-b6a7-f3ab85f3b2ca`).
+The CPU gate subsequently cleared: PID `10906` ended; a later whole-system
+check found no competing build tree over 80%. The briefly observed DisplayPilot
+swift-test had also ended before compiler start; high mediaanalysisd CPU is OS
+background work, not a foreign build. Pre-build free space 90,377,408 KiB is
+above the incremental 64-GiB recommendation, below the 120-GiB roll floor.
+No foreign process was stopped, paused or reprioritized. Pin stays .65.
 
 A fresh visible baseline attempt exposed sustained native CPU and UI timeouts.
 The bounded follow-up now adds patch `0033`: unchanged computed sidebar margins
@@ -281,8 +300,9 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    Bookmark freeze `c28ec4a` and owned target-policy test preparation in the
    existing clean snapshot. The Bookmark handoff is received, not an open wait.
    No WIP integration or competing build.
-   Snapshot selection is done at `dc01cb5`; await the new consent-race disposition
-   or revised Bookmark freeze, then advance it only to the approved combined SHA.
+   Snapshot selection/overlay are done at `dc01cb5`; build `90068` is running.
+   Follow that live handle, do not restart it. Keep the consent-race issue
+   separate and unresolved until its owner disposition/fix and tests.
    Recheck all-project CPU ownership and disk before intensive work.
 2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
    those old commands for delayed messages. Its built targets were
