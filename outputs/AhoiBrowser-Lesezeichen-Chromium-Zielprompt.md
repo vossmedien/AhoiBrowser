@@ -7,6 +7,15 @@ Der ursprüngliche Umfang bleibt vollständig erhalten.
 
 ## Zielprompt
 
+Verbindliche Präzisierung vom 2026-09-05: Die App ist noch nicht live und wird
+nicht aktiv genutzt. Vereinheitliche den Geräteabgleich für ALLE bisher
+freigegebenen Daten auf iOS und macOS auf EIN aktuelles Sync-Format gemäß
+`docs/decisions/0009-unified-prelaunch-sync-format.md`. Kein dauerhafter
+v2/v3-Mischbetrieb, keine aufwendige Migration alter Entwicklungsdaten und keine
+Altclient-Kompatibilitätswelle. Verwende für die neue Abnahme frische isolierte
+Datenbestände; lösche alte Profile, Journale oder Serverdaten nicht stillschweigend.
+Privacy, explizite Zustimmungen und disjunkte Agenten-Ownership bleiben bindend.
+
 Implementiere im kanonischen AhoiBrowser-Repository eine kompakte, horizontal
 scrollbare Lesezeichenzeile oben in der Desktop-Sidebar, inspiriert von der
 Referenz des Nutzers. Ordner öffnen native, kaskadierende Menüs. Temporäre Tabs,
@@ -37,8 +46,9 @@ mobile Projektion/Bedienung gemeinsam mit dem Mobile-Owner. Verwende stabile
 Identitäten, Ordnerhierarchie, deterministische Reihenfolge, Feldkonfliktlösung
 und dauerhafte Löschinformationen. Änderungen dürfen keine Rückkopplungsschleifen,
 Dubletten oder wiederauferstandenen Löschungen erzeugen. Erweiterungen müssen
-bestehende Workspace-Daten und ältere Datensätze verlustfrei erhalten; weder
-eine zweite Sync-Engine noch ein stilles Umdeuten gespeicherter Seiten ist erlaubt.
+bestehende Quell-/Recovery-Daten unangetastet erhalten, ohne alte Entwicklungs-
+Datensätze in das neue Format migrieren zu müssen. Weder eine zweite Sync-Engine
+noch ein stilles Umdeuten gespeicherter Seiten ist erlaubt.
 Profile, verwaltete Einträge, privates Browsen, Sync-Opt-in, Account-/Schlüsselwechsel
 und unbekannte Versionen behalten explizite sichere Grenzen. Eine neue
 Production-CloudKit-/Release-Freigabe wird aus dieser Produktentscheidung nicht

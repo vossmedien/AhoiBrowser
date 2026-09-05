@@ -1,5 +1,11 @@
 # ADR 0008: Combined bookmark/tab wire-v3 coordination
 
+2026-09-05 user override: [ADR 0009](0009-unified-prelaunch-sync-format.md)
+requires one current format for ALL allowed entities and no legacy migration
+project. The v2 Bookmark/Capability exceptions and mixed-version promotion
+requirements below are historical. Native safety, identity and target semantics
+remain applicable; this document must not restart superseded compatibility work.
+
 Status: concrete coordination contract frozen on 2026-09-05 for matching C++
 and Swift implementation/review. This is not writer activation. All current
 writer defaults remain v2 until the capability and migration gates pass.

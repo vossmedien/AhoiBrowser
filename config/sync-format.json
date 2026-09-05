@@ -1,0 +1,236 @@
+{
+  "contract": "Ahoi unified pre-launch sync",
+  "wireModelVersion": 3,
+  "authoredVersions": [
+    3
+  ],
+  "acceptedLiveVersions": [
+    3
+  ],
+  "legacyDevelopmentMigration": false,
+  "incompatibleState": "reject-without-overwrite; use a fresh isolated store",
+  "desktopStoreSchemaVersion": 6,
+  "swiftSnapshotFormatVersion": 3,
+  "productionAuthorityGranted": false,
+  "records": [
+    {
+      "id": 0,
+      "dataClass": "device",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "type",
+        "display_name",
+        "created_at",
+        "last_seen",
+        "retired",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 1,
+      "dataClass": "workspace",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "name",
+        "icon",
+        "sort_key",
+        "accent_argb",
+        "created_at",
+        "modified_at",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 2,
+      "dataClass": "treeNode",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "location",
+        "kind",
+        "title",
+        "icon",
+        "accent_argb",
+        "url",
+        "created_at",
+        "modified_at",
+        "is_temporary",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 3,
+      "dataClass": "historyVisit",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "url",
+        "title",
+        "last_visit",
+        "visit_count",
+        "transition",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 4,
+      "dataClass": "deviceTab",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "session_id",
+        "workspace_id",
+        "url",
+        "title",
+        "opened_at",
+        "last_active",
+        "pinned",
+        "is_incognito",
+        "tree_node_id",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 5,
+      "dataClass": "deviceSession",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "started_at",
+        "liveness",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 6,
+      "dataClass": "remoteCommand",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "request",
+        "status",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 7,
+      "dataClass": "appearance",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "color_mode",
+        "accent_argb",
+        "use_system_accent",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 8,
+      "dataClass": "permittedSetting",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "setting_id",
+        "value_json",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 9,
+      "dataClass": "extensionInventory",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "extension_id",
+        "name",
+        "extension_version",
+        "enabled",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 10,
+      "dataClass": "developerAsset",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "kind",
+        "name",
+        "scope",
+        "source",
+        "enabled",
+        "opted_in",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 11,
+      "dataClass": "bookmark",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "location",
+        "kind",
+        "title",
+        "url",
+        "created_at",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 12,
+      "dataClass": "deviceCapability",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "capabilities",
+        "tombstone"
+      ]
+    }
+  ],
+  "clock": {
+    "physicalEncoding": "canonical signed-Int64 decimal string of Windows-epoch microseconds",
+    "minimumPhysical": "11644473600000000",
+    "logicalMinimum": 0,
+    "logicalMaximum": 4294967295,
+    "deviceEncoding": "canonical lowercase UUID",
+    "incomingFieldMap": "exact and complete; never synthesize missing clocks"
+  },
+  "bookmarkCreatedAt": {
+    "encoding": "positive signed-Int64 Windows-epoch microseconds",
+    "minimum": "1",
+    "hlcEpochRuleApplies": false
+  },
+  "sharedTargets": {
+    "fieldGroup": "url",
+    "payloadFields": [
+      "url",
+      "target_kind",
+      "local_scheme"
+    ],
+    "kinds": {
+      "web": 0,
+      "newTab": 1,
+      "localOnly": 2
+    },
+    "localSchemes": [
+      "about",
+      "chrome",
+      "chrome-extension",
+      "file",
+      "blob",
+      "data",
+      "javascript",
+      "other"
+    ],
+    "newTabRequiresTemporary": true,
+    "publishedPresenceRequiresTreeNodeId": true,
+    "rawLocalOnlyURLAllowed": false
+  },
+  "capability": {
+    "entityId": 12,
+    "wireModelVersion": 3,
+    "idDerivation": "UUIDv5(URL namespace, ahoi:sync:capability:v1:<lowercase-device-id>)",
+    "modelLists": [
+      3
+    ],
+    "feature": "shared-normal-tabs-v3",
+    "independentlyKnownDeviceRequired": true,
+    "controlAnnouncementBeforeDataFeatureReady": true
+  },
+  "fixturePath": "overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json"
+}

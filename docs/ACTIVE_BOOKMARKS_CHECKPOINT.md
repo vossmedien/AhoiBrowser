@@ -4,6 +4,21 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 
 ## Current next action and evidence — 2026-09-05
 
+**NEW BINDING USER DIRECTION:** the app is pre-launch and not actively used.
+Implement ONE current format for every allowed sync data class on iOS/macOS,
+without an elaborate migration or permanent v2/v3 operation. ADR 0009 and
+`config/sync-format.json` supersede the older mixed-version instructions below.
+Fresh isolated stores/test zones are the acceptance basis; no old profile,
+journal or server data is silently deleted. Common C++/contract remains here,
+Swift remains Mobile-owned, Native Tree/Session/build remains Desktop-owned.
+
+The current `225df88` correction build stays immutable with Desktop. It is a
+compiler/UI baseline, not the final unified-format candidate. Its three Common
+test-API corrections are separately committed/pushed in
+`22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`, without product/schema/consent changes.
+No new build/test/runtime was started here. The new format contract is not yet
+implemented or accepted merely because its JSON/ADR exists.
+
 Current correction status: combined Desktop build `90068` / source `dc01cb5`
 is terminal EXIT1, not a new candidate. Its three common compile causes are
 fixed separately in pushed `3035529d21fd03ebdf29977ecbe5de842261e6cb`; this is the

@@ -1,5 +1,10 @@
 # ADR 0006: One logical bookmark collection, native platform adapters
 
+2026-09-05 user override: [ADR 0009](0009-unified-prelaunch-sync-format.md)
+requires one current format for all data, including Bookmarks, with no legacy
+migration project. The separate collection, native authority, identity, privacy
+and consent rules below remain; permanent wire-v2 authoring is superseded.
+
 Status: implementation direction and bookmark wire-v2 fields frozen by the
 bookmark owner on 2026-09-05. Implementation, native identity reconciliation
 and platform acceptance remain open.
