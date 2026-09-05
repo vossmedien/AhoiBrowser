@@ -120,6 +120,14 @@ final class MobileBookmarkRealE2EUITests: MobileBrowserRealE2ETestCase {
     }
 
     @MainActor
+    private func attachScreenshot(named name: String, of app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
     private func removeTestFolder(_ identifier: String, in app: XCUIApplication) {
         // Restart resets only presentation, not the user's/local Library data.
         relaunchExactCandidate(app)
