@@ -4,9 +4,11 @@
 #ifndef AHOI_BROWSER_SYNC_PROFILE_SYNC_UI_BRIDGE_H_
 #define AHOI_BROWSER_SYNC_PROFILE_SYNC_UI_BRIDGE_H_
 
+#include <cstdint>
 #include <optional>
 #include <string_view>
 
+#include "ahoi/browser/sync/shared_tab_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/callback_list.h"
@@ -36,6 +38,11 @@ class ProfileSyncUiBridge {
   // fans this out to its UI hosts; each host reads its live TabStripModel and
   // publishes through ProfileSyncService::PublishWindowTabs().
   virtual void RequestLocalTabCapture() = 0;
+  // Explicit implementation support, separate from wire-format membership.
+  // Native capture responds with the same Service-issued generation; absent
+  // support must preserve state and never fall back to an empty tab vector.
+  virtual SharedTabNativeSupport GetSharedTabNativeSupport() const { return {}; }
+  virtual void RequestSharedTabCapture(uint64_t generation) {}
   [[nodiscard]] virtual bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) = 0;
   [[nodiscard]] virtual tab_tree::TabTreeStore::Result

@@ -9,6 +9,15 @@ source_set("sync_policy") {
   public_deps = [ "//base" ]
 }
 
+source_set("shared_tab_types") {
+  public = [
+    "profile_sync_types.h",
+    "shared_tab_sync_types.h",
+    "shared_tab_target_types.h",
+  ]
+  public_deps = [ "//base" ]
+}
+
 source_set("profile_sync_preferences") {
   sources = [
     "profile_sync_prefs.cc",
@@ -23,6 +32,7 @@ source_set("profile_sync_preferences") {
 source_set("profile_sync_ui_bridge") {
   public = [ "profile_sync_ui_bridge.h" ]
   public_deps = [
+    ":shared_tab_types",
     "//ahoi/browser/tab_tree",
     "//base",
     "//url",
@@ -73,6 +83,7 @@ source_set("sync") {
   ]
 
   public_deps = [
+    ":shared_tab_types",
     ":sync_policy",
     "//ahoi/browser/tab_tree",
     "//base",
