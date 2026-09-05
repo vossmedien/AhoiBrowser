@@ -5,11 +5,12 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 ## Resumed coordination
 
 The user resumed this goal. A fresh CPU check found Unity near 1% and its
-compiler workers idle, so the earlier CPU gate has cleared. The latest exact
-disk readback is 125,586,816 KiB (about 119.77 GiB): above the development-build
-recommendation but still below the hard 120-GiB Chromium-checkout floor despite
-`df -h` rounding to 120 GiB. Recheck exact space before the roll. The mobile
-collection decision is still pending.
+compiler workers idle, so the earlier CPU gate has cleared. Exact disk readback
+first found 125,586,816 KiB (119.77 GiB), below the hard 120-GiB roll floor despite
+`df -h` rounding to 120 GiB. A later readback after retiring the old owned source
+snapshot found 126,506,552 KiB (120.65 GiB). Only 53 MiB of the change is explained
+by this thread's cleanup; do not attribute unrelated free-space changes to it.
+Recheck exact space before the roll. The mobile collection decision is pending.
 
 Direct coordination is now available through the documented `codex queue`
 command in installed CLI 0.153.2. Explicit handoff/resume message
@@ -116,10 +117,14 @@ evidence; the final fixes still need compilation and visible acceptance.
 - No final bookmark executable, visible E2E or bookmark behavior-test pass exists.
   Old sessions `72089`, `67371`, `42586`, `10875`, `96812`, `73207`
   are terminal; do not poll/restart them as live work.
-- Disposable old build snapshot:
-  `/private/tmp/ahoi-bookmark-shelf-build.4MV9hC/repo` at `ab2e709`.
-  It is historical, not current build authority. Preserve only needed receipts
-  before removing this owned 53-MB worktree later.
+- Retired the old owned 53-MiB build snapshot
+  `/private/tmp/ahoi-bookmark-shelf-build.4MV9hC/repo` at `ab2e709` after verifying
+  ancestor status, clean tracked/index state and absence of an active working
+  directory there. The only unique ignored files were two tooling receipts and
+  regenerable Python bytecode. Both receipts were copied byte-for-byte, with
+  matching SHA-256, to
+  `artifacts/build/bookmarks-chromium-20260905/retired-ab2e709/` before removal.
+  Source remains in Git. No other owner's snapshot, output or backup was removed.
 
 ## Chromium update: prepared, not performed
 
