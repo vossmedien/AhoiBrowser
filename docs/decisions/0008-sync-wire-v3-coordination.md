@@ -180,3 +180,7 @@ Canonical future conformance fixture:
 Both implementations must consume it, plus real migration/registry/runtime tests.
 This file and the contract do not enable v3 or establish a passing test.
 No new transport, Production deployment or Android implementation is authorized.
+
+The requested post-Bookmark native/common API and preserving capture contract is
+recorded in [SHARED_TAB_NATIVE_SEAMS.md](../SHARED_TAB_NATIVE_SEAMS.md). It does
+not change this wire fixture or activate any header, runtime caller or writer.
