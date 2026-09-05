@@ -41,6 +41,7 @@ class CloudKitSyncProviderMac final : public SyncProvider {
   void Download(std::string change_token, DownloadCallback callback) override;
   void SetBookmarkSyncEnabled(bool enabled) override;
   bool IsBookmarkConsentRevoked() override;
+  BookmarkSyncAuthorization GetBookmarkSyncAuthorization() override;
   bool IsAccountTransitionPending() override;
   bool IsZoneRecoveryPending() override;
   bool ConfirmAccountTransition(bool allow_local_upload) override;

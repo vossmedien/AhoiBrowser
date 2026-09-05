@@ -219,6 +219,7 @@ class CloudKitSyncProviderMac::Core
     base::AutoLock guard(lock_);
     return bookmark_consent_revoked_;
   }
+  BookmarkSyncAuthorization GetBookmarkSyncAuthorization();
   bool IsZoneRecoveryPending() {
     base::AutoLock guard(lock_);
     return !shutting_down_ && zone_recovery_pending_;

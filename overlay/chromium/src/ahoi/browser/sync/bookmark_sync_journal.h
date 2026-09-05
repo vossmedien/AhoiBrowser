@@ -26,9 +26,13 @@ class BookmarkSyncJournal {
 
   std::optional<BookmarkSyncProjection> ReconcileLocal(
       const NativeBookmarkSnapshot& snapshot,
-      HybridLogicalClock* clock);
-  bool AcknowledgeNativeProjection(const NativeBookmarkSnapshot& snapshot);
-  std::optional<BookmarkSyncProjection> ReadProjection();
+      HybridLogicalClock* clock,
+      const BookmarkSyncAuthorization& authorization = {});
+  bool AcknowledgeNativeProjection(
+      const NativeBookmarkSnapshot& snapshot,
+      const BookmarkSyncAuthorization& authorization = {});
+  std::optional<BookmarkSyncProjection> ReadProjection(
+      const BookmarkSyncAuthorization& authorization = {});
 
  private:
   struct Binding {

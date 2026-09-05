@@ -126,6 +126,7 @@ class SyncStore {
 
  private:
   friend class BookmarkSyncJournal;
+  friend class BookmarkSyncAuthorizationTest;
 
   struct StoredRecord {
     SyncRecord record;

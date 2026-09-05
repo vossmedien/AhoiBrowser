@@ -4,6 +4,23 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 
 ## Current next action and evidence — 2026-09-05
 
+Current correction status: combined Desktop build `90068` / source `dc01cb5`
+is terminal EXIT1, not a new candidate. Its three common compile causes are
+fixed separately in pushed `3035529d21fd03ebdf29977ecbe5de842261e6cb`; this is the
+exact reviewed three-file proposal, excluding all Consent WIP. Desktop's own
+fourth cause is `1ea90da`. No Root build, checkout refresh or install was started.
+
+The separately confirmed local consent race is now corrected in source with
+effective provider/backend generation checks before journal commit, native
+projection apply and ACK, plus checks after the provider-to-pump task hop.
+Nine new regressions are written, none built or run. The original projection
+scope stays invalid after reapproval; local data/outbox are preserved, not
+retroactively deleted. Details and exact source scope:
+`docs/audit-evidence/2026-09-05-bookmark-consent-generation-fix.md`.
+This is a new bounded source handoff, NOT a cross-account/E2E pass. The larger
+Bookmark/capture/v3/Chromium acceptance gates remain open; Desktop retains the
+one combined build/install/UI lease.
+
 - Installed Desktop is now `3d413efb5b6f196403e92f51631c346c9c55b2e5` on
   Chromium `.65`. Desktop built/installed its nested-tree persistence correction;
   receipts are in its checkpoint. The new Bookmark sync code below is NOT in

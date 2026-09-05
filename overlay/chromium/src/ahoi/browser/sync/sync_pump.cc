@@ -123,20 +123,43 @@ void SyncPump::UploadNextPage() {
   }
 
   std::vector<SyncChange> attempted = changes;
+  BookmarkSyncAuthorization authorization;
+  if (std::ranges::any_of(changes, [](const SyncChange& change) {
+        return change.entity_type == EntityType::kBookmark;
+      })) {
+    authorization = provider_->GetBookmarkSyncAuthorization();
+    if (!authorization || !authorization.Run()) {
+      FinishFailure("cancelled");
+      return;
+    }
+  }
   provider_->Upload(
       std::move(changes),
-      base::BindPostTask(task_runner_,
-                         base::BindOnce(&SyncPump::OnUploadFinished,
-                                        weak_ptr_factory_.GetWeakPtr(),
-                                        std::move(attempted))));
+      base::BindPostTask(
+          task_runner_,
+          base::BindOnce(&SyncPump::OnUploadFinished,
+                         weak_ptr_factory_.GetWeakPtr(), std::move(attempted),
+                         std::move(authorization))));
 }
 
 void SyncPump::OnUploadFinished(std::vector<SyncChange> attempted,
+                                BookmarkSyncAuthorization authorization,
                                 bool success,
                                 std::vector<std::string> acknowledged_ids,
                                 std::string error) {
   if (!success) {
     FinishFailure(SafeProviderError(std::move(error)));
+    return;
+  }
+
+  // BindPostTask is a further asynchronous hop after the provider's check.
+  // A revoke during that hop must not acknowledge/remove the retained outbox.
+  if (std::ranges::any_of(attempted,
+                          [](const SyncChange& change) {
+                            return change.entity_type == EntityType::kBookmark;
+                          }) &&
+      (!bookmark_sync_enabled_ || !authorization || !authorization.Run())) {
+    FinishFailure("cancelled");
     return;
   }
 
@@ -166,15 +189,20 @@ void SyncPump::OnUploadFinished(std::vector<SyncChange> attempted,
 }
 
 void SyncPump::DownloadNextPage(std::string requested_token) {
+  auto authorization = bookmark_sync_enabled_
+                           ? provider_->GetBookmarkSyncAuthorization()
+                           : BookmarkSyncAuthorization();
   provider_->Download(
       requested_token,
       base::BindPostTask(
           task_runner_,
           base::BindOnce(&SyncPump::OnDownloadFinished,
-                         weak_ptr_factory_.GetWeakPtr(), requested_token)));
+                         weak_ptr_factory_.GetWeakPtr(), requested_token,
+                         std::move(authorization))));
 }
 
 void SyncPump::OnDownloadFinished(std::string requested_token,
+                                  BookmarkSyncAuthorization authorization,
                                   bool success,
                                   ProviderBatch batch,
                                   std::string error) {
@@ -186,13 +214,14 @@ void SyncPump::OnDownloadFinished(std::string requested_token,
     FinishFailure("provider_error");
     return;
   }
-  if (!bookmark_sync_enabled_ &&
-      std::ranges::any_of(batch.changes, [](const SyncChange& change) {
-        return change.entity_type == EntityType::kBookmark;
-      })) {
+  if (std::ranges::any_of(batch.changes,
+                          [](const SyncChange& change) {
+                            return change.entity_type == EntityType::kBookmark;
+                          }) &&
+      (!bookmark_sync_enabled_ || !authorization || !authorization.Run())) {
     // A provider that ignored category consent must not hydrate the store or
     // advance its token past records it failed to retain safely.
-    FinishFailure("provider_error");
+    FinishFailure(bookmark_sync_enabled_ ? "cancelled" : "provider_error");
     return;
   }
   if (store_->ApplyRemoteBatch(batch) != SyncStore::Result::kOk) {

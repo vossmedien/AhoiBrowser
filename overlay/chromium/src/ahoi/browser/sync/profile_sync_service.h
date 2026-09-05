@@ -59,6 +59,7 @@ class ProfileSyncService final : public KeyedService,
     kNone,
     kUnsupportedLocalData,
     kReconciliationFailed,
+    kAuthorizationChanged,
   };
 
   enum class RemoteControlPrerequisite {
@@ -150,6 +151,7 @@ class ProfileSyncService final : public KeyedService,
 
  private:
   friend class ProfileSyncServiceTest;
+  friend class BookmarkSyncAuthorizationTest;
 
   void StartBackend();
   void StopBackend();
@@ -194,6 +196,7 @@ class ProfileSyncService final : public KeyedService,
                             std::optional<BookmarkSyncProjection> projection);
   void OnBookmarkProjectionAcknowledged(uint64_t generation,
                                         bool local_change,
+                                        BookmarkSyncAuthorization authorization,
                                         bool success);
 
   // extensions::ExtensionRegistryObserver:

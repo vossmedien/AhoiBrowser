@@ -128,6 +128,15 @@ void ProfileSyncService::OnBookmarkProjection(
       (!local_change && !bookmarks_seeded_)) {
     return;
   }
+  if (projection &&
+      (!projection->authorization || !projection->authorization.Run())) {
+    // A provider account/consent event may precede OnBackendState. Even while
+    // prefs and this facade still look approved, an old backend reply must
+    // not start a native apply. Reapproval never revives this original scope.
+    bookmarks_seeded_ = false;
+    SetBookmarkSyncIssue(BookmarkSyncIssue::kAuthorizationChanged);
+    return;
+  }
   if (!projection ||
       !bookmark_adapter_->ApplyProjection(*projection, generation)) {
     SetBookmarkSyncIssue(bookmark_adapter_->local_data_blocked()
@@ -138,18 +147,27 @@ void ProfileSyncService::OnBookmarkProjection(
   if (local_change) {
     bookmarks_seeded_ = true;
   }
+  auto authorization = projection->authorization;
   backend_.AsyncCall(&ProfileSyncBackend::AcknowledgeNativeBookmarks)
-      .WithArgs(bookmark_adapter_->Capture())
-      .Then(base::BindOnce(
-          &ProfileSyncService::OnBookmarkProjectionAcknowledged,
-          bookmark_weak_ptr_factory_.GetWeakPtr(), generation, local_change));
+      .WithArgs(bookmark_adapter_->Capture(), authorization)
+      .Then(
+          base::BindOnce(&ProfileSyncService::OnBookmarkProjectionAcknowledged,
+                         bookmark_weak_ptr_factory_.GetWeakPtr(), generation,
+                         local_change, std::move(authorization)));
 }
 
-void ProfileSyncService::OnBookmarkProjectionAcknowledged(uint64_t generation,
-                                                          bool local_change,
-                                                          bool success) {
+void ProfileSyncService::OnBookmarkProjectionAcknowledged(
+    uint64_t generation,
+    bool local_change,
+    BookmarkSyncAuthorization authorization,
+    bool success) {
   if (!bookmark_adapter_ || !bookmark_sync_enabled() ||
       generation != bookmark_adapter_->generation()) {
+    return;
+  }
+  if (!authorization || !authorization.Run()) {
+    bookmarks_seeded_ = false;
+    SetBookmarkSyncIssue(BookmarkSyncIssue::kAuthorizationChanged);
     return;
   }
   if (!success) {

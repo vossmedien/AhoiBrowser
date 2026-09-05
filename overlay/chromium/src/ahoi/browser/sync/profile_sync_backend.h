@@ -4,6 +4,7 @@
 #ifndef AHOI_BROWSER_SYNC_PROFILE_SYNC_BACKEND_H_
 #define AHOI_BROWSER_SYNC_PROFILE_SYNC_BACKEND_H_
 
+#include <atomic>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -85,7 +86,8 @@ class ProfileSyncBackend {
   std::optional<BookmarkSyncProjection> MergeLocalBookmarks(
       NativeBookmarkSnapshot snapshot);
   std::optional<BookmarkSyncProjection> ReadBookmarkProjection();
-  bool AcknowledgeNativeBookmarks(NativeBookmarkSnapshot snapshot);
+  bool AcknowledgeNativeBookmarks(NativeBookmarkSnapshot snapshot,
+                                  BookmarkSyncAuthorization authorization);
 
   void SyncNow(
       base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback);
@@ -97,6 +99,8 @@ class ProfileSyncBackend {
   void CloseSession();
 
  private:
+  friend class BookmarkSyncAuthorizationTest;
+
   template <typename Record>
   bool Put(const Record& record);
   template <typename Record>
@@ -104,6 +108,8 @@ class ProfileSyncBackend {
 
   void TouchSession();
   void InitializeProviderIfAvailable();
+  BookmarkSyncAuthorization CaptureBookmarkAuthorization();
+  void ResetBookmarkAuthorizationScope(bool renew);
   bool EnforceRetention(base::Time now);
   std::optional<SyncStateSnapshot> CurrentState();
   void OnSyncFinished(
@@ -117,6 +123,8 @@ class ProfileSyncBackend {
   const std::string device_name_;
   bool transport_enabled_ = false;
   bool bookmark_sync_enabled_ = false;
+  std::shared_ptr<std::atomic<bool>> bookmark_scope_cancelled_ =
+      std::make_shared<std::atomic<bool>>(false);
   int history_retention_days_ = 90;
   base::Time last_retention_run_;
   HybridLogicalClock clock_;

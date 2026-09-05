@@ -16,6 +16,7 @@
 #include "ahoi/browser/sync/sync_store.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/strings/stringprintf.h"
+#include "base/test/bind.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -658,6 +659,20 @@ TEST(BookmarkSyncJournalRestartTest,
     EXPECT_EQ(1u, observed->records.size());
     EXPECT_EQ(0, store.PendingOutboxCount());
   }
+}
+
+TEST_F(BookmarkSyncJournalTest, AuthorizationLossBeforeCommitRollsBackJournal) {
+  int checks = 0;
+  const auto authorization =
+      base::BindLambdaForTesting([&] { return ++checks == 1; });
+  EXPECT_FALSE(
+      journal_.ReconcileLocal({.entries = {Page(1)}}, &clock_, authorization));
+  EXPECT_EQ(2, checks);
+  EXPECT_EQ(0, store_.PendingOutboxCount());
+  const auto unchanged = journal_.ReadProjection();
+  ASSERT_TRUE(unchanged);
+  EXPECT_TRUE(unchanged->records.empty());
+  EXPECT_TRUE(unchanged->bindings.empty());
 }
 
 }  // namespace

@@ -11,6 +11,10 @@ bool SyncProvider::IsBookmarkConsentRevoked() {
   return false;
 }
 
+BookmarkSyncAuthorization SyncProvider::GetBookmarkSyncAuthorization() {
+  return {};
+}
+
 bool SyncProvider::IsAccountTransitionPending() {
   return false;
 }

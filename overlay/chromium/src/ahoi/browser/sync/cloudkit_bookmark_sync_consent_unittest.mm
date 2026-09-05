@@ -300,5 +300,40 @@ TEST_F(CloudKitBookmarkSyncConsentTest,
   EXPECT_FALSE(new_delivery.Run());
 }
 
+TEST_F(CloudKitBookmarkSyncConsentTest,
+       LocalAuthorizationRevokesBeforeAnyFacadeStatusReadback) {
+  auto calls = std::make_shared<CryptorCalls>();
+  auto provider = Create(calls, true);
+  auto authorization = provider->GetBookmarkSyncAuthorization();
+  ASSERT_TRUE(authorization);
+  ASSERT_TRUE(authorization.Run());
+  AccountChanged(*provider);
+  // No service status callback or preference update is needed for rejection.
+  EXPECT_FALSE(authorization.Run());
+  EXPECT_FALSE(provider->GetBookmarkSyncAuthorization());
+  EXPECT_EQ(0, calls->opened);
+  EXPECT_EQ(0, calls->sealed);
+}
+
+TEST_F(CloudKitBookmarkSyncConsentTest,
+       LocalAuthorizationDoesNotReviveOnReapprovalOrOutliveProvider) {
+  auto calls = std::make_shared<CryptorCalls>();
+  auto provider = Create(calls);
+  EXPECT_FALSE(provider->GetBookmarkSyncAuthorization());
+  provider->SetBookmarkSyncEnabled(true);
+  auto original = provider->GetBookmarkSyncAuthorization();
+  ASSERT_TRUE(original);
+  ASSERT_TRUE(original.Run());
+  provider->SetBookmarkSyncEnabled(false);
+  EXPECT_FALSE(original.Run());
+  provider->SetBookmarkSyncEnabled(true);
+  EXPECT_FALSE(original.Run());
+  auto current = provider->GetBookmarkSyncAuthorization();
+  ASSERT_TRUE(current);
+  EXPECT_TRUE(current.Run());
+  provider.reset();
+  EXPECT_FALSE(current.Run());
+}
+
 }  // namespace ahoi::sync
 #pragma clang diagnostic pop

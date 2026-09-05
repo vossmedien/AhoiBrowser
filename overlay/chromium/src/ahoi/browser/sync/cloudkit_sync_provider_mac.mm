@@ -156,6 +156,11 @@ void CloudKitSyncProviderMac::SetBookmarkSyncEnabled(bool enabled) {
   core_->SetBookmarkSyncEnabled(enabled);
 }
 
+BookmarkSyncAuthorization
+CloudKitSyncProviderMac::GetBookmarkSyncAuthorization() {
+  return core_->GetBookmarkSyncAuthorization();
+}
+
 bool CloudKitSyncProviderMac::IsBookmarkConsentRevoked() {
   return core_->IsBookmarkConsentRevoked();
 }

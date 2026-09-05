@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
@@ -56,11 +57,13 @@ class SyncPump final {
   void StartCycle();
   void UploadNextPage();
   void OnUploadFinished(std::vector<SyncChange> attempted,
+                        BookmarkSyncAuthorization authorization,
                         bool success,
                         std::vector<std::string> acknowledged_ids,
                         std::string error);
   void DownloadNextPage(std::string requested_token);
   void OnDownloadFinished(std::string requested_token,
+                          BookmarkSyncAuthorization authorization,
                           bool success,
                           ProviderBatch batch,
                           std::string error);

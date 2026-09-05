@@ -446,6 +446,7 @@ bool ProfileSyncBackend::ConfirmAccountTransition(bool allow_local_upload) {
   if (!provider_ || !store_ || !provider_->IsAccountTransitionPending()) {
     return false;
   }
+  ResetBookmarkAuthorizationScope(transport_enabled_ && bookmark_sync_enabled_);
   if (store_->PrepareOutboxForCloudRecovery(allow_local_upload) !=
       SyncStore::Result::kOk) {
     return false;
@@ -457,6 +458,7 @@ bool ProfileSyncBackend::ConfirmZoneRecovery() {
   if (!provider_ || !store_ || !provider_->IsZoneRecoveryPending()) {
     return false;
   }
+  ResetBookmarkAuthorizationScope(transport_enabled_ && bookmark_sync_enabled_);
   if (store_->PrepareOutboxForCloudRecovery(true) != SyncStore::Result::kOk) {
     return false;
   }
@@ -465,6 +467,7 @@ bool ProfileSyncBackend::ConfirmZoneRecovery() {
 
 std::optional<SyncStateSnapshot> ProfileSyncBackend::SetTransportEnabled(
     bool enabled) {
+  ResetBookmarkAuthorizationScope(enabled && bookmark_sync_enabled_);
   transport_enabled_ = enabled;
   if (!enabled) {
     pump_.reset();
@@ -554,6 +557,7 @@ void ProfileSyncBackend::SyncNow(
 }
 
 void ProfileSyncBackend::SuspendWithoutPersisting() {
+  ResetBookmarkAuthorizationScope(false);
   transport_enabled_ = false;
   weak_ptr_factory_.InvalidateWeakPtrs();
   pump_.reset();
@@ -569,6 +573,7 @@ void ProfileSyncBackend::SuspendWithoutPersisting() {
 }
 
 void ProfileSyncBackend::CloseSession() {
+  ResetBookmarkAuthorizationScope(false);
   transport_enabled_ = false;
   weak_ptr_factory_.InvalidateWeakPtrs();
   pump_.reset();
@@ -612,6 +617,9 @@ void ProfileSyncBackend::InitializeProviderIfAvailable() {
     if (provider_->IsBookmarkConsentRevoked()) {
       bookmark_sync_enabled_ = false;
     }
+    // A former provider-free projection cannot inherit a newly available
+    // provider/account's permission merely because local opt-in stayed true.
+    ResetBookmarkAuthorizationScope(bookmark_sync_enabled_);
     pump_ = std::make_unique<SyncPump>(
         store_.get(), provider_.get(),
         SyncPump::Options{.bookmark_sync_enabled = bookmark_sync_enabled_});

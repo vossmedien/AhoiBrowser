@@ -1,6 +1,8 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <atomic>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -9,6 +11,7 @@
 #include "ahoi/browser/sync/sync_pump.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
+#include "base/functional/bind.h"
 #include "base/strings/stringprintf.h"
 #include "base/test/bind.h"
 #include "base/test/task_environment.h"
@@ -60,6 +63,10 @@ SyncChange Remote(const SyncRecord& record, const char* mutation) {
 
 class ControlledProvider final : public SyncProvider {
  public:
+  struct Authority {
+    std::atomic<bool> enabled{true};
+    std::atomic<uint64_t> generation{0};
+  };
   struct UploadRequest {
     std::vector<SyncChange> changes;
     UploadCallback callback;
@@ -70,6 +77,28 @@ class ControlledProvider final : public SyncProvider {
   };
   void SetBookmarkSyncEnabled(bool enabled) override {
     bookmarks_enabled = enabled;
+    authority->enabled.store(enabled);
+    authority->generation.fetch_add(1);
+  }
+  BookmarkSyncAuthorization GetBookmarkSyncAuthorization() override {
+    if (!bookmarks_enabled || revoked) {
+      return {};
+    }
+    return base::BindRepeating(
+        [](std::weak_ptr<Authority> weak, uint64_t generation) {
+          const auto state = weak.lock();
+          return state && state->enabled.load() &&
+                 state->generation.load() == generation;
+        },
+        std::weak_ptr<Authority>(authority), authority->generation.load());
+  }
+  void RevokeFromProvider() {
+    revoked = true;
+    SetBookmarkSyncEnabled(false);
+  }
+  void ReapproveFromProvider() {
+    revoked = false;
+    SetBookmarkSyncEnabled(true);
   }
   bool IsBookmarkConsentRevoked() override { return revoked; }
   void Upload(std::vector<SyncChange> changes,
@@ -104,6 +133,7 @@ class ControlledProvider final : public SyncProvider {
   bool hold_downloads = false;
   std::vector<UploadRequest> uploads;
   std::vector<DownloadRequest> downloads;
+  std::shared_ptr<Authority> authority = std::make_shared<Authority>();
 };
 
 TEST(BookmarkSyncConsentTest,
@@ -273,6 +303,65 @@ TEST(BookmarkSyncConsentTest, NewPumpNeverInfersConsentFromRetainedOutbox) {
   tasks.RunUntilIdle();
   EXPECT_TRUE(provider.uploads.empty());
   EXPECT_EQ(1, store.PendingOutboxCount());
+}
+
+TEST(BookmarkSyncConsentTest,
+     ProviderRevocationAfterPostedUploadCannotAcknowledgeOutbox) {
+  base::test::TaskEnvironment tasks;
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  ASSERT_EQ(Result::kOk, store.PutLocalRecord(Bookmark(1), "pending-bookmark"));
+  ControlledProvider provider;
+  SyncPump pump(&store, &provider,
+                SyncPump::Options{.bookmark_sync_enabled = true});
+  bool completed = false;
+  ASSERT_TRUE(pump.SyncNow(
+      base::BindLambdaForTesting([&](bool success, std::string error) {
+        completed = true;
+        EXPECT_FALSE(success);
+        EXPECT_EQ("cancelled", error);
+      })));
+  ASSERT_EQ(1u, provider.uploads.size());
+  // The provider already returned success; BindPostTask has queued the local
+  // acknowledgement. Do not update the pump's deliberately stale cached flag.
+  provider.RevokeFromProvider();
+  tasks.RunUntilIdle();
+  EXPECT_TRUE(completed);
+  EXPECT_EQ(1, store.PendingOutboxCount());
+  EXPECT_TRUE(provider.downloads.empty());
+}
+
+TEST(BookmarkSyncConsentTest,
+     ProviderReapprovalCannotAuthorizeAnAlreadyPostedDownload) {
+  base::test::TaskEnvironment tasks;
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  ControlledProvider provider;
+  provider.hold_downloads = true;
+  SyncPump pump(&store, &provider,
+                SyncPump::Options{.bookmark_sync_enabled = true});
+  bool completed = false;
+  ASSERT_TRUE(pump.SyncNow(
+      base::BindLambdaForTesting([&](bool success, std::string error) {
+        completed = true;
+        EXPECT_FALSE(success);
+        EXPECT_EQ("cancelled", error);
+      })));
+  ASSERT_EQ(1u, provider.downloads.size());
+  provider.CompleteDownload(0,
+                            {.changes = {Remote(Bookmark(1), "stale-bookmark")},
+                             .next_change_token = "stale-delivery"});
+  // Model account/consent events between provider dispatch and the pump's
+  // posted task. Current approval is true again, but the original scope is not.
+  provider.RevokeFromProvider();
+  provider.ReapproveFromProvider();
+  tasks.RunUntilIdle();
+  EXPECT_TRUE(completed);
+  SyncRecord record;
+  EXPECT_EQ(Result::kNotFound,
+            store.GetRecord(EntityType::kBookmark, Id(1), &record));
+  EXPECT_TRUE(store.GetChangeToken().empty());
+  EXPECT_EQ(0, store.InboxCount());
 }
 
 }  // namespace

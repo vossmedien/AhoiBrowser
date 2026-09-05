@@ -102,6 +102,26 @@ void CloudKitSyncProviderMac::Core::RequestOperationCancellation() {
           std::move(weak), engine, generation));
 }
 
+BookmarkSyncAuthorization
+CloudKitSyncProviderMac::Core::GetBookmarkSyncAuthorization() {
+  base::AutoLock guard(lock_);
+  if (shutting_down_ || !BookmarkAllowed()) {
+    return {};
+  }
+  return base::BindRepeating(
+      [](std::weak_ptr<Core> weak, uint64_t generation) {
+        const auto core = weak.lock();
+        if (!core) {
+          return false;
+        }
+        base::AutoLock guard(core->lock_);
+        return !core->shutting_down_ &&
+               generation == core->transport_generation_ &&
+               core->BookmarkAllowed();
+      },
+      weak_from_this(), transport_generation_);
+}
+
 void CloudKitSyncProviderMac::Core::SetBookmarkSyncEnabled(bool enabled) {
   base::AutoLock guard(lock_);
   if (shutting_down_) {

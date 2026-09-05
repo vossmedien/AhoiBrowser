@@ -99,6 +99,15 @@ class BookmarkSyncControl final : public views::View {
             u"Local bookmark reconciliation could not be confirmed. Unsaved "
             u"local changes will not be replaced by the synced state. The next "
             u"reconciliation retries; sync success has not been confirmed.");
+      case sync::ProfileSyncService::BookmarkSyncIssue::kAuthorizationChanged:
+        return Text(
+            u"Konto oder Sync-Freigabe haben sich geändert. Der Lesezeichen-"
+            u"Abgleich wartet auf den aktuellen Zustand; ältere Antworten "
+            u"werden nicht mehr angewendet. Lokale Lesezeichen bleiben "
+            u"nutzbar.",
+            u"The account or sync approval changed. Bookmark reconciliation "
+            u"is waiting for the current state; older replies will not be "
+            u"applied. Local bookmarks remain usable.");
     }
   }
   bool approved() const {

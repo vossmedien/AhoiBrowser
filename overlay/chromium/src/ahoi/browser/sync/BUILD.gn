@@ -159,6 +159,7 @@ source_set("unit_tests") {
   testonly = true
   sources = [
     "bookmark_profile_consent_unittest.cc",
+    "bookmark_sync_authorization_unittest.cc",
     "bookmark_sync_bridge_types_unittest.cc",
     "bookmark_sync_consent_unittest.cc",
     "bookmark_sync_journal_unittest.cc",

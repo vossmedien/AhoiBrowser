@@ -10,11 +10,17 @@
 #include <vector>
 
 #include "ahoi/browser/sync/sync_model.h"
+#include "base/functional/callback.h"
 
 namespace ahoi::sync {
 
 inline constexpr char kBookmarkApplyReceiptMetaKey[] =
     "ahoi.sync.apply_receipt";
+
+// Local-only, thread-safe check of the original consent/account scope. It
+// carries no profile/node pointer, secret or wire field. Empty is unauthorized
+// at the production backend/service boundary.
+using BookmarkSyncAuthorization = base::RepeatingCallback<bool()>;
 
 // Value-only snapshots cross the UI/backend sequence boundary. No native node
 // pointer or browser runtime ID is a wire identity. Storage prefixes avoid the
@@ -59,6 +65,7 @@ struct BookmarkNativeBinding {
 struct BookmarkSyncProjection {
   std::vector<BookmarkRecord> records;
   std::vector<BookmarkNativeBinding> bindings;
+  BookmarkSyncAuthorization authorization;
 };
 
 // Native keys are "local:<lowercase UUID>" or "account:<lowercase UUID>".

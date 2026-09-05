@@ -319,9 +319,11 @@ bool BookmarkSyncJournal::WriteChangedRecord(BookmarkRecord record,
 
 std::optional<BookmarkSyncProjection> BookmarkSyncJournal::ReconcileLocal(
     const NativeBookmarkSnapshot& snapshot,
-    HybridLogicalClock* clock) {
+    HybridLogicalClock* clock,
+    const BookmarkSyncAuthorization& authorization) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(store_->sequence_checker_);
-  if (!clock || !store_->IsReady() || snapshot.local_data_blocked) {
+  if (!clock || !store_->IsReady() || snapshot.local_data_blocked ||
+      (authorization && !authorization.Run())) {
     return std::nullopt;
   }
   Bindings bindings;
@@ -428,17 +430,23 @@ std::optional<BookmarkSyncProjection> BookmarkSyncJournal::ReconcileLocal(
   for (const auto& record : combined) {
     combined_graph.push_back(std::get<BookmarkRecord>(record));
   }
-  if (!ValidateBookmarkGraph(combined_graph) || !transaction.Commit()) {
+  // Recheck at the commit boundary too: a provider event can revoke scope
+  // while this backend sequence is assembling the candidate. Roll back all
+  // tentative bindings/records/outbox changes rather than confirming them.
+  if (!ValidateBookmarkGraph(combined_graph) ||
+      (authorization && !authorization.Run()) || !transaction.Commit()) {
     return std::nullopt;
   }
   store_->NotifyChanged();
-  return ReadProjection();
+  return ReadProjection(authorization);
 }
 
 bool BookmarkSyncJournal::AcknowledgeNativeProjection(
-    const NativeBookmarkSnapshot& snapshot) {
+    const NativeBookmarkSnapshot& snapshot,
+    const BookmarkSyncAuthorization& authorization) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(store_->sequence_checker_);
-  if (!store_->IsReady() || snapshot.local_data_blocked) {
+  if (!store_->IsReady() || snapshot.local_data_blocked ||
+      (authorization && !authorization.Run())) {
     return false;
   }
   Bindings bindings;
@@ -499,12 +507,13 @@ bool BookmarkSyncJournal::AcknowledgeNativeProjection(
       return false;
     }
   }
-  return transaction.Commit();
+  return (!authorization || authorization.Run()) && transaction.Commit();
 }
 
-std::optional<BookmarkSyncProjection> BookmarkSyncJournal::ReadProjection() {
+std::optional<BookmarkSyncProjection> BookmarkSyncJournal::ReadProjection(
+    const BookmarkSyncAuthorization& authorization) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(store_->sequence_checker_);
-  if (!store_->IsReady()) {
+  if (!store_->IsReady() || (authorization && !authorization.Run())) {
     return std::nullopt;
   }
   Bindings bindings;
@@ -560,7 +569,9 @@ std::optional<BookmarkSyncProjection> BookmarkSyncJournal::ReadProjection() {
     bindings.emplace(key, binding);
     result.bindings.push_back({record.id, key, receipts.at(record.id)});
   }
-  return transaction.Commit() ? std::optional(std::move(result)) : std::nullopt;
+  return (!authorization || authorization.Run()) && transaction.Commit()
+             ? std::optional(std::move(result))
+             : std::nullopt;
 }
 
 }  // namespace ahoi::sync
