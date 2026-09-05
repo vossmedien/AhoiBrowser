@@ -44,6 +44,32 @@ or passed. Subsequent commits must use `git commit -s`.
 
 ## Current implementation WIP — not integrated or built
 
+- Mobile live publisher now uses `CompanionMobileSharedCapture` and
+  `CompanionMobilePresenceStore`: complete local upserts commit once, Page IDs
+  derive stably from local Device/Presence identities, unassigned pages use the
+  canonical Inbox, all Presence targets come from the actual repository Page,
+  and missing input no longer infers close/delete. UI callers bind the returned
+  IDs before publishing the refreshed model. Revoked Devices are not silently
+  reactivated by a heartbeat.
+- Explicit close in both main UI and tab switcher commits through
+  `CompanionMobileSharedClosing` before runtime removal. Temporary Page deletion
+  and Presence deletion are separate; saved Pages remain. Close-before-initial-
+  capture resolves the same deterministic page ID, and late callbacks check
+  the original Presence ID. Undo rotates Presence and does not automatically
+  reuse a deleted temporary page. These paths are source-only, not verified.
+- `MobileSharedTabIntent` and the native Controller callback now distinguish
+  explicit navigation/move/rename from passive projection. The AppModel
+  serializes per-runtime intents, applies them through
+  `CompanionMobileSharedIntent`, and protects pending intent rows from stale
+  projection. The ViewModifier coalesces sync-relevant capture changes without
+  favicon/progress-triggered publication. Same-frame link navigation still
+  needs its explicit allowed-main-frame hook; title fidelity and some pending-
+  intent/recovery edge behavior remain for the runnable-candidate pass.
+- A concrete review found restart duplication between domain persistence and
+  browser-binding persistence. The AppModel now restores exact deterministic
+  bindings BEFORE passive mirror creation and reserves still-pending page IDs;
+  it does not deduplicate by URL or discard a normal runtime row. Only source
+  review/diff/line-budget checks have run, no new test or build.
 - Additional live-integration source since `3e9552f`: profile-wide original
   authorization is now passed from Service through Backend into the Mac
   provider; opt-out/shutdown cancels it synchronously. Provider callbacks and
@@ -122,12 +148,13 @@ readback and `git diff --check` have run in this implementation wave.
    adopt the shared target/linked-page boundary. Backend/store admission must
    match Swift's independently known Device/Capability dependency handling.
 3. **Mobile live binding:** `CompanionStore.publishLocalMobileTab` and
-   `CompanionAppModel.reconcilePublishedMobileTabs` still need the actual new
-   logical Page/link/target inputs and atomic preserving capture. Do NOT leave
-   their old URL filter followed by inferred deletion. Normal temporary tabs
-   need stable TreeNode IDs/Inbox membership; distinguish runtime and Presence
-   UUIDs. Wire the logical projection into the existing UI with no automatic
-   focus or WebKit loading. Explicit save/unsave preserves the page identity.
+   `CompanionAppModel.reconcilePublishedMobileTabs` now have the current Page/
+   Presence input and preserving atomic capture described above. Finish the
+   same-frame user-navigation hook, verify move/reorder across opaque native
+   sort keys, title/custom-title fidelity, pending/restored intents and the
+   before-unload/recovery/undo cases. Explicit save uses the deterministic page
+   ID even before first capture; unsave still needs its actual user-action
+   wiring. Do not reintroduce the removed URL-filter/absence-delete loop.
 4. **Retire obsolete preparation code/tests:** `SharedTabFieldReadMerge.swift`
    is no longer a live dependency but still contains old mixed-version helpers.
    Old `SharedTabCreationProvenanceTests` / `SharedTabFrozenContractTests` still
