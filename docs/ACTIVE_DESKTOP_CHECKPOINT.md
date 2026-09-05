@@ -84,35 +84,41 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Owned combined correction package — terminal remaining fixture error
+## Owned combined correction package — fixture handoff received
 
-**Blocked audit, 2026-09-05 18:32 UTC:** the same bounded fixture correction/
-hunk-authorization gate persisted through the 7945 failure turn, the Native A-D
-acceptance turn and the current coordinator readback. Fresh canonical readback
-still has the two raw kLegacyRows accesses, no fix commit or exact write grant;
-the clean snapshot remains 22e2f2b. Native package ownership is accepted, but
-its Common header/capture code handoff is not ready and it cannot substitute
-for baseline E2E. Safe read-only checks and the precise preserving fix proposal
-are exhausted. The goal is blocked pending either the Sync owner's separate
-fixture-fix commit or explicit permission for Desktop to apply only that hunk
-and its include. This is NOT a renewed SQL22/source-format/role wait, and not
-feature completion. Do not start unchanged builds or repeat ownership ACKs.
-On that concrete handoff, resume the cached correction with a fresh CPU gate.
+**Previous fixture blocker RESOLVED, 2026-09-05 18:41 UTC:** the user explicitly
+handed over `92694fe36539d024af6567646103f1cf246d5364`. Main reviewed its exact
+one-file 3+/2- diff: `<array>` plus `constexpr std::array<LegacyRow, 2>`, identical
+fixture data/order/assertions. The former three-turn blocked audit is historical;
+no further fixture permission, SQL22 handoff or format-freeze request is needed.
+The user handoff authorizes resuming this independent baseline correction.
 
-**Current phase, 2026-09-05 18:08 UTC:** the existing clean detached snapshot
+**Current phase, 2026-09-05 18:46 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
-`22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`, clean after the explicit test-only
-handoff. Guarded overlay session `65019` is TERMINAL EXIT 0, full delta verified.
+`92694fe36539d024af6567646103f1cf246d5364`, clean. Shared checkout/out remain at
+the previous 22e2f2b failure; no new overlay/build has started. From22 the only
+executable source change is the fixture test. Additional committed config diffs
+are the non-consumed `sync-format.json` contract and two registry descriptions;
+no matching consumer in this frozen source and no unified writer/default change.
+All canonical Common/Swift/entitlement WIP stays outside this snapshot.
+
+Fresh18:45/18:46 checks identify new FillIt Unity84761, parent51136, matching
+project cwd and `finale-features-01.log` / OpenSavedPlayablePreview, at189.1/188.9%
+CPU. Owner was asked for the next naturally quiet window after its active step,
+without stopping/pausing any job (`01a072e5-07ca-7652-b3a5-a5a9c810c9c5`). Recheck
+the current all-project CPU gate before starting; this is a fresh wait, not the
+resolved fixture blocker or any older Unity PID. Disk last82,492,392KiB.
+Next logs are under `artifacts/build/desktop-fixture-92694fe-20260905/`.
+
+Historical guarded overlay session `65019` is TERMINAL EXIT 0, full delta verified.
 Combined guarded incremental Dev build `7945` is TERMINAL EXIT1, same full
 target set below and existing cached outputs. Do not poll that terminal handle
 or restart unchanged source. All previous five API diagnostics are resolved;
 Sidebar tests compiled/linked, but one fixture array has two newly surfaced
 unsafe-buffer diagnostics at bookmark_sync_store_unittest.cc:435/436. Exact
 report: `artifacts/build/desktop-test-api-22e2f2b-20260905/README.md`.
-The file remains Sync-owned; bounded safe-container/span correction or exact
-hunk ownership requested in `01a072c4-5524-7270-9d9f-526ba9906062`. Do not
-disable warnings, weaken assertions or integrate its unrelated format-3 WIP.
-This is a new concrete compiler finding, not a missing 22e2f2b handoff.
+Its bounded request `01a072c4-5524-7270-9d9f-526ba9906062` is now fulfilled by92694fe.
+Do not disable warnings, weaken assertions or integrate unrelated format-3 WIP.
 The compiler-start
 CPU gate was freshly clear at 17:59:12 UTC; disk 83,947,400 KiB.
 Only the four agreed test files differ in the Desktop build surface; newer
@@ -288,9 +294,9 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   Bundle tree SHA-256:
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at accepted source `22e2f2b`
-  for the test-API correction; shared checkout refresh65019 succeeded and build7945
-  is terminal Exit1. This is not a new built/installed candidate. It shares
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at accepted source `92694fe`
+  for the fixture correction; shared checkout remains22e2f2b from terminal7945.
+  This is not a new built/installed candidate. It shares
   `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
@@ -423,10 +429,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    `1ea90da`, and the renewed consent freeze are already integrated. There is
    no remaining product or test-source handoff wait. The exact `22e2f2b`
    correction (already contains owned `5794d37`) is explicitly accepted and the
-   clean snapshot is already selected. Build7945 is also terminal Exit1; obtain
-   the bounded remaining kLegacyRows fixture-access correction/hunk ownership,
-   then select its committed baseline source and use the same guarded cached
-   target set after a fresh CPU gate. No warning suppression or unrelated
+   fixture correction92694fe is now explicitly received and the clean snapshot
+   selected. Build7945 is terminal Exit1. Start guarded overlay from92694fe,
+   then the same cached full target set after fresh CPU gates (latest foreign
+   phaseUnity84761, not older retired jobs). No warning suppression or unrelated
    format-3 source integration. Overlay65019 already succeeded. Do not
    copy subsequent unified Sync WIP or stop the foreign workload.
    A successful complete build receipt is required before installation. Preserve both logs,
