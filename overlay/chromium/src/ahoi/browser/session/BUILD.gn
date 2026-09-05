@@ -9,6 +9,7 @@ source_set("shared_tab_target_policy") {
     "shared_tab_target_policy.h",
   ]
   public_deps = [
+    "//ahoi/browser/sync:shared_tab_types",
     "//base",
     "//url",
   ]

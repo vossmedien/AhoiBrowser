@@ -5,24 +5,17 @@
 #define AHOI_BROWSER_SESSION_SHARED_TAB_TARGET_POLICY_H_
 
 #include <optional>
-#include <string>
 
+#include "ahoi/browser/sync/shared_tab_target_types.h"
 #include "base/uuid.h"
 #include "url/gurl.h"
 
 namespace ahoi::session {
 
-// Native-side target description for ADR 0008. This is not a wire encoder,
-// capability announcement or permission to migrate/activate shared tabs.
-enum class SharedTabTargetKind { kWeb = 0, kNewTab = 1, kLocalOnly = 2 };
-
-struct SharedTabTarget {
-  SharedTabTargetKind kind = SharedTabTargetKind::kWeb;
-  std::string url;
-  std::optional<std::string> local_scheme;
-
-  bool operator==(const SharedTabTarget&) const = default;
-};
+// Native policy uses the same atomic target values as Sync. These aliases do
+// not encode wire data, announce capability or authorize shared-tab writes.
+using SharedTabTargetKind = ahoi::sync::SharedTabTargetKind;
+using SharedTabTarget = ahoi::sync::SharedTabTarget;
 
 enum class NativeSharedTabParticipation {
   // Includes private tabs and automatic startup/recovery placeholders. The
