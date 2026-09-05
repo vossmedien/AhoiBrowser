@@ -26,17 +26,26 @@ offset tests should use `ScrollView::GetVisibleRect()` directly, whereas source
 View clipping uses `View::GetVisibleBounds()`.
 Follow the Desktop checkpoint for the new live build handle and exact receipt;
 the old first-attempt handle is terminal. No duplicate writer or competing
-build was started. Final build, E2E, behavioral tests and actual roll remain open.
+build was started. Installed E2E, behavioral tests and the actual roll remain open.
 
-The `4e2458a` retry log now ends with Ninja failure. Its only reported compile
-error is the test's nonexistent `components/bookmarks/browser/bookmark_metrics.h`;
-the pinned source provides `components/bookmarks/common/bookmark_metrics.h`.
-Browser bundle copy and the large browser/interactive-test links completed, but
-this is not a green guarded build or signed/installed candidate. Diagnostic and
-bounded fix ownership were queued to Desktop in message
-`01a07024-7041-7832-b0f4-ab8af0ce96bf`; the bookmark owner remains read-only for
-product/test files during that retry. Do not poll old build session `22604` as
-if it were still running merely because a checkpoint has not caught up.
+The `4e2458a` retry failed only on the test's nonexistent
+`components/bookmarks/browser/bookmark_metrics.h`; Desktop corrected the include
+to `components/bookmarks/common/bookmark_metrics.h` in `0a13e22` under the
+delegated compile-fix ownership. Old build session `22604` is terminal.
+
+The guarded combined `0a13e22` build then reached its success marker and emitted
+its final provenance at `2026-09-05T06:18:05Z`. Its PID `48861` is gone; Desktop
+owns the terminal receipt for exec session `47698`. The bookmark test executable
+compiled and linked, but no behavior test has run. Native development signing,
+nested signature verification and portable runtime staging completed. Readback
+of the built bundle's Info.plist and receipt agrees on source
+`0a13e22ff4e9cd1ac43a508e304fcaa0fe64a997`, Chromium `152.0.7977.65`, and clean
+source state. The receipt is preserved byte-for-byte at
+`artifacts/build/bookmarks-chromium-20260905/ahoi-dev-build-0a13e22.json` (SHA-256
+`5df3b22a8b6822edebd16891343bafd65c2acb89c84e19433dec0e2a658812e2`).
+Last installed-app readback still reports `1f5f22f`; installation and UI handoff
+remain with Desktop. A short exclusive bookmark E2E slot immediately after
+installation was proposed in queue message `01a0702d-4fd0-7730-8657-3a4018949a99`.
 
 ## Explicit shared-checkout / build handoff
 
@@ -52,12 +61,10 @@ terminal. The Desktop owner may update its existing clean snapshot to this
 integrated source, refresh the overlay and run the combined guarded build.
 
 The final bookmark corrections in `fafd776`, with Desktop's bounded API/patch
-fixes, have reached product compilation in the combined build; the test-target
-compile failure still prevents a successful guarded-build receipt. The build
-must include new patch `0030` and the new context-menu source files. Use the
-current ordered series, not an older snapshot. The earlier three-object compile
-pass applies only to `124429a`. Do not install incomplete `out/AhoiDev` output
-as if it were a verified final candidate.
+fixes, are present in the guarded combined `0a13e22` build. New patch `0030`, the
+context-menu source files and bookmark test target are integrated. The earlier
+three-object compile pass applies only to `124429a`; use the exact new receipt
+and installed bundle for acceptance, not an older incremental output.
 
 Suggested combined target: `./scripts/build-ahoi.sh dev ahoi_sidebar_tree_unittests`
 plus the Desktop owner's already selected focused targets. Build/sign/install
@@ -99,7 +106,8 @@ Ahoi shelf's context menus.
 
 Two independent read-only reviews found the now-addressed overflow, direct
 context, focus, stale-count and delayed-callback gaps. Their findings are source
-evidence; the final fixes still need compilation and visible acceptance.
+evidence; the integrated fixes have now built but still need visible acceptance
+and subsequent focused behavior tests.
 
 ## Verified evidence, with limits
 
@@ -114,7 +122,8 @@ evidence; the final fixes still need compilation and visible acceptance.
   before the final review corrections. Logs:
   `artifacts/build/bookmark-shelf-review-apply-20260905.log` and
   `artifacts/build/bookmark-shelf-compile-20260905.log`.
-- No final bookmark executable, visible E2E or bookmark behavior-test pass exists.
+- The integrated executable and test target are now built as recorded above;
+  no installed bookmark E2E or bookmark behavior-test pass exists.
   Old sessions `72089`, `67371`, `42586`, `10875`, `96812`, `73207`
   are terminal; do not poll/restart them as live work.
 - Retired the old owned 53-MiB build snapshot
@@ -133,6 +142,13 @@ Official discovery at `2026-09-04T22:42:36Z` selected fully rolled Mac-ARM64 Sta
 `152.0.7977.83` / `79460ebecaa5625e57a5fb679a735659e73dc687`.
 The explicitly reviewed binding is `config/upstream-roll-candidate.json`;
 its SHA-256 is `0f2a8edd558279780b81ef9be5913d8aa700e7cd4b7f3d7d0c2118fccb751d5f`.
+
+A fresh online discovery at `2026-09-05T06:15:25Z` independently confirmed the
+same fully rolled version and commit. Evidence:
+`artifacts/build/bookmarks-chromium-20260905/candidate-refresh-20260905T0615Z.json`,
+SHA-256 `68fefec5df72e59c919d481e285c33abe6bde0cb1eefff7c2fa3e0462b250dda`.
+The reviewed candidate binding and production pin remained unchanged. This was
+only official metadata discovery, not a checkout fetch, hydration or pin switch.
 
 Filtered tag/tree fetch succeeded. Hydration covered 304 paths with 298 existing
 blobs and only 6 downloads (2,477,622 decoded bytes). The 29-patch preflight
