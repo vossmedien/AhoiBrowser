@@ -3,6 +3,16 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
+## New user-authorized role handoff
+
+This thread now coordinates the joint sync integration rather than editing
+Mobile sync in parallel. The clean Swift `spikes/cloudkit` / `apps/AhoiMobile`
+scope through `f25eea5` was explicitly transferred to the unified Sync owner
+`01a06d69-1034-7372-b784-0b05a53c87e0`. Desktop retains its current browser
+package, native integration and build/runtime ownership. Current assignments,
+acknowledgments and next actions are authoritative in
+`docs/ACTIVE_SYNC_COORDINATION.md`; the acceptance history below is preserved.
+
 ## Current P2 corrections — retained creation evidence, source only
 
 The review of `3964bcb` found that a later synthetic v2 `created_at` clock
