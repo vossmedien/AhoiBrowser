@@ -17,6 +17,10 @@ Nine new regressions are written, none built or run. The original projection
 scope stays invalid after reapproval; local data/outbox are preserved, not
 retroactively deleted. Details and exact source scope:
 `docs/audit-evidence/2026-09-05-bookmark-consent-generation-fix.md`.
+Exact correction freeze: `225df88f4e6dbe692390f52b8687b653541723ac`, committed and
+pushed; Desktop integration handoff `01a07231-8c67-79e2-b983-2e38c5a2e2f8`.
+All own product WIP is clean after this 25-file handoff. Do not apply the older
+three-file proposal again or infer runtime acceptance from the new source.
 This is a new bounded source handoff, NOT a cross-account/E2E pass. The larger
 Bookmark/capture/v3/Chromium acceptance gates remain open; Desktop retains the
 one combined build/install/UI lease.

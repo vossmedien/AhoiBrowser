@@ -2,6 +2,11 @@
 
 Status: **FIXED IN SOURCE / NOT BUILT / TESTS NOT RUN**.
 
+Exact committed/pushed freeze: `225df88f4e6dbe692390f52b8687b653541723ac`.
+Desktop integration handoff: `01a07231-8c67-79e2-b983-2e38c5a2e2f8`.
+There are 25 owned changed files, including this report and the checkpoint;
+the list below names the 23 product/test files. No uncommitted WIP is required.
+
 This is the bounded follow-up to the Desktop review
 `01a0719b-0215-7cf0-947d-3696483fe29d`. It is separate from the compile-only
 commit `3035529d21fd03ebdf29977ecbe5de842261e6cb` and does not change Bookmark
