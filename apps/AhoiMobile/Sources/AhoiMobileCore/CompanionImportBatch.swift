@@ -6,6 +6,7 @@ enum CompanionImportedValue: Sendable {
     case workspace(Workspace)
     case treeNode(TreeNode)
     case bookmark(BookmarkRecord)
+    case deviceCapability(DeviceCapabilityRecord)
     case session(DeviceSession)
     case tab(RemoteTab)
     case history(HistoryVisit)
@@ -20,6 +21,7 @@ enum CompanionImportedValue: Sendable {
         case .workspace(let value): return value.id.rawValue
         case .treeNode(let value): return value.id.rawValue
         case .bookmark(let value): return value.id.rawValue
+        case .deviceCapability(let value): return value.id
         case .session(let value): return value.id.rawValue
         case .tab(let value): return value.id.rawValue
         case .history(let value): return value.id.rawValue
@@ -158,6 +160,19 @@ extension LocalFirstRepository {
                     try CompanionBookmarkHierarchy.validate(bookmarks)
                     working.bookmarks = bookmarks
                     accepted = .bookmark(merged)
+                    shouldReenqueue = merged != incoming
+                case .deviceCapability(let incoming):
+                    guard working.devices.contains(where: {
+                        $0.id == incoming.deviceID && !$0.isDeleted && !$0.isRevoked
+                    }) else { throw DeviceCapabilityError.unknownDevice }
+                    try incoming.validate()
+                    let index = working.deviceCapabilities.firstIndex { $0.id == incoming.id }
+                    let merged = try index.map {
+                        try CompanionCapabilityDomain.merge(working.deviceCapabilities[$0], incoming)
+                    } ?? incoming
+                    if let index { working.deviceCapabilities[index] = merged }
+                    else { working.deviceCapabilities.append(merged) }
+                    accepted = .deviceCapability(merged)
                     shouldReenqueue = merged != incoming
                 case .session(let incoming):
                     let merged = if let index = sessionIndexes[incoming.id] {

@@ -17,6 +17,7 @@ public enum SyncDataClass: String, Codable, CaseIterable, Sendable {
     case extensionInventory
     case developerAsset
     case bookmark
+    case deviceCapability
 
     case cookie
     case password

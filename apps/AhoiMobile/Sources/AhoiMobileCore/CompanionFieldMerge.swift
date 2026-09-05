@@ -65,7 +65,7 @@ public enum CompanionFieldMerge {
 
     public static func merge(_ existing: TreeNode, _ incoming: TreeNode) throws -> TreeNode {
         guard existing.id == incoming.id else { throw CompanionFieldMergeError.identityMismatch }
-        guard existing.createdAt == incoming.createdAt else {
+        guard SharedTabCreationProvenance.sameTime(existing.createdAt, incoming.createdAt) else {
             throw CompanionFieldMergeError.immutableFieldConflict("created_at")
         }
         guard existing.kind == incoming.kind else {
@@ -93,8 +93,15 @@ public enum CompanionFieldMerge {
         ) {
             result.accent = incoming.accent
         }
-        if try incomingWins("url", existing.url, incoming.url, oldVersion, newVersion) {
+        let oldTarget = try SharedTabURLGroup.of(existing)
+        let newTarget = try SharedTabURLGroup.of(incoming)
+        if try incomingWins("url", oldTarget, newTarget, oldVersion, newVersion) {
             result.url = incoming.url
+            result.targetKind = newTarget?.kind
+            result.localScheme = newTarget?.localScheme
+        } else {
+            result.targetKind = oldTarget?.kind
+            result.localScheme = oldTarget?.localScheme
         }
         if try incomingWins(
             "modified_at", existing.modifiedAt, incoming.modifiedAt, oldVersion, newVersion
@@ -115,6 +122,10 @@ public enum CompanionFieldMerge {
             base: mergedVersion(oldVersion, newVersion, fields: treeNodeFields),
             field: "is_temporary", clock: persistence.clock
         )
+        if version.schemaVersion < 3 { result.targetKind = nil; result.localScheme = nil }
+        result.version = version
+        result = try SharedTabCreationProvenance.finishMerge(result, old: existing, new: incoming)
+        version = result.version
         if !treeProjectionEqual(result, version, existing, oldVersion),
            !treeProjectionEqual(result, version, incoming, newVersion) {
             version = try dominatingMergeVersion(version)
@@ -171,7 +182,8 @@ public enum CompanionFieldMerge {
             "title": previous.title == candidate.title,
             "icon": previous.icon == candidate.icon,
             "accent_argb": previous.accent == candidate.accent,
-            "url": previous.url == candidate.url,
+            "url": previous.url == candidate.url && previous.localScheme == candidate.localScheme &&
+                (previous.targetKind ?? .web) == (candidate.targetKind ?? .web),
             "created_at": previous.createdAt == candidate.createdAt,
             "modified_at": previous.modifiedAt == result.modifiedAt,
             "tombstone": previous.tombstone == candidate.tombstone,
@@ -184,6 +196,15 @@ public enum CompanionFieldMerge {
             version = SharedTabFieldReadMerge.retainingExistingField(
                 "is_temporary", previous: previous.version, candidate: version
             )
+            version.fieldVersions["created_at"] = previous.version.fieldVersions["created_at"]
+            result.creationProvenanceKnown = previous.creationProvenanceKnown
+            if previous.url == candidate.url {
+                result.targetKind = previous.targetKind
+                result.localScheme = previous.localScheme
+            } else {
+                result.targetKind = candidate.kind == .folder ? nil : .web
+                result.localScheme = nil
+            }
         }
         result.version = version
         return result
@@ -279,9 +300,11 @@ public enum CompanionFieldMerge {
     ) -> Bool {
         TreeLocation(lhs) == TreeLocation(rhs) && lhs.kind == rhs.kind &&
             lhs.isTemporary == rhs.isTemporary &&
+            (lhs.targetKind ?? (lhs.kind == .folder ? nil : .web)) ==
+                (rhs.targetKind ?? (rhs.kind == .folder ? nil : .web)) && lhs.localScheme == rhs.localScheme &&
             lhs.title == rhs.title && lhs.icon == rhs.icon &&
             lhs.accent == rhs.accent && lhs.url == rhs.url &&
-            lhs.createdAt == rhs.createdAt && lhs.modifiedAt == rhs.modifiedAt &&
+            SharedTabCreationProvenance.sameTime(lhs.createdAt, rhs.createdAt) && lhs.modifiedAt == rhs.modifiedAt &&
             lhs.isDeleted == rhs.isDeleted &&
             lhsVersion.fieldVersions == rhsVersion.fieldVersions
     }

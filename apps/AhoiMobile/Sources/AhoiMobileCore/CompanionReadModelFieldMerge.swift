@@ -126,8 +126,15 @@ public enum CompanionReadModelFieldMerge {
         ) {
             result.workspaceID = incoming.workspaceID
         }
-        if try incomingWins("url", existing.url, incoming.url, oldVersion, newVersion) {
+        let oldTarget = try SharedTabURLGroup.of(existing)
+        let newTarget = try SharedTabURLGroup.of(incoming)
+        if try incomingWins("url", oldTarget, newTarget, oldVersion, newVersion) {
             result.url = incoming.url
+            result.targetKind = newTarget.kind
+            result.localScheme = newTarget.localScheme
+        } else {
+            result.targetKind = oldTarget.kind
+            result.localScheme = oldTarget.localScheme
         }
         if try incomingWins("title", existing.title, incoming.title, oldVersion, newVersion) {
             result.title = incoming.title
@@ -162,6 +169,8 @@ public enum CompanionReadModelFieldMerge {
             sameAsOld: tabProjection(result, merged) == tabProjection(existing, oldVersion),
             sameAsNew: tabProjection(result, merged) == tabProjection(incoming, newVersion)
         )
+        if result.version.schemaVersion < 3 { result.targetKind = nil; result.localScheme = nil }
+        _ = try SharedTabURLGroup.of(result)
         return result
     }
 
@@ -216,7 +225,8 @@ public enum CompanionReadModelFieldMerge {
             "device_id": previous.deviceID == candidate.deviceID,
             "session_id": previous.sessionID == candidate.sessionID,
             "workspace_id": previous.workspaceID == candidate.workspaceID,
-            "url": previous.url == candidate.url,
+            "url": previous.url == candidate.url && previous.localScheme == candidate.localScheme &&
+                (previous.targetKind ?? .web) == (candidate.targetKind ?? .web),
             "title": previous.title == candidate.title,
             "opened_at": previous.openedAt == candidate.openedAt,
             "last_active": previous.lastActiveAt == candidate.lastActiveAt,
@@ -232,6 +242,8 @@ public enum CompanionReadModelFieldMerge {
             version = SharedTabFieldReadMerge.retainingExistingField(
                 "tree_node_id", previous: previous.version, candidate: version
             )
+            result.targetKind = previous.url == candidate.url ? previous.targetKind : .web
+            result.localScheme = previous.url == candidate.url ? previous.localScheme : nil
         }
         result.version = version
         return result
@@ -376,6 +388,8 @@ public enum CompanionReadModelFieldMerge {
         let workspace: WorkspaceID?
         let treeNode: TreeNodeID?
         let url: String
+        let targetKind: SharedTabTargetKind
+        let localScheme: SharedTabLocalScheme?
         let title: String
         let lastActive: HybridLogicalClock
         let pinned: Bool
@@ -391,6 +405,8 @@ public enum CompanionReadModelFieldMerge {
             workspace: value.workspaceID,
             treeNode: value.treeNodeID,
             url: value.url,
+            targetKind: value.targetKind ?? .web,
+            localScheme: value.localScheme,
             title: value.title,
             lastActive: value.lastActiveAt,
             pinned: value.pinned,

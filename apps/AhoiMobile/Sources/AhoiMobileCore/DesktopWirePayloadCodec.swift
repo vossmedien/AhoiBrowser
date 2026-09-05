@@ -264,11 +264,24 @@ public struct DesktopWirePayloadCodec: Sendable {
             )
         )
         try SharedTabWireReadPolicy.validateDecodedVersion(resultVersion)
-        let rawKind = try integer(value, "node_kind")
+        _ = try SharedTabFieldReadMerge.field(
+            "is_temporary", existing: isTemporary, incoming: isTemporary, legacyDefault: false,
+            oldVersion: resultVersion, newVersion: resultVersion
+        )
+        if payloadVersion == 3 {
+            guard let provenance = resultVersion.fieldVersions["created_at"],
+                  SharedTabContract.isBottom(provenance) || SharedTabContract.isActualMutation(provenance) else {
+                throw SharedTabFieldReadMergeError.invalidLegacyField
+            }
+        }
+        let rawKind = payloadVersion == 3
+            ? Int(try SharedTabWireReadPolicy.strictUInt32(value, key: "node_kind"))
+            : try integer(value, "node_kind")
         guard rawKind == 0 || rawKind == 1 else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
         let kind = rawKind == 0 ? TreeNodeKind.folder : .savedPage
+        let target = try decodeTabTarget(value, version: payloadVersion, folder: kind == .folder)
         let rawURL = try string(value, "url")
         let decodedURL: String?
         if payloadVersion == 3 {
@@ -278,7 +291,7 @@ public struct DesktopWirePayloadCodec: Sendable {
                 }
                 decodedURL = nil
             } else if rawURL.isEmpty {
-                guard isTemporary else {
+                guard isTemporary || target?.kind == .localOnly else {
                     throw DesktopWirePayloadCodecError.malformedPayload
                 }
                 decodedURL = nil
@@ -303,6 +316,10 @@ public struct DesktopWirePayloadCodec: Sendable {
             orderKey: sortKey.value,
             wireSortKey: sortKey.legacyWireValue,
             isTemporary: isTemporary,
+            creationProvenanceKnown: payloadVersion == 3 &&
+                resultVersion.fieldVersions["created_at"].map(SharedTabContract.isActualMutation) == true,
+            targetKind: target?.kind,
+            localScheme: target?.localScheme,
             createdAt: try clock(value, timeKey: "created_at"),
             modifiedAt: try clock(value, timeKey: "modified_at"),
             version: resultVersion,
@@ -361,6 +378,10 @@ public struct DesktopWirePayloadCodec: Sendable {
             )
         )
         try SharedTabWireReadPolicy.validateDecodedVersion(resultVersion)
+        _ = try SharedTabFieldReadMerge.field(
+            "tree_node_id", existing: treeNodeID, incoming: treeNodeID, legacyDefault: nil,
+            oldVersion: resultVersion, newVersion: resultVersion
+        )
         guard try SharedTabWireReadPolicy.strictBoolean(
             value,
             key: "is_incognito"
@@ -372,6 +393,7 @@ public struct DesktopWirePayloadCodec: Sendable {
             throw DesktopWirePayloadCodecError.unsupportedDeviceType
         }
         let workspaceID = try optionalUUID(value, "workspace_id").map(WorkspaceID.init(rawValue:))
+        let target = try decodeTabTarget(value, version: payloadVersion)
         let result = try RemoteTab(
             tabID: TabID(rawValue: try id(value)),
             deviceID: deviceID,
@@ -383,6 +405,8 @@ public struct DesktopWirePayloadCodec: Sendable {
             workspaceName: workspaceID.flatMap { workspaces[$0]?.name },
             title: try string(value, "title"),
             url: try string(value, "url"),
+            targetKind: target?.kind,
+            localScheme: target?.localScheme,
             openedAt: try clock(value, timeKey: "opened_at"),
             lastActiveAt: try clock(value, timeKey: "last_active"),
             isOpen: !((value["tombstone"] as? Bool) ?? false),
@@ -649,7 +673,7 @@ public struct DesktopWirePayloadCodec: Sendable {
         ), raw)
     }
 
-    private func timeString(_ clock: HybridLogicalClock) throws -> String {
+    func timeString(_ clock: HybridLogicalClock) throws -> String {
         try windowsMicroseconds(clock)
     }
 

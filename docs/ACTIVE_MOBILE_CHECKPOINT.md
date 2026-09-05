@@ -3,6 +3,48 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
+## Current source wave — matching frozen ADR 0008, not built
+
+The owner froze the concrete contract in `09cae9f`. The one canonical fixture
+`overlay/chromium/src/ahoi/browser/sync/testdata/shared_tab_wire_v3_contract.json`
+was read with SHA-256
+`f640a7223c8bcb894625c2fc3041b2c561116c6879333b01ebe3a0b9b72f6777`.
+Mobile prepared the matching Swift implementation without starting a build or
+test, as requested; the prior `313e351` acceptance below does not cover it.
+
+Prepared: distinct DeviceCapability wire-v2 record/class, UUIDv5 identity,
+strict sorted arrays and device-owned clocks, known-Device admission, atomic
+capability merge and compatible local persistence. A pure readiness assessment
+covers complete bootstrap/local acknowledgments and every non-retired peer;
+it is not connected to a writer-enable switch and does not announce capabilities.
+
+V3 targets now carry atomic URL/kind/local-scheme metadata, with empty new-tab
+versus unavailable local-only rows distinguished. Local-only wire data cannot
+contain original paths/code; a pure logical-row projection retains identity and
+can preserve only the origin session's separately supplied local target.
+Non-web Presence has a mandatory link and a separate page-consistency validator.
+Actual automatic UI materialization remains for the later native/mobile wiring.
+
+Legacy new-field Bottom is recognized semantically as absence, not UUID tie
+order. Pure promotion preserves immutable TreeNode creation *time* and defaults
+unknown creation *provenance* to Bottom. Locally observed creation evidence is
+a persisted Boolean, never a creator ID or wire field, and is excluded from
+replicated equality to prevent re-enqueue loops. Bookmark creation time remains
+the independent positive Int64 native value and its wire-v2 codec is unchanged.
+
+`SharedTabFrozenContractTests` consumes the canonical fixture directly for
+capability bytes, promotion/mixed merge, target matrix and gate cases; existing
+read tests were updated to the newly frozen target fields. Tests are written,
+not run. No global/versioned writer default was raised: encode/upload/live-v3
+import and recovery gates remain off. No My-Mac, Chromium, Apple-account,
+Production or installed-candidate action was performed for this source wave.
+
+Next: source review, then a separately coordinated candidate build and visible
+relevant journey before running frozen-contract and existing regression tests.
+Provider-observed initial-fetch completion/announcement acknowledgments and
+actual automatic tab UI/native integration still need their runtime proofs;
+the pure readiness assessment is not that proof. Do not request ownership again.
+
 ## Current acceptance — Bookmark Mobile package and v3 read preparation
 
 Final source `313e3518c1d6daa8ee4d6a3ae25a01ec99a0d39b`, DebugLocal **0.1 (15)**:

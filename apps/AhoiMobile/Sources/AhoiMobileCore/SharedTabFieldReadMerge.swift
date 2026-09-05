@@ -17,7 +17,9 @@ enum SharedTabFieldReadMerge {
         let old = try explicitClock(name, value: existing, legacyDefault: legacyDefault, version: oldVersion)
         let new = try explicitClock(name, value: incoming, legacyDefault: legacyDefault, version: newVersion)
         switch (old, new) {
-        case (nil, nil): return (legacyDefault, nil)
+        case (nil, nil):
+            return (legacyDefault, oldVersion.schemaVersion == 3 || newVersion.schemaVersion == 3
+                ? SharedTabContract.bottom : nil)
         case (.some(let old), nil): return (existing, old)
         case (nil, .some(let new)): return (incoming, new)
         case (.some(let old), .some(let new)):
@@ -64,6 +66,13 @@ enum SharedTabFieldReadMerge {
         }
         guard let clock = version.fieldVersions[field], clock <= version.modifiedAt else {
             throw SharedTabFieldReadMergeError.missingFieldClock
+        }
+        if SharedTabContract.isBottom(clock) {
+            guard value == legacyDefault else { throw SharedTabFieldReadMergeError.invalidLegacyField }
+            return nil
+        }
+        guard SharedTabContract.isActualMutation(clock) else {
+            throw SharedTabFieldReadMergeError.invalidLegacyField
         }
         return clock
     }

@@ -129,7 +129,7 @@ public enum SharedTabWireReadPolicy {
 
     static func validateTreeNodeWrite(_ node: TreeNode) throws {
         try validateWriterVersion(node.version.schemaVersion)
-        guard !node.isTemporary else {
+        guard !node.isTemporary, node.targetKind == nil, node.localScheme == nil else {
             throw SharedTabWirePreparationError.writerNotActivated
         }
         try validateLegacyWriteFields(
@@ -140,7 +140,7 @@ public enum SharedTabWireReadPolicy {
 
     static func validateRemoteTabWrite(_ tab: RemoteTab) throws {
         try validateWriterVersion(tab.version.schemaVersion)
-        guard tab.treeNodeID == nil else {
+        guard tab.treeNodeID == nil, tab.targetKind == nil, tab.localScheme == nil else {
             throw SharedTabWirePreparationError.writerNotActivated
         }
         try validateLegacyWriteFields(
@@ -236,7 +236,7 @@ public enum SharedTabWireReadPolicy {
         }
     }
 
-    private static func strictUInt32(
+    static func strictUInt32(
         _ value: [String: Any],
         key: String
     ) throws -> UInt32 {

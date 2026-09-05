@@ -26,6 +26,9 @@ extension MobileBrowserController {
     @discardableResult
     func ensureSharedTab(_ node: TreeNode) -> UUID? {
         guard node.kind == .savedPage, !node.isDeleted else { return nil }
+        // Unavailable shared targets belong in the logical projection, not in
+        // a blank WebKit page or a synthesized executable fallback.
+        guard node.targetKind != .localOnly else { return nil }
         let url = MobileTabRecord.normalizedURLString(node.url)
         guard url != nil || (node.isTemporary && node.url == nil) else { return nil }
         if let id = localTabID(for: node.id) { return id }

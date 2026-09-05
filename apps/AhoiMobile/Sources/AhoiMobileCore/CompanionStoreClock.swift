@@ -4,6 +4,7 @@ import AhoiCloudKitSpike
 extension LocalFirstRepository {
     func observeStoredClocks() {
         let clocks = snapshot.bookmarks.map(\.version.modifiedAt)
+            + snapshot.deviceCapabilities.map(\.version.modifiedAt)
             + snapshot.devices.map(\.version.modifiedAt)
             + snapshot.workspaces.map(\.version.modifiedAt)
             + snapshot.treeNodes.map(\.version.modifiedAt)

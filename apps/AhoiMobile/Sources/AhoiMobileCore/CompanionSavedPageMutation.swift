@@ -43,6 +43,7 @@ extension LocalFirstRepository {
                 treeNodeID: TreeNodeID(), workspaceID: workspaceID,
                 kind: .savedPage, title: title.isEmpty ? url : title, url: url,
                 orderKey: savedPageRootOrder(workspaceID: workspaceID),
+                creationProvenanceKnown: true,
                 version: version
             )
         }

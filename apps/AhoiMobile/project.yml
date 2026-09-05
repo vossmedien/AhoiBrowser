@@ -143,6 +143,8 @@ targets:
       - path: Tests/AhoiMobileCoreTests
       - path: ../../overlay/chromium/src/ahoi/browser/sync/testdata/bookmark_wire_v2.json
         buildPhase: resources
+      - path: ../../overlay/chromium/src/ahoi/browser/sync/testdata/shared_tab_wire_v3_contract.json
+        buildPhase: resources
     dependencies:
       - target: AhoiMobileCore
       - package: AhoiCloudKitSpike

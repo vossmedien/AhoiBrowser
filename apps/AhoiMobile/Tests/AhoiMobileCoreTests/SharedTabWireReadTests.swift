@@ -68,6 +68,7 @@ final class SharedTabWireReadTests: XCTestCase {
         )
         nodeObject["is_temporary"] = true
         nodeObject["url"] = ""
+        nodeObject["target_kind"] = 1
         let version = v3Version()
         let decodedNode = try codec.decodeTreeNode(
             envelope(
@@ -383,6 +384,7 @@ final class SharedTabWireReadTests: XCTestCase {
             url: url,
             orderKey: try OrderKey(components: [10, 20], tieBreaker: writerID),
             isTemporary: isTemporary,
+            targetKind: resolvedVersion.schemaVersion == 3 ? (url == nil ? .newTab : .web) : nil,
             version: resolvedVersion
         )
     }
@@ -407,6 +409,7 @@ final class SharedTabWireReadTests: XCTestCase {
             workspaceName: "Inbox",
             title: "Shared tab",
             url: "https://example.test/tab",
+            targetKind: resolvedVersion.schemaVersion == 3 ? .web : nil,
             lastActiveAt: resolvedVersion.modifiedAt,
             version: resolvedVersion
         )
@@ -470,6 +473,7 @@ final class SharedTabWireReadTests: XCTestCase {
         var value = try codec.object(from: payload)
         value["model_version"] = 3
         value["version_model"] = 3
+        value["target_kind"] = 0
         addClock(newFieldClock, to: &value)
         return value
     }

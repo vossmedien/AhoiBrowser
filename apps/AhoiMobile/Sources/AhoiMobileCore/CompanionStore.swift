@@ -540,6 +540,7 @@ public actor LocalFirstRepository {
                     nil,
                     tieBreaker: localDeviceID
                 ),
+                creationProvenanceKnown: true,
                 createdAt: version.modifiedAt,
                 version: version
             )

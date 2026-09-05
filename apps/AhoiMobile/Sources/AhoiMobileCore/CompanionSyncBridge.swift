@@ -391,6 +391,10 @@ public actor CompanionSyncBridge {
                 context.workspaces[value.id] = value
             }
             return .domain(.workspace(value))
+        case .deviceCapability:
+            return .domain(.deviceCapability(try wireCodec.decodeCapability(
+                record, plaintext: plaintext, knownDevices: context.devices
+            )))
         case .bookmark:
             return .domain(.bookmark(try decodeBookmarkRecord(record, plaintext: plaintext)))
         case .treeNode:
@@ -468,6 +472,8 @@ public actor CompanionSyncBridge {
 
     private func makeRecord(for value: CompanionImportedValue) throws -> SyncRecord {
         switch value {
+        case .deviceCapability(let value):
+            return try makeCapabilityRecord(value)
         case .bookmark(let value):
             return try makeBookmarkRecord(value)
         case .device(let value):
@@ -548,6 +554,8 @@ public actor CompanionSyncBridge {
         }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
+        case .deviceCapability:
+            _ = try wireCodec.decodeCapability(record, plaintext: plaintext, knownDevices: context.devices)
         case .bookmark:
             guard bookmarkSyncEnabled else {
                 throw CompanionSyncBridgeError.unsupportedDataClass(.bookmark)

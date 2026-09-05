@@ -262,6 +262,10 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
     public var orderKey: OrderKey
     public var wireSortKey: String?
     public var isTemporary: Bool
+    /// Local evidence, never a wire field or a second creator identity.
+    public var creationProvenanceKnown: Bool
+    public var targetKind: SharedTabTargetKind?
+    public var localScheme: SharedTabLocalScheme?
     public let createdAt: HybridLogicalClock
     public var modifiedAt: HybridLogicalClock
     public var version: SyncVersion
@@ -279,12 +283,15 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         orderKey: OrderKey,
         wireSortKey: String? = nil,
         isTemporary: Bool = false,
+        creationProvenanceKnown: Bool = false,
+        targetKind: SharedTabTargetKind? = nil,
+        localScheme: SharedTabLocalScheme? = nil,
         createdAt: HybridLogicalClock? = nil,
         modifiedAt: HybridLogicalClock? = nil,
         version: SyncVersion,
         tombstone: Tombstone? = nil
     ) throws {
-        if kind == .savedPage && url == nil && !isTemporary {
+        if kind == .savedPage && url == nil && !isTemporary && targetKind != .localOnly {
             throw CompanionModelError.savedPageRequiresURL
         }
         if kind == .folder && isTemporary {
@@ -292,6 +299,17 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         }
         if kind == .folder && url != nil {
             throw CompanionModelError.folderCannotHaveURL
+        }
+        if version.schemaVersion == 3 {
+            if kind == .folder {
+                guard targetKind == nil, localScheme == nil else { throw SharedTabTargetError.invalidTarget }
+            } else {
+                guard let targetKind else { throw SharedTabTargetError.invalidTarget }
+                try SharedTabTarget(kind: targetKind, url: url ?? "", localScheme: localScheme)
+                    .validatePage(isTemporary: isTemporary)
+            }
+        } else if targetKind != nil || localScheme != nil {
+            throw SharedTabTargetError.invalidTarget
         }
         self.treeNodeID = treeNodeID
         self.workspaceID = workspaceID
@@ -304,6 +322,9 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         self.orderKey = orderKey
         self.wireSortKey = wireSortKey
         self.isTemporary = isTemporary
+        self.creationProvenanceKnown = creationProvenanceKnown
+        self.targetKind = targetKind
+        self.localScheme = localScheme
         self.createdAt = createdAt ?? version.modifiedAt
         self.modifiedAt = modifiedAt ?? version.modifiedAt
         self.version = version
@@ -325,6 +346,9 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
             orderKey: container.decode(OrderKey.self, forKey: .orderKey),
             wireSortKey: container.decodeIfPresent(String.self, forKey: .wireSortKey),
             isTemporary: container.decodeIfPresent(Bool.self, forKey: .isTemporary) ?? false,
+            creationProvenanceKnown: container.decodeIfPresent(Bool.self, forKey: .creationProvenanceKnown) ?? false,
+            targetKind: container.decodeIfPresent(SharedTabTargetKind.self, forKey: .targetKind),
+            localScheme: container.decodeIfPresent(SharedTabLocalScheme.self, forKey: .localScheme),
             createdAt: container.decodeIfPresent(
                 HybridLogicalClock.self,
                 forKey: .createdAt
@@ -342,6 +366,8 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         case treeNodeID, workspaceID, parentID, kind, title, url, icon, accent, orderKey
         case wireSortKey
         case isTemporary, createdAt, modifiedAt, version, tombstone
+        case creationProvenanceKnown
+        case targetKind, localScheme
     }
 
     public var id: TreeNodeID { treeNodeID }
@@ -438,6 +464,8 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
     public var workspaceName: String?
     public var title: String
     public var url: String
+    public var targetKind: SharedTabTargetKind?
+    public var localScheme: SharedTabLocalScheme?
     public let openedAt: HybridLogicalClock
     public var lastActiveAt: HybridLogicalClock
     public let context: BrowserContextKind
@@ -457,6 +485,8 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
         workspaceName: String? = nil,
         title: String,
         url: String,
+        targetKind: SharedTabTargetKind? = nil,
+        localScheme: SharedTabLocalScheme? = nil,
         openedAt: HybridLogicalClock? = nil,
         lastActiveAt: HybridLogicalClock,
         context: BrowserContextKind = .normal,
@@ -472,18 +502,25 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
             throw CompanionModelError.sharedIdentityCollision
         }
         guard title.utf8.count <= Self.maximumTitleUTF8Bytes,
-              url.utf8.count <= Self.maximumURLUTF8Bytes,
+              url.utf8.count <= (version.schemaVersion == 3 ? 131_072 : Self.maximumURLUTF8Bytes),
               deviceName.utf8.count <= Self.maximumDeviceNameUTF8Bytes,
               (workspaceName?.utf8.count ?? 0) <= Self.maximumWorkspaceNameUTF8Bytes else {
             throw CompanionModelError.metadataTooLarge
         }
-        guard let components = URLComponents(string: url),
-              let scheme = components.scheme?.lowercased(),
-              (scheme == "http" || scheme == "https"),
-              components.host?.isEmpty == false,
-              components.user == nil,
-              components.password == nil else {
-            throw CompanionModelError.remoteTabURLNotAllowed
+        if version.schemaVersion == 3 {
+            guard let targetKind else { throw SharedTabTargetError.invalidTarget }
+            try SharedTabTarget(kind: targetKind, url: url, localScheme: localScheme)
+                .validatePresence(treeNodeID: treeNodeID)
+        } else {
+            guard targetKind == nil, localScheme == nil else { throw SharedTabTargetError.invalidTarget }
+            guard let components = URLComponents(string: url),
+                  let scheme = components.scheme?.lowercased(),
+                  (scheme == "http" || scheme == "https"),
+                  components.host?.isEmpty == false,
+                  components.user == nil,
+                  components.password == nil else {
+                throw CompanionModelError.remoteTabURLNotAllowed
+            }
         }
         self.tabID = tabID
         self.deviceID = deviceID
@@ -495,6 +532,8 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
         self.workspaceName = workspaceName
         self.title = title
         self.url = url
+        self.targetKind = targetKind
+        self.localScheme = localScheme
         self.openedAt = openedAt ?? lastActiveAt
         self.lastActiveAt = lastActiveAt
         self.context = context
@@ -517,6 +556,8 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
             workspaceName: container.decodeIfPresent(String.self, forKey: .workspaceName),
             title: container.decode(String.self, forKey: .title),
             url: container.decode(String.self, forKey: .url),
+            targetKind: container.decodeIfPresent(SharedTabTargetKind.self, forKey: .targetKind),
+            localScheme: container.decodeIfPresent(SharedTabLocalScheme.self, forKey: .localScheme),
             openedAt: container.decodeIfPresent(
                 HybridLogicalClock.self,
                 forKey: .openedAt
@@ -534,6 +575,7 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
         case tabID, deviceID, deviceKind, deviceName, sessionID
         case workspaceID, workspaceName, title, url, openedAt, lastActiveAt, context
         case treeNodeID
+        case targetKind, localScheme
         case isOpen, pinned, version, tombstone
     }
 

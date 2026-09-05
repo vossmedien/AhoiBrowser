@@ -11,6 +11,7 @@ extension CompanionSnapshot {
         case history
         case productRecords
         case bookmarks
+        case deviceCapabilities
     }
 
     public init(from decoder: Decoder) throws {
@@ -28,9 +29,14 @@ extension CompanionSnapshot {
                 CompanionProductSnapshot.self,
                 forKey: .productRecords
             ) ?? .empty,
-            bookmarks: bookmarks
+            bookmarks: bookmarks,
+            deviceCapabilities: values.contains(.deviceCapabilities)
+                ? try values.decode([DeviceCapabilityRecord].self, forKey: .deviceCapabilities) : []
         )
         try CompanionBookmarkHierarchy.validate(bookmarks)
+        guard Set(deviceCapabilities.map(\.id)).count == deviceCapabilities.count else {
+            throw LocalCompanionStoreError.invalidSnapshot
+        }
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -43,5 +49,6 @@ extension CompanionSnapshot {
         try values.encode(history, forKey: .history)
         try values.encode(productRecords, forKey: .productRecords)
         try values.encode(bookmarks, forKey: .bookmarks)
+        try values.encode(deviceCapabilities, forKey: .deviceCapabilities)
     }
 }

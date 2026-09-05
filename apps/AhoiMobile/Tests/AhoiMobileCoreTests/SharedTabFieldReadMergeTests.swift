@@ -8,6 +8,7 @@ final class SharedTabFieldReadMergeTests: XCTestCase {
         let old = try node(version: version(2, at: 100))
         var shared = old
         shared.isTemporary = true
+        shared.targetKind = .web
         shared.version = version(3, at: 200, field: "is_temporary")
         var laterLegacy = old
         laterLegacy.title = "Later legacy title"
@@ -32,6 +33,7 @@ final class SharedTabFieldReadMergeTests: XCTestCase {
                                      lastActiveAt: clock, version: version(2, at: 100))
         var shared = original
         shared.treeNodeID = nodeID
+        shared.targetKind = .web
         shared.version = version(3, at: 200, field: "tree_node_id")
         var legacy = original
         legacy.title = "New title"
@@ -79,8 +81,10 @@ final class SharedTabFieldReadMergeTests: XCTestCase {
 
     private func version(_ schema: UInt32, at time: UInt64, field: String? = nil) -> SyncVersion {
         let clock = HybridLogicalClock(physicalMilliseconds: time, nodeID: writer)
+        var fields = field.map { [$0: clock] } ?? [:]
+        if schema == 3, field == "is_temporary" { fields["created_at"] = SharedTabContract.bottom }
         return SyncVersion(schemaVersion: schema, modifiedAt: clock, modifiedBy: writer,
-                           fieldVersions: field.map { [$0: clock] } ?? [:])
+                           fieldVersions: fields)
     }
 
     private func node(version: SyncVersion) throws -> TreeNode {
@@ -88,6 +92,7 @@ final class SharedTabFieldReadMergeTests: XCTestCase {
         return try TreeNode(treeNodeID: TreeNodeID(), workspaceID: WorkspaceID(), kind: .savedPage,
                             title: "Page", url: "https://example.test",
                             orderKey: OrderKey.between(nil, nil, tieBreaker: writer),
+                            targetKind: version.schemaVersion == 3 ? .web : nil,
                             createdAt: created, version: version)
     }
 }
