@@ -44,17 +44,40 @@ committed. Bookmark source `c28ec4a` is now explicitly frozen and handed off in
 is `docs/audit-evidence/2026-09-05-native-bookmark-sync-source.md`. Desktop
 accepts that integration handoff. Guarded overlay session `62030` completed
 Exit 0 with the full checkout delta verified. The ONE combined guarded Dev
-build is now RUNNING as session `90068`, started 2026-09-05 13:28:24 UTC from
-the clean `dc01cb5` snapshot. It uses `AHOI_NINJA_KEEP_GOING=1` and all listed
-targets, including Sync/Sidebar/Arc/navigation/native/browser tests. Log:
+build `90068` is now TERMINAL EXIT 1 (confirmed 2026-09-05 13:57:30 UTC), from
+clean source `dc01cb5`, after collecting all independent compile errors with
+`AHOI_NINJA_KEEP_GOING=1`. All listed targets were requested, not all produced.
+Complete failure report and log hashes:
+`artifacts/build/desktop-combined-dc01cb5-20260905/README.md`. Log:
 `artifacts/build/desktop-combined-dc01cb5-20260905/build.log`.
 No test execution or install has occurred for this candidate. Common v3 writers
-remain off. No checkout/out changes or second build until this session is terminal.
+remain off. No successful new build/signing receipt exists; outputs are partial.
+
+The terminal `-k0` graph has exactly four primary compile causes: GURL `scheme()`
+returns string_view (owned explicit-copy fix committed in `1ea90da`, NOT in the
+running snapshot); unsafe literal indexing in `bookmark_sync_bridge_types.cc`;
+a capturing BindOnce lambda in `cloudkit_sync_provider_mac_consent.mm`; and
+`bookmark_weak_ptr_factory_` placed before non-factory members in
+`profile_sync_service.h`. The latter causes many duplicate downstream errors.
+Final common-source feedback is sent to Bookmark in
+`01a071df-73b7-7f33-8bbe-cc062bde2ae9`: it must hand over the three corrections
+as one commit or explicitly release those three files for bounded Desktop fixes.
+No source ownership is inferred from idle PIDs. Reuse cached objects after the
+approved complete correction package; no per-error restart, in-place checkout
+edit, test execution or stale-receipt acceptance. Both dependency workarounds
+were independently verified restored to their original hashes and clean paths.
+
+An unapplied minimal three-file proposal is retained and main-reviewed at
+`artifacts/build/desktop-combined-dc01cb5-20260905/bookmark-compile-fixes.proposed.patch`.
+`git apply --check` passed; product files remain unchanged pending explicit
+ownership or the owner's commit. This is not a second active patch stack or an
+implemented fix; remove/retire the proposal after the real correction is integrated.
 
 The existing clean snapshot is selected at `dc01cb5` (including the committed
 Bookmark package and native target-policy test preparation); the shared Chromium
-source is refreshed to it. Build outputs are in progress and must not be called
-a candidate until the build receipt succeeds. Installed bundle remains `3d413ef`.
+source is refreshed to it. Build outputs are partial and must not be called
+a candidate until a new build receipt succeeds. Installed bundle remains
+`3d413ef`; plist and executable SHA were rechecked after the failed run.
 A bounded integration review found a separate live-account/consent race:
 provider revocation is immediate, while local Bookmark backend/projection
 methods can still use their cached approval until a later status reply. Provider
@@ -300,9 +323,12 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    Bookmark freeze `c28ec4a` and owned target-policy test preparation in the
    existing clean snapshot. The Bookmark handoff is received, not an open wait.
    No WIP integration or competing build.
-   Snapshot selection/overlay are done at `dc01cb5`; build `90068` is running.
-   Follow that live handle, do not restart it. Keep the consent-race issue
-   separate and unresolved until its owner disposition/fix and tests.
+   Snapshot/overlay are at `dc01cb5`; build `90068` is terminal Exit 1. Obtain
+   the three Bookmark compile corrections or explicit limited handoff, combine
+   with owned fix `1ea90da`, then advance the snapshot and guarded incremental
+   build after a new CPU/disk gate. No unchanged re-run. A different FillIt data
+   bake `57077` was active at terminal readback; the old 12:34 sample is stale.
+   Keep the consent-race issue separate until owner disposition/fix and tests.
    Recheck all-project CPU ownership and disk before intensive work.
 2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
    those old commands for delayed messages. Its built targets were
