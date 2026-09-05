@@ -39,9 +39,9 @@ explicit slot once its exact host is ready.
 ## Owned combined correction package — not yet built
 
 **Current phase:** `ef0f965` contains the reviewed motion/clipping/canonical
-merge package. Desktop is now freezing its additional Arc Service/recovery
-source, then waits for the Bookmark owner's explicit committed source-freeze
-and final file list. No shared checkout refresh, build, test or install has
+merge package; `96b5a2f` freezes the additional Arc Service/recovery source.
+Desktop now awaits the Bookmark owner's explicit committed source-freeze and
+final file list. No shared checkout refresh, build, test or install has
 started for this wave. `ahoi_sync_unittests` is reserved in the one combined
 build. Do not integrate the common Bookmark Sync WIP before its handoff.
 
