@@ -34,15 +34,18 @@ bounded prompt/cancel PASS, not an installation or extension-functionality pass.
 
 ## Current action-time approval gate
 
-The same normal Store button was used again and the second native permission
-sheet is open. The user was asked asynchronously to approve AnyChat1.0.8 in
-Ahoi with the listed website/New Tab/favicon permissions. Do not press
-"Erweiterung hinzufügen" until explicit approval, and re-read the live sheet
-before continuing. A changed version/permission scope needs a new decision.
+The same normal Store button was used again and a second native permission
+sheet opened. The user was asked asynchronously to approve AnyChat1.0.8 in
+Ahoi with the listed website/New Tab/favicon permissions. No reply has yet
+authorized those rights. On the next continuation the second sheet was also
+cancelled so independent existing Sidebar UI could be exercised; the Store
+returned to Hinzufügen. No modal is now left open. After approval, reopen the
+normal Store flow and re-read its live scope before pressing "Erweiterung
+hinzufügen". A changed version/permission scope needs a new decision.
 Do not treat the earlier broad feature goal or another agent's fixture handoff
 as this action-time approval. No runtime/UI slot has been handed to another agent.
 
-Installation, action/Side Panel, shortcut, disable/enable, restart, filtering and
+Installation, action/Side Panel, shortcut, disable/enable, restart and
 post-install crash regression are NOT RUN. The actual installed AnyChat state
 has not been inferred from the Store description. Arc remains independently
 blocked on the running source browser; its journal/backup are untouched.

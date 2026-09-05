@@ -1,0 +1,37 @@
+objc[15668]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12f954a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13daaca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[15677]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1306c8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13e820a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarPresentationStateTest.FloatingRoundTrips:SidebarPresentationStateTest.HiddenRestoresPreviousVisibleMode:SidebarPresentationLayoutTest.DockedReservesViewport:SidebarPresentationLayoutTest.FloatingOverlaysWithoutReflow:SidebarPresentationLayoutTest.HiddenReleasesViewport
+[==========] Running 5 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from SidebarPresentationStateTest
+[ RUN      ] SidebarPresentationStateTest.FloatingRoundTrips
+[       OK ] SidebarPresentationStateTest.FloatingRoundTrips (0 ms)
+[ RUN      ] SidebarPresentationStateTest.HiddenRestoresPreviousVisibleMode
+[       OK ] SidebarPresentationStateTest.HiddenRestoresPreviousVisibleMode (0 ms)
+[----------] 2 tests from SidebarPresentationStateTest (209 ms total)
+
+[----------] 3 tests from SidebarPresentationLayoutTest
+[ RUN      ] SidebarPresentationLayoutTest.DockedReservesViewport
+[       OK ] SidebarPresentationLayoutTest.DockedReservesViewport (0 ms)
+[ RUN      ] SidebarPresentationLayoutTest.FloatingOverlaysWithoutReflow
+[       OK ] SidebarPresentationLayoutTest.FloatingOverlaysWithoutReflow (0 ms)
+[ RUN      ] SidebarPresentationLayoutTest.HiddenReleasesViewport
+[       OK ] SidebarPresentationLayoutTest.HiddenReleasesViewport (0 ms)
+[----------] 3 tests from SidebarPresentationLayoutTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 2 test suites ran. (211 ms total)
+[  PASSED  ] 5 tests.
+[1/5] SidebarPresentationStateTest.FloatingRoundTrips (0 ms)
+[2/5] SidebarPresentationStateTest.HiddenRestoresPreviousVisibleMode (0 ms)
+[3/5] SidebarPresentationLayoutTest.DockedReservesViewport (0 ms)
+[4/5] SidebarPresentationLayoutTest.FloatingOverlaysWithoutReflow (0 ms)
+[5/5] SidebarPresentationLayoutTest.HiddenReleasesViewport (0 ms)
+SUCCESS: all tests passed.
+Tests took 1 seconds.

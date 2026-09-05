@@ -1,6 +1,6 @@
 # Active Desktop checkpoint
 
-Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
+Updated: 2026-09-06. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 
 ## Contract and ownership
 
@@ -94,13 +94,24 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Current candidate: 4cb622a installed; startup/fullscreen journey passed
 
-**Newest live action:** same installed4cb, no new build. Normal AnyChat Store
-flow (ID khpefodpgnkegiohbolbaaeabnfdegln, Store version1.0.8) reached Chromium's
-real native permissions sheet. Details read; first sheet cancelled successfully,
-Store returned to Hinzufügen, no crash. Second sheet now OPEN awaiting explicit
-user approval for 14 KI-site read/change grants, New Tab replacement and visited-
-site icons. Do not confirm without that action-time approval. Browser is running;
-do not reuse the older closed-app statement below or grant a competing UI slot.
+**Newest live action:** same installed4cb, no new build. Short visible Sidebar
+flow passed: docked -> floating -> hide -> Cmd+Shift+S restores floating ->
+original docked mode. Same URL/active tab, original width264/toggle0 restored;
+no imported-tree/folder/workspace edit. THEN exactly five existing, unchanged
+Sidebar State/Layout regressions passed, list39741/run95926 both EXIT0,
+jobs1/retries0, about1s. No new tests or test binaries. Existing c986 runner and
+4cb shared-runtime/source-equivalence limits are explicit in
+`artifacts/tests/sidebar-presentation-20260906/README.md`; no whole4cb or Sync
+test pass is implied. Nothing is building/running as a test here.
+
+AnyChat Store flow (ID khpefodpgnkegiohbolbaaeabnfdegln, Store version1.0.8)
+reaches Chromium's real native permission sheet and cancels without a crash.
+The second sheet has NOW ALSO BEEN CANCELLED to permit the independent UI
+journey. Store shows Hinzufügen; no modal is left open. The requested explicit
+approval for 14 KI-site read/change rights, New Tab replacement and site icons
+is still outstanding. Do not infer it from a priority/source-handoff message.
+After approval, reopen the normal Store flow and verify its current scope.
+Browser remains running on the Store tab; no competing UI slot is granted.
 No AnyChat install/functionality pass yet. Exact journey/permissions/next action:
 `docs/audit-evidence/2026-09-05-anychat-store-baseline.md`.
 
@@ -119,8 +130,9 @@ entry/exit, Command Bar navigation to example.com, toolbar reveal, regular close
 of the own test window, Cmd+Q and clean relaunch/continue all passed. The normal
 startup choice, not a new crash-restore warning, appeared after Cmd+Q. Do not
 rebuild or continue an old startup/CPU/source blocker. Relevant programmatic
-regressions have not yet run/rebuilt for4cb; existing test executables were not
-part of this product-only build.
+changed navigation/fullscreen regressions have not run/rebuilt for4cb; existing
+test executables were not part of that product-only build. The five unchanged
+Sidebar regressions above are separate, narrowly source-bound reuse.
 
 The standard Settings import link opened the actual importer. It correctly
 displayed "Arc vor dem Import schließen" and no Zen; the three available Firefox
