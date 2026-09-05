@@ -86,6 +86,19 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Owned combined correction package — terminal remaining fixture error
 
+**Blocked audit, 2026-09-05 18:32 UTC:** the same bounded fixture correction/
+hunk-authorization gate persisted through the 7945 failure turn, the Native A-D
+acceptance turn and the current coordinator readback. Fresh canonical readback
+still has the two raw kLegacyRows accesses, no fix commit or exact write grant;
+the clean snapshot remains 22e2f2b. Native package ownership is accepted, but
+its Common header/capture code handoff is not ready and it cannot substitute
+for baseline E2E. Safe read-only checks and the precise preserving fix proposal
+are exhausted. The goal is blocked pending either the Sync owner's separate
+fixture-fix commit or explicit permission for Desktop to apply only that hunk
+and its include. This is NOT a renewed SQL22/source-format/role wait, and not
+feature completion. Do not start unchanged builds or repeat ownership ACKs.
+On that concrete handoff, resume the cached correction with a fresh CPU gate.
+
 **Current phase, 2026-09-05 18:08 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
 `22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`, clean after the explicit test-only
