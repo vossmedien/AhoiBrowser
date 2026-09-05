@@ -85,6 +85,8 @@ it natively until its live ancestry is available. Do not persist a redundant
 root on every descendant. Graph traversal must not depend on recursion depth.
 
 Golden payloads: `overlay/chromium/src/ahoi/browser/sync/testdata/bookmark_wire_v2.json`.
+Frozen fixture SHA-256:
+`b09a5f898a07351f4cd80a68521dffadb05e21abb9799c0d86d61672d244e443`.
 Both language test paths must consume the same fixture; the fixture itself is
 not a passing codec, transport or UI result. The new native adapter still needs
 reconstructible first-bind/move/clone handling across its two persistence owners.
