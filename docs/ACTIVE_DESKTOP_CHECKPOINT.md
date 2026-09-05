@@ -71,6 +71,15 @@ UI slot is explicitly handed to the bookmark owner for isolated-profile Bookmark
 E2E via queue message `01a0708d-ebf7-7da1-bc02-70b4026b9da6`. Main must not act in
 the UI before explicit handback. No default-profile Arc mutation, rebuild,
 installation or pin change was delegated; shared build/checkout stays Desktop-owned.
+For that Bookmark E2E, create native Chromium bookmarks through the mouse menu,
+native Bookmark Manager or a context action. Cmd+D intentionally saves to the
+Ahoi tree and does not prove the native bookmark collection.
+
+The delayed `a453dee` API-fix request is already fulfilled by `87a5999`: two
+product and three test calls now use `View::GetVisibleBounds()`. The fix is
+included in installed `3d413ef`; no repeat build is needed. This confirms API
+integration/compilation only, not Bookmark behavioral acceptance. The owner was
+notified through queue message `01a070a0-a473-76f3-9325-609cfc8dd745`.
 
 The following scoped visible results and original import failure are from
 the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
