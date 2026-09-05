@@ -38,12 +38,14 @@ explicit slot once its exact host is ready.
 
 ## Owned combined correction package — not yet built
 
-**Current phase:** `ef0f965` contains the reviewed motion/clipping/canonical
-merge package; `96b5a2f` freezes the additional Arc Service/recovery source.
-Desktop now awaits the Bookmark owner's explicit committed source-freeze and
-final file list. No shared checkout refresh, build, test or install has
-started for this wave. `ahoi_sync_unittests` is reserved in the one combined
-build. Do not integrate the common Bookmark Sync WIP before its handoff.
+**Current phase:** Desktop corrections `ef0f965` + `96b5a2f` + `6bd3b70` are
+committed. Bookmark source `c28ec4a` is now explicitly frozen and handed off in
+`2210446` / queue `01a0718c-6641-7821-837f-7190f517ad0d`; its 60-file manifest
+is `docs/audit-evidence/2026-09-05-native-bookmark-sync-source.md`. Desktop
+accepts that integration handoff and is preparing the existing clean snapshot
+for ONE combined guarded build after source/CPU checks. No overlay refresh,
+build, test or install has started for this wave yet. Common v3 writers remain
+off. New uncommitted work from other owners is never included implicitly.
 
 A fresh visible baseline attempt exposed sustained native CPU and UI timeouts.
 The bounded follow-up now adds patch `0033`: unchanged computed sidebar margins
@@ -254,9 +256,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Keep Desktop source `ef0f965` + `96b5a2f` frozen. Await the explicit committed
-   Bookmark source SHA/file list, then select the complete committed package
-   in the existing clean snapshot. No WIP integration or competing build.
+1. Select the complete committed Desktop package through `6bd3b70`, the explicit
+   Bookmark freeze `c28ec4a` and owned target-policy test preparation in the
+   existing clean snapshot. The Bookmark handoff is received, not an open wait.
+   No WIP integration or competing build.
    Recheck all-project CPU ownership and disk before intensive work.
 2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
    those old commands for delayed messages. Its built targets were
@@ -289,6 +292,14 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Evidence and independent boundaries
 
+- ADR 0008 / `09cae9f` is now concretely mapped to Native seams. The isolated
+  `session/shared_tab_target_policy` plus six tests uses the canonical target
+  fixture, but is linked only into Session tests: no runtime caller, Native-DB
+  migration, capability announcement or writer activation. The common Service/
+  capture/status requirements were sent to the Bookmark owner; its WIP was not
+  edited. A closed v3 gate must preserve/defer capture, never manufacture
+  Presence tombstones from a filtered snapshot. Detailed next-package boundary:
+  `docs/reviews/2026-09-05-native-shared-tabs-seams.md`.
 - Mobile source `313e351` / DebugLocal 15 is independently accepted locally,
   not as native cross-client sync. Main read its clean matching-source receipt
   and terminal logs: visible Bookmark journey 1/1, Core 70 passed + 2 entitlement

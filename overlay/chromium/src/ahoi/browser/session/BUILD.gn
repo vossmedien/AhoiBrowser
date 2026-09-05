@@ -3,6 +3,17 @@
 
 import("//testing/test.gni")
 
+source_set("shared_tab_target_policy") {
+  sources = [
+    "shared_tab_target_policy.cc",
+    "shared_tab_target_policy.h",
+  ]
+  public_deps = [
+    "//base",
+    "//url",
+  ]
+}
+
 source_set("workspace_session_metadata") {
   sources = [
     "workspace_session_metadata.cc",
@@ -124,12 +135,14 @@ source_set("unit_tests") {
     "session_bridge_unittest.cc",
     "session_prefs_unittest.cc",
     "session_restore_integration_unittest.cc",
+    "shared_tab_target_policy_unittest.cc",
     "startup_policy_unittest.cc",
     "workspace_session_metadata_unittest.cc",
   ]
   deps = [
     ":session",
     ":session_preferences",
+    ":shared_tab_target_policy",
     ":startup_policy",
     ":workspace_session_metadata",
     "//base/test:test_support",
@@ -142,6 +155,7 @@ source_set("unit_tests") {
     "//content/test:test_support",
     "//testing/gtest",
   ]
+  data = [ "../sync/testdata/shared_tab_wire_v3_contract.json" ]
 }
 
 test("ahoi_session_unittests") {
