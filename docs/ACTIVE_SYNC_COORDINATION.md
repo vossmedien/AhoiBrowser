@@ -25,8 +25,10 @@ supersedes migration/legacy-reader work in the initial coordination wording.
   Capability, agrees with the unified target; exact updated ADR/Golden is pending.
 - Desktop: `01a04f97-e3ba-70f2-a031-220b214d352d`, observed `ttys002`.
   Browser package, native Tree/Session/UI and adapter, Chromium checkout/out,
-  build/sign/install/native runtime retained. Notification queued as
-  `01a07276-1cbe-7942-a71c-ba76f2ddc30e`; role confirmation pending.
+  build/sign/install/native runtime retained. Explicit role acceptance received
+  after reading committed `48b1ef4`: Desktop will not edit the unified common
+  C++ or transferred Swift scopes without an exact handoff. Initial assignment
+  message: `01a07276-1cbe-7942-a71c-ba76f2ddc30e`. No further role ACK needed.
 - Coordinator: read-only product review/coordination, this checkpoint/prompt;
   no parallel product edits in the transferred scopes. Native integration
   changes require exact Desktop/Sync file or interface handoffs.
@@ -50,6 +52,11 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
   `01a0728a-90fe-7b62-9063-952b294b1fc7`, notifying Desktop separately. This
   bounded test-API handoff must not wait for the larger unified-format package.
 - Canonical log: `artifacts/build/desktop-correction-225df88-20260905/build.log`.
+- Desktop explicitly confirms terminal `30212` at 16:45:34 UTC, report `813adb8`,
+  no current Ahoi compiler and no new install. Its next intensive start was
+  blocked by identified FillIt Blender PID `93670`, measured 214.5/302.3/144.1%
+  CPU. These are Desktop's point-in-time measurements; every new phase needs
+  its own fresh gate. The message grants no My-Mac/native UI or shared-out lease.
 - Installed Desktop remains `3d413ef` per current Desktop checkpoint; that
   native candidate is provider-free and is not a real cross-client sync pass.
 - Swift `3964bcb` is frozen-contract preparation; `895daf9` and `f25eea5`
@@ -60,7 +67,8 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
 
 ## Next actions
 
-1. Read the two owners' explicit assignment acceptances and the Sync package plan.
+1. Obtain the remaining Sync-owner acceptance and short package plan; Desktop
+   has explicitly accepted its retained role. Do not repeat the Desktop ACK.
 2. Track the next bounded native correction handoff/build without starting
    competing intensive work. Source, build, tests, signing and install
    remain separate gates.
