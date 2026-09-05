@@ -39,55 +39,37 @@ Queued messages are not acknowledgments. Terminal/PID observations are not lease
 
 ## Concrete native integration boundary
 
-The unified owner has named its native needs: the `shared_tab_target_policy.h`
-alias; SessionBridge core/runtime/session/observers; `tab_tree_sync_adapter`;
-TabTree model/persistence for global temporary IDs; sidebar host core/device-tabs
-capture and close handling. These paths were checked against Desktop ownership
-and showed no conflicting WIP in the readback. They remain Desktop-owned.
-Planning message `01a072d7-225c-7492-8132-49b00510639d` asks which parts Desktop
-will implement after the current browser package versus explicitly hand off.
-No file ownership was transferred by listing them. Implementation requires the
-unified owner's concrete committed common-header/seam handoff, not current WIP.
-This planning is independent of the bounded compiler-fixture correction.
+Desktop explicitly accepted all native packages A-D in `59a0378`, detailed in
+`docs/SHARED_TAB_NATIVE_SEAMS.md`: target-type alias, SessionBridge/TabTree
+identity and persistence, adapter projection, sidebar capture/close. No native
+files are delegated back. Common test files/GN need separate exact coordination.
+Implementation awaits the unified owner's committed common-header/seam handoff,
+not another conceptual format or ownership ACK. Baseline compiler work is separate.
 
 ## Current evidence boundary
 
 - Branch: `codex/desktop-core-feature-wave-20260830`.
-- Native correction build: Desktop's updated checkpoint confirms Session
-  `30212` TERMINAL EXIT 1, clean `225df88`, Chromium `.65`, after successful
-  overlay `54118`. Coordinator read the Ninja terminal failure: two string
-  argument errors and two Database constructor diagnostics in three SQL test
-  files, plus protected animation-container access in one sidebar test.
-  Browser/large browser-test linking is not full-build success or installation.
-- Corrective source now exists as `5794d37` (Desktop animation test) and
-  `22e2f2b` (three SQL test files). Exact subsequent freeze/build handoff belongs
-  to Desktop; no unchanged restart or new candidate is inferred. Coordinator
-  reviewed the exact three-file `22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`
-  manifest. Desktop has since explicitly accepted the direct sender handoff in
-  its checkpoint / 17:27 UTC readback. No SQL-source wait remains. Desktop's
-  clean cached build snapshot is now `22e2f2b`, including `5794d37`, not the later
-  unified-format WIP. Do not repeat or recreate this handoff.
-- Canonical log: `artifacts/build/desktop-correction-225df88-20260905/build.log`.
-- Desktop explicitly confirms terminal `30212` at 16:45:34 UTC, report `813adb8`,
-  no current Ahoi compiler and no new install. Its next intensive start was
-  blocked by identified FillIt Blender PID `93670`, measured 214.5/302.3/144.1%
-  CPU. These are Desktop's point-in-time measurements; every new phase needs
-  its own fresh gate. The message grants no My-Mac/native UI or shared-out lease.
-- Later Desktop readback (17:31 UTC) reports the Blender job ended and a new
-  FillIt Unity phase around 191% CPU blocking the start. Coordinator observed
-  Unity PID 25581 / parent 51136 at 188.6%; no old PID is a permanent blocker.
-- The later CPU gate cleared: Desktop recorded overlay `65019` EXIT 0 and
-  compiler session `7945` on `22e2f2b`. Coordinator's newer log read shows Ninja
-  stopped at the two `kLegacyRows[i]` unsafe-buffer errors in
-  `bookmark_sync_store_unittest.cc:435/436`; the other three corrected test files
-  and `ahoi_sidebar_tree_unittests` progressed/linked. Desktop has now confirmed
-  `7945` TERMINAL EXIT 1 in `752723f` / its 18:08 UTC checkpoint. Do not poll or
-  restart that terminal handle. There is no total-build receipt or new install.
-  Desktop's original bounded correction/hunk request is
-  `01a072c4-5524-7270-9d9f-526ba9906062`; no duplicate assignment is needed.
-  Coordinator readback was queued to Desktop and Sync as
-  `01a072c7-ef7b-72f0-8bda-01c1d754904b` /
-  `01a072c7-f155-76a0-89ba-4a9fb81d4ec3` for a bounded separate test-only fix.
+- Historical `30212` / `225df88` ended EXIT 1. Its five API diagnostics were
+  resolved by `5794d37` + `22e2f2b`; that exact source handoff is accepted.
+- Overlay `65019` ended EXIT 0; `7945` / `22e2f2b` ended EXIT 1 (`752723f`).
+  Remaining diagnostics were only raw `kLegacyRows[i]` access in one fixture;
+  Sidebar tests linked, not an overall-build/test pass. Full logs/reports:
+  `artifacts/build/desktop-test-api-22e2f2b-20260905/`. Never poll/restart 7945.
+- **Source blocker now resolved:** `92694fe36539d024af6567646103f1cf246d5364`
+  is separately committed/pushed. Coordinator verified its complete one-file
+  3+/2- diff: `<array>` and `std::array<LegacyRow, 2>`; payloads and assertions
+  unchanged, no warning suppression or unified-format WIP. Desktop received
+  concrete continuation message `01a072e3-ba51-7293-a596-0ec6a2938f52` after its
+  blocked report. The existing cached snapshot/build should continue only with
+  that bounded fix and a fresh CPU gate; actual restart/resumed-goal evidence
+  is still pending, not inferred from this message.
+- Minor convention follow-up: the read 92694fe commit body lacked a DCO trailer.
+  Sync was asked for a traceable attestation without silently rewriting published
+  history (`01a072e3-bcd5-7b03-9dfb-3e114c1f26b7`). This is separate from whether
+  the source compiles. The partial example queue prefix in that message is not
+  evidence; the exact Desktop continuation ID is the one recorded above.
+- No current CPU state is inferred from historical Blender/Unity PIDs. Each
+  intensive start requires a fresh gate. No coordinator build or runtime lease.
 - Installed Desktop remains `3d413ef` per current Desktop checkpoint; that
   native candidate is provider-free and is not a real cross-client sync pass.
 - Swift `3964bcb` is frozen-contract preparation; `895daf9` and `f25eea5`
