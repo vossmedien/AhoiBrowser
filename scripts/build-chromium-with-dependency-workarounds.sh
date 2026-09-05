@@ -76,6 +76,12 @@ for target in "${targets[@]}"; do
   esac
 done
 
+case "${AHOI_NINJA_KEEP_GOING:-0}" in
+  0) ninja_failure_limit=1 ;;
+  1) ninja_failure_limit=0 ;;
+  *) ahoi_die "AHOI_NINJA_KEEP_GOING must be 0 or 1" ;;
+esac
+
 config="${AHOI_REPO_ROOT}/config/dependency-build-workarounds.json"
 receipt_name="$(ahoi_json_get "${config}" "chromiumRustDepfileSpacePaths.receiptName")"
 [ "${receipt_name}" = "$(ahoi_json_get "${config}" "v8InspectorProtocolRelativeDepfilePaths.receiptName")" ] || \
@@ -236,9 +242,9 @@ ahoi_note "applying ${chromium_id} and ${v8_id} only for gn gen and autoninja"
   cd "${AHOI_CHROMIUM_SRC}"
   gn gen "${out_dir}" --args="${args}"
   if [ -n "${AHOI_JOBS:-}" ]; then
-    autoninja -C "${out_dir}" -j "${AHOI_JOBS}" "${targets[@]}"
+    autoninja -C "${out_dir}" -k "${ninja_failure_limit}" -j "${AHOI_JOBS}" "${targets[@]}"
   else
-    autoninja -C "${out_dir}" "${targets[@]}"
+    autoninja -C "${out_dir}" -k "${ninja_failure_limit}" "${targets[@]}"
   fi
 )
 

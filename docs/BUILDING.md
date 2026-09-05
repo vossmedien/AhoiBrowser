@@ -171,6 +171,14 @@ non-directory components, and every existing symlink component:
   ahoi_developer_toolkit_ui_unittests
 ```
 
+For a corrective package build, `AHOI_NINJA_KEEP_GOING=1` collects independent
+compile failures in the same selected target graph (`ninja -k 0`). The default
+remains stop after the first failed subcommand. Only `0` and `1` are accepted;
+target validation and all source/provenance gates stay unchanged. Ninja still
+exits nonzero if any required action fails, so an incomplete build cannot reach
+staging, signing or the successful build receipt. This option does not execute
+tests or add targets.
+
 ### Lean Chromium wave 1 and full baselines
 
 The normal `dev` and `release` profiles are the conservative wave-1 Lean
