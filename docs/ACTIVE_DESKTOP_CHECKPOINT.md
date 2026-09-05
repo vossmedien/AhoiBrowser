@@ -108,18 +108,24 @@ without creating another worktree/development branch. Exact derived source is
 retained in canonical Git ref `refs/ahoi/build-candidates/desktop-startup-c986090`
 and verified incremental `artifacts/build/desktop-startup-guard-20260905/source.bundle`
 (requires published92694fe). Do not delete the provenance bundle/ref during cleanup.
-Shared checkout/out are still92694fe. Next: fresh CPU gate, guarded overlay and
-same full cached build from c986090; install and visibly relaunch only if green.
+Guarded overlay5741 is TERMINAL EXIT0, full delta verified. Same full-target
+cached build is RUNNING59738 from exact c986090 in the same snapshot/out.
+Fresh CPU gate clear20:05:23UTC; disk75,099,256KiB. Both actual callback widget
+guards were read back in the checkout. Do not restart or change source/output
+while running. Install and visibly relaunch only if green; logs remain in the
+startup-guard directory.
 No new sync format/default/header WIP is included or native runtime slot granted.
 
-**Verified CPU wait, 2026-09-05 19:54:46 UTC:** Rechnungs-Automation's
+**CPU wait CLEARED at the current 20:04UTC continuation:** Rechnungs-Automation's
 `make test-gate`46054 / pytest46060 is live, identified by ancestry and exact
 cwd, at93.9–98.7% after nearly15min. Earlier samples were90–99%; a transient65%
 did not remain below the threshold at the next full check. Owner
 `01a07033-0479-7b50-bd7c-b7ad51fd4420` was asked for its natural terminal/quiet
 phase in `01a0731b-d612-7071-a939-123f767f9647`, not to stop/pause the active job.
-No c986090 overlay/build/test has started. Recheck before the prepared guarded
-cached correction; do not treat this sample as a permanent blocker. All source
+Those processes and the intervening ConversationCopilot67100/Shopify67113 trees
+are now terminal/absent; a fresh whole-system check found no busy build. Overlay
+5741 finished and compilation59738 started after its own fresh gate. Old samples
+are history. All source
 and startup-fix ownership gates are resolved; existing runtime/build lease stays
 with Desktop. Installed926 remains closed and startup-red.
 
@@ -482,8 +488,8 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-0. Startup is RED on installed92694fe; first integrate/build the clean isolated
-   c986090 startup correction after fresh CPU gates. Its exact Source bundle
+0. Startup is RED on installed92694fe; resume live build59738 for the clean
+   isolated c986090 correction; overlay5741 succeeded. Its exact Source bundle
    is retained; do not incorporate Common WIP or mutate the frozen snapshot.
    Then atomic install and repeat visible app start before any programmatic
    suite. The older compiler/source handoff waits below are already resolved.
