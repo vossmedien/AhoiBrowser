@@ -53,7 +53,7 @@ std::optional<SharedTabTarget> DescribeNativeSharedTabTarget(
   }
   // Unknown, invalid, overlong or credential-bearing web targets remain local
   // too. Never publish a stripped/fake URL that changes their meaning.
-  const std::string scheme = native_url.scheme();
+  const std::string scheme(native_url.scheme());
   return SharedTabTarget{
       .kind = SharedTabTargetKind::kLocalOnly,
       .local_scheme = IsAllowedLocalScheme(scheme) ? scheme : "other"};
