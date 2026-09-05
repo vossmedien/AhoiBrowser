@@ -18,7 +18,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 `01a07314-fafd-7a91-a437-86af1e577625`, Sync in
 `01a07314-fcdd-7831-a259-ca32ec9a6e0e`. No ACK loop requested.
 
-## Latest material readback — 20:23 UTC
+## Latest material readback — 20:34 UTC
 
 - The user confirmed scope additions made directly in both owner sessions.
   Desktop owns workspace-local cookie/session isolation after its current
@@ -31,8 +31,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   `artifacts/install/ahoi-dev-c986090-20260905T201925Z.json`, then independently
   matched the installed plist and executable SHA256
   `dbd2c25bb8e22af6cd2424db7fa967972fa19f178031fde8c269eac2925c9cc5`.
-  This supersedes installed926 below; visible startup acceptance is still
-  pending, not inferred from the build. Desktop retains UI/runtime ownership.
+  This supersedes installed926 below. Desktop then visibly opened the session
+  and a second window, but native fullscreen hit a distinct CHECK in
+  `CustomCornersBackground::Paint:277`; the overall journey remains RED.
+  Its bounded correction is committed as `7de7fac`; clean derived source
+  `4cb622a` excludes Common/Swift WIP. Overlay31405 exited 0 and product-only
+  guarded build73875 is active. Coordinator observed the corrected object and
+  browser-library link complete, followed by live overlay-verification PID23687.
+  Do not infer terminal/sign/install/E2E success from that phase. Desktop owns
+  the next atomic install and repeat fullscreen journey; no tests are an install
+  prerequisite and no runtime lease is handed over. Live details are in
+  `docs/ACTIVE_DESKTOP_CHECKPOINT.md` and `desktop-startup-guard-20260905` logs.
 - Sync continuation is `docs/UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md`
   (`3e9552f`): actual common service/capture and Mobile live binding remain next.
   Swift canonical-Golden assertions are now written but unexecuted; optional
