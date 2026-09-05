@@ -10,7 +10,8 @@ first found 125,586,816 KiB (119.77 GiB), below the hard 120-GiB roll floor desp
 `df -h` rounding to 120 GiB. A later readback after retiring the old owned source
 snapshot found 126,506,552 KiB (120.65 GiB). Only 53 MiB of the change is explained
 by this thread's cleanup; do not attribute unrelated free-space changes to it.
-Recheck exact space before the roll. The mobile collection decision is pending.
+After installation, readback was 125,553,560 KiB (119.74 GiB), below the floor
+again. Recheck exact space before the roll. The mobile collection decision is pending.
 
 Direct coordination is now available through the documented `codex queue`
 command in installed CLI 0.153.2. Explicit handoff/resume message
@@ -43,9 +44,15 @@ of the built bundle's Info.plist and receipt agrees on source
 source state. The receipt is preserved byte-for-byte at
 `artifacts/build/bookmarks-chromium-20260905/ahoi-dev-build-0a13e22.json` (SHA-256
 `5df3b22a8b6822edebd16891343bafd65c2acb89c84e19433dec0e2a658812e2`).
-Last installed-app readback still reports `1f5f22f`; installation and UI handoff
-remain with Desktop. A short exclusive bookmark E2E slot immediately after
-installation was proposed in queue message `01a0702d-4fd0-7730-8657-3a4018949a99`.
+Installation has now completed through the guarded atomic swap. Receipt:
+`artifacts/install/ahoi-dev-0a13e22-20260905T062114Z.json`. Direct installed
+Info.plist readback reports `0a13e22`; receipt comparison confirms identical
+source, Chromium commit and bundle-tree hash with the built candidate, successful
+post-install verification and `releaseEvidenceEligible=false`. The immediate
+rollback is now `/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s1f5f22fbfe26-h8cf4497233a8.app`.
+UI ownership remains with Desktop for its first visible import-dialog check.
+A short exclusive bookmark E2E slot was proposed in queue message
+`01a0702d-4fd0-7730-8657-3a4018949a99`; do not act before explicit handoff.
 
 ## Explicit shared-checkout / build handoff
 
@@ -170,9 +177,10 @@ this thread's disposable files could not recover the then roughly 35-GiB gap.
 Free space has since changed; the latest exact readback is recorded above and
 must be refreshed before switching the pin. The read-only inventory also found
 eight old `/Applications/.AhoiBrowser.rollback-*.app` bundles totaling about
-8.9 GiB by `du`; all source commits are ancestors of current HEAD. The immediate
-rollback named by the current installation receipt is `f1475d6` and must remain
-available. Even deleting all eight would not bridge the gap, and APFS shared
+8.9 GiB by `du`; all source commits are ancestors of current HEAD. The then
+immediate rollback was `f1475d6`; the new installation's immediate rollback is
+recorded above. Both remain preserved. Even deleting all eight would not have
+bridged the earlier gap, and APFS shared
 blocks may reduce actual reclamation. Nothing was deleted. Do not weaken the floor or delete
 another owner's output. Actual pin/sync, unmodified upstream control, Ahoi build,
 installed runtime and focused post-E2E regression remain open.
