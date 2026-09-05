@@ -18,6 +18,7 @@
 #include "base/memory/raw_ptr.h"
 #include "base/run_loop.h"
 #include "base/strings/utf_string_conversions.h"
+#include "base/test/test_future.h"
 #include "base/time/time.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
@@ -157,8 +158,56 @@ TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
   EXPECT_EQ(folder.id, *persisted_page.parent_id);
 }
 
+TEST_F(SessionBridgeTest, BackupFlushPersistsSecondNestedTreeMutation) {
+  const auto workspaces = workspace_service_->ordered_workspaces();
+  ASSERT_FALSE(workspaces.empty());
+  auto *const store = bridge_->tab_tree_store();
+  tab_tree::TreeNode folder = MakeSavedPage(workspaces.front().id, GURL());
+  folder.type = tab_tree::TreeNodeType::kFolder;
+  folder.title = u"Persistent project";
+  tab_tree::TreeNode page = MakeSavedPage(
+      workspaces.front().id, GURL("https://example.test/backup-flush"));
+  page.parent_id = folder.id;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store->CreateNode(folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store->CreateNode(page));
+
+  base::test::TestFuture<bool> first_flush;
+  bridge_->FlushPersistenceForBackup(first_flush.GetCallback());
+  ASSERT_TRUE(first_flush.Get());
+
+  ASSERT_EQ(
+      tab_tree::TabTreeStore::Result::kOk,
+      store->RenameNode(page.id, u"Second persisted title", base::Time::Now()));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->UpdateWorkspacePresentation(
+                workspaces.front().id, u"Second persisted workspace", u"code",
+                std::nullopt, base::Time::Now()));
+  tab_tree::TabTreeSnapshot expected;
+  ASSERT_TRUE(bridge_->ExportTabTreeSnapshot(&expected));
+
+  // Observe the production bool; FlushPersistenceForTesting discards failures.
+  base::test::TestFuture<bool> second_flush;
+  bridge_->FlushPersistenceForBackup(second_flush.GetCallback());
+  ASSERT_TRUE(second_flush.Get());
+
+  const base::FilePath database_path =
+      profile()->GetPath().AppendASCII(kTabTreeDatabaseFilename);
+  tab_tree::TabTreeStore reloaded;
+  ASSERT_TRUE(reloaded.Initialize(database_path));
+  tab_tree::TabTreeSnapshot persisted;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            reloaded.ExportSnapshot(&persisted));
+  EXPECT_EQ(expected, persisted);
+  tab_tree::TreeNode persisted_page;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            reloaded.GetNode(page.id, &persisted_page));
+  EXPECT_EQ(u"Second persisted title", persisted_page.title);
+  ASSERT_TRUE(persisted_page.parent_id.has_value());
+  EXPECT_EQ(folder.id, *persisted_page.parent_id);
+}
+
 TEST_F(SessionBridgeTest, NewTabRemainsTemporaryAndIsAddressableByCommandBar) {
-  CommandService* command_service =
+  CommandService *command_service =
       CommandServiceFactory::GetForProfile(profile());
   ASSERT_TRUE(command_service);
   const GURL url("https://example.test/temporary-open-tab");

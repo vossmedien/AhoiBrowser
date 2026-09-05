@@ -292,11 +292,22 @@ SessionBridge::TabTreeLoadResult SessionBridge::LoadTabTreeSnapshot(
 }
 
 // static
-bool SessionBridge::PersistTabTreeSnapshot(const base::FilePath& path,
+bool SessionBridge::PersistTabTreeSnapshot(const base::FilePath &path,
                                            tab_tree::TabTreeSnapshot snapshot) {
   tab_tree::TabTreeStore store;
-  return store.Initialize(path) && store.ReplaceWithSnapshot(snapshot) ==
-                                       tab_tree::TabTreeStore::Result::kOk;
+  if (!store.Initialize(path)) {
+    LOG(ERROR) << "Ahoi tab-tree persistence could not open its store";
+    return false;
+  }
+  const tab_tree::TabTreeStore::Result result =
+      store.ReplaceWithSnapshot(snapshot);
+  if (result != tab_tree::TabTreeStore::Result::kOk) {
+    // Record only the failure class, never profile paths or saved-page data.
+    LOG(ERROR) << "Ahoi tab-tree persistence failed: "
+               << static_cast<int>(result);
+    return false;
+  }
+  return true;
 }
 
 void SessionBridge::RunWhenReadyForTesting(base::OnceClosure callback) {

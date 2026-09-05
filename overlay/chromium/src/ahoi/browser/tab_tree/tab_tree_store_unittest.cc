@@ -14,6 +14,7 @@
 #include "base/time/time.h"
 #include "sql/database.h"
 #include "sql/meta_table.h"
+#include "sql/test/scoped_error_expecter.h"
 #include "sql/test/test_helpers.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -674,6 +675,36 @@ TEST_F(AhoiTabTreeStoreTest, SnapshotRoundTripsTreeTombstonesAndUndoHistory) {
             restored.ExportSnapshot(&restored_snapshot));
   EXPECT_EQ(snapshot, restored_snapshot);
 
+  ASSERT_EQ(TabTreeStore::Result::kOk,
+            store_->UpdateWorkspacePresentation(
+                workspace.id, u"Renamed development", u"code", std::nullopt,
+                base::Time::Now()));
+  Workspace imported = NewWorkspace(u"Imported", "workspace-b");
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(imported));
+  TreeNode imported_folder =
+      NewFolder(imported, std::nullopt, u"Imported project", "folder-a");
+  TreeNode imported_page =
+      NewSavedPage(imported, imported_folder.id, u"Imported page",
+                   GURL("https://example.test/imported"), "page-a");
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(imported_folder));
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(imported_page));
+  TabTreeSnapshot updated_snapshot;
+  ASSERT_EQ(TabTreeStore::Result::kOk,
+            store_->ExportSnapshot(&updated_snapshot));
+  ASSERT_EQ(2u, updated_snapshot.workspaces.size());
+  ASSERT_EQ(4u, updated_snapshot.nodes.size());
+
+  // Repeat against an occupied store, including replacing its workspace set.
+  // The old bulk DELETE failed on parent links even for an identical rewrite.
+  for (const TabTreeSnapshot *replacement :
+       {&snapshot, &updated_snapshot, &snapshot}) {
+    ASSERT_EQ(TabTreeStore::Result::kOk,
+              restored.ReplaceWithSnapshot(*replacement));
+    TabTreeSnapshot rewritten;
+    ASSERT_EQ(TabTreeStore::Result::kOk, restored.ExportSnapshot(&rewritten));
+    EXPECT_EQ(*replacement, rewritten);
+  }
+
   ASSERT_EQ(TabTreeStore::Result::kOk, restored.UndoLastMutation());
   TreeNode restored_page;
   ASSERT_EQ(TabTreeStore::Result::kOk,
@@ -684,6 +715,40 @@ TEST_F(AhoiTabTreeStoreTest, SnapshotRoundTripsTreeTombstonesAndUndoHistory) {
   ASSERT_EQ(TabTreeStore::Result::kOk,
             restored.GetNode(page.id, &restored_page));
   EXPECT_EQ(u"Before", restored_page.title);
+}
+
+TEST_F(AhoiTabTreeStoreTest, SnapshotReplacementFailurePreservesExistingTree) {
+  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
+  TreeNode folder = NewFolder(workspace, std::nullopt, u"Project", "folder-a");
+  TreeNode page = NewSavedPage(workspace, folder.id, u"Saved page",
+                               GURL("https://example.test/"), "page-a");
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(folder));
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
+  TabTreeSnapshot before;
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->ExportSnapshot(&before));
+  ASSERT_FALSE(before.undo_operations.empty());
+  ASSERT_FALSE(before.undo_operations.front().nodes.empty());
+
+  TabTreeSnapshot invalid = before;
+  invalid.workspaces.front().name = u"Must not persist";
+  // This duplicate reaches the SQL uniqueness check after tree replacement.
+  // Rollback must restore the old parent links as well as the undo history.
+  auto &undo_nodes = invalid.undo_operations.front().nodes;
+  undo_nodes.push_back(undo_nodes.front());
+  {
+    sql::test::ScopedErrorExpecter expecter;
+    expecter.ExpectError(SQLITE_CONSTRAINT_PRIMARYKEY);
+    EXPECT_EQ(TabTreeStore::Result::kDatabaseError,
+              store_->ReplaceWithSnapshot(invalid));
+    EXPECT_TRUE(expecter.SawExpectedErrors());
+  }
+
+  store_.reset();
+  ASSERT_TRUE(ReopenStore());
+  TabTreeSnapshot after;
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->ExportSnapshot(&after));
+  EXPECT_EQ(before, after);
 }
 
 TEST_F(AhoiTabTreeStoreTest, RejectsSavedPageAsParent) {

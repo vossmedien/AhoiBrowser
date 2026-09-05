@@ -119,7 +119,15 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
   }
 
   sql::Transaction transaction(&db_);
-  if (!transaction.Begin() || !db_.Execute("DELETE FROM undo_node_snapshots") ||
+  // Parent rows normally precede their children in the persisted snapshot.
+  // ON DELETE RESTRICT is checked per row, so a bulk DELETE cannot safely
+  // remove that self-referencing tree. Detach the old edges inside the same
+  // transaction before clearing it. Foreign keys stay enabled throughout;
+  // any later failure rolls back both the edges and all other old state.
+  if (!transaction.Begin() ||
+      !db_.Execute("UPDATE tree_nodes SET parent_id=NULL "
+                   "WHERE parent_id IS NOT NULL") ||
+      !db_.Execute("DELETE FROM undo_node_snapshots") ||
       !db_.Execute("DELETE FROM undo_operations") ||
       !db_.Execute("DELETE FROM tree_nodes") ||
       !db_.Execute("DELETE FROM workspaces")) {
@@ -130,7 +138,7 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
       SQL_FROM_HERE,
       "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
       "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?)"));
-  for (const Workspace& workspace : snapshot.workspaces) {
+  for (const Workspace &workspace : snapshot.workspaces) {
     insert_workspace.Reset(/*clear_bound_vars=*/true);
     internal::BindWorkspaceForInsert(insert_workspace, workspace);
     if (!insert_workspace.Run()) {

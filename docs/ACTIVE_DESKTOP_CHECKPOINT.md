@@ -2,156 +2,106 @@
 
 Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 
-## Objective and authoritative files
+## Contract and ownership
 
-The user commissioned a critical product/technical review on 2026-09-05 and
-authorized improvements to the master and overall goal. Follow
-`outputs/AhoiBrowser-Master-Zielprompt.md`, starting with its package 1; the
-complete browser remains the goal. Findings, rationale and open implementation
-items: `docs/reviews/2026-09-05-product-and-execution-review.md`.
+- Active registered goal: implement `outputs/AhoiBrowser-Master-Zielprompt.md`
+  through its full Definition of Done. Package 1 is not the whole product.
+- Review and rationale: `docs/reviews/2026-09-05-product-and-execution-review.md`.
+- Canonical branch: `codex/desktop-core-feature-wave-20260830`. Other owners
+  commit here too; inspect current HEAD and stage only owned changes.
+- Bookmark owner `01a06d69-1034-7372-b784-0b05a53c87e0` explicitly released the
+  shared Chromium checkout/build/install path to this Desktop thread. Read
+  `docs/ACTIVE_BOOKMARKS_CHECKPOINT.md`; do not infer a new handoff from idle PIDs.
+- Mobile is owned by `01a044d6-1545-7532-8394-6b7df1144bb1`. Preserve its dirty
+  files. Shared-bookmark schema/adapter work is coordinated by the bookmark
+  owner through `docs/decisions/0006-shared-bookmark-collection.md`.
+- The user additionally rejected the normal sidebar folder expand/collapse
+  motion. Desktop owns its reproduction/correction after the current import
+  blocker. Continuous workspace gesture preview/cancel also remains open.
 
-The user has now replaced the registered goal. A live `get_goal` read confirms
-the full master/Definition-of-Done objective, beginning at this checkpoint.
-The earlier goal-control limitation is resolved; do not request that action again.
+## Exact installed candidate
 
-## Current source and ownership
+- `/Applications/AhoiBrowser.app`: source
+  `0a13e22ff4e9cd1ac43a508e304fcaa0fe64a997`, Chromium `152.0.7977.65`.
+- Successful guarded build/sign and atomic install; both commands exited 0.
+  Receipts: `artifacts/build/ahoi-dev-build-0a13e22ff4e9.json` and
+  `artifacts/install/ahoi-dev-0a13e22-20260905T062114Z.json`.
+- Executable SHA-256:
+  `cd8f56dfbd6a9277c49cb304e073b3c86e21e3327cfdd138b3541031006b6878`.
+  Bundle tree SHA-256:
+  `1f017281cec7845d76bcc4807aa2346c898dfc4ecc23a6d66dbb8734d2f5525e`.
+- Existing clean detached build snapshot:
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, currently `0a13e22`.
+  Update this snapshot in place after committing the correction, with shared
+  `.work` supplied through `AHOI_WORK_ROOT`; do not create another snapshot.
+- All old overlay/build/install handles are terminal. No test binaries have
+  been run for this installed package yet. Compilation is not acceptance.
 
-- Canonical repo: `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`.
-- Branch: `codex/desktop-core-feature-wave-20260830`; reviewed product baseline
-  `d6cfa71`. Read current Git HEAD; later documentation commits do not change the
-  installed product.
-- Package-1 source is frozen in `fe0afa41007f5ce152aa0e9513b12c42e46b9ea5`,
-  including integrated bookmark/composer commits `124429a` and `5a763c2`.
-  This is the next build candidate, not an installed or tested pass.
-- Clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo` at exactly `fe0afa4`.
-  Use the shared `.work` via `AHOI_WORK_ROOT`; do not create another snapshot.
-- Committed presentation package `b045dbf`: all-five-checkbox layout,
-  caret-free open/closed folders, sidebar-only committed slide,
-  same-WebContents fade suppression and early product split-feature enablement.
-- Later integrated shelf commits: `41c6856`, `c3f599a`. Preserve them. The old
-  clean `b045dbf` worktree is a historical source snapshot, not the next build
-  authority after these integrations.
-- Bookmark components and overlay-composer performance changes are owned by
-  thread `01a06d69-1034-7372-b784-0b05a53c87e0`. Read
-  `docs/ACTIVE_BOOKMARKS_CHECKPOINT.md` before using the shared Chromium checkout
-  or `out/AhoiDev`; explicit handoff is required.
-- Mobile remains owned by thread `01a044d6-1545-7532-8394-6b7df1144bb1`.
-  Preserve its dirty files and use `docs/ACTIVE_MOBILE_CHECKPOINT.md` for handoff.
+## Visible acceptance and current defect
 
-## Installed candidate and build state
+- PASS (scoped): native App-menu Import opens the real dialog from a zero-tab
+  normal window. The existing restored user window was preserved.
+- PASS (scoped): checkbox boxes align with their first text line. All three
+  genuine choices work by mouse and Space. Missing profile/sidebar selection
+  disables Import; optional split deselection does not. The two duplicate
+  consent boxes are replaced by a translated mandatory-backup notice and the
+  single deliberate Import action.
+- Arc preview: 1 workspace, 36 folders, 133 pages, 3 splits, 0 degraded,
+  1 excluded, 0 deduplicated. The first commit correctly refused running Arc.
+  Arc was then closed; the exact main process and all helpers were gone.
+- FAIL: the fresh real import then returned `backupError`, confirmed by a
+  read-only expression in the current dialog's DevTools. No retry since.
+  No `Default/Ahoi/ArcImportJournal.json` or `Arc Import Backups` directory was
+  created. The generic error text is not a completed import or rollback proof.
+- Root cause: `TabTreeStore::ReplaceWithSnapshot` bulk-deletes a self-referencing
+  tree whose `parent_id` uses immediate `ON DELETE RESTRICT`. The real
+  authoritative `Default/Ahoi Tab Tree` contains 5 nodes, one parent-before-child
+  link, and zero FK violations. This is not the legacy `Ahoi/TabTree.sqlite`.
+  An in-memory synthetic SQL reproduction fails with FK error 19. The production
+  failed persistence flush maps to `backupError` before backup creation.
+- Correction now in owned source: detach old parent links inside the existing
+  atomic replacement transaction, leaving foreign keys enabled and restoring
+  all state on rollback. Persistence failures log only their class, not private
+  paths or saved-page data. Regressions cover repeat nested writes, changed
+  workspaces, tombstones/undo, SQL-error rollback and the actual flush bool plus
+  durable second-write readback. These tests are written, not run.
 
-- `/Applications/AhoiBrowser.app/Contents/Info.plist` was read live and reports
-  `1f5f22fbfe26069572a2861ecaf7304a25f82a54`.
-- Existing matching receipt:
-  `artifacts/install/ahoi-dev-1f5f22f-20260904T170613Z.json`.
-  Full bundle hashes were not recomputed during the review.
-- The installed app has no proof of `b045dbf` presentation changes.
-- Foreign build parent PID 51290 and verifier 72607 are gone. The bookmark
-  owner confirms no new-source successful build receipt; do not install its
-  incomplete output or continue polling those dead handles.
-- No current build is owned by this thread. Recheck live CPU/ownership before
-  the next CPU-intensive phase. Process absence is not checkout handoff.
-- Host preflight from the clean snapshot passed: Xcode 26.6/17F113,
-  matching SDKs, arm64, about 109 GiB free versus the 64 GiB build requirement.
-  The bookmark checkpoint still explicitly retains its lease for the `.83`
-  preflight. User coordination was requested asynchronously; no lease release
-  or new-source build was assumed from the absence of a compiler process.
-- Computer Use can select and raise the installed app. Current old-candidate
-  baseline is open on the read-only Arc preview; no import was committed.
+## Next actions — do not restart the review
 
-## Package-1 integrated source; build and acceptance pending
-
-- Computer Use successfully selected and raised the exact installed app. It
-  began with an empty window. `AhoiBrowser > Lesezeichen und Einstellungen
-  importieren…` was visible and enabled, but clicking it left the window empty.
-  The command exists in the App menu; do not add a redundant File/Bookmarks entry.
-- The cause is Chromium's unconditional `kNoTab` early return in
-  `BrowserCommandController`. New patch `0028` allows explicitly enumerated
-  window/profile commands in constructed normal windows and retains the guard
-  for page-dependent commands and other window types. It also changes only the
-  fresh local-state default for hold-to-quit; explicit stored choices survive.
-- Folder rows now resolve the existing named icon choices and a bounded single
-  printable Unicode grapheme as an emblem while retaining open/closed folder
-  silhouettes. Unknown names fall back. The obsolete caret indentation is gone;
-  same-depth page and folder title columns align. No runtime pass yet.
-- A browser regression exercises the actual import command dispatcher from an
-  empty window and expects one real Settings tab, rather than calling the
-  working destination function directly. It has not yet run.
-- Direct Settings entry successfully opened the Arc preview on installed
-  `1f5f22f`: 1 workspace, 36 folders, 133 pages and 3 splits. All five checkbox
-  boxes visibly sat above their labels; the user's 2026-09-05 screenshot confirms
-  the same defect. The prepared UI retains three actual profile/category choices,
-  aligns controls with the first text line, and replaces duplicate consent with
-  a mandatory-backup notice and one explicit Import action. Patch `0029` carries
-  the matching English/German message. The backend transaction is unchanged.
-- Dot/index and relative workspace changes now share the committed transition.
-  Only scroll contents move inside the viewport; header, shelf and footer stay
-  fixed. Changed WebContents fade without transform mutation. Cancel preserves
-  unrelated layer properties. Reduced Motion uses an explicit opacity duration;
-  its regression disables rich animation to match actual macOS behavior.
-  Continuous gesture preview/commit/cancel remains an open WS-09 follow-through;
-  this post-commit transition is not a full physical-gesture pass.
-- uBO's initial dialog keeps source/version/readiness and permission notices;
-  full provenance is in a localized, accessible, bounded Details section.
-  Service, consent, CTA and native-sheet handoff remain unchanged.
-- Independent read-only review caught the reduced-motion duration bug, now
-  corrected; no other concrete blocker found. Scoped patch application checks
-  and formatting succeeded. No new binary or programmatic test pass is claimed.
-
-## Next actions
-
-### External build handoff block (2026-09-05)
-
-The same missing explicit bookmark-owner lease release has persisted for three
-consecutive goal turns after the source freeze. The goal is externally blocked,
-not complete. User coordination has already been requested. Repeated unchanged
-checkpoint reads must not replace the actual handoff.
-
-At the latest live check, FillIt Unity PID `15530` was at 100% CPU and a separate
-ConversationCopilot simulator test app was above 390% CPU. These are foreign
-workloads; do not stop them. Recheck both CPU capacity and the bookmark owner's
-explicit lease release on resume. Read any later bookmark fix commit named in
-that handoff and incorporate it by updating the existing clean snapshot if
-needed; preserve Desktop source `fe0afa4` and do not create another build path.
-
-No new build, installation, visible corrected-checkbox pass or product test
-pass has occurred. The installed app remains the old candidate. Resume with the
-guarded overlay refresh and one combined build only after those gates clear.
-
-The review, master corrections, archived chronology and `PERF-04` clarification
-are complete as documentation. JSON validity, all 412 unique registry IDs,
-unchanged master test-ID coverage and whitespace were checked. No runtime pass
-or browser rebuild is implied.
-
-1. Source freeze `fe0afa4` is complete. Create/use one clean detached build
-   snapshot of that integrated revision. No further product edits before its
-   build unless a concrete new blocker is found. The Desktop owner is ready
-   for the explicit shared-checkout lease release in the bookmark checkpoint.
-2. Obtain bookmark-owner handoff and use one clean integrated source snapshot.
-   Reuse any appropriate complete candidate; otherwise apply the exact overlay
-   and run one combined browser/focused-test-target build. Keep its real handle,
-   terminal outcome and receipt; do not infer success from progress lines.
-   Extra targets: `ahoi_startup_policy_unittests`, `ahoi_arc_import_unittests`,
+1. Integrate/review the four-file persistence fix and regressions, commit only
+   owned changes, then advance the existing clean snapshot. Recheck all-project
+   CPU ownership and free space before each intensive phase.
+2. Refresh the overlay through `scripts/apply-overlay.sh --compatible-dev-xcode`
+   and use `scripts/build-ahoi.sh dev` for one combined correction build. Include
+   new `ahoi_tab_tree_unittests` and `ahoi_session_unittests` plus the existing
+   package targets: `ahoi_startup_policy_unittests`, `ahoi_arc_import_unittests`,
    `ahoi_arc_import_browsertests`, `ahoi_sidebar_tree_unittests`,
    `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
    `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
-3. Install atomically, then perform visible Arc/menu/checkbox/folder/workspace/
-   zero-tab-split/quit journeys. Real Arc import must include valid 2/2/3 splits,
-   result, restart and an identical second no-op import. Preserve the source and
-   prior recovery backup/journal until the corrected flow passes.
-4. AnyChat: ordinary Store path, cancellation, success, action/Side Panel,
-   shortcut, disable/enable and restart. Classic: one-click official pinned CRX,
-   Chromium permissions, real filtering, dashboard and restart. Lite removal
-   occurs only after Classic readiness and the deliberate migration action.
-5. Run focused programmatic regressions after visible behavior, document exact
-   evidence, commit/push own changes, then advance to the next master package.
+3. Install atomically only after a successful terminal build and receipt. Repeat
+   the real Arc journey first: successful backup/import, 2/2/3-pane splits,
+   folder state, restart and identical second no-op import. Preserve existing
+   source/profile and old recovery evidence. A red visible flow blocks its
+   programmatic acceptance; fix its actual cause, not assertions.
+4. Complete normal-folder motion, workspace slide/fade, zero-tab split and
+   Cmd+Q acceptance. Coordinate bookmark E2E UI ownership explicitly.
+5. AnyChat: ordinary Store install/cancel, action/Side Panel, shortcut,
+   disable/enable and restart. Classic: official pinned GitHub one-click,
+   Chromium permissions, actual filtering, dashboard and restart. Lite remains
+   until Classic passes and the deliberate migration action is performed.
+6. Run focused programmatic checks after each corrected visible journey;
+   record exact candidate/results, commit/push owned work and advance the master
+   packages. Sync/lean/privacy/performance and all other contracts remain in scope.
 
-## Historical evidence
+## Evidence and independent boundaries
 
-Earlier candidate/test/crash chronology is preserved in
-`docs/audit-evidence/2026-09-04-desktop-checkpoint-history.md`.
-Its 173-test development matrix and Arc recovery attempts are not current
-candidate or full-product passes. AnyChat and Classic installation status must
-be read again at their actual install step. Existing profiles and secrets are
-not review artifacts.
+- Current import diagnosis: `docs/audit-evidence/2026-09-05-desktop-package1.md`.
+  Older chronology: `docs/audit-evidence/2026-09-04-desktop-checkpoint-history.md`.
+  Historical 173-test runs and old recovery attempts are not current passes.
+- A short idle sample showed compositor/property-tree work during the observed
+  high browser CPU. It does not yet establish a cause or performance regression;
+  do not make speculative compositor changes. Diagnostic sample is ephemeral at
+  `/private/tmp/ahoi-import-diagnostic.Arh1kv/ahoi-idle.sample.txt`.
+- The bookmark owner's `.83` Stable roll remains separate. The hard 120-GiB
+  checkout floor must be checked exactly and never overridden. Do not switch
+  the Chromium pin during this package's correction/acceptance.
