@@ -2,7 +2,69 @@
 
 Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 
-## Resumed coordination
+## Current next action and evidence — 2026-09-05
+
+- Installed Desktop is now `3d413efb5b6f196403e92f51631c346c9c55b2e5` on
+  Chromium `.65`. Desktop built/installed its nested-tree persistence correction;
+  receipts are in its checkpoint. The new Bookmark sync code below is NOT in
+  that candidate.
+- Desktop explicitly handed over isolated-profile Bookmark UI access in
+  `01a0708d-ebf7-7da1-bc02-70b4026b9da6`. Fresh `cua.getState()` failed before
+  app access with `Sky Computer Use native pipe startup failed`; a reset of
+  this thread's own JS session and a fresh inventory failed identically.
+  No app was launched and no profile was changed. UI was explicitly returned
+  to Desktop in `01a0709c-556c-70c1-b59b-17fb3d9cdc30`. Do not assume this thread
+  still holds UI access. Checkout/build/install remain Desktop-owned.
+- Under the documented technical-E2E exception, the already-built
+  `SidebarBookmarkShelfViewTest.*` ran on `3d413ef`, one job, zero retries:
+  **11/11 SUCCESS**, process exit 0, about six seconds. This is NOT visible E2E.
+  Evidence: `artifacts/tests/bookmarks-3d413ef-20260905/{run.log,summary.json}`.
+  Test executable SHA-256:
+  `4072e793f28643cd40a1d4a4c45ebeb4b68246cd4601688ddf48ba3fab5eeeca`;
+  summary SHA-256:
+  `fec00796a2518713367e4edb5f7b504b5e9877412e4d103aee71fc62bb2ac176`.
+  The component runtime emitted an `ANGLESwapCGLLayer` duplicate-class warning;
+  it did not fail these tests and is not a diagnosed cause of the screenshot.
+
+### New shared-bookmark implementation: owned, uncommitted, not compiled
+
+The bookmark owner is editing common C++ sync model, codec, field merge,
+validation, SQLite schema/store, provider type mapping, backend snapshot, GN,
+`config/sync-policy.json`, ADR 0006 and the shared golden fixture. Do not stage
+or overwrite these in another thread. No shared-checkout refresh was performed.
+
+Current source has Bookmark entity `11`, a separate record/atomic location,
+iterative graph validation, wire-v2 codec, schema `4 -> 5` migration and backend
+snapshot projection. `SyncStore` now aliases the global schema constant instead
+of shadowing it with a second literal. Local writes now enforce the already
+declared immutable-field policy, matching remote merge behavior. The codec
+helper extracted existing common serialization helpers without a second clock
+implementation. All edited modules remain below 800 lines at the latest count.
+
+There are 28 newly written codec/golden/model/store tests, none compiled or run.
+GN includes their sources and the canonical fixture. The native BookmarkModel
+adapter, crash-safe first-bind/clone/move identity reconciliation, opt-in UI and
+Mobile bookmark projection are still unimplemented. MetaInfo alone is not a
+trusted identity ledger: it is cloned and saved asynchronously. Preserve this
+boundary in the adapter implementation; do not assign fresh IDs blindly.
+
+Mobile's new shared-normal-tab contract in ADR 0007 also needs common wire-v3
+changes. Its local session bindings are Mobile-owned. The bookmark owner has
+requested a combined field/version handoff in `01a0709c-55d0-7ef2-992c-ef36a31cd4e5`:
+do not independently alter shared C++ seams or silently extend wire-v2. Existing
+bookmark-v2 payloads must remain readable after a global version increase.
+The bookmark fields/golden fixture were sent in `01a07087-d324-7400-a943-c7c1565811ec`.
+Swift wire/domain ownership and matching-client capability gating still need
+an explicit coordinated response; do not infer it from a queued message.
+
+Next: finish the combined wire-version agreement; integrate the native adapter
+and coordinated Mobile implementation. Use the existing installed candidate for
+the missing visible shelf journey when Computer Use recovers. Build new source
+only after checkout/build handoff and a fresh CPU/disk gate. Actual Chromium
+roll, shared collection roundtrip, folder-motion/rendering acceptance and final
+commit/push remain open. Android was a future-options question, not a new build.
+
+## Earlier coordination (historical)
 
 The user resumed this goal. A fresh CPU check found Unity near 1% and its
 compiler workers idle, so the earlier CPU gate has cleared. Exact disk readback
@@ -40,6 +102,17 @@ request for its domain/transport and UI attachment points. Existing record
 policies are explicit allowlists and currently have no bookmark record class.
 Do not introduce concurrent schema definitions or silently map bookmarks to
 workspace saved pages. Current Mobile CloudKit peer tests remain separate scope.
+
+Additional user screenshot at 09:19:18 reports a dark rectangular step at the
+sidebar/rounded-toolbar/content seam. The original is preserved byte-for-byte at
+`artifacts/computer-use/bookmarks-coordination-20260905/user-sidebar-seam-091918.png`
+(SHA-256 `46a7d38216279c5ba984988bcc1c2773ea0d2f638d77658da82379fb568a7158`).
+Installed-app readback during triage remains `0a13e22`; new sync-domain source
+has not been built or installed. The screenshot is user-reported evidence, not
+an acceptance pass. Desktop owns reproduction and bounds/clipping correction;
+message `01a07074-0f78-7973-800c-52399f5f1cae` provides the shared image path.
+The attempted CLI image attachment was rejected and sent no message; the
+successful text message instructs direct viewing of the preserved file.
 
 Direct coordination is now available through the documented `codex queue`
 command in installed CLI 0.153.2. Explicit handoff/resume message

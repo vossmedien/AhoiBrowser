@@ -54,6 +54,14 @@ Reduced Motion muss die Bewegung sofort abschließen; Animation ist ausschließl
 Präsentation und darf weder die Datenmutation verzögern noch native Drag-Sessions
 stören. Keine parallele Animationsarchitektur und keine überlappenden Writes.
 
+Behebe mit dem Desktop-Owner auch den gemeldeten Renderingfehler am Übergang
+zwischen Sidebar, gerundeter Toolbar und Inhaltsfläche: Die im Screenshot vom
+2026-09-05 um 09:19:18 markierte dunkle rechteckige Stufe darf nicht zurückbleiben.
+Reproduziere den tatsächlichen Fenster-/Sidebar-Zustand und korrigiere die
+zuständige Bounds-/Clipping-/Hintergrundgeometrie, ohne den Fehler durch eine
+zusätzliche Abdeckfläche zu verdecken. Referenz:
+`artifacts/computer-use/bookmarks-coordination-20260905/user-sidebar-seam-091918.png`.
+
 Prüfe den aktuellen vollständig ausgerollten Mac-ARM64-Stable-Upstream über
 offizielle Quellen und führe ein verfügbares, sicheres Chromium-Update über den
 vorhandenen reproduzierbaren Roll-Pfad durch. Nutze gefilterten Commit-/Tree-
@@ -91,6 +99,9 @@ präzise. Committe und pushe nur die eigenen Änderungen nach bestandenen Gates.
 - Ordnerbewegung: die beanstandete Desktop-Auf-/Zuklappbewegung ist am exakten
   installierten Kandidaten sichtbar verbessert, auch bei Verschachtelung,
   schnellem Richtungswechsel, Scrollposition und Reduced Motion.
+- Rendering: der gemeldete dunkle Absatz an der Sidebar-/Toolbar-/Inhaltsgrenze
+  ist im reproduzierten Fensterzustand sichtbar behoben; Rundung und Flächen
+  schließen korrekt an.
 - Mobile/Sync: dieselbe Lesezeichensammlung ist über den echten Desktop-Adapter
   und die mobile Ansicht erreichbar. Ordner, Öffnen, Änderungen, Reihenfolge,
   Offline-Konflikte, Neustart und Löschung konvergieren ohne Vermischung mit

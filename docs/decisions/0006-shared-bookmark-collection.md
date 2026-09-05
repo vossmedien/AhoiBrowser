@@ -1,7 +1,8 @@
 # ADR 0006: One logical bookmark collection, native platform adapters
 
-Status: implementation direction accepted by the bookmark owner on 2026-09-05;
-wire-field freeze and implementation remain pending the coordinated adapter review.
+Status: implementation direction and bookmark wire-v2 fields frozen by the
+bookmark owner on 2026-09-05. Implementation, native identity reconciliation
+and platform acceptance remain open.
 
 ## Product decision
 
@@ -55,6 +56,38 @@ deletion-watermark machinery must remain the shared implementation.
   intact; no silent broadening of a prior consent is allowed.
 - Use existing URL safety rules. A URL unsupported by Mobile must not trigger
   unsafe alternate navigation or be silently erased from Desktop bookmarks.
+
+## Frozen bookmark wire-v2 contract
+
+Use `EntityType::kBookmark = 11` / `SyncDataClass.bookmark = "bookmark"`, the
+existing wire-v2 common metadata, and local Desktop store schema 5. Exactly one
+of `root_kind` and `parent_id` is present; a present null is invalid.
+
+| Payload field | Type / meaning |
+| --- | --- |
+| `kind` | integer: folder `0`, URL `1`; immutable for an identity |
+| `root_kind` | top-level only; integer: bookmark bar `0`, other `1`, mobile `2` |
+| `parent_id` | nested entries only; lowercase UUID of a bookmark folder |
+| `sort_key` | nonempty visible ASCII, at most 1024 bytes; lexical byte ordering |
+| `title` | UTF-8, at most 65536 bytes; empty is valid; no NUL |
+| `url` | empty for folders; valid native URL metadata for URL entries, at most 131072 UTF-8 bytes, no NUL or embedded user/password |
+| `created_at` | existing Windows-epoch microsecond decimal-string encoding; positive, correctable native metadata |
+
+The exact field-clock set is `location`, `kind`, `title`, `url`, `created_at`,
+`tombstone`. `location` copies/compares `root_kind`, `parent_id` and `sort_key`
+atomically. Only `kind` is immutable. Older workspace/entity semantics remain
+unchanged. Non-web native URLs remain metadata, not automatic navigation;
+Mobile must surface unsupported activation without deleting the record.
+
+Known parent links must lead to folders and cannot cycle. A missing parent may
+arrive on a later provider page; retain the detached record but never materialize
+it natively until its live ancestry is available. Do not persist a redundant
+root on every descendant. Graph traversal must not depend on recursion depth.
+
+Golden payloads: `overlay/chromium/src/ahoi/browser/sync/testdata/bookmark_wire_v2.json`.
+Both language test paths must consume the same fixture; the fixture itself is
+not a passing codec, transport or UI result. The new native adapter still needs
+reconstructible first-bind/move/clone handling across its two persistence owners.
 
 ## Native adapter constraints, verified against M152
 
