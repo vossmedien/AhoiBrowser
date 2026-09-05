@@ -1,6 +1,7 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -107,11 +108,11 @@ struct LegacyRow {
   int64_t queued_at;
 };
 
-constexpr LegacyRow kLegacyRows[] = {
+constexpr std::array<LegacyRow, 2> kLegacyRows = {{
     {EntityType::kAppearance, kLegacyAppearanceId, kLegacyAppearancePayload,
      "legacy-appearance", false, 100, 0, 501},
     {EntityType::kDeveloperAsset, kLegacyAssetId, kLegacyAssetPayload,
-     "legacy-asset-delete", true, 120, 2, 502}};
+     "legacy-asset-delete", true, 120, 2, 502}}};
 
 bool CreateV4Fixture(const base::FilePath& path) {
   sql::Database database(sql::test::kTestTag);
