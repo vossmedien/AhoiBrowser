@@ -80,10 +80,19 @@ these interfaces alone are not working native behavior. Baseline work is separat
   overlay applied, SHA256
   `dec35aefe6a4095fa784dcd5f2cf186a8005e9ac53c5f81e4b6ed4163f3772a1`.
   This is compiled baseline evidence, not executed tests or unified-format proof.
-- Desktop's guarded atomic installer is reported RUNNING `19738`, expected
-  receipt `artifacts/install/ahoi-dev-92694fe-20260905T190452Z.json`.
-  Installation, the new installed readback and visible E2E remain unverified;
-  no coordinator UI/out access while it runs. Unified/header WIP stays excluded.
+- **Installation verified:** the guarded install log reports completion and
+  `artifacts/install/ahoi-dev-92694fe-20260905T190452Z.json` verifies candidate,
+  same-volume copy and installed activation (`renameatx_np(RENAME_SWAP)`).
+  Coordinator read the installed plist source `92694fe` and independently
+  hashed its executable to
+  `717827e792a4882665334dc834ec54680696ae8b2cc93a88399b176741b945ca`, matching
+  the receipt. Receipt SHA256:
+  `502d6ac0bb82153c9e227534a20034785621e1e56ec4f842c3eb7678676d00aa`.
+  `releaseEvidenceEligible` is false. No coordinator app launch/UI action.
+- **Visible acceptance red:** Desktop's 19:17 UTC public readback reports that
+  the new app also exits after a targeted Finder start and produced two new
+  crash reports. Desktop is analyzing them without repeated launches. Exact
+  diagnosis/evidence handoff is pending; build/install success is not E2E success.
 - Minor convention follow-up: the read 92694fe commit body lacked a DCO trailer.
   Sync was asked for a traceable attestation without silently rewriting published
   history (`01a072e3-bcd5-7b03-9dfb-3e114c1f26b7`). This is separate from whether
@@ -91,8 +100,8 @@ these interfaces alone are not working native behavior. Baseline work is separat
   evidence; the exact Desktop continuation ID is the one recorded above.
 - No current CPU state is inferred from historical Blender/Unity PIDs. Each
   intensive start requires a fresh gate. No coordinator build or runtime lease.
-- Installed Desktop remains `3d413ef` per current Desktop checkpoint; that
-  native candidate is provider-free and is not a real cross-client sync pass.
+- Installed Desktop is now `92694fe`, independently read back above. It remains
+  the older-format UI/compile baseline, not a unified native/Mobile sync pass.
 - Swift `3964bcb` is frozen-contract preparation; `895daf9` and `f25eea5`
   correct retained local provenance. Seven provenance test methods are written,
   not executed. No Mobile build/test/host or My-Mac lease is owned here.
@@ -104,9 +113,14 @@ these interfaces alone are not working native behavior. Baseline work is separat
 - ADR 0009 and `config/sync-format.json` are committed in `1bfae11`; Desktop
   aligned its master/native contracts in `006930f`. The manifest reads as exactly
   13 entity IDs 0–12, all authored/accepted at 3; obsolete input must not turn
-  into a deletion or an authoritative empty snapshot. Its golden path is
-  `overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json`, not yet
-  observed as a delivered all-entity fixture.
+  into a deletion or an authoritative empty snapshot. Golden bytes are now
+  committed as `c3c3d20` at
+  `overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json`.
+  Coordinator verified SHA256
+  `f1886032c54931f8dfd4180c5ff150698f85576ac70e52e3523f95291c3d8d00` and 26
+  records. No direct new-fixture consumption was yet found in the checked C++/
+  Swift test paths; actual binding/execution remains for the candidate wave.
+  The remote-command example is shape-only, not cryptographic authorization proof.
 - Actual uncommitted C++ implementation is now visible in common model/store/
   profile types and the two new shared-tab leaf headers. Coordinator inspected
   the leaf types, separate presence/logical IDs and default-false native support.
