@@ -69,7 +69,7 @@ extension CompanionAppModel {
     func saveBrowserPage(
         _ tab: MobileTabRecord,
         workspaceID: WorkspaceID,
-        didCommit: (TreeNode) -> Void
+        didCommit: @MainActor (TreeNode) -> Void
     ) async -> TreeNode? {
         await performLocalFirstMutation({
             try await repository.saveBrowserPage(tab, workspaceID: workspaceID)

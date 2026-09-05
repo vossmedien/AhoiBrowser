@@ -71,7 +71,7 @@ extension MobileBrowserController {
     /// is awaited. Concurrent UI entry points share this per-tab guard.
     func saveSharedPage(
         for tabID: UUID,
-        commit: (MobileTabRecord, (TreeNode) -> Void) async -> TreeNode?
+        commit: @MainActor (MobileTabRecord, @MainActor (TreeNode) -> Void) async -> TreeNode?
     ) async -> MobileTabRecord? {
         guard let tab = tabs.first(where: { $0.id == tabID && $0.mode == .normal }),
               MobileTabRecord.normalizedURLString(tab.url) != nil,
