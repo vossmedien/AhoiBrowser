@@ -5,10 +5,11 @@ Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 ## Resumed coordination
 
 The user resumed this goal. A fresh CPU check found Unity near 1% and its
-compiler workers idle, so the earlier CPU gate has cleared. About 85 GiB free
-exceeds the 64-GiB development-build recommendation but remains below the
-hard 120-GiB Chromium-checkout floor. Ahoi-only obsolete bundles cannot recover
-that gap. The mobile collection decision is still pending.
+compiler workers idle, so the earlier CPU gate has cleared. The latest exact
+disk readback is 125,586,816 KiB (about 119.77 GiB): above the development-build
+recommendation but still below the hard 120-GiB Chromium-checkout floor despite
+`df -h` rounding to 120 GiB. Recheck exact space before the roll. The mobile
+collection decision is still pending.
 
 Direct coordination is now available through the documented `codex queue`
 command in installed CLI 0.153.2. Explicit handoff/resume message
@@ -26,6 +27,16 @@ Follow the Desktop checkpoint for the new live build handle and exact receipt;
 the old first-attempt handle is terminal. No duplicate writer or competing
 build was started. Final build, E2E, behavioral tests and actual roll remain open.
 
+The `4e2458a` retry log now ends with Ninja failure. Its only reported compile
+error is the test's nonexistent `components/bookmarks/browser/bookmark_metrics.h`;
+the pinned source provides `components/bookmarks/common/bookmark_metrics.h`.
+Browser bundle copy and the large browser/interactive-test links completed, but
+this is not a green guarded build or signed/installed candidate. Diagnostic and
+bounded fix ownership were queued to Desktop in message
+`01a07024-7041-7832-b0f4-ab8af0ce96bf`; the bookmark owner remains read-only for
+product/test files during that retry. Do not poll old build session `22604` as
+if it were still running merely because a checkpoint has not caught up.
+
 ## Explicit shared-checkout / build handoff
 
 **RELEASED to Desktop owner `01a04f97-e3ba-70f2-a031-220b214d352d`.**
@@ -39,11 +50,13 @@ or source mutation in the shared Chromium checkout. Old handles below are
 terminal. The Desktop owner may update its existing clean snapshot to this
 integrated source, refresh the overlay and run the combined guarded build.
 
-The final bookmark corrections in `fafd776` have **not yet compiled or run**.
-The build must include new patch `0030` and the new context-menu source files.
-Use the current ordered series, not an older snapshot. The earlier three-object
-compile pass applies only to `124429a`. Do not install the existing incomplete
-`out/AhoiDev` output as if it were the final source.
+The final bookmark corrections in `fafd776`, with Desktop's bounded API/patch
+fixes, have reached product compilation in the combined build; the test-target
+compile failure still prevents a successful guarded-build receipt. The build
+must include new patch `0030` and the new context-menu source files. Use the
+current ordered series, not an older snapshot. The earlier three-object compile
+pass applies only to `124429a`. Do not install incomplete `out/AhoiDev` output
+as if it were a verified final candidate.
 
 Suggested combined target: `./scripts/build-ahoi.sh dev ahoi_sidebar_tree_unittests`
 plus the Desktop owner's already selected focused targets. Build/sign/install
@@ -131,9 +144,10 @@ workarounds. The candidate V8 commit is
 updating during the real roll. Evidence: `dependency-workaround-review.json`
 beside the reports. No workaround or production pin was changed.
 
-The last free-space check was about 85 GiB, below the configured hard 120-GiB
-checkout floor. Only the active `AhoiDev` output exists; this thread's disposable
-files cannot recover the roughly 35-GiB gap. A read-only inventory also found
+The earlier reserve audit at about 85 GiB found only the active `AhoiDev` output;
+this thread's disposable files could not recover the then roughly 35-GiB gap.
+Free space has since changed; the latest exact readback is recorded above and
+must be refreshed before switching the pin. The read-only inventory also found
 eight old `/Applications/.AhoiBrowser.rollback-*.app` bundles totaling about
 8.9 GiB by `du`; all source commits are ancestors of current HEAD. The immediate
 rollback named by the current installation receipt is `f1475d6` and must remain
@@ -149,8 +163,16 @@ bookmark collection. Current Mobile Library contains Ahoi workspace saved pages;
 it does not prove access to Chromium bookmarks. No new mobile schema or sync
 migration has been started without that decision and the Mobile owner's handoff.
 
-The latest confirmed foreign CPU gate was FillIt Unity Play mode, PID `15530`,
-about 99% CPU. Command, ancestry, working directory and
-`OpenPlayablePreview -> EditorApplication.isPlaying = true` were checked.
-The user was asked to have its owner stop the preview temporarily. Never stop
-that foreign process here; recheck actual workloads before a build.
+Mobile supplied historical Library evidence at
+`artifacts/e2e/mobile-library-6405167/`. Readback confirms both clean source and
+embedded source `640516791522e7604d5619bee354420f2cc56b7e`, DebugLocal `0.1 (1)`,
+and the real `testSavePageToWorkspaceThenOpenFromTreeAndLibrarySearch` pass in
+162.347 seconds; the surrounding log reports 5/5. This proves the historical
+workspace-library journey, not Build 10 or a shared Chromium collection.
+Mobile closure commit `760e00a` remains frozen. Its owner reports removal of
+about 330 MiB of unused owned caches only; do not attribute the entire disk-space
+increase to that cleanup. Products, archives and evidence remain preserved.
+
+The earlier FillIt Play-mode CPU gate has cleared. No foreign process was
+stopped. Recheck actual workload ownership and CPU before every heavy phase;
+absence of a compiler process does not return Desktop's checkout/UI lease.
