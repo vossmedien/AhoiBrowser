@@ -47,6 +47,17 @@ for ONE combined guarded build after source/CPU checks. No overlay refresh,
 build, test or install has started for this wave yet. Common v3 writers remain
 off. New uncommitted work from other owners is never included implicitly.
 
+The existing clean snapshot is now selected at `dc01cb5` (including the committed
+Bookmark package and native target-policy test preparation); the shared Chromium
+checkout/out and installed bundle are still the older `3d413ef` candidate.
+A bounded integration review found a separate live-account/consent race:
+provider revocation is immediate, while local Bookmark backend/projection
+methods can still use their cached approval until a later status reply. Provider
+upload/decryption are separately protected; no network leak is claimed.
+Bookmark owns the requested effective-gate/late-reply assessment/correction
+(`01a0719b-0215-7cf0-947d-3696483fe29d`). Hold compiler start for that disposition
+or revised freeze; do not reintroduce "missing initial Bookmark handoff".
+
 A fresh visible baseline attempt exposed sustained native CPU and UI timeouts.
 The bounded follow-up now adds patch `0033`: unchanged computed sidebar margins
 no longer invalidate layout from inside every layout pass. Material reapply
@@ -137,8 +148,9 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   Bundle tree SHA-256:
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at correction `3d413ef`.
-  It shares `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at source `dc01cb5` for
+  the pending next package, not a new built/installed candidate. It shares
+  `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
   log `/private/tmp/ahoi-package1-3d413ef-build.log`. All requested test targets
@@ -162,6 +174,15 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   `01a07085-b24d-7ed3-80bc-04fc29f2e53c`.
 
 ## Visible acceptance and current defect
+
+**Subsequent shutdown readback:** a fresh CUA selection returned the old app's
+open command bar with Settings suggestions. One Cmd+Q returned `App quit`;
+`ps` independently confirmed PID `37773` absent. No force-kill or journal edit.
+The Default journal remains v5 `prepared/manual_recovery_required`. This
+supersedes the running-app state below and proves one regular quit on `3d413ef`,
+not acceptance of the unbuilt fixes. Do not launch it again to retry the failed
+import. Arc itself was seen running in the later process inventory; recheck the
+source-closed gate before any future import or Arc Service test execution.
 
 **Latest live readback (13:41–13:50 CEST):** Computer Use inventory briefly
 recovered and Desktop opened installed `3d413ef` with **Fortsetzen**. AX and a
@@ -260,6 +281,8 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    Bookmark freeze `c28ec4a` and owned target-policy test preparation in the
    existing clean snapshot. The Bookmark handoff is received, not an open wait.
    No WIP integration or competing build.
+   Snapshot selection is done at `dc01cb5`; await the new consent-race disposition
+   or revised Bookmark freeze, then advance it only to the approved combined SHA.
    Recheck all-project CPU ownership and disk before intensive work.
 2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
    those old commands for delayed messages. Its built targets were

@@ -58,3 +58,13 @@ already have their own comparisons and are retained.
 These are source-verified redundant invalidations, not a measured attribution
 of all 95–105% CPU or a resolved Computer Use/renderer hang. They join the same
 pending combined build; source is not installed or accepted yet.
+
+## Subsequent regular shutdown
+
+A later fresh CUA selection completed and showed the command bar with Settings
+suggestions, not a confirmed loaded Settings page. One Cmd+Q produced the tool's
+`App quit` result; an independent `ps` check found PID `37773` absent. No kill,
+force-quit or import/recovery action occurred. Journal readback still showed
+schema 5, `prepared/manual_recovery_required`. This supersedes the earlier
+running-process state; it does not prove the new rendering fixes or a stable
+Computer Use connection.
