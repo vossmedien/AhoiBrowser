@@ -3,6 +3,40 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
+## Current acceptance — Bookmark Mobile package and v3 read preparation
+
+Final source `313e3518c1d6daa8ee4d6a3ae25a01ec99a0d39b`, DebugLocal **0.1 (15)**:
+build succeeded; visible Bookmark create/folder/restart/open/delete journey
+passed **1/1** on the exact receipt-bound simulator candidate. Then focused
+Mobile Core passed **70**, failed **0**, skipped **2** entitlement-dependent
+cases (72 discovered); shared Swift package **36/36** and event-contract
+repository checks **2/2** passed. Both final Xcode runs exited 0.
+
+The final provider-consent correction is included: direct/rehydrated outgoing
+Bookmark records cannot bypass category opt-in; missing consent pauses only
+send intent, retaining encrypted data and quarantine. V3 upload remains off.
+The secret scan's sole finding was reviewed as a false positive on the
+`sortKey.utf8.count <= 1_024` code expression, not a credential literal; the
+original red scan is preserved without global suppression.
+
+Report and candidate receipt:
+`docs/audit-evidence/2026-09-05-mobile-bookmark-wire2/README.md`.
+Canonical raw results:
+`artifacts/e2e/mobile-bookmark-wire2-313e351/`.
+Reusable clean source/DerivedData:
+`/private/tmp/ahoi-mobile-shared-tabs.V7PCPC/`, source at `313e351`.
+No own build/test is active; the dedicated test simulator is shut down.
+No Desktop/My-Mac runtime reservation exists and TestFlight is unchanged.
+
+Next integration is genuinely separate: matching native Chromium Bookmark
+adapter/test execution and candidate-bound cross-client roundtrip; then shared
+normal-tab live projection/wiring and activation after the capability, legacy
+promotion and nonportable-target freeze. Swift ownership is already granted.
+Do not rerun unchanged local Bookmark acceptance or resume old ACK loops.
+None of this marks Production sync, cross-device Keychain or all shared-tab
+runtime behavior complete. The older registered Internal-Beta goal remains
+complete for its narrower scope only.
+
 ## Resumed implementation — versioned shared-tab reads, writers off
 
 The explicit renewed ADR 0008 grant removes any remaining Swift ownership wait.
@@ -34,8 +68,8 @@ by the provider's existing rehydration path. A shared runtime consent guard is
 now integrated into real/DEBUG transport writes, seeds, merge results and final
 upload/recovery authorization. Unapproved resend intents are paused/removed
 without deleting the encrypted data or clearing corruption quarantine; explicit
-approval permits later rehydration. This correction needs a new candidate,
-the same visible journey and focused regression tests before closure.
+approval permits later rehydration. This correction was accepted on `313e351`
+with the repeated visible journey and focused regression tests recorded above.
 No My-Mac/Production or Chromium action is authorized or planned by this wave.
 
 ## Latest single runtime attempt — window returned
@@ -55,11 +89,11 @@ The runtime was explicitly returned to Desktop; a correct variant-specific
 attempt requires a fresh window. Report:
 `docs/audit-evidence/2026-09-05-mobile-mymac-cloudkit/README.md`.
 
-Bookmark follow-through remains separate: source `4647f5b` builds as DebugLocal
+Historical Bookmark attempt: source `4647f5b` builds as DebugLocal
 `0.1 (13)`; visible create/restart/open ran, but the overall Bookmark UI test is
-red at the duplicate AX match for the cleanup delete confirmation. Scope its
-locator to the observed confirmation sheet and repeat that journey before the
-prepared Bookmark Core/Golden/relay suites. No Bookmark pass is claimed.
+red at the duplicate AX match for the cleanup delete confirmation. The scoped
+locator was subsequently corrected and the complete journey passed on Build 14
+and final Build 15 as recorded above. Keep that initial failed run red.
 
 ## Current task: matching Mobile bookmarks — owner handoff received
 
@@ -82,7 +116,7 @@ engine or erasing prior corruption quarantine. The large Bridge snapshot-seed
 method and repository clock observation were moved into cohesive small files.
 
 The helper delivered model/codec, UI and focused tests in disjoint modules;
-the main agent owns final integration/review. No build/test phase has started.
+the main agent completed integration and the bounded verification above.
 The owner corrected the Golden's device aliases to UUIDs and committed the one
 canonical fixture at `ae38ed7`; `project.yml` references it as a test resource.
 Bookmark creation time retains positive Int64 Windows-epoch microseconds,
