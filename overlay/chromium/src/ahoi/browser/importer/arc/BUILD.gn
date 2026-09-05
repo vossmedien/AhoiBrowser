@@ -36,6 +36,8 @@ source_set("service") {
     "arc_import_commit_support.h",
     "arc_import_journal.cc",
     "arc_import_journal.h",
+    "arc_import_navigation_barrier.cc",
+    "arc_import_navigation_barrier.h",
     "arc_import_recovery.cc",
     "arc_import_recovery.h",
     "arc_import_recovery_policy.cc",
@@ -45,6 +47,7 @@ source_set("service") {
     "arc_import_service_factory.cc",
     "arc_import_service_factory.h",
     "arc_import_service_internal.h",
+    "arc_import_service_manual_recovery.cc",
     "arc_import_service_recovery.cc",
     "arc_import_service_runtime.cc",
     "arc_import_transaction.cc",
@@ -133,7 +136,10 @@ test("ahoi_arc_import_unittests") {
 source_set("browser_tests") {
   testonly = true
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
-  sources = [ "arc_split_runtime_browsertest.cc" ]
+  sources = [
+    "arc_import_service_browsertest.cc",
+    "arc_split_runtime_browsertest.cc",
+  ]
   deps = [
     ":service",
     "//ahoi/browser/session",
@@ -141,13 +147,17 @@ source_set("browser_tests") {
     "//base",
     "//base/test:test_support",
     "//chrome/browser",
+    "//chrome/browser/sessions",
     "//chrome/browser/ui",
     "//chrome/browser/ui/tabs:tab_strip",
     "//chrome/test:test_support",
     "//chrome/test:test_support_ui",
+    "//components/sessions",
     "//components/split_tabs",
     "//components/tabs:public",
     "//content/test:test_support",
+    "//crypto",
+    "//net:test_support",
     "//testing/gtest",
     "//ui/base",
     "//url",

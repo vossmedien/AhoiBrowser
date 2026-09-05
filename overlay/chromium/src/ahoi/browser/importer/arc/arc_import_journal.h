@@ -87,6 +87,8 @@ struct ArcImportPreparedState {
   // native current-session receipt has been durably verified. It remains
   // diagnostic crash state; restart recovery never publishes it verbatim.
   std::optional<ArcImportCommittedState> intended_committed;
+
+  bool operator==(const ArcImportPreparedState&) const = default;
 };
 
 struct ArcImportJournalReadResult {

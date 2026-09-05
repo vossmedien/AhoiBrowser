@@ -38,6 +38,31 @@ explicit slot once its exact host is ready.
 
 ## Owned combined correction package — not yet built
 
+**Current phase:** `ef0f965` contains the reviewed motion/clipping/canonical
+merge package. Desktop is now freezing its additional Arc Service/recovery
+source, then waits for the Bookmark owner's explicit committed source-freeze
+and final file list. No shared checkout refresh, build, test or install has
+started for this wave. `ahoi_sync_unittests` is reserved in the one combined
+build. Do not integrate the common Bookmark Sync WIP before its handoff.
+
+The additional Arc code waits for real non-initial native navigation commits
+before taking a SessionService receipt; it does not wait for full page loading.
+A scoped SessionBridge guard defers only automatic title/URL mirroring for
+imported split members; explicit user edits still invalidate the transaction.
+The full Service browser fixture now has ten cases, including held-open HTTP
+responses, concurrent user edits, and explicit recovery through genuine backup,
+journal, SQLite persistence and native SessionService readback. No security or
+receipt mocks. Source review found and corrected the temporary-tab workspace
+reassignment risk: recovery also refuses tabs in newly added workspaces that
+would disappear, including unbound temporary tabs. Tests are NOT RUN.
+
+The Settings recovery action (patch `0032` strings plus overlay handler/UI)
+requires an explicit click. It verifies an unchanged failed tree, original
+backup/journal, and absence of affected live/durable tabs before restoring.
+It keeps the backup and performs no automatic discovery/import retry. The real
+Default-profile failed journal/backup have not been changed. The installed app
+was quit normally with Cmd+Q after the terminal failure; no force-kill.
+
 Desktop is preparing the user's normal workspace-folder motion corrections in
 `sidebar_tree_view.{h,cc}`, `_projection.cc`, `_navigation.cc` and the focused
 `_interaction_unittest.cc`. These are canonical overlay edits only; the shared
@@ -81,6 +106,13 @@ It also includes the canonical Arc merge and native receipt focus corrections
 from the fresh runtime failure described below. Include all related targets in
 one build plus `ahoi_sync_unittests`; do not integrate the bookmark owner's
 uncommitted common Sync WIP. Use the existing clean snapshot after owned commit.
+
+The subsequently renewed, one-attempt Mobile My-Mac slot was also explicitly
+returned. Session `84564` / PID `88055` ended Exit 65 before a test body: missing
+destination variant selected native macOS for an iOS host. This is not a native
+Desktop, CloudKit or provisioning failure. Evidence is Mobile commit `e8f9975`
+and `docs/audit-evidence/2026-09-05-mobile-mymac-cloudkit/README.md`. No current
+Mobile runtime reservation remains; no automatic retry is authorized.
 
 ## Exact installed candidate
 

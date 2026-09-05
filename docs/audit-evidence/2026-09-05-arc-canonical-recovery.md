@@ -47,3 +47,41 @@ window title with no AX controls or screenshot, including after a fresh runtime
 reset. The app process remained alive; this is neither a crash verdict nor a
 visible success. Current manual recovery must be resolved through verified,
 explicit recovery; never erase its journal to obtain a green rerun.
+
+## Combined follow-up source — not yet built or executed
+
+Canonical merge and native-window receipt corrections are committed in
+`ef0f965`, together with the owned folder-motion and rounded-surface package.
+The installed app remains `3d413ef`; it was quit normally after its terminal
+failed import. No real-profile restoration, journal deletion or repeat import
+has occurred.
+
+Full-service inspection found a further lifecycle gap: freshly opened split
+members do not yet have a non-initial navigation entry that Chromium can save.
+`ArcImportNavigationBarrier` now waits for those native commits before the real
+SessionService receipt, with weak ownership and a bounded timeout. Open HTTP
+streams do not block this barrier. Scoped metadata deferral keeps only automatic
+title/URL mirroring from invalidating the importer-owned snapshot; direct user
+edits remain visible and cause conservative recovery, never a rollback over
+the newer title/tree.
+
+Explicit recovery is exposed through the existing Settings import section. It
+requires the unchanged prepared/manual journal, no completed native receipt,
+a hash/permission-verified backup, an exact previous or expected tree, no live
+affected node binding and no temporary tab in a workspace that would be removed.
+The current native session is flushed/read via SessionService and checked for
+the same node/workspace references; the live tree is rechecked before restore
+and after persistence. The journal is restored only after the backed-up tree is
+durable. Backups stay available. No native tab is closed to make recovery pass;
+no retry/import runs implicitly. The helper's concrete temporary-workspace
+reassignment finding was corrected at both live and native-session boundaries.
+
+Ten new `ArcImportServiceBrowserTest` cases cover the real slow-navigation
+commit/receipt/no-op chain, lost pending panes, concurrent user edits, exact
+backup recovery, newer trees, bound tabs, temporary workspace tabs, changed
+backups, completed receipts, and stale tokens/source changes. Source fixtures
+use actual discovery/capture/parser/backup/journal/SQLite/SessionService paths.
+The only fixture seam replaces locating the real Arc source; a running real
+Arc causes an explicit skip, not a source-use bypass. Settings WebUI source also
+covers explicit single submission, busy lock and no auto-discovery/retry after
+success or refusal. These are written tests, not execution evidence.

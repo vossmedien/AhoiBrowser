@@ -50,8 +50,8 @@ export interface ArcImportCommitResponse {
   approximatedFourPaneRatios: number;
 }
 
-type ArcImportStage =
-    'idle'|'discovering'|'preview'|'committing'|'sourceInUse'|'done'|'error';
+type ArcImportStage = 'idle'|'discovering'|'preview'|'committing'|'recovering'|
+    'recovered'|'sourceInUse'|'done'|'error';
 
 export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   static get is() {
@@ -91,6 +91,9 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   }
 
   protected async onArcDiscoverClick_() {
+    if (this.isArcBusy_()) {
+      return;
+    }
     this.arcImportStage_ = 'discovering';
     this.arcImportPreview_ = null;
     this.arcImportResult_ = null;
@@ -154,6 +157,47 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
     }
   }
 
+  protected isArcBusy_(): boolean {
+    return this.arcImportStage_ === 'discovering' ||
+        this.arcImportStage_ === 'committing' ||
+        this.arcImportStage_ === 'recovering';
+  }
+
+  protected showArcRecovery_(): boolean {
+    return this.arcImportStage_ === 'recovering' ||
+        (this.arcImportStage_ === 'error' &&
+         (this.arcImportResult_?.status ?? this.arcImportPreview_?.status) ===
+             'recoveryRequired');
+  }
+
+  protected async onArcRecoverClick_() {
+    if (!this.showArcRecovery_() || this.isArcBusy_()) {
+      return;
+    }
+    this.arcImportStage_ = 'recovering';
+    this.notifyComplete_(false);
+    this.notifyBusy_(true);
+    try {
+      const result = await sendWithPromise<ArcImportPreviewResponse>(
+          'ahoiArcRecover', /*recoveryConfirmed=*/ true);
+      if (!this.isConnected) {
+        return;
+      }
+      this.arcImportResult_ = null;
+      this.arcImportPreview_ = result;
+      this.arcImportStage_ = result.status === 'ok' ? 'recovered' : 'error';
+      // Recovery is not an import. No auto-discovery, auto-retry or "done".
+    } catch {
+      if (this.isConnected) {
+        this.arcImportStage_ = 'error';
+      }
+    } finally {
+      if (this.isConnected) {
+        this.notifyBusy_(false);
+      }
+    }
+  }
+
   protected onArcProfileChange_(event: Event) {
     const checkbox = event.currentTarget as HTMLElement & {checked: boolean};
     const profile = checkbox.dataset['profile'];
@@ -200,6 +244,10 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
         return loadTimeData.getString('ahoiArcImportDiscovering');
       case 'committing':
         return loadTimeData.getString('ahoiArcImportCommitting');
+      case 'recovering':
+        return loadTimeData.getString('ahoiArcImportRecovering');
+      case 'recovered':
+        return loadTimeData.getString('ahoiArcImportRecovered');
       case 'sourceInUse':
         return loadTimeData.getString('ahoiArcImportSourceInUse');
       case 'done':

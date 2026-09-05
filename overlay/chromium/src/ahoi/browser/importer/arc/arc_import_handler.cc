@@ -136,6 +136,9 @@ void ArcImportHandler::RegisterMessages() {
   web_ui()->RegisterMessageCallback(
       "ahoiArcCommit", base::BindRepeating(&ArcImportHandler::HandleCommit,
                                            base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiArcRecover", base::BindRepeating(&ArcImportHandler::HandleRecover,
+                                            base::Unretained(this)));
 }
 
 void ArcImportHandler::HandleDiscover(const base::ListValue& args) {
@@ -153,6 +156,23 @@ void ArcImportHandler::HandleDiscover(const base::ListValue& args) {
   service->DiscoverAndPreview(base::BindOnce(&ArcImportHandler::ResolvePreview,
                                              weak_factory_.GetWeakPtr(),
                                              std::move(callback_id)));
+}
+
+void ArcImportHandler::HandleRecover(const base::ListValue& args) {
+  if (args.size() != 2u || !args[0].is_string() || !args[1].is_bool()) {
+    return;
+  }
+  AllowJavascript();
+  base::Value callback_id = args[0].Clone();
+  auto* service = ArcImportServiceFactory::GetForProfile(profile_);
+  if (!args[1].GetBool() || !service) {
+    ResolvePreview(std::move(callback_id),
+                   {.status = ArcImportStatus::kRecoveryRequired});
+    return;
+  }
+  service->RecoverFailedImport(base::BindOnce(&ArcImportHandler::ResolvePreview,
+                                              weak_factory_.GetWeakPtr(),
+                                              std::move(callback_id)));
 }
 
 void ArcImportHandler::HandleCommit(const base::ListValue& args) {

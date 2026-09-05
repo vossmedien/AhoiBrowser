@@ -10,8 +10,8 @@ import {assertDeepEquals, assertEquals, assertFalse, assertTrue} from 'chrome://
 import {TestBrowserProxy} from 'chrome://webui-test/test_browser_proxy.js';
 import {microtasksFinished} from 'chrome://webui-test/test_util.js';
 
-type ArcImportStage =
-    'idle'|'discovering'|'preview'|'committing'|'sourceInUse'|'done'|'error';
+type ArcImportStage = 'idle'|'discovering'|'preview'|'committing'|'recovering'|
+    'recovered'|'sourceInUse'|'done'|'error';
 
 interface ArcImportStatsFixture {
   sourceWorkspaces: number;
@@ -317,6 +317,70 @@ suite('AhoiArcStandardImportSurface', () => {
       chrome.send = originalSend;
     }
   });
+
+  for (const status of ['ok', 'recoveryRequired']) {
+    test(
+        `recoveryIsExplicitSingleSubmitWithoutAutoRetry_${status}`,
+        async () => {
+          selectSource(1);
+          const section = getArcSection();
+          section.arcImportStage_ = 'error';
+          section.arcImportPreview_ = {
+            ...preview(0),
+            status: 'recoveryRequired'
+          };
+          section.requestUpdate();
+          await section.updateComplete;
+          const requests: Array<{message: string, args: unknown[]}> = [];
+          const originalSend = chrome.send;
+          chrome.send = (message: string, args?: unknown[]) => {
+            if (['ahoiArcRecover', 'ahoiArcDiscover', 'ahoiArcCommit'].includes(
+                    message)) {
+              requests.push({message, args: args ?? []});
+            } else {
+              originalSend(message, args);
+            }
+          };
+          try {
+            // Rendering the recovery warning must never perform the recovery.
+            assertEquals(0, requests.length);
+            const recover = section.shadowRoot!.querySelector<HTMLElement>(
+                '#ahoiArcRecover')!;
+            assertTrue(!!recover);
+            assertEquals(
+                'ahoiArcRecoveryNotice',
+                recover.getAttribute('aria-describedby'));
+            recover.click();
+            recover.click();
+            // A synchronously queued discovery click is locked too.
+            section.shadowRoot!.querySelector<HTMLElement>(
+                                   '#ahoiArcDiscover')!.click();
+            assertEquals(1, requests.length);
+            assertEquals('ahoiArcRecover', requests[0]!.message);
+            assertEquals(true, requests[0]!.args[1]);
+            assertEquals('recovering', section.arcImportStage_);
+            await microtasksFinished();
+            assertTrue(section.shadowRoot!
+                           .querySelector<HTMLElement&{disabled: boolean}>(
+                               '#ahoiArcDiscover')!.disabled);
+            webUIResponse(
+                requests[0]!.args[0] as string, true, {...preview(0), status});
+            await microtasksFinished();
+            assertEquals(
+                status === 'ok' ? 'recovered' : 'error',
+                section.arcImportStage_);
+            assertEquals(1, requests.length);
+            assertEquals(null, section.arcImportResult_);
+            assertFalse(
+                !!section.shadowRoot!.querySelector('#ahoiArcCommit, .result'));
+            assertEquals(
+                status !== 'ok',
+                !!section.shadowRoot!.querySelector('#ahoiArcRecover'));
+          } finally {
+            chrome.send = originalSend;
+          }
+        });
+  }
 
   test('resultReportsImportedSkippedDegradedExcludedAndFourPane', async () => {
     selectSource(1);

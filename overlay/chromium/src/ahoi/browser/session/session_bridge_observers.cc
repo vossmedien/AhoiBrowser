@@ -226,6 +226,10 @@ void SessionBridge::OnTabUIChanged(tabs::TabInterface* tab) {
   }
 
   RuntimeTabState& runtime = runtime_it->second;
+  if (runtime.node_id && deferred_metadata_nodes_.contains(*runtime.node_id)) {
+    PublishCommandItems();
+    return;
+  }
   content::WebContents* contents = runtime.web_contents.get();
   const GURL current_url = session_internal::GetRuntimeTabUrl(contents);
   const std::u16string current_title =
@@ -255,6 +259,40 @@ void SessionBridge::OnTabUIChanged(tabs::TabInterface* tab) {
     }
   }
   PublishCommandItems();
+}
+
+base::ScopedClosureRunner SessionBridge::DeferSavedPageMetadataForNodes(
+    std::vector<base::Uuid> node_ids) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  for (const auto& id : node_ids) {
+    CHECK(id.is_valid());
+    ++deferred_metadata_nodes_[id];
+  }
+  return base::ScopedClosureRunner(
+      base::BindOnce(&SessionBridge::ResumeSavedPageMetadataForNodes,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(node_ids)));
+}
+
+void SessionBridge::ResumeSavedPageMetadataForNodes(
+    std::vector<base::Uuid> node_ids) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  for (const auto& id : node_ids) {
+    auto it = deferred_metadata_nodes_.find(id);
+    if (it != deferred_metadata_nodes_.end() && --it->second == 0) {
+      deferred_metadata_nodes_.erase(it);
+      // Do not run callbacks into the UI while a transaction context is being
+      // destroyed. Re-resolve identity next turn; closed tabs stay closed.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+          FROM_HERE,
+          base::BindOnce(
+              [](base::WeakPtr<SessionBridge> bridge, base::Uuid node_id) {
+                if (bridge) {
+                  bridge->OnTabUIChanged(bridge->FindTabByTreeNodeId(node_id));
+                }
+              },
+              weak_ptr_factory_.GetWeakPtr(), id));
+    }
+  }
 }
 
 void SessionBridge::RemoveDetachedTabIfStillUnattached(

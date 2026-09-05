@@ -4,6 +4,7 @@
 #include <memory>
 #include <utility>
 
+#include "ahoi/browser/importer/arc/arc_import_navigation_barrier.h"
 #include "ahoi/browser/importer/arc/arc_import_service.h"
 #include "ahoi/browser/importer/arc/arc_import_service_internal.h"
 #include "ahoi/browser/importer/arc/arc_import_tree_fingerprint.h"
@@ -20,6 +21,7 @@
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "components/sessions/core/session_id.h"
 #include "components/sessions/core/session_types.h"
+#include "components/tabs/public/tab_interface.h"
 
 namespace ahoi::importer::arc {
 
@@ -70,6 +72,13 @@ void ArcImportService::OnRuntimePhaseWritten(
   // From this point onward the durable journal explicitly forbids automatic
   // tree-only rollback. Native tabs and split membership are a second store.
   context->runtime_started = true;
+  std::vector<base::Uuid> member_ids;
+  for (const auto& split : context->runtime_plan.splits) {
+    member_ids.insert(member_ids.end(), split.member_node_ids.begin(),
+                      split.member_node_ids.end());
+  }
+  context->resume_automatic_metadata =
+      session_bridge_->DeferSavedPageMetadataForNodes(std::move(member_ids));
   ArcSplitRuntimeResult runtime = ReconstructArcSplits(
       context->browser.get(), session_bridge_, context->runtime_plan);
   context->opened_tabs = std::move(runtime.opened_tabs);
@@ -83,6 +92,29 @@ void ArcImportService::OnRuntimePhaseWritten(
   context->result.reconstructed_split_count = runtime.reconstructed_split_count;
   context->result.approximated_four_pane_ratio_count =
       runtime.approximated_four_pane_ratio_count;
+  std::vector<base::WeakPtr<tabs::TabInterface>> members;
+  for (const auto& split : context->runtime_plan.splits) {
+    for (const auto& id : split.member_node_ids) {
+      auto* tab = session_bridge_->FindTabByTreeNodeId(id);
+      members.push_back(tab ? tab->GetWeakPtr()
+                            : base::WeakPtr<tabs::TabInterface>());
+    }
+  }
+  navigation_barrier_ = std::make_unique<ArcImportNavigationBarrier>();
+  navigation_barrier_->Start(
+      std::move(members),
+      base::BindOnce(&ArcImportService::OnNativeNavigationsReady,
+                     weak_factory_.GetWeakPtr(), std::move(context)));
+}
+
+void ArcImportService::OnNativeNavigationsReady(
+    std::unique_ptr<CommitContext> context,
+    bool ready) {
+  navigation_barrier_.reset();
+  if (!ready) {
+    MarkManualRecoveryAndFinish(std::move(context));
+    return;
+  }
   BeginNativeSessionReceipt(std::move(context));
 }
 

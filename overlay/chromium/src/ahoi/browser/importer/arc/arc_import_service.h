@@ -36,6 +36,7 @@ namespace ahoi::importer::arc {
 
 struct ArcImportBackupRecoveryResult;
 struct ArcImportBackupResult;
+class ArcImportNavigationBarrier;
 
 struct ArcImportPreview {
   ArcImportStatus status = ArcImportStatus::kNotFound;
@@ -76,8 +77,9 @@ using ArcImportCommitCallback = base::OnceCallback<void(ArcImportCommitResult)>;
 
 // Profile-scoped orchestration boundary for Arc import. Discovery, snapshot
 // capture, parsing, and journal I/O run on MayBlock workers. Only Commit(),
-// after an exact preview-token check and an explicit conflict policy, may
-// mutate SessionBridge's authoritative tree.
+// after an exact preview-token check and an explicit conflict policy, and the
+// separately confirmed verified-backup recovery may mutate the authoritative
+// tree. Both go through SessionBridge; neither edits native state in parallel.
 class ArcImportService : public KeyedService {
  public:
   ArcImportService(Profile* profile, SessionBridge* session_bridge);
@@ -88,6 +90,11 @@ class ArcImportService : public KeyedService {
   void Shutdown() override;
 
   void DiscoverAndPreview(ArcImportPreviewCallback callback);
+  // Explicit user recovery only. Restores the verified backup if the exact
+  // failed tree is unchanged and live/durable native tabs reference no affected
+  // node or newly introduced workspace. Refused validation never replaces the
+  // tree; native tabs are never closed or moved to make a recovery possible.
+  void RecoverFailedImport(ArcImportPreviewCallback callback);
   void Commit(std::string snapshot_token,
               ArcConflictResolution conflict_resolution,
               ArcImportSelection selection,
@@ -97,10 +104,33 @@ class ArcImportService : public KeyedService {
   bool operation_in_progress() const { return operation_in_progress_; }
 
  private:
+  friend class ArcImportServiceTestPeer;
   struct DiscoveryResult;
   struct CommitContext;
+  struct ManualRecoveryContext;
 
   static DiscoveryResult DiscoverImport(const base::FilePath& profile_path);
+  bool HasAffectedLiveTabs(
+      const ArcImportPreparedState& prepared,
+      const std::vector<base::Uuid>& removed_workspaces = {}) const;
+  void OnManualRecoveryJournalRead(ArcImportPreviewCallback callback,
+                                   ArcImportJournalReadResult journal);
+  void OnManualRecoveryBackupLoaded(
+      std::unique_ptr<ManualRecoveryContext> context,
+      ArcImportBackupRecoveryResult backup);
+  void OnManualRecoveryFingerprints(
+      std::unique_ptr<ManualRecoveryContext> context,
+      std::array<std::string, 2> fingerprints);
+  void OnManualRecoveryNativeReadback(
+      std::unique_ptr<ManualRecoveryContext> context,
+      std::vector<std::unique_ptr<sessions::SessionWindow>> windows,
+      SessionID active_window_id,
+      bool read_error);
+  void OnManualRecoveryFlushed(std::unique_ptr<ManualRecoveryContext> context,
+                               bool success);
+  void OnManualRecoveryJournalRestored(ArcImportPreviewCallback callback,
+                                       bool success);
+  void FinishManualRecoveryRejected(ArcImportPreviewCallback callback);
 
   void OnDiscoveryComplete(uint64_t generation,
                            ArcImportPreviewCallback callback,
@@ -154,6 +184,8 @@ class ArcImportService : public KeyedService {
   void OnRuntimePhaseWritten(std::unique_ptr<CommitContext> context,
                              bool journal_written);
   void BeginNativeSessionReceipt(std::unique_ptr<CommitContext> context);
+  void OnNativeNavigationsReady(std::unique_ptr<CommitContext> context,
+                                bool ready);
   void OnNativeSessionReadback(
       std::unique_ptr<CommitContext> context,
       std::vector<std::unique_ptr<sessions::SessionWindow>> windows,
@@ -189,6 +221,7 @@ class ArcImportService : public KeyedService {
   std::optional<ArcImportCommittedState> committed_journal_state_;
   uint64_t discovery_generation_ = 0;
   bool operation_in_progress_ = false;
+  std::unique_ptr<ArcImportNavigationBarrier> navigation_barrier_;
 
   base::WeakPtrFactory<ArcImportService> weak_factory_{this};
 };

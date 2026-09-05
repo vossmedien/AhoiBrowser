@@ -814,6 +814,19 @@ as a second active patch stack.
 - **Rebase/removal:** low-to-medium risk at native toolbar initialization/layout;
   retain while Ahoi uses its floating navigation material.
 
+## `0032-ahoi-explicit-arc-recovery.patch`
+
+- **Owner/baseline:** Desktop; the same M152 pin after the ordered stack.
+- **Scope:** English/German strings and Settings exposure for the overlay-owned
+  explicit failed-import recovery action. No automatic rollback or import retry.
+- **Safety:** recovery requires a verified owner-only backup, exact unchanged
+  tree/journal and no affected live or durable native tab, including temporary
+  tabs in workspaces that would disappear. Retains the backup and never closes
+  tabs. Conflicting or completed native transactions remain blocked.
+- **Tests:** visible failed-import recovery first, then real Service/Session
+  browser tests and Settings single-submit/busy/no-auto-retry WebUI tests.
+- **Rebase/removal:** low risk; keep while this local recovery path is exposed.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

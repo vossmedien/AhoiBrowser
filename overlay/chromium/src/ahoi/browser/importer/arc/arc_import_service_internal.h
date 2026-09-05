@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ahoi/browser/importer/arc/arc_import_service.h"
+#include "base/functional/callback_helpers.h"
 #include "base/memory/weak_ptr.h"
 
 namespace tabs {
@@ -37,6 +38,15 @@ struct ArcImportService::CommitContext {
   bool tree_changed = false;
   bool runtime_started = false;
   bool same_key_replay = false;
+  base::ScopedClosureRunner resume_automatic_metadata;
+};
+
+struct ArcImportService::ManualRecoveryContext {
+  ArcImportPreviewCallback callback;
+  ArcImportPreparedState prepared;
+  tab_tree::TabTreeSnapshot start_tree;
+  tab_tree::TabTreeSnapshot previous_tree;
+  std::vector<base::Uuid> removed_workspaces;
 };
 
 }  // namespace ahoi::importer::arc

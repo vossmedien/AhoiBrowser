@@ -14,8 +14,7 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
       </div>
       <div class="secondary">$i18n{ahoiArcImportDescription}</div>
       <cr-button id="ahoiArcDiscover" class="action-button"
-          ?disabled="${this.arcImportStage_ === 'discovering' ||
-              this.arcImportStage_ === 'committing'}"
+          ?disabled="${this.isArcBusy_()}"
           @click="${this.onArcDiscoverClick_}">
         $i18n{ahoiArcImportDiscover}
       </cr-button>
@@ -24,6 +23,20 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
           role="status" aria-live="polite">
         ${this.arcStatusText_()}
       </div>
+
+      ${this.showArcRecovery_() ? html`
+        <section class="warning" aria-labelledby="ahoiArcRecoveryNotice">
+          <div id="ahoiArcRecoveryNotice" class="secondary">
+            $i18n{ahoiArcImportRecoveryNotice}
+          </div>
+          <cr-button id="ahoiArcRecover"
+              aria-describedby="ahoiArcRecoveryNotice"
+              ?disabled="${this.isArcBusy_()}"
+              @click="${this.onArcRecoverClick_}">
+            $i18n{ahoiArcImportRecover}
+          </cr-button>
+        </section>
+      ` : ''}
 
       ${this.arcImportStage_ === 'sourceInUse' ? html`
         <div class="warning" role="alert">

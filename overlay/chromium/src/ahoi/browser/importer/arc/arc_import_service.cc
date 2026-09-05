@@ -15,6 +15,7 @@
 #include "ahoi/browser/importer/arc/arc_import_backup.h"
 #include "ahoi/browser/importer/arc/arc_import_commit_support.h"
 #include "ahoi/browser/importer/arc/arc_import_discovery.h"
+#include "ahoi/browser/importer/arc/arc_import_navigation_barrier.h"
 #include "ahoi/browser/importer/arc/arc_import_parser.h"
 #include "ahoi/browser/importer/arc/arc_import_recovery.h"
 #include "ahoi/browser/importer/arc/arc_import_service_internal.h"
@@ -116,6 +117,7 @@ ArcImportService::ArcImportService(Profile* profile,
 ArcImportService::~ArcImportService() = default;
 
 void ArcImportService::Shutdown() {
+  navigation_barrier_.reset();
   ++discovery_generation_;
   operation_in_progress_ = false;
   pending_plan_.reset();

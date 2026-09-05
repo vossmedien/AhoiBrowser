@@ -450,6 +450,15 @@ std::optional<base::Uuid> SessionBridge::FindTreeNodeIdForTab(
   return it == runtime_tabs_.end() ? std::nullopt : it->second.node_id;
 }
 
+bool SessionBridge::HasLiveTabsInWorkspace(
+    const base::Uuid& workspace_id) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return std::ranges::any_of(runtime_tabs_, [&](const auto& entry) {
+    const auto& runtime = entry.second;
+    return runtime.tab && runtime.workspace_id == workspace_id;
+  });
+}
+
 std::optional<base::Uuid> SessionBridge::GetWorkspaceForTab(
     const tabs::TabInterface* tab) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);

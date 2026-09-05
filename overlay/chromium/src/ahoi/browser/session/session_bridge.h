@@ -21,6 +21,7 @@
 #include "base/callback_list.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback_forward.h"
+#include "base/functional/callback_helpers.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/scoped_observation.h"
@@ -94,6 +95,11 @@ class SessionBridge : public KeyedService,
   // runner and reports whether the durable snapshot was written. Importers use
   // this before copying the SQLite database into a rollback backup.
   void FlushPersistenceForBackup(base::OnceCallback<void(bool)> callback);
+  // Import commits own a stable saved-tree snapshot while real page
+  // navigations acquire durable native session entries. Defers only automatic
+  // title/URL mirroring for these IDs, never explicit user/store mutations.
+  base::ScopedClosureRunner DeferSavedPageMetadataForNodes(
+      std::vector<base::Uuid> node_ids);
   base::WeakPtr<sync::ProfileSyncUiBridge> GetWeakPtrForSync() override;
   base::CallbackListSubscription AddRuntimePresentationChangedCallback(
       base::RepeatingClosure callback);
@@ -210,6 +216,9 @@ class SessionBridge : public KeyedService,
       const tabs::TabInterface* tab) const;
   std::optional<base::Uuid> GetWorkspaceForTab(
       const tabs::TabInterface* tab) const;
+  // Includes temporary and in-flight detached tabs, not just saved-page
+  // bindings. Recovery must not silently remove their workspace assignment.
+  bool HasLiveTabsInWorkspace(const base::Uuid& workspace_id) const;
   // Returns the runtime tab restored or most recently selected for one
   // workspace in `browser`. The weak entry is owned by the bridge and is
   // discarded as soon as the tab leaves the tracked window/workspace.
@@ -307,6 +316,7 @@ class SessionBridge : public KeyedService,
                        tabs::TabInterface::DetachReason reason);
   void OnTabDidInsert(tabs::TabInterface* tab);
   void OnTabUIChanged(tabs::TabInterface* tab);
+  void ResumeSavedPageMetadataForNodes(std::vector<base::Uuid> node_ids);
   void RemoveDetachedTabIfStillUnattached(
       tabs::TabInterface* tab,
       base::WeakPtr<tabs::TabInterface> tab_weak_ptr);
@@ -361,6 +371,8 @@ class SessionBridge : public KeyedService,
   std::map<tabs::TabInterface*, RuntimeTabState> runtime_tabs_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> node_tabs_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  std::map<base::Uuid, size_t> deferred_metadata_nodes_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<content::WebContents*, base::WeakPtr<tabs::TabInterface>>
       contents_tabs_ GUARDED_BY_CONTEXT(sequence_checker_);
