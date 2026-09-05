@@ -1,10 +1,72 @@
 # AhoiBrowser Mobile E2E evidence contract
 
+## Current internal-beta acceptance — 2026-09-05
+
+The active completion scope is **Internal Beta Ready** in
+`outputs/AhoiBrowser-Mobile-Final-Abschluss-Zielprompt.md`. The older full
+public-release registry below is retained with its real statuses; it does not
+reintroduce that full matrix into the internal-beta goal.
+
+Build `0.1 (10)`, source `ab2e709d9cf77c4e73d548bb8d2869090940c0a0`, has
+now passed the short source-equivalent **DebugLocal simulator** smoke:
+
+- Cold launch, exact address entry, fully rendered `https://example.com/`,
+  visible lock/origin, IANA navigation, Back and Reload.
+- An additional normal tab, a distinct private start page without normal
+  suggestions, and separate normal/private tab lists.
+- The empty download overview and return to the browser.
+- The receipt-bound Harbor collapse/reverse-scroll test: **1/1 passed**.
+- The receipt-bound sync-status/opt-in/restart/fail-closed UI test:
+  **1/1 passed**. This proves provider-free local behavior, not Production sync.
+
+After that visible smoke, the same candidate's full Core suite passed:
+**213 passed, 0 failed, 2 expected entitlement skips (215 total)**.
+`xcodebuild analyze` also completed successfully. The Mobile repository run
+passed 38/44 tests; its remaining six results exposed a macOS temporary-path
+fixture issue and a stale bounded-read-model assertion. Only those two test
+files were corrected; their focused rerun then passed **7/7** (all six original
+failures plus one overlap). All 44 distinct repository cases are therefore
+covered by the initial passing subset and the corrected focused run; the
+original full run remains recorded as failed. XcodeGen 2.46.0 regenerated the
+exact project without a diff. Redacted source/package/evidence scans found no
+leaks, and the current Mobile line limit remains 800. The unchanged CloudKit
+package retains its 36/36 result.
+
+The older cold-launch automation result remains **failed**: fast synthetic
+typing lost characters, and its retry lost the address editor. Direct Computer
+Use successfully entered the exact address with separately delivered key
+events and loaded independent HTTPS pages. Rapid synthetic input also reordered
+characters in Apple's App Store through iPhone Mirroring, independently of
+AhoiBrowser. This is a host-input/harness limitation; the failed XCTest has not
+been relabelled as a pass or used to weaken TLS.
+
+The installed simulator app's tree and executable were independently checked
+against `candidate-receipt.json`. Its product code matches the signed
+TestFlightBootstrap source, but it is not the same platform/configuration or
+the signed IPA. No Mobile or CloudKit product source changed during this
+acceptance. The real Development transport/privacy pass at `afa5cb6` remains
+applicable to the unchanged sync/schema implementation in `ab2e709`.
+
+Current retained results, logs and the signed IPA are under the intentionally
+Git-ignored `artifacts/e2e/0.1-10-ab2e709-internal-beta/`. The committed
+[Build 10 report](audit-evidence/2026-09-04-mobile-testflight-fix/README.md)
+contains the compact acceptance record and seven Computer Use screenshots.
+
+The internal TestFlight group was refreshed live and still shows Build 10
+as `Im Test`. TestFlight itself has now been installed on `Servusla`; its
+first-launch terms await the requested user confirmation. The 07:15 CEST
+readback still finds developer Build 9, and mirroring reports the phone in use.
+A physical Build 10 install/runtime result is not yet claimed. This is the
+concrete external gate allowed by the internal-beta completion definition.
+
+## Candidate lineage and full-release boundary
+
 - Repository: `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`
 - Shared branch: `codex/desktop-core-feature-wave-20260830`
-- Latest Mobile runtime candidate:
-  `afa5cb64f79d348919001f27efea4db0f8c10bca`, configuration
-  `CloudKitDevelopment`, bundle `app.ahoibrowser.AhoiBrowser`
+- Latest Mobile release candidate:
+  `ab2e709d9cf77c4e73d548bb8d2869090940c0a0`, configuration
+  `TestFlightBootstrap`, version/build `0.1 (10)`, bundle
+  `app.ahoibrowser.AhoiBrowser`
 - Current test/evidence head:
   `afa5cb64f79d348919001f27efea4db0f8c10bca`; commits `21de889` and
   `afa5cb6` fix account-binding and zone-scoping defects found by the real
@@ -12,9 +74,10 @@
 - Latest signed physical-device build: version/build `0.1 (9)`, configuration
   `CloudKitDevelopment`, source `afa5cb64f79d348919001f27efea4db0f8c10bca`,
   Team `248AJ5BN47`
-- Latest processed internal TestFlight bootstrap: version/build `0.1 (8)`,
-  source `95241c6efa56d5a90c3aa105ac8e3d7de71b5c0e`; the fixed build `0.1 (9)`
-  still needs archive, upload and processing.
+- Latest processed internal TestFlight bootstrap: version/build `0.1 (10)`,
+  source `ab2e709d9cf77c4e73d548bb8d2869090940c0a0`, App Store Connect build
+  `84cf0b2e-c1b9-4ff7-b104-8d99cce8ae9f`, status `Im Test` in
+  `AhoiBrowser Intern`.
 - Retained baseline candidate ID: `0.1-1-4113c14-debuglocal`; source
   `4113c14c1e0d21061a1c5927e25ab55663d547a7`
 - Retained machine-readable receipt:
@@ -27,13 +90,15 @@
   are not silently reclassified as release evidence.
 - Claimed development stages: `SOURCE_COMPLETE`, `LOCAL_BUILD_PASS`,
   `UNIT_PASS`, `SIMULATOR_VISIBLE`, `DEVICE_VISIBLE`
-- Candidate boundary: the current fixed runtime candidate is a signed
-  Development build. A separate `0.1 (8)` bootstrap is ready for internal
-  TestFlight, but physical TestFlight installation and a fixed `0.1 (9)`
-  distribution candidate are not yet proven.
+- Candidate boundary: the real Development transport pass remains bound to
+  signed build `0.1 (9)` at `afa5cb6`. Archive, export, upload, processing and
+  internal distribution are proven for release build `0.1 (10)` at `ab2e709`.
+  A physical readback on 2026-09-04 at 22:57 CEST still found developer build
+  `0.1 (9)` on `Servusla` and no installed TestFlight app, so physical
+  installation of build 10 is explicitly not proven.
 
-This file is an evidence contract and bounded development status summary, not
-a Mobile release receipt. The authoritative machine-readable status remains
+This file is an internal-beta evidence contract and historical development
+summary, not a public Mobile release receipt. The full-release status remains
 `config/test-registry.json`. Every `MOB-USER-01` through `MOB-USER-15` entry
 is release-critical `CU_E2E` with status `NOT_RUN`. Every `IOS-01` through
 `IOS-15` entry remains release-critical `ASSISTED_E2E` with status `NOT_RUN`.
@@ -277,13 +342,13 @@ These bullets describe reviewable source boundaries only.
 
 | Gate | State | Closure evidence |
 | --- | --- | --- |
-| `ios-final-bundle-team-profile` | Internal bootstrap ready; fixed release open | Team `248AJ5BN47`, bundle `app.ahoibrowser.AhoiBrowser` and the exact container are proven in signed Development build `0.1 (9)` and processed internal TestFlight bootstrap `0.1 (8)`. The fixed `0.1 (9)` distribution upload, physical TestFlight install and post-grant profile remain open. |
+| `ios-final-bundle-team-profile` | TestFlight bootstrap processed and internally distributed | Team `248AJ5BN47`, bundle `app.ahoibrowser.AhoiBrowser` and the exact container are proven in signed Development build `0.1 (9)` and processed internal TestFlight bootstrap `0.1 (10)` from `ab2e709`. Physical TestFlight installation and the post-grant profile remain open. |
 | `ios-managed-default-browser-entitlement` | `blocked-entitlement` | Both Default Web Browser and Browser App Installation showed `No Requests`; Apple grant, profile attachment and the physical system-default journey remain absent. |
 | `ios-cloudkit-keychain-capabilities` | Development transport passed; cross-device runtime open | The signed `0.1 (9)` Development build passed real active/tombstone transport and encrypted-field privacy in `iCloud.app.ahoibrowser.AhoiBrowser`. An entitled Mac counterpart, Production TestFlight transport, Mac-iPhone/iPad domain roundtrip and operational key rotation/revocation evidence remain absent. |
-| `ios-physical-device-journeys` | `required-user-assistance` | The bounded browser smoke and real Development CloudKit journey pass on `Servusla`. A supported physical iPad, physical TestFlight installation and the full Mobile/IOS journey registry remain open. |
-| `ios-app-store-connect-testflight` | `internal-testflight-ready` | App Store Connect app `6808754773` has processed build `0.1 (8)` ready in automatic internal group `AhoiBrowser Intern`, with `christian@vossmedien.de` invited. The fixed `0.1 (9)` upload, physical install, external Beta Review/public link and public metadata gates remain open. |
+| `ios-physical-device-journeys` | `required-user-assistance` | The bounded browser smoke and real Development CloudKit journey pass on `Servusla`. A 2026-09-04 readback found only developer build `0.1 (9)` and no TestFlight app. A supported physical iPad, physical build-10 installation and the full Mobile/IOS journey registry remain open. |
+| `ios-app-store-connect-testflight` | `internal-testflight-ready` | App Store Connect app `6808754773` has processed build `0.1 (10)` (`84cf0b2e-c1b9-4ff7-b104-8d99cce8ae9f`) in internal group `AhoiBrowser Intern`, with `christian@vossmedien.de` invited and status `Im Test`. Physical install, external Beta Review/public link and public metadata gates remain open. |
 
 This state records only the bounded development results above. It does not
 claim a complete physical-device matrix, encrypted cross-device roundtrip,
-default-browser entitlement, fixed-build TestFlight installation or Mobile
+default-browser entitlement, build-10 TestFlight installation or Mobile
 public release.

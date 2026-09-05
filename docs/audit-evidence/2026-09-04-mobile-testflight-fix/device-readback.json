@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-09-05T07:15:38+02:00",
+  "device": {
+    "name": "Servusla",
+    "model": "iPhone 16 Pro Max",
+    "osVersion": "26.6.1",
+    "state": "available-paired"
+  },
+  "testFlightInstalled": true,
+  "testFlight": {
+    "bundleIdentifier": "com.apple.TestFlight",
+    "version": "4.3.1",
+    "build": "681.1",
+    "builtByDeveloper": false,
+    "firstLaunchGate": "User approval of TestFlight terms requested and pending; mirroring disconnected because the phone was used."
+  },
+  "ahoiBrowser": {
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "version": "0.1",
+    "build": "9",
+    "builtByDeveloper": true
+  },
+  "conclusion": "testflight-installed-build-10-awaiting-first-launch-terms",
+  "previousObservation": {
+    "observedAt": "2026-09-04T22:57:33+02:00",
+    "testFlightInstalled": false,
+    "ahoiBuild": "9",
+    "ahoiBuiltByDeveloper": true
+  }
+}

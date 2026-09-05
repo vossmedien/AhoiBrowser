@@ -18,7 +18,13 @@ class MobileSyncEventContractTests(unittest.TestCase):
         self.assertNotIn("Task.sleep", remote_commands)
         self.assertNotIn("commandFollowUpTasks", model)
 
-        self.assertIn("bridge.remoteCommandStates()", remote_commands)
+        # Restart hydration must read the bounded durable command model, not
+        # only the labels still present in this process's presentation state.
+        self.assertRegex(
+            remote_commands,
+            r"bridge\.remoteCommandStates\(\s*"
+            r"limit: CompanionRemoteCommandRetention\.maximumReadModelCount\s*\)",
+        )
         self.assertNotIn("remoteCommandStates(Set(commandLabels.keys))", remote_commands)
 
     def test_provider_events_remain_the_authoritative_background_trigger(self) -> None:

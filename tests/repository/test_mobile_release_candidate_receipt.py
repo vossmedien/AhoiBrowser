@@ -23,7 +23,9 @@ TOOLCHAIN = {
 class MobileReleaseCandidateReceiptTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="ahoi-mobile-candidate-")
-        self.root = pathlib.Path(self.temporary.name)
+        # macOS may provide TMPDIR through /var -> /private/var. The fixture
+        # itself must be canonical before testing deliberate symlink inputs.
+        self.root = pathlib.Path(self.temporary.name).resolve()
         self.repository = self.root / "repository"
         self.repository.mkdir()
         self.run_git("init", "--quiet")

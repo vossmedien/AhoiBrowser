@@ -1,588 +1,322 @@
-# Zielprompt: AhoiBrowser Mobile – vollständiger Feature-, E2E- und Release-Abschluss
+# Zielprompt: AhoiBrowser Mobile – Internal-Beta-Abschluss, release-first
 
 ## Auftrag
 
-Schließe AhoiBrowser Mobile vollständig und wahrheitsgemäß ab. Arbeite zuerst
-alle noch lokal kontrollierbaren Produkt-, UX-, Security-, Recovery-,
-Accessibility-, Performance- und Evidenzlücken fertig. Erzeuge danach einen
-Feature-Freeze-Kandidaten und führe erst auf diesem exakten Kandidaten die
-vollständige sichtbare End-to-End-Abnahme aus. Führe anschließend die
-programmatischen Final-Gates aus und arbeite danach die real erreichbaren
-Apple-, Hardware-, CloudKit-, TestFlight- und Default-Browser-Gates in der
-festgelegten Reihenfolge ab.
+Bringe AhoiBrowser Mobile ohne weitere Feature-Schleifen zu einem belastbaren
+internen TestFlight-Beta-Stand. Das Ziel ist jetzt ausdrücklich **nicht**, vor
+der ersten Beta jede denkbare Variante, jedes Gerät und jeden externen
+Apple-Prozess vollständig abzunehmen. Entscheidend ist:
 
-Dieses Dokument ergänzt den vollständigen Ausgangsvertrag in
-`outputs/AhoiBrowser-Mobile-Zielprompt.md`. Bei Widersprüchen zur Reihenfolge
-gilt für diese Abschlusswelle ausdrücklich der neueste Nutzerauftrag:
+1. Die zentralen Browser-Journeys funktionieren auf dem exakten Kandidaten
+   sichtbar.
+2. Es gibt keinen bekannten Release-Blocker wie Crash, Datenverlust,
+   Privacy-Leak, kaputte Navigation, unbenutzbare Kernbedienung, falsche
+   Signierung oder korrumpierenden Sync.
+3. Danach laufen die gezielten programmatischen Sicherheits- und
+   Regressionsgates.
+4. Der bestehende interne TestFlight-Build wird installiert und kurz geprüft
+   oder ein minimal korrigierter Nachfolgebuild wird bereitgestellt.
+5. Externe Apple-, Geräte- und öffentliche Release-Gates werden ehrlich
+   separat geführt und halten die interne Beta nicht künstlich auf.
 
-1. alle offenen Features vollständig implementieren und intern absichern;
-2. erst nach Feature Freeze den vollständigen sichtbaren E2E-Lauf starten;
-3. danach breite programmatische Final-Gates ausführen;
-4. danach externe Gates real versuchen und schließen;
-5. nach einer größeren E2E-Korrektur einen neuen Kandidaten bauen, zuerst die
-   betroffenen sichtbaren Journeys wiederholen und anschließend die nötige
-   Regression erneut ausführen.
+Der umfassende Produktvertrag in
+`outputs/AhoiBrowser-Mobile-Zielprompt.md` bleibt die funktionale Referenz.
+Dieser Abschluss-Prompt ersetzt für die aktuelle Welle jedoch dessen
+Reihenfolge, Vollmatrix und Abschlusskriterien. Bei Konflikten gilt dieses
+release-first-Dokument.
 
-Arbeite nach Aktivierung dieses Ziels selbstständig durch alle Phasen weiter.
-Stoppe nicht nach Prompt, Inventur, Teilimplementierung, Simulatorbuild oder
-Zwischenbericht. Halte nur an, wenn eine neue Nutzerentscheidung rechtlich,
-öffentlich, kostenpflichtig oder irreversibel wäre oder wenn derselbe echte
-externe Gate nach begrenzten realen Versuchen keine weitere kontrollierbare
-Arbeit zulässt.
-
-Kein Quelltext-, Build-, Unit-Test-, Simulatorstart-, Signatur- oder
-Portalstatus darf als Ersatz für eine sichtbare Journey, eine installierte
-Runtime oder einen realen Sync-Roundtrip ausgegeben werden.
+Arbeite selbstständig bis zum Internal-Beta-ready-Ergebnis. Eröffne keine neue
+Feature-Welle und keinen großen Onboarding-Wizard. Wenn eine reale
+Kernfunktion bereits nachvollziehbar funktioniert, genügt ein repräsentativer
+sichtbarer Smoke statt immer neuer Varianten.
 
 ## Verbindlicher Ausgangspunkt
 
 - Repository:
   `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`
-- gemeinsamer Branch: `codex/desktop-core-feature-wave-20260830`
-- Ausgangs-HEAD und Remote zu Beginn: `d6e2d2c9a912c60e296dbd3afbc24ba4dac84683`
-- letzter sichtbar geprüfter Produktstand:
-  `954643d2bc940c79dfc77df67ab23176ce2f00b6`
-- aktueller Mobile-Evidenzstand:
+- gemeinsamer Branch:
+  `codex/desktop-core-feature-wave-20260830`
+- Mobile-Releasequelle von Build 10:
+  `ab2e709d9cf77c4e73d548bb8d2869090940c0a0`
+- aktueller gemeinsamer HEAD zu Beginn dieser Revision:
+  `d6cfa71048998b5d3052d4ab746f1969c5702971`
+- interner Kandidat: AhoiBrowser Mobile `0.1 (10)`
+- Bundle: `app.ahoibrowser.AhoiBrowser`
+- Apple Team: `248AJ5BN47`
+- CloudKit-Container: `iCloud.app.ahoibrowser.AhoiBrowser`
+- Mobile-Evidenz:
   `docs/IOS_BROWSER_E2E_EVIDENCE.md`
-- bestehender vollständiger Mobile-Vertrag:
-  `outputs/AhoiBrowser-Mobile-Zielprompt.md`
+- TestFlight-/Upload-Evidenz:
+  `docs/audit-evidence/2026-09-04-mobile-testflight-fix/`
 
-Bereits grün, aber im finalen Kandidaten erneut zu binden:
+Build 10 ist archiviert, signiert, hochgeladen, verarbeitet und intern
+verteilt. Eine physische Installation und sichtbare TestFlight-Journey darf
+nicht allein aus dem Portalstatus abgeleitet werden. Wenn inzwischen installiert
+wurde, lies die installierte Buildnummer und den Installationskanal aus, statt
+unnötig neu zu installieren.
 
-- Cold-URL-Deduplizierung;
-- Harbor-Deck-/Adressleisten-Collapse, Reverse Restore, Jitter-Policy,
-  Präsentations-Restore und Reduce Motion;
-- providerfreier lokaler Sync-Opt-in, Persistenz, Fail-closed-Verhalten und
-  Opt-out;
-- Mobile Core, providerfreie CloudKit-/Security-Verträge, Mobile-
-  Repository-Verträge, Development-Signing-Verträge, Swift-Parse und
-  Mobile-Zeilenbudget;
-- Development-Signierung für Team `248AJ5BN47`, Bundle
-  `app.ahoibrowser.AhoiBrowser` und Container
-  `iCloud.app.ahoibrowser.AhoiBrowser`.
+Der echte verschlüsselte CloudKit-Development-Roundtrip einschließlich
+Privacy-Negativprüfung ist bereits belegt. Solange seit diesem Beleg kein
+Sync-/Schema-/Crypto-Code geändert wurde, wird er referenziert und nicht aus
+Prinzip vollständig wiederholt.
 
-Diese Ergebnisse sind Baseline, keine Freistellung von der finalen
-kandidatgebundenen Gesamtregression.
+## Zusammenarbeit im gemeinsamen Branch
 
-## Gemeinsamer Branch und Kollisionsschutz
+Desktop und Mobile dürfen parallel im selben Branch arbeiten, müssen aber
+disjunkte Pfade besitzen.
 
-Arbeite parallel zur Desktop-Session im selben Branch, aber mit disjunkter
-Pfadverantwortung.
-
-Mobile besitzt grundsätzlich:
+Mobile besitzt:
 
 - `apps/AhoiMobile/**`;
-- `spikes/cloudkit/**`, soweit eine Änderung ausschließlich den gemeinsamen
-  Mobile-/CloudKit-Vertrag betrifft und vorher auf Desktop-Auswirkungen geprüft
-  wurde;
-- `outputs/AhoiBrowser-Mobile-Final-Abschluss-Zielprompt.md`;
-- `outputs/AhoiBrowser-Mobile-Zielprompt.md` nur bei zwingender
-  Vertragskorrektur;
-- eindeutig Mobile-spezifische Evidenz unter `artifacts/e2e/**` und
-  `docs/IOS_BROWSER_E2E_EVIDENCE.md`.
-
-Desktop besitzt insbesondere `.work/chromium/**`, `overlay/**`, `patches/**`,
-Desktop-Importer, Desktop-Extensions und Desktop-UI. Gemeinsame Dateien wie
-`config/external-gates.json`, `config/test-registry.json`, `docs/SYNC.md`,
-`docs/RELEASING.md`, `docs/THREAT_MODEL.md` und Product Config dürfen erst nach
-Live-Prüfung fremder Änderungen und mit einem gezielten Merge bearbeitet
-werden.
-
-Vor jedem Commit und Push:
-
-1. Branch, HEAD, Upstream, Remote-SHA, Status, Index und `index.lock` prüfen;
-2. laufende Git-, Xcode- und AhoiBrowser-/Chromium-Prozesse prüfen;
-3. ausschließlich eigene Mobile-Pfade exakt stagen;
-4. fremde Änderungen niemals resetten, stashen, formatieren oder committen;
-5. DCO-Sign-off und `git diff --check` ausführen;
-6. niemals force-pushen.
-
-Vor CPU-intensiven Mobile-Arbeiten prüfe auf AhoiBrowser-/Chromium-Builds in
-`.work/chromium/src` beziehungsweise `out/AhoiDev`. Beginnt ein solcher Build,
-stoppe oder pausiere ausschließlich die eigenen exakt identifizierten
-CPU-intensiven Prozesse und setze sie später inkrementell fort.
-
-## Abschlussprinzipien
-
-- Kein neues großes Onboarding und kein dekorativer Redesign-Scope.
-- Native Systemmuster, semantische Farben, SF Symbols, Dynamic Type,
-  VoiceOver und Reduce Motion/Transparency haben Vorrang vor eigener
-  Nachbildung.
-- Harbor Deck, Focus Voyage und Workspace Canvas bleiben die verbindliche
-  Ahoi-Informationsarchitektur.
-- Keine zweite Tab-, Such-, Sync-, Download-, Permission- oder
-  Session-Architektur neben dem vorhandenen autoritativen Modell.
-- Private Daten dürfen niemals in normale Session, Verlauf, Suche, Sync,
-  Geräte-Tabs, Logs oder Restore gelangen.
-- Unsichere beziehungsweise unbekannte Schemes bleiben fail closed.
-- CloudKit-, Keychain-, Account-, Zone-, Tombstone- und Cleanup-Grenzen werden
-  nicht gelockert, um Tests grün zu machen.
-- Jede Swift-Datei bleibt bei höchstens 800 Zeilen; bei Wachstum zuerst
-  verantwortungsbasiert schneiden.
-- Swift 6 Strict Concurrency, Main-Actor-Grenzen, `Sendable`-Verträge,
-  deterministische Persistenz und idempotentes Cleanup bleiben verbindlich.
-
-### Mobile Content Blocking / uBlock-Origin-Machbarkeitsgate
-
-Prüfe einmalig und quellengestützt, ob die autoritative GitHub-Version von
-uBlock Origin im System-WebKit-Aufbau von AhoiBrowser Mobile als echte,
-wartbare Extension-Runtime betrieben werden kann. Eine bloße Übernahme von
-Filterlisten, eine umbenannte Teilportierung oder eine Safari-App-Extension,
-die nur in Safari läuft, darf nicht als uBlock-Origin-Integration ausgegeben
-werden.
-
-Falls WebKit die echte Extension-Runtime nicht bereitstellt, dokumentiere die
-Grenze fail-closed und schließe das Mobile-Hauptziel ohne eine irreführende
-Integration ab. Ein späterer eigener `WKContentRuleListStore`-basierter
-Content-Blocker ist nur als separates Featurepaket zulässig, mit eigener
-Benennung, Lizenz- und Signaturprüfung, per-site Semantik, Offline-Fallback,
-Performancebudgets und sichtbaren Ad-/Tracker-/Breakage-Journeys. Der
-quellengestützte Entscheid ist in
-`outputs/AhoiBrowser-Mobile-uBlock-Feasibility.md` festzuhalten.
-
-## Phase A – vollständige lokale Feature-Fertigstellung
-
-Während Phase A dürfen gezielte Compile-, Unit-, Integration-, statische und
-deterministische Harness-Tests genutzt werden. Die vollständige sichtbare
-E2E-Abnahme beginnt jedoch erst nach dem Feature Freeze. Ein kleiner
-interaktiver Diagnose-Smoke ist nur zulässig, wenn eine konkrete
-Implementierungsfrage ohne Runtime nicht beantwortbar ist; er ist keine
-Abnahme und erzeugt keinen PASS-Status.
-
-Beginne Phase A mit einer kandidat- und dateigebundenen Gap-Map für
-`MOB-USER-01` bis `MOB-USER-15`. Klassifiziere jede Journey als implementiert,
-teilweise implementiert, fehlend oder primär Evidenzlücke. Prüfe die
-Klassifikation am Quelltext; übernimm sie nicht ungeprüft aus Dokumentation.
-
-Die aktuell bekannten kontrollierbaren Hochrisikoreste werden zuerst
-geschlossen:
-
-1. datensparsame, sichere Recovery abgebrochener Downloads;
-2. eigene TLS-/Zertifikats- und WebContent-Fehlerdarstellung mit
-   deterministischer, nicht wiederholender Recovery;
-3. Dynamic Type, VoiceOver-Reihenfolge, High Contrast, iPad-Multitasking,
-   Tastatur-, Pointer- und Fokusverhalten;
-4. messbare Launch-, Speicher-, Discard-/Restore-, Energie- und
-   1/5/20-Tab-Budgets;
-5. danach alle primären Evidenzlücken in die finale Phase-B-Matrix überführen.
-
-### A1 – Browsing- und Navigationskern
-
-Schließe als zusammenhängenden Alltagspfad:
-
-- Kaltstart, leeres Fenster, Adresse und Suchbegriff;
-- konfigurierter Suchanbieter und sichere URL-Normalisierung;
-- HTTPS-Navigation mit sichtbarer Origin;
-- Zurück, Vor, Reload und Stop ohne Doppelload;
-- WebContent-/Renderer-Ausfall mit verständlichem Restore;
-- externe HTTP(S)-Aktivierung mit genau einem normalen Zieltab;
-- keine Überschreibung eines geladenen oder privaten Tabs;
-- deterministische Callback-Deduplizierung über Cold/Warm Launch.
-
-Prüfe Implementierung, State Ownership, Fehlerpfade, Accessibility Labels,
-lokalisierte Texte und Testseams. Entferne keine Sicherheitsprüfung zugunsten
-eines Happy Paths.
-
-### A2 – Tabs, Session und Workspaces
-
-Schließe vollständig:
-
-- normale und private Tabs anlegen, wechseln, umordnen und umbenennen;
-- Close, Undo und Auswahl-Fallback;
-- 1-, 5- und 20-Tab-Verhalten;
-- Memory Pressure, Discard und deterministische Wiederaufnahme;
-- Prozessende, Kaltstart und normales Session-Restore ohne Phantomtabs;
-- aktive Seite speichern und zwischen Workspaces verschieben;
-- aus Workspace Canvas, Baum, Suche und Verlauf wieder öffnen;
-- Ordner/Seiten anlegen, umbenennen, sortieren, verschieben und
-  tombstone-sicher löschen;
-- iPhone-Sheet und iPad-Sidebar auf demselben Datenmodell.
-
-Tab-, Workspace- und Session-Schreibvorgänge müssen revisionsserialisiert,
-absturzfest und idempotent sein. Ein UI-Update darf keinen zweiten
-Persistenzpfad erzeugen.
-
-### A3 – Privatmodus und Datenisolation
-
-Belege im Code und in deterministischen Testseams:
-
-- normale Seiten verwenden ausschließlich den persistenten Standardstore;
-- alle privaten Tabs einer laufenden privaten Session teilen genau einen
-  nichtpersistenten Store;
-- private Cookies, Website-Daten, Downloads und Dialogkontext bleiben vom
-  normalen Modus getrennt;
-- private Tabs erscheinen nicht in Session, Verlauf, Suche, Focus Voyage,
-  Sync, Geräte-Tabs, Remote Commands oder Crash-/Diagnoselogs;
-- Prozessende vernichtet private Sessionmetadaten;
-- Background-/Snapshot-Privacy-Cover schützt sichtbare private Inhalte.
-
-### A4 – Downloads, Uploads, Popups und Teilen
-
-Schließe die produktiven Pfade für:
-
-- echten File-Provider-Upload und Abbruch;
-- normale und private authentifizierte Downloads über den auslösenden
-  WebKit-Datastore;
-- sichere Dateinamen, kollisionsfreie Ziele, Fortschritt und Cancel;
-- unvollständige Downloads bei Background, Prozessende und Fehler;
-- Quick Look und Share Sheet;
-- `target=_blank`/Popup mit korrekter Origin-, Tab- und Moduszuordnung;
-- private Artefakte ohne Persistenz- oder Verlaufleck.
-
-### A5 – Berechtigungen, Dialoge und externe Übergaben
-
-Schließe Allow, Deny, Cancel und Wiederholung für:
-
-- Kamera;
-- Mikrofon;
-- Kamera und Mikrofon kombiniert;
-- Motion;
-- JavaScript Alert, Confirm und Prompt;
-- Dateiauswahl;
-- erlaubte externe App-Schemes mit sichtbarer Origin und sichtbarem Ziel.
-
-Mainframe und Subframe müssen dem auslösenden Tab und Ursprung korrekt
-zugeordnet bleiben. Lokale, skriptbasierte, credentialtragende und unbekannte
-Schemes werden ohne Übergabe abgelehnt.
-
-### A6 – Fehler, Lifecycle und Recovery
-
-Schließe deterministisch:
-
-- offline, DNS, TLS und HTTP-/WebContent-Fehler;
-- Background, Foreground, Prozessende und Session-Flush;
-- Memory Pressure und Discard;
-- unvollständige Downloads;
-- persistente Schreibfehler und korrupte/inkompatible Sessiondaten;
-- Accountwechsel, CloudKit-Zone-/Subscription-Verlust und Tombstone-
-  Wiederholung;
-- verständliche, nicht blockierende Wiederaufnahme ohne Datenverdopplung.
-
-### A7 – UI, Motion und Accessibility
-
-Schließe vor Feature Freeze alle erkennbaren UI-Inkonsistenzen:
-
-- Harbor Deck zeigt expanded und compact eine stabile Hierarchie;
-- der untere Adressbereich blendet bei Dokument- und Nested-Scroll
-  konsistent ein und aus;
-- Jitter kollabiert nicht, bewusste Gegenbewegung expandiert;
-- Suche, Alert, Permission, File Picker, Seitenwechsel, Laden und Fehler
-  expandieren bei Bedarf deterministisch;
-- Animationen verwenden eine kleine konsistente Timing-/Easing-Sprache;
-- Reduce Motion ersetzt räumliche Bewegung durch unmittelbaren Zustand oder
-  zurückhaltendes Crossfade;
-- Reduce Transparency, erhöhter Kontrast, Hell/Dunkel und Website-Tint bleiben
-  lesbar;
-- Dynamic Type verursacht keine abgeschnittenen Hauptaktionen;
-- VoiceOver-Reihenfolge, Labels, Values, Traits, Escape und Alternativen zu
-  Gesten sind vollständig;
-- iPad Compact/Regular Width, Rotation, Multitasking, Hardwaretastatur und
-  Pointer sind produktiv bedienbar.
-
-Nutze die vorhandenen lokalen PNG-Referenzen unter
-`docs/design/2026-08-30-mobile-directions/`. Erzeuge keine neue Designwelle,
-solange keine konkrete Layoutfrage ungelöst ist.
-
-### A8 – lokale Sync- und Remote-Verträge
-
-Schließe alle ohne externe Apple-Freigabe kontrollierbaren Teile:
-
-- lokaler Sync-Opt-in/-out und Persistenz;
-- verschlüsselte Records und private Datenklassen-Ausschlüsse;
-- Inbox/Outbox, Offline Queue, Retry, Konflikt und Tombstone;
-- Device Approval, Revocation, Accountwechsel und Schlüsselrotation;
-- signierte Remote Commands für genau ein Zielgerät;
-- TTL, Replay-, Wrong-Target- und Invalid-Signature-Rejection;
-- kein Shell-, Bulk- oder beliebiges Scheme-Kommando;
-- stabile Wire-Kompatibilität mit dem Mac-Gegenpart.
-
-Realer Transport bleibt Phase D, aber alle lokalen Zustandsmaschinen,
-Negativverträge und sicheren Fehlerpfade müssen vor Feature Freeze vollständig
-sein.
-
-### A9 – Performance-, Energie- und Lifecycle-Budgets
-
-Implementiere beziehungsweise instrumentiere reproduzierbare lokale Messungen
-für:
-
-- Cold und Warm Launch;
-- 1, 5 und 20 Tabs;
-- Speicherentwicklung und Discard/Restore;
-- Idle-CPU, Wakeups und Netzwerkaktivität;
-- Background/Foreground und Session Flush;
-- Scroll-/Animation-Stabilität mit und ohne Reduce Motion.
-
-Busy-Host-Messungen sind Diagnose, keine Release-Evidenz. Überschrittene
-Budgets müssen entweder behoben oder mit reproduzierbarer Begründung fail
-closed bleiben.
-
-### A10 – Dokumentation und Evidenz-Infrastruktur
-
-Vor Feature Freeze:
-
-- korrigiere die dokumentierte Development-CloudKit-Wahrheit, ohne fremde
-  Desktop-Änderungen zu überschreiben;
-- harmonisiere `docs/IOS_BROWSER_E2E_EVIDENCE.md`, `docs/SYNC.md`,
-  `docs/RELEASING.md`, `docs/THREAT_MODEL.md`, Product Config und
-  `config/external-gates.json` nur nach gezielter Ownership-Prüfung;
-- erzeuge einen kandidatgebundenen, hashbaren Evidenzpfad unter
-  `artifacts/e2e/<candidate-id>/`;
-- sorge dafür, dass Result Bundles, Logs, Screenshots/Videos, Signaturdaten,
-  Entitlements, Geräte-/OS-Daten und Exitcodes manifestiert werden;
-- lasse `config/test-registry.json` den unveränderten Anforderungskatalog
-  darstellen; echte Ergebnisse gehören in das Kandidatenmanifest.
-
-## Feature-Freeze-Gate
-
-Ein finaler Kandidat darf erst gebaut werden, wenn alle folgenden Punkte grün
-sind:
-
-1. A1 bis A10 sind vollständig reviewt; jede Lücke ist implementiert oder als
-   wirklich externer Gate klassifiziert.
-2. Keine Mobile-`TODO`-, `FIXME`-, Dummy-, Demo- oder Placeholder-Pfade
-   verstecken eine erforderliche Journey.
-3. Alle Mobile-Swift-Dateien erfüllen Swift 6 Strict Concurrency und das
-   800-Zeilen-Limit.
-4. Gezielte Unit-/Integration-/Static-Checks für neue Implementierung sind
-   grün; dies ist noch keine E2E-Abnahme.
-5. Mobile-Pfade sind sauber committed und DCO-signiert.
-6. Der Feature-Freeze-Commit, die generierte Projektkonfiguration und die
-   Buildnummer sind unveränderlich notiert.
-7. Ein neuer kandidatgebundener Evidenzordner und ein anfängliches Manifest
-   existieren.
-
-Erst danach beginnt Phase B.
-
-## Phase B – vollständige sichtbare E2E-Abnahme
-
-### B1 – exakten Kandidaten erzeugen
-
-- XcodeGen deterministisch zweimal ausführen und No-op beweisen;
-- Debug-/Release-Simulatorvarianten für iPhone und iPad bauen;
-- Kandidaten-ID aus Version, Buildnummer und Feature-Freeze-SHA bilden;
-- `AHOI_SOURCE_COMMIT` im erzeugten Produkt muss exakt diesem SHA entsprechen;
-  `NOT_AVAILABLE`, ein Platzhalter oder ein älterer Produkt-SHA macht den
-  Kandidaten ungültig;
-- Bundle, Binärdatei, Toolchain, Projektinputs und Buildprodukte hashen;
-- Simulatoren auf definierten Zustand bringen, ohne fremde Daten zu löschen;
-- deterministische Loopback-Fixtures für Auth, Popup, Upload, Download,
-  Permission, Offline, TLS-/Failure-Seams und externe Schemes starten.
-
-### B2 – `MOB-USER-01` bis `MOB-USER-15`
-
-Führe auf demselben Feature-Freeze-Kandidaten vollständig sichtbar aus:
-
-1. Kaltstart, Adresse, HTTPS und sichtbare Origin;
-2. Suche, Ergebnisnavigation, Back/Forward/Reload/Stop;
-3. Tab Create/Reorder/Rename/Close/Undo/Terminate/Restore;
-4. Workspace Save/Move/Reopen aus Baum und Suche;
-5. private Cookie-/Storage-/Session-/History-/Sync-Trennung inklusive
-   Prozess-Tod;
-6. pre-grant sichere externe URL-Behandlung und Deduplizierung; echtes
-   Systemdefault-Routing bleibt bis zum Grant separat blockiert;
-7. Upload, Download, Cancel, Quick Look, Share und Popup;
-8. Permissions, Dialoge, File Picker und externe App-Bestätigung;
-9. Rotation, Dynamic Type, VoiceOver, Kontrast, Reduce Motion und Reduce
-   Transparency;
-10. iPad Sidebar, Multitasking, Tastatur, Pointer, Rotation und Reorder;
-11. Offline, TLS, WebContent, Memory, Prozessende und Download-Recovery;
-12. lokale/candidate-preparable Sync-Projektion und private Ausschlüsse; realer
-    Cross-Device-Transport folgt Phase D;
-13. unsichere Scheme-Rejection und erlaubte externe Übergabe;
-14. 1/5/20 normale und private Tabs;
-15. visuelle Konsistenz über iPhone/iPad, normal/privat, Hell/Dunkel,
-    Website-Tint und Accessibility-Modi.
-
-Nutze XCUI beziehungsweise sichtbare Computer-Use-Bedienung. Ein Test muss die
-reale Oberfläche treffen; direkte Modellmutation oder eine unsichtbare
-Test-API ist keine sichtbare E2E-Journey.
-
-### B3 – Red-Journey-Regel
-
-Bei einem roten sichtbaren Pfad:
-
-1. Fehler und exakten Kandidaten sichern;
-2. kleinste tragfähige Ursache beheben;
-3. neuen Source-SHA und neue Kandidaten-ID erzeugen;
-4. zuerst genau die betroffene sichtbare Journey wiederholen;
-5. anschließend alle davon abhängigen Journeys wiederholen;
-6. vor Abschluss die vollständige kritische E2E-Matrix erneut ausführen.
-
-Kein programmatischer Test darf einen roten sichtbaren Pfad überstimmen.
-
-## Phase C – programmatische Final-Gates und Release-Evidenz
-
-Erst nach der grünen sichtbaren Phase B:
-
-- vollständige `AhoiMobileCoreTests`;
-- vollständige CloudKit-/Security-Package-Tests;
-- alle Mobile-Repository- und Signing-Verträge;
-- Swift-6-/Strict-Concurrency-Builds;
-- `xcodebuild analyze`;
-- Debug- und Release-Buildmatrix für iPhone-/iPad-Simulator;
-- fünf positive und negative Signing-/Preflight-Modi;
-- XcodeGen-Determinismus;
-- Mobile-Zeilenbudget;
-- Secret Scan mit vollständiger Redaction;
-- DCO, `git diff --check` und Evidenzvalidator;
-- Performance-/Energie-/Lifecycle-Messungen auf sauberem Host;
-- Backup-/Migration-/No-op-Zweitlauf für unterstützte Vorgängerstände.
-
-Nach einer größeren Korrektur in Phase C wird ein neuer Kandidat erzeugt und
-die betroffene sichtbare Phase-B-Journey zuerst erneut ausgeführt.
-
-Retainiere danach das vollständige Kandidatenmanifest samt Hashes, Exitcodes,
-Geräten, OS-Versionen, Videos/Screenshots, Result Bundles und bekannten
-Grenzen. Transiente `/private/tmp`-Artefakte allein reichen nicht.
-
-## Phase D – externe Gate-Leiter
-
-Externe Gates beginnen erst, wenn Phase A bis C für einen Kandidaten grün
-sind. Arbeite sie in dieser Reihenfolge ab. Wiederhole einen unveränderten
-externen Versuch nicht endlos; sichere den exakten Grenzpunkt und bearbeite
-parallel alle unabhängigen kontrollierbaren Punkte weiter.
-
-### D1 – physisches iPhone und CloudKit Development
-
-- `Servusla` entsperrt, verbunden und als einziges Zielgerät verifizieren;
-- exakten `CloudKitDevelopment`-Kandidaten installieren;
-- Signatur, Profil, Team, Bundle, Container, Environment und Keychain-Gruppen
-  am installierten Kandidaten prüfen;
-- guarded Real-Mutation-Harness mit explizitem Opt-in und frischem UUID-Token
-  ausführen;
-- verschlüsselten Ownership-Marker und Active Record schreiben/readbacken;
-- Tombstone schreiben/readbacken;
-- Server-/Log-Privacy negativ prüfen;
-- nur marker-authentifizierten Scope idempotent bereinigen;
-- relevante sichtbare iPhone-Journeys auf exakt dieser Installation
-  wiederholen.
-
-Führe danach auf demselben installierten pre-grant Kandidaten alle ohne
-Default-Browser-Grant ausführbaren `MOB-USER-*`- und `IOS-*`-Gerätejourneys
-aus. Datei-Provider, TCC, VoiceOver, externe Apps, Background/Memory Pressure
-und Systeminteraktionen dürfen menschlich assistiert werden. `MOB-USER-06` und
-`IOS-04` bleiben bis zum tatsächlichen Apple-Grant ausdrücklich am
-Systemdefault-Teil blockiert.
-
-Ein gesperrtes Gerät, abgelaufene Session oder fehlende Berechtigung ist ein
-externer Gate, kein PASS und kein Produktfehler.
-
-### D2 – kompatibles physisches iPad
-
-- vorhandenes autorisiertes iPad mit iPadOS 26+ verwenden;
-- keinen Kauf oder fremde Hardwareorganisation voraussetzen;
-- Kandidaten installieren und iPad-spezifische `MOB-USER-09`, `10`, `14`,
-  `15` sowie relevante `IOS-*` sichtbar ausführen;
-- existiert kein kompatibles Gerät, `PHYSICAL_IPAD_REQUIRED` mit Modell,
-  OS-Grenze und letztem erreichbaren Schritt belegen.
-
-### D3 – Mac–iPhone–iPad Development Sync
-
-- Apple-Development-signierten Mac-Gegenpart mit demselben Development-
-  Container und kompatiblem Wire-/Key-Vertrag bereitstellen;
-- `SYNC-01` bis `SYNC-27` sowie `IOS-01` bis `IOS-15` real ausführen;
-- Offline Queue, Konflikt, Tombstone, Replay, Wrong Target, Invalid Signature,
-  Approval, Revocation, Accountwechsel, Zone Recovery und Key Rotation prüfen;
-- normale Tabs/Workspaces/Verlauf synchronisieren und private/verbotene Daten
-  negativ ausschließen;
-- Push-/Background-Reconciliation ohne Polling-Schleife belegen.
-
-Der benannte Mac–iPhone–iPad-Roundtrip benötigt mindestens diese drei
-Gerätetypen. Der vollständige `SYNC-01`-bis-`SYNC-27`-Releasevertrag wird mit
-zwei passend signierten Macs und mindestens einem realen iPhone/iPad
-ausgeführt; fehlende Hardware wird exakt getrennt ausgewiesen.
-
-### D4 – Production, Archive und interner TestFlight
-
-- Production-Schema erst nach grüner Development-Matrix promoten;
-- `TestFlightBootstrap`-Archive ohne Default-Browser-Entitlement erzeugen;
-- Archive, Export, Signatur, Profile, Entitlements, Source-SHA, Buildnummer und
-  Hash belegen;
-- Developer-ID-provisionierten/notarisierten Mac-Production-Gegenpart prüfen;
-- App Store Connect Record, Metadaten, Privacy und erforderliche Verträge
-  vervollständigen;
-- Export-Compliance, Trader-, Rechts-, Steuer- und öffentliche
-  Produktangaben niemals raten; sie benötigen eine bestätigte menschliche
-  Aussage;
-- Build hochladen, Verarbeitung abwarten und internen TestFlight-Build auf
-  iPhone/iPad installieren;
-- kritische Browser-, Migration-, Sync- und Privacy-E2E-Journeys mit den
-  installierten Store-Bits wiederholen.
-
-GitHub-hosted Actions mit null ausgeführten Schritten wegen Billing bleiben
-unverfügbare Infrastruktur. Nutze lokale Gates oder bestehende autorisierte
-self-hosted Runner; fordere kein bezahltes Billing an.
-
-### D5 – öffentlicher TestFlight und Default-Browser-Antrag
-
-- externe Beta Review und öffentlichen TestFlight-Link real abschließen;
-- erst mit verarbeitetem öffentlichem Link den Managed Default Browser Antrag
-  stellen;
-- Antragsstatus dokumentieren, aber Warten nicht als Fortschritt ausgeben;
-- Ablehnung oder Rückfrage mit unverändertem Antrag nicht in Schleife
-  wiederholen.
-
-### D6 – Grant und post-grant Kandidat
-
-- nach tatsächlichem Grant neue Profile und Buildnummer erzeugen;
-- `ReleasePostGrant`-Archive bauen, signieren, hochladen und über TestFlight
-  installieren;
-- Systemdefault auf echtem iPhone und kompatiblem iPad setzen;
-- `MOB-USER-06` und `IOS-04` erstmals vollständig real ausführen;
-- vollständige kritische Browser-/Sync-/Accessibility-/Privacy-Regression
-  wiederholen;
-- installierte Store-Build-ID, Receipt und Processing-Metadaten mit dem Upload
-  verbinden, ohne falsche Bytegleichheit zu behaupten.
-
-### D7 – öffentlicher Release
-
-Eine öffentliche App-Store-Einreichung oder Veröffentlichung erfolgt nur nach
-separater ausdrücklicher Nutzerfreigabe. Nach Veröffentlichung Store-Build
-installieren und kritischen sichtbaren Smoke erneut ausführen.
-
-## Externe versus kontrollierbare Blocker
-
-Als extern gelten nur nach realem Versuch belegte Grenzen wie:
-
-- gesperrtes oder nicht verfügbares physisches Gerät;
-- kein kompatibles physisches iPad;
-- fehlende Apple-Rolle, Portalberechtigung, Vereinbarung oder Trader-Angabe;
-- ausstehende Beta Review, Processing oder Managed-Entitlement-Entscheidung;
-- fehlende menschliche Bestätigung für rechtliche/öffentliche Angaben;
-- nicht autorisierte öffentliche Veröffentlichung.
-
-Nicht extern sind:
-
-- fehlender Code, Test, Fixture oder Dokumentation;
-- unstabile UI, Crash, Datenverlust oder Test-Harness-Fehler;
-- fehlende lokale Build-/Analyze-/Signing-Verträge;
-- fehlendes Kandidatenmanifest;
-- vermeidbare Simulator-, XcodeGen-, DCO-, Secret- oder Zeilenbudgetfehler;
-- ein roter sichtbarer E2E-Pfad.
-
-## Definition of Done
-
-AhoiBrowser Mobile ist erst vollständig abgeschlossen, wenn:
-
-1. A1 bis A10 ohne kontrollierbare Restlücke abgeschlossen sind;
-2. `MOB-USER-01` bis `MOB-USER-15` auf demselben finalen Kandidaten sichtbar
-   grün oder ausschließlich am exakt belegten externen Teilgate blockiert sind;
-3. alle unabhängigen Phase-C-Gates auf diesem Kandidaten grün sind;
-4. physisches iPhone, physisches iPad, CloudKit Development,
-   Mac–iPhone–iPad, Production, Archive, interner/öffentlicher TestFlight,
-   Default-Browser-Antrag, Grant und post-grant E2E jeweils als PASS,
-   BLOCKED_EXTERNAL oder NOT_AUTHORIZED mit Beleg klassifiziert sind;
-5. kein externer Gate eine unabhängige kontrollierbare Aufgabe verdeckt;
-6. die dauerhafte Evidenz Commit, Build, Signatur, Profile, Entitlements,
-   Geräte, OS, Resultate, Hashes, Privacy-Negativbeweise und Cleanup bindet;
-7. alle eigenen Änderungen fokussiert, DCO-signiert und ohne Force-Push auf
-   dem gemeinsamen Remote-Branch liegen;
-8. der Abschlussbericht eine knappe Wahrheitsmatrix liefert: umgesetzt,
-   Feature Freeze, sichtbares E2E, Programmatik, Simulator, physisches iPhone,
-   physisches iPad, CloudKit Development, Mac–iPhone–iPad, CloudKit
-   Production, Archive, interner TestFlight, öffentlicher TestFlight,
-   Default-Browser-Antrag, Grant, post-grant E2E und optionaler Release.
-
-Ein externer Restgate darf als solcher offen bleiben. Eine kontrollierbare
-Feature-, E2E-, Security-, Recovery-, Performance-, Dokumentations- oder
-Evidenzlücke darf nicht als „fertig“ bezeichnet werden.
+- ausschließlich Mobile-spezifische Dateien unter `artifacts/e2e/**`;
+- `docs/IOS_BROWSER_E2E_EVIDENCE.md`;
+- `docs/audit-evidence/2026-09-04-mobile-testflight-fix/**`;
+- ausschließlich Mobile-spezifische Repository-Tests unter
+  `tests/repository/test_mobile_*.py`, soweit keine andere Session sie besitzt;
+- diesen Zielprompt.
+
+Desktop besitzt insbesondere:
+
+- `.work/chromium/**`;
+- `overlay/**`;
+- `patches/**`;
+- Desktop-Importer, Desktop-Extensions und Desktop-UI;
+- Desktop-spezifische Installations- und Computer-Use-Evidenz.
+
+Gemeinsame Dateien wie `config/external-gates.json`, `config/test-registry.json`,
+`docs/SYNC.md`, `docs/RELEASING.md` und `docs/THREAT_MODEL.md` nur nach
+aktueller Ownership-Prüfung bearbeiten. Fremde Dirty-Dateien weder resetten,
+stash-en, formatieren noch mitcommitten. Vor Commit und Push Branch, Upstream,
+Remote-SHA, Index und laufende Git-/Buildprozesse erneut prüfen. Nur eigene
+Mobile-Pfade gezielt stagen; kein Force-Push.
+
+Vor CPU-intensiven Builds gilt die globale AhoiBrowser-Buildpriorität. Ein
+bereits laufender fremder Ahoi-/Chromium-Build wird nie gestoppt.
+
+## Astra-Neubewertung: Produkt- und Architekturentscheidung
+
+### Was beibehalten wird
+
+- Harbor Deck und Focus Voyage bilden eine eigenständige, verständliche
+  Mobile-UX.
+- Die untere Adressleiste ist die primäre Browsersteuerung.
+- Die Suche in Focus Voyage ist ein zusätzlicher Einstieg, kein konkurrierendes
+  zweites Bedienmodell.
+- Im kompakten Zustand bleiben Zurück, sichtbarer Ursprung/Adresse, Tabs und
+  Mehr verfügbar.
+- Private Darstellung, Dynamic Type, Reduce Motion, Reduce Transparency,
+  Mindesttrefferflächen und semantische Accessibility bleiben verbindlich.
+- Exakte Kandidatenbindung mit Commit-, Receipt- und Binary-Hash bleibt
+  erhalten.
+
+### Was nicht mehr vor der Beta ausgebaut wird
+
+- kein neues Onboarding;
+- keine zusätzliche Arc-Imitation um ihrer selbst willen;
+- keine vollständige Neustrukturierung der Navigation;
+- keine Micro-Animation für jeden Zustand;
+- keine Vollmatrix aus allen Tabzahlen, Orientierungen, Kontrast- und
+  Gerätevarianten;
+- keine mobile Integration von uBlock Origin als Beta-Voraussetzung.
+
+### Bessere technische Richtung für den Browser-Chrome
+
+Der aktuelle Ansatz besitzt gute Hysterese und stabile Control-Identitäten,
+aber die Sichtbarkeit wird mittelbar von zwei Signalquellen beeinflusst:
+JavaScript-Scrollereignisse liefern die Scrollabsicht, SwiftUI/WebKit-Geometrie
+liefert Layout- und Pull-to-refresh-Zustand, während Präsentationen weitere
+Resets auslösen. Das ist für den Beta-Freeze nur dann zu ändern, wenn die
+Inkonsistenz sichtbar reproduzierbar ist.
+
+Falls eine Korrektur nötig ist, gilt:
+
+1. Eine einzige typisierte State Machine besitzt den Zustand
+   `expanded`, `collapsed` oder `lockedExpanded(reason)`.
+2. Nur direkte, zusammenhängende Nutzer-Scrollereignisse dürfen zwischen
+   `expanded` und `collapsed` wechseln.
+3. SwiftUI-Geometrie liefert nur Pull-to-refresh und
+   Layout-/Viewport-Invalidierung, aber keine zweite Sichtbarkeitsentscheidung.
+4. Navigation, Loading, Fehler, Address/Find/Permission/Dialog und Tabwechsel
+   setzen deterministisch `lockedExpanded` beziehungsweise `expanded`.
+5. Die bestehende Hysterese bleibt ungefähr bei 28 pt zum Einklappen und
+   14 pt zum Wiederaufklappen; Jitter und programmatic scroll werden ignoriert.
+6. Pro sichtbarem Zustandswechsel gibt es genau eine kurze asymmetrische
+   Animation. Reduce Motion entfernt Positions-/Skalierungsbewegung und
+   erlaubt höchstens einen unaufdringlichen Crossfade.
+7. Kein großer Rewrite ohne roten sichtbaren Golden-Path-Test.
+
+Dateien am 800-Zeilen-Limit werden bei einer ohnehin nötigen Änderung sinnvoll
+geteilt. Reines Umorganisieren ohne Produktnutzen blockiert die Beta nicht.
+
+## Release-Blocker
+
+Nur folgende Befunde stoppen die interne Beta:
+
+- reproduzierbarer Crash oder Startfehler;
+- Kernnavigation lädt normale HTTPS-Seiten nicht oder bleibt allgemein hängen;
+- Adresse/Suche, Zurück, Reload/Stop, Tabs oder privater Tab sind praktisch
+  unbenutzbar;
+- normale und private Daten werden vermischt;
+- Sync verliert, dupliziert, veröffentlicht private Daten oder korrumpiert
+  vorhandenen Zustand;
+- falsche Bundle-ID, Buildnummer, Signierung, Entitlements oder falscher
+  CloudKit-/Keychain-Scope;
+- eine Security-Grenze wird offen statt fail-closed umgangen;
+- ein produktrelevanter Fehler verhindert Installation oder Cold Launch.
+
+Ein lokaler Fixture-Fehler ist kein Produktfehler, wenn eine unabhängige
+normale HTTPS-Seite sichtbar lädt und die Fixture-Ursache belegt wird. TLS darf
+nicht abgeschwächt werden, um den Test grün zu machen.
+
+## Bekannte nicht blockierende Beta-Risiken
+
+Diese Punkte werden dokumentiert und nur bei sehr kleiner, risikoarmer
+Korrektur vorgezogen:
+
+- Hardware-Escape schließt auf einem Simulatorpfad das fokussierte
+  Adressblatt nicht, solange der sichtbare Abbrechen-Button funktioniert;
+- keine aktuelle physische iPad-Abnahme mangels kompatiblem Gerät;
+- keine vollständige 1-/5-/20-Tab-Performance-Matrix;
+- nicht jede Permission-, Download-Recovery-, Rotation-, Pointer- oder
+  Accessibility-Kombination auf Build 10;
+- CloudKit Production und vollständiger Mac-iPhone-iPad-Roundtrip;
+- öffentlicher TestFlight-Link, Beta Review, Default-Browser-Grant und
+  öffentlicher App-Store-Release;
+- uBlock Origin auf iOS.
+
+Diese Risiken dürfen nicht als bestanden bezeichnet werden, verhindern aber
+den internen Beta-Smoke nicht.
+
+## Phase 1 – sichtbarer Golden Smoke auf dem exakten Kandidaten
+
+Vor breiten programmatischen Tests:
+
+1. Kandidatenidentität sichtbar beziehungsweise maschinenlesbar bestätigen:
+   Version, Build, Source-Commit und Receipt/Binary-Hash.
+2. Cold Launch ohne Crash.
+3. Eine normale HTTPS-Seite vollständig sichtbar laden; sichtbaren
+   Ursprung/Sicherheitsstatus prüfen.
+4. Auf einer ausreichend langen Seite einmal bewusst nach unten scrollen:
+   Harbor Deck klappt konsistent kompakt. Gegenbewegung klappt ihn wieder auf.
+   Adresse, Tabs und Mehr bleiben erreichbar.
+5. Adresse öffnen, eine zweite Seite aufrufen, Zurück und Reload/Stop kurz
+   prüfen.
+6. Einen normalen Tab und einen privaten Tab öffnen; die private Semantik und
+   fehlende normale Projektion sichtbar prüfen.
+7. Einen kleinen Download oder die bereits stabile Download-Übersicht öffnen,
+   sofern die Fixture zuverlässig verfügbar ist.
+8. Sync-Status sichtbar prüfen. Den bestehenden echten Development-Roundtrip
+   referenzieren, falls kein Sync-Code verändert wurde.
+
+Das ist der notwendige Golden Smoke, keine Vollmatrix. Pro Kernjourney genügt
+eine repräsentative Variante auf iPhone. Ein iPad- oder physischer
+TestFlight-Smoke wird ergänzt, sobald das Gerät verfügbar ist.
+
+Wenn die lokale HTTPS-Fixture zwar `GET /` mit 200 beantwortet, die UI aber
+bei einem Ladefortschritt hängen bleibt, zuerst unterscheiden:
+
+- Fixture-Dokument-/Ressourcenabschluss;
+- WebKit-/Navigation-Lifecycle;
+- Kandidatenfehler.
+
+Eine unabhängige HTTPS-Navigation entscheidet, ob es ein Release-Blocker ist.
+Den Befund einmal kausal schließen; keine wiederholten identischen Läufe.
+
+## Phase 2 – gezielte programmatic gates
+
+Erst nach dem Golden Smoke beziehungsweise nach sauber dokumentierter
+technischer E2E-Blockade:
+
+- Mobile Core Tests;
+- relevante CloudKit-/Crypto-/Privacy-Tests;
+- Mobile Repository- und Signing-Verträge;
+- Swift-6-/Strict-Concurrency-Build;
+- `xcodebuild analyze` für den Releasekandidaten, sofern seit dem letzten
+  belegten Lauf produktiver Code geändert wurde;
+- XcodeGen-No-op, DCO, Secret Scan, `git diff --check` und Zeilenlimit;
+- nur die fokussierten Tests der tatsächlich geänderten Komponente.
+
+Keine breite Suite wird wiederholt, wenn nur Dokumentation oder Evidenz
+geändert wurde. Ein roter programmatic test wird kausal eingeordnet; ein
+veralteter Contract-Test wird nicht durch Produktregression „repariert“.
+
+Nach einer größeren Produktkorrektur zuerst die betroffene sichtbare Journey
+wiederholen, danach nur die abhängigen programmatic gates. Kein „alle Tests
+noch einmal“ ohne konkrete Risikokante.
+
+## Phase 3 – TestFlight und Geräte
+
+1. Prüfe, ob Build 10 auf `Servusla` inzwischen als TestFlight-Build
+   installiert ist.
+2. Wenn ja: Build `0.1 (10)`, `builtByDeveloper=false`, Cold Launch und
+   eine HTTPS-Navigation belegen.
+3. Wenn TestFlight selbst oder Build 10 fehlt: Installation über den bereits
+   internen Build ausführen, sobald das Gerät bedienbar ist.
+4. Nur wenn ein Release-Blocker Codeänderungen erzwingt, Buildnummer erhöhen,
+   neuen Kandidaten bauen, signieren, hochladen und den kurzen Golden Smoke
+   wiederholen.
+5. Ein kompatibles physisches iPad bleibt ein externer Gate, solange keines
+   verfügbar ist.
+
+Eine öffentliche Beta oder App-Store-Veröffentlichung benötigt weiterhin eine
+separate ausdrückliche Freigabe. Der interne TestFlight-Build darf dagegen im
+bereits autorisierten internen Kreis geprüft werden.
+
+## Sync-Abschluss
+
+Sync wird risikobasiert statt erschöpfend behandelt:
+
+- vorhandenen echten verschlüsselten CloudKit-Development-Beleg gegen den
+  enthaltenen Sync-Code und Schema-Stand binden;
+- sichtbaren Sync-Status auf dem Kandidaten prüfen;
+- private Tabs, private History und private Downloads dürfen nie publiziert
+  werden;
+- bei keiner Sync-Codeänderung kein künstlicher neuer 27-Fälle-Roundtrip;
+- bei Sync-Codeänderung zuerst ein echter Create/Update/Delete-Roundtrip plus
+  Privacy-Negativprobe, danach gezielte Unit-/Package-Tests;
+- Production-CloudKit und mehrere physische Geräte getrennt als externer
+  Release-Gate führen.
+
+## uBlock-Entscheidung
+
+uBlock Origin Classic ist in einer WKWebView-basierten iOS-App nicht als
+GitHub-Extension integrierbar wie im Chromium-Desktop-Browser. Ein begrenzter
+Content-Blocker-Ansatz nach Art von uBlock Origin Lite wäre ein separates
+Feature mit eigener Lizenz-, Update-, Regelcompiler-, App-Extension- und
+App-Review-Prüfung. Er ist ausdrücklich **kein** Blocker für diese Beta und
+wird jetzt weder als halbfertige Extension eingebaut noch weiter erforscht,
+sofern kein bereits trivial lauffähiger, rechtlich sauberer Pfad vorliegt.
+
+## Bounded-Fix-Regel
+
+Für jeden roten Pfad:
+
+1. einmal reproduzieren und Kandidatenbezug sichern;
+2. Produkt, Fixture, Gerät oder externe Grenze klassifizieren;
+3. kleinste ursächliche Korrektur vornehmen;
+4. genau die betroffene sichtbare Journey erneut ausführen;
+5. nur abhängige Tests ergänzen;
+6. nach zwei unveränderten Wiederholungen nicht weiter loopen, sondern den
+   Befund als bekannten Beta-Risk oder echten externen Gate dokumentieren.
+
+## Definition of Done: Internal Beta Ready
+
+Das aktuelle Ziel ist erfüllt, wenn:
+
+1. der kurze Golden Smoke auf Build 10 oder einem notwendigen
+   Nachfolgekandidaten keinen Release-Blocker zeigt;
+2. jede sichtbare technische Blockade ehrlich von einem Produktfehler
+   unterschieden ist;
+3. die gezielten programmatischen Gates für den enthaltenen Code grün sind;
+4. der echte Development-Sync-Beleg weiterhin zum Sync-/Schema-Stand passt
+   oder nach Sync-Änderungen gezielt erneuert wurde;
+5. der interne TestFlight-Status sowie die physische Installation entweder
+   belegt oder mit einem konkreten externen Geräte-Gate dokumentiert sind;
+6. eigene Mobile-Änderungen fokussiert, DCO-signiert und ohne fremde
+   Desktop-Dateien auf den gemeinsamen Branch gepusht sind;
+7. verbleibende iPad-, Production-CloudKit-, öffentliche TestFlight-,
+   Default-Browser- und Store-Gates getrennt aufgelistet sind.
+
+Nach Erreichen dieser sieben Punkte nicht weiter „perfektionieren“. Übergib
+den internen Beta-Stand und den kleinen bekannten-Risiken-/External-Gates-
+Backlog. Erst echtes Beta-Feedback eröffnet eine neue Produktwelle.
