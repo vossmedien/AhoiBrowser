@@ -35,6 +35,10 @@ merge private browser state into the sync collection.
 
 IDs 0–11 and dataClass strings are preserved; Capability remains reserved 12.
 All unchanged payload fields/atomic clock groups keep their current meaning.
+The existing Device kind 3 (`other`) is represented losslessly on both clients;
+it is descriptive metadata, not authority to execute commands. The existing
+command lifecycle uses status transitions, not generic entity tombstones;
+RemoteCommand tombstones remain disallowed in both implementations.
 TreeNode uses explicit is_temporary and the web/new-tab/local-only target value
 from ADR 0008; Presence adds its distinct tree_node_id and the same target value.
 The native complete-capture contract remains preserving/fail-closed.
@@ -83,6 +87,15 @@ renumber SQLite schema to 3: storage layout and the one wire format are differen
 technical contracts. Swift persistence also needs an explicit current-format
 marker and must not silently decode an old snapshot as an empty new collection.
 No expensive old-layout migration is required.
+
+Fresh defaults are named explicitly in the manifest: Desktop
+`Ahoi Sync/sync-format3.sqlite` and `cksync-format3.state`, Mobile
+`AhoiMobile/SyncFormat3/snapshot-format3.json`, shared Development zone
+`AhoiBrowserSyncV3`. A missing new file may start empty; incompatible existing
+bytes must fail without overwrite. Native bookmark observation-ledger rows
+contain local content, not fabricated wire clocks; actual apply receipts keep
+the real current-format record. None of these source defaults performs an
+account, server, key or existing-profile mutation on its own.
 
 Existing profiles, backups, failed-run logs, journals, provisioning assets,
 keys and server records are not automatically deleted. If a reset is needed,

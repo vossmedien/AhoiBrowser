@@ -11,12 +11,21 @@
   "incompatibleState": "reject-without-overwrite; use a fresh isolated store",
   "desktopStoreSchemaVersion": 6,
   "swiftSnapshotFormatVersion": 3,
+  "freshDevelopmentState": {
+    "desktopSyncDatabase": "Ahoi Sync/sync-format3.sqlite",
+    "desktopProviderState": "cksync-format3.state",
+    "mobileSupportDirectory": "AhoiMobile/SyncFormat3",
+    "mobileSnapshot": "snapshot-format3.json",
+    "sharedDevelopmentZone": "AhoiBrowserSyncV3",
+    "reuseOldEngineState": false
+  },
   "productionAuthorityGranted": false,
   "records": [
     {
       "id": 0,
       "dataClass": "device",
       "wireModelVersion": 3,
+      "deviceTypes": { "mac": 0, "iPhone": 1, "iPad": 2, "other": 3 },
       "fieldGroups": [
         "type",
         "display_name",
@@ -104,6 +113,7 @@
       "id": 6,
       "dataClass": "remoteCommand",
       "wireModelVersion": 3,
+      "tombstoneAllowed": false,
       "fieldGroups": [
         "request",
         "status",
