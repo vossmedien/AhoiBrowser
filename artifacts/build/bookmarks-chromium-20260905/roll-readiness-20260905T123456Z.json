@@ -1,0 +1,84 @@
+{
+  "observedAt": "2026-09-05T12:34:56Z",
+  "kind": "read-only-roll-readiness-not-preflight",
+  "ahoiBookmarkSource": "c28ec4af0d46c0d1b62a8ea67d95cf5a0c05aff8",
+  "productionVersion": "152.0.7977.65",
+  "previouslyReviewedCandidateVersion": "152.0.7977.83",
+  "candidateCommit": "79460ebecaa5625e57a5fb679a735659e73dc687",
+  "candidateBindingSha256": "0f2a8edd558279780b81ef9be5913d8aa700e7cd4b7f3d7d0c2118fccb751d5f",
+  "patchSeriesCount": 33,
+  "patchSeriesSha256": "9cd86a42f8dcdee0fc0add1f838faecbca1f03f13ac10feaa0a035fb5ec6a149",
+  "newPatchNumbers": [
+    30,
+    31,
+    32,
+    33
+  ],
+  "newPatchTargetObjects": [
+    {
+      "path": "chrome/browser/ui/views/bookmarks/bookmark_menu_delegate.h",
+      "objectAvailable": true
+    },
+    {
+      "path": "chrome/browser/ui/views/bookmarks/bookmark_menu_delegate.cc",
+      "objectAvailable": true
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_view.cc",
+      "objectAvailable": true
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc",
+      "objectAvailable": true
+    },
+    {
+      "path": "chrome/app/generated_resources.grd",
+      "objectAvailable": true
+    },
+    {
+      "path": "chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc",
+      "objectAvailable": true
+    },
+    {
+      "path": "chrome/app/resources/generated_resources_de.xtb",
+      "objectAvailable": true
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc",
+      "objectAvailable": true
+    }
+  ],
+  "objectCheckCommand": "GIT_NO_LAZY_FETCH=1 GIT_OPTIONAL_LOCKS=0 git -C .work/chromium/src cat-file -e <candidate>:<path>",
+  "freeDisk": {
+    "availableKiB": 92064208,
+    "availableBytes": 94273748992,
+    "rollFloorBytes": 128849018880,
+    "satisfied": false
+  },
+  "competingWork": {
+    "pid": 36328,
+    "ppid": 51136,
+    "tool": "Unity 6000.3.23f1",
+    "project": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Apple/iOS/FillIt",
+    "log": "Artifacts/BlenderAuthoring/UnityReview/target-draw-review-01.log",
+    "observedCpuPercent": [
+      106.9,
+      124,
+      133.6
+    ],
+    "thresholdPercent": 80,
+    "startAllowed": false
+  },
+  "checkedBoundaries": {
+    "onlineCandidateRediscovery": false,
+    "fullOrderedPatchPreflight": false,
+    "patchApplication": false,
+    "sourceCheckoutRefresh": false,
+    "objectDownload": false,
+    "pinChange": false,
+    "buildOrTestStart": false,
+    "installation": false,
+    "foreignProcessInterference": false
+  },
+  "conclusion": "Target objects for patches30-33 are already present; this does not prove patch applicability. Full preflight deferred at CPU gate; actual roll also below disk floor and remains Desktop-lease gated."
+}

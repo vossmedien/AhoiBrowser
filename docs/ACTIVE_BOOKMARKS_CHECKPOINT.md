@@ -110,6 +110,18 @@ open. Android was a future-options question, not a new build.
 
 ## Earlier coordination (historical)
 
+Latest roll resource readback, 2026-09-05 12:34:56 UTC: all eight target objects
+for added patches 0030-0033 are locally present at the previously reviewed .83
+candidate; no download or checkout mutation was needed. The series now has 33
+entries, and its full new preflight is NOT RUN. A competing identified FillIt
+Unity review job measured 106.9%, 124.0%, then 133.6% CPU; no intensive job was
+started here. Exact free space was 92,064,208 KiB = 94,273,748,992 bytes, about
+87.8 GiB, below the hard 128,849,018,880-byte roll floor. This supersedes the
+older near-120-GiB samples below. Receipt:
+`artifacts/build/bookmarks-chromium-20260905/roll-readiness-20260905T123456Z.json`.
+This is resource/object availability, not a current online discovery, patch
+applicability result, actual roll, or permission to touch the Desktop lease.
+
 The user resumed this goal. A fresh CPU check found Unity near 1% and its
 compiler workers idle, so the earlier CPU gate has cleared. Exact disk readback
 first found 125,586,816 KiB (119.77 GiB), below the hard 120-GiB roll floor despite
