@@ -236,7 +236,13 @@ coordinator01a07337-b056-7d73-95a1-9e3f0e6fce63. No reply/field freeze assumed.
 The active full-master goal includes this package; requirement recording is not
 runtime implementation or acceptance, and does not widen the current snapshot.
 
-## Completed 92694fe baseline build and installation
+## Historical baseline evidence — do not use as a resume plan
+
+The chronology below preserves earlier build/failure evidence. Its dated PIDs,
+candidate names and formerly pending actions are NOT current instructions.
+Only "Current candidate" above and "Next actions" below define the live handoff.
+
+### Completed 92694fe baseline build and installation
 
 **Previous fixture blocker RESOLVED, 2026-09-05 18:41 UTC:** the user explicitly
 handed over `92694fe36539d024af6567646103f1cf246d5364`. Main reviewed its exact
@@ -444,16 +450,16 @@ Desktop, CloudKit or provisioning failure. Evidence is Mobile commit `e8f9975`
 and `docs/audit-evidence/2026-09-05-mobile-mymac-cloudkit/README.md`. No current
 Mobile runtime reservation remains; no automatic retry is authorized.
 
-## Exact installed candidate
+### Historical 92694fe/3d413ef candidate details
 
-- `/Applications/AhoiBrowser.app`: source
+- At that earlier stage, `/Applications/AhoiBrowser.app` had source
   `92694fe36539d024af6567646103f1cf246d5364`, Chromium `152.0.7977.65`,
   build/install verified but startup RED; do not describe it as accepted/daily-ready.
-- Current receipts: `artifacts/build/ahoi-dev-build-92694fe36539.json` and
+- Historical receipts: `artifacts/build/ahoi-dev-build-92694fe36539.json` and
   `artifacts/install/ahoi-dev-92694fe-20260905T190452Z.json`.
-- Current executable SHA256:
+- Historical executable SHA256:
   `717827e792a4882665334dc834ec54680696ae8b2cc93a88399b176741b945ca`;
-  current bundle tree:
+  historical bundle tree:
   `083286c952f1b6c542c8177ca9c5cf1c8c9f7edc092b11ac5b8525c753620b6f`.
 - Rollback3d remains at the install receipt's exact backup path. No rollback
   or profile/journal reset was performed. The following3d receipts are HISTORY:
@@ -464,11 +470,12 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   `ab4d0a7664fb8ec871391be1130ee002e79ef8bc4084ff49877d4042e387aa99`.
   Bundle tree SHA-256:
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
-- Existing clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at isolated correction
+- The same detached build snapshot was then selected at the isolated correction:
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, at that time
   `c986090`; overlay60701/build17302/install19738 all completed for92694fe.
-  The next startup-fix integration is pending a fresh CPU gate. It shares
-  `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
+  The startup-fix integration and later4cb correction have since completed.
+  This is not a pending CPU/build action. The snapshot shares `.work` through
+  `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
   log `/private/tmp/ahoi-package1-3d413ef-build.log`. All requested test targets
@@ -491,7 +498,7 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   exact receipt and retained Desktop UI ownership in queue message
   `01a07085-b24d-7ed3-80bc-04fc29f2e53c`.
 
-## Visible acceptance and current defect
+### Historical 3d413ef visible failure and recovery evidence
 
 **Subsequent shutdown readback:** a fresh CUA selection returned the old app's
 open command bar with Settings suggestions. One Cmd+Q returned `App quit`;
@@ -595,57 +602,43 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-0. Startup is RED on installed92694fe; resume live build59738 for the clean
-   isolated c986090 correction; overlay5741 succeeded. Its exact Source bundle
-   is retained; do not incorporate Common WIP or mutate the frozen snapshot.
-   Then atomic install and repeat visible app start before any programmatic
-   suite. The older compiler/source handoff waits below are already resolved.
-1. Builds `30212` and `90068` are both terminal Exit 1; do not resume either.
-   Snapshot/overlay are at exact `225df88`; compiler-only `3035529`, owned
-   `1ea90da`, and the renewed consent freeze are already integrated. There is
-   no remaining product or test-source handoff wait. The exact `22e2f2b`
-   correction (already contains owned `5794d37`) is explicitly accepted and the
-   fixture correction92694fe is now explicitly received and the clean snapshot
-   selected. Old7945 is terminal Exit1; overlay60701 and full92694fe build17302
-   now succeeded, as did install19738. Its startup failed; the prepared c986090
-   correction above supersedes the next action. No test suite before its corrected journey or
-   a fresh genuine technical-E2E boundary. No warning suppression or unrelated
-   format-3 source integration. Overlay65019 already succeeded. Do not
-   copy subsequent unified Sync WIP or stop the foreign workload.
-   A successful complete build receipt is required before installation. Preserve both logs,
-   bind the final receipt and recheck CPU/process/disk gates before the next
-   intensive phase. Old FillIt 10906/57077 and Shopify build samples are history,
-   not current blockers. Consent regression/runtime acceptance is still open.
-   This baseline is not the new all-entity unified-format acceptance; do not
-   integrate upcoming Common format/default changes into it opportunistically.
-2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
-   those old commands for delayed messages. Its built targets were
-   `ahoi_tab_tree_unittests`, `ahoi_session_unittests`,
-   `ahoi_startup_policy_unittests`, `ahoi_arc_import_unittests`,
-   `ahoi_arc_import_browsertests`, `ahoi_sidebar_tree_unittests`,
-   `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
-   `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
-   The correction target set includes those relevant targets, the missing
-   `ahoi_sync_unittests`, `ahoi_navigation_surface_state_unittests` and
-   `ahoi_floating_browser_view_browsertests` from the complete new source handoff.
-3. `3d413ef` remains installed and its failed import must not be retried.
-   Once the corrected candidate is built/installed and UI is usable, explicitly
-   recover the exact failed transaction through the verified-backup UI first.
-   Then repeat the real Arc journey: successful backup/import, 2/2/3-pane splits,
-   folder state, restart and identical second no-op import. Preserve existing
-   source/profile and old recovery evidence. A red visible flow blocks its
-   programmatic acceptance; fix its actual cause, not assertions.
-4. Complete normal-folder motion, workspace slide/fade, zero-tab split and
-   Cmd+Q acceptance. Coordinate bookmark E2E UI ownership explicitly.
-5. AnyChat: ordinary Store install/cancel, action/Side Panel, shortcut,
-   disable/enable and restart. Classic: official pinned GitHub one-click,
-   Chromium permissions, actual filtering, dashboard and restart. Lite remains
-   until Classic passes and the deliberate migration action is performed.
-6. Run focused programmatic checks after each corrected visible journey;
-   record exact candidate/results, commit/push owned work and advance the master
-   packages. Sync/lean/privacy/performance and all other contracts remain in scope.
-   Include the stricter credential-index test oracle in the next coherent
-   package; no extra build was started for this test-only source change.
+1. Keep the installed, visibly exercised `4cb622a` and the same clean detached
+   snapshot/output. Builds17302/59738/73875 and installers19738/3416/77504 are
+   terminal. Do not resume/restart them or reinstall older926/c986 for delayed
+   messages. Startup, navigation, fullscreen, quit/restart and the bounded
+   Sidebar-mode journey already have their evidence above.
+2. Arc: after the user closes Arc normally, verify the source-closed condition,
+   Raise Ahoi's native window and open `chrome://settings/importData`. Select
+   Arc, explicitly recover the preserved failed transaction through its guarded
+   backup UI, THEN create a new preview/import. Preserve journal/backup; no
+   hidden WebUI call, direct DB reset or forced Arc shutdown. Continue the real
+   split/folder/restart/no-op journey on this same candidate.
+3. AnyChat: await the already requested website/New Tab/favicon permission
+   decision. The native sheet is currently cancelled. After approval reopen
+   the ordinary Store flow, verify its current scope, install and visibly test
+   action/Side Panel, shortcut and restart. No custom installer or inferred
+   approval from general priority/source messages.
+4. Classic: existing pinned Official GitHub one-click flow, Chromium consent,
+   actual filtering/dashboard and restart. Lite stays until Classic is accepted
+   and its separate deliberate migration action is authorized/performed.
+5. Finish remaining package1 UI obligations: normal-folder motion, workspace
+   slide/fade, reported seam, zero-tab/split stability and Bookmark core flow.
+   Do not mutate the failed imported tree to set up tests before its recovery.
+   Reuse the completed startup/Sidebar evidence; do not replay whole matrices.
+6. Native A is source-complete in906dac8 outside the frozen candidate. B-D use
+   only the genuinely completed Common Service/backend handoff, not current
+   WIP or a legacy vector fallback. Common C++/Swift and their unified-format
+   work remain with the Sync owner; see `docs/SHARED_TAB_NATIVE_SEAMS.md`.
+7. After the current browser package, implement workspace-local website sessions
+   under `docs/WORKSPACE_SESSIONS.md`, preserving global History/passwords/
+   extensions and the no-cookie-sync boundary. Continue every remaining master
+   package, including Sync, lean/privacy/performance and release obligations.
+8. Only a new executable correction/coherent integration warrants another build.
+   Recheck actual CPU/process/disk/ownership gates, use the existing guarded
+   product-first `./scripts/build-ahoi.sh dev`, install its exact signed result,
+   and exercise the changed visible flow BEFORE minimal necessary regressions.
+   Preserve existing tests/assertions; no blanket test-target prerequisite or
+   testing expansion while a controllable app failure needs fixing.
 
 ## Evidence and independent boundaries
 
