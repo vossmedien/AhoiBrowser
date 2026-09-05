@@ -31,16 +31,28 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Bundle tree SHA-256:
   `1f017281cec7845d76bcc4807aa2346c898dfc4ecc23a6d66dbb8734d2f5525e`.
 - Existing clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, currently `0a13e22`.
-  Update this snapshot in place after committing the correction, with shared
-  `.work` supplied through `AHOI_WORK_ROOT`; do not create another snapshot.
-- All old overlay/build/install handles are terminal. No test binaries have
-  been run for this installed package yet. Compilation is not acceptance.
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at correction `3d413ef`.
+  It shares `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
+- Correction overlay session `61889` and combined build session `83719` both
+  exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
+  log `/private/tmp/ahoi-package1-3d413ef-build.log`. All requested test targets
+  compiled/linked; no test binaries have been run. Install and corrected visible
+  E2E remain pending. Compilation is not acceptance.
+- Ready bundle tree SHA-256:
+  `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
+  Installation verification currently waits for a foreign Unity simulation
+  CPU window (PID 15530, owner thread `01a04a1b-ab7d-70f3-814f-fe2ab061e65e`).
+  Repeated samples were above 80%; coordination message
+  `01a0707f-0f51-7321-a939-6292b0416a50` requests notification only, no interruption.
+  Recheck live ownership/usage; do not treat these old PIDs as authority.
 
 ## Visible acceptance and current defect
 
 - PASS (scoped): native App-menu Import opens the real dialog from a zero-tab
   normal window. The existing restored user window was preserved.
+- PASS (scoped): a normal Cmd+Q quit exited the installed process before the
+  correction install. Computer Use timed out while querying the now-closed
+  app; the recorded main PID was independently confirmed absent.
 - PASS (scoped): checkbox boxes align with their first text line. All three
   genuine choices work by mouse and Space. Missing profile/sidebar selection
   disables Import; optional split deselection does not. The two duplicate
@@ -68,9 +80,9 @@ Updated: 2026-09-05. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 
 ## Next actions — do not restart the review
 
-1. Integrate/review the four-file persistence fix and regressions, commit only
-   owned changes, then advance the existing clean snapshot. Recheck all-project
-   CPU ownership and free space before each intensive phase.
+1. The reviewed four-file fix and regressions are committed in `3d413ef`; its
+   clean snapshot is selected. Recheck all-project CPU ownership and free space
+   before each intensive phase.
 2. Refresh the overlay through `scripts/apply-overlay.sh --compatible-dev-xcode`
    and use `scripts/build-ahoi.sh dev` for one combined correction build. Include
    new `ahoi_tab_tree_unittests` and `ahoi_session_unittests` plus the existing

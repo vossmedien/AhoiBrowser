@@ -52,3 +52,26 @@ The failure test injects an undo uniqueness violation after replacement begins
 and reopens the file to verify total rollback. The bridge test observes both
 production flush bools and reads the second mutation from the canonical store.
 Successful compilation alone will not close this finding.
+
+## Normal-folder motion follow-through (read-only review, not yet fixed)
+
+The bookmark owner relayed the user's rejection of expand/collapse motion.
+Three concrete source findings are retained for Desktop's next correction:
+
+1. `sidebar_tree_view_projection.cc::StartPreferredHeightAnimation` sets its
+   active flag before `SlideAnimation::Reset`; interrupting a running animation
+   synchronously clears that flag through `AnimationCanceled`. Its new starting
+   height also comes from the previous target, not the displayed intermediate
+   height. Capture the displayed height, reset, then establish new active state.
+2. `SynchronizeVisibleRows` starts each new child at its preceding visual row's
+   position, overlapping transparent labels. Collapse instead immediately
+   recycles descendants. Use one bounded reveal below the folder for both entry
+   and exit, while keeping model state authoritative and hidden rows noninteractive.
+3. Split clips use final group bounds while animated rows still have intermediate
+   bounds. `UpdateSplitGroupClipPath` subtracts the latter; a displaced split can
+   become fully clipped. Clip and animated group must share current geometry.
+
+Visible acceptance must cover multi-child expansion, fast reversals, viewport
+edges, and a split below the folder. Check intermediate frames, focus and hit
+targets as well as endpoints. No causal connection to the sampled idle CPU is
+established. These findings do not modify the frozen `3d413ef` build.
