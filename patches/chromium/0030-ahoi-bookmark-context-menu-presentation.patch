@@ -50,7 +50,7 @@ index b51ac0632d1b0bee9ea3d65df15b16271eb5964f..43ee56a9cdc6ed4971f53d33724c3d37
  void BookmarkMenuDelegate::BuildFullMenu(MenuItemView* parent) {
    CHECK(!parent_menu_item_);
    CHECK(parent);
-@@ -659,6 +665,12 @@
+@@ -659,5 +665,11 @@
        parent_, browser_, profile_, location_, nodes, close_on_remove,
        can_paste);
    bookmark_context_menu_observation_.Observe(context_menu_.get());
