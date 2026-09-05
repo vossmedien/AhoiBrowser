@@ -72,11 +72,18 @@ these interfaces alone are not working native behavior. Baseline work is separat
   directly observed its live guarded Dev wrapper (PIDs 94538/94819) doing
   overlay verification, logging to
   `artifacts/build/desktop-fixture-92694fe-20260905/build.log`.
-  Work has resumed; a terminal build result/new candidate is not yet proved.
-- Desktop's later checkpoint binds this to overlay `60701` EXIT 0 and live
-  full-target Dev session `17302` on the unchanged clean `92694fe` snapshot.
-  Coordinator read the current hook-verification output; no completion/test or
-  install pass is inferred. New unified/header changes stay outside this baseline.
+  Work has resumed; its later result is recorded below.
+- **Build verified:** Desktop confirms `17302` TERMINAL EXIT 0 on clean
+  `92694fe`, after overlay `60701` EXIT 0. Coordinator read the completion/signing
+  log and `LINK ./ahoi_sync_unittests`, then verified the canonical receipt
+  `artifacts/build/ahoi-dev-build-92694fe36539.json`: source `92694fe`, clean,
+  overlay applied, SHA256
+  `dec35aefe6a4095fa784dcd5f2cf186a8005e9ac53c5f81e4b6ed4163f3772a1`.
+  This is compiled baseline evidence, not executed tests or unified-format proof.
+- Desktop's guarded atomic installer is reported RUNNING `19738`, expected
+  receipt `artifacts/install/ahoi-dev-92694fe-20260905T190452Z.json`.
+  Installation, the new installed readback and visible E2E remain unverified;
+  no coordinator UI/out access while it runs. Unified/header WIP stays excluded.
 - Minor convention follow-up: the read 92694fe commit body lacked a DCO trailer.
   Sync was asked for a traceable attestation without silently rewriting published
   history (`01a072e3-bcd5-7b03-9dfb-3e114c1f26b7`). This is separate from whether
