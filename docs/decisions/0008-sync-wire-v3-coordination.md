@@ -1,8 +1,8 @@
 # ADR 0008: Combined bookmark/tab wire-v3 coordination
 
-Status: ownership and identity assignments recorded on 2026-09-05. The semantic
-v3 additions below implement ADR 0007; capability publication and legacy-clock
-upgrade details must be agreed before v3 writers are enabled.
+Status: concrete coordination contract frozen on 2026-09-05 for matching C++
+and Swift implementation/review. This is not writer activation. All current
+writer defaults remain v2 until the capability and migration gates pass.
 
 ## Disjoint ownership
 
@@ -85,7 +85,98 @@ content and ambiguous legacy runtime bindings need a preserving migration.
   implement a handshake that requires a v3 write to permit its first v3 write.
   Unknown/older peers need an actionable upgrade/retirement state, not data loss.
 
-Capability representation, the precise legacy-clock upgrade and nonportable-tab
-representation are the remaining cross-owner freeze points. No new server,
-Production-CloudKit deployment, Android implementation or fixture-based runtime
-pass is authorized or claimed by this document.
+## Capability bootstrap: separate wire-v2 entity
+
+Reserve `EntityType = 12`, `dataClass = "deviceCapability"`, authored using
+unchanged common wire-v2 metadata, with exact field-clock groups `device_id`,
+`capabilities`, `tombstone`. Do not extend Device-v2 or make a v3 record necessary
+for the first capability announcement.
+
+| Payload field | Contract |
+| --- | --- |
+| `device_id` | immutable lowercase UUID of the corresponding DeviceRecord |
+| `readable_models` | sorted, unique integer list in 1…32; supported readers |
+| `writable_models` | sorted, unique integer list in 1…32; implemented writers, not active defaults |
+| `features` | sorted, unique ASCII identifiers, at most 32 entries of 64 bytes; known feature is `shared-normal-tabs-v3` |
+
+The last three values form atomic group `capabilities`. Empty model lists are
+invalid; unknown feature names never grant known capabilities. Common record
+and all field-clock device IDs must equal `device_id`. Record ID is UUIDv5 with
+the standard URL namespace and UTF-8 name
+`ahoi:sync:capability:v1:<lowercase-device-id>`. It is distinct from Device,
+TreeNode and Presence IDs. A capability declaration is accepted only alongside
+its independently known, authenticated same-collection DeviceRecord; it cannot
+enroll a peer, grant remote control or change device retirement.
+
+V3 writes require global sync/normal-profile authority, a completed successful
+initial private-zone download (all pages), acknowledged local device/capability
+publication, and compatible declarations for every known non-retired peer.
+Each peer needs readable model 3, writable model 3 and `shared-normal-tabs-v3`.
+Only advertise that feature when the local native/domain implementation and
+its matching conformance gates actually exist; read-only preparation is not it.
+
+Unknown peers, missing/invalid/tombstoned capability records and pending device
+records close the gate. Offline age does not retire devices. Explicit user
+retirement uses the existing DeviceRecord retirement operation, not capability
+deletion. New/reappearing incompatible peers close subsequent v3 writes without
+downgrading, deleting or stripping existing v3 records. Show the peer needing an
+upgrade or deliberate retirement. Reevaluate on every registry/capability/account
+change. Failed/offline bootstrap does not guess a complete roster. No mechanism
+can predict a device that has never enrolled; its later enrollment closes the
+gate, and older readers must retain unsupported encrypted records unchanged.
+
+## Legacy absence and promotion
+
+Persist actual v1/v2 new-field absence, not synthetic writes. In a mixed merge,
+absent `is_temporary` or `tree_node_id` contributes no candidate clock/value;
+an explicit v3 field survives even a newer v2 record clock. Preserve that rule
+in both merge directions and after local snapshot restart. Unchanged unrelated
+fields still use their original merge rules and clocks.
+
+At an explicitly authorized v3 promotion, encode default false / omitted binding
+with the agreed Bottom clock: Unix zero, logical zero, system actor
+`9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86`. Present `tree_node_id:null` is invalid;
+nil is omission, while its v3 field clock is still required. A Bottom-clock new
+field can represent only false/unlinked. Recognize this sentinel as absence,
+not through normal device-ID tie ordering. An actual v3 mutation must use a
+non-system device and a clock strictly later than Unix zero.
+
+TreeNode creation-time values remain immutable. Legacy v1 clocks can have been
+synthesized, and a later v2 rewrite does not prove original authorship. For
+conservative v3 promotion of legacy data, keep the creation-time value but use
+Bottom for its *provenance clock* unless genuine creation provenance was already
+retained explicitly. Subsequent legacy input must not replace v3 creation
+provenance with a synthetic last-editor clock. New v3-authored nodes retain their
+real creation clock. No Mobile/creator badge is derived from Bottom, v1 fallback
+normalization or last-record clocks. Bookmark creation metadata is unaffected.
+
+## V3 tab target values: distinguish web, new-tab and local-only
+
+Normal tabs need a different target policy from unrestricted bookmark metadata.
+V3 Page TreeNode and Presence payloads add integer `target_kind` and optional
+`local_scheme`; these belong atomically to the existing clock group `url`
+together with `url`, not to a new independent field clock. The two new clock
+groups remain `is_temporary` and `tree_node_id` on their respective entities.
+
+| `target_kind` | `url` | `local_scheme` | Meaning |
+| --- | --- | --- | --- |
+| `0` web | canonical, valid HTTP(S), host required, no user/password, at most 131072 bytes | omitted | normal platform URL policy on deliberate activation |
+| `1` new-tab | empty | omitted | explicit temporary page only, linked Presence required |
+| `2` local-only | empty | one of `about`, `chrome`, `chrome-extension`, `file`, `blob`, `data`, `javascript`, `other` | preserve row/identity and explain unavailable activation; never open a fallback |
+
+Folders omit both target fields and retain empty URL. V1/v2 retain their original
+web-only layout; nonportable or empty v2 input is not silently upgraded. Local-only
+targets are not fake URLs: this is explicit versioned availability metadata.
+Their original URL/code/file path remains solely in the originating native
+runtime/session store. A shared title is metadata, not executable input. Presence
+for new-tab/local-only targets must link a valid shared page and agree with its
+current target representation; it never creates another global page authority.
+Do not overwrite an origin's local-only native target with the empty wire URL.
+No URL scheme may cause automatic OS, file or JavaScript execution on another
+device. Automatic startup/recovery placeholders remain local as in ADR 0007.
+
+Canonical future conformance fixture:
+`overlay/chromium/src/ahoi/browser/sync/testdata/shared_tab_wire_v3_contract.json`.
+Both implementations must consume it, plus real migration/registry/runtime tests.
+This file and the contract do not enable v3 or establish a passing test.
+No new transport, Production deployment or Android implementation is authorized.

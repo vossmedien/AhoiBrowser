@@ -1,0 +1,661 @@
+{
+  "fixture_version": 1,
+  "status": "contract-only; v3 writers remain disabled",
+  "system_actor": "9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86",
+  "shared_inbox_id": "83699047-edf8-580d-948d-9c37acc35cb6",
+  "bottom_clock": {
+    "physical": "11644473600000000",
+    "logical": 0,
+    "device": "9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86"
+  },
+  "capability": {
+    "entity_type": 12,
+    "data_class": "deviceCapability",
+    "record_id_derivation": "UUIDv5 URL namespace, UTF-8 ahoi:sync:capability:v1:<lowercase device_id>",
+    "records": [
+      {
+        "model_version": 2,
+        "id": "e465362b-5036-5c75-afa3-aa1241063b32",
+        "tombstone": false,
+        "version_model": 2,
+        "version_physical": "11644473606000000",
+        "version_logical": 0,
+        "version_device": "90000000-0000-4000-8000-0000000000a0",
+        "field_versions": {
+          "device_id": {
+            "physical": "11644473606000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "capabilities": {
+            "physical": "11644473606000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "tombstone": {
+            "physical": "11644473606000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          }
+        },
+        "device_id": "90000000-0000-4000-8000-0000000000a0",
+        "readable_models": [
+          1,
+          2,
+          3
+        ],
+        "writable_models": [
+          2,
+          3
+        ],
+        "features": [
+          "shared-normal-tabs-v3"
+        ]
+      },
+      {
+        "model_version": 2,
+        "id": "9a34f2c1-343a-5216-96a6-21876c458582",
+        "tombstone": false,
+        "version_model": 2,
+        "version_physical": "11644473606000000",
+        "version_logical": 0,
+        "version_device": "90000000-0000-4000-8000-0000000000b0",
+        "field_versions": {
+          "device_id": {
+            "physical": "11644473606000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000b0"
+          },
+          "capabilities": {
+            "physical": "11644473606000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000b0"
+          },
+          "tombstone": {
+            "physical": "11644473606000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000b0"
+          }
+        },
+        "device_id": "90000000-0000-4000-8000-0000000000b0",
+        "readable_models": [
+          1,
+          2,
+          3
+        ],
+        "writable_models": [
+          2,
+          3
+        ],
+        "features": [
+          "shared-normal-tabs-v3"
+        ]
+      }
+    ]
+  },
+  "legacy": {
+    "tree_v2": {
+      "model_version": 2,
+      "id": "90000000-0000-4000-8000-000000000010",
+      "tombstone": false,
+      "version_model": 2,
+      "version_physical": "11644473602000000",
+      "version_logical": 0,
+      "version_device": "90000000-0000-4000-8000-0000000000a0",
+      "field_versions": {
+        "location": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "kind": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "title": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "icon": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "accent_argb": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "url": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "created_at": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "modified_at": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "tombstone": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        }
+      },
+      "workspace_id": "83699047-edf8-580d-948d-9c37acc35cb6",
+      "node_kind": 1,
+      "title": "Shared tab",
+      "icon": "",
+      "url": "https://example.com/",
+      "sort_key": "M",
+      "created_at": "11644473601000000",
+      "modified_at": "11644473602000000"
+    },
+    "tree_v3_promoted": {
+      "model_version": 3,
+      "id": "90000000-0000-4000-8000-000000000010",
+      "tombstone": false,
+      "version_model": 3,
+      "version_physical": "11644473602000000",
+      "version_logical": 0,
+      "version_device": "90000000-0000-4000-8000-0000000000a0",
+      "field_versions": {
+        "location": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "kind": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "title": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "icon": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "accent_argb": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "url": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "created_at": {
+          "physical": "11644473600000000",
+          "logical": 0,
+          "device": "9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86"
+        },
+        "modified_at": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "tombstone": {
+          "physical": "11644473602000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "is_temporary": {
+          "physical": "11644473600000000",
+          "logical": 0,
+          "device": "9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86"
+        }
+      },
+      "workspace_id": "83699047-edf8-580d-948d-9c37acc35cb6",
+      "node_kind": 1,
+      "title": "Shared tab",
+      "icon": "",
+      "url": "https://example.com/",
+      "sort_key": "M",
+      "created_at": "11644473601000000",
+      "modified_at": "11644473602000000",
+      "is_temporary": false,
+      "target_kind": 0
+    },
+    "read_defaults": {
+      "is_temporary": false,
+      "created_origin_known": false,
+      "new_field_clock_present": false
+    },
+    "promotion_origin_known": false
+  },
+  "merge_cases": [
+    {
+      "name": "late_v2_preserves_v3_temporary_both_directions",
+      "left": {
+        "model_version": 3,
+        "id": "90000000-0000-4000-8000-000000000010",
+        "tombstone": false,
+        "version_model": 3,
+        "version_physical": "11644473603000000",
+        "version_logical": 0,
+        "version_device": "90000000-0000-4000-8000-0000000000a0",
+        "field_versions": {
+          "location": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "kind": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "title": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "icon": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "accent_argb": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "url": {
+            "physical": "11644473603000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "created_at": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "modified_at": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "tombstone": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "is_temporary": {
+            "physical": "11644473603000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          }
+        },
+        "workspace_id": "83699047-edf8-580d-948d-9c37acc35cb6",
+        "node_kind": 1,
+        "title": "Shared tab",
+        "icon": "",
+        "url": "https://example.com/",
+        "sort_key": "M",
+        "created_at": "11644473601000000",
+        "modified_at": "11644473602000000",
+        "is_temporary": true,
+        "target_kind": 0
+      },
+      "right": {
+        "model_version": 2,
+        "id": "90000000-0000-4000-8000-000000000010",
+        "tombstone": false,
+        "version_model": 2,
+        "version_physical": "11644473605000000",
+        "version_logical": 0,
+        "version_device": "90000000-0000-4000-8000-0000000000b0",
+        "field_versions": {
+          "location": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "kind": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "title": {
+            "physical": "11644473605000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000b0"
+          },
+          "icon": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "accent_argb": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "url": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "created_at": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "modified_at": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "tombstone": {
+            "physical": "11644473602000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          }
+        },
+        "workspace_id": "83699047-edf8-580d-948d-9c37acc35cb6",
+        "node_kind": 1,
+        "title": "Peer title",
+        "icon": "",
+        "url": "https://example.com/",
+        "sort_key": "M",
+        "created_at": "11644473601000000",
+        "modified_at": "11644473602000000"
+      },
+      "expected": {
+        "model_version": 3,
+        "title": "Peer title",
+        "is_temporary": true,
+        "target_kind": 0,
+        "version_physical": "11644473605000000",
+        "version_logical": 1,
+        "version_device": "90000000-0000-4000-8000-0000000000b0",
+        "field_versions": {
+          "is_temporary": {
+            "physical": "11644473603000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000a0"
+          },
+          "title": {
+            "physical": "11644473605000000",
+            "logical": 0,
+            "device": "90000000-0000-4000-8000-0000000000b0"
+          }
+        }
+      }
+    }
+  ],
+  "presence": {
+    "linked_v3": {
+      "model_version": 3,
+      "id": "90000000-0000-4000-8000-000000000020",
+      "tombstone": false,
+      "version_model": 3,
+      "version_physical": "11644473603000000",
+      "version_logical": 0,
+      "version_device": "90000000-0000-4000-8000-0000000000a0",
+      "field_versions": {
+        "device_id": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "session_id": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "workspace_id": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "url": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "title": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "opened_at": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "last_active": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "pinned": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "is_incognito": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "tombstone": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        },
+        "tree_node_id": {
+          "physical": "11644473603000000",
+          "logical": 0,
+          "device": "90000000-0000-4000-8000-0000000000a0"
+        }
+      },
+      "device_id": "90000000-0000-4000-8000-0000000000a0",
+      "session_id": "90000000-0000-4000-8000-000000000030",
+      "workspace_id": "83699047-edf8-580d-948d-9c37acc35cb6",
+      "tree_node_id": "90000000-0000-4000-8000-000000000010",
+      "url": "https://example.com/",
+      "target_kind": 0,
+      "title": "Shared tab",
+      "opened_at": "11644473601000000",
+      "last_active": "11644473603000000",
+      "pinned": false,
+      "is_incognito": false
+    },
+    "omitted_tree_node_id_means": null,
+    "present_null_valid": false,
+    "legacy_new_field_clock_present": false
+  },
+  "target_cases": [
+    {
+      "name": "web",
+      "entity": "page",
+      "is_temporary": false,
+      "target_kind": 0,
+      "url": "https://example.com/",
+      "valid": true
+    },
+    {
+      "name": "explicit_empty",
+      "entity": "page",
+      "is_temporary": true,
+      "target_kind": 1,
+      "url": "",
+      "valid": true
+    },
+    {
+      "name": "saved_empty_rejected",
+      "entity": "page",
+      "is_temporary": false,
+      "target_kind": 1,
+      "url": "",
+      "valid": false
+    },
+    {
+      "name": "local_file_metadata_only",
+      "entity": "page",
+      "is_temporary": true,
+      "target_kind": 2,
+      "url": "",
+      "local_scheme": "file",
+      "valid": true,
+      "activate_on_peer": false
+    },
+    {
+      "name": "raw_file_not_transported",
+      "entity": "page",
+      "is_temporary": true,
+      "target_kind": 2,
+      "url": "file:///fixture/private.txt",
+      "local_scheme": "file",
+      "valid": false
+    },
+    {
+      "name": "executable_target_not_transported",
+      "entity": "page",
+      "is_temporary": true,
+      "target_kind": 2,
+      "url": "javascript:alert(1)",
+      "local_scheme": "javascript",
+      "valid": false
+    },
+    {
+      "name": "userinfo_rejected",
+      "entity": "page",
+      "is_temporary": true,
+      "target_kind": 0,
+      "url": "https://user:fixture@example.com/",
+      "valid": false
+    },
+    {
+      "name": "new_tab_presence_needs_link",
+      "entity": "presence",
+      "target_kind": 1,
+      "url": "",
+      "valid": false
+    },
+    {
+      "name": "unknown_local_scheme_rejected",
+      "entity": "page",
+      "is_temporary": true,
+      "target_kind": 2,
+      "url": "",
+      "local_scheme": "invented",
+      "valid": false
+    }
+  ],
+  "gate_cases": [
+    {
+      "name": "both_matching",
+      "initial_fetch_complete": true,
+      "local_announcements_acknowledged": true,
+      "peers": [
+        {
+          "id": "90000000-0000-4000-8000-0000000000a0",
+          "retired": false,
+          "capability": "matching"
+        },
+        {
+          "id": "90000000-0000-4000-8000-0000000000b0",
+          "retired": false,
+          "capability": "matching"
+        }
+      ],
+      "allowed": true
+    },
+    {
+      "name": "offline_old_still_blocks",
+      "initial_fetch_complete": true,
+      "local_announcements_acknowledged": true,
+      "peers": [
+        {
+          "id": "90000000-0000-4000-8000-0000000000a0",
+          "retired": false,
+          "capability": "matching"
+        },
+        {
+          "id": "90000000-0000-4000-8000-0000000000b0",
+          "retired": false,
+          "capability": "missing",
+          "offline_days": 365
+        }
+      ],
+      "allowed": false
+    },
+    {
+      "name": "explicit_retirement",
+      "initial_fetch_complete": true,
+      "local_announcements_acknowledged": true,
+      "peers": [
+        {
+          "id": "90000000-0000-4000-8000-0000000000a0",
+          "retired": false,
+          "capability": "matching"
+        },
+        {
+          "id": "90000000-0000-4000-8000-0000000000b0",
+          "retired": true,
+          "capability": "missing"
+        }
+      ],
+      "allowed": true
+    },
+    {
+      "name": "new_incompatible_peer_closes_gate",
+      "initial_fetch_complete": true,
+      "local_announcements_acknowledged": true,
+      "peers": [
+        {
+          "id": "90000000-0000-4000-8000-0000000000a0",
+          "retired": false,
+          "capability": "matching"
+        },
+        {
+          "id": "90000000-0000-4000-8000-0000000000b0",
+          "retired": false,
+          "capability": "reader_only"
+        }
+      ],
+      "allowed": false
+    },
+    {
+      "name": "incomplete_roster",
+      "initial_fetch_complete": false,
+      "local_announcements_acknowledged": true,
+      "peers": [
+        {
+          "id": "90000000-0000-4000-8000-0000000000a0",
+          "retired": false,
+          "capability": "matching"
+        }
+      ],
+      "allowed": false
+    },
+    {
+      "name": "unacknowledged_local",
+      "initial_fetch_complete": true,
+      "local_announcements_acknowledged": false,
+      "peers": [
+        {
+          "id": "90000000-0000-4000-8000-0000000000a0",
+          "retired": false,
+          "capability": "matching"
+        }
+      ],
+      "allowed": false
+    }
+  ]
+}
