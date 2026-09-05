@@ -27,7 +27,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 `01a07314-fafd-7a91-a437-86af1e577625`, Sync in
 `01a07314-fcdd-7831-a259-ca32ec9a6e0e`. No ACK loop requested.
 
-## Latest material readback — 20:34 UTC
+## Latest material readback — 20:54 UTC
 
 - The user confirmed scope additions made directly in both owner sessions.
   Desktop owns workspace-local cookie/session isolation after its current
@@ -44,18 +44,28 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   and a second window, but native fullscreen hit a distinct CHECK in
   `CustomCornersBackground::Paint:277`; the overall journey remains RED.
   Its bounded correction is committed as `7de7fac`; clean derived source
-  `4cb622a` excludes Common/Swift WIP. Overlay31405 exited 0 and product-only
-  guarded build73875 is active. Coordinator observed the corrected object and
-  browser-library link complete, followed by live overlay-verification PID23687.
-  Do not infer terminal/sign/install/E2E success from that phase. Desktop owns
-  the next atomic install and repeat fullscreen journey; no tests are an install
-  prerequisite and no runtime lease is handed over. Live details are in
+  `4cb622a` excludes Common/Swift WIP. Overlay31405 and product-only build73875
+  completed successfully. Coordinator then verified the installed source and
+  receipt `artifacts/install/ahoi-dev-4cb622a-20260905T204104Z.json`, including
+  successful activation and executable hash
+  `55301ccbda32e32d3ee57420bd10adc3581b96a918047dbbb82815a56134770b`.
+  Desktop's 20:45/20:50 public E2E readback passed start, second window,
+  fullscreen in/out, navigation, close, Cmd+Q and restart. This is the owner's
+  visible result, separate from the coordinator's receipt readback. Arc import
+  has not executed (Arc remains running); the settings-menu UI connection is
+  still being checked. No full-browser or unified-Sync pass is implied.
+  No runtime lease was handed over. Live details are in
   `docs/ACTIVE_DESKTOP_CHECKPOINT.md` and `desktop-startup-guard-20260905` logs.
 - Sync continuation is `docs/UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md`
   (`3e9552f`): actual common service/capture and Mobile live binding remain next.
   Swift canonical-Golden assertions are now written but unexecuted; optional
   assertion expansion remains deferred. The same signed commit supplies the
   requested DCO follow-up without rewriting published history.
+- Coordinator observed repeated delayed 92694fe/SQL replies at 20:50–20:52 and
+  sent `01a07359-5e4f-7242-a33b-0b407858ba53`: no repeated old handoff checks;
+  continue the actual Service/capture/backend and Mobile binding work. ADR0010
+  remains fully in scope. This is execution steering, not a new role/freeze or
+  a claim that the missing B-D code handoff has arrived.
 
 ## Assignment and current acknowledgments
 
@@ -103,7 +113,7 @@ code/dependency handoff for its alias; no further A format/ownership ACK needed.
 B-D still await the actual service/getter/capture/backend implementation handoff;
 these interfaces alone are not working native behavior. Baseline work is separate.
 
-## Current evidence boundary
+## Historical evidence (superseded by the latest readback above)
 
 - Branch: `codex/desktop-core-feature-wave-20260830`.
 - Historical `30212` / `225df88` ended EXIT 1. Its five API diagnostics were
