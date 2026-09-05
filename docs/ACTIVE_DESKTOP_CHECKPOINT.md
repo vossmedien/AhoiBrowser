@@ -65,6 +65,20 @@ and default changes still require their concrete coordinated source integration.
 No further format-freeze question is needed for the independent 22e2f2b baseline.
 Desktop does not introduce Common schema or writer changes.
 
+Desktop explicitly accepts the newly requested Native package A-D in full:
+common target-type alias; SessionBridge/native Tree+Store stable temporary-tab
+identity and Save/Unsave; full `tab_tree_sync_adapter` projection; and Sidebar
+generation-bound complete/deferred capture plus preserving window detach.
+Exact owned file groups and native Store seams are in
+`docs/SHARED_TAB_NATIVE_SEAMS.md` under "Accepted Desktop-native implementation
+package A-D". No disjoint write scope is handed back; corresponding native tests
+and existing normal tree UI remain here. Shared Common C++ AND Swift belong to
+the unified Sync owner, coordinator read-only. Currently untracked common leaf
+headers are its WIP: wait for the actual finished code/signature handoff before
+native includes, not another conceptual format-freeze request. Ownership accepted
+does not mean implemented or tested. This upcoming package does not alter the
+separate baseline candidate/build, UI lease, or portal/key permissions.
+
 225df88 and the test-only 22e2f2b follow-up remain frozen UI/compile baselines,
 NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;

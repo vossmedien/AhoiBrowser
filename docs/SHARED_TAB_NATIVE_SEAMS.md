@@ -2,15 +2,16 @@
 
 Status: native seam proposal updated for the explicit fresh-data/single-format
 user decision of 2026-09-05. The app is not live/actively used. The target is one
-active format for every relevant, permitted entity on macOS/iOS, provisionally
-format 3 including Bookmark and Capability. No complex old-data migration,
+active format for every relevant, permitted entity on macOS/iOS: format 3 under
+ADR 0009 / `config/sync-format.json`, including Bookmark and Capability. No complex old-data migration,
 permanent v2/v3 coexistence or old-client support is required. Fresh isolated
 stores are used for the new matching-candidate acceptance; existing profiles,
 CloudKit data and keys must not be silently reset, deleted or rewritten.
 
 This decision supersedes the mixed-version/legacy-bootstrap parts of the earlier
-ADR 0008 / `09cae9f` proposal. The Sync owner supplies the simplified canonical
-format/field contract before new defaults are integrated. The identity, target,
+ADR 0008 / `09cae9f` proposal. The simplified canonical format/field contract is
+published as `1bfae11`; the Sync owner still supplies the finished common header/
+capture code before native includes or new defaults are integrated. The identity, target,
 capture and privacy invariants below remain required; this document introduces
 no wire fields or landed headers. The frozen 225df88 UI/compile baseline and
 its test-only correction 22e2f2b are not final unified-format acceptance.
@@ -23,8 +24,43 @@ its test-only correction 22e2f2b are not final unified-format acceptance.
 - Desktop owner: native Tree/Session/UI callers, `tab_tree_sync_adapter`,
   `session/shared_tab_target_policy.*`, shared checkout/build/install.
 - Matching Swift domain/wire/persistence/projection/UI/tests are coordinated
-  within the Sync implementation scope, not edited by Desktop. Current explicit
-  assignments are in `docs/ACTIVE_SYNC_COORDINATION.md`.
+  and implemented by the same unified Sync owner, not Desktop or the read-only
+  coordinator. Current explicit assignments are in `docs/ACTIVE_SYNC_COORDINATION.md`.
+
+## Accepted Desktop-native implementation package A-D
+
+Desktop `01a04f97-e3ba-70f2-a031-220b214d352d` explicitly accepts all four parts;
+no part is delegated back to the Sync owner. This is implementation ownership,
+not an implementation/test pass. Paths are relative to
+`overlay/chromium/src/ahoi/browser/`.
+
+| Part | Desktop-owned files/seams | Required result |
+| --- | --- | --- |
+| A | `session/shared_tab_target_policy.h` and its owned implementation/tests | Alias the completed common leaf target type; no competing enum or Common-to-Session dependency. |
+| B | `session/session_bridge.h`, `session_bridge.cc`, `session_bridge_runtime.cc`, `session_bridge_session.cc`, `session_bridge_observers.cc`; `tab_tree/tab_tree_model.h` and existing native Store seams | Stable global IDs for normal temporary tabs; Save/Unsave preserves identity; complete persistence/snapshot/undo/readback and native lifecycle handling. |
+| C | `sync/tab_tree_sync_adapter.{h,cc}` and owned adapter tests | Full current-format Tree/target projection into the existing normal tree UI; no device-only substitute, identity echo, focus stealing or eager loading. |
+| D | `ui/sidebar/browser_sidebar_host_device_tabs.cc`, `browser_sidebar_host_core.cc` and owned host/capture tests | Replace unqualified `PublishWindowTabs`/`RemoveWindowTabs` behavior with generation-bound complete/deferred capture; absent/detached windows never become global delete authority. |
+
+For B the existing native `tab_tree_store.{h,cc}`, `_internal.{h,cc}`,
+`_node_mutations.cc`, `_queries.cc`, `_snapshot.cc`, `_undo.cc`,
+`_duplicate_workspace.cc`, `_move_delete.cc`, `_workspace.cc` and `_validation.cc`
+remain Desktop-owned as needed, with `tab_tree_store_unittest.cc`. This is NOT
+the Common `sync_store.*` scope. The existing native tree controller/row/projection
+surface also stays with Desktop; no parallel tree UI is introduced.
+
+Existing adapter cases inside a Common-owned test file and `sync/BUILD.gn` are
+not implicitly transferred with C. Use a disjoint native test source and
+coordinate its Common GN registration, or obtain an exact test-hunk handoff;
+do not edit the unified owner's shared fixture in parallel.
+
+The unified owner retains Common C++/Golden/policy/schema and all matching Swift
+code. Currently untracked common leaf headers are WIP, not an include contract.
+Use only their finished explicit code handoff; do not reimplement their types or
+edit the common headers in parallel. Sequence: common format/goldens/fresh store,
+matching Swift, native/Mobile binding, then one coordinated candidate E2E/test
+wave. The separate 225df88/22e2f2b UI/compile baseline is not widened or restarted
+for this package reservation. Shared checkout/out/build/sign/install/native UI
+remain exclusively Desktop-owned; no new runtime/portal/key permission follows.
 
 `dc01cb5` is isolated native target-policy preparation, not a runtime caller or
 v3 capability announcement. During the later explicit header handoff, move its
