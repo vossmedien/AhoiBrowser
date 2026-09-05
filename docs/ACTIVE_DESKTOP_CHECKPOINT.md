@@ -74,7 +74,14 @@ Exact owned file groups and native Store seams are in
 package A-D". No disjoint write scope is handed back; corresponding native tests
 and existing normal tree UI remain here. Shared Common C++ AND Swift belong to
 the unified Sync owner, coordinator read-only. Common leaf/capture types are now
-committed and explicitly handed over as5885d01; Native A may use that exact code.
+committed and explicitly handed over as5885d01. Native A is now implemented in
+source906dac8: two aliases replace the duplicate Session enum/struct, and its
+GN target publicly depends only on `//ahoi/browser/sync:shared_tab_types`.
+Native policy behavior is unchanged. Shared headers/leaf were read back against
+5885d01; no Common WIP file was edited. Scoped diff, GN format and pinned
+clang-format with the actual Chromium style passed; no build/test or runtime
+claim. This source change is NOT in the frozen/installed4cb622a candidate and
+does not trigger another isolated Chromium build or checkout refresh.
 Actual Service/backend methods for B-D still require their concrete completed
 handoff, not another conceptual format-freeze or leaf-ownership request. Ownership accepted
 does not mean implemented or tested. This upcoming package does not alter the

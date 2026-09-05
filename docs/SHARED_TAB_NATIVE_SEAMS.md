@@ -10,10 +10,12 @@ CloudKit data and keys must not be silently reset, deleted or rewritten.
 
 This decision supersedes the mixed-version/legacy-bootstrap parts of the earlier
 ADR 0008 / `09cae9f` proposal. The simplified canonical format/field contract is
-published as `1bfae11`; the Sync owner still supplies the finished common header/
-capture code before native includes or new defaults are integrated. The identity, target,
+published as `1bfae11`; common target/capture value types and default-off UI
+bridge declarations are explicitly handed over as `5885d01`. The Sync owner
+still supplies the actual Service/backend capture implementation before runtime
+callers or new defaults are integrated. The identity, target,
 capture and privacy invariants below remain required; this document introduces
-no wire fields or landed headers. The frozen 225df88 UI/compile baseline and
+no additional wire fields. The frozen 225df88 UI/compile baseline and
 its test-only correction 22e2f2b are not final unified-format acceptance.
 
 ## Ownership and dependency direction
@@ -54,23 +56,37 @@ coordinate its Common GN registration, or obtain an exact test-hunk handoff;
 do not edit the unified owner's shared fixture in parallel.
 
 The unified owner retains Common C++/Golden/policy/schema and all matching Swift
-code. Currently untracked common leaf headers are WIP, not an include contract.
-Use only their finished explicit code handoff; do not reimplement their types or
-edit the common headers in parallel. Sequence: common format/goldens/fresh store,
+code. Use the five committed files from `5885d01` for the target/capture values
+and default-off UI bridge; subsequent Common WIP is not an include contract.
+Do not reimplement their types or edit common headers in parallel.
+Sequence: common format/goldens/fresh store,
 matching Swift, native/Mobile binding, then one coordinated candidate E2E/test
 wave. The separate 225df88/22e2f2b UI/compile baseline is not widened or restarted
 for this package reservation. Shared checkout/out/build/sign/install/native UI
 remain exclusively Desktop-owned; no new runtime/portal/key permission follows.
 
-`dc01cb5` is isolated native target-policy preparation, not a runtime caller or
-v3 capability announcement. During the later explicit header handoff, move its
-pure target value types to a common leaf header and preserve a native alias.
-The common layer must not depend on Session/UI or maintain a second target enum.
-Do not edit Desktop's policy files from the common-owner thread.
+`dc01cb5` introduced isolated native target policy, not a runtime caller or
+capability announcement. Desktop implementation `906dac8` now replaces its
+duplicate enum/struct with aliases of `ahoi::sync::SharedTabTargetKind` and
+`ahoi::sync::SharedTabTarget`, and adds the public dependency on
+`//ahoi/browser/sync:shared_tab_types` in the owned Session GN target.
+The four shared headers were read back unchanged from `5885d01`; its pure GN
+leaf is unchanged even though other Common GN sections are WIP. No Common file
+was edited. Native classification/validation/activation policy is unchanged.
+GN formatting, pinned clang-format with Chromium's actual style, and scoped
+diff checks passed. This is SOURCE-only A completion, not a compiled/live Sync
+pass. No checkout/out refresh, build, installation, capture override, generation
+publication or readiness activation occurred. B-D remain pending the genuine
+Service/backend implementation handoff; an old vector fallback is not allowed.
+The common layer must not depend on Session/UI. Do not edit Desktop's policy
+files from the common-owner thread.
 
 ## Requested native API
 
-The following are interface names/shapes, not landed declarations:
+The value-type/default-bridge subset below is landed in `5885d01`; the Service
+getter/Observer/publication and authority methods remain proposed shapes until
+their separate completed source handoff. Do not treat this document as their
+implementation:
 
 ```cpp
 // Add to LocalTabState; sync_id remains the separate Presence identity.
