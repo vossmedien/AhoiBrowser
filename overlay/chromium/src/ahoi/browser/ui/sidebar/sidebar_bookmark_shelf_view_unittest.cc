@@ -223,7 +223,7 @@ TEST_F(SidebarBookmarkShelfViewTest,
   }
   RunPendingModelUpdates();
   MountShelf();
-  auto *last_button = shelf_->bookmark_item_at_for_testing(11);
+  auto* last_button = shelf_->bookmark_item_at_for_testing(11);
   last_button->RequestFocus();
   views::test::RunScheduledLayout(widget_.get());
   ASSERT_EQ(last_button, widget_->GetFocusManager()->GetFocusedView());
