@@ -4,6 +4,15 @@ Authorized by the user on 2026-09-05. Continue the existing implementations on
 `codex/desktop-core-feature-wave-20260830`; do not restart or create competing
 branches, writers, transports or release paths.
 
+User priority clarification: working product first. Fix controllable startup/
+journey failures and finish integration, build the runnable app, then perform a
+short representative real E2E. Only afterward run the smallest meaningful
+programmatic checks. Do not delay that flow for additional fixtures, coverage,
+assertion audits or unrelated test binaries. Existing safety/provenance guards
+remain. Optional test-review work is deferred while the app/flow is still broken.
+Real external/hardware E2E gates permit bounded independent checks, not a
+prolonged test-only substitute for implementation.
+
 ## Objective
 
 Finish one coherent, active sync wire model for Desktop and Mobile, with matching

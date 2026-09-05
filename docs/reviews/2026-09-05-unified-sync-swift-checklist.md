@@ -72,6 +72,10 @@ by this review. No compiler, unit/integration/E2E test or host was started.
 
 ## Subsequent common-test review
 
+Execution priority: the user subsequently directed implementation/runnable
+candidate and visible E2E first. The optional assertion-review requests below
+are deferred until that product flow works; they are not a pre-E2E work package.
+
 The new C++ `sync_unified_serialization_unittest.cc` now reads the actual
 canonical file, verifies its hash/26 cases, asserts all 13 entity types and
 compares exact reserialized payload bytes. Mobile `project.yml` also includes

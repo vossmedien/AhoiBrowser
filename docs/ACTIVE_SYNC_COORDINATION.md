@@ -5,6 +5,19 @@ Registered goal: joint sync-model integration and candidate-bound acceptance.
 Contract: `outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` plus ADR 0009,
 retaining the domain/privacy contracts of ADR 0006/7/8 where not superseded.
 
+## Immediate user priority: working app before test expansion
+
+The user explicitly renewed this order: implement/fix -> runnable candidate ->
+short real visible E2E -> only necessary focused programmatic tests. The global
+`/Users/vossmedien/.codex/AGENTS.md` now makes this mandatory. Do not start more
+test-matrix, fixture, coverage or assertion-review work while a controllable
+startup/product failure or unfinished integration is the next action.
+Optional coordinator test-review requests (including `01a0730e`) are deferred
+until working integration/E2E. Preserve existing code/evidence and essential
+safety checks; no warning suppression or false pass. Desktop was notified in
+`01a07314-fafd-7a91-a437-86af1e577625`, Sync in
+`01a07314-fcdd-7831-a259-ca32ec9a6e0e`. No ACK loop requested.
+
 ## Assignment and current acknowledgments
 
 The user explicitly approved one unified Sync implementation owner while the
