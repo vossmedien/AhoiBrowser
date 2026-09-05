@@ -36,71 +36,60 @@ subject to fresh CPU and live-state checks. Do not retain a stale runtime block
 or repeat the grants/acknowledgements. New Mobile My-Mac work needs a fresh
 explicit slot once its exact host is ready.
 
-## Owned combined correction package — not yet built
+## Owned combined correction package — live build
 
-**Current phase:** Desktop corrections `ef0f965` + `96b5a2f` + `6bd3b70` are
-committed. Bookmark source `c28ec4a` is now explicitly frozen and handed off in
-`2210446` / queue `01a0718c-6641-7821-837f-7190f517ad0d`; its 60-file manifest
-is `docs/audit-evidence/2026-09-05-native-bookmark-sync-source.md`. Desktop
-accepts that integration handoff. Guarded overlay session `62030` completed
-Exit 0 with the full checkout delta verified. The ONE combined guarded Dev
-build `90068` is now TERMINAL EXIT 1 (confirmed 2026-09-05 13:57:30 UTC), from
-clean source `dc01cb5`, after collecting all independent compile errors with
-`AHOI_NINJA_KEEP_GOING=1`. All listed targets were requested, not all produced.
-Complete failure report and log hashes:
-`artifacts/build/desktop-combined-dc01cb5-20260905/README.md`. Log:
-`artifacts/build/desktop-combined-dc01cb5-20260905/build.log`.
-No test execution or install has occurred for this candidate. Common v3 writers
-remain off. No successful new build/signing receipt exists; outputs are partial.
+**Current phase, 2026-09-05 16:19 UTC:** the existing clean detached snapshot
+`/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
+`225df88f4e6dbe692390f52b8687b653541723ac`. Guarded overlay session `54118` is
+TERMINAL EXIT 0 with the full checkout delta verified. ONE combined guarded
+incremental Dev correction build is RUNNING as session `30212`, using the
+existing shared `.work/chromium/src/out/AhoiDev` outputs. Do not start it again
+or change that snapshot/shared checkout before it is terminal. Canonical logs:
+`artifacts/build/desktop-correction-225df88-20260905/{overlay.log,build.log}`.
+The same complete target set below is requested, including `ahoi_sync_unittests`
+and `ahoi_sidebar_tree_unittests`, with `AHOI_NINJA_KEEP_GOING=1`. No tests have
+run, and no successful new build/sign/install receipt exists yet. Installed
+bundle remains `3d413ef`; common v3 writers remain off.
 
-The terminal `-k0` graph has exactly four primary compile causes: GURL `scheme()`
-returns string_view (owned explicit-copy fix committed in `1ea90da`, NOT in the
-running snapshot); unsafe literal indexing in `bookmark_sync_bridge_types.cc`;
-a capturing BindOnce lambda in `cloudkit_sync_provider_mac_consent.mm`; and
-`bookmark_weak_ptr_factory_` placed before non-factory members in
-`profile_sync_service.h`. The latter causes many duplicate downstream errors.
-Final common-source feedback is sent to Bookmark in
-`01a071df-73b7-7f33-8bbe-cc062bde2ae9`: it must hand over the three corrections
-as one commit or explicitly release those three files for bounded Desktop fixes.
-No source ownership is inferred from idle PIDs. Reuse cached objects after the
-approved complete correction package; no per-error restart, in-place checkout
-edit, test execution or stale-receipt acceptance. Both dependency workarounds
-were independently verified restored to their original hashes and clean paths.
+This exact source includes Desktop corrections `ef0f965`, `96b5a2f`, `6bd3b70`,
+the native target-policy test preparation `dc01cb5` and its explicit string-copy
+fix `1ea90da`, plus the explicitly handed-over Bookmark package `c28ec4a`.
+The common compiler-only fix `3035529` and the separate 25-file effective-consent
+freeze `225df88` are now integrated. No source-freeze wait remains, no WIP was
+integrated, and no intermediate 303-only build was started. The old three-file
+proposal in `artifacts/build/desktop-combined-dc01cb5-20260905/` is historical
+evidence of the already-landed 303 correction; NEVER apply it again.
 
-An unapplied minimal three-file proposal is retained and main-reviewed at
-`artifacts/build/desktop-combined-dc01cb5-20260905/bookmark-compile-fixes.proposed.patch`.
-`git apply --check` passed against the then-unchanged c28ec4a source. A newer
-live readback now shows Bookmark-owned provider/backend/bridge WIP in the
-canonical root. Do not apply that proposal over those changes or integrate them
-before a committed handoff. This is not a second active patch stack or an
-implemented fix; remove/retire the proposal after the real correction is integrated.
+Consent correction manifest and limits:
+`docs/audit-evidence/2026-09-05-bookmark-consent-generation-fix.md`; explicit
+handoff `01a07231-8c67-79e2-b983-2e38c5a2e2f8`. Original authority is rechecked
+at journal commit, native projection/ACK and after the provider-to-pump task
+hop; reapproval does not revive older replies. The nine added regression cases
+are source-only, NOT passes. The previously observed race is source-fixed but
+runtime/cross-account acceptance remains open. No network-leak claim or
+wire/schema/policy-default change is implied.
 
-The existing clean snapshot is selected at `dc01cb5` (including the committed
-Bookmark package and native target-policy test preparation); the shared Chromium
-source is refreshed to it. Build outputs are partial and must not be called
-a candidate until a new build receipt succeeds. Installed bundle remains
-`3d413ef`; plist and executable SHA were rechecked after the failed run.
-A bounded integration review found a separate live-account/consent race:
-provider revocation is immediate, while local Bookmark backend/projection
-methods can still use their cached approval until a later status reply. Provider
-upload/decryption are separately protected; no network leak is claimed.
-Bookmark owns the requested effective-gate/late-reply assessment/correction
-(`01a0719b-0215-7cf0-947d-3696483fe29d`). The subsequent explicit user build
-handoff of `c28ec4a` authorizes compiling the frozen candidate now; that does not
-resolve or accept this separate issue. Keep it open for candidate acceptance,
-not as a missing source handoff. Do not claim a passing cross-account journey.
+Historical combined build `90068` / source `dc01cb5` is TERMINAL EXIT 1,
+confirmed 13:57:30 UTC; do not resume or reinstall from its partial outputs.
+Its four primary compiler causes are all addressed by 1ea90da + 3035529 in the
+current snapshot. Failure report, full log and hashes are preserved in
+`artifacts/build/desktop-combined-dc01cb5-20260905/README.md`. Both temporary
+dependency workarounds were independently verified restored after that failure.
 
-Current start gate (2026-09-05 13:03 UTC): FillIt Blender PID `10906`, parent
-`51136`, was independently identified by command AND cwd as the six-thread
-`Lagoon420/source-02` data bake. Samples were 258.2% and 204.4% CPU, so no
-intensive overlay/build phase was started. It is untouched; owner was notified
-without asking it to stop or pause (`01a071aa-8b32-7b21-b6a7-f3ab85f3b2ca`).
-The CPU gate subsequently cleared: PID `10906` ended; a later whole-system
-check found no competing build tree over 80%. The briefly observed DisplayPilot
-swift-test had also ended before compiler start; high mediaanalysisd CPU is OS
-background work, not a foreign build. Pre-build free space 90,377,408 KiB is
-above the incremental 64-GiB recommendation, below the 120-GiB roll floor.
-No foreign process was stopped, paused or reprioritized. Pin stays .65.
+Fresh CPU gate immediately before the correction build found no competing
+build/compiler process tree over 80%. The prior FillIt bakes and Shopify Next
+build are terminal; high OS PerfPowerServicesSignpostReader CPU is not a foreign
+build. Pre-build free space was 89,299,708 KiB (85.2 GiB), above the incremental
+64-GiB recommendation and below the 120-GiB roll floor. The installed Ahoi app
+is closed; no foreign process was stopped or reprioritized. Pin stays .65.
+Bookmark/Mobile build notifications:
+`01a0725e-88d3-7e72-97a3-460cbfe3acc4` /
+`01a0725e-890b-7500-b3a9-cb76a9eb7f07`. No new runtime slot was granted.
+
+Continuous workspace gesture preview/cancel is still open: a bounded helper
+failed at model capacity and changed none of its seven reserved navigation
+files. No gesture correction is part of 225df88; do not count source exploration
+as implementation or acceptance.
 
 A fresh visible baseline attempt exposed sustained native CPU and UI timeouts.
 The bounded follow-up now adds patch `0033`: unchanged computed sidebar margins
@@ -129,11 +118,11 @@ It keeps the backup and performs no automatic discovery/import retry. The real
 Default-profile failed journal/backup have not been changed. The installed app
 was quit normally with Cmd+Q after the terminal failure; no force-kill.
 
-Desktop is preparing the user's normal workspace-folder motion corrections in
+The current snapshot includes the user's normal workspace-folder corrections in
 `sidebar_tree_view.{h,cc}`, `_projection.cc`, `_navigation.cc` and the focused
-`_interaction_unittest.cc`. These are canonical overlay edits only; the shared
-checkout and installed `3d413ef` are unchanged. The temporary Mobile runtime
-window has ended; recheck CPU before the next intensive phase.
+`_interaction_unittest.cc`. They are tracked overlay changes, now integrated in
+the shared checkout but not the installed `3d413ef`. The temporary Mobile
+runtime window has ended; recheck CPU before each new intensive phase.
 
 Prepared source captures the current interpolated height before resetting a
 reversed animation, computes split clips from the current materialized group
@@ -169,9 +158,9 @@ No cover pixels or extra animation architecture. Unit/native regression source
 is prepared; the screenshot's exact cause remains unproven until visible E2E.
 
 It also includes the canonical Arc merge and native receipt focus corrections
-from the fresh runtime failure described below. Include all related targets in
-one build plus `ahoi_sync_unittests`; do not integrate the bookmark owner's
-uncommitted common Sync WIP. Use the existing clean snapshot after owned commit.
+from the runtime failure described below. All related targets plus
+`ahoi_sync_unittests` are in the current combined build. Only the explicitly
+committed freezes are integrated; any subsequent owner WIP stays outside it.
 
 The subsequently renewed, one-attempt Mobile My-Mac slot was also explicitly
 returned. Session `84564` / PID `88055` ended Exit 65 before a test body: missing
@@ -192,8 +181,8 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   Bundle tree SHA-256:
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
-  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at source `dc01cb5` for
-  the pending next package, not a new built/installed candidate. It shares
+  `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at source `225df88` for
+  running build `30212`, not a new built/installed candidate yet. It shares
   `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
@@ -321,17 +310,15 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Select the complete committed Desktop package through `6bd3b70`, the explicit
-   Bookmark freeze `c28ec4a` and owned target-policy test preparation in the
-   existing clean snapshot. The Bookmark handoff is received, not an open wait.
-   No WIP integration or competing build.
-   Snapshot/overlay are at `dc01cb5`; build `90068` is terminal Exit 1. Obtain
-   the three Bookmark compile corrections or explicit limited handoff, combine
-   with owned fix `1ea90da`, then advance the snapshot and guarded incremental
-   build after a new CPU/disk gate. No unchanged re-run. A different FillIt data
-   bake `57077` was active at terminal readback; the old 12:34 sample is stale.
-   Keep the consent-race issue separate until owner disposition/fix and tests.
-   Recheck all-project CPU ownership and disk before intensive work.
+1. Resume live correction build session `30212`, not terminal old build `90068`.
+   Snapshot/overlay are at exact `225df88`; compiler-only `3035529`, owned
+   `1ea90da`, and the renewed consent freeze are already integrated. There is
+   no source-handoff wait. Keep snapshot/checkout immutable until terminal;
+   gather independent compiler causes without per-error restarts. A successful
+   complete build receipt is required before installation. Preserve both logs,
+   bind the final receipt and recheck CPU/process/disk gates before the next
+   intensive phase. Old FillIt 10906/57077 and Shopify build samples are history,
+   not current blockers. Consent regression/runtime acceptance is still open.
 2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
    those old commands for delayed messages. Its built targets were
    `ahoi_tab_tree_unittests`, `ahoi_session_unittests`,
@@ -339,9 +326,9 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    `ahoi_arc_import_browsertests`, `ahoi_sidebar_tree_unittests`,
    `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
    `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
-   The next combined guarded build includes those relevant targets, the missing
+   The running combined guarded build includes those relevant targets, the missing
    `ahoi_sync_unittests`, `ahoi_navigation_surface_state_unittests` and
-   `ahoi_floating_browser_view_browsertests`, after the new source handoff.
+   `ahoi_floating_browser_view_browsertests` from the complete new source handoff.
 3. `3d413ef` remains installed and its failed import must not be retried.
    Once the corrected candidate is built/installed and UI is usable, explicitly
    recover the exact failed transaction through the verified-backup UI first.
