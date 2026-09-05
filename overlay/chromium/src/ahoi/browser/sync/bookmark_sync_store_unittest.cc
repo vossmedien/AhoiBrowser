@@ -10,6 +10,7 @@
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/strings/cstring_view.h"
 #include "base/strings/stringprintf.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
@@ -61,7 +62,7 @@ SyncChange ChangeFor(const SyncRecord& record, const char* mutation_id) {
       .payload = std::move(payload)};
 }
 
-Rows ReadRows(sql::Database& database, const char* query) {
+Rows ReadRows(sql::Database& database, base::cstring_view query) {
   sql::Statement statement(database.GetUniqueStatement(query));
   Rows rows;
   while (statement.Step()) {

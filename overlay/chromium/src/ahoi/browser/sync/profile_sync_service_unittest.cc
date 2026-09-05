@@ -25,6 +25,7 @@
 #include "content/public/test/browser_task_environment.h"
 #include "sql/database.h"
 #include "sql/statement.h"
+#include "sql/test/test_helpers.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/base/page_transition_types.h"
 #include "url/gurl.h"
@@ -104,7 +105,7 @@ std::optional<int> QueryCount(sql::Database* database,
 }
 
 std::optional<StoreCounts> ReadStoreCounts(const base::FilePath& path) {
-  sql::Database database;
+  sql::Database database(sql::test::kTestTag);
   if (!database.Open(path)) {
     return std::nullopt;
   }
@@ -137,7 +138,7 @@ std::optional<int> ReadActiveRecordPayloadCount(
     const base::FilePath& path,
     EntityType entity_type,
     const std::string& payload_fragment) {
-  sql::Database database;
+  sql::Database database(sql::test::kTestTag);
   if (!database.Open(path)) {
     return std::nullopt;
   }

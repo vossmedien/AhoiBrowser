@@ -1,6 +1,7 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -22,6 +23,7 @@
 #include "base/files/scoped_temp_dir.h"
 #include "base/functional/bind.h"
 #include "base/run_loop.h"
+#include "base/strings/cstring_view.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service.h"
@@ -194,11 +196,12 @@ class BookmarkSyncAuthorizationTest : public testing::Test {
     DurableState result;
     // Include native baselines and receipt plans, not only wire records: a
     // refused ACK/read must not silently mutate that local journal either.
-    for (const char* query :
-         {"SELECT * FROM sync_records ORDER BY entity_type,entity_id",
-          "SELECT * FROM sync_outbox ORDER BY mutation_id",
-          "SELECT * FROM sync_bookmark_bindings ORDER BY native_key",
-          "SELECT * FROM sync_bookmark_apply_receipts ORDER BY receipt_id"}) {
+    constexpr std::array<base::cstring_view, 4> kQueries = {
+        "SELECT * FROM sync_records ORDER BY entity_type,entity_id",
+        "SELECT * FROM sync_outbox ORDER BY mutation_id",
+        "SELECT * FROM sync_bookmark_bindings ORDER BY native_key",
+        "SELECT * FROM sync_bookmark_apply_receipts ORDER BY receipt_id"};
+    for (base::cstring_view query : kQueries) {
       sql::Statement statement(store.db_.GetUniqueStatement(query));
       Rows rows;
       while (statement.Step()) {
