@@ -37,6 +37,19 @@ supersedes migration/legacy-reader work in the initial coordination wording.
 
 Queued messages are not acknowledgments. Terminal/PID observations are not leases.
 
+## Concrete native integration boundary
+
+The unified owner has named its native needs: the `shared_tab_target_policy.h`
+alias; SessionBridge core/runtime/session/observers; `tab_tree_sync_adapter`;
+TabTree model/persistence for global temporary IDs; sidebar host core/device-tabs
+capture and close handling. These paths were checked against Desktop ownership
+and showed no conflicting WIP in the readback. They remain Desktop-owned.
+Planning message `01a072d7-225c-7492-8132-49b00510639d` asks which parts Desktop
+will implement after the current browser package versus explicitly hand off.
+No file ownership was transferred by listing them. Implementation requires the
+unified owner's concrete committed common-header/seam handoff, not current WIP.
+This planning is independent of the bounded compiler-fixture correction.
+
 ## Current evidence boundary
 
 - Branch: `codex/desktop-core-feature-wave-20260830`.
