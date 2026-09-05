@@ -66,6 +66,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   continue the actual Service/capture/backend and Mobile binding work. ADR0010
   remains fully in scope. This is execution steering, not a new role/freeze or
   a claim that the missing B-D code handoff has arrived.
+- A fresh read-only installed-profile inventory decoded all 9 profiles under
+  `/Users/vossmedien/Library/Developer/Xcode/UserData/Provisioning Profiles`.
+  The two Ahoi matches (`bbf658ff-10e4-4768-8cac-de5787ab5e78.mobileprovision`,
+  Development; `6deb44ce-7b3e-4db1-8b72-482a8daf6ee1.mobileprovision`, Store)
+  carry team248AJ5BN47 and the intended CloudKit container, but list only
+  iOS/xrOS/visionOS, not native macOS. The second standard MobileDevice profile
+  directory is absent. This does NOT prove absence in the portal/other paths;
+  a compatible native Mac profile remains unproven. No profile/key/portal/runtime
+  change. Metadata-only handoffs: Desktop `01a0735f-6ae7-77d2-b537-28bf9bcb64e7`,
+  Sync `01a0735f-6b71-7b02-a11d-54a9084a5564`. Do not stop source integration
+  for this later candidate gate or substitute the iOS profile for a Mac profile.
 
 ## Assignment and current acknowledgments
 
