@@ -17,7 +17,7 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
  #include "chrome/browser/ui/views/frame/custom_floating_corner.h"
  #include "chrome/browser/ui/views/frame/horizontal_tab_strip_region_view.h"
  #include "chrome/browser/ui/views/frame/layout/browser_view_layout.h"
-@@ -1296,7 +1297,38 @@
+@@ -1296,7 +1297,41 @@
          std::make_unique<ahoi::NavigationSurfaceController>(
              this, top_container_, toolbar_,
              l10n_util::GetStringUTF16(IDS_AHOI_REVEAL_NAVIGATION),
@@ -26,7 +26,10 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
 +            base::BindRepeating(
 +                [](base::WeakPtr<BrowserView> view,
 +                   const ahoi::appearance::SurfaceAppearance& surface) {
-+                  if (!view || !view->toolbar_ || view->IsFullscreen()) {
++                  // Construction and teardown can lack widget ownership.
++                  // The controller replays its saved material after layout.
++                  if (!view || !view->toolbar_ || !view->GetWidget() ||
++                      !view->browser_widget() || view->IsFullscreen()) {
 +                    return;
 +                  }
 +                  auto* const painter = view->toolbar_->background();

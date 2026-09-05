@@ -510,6 +510,64 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
 }
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
+                       AhoiNewWindowReplaysMaterialAfterWidgetAttachment) {
+  // Creating a real second browser exercises the production BrowserView
+  // constructor callback before its native widget and toolbar painter exist.
+  // Do not repair appearance by changing a preference/mode or manually calling
+  // layout before verifying the initial, naturally attached presentation.
+  Browser* const created_browser = CreateBrowser(browser()->GetProfile());
+  ASSERT_TRUE(created_browser);
+  BrowserView& view = created_browser->GetBrowserView();
+  ASSERT_TRUE(view.IsAhoiBrowserSurface());
+  ASSERT_TRUE(view.GetWidget());
+  ASSERT_TRUE(view.browser_widget());
+  ASSERT_FALSE(view.IsFullscreen());
+  ToolbarView* const toolbar = view.toolbar();
+  ASSERT_TRUE(toolbar);
+  ASSERT_TRUE(toolbar->background());
+  auto* const background =
+      toolbar->background()->AsA<CustomCornersBackground>();
+  ASSERT_TRUE(background);
+  ASSERT_TRUE(toolbar->layer());
+  const auto* const border = toolbar->GetBorder();
+  ahoi::appearance::AppearanceRuntimeSignalSource signals(
+      created_browser->GetProfile()->GetPrefs(), {});
+  const auto expect_material = [&]() {
+    const auto surface = ahoi::appearance::AppearanceResolver::Resolve(
+        ahoi::appearance::SurfaceRole::kFloatingNavigation, signals.policy());
+    EXPECT_EQ(background, toolbar->background());
+    EXPECT_EQ(border, toolbar->GetBorder());
+    EXPECT_EQ(CustomCornersBackground::ColorChoiceWithAlpha(
+                  surface.background_color, surface.opacity),
+              background->primary_color());
+    ASSERT_TRUE(background->GetRoundedCornerRadii());
+    EXPECT_EQ(gfx::RoundedCornersF(surface.corner_radius),
+              *background->GetRoundedCornerRadii());
+    EXPECT_EQ(gfx::RoundedCornersF(surface.corner_radius),
+              toolbar->layer()->rounded_corner_radii());
+    EXPECT_FALSE(toolbar->layer()->fills_bounds_opaquely());
+    EXPECT_FLOAT_EQ(surface.background_blur_sigma,
+                    toolbar->layer()->background_blur());
+  };
+  expect_material();
+
+#if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_MAC)
+  ui_test_utils::ToggleFullscreenModeAndWait(created_browser);
+  ASSERT_TRUE(view.IsFullscreen());
+  EXPECT_EQ(background, toolbar->background());
+  EXPECT_TRUE(toolbar->layer()->rounded_corner_radii().IsEmpty());
+  EXPECT_FLOAT_EQ(0.0f, toolbar->layer()->background_blur());
+  ui_test_utils::ToggleFullscreenModeAndWait(created_browser);
+  ASSERT_FALSE(view.IsFullscreen());
+  expect_material();
+#endif
+
+  // The same callback must also remain harmless while BrowserView clears its
+  // widget ownership during native destruction.
+  CloseBrowserSynchronously(created_browser);
+}
+
+IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiNavigationMaterialPreservesNativeBackground) {
   BrowserView& browser_view = browser()->GetBrowserView();
   ToolbarView* const toolbar = browser_view.toolbar();
