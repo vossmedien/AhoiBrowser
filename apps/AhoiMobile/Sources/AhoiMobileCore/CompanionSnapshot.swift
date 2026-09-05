@@ -36,27 +36,6 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         self.bookmarks = bookmarks
     }
 
-    private enum CodingKeys: String, CodingKey {
-        case devices, workspaces, treeNodes, sessions, remoteTabs, history, productRecords, bookmarks
-    }
-
-    public init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        let bookmarks = values.contains(.bookmarks)
-            ? try values.decode([BookmarkRecord].self, forKey: .bookmarks) : []
-        self.init(
-            devices: try values.decode([Device].self, forKey: .devices),
-            workspaces: try values.decode([Workspace].self, forKey: .workspaces),
-            treeNodes: try values.decode([TreeNode].self, forKey: .treeNodes),
-            sessions: try values.decode([DeviceSession].self, forKey: .sessions),
-            remoteTabs: try values.decode([RemoteTab].self, forKey: .remoteTabs),
-            history: try values.decode([HistoryVisit].self, forKey: .history),
-            productRecords: try values.decode(CompanionProductSnapshot.self, forKey: .productRecords),
-            bookmarks: bookmarks
-        )
-        try CompanionBookmarkHierarchy.validate(bookmarks)
-    }
-
     public static let empty = Self()
 
     public var visibleWorkspaces: [Workspace] {

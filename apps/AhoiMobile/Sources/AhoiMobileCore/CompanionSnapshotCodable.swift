@@ -10,10 +10,13 @@ extension CompanionSnapshot {
         case remoteTabs
         case history
         case productRecords
+        case bookmarks
     }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
+        let bookmarks = values.contains(.bookmarks)
+            ? try values.decode([BookmarkRecord].self, forKey: .bookmarks) : []
         self.init(
             devices: try values.decodeIfPresent([Device].self, forKey: .devices) ?? [],
             workspaces: try values.decodeIfPresent([Workspace].self, forKey: .workspaces) ?? [],
@@ -24,8 +27,10 @@ extension CompanionSnapshot {
             productRecords: try values.decodeIfPresent(
                 CompanionProductSnapshot.self,
                 forKey: .productRecords
-            ) ?? .empty
+            ) ?? .empty,
+            bookmarks: bookmarks
         )
+        try CompanionBookmarkHierarchy.validate(bookmarks)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -37,5 +42,6 @@ extension CompanionSnapshot {
         try values.encode(remoteTabs, forKey: .remoteTabs)
         try values.encode(history, forKey: .history)
         try values.encode(productRecords, forKey: .productRecords)
+        try values.encode(bookmarks, forKey: .bookmarks)
     }
 }
