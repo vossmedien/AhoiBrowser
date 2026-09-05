@@ -73,9 +73,10 @@ Exact owned file groups and native Store seams are in
 `docs/SHARED_TAB_NATIVE_SEAMS.md` under "Accepted Desktop-native implementation
 package A-D". No disjoint write scope is handed back; corresponding native tests
 and existing normal tree UI remain here. Shared Common C++ AND Swift belong to
-the unified Sync owner, coordinator read-only. Currently untracked common leaf
-headers are its WIP: wait for the actual finished code/signature handoff before
-native includes, not another conceptual format-freeze request. Ownership accepted
+the unified Sync owner, coordinator read-only. Common leaf/capture types are now
+committed and explicitly handed over as5885d01; Native A may use that exact code.
+Actual Service/backend methods for B-D still require their concrete completed
+handoff, not another conceptual format-freeze or leaf-ownership request. Ownership accepted
 does not mean implemented or tested. This upcoming package does not alter the
 separate baseline candidate/build, UI lease, or portal/key permissions.
 
@@ -84,16 +85,41 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: startup fixed, fullscreen correction next
+## Current candidate: 4cb622a installed; startup/fullscreen journey passed
 
-**Current action:** corrected4cb622a product build73875 is TERMINAL EXIT0 and
-signed. Installation has NOT started: fresh20:37–20:38UTC CPU samples identify
-FillIt Unity18495/Parent51136, OpenSavedPlayablePreview/party-progression-02.log,
-at118.7–119.6%. Owner was asked for a natural quiet phase in
-01a0734b-0fe9-7423-a6dd-76fbcaf8c310; no foreign process was touched. Recheck
-the live CPU/process gate before the canonical installer, do not rebuild.
+**Current action:** product build73875 and atomic installer77504 are TERMINAL
+EXIT0. Installed4cb622a is source/executable/tree matched to the signed build.
+Receipt `artifacts/install/ahoi-dev-4cb622a-20260905T204104Z.json`, SHA256
+`fcbc1b682c5d0ef3811aabab567c91680d70e3686f7dd0b6a489dd1c5ce0d6ae`.
+Real native CUA: launch/crash-session restore, new window, native fullscreen
+entry/exit, Command Bar navigation to example.com, toolbar reveal, regular close
+of the own test window, Cmd+Q and clean relaunch/continue all passed. The normal
+startup choice, not a new crash-restore warning, appeared after Cmd+Q. Do not
+rebuild or continue an old startup/CPU/source blocker. Relevant programmatic
+regressions have not yet run/rebuilt for4cb; existing test executables were not
+part of this product-only build.
 
-Currently installed c986090 build59738 and atomic install3416 are TERMINAL
+The standard Settings import link opened the actual importer. It correctly
+displayed "Arc vor dem Import schließen" and no Zen; the three available Firefox
+category checkboxes were aligned. Cancelled; NO Firefox/Arc import or failed-
+journal recovery ran. This is not a pass for all five Arc checkbox rows or the
+real Arc transaction. Native File/Bookmarks menus did not expose an import item.
+
+After navigating to Ahoi Settings, CUA returned only the Settings sidebar menu
+and "Screenshot unavailable". Tab/Cmd+L/Cancel and one own JS reset did not
+expose its body. Browser PID39926 remained live/idle and no new crash report
+appeared; do not label this a proven product crash/hang. Subsequent Cmd+Q worked
+and PID39926 disappeared. App is now closed normally; no transaction started.
+Next: resume the preserved Arc recovery UI on this SAME candidate with a fresh
+native-window binding. Keep real Arc import gated until Arc is closed normally.
+If UI capture stays unavailable, record that precise boundary and run only
+meaningful independent focused checks, not another app rebuild.
+
+The earlier FillIt Unity18495 samples are historical; the fresh20:41UTC overall
+gate cleared before installation. No foreign process was touched. Desktop still
+owns UI/checkout/out; no new slot granted.
+
+Historical c986090 build59738 and atomic install3416 are TERMINAL
 EXIT0. Build/install receipts match source, executable and full bundle tree.
 Visible CUA launch, session continuation and a second browser window succeeded.
 The subsequent green window-button/fullscreen action crashed with SIGABRT:
@@ -101,8 +127,8 @@ CustomCornersBackground::Paint checks that its layer is not marked as entirely
 opaque. NavigationSurfaceController's fullscreen material wrongly set that
 coverage flag. This is a new concrete product failure, not the old startup null
 dereference or a tool-only failure. No import/recovery or programmatic test ran.
-Fix that flag in its owning controller, then product build/install and the same
-short visible journey first; do not expand test matrices while UI is red.
+The owning-controller correction and repeated visible journey are now complete
+as described above; this historical red is not the current candidate status.
 Detailed safe evidence and crash hashes:
 `artifacts/build/desktop-startup-guard-20260905/README.md`.
 
@@ -123,7 +149,7 @@ and verified incremental `artifacts/build/desktop-startup-guard-20260905/source.
 Guarded overlay5741, build59738 and installer3416 all completed EXIT0.
 Receipts `artifacts/build/ahoi-dev-build-c986090d99c2.json` and
 `artifacts/install/ahoi-dev-c986090-20260905T201925Z.json` are retained unchanged.
-The installed Info.plist confirms c986090. The older926 and3d bundles remain
+Those receipts confirm the earlier c986090 candidate. The older bundles remain
 at their installer-recorded rollback paths; no rollback or profile reset ran.
 
 The six-line fullscreen correction is canonical7de7fac (one product source,

@@ -1,6 +1,41 @@
 # Startup/fullscreen failures and exact isolated corrections
 
-## Current result: c986090 starts, fullscreen is red
+## Latest acceptance: installed4cb622a short native journey passed
+
+Build73875 / installer77504: terminal EXIT0. After the old Unity process ended
+naturally, a fresh complete CPU/process gate cleared at20:41UTC. No rebuild.
+Receipt `artifacts/install/ahoi-dev-4cb622a-20260905T204104Z.json`, SHA256
+`fcbc1b682c5d0ef3811aabab567c91680d70e3686f7dd0b6a489dd1c5ce0d6ae`.
+Source/executable/tree equal the build receipt and installed plist. Full tree:
+`d795fa7d5f7f7506a4b3c95004eb750dfcccd7ade47bbaa09da67408142cb6e7`.
+RENAME_SWAP, process quiescence and post-install verification true; priorc986
+retained at the receipt's exact rollback path.
+
+Native CUA visibly exercised the exact installed candidate: launch and prior
+crash-session restore, Cmd+N, native green window button into fullscreen,
+Ctrl+Cmd+F back, Cmd+L/Command Bar navigation to example.com, reveal of the
+rounded toolbar, ordinary close of only the own test window, Cmd+Q, fresh
+launch and Continue. The normal startup-choice prompt, not a crash warning,
+appeared after quitting. The NTP/sidebar rendered afterward. These observations
+and screenshots are in the native CUA transcript; no screenshot of personal
+shortcuts/history is published. No new crash report appeared in the readback.
+This is a bounded startup/fullscreen/close/restart PASS, not whole-product E2E.
+
+The standard Settings import link opened the actual importer with the running
+Arc warning and unavailable-Zen note. The three offered Firefox checkboxes
+were visibly aligned; no five-row Arc/UI-import pass is claimed. Cancelled
+without starting an import. Navigating to Ahoi Settings then left CUA reporting
+only its sidebar menu and no screenshot. One JS reset and exposed Cancel did
+not resolve it. Native PID39926 was live/idle, not a demonstrated product hang;
+Cmd+Q subsequently terminated it normally. No Arc journal/backup/recovery action
+ran. Resume that UI on the same4cb candidate; preserve the failed transaction.
+
+Product-only build: focused browser/controller regression executables have not
+been rebuilt/run against4cb. No unit, integration, sync or broad-suite pass is
+claimed. Workspace website-session isolation and unified Sync remain separate
+unimplemented/unaccepted work, with their existing owners.
+
+## Historical result: c986090 starts, fullscreen is red
 
 Guarded c986090 build59738 and installer3416 both exited0. Build receipt
 `artifacts/build/ahoi-dev-build-c986090d99c2.json`, SHA256
