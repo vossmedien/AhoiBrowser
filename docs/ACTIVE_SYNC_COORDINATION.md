@@ -61,8 +61,13 @@ not another conceptual format or ownership ACK. Baseline compiler work is separa
   unchanged, no warning suppression or unified-format WIP. Desktop received
   concrete continuation message `01a072e3-ba51-7293-a596-0ec6a2938f52` after its
   blocked report. The existing cached snapshot/build should continue only with
-  that bounded fix and a fresh CPU gate; actual restart/resumed-goal evidence
-  is still pending, not inferred from this message.
+  that bounded fix and a fresh CPU gate. Desktop subsequently accepted the
+  resolved blocker in `82c4074`, selected the clean `92694fe` snapshot and
+  started overlay `60701` after the 18:52 UTC gate cleared. Coordinator then
+  directly observed its live guarded Dev wrapper (PIDs 94538/94819) doing
+  overlay verification, logging to
+  `artifacts/build/desktop-fixture-92694fe-20260905/build.log`.
+  Work has resumed; a terminal build result/new candidate is not yet proved.
 - Minor convention follow-up: the read 92694fe commit body lacked a DCO trailer.
   Sync was asked for a traceable attestation without silently rewriting published
   history (`01a072e3-bcd5-7b03-9dfb-3e114c1f26b7`). This is separate from whether
