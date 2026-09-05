@@ -106,6 +106,17 @@ Exact test executable SHA-256 at execution:
 - `ahoi_session_unittests`:
   `d2f6e767f88bd6b41ef7719529d594f88dfef703b27098be1176ab7ee746ebe7`
 
+## Bookmark viewport test refinement (source only)
+
+All three viewport/offset assertions in `sidebar_bookmark_shelf_view_unittest.cc`
+now query `ScrollView::GetVisibleRect()` directly. The actual M152 implementation
+returns `CurrentOffset()` plus the content viewport size; `View::GetVisibleBounds()`
+instead accounts for ancestor clipping/transforms. The latter remains correct
+and unchanged for the two product anchor checks. `View::GetPreferredSize` has a
+default `SizeBounds` argument and required no change. Header availability and
+whitespace were checked; no new build or test execution occurred. The refinement
+will be compiled with the next coherent package, not treated as a `3d413ef` pass.
+
 ## Normal-folder motion follow-through (read-only review, not yet fixed)
 
 The bookmark owner relayed the user's rejection of expand/collapse motion.

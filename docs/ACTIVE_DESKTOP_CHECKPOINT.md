@@ -80,6 +80,12 @@ product and three test calls now use `View::GetVisibleBounds()`. The fix is
 included in installed `3d413ef`; no repeat build is needed. This confirms API
 integration/compilation only, not Bookmark behavioral acceptance. The owner was
 notified through queue message `01a070a0-a473-76f3-9325-609cfc8dd745`.
+The subsequent semantic refinement is now in test source: all three viewport/
+offset assertions call `scroll_view_for_testing()->GetVisibleRect()` directly.
+Product anchor checks retain `View::GetVisibleBounds()`. M152's declarations,
+`CurrentOffset()` implementation and `GetPreferredSize` default argument were
+checked in the actual checkout. This test-only refinement is not rebuilt or
+rerun yet and belongs with the next coherent package; do not reinstall `3d413ef`.
 
 The following scoped visible results and original import failure are from
 the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:

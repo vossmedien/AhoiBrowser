@@ -223,12 +223,11 @@ TEST_F(SidebarBookmarkShelfViewTest,
   }
   RunPendingModelUpdates();
   MountShelf();
-  auto* last_button = shelf_->bookmark_item_at_for_testing(11);
+  auto *last_button = shelf_->bookmark_item_at_for_testing(11);
   last_button->RequestFocus();
   views::test::RunScheduledLayout(widget_.get());
   ASSERT_EQ(last_button, widget_->GetFocusManager()->GetFocusedView());
-  const int offset =
-      shelf_->scroll_view_for_testing()->contents()->GetVisibleBounds().x();
+  const int offset = shelf_->scroll_view_for_testing()->GetVisibleRect().x();
   ASSERT_GT(offset, 0);
 
   shelf_->BookmarkNodeFaviconChanged(last);
@@ -237,9 +236,7 @@ TEST_F(SidebarBookmarkShelfViewTest,
 
   EXPECT_EQ(last_button, shelf_->bookmark_item_at_for_testing(11));
   EXPECT_EQ(last_button, widget_->GetFocusManager()->GetFocusedView());
-  EXPECT_EQ(
-      offset,
-      shelf_->scroll_view_for_testing()->contents()->GetVisibleBounds().x());
+  EXPECT_EQ(offset, shelf_->scroll_view_for_testing()->GetVisibleRect().x());
 }
 
 TEST_F(SidebarBookmarkShelfViewTest,
@@ -335,10 +332,8 @@ TEST_F(SidebarBookmarkShelfViewTest, OverflowCuesAndFocusFollowAReorderedItem) {
   views::test::RunScheduledLayout(widget_.get());
 
   ASSERT_TRUE(base::test::RunUntil([&] {
-    return shelf_->scroll_view_for_testing()
-        ->contents()
-        ->GetVisibleBounds()
-        .Contains(focused->bounds());
+    return shelf_->scroll_view_for_testing()->GetVisibleRect().Contains(
+        focused->bounds());
   }));
   EXPECT_EQ(focused, shelf_->bookmark_item_at_for_testing(11));
   EXPECT_EQ(focused, widget_->GetFocusManager()->GetFocusedView());
