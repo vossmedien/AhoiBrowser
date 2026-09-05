@@ -36,16 +36,23 @@ subject to fresh CPU and live-state checks. Do not retain a stale runtime block
 or repeat the grants/acknowledgements. New Mobile My-Mac work needs a fresh
 explicit slot once its exact host is ready.
 
-## Owned combined correction package — live build
+## Owned combined correction package — terminal test compile failure
 
-**Current phase, 2026-09-05 16:19 UTC:** the existing clean detached snapshot
+**Current phase, 2026-09-05 16:45 UTC:** the existing clean detached snapshot
 `/private/tmp/ahoi-desktop-package1.5g65WO/repo` is selected at
 `225df88f4e6dbe692390f52b8687b653541723ac`. Guarded overlay session `54118` is
 TERMINAL EXIT 0 with the full checkout delta verified. ONE combined guarded
-incremental Dev correction build is RUNNING as session `30212`, using the
-existing shared `.work/chromium/src/out/AhoiDev` outputs. Do not start it again
-or change that snapshot/shared checkout before it is terminal. Canonical logs:
+incremental Dev correction build `30212` is TERMINAL EXIT 1, using the existing
+shared `.work/chromium/src/out/AhoiDev` outputs. Do not resume it or rerun the
+unchanged source. Product code and the two large browser test binaries compiled/
+linked; five diagnostics remain in four test files. Canonical report/logs:
 `artifacts/build/desktop-correction-225df88-20260905/{overlay.log,build.log}`.
+`artifacts/build/desktop-correction-225df88-20260905/README.md` records all causes,
+hashes, dependency restoration and unchanged installed source. Desktop's
+independent-height-clock test fix is committed in `5794d37`. Bookmark owns the
+bounded three SQL test-file correction requested in
+`01a07264-6e02-7fc2-85b9-cfb263b9a18e` and terminal feedback
+`01a07277-73a1-7ba1-b399-77d852964363`; its observed WIP is NOT integrated.
 The same complete target set below is requested, including `ahoi_sync_unittests`
 and `ahoi_sidebar_tree_unittests`, with `AHOI_NINJA_KEEP_GOING=1`. No tests have
 run, and no successful new build/sign/install receipt exists yet. Installed
@@ -55,7 +62,7 @@ This exact source includes Desktop corrections `ef0f965`, `96b5a2f`, `6bd3b70`,
 the native target-policy test preparation `dc01cb5` and its explicit string-copy
 fix `1ea90da`, plus the explicitly handed-over Bookmark package `c28ec4a`.
 The common compiler-only fix `3035529` and the separate 25-file effective-consent
-freeze `225df88` are now integrated. No source-freeze wait remains, no WIP was
+freeze `225df88` are now integrated. No product-source-freeze wait remains, no WIP was
 integrated, and no intermediate 303-only build was started. The old three-file
 proposal in `artifacts/build/desktop-combined-dc01cb5-20260905/` is historical
 evidence of the already-landed 303 correction; NEVER apply it again.
@@ -182,7 +189,7 @@ Mobile runtime reservation remains; no automatic retry is authorized.
   `a4b830a1fcf57ef76069843cae6b4e2358c1af9ad57afbee847e35ac6a8b9583`.
 - Existing clean detached build snapshot:
   `/private/tmp/ahoi-desktop-package1.5g65WO/repo`, now at source `225df88` for
-  running build `30212`, not a new built/installed candidate yet. It shares
+  terminal failed build `30212`, not a new built/installed candidate. It shares
   `.work` through `AHOI_WORK_ROOT`; do not create another snapshot.
 - Correction overlay session `61889` and combined build session `83719` both
   exited 0. Successful receipt: `artifacts/build/ahoi-dev-build-3d413efb5b6f.json`;
@@ -310,12 +317,13 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume live correction build session `30212`, not terminal old build `90068`.
+1. Builds `30212` and `90068` are both terminal Exit 1; do not resume either.
    Snapshot/overlay are at exact `225df88`; compiler-only `3035529`, owned
    `1ea90da`, and the renewed consent freeze are already integrated. There is
-   no source-handoff wait. Keep snapshot/checkout immutable until terminal;
-   gather independent compiler causes without per-error restarts. A successful
-   complete build receipt is required before installation. Preserve both logs,
+   no remaining product handoff wait. Obtain the bounded three SQL test-file
+   correction handoff, combine it with owned `5794d37`, then integrate one cached
+   incremental correction after a fresh CPU gate. Do not copy the owner's WIP.
+   A successful complete build receipt is required before installation. Preserve both logs,
    bind the final receipt and recheck CPU/process/disk gates before the next
    intensive phase. Old FillIt 10906/57077 and Shopify build samples are history,
    not current blockers. Consent regression/runtime acceptance is still open.
@@ -326,7 +334,7 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    `ahoi_arc_import_browsertests`, `ahoi_sidebar_tree_unittests`,
    `ahoi_extension_policy_unittests`, `ahoi_extension_ui_unittests`,
    `ahoi_ubo_browsertests`, `browser_tests`, `interactive_ui_tests`.
-   The running combined guarded build includes those relevant targets, the missing
+   The correction target set includes those relevant targets, the missing
    `ahoi_sync_unittests`, `ahoi_navigation_surface_state_unittests` and
    `ahoi_floating_browser_view_browsertests` from the complete new source handoff.
 3. `3d413ef` remains installed and its failed import must not be retried.
