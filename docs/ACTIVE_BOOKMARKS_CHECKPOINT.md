@@ -2,22 +2,29 @@
 
 Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 
-## Current external block
+## Resumed coordination
 
-The same prerequisites remain unresolved after three consecutive goal turns:
-FillIt Unity Play mode is still live around 99% CPU; free space is about
-105 GiB against the hard 120-GiB checkout floor; the Desktop task has not resumed
-its combined candidate build after the explicit handoff; and the user's choice
-of a shared Desktop/Mobile bookmark collection is still missing. Current build
-receipts remain older than the frozen bookmark source. The bounded Ahoi-only
-capacity audit found no sufficient cleanup that this owner may perform safely.
+The user resumed this goal. A fresh CPU check found Unity near 1% and its
+compiler workers idle, so the earlier CPU gate has cleared. About 85 GiB free
+exceeds the 64-GiB development-build recommendation but remains below the
+hard 120-GiB Chromium-checkout floor. Ahoi-only obsolete bundles cannot recover
+that gap. The mobile collection decision is still pending.
 
-The goal is externally blocked, not complete. No new source rewrites, repeated
-unchanged audits, competing builds or unverified feature push should substitute
-for these prerequisites. Resume from the source/ownership handoff below once
-capacity and task coordination are restored and the mobile collection decision
-is available. All remaining build, visible E2E, behavioral tests and actual
-Chromium roll requirements remain intact.
+Direct coordination is now available through the documented `codex queue`
+command in installed CLI 0.153.2. Explicit handoff/resume message
+`01a07002-cb41-7f50-94e1-9810f5c75753` was queued to the Desktop owner, and
+coordination/capacity message `01a07002-cb41-7ca0-8c20-6180b745b413` to Mobile.
+The Desktop owner's updated checkpoint confirms receipt and ownership. Its
+first combined build at `a453dee` ran and stopped on the new bookmark code's
+incorrect `View::GetVisibleRect()` calls; `87a5999` corrects the View API. The
+owner also fixed the malformed final hunk count of patch `0030` in `a453dee`.
+The bookmark owner explicitly delegated these bounded compile fixes and remains
+read-only for the files during the retry. An API note was queued: viewport
+offset tests should use `ScrollView::GetVisibleRect()` directly, whereas source
+View clipping uses `View::GetVisibleBounds()`.
+Follow the Desktop checkpoint for the new live build handle and exact receipt;
+the old first-attempt handle is terminal. No duplicate writer or competing
+build was started. Final build, E2E, behavioral tests and actual roll remain open.
 
 ## Explicit shared-checkout / build handoff
 
@@ -124,9 +131,9 @@ workarounds. The candidate V8 commit is
 updating during the real roll. Evidence: `dependency-workaround-review.json`
 beside the reports. No workaround or production pin was changed.
 
-The last free-space check was about 105 GiB, below the configured hard 120-GiB
+The last free-space check was about 85 GiB, below the configured hard 120-GiB
 checkout floor. Only the active `AhoiDev` output exists; this thread's disposable
-files cannot recover the roughly 15-GiB gap. A read-only inventory also found
+files cannot recover the roughly 35-GiB gap. A read-only inventory also found
 eight old `/Applications/.AhoiBrowser.rollback-*.app` bundles totaling about
 8.9 GiB by `du`; all source commits are ancestors of current HEAD. The immediate
 rollback named by the current installation receipt is `f1475d6` and must remain
