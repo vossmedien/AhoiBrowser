@@ -15,6 +15,7 @@ struct MobileFocusVoyageItem: Equatable, Identifiable, Sendable {
     let source: Source
     let existingTabID: UUID?
     let workspaceID: WorkspaceID?
+    var treeNodeID: TreeNodeID? = nil
 
     var systemImage: String {
         switch source {
@@ -86,12 +87,11 @@ struct MobileFocusVoyageContent: Equatable, Sendable {
         guard let workspaceID else {
             return Self(journeyItems: journeyItems, savedItems: [])
         }
-        var seenSavedURLs = Set<String>()
         let savedItems = snapshot.visibleTreeNodes.compactMap { node -> MobileFocusVoyageItem? in
             guard node.workspaceID == workspaceID,
                   node.kind == .savedPage,
-                  let url = validatedURL(node.url),
-                  seenSavedURLs.insert(url.absoluteString).inserted else { return nil }
+                  !node.isTemporary,
+                  let url = validatedURL(node.url) else { return nil }
             return MobileFocusVoyageItem(
                 id: "saved:\(node.id.rawValue.uuidString.lowercased())",
                 title: displayTitle(node.title, url: url),
@@ -99,7 +99,8 @@ struct MobileFocusVoyageContent: Equatable, Sendable {
                 url: url,
                 source: .savedPage,
                 existingTabID: nil,
-                workspaceID: workspaceID
+                workspaceID: workspaceID,
+                treeNodeID: node.id
             )
         }
         return Self(

@@ -19,6 +19,7 @@ public struct CompanionRootView: View {
     @ObservedObject private var model: CompanionAppModel
     @Environment(\.openURL) private var systemOpenURL
     private let overriddenOpenURL: OpenURLAction?
+    private let onOpenTreeNode: ((TreeNodeID) -> Void)?
     private let accentTint: Color
     @State private var selectedWorkspaceID: WorkspaceID?
     @State private var query = ""
@@ -37,11 +38,13 @@ public struct CompanionRootView: View {
         model: CompanionAppModel,
         syncEnabled: Binding<Bool>,
         openURL: OpenURLAction? = nil,
+        onOpenTreeNode: ((TreeNodeID) -> Void)? = nil,
         accentTint: Color = .accentColor
     ) {
         self.model = model
         self._syncEnabled = syncEnabled
         self.overriddenOpenURL = openURL
+        self.onOpenTreeNode = onOpenTreeNode
         self.accentTint = accentTint
     }
 
@@ -191,7 +194,11 @@ public struct CompanionRootView: View {
                 }
             }
             } else {
-                SearchResultsView(results: model.searchResults, openURL: openURL)
+                CompanionSearchResultsView(
+                    results: model.searchResults,
+                    openURL: openURL,
+                    onOpenTreeNode: onOpenTreeNode
+                )
             }
         } detail: {
             if let workspace = model.snapshot.visibleWorkspaces.first(where: { $0.id == selectedWorkspaceID }) {
@@ -204,6 +211,7 @@ public struct CompanionRootView: View {
                     ),
                     actionableTabIDs: model.actionableRemoteTabIDs,
                     openURL: openURL,
+                    onOpenTreeNode: onOpenTreeNode,
                     remoteControlAvailable: model.isRemoteControlAvailable,
                     onRemoteOpen: { tab in
                         Task { await model.remotelyOpen(tab) }
@@ -427,6 +435,7 @@ public struct WorkspaceDetailView: View {
     public let moveTargets: [CompanionTreeMoveTarget]
     public let actionableTabIDs: Set<TabID>
     public let openURL: OpenURLAction
+    public let onOpenTreeNode: ((TreeNodeID) -> Void)?
     public let remoteControlAvailable: Bool
     public let onRemoteOpen: ((RemoteTab) -> Void)?
     public let onRemoteFocus: ((RemoteTab) -> Void)?
@@ -446,6 +455,7 @@ public struct WorkspaceDetailView: View {
         moveTargets: [CompanionTreeMoveTarget] = [],
         actionableTabIDs: Set<TabID> = [],
         openURL: OpenURLAction,
+        onOpenTreeNode: ((TreeNodeID) -> Void)? = nil,
         remoteControlAvailable: Bool = false,
         onRemoteOpen: ((RemoteTab) -> Void)? = nil,
         onRemoteFocus: ((RemoteTab) -> Void)? = nil,
@@ -461,6 +471,7 @@ public struct WorkspaceDetailView: View {
         self.moveTargets = moveTargets
         self.actionableTabIDs = actionableTabIDs
         self.openURL = openURL
+        self.onOpenTreeNode = onOpenTreeNode
         self.remoteControlAvailable = remoteControlAvailable
         self.onRemoteOpen = onRemoteOpen
         self.onRemoteFocus = onRemoteFocus
@@ -475,7 +486,10 @@ public struct WorkspaceDetailView: View {
         List {
             Section(workspace.name) {
                 ForEach(orderedNodes) { item in
-                    TreeNodeRow(node: item.node, depth: item.depth, openURL: openURL)
+                    TreeNodeRow(
+                        node: item.node, depth: item.depth,
+                        openURL: openURL, onOpenTreeNode: onOpenTreeNode
+                    )
                         .contextMenu {
                             Button(L("action.rename", "Rename")) {
                                 renameDraft = item.node.title
@@ -707,9 +721,14 @@ private struct TreeNodeRow: View {
     let node: TreeNode
     let depth: Int
     let openURL: OpenURLAction
+    let onOpenTreeNode: ((TreeNodeID) -> Void)?
 
     var body: some View {
         Button {
+            if let onOpenTreeNode {
+                onOpenTreeNode(node.id)
+                return
+            }
             guard let url = node.url.flatMap(URL.init(string:)) else { return }
             openURL(url)
         } label: {
@@ -767,34 +786,5 @@ private extension Color {
             blue: Double(value & 0xff) / 255,
             opacity: Double((value >> 24) & 0xff) / 255
         )
-    }
-}
-
-private struct SearchResultsView: View {
-    let results: [CompanionSearchResult]
-    let openURL: OpenURLAction
-
-    var body: some View {
-        List(results) { result in
-            Button {
-                guard let url = result.url.flatMap(URL.init(string:)) else { return }
-                openURL(url)
-            } label: {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(result.title)
-                    Text(result.detail)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-            .disabled(result.url == nil)
-            .accessibilityIdentifier(
-                "browser.library.search-result.\(result.kind.rawValue).\(stableUUID(result.id))"
-            )
-        }
-        .accessibilityIdentifier("browser.library.search-results")
-        .navigationTitle(L("search.title", "Search"))
     }
 }

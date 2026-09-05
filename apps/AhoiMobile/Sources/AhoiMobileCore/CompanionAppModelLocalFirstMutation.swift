@@ -21,6 +21,7 @@ extension CompanionAppModel {
     @discardableResult
     func performLocalFirstMutation<Value>(
         _ localMutation: () async throws -> Value,
+        didCommit: (Value) -> Void = { _ in },
         enqueue: (Value) async throws -> Void
     ) async -> Value? {
         let committed: Value
@@ -30,6 +31,7 @@ extension CompanionAppModel {
             presentOperationFailure(error)
             return nil
         }
+        didCommit(committed)
 
         do {
             try await refreshLocalState()

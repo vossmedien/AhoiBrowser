@@ -62,6 +62,7 @@ public final class MobileBrowserController: ObservableObject {
     var privateWebsiteDataStore: WKWebsiteDataStore?
     private var lastRecordedHistoryURL: [UUID: String] = [:]
     private var desktopSiteTabIDs: Set<UUID> = []
+    var sharedPageSavesInFlight: Set<UUID> = []
     private var externalOpenDeduplicator: MobileExternalOpenDeduplicator
     private var pendingStartupURL: URL?
     private var pendingStartupURLWasClaimed = false
@@ -332,6 +333,11 @@ public final class MobileBrowserController: ObservableObject {
     public func undoClose() {
         guard var record = recentlyClosedTab, record.mode == .normal else {
             recentlyClosedTab = nil
+            return
+        }
+        if let nodeID = record.treeNodeID, let existingID = localTabID(for: nodeID) {
+            recentlyClosedTab = nil
+            select(existingID)
             return
         }
         record.lastActiveAt = Date()

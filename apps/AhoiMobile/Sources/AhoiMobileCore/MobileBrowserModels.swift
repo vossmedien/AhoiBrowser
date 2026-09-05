@@ -14,6 +14,8 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
 
     public let id: UUID
     public var workspaceID: WorkspaceID?
+    /// Global page identity; the local runtime UUID remains a distinct presence.
+    public internal(set) var treeNodeID: TreeNodeID?
     /// A page-independent title chosen explicitly by the user. Keeping it
     /// separate prevents later WebKit metadata from erasing that choice.
     public var customTitle: String?
@@ -33,6 +35,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     public init(
         id: UUID = UUID(),
         workspaceID: WorkspaceID? = nil,
+        treeNodeID: TreeNodeID? = nil,
         customTitle: String? = nil,
         title: String = "",
         url: String? = nil,
@@ -45,6 +48,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     ) {
         self.id = id
         self.workspaceID = workspaceID
+        self.treeNodeID = mode == .normal ? treeNodeID : nil
         self.customTitle = Self.normalizedCustomTitle(customTitle)
         self.title = Self.normalizedTitle(title)
         self.url = Self.normalizedURLString(url)
@@ -123,12 +127,19 @@ public struct MobileBrowserSessionSnapshot: Codable, Equatable, Sendable {
     ) {
         self.schemaVersion = schemaVersion
         var seenIDs = Set<UUID>()
+        var seenNodeIDs = Set<TreeNodeID>()
         var retainedFaviconBytes = 0
         self.tabs = tabs.compactMap { tab in
             guard tab.mode == .normal, seenIDs.insert(tab.id).inserted else {
                 return nil
             }
             var sanitized = tab
+            if let nodeID = sanitized.treeNodeID,
+               nodeID.rawValue == sanitized.id || !seenNodeIDs.insert(nodeID).inserted {
+                // Preserve the user's local tab, but never restore two runtime
+                // authorities for one shared node or a colliding record UUID.
+                sanitized.treeNodeID = nil
+            }
             sanitized.customTitle = MobileTabRecord.normalizedCustomTitle(
                 sanitized.customTitle
             )

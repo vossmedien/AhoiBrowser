@@ -11,6 +11,7 @@ struct MobileAddressCommandSheet: View {
     @Binding private var addressSelection: TextSelection?
     @FocusState private var addressFieldFocused: Bool
     private let searchEngine: MobileSearchEngine
+    private let onOpenTreeNode: (TreeNodeID) -> Void
 
     init(
         companionModel: CompanionAppModel,
@@ -18,7 +19,8 @@ struct MobileAddressCommandSheet: View {
         isPresented: Binding<Bool>,
         addressText: Binding<String>,
         addressSelection: Binding<TextSelection?>,
-        searchEngine: MobileSearchEngine
+        searchEngine: MobileSearchEngine,
+        onOpenTreeNode: @escaping (TreeNodeID) -> Void
     ) {
         self.companionModel = companionModel
         _browser = ObservedObject(wrappedValue: browser)
@@ -26,6 +28,7 @@ struct MobileAddressCommandSheet: View {
         _addressText = addressText
         _addressSelection = addressSelection
         self.searchEngine = searchEngine
+        self.onOpenTreeNode = onOpenTreeNode
     }
 
     var body: some View {
@@ -150,6 +153,11 @@ struct MobileAddressCommandSheet: View {
     }
 
     private func activateSearchResult(_ result: CompanionSearchResult) {
+        if result.kind == .savedPage {
+            onOpenTreeNode(TreeNodeID(rawValue: result.id))
+            dismissAddressEditor()
+            return
+        }
         if let value = result.url {
             addressText = value
             commitAddress()

@@ -141,6 +141,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         )
         destination.tap()
         closeActions(in: app)
+        let savedRuntimeIDs = visibleTabIdentities(in: app)
 
         let beforeTreeOpenURL = fixture.url(
             path: "/popup?workspaceClosure=before-tree-open&token=\(token)"
@@ -170,6 +171,8 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
             app.webViews.staticTexts["Redirect and popup controls"]
                 .waitForExistence(timeout: 8)
         )
+        XCTAssertEqual(visibleTabIdentities(in: app), savedRuntimeIDs,
+                       "Opening the tree page must reuse its existing tab identity.")
 
         let beforeSearchOpenURL = fixture.url(
             path: "/privacy?workspaceClosure=before-search-open&token=\(token)"
@@ -205,7 +208,26 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
             app.webViews.staticTexts["Redirect and popup controls"]
                 .waitForExistence(timeout: 8)
         )
+        XCTAssertEqual(visibleTabIdentities(in: app), savedRuntimeIDs,
+                       "Library search must focus the same tab, not create a duplicate.")
         attachScreenshot(named: "Workspace tree and search reopening", of: app)
+    }
+
+    @MainActor
+    private func visibleTabIdentities(in app: XCUIApplication) -> Set<String> {
+        let tabs = app.buttons["browser.tabs"]
+        XCTAssertTrue(tabs.waitForExistence(timeout: 5))
+        tabs.tap()
+        let done = app.buttons["browser.tabs.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        let rows = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "browser.tab-row."
+        ))
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        let identities = Set(rows.allElementsBoundByIndex.map(\.identifier))
+        done.tap()
+        XCTAssertTrue(done.waitForNonExistence(timeout: 5))
+        return identities
     }
 
     @MainActor

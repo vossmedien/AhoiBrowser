@@ -389,7 +389,8 @@ public struct AhoiMobileBrowserView: View {
             isPresented: $addressPresented,
             addressText: $addressText,
             addressSelection: $addressSelection,
-            searchEngine: MobileSearchEngine.resolved(from: searchEngineRawValue)
+            searchEngine: MobileSearchEngine.resolved(from: searchEngineRawValue),
+            onOpenTreeNode: openSharedPage
         )
     }
     private var tabSwitcher: some View {
@@ -446,6 +447,7 @@ public struct AhoiMobileBrowserView: View {
             onSelectWorkspace: selectWorkspace,
             onSelectTab: browser.select,
             onOpenPage: openSidebarPage,
+            onOpenTreeNode: openSharedPage,
             onCreateTab: createSidebarTab
         )
     }
@@ -454,6 +456,7 @@ public struct AhoiMobileBrowserView: View {
             model: companionModel,
             syncEnabled: $syncEnabled,
             openURL: browserOpenURLAction,
+            onOpenTreeNode: openSharedPage,
             accentTint: chromeTintColor
         )
         .overlay(alignment: .topTrailing) {
@@ -681,6 +684,10 @@ public struct AhoiMobileBrowserView: View {
         reconcileSidebarTabs()
     }
     private func openFocusVoyageItem(_ item: MobileFocusVoyageItem) {
+        if let nodeID = item.treeNodeID {
+            openSharedPage(nodeID)
+            return
+        }
         if let tabID = item.existingTabID,
            browser.normalTabs.contains(where: { $0.id == tabID }) {
             browser.select(tabID)
@@ -695,6 +702,13 @@ public struct AhoiMobileBrowserView: View {
         } else {
             _ = browser.createTab(url: item.url, workspaceID: item.workspaceID)
         }
+        reconcileSidebarTabs()
+    }
+    private func openSharedPage(_ nodeID: TreeNodeID) {
+        guard let node = companionModel.snapshot.visibleTreeNodes.first(where: {
+            $0.id == nodeID
+        }), browser.openSharedPage(node) != nil else { return }
+        libraryPresented = false
         reconcileSidebarTabs()
     }
     private func createSidebarTab(
@@ -737,22 +751,14 @@ public struct AhoiMobileBrowserView: View {
         addressSelection = TextSelection(range: addressText.startIndex..<addressText.endIndex)
     }
     private func saveSelectedPage(to workspace: Workspace) {
-        guard let tab = browser.selectedTab,
-              let url = MobileTabRecord.normalizedURLString(tab.url) else { return }
-        let normalizedTitle = MobileTabRecord.normalizedTitle(tab.effectiveTitle)
-        let title = normalizedTitle.isEmpty ? url : normalizedTitle
+        guard let tabID = browser.selectedTabID else { return }
         Task {
-            let node = await companionModel.createSavedPage(
-                workspaceID: workspace.id,
-                title: title,
-                url: url
-            )
-            guard node != nil else { return }
-            browser.moveSelectedTab(to: workspace.id)
-            browser.setSelectedTabSaved(true)
-            if let tab = browser.selectedTab {
-                await companionModel.publishMobileTab(tab)
-            }
+            guard let tab = await browser.saveSharedPage(for: tabID, commit: { original, didCommit in
+                await companionModel.saveBrowserPage(
+                    original, workspaceID: workspace.id, didCommit: didCommit
+                )
+            }) else { return }
+            await companionModel.publishMobileTab(tab)
         }
     }
     private func closeTab(_ id: UUID) {
