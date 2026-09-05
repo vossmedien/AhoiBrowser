@@ -555,6 +555,7 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   ui_test_utils::ToggleFullscreenModeAndWait(created_browser);
   ASSERT_TRUE(view.IsFullscreen());
   EXPECT_EQ(background, toolbar->background());
+  EXPECT_FALSE(toolbar->layer()->fills_bounds_opaquely());
   EXPECT_TRUE(toolbar->layer()->rounded_corner_radii().IsEmpty());
   EXPECT_FLOAT_EQ(0.0f, toolbar->layer()->background_blur());
   ui_test_utils::ToggleFullscreenModeAndWait(created_browser);

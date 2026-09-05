@@ -425,6 +425,10 @@ void NavigationSurfaceController::ApplyToolbarAppearance() {
   }
   toolbar_->SetPaintToLayer();
   appearance::ApplySurfaceLayerAppearance(toolbar_->layer(), surface);
+  // ToolbarView retains Chromium's CustomCornersBackground, whose native
+  // cutouts can expose pixels even while the fullscreen material is opaque.
+  // Material opacity must never assert whole-layer coverage for that painter.
+  toolbar_->layer()->SetFillsBoundsOpaquely(false);
   if (apply_background_appearance_) {
     apply_background_appearance_.Run(surface);
   }

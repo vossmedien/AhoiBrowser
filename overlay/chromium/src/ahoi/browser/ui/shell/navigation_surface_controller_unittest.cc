@@ -83,6 +83,7 @@ TEST_F(NavigationSurfaceControllerTest,
   controller.SetFullscreenActive(true);
   EXPECT_EQ(background, toolbar->background());
   EXPECT_EQ(border, toolbar->GetBorder());
+  EXPECT_FALSE(toolbar->layer()->fills_bounds_opaquely());
   EXPECT_TRUE(toolbar->layer()->rounded_corner_radii().IsEmpty());
   EXPECT_FLOAT_EQ(0.0f, toolbar->layer()->background_blur());
   EXPECT_FALSE(last_surface.uses_glass());
