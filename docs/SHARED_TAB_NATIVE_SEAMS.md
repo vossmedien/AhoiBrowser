@@ -83,6 +83,17 @@ files from the common-owner thread.
 
 ## Requested native API
 
+The canonical all-entity fixture is separately frozen as `c3c3d20` at
+`overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json`, SHA256
+`f1886032c54931f8dfd4180c5ff150698f85576ac70e52e3523f95291c3d8d00`.
+Desktop independently read back byte identity, JSON syntax, 26 unique named
+examples, all 13 explicit entity IDs, the frozen manifest's complete field maps
+and four matching Page/Presence target pairs. Dispatch on `entity_type`, never
+array position; `payload` is a compact JSON STRING, not an already decoded
+record. Use this one resource for the coordinated C++/Swift acceptance, not a
+native copy. These resource checks do not execute a codec, merge, signature
+verification, capability publication or runtime. No baseline build was requested.
+
 The value-type/default-bridge subset below is landed in `5885d01`; the Service
 getter/Observer/publication and authority methods remain proposed shapes until
 their separate completed source handoff. Do not treat this document as their

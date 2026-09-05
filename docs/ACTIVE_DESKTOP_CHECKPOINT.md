@@ -94,6 +94,22 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Current candidate: 4cb622a installed; startup/fullscreen journey passed
 
+**Newest live action:** same installed4cb, no new build. Normal AnyChat Store
+flow (ID khpefodpgnkegiohbolbaaeabnfdegln, Store version1.0.8) reached Chromium's
+real native permissions sheet. Details read; first sheet cancelled successfully,
+Store returned to Hinzufügen, no crash. Second sheet now OPEN awaiting explicit
+user approval for 14 KI-site read/change grants, New Tab replacement and visited-
+site icons. Do not confirm without that action-time approval. Browser is running;
+do not reuse the older closed-app statement below or grant a competing UI slot.
+No AnyChat install/functionality pass yet. Exact journey/permissions/next action:
+`docs/audit-evidence/2026-09-05-anychat-store-baseline.md`.
+
+Shared fixture c3c3d20 independently checked: live bytes equal frozen SHA256
+f1886032c54931f8dfd4180c5ff150698f85576ac70e52e3523f95291c3d8d00; 26 unique
+examples/all13 explicit IDs, frozen-manifest field maps and four target pairs.
+Resource-only preflight, no codec/runtime pass or new build/test expansion.
+Native A remains source906dac8; B-D Service/backend APIs remain unapproved WIP.
+
 **Current action:** product build73875 and atomic installer77504 are TERMINAL
 EXIT0. Installed4cb622a is source/executable/tree matched to the signed build.
 Receipt `artifacts/install/ahoi-dev-4cb622a-20260905T204104Z.json`, SHA256
