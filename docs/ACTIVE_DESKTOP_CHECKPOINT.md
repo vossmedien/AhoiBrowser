@@ -69,8 +69,10 @@ were independently verified restored to their original hashes and clean paths.
 
 An unapplied minimal three-file proposal is retained and main-reviewed at
 `artifacts/build/desktop-combined-dc01cb5-20260905/bookmark-compile-fixes.proposed.patch`.
-`git apply --check` passed; product files remain unchanged pending explicit
-ownership or the owner's commit. This is not a second active patch stack or an
+`git apply --check` passed against the then-unchanged c28ec4a source. A newer
+live readback now shows Bookmark-owned provider/backend/bridge WIP in the
+canonical root. Do not apply that proposal over those changes or integrate them
+before a committed handoff. This is not a second active patch stack or an
 implemented fix; remove/retire the proposal after the real correction is integrated.
 
 The existing clean snapshot is selected at `dc01cb5` (including the committed
@@ -365,8 +367,11 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
   `session/shared_tab_target_policy` plus six tests uses the canonical target
   fixture, but is linked only into Session tests: no runtime caller, Native-DB
   migration, capability announcement or writer activation. The common Service/
-  capture/status requirements were sent to the Bookmark owner; its WIP was not
-  edited. A closed v3 gate must preserve/defer capture, never manufacture
+  capture/status requirements are agreed in `08af63c` and
+  `docs/SHARED_TAB_NATIVE_SEAMS.md`; no interface-decision wait remains.
+  Common product headers are still a separate future handoff, not a prerequisite
+  to correcting the already-executed Bookmark-v2 build. Its WIP was not edited.
+  A closed v3 gate must preserve/defer capture, never manufacture
   Presence tombstones from a filtered snapshot. Detailed next-package boundary:
   `docs/reviews/2026-09-05-native-shared-tabs-seams.md`.
 - Mobile source `313e351` / DebugLocal 15 is independently accepted locally,

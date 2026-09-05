@@ -2,9 +2,11 @@
 
 Status: Desktop preparation against committed ADR 0008 / `09cae9f`.
 The ADR and canonical JSON fixture remain the contract. This note records native
-implementation boundaries and requested common APIs, not a replacement schema
-or writer activation. Common C++ files remain Bookmark-owned; shared Swift
-remains Mobile-owned.
+implementation boundaries, not a replacement schema or writer activation.
+The requested common API is now agreed in `08af63c`:
+`docs/SHARED_TAB_NATIVE_SEAMS.md` owns its exact names and semantics. Product
+header implementation/handoff follows separately after the Bookmark wave.
+Common C++ files remain Bookmark-owned; shared Swift remains Mobile-owned.
 
 ## Prepared, but not in the running product
 
@@ -49,7 +51,7 @@ an origin's local target. Preserve such native targets in local runtime/session
 ownership, never in the portable payload. Origin-side reopening of unloaded
 local-only saved pages needs durable local target lookup before activation.
 
-## Requested common seams — pending owner agreement
+## Agreed common seams — header implementation/handoff still pending
 
 1. Extend `LocalTabState` with optional `tree_node_id` and the versioned target
    description. Keep `sync_id` separate; `pinned` is not persistence authority.
@@ -57,33 +59,46 @@ local-only saved pages needs durable local target lookup before activation.
    `projection_ready`, `write_allowed`, a reason and blocking device IDs through
    a Service getter and its existing Observer pattern. Projection readiness is
    not the same as permission to author v3.
-3. A default-fail-closed native-support value/subscription on the existing UI
-   bridge lets the backend advertise support only after the full native path
-   and conformance exist. No imperative `EnableV3Writer` shortcut. Check the
-   current gate again on the backend sequence when mutating or enqueueing.
+3. The existing UI bridge exposes default-false native support and a separate
+   `RequestSharedTabCapture(generation)` entry point. The Service receives
+   `PublishSharedTabCapture(window_key, LocalTabCapture)`; default status is
+   `kDeferred`. Only complete replies for its current issued generation and
+   window/bridge/account scope can form an authoritative aggregate. Legacy
+   vector methods keep distinct names and cannot be an empty fallback. No
+   imperative `EnableV3Writer` shortcut; native support is not write authority.
 4. Return authoritative state from local capture/mutation completion, including
    the gate state. Derive origin/saving badges from retained field clocks and
    known devices through this same Service; Bottom/legacy gives unknown, not a
    guessed creator or a second creator-ID field.
 
-Concrete handoff request sent to Bookmark in
-`01a0718f-88a7-7123-8c5a-c9e858ff02b5`. Its common headers/backend are not edited
-by Desktop before agreement.
+The request `01a0718f-88a7-7123-8c5a-c9e858ff02b5` is answered by `08af63c`;
+do not reopen that interface decision. The common owner still implements and
+hands off its headers/backend separately. At that handoff, move the pure target
+value types to one common leaf header and retain a native alias, without a
+Common-to-Session/UI dependency or duplicate enum.
 
 **Preserve/defer is not deletion:** `ReplaceLocalTabs` currently filters via the
 HTTP-only `IsShareableTab` and then tombstones entries absent from the resulting
 map. A closed capability gate, unsupported target, incomplete capture or stale
 authority must not be expressed as an authoritative empty/filtered capture.
 Preserve records and pending local intent until the correct gate/migration
-allows publication. Real user close is a separate, explicit native event.
+allows publication. The Service also currently prunes Presence/reverse maps
+before backend ACK; preservation must apply at that earlier stage too. Validate
+and commit the entire store batch atomically before publishing accepted caches
+or pruning mappings. A gate reopening requires a fresh complete capture, not
+replaying a previously filtered/pre-transition vector. Passive capture of an
+old still-loaded WebContents target cannot overwrite a newer shared Page URL.
+Real user close is a separate, explicit native event.
 App shutdown/session retirement removes local Presence, not every logical
 temporary page. Remote-close cancellation must preserve local unsaved content
 without resurrecting the tombstoned global ID or broadcasting an automatic NTP.
 
 ## Integration order
 
-Keep `6bd3b70`'s Arc/Sidebar corrections and the impending Bookmark-v2 source
-wave separate from native DB migration. The real Default-profile Arc journal
+Keep `6bd3b70`'s Arc/Sidebar corrections and the Bookmark-v2 correction wave
+separate from native DB migration. The first combined `dc01cb5` build is already
+terminal Exit 1; its compiler fixes are not blocked by this agreed v3 interface
+contract or a Mobile follow-up. The real Default-profile Arc journal
 and backup fingerprints are still unresolved and must remain recoverable by
 their exact schema. After that candidate's explicit recovery/acceptance and the
 matching common v3 gate/schema handoff, implement native persistence, live
