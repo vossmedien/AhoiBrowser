@@ -28,7 +28,7 @@
 #include "chrome/test/base/test_browser_window.h"
 #include "chrome/test/base/testing_profile.h"
 #include "chrome/test/views/chrome_views_test_base.h"
-#include "components/bookmarks/browser/bookmark_metrics.h"
+#include "components/bookmarks/common/bookmark_metrics.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/test/bookmark_test_helpers.h"
 #include "components/search_engines/template_url_service.h"
