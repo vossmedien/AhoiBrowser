@@ -3,6 +3,29 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
+## Latest single runtime attempt — window returned
+
+A renewed explicit Desktop handoff authorized one My-Mac CloudKit attempt.
+The existing verified inert `9395a9c` CloudKitDevelopment host `0.1 (11)` was
+used without rebuild/signing/profile/key changes. `xcodebuild` PID 88055 /
+session 84564 exited 65 before executing the named domain test: the invocation
+omitted `variant`, so Xcode chose native macOS instead of Designed for iPad/iPhone
+and LaunchServices returned `kLSExecutableIncorrectFormat` / -10661. This is an
+agent invocation error, not a CloudKit/product/provisioning verdict.
+
+No retry was started. End readback found no host/runner/xctest or own build
+remaining; host/test/installed-Desktop executable hashes were unchanged. No
+test-zone/store code ran and no server cleanup was necessary for this attempt.
+The runtime was explicitly returned to Desktop; a correct variant-specific
+attempt requires a fresh window. Report:
+`docs/audit-evidence/2026-09-05-mobile-mymac-cloudkit/README.md`.
+
+Bookmark follow-through remains separate: source `4647f5b` builds as DebugLocal
+`0.1 (13)`; visible create/restart/open ran, but the overall Bookmark UI test is
+red at the duplicate AX match for the cleanup delete confirmation. Scope its
+locator to the observed confirmation sheet and repeat that journey before the
+prepared Bookmark Core/Golden/relay suites. No Bookmark pass is claimed.
+
 ## Current task: matching Mobile bookmarks — owner handoff received
 
 The Bookmark owner explicitly handed off the Swift/Mobile implementation of
