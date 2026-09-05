@@ -1,19 +1,30 @@
 # Shared-tab native/common seams
 
-Status: post-Bookmark integration contract, 2026-09-05. This records the
-requested interfaces and preserving behavior; it does not claim that these
-headers, gates or callers are implemented. Bookmark source `c28ec4a` and the
-current single Desktop build remain unchanged. ADR 0008 / `09cae9f` owns the
-wire contract and canonical fixture; no new wire fields are introduced here.
+Status: native seam proposal updated for the explicit fresh-data/single-format
+user decision of 2026-09-05. The app is not live/actively used. The target is one
+active format for every relevant, permitted entity on macOS/iOS, provisionally
+format 3 including Bookmark and Capability. No complex old-data migration,
+permanent v2/v3 coexistence or old-client support is required. Fresh isolated
+stores are used for the new matching-candidate acceptance; existing profiles,
+CloudKit data and keys must not be silently reset, deleted or rewritten.
+
+This decision supersedes the mixed-version/legacy-bootstrap parts of the earlier
+ADR 0008 / `09cae9f` proposal. The Sync owner supplies the simplified canonical
+format/field contract before new defaults are integrated. The identity, target,
+capture and privacy invariants below remain required; this document introduces
+no wire fields or landed headers. The frozen 225df88 UI/compile baseline and
+its test-only correction 22e2f2b are not final unified-format acceptance.
 
 ## Ownership and dependency direction
 
-- Bookmark/common owner: common leaf types, `profile_sync_types.h`,
+- Unified Sync/common owner: common leaf types, `profile_sync_types.h`,
   `sync_model.h`, `profile_sync_ui_bridge.h`, Service/backend/store/provider,
   C++ codec/merge/schema/GN/policy and tests.
 - Desktop owner: native Tree/Session/UI callers, `tab_tree_sync_adapter`,
   `session/shared_tab_target_policy.*`, shared checkout/build/install.
-- Mobile owner: matching Swift domain/wire/persistence/projection/UI/tests.
+- Matching Swift domain/wire/persistence/projection/UI/tests are coordinated
+  within the Sync implementation scope, not edited by Desktop. Current explicit
+  assignments are in `docs/ACTIVE_SYNC_COORDINATION.md`.
 
 `dc01cb5` is isolated native target-policy preparation, not a runtime caller or
 v3 capability announcement. During the later explicit header handoff, move its
@@ -21,7 +32,7 @@ pure target value types to a common leaf header and preserve a native alias.
 The common layer must not depend on Session/UI or maintain a second target enum.
 Do not edit Desktop's policy files from the common-owner thread.
 
-## Requested additive API
+## Requested native API
 
 The following are interface names/shapes, not landed declarations:
 
@@ -44,14 +55,13 @@ struct SharedTabNativeSupport {
 };
 
 enum class SharedTabSyncIssue {
-  kDisabled, kNativeNotReady, kBootstrapPending, kPeerUpgradeRequired,
+  kDisabled, kNativeNotReady, kBootstrapPending, kUnsupportedFormat,
   kRecoveryPending, kCaptureDeferred, kInvalidCapture, kStoreError, kNone
 };
 struct SharedTabSyncState {
   bool projection_ready = false;
   bool write_allowed = false;
   SharedTabSyncIssue issue = SharedTabSyncIssue::kDisabled;
-  std::vector<base::Uuid> blocking_devices;
 };
 
 // Derived UI result only; never stored or serialized as new creator fields.
@@ -62,8 +72,10 @@ struct SharedTabProvenance {
 ```
 
 The existing `url` and added target fields form one value, copied/validated
-atomically. Absence represents legacy/unready state, not an implicit v3 web
-write. `local_scheme` admits only ADR 0008's eight strings. A local-only capture
+atomically. Absence represents unready/invalid capture, not an implicit web
+write or a reason to start a legacy writer. `local_scheme` uses only the
+allowlist confirmed in the final common contract; the existing eight-string
+target-policy preparation is not expanded here. A local-only capture
 contains an empty transport URL; original native paths/code remain local.
 Every participating new shared normal tab needs its stable TreeNode binding.
 `sync_id` cannot equal `tree_node_id`; equal URLs do not imply equal identities.
@@ -79,7 +91,7 @@ void PublishSharedTabCapture(std::string window_key, LocalTabCapture capture);
 
 Its Observer gains default-no-op
 `OnAhoiSharedTabSyncStateChanged(const SharedTabSyncState&)`. Existing consumers
-do not become v3-ready merely because this method or getter exists.
+do not become format-ready merely because this method or getter exists.
 
 Extend the existing ProfileSyncUiBridge with default implementations:
 
@@ -88,11 +100,12 @@ virtual SharedTabNativeSupport GetSharedTabNativeSupport() const { return {}; }
 virtual void RequestSharedTabCapture(uint64_t generation) {}
 ```
 
-Keep the old `PublishWindowTabs(vector)` / `RequestLocalTabCapture()` signatures
-for legacy callers. Distinct names avoid ambiguous `{}` overloads. They remain
-v2-only and cannot become an authoritative fallback when shared-v3 capture is
-unavailable. This is one service/bridge with versioned entry points, not another
-transport, engine or native tab registry.
+Distinct method names avoid ambiguous `{}` overloads. Existing local
+`PublishWindowTabs(vector)` / `RequestLocalTabCapture()` callers may be adapted
+during the coherent source change, but the delivered candidate must have one
+active format rather than permanent v2-only and v3-only entry paths. A missing
+shared capture must not fall back to an old vector path or a second writer.
+Reuse the existing service/bridge, transport, engine and native tab registry.
 
 ## Capture authority: preserve/defer before any mutation
 
@@ -108,7 +121,7 @@ backend reply. Neither behavior may be reused for an incomplete shared capture.
    completeness from vector size or process/window absence.
 2. Deferred input preserves the last accepted window data, pending local intent,
    Presence-ID mappings and reverse lookups. It neither feeds an empty vector to
-   the legacy path nor deletes/rewrites domain rows, clocks or outbox entries.
+   an unqualified vector path nor deletes/rewrites domain rows, clocks or outbox entries.
    Request a fresh capture on a relevant readiness/registry event; no polling.
 3. Exclude private tabs and automatic recovery placeholders at the established
    native participation boundary. An unrepresentable *normal* tab, missing
@@ -143,20 +156,24 @@ and validate the linked target representation before publication.
 
 ## Gate and provenance meanings
 
-`projection_ready` means a validated current domain snapshot can be consumed by
-the native projection. It does not imply writer permission. A compatible reader
-may retain/project accepted v3 state while a newly incompatible peer closes
-writes. False readiness preserves local/native state; it does not remove rows,
-switch focus or load a URL.
+`projection_ready` means a validated snapshot of the one supported format can
+be consumed by the native projection. It does not imply writer permission.
+Unsupported stored/incoming formats are rejected without rewriting or clearing
+local/native data. False readiness never removes rows, switches focus or loads
+a URL. Preserving bytes is not a requirement to implement old-client decoding,
+projection, migration or interoperable writers.
 
-`write_allowed` is specifically shared-normal-tab v3 authoring authority. Backend
-requires implemented common/native support, normal profile/global Sync, current
-account/key/recovery authority, complete successful provider bootstrap, actual
-matching local Device/Capability publication acknowledgments, and every known
-non-retired compatible peer from ADR 0008. Native support alone cannot announce
-capability or activate a writer. Blocker IDs are unique/sorted and derived from
-the verified same-collection registry. No `EnableV3` shortcut and no global
-version bump; Bookmark/Capability authoring remains wire-v2.
+`write_allowed` explains shared-normal-tab authoring authority under the same
+format used by every other permitted entity, including Bookmark and Capability.
+Backend still requires implemented common/native support, a normal profile,
+the relevant global/category consent, current account/key/recovery authority
+and a successfully initialized provider. Initial account/key/provider bootstrap
+is distinct from the discarded v2-capability/legacy-peer transition protocol.
+The exact Device/Capability validation and activation contract comes from the
+Sync owner; do not recreate a complex old-peer upgrade matrix or indefinite
+dual-format gates. Native support or a UI boolean alone never authorizes writes.
+A matching whole-format implementation and fresh-store acceptance are required,
+not an isolated version-constant bump.
 
 Gate transitions must invalidate queued mutations and delayed projection/apply
 replies; a cached UI preference or old status callback is not renewed authority.
@@ -165,11 +182,13 @@ Provider-side fencing remains an additional final transport boundary.
 Creation provenance comes from a genuine v3 `created_at` field clock. Saved
 provenance, for a persistent page, comes from its genuine `is_temporary=false`
 field clock (explicit creation/save, not a promoted default). Resolve only known
-DeviceRecords from the same immutable snapshot. Bottom/system, synthetic legacy,
+DeviceRecords from the same immutable snapshot. Bottom/system, synthetic,
 missing clocks or unknown device metadata yield no badge; never use the last
 record editor. These derived IDs add no persistent/wire creator field. Preserve
-genuine local creation evidence independently during legacy rewrites/promotion;
-the Mobile review finding on `3964bcb` remains a separate correction requirement.
+genuine creation evidence across current-format merges, save/unsave and restart.
+Keep the already committed Swift corrections 895daf9/f25eea5; they are source
+fixes, not acceptance of the new format. Do not add a legacy-clock migration
+pipeline just to generate provenance for obsolete fixtures.
 
 ## Required regression/acceptance cases
 
@@ -183,10 +202,18 @@ the Mobile review finding on `3964bcb` remains a separate correction requirement
 - Injected mid-batch SQLite failure rolls back records, tombstones, clocks/outbox
   and acceptance, retaining the last in-memory/native baseline.
 - Linked web/new-tab/local-only targets, no eager navigation/focus or original
-  path leakage; later peer appearance closes writes while preserving projection.
-- Creation versus save badges, Bottom/legacy/unknown-device cases and retained
+  path leakage; unsupported-format input preserves the last accepted local state.
+- Creation versus save badges, Bottom/missing/unknown-device cases and retained
   genuine local provenance across both merge directions and restart.
+- One supported format across all permitted entities, explicitly including
+  Bookmark and Capability; no active old writer or empty legacy-capture fallback.
+- Matching fresh isolated macOS/iOS stores and exact candidates: an already-open
+  peer receives normal temporary/persistent tabs without focus, eager loads or
+  duplicate TreeNode identity; the Bookmark collection stays separate. Existing
+  profiles/CloudKit records/keys are unchanged; no complex migration matrix.
 
 First the exact candidate's visible journey, then meaningful programmatic
 tests, or an explicitly documented technical-E2E exception. The existing six
-native target-policy tests are preparation, not these capture/gate proofs.
+native target-policy tests and old wire-v2 runs are preparation/baseline evidence,
+not these capture/gate or unified-format proofs. Final header/default changes
+wait for the Sync owner's simplified contract, without parallel Common writes.

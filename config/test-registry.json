@@ -3288,7 +3288,7 @@
     {
       "id": "SYNC-08",
       "suite": "SYNC",
-      "description": "offene Tabs bleiben nach Gerät gruppiert.",
+      "description": "normale temporäre und gespeicherte Tabs teilen dieselbe Workspace-Tabstruktur und globale TreeNode-ID; gerätebezogene Presence bleibt getrennt, Herkunft wird dezent angezeigt.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -4566,7 +4566,7 @@
       {
         "id": "SYNC-23",
         "suite": "SYNC",
-        "description": "Tabs von Mac B und iOS erscheinen ohne Geräte-Sonderseite direkt zwischen den normalen Sidebar-Tabs, mit passendem Smartphone-/Tablet-/Desktop-Badge, Favicon, Workspace und letzter Aktivität; lokal filtern und öffnen.",
+        "description": "Tabs von Mac B und iOS erscheinen auch auf bereits geöffneter Gegenstelle in der gemeinsamen Workspace-Tabstruktur, ohne Duplikate, Fokuswechsel oder ungefragtes Laden; Herkunft temporärer Tabs anzeigen, lokal filtern und bewusst öffnen.",
         "primaryClass": "ASSISTED_E2E",
         "requiredEvidenceClasses": [
           "UNIT",

@@ -41,6 +41,30 @@ subject to fresh CPU and live-state checks. Do not retain a stale runtime block
 or repeat the grants/acknowledgements. New Mobile My-Mac work needs a fresh
 explicit slot once its exact host is ready.
 
+## Binding Sync decision — one format, fresh isolated acceptance
+
+The explicit 2026-09-05 user decision supersedes earlier complex Sync migration,
+old-client support and permanent v2/v3 coexistence requirements: the app is not
+live/actively used. Target one active format for ALL relevant permitted entity
+types on macOS/iOS, provisionally format 3 including Bookmark and Capability.
+The matching-client acceptance uses fresh isolated stores, not an old-client
+migration matrix. Existing profiles, the real Arc failed-import journal/backup,
+CloudKit data and keys MUST NOT be silently deleted, reset or rewritten.
+Consent/category defaults, account/key isolation and crash-safe local commits
+remain required; this does not expand the allowed Sync data categories.
+
+Master and native seams are bound to this decision in
+`outputs/AhoiBrowser-Master-Zielprompt.md` and
+`docs/SHARED_TAB_NATIVE_SEAMS.md`. Common C++/policy/canonical contract remains
+with the Sync owner; matching Swift work follows its coordinated ownership.
+The simplified canonical format/header/default handoff comes from that owner
+before integration. Desktop does not introduce Common schema or writer changes.
+
+225df88 and the test-only 22e2f2b follow-up remain frozen UI/compile baselines,
+NOT final acceptance of the new unified format. Do not restart/widen that
+baseline for this documentation decision. Continue the current Desktop package;
+one native build owner, separate exact-candidate Sync acceptance later.
+
 ## Owned combined correction package — terminal test compile failure
 
 **Current phase, 2026-09-05 17:01 UTC:** the existing clean detached snapshot
@@ -59,8 +83,9 @@ bounded three SQL test-file correction requested in
 `01a07264-6e02-7fc2-85b9-cfb263b9a18e` and terminal feedback
 `01a07277-73a1-7ba1-b399-77d852964363`. Its exact three-test-file correction is
 now committed as `22e2f2b7a3f5b0832cc7eff3d23819a6041aa737`, 13+/8-, and main
-reviewed against the actual M152 SQL/cstring APIs. Read the sender's final
-handoff before integration; no need to recreate or apply a proposal. The next
+reviewed against the actual M152 SQL/cstring APIs. The sender has now explicitly
+handed over that exact commit in the conversation; this handoff is accepted,
+with no remaining test-source wait. No need to recreate or apply a proposal. The next
 candidate should use that exact source (including 5794d37), not later Sync WIP.
 The same complete target set below is requested, including `ahoi_sync_unittests`
 and `ahoi_sidebar_tree_unittests`, with `AHOI_NINJA_KEEP_GOING=1`. No tests have
@@ -345,14 +370,16 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 1. Builds `30212` and `90068` are both terminal Exit 1; do not resume either.
    Snapshot/overlay are at exact `225df88`; compiler-only `3035529`, owned
    `1ea90da`, and the renewed consent freeze are already integrated. There is
-   no remaining product handoff wait. Read the final bounded SQL test handoff
-   for committed `22e2f2b` (already contains owned `5794d37`), then integrate one
+   no remaining product or test-source handoff wait. The exact `22e2f2b`
+   correction (already contains owned `5794d37`) is explicitly accepted; integrate one
    cached correction only after the fresh FillIt 93670 CPU gate clears. Do not
    copy subsequent unified Sync WIP or stop the foreign workload.
    A successful complete build receipt is required before installation. Preserve both logs,
    bind the final receipt and recheck CPU/process/disk gates before the next
    intensive phase. Old FillIt 10906/57077 and Shopify build samples are history,
    not current blockers. Consent regression/runtime acceptance is still open.
+   This baseline is not the new all-entity unified-format acceptance; do not
+   integrate upcoming Common format/default changes into it opportunistically.
 2. Overlay/build/install are ALREADY COMPLETE for old `3d413ef`; do not rerun
    those old commands for delayed messages. Its built targets were
    `ahoi_tab_tree_unittests`, `ahoi_session_unittests`,
@@ -384,15 +411,18 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Evidence and independent boundaries
 
-- ADR 0008 / `09cae9f` is now concretely mapped to Native seams. The isolated
+- ADR 0008 / `09cae9f` was mapped to Native seams; its mixed-version/bootstrap
+  requirements are superseded by the new single-format/fresh-store decision
+  above. The isolated
   `session/shared_tab_target_policy` plus six tests uses the canonical target
   fixture, but is linked only into Session tests: no runtime caller, Native-DB
   migration, capability announcement or writer activation. The common Service/
-  capture/status requirements are agreed in `08af63c` and
-  `docs/SHARED_TAB_NATIVE_SEAMS.md`; no interface-decision wait remains.
-  Common product headers are still a separate future handoff, not a prerequisite
-  to correcting the already-executed Bookmark-v2 build. Its WIP was not edited.
-  A closed v3 gate must preserve/defer capture, never manufacture
+  capture/status invariants from `08af63c` remain recorded in the updated
+  `docs/SHARED_TAB_NATIVE_SEAMS.md`. Exact simplified format/default/header work
+  belongs to the Sync owner; do not re-open already settled identity/capture
+  questions. That handoff is not a prerequisite to the accepted test-only
+  correction of the Bookmark-v2 baseline. No Common WIP was edited.
+  An unavailable format/authority must preserve/defer capture, never manufacture
   Presence tombstones from a filtered snapshot. Detailed next-package boundary:
   `docs/reviews/2026-09-05-native-shared-tabs-seams.md`.
 - Mobile source `313e351` / DebugLocal 15 is independently accepted locally,
@@ -400,8 +430,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
   and terminal logs: visible Bookmark journey 1/1, Core 70 passed + 2 entitlement
   skips, shared Swift 36 passed and repository 2 passed. Its default writers
   remain v2. Report: `docs/audit-evidence/2026-09-05-mobile-bookmark-wire2/README.md`.
-  No Mobile runtime reservation remains; its further Swift WIP stays owned by
-  Mobile. The actual C++/Swift roundtrip, native transport/key bootstrap and
+  No Mobile runtime reservation remains; further Swift WIP stays within the
+  coordinated Sync implementation scope. This old wire-v2 result is historical
+  local evidence, not acceptance of the new all-entity format. The actual
+  C++/Swift roundtrip, native transport/key bootstrap and
   shared-normal-tab runtime are separate open gates.
 - Mac Sync readiness was read back from installed `3d413ef`: it remains
   provider-free, without CloudKit runtime keys, entitlement or provisioning

@@ -12,9 +12,11 @@ Desktop-Paket aus Arc-Import, Sidebar-Darstellung, Workspace-Wechsel,
 Null-Tab-/Split-Stabilität, AnyChat und uBlock Origin Classic einschließlich
 beabsichtigter Lite-Ablösung ab. Arbeite danach die folgenden kohärenten Pakete
 bis zur gesamten Definition of Done ab. Ein grünes Teilpaket beendet den
-Gesamtauftrag nicht. Mobile bleibt beim benannten Mobile-Owner; gemeinsame
-Sync-Verträge, Integrationsnachweise und Release-Gates werden explizit übergeben
-und im Gesamtstatus mitgeführt.
+Gesamtauftrag nicht. Die gemeinsame Sync-Implementierung in C++ und Swift wird
+vom benannten Sync-Owner koordiniert; Desktop behält Native Tree/Session/UI,
+`tab_tree_sync_adapter` und den einzigen Chromium-Build-/Installationspfad.
+Personen- und Dateiübergaben stehen in `docs/ACTIVE_SYNC_COORDINATION.md`.
+Integrationsnachweise und Release-Gates werden im Gesamtstatus mitgeführt.
 
 Behalte echte Chromium-Tabs, `WebContents`, Services und Sicherheitsgrenzen als
 technische Grundlage. Implementiere die zugesagte Bedienung vollständig, mit
@@ -24,6 +26,31 @@ nachgewiesenen Lebenszyklus-/Ownership-Grund. Modellwechsel rechtfertigen weder
 eine Neuentwicklung funktionierender Komponenten noch eine pauschale Abwertung
 bereits belegter Arbeit.
 
+### Verbindliche Sync-Vereinfachung vom 5. September 2026
+
+Die App wird laut ausdrücklicher Nutzerentscheidung noch nicht live/aktiv
+genutzt. Für alle bisher relevanten und erlaubten Sync-Daten gilt deshalb auf
+iOS/iPadOS und macOS **ein einheitliches aktives Sync-Format**, vorläufig
+Format 3 für sämtliche Entitytypen einschließlich Bookmark und Capability.
+Es gibt keinen dauerhaften v2/v3-Mischbetrieb, keinen Altclient-Support und
+keinen Auftrag für eine aufwendige Migration bisheriger Sync-Testdaten.
+Diese Entscheidung ersetzt entsprechende ältere Sync-Übergangsverträge.
+
+Die neue gemeinsame Abnahme verwendet frische, isolierte Stores und passende
+C++-/Swift-Kandidaten. Bestehende Profile, Import-Backups, CloudKit-Daten und
+Schlüssel werden nicht still gelöscht, zurückgesetzt oder umgeschrieben.
+Ein nicht unterstützter vorhandener Datenstand wird verständlich abgewiesen
+beziehungsweise unangetastet gelassen, nicht als leerer Sync-Stand veröffentlicht.
+Consent, Account-/Schlüsselgrenzen, Datenschutz und crashsichere lokale
+Transaktionen bleiben unverändert verbindlich. Diese Vereinfachung entfernt
+weder Arc-/Zen-Import-Sicherungen noch allgemeine Update-/Recovery-Garantien.
+
+Der Sync-Owner liefert den vereinfachten kanonischen Format-/Feldvertrag vor
+der gemeinsamen Integration neuer Versionsdefaults. Kein bloßer Writer-Bump,
+keine zweite Implementierung und keine vorgezogene Aktivierung durch UI-Flags.
+Der eingefrorene Desktop-Compile-/UI-Kandidat bleibt eine getrennte Baseline;
+seine bisherigen Sync-Ergebnisse sind keine Endabnahme des neuen Formats.
+
 ### Paketfolge und Abschlusskriterien
 
 | Reihenfolge | Zusammenhängendes Paket | Konkreter Abschluss |
@@ -31,7 +58,7 @@ bereits belegter Arbeit.
 | Vor dem nächsten notwendigen Build | Build-Ausführung und Übergabe | Ein Owner für Checkout und Ausgabeverzeichnis; Kandidat, Terminalstatus, Receipt und nächste Aktion bekannt. Wiederholte Overlay-Komposition messen und sicher beschleunigen; vorhandene passende Kandidaten zuerst prüfen. |
 | 1 | Import, Erweiterungen und sichtbare Sidebar-Fixes | Standardmenü öffnet denselben Importdialog auch ohne Tab; alle fünf bisher sichtbaren Checkboxen korrekt; Ordnericons, Hierarchie und Abstände stimmig; realer Arc-Import mit gültigen Splits, Neustart und No-op; AnyChat normal aus dem Store; Classic filtert und überlebt Neustart; Lite erst danach bewusst ablösen; Null-Tab-Split und Beenden stabil. |
 | 2 | Daily Driver, Fenster, Tabs und Medien | Navigation, Command Bar, Quick Window, Inkognito, Sessions, sämtliche zugesagten Split-/DnD-/Resize-Wege, Popup-Promotion, MiniPlayer/PiP, Dateien, Passwörter und HTTP Auth in zusammenhängenden Nutzerreisen abgenommen. Bereits bestandene Teilverträge gezielt wiederverwenden. |
-| 3 | Sync und Geräteintegration | Lokaler Zustand und Outbox, echter CloudKit-Transport, Konflikte, Geräte-Tabs, Pairing/Remote Control und Mobile-Handoff erfüllen die bestehenden Mehrgeräte-Verträge; ausgeschlossene Daten bleiben ausgeschlossen. Externe Gerätevoraussetzungen früh vorbereiten. |
+| 3 | Sync und Geräteintegration | Ein aktives Format für alle erlaubten Entitytypen auf macOS/iOS; gemeinsame normale Tabs und separate Lesezeichen, lokaler Zustand/Outbox, echter CloudKit-Transport, Konflikte sowie Pairing/Remote Control an passenden frischen isolierten Kandidaten abgenommen. Kein Altclient-Mischbetrieb; ausgeschlossene Daten bleiben ausgeschlossen. Externe Gerätevoraussetzungen früh vorbereiten. |
 | 4 | Developer Toolkit, Privacy und Entgooglifizierung | Vorhandene Werkzeuge vollständig bedienen; Produktdienste zentral konfigurieren; nachvollziehbares frisches Profil ohne ungefragte Produkttelemetrie; dokumentierte Sicherheitsdienste und normale Google-Webseiten funktionieren. |
 | 5 | Entschlackung und Performance | Gemessene, rückbaubare GN-/Runtime-Ausschlüsse, schnelles Starten/Suchen/Wechseln, Memory Saver und die bestehenden Bundle-/CPU-/RAM-/Netzwerkbudgets mit vergleichbaren Builds belegen. |
 | 6 | Release und Gesamtabschluss | Verbleibende vollständige Abnahmematrix, Security-/Upstream-Roll, Geräte-/Account-Nachweise, Updates, Recht/DRM, signierte Distribution und Daily-Driver-Soak bestanden; eigene Änderungen dokumentiert und gepusht. |
@@ -1373,6 +1400,12 @@ Erstelle eine maschinenlesbare Endpoint-Allowlist und einen dynamischen Netzwerk
 
 ## CloudKit-Sync
 
+Für den aktuellen Protokollwechsel gilt die verbindliche Sync-Vereinfachung
+vom 5. September oben: ein aktives Format für alle erlaubten Entitytypen,
+frische isolierte Abnahme, keine aufwendige Alt-Datenmigration oder dauerhafte
+v2/v3-Interoperabilität. Die Datenkategorien und Sicherheitsgrenzen unten werden
+dadurch weder erweitert noch gelockert.
+
 ### Grundprinzip
 
 - local-first;
@@ -1398,8 +1431,9 @@ Synchronisiere:
 
 - Workspaces;
 - Ordner und gespeicherte Seiten;
+- gemeinsame Desktop-/Mobile-Lesezeichen als separate Sammlung mit eigener Zustimmung, nicht als Workspace-Seitenbaum;
 - Reihenfolge und Tombstones;
-- offene normale Tabs als gerätebezogene Sitzungen;
+- alle normalen Tabs, temporäre wie gespeicherte, in einer gemeinsamen Workspace-Tabstruktur mit stabiler globaler TreeNode-ID; gerätebezogene Presence-/Runtime-IDs bleiben getrennt;
 - Verlauf;
 - Appearance und Workspace-Akzente;
 - ausdrücklich freigegebene Einstellungen;
@@ -1408,7 +1442,7 @@ Synchronisiere:
 
 Extension-Inventar darf auf einem neuen Mac nur Installationsvorschläge erzeugen. Installiere Erweiterungen niemals still.
 
-Tabs anderer AhoiBrowser-Instanzen erscheinen direkt in der normalen Tab-Liste der Sidebar und niemals hinter einer separaten Geräteverwaltung, History-Unterseite oder zusätzlichen Geräte-Schaltfläche. Sie verwenden dieselbe kompakte Zeilenform, Typografie und Favicon-Darstellung wie lokale temporäre Tabs, tragen aber ein eindeutiges Smartphone-, Tablet- oder Desktop-Badge sowie zugänglichen Gerätetext. Gerätegrenzen dürfen durch eine dezente Zwischenüberschrift beziehungsweise Gruppierung sichtbar bleiben, ohne eine zweite Navigationshierarchie zu erzeugen. Die Darstellung umfasst Gerät, Workspace, Titel, URL-Favicon und letzte Aktivität; sie lässt sich innerhalb der Sidebar lokal filtern. Ein Klick öffnet den Remote-Tab lokal, Kontextaktionen übernehmen ihn in einen Workspace oder fokussieren ihn über den sicheren Remote-Control-Pfad. Inkognito erscheint dort niemals. Ist kein `SyncProvider` verfügbar oder sind keine fremden Tabs vorhanden, gibt es weder leere Platzhalter noch einen funktionslosen Geräte-Button.
+Normale Tabs erscheinen auch auf einer bereits geöffneten Gegenstelle unmittelbar in derselben gemeinsamen Workspace-Tabstruktur; eine reine Geräte-Tab-Liste genügt nicht. Temporäre Tabs tragen eine dezente Herkunftskennzeichnung mit zugänglichem Gerätetext; gespeicherte Tabs verhalten sich einheitlich, optional mit einem dezenten Hinweis bei mobil hinzugefügten Seiten. Herkunft wird aus belegter Erstellung beziehungsweise explizitem Speichern abgeleitet, nicht aus dem letzten Bearbeiter. Die lokale Projektion bleibt ohne automatische Fokusverschiebung oder ungefragtes Laden; erst eine bewusste Öffnen-/Fokusaktion aktiviert native Inhalte. Globale TreeNode-ID und gerätebezogene Presence-ID bleiben getrennt. Kein zweiter Eintrag für dieselbe logische Tab-ID und keine zusätzliche Geräte-Verwaltungsseite. Nichtportable normale Ziele bleiben ohne Übertragung privater Pfade oder Code sichtbar. Inkognito erscheint dort niemals; Cookies und Logins bleiben lokal. Ohne `SyncProvider` bleibt der lokale Browser benutzbar und es gibt keinen funktionslosen Geräte-Button.
 
 Diese Geräte-Tabs-Funktion darf Chromiums vorhandene Foreign-Session-Datenmodelle als Integrationsvorbild wiederverwenden, darf den Nutzer aber nicht in Chromiums separate History-/Synced-Tabs-Verwaltungsseite schicken. In v1 verwendet sie ausschließlich AhoiBrowsers `SyncProvider`/CloudKit-Daten. Sie darf weder eine Google-Anmeldung verlangen noch Chrome Sync heimlich aktivieren. Eine spätere zusätzliche Sync-Provider-Implementierung bleibt architektonisch möglich, ist aber kein v1-Releaseblocker.
 
@@ -1454,7 +1488,10 @@ Verlauf:
 - Optionen 30, 90 und 365 Tage oder unbegrenzt;
 - Löschen wird auf alle Geräte propagiert.
 
-Gerätesitzungen bleiben getrennt und werden nicht zu einer einzigen Tab-Liste vermischt.
+Native Gerätesitzungen und Presence-Identitäten bleiben lokal beziehungsweise
+gerätebezogen getrennt; das widerspricht nicht der gemeinsamen logischen
+Workspace-Tabstruktur. Fehlende Presence oder ein Browser-Shutdown darf niemals
+als globales Löschen aller logischen Tabs ausgelegt werden.
 
 ### Recovery und Open-Source-Boundary
 
@@ -2150,6 +2187,11 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 
 Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCloud-/CloudKit-Umgebung:
 
+Für das neue einheitliche Format werden passende macOS-/iOS-Kandidaten und
+frische isolierte Stores verwendet. Alte v2-/gemischte Fixture-Pässe sind keine
+Endabnahme; Versionsnummern, Datenkategorien und tatsächliche Gegenstellen
+werden im Kandidatennachweis explizit gebunden. Bestehende Daten bleiben erhalten.
+
 - `SYNC-01`: Workspace und Baum von Mac A nach Mac B synchronisieren.
 - `SYNC-02`: gespeicherte Seite von Mac B ändern und auf Mac A prüfen.
 - `SYNC-03`: beide Macs offline ändern und anschließend deterministisch mergen.
@@ -2157,7 +2199,7 @@ Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCl
 - `SYNC-05`: gleichzeitiger Move und Delete.
 - `SYNC-06`: Konflikt darf keinen Zyklus erzeugen; Recovery-Ordner prüfen.
 - `SYNC-07`: History von A auf B und iOS finden.
-- `SYNC-08`: offene Tabs bleiben nach Gerät gruppiert.
+- `SYNC-08`: normale temporäre und gespeicherte Tabs teilen dieselbe Workspace-Tabstruktur und globale TreeNode-ID; gerätebezogene Presence bleibt getrennt, Herkunft wird dezent angezeigt.
 - `SYNC-09`: Verlauf löschen und Propagation prüfen.
 - `SYNC-10`: Retention 30/90/365/unbegrenzt prüfen; Default 90 Tage.
 - `SYNC-11`: Cookies bleiben lokal.
@@ -2172,7 +2214,7 @@ Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCl
 - `SYNC-20`: Accountwechsel ohne stillen Datenverlust.
 - `SYNC-21`: Gerät widerrufen und weiteren Zugriff verhindern.
 - `SYNC-22`: Sync-Logs und Payload-Evidenz enthalten keine ausgeschlossenen Geheimdaten.
-- `SYNC-23`: Tabs von Mac B und iOS erscheinen ohne Geräte-Sonderseite direkt zwischen den normalen Sidebar-Tabs, mit passendem Smartphone-/Tablet-/Desktop-Badge, Favicon, Workspace und letzter Aktivität; lokal filtern und öffnen.
+- `SYNC-23`: Tabs von Mac B und iOS erscheinen auch auf bereits geöffneter Gegenstelle in der gemeinsamen Workspace-Tabstruktur, ohne Duplikate, Fokuswechsel oder ungefragtes Laden; Herkunft temporärer Tabs anzeigen, lokal filtern und bewusst öffnen.
 - `SYNC-24`: Gerät offline, Tab geschlossen, Gerät umbenannt und Gerät entzogen; Geräte-Tabs-UI zeigt verständliche Aktualität, räumt Tombstones auf und bietet keine veraltete Remote-Aktion an.
 - `SYNC-25`: Inkognito-, Passwort-, Cookie-, Site-Storage-, Permission- und Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf.
 - `SYNC-26`: frisches Profil ohne Google-Anmeldung verwenden; Geräte-Tabs und kompletter Sync funktionieren über CloudKit, während Chrome Sync und Google-Browserkonto deaktiviert bleiben.
@@ -2408,9 +2450,11 @@ Bei externen Blockern dokumentiere:
 
 ### Sync/Companion Gate
 
+- ein aktives, identisches Format für alle erlaubten Entitytypen einschließlich Bookmark und Capability in C++ und Swift; frische isolierte Stores und echter kandidatengebundener Roundtrip, kein dauerhafter Altclient-Mischbetrieb;
 - zwei Macs plus iOS/iPadOS bestehen Online-, Offline-, Konflikt-, Lösch-, Recovery- und Geräteentzugstests;
 - History, normale Tabs und Baum funktionieren;
-- die normale Sidebar zeigt fremde Mac-/iOS-Tabs direkt, eindeutig nach Gerät gekennzeichnet und ohne separate Verwaltungsseite; sie funktioniert ohne Google-Konto oder Chrome Sync;
+- die normale Sidebar zeigt die gemeinsame Workspace-Tabstruktur auch bei bereits geöffneter Gegenstelle, ohne Identitätsduplikate, automatischen Fokuswechsel oder ungefragtes Laden; temporäre Tabs tragen Herkunftshinweise, und die separate Lesezeichensammlung synchronisiert unabhängig davon;
+- weder Google-Konto noch Chrome Sync erforderlich; vorhandene Profile, CloudKit-Daten und Schlüssel werden für die neue Abnahme nicht still verändert oder gelöscht;
 - Remote Control ist signiert und replay-sicher;
 - Cookies, Passwörter, HTTP Auth, Site Storage, Permissions, Extension Storage, Inkognito und Keychain-Secrets bleiben lokal.
 
