@@ -255,7 +255,8 @@ final class BookmarkWireContractTests: XCTestCase {
         invalid = original
         fields = try XCTUnwrap(invalid["field_versions"] as? [String: Any])
         var titleClock = try XCTUnwrap(fields["title"] as? [String: Any])
-        let physical = try XCTUnwrap(Int64(titleClock["physical"] as? String))
+        let physicalText = try XCTUnwrap(titleClock["physical"] as? String)
+        let physical = try XCTUnwrap(Int64(physicalText))
         titleClock["physical"] = String(physical + 1)
         fields["title"] = titleClock
         invalid["field_versions"] = fields
