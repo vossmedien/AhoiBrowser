@@ -361,6 +361,12 @@ public actor CompanionSyncBridge {
         context: ImportContext
     ) throws -> DecodedImport {
         if record.dataClass == .bookmark && !bookmarkSyncEnabled { return .ignored }
+        // Read/codec support is not permission to activate v3 on live peers.
+        // Retain its encrypted envelope in the existing recovery quarantine
+        // until the capability and promotion contracts are enabled together.
+        guard record.schemaVersion <= 2 else {
+            throw SharedTabWirePreparationError.writerNotActivated
+        }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
         case .device:
@@ -537,6 +543,9 @@ public actor CompanionSyncBridge {
         _ record: SyncRecord,
         context: ImportContext
     ) throws -> PhysicalDeletionRecoveryDecision {
+        guard record.schemaVersion <= 2 else {
+            throw SharedTabWirePreparationError.writerNotActivated
+        }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
         case .bookmark:

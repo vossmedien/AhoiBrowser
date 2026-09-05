@@ -148,8 +148,14 @@ public enum CompanionReadModelFieldMerge {
         }
         result.deviceName = incoming.deviceName
         result.workspaceName = incoming.workspaceName
-        let merged = CompanionFieldMerge.mergedVersion(
-            oldVersion, newVersion, fields: tabFields
+        let binding = try SharedTabFieldReadMerge.field(
+            "tree_node_id", existing: existing.treeNodeID, incoming: incoming.treeNodeID,
+            legacyDefault: nil, oldVersion: existing.version, newVersion: incoming.version
+        )
+        result.treeNodeID = binding.value
+        let merged = SharedTabFieldReadMerge.version(
+            base: CompanionFieldMerge.mergedVersion(oldVersion, newVersion, fields: tabFields),
+            field: "tree_node_id", clock: binding.clock
         )
         result.version = try mergeVersion(
             merged,
@@ -220,6 +226,12 @@ public enum CompanionReadModelFieldMerge {
         ]
         for field in tabFields where equality[field] == true {
             version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        if previous.version.schemaVersion == 3 && candidate.version.schemaVersion < 3 {
+            result.treeNodeID = previous.treeNodeID
+            version = SharedTabFieldReadMerge.retainingExistingField(
+                "tree_node_id", previous: previous.version, candidate: version
+            )
         }
         result.version = version
         return result
@@ -362,6 +374,7 @@ public enum CompanionReadModelFieldMerge {
 
     private struct TabProjection: Equatable {
         let workspace: WorkspaceID?
+        let treeNode: TreeNodeID?
         let url: String
         let title: String
         let lastActive: HybridLogicalClock
@@ -376,6 +389,7 @@ public enum CompanionReadModelFieldMerge {
     ) -> TabProjection {
         .init(
             workspace: value.workspaceID,
+            treeNode: value.treeNodeID,
             url: value.url,
             title: value.title,
             lastActive: value.lastActiveAt,

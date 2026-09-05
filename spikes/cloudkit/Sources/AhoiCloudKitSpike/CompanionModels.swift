@@ -284,8 +284,11 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         version: SyncVersion,
         tombstone: Tombstone? = nil
     ) throws {
-        if kind == .savedPage && url == nil {
+        if kind == .savedPage && url == nil && !isTemporary {
             throw CompanionModelError.savedPageRequiresURL
+        }
+        if kind == .folder && isTemporary {
+            throw CompanionModelError.folderCannotBeTemporary
         }
         if kind == .folder && url != nil {
             throw CompanionModelError.folderCannotHaveURL
@@ -431,6 +434,7 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
     public var deviceName: String
     public let sessionID: DeviceSessionID
     public var workspaceID: WorkspaceID?
+    public var treeNodeID: TreeNodeID?
     public var workspaceName: String?
     public var title: String
     public var url: String
@@ -449,6 +453,7 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
         deviceName: String,
         sessionID: DeviceSessionID,
         workspaceID: WorkspaceID? = nil,
+        treeNodeID: TreeNodeID? = nil,
         workspaceName: String? = nil,
         title: String,
         url: String,
@@ -462,6 +467,9 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
     ) throws {
         guard context == .normal else {
             throw CompanionModelError.incognitoNotSyncable
+        }
+        guard treeNodeID?.rawValue != tabID.rawValue else {
+            throw CompanionModelError.sharedIdentityCollision
         }
         guard title.utf8.count <= Self.maximumTitleUTF8Bytes,
               url.utf8.count <= Self.maximumURLUTF8Bytes,
@@ -483,6 +491,7 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
         self.deviceName = deviceName
         self.sessionID = sessionID
         self.workspaceID = workspaceID
+        self.treeNodeID = treeNodeID
         self.workspaceName = workspaceName
         self.title = title
         self.url = url
@@ -504,6 +513,7 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
             deviceName: container.decode(String.self, forKey: .deviceName),
             sessionID: container.decode(DeviceSessionID.self, forKey: .sessionID),
             workspaceID: container.decodeIfPresent(WorkspaceID.self, forKey: .workspaceID),
+            treeNodeID: container.decodeIfPresent(TreeNodeID.self, forKey: .treeNodeID),
             workspaceName: container.decodeIfPresent(String.self, forKey: .workspaceName),
             title: container.decode(String.self, forKey: .title),
             url: container.decode(String.self, forKey: .url),
@@ -523,6 +533,7 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
     private enum CodingKeys: String, CodingKey {
         case tabID, deviceID, deviceKind, deviceName, sessionID
         case workspaceID, workspaceName, title, url, openedAt, lastActiveAt, context
+        case treeNodeID
         case isOpen, pinned, version, tombstone
     }
 
@@ -606,6 +617,8 @@ public struct HistoryVisit: Codable, Hashable, Sendable, Identifiable {
 }
 
 public enum CompanionModelError: Error, Equatable, Sendable {
+    case folderCannotBeTemporary
+    case sharedIdentityCollision
     case incognitoNotSyncable
     case metadataTooLarge
     case remoteTabURLNotAllowed

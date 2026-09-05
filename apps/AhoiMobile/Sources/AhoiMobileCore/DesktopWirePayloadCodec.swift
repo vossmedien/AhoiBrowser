@@ -19,14 +19,8 @@ public struct DesktopWirePayloadCodec: Sendable {
         "name", "icon", "sort_key", "accent_argb", "created_at", "modified_at",
         "tombstone",
     ]
-    private static let treeNodeFields: Set<String> = [
-        "location", "kind", "title", "icon", "accent_argb", "url", "created_at",
-        "modified_at", "tombstone",
-    ]
-    private static let remoteTabFields: Set<String> = [
-        "device_id", "session_id", "workspace_id", "url", "title", "opened_at",
-        "last_active", "pinned", "is_incognito", "tombstone",
-    ]
+    private static let treeNodeFields = SharedTabWireReadPolicy.treeNodeBaseFields
+    private static let remoteTabFields = SharedTabWireReadPolicy.remoteTabBaseFields
     private static let sessionFields: Set<String> = [
         "device_id", "started_at", "liveness", "tombstone",
     ]
@@ -79,6 +73,7 @@ public struct DesktopWirePayloadCodec: Sendable {
     }
 
     public func encode(_ node: TreeNode) throws -> Data {
+        try SharedTabWireReadPolicy.validateTreeNodeWrite(node)
         var value = try common(
             id: node.id.rawValue,
             tombstone: node.isDeleted,
@@ -136,6 +131,7 @@ public struct DesktopWirePayloadCodec: Sendable {
 
     public func encode(_ tab: RemoteTab) throws -> Data {
         guard tab.context == .normal else { throw CompanionModelError.incognitoNotSyncable }
+        try SharedTabWireReadPolicy.validateRemoteTabWrite(tab)
         var value = try common(
             id: tab.id.rawValue,
             tombstone: tab.isDeleted,
@@ -256,27 +252,70 @@ public struct DesktopWirePayloadCodec: Sendable {
 
     public func decodeTreeNode(_ record: SyncRecord, plaintext: Data) throws -> TreeNode {
         let value = try object(from: plaintext)
-        let resultVersion = try version(value, requiredFields: Self.treeNodeFields)
-        let kind = try integer(value, "node_kind") == 0 ? TreeNodeKind.folder : .savedPage
+        let payloadVersion = try SharedTabWireReadPolicy.payloadVersion(value)
+        let isTemporary = try SharedTabWireReadPolicy.validateTreeNodeReadShape(
+            value,
+            version: payloadVersion
+        )
+        let resultVersion = try version(
+            value,
+            requiredFields: try SharedTabWireReadPolicy.requiredTreeNodeFields(
+                version: payloadVersion
+            )
+        )
+        try SharedTabWireReadPolicy.validateDecodedVersion(resultVersion)
+        let rawKind = try integer(value, "node_kind")
+        guard rawKind == 0 || rawKind == 1 else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        let kind = rawKind == 0 ? TreeNodeKind.folder : .savedPage
+        let rawURL = try string(value, "url")
+        let decodedURL: String?
+        if payloadVersion == 3 {
+            if kind == .folder {
+                guard !isTemporary, rawURL.isEmpty else {
+                    throw DesktopWirePayloadCodecError.malformedPayload
+                }
+                decodedURL = nil
+            } else if rawURL.isEmpty {
+                guard isTemporary else {
+                    throw DesktopWirePayloadCodecError.malformedPayload
+                }
+                decodedURL = nil
+            } else {
+                decodedURL = rawURL
+            }
+        } else {
+            decodedURL = kind == .folder ? nil : rawURL
+        }
         let sortKey = try orderKey(try string(value, "sort_key"), version: resultVersion)
-        return try TreeNode(
+        let result = try TreeNode(
             treeNodeID: TreeNodeID(rawValue: try id(value)),
             workspaceID: WorkspaceID(rawValue: try uuid(value, "workspace_id")),
             parentID: try optionalUUID(value, "parent_id").map(TreeNodeID.init(rawValue:)),
             kind: kind,
             title: try string(value, "title"),
-            url: kind == .folder ? nil : try string(value, "url"),
+            url: decodedURL,
             icon: (value["icon"] as? String) ?? "",
             accent: (value["accent_argb"] as? NSNumber).map {
                 String(format: "#%08x", $0.uint32Value)
             },
             orderKey: sortKey.value,
             wireSortKey: sortKey.legacyWireValue,
+            isTemporary: isTemporary,
             createdAt: try clock(value, timeKey: "created_at"),
             modifiedAt: try clock(value, timeKey: "modified_at"),
             version: resultVersion,
             tombstone: try tombstone(record, value: value)
         )
+        try validatePortableEnvelope(
+            record,
+            dataClass: .treeNode,
+            identity: result.id.rawValue,
+            version: result.version,
+            tombstone: result.tombstone
+        )
+        return result
     }
 
     public func decodeSession(
@@ -310,8 +349,22 @@ public struct DesktopWirePayloadCodec: Sendable {
         workspaces: [WorkspaceID: Workspace]
     ) throws -> RemoteTab {
         let value = try object(from: plaintext)
-        let resultVersion = try version(value, requiredFields: Self.remoteTabFields)
-        guard (value["is_incognito"] as? Bool) == false else {
+        let payloadVersion = try SharedTabWireReadPolicy.payloadVersion(value)
+        let treeNodeID = try SharedTabWireReadPolicy.validateRemoteTabReadShape(
+            value,
+            version: payloadVersion
+        )
+        let resultVersion = try version(
+            value,
+            requiredFields: try SharedTabWireReadPolicy.requiredRemoteTabFields(
+                version: payloadVersion
+            )
+        )
+        try SharedTabWireReadPolicy.validateDecodedVersion(resultVersion)
+        guard try SharedTabWireReadPolicy.strictBoolean(
+            value,
+            key: "is_incognito"
+        ) == false else {
             throw CompanionModelError.incognitoNotSyncable
         }
         let deviceID = DeviceID(rawValue: try uuid(value, "device_id"))
@@ -319,13 +372,14 @@ public struct DesktopWirePayloadCodec: Sendable {
             throw DesktopWirePayloadCodecError.unsupportedDeviceType
         }
         let workspaceID = try optionalUUID(value, "workspace_id").map(WorkspaceID.init(rawValue:))
-        return try RemoteTab(
+        let result = try RemoteTab(
             tabID: TabID(rawValue: try id(value)),
             deviceID: deviceID,
             deviceKind: device.kind,
             deviceName: device.name,
             sessionID: DeviceSessionID(rawValue: try uuid(value, "session_id")),
             workspaceID: workspaceID,
+            treeNodeID: treeNodeID,
             workspaceName: workspaceID.flatMap { workspaces[$0]?.name },
             title: try string(value, "title"),
             url: try string(value, "url"),
@@ -336,6 +390,18 @@ public struct DesktopWirePayloadCodec: Sendable {
             version: resultVersion,
             tombstone: try tombstone(record, value: value)
         )
+        guard result.treeNodeID?.rawValue != result.id.rawValue else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        try validatePortableEnvelope(
+            record,
+            dataClass: .deviceTab,
+            identity: result.id.rawValue,
+            version: result.version,
+            tombstone: result.tombstone,
+            requiresAbsentOrderKey: true
+        )
+        return result
     }
 
     public func decodeHistory(_ record: SyncRecord, plaintext: Data) throws -> HistoryVisit {
@@ -535,6 +601,26 @@ public struct DesktopWirePayloadCodec: Sendable {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
         return tombstone
+    }
+
+    private func validatePortableEnvelope(
+        _ record: SyncRecord,
+        dataClass: SyncDataClass,
+        identity: UUID,
+        version: SyncVersion,
+        tombstone: Tombstone?,
+        requiresAbsentOrderKey: Bool = false
+    ) throws {
+        guard record.recordID == identity,
+              record.entityID == identity,
+              record.dataClass == dataClass,
+              record.schemaVersion == version.schemaVersion,
+              record.modifiedAt == version.modifiedAt,
+              record.originatingDevice == version.modifiedBy,
+              record.tombstone == tombstone,
+              !requiresAbsentOrderKey || record.orderKey == nil else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
     }
 
     private func orderKey(

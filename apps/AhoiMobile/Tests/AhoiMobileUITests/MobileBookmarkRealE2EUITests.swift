@@ -140,7 +140,10 @@ final class MobileBookmarkRealE2EUITests: MobileBrowserRealE2ETestCase {
         let delete = app.buttons["bookmark.action.delete.\(id)"]
         XCTAssertTrue(delete.waitForExistence(timeout: 4))
         delete.tap()
-        let confirm = app.buttons["bookmark.delete.confirm"]
+        // iOS 26 exposes the one rendered SwiftUI confirmation button as
+        // parent+child AX buttons. Scope to its visible sheet, then use the
+        // first match for that one action instead of requiring a unique node.
+        let confirm = app.sheets.buttons.matching(identifier: "bookmark.delete.confirm").firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 4))
         confirm.tap()
         XCTAssertTrue(folder.waitForNonExistence(timeout: 5))

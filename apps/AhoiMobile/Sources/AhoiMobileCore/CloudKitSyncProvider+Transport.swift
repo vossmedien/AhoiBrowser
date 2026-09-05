@@ -83,6 +83,11 @@ extension CloudKitSyncProvider {
     }
 
     func authorizeOutboundRecord(_ record: SyncRecord) throws {
+        // A reader-capable binary must not upload/recover v3 envelopes until
+        // the matching-client gate is implemented and deliberately enabled.
+        guard record.schemaVersion <= 2 else {
+            throw SharedTabWirePreparationError.writerNotActivated
+        }
         let allowedDeveloperAssetIDs = statusLock.withLock {
             authorizedDeveloperAssetIDs
         }

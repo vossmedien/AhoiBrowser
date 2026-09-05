@@ -106,7 +106,15 @@ public enum CompanionFieldMerge {
         ) {
             result.tombstone = incoming.tombstone
         }
-        var version = mergedVersion(oldVersion, newVersion, fields: treeNodeFields)
+        let persistence = try SharedTabFieldReadMerge.field(
+            "is_temporary", existing: existing.isTemporary, incoming: incoming.isTemporary,
+            legacyDefault: false, oldVersion: existing.version, newVersion: incoming.version
+        )
+        result.isTemporary = persistence.value
+        var version = SharedTabFieldReadMerge.version(
+            base: mergedVersion(oldVersion, newVersion, fields: treeNodeFields),
+            field: "is_temporary", clock: persistence.clock
+        )
         if !treeProjectionEqual(result, version, existing, oldVersion),
            !treeProjectionEqual(result, version, incoming, newVersion) {
             version = try dominatingMergeVersion(version)
@@ -170,6 +178,12 @@ public enum CompanionFieldMerge {
         ]
         for field in treeNodeFields where equality[field] == true {
             version.fieldVersions[field] = old.fieldVersions[field]
+        }
+        if previous.version.schemaVersion == 3 && candidate.version.schemaVersion < 3 {
+            result.isTemporary = previous.isTemporary
+            version = SharedTabFieldReadMerge.retainingExistingField(
+                "is_temporary", previous: previous.version, candidate: version
+            )
         }
         result.version = version
         return result
@@ -237,7 +251,7 @@ public enum CompanionFieldMerge {
             )
         }
         return SyncVersion(
-            schemaVersion: 2,
+            schemaVersion: version.schemaVersion,
             modifiedAt: next,
             modifiedBy: next.nodeID,
             fieldVersions: version.fieldVersions
@@ -264,6 +278,7 @@ public enum CompanionFieldMerge {
         _ rhsVersion: SyncVersion
     ) -> Bool {
         TreeLocation(lhs) == TreeLocation(rhs) && lhs.kind == rhs.kind &&
+            lhs.isTemporary == rhs.isTemporary &&
             lhs.title == rhs.title && lhs.icon == rhs.icon &&
             lhs.accent == rhs.accent && lhs.url == rhs.url &&
             lhs.createdAt == rhs.createdAt && lhs.modifiedAt == rhs.modifiedAt &&

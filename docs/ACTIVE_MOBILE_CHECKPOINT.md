@@ -3,6 +3,29 @@
 Last updated: 2026-09-05. Owner: thread
 `01a044d6-1545-7532-8394-6b7df1144bb1`.
 
+## Resumed implementation — versioned shared-tab reads, writers off
+
+The explicit renewed ADR 0008 grant removes any remaining Swift ownership wait.
+Mobile has now added optional `RemoteTab.treeNodeID` to compatible local Codable
+state, portable v3 TreeNode/Presence readers with exact versioned field maps,
+and read-merge preservation of actual v3 new-field clocks against later v2
+records in both directions. Legacy new fields remain absent clocks with
+persistent/unlinked read defaults; no promotion sentinel or origin badge is
+fabricated. A deterministic Inbox value is defined but not auto-persisted or
+used to reorder existing user workspaces.
+
+This is preparation, not activation: v3 encoders/uploads/physical-delete
+recovery are gated off, while the live Bridge retains unsupported v3 input in
+the existing encrypted quarantine until capability/promotion are agreed.
+Bookmark-v2 is unchanged. Concrete Capability12 fields, legacy promotion and
+nonportable Presence semantics remain future activation gates, not an ownership
+block. The scoped Bookmark cleanup locator now targets the observed confirmation
+sheet's single rendered action rather than requiring one AX node.
+
+The combined candidate still needs a new build, visible Bookmark journey and
+then the prepared Bookmark/SharedTab-read suites. No new My-Mac/Production or
+Chromium action is authorized or planned by this wave.
+
 ## Latest single runtime attempt — window returned
 
 A renewed explicit Desktop handoff authorized one My-Mac CloudKit attempt.
