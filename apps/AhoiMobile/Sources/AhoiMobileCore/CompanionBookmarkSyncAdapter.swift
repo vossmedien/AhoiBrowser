@@ -3,6 +3,7 @@ import AhoiCloudKitSpike
 
 extension CompanionSyncBridge {
     public func setBookmarkSyncEnabled(_ enabled: Bool) {
+        provider.setBookmarkCategoryApproved(enabled)
         guard bookmarkSyncEnabled != enabled else { return }
         bookmarkSyncEnabled = enabled
         bookmarkHydrationRequired = enabled

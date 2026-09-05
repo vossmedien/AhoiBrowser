@@ -184,6 +184,12 @@ extension CloudKitSyncProvider {
                 try authorizeOutboundRecord(local)
                 _ = try codec.encode(local, zoneID: zoneID)
             } catch {
+                if error as? BookmarkTransportAuthorizationError == .categoryNotApproved {
+                    // Drop only the pending send intent, never its local data or
+                    // quarantine history. Explicit opt-in rehydrates it later.
+                    permanentlyRemoved.append(change)
+                    continue
+                }
                 if developerAssetAuthorizationIsPending(for: local, error: error) {
                     continue
                 }

@@ -85,9 +85,7 @@ extension CloudKitSyncProvider {
     func authorizeOutboundRecord(_ record: SyncRecord) throws {
         // A reader-capable binary must not upload/recover v3 envelopes until
         // the matching-client gate is implemented and deliberately enabled.
-        guard record.schemaVersion <= 2 else {
-            throw SharedTabWirePreparationError.writerNotActivated
-        }
+        try bookmarkTransportAuthorization.authorize(record)
         let allowedDeveloperAssetIDs = statusLock.withLock {
             authorizedDeveloperAssetIDs
         }
@@ -95,6 +93,13 @@ extension CloudKitSyncProvider {
             record,
             context: .init(optedInDeveloperAssetIDs: allowedDeveloperAssetIDs)
         )
+    }
+
+    func setBookmarkCategoryApproved(_ approved: Bool) {
+        guard bookmarkTransportAuthorization.setApproved(approved), approved else { return }
+        // Previously cached/paused records remain local. An explicit approval
+        // permits the existing rehydration path to revisit them on the next pass.
+        statusLock.withLock { transportRehydrationRequired = true }
     }
 
     func developerAssetAuthorizationIsPending(
@@ -137,6 +142,9 @@ extension CloudKitSyncProvider {
                 try authorizeOutboundRecord(record)
                 _ = try codec.encode(record, zoneID: zoneID)
             } catch {
+                if error as? BookmarkTransportAuthorizationError == .categoryNotApproved {
+                    continue
+                }
                 if developerAssetAuthorizationIsPending(for: record, error: error) {
                     deferredDeveloperAssetIDs.insert(record.recordID)
                     continue

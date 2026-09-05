@@ -22,9 +22,21 @@ nonportable Presence semantics remain future activation gates, not an ownership
 block. The scoped Bookmark cleanup locator now targets the observed confirmation
 sheet's single rendered action rather than requiring one AX node.
 
-The combined candidate still needs a new build, visible Bookmark journey and
-then the prepared Bookmark/SharedTab-read suites. No new My-Mac/Production or
-Chromium action is authorized or planned by this wave.
+Candidate `da7315d`, DebugLocal `0.1 (14)`, built successfully and the visible
+Bookmark create/folder/restart/open/delete journey passed 1/1. Its exact receipt
+was reverified. Then 30/30 focused Bookmark wire/domain/encrypted relay,
+SharedTab read/merge and local-operation tests passed with no skips/failures.
+The canonical Bookmark Golden SHA is the approved `b09a5f89...244e443`.
+
+A final targeted real-provider audit found a Bridge-only consent gap: after
+losing CKSyncEngine state, cached Bookmark records could be scheduled for resend
+by the provider's existing rehydration path. A shared runtime consent guard is
+now integrated into real/DEBUG transport writes, seeds, merge results and final
+upload/recovery authorization. Unapproved resend intents are paused/removed
+without deleting the encrypted data or clearing corruption quarantine; explicit
+approval permits later rehydration. This correction needs a new candidate,
+the same visible journey and focused regression tests before closure.
+No My-Mac/Production or Chromium action is authorized or planned by this wave.
 
 ## Latest single runtime attempt — window returned
 

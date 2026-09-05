@@ -225,6 +225,7 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
     let container: CKContainer
     let database: CKDatabase
     let statusLock = NSLock()
+    let bookmarkTransportAuthorization = BookmarkTransportAuthorization()
     var currentStatus = CloudKitSyncStatus(
         phase: .idle,
         detail: CompanionL10n.string(

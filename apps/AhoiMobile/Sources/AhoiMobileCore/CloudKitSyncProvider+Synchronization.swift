@@ -191,6 +191,7 @@ extension CloudKitSyncProvider {
     ) async throws {
         guard beginActivity() else { throw CloudKitSyncProviderError.unavailable }
         defer { endActivity() }
+        try bookmarkTransportAuthorization.authorize(record)
         try boundary.authorize(record, context: authorization)
         try await recordStore.upsert(record)
         if record.dataClass == .developerAsset {
@@ -243,6 +244,7 @@ extension CloudKitSyncProvider {
             optedInDeveloperAssetIDs: effectiveAuthorizedIDs
         )
         for record in effectiveRecords {
+            try bookmarkTransportAuthorization.authorize(record)
             try boundary.authorize(record, context: authorization)
         }
         let engine = try activeEngine()
@@ -306,6 +308,7 @@ extension CloudKitSyncProvider {
             optedInDeveloperAssetIDs: authorizedDeveloperAssetIDs
         )
         for record in records {
+            try bookmarkTransportAuthorization.authorize(record)
             try boundary.authorize(record, context: authorization)
         }
         let syncEngine = try activeEngine()

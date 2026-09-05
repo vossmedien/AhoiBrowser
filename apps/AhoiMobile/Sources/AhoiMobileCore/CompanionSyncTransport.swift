@@ -5,6 +5,7 @@ import AhoiCloudKitSpike
 /// explicit DEBUG visible-E2E projection. The public bridge API remains bound
 /// to `CloudKitSyncProvider`; production never substitutes a fake provider.
 protocol CompanionSyncTransporting: AnyObject, Sendable {
+    func setBookmarkCategoryApproved(_ approved: Bool)
     func status() -> CloudKitSyncStatus
     func allRecords() async throws -> [SyncRecord]
     func records(forRecordIDs recordIDs: [UUID]) async throws -> [SyncRecord]
@@ -74,6 +75,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
     private var nextPassID: UInt64 = 1
     private var activePassID: UInt64?
     private var domainMergeActivityCount = 0
+    private let bookmarkTransportAuthorization = BookmarkTransportAuthorization()
 
     init(
         recordStore: InMemorySyncRecordStore,
@@ -87,6 +89,10 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
 
     func status() -> CloudKitSyncStatus {
         .init(phase: .idle, detail: "Visible E2E in-memory transport")
+    }
+
+    func setBookmarkCategoryApproved(_ approved: Bool) {
+        bookmarkTransportAuthorization.setApproved(approved)
     }
 
     func allRecords() async throws -> [SyncRecord] {
@@ -113,6 +119,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
         _ record: SyncRecord,
         authorization: SyncAuthorizationContext
     ) async throws {
+        try bookmarkTransportAuthorization.authorize(record)
         try boundary.authorize(record, context: authorization)
         try await recordStore.upsert(record)
         lock.withLock {
@@ -140,6 +147,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
             optedInDeveloperAssetIDs: authorizedDeveloperAssetIDs
         )
         for record in allowedRecords {
+            try bookmarkTransportAuthorization.authorize(record)
             try boundary.authorize(record, context: authorization)
         }
         try await recordStore.upsert(allowedRecords)
@@ -157,6 +165,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
             optedInDeveloperAssetIDs: authorizedDeveloperAssetIDs
         )
         for record in records {
+            try bookmarkTransportAuthorization.authorize(record)
             try boundary.authorize(record, context: authorization)
         }
         try await recordStore.upsert(records)
