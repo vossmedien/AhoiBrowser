@@ -65,18 +65,35 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   B-D API handoff is claimed. Old codec/marker/ownership fixes are not reopened.
   Golden assertions remain unexecuted and optional expansion deferred; the
   earlier `3e9552f` DCO follow-up remains preserved.
-- On the same installed4cb candidate, AnyChat1.0.8 reached the native permissions
+- On the same installed `4cb622a` candidate, AnyChat 1.0.8 reached the native permissions
   dialog and the Cancel journey passed. Actual installation remains user-gated
   because of the disclosed AI-site/NTP/favicon permissions. Arc still needs the
   already requested regular close; neither import nor recovery has mutated data.
-  The owner resolved background-start menu-only UI by raising the observed
-  native window before keyboard input, not by another build/reset. See513ae54
-  and58a32ae; no duplicate user question or new runtime handoff here.
+  Its second permission sheet was also cancelled; no modal remains open and
+  approval is still pending. The owner resolved background-start menu-only UI
+  by raising the observed native window before keyboard input, not by another
+  build/reset. See `513ae54` and `58a32ae`; no duplicate user question or new
+  runtime handoff here.
+- The bounded Sidebar docked/floating/hide/restore journey passed on `4cb622a`,
+  followed by five unchanged State/Layout regressions (`7822f3a`). Coordinator
+  read all five SUCCESS results and verified the selected source/header/test
+  files have no `c986090..4cb622a` differences. Reused runner/shared-runtime
+  limits are explicit in `artifacts/tests/sidebar-presentation-20260906/README.md`;
+  this is not a whole-candidate or unified-Sync pass. No test rerun here.
+- Common C++ Service getter/Observer/capture declarations and implementation
+  files are now visible WIP (`profile_sync_service_shared_capture.cc`,
+  `profile_sync_backend_shared_tabs.cc`). The owner is also requesting a small
+  native atomic projection-receipt seam; that is local persistence, not another
+  wire format. No finished B-D code handoff or build is inferred.
 - Coordinator observed repeated delayed 92694fe/SQL replies at 20:50–20:52 and
   sent `01a07359-5e4f-7242-a33b-0b407858ba53`: no repeated old handoff checks;
   continue the actual Service/capture/backend and Mobile binding work. ADR0010
   remains fully in scope. This is execution steering, not a new role/freeze or
   a claim that the missing B-D code handoff has arrived.
+- The separate stale active Desktop "Next actions" finding from
+  `01a0737f-d71e-76b3-86ed-7d68cc9ff160` is FIXED in `5d9f8c1`, verified by the
+  coordinator. Its eight active steps now bind `4cb622a`; old926/c986/PIDs are
+  explicitly historical. Do not reopen this finding or replay those builds.
 - A fresh read-only installed-profile inventory decoded all 9 profiles under
   `/Users/vossmedien/Library/Developer/Xcode/UserData/Provisioning Profiles`.
   The two Ahoi matches (`bbf658ff-10e4-4768-8cac-de5787ab5e78.mobileprovision`,
@@ -134,7 +151,7 @@ headers and dependencies; no writer/model/store changes. Desktop has the exact
 code/dependency handoff for its alias; no further A format/ownership ACK needed.
 B-D still await the actual service/getter/capture/backend implementation handoff;
 these interfaces alone are not working native behavior. Baseline work is separate.
-Desktop has consumed Native A in906dac8: exactly the Session target-type aliases
+Desktop has consumed Native A in `906dac8`: exactly the Session target-type aliases
 and their GN leaf dependency, documented in e4df043. This is source-only and is
 not included in the unchanged installed4cb candidate; do not request A again.
 
