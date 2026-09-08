@@ -145,6 +145,34 @@ a parallel compile. Pin and Common setting/search objects compiled successfully;
 that is not full build/UI acceptance. Fresh capacity49–62%idle/46%memory,
 no new swapouts in the sample; jobs2 remains unchanged.
 
+**Additional source-only work during that build:** native storage observer
+handoff851e3bb is committed/pushed as Patch0036 (only upstream
+storage_frontend.h/.cc plus ledger/series). Common received exact API in
+01a080e9-6683-7291-9296-d26e5b75237b: ObserveSyncSettingsChanges and
+GetRemoteSyncApplyObserver carry kNative/kRemoteApply with the individual UI
+reply; no global async suppression. Nonempty sync-area changes notify before
+the no-JS-listener return, with scoped subscriptions and callback-list lifetime
+protection. Positive extension/key/value and original authorization remain
+Common's responsibility. Exact patch application/format checked, NOT compiled
+or E2E-tested. This is OUTSIDE frozenf5/79280 and MUST NOT be pulled into its
+small GURL corrective follow-up; integrate with the matching extension consumer
+in a later coherent package, not by checking out canonicalHEAD blindly.
+
+**Arc preparation, after real source close:** Arc is now absent in the live
+process readback and Default DB/journal hashes still match recorded originals.
+To recover that pre-mirroring journal safely while the shared build snapshot
+stays immutable, a sparse temporary4cb worktree with ONLY scripts/tools/config
+was prepared at `/private/tmp/ahoi-arc-recovery-tools.Q65woe/repo`. It is clean
+and must NEVER build/use/refresh shared Chromium/out. The original4cb rollback
+was APFS-cloned to `/private/tmp/ahoi-arc-recovery-tools.Q65woe/AhoiBrowser.app`;
+full existing verify-built-app check47969 EXIT0 (533libraries/238resources,
+source4cb, executable55301ccb...). No install or app/UI action yet. After the
+explicit Build18 window return, the existing guarded installer can temporarily
+activate that compatible bundle for the real Arc recovery UI; keep6ae and4cb
+rollback/evidence, then continue the new toolbar candidate. Preflight log:
+`artifacts/build/arc-recovery-4cb622a-20260908/preflight.log`.
+Coordinator informed in01a080ed-2950-7202-807b-e2f21f6d5435; no new ACK required.
+
 New Apple authorization has produced a concrete native Mac Development profile,
 not merely a plan:8f149b92-89cc-4d34-a0db-1b305d4e545c in the standard Xcode
 profile cache, OSX/1Mac/Team248AJ5BN47/exactAhoiContainer/developmentAPNs. Tiny
@@ -920,7 +948,12 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    Continue the remaining product steps below; no further matrix, app reinstall
    for test-only edits, or integration of Common WIP. Real remote projection/
    origin UX and shared Sync are not closed by these local results.
-2. Arc's real Default profile remains protected. After Arc is normally closed,
+2. Arc's real Default profile remains protected. Arc has now been observed
+   closed; compatible4cb bundle/guarded sparse-tooling preflight is ready as
+   documented above. After the explicit current Mobile UI handback, recheck
+   window/process state and activate that bundle only through the guarded
+   installer for recovery. No shared checkout/out change or extra compile.
+   After Arc is normally closed,
    use the compatible4cb baseline's guarded importer recovery before allowing
    new normal-tab mirroring to touch that failed-import profile. Open the real
    `chrome://settings/importData` flow, recover the preserved transaction, THEN
