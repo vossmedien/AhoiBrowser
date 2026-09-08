@@ -29,6 +29,36 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Approved icon is now integrated in source, 2026-09-08:** coordinator's
+  `df03d46c1358eef76c60bf7d5d63e9f1e1e9536e` is pushed and the remote SHA was
+  verified. Shared ImageGen master, generated desktop theme/native assets and
+  opaque iOS AppIcon now match. Existing generator EXIT0; small icons/alpha/
+  dimensions and shell syntax checked. Old SVG is preserved in branding/legacy.
+  Exact handoffs: Desktop `01a080c6-b7fb-75f2-b0b7-9365802d4fd6`, Mobile
+  `01a080c6-b9a1-7a72-9b4c-417dc2c3af38`. Consume in the next suitable candidate;
+  installed6ae and archived Build18 were not rewritten. Coordinator's bounded
+  asset ownership is now released; no separate build/install path was created.
+- **Apple setup has explicit user authorization:** necessary Development
+  resources may be configured/created in the existing Developer account, with
+  existing data/profiles/keys preserved. This supersedes treating the missing
+  Mac profile as an uninvestigated external gate. Desktop accepted the concrete
+  setup role and is checking the Portal/Xcode account; login/2FA can still be a
+  genuine human boundary, not a reason to ask for the same general approval.
+  No Production publication is implied. Scope is in the coordination prompt.
+- **NEW Build18 Simulator window is requested, not yet granted:** exact signed
+  candidate894c9a2 is ready; old Build17/07:08 permission remains closed. Actual
+  shared Simulator focus must be released by MBC01a07095, BetterConvo01a04978,
+  other active iOS01a04a1b and Desktop, not inferred from an idle process or a
+  distinct device UUID. Requests `01a080c4-937b-79d3-b900-1248691930c0`,
+  `01a080c4-950d-7791-8f86-4856db5db949`,
+  `01a080c4-96a9-7b12-be4e-3db90d9f100a` and
+  `01a080c4-9847-79a3-bda2-5536590578b3` ask for one short Search/Restart/Reset
+  window without interrupting foreign jobs. No new Ahoi Simulator was started.
+- **Home catalogue coupling is closed in source1587497:** the target selector
+  stays local with its excluded Home URL; Home-button visibility remains
+  portable. This addresses the concrete review question, without adding raw
+  URL transfer or a test matrix. Runtime proof still belongs to the next
+  matching Settings candidate.
 - **Native post-E2E focused checks verified, 2026-09-08:** coordinator read the
   machine-readable summaries in `artifacts/tests/native-tabs-6ae4070-20260908/`:
   eight Session/target cases and four corrected storage/receipt cases, all
