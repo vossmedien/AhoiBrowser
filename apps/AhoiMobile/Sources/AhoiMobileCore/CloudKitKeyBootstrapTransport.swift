@@ -29,6 +29,7 @@ public actor CloudKitKeyBootstrapTransport:
 
     private let containerIdentifier: String
     private let zoneID: CKRecordZone.ID
+    private let subscriptionID: String?
     private var engine: CKSyncEngine?
     private var fetchedClaim: CompanionBootstrapClaim?
     private var fetchedDomainRecords = false
@@ -46,6 +47,7 @@ public actor CloudKitKeyBootstrapTransport:
     private let authorization: @Sendable () -> Bool
 
     public init(containerIdentifier: String, zoneName: String,
+                subscriptionID: String? = nil,
                 authorization: @escaping @Sendable () -> Bool = { true }) throws {
         guard containerIdentifier.hasPrefix("iCloud."),
               containerIdentifier.count > "iCloud.".count,
@@ -53,6 +55,7 @@ public actor CloudKitKeyBootstrapTransport:
             throw CloudKitKeyBootstrapError.invalidConfiguration
         }
         self.containerIdentifier = containerIdentifier
+        self.subscriptionID = subscriptionID
         self.authorization = authorization
         self.zoneID = CKRecordZone.ID(
             zoneName: zoneName,
@@ -237,7 +240,7 @@ public actor CloudKitKeyBootstrapTransport:
             delegate: self
         )
         configuration.automaticallySync = false
-        configuration.subscriptionID = nil
+        configuration.subscriptionID = subscriptionID
         let created = CKSyncEngine(configuration)
         engine = created
         return created

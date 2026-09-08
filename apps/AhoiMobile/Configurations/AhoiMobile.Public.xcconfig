@@ -8,6 +8,7 @@ AHOI_MOBILE_TEST_BUNDLE_ID = app.ahoibrowser.AhoiBrowser.tests
 AHOI_MOBILE_UI_TEST_BUNDLE_ID = app.ahoibrowser.AhoiBrowser.uitests
 AHOI_CLOUDKIT_CONTAINER_ID = iCloud.app.ahoibrowser.AhoiBrowser
 AHOI_CLOUDKIT_ZONE_NAME = AhoiBrowserSyncV3
+AHOI_CLOUDKIT_SUBSCRIPTION_ID = AhoiBrowserSyncSubscription
 AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = 248AJ5BN47.app.ahoibrowser.sync
 AHOI_SYNC_KEYCHAIN_SERVICE = app.ahoibrowser.sync.payload-key
 AHOI_SYNC_KEYCHAIN_ACCOUNT = payload-key

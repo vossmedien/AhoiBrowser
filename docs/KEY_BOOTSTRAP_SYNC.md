@@ -113,3 +113,17 @@ Project generation, plist syntax and scoped diff checks passed. No compile,
 signing, simulator, key or cloud action occurred for this configuration followup.
 The previously built20 candidate remains immutable and does not yet contain
 this later configurable-zone source.
+
+The matching followup also stamps and requires
+`AHOI_CLOUDKIT_SUBSCRIPTION_ID`. AppEntry passes the same explicit ID to the
+sequential bootstrap, normal provider and rotation lane; account recovery
+already reuses the provider configuration. This closes the previous gap where
+the prepared Native subscription was explicit but Mobile still selected the
+engine default. The ordinary public default matches Native's existing
+`AhoiBrowserSyncSubscription`; the acceptance pair overrides it with the exact
+subscription in the same prepared JSON. No new subscription was created by
+this source change. Build19 remains the separate unchanged visible-UI candidate,
+and Build20 does not contain these later configuration changes.
+The configuration-only readback now resolves all seven prepared identifiers,
+including that subscription, identically for app and Core with signing disabled.
+Project generation/plist/whitespace checks passed; no compile or runtime pass.
