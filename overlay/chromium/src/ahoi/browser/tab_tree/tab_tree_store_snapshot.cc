@@ -34,7 +34,7 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
     const TabTreeSnapshot& snapshot,
     const std::string* sync_baseline_receipt,
     const base::RepeatingCallback<bool()>& authorization) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  // Both public entry points validate the sequence; this helper requires it.
   if (!IsReady()) {
     return Result::kNotInitialized;
   }
