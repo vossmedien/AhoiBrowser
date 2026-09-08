@@ -92,6 +92,24 @@ existing toolbar/UI work after the in-flight Save/Unsave correction; no extra
 agent, competing build or Common/Swift implementation is authorized by this
 handoff. Verify one short visible Hover/Pin/Home journey, not a new test matrix.
 
+## Explicit delivery authorization — 2026-09-08
+
+The user explicitly authorized using the existing Apple Developer account and
+creating the prerequisites needed for native Mac CloudKit, rather than leaving
+the missing Mac profile as an unexplored external gate. Desktop owns the actual
+Development App ID/container/profile setup, candidate-copy preparation/signing
+and installation path. Verify the existing Ahoi team and resources first;
+preserve existing profiles, data and keys. Routine necessary Development setup
+requires no repeat general approval. Only genuine login/2FA/human or materially
+different external actions need user input; no Production publication is implied.
+
+The user also explicitly approved integration of the second generated sail/wave
+icon. Coordinator owns only its master, generated Desktop/Mobile icon assets and
+existing generator for this bounded handoff. Both build owners consume the
+completed icon source in the next suitable candidate; no separate release path
+or full functional replay solely for changed icon bytes. Confirm visible icon
+appearance as part of the normal installed-candidate journey.
+
 ## Roles
 
 - Sync implementation/integration owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
