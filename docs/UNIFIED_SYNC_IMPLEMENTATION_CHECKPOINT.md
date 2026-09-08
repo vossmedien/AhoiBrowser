@@ -3,6 +3,23 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Integrated Mobile Build19 ready — 2026-09-08
+
+The regular product-only build38455 on clean6b0121f76b5ba7b8bd2e32cbf5689b915db81e77
+completed EXIT0. DebugLocal0.1(19) includes approved icondf03d46 unchanged,
+Home-selector exclusion, the existing-layout host-width correction and the
+shared extension-setup metadata section. Exact source/project/plist/signature
+receipt: artifacts/build/mobile-setup-6b0121f-20260908/candidate.json.
+App tree a120dea9e97c1dda73f9668025984da5f97d5c96b7d14d305818b65492e14d80.
+This was NOT an icon-only build. Build18 was first archived and independently
+reverified byte-identical; its installed FE1B device remains Shutdown.
+
+No new UI or tests ran. Native Arc recovery and the next foreign Simulator
+user retain their UI ownership. Next: one short coordinated visible check of
+the new icon, readable origin and metadata-consent section on Build19, not a
+complete replay of Build18's unchanged function matrix. No existing candidate
+was overwritten, and no My-Mac/native install/key/Portal action was taken.
+
 ## Extension orchestration source continuation — 2026-09-08
 
 Exact committed/pushed package:6b0121f76b5ba7b8bd2e32cbf5689b915db81e77 (38 scoped
