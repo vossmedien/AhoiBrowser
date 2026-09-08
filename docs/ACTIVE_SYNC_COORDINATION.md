@@ -29,6 +29,26 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Mac CloudKit DEVELOPMENT copy is configured and signing-verified:**
+  coordinator read `desktop-toolbar-settings-3d59cf9-20260908/cloudkit/`
+  preparation.json and verification.json below artifacts/build. Source3d59cf9,
+  exact Development runtime/signature/profile, Ahoi container/team and two
+  designated keychain groups are bound. Verified signed executable SHA is
+  7eedd882b85761c8fd04eab6c88c20f7bc21d1ebc234da39112bbe6001824a20;
+  tree SHA d987e11659044e594cbba97a9f36097b7e89eedd7952fd43e95feb827dc6b05f.
+  This is a real prepared candidate, not a transport/key-bootstrap pass.
+  Next: coordinate the existing shared-key lifecycle and exact account/zone with
+  Mobile, then the real roundtrip. Runtime zone currently AhoiBrowserSyncV3;
+  establish fresh isolated acceptance data before writes instead of assuming
+  emptiness from that name. No existing keys or records may be deleted.
+- **User-ended manual UI activity, 2026-09-08:** user explicitly said they are
+  no longer operating Ahoi and requested continuation. Desktop was directly
+  notified in01a0810b-67c2-77b1-b47a-ceb0f403a2cb to resume protected Arc recovery
+  after fresh window/profile checks. This does not retrospectively attribute
+  every unexplained prior UI change. The wider address-bar activator and marked
+  appearance issue are already with Desktop; no duplicate product work by Root.
+  Desktop confirmed the Bookmark control is consent for one category of the
+  same Ahoi-Sync, not a second engine; global Sync-off prevents its transport.
 - **Toolbar/Icon/Settings correction is built; Arc recovery now owns native UI:**
   the clean3d59cf9 app-only build completed packaging/signature/provenance and
   wrote `artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/build-receipt.json`.
