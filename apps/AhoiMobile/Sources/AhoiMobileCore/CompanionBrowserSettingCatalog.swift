@@ -29,7 +29,6 @@ public enum CompanionBrowserSettingCatalog {
         "ahoi.navigation.floating_auto_hide_enabled": .boolean,
         "ahoi.navigation.floating_reveal_notch_enabled": .boolean,
         "ahoi.navigation.floating_auto_hide_delay_ms": .autoHideDelay,
-        "homepage_is_newtabpage": .boolean,
         "browser.show_home_button": .boolean,
         "browser.show_forward_button": .boolean,
         "browser.pin_split_tab_button": .boolean,

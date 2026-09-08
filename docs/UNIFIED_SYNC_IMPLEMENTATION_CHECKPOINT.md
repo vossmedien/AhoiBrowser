@@ -3,6 +3,17 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Concrete Home coupling correction — 2026-09-08
+
+The reported `homepage_is_newtabpage`/excluded-homepage mismatch is confirmed:
+the selector alone would activate B's local target rather than A's configuration.
+It is removed from BOTH positive C++/Swift catalogues; local targets/records are
+preserved. The independent `browser.show_home_button` and Ahoi toolbar-pin pref
+remain supported. No raw Home URL, schema, migration, icon, native UI or build
+change. Current source supports23 real preferences plus the native search choice.
+The frozen Build18 candidate is unchanged; its search-journey evidence cannot
+claim this later catalogue correction. Relevant source/GN/whitespace checks only.
+
 ## Search-engine mapping and Mobile provider continuation — 2026-09-08
 
 Committed/pushed source:29c42dbfafb095da7e091668ad728dd4b6ad64a1. Its first Mobile

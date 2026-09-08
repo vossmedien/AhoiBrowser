@@ -11,7 +11,7 @@ The positive catalogue is `sync/browser_setting_catalog.{h,cc}` below
 `overlay/chromium/src/ahoi/browser/`. Each native profile additionally checks
 actual registration, type and Chromium's Syncable/SyncablePriority flags. The
 five existing Ahoi preferences keep their original identities and do not require
-an upstream sync flag. The 24 real preference entries plus one native search
+an upstream sync flag. The 23 real preference entries plus one native search
 choice are an implemented subset, **not all of
 chrome://settings** and not the completion boundary for ADR0010.
 
@@ -20,7 +20,7 @@ chrome://settings** and not the completion boundary for ADR0010.
 | Search choice | `ahoi.browser.default_search_engine` | Logical TemplateURLService choice: `duckDuckGo`, `google`, `bing`; no exported URL or shadow native preference |
 | Ahoi | `ahoi.appearance.glass_enabled`, `ahoi.appearance.sidebar_page_tint_enabled`, `ahoi.navigation.floating_auto_hide_enabled`, `ahoi.navigation.floating_reveal_notch_enabled` | Boolean |
 | Ahoi timing | `ahoi.navigation.floating_auto_hide_delay_ms` | Integer 100–10000 ms |
-| Navigation | `homepage_is_newtabpage`, `browser.show_home_button`, `browser.show_forward_button`, `browser.pin_split_tab_button`, `browser.split_view_drag_and_drop_enabled` | Boolean |
+| Navigation | `browser.show_home_button`, `browser.show_forward_button`, `browser.pin_split_tab_button`, `browser.split_view_drag_and_drop_enabled` | Boolean |
 | Downloads | `download.prompt_for_download`, `plugins.always_open_pdf_externally` | Boolean; no path or auto-open list |
 | Language | `browser.enable_spellchecking`, `translate.enabled` | Boolean; no cloud-spelling consent |
 | Encoding | `intl.charset_default` | Only `UTF-8` or `windows-1252` |
@@ -43,6 +43,17 @@ deprecated reading enum values. The coupled HTTPS-first preference pair is not
 partially restored as independent toggles. Language lists, custom search engines,
 other transferable settings and appropriate atomic groups need further native
 mapping, not a claim that this first catalogue exhausts meaningful settings.
+
+The Home target and `homepage_is_newtabpage` selector are BOTH excluded. A `false`
+selector received on B would activate B's local homepage, not A's: an empty or
+invalid target falls back to Chromium's new-tab page (ProfileImpl::GetHomePage),
+while an existing target could name an unrelated local URL. The independent `browser.show_home_button` remains
+supported, including Desktop's native Home toolbar control. A reviewed atomic
+Home configuration is a future mapping; this correction does not authorize
+arbitrary URL transfer. Existing local preferences/records are retained, not
+deleted or rewritten. Build18 still has the earlier catalogue and is accepted
+only for its unrelated search-choice journey until a new candidate includes
+this source correction.
 
 ## One existing wire class and native authority
 

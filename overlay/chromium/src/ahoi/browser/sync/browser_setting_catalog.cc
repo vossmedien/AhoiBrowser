@@ -29,8 +29,11 @@ constexpr BrowserSettingDescriptor kCatalog[] = {
      false},
 
     // chrome/common/pref_names.h; chrome/browser/ui/browser_ui_prefs.cc.
-    // No homepage URL, session contents, toolbar histories or window geometry.
-    {"homepage_is_newtabpage", "navigation", Type::BOOLEAN, true},
+    // Home target+selector are one configuration: transferring only the
+    // selector could activate a different local URL on B. Keep BOTH local until
+    // a reviewed atomic home configuration exists. Home button visibility is
+    // independent. No homepage URL, session contents, toolbar histories or
+    // window geometry.
     {"browser.show_home_button", "navigation", Type::BOOLEAN, true},
     {"browser.show_forward_button", "navigation", Type::BOOLEAN, true},
     {"browser.pin_split_tab_button", "navigation", Type::BOOLEAN, true},
