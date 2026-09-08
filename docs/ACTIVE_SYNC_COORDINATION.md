@@ -29,6 +29,20 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **New native candidate BUILT + INSTALLED, 2026-09-08:** corrective app-only
+  build82463 from clean snapshot `c20a759dd936cfa93d5fedeb4c9dcd52e876bcd7`
+  completed EXIT0, including signing and portable-bundle checks. Its Sync and
+  TabTree source matches the grouped `dfcc32e` correction; Inbox7a47063 is included.
+  Coordinator read the completed build log/receipt, installed plist and actual
+  executable SHA256 `7f34223ff06d7b430acab72d6f57d34072efeb3db5b1ff9363d566e1396ef189`.
+  Canonical install receipt:
+  `artifacts/install/ahoi-dev-c20a759-20260908T092211Z.json`; activation verification
+  is true and bundle-tree SHA is
+  `d17efb433b0fa822fbde0ad0be476acb49d1bef85f4564870f1ca8be19583010`.
+  Previous4cb remains at the receipt's explicit rollback path. No prior Default/
+  failed-Arc profile is an acceptance fixture: Desktop's next visible journey
+  uses a fresh isolated profile. Native E2E and real Desktop/Mobile CloudKit
+  acceptance are still OPEN; no test suite was substituted for the visible app.
 - **Compiler corrections are committed, 2026-09-08:** Desktop `5a15614` retains
   all four public sequence DCHECKs and the two private helper context contracts,
   removing only duplicate helper acquisitions; coordinator checked all callers.
