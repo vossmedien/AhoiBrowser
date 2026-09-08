@@ -135,7 +135,24 @@ AI-assisted contributions. Published commits are not rewritten; this does not
 claim that an automated per-commit DCO check on their historical trailers ran
 or passed. Subsequent commits must use `git commit -s`.
 
-## Mobile candidate — product build succeeded, visible acceptance open
+## Mobile candidate — Build17 succeeded, visible acceptance open
+
+Current candidate is `7b706a73f98802fe31b206731b7e88c1da6b6c59`, DebugLocal0.1(17).
+Its product-only build Session `79364` is terminal EXIT0. Embedded source/build,
+deep/strict signature and clean-source/Xcode-project receipt are bound under
+`artifacts/build/mobile-shared-intents-7b706a7-20260908/`. App tree artifact hash:
+`d84c635869568ef1a90b809895d3571b148a75d814dcc41bd3842346a24dab87`.
+No installation, visible E2E or tests occurred. The own temporary source snapshot
+is now frozen at this commit. Build16 was preserved byte-for-byte and verified
+at `artifacts/build/mobile-unified3-4e64c5f-20260908/AhoiMobile-bba0b86.app` before
+incremental product-cache reuse. Its historical evidence follows below, not a
+new Build17 acceptance. No default profile or Desktop lease was touched.
+
+Global/project AGENTS were reread fully after the latest September8 update:
+finish already-authorized preparation before asking approval, reuse existing
+same-scope approvals, continue unaffected work and infer no extra skill gates.
+Actual source/UI ownership and E2E-first still apply. The short Simulator UI
+slot remains an explicit coordination request, not a skill-generated condition.
 
 Swift package `4e64c5f2f4e6052c1a4aefb2d6b9c6617cf76963` is signed/committed/pushed.
 First product-only build Session `1526` ended EXIT 65 at one stale external-link
@@ -154,8 +171,8 @@ Its existing receipt tool uses domain-separated artifact hashes, not plain
 `shasum` file hashes. No installation, Simulator/My-Mac/App start, test or real
 CloudKit mutation occurred. Desktop still owns the UI; its short Simulator slot
 was requested and is NOT inferred from a successful build or idle processes.
-Keep `/private/tmp/ahoi-mobile-shared-tabs.V7PCPC/repo` frozen at `bba0b86` and its
-current DerivedData app unchanged for the initial visible journey.
+This Build16 source is historical; use the current Build17 source/product above
+for acceptance of the material deferred-intent correction.
 
 ## Current implementation state — remaining integration, not Sync acceptance
 
