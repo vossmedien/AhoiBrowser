@@ -33,8 +33,10 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   yes to the Mobile owner running the short Simulator journey while Desktop
   works on source only. This resolves the previously unanswered UI-slot gate;
   do not request the same approval again or retain an old no-slot statement.
-  Sync/Mobile owner uses the built `bba0b86` DebugLocal build16 in a fresh,
-  isolated Simulator context after a current capacity check. Desktop continues
+  Sync/Mobile owner uses the built `bba0b86` DebugLocal build16, or a necessary
+  same-scope corrected successor with its own source/candidate receipt, in a
+  fresh isolated Simulator context after a current capacity check. A concrete
+  product correction does not require the same UI approval again. Desktop continues
   code work without native UI actions for this window. No My-Mac/iPad-on-Mac,
   `/Applications` replacement, desktop profile, existing key, portal or Production
   action is included. Mobile explicitly returns the UI window after its bounded
