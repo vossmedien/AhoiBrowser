@@ -62,12 +62,10 @@ void ProfileSyncService::UpdateSharedTabNativeSupport() {
   }
   auto support = ui_bridge_ ? ui_bridge_->GetSharedTabNativeSupport()
                             : SharedTabNativeSupport();
-  tab_tree::TabTreeSnapshot tree;
-  std::string receipt;
-  if (support.projection &&
-      !ui_bridge_->ExportTabTreeSyncSnapshot(&tree, &receipt)) {
-    support = {};  // An old/default bridge cannot announce complete support.
-  }
+  // Implementation support is not the readiness of a particular snapshot.
+  // Pending local disk persistence defers Export, not capability admission;
+  // treating it as unsupported here could latch the initial bridge off forever.
+  // Default bridges still explicitly report no implemented native support.
   backend_.AsyncCall(&ProfileSyncBackend::SetSharedTabNativeSupport)
       .WithArgs(support)
       .Then(base::BindOnce(&ProfileSyncService::OnSharedTabSupportUpdated,

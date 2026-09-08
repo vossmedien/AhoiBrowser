@@ -33,7 +33,13 @@ The exact callable interfaces are in `sync/profile_sync_service.h` and
   they are not a fallback writer. Replace their native callers in B-D.
 - **Required Native-B receipt seam:**
   `ExportTabTreeSyncSnapshot(TabTreeSnapshot*, std::string*)` returns the COMPLETE
-  profile tree plus its opaque baseline receipt atomically; false is deferred.
+  CURRENT profile tree plus its opaque baseline receipt atomically and durably;
+  false defers while loading/local persistence is pending. Do not substitute an
+  older durable snapshot for newer RAM edits. Re-notify the existing snapshot
+  callback once that same current revision is durably committed. Concrete risk:
+  native RAM B -> Common observation/outbox B -> crash before native Disk B ->
+  restart A would otherwise be misread as a deliberate local undo. No new field
+  or auxiliary transport is needed for this existing export boundary.
   `ApplySyncedTabTreeSnapshotWithReceipt(snapshot, receipt, authorization, completion)` must
   persist receipt+tree in the same native transaction, retain receipt on ordinary
   local edits/undo and carry the original authorization through persistence.
@@ -44,6 +50,11 @@ The exact callable interfaces are in `sync/profile_sync_service.h` and
   The defaults fail closed. Common checks the exact tree+receipt readback after
   completion. This corrects the first synchronous handoff, following Desktop's
   concrete request `01a07f98-70b9-7660-a620-ec057c927a3b` and its `cc7e7e3` envelope.
+  The asynchronous correction is committed/pushed as
+  `5e74472b3950862d13e94fa5ac0233ef13fafc7e`, direct handoff
+  `01a07fb9-905e-75f2-bf74-da6884314e15`. Common no longer converts a temporarily
+  deferred Export into missing implementation support; capability admission
+  and snapshot durability are separate, so startup cannot latch support off.
   This is local crash-safety metadata, NOT a new wire field, storage partition
   ID, profile path or cloud migration. Desktop request: `01a073b2-528f-7693-a596-d8dda453f100`.
 

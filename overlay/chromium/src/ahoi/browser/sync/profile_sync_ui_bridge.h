@@ -59,6 +59,13 @@ class ProfileSyncUiBridge {
   // carry it through an asynchronous persistence hop without renewing it.
   // Without this seam a post-apply crash could turn remote values into new
   // local edits.
+  // Export true attests the COMPLETE CURRENT tree+receipt are also durably
+  // committed. Return false during load/pending local persistence; do not
+  // return an older disk snapshot while newer RAM edits exist. Notify the
+  // existing local snapshot callback again when that same current revision is
+  // durable. Otherwise a crash after Common observes RAM=B but before Native
+  // stores B could turn the restored disk=A into a spurious local undo on the
+  // next run.
   [[nodiscard]] virtual bool ExportTabTreeSyncSnapshot(
       tab_tree::TabTreeSnapshot* snapshot,
       std::string* baseline_receipt) {
