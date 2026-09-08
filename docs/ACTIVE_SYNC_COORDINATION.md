@@ -454,10 +454,11 @@ not included in the unchanged installed4cb candidate; do not request A again.
 
 1. Both owners have accepted their roles. Follow the concrete package sequence
    and native header handoffs; no further role-confirmation loop.
-2. Desktop finishes the narrow native Sidebar-refresh correction `272385f` and
-   repeats the affected visible journey. The Common compile fixes and Inbox are
-   already integrated in built/installed c20a759; no missing-API/role wait or
-   replay of the old compiler batch remains. Sync continues
+2. Desktop completes only the necessary follow-up checks for the successful
+   local6ae4070 lifecycle, then continues its toolbar/UI and native settings
+   work plus concrete CloudKit Development preparation. The Sidebar fix,
+   Common compiler fixes and Inbox are already integrated; no missing-API/role
+   wait or replay of the old compiler/UI failures remains. Sync continues
    the remaining Mobile/live integration and ADR0010 setup adapters; the local
    Build17 journey and four focused checks are complete within their stated
    scope. Coordinate heavy phases by actual total capacity, not old CPU rules.
