@@ -35,6 +35,21 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Explicit MBC Simulator handback, 2026-09-08 14:01 UTC:** recorded directly
+  by MBC owner `01a07095-b539-7333-98c0-528b1aa0b60b` for BetterConvo
+  `01a04978` and coordinator `01a044d6-1545-7532-8394-6b7df1144bb1`.
+  MBC's native journey ended at13:19:29 UTC. No MBC UI run or Simulator window
+  reservation remains; subsequent work was local API/code and HTTPS release.
+  BetterConvo may start its already-requested bounded control run now, subject
+  to the other owners' own handoffs. MBC will not operate Simulator/CUA or
+  Xcode runtime or bring a Simulator forward before explicit return. Ahoi
+  Build19 follows BetterConvo's return; no new user approval, ACK or extra
+  tests requested. This is the resource owner's explicit release, not an
+  inference from process absence. Direct cross-chat receipt is not claimed.
+  Coordinator has now forwarded it to BetterConvo in01a0815e-6304, together
+  with Desktop's new explicit UI release after715. FillIt's newly completed
+  14:11 UI run prompted one current Surface-handoff request01a0815e-611b;
+  no renewed MBC/Desktop request is needed. BetterConvo precedes Ahoi19.
 - **CloudKit-configured715afc2 is now installed, 2026-09-08 13:27–13:28 UTC:**
   coordinator read the installed plist: source715afc21a9757ea46a309817691c5c4aaa320c1c,
   cloudkit-development, exactDevelopment and dedicated Ahoi container. Receipt
@@ -42,21 +57,40 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   actual executable SHA matches667626cd56c98d0768966b6cecf2be7b0fae2e69d6496164c92acdcca267eb45.
   Tree hash99bc79f5e44489d7d4e609849c1cc3f4ebf0a28be463fb8e2e8ea3723fbae95d.
   It includes the new icon, wider activator, LEFT Pin/Home and sidebar-only
-  bookmark presentation. A visible715 journey and actual shared-key/CloudKit
-  roundtrip are not implied by installation. Native starts use a fresh profile.
+  bookmark presentation. Desktop's committed evidence b750735 now separately
+  records the bounded visible LEFT Pin/Home, auto-hide/reactivation, sidebar-only
+  bookmark and category0/24 ->24/24 -> restart ->0/24 journey; global Sync stayed
+  OFF. The new sail logo was visible in About. Coordinator read the full report
+  [toolbar and Arc evidence](audit-evidence/2026-09-08-toolbar-and-arc-recovery.md).
+  No complete pointer-hover/Dock-size matrix or shared-key/CloudKit roundtrip
+  follows from that pass. Only the isolated toolbar profile was used; real
+  Default DB/journal remained unchanged. Desktop is now source/build-only and
+  has explicitly released its UI share for the short future Build19 journey.
 - **Arc recovery refusal is preserving real local work, not a permission wait:**
   the actual recovery UI refused because one unrelated Page changed title/URL/
   modified time. Desktop's comparison reproduces the expected fingerprint when
   only that row is substituted in memory; original imports/journal are intact.
-  Its bounded Arc-only correction must retain this local navigation, not restore
-  the entire backup blindly. No successful real recovery/import is claimed.
-- **Build19 future UI request queued, not START:** consume a fresh resource
-  handoff after ongoing MBC and the already-waiting BetterConvo control run.
+  Its bounded Arc-only preserving correction dff21f9 is now committed and
+  owner-reviewed, source-only; the next Arc candidate must retain this local
+  navigation, not restore the entire backup blindly. No successful real
+  recovery/import is claimed.
+- **Build19 future UI request queued, not START:** MBC and Desktop have explicitly
+  released above; complete the current FillIt Surface handoff and consume the
+  return after the already-waiting BetterConvo control run.
   Coordinator contacted those current owners once and registered Ahoi's short
   icon/host-label/metadata view afterward. Do not interrupt their work, reopen
   Ahoi18's expired window, rebuild the ready candidate or replay its unchanged
   function matrix. Desktop Arc/Toolbar work is not held by this future request.
   Resume coordination on the actual handback; no unchanged polling turns.
+- **Next shared-key gate is a product integration, not missing Apple approval:**
+  Common owner is attaching Swift's existing guarded first-use Claim/Journal/
+  Promote lifecycle to native initialization, which previously only loaded an
+  existing key. This is not yet in715 or a runtime pass. Coordinator forwarded
+  the concrete paired-candidate configuration need once to Desktop01a0814d-68c9
+  and Sync01a0814d-6a3f: the completed source handoff should bind both candidates
+  to one fresh Development zone and separate payload-key family through existing
+  configuration/Keychain paths. No manual key copy/replacement, no assumption
+  that AhoiBrowserSyncV3 or keyVersion1 proves freshness or identical key bytes.
 - **Mobile Build19 is built, not visually accepted:** coordinator consumed the
   completion evidence after event-driven waiting rather than polling the same
   processes. `artifacts/build/mobile-setup-6b0121f-20260908/build.log` ends BUILD
