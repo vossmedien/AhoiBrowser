@@ -18,12 +18,22 @@ public enum SharedTabContract {
     }
 
     public static func capabilityID(for device: DeviceID) -> UUID {
+        namedID("ahoi:sync:capability:v1:\(device.rawValue.uuidString.lowercased())")
+    }
+
+    /// A repeat after a local session/domain persistence gap must find the
+    /// same new page, not deduplicate by URL or invent another global tab.
+    public static func localPageID(device: DeviceID, presence: TabID) -> TreeNodeID {
+        TreeNodeID(rawValue: namedID("ahoi:sync:local-page:v1:\(device.rawValue.uuidString.lowercased()):\(presence.rawValue.uuidString.lowercased())"))
+    }
+
+    private static func namedID(_ name: String) -> UUID {
         // UUIDv5 uses SHA-1 for deterministic naming, never authentication or
         // encryption. The standard URL namespace and name are frozen wire data.
         let namespace = UUID(uuidString: "6ba7b811-9dad-11d1-80b4-00c04fd430c8")!
         var namespaceBytes = namespace.uuid
         var input = withUnsafeBytes(of: &namespaceBytes) { Data($0) }
-        input.append(Data("ahoi:sync:capability:v1:\(device.rawValue.uuidString.lowercased())".utf8))
+        input.append(Data(name.utf8))
         var bytes = Array(Insecure.SHA1.hash(data: input).prefix(16))
         bytes[6] = (bytes[6] & 0x0f) | 0x50
         bytes[8] = (bytes[8] & 0x3f) | 0x80

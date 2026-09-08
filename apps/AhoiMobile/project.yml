@@ -145,6 +145,8 @@ targets:
         buildPhase: resources
       - path: ../../overlay/chromium/src/ahoi/browser/sync/testdata/shared_tab_wire_v3_contract.json
         buildPhase: resources
+      - path: ../../overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json
+        buildPhase: resources
     dependencies:
       - target: AhoiMobileCore
       - package: AhoiCloudKitSpike

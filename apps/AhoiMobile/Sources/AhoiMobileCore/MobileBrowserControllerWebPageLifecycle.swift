@@ -70,14 +70,21 @@ extension MobileBrowserController {
                                 tabID,
                                 default: 0
                             ]
+                            self.beginSharedNavigation(tabID: tabID, generation: callbackGeneration)
                             self.resetTransientNavigationState(for: tabID)
                             self.pageFailures.removeValue(forKey: tabID)
                         case .committed:
                             self.pageFailures.removeValue(forKey: tabID)
+                            self.commitSharedNavigation(tabID: tabID, generation: callbackGeneration,
+                                                        url: page.url, title: page.title)
                         case .finished:
                             recoveryGate.resetAfterFinishedNavigation()
                             self.expectedPolicyCancellationTabIDs.remove(tabID)
                             self.pageFailures.removeValue(forKey: tabID)
+                            self.commitSharedNavigation(tabID: tabID, generation: callbackGeneration,
+                                                        url: page.url, title: page.title)
+                            guard self.isCurrentNavigationCallback(page: page, tabID: tabID,
+                                                                   generation: callbackGeneration) else { return }
                             await self.sampleWebsiteTint(from: page, tabID: tabID)
                             guard self.isCurrentNavigationCallback(
                                 page: page,
@@ -107,6 +114,8 @@ extension MobileBrowserController {
                         isNavigationCancellation: Self.isNavigationCancellation(error)
                     ) {
                     case .resubscribeAfterCancellation:
+                        self.cancelSharedNavigation(for: tabID,
+                            failedURL: Self.validatedNavigationFailureURL(error))
                         if !expectedPolicyCancellation || self.pageFailures[tabID] == nil {
                             self.pageFailures.removeValue(forKey: tabID)
                         }
@@ -131,6 +140,11 @@ extension MobileBrowserController {
                         break
                     }
                     let classification = Self.navigationFailureClassification(error)
+                    if let failedURL = Self.validatedNavigationFailureURL(error) {
+                        self.commitSharedNavigation(tabID: tabID, generation: callbackGeneration,
+                                                    url: failedURL, title: nil)
+                    }
+                    self.clearSharedNavigation(for: tabID)
                     self.retainNavigationFailureDestination(
                         from: error,
                         tabID: tabID
@@ -329,11 +343,16 @@ extension MobileBrowserController {
                 message: message
             )
         }
-        return WebPage(
+        let page = WebPage(
             configuration: configuration,
             navigationDecider: policy,
             dialogPresenter: dialogPresenter
         )
+        policy.onAllowedMainFrameNavigation = { [weak self, weak page] url, kind in
+            guard let self, let page, self.pages[tabID] === page else { return }
+            self.noteAllowedSharedNavigation(tabID: tabID, url: url, kind: kind)
+        }
+        return page
     }
 
 }

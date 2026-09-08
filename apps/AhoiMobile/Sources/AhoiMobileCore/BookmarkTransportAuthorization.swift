@@ -21,8 +21,9 @@ final class BookmarkTransportAuthorization: @unchecked Sendable {
     }
 
     func authorize(_ record: SyncRecord) throws {
-        guard record.schemaVersion <= SharedTabWireReadPolicy.defaultWriteVersion else {
-            throw SharedTabWirePreparationError.writerNotActivated
+        guard record.schemaVersion == SharedSyncFormat.currentVersion,
+              SharedSyncFormat.supportedDataClasses.contains(record.dataClass) else {
+            throw SharedSyncFormatError.unsupportedVersion
         }
         if record.dataClass == .bookmark, !lock.withLock({ approved }) {
             throw BookmarkTransportAuthorizationError.categoryNotApproved

@@ -97,13 +97,22 @@ public struct AhoiMobileBrowserView: View {
 #endif
             await companionModel.load()
             await companionModel.setSyncEnabled(syncEnabled)
-            await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+            await companionModel.reconcilePublishedMobileTabs(browser)
 #if DEBUG
             await companionModel.loadSyncVisibleUITestConflictIfRequested()
 #endif
             await companionModel.sync()
         }
         .onOpenURL { browser.handleExternalURL($0) }
+        .modifier(MobileSharedTabIntentBinding(browser: browser, model: companionModel, enabled: !isPerformanceRuntime))
+        .onChange(of: companionModel.snapshot.treeNodes) { _, _ in
+            companionModel.reconcileBrowserSharedProjection(browser)
+            if !isPerformanceRuntime { companionModel.scheduleMobileSharedCapture(browser) }
+        }
+        .onChange(of: companionModel.snapshot.workspaces) { _, _ in
+            companionModel.reconcileBrowserSharedProjection(browser)
+            if !isPerformanceRuntime { companionModel.scheduleMobileSharedCapture(browser) }
+        }
         .onChange(of: syncEnabled) { _, enabled in
             guard !isPerformanceRuntime else { return }
             Task { await companionModel.setSyncEnabled(enabled) }
@@ -119,7 +128,7 @@ public struct AhoiMobileBrowserView: View {
                 expandHarborDeck()
                 guard !isPerformanceRuntime else { return }
                 Task {
-                    await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+                    await companionModel.reconcilePublishedMobileTabs(browser)
                     await companionModel.sync()
                 }
             }
@@ -303,7 +312,7 @@ public struct AhoiMobileBrowserView: View {
                                     title: navigation.title,
                                     url: navigation.url.absoluteString
                                 )
-                                await companionModel.publishMobileTab(navigation.tab)
+                                await companionModel.reconcilePublishedMobileTabs(browser)
                             }
                         }
                     }
@@ -671,7 +680,7 @@ public struct AhoiMobileBrowserView: View {
             _ = browser.createTab(workspaceID: target.id)
         }
         Task {
-            await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+            await companionModel.reconcilePublishedMobileTabs(browser)
         }
     }
     private func selectNumberedTab(_ number: Int) {
@@ -735,7 +744,7 @@ public struct AhoiMobileBrowserView: View {
     private func reconcileSidebarTabs() {
         guard !isPerformanceRuntime else { return }
         Task {
-            await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+            await companionModel.reconcilePublishedMobileTabs(browser)
         }
     }
     private func flushSessionDuringBackgroundTransition() {
@@ -767,19 +776,19 @@ public struct AhoiMobileBrowserView: View {
     private func saveSelectedPage(to workspace: Workspace) {
         guard let tabID = browser.selectedTabID else { return }
         Task {
-            guard let tab = await browser.saveSharedPage(for: tabID, commit: { original, didCommit in
+            guard let _ = await browser.saveSharedPage(for: tabID, commit: { original, didCommit in
                 await companionModel.saveBrowserPage(
                     original, workspaceID: workspace.id, didCommit: didCommit
                 )
             }) else { return }
-            await companionModel.publishMobileTab(tab)
+            await companionModel.reconcilePublishedMobileTabs(browser)
         }
     }
     private func closeTab(_ id: UUID) {
-        let shouldRemovePublication = browser.tabs.first(where: { $0.id == id })?.mode == .normal
-        browser.close(id)
-        if shouldRemovePublication {
-            Task { await companionModel.closePublishedMobileTab(id) }
-        }
+        guard let tab = browser.tabs.first(where: { $0.id == id }) else { return }
+        guard tab.mode == .normal else { browser.close(id); return }
+        Task { await companionModel.closePublishedMobileTab(tab) {
+            if browser.tabs.first(where: { $0.id == id })?.presenceID == tab.presenceID { browser.close(id) }
+        } }
     }
 }

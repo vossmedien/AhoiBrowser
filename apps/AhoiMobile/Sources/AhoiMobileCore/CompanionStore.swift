@@ -4,7 +4,7 @@ import AhoiCloudKitSpike
 public actor LocalFirstRepository {
     private let store: any LocalCompanionStore
     private let searchIndex = LocalSearchIndex()
-    let localDeviceID: DeviceID
+    nonisolated let localDeviceID: DeviceID
     var clock: HybridLogicalClock
     var snapshot: CompanionSnapshot = .empty
     private var persistedSnapshot: CompanionSnapshot = .empty
@@ -201,68 +201,6 @@ public actor LocalFirstRepository {
         return visit
     }
 
-    public func publishLocalMobileTab(
-        tabID: UUID,
-        sessionID: DeviceSessionID,
-        deviceName: String,
-        deviceKind: DeviceKind,
-        workspaceID: WorkspaceID?,
-        title: String,
-        url: String,
-        pinned: Bool
-    ) async throws -> LocalMobileTabPublication {
-        await acquireMutation()
-        defer { releaseMutation() }
-        try await loadIfNeeded()
-        let sessionPublication = try publishLocalMobileSessionInSnapshot(
-            sessionID: sessionID,
-            deviceName: deviceName,
-            deviceKind: deviceKind,
-            workspaceID: workspaceID
-        )
-        let storedDevice = sessionPublication.device
-        let storedSession = sessionPublication.session
-
-        let typedTabID = TabID(rawValue: tabID)
-        let tabVersion = try nextVersion().normalized(for: [
-            "device_id", "session_id", "workspace_id", "url", "title", "opened_at",
-            "last_active", "pinned", "is_incognito", "tombstone",
-        ])
-        let existingTab = snapshot.remoteTabs.first { $0.id == typedTabID }
-        let workspaceName = workspaceID.flatMap { id in
-            snapshot.workspaces.first { $0.id == id && !$0.isDeleted }?.name
-        }
-        var tab = try RemoteTab(
-            tabID: typedTabID,
-            deviceID: localDeviceID,
-            deviceKind: deviceKind,
-            deviceName: deviceName,
-            sessionID: sessionID,
-            workspaceID: workspaceID,
-            workspaceName: workspaceName,
-            title: title,
-            url: url,
-            openedAt: existingTab?.openedAt ?? tabVersion.modifiedAt,
-            lastActiveAt: tabVersion.modifiedAt,
-            isOpen: true,
-            pinned: pinned,
-            version: tabVersion
-        )
-        if let existingTab {
-            tab = CompanionReadModelFieldMerge.stampLocal(
-                previous: existingTab,
-                candidate: tab
-            )
-        }
-        let storedTab = try mergeTabIntoSnapshot(tab)
-        try await persist()
-        return LocalMobileTabPublication(
-            device: storedDevice,
-            session: storedSession,
-            tab: storedTab
-        )
-    }
-
     public func publishLocalMobileSession(
         sessionID: DeviceSessionID,
         deviceName: String,
@@ -282,7 +220,7 @@ public actor LocalFirstRepository {
         return publication
     }
 
-    private func publishLocalMobileSessionInSnapshot(
+    func publishLocalMobileSessionInSnapshot(
         sessionID: DeviceSessionID,
         deviceName: String,
         deviceKind: DeviceKind,
@@ -292,6 +230,9 @@ public actor LocalFirstRepository {
             "type", "display_name", "created_at", "last_seen", "retired", "tombstone",
         ])
         let existingDevice = snapshot.devices.first { $0.id == localDeviceID }
+        guard existingDevice.map({ !$0.isDeleted && !$0.isRevoked }) ?? true else {
+            throw LocalCompanionStoreError.invalidSnapshot
+        }
         var device = Device(
             deviceID: localDeviceID,
             name: deviceName,
@@ -362,7 +303,7 @@ public actor LocalFirstRepository {
         }) else { return nil }
         let version = try nextVersion().normalized(for: [
             "device_id", "session_id", "workspace_id", "url", "title", "opened_at",
-            "last_active", "pinned", "is_incognito", "tombstone",
+            "last_active", "pinned", "is_incognito", "tree_node_id", "tombstone",
         ])
         let tombstone = Tombstone(
             entityID: tabID,
@@ -380,9 +321,12 @@ public actor LocalFirstRepository {
             deviceName: existing.deviceName,
             sessionID: existing.sessionID,
             workspaceID: existing.workspaceID,
+            treeNodeID: existing.treeNodeID,
             workspaceName: existing.workspaceName,
             title: existing.title,
             url: existing.url,
+            targetKind: existing.targetKind,
+            localScheme: existing.localScheme,
             openedAt: existing.openedAt,
             lastActiveAt: version.modifiedAt,
             isOpen: false,
@@ -540,7 +484,7 @@ public actor LocalFirstRepository {
                     nil,
                     tieBreaker: localDeviceID
                 ),
-                creationProvenanceKnown: true,
+                targetKind: kind == .savedPage ? .web : nil,
                 createdAt: version.modifiedAt,
                 version: version
             )
@@ -650,7 +594,7 @@ public actor LocalFirstRepository {
     /// local snapshot remains authoritative and an enabled bridge can enqueue
     /// the returned records for deterministic deletion propagation.
     @discardableResult
-    private func mergeDeviceIntoSnapshot(_ device: Device) throws -> Device {
+    func mergeDeviceIntoSnapshot(_ device: Device) throws -> Device {
         if let current = snapshot.devices.first(where: { $0.id == device.id }) {
             let merged = try CompanionReadModelFieldMerge.merge(current, device)
             snapshot.devices.replace(merged, where: { $0.id == device.id })
@@ -660,7 +604,7 @@ public actor LocalFirstRepository {
         return device
     }
 
-    private func mergeSessionIntoSnapshot(_ session: DeviceSession) throws -> DeviceSession {
+    func mergeSessionIntoSnapshot(_ session: DeviceSession) throws -> DeviceSession {
         if let current = snapshot.sessions.first(where: { $0.id == session.id }) {
             let merged = try CompanionReadModelFieldMerge.merge(current, session)
             snapshot.sessions.replace(merged, where: { $0.id == session.id })
@@ -670,7 +614,7 @@ public actor LocalFirstRepository {
         return session
     }
 
-    private func mergeTabIntoSnapshot(_ tab: RemoteTab) throws -> RemoteTab {
+    func mergeTabIntoSnapshot(_ tab: RemoteTab) throws -> RemoteTab {
         guard tab.context == .normal else {
             throw CompanionModelError.incognitoNotSyncable
         }

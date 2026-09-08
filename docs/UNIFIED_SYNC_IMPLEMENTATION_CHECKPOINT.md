@@ -11,6 +11,10 @@ dependencies. This is a SOURCE-only integration package: no compiler, app,
 profile, CloudKit host or test was started here. Matching Swift remains owned
 here and WIP. Desktop keeps Native B-D and the shared build/install/UI lease.
 Do not insert this package into its separate browser-baseline snapshot.
+Exact committed/pushed Common package: `e2f67111fcb02f08eabe44b6fbac52f0afb3a57b`,
+55 scoped files with DCO sign-off. Direct Desktop handoff
+`01a07f89-47a8-7201-bc72-74e83e919f66`; coordinator handoff
+`01a07f89-4819-7c53-a906-b461716ab9d4`. No Common WIP remained after that commit.
 
 The exact callable interfaces are in `sync/profile_sync_service.h` and
 `sync/profile_sync_ui_bridge.h` (paths below `overlay/chromium/src/ahoi/browser/`):
@@ -117,6 +121,25 @@ or passed. Subsequent commits must use `git commit -s`.
 
 ## Current implementation state — no new runnable candidate
 
+- Mobile Save/Unsave now uses one Page/Presence/domain commit with rollback,
+  preserving stable Page ID and authoritative bound target/title. Tab-switcher
+  Save/Make Temporary is wired to it; dormant metadata edits create neither a
+  Presence nor WebKit instance. Late UI callbacks check the original Presence
+  identity. `performLocalFirstMutation` keeps the original runtime generation/
+  Bridge through persistence; already queued intents are awaited inside it.
+- The allowed main-frame WebKit callback is now connected to page-identity-
+  checked navigation intent. Address/new-tab/back/forward and in-page links/forms
+  acquire a document generation; committed or genuinely failed user navigation
+  can publish its safe target. Passive restore and automatic recovery do not.
+  Real document title is passed with the navigation/finish event. Cancellation,
+  pending restored/deferred intents and runtime safety still need the candidate
+  journey; this is not acceptance from source inspection.
+- The real Xcode project was generated from `project.yml` on 2026-09-08 (36
+  added project entries, no Info.plist delta). A provider-free DebugLocal
+  product-only iOS Simulator build is next, capped at two jobs following fresh
+  aggregate capacity checks. No test-only binaries are an app-build prerequisite.
+  Desktop was notified in `01a07f9d-3b4a-7062-98c6-90b39e80a685`; native Desktop
+  app/UI is untouched and visible Simulator E2E needs its explicit short slot.
 - Mobile live publisher now uses `CompanionMobileSharedCapture` and
   `CompanionMobilePresenceStore`: complete local upserts commit once, Page IDs
   derive stably from local Device/Presence identities, unassigned pages use the
@@ -136,8 +159,8 @@ or passed. Subsequent commits must use `git commit -s`.
   `CompanionMobileSharedIntent`, and protects pending intent rows from stale
   projection. The ViewModifier coalesces sync-relevant capture changes without
   favicon/progress-triggered publication. Same-frame link navigation still
-  needs its explicit allowed-main-frame hook; title fidelity and some pending-
-  intent/recovery edge behavior remain for the runnable-candidate pass.
+  is now wired through actual allowed-main-frame/commit events; pending-
+  intent/recovery edge behavior remains for the runnable-candidate pass.
 - A concrete review found restart duplication between domain persistence and
   browser-binding persistence. The AppModel now restores exact deterministic
   bindings BEFORE passive mirror creation and reserves still-pending page IDs;
@@ -160,8 +183,9 @@ or passed. Subsequent commits must use `git commit -s`.
   `bindTab(_:to: TreeNode)`. Automatic/recovery placeholders do not participate;
   dormant mirrors have no Presence ID and do not load WebKit. Existing runtime
   URL/selection/order survives passive updates. Root must still wire actual
-  Repository/AppModel capture, distinct close/undo identities and before-unload
-  handling; unavailable/deleted/missing bindings must not become inferred deletes.
+  pending/restored-intent and before-unload handling; actual Repository/AppModel
+  capture and distinct close/undo identities are implemented. Unavailable/deleted/
+  missing bindings must not become inferred deletes.
 - C++ current-only model 3 / SQLite schema 6, all 13 variant/discriminator
   branches, exact field maps, lossless HLC UInt32 and canonical UUID/time parsing.
   Field value dispatch is extracted into `sync_field_values.{h,cc}`; targets
@@ -216,11 +240,11 @@ readback and `git diff --check` have run in this implementation wave.
 3. **Mobile live binding:** `CompanionStore.publishLocalMobileTab` and
    `CompanionAppModel.reconcilePublishedMobileTabs` now have the current Page/
    Presence input and preserving atomic capture described above. Finish the
-   same-frame user-navigation hook, verify move/reorder across opaque native
+   remaining pending/deferred user-navigation cases, verify move/reorder across opaque native
    sort keys, title/custom-title fidelity, pending/restored intents and the
    before-unload/recovery/undo cases. Explicit save uses the deterministic page
-   ID even before first capture; unsave still needs its actual user-action
-   wiring. Do not reintroduce the removed URL-filter/absence-delete loop.
+   ID even before first capture; Save/Unsave now has real user-action wiring.
+   Do not reintroduce the removed URL-filter/absence-delete loop.
 4. **Retire obsolete preparation code/tests:** `SharedTabFieldReadMerge.swift`
    is no longer a live dependency but still contains old mixed-version helpers.
    Old `SharedTabCreationProvenanceTests` / `SharedTabFrozenContractTests` still

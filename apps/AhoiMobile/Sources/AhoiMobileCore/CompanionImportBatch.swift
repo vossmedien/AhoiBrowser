@@ -61,12 +61,7 @@ extension LocalFirstRepository {
         try await loadIfNeeded()
         guard !mutations.isEmpty else { return [] }
         let result = try mergeImportedBatch(mutations, into: snapshot)
-        // Replicated equality deliberately ignores local creation evidence.
-        // Still persist newly retained evidence without echoing a wire record.
-        let evidenceChanged = zip(result.snapshot.treeNodes, snapshot.treeNodes).contains {
-            $0.0.creationProvenanceClock != $0.1.creationProvenanceClock
-        }
-        if result.snapshot != snapshot || evidenceChanged {
+        if result.snapshot != snapshot {
             try await commitImportedSnapshot(result.snapshot)
         }
         return result.outcomes
@@ -168,7 +163,7 @@ extension LocalFirstRepository {
                     shouldReenqueue = merged != incoming
                 case .deviceCapability(let incoming):
                     guard working.devices.contains(where: {
-                        $0.id == incoming.deviceID && !$0.isDeleted && !$0.isRevoked
+                        $0.id == incoming.deviceID && (incoming.isDeleted || (!$0.isDeleted && !$0.isRevoked))
                     }) else { throw DeviceCapabilityError.unknownDevice }
                     try incoming.validate()
                     let index = working.deviceCapabilities.firstIndex { $0.id == incoming.id }

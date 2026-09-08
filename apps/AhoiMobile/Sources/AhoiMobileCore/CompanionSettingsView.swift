@@ -771,6 +771,7 @@ private struct CompanionDeviceStatusRow: View {
         case .mac: "desktopcomputer"
         case .iPhone: "iphone"
         case .iPad: "ipad"
+        case .other: "laptopcomputer.and.iphone"
         }
     }
 

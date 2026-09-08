@@ -147,6 +147,16 @@ public actor CompanionSyncBridge {
                 case .ignored:
                     acceptedWithoutDomainMutation.insert(indexed.offset)
                 }
+            } catch DesktopWirePayloadCodecError.missingDependency {
+                // Provider pages are not whole snapshots. Keep the encrypted
+                // inbox unacknowledged until its separately delivered owner exists.
+                continue
+            } catch DeviceCapabilityError.unknownDevice {
+                continue
+            } catch SharedTabTargetError.targetMismatch {
+                // A Page URL group can arrive after its linked Presence.
+                // No invented Page, eager navigation or delete from this gap.
+                continue
             } catch {
                 try await provider.quarantineImportedRecord(
                     indexed.element.record,
@@ -236,6 +246,7 @@ public actor CompanionSyncBridge {
     private final class ImportContext {
         var devices: [DeviceID: Device]
         var workspaces: [WorkspaceID: Workspace]
+        var pages: [TreeNodeID: TreeNode]
         var developerAssets: [UUID: CompanionDeveloperAssetRecord]
 
         init(snapshot: CompanionSnapshot) {
@@ -245,6 +256,11 @@ public actor CompanionSyncBridge {
                 }
             }
             workspaces = snapshot.workspaces.reduce(into: [:]) { result, value in
+                if result[value.id].map({ $0.version >= value.version }) != true {
+                    result[value.id] = value
+                }
+            }
+            pages = snapshot.treeNodes.reduce(into: [:]) { result, value in
                 if result[value.id].map({ $0.version >= value.version }) != true {
                     result[value.id] = value
                 }
@@ -361,11 +377,10 @@ public actor CompanionSyncBridge {
         context: ImportContext
     ) throws -> DecodedImport {
         if record.dataClass == .bookmark && !bookmarkSyncEnabled { return .ignored }
-        // Read/codec support is not permission to activate v3 on live peers.
-        // Retain its encrypted envelope in the existing recovery quarantine
-        // until the capability and promotion contracts are enabled together.
-        guard record.schemaVersion <= 2 else {
-            throw SharedTabWirePreparationError.writerNotActivated
+        // One live format. Unsupported development input remains in recovery;
+        // it is never normalized into a current authoritative snapshot.
+        guard record.schemaVersion == SharedSyncFormat.currentVersion else {
+            throw SharedTabWirePreparationError.unsupportedVersion
         }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
@@ -401,6 +416,9 @@ public actor CompanionSyncBridge {
             let value = try wireCodec.decodeTreeNode(record, plaintext: plaintext)
             try validate(record, identity: value.id.rawValue, version: value.version,
                          orderKey: value.orderKey, tombstone: value.tombstone)
+            context.pages[value.id] = try context.pages[value.id].map {
+                try CompanionFieldMerge.merge($0, value)
+            } ?? value
             return .domain(.treeNode(value))
         case .deviceSession:
             let value = try wireCodec.decodeSession(
@@ -420,6 +438,7 @@ public actor CompanionSyncBridge {
             )
             try validate(record, identity: value.id.rawValue, version: value.version,
                          tombstone: value.tombstone)
+            try wireCodec.validatePresenceTarget(value, pages: context.pages)
             return .domain(.tab(value))
         case .historyVisit:
             let value = try wireCodec.decodeHistory(record, plaintext: plaintext)
@@ -549,8 +568,8 @@ public actor CompanionSyncBridge {
         _ record: SyncRecord,
         context: ImportContext
     ) throws -> PhysicalDeletionRecoveryDecision {
-        guard record.schemaVersion <= 2 else {
-            throw SharedTabWirePreparationError.writerNotActivated
+        guard record.schemaVersion == SharedSyncFormat.currentVersion else {
+            throw SharedTabWirePreparationError.unsupportedVersion
         }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
@@ -590,6 +609,7 @@ public actor CompanionSyncBridge {
             )
             try validate(record, identity: value.id.rawValue, version: value.version,
                          tombstone: value.tombstone)
+            try wireCodec.validatePresenceTarget(value, pages: context.pages)
         case .historyVisit:
             let value = try wireCodec.decodeHistory(record, plaintext: plaintext)
             try validate(record, identity: value.id.rawValue, version: value.version,

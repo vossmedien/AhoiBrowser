@@ -17,13 +17,10 @@ extension DesktopWirePayloadCodec {
         _ record: SyncRecord, plaintext: Data, knownDevices: [DeviceID: Device]
     ) throws -> DeviceCapabilityRecord {
         let value = try object(from: plaintext)
-        guard try SharedTabWireReadPolicy.payloadVersion(value) == 2 else {
+        guard try SharedTabWireReadPolicy.payloadVersion(value) == SharedSyncFormat.currentVersion else {
             throw DeviceCapabilityError.invalidVersion
         }
         let deviceID = DeviceID(rawValue: try SharedTabWireReadPolicy.strictUUID(value, key: "device_id"))
-        guard let device = knownDevices[deviceID], !device.isDeleted, !device.isRevoked else {
-            throw DeviceCapabilityError.unknownDevice
-        }
         let parsedVersion = try version(value, requiredFields: DeviceCapabilityRecord.syncFields)
         try validateCapabilityClockShape(value, device: deviceID)
         guard let features = value["features"] as? [String] else { throw DeviceCapabilityError.invalidCapabilities }
@@ -33,21 +30,29 @@ extension DesktopWirePayloadCodec {
             writableModels: capabilityModels(value, "writable_models"), features: features,
             version: parsedVersion, tombstone: tombstone(record, value: value)
         )
-        guard record.dataClass == .deviceCapability, record.schemaVersion == 2,
+        guard record.dataClass == .deviceCapability,
+              record.schemaVersion == SharedSyncFormat.currentVersion,
               record.recordID == result.id, record.entityID == result.id,
               record.orderKey == nil, record.modifiedAt == parsedVersion.modifiedAt,
               record.originatingDevice == deviceID,
               try SharedTabWireReadPolicy.strictBoolean(value, key: "tombstone") == result.isDeleted else {
             throw CompanionSyncBridgeError.envelopeMismatch
         }
+        guard let device = knownDevices[deviceID], device.id == deviceID,
+              device.version.schemaVersion == SharedSyncFormat.currentVersion,
+              result.isDeleted || (!device.isDeleted && !device.isRevoked) else {
+            throw DeviceCapabilityError.unknownDevice
+        }
         return result
     }
 
     private func capabilityModels(_ value: [String: Any], _ key: String) throws -> [UInt32] {
-        guard let values = value[key] as? [Any], (1...32).contains(values.count) else {
+        guard let values = value[key] as? [Any], values.count == 1 else {
             throw DeviceCapabilityError.invalidCapabilities
         }
-        return try values.map { try SharedTabWireReadPolicy.strictUInt32(["value": $0], key: "value") }
+        let models = try values.map { try SharedTabWireReadPolicy.strictUInt32(["value": $0], key: "value") }
+        guard models == [SharedSyncFormat.currentVersion] else { throw DeviceCapabilityError.invalidCapabilities }
+        return models
     }
 
     private func validateCapabilityClockShape(_ value: [String: Any], device: DeviceID) throws {

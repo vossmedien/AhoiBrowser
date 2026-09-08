@@ -1,4 +1,3 @@
-import CoreFoundation
 import Foundation
 import AhoiCloudKitSpike
 
@@ -39,7 +38,7 @@ extension DesktopWirePayloadCodec {
         let bookmarkID = BookmarkID(rawValue: try canonicalUUID(value, "id"))
         let payloadDeleted = try strictBoolean(value, "tombstone")
         guard record.dataClass == .bookmark,
-              record.schemaVersion == 2,
+              record.schemaVersion == SharedSyncFormat.currentVersion,
               record.recordID == bookmarkID.rawValue,
               record.entityID == bookmarkID.rawValue,
               record.orderKey == nil,
@@ -92,7 +91,8 @@ extension DesktopWirePayloadCodec {
     private func validateBookmarkCommonTypes(_ value: [String: Any]) throws {
         let modelVersion = try strictInteger(value, "model_version")
         let versionModel = try strictInteger(value, "version_model")
-        guard modelVersion == 2, versionModel == 2 else {
+        guard modelVersion == Int(SharedSyncFormat.currentVersion),
+              versionModel == Int(SharedSyncFormat.currentVersion) else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
         _ = try strictUInt32(value, "version_logical")
@@ -116,41 +116,19 @@ extension DesktopWirePayloadCodec {
     }
 
     private func strictBoolean(_ value: [String: Any], _ key: String) throws -> Bool {
-        guard let number = value[key] as? NSNumber,
-              CFGetTypeID(number) == CFBooleanGetTypeID() else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        return number.boolValue
+        try SharedTabWireReadPolicy.strictBoolean(value, key: key)
     }
 
     private func strictInteger(_ value: [String: Any], _ key: String) throws -> Int {
-        guard let number = value[key] as? NSNumber,
-              CFGetTypeID(number) != CFBooleanGetTypeID() else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        let encoding = String(cString: number.objCType)
-        guard encoding != "f", encoding != "d", encoding != "D",
-              let result = Int(exactly: number.int64Value) else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        return result
+        try SharedTabWireReadPolicy.strictInteger(value, key: key)
     }
 
     private func strictUInt32(_ value: [String: Any], _ key: String) throws -> UInt32 {
-        guard let result = UInt32(exactly: try strictInteger(value, key)) else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        return result
+        try SharedTabWireReadPolicy.strictUInt32(value, key: key)
     }
 
     private func canonicalUUID(_ value: [String: Any], _ key: String) throws -> UUID {
-        let raw = try string(value, key)
-        guard raw == raw.lowercased(), let result = UUID(uuidString: raw),
-              result.uuidString.lowercased() == raw,
-              result != Self.zeroUUID else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        return result
+        try SharedTabWireReadPolicy.strictUUID(value, key: key)
     }
 
     private func positiveDecimalInt64(
@@ -179,7 +157,4 @@ extension DesktopWirePayloadCodec {
         return result
     }
 
-    private static let zeroUUID = UUID(
-        uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    )
 }

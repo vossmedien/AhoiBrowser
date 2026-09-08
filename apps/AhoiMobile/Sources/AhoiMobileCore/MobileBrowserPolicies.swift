@@ -269,6 +269,7 @@ enum MobileHTTPFailurePolicy {
 @MainActor
 final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
     var onOpenNewTab: ((URL) -> Void)?
+    var onAllowedMainFrameNavigation: ((URL, WKNavigationType) -> Void)?
     var onExternalScheme: ((URL, String) -> Void)?
     var onBlockedNavigation: ((URL) -> Void)?
     var onHTTPFailure: ((URL, Int, MobilePageFailureKind) -> Void)?
@@ -323,6 +324,9 @@ final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
                 sourceOrigin: sourceOrigin,
                 isMainFrame: action.target?.isMainFrame == true
             )
+            if action.target?.isMainFrame == true {
+                onAllowedMainFrameNavigation?(safeURL, action.navigationType)
+            }
             return .allow
         }
     }

@@ -81,7 +81,7 @@ public struct BookmarkRecord: Codable, Hashable, Sendable, Identifiable {
 
     /// Re-validates values assembled by field merge before persistence or wire
     /// encoding. Missing local field clocks are allowed and normalized by the
-    /// common v2 encoder; unknown or future clocks are rejected.
+    /// current encoder; partial, unknown or future clocks are rejected.
     public func validate() throws {
         guard Self.isValid(bookmarkID.rawValue) else {
             throw BookmarkModelError.invalidIdentity
@@ -135,13 +135,13 @@ public struct BookmarkRecord: Codable, Hashable, Sendable, Identifiable {
     }
 
     private func validateVersion() throws {
-        guard version.schemaVersion == 2,
+        guard version.schemaVersion == SharedSyncFormat.currentVersion,
               Self.isValid(version.modifiedBy.rawValue),
               version.modifiedAt.nodeID == version.modifiedBy,
               Self.windowsMicroseconds(for: version.modifiedAt) != nil else {
             throw BookmarkModelError.invalidVersion
         }
-        guard Set(version.fieldVersions.keys).isSubset(of: Self.syncFields) else {
+        guard version.fieldVersions.isEmpty || Set(version.fieldVersions.keys) == Self.syncFields else {
             throw BookmarkModelError.invalidFieldVersions
         }
         for clock in version.fieldVersions.values {

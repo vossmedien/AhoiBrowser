@@ -188,21 +188,20 @@ private final class AhoiMobileBootstrap: ObservableObject {
             for: .applicationSupportDirectory,
             in: .userDomainMask
         )[0]
-        let legacySupportURL = applicationSupportURL
-            .appendingPathComponent("AhoiCompanion", isDirectory: true)
         let supportURL = applicationSupportURL
             .appendingPathComponent("AhoiMobile", isDirectory: true)
-        let storagePreparation = MobileStoragePreparation(
-            legacyDirectory: legacySupportURL,
-            destinationDirectory: supportURL
-        )
-        // This is a security boundary, not merely a browser-session concern.
-        // CloudKit's provider eagerly reads its serialized engine and safety
-        // sidecars, so every legacy file must be migrated before any store,
-        // repository, provider, bridge, or sync factory can be constructed.
-        try await storagePreparation.prepare()
+            .appendingPathComponent("SyncFormat3", isDirectory: true)
+        // Fresh pre-launch namespace: old snapshots, provider checkpoints and
+        // encrypted sidecars are neither imported nor overwritten.
+        for directory in [supportURL.deletingLastPathComponent(), supportURL] {
+            if FileManager.default.fileExists(atPath: directory.path),
+               try directory.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink == true {
+                throw CocoaError(.fileWriteInvalidFileName)
+            }
+        }
+        try FileManager.default.createDirectory(at: supportURL, withIntermediateDirectories: true)
 
-        let store = FileCompanionStore(fileURL: supportURL.appendingPathComponent("snapshot.json"))
+        let store = FileCompanionStore(fileURL: supportURL.appendingPathComponent("snapshot-format3.json"))
         let defaults = UserDefaults.standard
         let sourceDeviceUUID = CompanionDeviceIdentity.loadOrCreate(in: defaults)
         let mobileSessionID = DeviceSessionID(
@@ -269,7 +268,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
             )
             let bootstrapTransport = try CloudKitKeyBootstrapTransport(
                 containerIdentifier: containerIdentifier,
-                zoneName: "AhoiBrowserSyncZone"
+                zoneName: "AhoiBrowserSyncV3"
             )
             let keyLifecycle = CompanionKeyLifecycleCoordinator(
                 transport: bootstrapTransport,

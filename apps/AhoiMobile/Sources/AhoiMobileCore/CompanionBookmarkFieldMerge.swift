@@ -9,8 +9,8 @@ enum CompanionBookmarkFieldMerge {
         guard existing.kind == incoming.kind else {
             throw CompanionFieldMergeError.immutableFieldConflict("kind")
         }
-        let old = existing.version.normalized(for: BookmarkRecord.syncFields)
-        let new = incoming.version.normalized(for: BookmarkRecord.syncFields)
+        let old = try SharedSyncFormat.validate(existing.version, fields: BookmarkRecord.syncFields)
+        let new = try SharedSyncFormat.validate(incoming.version, fields: BookmarkRecord.syncFields)
         var merged = existing
         if try CompanionFieldMerge.incomingWins(
             "location", Location(existing), Location(incoming), old, new

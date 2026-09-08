@@ -28,8 +28,8 @@ public final class CompanionAppModel: ObservableObject {
     var syncBridge: CompanionSyncBridge?
     let syncRuntimeFactory: CompanionSyncRuntimeFactory?
     let mobileSessionID: DeviceSessionID?
-    private let mobileDeviceName: String
-    private let mobileDeviceKind: DeviceKind
+    let mobileDeviceName: String
+    let mobileDeviceKind: DeviceKind
     var providerPrepared = false
     var commandLabels: [UUID: String] = [:]
     var syncGeneration: UInt64 = 0
@@ -47,6 +47,10 @@ public final class CompanionAppModel: ObservableObject {
     var eventDrivenSyncRequested = false
     var eventDrivenSyncGeneration: UInt64 = 0
     var localSnapshotReseedRequired = false
+    var mobileSharedIntentTasks: [UUID: Task<Void, Never>] = [:]
+    var mobileSharedIntentTokens: [UUID: UUID] = [:]
+    var mobileSharedCaptureTask: Task<Void, Never>?
+    var mobileSharedCaptureRequested = false
     var remoteCommandExpiryTask: Task<Void, Never>?
     var remoteCommandExpiryGeneration: UInt64 = 0
     let remoteCommandClock: CompanionRemoteCommandClock
@@ -299,90 +303,46 @@ public final class CompanionAppModel: ObservableObject {
     }
 
     public func publishMobileTab(_ tab: MobileTabRecord) async {
-        guard tab.mode == .normal,
-              let mobileSessionID,
-              let url = tab.url else { return }
-        _ = await performLocalFirstMutation({
-            try await repository.publishLocalMobileTab(
-                tabID: tab.id,
-                sessionID: mobileSessionID,
-                deviceName: mobileDeviceName,
-                deviceKind: mobileDeviceKind,
-                workspaceID: tab.workspaceID,
-                title: tab.effectiveTitle.isEmpty ? url : tab.effectiveTitle,
-                url: url,
-                pinned: tab.isSaved
-            )
-        }, enqueue: { publication in
-            guard let bridge = self.syncBridge else { return }
-            try await bridge.enqueue(publication.device)
-            try await bridge.enqueue(publication.session)
-            try await bridge.enqueue(publication.tab)
-        })
+        _ = await reconcilePublishedMobileTabs([tab])
     }
 
-    /// Reconciles the durable browser session with the public device-tab
-    /// projection. This closes records that disappeared while the app was not
-    /// running, restores every surviving normal tab after launch, and refreshes
-    /// the device/session heartbeat without ever publishing private tabs.
-    public func reconcilePublishedMobileTabs(_ tabs: [MobileTabRecord]) async {
-        guard let mobileSessionID else { return }
-        let currentTabs = tabs.filter { $0.mode == .normal && $0.url != nil }
-        let currentIDs = Set(currentTabs.map(\.id))
-        _ = await performLocalFirstMutation({
-            var outbound = CompanionMobilePublicationBatch()
-            let publishedTabs = try await repository.localOpenMobileTabs(
-                sessionID: mobileSessionID
+    /// Upsert a complete captured set atomically. Missing/filtered rows never
+    /// authorize a close; the explicit user close path is separate.
+    @discardableResult
+    public func reconcilePublishedMobileTabs(
+        _ tabs: [MobileTabRecord],
+        didBind: @MainActor ([UUID: TreeNode]) -> Void = { _ in }
+    ) async -> [UUID: TreeNode]? {
+        guard let mobileSessionID else { return nil }
+        let result = await performLocalFirstMutation({
+            try await repository.captureLocalMobileTabs(
+                tabs, sessionID: mobileSessionID,
+                deviceName: mobileDeviceName, deviceKind: mobileDeviceKind
             )
-            for stale in publishedTabs where !currentIDs.contains(stale.id.rawValue) {
-                if let closed = try await repository.closeLocalMobileTab(stale.id.rawValue) {
-                    outbound.tabs.append(closed)
-                }
-            }
-
-            let session = try await repository.publishLocalMobileSession(
-                sessionID: mobileSessionID,
-                deviceName: mobileDeviceName,
-                deviceKind: mobileDeviceKind,
-                workspaceID: currentTabs.first?.workspaceID
-            )
-            outbound.devices.append(session.device)
-            outbound.sessions.append(session.session)
-
-            let publishedByID = Dictionary(
-                uniqueKeysWithValues: publishedTabs.map { ($0.id.rawValue, $0) }
-            )
-            for tab in currentTabs {
-                guard let url = tab.url else { continue }
-                let title = tab.effectiveTitle.isEmpty ? url : tab.effectiveTitle
-                if let published = publishedByID[tab.id],
-                   published.url == url,
-                   published.title == title,
-                   published.workspaceID == tab.workspaceID,
-                   published.pinned == tab.isSaved,
-                   published.isOpen,
-                   !published.isDeleted {
-                    continue
-                }
-                let publication = try await repository.publishLocalMobileTab(
-                    tabID: tab.id,
-                    sessionID: mobileSessionID,
-                    deviceName: mobileDeviceName,
-                    deviceKind: mobileDeviceKind,
-                    workspaceID: tab.workspaceID,
-                    title: title,
-                    url: url,
-                    pinned: tab.isSaved
-                )
-                outbound.devices.append(publication.device)
-                outbound.sessions.append(publication.session)
-                outbound.tabs.append(publication.tab)
-            }
-            return outbound
-        }, enqueue: { outbound in
+        }, didCommit: { didBind($0.bindings) },
+        ignoreFailure: { $0 is CancellationError || $0 as? MobileSharedCaptureError == .deferred },
+        enqueue: { result in
             guard let bridge = self.syncBridge else { return }
-            try await outbound.enqueue(using: bridge)
+            try await result.outbound.enqueue(using: bridge)
         })
+        return result?.bindings
+    }
+
+    public func reconcilePublishedMobileTabs(_ browser: MobileBrowserController) async {
+        for pending in Array(mobileSharedIntentTasks.values) { await pending.value }
+        reconcileBrowserSharedProjection(browser)
+        let captured = browser.normalTabs
+        _ = await reconcilePublishedMobileTabs(captured) { [weak browser] bindings in
+            guard let browser else { return }
+            for (runtimeID, node) in bindings {
+                guard let original = captured.first(where: { $0.id == runtimeID }),
+                      self.mobileSharedIntentTasks[runtimeID] == nil,
+                      let current = browser.tabs.first(where: { $0.id == runtimeID && $0.mode == .normal }),
+                      original.presenceID == current.presenceID,
+                      current.treeNodeID == nil || current.treeNodeID == node.id else { continue }
+                _ = browser.bindTab(runtimeID, to: node)
+            }
+        }
     }
 
     public func closePublishedMobileTab(_ id: UUID) async {

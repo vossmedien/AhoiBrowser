@@ -26,27 +26,21 @@ public struct SyncBoundary: Sendable {
     public init() {}
 
     public func disposition(for dataClass: SyncDataClass) -> SyncDisposition {
-        switch dataClass {
-        case .workspace, .treeNode, .orderKey, .tombstone,
-             .recoveryMetadata, .device, .deviceSession, .deviceTab,
-             .history, .historyVisit, .remoteCommand, .appearance,
-             .permittedSetting, .extensionInventory, .bookmark, .deviceCapability:
-            return .allowed
-        case .developerAsset:
-            return .requiresExplicitOptIn
-        case .cookie, .password, .autofill, .siteData, .cache,
-             .permission, .extensionStorage, .incognito, .keychainSecret,
-             .headerSecret, .httpAuthSecret:
+        guard SharedSyncFormat.supportedDataClasses.contains(dataClass) else {
             return .denied
         }
+        return dataClass == .developerAsset ? .requiresExplicitOptIn : .allowed
     }
 
     public func authorize(
         _ record: SyncRecord,
         context: SyncAuthorizationContext = .init()
     ) throws {
-        guard record.schemaVersion > 0 else {
+        guard record.schemaVersion == SharedSyncFormat.currentVersion else {
             throw SyncBoundaryError.invalidSchemaVersion
+        }
+        guard SharedSyncFormat.supportedDataClasses.contains(record.dataClass) else {
+            throw SyncBoundaryError.dataClassDenied(record.dataClass)
         }
         guard record.encryptedValue.keyVersion > 0,
               record.encryptedValue.nonce.count == 12,
@@ -66,8 +60,6 @@ public struct SyncBoundary: Sendable {
                     > tombstone.deletedAt.physicalMilliseconds else {
                 throw SyncBoundaryError.invalidTombstone
             }
-        } else if record.dataClass == .tombstone {
-            throw SyncBoundaryError.invalidTombstone
         }
 
         switch disposition(for: record.dataClass) {
@@ -87,9 +79,9 @@ public struct SyncBoundary: Sendable {
         switch dataClass {
         case .device, .workspace, .treeNode, .deviceSession, .deviceTab,
              .historyVisit, .appearance, .permittedSetting, .extensionInventory,
-             .developerAsset, .bookmark, .deviceCapability, .tombstone:
+             .developerAsset, .bookmark, .deviceCapability:
             return true
-        case .orderKey, .recoveryMetadata, .history, .remoteCommand,
+        case .orderKey, .tombstone, .recoveryMetadata, .history, .remoteCommand,
              .cookie, .password, .autofill, .siteData, .cache, .permission,
              .extensionStorage, .incognito, .keychainSecret, .headerSecret,
              .httpAuthSecret:

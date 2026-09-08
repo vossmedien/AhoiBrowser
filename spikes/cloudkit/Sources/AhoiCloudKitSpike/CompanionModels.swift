@@ -7,11 +7,12 @@ public enum DeviceKind: String, Codable, CaseIterable, Sendable {
     case mac
     case iPhone
     case iPad
+    case other
 }
 
 /// Version metadata is shared by every local-first entity. The HLC and
-/// originating device are the stable conflict inputs; `schemaVersion` is
-/// independent so migrations can be forward-tested without changing order.
+/// originating device are the stable conflict inputs; only the current shared
+/// schema is accepted by persistence and wire boundaries.
 public struct SyncVersion: Codable, Hashable, Sendable, Comparable {
     public let schemaVersion: UInt32
     public let modifiedAt: HybridLogicalClock
@@ -19,7 +20,7 @@ public struct SyncVersion: Codable, Hashable, Sendable, Comparable {
     public var fieldVersions: [String: HybridLogicalClock]
 
     public init(
-        schemaVersion: UInt32 = 2,
+        schemaVersion: UInt32 = SharedSyncFormat.currentVersion,
         modifiedAt: HybridLogicalClock,
         modifiedBy: DeviceID,
         fieldVersions: [String: HybridLogicalClock] = [:]
@@ -30,6 +31,8 @@ public struct SyncVersion: Codable, Hashable, Sendable, Comparable {
         self.fieldVersions = fieldVersions
     }
 
+    /// Completes clocks for local authoring only. Incoming records must supply
+    /// their field map and pass the entity's exact-map validation independently.
     public func normalized(for fields: Set<String>) -> Self {
         var result = self
         for field in fields where result.fieldVersions[field] == nil {
@@ -71,13 +74,37 @@ public struct SyncVersion: Codable, Hashable, Sendable, Comparable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        schemaVersion = try container.decode(UInt32.self, forKey: .schemaVersion)
+        let schema = try container.decode(UInt32.self, forKey: .schemaVersion)
+        guard schema == SharedSyncFormat.currentVersion else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .schemaVersion, in: container,
+                debugDescription: "Only the current shared sync format is supported."
+            )
+        }
+        schemaVersion = schema
         modifiedAt = try container.decode(HybridLogicalClock.self, forKey: .modifiedAt)
         modifiedBy = try container.decode(DeviceID.self, forKey: .modifiedBy)
-        fieldVersions = try container.decodeIfPresent(
+        fieldVersions = try container.decode(
             [String: HybridLogicalClock].self,
             forKey: .fieldVersions
-        ) ?? [:]
+        )
+        try SharedSyncFormat.validate(self, fields: Set(fieldVersions.keys))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        guard schemaVersion == SharedSyncFormat.currentVersion else {
+            throw EncodingError.invalidValue(
+                schemaVersion,
+                .init(codingPath: encoder.codingPath,
+                      debugDescription: "Only the current shared sync format can be encoded.")
+            )
+        }
+        try SharedSyncFormat.validate(self, fields: Set(fieldVersions.keys))
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(modifiedAt, forKey: .modifiedAt)
+        try container.encode(modifiedBy, forKey: .modifiedBy)
+        try container.encode(fieldVersions, forKey: .fieldVersions)
     }
 }
 
@@ -262,9 +289,15 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
     public var orderKey: OrderKey
     public var wireSortKey: String?
     public var isTemporary: Bool
-    /// Retained creation evidence, independent of later legacy field clocks.
-    /// Local snapshot metadata only; never a wire field or a second creator ID.
-    public var creationProvenanceClock: HybridLogicalClock?
+    /// Derived from the immutable creation field, never from the last editor.
+    /// System-authored metadata carries no device-origin badge.
+    public var creationProvenanceClock: HybridLogicalClock? {
+        guard version.schemaVersion == SharedSyncFormat.currentVersion,
+              let clock = version.fieldVersions["created_at"],
+              SharedSyncFormat.isValidClock(clock),
+              SharedTabContract.isActualMutation(clock) else { return nil }
+        return clock
+    }
     public var creationProvenanceKnown: Bool { creationProvenanceClock != nil }
     public var targetKind: SharedTabTargetKind?
     public var localScheme: SharedTabLocalScheme?
@@ -285,8 +318,6 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         orderKey: OrderKey,
         wireSortKey: String? = nil,
         isTemporary: Bool = false,
-        creationProvenanceKnown: Bool = false,
-        creationProvenanceClock: HybridLogicalClock? = nil,
         targetKind: SharedTabTargetKind? = nil,
         localScheme: SharedTabLocalScheme? = nil,
         createdAt: HybridLogicalClock? = nil,
@@ -303,16 +334,15 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         if kind == .folder && url != nil {
             throw CompanionModelError.folderCannotHaveURL
         }
-        if version.schemaVersion == 3 {
-            if kind == .folder {
-                guard targetKind == nil, localScheme == nil else { throw SharedTabTargetError.invalidTarget }
-            } else {
-                guard let targetKind else { throw SharedTabTargetError.invalidTarget }
-                try SharedTabTarget(kind: targetKind, url: url ?? "", localScheme: localScheme)
-                    .validatePage(isTemporary: isTemporary)
-            }
-        } else if targetKind != nil || localScheme != nil {
-            throw SharedTabTargetError.invalidTarget
+        guard version.schemaVersion == SharedSyncFormat.currentVersion else {
+            throw SharedSyncFormatError.unsupportedVersion
+        }
+        if kind == .folder {
+            guard targetKind == nil, localScheme == nil else { throw SharedTabTargetError.invalidTarget }
+        } else {
+            guard let targetKind else { throw SharedTabTargetError.invalidTarget }
+            try SharedTabTarget(kind: targetKind, url: url ?? "", localScheme: localScheme)
+                .validatePage(isTemporary: isTemporary)
         }
         self.treeNodeID = treeNodeID
         self.workspaceID = workspaceID
@@ -325,8 +355,6 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         self.orderKey = orderKey
         self.wireSortKey = wireSortKey
         self.isTemporary = isTemporary
-        self.creationProvenanceClock = creationProvenanceClock ?? (creationProvenanceKnown
-            ? version.fieldVersions["created_at"] ?? createdAt ?? version.modifiedAt : nil)
         self.targetKind = targetKind
         self.localScheme = localScheme
         self.createdAt = createdAt ?? version.modifiedAt
@@ -349,9 +377,7 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
             accent: container.decodeIfPresent(String.self, forKey: .accent),
             orderKey: container.decode(OrderKey.self, forKey: .orderKey),
             wireSortKey: container.decodeIfPresent(String.self, forKey: .wireSortKey),
-            isTemporary: container.decodeIfPresent(Bool.self, forKey: .isTemporary) ?? false,
-            creationProvenanceKnown: container.decodeIfPresent(Bool.self, forKey: .creationProvenanceKnown) ?? false,
-            creationProvenanceClock: container.decodeIfPresent(HybridLogicalClock.self, forKey: .creationProvenanceClock),
+            isTemporary: container.decode(Bool.self, forKey: .isTemporary),
             targetKind: container.decodeIfPresent(SharedTabTargetKind.self, forKey: .targetKind),
             localScheme: container.decodeIfPresent(SharedTabLocalScheme.self, forKey: .localScheme),
             createdAt: container.decodeIfPresent(
@@ -380,7 +406,6 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         try container.encode(orderKey, forKey: .orderKey)
         try container.encodeIfPresent(wireSortKey, forKey: .wireSortKey)
         try container.encode(isTemporary, forKey: .isTemporary)
-        try container.encodeIfPresent(creationProvenanceClock, forKey: .creationProvenanceClock)
         try container.encodeIfPresent(targetKind, forKey: .targetKind)
         try container.encodeIfPresent(localScheme, forKey: .localScheme)
         try container.encode(createdAt, forKey: .createdAt)
@@ -393,7 +418,6 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         case treeNodeID, workspaceID, parentID, kind, title, url, icon, accent, orderKey
         case wireSortKey
         case isTemporary, createdAt, modifiedAt, version, tombstone
-        case creationProvenanceKnown, creationProvenanceClock
         case targetKind, localScheme
     }
 
@@ -477,7 +501,7 @@ public struct DeviceSession: Codable, Hashable, Sendable, Identifiable {
 /// adapter, so it cannot leak into local search or an outbox by accident.
 public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
     public static let maximumTitleUTF8Bytes = 1_024
-    public static let maximumURLUTF8Bytes = 16 * 1_024
+    public static let maximumURLUTF8Bytes = 131_072
     public static let maximumDeviceNameUTF8Bytes = 256
     public static let maximumWorkspaceNameUTF8Bytes = 256
 
@@ -525,30 +549,22 @@ public struct RemoteTab: Codable, Hashable, Sendable, Identifiable {
         guard context == .normal else {
             throw CompanionModelError.incognitoNotSyncable
         }
-        guard treeNodeID?.rawValue != tabID.rawValue else {
+        guard version.schemaVersion == SharedSyncFormat.currentVersion else {
+            throw SharedSyncFormatError.unsupportedVersion
+        }
+        guard let treeNodeID else { throw SharedTabTargetError.missingPageLink }
+        guard treeNodeID.rawValue != tabID.rawValue else {
             throw CompanionModelError.sharedIdentityCollision
         }
         guard title.utf8.count <= Self.maximumTitleUTF8Bytes,
-              url.utf8.count <= (version.schemaVersion == 3 ? 131_072 : Self.maximumURLUTF8Bytes),
+              url.utf8.count <= Self.maximumURLUTF8Bytes,
               deviceName.utf8.count <= Self.maximumDeviceNameUTF8Bytes,
               (workspaceName?.utf8.count ?? 0) <= Self.maximumWorkspaceNameUTF8Bytes else {
             throw CompanionModelError.metadataTooLarge
         }
-        if version.schemaVersion == 3 {
-            guard let targetKind else { throw SharedTabTargetError.invalidTarget }
-            try SharedTabTarget(kind: targetKind, url: url, localScheme: localScheme)
-                .validatePresence(treeNodeID: treeNodeID)
-        } else {
-            guard targetKind == nil, localScheme == nil else { throw SharedTabTargetError.invalidTarget }
-            guard let components = URLComponents(string: url),
-                  let scheme = components.scheme?.lowercased(),
-                  (scheme == "http" || scheme == "https"),
-                  components.host?.isEmpty == false,
-                  components.user == nil,
-                  components.password == nil else {
-                throw CompanionModelError.remoteTabURLNotAllowed
-            }
-        }
+        guard let targetKind else { throw SharedTabTargetError.invalidTarget }
+        try SharedTabTarget(kind: targetKind, url: url, localScheme: localScheme)
+            .validatePresence(treeNodeID: treeNodeID)
         self.tabID = tabID
         self.deviceID = deviceID
         self.deviceKind = deviceKind

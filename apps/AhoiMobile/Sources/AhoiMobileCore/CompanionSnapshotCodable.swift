@@ -3,6 +3,7 @@ import AhoiCloudKitSpike
 
 extension CompanionSnapshot {
     private enum CodingKeys: String, CodingKey {
+        case syncFormatVersion
         case devices
         case workspaces
         case treeNodes
@@ -16,6 +17,9 @@ extension CompanionSnapshot {
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
+        guard try values.decode(UInt32.self, forKey: .syncFormatVersion) == SharedSyncFormat.currentVersion else {
+            throw LocalCompanionStoreError.invalidSnapshot
+        }
         let bookmarks = values.contains(.bookmarks)
             ? try values.decode([BookmarkRecord].self, forKey: .bookmarks) : []
         self.init(
@@ -41,6 +45,7 @@ extension CompanionSnapshot {
 
     public func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(SharedSyncFormat.currentVersion, forKey: .syncFormatVersion)
         try values.encode(devices, forKey: .devices)
         try values.encode(workspaces, forKey: .workspaces)
         try values.encode(treeNodes, forKey: .treeNodes)

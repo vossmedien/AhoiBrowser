@@ -19,7 +19,7 @@ public struct CloudKitSyncConfiguration: Hashable, Sendable {
 
     public init(
         containerIdentifier: String,
-        zoneName: String = "AhoiBrowserSyncZone",
+        zoneName: String = "AhoiBrowserSyncV3",
         automaticallySync: Bool = true,
         subscriptionID: String? = nil
     ) {

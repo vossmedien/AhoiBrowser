@@ -49,6 +49,12 @@ public final class FileCompanionStore: LocalCompanionStore, @unchecked Sendable 
 
     public func save(_ snapshot: CompanionSnapshot) async throws {
         try lock.withLock {
+            // A direct save must not bypass the same boundary as load. The
+            // new namespace is normally absent/current; unsupported or corrupt
+            // existing bytes stay untouched instead of becoming an empty store.
+            if FileManager.default.fileExists(atPath: fileURL.path) {
+                _ = try decoder.decode(CompanionSnapshot.self, from: Data(contentsOf: fileURL))
+            }
             // JSONEncoder is not Sendable/thread-safe. Keep encoding and the
             // matching atomic write under the same file-store lock.
             let data = try encoder.encode(snapshot)

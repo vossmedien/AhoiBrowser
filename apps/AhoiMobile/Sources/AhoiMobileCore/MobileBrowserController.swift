@@ -48,6 +48,10 @@ public final class MobileBrowserController: ObservableObject {
     @Published var pageRetryFeedbackTabIDs: Set<UUID> = []
     var pageRetryFeedbackRegistry = MobilePageRetryFeedbackRegistry()
 
+    /// Called with a value copy after state update and persistence scheduling.
+    /// The receiver may synchronously reenter this controller.
+    public var onSharedTabIntent: (@MainActor (MobileTabRecord, MobileSharedTabIntent) -> Void)?
+
     public let permissionCoordinator: MobilePermissionCoordinator
     public let downloadCoordinator: MobileDownloadCoordinator
     public let performanceRecorder: MobileBrowserPerformanceRecorder
@@ -71,6 +75,8 @@ public final class MobileBrowserController: ObservableObject {
     var faviconFetchInFlight: [UUID: String] = [:]
     var faviconAttemptedDocumentURLs: [UUID: String] = [:]
     var navigationDocumentGenerations: [UUID: UInt64] = [:]
+    var sharedNavigationRequests: [UUID: URL] = [:]
+    var sharedNavigationGenerations: [UUID: UInt64] = [:]
     private var didLoad = false
     private var sessionRevision: UInt64 = 0
     static let maximumFaviconBytes = MobileTabRecord.maximumFaviconDataBytes
@@ -170,7 +176,7 @@ public final class MobileBrowserController: ObservableObject {
             selectedTabID = restoredSnapshot.selectedTabID
             didLoad = true
             if tabs.isEmpty {
-                _ = createTab()
+                _ = createTab(participatesInSharedTabs: false)
             } else if let selectedTabID {
                 _ = page(for: selectedTabID)
             }
@@ -181,7 +187,7 @@ public final class MobileBrowserController: ObservableObject {
             selectedTabID = nil
             didLoad = true
             lastError = MobileBrowserSessionFailurePresentation.restoreMessage
-            _ = createTab()
+            _ = createTab(participatesInSharedTabs: false)
             drainPendingStartupURL()
         }
         await downloadRecovery
@@ -192,12 +198,14 @@ public final class MobileBrowserController: ObservableObject {
         url: URL? = nil,
         workspaceID: WorkspaceID? = nil,
         mode: MobileBrowsingMode = .normal,
-        select: Bool = true
+        select: Bool = true,
+        participatesInSharedTabs: Bool = true
     ) -> UUID {
         let record = MobileTabRecord(
             workspaceID: workspaceID,
             url: url?.absoluteString,
-            mode: mode
+            mode: mode,
+            participatesInSharedTabs: participatesInSharedTabs
         )
         tabs.append(record)
         if select { selectedTabID = record.id }
@@ -205,6 +213,7 @@ public final class MobileBrowserController: ObservableObject {
             let page = makePage(tabID: record.id, mode: mode)
             pages[record.id] = page
             observeNavigations(of: page, tabID: record.id)
+            prepareExplicitSharedNavigation(tabID: record.id, url: url)
             page.load(url)
         }
         discardInactivePages(keeping: 5)
@@ -246,6 +255,7 @@ public final class MobileBrowserController: ObservableObject {
             guard let selectedTabID,
                   let page = page(for: selectedTabID, createIfBlank: true) else { return }
             observeNavigations(of: page, tabID: selectedTabID)
+            prepareExplicitSharedNavigation(tabID: selectedTabID, url: url)
             page.load(url)
             updateSelectedMetadata(url: url, title: nil)
             lastError = nil
@@ -261,6 +271,7 @@ public final class MobileBrowserController: ObservableObject {
         guard let selectedTabID, let page = selectedPage,
               let item = page.backForwardList.backList.last else { return }
         observeNavigations(of: page, tabID: selectedTabID)
+        prepareExplicitSharedNavigation(tabID: selectedTabID, url: item.url)
         page.load(item)
     }
 
@@ -268,6 +279,7 @@ public final class MobileBrowserController: ObservableObject {
         guard let selectedTabID, let page = selectedPage,
               let item = page.backForwardList.forwardList.first else { return }
         observeNavigations(of: page, tabID: selectedTabID)
+        prepareExplicitSharedNavigation(tabID: selectedTabID, url: item.url)
         page.load(item)
     }
 
@@ -305,6 +317,7 @@ public final class MobileBrowserController: ObservableObject {
         faviconFetchInFlight.removeValue(forKey: id)
         faviconAttemptedDocumentURLs.removeValue(forKey: id)
         navigationDocumentGenerations.removeValue(forKey: id)
+        clearSharedNavigation(for: id)
         desktopSiteTabIDs.remove(id)
 #if DEBUG
         uiTestRetryResponses.removeValue(forKey: id)
@@ -321,7 +334,7 @@ public final class MobileBrowserController: ObservableObject {
         if selectedTabID == id {
             if tabs.isEmpty {
                 selectedTabID = nil
-                _ = createTab(mode: removed.mode)
+                _ = createTab(mode: removed.mode, participatesInSharedTabs: false)
             } else {
                 selectedTabID = tabs[min(index, tabs.count - 1)].id
             }
@@ -330,41 +343,19 @@ public final class MobileBrowserController: ObservableObject {
         persistSoon()
     }
 
-    public func undoClose() {
-        guard var record = recentlyClosedTab, record.mode == .normal else {
-            recentlyClosedTab = nil
-            return
-        }
-        if let nodeID = record.treeNodeID, let existingID = localTabID(for: nodeID) {
-            recentlyClosedTab = nil
-            select(existingID)
-            return
-        }
-        record.lastActiveAt = Date()
-        tabs.append(record)
-        selectedTabID = record.id
-        recentlyClosedTab = nil
-        if let value = record.url, let url = URL(string: value) {
-            let restoredPage = makePage(tabID: record.id, mode: record.mode)
-            pages[record.id] = restoredPage
-            observeNavigations(of: restoredPage, tabID: record.id)
-            restoredPage.load(url)
-        }
-        discardInactivePages(keeping: 5)
-        persistSoon()
-    }
-
     public func moveSelectedTab(to workspaceID: WorkspaceID?) {
-        guard let selectedTabID,
-              let index = tabs.firstIndex(where: { $0.id == selectedTabID }) else { return }
-        tabs[index].workspaceID = workspaceID
-        persistSoon()
+        guard let selectedTabID else { return }
+        moveTab(selectedTabID, to: workspaceID)
     }
 
     public func moveTab(_ id: UUID, to workspaceID: WorkspaceID?) {
-        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
-        tabs[index].workspaceID = workspaceID
+        guard let index = tabs.firstIndex(where: { $0.id == id }),
+              tabs[index].workspaceID != workspaceID else { return }
+        var candidate = tabs[index]
+        candidate.workspaceID = workspaceID
+        tabs[index] = candidate
         persistSoon()
+        if candidate.mode == .normal { onSharedTabIntent?(candidate, .move(workspaceID)) }
     }
 
     public func setSelectedTabSaved(_ saved: Bool) {
@@ -392,9 +383,14 @@ public final class MobileBrowserController: ObservableObject {
     }
 
     public func renameTab(_ id: UUID, title: String) {
-        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
-        tabs[index].customTitle = MobileTabRecord.normalizedCustomTitle(title)
+        let customTitle = MobileTabRecord.normalizedCustomTitle(title)
+        guard let index = tabs.firstIndex(where: { $0.id == id }),
+              tabs[index].customTitle != customTitle else { return }
+        var candidate = tabs[index]
+        candidate.customTitle = customTitle
+        tabs[index] = candidate
         persistSoon()
+        if candidate.mode == .normal { onSharedTabIntent?(candidate, .rename(customTitle)) }
     }
 
     public func reorderTabs(
@@ -503,8 +499,8 @@ public final class MobileBrowserController: ObservableObject {
                 return
             }
             guard externalOpenDeduplicator.accepts(safeURL) else { return }
-            openValidatedExternalURL(safeURL)
             lastError = nil
+            openValidatedExternalURL(safeURL)
         } catch {
             lastError = CompanionL10n.string(
                 "browser.error.blocked_scheme",
@@ -524,8 +520,8 @@ public final class MobileBrowserController: ObservableObject {
                 return
             }
             externalOpenDeduplicator.rememberAccepted(safeURL)
-            openValidatedExternalURL(safeURL)
             lastError = nil
+            openValidatedExternalURL(safeURL)
         } catch {
             handleExternalURL(url)
         }
@@ -615,6 +611,7 @@ public final class MobileBrowserController: ObservableObject {
         for id in privateIDs { faviconFetchInFlight.removeValue(forKey: id) }
         for id in privateIDs { faviconAttemptedDocumentURLs.removeValue(forKey: id) }
         for id in privateIDs { navigationDocumentGenerations.removeValue(forKey: id) }
+        for id in privateIDs { clearSharedNavigation(for: id) }
 #if DEBUG
         for id in privateIDs { uiTestRetryResponses.removeValue(forKey: id) }
 #endif
@@ -622,7 +619,7 @@ public final class MobileBrowserController: ObservableObject {
         downloadCoordinator.endPrivateSession()
         if let selectedTabID, privateIDs.contains(selectedTabID) {
             self.selectedTabID = normalTabs.last?.id
-            if self.selectedTabID == nil { _ = createTab() }
+            if self.selectedTabID == nil { _ = createTab(participatesInSharedTabs: false) }
         }
         recordTabState()
         persistSoon()
@@ -659,6 +656,7 @@ public final class MobileBrowserController: ObservableObject {
             faviconFetchInFlight.removeValue(forKey: id)
             faviconAttemptedDocumentURLs.removeValue(forKey: id)
             navigationDocumentGenerations.removeValue(forKey: id)
+            clearSharedNavigation(for: id)
 #if DEBUG
             uiTestRetryResponses.removeValue(forKey: id)
 #endif
@@ -723,6 +721,7 @@ public final class MobileBrowserController: ObservableObject {
             observeNavigations(of: page, tabID: selectedTabID)
             page.load(safeURL)
             updateSelectedMetadata(url: safeURL, title: nil)
+            noteExplicitSharedNavigation(tabID: selectedTabID, url: safeURL)
         } else {
             _ = createTab(url: safeURL)
         }

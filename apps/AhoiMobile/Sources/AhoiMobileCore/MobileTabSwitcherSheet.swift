@@ -393,8 +393,7 @@ struct MobileTabSwitcherSheet: View {
             }
             if tab.mode == .normal {
                 Button {
-                    browser.setTabSaved(tab.id, !tab.isSaved)
-                    publishTab(tab.id)
+                    toggleSaved(tab)
                 } label: {
                     Label(
                         tab.isSaved
@@ -409,6 +408,8 @@ struct MobileTabSwitcherSheet: View {
                         systemImage: tab.isSaved ? "bookmark.slash" : "bookmark"
                     )
                 }
+                .disabled(tab.sharedBindingState == .deferred || tab.sharedBindingState == .deleted ||
+                          (!tab.isSaved && tab.sharedTarget?.kind == .newTab))
                 Menu {
                     Button(CompanionL10n.string(
                         "browser.tabs.unassigned",
@@ -459,17 +460,33 @@ struct MobileTabSwitcherSheet: View {
     }
 
     private func closeTab(_ id: UUID) {
-        let shouldRemovePublication = browser.tabs.first(where: { $0.id == id })?.mode == .normal
-        browser.close(id)
-        if shouldRemovePublication {
-            Task { await companionModel.closePublishedMobileTab(id) }
-        }
+        guard let tab = browser.tabs.first(where: { $0.id == id }) else { return }
+        guard tab.mode == .normal else { browser.close(id); return }
+        Task { await companionModel.closePublishedMobileTab(tab) {
+            if browser.tabs.first(where: { $0.id == id })?.presenceID == tab.presenceID { browser.close(id) }
+        } }
     }
 
     private func publishTab(_ id: UUID) {
         guard let tab = browser.tabs.first(where: { $0.id == id }),
               tab.mode == .normal else { return }
         Task { await companionModel.publishMobileTab(tab) }
+    }
+
+    private func toggleSaved(_ tab: MobileTabRecord) {
+        let saved = !tab.isSaved
+        Task { @MainActor in
+            // Resolve an unbound local row/Inbox first. This is not an empty
+            // authoritative capture and does not touch a dormant row's runtime.
+            await companionModel.reconcilePublishedMobileTabs(browser)
+            _ = await browser.setSharedPagePersistence(for: tab.id, saved: saved) { current, didCommit in
+                if saved {
+                    return await companionModel.saveBrowserPage(current,
+                        workspaceID: current.workspaceID ?? SharedTabContract.inboxID, didCommit: didCommit)
+                }
+                return await companionModel.unsaveBrowserPage(current, didCommit: didCommit)
+            }
+        }
     }
 
     private func beginRename(_ tab: MobileTabRecord) {

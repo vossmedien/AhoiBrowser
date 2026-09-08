@@ -16,6 +16,14 @@ extension DesktopWirePayloadCodec {
         "kind", "name", "scope", "source", "enabled", "opted_in", "tombstone",
     ]
 
+    func optionalARGB(_ value: [String: Any]) throws -> UInt32? {
+        guard value.keys.contains("accent_argb") else { return nil }
+        guard let signed = Int32(exactly: try integer(value, "accent_argb")) else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        return UInt32(bitPattern: signed)
+    }
+
     public func encode(_ record: CompanionAppearanceRecord) throws -> Data {
         var value = try common(
             id: record.id,
@@ -79,18 +87,20 @@ extension DesktopWirePayloadCodec {
         plaintext: Data
     ) throws -> CompanionAppearanceRecord {
         let value = try object(from: plaintext)
-        guard let colorMode = CompanionColorMode(rawValue: try string(value, "color_mode")),
-              let systemAccent = value["use_system_accent"] as? Bool else {
+        guard let colorMode = CompanionColorMode(rawValue: try string(value, "color_mode")) else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
-        return try CompanionAppearanceRecord(
+        let result = try CompanionAppearanceRecord(
             id: try id(value),
             colorMode: colorMode,
-            accentARGB: (value["accent_argb"] as? NSNumber)?.uint32Value,
-            useSystemAccent: systemAccent,
+            accentARGB: try optionalARGB(value),
+            useSystemAccent: try SharedTabWireReadPolicy.strictBoolean(value, key: "use_system_accent"),
             version: try version(value, requiredFields: Self.appearanceFields),
             tombstone: try tombstone(envelope, value: value)
         )
+        try validatePortableEnvelope(envelope, dataClass: .appearance, identity: result.id,
+                                     version: result.version, tombstone: result.tombstone)
+        return result
     }
 
     public func decodePermittedSetting(
@@ -98,13 +108,16 @@ extension DesktopWirePayloadCodec {
         plaintext: Data
     ) throws -> CompanionPermittedSettingRecord {
         let value = try object(from: plaintext)
-        return try CompanionPermittedSettingRecord(
+        let result = try CompanionPermittedSettingRecord(
             id: try id(value),
             settingID: try string(value, "setting_id"),
             valueJSON: try string(value, "value_json"),
             version: try version(value, requiredFields: Self.permittedSettingFields),
             tombstone: try tombstone(envelope, value: value)
         )
+        try validatePortableEnvelope(envelope, dataClass: .permittedSetting, identity: result.id,
+                                     version: result.version, tombstone: result.tombstone)
+        return result
     }
 
     public func decodeExtensionInventory(
@@ -112,19 +125,19 @@ extension DesktopWirePayloadCodec {
         plaintext: Data
     ) throws -> CompanionExtensionInventoryRecord {
         let value = try object(from: plaintext)
-        guard let enabled = value["enabled"] as? Bool else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        return try CompanionExtensionInventoryRecord(
+        let result = try CompanionExtensionInventoryRecord(
             id: try id(value),
             deviceID: DeviceID(rawValue: try uuid(value, "device_id")),
             extensionID: try string(value, "extension_id"),
             name: try string(value, "name"),
             extensionVersion: try string(value, "extension_version"),
-            enabled: enabled,
+            enabled: try SharedTabWireReadPolicy.strictBoolean(value, key: "enabled"),
             version: try version(value, requiredFields: Self.extensionInventoryFields),
             tombstone: try tombstone(envelope, value: value)
         )
+        try validatePortableEnvelope(envelope, dataClass: .extensionInventory, identity: result.id,
+                                     version: result.version, tombstone: result.tombstone)
+        return result
     }
 
     public func decodeDeveloperAsset(
@@ -132,21 +145,22 @@ extension DesktopWirePayloadCodec {
         plaintext: Data
     ) throws -> CompanionDeveloperAssetRecord {
         let value = try object(from: plaintext)
-        guard let kind = CompanionDeveloperAssetKind(rawValue: try integer(value, "asset_kind")),
-              let enabled = value["enabled"] as? Bool,
-              let optedIn = value["opted_in"] as? Bool else {
+        guard let kind = CompanionDeveloperAssetKind(rawValue: try integer(value, "asset_kind")) else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
-        return try CompanionDeveloperAssetRecord(
+        let result = try CompanionDeveloperAssetRecord(
             id: try id(value),
             kind: kind,
             name: try string(value, "name"),
             scope: try string(value, "scope"),
             source: try string(value, "source"),
-            enabled: enabled,
-            optedIn: optedIn,
+            enabled: try SharedTabWireReadPolicy.strictBoolean(value, key: "enabled"),
+            optedIn: try SharedTabWireReadPolicy.strictBoolean(value, key: "opted_in"),
             version: try version(value, requiredFields: Self.developerAssetFields),
             tombstone: try tombstone(envelope, value: value)
         )
+        try validatePortableEnvelope(envelope, dataClass: .developerAsset, identity: result.id,
+                                     version: result.version, tombstone: result.tombstone)
+        return result
     }
 }

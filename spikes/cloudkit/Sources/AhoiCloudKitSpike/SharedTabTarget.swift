@@ -54,7 +54,10 @@ public struct SharedTabTarget: Codable, Equatable, Hashable, Sendable {
 
     public func validatePresence(treeNodeID: TreeNodeID?) throws {
         try validate()
-        guard kind == .web || treeNodeID != nil else { throw SharedTabTargetError.missingPageLink }
+        guard let treeNodeID,
+              treeNodeID.rawValue.uuidString != "00000000-0000-0000-0000-000000000000" else {
+            throw SharedTabTargetError.missingPageLink
+        }
     }
 
     private enum CodingKeys: String, CodingKey { case kind, url, localScheme }

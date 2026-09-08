@@ -121,7 +121,7 @@ public struct SyncRecord: Codable, Hashable, Sendable {
     public init(
         recordID: UUID = UUID(),
         entityID: UUID,
-        schemaVersion: UInt32 = 2,
+        schemaVersion: UInt32 = SharedSyncFormat.currentVersion,
         dataClass: SyncDataClass,
         modifiedAt: HybridLogicalClock,
         originatingDevice: DeviceID,
@@ -138,5 +138,52 @@ public struct SyncRecord: Codable, Hashable, Sendable {
         self.orderKey = orderKey
         self.encryptedValue = encryptedValue
         self.tombstone = tombstone
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case recordID, entityID, schemaVersion, dataClass, modifiedAt
+        case originatingDevice, orderKey, encryptedValue, tombstone
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let schema = try container.decode(UInt32.self, forKey: .schemaVersion)
+        guard schema == SharedSyncFormat.currentVersion else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .schemaVersion, in: container,
+                debugDescription: "Only the current shared sync format is supported."
+            )
+        }
+        self.init(
+            recordID: try container.decode(UUID.self, forKey: .recordID),
+            entityID: try container.decode(UUID.self, forKey: .entityID),
+            schemaVersion: schema,
+            dataClass: try container.decode(SyncDataClass.self, forKey: .dataClass),
+            modifiedAt: try container.decode(HybridLogicalClock.self, forKey: .modifiedAt),
+            originatingDevice: try container.decode(DeviceID.self, forKey: .originatingDevice),
+            orderKey: try container.decodeIfPresent(OrderKey.self, forKey: .orderKey),
+            encryptedValue: try container.decode(EncryptedValue.self, forKey: .encryptedValue),
+            tombstone: try container.decodeIfPresent(Tombstone.self, forKey: .tombstone)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        guard schemaVersion == SharedSyncFormat.currentVersion else {
+            throw EncodingError.invalidValue(
+                schemaVersion,
+                .init(codingPath: encoder.codingPath,
+                      debugDescription: "Only the current shared sync format can be encoded.")
+            )
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(recordID, forKey: .recordID)
+        try container.encode(entityID, forKey: .entityID)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(dataClass, forKey: .dataClass)
+        try container.encode(modifiedAt, forKey: .modifiedAt)
+        try container.encode(originatingDevice, forKey: .originatingDevice)
+        try container.encodeIfPresent(orderKey, forKey: .orderKey)
+        try container.encode(encryptedValue, forKey: .encryptedValue)
+        try container.encodeIfPresent(tombstone, forKey: .tombstone)
     }
 }
