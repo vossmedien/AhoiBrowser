@@ -35,6 +35,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Mobile Build19 is built, not visually accepted:** coordinator consumed the
+  completion evidence after event-driven waiting rather than polling the same
+  processes. `artifacts/build/mobile-setup-6b0121f-20260908/build.log` ends BUILD
+  SUCCEEDED; candidate.json binds clean6b0121f, matching embedded source,
+  DebugLocal19, valid Simulator signing and app-tree
+  a120dea9e97c1dda73f9668025984da5f97d5c96b7d14d305818b65492e14d80.
+  It integrates the approved icon, host-width correction, Home coupling fix and
+  extension metadata; it is not an icon-only build. Build18 evidence is retained.
+  Next is only the changed visible icon/layout/metadata journey in a newly
+  coordinated window; no old slot is reopened, no full Build18 replay or new
+  CloudKit/Extension runtime pass is inferred.
 - **Mac CloudKit DEVELOPMENT copy is configured and signing-verified:**
   coordinator read `desktop-toolbar-settings-3d59cf9-20260908/cloudkit/`
   preparation.json and verification.json below artifacts/build. Source3d59cf9,
