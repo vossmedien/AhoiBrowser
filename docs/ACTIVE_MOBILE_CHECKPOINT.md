@@ -1,19 +1,47 @@
 # Active Mobile checkpoint
 
-Last updated: 2026-09-05. Owner: thread
-`01a044d6-1545-7532-8394-6b7df1144bb1`.
+Updated: 2026-09-08. Mobile/Common implementation owner:
+`01a06d69-1034-7372-b784-0b05a53c87e0`. Coordinator:
+`01a044d6-1545-7532-8394-6b7df1144bb1` (read-only product review/coordination).
 
-## New user-authorized role handoff
+## Current work — continue here
 
-This thread now coordinates the joint sync integration rather than editing
-Mobile sync in parallel. The clean Swift `spikes/cloudkit` / `apps/AhoiMobile`
-scope through `f25eea5` was explicitly transferred to the unified Sync owner
-`01a06d69-1034-7372-b784-0b05a53c87e0`. Desktop retains its current browser
-package, native integration and build/runtime ownership. Current assignments,
-acknowledgments and next actions are authoritative in
-`docs/ACTIVE_SYNC_COORDINATION.md`; the acceptance history below is preserved.
+The authoritative implementation handoff and next actions are in
+[UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md](UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md).
+Ownership and cross-session handoffs are in
+[ACTIVE_SYNC_COORDINATION.md](ACTIVE_SYNC_COORDINATION.md).
+Do not resume tasks from the historical archive below.
 
-## Current P2 corrections — retained creation evidence, source only
+- ADR 0009 requires ONE current format 3 and fresh isolated acceptance stores,
+  not complex migration, legacy-reader obligations or permanent mixed writers.
+  Existing profiles/data/keys remain protected. ADR 0010's full browser-setup
+  restoration and the workspace metadata follow-up remain required; the original
+  13 classes are not the final scope ceiling.
+- Common source `e2f6711` plus async durable-completion correction `5e74472`
+  is handed to Desktop for Native B-D. No generic header/role wait remains.
+  Desktop retains Native/Chromium build/install/UI ownership; no My-Mac grant
+  is implied by this document or by an absent process.
+- Mobile source `4e64c5f` plus external-open correction `bba0b86` produced
+  DebugLocal 0.1 (16), arm64 iOS Simulator, product-only build11655 EXIT0.
+  The initial compile failure is retained separately. Exact candidate/log/
+  signature limits are in
+  [the build report](../artifacts/build/mobile-unified3-4e64c5f-20260908/README.md)
+  (`9978b2e`). This is not visible E2E, CloudKit or a native cross-client pass.
+- Next: the already requested fresh Simulator-UI handoff, then the short visible
+  journey on that exact candidate, followed by only relevant focused checks.
+  Do not re-run the old 30212/926/SQL steps, v2 promotion suites or Build15
+  acceptance merely because they are preserved below.
+- Current global/project AGENTS.md apply: total-machine capacity, no fixed
+  80%-per-process gate or Ahoi priority; implementation and visible E2E first.
+
+## Historical archive — evidence, not active instructions
+
+All following dates, owners, PIDs, former goals and words such as "current",
+"next" or "must" describe their ORIGINAL historical step. They do not override
+the current handoff above or reactivate superseded v2/promotion work. Original
+results and limits remain intact; a historical pass is not today's acceptance.
+
+### Historical P2 corrections — retained creation evidence, source only
 
 The review of `3964bcb` found that a later synthetic v2 `created_at` clock
 could erase the Boolean-only local creation evidence. The correction retains
@@ -49,7 +77,7 @@ E2E exception, not a native runtime pass. Build15 Bookmark acceptance is not
 repeated. C++/GN/Golden/ADR and the independent Desktop build freeze are unchanged.
 Details: `docs/audit-evidence/2026-09-05-mobile-creation-provenance.md`.
 
-## Current source wave — matching frozen ADR 0008, not built
+### Historical source wave — matching frozen ADR 0008, not built
 
 The owner froze the concrete contract in `09cae9f`. The one canonical fixture
 `overlay/chromium/src/ahoi/browser/sync/testdata/shared_tab_wire_v3_contract.json`
@@ -92,7 +120,7 @@ Provider-observed initial-fetch completion/announcement acknowledgments and
 actual automatic tab UI/native integration still need their runtime proofs;
 the pure readiness assessment is not that proof. Do not request ownership again.
 
-## Current acceptance — Bookmark Mobile package and v3 read preparation
+### Historical acceptance — Bookmark Mobile package and v3 read preparation
 
 Final source `313e3518c1d6daa8ee4d6a3ae25a01ec99a0d39b`, DebugLocal **0.1 (15)**:
 build succeeded; visible Bookmark create/folder/restart/open/delete journey
@@ -126,7 +154,7 @@ None of this marks Production sync, cross-device Keychain or all shared-tab
 runtime behavior complete. The older registered Internal-Beta goal remains
 complete for its narrower scope only.
 
-## Resumed implementation — versioned shared-tab reads, writers off
+### Historical resumed implementation — versioned shared-tab reads, writers off
 
 The explicit renewed ADR 0008 grant removes any remaining Swift ownership wait.
 Mobile has now added optional `RemoteTab.treeNodeID` to compatible local Codable
@@ -161,7 +189,7 @@ approval permits later rehydration. This correction was accepted on `313e351`
 with the repeated visible journey and focused regression tests recorded above.
 No My-Mac/Production or Chromium action is authorized or planned by this wave.
 
-## Latest single runtime attempt — window returned
+### Historical single runtime attempt — window returned
 
 A renewed explicit Desktop handoff authorized one My-Mac CloudKit attempt.
 The existing verified inert `9395a9c` CloudKitDevelopment host `0.1 (11)` was
@@ -184,7 +212,7 @@ red at the duplicate AX match for the cleanup delete confirmation. The scoped
 locator was subsequently corrected and the complete journey passed on Build 14
 and final Build 15 as recorded above. Keep that initial failed run red.
 
-## Current task: matching Mobile bookmarks — owner handoff received
+### Historical task: matching Mobile bookmarks — owner handoff received
 
 The Bookmark owner explicitly handed off the Swift/Mobile implementation of
 the frozen wire-v2 contract in ADR 0006. Mobile owns typed Swift bookmarks,
@@ -224,7 +252,7 @@ ADR 0008 now explicitly assigns future shared-tab Swift ownership and stable
 Inbox identities. Its capability/bootstrap, legacy-clock and nonportable-tab
 freeze points remain pending agreement; this Bookmark wave does not enable v3.
 
-## Shared normal tabs foundation — previous bounded step
+### Historical shared normal tabs foundation — previous bounded step
 
 The user now explicitly requires all normal tabs to stay synchronized across
 Desktop, iPhone and iPad. Saved pages remain one uniform structure; temporary
@@ -272,7 +300,7 @@ Desktop owner. Do not repeat the completed local identity tests unchanged or
 mistake this foundation for complete all-device tab sync. Preserve pending
 signed real-CloudKit runner outputs below while working on the new package.
 
-## Previous request: close technical sync verification
+### Historical request: close technical sync verification
 
 The user explicitly requested real testing or meaningful simulation beyond the
 completed internal-beta scope. That verification wave changed tests only;
@@ -324,7 +352,7 @@ The completed release scope was the **Internal Beta Ready** definition in
 contract supersedes the former full-matrix execution order. Do not restart the
 old download, performance, iPad or uBlock feature waves.
 
-## Ownership
+### Historical ownership
 
 - Work only in `apps/AhoiMobile`, Mobile-only fixtures/tests, Mobile outputs,
   and this checkpoint.
@@ -335,7 +363,7 @@ old download, performance, iPad or uBlock feature waves.
   silently mark the full public-release matrix green.
 - uBlock on Mobile remains a documented feasibility boundary, not a beta gate.
 
-## Exact current boundary
+### Historical exact boundary
 
 - Branch: `codex/desktop-core-feature-wave-20260830`
 - Mobile source: `ab2e709d9cf77c4e73d548bb8d2869090940c0a0`, version `0.1 (10)`.
@@ -369,7 +397,7 @@ old download, performance, iPad or uBlock feature waves.
   remain external gates. Mirroring currently reports the phone is in use.
   The iPad (6th generation) is below the required OS version.
 
-## Current bounded acceptance
+### Historical bounded acceptance
 
 - `e2e-harbor-collapse-build10-astra.xcresult`: 1/1 passed on the exact
   simulator candidate; deliberate document scroll collapses the deck and
@@ -414,7 +442,7 @@ old download, performance, iPad or uBlock feature waves.
   at or below 800 lines. The shared branch's latest Desktop commits are outside
   Mobile ownership; the index was empty at the latest check.
 
-## Internal-beta handoff
+### Historical internal-beta handoff
 
 The earlier CPU gate cleared at 07:13 CEST; the remaining targeted checks then
 passed. No Mobile build or test remains running. The closure changes consist
@@ -433,7 +461,7 @@ default-browser grant and post-grant build; public Store release approval.
 The receipt and report are in
 `docs/audit-evidence/2026-09-04-mobile-testflight-fix/`.
 
-## Bookmark-owner coordination — 2026-09-05
+### Historical bookmark-owner coordination — 2026-09-05
 
 - No additional Mobile bookmark source has been implemented. Library/Saved
   Pages use `model.snapshot.visibleTreeNodes`, scoped to the Ahoi workspace,
