@@ -26,6 +26,7 @@
 #include "base/functional/callback_forward.h"
 #include "base/memory/weak_ptr.h"
 #include "base/scoped_observation.h"
+#include "build/build_config.h"
 
 namespace ahoi::sync {
 
@@ -34,6 +35,10 @@ class SyncPayloadCryptor;
 class SyncProvider;
 class SyncPump;
 class SyncStore;
+#if BUILDFLAG(IS_MAC)
+class CloudKitSyncKeyBootstrapMac;
+struct MacSyncKeyBootstrapResult;
+#endif
 
 // Blocking profile-local implementation owned by one SequenceBound task
 // runner. No PrefService, HistoryService, SessionBridge or browser UI object
@@ -87,6 +92,7 @@ class ProfileSyncBackend : public SyncStoreObserver {
                              bool executed,
                              std::string result_code);
   bool ConfirmAccountTransition(bool allow_local_upload);
+  bool RetrySyncKeySetup();
   bool ConfirmZoneRecovery();
   std::optional<SyncStateSnapshot> SetTransportEnabled(bool enabled);
   std::optional<SyncStateSnapshot> SetHistoryRetentionDays(int days);
@@ -132,6 +138,9 @@ class ProfileSyncBackend : public SyncStoreObserver {
 
   void TouchSession();
   void InitializeProviderIfAvailable();
+#if BUILDFLAG(IS_MAC)
+  void OnKeyBootstrapResult(MacSyncKeyBootstrapResult result);
+#endif
   bool ProfileScopeActive() const;
   SyncAuthorization CaptureBrowserSettingsAuthorization();
   bool RefreshBrowserSettingScopes();
@@ -185,6 +194,12 @@ class ProfileSyncBackend : public SyncStoreObserver {
       std::make_shared<std::atomic<bool>>(false);
   std::unique_ptr<SyncProvider> provider_;
   std::unique_ptr<SyncPump> pump_;
+#if BUILDFLAG(IS_MAC)
+  std::unique_ptr<CloudKitSyncKeyBootstrapMac> key_bootstrap_;
+  std::vector<base::OnceCallback<void(std::optional<SyncStateSnapshot>)>>
+      key_setup_waiters_;
+#endif
+  std::string key_setup_issue_;
   base::WeakPtrFactory<ProfileSyncBackend> weak_ptr_factory_{this};
 };
 

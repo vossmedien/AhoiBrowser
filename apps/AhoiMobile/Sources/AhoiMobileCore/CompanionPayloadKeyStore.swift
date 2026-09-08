@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Security
 
@@ -12,6 +13,7 @@ public enum CompanionPayloadKeyStoreError: Error, Equatable, Sendable {
     case splitKeyPrevented
     case rotationKeyUnchanged
     case randomGenerationFailed(OSStatus)
+    case authorizationRevoked
 }
 
 public enum CompanionSecureKeyGenerator {
@@ -43,14 +45,17 @@ public actor KeychainCompanionPayloadKeyStore:
     private let configuration: CompanionSyncKeyConfiguration
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
+    private let authorization: @Sendable () -> Bool
 
-    public init(configuration: CompanionSyncKeyConfiguration) throws {
+    public init(configuration: CompanionSyncKeyConfiguration,
+                authorization: @escaping @Sendable () -> Bool = { true }) throws {
         guard !configuration.service.isEmpty,
               !configuration.account.isEmpty,
               configuration.keyVersion > 0 else {
             throw CompanionPayloadKeyStoreError.invalidConfiguration
         }
         self.configuration = configuration
+        self.authorization = authorization
         self.encoder = JSONEncoder()
         self.encoder.outputFormatting = [.sortedKeys]
         self.decoder = JSONDecoder()
@@ -67,6 +72,7 @@ public actor KeychainCompanionPayloadKeyStore:
     }
 
     public func knownCanonicalVersions() throws -> Set<UInt32> {
+        guard authorization() else { throw CompanionPayloadKeyStoreError.authorizationRevoked }
         var query = baseQuery(account: nil)
         query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
         query[kSecReturnAttributes as String] = true
@@ -84,6 +90,20 @@ public actor KeychainCompanionPayloadKeyStore:
             }
             return version(forCanonicalAccount: account)
         })
+    }
+
+    public func canonicalKeySHA256(version: UInt32) throws -> String? {
+        try keySHA256(kind: .canonical, version: version)
+    }
+
+    public func candidateKeySHA256(version: UInt32) throws -> String? {
+        try keySHA256(kind: .pending, version: version)
+    }
+
+    private func keySHA256(kind: ItemKind, version: UInt32) throws -> String? {
+        guard let data = try readItem(kind: kind, version: version) else { return nil }
+        guard data.count == 32 else { throw CompanionPayloadKeyStoreError.invalidKeyLength }
+        return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
 
     public func pendingState(
@@ -216,12 +236,15 @@ public actor KeychainCompanionPayloadKeyStore:
         guard constantTimeEqual(readback, pending) else {
             throw CompanionPayloadKeyStoreError.splitKeyPrevented
         }
-        try deleteItem(kind: .pending, version: version)
         try deleteItem(kind: .journal, version: version)
+        try deleteItem(kind: .pending, version: version)
     }
 
     public func discardGeneratedCandidate(version: UInt32) throws {
         guard let journal = try readJournal(version: version) else { return }
+        guard journal.acceptedReceipt == nil else {
+            throw CompanionPayloadKeyStoreError.receiptMismatch
+        }
         if journal.origin == .generated {
             try deleteItem(kind: .pending, version: version)
         }
@@ -328,6 +351,7 @@ public actor KeychainCompanionPayloadKeyStore:
         }
         let query = itemQuery(kind: .journal, version: journal.keyVersion)
         let attributes = [kSecValueData as String: data]
+        guard authorization() else { throw CompanionPayloadKeyStoreError.authorizationRevoked }
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if status == errSecItemNotFound {
             try addItem(data, kind: .journal, version: journal.keyVersion)
@@ -350,6 +374,7 @@ public actor KeychainCompanionPayloadKeyStore:
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: CFTypeRef?
+        guard authorization() else { throw CompanionPayloadKeyStoreError.authorizationRevoked }
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound { return nil }
         guard status == errSecSuccess else {
@@ -371,6 +396,7 @@ public actor KeychainCompanionPayloadKeyStore:
             query[kSecAttrAccessible as String] =
                 kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         }
+        guard authorization() else { throw CompanionPayloadKeyStoreError.authorizationRevoked }
         let status = SecItemAdd(query as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw CompanionPayloadKeyStoreError.keychainStatus(status)
@@ -378,6 +404,7 @@ public actor KeychainCompanionPayloadKeyStore:
     }
 
     private func deleteItem(kind: ItemKind, version: UInt32) throws {
+        guard authorization() else { throw CompanionPayloadKeyStoreError.authorizationRevoked }
         let status = SecItemDelete(
             itemQuery(kind: kind, version: version) as CFDictionary
         )

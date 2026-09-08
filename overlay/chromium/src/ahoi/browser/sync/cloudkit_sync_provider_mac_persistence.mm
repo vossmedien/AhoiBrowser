@@ -85,8 +85,8 @@ void CloudKitSyncProviderMac::Core::PersistState(
     CKSyncEngineStateSerialization* state) {
   // A failed opaque cache write must not advance the engine checkpoint past
   // ciphertext that has not reached disk. Restart can refetch from the old one.
-  if (persisted_state_invalid_ || account_transition_pending_ ||
-      zone_recovery_pending_ ||
+  if (!key_setup_issue_.empty() || persisted_state_invalid_ ||
+      account_transition_pending_ || zone_recovery_pending_ ||
       (inbox_persistence_failed_ && !PersistInbox())) {
     return;
   }

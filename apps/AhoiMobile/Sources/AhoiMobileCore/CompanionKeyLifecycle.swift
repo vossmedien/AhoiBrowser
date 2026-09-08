@@ -76,13 +76,21 @@ public enum CompanionKeyLifecycleStatus: Equatable, Sendable {
     }
 }
 
-public struct CompanionBootstrapClaim: Equatable, Sendable {
+public struct CompanionBootstrapClaim: Hashable, Sendable {
     public let keyVersion: UInt32
     public let serverChangeTag: String
+    public let keySHA256: String
 
-    public init(keyVersion: UInt32, serverChangeTag: String) {
+    public init(keyVersion: UInt32, serverChangeTag: String, keySHA256: String = "") {
         self.keyVersion = keyVersion
         self.serverChangeTag = serverChangeTag
+        self.keySHA256 = keySHA256
+    }
+
+    public var hasKeyCommitment: Bool {
+        keySHA256.utf8.count == 64 && keySHA256.utf8.allSatisfy {
+            (48...57).contains($0) || (97...102).contains($0)
+        }
     }
 }
 
@@ -127,6 +135,7 @@ public protocol CompanionKeyBootstrapTransport: Sendable {
     func ensureZone() async throws
     func createClaim(
         keyVersion: UInt32,
+        keySHA256: String,
         accepted: @escaping @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
     ) async throws -> CompanionBootstrapClaimResult
     func shutdown() async
@@ -167,6 +176,15 @@ public protocol CompanionPayloadKeyLifecycleStoring: Sendable {
         matching claim: CompanionBootstrapClaim
     ) async throws
     func discardGeneratedCandidate(version: UInt32) async throws
+    func canonicalKeySHA256(version: UInt32) async throws -> String?
+    func candidateKeySHA256(version: UInt32) async throws -> String?
+}
+
+extension CompanionPayloadKeyLifecycleStoring {
+    // Old/incomplete adapters cannot claim compatibility merely by reporting
+    // that a same-version key exists. Actual production stores override both.
+    public func canonicalKeySHA256(version: UInt32) async throws -> String? { nil }
+    public func candidateKeySHA256(version: UInt32) async throws -> String? { nil }
 }
 
 public enum CompanionKeyLifecycleError: Error, Equatable, Sendable {
@@ -204,23 +222,26 @@ public struct CompanionSyncRuntimeActivation: Sendable {
     }
 }
 
-public typealias CompanionSyncRuntimeFactory = @MainActor @Sendable () async throws
+public typealias CompanionSyncRuntimeFactory = @MainActor @Sendable (CompanionSyncRuntimeAuthorization) async throws
     -> CompanionSyncRuntimeActivation
 
 public actor CompanionKeyLifecycleCoordinator {
     private let transport: any CompanionKeyBootstrapTransport
     private let keyStore: any CompanionPayloadKeyLifecycleStoring
     private let generator: @Sendable () throws -> Data
+    private let authorization: @Sendable () -> Bool
     private var status: CompanionKeyLifecycleStatus = .disabled
 
     public init(
         transport: any CompanionKeyBootstrapTransport,
         keyStore: any CompanionPayloadKeyLifecycleStoring,
-        generator: @escaping @Sendable () throws -> Data
+        generator: @escaping @Sendable () throws -> Data,
+        authorization: @escaping @Sendable () -> Bool = { true }
     ) {
         self.transport = transport
         self.keyStore = keyStore
         self.generator = generator
+        self.authorization = authorization
     }
 
     public func currentStatus() -> CompanionKeyLifecycleStatus {
@@ -231,7 +252,7 @@ public actor CompanionKeyLifecycleCoordinator {
         explicitOptIn: Bool,
         desiredKeyVersion: UInt32
     ) async throws -> CompanionKeyLifecycleStatus {
-        guard explicitOptIn else {
+        guard explicitOptIn && authorization() else {
             status = .disabled
             return status
         }
@@ -240,9 +261,11 @@ public actor CompanionKeyLifecycleCoordinator {
         }
 
         var remote = try await transport.inspectRemote()
+        guard authorization() else { status = .disabled; return status }
         if !remote.zoneExists {
             try await transport.ensureZone()
             remote = try await transport.inspectRemote()
+            guard authorization() else { status = .disabled; return status }
         }
         guard remote.zoneExists else {
             throw CompanionKeyLifecycleError.bootstrapTransportUnavailable
@@ -273,24 +296,41 @@ public actor CompanionKeyLifecycleCoordinator {
             return status
         }
 
+        if try await keyStore.hasCanonicalKey(version: desiredKeyVersion) {
+            // A missing claim is not permission to adopt an unassociated old
+            // key or recreate a lost collection. Existing keys stay untouched.
+            status = .recovery(reason: .bootstrapOwnershipUnverified, keyVersion: desiredKeyVersion)
+            return status
+        }
+
         let candidate = try await keyStore.prepareCandidate(
             version: desiredKeyVersion,
             generator: generator
         )
+        guard authorization() else { status = .disabled; return status }
         status = candidate.origin == .externallyProvisioned
             ? .migration(keyVersion: desiredKeyVersion)
             : .claiming(keyVersion: desiredKeyVersion)
 
+        guard let digest = try await keyStore.candidateKeySHA256(version: desiredKeyVersion),
+              CompanionBootstrapClaim(
+                keyVersion: desiredKeyVersion, serverChangeTag: "pending", keySHA256: digest
+              ).hasKeyCommitment else {
+            status = .recovery(reason: .bootstrapOwnershipUnverified, keyVersion: desiredKeyVersion)
+            return status
+        }
         let result = try await transport.createClaim(
-            keyVersion: desiredKeyVersion
+            keyVersion: desiredKeyVersion, keySHA256: digest
         ) { [keyStore] receipt in
             try await keyStore.markClaimAccepted(receipt)
         }
         switch result {
         case .created(let receipt):
             let verified = try await transport.inspectRemote()
+            guard authorization() else { status = .disabled; return status }
             guard let claim = verified.claim,
                   receipt.matches(claim),
+                  claim.hasKeyCommitment, claim.keySHA256 == digest,
                   !verified.hasEncryptedDomainRecords else {
                 status = .recovery(
                     reason: .bootstrapOwnershipUnverified,
@@ -302,6 +342,7 @@ public actor CompanionKeyLifecycleCoordinator {
                 version: desiredKeyVersion,
                 matching: claim
             )
+            guard authorization() else { status = .disabled; return status }
             status = .ready(keyVersion: desiredKeyVersion)
         case .existing(let claim):
             if candidate.origin == .generated {
@@ -356,12 +397,25 @@ public actor CompanionKeyLifecycleCoordinator {
         _ claim: CompanionBootstrapClaim,
         remote: CompanionBootstrapRemoteSnapshot
     ) async throws -> CompanionKeyLifecycleStatus {
+        guard authorization() else { status = .disabled; return status }
+        guard claim.hasKeyCommitment else {
+            status = .recovery(reason: .bootstrapOwnershipUnverified, keyVersion: claim.keyVersion)
+            return status
+        }
+        if let digest = try await keyStore.canonicalKeySHA256(version: claim.keyVersion) {
+            guard authorization() else { status = .disabled; return status }
+            status = digest == claim.keySHA256 ? .ready(keyVersion: claim.keyVersion) :
+                .recovery(reason: .bootstrapOwnershipUnverified, keyVersion: claim.keyVersion)
+            return status
+        }
         if let pending = try await keyStore.pendingState(version: claim.keyVersion) {
-            if let receipt = pending.acceptedReceipt, receipt.matches(claim) {
+            if let receipt = pending.acceptedReceipt, receipt.matches(claim),
+               try await keyStore.candidateKeySHA256(version: claim.keyVersion) == claim.keySHA256 {
                 try await keyStore.promoteAcceptedCandidate(
                     version: claim.keyVersion,
                     matching: claim
                 )
+                guard authorization() else { status = .disabled; return status }
                 status = .ready(keyVersion: claim.keyVersion)
                 return status
             }
@@ -369,10 +423,6 @@ public actor CompanionKeyLifecycleCoordinator {
                 reason: .bootstrapOwnershipUnverified,
                 keyVersion: claim.keyVersion
             )
-            return status
-        }
-        if try await keyStore.hasCanonicalKey(version: claim.keyVersion) {
-            status = .ready(keyVersion: claim.keyVersion)
             return status
         }
         let versions = try await keyStore.knownCanonicalVersions()

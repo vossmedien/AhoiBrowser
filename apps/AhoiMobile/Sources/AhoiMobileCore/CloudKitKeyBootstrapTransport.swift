@@ -1,3 +1,4 @@
+import CoreFoundation
 import Foundation
 import AhoiCloudKitSpike
 
@@ -24,6 +25,7 @@ public actor CloudKitKeyBootstrapTransport:
     public static let claimRecordType = "AhoiKeyBootstrapClaim"
     public static let claimRecordName = "payload-key-bootstrap-v1"
     public static let keyVersionField = "keyVersion"
+    public static let keySHA256Field = "keySHA256"
 
     private let containerIdentifier: String
     private let zoneID: CKRecordZone.ID
@@ -40,14 +42,18 @@ public actor CloudKitKeyBootstrapTransport:
     private var existingClaim: CompanionBootstrapClaim?
     private var sendError: CloudKitKeyBootstrapError?
     private var zoneSaveError: CloudKitKeyBootstrapError?
+    private var isShutdown = false
+    private let authorization: @Sendable () -> Bool
 
-    public init(containerIdentifier: String, zoneName: String) throws {
+    public init(containerIdentifier: String, zoneName: String,
+                authorization: @escaping @Sendable () -> Bool = { true }) throws {
         guard containerIdentifier.hasPrefix("iCloud."),
               containerIdentifier.count > "iCloud.".count,
               !zoneName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw CloudKitKeyBootstrapError.invalidConfiguration
         }
         self.containerIdentifier = containerIdentifier
+        self.authorization = authorization
         self.zoneID = CKRecordZone.ID(
             zoneName: zoneName,
             ownerName: CKCurrentUserDefaultName
@@ -55,6 +61,14 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func inspectRemote() async throws -> CompanionBootstrapRemoteSnapshot {
+        guard !isShutdown && authorization() else { throw CloudKitKeyBootstrapError.accountUnavailable }
+        // This API promises a full snapshot. Clearing fetchedClaim while
+        // reusing an incremental CKSyncEngine token could report false emptiness.
+        if let oldEngine = engine {
+            engine = nil
+            await oldEngine.cancelOperations()
+        }
+        guard !isShutdown && authorization() else { throw CloudKitKeyBootstrapError.accountUnavailable }
         let engine = makeEngineIfRequired()
         fetchedClaim = nil
         fetchedDomainRecords = false
@@ -78,6 +92,7 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func ensureZone() async throws {
+        guard !isShutdown && authorization() else { throw CloudKitKeyBootstrapError.accountUnavailable }
         let engine = makeEngineIfRequired()
         zoneSaveError = nil
         engine.state.add(
@@ -95,15 +110,19 @@ public actor CloudKitKeyBootstrapTransport:
 
     public func createClaim(
         keyVersion: UInt32,
+        keySHA256: String,
         accepted: @escaping @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
     ) async throws -> CompanionBootstrapClaimResult {
-        guard keyVersion > 0 else {
+        guard !isShutdown, authorization(), keyVersion > 0,
+              CompanionBootstrapClaim(keyVersion: keyVersion, serverChangeTag: "pending",
+                                      keySHA256: keySHA256).hasKeyCommitment else {
             throw CloudKitKeyBootstrapError.invalidConfiguration
         }
         let engine = makeEngineIfRequired()
         let recordID = claimRecordID
         let record = CKRecord(recordType: Self.claimRecordType, recordID: recordID)
         record[Self.keyVersionField] = NSNumber(value: keyVersion)
+        record[Self.keySHA256Field] = keySHA256 as CKRecordValue
         outboundClaim = record
         acceptedHandler = accepted
         sentReceipt = nil
@@ -127,17 +146,22 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func shutdown() async {
+        isShutdown = true
         let active = engine
         engine = nil
         await active?.cancelOperations()
         clearOperationState()
     }
 
+    public func verifiedClaim() -> CompanionBootstrapClaim? {
+        authorization() && !isShutdown ? fetchedClaim : nil
+    }
+
     public func handleEvent(
         _ event: CKSyncEngine.Event,
         syncEngine: CKSyncEngine
     ) async {
-        guard engine === syncEngine else { return }
+        guard engine === syncEngine && authorization() else { return }
         switch event {
         case .accountChange:
             fetchError = .accountChanged
@@ -181,6 +205,7 @@ public actor CloudKitKeyBootstrapTransport:
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.RecordZoneChangeBatch? {
         guard engine === syncEngine,
+              authorization(),
               let outboundClaim,
               context.options.scope.contains(outboundClaim.recordID) else {
             return nil
@@ -193,7 +218,7 @@ public actor CloudKitKeyBootstrapTransport:
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.FetchChangesOptions {
         _ = context
-        guard engine === syncEngine else {
+        guard engine === syncEngine && authorization() else {
             return .init(scope: .zoneIDs([]))
         }
         return .init(scope: .zoneIDs([zoneID]))
@@ -223,17 +248,14 @@ public actor CloudKitKeyBootstrapTransport:
             guard record.recordID == claimRecordID else {
                 throw CloudKitKeyBootstrapError.conflictingClaims
             }
-            let claim = try decodeClaim(record)
+            let claim = try Self.decodeClaim(record, zoneID: zoneID)
             if let fetchedClaim, fetchedClaim != claim {
                 throw CloudKitKeyBootstrapError.conflictingClaims
             }
             fetchedClaim = claim
             return
         }
-        if record.recordType == AppleCloudKitRecordCodec.recordType,
-           record.encryptedValues[AppleCloudKitRecordCodec.Fields.encryptedValue] != nil {
-            fetchedDomainRecords = true
-        }
+        fetchedDomainRecords = true // Unknown existing records are not an empty zone.
     }
 
     private func acceptSentChanges(
@@ -241,7 +263,7 @@ public actor CloudKitKeyBootstrapTransport:
     ) async {
         for saved in changes.savedRecords where saved.recordID == claimRecordID {
             do {
-                let claim = try decodeClaim(saved)
+                let claim = try Self.decodeClaim(saved, zoneID: zoneID)
                 let receipt = CompanionBootstrapClaimReceipt(
                     keyVersion: claim.keyVersion,
                     serverChangeTag: claim.serverChangeTag
@@ -263,7 +285,7 @@ public actor CloudKitKeyBootstrapTransport:
             if failure.error.code == .serverRecordChanged,
                let serverRecord = failure.error.serverRecord {
                 do {
-                    existingClaim = try decodeClaim(serverRecord)
+                    existingClaim = try Self.decodeClaim(serverRecord, zoneID: zoneID)
                 } catch {
                     sendError = .corruptClaim
                 }
@@ -273,19 +295,28 @@ public actor CloudKitKeyBootstrapTransport:
         }
     }
 
-    private func decodeClaim(_ record: CKRecord) throws -> CompanionBootstrapClaim {
+    public nonisolated static func decodeClaim(
+        _ record: CKRecord, zoneID: CKRecordZone.ID
+    ) throws -> CompanionBootstrapClaim {
         guard record.recordType == Self.claimRecordType,
-              record.recordID == claimRecordID,
+              record.recordID == CKRecord.ID(recordName: claimRecordName, zoneID: zoneID),
               let number = record[Self.keyVersionField] as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID(),
+              number.doubleValue.isFinite,
+              number.doubleValue.rounded(.towardZero) == number.doubleValue,
               number.int64Value > 0,
               number.uint64Value <= UInt64(UInt32.max),
+              let digest = record[Self.keySHA256Field] as? String,
               let changeTag = record.recordChangeTag,
-              !changeTag.isEmpty else {
+              !changeTag.isEmpty,
+              CompanionBootstrapClaim(keyVersion: number.uint32Value,
+                                      serverChangeTag: changeTag, keySHA256: digest).hasKeyCommitment else {
             throw CloudKitKeyBootstrapError.corruptClaim
         }
         return .init(
             keyVersion: number.uint32Value,
-            serverChangeTag: changeTag
+            serverChangeTag: changeTag,
+            keySHA256: digest
         )
     }
 

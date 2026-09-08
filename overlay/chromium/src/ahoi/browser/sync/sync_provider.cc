@@ -24,6 +24,10 @@ SyncAuthorization SyncProvider::GetPermittedSettingSyncAuthorization(
   return {};
 }
 
+std::string SyncProvider::GetKeySetupIssue() {
+  return {};
+}
+
 bool SyncProvider::IsAccountTransitionPending() {
   return false;
 }

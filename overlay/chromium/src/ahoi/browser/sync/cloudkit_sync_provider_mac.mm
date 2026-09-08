@@ -75,7 +75,12 @@
 - (CKSyncEngineFetchChangesOptions*)syncEngine:(CKSyncEngine*)syncEngine
              nextFetchChangesOptionsForContext:
                  (CKSyncEngineFetchChangesContext*)context {
-  return context.options;
+  if (auto core = [self lockCore]) {
+    return core->FetchOptions(context);
+  }
+  return [[CKSyncEngineFetchChangesOptions alloc]
+      initWithScope:[[CKSyncEngineFetchChangesScope alloc]
+                        initWithZoneIDs:[NSSet set]]];
 }
 @end
 
@@ -109,6 +114,9 @@ std::unique_ptr<CloudKitSyncProviderMac> CloudKitSyncProviderMac::Create(
     SyncAuthorization profile_authorization,
     SettingAuthorizationSource setting_authorization) {
   if (!configuration.IsTransportConfigured() || !cryptor ||
+      configuration.verified_key_sha256.size() != 64 ||
+      !configuration.verified_key_authorization ||
+      !configuration.verified_key_authorization.Run() ||
       !profile_authorization || !profile_authorization.Run()) {
     return nullptr;
   }
@@ -185,6 +193,9 @@ bool CloudKitSyncProviderMac::IsBookmarkConsentRevoked() {
 
 bool CloudKitSyncProviderMac::IsAccountTransitionPending() {
   return core_->IsAccountTransitionPending();
+}
+std::string CloudKitSyncProviderMac::GetKeySetupIssue() {
+  return core_->GetKeySetupIssue();
 }
 bool CloudKitSyncProviderMac::IsZoneRecoveryPending() {
   return core_->IsZoneRecoveryPending();

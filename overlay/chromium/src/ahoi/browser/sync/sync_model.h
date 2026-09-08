@@ -464,6 +464,8 @@ struct SyncTransportStatus {
   bool bookmark_consent_revoked = false;
   int pending_outbox = 0;
   RetryState retry;
+  // Local key lifecycle status; never a domain record or peer-provided text.
+  std::string key_setup_issue;
 
   friend bool operator==(const SyncTransportStatus&,
                          const SyncTransportStatus&) = default;

@@ -1,6 +1,7 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "sync.key.claim_changed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Verschlüsselungseinrichtung wurde geändert. Vor dem Synchronisieren bitte erneut sicher verknüpfen."}},"en":{"stringUnit":{"state":"translated","value":"Encryption setup changed; reconnect securely before syncing"}}}},
     "settings.extensions.storage.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Unterstützte Erweiterungseinstellungen anzeigen"}},"en":{"stringUnit":{"state":"translated","value":"Show supported extension settings"}}}},
     "settings.extensions.storage.smoothScroll": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sanftes Scrollen"}},"en":{"stringUnit":{"state":"translated","value":"Smooth scrolling"}}}},
     "settings.extensions.storage.filterLinkHints": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Linkhinweise filtern"}},"en":{"stringUnit":{"state":"translated","value":"Filter link hints"}}}},

@@ -20,6 +20,19 @@
     "reuseOldEngineState": false
   },
   "productionAuthorityGranted": false,
+  "keyBootstrapControl": {
+    "recordType": "AhoiKeyBootstrapClaim",
+    "recordName": "payload-key-bootstrap-v1",
+    "fields": ["keyVersion", "keySHA256"],
+    "keyVersion": "positive UInt32, no Boolean/fraction coercion",
+    "keySHA256": "64 lowercase hexadecimal characters of the actual random 256-bit key",
+    "claimPolicy": "ifServerRecordUnchanged; fixed ID; never overwrite a winner",
+    "promotion": "persisted accepted receipt plus fresh server tag and actual key commitment match",
+    "existingIncompleteClaim": "preserve; recovery, not automatic migration",
+    "unclaimedCanonicalKey": "preserve; no automatic adoption into an empty collection",
+    "secretsInClaim": false,
+    "domainEntity": false
+  },
   "records": [
     {
       "id": 0,

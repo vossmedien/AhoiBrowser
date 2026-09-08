@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "ahoi/browser/sync/cloudkit_sync_configuration_mac.h"
+#include "ahoi/browser/sync/cloudkit_sync_key_bootstrap_mac.h"
 #include "ahoi/browser/sync/cloudkit_sync_provider_mac.h"
 #include "ahoi/browser/sync/cloudkit_sync_quarantine.h"
 #include "ahoi/browser/sync/cloudkit_sync_record_codec_mac.h"
@@ -147,14 +148,28 @@ class CloudKitSyncProviderMac::Core
         ResetAccountState();
       } break;
       case CKSyncEngineEventTypeFetchedDatabaseChanges:
-        if (event.fetchedDatabaseChangesEvent.deletions.count > 0) {
-          zone_recovery_pending_ = true;
-          PersistInbox();
+        for (CKSyncEngineFetchedZoneDeletion* deletion in event
+                 .fetchedDatabaseChangesEvent.deletions) {
+          if ([deletion.zoneID isEqual:zone_id_]) {
+            zone_recovery_pending_ = true;
+            PersistInbox();
+          }
         }
         break;
       case CKSyncEngineEventTypeFetchedRecordZoneChanges: {
         if (account_transition_pending_ || zone_recovery_pending_) {
           break;
+        }
+        for (CKSyncEngineFetchedRecordDeletion* deletion in event
+                 .fetchedRecordZoneChangesEvent.deletions) {
+          if ([deletion.recordID.zoneID isEqual:zone_id_] &&
+              ([deletion.recordID.recordName
+                   isEqual:@"payload-key-bootstrap-v1"] ||
+               [deletion.recordType isEqual:@"AhoiKeyBootstrapClaim"])) {
+            key_setup_issue_ = "key_setup_claim_changed";
+            ++transport_generation_;
+            RequestOperationCancellation();
+          }
         }
         for (CKRecord* record in event.fetchedRecordZoneChangesEvent
                  .modifications) {
@@ -227,6 +242,20 @@ class CloudKitSyncProviderMac::Core
   bool IsAccountTransitionPending() {
     base::AutoLock guard(lock_);
     return !shutting_down_ && account_transition_pending_;
+  }
+  CKSyncEngineFetchChangesOptions* FetchOptions(
+      CKSyncEngineFetchChangesContext* context) API_AVAILABLE(macos(14.0)) {
+    base::AutoLock guard(lock_);
+    CKSyncEngineFetchChangesOptions* options = [context.options copy];
+    options.scope = [[CKSyncEngineFetchChangesScope alloc]
+        initWithZoneIDs:zone_id_ && TransportAllowed()
+                            ? [NSSet setWithObject:zone_id_]
+                            : [NSSet set]];
+    return options;
+  }
+  std::string GetKeySetupIssue() {
+    base::AutoLock guard(lock_);
+    return key_setup_issue_;
   }
   bool IsBookmarkConsentRevoked() {
     base::AutoLock guard(lock_);
@@ -308,6 +337,10 @@ class CloudKitSyncProviderMac::Core
     lock_.AssertAcquired();
     return profile_authorization_ && profile_authorization_.Run() &&
            !shutting_down_ && !persisted_state_invalid_ &&
+           key_setup_issue_.empty() &&
+           (configuration_.verified_key_sha256.empty() ||
+            (configuration_.verified_key_authorization &&
+             configuration_.verified_key_authorization.Run())) &&
            !account_transition_pending_ && !zone_recovery_pending_;
   }
   bool BookmarkAllowed() const {
@@ -328,8 +361,8 @@ class CloudKitSyncProviderMac::Core
   void HandleSent(CKSyncEngineSentRecordZoneChangesEvent* event)
       API_AVAILABLE(macos(14.0)) {
     lock_.AssertAcquired();
-    if (account_transition_pending_ || zone_recovery_pending_ ||
-        operations_cancelling_) {
+    if (!TransportAllowed() || account_transition_pending_ ||
+        zone_recovery_pending_ || operations_cancelling_) {
       return;
     }
     for (CKRecord* record in event.savedRecords) {
@@ -469,6 +502,7 @@ class CloudKitSyncProviderMac::Core
   bool account_transition_pending_ = false;
   bool zone_recovery_pending_ = false;
   bool shutting_down_ = false;
+  std::string key_setup_issue_;
   base::Lock lock_;
 };
 

@@ -340,9 +340,36 @@ extension CloudKitSyncProvider {
     private func applyFetched(
         _ changes: CKSyncEngine.Event.FetchedRecordZoneChanges
     ) async {
+        // Control records are verified before any domain import in this page.
+        // They neither enter the UUID-domain cache nor turn into fake tombstones.
+        for change in changes.modifications {
+            let record = change.record
+            if record.recordID.zoneID != zoneID { continue }
+            if record.recordType == CloudKitKeyBootstrapTransport.claimRecordType ||
+                record.recordID.recordName == CloudKitKeyBootstrapTransport.claimRecordName {
+                guard let expected = configuration.bootstrapClaim,
+                      let actual = try? CloudKitKeyBootstrapTransport.decodeClaim(record, zoneID: zoneID),
+                      expected.keyVersion == actual.keyVersion,
+                      expected.keySHA256 == actual.keySHA256 else {
+                    blockChangedBootstrapClaim()
+                    return
+                }
+            }
+        }
+        if changes.deletions.contains(where: {
+            $0.recordID.zoneID == zoneID &&
+                $0.recordID.recordName == CloudKitKeyBootstrapTransport.claimRecordName
+        }) {
+            blockChangedBootstrapClaim()
+            return
+        }
         var resolvedConflict = false
         var validatedModifications: [(record: SyncRecord, serverRecord: CKRecord)] = []
         for modification in changes.modifications {
+            guard modification.record.recordID.zoneID == zoneID else { continue }
+            if modification.record.recordType == CloudKitKeyBootstrapTransport.claimRecordType {
+                continue
+            }
             let recordID = Self.quarantineIdentifier(
                 for: modification.record.recordID.recordName
             )
@@ -381,6 +408,7 @@ extension CloudKitSyncProvider {
         }
         var physicallyDeletedRecordIDs = Set<UUID>()
         for deletion in changes.deletions {
+            guard deletion.recordID.zoneID == zoneID else { continue }
             let recordID = Self.quarantineIdentifier(for: deletion.recordID.recordName)
             if await persistQuarantine(
                 recordID: recordID,
@@ -412,6 +440,16 @@ extension CloudKitSyncProvider {
                 )
             ))
         }
+    }
+
+    private func blockChangedBootstrapClaim() {
+        statusLock.withLock {
+            accountContinuityVerified = false
+            statePersistenceBlocked = true // Never checkpoint past this unverified control state.
+        }
+        setStatus(.init(phase: .failed, detail: SyncText(
+            "sync.key.claim_changed", "Encryption setup changed; reconnect securely before syncing"
+        )))
     }
 
     private func applySent(

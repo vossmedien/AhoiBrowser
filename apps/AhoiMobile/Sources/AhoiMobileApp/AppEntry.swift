@@ -263,19 +263,21 @@ private final class AhoiMobileBootstrap: ObservableObject {
         if let keyConfiguration,
            let desiredKeyVersion,
            let containerIdentifier {
-            let keyStore = try KeychainCompanionPayloadKeyStore(
-                configuration: keyConfiguration
-            )
-            let bootstrapTransport = try CloudKitKeyBootstrapTransport(
-                containerIdentifier: containerIdentifier,
-                zoneName: "AhoiBrowserSyncV3"
-            )
-            let keyLifecycle = CompanionKeyLifecycleCoordinator(
-                transport: bootstrapTransport,
-                keyStore: keyStore,
-                generator: CompanionSecureKeyGenerator.aes256
-            )
-            runtimeFactory = { @MainActor in
+            runtimeFactory = { @MainActor authorization in
+                let keyStore = try KeychainCompanionPayloadKeyStore(
+                    configuration: keyConfiguration,
+                    authorization: { authorization.isAuthorized() }
+                )
+                let bootstrapTransport = try CloudKitKeyBootstrapTransport(
+                    containerIdentifier: containerIdentifier,
+                    zoneName: "AhoiBrowserSyncV3",
+                    authorization: { authorization.isAuthorized() }
+                )
+                let keyLifecycle = CompanionKeyLifecycleCoordinator(
+                    transport: bootstrapTransport, keyStore: keyStore,
+                    generator: CompanionSecureKeyGenerator.aes256,
+                    authorization: { authorization.isAuthorized() }
+                )
                 var status: CompanionKeyLifecycleStatus
                 do {
                     status = try await keyLifecycle.activate(
@@ -286,6 +288,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
                     await keyLifecycle.shutdown()
                     throw error
                 }
+                let bootstrapClaim = await bootstrapTransport.verifiedClaim()
                 await keyLifecycle.shutdown()
                 status = try await Self.resolveKeyRotationIfRequired(
                     status: status,
@@ -302,6 +305,14 @@ private final class AhoiMobileBootstrap: ObservableObject {
                 }
                 guard case let .ready(activeKeyVersion) = status else {
                     return .init(status: status, runtime: nil)
+                }
+                guard authorization.isAuthorized(), let bootstrapClaim,
+                      let writingDigest = try await keyStore.canonicalKeySHA256(version: activeKeyVersion) else {
+                    throw CompanionPayloadKeyStoreError.authorizationRevoked
+                }
+                guard activeKeyVersion != bootstrapClaim.keyVersion ||
+                        writingDigest == bootstrapClaim.keySHA256 else {
+                    throw CompanionSyncKeyError.keyCommitmentMismatch
                 }
                 let commandSigner: (any RemoteCommandSigning)?
                 if let commandConfiguration {
@@ -331,7 +342,9 @@ private final class AhoiMobileBootstrap: ObservableObject {
                     repository: repository,
                     recordsURL: recordsURL,
                     stateURL: stateURL,
-                    commandSigner: commandSigner
+                    commandSigner: commandSigner,
+                    bootstrapClaim: bootstrapClaim,
+                    verifiedWritingKeySHA256: writingDigest
                 )
                 return .init(status: status, runtime: runtime)
             }

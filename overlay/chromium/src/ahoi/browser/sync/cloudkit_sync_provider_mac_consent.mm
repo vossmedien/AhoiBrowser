@@ -228,8 +228,19 @@ void CloudKitSyncProviderMac::Core::ResetAccountState() {
 
 void CloudKitSyncProviderMac::Core::ReceiveFetchedRecord(CKRecord* record) {
   lock_.AssertAcquired();
-  if (!TransportAllowed()) {
+  if (!TransportAllowed() ||
+      (zone_id_ && ![record.recordID.zoneID isEqual:zone_id_])) {
     return;
+  }
+  if (IsCloudKitKeyBootstrapRecord(record)) {
+    if (!MatchesCloudKitKeyBootstrapRecord(
+            record, zone_id_, configuration_.key_version,
+            configuration_.verified_key_sha256)) {
+      key_setup_issue_ = "key_setup_claim_changed";
+      ++transport_generation_;
+      RequestOperationCancellation();
+    }
+    return;  // Authenticated control metadata is never a domain/quarantine row.
   }
   if (IsBookmarkRecord(record)) {
     const std::string key = ToString(record.recordID.recordName);

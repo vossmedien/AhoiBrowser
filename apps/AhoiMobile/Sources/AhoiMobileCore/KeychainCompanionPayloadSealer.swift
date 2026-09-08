@@ -43,6 +43,7 @@ public enum CompanionSyncKeyError: Error, Equatable, Sendable {
     case keyUnavailable(OSStatus)
     case invalidKeyLength
     case invalidCiphertext
+    case keyCommitmentMismatch
     case unsupportedKeyVersion(UInt32)
 }
 
@@ -54,9 +55,11 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
     private let primaryConfiguration: CompanionSyncKeyConfiguration
     private let configurations: [UInt32: CompanionSyncKeyConfiguration]
     private let keyLoader: @Sendable (CompanionSyncKeyConfiguration) throws -> Data
+    private let expectedKeySHA256: String?
 
     public init(
         configuration: CompanionSyncKeyConfiguration,
+        expectedKeySHA256: String? = nil,
         acceptedPreviousConfigurations: [CompanionSyncKeyConfiguration] = []
     ) throws {
         let allConfigurations = [configuration] + acceptedPreviousConfigurations
@@ -71,6 +74,7 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
             byVersion[candidate.keyVersion] = candidate
         }
         self.primaryConfiguration = configuration
+        self.expectedKeySHA256 = expectedKeySHA256
         self.configurations = byVersion
         self.keyLoader = { candidate in
             try Self.loadKey(configuration: candidate)
@@ -82,6 +86,7 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
         keyLoader: @escaping @Sendable () throws -> Data
     ) {
         self.primaryConfiguration = configuration
+        self.expectedKeySHA256 = nil
         self.configurations = [configuration.keyVersion: configuration]
         self.keyLoader = { _ in try keyLoader() }
     }
@@ -92,6 +97,7 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
         keyLoader: @escaping @Sendable (CompanionSyncKeyConfiguration) throws -> Data
     ) {
         self.primaryConfiguration = configuration
+        self.expectedKeySHA256 = nil
         self.configurations = Dictionary(
             uniqueKeysWithValues: ([configuration] + acceptedPreviousConfigurations).map {
                 ($0.keyVersion, $0)
@@ -103,6 +109,7 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
     public func seal(_ plaintext: Data) throws -> EncryptedValue {
         let keyData = try keyLoader(primaryConfiguration)
         guard keyData.count == 32 else { throw CompanionSyncKeyError.invalidKeyLength }
+        try verifyCommitment(keyData, version: primaryConfiguration.keyVersion)
         let sealed = try AES.GCM.seal(plaintext, using: SymmetricKey(data: keyData))
         return .init(
             keyVersion: primaryConfiguration.keyVersion,
@@ -122,6 +129,7 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
         }
         let keyData = try keyLoader(configuration)
         guard keyData.count == 32 else { throw CompanionSyncKeyError.invalidKeyLength }
+        try verifyCommitment(keyData, version: value.keyVersion)
         let tagOffset = value.ciphertextAndTag.count - 16
         let box = try AES.GCM.SealedBox(
             nonce: AES.GCM.Nonce(data: value.nonce),
@@ -129,6 +137,12 @@ public struct KeychainCompanionPayloadSealer: CompanionPayloadSealer {
             tag: value.ciphertextAndTag.suffix(16)
         )
         return try AES.GCM.open(box, using: SymmetricKey(data: keyData))
+    }
+
+    private func verifyCommitment(_ key: Data, version: UInt32) throws {
+        guard version == primaryConfiguration.keyVersion, let expectedKeySHA256 else { return }
+        let digest = SHA256.hash(data: key).map { String(format: "%02x", $0) }.joined()
+        guard digest == expectedKeySHA256 else { throw CompanionSyncKeyError.keyCommitmentMismatch }
     }
 
     private static func loadKey(

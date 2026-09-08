@@ -56,7 +56,8 @@ public enum CompanionCloudKitBootstrap {
         stateURL: URL,
         automaticallySync: Bool = true,
         quarantineStore: (any SyncQuarantineStore)? = nil,
-        systemFieldsStore: (any CloudKitSystemFieldsStore)? = nil
+        systemFieldsStore: (any CloudKitSystemFieldsStore)? = nil,
+        bootstrapClaim: CompanionBootstrapClaim? = nil
     ) throws -> CloudKitSyncProvider? {
         guard syncEnabled else { return nil }
         guard syncEnabled,
@@ -104,7 +105,8 @@ public enum CompanionCloudKitBootstrap {
         return try CloudKitSyncProvider(
             configuration: .init(
                 containerIdentifier: containerIdentifier,
-                automaticallySync: automaticallySync
+                automaticallySync: automaticallySync,
+                bootstrapClaim: bootstrapClaim
             ),
             recordStore: recordStore,
             stateStore: FileSyncEngineStateStore(fileURL: stateURL),
@@ -154,14 +156,25 @@ public enum CompanionCloudKitBootstrap {
         stateURL: URL,
         commandSigner: (any RemoteCommandSigning)? = nil,
         quarantineStore: (any SyncQuarantineStore)? = nil,
-        remoteCommandOwnershipStore: (any RemoteCommandOwnershipStoring)? = nil
+        remoteCommandOwnershipStore: (any RemoteCommandOwnershipStoring)? = nil,
+        bootstrapClaim: CompanionBootstrapClaim? = nil,
+        verifiedWritingKeySHA256: String? = nil
     ) throws -> CompanionCloudKitRuntime? {
         guard syncEnabled else { return nil }
-        guard let keyConfiguration else {
+        guard let keyConfiguration, let bootstrapClaim, bootstrapClaim.hasKeyCommitment else {
             throw CompanionCloudKitBootstrapError.keyConfigurationMissing
         }
+        let expected = verifiedWritingKeySHA256 ??
+            (keyConfiguration.keyVersion == bootstrapClaim.keyVersion ? bootstrapClaim.keySHA256 : nil)
+        guard let expected else { throw CompanionCloudKitBootstrapError.keyConfigurationMissing }
+        guard CompanionBootstrapClaim(keyVersion: keyConfiguration.keyVersion,
+                                      serverChangeTag: "verified", keySHA256: expected).hasKeyCommitment,
+              keyConfiguration.keyVersion != bootstrapClaim.keyVersion ||
+                expected == bootstrapClaim.keySHA256 else {
+            throw CompanionSyncKeyError.keyCommitmentMismatch
+        }
         let sealer = try KeychainCompanionPayloadSealer(
-            configuration: keyConfiguration
+            configuration: keyConfiguration, expectedKeySHA256: expected
         )
         let resolvedOwnershipStore: any RemoteCommandOwnershipStoring
         if let remoteCommandOwnershipStore {
@@ -183,7 +196,8 @@ public enum CompanionCloudKitBootstrap {
             containerIdentifier: containerIdentifier,
             recordsURL: recordsURL,
             stateURL: stateURL,
-            quarantineStore: quarantineStore
+            quarantineStore: quarantineStore,
+            bootstrapClaim: bootstrapClaim
         ) else {
             throw CompanionCloudKitBootstrapError.providerUnavailable
         }

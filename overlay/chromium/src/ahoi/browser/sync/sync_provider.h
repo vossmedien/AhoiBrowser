@@ -50,6 +50,7 @@ class SyncProvider {
   virtual SyncAuthorization GetPermittedSettingSyncAuthorization(
       const base::Uuid& record_id);
   virtual bool IsAccountTransitionPending();
+  virtual std::string GetKeySetupIssue();
   virtual bool IsZoneRecoveryPending();
   virtual bool ConfirmAccountTransition(bool allow_local_upload);
   virtual bool ConfirmZoneRecovery();

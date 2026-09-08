@@ -9,7 +9,7 @@ final class CompanionSyncPreferenceTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let model = CompanionAppModel(
             repository: LocalFirstRepository(store: InMemoryCompanionStore()),
-            syncRuntimeFactory: { throw SyncActivationTestError.failed },
+            syncRuntimeFactory: { _ in throw SyncActivationTestError.failed },
             defaults: defaults
         )
 
@@ -38,7 +38,7 @@ final class CompanionSyncPreferenceTests: XCTestCase {
     @MainActor
     func testOptOutWhileFactoryAwaitsDiscardsStaleActivation() async throws {
         let script = DelayedSyncActivationScript(recordFirstDiscard: true)
-        let (model, suiteName) = try makeModel(factory: { await script.makeActivation() })
+        let (model, suiteName) = try makeModel(factory: { _ in await script.makeActivation() })
         defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
         let activation = Task { @MainActor in
             await model.setSyncEnabled(true)
@@ -63,7 +63,7 @@ final class CompanionSyncPreferenceTests: XCTestCase {
     @MainActor
     func testDuplicateEnableIntentSharesOneActivation() async throws {
         let script = DelayedSyncActivationScript(recordFirstDiscard: false)
-        let (model, suiteName) = try makeModel(factory: { await script.makeActivation() })
+        let (model, suiteName) = try makeModel(factory: { _ in await script.makeActivation() })
         defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
         let first = Task { @MainActor in
             await model.setSyncEnabled(true)
@@ -93,7 +93,7 @@ final class CompanionSyncPreferenceTests: XCTestCase {
     @MainActor
     func testRapidEnableDisableEnableHonorsLatestIntent() async throws {
         let script = DelayedSyncActivationScript(recordFirstDiscard: true)
-        let (model, suiteName) = try makeModel(factory: { await script.makeActivation() })
+        let (model, suiteName) = try makeModel(factory: { _ in await script.makeActivation() })
         defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
         let first = Task { @MainActor in
             await model.setSyncEnabled(true)

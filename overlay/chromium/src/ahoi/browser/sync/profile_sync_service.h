@@ -140,6 +140,9 @@ class ProfileSyncService final : public KeyedService,
   void ApplyRemoteBatch(ProviderBatch batch);
   void Refresh();
   void SyncNow();
+  // Explicit retry of key setup only. Account/zone confirmation remains
+  // separate.
+  void RetrySyncKeySetup();
   void SetSyncEnabled(bool enabled);
   [[nodiscard]] bool SetHistoryRetentionDays(int days);
   bool SetRemoteControlEnabled(bool enabled);

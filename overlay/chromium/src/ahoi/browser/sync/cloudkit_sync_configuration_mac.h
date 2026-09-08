@@ -8,6 +8,8 @@
 #include <optional>
 #include <string>
 
+#include "ahoi/browser/sync/sync_authorization.h"
+
 namespace ahoi::sync {
 
 struct CloudKitSyncConfigurationMac {
@@ -18,6 +20,9 @@ struct CloudKitSyncConfigurationMac {
   std::string keychain_account;
   std::string keychain_access_group;
   uint32_t key_version = 0;
+  // Filled only by the verified native bootstrap, never from Info.plist.
+  std::string verified_key_sha256;
+  SyncAuthorization verified_key_authorization;
   bool automatically_sync = true;
 
   bool IsTransportConfigured() const;

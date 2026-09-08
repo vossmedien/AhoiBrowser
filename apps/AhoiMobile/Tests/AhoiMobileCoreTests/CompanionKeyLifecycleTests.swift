@@ -1,7 +1,12 @@
+import CryptoKit
 import XCTest
 import Synchronization
 @testable import AhoiMobileCore
 import AhoiCloudKitSpike
+
+private func bootstrapDigest(_ byte: UInt8) -> String {
+    SHA256.hash(data: Data(repeating: byte, count: 32)).map { String(format: "%02x", $0) }.joined()
+}
 
 final class CompanionKeyLifecycleTests: XCTestCase {
     func testConcurrentFirstOptInCreatesOneClaimAndNoSplitKey() async throws {
@@ -57,7 +62,8 @@ final class CompanionKeyLifecycleTests: XCTestCase {
     }
 
     func testAcceptedReceiptRecoversCrashWithoutGeneratingAnotherKey() async throws {
-        let claim = CompanionBootstrapClaim(keyVersion: 1, serverChangeTag: "server-1")
+        let claim = CompanionBootstrapClaim(keyVersion: 1, serverChangeTag: "server-1",
+                                            keySHA256: bootstrapDigest(0x42))
         let receipt = CompanionBootstrapClaimReceipt(
             keyVersion: 1,
             serverChangeTag: "server-1"
@@ -89,7 +95,7 @@ final class CompanionKeyLifecycleTests: XCTestCase {
 
     func testUnverifiedCrashCandidateStaysRecoveryAndIsNotPublished() async throws {
         let server = FakeBootstrapServer(
-            claim: .init(keyVersion: 1, serverChangeTag: "other-device")
+            claim: .init(keyVersion: 1, serverChangeTag: "other-device", keySHA256: bootstrapDigest(0x55))
         )
         let store = FakePayloadKeyStore(
             generatedByte: 0x42,
@@ -132,7 +138,7 @@ final class CompanionKeyLifecycleTests: XCTestCase {
         XCTAssertEqual(serverCreates, 0)
     }
 
-    func testExistingProvisionedKeyMigratesIdempotentlyWithoutRotation() async throws {
+    func testUnclaimedExistingKeyIsPreservedWithoutAutomaticMigration() async throws {
         let server = FakeBootstrapServer()
         let store = FakePayloadKeyStore(
             generatedByte: 0x99,
@@ -149,19 +155,19 @@ final class CompanionKeyLifecycleTests: XCTestCase {
             desiredKeyVersion: 1
         )
 
-        XCTAssertEqual(first, .ready(keyVersion: 1))
-        XCTAssertEqual(second, .ready(keyVersion: 1))
+        XCTAssertEqual(first, .recovery(reason: .bootstrapOwnershipUnverified, keyVersion: 1))
+        XCTAssertEqual(second, .recovery(reason: .bootstrapOwnershipUnverified, keyVersion: 1))
         let generations = await store.generatorCalls()
         let serverCreates = await server.claimCreateCount()
         let canonical = await store.canonicalKey(version: 1)
         XCTAssertEqual(generations, 0)
-        XCTAssertEqual(serverCreates, 1)
+        XCTAssertEqual(serverCreates, 0)
         XCTAssertEqual(canonical, Data(repeating: 0x33, count: 32))
     }
 
     func testRemoteClaimWaitsForSynchronizablePairingKey() async throws {
         let server = FakeBootstrapServer(
-            claim: .init(keyVersion: 3, serverChangeTag: "server-3")
+            claim: .init(keyVersion: 3, serverChangeTag: "server-3", keySHA256: bootstrapDigest(0x33))
         )
         let store = FakePayloadKeyStore(generatedByte: 0x42)
         let coordinator = makeCoordinator(server: server, store: store)
@@ -181,7 +187,7 @@ final class CompanionKeyLifecycleTests: XCTestCase {
 
     func testMismatchedLocalVersionRequiresRecovery() async throws {
         let server = FakeBootstrapServer(
-            claim: .init(keyVersion: 1, serverChangeTag: "server-1")
+            claim: .init(keyVersion: 1, serverChangeTag: "server-1", keySHA256: bootstrapDigest(0x11))
         )
         let store = FakePayloadKeyStore(
             generatedByte: 0x42,
@@ -201,7 +207,8 @@ final class CompanionKeyLifecycleTests: XCTestCase {
     }
 
     func testSplitKeyReadbackFailsClosedToRecovery() async throws {
-        let claim = CompanionBootstrapClaim(keyVersion: 1, serverChangeTag: "server-1")
+        let claim = CompanionBootstrapClaim(keyVersion: 1, serverChangeTag: "server-1",
+                                            keySHA256: bootstrapDigest(0x11))
         let store = FakePayloadKeyStore(
             generatedByte: 0x11,
             canonical: [1: Data(repeating: 0x22, count: 32)],
@@ -394,13 +401,15 @@ private actor FakeBootstrapServer {
 
     func create(
         version: UInt32,
+        keySHA256: String,
         accepted: @escaping @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
     ) async throws -> CompanionBootstrapClaimResult {
         if let claim { return .existing(claim) }
         createCount += 1
         let created = CompanionBootstrapClaim(
             keyVersion: version,
-            serverChangeTag: "server-\(createCount)"
+            serverChangeTag: "server-\(createCount)",
+            keySHA256: keySHA256
         )
         claim = created
         let receipt = CompanionBootstrapClaimReceipt(
@@ -427,9 +436,10 @@ private actor FakeBootstrapTransport: CompanionKeyBootstrapTransport {
 
     func createClaim(
         keyVersion: UInt32,
+        keySHA256: String,
         accepted: @escaping @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
     ) async throws -> CompanionBootstrapClaimResult {
-        try await server.create(version: keyVersion, accepted: accepted)
+        try await server.create(version: keyVersion, keySHA256: keySHA256, accepted: accepted)
     }
 
     func shutdown() async {}
@@ -458,6 +468,12 @@ private actor FakePayloadKeyStore: CompanionPayloadKeyLifecycleStoring {
     }
 
     func hasCanonicalKey(version: UInt32) -> Bool { canonical[version] != nil }
+    func canonicalKeySHA256(version: UInt32) -> String? {
+        canonical[version].map { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() }
+    }
+    func candidateKeySHA256(version: UInt32) -> String? {
+        pending[version].map { SHA256.hash(data: $0.key).map { String(format: "%02x", $0) }.joined() }
+    }
     func knownCanonicalVersions() -> Set<UInt32> { Set(canonical.keys) }
     func pendingState(version: UInt32) -> CompanionPendingKeyState? {
         pending[version]?.state

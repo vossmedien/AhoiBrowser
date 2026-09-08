@@ -16,17 +16,20 @@ public struct CloudKitSyncConfiguration: Hashable, Sendable {
     public let zoneName: String
     public let automaticallySync: Bool
     public let subscriptionID: String?
+    public let bootstrapClaim: CompanionBootstrapClaim?
 
     public init(
         containerIdentifier: String,
         zoneName: String = "AhoiBrowserSyncV3",
         automaticallySync: Bool = true,
-        subscriptionID: String? = nil
+        subscriptionID: String? = nil,
+        bootstrapClaim: CompanionBootstrapClaim? = nil
     ) {
         self.containerIdentifier = containerIdentifier
         self.zoneName = zoneName
         self.automaticallySync = automaticallySync
         self.subscriptionID = subscriptionID
+        self.bootstrapClaim = bootstrapClaim
     }
 }
 

@@ -30,6 +30,8 @@ public final class CompanionAppModel: ObservableObject {
     var syncProvider: CloudKitSyncProvider?
     var syncBridge: CompanionSyncBridge?
     let syncRuntimeFactory: CompanionSyncRuntimeFactory?
+    var syncActivationAuthorization: CompanionSyncRuntimeAuthorization?
+    deinit { syncActivationAuthorization?.revoke() }
     let mobileSessionID: DeviceSessionID?
     let mobileDeviceName: String
     let mobileDeviceKind: DeviceKind

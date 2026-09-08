@@ -265,6 +265,15 @@ void ProfileSyncService::Refresh() {
                            backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
+void ProfileSyncService::RetrySyncKeySetup() {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
+    return;
+  }
+  backend_.AsyncCall(&ProfileSyncBackend::RetrySyncKeySetup)
+      .Then(base::BindOnce(&ProfileSyncService::OnCloudKitRecoveryConfirmed,
+                           backend_weak_ptr_factory_.GetWeakPtr()));
+}
+
 void ProfileSyncService::SyncNow() {
   if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;

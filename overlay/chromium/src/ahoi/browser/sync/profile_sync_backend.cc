@@ -22,6 +22,7 @@
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
 #include "ahoi/browser/sync/cloudkit_sync_configuration_mac.h"
+#include "ahoi/browser/sync/cloudkit_sync_key_bootstrap_mac.h"
 #include "ahoi/browser/sync/cloudkit_sync_provider_mac.h"
 #include "ahoi/browser/sync/keychain_sync_key_mac.h"
 #endif
@@ -374,7 +375,19 @@ bool ProfileSyncBackend::ConfirmAccountTransition(bool allow_local_upload) {
       SyncStore::Result::kOk) {
     return false;
   }
-  return provider_->ConfirmAccountTransition(allow_local_upload);
+  const bool confirmed =
+      provider_->ConfirmAccountTransition(allow_local_upload);
+#if BUILDFLAG(IS_MAC)
+  if (confirmed && key_bootstrap_) {
+    // Never renew the former account's key lease. A confirmed transition still
+    // needs a new, independently verified claim/key/account binding.
+    pump_.reset();
+    provider_.reset();
+    key_bootstrap_.reset();
+    InitializeProviderIfAvailable();
+  }
+#endif
+  return confirmed;
 }
 
 bool ProfileSyncBackend::ConfirmZoneRecovery() {
@@ -395,6 +408,11 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::SetTransportEnabled(
   if (!enabled) {
     pump_.reset();
     provider_.reset();
+#if BUILDFLAG(IS_MAC)
+    key_bootstrap_.reset();
+    key_setup_waiters_.clear();
+#endif
+    key_setup_issue_.clear();
   } else {
     InitializeProviderIfAvailable();
   }
@@ -463,6 +481,15 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::UpsertDeveloperAsset(
 void ProfileSyncBackend::SyncNow(
     base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback) {
   TouchSession();
+#if BUILDFLAG(IS_MAC)
+  if (!pump_ && key_bootstrap_) {
+    key_bootstrap_->CheckWaitingKey();
+    if (key_bootstrap_->pending()) {
+      key_setup_waiters_.push_back(std::move(callback));
+      return;
+    }
+  }
+#endif
   if (!pump_) {
     std::move(callback).Run(CurrentState());
     return;
@@ -473,6 +500,10 @@ void ProfileSyncBackend::SyncNow(
 }
 
 void ProfileSyncBackend::SuspendWithoutPersisting() {
+#if BUILDFLAG(IS_MAC)
+  key_bootstrap_.reset();
+  key_setup_waiters_.clear();
+#endif
   RevokeSharedProjection();
   RevokeSharedCapture();
   ResetBookmarkAuthorizationScope(false);
@@ -493,6 +524,10 @@ void ProfileSyncBackend::SuspendWithoutPersisting() {
 }
 
 void ProfileSyncBackend::CloseSession() {
+#if BUILDFLAG(IS_MAC)
+  key_bootstrap_.reset();
+  key_setup_waiters_.clear();
+#endif
   RevokeSharedProjection();
   RevokeSharedCapture();
   shared_store_observation_.Reset();
@@ -524,40 +559,6 @@ void ProfileSyncBackend::CloseSession() {
   live_tabs_.clear();
   live_tab_windows_.clear();
   session_record_.active = false;
-}
-
-void ProfileSyncBackend::InitializeProviderIfAvailable() {
-  if (!ProfileScopeActive() || !transport_enabled_ || !store_ || provider_) {
-    return;
-  }
-#if BUILDFLAG(IS_MAC)
-  std::optional<CloudKitSyncConfigurationMac> configuration =
-      CloudKitSyncConfigurationMac::FromMainBundle();
-  if (!configuration) {
-    return;
-  }
-  std::unique_ptr<SyncPayloadCryptor> cryptor =
-      LoadKeychainSyncPayloadCryptor(*configuration);
-  if (!cryptor) {
-    return;
-  }
-  provider_ = CloudKitSyncProviderMac::Create(
-      *configuration,
-      database_path_.DirName().AppendASCII("cksync-format3.state"),
-      std::move(cryptor), bookmark_sync_enabled_, profile_authorization_,
-      setting_authorization_);
-  if (provider_) {
-    if (provider_->IsBookmarkConsentRevoked()) {
-      bookmark_sync_enabled_ = false;
-    }
-    // A former provider-free projection cannot inherit a newly available
-    // provider/account's permission merely because local opt-in stayed true.
-    ResetBookmarkAuthorizationScope(bookmark_sync_enabled_);
-    pump_ = std::make_unique<SyncPump>(
-        store_.get(), provider_.get(),
-        SyncPump::Options{.bookmark_sync_enabled = bookmark_sync_enabled_});
-  }
-#endif
 }
 
 bool ProfileSyncBackend::EnforceRetention(base::Time now) {
@@ -652,14 +653,19 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::CurrentState() {
       .transport = {.enabled = transport_enabled_,
                     .provider_available = provider_ != nullptr,
                     .account_transition_pending =
-                        provider_ && provider_->IsAccountTransitionPending(),
+                        key_setup_issue_ == "key_setup_account_changed" ||
+                        (provider_ && provider_->IsAccountTransitionPending()),
                     .zone_recovery_pending =
                         provider_ && provider_->IsZoneRecoveryPending(),
                     .bookmark_consent_revoked =
                         provider_ && provider_->IsBookmarkConsentRevoked(),
                     .pending_outbox =
                         base::saturated_cast<int>(store_->PendingOutboxCount()),
-                    .retry = store_->GetRetryState()},
+                    .retry = store_->GetRetryState(),
+                    .key_setup_issue =
+                        provider_ && !provider_->GetKeySetupIssue().empty()
+                            ? provider_->GetKeySetupIssue()
+                            : key_setup_issue_},
       .device_tabs = tabs_service_->GetSnapshot()};
   std::vector<SyncRecord> records;
   if (store_->GetRecords(EntityType::kWorkspace, &records) !=

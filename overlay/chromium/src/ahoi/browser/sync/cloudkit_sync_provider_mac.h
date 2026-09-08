@@ -22,8 +22,8 @@ class CloudKitBookmarkSyncConsentTest;
 class SyncPayloadCryptor;
 
 // Objective-C++ CKSyncEngine adapter for the private database/custom zone.
-// Creation fails closed when macOS, container configuration, or the externally
-// provisioned E2E key is unavailable.
+// Creation fails closed without the preceding native bootstrap's matched key
+// commitment and original revocable authorization. No manual key injection.
 class CloudKitSyncProviderMac final : public SyncProvider {
  public:
   class Core;
@@ -48,6 +48,7 @@ class CloudKitSyncProviderMac final : public SyncProvider {
   SyncAuthorization GetPermittedSettingSyncAuthorization(
       const base::Uuid& record_id) override;
   bool IsAccountTransitionPending() override;
+  std::string GetKeySetupIssue() override;
   bool IsZoneRecoveryPending() override;
   bool ConfirmAccountTransition(bool allow_local_upload) override;
   bool ConfirmZoneRecovery() override;

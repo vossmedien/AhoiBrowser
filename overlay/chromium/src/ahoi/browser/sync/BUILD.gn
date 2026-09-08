@@ -138,6 +138,8 @@ source_set("sync") {
     sources += [
       "cloudkit_sync_configuration_mac.h",
       "cloudkit_sync_configuration_mac.mm",
+      "cloudkit_sync_key_bootstrap_mac.h",
+      "cloudkit_sync_key_bootstrap_mac.mm",
       "cloudkit_sync_provider_mac.h",
       "cloudkit_sync_provider_mac.mm",
       "cloudkit_sync_provider_mac_consent.mm",
@@ -147,6 +149,8 @@ source_set("sync") {
       "cloudkit_sync_record_codec_mac.mm",
       "cloudkit_sync_util_mac.h",
       "cloudkit_sync_util_mac.mm",
+      "keychain_sync_bootstrap_mac.h",
+      "keychain_sync_bootstrap_mac.mm",
       "keychain_sync_key_mac.h",
       "keychain_sync_key_mac.mm",
     ]
@@ -177,6 +181,7 @@ source_set("profile_sync_service") {
     "profile_sync_backend.cc",
     "profile_sync_backend.h",
     "profile_sync_backend_bookmarks.cc",
+    "profile_sync_backend_provider.cc",
     "profile_sync_backend_settings.cc",
     "profile_sync_backend_shared_tabs.cc",
     "profile_sync_service.cc",

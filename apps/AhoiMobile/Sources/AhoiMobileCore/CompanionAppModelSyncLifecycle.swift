@@ -39,10 +39,13 @@ extension CompanionAppModel {
         }
 
         syncActivationInProgress = true
+        let authorization = CompanionSyncRuntimeAuthorization()
+        syncActivationAuthorization = authorization
         let activation: CompanionSyncRuntimeActivation
         do {
-            activation = try await syncRuntimeFactory()
+            activation = try await syncRuntimeFactory(authorization)
         } catch {
+            authorization.revoke()
             if isCurrentSyncIntent(intentGeneration) {
                 keyLifecycleStatus = .recovery(reason: .keychainFailure, keyVersion: nil)
                 isSyncConfigured = false
@@ -53,6 +56,7 @@ extension CompanionAppModel {
         }
 
         guard isCurrentSyncIntent(intentGeneration) else {
+            authorization.revoke()
             await activation.discardRuntime()
             finishSyncActivation(for: intentGeneration)
             return
@@ -60,6 +64,7 @@ extension CompanionAppModel {
 
         guard let runtime = activation.runtime,
               activation.status.permitsEncryptedDomainRecords else {
+            authorization.revoke()
             await activation.discardRuntime()
             if isCurrentSyncIntent(intentGeneration) {
                 keyLifecycleStatus = activation.status
@@ -112,6 +117,8 @@ extension CompanionAppModel {
     }
 
     private func disableSyncRuntime() async {
+        syncActivationAuthorization?.revoke()
+        syncActivationAuthorization = nil
         eventDrivenSyncGeneration &+= 1
         eventDrivenSyncTask?.cancel()
         eventDrivenSyncTask = nil
