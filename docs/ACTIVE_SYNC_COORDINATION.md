@@ -35,6 +35,16 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Shared UI window is fully returned; no Build19 pass:** Mobile's explicit
+  handback01a08173 reported an additionally requested Build18 repeat, not the
+  planned19 journey. Exact Simulator binding failed three times with-10005,
+  including after reset; no input or visible assertion was executed. Its own
+  FE1B was shut down. Coordinator freshly verified Shutdown and sent the combined
+  handback01a08187 to Desktop, MBC, BetterConvo, FillIt and Mobile, explicitly
+  closing the overlapping START01a08172. No Ahoi UI reservation remains; delayed
+  START messages must not reopen it. Result is documented in ac513a2 / the current
+  [implementation checkpoint](UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md).
+  Original18 acceptance remains separate;19 icon/layout is still not accepted.
 - **Explicit MBC Simulator handback, 2026-09-08 14:01 UTC:** recorded directly
   by MBC owner `01a07095-b539-7333-98c0-528b1aa0b60b` for BetterConvo
   `01a04978` and coordinator `01a044d6-1545-7532-8394-6b7df1144bb1`.
@@ -49,7 +59,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   Coordinator has now forwarded it to BetterConvo in01a0815e-6304, together
   with Desktop's new explicit UI release after715. FillIt answered the single
   request01a0815e-611b at14:18: its Surface remains free for BetterConvo then
-  Ahoi19 until the combined handback. These grants are consumed below, not
+  Ahoi19 until the combined handback, now completed above. These grants are consumed, not
   outstanding questions. No renewed MBC/FillIt/Desktop permission is needed.
 - **CloudKit-configured715afc2 is now installed, 2026-09-08 13:27–13:28 UTC:**
   coordinator read the installed plist: source715afc21a9757ea46a309817691c5c4aaa320c1c,
@@ -75,20 +85,29 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   owner-reviewed, source-only; the next Arc candidate must retain this local
   navigation, not restore the entire backup blindly. No successful real
   recovery/import is claimed.
-- **Build19 START handoff issued at14:36, not yet an observed app start:** all
-  current resource grants above are complete. Mobile received01a08172-b8e7 for
+- **Historical Build19 START at14:36, now CLOSED above:** all
+  resource grants were complete. Mobile received01a08172-b8e7 for
   exactly6b0121f/DebugLocal19's short icon/host-label/extension-metadata journey;
   Desktop received the combined window notice01a08172-baa7. Fresh overall
   capacity and exact own Simulator/app readback remain start-time checks, not
   another permission round. No My-Mac, real Default, Applications, CloudKit/keys
-  or complete Build18 replay. Root returns the shared Surface to all owners
-  after Mobile's explicit cleanup/handback. No old Build18 grant is reopened.
-- **Next shared-key gate is a product integration, not missing Apple approval:**
-  Common owner is attaching Swift's existing guarded first-use Claim/Journal/
-  Promote lifecycle to native initialization, which previously only loaded an
-  existing key. This is not yet in715 or a runtime pass. Coordinator forwarded
+  or complete Build18 replay. The overlapping separate18 attempt and explicit
+  return are recorded above; no19 execution is inferred. No old grant is reopened.
+- **Shared-key source and isolated tuple delivered, not a runtime pass:**
+  Common+Swift bbe2c53 attaches the guarded first-use Claim/Journal/Promote path
+  to native initialization, which previously only loaded an existing key.
+  bb51389 additionally wires one configured zone through Mobile bootstrap,
+  provider and rotation. Neither source packet is in installed715. Coordinator read
+  [the concrete key handoff](KEY_BOOTSTRAP_SYNC.md) and prepared-not-applied
+  artifacts/e2e/shared-sync-development-scope-20260908.json: scope
+  bba96b17-f044-4923-9d40-67b15014d59e, a dedicated acceptance zone/subscription
+  and payload-key.acceptance account in the existing Ahoi service/group.
+  Both actual entitled candidates must consume that same tuple before the real
+  roundtrip. Build20 is reported built on bbe2c53, but does not contain the later
+  bb51389 zone wiring; it is not a matching CloudKit acceptance candidate.
+  Coordinator previously forwarded
   the concrete paired-candidate configuration need once to Desktop01a0814d-68c9
-  and Sync01a0814d-6a3f: the completed source handoff should bind both candidates
+  and Sync01a0814d-6a3f: the completed source handoff must bind both candidates
   to one fresh Development zone and separate payload-key family through existing
   configuration/Keychain paths. No manual key copy/replacement, no assumption
   that AhoiBrowserSyncV3 or keyVersion1 proves freshness or identical key bytes.
