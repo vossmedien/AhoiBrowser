@@ -138,13 +138,33 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
   }
 
   sql::Transaction transaction(&db_);
+  if (!transaction.Begin()) {
+    return Result::kDatabaseError;
+  }
+  std::set<base::Uuid> changed_ids;
+  if (!observers_.empty()) {
+    sql::Statement existing(
+        db_.GetUniqueStatement("SELECT id FROM tree_nodes"));
+    while (existing.Step()) {
+      const auto id = base::Uuid::ParseLowercase(existing.ColumnString(0));
+      if (!id.is_valid()) {
+        return Result::kDatabaseError;
+      }
+      changed_ids.insert(id);
+    }
+    if (!existing.Succeeded()) {
+      return Result::kDatabaseError;
+    }
+    for (const auto& node : snapshot.nodes) {
+      changed_ids.insert(node.id);
+    }
+  }
   // Parent rows normally precede their children in the persisted snapshot.
   // ON DELETE RESTRICT is checked per row, so a bulk DELETE cannot safely
   // remove that self-referencing tree. Detach the old edges inside the same
   // transaction before clearing it. Foreign keys stay enabled throughout;
   // any later failure rolls back both the edges and all other old state.
-  if (!transaction.Begin() ||
-      !db_.Execute("UPDATE tree_nodes SET parent_id=NULL "
+  if (!db_.Execute("UPDATE tree_nodes SET parent_id=NULL "
                    "WHERE parent_id IS NOT NULL") ||
       !db_.Execute("DELETE FROM undo_node_snapshots") ||
       !db_.Execute("DELETE FROM undo_operations") ||
@@ -169,7 +189,8 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (size_t index : insertion_order) {
     insert_node.Reset(/*clear_bound_vars=*/true);
     internal::BindNodeForInsert(insert_node, snapshot.nodes[index]);
@@ -186,8 +207,8 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       SQL_FROM_HERE,
       "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,node_id,"
       "model_version,workspace_id,parent_id,node_type,title,icon,accent_argb,"
-      "url,sort_key,created_at,modified_at,tombstone) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "url,sort_key,created_at,modified_at,tombstone,is_temporary,target_kind,"
+      "local_scheme) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (const UndoOperationSnapshot& operation : snapshot.undo_operations) {
     insert_operation.Reset(/*clear_bound_vars=*/true);
     insert_operation.BindInt64(0, operation.operation_id);
@@ -206,7 +227,7 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       insert_undo_node.BindBool(2, node_snapshot.previous.has_value());
       insert_undo_node.BindString(3, node_snapshot.node_id.AsLowercaseString());
       if (!node_snapshot.previous.has_value()) {
-        for (int column = 4; column <= 15; ++column) {
+        for (int column = 4; column <= 18; ++column) {
           insert_undo_node.BindNull(column);
         }
       } else {
@@ -231,6 +252,17 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
         insert_undo_node.BindTime(13, node.created_at);
         insert_undo_node.BindTime(14, node.modified_at);
         insert_undo_node.BindBool(15, node.tombstone);
+        insert_undo_node.BindBool(16, node.is_temporary);
+        if (node.target_kind) {
+          insert_undo_node.BindInt(17, static_cast<int>(*node.target_kind));
+        } else {
+          insert_undo_node.BindNull(17);
+        }
+        if (node.local_scheme) {
+          insert_undo_node.BindString(18, *node.local_scheme);
+        } else {
+          insert_undo_node.BindNull(18);
+        }
       }
       if (!insert_undo_node.Run()) {
         return Result::kDatabaseError;
@@ -259,7 +291,16 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
   if (authorization && !authorization.Run()) {
     return Result::kCancelled;
   }
-  return transaction.Commit() ? Result::kOk : Result::kDatabaseError;
+  if (!transaction.Commit()) {
+    return Result::kDatabaseError;
+  }
+  if (!changed_ids.empty()) {
+    // Existing loaded-tree observers perform an identity-preserving splice,
+    // including removed IDs. Bulk Sync apply must not leave their caches stale.
+    Notify(MutationKind::kMoved, *changed_ids.begin(),
+           {changed_ids.begin(), changed_ids.end()});
+  }
+  return Result::kOk;
 }
 
 }  // namespace ahoi::tab_tree

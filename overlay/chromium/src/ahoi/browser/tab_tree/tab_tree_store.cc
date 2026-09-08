@@ -97,7 +97,10 @@ bool TabTreeStore::CreateSchema() {
              "title TEXT NOT NULL,icon TEXT NOT NULL DEFAULT '',"
              "accent_argb INTEGER,url TEXT NOT NULL,sort_key TEXT NOT NULL,"
              "created_at INTEGER NOT NULL,modified_at INTEGER NOT NULL,"
-             "tombstone INTEGER NOT NULL CHECK(tombstone IN (0,1)))") &&
+             "tombstone INTEGER NOT NULL CHECK(tombstone IN (0,1)),"
+             "is_temporary INTEGER NOT NULL DEFAULT 0 CHECK("
+             "is_temporary IN (0,1)),target_kind INTEGER CHECK("
+             "target_kind IN (0,1,2)),local_scheme TEXT)") &&
          db_.Execute(
              "CREATE INDEX IF NOT EXISTS tree_nodes_parent_order ON "
              "tree_nodes(workspace_id,parent_id,tombstone,sort_key,id)") &&
@@ -118,7 +121,10 @@ bool TabTreeStore::CreateSchema() {
              "parent_id TEXT,node_type INTEGER,title TEXT,icon TEXT,"
              "accent_argb INTEGER,url TEXT,"
              "sort_key TEXT,created_at INTEGER,modified_at INTEGER,"
-             "tombstone INTEGER,PRIMARY KEY(operation_id,node_id),"
+             "tombstone INTEGER,is_temporary INTEGER DEFAULT 0 CHECK("
+             "is_temporary IN (0,1)),target_kind INTEGER CHECK("
+             "target_kind IN (0,1,2)),local_scheme TEXT,"
+             "PRIMARY KEY(operation_id,node_id),"
              "UNIQUE(operation_id,ordinal))");
 }
 
@@ -133,6 +139,22 @@ bool TabTreeStore::MigrateSchema(sql::MetaTable* meta_table) {
         !db_.Execute(
             "ALTER TABLE undo_node_snapshots ADD COLUMN accent_argb INTEGER") ||
         !meta_table->SetVersionNumber(2)) {
+      return false;
+    }
+  }
+  if (meta_table->GetVersionNumber() == 2) {
+    if (!db_.Execute("ALTER TABLE tree_nodes ADD COLUMN is_temporary INTEGER "
+                     "NOT NULL DEFAULT 0 CHECK(is_temporary IN (0,1))") ||
+        !db_.Execute("ALTER TABLE tree_nodes ADD COLUMN target_kind INTEGER "
+                     "CHECK(target_kind IN (0,1,2))") ||
+        !db_.Execute("ALTER TABLE tree_nodes ADD COLUMN local_scheme TEXT") ||
+        !db_.Execute("ALTER TABLE undo_node_snapshots ADD COLUMN is_temporary "
+                     "INTEGER DEFAULT 0 CHECK(is_temporary IN (0,1))") ||
+        !db_.Execute("ALTER TABLE undo_node_snapshots ADD COLUMN target_kind "
+                     "INTEGER CHECK(target_kind IN (0,1,2))") ||
+        !db_.Execute("ALTER TABLE undo_node_snapshots ADD COLUMN local_scheme "
+                     "TEXT") ||
+        !meta_table->SetVersionNumber(3)) {
       return false;
     }
   }

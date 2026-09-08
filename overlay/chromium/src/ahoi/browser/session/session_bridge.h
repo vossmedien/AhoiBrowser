@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -108,12 +109,22 @@ class SessionBridge : public KeyedService,
       base::RepeatingCallback<void(const tab_tree::TabTreeSnapshot&)> callback)
       override;
   void RequestLocalTabCapture() override;
+  sync::SharedTabNativeSupport GetSharedTabNativeSupport() const override;
+  void RequestSharedTabCapture(uint64_t generation) override;
+  base::CallbackListSubscription AddSharedTabCaptureCallback(
+      base::RepeatingCallback<void(uint64_t)> callback);
 
   [[nodiscard]] bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) override;
   [[nodiscard]] bool ExportTabTreeSyncSnapshot(
       tab_tree::TabTreeSnapshot* snapshot,
       std::string* baseline_receipt) override;
+  void ApplySyncedTabTreeSnapshotWithReceipt(
+      tab_tree::TabTreeSnapshot snapshot,
+      std::string baseline_receipt,
+      base::RepeatingCallback<bool()> authorization,
+      base::OnceCallback<void(tab_tree::TabTreeStore::Result)> completion)
+      override;
   // Applies a merged/repaired provider snapshot through the regular tree
   // authority, retaining local undo operations and notifying every runtime/UI
   // observer. It never writes a parallel sync-owned tree.
@@ -208,7 +219,8 @@ class SessionBridge : public KeyedService,
   void UnbindTreeNodeFromTab(tabs::TabInterface* tab);
   // Converts a saved runtime tab back to a temporary tab while retaining its
   // workspace assignment, so it appears below the saved-tree separator.
-  void MakeTabTemporary(tabs::TabInterface* tab);
+  [[nodiscard]] tab_tree::TabTreeStore::Result MakeTabTemporary(
+      tabs::TabInterface* tab);
 
   tabs::TabInterface* FindTabByTreeNodeId(const base::Uuid& node_id) const;
   // Resolves the stable id published for a command-bar open-tab item. Saved
@@ -217,6 +229,12 @@ class SessionBridge : public KeyedService,
   tabs::TabInterface* FindTabForOpenTabStableId(
       std::string_view stable_id) const;
   std::optional<base::Uuid> FindTreeNodeIdForTab(
+      const tabs::TabInterface* tab) const;
+  // Full shared identity, including temporary pages. The older getter above
+  // intentionally retains its saved-row/payload meaning for native UI callers.
+  std::optional<base::Uuid> FindSharedTreeNodeIdForTab(
+      const tabs::TabInterface* tab) const;
+  std::optional<base::Uuid> GetPresenceIdForTab(
       const tabs::TabInterface* tab) const;
   std::optional<base::Uuid> GetWorkspaceForTab(
       const tabs::TabInterface* tab) const;
@@ -259,9 +277,14 @@ class SessionBridge : public KeyedService,
     base::WeakPtr<content::WebContents> web_contents;
     std::optional<base::Uuid> node_id;
     std::optional<base::Uuid> workspace_id;
-    // Distinguishes an intentionally restored temporary tab (no node id) from
-    // a newly opened tab that may still be matched to a saved page by URL.
-    bool restored_session_metadata_applied = false;
+    base::Uuid presence_id;
+    // Reserved before the deferred SQLite insert; Chromium's session metadata
+    // can already retain this identity without doing disk work on insertion.
+    base::Uuid pending_node_id;
+    bool is_temporary = true;
+    // A peer's removal must not recreate the shared page merely on a favicon
+    // callback. A subsequent explicit navigation/save may create a new page.
+    bool shared_binding_invalidated = false;
     std::u16string last_observed_title;
     GURL last_observed_url;
     base::CallbackListSubscription tab_ui_change_subscription;
@@ -288,11 +311,9 @@ class SessionBridge : public KeyedService,
   void ScheduleTabTreePersistence();
   void PersistTabTreeNow();
   void NotifyTabTreeSnapshotChanged();
-  void BeginSyncedTabTreeApply(
-      tab_tree::TabTreeSnapshot snapshot,
-      std::string baseline_receipt,
-      base::RepeatingCallback<bool()> authorization,
-      base::OnceCallback<void(tab_tree::TabTreeStore::Result)> completion);
+  void OnLocalTabTreePersisted(
+      tab_tree::TabTreeStore::PersistenceSnapshot snapshot,
+      bool success);
   void OnSyncedTabTreePersisted(
       tab_tree::TabTreeStore::PersistenceSnapshot before,
       tab_tree::TabTreeStore::PersistenceSnapshot projected,
@@ -306,6 +327,9 @@ class SessionBridge : public KeyedService,
       const base::FilePath& path,
       tab_tree::TabTreeStore::PersistenceSnapshot snapshot);
   void EnsureTreeNodeForTab(tabs::TabInterface* tab);
+  void CreateTemporaryNodeForTab(tabs::TabInterface* tab);
+  void DeleteClosedTemporaryPage(const base::Uuid& node_id);
+  void ScheduleTemporaryPageClose(tabs::TabInterface* tab);
   void ScheduleTreeNodeBinding(tabs::TabInterface* tab);
   void UnbindTreeNodeFromTabInternal(tabs::TabInterface* tab,
                                      bool clear_workspace);
@@ -370,6 +394,10 @@ class SessionBridge : public KeyedService,
   raw_ptr<WorkspaceService> workspace_service_ = nullptr;
   raw_ptr<CommandService> command_service_ = nullptr;
   std::unique_ptr<tab_tree::TabTreeStore> tab_tree_store_;
+  // Last successful disk commit. Sync may export only matching CURRENT RAM,
+  // never an older disk revision while newer local edits are still pending.
+  std::optional<tab_tree::TabTreeStore::PersistenceSnapshot>
+      durable_tree_snapshot_;
   base::FilePath tab_tree_database_path_;
   scoped_refptr<base::SequencedTaskRunner> persistence_task_runner_;
   base::OneShotTimer persistence_timer_;
@@ -377,6 +405,7 @@ class SessionBridge : public KeyedService,
   base::ScopedObservation<ProfileBrowserCollection, BrowserCollectionObserver>
       browser_collection_observation_{this};
   base::RepeatingClosureList runtime_presentation_changed_callbacks_;
+  base::RepeatingCallbackList<void(uint64_t)> shared_tab_capture_callbacks_;
   base::RepeatingCallbackList<void(const tab_tree::TabTreeSnapshot&)>
       tab_tree_snapshot_changed_callbacks_;
   std::shared_ptr<std::atomic<bool>> pending_tree_apply_cancelled_;
@@ -397,6 +426,8 @@ class SessionBridge : public KeyedService,
   std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> node_tabs_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<base::Uuid, size_t> deferred_metadata_nodes_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  std::set<base::Uuid> pending_temporary_closes_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<content::WebContents*, base::WeakPtr<tabs::TabInterface>>
       contents_tabs_ GUARDED_BY_CONTEXT(sequence_checker_);

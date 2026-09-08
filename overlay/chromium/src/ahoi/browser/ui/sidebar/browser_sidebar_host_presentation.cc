@@ -382,7 +382,15 @@ std::u16string BrowserSidebarHostView::GetTabAlertStatusText(
 
 std::u16string BrowserSidebarHostView::GetSavedPageStatusText(
     const tab_tree::TreeNode& node) const {
-  return GetTabAlertStatusText(session_bridge_->FindTabByTreeNodeId(node.id));
+  auto status =
+      GetTabAlertStatusText(session_bridge_->FindTabByTreeNodeId(node.id));
+  if (node.is_temporary) {
+    if (!status.empty()) {
+      status += u" — ";
+    }
+    status += GetSharedTabOriginText(node.id);
+  }
+  return status;
 }
 
 void BrowserSidebarHostView::RefreshThumbnailCache() {
@@ -469,6 +477,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
     RefreshThumbnailCache();
     RefreshMediaTrackers();
     PublishLocalDeviceTabs();
+    PublishDeviceTabCommands();
   }
   open_tabs_container_->RemoveAllChildViews();
   const std::optional<base::Uuid> active_workspace =
@@ -515,9 +524,19 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                                     search_active](tabs::TabInterface* tab) {
     const std::optional<base::Uuid> saved_node_id =
         session_bridge_->FindTreeNodeIdForTab(tab);
+    const auto shared_id = session_bridge_->FindSharedTreeNodeIdForTab(tab);
+    auto status = GetTabAlertStatusText(tab);
+    ui::ImageModel origin_badge;
+    if (!saved_node_id && shared_id) {
+      origin_badge = GetSharedTabOriginIcon(*shared_id);
+      if (!status.empty()) {
+        status += u" — ";
+      }
+      status += GetSharedTabOriginText(*shared_id);
+    }
     return CreateOpenTabRowView(
         tab, saved_node_id, GetLiveTabFavicon(tab), GetMediaAlertForTab(tab),
-        GetTabAlertStatusText(tab), tab == tab_strip_model_->GetActiveTab(),
+        std::move(status), tab == tab_strip_model_->GetActiveTab(),
         ahoi::memory::IsTabSleeping(tab), /*drag_enabled=*/!search_active,
         base::BindRepeating(&BrowserSidebarHostView::ActivateRuntimeTab,
                             weak_ptr_factory_.GetWeakPtr()),
@@ -562,7 +581,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                                                     target, position);
             },
             weak_ptr_factory_.GetWeakPtr()),
-        this);
+        this, std::move(origin_badge));
   };
 
   // Rebuild temporary and mixed split rows directly from Chromium's
@@ -575,6 +594,15 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // tab cannot briefly render twice in the temporary section during a move.
   std::set<int> presented_temporary_handles;
   std::set<base::Uuid> mixed_split_saved_nodes;
+  // Temporary pages now have real tree identities too. Their live row remains
+  // in the existing temporary/split section, never duplicated above it.
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (is_visible_temporary_tab(tab)) {
+      if (const auto id = session_bridge_->FindSharedTreeNodeIdForTab(tab)) {
+        mixed_split_saved_nodes.insert(*id);
+      }
+    }
+  }
   for (int index = 0; index < tab_strip_model_->count(); ++index) {
     tabs::TabInterface* tab = tab_strip_model_->GetTabAtIndex(index);
     if (!is_visible_temporary_tab(tab)) {

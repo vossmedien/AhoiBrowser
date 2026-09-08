@@ -84,6 +84,10 @@ void SessionBridge::Shutdown() {
 
   CancelPendingSyncedTabTreeApply();
   persistence_timer_.Stop();
+  while (!pending_temporary_closes_.empty()) {
+    const auto node_id = *pending_temporary_closes_.begin();
+    DeleteClosedTemporaryPage(node_id);
+  }
   if (tab_tree_ready_ && persistence_enabled_ && tab_tree_store_) {
     PersistTabTreeNow();
   }
@@ -134,13 +138,14 @@ bool SessionBridge::InitializeTabTree() {
     return false;
   }
 
-  const base::Time now = base::Time::Now();
+  // Canonical empty-profile Inbox, shared with Mobile. Loading an existing
+  // native store replaces this bootstrap unchanged; never rename/move old data.
+  const base::Time now = base::Time::UnixEpoch();
   tab_tree::Workspace workspace;
-  workspace.id = base::Uuid::GenerateRandomV4();
-  workspace.name = u"Ahoi";
-  workspace.icon = u"A";
-  workspace.sort_key = "00000000";
-  workspace.accent_argb = 0xff43d1bd;
+  workspace.id =
+      base::Uuid::ParseLowercase("83699047-edf8-580d-948d-9c37acc35cb6");
+  workspace.name = u"Inbox";
+  workspace.sort_key = "0";
   workspace.created_at = now;
   workspace.modified_at = now;
   if (store->CreateWorkspace(workspace) !=
@@ -187,6 +192,8 @@ void SessionBridge::OnTabTreeLoaded(TabTreeLoadResult result) {
         !workspace_service_->ReplaceWorkspaces(active_workspaces)) {
       LOG(ERROR) << "Ahoi tab-tree snapshot could not be restored";
       persistence_enabled_ = false;
+    } else {
+      durable_tree_snapshot_ = result.snapshot;
     }
   } else if (result.status == TabTreeLoadStatus::kFailed) {
     // Keep the browser usable but never overwrite a database that failed
@@ -266,14 +273,16 @@ void SessionBridge::PersistTabTreeNow() {
     LOG(ERROR) << "Ahoi tab-tree snapshot could not be exported";
     return;
   }
-  persistence_task_runner_->PostTask(
-      FROM_HERE, base::BindOnce(
-                     [](base::FilePath path,
-                        tab_tree::TabTreeStore::PersistenceSnapshot snapshot) {
-                       std::ignore = SessionBridge::PersistTabTreeSnapshot(
-                           path, std::move(snapshot));
-                     },
-                     tab_tree_database_path_, std::move(snapshot)));
+  auto persist = base::BindOnce(&SessionBridge::PersistTabTreeSnapshot,
+                                tab_tree_database_path_, snapshot);
+  auto reply =
+      base::BindOnce(&SessionBridge::OnLocalTabTreePersisted,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(snapshot));
+  if (!persistence_task_runner_->PostTaskAndReplyWithResult(
+          FROM_HERE, std::move(persist), std::move(reply))) {
+    durable_tree_snapshot_.reset();
+    LOG(ERROR) << "Ahoi tab-tree persistence could not be scheduled";
+  }
 }
 
 void SessionBridge::NotifyTabTreeSnapshotChanged() {
@@ -359,11 +368,24 @@ void SessionBridge::FlushPersistenceForBackup(
     std::move(callback).Run(false);
     return;
   }
-  persistence_task_runner_->PostTaskAndReplyWithResult(
-      FROM_HERE,
-      base::BindOnce(&SessionBridge::PersistTabTreeSnapshot,
-                     tab_tree_database_path_, std::move(snapshot)),
-      std::move(callback));
+  auto persist = base::BindOnce(&SessionBridge::PersistTabTreeSnapshot,
+                                tab_tree_database_path_, snapshot);
+  auto [done, rejected] = base::SplitOnceCallback(std::move(callback));
+  auto reply = base::BindOnce(
+      [](base::WeakPtr<SessionBridge> bridge,
+         tab_tree::TabTreeStore::PersistenceSnapshot snapshot,
+         base::OnceCallback<void(bool)> done, bool success) {
+        if (bridge) {
+          bridge->OnLocalTabTreePersisted(std::move(snapshot), success);
+        }
+        std::move(done).Run(success);
+      },
+      weak_ptr_factory_.GetWeakPtr(), std::move(snapshot), std::move(done));
+  if (!persistence_task_runner_->PostTaskAndReplyWithResult(
+          FROM_HERE, std::move(persist), std::move(reply))) {
+    durable_tree_snapshot_.reset();
+    std::move(rejected).Run(false);
+  }
 }
 
 base::CallbackListSubscription
@@ -452,12 +474,17 @@ bool SessionBridge::PublishSyncedTabTreeSnapshot() {
     if (tab_tree_store_->GetNode(it->first, &node) !=
             tab_tree::TabTreeStore::Result::kOk ||
         node.tombstone) {
+      if (const auto runtime = runtime_tabs_.find(tab);
+          runtime != runtime_tabs_.end()) {
+        runtime->second.shared_binding_invalidated = true;
+      }
       UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
       it = node_tabs_.begin();
       continue;
     }
     auto runtime = runtime_tabs_.find(tab);
     if (runtime != runtime_tabs_.end()) {
+      runtime->second.is_temporary = node.is_temporary;
       runtime->second.workspace_id = node.workspace_id;
       PersistTabSessionMetadata(tab);
     }

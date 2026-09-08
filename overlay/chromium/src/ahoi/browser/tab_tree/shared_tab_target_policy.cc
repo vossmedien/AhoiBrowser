@@ -1,14 +1,14 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ahoi/browser/session/shared_tab_target_policy.h"
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <string_view>
 
-namespace ahoi::session {
+namespace ahoi::tab_tree {
 namespace {
 
 constexpr size_t kMaxSharedWebUrlBytes = 131072;
@@ -106,4 +106,4 @@ SharedTabTargetAction SelectSharedTabTargetAction(
   return SharedTabTargetAction::kUnavailable;
 }
 
-}  // namespace ahoi::session
+}  // namespace ahoi::tab_tree

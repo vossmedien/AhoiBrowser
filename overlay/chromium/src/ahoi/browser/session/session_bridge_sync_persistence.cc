@@ -32,17 +32,37 @@ Store::Result PersistAuthorizedTree(
 
 }  // namespace
 
+sync::SharedTabNativeSupport SessionBridge::GetSharedTabNativeSupport() const {
+  // Implementation support is not current readiness or write authority.
+  // Loading/undurable snapshots defer through Export and capture instead.
+  return {.projection = true, .capture = true};
+}
+
+base::CallbackListSubscription SessionBridge::AddSharedTabCaptureCallback(
+    base::RepeatingCallback<void(uint64_t)> callback) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return shared_tab_capture_callbacks_.Add(std::move(callback));
+}
+
+void SessionBridge::RequestSharedTabCapture(uint64_t generation) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!shutting_down_ && generation) {
+    shared_tab_capture_callbacks_.Notify(generation);
+  }
+}
+
 bool SessionBridge::ExportTabTreeSyncSnapshot(
     tab_tree::TabTreeSnapshot* snapshot,
     std::string* baseline_receipt) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!snapshot || !baseline_receipt || !is_ready() || !persistence_enabled_ ||
-      pending_tree_apply_cancelled_) {
+      pending_tree_apply_cancelled_ || !pending_temporary_closes_.empty()) {
     return false;
   }
   Store::PersistenceSnapshot exported;
   if (tab_tree_store_->ExportPersistenceSnapshot(&exported) !=
-      Store::Result::kOk) {
+          Store::Result::kOk ||
+      !durable_tree_snapshot_ || exported != *durable_tree_snapshot_) {
     return false;
   }
   *snapshot = std::move(exported.tree);
@@ -57,7 +77,7 @@ void SessionBridge::CancelPendingSyncedTabTreeApply() {
   }
 }
 
-void SessionBridge::BeginSyncedTabTreeApply(
+void SessionBridge::ApplySyncedTabTreeSnapshotWithReceipt(
     tab_tree::TabTreeSnapshot snapshot,
     std::string baseline_receipt,
     base::RepeatingCallback<bool()> authorization,
@@ -83,6 +103,10 @@ void SessionBridge::BeginSyncedTabTreeApply(
   if (tab_tree_store_->ExportPersistenceSnapshot(&before) !=
       Store::Result::kOk) {
     std::move(completion).Run(Store::Result::kDatabaseError);
+    return;
+  }
+  if (!durable_tree_snapshot_ || before != *durable_tree_snapshot_) {
+    std::move(completion).Run(Store::Result::kCancelled);
     return;
   }
   // The prepared projection must retain the actual local undo history. Do not
@@ -138,7 +162,11 @@ void SessionBridge::OnSyncedTabTreePersisted(
   auto completion = std::move(pending_tree_apply_completion_);
   pending_tree_apply_cancelled_.reset();
   const bool committed = result == Store::Result::kOk;
+  if (result == Store::Result::kDatabaseError) {
+    durable_tree_snapshot_.reset();
+  }
   if (committed) {
+    durable_tree_snapshot_ = projected;
     Store::PersistenceSnapshot current;
     if (!is_ready() || !authorization.Run()) {
       result = Store::Result::kCancelled;
@@ -170,6 +198,29 @@ void SessionBridge::OnSyncedTabTreePersisted(
     PersistTabTreeNow();
   }
   std::move(completion).Run(result);
+}
+
+void SessionBridge::OnLocalTabTreePersisted(Store::PersistenceSnapshot snapshot,
+                                            bool success) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!success) {
+    durable_tree_snapshot_.reset();
+    return;
+  }
+  const bool newly_durable =
+      !durable_tree_snapshot_ || *durable_tree_snapshot_ != snapshot;
+  durable_tree_snapshot_ = std::move(snapshot);
+  if (!newly_durable || !is_ready() || applying_synced_tree_snapshot_) {
+    return;
+  }
+  Store::PersistenceSnapshot current;
+  if (tab_tree_store_->ExportPersistenceSnapshot(&current) ==
+          Store::Result::kOk &&
+      current == *durable_tree_snapshot_) {
+    // The earlier mutation invalidated stale work. Common may observe this
+    // SAME revision only now, after its disk commit has actually succeeded.
+    NotifyTabTreeSnapshotChanged();
+  }
 }
 
 }  // namespace ahoi

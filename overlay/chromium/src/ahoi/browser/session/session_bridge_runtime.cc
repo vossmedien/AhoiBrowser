@@ -10,6 +10,7 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -21,6 +22,7 @@
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
+#include "chrome/browser/lifetime/browser_shutdown.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -104,6 +106,9 @@ void SessionBridge::TrackRuntimeTab(TabStripModel* model,
     return;
   }
   RuntimeTabState& runtime = inserted_it->second;
+  runtime.presence_id = base::Uuid::GenerateRandomV4();
+  runtime.pending_node_id = base::Uuid::GenerateRandomV4();
+  runtime.workspace_id = GetActiveWorkspaceForWindow(model_windows_.at(model));
   runtime.tab_strip_model = model;
   runtime.tab = tab->GetWeakPtr();
   runtime.web_contents = contents->GetWeakPtr();
@@ -126,6 +131,7 @@ void SessionBridge::TrackRuntimeTab(TabStripModel* model,
   runtime.last_observed_url = current_url;
   runtime.last_observed_title =
       session_internal::GetRuntimeTabTitle(tab, current_url);
+  PersistTabSessionMetadata(tab);
 }
 
 void SessionBridge::RemoveRuntimeTab(tabs::TabInterface* tab) {
@@ -156,6 +162,39 @@ void SessionBridge::RemoveRuntimeTab(tabs::TabInterface* tab) {
   PublishCommandItems();
 }
 
+void SessionBridge::ScheduleTemporaryPageClose(tabs::TabInterface* tab) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const auto found = runtime_tabs_.find(tab);
+  if (shutting_down_ || browser_shutdown::IsTryingToQuit() ||
+      found == runtime_tabs_.end() || !found->second.is_temporary ||
+      !found->second.node_id || !found->second.tab_strip_model ||
+      found->second.tab_strip_model->closing_all()) {
+    return;
+  }
+  const auto node_id = *found->second.node_id;
+  if (!pending_temporary_closes_.insert(node_id).second) {
+    return;
+  }
+  // No SQLite reads/writes inside Chromium's native tab-mutation scope.
+  base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE, base::BindOnce(&SessionBridge::DeleteClosedTemporaryPage,
+                                weak_ptr_factory_.GetWeakPtr(), node_id));
+}
+
+void SessionBridge::DeleteClosedTemporaryPage(const base::Uuid& node_id) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!pending_temporary_closes_.erase(node_id) || !is_ready() ||
+      FindTabByTreeNodeId(node_id)) {
+    return;
+  }
+  const auto result =
+      tab_tree_store_->DeleteTemporaryPage(node_id, base::Time::Now());
+  if (result != tab_tree::TabTreeStore::Result::kOk &&
+      result != tab_tree::TabTreeStore::Result::kNotFound) {
+    LOG(ERROR) << "Ahoi temporary-page close could not be persisted";
+  }
+}
+
 void SessionBridge::EnsureTreeNodeForTab(tabs::TabInterface* tab) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (shutting_down_ || !tab_tree_store_ || !workspace_service_ || !tab) {
@@ -165,6 +204,7 @@ void SessionBridge::EnsureTreeNodeForTab(tabs::TabInterface* tab) {
   auto runtime_it = runtime_tabs_.find(tab);
   if (runtime_it == runtime_tabs_.end() ||
       runtime_it->second.node_id.has_value() ||
+      runtime_it->second.shared_binding_invalidated ||
       !runtime_it->second.tab_strip_model || !runtime_it->second.web_contents) {
     return;
   }
@@ -196,38 +236,61 @@ void SessionBridge::EnsureTreeNodeForTab(tabs::TabInterface* tab) {
     UpdateLastActiveTab(model, tab);
   }
 
-  // A missing tree-node id in restored metadata is meaningful: the tab was
-  // temporary. Do not silently convert it into a saved tab just because its
-  // URL also exists in the durable tree.
-  if (runtime_it->second.restored_session_metadata_applied) {
-    PersistTabSessionMetadata(tab);
-    return;
-  }
+  // Only explicit tree activation or restored metadata binds an existing page.
+  // A separately opened URL remains a distinct temporary tab, even when a saved
+  // page with the same URL exists in this workspace.
+  CreateTemporaryNodeForTab(tab);
+}
 
-  content::WebContents* contents = runtime_it->second.web_contents.get();
-  const GURL url = session_internal::GetRuntimeTabUrl(contents);
-  // New-tab pages are intentionally fungible runtime surfaces. Rebinding a
-  // freshly created one to an older saved "New Tab" node hides the first
-  // user-created temporary tab from the list below the saved tree.
-  if (url == GURL(chrome::kChromeUINewTabURL) ||
-      url == GURL(chrome::kChromeUINewTabPageURL)) {
-    PersistTabSessionMetadata(tab);
+void SessionBridge::CreateTemporaryNodeForTab(tabs::TabInterface* tab) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const auto found = runtime_tabs_.find(tab);
+  if (!is_ready() || found == runtime_tabs_.end() || found->second.node_id ||
+      found->second.shared_binding_invalidated || !found->second.workspace_id ||
+      !found->second.web_contents || !found->second.tab_strip_model) {
     return;
   }
-  std::vector<tab_tree::TreeNode> matching_nodes;
-  if (tab_tree_store_->FindSavedPagesByUrl(*workspace_id, url,
-                                           &matching_nodes) !=
+  const auto weak_tab = found->second.tab;
+  const GURL url =
+      session_internal::GetRuntimeTabUrl(found->second.web_contents.get());
+  const bool new_tab = url == GURL(chrome::kChromeUINewTabURL) ||
+                       url == GURL(chrome::kChromeUINewTabPageURL);
+  const auto target = tab_tree::DescribeNativeSharedTabTarget(
+      new_tab ? GURL() : url,
+      new_tab ? tab_tree::NativeSharedTabParticipation::kExplicitEmptyTemporary
+              : tab_tree::NativeSharedTabParticipation::kNormal);
+  if (!target) {
+    return;
+  }
+  std::vector<tab_tree::TreeNode> siblings;
+  if (tab_tree_store_->GetChildren(*found->second.workspace_id, std::nullopt,
+                                   &siblings) !=
       tab_tree::TabTreeStore::Result::kOk) {
-    PersistTabSessionMetadata(tab);
     return;
   }
-  for (const tab_tree::TreeNode& node : matching_nodes) {
-    if (!FindTabByTreeNodeId(node.id) && BindTreeNodeToTab(node, tab)) {
-      PublishCommandItems();
-      return;
-    }
+  const auto now = base::Time::Now();
+  tab_tree::TreeNode node{
+      .id = found->second.pending_node_id.is_valid()
+                ? found->second.pending_node_id
+                : base::Uuid::GenerateRandomV4(),
+      .workspace_id = *found->second.workspace_id,
+      .type = tab_tree::TreeNodeType::kSavedPage,
+      .title = session_internal::GetRuntimeTabTitle(tab, url),
+      .url = url,
+      .sort_key = siblings.empty() ? "@" : siblings.back().sort_key + "@",
+      .created_at = now,
+      .modified_at = now,
+      .is_temporary = true,
+      .target_kind = target->kind,
+      .local_scheme = target->local_scheme};
+  if (tab_tree_store_->CreateTemporaryPage(node) !=
+      tab_tree::TabTreeStore::Result::kOk) {
+    return;
   }
-  PersistTabSessionMetadata(tab);
+  if (!weak_tab || !BindTreeNodeToTab(node, weak_tab.get())) {
+    std::ignore =
+        tab_tree_store_->DeleteTemporaryPage(node.id, base::Time::Now());
+  }
 }
 
 void SessionBridge::ScheduleTreeNodeBinding(tabs::TabInterface* tab) {

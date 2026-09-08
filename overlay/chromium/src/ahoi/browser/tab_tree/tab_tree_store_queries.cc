@@ -115,13 +115,15 @@ TabTreeStore::Result TabTreeStore::GetChildren(
       parent_id.has_value() ? "SELECT model_version,id,workspace_id,parent_id,"
                               "node_type,title,icon,accent_argb,url,sort_key,"
                               "created_at,modified_at,"
-                              "tombstone FROM tree_nodes WHERE workspace_id=? "
+                              "tombstone,is_temporary,target_kind,local_scheme "
+                              "FROM tree_nodes WHERE workspace_id=? "
                               "AND parent_id=? AND tombstone=0 ORDER BY "
                               "sort_key,id"
                             : "SELECT model_version,id,workspace_id,parent_id,"
                               "node_type,title,icon,accent_argb,url,sort_key,"
                               "created_at,modified_at,"
-                              "tombstone FROM tree_nodes WHERE workspace_id=? "
+                              "tombstone,is_temporary,target_kind,local_scheme "
+                              "FROM tree_nodes WHERE workspace_id=? "
                               "AND parent_id IS NULL AND tombstone=0 ORDER BY "
                               "sort_key,id";
   sql::Statement statement(db_.GetUniqueStatement(query));
@@ -170,9 +172,11 @@ TabTreeStore::Result TabTreeStore::FindSavedPagesByUrl(
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
-      "accent_argb,url,sort_key,created_at,modified_at,tombstone FROM "
+      "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+      "is_temporary,target_kind,local_scheme FROM "
       "tree_nodes WHERE "
-      "workspace_id=? AND node_type=? AND url=? AND tombstone=0 ORDER BY "
+      "workspace_id=? AND node_type=? AND url=? AND tombstone=0 "
+      "AND is_temporary=0 ORDER BY "
       "parent_id,sort_key,id"));
   statement.BindString(0, workspace_id.AsLowercaseString());
   statement.BindInt(1, static_cast<int>(TreeNodeType::kSavedPage));
@@ -220,7 +224,8 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
 
   sql::Statement nodes(db_.GetUniqueStatement(
       "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
-      "accent_argb,url,sort_key,created_at,modified_at,tombstone FROM "
+      "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+      "is_temporary,target_kind,local_scheme FROM "
       "tree_nodes ORDER BY id"));
   while (nodes.Step()) {
     TreeNode node;

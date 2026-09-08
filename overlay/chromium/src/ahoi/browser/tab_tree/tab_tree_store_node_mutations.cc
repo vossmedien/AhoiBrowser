@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/check.h"
@@ -18,10 +19,23 @@ namespace ahoi::tab_tree {
 
 TabTreeStore::Result TabTreeStore::CreateNode(const TreeNode& node) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return CreateNodeInternal(node, /*record_undo=*/true);
+}
+
+TabTreeStore::Result TabTreeStore::CreateTemporaryPage(const TreeNode& node) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return CreateNodeInternal(node, /*record_undo=*/false);
+}
+
+TabTreeStore::Result TabTreeStore::CreateNodeInternal(const TreeNode& node,
+                                                      bool record_undo) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
   }
-  if (!ValidateNode(node) || node.tombstone) {
+  if (!ValidateNode(node) || node.tombstone ||
+      (!record_undo &&
+       (node.type != TreeNodeType::kSavedPage || !node.is_temporary))) {
     return Result::kInvalidArgument;
   }
 
@@ -44,7 +58,8 @@ TabTreeStore::Result TabTreeStore::CreateNode(const TreeNode& node) {
     return Result::kDatabaseError;
   }
 
-  if (!InsertUndoOperation(UndoMutationKind::kCreate, node.id, node.modified_at,
+  if (record_undo &&
+      !InsertUndoOperation(UndoMutationKind::kCreate, node.id, node.modified_at,
                            {{.node_id = node.id, .previous = std::nullopt}})) {
     return Result::kDatabaseError;
   }
@@ -53,7 +68,8 @@ TabTreeStore::Result TabTreeStore::CreateNode(const TreeNode& node) {
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   internal::BindNodeForInsert(statement, node);
   if (!statement.Run() || !transaction.Commit()) {
     return Result::kDatabaseError;
@@ -185,7 +201,8 @@ TabTreeStore::Result TabTreeStore::CreateNodesAtomically(
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (size_t index : insertion_order) {
     statement.Reset(/*clear_bound_vars=*/true);
     internal::BindNodeForInsert(statement, nodes[index]);
@@ -304,7 +321,8 @@ TabTreeStore::Result TabTreeStore::CreateStyledFolderAroundNodes(
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   internal::BindNodeForInsert(insert_folder, folder);
   if (!insert_folder.Run()) {
     return Result::kDatabaseError;
@@ -442,6 +460,85 @@ TabTreeStore::Result TabTreeStore::UpdateFolderPresentation(
   return Result::kOk;
 }
 
+TabTreeStore::Result TabTreeStore::SetPageTemporary(const base::Uuid& node_id,
+                                                    bool is_temporary,
+                                                    base::Time modified_at) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!IsReady()) {
+    return Result::kNotInitialized;
+  }
+  if (!node_id.is_valid() || modified_at.is_null()) {
+    return Result::kInvalidArgument;
+  }
+
+  TreeNode node;
+  const Result result = ReadNode(node_id, &node);
+  if (result != Result::kOk) {
+    return result;
+  }
+  if (node.tombstone) {
+    return Result::kNotFound;
+  }
+  if (node.type != TreeNodeType::kSavedPage) {
+    return Result::kInvalidArgument;
+  }
+  if (node.is_temporary == is_temporary) {
+    return Result::kOk;
+  }
+
+  TreeNode updated = node;
+  updated.is_temporary = is_temporary;
+  updated.modified_at = modified_at;
+  if (!is_temporary && node.target_kind == SharedTabTargetKind::kNewTab) {
+    // A remote empty placeholder cannot become a saved page without a real
+    // native target. A local NTP URL is retained and classified as local-only.
+    if (node.url.is_empty() || !node.url.is_valid()) {
+      return Result::kInvalidArgument;
+    }
+    const auto target = DescribeNativeSharedTabTarget(
+        node.url, NativeSharedTabParticipation::kNormal);
+    if (!target) {
+      return Result::kInvalidArgument;
+    }
+    updated.target_kind = target->kind;
+    updated.local_scheme = target->local_scheme;
+  }
+  if (!ValidateNode(updated)) {
+    return Result::kInvalidArgument;
+  }
+
+  sql::Transaction transaction(&db_);
+  if (!transaction.Begin() ||
+      !InsertUndoOperation(UndoMutationKind::kMove, node.id, modified_at,
+                           {{.node_id = node.id, .previous = node}})) {
+    return Result::kDatabaseError;
+  }
+  sql::Statement statement(db_.GetCachedStatement(
+      SQL_FROM_HERE,
+      "UPDATE tree_nodes SET is_temporary=?,target_kind=?,local_scheme=?,"
+      "modified_at=? WHERE id=?"));
+  statement.BindBool(0, updated.is_temporary);
+  if (updated.target_kind) {
+    statement.BindInt(1, static_cast<int>(*updated.target_kind));
+  } else {
+    statement.BindNull(1);
+  }
+  if (updated.local_scheme) {
+    statement.BindString(2, *updated.local_scheme);
+  } else {
+    statement.BindNull(2);
+  }
+  statement.BindTime(3, modified_at);
+  statement.BindString(4, node.id.AsLowercaseString());
+  if (!statement.Run() || db_.GetLastChangeCount() != 1 ||
+      !transaction.Commit()) {
+    return Result::kDatabaseError;
+  }
+
+  Notify(MutationKind::kMoved, node.id, {node.id});
+  return Result::kOk;
+}
+
 TabTreeStore::Result TabTreeStore::UpdateSavedPageMetadata(
     const base::Uuid& node_id,
     std::u16string title,
@@ -470,6 +567,22 @@ TabTreeStore::Result TabTreeStore::UpdateSavedPageMetadata(
   if (node.title == title && node.url == url) {
     return Result::kOk;
   }
+  TreeNode updated = node;
+  updated.title = title;
+  updated.url = url;
+  if (node.url != url) {
+    const auto target = DescribeNativeSharedTabTarget(
+        url, NativeSharedTabParticipation::kNormal);
+    if (!target) {
+      return Result::kInvalidArgument;
+    }
+    updated.target_kind = target->kind;
+    updated.local_scheme = target->local_scheme;
+  }
+  updated.modified_at = modified_at;
+  if (!ValidateNode(updated)) {
+    return Result::kInvalidArgument;
+  }
 
   sql::Transaction transaction(&db_);
   if (!transaction.Begin()) {
@@ -477,11 +590,22 @@ TabTreeStore::Result TabTreeStore::UpdateSavedPageMetadata(
   }
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
-      "UPDATE tree_nodes SET title=?,url=?,modified_at=? WHERE id=?"));
+      "UPDATE tree_nodes SET title=?,url=?,target_kind=?,local_scheme=?,"
+      "modified_at=? WHERE id=?"));
   statement.BindString16(0, title);
   statement.BindString(1, url.spec());
-  statement.BindTime(2, modified_at);
-  statement.BindString(3, node.id.AsLowercaseString());
+  if (updated.target_kind) {
+    statement.BindInt(2, static_cast<int>(*updated.target_kind));
+  } else {
+    statement.BindNull(2);
+  }
+  if (updated.local_scheme) {
+    statement.BindString(3, *updated.local_scheme);
+  } else {
+    statement.BindNull(3);
+  }
+  statement.BindTime(4, modified_at);
+  statement.BindString(5, node.id.AsLowercaseString());
   if (!statement.Run() || db_.GetLastChangeCount() != 1 ||
       !transaction.Commit()) {
     return Result::kDatabaseError;

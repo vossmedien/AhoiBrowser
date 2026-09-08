@@ -24,6 +24,7 @@ constexpr char kActiveWorkspaceIdKey[] = "active_workspace_id";
 constexpr char kWorkspaceIdKey[] = "workspace_id";
 constexpr char kTreeNodeIdKey[] = "tree_node_id";
 constexpr char kLastActiveInWorkspaceKey[] = "last_active_in_workspace";
+constexpr char kSharedBindingInvalidatedKey[] = "shared_binding_invalidated";
 
 struct ParsedPayload {
   std::optional<base::Value> root;
@@ -50,7 +51,8 @@ ParsedPayload ParseCurrentVersionPayload(std::string_view serialized) {
   if (!version.has_value()) {
     return parsed;
   }
-  if (*version != kWorkspaceSessionMetadataVersion) {
+  if (*version != kWorkspaceSessionMetadataVersion &&
+      *version != kRetiredBindingSessionMetadataVersion) {
     parsed.result = SessionMetadataDecodeResult::kUnsupportedVersion;
     return parsed;
   }
@@ -120,7 +122,12 @@ std::optional<std::string> EncodeTabSessionMetadata(
   }
 
   base::DictValue dictionary;
-  dictionary.Set(kVersionKey, kWorkspaceSessionMetadataVersion);
+  dictionary.Set(kVersionKey, metadata.shared_binding_invalidated
+                                  ? kRetiredBindingSessionMetadataVersion
+                                  : kWorkspaceSessionMetadataVersion);
+  if (metadata.shared_binding_invalidated) {
+    dictionary.Set(kSharedBindingInvalidatedKey, true);
+  }
   dictionary.Set(kWorkspaceIdKey, metadata.workspace_id.AsLowercaseString());
   if (metadata.tree_node_id.has_value()) {
     dictionary.Set(kTreeNodeIdKey, metadata.tree_node_id->AsLowercaseString());
@@ -146,7 +153,10 @@ SessionMetadataDecodeResult DecodeTabSessionMetadata(
     return SessionMetadataDecodeResult::kMalformed;
   }
   const base::Value* tree_node_value = dictionary->Find(kTreeNodeIdKey);
-  const size_t expected_field_count = tree_node_value ? 4u : 3u;
+  const bool has_binding_extension =
+      dictionary->FindInt(kVersionKey) == kRetiredBindingSessionMetadataVersion;
+  const size_t expected_field_count =
+      (tree_node_value ? 4u : 3u) + (has_binding_extension ? 1u : 0u);
   if (dictionary->size() != expected_field_count) {
     return SessionMetadataDecodeResult::kMalformed;
   }
@@ -155,7 +165,10 @@ SessionMetadataDecodeResult DecodeTabSessionMetadata(
       ParseRequiredUuid(*dictionary, kWorkspaceIdKey);
   const std::optional<bool> last_active =
       dictionary->FindBool(kLastActiveInWorkspaceKey);
-  if (!workspace_id.has_value() || !last_active.has_value()) {
+  const std::optional<bool> invalidated =
+      has_binding_extension ? dictionary->FindBool(kSharedBindingInvalidatedKey)
+                            : std::make_optional(false);
+  if (!workspace_id.has_value() || !last_active.has_value() || !invalidated) {
     return SessionMetadataDecodeResult::kMalformed;
   }
 
@@ -171,6 +184,7 @@ SessionMetadataDecodeResult DecodeTabSessionMetadata(
       .workspace_id = std::move(*workspace_id),
       .tree_node_id = std::move(tree_node_id),
       .last_active_in_workspace = *last_active,
+      .shared_binding_invalidated = *invalidated,
   };
   return SessionMetadataDecodeResult::kSuccess;
 }

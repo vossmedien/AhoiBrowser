@@ -26,7 +26,7 @@ namespace ahoi::tab_tree {
 
 class TabTreeStore {
  public:
-  static constexpr int kCurrentSchemaVersion = 2;
+  static constexpr int kCurrentSchemaVersion = 3;
   static constexpr int kLowestSupportedSchemaVersion = 1;
 
   enum class Result {
@@ -46,6 +46,9 @@ class TabTreeStore {
     base::Uuid workspace_id;
     std::optional<base::Uuid> parent_id;
     std::string sort_key;
+    // Optional saved/temporary change in the same move transaction and undo.
+    // Omitted preserves the page's current presentation state.
+    std::optional<bool> is_temporary = std::nullopt;
   };
 
   // Local persistence envelope, not part of the logical/sync/Arc snapshot.
@@ -94,6 +97,18 @@ class TabTreeStore {
   [[nodiscard]] Result DeleteWorkspace(const base::Uuid& workspace_id,
                                        base::Time modified_at);
   [[nodiscard]] Result CreateNode(const TreeNode& node);
+  // Persists a normal temporary page without a tree undo entry. Chromium's
+  // native tab/session restore remains authoritative for opening/closing it.
+  [[nodiscard]] Result CreateTemporaryPage(const TreeNode& node);
+  // Explicit native tab close only: tombstones an active temporary page
+  // without a tree undo entry. Window detach or shutdown must not call this.
+  [[nodiscard]] Result DeleteTemporaryPage(const base::Uuid& node_id,
+                                           base::Time modified_at);
+  // Changes saved/temporary presentation as one reversible tree mutation,
+  // retaining the page's identity, native URL, parent and manual order.
+  [[nodiscard]] Result SetPageTemporary(const base::Uuid& node_id,
+                                        bool is_temporary,
+                                        base::Time modified_at);
   // Atomically creates one connected tree in one durable undo operation.
   // Parents may be part of the same batch and input order is irrelevant. This
   // is the storage primitive used when the native sidebar copies a subtree.
@@ -142,8 +157,9 @@ class TabTreeStore {
                                 std::optional<base::Uuid> parent_id,
                                 std::string sort_key,
                                 base::Time modified_at);
-  // Applies every saved-page destination in one SQLite transaction and one
-  // durable undo entry. Validation completes before any row is changed.
+  // Applies every page destination and optional saved/temporary change in one
+  // SQLite transaction and one durable undo entry. Validation completes before
+  // any row is changed.
   [[nodiscard]] Result MoveSavedPagesAtomically(
       const std::vector<SavedPageMove>& moves,
       base::Time modified_at);
@@ -203,6 +219,9 @@ class TabTreeStore {
   [[nodiscard]] bool IsReady() const;
   [[nodiscard]] bool ValidateWorkspace(const Workspace& workspace) const;
   [[nodiscard]] bool ValidateNode(const TreeNode& node) const;
+  [[nodiscard]] Result CreateNodeInternal(const TreeNode& node,
+                                          bool record_undo)
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
   [[nodiscard]] Result ReplaceSnapshot(
       const TabTreeSnapshot& snapshot,
       const std::string* sync_baseline_receipt,

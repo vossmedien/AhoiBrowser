@@ -76,6 +76,22 @@ bool DecodeNode(sql::Statement& statement, TreeNode* node) {
   decoded.created_at = statement.ColumnTime(10);
   decoded.modified_at = statement.ColumnTime(11);
   decoded.tombstone = statement.ColumnBool(12);
+  const int is_temporary = statement.ColumnInt(13);
+  if (is_temporary != 0 && is_temporary != 1) {
+    return false;
+  }
+  decoded.is_temporary = is_temporary == 1;
+  if (statement.GetColumnType(14) != sql::ColumnType::kNull) {
+    const int target_kind = statement.ColumnInt(14);
+    if (target_kind < static_cast<int>(sync::SharedTabTargetKind::kWeb) ||
+        target_kind > static_cast<int>(sync::SharedTabTargetKind::kLocalOnly)) {
+      return false;
+    }
+    decoded.target_kind = static_cast<sync::SharedTabTargetKind>(target_kind);
+  }
+  if (statement.GetColumnType(15) != sql::ColumnType::kNull) {
+    decoded.local_scheme = statement.ColumnString(15);
+  }
 
   if (decoded.model_version != kCurrentModelVersion || !decoded.id.is_valid() ||
       !decoded.workspace_id.is_valid()) {
@@ -107,6 +123,17 @@ void BindNodeForInsert(sql::Statement& statement, const TreeNode& node) {
   statement.BindTime(10, node.created_at);
   statement.BindTime(11, node.modified_at);
   statement.BindBool(12, node.tombstone);
+  statement.BindBool(13, node.is_temporary);
+  if (node.target_kind) {
+    statement.BindInt(14, static_cast<int>(*node.target_kind));
+  } else {
+    statement.BindNull(14);
+  }
+  if (node.local_scheme) {
+    statement.BindString(15, *node.local_scheme);
+  } else {
+    statement.BindNull(15);
+  }
 }
 
 void BindWorkspaceForInsert(sql::Statement& statement,

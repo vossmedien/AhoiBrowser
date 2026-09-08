@@ -458,6 +458,10 @@ BrowserSidebarHostView::BrowserSidebarHostView(
               &BrowserSidebarHostView::OnSessionPresentationChanged,
               base::Unretained(this)));
   window_id_ = session_bridge_->GetWindowId(browser_);
+  shared_tab_capture_subscription_ =
+      session_bridge_->AddSharedTabCaptureCallback(base::BindRepeating(
+          &BrowserSidebarHostView::PublishRequestedSharedTabCapture,
+          weak_ptr_factory_.GetWeakPtr()));
   ActivateInitialWorkspace();
   UpdateWorkspaceSelectorIndicators();
   SynchronizeSelection();

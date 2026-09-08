@@ -10,8 +10,8 @@ source_set("sidebar_tree") {
     "sidebar_tree_controller.h",
     "sidebar_tree_controller_drop.cc",
     "sidebar_tree_view_model.cc",
-    "sidebar_tree_view_model_expansion.cc",
     "sidebar_tree_view_model.h",
+    "sidebar_tree_view_model_expansion.cc",
   ]
 
   public_deps = [
@@ -85,8 +85,8 @@ source_set("sidebar_views") {
     "sidebar_tree_view_delegate.h",
     "sidebar_tree_view_drag.cc",
     "sidebar_tree_view_drop_execution.cc",
-    "sidebar_tree_view_navigation.cc",
     "sidebar_tree_view_motion.cc",
+    "sidebar_tree_view_navigation.cc",
     "sidebar_tree_view_projection.cc",
   ]
 
@@ -204,6 +204,7 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_group_dialog.cc",
     "browser_sidebar_host_layout.cc",
     "browser_sidebar_host_media.cc",
+    "browser_sidebar_host_page_actions.cc",
     "browser_sidebar_host_presentation.cc",
     "browser_sidebar_host_previews.cc",
     "browser_sidebar_host_recent_links.cc",

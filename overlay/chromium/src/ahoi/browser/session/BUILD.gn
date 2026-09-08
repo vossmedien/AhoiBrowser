@@ -4,15 +4,8 @@
 import("//testing/test.gni")
 
 source_set("shared_tab_target_policy") {
-  sources = [
-    "shared_tab_target_policy.cc",
-    "shared_tab_target_policy.h",
-  ]
-  public_deps = [
-    "//ahoi/browser/sync:shared_tab_types",
-    "//base",
-    "//url",
-  ]
+  sources = [ "shared_tab_target_policy.h" ]
+  public_deps = [ "//ahoi/browser/tab_tree:shared_tab_target_policy" ]
 }
 
 source_set("workspace_session_metadata") {
@@ -122,6 +115,7 @@ source_set("session") {
   ]
 
   deps = [
+    "//chrome/browser/lifetime",
     "//chrome/browser/sessions",
     "//chrome/browser/ui",
     "//chrome/browser/ui/tabs:tab_strip",

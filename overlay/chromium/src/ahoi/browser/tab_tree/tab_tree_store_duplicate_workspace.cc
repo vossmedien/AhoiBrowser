@@ -22,7 +22,8 @@ namespace {
 
 constexpr char kSelectActiveWorkspaceNodesSql[] =
     "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
-    "accent_argb,url,sort_key,created_at,modified_at,tombstone FROM "
+    "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+    "is_temporary,target_kind,local_scheme FROM "
     "tree_nodes WHERE workspace_id=? AND tombstone=0 ORDER BY id";
 
 constexpr char kInsertWorkspaceSql[] =
@@ -32,7 +33,8 @@ constexpr char kInsertWorkspaceSql[] =
 constexpr char kInsertNodeSql[] =
     "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
     "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-    "tombstone) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    "tombstone,is_temporary,target_kind,local_scheme) "
+    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 }  // namespace
 

@@ -210,155 +210,6 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
   }
 }
 
-BrowserSidebarSplitDropSource BrowserSidebarHostView::MaterializeSavedPage(
-    const tab_tree::TreeNode& node,
-    bool require_local_model) {
-  const base::WeakPtr<BrowserSidebarHostView> weak_host =
-      weak_ptr_factory_.GetWeakPtr();
-  const base::WeakPtr<tabs::TabInterface> active_before =
-      tab_strip_model_ && tab_strip_model_->GetActiveTab()
-          ? tab_strip_model_->GetActiveTab()->GetWeakPtr()
-          : base::WeakPtr<tabs::TabInterface>();
-  const auto make_rollback = [weak_host, active_before](
-                                 base::WeakPtr<tabs::TabInterface> opened_tab) {
-    return base::BindOnce(
-        [](base::WeakPtr<BrowserSidebarHostView> host,
-           base::WeakPtr<tabs::TabInterface> prior_active,
-           base::WeakPtr<tabs::TabInterface> owned_tab) {
-          // Restore focus before closing the transaction-owned foreground
-          // tab. Close is deliberately the last operation: its synchronous
-          // callbacks may tear down the host or window.
-          if (host && host->tab_strip_model_ && prior_active &&
-              host->tab_strip_model_->GetIndexOfTab(prior_active.get()) >= 0 &&
-              host->tab_strip_model_->GetActiveTab() != prior_active.get()) {
-            host->tab_strip_model_->ActivateTab(prior_active.get());
-          }
-          if (owned_tab) {
-            owned_tab->Close();
-          }
-        },
-        weak_host, active_before, std::move(opened_tab));
-  };
-
-  if (tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id)) {
-    const base::WeakPtr<tabs::TabInterface> weak_tab = tab->GetWeakPtr();
-    TabStripModel* model = session_bridge_->FindTabStripModelForTab(tab);
-    const int index = model ? model->GetIndexOfTab(tab) : -1;
-    if (require_local_model && model != tab_strip_model_) {
-      return {};
-    }
-    if (model && index >= 0) {
-      model->ActivateTabAt(
-          index, TabStripUserGestureDetails(
-                     TabStripUserGestureDetails::GestureType::kMouse));
-      if (!weak_host || !weak_tab) {
-        return {};
-      }
-      BrowserWindowInterface* const window =
-          weak_tab->GetBrowserWindowInterface();
-      if (window && window->GetWindow()) {
-        window->GetWindow()->Activate();
-      }
-      if (!weak_host || !weak_tab) {
-        return {};
-      }
-      return {.valid = true,
-              .tab = weak_tab,
-              .rollback = make_rollback(base::WeakPtr<tabs::TabInterface>())};
-    }
-  }
-
-  Browser* const navigation_browser = browser_;
-  NavigateParams params(navigation_browser, node.url,
-                        ui::PAGE_TRANSITION_AUTO_BOOKMARK);
-  params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
-  ::Navigate(&params);
-  tabs::TabInterface* const opened_tab =
-      tabs::TabInterface::MaybeGetFromContents(
-          params.navigated_or_inserted_contents);
-  const base::WeakPtr<tabs::TabInterface> weak_opened_tab =
-      opened_tab ? opened_tab->GetWeakPtr()
-                 : base::WeakPtr<tabs::TabInterface>();
-  if (!weak_host) {
-    if (weak_opened_tab) {
-      weak_opened_tab->Close();
-    }
-    return {};
-  }
-  if (weak_opened_tab && weak_host->session_bridge_->BindTreeNodeToTab(
-                             node, weak_opened_tab.get())) {
-    if (!weak_host || !weak_opened_tab) {
-      if (weak_opened_tab) {
-        weak_opened_tab->Close();
-      }
-      return {};
-    }
-    return {.valid = true,
-            .tab = weak_opened_tab,
-            .rollback = make_rollback(weak_opened_tab)};
-  }
-
-  if (!weak_host) {
-    if (weak_opened_tab) {
-      weak_opened_tab->Close();
-    }
-    return {};
-  }
-
-  // URL matching deliberately leaves chrome://newtab temporary, so the exact
-  // durable UUID must be bound synchronously here. If another activation won
-  // the race, retain that authoritative tab and retire only the tab created by
-  // this call; repeated clicks must never multiply one saved "New Tab" row.
-  if (tabs::TabInterface* const existing =
-          weak_host->session_bridge_->FindTabByTreeNodeId(node.id)) {
-    const base::WeakPtr<tabs::TabInterface> weak_existing =
-        existing->GetWeakPtr();
-    TabStripModel* const model =
-        weak_host->session_bridge_->FindTabStripModelForTab(existing);
-    const int index = model ? model->GetIndexOfTab(existing) : -1;
-    if (require_local_model && model != weak_host->tab_strip_model_) {
-      if (weak_opened_tab && weak_opened_tab.get() != weak_existing.get()) {
-        weak_opened_tab->Close();
-      }
-      return {};
-    }
-    if (model && index >= 0) {
-      model->ActivateTabAt(
-          index, TabStripUserGestureDetails(
-                     TabStripUserGestureDetails::GestureType::kMouse));
-    }
-    if (!weak_host || !weak_existing) {
-      if (weak_opened_tab && weak_opened_tab.get() != weak_existing.get()) {
-        weak_opened_tab->Close();
-      }
-      return {};
-    }
-    // Activate the authoritative winner before retiring only the duplicate
-    // created by this call. A failed outer drop may restore `active_before`,
-    // but must never close this independently bound winner.
-    BrowserSidebarSplitDropSource result{
-        .valid = true,
-        .tab = weak_existing,
-        .rollback = make_rollback(base::WeakPtr<tabs::TabInterface>())};
-    if (weak_opened_tab && weak_opened_tab.get() != weak_existing.get()) {
-      weak_opened_tab->Close();
-    }
-    if (!weak_host || !weak_existing) {
-      return {};
-    }
-    return result;
-  }
-
-  // Binding failure without an authoritative winner must fail closed. This is
-  // the only tab created by this activation, so retiring it cannot disturb an
-  // existing session and prevents every retry from adding another orphan.
-  if (weak_opened_tab) {
-    base::OnceClosure rollback = make_rollback(weak_opened_tab);
-    std::move(rollback).Run();
-  }
-  return {};
-}
-
 bool BrowserSidebarHostView::CanSplitSavedPages(
     const base::Uuid& source_node_id,
     const base::Uuid& target_node_id) const {
@@ -659,12 +510,8 @@ bool BrowserSidebarHostView::SaveAndSplitTemporaryTab(
   if (SplitSavedPages(created_node_id, target_node_id)) {
     return true;
   }
-  if (tabs::TabInterface* source =
-          session_bridge_->FindTabByTreeNodeId(created_node_id)) {
-    session_bridge_->MakeTabTemporary(source);
-  }
   const tab_tree::TabTreeStore::Result rollback =
-      controller_->DeleteNode(created_node_id, base::Time::Now());
+      controller_->UndoLastMutation();
   if (rollback != tab_tree::TabTreeStore::Result::kOk) {
     OnMutationFailed(rollback);
   }
@@ -767,7 +614,11 @@ ui::ImageModel BrowserSidebarHostView::GetSavedPageIcon(
 
 ui::ImageModel BrowserSidebarHostView::GetSavedPageMediaIndicator(
     const tab_tree::TreeNode& node) const {
-  return GetMediaIndicatorForTab(session_bridge_->FindTabByTreeNodeId(node.id));
+  auto indicator =
+      GetMediaIndicatorForTab(session_bridge_->FindTabByTreeNodeId(node.id));
+  return indicator.IsEmpty() && node.is_temporary
+             ? GetSharedTabOriginIcon(node.id)
+             : indicator;
 }
 
 void BrowserSidebarHostView::PerformSavedPageTrailingAction(

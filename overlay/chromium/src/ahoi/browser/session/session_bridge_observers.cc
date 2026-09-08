@@ -186,6 +186,7 @@ void SessionBridge::OnTabWillDetach(tabs::TabInterface* tab,
     return;
   }
   if (reason == tabs::TabInterface::DetachReason::kDelete) {
+    ScheduleTemporaryPageClose(tab);
     RemoveRuntimeTab(tab);
     return;
   }
@@ -234,9 +235,14 @@ void SessionBridge::OnTabUIChanged(tabs::TabInterface* tab) {
   const GURL current_url = session_internal::GetRuntimeTabUrl(contents);
   const std::u16string current_title =
       session_internal::GetRuntimeTabTitle(tab, current_url);
+  const bool navigated = runtime.last_observed_url != current_url;
   const std::u16string previous_automatic_title = runtime.last_observed_title;
   runtime.last_observed_url = current_url;
   runtime.last_observed_title = current_title;
+  if (navigated && runtime.shared_binding_invalidated) {
+    runtime.shared_binding_invalidated = false;
+    ScheduleTreeNodeBinding(tab);
+  }
 
   // Keep the visible tree title live while respecting an explicit user rename:
   // only replace the stored value if it still equals Chromium's previous title
@@ -246,14 +252,19 @@ void SessionBridge::OnTabUIChanged(tabs::TabInterface* tab) {
     if (tab_tree_store_->GetNode(*runtime.node_id, &node) ==
         tab_tree::TabTreeStore::Result::kOk) {
       std::u16string persisted_title = node.title;
-      if (!previous_automatic_title.empty() &&
+      if ((navigated || node.url == current_url) &&
+          !previous_automatic_title.empty() &&
           previous_automatic_title != current_title &&
           node.title == previous_automatic_title) {
         persisted_title = current_title;
       }
-      if (node.url != current_url || node.title != persisted_title) {
+      // A passive progress/favicon/title callback cannot re-author the old
+      // runtime URL over a newly received remote destination. Only a real
+      // navigation changes that field group; unrelated title edits retain it.
+      const GURL persisted_url = navigated ? current_url : node.url;
+      if (node.url != persisted_url || node.title != persisted_title) {
         std::ignore = tab_tree_store_->UpdateSavedPageMetadata(
-            node.id, std::move(persisted_title), current_url,
+            node.id, std::move(persisted_title), persisted_url,
             base::Time::Now());
       }
     }
@@ -461,6 +472,7 @@ void SessionBridge::OnTabStripModelChanged(
       for (const auto& removed : change.GetRemove()->contents) {
         if (removed.tab_detach_reason ==
             tabs::TabInterface::DetachReason::kDelete) {
+          ScheduleTemporaryPageClose(removed.tab);
           RemoveRuntimeTab(removed.tab);
         } else {
           auto it = runtime_tabs_.find(removed.tab);
@@ -536,6 +548,12 @@ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
         node.tombstone) {
       // A user moving a saved page back below the separator expects the live
       // tab to survive as a temporary tab in the same workspace.
+      if (applying_synced_tree_snapshot_) {
+        if (const auto runtime = runtime_tabs_.find(tab);
+            runtime != runtime_tabs_.end()) {
+          runtime->second.shared_binding_invalidated = true;
+        }
+      }
       UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
       continue;
     }
@@ -544,6 +562,7 @@ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
       if (runtime->second.workspace_id != node.workspace_id) {
         RemoveTabFromLastActiveState(tab);
       }
+      runtime->second.is_temporary = node.is_temporary;
       runtime->second.workspace_id = node.workspace_id;
       if (tab->IsActivated() && runtime->second.tab_strip_model) {
         UpdateLastActiveTab(runtime->second.tab_strip_model, tab);

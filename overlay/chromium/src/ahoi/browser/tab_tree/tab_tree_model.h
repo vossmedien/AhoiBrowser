@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/shared_tab_target_types.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "url/gurl.h"
@@ -23,9 +24,9 @@ enum class TreeNodeType {
   kSavedPage = 1,
 };
 
-// Persisted, profile-scoped workspace metadata. Workspaces deliberately do not
-// represent Chromium Profiles; cookies, logins, permissions and extensions are
-// shared by all workspaces in one normal Profile.
+// Persisted, profile-scoped workspace metadata. Logical identity is independent
+// of Chromium Profiles and each tab's local website-session binding. No cookie,
+// permission, credential or storage-partition identity belongs in these rows.
 struct Workspace {
   int model_version = kCurrentModelVersion;
   base::Uuid id;
@@ -61,8 +62,26 @@ struct TreeNode {
   base::Time modified_at;
   bool tombstone = false;
 
+  // Both saved and temporary normal pages have a stable global node ID.
+  // kSavedPage is the historical page-kind name; this flag is authoritative
+  // for saved/temporary presentation and close semantics.
+  bool is_temporary = false;
+  // Native legacy pages may omit this metadata and are classified from their
+  // local URL at the boundary. Shared page projections always supply it.
+  // For local-only targets url may retain this device's actual target; those
+  // bytes NEVER enter the portable URL field or another device's navigation.
+  std::optional<sync::SharedTabTargetKind> target_kind;
+  std::optional<std::string> local_scheme;
+
   bool operator==(const TreeNode&) const = default;
 };
+
+// Only this bounded target leaves the device. A local-only native URL may be
+// retained in the row for local use, but is never returned by this boundary.
+std::optional<sync::SharedTabTarget> GetSharedPageTarget(const TreeNode& node);
+// Native local-only captions may contain file paths or code-derived text.
+// Preserve their local display but use a generic portable caption on the wire.
+std::u16string GetSharedPageTitle(const TreeNode& node);
 
 // Complete persistence snapshot for transferring the live in-memory tree to
 // Ahoi's dedicated blocking database sequence. Undo history is part of the

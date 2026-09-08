@@ -33,7 +33,7 @@ Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Runtime ownership — both temporary slots returned
+## Runtime ownership — old slots returned; new Simulator UI active
 
 Mobile explicitly returned the My-Mac window
 `01a070c7-7b59-78d0-b224-bfab8a57b998` unused in
@@ -44,6 +44,14 @@ Desktop app/UI, checkout/build/sign/install are available to this Desktop owner
 subject to fresh CPU and live-state checks. Do not retain a stale runtime block
 or repeat the grants/acknowledgements. New Mobile My-Mac work needs a fresh
 explicit slot once its exact host is ready.
+
+**New September8 slot:** the user explicitly granted the Sync/Mobile owner its
+bounded isolated Simulator journey (currently Build17). This is not the old
+My-Mac window. Latest coordination confirms Save/restart progress but no explicit
+handback yet. Desktop performs no native UI actions during that slot. Checkout,
+build and install ownership remain here; capacity and current process checks
+remain required. See `docs/ACTIVE_SYNC_COORDINATION.md`; do not infer release from
+the restarted Mobile PID or ask the same Simulator approval again.
 
 ## Binding Sync decision — one format, fresh isolated acceptance
 
@@ -86,10 +94,11 @@ Native policy behavior is unchanged. Shared headers/leaf were read back against
 clang-format with the actual Chromium style passed; no build/test or runtime
 claim. This source change is NOT in the frozen/installed4cb622a candidate and
 does not trigger another isolated Chromium build or checkout refresh.
-Actual Service/backend methods for B-D still require their concrete completed
-handoff, not another conceptual format-freeze or leaf-ownership request. Ownership accepted
-does not mean implemented or tested. This upcoming package does not alter the
-separate baseline candidate/build, UI lease, or portal/key permissions.
+The Service/backend handoff has since arrived in `e2f6711` with its subsequent
+async/durability corrections; the current native integration is described below.
+Source implementation does not mean compiled or tested. The new package does
+not imply a new UI lease or portal/key permission, and the installed baseline
+remains separately bound to its original receipt.
 
 225df88 and the test-only 22e2f2b follow-up remain frozen UI/compile baselines,
 NOT final acceptance of the new unified format. Do not restart/widen that
@@ -98,52 +107,72 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Current candidate: 4cb622a installed; startup/fullscreen journey passed
 
-**Current continuation, 2026-09-08:** global/project AGENTS read in full; previous
-turn made aligned ADR0010 document edits which are now being secured, not another
-build wait. Installed plist still4cb; no Ahoi main process/build was live in the
-fresh readback. Arc is now PID31169 and remains running. Do not reuse old PIDs.
-No fresh AnyChat install/permission approval is inferred from elapsed time or
-the new capacity rules. Existing UI results below remain source-bound history.
+**Current continuation, 2026-09-08:** global/project AGENTS reread again after
+the user's latest update. Reuse same-scope approvals; finish authorized
+preparation before necessary questions; no inferred gates from optional skill
+guidance. Installed plist is still `4cb622a`. No new native app/build/install
+or visible acceptance is implied by the SOURCE package below.
 
-Current implementation: requested LOCAL Sync-baseline receipt, Native B scope.
-Native SessionBridge is in-memory plus coalesced async Disk persistence; existing
-sync Apply-kOk precedes durable write. A local persistence envelope now carries
-tree+receipt through the same SQL transaction/load/save/flush, leaving the domain
-TabTreeSnapshot and Arc fingerprints unchanged. Ordinary tree replacements and
-edits preserve the receipt; reading an old database does not add an empty key.
-The envelope is committed/pushed in `cc7e7e3`. Four focused real-SQLite cases
-(including revocation before commit) and the existing Session flush regression
-are prepared, not compiled/executed. No new candidate/build or Sync runtime claim.
+Native B-D source now connects the committed Common package `e2f6711`, async
+completion `5e74472`, durable-export/support separation `37bc558` and cancelled
+apply handling `40358d1`; there is NO remaining general header/role/freeze wait.
 
-Common Service/backend handoff `e2f6711` is now committed and read; B-D do NOT
-wait for another general freeze. One concrete integration correction is requested
-in queue `01a07f98-70b9-7660-a620-ec057c927a3b`: replace synchronous receipt Apply
-with an async Result completion, so Common awaits durable success and retains
-original authorization through Disk commit. Native disk-first code is prepared in
-`session_bridge_sync_persistence.cc`: `BeginSyncedTabTreeApply` carries that scope
-on the existing writer, checks it before SQL commit and RAM publication, and
-compares the complete local preimage. Local mutation/backup/shutdown invalidate
-pending apply; an already-due local write is retained. If a post-commit UI reply
-is stale, the current local baseline is written back sequentially, not overwritten
-by the remote tree. Only synchronous remote publication suppresses Sync callbacks,
-never the disk wait. Task-post/shutdown failure cannot report success.
-`ExportTabTreeSyncSnapshot` is implemented. The private Begin method is NOT wired
-to Common yet: connect the public override after the requested async signature
-is committed. Native support stays false until COMPLETE B-D, no early writer.
+- Native SQLite schema3 (not SyncStore6) adds temporary/target fields throughout
+  reads, writes, snapshots, Undo and duplication. Existing native schemas1/2
+  receive only additive defaults; existing data is not erased.
+- Normal tabs reserve global Page IDs in native session metadata before deferred
+  SQLite creation; Presence IDs remain separate and survive window movement.
+  Explicit tree activation/session metadata, NEVER URL deduplication, binds a
+  saved page. Save/Unsave and drag-save retain the existing Page ID; placement
+  plus saved-state changes share one Store transaction/Undo.
+- Explicit temporary closes tombstone their Page on the safe UI task boundary;
+  window detach/whole-window close/Quit preserve shared pages. Retired remote
+  bindings remain local until new navigation/save and retain that state through
+  a local session-metadata extension; ordinary/old Arc metadata bytes stay v1.
+- The same pure target policy is below Session/UI in tab_tree, with the existing
+  Session alias entry point retained. Adapter projection carries all target
+  fields, preserves local-only native targets and sends no local URL/code/path
+  through URL or automatic captions. Nonportable peers remain inert.
+- Async native Apply now overrides the released Common method. It checks the
+  original authority at disk commit and RAM publication. Export attests ONLY the
+  complete current RAM tree matching a successful disk commit, not a stale
+  persisted revision. Local writes re-notify Common after actual disk ACK.
+- Full snapshot replacement notifies existing loaded-tree observers by stable
+  node IDs; no parallel tree/animation architecture. Passive runtime URL/title
+  events cannot overwrite a newer remote destination.
+- Sidebar hosts register meaningful capture changes and answer the exact issued
+  generation with complete/deferred data. No filtered HTTP-only vector or
+  missing-window delete fallback. Shared IDs suppress duplicate device rows;
+  explicit open/adoption reuses the same Page. Temporary origins use real
+  provenance and existing native icon slots; Sync remains reachable with no
+  remote rows. Dormant-row placement/origin filtering still need visible review.
+- Arc fingerprints stay byte-identical for old/default rows and include real
+  new page state only when present. Existing recovery copies verified DB/WAL to
+  a ScopedTempDir before migration; originals/journal remain untouched.
 
-Owned `tab_tree_sync_adapter` now sorts projected workspaces/nodes exactly like
-native SQL export, avoiding false receipt mismatches from provider ordering or
-appended recovery folders. Temporary/target fields are still the next B-D work.
-The helper's bounded backup check was confirmed in source: Arc verifies payloads,
-copies DB/WAL into ScopedTempDir, THEN initializes/migrates that disposable copy
-(`importer/arc/arc_import_recovery.cc:336`). Keep this existing path for the native
-schema extension; no additional reader/framework is needed. Preserve old logical
-Arc journal fingerprints separately from native schema additions.
-No Common/Swift edits or unsafe legacy fallback. Native Install/Enable UI seam
-and storage_frontend.{h,cc} patch
-from ADR0010 are explicitly accepted in Desktop scope; exact Common signatures
-and future integrated candidate remain separate. Read-only helper found the
-existing persistence seams; no helper writes/builds/tests.
+A bounded helper implemented only the handed-over Store SQL/mutation files;
+main integrated/read them. All changes are SOURCE-only: no compiler/test/E2E
+pass. Existing SQLite/flush regressions remain prepared; no new test matrix.
+The new source needs an exact app-first candidate and short visible
+create/save/unsave/restart/shared-row journey before focused regressions.
+
+Next build preparation: reuse the clean owned detached snapshot
+`/private/tmp/ahoi-desktop-package1.5g65WO/repo`, preserve the existing4cb source
+ref/receipts, and advance only to the committed coherent package (no WIP).
+Use guarded overlay + `AHOI_JOBS=2 ./scripts/build-ahoi.sh dev` without extra
+test targets; `AHOI_NINJA_KEEP_GOING=1` may collect product compiler errors.
+Fresh 10:21–10:23 local samples found 12 cores, 56–67% idle, no active compiler,
+53% memory-pressure free/reclaimable and 80.9GiB disk available. Historical swap
+is about24.5GiB but did not grow in the sample; recheck capacity before starting
+and keep concurrency bounded, without an Ahoi-specific priority.
+
+Do not launch the new normal-tab mirroring on the real failed-import Default
+profile before its4cb Arc recovery. Initial new-format acceptance uses an
+isolated fresh profile. Respect the active Mobile Simulator UI slot below.
+Common's canonical Inbox Bottom-clock follow-up was requested in
+`01a07fc6-afb8-70c0-98f2-444905bf69a8`; do not silently author changed bootstrap
+defaults as user edits. Settings/extension-restoration and later workspace
+website-session isolation remain in the master scope, not completed here.
 
 **Newest live action:** same installed4cb, no new build. Short visible Sidebar
 flow passed: docked -> floating -> hide -> Cmd+Shift+S restores floating ->
@@ -686,9 +715,9 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    slide/fade, reported seam, zero-tab/split stability and Bookmark core flow.
    Do not mutate the failed imported tree to set up tests before its recovery.
    Reuse the completed startup/Sidebar evidence; do not replay whole matrices.
-6. Native A is source-complete in906dac8 outside the frozen candidate. Continue
-   Native B-D against committed Common Service/backend `e2f6711`, including the
-   local receipt envelope above and its required durable async completion.
+6. Native A-D source is integrated as described above, including the now-released
+   async completion and durable-current export. Finish candidate preparation,
+   app-only guarded build and affected visible flow; do not restart the API review.
    No general header/role/freeze wait, WIP integration or legacy vector fallback.
    Common C++/Swift remain with the Sync owner; see
    `docs/SHARED_TAB_NATIVE_SEAMS.md`.

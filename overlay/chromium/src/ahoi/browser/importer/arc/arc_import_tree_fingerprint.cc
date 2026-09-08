@@ -118,6 +118,22 @@ void WriteTreeNode(FingerprintWriter* writer, const tab_tree::TreeNode& node) {
   writer->WriteTime(node.created_at);
   writer->WriteTime(node.modified_at);
   writer->WriteBool(node.tombstone);
+  // Keep old failed-import fingerprints byte-identical for legacy rows. Only
+  // real new page state extends the hash; it must still invalidate a prepared
+  // import when Save/Unsave or the portable target changes independently of
+  // URL.
+  if (node.is_temporary || node.target_kind || node.local_scheme) {
+    writer->WriteTag("page-state-v1");
+    writer->WriteBool(node.is_temporary);
+    writer->WriteBool(node.target_kind.has_value());
+    if (node.target_kind) {
+      writer->WriteSigned(static_cast<int64_t>(*node.target_kind));
+    }
+    writer->WriteBool(node.local_scheme.has_value());
+    if (node.local_scheme) {
+      writer->WriteString(*node.local_scheme);
+    }
+  }
 }
 
 void WriteUndoOperation(FingerprintWriter* writer,

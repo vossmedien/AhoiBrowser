@@ -16,6 +16,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_device_tab_commands.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_sync_controls.h"
+#include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
@@ -24,11 +25,13 @@
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/time/time.h"
+#include "chrome/app/vector_icons/vector_icons.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "components/tabs/public/tab_interface.h"
+#include "components/vector_icons/vector_icons.h"
 #include "content/public/browser/web_contents.h"
 #include "ui/base/l10n/time_format.h"
 #include "ui/base/page_transition_types.h"
@@ -53,43 +56,144 @@ void BrowserSidebarHostView::PublishLocalDeviceTabs() {
   if (!profile_sync_service_ || !window_id_.has_value() || !tab_strip_model_) {
     return;
   }
-  std::vector<sync::LocalTabState> tabs;
-  tabs.reserve(tab_strip_model_->count());
+  auto observed = BuildSharedTabCapture(0);
+  if (observed_shared_tabs_ && *observed_shared_tabs_ == observed) {
+    return;
+  }
+  observed_shared_tabs_ = std::move(observed);
+  profile_sync_service_->RequestSharedTabCapture(
+      window_id_->AsLowercaseString());
+}
+
+sync::LocalTabCapture BrowserSidebarHostView::BuildSharedTabCapture(
+    uint64_t generation) const {
+  sync::LocalTabCapture capture{.generation = generation};
+  if (!session_bridge_ || !session_bridge_->is_ready() || !tab_strip_model_ ||
+      !window_id_) {
+    return capture;
+  }
+  capture.tabs.reserve(tab_strip_model_->count());
   tabs::TabInterface* const active_tab = tab_strip_model_->GetActiveTab();
   for (tabs::TabInterface* tab : *tab_strip_model_) {
     content::WebContents* const contents = tab ? tab->GetContents() : nullptr;
     if (!tab || !contents) {
-      continue;
+      return capture;
     }
-    GURL url = contents->GetVisibleURL();
-    if (!url.is_valid() || url.is_empty()) {
-      url = contents->GetLastCommittedURL();
+    const auto page_id = session_bridge_->FindSharedTreeNodeIdForTab(tab);
+    const auto presence_id = session_bridge_->GetPresenceIdForTab(tab);
+    tab_tree::TreeNode page;
+    if (!page_id || !presence_id || *page_id == *presence_id ||
+        session_bridge_->tab_tree_store()->GetNode(*page_id, &page) !=
+            tab_tree::TabTreeStore::Result::kOk ||
+        page.tombstone || page.type != tab_tree::TreeNodeType::kSavedPage) {
+      return capture;  // No missing/filtered row can attest a complete window.
     }
-    if (!url.SchemeIsHTTPOrHTTPS() || url.has_username() ||
-        url.has_password()) {
-      continue;
+    const auto target = tab_tree::GetSharedPageTarget(page);
+    if (!target) {
+      return capture;
     }
-    tabs.push_back(sync::LocalTabState{
-        .stable_key = window_id_->AsLowercaseString() + ":" +
-                      base::NumberToString(tab->GetHandle().raw_value()),
-        .workspace_id = session_bridge_->GetWorkspaceForTab(tab),
-        .url = url.spec(),
-        .title = base::UTF16ToUTF8(tab->GetTitle()),
-        .pinned =
-            tab_strip_model_->IsTabPinned(tab_strip_model_->GetIndexOfTab(tab)),
-        .active = tab == active_tab});
+    // Presence describes its shared Page, not a passive stale runtime URL.
+    // Actual local navigations update the Page through SessionBridge first.
+    capture.tabs.push_back(sync::LocalTabState{
+        .stable_key =
+            "runtime:" + base::NumberToString(tab->GetHandle().raw_value()),
+        .sync_id = *presence_id,
+        .workspace_id = page.workspace_id,
+        .url = target->url,
+        .title = base::UTF16ToUTF8(tab_tree::GetSharedPageTitle(page)),
+        .pinned = !page.is_temporary,
+        .active = tab == active_tab,
+        .tree_node_id = page.id,
+        .target_kind = target->kind,
+        .local_scheme = target->local_scheme});
   }
-  profile_sync_service_->PublishWindowTabs(window_id_->AsLowercaseString(),
-                                           std::move(tabs));
+  capture.status = sync::LocalTabCaptureStatus::kComplete;
+  return capture;
+}
+
+void BrowserSidebarHostView::PublishRequestedSharedTabCapture(
+    uint64_t generation) {
+  if (profile_sync_service_ && profile_sync_ui_attached_ && window_id_) {
+    profile_sync_service_->PublishSharedTabCapture(
+        window_id_->AsLowercaseString(), BuildSharedTabCapture(generation));
+  }
+}
+
+void BrowserSidebarHostView::OnAhoiSharedTabSyncStateChanged(
+    const sync::SharedTabSyncState&) {
+  observed_shared_tabs_.reset();
+  ScheduleRuntimePresentationRefresh();
+}
+
+ui::ImageModel BrowserSidebarHostView::GetSharedTabOriginIcon(
+    const base::Uuid& node_id) const {
+  if (!profile_sync_service_) {
+    return {};
+  }
+  const auto origin =
+      profile_sync_service_->GetSharedTabProvenance(node_id).creation_device;
+  if (!origin || *origin == profile_sync_service_->local_device_id()) {
+    return {};
+  }
+  for (const auto& device : device_tabs_snapshot_.devices) {
+    if (device.id != *origin || device.tombstone) {
+      continue;
+    }
+    const auto* icon = &vector_icons::kDevicesIcon;
+    if (device.type == sync::DeviceType::kMacDesktop) {
+      icon = &vector_icons::kDesktopWindowsIcon;
+    } else if (device.type == sync::DeviceType::kIPhone) {
+      icon = &kSmartphoneRefreshOldIcon;
+    } else if (device.type == sync::DeviceType::kIPad) {
+      icon = &kTabletFilledIcon;
+    }
+    return ui::ImageModel::FromVectorIcon(*icon, visual_style::kMutedText, 15);
+  }
+  return {};
+}
+
+std::u16string BrowserSidebarHostView::GetSharedTabOriginText(
+    const base::Uuid& node_id) const {
+  const auto temporary = SyncText(u"Temporärer Tab", u"Temporary tab");
+  if (!profile_sync_service_) {
+    return temporary;
+  }
+  const auto origin =
+      profile_sync_service_->GetSharedTabProvenance(node_id).creation_device;
+  if (!origin || *origin == profile_sync_service_->local_device_id()) {
+    return temporary;
+  }
+  for (const auto& device : device_tabs_snapshot_.devices) {
+    if (device.id == *origin && !device.tombstone) {
+      return temporary + SyncText(u" von ", u" from ") +
+             base::UTF8ToUTF16(device.display_name);
+    }
+  }
+  return temporary;
 }
 
 void BrowserSidebarHostView::PublishDeviceTabCommands() {
   if (!command_service_) {
     return;
   }
+  auto unprojected = device_tabs_snapshot_;
+  std::erase_if(unprojected.remote_tabs, [this](const auto& tab) {
+    return HasProjectedSharedPage(tab);
+  });
   CHECK(command_service_->ReplaceItems(
       CommandItemType::kDeviceTab,
-      BuildDeviceTabCommandItems(device_tabs_snapshot_, base::Time::Now())));
+      BuildDeviceTabCommandItems(unprojected, base::Time::Now())));
+}
+
+bool BrowserSidebarHostView::HasProjectedSharedPage(
+    const sync::RemoteTabRecord& tab) const {
+  if (!tab.tree_node_id || !session_bridge_ || !session_bridge_->is_ready()) {
+    return false;
+  }
+  tab_tree::TreeNode page;
+  return session_bridge_->tab_tree_store()->GetNode(*tab.tree_node_id, &page) ==
+             tab_tree::TabTreeStore::Result::kOk &&
+         !page.tombstone && page.type == tab_tree::TreeNodeType::kSavedPage;
 }
 
 void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
@@ -99,9 +203,9 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
   std::set<base::Uuid> remote_device_ids;
   for (const sync::RemoteTabRecord& tab : device_tabs_snapshot_.remote_tabs) {
     const GURL remote_url(tab.url);
-    if (!tab.tombstone && remote_url.is_valid() &&
-        remote_url.SchemeIsHTTPOrHTTPS() && !remote_url.has_username() &&
-        !remote_url.has_password()) {
+    if (!HasProjectedSharedPage(tab) && !tab.tombstone &&
+        remote_url.is_valid() && remote_url.SchemeIsHTTPOrHTTPS() &&
+        !remote_url.has_username() && !remote_url.has_password()) {
       remote_device_ids.insert(tab.device_id);
     }
   }
@@ -142,9 +246,9 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
   for (const sync::RemoteTabRecord& tab : device_tabs_snapshot_.remote_tabs) {
     // Provider data is untrusted at the final presentation boundary too.
     const GURL remote_url(tab.url);
-    if (tab.tombstone || !remote_url.is_valid() ||
-        !remote_url.SchemeIsHTTPOrHTTPS() || remote_url.has_username() ||
-        remote_url.has_password() ||
+    if (HasProjectedSharedPage(tab) || tab.tombstone ||
+        !remote_url.is_valid() || !remote_url.SchemeIsHTTPOrHTTPS() ||
+        remote_url.has_username() || remote_url.has_password() ||
         (sidebar_discovery_query_.empty() &&
          !SidebarSyncControlsMatchesDevice(controls, tab.device_id))) {
       continue;
@@ -217,35 +321,14 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
          .take_over = base::BindRepeating(
              [](base::WeakPtr<BrowserSidebarHostView> host,
                 sync::RemoteTabRecord remote_tab) {
-               if (!host) {
+               if (!host || !remote_tab.tree_node_id ||
+                   !host->OpenRemoteTab(remote_tab)) {
                  return;
                }
-               const GURL url(remote_tab.url);
-               if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS() ||
-                   url.has_username() || url.has_password()) {
-                 return;
-               }
-               NavigateParams params(host->browser_, url,
-                                     ui::PAGE_TRANSITION_LINK);
-               params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
-               Navigate(&params);
-               tabs::TabInterface* opened =
-                   params.navigated_or_inserted_contents
-                       ? host->session_bridge_->FindTabByWebContents(
-                             params.navigated_or_inserted_contents)
-                       : nullptr;
-               if (!opened && host->tab_strip_model_ &&
-                   params.navigated_or_inserted_contents) {
-                 tabs::TabInterface* const active_tab =
-                     host->tab_strip_model_->GetActiveTab();
-                 if (active_tab && active_tab->GetContents() ==
-                                       params.navigated_or_inserted_contents) {
-                   opened = active_tab;
-                 }
-               }
-               if (opened) {
-                 std::ignore = host->SaveTemporaryTabAtWorkspaceRoot(
-                     opened->GetHandle().raw_value(), nullptr);
+               if (auto* tab = host->session_bridge_->FindTabByTreeNodeId(
+                       *remote_tab.tree_node_id)) {
+                 std::ignore = host->session_bridge_->SaveTabAtWorkspaceRoot(
+                     tab->GetBrowserWindowInterface(), tab);
                }
              },
              weak_ptr_factory_.GetWeakPtr()),
@@ -255,22 +338,24 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
   }
   const bool show_remote_tabs = row_count > 0u;
   remote_tabs_header_->SetVisible(show_remote_tabs);
-  // Sync controls belong to the remote-tab section and must not reserve a
-  // phantom row between saved and temporary tabs when there is no remote data.
-  remote_tabs_container_->SetVisible(show_remote_tabs);
+  // A fresh profile still needs its compact Sync entry point. Already linked
+  // pages live in the workspace tree, not as duplicate device-tab rows here.
+  remote_tabs_container_->SetVisible(show_remote_tabs ||
+                                     (controls && controls->GetVisible()));
   remote_tabs_container_->InvalidateLayout();
 }
 
 bool BrowserSidebarHostView::OpenRemoteTab(sync::RemoteTabRecord tab) {
-  const GURL url(tab.url);
-  if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS() || url.has_username() ||
-      url.has_password()) {
+  if (!tab.tree_node_id || !session_bridge_ || !session_bridge_->is_ready()) {
     return false;
   }
-  NavigateParams params(browser_, url, ui::PAGE_TRANSITION_LINK);
-  params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
-  Navigate(&params);
-  return params.navigated_or_inserted_contents != nullptr;
+  tab_tree::TreeNode page;
+  if (session_bridge_->tab_tree_store()->GetNode(*tab.tree_node_id, &page) !=
+          tab_tree::TabTreeStore::Result::kOk ||
+      page.tombstone) {
+    return false;  // Wait for its actual Page, never copy a URL into a new ID.
+  }
+  return MaterializeSavedPage(page, /*require_local_model=*/false).valid;
 }
 
 void BrowserSidebarHostView::OnAhoiDeviceTabsChanged(

@@ -28,10 +28,11 @@ bool IsNodeWellFormed(const tab_tree::TreeNode& node) {
     return false;
   }
   if (node.type == tab_tree::TreeNodeType::kFolder) {
-    return node.url.is_empty();
+    return node.url.is_empty() && !node.is_temporary && !node.target_kind &&
+           !node.local_scheme;
   }
   return node.type == tab_tree::TreeNodeType::kSavedPage &&
-         node.url.is_valid() && !node.url.is_empty();
+         tab_tree::GetSharedPageTarget(node).has_value();
 }
 
 }  // namespace

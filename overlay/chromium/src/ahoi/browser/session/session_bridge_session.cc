@@ -99,8 +99,13 @@ std::optional<session::TabSessionMetadata> SessionBridge::GetTabSessionMetadata(
       // Runtime node bindings are admitted only by BindTreeNodeToTab and are
       // synchronously cleared by the tree observer. Avoid a SQLite read here:
       // selection changes can run inside Chromium's tab mutation scope.
-      .tree_node_id = runtime.node_id,
+      .tree_node_id = runtime.shared_binding_invalidated ? std::nullopt
+                      : runtime.node_id                  ? runtime.node_id
+                      : runtime.pending_node_id.is_valid()
+                          ? std::make_optional(runtime.pending_node_id)
+                          : std::nullopt,
       .last_active_in_workspace = last_active,
+      .shared_binding_invalidated = runtime.shared_binding_invalidated,
   };
 }
 
@@ -258,20 +263,30 @@ bool SessionBridge::ApplyTabSessionMetadataNow(
   }
   RemoveTabFromLastActiveState(tab);
   runtime.workspace_id = *resolved;
-  runtime.restored_session_metadata_applied = true;
+  runtime.shared_binding_invalidated = metadata.shared_binding_invalidated;
 
   bool restored_node = false;
-  if (metadata.tree_node_id.has_value() && tab_tree_store_) {
+  if (!runtime.shared_binding_invalidated &&
+      metadata.tree_node_id.has_value() && tab_tree_store_) {
     tab_tree::TreeNode node;
-    if (tab_tree_store_->GetNode(*metadata.tree_node_id, &node) ==
-            tab_tree::TabTreeStore::Result::kOk &&
+    const auto found = tab_tree_store_->GetNode(*metadata.tree_node_id, &node);
+    if (found == tab_tree::TabTreeStore::Result::kNotFound) {
+      // Session metadata can win the race with the deferred first tree write.
+      // Reuse its exact reservation, never URL-deduplicate a different page.
+      runtime.pending_node_id = *metadata.tree_node_id;
+    }
+    if (found == tab_tree::TabTreeStore::Result::kOk &&
         node.workspace_id == *resolved) {
       restored_node = BindTreeNodeToTab(node, tab);
     }
   }
   if (!restored_node) {
     runtime.node_id.reset();
+    runtime.is_temporary = true;
     runtime.workspace_id = *resolved;
+    if (!runtime.shared_binding_invalidated) {
+      ScheduleTreeNodeBinding(tab);
+    }
   }
 
   RestoreLastActiveTabFlag(tab, metadata.last_active_in_workspace);

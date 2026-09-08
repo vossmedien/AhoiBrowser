@@ -276,6 +276,7 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   group_recent_widget_.reset();
   group_recent_delegate_.reset();
   session_presentation_subscription_ = {};
+  shared_tab_capture_subscription_ = {};
   if (profile_sync_service_ && profile_sync_ui_attached_) {
     if (window_id_.has_value()) {
       profile_sync_service_->RemoveWindowTabs(window_id_->AsLowercaseString());

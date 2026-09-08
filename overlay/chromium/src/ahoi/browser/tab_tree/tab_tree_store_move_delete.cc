@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/check.h"
 #include "sql/statement.h"
@@ -135,6 +136,8 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
   unique_ids.reserve(moves.size());
   std::vector<TreeNode> nodes;
   nodes.reserve(moves.size());
+  std::vector<TreeNode> updated_nodes;
+  updated_nodes.reserve(moves.size());
   std::vector<size_t> changed_indices;
   changed_indices.reserve(moves.size());
   for (size_t index = 0; index < moves.size(); ++index) {
@@ -161,11 +164,36 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
     if (result != Result::kOk) {
       return result;
     }
-    if (node.workspace_id != move.workspace_id ||
-        node.parent_id != move.parent_id || node.sort_key != move.sort_key) {
+    TreeNode updated = node;
+    updated.workspace_id = move.workspace_id;
+    updated.parent_id = move.parent_id;
+    updated.sort_key = move.sort_key;
+    updated.is_temporary = move.is_temporary.value_or(node.is_temporary);
+    updated.modified_at = modified_at;
+    if (!updated.is_temporary &&
+        node.target_kind == SharedTabTargetKind::kNewTab) {
+      if (node.url.is_empty() || !node.url.is_valid()) {
+        return Result::kInvalidArgument;
+      }
+      const auto target = DescribeNativeSharedTabTarget(
+          node.url, NativeSharedTabParticipation::kNormal);
+      if (!target) {
+        return Result::kInvalidArgument;
+      }
+      updated.target_kind = target->kind;
+      updated.local_scheme = target->local_scheme;
+    }
+    if (!ValidateNode(updated)) {
+      return Result::kInvalidArgument;
+    }
+    if (node.workspace_id != updated.workspace_id ||
+        node.parent_id != updated.parent_id ||
+        node.sort_key != updated.sort_key ||
+        node.is_temporary != updated.is_temporary) {
       changed_indices.push_back(index);
     }
     nodes.push_back(std::move(node));
+    updated_nodes.push_back(std::move(updated));
   }
   if (changed_indices.empty()) {
     return Result::kOk;
@@ -190,19 +218,30 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
   sql::Statement update(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "UPDATE tree_nodes SET workspace_id=?,parent_id=?,sort_key=?,"
-      "modified_at=? WHERE id=?"));
+      "modified_at=?,is_temporary=?,target_kind=?,local_scheme=? WHERE id=?"));
   for (size_t index : changed_indices) {
-    const SavedPageMove& move = moves[index];
+    const TreeNode& updated = updated_nodes[index];
     update.Reset(/*clear_bound_vars=*/true);
-    update.BindString(0, move.workspace_id.AsLowercaseString());
-    if (move.parent_id.has_value()) {
-      update.BindString(1, move.parent_id->AsLowercaseString());
+    update.BindString(0, updated.workspace_id.AsLowercaseString());
+    if (updated.parent_id.has_value()) {
+      update.BindString(1, updated.parent_id->AsLowercaseString());
     } else {
       update.BindNull(1);
     }
-    update.BindString(2, move.sort_key);
+    update.BindString(2, updated.sort_key);
     update.BindTime(3, modified_at);
-    update.BindString(4, move.node_id.AsLowercaseString());
+    update.BindBool(4, updated.is_temporary);
+    if (updated.target_kind) {
+      update.BindInt(5, static_cast<int>(*updated.target_kind));
+    } else {
+      update.BindNull(5);
+    }
+    if (updated.local_scheme) {
+      update.BindString(6, *updated.local_scheme);
+    } else {
+      update.BindNull(6);
+    }
+    update.BindString(7, updated.id.AsLowercaseString());
     if (!update.Run() || db_.GetLastChangeCount() != 1) {
       return Result::kDatabaseError;
     }
@@ -217,6 +256,49 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
     changed_ids.push_back(nodes[index].id);
   }
   Notify(MutationKind::kMoved, subject_node_id, std::move(changed_ids));
+  return Result::kOk;
+}
+
+TabTreeStore::Result TabTreeStore::DeleteTemporaryPage(
+    const base::Uuid& node_id,
+    base::Time modified_at) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!IsReady()) {
+    return Result::kNotInitialized;
+  }
+  if (!node_id.is_valid() || modified_at.is_null()) {
+    return Result::kInvalidArgument;
+  }
+
+  TreeNode node;
+  const Result result = ReadNode(node_id, &node);
+  if (result != Result::kOk) {
+    return result;
+  }
+  if (node.tombstone) {
+    return Result::kNotFound;
+  }
+  if (node.type != TreeNodeType::kSavedPage || !node.is_temporary) {
+    return Result::kInvalidArgument;
+  }
+
+  sql::Transaction transaction(&db_);
+  if (!transaction.Begin()) {
+    return Result::kDatabaseError;
+  }
+  sql::Statement statement(db_.GetCachedStatement(
+      SQL_FROM_HERE,
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? "
+      "WHERE id=? AND tombstone=0 AND is_temporary=1 AND node_type=?"));
+  statement.BindTime(0, modified_at);
+  statement.BindString(1, node.id.AsLowercaseString());
+  statement.BindInt(2, static_cast<int>(TreeNodeType::kSavedPage));
+  if (!statement.Run() || db_.GetLastChangeCount() != 1 ||
+      !transaction.Commit()) {
+    return Result::kDatabaseError;
+  }
+
+  Notify(MutationKind::kDeleted, node.id, {node.id});
   return Result::kOk;
 }
 

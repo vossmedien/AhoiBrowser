@@ -93,7 +93,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  SidebarDropTargetClaimCallback drop_target_claim_callback,
                  CanDropCallback can_drop_callback,
                  DropCallback drop_callback,
-                 views::ContextMenuController* context_menu_controller)
+                 views::ContextMenuController* context_menu_controller,
+                 ui::ImageModel origin_badge)
       : tab_(tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()),
         runtime_tab_handle_(tab ? tab->GetHandle().raw_value() : -1),
         drag_title_(internal::StableTabTitle(tab)),
@@ -136,7 +137,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
     title_->SetEnabledColor(visual_style::kText);
 
     media_indicator_ = AddChildView(std::make_unique<views::ImageView>());
-    media_indicator_->SetImage(GetSidebarMediaIndicator(media_alert));
+    media_indicator_->SetImage(media_alert
+                                   ? GetSidebarMediaIndicator(media_alert)
+                                   : std::move(origin_badge));
     media_indicator_->SetImageSize(gfx::Size(16, 16));
     media_indicator_->SetCanProcessEventsWithinSubtree(false);
     media_indicator_->GetViewAccessibility().SetIsIgnored(true);
@@ -749,7 +752,8 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     SidebarDropTargetClaimCallback drop_target_claim_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
-    views::ContextMenuController* context_menu_controller) {
+    views::ContextMenuController* context_menu_controller,
+    ui::ImageModel origin_badge) {
   return std::make_unique<OpenTabRowView>(
       tab, std::move(saved_node_id), std::move(favicon), media_alert,
       std::move(status_text), active, sleeping, drag_enabled,
@@ -757,7 +761,8 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
       std::move(thumbnails_callback), std::move(hover_callback),
       std::move(saved_drag_state_callback), std::move(drag_state_callback),
       std::move(drop_target_claim_callback), std::move(can_drop_callback),
-      std::move(drop_callback), context_menu_controller);
+      std::move(drop_callback), context_menu_controller,
+      std::move(origin_badge));
 }
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {

@@ -276,6 +276,11 @@ class BrowserSidebarHostView final
   void RefreshRuntimePresentation(bool refresh_auxiliary = true);
 
   void PublishLocalDeviceTabs();
+  sync::LocalTabCapture BuildSharedTabCapture(uint64_t generation) const;
+  void PublishRequestedSharedTabCapture(uint64_t generation);
+  ui::ImageModel GetSharedTabOriginIcon(const base::Uuid& node_id) const;
+  std::u16string GetSharedTabOriginText(const base::Uuid& node_id) const;
+  bool HasProjectedSharedPage(const sync::RemoteTabRecord& tab) const;
 
   void PublishDeviceTabCommands();
 
@@ -601,6 +606,8 @@ class BrowserSidebarHostView final
   // sync::ProfileSyncService::Observer:
   void OnAhoiDeviceTabsChanged(
       const sync::DeviceTabsSnapshot& snapshot) override;
+  void OnAhoiSharedTabSyncStateChanged(
+      const sync::SharedTabSyncState& state) override;
 
   // TabStripModelObserver:
   void OnTabStripModelChanged(TabStripModel*,
@@ -750,6 +757,8 @@ class BrowserSidebarHostView final
       context_move_submenu_models_;
   std::unique_ptr<views::MenuRunner> context_menu_runner_;
   base::CallbackListSubscription session_presentation_subscription_;
+  base::CallbackListSubscription shared_tab_capture_subscription_;
+  std::optional<sync::LocalTabCapture> observed_shared_tabs_;
   base::WeakPtrFactory<BrowserSidebarHostView> weak_ptr_factory_{this};
 };
 

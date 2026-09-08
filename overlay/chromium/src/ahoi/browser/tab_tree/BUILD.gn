@@ -4,8 +4,21 @@
 
 import("//testing/test.gni")
 
+source_set("shared_tab_target_policy") {
+  sources = [
+    "shared_tab_target_policy.cc",
+    "shared_tab_target_policy.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/sync:shared_tab_types",
+    "//base",
+    "//url",
+  ]
+}
+
 source_set("tab_tree") {
   sources = [
+    "tab_tree_model.cc",
     "tab_tree_model.h",
     "tab_tree_observer.h",
     "tab_tree_store.cc",
@@ -23,6 +36,7 @@ source_set("tab_tree") {
   ]
 
   public_deps = [
+    ":shared_tab_target_policy",
     "//base",
     "//sql",
     "//url",

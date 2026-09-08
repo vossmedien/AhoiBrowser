@@ -11,9 +11,10 @@
 #include <unordered_map>
 #include <utility>
 
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "base/containers/span.h"
-#include "base/strings/string_number_conversions.h"
 #include "base/strings/strcat.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "crypto/sha2.h"
@@ -66,7 +67,10 @@ tab_tree::TreeNode ConvertNode(const TreeNodeRecord& source) {
           .sort_key = source.sort_key,
           .created_at = source.created_at,
           .modified_at = source.modified_at,
-          .tombstone = source.tombstone};
+          .tombstone = source.tombstone,
+          .is_temporary = source.is_temporary,
+          .target_kind = source.target_kind,
+          .local_scheme = source.local_scheme};
 }
 
 }  // namespace
@@ -86,21 +90,26 @@ WorkspaceRecord WorkspaceToSyncRecord(const tab_tree::Workspace& workspace,
 
 TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
                                     SyncVersion version) {
-  return {.id = node.id,
-          .workspace_id = node.workspace_id,
-          .parent_id = node.parent_id,
-          .kind = node.type == tab_tree::TreeNodeType::kFolder
-                      ? TreeNodeKind::kFolder
-                      : TreeNodeKind::kPage,
-          .title = base::UTF16ToUTF8(node.title),
-          .icon = base::UTF16ToUTF8(node.icon),
-          .accent_argb = node.accent_argb,
-          .url = node.url.spec(),
-          .sort_key = node.sort_key,
-          .created_at = node.created_at,
-          .modified_at = node.modified_at,
-          .tombstone = node.tombstone,
-          .version = std::move(version)};
+  const auto target = tab_tree::GetSharedPageTarget(node);
+  return {
+      .id = node.id,
+      .workspace_id = node.workspace_id,
+      .parent_id = node.parent_id,
+      .kind = node.type == tab_tree::TreeNodeType::kFolder
+                  ? TreeNodeKind::kFolder
+                  : TreeNodeKind::kPage,
+      .title = base::UTF16ToUTF8(tab_tree::GetSharedPageTitle(node)),
+      .icon = base::UTF16ToUTF8(node.icon),
+      .accent_argb = node.accent_argb,
+      .url = target ? target->url : std::string(),
+      .sort_key = node.sort_key,
+      .created_at = node.created_at,
+      .modified_at = node.modified_at,
+      .tombstone = node.tombstone,
+      .version = std::move(version),
+      .is_temporary = node.is_temporary,
+      .target_kind = target ? std::make_optional(target->kind) : std::nullopt,
+      .local_scheme = target ? target->local_scheme : std::nullopt};
 }
 
 std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
@@ -145,6 +154,10 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
   const base::Uuid fallback_workspace = active.front()->id;
 
   std::map<base::Uuid, size_t> node_indexes;
+  std::map<base::Uuid, const tab_tree::TreeNode*> local_nodes;
+  for (const auto& node : local_snapshot.nodes) {
+    local_nodes.emplace(node.id, &node);
+  }
   std::set<base::Uuid> force_recovery;
   for (const TreeNodeRecord& source : nodes) {
     if (!source.id.is_valid() || source.title.empty() || source.sort_key.empty() ||
@@ -153,6 +166,32 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
       return std::nullopt;
     }
     tab_tree::TreeNode node = ConvertNode(source);
+    if (source.kind == TreeNodeKind::kFolder) {
+      if (source.is_temporary || source.target_kind || source.local_scheme ||
+          !source.url.empty()) {
+        return std::nullopt;
+      }
+    } else if (source.kind != TreeNodeKind::kPage || !source.target_kind ||
+               !tab_tree::IsValidSharedPageTarget(
+                   {.kind = *source.target_kind,
+                    .url = source.url,
+                    .local_scheme = source.local_scheme},
+                   source.is_temporary)) {
+      return std::nullopt;
+    }
+    if (node.target_kind == SharedTabTargetKind::kLocalOnly ||
+        node.target_kind == SharedTabTargetKind::kNewTab) {
+      const auto local = local_nodes.find(node.id);
+      if (local != local_nodes.end() && !local->second->tombstone &&
+          local->second->type == tab_tree::TreeNodeType::kSavedPage) {
+        if (!local->second->url.is_empty() && local->second->url.is_valid()) {
+          // An empty portable URL is not an instruction to clear this device's
+          // actual destination. Runtime navigation stays separate and lazy.
+          node.url = local->second->url;
+          node.title = local->second->title;
+        }
+      }
+    }
     auto workspace = workspace_indexes.find(node.workspace_id);
     if (workspace == workspace_indexes.end() ||
         (!node.tombstone && result.workspaces[workspace->second].tombstone)) {

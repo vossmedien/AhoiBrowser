@@ -33,8 +33,8 @@ bool TabTreeStore::InsertUndoOperation(
       SQL_FROM_HERE,
       "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,node_id,"
       "model_version,workspace_id,parent_id,node_type,title,icon,accent_argb,"
-      "url,sort_key,created_at,modified_at,tombstone) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "url,sort_key,created_at,modified_at,tombstone,is_temporary,target_kind,"
+      "local_scheme) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (size_t i = 0; i < snapshots.size(); ++i) {
     const NodeSnapshot& snapshot = snapshots[i];
     snapshot_statement.Reset(/*clear_bound_vars=*/true);
@@ -43,7 +43,7 @@ bool TabTreeStore::InsertUndoOperation(
     snapshot_statement.BindBool(2, snapshot.previous.has_value());
     snapshot_statement.BindString(3, snapshot.node_id.AsLowercaseString());
     if (!snapshot.previous.has_value()) {
-      for (int column = 4; column <= 15; ++column) {
+      for (int column = 4; column <= 18; ++column) {
         snapshot_statement.BindNull(column);
       }
     } else {
@@ -68,6 +68,17 @@ bool TabTreeStore::InsertUndoOperation(
       snapshot_statement.BindTime(13, node.created_at);
       snapshot_statement.BindTime(14, node.modified_at);
       snapshot_statement.BindBool(15, node.tombstone);
+      snapshot_statement.BindBool(16, node.is_temporary);
+      if (node.target_kind) {
+        snapshot_statement.BindInt(17, static_cast<int>(*node.target_kind));
+      } else {
+        snapshot_statement.BindNull(17);
+      }
+      if (node.local_scheme) {
+        snapshot_statement.BindString(18, *node.local_scheme);
+      } else {
+        snapshot_statement.BindNull(18);
+      }
     }
     if (!snapshot_statement.Run()) {
       return false;
@@ -89,7 +100,8 @@ bool TabTreeStore::RestoreSnapshot(const NodeSnapshot& snapshot) {
       SQL_FROM_HERE,
       "UPDATE tree_nodes SET model_version=?,workspace_id=?,parent_id=?,"
       "node_type=?,title=?,icon=?,accent_argb=?,url=?,sort_key=?,created_at=?,"
-      "modified_at=?,tombstone=? WHERE id=?"));
+      "modified_at=?,tombstone=?,is_temporary=?,target_kind=?,local_scheme=? "
+      "WHERE id=?"));
   statement.BindInt(0, node.model_version);
   statement.BindString(1, node.workspace_id.AsLowercaseString());
   if (node.parent_id.has_value()) {
@@ -110,7 +122,18 @@ bool TabTreeStore::RestoreSnapshot(const NodeSnapshot& snapshot) {
   statement.BindTime(9, node.created_at);
   statement.BindTime(10, node.modified_at);
   statement.BindBool(11, node.tombstone);
-  statement.BindString(12, node.id.AsLowercaseString());
+  statement.BindBool(12, node.is_temporary);
+  if (node.target_kind) {
+    statement.BindInt(13, static_cast<int>(*node.target_kind));
+  } else {
+    statement.BindNull(13);
+  }
+  if (node.local_scheme) {
+    statement.BindString(14, *node.local_scheme);
+  } else {
+    statement.BindNull(14);
+  }
+  statement.BindString(15, node.id.AsLowercaseString());
   return statement.Run() && db_.GetLastChangeCount() == 1;
 }
 
@@ -119,7 +142,8 @@ bool TabTreeStore::ReadUndoSnapshots(int64_t operation_id,
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "SELECT existed,node_id,model_version,workspace_id,parent_id,node_type,"
-      "title,icon,accent_argb,url,sort_key,created_at,modified_at,tombstone "
+      "title,icon,accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+      "is_temporary,target_kind,local_scheme "
       "FROM "
       "undo_node_snapshots WHERE operation_id=? ORDER BY ordinal"));
   statement.BindInt64(0, operation_id);
@@ -167,6 +191,23 @@ bool TabTreeStore::ReadUndoSnapshots(int64_t operation_id,
       node.created_at = statement.ColumnTime(11);
       node.modified_at = statement.ColumnTime(12);
       node.tombstone = statement.ColumnBool(13);
+      const int is_temporary = statement.ColumnInt(14);
+      if (is_temporary != 0 && is_temporary != 1) {
+        return false;
+      }
+      node.is_temporary = is_temporary == 1;
+      if (statement.GetColumnType(15) != sql::ColumnType::kNull) {
+        const int target_kind = statement.ColumnInt(15);
+        if (target_kind < static_cast<int>(sync::SharedTabTargetKind::kWeb) ||
+            target_kind >
+                static_cast<int>(sync::SharedTabTargetKind::kLocalOnly)) {
+          return false;
+        }
+        node.target_kind = static_cast<sync::SharedTabTargetKind>(target_kind);
+      }
+      if (statement.GetColumnType(16) != sql::ColumnType::kNull) {
+        node.local_scheme = statement.ColumnString(16);
+      }
       if (!ValidateNode(node)) {
         return false;
       }
