@@ -19,6 +19,19 @@ namespace ahoi::tab_tree {
 TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
     const TabTreeSnapshot& snapshot) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return ReplaceSnapshot(snapshot, nullptr);
+}
+
+TabTreeStore::Result TabTreeStore::ReplacePersistenceSnapshot(
+    const PersistenceSnapshot& snapshot) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return ReplaceSnapshot(snapshot.tree, &snapshot.sync_baseline_receipt);
+}
+
+TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
+    const TabTreeSnapshot& snapshot,
+    const std::string* sync_baseline_receipt) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
   }
@@ -216,6 +229,24 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
       if (!insert_undo_node.Run()) {
         return Result::kDatabaseError;
       }
+    }
+  }
+
+  // The local baseline and all tree/undo rows become durable together. A
+  // rejected snapshot or SQL failure cannot advance just the receipt. A
+  // logical-only replacement leaves the current baseline untouched.
+  if (sync_baseline_receipt) {
+    const std::string query =
+        sync_baseline_receipt->empty()
+            ? "DELETE FROM meta WHERE key=?"
+            : "INSERT OR REPLACE INTO meta(key,value) VALUES(?,?)";
+    sql::Statement receipt(db_.GetUniqueStatement(query));
+    receipt.BindString(0, kSyncBaselineReceiptKey);
+    if (!sync_baseline_receipt->empty()) {
+      receipt.BindString(1, *sync_baseline_receipt);
+    }
+    if (!receipt.Run()) {
+      return Result::kDatabaseError;
     }
   }
 

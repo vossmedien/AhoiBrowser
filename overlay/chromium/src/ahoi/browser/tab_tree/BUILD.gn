@@ -9,8 +9,8 @@ source_set("tab_tree") {
     "tab_tree_model.h",
     "tab_tree_observer.h",
     "tab_tree_store.cc",
-    "tab_tree_store_duplicate_workspace.cc",
     "tab_tree_store.h",
+    "tab_tree_store_duplicate_workspace.cc",
     "tab_tree_store_internal.cc",
     "tab_tree_store_internal.h",
     "tab_tree_store_move_delete.cc",
@@ -31,7 +31,10 @@ source_set("tab_tree") {
 
 source_set("unit_tests") {
   testonly = true
-  sources = [ "tab_tree_store_unittest.cc" ]
+  sources = [
+    "tab_tree_store_persistence_unittest.cc",
+    "tab_tree_store_unittest.cc",
+  ]
   deps = [
     ":tab_tree",
     "//base/test:test_support",

@@ -174,7 +174,7 @@ void SessionBridge::OnTabTreeLoaded(TabTreeLoadResult result) {
 
   if (result.status == TabTreeLoadStatus::kLoaded) {
     std::vector<tab_tree::Workspace> active_workspaces;
-    if (tab_tree_store_->ReplaceWithSnapshot(result.snapshot) !=
+    if (tab_tree_store_->ReplacePersistenceSnapshot(result.snapshot) !=
             tab_tree::TabTreeStore::Result::kOk ||
         tab_tree_store_->GetWorkspaces(&active_workspaces) !=
             tab_tree::TabTreeStore::Result::kOk ||
@@ -251,20 +251,20 @@ void SessionBridge::PersistTabTreeNow() {
   if (!tab_tree_store_ || !persistence_enabled_ || !persistence_task_runner_) {
     return;
   }
-  tab_tree::TabTreeSnapshot snapshot;
-  if (tab_tree_store_->ExportSnapshot(&snapshot) !=
+  tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
+  if (tab_tree_store_->ExportPersistenceSnapshot(&snapshot) !=
       tab_tree::TabTreeStore::Result::kOk) {
     LOG(ERROR) << "Ahoi tab-tree snapshot could not be exported";
     return;
   }
   persistence_task_runner_->PostTask(
-      FROM_HERE,
-      base::BindOnce(
-          [](base::FilePath path, tab_tree::TabTreeSnapshot snapshot) {
-            std::ignore = SessionBridge::PersistTabTreeSnapshot(
-                path, std::move(snapshot));
-          },
-          tab_tree_database_path_, std::move(snapshot)));
+      FROM_HERE, base::BindOnce(
+                     [](base::FilePath path,
+                        tab_tree::TabTreeStore::PersistenceSnapshot snapshot) {
+                       std::ignore = SessionBridge::PersistTabTreeSnapshot(
+                           path, std::move(snapshot));
+                     },
+                     tab_tree_database_path_, std::move(snapshot)));
 }
 
 void SessionBridge::NotifyTabTreeSnapshotChanged() {
@@ -282,9 +282,9 @@ SessionBridge::TabTreeLoadResult SessionBridge::LoadTabTreeSnapshot(
     return {.status = TabTreeLoadStatus::kMissing};
   }
   tab_tree::TabTreeStore store;
-  tab_tree::TabTreeSnapshot snapshot;
-  if (!store.Initialize(path) ||
-      store.ExportSnapshot(&snapshot) != tab_tree::TabTreeStore::Result::kOk) {
+  tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
+  if (!store.Initialize(path) || store.ExportPersistenceSnapshot(&snapshot) !=
+                                     tab_tree::TabTreeStore::Result::kOk) {
     return {.status = TabTreeLoadStatus::kFailed};
   }
   return {.status = TabTreeLoadStatus::kLoaded,
@@ -292,15 +292,16 @@ SessionBridge::TabTreeLoadResult SessionBridge::LoadTabTreeSnapshot(
 }
 
 // static
-bool SessionBridge::PersistTabTreeSnapshot(const base::FilePath &path,
-                                           tab_tree::TabTreeSnapshot snapshot) {
+bool SessionBridge::PersistTabTreeSnapshot(
+    const base::FilePath& path,
+    tab_tree::TabTreeStore::PersistenceSnapshot snapshot) {
   tab_tree::TabTreeStore store;
   if (!store.Initialize(path)) {
     LOG(ERROR) << "Ahoi tab-tree persistence could not open its store";
     return false;
   }
   const tab_tree::TabTreeStore::Result result =
-      store.ReplaceWithSnapshot(snapshot);
+      store.ReplacePersistenceSnapshot(snapshot);
   if (result != tab_tree::TabTreeStore::Result::kOk) {
     // Record only the failure class, never profile paths or saved-page data.
     LOG(ERROR) << "Ahoi tab-tree persistence failed: "
@@ -338,8 +339,8 @@ void SessionBridge::FlushPersistenceForBackup(
     std::move(callback).Run(false);
     return;
   }
-  tab_tree::TabTreeSnapshot snapshot;
-  if (tab_tree_store_->ExportSnapshot(&snapshot) !=
+  tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
+  if (tab_tree_store_->ExportPersistenceSnapshot(&snapshot) !=
       tab_tree::TabTreeStore::Result::kOk) {
     std::move(callback).Run(false);
     return;

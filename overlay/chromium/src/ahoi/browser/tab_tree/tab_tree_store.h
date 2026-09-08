@@ -46,6 +46,16 @@ class TabTreeStore {
     std::string sort_key;
   };
 
+  // Local persistence envelope, not part of the logical/sync/Arc snapshot.
+  // The receipt identifies the last applied Sync baseline, not the current
+  // local contents: ordinary edits must preserve it.
+  struct PersistenceSnapshot {
+    TabTreeSnapshot tree;
+    std::string sync_baseline_receipt;
+
+    bool operator==(const PersistenceSnapshot&) const = default;
+  };
+
   TabTreeStore();
   TabTreeStore(const TabTreeStore&) = delete;
   TabTreeStore& operator=(const TabTreeStore&) = delete;
@@ -54,7 +64,8 @@ class TabTreeStore {
   // Opens (or creates) a profile-local database and atomically initializes its
   // versioned schema. All later calls must run on this same sequence.
   [[nodiscard]] bool Initialize(const base::FilePath& path);
-  // Opens an in-memory database for isolated tests and transient tools.
+  // Opens an in-memory database, including the UI store whose complete state
+  // is mirrored by the profile bridge on its dedicated persistence sequence.
   [[nodiscard]] bool InitializeInMemory();
 
   void AddObserver(TabTreeObserver* observer);
@@ -165,9 +176,16 @@ class TabTreeStore {
   // undo history. A profile bridge uses these methods on an in-memory store;
   // a dedicated MayBlock sequence owns the on-disk mirror.
   [[nodiscard]] Result ExportSnapshot(TabTreeSnapshot* snapshot);
+  // Logical replacements (including local import/undo recovery) retain the
+  // current receipt. Only an explicit full-state replacement changes it.
   [[nodiscard]] Result ReplaceWithSnapshot(const TabTreeSnapshot& snapshot);
+  [[nodiscard]] Result ExportPersistenceSnapshot(PersistenceSnapshot* snapshot);
+  [[nodiscard]] Result ReplacePersistenceSnapshot(
+      const PersistenceSnapshot& snapshot);
 
  private:
+  static constexpr char kSyncBaselineReceiptKey[] = "sync_baseline_receipt";
+
   struct NodeSnapshot {
     base::Uuid node_id;
     std::optional<TreeNode> previous;
@@ -179,6 +197,9 @@ class TabTreeStore {
   [[nodiscard]] bool IsReady() const;
   [[nodiscard]] bool ValidateWorkspace(const Workspace& workspace) const;
   [[nodiscard]] bool ValidateNode(const TreeNode& node) const;
+  [[nodiscard]] Result ReplaceSnapshot(const TabTreeSnapshot& snapshot,
+                                       const std::string* sync_baseline_receipt)
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
 
   [[nodiscard]] Result ReadWorkspace(const base::Uuid& workspace_id,
                                      Workspace* workspace)

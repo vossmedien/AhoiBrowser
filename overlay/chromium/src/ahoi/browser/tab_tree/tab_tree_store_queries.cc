@@ -9,6 +9,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/check.h"
 #include "sql/statement.h"
+#include "sql/transaction.h"
 
 namespace ahoi::tab_tree {
 
@@ -277,6 +278,46 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
     return Result::kDatabaseError;
   }
 
+  *snapshot = std::move(exported);
+  return Result::kOk;
+}
+
+TabTreeStore::Result TabTreeStore::ExportPersistenceSnapshot(
+    PersistenceSnapshot* snapshot) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!IsReady()) {
+    return Result::kNotInitialized;
+  }
+  if (!snapshot) {
+    return Result::kInvalidArgument;
+  }
+
+  sql::Transaction transaction(&db_);
+  if (!transaction.Begin()) {
+    return Result::kDatabaseError;
+  }
+  PersistenceSnapshot exported;
+  const Result result = ExportSnapshot(&exported.tree);
+  if (result != Result::kOk) {
+    return result;
+  }
+  sql::Statement receipt(
+      db_.GetUniqueStatement("SELECT value FROM meta WHERE key=?"));
+  receipt.BindString(0, kSyncBaselineReceiptKey);
+  if (receipt.Step()) {
+    if (receipt.GetColumnType(0) != sql::ColumnType::kText) {
+      return Result::kDatabaseError;
+    }
+    exported.sync_baseline_receipt = receipt.ColumnString(0);
+    if (receipt.Step()) {
+      return Result::kDatabaseError;
+    }
+  }
+  // Missing means no known baseline, not a reason to write a new empty key
+  // into an existing database or an Arc backup merely while reading it.
+  if (!receipt.Succeeded() || !transaction.Commit()) {
+    return Result::kDatabaseError;
+  }
   *snapshot = std::move(exported);
   return Result::kOk;
 }

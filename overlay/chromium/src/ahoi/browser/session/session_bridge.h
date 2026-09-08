@@ -240,7 +240,7 @@ class SessionBridge : public KeyedService,
 
   struct TabTreeLoadResult {
     TabTreeLoadStatus status = TabTreeLoadStatus::kFailed;
-    tab_tree::TabTreeSnapshot snapshot;
+    tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
   };
 
   struct WindowState {
@@ -285,8 +285,9 @@ class SessionBridge : public KeyedService,
   void PersistTabTreeNow();
   void NotifyTabTreeSnapshotChanged();
   static TabTreeLoadResult LoadTabTreeSnapshot(const base::FilePath& path);
-  static bool PersistTabTreeSnapshot(const base::FilePath& path,
-                                     tab_tree::TabTreeSnapshot snapshot);
+  static bool PersistTabTreeSnapshot(
+      const base::FilePath& path,
+      tab_tree::TabTreeStore::PersistenceSnapshot snapshot);
   void EnsureTreeNodeForTab(tabs::TabInterface* tab);
   void ScheduleTreeNodeBinding(tabs::TabInterface* tab);
   void UnbindTreeNodeFromTabInternal(tabs::TabInterface* tab,

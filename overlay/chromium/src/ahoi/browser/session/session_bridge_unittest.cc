@@ -171,6 +171,13 @@ TEST_F(SessionBridgeTest, BackupFlushPersistsSecondNestedTreeMutation) {
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store->CreateNode(folder));
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store->CreateNode(page));
 
+  tab_tree::TabTreeStore::PersistenceSnapshot applied;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->ExportPersistenceSnapshot(&applied));
+  applied.sync_baseline_receipt = "applied-before-local-edit";
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->ReplacePersistenceSnapshot(applied));
+
   base::test::TestFuture<bool> first_flush;
   bridge_->FlushPersistenceForBackup(first_flush.GetCallback());
   ASSERT_TRUE(first_flush.Get());
@@ -194,10 +201,11 @@ TEST_F(SessionBridgeTest, BackupFlushPersistsSecondNestedTreeMutation) {
       profile()->GetPath().AppendASCII(kTabTreeDatabaseFilename);
   tab_tree::TabTreeStore reloaded;
   ASSERT_TRUE(reloaded.Initialize(database_path));
-  tab_tree::TabTreeSnapshot persisted;
+  tab_tree::TabTreeStore::PersistenceSnapshot persisted;
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
-            reloaded.ExportSnapshot(&persisted));
-  EXPECT_EQ(expected, persisted);
+            reloaded.ExportPersistenceSnapshot(&persisted));
+  EXPECT_EQ(expected, persisted.tree);
+  EXPECT_EQ(applied.sync_baseline_receipt, persisted.sync_baseline_receipt);
   tab_tree::TreeNode persisted_page;
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             reloaded.GetNode(page.id, &persisted_page));

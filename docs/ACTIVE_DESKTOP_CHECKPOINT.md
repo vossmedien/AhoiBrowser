@@ -105,14 +105,24 @@ fresh readback. Arc is now PID31169 and remains running. Do not reuse old PIDs.
 No fresh AnyChat install/permission approval is inferred from elapsed time or
 the new capacity rules. Existing UI results below remain source-bound history.
 
-Next implementation: requested LOCAL Sync-baseline receipt, Native B scope.
+Current implementation: requested LOCAL Sync-baseline receipt, Native B scope.
 Native SessionBridge is in-memory plus coalesced async Disk persistence; existing
-sync Apply-kOk precedes durable write. Add a local persistence envelope carrying
+sync Apply-kOk precedes durable write. A local persistence envelope now carries
 tree+receipt through the same SQL transaction/load/save/flush, leaving the domain
-TabTreeSnapshot and Arc fingerprints unchanged. Common must await durable success
-and retain original authorization through Disk commit; its unfinished synchronous
-receipt signature is not a released runtime API. No Common/Swift edits or unsafe
-legacy fallback. Native Install/Enable UI seam and storage_frontend.{h,cc} patch
+TabTreeSnapshot and Arc fingerprints unchanged. Ordinary tree replacements and
+edits preserve the receipt; reading an old database does not add an empty key.
+Three focused real-SQLite cases and the existing Session flush regression are
+prepared, not compiled/executed. No new candidate/build or Sync runtime claim.
+
+Common Service/backend handoff `e2f6711` is now committed and read; B-D do NOT
+wait for another general freeze. One concrete integration correction is requested
+in queue `01a07f98-70b9-7660-a620-ec057c927a3b`: replace synchronous receipt Apply
+with an async Result completion, so Common awaits durable success and retains
+original authorization through Disk commit. Native will persist disk-first and
+only project into RAM if the original scope and local revision still match.
+Never let an ordinary flush bypass a rejected remote persistence operation.
+No Common/Swift edits or unsafe legacy fallback. Native Install/Enable UI seam
+and storage_frontend.{h,cc} patch
 from ADR0010 are explicitly accepted in Desktop scope; exact Common signatures
 and future integrated candidate remain separate. Read-only helper found the
 existing persistence seams; no helper writes/builds/tests.
@@ -658,10 +668,12 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    slide/fade, reported seam, zero-tab/split stability and Bookmark core flow.
    Do not mutate the failed imported tree to set up tests before its recovery.
    Reuse the completed startup/Sidebar evidence; do not replay whole matrices.
-6. Native A is source-complete in906dac8 outside the frozen candidate. B-D use
-   only the genuinely completed Common Service/backend handoff, not current
-   WIP or a legacy vector fallback. Common C++/Swift and their unified-format
-   work remain with the Sync owner; see `docs/SHARED_TAB_NATIVE_SEAMS.md`.
+6. Native A is source-complete in906dac8 outside the frozen candidate. Continue
+   Native B-D against committed Common Service/backend `e2f6711`, including the
+   local receipt envelope above and its required durable async completion.
+   No general header/role/freeze wait, WIP integration or legacy vector fallback.
+   Common C++/Swift remain with the Sync owner; see
+   `docs/SHARED_TAB_NATIVE_SEAMS.md`.
 7. After the current browser package, implement workspace-local website sessions
    under `docs/WORKSPACE_SESSIONS.md`, preserving global History/passwords/
    extensions and the no-cookie-sync boundary. Continue every remaining master
