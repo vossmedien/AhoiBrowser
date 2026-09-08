@@ -175,17 +175,20 @@ Chromium checkout/out has NOT been refreshed, no overlay/build process started.
 The start gate changed materially: repeat samples reached82–92% overall CPU use,
 31GiB RAM used with11–14GiB compressed. FillIt guest/third players, multiple
 Simulator journeys, CUA and WindowServer are active; no foreign job was touched.
-Wait for sustained headroom before even the heavy overlay/preflight phase, then
-use the already prepared snapshot; do not restart source implementation/review.
+That sample deferred the start; the subsequent gate result below supersedes it.
 
-**Gate subsequently reopened:** repeat samples returned43–53% idle and45%
-memory-pressure headroom. Guarded overlay integration is now RUNNING as exec
-session `41438` from the same clean74ceb snapshot, with canonical AHOI_WORK_ROOT.
-Log: `artifacts/build/desktop-shared-tabs-74ceb15-20260908/overlay-0841.log`.
-No compiler has been started by this thread yet. Resume this exact live handle;
-after overlay succeeds and capacity still fits, run one app-only build with
-AHOI_JOBS=2 (not a new snapshot/review). Desktop UI/installation stay untouched
-during the Mobile Simulator window. This is not a successful build receipt.
+**Current live build, 08:44:54 UTC:** overlay41438 is TERMINAL EXIT0 and its
+checkout delta was verified. Log remains
+`artifacts/build/desktop-shared-tabs-74ceb15-20260908/overlay-0841.log`.
+The following capacity sample had53–61% idle/49% memory headroom. The one
+guarded app-only build is RUNNING as exec `71760` from the same clean74ceb
+snapshot, canonical AHOI_WORK_ROOT, AHOI_JOBS=2, AHOI_NINJA_KEEP_GOING=1, command
+`./scripts/build-ahoi.sh dev`. No added test targets. Log:
+`artifacts/build/desktop-shared-tabs-74ceb15-20260908/build-0843.log` (actual
+start08:44:54; filename is only a label). Host/toolchain/disk/Sparkle gates passed;
+hooks/build remain in progress. Resume71760; do not rerun overlay or start a
+second build. Desktop UI/installation stay untouched during the Mobile Simulator
+window. This is NOT a successful build or installation receipt.
 
 Do not launch the new normal-tab mirroring on the real failed-import Default
 profile before its4cb Arc recovery. Initial new-format acceptance uses an
@@ -195,7 +198,7 @@ Common's canonical Inbox Bottom-clock follow-up was requested in
 defaults as user edits. Settings/extension-restoration and later workspace
 website-session isolation remain in the master scope, not completed here.
 
-**Newest live action:** same installed4cb, no new build. Short visible Sidebar
+**Latest completed native UI journey (4cb history):** short visible Sidebar
 flow passed: docked -> floating -> hide -> Cmd+Shift+S restores floating ->
 original docked mode. Same URL/active tab, original width264/toggle0 restored;
 no imported-tree/folder/workspace edit. THEN exactly five existing, unchanged
