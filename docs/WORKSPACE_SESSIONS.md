@@ -55,6 +55,33 @@ local headers, rather than an assumption about a current upstream API, must
 determine the final small integration. Review that concrete routing before
 writing engine hooks; no new parallel session/permission architecture.
 
+### Concrete pinned routing findings — 2026-09-08
+
+A bounded read-only helper identified the next routing seams; Desktop verified
+the critical M152 implementations directly. The preferred implementation lead
+is one regular Profile with persistent fixed StoragePartitions, not additional
+full profiles or OTR emulation. `site_instance_impl.cc:244–255` explicitly creates
+a non-Guest fixed partition. This is still planning, not implemented isolation.
+
+| Initial seam (paths relative to Chromium src) | Required routing |
+| --- | --- |
+| `ahoi/browser/session/workspace_session_metadata.{h,cc}` | Persist the device-local website-session binding before requests, separate from mutable Workspace/Tree identity; existing default binding stays explicit. |
+| `chrome/browser/ui/navigator/browser_navigator.cc`, CreateTargetContents | Select the correct SiteInstance before WebContents creation; preserve special Chrome/extension pages and opener relationships. |
+| `chrome/browser/ui/browser_tabrestore.cc`, CreateRestoredTab | Restore the matching partition AND SessionStorageNamespaceMap, not only the URL/SiteInstance. |
+| `chrome/browser/sessions/session_restore.cc:1095` | Recreate sessionStorage from that binding, not unconditionally DefaultStoragePartition. |
+| `content/browser/web_contents/web_contents_impl.cc:5557` | Preserve a normal fixed partition for noopener while creating a separate BrowsingInstance; current code preserves only Guest partitions. |
+
+This is not a complete five-entry feature plan: native permission and extension
+cookie routing are required integration boundaries too. The live pinned
+ContentSettingPermissionContextBase still reads a profile-wide SettingsMap;
+PermissionContextBase explicitly notes that permissions are not partition-scoped.
+The Chrome cookies API's ParseStoreCookieManager uses DefaultStoragePartition.
+Consequently, simply selecting a partition for initial NewTab is insufficient.
+Keep upstream permission/extension authority, global extension trust and native
+special-page ownership; do not reinterpret pins as rights or swap global grants
+when the foreground workspace changes. New isolated jars start empty; no
+automatic copying, clearing or logout of existing website sessions.
+
 ## Sync coordination
 
 Desktop owns native isolation and UI. Unified Sync owner

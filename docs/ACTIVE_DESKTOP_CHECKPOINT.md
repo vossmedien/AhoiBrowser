@@ -104,35 +104,64 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: c20a759 installed; Save sidebar journey RED
+## Current candidate: 6ae4070 installed; local tab lifecycle exercised
 
 **Current continuation, 2026-09-08:** global/project AGENTS reread again after
 the user's latest update. Reuse same-scope approvals; finish authorized
 preparation before necessary questions; no inferred gates from optional skill
-guidance. Installed candidate is now `c20a759`; build82463/install99703 both
-TERMINAL EXIT0. Fresh-profile startup and example.com navigation worked, but
-Cmd+D persisted saved state without updating the visible temporary row. This
-is a native product failure, not an external Sync gate. Exact evidence and
-cleanup: `docs/audit-evidence/2026-09-08-native-shared-tabs.md`.
+guidance. Installed candidate is `6ae40701d93727f8915668a99a3aaf22aef16de0`;
+overlay63476/build91795/install29501 all TERMINAL EXIT0. Native272385f corrected
+the originalc20 Save-row failure. Visible repeat: neworg tab -> Cmd+D immediate
+saved row -> native Loslösen -> normal Cmd+Q -> restart/Continue with activeorg
+and no duplicates -> explicit Cmd+W removes onlyorg. Read-only DB confirms the
+same global ID across1->0->1 temporary flags, tomb0 through Quit, tomb1 only on
+explicit close; savedcom stays live. This is local lifecycle evidence, NOT a
+cross-client/CloudKit/release or uninterrupted no-focus-change pass. One expired
+menu handle and unexplained concurrent focus/width/infobar changes are retained
+in `docs/audit-evidence/2026-09-08-native-shared-tabs.md`, not hidden by retries.
 
-Owned fix272385f adds the missing presentation notification after bound page
-status/workspace changes; no Common or test changes. It is committed/pushed and
-cherry-picked onto the SAME clean detached snapshot as6ae4070. Corrective
-overlay63476 is TERMINAL EXIT0, checkout delta verified. The guarded app-only
-build91795 is RUNNING (09:31 UTC, jobs2, no extra test targets), logs
-`artifacts/build/desktop-shared-tabs-6ae4070-20260908/{overlay,build}.log`.
-Fresh gate:72–78% CPU idle,43% memory headroom, no compiler workload,70.0GiB
-disk; no Ahoi priority or per-process80% rule. Resume91795, then verify/sign/
-atomic install through the existing scripts and repeat the visible journey.
-Do not rerun82463 or install unchangedc20 as a purported correction.
+Build receipt `artifacts/build/desktop-shared-tabs-6ae4070-20260908/build-receipt.json`,
+SHA334a51d3a9a79b5b18ff1954e5869d8ed7c4b2c68af6353c179f5d9eaff8cf62.
+Install receipt `artifacts/install/ahoi-dev-6ae4070-20260908.json`,
+SHA2814734670336c7f2c77cf27031211a2e7c77fe1693820e0ee5ee1f8d82d8195.
+Binary9870d0a9b99d849c060dad9e42e612a3a7841f98d5e57b730b1cca03599e6b8e,
+tree5bb026f6f612e7b43248b84b46d89322120bb60888659466f5511bac04da00f7.
+Receipt-bound4cb/c20 rollbacks remain; source6ae is protected at
+`refs/ahoi/build-candidates/desktop-native-tabs-6ae4070`.
 
-Runtime32203 (isolated profile `/private/tmp/ahoi-native-tabs-c20a759.Z10Mne`)
-is TERMINAL EXIT0. CUA getAXState after Quit unexpectedly relaunched the normal
-profile's startup chooser; it was immediately quit WITHOUT continuing. Real
-Default DB and Arc journal hashes remained unchanged; no whole-profile
-byte-identity claim. Do not query a bound CUA app after Quit: verify process
-exit read-only, then explicitly relaunch with the isolated profile arguments
-before reattaching. No Ahoi app is currently running or UI slot handed out.
+Only AFTER that visible journey, existing Save regression was strengthened for
+global identity/Unsave notification and updated to reject obsolete URL-only
+rebinding: test-onlye215186, committed/pushed, clean detached snapshoted84ec4.
+Product bytes/source relative6ae are unchanged. Test-only overlay81032 and
+two-target build2870 are TERMINAL EXIT0, with no app restamp/sign/install.
+Explicit nonempty lists preceded jobs1/retries0 runs: Session75097 EXIT0,8/8;
+Tree EXIT1,3/4. The failed receipt test's SQLite trigger was disabled on the
+production connection, so no error was injected. Its assertions stayed strict.
+Test-onlyf97b661 changes that fixture to an enforced CHECK; same clean detached
+snapshot nowa9d6ad7. Overlay19904/build85696 both TERMINAL EXIT0. Fresh listed
+four receipt tests now4/4 SUCCESS/EXIT0, with actual CHECK error observation and
+exact rollback; Session remains8/8 on unchanged source. No app reinstallation
+or repeated E2E for these test-only edits. Logs/summaries:
+`artifacts/tests/native-tabs-6ae4070-20260908/`. The original failure is retained.
+This native local-lifecycle slice is closed; no build/test process remains and
+none of these handles should be resumed. Full master/remote UI/Sync remains open.
+
+Workspace-isolation preparation is captured in the existing
+`docs/WORKSPACE_SESSIONS.md`: main verified the helper's concrete fixed-partition,
+noopener, restore/sessionStorage, permission and extension-cookie routing
+findings. This adds no implementation/pass or new Common schema requirement.
+
+Owned runtime97371 and restart52424 are TERMINAL EXIT0. Isolated profile:
+`/private/tmp/ahoi-native-tabs-c20a759.Z10Mne`. No Ahoi app runs now or new UI slot
+is granted. Do not query a bound CUA app after Quit: getAXState can relaunch its
+normal-profile chooser. Verify process exit read-only and relaunch explicitly
+with test-profile arguments before reattaching. Real Default DB/journal hashes
+still match originals; no whole-profile byte-identity claim.
+
+### Integrated native source inventory and earlier build history
+
+The following source-only statements describe their dated pre-build stages;
+current installed/runtime evidence is above, not reset by this history.
 
 Native B-D source now connects the committed Common package `e2f6711`, async
 completion `5e74472`, durable-export/support separation `37bc558` and cancelled
@@ -772,13 +801,12 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Finish the native presentation correction272385f/clean snapshot6ae4070:
-   overlay63476 EXIT0, app-only guarded build91795 is RUNNING; resume it.
-   Prior82463/install99703 are terminal successes, not restart targets; c20's
-   visible Save journey is RED. Preserve/hash the corrected receipt, atomically
-   install that exact signed result and FIRST repeat create/save/unsave/restart
-   in the isolated test profile. Retain4cb rollback/receipts and protect Default.
-   No tests, Common WIP or extra test targets before the corrected visible flow.
+1. Installed6ae's bounded local lifecycle and focused12-case checks are complete.
+   All app/test builds, installers and runtimes above are terminal, NOT restart
+   targets. Keep installed6ae/receipts, clean detacheda9d6ad7 and4cb rollback.
+   Continue the remaining product steps below; no further matrix, app reinstall
+   for test-only edits, or integration of Common WIP. Real remote projection/
+   origin UX and shared Sync are not closed by these local results.
 2. Arc's real Default profile remains protected. After Arc is normally closed,
    use the compatible4cb baseline's guarded importer recovery before allowing
    new normal-tab mirroring to touch that failed-import profile. Open the real
@@ -797,7 +825,7 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    slide/fade, reported seam, zero-tab/split stability and Bookmark core flow.
    Do not mutate the failed imported tree to set up tests before its recovery.
    Reuse the completed startup/Sidebar evidence; do not replay whole matrices.
-6. Native A-D source is integrated in the installed c20a759 candidate, including
+6. Native A-D source is integrated in the installed6ae4070 candidate, including
    the released async completion and durable-current export. After the visible
    local journey, resolve any actual product defect and the remaining shared-
    temporary-row UX, then coordinate the matching-client roundtrip. Do not
