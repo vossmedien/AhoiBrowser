@@ -25,6 +25,7 @@ public enum CompanionCloudKitBootstrap {
     public static func makeProvider(
         syncEnabled: Bool = false,
         containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
         recordsURL: URL,
         stateURL: URL,
         automaticallySync: Bool = true,
@@ -35,6 +36,7 @@ public enum CompanionCloudKitBootstrap {
             return try makeProviderChecked(
                 syncEnabled: syncEnabled,
                 containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
                 recordsURL: recordsURL,
                 stateURL: stateURL,
                 automaticallySync: automaticallySync,
@@ -52,6 +54,7 @@ public enum CompanionCloudKitBootstrap {
     public static func makeProviderChecked(
         syncEnabled: Bool,
         containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
         recordsURL: URL,
         stateURL: URL,
         automaticallySync: Bool = true,
@@ -105,6 +108,7 @@ public enum CompanionCloudKitBootstrap {
         return try CloudKitSyncProvider(
             configuration: .init(
                 containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
                 automaticallySync: automaticallySync,
                 bootstrapClaim: bootstrapClaim
             ),
@@ -119,6 +123,7 @@ public enum CompanionCloudKitBootstrap {
     public static func makeRuntime(
         syncEnabled: Bool = false,
         containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
         keyConfiguration: CompanionSyncKeyConfiguration?,
         repository: LocalFirstRepository,
         recordsURL: URL,
@@ -131,6 +136,7 @@ public enum CompanionCloudKitBootstrap {
             return try makeRuntimeChecked(
                 syncEnabled: syncEnabled,
                 containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
                 keyConfiguration: keyConfiguration,
                 repository: repository,
                 recordsURL: recordsURL,
@@ -150,6 +156,7 @@ public enum CompanionCloudKitBootstrap {
     public static func makeRuntimeChecked(
         syncEnabled: Bool,
         containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
         keyConfiguration: CompanionSyncKeyConfiguration?,
         repository: LocalFirstRepository,
         recordsURL: URL,
@@ -194,6 +201,7 @@ public enum CompanionCloudKitBootstrap {
         guard let provider = try makeProviderChecked(
             syncEnabled: true,
             containerIdentifier: containerIdentifier,
+            zoneName: zoneName,
             recordsURL: recordsURL,
             stateURL: stateURL,
             quarantineStore: quarantineStore,

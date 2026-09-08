@@ -27,6 +27,7 @@ public enum CompanionCloudKitKeyRotationBootstrap {
     @available(iOS 17.0, macOS 14.0, *)
     public static func makeRuntimeChecked(
         containerIdentifier: String,
+        zoneName: String = "AhoiBrowserSyncV3",
         familyAnchorConfiguration: CompanionSyncKeyConfiguration,
         currentVersion: UInt32,
         nextVersion: UInt32,
@@ -43,6 +44,7 @@ public enum CompanionCloudKitKeyRotationBootstrap {
         guard let provider = try CompanionCloudKitBootstrap.makeProviderChecked(
             syncEnabled: true,
             containerIdentifier: containerIdentifier,
+            zoneName: zoneName,
             recordsURL: recordsURL,
             stateURL: stateURL,
             automaticallySync: false

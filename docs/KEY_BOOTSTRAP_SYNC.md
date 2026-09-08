@@ -89,3 +89,27 @@ provisioning profile, conditional source test or successful signer substitutes
 for that result. Existing test constructors are adapted for commitment metadata;
 the obsolete automatic key-migration expectation now checks preservation/refusal.
 No tests have run for this packet, and no earlier failure is relabelled green.
+
+## Prepared isolated Development configuration
+
+The non-secret tuple in
+[shared-sync-development-scope-20260908.json](../artifacts/e2e/shared-sync-development-scope-20260908.json)
+provides one fresh zone and separate payload-key account for the matching-device
+journey. It is prepared, NOT applied or evidence of a cloud record/key creation.
+The dedicated container, signing identity/access groups, service and Development
+environment remain unchanged. Desktop retains native configuration/sign/install.
+
+Mobile now stamps and requires `AHOI_CLOUDKIT_ZONE_NAME` and passes that SAME
+value to key bootstrap, the normal provider and the existing rotation lane.
+No hardcoded default can send bootstrap and domain records to different zones.
+The public configuration's ordinary default remains AhoiBrowserSyncV3; existing
+profiles/keys are not rewritten. Missing/unresolved app configuration stays
+local-only rather than silently selecting a different zone.
+
+`xcodebuild -showBuildSettings` for CloudKitDevelopment/iphoneos, with signing
+explicitly disabled, resolved the prepared zone/account and exact existing
+container/group/service/version/Development values on both app and Core targets.
+Project generation, plist syntax and scoped diff checks passed. No compile,
+signing, simulator, key or cloud action occurred for this configuration followup.
+The previously built20 candidate remains immutable and does not yet contain
+this later configurable-zone source.

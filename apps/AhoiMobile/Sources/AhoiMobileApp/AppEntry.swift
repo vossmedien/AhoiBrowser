@@ -254,6 +254,9 @@ private final class AhoiMobileBootstrap: ObservableObject {
         let containerIdentifier = configuredValue(Bundle.main.object(
             forInfoDictionaryKey: "AHOI_CLOUDKIT_CONTAINER_ID"
         ))
+        let cloudKitZoneName = configuredValue(Bundle.main.object(
+            forInfoDictionaryKey: "AHOI_CLOUDKIT_ZONE_NAME"
+        ))
         let recordsURL = supportURL.appendingPathComponent("sync-records.json")
         let stateURL = supportURL.appendingPathComponent("sync-engine-state.json")
         let rotationJournalURL = supportURL.appendingPathComponent(
@@ -262,7 +265,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
         let runtimeFactory: CompanionSyncRuntimeFactory?
         if let keyConfiguration,
            let desiredKeyVersion,
-           let containerIdentifier {
+           let containerIdentifier, let cloudKitZoneName {
             runtimeFactory = { @MainActor authorization in
                 let keyStore = try KeychainCompanionPayloadKeyStore(
                     configuration: keyConfiguration,
@@ -270,7 +273,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
                 )
                 let bootstrapTransport = try CloudKitKeyBootstrapTransport(
                     containerIdentifier: containerIdentifier,
-                    zoneName: "AhoiBrowserSyncV3",
+                    zoneName: cloudKitZoneName,
                     authorization: { authorization.isAuthorized() }
                 )
                 let keyLifecycle = CompanionKeyLifecycleCoordinator(
@@ -295,6 +298,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
                     desiredKeyVersion: desiredKeyVersion,
                     familyAnchorConfiguration: keyConfiguration,
                     containerIdentifier: containerIdentifier,
+                    zoneName: cloudKitZoneName,
                     recordsURL: recordsURL,
                     stateURL: stateURL,
                     journalURL: rotationJournalURL,
@@ -336,6 +340,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
                 let runtime = try CompanionCloudKitBootstrap.makeRuntimeChecked(
                     syncEnabled: true,
                     containerIdentifier: containerIdentifier,
+                    zoneName: cloudKitZoneName,
                     keyConfiguration: keyConfiguration.canonicalConfiguration(
                         for: activeKeyVersion
                     ),
@@ -419,6 +424,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
         desiredKeyVersion: UInt32,
         familyAnchorConfiguration: CompanionSyncKeyConfiguration,
         containerIdentifier: String,
+        zoneName: String,
         recordsURL: URL,
         stateURL: URL,
         journalURL: URL,
@@ -458,6 +464,7 @@ private final class AhoiMobileBootstrap: ObservableObject {
         let rotation = try await CompanionCloudKitKeyRotationBootstrap
             .makeRuntimeChecked(
                 containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
                 familyAnchorConfiguration: familyAnchorConfiguration,
                 currentVersion: currentVersion,
                 nextVersion: nextVersion,

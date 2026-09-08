@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "status": "prepared-not-applied",
+  "purpose": "isolated matching native Mac and iOS sync acceptance",
+  "environment": "Development",
+  "scopeID": "bba96b17-f044-4923-9d40-67b15014d59e",
+  "containerIdentifier": "iCloud.app.ahoibrowser.AhoiBrowser",
+  "zoneName": "AhoiSyncAcceptance-bba96b17-f044-4923-9d40-67b15014d59e",
+  "subscriptionIdentifier": "AhoiSyncAcceptanceSubscription-bba96b17-f044-4923-9d40-67b15014d59e",
+  "syncKeychainService": "app.ahoibrowser.sync.payload-key",
+  "syncKeychainAccount": "payload-key.acceptance-bba96b17-f044-4923-9d40-67b15014d59e",
+  "syncKeychainAccessGroup": "248AJ5BN47.app.ahoibrowser.sync",
+  "syncKeyVersion": "1",
+  "constraints": {
+    "freshLocalStoresRequired": true,
+    "existingKeysOrRecordsMayBeDeleted": false,
+    "manualKeyCopyAllowed": false,
+    "productionAllowed": false
+  },
+  "nativeSourceRequirement": "bbe2c53b21f0911c0074b97a606468268a7387e9 or a coherent successor; Desktop owns configuration/sign/install",
+  "mobileConfigurationKeys": [
+    "AHOI_CLOUDKIT_CONTAINER_ID",
+    "AHOI_CLOUDKIT_ZONE_NAME",
+    "AHOI_SYNC_KEYCHAIN_SERVICE",
+    "AHOI_SYNC_KEYCHAIN_ACCOUNT",
+    "AHOI_SYNC_KEYCHAIN_ACCESS_GROUP",
+    "AHOI_SYNC_KEY_VERSION"
+  ]
+}
