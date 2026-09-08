@@ -36,7 +36,13 @@ extension LocalFirstRepository {
             id: recordID, settingID: id, valueJSON: valueJSON,
             version: version, tombstone: nil
         )
-        snapshot.productRecords.permittedSettings.replace(record) { $0.id == recordID }
+        if let index = snapshot.productRecords.permittedSettings.firstIndex(where: {
+            $0.id == recordID
+        }) {
+            snapshot.productRecords.permittedSettings[index] = record
+        } else {
+            snapshot.productRecords.permittedSettings.append(record)
+        }
         do {
             try await persist()
             return record
