@@ -29,6 +29,24 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- Mobile is now a committed source package `4e64c5f` (41 Mobile files, 8 shared
+  Swift files, 1 checkpoint). Its first product build failed at one obsolete
+  external-open call; `bba0b86` fixes that route without weakening guards.
+  The same incremental DebugLocal arm64 Simulator build then reported
+  **BUILD SUCCEEDED**. Coordinator read the actual completion log and product
+  plist: source `bba0b86ad2a4b67fe0c6ff0ca763a3ca1e6bfabb`, build16.
+  Evidence: `artifacts/build/mobile-unified3-4e64c5f-20260908/`, especially
+  `correction-bba0b86.log` / `.xcresult`; the earlier red run remains separate.
+  This is a provider-free built candidate, not visible E2E or cross-client Sync
+  acceptance. Next is the owner's representative Mobile journey, not a rebuild.
+- Native `cc7e7e3` adds a local tree+baseline persistence envelope and atomic
+  database replacement while ordinary logical edits retain the receipt.
+  Coordinator inspected the storage changes. The UI store is in-memory, so
+  the durable asynchronous apply acknowledgment/original-scope checks are a
+  remaining integration step, not proven by this storage-only commit.
+- Desktop also explicitly accepted native install/enable hooks and the
+  StorageFrontend patch for ADR0010. Common/Swift setup data and orchestration
+  remain with the Sync owner; neither role is handed back to this coordinator.
 - Current global and project `AGENTS.md` were read completely on September 8.
   A read-only local prompt-input check confirmed both files, the new total-machine
   capacity rule, equal treatment of projects and E2E-first sequencing. The old
