@@ -111,6 +111,7 @@ class SessionBridge : public KeyedService,
   void RequestLocalTabCapture() override;
   sync::SharedTabNativeSupport GetSharedTabNativeSupport() const override;
   void RequestSharedTabCapture(uint64_t generation) override;
+  sync::NativeExtensionSetupSnapshot ReadNativeExtensionSetup() override;
   base::CallbackListSubscription AddSharedTabCaptureCallback(
       base::RepeatingCallback<void(uint64_t)> callback);
 

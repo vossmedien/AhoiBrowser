@@ -85,6 +85,7 @@ source_set("session_bridge_api") {
 source_set("session") {
   sources = [
     "session_bridge.cc",
+    "session_bridge_extension_setup.cc",
     "session_bridge_factory.cc",
     "session_bridge_internal.cc",
     "session_bridge_internal.h",
@@ -115,6 +116,7 @@ source_set("session") {
   ]
 
   deps = [
+    "//ahoi/browser/extensions:native_setup_inventory",
     "//chrome/browser/lifetime",
     "//chrome/browser/sessions",
     "//chrome/browser/ui",
