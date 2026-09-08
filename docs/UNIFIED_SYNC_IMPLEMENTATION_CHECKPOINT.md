@@ -3,6 +3,28 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Build18 visible local setting journey completed — 2026-09-08
+
+Exact894c9a2 / DebugLocal18 passed the bounded visible native picker -> Bing
+search -> own Simulator restart -> same Bing picker -> default reset to
+DuckDuckGo journey. The real persisted setting record and all clocks survived
+restart unchanged; reset retained ID/identity/tombstone clocks, advanced only
+the value mutation and removed the native user override. Three own-window
+screenshots plus the limited real-store readback are under
+artifacts/e2e/mobile-browser-settings-894c9a2-20260908/README.md.
+
+Original CUA timeout/kernel-reset failures and an unexplained post-restart
+navigation after a tool-reported external app change remain explicit. No
+uninterrupted focus/navigation pass. No CloudKit/C++/extensions/new-icon/host-
+width acceptance. No test suite was run. Installed Simulator bundle was also
+reverified against the original source/project/signature/tree receipt.
+
+Own deviceFE1B566C-F706-47E0-9D21-D96139C03B18 is now verified Shutdown; it was not
+erased. UI explicitly returned in01a080fb-0b7e-7161-9c33-c8fb0cc18ce7 (coordinator)
+and01a080fb-0be1-75e3-8087-71a5e428bd38 (Desktop). Do not restart the closed slot.
+Current extension orchestration/metadata WIP remains source work and must not
+be inferred present in the frozen894c9a2 candidate or the native owner's build.
+
 ## Existing mobile host-label layout follow-up — 2026-09-08
 
 The actual Build17 navigation.png shows example.com truncated to `exa…` because

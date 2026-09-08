@@ -1,0 +1,148 @@
+{
+  "candidate": "894c9a2ac3f21711a3f9ed3eba702d16413bdf9c",
+  "build": 18,
+  "simulator": "FE1B566C-F706-47E0-9D21-D96139C03B18",
+  "beforeRestart": {
+    "id": "1B415D30-483C-42FD-852C-886B839840C7",
+    "settingID": "ahoi.browser.default_search_engine",
+    "valueJSON": "\"bing\"",
+    "version": {
+      "fieldVersions": {
+        "setting_id": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        },
+        "tombstone": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        },
+        "value_json": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        }
+      },
+      "modifiedAt": {
+        "logicalCounter": 0,
+        "nodeID": {
+          "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+        },
+        "physicalMilliseconds": 1788869585616,
+        "submillisecondMicroseconds": 0
+      },
+      "modifiedBy": {
+        "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+      },
+      "schemaVersion": 3
+    }
+  },
+  "afterRestart": {
+    "id": "1B415D30-483C-42FD-852C-886B839840C7",
+    "settingID": "ahoi.browser.default_search_engine",
+    "valueJSON": "\"bing\"",
+    "version": {
+      "fieldVersions": {
+        "setting_id": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        },
+        "tombstone": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        },
+        "value_json": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        }
+      },
+      "modifiedAt": {
+        "logicalCounter": 0,
+        "nodeID": {
+          "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+        },
+        "physicalMilliseconds": 1788869585616,
+        "submillisecondMicroseconds": 0
+      },
+      "modifiedBy": {
+        "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+      },
+      "schemaVersion": 3
+    }
+  },
+  "afterReset": {
+    "id": "1B415D30-483C-42FD-852C-886B839840C7",
+    "settingID": "ahoi.browser.default_search_engine",
+    "valueJSON": "null",
+    "version": {
+      "fieldVersions": {
+        "setting_id": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        },
+        "tombstone": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788869585616,
+          "submillisecondMicroseconds": 0
+        },
+        "value_json": {
+          "logicalCounter": 0,
+          "nodeID": {
+            "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+          },
+          "physicalMilliseconds": 1788870077567,
+          "submillisecondMicroseconds": 0
+        }
+      },
+      "modifiedAt": {
+        "logicalCounter": 0,
+        "nodeID": {
+          "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+        },
+        "physicalMilliseconds": 1788870077567,
+        "submillisecondMicroseconds": 0
+      },
+      "modifiedBy": {
+        "rawValue": "5357B21D-800B-4626-B808-B4C8E7321BBD"
+      },
+      "schemaVersion": 3
+    }
+  },
+  "checks": {
+    "exactRestartRecordUnchanged": true,
+    "identityPreserved": true,
+    "identityAndTombstoneFieldClocksPreserved": true,
+    "resetUsesJSONNull": true,
+    "resetValueClockAdvanced": true,
+    "nativeSearchUserDefaultRemovedAfterReset": true
+  }
+}
