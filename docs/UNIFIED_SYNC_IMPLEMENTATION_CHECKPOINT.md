@@ -5,6 +5,18 @@ This is an implementation/source-handoff pointer, not product acceptance.
 
 ## Search-engine mapping and Mobile provider continuation — 2026-09-08
 
+Committed/pushed source:29c42dbfafb095da7e091668ad728dd4b6ad64a1. Its first Mobile
+product build95119 ended EXIT65 at one file-private Array-helper call; the
+preserving one-file correction894c9a2 is committed/pushed. Corrected product
+build48865 on the same clean snapshot ended EXIT0. DebugLocal0.1(18) source,
+project, plist and signature are independently bound in
+artifacts/build/mobile-browser-settings-29c42db-20260908/candidate.json; app tree
+bdeb580e666a4462a5cd541e45d99ab7c41402510f264b1d6eab93243c70a111.
+Original failure and corrected logs/XCResults are retained beside that receipt.
+No tests or UI ran for Build18. Fresh UI coordination request
+01a080b0-f630-7690-a7a5-4d46edc1f366 explicitly includes the other Simulator
+projects; Desktop was informed in01a080b0-f66a-70f0-ade9-5e41f3437e74.
+
 The delayed 07:08 Simulator offer is already consumed and returned; the current
 checkpoint/evidence and fresh device readback still say Shutdown. No old
 Build16/17 UI steps were repeated. Native c20a759/its corrective UI work stays
@@ -21,10 +33,9 @@ clocks retained. Existing settings UI is split into a small browser section to
 stay under800 lines, with German/English labels. No new wire field or version.
 Details and remaining wider scope are in BROWSER_SETTINGS_SYNC.md.
 
-No test suite or runtime is claimed for this source. Next is the existing own
-Mobile clean snapshot, product-only DebugLocal18 under a fresh total-capacity
-check, then a NEW coordinated Simulator window for the changed search/settings
-journey. The old returned UI slot is not reopened. Desktop retains Chromium
+No test suite or runtime is claimed for this source. The product-only build is
+now complete; next is a NEW coordinated Simulator window for the changed
+search/settings journey. The old returned UI slot is not reopened. Desktop retains Chromium
 checkout/out/build/install; no My-Mac, profile, key, Portal or Production action.
 
 ## Browser settings packet — 2026-09-08
