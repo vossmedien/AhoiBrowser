@@ -170,6 +170,18 @@
       "entity_type": 8,
       "data_class": "permittedSetting",
       "payload": "{\"field_versions\":{\"setting_id\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"tombstone\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"value_json\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"}},\"id\":\"675c4a7d-8139-4b45-8096-6725e5d78028\",\"model_version\":3,\"setting_id\":\"ahoi.extension.fkgkibajhfbepljeaefdnfnegdcjomkh.desired\",\"tombstone\":false,\"value_json\":\"{\\\"enabled\\\":false,\\\"installed\\\":false,\\\"source\\\":\\\"pinnedUblockClassic\\\"}\",\"version_device\":\"a0000000-0000-4000-8000-000000000001\",\"version_logical\":2,\"version_model\":3,\"version_physical\":\"11644473603000555\"}"
+    },
+    {
+      "name": "extension_storage_vimium_boolean",
+      "entity_type": 8,
+      "data_class": "permittedSetting",
+      "payload": "{\"field_versions\":{\"setting_id\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"tombstone\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"value_json\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"}},\"id\":\"574ce29f-19a7-4e3b-8ec6-fb03f96e240c\",\"model_version\":3,\"setting_id\":\"ahoi.extension.dbepggeogbaibhgnhhndojpepiihcmeb.storage.sync.smoothScroll\",\"tombstone\":false,\"value_json\":\"false\",\"version_device\":\"a0000000-0000-4000-8000-000000000001\",\"version_logical\":2,\"version_model\":3,\"version_physical\":\"11644473603000555\"}"
+    },
+    {
+      "name": "extension_storage_vimium_reset",
+      "entity_type": 8,
+      "data_class": "permittedSetting",
+      "payload": "{\"field_versions\":{\"setting_id\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"tombstone\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"value_json\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":3,\"physical\":\"11644473603000555\"}},\"id\":\"574ce29f-19a7-4e3b-8ec6-fb03f96e240c\",\"model_version\":3,\"setting_id\":\"ahoi.extension.dbepggeogbaibhgnhhndojpepiihcmeb.storage.sync.smoothScroll\",\"tombstone\":false,\"value_json\":\"null\",\"version_device\":\"a0000000-0000-4000-8000-000000000001\",\"version_logical\":3,\"version_model\":3,\"version_physical\":\"11644473603000555\"}"
     }
   ]
 }

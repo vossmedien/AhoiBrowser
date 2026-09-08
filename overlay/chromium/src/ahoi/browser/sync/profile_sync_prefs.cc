@@ -18,6 +18,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterListPref(kPermittedSettingIdsPref);
   registry->RegisterDictionaryPref(kBrowserSettingIntentsPref);
   registry->RegisterBooleanPref(kExtensionSetupSyncEnabledPref, false);
+  registry->RegisterBooleanPref(kExtensionSettingsSyncEnabledPref, false);
   registry->RegisterListPref(kDeveloperAssetOptInIdsPref);
   registry->RegisterBooleanPref(kRemoteControlEnabledPref, false);
   registry->RegisterDictionaryPref(kApprovedRemoteCommandKeysPref);

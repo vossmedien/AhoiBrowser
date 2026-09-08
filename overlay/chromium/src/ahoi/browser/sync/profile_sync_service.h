@@ -55,6 +55,7 @@ namespace ahoi::sync {
 
 class NativeSearchEngineSetting;
 class NativeExtensionSetupController;
+class NativeExtensionStorageController;
 
 class ProfileSyncBackend;
 class ProfileSyncServiceTest;
@@ -165,6 +166,14 @@ class ProfileSyncService final : public KeyedService,
   void NotifyNativeExtensionSetupReady();
   bool RetryExtensionSetup(std::string extension_id);
   std::map<std::string, ExtensionRestoreResult> extension_setup_results() const;
+  bool extension_settings_sync_enabled() const;
+  bool SetExtensionSettingsSyncEnabled(bool enabled);
+  // Only an actual reviewed-extension sync-area mutation, never a load,
+  // missing install or our operation-tagged remote StorageFrontend apply.
+  bool PublishNativeExtensionStorageChange(ExtensionStorageValue value);
+  void NotifyNativeExtensionSettingsReady();
+  std::map<std::string, ExtensionStorageResult> extension_settings_results()
+      const;
   [[nodiscard]] bool SetPermittedSettingSyncEnabled(std::string setting_id,
                                                     bool enabled);
   [[nodiscard]] bool SetDeveloperAssetSyncEnabled(const base::Uuid& asset_id,
@@ -235,6 +244,12 @@ class ProfileSyncService final : public KeyedService,
   void ApplyExtensionSetupProjection(
       const BrowserSettingsProjection& projection);
   void OnExtensionRestoreResult(const ExtensionRestoreResult& result);
+  void ApplyExtensionStorageProjection(
+      const BrowserSettingsProjection& projection);
+  void OnExtensionStorageResult(const ExtensionStorageResult& result);
+  void OnExtensionStorageRead(uint64_t generation,
+                              SyncAuthorization authorization,
+                              NativeExtensionStorageSnapshot snapshot);
   bool StoreBrowserSettingIntent(PermittedSettingRecord record);
   void InitializeNativeSearchEngineSetting();
   bool SupportsBrowserSetting(std::string_view id) const;
@@ -331,6 +346,12 @@ class ProfileSyncService final : public KeyedService,
   std::map<std::string, std::string> observed_user_settings_;
   std::unique_ptr<NativeSearchEngineSetting> native_search_engine_setting_;
   std::unique_ptr<NativeExtensionSetupController> extension_setup_controller_;
+  std::unique_ptr<NativeExtensionStorageController>
+      extension_storage_controller_;
+  bool extension_storage_read_pending_ = false;
+  bool extension_storage_read_again_ = false;
+  bool extension_storage_seeded_ = false;
+  bool extension_storage_retry_ = false;
   std::set<base::Uuid> known_extension_setup_ids_;
   std::optional<std::string> extension_setup_retry_;
   std::map<std::string, std::string> browser_setting_inflight_;

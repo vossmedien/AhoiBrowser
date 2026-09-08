@@ -94,8 +94,11 @@ The existing C++/Swift golden consumers point at this same resource and check
 the typed roundtrip in their existing loops. No new suite/matrix or execution.
 
 Native storage remains authoritative for actual installation and enabled state.
-ExtensionSetting transfer is a later positively reviewed per-extension/key/value
-adapter through StorageFrontend, not a raw Preferences or extension-storage copy.
+The first positively reviewed per-extension/key/value StorageFrontend adapter
+is now specified and implemented in Common/Swift in
+[EXTENSION_SETTINGS_SYNC.md](EXTENSION_SETTINGS_SYNC.md). Its Native hooks and
+runtime acceptance remain open; it is not a raw storage copy or an expansion
+of this installation category's consent.
 iOS now has a separate explicit read-only metadata toggle/section. Its epoch is
 installed synchronously on the provider before actor hops, hydrated cached
 records must validate the exact typed tuple/identity/clock envelope, and only

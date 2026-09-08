@@ -26,6 +26,9 @@ public actor CompanionSyncBridge {
     var extensionSetupMetadataApproved = false
     var extensionSetupMetadataEpoch: UInt64 = 0
     var extensionSetupHydrationRequired = false
+    var extensionStorageMetadataApproved = false
+    var extensionStorageMetadataEpoch: UInt64 = 0
+    var extensionStorageHydrationRequired = false
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, any Error>] = []
@@ -129,19 +132,32 @@ public actor CompanionSyncBridge {
         let extensionEpoch = extensionSetupMetadataEpoch
         let hydrateExtensionSetup = extensionSetupHydrationRequired &&
             provider.isExtensionSetupMetadataApproved(epoch: extensionEpoch)
+        let storageEpoch = extensionStorageMetadataEpoch
+        let hydrateExtensionStorage = extensionStorageHydrationRequired &&
+            provider.isExtensionStorageMetadataApproved(epoch: storageEpoch)
+        // One cache read for this hydration pass, not a full store scan per
+        // approved category. This does not broaden any category's admission.
+        let hydrateAny = hydrateBookmarks || hydrateSettings ||
+            hydrateExtensionSetup || hydrateExtensionStorage
+        let cachedRecords = hydrateAny ? try await provider.allRecords() : []
         let bookmarkRecords = hydrateBookmarks
-            ? try await provider.allRecords().filter { $0.dataClass == .bookmark } : []
-        let settingRecords = hydrateSettings ? try await provider.allRecords().filter {
+            ? cachedRecords.filter { $0.dataClass == .bookmark } : []
+        let settingRecords = hydrateSettings ? cachedRecords.filter {
             $0.dataClass == .permittedSetting && browserSettingApprovedIDs.contains($0.entityID)
         } : []
-        let extensionRecords = hydrateExtensionSetup ? try await provider.allRecords().filter {
+        let extensionRecords = hydrateExtensionSetup ? cachedRecords.filter {
             $0.dataClass == .permittedSetting &&
                 !CompanionBrowserSettingCatalog.recordIDs.contains($0.entityID)
+        } : []
+        let storageRecords = hydrateExtensionStorage ? cachedRecords.filter {
+            $0.dataClass == .permittedSetting &&
+                CompanionExtensionStorage.recordIDs.contains($0.entityID)
         } : []
         let snapshot = try await repository.currentSnapshot()
         let importContext = ImportContext(snapshot: snapshot)
         let candidates = Self.makeImportCandidates(
-            primaryRecords: recoveryRecords + bookmarkRecords + settingRecords + extensionRecords,
+            primaryRecords: recoveryRecords + bookmarkRecords + settingRecords +
+                extensionRecords + storageRecords,
             fetchedRecords: fetchedRecords
         )
         let ordered = candidates.enumerated().sorted { lhs, rhs in
@@ -191,6 +207,7 @@ public actor CompanionSyncBridge {
         let outcomes = try await repository.mergeImportedBatch(mutations)
         var successfulTokens = acceptedWithoutDomainMutation
         var acceptedExtensionSetupTokens = Set<Int>()
+        var acceptedExtensionStorageTokens = Set<Int>()
         var localWinnerRecords: [UUID: SyncRecord] = [:]
         var authorizedDeveloperAssetIDs = Set<UUID>()
         var revokedDeveloperAssetIDs = Set<UUID>()
@@ -206,6 +223,10 @@ public actor CompanionSyncBridge {
                 if case .permittedSetting(let setting) = merged,
                    CompanionExtensionSetup.decode(setting) != nil {
                     acceptedExtensionSetupTokens.insert(outcome.token)
+                }
+                if case .permittedSetting(let setting) = merged,
+                   CompanionExtensionStorage.decode(setting) != nil {
+                    acceptedExtensionStorageTokens.insert(outcome.token)
                 }
                 if case .developerAsset(let value) = merged {
                     if value.isDeleted || value.optedIn {
@@ -268,9 +289,12 @@ public actor CompanionSyncBridge {
             let extensionReadApproved = extensionEpoch == extensionSetupMetadataEpoch &&
                 provider.isExtensionSetupMetadataApproved(epoch: extensionEpoch) &&
                 acceptedExtensionSetupTokens.contains(token)
+            let storageReadApproved = storageEpoch == extensionStorageMetadataEpoch &&
+                provider.isExtensionStorageMetadataApproved(epoch: storageEpoch) &&
+                acceptedExtensionStorageTokens.contains(token)
             if (candidate.record.dataClass != .bookmark || bookmarkSyncEnabled) &&
                 (candidate.record.dataClass != .permittedSetting ||
-                    extensionReadApproved ||
+                    extensionReadApproved || storageReadApproved ||
                     (settingsEpoch == browserSettingsApprovalEpoch &&
                         browserSettingApprovedIDs.contains(candidate.record.entityID) &&
                         provider.isBrowserSettingApproved(
@@ -289,6 +313,9 @@ public actor CompanionSyncBridge {
         }
         if hydrateExtensionSetup, extensionEpoch == extensionSetupMetadataEpoch {
             extensionSetupHydrationRequired = false
+        }
+        if hydrateExtensionStorage, storageEpoch == extensionStorageMetadataEpoch {
+            extensionStorageHydrationRequired = false
         }
     }
 
@@ -431,7 +458,8 @@ public actor CompanionSyncBridge {
                 !browserSettingApprovedIDs.contains(record.entityID) ||
                 !provider.isBrowserSettingApproved(
                     record.entityID, epoch: browserSettingsApprovalEpoch
-                )) && !canReadExtensionSetup(record) { return .ignored }
+                )) && !canReadExtensionSetup(record) &&
+                !canReadExtensionStorage(record) { return .ignored }
         // One live format. Unsupported development input remains in recovery;
         // it is never normalized into a current authoritative snapshot.
         guard record.schemaVersion == SharedSyncFormat.currentVersion else {
@@ -521,9 +549,11 @@ public actor CompanionSyncBridge {
             let value = try wireCodec.decodePermittedSetting(record, plaintext: plaintext)
             try validate(record, identity: value.id, version: value.version,
                          tombstone: value.tombstone)
-            if canReadExtensionSetup(record) &&
-                !browserSettingApprovedIDs.contains(value.id) &&
-                CompanionExtensionSetup.decode(value) == nil { return .ignored }
+            if !browserSettingApprovedIDs.contains(value.id) &&
+                !(canReadExtensionSetup(record) && CompanionExtensionSetup.decode(value) != nil) &&
+                !(canReadExtensionStorage(record) && CompanionExtensionStorage.decode(value) != nil) {
+                return .ignored
+            }
             return .domain(.permittedSetting(value))
         case .extensionInventory:
             let value = try wireCodec.decodeExtensionInventory(record, plaintext: plaintext)

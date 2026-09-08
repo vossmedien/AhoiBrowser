@@ -30,6 +30,8 @@ inline constexpr char kBrowserSettingIntentsPref[] =
     "ahoi.sync.browser_setting_intents";
 inline constexpr char kExtensionSetupSyncEnabledPref[] =
     "ahoi.sync.extension_setup.enabled";
+inline constexpr char kExtensionSettingsSyncEnabledPref[] =
+    "ahoi.sync.extension_settings.enabled";
 inline constexpr char kDeveloperAssetOptInIdsPref[] =
     "ahoi.sync.developer_asset_opt_in_ids";
 inline constexpr char kRemoteControlEnabledPref[] =

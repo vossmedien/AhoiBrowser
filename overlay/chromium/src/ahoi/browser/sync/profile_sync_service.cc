@@ -11,6 +11,7 @@
 #include "ahoi/browser/sync/history_sync_filter.h"
 #include "ahoi/browser/sync/native_bookmark_sync_adapter.h"
 #include "ahoi/browser/sync/native_extension_setup_controller.h"
+#include "ahoi/browser/sync/native_extension_storage_controller.h"
 #include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
@@ -207,6 +208,7 @@ void ProfileSyncService::AttachUiBridge(ProfileSyncUiBridge* bridge) {
   }
   tab_tree_subscription_ = {};
   ui_bridge_attachment_count_ = 0;
+  ResetBrowserSettingsWork();
   ui_bridge_ = bridge->GetWeakPtrForSync();
   if (!ui_bridge_) {
     return;
@@ -234,7 +236,7 @@ void ProfileSyncService::DetachUiBridge(ProfileSyncUiBridge* bridge) {
     return;
   }
   tab_tree_subscription_ = {};
-  extension_setup_controller_.reset();
+  ResetBrowserSettingsWork();
   ui_bridge_.reset();
   ++native_tree_revision_;
   native_tree_cancelled_->store(true, std::memory_order_release);
@@ -343,6 +345,7 @@ void ProfileSyncService::ConfirmCloudKitAccountTransition(
     // per-setting approval after the user explicitly refused local upload.
     profile_->GetPrefs()->SetList(kPermittedSettingIdsPref, base::ListValue());
     profile_->GetPrefs()->SetBoolean(kExtensionSetupSyncEnabledPref, false);
+    profile_->GetPrefs()->SetBoolean(kExtensionSettingsSyncEnabledPref, false);
   }
   backend_.AsyncCall(&ProfileSyncBackend::ConfirmAccountTransition)
       .WithArgs(allow_local_upload)

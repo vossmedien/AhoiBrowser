@@ -21,6 +21,7 @@ public final class CompanionAppModel: ObservableObject {
     @Published public internal(set) var isBookmarkSyncEnabled: Bool
     @Published public internal(set) var isBrowserSettingsSyncEnabled: Bool
     @Published public internal(set) var isExtensionSetupMetadataApproved: Bool
+    @Published public internal(set) var isExtensionStorageMetadataApproved: Bool
     @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
 
@@ -55,6 +56,7 @@ public final class CompanionAppModel: ObservableObject {
     var mobileSharedCaptureRequested = false
     var browserSettingsApprovalEpoch: UInt64 = 0
     var extensionSetupMetadataEpoch: UInt64 = 0
+    var extensionStorageMetadataEpoch: UInt64 = 0
     var browserSearchMutationTask: Task<Void, Never>?
     var browserSearchMutationToken: UUID?
     var remoteCommandExpiryTask: Task<Void, Never>?
@@ -96,6 +98,7 @@ public final class CompanionAppModel: ObservableObject {
         self.isBookmarkSyncEnabled = defaults.bool(forKey: Self.bookmarkSyncApprovalKey)
         self.isBrowserSettingsSyncEnabled = defaults.bool(forKey: Self.browserSettingsApprovalKey)
         self.isExtensionSetupMetadataApproved = defaults.bool(forKey: Self.extensionSetupMetadataKey)
+        self.isExtensionStorageMetadataApproved = defaults.bool(forKey: Self.extensionStorageMetadataKey)
         self.desiredSyncEnabled = syncProvider != nil && syncBridge != nil
         self.keyLifecycleStatus = syncProvider != nil && syncBridge != nil
             ? .ready(keyVersion: 1)
@@ -409,6 +412,9 @@ public final class CompanionAppModel: ObservableObject {
             )
             await bridge.setExtensionSetupMetadataApproved(
                 isExtensionSetupMetadataApproved, epoch: extensionSetupMetadataEpoch
+            )
+            await bridge.setExtensionStorageMetadataApproved(
+                isExtensionStorageMetadataApproved, epoch: extensionStorageMetadataEpoch
             )
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else { return }
             if !providerPrepared {

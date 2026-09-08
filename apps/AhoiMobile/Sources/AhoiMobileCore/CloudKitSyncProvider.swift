@@ -229,6 +229,8 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
     let browserSettingTransportAuthorization = BrowserSettingTransportAuthorization()
     var extensionSetupMetadataApproved = false
     var extensionSetupMetadataEpoch: UInt64 = 0
+    var extensionStorageMetadataApproved = false
+    var extensionStorageMetadataEpoch: UInt64 = 0
     var currentStatus = CloudKitSyncStatus(
         phase: .idle,
         detail: CompanionL10n.string(

@@ -18,7 +18,7 @@ final class UnifiedSyncWireContractTests: XCTestCase {
         XCTAssertEqual(SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined(),
                        UnifiedSyncFixture.sha256)
         XCTAssertEqual(fixture.model_version, 3)
-        XCTAssertEqual(fixture.records.count, 28)
+        XCTAssertEqual(fixture.records.count, 30)
         XCTAssertEqual(Set(fixture.records.map(\.entity_type)), Set(0...12))
         var context = Context()
         for sample in fixture.records {
@@ -135,6 +135,10 @@ final class UnifiedSyncWireContractTests: XCTestCase {
             if sample.name.hasPrefix("extension_setup_") {
                 let setup = try XCTUnwrap(CompanionExtensionSetup.decode(value))
                 XCTAssertEqual(try setup.record(version: value.version), value)
+            }
+            if sample.name.hasPrefix("extension_storage_") {
+                let setting = try XCTUnwrap(CompanionExtensionStorage.decode(value))
+                XCTAssertEqual(try setting.record(version: value.version), value)
             }
             return try codec.encode(value)
         case .extensionInventory:

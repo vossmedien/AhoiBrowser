@@ -22,6 +22,28 @@ struct CompanionExtensionSetupSection: View {
                         .accessibilityIdentifier("settings.extensions.desired.\(setup.extensionID)")
                 }
             }
+            Toggle(
+                CompanionL10n.string(
+                    "settings.extensions.storage.share", fallback: "Show supported extension settings"
+                ),
+                isOn: Binding(
+                    get: { model.isExtensionStorageMetadataApproved },
+                    set: { model.setExtensionStorageMetadataApproved($0) }
+                )
+            )
+            .disabled((!model.isSyncConfigured || !model.desiredSyncEnabled) &&
+                !model.isExtensionStorageMetadataApproved)
+            .accessibilityIdentifier("settings.extensions.storage.shared")
+            if model.isExtensionStorageMetadataApproved {
+                ForEach(model.extensionStorageMetadata, id: \.key) { setting in
+                    LabeledContent(
+                        "Vimium · " + CompanionL10n.string(
+                            "settings.extensions.storage.\(setting.key)", fallback: setting.key
+                        ), value: storageLabel(setting.value)
+                    )
+                    .accessibilityIdentifier("settings.extensions.storage.\(setting.key)")
+                }
+            }
         } header: {
             Text(CompanionL10n.string("settings.extensions.title", fallback: "Extensions"))
         } footer: {
@@ -36,6 +58,14 @@ struct CompanionExtensionSetupSection: View {
         model.snapshot.productRecords.extensionInventory.first {
             !$0.isDeleted && $0.extensionID == id && !$0.name.isEmpty
         }?.name ?? id
+    }
+
+    private func storageLabel(_ value: Bool?) -> String {
+        guard let value else {
+            return CompanionL10n.string("settings.extensions.storage.default", fallback: "Default")
+        }
+        return value ? CompanionL10n.string("settings.extensions.storage.on", fallback: "On") :
+            CompanionL10n.string("settings.extensions.storage.off", fallback: "Off")
     }
 
     private func desiredLabel(_ setup: CompanionExtensionSetup) -> String {

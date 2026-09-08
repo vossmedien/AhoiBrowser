@@ -93,6 +93,26 @@ ProfileSyncBackend::ReadBrowserSettings() {
   return result;
 }
 
+std::optional<SyncStateSnapshot> ProfileSyncBackend::SeedBrowserSetting(
+    PermittedSettingRecord record,
+    SyncAuthorization authorization) {
+  auto current = CaptureBrowserSettingsAuthorization();
+  if (!authorization || !authorization.Run() || !current || !current.Run()) {
+    return std::nullopt;
+  }
+  SyncRecord stored;
+  const auto found =
+      store_->GetRecord(EntityType::kPermittedSetting, record.id, &stored);
+  if (found == SyncStore::Result::kOk) {
+    return CurrentState();
+  }
+  if (found != SyncStore::Result::kNotFound) {
+    return std::nullopt;
+  }
+  return PublishBrowserSettingIntent(std::move(record),
+                                     std::move(authorization));
+}
+
 std::optional<SyncStateSnapshot>
 ProfileSyncBackend::PublishBrowserSettingIntent(
     PermittedSettingRecord record,

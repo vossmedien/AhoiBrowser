@@ -133,6 +133,22 @@ extension CloudKitSyncProvider {
         }
     }
 
+    func setExtensionStorageMetadataApproved(_ approved: Bool, epoch: UInt64) {
+        statusLock.withLock {
+            guard epoch >= extensionStorageMetadataEpoch else { return }
+            extensionStorageMetadataEpoch = epoch
+            extensionStorageMetadataApproved = approved && !isInvalidated
+        }
+    }
+
+    func isExtensionStorageMetadataApproved(epoch: UInt64) -> Bool {
+        statusLock.withLock {
+            !isInvalidated && accountContinuityVerified && !accountTransitionPending &&
+                !zoneRecoveryPending && !statePersistenceBlocked &&
+                extensionStorageMetadataApproved && epoch == extensionStorageMetadataEpoch
+        }
+    }
+
     func isCategoryConsentDeferral(_ error: any Error) -> Bool {
         error as? BookmarkTransportAuthorizationError == .categoryNotApproved ||
             error as? BrowserSettingTransportAuthorizationError == .categoryNotApproved

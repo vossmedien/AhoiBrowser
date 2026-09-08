@@ -10,6 +10,7 @@
 #include <string_view>
 
 #include "ahoi/browser/sync/extension_setup_types.h"
+#include "ahoi/browser/sync/extension_storage_types.h"
 #include "ahoi/browser/sync/shared_tab_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
@@ -55,6 +56,17 @@ class ProfileSyncUiBridge {
   virtual void ApplyNativeExtensionSetup(
       ExtensionRestoreRequest request,
       base::OnceCallback<void(ExtensionRestoreResult)> completion);
+  // Native StorageFrontend owns sync-area Get/Set/Remove and its sequence.
+  // Read only the positive catalogue; unknown bytes never cross this seam.
+  virtual void ReadNativeExtensionSettings(
+      SyncAuthorization authorization,
+      base::OnceCallback<void(NativeExtensionStorageSnapshot)> completion);
+  // Carry origin+operation+original authority through the real store commit
+  // and event dispatch. Do not echo our own apply as a local extension edit,
+  // suppress unrelated changes, reload extensions or touch non-catalogue keys.
+  virtual void ApplyNativeExtensionSetting(
+      ExtensionStorageRequest request,
+      base::OnceCallback<void(ExtensionStorageResult)> completion);
   [[nodiscard]] virtual bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) = 0;
   [[nodiscard]] virtual tab_tree::TabTreeStore::Result

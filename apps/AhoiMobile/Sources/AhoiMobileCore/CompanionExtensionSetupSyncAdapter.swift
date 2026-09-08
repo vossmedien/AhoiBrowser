@@ -18,6 +18,7 @@ extension CompanionSyncBridge {
         record.dataClass == .permittedSetting && record.recordID == record.entityID &&
             extensionSetupMetadataApproved &&
             provider.isExtensionSetupMetadataApproved(epoch: extensionSetupMetadataEpoch) &&
+            !CompanionExtensionStorage.recordIDs.contains(record.entityID) &&
             !CompanionBrowserSettingCatalog.recordIDs.contains(record.entityID)
     }
 }

@@ -97,6 +97,11 @@ class ProfileSyncBackend : public SyncStoreObserver {
   std::optional<SyncStateSnapshot> PublishBrowserSettingIntent(
       PermittedSettingRecord record,
       SyncAuthorization authorization);
+  // Initial native observation is not a later user edit. Check absence on the
+  // store sequence so a peer arriving during capture always wins over a seed.
+  std::optional<SyncStateSnapshot> SeedBrowserSetting(
+      PermittedSettingRecord record,
+      SyncAuthorization authorization);
   std::optional<SyncStateSnapshot> ReplaceLocalExtensionInventory(
       std::vector<ExtensionInventoryRecord> records);
   std::optional<SyncStateSnapshot> UpsertDeveloperAsset(

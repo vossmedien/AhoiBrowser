@@ -152,7 +152,8 @@ std::vector<std::string> ProfileSyncService::permitted_setting_ids() const {
   }
   for (const base::Value& value :
        profile_->GetPrefs()->GetList(kPermittedSettingIdsPref)) {
-    if (value.is_string() && SupportsBrowserSetting(value.GetString())) {
+    if (value.is_string() && IsPermittedProductSettingId(value.GetString()) &&
+        SupportsBrowserSetting(value.GetString())) {
       result.push_back(value.GetString());
     }
   }
@@ -163,7 +164,8 @@ std::vector<std::string> ProfileSyncService::permitted_setting_ids() const {
 
 bool ProfileSyncService::SetPermittedSettingSyncEnabled(std::string setting_id,
                                                         bool enabled) {
-  if (!profile_ || shutting_down_ || !SupportsBrowserSetting(setting_id)) {
+  if (!profile_ || shutting_down_ || !IsPermittedProductSettingId(setting_id) ||
+      !SupportsBrowserSetting(setting_id)) {
     return false;
   }
   SetListMembership(profile_->GetPrefs(), kPermittedSettingIdsPref, setting_id,

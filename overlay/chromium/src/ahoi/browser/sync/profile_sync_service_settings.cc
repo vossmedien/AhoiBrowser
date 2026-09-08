@@ -6,7 +6,9 @@
 
 #include "ahoi/browser/sync/browser_setting_catalog.h"
 #include "ahoi/browser/sync/extension_setup_setting.h"
+#include "ahoi/browser/sync/extension_storage_setting.h"
 #include "ahoi/browser/sync/native_extension_setup_controller.h"
+#include "ahoi/browser/sync/native_extension_storage_controller.h"
 #include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
@@ -21,6 +23,9 @@ namespace ahoi::sync {
 namespace {
 
 bool Enabled(const PrefService& prefs, std::string_view id) {
+  if (IsExtensionStorageSettingId(id)) {
+    return prefs.GetBoolean(kExtensionSettingsSyncEnabledPref);
+  }
   if (IsExtensionSetupSettingId(id)) {
     return prefs.GetBoolean(kExtensionSetupSyncEnabledPref);
   }
@@ -85,10 +90,19 @@ void ProfileSyncService::InitializeBrowserSettings() {
       kExtensionSetupSyncEnabledPref,
       base::BindRepeating(&ProfileSyncService::OnBrowserSettingsConsentChanged,
                           weak_ptr_factory_.GetWeakPtr()));
+  sync_pref_registrar_.Add(
+      kExtensionSettingsSyncEnabledPref,
+      base::BindRepeating(&ProfileSyncService::OnBrowserSettingsConsentChanged,
+                          weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::ResetBrowserSettingsWork() {
   extension_setup_controller_.reset();
+  extension_storage_controller_.reset();
+  extension_storage_read_pending_ = false;
+  extension_storage_read_again_ = false;
+  extension_storage_seeded_ = false;
+  extension_storage_retry_ = false;
   browser_settings_cancelled_->store(true, std::memory_order_release);
   browser_settings_cancelled_ = std::make_shared<std::atomic<bool>>(false);
   ++browser_settings_generation_;
@@ -119,6 +133,12 @@ void ProfileSyncService::UpdateBrowserSettingConsent() {
     if (extension_setup_sync_enabled()) {
       allowed.insert(known_extension_setup_ids_.begin(),
                      known_extension_setup_ids_.end());
+    }
+    if (extension_settings_sync_enabled()) {
+      for (const auto& descriptor : GetExtensionStorageCatalog()) {
+        allowed.insert(BrowserSettingRecordId(ExtensionStorageSettingId(
+            descriptor.extension_id, descriptor.key)));
+      }
     }
   }
   browser_setting_consent_->SetAllowed(allowed);
@@ -211,7 +231,8 @@ void ProfileSyncService::OnBrowserSettingsRead(
       if (!projection->authorization.Run()) {
         break;
       }
-      if (IsExtensionSetupSettingId(record.setting_id) || record.tombstone ||
+      if (IsExtensionSetupSettingId(record.setting_id) ||
+          IsExtensionStorageSettingId(record.setting_id) || record.tombstone ||
           !Enabled(*prefs, record.setting_id) ||
           record.id != BrowserSettingRecordId(record.setting_id) ||
           pending.contains(record.setting_id)) {
@@ -244,6 +265,11 @@ void ProfileSyncService::OnBrowserSettingsRead(
   }
   const auto after_native = weak_ptr_factory_.GetWeakPtr();
   ApplyExtensionSetupProjection(*projection);
+  if (!after_native || shutting_down_ || !sync_enabled_ ||
+      generation != browser_settings_generation_) {
+    return;
+  }
+  ApplyExtensionStorageProjection(*projection);
   if (!after_native || shutting_down_ || !sync_enabled_ ||
       generation != browser_settings_generation_) {
     return;

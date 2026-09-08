@@ -7,6 +7,21 @@
 
 namespace ahoi::sync {
 
+void ProfileSyncUiBridge::ReadNativeExtensionSettings(
+    SyncAuthorization authorization,
+    base::OnceCallback<void(NativeExtensionStorageSnapshot)> completion) {
+  std::move(completion).Run({});
+}
+
+void ProfileSyncUiBridge::ApplyNativeExtensionSetting(
+    ExtensionStorageRequest request,
+    base::OnceCallback<void(ExtensionStorageResult)> completion) {
+  std::move(completion)
+      .Run({.operation_id = request.operation_id,
+            .revision = std::move(request.revision),
+            .disposition = ExtensionStorageDisposition::kUnsupported});
+}
+
 NativeExtensionSetupSnapshot ProfileSyncUiBridge::ReadNativeExtensionSetup() {
   return {};
 }

@@ -1,6 +1,14 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "settings.extensions.storage.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Unterstützte Erweiterungseinstellungen anzeigen"}},"en":{"stringUnit":{"state":"translated","value":"Show supported extension settings"}}}},
+    "settings.extensions.storage.smoothScroll": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sanftes Scrollen"}},"en":{"stringUnit":{"state":"translated","value":"Smooth scrolling"}}}},
+    "settings.extensions.storage.filterLinkHints": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Linkhinweise filtern"}},"en":{"stringUnit":{"state":"translated","value":"Filter link hints"}}}},
+    "settings.extensions.storage.hideHud": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Statusanzeige ausblenden"}},"en":{"stringUnit":{"state":"translated","value":"Hide status display"}}}},
+    "settings.extensions.storage.hideUpdateNotifications": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Updatehinweise ausblenden"}},"en":{"stringUnit":{"state":"translated","value":"Hide update notifications"}}}},
+    "settings.extensions.storage.default": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Standard"}},"en":{"stringUnit":{"state":"translated","value":"Default"}}}},
+    "settings.extensions.storage.on": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ein"}},"en":{"stringUnit":{"state":"translated","value":"On"}}}},
+    "settings.extensions.storage.off": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Aus"}},"en":{"stringUnit":{"state":"translated","value":"Off"}}}},
     "settings.extensions.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erweiterungen"}},"en":{"stringUnit":{"state":"translated","value":"Extensions"}}}},
     "settings.extensions.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geteilte Erweiterungskonfiguration anzeigen"}},"en":{"stringUnit":{"state":"translated","value":"Show shared extension setup"}}}},
     "settings.extensions.metadata_only": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zeigt die gewünschte Desktop-Konfiguration. Chromium-Erweiterungen laufen nicht auf iOS."}},"en":{"stringUnit":{"state":"translated","value":"Shows the desired desktop configuration. Chromium extensions do not run on iOS."}}}},

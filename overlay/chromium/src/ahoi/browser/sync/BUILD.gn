@@ -38,11 +38,21 @@ source_set("extension_setup_types") {
   public_deps = [ "//base" ]
 }
 
+source_set("extension_storage_types") {
+  sources = [
+    "extension_storage_types.cc",
+    "extension_storage_types.h",
+    "sync_authorization.h",
+  ]
+  public_deps = [ "//base" ]
+}
+
 source_set("profile_sync_ui_bridge") {
   public = [ "profile_sync_ui_bridge.h" ]
   sources = [ "profile_sync_ui_bridge.cc" ]
   public_deps = [
     ":extension_setup_types",
+    ":extension_storage_types",
     ":shared_tab_types",
     "//ahoi/browser/tab_tree",
     "//base",
@@ -71,6 +81,8 @@ source_set("sync") {
     "device_tabs_service.h",
     "extension_setup_setting.cc",
     "extension_setup_setting.h",
+    "extension_storage_setting.cc",
+    "extension_storage_setting.h",
     "history_sync_filter.cc",
     "history_sync_filter.h",
     "hybrid_logical_clock.cc",
@@ -110,6 +122,7 @@ source_set("sync") {
 
   public_deps = [
     ":extension_setup_types",
+    ":extension_storage_types",
     ":shared_tab_types",
     ":sync_policy",
     "//ahoi/browser/tab_tree",
@@ -154,6 +167,8 @@ source_set("profile_sync_service") {
     "native_bookmark_sync_apply.cc",
     "native_extension_setup_controller.cc",
     "native_extension_setup_controller.h",
+    "native_extension_storage_controller.cc",
+    "native_extension_storage_controller.h",
     "native_search_engine_setting.cc",
     "native_search_engine_setting.h",
     "native_tree_sync_journal.cc",
@@ -169,6 +184,7 @@ source_set("profile_sync_service") {
     "profile_sync_service_authorization.cc",
     "profile_sync_service_bookmarks.cc",
     "profile_sync_service_extension_setup.cc",
+    "profile_sync_service_extension_storage.cc",
     "profile_sync_service_factory.cc",
     "profile_sync_service_factory.h",
     "profile_sync_service_history.cc",

@@ -77,6 +77,18 @@
     "observedInventoryIsNotDesiredState": true,
     "unknownOrUnpackedSourcesAreRestorable": false
   },
+  "extensionSettingsCategory": {
+    "carrier": "permittedSettings",
+    "typedNamespace": "ahoi.extension.<catalogue-id>.storage.sync.<catalogue-key>",
+    "localConsentRequired": true,
+    "enabledByDefault": false,
+    "requiresGlobalSync": true,
+    "setupConsentGrantsStorageConsent": false,
+    "consentIsSynced": false,
+    "rawStorageAllowed": false,
+    "nativeApplyRequiresOriginalAuthorization": true,
+    "iosPublishesStorage": false
+  },
   "historyRetentionDaysDefault": 90,
   "historyRetentionChoices": [30, 90, 365, -1],
   "tombstoneRetentionDays": 30,

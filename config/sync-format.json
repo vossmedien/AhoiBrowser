@@ -248,6 +248,21 @@
   "browserSetupSettings": {
     "carrierEntityId": 8,
     "atomicGroup": "value_json",
+    "extensionStorage": {
+      "settingId": "ahoi.extension.<catalogue-id>.storage.sync.<catalogue-key>",
+      "valueType": "boolean-or-null-reset",
+      "tombstoneAllowed": false,
+      "catalogue": {
+        "dbepggeogbaibhgnhhndojpepiihcmeb": {
+          "reviewedNativeVersions": ["2.4.2"],
+          "keys": ["smoothScroll", "filterLinkHints", "hideHud", "hideUpdateNotifications"]
+        }
+      },
+      "nativeSource": "chromeWebStore",
+      "unknownKeysOrValuesAllowed": false,
+      "missingCaptureIsReset": false,
+      "ios": "separately-approved-read-only-metadata"
+    },
     "extensionDesired": {
       "settingId": "ahoi.extension.<32-character-extension-id>.desired",
       "valueFields": ["enabled", "installed", "source"],
