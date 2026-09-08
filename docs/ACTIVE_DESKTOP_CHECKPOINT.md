@@ -126,7 +126,17 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**CURRENT LIVE HANDLE:** isolated native restart50070 is RUNNING (PID4525 at
+**CURRENT BUILD PHASE:** guarded overlay32506 is RUNNING on clean existing
+snapshot `e24119158e2d15c8bc9f0b22d0fea5e555327e5a`:715 plus ONLY the reviewed
+Arc-preserving fixdff21f9 (seven Arc files, no Common WIP/patch36). Both original
+and Development715 bundles/receipts were preserved first. Next after actual
+overlay EXIT0: same guarded app-only build jobs2. Fresh15:58CEST gate52.9%idle,
+58%memory headroom, no new swapouts,46.2GiB above32GiB build floor. Identified
+FillIt Unity batch15877 is a separate2-worker job (~4.6% at sample); it is not
+touched or treated as an automatic blocker. Recheck aggregate capacity before
+compilation. Logs: `artifacts/build/desktop-arc-preserve-e241191-20260908/`.
+
+**CURRENT NATIVE HANDLE:** isolated native restart50070 is RUNNING (PID4525 at
 launch); initial runtime85457 ended EXIT0 through real Cmd+Q (`super+q`).
 Guarded install92150 is TERMINAL EXIT0 for the separately Development-configured
 715afc2 copy. Build98973 and overlay10765 are TERMINAL EXIT0.
@@ -1061,9 +1071,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    Pin/Home/restart/settings/bookmark-only-sidebar journey is complete above;
    do not restart builds or replay the whole flow without an affected change.
    Active runtime50070 is the isolated test profile, not real Default. Preserve
-   its exact receipt and state. Integrate the reviewed Arc-only correction next,
-   excluding Common WIP/patch36, through the same clean snapshot and one guarded
-   app-only follow-up. After correction, repeat the real affected Arc journey,
+   its exact receipt and state. The reviewed Arc-only correction is now integrated
+   on cleane241191; resume overlay32506 to terminal, then one guarded app-only
+   follow-up with a fresh aggregate capacity check. No Common WIP/patch36. After
+   correction, repeat the real affected Arc journey,
    then only its necessary regression. No unrelated test-binary prerequisite.
    Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
    remains separate and open. Prior6ae's local lifecycle/focused12-case evidence
