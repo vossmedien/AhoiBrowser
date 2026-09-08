@@ -40,16 +40,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   `01a04978` and coordinator `01a044d6-1545-7532-8394-6b7df1144bb1`.
   MBC's native journey ended at13:19:29 UTC. No MBC UI run or Simulator window
   reservation remains; subsequent work was local API/code and HTTPS release.
-  BetterConvo may start its already-requested bounded control run now, subject
-  to the other owners' own handoffs. MBC will not operate Simulator/CUA or
+  BetterConvo subsequently completed its bounded control run at14:26 and
+  explicitly returned Simulator/CUA to Root for Ahoi19 at14:32. MBC will not operate Simulator/CUA or
   Xcode runtime or bring a Simulator forward before explicit return. Ahoi
   Build19 follows BetterConvo's return; no new user approval, ACK or extra
   tests requested. This is the resource owner's explicit release, not an
   inference from process absence. Direct cross-chat receipt is not claimed.
   Coordinator has now forwarded it to BetterConvo in01a0815e-6304, together
-  with Desktop's new explicit UI release after715. FillIt's newly completed
-  14:11 UI run prompted one current Surface-handoff request01a0815e-611b;
-  no renewed MBC/Desktop request is needed. BetterConvo precedes Ahoi19.
+  with Desktop's new explicit UI release after715. FillIt answered the single
+  request01a0815e-611b at14:18: its Surface remains free for BetterConvo then
+  Ahoi19 until the combined handback. These grants are consumed below, not
+  outstanding questions. No renewed MBC/FillIt/Desktop permission is needed.
 - **CloudKit-configured715afc2 is now installed, 2026-09-08 13:27–13:28 UTC:**
   coordinator read the installed plist: source715afc21a9757ea46a309817691c5c4aaa320c1c,
   cloudkit-development, exactDevelopment and dedicated Ahoi container. Receipt
@@ -74,14 +75,14 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   owner-reviewed, source-only; the next Arc candidate must retain this local
   navigation, not restore the entire backup blindly. No successful real
   recovery/import is claimed.
-- **Build19 future UI request queued, not START:** MBC and Desktop have explicitly
-  released above; complete the current FillIt Surface handoff and consume the
-  return after the already-waiting BetterConvo control run.
-  Coordinator contacted those current owners once and registered Ahoi's short
-  icon/host-label/metadata view afterward. Do not interrupt their work, reopen
-  Ahoi18's expired window, rebuild the ready candidate or replay its unchanged
-  function matrix. Desktop Arc/Toolbar work is not held by this future request.
-  Resume coordination on the actual handback; no unchanged polling turns.
+- **Build19 START handoff issued at14:36, not yet an observed app start:** all
+  current resource grants above are complete. Mobile received01a08172-b8e7 for
+  exactly6b0121f/DebugLocal19's short icon/host-label/extension-metadata journey;
+  Desktop received the combined window notice01a08172-baa7. Fresh overall
+  capacity and exact own Simulator/app readback remain start-time checks, not
+  another permission round. No My-Mac, real Default, Applications, CloudKit/keys
+  or complete Build18 replay. Root returns the shared Surface to all owners
+  after Mobile's explicit cleanup/handback. No old Build18 grant is reopened.
 - **Next shared-key gate is a product integration, not missing Apple approval:**
   Common owner is attaching Swift's existing guarded first-use Claim/Journal/
   Promote lifecycle to native initialization, which previously only loaded an
