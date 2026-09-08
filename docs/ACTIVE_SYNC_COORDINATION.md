@@ -29,6 +29,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Mac provisioning prerequisite now EXISTS, 2026-09-08 11:32–11:34 UTC:**
+  Desktop used the authorized existing Xcode account to create the Mac profile.
+  Coordinator independently decoded
+  `/Users/vossmedien/Library/Developer/Xcode/UserData/Provisioning Profiles/8f149b92-89cc-4d34-a0db-1b305d4e545c.provisionprofile`:
+  PlatformOSX, Team248AJ5BN47, AppID248AJ5BN47.app.ahoibrowser.AhoiBrowser,
+  containeriCloud.app.ahoibrowser.AhoiBrowser, one provisioned Mac, expiry
+  2027-09-08. The former missing-profile gate is closed. Apple's profile
+  environment allowlist includes Development/Production; actual app signing
+  must still select exactly Development. Configured/signed native CloudKit
+  candidate, key bootstrap and real roundtrip remain open. Sync owner informed;
+  no keys were read or changed by the coordinator.
 - **Approved icon is now integrated in source, 2026-09-08:** coordinator's
   `df03d46c1358eef76c60bf7d5d63e9f1e1e9536e` is pushed and the remote SHA was
   verified. Shared ImageGen master, generated desktop theme/native assets and
@@ -83,9 +94,9 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 - **Actual native CloudKit readiness, 2026-09-08:** installed6ae still lacks
   the CloudKit-container/keychain-group bundle values and embedded Mac profile.
   Source `FromMainBundle` returns nullopt without a configured iCloud container.
-  Today's read-only Xcode-cache scan found only two matching Ahoi profiles,
+  The EARLIER read-only Xcode-cache scan found only two matching Ahoi profiles,
   both iOS/xrOS/visionOS, not OSX; the secondary MobileDevice cache is absent.
-  This is not a claim about current Portal availability. The documented
+  That finding is superseded by the actual Mac-profile creation above. The documented
   Development preparation on a copy of the built candidate is the next native
   transport prerequisite, not another wire redesign. Desktop was sent the
   concrete metadata/readiness result; no profile/key/portal mutation occurred.
