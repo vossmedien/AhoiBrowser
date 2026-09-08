@@ -143,8 +143,10 @@ TEST_F(SidebarTreeViewTest,
   const gfx::Rect viewport(0, 0, 240, 320);
   tree->SynchronizeRowsForTesting(viewport);
   SettleTreeMotion(tree);
-  const int collapsed_height = 2 * SidebarTreeRowView::kRowHeight;
-  const int expanded_height = 5 * SidebarTreeRowView::kRowHeight;
+  const int collapsed_height = 2 * SidebarTreeRowView::kRowHeight +
+                               SidebarTreeView::kRootAppendDropHeight;
+  const int expanded_height = 5 * SidebarTreeRowView::kRowHeight +
+                              SidebarTreeView::kRootAppendDropHeight;
   ASSERT_EQ(collapsed_height, tree->GetPreferredSize().height());
 
   ASSERT_TRUE(model.SetExpanded(folder.id, true));
@@ -280,7 +282,8 @@ TEST_F(SidebarTreeViewTest, ReducedMotionFinishesHeightAndRowsMidTransition) {
   ASSERT_TRUE(tree->height_animation_for_testing()->is_animating());
   ASSERT_TRUE(tree->row_bounds_animation_running_for_testing());
   ASSERT_LT(tree->GetPreferredSize().height(),
-            5 * SidebarTreeRowView::kRowHeight);
+            5 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight);
 
   // The API refuses overlapping forced modes, so restore PLATFORM first.
   render_mode.reset();
@@ -291,7 +294,8 @@ TEST_F(SidebarTreeViewTest, ReducedMotionFinishesHeightAndRowsMidTransition) {
 
   EXPECT_FALSE(tree->height_animation_for_testing()->is_animating());
   EXPECT_FALSE(tree->row_bounds_animation_running_for_testing());
-  EXPECT_EQ(5 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(5 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             tree->GetPreferredSize().height());
   auto* page_row = tree->GetMaterializedRowForTesting(page.id);
   ASSERT_TRUE(page_row);
@@ -595,7 +599,9 @@ TEST_F(SidebarTreeViewTest, ReducedMotionCollapseDoesNotRetainExitRows) {
   tree->SynchronizeRowsForTesting(viewport);
   EXPECT_FALSE(tree->row_bounds_animation_running_for_testing());
   EXPECT_FALSE(tree->height_animation_for_testing()->is_animating());
-  EXPECT_EQ(SidebarTreeRowView::kRowHeight, tree->GetPreferredSize().height());
+  EXPECT_EQ(
+      SidebarTreeRowView::kRowHeight + SidebarTreeView::kRootAppendDropHeight,
+      tree->GetPreferredSize().height());
   for (const auto& child : children) {
     EXPECT_EQ(nullptr, tree->GetMaterializedRowForTesting(child.id));
   }

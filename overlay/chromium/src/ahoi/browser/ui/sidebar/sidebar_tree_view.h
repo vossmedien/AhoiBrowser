@@ -58,6 +58,9 @@ class SidebarTreeView final : public views::View,
   METADATA_HEADER(SidebarTreeView, views::View)
 
  public:
+  // Always reserved, so entering a native drag cannot move the tab lists.
+  static constexpr int kRootAppendDropHeight = SidebarTreeRowView::kRowHeight;
+
   struct VisibleRange {
     size_t first = 0;
     size_t past_last = 0;
@@ -356,6 +359,8 @@ class SidebarTreeView final : public views::View,
   std::optional<DropIndicator> BuildTemporaryTabDropProbe(
       int runtime_tab_handle,
       const gfx::Point& point,
+      const std::vector<VisualRow>& visual_rows) const;
+  gfx::Rect GetRootAppendDropBounds(
       const std::vector<VisualRow>& visual_rows) const;
   std::optional<int> InsertionSlotY(const DropIndicator& indicator) const;
   std::optional<DropIndicator> StabilizeInsertionSlot(

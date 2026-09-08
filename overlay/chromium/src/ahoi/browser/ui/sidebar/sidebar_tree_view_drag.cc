@@ -362,6 +362,16 @@ SidebarTreeView::CalculateTemporaryTabDropIndicator(DropIndicator probe) {
              : std::nullopt;
 }
 
+gfx::Rect SidebarTreeView::GetRootAppendDropBounds(
+    const std::vector<VisualRow>& visual_rows) const {
+  // Keep the drop surface below both target rows and their currently animated
+  // extent; it must not cover entering/exiting labels during folder motion.
+  const int top =
+      std::max(GetVisualRowsHeight(visual_rows),
+               preferred_height_animation_active_ ? GetAnimatedHeight() : 0);
+  return gfx::Rect(0, top, width(), std::max(height() - top, 0));
+}
+
 std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
     const base::Uuid& source_node_id,
     const gfx::Point& point,
@@ -375,6 +385,14 @@ std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
                       .target_node_id = std::nullopt,
                       .position = SidebarTreeController::DropPosition::kInside,
                       .operation = operation};
+  if (visual_rows.empty() || point.y() >= GetVisualRowsHeight(visual_rows)) {
+    const gfx::Rect append_bounds = GetRootAppendDropBounds(visual_rows);
+    if (!append_bounds.Contains(point)) {
+      return std::nullopt;
+    }
+    probe.target_bounds = append_bounds;
+    return probe;
+  }
   const auto& rows = model().rows();
   if (!visual_rows.empty()) {
     const int clamped_y =
@@ -429,6 +447,14 @@ SidebarTreeView::BuildTemporaryTabDropProbe(
                       .target_node_id = std::nullopt,
                       .position = SidebarTreeController::DropPosition::kInside,
                       .operation = SidebarTreeController::DropOperation::kMove};
+  if (visual_rows.empty() || point.y() >= GetVisualRowsHeight(visual_rows)) {
+    const gfx::Rect append_bounds = GetRootAppendDropBounds(visual_rows);
+    if (!append_bounds.Contains(point)) {
+      return std::nullopt;
+    }
+    probe.target_bounds = append_bounds;
+    return probe;
+  }
   const auto& rows = model().rows();
   if (!visual_rows.empty()) {
     const int clamped_y =

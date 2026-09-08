@@ -126,13 +126,15 @@ TEST_F(SidebarTreeViewTest,
   SidebarTreeRowView* third_row = view->GetMaterializedRowForTesting(third.id);
   ASSERT_NE(nullptr, third_row);
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, third_row->y());
-  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 
   view->SetRuntimeCompositeSuppressedNodes({});
   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 128));
   EXPECT_NE(nullptr, view->GetMaterializedRowForTesting(mixed_saved.id));
-  EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 }
 
@@ -347,7 +349,8 @@ TEST_F(SidebarTreeViewTest, SplitTabsShareOneSegmentedVisualRow) {
               split_row->title_paint_clip_bounds_for_testing());
   }
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, third_row->y());
-  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 
   delegate_.split_groups = {{first.id, second.id, third.id}};
@@ -363,7 +366,9 @@ TEST_F(SidebarTreeViewTest, SplitTabsShareOneSegmentedVisualRow) {
   EXPECT_EQ(second_row->y(), third_row->y());
   EXPECT_LT(first_row->x(), second_row->x());
   EXPECT_LT(second_row->x(), third_row->x());
-  EXPECT_EQ(SidebarTreeRowView::kRowHeight, view->GetPreferredSize().height());
+  EXPECT_EQ(
+      SidebarTreeRowView::kRowHeight + SidebarTreeView::kRootAppendDropHeight,
+      view->GetPreferredSize().height());
 }
 
 TEST_F(SidebarTreeViewTest, SavedSplitVisualDataControlsSegmentBounds) {
@@ -392,7 +397,9 @@ TEST_F(SidebarTreeViewTest, SavedSplitVisualDataControlsSegmentBounds) {
   ASSERT_NE(nullptr, second_row);
   EXPECT_GT(first_row->width(), second_row->width());
   EXPECT_EQ(first_row->y(), second_row->y());
-  EXPECT_EQ(SidebarTreeRowView::kRowHeight, view->GetPreferredSize().height());
+  EXPECT_EQ(
+      SidebarTreeRowView::kRowHeight + SidebarTreeView::kRootAppendDropHeight,
+      view->GetPreferredSize().height());
 }
 
 TEST_F(SidebarTreeViewTest,
@@ -438,7 +445,8 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_NE(nullptr, second_row);
   ASSERT_NE(nullptr, third_row);
   ASSERT_NE(nullptr, fourth_row);
-  EXPECT_EQ(three_pane_height + SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(three_pane_height + SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
   EXPECT_EQ(three_pane_height, first_row->height());
   EXPECT_LT(second_row->y(), third_row->y());
@@ -462,7 +470,8 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_NE(nullptr, second_row);
   ASSERT_NE(nullptr, third_row);
   ASSERT_NE(nullptr, fourth_row);
-  EXPECT_EQ(four_pane_height, view->GetPreferredSize().height());
+  EXPECT_EQ(four_pane_height + SidebarTreeView::kRootAppendDropHeight,
+            view->GetPreferredSize().height());
   EXPECT_EQ(first_row->y(), second_row->y());
   EXPECT_EQ(third_row->y(), fourth_row->y());
   EXPECT_LT(first_row->y(), third_row->y());
@@ -551,7 +560,8 @@ TEST_F(SidebarTreeViewTest,
   EXPECT_FALSE(second_row->is_split_segment_for_testing());
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, first_row->y());
   EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight, second_row->y());
-  EXPECT_EQ(4 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(4 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 }
 

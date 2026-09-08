@@ -1,10 +1,9 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
-
 #include <algorithm>
 
+#include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
 #include "base/task/sequenced_task_runner.h"
@@ -124,16 +123,14 @@ void SidebarTreeView::HandleVisualLayoutChanged() {
 void SidebarTreeView::StartPreferredHeightAnimation(int from_height,
                                                     int to_height) {
   const int current_height =
-      preferred_height_animation_active_
-          ? GetAnimatedHeight()
-          : std::max(from_height, SidebarTreeRowView::kRowHeight);
+      preferred_height_animation_active_ ? GetAnimatedHeight() : from_height;
   // Reset synchronously cancels an in-flight animation and clears active_ in
   // AnimationCanceled(). Establish the replacement state only afterwards, and
   // start at the displayed intermediate height rather than the previous target.
   preferred_height_animation_.Reset(0.0);
   preferred_height_animation_active_ = false;
   animated_height_from_ = current_height;
-  animated_height_to_ = std::max(to_height, SidebarTreeRowView::kRowHeight);
+  animated_height_to_ = to_height;
   if (animated_height_from_ == animated_height_to_ ||
       !gfx::Animation::ShouldRenderRichAnimation()) {
     preferred_height_animation_.Reset(1.0);

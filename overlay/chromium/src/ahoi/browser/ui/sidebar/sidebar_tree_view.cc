@@ -414,13 +414,16 @@ void SidebarTreeView::Layout(PassKey) {
 gfx::Size SidebarTreeView::CalculatePreferredSize(
     const views::SizeBounds& /*available_size*/) const {
   const int visual_height = GetVisualRowsHeight(BuildVisualRows());
-  // Keep an empty workspace as a real drop surface. A zero-height tree means
-  // Views never routes the native drag into the saved section, so the first
-  // temporary tab cannot be pinned without creating a folder first.
-  int height = std::max(visual_height, SidebarTreeRowView::kRowHeight);
+  // The permanent trailing surface appends at the workspace root, including
+  // when folders are expanded. It must belong to this View's hit area rather
+  // than an inert host gap, and must not appear/move rows only after drag
+  // start.
+  int height = visual_height;
   if (preferred_height_animation_active_) {
     height = GetAnimatedHeight();
   }
+  height = base::saturated_cast<int>(static_cast<int64_t>(height) +
+                                     kRootAppendDropHeight);
   // The host owns the sidebar width. Advertising the design-time default here
   // makes ScrollView keep a wider contents layer after the native resize strip
   // has narrowed the sidebar, so labels are clipped instead of being laid out
@@ -631,26 +634,27 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
       SkColorSetA(colors->GetColor(visual_style::kAccent), 18));
   canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, section_fill);
 
-  // A concrete saved-row target paints its own exact, validated zone. Painting
-  // a strong acceptance highlight over the complete section at the same time
-  // would create two competing targets. Only an empty workspace needs the
-  // broad accepted-target surface, because no concrete row can own that state.
-  const bool empty_root_accepting =
-      visual_rows.empty() && drop_indicator_.has_value() &&
-      !drop_indicator_->target_node_id.has_value();
-  if (empty_root_accepting) {
+  // Row edges keep their positioning markers. The separate trailing area
+  // highlights only a validated root append, never the last row/folder.
+  gfx::RectF append_target(GetRootAppendDropBounds(visual_rows));
+  append_target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
+  const bool root_accepting = drop_indicator_.has_value() &&
+                              !drop_indicator_->target_node_id.has_value() &&
+                              !append_target.IsEmpty();
+  if (root_accepting) {
     cc::PaintFlags fill;
     fill.setAntiAlias(true);
     fill.setStyle(cc::PaintFlags::kFill_Style);
     fill.setColor(colors->GetColor(visual_style::kDropTargetSurface));
-    canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, fill);
+    canvas->DrawRoundRect(append_target, visual_style::kRowCornerRadius, fill);
     cc::PaintFlags outline;
     outline.setAntiAlias(true);
     outline.setStyle(cc::PaintFlags::kStroke_Style);
     outline.setStrokeWidth(
         visual_style::kSidebarDropTargetAcceptingOutlineThickness);
     outline.setColor(colors->GetColor(visual_style::kAccent));
-    canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, outline);
+    canvas->DrawRoundRect(append_target, visual_style::kRowCornerRadius,
+                          outline);
   }
 
   // A colored folder owns one quiet visual bubble through all of its visible
