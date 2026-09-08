@@ -122,19 +122,29 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: e241191 installed; corrected combineda9db378 integration
+## Current candidate: e241191 installed; corrected combined35c4c41 integration
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**LIVE HANDLE:** cached guarded app-only build7222 is RUNNING, jobs4, since
-15:13UTC; corrective overlay52816 is TERMINAL EXIT0 on the same clean snapshot
-at `a9db37849bf5a9f437283c7bff173dfced0f195e`. Prior app-only92858 is TERMINAL
+**LIVE HANDLE:** corrective overlay82634 is RUNNING on clean
+`35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d`. Prior7222 is TERMINAL EXIT1: the
+one constructor translation unit needed complete BookmarkModel for the observer
+member's destruction. Exact one-include fixb534d93 was integrated, no behavior
+or warning change. The earlier a9db378/52816 were completed, not restart targets.
+After82634 EXIT0 use existing AHOI_NINJA_KEEP_GOING=1 with jobs4 for one cached
+app-only continuation, collecting any remaining diagnostics together rather
+than stopping at each first failure. This still fails unless all requested app
+work succeeds; no test or warning is skipped. Fresh17:21CEST79%idle/66%memory,
+38.2GiB above32GiB floor. Logs:
+`artifacts/build/desktop-sidebar-store-35c4c41-20260908/`.
+
+**Earlier bounded correction:** prior app-only92858 is TERMINAL
 EXIT1, not a candidate. Four objects reported the SAME new delegate inline-
 virtual style error; only fix846e875 was integrated (out-of-line false default
 plus its GN source, no behavior/guard change). Native schema objects and new
 WebUI CSS/TS/GRIT actions compiled successfully before that failure. Original
 failed log stays under6b6c771; do not rerun it or ask for another source fix.
-The exact follow-up is already started, not a pending handoff. Fresh17:13CEST
+That a9db378 follow-up7222 is now terminal as described above. Its17:13CEST
 gate78.5%idle/63%memory/no new swapouts/no compilers;38.3GiB hard-floor margin
 unchanged. Earlier17:12CEST
 gate70.2%idle/63%memory/no new swapouts/no compilers,38.3GiB above32GiB floor.
@@ -1130,9 +1140,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume live cached app-only7222 on cleana9db378. Overlay52816 EXIT0 and prior
-   92858 EXIT1 are closed;846e875 fixes its one inline-virtual cause. No further
-   source/ownership wait or restart. Keep the real Default launch provider-free.
+1. Resume overlay82634 on clean35c4c41, then cached guarded app-only build with
+   existing AHOI_NINJA_KEEP_GOING=1/jobs4 and a fresh capacity check. Prior7222
+   and92858 are terminal failures, both causes corrected by b534d93/846e875.
+   No new source/ownership wait or unchanged retry. Real Default stays provider-free.
    All e241 handles are terminal, not restart targets. The coherent
    fe647ee/ad91502/9323d71 Sidebar+Store+Recovery-copy package is integrated, no
    Common WIP/patch36 or further source handoff wait. e241's actual load
