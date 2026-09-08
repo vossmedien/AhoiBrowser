@@ -1,0 +1,446 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj -scheme AhoiMobile -configuration DebugLocal -destination "generic/platform=iOS Simulator" -derivedDataPath /private/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData -resultBundlePath "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/artifacts/build/mobile-unified3-4e64c5f-20260908/build.xcresult" -jobs 2 ARCHS=arm64 ONLY_ACTIVE_ARCH=YES "OTHER_SWIFT_FLAGS=$(inherited) -j2" CODE_SIGN_IDENTITY=- AHOI_SOURCE_COMMIT=4e64c5f2f4e6052c1a4aefb2d6b9c6617cf76963 AHOI_MOBILE_BUILD_NUMBER=16 build
+
+Build settings from command line:
+    AHOI_MOBILE_BUILD_NUMBER = 16
+    AHOI_SOURCE_COMMIT = 4e64c5f2f4e6052c1a4aefb2d6b9c6617cf76963
+    ARCHS = arm64
+    CODE_SIGN_IDENTITY = -
+    ONLY_ACTIVE_ARCH = YES
+    OTHER_SWIFT_FLAGS = $(inherited) -j2
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  AhoiCloudKitSpike: /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+
+Writing result bundle at path:
+	/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/artifacts/build/mobile-unified3-4e64c5f-20260908/build.xcresult
+
+Build Preparation
+Build task concurrency set to 2 via user default IDEBuildOperationMaxNumberOfConcurrentCompileTasks
+
+note: Using codesigning identity override: -
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (4 targets)
+    Target 'AhoiMobile' in project 'AhoiMobile'
+        ➜ Explicit dependency on target 'AhoiMobileCore' in project 'AhoiMobile'
+        ➜ Explicit dependency on target 'AhoiCloudKitSpike' in project 'AhoiCloudKitSpike'
+    Target 'AhoiMobileCore' in project 'AhoiMobile'
+        ➜ Explicit dependency on target 'AhoiCloudKitSpike' in project 'AhoiCloudKitSpike'
+    Target 'AhoiCloudKitSpike' in project 'AhoiCloudKitSpike'
+        ➜ Explicit dependency on target 'AhoiCloudKitSpike' in project 'AhoiCloudKitSpike'
+    Target 'AhoiCloudKitSpike' in project 'AhoiCloudKitSpike' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/Resources/Localizable.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileApp/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 597407479ca5681f3b8637e55ba9e076
+Build description path: /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/XCBuildData/597407479ca5681f3b8637e55ba9e076.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448f6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448f6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobile.build/DerivedSources/AhoiMobile_vers.c (in target 'AhoiMobile' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobile.build/DerivedSources/AhoiMobile_vers.c
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.SwiftFileList (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.SwiftFileList
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.SwiftConstValuesFileList (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.LinkFileList (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.LinkFileList
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore-OutputFileMap.json (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore-OutputFileMap.json
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources/AhoiMobileCore_vers.c (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources/AhoiMobileCore_vers.c
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.SwiftFileList (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.SwiftFileList
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.SwiftConstValuesFileList (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.LinkFileList (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.LinkFileList
+
+WriteAuxiliaryFile /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike-OutputFileMap.json (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    write-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike-OutputFileMap.json
+
+SwiftDriver AhoiCloudKitSpike normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AhoiCloudKitSpike -Onone @/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -j2 -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios16.0-simulator -g -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448f6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftmodule -validate-clang-modules-once -clang-build-session-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex/Session.modulevalidation -package-name cloudkit -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike_const_extract_protocols.json -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/include -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/DerivedSources-normal/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/DerivedSources/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike-Swift.h -working-directory /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ DeviceCapabilityRecord.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/DeviceCapabilityRecord.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/DeviceCapabilityRecord.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ BookmarkModels.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/BookmarkModels.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/BookmarkModels.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ AhoiCloudKitSpike (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+EmitSwiftModule normal arm64 (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling DeviceCapabilityRecord.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ SharedTabTarget.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabTarget.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabTarget.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling BookmarkModels.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ SyncBoundary.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncBoundary.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncBoundary.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling SharedTabTarget.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ TreeNodeEquality.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/TreeNodeEquality.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/TreeNodeEquality.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for AhoiCloudKitSpike (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftDriver\ Compilation\ Requirements AhoiCloudKitSpike normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AhoiCloudKitSpike -Onone @/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -j2 -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios16.0-simulator -g -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448f6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftmodule -validate-clang-modules-once -clang-build-session-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex/Session.modulevalidation -package-name cloudkit -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike_const_extract_protocols.json -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/include -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/DerivedSources-normal/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/DerivedSources/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike-Swift.h -working-directory /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling SyncBoundary.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ SharedTabContract.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabContract.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabContract.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+Copy /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftmodule (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftmodule /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+SwiftDriverJobDiscovery normal arm64 Compiling TreeNodeEquality.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+Copy /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/arm64-apple-ios-simulator.swiftdoc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftdoc (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftdoc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.abi.json (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.abi.json /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftsourceinfo (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiCloudKitSpike.build/DebugLocal-iphonesimulator/AhoiCloudKitSpike.build/Objects-normal/arm64/AhoiCloudKitSpike.swiftsourceinfo /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiCloudKitSpike.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftCompile normal arm64 Compiling\ HybridLogicalClock.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/HybridLogicalClock.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/HybridLogicalClock.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ AppleCloudKitAdapter.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitAdapter.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitAdapter.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling SharedTabContract.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ AppleCloudKitRecordCodec.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitRecordCodec.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitRecordCodec.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling HybridLogicalClock.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ RemoteCommands.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/RemoteCommands.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/RemoteCommands.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling AppleCloudKitAdapter.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ CommandSecurity.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/CommandSecurity.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/CommandSecurity.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling AppleCloudKitRecordCodec.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftDriverJobDiscovery normal arm64 Compiling RemoteCommands.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ Identifiers.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/Identifiers.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/Identifiers.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling Identifiers.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ FileCommandReplayStore.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/FileCommandReplayStore.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/FileCommandReplayStore.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriver AhoiMobileCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AhoiMobileCore -Onone @/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.SwiftFileList -DDEBUG -j2 -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/PackageFrameworks -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448f6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.swiftmodule -validate-clang-modules-once -clang-build-session-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-generated-files.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-own-target-headers.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobile-a44a3a976db28ace36eae5fb72a0335b-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-project-headers.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/include -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources-normal/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore-Swift.h -working-directory /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling CommandSecurity.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftDriverJobDiscovery normal arm64 Compiling FileCommandReplayStore.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ ConflictResolver.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/ConflictResolver.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/ConflictResolver.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ SharedSyncFormat.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedSyncFormat.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedSyncFormat.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ConflictResolver.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ CompanionModels.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/CompanionModels.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/CompanionModels.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling SharedSyncFormat.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ OrderKey.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/OrderKey.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/spikes/cloudkit/Sources/AhoiCloudKitSpike/OrderKey.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/AhoiMobile.xcodeproj
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ AhoiMobileCore (in target 'AhoiMobileCore' from project 'AhoiMobile')
+EmitSwiftModule normal arm64 (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling OrderKey.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ CompanionMobilePresenceStore.swift,\ CompanionMobileSharedCapture.swift,\ CompanionMobileSharedClosing.swift,\ CompanionMobileSharedIntent.swift,\ CompanionMoveTargets.swift,\ CompanionOperationFailurePresentation.swift,\ CompanionPayloadCodec.swift,\ CompanionPayloadKeyStore.swift,\ CompanionPersistenceStores.swift,\ CompanionProductRecords.swift,\ CompanionProductStore.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobilePresenceStore.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobileSharedCapture.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobileSharedClosing.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobileSharedIntent.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMoveTargets.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionOperationFailurePresentation.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionPayloadCodec.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionPayloadKeyStore.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionPersistenceStores.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductRecords.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductStore.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobilePresenceStore.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobileSharedCapture.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobileSharedClosing.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMobileSharedIntent.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionMoveTargets.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionOperationFailurePresentation.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionPayloadCodec.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionPayloadKeyStore.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionPersistenceStores.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductRecords.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductStore.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling CompanionModels.swift (in target 'AhoiCloudKitSpike' from project 'AhoiCloudKitSpike')
+
+SwiftCompile normal arm64 Compiling\ CompanionReadModelFieldMerge.swift,\ CompanionRemoteTabRow.swift,\ CompanionSavedPageMutation.swift,\ CompanionSearchIndex.swift,\ CompanionSearchResultsView.swift,\ CompanionSendLinkView.swift,\ CompanionSettingsView.swift,\ CompanionSnapshot.swift,\ CompanionSnapshotCodable.swift,\ CompanionStore.swift,\ CompanionStoreClock.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionReadModelFieldMerge.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionRemoteTabRow.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSavedPageMutation.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSearchIndex.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSearchResultsView.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSendLinkView.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSettingsView.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshot.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshotCodable.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStore.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreClock.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionReadModelFieldMerge.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionRemoteTabRow.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSavedPageMutation.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSearchIndex.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSearchResultsView.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSendLinkView.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSettingsView.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshot.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshotCodable.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStore.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreClock.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for AhoiMobileCore (in target 'AhoiMobileCore' from project 'AhoiMobile')
+
+SwiftDriver\ Compilation\ Requirements AhoiMobileCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AhoiMobileCore -Onone @/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.SwiftFileList -DDEBUG -j2 -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/PackageFrameworks -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448f6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.swiftmodule -validate-clang-modules-once -clang-build-session-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-generated-files.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-own-target-headers.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobile-a44a3a976db28ace36eae5fb72a0335b-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-project-headers.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/include -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources-normal/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore-Swift.h -working-directory /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling CompanionMobilePresenceStore.swift, CompanionMobileSharedCapture.swift, CompanionMobileSharedClosing.swift, CompanionMobileSharedIntent.swift, CompanionMoveTargets.swift, CompanionOperationFailurePresentation.swift, CompanionPayloadCodec.swift, CompanionPayloadKeyStore.swift, CompanionPersistenceStores.swift, CompanionProductRecords.swift, CompanionProductStore.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+
+SwiftCompile normal arm64 Compiling\ MobileBrowserController.swift,\ MobileBrowserControllerFailures.swift,\ MobileBrowserControllerSharedTabs.swift,\ MobileBrowserControllerUITesting.swift,\ MobileBrowserControllerVisualMetadata.swift,\ MobileBrowserControllerWebPageLifecycle.swift,\ MobileBrowserHistoryView.swift,\ MobileBrowserModels.swift,\ MobileBrowserPerformance.swift,\ MobileBrowserPolicies.swift,\ MobileBrowserPreferences.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerFailures.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerSharedTabs.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerUITesting.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerVisualMetadata.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserHistoryView.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserModels.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPerformance.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPolicies.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPreferences.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c -filelist /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/sources-1 -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerFailures.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerSharedTabs.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerUITesting.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerVisualMetadata.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserHistoryView.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserModels.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPerformance.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPolicies.swift -primary-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPreferences.swift -supplementary-output-file-map /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/supplementaryOutputs-8 -target arm64-apple-ios26.0-simulator -module-can-import-version CloudKit 2360.120.2 2360.120.2 -module-can-import-version CryptoKit 324.100.35 0 -module-can-import-version Security 61901.120.67 61901.120.67 -disable-cross-import-overlay-search -swift-module-cross-import QuickLook /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/QuickLook.framework/Modules/QuickLook.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import QuickLook /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/QuickLook.framework/Modules/QuickLook.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import WebKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Cryptexes/OS/System/Library/Frameworks/WebKit.framework/Modules/WebKit.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import WebKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/WebKit.framework/Modules/WebKit.swiftcrossimport/SwiftUI.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore-dependencies-1.json -debug-module-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.swiftmodule -Xllvm -aarch64-use-tbi -enable-objc-interop -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -I /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/PackageFrameworks -F /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=5 -module-cache-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -swift-version 6 -Onone -D DEBUG -serialize-debugging-options -const-gather-protocols-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore_const_extract_protocols.json -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile -enable-anonymous-context-mangled-names -file-compilation-dir /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448f6cfe768891a92b912361537c460fe42b.sdkstatcache -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/swift-overrides.hmap -Xcc -iquote -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-generated-files.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-own-target-headers.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobile-a44a3a976db28ace36eae5fb72a0335b-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/AhoiMobileCore-project-headers.hmap -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/include -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources-normal/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources/arm64 -Xcc -I/tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/DerivedSources -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name AhoiMobileCore -frontend-parseable-output -disable-clang-spi -clang-target arm64-apple-ios26.5-simulator -target-sdk-version 26.5 -target-sdk-name iphonesimulator26.5 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserController.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerFailures.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerSharedTabs.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerUITesting.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerVisualMetadata.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerWebPageLifecycle.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserHistoryView.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserModels.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserPerformance.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserPolicies.o -o /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserPreferences.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserController.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerFailures.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerSharedTabs.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerUITesting.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerVisualMetadata.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserControllerWebPageLifecycle.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserHistoryView.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserModels.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserPerformance.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserPolicies.o -index-unit-output-path /AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/MobileBrowserPreferences.o -index-store-path /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Index.noindex/DataStore -index-system-modules
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+/tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift:724:13: error: 'noteExplicitSharedNavigation' is inaccessible due to 'private' protection level
+            noteExplicitSharedNavigation(tabID: selectedTabID, url: safeURL)
+            ^
+/tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerSharedTabs.swift:244:18: note: 'noteExplicitSharedNavigation(tabID:url:title:)' declared here
+    private func noteExplicitSharedNavigation(tabID: UUID, url: URL, title: String?) {
+                 ^
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerFailures.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerSharedTabs.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerUITesting.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerVisualMetadata.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserHistoryView.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserModels.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPerformance.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPolicies.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPreferences.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    
+
+Copy /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCore.framework/Modules/AhoiMobileCore.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.swiftmodule (in target 'AhoiMobileCore' from project 'AhoiMobile')
+    cd /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Intermediates.noindex/AhoiMobile.build/DebugLocal-iphonesimulator/AhoiMobileCore.build/Objects-normal/arm64/AhoiMobileCore.swiftmodule /tmp/ahoi-mobile-shared-tabs.V7PCPC/DerivedData/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCore.framework/Modules/AhoiMobileCore.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+note: Run script build phase 'Mobile signing mode preflight' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'AhoiMobile' from project 'AhoiMobile')
+
+Result bundle written to path:
+	/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/artifacts/build/mobile-unified3-4e64c5f-20260908/build.xcresult
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal arm64 Compiling\ MobileBrowserController.swift,\ MobileBrowserControllerFailures.swift,\ MobileBrowserControllerSharedTabs.swift,\ MobileBrowserControllerUITesting.swift,\ MobileBrowserControllerVisualMetadata.swift,\ MobileBrowserControllerWebPageLifecycle.swift,\ MobileBrowserHistoryView.swift,\ MobileBrowserModels.swift,\ MobileBrowserPerformance.swift,\ MobileBrowserPolicies.swift,\ MobileBrowserPreferences.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerFailures.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerSharedTabs.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerUITesting.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerVisualMetadata.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserHistoryView.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserModels.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPerformance.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPolicies.swift /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserPreferences.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+	SwiftCompile normal arm64 /tmp/ahoi-mobile-shared-tabs.V7PCPC/repo/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+	Building project AhoiMobile with scheme AhoiMobile and configuration DebugLocal
+(3 failures)
