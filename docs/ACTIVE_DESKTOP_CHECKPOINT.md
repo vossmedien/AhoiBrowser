@@ -33,7 +33,7 @@ Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Runtime ownership — old slots returned; new Simulator UI active
+## Runtime ownership — all temporary slots returned
 
 Mobile explicitly returned the My-Mac window
 `01a070c7-7b59-78d0-b224-bfab8a57b998` unused in
@@ -45,13 +45,12 @@ subject to fresh CPU and live-state checks. Do not retain a stale runtime block
 or repeat the grants/acknowledgements. New Mobile My-Mac work needs a fresh
 explicit slot once its exact host is ready.
 
-**New September8 slot:** the user explicitly granted the Sync/Mobile owner its
-bounded isolated Simulator journey (currently Build17). This is not the old
-My-Mac window. Latest coordination confirms Save/restart progress but no explicit
-handback yet. Desktop performs no native UI actions during that slot. Checkout,
-build and install ownership remain here; capacity and current process checks
-remain required. See `docs/ACTIVE_SYNC_COORDINATION.md`; do not infer release from
-the restarted Mobile PID or ask the same Simulator approval again.
+**September8 Simulator slot is now returned:** explicit owner handback
+`01a0801b-0086-71f0-97f5-46f712d925ad` and shutdown of the isolated device are
+confirmed in `docs/ACTIVE_SYNC_COORDINATION.md`. Desktop's retained native UI
+ownership is no longer held source-only by that window. This is not an inference
+from PID absence and does not grant control of other projects' Simulators or a
+new My-Mac host. Do not retain the old active-Simulator gate.
 
 ## Binding Sync decision — one format, fresh isolated acceptance
 
@@ -198,18 +197,23 @@ profile_sync_backend.h:52, and the same duplicated context guard in
 sync_store.cc:292/365. Sync owner received exact compiler handoffs
 `01a0803d-a9fd-7472-9afd-4232e697e71a` and
 `01a0803e-462d-77e2-8fa9-e1e08ed87712`; no Common file was edited here.
-After that bounded committed Common fix arrives, update the same clean snapshot
-with it plus5a15614, apply the guarded delta and run ONE cached app-only corrective
-build under a fresh capacity check. No unchanged retry, test-target expansion or
-warning suppression. Desktop UI/installation remain untouched during the Mobile
-Simulator window; installed4cb is unchanged.
+The bounded Common compiler fix has arrived as `dfcc32e` and was read in full;
+default-method semantics/authorization remain unchanged. Same owned detached
+snapshot now clean at `c20a759dd936cfa93d5fedeb4c9dcd52e876bcd7`, comprising74ceb
+plus5a15614,7a47063,dfcc32e only. No catalogue WIP was included. At09:07:54 UTC the
+guarded corrective overlay is RUNNING as exec `68595`; log
+`artifacts/build/desktop-shared-tabs-c20a759-20260908/overlay.log`. Fresh capacity
+showed62–70% idle,44% memory headroom,77.7GiB free disk and no compiler workload.
+Resume68595, then one app-only jobs2/keepgoing1 build from that snapshot. Do not
+repeat71760, integrate WIP, add test targets or suppress warnings. The Mobile
+Simulator window has been explicitly returned; installed4cb is unchanged.
 
 Do not launch the new normal-tab mirroring on the real failed-import Default
 profile before its4cb Arc recovery. Initial new-format acceptance uses an
-isolated fresh profile. Respect the active Mobile Simulator UI slot below.
-Common's canonical Inbox Bottom-clock follow-up was requested in
-`01a07fc6-afb8-70c0-98f2-444905bf69a8`; do not silently author changed bootstrap
-defaults as user edits. Settings/extension-restoration and later workspace
+isolated fresh profile. The requested Inbox Bottom-clock correction is already
+delivered as `7a47063`, read and included with native `5a15614` in the same detached
+correction snapshot (`c20a759`). It is not a remaining source request.
+Settings/extension-restoration and later workspace
 website-session isolation remain in the master scope, not completed here.
 
 **Latest completed native UI journey (4cb history):** short visible Sidebar
