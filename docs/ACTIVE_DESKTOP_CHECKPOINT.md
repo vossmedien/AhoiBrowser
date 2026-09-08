@@ -178,6 +178,15 @@ Simulator journeys, CUA and WindowServer are active; no foreign job was touched.
 Wait for sustained headroom before even the heavy overlay/preflight phase, then
 use the already prepared snapshot; do not restart source implementation/review.
 
+**Gate subsequently reopened:** repeat samples returned43–53% idle and45%
+memory-pressure headroom. Guarded overlay integration is now RUNNING as exec
+session `41438` from the same clean74ceb snapshot, with canonical AHOI_WORK_ROOT.
+Log: `artifacts/build/desktop-shared-tabs-74ceb15-20260908/overlay-0841.log`.
+No compiler has been started by this thread yet. Resume this exact live handle;
+after overlay succeeds and capacity still fits, run one app-only build with
+AHOI_JOBS=2 (not a new snapshot/review). Desktop UI/installation stay untouched
+during the Mobile Simulator window. This is not a successful build receipt.
+
 Do not launch the new normal-tab mirroring on the real failed-import Default
 profile before its4cb Arc recovery. Initial new-format acceptance uses an
 isolated fresh profile. Respect the active Mobile Simulator UI slot below.
