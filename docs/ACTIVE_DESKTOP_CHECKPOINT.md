@@ -122,12 +122,22 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: e241191 installed; combined6b6c771 build running
+## Current candidate: e241191 installed; corrected combineda9db378 integration
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**LIVE BUILD HANDLE:** guarded app-only92858 is RUNNING on the same clean
-snapshot at `6b6c771a224e1cfafc97681a1de0550a2be2ad54`. Overlay52765 EXIT0,
+**LIVE HANDLE:** corrective overlay52816 is RUNNING on the same clean snapshot
+at `a9db37849bf5a9f437283c7bff173dfced0f195e`. Prior app-only92858 is TERMINAL
+EXIT1, not a candidate. Four objects reported the SAME new delegate inline-
+virtual style error; only fix846e875 was integrated (out-of-line false default
+plus its GN source, no behavior/guard change). Native schema objects and new
+WebUI CSS/TS/GRIT actions compiled successfully before that failure. Original
+failed log stays under6b6c771; do not rerun it or ask for another source fix.
+After52816 EXIT0, run one cached guarded app-only follow-up. Fresh17:12CEST
+gate70.2%idle/63%memory/no new swapouts/no compilers,38.3GiB above32GiB floor.
+Logs: `artifacts/build/desktop-sidebar-store-a9db378-20260908/`.
+
+**Combined package already present:**6b6c771 overlay52765 EXIT0,
 checkout delta verified. Exact scoped integration: fe647ee Sidebar tint/star,
 ad91502 constrained local schema upgrade,9323d71 recovery spacing/copy on e241;
 no Common/Swift WIP or patch36. Only a README conflict was resolved by retaining
@@ -136,7 +146,7 @@ Fresh17:03CEST gate76.8%CPUidle/67%memory headroom/zero new swapouts/no compiler
 permits AHOI_JOBS=4;38.3GiB uses documented build override above32GiB hard floor.
 Watch disk/capacity at heavy phase boundaries. No extra test targets. Logs:
 `artifacts/build/desktop-sidebar-store-6b6c771-20260908/{overlay,build}.log`.
-Resume92858 to terminal, never an old build/install; do not edit running snapshot.
+Do not restart92858/52765 or edit a running snapshot/out.
 
 **CURRENT BUILD STATE:** build56659 and overlay32506 are TERMINAL EXIT0 on the
 clean existing
@@ -1117,7 +1127,9 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume the real active app-only build92858 on clean6b6c771; overlay52765 EXIT0.
+1. Resume corrective overlay52816 on cleana9db378; then the cached guarded
+   app-only follow-up with a fresh capacity check. Prior92858 EXIT1 is closed;
+  846e875 fixes its one inline-virtual cause. No further source/ownership wait.
    All e241 handles are terminal, not restart targets. The coherent
    fe647ee/ad91502/9323d71 Sidebar+Store+Recovery-copy package is integrated, no
    Common WIP/patch36 or further source handoff wait. e241's actual load
