@@ -29,6 +29,16 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Build18 Simulator START AUTHORIZED, 2026-09-08 12:01 UTC:** all actual
+  owner releases are now in: Desktop's direct current handoff, FillIt11:41:12,
+  BetterConvo11:59:35 and MBC12:00:14/12:00:20. They explicitly refrain from
+  Simulator/CUA/Xcode runtime focus until return. This is the NEW isolated
+  Search/Restart/Reset window on existing signed894c9a2/Build18, not07:08.
+  Mobile has the concrete start handoff, subject only to fresh total capacity;
+  no new build or general approval is required. No My-Mac/native desktop/
+  profile/key/Portal operation. Mobile verifies its actual window before input,
+  records bounded results, cleans only its own runtime, and explicitly returns
+  the window. Coordinator then releases MBC/BetterConvo/FillIt/Desktop together.
 - **Combined native candidate is building, 2026-09-08 11:43 UTC:** Desktop's
   existing clean snapshot is `f5a324b`, including Toolbar/Pin/Home, icon31d9681
   (canonicaldf03d46), the required Settings implementation/category and signing
@@ -45,8 +55,8 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   fresh capacity check. FillIt01a04a1b confirmed
   at11:41:12 UTC that its Simulators are shut down and it will not start/focus
   Simulator/Xcode runtime until this coordinator returns the window. MBC,
-  BetterConvo have not yet completed the requested new handoff;
-  their ongoing work/idle PIDs are not release. Mobile must not start yet.
+  BetterConvo subsequently released as recorded above. This older partial
+  readback no longer blocks the new START handoff; idle PIDs alone were not used.
 - **Mac provisioning prerequisite now EXISTS, 2026-09-08 11:32–11:34 UTC:**
   Desktop used the authorized existing Xcode account to create the Mac profile.
   Coordinator independently decoded
