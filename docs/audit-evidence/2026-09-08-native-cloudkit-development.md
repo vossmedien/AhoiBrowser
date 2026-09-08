@@ -54,15 +54,54 @@ path, not a partial hardened-runtime signature that would reject its linker-
 signed libraries. The new explicit Development verifier combines that existing
 candidate check with exact signature/profile/certificate/runtime configuration.
 Production's full hardened-runtime signer/verifier remains unchanged. This
-Development branch still needs actual prepared-candidate execution/readback.
+Development branch has now passed actual prepared-candidate verification below.
+
+## Exact prepared and signed native candidate
+
+The combined toolbar/icon/settings app-only build62333 is TERMINAL EXIT0 at
+source `3d59cf9de8846e47c91db540b90b3067b18c0841`. Its original build receipt,
+bundle and binary were preserved. An APFS clone was prepared and signed ONLY at
+`artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/cloudkit/AhoiBrowser.app`.
+Preparation91993 EXIT0, signing25981 EXIT0, verification6196 EXIT0. No second
+Chromium compile, installation, profile launch or CloudKit call was required.
+
+- Original build receipt: `build-receipt.json`,
+  SHA256 `f5b04cebd2290ad3d7c29baa3ae2a1955d7942d16bd427779965d1e73025f6f8`.
+- Preparation receipt: `cloudkit/preparation.json`,
+  SHA256 `e1213a65e2d711998751dd12f35ad7844a6a6e540df03954de6ed28f2c53f713`.
+- Verification receipt: `cloudkit/verification.json`,
+  SHA256 `6da4cea119d4e19c89d4f68292f6a6289ffb4f32b7ffac78c83b8f5511a33597`.
+- Signed copy executable:
+  `7eedd882b85761c8fd04eab6c88c20f7bc21d1ebc234da39112bbe6001824a20`.
+- Signed copy bundle tree:
+  `d987e11659044e594cbba97a9f36097b7e89eedd7952fd43e95feb827dc6b05f`.
+- Actual public signing-leaf SHA256:
+  `32588cf8f454c31e32e62743f10731c9f394bfe8c84098bfbcf980a40281550c`,
+  present in the embedded profile certificate inventory.
+
+All receipt paths above are relative to the canonical
+`artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/` directory (the
+original build receipt is directly in that directory). Signed runtime has the
+dedicated Ahoi container, exact payload/command groups, Development environment
+and native development APNs. Existing portable component manifests, nested code,
+top-level identity, entitlements, certificate and runtime values were checked.
+`releaseEvidenceEligible=false`; no notarization/Production acceptance.
+
+The first verifier54382 EXIT2 reached certificate readback but passed the optional
+`codesign --extract-certificates` prefix as a separate argument. This codesign
+treated it as another input path. The exact attached form
+`--extract-certificates=<prefix>` exposed the public leaf correctly. One tooling
+line was corrected; no warning/profile/certificate check was removed. The full
+real CLI then passed. The exact fix was temporarily applied only to signing.py
+in the3d59 tool snapshot and removed after the run; its Git HEAD/product source
+and built app were not relabelled. Canonical tooling retains the correction.
 
 ## Next actual gate
 
-Finish the one combined toolbar/icon/settings candidate, keep original receipts,
-copy its exact bundle, run `prepare-macos-cloudkit`, sign that copy with the
-existing Apple Development identity and exact generated entitlements, then
-`verify-macos-cloudkit`. No second Chromium compile is required for preparation.
-Install/run only under Desktop's normal candidate/profile safeguards.
+The prepared copy is not installed or run yet. Complete the protected Arc
+recovery in compatible4cb, then use the guarded installation and a short visible
+toolbar/settings journey on the new exact candidate. Native bootstrap and a
+matching-client fresh isolated Development roundtrip remain open.
 
 Mac's payload-key loader only reads an existing synchronizable data-protection
 32-byte key. Bootstrap remains a real gate, coordinated with the existing

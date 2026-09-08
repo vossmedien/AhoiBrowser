@@ -210,8 +210,7 @@ def _signing_certificate_sha256(path: pathlib.Path) -> str:
             [
                 "codesign",
                 "-d",
-                "--extract-certificates",
-                str(prefix),
+                f"--extract-certificates={prefix}",
                 str(path),
             ]
         )

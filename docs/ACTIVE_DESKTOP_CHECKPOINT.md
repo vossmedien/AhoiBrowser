@@ -33,18 +33,20 @@ Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Runtime ownership — new bounded Build18 Simulator slot
+## Runtime ownership — Build18 returned; protect the live Arc recovery
 
-At11:52UTC Desktop explicitly released its UI side for the newly prepared
-Build18 Simulator Search/Restart/Reset journey: queue
-`01a080dc-8e42-7c80-8c38-0df79cdd07ee` to coordinator and
-`01a080dc-8ea8-7c82-a926-1080a0dcac89` to Sync/Mobile. Desktop's Apple/Xcode
-UI step is complete and no native app is running. No Desktop CUA/native UI
-until explicit handback; keep source/build work moving. Active build79280
-continues jobs2, independent fresh capacity checks still apply. The grant
-does NOT cover foreign Simulator owners/windows, My-Mac, Desktop profiles,
-keys/Portal/Applications. Coordinator resolves those other owners separately.
-This is a NEW narrow grant, not revival of the earlier07:08/Build17 window.
+The bounded11:52UTC Build18 Simulator grant is CLOSED. Explicit handback
+`01a080fd-802c-75e1-8670-42aede65b234` and the coordinator's12:25–12:27UTC
+readback return Desktop's native UI; the isolated Mobile simulator is Shutdown.
+Do not retain any old Mobile slot. Other projects' Simulators are not in scope.
+
+Desktop then activated the verified compatible4cb Arc-recovery app through
+guarded install79760 EXIT0. During initial navigation CUA twice refused input
+because the app changed externally; workspace/rows and width also changed.
+No recovery transaction was started. The user was asked asynchronously to leave
+Ahoi briefly unbedient; do not force input against a changing real profile.
+The later14:40 screenshot/questions and fresh14:41 process absence do not prove
+who changed the earlier window. Fresh state is required before resuming.
 
 ### Earlier slots — returned, not active
 
@@ -117,23 +119,38 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: 6ae4070 installed; local tab lifecycle exercised
+## Current candidates: 3d59cf9 built; compatible4cb installed for Arc recovery
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**Current execution:** collected app-only build79280 is TERMINAL EXIT1. It
-completed its independent work through1180/1439; exactly one deduplicated
-compiler cause remained (`GURL::host_piece`). No staged/sign/install success.
-The clean existing snapshot advanced ONLY by native fixc1fd86f to
-`3d59cf9de8846e47c91db540b90b3067b18c0841`. Corrective overlay17811 is TERMINAL
-EXIT0; cached app-only build62333 is RUNNING since12:24UTC, jobs2, same guarded
-`build-ahoi.sh dev`, no additional targets/patch36/Common WIP. Logs under
-`artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/`.
-Fresh start gate69–79%CPUidle/58%memory headroom, no compiler workload;56.0GiB
-uses the unchanged documented build-only low-disk override,32GiB hard floor.
-Resume62333; do not restart17811/79280 or
-rerun unchangedf5. Earlier collected log:
-`artifacts/build/desktop-toolbar-settings-f5a324b-20260908/build.log`.
+**Current execution:** overlay17811 and app-only build62333 are TERMINAL EXIT0.
+The clean candidate source is `3d59cf9de8846e47c91db540b90b3067b18c0841`;
+do not restart any build. Original receipt is preserved at
+`artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/build-receipt.json`,
+SHA256 `f5b04cebd2290ad3d7c29baa3ae2a1955d7942d16bd427779965d1e73025f6f8`.
+Original binary1f2d82a0a0b122a6dba895c9628c30156b5ff89f92243ffab5fde3ac8d5effdb,
+treea113f6991742b68d820b9c0d79de71dcf6a80259fc8be443b6f9f5eb7024c124.
+Logs and the separately prepared Development copy are in that same directory.
+Build used jobs2 and the documented low-disk override above32GiB hard floor.
+Prior79280 is TERMINAL EXIT1, its sole GURL cause fixed byc1fd86f. No extra
+test targets, patch36 or foreign Common WIP entered this candidate. Original
+failed log remains under `desktop-toolbar-settings-f5a324b-20260908/`.
+
+Development copy preparation91993, signing25981 and corrected verification6196
+are TERMINAL EXIT0. Initial verifier54382 EXIT2 was a CLI argument-parsing bug
+in certificate extraction, not a signing/profile failure. Details and exact
+copy hashes: `docs/audit-evidence/2026-09-08-native-cloudkit-development.md`.
+The copy is not installed or a transport/bootstrap/roundtrip pass. Main3d59
+bundle/receipt remain unchanged; temporary4cb is still the installed recovery app.
+
+New user UI feedback14:40 was viewed at
+`/Users/vossmedien/Desktop/Bildschirmfoto 2026-09-08 um 14.40.48.png`:
+widen the address-bar activator and investigate the marked blank round/edge
+region near extensions. Pin/Home are already in3d59, not the installed4cb;
+do not call that old screenshot a failed3d59 acceptance. The extra bookmark
+sync button controls one category within Ahoi Sync, not a second transport;
+the user reasonably finds that separation confusing. No automatic consent or
+new independent sync system is authorized by the question.
 Integrated source: native6ae/tests, Toolbarc86314b, Common41de599+29c42db+
 Home-selector1587497, approved Icondf03d46, explicit native Settingsfc37928 and
 Development signing-toolingf4aee9d. No WIP. Overlay91184 TERMINAL EXIT0 and delta
@@ -176,10 +193,12 @@ was prepared at `/private/tmp/ahoi-arc-recovery-tools.Q65woe/repo`. It is clean
 and must NEVER build/use/refresh shared Chromium/out. The original4cb rollback
 was APFS-cloned to `/private/tmp/ahoi-arc-recovery-tools.Q65woe/AhoiBrowser.app`;
 full existing verify-built-app check47969 EXIT0 (533libraries/238resources,
-source4cb, executable55301ccb...). No install or app/UI action yet. After the
-explicit Build18 window return, the existing guarded installer can temporarily
-activate that compatible bundle for the real Arc recovery UI; keep6ae and4cb
-rollback/evidence, then continue the new toolbar candidate. Preflight log:
+source4cb, executable55301ccb...). Guarded install79760 subsequently EXIT0;
+receipt `artifacts/install/ahoi-dev-4cb622a-arc-recovery-20260908.json`,
+SHA189c8823b711655a194c11a6a0bf1e820bcbf2144f42a0852340f9e6662d78da.
+Installed plist was read back as4cb. Keep6ae and4cb rollback/evidence; complete
+the real recovery before new normal-tab mirroring touches Default. Recovery
+itself has NOT run; initial UI interference is recorded above. Preflight log:
 `artifacts/build/arc-recovery-4cb622a-20260908/preflight.log`.
 Coordinator informed in01a080ed-2950-7202-807b-e2f21f6d5435; no new ACK required.
 
@@ -941,31 +960,20 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume current cached app-only build62333 on clean3d59cf9. Overlay17811 is
-   TERMINAL EXIT0. Prior79280 is TERMINAL EXIT1 with
-   exactly the now-integrated GURL fixc1fd86f; do not resume/restart it or re-ask
-   for a source fix. No patch36/Common WIP or extra test targets. The package
-   includes toolbar/icon/settings and signing-tooling. After a verified successful
-   build, preserve receipt, install atomically and visibly exercise the changes,
-   subject to the explicit Build18 UI handback above. Do not use any older
-   overlay/build/installer. It includes toolbar, approved icon, explicit native
-   settings and committed Common dependencies; no WIP. After verified completion
-   preserve the receipt, atomically install, then visible Hover/Pin/Home/settings
-   and icon. Prepare/sign/verify the separate Development CloudKit copy using
-   the NEW concrete Mac profile; no extra Chromium compile or repeated approval.
-   Installed6ae's bounded local lifecycle and focused12-case checks are complete.
-   Previous app/test builds/installers are terminal, NOT restart targets. The
-   own UI follow-up74127 is now terminal; toolbar source is described at the top. Finish
-   that connected UI package and its visible Hover/Pin/Home journey, without
-   mixing Common WIP. Keep6ae/receipts, clean detacheda9d6ad7 and4cb rollback.
-   Continue the remaining product steps below; no further matrix, app reinstall
-   for test-only edits, or integration of Common WIP. Real remote projection/
-   origin UX and shared Sync are not closed by these local results.
+1. Build62333 is EXIT0 and its immutable3d59 receipt is preserved. No build,
+   overlay, signing or verification retry: Development copy verification6196 is
+   also EXIT0. After protected Arc recovery below, install the exact completed
+   package through the guarded path and visibly exercise Hover/Pin/Home/settings
+   and icon. New14:40 activator-width/render feedback belongs to the next actual
+   visible correction, not a blind rebuild or mutation of the frozen candidate.
+   Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
+   remains separate and open. Prior6ae's local lifecycle/focused12-case evidence
+   remains valid for its boundary, not proof of multi-device sync.
 2. Arc's real Default profile remains protected. Arc has now been observed
-   closed; compatible4cb bundle/guarded sparse-tooling preflight is ready as
-   documented above. After the explicit current Mobile UI handback, recheck
-   window/process state and activate that bundle only through the guarded
-   installer for recovery. No shared checkout/out change or extra compile.
+   closed; compatible4cb is ALREADY installed via79760 EXIT0. Mobile's explicit
+   handback is complete. Resolve the new actual user/UI-interference boundary,
+   then fresh window/process/profile state; no reinstall, checkout/out change
+   or extra compile merely to resume recovery.
    After Arc is normally closed,
    use the compatible4cb baseline's guarded importer recovery before allowing
    new normal-tab mirroring to touch that failed-import profile. Open the real
@@ -984,7 +992,7 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    slide/fade, reported seam, zero-tab/split stability and Bookmark core flow.
    Do not mutate the failed imported tree to set up tests before its recovery.
    Reuse the completed startup/Sidebar evidence; do not replay whole matrices.
-6. Native A-D source is integrated in the installed6ae4070 candidate, including
+6. Native A-D source is integrated in the preserved6ae4070 and new3d59 candidate, including
    the released async completion and durable-current export. After the visible
    local journey, resolve any actual product defect and the remaining shared-
    temporary-row UX, then coordinate the matching-client roundtrip. Do not
