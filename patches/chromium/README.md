@@ -48,6 +48,29 @@ as a second active patch stack.
 - **Risk/removal:** low string-map rebase risk; retain the compact consent path
   until upstream Settings provides the same explicit category contract.
 
+## `0036-ahoi-native-sync-storage-observer.patch`
+
+- **Owner:** Desktop upstream seam; Common owns its consented consumer/apply.
+- **Paths:** `extensions/browser/api/storage/storage_frontend.{h,cc}` only.
+  Native callbacks observe nonempty storage.sync deltas even without JavaScript
+  listeners, before the existing EventRouter early return. Local/session/managed
+  areas are excluded. Existing JS event access restrictions remain unchanged.
+- **Source identity:** the dedicated remote-apply callback carries origin with
+  the exact asynchronous completion, avoiding a global suppression flag that
+  would swallow concurrent local edits. Native apply still uses RunWithStorage
+  and must validate the original account/consent/revision before committing and
+  notifying. This callback does not grant write or upload authorization.
+- **Lifetime:** subscriptions are scoped; a retained callback list plus weak
+  frontend check avoids accessing a released profile after native notification.
+  Neither observer nor callback retains the BrowserContext.
+- **Verification:** exact two-file patch application and source/API checks only.
+  It is outside the current toolbar build79280; Common integration and visible
+  permitted-extension settings journey precede focused programmatic checks.
+- **Privacy/removal:** no data is sent or persisted by this hook. Consumers must
+  use positive extension/key/value schemas and current per-category consent;
+  storage.sync alone is not evidence that values are safe to transfer. Remove
+  when Chromium exposes equivalent native observation and origin-bearing apply.
+
 ## `0001-ahoi-m152-integration-seams.patch`
 
 - **Owner:** AhoiBrowser project.
