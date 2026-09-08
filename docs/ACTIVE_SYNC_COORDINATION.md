@@ -29,12 +29,21 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Compiler corrections are committed, 2026-09-08:** Desktop `5a15614` retains
+  all four public sequence DCHECKs and the two private helper context contracts,
+  removing only duplicate helper acquisitions; coordinator checked all callers.
+  Common `dfcc32e` separately fixes the virtual-default definitions/GN, override
+  marker and SyncStore helper guard. Its source ancestry includes both5a15614
+  and Inbox7a47063 (both ancestry checks EXIT0), with no ADR0010 expansion in
+  this six-file correction. These are source fixes, NOT a successful rebuild.
+  Desktop's terminal readback confirms build71760 EXIT1 at08:59:56 UTC.
+  Next: its one guarded cached app-only corrective candidate, then visible E2E.
 - **Native build71760 is TERMINAL FAILED, 2026-09-08 08:57 UTC:** the canonical
   `desktop-shared-tabs-74ceb15-20260908/build-0843.log` ends with Ninja unable to
   make progress after product compiler errors; wrapper/build PIDs24145/24426 are
   absent. Owner's exact terminal exit-code receipt is still to be read; no new
   build/install/E2E pass exists. Do not resume the old live-PID instructions below.
-  Dedupllication gives three compiler-error classes across five owned files:
+  Deduplication gives three compiler-error classes across five owned files:
   Native TabTree node mutations/snapshot and Common SyncStore have sequence-
   context annotation conflicts; Common UI-bridge has nonempty inline virtual
   definitions; Common backend has a missing override marker. Native correction
