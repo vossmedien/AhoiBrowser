@@ -719,9 +719,9 @@ public final class MobileBrowserController: ObservableObject {
             guard let selectedTabID,
                   let page = page(for: selectedTabID, createIfBlank: true) else { return }
             observeNavigations(of: page, tabID: selectedTabID)
+            prepareExplicitSharedNavigation(tabID: selectedTabID, url: safeURL)
             page.load(safeURL)
             updateSelectedMetadata(url: safeURL, title: nil)
-            noteExplicitSharedNavigation(tabID: selectedTabID, url: safeURL)
         } else {
             _ = createTab(url: safeURL)
         }
