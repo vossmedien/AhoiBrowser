@@ -3,6 +3,33 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Current: key source delivered; integrated Mobile20 built — 2026-09-08
+
+Common+Swift bbe2c53b21f0911c0074b97a606468268a7387e9 is committed/pushed (37 owned
+files, DCO). Desktop source handoff01a08155-191e-7c81-82c0-27840eb4b2a4;
+coordinator01a08155-19db-71b3-8958-72be444f29c4. Native first-use Claim/Journal/
+Promote is connected to Backend provider creation; original account/consent and
+actual key commitment stay required. Same Swift lifecycle/Keychain conventions,
+fresh control snapshots, permanent per-activation cancellation, same domain
+format3/engine. No manual key injection, old key adoption or destructive migration.
+Exact control fields, safety bounds and Native UI status/retry API:
+[KEY_BOOTSTRAP_SYNC.md](KEY_BOOTSTRAP_SYNC.md).
+
+Product-only Mobile build28517 completed EXIT0 on that exact clean snapshot:
+DebugLocal0.1(20), tree b8d840b241c9634794617c09aef355feab656d5b3e048f448b5db06cbff05e0b.
+Receipt/log/XCResult: artifacts/build/mobile-key-bootstrap-bbe2c53-20260908/.
+It also contains2b19ca6 Storage and approved icon/host layout. Native C++ is NOT
+compiled by this result, and no tests or runtime were started. Build19 was first
+archived and reverified byte-identical at
+artifacts/build/mobile-setup-6b0121f-20260908/AhoiMobile-6b0121f.app.
+
+Next: bind the already requested short Simulator journey to the actual released
+window/candidate; Build20 is ready, Build19 still available. No common window
+release is inferred here. Native build/install/UI/signing remain Desktop-owned;
+matching entitled devices, fresh cloud/key family and the real roundtrip remain
+open. Existing profile/provisioning/compiled/relay evidence is not substituted.
+No active own compiler/test/host, no keys/cloud/Portal/Production changed.
+
 ## Reviewed extension storage source handoff — 2026-09-08
 
 Common+Swift packet2b19ca64b7f4fc0f350021ea97e721b23a6eb0ee is committed/pushed,
