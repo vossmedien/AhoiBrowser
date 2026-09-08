@@ -82,6 +82,7 @@ source_set("sidebar_views") {
     "sidebar_tree_row_view_interaction.cc",
     "sidebar_tree_view.cc",
     "sidebar_tree_view.h",
+    "sidebar_tree_view_delegate.cc",
     "sidebar_tree_view_delegate.h",
     "sidebar_tree_view_drag.cc",
     "sidebar_tree_view_drop_execution.cc",
