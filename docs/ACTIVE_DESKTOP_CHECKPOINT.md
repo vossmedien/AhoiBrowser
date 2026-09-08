@@ -177,18 +177,32 @@ The start gate changed materially: repeat samples reached82–92% overall CPU us
 Simulator journeys, CUA and WindowServer are active; no foreign job was touched.
 That sample deferred the start; the subsequent gate result below supersedes it.
 
-**Current live build, 08:44:54 UTC:** overlay41438 is TERMINAL EXIT0 and its
+**Current build result, 08:59:56 UTC:** overlay41438 is TERMINAL EXIT0 and its
 checkout delta was verified. Log remains
 `artifacts/build/desktop-shared-tabs-74ceb15-20260908/overlay-0841.log`.
 The following capacity sample had53–61% idle/49% memory headroom. The one
-guarded app-only build is RUNNING as exec `71760` from the same clean74ceb
+guarded app-only build `71760` is TERMINAL EXIT1 from the same clean74ceb
 snapshot, canonical AHOI_WORK_ROOT, AHOI_JOBS=2, AHOI_NINJA_KEEP_GOING=1, command
 `./scripts/build-ahoi.sh dev`. No added test targets. Log:
 `artifacts/build/desktop-shared-tabs-74ceb15-20260908/build-0843.log` (actual
-start08:44:54; filename is only a label). Host/toolchain/disk/Sparkle gates passed;
-hooks/build remain in progress. Resume71760; do not rerun overlay or start a
-second build. Desktop UI/installation stay untouched during the Mobile Simulator
-window. This is NOT a successful build or installation receipt.
+start08:44:54; filename is only a label). Host/toolchain/disk/Sparkle/hooks/GN
+passed; Ninja's167-step frontier collected compiler errors and stopped. No
+stage/sign/install or successful candidate receipt followed. Do NOT resume71760
+or rerun unchanged74ceb.
+
+Exact causes: two Native private helpers redundantly acquired an already-required
+sequence context; fixed canonically in `5a15614`, preserving public DCHECKs and
+the helper's VALID_CONTEXT_REQUIRED contract. Common failures are three nonempty
+inline virtual defaults in profile_sync_ui_bridge.h, missing override/final at
+profile_sync_backend.h:52, and the same duplicated context guard in
+sync_store.cc:292/365. Sync owner received exact compiler handoffs
+`01a0803d-a9fd-7472-9afd-4232e697e71a` and
+`01a0803e-462d-77e2-8fa9-e1e08ed87712`; no Common file was edited here.
+After that bounded committed Common fix arrives, update the same clean snapshot
+with it plus5a15614, apply the guarded delta and run ONE cached app-only corrective
+build under a fresh capacity check. No unchanged retry, test-target expansion or
+warning suppression. Desktop UI/installation remain untouched during the Mobile
+Simulator window; installed4cb is unchanged.
 
 Do not launch the new normal-tab mirroring on the real failed-import Default
 profile before its4cb Arc recovery. Initial new-format acceptance uses an
