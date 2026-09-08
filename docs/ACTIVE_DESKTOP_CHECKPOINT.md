@@ -126,13 +126,14 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**LIVE HANDLE:** corrective overlay82634 is RUNNING on clean
+**LIVE HANDLE:** cached guarded app-only build81449 is RUNNING since15:22UTC;
+corrective overlay82634 is TERMINAL EXIT0 on clean
 `35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d`. Prior7222 is TERMINAL EXIT1: the
 one constructor translation unit needed complete BookmarkModel for the observer
 member's destruction. Exact one-include fixb534d93 was integrated, no behavior
 or warning change. The earlier a9db378/52816 were completed, not restart targets.
-After82634 EXIT0 use existing AHOI_NINJA_KEEP_GOING=1 with jobs4 for one cached
-app-only continuation, collecting any remaining diagnostics together rather
+The continuation uses existing AHOI_NINJA_KEEP_GOING=1 with jobs4, collecting
+any remaining diagnostics together rather
 than stopping at each first failure. This still fails unless all requested app
 work succeeds; no test or warning is skipped. Fresh17:21CEST79%idle/66%memory,
 38.2GiB above32GiB floor. Logs:
@@ -1140,8 +1141,8 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume overlay82634 on clean35c4c41, then cached guarded app-only build with
-   existing AHOI_NINJA_KEEP_GOING=1/jobs4 and a fresh capacity check. Prior7222
+1. Resume live cached app-only81449 on clean35c4c41; overlay82634 EXIT0. Existing
+   AHOI_NINJA_KEEP_GOING=1/jobs4, fresh75.9%idle/66%memory start gate. Prior7222
    and92858 are terminal failures, both causes corrected by b534d93/846e875.
    No new source/ownership wait or unchanged retry. Real Default stays provider-free.
    All e241 handles are terminal, not restart targets. The coherent
