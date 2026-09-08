@@ -29,6 +29,13 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **First native Save journey found a product UI defect, 2026-09-08:** Desktop's
+  visible `c20a759` run saved the Page correctly in the store, but the Sidebar
+  retained its temporary presentation. This is a controllable product failure,
+  not an external gate or native E2E pass. Desktop committed the narrow existing-
+  observer refresh correction `272385f` (one Session file, ten added lines).
+  Next is its corrected candidate and repetition of the same Save/Unsave/restart
+  journey; no new Sync architecture, broad tests or ownership handoff is needed.
 - **New native candidate BUILT + INSTALLED, 2026-09-08:** corrective app-only
   build82463 from clean snapshot `c20a759dd936cfa93d5fedeb4c9dcd52e876bcd7`
   completed EXIT0, including signing and portable-bundle checks. Its Sync and
@@ -412,9 +419,10 @@ not included in the unchanged installed4cb candidate; do not request A again.
 
 1. Both owners have accepted their roles. Follow the concrete package sequence
    and native header handoffs; no further role-confirmation loop.
-2. Desktop prepares the coherent native source freeze/runnable candidate using
-   the delivered Common package and async corrections; there is no missing-API
-   or role wait and no insertion into the separate old baseline. Sync continues
+2. Desktop finishes the narrow native Sidebar-refresh correction `272385f` and
+   repeats the affected visible journey. The Common compile fixes and Inbox are
+   already integrated in built/installed c20a759; no missing-API/role wait or
+   replay of the old compiler batch remains. Sync continues
    the remaining Mobile/live integration and ADR0010 setup adapters; the local
    Build17 journey and four focused checks are complete within their stated
    scope. Coordinate heavy phases by actual total capacity, not old CPU rules.
