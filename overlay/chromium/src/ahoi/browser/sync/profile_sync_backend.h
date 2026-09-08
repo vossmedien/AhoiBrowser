@@ -49,7 +49,7 @@ class ProfileSyncBackend : public SyncStoreObserver {
                      SyncAuthorization profile_authorization = {});
   ProfileSyncBackend(const ProfileSyncBackend&) = delete;
   ProfileSyncBackend& operator=(const ProfileSyncBackend&) = delete;
-  ~ProfileSyncBackend();
+  ~ProfileSyncBackend() override;
 
   std::optional<SyncStateSnapshot> Initialize();
   std::optional<DeviceTabsSnapshot> ReplaceLocalTabs(

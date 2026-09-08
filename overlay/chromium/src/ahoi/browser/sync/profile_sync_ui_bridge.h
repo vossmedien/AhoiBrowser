@@ -8,7 +8,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <utility>
 
 #include "ahoi/browser/sync/shared_tab_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
@@ -43,9 +42,7 @@ class ProfileSyncUiBridge {
   // Explicit implementation support, separate from wire-format membership.
   // Native capture responds with the same Service-issued generation; absent
   // support must preserve state and never fall back to an empty tab vector.
-  virtual SharedTabNativeSupport GetSharedTabNativeSupport() const {
-    return {};
-  }
+  virtual SharedTabNativeSupport GetSharedTabNativeSupport() const;
   virtual void RequestSharedTabCapture(uint64_t generation) {}
   [[nodiscard]] virtual bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) = 0;
@@ -68,9 +65,7 @@ class ProfileSyncUiBridge {
   // next run.
   [[nodiscard]] virtual bool ExportTabTreeSyncSnapshot(
       tab_tree::TabTreeSnapshot* snapshot,
-      std::string* baseline_receipt) {
-    return false;
-  }
+      std::string* baseline_receipt);
   // Complete only after durable native success/readback. While disk work is
   // pending, ordinary local snapshot callbacks MUST stay live and revoke this
   // apply. Suppress only the sync-origin callback during final RAM publication;
@@ -79,9 +74,7 @@ class ProfileSyncUiBridge {
       tab_tree::TabTreeSnapshot snapshot,
       std::string baseline_receipt,
       base::RepeatingCallback<bool()> authorization,
-      base::OnceCallback<void(tab_tree::TabTreeStore::Result)> completion) {
-    std::move(completion).Run(tab_tree::TabTreeStore::Result::kInvalidArgument);
-  }
+      base::OnceCallback<void(tab_tree::TabTreeStore::Result)> completion);
 
   [[nodiscard]] virtual bool OpenNormalTabFromRemoteCommand(
       const GURL& url,

@@ -31,6 +31,7 @@ source_set("profile_sync_preferences") {
 
 source_set("profile_sync_ui_bridge") {
   public = [ "profile_sync_ui_bridge.h" ]
+  sources = [ "profile_sync_ui_bridge.cc" ]
   public_deps = [
     ":shared_tab_types",
     "//ahoi/browser/tab_tree",

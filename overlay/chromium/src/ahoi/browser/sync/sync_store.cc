@@ -289,7 +289,6 @@ bool SyncStore::SetMetadata(const std::string& key, const std::string& value) {
 SyncStore::Result SyncStore::PutLocalRecordInTransaction(
     const SyncRecord& record,
     std::string mutation_id) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
   }

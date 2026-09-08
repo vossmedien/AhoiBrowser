@@ -3,6 +3,19 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Native app-first compiler correction — 2026-09-08
+
+Desktop's app-only build71760 on74ceb15 is terminal EXIT1. Its Common causes
+are corrected separately from the ADR0010 setting-catalog WIP: the three
+nonempty default virtual methods move unchanged into profile_sync_ui_bridge.cc
+(registered in its existing GN target), the Backend destructor is marked
+override, and the private PutLocalRecordInTransaction no longer reacquires its
+caller's already-held sequence context. Both public callers retain their
+DCHECKs and the private VALID_CONTEXT_REQUIRED annotation remains. No warning,
+authorization, schema or behavior assertion was relaxed. Scoped whitespace/GN
+checks only; no build, test or runtime was started here. Desktop owns the one
+cached corrective build including its separate native5a15614 correction.
+
 ## Common native code handoff — 2026-09-08
 
 The Common C++ Service/backend capture and receipt-backed native tree pipeline
