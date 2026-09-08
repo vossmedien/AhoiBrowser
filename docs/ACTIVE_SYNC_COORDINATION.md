@@ -29,6 +29,18 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Desktop guarded app build is live, 2026-09-08 08:44–08:46 UTC:** overlay
+  succeeded and the same frozen `74ceb15` snapshot entered `build-ahoi.sh dev`
+  with `AHOI_JOBS=2`, no extra test binaries. Coordinator verified wrapper
+  PID24145 / build PID24426 and the advancing preflight log
+  `artifacts/build/desktop-shared-tabs-74ceb15-20260908/build-0843.log`.
+  This is a running pipeline, not compiler completion or a new installation.
+  Capacity had recovered; the previous CPU wait is historical. Common's
+  requested canonical Inbox correction `7a47063` was committed AFTER this
+  source freeze and is not included. Desktop was notified of that exact
+  candidate boundary in `01a08032-6386-7363-a763-03d9d76f1f5f`; include it in
+  an owner-controlled incremental candidate before matching Inbox/Sync
+  acceptance. Never mutate the running frozen checkout or start a second build.
 - **Mobile bounded handoff is documented, 2026-09-08:** the owner explicitly
   returned UI in `01a0801b-0086-71f0-97f5-46f712d925ad`. The complete local report
   is `artifacts/e2e/mobile-shared-intents-7b706a7-20260908/README.md`.
