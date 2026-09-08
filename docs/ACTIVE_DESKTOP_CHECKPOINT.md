@@ -1,9 +1,13 @@
 # Active Desktop checkpoint
 
-Updated: 2026-09-06. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
+Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 
 ## Contract and ownership
 
+- Effective capacity policy is the new global AGENTS.md: assess sustained whole-
+  machine CPU/core capacity, memory/swap, GPU and responsiveness. No fixed80%
+  single-process blocker or Ahoi project priority remains. Old dated samples
+  below are historical. Only own costly work may be adjusted for contention.
 - Active registered goal: implement `outputs/AhoiBrowser-Master-Zielprompt.md`
   through its full Definition of Done. Package 1 is not the whole product.
 - Review and rationale: `docs/reviews/2026-09-05-product-and-execution-review.md`.
@@ -93,6 +97,25 @@ baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Current candidate: 4cb622a installed; startup/fullscreen journey passed
+
+**Current continuation, 2026-09-08:** global/project AGENTS read in full; previous
+turn made aligned ADR0010 document edits which are now being secured, not another
+build wait. Installed plist still4cb; no Ahoi main process/build was live in the
+fresh readback. Arc is now PID31169 and remains running. Do not reuse old PIDs.
+No fresh AnyChat install/permission approval is inferred from elapsed time or
+the new capacity rules. Existing UI results below remain source-bound history.
+
+Next implementation: requested LOCAL Sync-baseline receipt, Native B scope.
+Native SessionBridge is in-memory plus coalesced async Disk persistence; existing
+sync Apply-kOk precedes durable write. Add a local persistence envelope carrying
+tree+receipt through the same SQL transaction/load/save/flush, leaving the domain
+TabTreeSnapshot and Arc fingerprints unchanged. Common must await durable success
+and retain original authorization through Disk commit; its unfinished synchronous
+receipt signature is not a released runtime API. No Common/Swift edits or unsafe
+legacy fallback. Native Install/Enable UI seam and storage_frontend.{h,cc} patch
+from ADR0010 are explicitly accepted in Desktop scope; exact Common signatures
+and future integrated candidate remain separate. Read-only helper found the
+existing persistence seams; no helper writes/builds/tests.
 
 **Newest live action:** same installed4cb, no new build. Short visible Sidebar
 flow passed: docked -> floating -> hide -> Cmd+Shift+S restores floating ->
@@ -235,6 +258,16 @@ Common+Swift/Wire owner received request01a07337-b020-7211-b95b-06878f84178f,
 coordinator01a07337-b056-7d73-95a1-9e3f0e6fce63. No reply/field freeze assumed.
 The active full-master goal includes this package; requirement recording is not
 runtime implementation or acceptance, and does not widen the current snapshot.
+
+The coordinator's explicit expanded-scope confirmation and binding ADR0010
+(79d2102) are now read and reflected in the master/README/workspace contract.
+Native Chromium user settings, actual trusted extension setup restoration and
+positively reviewed extension-setting values are in scope; old inventory-only
+SYNC-16 wording is superseded. Raw stores/secrets/permissions/paths remain local.
+Common+Swift/policy/catalogue stay Sync-owned; new native hooks need exact file
+handoffs. Portable workspace IDs/pins are separate from live local website
+contexts. No browser rebuild, runtime grant or AnyChat permission approval follows
+from this scope confirmation. Native isolation itself is still unimplemented.
 
 ## Historical baseline evidence — do not use as a resume plan
 

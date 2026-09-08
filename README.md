@@ -52,8 +52,12 @@ remains recovery/history evidence only.
   **Official GitHub release** uBlock Origin Classic 1.74.0 package with
   key-derived ID `fkgkibajhfbepljeaefdnfnegdcjomkh`; arbitrary and unpacked
   Manifest V2 remain blocked, and public redistribution remains gated.
-- Secrets, cookies, passwords, autofill, site data, extension storage,
+- Secrets, cookies, passwords, autofill, site data, raw/unreviewed extension storage,
   incognito state, HTTP-auth credentials, and secret headers never sync.
+- Supported native browser setup, trusted extension restoration and positively
+  reviewed extension-setting values are required by
+  [`ADR 0010`](docs/decisions/0010-full-browser-setup-sync.md); inventory alone is
+  insufficient and native consent is never bypassed. Implementation remains open.
 - No product telemetry, usage pings, automatic crash uploads, or experiments.
 
 ## Developer entry points

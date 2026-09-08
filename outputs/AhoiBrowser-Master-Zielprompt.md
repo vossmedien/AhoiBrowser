@@ -92,13 +92,38 @@ Inkognito-Modus und keine Benutzer-Sicherheitsgrenze gegenüber globalen Extensi
 
 Geeignete nicht geheime Workspace-Metadaten gehören in die abgestimmte Sync-
 Integration. Cookies, Login-/Auth-Zustand, Site Storage, Berechtigungsfreigaben,
-lokale Profil-/Downloadpfade und Extension Storage bleiben vollständig lokal.
+lokale Profil-/Downloadpfade sowie geheimer oder ungeprüfter roher Extension
+Storage bleiben vollständig lokal. Positiv geprüfte übertragbare Extension-
+Einstellungen folgen dem gesonderten Vertrag aus ADR 0010, nicht einer Storage-Kopie.
 Eine entfernte Tab-/Workspace-Änderung darf keine laufende lokale Seite ungefragt
 in einen anderen Account-Kontext versetzen oder neu laden. Bestehende Sitzungen
 werden weder still kopiert noch gelöscht oder ausgeloggt. Der konkrete native
 Integrationsvertrag steht in `docs/WORKSPACE_SESSIONS.md`; Common C++/Swift/Wire
 bleiben beim benannten Sync-Owner. Diese neue Anforderung erweitert das aktive
 Gesamtziel, nicht den bereits eingefrorenen Startup-Korrekturkandidaten.
+
+### Verbindlicher Browser-Setup-Sync gemäß ADR 0010
+
+`docs/decisions/0010-full-browser-setup-sync.md` gehört zum Gesamtziel und ersetzt
+die ältere Beschränkung auf fünf Ahoi-Preferences und reine Extension-
+Installationsvorschläge. Ein verknüpfter neuer Mac soll unterstützte native
+Chromium-Nutzereinstellungen sowie den gewünschten Installations-/Aktivierungs-
+zustand vertrauenswürdiger Erweiterungen tatsächlich wiederherstellen. Ein
+expliziter Katalog unterscheidet unterstützt, ausgeschlossen, nicht verfügbar
+und bestätigungspflichtig. Policy, native Berechtigungsdialoge, Quellen-/ID-/
+Signaturprüfung und die bestehende uBO/MV2-Grenze bleiben wirksam.
+
+Sinnvoll übertragbare Extension-Einstellungen sind ausdrücklich eingeschlossen,
+aber nur über positiv geprüfte Extension-ID-/Key-/Wert-Verträge. Weder der Name
+`chrome.storage.sync` noch eine reine Secret-Denylist genügt als Freigabe.
+Keine Profile, Vaults, Cookies, Zugangsdaten, rohen Extension-Stores, lokalen
+Pfade oder Berechtigungsfreigaben kopieren. Cookie-Verhaltensoptionen sind von
+Cookie-/Sitzungsdaten zu unterscheiden. iOS übernimmt nur unterstützte
+Einstellungen und hält erkannte Desktop-Metadaten ohne Chromium-Extension-
+Ausführung vor. Common C++/Swift/Policy bleiben beim Sync-Owner; konkrete neue
+native Hooks benötigen dessen abgegrenzte Übergabe an Desktop. Kein neuer
+Build, keine laufende Snapshot-Erweiterung oder Installationsfreigabe folgt
+allein aus dieser Soll-Ergänzung.
 
 ### Kompakte Steuerung statt verlorener Fortschritte
 
@@ -1467,11 +1492,19 @@ Synchronisiere:
 - alle normalen Tabs, temporäre wie gespeicherte, in einer gemeinsamen Workspace-Tabstruktur mit stabiler globaler TreeNode-ID; gerätebezogene Presence-/Runtime-IDs bleiben getrennt;
 - Verlauf;
 - Appearance und Workspace-Akzente;
-- ausdrücklich freigegebene Einstellungen;
-- Extension-Inventar;
+- unterstützte, sicher übertragbare native Chromium-Nutzereinstellungen gemäß dem expliziten Katalog aus ADR 0010;
+- Extension-Inventar plus getrennten gemeinsamen gewünschten Installations-/Aktivierungszustand;
+- positiv geprüfte übertragbare Extension-Einstellungen gemäß Extension-ID-/Key-/Wert-Vertrag;
 - Developer Assets nur per einzelnem Opt-in.
 
-Extension-Inventar darf auf einem neuen Mac nur Installationsvorschläge erzeugen. Installiere Erweiterungen niemals still.
+Ein verknüpfter neuer Mac stellt unterstützte vertrauenswürdige Erweiterungen
+über Chromiums verifizierte Installations-/Aktivierungspfade tatsächlich wieder
+her; ein bloßer Inventareintrag oder Vorschlag ist keine erfolgreiche
+Wiederherstellung. Native Freigaben werden nicht automatisch bestätigt.
+Fehlend, ausstehend, blockiert, bestätigungspflichtig und fehlgeschlagen bleiben
+ehrliche Zustände. Ein leeres frisches Inventar ist kein Löschauftrag; echte
+spätere Deinstallation, Deaktivierung und Default-Reset dürfen nicht durch
+alte Gegenstellen rückgängig gemacht werden. Details: ADR 0010.
 
 Normale Tabs erscheinen auch auf einer bereits geöffneten Gegenstelle unmittelbar in derselben gemeinsamen Workspace-Tabstruktur; eine reine Geräte-Tab-Liste genügt nicht. Temporäre Tabs tragen eine dezente Herkunftskennzeichnung mit zugänglichem Gerätetext; gespeicherte Tabs verhalten sich einheitlich, optional mit einem dezenten Hinweis bei mobil hinzugefügten Seiten. Herkunft wird aus belegter Erstellung beziehungsweise explizitem Speichern abgeleitet, nicht aus dem letzten Bearbeiter. Die lokale Projektion bleibt ohne automatische Fokusverschiebung oder ungefragtes Laden; erst eine bewusste Öffnen-/Fokusaktion aktiviert native Inhalte. Globale TreeNode-ID und gerätebezogene Presence-ID bleiben getrennt. Kein zweiter Eintrag für dieselbe logische Tab-ID und keine zusätzliche Geräte-Verwaltungsseite. Nichtportable normale Ziele bleiben ohne Übertragung privater Pfade oder Code sichtbar. Inkognito erscheint dort niemals; Cookies und Logins bleiben lokal. Ohne `SyncProvider` bleibt der lokale Browser benutzbar und es gibt keinen funktionslosen Geräte-Button.
 
@@ -1485,7 +1518,7 @@ Synchronisiere niemals:
 - Site Storage;
 - Cache;
 - Site Permissions;
-- Extension Storage;
+- geheimer, opaker oder ungeprüfter roher Extension Storage; zulässig sind ausschließlich positiv freigegebene Einstellungswerte aus ADR 0010;
 - Inkognito-Daten;
 - lokale Split-Topologie einschließlich Fenster-/Workspace-Zuordnung, Pane-Reihenfolge, Layout, Divider-Ratios und Fokus;
 - Keychain-Werte;
@@ -2235,10 +2268,10 @@ werden im Kandidatennachweis explizit gebunden. Bestehende Daten bleiben erhalte
 - `SYNC-10`: Retention 30/90/365/unbegrenzt prüfen; Default 90 Tage.
 - `SYNC-11`: Cookies bleiben lokal.
 - `SYNC-12`: Webformular- und HTTP-Auth-Passwörter bleiben lokal.
-- `SYNC-13`: Site Storage, Permissions, Extension Storage und Keychain-Secrets bleiben lokal.
+- `SYNC-13`: Site Storage, Berechtigungsfreigaben, geheimer/ungeprüfter roher Extension Storage und Keychain-Secrets bleiben lokal; nur positiv freigegebene Extension-Einstellungswerte dürfen übertragen werden.
 - `SYNC-14`: Inkognito wird nie serialisiert.
 - `SYNC-15`: zwei Developer Assets anlegen; nur explizit freigegebenes Asset synchronisiert.
-- `SYNC-16`: Extension-Inventar erzeugt nur Installationsvorschlag, keine stille Installation.
+- `SYNC-16`: Auf einem verknüpften neuen Mac vertrauenswürdige unterstützte Erweiterungen über native verifizierte Pfade tatsächlich wiederherstellen; Freigabe-/Blockzustände sichtbar erhalten, keine Zustimmung simulieren und ein leeres frisches Inventar nicht als Deinstallationsauftrag behandeln. ADR 0010 ersetzt die frühere Inventar-only-Vorgabe.
 - `SYNC-17`: iCloud abmelden, offline ändern, wieder anmelden und Queue abarbeiten.
 - `SYNC-18`: CloudKit-Quota-/temporären Fehler verständlich behandeln.
 - `SYNC-19`: Zone-/Key-Reset und bestätigten Recovery-Upload prüfen.
@@ -2247,7 +2280,7 @@ werden im Kandidatennachweis explizit gebunden. Bestehende Daten bleiben erhalte
 - `SYNC-22`: Sync-Logs und Payload-Evidenz enthalten keine ausgeschlossenen Geheimdaten.
 - `SYNC-23`: Tabs von Mac B und iOS erscheinen auch auf bereits geöffneter Gegenstelle in der gemeinsamen Workspace-Tabstruktur, ohne Duplikate, Fokuswechsel oder ungefragtes Laden; Herkunft temporärer Tabs anzeigen, lokal filtern und bewusst öffnen.
 - `SYNC-24`: Gerät offline, Tab geschlossen, Gerät umbenannt und Gerät entzogen; Geräte-Tabs-UI zeigt verständliche Aktualität, räumt Tombstones auf und bietet keine veraltete Remote-Aktion an.
-- `SYNC-25`: Inkognito-, Passwort-, Cookie-, Site-Storage-, Permission- und Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf.
+- `SYNC-25`: Inkognito-, Passwort-, Cookie-, Site-Storage-, Berechtigungs- sowie geheime/ungeprüfte Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf. Freigegebene Extension-Einstellungen verwenden allein ihren getrennten positiv geprüften Vertrag aus ADR 0010.
 - `SYNC-26`: frisches Profil ohne Google-Anmeldung verwenden; Geräte-Tabs und kompletter Sync funktionieren über CloudKit, während Chrome Sync und Google-Browserkonto deaktiviert bleiben.
 - `SYNC-27`: in einem Build ohne konfigurierte CloudKit-Capability den Hauptschalter aktivieren und lokale Sync-Datenbank, Outbox sowie Retention bedienen; Remote Control bleibt ehrlich gesperrt, es wird keine Verschlüsselung ruhender lokaler Daten behauptet und nach signierter CloudKit-Konfiguration wird die ausstehende Outbox kontrolliert transportiert.
 
@@ -2487,7 +2520,7 @@ Bei externen Blockern dokumentiere:
 - die normale Sidebar zeigt die gemeinsame Workspace-Tabstruktur auch bei bereits geöffneter Gegenstelle, ohne Identitätsduplikate, automatischen Fokuswechsel oder ungefragtes Laden; temporäre Tabs tragen Herkunftshinweise, und die separate Lesezeichensammlung synchronisiert unabhängig davon;
 - weder Google-Konto noch Chrome Sync erforderlich; vorhandene Profile, CloudKit-Daten und Schlüssel werden für die neue Abnahme nicht still verändert oder gelöscht;
 - Remote Control ist signiert und replay-sicher;
-- Cookies, Passwörter, HTTP Auth, Site Storage, Permissions, Extension Storage, Inkognito und Keychain-Secrets bleiben lokal.
+- Cookies, Passwörter, HTTP Auth, Site Storage, Berechtigungsfreigaben, geheime/ungeprüfte Extension-Stores, Inkognito und Keychain-Secrets bleiben lokal; positiv geprüfte Einstellungswerte folgen ADR 0010.
 
 ### Update/Recovery Gate
 
@@ -2546,6 +2579,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 23. Releaseartefakte, SBOM, Checksums, Lizenzen, Revisionen und E2E-Evidenz sind vollständig.
 24. Lean-Chromium-Matrix, Bundle-/Runtime-Bilanz, Null-Aktivitätsnachweise und Roll-Regressionen sind vollständig; Ahoi ist innerhalb der definierten Größenbudgets schlanker, ohne zugesagte Browserfähigkeit, Extension-Kompatibilität, Webkompatibilität oder Security zu verlieren.
 25. Lokale Workspace-Website-Sitzungen trennen zwei Accounts derselben Site einschließlich Site Storage, Worker, Popup-/Restore- und Tab-Transfer-Pfaden; History, Passwörter und Extensions bleiben global. Nur abgestimmte nicht geheime Workspace-Metadaten werden synchronisiert; laufende Gegenseiten wechseln dadurch weder Fokus noch Account-Kontext.
+26. Browser-Setup-Sync nach ADR 0010 stellt auf einem neuen verknüpften Mac unterstützte native Nutzereinstellungen und eine vertrauenswürdige unterstützte Erweiterung tatsächlich nutzbar wieder her; freigegebene Extension-Einstellungen konvergieren. Policy/Freigaben, Offline/Neustart, Deaktivierung/Deinstallation und Default-Reset bleiben korrekt; fünf Ahoi-Preferences oder ein Inventar allein erfüllen diesen Auftrag nicht.
 
 ## Explizit nicht Bestandteil von v1
 
@@ -2558,7 +2592,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 - Cookie-Sync;
 - Passwort-Sync;
 - HTTP-Auth-Credential-Sync;
-- Extension-Storage-Sync;
+- ungeprüfter roher Extension-Storage-Sync; positiv geprüfte Einstellungswerte gemäß ADR 0010 sind ausdrücklich im Umfang;
 - eigener Adblocker;
 - eigene Filterlisten-Engine;
 - allgemeine Manifest-V2-Unterstützung;

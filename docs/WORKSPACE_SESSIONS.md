@@ -13,6 +13,7 @@ workspace cookie/login rule, not the no-cookie-sync or native-engine boundaries.
 | Local Storage, IndexedDB, Cache Storage, service/shared workers and network context | Same native website-session context; Session Storage also retains upstream tab semantics | Never |
 | History and password store | Global, using existing services | Existing permitted History policy only; passwords never |
 | Extension installation, enablement and extension-owned storage | Global; not duplicated for each workspace | No raw extension storage; pins alone cannot install software or grant permissions |
+| Transferable browser/extension settings and desired extension setup | Global by default; explicitly scoped workspace presentation overrides only | ADR 0010: supported native user preferences, trusted restore flow and positively reviewed extension-ID/key/value schemas |
 | Extension action pins/order, workspace name/icon/accent | Workspace presentation | Suitable metadata; exact fields/category owned by Sync |
 | Site permission decisions | Local session/origin context; native authority | Never; no inherited remote or other-context grant |
 | Downloads | Global manager; any later preferred directory is device-local | No filesystem paths |
@@ -66,8 +67,22 @@ metadata and, only if needed, a portable logical context assignment. Local
 profile paths, native partition identifiers, permission grants and all website
 state are not portable payloads. Unsupported extension IDs may be retained as
 inert presentation metadata; a pin alone never installs or grants access.
-A separately authorized extension-restoration/settings feature remains with the
-Sync owner and must use its own reviewed source/consent/secret-filter contract.
+The user has separately authorized full browser-setup restoration and suitable
+extension settings under `decisions/0010-full-browser-setup-sync.md` (79d2102).
+It is now required scope, not a hypothetical follow-up or inventory-only UI.
+The Sync owner supplies the supported/excluded settings catalogue, native restore
+adapter and positive extension-ID/key/value contracts. `chrome.storage.sync`
+alone does not classify arbitrary data as safe. Native prompts/policies stay
+authoritative; no raw storage, vault, credential, local-path or permission grant
+transfer. iOS preserves recognized desktop setup without running Chrome add-ons.
+This product-scope approval is not action-time approval of AnyChat's pending
+website/New Tab rights or a new runtime/build lease.
+
+Portable workspace identity/appearance/pins must stay distinct from each live
+tab's device-local website-session binding. A remote workspace move cannot
+relabel that binding or silently switch an already-open page's account. Prefer
+the existing global Workspace/TreeNode IDs; do not invent a new wire context ID
+or publish native partition/profile paths without an actual coordinated need.
 No writer bump, new entity or modification of the current unified WIP is
 authorized by a guessed field name. Freeze the smallest matching contract with
 its owner; do not block the independent current startup correction on it.
