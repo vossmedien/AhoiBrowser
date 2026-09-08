@@ -13,6 +13,7 @@ extension CompanionSnapshot {
         case productRecords
         case bookmarks
         case deviceCapabilities
+        case mobileAppliedIntents
     }
 
     public init(from decoder: Decoder) throws {
@@ -35,7 +36,8 @@ extension CompanionSnapshot {
             ) ?? .empty,
             bookmarks: bookmarks,
             deviceCapabilities: values.contains(.deviceCapabilities)
-                ? try values.decode([DeviceCapabilityRecord].self, forKey: .deviceCapabilities) : []
+                ? try values.decode([DeviceCapabilityRecord].self, forKey: .deviceCapabilities) : [],
+            mobileAppliedIntents: try values.decodeIfPresent(Set<UUID>.self, forKey: .mobileAppliedIntents) ?? []
         )
         try CompanionBookmarkHierarchy.validate(bookmarks)
         guard Set(deviceCapabilities.map(\.id)).count == deviceCapabilities.count else {
@@ -55,5 +57,6 @@ extension CompanionSnapshot {
         try values.encode(productRecords, forKey: .productRecords)
         try values.encode(bookmarks, forKey: .bookmarks)
         try values.encode(deviceCapabilities, forKey: .deviceCapabilities)
+        try values.encode(mobileAppliedIntents.sorted { $0.uuidString < $1.uuidString }, forKey: .mobileAppliedIntents)
     }
 }

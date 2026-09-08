@@ -159,6 +159,28 @@ current DerivedData app unchanged for the initial visible journey.
 
 ## Current implementation state — remaining integration, not Sync acceptance
 
+- Mobile follow-up now retains up to three coalesced local mutation intents
+  (navigation/location/title) on each normal runtime row. A missing/restored
+  binding defers instead of dropping an action. Matching current domain identity
+  resumes the queue without overwriting pending local fields or allocating a
+  Presence for dormant metadata edits. Private records clear all pending data.
+  Exact mutation IDs are committed atomically with domain changes; a crash before
+  runtime acknowledgment cannot replay that old action over a newer peer value.
+  Existing session-flush completion permits conservative receipt pruning: only
+  IDs known before the flush and absent from that persisted pending set are
+  removed. A failed flush retains receipts; a later/new mutation is not pruned.
+  This is local operation bookkeeping, not a new wire entity, creator field or
+  migration. The built `bba0b86` candidate is being preserved before a new
+  product-only candidate for this material correction; no visible pass is claimed.
+- ADR0010 integration exploration found the smaller actual PrefService seam:
+  `Preference::registration_flags()` plus `GetUserPrefValue()` and
+  `user_prefs::PrefRegistrySyncable::{SYNCABLE_PREF,SYNCABLE_PRIORITY_PREF}`.
+  A positive privacy/value catalogue can use `components/prefs` +
+  `components/pref_registry`, without importing the large Chrome Sync/UI target
+  or taking over Google Sync. Reset uses native `ClearPref`; initial missing USER
+  value is not reset intent. This is an implementation input, not a claim that
+  the catalogue/native setup restoration is finished. No speculative GN cycle
+  is claimed and no new test/review matrix was started.
 - Mobile Save/Unsave now uses one Page/Presence/domain commit with rollback,
   preserving stable Page ID and authoritative bound target/title. Tab-switcher
   Save/Make Temporary is wired to it; dormant metadata edits create neither a

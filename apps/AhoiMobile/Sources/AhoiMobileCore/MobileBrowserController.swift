@@ -57,7 +57,7 @@ public final class MobileBrowserController: ObservableObject {
     public let performanceRecorder: MobileBrowserPerformanceRecorder
 
     private let store: any MobileBrowserSessionStoring
-    private let saveCoordinator: MobileBrowserSessionSaveCoordinator
+    let saveCoordinator: MobileBrowserSessionSaveCoordinator
     private let storagePreparation: (@Sendable () async throws -> Void)?
     var pages: [UUID: WebPage] = [:]
     var dialogPresenters: [UUID: MobileWebDialogPresenter] = [:]
@@ -78,7 +78,7 @@ public final class MobileBrowserController: ObservableObject {
     var sharedNavigationRequests: [UUID: URL] = [:]
     var sharedNavigationGenerations: [UUID: UInt64] = [:]
     private var didLoad = false
-    private var sessionRevision: UInt64 = 0
+    var sessionRevision: UInt64 = 0
     static let maximumFaviconBytes = MobileTabRecord.maximumFaviconDataBytes
     static let maximumFaviconDimension = 1_024
     static let maximumFaviconPixels = 1_048_576
@@ -353,6 +353,7 @@ public final class MobileBrowserController: ObservableObject {
               tabs[index].workspaceID != workspaceID else { return }
         var candidate = tabs[index]
         candidate.workspaceID = workspaceID
+        candidate.stageSharedIntent(.move(workspaceID))
         tabs[index] = candidate
         persistSoon()
         if candidate.mode == .normal { onSharedTabIntent?(candidate, .move(workspaceID)) }
@@ -388,6 +389,11 @@ public final class MobileBrowserController: ObservableObject {
               tabs[index].customTitle != customTitle else { return }
         var candidate = tabs[index]
         candidate.customTitle = customTitle
+        if customTitle == nil, candidate.url == candidate.sharedTarget?.url,
+           let documentTitle = pages[id]?.title, !documentTitle.isEmpty {
+            candidate.title = MobileTabRecord.normalizedTitle(documentTitle)
+        }
+        candidate.stageSharedIntent(.rename(customTitle))
         tabs[index] = candidate
         persistSoon()
         if candidate.mode == .normal { onSharedTabIntent?(candidate, .rename(customTitle)) }
@@ -563,27 +569,6 @@ public final class MobileBrowserController: ObservableObject {
         )
     }
 
-    public func flushSession() async {
-        let performanceStart = performanceRecorder.beginSessionFlush()
-        sessionRevision &+= 1
-        do {
-            try await saveCoordinator.enqueue(
-                persistentSnapshot(),
-                revision: sessionRevision
-            )
-            performanceRecorder.completeSessionFlush(
-                startedAt: performanceStart,
-                succeeded: true
-            )
-        } catch {
-            performanceRecorder.completeSessionFlush(
-                startedAt: performanceStart,
-                succeeded: false
-            )
-            lastError = MobileBrowserSessionFailurePresentation.saveMessage
-        }
-    }
-
     /// Resolves page-owned continuations before UIKit snapshots or suspends the
     /// scene. A hidden permission or JavaScript dialog must never survive in a
     /// background tab and reappear without the initiating page in view.
@@ -742,7 +727,7 @@ public final class MobileBrowserController: ObservableObject {
         }
     }
 
-    private func persistentSnapshot() -> MobileBrowserSessionSnapshot {
+    func persistentSnapshot() -> MobileBrowserSessionSnapshot {
         let persistentTabs = normalTabs
         let persistentSelection = persistentTabs.contains { $0.id == selectedTabID }
             ? selectedTabID

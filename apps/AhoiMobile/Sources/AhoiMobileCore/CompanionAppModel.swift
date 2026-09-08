@@ -338,6 +338,7 @@ public final class CompanionAppModel: ObservableObject {
                 guard let original = captured.first(where: { $0.id == runtimeID }),
                       self.mobileSharedIntentTasks[runtimeID] == nil,
                       let current = browser.tabs.first(where: { $0.id == runtimeID && $0.mode == .normal }),
+                      current.pendingSharedMutations.isEmpty,
                       original.presenceID == current.presenceID,
                       current.treeNodeID == nil || current.treeNodeID == node.id else { continue }
                 _ = browser.bindTab(runtimeID, to: node)

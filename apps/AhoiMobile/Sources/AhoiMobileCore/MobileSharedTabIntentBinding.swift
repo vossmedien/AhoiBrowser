@@ -15,6 +15,7 @@ struct MobileSharedTabIntentBinding: ViewModifier {
                 guard let browser, let model else { return }
                 model.receiveSharedTabIntent(tab, intent, browser: browser)
             }
+            model.reconcileBrowserSharedProjection(browser)
         }.onDisappear {
             browser.onSharedTabIntent = nil
         }.onChange(of: browser.normalTabs.map(CaptureKey.init)) { _, _ in

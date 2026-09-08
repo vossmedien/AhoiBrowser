@@ -32,6 +32,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     public internal(set) var sharedBindingState: MobileSharedTabBindingState
     /// Explicit user-created empty tabs participate; automatic placeholders do not.
     public internal(set) var participatesInSharedTabs: Bool
+    public internal(set) var pendingSharedMutations: [MobileSharedTabMutation] = []
     /// A page-independent title chosen explicitly by the user. Keeping it
     /// separate prevents later WebKit metadata from erasing that choice.
     public var customTitle: String?
@@ -106,6 +107,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
         case id, workspaceID, presenceID, treeNodeID, sharedTarget, sharedBindingState
         case participatesInSharedTabs, customTitle, title, url, createdAt, lastActiveAt
         case isSaved, mode, faviconData, websiteTintARGB
+        case pendingSharedMutations
     }
 
     public init(from decoder: Decoder) throws {
@@ -144,6 +146,16 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
         // Restored current bindings need fresh domain readback. Damaged/missing
         // metadata never discards work or allocates replacement shared identities.
         if invalidBinding, mode == .normal { sharedBindingState = .deferred }
+        if mode == .normal {
+            pendingSharedMutations = Self.decodeBinding([MobileSharedTabMutation].self, from: values,
+                key: .pendingSharedMutations, invalid: &invalidBinding) ?? []
+            if pendingSharedMutations.count > 3 || pendingSharedMutations.contains(where: { !$0.isValid }) ||
+                Set(pendingSharedMutations.map(\.field)).count != pendingSharedMutations.count {
+                pendingSharedMutations = []
+                invalidBinding = true
+            }
+            if invalidBinding { sharedBindingState = .deferred }
+        }
     }
 
     private static func decodeBinding<T: Decodable>(
@@ -191,6 +203,7 @@ public struct MobileTabRecord: Codable, Equatable, Identifiable, Sendable {
     }
 
     private mutating func clearPrivateSharedMetadata() {
+        pendingSharedMutations = []
         presenceID = nil
         treeNodeID = nil
         sharedTarget = nil

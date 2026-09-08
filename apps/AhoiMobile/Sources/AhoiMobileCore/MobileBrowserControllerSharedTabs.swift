@@ -8,6 +8,7 @@ extension MobileBrowserController {
             recentlyClosedTab = nil
             return
         }
+        record.pendingSharedMutations = [] // Reopen is not a replay of pre-close mutation IDs.
         if let nodeID = record.treeNodeID, let existingID = localTabID(for: nodeID),
            let existing = tabs.first(where: { $0.id == existingID }) {
             if existing.presenceID != nil || pages[existingID] != nil {
@@ -243,7 +244,7 @@ extension MobileBrowserController {
 
     private func noteExplicitSharedNavigation(tabID: UUID, url: URL, title: String?) {
         guard let index = tabs.firstIndex(where: { $0.id == tabID && $0.mode == .normal }),
-              tabs[index].sharedBindingState == .unbound || tabs[index].sharedBindingState == .current,
+              tabs[index].sharedBindingState != .deleted,
               let value = MobileTabRecord.normalizedURLString(url.absoluteString),
               let target = try? SharedTabTarget(kind: .web, url: value) else { return }
         var candidate = tabs[index]
@@ -258,6 +259,8 @@ extension MobileBrowserController {
         guard sharingIdentifiersAreUnique(for: candidate, in: tabs) else { return }
         candidate.sharedTarget = target
         candidate.participatesInSharedTabs = true
+        if targetChanged { candidate.stageSharedIntent(.navigate(target)) }
+        else if candidate.customTitle == nil, title != nil { candidate.stageSharedIntent(.rename(nil)) }
         if candidate != tabs[index] {
             tabs[index] = candidate
             persistSoon()
@@ -285,10 +288,43 @@ extension MobileBrowserController {
     private func updateSharedMetadata(_ tab: inout MobileTabRecord, from node: TreeNode,
                                       target: SharedTabTarget) {
         tab.workspaceID = node.workspaceID
+        if let customTitle = tab.customTitle, customTitle != node.title { tab.customTitle = nil }
         tab.title = MobileTabRecord.normalizedTitle(node.title)
         tab.isSaved = !node.isTemporary
         tab.sharedTarget = target
         tab.sharedBindingState = .current
+    }
+
+    /// Resolve metadata identity without erasing an uncommitted local intent.
+    /// No runtime Presence is allocated for a dormant row, and nothing loads.
+    func resolvePendingSharedBinding(_ id: UUID, node: TreeNode) -> Bool {
+        guard let target = validatedSharedTarget(for: node),
+              let index = tabs.firstIndex(where: { $0.id == id && $0.mode == .normal }),
+              tabs[index].treeNodeID == nil || tabs[index].treeNodeID == node.id else { return false }
+        var candidate = tabs[index]
+        if node.isDeleted {
+            candidate.sharedBindingState = .deleted
+            if candidate != tabs[index] { tabs[index] = candidate; persistSoon() }
+            return false
+        }
+        let fields = Set(candidate.pendingSharedMutations.map(\.field))
+        candidate.treeNodeID = node.id
+        candidate.sharedBindingState = .current
+        candidate.isSaved = !node.isTemporary
+        if !fields.contains("url") { candidate.sharedTarget = target }
+        if !fields.contains("location") { candidate.workspaceID = node.workspaceID }
+        if !fields.contains("title") { candidate.title = node.title }
+        guard sharingIdentifiersAreUnique(for: candidate, in: tabs) else { return false }
+        if candidate != tabs[index] { tabs[index] = candidate; persistSoon() }
+        return true
+    }
+
+    func acknowledgeSharedMutation(tabID: UUID, presenceID: TabID?, mutationID: UUID) {
+        guard let index = tabs.firstIndex(where: {
+            $0.id == tabID && $0.mode == .normal && $0.presenceID == presenceID
+        }), tabs[index].pendingSharedMutations.contains(where: { $0.id == mutationID }) else { return }
+        tabs[index].pendingSharedMutations.removeAll { $0.id == mutationID }
+        persistSoon()
     }
 
     private func dormantSharedTab(_ node: TreeNode, target: SharedTabTarget,

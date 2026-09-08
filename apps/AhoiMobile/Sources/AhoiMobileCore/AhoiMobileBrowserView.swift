@@ -754,7 +754,7 @@ public struct AhoiMobileBrowserView: View {
         backgroundTask.begin()
         Task { @MainActor in
             defer { backgroundTask.end() }
-            async let sessionFlush: Void = browser.flushSession()
+            async let sessionFlush: Void = companionModel.flushSharedBrowserSession(browser)
             async let downloadFlush: Void = downloads.flushRecoveryState()
             _ = await (sessionFlush, downloadFlush)
         }
