@@ -29,6 +29,19 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Toolbar/Icon/Settings correction is built; Arc recovery now owns native UI:**
+  the clean3d59cf9 app-only build completed packaging/signature/provenance and
+  wrote `artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/build-receipt.json`.
+  Coordinator read source3d59cf9de8846e47c91db540b90b3067b18c0841, clean=true,
+  binary1f2d82a0a0b122a6dba895c9628c30156b5ff89f92243ffab5fde3ac8d5effdb and
+  treea113f6991742b68d820b9c0d79de71dcf6a80259fc8be443b6f9f5eb7024c124.
+  No new UI pass or CloudKit transport result is inferred from that receipt.
+  After the completed Build18 handback, Desktop deliberately activated the
+  verified compatible4cb for the protected Arc recovery. Installed plist and
+  `artifacts/install/ahoi-dev-4cb622a-arc-recovery-20260908.json` independently
+  confirm4cb, verified activation and preserved6ae rollback. This temporary
+  planned recovery is not a failed/new-build rollback. New3d59cf9 remains
+  separately preserved for its subsequent visible acceptance/CloudKit preparation.
 - **Build18 UI window CLOSED and returned to every owner, 2026-09-08 12:25–12:27 UTC:**
   Mobile sent an explicit handback after normal backgrounding and own-device
   shutdown. Coordinator independently read FE1B566C-F706-47E0-9D21-D96139C03B18
