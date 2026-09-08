@@ -168,7 +168,9 @@ void ProfileSyncService::OnSharedTabProjectionApplied(
     }
   } else {
     auto state = shared_tab_state_;
-    state.issue = SharedTabSyncIssue::kStoreError;
+    state.issue = result == tab_tree::TabTreeStore::Result::kCancelled
+                      ? SharedTabSyncIssue::kCaptureDeferred
+                      : SharedTabSyncIssue::kStoreError;
     SetSharedTabState(std::move(state));
   }
   if (projection.needs_sync) {

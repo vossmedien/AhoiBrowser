@@ -55,6 +55,10 @@ The exact callable interfaces are in `sync/profile_sync_service.h` and
   `01a07fb9-905e-75f2-bf74-da6884314e15`. Common no longer converts a temporarily
   deferred Export into missing implementation support; capability admission
   and snapshot durability are separate, so startup cannot latch support off.
+  Native's committed `1db7688` adds `TabTreeStore::Result::kCancelled` for its
+  authorized disk-first path. Common now maps that completion to deferred,
+  preserving state and avoiding a false storage-error indication. Real store
+  failures remain errors; no immediate retry loop or early success is added.
   This is local crash-safety metadata, NOT a new wire field, storage partition
   ID, profile path or cloud migration. Desktop request: `01a073b2-528f-7693-a596-d8dda453f100`.
 
