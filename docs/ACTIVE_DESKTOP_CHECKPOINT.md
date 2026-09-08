@@ -126,7 +126,15 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**AUTHORITATIVE LIVE STATE,17:57CEST:** overlay82634, app-only build81449 and
+**AUTHORITATIVE LIVE STATE,18:03CEST:** Arc no-op correctiona909e4e is committed/
+pushed and isolated as cleana24a7925bc729dcc6c02b39a5fee1ffdb0ef0aca on35c4.
+Only3 Arc files differ; no Common WIP or unrelated source. Overlay80624 is
+TERMINAL EXIT0; guarded app-only build70035 is RUNNING with jobs2. Temporary
+Simulator boot contention settled before start: fresh33–47%idle/49%memory,
+no new swapouts,33.67GiB above32GiB hard floor (documented low-disk override).
+Logs: `artifacts/build/desktop-arc-noop-a24a792-20260908/`. No foreign process
+was touched. Do not restart the overlay/build or widen its frozen inputs.
+The earlier overlay82634, app-only build81449 and
 guarded install97865 are TERMINAL EXIT0 on
 `35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d`. Do not resume/restart them.
 Installed executable SHA:
@@ -163,7 +171,7 @@ Details: `docs/audit-evidence/2026-09-08-toolbar-and-arc-recovery.md`.
 
 ### Earlier combined-build chronology — terminal, not resume instructions
 
-**LIVE HANDLE:** cached guarded app-only build81449 is RUNNING since15:22UTC;
+**Historical15:22UTC start:** cached guarded app-only build81449 started;
 corrective overlay82634 is TERMINAL EXIT0 on clean
 `35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d`. Prior7222 is TERMINAL EXIT1: the
 one constructor translation unit needed complete BookmarkModel for the observer
