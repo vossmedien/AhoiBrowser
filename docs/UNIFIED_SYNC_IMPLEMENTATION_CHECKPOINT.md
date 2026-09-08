@@ -34,11 +34,16 @@ The exact callable interfaces are in `sync/profile_sync_service.h` and
 - **Required Native-B receipt seam:**
   `ExportTabTreeSyncSnapshot(TabTreeSnapshot*, std::string*)` returns the COMPLETE
   profile tree plus its opaque baseline receipt atomically; false is deferred.
-  `ApplySyncedTabTreeSnapshotWithReceipt(snapshot, receipt, authorization)` must
+  `ApplySyncedTabTreeSnapshotWithReceipt(snapshot, receipt, authorization, completion)` must
   persist receipt+tree in the same native transaction, retain receipt on ordinary
   local edits/undo and carry the original authorization through persistence.
   Check it before apply/commit; do not renew it after an asynchronous hop.
-  The defaults fail closed. Common checks the exact tree+receipt readback.
+  Its asynchronous Result completion reports durable success, not only RAM
+  publication. Local callbacks stay live during the disk wait and revoke stale
+  apply; Native suppresses only the Sync-origin callback at final publication.
+  The defaults fail closed. Common checks the exact tree+receipt readback after
+  completion. This corrects the first synchronous handoff, following Desktop's
+  concrete request `01a07f98-70b9-7660-a620-ec057c927a3b` and its `cc7e7e3` envelope.
   This is local crash-safety metadata, NOT a new wire field, storage partition
   ID, profile path or cloud migration. Desktop request: `01a073b2-528f-7693-a596-d8dda453f100`.
 
@@ -119,7 +124,29 @@ AI-assisted contributions. Published commits are not rewritten; this does not
 claim that an automated per-commit DCO check on their historical trailers ran
 or passed. Subsequent commits must use `git commit -s`.
 
-## Current implementation state — no new runnable candidate
+## Mobile candidate — product build succeeded, visible acceptance open
+
+Swift package `4e64c5f2f4e6052c1a4aefb2d6b9c6617cf76963` is signed/committed/pushed.
+First product-only build Session `1526` ended EXIT 65 at one stale external-link
+navigation caller. Exact one-line-route correction is `bba0b86ad2a4b67fe0c6ff0ca763a3ca1e6bfabb`.
+The subsequent same-target incremental build Session `11655` is terminal EXIT 0:
+DebugLocal 0.1 (16), generic arm64 iOS Simulator, Xcode 26.6/17F113, two build/Swift
+jobs. App+Core+Shared Swift compiled/linked and ad-hoc signed; no test target ran.
+The only tool warnings were AppIntents extraction skipped because these targets
+do not depend on AppIntents; no compiler warning suppression was introduced.
+
+`artifacts/build/mobile-unified3-4e64c5f-20260908/` retains both raw logs/result
+bundles, the original red classification and `candidate-bba0b86.json`. Built plist
+matches exact source/Build16/DebugLocal and codesign deep/strict verification
+succeeded. Receipt app-tree hash is `153d0d7d5b339c12424aa22d427ce9b7716c45e779b8fcd8e30bb68b1e250fad`.
+Its existing receipt tool uses domain-separated artifact hashes, not plain
+`shasum` file hashes. No installation, Simulator/My-Mac/App start, test or real
+CloudKit mutation occurred. Desktop still owns the UI; its short Simulator slot
+was requested and is NOT inferred from a successful build or idle processes.
+Keep `/private/tmp/ahoi-mobile-shared-tabs.V7PCPC/repo` frozen at `bba0b86` and its
+current DerivedData app unchanged for the initial visible journey.
+
+## Current implementation state — remaining integration, not Sync acceptance
 
 - Mobile Save/Unsave now uses one Page/Presence/domain commit with rollback,
   preserving stable Page ID and authoritative bound target/title. Tab-switcher

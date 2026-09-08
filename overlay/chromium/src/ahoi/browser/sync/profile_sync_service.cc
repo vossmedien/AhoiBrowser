@@ -152,7 +152,6 @@ void ProfileSyncService::StopBackend() {
 
   backend_ready_ = false;
   initialized_ = false;
-  applying_synced_tree_ = false;
   applying_product_state_ = false;
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
@@ -482,9 +481,6 @@ void ProfileSyncService::OnBackendSnapshot(
 void ProfileSyncService::OnTabTreeSnapshotChanged(
     const tab_tree::TabTreeSnapshot& snapshot) {
   if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !ui_bridge_) {
-    return;
-  }
-  if (applying_synced_tree_) {
     return;
   }
   std::ignore = snapshot;  // Export the current tree and receipt atomically.

@@ -186,6 +186,9 @@ class ProfileSyncService final : public KeyedService,
   void OnSharedTabProjectionPrepared(
       uint64_t native_revision,
       std::optional<PreparedSharedTabProjection> projection);
+  void OnSharedTabProjectionApplied(uint64_t native_revision,
+                                    PreparedSharedTabProjection projection,
+                                    tab_tree::TabTreeStore::Result result);
   void FinishSharedTabProjection();
   void OnSyncCompleted(std::optional<SyncStateSnapshot> snapshot);
   void OnCloudKitRecoveryConfirmed(bool confirmed);
@@ -298,7 +301,6 @@ class ProfileSyncService final : public KeyedService,
   bool sync_enabled_ = false;
   bool initialized_ = false;
   bool backend_ready_ = false;
-  bool applying_synced_tree_ = false;
   bool applying_product_state_ = false;
   bool appearance_publish_pending_ = false;
   bool permitted_settings_seeded_ = false;

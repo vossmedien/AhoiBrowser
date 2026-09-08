@@ -98,32 +98,54 @@ void ProfileSyncService::OnSharedTabProjectionPrepared(
   }
   const bool changed = current != projection->tree ||
                        current_receipt != projection->baseline_receipt;
-  bool applied = true;
   if (changed) {
+    capture_after_projection_ = true;
     // Native projection owns persistence, preserving runtime/focus/scroll and
-    // local-only originals. Common code does not navigate any WebContents.
-    applying_synced_tree_ = true;
-    applied =
-        ui_bridge_->ApplySyncedTabTreeSnapshotWithReceipt(
-            projection->tree, projection->baseline_receipt,
-            projection->authorization) == tab_tree::TabTreeStore::Result::kOk;
-    applying_synced_tree_ = false;
-    if (applied) {
-      applied =
-          ui_bridge_->ExportTabTreeSyncSnapshot(&current, &current_receipt) &&
-          current == projection->tree &&
-          current_receipt == projection->baseline_receipt;
-    }
+    // local-only originals. Do not suppress local changes while awaiting disk.
+    // Prepare arguments before moving the projection into its completion;
+    // function-argument evaluation order must not move the tree before copying.
+    auto tree = projection->tree;
+    auto receipt = projection->baseline_receipt;
+    auto authorization = projection->authorization;
+    auto completion =
+        base::BindOnce(&ProfileSyncService::OnSharedTabProjectionApplied,
+                       backend_weak_ptr_factory_.GetWeakPtr(), native_revision,
+                       std::move(*projection));
+    ui_bridge_->ApplySyncedTabTreeSnapshotWithReceipt(
+        std::move(tree), std::move(receipt), std::move(authorization),
+        std::move(completion));
+    return;
   }
-  if (applied && projection->authorization.Run()) {
+  OnSharedTabProjectionApplied(native_revision, std::move(*projection),
+                               tab_tree::TabTreeStore::Result::kOk);
+}
+
+void ProfileSyncService::OnSharedTabProjectionApplied(
+    uint64_t native_revision,
+    PreparedSharedTabProjection projection,
+    tab_tree::TabTreeStore::Result result) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !ui_bridge_ ||
+      native_revision != native_tree_revision_ || !projection.authorization ||
+      !projection.authorization.Run()) {
+    FinishSharedTabProjection();
+    return;
+  }
+  tab_tree::TabTreeSnapshot current;
+  std::string current_receipt;
+  const bool applied =
+      result == tab_tree::TabTreeStore::Result::kOk &&
+      ui_bridge_->ExportTabTreeSyncSnapshot(&current, &current_receipt) &&
+      current == projection.tree &&
+      current_receipt == projection.baseline_receipt;
+  if (applied) {
     std::set<base::Uuid> known_devices;
-    for (const auto& device : projection->devices) {
+    for (const auto& device : projection.devices) {
       if (!device.tombstone) {
         known_devices.insert(device.id);
       }
     }
     shared_tab_provenance_.clear();
-    for (const auto& node : projection->tree_nodes) {
+    for (const auto& node : projection.tree_nodes) {
       if (node.tombstone || node.kind != TreeNodeKind::kPage) {
         continue;
       }
@@ -137,18 +159,19 @@ void ProfileSyncService::OnSharedTabProjectionPrepared(
                                : KnownAuthor(node.field_versions,
                                              "is_temporary", known_devices)});
     }
-    SetSharedTabState(std::move(projection->readiness));
+    SetSharedTabState(std::move(projection.readiness));
     const bool capture_requested =
         std::exchange(capture_after_projection_, false);
-    if (changed || capture_requested) {
+    if (capture_requested ||
+        shared_tab_state_.issue == SharedTabSyncIssue::kCaptureDeferred) {
       ScheduleLocalPublish();
     }
-  } else if (!applied) {
+  } else {
     auto state = shared_tab_state_;
     state.issue = SharedTabSyncIssue::kStoreError;
     SetSharedTabState(std::move(state));
   }
-  if (projection->needs_sync) {
+  if (projection.needs_sync) {
     SyncNow();
   }
   FinishSharedTabProjection();
