@@ -16,6 +16,12 @@ remain binding. No product, policy, golden, build or runtime change by this upda
 
 ## Immediate user priority: working app before test expansion
 
+Latest global AGENTS (2026-09-08 12:45 UTC) additionally requires useful,
+event-driven waiting: no unchanged status/ACK loops or automatic polling turns.
+Consume handbacks once, continue independent authorized work where useful, and
+resume blocked actions only on a relevant event or justified retry. No invented
+busywork or false goal completion. Both Ahoi owners were directly notified.
+
 The user explicitly renewed this order: implement/fix -> runnable candidate ->
 short real visible E2E -> only necessary focused programmatic tests. The global
 `/Users/vossmedien/.codex/AGENTS.md` now makes this mandatory. Do not start more

@@ -149,6 +149,12 @@ native runtime handoffs remain explicit. Never interfere with foreign processes.
    build/runtime handoffs. Coordinator verifies the actual relevant files,
    commits, logs, receipts and test counts rather than treating messages or
    process absence as successful execution or a lease transfer.
+   Apply the current global "Blocked phases and useful waiting" rule: consume
+   handbacks once; delayed messages never reopen a released slot. Continue
+   useful independent authorized work, without manufacturing tests/reviews/docs.
+   When only waiting remains, use event-driven waiting rather than repeated
+   model turns rereading unchanged process lists/checkpoints. Recheck for a
+   relevant new event or justified retry, not for a recurring status message.
 5. Integrate coherent candidates with one build owner. Perform representative
    visible E2E before focused programmatic tests. If E2E is genuinely unavailable,
    document the exact boundary and run meaningful independent tests; do not
