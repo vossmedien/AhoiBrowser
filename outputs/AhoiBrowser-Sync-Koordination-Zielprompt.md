@@ -73,6 +73,25 @@ the current startup-fix candidate:
 Finish working integration and representative E2E, not a new exhaustive test
 matrix. Existing runtime, CPU, privacy and non-destructive boundaries remain.
 
+## Authorized native toolbar follow-up — 2026-09-08
+
+The user directly requested these additions for the existing Desktop owner:
+
+- Repair the hard rectangular Reload hover surface within the rounded toolbar;
+  preserve coherent Hover/Pressed/Focus geometry using the existing controls.
+- Add optional pinning of the address/navigation bar, analogous to the Sidebar:
+  pinned remains visible, unpinned uses the existing auto-hide behavior, with
+  the user's choice retained across restart.
+- Add a compact Home button using the native Home command and configured start
+  page for the active tab/pane; do not create another start-page mechanism.
+
+User reference: [toolbar screenshot](../artifacts/computer-use/toolbar-feedback-20260908/user-toolbar-hover.png).
+This is user-reported feedback, not a version-bound E2E proof. Direct assignment
+is `01a0806a-dc24-7d93-90ee-113e19d3bc92`. Desktop incorporates it into its
+existing toolbar/UI work after the in-flight Save/Unsave correction; no extra
+agent, competing build or Common/Swift implementation is authorized by this
+handoff. Verify one short visible Hover/Pin/Home journey, not a new test matrix.
+
 ## Roles
 
 - Sync implementation/integration owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.

@@ -29,6 +29,13 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Direct user toolbar addition, 2026-09-08:** hard rectangular Reload hover,
+  optional address-bar pinning and native Home were assigned to the existing
+  Desktop owner in `01a0806a-dc24-7d93-90ee-113e19d3bc92`. User screenshot is
+  preserved at `artifacts/computer-use/toolbar-feedback-20260908/user-toolbar-hover.png`;
+  the original was not removed. Scope and the short visible acceptance are in
+  the coordination prompt. No product file or current candidate was changed
+  by this handoff; the active Save/Unsave correction finishes first.
 - **First native Save journey found a product UI defect, 2026-09-08:** Desktop's
   visible `c20a759` run saved the Page correctly in the store, but the Sidebar
   retained its temporary presentation. This is a controllable product failure,
