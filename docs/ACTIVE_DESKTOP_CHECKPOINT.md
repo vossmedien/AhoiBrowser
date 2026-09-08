@@ -33,7 +33,7 @@ Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Runtime ownership — Build18 returned; protect the live Arc recovery
+## Runtime ownership — Build18 returned; native715 isolated UI
 
 The bounded11:52UTC Build18 Simulator grant is CLOSED. Explicit handback
 `01a080fd-802c-75e1-8670-42aede65b234` and the coordinator's12:25–12:27UTC
@@ -46,7 +46,10 @@ because the app changed externally; workspace/rows and width also changed.
 No recovery transaction was started. The user was asked asynchronously to leave
 Ahoi briefly unbedient; do not force input against a changing real profile.
 The later14:40 screenshot/questions and fresh14:41 process absence do not prove
-who changed the earlier window. Fresh state is required before resuming.
+who changed the earlier window. That interference was later resolved by a fresh
+stable readback; real recovery was attempted and failed for the concrete data
+mismatch below, not a continuing UI-slot block. Current native session50070
+uses ONLY `/private/tmp/ahoi-toolbar-715afc2.enwD8P`; real Default remains closed.
 
 ### Earlier slots — returned, not active
 
@@ -119,14 +122,16 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidates: 715afc2 building; compatible4cb installed for Arc recovery
+## Current candidate: Development715afc2 installed; bounded visible UI passed
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**CURRENT LIVE HANDLE:** guarded app-only build98973 is RUNNING since13:02UTC
-on the clean same detached snapshot at
-`715afc21a9757ea46a309817691c5c4aaa320c1c`. Overlay10765 is TERMINAL EXIT0,
-checkout delta verified. New source contains ONLY the56px activator, LEFT Pin,
+**CURRENT LIVE HANDLE:** isolated native restart50070 is RUNNING (PID4525 at
+launch); initial runtime85457 ended EXIT0 through real Cmd+Q (`super+q`).
+Guarded install92150 is TERMINAL EXIT0 for the separately Development-configured
+715afc2 copy. Build98973 and overlay10765 are TERMINAL EXIT0.
+The same clean detached snapshot is at
+`715afc21a9757ea46a309817691c5c4aaa320c1c`. New source contains ONLY the56px activator, LEFT Pin,
 exclusive-sidebar BookmarkBar condition and verified certificate CLI fix on
 top of3d59. No patch36, extension orchestration, Common/Swift WIP or new tests.
 Fresh heavy-phase gate70.7%CPUidle/52%memory headroom, no active compilers or
@@ -134,8 +139,61 @@ new swapouts;49.9GiB uses the documented build override above32GiB hard floor.
 Same guarded `build-ahoi.sh dev`, AHOI_JOBS=2, canonical AHOI_WORK_ROOT; no UI
 or installed-profile mutation. Logs:
 `artifacts/build/desktop-toolbar-left-715afc2-20260908/{overlay,build}.log`.
-Resume98973 to actual terminal status. Do not restart10765 or edit running
-snapshot/out. No install or visible acceptance of715afc2 yet.
+Original final build receipt SHA73cb67db12cfb3d64644fddc63f7be3b40d0b64b6a7d799676255fd6ba563d3a,
+binary4d98e259a439be7eb5319317020ffacebc4f5eda07ce4fa0598035e39b82b69e,
+tree74d9aa8f67889f072c2b1621e1866a747c83071fd4a63fbd7e92933d97f22936.
+The715 Development copy has preparation41500 EXIT0, signing EXIT0 and full
+verification28337 EXIT0, with the same real OSX profile. Verification receipt
+`cloudkit/verification.json` SHAbc367cef3da0d0b08950ea6cf4ce345685b6289e31950e80f198611bcdd09031;
+copy binary667626cd56c98d0768966b6cecf2be7b0fae2e69d6496164c92acdcca267eb45,
+tree99bc79f5e44489d7d4e609849c1cc3f4ebf0a28be463fb8e2e8ea3723fbae95d.
+Initial install26297 EXIT2 before staging/activation: its exact4cb rollback
+pathname was already occupied by the preserved older identical rollback. That
+owned, idle bundle was renamed on the SAME Applications filesystem to
+`/Applications/.AhoiBrowser.retained-rollback-4cb622a-d795fa7d-20260908.app`;
+source/main-binary55301ccb... read back identical. Nothing deleted or overwritten.
+The original failed install.log is retained; corrected retry is install-retry.log.
+Installed readback matches715afc2 and signed copy binary667626cd... . Install
+receipt `artifacts/install/ahoi-dev-715afc2-cloudkit-20260908.json`,
+SHA8969a2f1f884f0d08c806943691b170b62e33905c0bdc99feb26c2882062b767.
+No build/install/signing process remains active. Do not restart any of them.
+Approved Icondf03d46's full asset/generator paths were compared byte-identical
+to715; the delayed handoff does not require another source integration/build.
+
+**Bounded visible715 journey passed:** real Example page -> LEFT Pin on -> Home
+opens native NTP; normal bookmark menu creates Example Domain in bookmark-bar
+collection, visible ONLY in sidebar on normal page and NTP. Cmd+Q exits0, explicit
+same-profile CLI restart preserves Pin on, bookmark and24/24 settings category
+selection while global Sync remains OFF. Category then visibly returns0/24.
+Bookmark click opens real Example page. Pin off + page click hides navigation;
+the broader activator reopens it. Pin is left ON for visible user inspection.
+The new sail logo is rendered in About/Help. CUA captures/AX are in this thread;
+scope/limits in `docs/audit-evidence/2026-09-08-toolbar-and-arc-recovery.md`.
+No full hover matrix, Dock-cache/entire-branding, multi-device or CloudKit pass.
+The settings page still labels a non-instantiated provider as build-unavailable
+while global Sync is off: this is not evidence of missing Mac configuration or
+a failed key lookup. No global enable/bootstrap/key/zone write was attempted.
+
+**Real Arc recovery attempted, now concrete bounded product correction:** normal
+Settings -> importData -> Arc -> Search -> Restore was finally operable after a
+fresh stable window. Recovery refused; journal/backup unchanged. Read-only
+semantic hashing reproduces backup170685df... exactly, currentd8409d52... differs
+from expectede1b3928c... . The ONLY changed baseline row is unrelated Page
+9b4a0498-3b35-4b51-a48d-8239b51d001a: title/url/modified_at. Substituting its backup
+fields solely in a comparison model yields EXACT expected fingerprint; imported
+data itself is unchanged. The existing helper returned the seven-file Arc-only
+preserving recovery implementation; main reviewed it against the exact hashes.
+It retains independent baseline values/new temporary pages in surviving baseline
+targets and keeps exact imported-hash, undo, native/current-session and journal
+checks. Unknown saved rows/workspaces and references to removed targets fail
+closed. Source only; no Common/Session/UI or profile writes and no test run.
+The real dialog was aborted and4cb quit via native app menu, not killed. No
+recovery/import succeeded. Raw DB after normal persistence:
+791e9ae10ed951cb8503ee0a29d863d768bb35969e16553549d4175f64795ff0;
+journal1768e20f... unchanged. The completed715 UI uses ONLY an explicitly isolated test
+user-data directory: do not call CUA getApp before the explicit CLI launch, or
+after Quit, because that can launch real Default automatically. Real Default
+stays protected while the preserving Arc correction is implemented.
 
 **Preserved predecessor:** overlay17811 and app-only build62333 are TERMINAL EXIT0.
 The clean candidate source is `3d59cf9de8846e47c91db540b90b3067b18c0841`;
@@ -156,8 +214,8 @@ Development copy preparation91993, signing25981 and corrected verification6196
 are TERMINAL EXIT0. Initial verifier54382 EXIT2 was a CLI argument-parsing bug
 in certificate extraction, not a signing/profile failure. Details and exact
 copy hashes: `docs/audit-evidence/2026-09-08-native-cloudkit-development.md`.
-The copy is not installed or a transport/bootstrap/roundtrip pass. Main3d59
-bundle/receipt remain unchanged; temporary4cb is still the installed recovery app.
+The3d59 copy was not installed and is not a transport/bootstrap/roundtrip pass.
+Its bundle/receipt remain unchanged;715afc2 is now installed,4cb preserved.
 
 New user UI feedback14:40 was viewed at
 `/Users/vossmedien/Desktop/Bildschirmfoto 2026-09-08 um 14.40.48.png`:
@@ -999,23 +1057,24 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume live guarded app-only build98973 on715afc2 to terminal status.
-   Overlay10765 is EXIT0; no restart or in-place changes. This is the already
-   integrated bounded56px activator/LEFT Pin/duplicate-bookmark-bar correction,
-   not another waiting source handoff. Preserve the actual final receipt and,
-   after protected Arc recovery below, install the exact successful candidate
-   through the guarded path. Then visible Hover/Pin/Home/settings/icon and no
-   horizontal bookmark duplication before minimal focused regression. No foreign
-   Common WIP/patch36 or unrelated test targets. Predecessor3d59's original and
-   verified Development copies/receipts are preserved; do not relabel them as715.
+1. Installer92150 and all715 build/signing phases are EXIT0. The bounded visible
+   Pin/Home/restart/settings/bookmark-only-sidebar journey is complete above;
+   do not restart builds or replay the whole flow without an affected change.
+   Active runtime50070 is the isolated test profile, not real Default. Preserve
+   its exact receipt and state. Integrate the reviewed Arc-only correction next,
+   excluding Common WIP/patch36, through the same clean snapshot and one guarded
+   app-only follow-up. After correction, repeat the real affected Arc journey,
+   then only its necessary regression. No unrelated test-binary prerequisite.
    Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
    remains separate and open. Prior6ae's local lifecycle/focused12-case evidence
    remains valid for its boundary, not proof of multi-device sync.
 2. Arc's real Default profile remains protected. Arc has now been observed
    closed; compatible4cb is ALREADY installed via79760 EXIT0. Mobile's explicit
    handback is complete. Resolve the new actual user/UI-interference boundary,
-   then fresh window/process/profile state; no reinstall, checkout/out change
-   or extra compile merely to resume recovery.
+   the actual attempt proved the unrelated baseline navigation mismatch,
+   not a missing UI slot. The old blind recovery must not be forced. Integrate
+   the reviewed hash-bound preserving fix; keep real Default closed until its
+   corrected candidate. Current715 was accepted with a fresh explicit test profile.
    After Arc is normally closed,
    use the compatible4cb baseline's guarded importer recovery before allowing
    new normal-tab mirroring to touch that failed-import profile. Open the real
