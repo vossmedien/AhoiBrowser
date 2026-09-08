@@ -214,7 +214,7 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
             )
 
         wildcard = profile_fixture(self.policy, "cloudkit-development")
-        wildcard["Entitlements"]["keychain-access-groups"] = ["248AJ5BN47.*"]
+        wildcard["Entitlements"]["keychain-access-groups"] = ["WRONG00000.*"]
         with self.assertRaises(SystemExit):
             validate_provisioning_profile(
                 self.policy, "cloudkit-development", wildcard, now=NOW
@@ -232,6 +232,32 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
                 development_as_distribution,
                 now=NOW,
             )
+
+    def test_apple_mac_profile_allowlist_authorizes_only_exact_app_claims(self):
+        profile = profile_fixture(self.policy, "cloudkit-development")
+        entitlements = profile["Entitlements"]
+        entitlements.pop("get-task-allow")
+        entitlements["com.apple.developer.icloud-container-environment"] = [
+            "Production", "Development"
+        ]
+        entitlements["com.apple.developer.icloud-services"] = "*"
+        entitlements["keychain-access-groups"] = ["248AJ5BN47.*"]
+        metadata = validate_provisioning_profile(
+            self.policy, "cloudkit-development", profile, now=NOW
+        )
+        self.assertEqual("Development", metadata["cloudKitEnvironment"])
+        self.assertEqual(self.policy["publicIdentity"]["keychainAccessGroups"],
+                         metadata["keychainAccessGroups"])
+        browser = self.policy["rules"][0]
+        claims = expected_rule_entitlements(self.policy, "cloudkit-development", browser)
+        self.assertEqual("browser-app", verify(self.policy, "Contents/MacOS/AhoiBrowser",
+                                                claims, "cloudkit-development"))
+        claims["keychain-access-groups"] = ["248AJ5BN47.*"]
+        with self.assertRaises(SystemExit):
+            verify(self.policy, "Contents/MacOS/AhoiBrowser", claims, "cloudkit-development")
+        entitlements["com.apple.developer.icloud-container-environment"] = ["Production"]
+        with self.assertRaises(SystemExit):
+            validate_provisioning_profile(self.policy, "cloudkit-development", profile, now=NOW)
 
     def test_overlay_contracts_match_policy_without_placeholders(self):
         sync_root = ROOT / "overlay/chromium/src/ahoi/browser/sync"

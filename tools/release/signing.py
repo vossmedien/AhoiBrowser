@@ -37,6 +37,7 @@ from .common import (
 
 CONTAINER_SUFFIXES = {".app", ".framework", ".xpc"}
 RELEASE_SIGNING_PROFILE = "cloudkit-production"
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 def _relative(app: pathlib.Path, path: pathlib.Path) -> str:
@@ -303,6 +304,54 @@ def prepare_cloudkit_app(
     }
 
 
+def _verify_component_development_cloudkit(
+    app: pathlib.Path, policy: dict, expected_team: str, expected_authority: str
+) -> dict:
+    # Component builds deliberately retain linker-signed Chromium dylibs. Use
+    # their existing manifest/nested-signature contract, not a partial hardened
+    # runtime signature that rejects them. Production retains its separate full
+    # leaf-to-root hardened-runtime verifier below.
+    run([str(ROOT / "scripts/verify-built-app.sh"), str(app)], cwd=ROOT)
+    description = _description(app)
+    if (
+        _description_field(description, "TeamIdentifier") != expected_team
+        or _description_field(description, "Authority") != expected_authority
+    ):
+        raise ReleaseError("CloudKit development signing identity differs from its policy")
+    browser_rule = next(rule for rule in policy["rules"] if rule["id"] == "browser-app")
+    expected = expected_rule_entitlements(policy, "cloudkit-development", browser_rule)
+    if _read_entitlements(app) != expected:
+        raise ReleaseError("CloudKit development app entitlement claims are not exact")
+    embedded = app / "Contents/embedded.provisionprofile"
+    metadata = _profile_metadata(policy, "cloudkit-development", embedded)
+    certificate = _signing_certificate_sha256(app)
+    if certificate not in metadata["developerCertificateSha256"]:
+        raise ReleaseError("CloudKit development signing certificate is not authorized")
+    try:
+        runtime = verify_app_runtime_configuration(
+            app, policy, "cloudkit-development", metadata
+        )
+    except SystemExit as error:
+        raise ReleaseError(str(error)) from error
+    return {
+        "bundle": bundle_identity(app),
+        "releaseEvidenceEligible": False,
+        "developmentComponentVerification": "scripts/verify-built-app.sh",
+        "cloudKitSigning": {
+            "signingProfile": "cloudkit-development",
+            "provisioningProfile": {
+                **metadata,
+                "sha256": sha256_file(embedded),
+                "embeddedPath": "Contents/embedded.provisionprofile",
+            },
+            "runtimeConfiguration": runtime,
+            "signingCertificateSha256": certificate,
+        },
+        "gatekeeperAssessed": False,
+        "notarizationStapled": False,
+    }
+
+
 def verify_signed_app(
     app: pathlib.Path,
     *,
@@ -322,6 +371,14 @@ def verify_signed_app(
     if not expected_authority.startswith(contract["signingAuthorityPrefix"]):
         raise ReleaseError(
             f"signing authority differs from profile {signing_profile_name}"
+        )
+    if signing_profile_name == "cloudkit-development" and read_bundle_plist(app).get(
+        "AhoiBuildProfile"
+    ) in {"dev", "full-dev"}:
+        if require_notarization:
+            raise ReleaseError("component development verification is not release evidence")
+        return _verify_component_development_cloudkit(
+            app, policy, expected_team, expected_authority
         )
     rules = _compiled_rules(policy_path, signing_profile_name)
     macho = macho_paths if macho_paths is not None else discover_macho(app)

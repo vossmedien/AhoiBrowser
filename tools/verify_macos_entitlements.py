@@ -316,6 +316,39 @@ def _utc(value: dt.datetime) -> dt.datetime:
     return value.astimezone(dt.timezone.utc)
 
 
+def _profile_authorizes_claim(key: str, allowed: Any, claimed: Any, team: str) -> bool:
+    """Apple profile entitlements authorize claims; they are not the signature.
+
+    TN3125 permits profile-only allowlists/wildcards. Keep exact app identity,
+    container and APNs checks, and understand only the three documented forms
+    actually issued by Xcode for this Mac profile. Signed claims remain exact.
+    """
+    if allowed == claimed:
+        return True
+    if key == "com.apple.developer.icloud-container-environment":
+        return (
+            isinstance(allowed, list)
+            and all(item in ("Development", "Production") for item in allowed)
+            and claimed in allowed
+        )
+    if key == "com.apple.developer.icloud-services":
+        return allowed == "*" or (
+            isinstance(allowed, list)
+            and all(isinstance(item, str) for item in allowed)
+            and all(item in allowed for item in claimed)
+        )
+    if key == "keychain-access-groups":
+        return (
+            isinstance(allowed, list)
+            and all(isinstance(item, str) for item in allowed)
+            and all(
+                group in allowed or (group.startswith(team + ".") and team + ".*" in allowed)
+                for group in claimed
+            )
+        )
+    return False
+
+
 def validate_provisioning_profile(
     policy: dict[str, Any],
     profile_name: str,
@@ -373,13 +406,17 @@ def validate_provisioning_profile(
     browser_rule = next(rule for rule in policy["rules"] if rule["id"] == "browser-app")
     expected = expected_rule_entitlements(policy, profile_name, browser_rule)
     for key in CLOUDKIT_ENTITLEMENT_KEYS:
-        if entitlements.get(key) != expected[key]:
-            raise SystemExit(f"provisioning profile entitlement is not exact: {key}")
-    if entitlements.get("get-task-allow") is not contract["getTaskAllow"]:
+        if not _profile_authorizes_claim(
+            key, entitlements.get(key), expected[key], identity["teamIdentifier"]
+        ):
+            raise SystemExit(f"provisioning profile does not authorize entitlement: {key}")
+    # On macOS get-task-allow is unrestricted and normally absent from profiles.
+    # Never infer its presence in the app: the signed code is checked separately.
+    if "get-task-allow" in entitlements and entitlements["get-task-allow"] is not contract["getTaskAllow"]:
         raise SystemExit("provisioning profile get-task-allow differs from its mode")
     relevant_values: list[Any] = [name, uuid]
     for key in CLOUDKIT_ENTITLEMENT_KEYS:
-        item = entitlements[key]
+        item = expected[key]
         relevant_values.extend(item if isinstance(item, list) else [item])
     for item in relevant_values:
         if isinstance(item, str):
