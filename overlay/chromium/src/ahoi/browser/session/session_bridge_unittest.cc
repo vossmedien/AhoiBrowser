@@ -376,6 +376,8 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
   tabs::TabInterface* tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   ASSERT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
+  const auto temporary_id = bridge_->FindSharedTreeNodeIdForTab(tab);
+  ASSERT_TRUE(temporary_id.has_value());
   size_t presentation_change_count = 0;
   base::CallbackListSubscription presentation_subscription =
       bridge_->AddRuntimePresentationChangedCallback(base::BindRepeating(
@@ -385,6 +387,7 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
   const std::optional<base::Uuid> saved_id =
       bridge_->SaveTabAtWorkspaceRoot(browser(), tab);
   ASSERT_TRUE(saved_id.has_value());
+  EXPECT_EQ(temporary_id, saved_id);
   EXPECT_EQ(presentation_change_count, 1u);
   EXPECT_EQ(saved_id, bridge_->FindTreeNodeIdForTab(tab));
 
@@ -403,6 +406,14 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
                                                    std::nullopt, &root_nodes));
   ASSERT_EQ(root_nodes.size(), 1u);
   EXPECT_EQ(root_nodes.front().id, *saved_id);
+
+  EXPECT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            bridge_->MakeTabTemporary(tab));
+  EXPECT_EQ(presentation_change_count, 2u);
+  EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
+  EXPECT_EQ(saved_id, bridge_->FindSharedTreeNodeIdForTab(tab));
+  EXPECT_EQ(saved_id, bridge_->SaveTabAtWorkspaceRoot(browser(), tab));
+  EXPECT_EQ(presentation_change_count, 3u);
 
   const std::vector<RankedCommand> results =
       command_service->Query(u"save-current-tab", 10);
@@ -441,7 +452,13 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
   task_environment()->RunUntilIdle();
   tabs::TabInterface* reopened = model->GetTabAtIndex(0);
   ASSERT_TRUE(reopened);
-  EXPECT_EQ(*saved_id, bridge_->FindTreeNodeIdForTab(reopened));
+  // Independently reopening the same URL is a new normal tab, not an implicit
+  // activation of the saved page. Only explicit identity can reuse that page.
+  EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(reopened).has_value());
+  const auto reopened_id = bridge_->FindSharedTreeNodeIdForTab(reopened);
+  ASSERT_TRUE(reopened_id.has_value());
+  EXPECT_NE(saved_id, reopened_id);
+  EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(*saved_id));
 }
 
 TEST_F(SessionBridgeTest, PublishesNestedSavedPagesToCommandBarIndex) {
