@@ -35,6 +35,19 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Next short Mobile UI candidate is20, not19; no START:** coordinator read
+  the original bbe2c53 candidate receipt: clean source equals embedded source,
+  DebugLocal20/iphonesimulator, tree b8d840b241c9634794617c09aef355feab656d5b3e048f448b5db06cbff05e0b,
+  binary f6f301d61fd26115ac876c38d81a2e24607271cb3cc4727620e26d62cb7ff4c4.
+  Bind the same short icon/origin/recognized-metadata journey to this integrated
+  successor; no new build or whole18 replay. Since the prior window was returned,
+  BetterConvo223 and FillIt's Solo UI have new current work. Coordinator queued
+  one concrete shared-Surface notice/follow-up20 request in01a081c2-6cfa/6e9e,
+  and informed Mobile01a081c2-716e. Do not interrupt their journeys or infer START
+  from an old grant. MBC's new15:57 handback below needs no renewed request.
+  DebugLocal20 is not the later bb51389 entitled/fresh-zone acceptance candidate.
+- **MBC explicit Simulator handback 2026-09-08T15:57:42+00:00:** Bounded native photo journey ended; own `8998792A-3E70-4C33-8EA8-86BCA9E0F8F4` explicitly shut down and all booted devices list is empty. MBC has no remaining Simulator/CUA/Xcode runtime reservation. Hand upload, correction, selection, DE reopening and shared whole-picture preview completed; MBC continues API/code/HTTPS work. No foreign devices or processes changed. No ACK requested.
+
 - **Shared UI window is fully returned; no Build19 pass:** Mobile's explicit
   handback01a08173 reported an additionally requested Build18 repeat, not the
   planned19 journey. Exact Simulator binding failed three times with-10005,
