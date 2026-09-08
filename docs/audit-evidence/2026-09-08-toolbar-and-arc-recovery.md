@@ -235,3 +235,67 @@ These are bounded visible runtime observations from the conversation, supported
 by matching logs/read-only counts; not a formal release CU_E2E matrix, CloudKit
 roundtrip, or broad test pass. Real Default stayed provider-free throughout,
 without changing its pre-existing global Sync=true preference or accessing keys.
+
+## a24a792: identical-source NoChanges visibly accepted; duplicate UI corrected in source
+
+Overlay80624/build70035/install99179 all EXIT0. Installed source
+a24a7925bc729dcc6c02b39a5fee1ffdb0ef0aca, executable SHA
+71ffd6ac66e6843f7c59d348500021f76a543603c65de19ef06d91f897e94122.
+Build receipt b2a922a206b4c72fdd642d02e515aae5c0f6f9134f60cc310f7e29805cd72fd9;
+install receipt a33441904ec13667baa3a4a9c5ae74a46e583f6cc641630c8a2222a2f6e0e0f9.
+Files are under artifacts/build/desktop-arc-noop-a24a792-20260908/ and
+artifacts/install/ahoi-dev-a24a792-provider-free-20260908.json.
+
+Real Default37883: Settings -> Import -> Arc -> Search showed1/36/133/3 and the
+same checked Default/sidebar/splits plus Rename policy. Normal import completed
+with: "Dieser Arc-Snapshot wurde bereits importiert. Es wurde nichts geändert."
+The real imported workspace still has169 nodes and no duplicate workspace.
+Before/after JSON structural digest (id, workspace_id, parent_id, node_type,
+sort_key, created_at, tombstone, is_temporary ordered by id for the Voss UUID)
+remained11d6bd04438f146c6725ef151c6223eda1f217bdda06d3329b78c98d53de938e.
+Journal raw SHA remained30e4cce43d7f8113bb76859fd83558ee287444bc1438b1ac4e3736ba8b9c521c.
+Read the authoritative Default/Ahoi Tab Tree, NOT the obsolete
+Default/Ahoi/TabTree.sqlite. Original backup hashes remain unchanged above.
+No second backup or native split reconstruction was requested by the no-op code.
+
+The screenshot and user report correctly reveal a separate result-presentation
+defect: arcStatusText_ was emitted both in the live status and result heading;
+NoChanges also rendered9 irrelevant zero-stat cards. Committeddbbbc24 keeps the
+single live region, renders result counts only for status ok and removes the
+search intro/button when complete. No native persistence/transaction code changes.
+Two existing UI cases gain focused assertions; no test execution is claimed.
+Its corrected visible acceptance is pending a runnable candidate:30.78GiB free
+fell below the32GiB build hard floor. Only an exact two-obsolete-app-copy cleanup
+was proposed; no profile/backup/key or existing app was deleted.
+
+## a24a792 live Bookmark marker and clarified trailing drop surface
+
+The independent native marker check used only the existing owned toolbar fixture
+/private/tmp/ahoi-toolbar-715afc2.enwD8P, runtime13987. A fresh unique Example URL
+had no marker. Native Bookmark menu -> Add, named Ahoi Markerpruefung, produced
+the small favicon star and the localized accessible Bookmark status immediately.
+Cmd+D saved that same tab in the upper tree with its marker. Deleting only the
+test Bookmark through the native shelf context removed the star/status while
+the saved page stayed. Detach then normal close cleaned up the test saved/runtime
+tab; the prior fixture Bookmark/pages remained. Normal Quit13987 EXIT0; earlier
+real Default37883 also EXIT0. No CloudKit provider/key/real-profile write occurred
+in this isolated check. This covers temporary and saved native Bookmark status,
+not a new whole-Bookmark or Sync acceptance matrix.
+
+One broad-gap drag caused no visible state change; no success was claimed. The
+user's18:29 screenshot specifies that the whole empty region below saved rows
+must be a broad root-last append target, independent of narrow positioning zones.
+Sourcec510bfb reserves40DIP inside the tree hit area and makes both payload probes
+return a validated root target there rather than clamping to the final row.
+The same bounds drive the accepting background; ordinary row edges retain their
+markers. Layout reservation is permanent, including during native drags, and the
+existing folder height animation adds it exactly once. Two focused source cases
+cover an expanded final folder/root-last ordering and temporary-save rejection/
+acceptance without a drag-start size jump; existing height assertions retain
+their exact motion/layout checks with the new reservation. No test run claimed.
+
+Combined clean source14ff0725c2443b900e5de59e2be91f4563bf8a76 contains the concise
+result UI and broad append surface; current installed a24a792 does not. Source/
+format/diff/800-line checks passed. Build remains blocked below32GiB, pending the
+already proposed exact obsolete-app-copy cleanup. No second build path, lowered
+disk floor, foreign cleanup or new permission loop was introduced.

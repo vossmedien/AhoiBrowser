@@ -73,7 +73,13 @@ Vervollständigung eines internen Services erfinden.
 
 Die UI-Präzisierung vom 8. September gehört zu Paket1: Der Bereich dauerhaft
 gespeicherter Tabs bleibt als dezente farbige Dropfläche erkennbar; nur das
-tatsächlich gültige Dropziel wird stärker hervorgehoben. Eine Seite, die zugleich
+tatsächlich gültige Dropziel wird stärker hervorgehoben.
+Die freie Fläche unter der letzten gespeicherten Zeile ist dabei ein eigenes
+breites Dropziel: gültiges Hochziehen hebt die ganze Fläche hervor, Loslassen
+hängt auf Workspace-Wurzelebene ganz unten an, nicht im letzten geöffneten
+Ordner. Schmale Vorher-/Nachher-Zonen bleiben ausschließlich für genaue
+Positionierung zuständig. Die Fläche bleibt geometrisch reserviert, damit
+Drag-Start keine Zeilen verschiebt. Eine Seite, die zugleich
 in den nativen Lesezeichen liegt, erhält einen kleinen, nicht interaktiven Stern
 im bestehenden Tab-Iconbereich. Der Status folgt dem nativen BookmarkModel ohne
 eigenes Persistenz-/Syncfeld und aktualisiert sich bei Lesezeichenänderungen.

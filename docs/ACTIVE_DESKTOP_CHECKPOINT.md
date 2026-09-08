@@ -33,7 +33,7 @@ Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Runtime ownership — Mobile slots returned; native35c4 recovery completed
+## Runtime ownership — Mobile slots returned; current native checks completed
 
 The bounded11:52UTC Build18 Simulator grant is CLOSED. Explicit handback
 `01a080fd-802c-75e1-8670-42aede65b234` and the coordinator's12:25–12:27UTC
@@ -47,9 +47,12 @@ Both real runtimes16863 and46784 are TERMINAL EXIT0 through normal Cmd+Q.
 There is no active import transaction or Desktop runtime. CUA's last post-import
 selection exposed only a stale Settings menu with no screenshot; Cancel/Escape,
 one own reset and a fresh full-path selection did not restore window context.
-Normal app-scoped Cmd+Q still completed successfully. Do not reuse old AX indices
-or call that tool state a product pass/focus defect. The next exact candidate
-gets a fresh explicit app/window selection. No current Mobile slot blocks it.
+Normal app-scoped Cmd+Q still completed successfully. Fresh a24a792 binding then
+worked for the real NoChanges journey and isolated Bookmark-marker check. Both
+new runtimes37883 (real Default) and13987 (owned toolbar fixture) are TERMINAL
+EXIT0; the test Bookmark was removed, test saved page detached and its tab closed
+through native UI before Quit. No current native app/import or Mobile slot remains.
+Do not reuse old AX indices or call a tool-context mismatch a product focus bug.
 
 ### Earlier slots — returned, not active
 
@@ -122,18 +125,64 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: 35c4c41 installed; bounded Arc no-op correction next
+## Current candidate: a24a792 installed; combined14ff072 source ready
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**AUTHORITATIVE LIVE STATE,18:03CEST:** Arc no-op correctiona909e4e is committed/
-pushed and isolated as cleana24a7925bc729dcc6c02b39a5fee1ffdb0ef0aca on35c4.
-Only3 Arc files differ; no Common WIP or unrelated source. Overlay80624 is
-TERMINAL EXIT0; guarded app-only build70035 is RUNNING with jobs2. Temporary
-Simulator boot contention settled before start: fresh33–47%idle/49%memory,
-no new swapouts,33.67GiB above32GiB hard floor (documented low-disk override).
-Logs: `artifacts/build/desktop-arc-noop-a24a792-20260908/`. No foreign process
-was touched. Do not restart the overlay/build or widen its frozen inputs.
+**AUTHORITATIVE LIVE STATE,18:56CEST:** exact
+`a24a7925bc729dcc6c02b39a5fee1ffdb0ef0aca` is installed, provider-free.
+Overlay80624, app-only build70035 and guarded install99179 are TERMINAL EXIT0.
+Executable SHA `71ffd6ac66e6843f7c59d348500021f76a543603c65de19ef06d91f897e94122`;
+build receipt SHA `b2a922a206b4c72fdd642d02e515aae5c0f6f9134f60cc310f7e29805cd72fd9`;
+install receipt SHA `a33441904ec13667baa3a4a9c5ae74a46e583f6cc641630c8a2222a2f6e0e0f9`.
+Logs/receipt: `artifacts/build/desktop-arc-noop-a24a792-20260908/` and
+`artifacts/install/ahoi-dev-a24a792-provider-free-20260908.json`.
+Normal real Default UI37883 visibly reports the exact repeated snapshot was
+already imported and nothing changed. Arc workspace structural fingerprint
+`11d6bd04438f146c6725ef151c6223eda1f217bdda06d3329b78c98d53de938e` and journal SHA
+`30e4cce43d7f8113bb76859fd83558ee287444bc1438b1ac4e3736ba8b9c521c` are identical
+before/after; no duplicate tree. The user correctly reported duplicated status
+and misleading zero-stat cards in that completed UI. Source fixdbbbc24 is
+committed/pushed: one live status, no NoChanges cards, no completed search intro/
+button; real successful imports retain their result counts. Existing UI checks
+were extended narrowly, not executed. No backend or confirmation change.
+
+**Only corrective build currently disk-gated:** fresh30.78GiB is below the32GiB
+hard floor; do not lower/bypass it. The user was asked asynchronously about ONLY
+the two obsolete prepared app copies3d59cf9 and715afc2 under their existing
+artifacts/build/.../cloudkit/AhoiBrowser.app directories (2.25GiB logical total).
+Current app, latest35c4 rollback, newest e241 CloudKit copy, profiles, keys and
+Arc backups stay protected. No cleanup/build/overlay refresh has occurred for
+dbbbc24. Continue independent current-candidate sidebar checks while awaiting
+the concrete space decision; this is not a whole-goal/ownership block.
+
+**Latest native source is complete, not compiled:** c510bfb implements the user's
+18:29 trailing-area clarification in4 existing tree/view/motion files. A permanent
+40-DIP tail belongs to the tree's actual native hit area; exact-row edge targets
+stay unchanged. Both saved/runtime payloads validate a root append in that tail,
+with matching broad paint bounds; an expanded final folder never captures it.
+The existing height animation covers row content, with the fixed tail added once;
+no drag-start relayout, new drop architecture, state/schema or Common changes.
+Two focused cases and exact height assertions are source-only, not a test pass.
+Combined clean detached snapshot is now14ff0725c2443b900e5de59e2be91f4563bf8a76
+(a24a792 + dbbbc24 + c510bfb), protected under
+refs/ahoi/build-candidates/desktop-result-and-append-14ff072. Shared checkout/out
+still contain a24a792; no overlay refresh/build started. Latest disk30.63GiB,
+so the existing cleanup question applies once to this combined build, not two
+separate corrective pipelines. No further source/role approval is required.
+
+**Bookmark marker live check passed on a24a792:** isolated fixture
+/private/tmp/ahoi-toolbar-715afc2.enwD8P, native Bookmark menu -> add own unique
+Example URL -> marker appears on temporary row -> Cmd+D saves same tab with
+marker -> native shelf context Delete removes only Bookmark -> saved tab stays,
+marker disappears. Detach/close own test tab and normal Quit13987 EXIT0 completed.
+No real Default data was used for this check. Quiet saved tint was visible.
+The attempted broad-gap drag had no state change and is NOT a passing drop;
+the user's subsequent screenshot clarifies the exact missing target now fixed
+only in sourcec510bfb. Fresh installed drag/append acceptance remains required.
+
+Earlier build capacity before70035:33–47%idle/49%memory, no new swapouts,
+33.67GiB above32GiB floor. No foreign process was touched. Do not restart70035.
 The earlier overlay82634, app-only build81449 and
 guarded install97865 are TERMINAL EXIT0 on
 `35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d`. Do not resume/restart them.
@@ -158,15 +207,15 @@ retained Ahoi+Voss, the3-pane group and both2-pane groups. The journal is commit
 for source `ccaa3df116bf7d0e89daced22747224f8fca0e1317cae0f02906100f847027e7`.
 Site TLS interstitials were not bypassed and no login was performed.
 
-**Remaining bounded product failure:** re-discovery of the identical committed
+**Resolved in a24a792:** re-discovery of the identical committed
 source returned a generic conflict before the no-op check:6 imported page titles
 and5 URLs had subsequently changed. No duplicate import was performed. The
 Arc-only helper delivered a source fix: validate current source+durable journal,
 compare the exact selected key before merge and return NoChanges without tree,
 backup, session, split or journal writes. Different source/selection retains the
-strict merge. Main is integrating this bounded correction, not a new matrix.
-Static Bookmark markers and quiet saved-section tint were visible; actual
-Bookmark add/remove refresh and a drag-enter highlight remain to be exercised.
+strict merge. The exact-source no-op now passed visibly, without data changes.
+Bookmark add/remove refresh and quiet saved tint were subsequently accepted on
+a24a792; the new broad tail's drag/append acceptance remains pending14ff072.
 Details: `docs/audit-evidence/2026-09-08-toolbar-and-arc-recovery.md`.
 
 ### Earlier combined-build chronology — terminal, not resume instructions
@@ -1186,12 +1235,15 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Build/install the reviewed Arc-only no-op correction on clean35c4 using the
-   existing guarded app-only cached path after a fresh whole-machine/disk gate.
-   All35c4 build/install and real UI runtimes are terminal; no unchanged retry.
-   Repeat only the affected real discovery -> same-selection import -> NoChanges
-   journey, preserving the committed imported tree and original backup. Then
-   exercise live Bookmark add/remove marker and saved-area drag highlighting.
+1. Arc no-op and Bookmark live markers are accepted on installeda24a792;
+   70035/99179 and both native runtimes are terminal0. Combined clean14ff072 is
+   already prepared with dbbbc24/c510bfb; refresh/build once through the same
+   guarded app-only path when disk is above32GiB (exact cleanup decision above).
+   Do not rerun an unchanged build or count source-only UI as installed. Repeat
+   only discovery -> same-selection NoChanges for one status/no zero-cards.
+   Then visibly drag a temporary tab into the broad trailing saved area and
+   confirm root-last append, distinct from before/after row placement. Marker
+   add/remove already passed; no whole replay or test-binary prerequisite.
    No Common/Swift WIP, patch36, extra test-target prerequisite or new header wait.
    Recovery/initial import/restart and visible715 Pin/Home/settings evidence are
    already recorded; do not replay them wholesale without an affected change.
