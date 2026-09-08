@@ -3,6 +3,31 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Current independent result: unsigned iOS Development22 built
+
+The user challenged the over-broad whole-goal block; the goal is active again.
+Concrete takeover of the prepared48-line Native request hook was offered to
+Desktop in01a081d0-fc37-7fc2-a9c4-8ed85164c08f. That exact ownership question is
+not a new general UI/role gate; do not repeat it. Native files remain untouched.
+
+Meanwhile the real iOS-device build exposed and fixed a separate integration
+gap: the Mobile preflight rejected the agreed isolated key family. Original
+77061ad/21 build48954 remains EXIT65. Corrective9658f94 adds only the strictly
+bound Development scope, retaining ordinary/Production/group/key safeguards;
+three focused preflight CLI tests passed. Cached product build48197 on that
+clean source then completed EXIT0: CloudKitDevelopment0.1(22), iPhoneOS/arm64.
+All seven actual Info.plist values match the shared prepared scope. The copied
+app tree is f99ed968c9b667d1586f57b6689af4177c0dce822eed6d0ab2d1da260ea5434b.
+Receipt/logs/source limits: artifacts/build/mobile-development-9658f94-20260908/.
+
+Signing was explicitly disabled and independently confirmed absent; NO signed
+entitlement, installation, visible E2E, Keychain or CloudKit pass. No current
+own compiler/host/UI reservation. Next gate is coordinated signing/device
+runtime with the matching Native candidate, not more placeholder tests.
+Build20 was separately archived and reverified byte/signature-identically;
+its short Simulator UI task still requires the already pending real window
+handoff. This source/device step does not reopen any old UI slot.
+
 ## Latest UI: Build19 partial, window guard stopped foreign input
 
 The explicit new slot was consumed on exact6b0121f / DebugLocal19, with no
