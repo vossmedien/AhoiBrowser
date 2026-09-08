@@ -29,6 +29,19 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Mobile UI is in progress, 2026-09-08 07:58 UTC:** the Mobile owner has
+  consumed the explicit user grant and started the isolated Build17 journey.
+  Its live report confirms visible start/navigation and Inbox assignment;
+  Save/Unsave and restart are the current steps. Some Simulator swipe inputs
+  have been unreliable. This is a partial owner-observed journey, not a final
+  Mobile or cross-client Sync pass. Do not retain the old unanswered-slot block.
+  The coordinator goal was freshly read back as ACTIVE at 08:00 UTC.
+  Independent readback at 08:01–08:03 UTC found live app PID48730 in the isolated
+  `Ahoi Unified Sync Build17 20260908` Simulator
+  `F8253C50-E423-4424-8EE3-5F152C593A31`. Its installed plist reports Build17,
+  `7b706a73f98802fe31b206731b7e88c1da6b6c59`, DebugLocal. Both existing owner
+  sessions remain live. The coordinator started no app/build/test and left
+  the separate BetterConvo and MindBodyCompass Simulators untouched.
 - **Explicit user Simulator-UI handoff, 2026-09-08 07:08 UTC:** the user answered
   yes to the Mobile owner running the short Simulator journey while Desktop
   works on source only. This resolves the previously unanswered UI-slot gate;
