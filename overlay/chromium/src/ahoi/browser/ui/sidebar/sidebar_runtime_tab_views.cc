@@ -26,6 +26,7 @@
 #include "cc/paint/paint_flags.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/tabs/public/tab_interface.h"
+#include "components/vector_icons/vector_icons.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/clipboard/clipboard_format_type.h"
@@ -94,7 +95,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  CanDropCallback can_drop_callback,
                  DropCallback drop_callback,
                  views::ContextMenuController* context_menu_controller,
-                 ui::ImageModel origin_badge)
+                 ui::ImageModel origin_badge,
+                 bool bookmarked)
       : tab_(tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()),
         runtime_tab_handle_(tab ? tab->GetHandle().raw_value() : -1),
         drag_title_(internal::StableTabTitle(tab)),
@@ -130,6 +132,16 @@ class OpenTabRowView final : public views::View, public views::DragController {
         CreatePageFallbackIconView(active_, internal::IsNewTabPage(tab)));
     fallback_icon_->SetVisible(favicon_view_->GetImageModel().IsEmpty());
     fallback_icon_->SetCanProcessEventsWithinSubtree(false);
+
+    bookmark_indicator_ = AddChildView(std::make_unique<views::ImageView>());
+    bookmark_indicator_->SetImage(ui::ImageModel::FromVectorIcon(
+        vector_icons::kStarFilledIcon, visual_style::kMutedText, 8));
+    bookmark_indicator_->SetImageSize(gfx::Size(8, 8));
+    bookmark_indicator_->SetBackground(
+        views::CreateRoundedRectBackground(visual_style::kRaisedSurface, 2));
+    bookmark_indicator_->SetCanProcessEventsWithinSubtree(false);
+    bookmark_indicator_->GetViewAccessibility().SetIsIgnored(true);
+    bookmark_indicator_->SetVisible(bookmarked);
 
     title_ = AddChildView(std::make_unique<SidebarTabTitleLabel>());
     title_->SetText(tab_title);
@@ -234,6 +246,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
     const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
     favicon_view_->SetBoundsRect(icon_bounds);
     fallback_icon_->SetBoundsRect(icon_bounds);
+    bookmark_indicator_->SetBoundsRect(
+        gfx::Rect(icon_bounds.right() - 10, icon_bounds.bottom() - 10, 10, 10));
     const SidebarTabTrailingLayout trailing =
         GetSidebarTabTrailingLayout(width(), height(), has_media_indicator_);
     close_->SetBoundsRect(trailing.hover_action);
@@ -711,6 +725,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   const DropCallback drop_callback_;
   raw_ptr<views::ImageView> favicon_view_ = nullptr;
   raw_ptr<views::View> fallback_icon_ = nullptr;
+  raw_ptr<views::ImageView> bookmark_indicator_ = nullptr;
   raw_ptr<SidebarTabTitleLabel> title_ = nullptr;
   raw_ptr<views::ImageView> media_indicator_ = nullptr;
   raw_ptr<views::View> close_ = nullptr;
@@ -753,7 +768,8 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller,
-    ui::ImageModel origin_badge) {
+    ui::ImageModel origin_badge,
+    bool bookmarked) {
   return std::make_unique<OpenTabRowView>(
       tab, std::move(saved_node_id), std::move(favicon), media_alert,
       std::move(status_text), active, sleeping, drag_enabled,
@@ -762,7 +778,7 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
       std::move(saved_drag_state_callback), std::move(drag_state_callback),
       std::move(drop_target_claim_callback), std::move(can_drop_callback),
       std::move(drop_callback), context_menu_controller,
-      std::move(origin_badge));
+      std::move(origin_badge), bookmarked);
 }
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {

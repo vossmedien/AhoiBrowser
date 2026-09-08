@@ -101,7 +101,8 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller,
-    ui::ImageModel origin_badge = {});
+    ui::ImageModel origin_badge = {},
+    bool bookmarked = false);
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view);
 std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view);

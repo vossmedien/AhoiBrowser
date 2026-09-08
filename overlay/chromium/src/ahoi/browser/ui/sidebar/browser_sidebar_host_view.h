@@ -44,6 +44,7 @@
 #include "base/timer/timer.h"
 #include "base/uuid.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+#include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/prefs/pref_change_registrar.h"
@@ -65,6 +66,10 @@
 class Browser;
 class SessionID;
 class TabStripModel;
+
+namespace bookmarks {
+class BookmarkModel;
+}
 
 namespace favicon {
 class FaviconService;
@@ -105,6 +110,7 @@ class BrowserSidebarHostView final
       public WorkspaceServiceObserver,
       public sync::ProfileSyncService::Observer,
       public TabStripModelObserver,
+      public bookmarks::BaseBookmarkModelObserver,
       public appearance::SidebarTintTransition::Observer,
       public media_ui::MediaMiniPlayerHost,
       public views::ContextMenuController,
@@ -175,6 +181,12 @@ class BrowserSidebarHostView final
   void OnWidgetActivationChanged(views::Widget* widget, bool active) override;
 
   void OnSessionPresentationChanged();
+
+  // One model observer per host invalidates row presentation; URL membership
+  // is queried through BookmarkModel's index, never by scanning during paint.
+  void BookmarkModelChanged() override;
+  void BookmarkModelBeingDeleted() override;
+  bool IsUrlBookmarked(const GURL& url) const;
 
   void OnAppearanceChanged(const appearance::GlassPolicy& policy);
   void RefreshPageTint(bool allow_animation = true);
@@ -470,6 +482,8 @@ class BrowserSidebarHostView final
 
   bool IsSavedPageSleeping(const base::Uuid& node_id) const override;
 
+  bool IsSavedPageBookmarked(const tab_tree::TreeNode& node) const override;
+
   std::vector<gfx::ImageSkia> GetSavedPageDragThumbnails(
       const base::Uuid& node_id) const override;
 
@@ -677,6 +691,10 @@ class BrowserSidebarHostView final
       appearance_signal_source_;
   raw_ptr<favicon::FaviconService> favicon_service_ = nullptr;
   raw_ptr<history::HistoryService> history_service_ = nullptr;
+  raw_ptr<bookmarks::BookmarkModel> bookmark_model_ = nullptr;
+  base::ScopedObservation<bookmarks::BookmarkModel,
+                          bookmarks::BookmarkModelObserver>
+      bookmark_observation_{this};
   std::map<GURL, ui::ImageModel> favicon_cache_;
   std::set<GURL> requested_favicon_urls_;
   base::CancelableTaskTracker favicon_task_tracker_;

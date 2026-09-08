@@ -58,6 +58,7 @@
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/ui/bookmarks/bookmark_utils.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
@@ -390,7 +391,25 @@ std::u16string BrowserSidebarHostView::GetSavedPageStatusText(
     }
     status += GetSharedTabOriginText(node.id);
   }
+  if (IsSavedPageBookmarked(node)) {
+    if (!status.empty()) {
+      status += u" — ";
+    }
+    status +=
+        l10n_util::GetStringUTF16(IDS_NTP_MODULES_HISTORY_CLUSTERS_BOOKMARKED);
+  }
   return status;
+}
+
+bool BrowserSidebarHostView::IsSavedPageBookmarked(
+    const tab_tree::TreeNode& node) const {
+  if (node.type != tab_tree::TreeNodeType::kSavedPage) {
+    return false;
+  }
+  tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id);
+  content::WebContents* contents = tab ? tab->GetContents() : nullptr;
+  return IsUrlBookmarked(contents ? chrome::GetURLToBookmark(contents)
+                                  : node.url);
 }
 
 void BrowserSidebarHostView::RefreshThumbnailCache() {
@@ -534,6 +553,16 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
       }
       status += GetSharedTabOriginText(*shared_id);
     }
+    const bool bookmarked =
+        tab->GetContents() &&
+        IsUrlBookmarked(chrome::GetURLToBookmark(tab->GetContents()));
+    if (bookmarked) {
+      if (!status.empty()) {
+        status += u" — ";
+      }
+      status += l10n_util::GetStringUTF16(
+          IDS_NTP_MODULES_HISTORY_CLUSTERS_BOOKMARKED);
+    }
     return CreateOpenTabRowView(
         tab, saved_node_id, GetLiveTabFavicon(tab), GetMediaAlertForTab(tab),
         std::move(status), tab == tab_strip_model_->GetActiveTab(),
@@ -581,7 +610,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                                                     target, position);
             },
             weak_ptr_factory_.GetWeakPtr()),
-        this, std::move(origin_badge));
+        this, std::move(origin_badge), bookmarked);
   };
 
   // Rebuild temporary and mixed split rows directly from Chromium's

@@ -55,6 +55,7 @@
 #include "cc/paint/paint_flags.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/app/vector_icons/vector_icons.h"
+#include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
@@ -69,6 +70,7 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/bookmarks/browser/bookmark_model.h"
 #include "components/favicon/content/content_favicon_driver.h"
 #include "components/favicon/core/favicon_service.h"
 #include "components/favicon_base/favicon_types.h"
@@ -132,6 +134,14 @@
 namespace ahoi::sidebar {
 void BrowserSidebarHostView::AddedToWidget() {
   views::View::AddedToWidget();
+  if (!bookmark_observation_.IsObserving()) {
+    bookmark_model_ =
+        BookmarkModelFactory::GetForBrowserContext(browser_->GetProfile());
+    if (bookmark_model_) {
+      bookmark_observation_.Observe(bookmark_model_);
+      BookmarkModelChanged();
+    }
+  }
   if (views::Widget* const widget = GetWidget()) {
     widget_drag_observation_.Observe(widget);
     // The semantic sidebar color becomes available with the Widget. Re-resolve
@@ -162,6 +172,8 @@ void BrowserSidebarHostView::AddedToWidget() {
 }
 
 void BrowserSidebarHostView::RemovedFromWidget() {
+  bookmark_observation_.Reset();
+  bookmark_model_ = nullptr;
   if (tab_preview_controller_) {
     tab_preview_controller_->Hide();
   }
@@ -264,6 +276,8 @@ bool BrowserSidebarHostView::RevealFolder(const base::Uuid& folder_id) {
 }
 
 BrowserSidebarHostView::~BrowserSidebarHostView() {
+  bookmark_observation_.Reset();
+  bookmark_model_ = nullptr;
   CancelWorkspaceTransition();
   SetBrowserSidebarDragRoutingActive(this, false);
   tab_preview_controller_.reset();
@@ -318,6 +332,21 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
 void BrowserSidebarHostView::OnSessionPresentationChanged() {
   SynchronizeSelection();
   ScheduleRuntimePresentationRefresh();
+}
+
+void BrowserSidebarHostView::BookmarkModelChanged() {
+  ScheduleRuntimePresentationRefresh();
+}
+
+void BrowserSidebarHostView::BookmarkModelBeingDeleted() {
+  bookmark_observation_.Reset();
+  bookmark_model_ = nullptr;
+  ScheduleRuntimePresentationRefresh();
+}
+
+bool BrowserSidebarHostView::IsUrlBookmarked(const GURL& url) const {
+  return bookmark_model_ && bookmark_model_->loaded() && url.is_valid() &&
+         !url.is_empty() && bookmark_model_->IsBookmarked(url);
 }
 
 void BrowserSidebarHostView::OnSidebarPresentationSettled() {

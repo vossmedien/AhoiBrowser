@@ -618,16 +618,27 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
   const int row_width = std::max(width(), 1);
   const ui::ColorProvider* colors = GetColorProvider();
 
+  // Keep the saved section recognizable even before a drag begins. This quiet
+  // tint identifies the destination category, not acceptance of a payload.
+  // It remains behind folder/row surfaces and never changes layout or hit
+  // tests.
+  gfx::RectF target(GetLocalBounds());
+  target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
+  cc::PaintFlags section_fill;
+  section_fill.setAntiAlias(true);
+  section_fill.setStyle(cc::PaintFlags::kFill_Style);
+  section_fill.setColor(
+      SkColorSetA(colors->GetColor(visual_style::kAccent), 18));
+  canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, section_fill);
+
   // A concrete saved-row target paints its own exact, validated zone. Painting
-  // the complete section at the same time creates two competing highlights
-  // and makes a pointer transition look like two accepted targets. The broad
-  // surface is needed only for an empty workspace, where no row can own it.
+  // a strong acceptance highlight over the complete section at the same time
+  // would create two competing targets. Only an empty workspace needs the
+  // broad accepted-target surface, because no concrete row can own that state.
   const bool empty_root_accepting =
-      rows.empty() && drop_indicator_.has_value() &&
+      visual_rows.empty() && drop_indicator_.has_value() &&
       !drop_indicator_->target_node_id.has_value();
   if (empty_root_accepting) {
-    gfx::RectF target(GetLocalBounds());
-    target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
     cc::PaintFlags fill;
     fill.setAntiAlias(true);
     fill.setStyle(cc::PaintFlags::kFill_Style);

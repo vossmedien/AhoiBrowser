@@ -141,7 +141,8 @@ void SidebarTreeRowView::Bind(size_t row_index,
                               std::u16string status_text,
                               std::vector<gfx::ImageSkia> drag_thumbnails,
                               bool running,
-                              bool sleeping) {
+                              bool sleeping,
+                              bool bookmarked) {
   CHECK_EQ(row.node_id, node.id);
   CHECK_GT(split_segment_count, 0u);
   CHECK_LT(split_segment_index, split_segment_count);
@@ -187,6 +188,7 @@ void SidebarTreeRowView::Bind(size_t row_index,
   selected_ = selected;
   running_ = running;
   sleeping_ = sleeping;
+  bookmarked_ = bookmarked && type_ == tab_tree::TreeNodeType::kSavedPage;
   split_segment_index_ = split_segment_index;
   split_segment_count_ = split_segment_count;
   if (title_changed && !is_editing_) {
@@ -229,6 +231,7 @@ void SidebarTreeRowView::Unbind() {
   hovered_ = false;
   running_ = false;
   sleeping_ = false;
+  bookmarked_ = false;
   folder_navigation_result_ = false;
   page_icon_ = ui::ImageModel();
   media_indicator_ = ui::ImageModel();
@@ -596,6 +599,18 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
       canvas->DrawLine(
           gfx::PointF(left, page_icon.y() + 4.0f),
           gfx::PointF(page_icon.right() - 3.0f, page_icon.y() + 4.0f), line);
+    }
+    if (bookmarked_) {
+      // A passive badge stays inside the existing favicon slot. It never
+      // competes with the media/origin state or the hover-only close action.
+      const gfx::Rect badge(icon_bounds.right() - 10, icon_bounds.bottom() - 10,
+                            10, 10);
+      canvas->DrawRoundRect(gfx::RectF(badge), 2.0f,
+                            FillFlags(GetColorProvider()->GetColor(
+                                visual_style::kRaisedSurface)));
+      canvas->DrawImageInt(
+          gfx::CreateVectorIcon(vector_icons::kStarFilledIcon, 8, icon_color),
+          badge.x() + 1, badge.y() + 1);
     }
   }
 

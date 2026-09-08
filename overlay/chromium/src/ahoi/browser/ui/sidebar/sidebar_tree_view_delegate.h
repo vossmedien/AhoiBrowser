@@ -87,6 +87,11 @@ class SidebarTreeViewDelegate {
   // discarded/sleeping instance. Kept separate from `running` so a sleeping
   // tab remains a first-class saved page in the tree.
   virtual bool IsSavedPageSleeping(const base::Uuid&) const = 0;
+  // Native Chromium bookmarks are independent from a page's saved/temporary
+  // tree state. Embedders without a BookmarkModel have no such decoration.
+  virtual bool IsSavedPageBookmarked(const tab_tree::TreeNode&) const {
+    return false;
+  }
   virtual ui::ImageModel GetSavedPageIcon(const tab_tree::TreeNode&) = 0;
   virtual ui::ImageModel GetSavedPageMediaIndicator(
       const tab_tree::TreeNode&) const = 0;

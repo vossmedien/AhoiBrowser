@@ -549,7 +549,8 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
         delegate_ ? delegate_->GetSavedPageDragThumbnails(node_id)
                   : std::vector<gfx::ImageSkia>(),
         delegate_ && delegate_->IsSavedPageRunning(node_id),
-        delegate_ && delegate_->IsSavedPageSleeping(node_id));
+        delegate_ && delegate_->IsSavedPageSleeping(node_id),
+        delegate_ && delegate_->IsSavedPageBookmarked(*node));
     const bool is_drop_target = drop_indicator_.has_value() &&
                                 drop_indicator_->target_node_id == node_id;
     row->SetDropPosition(is_drop_target

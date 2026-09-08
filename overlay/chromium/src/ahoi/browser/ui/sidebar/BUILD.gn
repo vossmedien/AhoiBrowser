@@ -267,6 +267,7 @@ source_set("browser_sidebar") {
     "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
     "//ahoi/browser/ui/media:media_mini_player_ui",
     "//base",
+    "//components/bookmarks/browser",
     "//components/prefs",
     "//components/split_tabs",
     "//ui/views",

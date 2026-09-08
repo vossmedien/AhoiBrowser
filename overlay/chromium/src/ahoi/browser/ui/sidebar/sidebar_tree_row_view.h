@@ -55,7 +55,8 @@ class SidebarTreeRowView final : public views::View,
             std::u16string status_text = {},
             std::vector<gfx::ImageSkia> drag_thumbnails = {},
             bool running = false,
-            bool sleeping = false);
+            bool sleeping = false,
+            bool bookmarked = false);
   void Unbind();
   void SetSelected(bool selected);
   void SetDropPosition(
@@ -158,6 +159,7 @@ class SidebarTreeRowView final : public views::View,
   bool hovered_ = false;
   bool running_ = false;
   bool sleeping_ = false;
+  bool bookmarked_ = false;
   bool folder_navigation_result_ = false;
   bool is_editing_ = false;
   bool pressed_disclosure_ = false;
