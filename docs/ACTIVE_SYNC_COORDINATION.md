@@ -35,6 +35,14 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Next UI queue now also includes MBC's Journal candidate:** MBC explicitly
+  has no active UI reservation and asks for its bounded month/older-entry/edit
+  journey only AFTER the current BetterConvo223 phase and Mobile20. Native
+  candidate debug-dylib6b611f3f, own device8998792A. No MBC START was issued.
+  BetterConvo's223 return is still distinct from the already-consumed222 returns;
+  Root has requested its current actual endpoint once, since the last public
+  messages describe source work after the16:10 UI observation. No running test
+  is interrupted and no active reservation is inferred from process absence.
 - **Unsigned iOS Development22 now built and actual tuple read back:** 9658f94
   corrects the21 preflight failure below;48197 completed EXIT0. Root read the
   archived app's actual Info.plist as well as its candidate receipt: all seven
