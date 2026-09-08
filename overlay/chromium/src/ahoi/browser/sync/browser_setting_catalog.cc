@@ -15,6 +15,7 @@ using Type = base::Value::Type;
 // the native adapter's responsibility on each platform before
 // observation/apply.
 constexpr BrowserSettingDescriptor kCatalog[] = {
+    {kBrowserSearchEngineSettingId, "navigation", Type::STRING, false},
     // ahoi/browser/ui/appearance/appearance_prefs.{h,cc}:
     // RegisterProfilePrefs. Preserve all five existing product IDs.
     {"ahoi.appearance.glass_enabled", "appearance", Type::BOOLEAN, false},
@@ -141,6 +142,10 @@ bool ValidateBrowserSettingValue(std::string_view id,
     return value.is_bool();
   }
   if (descriptor->value_kind == Type::STRING) {
+    if (id == kBrowserSearchEngineSettingId && value.is_string()) {
+      const auto& choice = value.GetString();
+      return choice == "duckDuckGo" || choice == "google" || choice == "bing";
+    }
     return id == "intl.charset_default" && value.is_string() &&
            IsPermittedCharset(value.GetString());
   }

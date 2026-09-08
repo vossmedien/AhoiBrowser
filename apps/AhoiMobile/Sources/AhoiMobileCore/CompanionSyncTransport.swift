@@ -6,6 +6,11 @@ import AhoiCloudKitSpike
 /// to `CloudKitSyncProvider`; production never substitutes a fake provider.
 protocol CompanionSyncTransporting: AnyObject, Sendable {
     func setBookmarkCategoryApproved(_ approved: Bool)
+    func configureBrowserSettingValidation(
+        _ validator: @escaping BrowserSettingTransportAuthorization.Validator
+    )
+    func setBrowserSettingApprovedIDs(_ ids: Set<UUID>, epoch: UInt64)
+    func isBrowserSettingApproved(_ id: UUID, epoch: UInt64) -> Bool
     func status() -> CloudKitSyncStatus
     func allRecords() async throws -> [SyncRecord]
     func records(forRecordIDs recordIDs: [UUID]) async throws -> [SyncRecord]
@@ -52,6 +57,11 @@ protocol CompanionSyncTransporting: AnyObject, Sendable {
 }
 
 extension CompanionSyncTransporting {
+    func configureBrowserSettingValidation(
+        _ validator: @escaping BrowserSettingTransportAuthorization.Validator
+    ) {}
+    func setBrowserSettingApprovedIDs(_ ids: Set<UUID>, epoch: UInt64) {}
+    func isBrowserSettingApproved(_ id: UUID, epoch: UInt64) -> Bool { false }
     func enqueue(_ record: SyncRecord) async throws {
         try await enqueue(record, authorization: .init())
     }
@@ -76,6 +86,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
     private var activePassID: UInt64?
     private var domainMergeActivityCount = 0
     private let bookmarkTransportAuthorization = BookmarkTransportAuthorization()
+    private let browserSettingTransportAuthorization = BrowserSettingTransportAuthorization()
 
     init(
         recordStore: InMemorySyncRecordStore,
@@ -93,6 +104,20 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
 
     func setBookmarkCategoryApproved(_ approved: Bool) {
         bookmarkTransportAuthorization.setApproved(approved)
+    }
+
+    func configureBrowserSettingValidation(
+        _ validator: @escaping BrowserSettingTransportAuthorization.Validator
+    ) {
+        browserSettingTransportAuthorization.configure(validator: validator)
+    }
+
+    func setBrowserSettingApprovedIDs(_ ids: Set<UUID>, epoch: UInt64) {
+        browserSettingTransportAuthorization.setApproved(ids, epoch: epoch)
+    }
+
+    func isBrowserSettingApproved(_ id: UUID, epoch: UInt64) -> Bool {
+        browserSettingTransportAuthorization.isApproved(id, epoch: epoch)
     }
 
     func allRecords() async throws -> [SyncRecord] {
@@ -120,6 +145,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
         authorization: SyncAuthorizationContext
     ) async throws {
         try bookmarkTransportAuthorization.authorize(record)
+        try browserSettingTransportAuthorization.authorize(record)
         try boundary.authorize(record, context: authorization)
         try await recordStore.upsert(record)
         lock.withLock {
@@ -148,6 +174,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
         )
         for record in allowedRecords {
             try bookmarkTransportAuthorization.authorize(record)
+            try browserSettingTransportAuthorization.authorize(record)
             try boundary.authorize(record, context: authorization)
         }
         try await recordStore.upsert(allowedRecords)
@@ -166,6 +193,7 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
         )
         for record in records {
             try bookmarkTransportAuthorization.authorize(record)
+            try browserSettingTransportAuthorization.authorize(record)
             try boundary.authorize(record, context: authorization)
         }
         try await recordStore.upsert(records)

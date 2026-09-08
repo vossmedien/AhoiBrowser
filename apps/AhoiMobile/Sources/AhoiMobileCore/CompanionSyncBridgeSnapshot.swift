@@ -113,7 +113,8 @@ extension CompanionSyncBridge {
             ) { try wireCodec.encode(value) }
         }
         for value in snapshot.productRecords.permittedSettings
-            where CompanionBrowserSettingCatalog.isPortable(value) {
+            where browserSettingApprovedIDs.contains(value.id) &&
+                CompanionBrowserSettingCatalog.isPortable(value) {
             try appendIfRequired(
                 id: value.id,
                 dataClass: .permittedSetting,

@@ -86,6 +86,7 @@ extension CloudKitSyncProvider {
         // A reader-capable binary must not upload/recover v3 envelopes until
         // the matching-client gate is implemented and deliberately enabled.
         try bookmarkTransportAuthorization.authorize(record)
+        try browserSettingTransportAuthorization.authorize(record)
         let allowedDeveloperAssetIDs = statusLock.withLock {
             authorizedDeveloperAssetIDs
         }
@@ -93,6 +94,32 @@ extension CloudKitSyncProvider {
             record,
             context: .init(optedInDeveloperAssetIDs: allowedDeveloperAssetIDs)
         )
+    }
+
+    func configureBrowserSettingValidation(
+        _ validator: @escaping BrowserSettingTransportAuthorization.Validator
+    ) {
+        browserSettingTransportAuthorization.configure(validator: validator)
+    }
+
+    func setBrowserSettingApprovedIDs(_ ids: Set<UUID>, epoch: UInt64) {
+        let invalidated = statusLock.withLock { isInvalidated }
+        let changed = browserSettingTransportAuthorization.setApproved(
+            invalidated ? [] : ids, epoch: epoch
+        )
+        if changed, !invalidated {
+            statusLock.withLock { transportRehydrationRequired = true }
+        }
+    }
+
+    func isBrowserSettingApproved(_ id: UUID, epoch: UInt64) -> Bool {
+        !statusLock.withLock({ isInvalidated }) &&
+            browserSettingTransportAuthorization.isApproved(id, epoch: epoch)
+    }
+
+    func isCategoryConsentDeferral(_ error: any Error) -> Bool {
+        error as? BookmarkTransportAuthorizationError == .categoryNotApproved ||
+            error as? BrowserSettingTransportAuthorizationError == .categoryNotApproved
     }
 
     func setBookmarkCategoryApproved(_ approved: Bool) {
@@ -142,7 +169,7 @@ extension CloudKitSyncProvider {
                 try authorizeOutboundRecord(record)
                 _ = try codec.encode(record, zoneID: zoneID)
             } catch {
-                if error as? BookmarkTransportAuthorizationError == .categoryNotApproved {
+                if isCategoryConsentDeferral(error) {
                     continue
                 }
                 if developerAssetAuthorizationIsPending(for: record, error: error) {

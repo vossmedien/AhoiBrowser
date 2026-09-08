@@ -151,6 +151,7 @@ extension CloudKitSyncProvider {
         }
         var saves: [CKSyncEngine.PendingRecordZoneChange] = []
         var permanentlyRemoved: [CKSyncEngine.PendingRecordZoneChange] = []
+        var settingLeases: [UUID: BrowserSettingTransportAuthorization.Lease] = [:]
         for change in pending {
             guard case let .saveRecord(cloudID) = change else { continue }
             guard let recordID = UUID(uuidString: cloudID.recordName) else {
@@ -182,9 +183,12 @@ extension CloudKitSyncProvider {
             }
             do {
                 try authorizeOutboundRecord(local)
+                if let lease = try browserSettingTransportAuthorization.capture(local) {
+                    settingLeases[recordID] = lease
+                }
                 _ = try codec.encode(local, zoneID: zoneID)
             } catch {
-                if error as? BookmarkTransportAuthorizationError == .categoryNotApproved {
+                if isCategoryConsentDeferral(error) {
                     // Drop only the pending send intent, never its local data or
                     // quarantine history. Explicit opt-in rehydrates it later.
                     permanentlyRemoved.append(change)
@@ -252,7 +256,8 @@ extension CloudKitSyncProvider {
         }
 
         guard !saves.isEmpty else { return nil }
-        return await .init(pendingChanges: saves) { [weak self, recordStore, codec, zoneID] cloudID in
+        return await .init(pendingChanges: saves) {
+            [weak self, recordStore, codec, zoneID, settingLeases] cloudID in
             guard let self, self.beginActivity(for: syncEngine) else { return nil }
             defer { self.endActivity() }
             guard self.canProvideRecordBatch(for: passID, syncEngine: syncEngine) else {
@@ -276,6 +281,10 @@ extension CloudKitSyncProvider {
                 return nil
             }
             do {
+                if local.dataClass == .permittedSetting {
+                    guard let lease = settingLeases[rawID] else { return nil }
+                    try lease.validate()
+                }
                 try self.authorizeOutboundRecord(local)
             } catch {
                 return nil
@@ -285,13 +294,23 @@ extension CloudKitSyncProvider {
                     for: rawID,
                     expectedCloudID: cloudID
                 )
+                guard self.canProvideRecordBatch(for: passID, syncEngine: syncEngine) else {
+                    return nil
+                }
+                if local.dataClass == .permittedSetting {
+                    guard let lease = settingLeases[rawID] else { return nil }
+                    try lease.validate()
+                }
+                try self.authorizeOutboundRecord(local)
                 return try codec.encode(
                     local,
                     zoneID: zoneID,
                     baseRecord: baseRecord
                 )
             } catch {
-                self.markStatePersistenceFailure()
+                if !self.isCategoryConsentDeferral(error) {
+                    self.markStatePersistenceFailure()
+                }
                 return nil
             }
         }

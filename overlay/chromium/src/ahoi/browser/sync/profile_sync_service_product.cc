@@ -5,6 +5,7 @@
 #include <set>
 #include <utility>
 
+#include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
@@ -151,8 +152,7 @@ std::vector<std::string> ProfileSyncService::permitted_setting_ids() const {
   }
   for (const base::Value& value :
        profile_->GetPrefs()->GetList(kPermittedSettingIdsPref)) {
-    if (value.is_string() &&
-        IsSupportedProductSetting(*profile_->GetPrefs(), value.GetString())) {
+    if (value.is_string() && SupportsBrowserSetting(value.GetString())) {
       result.push_back(value.GetString());
     }
   }
@@ -163,8 +163,7 @@ std::vector<std::string> ProfileSyncService::permitted_setting_ids() const {
 
 bool ProfileSyncService::SetPermittedSettingSyncEnabled(std::string setting_id,
                                                         bool enabled) {
-  if (!profile_ || shutting_down_ ||
-      !IsSupportedProductSetting(*profile_->GetPrefs(), setting_id)) {
+  if (!profile_ || shutting_down_ || !SupportsBrowserSetting(setting_id)) {
     return false;
   }
   SetListMembership(profile_->GetPrefs(), kPermittedSettingIdsPref, setting_id,
@@ -180,7 +179,7 @@ std::vector<std::string> ProfileSyncService::supported_setting_ids() const {
     return result;
   }
   for (std::string_view id : GetPermittedProductSettingIds()) {
-    if (IsSupportedProductSetting(*profile_->GetPrefs(), id)) {
+    if (SupportsBrowserSetting(id)) {
       result.emplace_back(id);
     }
   }
@@ -263,6 +262,7 @@ void ProfileSyncService::InitializeProductSync() {
 }
 
 void ProfileSyncService::ShutdownProductSync() {
+  native_search_engine_setting_.reset();
   if (extension_registry_) {
     extension_registry_->RemoveObserver(this);
     extension_registry_ = nullptr;

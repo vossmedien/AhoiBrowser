@@ -19,6 +19,7 @@ public final class CompanionAppModel: ObservableObject {
     @Published public private(set) var historyRetentionDays: Int
     @Published public internal(set) var isSyncConfigured: Bool
     @Published public internal(set) var isBookmarkSyncEnabled: Bool
+    @Published public internal(set) var isBrowserSettingsSyncEnabled: Bool
     @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
 
@@ -51,6 +52,9 @@ public final class CompanionAppModel: ObservableObject {
     var mobileSharedIntentTokens: [UUID: UUID] = [:]
     var mobileSharedCaptureTask: Task<Void, Never>?
     var mobileSharedCaptureRequested = false
+    var browserSettingsApprovalEpoch: UInt64 = 0
+    var browserSearchMutationTask: Task<Void, Never>?
+    var browserSearchMutationToken: UUID?
     var remoteCommandExpiryTask: Task<Void, Never>?
     var remoteCommandExpiryGeneration: UInt64 = 0
     let remoteCommandClock: CompanionRemoteCommandClock
@@ -88,6 +92,7 @@ public final class CompanionAppModel: ObservableObject {
         self.remoteCommandSleeper = remoteCommandSleeper
         self.isSyncConfigured = syncProvider != nil && syncBridge != nil
         self.isBookmarkSyncEnabled = defaults.bool(forKey: Self.bookmarkSyncApprovalKey)
+        self.isBrowserSettingsSyncEnabled = defaults.bool(forKey: Self.browserSettingsApprovalKey)
         self.desiredSyncEnabled = syncProvider != nil && syncBridge != nil
         self.keyLifecycleStatus = syncProvider != nil && syncBridge != nil
             ? .ready(keyVersion: 1)
@@ -118,6 +123,7 @@ public final class CompanionAppModel: ObservableObject {
         do {
             try await repository.load()
             snapshot = try await repository.currentSnapshot()
+            applySharedBrowserSettings()
             searchResults = try await repository.search("")
             loadError = nil
             syncStatus = syncProvider?.status()
@@ -395,6 +401,9 @@ public final class CompanionAppModel: ObservableObject {
         let generation = syncGeneration
         do {
             await bridge.setBookmarkSyncEnabled(isBookmarkSyncEnabled)
+            await bridge.setBrowserSettingsSyncEnabled(
+                isBrowserSettingsSyncEnabled, epoch: browserSettingsApprovalEpoch
+            )
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else { return }
             if !providerPrepared {
                 try await syncProvider.prepare()
@@ -426,6 +435,7 @@ public final class CompanionAppModel: ObservableObject {
                 return
             }
             snapshot = try await repository.currentSnapshot()
+            applySharedBrowserSettings()
             searchResults = try await repository.search("")
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
@@ -552,6 +562,17 @@ public final class CompanionAppModel: ObservableObject {
 
     public func confirmAccountTransition(allowLocalUpload: Bool) async {
         guard let syncProvider else { return }
+        let generation = syncGeneration
+        if !allowLocalUpload {
+            browserSettingsApprovalEpoch &+= 1
+            isBrowserSettingsSyncEnabled = false
+            defaults.set(false, forKey: Self.browserSettingsApprovalKey)
+            syncProvider.setBrowserSettingApprovedIDs([], epoch: browserSettingsApprovalEpoch)
+            await syncBridge?.setBrowserSettingsSyncEnabled(
+                false, epoch: browserSettingsApprovalEpoch
+            )
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else { return }
+        }
         do {
             try await syncProvider.confirmAccountTransition(
                 allowLocalUpload: allowLocalUpload
@@ -632,6 +653,7 @@ public final class CompanionAppModel: ObservableObject {
 
     func refreshLocalState() async throws {
         snapshot = try await repository.currentSnapshot()
+        applySharedBrowserSettings()
         searchResults = try await repository.search("")
         loadError = nil
     }

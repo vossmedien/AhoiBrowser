@@ -7,8 +7,10 @@
 #include <string>
 #include <utility>
 
+#include "ahoi/browser/sync/browser_setting_catalog.h"
 #include "ahoi/browser/sync/history_sync_filter.h"
 #include "ahoi/browser/sync/native_bookmark_sync_adapter.h"
+#include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/sync_policy.h"
@@ -107,6 +109,7 @@ void ProfileSyncService::StartBackend() {
   extension_inventory_seeded_ = false;
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
+  InitializeNativeSearchEngineSetting();
   UpdateBrowserSettingConsent();
   if (profile_->GetPrefs()->GetString(kDeviceIdPref) !=
       local_device_id_.AsLowercaseString()) {
@@ -145,6 +148,8 @@ void ProfileSyncService::StartBackend() {
 
 void ProfileSyncService::StopBackend() {
   RevokeProfileAuthorization();
+  native_search_engine_setting_.reset();
+  observed_user_settings_.erase(kBrowserSearchEngineSettingId);
   browser_setting_consent_->SetAllowed({});
   ResetBrowserSettingsWork();
   StopSharedTabs();

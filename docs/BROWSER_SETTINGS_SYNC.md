@@ -11,11 +11,13 @@ The positive catalogue is `sync/browser_setting_catalog.{h,cc}` below
 `overlay/chromium/src/ahoi/browser/`. Each native profile additionally checks
 actual registration, type and Chromium's Syncable/SyncablePriority flags. The
 five existing Ahoi preferences keep their original identities and do not require
-an upstream sync flag. The 24 entries are an implemented subset, **not all of
+an upstream sync flag. The 24 real preference entries plus one native search
+choice are an implemented subset, **not all of
 chrome://settings** and not the completion boundary for ADR0010.
 
 | Group | Exact preference IDs | Value contract |
 | --- | --- | --- |
+| Search choice | `ahoi.browser.default_search_engine` | Logical TemplateURLService choice: `duckDuckGo`, `google`, `bing`; no exported URL or shadow native preference |
 | Ahoi | `ahoi.appearance.glass_enabled`, `ahoi.appearance.sidebar_page_tint_enabled`, `ahoi.navigation.floating_auto_hide_enabled`, `ahoi.navigation.floating_reveal_notch_enabled` | Boolean |
 | Ahoi timing | `ahoi.navigation.floating_auto_hide_delay_ms` | Integer 100–10000 ms |
 | Navigation | `homepage_is_newtabpage`, `browser.show_home_button`, `browser.show_forward_button`, `browser.pin_split_tab_button`, `browser.split_view_drag_and_drop_enabled` | Boolean |
@@ -38,7 +40,7 @@ preserves `IsUserModifiable` at application.
 Excluded here: URLs and paths; arbitrary strings, dictionaries and site lists;
 site grants, account/Google Sync/autofill/payment data; OS voice/font identifiers;
 deprecated reading enum values. The coupled HTTPS-first preference pair is not
-partially restored as independent toggles. Language lists, search-engine setup,
+partially restored as independent toggles. Language lists, custom search engines,
 other transferable settings and appropriate atomic groups need further native
 mapping, not a claim that this first catalogue exhausts meaningful settings.
 
@@ -99,12 +101,33 @@ upstream observer/action architecture is needed for that case. A truly absent
 value without a native mutation remains absence, not an inferred fresh reset.
 Unsupported/coupled settings and actual reset runtime proof remain open.
 
-Swift currently recognizes/preserves metadata, gates new outgoing/seeded/merged
-values through the same positive contract and keeps unknown data local. It does
-not yet apply these desktop-specific preferences to iOS or grant per-setting
-Mobile approval; real supported iOS mappings and the provider/cache consent
-path remain follow-up work. Extension desired install/enable state, reviewed
-extension settings, and workspace action pins remain separate required packets.
+The native search adapter observes TemplateURLService and its existing user
+selection record. It exports only unchanged code-owned built-in definitions,
+does not replace custom/missing/ambiguous entries and uses the native fallback
+reset path. It loads only when Sync is enabled; first load is observation, not
+reset intent. Its posted self-apply callback compares the updated observation,
+not a short-lived apply Boolean. No Google Sync processor is taken over.
+
+Swift now binds that logical choice to the existing native search picker and
+AppStorage. Its local domain commits before the native preference changes;
+subsequent local projection/restart never creates a new remote authoring clock.
+Record value clocks preserve actual local authorship and unchanged fields.
+Only future explicit searches use the chosen engine; existing tabs do not load,
+refocus or switch account. Reset means each platform's native default, not an
+implicit forced provider. Other known desktop settings remain metadata on iOS.
+
+A compact explicit Mobile browser-settings toggle controls the known IDs. Its
+monotonic intent epoch reaches the provider synchronously before actor hops.
+Ciphertext validation and original consent leases cover direct enqueue, seed,
+domain-result staging, rehydration and the final delayed CKRecord callback,
+including a recheck after system-field lookup. Unapproved records are retained,
+not quarantined as invalid. Refusing local upload on account transition revokes
+this category without deleting native preferences or domain records. Provider
+and account cancellation/drain boundaries remain in force.
+
+These are new SOURCE paths, still requiring a runnable candidate and real
+acceptance. Extension desired install/enable state, reviewed extension settings,
+broader appropriate settings and workspace action pins remain required packets.
 
 Next acceptance: coherent product build, then a short visible configured MacA
 to fresh linked MacB settings/default-reset journey, including already-open B

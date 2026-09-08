@@ -11,10 +11,15 @@
 
 namespace ahoi::sync {
 
+// Logical choice backed by TemplateURLService, not a shadow preference.
+inline constexpr char kBrowserSearchEngineSettingId[] =
+    "ahoi.browser.default_search_engine";
+
 // Positive, value-specific subset of portable user settings. Membership is not
 // consent, a policy override, or a claim to cover every chrome://settings page.
-// `category` is a local grouping key; `value_kind` is the native registered
-// type.
+// `category` is a local grouping key; `value_kind` is the registered native
+// type for preferences, or the logical choice type for the TemplateURLService
+// seam.
 struct BrowserSettingDescriptor {
   std::string_view id;
   std::string_view category;

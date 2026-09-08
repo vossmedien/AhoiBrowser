@@ -3,6 +3,30 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Search-engine mapping and Mobile provider continuation — 2026-09-08
+
+The delayed 07:08 Simulator offer is already consumed and returned; the current
+checkpoint/evidence and fresh device readback still say Shutdown. No old
+Build16/17 UI steps were repeated. Native c20a759/its corrective UI work stays
+Desktop-owned. The current source continuation adds one genuine shared setting:
+TemplateURLService's supported built-in search choice on Mac and the existing
+native iOS picker, alongside the previous 24 preference entries. No peer URL,
+custom-engine overwrite, Google Sync processor or eager tab navigation.
+
+Mobile browser-settings consent now reaches the actual provider/cache/direct
+enqueue/seed/domain-result/final CKRecord callback; original per-ID leases and
+monotonic UI intent epochs prevent off/on revival. Native user choice commits
+in the local repository before AppStorage projection, with unchanged field
+clocks retained. Existing settings UI is split into a small browser section to
+stay under800 lines, with German/English labels. No new wire field or version.
+Details and remaining wider scope are in BROWSER_SETTINGS_SYNC.md.
+
+No test suite or runtime is claimed for this source. Next is the existing own
+Mobile clean snapshot, product-only DebugLocal18 under a fresh total-capacity
+check, then a NEW coordinated Simulator window for the changed search/settings
+journey. The old returned UI slot is not reopened. Desktop retains Chromium
+checkout/out/build/install; no My-Mac, profile, key, Portal or Production action.
+
 ## Browser settings packet — 2026-09-08
 
 Committed/pushed source: `41de599f94f92688e7c0fca5f947402972f83b49`, 37 scoped

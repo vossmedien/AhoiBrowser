@@ -4,12 +4,13 @@
 #include <algorithm>
 #include <utility>
 
+#include "ahoi/browser/sync/browser_setting_catalog.h"
+#include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/sync/sync_product_settings.h"
 #include "ahoi/browser/sync/sync_serialization.h"
-#include "base/auto_reset.h"
 #include "base/functional/bind.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/prefs/pref_service.h"
@@ -44,6 +45,7 @@ std::optional<PermittedSettingRecord> ReadIntent(std::string_view id,
 
 void ProfileSyncService::InitializeBrowserSettings() {
   PrefService* prefs = profile_->GetPrefs();
+  InitializeNativeSearchEngineSetting();
   // Restore the HLC from persisted intents before observing another local edit.
   // A retry always reuses the exact payload/clock, never "now" at reconnect.
   for (const auto [id, value] : prefs->GetDict(kBrowserSettingIntentsPref)) {
@@ -96,7 +98,7 @@ void ProfileSyncService::UpdateBrowserSettingConsent() {
   std::set<base::Uuid> allowed;
   if (profile_ && sync_enabled_ && !shutting_down_) {
     for (const auto& id : permitted_setting_ids()) {
-      if (IsSupportedProductSetting(*profile_->GetPrefs(), id)) {
+      if (SupportsBrowserSetting(id)) {
         allowed.insert(BrowserSettingRecordId(id));
       }
     }
@@ -148,7 +150,7 @@ void ProfileSyncService::OnBrowserSettingsRead(
   const auto pending = prefs->GetDict(kBrowserSettingIntentsPref).Clone();
   if (browser_setting_inflight_.empty()) {
     for (const auto [id, value] : pending) {
-      if (!Enabled(*prefs, id) || !IsSupportedProductSetting(*prefs, id) ||
+      if (!Enabled(*prefs, id) || !SupportsBrowserSetting(id) ||
           !value.is_string()) {
         continue;
       }
@@ -179,7 +181,10 @@ void ProfileSyncService::OnBrowserSettingsRead(
   {
     // This guard spans only synchronous PrefService application. A native
     // observer still updates its USER-value observation, but cannot echo it.
-    base::AutoReset<bool> applying(&applying_product_state_, true);
+    // Native service observers may shut down the profile. Do not leave an
+    // AutoReset pointing into a possibly destroyed KeyedService across Apply.
+    const bool was_applying = std::exchange(applying_product_state_, true);
+    const auto lifetime = weak_ptr_factory_.GetWeakPtr();
     for (const auto& record : projection->records) {
       if (!projection->authorization.Run()) {
         break;
@@ -189,15 +194,24 @@ void ProfileSyncService::OnBrowserSettingsRead(
           pending.contains(record.setting_id)) {
         continue;
       }
-      if (ApplyPermittedProductSetting(prefs, record.setting_id,
-                                       record.value_json)) {
-        if (auto actual = EncodePermittedProductSetting(
-                *prefs, record.setting_id, true)) {
+      const bool applied =
+          ApplyBrowserSetting(record.setting_id, record.value_json);
+      if (!lifetime) {
+        return;
+      }
+      if (shutting_down_ || !sync_enabled_ ||
+          generation != browser_settings_generation_) {
+        applying_product_state_ = was_applying;
+        return;
+      }
+      if (applied) {
+        if (auto actual = ReadBrowserSetting(record.setting_id, true)) {
           observed_user_settings_.insert_or_assign(record.setting_id,
                                                    std::move(*actual));
         }
       }
     }
+    applying_product_state_ = was_applying;
   }
 
   if (!permitted_settings_seeded_ && projection->initial_fetch_complete &&
@@ -245,12 +259,12 @@ void ProfileSyncService::PublishPermittedProductSetting(std::string setting_id,
                                                         bool explicit_reset) {
   if (!profile_ || shutting_down_ || !sync_enabled_ ||
       applying_product_state_ || !Enabled(*profile_->GetPrefs(), setting_id) ||
-      !profile_->GetPrefs()->IsUserModifiablePreference(setting_id)) {
+      (setting_id != kBrowserSearchEngineSettingId &&
+       !profile_->GetPrefs()->IsUserModifiablePreference(setting_id))) {
     return;
   }
   PrefService* prefs = profile_->GetPrefs();
-  auto value =
-      EncodePermittedProductSetting(*prefs, setting_id, explicit_reset);
+  auto value = ReadBrowserSetting(setting_id, explicit_reset);
   if (!value) {
     return;
   }
@@ -278,8 +292,7 @@ void ProfileSyncService::OnPermittedProductSettingChanged(
   if (!profile_ || shutting_down_) {
     return;
   }
-  auto current =
-      EncodePermittedProductSetting(*profile_->GetPrefs(), setting_id, true);
+  auto current = ReadBrowserSetting(setting_id, true);
   if (!current) {
     return;
   }

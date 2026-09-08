@@ -20,6 +20,9 @@ public actor CompanionSyncBridge {
     var commandStates: [UUID: RemoteCommandState] = [:]
     var bookmarkSyncEnabled = false
     var bookmarkHydrationRequired = false
+    var browserSettingApprovedIDs = Set<UUID>()
+    var browserSettingsApprovalEpoch: UInt64 = 0
+    var browserSettingsHydrationRequired = false
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, any Error>] = []
@@ -40,6 +43,7 @@ public actor CompanionSyncBridge {
         self.commandSigner = commandSigner
         self.commandOwnershipStore = commandOwnershipStore
         self.remoteControlConfigured = commandSigner != nil
+        provider.configureBrowserSettingValidation(Self.browserSettingValidator(codec: self.codec))
     }
 
     init(
@@ -56,6 +60,7 @@ public actor CompanionSyncBridge {
         self.commandSigner = commandSigner
         self.commandOwnershipStore = commandOwnershipStore
         self.remoteControlConfigured = commandSigner != nil
+        transport.configureBrowserSettingValidation(Self.browserSettingValidator(codec: self.codec))
     }
 
 
@@ -116,12 +121,17 @@ public actor CompanionSyncBridge {
         let fetchedRecords = try await provider.pendingFetchedRecords()
         let recoveryRecords = try await provider.pendingQuarantineRecoveryRecords()
         let hydrateBookmarks = bookmarkSyncEnabled && bookmarkHydrationRequired
+        let settingsEpoch = browserSettingsApprovalEpoch
+        let hydrateSettings = browserSettingsHydrationRequired && !browserSettingApprovedIDs.isEmpty
         let bookmarkRecords = hydrateBookmarks
             ? try await provider.allRecords().filter { $0.dataClass == .bookmark } : []
+        let settingRecords = hydrateSettings ? try await provider.allRecords().filter {
+            $0.dataClass == .permittedSetting && browserSettingApprovedIDs.contains($0.entityID)
+        } : []
         let snapshot = try await repository.currentSnapshot()
         let importContext = ImportContext(snapshot: snapshot)
         let candidates = Self.makeImportCandidates(
-            primaryRecords: recoveryRecords + bookmarkRecords,
+            primaryRecords: recoveryRecords + bookmarkRecords + settingRecords,
             fetchedRecords: fetchedRecords
         )
         let ordered = candidates.enumerated().sorted { lhs, rhs in
@@ -198,7 +208,15 @@ public actor CompanionSyncBridge {
                 } else {
                     canTransportDeveloperAsset = true
                 }
-                if shouldReenqueue && canTransportDeveloperAsset {
+                let canTransportSetting: Bool
+                if case .permittedSetting(let setting) = merged {
+                    canTransportSetting = settingsEpoch == browserSettingsApprovalEpoch &&
+                        browserSettingApprovedIDs.contains(setting.id) &&
+                        provider.isBrowserSettingApproved(setting.id, epoch: settingsEpoch)
+                } else {
+                    canTransportSetting = true
+                }
+                if shouldReenqueue && canTransportDeveloperAsset && canTransportSetting {
                     let winner = try makeRecord(for: merged)
                     localWinnerRecords[winner.recordID] = winner
                 } else {
@@ -232,7 +250,13 @@ public actor CompanionSyncBridge {
             // No consent means no payload validation. It must not clear an
             // older corruption/quarantine decision merely by acknowledging a
             // newly fetched opaque copy of that same bookmark record.
-            if candidate.record.dataClass != .bookmark || bookmarkSyncEnabled {
+            if (candidate.record.dataClass != .bookmark || bookmarkSyncEnabled) &&
+                (candidate.record.dataClass != .permittedSetting ||
+                    (settingsEpoch == browserSettingsApprovalEpoch &&
+                        browserSettingApprovedIDs.contains(candidate.record.entityID) &&
+                        provider.isBrowserSettingApproved(
+                            candidate.record.entityID, epoch: settingsEpoch
+                        ))) {
                 try await provider.resolveQuarantinedRecord(candidate.record)
             }
             if candidate.acknowledgeOnSuccess {
@@ -241,6 +265,9 @@ public actor CompanionSyncBridge {
         }
         try await provider.acknowledgeFetchedRecords(fetchedToAcknowledge)
         if hydrateBookmarks { bookmarkHydrationRequired = false }
+        if hydrateSettings, settingsEpoch == browserSettingsApprovalEpoch {
+            browserSettingsHydrationRequired = false
+        }
     }
 
     private final class ImportContext {
@@ -377,6 +404,12 @@ public actor CompanionSyncBridge {
         context: ImportContext
     ) throws -> DecodedImport {
         if record.dataClass == .bookmark && !bookmarkSyncEnabled { return .ignored }
+        if record.dataClass == .permittedSetting &&
+            (record.recordID != record.entityID ||
+                !browserSettingApprovedIDs.contains(record.entityID) ||
+                !provider.isBrowserSettingApproved(
+                    record.entityID, epoch: browserSettingsApprovalEpoch
+                )) { return .ignored }
         // One live format. Unsupported development input remains in recovery;
         // it is never normalized into a current authoritative snapshot.
         guard record.schemaVersion == SharedSyncFormat.currentVersion else {

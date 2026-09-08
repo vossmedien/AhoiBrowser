@@ -206,6 +206,7 @@ extension CompanionSyncBridge {
     }
 
     public func enqueue(_ value: CompanionPermittedSettingRecord) async throws {
+        guard browserSettingApprovedIDs.contains(value.id) else { return }
         guard CompanionBrowserSettingCatalog.isPortable(value) else {
             throw CompanionProductRecordError.invalidPermittedSetting
         }

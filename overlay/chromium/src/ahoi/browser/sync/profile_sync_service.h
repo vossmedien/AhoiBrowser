@@ -11,6 +11,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
@@ -51,6 +52,8 @@ enum class UnloadedExtensionReason;
 }  // namespace extensions
 
 namespace ahoi::sync {
+
+class NativeSearchEngineSetting;
 
 class ProfileSyncBackend;
 class ProfileSyncServiceTest;
@@ -219,6 +222,13 @@ class ProfileSyncService final : public KeyedService,
   void ApplyProductState(const SyncStateSnapshot& snapshot);
   void PublishCurrentAppearance();
   void InitializeBrowserSettings();
+  void InitializeNativeSearchEngineSetting();
+  bool SupportsBrowserSetting(std::string_view id) const;
+  std::optional<std::string> ReadBrowserSetting(
+      std::string_view id,
+      bool explicit_reset = false) const;
+  bool ApplyBrowserSetting(std::string_view id, std::string_view value_json);
+  void OnNativeSearchEngineSettingChanged();
   void ResetBrowserSettingsWork();
   void UpdateBrowserSettingConsent();
   void OnBrowserSettingsConsentChanged();
@@ -305,6 +315,7 @@ class ProfileSyncService final : public KeyedService,
   std::map<base::Uuid, SyncVersion> applied_history_versions_;
   std::map<base::Uuid, SyncVersion> applied_appearance_versions_;
   std::map<std::string, std::string> observed_user_settings_;
+  std::unique_ptr<NativeSearchEngineSetting> native_search_engine_setting_;
   std::map<std::string, std::string> browser_setting_inflight_;
   const std::shared_ptr<BrowserSettingConsent> browser_setting_consent_ =
       std::make_shared<BrowserSettingConsent>();

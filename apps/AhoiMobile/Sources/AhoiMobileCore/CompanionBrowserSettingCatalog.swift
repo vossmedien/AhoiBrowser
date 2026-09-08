@@ -5,6 +5,10 @@ import Foundation
 /// Pure metadata recognition matching Common's browser_setting_catalog.cc.
 /// Membership does not grant consent, apply an iOS preference, or authorize upload.
 public enum CompanionBrowserSettingCatalog {
+    public static let searchEngineSettingID = "ahoi.browser.default_search_engine"
+    public static var recordIDs: Set<UUID> {
+        Set(rules.keys.map { recordID(for: $0) })
+    }
     private enum Rule: Sendable {
         case boolean
         case autoHideDelay
@@ -13,11 +17,13 @@ public enum CompanionBrowserSettingCatalog {
         case readingColor
         case readingSpacing
         case networkPrediction
+        case searchEngine
     }
 
-    // Keep this positive set and its bounds equal to the 24 C++ descriptors.
+    // Keep this positive set and its bounds equal to the C++ descriptors.
     // No generic strings, paths, URLs, dictionaries, account or permission data.
     private static let rules: [String: Rule] = [
+        searchEngineSettingID: .searchEngine,
         "ahoi.appearance.glass_enabled": .boolean,
         "ahoi.appearance.sidebar_page_tint_enabled": .boolean,
         "ahoi.navigation.floating_auto_hide_enabled": .boolean,
@@ -79,6 +85,10 @@ public enum CompanionBrowserSettingCatalog {
             guard let charset = value as? String else { return false }
             return charset == "UTF-8" || charset == "windows-1252"
         }
+        if case .searchEngine = rule {
+            guard let engine = value as? String else { return false }
+            return MobileSearchEngine(rawValue: engine) != nil
+        }
         guard let number = value as? NSNumber,
               CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }
         let numeric = number.doubleValue
@@ -96,7 +106,7 @@ public enum CompanionBrowserSettingCatalog {
             return integer.map { [0, 1, 2, 3, 4, 5, 7, 8].contains($0) } ?? false
         case .readingSpacing:
             return integer.map { [1, 2, 3].contains($0) } ?? false
-        case .boolean, .charset:
+        case .boolean, .charset, .searchEngine:
             return false
         }
     }

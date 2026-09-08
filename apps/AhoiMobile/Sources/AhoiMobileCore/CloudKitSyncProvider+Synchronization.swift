@@ -192,8 +192,10 @@ extension CloudKitSyncProvider {
         guard beginActivity() else { throw CloudKitSyncProviderError.unavailable }
         defer { endActivity() }
         try bookmarkTransportAuthorization.authorize(record)
+        let settingLease = try browserSettingTransportAuthorization.capture(record)
         try boundary.authorize(record, context: authorization)
         try await recordStore.upsert(record)
+        try settingLease?.validate()
         if record.dataClass == .developerAsset {
             statusLock.withLock {
                 developerAssetAuthorizationMutationEpoch &+= 1
@@ -243,8 +245,12 @@ extension CloudKitSyncProvider {
         let authorization = SyncAuthorizationContext(
             optedInDeveloperAssetIDs: effectiveAuthorizedIDs
         )
+        var settingLeases: [BrowserSettingTransportAuthorization.Lease] = []
         for record in effectiveRecords {
             try bookmarkTransportAuthorization.authorize(record)
+            if let lease = try browserSettingTransportAuthorization.capture(record) {
+                settingLeases.append(lease)
+            }
             try boundary.authorize(record, context: authorization)
         }
         let engine = try activeEngine()
@@ -263,6 +269,7 @@ extension CloudKitSyncProvider {
             _ = try codec.encode(record, zoneID: zoneID)
         }
         try await recordStore.upsert(effectiveRecords)
+        for lease in settingLeases { try lease.validate() }
         statusLock.withLock {
             let knownBeforeScan = self.authorizedDeveloperAssetIDs.filter { recordID in
                 (developerAssetAuthorizationLastMutation[recordID] ?? 0) <=
@@ -307,12 +314,17 @@ extension CloudKitSyncProvider {
         let authorization = SyncAuthorizationContext(
             optedInDeveloperAssetIDs: authorizedDeveloperAssetIDs
         )
+        var settingLeases: [BrowserSettingTransportAuthorization.Lease] = []
         for record in records {
             try bookmarkTransportAuthorization.authorize(record)
+            if let lease = try browserSettingTransportAuthorization.capture(record) {
+                settingLeases.append(lease)
+            }
             try boundary.authorize(record, context: authorization)
         }
         let syncEngine = try activeEngine()
         try await recordStore.upsert(records)
+        for lease in settingLeases { try lease.validate() }
         statusLock.withLock {
             if !authorizedDeveloperAssetIDs.isEmpty || !revokedDeveloperAssetIDs.isEmpty {
                 developerAssetAuthorizationMutationEpoch &+= 1
