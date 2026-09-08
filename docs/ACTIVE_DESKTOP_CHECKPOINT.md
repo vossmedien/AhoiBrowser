@@ -126,14 +126,17 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**LIVE HANDLE:** corrective overlay52816 is RUNNING on the same clean snapshot
+**LIVE HANDLE:** cached guarded app-only build7222 is RUNNING, jobs4, since
+15:13UTC; corrective overlay52816 is TERMINAL EXIT0 on the same clean snapshot
 at `a9db37849bf5a9f437283c7bff173dfced0f195e`. Prior app-only92858 is TERMINAL
 EXIT1, not a candidate. Four objects reported the SAME new delegate inline-
 virtual style error; only fix846e875 was integrated (out-of-line false default
 plus its GN source, no behavior/guard change). Native schema objects and new
 WebUI CSS/TS/GRIT actions compiled successfully before that failure. Original
 failed log stays under6b6c771; do not rerun it or ask for another source fix.
-After52816 EXIT0, run one cached guarded app-only follow-up. Fresh17:12CEST
+The exact follow-up is already started, not a pending handoff. Fresh17:13CEST
+gate78.5%idle/63%memory/no new swapouts/no compilers;38.3GiB hard-floor margin
+unchanged. Earlier17:12CEST
 gate70.2%idle/63%memory/no new swapouts/no compilers,38.3GiB above32GiB floor.
 Logs: `artifacts/build/desktop-sidebar-store-a9db378-20260908/`.
 
@@ -1127,9 +1130,9 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume corrective overlay52816 on cleana9db378; then the cached guarded
-   app-only follow-up with a fresh capacity check. Prior92858 EXIT1 is closed;
-  846e875 fixes its one inline-virtual cause. No further source/ownership wait.
+1. Resume live cached app-only7222 on cleana9db378. Overlay52816 EXIT0 and prior
+   92858 EXIT1 are closed;846e875 fixes its one inline-virtual cause. No further
+   source/ownership wait or restart. Keep the real Default launch provider-free.
    All e241 handles are terminal, not restart targets. The coherent
    fe647ee/ad91502/9323d71 Sidebar+Store+Recovery-copy package is integrated, no
    Common WIP/patch36 or further source handoff wait. e241's actual load
