@@ -3,6 +3,36 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Reviewed extension storage source handoff — 2026-09-08
+
+Common+Swift packet2b19ca64b7f4fc0f350021ea97e721b23a6eb0ee is committed/pushed,
+40 owned files with DCO. Native handoff01a08124-d826-7443-919c-3157780a72c8 and
+coordinator01a08124-d8a9-7483-bcbf-b63e30a2af85. The exact finite catalogue,
+callable Service/Bridge/StorageFrontend contract and remaining acceptance are in
+[EXTENSION_SETTINGS_SYNC.md](EXTENSION_SETTINGS_SYNC.md).
+
+Vimium2.4.2's four reviewed Boolean sync keys/reset use the existing format3
+PermittedSetting carrier. Separate default-off category, original per-key
+authority, asynchronous Native commit/readback, atomically absence-checked
+first-fetch seeding and non-echoing read-only iOS metadata are implemented in
+Common/Swift. Only one encrypted cache scan is used per hydration pass, not one
+scan per category. No arbitrary values/URLs/local storage or new engine/schema.
+Native Session/StorageFrontend implementation remains Desktop-owned and open.
+
+The canonical fixture now contains30 examples / unchanged13 carrier classes,
+SHA18d3a0e5140359ecc6a768681029ec01b09cf4508e11c61552f050795ac7934d. Existing
+C++/Swift consumers bind the same resource. Only pinned formatting/GN, JSON,
+project generation/plist syntax, whitespace and changed-module line limits
+were checked; no compiler, test-suite, app, key/Portal or cloud mutation.
+The 40-file packet is not retroactively in Build19 or Desktop's frozen build.
+
+Next unaffected work: prepare the existing Shared-Key/fresh-zone connection for
+Desktop's already established Development-signed candidate. Signing tooling,
+native profiles/runtime and shared Chromium out remain Desktop-owned. Build19
+keeps its existing separate short visible UI request; no old slot is reopened.
+Global/project AGENTS were explicitly reread, including total capacity and
+event-driven waiting without unchanged ACK/polling loops.
+
 ## Integrated Mobile Build19 ready — 2026-09-08
 
 The regular product-only build38455 on clean6b0121f76b5ba7b8bd2e32cbf5689b915db81e77
