@@ -35,6 +35,13 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Build19 future UI request queued, not START:** consume a fresh resource
+  handoff after ongoing MBC and the already-waiting BetterConvo control run.
+  Coordinator contacted those current owners once and registered Ahoi's short
+  icon/host-label/metadata view afterward. Do not interrupt their work, reopen
+  Ahoi18's expired window, rebuild the ready candidate or replay its unchanged
+  function matrix. Desktop Arc/Toolbar work is not held by this future request.
+  Resume coordination on the actual handback; no unchanged polling turns.
 - **Mobile Build19 is built, not visually accepted:** coordinator consumed the
   completion evidence after event-driven waiting rather than polling the same
   processes. `artifacts/build/mobile-setup-6b0121f-20260908/build.log` ends BUILD
