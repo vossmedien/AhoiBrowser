@@ -29,6 +29,23 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Bounded Simulator window CLOSED, 2026-09-08:** at 08:20:24 UTC Mobile
+  explicitly stopped further UI actions and confirmed shutdown of its own
+  test device. Coordinator independently read F8253C50… as Shutdown, with
+  BetterConvo and MindBodyCompass still Booted. On that explicit cessation plus
+  cleanup evidence, the coordinator ends the reserved window; Desktop's retained
+  native UI ownership is no longer held source-only by this test. No extra ACK
+  or repeat user approval is required. This does not grant a My-Mac host, new
+  build/install or control of another project's Simulator.
+  The last UI call at 08:16:40 unexpectedly returned the MindBodyCompass window;
+  its two click effects are not proven and are excluded from Ahoi acceptance.
+  The affected owner was resolved by PID+CWD and notified in
+  `01a0801c-096b-7062-8ac3-0d158d8e1c68`. No foreign process/data was changed by
+  the coordinator. Future Simulator UI needs actual window isolation or specific
+  coordination with concurrent Simulator projects; a new device alone did not
+  isolate the shared native control surface. Mobile's 08:18 saved after-restart
+  record matches the three original IDs and saved selection. Preserve these
+  bounded Save/restore proofs; Unsave and real cross-device Sync stay open.
 - **Build17 Save + restart evidence, 2026-09-08 08:13 UTC:** coordinator viewed
   the owner's `navigation.png` / `saved-tab.png` in
   `artifacts/e2e/mobile-shared-intents-7b706a7-20260908/` and compared the
