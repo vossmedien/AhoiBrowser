@@ -8,6 +8,8 @@
 #include <string>
 
 #include "ahoi/browser/importer/arc/arc_import_backup.h"
+#include "ahoi/browser/importer/arc/arc_import_manual_recovery_plan.h"
+#include "ahoi/browser/importer/arc/arc_import_tree_fingerprint.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/files/file_util.h"
@@ -137,6 +139,82 @@ TEST_F(ArcImportRecoveryTest, RejectsOverPermissiveManifest) {
                                    backup.manifest_sha256, SnapshotHash());
 
   EXPECT_EQ(ArcImportStatus::kBackupError, recovery.status);
+}
+
+TEST_F(ArcImportRecoveryTest,
+       ManualPlanPreservesBaselineEditsAndIndependentTemporaryPages) {
+  tab_tree::TabTreeSnapshot before = expected_tree_;
+  tab_tree::TreeNode baseline_page;
+  baseline_page.id =
+      base::Uuid::ParseLowercase("20000000-0000-4000-8000-000000000001");
+  baseline_page.workspace_id = before.workspaces.front().id;
+  baseline_page.type = tab_tree::TreeNodeType::kSavedPage;
+  baseline_page.title = u"Before";
+  baseline_page.url = GURL("https://example.test/before");
+  baseline_page.sort_key = "a";
+  baseline_page.created_at = base::Time::Now();
+  baseline_page.modified_at = baseline_page.created_at;
+  before.nodes.push_back(baseline_page);
+
+  tab_tree::Workspace imported_workspace = before.workspaces.front();
+  imported_workspace.id =
+      base::Uuid::ParseLowercase("50000000-0000-4000-8000-000000000001");
+  imported_workspace.name = u"Imported";
+  imported_workspace.sort_key = "b";
+  tab_tree::TreeNode imported_page = baseline_page;
+  imported_page.id =
+      base::Uuid::ParseLowercase("40000000-0000-4000-8000-000000000001");
+  imported_page.workspace_id = imported_workspace.id;
+  imported_page.url = GURL("https://example.test/imported");
+  tab_tree::TabTreeSnapshot expected = before;
+  expected.workspaces.push_back(imported_workspace);
+  expected.nodes.push_back(imported_page);
+
+  ArcImportPreparedState prepared;
+  prepared.phase = ArcImportPreparedPhase::kManualRecoveryRequired;
+  prepared.affected_ids = {imported_workspace.id.AsLowercaseString(),
+                           imported_page.id.AsLowercaseString()};
+  prepared.previous_tree_sha256 = ComputeArcImportTreeFingerprint(before);
+  prepared.expected_tree_sha256 = ComputeArcImportTreeFingerprint(expected);
+
+  tab_tree::TabTreeSnapshot current = expected;
+  current.nodes.front().title = u"Later local navigation";
+  current.nodes.front().url = GURL("https://example.test/after");
+  current.nodes.front().modified_at += base::Seconds(1);
+  tab_tree::TreeNode temporary = baseline_page;
+  temporary.id =
+      base::Uuid::ParseLowercase("30000000-0000-4000-8000-000000000001");
+  temporary.is_temporary = true;
+  temporary.target_kind = sync::SharedTabTargetKind::kWeb;
+  current.nodes.push_back(temporary);
+
+  const auto plan = BuildArcImportManualRecoveryPlan(prepared, before, current);
+  ASSERT_TRUE(plan);
+  tab_tree::TabTreeSnapshot preserved = before;
+  preserved.nodes.front() = current.nodes.front();
+  preserved.nodes.push_back(temporary);
+  EXPECT_EQ(preserved, plan->recovery_tree);
+  EXPECT_EQ(std::vector<base::Uuid>({imported_workspace.id}),
+            plan->removed_workspaces);
+  // A crash after the durable tree write but before journal completion can
+  // retry without discarding the same preserved local values or temporary tab.
+  const auto retry =
+      BuildArcImportManualRecoveryPlan(prepared, before, plan->recovery_tree);
+  ASSERT_TRUE(retry);
+  EXPECT_EQ(preserved, retry->recovery_tree);
+
+  auto changed_import = current;
+  changed_import.nodes[1].title = u"Edited after import";
+  EXPECT_FALSE(
+      BuildArcImportManualRecoveryPlan(prepared, before, changed_import));
+  auto new_saved_page = current;
+  new_saved_page.nodes.back().is_temporary = false;
+  EXPECT_FALSE(
+      BuildArcImportManualRecoveryPlan(prepared, before, new_saved_page));
+  auto dependent_temporary = current;
+  dependent_temporary.nodes.back().workspace_id = imported_workspace.id;
+  EXPECT_FALSE(
+      BuildArcImportManualRecoveryPlan(prepared, before, dependent_temporary));
 }
 
 }  // namespace

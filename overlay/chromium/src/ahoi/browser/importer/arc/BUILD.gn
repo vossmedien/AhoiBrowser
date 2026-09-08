@@ -36,6 +36,8 @@ source_set("service") {
     "arc_import_commit_support.h",
     "arc_import_journal.cc",
     "arc_import_journal.h",
+    "arc_import_manual_recovery_plan.cc",
+    "arc_import_manual_recovery_plan.h",
     "arc_import_navigation_barrier.cc",
     "arc_import_navigation_barrier.h",
     "arc_import_recovery.cc",

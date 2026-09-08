@@ -8,7 +8,6 @@
 #include "ahoi/browser/importer/arc/arc_import_recovery.h"
 #include "ahoi/browser/importer/arc/arc_import_service.h"
 #include "ahoi/browser/importer/arc/arc_import_service_internal.h"
-#include "ahoi/browser/importer/arc/arc_import_tree_fingerprint.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/workspace_session_metadata.h"
 #include "base/functional/bind.h"
@@ -107,24 +106,16 @@ void ArcImportService::OnManualRecoveryBackupLoaded(
     return;
   }
   context->previous_tree = std::move(*backup.previous_tree);
-  for (const auto& workspace : context->start_tree.workspaces) {
-    if (std::ranges::none_of(
-            context->previous_tree.workspaces,
-            [&](const auto& old) { return old.id == workspace.id; })) {
-      context->removed_workspaces.push_back(workspace.id);
-    }
-  }
   auto task = base::BindOnce(
       [](base::FilePath path, ArcImportPreparedState prepared,
          tab_tree::TabTreeSnapshot before, tab_tree::TabTreeSnapshot current) {
         const auto journal = ReadArcImportJournal(path);
         if (journal.status != ArcImportStatus::kOk || !journal.prepared ||
+            journal.state != ArcImportJournalState::kPrepared ||
             *journal.prepared != prepared) {
-          return std::array<std::string, 2>{};
+          return std::optional<ArcImportManualRecoveryPlan>();
         }
-        return std::array<std::string, 2>{
-            ComputeArcImportTreeFingerprint(before),
-            ComputeArcImportTreeFingerprint(current)};
+        return BuildArcImportManualRecoveryPlan(prepared, before, current);
       },
       profile_->GetPath(), context->prepared, context->previous_tree,
       context->start_tree);
@@ -137,19 +128,17 @@ void ArcImportService::OnManualRecoveryBackupLoaded(
 
 void ArcImportService::OnManualRecoveryFingerprints(
     std::unique_ptr<ManualRecoveryContext> context,
-    std::array<std::string, 2> fingerprints) {
+    std::optional<ArcImportManualRecoveryPlan> plan) {
   tab_tree::TabTreeSnapshot live;
-  if (!IsArcImportTreeFingerprint(fingerprints[0]) ||
-      !IsArcImportTreeFingerprint(fingerprints[1]) ||
-      fingerprints[0] != context->prepared.previous_tree_sha256 ||
-      (fingerprints[1] != context->prepared.expected_tree_sha256 &&
-       fingerprints[1] != context->prepared.previous_tree_sha256) ||
-      HasAffectedLiveTabs(context->prepared, context->removed_workspaces) ||
+  if (!plan ||
+      HasAffectedLiveTabs(context->prepared, plan->removed_workspaces) ||
       !session_bridge_->ExportTabTreeSnapshot(&live) ||
       live != context->start_tree || !profile_) {
     FinishManualRecoveryRejected(std::move(context->callback));
     return;
   }
+  context->recovery_tree = std::move(plan->recovery_tree);
+  context->removed_workspaces = std::move(plan->removed_workspaces);
   auto* service = SessionServiceFactory::GetForProfileIfExisting(profile_);
   if (!service) {
     FinishManualRecoveryRejected(std::move(context->callback));
@@ -201,16 +190,50 @@ void ArcImportService::OnManualRecoveryNativeReadback(
   if (!native_absent ||
       HasAffectedLiveTabs(context->prepared, context->removed_workspaces) ||
       !session_bridge_->ExportTabTreeSnapshot(&live) ||
-      live != context->start_tree ||
-      (live != context->previous_tree &&
-       session_bridge_->ApplySyncedTabTreeSnapshot(context->previous_tree) !=
-           tab_tree::TabTreeStore::Result::kOk)) {
+      live != context->start_tree || !profile_) {
     FinishManualRecoveryRejected(std::move(context->callback));
     return;
   }
-  session_bridge_->FlushPersistenceForBackup(
-      base::BindOnce(&ArcImportService::OnManualRecoveryFlushed,
-                     weak_factory_.GetWeakPtr(), std::move(context)));
+  // Native readback crossed another task boundary. Recheck the exact prepared
+  // journal before the one tree write, then revalidate the live tree and tabs
+  // on the UI sequence without closing anything to force a successful plan.
+  auto task = base::BindOnce(
+      [](base::FilePath path, ArcImportPreparedState expected) {
+        const auto journal = ReadArcImportJournal(path);
+        return journal.status == ArcImportStatus::kOk && journal.prepared &&
+               journal.state == ArcImportJournalState::kPrepared &&
+               *journal.prepared == expected;
+      },
+      profile_->GetPath(), context->prepared);
+  base::ThreadPool::PostTaskAndReplyWithResult(
+      FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
+      std::move(task),
+      base::BindOnce(
+          [](base::WeakPtr<ArcImportService> service,
+             std::unique_ptr<ManualRecoveryContext> context,
+             bool journal_matches) {
+            if (!service) {
+              return;
+            }
+            tab_tree::TabTreeSnapshot live;
+            if (!journal_matches ||
+                service->HasAffectedLiveTabs(context->prepared,
+                                             context->removed_workspaces) ||
+                !service->session_bridge_->ExportTabTreeSnapshot(&live) ||
+                live != context->start_tree ||
+                (live != context->recovery_tree &&
+                 service->session_bridge_->ApplySyncedTabTreeSnapshot(
+                     context->recovery_tree) !=
+                     tab_tree::TabTreeStore::Result::kOk)) {
+              service->FinishManualRecoveryRejected(
+                  std::move(context->callback));
+              return;
+            }
+            service->session_bridge_->FlushPersistenceForBackup(
+                base::BindOnce(&ArcImportService::OnManualRecoveryFlushed,
+                               service, std::move(context)));
+          },
+          weak_factory_.GetWeakPtr(), std::move(context)));
 }
 
 void ArcImportService::OnManualRecoveryFlushed(
@@ -220,7 +243,7 @@ void ArcImportService::OnManualRecoveryFlushed(
   if (!success ||
       HasAffectedLiveTabs(context->prepared, context->removed_workspaces) ||
       !session_bridge_->ExportTabTreeSnapshot(&live) ||
-      live != context->previous_tree) {
+      live != context->recovery_tree) {
     FinishManualRecoveryRejected(std::move(context->callback));
     return;
   }

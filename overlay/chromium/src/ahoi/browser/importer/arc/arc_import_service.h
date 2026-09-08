@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "ahoi/browser/importer/arc/arc_import_journal.h"
+#include "ahoi/browser/importer/arc/arc_import_manual_recovery_plan.h"
 #include "ahoi/browser/importer/arc/arc_import_transaction.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback.h"
@@ -90,10 +91,10 @@ class ArcImportService : public KeyedService {
   void Shutdown() override;
 
   void DiscoverAndPreview(ArcImportPreviewCallback callback);
-  // Explicit user recovery only. Restores the verified backup if the exact
-  // failed tree is unchanged and live/durable native tabs reference no affected
-  // node or newly introduced workspace. Refused validation never replaces the
-  // tree; native tabs are never closed or moved to make a recovery possible.
+  // Explicit user recovery only. Rolls back unchanged import-owned rows while
+  // preserving independent baseline edits and temporary pages. Live/durable
+  // tabs must reference no affected node or removed workspace. Refused
+  // validation never replaces the tree; native tabs are never closed or moved.
   void RecoverFailedImport(ArcImportPreviewCallback callback);
   void Commit(std::string snapshot_token,
               ArcConflictResolution conflict_resolution,
@@ -120,7 +121,7 @@ class ArcImportService : public KeyedService {
       ArcImportBackupRecoveryResult backup);
   void OnManualRecoveryFingerprints(
       std::unique_ptr<ManualRecoveryContext> context,
-      std::array<std::string, 2> fingerprints);
+      std::optional<ArcImportManualRecoveryPlan> plan);
   void OnManualRecoveryNativeReadback(
       std::unique_ptr<ManualRecoveryContext> context,
       std::vector<std::unique_ptr<sessions::SessionWindow>> windows,

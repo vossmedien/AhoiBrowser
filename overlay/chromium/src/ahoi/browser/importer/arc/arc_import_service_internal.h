@@ -46,6 +46,7 @@ struct ArcImportService::ManualRecoveryContext {
   ArcImportPreparedState prepared;
   tab_tree::TabTreeSnapshot start_tree;
   tab_tree::TabTreeSnapshot previous_tree;
+  tab_tree::TabTreeSnapshot recovery_tree;
   std::vector<base::Uuid> removed_workspaces;
 };
 
