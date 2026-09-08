@@ -182,4 +182,56 @@ The user's further UI requests are bundled with that real correction:
 fe647ee adds quiet saved-section tint, visual-empty validated drop highlight and
 an indexed BookmarkModel-derived favicon star;9323d71 shortens the recovery notice
 and action with16px separation. Main reviewed the disjoint helper implementations.
-The clean combined6b6c771 candidate is now building; see the active checkpoint.
+The first combined6b6c771 build subsequently failed, followed by one constructor-
+type correction. Their terminal failures and exact fixes are in the checkpoint.
+
+## 35c4 installed: real recovery, fresh import and restart
+
+Exact35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d: overlay82634/build81449/install97865
+all EXIT0. Build receipt SHA657ae31c80450f1704bed4f785631a856b3525e494b45dfe3308364d91a3c808;
+install receipt SHA92f8c94c64ca4cd2e9a552931e0666a636646e9990ce9737592282704b7345b2.
+Receipts/logs are under artifacts/build/desktop-sidebar-store-35c4c41-20260908
+and artifacts/install/ahoi-dev-35c4c41-provider-free-20260908.json. Executable
+SHA0ca5b76e0fb4a3742f2a0a712670c6317265b51dc34cd0e3bfdd3e4b170a6c3c.
+
+Real Default runtime16863 loaded Schema3 with the original Ahoi tree. The normal
+Settings -> Import -> Arc -> Search -> Import zuruecknehmen journey visibly
+reported that recovery succeeded. The shortened notice and distinct action gap
+were visible; no backend guard or confirmation was bypassed. Read-only follow-up
+confirmed the baseline5 nodes, one current temporary Settings tab and5 undo rows
+were retained, including unrelated WinFuture navigation. Only the169 old failed
+import nodes and its Voss workspace were removed. The original backup remains
+recoverable and byte-identical: database SHA
+1df104ec6fe4eefd5e769d393826a13c52648a83afd37c1c885b8ff63fc43703,
+manifest SHA0fe7f77a91ddb0ed91b13c87050879199ac9bd3cd43850ff0033934ea8555491.
+
+Fresh Search then previewed1 workspace/36 folders/133 pages/3 splits/1 excluded.
+The three actual category/profile checkboxes were aligned. Normal import reported
+success with all3 splits reconstructed. No TLS interstitial was bypassed and no
+site login performed. Normal Cmd+Q ended16863 EXIT0; restart46784 restored Ahoi
+and Voss plus one3-pane and two2-pane groups with native dividers. Read-only
+counts: Ahoi6 active nodes; Voss169 (36 folders,133 saved pages). New journal
+status committed/version5, source
+ccaa3df116bf7d0e89daced22747224f8fca0e1317cae0f02906100f847027e7.
+There was no Voss2 or duplicate tree. The original backup was not replaced.
+
+**Remaining RED:** same-source re-discovery returned the generic safe-stop error.
+Arc-only readback proved the source+successful selection+key still match;6 page
+titles and5 URLs changed after normal navigation. Strict merge runs before the
+old no-op detection. A bounded source correction now validates the current
+source/journal and exact selection before merge, with a truly write-free no-op;
+different selections retain the strict path. Its changed replay regression is
+source-only until the corrected visible journey, not a test pass.
+
+Quiet saved-area tint and existing native-bookmark markers were visible. Live
+add/remove refresh and actual drag-enter highlight are not yet accepted. After
+Cancel/row selection CUA exposed a stranded Settings menu without a screenshot;
+Cancel/Escape, one own reset and fresh full-path selection did not restore its
+window context. No Bookmark edit was performed in that attempted check. Normal
+app-scoped Cmd+Q ended46784 EXIT0. This tool-context limit is not labelled a
+product focus defect or visible pass. No current import transaction remains.
+
+These are bounded visible runtime observations from the conversation, supported
+by matching logs/read-only counts; not a formal release CU_E2E matrix, CloudKit
+roundtrip, or broad test pass. Real Default stayed provider-free throughout,
+without changing its pre-existing global Sync=true preference or accessing keys.

@@ -33,23 +33,23 @@ Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Runtime ownership — Build18 returned; native715 isolated UI
+## Runtime ownership — Mobile slots returned; native35c4 recovery completed
 
 The bounded11:52UTC Build18 Simulator grant is CLOSED. Explicit handback
 `01a080fd-802c-75e1-8670-42aede65b234` and the coordinator's12:25–12:27UTC
 readback return Desktop's native UI; the isolated Mobile simulator is Shutdown.
 Do not retain any old Mobile slot. Other projects' Simulators are not in scope.
 
-Desktop then activated the verified compatible4cb Arc-recovery app through
-guarded install79760 EXIT0. During initial navigation CUA twice refused input
-because the app changed externally; workspace/rows and width also changed.
-No recovery transaction was started. The user was asked asynchronously to leave
-Ahoi briefly unbedient; do not force input against a changing real profile.
-The later14:40 screenshot/questions and fresh14:41 process absence do not prove
-who changed the earlier window. That interference was later resolved by a fresh
-stable readback; real recovery was attempted and failed for the concrete data
-mismatch below, not a continuing UI-slot block. Current native session50070
-uses ONLY `/private/tmp/ahoi-toolbar-715afc2.enwD8P`; real Default remains closed.
+The earlier4cb/715 UI interference and slots are historical. Current35c4 loaded
+the real Default tree, completed preserving recovery and a fresh Arc import,
+then persisted the imported workspace and three split groups across restart.
+Both real runtimes16863 and46784 are TERMINAL EXIT0 through normal Cmd+Q.
+There is no active import transaction or Desktop runtime. CUA's last post-import
+selection exposed only a stale Settings menu with no screenshot; Cancel/Escape,
+one own reset and a fresh full-path selection did not restore window context.
+Normal app-scoped Cmd+Q still completed successfully. Do not reuse old AX indices
+or call that tool state a product pass/focus defect. The next exact candidate
+gets a fresh explicit app/window selection. No current Mobile slot blocks it.
 
 ### Earlier slots — returned, not active
 
@@ -122,9 +122,46 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: e241191 installed; corrected combined35c4c41 integration
+## Current candidate: 35c4c41 installed; bounded Arc no-op correction next
 
 ### Active toolbar/UI continuation — 2026-09-08
+
+**AUTHORITATIVE LIVE STATE,17:57CEST:** overlay82634, app-only build81449 and
+guarded install97865 are TERMINAL EXIT0 on
+`35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d`. Do not resume/restart them.
+Installed executable SHA:
+`0ca5b76e0fb4a3742f2a0a712670c6317265b51dc34cd0e3bfdd3e4b170a6c3c`;
+bundle tree `f457fdf0fabcb077f570da63cc422f892a4616f97f16405b554a28fd6f4e8dfd`.
+Build receipt `artifacts/build/desktop-sidebar-store-35c4c41-20260908/build-receipt.json`
+SHA `657ae31c80450f1704bed4f785631a856b3525e494b45dfe3308364d91a3c808`;
+install receipt `artifacts/install/ahoi-dev-35c4c41-provider-free-20260908.json`
+SHA `92f8c94c64ca4cd2e9a552931e0666a636646e9990ce9737592282704b7345b2`.
+The exact clean detached snapshot remains
+`/private/tmp/ahoi-desktop-package1.5g65WO/repo`; explicit canonical work root,
+pin .65, no Common/Swift WIP or patch36. Real Default has global Sync=true, so
+this runtime intentionally remains provider-free without changing its preference.
+
+**Visible real journey:** schema3 loaded the original tree; short recovery copy
+and16px action gap were visible. Recovery removed only the old failed import's
+169 nodes/workspace, retained unrelated WinFuture navigation, baseline/undo and
+the byte-identical original backup. Fresh preview then imported1 workspace,
+36 folders,133 pages and3 splits; the UI reported success. Normal Quit/restart
+retained Ahoi+Voss, the3-pane group and both2-pane groups. The journal is committed
+for source `ccaa3df116bf7d0e89daced22747224f8fca0e1317cae0f02906100f847027e7`.
+Site TLS interstitials were not bypassed and no login was performed.
+
+**Remaining bounded product failure:** re-discovery of the identical committed
+source returned a generic conflict before the no-op check:6 imported page titles
+and5 URLs had subsequently changed. No duplicate import was performed. The
+Arc-only helper delivered a source fix: validate current source+durable journal,
+compare the exact selected key before merge and return NoChanges without tree,
+backup, session, split or journal writes. Different source/selection retains the
+strict merge. Main is integrating this bounded correction, not a new matrix.
+Static Bookmark markers and quiet saved-section tint were visible; actual
+Bookmark add/remove refresh and a drag-enter highlight remain to be exercised.
+Details: `docs/audit-evidence/2026-09-08-toolbar-and-arc-recovery.md`.
+
+### Earlier combined-build chronology — terminal, not resume instructions
 
 **LIVE HANDLE:** cached guarded app-only build81449 is RUNNING since15:22UTC;
 corrective overlay82634 is TERMINAL EXIT0 on clean
@@ -1141,36 +1178,21 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Resume live cached app-only81449 on clean35c4c41; overlay82634 EXIT0. Existing
-   AHOI_NINJA_KEEP_GOING=1/jobs4, fresh75.9%idle/66%memory start gate. Prior7222
-   and92858 are terminal failures, both causes corrected by b534d93/846e875.
-   No new source/ownership wait or unchanged retry. Real Default stays provider-free.
-   All e241 handles are terminal, not restart targets. The coherent
-   fe647ee/ad91502/9323d71 Sidebar+Store+Recovery-copy package is integrated, no
-   Common WIP/patch36 or further source handoff wait. e241's actual load
-   failure needs the constrained migration fix, not another unchanged run.
-   The bounded visible715
-   Pin/Home/restart/settings/bookmark-only-sidebar journey is complete above;
-   do not restart builds or replay the whole flow without an affected change.
-   Runtime50070 is terminal; preserve that test profile/receipt. After the
-   combined correction, repeat the real loaded-Default Arc journey and the
-   newly requested saved Drop tint/Bookmark badge/notice spacing,
-   then only its necessary regression. No unrelated test-binary prerequisite.
-   Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
-   remains separate and open. Prior6ae's local lifecycle/focused12-case evidence
-   remains valid for its boundary, not proof of multi-device sync.
-2. Real Default remains protected and closed, installed e241 is provider-free.
-   Do not reinstate old4cb or claim e241 loaded the real tree: it did not. The
-   constrained Schema2 upgrade must succeed first; then the already-reviewed
-   preserving recovery can retain the unrelated navigation while undoing the
-   unchanged import. Global Sync is already true in Default, so never add Cloud
-   configuration to this recovery session or toggle its preference as a shortcut.
-   After Arc is normally closed,
-   use the compatible4cb baseline's guarded importer recovery before allowing
-   new normal-tab mirroring to touch that failed-import profile. Open the real
-   `chrome://settings/importData` flow, recover the preserved transaction, THEN
-   preview/import again. No hidden WebUI call, direct DB reset or forced Arc
-   shutdown. Do not confuse the fresh-profile c20 journey with Arc acceptance.
+1. Build/install the reviewed Arc-only no-op correction on clean35c4 using the
+   existing guarded app-only cached path after a fresh whole-machine/disk gate.
+   All35c4 build/install and real UI runtimes are terminal; no unchanged retry.
+   Repeat only the affected real discovery -> same-selection import -> NoChanges
+   journey, preserving the committed imported tree and original backup. Then
+   exercise live Bookmark add/remove marker and saved-area drag highlighting.
+   No Common/Swift WIP, patch36, extra test-target prerequisite or new header wait.
+   Recovery/initial import/restart and visible715 Pin/Home/settings evidence are
+   already recorded; do not replay them wholesale without an affected change.
+2. Keep the real Default session provider-free: its global Sync preference was
+   already true. Do not reinstate4cb/e241 or repeat recovery: it succeeded in35c4.
+   Old prepared journal was normally removed and a new committed import now
+   exists. Original backup remains byte-identical. Actual key bootstrap and
+   CloudKit roundtrip use a separate exact Development candidate and fresh
+   isolated stores, never a preference toggle or hidden real-profile rewrite.
 3. AnyChat: await the already requested website/New Tab/favicon permission
    decision. The native sheet is currently cancelled. After approval reopen
    the ordinary Store flow, verify its current scope, install and visibly test
@@ -1181,7 +1203,7 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    and its separate deliberate migration action is authorized/performed.
 5. Finish remaining package1 UI obligations: normal-folder motion, workspace
    slide/fade, reported seam, zero-tab/split stability and Bookmark core flow.
-   Do not mutate the failed imported tree to set up tests before its recovery.
+   Preserve the now successfully imported real tree when setting up tests.
    Reuse the completed startup/Sidebar evidence; do not replay whole matrices.
 6. Native A-D source is integrated in the preserved6ae4070 and new3d59 candidate, including
    the released async completion and durable-current export. After the visible
