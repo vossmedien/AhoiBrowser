@@ -29,6 +29,21 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Explicit user Simulator-UI handoff, 2026-09-08 07:08 UTC:** the user answered
+  yes to the Mobile owner running the short Simulator journey while Desktop
+  works on source only. This resolves the previously unanswered UI-slot gate;
+  do not request the same approval again or retain an old no-slot statement.
+  Sync/Mobile owner uses the built `bba0b86` DebugLocal build16 in a fresh,
+  isolated Simulator context after a current capacity check. Desktop continues
+  code work without native UI actions for this window. No My-Mac/iPad-on-Mac,
+  `/Applications` replacement, desktop profile, existing key, portal or Production
+  action is included. Mobile explicitly returns the UI window after its bounded
+  visible journey and cleanup; source/build ownership otherwise stays unchanged.
+- Global and project AGENTS.md were re-read after that approval. The new clauses
+  require reusing granted approval for the same scope, finishing authorized
+  preparation before approval requests, avoiding inferred skill approval gates,
+  and concise result-first communication. Current total-capacity/E2E-first rules
+  remain. No further approval gate is added by this coordinator.
 - Mobile is now a committed source package `4e64c5f` (41 Mobile files, 8 shared
   Swift files, 1 checkpoint). Its first product build failed at one obsolete
   external-open call; `bba0b86` fixes that route without weakening guards.

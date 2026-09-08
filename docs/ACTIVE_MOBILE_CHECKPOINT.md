@@ -27,8 +27,12 @@ Do not resume tasks from the historical archive below.
   signature limits are in
   [the build report](../artifacts/build/mobile-unified3-4e64c5f-20260908/README.md)
   (`9978b2e`). This is not visible E2E, CloudKit or a native cross-client pass.
-- Next: the already requested fresh Simulator-UI handoff, then the short visible
-  journey on that exact candidate, followed by only relevant focused checks.
+- The user explicitly granted the short Simulator-UI window on September 8,
+  07:08 UTC: Mobile runs its visible journey on `bba0b86` build16 while Desktop
+  remains source-only. See the current authorization in
+  `ACTIVE_SYNC_COORDINATION.md`; do not request it again. No My-Mac/native
+  desktop/profile/key/Production action is included. Return the UI window after
+  the short journey/cleanup, then run only relevant focused checks.
   Do not re-run the old 30212/926/SQL steps, v2 promotion suites or Build15
   acceptance merely because they are preserved below.
 - Current global/project AGENTS.md apply: total-machine capacity, no fixed
