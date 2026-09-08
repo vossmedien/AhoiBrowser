@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include "ahoi/browser/sync/hybrid_logical_clock.h"
+#include "ahoi/browser/sync/native_tree_sync_journal.h"
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "base/files/scoped_temp_dir.h"
@@ -230,6 +232,57 @@ TEST(UnifiedSyncStoreTest,
   ASSERT_EQ(Result::kOk,
             store.GetRecord(EntityType::kTreeNode, page.id, &stored));
   EXPECT_EQ(page.url, std::get<TreeNodeRecord>(stored).url);
+}
+
+TEST(UnifiedSyncStoreTest,
+     NativeInboxBootstrapUsesBottomAndCannotUndoUserEdit) {
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  HybridLogicalClock clock(Id(1).AsLowercaseString());
+  const auto original_clock = clock.last();
+  NativeTreeSyncJournal journal(&store);
+  NativeTreeSyncSnapshot native;
+  const auto inbox_id =
+      base::Uuid::ParseLowercase("83699047-edf8-580d-948d-9c37acc35cb6");
+  native.tree.workspaces.push_back({.id = inbox_id,
+                                    .name = u"Inbox",
+                                    .sort_key = "0",
+                                    .created_at = base::Time::UnixEpoch(),
+                                    .modified_at = base::Time::UnixEpoch()});
+  bool wrote = false;
+  ASSERT_TRUE(
+      journal.ReconcileLocal(native, &clock, Approved(), Approved(), &wrote));
+  EXPECT_TRUE(wrote);
+  EXPECT_EQ(original_clock, clock.last());
+  SyncRecord bootstrap;
+  ASSERT_EQ(Result::kOk,
+            store.GetRecord(EntityType::kWorkspace, inbox_id, &bootstrap));
+  const HlcStamp bottom{
+      .physical_time_us = kMinimumSyncClockPhysicalUs,
+      .device_tiebreak = "9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86"};
+  EXPECT_EQ(bottom, GetVersion(bootstrap).stamp);
+  ASSERT_TRUE(HasCompleteFieldVersions(bootstrap));
+  for (const auto& [field, stamp] :
+       std::get<WorkspaceRecord>(bootstrap).field_versions) {
+    EXPECT_EQ(bottom, stamp) << field;
+  }
+
+  native.tree.workspaces.front().name = u"My Inbox";
+  native.tree.workspaces.front().modified_at = At();
+  ASSERT_TRUE(
+      journal.ReconcileLocal(native, &clock, Approved(), Approved(), &wrote));
+  SyncRecord edited;
+  ASSERT_EQ(Result::kOk,
+            store.GetRecord(EntityType::kWorkspace, inbox_id, &edited));
+  EXPECT_EQ(Id(1).AsLowercaseString(),
+            GetVersion(edited).stamp.device_tiebreak);
+  EXPECT_GT(GetVersion(edited).stamp, bottom);
+  EXPECT_EQ(bottom,
+            std::get<WorkspaceRecord>(edited).field_versions.at("created_at"));
+  SyncRecord merged;
+  EXPECT_EQ(MergeDecision::kKeepExisting,
+            MergeRecordFields(edited, bootstrap, &merged));
+  EXPECT_EQ("My Inbox", std::get<WorkspaceRecord>(merged).name);
 }
 
 }  // namespace

@@ -71,6 +71,16 @@ for duplicate Presence/Page IDs. Presence and global Tree deletion stay separate
 filter that loses local-only/new-tab metadata. Actual Device/Capability ACKs and
 initial-fetch completion drive readiness; an empty outbox is not acknowledgment.
 
+Canonical system Inbox bootstrap now matches Swift exactly in the native
+journal: first-not-found reserved Inbox ID, name `Inbox`, empty icon, sort `0`,
+absent accent, both times UnixEpoch and not tombstoned receives a Bottom record
+clock and all seven Bottom field clocks. It does not call the user's HLC Tick.
+Other tuples and genuine later edits retain normal mutation clocks. A focused
+source regression checks the complete Bottom map/no user-clock advance, then a
+real rename and a late default merge that cannot overwrite it. This correction
+and regression are source-only; no native build/test slot was taken and no
+existing profile or Native Store/adapter file was edited.
+
 `native_tree_sync_journal.{h,cc}` compares native value groups to durable local
 observations in the existing SQLite database, and commits actual changed groups,
 outbox and observations together. Thus a title edit cannot re-author a stale

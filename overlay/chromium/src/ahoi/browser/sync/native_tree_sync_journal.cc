@@ -26,6 +26,23 @@ namespace {
 
 using Dict = base::DictValue;
 
+HlcStamp SystemBottom() {
+  return {.physical_time_us = kMinimumSyncClockPhysicalUs,
+          .device_tiebreak = "9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86"};
+}
+
+bool IsUnmodifiedSystemInbox(const SyncRecord& record) {
+  const auto* workspace = std::get_if<WorkspaceRecord>(&record);
+  return workspace &&
+         workspace->id.AsLowercaseString() ==
+             "83699047-edf8-580d-948d-9c37acc35cb6" &&
+         workspace->name == "Inbox" && workspace->icon.empty() &&
+         workspace->sort_key == "0" && !workspace->accent_argb &&
+         workspace->created_at == base::Time::UnixEpoch() &&
+         workspace->modified_at == base::Time::UnixEpoch() &&
+         !workspace->tombstone;
+}
+
 std::string Key(const SyncRecord& record) {
   return base::NumberToString(static_cast<int>(GetEntityType(record))) + ":" +
          GetEntityId(record).AsLowercaseString();
@@ -226,7 +243,12 @@ bool NativeTreeSyncJournal::ReconcileLocal(
     if (found == SyncStore::Result::kOk) {
       clock->Observe(GetVersion(previous).stamp);
     }
-    const auto stamp = clock->Tick();
+    // This exact cross-platform default is system initialization, not a
+    // user's edit. Match Swift's canonical Inbox top AND complete field map;
+    // a late bootstrap must never outrank somebody's real Inbox customization.
+    const bool system_inbox = found == SyncStore::Result::kNotFound &&
+                              IsUnmodifiedSystemInbox(changed);
+    const auto stamp = system_inbox ? SystemBottom() : clock->Tick();
     std::visit([&stamp](auto& value) { value.version = {.stamp = stamp}; },
                changed);
     if (!StampLocalMutation(
@@ -237,8 +259,7 @@ bool NativeTreeSyncJournal::ReconcileLocal(
         native.baseline_receipt.empty()) {
       // Initial pre-link native data supplies a creation time value, not proof
       // of its creator/saving device. Never invent a local-device badge.
-      const HlcStamp unknown{kMinimumSyncClockPhysicalUs, 0,
-                             "9e20c6c4-c12a-52ed-b9c5-6e65b49a2d86"};
+      const HlcStamp unknown = SystemBottom();
       std::visit(
           [&unknown](auto& value) {
             value.field_versions.insert_or_assign("created_at", unknown);
