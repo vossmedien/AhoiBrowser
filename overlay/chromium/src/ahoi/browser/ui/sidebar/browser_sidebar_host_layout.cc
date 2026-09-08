@@ -72,6 +72,7 @@
 #include "chrome/grit/generated_resources.h"
 #include "components/favicon/content/content_favicon_driver.h"
 #include "components/favicon/core/favicon_service.h"
+#include "components/bookmarks/browser/bookmark_model.h"
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
