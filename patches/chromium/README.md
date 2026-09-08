@@ -50,6 +50,19 @@ as a second active patch stack.
 - **Rebase/removal:** narrow visibility seam; remove when upstream selects the
   sidebar shelf as the exclusive native bookmark surface itself.
 
+## `0038-ahoi-concise-arc-recovery-copy.patch`
+
+- **Owner:** Desktop. Three existing Arc message texts and their German/en-GB
+  translations; IDs generated with the pinned GRIT meaning.
+- **Purpose:** shorter recovery notice and explicit "Undo failed import" action.
+  Matching owned WebUI gives notice/button16px separation and keeps the native
+  Cancel area distinct. This fixes the user's September8 cramped-dialog report.
+- **Safety:** no backend, confirmation, hash, persistence or tab guard is removed.
+  The notice still explains that changed import data/open tabs prevent recovery
+  and that unrelated pages/the backup remain. No automatic import or retry.
+- **Verification:** exact-resource patch/XML/GRIT checks, then the real corrected
+  recovery dialog in the combined sidebar/store candidate; not an extra build.
+
 ## `0035-ahoi-browser-settings-sync-consent.patch`
 
 - **Owner:** Desktop; exact M152 pin, after0034.

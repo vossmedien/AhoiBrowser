@@ -25,7 +25,7 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
       </div>
 
       ${this.showArcRecovery_() ? html`
-        <section class="warning" aria-labelledby="ahoiArcRecoveryNotice">
+        <section class="warning recovery" aria-labelledby="ahoiArcRecoveryNotice">
           <div id="ahoiArcRecoveryNotice" class="secondary">
             $i18n{ahoiArcImportRecoveryNotice}
           </div>

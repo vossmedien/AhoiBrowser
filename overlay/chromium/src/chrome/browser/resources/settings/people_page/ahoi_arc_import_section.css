@@ -49,6 +49,19 @@
   padding: 12px;
 }
 
+.recovery {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 8px;
+  padding: 16px;
+}
+
+#ahoiArcRecoveryNotice {
+  line-height: 1.5;
+}
+
 .counts {
   display: grid;
   gap: 8px;
