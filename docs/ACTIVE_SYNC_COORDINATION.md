@@ -29,6 +29,34 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Corrected local native lifecycle PASS, current installed6ae4070:** Desktop's
+  source-bound report `docs/audit-evidence/2026-09-08-native-shared-tabs.md`
+  records visible Create/Save/Unsave/Quit/restart/close. The org Page keeps
+  ID5e58f845… through temporary1 -> saved0 -> temporary1 -> restart; explicit
+  close tombstones only that Page while savedcom remains. The unexplained
+  external focus/width change is NOT an uninterrupted no-focus-shift pass.
+  Coordinator independently matched installed source/executable to
+  `artifacts/install/ahoi-dev-6ae4070-20260908.json` (activation verified,
+  binary9870d0a9b99d849c060dad9e42e612a3a7841f98d5e57b730b1cca03599e6b8e).
+  Root performed no native UI action; Desktop retains the runtime lease.
+- **Actual native CloudKit readiness, 2026-09-08:** installed6ae still lacks
+  the CloudKit-container/keychain-group bundle values and embedded Mac profile.
+  Source `FromMainBundle` returns nullopt without a configured iCloud container.
+  Today's read-only Xcode-cache scan found only two matching Ahoi profiles,
+  both iOS/xrOS/visionOS, not OSX; the secondary MobileDevice cache is absent.
+  This is not a claim about current Portal availability. The documented
+  Development preparation on a copy of the built candidate is the next native
+  transport prerequisite, not another wire redesign. Desktop was sent the
+  concrete metadata/readiness result; no profile/key/portal mutation occurred.
+- **Settings source41de599 is a separate handoff:** the implemented catalogue
+  contains24 total settings (five existing Ahoi plus19 Chromium entries),
+  native USER/default/reset semantics and matching Swift validation. It is not
+  built into6ae/Build17 and not a full ADR0010 or cross-client pass. Mobile apply/
+  provider, broader meaningful settings, Extensions and workspace pins remain.
+  One specific catalogue coupling question was sent to Sync in
+  `01a0807a-ea76-7be0-bcf8-2ce4de4fa33b`: homepage_is_newtabpage is included while
+  its dependent homepage URL is excluded. Resolve the semantics before the
+  Settings candidate; do not introduce arbitrary URL transfer or a test matrix.
 - **Direct user toolbar addition, 2026-09-08:** hard rectangular Reload hover,
   optional address-bar pinning and native Home were assigned to the existing
   Desktop owner in `01a0806a-dc24-7d93-90ee-113e19d3bc92`. User screenshot is
