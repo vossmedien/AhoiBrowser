@@ -20,6 +20,18 @@ Both current global/project AGENTS were reread: implementation, runnable
 candidate, representative visible E2E, then only required focused checks;
 machine capacity is assessed in aggregate, not by the obsolete 80%-process gate.
 
+**Fresh Chromium discovery, 2026-09-08:** the existing read-only online discover
+path verified Mac ARM64 Stable `152.0.7977.83`, commit
+`79460ebecaa5625e57a5fb679a735659e73dc687`, full rollout, using official release/
+ChromiumDash/Gitiles metadata and `chrome/VERSION`. Result:
+`artifacts/build/chromium-stable-discovery-sync-owner-20260908.json`
+(`retrievedAt=2026-09-08T06:40:41Z`). Production pin remains `.65`; no candidate
+promotion, checkout/out refresh, build or install occurred. The fresh adjacent
+`df -k .` sample was 96,805,344 KiB available (99,128,672,256 bytes / 92.32 GiB),
+below the unchanged 120 GiB checkout/roll floor by 29,720,346,624 bytes. No cache
+or foreign workload was removed. Roll needs a later fresh disk measurement and
+Desktop's explicit checkout/build handoff; process absence alone is insufficient.
+
 **NEW BINDING USER DIRECTION:** the app is pre-launch and not actively used.
 Implement ONE current format for every allowed sync data class on iOS/macOS,
 without an elaborate migration or permanent v2/v3 operation. ADR 0009 and
