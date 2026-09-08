@@ -38,10 +38,14 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   separate copy of that product; no second Chromium compile is requested.
   Installed6ae remains the accepted old local lifecycle until the new candidate
   passes its own build/install/visible journey.
-- **Build18 window: one explicit release received.** FillIt01a04a1b confirmed
+- **Build18 window: Desktop and FillIt explicitly released UI.** Desktop's
+  new direct handoff permits only the bound Build18 Search/Restart/Reset
+  Simulator journey; Apple/Xcode UI is finished and it will use no native/CUA
+  UI until explicit return. Its two-job build may continue subject to Mobile's
+  fresh capacity check. FillIt01a04a1b confirmed
   at11:41:12 UTC that its Simulators are shut down and it will not start/focus
   Simulator/Xcode runtime until this coordinator returns the window. MBC,
-  BetterConvo and Desktop have not yet completed the requested new handoff;
+  BetterConvo have not yet completed the requested new handoff;
   their ongoing work/idle PIDs are not release. Mobile must not start yet.
 - **Mac provisioning prerequisite now EXISTS, 2026-09-08 11:32–11:34 UTC:**
   Desktop used the authorized existing Xcode account to create the Mac profile.
