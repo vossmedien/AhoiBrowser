@@ -119,16 +119,32 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidates: 3d59cf9 built; compatible4cb installed for Arc recovery
+## Current candidates: 715afc2 building; compatible4cb installed for Arc recovery
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**Current execution:** overlay17811 and app-only build62333 are TERMINAL EXIT0.
+**CURRENT LIVE HANDLE:** guarded app-only build98973 is RUNNING since13:02UTC
+on the clean same detached snapshot at
+`715afc21a9757ea46a309817691c5c4aaa320c1c`. Overlay10765 is TERMINAL EXIT0,
+checkout delta verified. New source contains ONLY the56px activator, LEFT Pin,
+exclusive-sidebar BookmarkBar condition and verified certificate CLI fix on
+top of3d59. No patch36, extension orchestration, Common/Swift WIP or new tests.
+Fresh heavy-phase gate70.7%CPUidle/52%memory headroom, no active compilers or
+new swapouts;49.9GiB uses the documented build override above32GiB hard floor.
+Same guarded `build-ahoi.sh dev`, AHOI_JOBS=2, canonical AHOI_WORK_ROOT; no UI
+or installed-profile mutation. Logs:
+`artifacts/build/desktop-toolbar-left-715afc2-20260908/{overlay,build}.log`.
+Resume98973 to actual terminal status. Do not restart10765 or edit running
+snapshot/out. No install or visible acceptance of715afc2 yet.
+
+**Preserved predecessor:** overlay17811 and app-only build62333 are TERMINAL EXIT0.
 The clean candidate source is `3d59cf9de8846e47c91db540b90b3067b18c0841`;
 do not restart any build. Original receipt is preserved at
 `artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/build-receipt.json`,
 SHA256 `f5b04cebd2290ad3d7c29baa3ae2a1955d7942d16bd427779965d1e73025f6f8`.
-Original binary1f2d82a0a0b122a6dba895c9628c30156b5ff89f92243ffab5fde3ac8d5effdb,
+Original provider-free bundle was APFS-cloned to `AhoiBrowser.app` beside that
+receipt before715 integration; main-binary hash rechecked identical. Original
+binary1f2d82a0a0b122a6dba895c9628c30156b5ff89f92243ffab5fde3ac8d5effdb,
 treea113f6991742b68d820b9c0d79de71dcf6a80259fc8be443b6f9f5eb7024c124.
 Logs and the separately prepared Development copy are in that same directory.
 Build used jobs2 and the documented low-disk override above32GiB hard floor.
@@ -983,14 +999,15 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Build62333 is EXIT0 and its immutable3d59 receipt is preserved. No build,
-   overlay, signing or verification retry: Development copy verification6196 is
-   also EXIT0. After protected Arc recovery below, install the exact completed
-   package through the guarded path and visibly exercise Hover/Pin/Home/settings
-   and icon. The newly requested56px activator/LEFT Pin and confirmed duplicate
-   horizontal bookmark bar are now a bounded coherent source correction. Preserve
-   the3d59 candidates; integrate only these owned changes in one guarded app-only
-   cached follow-up, not foreign Common WIP/patch36, then visible acceptance.
+1. Resume live guarded app-only build98973 on715afc2 to terminal status.
+   Overlay10765 is EXIT0; no restart or in-place changes. This is the already
+   integrated bounded56px activator/LEFT Pin/duplicate-bookmark-bar correction,
+   not another waiting source handoff. Preserve the actual final receipt and,
+   after protected Arc recovery below, install the exact successful candidate
+   through the guarded path. Then visible Hover/Pin/Home/settings/icon and no
+   horizontal bookmark duplication before minimal focused regression. No foreign
+   Common WIP/patch36 or unrelated test targets. Predecessor3d59's original and
+   verified Development copies/receipts are preserved; do not relabel them as715.
    Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
    remains separate and open. Prior6ae's local lifecycle/focused12-case evidence
    remains valid for its boundary, not proof of multi-device sync.
