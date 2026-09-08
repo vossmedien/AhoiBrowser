@@ -3,7 +3,68 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
-## Latest UI handback — explicit Build18 repeat tool-blocked
+## Latest UI: Build19 partial, window guard stopped foreign input
+
+The explicit new slot was consumed on exact6b0121f / DebugLocal19, with no
+rebuild. Archive and installed tree matched a120dea9...14d80 and the original
+candidate receipt/signature. Fresh own device C645C09E-B284-434B-BC72-508E481ADC02
+booted and installed successfully. The approved blue SpringBoard icon and
+visible app start passed. Before the host step, the fresh window guard rejected
+the click: CUA had changed to BetterConvo E2E, whose independent lastBootedAt was
+16:02:35UTC, after the supplied earlier handback. ZERO foreign inputs. Hostlabel,
+metadata section and switches are NOT_RUN, not a product pass or product failure.
+
+Own app terminated normally and device shutdown96613 completed EXIT0; Shutdown
+was independently verified at16:03:35UTC. Immediate explicit coordinator handback
+01a081c2-ea88-7e02-9506-f5e1a0c75e2f preceded evidence work. No UI reservation
+remains. Own device is retained Shutdown for a bound continuation; foreign
+resources, Native715/profiles/keys/CloudKit are untouched. Result and icon:
+artifacts/e2e/mobile-setup-6b0121f-20260908T1556Z/result.json.
+
+Independent Bootstrap followup77061ad is also committed/pushed: Mobile now
+stamps/propagates the same explicit subscription as the prepared Native scope.
+All seven non-secret values resolved identically on app/Core in configuration-
+only readback; no build/sign/key/cloud action. Exact source+tuple handed to
+Desktop01a081b9-bf6d-7351-b8e4-7c1ae1ee974e and coordinator01a081b9-bfdb-7b02-bf41-f4508ef031d8.
+Build19 and built20 are unchanged by that later source-only configuration.
+
+## Current Common storage consumer WIP — Native entry hook pending
+
+The851e3bb/0036 observer handoff is consumed. Common has implemented the actual
+StorageFrontend consumer in four new files: native_extension_storage_adapter
+and native_extension_storage_io, each .h/.cc. Controller, Service, factory/GN and
+the corresponding storage documentation are connected in the canonical worktree.
+No Native Session/patch file, Swift candidate, shared checkout/out or UI was changed.
+The unused storage methods on ProfileSyncUiBridge are removed from this WIP;
+the actual store requires no window bridge. Extension installation remains
+with Desktop's separate native setup implementation.
+
+This is NOT a committed source freeze or build-ready package yet. A precise
+additional Native request callback is required before native sync-area Set/
+Remove/Clear enters the storage queue, so an original remote epoch is revoked
+before, rather than after, a concurrent local write commits. Request to the
+existing two-file Patch0036 owner:01a08182-b3b0-7a41-b45e-ba352ccca250,
+API ObserveSyncSettingsWriteRequests(callback<const ExtensionId&>).
+Exact non-applied two-file delta is now committed in f36e4bd at
+artifacts/build/native-extension-storage-consumer-20260908/native-write-request-hook.proposed.patch,
+SHA9f8ef3ca5fbb23970e41b9feec0afd1697a85d5204568f59d8171c2e30dcfecf.
+Application after0036 was checked in an isolated two-file sandbox. Its unique
+diff was verified byte-identical to the committed artifact, then the temporary
+copy was moved recoverably to Trash. Desktop handoff01a081a7-fb45-7101-9482-8797b08c5af5;
+canonical Native files remain untouched. No build/test/UI or source-freeze claim.
+Existing completion-only observation cannot detect an intervening A->X->A
+sequence. Common's read/UI fence plus original epoch handles earlier and later
+native requests without a global suppression flag or pending-counter framework.
+
+Positive CWS/source/version/permission/policy checks, scoped shutdown, exact
+bool/reset I/O and committed-change origin notification are implemented. The
+existing mandatory --disable-sync flag excludes a competing Chrome writer;
+no Google Sync service is instantiated. Formatting/GN/line-budget and pinned
+API/source checks only. No build, tests, install or UI. Preserve these owned
+WIP files and wait for the specific Native source handoff before one coherent
+compile; do not insert missing-method references into a frozen candidate.
+
+## Earlier UI handback — explicit Build18 repeat tool-blocked
 
 The latest direct instruction explicitly requested another18 Search/Restart/
 Reset journey. This time the unchanged archive AND installed894c9a2/18 were
