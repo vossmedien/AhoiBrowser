@@ -29,6 +29,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Native post-E2E focused checks verified, 2026-09-08:** coordinator read the
+  machine-readable summaries in `artifacts/tests/native-tabs-6ae4070-20260908/`:
+  eight Session/target cases and four corrected storage/receipt cases, all
+  SUCCESS with nonempty named execution. Their SHA256 values match the native
+  report (`session-summary.json`8fef14bb…; `tree-corrected-summary.json`754df569…).
+  The initial3/4 failure remains recorded: the original SQL-error trigger never
+  ran because production DB options disable triggers. Test-onlyf97b661 uses an
+  enforced CHECK and retains actual error/whole-tree/baseline rollback assertions.
+  No product warning/assertion/DB option was weakened, no app bytes changed,
+  and installed source still6ae4070. This closes the bounded local follow-up,
+  NOT real transport, Bookmark convergence, new Settings or full release gates.
 - **Corrected local native lifecycle PASS, current installed6ae4070:** Desktop's
   source-bound report `docs/audit-evidence/2026-09-08-native-shared-tabs.md`
   records visible Create/Save/Unsave/Quit/restart/close. The org Page keeps
@@ -454,8 +465,8 @@ not included in the unchanged installed4cb candidate; do not request A again.
 
 1. Both owners have accepted their roles. Follow the concrete package sequence
    and native header handoffs; no further role-confirmation loop.
-2. Desktop completes only the necessary follow-up checks for the successful
-   local6ae4070 lifecycle, then continues its toolbar/UI and native settings
+2. Desktop's local6ae4070 lifecycle and eight-plus-four focused checks are
+   complete within the reported scope. Continue its toolbar/UI and native settings
    work plus concrete CloudKit Development preparation. The Sidebar fix,
    Common compiler fixes and Inbox are already integrated; no missing-API/role
    wait or replay of the old compiler/UI failures remains. Sync continues
