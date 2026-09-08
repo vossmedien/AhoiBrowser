@@ -29,6 +29,29 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Build18 UI window CLOSED and returned to every owner, 2026-09-08 12:25–12:27 UTC:**
+  Mobile sent an explicit handback after normal backgrounding and own-device
+  shutdown. Coordinator independently read FE1B566C-F706-47E0-9D21-D96139C03B18
+  as Shutdown and immediately returned resources to Desktop, MBC, BetterConvo
+  and FillIt in `01a080fd-802c-75e1-8670-42aede65b234`,
+  `01a080fd-8143-7a22-a7d8-9dbc724ab4f3`,
+  `01a080fd-80b3-7ab3-90bc-cbe645544986`,
+  `01a080fd-81d5-7862-bb85-76e27a99e2a4`. Desktop may continue its prepared
+  protected4cb Arc recovery after its fresh checks; MBC is the announced next
+  Simulator user. No new Ahoi Simulator slot is held.
+  Bounded Build18/894c9a2 Search/Bing/restart/reset succeeded. Coordinator viewed
+  the restart/reset screenshots and directly compared the curated setting:
+  identical record+clocks after restart, same ID after reset, value_json becomes
+  JSON null while setting_id/tombstone clocks stay unchanged. Evidence lives in
+  `artifacts/e2e/mobile-browser-settings-894c9a2-20260908/`. Timeout/rebind and an
+  unassigned post-restart navigation are retained as limitations, not a proven
+  uninterrupted focus/navigation path. This is NOT CloudKit/Mac roundtrip,
+  Extensions, new icon or the later host-label layout acceptance.
+- **Combined build79280 ended with the single known Settings GURL error:** the
+  log ends in Ninja failure, original build PID40449 is absent, and Desktop
+  confirmed terminal failure at12:21:59 UTC. No new install. The already committed
+  native fixc1fd86f is the bounded cached follow-up; no new Common freeze/test
+  matrix or injection of Extension WIP. Previous running-PID entries are history.
 - **Build18 Simulator START AUTHORIZED, 2026-09-08 12:01 UTC:** all actual
   owner releases are now in: Desktop's direct current handoff, FillIt11:41:12,
   BetterConvo11:59:35 and MBC12:00:14/12:00:20. They explicitly refrain from
