@@ -35,6 +35,16 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Current installed Desktop is35c4c41, intentionally provider-free:** coordinator
+  freshly read the installed plist; source35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d
+  has no CloudKit runtime configuration. Desktop chose this for the real Default
+  profile, whose existing global opt-in remains true; no preference/key reset.
+  The signed715 Development artifact/profile and its earlier UI evidence remain
+  valid, but715 is no longer the installed app. Desktop's current checkpoint
+  records successful preserving recovery, fresh Arc import and restart, followed
+  by a bounded identical-import/no-op failure and its own app-only correction.
+  Saved-section tint/bookmark markers were visible; live bookmark refresh and
+  drag-enter behavior remain pending. This is not a CloudKit roundtrip result.
 - **Next short Mobile UI candidate is20, not19; no START:** coordinator read
   the original bbe2c53 candidate receipt: clean source equals embedded source,
   DebugLocal20/iphonesimulator, tree b8d840b241c9634794617c09aef355feab656d5b3e048f448b5db06cbff05e0b,
@@ -45,7 +55,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   one concrete shared-Surface notice/follow-up20 request in01a081c2-6cfa/6e9e,
   and informed Mobile01a081c2-716e. Do not interrupt their journeys or infer START
   from an old grant. MBC's new15:57 handback below needs no renewed request.
-  DebugLocal20 is not the later bb51389 entitled/fresh-zone acceptance candidate.
+  DebugLocal20 is not the later bb51389/77061ad entitled/fresh-zone acceptance candidate.
 - **MBC explicit Simulator handback 2026-09-08T15:57:42+00:00:** Bounded native photo journey ended; own `8998792A-3E70-4C33-8EA8-86BCA9E0F8F4` explicitly shut down and all booted devices list is empty. MBC has no remaining Simulator/CUA/Xcode runtime reservation. Hand upload, correction, selection, DE reopening and shared whole-picture preview completed; MBC continues API/code/HTTPS work. No foreign devices or processes changed. No ACK requested.
 
 - **Shared UI window is fully returned; no Build19 pass:** Mobile's explicit
@@ -74,7 +84,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   request01a0815e-611b at14:18: its Surface remains free for BetterConvo then
   Ahoi19 until the combined handback, now completed above. These grants are consumed, not
   outstanding questions. No renewed MBC/FillIt/Desktop permission is needed.
-- **CloudKit-configured715afc2 is now installed, 2026-09-08 13:27–13:28 UTC:**
+- **Historical715afc2 installation and bounded UI acceptance, 2026-09-08 13:27–13:28 UTC:**
   coordinator read the installed plist: source715afc21a9757ea46a309817691c5c4aaa320c1c,
   cloudkit-development, exactDevelopment and dedicated Ahoi container. Receipt
   `artifacts/install/ahoi-dev-715afc2-cloudkit-20260908.json` confirms activation;
@@ -88,16 +98,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   [toolbar and Arc evidence](audit-evidence/2026-09-08-toolbar-and-arc-recovery.md).
   No complete pointer-hover/Dock-size matrix or shared-key/CloudKit roundtrip
   follows from that pass. Only the isolated toolbar profile was used; real
-  Default DB/journal remained unchanged. Desktop is now source/build-only and
-  has explicitly released its UI share for the short future Build19 journey.
-- **Arc recovery refusal is preserving real local work, not a permission wait:**
+  Default DB/journal remained unchanged during that715 journey. Its UI release
+  belonged to the now-closed18/19 window, not a standing new START authorization.
+- **Earlier Arc recovery refusal preserved real local work:**
   the actual recovery UI refused because one unrelated Page changed title/URL/
   modified time. Desktop's comparison reproduces the expected fingerprint when
   only that row is substituted in memory; original imports/journal are intact.
   Its bounded Arc-only preserving correction dff21f9 is now committed and
   owner-reviewed, source-only; the next Arc candidate must retain this local
-  navigation, not restore the entire backup blindly. No successful real
-  recovery/import is claimed.
+  navigation, not restore the entire backup blindly. The later35c4 recovery/
+  import/restart and remaining no-op correction supersede this earlier gate;
+  see the current Desktop checkpoint rather than rerunning the old refusal.
 - **Historical Build19 START at14:36, now CLOSED above:** all
   resource grants were complete. Mobile received01a08172-b8e7 for
   exactly6b0121f/DebugLocal19's short icon/host-label/extension-metadata journey;
@@ -109,15 +120,18 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 - **Shared-key source and isolated tuple delivered, not a runtime pass:**
   Common+Swift bbe2c53 attaches the guarded first-use Claim/Journal/Promote path
   to native initialization, which previously only loaded an existing key.
-  bb51389 additionally wires one configured zone through Mobile bootstrap,
-  provider and rotation. Neither source packet is in installed715. Coordinator read
+  bb51389 plus77061ad wire the SAME configured zone AND subscription through
+  Mobile bootstrap, provider, rotation and recovery. These source packets are
+  not in currently installed35c4c41. Coordinator read
   [the concrete key handoff](KEY_BOOTSTRAP_SYNC.md) and prepared-not-applied
   artifacts/e2e/shared-sync-development-scope-20260908.json: scope
   bba96b17-f044-4923-9d40-67b15014d59e, a dedicated acceptance zone/subscription
   and payload-key.acceptance account in the existing Ahoi service/group.
+  Final manifest SHA1bd73bbd461ccdd2db70ea5928911115b1e88490e179d7707a33b0df9ff0ea82
+  was independently matched; concrete final handoff went to Desktop01a081c7-e770.
   Both actual entitled candidates must consume that same tuple before the real
   roundtrip. Build20 is reported built on bbe2c53, but does not contain the later
-  bb51389 zone wiring; it is not a matching CloudKit acceptance candidate.
+  bb51389/77061ad configuration wiring; it is not a matching CloudKit acceptance candidate.
   Coordinator previously forwarded
   the concrete paired-candidate configuration need once to Desktop01a0814d-68c9
   and Sync01a0814d-6a3f: the completed source handoff must bind both candidates
