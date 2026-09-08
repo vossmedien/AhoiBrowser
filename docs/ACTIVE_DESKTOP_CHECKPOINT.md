@@ -116,6 +116,8 @@ or visible acceptance is implied by the SOURCE package below.
 Native B-D source now connects the committed Common package `e2f6711`, async
 completion `5e74472`, durable-export/support separation `37bc558` and cancelled
 apply handling `40358d1`; there is NO remaining general header/role/freeze wait.
+Exact native source package: `74ceb158ba5abac611afef943c24e66340ab13e9`,
+committed/pushed with DCO, 41 owned files. No new tests were added in this wave.
 
 - Native SQLite schema3 (not SyncStore6) adds temporary/target fields throughout
   reads, writes, snapshots, Undo and duplication. Existing native schemas1/2
@@ -145,7 +147,8 @@ apply handling `40358d1`; there is NO remaining general header/role/freeze wait.
   missing-window delete fallback. Shared IDs suppress duplicate device rows;
   explicit open/adoption reuses the same Page. Temporary origins use real
   provenance and existing native icon slots; Sync remains reachable with no
-  remote rows. Dormant-row placement/origin filtering still need visible review.
+  remote rows. Dormant-row placement needs visible review; filtering projected
+  shared temporary rows by origin is still an implementation follow-up.
 - Arc fingerprints stay byte-identical for old/default rows and include real
   new page state only when present. Existing recovery copies verified DB/WAL to
   a ScopedTempDir before migration; originals/journal remain untouched.
@@ -165,6 +168,15 @@ Fresh 10:21–10:23 local samples found 12 cores, 56–67% idle, no active compi
 53% memory-pressure free/reclaimable and 80.9GiB disk available. Historical swap
 is about24.5GiB but did not grow in the sample; recheck capacity before starting
 and keep concurrency bounded, without an Ahoi-specific priority.
+
+**Actual continuation 08:37 UTC:** existing detached snapshot has advanced cleanly
+to74ceb15;4cb source ref/receipts and installed bundle remain intact. Shared
+Chromium checkout/out has NOT been refreshed, no overlay/build process started.
+The start gate changed materially: repeat samples reached82–92% overall CPU use,
+31GiB RAM used with11–14GiB compressed. FillIt guest/third players, multiple
+Simulator journeys, CUA and WindowServer are active; no foreign job was touched.
+Wait for sustained headroom before even the heavy overlay/preflight phase, then
+use the already prepared snapshot; do not restart source implementation/review.
 
 Do not launch the new normal-tab mirroring on the real failed-import Default
 profile before its4cb Arc recovery. Initial new-format acceptance uses an
