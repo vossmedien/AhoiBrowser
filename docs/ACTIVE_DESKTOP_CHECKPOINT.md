@@ -104,13 +104,35 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: 4cb622a installed; startup/fullscreen journey passed
+## Current candidate: c20a759 installed; Save sidebar journey RED
 
 **Current continuation, 2026-09-08:** global/project AGENTS reread again after
 the user's latest update. Reuse same-scope approvals; finish authorized
 preparation before necessary questions; no inferred gates from optional skill
-guidance. Installed plist is still `4cb622a`. No new native app/build/install
-or visible acceptance is implied by the SOURCE package below.
+guidance. Installed candidate is now `c20a759`; build82463/install99703 both
+TERMINAL EXIT0. Fresh-profile startup and example.com navigation worked, but
+Cmd+D persisted saved state without updating the visible temporary row. This
+is a native product failure, not an external Sync gate. Exact evidence and
+cleanup: `docs/audit-evidence/2026-09-08-native-shared-tabs.md`.
+
+Owned fix272385f adds the missing presentation notification after bound page
+status/workspace changes; no Common or test changes. It is committed/pushed and
+cherry-picked onto the SAME clean detached snapshot as6ae4070. Corrective
+overlay63476 is TERMINAL EXIT0, checkout delta verified. The guarded app-only
+build91795 is RUNNING (09:31 UTC, jobs2, no extra test targets), logs
+`artifacts/build/desktop-shared-tabs-6ae4070-20260908/{overlay,build}.log`.
+Fresh gate:72–78% CPU idle,43% memory headroom, no compiler workload,70.0GiB
+disk; no Ahoi priority or per-process80% rule. Resume91795, then verify/sign/
+atomic install through the existing scripts and repeat the visible journey.
+Do not rerun82463 or install unchangedc20 as a purported correction.
+
+Runtime32203 (isolated profile `/private/tmp/ahoi-native-tabs-c20a759.Z10Mne`)
+is TERMINAL EXIT0. CUA getAXState after Quit unexpectedly relaunched the normal
+profile's startup chooser; it was immediately quit WITHOUT continuing. Real
+Default DB and Arc journal hashes remained unchanged; no whole-profile
+byte-identity claim. Do not query a bound CUA app after Quit: verify process
+exit read-only, then explicitly relaunch with the isolated profile arguments
+before reattaching. No Ahoi app is currently running or UI slot handed out.
 
 Native B-D source now connects the committed Common package `e2f6711`, async
 completion `5e74472`, durable-export/support separation `37bc558` and cancelled
@@ -203,12 +225,20 @@ snapshot now clean at `c20a759dd936cfa93d5fedeb4c9dcd52e876bcd7`, comprising74ce
 plus5a15614,7a47063,dfcc32e only. No catalogue WIP was included. Corrective overlay
 `68595` is TERMINAL EXIT0; log
 `artifacts/build/desktop-shared-tabs-c20a759-20260908/overlay.log`.
-The guarded app-only corrective build is RUNNING as exec `82463`, started
-09:10:22 UTC, jobs2/keepgoing1, same snapshot/work root; log
-`artifacts/build/desktop-shared-tabs-c20a759-20260908/build.log`. Its fresh gate
-had62–71% idle,50% memory headroom,77.7GiB disk and no compiler workload. Resume
-82463; do not restart68595/71760, integrate WIP, add test targets or suppress
-warnings. The Mobile Simulator window is returned; installed4cb is unchanged.
+The guarded app-only corrective build82463 is TERMINAL EXIT0, started
+09:10:22 UTC, receipt builtAt09:19:48 UTC, jobs2/keepgoing1. Build and immutable
+copied receipt are under
+`artifacts/build/desktop-shared-tabs-c20a759-20260908/`.
+Build receipt SHA2567d67a8bbe97204c08535283792719ca2d7a0560666574f60279beba6e93205ce.
+Atomic install99703 is TERMINAL EXIT0, receipt
+`artifacts/install/ahoi-dev-c20a759-20260908T092211Z.json` (filename only a label),
+SHA2563a1499158e861a556424b3a7df11805f82445ccf9f9b2c47801d7c160174a3cd.
+Installed binary7f34223ff06d7b430acab72d6f57d34072efeb3db5b1ff9363d566e1396ef189
+and tree d17efb433b0fa822fbde0ad0be476acb49d1bef85f4564870f1ca8be19583010
+match the signed build. The previous4cb bundle remains in the exact rollback
+path recorded by the installer. Source c20 is protected by
+`refs/ahoi/build-candidates/desktop-native-tabs-c20a759`. No build/test/CloudKit
+acceptance beyond these explicit boundaries; see the RED visible journey above.
 
 Do not launch the new normal-tab mirroring on the real failed-import Default
 profile before its4cb Arc recovery. Initial new-format acceptance uses an
@@ -217,6 +247,12 @@ delivered as `7a47063`, read and included with native `5a15614` in the same deta
 correction snapshot (`c20a759`). It is not a remaining source request.
 Settings/extension-restoration and later workspace
 website-session isolation remain in the master scope, not completed here.
+
+### Earlier4cb runtime evidence — historical, not instructions
+
+The paragraphs below describe earlier4cb sessions. Statements about a running
+app, cancelled sheets or unreleased APIs are historical, superseded by the
+current continuation above. They are not live resume steps.
 
 **Latest completed native UI journey (4cb history):** short visible Sidebar
 flow passed: docked -> floating -> hide -> Cmd+Shift+S restores floating ->
@@ -736,17 +772,19 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Keep the installed, visibly exercised `4cb622a` and the same clean detached
-   snapshot/output. Builds17302/59738/73875 and installers19738/3416/77504 are
-   terminal. Do not resume/restart them or reinstall older926/c986 for delayed
-   messages. Startup, navigation, fullscreen, quit/restart and the bounded
-   Sidebar-mode journey already have their evidence above.
-2. Arc: after the user closes Arc normally, verify the source-closed condition,
-   Raise Ahoi's native window and open `chrome://settings/importData`. Select
-   Arc, explicitly recover the preserved failed transaction through its guarded
-   backup UI, THEN create a new preview/import. Preserve journal/backup; no
-   hidden WebUI call, direct DB reset or forced Arc shutdown. Continue the real
-   split/folder/restart/no-op journey on this same candidate.
+1. Finish the native presentation correction272385f/clean snapshot6ae4070:
+   overlay63476 EXIT0, app-only guarded build91795 is RUNNING; resume it.
+   Prior82463/install99703 are terminal successes, not restart targets; c20's
+   visible Save journey is RED. Preserve/hash the corrected receipt, atomically
+   install that exact signed result and FIRST repeat create/save/unsave/restart
+   in the isolated test profile. Retain4cb rollback/receipts and protect Default.
+   No tests, Common WIP or extra test targets before the corrected visible flow.
+2. Arc's real Default profile remains protected. After Arc is normally closed,
+   use the compatible4cb baseline's guarded importer recovery before allowing
+   new normal-tab mirroring to touch that failed-import profile. Open the real
+   `chrome://settings/importData` flow, recover the preserved transaction, THEN
+   preview/import again. No hidden WebUI call, direct DB reset or forced Arc
+   shutdown. Do not confuse the fresh-profile c20 journey with Arc acceptance.
 3. AnyChat: await the already requested website/New Tab/favicon permission
    decision. The native sheet is currently cancelled. After approval reopen
    the ordinary Store flow, verify its current scope, install and visibly test
@@ -759,9 +797,11 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    slide/fade, reported seam, zero-tab/split stability and Bookmark core flow.
    Do not mutate the failed imported tree to set up tests before its recovery.
    Reuse the completed startup/Sidebar evidence; do not replay whole matrices.
-6. Native A-D source is integrated as described above, including the now-released
-   async completion and durable-current export. Finish candidate preparation,
-   app-only guarded build and affected visible flow; do not restart the API review.
+6. Native A-D source is integrated in the installed c20a759 candidate, including
+   the released async completion and durable-current export. After the visible
+   local journey, resolve any actual product defect and the remaining shared-
+   temporary-row UX, then coordinate the matching-client roundtrip. Do not
+   restart the API review or treat local E2E as multi-device Sync acceptance.
    No general header/role/freeze wait, WIP integration or legacy vector fallback.
    Common C++/Swift remain with the Sync owner; see
    `docs/SHARED_TAB_NATIVE_SEAMS.md`.
