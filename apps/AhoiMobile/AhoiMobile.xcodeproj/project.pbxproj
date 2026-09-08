@@ -79,6 +79,7 @@
 		521AB21AE389EA5D156EF563 /* CompanionDeviceRevocationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDFAC5291E918236335DCC9 /* CompanionDeviceRevocationTests.swift */; };
 		52A95AE1FDBC149E00A3EE8B /* CompanionAppModelBrowserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E6798D21FC82559EC47412 /* CompanionAppModelBrowserSettings.swift */; };
 		55AAF05788170836E0E99995 /* AhoiMobileCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1B80168BC4A1601FD1D87A93 /* AhoiMobileCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		56520D327DE26BFEFF3E8668 /* CompanionExtensionSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DFFD6BD01DAB8B2C535EFF /* CompanionExtensionSetup.swift */; };
 		5818B1B0171201323DE9CF2E /* MobileBrowserControllerUITesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1880A02D97A6434583D04374 /* MobileBrowserControllerUITesting.swift */; };
 		5920EC4A3FE01BC0D62ABCE5 /* CompanionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF2D60F2F2484E40EAD0650F /* CompanionStore.swift */; };
 		5A3CA7FFA1EB9AC11A2927BB /* MobileBrowserPrivateDataRealE2EUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 919C4D08CEE2159945C5E22E /* MobileBrowserPrivateDataRealE2EUITests.swift */; };
@@ -501,6 +502,7 @@
 		F2CFEDC55816868F24834B37 /* CompanionCloudKitKeyRotationBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionCloudKitKeyRotationBootstrap.swift; sourceTree = "<group>"; };
 		F2D5A58B50BC2FE213F5AFFC /* CloudKitBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitBootstrap.swift; sourceTree = "<group>"; };
 		F319FDDC1AF119FC02BBCC57 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F4DFFD6BD01DAB8B2C535EFF /* CompanionExtensionSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionExtensionSetup.swift; sourceTree = "<group>"; };
 		F773AEAE10E4922E1350DB22 /* CloudKitKeyRotationAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitKeyRotationAdapterTests.swift; sourceTree = "<group>"; };
 		F8399297D516E2DECBBCE9F4 /* CompanionSyncBridgeOutbound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSyncBridgeOutbound.swift; sourceTree = "<group>"; };
 		F87C0B98514C21A13A4D28B6 /* CompanionStoreClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionStoreClock.swift; sourceTree = "<group>"; };
@@ -622,6 +624,7 @@
 				95B5352A8165273C23C59BFC /* CompanionCapabilityDomain.swift */,
 				F2CFEDC55816868F24834B37 /* CompanionCloudKitKeyRotationBootstrap.swift */,
 				945EF2E2D48693AFADE3D3F7 /* CompanionDeviceRevocation.swift */,
+				F4DFFD6BD01DAB8B2C535EFF /* CompanionExtensionSetup.swift */,
 				1AEED965641A8FE9399424E4 /* CompanionFieldMerge.swift */,
 				51C84A3A5008AA86A72D0BAE /* CompanionImportBatch.swift */,
 				5E9C2845A5EF542C6472FF69 /* CompanionKeyLifecycle.swift */,
@@ -1202,6 +1205,7 @@
 				1572C7DEADF434D115408060 /* CompanionCapabilityDomain.swift in Sources */,
 				24ADA6798193BA56F1C067BA /* CompanionCloudKitKeyRotationBootstrap.swift in Sources */,
 				65FAAC5916D171CEFDD12FBA /* CompanionDeviceRevocation.swift in Sources */,
+				56520D327DE26BFEFF3E8668 /* CompanionExtensionSetup.swift in Sources */,
 				C50134B443D831BF9327576E /* CompanionFieldMerge.swift in Sources */,
 				8DF4764E76260DC0BBEC3594 /* CompanionImportBatch.swift in Sources */,
 				FE94C62CBA6243049AF7F983 /* CompanionKeyLifecycle.swift in Sources */,

@@ -29,10 +29,20 @@ source_set("profile_sync_preferences") {
   ]
 }
 
+source_set("extension_setup_types") {
+  sources = [
+    "extension_setup_types.cc",
+    "extension_setup_types.h",
+    "sync_authorization.h",
+  ]
+  public_deps = [ "//base" ]
+}
+
 source_set("profile_sync_ui_bridge") {
   public = [ "profile_sync_ui_bridge.h" ]
   sources = [ "profile_sync_ui_bridge.cc" ]
   public_deps = [
+    ":extension_setup_types",
     ":shared_tab_types",
     "//ahoi/browser/tab_tree",
     "//base",
@@ -59,6 +69,8 @@ source_set("sync") {
     "cloudkit_sync_quarantine.h",
     "device_tabs_service.cc",
     "device_tabs_service.h",
+    "extension_setup_setting.cc",
+    "extension_setup_setting.h",
     "history_sync_filter.cc",
     "history_sync_filter.h",
     "hybrid_logical_clock.cc",
@@ -97,6 +109,7 @@ source_set("sync") {
   ]
 
   public_deps = [
+    ":extension_setup_types",
     ":shared_tab_types",
     ":sync_policy",
     "//ahoi/browser/tab_tree",

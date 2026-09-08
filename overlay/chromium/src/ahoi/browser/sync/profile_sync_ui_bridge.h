@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 
+#include "ahoi/browser/sync/extension_setup_types.h"
 #include "ahoi/browser/sync/shared_tab_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
@@ -44,6 +45,16 @@ class ProfileSyncUiBridge {
   // support must preserve state and never fall back to an empty tab vector.
   virtual SharedTabNativeSupport GetSharedTabNativeSupport() const;
   virtual void RequestSharedTabCapture(uint64_t generation) {}
+  // Complete regular-profile inventory only. A missing/partial result is not
+  // permission to uninstall. Remote desired state is applied through native
+  // verified install/enable/uninstall machinery, never by copying binaries or
+  // preferences. kApplied requires an actual matching native readback; pending
+  // downloads/prompts must be reported honestly. The original authorization
+  // stays revoked across asynchronous hops and a later reapproval.
+  virtual NativeExtensionSetupSnapshot ReadNativeExtensionSetup();
+  virtual void ApplyNativeExtensionSetup(
+      ExtensionRestoreRequest request,
+      base::OnceCallback<void(ExtensionRestoreResult)> completion);
   [[nodiscard]] virtual bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) = 0;
   [[nodiscard]] virtual tab_tree::TabTreeStore::Result

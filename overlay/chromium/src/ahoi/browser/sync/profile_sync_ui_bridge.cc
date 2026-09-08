@@ -7,6 +7,19 @@
 
 namespace ahoi::sync {
 
+NativeExtensionSetupSnapshot ProfileSyncUiBridge::ReadNativeExtensionSetup() {
+  return {};
+}
+
+void ProfileSyncUiBridge::ApplyNativeExtensionSetup(
+    ExtensionRestoreRequest request,
+    base::OnceCallback<void(ExtensionRestoreResult)> completion) {
+  std::move(completion)
+      .Run({.operation_id = request.operation_id,
+            .revision = std::move(request.revision),
+            .disposition = ExtensionRestoreDisposition::kUnsupported});
+}
+
 SharedTabNativeSupport ProfileSyncUiBridge::GetSharedTabNativeSupport() const {
   return {};
 }

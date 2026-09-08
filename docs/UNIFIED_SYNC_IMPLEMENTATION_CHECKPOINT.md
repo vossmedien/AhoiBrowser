@@ -3,6 +3,26 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Concrete native extension setup seam — 2026-09-08
+
+`ProfileSyncUiBridge::{ReadNativeExtensionSetup,ApplyNativeExtensionSetup}` now
+has code-owned DTOs in the small `:extension_setup_types` target and out-of-line
+default-closed definitions. Native receives an original authorization lease,
+unique operation ID, exact revision and trusted-source/install/enable tuple;
+completion distinguishes real apply from pending download, required permission,
+unsupported, policy-blocked, failed and cancelled states. No new Native file was
+edited. Desktop can implement its accepted installer/enable scope against this
+concrete header rather than uncommitted future model files.
+
+Matching typed C++/Swift codecs represent desired setup separately from observed
+inventory, through the existing format3 PermittedSetting class with a strict
+`ahoi.extension.<id>.desired` namespace and atomic `value_json`. No new class,
+SQLite migration or arbitrary package URL. The ordinary preference catalogue
+does NOT admit this namespace yet: separate setup consent, origin-aware local
+intents, Native completion orchestration and canonical fixture binding must be
+integrated before publication. This is an implementation seam, not full feature
+activation or an E2E pass. Exact semantics: EXTENSION_SETUP_SYNC.md.
+
 ## Concrete Home coupling correction — 2026-09-08
 
 The reported `homepage_is_newtabpage`/excluded-homepage mismatch is confirmed:
