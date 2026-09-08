@@ -485,6 +485,17 @@ IN_PROC_BROWSER_TEST_F(
             receipt.structure_sha256);
   EXPECT_EQ(64u, receipt.receipt_sha256.size());
 
+  // A completed import becomes ordinary user-owned state. Later navigation
+  // metadata must survive replaying its exact source/selection, even though
+  // it no longer equals the original Arc plan for those stable node IDs.
+  const auto changed_node_id = plan_.splits.front().member_node_ids.front();
+  ASSERT_EQ(Store::Result::kOk,
+            bridge_->tab_tree_store()->UpdateSavedPageMetadata(
+                changed_node_id, u"Later local page",
+                GURL("https://example.test/after-import"), base::Time::Now()));
+  tab_tree::TabTreeSnapshot replay_expected;
+  ASSERT_TRUE(bridge_->ExportTabTreeSnapshot(&replay_expected));
+  EXPECT_NE(durable, replay_expected);
   ArcImportPlan replay_plan;
   std::string replay_token;
   ASSERT_EQ(ArcImportStatus::kOk,
@@ -493,13 +504,21 @@ IN_PROC_BROWSER_TEST_F(
                 &replay_token));
   EXPECT_EQ(token_, replay_token);
   EXPECT_EQ(plan_, replay_plan);
+  ArcImportSelection other_selection = ConfirmedSelection();
+  other_selection.reconstruct_splits = false;
+  base::test::TestFuture<ArcImportCommitResult> different_selection;
+  service_->Commit(replay_token, ArcConflictResolution::kRename,
+                   other_selection, browser(),
+                   different_selection.GetCallback());
+  ASSERT_TRUE(different_selection.Wait());
+  EXPECT_EQ(ArcImportStatus::kConflict, different_selection.Get().status);
   base::test::TestFuture<ArcImportCommitResult> replay;
   service_->Commit(replay_token, ArcConflictResolution::kRename,
                    ConfirmedSelection(), browser(), replay.GetCallback());
   ASSERT_TRUE(replay.Wait());
   EXPECT_EQ(ArcImportStatus::kNoChanges, replay.Get().status);
   ASSERT_TRUE(bridge_->ExportTabTreeSnapshot(&live));
-  EXPECT_EQ(durable, live);
+  EXPECT_EQ(replay_expected, live);
   EXPECT_EQ(backups, BackupDirectories());
   EXPECT_EQ(initial_tab_count_ + 2, browser()->tab_strip_model()->count());
   for (size_t i = 0; i < members.size(); ++i) {

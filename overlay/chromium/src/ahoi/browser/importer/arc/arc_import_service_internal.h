@@ -37,7 +37,6 @@ struct ArcImportService::CommitContext {
   std::optional<ArcImportCommittedState> next_committed;
   bool tree_changed = false;
   bool runtime_started = false;
-  bool same_key_replay = false;
   base::ScopedClosureRunner resume_automatic_metadata;
 };
 

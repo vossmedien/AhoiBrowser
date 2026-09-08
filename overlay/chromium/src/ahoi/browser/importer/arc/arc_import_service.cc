@@ -38,6 +38,26 @@
 
 namespace ahoi::importer::arc {
 
+namespace {
+
+bool IsCommittedSource(const std::optional<ArcImportCommittedState>& committed,
+                       const std::string& snapshot_token) {
+  return committed && committed->snapshot_hash == snapshot_token &&
+         committed->idempotency_key ==
+             ComputeArcImportIdempotencyKey(snapshot_token,
+                                            committed->selection_fingerprint);
+}
+
+bool IsCommittedSelection(
+    const std::optional<ArcImportCommittedState>& committed,
+    const std::string& snapshot_token,
+    const std::string& selection_fingerprint) {
+  return IsCommittedSource(committed, snapshot_token) &&
+         committed->selection_fingerprint == selection_fingerprint;
+}
+
+}  // namespace
+
 struct ArcImportService::DiscoveryResult {
   ArcImportStatus status = ArcImportStatus::kNotFound;
   std::optional<ArcImportPlan> plan;
@@ -196,21 +216,26 @@ void ArcImportService::OnDiscoveryComplete(uint64_t generation,
   for (const ArcBrowserProfile& profile : result.source->browser_profiles) {
     preview.available_browser_profiles.push_back(profile.directory_name);
   }
-  const ArcImportMergeResult idempotence =
-      MergeArcImportPlan(current, *result.plan, ArcConflictResolution::kRename);
-  if (idempotence.status != ArcImportStatus::kOk &&
-      idempotence.status != ArcImportStatus::kNoChanges) {
-    preview.status = idempotence.status;
-    std::move(callback).Run(std::move(preview));
-    return;
+  if (IsCommittedSource(result.committed, result.snapshot_token)) {
+    // Successfully imported pages can subsequently navigate, move or be
+    // renamed. Discovery has no confirmed selection yet, so it must not
+    // reject those local changes as a merge conflict or claim a selection
+    // no-op. Keep source category counts: the UI derives its Split checkbox
+    // availability/default from them. Commit compares the exact selected key.
+    preview.stats = result.plan->stats;
+  } else {
+    const ArcImportMergeResult idempotence = MergeArcImportPlan(
+        current, *result.plan, ArcConflictResolution::kRename);
+    if (idempotence.status != ArcImportStatus::kOk &&
+        idempotence.status != ArcImportStatus::kNoChanges) {
+      preview.status = idempotence.status;
+      std::move(callback).Run(std::move(preview));
+      return;
+    }
+    preview.stats = idempotence.applied_plan ? idempotence.applied_plan->stats
+                                             : ArcImportStats();
   }
-  preview.already_imported =
-      result.committed &&
-      result.committed->snapshot_hash == result.snapshot_token &&
-      idempotence.status == ArcImportStatus::kNoChanges;
   preview.snapshot_token = result.snapshot_token;
-  preview.stats = idempotence.applied_plan ? idempotence.applied_plan->stats
-                                           : ArcImportStats();
   committed_journal_state_ = std::move(result.committed);
   pending_snapshot_token_ = result.snapshot_token;
   pending_source_ = std::move(result.source);
@@ -242,8 +267,30 @@ void ArcImportService::Commit(std::string snapshot_token,
   const std::string validation_token = snapshot_token;
   base::ThreadPool::PostTaskAndReplyWithResult(
       FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
-      base::BindOnce(&ValidateArcImportCommitSource, profile_->GetPath(),
-                     *pending_source_, validation_token),
+      base::BindOnce(
+          [](base::FilePath profile_path, ArcSource source,
+             std::string snapshot_token,
+             std::optional<ArcImportCommittedState> expected_committed) {
+            const ArcImportStatus status = ValidateArcImportCommitSource(
+                profile_path, source, snapshot_token);
+            if (status != ArcImportStatus::kOk) {
+              return status;
+            }
+            // A no-op must use the current durable marker, not a stale
+            // discovery cache. Source checks above still apply to every retry.
+            const auto journal = ReadArcImportJournal(profile_path);
+            if (journal.status != ArcImportStatus::kOk) {
+              return journal.status;
+            }
+            if (journal.state == ArcImportJournalState::kPrepared) {
+              return ArcImportStatus::kRecoveryRequired;
+            }
+            return journal.committed == expected_committed
+                       ? ArcImportStatus::kOk
+                       : ArcImportStatus::kStalePreview;
+          },
+          profile_->GetPath(), *pending_source_, validation_token,
+          committed_journal_state_),
       base::BindOnce(&ArcImportService::OnCommitSourceValidated,
                      weak_factory_.GetWeakPtr(), std::move(snapshot_token),
                      conflict_resolution, std::move(selection),
@@ -279,6 +326,25 @@ void ArcImportService::OnCommitSourceValidated(
     std::move(callback).Run(std::move(result));
     return;
   }
+  const std::string selection_fingerprint =
+      ComputeArcImportSelectionFingerprint(
+          {.import_sidebar = selection.import_sidebar,
+           .reconstruct_splits = selection.reconstruct_splits,
+           .conflict_resolution = conflict_resolution,
+           .selected_browser_profiles = selection.selected_browser_profiles});
+  const std::string idempotency_key =
+      ComputeArcImportIdempotencyKey(snapshot_token, selection_fingerprint);
+  if (IsCommittedSelection(committed_journal_state_, snapshot_token,
+                           selection_fingerprint)) {
+    // The source and the durable successful selection were revalidated above.
+    // Replaying that transaction is not authority to overwrite later local
+    // edits, recreate closed/deleted pages or reconstruct changed split state.
+    // No backup, tree/session flush, marker replacement or native action runs.
+    operation_in_progress_ = false;
+    result.status = ArcImportStatus::kNoChanges;
+    std::move(callback).Run(std::move(result));
+    return;
+  }
   ArcImportMergeResult merge =
       MergeArcImportPlan(current, selected_plan, conflict_resolution);
   result.status = merge.status;
@@ -291,17 +357,6 @@ void ArcImportService::OnCommitSourceValidated(
     std::move(callback).Run(std::move(result));
     return;
   }
-  const std::string selection_fingerprint =
-      ComputeArcImportSelectionFingerprint(
-          {.import_sidebar = selection.import_sidebar,
-           .reconstruct_splits = selection.reconstruct_splits,
-           .conflict_resolution = conflict_resolution,
-           .selected_browser_profiles = selection.selected_browser_profiles});
-  const std::string idempotency_key =
-      ComputeArcImportIdempotencyKey(snapshot_token, selection_fingerprint);
-  const bool same_key_replay =
-      merge.status == ArcImportStatus::kNoChanges && committed_journal_state_ &&
-      committed_journal_state_->idempotency_key == idempotency_key;
   if (!merge.merged_tree || !merge.applied_plan) {
     operation_in_progress_ = false;
     result.status = ArcImportStatus::kTransactionFailed;
@@ -323,7 +378,6 @@ void ArcImportService::OnCommitSourceValidated(
   context->selection_fingerprint = selection_fingerprint;
   context->idempotency_key = idempotency_key;
   context->prepared.previous_committed = committed_journal_state_;
-  context->same_key_replay = same_key_replay;
   // Runtime work must always consume the merge result. In particular, a
   // kMerge replay can be a tree no-op while its split descriptors and member
   // nodes still need the existing target workspace ID selected by the merge.
@@ -344,29 +398,6 @@ void ArcImportService::OnCommitSourceValidated(
         context->prepared.native_member_ids.empty()) {
       operation_in_progress_ = false;
       context->result.status = ArcImportStatus::kRuntimeFailed;
-      std::move(context->callback).Run(std::move(context->result));
-      return;
-    }
-  }
-
-  if (same_key_replay) {
-    if (context->runtime_plan.splits.empty()) {
-      operation_in_progress_ = false;
-      context->result.status = ArcImportStatus::kNoChanges;
-      std::move(context->callback).Run(std::move(context->result));
-      return;
-    }
-    const ArcSplitVerification verification = VerifyArcSplitRuntime(
-        context->browser.get(), session_bridge_, context->runtime_plan);
-    if (verification == ArcSplitVerification::kExact) {
-      BeginNativeSessionReceipt(std::move(context));
-      return;
-    }
-    if (verification != ArcSplitVerification::kRepairableMissing) {
-      operation_in_progress_ = false;
-      context->result.status = verification == ArcSplitVerification::kConflict
-                                   ? ArcImportStatus::kConflict
-                                   : ArcImportStatus::kRuntimeFailed;
       std::move(context->callback).Run(std::move(context->result));
       return;
     }
