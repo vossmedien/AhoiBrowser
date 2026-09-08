@@ -54,6 +54,7 @@ enum class UnloadedExtensionReason;
 namespace ahoi::sync {
 
 class NativeSearchEngineSetting;
+class NativeExtensionSetupController;
 
 class ProfileSyncBackend;
 class ProfileSyncServiceTest;
@@ -156,6 +157,14 @@ class ProfileSyncService final : public KeyedService,
   // One deliberate "browser settings" category action in the native Sync UI.
   // Never invoke implicitly from startup, account discovery or global opt-in.
   [[nodiscard]] bool SetBrowserSettingsSyncEnabled(bool enabled);
+  bool extension_setup_sync_enabled() const;
+  bool SetExtensionSetupSyncEnabled(bool enabled);
+  // Native calls after a genuine local install/enable/disable/uninstall intent,
+  // NOT for service load, policy refresh, extension update or our own apply.
+  bool PublishNativeExtensionUserIntent(ExtensionDesiredConfiguration desired);
+  void NotifyNativeExtensionSetupReady();
+  bool RetryExtensionSetup(std::string extension_id);
+  std::map<std::string, ExtensionRestoreResult> extension_setup_results() const;
   [[nodiscard]] bool SetPermittedSettingSyncEnabled(std::string setting_id,
                                                     bool enabled);
   [[nodiscard]] bool SetDeveloperAssetSyncEnabled(const base::Uuid& asset_id,
@@ -222,6 +231,11 @@ class ProfileSyncService final : public KeyedService,
   void ApplyProductState(const SyncStateSnapshot& snapshot);
   void PublishCurrentAppearance();
   void InitializeBrowserSettings();
+  void InitializeExtensionSetup();
+  void ApplyExtensionSetupProjection(
+      const BrowserSettingsProjection& projection);
+  void OnExtensionRestoreResult(const ExtensionRestoreResult& result);
+  bool StoreBrowserSettingIntent(PermittedSettingRecord record);
   void InitializeNativeSearchEngineSetting();
   bool SupportsBrowserSetting(std::string_view id) const;
   std::optional<std::string> ReadBrowserSetting(
@@ -316,6 +330,9 @@ class ProfileSyncService final : public KeyedService,
   std::map<base::Uuid, SyncVersion> applied_appearance_versions_;
   std::map<std::string, std::string> observed_user_settings_;
   std::unique_ptr<NativeSearchEngineSetting> native_search_engine_setting_;
+  std::unique_ptr<NativeExtensionSetupController> extension_setup_controller_;
+  std::set<base::Uuid> known_extension_setup_ids_;
+  std::optional<std::string> extension_setup_retry_;
   std::map<std::string, std::string> browser_setting_inflight_;
   const std::shared_ptr<BrowserSettingConsent> browser_setting_consent_ =
       std::make_shared<BrowserSettingConsent>();

@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 
+#include "ahoi/browser/sync/extension_setup_setting.h"
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "base/base_paths.h"
@@ -30,13 +31,13 @@ class UnifiedSyncGoldenTest : public testing::Test {
         root.AppendASCII("ahoi/browser/sync/testdata/sync_wire_v3.json"),
         &bytes));
     ASSERT_EQ(
-        "f1886032c54931f8dfd4180c5ff150698f85576ac70e52e3523f95291c3d8d00",
+        "645d4f3559e7eb3360189a35f891b7588ec69ef39f83cb8832ca4048204c006b",
         base::ToLowerASCII(base::HexEncode(crypto::SHA256HashString(bytes))));
     document_ = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
     ASSERT_TRUE(document_);
     ASSERT_EQ(3, document_->FindInt("model_version"));
     ASSERT_TRUE(document_->FindList("records"));
-    ASSERT_EQ(26u, cases().size());
+    ASSERT_EQ(28u, cases().size());
     for (const auto& value : cases()) {
       ASSERT_TRUE(value.is_dict());
       ASSERT_TRUE(value.GetDict().FindString("name"));
@@ -71,6 +72,15 @@ TEST_F(UnifiedSyncGoldenTest, EveryEntityRoundTripsTheSameCanonicalBytes) {
     EXPECT_EQ(type, GetEntityType(decoded));
     EXPECT_EQ(3, GetVersion(decoded).model_version);
     EXPECT_TRUE(HasCompleteFieldVersions(decoded));
+    if (const auto* setting = std::get_if<PermittedSettingRecord>(&decoded);
+        setting && IsExtensionSetupSettingId(setting->setting_id)) {
+      const auto desired = DecodeExtensionSetupSetting(*setting);
+      ASSERT_TRUE(desired);
+      auto typed = EncodeExtensionSetupSetting(*desired, setting->version);
+      ASSERT_TRUE(typed);
+      typed->field_versions = setting->field_versions;
+      EXPECT_EQ(*setting, *typed);
+    }
     std::string encoded;
     ASSERT_TRUE(SerializeRecord(decoded, &encoded));
     EXPECT_EQ(payload, encoded);

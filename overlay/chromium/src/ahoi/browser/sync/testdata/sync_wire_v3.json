@@ -158,6 +158,18 @@
       "entity_type": 7,
       "data_class": "appearance",
       "payload": "{\"color_mode\":\"system\",\"field_versions\":{\"accent_argb\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":4294967295,\"physical\":\"11644473603000555\"},\"color_mode\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":4294967295,\"physical\":\"11644473603000555\"},\"tombstone\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":4294967295,\"physical\":\"11644473603000555\"},\"use_system_accent\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":4294967295,\"physical\":\"11644473603000555\"}},\"id\":\"a7000000-0000-4000-8000-000000000002\",\"model_version\":3,\"tombstone\":false,\"use_system_accent\":true,\"version_device\":\"a0000000-0000-4000-8000-000000000001\",\"version_logical\":4294967295,\"version_model\":3,\"version_physical\":\"11644473603000555\"}"
+    },
+    {
+      "name": "extension_setup_web_store",
+      "entity_type": 8,
+      "data_class": "permittedSetting",
+      "payload": "{\"field_versions\":{\"setting_id\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"tombstone\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"value_json\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"}},\"id\":\"a8c12446-a7e0-44b6-8598-3e1689bab1d5\",\"model_version\":3,\"setting_id\":\"ahoi.extension.eimadpbcbfnmbkopoojfekhnkhdbieeh.desired\",\"tombstone\":false,\"value_json\":\"{\\\"enabled\\\":true,\\\"installed\\\":true,\\\"source\\\":\\\"chromeWebStore\\\"}\",\"version_device\":\"a0000000-0000-4000-8000-000000000001\",\"version_logical\":2,\"version_model\":3,\"version_physical\":\"11644473603000555\"}"
+    },
+    {
+      "name": "extension_setup_pinned_uninstalled",
+      "entity_type": 8,
+      "data_class": "permittedSetting",
+      "payload": "{\"field_versions\":{\"setting_id\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"tombstone\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"},\"value_json\":{\"device\":\"a0000000-0000-4000-8000-000000000001\",\"logical\":2,\"physical\":\"11644473603000555\"}},\"id\":\"675c4a7d-8139-4b45-8096-6725e5d78028\",\"model_version\":3,\"setting_id\":\"ahoi.extension.fkgkibajhfbepljeaefdnfnegdcjomkh.desired\",\"tombstone\":false,\"value_json\":\"{\\\"enabled\\\":false,\\\"installed\\\":false,\\\"source\\\":\\\"pinnedUblockClassic\\\"}\",\"version_device\":\"a0000000-0000-4000-8000-000000000001\",\"version_logical\":2,\"version_model\":3,\"version_physical\":\"11644473603000555\"}"
     }
   ]
 }

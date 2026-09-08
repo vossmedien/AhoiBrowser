@@ -20,6 +20,7 @@ public final class CompanionAppModel: ObservableObject {
     @Published public internal(set) var isSyncConfigured: Bool
     @Published public internal(set) var isBookmarkSyncEnabled: Bool
     @Published public internal(set) var isBrowserSettingsSyncEnabled: Bool
+    @Published public internal(set) var isExtensionSetupMetadataApproved: Bool
     @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
 
@@ -53,6 +54,7 @@ public final class CompanionAppModel: ObservableObject {
     var mobileSharedCaptureTask: Task<Void, Never>?
     var mobileSharedCaptureRequested = false
     var browserSettingsApprovalEpoch: UInt64 = 0
+    var extensionSetupMetadataEpoch: UInt64 = 0
     var browserSearchMutationTask: Task<Void, Never>?
     var browserSearchMutationToken: UUID?
     var remoteCommandExpiryTask: Task<Void, Never>?
@@ -93,6 +95,7 @@ public final class CompanionAppModel: ObservableObject {
         self.isSyncConfigured = syncProvider != nil && syncBridge != nil
         self.isBookmarkSyncEnabled = defaults.bool(forKey: Self.bookmarkSyncApprovalKey)
         self.isBrowserSettingsSyncEnabled = defaults.bool(forKey: Self.browserSettingsApprovalKey)
+        self.isExtensionSetupMetadataApproved = defaults.bool(forKey: Self.extensionSetupMetadataKey)
         self.desiredSyncEnabled = syncProvider != nil && syncBridge != nil
         self.keyLifecycleStatus = syncProvider != nil && syncBridge != nil
             ? .ready(keyVersion: 1)
@@ -403,6 +406,9 @@ public final class CompanionAppModel: ObservableObject {
             await bridge.setBookmarkSyncEnabled(isBookmarkSyncEnabled)
             await bridge.setBrowserSettingsSyncEnabled(
                 isBrowserSettingsSyncEnabled, epoch: browserSettingsApprovalEpoch
+            )
+            await bridge.setExtensionSetupMetadataApproved(
+                isExtensionSetupMetadataApproved, epoch: extensionSetupMetadataEpoch
             )
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else { return }
             if !providerPrepared {

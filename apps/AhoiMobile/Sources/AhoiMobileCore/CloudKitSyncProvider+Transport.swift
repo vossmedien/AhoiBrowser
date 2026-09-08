@@ -117,6 +117,22 @@ extension CloudKitSyncProvider {
             browserSettingTransportAuthorization.isApproved(id, epoch: epoch)
     }
 
+    func setExtensionSetupMetadataApproved(_ approved: Bool, epoch: UInt64) {
+        statusLock.withLock {
+            guard epoch >= extensionSetupMetadataEpoch else { return }
+            extensionSetupMetadataEpoch = epoch
+            extensionSetupMetadataApproved = approved && !isInvalidated
+        }
+    }
+
+    func isExtensionSetupMetadataApproved(epoch: UInt64) -> Bool {
+        statusLock.withLock {
+            !isInvalidated && accountContinuityVerified && !accountTransitionPending &&
+                !zoneRecoveryPending && !statePersistenceBlocked &&
+                extensionSetupMetadataApproved && epoch == extensionSetupMetadataEpoch
+        }
+    }
+
     func isCategoryConsentDeferral(_ error: any Error) -> Bool {
         error as? BookmarkTransportAuthorizationError == .categoryNotApproved ||
             error as? BrowserSettingTransportAuthorizationError == .categoryNotApproved

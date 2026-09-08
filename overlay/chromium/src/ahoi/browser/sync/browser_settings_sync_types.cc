@@ -6,6 +6,7 @@
 #include <string>
 
 #include "ahoi/browser/sync/browser_setting_catalog.h"
+#include "ahoi/browser/sync/extension_setup_setting.h"
 #include "base/json/json_reader.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
@@ -31,6 +32,9 @@ bool IsPortableBrowserSetting(const PermittedSettingRecord& record) {
   if (record.tombstone ||
       record.id != BrowserSettingRecordId(record.setting_id)) {
     return false;
+  }
+  if (IsExtensionSetupSettingId(record.setting_id)) {
+    return DecodeExtensionSetupSetting(record).has_value();
   }
   auto value = base::JSONReader::Read(record.value_json, base::JSON_PARSE_RFC);
   return value && ValidateBrowserSettingValue(record.setting_id, *value);

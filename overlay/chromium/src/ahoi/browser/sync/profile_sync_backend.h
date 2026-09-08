@@ -129,6 +129,7 @@ class ProfileSyncBackend : public SyncStoreObserver {
   void InitializeProviderIfAvailable();
   bool ProfileScopeActive() const;
   SyncAuthorization CaptureBrowserSettingsAuthorization();
+  bool RefreshBrowserSettingScopes();
   SharedTabSyncState SharedTabState();
   SyncAuthorization CaptureSharedAuthorization(bool require_write);
   bool PublishLocalCapability();
@@ -150,6 +151,11 @@ class ProfileSyncBackend : public SyncStoreObserver {
   const std::string device_name_;
   const SyncAuthorization profile_authorization_;
   const SettingAuthorizationSource setting_authorization_;
+  struct BrowserSettingScope {
+    PermittedSettingRecord record;
+    std::shared_ptr<std::atomic<bool>> cancelled;
+  };
+  std::map<base::Uuid, BrowserSettingScope> browser_setting_scopes_;
   bool transport_enabled_ = false;
   bool bookmark_sync_enabled_ = false;
   std::shared_ptr<std::atomic<bool>> bookmark_scope_cancelled_ =

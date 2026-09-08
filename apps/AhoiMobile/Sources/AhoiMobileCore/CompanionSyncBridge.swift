@@ -23,6 +23,9 @@ public actor CompanionSyncBridge {
     var browserSettingApprovedIDs = Set<UUID>()
     var browserSettingsApprovalEpoch: UInt64 = 0
     var browserSettingsHydrationRequired = false
+    var extensionSetupMetadataApproved = false
+    var extensionSetupMetadataEpoch: UInt64 = 0
+    var extensionSetupHydrationRequired = false
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, any Error>] = []
@@ -123,15 +126,22 @@ public actor CompanionSyncBridge {
         let hydrateBookmarks = bookmarkSyncEnabled && bookmarkHydrationRequired
         let settingsEpoch = browserSettingsApprovalEpoch
         let hydrateSettings = browserSettingsHydrationRequired && !browserSettingApprovedIDs.isEmpty
+        let extensionEpoch = extensionSetupMetadataEpoch
+        let hydrateExtensionSetup = extensionSetupHydrationRequired &&
+            provider.isExtensionSetupMetadataApproved(epoch: extensionEpoch)
         let bookmarkRecords = hydrateBookmarks
             ? try await provider.allRecords().filter { $0.dataClass == .bookmark } : []
         let settingRecords = hydrateSettings ? try await provider.allRecords().filter {
             $0.dataClass == .permittedSetting && browserSettingApprovedIDs.contains($0.entityID)
         } : []
+        let extensionRecords = hydrateExtensionSetup ? try await provider.allRecords().filter {
+            $0.dataClass == .permittedSetting &&
+                !CompanionBrowserSettingCatalog.recordIDs.contains($0.entityID)
+        } : []
         let snapshot = try await repository.currentSnapshot()
         let importContext = ImportContext(snapshot: snapshot)
         let candidates = Self.makeImportCandidates(
-            primaryRecords: recoveryRecords + bookmarkRecords + settingRecords,
+            primaryRecords: recoveryRecords + bookmarkRecords + settingRecords + extensionRecords,
             fetchedRecords: fetchedRecords
         )
         let ordered = candidates.enumerated().sorted { lhs, rhs in
@@ -180,6 +190,7 @@ public actor CompanionSyncBridge {
         // records or acknowledge their durable inbox copies.
         let outcomes = try await repository.mergeImportedBatch(mutations)
         var successfulTokens = acceptedWithoutDomainMutation
+        var acceptedExtensionSetupTokens = Set<Int>()
         var localWinnerRecords: [UUID: SyncRecord] = [:]
         var authorizedDeveloperAssetIDs = Set<UUID>()
         var revokedDeveloperAssetIDs = Set<UUID>()
@@ -192,6 +203,10 @@ public actor CompanionSyncBridge {
                 )
             case .accepted(let merged, let shouldReenqueue):
                 successfulTokens.insert(outcome.token)
+                if case .permittedSetting(let setting) = merged,
+                   CompanionExtensionSetup.decode(setting) != nil {
+                    acceptedExtensionSetupTokens.insert(outcome.token)
+                }
                 if case .developerAsset(let value) = merged {
                     if value.isDeleted || value.optedIn {
                         authorizedDeveloperAssetIDs.insert(value.id)
@@ -250,8 +265,12 @@ public actor CompanionSyncBridge {
             // No consent means no payload validation. It must not clear an
             // older corruption/quarantine decision merely by acknowledging a
             // newly fetched opaque copy of that same bookmark record.
+            let extensionReadApproved = extensionEpoch == extensionSetupMetadataEpoch &&
+                provider.isExtensionSetupMetadataApproved(epoch: extensionEpoch) &&
+                acceptedExtensionSetupTokens.contains(token)
             if (candidate.record.dataClass != .bookmark || bookmarkSyncEnabled) &&
                 (candidate.record.dataClass != .permittedSetting ||
+                    extensionReadApproved ||
                     (settingsEpoch == browserSettingsApprovalEpoch &&
                         browserSettingApprovedIDs.contains(candidate.record.entityID) &&
                         provider.isBrowserSettingApproved(
@@ -267,6 +286,9 @@ public actor CompanionSyncBridge {
         if hydrateBookmarks { bookmarkHydrationRequired = false }
         if hydrateSettings, settingsEpoch == browserSettingsApprovalEpoch {
             browserSettingsHydrationRequired = false
+        }
+        if hydrateExtensionSetup, extensionEpoch == extensionSetupMetadataEpoch {
+            extensionSetupHydrationRequired = false
         }
     }
 
@@ -409,7 +431,7 @@ public actor CompanionSyncBridge {
                 !browserSettingApprovedIDs.contains(record.entityID) ||
                 !provider.isBrowserSettingApproved(
                     record.entityID, epoch: browserSettingsApprovalEpoch
-                )) { return .ignored }
+                )) && !canReadExtensionSetup(record) { return .ignored }
         // One live format. Unsupported development input remains in recovery;
         // it is never normalized into a current authoritative snapshot.
         guard record.schemaVersion == SharedSyncFormat.currentVersion else {
@@ -499,6 +521,9 @@ public actor CompanionSyncBridge {
             let value = try wireCodec.decodePermittedSetting(record, plaintext: plaintext)
             try validate(record, identity: value.id, version: value.version,
                          tombstone: value.tombstone)
+            if canReadExtensionSetup(record) &&
+                !browserSettingApprovedIDs.contains(value.id) &&
+                CompanionExtensionSetup.decode(value) == nil { return .ignored }
             return .domain(.permittedSetting(value))
         case .extensionInventory:
             let value = try wireCodec.decodeExtensionInventory(record, plaintext: plaintext)

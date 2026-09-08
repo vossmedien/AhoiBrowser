@@ -227,6 +227,8 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
     let statusLock = NSLock()
     let bookmarkTransportAuthorization = BookmarkTransportAuthorization()
     let browserSettingTransportAuthorization = BrowserSettingTransportAuthorization()
+    var extensionSetupMetadataApproved = false
+    var extensionSetupMetadataEpoch: UInt64 = 0
     var currentStatus = CloudKitSyncStatus(
         phase: .idle,
         detail: CompanionL10n.string(

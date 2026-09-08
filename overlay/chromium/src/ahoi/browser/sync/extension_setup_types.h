@@ -34,6 +34,10 @@ struct ExtensionDesiredConfiguration {
 // and externally installed packages whose trusted restore route is unknown.
 struct NativeExtensionSetupSnapshot {
   bool complete = false;
+  // ALL actually installed profile IDs, including non-restorable entries.
+  // Local readback only: absence from the eligible subset below cannot prove
+  // successful uninstall of an extension that became policy-managed meanwhile.
+  std::vector<std::string> installed_extension_ids;
   std::vector<ExtensionDesiredConfiguration> extensions;
 };
 
@@ -53,6 +57,9 @@ struct ExtensionRestoreRequest {
   // Opaque binding to the exact intended shared version. Preserve through
   // native callbacks; it is not a file path or a second native storage ID.
   std::string revision;
+  // True only for an explicit local Retry/Install action. Passive sync must
+  // not steal focus to raise a permission prompt; report NeedsConfirmation.
+  bool user_initiated = false;
   SyncAuthorization authorization;
 };
 

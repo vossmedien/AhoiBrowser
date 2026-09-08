@@ -6,7 +6,7 @@ import AhoiCloudKitSpike
 /// Both language suites consume this exact repository resource, not a Swift
 /// translation of its records. Envelopes are codec probes, not real encryption.
 enum UnifiedSyncFixture {
-    static let sha256 = "f1886032c54931f8dfd4180c5ff150698f85576ac70e52e3523f95291c3d8d00"
+    static let sha256 = "645d4f3559e7eb3360189a35f891b7588ec69ef39f83cb8832ca4048204c006b"
 
     struct Document: Decodable {
         let model_version: Int

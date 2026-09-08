@@ -21,6 +21,7 @@ public struct CompanionSettingsView: View {
         NavigationStack {
             Form {
                 CompanionBrowserSettingsSection(model: model)
+                CompanionExtensionSetupSection(model: model)
 
                 Section {
                     Toggle(

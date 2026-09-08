@@ -1,6 +1,7 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <set>
 #include <utility>
 
 #include "ahoi/browser/sync/profile_sync_backend.h"
@@ -9,6 +10,43 @@
 #include "base/functional/bind.h"
 
 namespace ahoi::sync {
+
+bool ProfileSyncBackend::RefreshBrowserSettingScopes() {
+  std::vector<SyncRecord> records;
+  if (!store_ || store_->GetRecords(EntityType::kPermittedSetting, &records) !=
+                     SyncStore::Result::kOk) {
+    for (auto& [id, scope] : browser_setting_scopes_) {
+      scope.cancelled->store(true, std::memory_order_release);
+    }
+    browser_setting_scopes_.clear();
+    return false;
+  }
+  std::set<base::Uuid> present;
+  for (const auto& value : records) {
+    const auto& record = std::get<PermittedSettingRecord>(value);
+    present.insert(record.id);
+    auto old = browser_setting_scopes_.find(record.id);
+    if (old != browser_setting_scopes_.end() && old->second.record == record) {
+      continue;
+    }
+    if (old != browser_setting_scopes_.end()) {
+      old->second.cancelled->store(true, std::memory_order_release);
+    }
+    browser_setting_scopes_.insert_or_assign(
+        record.id, BrowserSettingScope{
+                       record, std::make_shared<std::atomic<bool>>(false)});
+  }
+  for (auto it = browser_setting_scopes_.begin();
+       it != browser_setting_scopes_.end();) {
+    if (!present.contains(it->first)) {
+      it->second.cancelled->store(true, std::memory_order_release);
+      it = browser_setting_scopes_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  return true;
+}
 
 SyncAuthorization ProfileSyncBackend::CaptureBrowserSettingsAuthorization() {
   if (!store_ || !ProfileScopeActive() || !transport_enabled_) {
@@ -34,23 +72,24 @@ ProfileSyncBackend::ReadBrowserSettings() {
   if (!authority || !authority.Run()) {
     return std::nullopt;
   }
-  std::vector<SyncRecord> records;
-  if (store_->GetRecords(EntityType::kPermittedSetting, &records) !=
-      SyncStore::Result::kOk) {
+  if (!RefreshBrowserSettingScopes()) {
     return std::nullopt;
   }
   BrowserSettingsProjection result;
-  for (const auto& record : records) {
-    result.records.push_back(std::get<PermittedSettingRecord>(record));
+  for (const auto& [id, scope] : browser_setting_scopes_) {
+    result.records.push_back(scope.record);
+    result.record_authorizations.emplace(
+        id, base::BindRepeating(
+                [](SyncAuthorization account,
+                   std::shared_ptr<std::atomic<bool>> cancelled) {
+                  return !cancelled->load(std::memory_order_acquire) &&
+                         account.Run();
+                },
+                authority, scope.cancelled));
   }
   result.initial_fetch_complete = store_->HasCompletedInitialFetch();
   result.observed_clock = clock_.last();
-  result.authorization = base::BindRepeating(
-      [](SyncAuthorization scope,
-         std::shared_ptr<std::atomic<bool>> cancelled) {
-        return !cancelled->load(std::memory_order_acquire) && scope.Run();
-      },
-      std::move(authority), shared_projection_cancelled_);
+  result.authorization = std::move(authority);
   return result;
 }
 

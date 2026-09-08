@@ -3,6 +3,26 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Extension orchestration source continuation — 2026-09-08
+
+The committed749598a native/typed seam now has its Common caller: separate
+default-off setup consent, explicit native user-intent publication, first-fetch
+complete-inventory seeding, original-version queue/replay, per-record provider
+leases and NativeExtensionSetupController operation/readback/retry handling.
+Native must provide BOTH its eligible restore entries and all installed IDs;
+otherwise an excluded managed entry could be mistaken for successful uninstall.
+The Native header also distinguishes passive restore from a user-initiated
+retry, so background synchronization cannot raise an unsolicited prompt.
+
+Matching Swift adds a separate read-only shared-extension setup section and
+provider/actor-epoch-gated hydration; it does not install or author Chromium
+extensions. The same canonical fixture now has28 examples / unchanged13 carrier
+types, hash645d4f3559e7eb3360189a35f891b7588ec69ef39f83cb8832ca4048204c006b.
+Existing golden assertions are updated for that resource, not executed. No new
+wire/schema version, database, engine, test matrix or native-file edits.
+Exact APIs and remaining real install/storage acceptance: EXTENSION_SETUP_SYNC.md.
+This package is NOT in Build18 or the native owner's currently frozen build.
+
 ## Build18 visible local setting journey completed — 2026-09-08
 
 Exact894c9a2 / DebugLocal18 passed the bounded visible native picker -> Bing

@@ -17,6 +17,7 @@ namespace ahoi::sync {
 // never the device-specific observed inventory. One atomic value_json group
 // prevents enable/source state from outliving its corresponding install state.
 std::string ExtensionSetupSettingId(std::string_view extension_id);
+bool IsExtensionSetupSettingId(std::string_view setting_id);
 std::optional<ExtensionDesiredConfiguration> DecodeExtensionSetupSetting(
     const PermittedSettingRecord& record);
 std::optional<PermittedSettingRecord> EncodeExtensionSetupSetting(

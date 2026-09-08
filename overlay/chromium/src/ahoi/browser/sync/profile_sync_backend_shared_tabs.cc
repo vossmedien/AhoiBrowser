@@ -39,6 +39,7 @@ void ProfileSyncBackend::RevokeSharedProjection() {
 }
 
 void ProfileSyncBackend::OnSyncStoreChanged() {
+  std::ignore = RefreshBrowserSettingScopes();
   // A delayed projection must never overwrite a newer local or remote row.
   RevokeSharedProjection();
   if (!SharedTabState().write_allowed) {

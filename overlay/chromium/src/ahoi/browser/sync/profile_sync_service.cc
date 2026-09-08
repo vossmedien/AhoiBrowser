@@ -10,6 +10,7 @@
 #include "ahoi/browser/sync/browser_setting_catalog.h"
 #include "ahoi/browser/sync/history_sync_filter.h"
 #include "ahoi/browser/sync/native_bookmark_sync_adapter.h"
+#include "ahoi/browser/sync/native_extension_setup_controller.h"
 #include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
@@ -110,6 +111,7 @@ void ProfileSyncService::StartBackend() {
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
   InitializeNativeSearchEngineSetting();
+  InitializeExtensionSetup();
   UpdateBrowserSettingConsent();
   if (profile_->GetPrefs()->GetString(kDeviceIdPref) !=
       local_device_id_.AsLowercaseString()) {
@@ -218,6 +220,8 @@ void ProfileSyncService::AttachUiBridge(ProfileSyncUiBridge* bridge) {
     OnTabTreeSnapshotChanged(snapshot);
   }
   UpdateSharedTabNativeSupport();
+  InitializeExtensionSetup();
+  RefreshBrowserSettings();
   ClaimRemoteCommands();
 }
 
@@ -230,6 +234,7 @@ void ProfileSyncService::DetachUiBridge(ProfileSyncUiBridge* bridge) {
     return;
   }
   tab_tree_subscription_ = {};
+  extension_setup_controller_.reset();
   ui_bridge_.reset();
   ++native_tree_revision_;
   native_tree_cancelled_->store(true, std::memory_order_release);
@@ -337,6 +342,7 @@ void ProfileSyncService::ConfirmCloudKitAccountTransition(
     // Preserve local values/intents, but do not reuse the previous account's
     // per-setting approval after the user explicitly refused local upload.
     profile_->GetPrefs()->SetList(kPermittedSettingIdsPref, base::ListValue());
+    profile_->GetPrefs()->SetBoolean(kExtensionSetupSyncEnabledPref, false);
   }
   backend_.AsyncCall(&ProfileSyncBackend::ConfirmAccountTransition)
       .WithArgs(allow_local_upload)

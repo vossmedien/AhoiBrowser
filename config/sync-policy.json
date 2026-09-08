@@ -66,6 +66,17 @@
     "decryptBeforeConsent": false,
     "accountChangeRevokesConsent": true
   },
+  "extensionSetupCategory": {
+    "carrier": "permittedSettings",
+    "typedNamespace": "ahoi.extension.<extension-id>.desired",
+    "localConsentRequired": true,
+    "enabledByDefault": false,
+    "requiresGlobalSync": true,
+    "consentIsSynced": false,
+    "nativePermissionsAreNotSynced": true,
+    "observedInventoryIsNotDesiredState": true,
+    "unknownOrUnpackedSourcesAreRestorable": false
+  },
   "historyRetentionDaysDefault": 90,
   "historyRetentionChoices": [30, 90, 365, -1],
   "tombstoneRetentionDays": 30,

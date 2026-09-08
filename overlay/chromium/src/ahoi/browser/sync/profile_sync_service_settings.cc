@@ -5,6 +5,8 @@
 #include <utility>
 
 #include "ahoi/browser/sync/browser_setting_catalog.h"
+#include "ahoi/browser/sync/extension_setup_setting.h"
+#include "ahoi/browser/sync/native_extension_setup_controller.h"
 #include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
@@ -19,6 +21,9 @@ namespace ahoi::sync {
 namespace {
 
 bool Enabled(const PrefService& prefs, std::string_view id) {
+  if (IsExtensionSetupSettingId(id)) {
+    return prefs.GetBoolean(kExtensionSetupSyncEnabledPref);
+  }
   return std::ranges::any_of(
       prefs.GetList(kPermittedSettingIdsPref), [id](const base::Value& value) {
         return value.is_string() && value.GetString() == id;
@@ -53,6 +58,9 @@ void ProfileSyncService::InitializeBrowserSettings() {
       auto intent = ReadIntent(id, value.GetString(), local_device_id_);
       if (intent) {
         browser_settings_clock_.Restore(intent->version.stamp);
+        if (DecodeExtensionSetupSetting(*intent)) {
+          known_extension_setup_ids_.insert(intent->id);
+        }
       }
     }
   }
@@ -73,9 +81,14 @@ void ProfileSyncService::InitializeBrowserSettings() {
       kPermittedSettingIdsPref,
       base::BindRepeating(&ProfileSyncService::OnBrowserSettingsConsentChanged,
                           weak_ptr_factory_.GetWeakPtr()));
+  sync_pref_registrar_.Add(
+      kExtensionSetupSyncEnabledPref,
+      base::BindRepeating(&ProfileSyncService::OnBrowserSettingsConsentChanged,
+                          weak_ptr_factory_.GetWeakPtr()));
 }
 
 void ProfileSyncService::ResetBrowserSettingsWork() {
+  extension_setup_controller_.reset();
   browser_settings_cancelled_->store(true, std::memory_order_release);
   browser_settings_cancelled_ = std::make_shared<std::atomic<bool>>(false);
   ++browser_settings_generation_;
@@ -83,6 +96,7 @@ void ProfileSyncService::ResetBrowserSettingsWork() {
   browser_settings_read_again_ = false;
   browser_setting_inflight_.clear();
   permitted_settings_seeded_ = false;
+  extension_setup_retry_.reset();
   // Persisted local intents survive opt-out/shutdown. They cannot publish
   // without the original profile/category scope and the backend account lease.
 }
@@ -101,6 +115,10 @@ void ProfileSyncService::UpdateBrowserSettingConsent() {
       if (SupportsBrowserSetting(id)) {
         allowed.insert(BrowserSettingRecordId(id));
       }
+    }
+    if (extension_setup_sync_enabled()) {
+      allowed.insert(known_extension_setup_ids_.begin(),
+                     known_extension_setup_ids_.end());
     }
   }
   browser_setting_consent_->SetAllowed(allowed);
@@ -141,7 +159,11 @@ void ProfileSyncService::OnBrowserSettingsRead(
   browser_settings_clock_.Restore(projection->observed_clock);
   for (const auto& record : projection->records) {
     browser_settings_clock_.Restore(record.version.stamp);
+    if (DecodeExtensionSetupSetting(record)) {
+      known_extension_setup_ids_.insert(record.id);
+    }
   }
+  UpdateBrowserSettingConsent();
 
   // Drain one durable, coalesced intent at a time. A backend success is SQLite
   // record+outbox acceptance, NOT a claim that PrefService's disk write
@@ -189,9 +211,16 @@ void ProfileSyncService::OnBrowserSettingsRead(
       if (!projection->authorization.Run()) {
         break;
       }
-      if (record.tombstone || !Enabled(*prefs, record.setting_id) ||
+      if (IsExtensionSetupSettingId(record.setting_id) || record.tombstone ||
+          !Enabled(*prefs, record.setting_id) ||
           record.id != BrowserSettingRecordId(record.setting_id) ||
           pending.contains(record.setting_id)) {
+        continue;
+      }
+      const auto record_scope =
+          projection->record_authorizations.find(record.id);
+      if (record_scope == projection->record_authorizations.end() ||
+          !record_scope->second || !record_scope->second.Run()) {
         continue;
       }
       const bool applied =
@@ -212,6 +241,12 @@ void ProfileSyncService::OnBrowserSettingsRead(
       }
     }
     applying_product_state_ = was_applying;
+  }
+  const auto after_native = weak_ptr_factory_.GetWeakPtr();
+  ApplyExtensionSetupProjection(*projection);
+  if (!after_native || shutting_down_ || !sync_enabled_ ||
+      generation != browser_settings_generation_) {
+    return;
   }
 
   if (!permitted_settings_seeded_ && projection->initial_fetch_complete &&
@@ -263,7 +298,6 @@ void ProfileSyncService::PublishPermittedProductSetting(std::string setting_id,
        !profile_->GetPrefs()->IsUserModifiablePreference(setting_id))) {
     return;
   }
-  PrefService* prefs = profile_->GetPrefs();
   auto value = ReadBrowserSetting(setting_id, explicit_reset);
   if (!value) {
     return;
@@ -273,18 +307,30 @@ void ProfileSyncService::PublishPermittedProductSetting(std::string setting_id,
       .setting_id = setting_id,
       .value_json = std::move(*value),
       .version = {.stamp = browser_settings_clock_.Tick()}};
+  std::ignore = StoreBrowserSettingIntent(std::move(record));
+}
+
+bool ProfileSyncService::StoreBrowserSettingIntent(
+    PermittedSettingRecord record) {
+  if (!profile_ || shutting_down_ || !sync_enabled_ ||
+      !IsPortableBrowserSetting(record) ||
+      !Enabled(*profile_->GetPrefs(), record.setting_id)) {
+    return false;
+  }
+  PrefService* prefs = profile_->GetPrefs();
   std::string payload;
   if (!SerializeRecord(record, &payload)) {
-    return;
+    return false;
   }
   auto pending = prefs->GetDict(kBrowserSettingIntentsPref).Clone();
-  pending.Set(setting_id, std::move(payload));
+  pending.Set(record.setting_id, std::move(payload));
   prefs->SetDict(kBrowserSettingIntentsPref, std::move(pending));
   // Use Chromium's existing preference persistence. Its completion closure has
   // no success result; do not label it a durable-write ACK. Recovery uses the
   // original versioned intent and shared SQLite winner, never fresh defaults.
   prefs->CommitPendingWrite();
   RefreshBrowserSettings();
+  return true;
 }
 
 void ProfileSyncService::OnPermittedProductSettingChanged(

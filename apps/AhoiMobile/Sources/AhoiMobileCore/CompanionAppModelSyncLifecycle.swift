@@ -123,6 +123,8 @@ extension CompanionAppModel {
         let providerToCancel = syncProvider
         browserSettingsApprovalEpoch &+= 1
         providerToCancel?.setBrowserSettingApprovedIDs([], epoch: browserSettingsApprovalEpoch)
+        extensionSetupMetadataEpoch &+= 1
+        providerToCancel?.setExtensionSetupMetadataApproved(false, epoch: extensionSetupMetadataEpoch)
         providerToCancel?.setEventDrivenSyncHandler(nil)
         syncProvider = nil
         syncBridge = nil

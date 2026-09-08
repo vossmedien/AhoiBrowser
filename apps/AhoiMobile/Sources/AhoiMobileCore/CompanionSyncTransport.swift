@@ -11,6 +11,8 @@ protocol CompanionSyncTransporting: AnyObject, Sendable {
     )
     func setBrowserSettingApprovedIDs(_ ids: Set<UUID>, epoch: UInt64)
     func isBrowserSettingApproved(_ id: UUID, epoch: UInt64) -> Bool
+    func setExtensionSetupMetadataApproved(_ approved: Bool, epoch: UInt64)
+    func isExtensionSetupMetadataApproved(epoch: UInt64) -> Bool
     func status() -> CloudKitSyncStatus
     func allRecords() async throws -> [SyncRecord]
     func records(forRecordIDs recordIDs: [UUID]) async throws -> [SyncRecord]
@@ -62,6 +64,8 @@ extension CompanionSyncTransporting {
     ) {}
     func setBrowserSettingApprovedIDs(_ ids: Set<UUID>, epoch: UInt64) {}
     func isBrowserSettingApproved(_ id: UUID, epoch: UInt64) -> Bool { false }
+    func setExtensionSetupMetadataApproved(_ approved: Bool, epoch: UInt64) {}
+    func isExtensionSetupMetadataApproved(epoch: UInt64) -> Bool { false }
     func enqueue(_ record: SyncRecord) async throws {
         try await enqueue(record, authorization: .init())
     }
@@ -87,6 +91,8 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
     private var domainMergeActivityCount = 0
     private let bookmarkTransportAuthorization = BookmarkTransportAuthorization()
     private let browserSettingTransportAuthorization = BrowserSettingTransportAuthorization()
+    private var extensionSetupMetadataApproved = false
+    private var extensionSetupMetadataEpoch: UInt64 = 0
 
     init(
         recordStore: InMemorySyncRecordStore,
@@ -118,6 +124,18 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
 
     func isBrowserSettingApproved(_ id: UUID, epoch: UInt64) -> Bool {
         browserSettingTransportAuthorization.isApproved(id, epoch: epoch)
+    }
+
+    func setExtensionSetupMetadataApproved(_ approved: Bool, epoch: UInt64) {
+        lock.withLock {
+            guard epoch >= extensionSetupMetadataEpoch else { return }
+            extensionSetupMetadataEpoch = epoch
+            extensionSetupMetadataApproved = approved
+        }
+    }
+
+    func isExtensionSetupMetadataApproved(epoch: UInt64) -> Bool {
+        lock.withLock { extensionSetupMetadataApproved && epoch == extensionSetupMetadataEpoch }
     }
 
     func allRecords() async throws -> [SyncRecord] {

@@ -245,5 +245,20 @@
     "independentlyKnownDeviceRequired": true,
     "controlAnnouncementBeforeDataFeatureReady": true
   },
+  "browserSetupSettings": {
+    "carrierEntityId": 8,
+    "atomicGroup": "value_json",
+    "extensionDesired": {
+      "settingId": "ahoi.extension.<32-character-extension-id>.desired",
+      "valueFields": ["enabled", "installed", "source"],
+      "sources": ["chromeWebStore", "pinnedUblockClassic"],
+      "uninstall": {"installed": false, "enabled": false},
+      "tombstoneAllowed": false,
+      "arbitraryPackageURLAllowed": false,
+      "nativePermissionConfirmationRequiredWhenApplicable": true,
+      "emptyInventoryIsUninstall": false,
+      "categoryConsentLocalOnly": true
+    }
+  },
   "fixturePath": "overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json"
 }

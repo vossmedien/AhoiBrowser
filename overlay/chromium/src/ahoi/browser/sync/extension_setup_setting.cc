@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/sync/extension_setup_setting.h"
 
+#include <algorithm>
 #include <utility>
 
 #include "ahoi/browser/sync/browser_settings_sync_types.h"
@@ -21,13 +22,18 @@ std::string ExtensionSetupSettingId(std::string_view extension_id) {
          std::string(kSuffix);
 }
 
+bool IsExtensionSetupSettingId(std::string_view setting_id) {
+  return setting_id.starts_with(kPrefix) && setting_id.ends_with(kSuffix) &&
+         setting_id.size() == kPrefix.size() + 32 + kSuffix.size() &&
+         std::ranges::all_of(setting_id.substr(kPrefix.size(), 32),
+                             [](char c) { return c >= 'a' && c <= 'p'; });
+}
+
 std::optional<ExtensionDesiredConfiguration> DecodeExtensionSetupSetting(
     const PermittedSettingRecord& record) {
   if (record.tombstone ||
       record.id != BrowserSettingRecordId(record.setting_id) ||
-      !record.setting_id.starts_with(kPrefix) ||
-      !record.setting_id.ends_with(kSuffix) ||
-      record.setting_id.size() != kPrefix.size() + 32 + kSuffix.size()) {
+      !IsExtensionSetupSettingId(record.setting_id)) {
     return std::nullopt;
   }
   auto value = base::JSONReader::Read(record.value_json, base::JSON_PARSE_RFC);

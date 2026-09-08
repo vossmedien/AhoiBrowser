@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "ahoi/browser/sync/browser_setting_catalog.h"
+#include "ahoi/browser/sync/extension_setup_setting.h"
 #include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/sync/sync_product_settings.h"
@@ -30,6 +31,10 @@ void ProfileSyncService::InitializeNativeSearchEngineSetting() {
 bool ProfileSyncService::SupportsBrowserSetting(std::string_view id) const {
   if (!profile_ || shutting_down_) {
     return false;
+  }
+  if (IsExtensionSetupSettingId(id)) {
+    return true;  // Dedicated native setup path, not a registered PrefService
+                  // ID.
   }
   if (id == kBrowserSearchEngineSettingId) {
     // Load/policy readiness is separate from the user's category approval.
