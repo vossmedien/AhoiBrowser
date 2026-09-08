@@ -14,6 +14,9 @@
 #include <vector>
 
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+#include "ahoi/browser/sync/browser_setting_consent.h"
+#include "ahoi/browser/sync/browser_settings_sync_types.h"
+#include "ahoi/browser/sync/hybrid_logical_clock.h"
 #include "ahoi/browser/sync/profile_shared_tab_types.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
 #include "ahoi/browser/sync/profile_sync_ui_bridge.h"
@@ -146,6 +149,10 @@ class ProfileSyncService final : public KeyedService,
   int history_retention_days() const;
   std::vector<base::Uuid> approved_remote_control_devices() const;
   std::vector<std::string> permitted_setting_ids() const;
+  std::vector<std::string> supported_setting_ids() const;
+  // One deliberate "browser settings" category action in the native Sync UI.
+  // Never invoke implicitly from startup, account discovery or global opt-in.
+  [[nodiscard]] bool SetBrowserSettingsSyncEnabled(bool enabled);
   [[nodiscard]] bool SetPermittedSettingSyncEnabled(std::string setting_id,
                                                     bool enabled);
   [[nodiscard]] bool SetDeveloperAssetSyncEnabled(const base::Uuid& asset_id,
@@ -211,7 +218,20 @@ class ProfileSyncService final : public KeyedService,
   void ShutdownProductSync();
   void ApplyProductState(const SyncStateSnapshot& snapshot);
   void PublishCurrentAppearance();
-  void PublishPermittedProductSetting(std::string setting_id);
+  void InitializeBrowserSettings();
+  void ResetBrowserSettingsWork();
+  void UpdateBrowserSettingConsent();
+  void OnBrowserSettingsConsentChanged();
+  void RefreshBrowserSettings();
+  void OnBrowserSettingsRead(
+      uint64_t generation,
+      std::optional<BrowserSettingsProjection> projection);
+  void OnBrowserSettingIntentStored(uint64_t generation,
+                                    std::string setting_id,
+                                    std::string original_payload,
+                                    std::optional<SyncStateSnapshot> snapshot);
+  void PublishPermittedProductSetting(std::string setting_id,
+                                      bool explicit_reset = false);
   void PublishExtensionInventory();
   void OnPermittedProductSettingChanged(std::string setting_id);
   void NotifyObservers();
@@ -254,6 +274,7 @@ class ProfileSyncService final : public KeyedService,
 
   const base::Uuid local_device_id_;
   const base::Uuid local_session_id_;
+  HybridLogicalClock browser_settings_clock_;
   const scoped_refptr<base::SequencedTaskRunner> backend_task_runner_;
   std::shared_ptr<std::atomic<bool>> profile_scope_cancelled_ =
       std::make_shared<std::atomic<bool>>(true);
@@ -283,7 +304,15 @@ class ProfileSyncService final : public KeyedService,
   std::map<base::Uuid, std::string> local_tab_keys_by_sync_id_;
   std::map<base::Uuid, SyncVersion> applied_history_versions_;
   std::map<base::Uuid, SyncVersion> applied_appearance_versions_;
-  std::map<base::Uuid, SyncVersion> applied_setting_versions_;
+  std::map<std::string, std::string> observed_user_settings_;
+  std::map<std::string, std::string> browser_setting_inflight_;
+  const std::shared_ptr<BrowserSettingConsent> browser_setting_consent_ =
+      std::make_shared<BrowserSettingConsent>();
+  std::shared_ptr<std::atomic<bool>> browser_settings_cancelled_ =
+      std::make_shared<std::atomic<bool>>(false);
+  uint64_t browser_settings_generation_ = 0;
+  bool browser_settings_read_pending_ = false;
+  bool browser_settings_read_again_ = false;
   DeviceTabsSnapshot snapshot_;
   SyncTransportStatus transport_status_;
   std::vector<PermittedSettingRecord> permitted_settings_;

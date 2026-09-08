@@ -47,6 +47,8 @@ class SyncProvider {
   // Original account/key/recovery scope for all synchronized data. A cached
   // UI readiness flag is not sufficient for a delayed native apply or commit.
   virtual SyncAuthorization GetTransportAuthorization();
+  virtual SyncAuthorization GetPermittedSettingSyncAuthorization(
+      const base::Uuid& record_id);
   virtual bool IsAccountTransitionPending();
   virtual bool IsZoneRecoveryPending();
   virtual bool ConfirmAccountTransition(bool allow_local_upload);

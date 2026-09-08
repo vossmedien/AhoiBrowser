@@ -3,6 +3,25 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Browser settings packet — 2026-09-08
+
+Native setting capture/apply now uses an explicit 24-entry checked catalogue,
+real USER values, default-reset intent and original-version local recovery
+payloads. Per-setting revocation is connected through C++ backend, outbox pump,
+Mac direct upload, delayed CKRecord delivery and ACK. The previous unversioned
+setting writer/opt-out tombstone is removed. Matching Swift recognizes the same
+IDs/types and filters outgoing, seeding and merge reenqueues; unknown metadata
+remains stored. No current wire fields/version or SQLite schema changed.
+Concrete native category UI methods, exact supported/excluded scope, verified
+existing USER-layer observer behavior, Mobile apply/provider gaps and E2E-first next
+step: [BROWSER_SETTINGS_SYNC.md](BROWSER_SETTINGS_SYNC.md).
+
+Only pinned formatting/GN, Xcode project generation and scoped source checks
+have run for this packet. There is no new product build/test/E2E claim. Desktop's
+separate corrected c20a759 candidate and Mobile's Build17 remain their own
+evidence. Settings/extension restoration, iOS mappings and workspace metadata
+are not complete merely because the first catalogue and settings pipeline exist.
+
 ## Native app-first compiler correction — 2026-09-08
 
 Desktop's app-only build71760 on74ceb15 is terminal EXIT1. Its Common causes

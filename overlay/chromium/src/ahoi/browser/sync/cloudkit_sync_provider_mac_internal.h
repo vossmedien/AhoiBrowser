@@ -45,9 +45,14 @@ class CloudKitSyncProviderMac::Core
        base::FilePath state_path,
        std::unique_ptr<SyncPayloadCryptor> cryptor,
        bool bookmark_sync_enabled,
-       SyncAuthorization profile_authorization);
+       SyncAuthorization profile_authorization,
+       SettingAuthorizationSource setting_authorization = {});
   ~Core();
   void SetBookmarkSyncEnabled(bool enabled);
+  SyncAuthorization GetSettingAuthorization(const base::Uuid& id) {
+    return setting_authorization_ ? setting_authorization_.Run(id)
+                                  : SyncAuthorization();
+  }
   void ReceiveRecordForTesting(CKRecord* record);
   base::RepeatingCallback<bool()> MakeDelayedRecordDeliveryForTesting(
       CKRecord* record);
@@ -197,6 +202,7 @@ class CloudKitSyncProviderMac::Core
             pending_records_.find(ToString(change.recordID.recordName));
         if (record != pending_records_.end() &&
             (!IsBookmarkRecord(record->second) || BookmarkAllowed()) &&
+            PendingSettingAllowed(record->second) &&
             [context.options.scope containsRecordID:change.recordID] &&
             change.type == CKSyncEnginePendingRecordZoneChangeTypeSaveRecord) {
           [changes addObject:change];
@@ -249,6 +255,7 @@ class CloudKitSyncProviderMac::Core
     [engine_.state
         removePendingRecordZoneChanges:engine_.state.pendingRecordZoneChanges];
     pending_records_.clear();
+    pending_setting_authorizations_.clear();
     server_records_.clear();
     pending_mutations_.clear();
     upload_acknowledgements_.clear();
@@ -274,6 +281,17 @@ class CloudKitSyncProviderMac::Core
   }
 
  private:
+  bool PendingSettingAllowed(CKRecord* record) const {
+    lock_.AssertAcquired();
+    if (EntityTypeForDataClass(record[@"dataClass"]) !=
+        EntityType::kPermittedSetting) {
+      return true;
+    }
+    const auto found = pending_setting_authorizations_.find(
+        ToString(record.recordID.recordName));
+    return found != pending_setting_authorizations_.end() && found->second &&
+           found->second.Run();
+  }
   static bool IsBookmarkRecord(CKRecord* record) {
     return EntityTypeForDataClass(record[@"dataClass"]) ==
            EntityType::kBookmark;
@@ -315,7 +333,8 @@ class CloudKitSyncProviderMac::Core
       return;
     }
     for (CKRecord* record in event.savedRecords) {
-      if (IsBookmarkRecord(record) && !BookmarkAllowed()) {
+      if ((IsBookmarkRecord(record) && !BookmarkAllowed()) ||
+          !PendingSettingAllowed(record)) {
         continue;
       }
       const std::string key = ToString(record.recordID.recordName);
@@ -333,12 +352,14 @@ class CloudKitSyncProviderMac::Core
         pending_mutations_.erase(mutation);
       }
       pending_records_.erase(key);
+      pending_setting_authorizations_.erase(key);
     }
     for (CKSyncEngineFailedRecordSave* failure in event.failedRecordSaves) {
       NSError* error = failure.error;
       CKRecord* server = error.userInfo[CKRecordChangedErrorServerRecordKey];
       const std::string key = ToString(failure.record.recordID.recordName);
-      if (IsBookmarkRecord(failure.record) && !BookmarkAllowed()) {
+      if ((IsBookmarkRecord(failure.record) && !BookmarkAllowed()) ||
+          !PendingSettingAllowed(failure.record)) {
         if (server && IsBookmarkRecord(server)) {
           ReceiveFetchedRecord(server);
           PersistInbox();
@@ -372,6 +393,7 @@ class CloudKitSyncProviderMac::Core
             pending_mutations_.erase(mutation);
           }
           pending_records_.erase(key);
+          pending_setting_authorizations_.erase(key);
           continue;
         }
       }
@@ -414,11 +436,13 @@ class CloudKitSyncProviderMac::Core
   const base::FilePath inbox_path_;
   std::unique_ptr<SyncPayloadCryptor> cryptor_;
   const SyncAuthorization profile_authorization_;
+  const SettingAuthorizationSource setting_authorization_;
   scoped_refptr<base::SequencedTaskRunner> owner_runner_;
   __strong AhoiCloudKitSyncDelegate* delegate_core_ = nil;
   __strong CKSyncEngine* engine_ = nil;
   __strong CKRecordZoneID* zone_id_ = nil;
   std::map<std::string, __strong CKRecord*> pending_records_;
+  std::map<std::string, SyncAuthorization> pending_setting_authorizations_;
   std::map<std::string, __strong CKRecord*> server_records_;
   std::map<std::string, std::string> pending_mutations_;
   std::map<std::string, SyncChange> fetched_changes_;

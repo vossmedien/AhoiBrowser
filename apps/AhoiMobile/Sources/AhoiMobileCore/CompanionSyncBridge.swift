@@ -539,6 +539,9 @@ public actor CompanionSyncBridge {
                 plaintext: wireCodec.encode(value), tombstone: value.tombstone
             )
         case .permittedSetting(let value):
+            guard CompanionBrowserSettingCatalog.isPortable(value) else {
+                throw CompanionProductRecordError.invalidPermittedSetting
+            }
             return try codec.makeRecord(
                 recordID: value.id, entityID: value.id,
                 dataClass: .permittedSetting, version: value.version,

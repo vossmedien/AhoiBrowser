@@ -19,6 +19,11 @@ class SyncProductSettingsTest : public testing::Test {
 TEST_F(SyncProductSettingsTest, SidebarPageTintUsesBooleanAllowlistBoundary) {
   EXPECT_TRUE(
       IsPermittedProductSettingId(appearance::kSidebarPageTintEnabledPref));
+  EXPECT_FALSE(EncodePermittedProductSetting(
+      prefs_, appearance::kSidebarPageTintEnabledPref));
+  EXPECT_EQ("null", EncodePermittedProductSetting(
+                        prefs_, appearance::kSidebarPageTintEnabledPref, true));
+  prefs_.SetBoolean(appearance::kSidebarPageTintEnabledPref, false);
   const std::optional<std::string> encoded = EncodePermittedProductSetting(
       prefs_, appearance::kSidebarPageTintEnabledPref);
   ASSERT_TRUE(encoded.has_value());
@@ -29,6 +34,10 @@ TEST_F(SyncProductSettingsTest, SidebarPageTintUsesBooleanAllowlistBoundary) {
   EXPECT_TRUE(appearance::IsSidebarPageTintEnabled(prefs_));
   EXPECT_FALSE(ApplyPermittedProductSetting(
       &prefs_, appearance::kSidebarPageTintEnabledPref, "1"));
+  EXPECT_TRUE(ApplyPermittedProductSetting(
+      &prefs_, appearance::kSidebarPageTintEnabledPref, "null"));
+  EXPECT_EQ(nullptr,
+            prefs_.GetUserPrefValue(appearance::kSidebarPageTintEnabledPref));
 }
 
 }  // namespace ahoi::sync

@@ -58,6 +58,7 @@ ProfileSyncService::ProfileSyncService(Profile* profile)
           *profile,
           profile->GetPrefs()->GetBoolean(kSyncEnabledPref))),
       local_session_id_(base::Uuid::GenerateRandomV4()),
+      browser_settings_clock_(local_device_id_.AsLowercaseString()),
       backend_task_runner_(base::ThreadPool::CreateSequencedTaskRunner(
           {base::MayBlock(), base::TaskPriority::USER_VISIBLE,
            base::TaskShutdownBehavior::BLOCK_SHUTDOWN})),
@@ -106,20 +107,25 @@ void ProfileSyncService::StartBackend() {
   extension_inventory_seeded_ = false;
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
+  UpdateBrowserSettingConsent();
   if (profile_->GetPrefs()->GetString(kDeviceIdPref) !=
       local_device_id_.AsLowercaseString()) {
     profile_->GetPrefs()->SetString(kDeviceIdPref,
                                     local_device_id_.AsLowercaseString());
   }
-  backend_.emplace(backend_task_runner_,
-                   profile_->GetPath()
-                       .AppendASCII("Ahoi Sync")
-                       .AppendASCII("sync-format3.sqlite"),
-                   local_device_id_, local_session_id_,
-                   DeviceDisplayName(*profile_),
-                   /*transport_enabled=*/true,
-                   profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref),
-                   bookmark_sync_enabled(), StartProfileAuthorization());
+  backend_.emplace(
+      backend_task_runner_,
+      profile_->GetPath()
+          .AppendASCII("Ahoi Sync")
+          .AppendASCII("sync-format3.sqlite"),
+      local_device_id_, local_session_id_, DeviceDisplayName(*profile_),
+      /*transport_enabled=*/true,
+      profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref),
+      bookmark_sync_enabled(), StartProfileAuthorization(),
+      base::BindRepeating(
+          [](std::shared_ptr<BrowserSettingConsent> consent,
+             const base::Uuid& id) { return consent->Capture(id); },
+          browser_setting_consent_));
   backend_.AsyncCall(&ProfileSyncBackend::Initialize)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
                            backend_weak_ptr_factory_.GetWeakPtr()));
@@ -139,6 +145,8 @@ void ProfileSyncService::StartBackend() {
 
 void ProfileSyncService::StopBackend() {
   RevokeProfileAuthorization();
+  browser_setting_consent_->SetAllowed({});
+  ResetBrowserSettingsWork();
   StopSharedTabs();
   StopBookmarkSync();
   publish_timer_.Stop();
@@ -162,7 +170,6 @@ void ProfileSyncService::StopBackend() {
   local_tab_keys_by_sync_id_.clear();
   applied_history_versions_.clear();
   applied_appearance_versions_.clear();
-  applied_setting_versions_.clear();
   snapshot_ = {};
   transport_status_ = {};
   permitted_settings_.clear();
@@ -320,6 +327,11 @@ void ProfileSyncService::ConfirmCloudKitAccountTransition(
     bool allow_local_upload) {
   if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;
+  }
+  if (!allow_local_upload) {
+    // Preserve local values/intents, but do not reuse the previous account's
+    // per-setting approval after the user explicitly refused local upload.
+    profile_->GetPrefs()->SetList(kPermittedSettingIdsPref, base::ListValue());
   }
   backend_.AsyncCall(&ProfileSyncBackend::ConfirmAccountTransition)
       .WithArgs(allow_local_upload)

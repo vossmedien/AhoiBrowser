@@ -8,7 +8,9 @@
 #include <tuple>
 #include <utility>
 
+#include "ahoi/browser/sync/browser_settings_sync_types.h"
 #include "ahoi/browser/sync/sync_provider.h"
+#include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -117,8 +119,31 @@ void SyncPump::UploadNextPage() {
     return;
   }
   std::vector<SyncChange> changes;
-  if (store_->ReadOutbox(options_.upload_batch_size, &changes,
-                         bookmark_sync_enabled_) != SyncStore::Result::kOk) {
+  std::vector<SyncAuthorization> setting_scopes;
+  if (store_->ReadOutbox(
+          options_.upload_batch_size, &changes, bookmark_sync_enabled_,
+          base::BindRepeating(
+              [](SyncProvider* provider, std::vector<SyncAuthorization>* scopes,
+                 const SyncChange& change) {
+                if (change.entity_type != EntityType::kPermittedSetting) {
+                  return true;
+                }
+                SyncRecord decoded;
+                if (!ValidateChangeEnvelope(change, &decoded) ||
+                    !IsPortableBrowserSetting(
+                        std::get<PermittedSettingRecord>(decoded))) {
+                  return false;
+                }
+                auto scope = provider->GetPermittedSettingSyncAuthorization(
+                    change.entity_id);
+                if (!scope || !scope.Run()) {
+                  return false;
+                }
+                scopes->push_back(std::move(scope));
+                return true;
+              },
+              base::Unretained(provider_.get()),
+              base::Unretained(&setting_scopes))) != SyncStore::Result::kOk) {
     FinishFailure("provider_error");
     return;
   }
@@ -126,6 +151,18 @@ void SyncPump::UploadNextPage() {
     DownloadNextPage(store_->GetChangeToken());
     return;
   }
+
+  // Preserve each original category generation across Upload and its posted
+  // reply. A later off/on cannot acknowledge an old operation or lose its row.
+  transport_authorization = base::BindRepeating(
+      [](SyncAuthorization transport,
+         const std::vector<SyncAuthorization>& settings) {
+        return transport.Run() &&
+               std::ranges::all_of(settings, [](const auto& scope) {
+                 return scope && scope.Run();
+               });
+      },
+      std::move(transport_authorization), std::move(setting_scopes));
 
   std::vector<SyncChange> attempted = changes;
   BookmarkSyncAuthorization authorization;

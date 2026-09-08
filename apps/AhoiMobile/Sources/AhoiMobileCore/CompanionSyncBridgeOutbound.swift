@@ -206,6 +206,9 @@ extension CompanionSyncBridge {
     }
 
     public func enqueue(_ value: CompanionPermittedSettingRecord) async throws {
+        guard CompanionBrowserSettingCatalog.isPortable(value) else {
+            throw CompanionProductRecordError.invalidPermittedSetting
+        }
         try await provider.enqueue(codec.makeRecord(
             recordID: value.id,
             entityID: value.id,

@@ -24,6 +24,10 @@ inline constexpr char kHistoryRetentionDaysPref[] =
     "ahoi.sync.history_retention_days";
 inline constexpr char kPermittedSettingIdsPref[] =
     "ahoi.sync.permitted_setting_ids";
+// Local recovery queue of canonical current-format user intents, with their
+// ORIGINAL versions. Never part of the syncable preference catalogue.
+inline constexpr char kBrowserSettingIntentsPref[] =
+    "ahoi.sync.browser_setting_intents";
 inline constexpr char kDeveloperAssetOptInIdsPref[] =
     "ahoi.sync.developer_asset_opt_in_ids";
 inline constexpr char kRemoteControlEnabledPref[] =

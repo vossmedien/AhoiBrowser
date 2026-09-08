@@ -19,6 +19,11 @@ SyncAuthorization SyncProvider::GetTransportAuthorization() {
   return {};
 }
 
+SyncAuthorization SyncProvider::GetPermittedSettingSyncAuthorization(
+    const base::Uuid& record_id) {
+  return {};
+}
+
 bool SyncProvider::IsAccountTransitionPending() {
   return false;
 }

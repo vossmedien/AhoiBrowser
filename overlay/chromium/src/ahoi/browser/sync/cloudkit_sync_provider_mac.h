@@ -34,7 +34,8 @@ class CloudKitSyncProviderMac final : public SyncProvider {
       const base::FilePath& state_path,
       std::unique_ptr<SyncPayloadCryptor> cryptor,
       bool bookmark_sync_enabled = false,
-      SyncAuthorization profile_authorization = {});
+      SyncAuthorization profile_authorization = {},
+      SettingAuthorizationSource setting_authorization = {});
 
   ~CloudKitSyncProviderMac() override;
   void Upload(std::vector<SyncChange> changes,
@@ -44,6 +45,8 @@ class CloudKitSyncProviderMac final : public SyncProvider {
   bool IsBookmarkConsentRevoked() override;
   BookmarkSyncAuthorization GetBookmarkSyncAuthorization() override;
   SyncAuthorization GetTransportAuthorization() override;
+  SyncAuthorization GetPermittedSettingSyncAuthorization(
+      const base::Uuid& record_id) override;
   bool IsAccountTransitionPending() override;
   bool IsZoneRecoveryPending() override;
   bool ConfirmAccountTransition(bool allow_local_upload) override;

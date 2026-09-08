@@ -75,19 +75,22 @@ std::vector<Record> RecordsOfType(const std::vector<SyncRecord>& source) {
 
 }  // namespace
 
-ProfileSyncBackend::ProfileSyncBackend(base::FilePath database_path,
-                                       base::Uuid device_id,
-                                       base::Uuid session_id,
-                                       std::string device_name,
-                                       bool transport_enabled,
-                                       int history_retention_days,
-                                       bool bookmark_sync_enabled,
-                                       SyncAuthorization profile_authorization)
+ProfileSyncBackend::ProfileSyncBackend(
+    base::FilePath database_path,
+    base::Uuid device_id,
+    base::Uuid session_id,
+    std::string device_name,
+    bool transport_enabled,
+    int history_retention_days,
+    bool bookmark_sync_enabled,
+    SyncAuthorization profile_authorization,
+    SettingAuthorizationSource setting_authorization)
     : database_path_(std::move(database_path)),
       device_id_(std::move(device_id)),
       session_id_(std::move(session_id)),
       device_name_(std::move(device_name)),
       profile_authorization_(std::move(profile_authorization)),
+      setting_authorization_(std::move(setting_authorization)),
       transport_enabled_(transport_enabled),
       bookmark_sync_enabled_(bookmark_sync_enabled),
       history_retention_days_(
@@ -415,13 +418,6 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::UpsertAppearance(
              : std::nullopt;
 }
 
-std::optional<SyncStateSnapshot> ProfileSyncBackend::UpsertPermittedSetting(
-    PermittedSettingRecord record) {
-  return PutDomainRecordIfChanged(std::move(record), base::Time::Now())
-             ? CurrentState()
-             : std::nullopt;
-}
-
 std::optional<SyncStateSnapshot>
 ProfileSyncBackend::ReplaceLocalExtensionInventory(
     std::vector<ExtensionInventoryRecord> records) {
@@ -548,7 +544,8 @@ void ProfileSyncBackend::InitializeProviderIfAvailable() {
   provider_ = CloudKitSyncProviderMac::Create(
       *configuration,
       database_path_.DirName().AppendASCII("cksync-format3.state"),
-      std::move(cryptor), bookmark_sync_enabled_, profile_authorization_);
+      std::move(cryptor), bookmark_sync_enabled_, profile_authorization_,
+      setting_authorization_);
   if (provider_) {
     if (provider_->IsBookmarkConsentRevoked()) {
       bookmark_sync_enabled_ = false;

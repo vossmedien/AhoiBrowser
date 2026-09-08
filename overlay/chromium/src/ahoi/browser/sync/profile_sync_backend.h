@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+#include "ahoi/browser/sync/browser_settings_sync_types.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
 #include "ahoi/browser/sync/profile_shared_tab_types.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
@@ -46,7 +47,8 @@ class ProfileSyncBackend : public SyncStoreObserver {
                      bool transport_enabled,
                      int history_retention_days,
                      bool bookmark_sync_enabled = false,
-                     SyncAuthorization profile_authorization = {});
+                     SyncAuthorization profile_authorization = {},
+                     SettingAuthorizationSource setting_authorization = {});
   ProfileSyncBackend(const ProfileSyncBackend&) = delete;
   ProfileSyncBackend& operator=(const ProfileSyncBackend&) = delete;
   ~ProfileSyncBackend() override;
@@ -89,8 +91,12 @@ class ProfileSyncBackend : public SyncStoreObserver {
   std::optional<SyncStateSnapshot> SetTransportEnabled(bool enabled);
   std::optional<SyncStateSnapshot> SetHistoryRetentionDays(int days);
   std::optional<SyncStateSnapshot> UpsertAppearance(AppearanceRecord record);
-  std::optional<SyncStateSnapshot> UpsertPermittedSetting(
-      PermittedSettingRecord record);
+  std::optional<BrowserSettingsProjection> ReadBrowserSettings();
+  // The version belongs to the original persisted user intent. Retrying it
+  // must never give an old value a new HLC or overwrite a newer peer change.
+  std::optional<SyncStateSnapshot> PublishBrowserSettingIntent(
+      PermittedSettingRecord record,
+      SyncAuthorization authorization);
   std::optional<SyncStateSnapshot> ReplaceLocalExtensionInventory(
       std::vector<ExtensionInventoryRecord> records);
   std::optional<SyncStateSnapshot> UpsertDeveloperAsset(
@@ -122,6 +128,7 @@ class ProfileSyncBackend : public SyncStoreObserver {
   void TouchSession();
   void InitializeProviderIfAvailable();
   bool ProfileScopeActive() const;
+  SyncAuthorization CaptureBrowserSettingsAuthorization();
   SharedTabSyncState SharedTabState();
   SyncAuthorization CaptureSharedAuthorization(bool require_write);
   bool PublishLocalCapability();
@@ -142,6 +149,7 @@ class ProfileSyncBackend : public SyncStoreObserver {
   const base::Uuid session_id_;
   const std::string device_name_;
   const SyncAuthorization profile_authorization_;
+  const SettingAuthorizationSource setting_authorization_;
   bool transport_enabled_ = false;
   bool bookmark_sync_enabled_ = false;
   std::shared_ptr<std::atomic<bool>> bookmark_scope_cancelled_ =

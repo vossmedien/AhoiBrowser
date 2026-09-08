@@ -86,12 +86,14 @@ CloudKitSyncProviderMac::Core::Core(
     base::FilePath state_path,
     std::unique_ptr<SyncPayloadCryptor> cryptor,
     bool bookmark_sync_enabled,
-    SyncAuthorization profile_authorization)
+    SyncAuthorization profile_authorization,
+    SettingAuthorizationSource setting_authorization)
     : configuration_(configuration),
       state_path_(std::move(state_path)),
       inbox_path_(state_path_.AddExtensionASCII("inbox")),
       cryptor_(std::move(cryptor)),
       profile_authorization_(std::move(profile_authorization)),
+      setting_authorization_(std::move(setting_authorization)),
       owner_runner_(base::SequencedTaskRunner::GetCurrentDefault()),
       bookmark_sync_enabled_(bookmark_sync_enabled) {}
 
@@ -104,7 +106,8 @@ std::unique_ptr<CloudKitSyncProviderMac> CloudKitSyncProviderMac::Create(
     const base::FilePath& state_path,
     std::unique_ptr<SyncPayloadCryptor> cryptor,
     bool bookmark_sync_enabled,
-    SyncAuthorization profile_authorization) {
+    SyncAuthorization profile_authorization,
+    SettingAuthorizationSource setting_authorization) {
   if (!configuration.IsTransportConfigured() || !cryptor ||
       !profile_authorization || !profile_authorization.Run()) {
     return nullptr;
@@ -112,7 +115,7 @@ std::unique_ptr<CloudKitSyncProviderMac> CloudKitSyncProviderMac::Create(
   if (@available(macOS 14.0, *)) {
     auto core = std::make_shared<Core>(
         configuration, state_path, std::move(cryptor), bookmark_sync_enabled,
-        std::move(profile_authorization));
+        std::move(profile_authorization), std::move(setting_authorization));
     if (!core->Initialize()) {
       return nullptr;
     }
@@ -160,6 +163,11 @@ void CloudKitSyncProviderMac::Download(std::string change_token,
 
 void CloudKitSyncProviderMac::SetBookmarkSyncEnabled(bool enabled) {
   core_->SetBookmarkSyncEnabled(enabled);
+}
+
+SyncAuthorization CloudKitSyncProviderMac::GetPermittedSettingSyncAuthorization(
+    const base::Uuid& record_id) {
+  return core_->GetSettingAuthorization(record_id);
 }
 
 BookmarkSyncAuthorization

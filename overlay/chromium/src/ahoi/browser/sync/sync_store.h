@@ -97,9 +97,11 @@ class SyncStore {
       std::vector<RemoteTabRecord>* records) const;
 
   // Category filtering happens before the limit and never changes queued rows.
-  [[nodiscard]] Result ReadOutbox(size_t limit,
-                                  std::vector<SyncChange>* changes,
-                                  bool include_bookmarks = true) const;
+  [[nodiscard]] Result ReadOutbox(
+      size_t limit,
+      std::vector<SyncChange>* changes,
+      bool include_bookmarks = true,
+      base::RepeatingCallback<bool(const SyncChange&)> allowed = {}) const;
   [[nodiscard]] Result AcknowledgeOutbox(
       const std::vector<std::string>& mutation_ids);
   // A cleared outbox is not proof of server acknowledgment. These receipts

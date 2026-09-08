@@ -112,7 +112,8 @@ extension CompanionSyncBridge {
                 tombstone: value.tombstone
             ) { try wireCodec.encode(value) }
         }
-        for value in snapshot.productRecords.permittedSettings {
+        for value in snapshot.productRecords.permittedSettings
+            where CompanionBrowserSettingCatalog.isPortable(value) {
             try appendIfRequired(
                 id: value.id,
                 dataClass: .permittedSetting,

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "ahoi/browser/sync/browser_settings_sync_types.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability-new"
 #include "ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h"
@@ -214,6 +215,7 @@ void CloudKitSyncProviderMac::Core::ResetAccountState() {
   last_delivery_mutations_.clear();
   last_delivery_token_.clear();
   pending_records_.clear();
+  pending_setting_authorizations_.clear();
   server_records_.clear();
   pending_mutations_.clear();
   upload_acknowledgements_.clear();
@@ -293,7 +295,8 @@ CKRecord* CloudKitSyncProviderMac::Core::PendingRecordForGeneration(
   }
   const auto record = pending_records_.find(key);
   return record == pending_records_.end() ||
-                 (IsBookmarkRecord(record->second) && !BookmarkAllowed())
+                 (IsBookmarkRecord(record->second) && !BookmarkAllowed()) ||
+                 !PendingSettingAllowed(record->second)
              ? nil
              : record->second;
 }
@@ -318,13 +321,31 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
     NSMutableArray* pending = [NSMutableArray array];
     std::map<std::string, __strong CKRecord*> records;
     std::map<std::string, std::string> mutations;
+    std::map<std::string, SyncAuthorization> setting_authorizations;
     for (const auto& change : changes) {
       if (change.entity_type == EntityType::kBookmark && !BookmarkAllowed()) {
         DispatchUpload(std::move(callback), generation, false, {}, "cancelled");
         return;
       }
+      if (change.entity_type == EntityType::kPermittedSetting) {
+        auto authorization = GetSettingAuthorization(change.entity_id);
+        if (!authorization || !authorization.Run()) {
+          DispatchUpload(std::move(callback), generation, false, {},
+                         "cancelled");
+          return;
+        }
+        setting_authorizations.emplace(change.entity_id.AsLowercaseString(),
+                                       std::move(authorization));
+      }
       SyncRecord decoded;
       if (!ValidateChangeEnvelope(change, &decoded)) {
+        DispatchUpload(std::move(callback), generation, false, {},
+                       "provider_error");
+        return;
+      }
+      if (change.entity_type == EntityType::kPermittedSetting &&
+          !IsPortableBrowserSetting(
+              std::get<PermittedSettingRecord>(decoded))) {
         DispatchUpload(std::move(callback), generation, false, {},
                        "provider_error");
         return;
@@ -362,6 +383,9 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
     }
     for (const auto& [key, mutation] : mutations) {
       pending_mutations_[key] = mutation;
+    }
+    for (auto& [key, authorization] : setting_authorizations) {
+      pending_setting_authorizations_[key] = std::move(authorization);
     }
     upload_callback_ = std::move(callback);
     upload_acknowledgements_.clear();

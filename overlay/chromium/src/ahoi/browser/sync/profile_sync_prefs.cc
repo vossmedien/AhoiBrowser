@@ -16,6 +16,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterStringPref(kDeviceDisplayNamePref, std::string());
   registry->RegisterIntegerPref(kHistoryRetentionDaysPref, 90);
   registry->RegisterListPref(kPermittedSettingIdsPref);
+  registry->RegisterDictionaryPref(kBrowserSettingIntentsPref);
   registry->RegisterListPref(kDeveloperAssetOptInIdsPref);
   registry->RegisterBooleanPref(kRemoteControlEnabledPref, false);
   registry->RegisterDictionaryPref(kApprovedRemoteCommandKeysPref);

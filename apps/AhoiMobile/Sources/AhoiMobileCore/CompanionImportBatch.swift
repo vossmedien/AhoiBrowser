@@ -249,7 +249,10 @@ extension LocalFirstRepository {
                         working.productRecords.permittedSettings.append(merged)
                     }
                     accepted = .permittedSetting(merged)
-                    shouldReenqueue = merged.version > incoming.version
+                    // Preserve unknown desktop metadata without turning a
+                    // field merge into permission to publish opaque values.
+                    shouldReenqueue = merged.version > incoming.version &&
+                        CompanionBrowserSettingCatalog.isPortable(merged)
                 case .extensionInventory(let incoming):
                     let merged = try selectRecord(
                         extensionIndexes[incoming.id].map {

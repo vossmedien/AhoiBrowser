@@ -151,7 +151,8 @@ std::vector<std::string> ProfileSyncService::permitted_setting_ids() const {
   }
   for (const base::Value& value :
        profile_->GetPrefs()->GetList(kPermittedSettingIdsPref)) {
-    if (value.is_string() && IsPermittedProductSettingId(value.GetString())) {
+    if (value.is_string() &&
+        IsSupportedProductSetting(*profile_->GetPrefs(), value.GetString())) {
       result.push_back(value.GetString());
     }
   }
@@ -162,33 +163,43 @@ std::vector<std::string> ProfileSyncService::permitted_setting_ids() const {
 
 bool ProfileSyncService::SetPermittedSettingSyncEnabled(std::string setting_id,
                                                         bool enabled) {
-  if (!profile_ || shutting_down_ || !IsPermittedProductSettingId(setting_id)) {
+  if (!profile_ || shutting_down_ ||
+      !IsSupportedProductSetting(*profile_->GetPrefs(), setting_id)) {
     return false;
   }
   SetListMembership(profile_->GetPrefs(), kPermittedSettingIdsPref, setting_id,
                     enabled);
-  if (enabled) {
-    const auto stored = std::ranges::find(permitted_settings_, setting_id,
-                                          &PermittedSettingRecord::setting_id);
-    if (stored != permitted_settings_.end() && !stored->tombstone &&
-        ApplyPermittedProductSetting(profile_->GetPrefs(), stored->setting_id,
-                                     stored->value_json)) {
-      return true;
+  // The consent observer revokes queued work and reads the existing shared
+  // value first. Local opt-out is NOT a global deletion or a default reset.
+  return true;
+}
+
+std::vector<std::string> ProfileSyncService::supported_setting_ids() const {
+  std::vector<std::string> result;
+  if (!profile_ || shutting_down_) {
+    return result;
+  }
+  for (std::string_view id : GetPermittedProductSettingIds()) {
+    if (IsSupportedProductSetting(*profile_->GetPrefs(), id)) {
+      result.emplace_back(id);
     }
-    PublishPermittedProductSetting(std::move(setting_id));
-    return true;
   }
-  const auto stored = std::ranges::find(permitted_settings_, setting_id,
-                                        &PermittedSettingRecord::setting_id);
-  if (sync_enabled_ && !backend_.is_null() &&
-      stored != permitted_settings_.end() && !stored->tombstone) {
-    PermittedSettingRecord tombstone = *stored;
-    tombstone.tombstone = true;
-    backend_.AsyncCall(&ProfileSyncBackend::UpsertPermittedSetting)
-        .WithArgs(std::move(tombstone))
-        .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                             backend_weak_ptr_factory_.GetWeakPtr()));
+  return result;
+}
+
+bool ProfileSyncService::SetBrowserSettingsSyncEnabled(bool enabled) {
+  if (!profile_ || shutting_down_) {
+    return false;
   }
+  PrefService* prefs = profile_->GetPrefs();
+  auto selected = prefs->GetList(kPermittedSettingIdsPref).Clone();
+  for (const auto& id : supported_setting_ids()) {
+    selected.EraseValue(base::Value(id));
+    if (enabled) {
+      selected.Append(id);
+    }
+  }
+  prefs->SetList(kPermittedSettingIdsPref, std::move(selected));
   return true;
 }
 
@@ -236,13 +247,7 @@ void ProfileSyncService::InitializeProductSync() {
   if (!profile_) {
     return;
   }
-  for (std::string_view setting_id : GetPermittedProductSettingIds()) {
-    sync_pref_registrar_.Add(
-        std::string(setting_id),
-        base::BindRepeating(
-            &ProfileSyncService::OnPermittedProductSettingChanged,
-            weak_ptr_factory_.GetWeakPtr(), std::string(setting_id)));
-  }
+  InitializeBrowserSettings();
   sync_pref_registrar_.Add(
       prefs::kBrowserColorScheme,
       base::BindRepeating(&ProfileSyncService::PublishCurrentAppearance,
@@ -296,33 +301,7 @@ void ProfileSyncService::ApplyProductState(const SyncStateSnapshot& state) {
     }
   }
 
-  const base::ListValue& enabled_settings =
-      profile_->GetPrefs()->GetList(kPermittedSettingIdsPref);
-  applying_product_state_ = true;
-  for (const PermittedSettingRecord& record : state.permitted_settings) {
-    if (record.tombstone ||
-        !ListContains(enabled_settings, record.setting_id) ||
-        applied_setting_versions_[record.id] >= record.version) {
-      continue;
-    }
-    if (ApplyPermittedProductSetting(profile_->GetPrefs(), record.setting_id,
-                                     record.value_json)) {
-      applied_setting_versions_[record.id] = record.version;
-    }
-  }
-  applying_product_state_ = false;
-
-  if (!permitted_settings_seeded_) {
-    permitted_settings_seeded_ = true;
-    for (std::string setting_id : permitted_setting_ids()) {
-      const auto stored =
-          std::ranges::find(state.permitted_settings, setting_id,
-                            &PermittedSettingRecord::setting_id);
-      if (stored == state.permitted_settings.end() || stored->tombstone) {
-        PublishPermittedProductSetting(std::move(setting_id));
-      }
-    }
-  }
+  RefreshBrowserSettings();
 
   if (!extension_inventory_seeded_) {
     extension_inventory_seeded_ = true;
@@ -360,34 +339,6 @@ void ProfileSyncService::PublishCurrentAppearance() {
             service->SyncNow();
           },
           backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::PublishPermittedProductSetting(
-    std::string setting_id) {
-  if (!profile_ || shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      applying_product_state_ ||
-      !ListContains(profile_->GetPrefs()->GetList(kPermittedSettingIdsPref),
-                    setting_id)) {
-    return;
-  }
-  std::optional<std::string> value =
-      EncodePermittedProductSetting(*profile_->GetPrefs(), setting_id);
-  if (!value) {
-    return;
-  }
-  PermittedSettingRecord record{
-      .id = StableProductRecordId("setting", setting_id),
-      .setting_id = std::move(setting_id),
-      .value_json = std::move(*value)};
-  backend_.AsyncCall(&ProfileSyncBackend::UpsertPermittedSetting)
-      .WithArgs(std::move(record))
-      .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
-                           backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::OnPermittedProductSettingChanged(
-    std::string setting_id) {
-  PublishPermittedProductSetting(std::move(setting_id));
 }
 
 void ProfileSyncService::PublishExtensionInventory() {
