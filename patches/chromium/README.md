@@ -11,6 +11,28 @@ The superseded 21-patch M151 stack remains recoverable from
 `artifacts/build/recovery/ahoi-m151-final.bundle`; it is intentionally not kept
 as a second active patch stack.
 
+## `0034-ahoi-navigation-pin-home-and-hover.patch`
+
+- **Owner:** Desktop; exact M152 pin above, after the full33-patch stack.
+- **Affected paths:** ToolbarView/its GN dependency, native browser UI defaults,
+  Reload's WebUI control CSS, and generated resources with German/en-GB strings.
+- **Rationale:** optional address-bar pinning uses the existing persisted Ahoi
+  floating-navigation auto-hide preference and the native ToolbarButton family.
+  Chromium's existing Home control is visible by default; explicit user/managed
+  values and the native homepage/command paths remain authoritative. Reload's
+  outer clipping host gains the inner circular control's own radius.
+- **Rejected alternatives:** a second pin-state store, a replacement homepage
+  mechanism, auto-granting permissions, disabling WebUI feature flags, or
+  painting a coordinate-specific rectangle over the reported hover defect.
+- **Verification:** source integration only so far. The Reload host-radius
+  change is a bounded fix candidate, NOT a proven rendering root cause/pass;
+  require exact installed Hover/Pin/Home E2E before focused regression checks.
+- **Security/privacy:** no permission, URL policy, profile or Sync authority
+  change. Pin respects managed preferences; no stored user choice is overwritten.
+- **Rebase/removal:** small ToolbarView/pref seams; resource IDs are generated
+  by pinned GRIT. Drop Reload's extra clip if upstream supplies equivalent
+  complete control clipping; keep product controls in the owned overlay.
+
 ## `0001-ahoi-m152-integration-seams.patch`
 
 - **Owner:** AhoiBrowser project.

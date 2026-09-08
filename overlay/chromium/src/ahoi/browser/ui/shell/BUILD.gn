@@ -12,6 +12,24 @@ source_set("navigation_surface_state") {
   public_deps = [ "//base" ]
 }
 
+source_set("navigation_pin_button") {
+  sources = [
+    "navigation_pin_button.cc",
+    "navigation_pin_button.h",
+  ]
+  public_deps = [ "//ui/views" ]
+  deps = [
+    "//ahoi/browser/ui/appearance:appearance_preferences",
+    "//base",
+    "//chrome/app:generated_resources",
+    "//chrome/app/vector_icons",
+    "//chrome/browser/ui/views/toolbar",
+    "//components/prefs",
+    "//ui/accessibility",
+    "//ui/base",
+  ]
+}
+
 source_set("navigation_surface_controller") {
   sources = [
     "navigation_surface_controller.cc",

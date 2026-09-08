@@ -1,0 +1,104 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index ea9fb41646232269d6d97195a28244c77db36905..1666ec879c9adfbac83f2684653b5f8d05193acf 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20617,6 +20617,12 @@ Please help our engineers fix this problem. Tell us what happened right before y
+     <message name="IDS_AHOI_REVEAL_NAVIGATION" desc="Accessible name and tooltip for the small hover target that reveals AhoiBrowser's floating address and extension bar." meaning="AhoiBrowser browser shell">
+       Show address bar
+     </message>
++    <message name="IDS_AHOI_PIN_NAVIGATION" desc="Tooltip and accessible action for keeping AhoiBrowser's address and navigation bar visible." meaning="AhoiBrowser browser shell">
++      Pin address bar
++    </message>
++    <message name="IDS_AHOI_UNPIN_NAVIGATION" desc="Tooltip and accessible action for restoring automatic hiding of AhoiBrowser's address and navigation bar." meaning="AhoiBrowser browser shell">
++      Unpin address bar
++    </message>
+     <!-- AhoiBrowser media mini player -->
+     <message name="IDS_AHOI_MEDIA_MINI_PLAYER_NAME" desc="Accessible name for AhoiBrowser's sidebar media mini player." meaning="AhoiBrowser media mini player">
+       Media mini player
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index b2f6bf4593d28d569a9c36bbe8aced1e363b6671..82c13d847862bf1842f0fd96728df50ae52140ab 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11249,4 +11249,6 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="8353852870894009464">Seitenleiste vor dem Import wiederherstellen</translation>
+ <translation id="8579437155006490485">Sicherung prüfen und Seitenleiste wiederherstellen…</translation>
+ <translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
++<translation id="2666937824263873395">Adressleiste anheften</translation>
++<translation id="5599938554451751534">Adressleiste lösen</translation>
+ </translationbundle>
+diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+index ee3ad3a2e940d6cb06aa88d2d1e16810b8e08c55..c40f9bad405d9c167183bfffe5fd6a9b97dab18e 100644
+--- a/chrome/app/resources/generated_resources_en-GB.xtb
++++ b/chrome/app/resources/generated_resources_en-GB.xtb
+@@ -11042,4 +11042,6 @@ This can include information about installed software, files, your browser, the
+ <translation id="4131831590543916816">Recently closed split</translation>
+ <translation id="5502679562240472247">Recently closed group</translation>
+ <translation id="5461107725978398953">Recently closed window</translation>
++<translation id="2666937824263873395">Pin address bar</translation>
++<translation id="5599938554451751534">Unpin address bar</translation>
+ </translationbundle>
+diff --git a/chrome/browser/resources/webui_toolbar/reload_button.css b/chrome/browser/resources/webui_toolbar/reload_button.css
+index 56b2ccfba05fe16599e75cc12326dcd3a654318f..328bb7c843daf79337907820e772d529b9eb9acb 100644
+--- a/chrome/browser/resources/webui_toolbar/reload_button.css
++++ b/chrome/browser/resources/webui_toolbar/reload_button.css
+@@ -11,6 +11,8 @@
+  * #css_wrapper_metadata_end */
+ 
+ :host {
++  /* Keep the clipping host congruent with the circular inner control. */
++  border-radius: 50%;
+   margin: 0;
+   overflow: hidden;
+ }
+diff --git a/chrome/browser/ui/browser_ui_prefs.cc b/chrome/browser/ui/browser_ui_prefs.cc
+index 7b0257c24d609de454137f6e256241c2ef85f33e..ef9a4baf50565924c93f761b80a87be1f795f561 100644
+--- a/chrome/browser/ui/browser_ui_prefs.cc
++++ b/chrome/browser/ui/browser_ui_prefs.cc
+@@ -118,7 +118,9 @@ void RegisterBrowserUserPrefs(user_prefs::PrefRegistrySyncable* registry) {
+ 
+   registry->RegisterBooleanPref(prefs::kHomePageIsNewTabPage, true,
+                                 pref_registration_flags);
+-  registry->RegisterBooleanPref(prefs::kShowHomeButton, false,
++  // Ahoi exposes Chromium's Home action by default. Explicit user settings and
++  // managed policy still take precedence; the native homepage service is kept.
++  registry->RegisterBooleanPref(prefs::kShowHomeButton, true,
+                                 pref_registration_flags);
+   registry->RegisterBooleanPref(prefs::kSplitViewDragAndDropEnabled, true,
+                                 pref_registration_flags);
+diff --git a/chrome/browser/ui/views/toolbar/BUILD.gn b/chrome/browser/ui/views/toolbar/BUILD.gn
+index 1514298328f544b4517850940564fce3d3a569eb..5ef730b35f375e6810abec1def5f0b02659179c8 100644
+--- a/chrome/browser/ui/views/toolbar/BUILD.gn
++++ b/chrome/browser/ui/views/toolbar/BUILD.gn
+@@ -155,6 +155,7 @@ source_set("impl") {
+ 
+   deps = [
+     ":toolbar",
++    "//ahoi/browser/ui/shell:navigation_pin_button",
+     "//base:i18n",
+     "//build:branding_buildflags",
+     "//cc/paint",
+diff --git a/chrome/browser/ui/views/toolbar/toolbar_view.cc b/chrome/browser/ui/views/toolbar/toolbar_view.cc
+index 03aedd9edd72435185dca70e8b89574cd387cd3e..36ea7aade6d33794fa8409d98c5757c9e2cda1f9 100644
+--- a/chrome/browser/ui/views/toolbar/toolbar_view.cc
++++ b/chrome/browser/ui/views/toolbar/toolbar_view.cc
+@@ -8,6 +8,7 @@
+ #include <memory>
+ #include <utility>
+ 
++#include "ahoi/browser/ui/shell/navigation_pin_button.h"
+ #include "base/command_line.h"
+ #include "base/containers/fixed_flat_map.h"
+ #include "base/feature_list.h"
+@@ -579,6 +580,12 @@ void ToolbarView::Init() {
+     avatar_->SetVisible(show_avatar_toolbar_button);
+   }
+ 
++  if (browser_view_->IsAhoiBrowserSurface()) {
++    if (auto pin_button = ahoi::CreateNavigationPinButton(prefs)) {
++      AddChildView(std::move(pin_button));
++    }
++  }
++
+   overflow_button_ = AddChildView(std::make_unique<OverflowButton>());
+   overflow_button_->SetVisible(false);
+ 

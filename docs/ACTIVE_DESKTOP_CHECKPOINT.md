@@ -106,6 +106,57 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ## Current candidate: 6ae4070 installed; local tab lifecycle exercised
 
+### Active toolbar/UI continuation — 2026-09-08
+
+The delayed e2f6711 handoff is already integrated in6ae. No API/role wait or old
+build restart follows from that message. Global/project AGENTS reread live.
+Own runtime74127 is now TERMINAL EXIT0 after normal Quit from the installed6ae
+executable with the same isolated `/private/tmp/ahoi-native-tabs-c20a759.Z10Mne`
+profile. No Default
+profile/Arc recovery action or foreign process mutation. CUA uses the full app
+path; never query a bound app after Quit because that can relaunch Default.
+
+A controlled Create/Save/Loslösen repeat retained the org focus-check URL and
+width293 throughout. The native menu remained present after5s idle; after
+Loslösen another5s produced no focus/width change. The original intermittent
+observation is retained but is not currently reproducible; no speculative
+focus/layout code change or repeated review loop is justified by it. The
+ordinary "new group with this tab" dialog then saved that same Page ID
+da4571dc-300f-46e7-816d-b0b64d4d99fd into test folderUI Probe; no duplicate or
+focus change. Folder close/open used distinct native icons without a caret;
+two early snapshots are not full animation-quality acceptance. CUA reported a
+user change before Quit; a fresh unchanged AX readback preceded the successful
+normal Quit. Original Default DB/journal hashes still match; earlier anomaly's
+cause is not inferred retroactively from that user-change signal.
+
+User toolbar request is explicit in
+`outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` (direct handoff
+01a0806a-dc24-7d93-90ee-113e19d3bc92) and now included in the master contract.
+The user screenshot was viewed; Reload's rectangular hover was also reproduced
+on this exact6ae via the real toolbar. Pin and compact native Home are required.
+
+Source package in this owner only (not compiled/installed):
+
+- `ui/shell/navigation_pin_button.{h,cc}` + its GN leaf: a native ToolbarButton
+  using the existing `ahoi.navigation.floating_auto_hide_enabled` preference,
+  live checked state and managed-pref enforcement. No second state/store.
+- Patch0034 (new, appended to series) wires it only into Ahoi's native toolbar,
+  exposes Chromium's existing Home control by changing only its registration
+  default (explicit user/policy values remain authoritative), and adds de/en-GB
+  labels. Matching Sync catalogue already contains both settings; owner informed.
+- Reload's outer clipping host gains50% radius matching its inner circular
+  control. Read-only helper/source/generated-CSS checks did NOT establish a
+  unique rendering cause; this is explicitly a bounded fix candidate pending
+  visible verification, not a claimed fix or a reason to disable WebUI flags.
+
+Canonical overlay/patch contains the work. Scratch copies at
+`/private/tmp/ahoi-toolbar-patch.i9L6at/{before,after}` are only patch-authoring
+material; `.work`/out and clean detacheda9d6ad7 have not been refreshed/changed.
+Scoped XML/GRIT-ID, GN-format and exact seven-file patch application checks
+passed. No compiler or test was run for this new toolbar package. Finish the
+connected UI work, freeze only owned committed files into the same snapshot,
+then one guarded app-only build/install and visible Hover/Pin/Home journey.
+
 **Current continuation, 2026-09-08:** global/project AGENTS reread again after
 the user's latest update. Reuse same-scope approvals; finish authorized
 preparation before necessary questions; no inferred gates from optional skill
@@ -151,9 +202,10 @@ Workspace-isolation preparation is captured in the existing
 noopener, restore/sessionStorage, permission and extension-cookie routing
 findings. This adds no implementation/pass or new Common schema requirement.
 
-Owned runtime97371 and restart52424 are TERMINAL EXIT0. Isolated profile:
-`/private/tmp/ahoi-native-tabs-c20a759.Z10Mne`. No Ahoi app runs now or new UI slot
-is granted. Do not query a bound CUA app after Quit: getAXState can relaunch its
+Earlier owned runtime97371 and restart52424 are TERMINAL EXIT0. Isolated profile:
+`/private/tmp/ahoi-native-tabs-c20a759.Z10Mne`. Those sessions granted no new UI
+slot; follow-up74127 above is now also terminal. Do not query a bound CUA app
+after Quit: getAXState can relaunch its
 normal-profile chooser. Verify process exit read-only and relaunch explicitly
 with test-profile arguments before reattaching. Real Default DB/journal hashes
 still match originals; no whole-profile byte-identity claim.
@@ -802,8 +854,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 ## Next actions — do not restart the review
 
 1. Installed6ae's bounded local lifecycle and focused12-case checks are complete.
-   All app/test builds, installers and runtimes above are terminal, NOT restart
-   targets. Keep installed6ae/receipts, clean detacheda9d6ad7 and4cb rollback.
+   Previous app/test builds/installers are terminal, NOT restart targets. The
+   own UI follow-up74127 is now terminal; toolbar source is described at the top. Finish
+   that connected UI package and its visible Hover/Pin/Home journey, without
+   mixing Common WIP. Keep6ae/receipts, clean detacheda9d6ad7 and4cb rollback.
    Continue the remaining product steps below; no further matrix, app reinstall
    for test-only edits, or integration of Common WIP. Real remote projection/
    origin UX and shared Sync are not closed by these local results.
