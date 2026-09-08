@@ -143,3 +143,43 @@ journal/live/durable-tab checks; no forced rollback or profile/schema mutation.
 Current715 visible acceptance will use an explicitly isolated user-data directory,
 not auto-launch Default. Toolbar/icon/settings acceptance and the corrected real
 Arc recovery remain separate pending runtime gates.
+
+## e241 preserving candidate: second, concrete native load failure
+
+Arc-only e24119158e2d15c8bc9f0b22d0fea5e555327e5a built56659 EXIT0 and was
+Development-prepared73966/signature-verified22013/installed74357 EXIT0. Before
+starting the real Default profile, its existing global Sync preference was
+read as true. The identical compiled provider-free candidate was therefore
+installed through34545 EXIT0, preserving the prepared Development copy and
+without toggling that preference or accessing keys. Provider-free install
+receipt SHA:dd876c0796d026fb6b450fa8534d4058e66256dbed27e5a94c152fc9a4dfe854.
+
+Runtime94861 used the explicit real user-data directory/Default. The normal
+import UI still rejected recovery. Unlike the4cb navigation-hash refusal,
+the actual new failure was earlier: native SQLite's ADD COLUMN with CHECK
+attempted an unavailable internal pragma_quick_check table. The real disk tree
+never loaded, so the visible Inbox was only an in-memory bootstrap, NOT a new
+persisted workspace or a reason to weaken the preserving plan. Exact failure:
+
+    no such table: pragma_quick_check
+    ALTER TABLE tree_nodes ADD COLUMN is_temporary INTEGER NOT NULL DEFAULT 0 CHECK(is_temporary IN (0,1))
+
+Log:artifacts/e2e/desktop-arc-preserve-e241191-20260908/runtime.log. Native source
+confirms the pinned SQLite alter.c ADD-CHECK validation path. Real tree remained
+Schema2,2 workspaces/174 nodes and raw SHA791e9ae...; journal1768e20f... unchanged
+after normal Cancel/Cmd+Q and runtime EXIT0. No recovery/import pass and no
+backup overwritten. The later read-only and live observations supersede the
+earlier unverified suspicion that a persistent Inbox caused this refusal.
+
+The minimal correctionad91502 uses the existing outer SQL transaction and
+CreateSchema constraints: rename node tables, recreate/copy every field, restore
+parents after every new row exists, drop old tables, recreate indexes before
+commit. FK/CHECK/Unique constraints stay enabled; workspaces/undo sequence/meta
+are retained. No Raze, PRAGMA-off, ignored failure or empty fallback. One existing
+Schema2 regression is added, not run before the corrected visible journey.
+
+The user's further UI requests are bundled with that real correction:
+fe647ee adds quiet saved-section tint, visual-empty validated drop highlight and
+an indexed BookmarkModel-derived favicon star;9323d71 shortens the recovery notice
+and action with16px separation. Main reviewed the disjoint helper implementations.
+The clean combined6b6c771 candidate is now building; see the active checkpoint.

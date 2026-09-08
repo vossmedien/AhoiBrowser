@@ -71,6 +71,15 @@ Vorhandene, integrierte Funktionen werden zuerst abgenommen; die Liste ist keine
 Anweisung, sie neu zu bauen. Keine zusätzliche Produktfläche allein zur
 Vervollständigung eines internen Services erfinden.
 
+Die UI-Präzisierung vom 8. September gehört zu Paket1: Der Bereich dauerhaft
+gespeicherter Tabs bleibt als dezente farbige Dropfläche erkennbar; nur das
+tatsächlich gültige Dropziel wird stärker hervorgehoben. Eine Seite, die zugleich
+in den nativen Lesezeichen liegt, erhält einen kleinen, nicht interaktiven Stern
+im bestehenden Tab-Iconbereich. Der Status folgt dem nativen BookmarkModel ohne
+eigenes Persistenz-/Syncfeld und aktualisiert sich bei Lesezeichenänderungen.
+Recovery-Hinweise und Aktionen bleiben kurz, klar getrennt und zugänglich;
+technische Schutzprüfungen werden dadurch nicht abgeschwächt.
+
 ### Verbindliche Workspace-Sitzungsentscheidung vom 5. September 2026
 
 Die erneuerte Nutzerentscheidung ersetzt die frühere Vorgabe, Cookies und

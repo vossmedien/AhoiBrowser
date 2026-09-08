@@ -122,12 +122,24 @@ NOT final acceptance of the new unified format. Do not restart/widen that
 baseline for this documentation decision. Continue the current Desktop package;
 one native build owner, separate exact-candidate Sync acceptance later.
 
-## Current candidate: Development715afc2 installed; bounded visible UI passed
+## Current candidate: e241191 installed; combined6b6c771 build running
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**CURRENT BUILD PHASE:** guarded app-only build56659 is RUNNING since14:01UTC;
-overlay32506 is TERMINAL EXIT0 on clean existing
+**LIVE BUILD HANDLE:** guarded app-only92858 is RUNNING on the same clean
+snapshot at `6b6c771a224e1cfafc97681a1de0550a2be2ad54`. Overlay52765 EXIT0,
+checkout delta verified. Exact scoped integration: fe647ee Sidebar tint/star,
+ad91502 constrained local schema upgrade,9323d71 recovery spacing/copy on e241;
+no Common/Swift WIP or patch36. Only a README conflict was resolved by retaining
+the applicable37/38 ledger entries; series correctly remains without36.
+Fresh17:03CEST gate76.8%CPUidle/67%memory headroom/zero new swapouts/no compilers
+permits AHOI_JOBS=4;38.3GiB uses documented build override above32GiB hard floor.
+Watch disk/capacity at heavy phase boundaries. No extra test targets. Logs:
+`artifacts/build/desktop-sidebar-store-6b6c771-20260908/{overlay,build}.log`.
+Resume92858 to terminal, never an old build/install; do not edit running snapshot.
+
+**CURRENT BUILD STATE:** build56659 and overlay32506 are TERMINAL EXIT0 on the
+clean existing
 snapshot `e24119158e2d15c8bc9f0b22d0fea5e555327e5a`:715 plus ONLY the reviewed
 Arc-preserving fixdff21f9 (seven Arc files, no Common WIP/patch36). Both original
 and Development715 bundles/receipts were preserved first. Same guarded
@@ -137,11 +149,45 @@ app-only build jobs2, no extra test targets. Fresh16:01CEST start gate73.8%idle,
 58%memory headroom, no new swapouts,46.2GiB above32GiB build floor. Identified
 FillIt Unity batch15877 is a separate2-worker job (~4.6% at sample); it is not
 touched or treated as an automatic blocker; absent at the fresh compile gate.
-Resume56659 to terminal, no overlay retry or in-place snapshot edits. Logs:
+Do not resume/restart them. Original receipt SHA
+f1348e3e07654c5cd2842bb5f6c50b45e2f8ed526947cccf3cd3ffecbbfb7a1b,
+binaryf52478a7897211fea8b6398e45d33d929417041fd7f4b76cf184753032cd193b,
+treeaf0c6450d01f2e8970d7309a1a6068563dd558bf3900e8a5b069f8c69dccc82e.
+Logs:
 `artifacts/build/desktop-arc-preserve-e241191-20260908/`.
 
-**CURRENT NATIVE HANDLE:** isolated native restart50070 is RUNNING (PID4525 at
-launch); initial runtime85457 ended EXIT0 through real Cmd+Q (`super+q`).
+**CURRENT NATIVE STATE:** no own app is running. Test runtime50070 and real
+Default runtime94861 both ended EXIT0 by normal Cmd+Q; no kill. The latter
+showed a bootstrap Inbox because the real Schema2 tree FAILED TO LOAD, not
+because a new Inbox was persisted. Native SQLite rejects `ADD COLUMN ... CHECK`
+with `no such table: pragma_quick_check`; actual log at the directory above's
+matching E2E/runtime.log. Disk tree remains Schema2,2 workspaces/174 nodes,
+SHA791e9ae... and journal1768e20f... unchanged. Do not force recovery against
+that RAM bootstrap. Pure preserving-plan fixdff21f9 was not enough to resolve
+this separate native database-load failure.
+
+e241 Development copy prepare73966/sign/verify22013 EXIT0 and install74357 EXIT0
+were completed. BEFORE starting Default, read-only prefs proved global Sync
+already TRUE. To avoid activating transport on old real stores during recovery,
+the SAME compiled provider-freee241 was installed through34545 EXIT0; no user
+Sync preference/key changed. Active installed receipt:
+`artifacts/install/ahoi-dev-e241191-provider-free-arc-recovery-20260908.json`,
+SHAdd876c0796d026fb6b450fa8534d4058e66256dbed27e5a94c152fc9a4dfe854.
+The prepared/verified Development copy remains preserved separately. Original
+Default recovery continues provider-free until an intentional isolated Sync run.
+
+**Next coherent source package, all committed:** fe647ee adds quiet saved-section
+tint/validated empty-root highlight plus an8px native-bookmark star in existing
+favicon slots (one Host observer, indexed native lookup, no state/Sync field).
+ad91502 replaces failed Schema2 ADD-CHECK migration with atomic constrained
+rename/recreate/copy; FK/CHECK/indices/undo/meta remain, no PRAGMA-off or Raze.
+9323d71 shortens recovery copy/button and adds16px notice/action gap plus padding.
+Main reviewed these changes; minimal existing regressions are written, unrun.
+They are now integrated in running6b6c771, excluding Common/Swift WIP/patch36.
+Then actual loaded Default/Arc recovery plus new Sidebar/notice visible journey;
+no warning/constraint bypass and no unrelated test-target prerequisite.
+
+**715 predecessor evidence:** initial runtime85457 ended EXIT0 through Cmd+Q.
 Guarded install92150 is TERMINAL EXIT0 for the separately Development-configured
 715afc2 copy. Build98973 and overlay10765 are TERMINAL EXIT0.
 The same clean detached snapshot is at
@@ -1071,25 +1117,27 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Installer92150 and all715 build/signing phases are EXIT0. The bounded visible
+1. Resume the real active app-only build92858 on clean6b6c771; overlay52765 EXIT0.
+   All e241 handles are terminal, not restart targets. The coherent
+   fe647ee/ad91502/9323d71 Sidebar+Store+Recovery-copy package is integrated, no
+   Common WIP/patch36 or further source handoff wait. e241's actual load
+   failure needs the constrained migration fix, not another unchanged run.
+   The bounded visible715
    Pin/Home/restart/settings/bookmark-only-sidebar journey is complete above;
    do not restart builds or replay the whole flow without an affected change.
-   Active runtime50070 is the isolated test profile, not real Default. Preserve
-   its exact receipt and state. The reviewed Arc-only correction is now integrated
-   on cleane241191; overlay32506 is EXIT0 and app-only build56659 is RUNNING.
-   Resume that exact handle; no Common WIP/patch36 or new source wait. After
-   correction, repeat the real affected Arc journey,
+   Runtime50070 is terminal; preserve that test profile/receipt. After the
+   combined correction, repeat the real loaded-Default Arc journey and the
+   newly requested saved Drop tint/Bookmark badge/notice spacing,
    then only its necessary regression. No unrelated test-binary prerequisite.
    Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
    remains separate and open. Prior6ae's local lifecycle/focused12-case evidence
    remains valid for its boundary, not proof of multi-device sync.
-2. Arc's real Default profile remains protected. Arc has now been observed
-   closed; compatible4cb is ALREADY installed via79760 EXIT0. Mobile's explicit
-   handback is complete. Resolve the new actual user/UI-interference boundary,
-   the actual attempt proved the unrelated baseline navigation mismatch,
-   not a missing UI slot. The old blind recovery must not be forced. Integrate
-   the reviewed hash-bound preserving fix; keep real Default closed until its
-   corrected candidate. Current715 was accepted with a fresh explicit test profile.
+2. Real Default remains protected and closed, installed e241 is provider-free.
+   Do not reinstate old4cb or claim e241 loaded the real tree: it did not. The
+   constrained Schema2 upgrade must succeed first; then the already-reviewed
+   preserving recovery can retain the unrelated navigation while undoing the
+   unchanged import. Global Sync is already true in Default, so never add Cloud
+   configuration to this recovery session or toggle its preference as a shortcut.
    After Arc is normally closed,
    use the compatible4cb baseline's guarded importer recovery before allowing
    new normal-tab mirroring to touch that failed-import profile. Open the real
