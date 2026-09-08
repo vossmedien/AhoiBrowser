@@ -33,7 +33,20 @@ Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
   Reproduce and correct bounds/clipping with the owned sidebar UI package; the
   image is a reported defect, not a passing runtime check.
 
-## Runtime ownership — all temporary slots returned
+## Runtime ownership — new bounded Build18 Simulator slot
+
+At11:52UTC Desktop explicitly released its UI side for the newly prepared
+Build18 Simulator Search/Restart/Reset journey: queue
+`01a080dc-8e42-7c80-8c38-0df79cdd07ee` to coordinator and
+`01a080dc-8ea8-7c82-a926-1080a0dcac89` to Sync/Mobile. Desktop's Apple/Xcode
+UI step is complete and no native app is running. No Desktop CUA/native UI
+until explicit handback; keep source/build work moving. Active build79280
+continues jobs2, independent fresh capacity checks still apply. The grant
+does NOT cover foreign Simulator owners/windows, My-Mac, Desktop profiles,
+keys/Portal/Applications. Coordinator resolves those other owners separately.
+This is a NEW narrow grant, not revival of the earlier07:08/Build17 window.
+
+### Earlier slots — returned, not active
 
 Mobile explicitly returned the My-Mac window
 `01a070c7-7b59-78d0-b224-bfab8a57b998` unused in
@@ -120,6 +133,18 @@ test binaries. Fresh repeat capacity recovered to54% idle/51% memory headroom;
 Do not update snapshot/out while79280 runs. After success: signed atomic install,
 visible Hover/Pin/Home +explicit Settings category and icon, then focused checks.
 
+**Live compiler finding,11:55UTC:**79280 is still RUNNING, observed335/1441
+(generated resource frontier initially3394 then restatted). The only deduplicated
+error so far is `ahoi_settings_handler.cc:115`: pinned GURL has `host()`, not
+`host_piece()`. Exact native fixc1fd86f is committed/pushed in canonical source,
+NOT inserted into the running snapshot. The keep-going build must finish its
+remaining independent compilation; then collect any additional diagnostics and
+integrate the bounded correction(s) in ONE cached owner-controlled follow-up.
+Do not claim79280 green, install its partial output, suppress warnings or start
+a parallel compile. Pin and Common setting/search objects compiled successfully;
+that is not full build/UI acceptance. Fresh capacity49–62%idle/46%memory,
+no new swapouts in the sample; jobs2 remains unchanged.
+
 New Apple authorization has produced a concrete native Mac Development profile,
 not merely a plan:8f149b92-89cc-4d34-a0db-1b305d4e545c in the standard Xcode
 profile cache, OSX/1Mac/Team248AJ5BN47/exactAhoiContainer/developmentAPNs. Tiny
@@ -128,7 +153,7 @@ profiles/keys deleted. Real profile validation found and fixed an allowlist-vs-
 signed-claim bug in the existing verifier (f4aee9d); exact app claims and the
 separate Production verifier remain strict. Details/next candidate-copy gate:
 `docs/audit-evidence/2026-09-08-native-cloudkit-development.md`. No CloudKit/key
-bootstrap/roundtrip pass yet; Common owner has exact profile/handoff. No new
+   bootstrap/roundtrip pass yet; Common owner has exact profile/handoff. No new
 type/role/API wait, and old Mobile07:08 slots remain returned.
 
 #### Toolbar baseline and source inventory (before the current build)
@@ -880,7 +905,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 1. Resume the one RUNNING app-only build79280 on cleanf5a324b, not any older
    overlay/build/installer. It includes toolbar, approved icon, explicit native
-   settings and committed Common dependencies; no WIP. After verified completion
+   settings and committed Common dependencies; no WIP. Known GURL compile fix
+   c1fd86f is already pushed; do not re-request it or patch the running snapshot.
+   Collect all compiler diagnostics at terminal and apply the exact fixes in one
+   cached corrective follow-up. After a verified successful completion
    preserve the receipt, atomically install, then visible Hover/Pin/Home/settings
    and icon. Prepare/sign/verify the separate Development CloudKit copy using
    the NEW concrete Mac profile; no extra Chromium compile or repeated approval.

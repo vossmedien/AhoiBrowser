@@ -27,8 +27,11 @@ Provision-only command: existing `xcodebuild`, target/scheme
 Session10142 EXIT0. Inputs/DerivedData are under
 `/private/tmp/ahoi-mac-provisioning.ktjShE`; main merely returns0. The app was
 never installed toApplications or launched. Xcode performed its ordinary
-LaunchServices registration of that build output; this temporary registration
-needs exact-path cleanup after preserving the small provisioning inputs.
+LaunchServices registration of that build output; it was subsequently removed
+with `lsregister -u` against ONLY that exact provisioning-app path, EXIT0.
+Small inputs are preserved in the canonical artifact directory below; the
+profile itself remains in Xcode's normal cache. No other app registration,
+profile, certificate or key was removed.
 Canonical log: `artifacts/build/macos-cloudkit-development-20260908/provisioning-build.log`.
 
 ## Corrected tooling boundary
