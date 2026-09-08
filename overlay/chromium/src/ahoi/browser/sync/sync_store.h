@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "base/files/file_path.h"
 #include "base/observer_list.h"
@@ -18,13 +19,13 @@
 #include "sql/database.h"
 
 namespace sql {
-class MetaTable;
 class Statement;
 }  // namespace sql
 
 namespace ahoi::sync {
 
 class BookmarkSyncJournal;
+class NativeTreeSyncJournal;
 
 class SyncStoreObserver : public base::CheckedObserver {
  public:
@@ -48,11 +49,12 @@ class SyncStore {
     kStale,
     kConflict,
     kDatabaseError,
+    kNotAuthorized,
   };
 
   static constexpr int kCurrentSchemaVersion =
       ::ahoi::sync::kCurrentSchemaVersion;
-  static constexpr int kLowestSupportedSchemaVersion = 1;
+  static constexpr int kLowestSupportedSchemaVersion = kCurrentSchemaVersion;
 
   SyncStore();
   SyncStore(const SyncStore&) = delete;
@@ -70,6 +72,13 @@ class SyncStore {
   // returns kAlreadyApplied rather than adding a second outbox entry.
   [[nodiscard]] Result PutLocalRecord(const SyncRecord& record,
                                       std::string mutation_id = {});
+
+  // One complete local operation. Every row/clock/outbox change rolls back on
+  // any invalid sibling, SQL failure or original-scope revocation. No observer
+  // sees a partial capture, and only the caller's post-commit ACK may replace
+  // its accepted in-memory snapshot.
+  [[nodiscard]] Result PutLocalBatch(const std::vector<SyncRecord>& records,
+                                     const SyncAuthorization& authorization);
 
   // Applies an entire provider page atomically. A repeated mutation is a
   // no-op, a stale version is retained in the inbox but cannot overwrite the
@@ -93,6 +102,10 @@ class SyncStore {
                                   bool include_bookmarks = true) const;
   [[nodiscard]] Result AcknowledgeOutbox(
       const std::vector<std::string>& mutation_ids);
+  // A cleared outbox is not proof of server acknowledgment. These receipts
+  // are written only by actual acknowledged mutations and reset on recovery.
+  [[nodiscard]] bool IsRecordAcknowledged(const SyncRecord& record) const;
+  [[nodiscard]] bool HasCompletedInitialFetch() const;
   // Rebuilds transport work without changing the canonical records. Passing
   // false is the account-privacy choice; true republishes every retained
   // record after an explicitly confirmed account or custom-zone recovery.
@@ -126,6 +139,7 @@ class SyncStore {
 
  private:
   friend class BookmarkSyncJournal;
+  friend class NativeTreeSyncJournal;
   friend class BookmarkSyncAuthorizationTest;
 
   struct StoredRecord {
@@ -135,8 +149,16 @@ class SyncStore {
 
   [[nodiscard]] bool InitializeSchema();
   [[nodiscard]] bool CreateSchema();
-  [[nodiscard]] bool MigrateSchema(sql::MetaTable* meta_table);
   [[nodiscard]] bool IsReady() const;
+
+  [[nodiscard]] Result PutLocalRecordInTransaction(const SyncRecord& record,
+                                                   std::string mutation_id)
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
+  [[nodiscard]] bool ValidateLocalRecordReferences(
+      const SyncRecord& record) const VALID_CONTEXT_REQUIRED(sequence_checker_);
+  [[nodiscard]] bool ValidateLocalBatchGraphs(
+      const std::vector<SyncRecord>& records) const
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
 
   [[nodiscard]] Result ReadStoredRecord(EntityType type,
                                         const base::Uuid& id,

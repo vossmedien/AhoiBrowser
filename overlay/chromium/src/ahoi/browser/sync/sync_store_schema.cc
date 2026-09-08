@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ahoi/browser/sync/sync_store.h"
-#include "base/check.h"
 #include "sql/meta_table.h"
+#include "sql/statement.h"
 #include "sql/transaction.h"
 
 namespace ahoi::sync {
@@ -17,89 +17,41 @@ bool SyncStore::InitializeSchema() {
   if (!transaction.Begin()) {
     return false;
   }
+  // Pre-launch format reset: do not stamp an existing unrelated/old database
+  // as a fresh store merely because it lacks our metadata table.
+  if (!sql::MetaTable::DoesTableExist(&db_)) {
+    sql::Statement tables(db_.GetUniqueStatement(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' "
+        "AND name NOT LIKE 'sqlite_%'"));
+    if (!tables.Step() || tables.ColumnInt(0) != 0) {
+      return false;
+    }
+  }
   sql::MetaTable meta_table;
   if (!meta_table.Init(&db_, kCurrentSchemaVersion, kCurrentSchemaVersion) ||
-      meta_table.GetCompatibleVersionNumber() > kCurrentSchemaVersion ||
-      meta_table.GetVersionNumber() < kLowestSupportedSchemaVersion ||
-      meta_table.GetVersionNumber() > kCurrentSchemaVersion ||
-      !MigrateSchema(&meta_table) || !CreateSchema()) {
+      meta_table.GetCompatibleVersionNumber() != kCurrentSchemaVersion ||
+      meta_table.GetVersionNumber() != kCurrentSchemaVersion ||
+      !CreateSchema()) {
     return false;
   }
   return transaction.Commit();
 }
 
-bool SyncStore::MigrateSchema(sql::MetaTable* meta_table) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  CHECK(meta_table);
-  if (meta_table->GetVersionNumber() == 1) {
-    if (!db_.Execute(
-            "CREATE TABLE sync_records_v2("
-            "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 6),"
-            "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
-            "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT NULL,"
-            "version_physical INTEGER NOT NULL,version_logical INTEGER NOT "
-            "NULL,"
-            "version_device TEXT NOT NULL,PRIMARY "
-            "KEY(entity_type,entity_id))") ||
-        !db_.Execute(
-            "INSERT INTO sync_records_v2 SELECT * FROM sync_records") ||
-        !db_.Execute("DROP TABLE sync_records") ||
-        !db_.Execute("ALTER TABLE sync_records_v2 RENAME TO sync_records") ||
-        !meta_table->SetVersionNumber(2)) {
-      return false;
-    }
-  }
-  // v3 adds quarantine and durable deletion watermarks. Payload rows remain
-  // wire-compatible and are lazily upgraded to wire-v2 on their next write.
-  if (meta_table->GetVersionNumber() == 2 && !meta_table->SetVersionNumber(3)) {
-    return false;
-  }
-  // v4 widens the stable entity enum for appearance, explicitly permitted
-  // settings, advisory extension inventory and opted-in developer assets.
-  if (meta_table->GetVersionNumber() == 3) {
-    if (!db_.Execute(
-            "CREATE TABLE sync_records_v4("
-            "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 10),"
-            "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
-            "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT NULL,"
-            "version_physical INTEGER NOT NULL,version_logical INTEGER NOT "
-            "NULL,version_device TEXT NOT NULL,PRIMARY "
-            "KEY(entity_type,entity_id))") ||
-        !db_.Execute(
-            "INSERT INTO sync_records_v4 SELECT * FROM sync_records") ||
-        !db_.Execute("DROP TABLE sync_records") ||
-        !db_.Execute("ALTER TABLE sync_records_v4 RENAME TO sync_records") ||
-        !meta_table->SetVersionNumber(4)) {
-      return false;
-    }
-  }
-  // v5 adds a separate bookmark entity, never a workspace tree-node subtype.
-  // Copy every existing payload/version byte-for-byte in the same transaction
-  // as the schema change. Outbox, tombstones and deletion watermarks stay
-  // intact.
-  if (meta_table->GetVersionNumber() == 4) {
-    if (!db_.Execute(
-            "CREATE TABLE sync_records_v5("
-            "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 11),"
-            "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
-            "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT NULL,"
-            "version_physical INTEGER NOT NULL,version_logical INTEGER NOT "
-            "NULL,version_device TEXT NOT NULL,PRIMARY "
-            "KEY(entity_type,entity_id))") ||
-        !db_.Execute(
-            "INSERT INTO sync_records_v5 SELECT * FROM sync_records") ||
-        !db_.Execute("DROP TABLE sync_records") ||
-        !db_.Execute("ALTER TABLE sync_records_v5 RENAME TO sync_records") ||
-        !meta_table->SetVersionNumber(5)) {
-      return false;
-    }
-  }
-  return meta_table->GetVersionNumber() == kCurrentSchemaVersion;
-}
-
 bool SyncStore::CreateSchema() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   return db_.Execute(
+             "CREATE TABLE IF NOT EXISTS sync_native_tree_receipts("
+             "receipt_id TEXT PRIMARY KEY NOT NULL,payload TEXT NOT NULL)") &&
+         db_.Execute(
+             "CREATE TABLE IF NOT EXISTS sync_native_tree_observations("
+             "receipt_id TEXT PRIMARY KEY NOT NULL,payload TEXT NOT NULL)") &&
+         db_.Execute(
+             "CREATE TABLE IF NOT EXISTS sync_acknowledged_records("
+             "entity_type INTEGER NOT NULL,entity_id TEXT NOT NULL,"
+             "version_model INTEGER NOT NULL,version_physical INTEGER NOT NULL,"
+             "version_logical INTEGER NOT NULL,version_device TEXT NOT NULL,"
+             "PRIMARY KEY(entity_type,entity_id))") &&
+         db_.Execute(
              "CREATE TABLE IF NOT EXISTS sync_bookmark_bindings("
              "native_key TEXT PRIMARY KEY NOT NULL,entity_id TEXT NOT NULL,"
              "baseline TEXT NOT NULL,native_index INTEGER NOT NULL "
@@ -117,7 +69,7 @@ bool SyncStore::CreateSchema() {
              "ON sync_bookmark_apply_receipts(entity_id)") &&
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS sync_records("
-             "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 11),"
+             "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 12),"
              "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
              "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT "
              "NULL,"

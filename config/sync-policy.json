@@ -5,11 +5,13 @@
   "localFirst": true,
   "enabledByDefault": false,
   "cloudKitContainerBeforeOptIn": false,
-  "wireModelVersion": 2,
-  "localStoreSchemaVersion": 5,
+  "wireModelVersion": 3,
+  "localStoreSchemaVersion": 6,
+  "formatContract": "config/sync-format.json",
   "customZoneRequired": true,
   "sync": [
     "devices",
+    "deviceCapabilities",
     "deviceSessions",
     "workspaces",
     "treeNodes",
@@ -26,6 +28,7 @@
   ],
   "implementedRecords": [
     "devices",
+    "deviceCapabilities",
     "deviceSessions",
     "workspaces",
     "treeNodes",

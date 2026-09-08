@@ -1,7 +1,73 @@
 # Unified sync implementation checkpoint
 
-Updated 2026-09-05. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
-This is an implementation continuation pointer, not a source-freeze or acceptance.
+Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
+This is an implementation/source-handoff pointer, not product acceptance.
+
+## Common native code handoff — 2026-09-08
+
+The Common C++ Service/backend capture and receipt-backed native tree pipeline
+are now implemented, including their current-format model/store/provider
+dependencies. This is a SOURCE-only integration package: no compiler, app,
+profile, CloudKit host or test was started here. Matching Swift remains owned
+here and WIP. Desktop keeps Native B-D and the shared build/install/UI lease.
+Do not insert this package into its separate browser-baseline snapshot.
+
+The exact callable interfaces are in `sync/profile_sync_service.h` and
+`sync/profile_sync_ui_bridge.h` (paths below `overlay/chromium/src/ahoi/browser/`):
+
+- `RequestSharedTabCapture(window_key)` registers a window/invalidates its old
+  capture after a native mutation. `PublishSharedTabCapture(window_key, capture)`
+  answers the issued generation; every registered window must answer complete.
+  `RemoveWindowTabs(window_key)` detaches without inferring a close-all.
+- `shared_tab_sync_state()`, `GetSharedTabProvenance(tree_node_id)` and default
+  observer `OnAhoiSharedTabSyncStateChanged` expose derived state, not write
+  authority. Native support remains explicit/default false. Closing a window
+  cannot retract a previously admitted device capability and block other peers.
+- Native implements `GetSharedTabNativeSupport()` and
+  `RequestSharedTabCapture(generation)` using the existing profile bridge.
+  The old vector and unqualified tree backend methods are non-writing seams;
+  they are not a fallback writer. Replace their native callers in B-D.
+- **Required Native-B receipt seam:**
+  `ExportTabTreeSyncSnapshot(TabTreeSnapshot*, std::string*)` returns the COMPLETE
+  profile tree plus its opaque baseline receipt atomically; false is deferred.
+  `ApplySyncedTabTreeSnapshotWithReceipt(snapshot, receipt, authorization)` must
+  persist receipt+tree in the same native transaction, retain receipt on ordinary
+  local edits/undo and carry the original authorization through persistence.
+  Check it before apply/commit; do not renew it after an asynchronous hop.
+  The defaults fail closed. Common checks the exact tree+receipt readback.
+  This is local crash-safety metadata, NOT a new wire field, storage partition
+  ID, profile path or cloud migration. Desktop request: `01a073b2-528f-7693-a596-d8dda453f100`.
+
+Backend capture now binds its original provider/account/key scope at Begin,
+rechecks the current gate before one authorized SQL batch, and retains committed
+window/key ownership independently of delayed UI replies. Partial/missing/stale
+captures preserve data and identity maps. Retained+new rows are checked together
+for duplicate Presence/Page IDs. Presence and global Tree deletion stay separate.
+`DeviceTabsService` now uses linked Page/target consistency, not an HTTP-only
+filter that loses local-only/new-tab metadata. Actual Device/Capability ACKs and
+initial-fetch completion drive readiness; an empty outbox is not acknowledgment.
+
+`native_tree_sync_journal.{h,cc}` compares native value groups to durable local
+observations in the existing SQLite database, and commits actual changed groups,
+outbox and observations together. Thus a title edit cannot re-author a stale
+remote URL. Prepared, unique projection receipts close the native-apply/restart
+gap; unused receipts cannot become the native baseline. Complete native
+Undo(Create) removals of previously observed live IDs become atomic tombstones;
+missing window captures do not. Initial pre-link creation/saved provenance stays
+unknown instead of inventing a creator device. Both raw-profile and original
+provider authorization continue to fence bookmark and general pump paths.
+
+Verification so far: bounded source/API reviews resolved original-scope capture,
+retained-ID and native Undo(Create) findings; actual pinned Chromium clang-format,
+GN formatting, scoped whitespace and the 800-line source budget were checked.
+These checks are not build, codec, CloudKit or E2E passes. No optional test-matrix
+expansion is a prerequisite. Next: Desktop B-D implementation against these
+interfaces, matching Mobile live completion, then the runnable combined candidate
+and representative visible E2E before minimal relevant programmatic checks.
+
+Both current global and project `AGENTS.md` were read on 2026-09-08. Resource
+coordination now assesses sustained total machine capacity; the obsolete single
+80%-process gate and special Chromium priority are not current user policy.
 
 **New binding scope:** ADR 0010 adds actual Chromium-settings and extension
 installation/configuration restore after linking a second Mac. Earlier five
@@ -9,6 +75,13 @@ Ahoi settings + inventory-only code is insufficient. The one-format decision
 remains; new corresponding field maps/native hooks/fixture coverage are not yet
 implemented. Cookies/passwords stay local; unknown extension storage is not
 silently approved. The goal prompt now includes this expanded runtime acceptance.
+The subsequent workspace-settings packet also covers ordered extension action
+pins by existing Workspace ID and, only if needed by Desktop's isolation design,
+a logical website-session assignment. `docs/WORKSPACE_SESSIONS.md` remains the
+native owner contract. No local partition/profile ID, path, permission grant,
+cookie, storage content or account context is a portable setting; remote moves
+must not switch a running tab's local account. These metadata extensions are
+required follow-up implementation, not added speculatively to this base handoff.
 
 ## Binding scope and delivered code
 
@@ -42,7 +115,7 @@ AI-assisted contributions. Published commits are not rewritten; this does not
 claim that an automated per-commit DCO check on their historical trailers ran
 or passed. Subsequent commits must use `git commit -s`.
 
-## Current implementation WIP — not integrated or built
+## Current implementation state — no new runnable candidate
 
 - Mobile live publisher now uses `CompanionMobileSharedCapture` and
   `CompanionMobilePresenceStore`: complete local upserts commit once, Page IDs
@@ -76,8 +149,8 @@ or passed. Subsequent commits must use `git commit -s`.
   SyncPump recheck the same scope after asynchronous hops for every data class.
   `SyncStore` writes actual acknowledged-record versions plus initial-fetch
   completion; recovery clears those facts instead of treating an empty outbox
-  as acknowledgment. These facts are NOT yet connected to final shared-tab
-  readiness/capture. New ProfileSyncBackend callers/tests must explicitly supply
+  as acknowledgment. These facts now drive common shared-tab readiness/capture.
+  New ProfileSyncBackend callers/tests must explicitly supply
   their authorization; no implicit authorization is granted by the default.
 - Mobile identity/passive projection source is now implemented in
   `MobileBrowserModels.swift`, `MobileBrowserControllerSharedTabs.swift` and
@@ -132,21 +205,14 @@ readback and `git diff --check` have run in this implementation wave.
 
 ## Exact next implementation work
 
-1. **Common native capture/service/backend:** finish the advertised Service
-   getter/Observer/provenance and `PublishSharedTabCapture` interface, real
-   NativeSupport/readiness, original account/global-scope authorization and
-   complete/deferred multi-window generations. Replace the existing HTTP-only
-   `ReplaceLocalTabs` filter/delete path with the atomic primitive. Do not prune
-   accepted IDs before commit or turn detached/missing windows into deletion.
-   A closed Presence never deletes its shared TreeNode. Passive runtime capture
-   must not undo a newer logical Page URL that was deliberately not auto-loaded.
-2. **Capability/live projection:** implement control publication and genuine
-   provider/bootstrap acknowledgment facts. Default-false native support is
-   not yet connected; no automatic feature declaration exists. Preserve
-   out-of-order dependent records and validate Page/Presence before projecting.
-   `DeviceTabsService` still has its old HTTP-only presentation filter and must
-   adopt the shared target/linked-page boundary. Backend/store admission must
-   match Swift's independently known Device/Capability dependency handling.
+1. **Native integration:** Common capture/getter/Observer/provenance, backend
+   complete/deferred batches and receipt-backed projection are implemented above.
+   Desktop implements Native B-D including the local receipt seam; no native
+   file has been taken over. Current default bridges cannot activate the feature.
+2. **Matching live admission:** complete/verify Swift's actual Device/Capability
+   publication/ACK/readiness wiring against the implemented C++ path. Preserve
+   pending dependencies; source-only preparation and the old Relay are not the
+   matching live roundtrip or permission to reuse old profile/CloudKit data.
 3. **Mobile live binding:** `CompanionStore.publishLocalMobileTab` and
    `CompanionAppModel.reconcilePublishedMobileTabs` now have the current Page/
    Presence input and preserving atomic capture described above. Finish the

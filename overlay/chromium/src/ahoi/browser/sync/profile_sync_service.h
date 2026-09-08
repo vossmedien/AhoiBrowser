@@ -4,17 +4,21 @@
 #ifndef AHOI_BROWSER_SYNC_PROFILE_SYNC_SERVICE_H_
 #define AHOI_BROWSER_SYNC_PROFILE_SYNC_SERVICE_H_
 
+#include <atomic>
 #include <cstddef>
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+#include "ahoi/browser/sync/profile_shared_tab_types.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
 #include "ahoi/browser/sync/profile_sync_ui_bridge.h"
 #include "ahoi/browser/sync/remote_command_security.h"
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/callback_list.h"
@@ -76,6 +80,8 @@ class ProfileSyncService final : public KeyedService,
     virtual void OnAhoiDeviceTabsChanged(
         const DeviceTabsSnapshot& snapshot) = 0;
     virtual void OnAhoiSyncStatusChanged(const SyncTransportStatus& status) {}
+    virtual void OnAhoiSharedTabSyncStateChanged(
+        const SharedTabSyncState& state) {}
   };
 
   explicit ProfileSyncService(Profile* profile);
@@ -99,6 +105,11 @@ class ProfileSyncService final : public KeyedService,
   const SyncTransportStatus& transport_status() const {
     return transport_status_;
   }
+  const SharedTabSyncState& shared_tab_sync_state() const {
+    return shared_tab_state_;
+  }
+  SharedTabProvenance GetSharedTabProvenance(
+      const base::Uuid& tree_node_id) const;
   const std::vector<ExtensionInventoryRecord>& extension_inventory() const {
     return extension_inventory_;
   }
@@ -106,8 +117,12 @@ class ProfileSyncService final : public KeyedService,
     return developer_assets_;
   }
 
-  // Each Browser window owns one key. Updating or removing a window publishes
-  // the profile-wide union, so one window can never erase another's tabs.
+  // Register a window and request a fresh, profile-wide capture after a native
+  // mutation. Each registered window must answer the same issued generation.
+  void RequestSharedTabCapture(std::string window_key);
+  void PublishSharedTabCapture(std::string window_key, LocalTabCapture capture);
+  // Source compatibility during native integration only: requests capture and
+  // NEVER treats an unqualified vector as authoritative current-format data.
   void PublishWindowTabs(std::string window_key,
                          std::vector<LocalTabState> tabs);
   void RemoveWindowTabs(const std::string& window_key);
@@ -155,9 +170,23 @@ class ProfileSyncService final : public KeyedService,
 
   void StartBackend();
   void StopBackend();
+  SyncAuthorization StartProfileAuthorization();
+  void RevokeProfileAuthorization();
   void ScheduleLocalPublish();
   void PublishCombinedLocalTabs();
-  void OnLocalPublishComplete(std::optional<DeviceTabsSnapshot> snapshot);
+  void CancelSharedTabCapture();
+  void StopSharedTabs();
+  void UpdateSharedTabNativeSupport();
+  void OnSharedTabSupportUpdated(std::optional<SyncStateSnapshot> snapshot);
+  void SetSharedTabState(SharedTabSyncState state);
+  void OnSharedTabCaptureApplied(SharedTabCaptureResult result);
+  void RefreshSharedTabProjection();
+  void OnSharedTabProjection(uint64_t native_revision,
+                             std::optional<SharedTabProjection> projection);
+  void OnSharedTabProjectionPrepared(
+      uint64_t native_revision,
+      std::optional<PreparedSharedTabProjection> projection);
+  void FinishSharedTabProjection();
   void OnSyncCompleted(std::optional<SyncStateSnapshot> snapshot);
   void OnCloudKitRecoveryConfirmed(bool confirmed);
   void OnSyncEnabledPrefChanged();
@@ -166,7 +195,6 @@ class ProfileSyncService final : public KeyedService,
   void OnBackendState(std::optional<SyncStateSnapshot> snapshot);
   void OnBackendSnapshot(std::optional<DeviceTabsSnapshot> snapshot);
   void OnTabTreeSnapshotChanged(const tab_tree::TabTreeSnapshot& snapshot);
-  void OnLocalTreeMerged(std::optional<SyncStateSnapshot> snapshot);
   void ApplyDomainState(const SyncStateSnapshot& snapshot);
   void ClaimRemoteCommands();
   void OnRemoteCommandsClaimed(std::vector<RemoteCommandRecord> commands);
@@ -224,6 +252,8 @@ class ProfileSyncService final : public KeyedService,
   const base::Uuid local_device_id_;
   const base::Uuid local_session_id_;
   const scoped_refptr<base::SequencedTaskRunner> backend_task_runner_;
+  std::shared_ptr<std::atomic<bool>> profile_scope_cancelled_ =
+      std::make_shared<std::atomic<bool>>(true);
   base::SequenceBound<ProfileSyncBackend> backend_;
   raw_ptr<Profile> profile_ = nullptr;
   base::WeakPtr<ProfileSyncUiBridge> ui_bridge_;
@@ -232,10 +262,22 @@ class ProfileSyncService final : public KeyedService,
   base::CallbackListSubscription tab_tree_subscription_;
   size_t ui_bridge_attachment_count_ = 0;
   std::map<std::string, std::vector<LocalTabState>> window_tabs_;
+  std::set<std::string> registered_window_keys_;
+  std::map<std::string, LocalTabCapture> pending_window_captures_;
+  uint64_t shared_capture_generation_ = 0;
+  bool shared_capture_submitted_ = false;
+  std::shared_ptr<std::atomic<bool>> shared_capture_cancelled_ =
+      std::make_shared<std::atomic<bool>>(true);
+  SharedTabSyncState shared_tab_state_;
+  std::map<base::Uuid, SharedTabProvenance> shared_tab_provenance_;
+  uint64_t native_tree_revision_ = 0;
+  std::shared_ptr<std::atomic<bool>> native_tree_cancelled_ =
+      std::make_shared<std::atomic<bool>>(false);
+  bool shared_projection_pending_ = false;
+  bool shared_projection_requested_ = false;
+  bool capture_after_projection_ = false;
   std::map<std::string, base::Uuid> tab_sync_ids_;
   std::map<base::Uuid, std::string> local_tab_keys_by_sync_id_;
-  std::optional<tab_tree::TabTreeSnapshot> pending_tree_snapshot_;
-  std::optional<tab_tree::TabTreeSnapshot> deferred_tree_snapshot_;
   std::map<base::Uuid, SyncVersion> applied_history_versions_;
   std::map<base::Uuid, SyncVersion> applied_appearance_versions_;
   std::map<base::Uuid, SyncVersion> applied_setting_versions_;
@@ -256,8 +298,6 @@ class ProfileSyncService final : public KeyedService,
   bool sync_enabled_ = false;
   bool initialized_ = false;
   bool backend_ready_ = false;
-  bool initial_tree_merged_ = true;
-  bool ui_tree_seeded_ = false;
   bool applying_synced_tree_ = false;
   bool applying_product_state_ = false;
   bool appearance_publish_pending_ = false;

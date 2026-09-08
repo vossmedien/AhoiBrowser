@@ -12,7 +12,7 @@ namespace ahoi::sync {
 
 struct CloudKitSyncConfigurationMac {
   std::string container_identifier;
-  std::string zone_name = "AhoiBrowserSyncZone";
+  std::string zone_name = "AhoiBrowserSyncV3";
   std::string subscription_identifier;
   std::string keychain_service;
   std::string keychain_account;

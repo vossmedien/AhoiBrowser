@@ -3,13 +3,37 @@
 
 #include "ahoi/browser/sync/sync_serialization_internal.h"
 
+#include <cmath>
+#include <limits>
 #include <utility>
 
+#include "ahoi/browser/sync/sync_merge.h"
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/strings/string_number_conversions.h"
 
 namespace ahoi::sync::serialization_internal {
+
+std::optional<int> ReadInt32(const base::Value& value) {
+  if (value.is_int()) {
+    return value.GetInt();
+  }
+  if (!value.is_double()) {
+    return std::nullopt;
+  }
+  const double number = value.GetDouble();
+  if (!std::isfinite(number) || std::trunc(number) != number ||
+      number < std::numeric_limits<int>::min() ||
+      number > std::numeric_limits<int>::max()) {
+    return std::nullopt;
+  }
+  return static_cast<int>(number);
+}
+
+std::optional<int> ReadInt32(const Dict& dict, const char* key) {
+  const auto* value = dict.Find(key);
+  return value ? ReadInt32(*value) : std::nullopt;
+}
 
 void SetTime(Dict& dict, const char* key, base::Time value) {
   dict.Set(key, base::NumberToString(
@@ -19,10 +43,36 @@ void SetTime(Dict& dict, const char* key, base::Time value) {
 bool ReadTime(const Dict& dict, const char* key, base::Time* value) {
   const std::string* serialized = dict.FindString(key);
   int64_t micros = 0;
-  if (!serialized || !base::StringToInt64(*serialized, &micros)) {
+  if (!serialized || !base::StringToInt64(*serialized, &micros) ||
+      base::NumberToString(micros) != *serialized) {
     return false;
   }
   *value = base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(micros));
+  return true;
+}
+
+void SetUInt32(Dict& dict, const char* key, uint32_t value) {
+  if (value <= static_cast<uint32_t>(std::numeric_limits<int>::max())) {
+    dict.Set(key, static_cast<int>(value));
+  } else {
+    // All uint32 values are exact in binary64. The canonical writer omits
+    // unnecessary decimal suffixes, so Swift receives the same integer bytes.
+    dict.Set(key, static_cast<double>(value));
+  }
+}
+
+bool ReadUInt32(const Dict& dict, const char* key, uint32_t* result) {
+  const base::Value* value = dict.Find(key);
+  if (!result || !value || (!value->is_int() && !value->is_double())) {
+    return false;
+  }
+  const double number = value->is_int() ? value->GetInt() : value->GetDouble();
+  if (!std::isfinite(number) || number < 0 ||
+      number > std::numeric_limits<uint32_t>::max() ||
+      std::trunc(number) != number) {
+    return false;
+  }
+  *result = static_cast<uint32_t>(number);
   return true;
 }
 
@@ -32,38 +82,37 @@ void SetVersion(Dict& dict, const SyncVersion& version) {
   dict.Set("version_model", version.model_version);
   dict.Set("version_physical",
            base::NumberToString(version.stamp.physical_time_us));
-  dict.Set("version_logical", static_cast<int>(version.stamp.logical));
+  SetUInt32(dict, "version_logical", version.stamp.logical);
   dict.Set("version_device", version.stamp.device_tiebreak);
 }
 
 bool ReadVersion(const Dict& dict, SyncVersion* version) {
   const std::string* physical = dict.FindString("version_physical");
   const std::string* device = dict.FindString("version_device");
-  const std::optional<int> model = dict.FindInt("version_model");
-  const std::optional<int> logical = dict.FindInt("version_logical");
+  const std::optional<int> model = ReadInt32(dict, "version_model");
+  uint32_t logical = 0;
   int64_t physical_us = 0;
-  if (!physical || !device || device->empty() || !model || !logical ||
-      *logical < 0 || !base::StringToInt64(*physical, &physical_us)) {
+  if (!physical || !device || model != kCurrentModelVersion ||
+      !ReadUInt32(dict, "version_logical", &logical) ||
+      !base::StringToInt64(*physical, &physical_us) ||
+      base::NumberToString(physical_us) != *physical ||
+      physical_us < kMinimumSyncClockPhysicalUs ||
+      !IsCanonicalSyncDeviceId(*device)) {
     return false;
   }
   version->model_version = *model;
   version->stamp = HlcStamp{.physical_time_us = physical_us,
-                            .logical = static_cast<uint32_t>(*logical),
+                            .logical = logical,
                             .device_tiebreak = *device};
   return true;
 }
 
-void SetFieldVersions(Dict& dict,
-                      int model_version,
-                      const FieldVersionMap& versions) {
-  if (model_version < 2) {
-    return;
-  }
+void SetFieldVersions(Dict& dict, const FieldVersionMap& versions) {
   Dict fields;
   for (const auto& [name, stamp] : versions) {
     Dict value;
     value.Set("physical", base::NumberToString(stamp.physical_time_us));
-    value.Set("logical", static_cast<int>(stamp.logical));
+    SetUInt32(value, "logical", stamp.logical);
     value.Set("device", stamp.device_tiebreak);
     fields.Set(name, std::move(value));
   }
@@ -75,7 +124,7 @@ bool ReadFieldVersions(const Dict& dict,
                        FieldVersionMap* versions) {
   const Dict* fields = dict.FindDict("field_versions");
   if (!fields) {
-    return model_version < 2;
+    return false;
   }
   for (const auto [name, value] : *fields) {
     if (!value.is_dict()) {
@@ -83,21 +132,25 @@ bool ReadFieldVersions(const Dict& dict,
     }
     const Dict& stamp = value.GetDict();
     const std::string* physical = stamp.FindString("physical");
-    const std::optional<int> logical = stamp.FindInt("logical");
+    uint32_t logical = 0;
     const std::string* device = stamp.FindString("device");
     int64_t physical_us = 0;
-    if (!physical || !logical || *logical < 0 || !device || device->empty() ||
-        !base::StringToInt64(*physical, &physical_us) || physical_us < 0 ||
+    if (stamp.size() != 3 || !physical || !device ||
+        !ReadUInt32(stamp, "logical", &logical) ||
+        !base::StringToInt64(*physical, &physical_us) ||
+        base::NumberToString(physical_us) != *physical ||
+        physical_us < kMinimumSyncClockPhysicalUs ||
+        !IsCanonicalSyncDeviceId(*device) ||
         !versions
              ->try_emplace(std::string(name),
                            HlcStamp{.physical_time_us = physical_us,
-                                    .logical = static_cast<uint32_t>(*logical),
+                                    .logical = logical,
                                     .device_tiebreak = *device})
              .second) {
       return false;
     }
   }
-  return model_version < 2 || !versions->empty();
+  return model_version == kCurrentModelVersion && !versions->empty();
 }
 
 }  // namespace
@@ -112,7 +165,7 @@ void SetCommon(Dict& dict,
   dict.Set("id", id.AsLowercaseString());
   dict.Set("tombstone", tombstone);
   SetVersion(dict, version);
-  SetFieldVersions(dict, model_version, field_versions);
+  SetFieldVersions(dict, field_versions);
 }
 
 bool ReadCommon(const Dict& dict,
@@ -121,12 +174,11 @@ bool ReadCommon(const Dict& dict,
                 bool* tombstone,
                 SyncVersion* version,
                 FieldVersionMap* field_versions) {
-  const std::optional<int> model = dict.FindInt("model_version");
+  const std::optional<int> model = ReadInt32(dict, "model_version");
   const std::string* serialized_id = dict.FindString("id");
   const std::optional<bool> deleted = dict.FindBool("tombstone");
-  if (!model || !serialized_id || !deleted ||
-      !base::Uuid::ParseLowercase(*serialized_id).is_valid() ||
-      !ReadVersion(dict, version)) {
+  if (model != kCurrentModelVersion || !serialized_id || !deleted ||
+      !IsCanonicalSyncDeviceId(*serialized_id) || !ReadVersion(dict, version)) {
     return false;
   }
   *model_version = *model;
@@ -142,10 +194,10 @@ bool ReadUuid(const Dict& dict,
               bool optional) {
   const std::string* serialized = dict.FindString(key);
   if (!serialized) {
-    return optional;
+    return optional && !dict.contains(key);
   }
   *value = base::Uuid::ParseLowercase(*serialized);
-  return value->is_valid();
+  return value->is_valid() && IsCanonicalSyncDeviceId(*serialized);
 }
 
 bool ReadString(const Dict& dict, const char* key, std::string* value) {
@@ -158,7 +210,9 @@ bool ReadString(const Dict& dict, const char* key, std::string* value) {
 }
 
 bool WriteDict(const Dict& dict, std::string* payload) {
-  return base::JSONWriter::Write(base::Value(dict.Clone()), payload);
+  return base::JSONWriter::WriteWithOptions(
+      base::Value(dict.Clone()),
+      base::JSONWriter::OPTIONS_OMIT_DOUBLE_TYPE_PRESERVATION, payload);
 }
 
 std::optional<Dict> ParseDict(const std::string& payload) {

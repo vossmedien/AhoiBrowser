@@ -34,9 +34,11 @@ EntityType GetEntityType(const SyncRecord& record) {
           return EntityType::kExtensionInventory;
         } else if constexpr (std::is_same_v<T, DeveloperAssetRecord>) {
           return EntityType::kDeveloperAsset;
-        } else {
-          static_assert(std::is_same_v<T, BookmarkRecord>);
+        } else if constexpr (std::is_same_v<T, BookmarkRecord>) {
           return EntityType::kBookmark;
+        } else {
+          static_assert(std::is_same_v<T, DeviceCapabilityRecord>);
+          return EntityType::kDeviceCapability;
         }
       },
       record);

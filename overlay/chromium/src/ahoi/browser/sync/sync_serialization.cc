@@ -20,12 +20,46 @@ using Dict = base::DictValue;
 
 using serialization_internal::ParseDict;
 using serialization_internal::ReadCommon;
+using serialization_internal::ReadInt32;
 using serialization_internal::ReadString;
 using serialization_internal::ReadTime;
 using serialization_internal::ReadUuid;
 using serialization_internal::SetCommon;
 using serialization_internal::SetTime;
 using serialization_internal::WriteDict;
+
+void SetTarget(Dict& dict,
+               const std::optional<SharedTabTargetKind>& kind,
+               const std::optional<std::string>& local_scheme) {
+  if (kind) {
+    dict.Set("target_kind", static_cast<int>(*kind));
+  }
+  if (local_scheme) {
+    dict.Set("local_scheme", *local_scheme);
+  }
+}
+
+bool ReadTarget(const Dict& dict,
+                bool folder,
+                std::optional<SharedTabTargetKind>* kind,
+                std::optional<std::string>* local_scheme) {
+  if (folder) {
+    return !dict.contains("target_kind") && !dict.contains("local_scheme");
+  }
+  const std::optional<int> raw = ReadInt32(dict, "target_kind");
+  if (!raw || *raw < 0 || *raw > 2) {
+    return false;
+  }
+  *kind = static_cast<SharedTabTargetKind>(*raw);
+  if (dict.contains("local_scheme")) {
+    const auto* value = dict.FindString("local_scheme");
+    if (!value) {
+      return false;
+    }
+    *local_scheme = *value;
+  }
+  return true;
+}
 
 bool SerializeDevice(const DeviceRecord& record, std::string* payload) {
   Dict dict;
@@ -63,6 +97,8 @@ bool SerializeTreeNode(const TreeNodeRecord& record, std::string* payload) {
     dict.Set("parent_id", record.parent_id->AsLowercaseString());
   }
   dict.Set("node_kind", static_cast<int>(record.kind));
+  dict.Set("is_temporary", record.is_temporary);
+  SetTarget(dict, record.target_kind, record.local_scheme);
   dict.Set("title", record.title);
   dict.Set("icon", record.icon);
   if (record.accent_argb) {
@@ -96,6 +132,11 @@ bool SerializeRemoteTab(const RemoteTabRecord& record, std::string* payload) {
             record.version, record.field_versions);
   dict.Set("device_id", record.device_id.AsLowercaseString());
   dict.Set("session_id", record.session_id.AsLowercaseString());
+  if (!record.tree_node_id) {
+    return false;
+  }
+  dict.Set("tree_node_id", record.tree_node_id->AsLowercaseString());
+  SetTarget(dict, record.target_kind, record.local_scheme);
   if (record.workspace_id) {
     dict.Set("workspace_id", record.workspace_id->AsLowercaseString());
   }
@@ -192,6 +233,59 @@ bool SerializeDeveloperAsset(const DeveloperAssetRecord& record,
   return WriteDict(dict, payload);
 }
 
+bool SerializeCapability(const DeviceCapabilityRecord& record,
+                         std::string* payload) {
+  Dict dict;
+  SetCommon(dict, record.model_version, record.id, record.tombstone,
+            record.version, record.field_versions);
+  dict.Set("device_id", record.device_id.AsLowercaseString());
+  base::ListValue readers;
+  base::ListValue writers;
+  base::ListValue features;
+  for (int value : record.readable_models) {
+    readers.Append(value);
+  }
+  for (int value : record.writable_models) {
+    writers.Append(value);
+  }
+  for (const auto& value : record.features) {
+    features.Append(value);
+  }
+  dict.Set("readable_models", std::move(readers));
+  dict.Set("writable_models", std::move(writers));
+  dict.Set("features", std::move(features));
+  return WriteDict(dict, payload);
+}
+
+bool DeserializeCapability(const Dict& dict, DeviceCapabilityRecord* record) {
+  if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
+                  &record->version, &record->field_versions) ||
+      !ReadUuid(dict, "device_id", &record->device_id, false)) {
+    return false;
+  }
+  const auto* readers = dict.FindList("readable_models");
+  const auto* writers = dict.FindList("writable_models");
+  const auto* features = dict.FindList("features");
+  if (!readers || !writers || !features || readers->size() != 1 ||
+      writers->size() != 1) {
+    return false;
+  }
+  const auto reader = ReadInt32(readers->front());
+  const auto writer = ReadInt32(writers->front());
+  if (!reader || !writer) {
+    return false;
+  }
+  record->readable_models = {*reader};
+  record->writable_models = {*writer};
+  for (const auto& feature : *features) {
+    if (!feature.is_string()) {
+      return false;
+    }
+    record->features.push_back(feature.GetString());
+  }
+  return true;
+}
+
 bool DeserializeDevice(const Dict& dict, DeviceRecord* record) {
   if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
                   &record->version, &record->field_versions) ||
@@ -200,7 +294,7 @@ bool DeserializeDevice(const Dict& dict, DeviceRecord* record) {
       !ReadTime(dict, "last_seen", &record->last_seen)) {
     return false;
   }
-  const std::optional<int> type = dict.FindInt("device_type");
+  const std::optional<int> type = ReadInt32(dict, "device_type");
   const std::optional<bool> retired = dict.FindBool("retired");
   if (!type || *type < static_cast<int>(DeviceType::kMacDesktop) ||
       *type > static_cast<int>(DeviceType::kOther) || !retired) {
@@ -223,10 +317,11 @@ bool DeserializeWorkspace(const Dict& dict, WorkspaceRecord* record) {
   }
   const base::Value* accent = dict.Find("accent_argb");
   if (accent) {
-    if (!accent->is_int()) {
+    const auto parsed = ReadInt32(*accent);
+    if (!parsed) {
       return false;
     }
-    record->accent_argb = static_cast<uint32_t>(accent->GetInt());
+    record->accent_argb = static_cast<uint32_t>(*parsed);
   }
   return true;
 }
@@ -249,20 +344,27 @@ bool DeserializeTreeNode(const Dict& dict, TreeNodeRecord* record) {
   if (parent.is_valid()) {
     record->parent_id = parent;
   }
-  const std::optional<int> kind = dict.FindInt("node_kind");
+  const std::optional<int> kind = ReadInt32(dict, "node_kind");
   if (!kind || *kind < static_cast<int>(TreeNodeKind::kFolder) ||
       *kind > static_cast<int>(TreeNodeKind::kPage)) {
     return false;
   }
   record->kind = static_cast<TreeNodeKind>(*kind);
+  const auto temporary = dict.FindBool("is_temporary");
+  if (!temporary || !ReadTarget(dict, record->kind == TreeNodeKind::kFolder,
+                                &record->target_kind, &record->local_scheme)) {
+    return false;
+  }
+  record->is_temporary = *temporary;
   if (const std::string* icon = dict.FindString("icon")) {
     record->icon = *icon;
   }
   if (const base::Value* accent = dict.Find("accent_argb")) {
-    if (!accent->is_int()) {
+    const auto parsed = ReadInt32(*accent);
+    if (!parsed) {
       return false;
     }
-    record->accent_argb = static_cast<uint32_t>(accent->GetInt());
+    record->accent_argb = static_cast<uint32_t>(*parsed);
   }
   return true;
 }
@@ -272,6 +374,7 @@ bool DeserializeHistory(const Dict& dict, HistoryRecord* record) {
                   &record->version, &record->field_versions) ||
       !ReadString(dict, "url", &record->url) ||
       !ReadString(dict, "title", &record->title) ||
+      !ReadString(dict, "transition", &record->transition) ||
       !ReadTime(dict, "last_visit", &record->last_visit)) {
     return false;
   }
@@ -281,14 +384,11 @@ bool DeserializeHistory(const Dict& dict, HistoryRecord* record) {
     return false;
   }
   base::Uuid device_id;
-  if (!ReadUuid(dict, "device_id", &device_id, true)) {
+  if (!ReadUuid(dict, "device_id", &device_id, false)) {
     return false;
   }
   if (device_id.is_valid()) {
     record->device_id = device_id;
-  }
-  if (const std::string* transition = dict.FindString("transition")) {
-    record->transition = *transition;
   }
   return true;
 }
@@ -305,6 +405,12 @@ bool DeserializeRemoteTab(const Dict& dict, RemoteTabRecord* record) {
     return false;
   }
   base::Uuid workspace;
+  base::Uuid tree_node_id;
+  if (!ReadUuid(dict, "tree_node_id", &tree_node_id, false) ||
+      !ReadTarget(dict, false, &record->target_kind, &record->local_scheme)) {
+    return false;
+  }
+  record->tree_node_id = tree_node_id;
   if (!ReadUuid(dict, "workspace_id", &workspace, true)) {
     return false;
   }
@@ -362,8 +468,8 @@ bool DeserializeRemoteCommand(const Dict& dict, RemoteCommandRecord* record) {
   if (tab.is_valid()) {
     record->tab_id = tab;
   }
-  const std::optional<int> kind = dict.FindInt("command_kind");
-  const std::optional<int> status = dict.FindInt("status");
+  const std::optional<int> kind = ReadInt32(dict, "command_kind");
+  const std::optional<int> status = ReadInt32(dict, "status");
   if (!kind || *kind < static_cast<int>(RemoteCommandKind::kOpen) ||
       *kind > static_cast<int>(RemoteCommandKind::kClose) || !status ||
       *status < static_cast<int>(RemoteCommandStatus::kQueued) ||
@@ -382,10 +488,11 @@ bool DeserializeAppearance(const Dict& dict, AppearanceRecord* record) {
     return false;
   }
   if (const base::Value* accent = dict.Find("accent_argb")) {
-    if (!accent->is_int()) {
+    const auto parsed = ReadInt32(*accent);
+    if (!parsed) {
       return false;
     }
-    record->accent_argb = static_cast<uint32_t>(accent->GetInt());
+    record->accent_argb = static_cast<uint32_t>(*parsed);
   }
   const std::optional<bool> system = dict.FindBool("use_system_accent");
   if (!system) {
@@ -430,7 +537,7 @@ bool DeserializeDeveloperAsset(const Dict& dict, DeveloperAssetRecord* record) {
       !ReadString(dict, "source", &record->source)) {
     return false;
   }
-  const std::optional<int> kind = dict.FindInt("asset_kind");
+  const std::optional<int> kind = ReadInt32(dict, "asset_kind");
   const std::optional<bool> enabled = dict.FindBool("enabled");
   const std::optional<bool> opted_in = dict.FindBool("opted_in");
   if (!kind || *kind < static_cast<int>(DeveloperAssetKind::kCss) ||
@@ -451,7 +558,8 @@ bool SerializeRecord(const SyncRecord& record, std::string* payload) {
     return false;
   }
   SyncRecord normalized = record;
-  if (!NormalizeFieldVersions(&normalized, nullptr)) {
+  if (!NormalizeFieldVersions(&normalized, nullptr) ||
+      !ValidateRecord(normalized)) {
     return false;
   }
   return std::visit(
@@ -479,6 +587,8 @@ bool SerializeRecord(const SyncRecord& record, std::string* payload) {
           return SerializeExtensionInventory(value, payload);
         } else if constexpr (std::is_same_v<T, DeveloperAssetRecord>) {
           return SerializeDeveloperAsset(value, payload);
+        } else if constexpr (std::is_same_v<T, DeviceCapabilityRecord>) {
+          return SerializeCapability(value, payload);
         } else {
           static_assert(std::is_same_v<T, BookmarkRecord>);
           return serialization_internal::SerializeBookmark(value, payload);
@@ -592,8 +702,16 @@ bool DeserializeRecord(EntityType expected_type,
       decoded = std::move(value);
       break;
     }
+    case EntityType::kDeviceCapability: {
+      DeviceCapabilityRecord value;
+      if (!DeserializeCapability(*dict, &value)) {
+        return false;
+      }
+      decoded = std::move(value);
+      break;
+    }
   }
-  if (!HasCompleteFieldVersions(decoded)) {
+  if (!HasCompleteFieldVersions(decoded) || !ValidateRecord(decoded)) {
     return false;
   }
   *record = std::move(decoded);

@@ -114,6 +114,7 @@
       "dataClass": "remoteCommand",
       "wireModelVersion": 3,
       "tombstoneAllowed": false,
+      "commandTimestampQuantumMicroseconds": 1000,
       "fieldGroups": [
         "request",
         "status",
@@ -200,6 +201,8 @@
     "deviceEncoding": "canonical lowercase UUID",
     "incomingFieldMap": "exact and complete; never synthesize missing clocks"
   },
+  "numericInputs": "finite mathematically integral JSON numbers; no booleans or fractional values; per-field Int32/UInt32 bounds remain explicit",
+  "ordinaryTimestampMinimumWindowsMicroseconds": "11644473600000000",
   "bookmarkCreatedAt": {
     "encoding": "positive signed-Int64 Windows-epoch microseconds",
     "minimum": "1",

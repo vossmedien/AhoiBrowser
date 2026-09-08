@@ -7,6 +7,7 @@
 #include <set>
 #include <utility>
 
+#include "ahoi/browser/sync/bookmark_native_observation.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_serialization.h"
@@ -61,23 +62,21 @@ bool BookmarkSyncJournal::LoadBindings(Bindings* bindings) const {
     }
     const std::string payload = statement.ColumnString(2);
     if (!payload.empty()) {
-      SyncRecord decoded;
-      if (!DeserializeRecord(EntityType::kBookmark, payload, &decoded) ||
-          GetEntityId(decoded) != binding.id) {
+      auto decoded = DeserializeNativeBookmarkObservation(payload);
+      if (!decoded || decoded->id != binding.id) {
         return false;
       }
-      binding.baseline = std::get<BookmarkRecord>(std::move(decoded));
+      binding.baseline = std::move(decoded);
     }
     binding.index = base::checked_cast<size_t>(index);
     binding.materialized = materialized != 0;
     const auto last_observed = statement.ColumnString(5);
     if (!last_observed.empty()) {
-      SyncRecord decoded;
-      if (!DeserializeRecord(EntityType::kBookmark, last_observed, &decoded) ||
-          GetEntityId(decoded) != binding.id) {
+      auto decoded = DeserializeNativeBookmarkObservation(last_observed);
+      if (!decoded || decoded->id != binding.id) {
         return false;
       }
-      binding.last_observed = std::get<BookmarkRecord>(std::move(decoded));
+      binding.last_observed = std::move(decoded);
     }
     binding.observed_receipt = statement.ColumnString(6);
     binding.observation_session = statement.ColumnString(7);
@@ -92,12 +91,13 @@ bool BookmarkSyncJournal::WriteBinding(const std::string& key,
                                        const Binding& binding) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(store_->sequence_checker_);
   std::string payload;
-  if (binding.baseline && !SerializeRecord(*binding.baseline, &payload)) {
+  if (binding.baseline &&
+      !SerializeNativeBookmarkObservation(*binding.baseline, &payload)) {
     return false;
   }
   std::string last_observed;
-  if (binding.last_observed &&
-      !SerializeRecord(*binding.last_observed, &last_observed)) {
+  if (binding.last_observed && !SerializeNativeBookmarkObservation(
+                                   *binding.last_observed, &last_observed)) {
     return false;
   }
   sql::Statement statement(store_->db_.GetUniqueStatement(
@@ -205,10 +205,6 @@ bool BookmarkSyncJournal::ProjectNative(
     }
     if (binding->second.baseline) {
       record.sort_key = binding->second.baseline->sort_key;
-      record.version = binding->second.baseline->version;
-    } else {
-      record.version.stamp = {.physical_time_us = 0,
-                              .device_tiebreak = "native"};
     }
     const std::string group = entry.parent_key.value_or(
         "root:" + std::to_string(static_cast<int>(
@@ -265,7 +261,9 @@ bool BookmarkSyncJournal::ProjectNative(
   for (const auto& [key, record] : *records) {
     graph.push_back(record);
   }
-  return ValidateBookmarkGraph(graph);
+  // No fabricated author/clock for native values: WriteChangedRecord stamps
+  // actual local mutations after content/graph validation succeeds.
+  return ValidateNativeBookmarkGraph(graph);
 }
 
 bool BookmarkSyncJournal::WriteChangedRecord(BookmarkRecord record,

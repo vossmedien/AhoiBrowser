@@ -44,7 +44,8 @@ class CloudKitSyncProviderMac::Core
   Core(const CloudKitSyncConfigurationMac& configuration,
        base::FilePath state_path,
        std::unique_ptr<SyncPayloadCryptor> cryptor,
-       bool bookmark_sync_enabled);
+       bool bookmark_sync_enabled,
+       SyncAuthorization profile_authorization);
   ~Core();
   void SetBookmarkSyncEnabled(bool enabled);
   void ReceiveRecordForTesting(CKRecord* record);
@@ -80,7 +81,8 @@ class CloudKitSyncProviderMac::Core
     }];
   }
   bool Initialize() API_AVAILABLE(macos(14.0)) {
-    if (!cryptor_ || !owner_runner_) {
+    if (!cryptor_ || !owner_runner_ || !profile_authorization_ ||
+        !profile_authorization_.Run()) {
       return false;
     }
     NSString* container_id = ToNSString(configuration_.container_identifier);
@@ -99,6 +101,9 @@ class CloudKitSyncProviderMac::Core
       base::AutoLock guard(lock_);
       LoadInbox();
       state = LoadState();
+      if (persisted_state_invalid_) {
+        return false;  // Preserve incompatible/corrupt bytes; no silent reset.
+      }
       HydrateDeferredBookmarks();
     }
     CKSyncEngineConfiguration* engine_configuration =
@@ -125,7 +130,8 @@ class CloudKitSyncProviderMac::Core
   void CompleteDownload(NSError* error, uint64_t generation);
   void HandleEvent(CKSyncEngineEvent* event) API_AVAILABLE(macos(14.0)) {
     base::AutoLock guard(lock_);
-    if (shutting_down_) {
+    if (shutting_down_ || !profile_authorization_ ||
+        !profile_authorization_.Run()) {
       return;
     }
     switch (event.type) {
@@ -179,8 +185,9 @@ class CloudKitSyncProviderMac::Core
     NSMutableArray* changes = [NSMutableArray array];
     {
       base::AutoLock guard(lock_);
-      if (shutting_down_ || account_transition_pending_ ||
-          zone_recovery_pending_ || operations_cancelling_) {
+      if (!TransportAllowed() || shutting_down_ ||
+          account_transition_pending_ || zone_recovery_pending_ ||
+          operations_cancelling_) {
         return nil;
       }
       generation = transport_generation_;
@@ -220,6 +227,7 @@ class CloudKitSyncProviderMac::Core
     return bookmark_consent_revoked_;
   }
   BookmarkSyncAuthorization GetBookmarkSyncAuthorization();
+  SyncAuthorization GetTransportAuthorization();
   bool IsZoneRecoveryPending() {
     base::AutoLock guard(lock_);
     return !shutting_down_ && zone_recovery_pending_;
@@ -278,14 +286,22 @@ class CloudKitSyncProviderMac::Core
            [right_payload isKindOfClass:[NSData class]] &&
            [left_payload isEqualToData:right_payload];
   }
+  bool TransportAllowed() const {
+    lock_.AssertAcquired();
+    return profile_authorization_ && profile_authorization_.Run() &&
+           !shutting_down_ && !persisted_state_invalid_ &&
+           !account_transition_pending_ && !zone_recovery_pending_;
+  }
   bool BookmarkAllowed() const {
     lock_.AssertAcquired();
-    return bookmark_sync_enabled_ && !account_transition_pending_ &&
-           !zone_recovery_pending_ && !bookmark_consent_revoked_;
+    return TransportAllowed() && bookmark_sync_enabled_ &&
+           !account_transition_pending_ && !zone_recovery_pending_ &&
+           !bookmark_consent_revoked_;
   }
   std::optional<SyncChange> Decode(CKRecord* record) {
     lock_.AssertAcquired();
-    if (!cryptor_ || (IsBookmarkRecord(record) && !BookmarkAllowed())) {
+    if (!TransportAllowed() || !cryptor_ ||
+        (IsBookmarkRecord(record) && !BookmarkAllowed())) {
       return std::nullopt;
     }
     return DecodeCloudKitSyncRecord(record, *cryptor_);
@@ -375,7 +391,6 @@ class CloudKitSyncProviderMac::Core
   void LoadInbox();
   bool PersistInbox();
   void LoadCachedChange(NSDictionary* item);
-  void HydrateLegacyBookmarks();
   void ReceiveFetchedRecord(CKRecord* record);
   void MaterializeBookmarkRecord(const std::string& key, CKRecord* record);
   void HydrateDeferredBookmarks();
@@ -398,6 +413,7 @@ class CloudKitSyncProviderMac::Core
   const base::FilePath state_path_;
   const base::FilePath inbox_path_;
   std::unique_ptr<SyncPayloadCryptor> cryptor_;
+  const SyncAuthorization profile_authorization_;
   scoped_refptr<base::SequencedTaskRunner> owner_runner_;
   __strong AhoiCloudKitSyncDelegate* delegate_core_ = nil;
   __strong CKSyncEngine* engine_ = nil;
@@ -409,7 +425,6 @@ class CloudKitSyncProviderMac::Core
   // Keep native encrypted records until their decoded delivery is acknowledged.
   // The persisted cache never grants permission to decrypt them after restart.
   std::map<std::string, __strong CKRecord*> opaque_bookmark_records_;
-  std::map<std::string, __strong NSDictionary*> legacy_bookmark_changes_;
   std::map<std::string, std::string> materialized_bookmark_keys_;
   std::map<std::string, base::Uuid> bookmark_quarantine_ids_;
   std::set<std::string> upload_acknowledgements_;
@@ -426,6 +441,7 @@ class CloudKitSyncProviderMac::Core
   bool bookmark_consent_revoked_ = false;
   bool operations_cancelling_ = false;
   bool inbox_persistence_failed_ = false;
+  bool persisted_state_invalid_ = false;
   bool account_transition_pending_ = false;
   bool zone_recovery_pending_ = false;
   bool shutting_down_ = false;

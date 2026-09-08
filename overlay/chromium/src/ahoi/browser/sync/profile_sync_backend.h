@@ -14,13 +14,17 @@
 
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
+#include "ahoi/browser/sync/profile_shared_tab_types.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
 #include "ahoi/browser/sync/remote_command_security.h"
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
+#include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback_forward.h"
 #include "base/memory/weak_ptr.h"
+#include "base/scoped_observation.h"
 
 namespace ahoi::sync {
 
@@ -33,7 +37,7 @@ class SyncStore;
 // Blocking profile-local implementation owned by one SequenceBound task
 // runner. No PrefService, HistoryService, SessionBridge or browser UI object
 // crosses this boundary.
-class ProfileSyncBackend {
+class ProfileSyncBackend : public SyncStoreObserver {
  public:
   ProfileSyncBackend(base::FilePath database_path,
                      base::Uuid device_id,
@@ -41,7 +45,8 @@ class ProfileSyncBackend {
                      std::string device_name,
                      bool transport_enabled,
                      int history_retention_days,
-                     bool bookmark_sync_enabled = false);
+                     bool bookmark_sync_enabled = false,
+                     SyncAuthorization profile_authorization = {});
   ProfileSyncBackend(const ProfileSyncBackend&) = delete;
   ProfileSyncBackend& operator=(const ProfileSyncBackend&) = delete;
   ~ProfileSyncBackend();
@@ -49,6 +54,14 @@ class ProfileSyncBackend {
   std::optional<SyncStateSnapshot> Initialize();
   std::optional<DeviceTabsSnapshot> ReplaceLocalTabs(
       std::vector<LocalTabState> tabs);
+  std::optional<SyncStateSnapshot> SetSharedTabNativeSupport(
+      SharedTabNativeSupport support);
+  void BeginSharedTabCapture(uint64_t generation);
+  SharedTabCaptureResult ApplySharedTabCapture(SharedTabCaptureRequest request);
+  std::optional<SharedTabProjection> ReadSharedTabProjection();
+  std::optional<PreparedSharedTabProjection> PrepareSharedTabProjection(
+      NativeTreeSyncSnapshot native,
+      SharedTabProjection projection);
   std::optional<SyncStateSnapshot> MergeLocalTabTree(
       tab_tree::TabTreeSnapshot snapshot,
       bool initial_merge);
@@ -108,6 +121,13 @@ class ProfileSyncBackend {
 
   void TouchSession();
   void InitializeProviderIfAvailable();
+  bool ProfileScopeActive() const;
+  SharedTabSyncState SharedTabState();
+  SyncAuthorization CaptureSharedAuthorization(bool require_write);
+  bool PublishLocalCapability();
+  void OnSyncStoreChanged() override;
+  void RevokeSharedProjection();
+  void RevokeSharedCapture();
   BookmarkSyncAuthorization CaptureBookmarkAuthorization();
   void ResetBookmarkAuthorizationScope(bool renew);
   bool EnforceRetention(base::Time now);
@@ -121,6 +141,7 @@ class ProfileSyncBackend {
   const base::Uuid device_id_;
   const base::Uuid session_id_;
   const std::string device_name_;
+  const SyncAuthorization profile_authorization_;
   bool transport_enabled_ = false;
   bool bookmark_sync_enabled_ = false;
   std::shared_ptr<std::atomic<bool>> bookmark_scope_cancelled_ =
@@ -129,9 +150,20 @@ class ProfileSyncBackend {
   base::Time last_retention_run_;
   HybridLogicalClock clock_;
   std::unique_ptr<SyncStore> store_;
+  base::ScopedObservation<SyncStore, SyncStoreObserver>
+      shared_store_observation_{this};
   std::unique_ptr<DeviceTabsService> tabs_service_;
   DeviceSessionRecord session_record_;
   std::map<std::string, RemoteTabRecord> live_tabs_;
+  std::map<std::string, std::string> live_tab_windows_;
+  SharedTabNativeSupport shared_native_support_;
+  uint64_t expected_capture_generation_ = 0;
+  uint64_t applied_capture_generation_ = 0;
+  SyncAuthorization original_capture_authorization_;
+  std::shared_ptr<std::atomic<bool>> shared_capture_cancelled_ =
+      std::make_shared<std::atomic<bool>>(true);
+  std::shared_ptr<std::atomic<bool>> shared_projection_cancelled_ =
+      std::make_shared<std::atomic<bool>>(false);
   std::unique_ptr<SyncProvider> provider_;
   std::unique_ptr<SyncPump> pump_;
   base::WeakPtrFactory<ProfileSyncBackend> weak_ptr_factory_{this};

@@ -15,6 +15,10 @@ BookmarkSyncAuthorization SyncProvider::GetBookmarkSyncAuthorization() {
   return {};
 }
 
+SyncAuthorization SyncProvider::GetTransportAuthorization() {
+  return {};
+}
+
 bool SyncProvider::IsAccountTransitionPending() {
   return false;
 }

@@ -6,11 +6,16 @@
 #define AHOI_BROWSER_SYNC_SYNC_MERGE_H_
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "ahoi/browser/sync/sync_model.h"
 
 namespace ahoi::sync {
+
+inline constexpr int64_t kMinimumSyncClockPhysicalUs = 11644473600000000;
+bool IsCanonicalSyncDeviceId(std::string_view value);
+bool IsValidSyncClock(const HlcStamp& stamp);
 
 enum class MergeDecision {
   kKeepExisting,
@@ -28,12 +33,13 @@ MergeDecision DecideMerge(const SyncVersion& existing_version,
                           const SyncVersion& incoming_version,
                           const std::string& incoming_payload);
 
-// Populates missing wire-v2 field clocks from the record clock. Wire-v1 data
-// is upgraded in memory this way; unknown field keys fail closed.
+// Local authoring helper: a new current-format record may receive its initial
+// full map from its explicit creation clock. Old versions and partial maps are
+// rejected. Incoming records must pass HasCompleteFieldVersions beforehand.
 bool NormalizeFieldVersions(SyncRecord* record, std::string* error = nullptr);
 
-// Returns true for legacy v1 records and for v2 records carrying exactly the
-// complete known field-clock set. Used at the untrusted wire boundary.
+// Requires the one current model and exactly the complete known field-clock
+// set. No legacy normalization is performed at this untrusted boundary.
 bool HasCompleteFieldVersions(const SyncRecord& record);
 
 // Prepares a local write without turning an update to one scalar into a write
@@ -63,6 +69,14 @@ bool ValidateBookmarkContent(BookmarkKind kind,
                              const std::string& url,
                              base::Time created_at,
                              std::string* error = nullptr);
+
+// Local pre-authoring shape/graph checks. These deliberately ignore clocks;
+// they never authorize transport or a journal write. Wire/store callers must
+// use ValidateRecord/ValidateBookmarkGraph instead.
+bool ValidateNativeBookmarkShape(const BookmarkRecord& record,
+                                 std::string* error = nullptr);
+bool ValidateNativeBookmarkGraph(const std::vector<BookmarkRecord>& records,
+                                 std::string* error = nullptr);
 
 // Validates all active tree rows as one graph. A provider may deliver parents
 // and children in either order; callers should pass the candidate post-merge

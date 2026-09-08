@@ -19,6 +19,10 @@ using Dict = base::DictValue;
 // format.
 void SetTime(Dict& dict, const char* key, base::Time value);
 bool ReadTime(const Dict& dict, const char* key, base::Time* value);
+void SetUInt32(Dict& dict, const char* key, uint32_t value);
+bool ReadUInt32(const Dict& dict, const char* key, uint32_t* value);
+std::optional<int> ReadInt32(const base::Value& value);
+std::optional<int> ReadInt32(const Dict& dict, const char* key);
 void SetCommon(Dict& dict,
                int model_version,
                const base::Uuid& id,
@@ -32,8 +36,7 @@ bool ReadCommon(const Dict& dict,
                 SyncVersion* version,
                 FieldVersionMap* field_versions);
 
-// Legacy optional UUID handling is retained for existing wire entities.
-// Strict optional fields must check presence/type before invoking this helper.
+// Optional means omitted, never a present null or wrong JSON type.
 bool ReadUuid(const Dict& dict,
               const char* key,
               base::Uuid* value,

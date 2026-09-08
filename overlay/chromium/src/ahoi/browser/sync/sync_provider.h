@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "base/functional/callback.h"
 
@@ -43,6 +44,9 @@ class SyncProvider {
   // the UI or backend sequence and remain revoked after off/on or account
   // changes. Providers without this contract fail closed for native applies.
   virtual BookmarkSyncAuthorization GetBookmarkSyncAuthorization();
+  // Original account/key/recovery scope for all synchronized data. A cached
+  // UI readiness flag is not sufficient for a delayed native apply or commit.
+  virtual SyncAuthorization GetTransportAuthorization();
   virtual bool IsAccountTransitionPending();
   virtual bool IsZoneRecoveryPending();
   virtual bool ConfirmAccountTransition(bool allow_local_upload);

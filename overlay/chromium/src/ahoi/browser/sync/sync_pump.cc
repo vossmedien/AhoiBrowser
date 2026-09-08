@@ -111,6 +111,11 @@ void SyncPump::StartCycle() {
 }
 
 void SyncPump::UploadNextPage() {
+  auto transport_authorization = provider_->GetTransportAuthorization();
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
   std::vector<SyncChange> changes;
   if (store_->ReadOutbox(options_.upload_batch_size, &changes,
                          bookmark_sync_enabled_) != SyncStore::Result::kOk) {
@@ -139,14 +144,20 @@ void SyncPump::UploadNextPage() {
           task_runner_,
           base::BindOnce(&SyncPump::OnUploadFinished,
                          weak_ptr_factory_.GetWeakPtr(), std::move(attempted),
+                         std::move(transport_authorization),
                          std::move(authorization))));
 }
 
 void SyncPump::OnUploadFinished(std::vector<SyncChange> attempted,
+                                SyncAuthorization transport_authorization,
                                 BookmarkSyncAuthorization authorization,
                                 bool success,
                                 std::vector<std::string> acknowledged_ids,
                                 std::string error) {
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
   if (!success) {
     FinishFailure(SafeProviderError(std::move(error)));
     return;
@@ -189,6 +200,11 @@ void SyncPump::OnUploadFinished(std::vector<SyncChange> attempted,
 }
 
 void SyncPump::DownloadNextPage(std::string requested_token) {
+  auto transport_authorization = provider_->GetTransportAuthorization();
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
   auto authorization = bookmark_sync_enabled_
                            ? provider_->GetBookmarkSyncAuthorization()
                            : BookmarkSyncAuthorization();
@@ -198,14 +214,20 @@ void SyncPump::DownloadNextPage(std::string requested_token) {
           task_runner_,
           base::BindOnce(&SyncPump::OnDownloadFinished,
                          weak_ptr_factory_.GetWeakPtr(), requested_token,
+                         std::move(transport_authorization),
                          std::move(authorization))));
 }
 
 void SyncPump::OnDownloadFinished(std::string requested_token,
+                                  SyncAuthorization transport_authorization,
                                   BookmarkSyncAuthorization authorization,
                                   bool success,
                                   ProviderBatch batch,
                                   std::string error) {
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
   if (!success) {
     FinishFailure(SafeProviderError(std::move(error)));
     return;

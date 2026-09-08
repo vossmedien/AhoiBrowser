@@ -6,13 +6,14 @@
 
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <string_view>
 
 #include "ahoi/browser/sync/shared_tab_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/callback_list.h"
-#include "base/functional/callback_forward.h"
+#include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
 #include "base/uuid.h"
 #include "url/gurl.h"
@@ -41,12 +42,34 @@ class ProfileSyncUiBridge {
   // Explicit implementation support, separate from wire-format membership.
   // Native capture responds with the same Service-issued generation; absent
   // support must preserve state and never fall back to an empty tab vector.
-  virtual SharedTabNativeSupport GetSharedTabNativeSupport() const { return {}; }
+  virtual SharedTabNativeSupport GetSharedTabNativeSupport() const {
+    return {};
+  }
   virtual void RequestSharedTabCapture(uint64_t generation) {}
   [[nodiscard]] virtual bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) = 0;
   [[nodiscard]] virtual tab_tree::TabTreeStore::Result
   ApplySyncedTabTreeSnapshot(tab_tree::TabTreeSnapshot snapshot) = 0;
+
+  // Local crash-safety metadata, never a sync field. The native Store must
+  // commit this opaque receipt in the SAME transaction as the projected tree,
+  // preserve it across ordinary local edits and return both atomically. Check
+  // the original authorization before apply and immediately before committing;
+  // carry it through an asynchronous persistence hop without renewing it.
+  // Without this seam a post-apply crash could turn remote values into new
+  // local edits.
+  [[nodiscard]] virtual bool ExportTabTreeSyncSnapshot(
+      tab_tree::TabTreeSnapshot* snapshot,
+      std::string* baseline_receipt) {
+    return false;
+  }
+  [[nodiscard]] virtual tab_tree::TabTreeStore::Result
+  ApplySyncedTabTreeSnapshotWithReceipt(
+      tab_tree::TabTreeSnapshot snapshot,
+      std::string baseline_receipt,
+      base::RepeatingCallback<bool()> authorization) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
 
   [[nodiscard]] virtual bool OpenNormalTabFromRemoteCommand(
       const GURL& url,

@@ -11,20 +11,19 @@
 #include <variant>
 #include <vector>
 
+#include "ahoi/browser/sync/shared_tab_sync_types.h"
+#include "ahoi/browser/sync/shared_tab_target_types.h"
 #include "base/containers/flat_map.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 
 namespace ahoi::sync {
 
-// Bump this when a persisted record's meaning changes. The database schema
-// version and this model version are intentionally separate: schema migrations
-// describe storage, while this version is part of a record exchanged with an
-// iOS client or another desktop build.
-inline constexpr int kCurrentModelVersion = 2;
-// Bookmark authoring is deliberately not coupled to future tab read support.
-inline constexpr int kBookmarkWireModelVersion = 2;
-inline constexpr int kCurrentSchemaVersion = 5;
+// One authored/accepted wire format for every permitted entity. SQLite layout
+// has its own version; obsolete development formats require a fresh isolated
+// store rather than an implicit record upgrade.
+inline constexpr int kCurrentModelVersion = 3;
+inline constexpr int kCurrentSchemaVersion = 6;
 
 enum class DeviceType {
   kMacDesktop = 0,
@@ -46,6 +45,7 @@ enum class EntityType {
   kExtensionInventory = 9,
   kDeveloperAsset = 10,
   kBookmark = 11,
+  kDeviceCapability = 12,
 };
 
 enum class ChangeKind {
@@ -82,10 +82,9 @@ struct HlcStamp {
   }
 };
 
-// Wire-v2 assigns a clock to each independently mergeable field (or atomic
-// field group such as a tree node's location). Unknown keys are rejected by
-// the model validator. Wire-v1 records have no map; decoders synthesize the
-// record clock for every known field so upgrades converge deterministically.
+// Format 3 carries an exact, complete clock map for independently mergeable
+// fields or atomic groups such as location. Incoming missing clocks are never
+// synthesized from the enclosing record clock.
 using FieldVersionMap = base::flat_map<std::string, HlcStamp>;
 
 struct SyncVersion {
@@ -160,6 +159,11 @@ struct TreeNodeRecord {
   bool tombstone = false;
   SyncVersion version;
   FieldVersionMap field_versions;
+  bool is_temporary = false;
+  // Required for pages, absent for folders; together with url these form one
+  // atomic field group. Missing target metadata never implies a web target.
+  std::optional<SharedTabTargetKind> target_kind;
+  std::optional<std::string> local_scheme;
 
   friend bool operator==(const TreeNodeRecord&,
                          const TreeNodeRecord&) = default;
@@ -241,6 +245,10 @@ struct RemoteTabRecord {
   bool tombstone = false;
   SyncVersion version;
   FieldVersionMap field_versions;
+  // A published Presence links its page and retains a distinct own id.
+  std::optional<base::Uuid> tree_node_id;
+  std::optional<SharedTabTargetKind> target_kind;
+  std::optional<std::string> local_scheme;
 
   friend bool operator==(const RemoteTabRecord&,
                          const RemoteTabRecord&) = default;
@@ -358,7 +366,7 @@ enum class BookmarkRoot {
 // their parent. A folder move therefore never rewrites its whole subtree.
 // Location (root_kind, parent_id, sort_key) is one atomic merge field.
 struct BookmarkRecord {
-  int model_version = kBookmarkWireModelVersion;
+  int model_version = kCurrentModelVersion;
   base::Uuid id;
   BookmarkKind kind = BookmarkKind::kFolder;
   std::optional<BookmarkRoot> root_kind;
@@ -373,6 +381,24 @@ struct BookmarkRecord {
 
   friend bool operator==(const BookmarkRecord&,
                          const BookmarkRecord&) = default;
+};
+
+// Functional control metadata for an independently known DeviceRecord. The
+// UUIDv5 identity and device-owned clocks are validated at the domain boundary.
+// Model support alone does not advertise implemented shared-tab behavior.
+struct DeviceCapabilityRecord {
+  int model_version = kCurrentModelVersion;
+  base::Uuid id;
+  base::Uuid device_id;
+  std::vector<int> readable_models{kCurrentModelVersion};
+  std::vector<int> writable_models{kCurrentModelVersion};
+  std::vector<std::string> features;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+
+  friend bool operator==(const DeviceCapabilityRecord&,
+                         const DeviceCapabilityRecord&) = default;
 };
 
 // Deletions are retained separately from the materialized record payload so a
@@ -401,7 +427,8 @@ using SyncRecord = std::variant<DeviceRecord,
                                 PermittedSettingRecord,
                                 ExtensionInventoryRecord,
                                 DeveloperAssetRecord,
-                                BookmarkRecord>;
+                                BookmarkRecord,
+                                DeviceCapabilityRecord>;
 
 struct SyncChange {
   std::string mutation_id;
@@ -470,6 +497,8 @@ struct SyncStateSnapshot {
   std::vector<ExtensionInventoryRecord> extension_inventory;
   std::vector<DeveloperAssetRecord> developer_assets;
   std::vector<BookmarkRecord> bookmarks;
+  std::vector<DeviceCapabilityRecord> device_capabilities;
+  SharedTabSyncState shared_tabs;
 
   friend bool operator==(const SyncStateSnapshot&,
                          const SyncStateSnapshot&) = default;

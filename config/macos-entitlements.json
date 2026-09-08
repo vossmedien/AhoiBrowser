@@ -16,7 +16,7 @@
     ]
   },
   "runtimeConfiguration": {
-    "zoneName": "AhoiBrowserSyncZone",
+    "zoneName": "AhoiBrowserSyncV3",
     "subscriptionIdentifier": "AhoiBrowserSyncSubscription",
     "syncKeychainService": "app.ahoibrowser.sync.payload-key",
     "syncKeychainAccount": "payload-key",

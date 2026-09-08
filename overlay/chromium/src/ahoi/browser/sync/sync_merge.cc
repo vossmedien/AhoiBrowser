@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "ahoi/browser/sync/sync_unified_validation.h"
 #include "base/base64.h"
 #include "base/json/json_reader.h"
 #include "base/strings/string_util.h"
@@ -25,10 +26,8 @@ void SetError(const char* message, std::string* error) {
 }
 
 bool ValidVersion(const SyncVersion& version, std::string* error) {
-  if (version.model_version <= 0 ||
-      version.model_version > kCurrentModelVersion ||
-      version.stamp.physical_time_us < 0 ||
-      version.stamp.device_tiebreak.empty()) {
+  if (version.model_version != kCurrentModelVersion ||
+      !IsValidSyncClock(version.stamp)) {
     SetError("invalid version", error);
     return false;
   }
@@ -36,8 +35,17 @@ bool ValidVersion(const SyncVersion& version, std::string* error) {
 }
 
 bool ValidUuid(const base::Uuid& uuid, const char* field, std::string* error) {
-  if (!uuid.is_valid()) {
+  if (!IsCanonicalSyncDeviceId(uuid.AsLowercaseString())) {
     SetError(field, error);
+    return false;
+  }
+  return true;
+}
+
+bool ValidTimestamp(base::Time value, std::string* error) {
+  if (value.ToDeltaSinceWindowsEpoch().InMicroseconds() <
+      kMinimumSyncClockPhysicalUs) {
+    SetError("invalid synchronized timestamp", error);
     return false;
   }
   return true;
@@ -124,6 +132,17 @@ MergeDecision DecideMerge(const SyncVersion& existing_version,
                                               : MergeDecision::kInvalid;
 }
 
+bool IsCanonicalSyncDeviceId(std::string_view value) {
+  const base::Uuid parsed = base::Uuid::ParseLowercase(value);
+  return parsed.is_valid() && parsed.AsLowercaseString() == value &&
+         value != "00000000-0000-0000-0000-000000000000";
+}
+
+bool IsValidSyncClock(const HlcStamp& stamp) {
+  return stamp.physical_time_us >= kMinimumSyncClockPhysicalUs &&
+         IsCanonicalSyncDeviceId(stamp.device_tiebreak);
+}
+
 bool ValidateBookmarkContent(BookmarkKind kind,
                              const std::string& title,
                              const std::string& url,
@@ -156,6 +175,28 @@ bool ValidateBookmarkContent(BookmarkKind kind,
   return true;
 }
 
+bool ValidateNativeBookmarkShape(const BookmarkRecord& value,
+                                 std::string* error) {
+  if (!ValidUuid(value.id, "invalid bookmark id", error) ||
+      value.root_kind.has_value() == value.parent_id.has_value() ||
+      (value.root_kind && (*value.root_kind < BookmarkRoot::kBookmarkBar ||
+                           *value.root_kind > BookmarkRoot::kMobile)) ||
+      (value.parent_id &&
+       (!ValidUuid(*value.parent_id, "invalid bookmark parent", error) ||
+        *value.parent_id == value.id)) ||
+      !ValidText(value.sort_key, 1024u, false, "invalid bookmark order key",
+                 error) ||
+      !std::ranges::all_of(
+          value.sort_key,
+          [](unsigned char value) { return value >= 0x21 && value <= 0x7e; }) ||
+      !ValidateBookmarkContent(value.kind, value.title, value.url,
+                               value.created_at, error)) {
+    SetError("invalid bookmark", error);
+    return false;
+  }
+  return true;
+}
+
 bool ValidateRecord(const SyncRecord& record, std::string* error) {
   SyncRecord normalized = record;
   if (!NormalizeFieldVersions(&normalized, error)) {
@@ -174,8 +215,7 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
   }
   return std::visit(
       [error](const auto& value) {
-        if (value.model_version <= 0 ||
-            value.model_version > kCurrentModelVersion) {
+        if (value.model_version != kCurrentModelVersion) {
           SetError("unsupported model version", error);
           return false;
         }
@@ -191,31 +231,44 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, DeviceRecord>) {
           if (value.type < DeviceType::kMacDesktop ||
-              value.type > DeviceType::kOther) {
+              value.type > DeviceType::kOther ||
+              !ValidTimestamp(value.created_at, error) ||
+              !ValidTimestamp(value.last_seen, error)) {
             SetError("invalid device type", error);
             return false;
           }
           return true;
         } else if constexpr (std::is_same_v<T, WorkspaceRecord>) {
-          return true;
+          return ValidTimestamp(value.created_at, error) &&
+                 ValidTimestamp(value.modified_at, error);
         } else if constexpr (std::is_same_v<T, TreeNodeRecord>) {
-          if (!ValidUuid(value.workspace_id, "invalid workspace id", error) ||
+          if (!ValidTimestamp(value.created_at, error) ||
+              !ValidTimestamp(value.modified_at, error) ||
+              !ValidUuid(value.workspace_id, "invalid workspace id", error) ||
               (value.parent_id &&
                !ValidUuid(*value.parent_id, "invalid parent id", error))) {
             return false;
           }
           if (value.kind == TreeNodeKind::kPage &&
-              !ValidUrl(value.url, "invalid page url", error)) {
+              (!ValidateSharedTarget(value.url, value.target_kind,
+                                     value.local_scheme) ||
+               (value.target_kind == SharedTabTargetKind::kNewTab &&
+                !value.is_temporary))) {
+            SetError("invalid shared page target", error);
             return false;
           }
-          if (value.kind == TreeNodeKind::kFolder && !value.url.empty()) {
-            SetError("folder contains url", error);
+          if (value.kind == TreeNodeKind::kFolder &&
+              (!value.url.empty() || value.is_temporary || value.target_kind ||
+               value.local_scheme)) {
+            SetError("folder contains tab metadata", error);
             return false;
           }
           return value.kind == TreeNodeKind::kFolder ||
                  value.kind == TreeNodeKind::kPage;
         } else if constexpr (std::is_same_v<T, HistoryRecord>) {
-          if (!ValidUrl(value.url, "invalid history url", error)) {
+          if (!ValidTimestamp(value.last_visit, error) ||
+              !ValidUuid(value.device_id, "invalid history device", error) ||
+              !ValidUrl(value.url, "invalid history url", error)) {
             return false;
           }
           if (value.visit_count < 0) {
@@ -224,7 +277,9 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
           }
           return true;
         } else if constexpr (std::is_same_v<T, RemoteTabRecord>) {
-          if (!ValidUuid(value.device_id, "invalid tab device id", error) ||
+          if (!ValidTimestamp(value.opened_at, error) ||
+              !ValidTimestamp(value.last_active, error) ||
+              !ValidUuid(value.device_id, "invalid tab device id", error) ||
               !ValidUuid(value.session_id, "invalid tab session id", error) ||
               (value.workspace_id &&
                !ValidUuid(*value.workspace_id, "invalid tab workspace id",
@@ -235,16 +290,36 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
             SetError("incognito tabs are local-only", error);
             return false;
           }
-          return ValidUrl(value.url, "invalid tab url", error);
+          if (!value.tree_node_id ||
+              !ValidUuid(*value.tree_node_id, "invalid shared page id",
+                         error) ||
+              *value.tree_node_id == value.id ||
+              !ValidateSharedTarget(value.url, value.target_kind,
+                                    value.local_scheme)) {
+            SetError("invalid shared presence target or identity", error);
+            return false;
+          }
+          return true;
         } else if constexpr (std::is_same_v<T, DeviceSessionRecord>) {
-          return ValidUuid(value.device_id, "invalid session device id", error);
+          return ValidUuid(value.device_id, "invalid session device id",
+                           error) &&
+                 ValidTimestamp(value.started_at, error) &&
+                 ValidTimestamp(value.last_seen, error);
         } else if constexpr (std::is_same_v<T, RemoteCommandRecord>) {
-          if (!ValidUuid(value.source_device_id, "invalid command source",
+          if (value.tombstone ||
+              !ValidUuid(value.source_device_id, "invalid command source",
                          error) ||
               !ValidUuid(value.target_device_id, "invalid command target",
                          error) ||
               value.source_device_id == value.target_device_id ||
-              value.issued_at.is_null() || value.expires_at.is_null() ||
+              !ValidTimestamp(value.issued_at, error) ||
+              !ValidTimestamp(value.expires_at, error) ||
+              value.issued_at.ToDeltaSinceWindowsEpoch().InMicroseconds() %
+                      1000 !=
+                  0 ||
+              value.expires_at.ToDeltaSinceWindowsEpoch().InMicroseconds() %
+                      1000 !=
+                  0 ||
               value.expires_at - value.issued_at != base::Minutes(5)) {
             SetError("invalid command envelope", error);
             return false;
@@ -307,24 +382,10 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
           }
           return true;
         } else if constexpr (std::is_same_v<T, BookmarkRecord>) {
-          if (value.model_version != kBookmarkWireModelVersion ||
-              value.kind < BookmarkKind::kFolder ||
-              value.kind > BookmarkKind::kUrl ||
-              value.root_kind.has_value() == value.parent_id.has_value() ||
-              (value.root_kind &&
-               (*value.root_kind < BookmarkRoot::kBookmarkBar ||
-                *value.root_kind > BookmarkRoot::kMobile)) ||
-              (value.parent_id && (!value.parent_id->is_valid() ||
-                                   *value.parent_id == value.id)) ||
-              !ValidText(value.sort_key, 1024u, false,
-                         "invalid bookmark order key", error) ||
-              !std::ranges::all_of(value.sort_key,
-                                   [](unsigned char value) {
-                                     return value >= 0x21 && value <= 0x7e;
-                                   }) ||
-              !ValidateBookmarkContent(value.kind, value.title, value.url,
-                                       value.created_at, error)) {
-            SetError("invalid bookmark", error);
+          return ValidateNativeBookmarkShape(value, error);
+        } else if constexpr (std::is_same_v<T, DeviceCapabilityRecord>) {
+          if (!ValidateCapability(value)) {
+            SetError("invalid device capability declaration", error);
             return false;
           }
           return true;
@@ -422,9 +483,19 @@ bool ValidateTreeGraph(const std::vector<TreeNodeRecord>& nodes,
 
 bool ValidateBookmarkGraph(const std::vector<BookmarkRecord>& records,
                            std::string* error) {
-  std::unordered_map<base::Uuid, const BookmarkRecord*, base::UuidHash> nodes;
   for (const auto& record : records) {
     if (!ValidateRecord(record, error)) {
+      return false;
+    }
+  }
+  return ValidateNativeBookmarkGraph(records, error);
+}
+
+bool ValidateNativeBookmarkGraph(const std::vector<BookmarkRecord>& records,
+                                 std::string* error) {
+  std::unordered_map<base::Uuid, const BookmarkRecord*, base::UuidHash> nodes;
+  for (const auto& record : records) {
+    if (!ValidateNativeBookmarkShape(record, error)) {
       return false;
     }
     if (!nodes.emplace(record.id, &record).second) {

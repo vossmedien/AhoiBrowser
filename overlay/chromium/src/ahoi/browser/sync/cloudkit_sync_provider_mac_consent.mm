@@ -29,7 +29,7 @@ void CloudKitSyncProviderMac::Core::DispatchUpload(
             bool current = false;
             if (core) {
               base::AutoLock guard(core->lock_);
-              current = !core->shutting_down_ &&
+              current = core->TransportAllowed() && !core->shutting_down_ &&
                         generation == core->transport_generation_ &&
                         !core->account_transition_pending_ &&
                         !core->zone_recovery_pending_;
@@ -60,7 +60,8 @@ void CloudKitSyncProviderMac::Core::DispatchDownload(DownloadCallback callback,
                        bool current = false;
                        if (core) {
                          base::AutoLock guard(core->lock_);
-                         current = !core->shutting_down_ &&
+                         current = core->TransportAllowed() &&
+                                   !core->shutting_down_ &&
                                    generation == core->transport_generation_ &&
                                    !core->account_transition_pending_ &&
                                    !core->zone_recovery_pending_;
@@ -118,6 +119,30 @@ CloudKitSyncProviderMac::Core::GetBookmarkSyncAuthorization() {
         return !core->shutting_down_ &&
                generation == core->transport_generation_ &&
                core->BookmarkAllowed();
+      },
+      weak_from_this(), transport_generation_);
+}
+
+SyncAuthorization CloudKitSyncProviderMac::Core::GetTransportAuthorization() {
+  base::AutoLock guard(lock_);
+  if (!TransportAllowed() || shutting_down_ || !engine_ || !cryptor_ ||
+      persisted_state_invalid_ || account_transition_pending_ ||
+      zone_recovery_pending_) {
+    return {};
+  }
+  return base::BindRepeating(
+      [](std::weak_ptr<Core> weak, uint64_t generation) {
+        const auto core = weak.lock();
+        if (!core) {
+          return false;
+        }
+        base::AutoLock guard(core->lock_);
+        return core->TransportAllowed() && !core->shutting_down_ &&
+               core->engine_ && core->cryptor_ &&
+               !core->persisted_state_invalid_ &&
+               !core->account_transition_pending_ &&
+               !core->zone_recovery_pending_ &&
+               generation == core->transport_generation_;
       },
       weak_from_this(), transport_generation_);
 }
@@ -184,7 +209,6 @@ void CloudKitSyncProviderMac::Core::ResetAccountState() {
                    {}, "account_unavailable");
   fetched_changes_.clear();
   opaque_bookmark_records_.clear();
-  legacy_bookmark_changes_.clear();
   materialized_bookmark_keys_.clear();
   bookmark_quarantine_ids_.clear();
   last_delivery_mutations_.clear();
@@ -202,6 +226,9 @@ void CloudKitSyncProviderMac::Core::ResetAccountState() {
 
 void CloudKitSyncProviderMac::Core::ReceiveFetchedRecord(CKRecord* record) {
   lock_.AssertAcquired();
+  if (!TransportAllowed()) {
+    return;
+  }
   if (IsBookmarkRecord(record)) {
     const std::string key = ToString(record.recordID.recordName);
     const auto previous = materialized_bookmark_keys_.find(key);
@@ -211,7 +238,6 @@ void CloudKitSyncProviderMac::Core::ReceiveFetchedRecord(CKRecord* record) {
     }
     opaque_bookmark_records_[key] = [record copy];
     bookmark_quarantine_ids_.erase(key);
-    legacy_bookmark_changes_.erase(key);
     if (BookmarkAllowed()) {
       MaterializeBookmarkRecord(key, record);
     }
@@ -254,15 +280,15 @@ void CloudKitSyncProviderMac::Core::HydrateDeferredBookmarks() {
   for (const auto& [key, record] : opaque_bookmark_records_) {
     MaterializeBookmarkRecord(key, record);
   }
-  HydrateLegacyBookmarks();
 }
 
 CKRecord* CloudKitSyncProviderMac::Core::PendingRecordForGeneration(
     const std::string& key,
     uint64_t generation) {
   base::AutoLock guard(lock_);
-  if (shutting_down_ || account_transition_pending_ || zone_recovery_pending_ ||
-      operations_cancelling_ || generation != transport_generation_) {
+  if (!TransportAllowed() || shutting_down_ || account_transition_pending_ ||
+      zone_recovery_pending_ || operations_cancelling_ ||
+      generation != transport_generation_) {
     return nil;
   }
   const auto record = pending_records_.find(key);
@@ -281,8 +307,9 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
   {
     base::AutoLock guard(lock_);
     generation = transport_generation_;
-    if (shutting_down_ || !engine_ || account_transition_pending_ ||
-        zone_recovery_pending_ || operations_cancelling_) {
+    if (!TransportAllowed() || shutting_down_ || !engine_ ||
+        account_transition_pending_ || zone_recovery_pending_ ||
+        operations_cancelling_) {
       DispatchUpload(std::move(callback), generation, false, {},
                      operations_cancelling_ ? "temporarily_unavailable"
                                             : "account_unavailable");
@@ -362,8 +389,9 @@ void CloudKitSyncProviderMac::Core::Download(std::string change_token,
   {
     base::AutoLock guard(lock_);
     generation = transport_generation_;
-    if (shutting_down_ || !engine_ || account_transition_pending_ ||
-        zone_recovery_pending_ || operations_cancelling_) {
+    if (!TransportAllowed() || shutting_down_ || !engine_ ||
+        account_transition_pending_ || zone_recovery_pending_ ||
+        operations_cancelling_) {
       DispatchDownload(std::move(callback), generation, false, {},
                        operations_cancelling_ ? "temporarily_unavailable"
                                               : "account_unavailable");
@@ -492,7 +520,8 @@ CloudKitSyncProviderMac::CreateForConsentTesting(
     std::unique_ptr<SyncPayloadCryptor> cryptor,
     bool enabled) {
   auto core = std::make_shared<Core>(CloudKitSyncConfigurationMac(), path,
-                                     std::move(cryptor), enabled);
+                                     std::move(cryptor), enabled,
+                                     base::BindRepeating([] { return true; }));
   core->LoadInboxForTesting();
   return std::unique_ptr<CloudKitSyncProviderMac>(
       new CloudKitSyncProviderMac(std::move(core)));

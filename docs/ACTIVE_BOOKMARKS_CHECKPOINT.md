@@ -1,18 +1,24 @@
 # Active bookmarks / Chromium coordination
 
-Updated: 2026-09-05. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
+Updated: 2026-09-08. Owner: thread `01a06d69-1034-7372-b784-0b05a53c87e0`.
 
-## Current next action and evidence — 2026-09-05
+## Current next action and evidence — 2026-09-08
 
 **Current implementation continuation:**
 `docs/UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md` records the actual C++ AND
 Swift WIP, committed handoffs `92694fe` / `5885d01` / `c3c3d20`, source-only
 checks and exact remaining live-binding work. The larger unified package is
 NOT source-frozen, built or end-to-end accepted. Native A has committed types;
-Common Service/backend capture and matching Mobile binding remain here.
-Desktop's separate `92694fe` baseline has since built/installed but its startup
-E2E is red and Desktop owns the correction. Do not resume historical build
-handles or old UI handoffs from the evidence chronology below.
+Common Service/backend capture, getters/Observer, original-scope atomic window
+capture and receipt-backed native projection are now implemented. Their exact
+Native B-D interfaces and remaining matching Mobile work are in the checkpoint's
+2026-09-08 code-handoff section. No build/runtime acceptance is claimed.
+Desktop's independent browser baseline has progressed beyond `92694fe`; use
+`docs/ACTIVE_DESKTOP_CHECKPOINT.md` for its current candidate and UI ownership.
+Do not resume historical build handles or old UI handoffs from the chronology.
+Both current global/project AGENTS were reread: implementation, runnable
+candidate, representative visible E2E, then only required focused checks;
+machine capacity is assessed in aggregate, not by the obsolete 80%-process gate.
 
 **NEW BINDING USER DIRECTION:** the app is pre-launch and not actively used.
 Implement ONE current format for every allowed sync data class on iOS/macOS,
@@ -23,6 +29,8 @@ journal or server data is silently deleted. Common C++/contract remains here,
 Swift is now also owned by this unified Sync implementation thread. The former
 Mobile owner is the coordinator/read-only reviewer. Native Tree/Session/build
 remains Desktop-owned; no further Swift ownership request is required.
+
+## Historical evidence — not current build or runtime instructions
 
 The current `225df88` correction build stays immutable with Desktop. It is a
 compiler/UI baseline, not the final unified-format candidate. Its three Common

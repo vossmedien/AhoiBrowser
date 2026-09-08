@@ -49,6 +49,8 @@ NSString* DataClass(EntityType type) {
       return @"developerAsset";
     case EntityType::kBookmark:
       return @"bookmark";
+    case EntityType::kDeviceCapability:
+      return @"deviceCapability";
   }
 }
 
@@ -88,6 +90,9 @@ std::optional<EntityType> EntityTypeForDataClass(NSString* value) {
   }
   if ([value isEqualToString:@"bookmark"]) {
     return EntityType::kBookmark;
+  }
+  if ([value isEqualToString:@"deviceCapability"]) {
+    return EntityType::kDeviceCapability;
   }
   return std::nullopt;
 }

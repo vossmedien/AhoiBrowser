@@ -85,11 +85,13 @@ CloudKitSyncProviderMac::Core::Core(
     const CloudKitSyncConfigurationMac& configuration,
     base::FilePath state_path,
     std::unique_ptr<SyncPayloadCryptor> cryptor,
-    bool bookmark_sync_enabled)
+    bool bookmark_sync_enabled,
+    SyncAuthorization profile_authorization)
     : configuration_(configuration),
       state_path_(std::move(state_path)),
       inbox_path_(state_path_.AddExtensionASCII("inbox")),
       cryptor_(std::move(cryptor)),
+      profile_authorization_(std::move(profile_authorization)),
       owner_runner_(base::SequencedTaskRunner::GetCurrentDefault()),
       bookmark_sync_enabled_(bookmark_sync_enabled) {}
 
@@ -101,13 +103,16 @@ std::unique_ptr<CloudKitSyncProviderMac> CloudKitSyncProviderMac::Create(
     const CloudKitSyncConfigurationMac& configuration,
     const base::FilePath& state_path,
     std::unique_ptr<SyncPayloadCryptor> cryptor,
-    bool bookmark_sync_enabled) {
-  if (!configuration.IsTransportConfigured() || !cryptor) {
+    bool bookmark_sync_enabled,
+    SyncAuthorization profile_authorization) {
+  if (!configuration.IsTransportConfigured() || !cryptor ||
+      !profile_authorization || !profile_authorization.Run()) {
     return nullptr;
   }
   if (@available(macOS 14.0, *)) {
     auto core = std::make_shared<Core>(
-        configuration, state_path, std::move(cryptor), bookmark_sync_enabled);
+        configuration, state_path, std::move(cryptor), bookmark_sync_enabled,
+        std::move(profile_authorization));
     if (!core->Initialize()) {
       return nullptr;
     }
@@ -130,7 +135,8 @@ std::unique_ptr<CloudKitSyncProviderMac>
 CloudKitSyncProviderMac::CreateForTesting(const base::FilePath& state_path) {
   auto core = std::make_shared<Core>(CloudKitSyncConfigurationMac(), state_path,
                                      /*cryptor=*/nullptr,
-                                     /*bookmark_sync_enabled=*/false);
+                                     /*bookmark_sync_enabled=*/false,
+                                     base::BindRepeating([] { return true; }));
   return std::unique_ptr<CloudKitSyncProviderMac>(
       new CloudKitSyncProviderMac(std::move(core)));
 }
@@ -159,6 +165,10 @@ void CloudKitSyncProviderMac::SetBookmarkSyncEnabled(bool enabled) {
 BookmarkSyncAuthorization
 CloudKitSyncProviderMac::GetBookmarkSyncAuthorization() {
   return core_->GetBookmarkSyncAuthorization();
+}
+
+SyncAuthorization CloudKitSyncProviderMac::GetTransportAuthorization() {
+  return core_->GetTransportAuthorization();
 }
 
 bool CloudKitSyncProviderMac::IsBookmarkConsentRevoked() {

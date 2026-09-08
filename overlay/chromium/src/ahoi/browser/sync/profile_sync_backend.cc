@@ -37,13 +37,6 @@
 namespace ahoi::sync {
 namespace {
 
-bool IsShareableTab(const LocalTabState& tab) {
-  const GURL url(tab.url);
-  return !tab.stable_key.empty() && tab.sync_id.is_valid() && url.is_valid() &&
-         url.SchemeIsHTTPOrHTTPS() && !url.host().empty() &&
-         !url.has_username() && !url.has_password();
-}
-
 base::Uuid StableHistoryVisitId(const base::Uuid& device_id,
                                 int64_t visit_id,
                                 const std::string& url,
@@ -88,11 +81,13 @@ ProfileSyncBackend::ProfileSyncBackend(base::FilePath database_path,
                                        std::string device_name,
                                        bool transport_enabled,
                                        int history_retention_days,
-                                       bool bookmark_sync_enabled)
+                                       bool bookmark_sync_enabled,
+                                       SyncAuthorization profile_authorization)
     : database_path_(std::move(database_path)),
       device_id_(std::move(device_id)),
       session_id_(std::move(session_id)),
       device_name_(std::move(device_name)),
+      profile_authorization_(std::move(profile_authorization)),
       transport_enabled_(transport_enabled),
       bookmark_sync_enabled_(bookmark_sync_enabled),
       history_retention_days_(
@@ -106,6 +101,9 @@ ProfileSyncBackend::~ProfileSyncBackend() {
 }
 
 std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
+  if (!ProfileScopeActive()) {
+    return std::nullopt;
+  }
   if (!base::CreateDirectory(database_path_.DirName())) {
     return std::nullopt;
   }
@@ -114,12 +112,13 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
     store_.reset();
     return std::nullopt;
   }
+  shared_store_observation_.Observe(store_.get());
 
   // Restore the clock from every persisted data class, not merely the local
   // device row. This prevents a restart from issuing versions below a remote
   // future-skewed record that was already accepted.
   for (int raw = static_cast<int>(EntityType::kDevice);
-       raw <= static_cast<int>(EntityType::kBookmark); ++raw) {
+       raw <= static_cast<int>(EntityType::kDeviceCapability); ++raw) {
     std::vector<SyncRecord> records;
     if (store_->GetRecords(static_cast<EntityType>(raw), &records) !=
         SyncStore::Result::kOk) {
@@ -161,10 +160,16 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
       .version = {.stamp = clock_.Tick(now)}};
   if (has_existing_device) {
     if (const DeviceRecord* old = std::get_if<DeviceRecord>(&existing)) {
+      if (old->retired || old->tombstone) {
+        return std::nullopt;  // A restart is not a new enrollment approval.
+      }
       device.created_at = old->created_at;
     }
   }
   if (!Put(device)) {
+    return std::nullopt;
+  }
+  if (!PublishLocalCapability()) {
     return std::nullopt;
   }
 
@@ -203,68 +208,11 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
 
 std::optional<DeviceTabsSnapshot> ProfileSyncBackend::ReplaceLocalTabs(
     std::vector<LocalTabState> tabs) {
+  // Source compatibility only: unqualified vectors have no completeness or
+  // generation authority. There is deliberately no legacy/fallback writer.
+  std::ignore = tabs;
   if (!tabs_service_) {
     return std::nullopt;
-  }
-  std::map<std::string, LocalTabState> next;
-  for (LocalTabState& tab : tabs) {
-    if (IsShareableTab(tab)) {
-      next.insert_or_assign(tab.stable_key, std::move(tab));
-    }
-  }
-  const base::Time now = base::Time::Now();
-  for (auto it = live_tabs_.begin(); it != live_tabs_.end();) {
-    if (next.contains(it->first)) {
-      ++it;
-      continue;
-    }
-    RemoteTabRecord removed = it->second;
-    removed.tombstone = true;
-    removed.version = {.stamp = clock_.Tick(now)};
-    if (tabs_service_->RemoveLocalTab(removed) != SyncStore::Result::kOk) {
-      return std::nullopt;
-    }
-    it = live_tabs_.erase(it);
-  }
-  for (const auto& [key, state] : next) {
-    auto existing = live_tabs_.find(key);
-    if (existing == live_tabs_.end()) {
-      RemoteTabRecord record{.id = state.sync_id,
-                             .device_id = device_id_,
-                             .session_id = session_id_,
-                             .workspace_id = state.workspace_id,
-                             .url = state.url,
-                             .title = state.title,
-                             .opened_at = now,
-                             .last_active = now,
-                             .pinned = state.pinned,
-                             .version = {.stamp = clock_.Tick(now)}};
-      if (tabs_service_->UpsertLocalTab(record) != SyncStore::Result::kOk) {
-        return std::nullopt;
-      }
-      live_tabs_.emplace(key, std::move(record));
-      continue;
-    }
-    RemoteTabRecord updated = existing->second;
-    const bool touch_active =
-        state.active && now - updated.last_active >= base::Seconds(5);
-    if (updated.workspace_id == state.workspace_id &&
-        updated.url == state.url && updated.title == state.title &&
-        updated.pinned == state.pinned && !touch_active) {
-      continue;
-    }
-    updated.workspace_id = state.workspace_id;
-    updated.url = state.url;
-    updated.title = state.title;
-    updated.pinned = state.pinned;
-    if (touch_active) {
-      updated.last_active = now;
-    }
-    updated.version = {.stamp = clock_.Tick(now)};
-    if (tabs_service_->UpsertLocalTab(updated) != SyncStore::Result::kOk) {
-      return std::nullopt;
-    }
-    existing->second = std::move(updated);
   }
   if (tabs_service_->Refresh() != SyncStore::Result::kOk) {
     return std::nullopt;
@@ -275,39 +223,11 @@ std::optional<DeviceTabsSnapshot> ProfileSyncBackend::ReplaceLocalTabs(
 std::optional<SyncStateSnapshot> ProfileSyncBackend::MergeLocalTabTree(
     tab_tree::TabTreeSnapshot snapshot,
     bool initial_merge) {
-  if (!store_) {
-    return std::nullopt;
-  }
-  for (const tab_tree::Workspace& workspace : snapshot.workspaces) {
-    SyncRecord existing;
-    if (initial_merge &&
-        store_->GetRecord(EntityType::kWorkspace, workspace.id, &existing) ==
-            SyncStore::Result::kOk) {
-      const WorkspaceRecord* old = std::get_if<WorkspaceRecord>(&existing);
-      if (old && old->modified_at >= workspace.modified_at) {
-        continue;
-      }
-    }
-    WorkspaceRecord record = WorkspaceToSyncRecord(workspace, {});
-    if (!PutDomainRecordIfChanged(std::move(record), workspace.modified_at)) {
-      return std::nullopt;
-    }
-  }
-  for (const tab_tree::TreeNode& node : snapshot.nodes) {
-    SyncRecord existing;
-    if (initial_merge &&
-        store_->GetRecord(EntityType::kTreeNode, node.id, &existing) ==
-            SyncStore::Result::kOk) {
-      const TreeNodeRecord* old = std::get_if<TreeNodeRecord>(&existing);
-      if (old && old->modified_at >= node.modified_at) {
-        continue;
-      }
-    }
-    TreeNodeRecord record = TreeNodeToSyncRecord(node, {});
-    if (!PutDomainRecordIfChanged(std::move(record), node.modified_at)) {
-      return std::nullopt;
-    }
-  }
+  // Unqualified whole snapshots have neither a native field baseline nor the
+  // original account/revision scope. The current path is receipt-backed
+  // PrepareSharedTabProjection; no legacy writer remains behind this old seam.
+  std::ignore = snapshot;
+  std::ignore = initial_merge;
   return CurrentState();
 }
 
@@ -557,6 +477,8 @@ void ProfileSyncBackend::SyncNow(
 }
 
 void ProfileSyncBackend::SuspendWithoutPersisting() {
+  RevokeSharedProjection();
+  RevokeSharedCapture();
   ResetBookmarkAuthorizationScope(false);
   transport_enabled_ = false;
   weak_ptr_factory_.InvalidateWeakPtrs();
@@ -567,36 +489,49 @@ void ProfileSyncBackend::SuspendWithoutPersisting() {
   // durable session then. Marking the in-memory session inactive here keeps
   // CloseSession() from writing session/tombstone mutations after opt-out.
   live_tabs_.clear();
+  live_tab_windows_.clear();
   session_record_.active = false;
   tabs_service_.reset();
+  shared_store_observation_.Reset();
   store_.reset();
 }
 
 void ProfileSyncBackend::CloseSession() {
+  RevokeSharedProjection();
+  RevokeSharedCapture();
+  shared_store_observation_.Reset();
+  // Service opt-out/shutdown revokes the original profile lease immediately.
+  // Never bypass that lease through DeviceTabsService's low-level row helpers.
+  // Session expiry is not deletion of the globally shared normal-tab tree.
+  auto authority = CaptureSharedAuthorization(true);
+  if (store_ && session_record_.active && authority && authority.Run()) {
+    const base::Time now = base::Time::Now();
+    std::vector<SyncRecord> changes;
+    for (const auto& [key, live] : live_tabs_) {
+      RemoteTabRecord closed = live;
+      closed.tombstone = true;
+      closed.version = {.stamp = clock_.Tick(now)};
+      changes.emplace_back(std::move(closed));
+    }
+    auto ended = session_record_;
+    ended.active = false;
+    ended.last_seen = now;
+    ended.version = {.stamp = clock_.Tick(now)};
+    changes.emplace_back(std::move(ended));
+    std::ignore = store_->PutLocalBatch(changes, authority);
+  }
   ResetBookmarkAuthorizationScope(false);
   transport_enabled_ = false;
   weak_ptr_factory_.InvalidateWeakPtrs();
   pump_.reset();
   provider_.reset();
-  if (!store_ || !tabs_service_ || !session_record_.active) {
-    return;
-  }
-  const base::Time now = base::Time::Now();
-  for (const auto& [key, live] : live_tabs_) {
-    RemoteTabRecord removed = live;
-    removed.tombstone = true;
-    removed.version = {.stamp = clock_.Tick(now)};
-    std::ignore = tabs_service_->RemoveLocalTab(removed);
-  }
   live_tabs_.clear();
+  live_tab_windows_.clear();
   session_record_.active = false;
-  session_record_.last_seen = now;
-  session_record_.version = {.stamp = clock_.Tick(now)};
-  std::ignore = Put(session_record_);
 }
 
 void ProfileSyncBackend::InitializeProviderIfAvailable() {
-  if (!transport_enabled_ || !store_ || provider_) {
+  if (!ProfileScopeActive() || !transport_enabled_ || !store_ || provider_) {
     return;
   }
 #if BUILDFLAG(IS_MAC)
@@ -611,8 +546,9 @@ void ProfileSyncBackend::InitializeProviderIfAvailable() {
     return;
   }
   provider_ = CloudKitSyncProviderMac::Create(
-      *configuration, database_path_.DirName().AppendASCII("cksync.state"),
-      std::move(cryptor), bookmark_sync_enabled_);
+      *configuration,
+      database_path_.DirName().AppendASCII("cksync-format3.state"),
+      std::move(cryptor), bookmark_sync_enabled_, profile_authorization_);
   if (provider_) {
     if (provider_->IsBookmarkConsentRevoked()) {
       bookmark_sync_enabled_ = false;
@@ -664,6 +600,9 @@ bool ProfileSyncBackend::EnforceRetention(base::Time now) {
 
 template <typename Record>
 bool ProfileSyncBackend::Put(const Record& record) {
+  if (!ProfileScopeActive()) {
+    return false;
+  }
   const SyncStore::Result result = store_->PutLocalRecord(record);
   return result == SyncStore::Result::kOk ||
          result == SyncStore::Result::kAlreadyApplied;
@@ -768,6 +707,12 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::CurrentState() {
   if (bookmark_sync_enabled_) {
     state.bookmarks = RecordsOfType<BookmarkRecord>(records);
   }
+  if (store_->GetRecords(EntityType::kDeviceCapability, &records) !=
+      SyncStore::Result::kOk) {
+    return std::nullopt;
+  }
+  state.device_capabilities = RecordsOfType<DeviceCapabilityRecord>(records);
+  state.shared_tabs = SharedTabState();
   return state;
 }
 

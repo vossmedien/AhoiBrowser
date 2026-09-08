@@ -19,7 +19,8 @@ void ProfileSyncBackend::ResetBookmarkAuthorizationScope(bool renew) {
 }
 
 BookmarkSyncAuthorization ProfileSyncBackend::CaptureBookmarkAuthorization() {
-  if (!store_ || !transport_enabled_ || !bookmark_sync_enabled_ ||
+  if (!ProfileScopeActive() || !store_ || !transport_enabled_ ||
+      !bookmark_sync_enabled_ ||
       bookmark_scope_cancelled_->load(std::memory_order_acquire)) {
     return {};
   }
@@ -35,11 +36,18 @@ BookmarkSyncAuthorization ProfileSyncBackend::CaptureBookmarkAuthorization() {
   // above.
   return base::BindRepeating(
       [](std::shared_ptr<std::atomic<bool>> cancelled,
+         SyncAuthorization profile_authorization,
          BookmarkSyncAuthorization provider_authorization) {
         return !cancelled->load(std::memory_order_acquire) &&
+               profile_authorization && profile_authorization.Run() &&
                (!provider_authorization || provider_authorization.Run());
       },
-      bookmark_scope_cancelled_, std::move(provider_authorization));
+      bookmark_scope_cancelled_, profile_authorization_,
+      std::move(provider_authorization));
+}
+
+bool ProfileSyncBackend::ProfileScopeActive() const {
+  return profile_authorization_ && profile_authorization_.Run();
 }
 
 std::optional<SyncStateSnapshot> ProfileSyncBackend::SetBookmarkSyncEnabled(

@@ -31,7 +31,6 @@
 namespace ahoi::sync {
 namespace {
 
-constexpr base::TimeDelta kLocalPublishDelay = base::Milliseconds(80);
 constexpr base::TimeDelta kAutomaticSyncInterval = base::Minutes(5);
 
 base::Uuid LoadOrGenerateDeviceId(Profile& profile, bool persist_if_created) {
@@ -104,8 +103,6 @@ void ProfileSyncService::StartBackend() {
   backend_weak_ptr_factory_.InvalidateWeakPtrs();
   backend_ready_ = false;
   initialized_ = false;
-  initial_tree_merged_ = true;
-  ui_tree_seeded_ = false;
   extension_inventory_seeded_ = false;
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
@@ -114,16 +111,19 @@ void ProfileSyncService::StartBackend() {
     profile_->GetPrefs()->SetString(kDeviceIdPref,
                                     local_device_id_.AsLowercaseString());
   }
-  backend_.emplace(
-      backend_task_runner_,
-      profile_->GetPath().AppendASCII("Ahoi Sync").AppendASCII("sync.sqlite"),
-      local_device_id_, local_session_id_, DeviceDisplayName(*profile_),
-      /*transport_enabled=*/true,
-      profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref),
-      bookmark_sync_enabled());
+  backend_.emplace(backend_task_runner_,
+                   profile_->GetPath()
+                       .AppendASCII("Ahoi Sync")
+                       .AppendASCII("sync-format3.sqlite"),
+                   local_device_id_, local_session_id_,
+                   DeviceDisplayName(*profile_),
+                   /*transport_enabled=*/true,
+                   profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref),
+                   bookmark_sync_enabled(), StartProfileAuthorization());
   backend_.AsyncCall(&ProfileSyncBackend::Initialize)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
                            backend_weak_ptr_factory_.GetWeakPtr()));
+  UpdateSharedTabNativeSupport();
 
   // Capture the current local tree as part of the explicit opt-in even if no
   // subsequent sidebar mutation occurs. It stays pending until SQLite is
@@ -138,6 +138,8 @@ void ProfileSyncService::StartBackend() {
 }
 
 void ProfileSyncService::StopBackend() {
+  RevokeProfileAuthorization();
+  StopSharedTabs();
   StopBookmarkSync();
   publish_timer_.Stop();
   sync_timer_.Stop();
@@ -150,16 +152,12 @@ void ProfileSyncService::StopBackend() {
 
   backend_ready_ = false;
   initialized_ = false;
-  initial_tree_merged_ = true;
-  ui_tree_seeded_ = false;
   applying_synced_tree_ = false;
   applying_product_state_ = false;
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
   extension_inventory_seeded_ = false;
   pending_remote_history_deletions_ = 0;
-  pending_tree_snapshot_.reset();
-  deferred_tree_snapshot_.reset();
   window_tabs_.clear();
   tab_sync_ids_.clear();
   local_tab_keys_by_sync_id_.clear();
@@ -178,6 +176,7 @@ void ProfileSyncService::AddObserver(Observer* observer) {
   observers_.AddObserver(observer);
   observer->OnAhoiDeviceTabsChanged(snapshot_);
   observer->OnAhoiSyncStatusChanged(transport_status_);
+  observer->OnAhoiSharedTabSyncStateChanged(shared_tab_state_);
 }
 
 void ProfileSyncService::RemoveObserver(Observer* observer) {
@@ -207,6 +206,7 @@ void ProfileSyncService::AttachUiBridge(ProfileSyncUiBridge* bridge) {
   if (bridge->ExportTabTreeSnapshot(&snapshot)) {
     OnTabTreeSnapshotChanged(snapshot);
   }
+  UpdateSharedTabNativeSupport();
   ClaimRemoteCommands();
 }
 
@@ -220,35 +220,12 @@ void ProfileSyncService::DetachUiBridge(ProfileSyncUiBridge* bridge) {
   }
   tab_tree_subscription_ = {};
   ui_bridge_.reset();
-  deferred_tree_snapshot_.reset();
-}
-
-void ProfileSyncService::PublishWindowTabs(std::string window_key,
-                                           std::vector<LocalTabState> tabs) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      window_key.empty()) {
-    return;
-  }
-  for (LocalTabState& tab : tabs) {
-    auto [it, inserted] = tab_sync_ids_.try_emplace(
-        tab.stable_key, base::Uuid::GenerateRandomV4());
-    tab.sync_id = it->second;
-  }
-  window_tabs_.insert_or_assign(std::move(window_key), std::move(tabs));
-  ScheduleLocalPublish();
-}
-
-void ProfileSyncService::RemoveWindowTabs(const std::string& window_key) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      window_tabs_.erase(window_key) == 0u) {
-    return;
-  }
-  if (window_tabs_.empty()) {
-    publish_timer_.Stop();
-    PublishCombinedLocalTabs();
-    return;
-  }
-  ScheduleLocalPublish();
+  ++native_tree_revision_;
+  native_tree_cancelled_->store(true, std::memory_order_release);
+  shared_projection_requested_ = false;
+  CancelSharedTabCapture();
+  SetSharedTabState({.issue = SharedTabSyncIssue::kNativeNotReady});
+  UpdateSharedTabNativeSupport();
 }
 
 void ProfileSyncService::ApplyRemoteBatch(ProviderBatch batch) {
@@ -361,6 +338,8 @@ void ProfileSyncService::ConfirmCloudKitZoneRecovery() {
 }
 
 void ProfileSyncService::Shutdown() {
+  RevokeProfileAuthorization();
+  StopSharedTabs();
   if (shutting_down_) {
     return;
   }
@@ -387,47 +366,6 @@ void ProfileSyncService::Shutdown() {
     backend_.AsyncCall(&ProfileSyncBackend::CloseSession);
     backend_.Reset();
   }
-}
-
-void ProfileSyncService::ScheduleLocalPublish() {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
-    return;
-  }
-  publish_timer_.Start(FROM_HERE, kLocalPublishDelay, this,
-                       &ProfileSyncService::PublishCombinedLocalTabs);
-}
-
-void ProfileSyncService::PublishCombinedLocalTabs() {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
-    return;
-  }
-  std::vector<LocalTabState> combined;
-  std::set<std::string> live_keys;
-  local_tab_keys_by_sync_id_.clear();
-  for (const auto& [window, tabs] : window_tabs_) {
-    for (const LocalTabState& tab : tabs) {
-      combined.push_back(tab);
-      live_keys.insert(tab.stable_key);
-      local_tab_keys_by_sync_id_[tab.sync_id] = tab.stable_key;
-    }
-  }
-  for (auto it = tab_sync_ids_.begin(); it != tab_sync_ids_.end();) {
-    it =
-        live_keys.contains(it->first) ? std::next(it) : tab_sync_ids_.erase(it);
-  }
-  backend_.AsyncCall(&ProfileSyncBackend::ReplaceLocalTabs)
-      .WithArgs(std::move(combined))
-      .Then(base::BindOnce(&ProfileSyncService::OnLocalPublishComplete,
-                           backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::OnLocalPublishComplete(
-    std::optional<DeviceTabsSnapshot> snapshot) {
-  if (!sync_enabled_ || backend_.is_null()) {
-    return;
-  }
-  OnBackendSnapshot(std::move(snapshot));
-  SyncNow();
 }
 
 void ProfileSyncService::OnSyncCompleted(
@@ -500,18 +438,7 @@ void ProfileSyncService::OnBackendState(
     return;
   }
   backend_ready_ = true;
-  if (!initial_tree_merged_) {
-    if (pending_tree_snapshot_) {
-      tab_tree::TabTreeSnapshot tree = std::move(*pending_tree_snapshot_);
-      pending_tree_snapshot_.reset();
-      backend_.AsyncCall(&ProfileSyncBackend::MergeLocalTabTree)
-          .WithArgs(std::move(tree), true)
-          .Then(base::BindOnce(&ProfileSyncService::OnLocalTreeMerged,
-                               backend_weak_ptr_factory_.GetWeakPtr()));
-    }
-    return;
-  }
-
+  SetSharedTabState(state->shared_tabs);
   const bool first_initialization = !initialized_;
   initialized_ = true;
   const bool transport_changed = transport_status_ != state->transport;
@@ -558,62 +485,22 @@ void ProfileSyncService::OnTabTreeSnapshotChanged(
     return;
   }
   if (applying_synced_tree_) {
-    deferred_tree_snapshot_ = snapshot;
     return;
   }
-  const bool initial = !ui_tree_seeded_;
-  if (initial) {
-    initial_tree_merged_ = false;
-  }
-  if (!backend_ready_) {
-    pending_tree_snapshot_ = snapshot;
-    return;
-  }
-  backend_.AsyncCall(&ProfileSyncBackend::MergeLocalTabTree)
-      .WithArgs(snapshot, initial)
-      .Then(base::BindOnce(&ProfileSyncService::OnLocalTreeMerged,
-                           backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::OnLocalTreeMerged(
-    std::optional<SyncStateSnapshot> snapshot) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !snapshot) {
-    return;
-  }
-  const bool was_initialized = initialized_;
-  const bool was_initial = !ui_tree_seeded_;
-  initial_tree_merged_ = true;
-  ui_tree_seeded_ = true;
-  OnBackendState(std::move(snapshot));
-  if (!was_initial || was_initialized) {
-    SyncNow();
-  }
+  std::ignore = snapshot;  // Export the current tree and receipt atomically.
+  ++native_tree_revision_;
+  native_tree_cancelled_->store(true, std::memory_order_release);
+  native_tree_cancelled_ = std::make_shared<std::atomic<bool>>(false);
+  CancelSharedTabCapture();
+  capture_after_projection_ = true;
+  RefreshSharedTabProjection();
 }
 
 void ProfileSyncService::ApplyDomainState(const SyncStateSnapshot& state) {
   if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
-  if (ui_bridge_) {
-    tab_tree::TabTreeSnapshot local;
-    if (ui_bridge_->ExportTabTreeSnapshot(&local)) {
-      std::optional<tab_tree::TabTreeSnapshot> reconciled =
-          ReconcileTabTreeRecords(local, state.workspaces, state.tree_nodes);
-      if (reconciled) {
-        applying_synced_tree_ = true;
-        deferred_tree_snapshot_.reset();
-        std::ignore =
-            ui_bridge_->ApplySyncedTabTreeSnapshot(std::move(*reconciled));
-        applying_synced_tree_ = false;
-        if (deferred_tree_snapshot_) {
-          tab_tree::TabTreeSnapshot deferred =
-              std::move(*deferred_tree_snapshot_);
-          deferred_tree_snapshot_.reset();
-          OnTabTreeSnapshotChanged(deferred);
-        }
-      }
-    }
-  }
+  RefreshSharedTabProjection();
   ApplyRemoteHistory(state.history);
   ApplyProductState(state);
   RefreshBookmarkProjection();

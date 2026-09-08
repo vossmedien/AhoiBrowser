@@ -11,20 +11,11 @@
 #include <utility>
 
 #include "ahoi/browser/sync/sync_policy.h"
+#include "ahoi/browser/sync/sync_unified_validation.h"
 #include "base/check.h"
 #include "base/time/time.h"
-#include "url/gurl.h"
 
 namespace ahoi::sync {
-namespace {
-
-bool IsSafeRemoteTab(const RemoteTabRecord& tab) {
-  const GURL url(tab.url);
-  return url.is_valid() && url.SchemeIsHTTPOrHTTPS() && !url.host().empty() &&
-         !url.has_username() && !url.has_password();
-}
-
-}  // namespace
 
 DeviceTabsService::DeviceTabsService(SyncStore* store,
                                      base::Uuid local_device_id)
@@ -128,9 +119,23 @@ SyncStore::Result DeviceTabsService::Refresh() {
       next.workspaces.push_back(std::move(*workspace));
     }
   }
+  records.clear();
+  if (store_->GetRecords(EntityType::kTreeNode, &records) !=
+      SyncStore::Result::kOk) {
+    return SyncStore::Result::kDatabaseError;
+  }
+  std::map<base::Uuid, const TreeNodeRecord*> pages;
+  for (const auto& record : records) {
+    const auto& page = std::get<TreeNodeRecord>(record);
+    pages.emplace(page.id, &page);
+  }
   for (RemoteTabRecord& tab : all_tabs) {
     if (tab.tombstone || tab.is_incognito || !tab.device_id.is_valid() ||
-        !tab.session_id.is_valid() || !IsSafeRemoteTab(tab)) {
+        !tab.session_id.is_valid() || !tab.tree_node_id) {
+      continue;
+    }
+    const auto page = pages.find(*tab.tree_node_id);
+    if (page == pages.end() || !SharedPresenceMatchesPage(tab, *page->second)) {
       continue;
     }
     auto session = active_sessions.find(tab.session_id);

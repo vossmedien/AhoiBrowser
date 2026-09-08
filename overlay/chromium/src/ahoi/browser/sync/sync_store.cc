@@ -29,7 +29,7 @@ int ToInt(ChangeKind kind) {
 
 bool IsValidEntityType(int value) {
   return value >= static_cast<int>(EntityType::kDevice) &&
-         value <= static_cast<int>(EntityType::kBookmark);
+         value <= static_cast<int>(EntityType::kDeviceCapability);
 }
 
 bool IsValidChangeKind(int value) {
@@ -42,17 +42,20 @@ void BindVersion(sql::Statement& statement,
                  const SyncVersion& version) {
   statement.BindInt(offset, version.model_version);
   statement.BindInt64(offset + 1, version.stamp.physical_time_us);
-  statement.BindInt(offset + 2, static_cast<int>(version.stamp.logical));
+  statement.BindInt64(offset + 2, version.stamp.logical);
   statement.BindString(offset + 3, version.stamp.device_tiebreak);
 }
 
 SyncVersion ReadVersion(sql::Statement& statement, int offset) {
+  const int64_t logical = statement.ColumnInt64(offset + 2);
+  if (logical < 0 || logical > UINT32_MAX) {
+    return SyncVersion{.model_version = 0};
+  }
   return SyncVersion{
       .model_version = statement.ColumnInt(offset),
-      .stamp = HlcStamp{
-          .physical_time_us = statement.ColumnInt64(offset + 1),
-          .logical = static_cast<uint32_t>(statement.ColumnInt(offset + 2)),
-          .device_tiebreak = statement.ColumnString(offset + 3)}};
+      .stamp = HlcStamp{.physical_time_us = statement.ColumnInt64(offset + 1),
+                        .logical = static_cast<uint32_t>(logical),
+                        .device_tiebreak = statement.ColumnString(offset + 3)}};
 }
 
 base::Time ReadTime(sql::Statement& statement, int column) {
@@ -283,8 +286,9 @@ bool SyncStore::SetMetadata(const std::string& key, const std::string& value) {
   return statement.Run();
 }
 
-SyncStore::Result SyncStore::PutLocalRecord(const SyncRecord& record,
-                                            std::string mutation_id) {
+SyncStore::Result SyncStore::PutLocalRecordInTransaction(
+    const SyncRecord& record,
+    std::string mutation_id) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
@@ -353,15 +357,10 @@ SyncStore::Result SyncStore::PutLocalRecord(const SyncRecord& record,
     return Result::kAlreadyApplied;
   }
 
-  sql::Transaction transaction(&db_);
-  if (!transaction.Begin()) {
-    return Result::kDatabaseError;
-  }
   if (!UpsertRecord(local, payload) || !WriteTombstone(local) ||
-      !WriteOutbox(change) || !transaction.Commit()) {
+      !WriteOutbox(change)) {
     return Result::kDatabaseError;
   }
-  NotifyChanged();
   return Result::kOk;
 }
 
@@ -478,7 +477,8 @@ SyncStore::Result SyncStore::ApplyRemoteBatch(const ProviderBatch& batch) {
     }
     changed = true;
   }
-  if (!SetMetadata("change_token", batch.next_change_token)) {
+  if (!SetMetadata("change_token", batch.next_change_token) ||
+      (!batch.has_more && !SetMetadata("initial_fetch_complete", "1"))) {
     return Result::kDatabaseError;
   }
   if (!db_.Execute(
@@ -598,37 +598,6 @@ SyncStore::Result SyncStore::ReadOutbox(size_t limit,
   return statement.Succeeded() ? Result::kOk : Result::kDatabaseError;
 }
 
-SyncStore::Result SyncStore::AcknowledgeOutbox(
-    const std::vector<std::string>& mutation_ids) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (!IsReady()) {
-    return Result::kNotInitialized;
-  }
-  if (mutation_ids.empty()) {
-    return Result::kInvalidArgument;
-  }
-  sql::Transaction transaction(&db_);
-  if (!transaction.Begin()) {
-    return Result::kDatabaseError;
-  }
-  for (const std::string& mutation_id : mutation_ids) {
-    if (mutation_id.empty()) {
-      return Result::kInvalidArgument;
-    }
-    sql::Statement statement(
-        db_.GetUniqueStatement("DELETE FROM sync_outbox WHERE mutation_id=?"));
-    statement.BindString(0, mutation_id);
-    if (!statement.Run()) {
-      return Result::kDatabaseError;
-    }
-  }
-  if (!transaction.Commit()) {
-    return Result::kDatabaseError;
-  }
-  NotifyChanged();
-  return Result::kOk;
-}
-
 SyncStore::Result SyncStore::PrepareOutboxForCloudRecovery(
     bool requeue_local_records) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
@@ -636,7 +605,9 @@ SyncStore::Result SyncStore::PrepareOutboxForCloudRecovery(
     return Result::kNotInitialized;
   }
   sql::Transaction transaction(&db_);
-  if (!transaction.Begin() || !db_.Execute("DELETE FROM sync_outbox")) {
+  if (!transaction.Begin() || !db_.Execute("DELETE FROM sync_outbox") ||
+      !db_.Execute("DELETE FROM sync_acknowledged_records") ||
+      !SetMetadata("initial_fetch_complete", "0")) {
     return Result::kDatabaseError;
   }
   if (requeue_local_records) {

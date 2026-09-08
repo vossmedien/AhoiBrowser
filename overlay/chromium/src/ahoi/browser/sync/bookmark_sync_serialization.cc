@@ -11,7 +11,7 @@ namespace ahoi::sync::serialization_internal {
 namespace {
 
 bool HasValidShape(const BookmarkRecord& record) {
-  if (record.model_version != kBookmarkWireModelVersion ||
+  if (record.model_version != kCurrentModelVersion ||
       record.version.model_version != record.model_version ||
       (record.kind != BookmarkKind::kFolder &&
        record.kind != BookmarkKind::kUrl) ||
@@ -61,7 +61,7 @@ bool DeserializeBookmark(const Dict& dict, BookmarkRecord* record) {
       !ReadTime(dict, "created_at", &decoded.created_at)) {
     return false;
   }
-  const std::optional<int> kind = dict.FindInt("kind");
+  const std::optional<int> kind = ReadInt32(dict, "kind");
   if (!kind || *kind < static_cast<int>(BookmarkKind::kFolder) ||
       *kind > static_cast<int>(BookmarkKind::kUrl)) {
     return false;
@@ -76,12 +76,12 @@ bool DeserializeBookmark(const Dict& dict, BookmarkRecord* record) {
     return false;
   }
   if (root) {
-    if (!root->is_int() ||
-        root->GetInt() < static_cast<int>(BookmarkRoot::kBookmarkBar) ||
-        root->GetInt() > static_cast<int>(BookmarkRoot::kMobile)) {
+    const auto parsed = ReadInt32(*root);
+    if (!parsed || *parsed < static_cast<int>(BookmarkRoot::kBookmarkBar) ||
+        *parsed > static_cast<int>(BookmarkRoot::kMobile)) {
       return false;
     }
-    decoded.root_kind = static_cast<BookmarkRoot>(root->GetInt());
+    decoded.root_kind = static_cast<BookmarkRoot>(*parsed);
   } else {
     base::Uuid parent_id;
     if (!ReadUuid(dict, "parent_id", &parent_id, /*optional=*/false)) {

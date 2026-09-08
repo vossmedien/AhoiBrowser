@@ -32,7 +32,7 @@ std::optional<SyncChange> DecodeCachedChange(NSDictionary* item) {
   const int raw_type = entity_type.intValue;
   const int raw_kind = kind.intValue;
   if (raw_type < static_cast<int>(EntityType::kDevice) ||
-      raw_type > static_cast<int>(EntityType::kBookmark) ||
+      raw_type > static_cast<int>(EntityType::kDeviceCapability) ||
       raw_kind < static_cast<int>(ChangeKind::kUpsert) ||
       raw_kind > static_cast<int>(ChangeKind::kDelete)) {
     return std::nullopt;
@@ -58,6 +58,9 @@ std::optional<SyncChange> DecodeCachedChange(NSDictionary* item) {
 }  // namespace
 
 CKSyncEngineStateSerialization* CloudKitSyncProviderMac::Core::LoadState() {
+  if (persisted_state_invalid_) {
+    return nil;
+  }
   NSData* data =
       [NSData dataWithContentsOfFile:ToNSString(state_path_.value())];
   if (!data) {
@@ -72,9 +75,7 @@ CKSyncEngineStateSerialization* CloudKitSyncProviderMac::Core::LoadState() {
     account_transition_pending_ = zone_recovery_pending_ = true;
     bookmark_sync_enabled_ = false;
     bookmark_consent_revoked_ = true;
-    opaque_bookmark_records_.clear();
-    legacy_bookmark_changes_.clear();
-    PersistInbox();
+    persisted_state_invalid_ = true;
     return nil;
   }
   return state;
@@ -84,7 +85,8 @@ void CloudKitSyncProviderMac::Core::PersistState(
     CKSyncEngineStateSerialization* state) {
   // A failed opaque cache write must not advance the engine checkpoint past
   // ciphertext that has not reached disk. Restart can refetch from the old one.
-  if (account_transition_pending_ || zone_recovery_pending_ ||
+  if (persisted_state_invalid_ || account_transition_pending_ ||
+      zone_recovery_pending_ ||
       (inbox_persistence_failed_ && !PersistInbox())) {
     return;
   }
@@ -116,7 +118,6 @@ void CloudKitSyncProviderMac::Core::AcknowledgeLastDelivery(
          it != materialized_bookmark_keys_.end();) {
       if (it->second == id) {
         opaque_bookmark_records_.erase(it->first);
-        legacy_bookmark_changes_.erase(it->first);
         bookmark_quarantine_ids_.erase(it->first);
         it = materialized_bookmark_keys_.erase(it);
       } else {
@@ -134,37 +135,16 @@ void CloudKitSyncProviderMac::Core::LoadCachedChange(NSDictionary* item) {
   NSNumber* type = item[@"entityType"];
   if ([type isKindOfClass:[NSNumber class]] &&
       type.intValue == static_cast<int>(EntityType::kBookmark)) {
-    // Older providers persisted decoded bookmark changes. Retain the original
-    // dictionary without parsing its payload until this category is approved.
-    NSString* entity_id = item[@"entityID"];
-    if (!account_transition_pending_ &&
-        [entity_id isKindOfClass:[NSString class]]) {
-      legacy_bookmark_changes_[ToString(entity_id)] = item;
-    }
+    // Current caches retain bookmarks exclusively as encrypted CKRecords.
+    // A decoded-cache entry is incompatible, never an implicit consent grant.
+    persisted_state_invalid_ = true;
     return;
   }
   if (auto change = DecodeCachedChange(item)) {
     fetched_changes_[change->entity_id.AsLowercaseString()] =
         std::move(*change);
-  }
-}
-
-void CloudKitSyncProviderMac::Core::HydrateLegacyBookmarks() {
-  lock_.AssertAcquired();
-  if (!BookmarkAllowed()) {
-    return;
-  }
-  for (const auto& [key, item] : legacy_bookmark_changes_) {
-    if (materialized_bookmark_keys_.contains(key)) {
-      continue;
-    }
-    auto change = DecodeCachedChange(item);
-    if (!change) {
-      change = MakeCloudKitQuarantineMarker(EntityType::kBookmark);
-    }
-    const std::string materialized_key = change->entity_id.AsLowercaseString();
-    materialized_bookmark_keys_[key] = materialized_key;
-    fetched_changes_[materialized_key] = std::move(*change);
+  } else {
+    persisted_state_invalid_ = true;
   }
 }
 
@@ -182,9 +162,20 @@ void CloudKitSyncProviderMac::Core::LoadInbox() {
     account_transition_pending_ = zone_recovery_pending_ = true;
     bookmark_sync_enabled_ = false;
     bookmark_consent_revoked_ = true;
+    persisted_state_invalid_ = true;
     return;
   }
   NSDictionary* dictionary = root;
+  NSNumber* format = dictionary[@"syncFormatVersion"];
+  if (![format isKindOfClass:[NSNumber class]] ||
+      ![format isEqualToNumber:@(kCurrentModelVersion)] ||
+      dictionary[@"legacyBookmarks"]) {
+    account_transition_pending_ = zone_recovery_pending_ = true;
+    bookmark_sync_enabled_ = false;
+    bookmark_consent_revoked_ = true;
+    persisted_state_invalid_ = true;
+    return;
+  }
   NSNumber* generation = dictionary[@"generation"];
   if ([generation isKindOfClass:[NSNumber class]]) {
     download_generation_ = generation.unsignedLongLongValue;
@@ -211,22 +202,24 @@ void CloudKitSyncProviderMac::Core::LoadInbox() {
       }
     }
   }
-  for (NSString* collection in @[ @"changes", @"legacyBookmarks" ]) {
-    NSArray* changes = dictionary[collection];
-    if (![changes isKindOfClass:[NSArray class]]) {
-      continue;
+  NSArray* changes = dictionary[@"changes"];
+  if (![changes isKindOfClass:[NSArray class]]) {
+    persisted_state_invalid_ = true;
+    return;
+  }
+  for (id value in changes) {
+    if (![value isKindOfClass:[NSDictionary class]]) {
+      persisted_state_invalid_ = true;
+      return;
     }
-    for (id value in changes) {
-      if ([value isKindOfClass:[NSDictionary class]]) {
-        LoadCachedChange(value);
-      }
-    }
+    LoadCachedChange(value);
   }
   if (account_transition_pending_) {
     return;
   }
   NSArray* opaque = dictionary[@"opaqueBookmarks"];
   if (![opaque isKindOfClass:[NSArray class]]) {
+    persisted_state_invalid_ = true;
     return;
   }
   for (id value in opaque) {
@@ -248,7 +241,6 @@ void CloudKitSyncProviderMac::Core::LoadInbox() {
     }
     const std::string key = ToString(record.recordID.recordName);
     opaque_bookmark_records_[key] = record;
-    legacy_bookmark_changes_.erase(key);
   }
   NSDictionary* quarantined = dictionary[@"bookmarkQuarantineIDs"];
   if ([quarantined isKindOfClass:[NSDictionary class]]) {
@@ -268,13 +260,14 @@ void CloudKitSyncProviderMac::Core::LoadInbox() {
   if (account_transition_pending_) {
     bookmark_sync_enabled_ = false;
     bookmark_consent_revoked_ = true;
-    opaque_bookmark_records_.clear();
-    legacy_bookmark_changes_.clear();
-    bookmark_quarantine_ids_.clear();
+    persisted_state_invalid_ = true;
   }
 }
 
 bool CloudKitSyncProviderMac::Core::PersistInbox() {
+  if (persisted_state_invalid_) {
+    return false;
+  }
   NSMutableArray* changes = [NSMutableArray array];
   for (const auto& [id, change] : fetched_changes_) {
     if (change.entity_type == EntityType::kBookmark) {
@@ -304,10 +297,6 @@ bool CloudKitSyncProviderMac::Core::PersistInbox() {
     }
     [opaque addObject:[data base64EncodedStringWithOptions:0]];
   }
-  NSMutableArray* legacy = [NSMutableArray array];
-  for (const auto& [id, item] : legacy_bookmark_changes_) {
-    [legacy addObject:item];
-  }
   NSMutableDictionary* delivered_mutations = [NSMutableDictionary dictionary];
   for (const auto& [id, mutation] : last_delivery_mutations_) {
     delivered_mutations[ToNSString(id)] = ToNSString(mutation);
@@ -317,6 +306,7 @@ bool CloudKitSyncProviderMac::Core::PersistInbox() {
     quarantined[ToNSString(key)] = ToNSString(marker.AsLowercaseString());
   }
   NSDictionary* root = @{
+    @"syncFormatVersion" : @(kCurrentModelVersion),
     @"generation" : @(download_generation_),
     @"accountTransitionPending" : @(account_transition_pending_),
     @"zoneRecoveryPending" : @(zone_recovery_pending_),
@@ -326,7 +316,6 @@ bool CloudKitSyncProviderMac::Core::PersistInbox() {
     @"deliveredMutations" : delivered_mutations,
     @"changes" : changes,
     @"opaqueBookmarks" : opaque,
-    @"legacyBookmarks" : legacy,
     @"bookmarkQuarantineIDs" : quarantined,
   };
   NSError* error = nil;
