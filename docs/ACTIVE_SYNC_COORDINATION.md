@@ -35,6 +35,16 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Mobile19 icon/app-start PASS; new16:03 handback consumed:** the delayed
+  15:56 START did execute on exact6b0121f/19 in own deviceC645C09E. Before the
+  host step, a fresh window guard detected BetterConvo E2E and prevented the
+  click. Hostlabel/metadata are NOT_RUN, not failures or passes. Root read
+  184adef's bound result and viewed the saved own SpringBoard icon screenshot;
+  the approved icon is visibly installed. Own app/device ended normally and
+  Root freshly verified Shutdown. The concrete Ahoi-only handback was forwarded
+  to all four owners in01a081cc; it does NOT release BetterConvo's newer223 phase.
+  No Ahoi UI reservation remains. The next20 journey needs only the remaining
+  host-label/metadata observations, not another icon or Build18 replay.
 - **Current installed Desktop is35c4c41, intentionally provider-free:** coordinator
   freshly read the installed plist; source35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d
   has no CloudKit runtime configuration. Desktop chose this for the real Default
@@ -49,7 +59,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   the original bbe2c53 candidate receipt: clean source equals embedded source,
   DebugLocal20/iphonesimulator, tree b8d840b241c9634794617c09aef355feab656d5b3e048f448b5db06cbff05e0b,
   binary f6f301d61fd26115ac876c38d81a2e24607271cb3cc4727620e26d62cb7ff4c4.
-  Bind the same short icon/origin/recognized-metadata journey to this integrated
+  Bind the remaining short origin/recognized-metadata journey to this integrated
   successor; no new build or whole18 replay. Since the prior window was returned,
   BetterConvo223 and FillIt's Solo UI have new current work. Coordinator queued
   one concrete shared-Surface notice/follow-up20 request in01a081c2-6cfa/6e9e,
@@ -67,7 +77,8 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   closing the overlapping START01a08172. No Ahoi UI reservation remains; delayed
   START messages must not reopen it. Result is documented in ac513a2 / the current
   [implementation checkpoint](UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md).
-  Original18 acceptance remains separate;19 icon/layout is still not accepted.
+  Original18 acceptance remains separate. The later19 partial pass above
+  supersedes the earlier absence of icon evidence; host/metadata remain open.
 - **Explicit MBC Simulator handback, 2026-09-08 14:01 UTC:** recorded directly
   by MBC owner `01a07095-b539-7333-98c0-528b1aa0b60b` for BetterConvo
   `01a04978` and coordinator `01a044d6-1545-7532-8394-6b7df1144bb1`.
