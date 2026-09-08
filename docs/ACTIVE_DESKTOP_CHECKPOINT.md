@@ -200,13 +200,15 @@ sync_store.cc:292/365. Sync owner received exact compiler handoffs
 The bounded Common compiler fix has arrived as `dfcc32e` and was read in full;
 default-method semantics/authorization remain unchanged. Same owned detached
 snapshot now clean at `c20a759dd936cfa93d5fedeb4c9dcd52e876bcd7`, comprising74ceb
-plus5a15614,7a47063,dfcc32e only. No catalogue WIP was included. At09:07:54 UTC the
-guarded corrective overlay is RUNNING as exec `68595`; log
-`artifacts/build/desktop-shared-tabs-c20a759-20260908/overlay.log`. Fresh capacity
-showed62–70% idle,44% memory headroom,77.7GiB free disk and no compiler workload.
-Resume68595, then one app-only jobs2/keepgoing1 build from that snapshot. Do not
-repeat71760, integrate WIP, add test targets or suppress warnings. The Mobile
-Simulator window has been explicitly returned; installed4cb is unchanged.
+plus5a15614,7a47063,dfcc32e only. No catalogue WIP was included. Corrective overlay
+`68595` is TERMINAL EXIT0; log
+`artifacts/build/desktop-shared-tabs-c20a759-20260908/overlay.log`.
+The guarded app-only corrective build is RUNNING as exec `82463`, started
+09:10:22 UTC, jobs2/keepgoing1, same snapshot/work root; log
+`artifacts/build/desktop-shared-tabs-c20a759-20260908/build.log`. Its fresh gate
+had62–71% idle,50% memory headroom,77.7GiB disk and no compiler workload. Resume
+82463; do not restart68595/71760, integrate WIP, add test targets or suppress
+warnings. The Mobile Simulator window is returned; installed4cb is unchanged.
 
 Do not launch the new normal-tab mirroring on the real failed-import Default
 profile before its4cb Arc recovery. Initial new-format acceptance uses an
