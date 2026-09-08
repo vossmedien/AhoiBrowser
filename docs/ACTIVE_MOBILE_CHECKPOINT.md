@@ -6,6 +6,10 @@ Updated: 2026-09-08. Mobile/Common implementation owner:
 
 ## Current work — continue here
 
+**Simulator UI is APPROVED by the user. Next: the prepared short visible journey
+on `7b706a7`, DebugLocal 0.1 (17). Do not wait for another Desktop slot approval.**
+Desktop works on source only during this window; return it after the journey.
+
 The authoritative implementation handoff and next actions are in
 [UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md](UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md).
 Ownership and cross-session handoffs are in
@@ -27,6 +31,10 @@ Do not resume tasks from the historical archive below.
   signature limits are in
   [the build report](../artifacts/build/mobile-unified3-4e64c5f-20260908/README.md)
   (`9978b2e`). This is not visible E2E, CloudKit or a native cross-client pass.
+- The necessary pending-intent correction `7b706a7` is now the built/signed
+  DebugLocal 0.1 (17) candidate, evidence `94b1a3f` and
+  [its report](../artifacts/build/mobile-shared-intents-7b706a7-20260908/README.md).
+  Build16 is preserved, not the next test target. Build17 is not yet a UI/Sync pass.
 - The user explicitly granted the short Simulator-UI window on September 8,
   07:08 UTC: Mobile runs its visible journey on `bba0b86` build16 or a necessary
   same-scope corrected successor with its exact candidate receipt, while Desktop
