@@ -139,15 +139,27 @@ AI-assisted contributions. Published commits are not rewritten; this does not
 claim that an automated per-commit DCO check on their historical trailers ran
 or passed. Subsequent commits must use `git commit -s`.
 
-## Mobile candidate — Build17 succeeded, visible acceptance open
+## Mobile candidate — bounded Build17 Save/Restart PASS, other gates open
 
 Current candidate is `7b706a73f98802fe31b206731b7e88c1da6b6c59`, DebugLocal0.1(17).
 Its product-only build Session `79364` is terminal EXIT0. Embedded source/build,
 deep/strict signature and clean-source/Xcode-project receipt are bound under
 `artifacts/build/mobile-shared-intents-7b706a7-20260908/`. App tree artifact hash:
 `d84c635869568ef1a90b809895d3571b148a75d814dcc41bd3842346a24dab87`.
-No installation, visible E2E or tests occurred. The own temporary source snapshot
-is now frozen at this commit. Build16 was preserved byte-for-byte and verified
+The app was installed into fresh Simulator `F8253C50-E423-4424-8EE3-5F152C593A31`
+and matched to the exact receipt. Visible Navigate -> canonical Inbox -> Save ->
+OS/App restart passed with one saved tab and stable distinct Runtime/Presence/
+Tree IDs; full Workspace/Tree values and clocks remained unchanged on restart.
+Evidence: `artifacts/e2e/mobile-shared-intents-7b706a7-20260908/README.md`.
+Unsave UI remains untested because CUA did not open the long-press menu. After
+the restart proof, a final Simulator SaveScreen/Home call switched to the foreign
+MindBodyCompass window; attribution is unproven, UI was immediately stopped and
+the possible effect reported. Only the own simulator was then explicitly shut
+down. UI handback `01a0801b-0086-71f0-97f5-46f712d925ad` closes this slot; do not
+reuse it for more UI. Four existing Shared Swift boundary cases then passed on
+the CLI after current-format test-only adaptation, not as a substitute Unsave/
+CloudKit/Chromium pass. The own temporary source snapshot remains frozen.
+Build16 was preserved byte-for-byte and verified
 at `artifacts/build/mobile-unified3-4e64c5f-20260908/AhoiMobile-bba0b86.app` before
 incremental product-cache reuse. Its historical evidence follows below, not a
 new Build17 acceptance. No default profile or Desktop lease was touched.
@@ -155,8 +167,10 @@ new Build17 acceptance. No default profile or Desktop lease was touched.
 Global/project AGENTS were reread fully after the latest September8 update:
 finish already-authorized preparation before asking approval, reuse existing
 same-scope approvals, continue unaffected work and infer no extra skill gates.
-Actual source/UI ownership and E2E-first still apply. The short Simulator UI
-slot remains an explicit coordination request, not a skill-generated condition.
+Actual source/UI ownership and E2E-first still apply. The granted short Simulator
+slot was used and explicitly returned as recorded above; its approval was not
+requested again. Further UI work must coordinate the shared Simulator surface
+to avoid the observed cross-project window switch, not invent a new skill gate.
 
 Swift package `4e64c5f2f4e6052c1a4aefb2d6b9c6617cf76963` is signed/committed/pushed.
 First product-only build Session `1526` ended EXIT 65 at one stale external-link

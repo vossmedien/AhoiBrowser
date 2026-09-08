@@ -1,0 +1,13 @@
+Observed after fresh simulator shutdown/boot and app launch, 2026-09-08.
+Window: "Ahoi Unified Sync Build17 20260908", App: Simulator.
+36 container ID: browser.tabs.list, Secondary Actions: Cancel
+37 tab group Description: Browsermodus, ID: browser.tabs.mode, Secondary Actions: Cancel
+38 heading Description: Inbox · Gespeichert, Secondary Actions: Cancel
+39 button Description: Example Domain, https://example.com/?ahoi-unified-17, Value: Ausgewählt, ID: browser.tab-row.391646fb-23d6-4c98-ab7f-c214bf00cb17, Secondary Actions: Cancel
+40 button Description: Example Domain schließen, ID: browser.tab-close.391646fb-23d6-4c98-ab7f-c214bf00cb17, Secondary Actions: Cancel
+
+The preceding owned-window observation rendered Example Domain and reported:
+42 button Description: 1 Tab, Value: 1, ID: browser.tabs, Secondary Actions: Cancel
+40 button Description: Adresse und Suche, Value: https://example.com/?ahoi-unified-17, ID: browser.address, Secondary Actions: Cancel
+
+The later Save Screen/Home call reporting MindBodyCompass Pilot QA is excluded.

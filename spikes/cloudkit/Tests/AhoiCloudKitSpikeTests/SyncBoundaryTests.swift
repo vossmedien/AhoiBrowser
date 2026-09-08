@@ -36,23 +36,29 @@ final class SyncBoundaryTests: XCTestCase {
         let permitted: [SyncDataClass] = [
             .workspace,
             .treeNode,
-            .orderKey,
-            .recoveryMetadata,
             .device,
             .deviceSession,
             .deviceTab,
-            .history,
             .historyVisit,
             .remoteCommand,
             .appearance,
             .permittedSetting,
             .extensionInventory,
+            .bookmark,
+            .deviceCapability,
         ]
+
+        XCTAssertEqual(Set(permitted).union([.developerAsset]), SharedSyncFormat.supportedDataClasses)
 
         for dataClass in permitted {
             XCTAssertNoThrow(try boundary.authorize(makeRecord(dataClass: dataClass)))
         }
         XCTAssertNoThrow(try boundary.authorize(makeTombstoneRecord()))
+        for retiredAlias in [SyncDataClass.orderKey, .recoveryMetadata, .history, .tombstone] {
+            XCTAssertThrowsError(try boundary.authorize(makeRecord(dataClass: retiredAlias))) { error in
+                XCTAssertEqual(error as? SyncBoundaryError, .dataClassDenied(retiredAlias))
+            }
+        }
 
         let developerAsset = makeRecord(dataClass: .developerAsset)
         XCTAssertThrowsError(try boundary.authorize(developerAsset))
@@ -95,20 +101,22 @@ final class SyncBoundaryTests: XCTestCase {
     }
 
     func testSchemaAndTombstoneShapeAreValidated() {
-        let invalidSchema = makeRecord(dataClass: .workspace, schemaVersion: 0)
-        XCTAssertThrowsError(try SyncBoundary().authorize(invalidSchema)) { error in
-            XCTAssertEqual(error as? SyncBoundaryError, .invalidSchemaVersion)
+        for version in [UInt32(0), 1, 2, 4] {
+            let invalidSchema = makeRecord(dataClass: .workspace, schemaVersion: version)
+            XCTAssertThrowsError(try SyncBoundary().authorize(invalidSchema)) { error in
+                XCTAssertEqual(error as? SyncBoundaryError, .invalidSchemaVersion)
+            }
         }
 
-        let missingMetadata = makeRecord(dataClass: .tombstone)
-        XCTAssertThrowsError(try SyncBoundary().authorize(missingMetadata)) { error in
+        let commandTombstone = makeTombstoneRecord(dataClass: .remoteCommand)
+        XCTAssertThrowsError(try SyncBoundary().authorize(commandTombstone)) { error in
             XCTAssertEqual(error as? SyncBoundaryError, .invalidTombstone)
         }
     }
 
     private func makeRecord(
         dataClass: SyncDataClass,
-        schemaVersion: UInt32 = 1,
+        schemaVersion: UInt32 = SharedSyncFormat.currentVersion,
         encryptedValue: EncryptedValue = .init(
             keyVersion: 1,
             nonce: Data(repeating: 1, count: 12),
@@ -126,7 +134,7 @@ final class SyncBoundaryTests: XCTestCase {
         )
     }
 
-    private func makeTombstoneRecord() -> SyncRecord {
+    private func makeTombstoneRecord(dataClass: SyncDataClass = .workspace) -> SyncRecord {
         let device = DeviceID()
         let entityID = UUID()
         let deletedAt = HybridLogicalClock(
@@ -135,7 +143,7 @@ final class SyncBoundaryTests: XCTestCase {
         )
         return .init(
             entityID: entityID,
-            dataClass: .tombstone,
+            dataClass: dataClass,
             modifiedAt: deletedAt,
             originatingDevice: device,
             encryptedValue: .init(
