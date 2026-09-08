@@ -35,6 +35,25 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Current isolated-sync preparation findings, 2026-09-08:** device build21 on
+  77061ad failed in the Mobile signing preflight, not at an Apple login gate:
+  `AHOI_SYNC_KEYCHAIN_ACCOUNT must equal payload-key for CloudKitDevelopment`.
+  Owner is correcting that real connection bug for the bound Development scope;
+  Root read the failed build.log. No compiled/signed/device/CloudKit pass.
+  Root also found the Native CLI still passes fixed ENTITLEMENTS_PATH through
+  Prepare/Verify/Install; its default runtime tuple is not the prepared fresh
+  tuple. Concrete Source-only finding01a081ec-bfec asks Desktop to carry the
+  same bound effective Development configuration through those existing paths,
+  without changing Production/identity rights or bypassing verification.
+  The separate48-line Native write-request hook remains absent in0036; exact
+  source/hunk handoff f36e4bd was requested from Desktop in01a081d3-b344, and
+  Sync independently offered to own those exact hunks. No competing edits by Root.
+- **Current installed Desktop is nowa24a792, provider-free:** coordinator freshly
+  read sourcea24a7925bc729dcc6c02b39a5fee1ffdb0ef0aca and no CloudKit container.
+  Desktop records70035/99179 EXIT0 and visible identical-import NoChanges with
+  unchanged structural digest/journal. The remaining concise-result UI fix
+  dbbbc24 and append-drop refinement are separate Source work; a new heavy build
+  is currently disk-gated, not an Apple/role/CPU block. Do not resume70035.
 - **Mobile19 icon/app-start PASS; new16:03 handback consumed:** the delayed
   15:56 START did execute on exact6b0121f/19 in own deviceC645C09E. Before the
   host step, a fresh window guard detected BetterConvo E2E and prevented the
@@ -45,7 +64,7 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   to all four owners in01a081cc; it does NOT release BetterConvo's newer223 phase.
   No Ahoi UI reservation remains. The next20 journey needs only the remaining
   host-label/metadata observations, not another icon or Build18 replay.
-- **Current installed Desktop is35c4c41, intentionally provider-free:** coordinator
+- **Previous35c4c41 installed proof, intentionally provider-free:** coordinator
   freshly read the installed plist; source35c4c41bf2418bd9497ad85f2bfbb2be5f32c94d
   has no CloudKit runtime configuration. Desktop chose this for the real Default
   profile, whose existing global opt-in remains true; no preference/key reset.
