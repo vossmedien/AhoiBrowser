@@ -126,15 +126,19 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ### Active toolbar/UI continuation — 2026-09-08
 
-**CURRENT BUILD PHASE:** guarded overlay32506 is RUNNING on clean existing
+**CURRENT BUILD PHASE:** guarded app-only build56659 is RUNNING since14:01UTC;
+overlay32506 is TERMINAL EXIT0 on clean existing
 snapshot `e24119158e2d15c8bc9f0b22d0fea5e555327e5a`:715 plus ONLY the reviewed
 Arc-preserving fixdff21f9 (seven Arc files, no Common WIP/patch36). Both original
-and Development715 bundles/receipts were preserved first. Next after actual
-overlay EXIT0: same guarded app-only build jobs2. Fresh15:58CEST gate52.9%idle,
+and Development715 bundles/receipts were preserved first. Same guarded
+app-only build jobs2, no extra test targets. Fresh16:01CEST start gate73.8%idle,
+58%memory, no new swapouts/compilers;46.3GiB above32GiB hard floor. Earlier
+15:58CEST gate52.9%idle,
 58%memory headroom, no new swapouts,46.2GiB above32GiB build floor. Identified
 FillIt Unity batch15877 is a separate2-worker job (~4.6% at sample); it is not
-touched or treated as an automatic blocker. Recheck aggregate capacity before
-compilation. Logs: `artifacts/build/desktop-arc-preserve-e241191-20260908/`.
+touched or treated as an automatic blocker; absent at the fresh compile gate.
+Resume56659 to terminal, no overlay retry or in-place snapshot edits. Logs:
+`artifacts/build/desktop-arc-preserve-e241191-20260908/`.
 
 **CURRENT NATIVE HANDLE:** isolated native restart50070 is RUNNING (PID4525 at
 launch); initial runtime85457 ended EXIT0 through real Cmd+Q (`super+q`).
@@ -1072,8 +1076,8 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    do not restart builds or replay the whole flow without an affected change.
    Active runtime50070 is the isolated test profile, not real Default. Preserve
    its exact receipt and state. The reviewed Arc-only correction is now integrated
-   on cleane241191; resume overlay32506 to terminal, then one guarded app-only
-   follow-up with a fresh aggregate capacity check. No Common WIP/patch36. After
+   on cleane241191; overlay32506 is EXIT0 and app-only build56659 is RUNNING.
+   Resume that exact handle; no Common WIP/patch36 or new source wait. After
    correction, repeat the real affected Arc journey,
    then only its necessary regression. No unrelated test-binary prerequisite.
    Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
