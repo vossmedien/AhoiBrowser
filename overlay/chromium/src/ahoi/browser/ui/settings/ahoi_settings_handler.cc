@@ -112,7 +112,7 @@ bool AhoiSettingsHandler::IsAuthorizedSettingsPage() {
     return false;
   }
   const GURL& url = contents->GetLastCommittedURL();
-  return url.SchemeIs("chrome") && url.host_piece() == "settings";
+  return url.SchemeIs("chrome") && url.host() == "settings";
 }
 
 base::DictValue AhoiSettingsHandler::BuildBrowserSettingsSyncStatus(
