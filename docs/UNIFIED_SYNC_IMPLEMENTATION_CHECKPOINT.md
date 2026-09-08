@@ -3,6 +3,26 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Latest UI handback — explicit Build18 repeat tool-blocked
+
+The latest direct instruction explicitly requested another18 Search/Restart/
+Reset journey. This time the unchanged archive AND installed894c9a2/18 were
+reverified against their original signature/tree receipt. Own FE1B boot98445
+completed EXIT0; fresh capacity was free. CUA inventory worked, but all three
+exact Simulator-app bindings returned -10005 timeoutReached, including a retry
+after terminal boot and one after JS reset. No own window could be verified:
+ZERO inputs, visible assertions or screenshots. This is an access/tool boundary,
+not a product failure or a new pass. Original18 evidence remains separate.
+
+Own FE1B was normally shut down and independently verified Shutdown at
+2026-09-08 14:34:19UTC, without erasing it or touching foreign resources.
+Explicit handback: coordinator01a08173-49e3-7850-be05-a3c093db8811;
+Desktop01a08173-4a1d-7ec2-9a01-eb5487d010b7. No active own UI reservation.
+Durable result/scope: artifacts/e2e/mobile-browser-settings-894c9a2-rerun-20260908T1431Z/.
+Future UI requires a working connection and the current shared window handoff,
+not another unchanged retry. Built20 and the later source-only zone binding
+bb51389 remain available; no rebuild/test suite was started for this repeat.
+
 ## Current: key source delivered; integrated Mobile20 built — 2026-09-08
 
 Common+Swift bbe2c53b21f0911c0074b97a606468268a7387e9 is committed/pushed (37 owned
