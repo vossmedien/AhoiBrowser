@@ -29,6 +29,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Mobile bounded handoff is documented, 2026-09-08:** the owner explicitly
+  returned UI in `01a0801b-0086-71f0-97f5-46f712d925ad`. The complete local report
+  is `artifacts/e2e/mobile-shared-intents-7b706a7-20260908/README.md`.
+  Coordinator read its raw `sync-boundary-tests.log`: four named XCTest
+  `SyncBoundaryTests` cases executed with zero failures after the visible
+  journey. The separate trailing Swift Testing runner's zero cases are NOT
+  the pass. This verifies the shared-source allowlist/ciphertext-shape/current-
+  format boundary only, not a cryptographic roundtrip, Unsave, Bookmark Sync,
+  Chromium or real CloudKit. No product bytes were changed by those four
+  existing test updates. Next is implementation/candidate integration, not
+  replaying this bounded acceptance or expanding its test matrix.
 - **Bounded Simulator window CLOSED, 2026-09-08:** at 08:20:24 UTC Mobile
   explicitly stopped further UI actions and confirmed shutdown of its own
   test device. Coordinator independently read F8253C50… as Shutdown, with
@@ -315,7 +326,7 @@ not included in the unchanged installed4cb candidate; do not request A again.
 - Earlier `313e351` / Build15 Bookmark acceptance remains its own evidence;
   it neither covers the new source nor needs an unchanged repetition.
 
-## Verified unified-format progress (not acceptance)
+## Delivered unified-format source and remaining proof
 
 - ADR 0009 and `config/sync-format.json` are committed in `1bfae11`; Desktop
   aligned its master/native contracts in `006930f`. The manifest reads as exactly
@@ -325,23 +336,24 @@ not included in the unchanged installed4cb candidate; do not request A again.
   `overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json`.
   Coordinator verified SHA256
   `f1886032c54931f8dfd4180c5ff150698f85576ac70e52e3523f95291c3d8d00` and 26
-  records. C++ `sync_unified_serialization_unittest.cc` now directly reads that
+  records. C++ `sync_unified_serialization_unittest.cc` directly reads that
   file and asserts hash, 26 cases/13 types and exact byte roundtrip; Mobile
-  `project.yml` includes the canonical resource. Actual Swift codec-test
-  assertions and both languages' execution remain for the candidate wave.
+  `project.yml` includes the canonical resource. These prepared assertions
+  are not a C++/Swift execution pass; the four boundary tests above do not
+  execute the all-entity codec roundtrip.
   The remote-command example is shape-only, not cryptographic authorization proof.
-  Two WIP test-isolation gaps were reported in `01a0730e-2e27-7b02-aeba-0efd288e7660`
-  (unknown-only field map; malformed field logical counters); see the appended
-  section in the coordinator's Swift integration checklist. No fix/test pass inferred.
-- Actual uncommitted C++ implementation is now visible in common model/store/
-  profile types and the two new shared-tab leaf headers. Coordinator inspected
-  the leaf types, separate presence/logical IDs and default-false native support.
-  This is WIP, not a header freeze, compiled result or writer activation.
-- Swift implementation has now started too: central `SharedSyncFormat`, exact
-  live class/version boundary and Capability `[3]` defaults are visible WIP.
-  The coordinator's remaining-path review is
-  `docs/reviews/2026-09-05-unified-sync-swift-checklist.md`; it is source-only,
-  not a claim that unfinished codecs, snapshot markers or live bindings pass.
+  The early optional test-isolation review `01a0730e` is historical source input,
+  not another prerequisite before the working candidate/E2E sequence above.
+- Common C++ is no longer an uncommitted leaf/header proposal: `e2f6711` is
+  committed and handed over, with durable async/export corrections `5e74472`,
+  `37bc558` and cancellation handling `40358d1`. Desktop reported native capture
+  and projection connected at 08:04/08:21 UTC on September 8. Its exact native
+  freeze/build/runtime proof still belongs to Desktop; no new compiled native
+  candidate is inferred from those source reports.
+- Shared Swift/Mobile is no longer merely initial WIP: `7b706a7` compiled as
+  Build17 and has the bounded local navigation/Save/restart evidence above.
+  Remaining live cross-client/Unsave and ADR0010/workspace setup work stays with
+  the same owner. Do not reload the September 5 checklist as today's task list.
 - Direct Terminal Computer Use was denied by the tool's safety boundary. No
   workaround or process interruption was attempted. Coordination continues via
   the existing CLI queue and scoped read-only process/log/checkpoint evidence;
@@ -351,10 +363,12 @@ not included in the unchanged installed4cb candidate; do not request A again.
 
 1. Both owners have accepted their roles. Follow the concrete package sequence
    and native header handoffs; no further role-confirmation loop.
-2. Desktop consumes `e2f6711` for Native B-D and the local receipt seam; no
-   repeated missing-API/role wait or insertion into the separate old baseline.
-   Sync finishes Mobile lifecycle/live binding and ADR0010 setup adapters in
-   its owned scope. Coordinate later heavy phases by actual total capacity.
+2. Desktop prepares the coherent native source freeze/runnable candidate using
+   the delivered Common package and async corrections; there is no missing-API
+   or role wait and no insertion into the separate old baseline. Sync continues
+   the remaining Mobile/live integration and ADR0010 setup adapters; the local
+   Build17 journey and four focused checks are complete within their stated
+   scope. Coordinate heavy phases by actual total capacity, not old CPU rules.
 3. Close remaining fresh bootstrap and cross-client live binding
    gaps, using exact native adapter handoffs where needed; target one active
    model, not perpetual v2/v3 writer coexistence or complex old-data migration.
