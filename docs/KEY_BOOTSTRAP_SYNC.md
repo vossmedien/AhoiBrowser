@@ -127,3 +127,20 @@ and Build20 does not contain these later configuration changes.
 The configuration-only readback now resolves all seven prepared identifiers,
 including that subscription, identically for app and Core with signing disabled.
 Project generation/plist/whitespace checks passed; no compile or runtime pass.
+
+The first unsigned iOS-device build48954 on77061ad reached the real Mobile
+preflight and failed: it still required the ordinary `payload-key` account.
+That original EXIT65/log/XCResult is retained under
+artifacts/build/mobile-development-77061ad-20260908/. No successful device
+candidate, signature or runtime is claimed for that run.
+
+The corrected preflight accepts `AHOI_SYNC_ACCEPTANCE_SCOPE_ID` only in
+CloudKitDevelopment, as a canonical lowercase UUIDv4 with an exact source SHA.
+Zone, subscription and isolated payload-key account must all bind that SAME
+scope. Team/container/services/access groups/key version and entitlement checks
+remain exact. Ordinary builds without a scope require the public tuple;
+provider-free and distribution modes reject the scope. This is a local build
+input, not a wire field, a key claim or permission to access existing keys.
+Three focused tests of the real preflight CLI passed (4.453s): the bound
+Development tuple, invalid/mixed scopes and the existing ordinary mode contract.
+These are configuration-gate checks, not an app or CloudKit acceptance.

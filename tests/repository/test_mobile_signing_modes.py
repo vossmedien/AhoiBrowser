@@ -18,6 +18,8 @@ PUBLIC = {
     "AHOI_MOBILE_TEST_BUNDLE_ID": "app.ahoibrowser.AhoiBrowser.tests",
     "AHOI_MOBILE_UI_TEST_BUNDLE_ID": "app.ahoibrowser.AhoiBrowser.uitests",
     "AHOI_CLOUDKIT_CONTAINER_ID": "iCloud.app.ahoibrowser.AhoiBrowser",
+    "AHOI_CLOUDKIT_ZONE_NAME": "AhoiBrowserSyncV3",
+    "AHOI_CLOUDKIT_SUBSCRIPTION_ID": "AhoiBrowserSyncSubscription",
     "AHOI_SYNC_KEYCHAIN_ACCESS_GROUP": "248AJ5BN47.app.ahoibrowser.sync",
     "AHOI_SYNC_KEYCHAIN_SERVICE": "app.ahoibrowser.sync.payload-key",
     "AHOI_SYNC_KEYCHAIN_ACCOUNT": "payload-key",
@@ -61,6 +63,7 @@ def mode_environment(mode: str) -> dict[str, str]:
         "SRCROOT": str(MOBILE),
         "CONFIGURATION": mode,
         "AHOI_BUILD_MODE": mode,
+        "AHOI_SYNC_ACCEPTANCE_SCOPE_ID": "",
         "AHOI_SOURCE_COMMIT": COMMIT
         if mode in {"PerformanceDevelopment", "TestFlightBootstrap", "ReleasePostGrant"}
         else "NOT_AVAILABLE",
@@ -143,6 +146,39 @@ class MobileSigningModeTests(unittest.TestCase):
         self.assert_preflight_rejects(
             "DebugLocal", CODE_SIGN_ENTITLEMENTS="AhoiMobile.entitlements.template"
         )
+
+    def test_development_accepts_only_a_bound_isolated_sync_scope(self):
+        scope = "bba96b17-f044-4923-9d40-67b15014d59e"
+        environment = mode_environment("CloudKitDevelopment")
+        environment.update({
+            "AHOI_SOURCE_COMMIT": COMMIT,
+            "AHOI_SYNC_ACCEPTANCE_SCOPE_ID": scope,
+            "AHOI_CLOUDKIT_ZONE_NAME": f"AhoiSyncAcceptance-{scope}",
+            "AHOI_CLOUDKIT_SUBSCRIPTION_ID": f"AhoiSyncAcceptanceSubscription-{scope}",
+            "AHOI_SYNC_KEYCHAIN_ACCOUNT": f"payload-key.acceptance-{scope}",
+        })
+        completed = run_preflight("--build-settings", env=environment)
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        for key, invalid in (
+            ("AHOI_SYNC_ACCEPTANCE_SCOPE_ID", ""),
+            ("AHOI_CLOUDKIT_SUBSCRIPTION_ID", PUBLIC["AHOI_CLOUDKIT_SUBSCRIPTION_ID"]),
+            ("AHOI_SYNC_KEYCHAIN_ACCOUNT", PUBLIC["AHOI_SYNC_KEYCHAIN_ACCOUNT"]),
+            ("AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT", "Production"),
+            ("AHOI_SOURCE_COMMIT", "NOT_AVAILABLE"),
+        ):
+            with self.subTest(key=key):
+                completed = run_preflight(
+                    "--build-settings", env={**environment, key: invalid}
+                )
+                self.assertNotEqual(0, completed.returncode, completed.stdout)
+                self.assertIn("ERROR:", completed.stderr)
+
+    def test_other_modes_reject_isolated_sync_scopes(self):
+        for mode in ("DebugLocal", "PerformanceDevelopment", "TestFlightBootstrap", "ReleasePostGrant"):
+            with self.subTest(mode=mode):
+                self.assert_preflight_rejects(
+                    mode, AHOI_SYNC_ACCEPTANCE_SCOPE_ID="bba96b17-f044-4923-9d40-67b15014d59e"
+                )
 
     def test_performance_mode_is_optimized_source_bound_and_provider_free(self):
         self.assert_preflight_rejects(

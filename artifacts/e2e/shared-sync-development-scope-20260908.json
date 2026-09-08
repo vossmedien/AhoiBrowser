@@ -18,6 +18,7 @@
     "productionAllowed": false
   },
   "nativeSourceRequirement": "bbe2c53b21f0911c0074b97a606468268a7387e9 or a coherent successor; Desktop owns configuration/sign/install",
+  "mobilePreflightScopeSetting": "AHOI_SYNC_ACCEPTANCE_SCOPE_ID",
   "mobileConfigurationKeys": [
     "AHOI_CLOUDKIT_CONTAINER_ID",
     "AHOI_CLOUDKIT_ZONE_NAME",

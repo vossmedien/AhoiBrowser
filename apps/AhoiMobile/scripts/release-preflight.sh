@@ -270,6 +270,35 @@ ahoi_check_signing_style() {
   esac
 }
 
+ahoi_check_sync_scope() {
+  local source_root="$1"
+  local scope="${AHOI_SYNC_ACCEPTANCE_SCOPE_ID:-}"
+  local public_account
+  public_account="$(ahoi_public_value "$source_root" AHOI_SYNC_KEYCHAIN_ACCOUNT)"
+  if [ -z "$scope" ]; then
+    ahoi_require_exact_setting AHOI_SYNC_KEYCHAIN_ACCOUNT "$public_account"
+    ahoi_require_exact_setting AHOI_CLOUDKIT_ZONE_NAME \
+      "$(ahoi_public_value "$source_root" AHOI_CLOUDKIT_ZONE_NAME)"
+    ahoi_require_exact_setting AHOI_CLOUDKIT_SUBSCRIPTION_ID \
+      "$(ahoi_public_value "$source_root" AHOI_CLOUDKIT_SUBSCRIPTION_ID)"
+    return
+  fi
+
+  [ "${AHOI_BUILD_MODE:-}" = "CloudKitDevelopment" ] ||
+    ahoi_die "isolated sync scopes require CloudKitDevelopment"
+  printf '%s' "$scope" | grep -Eq '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$' ||
+    ahoi_die "AHOI_SYNC_ACCEPTANCE_SCOPE_ID must be a canonical lowercase UUIDv4"
+  ahoi_require_source_commit YES
+  ahoi_require_exact_setting AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT Development
+  ahoi_require_exact_setting AHOI_APS_ENVIRONMENT development
+  ahoi_require_exact_setting AHOI_CLOUDKIT_ZONE_NAME "AhoiSyncAcceptance-$scope"
+  ahoi_require_exact_setting AHOI_CLOUDKIT_SUBSCRIPTION_ID \
+    "AhoiSyncAcceptanceSubscription-$scope"
+  ahoi_require_exact_setting AHOI_SYNC_KEYCHAIN_ACCOUNT \
+    "$public_account.acceptance-$scope"
+  ahoi_note "isolated Development scope is source-bound; no runtime or key activation"
+}
+
 ahoi_check_public_identity() {
   local source_root="$1"
   local key
@@ -282,13 +311,13 @@ ahoi_check_public_identity() {
     AHOI_CLOUDKIT_CONTAINER_ID \
     AHOI_SYNC_KEYCHAIN_ACCESS_GROUP \
     AHOI_SYNC_KEYCHAIN_SERVICE \
-    AHOI_SYNC_KEYCHAIN_ACCOUNT \
     AHOI_SYNC_KEY_VERSION \
     AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP \
     AHOI_COMMAND_KEYCHAIN_SERVICE \
     AHOI_COMMAND_KEYCHAIN_ACCOUNT; do
     ahoi_require_exact_setting "$key" "$(ahoi_public_value "$source_root" "$key")"
   done
+  ahoi_check_sync_scope "$source_root"
 }
 
 ahoi_check_build_settings() {
@@ -315,6 +344,7 @@ ahoi_check_build_settings() {
   ahoi_require_export_classification
 
   if [ "$mode" = "DebugLocal" ]; then
+    ahoi_require_empty AHOI_SYNC_ACCEPTANCE_SCOPE_ID
     local local_only_setting
     for local_only_setting in \
       AHOI_APPLE_TEAM_ID AHOI_APS_ENVIRONMENT AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT \
@@ -331,6 +361,7 @@ ahoi_check_build_settings() {
   fi
 
   if [ "$mode" = "PerformanceDevelopment" ]; then
+    ahoi_require_empty AHOI_SYNC_ACCEPTANCE_SCOPE_ID
     local performance_local_setting
     ahoi_require_exact_setting AHOI_APPLE_TEAM_ID \
       "$(ahoi_public_value "$source_root" AHOI_APPLE_TEAM_ID)"
