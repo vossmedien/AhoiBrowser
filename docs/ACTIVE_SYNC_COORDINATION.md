@@ -35,6 +35,21 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **CloudKit-configured715afc2 is now installed, 2026-09-08 13:27–13:28 UTC:**
+  coordinator read the installed plist: source715afc21a9757ea46a309817691c5c4aaa320c1c,
+  cloudkit-development, exactDevelopment and dedicated Ahoi container. Receipt
+  `artifacts/install/ahoi-dev-715afc2-cloudkit-20260908.json` confirms activation;
+  actual executable SHA matches667626cd56c98d0768966b6cecf2be7b0fae2e69d6496164c92acdcca267eb45.
+  Tree hash99bc79f5e44489d7d4e609849c1cc3f4ebf0a28be463fb8e2e8ea3723fbae95d.
+  It includes the new icon, wider activator, LEFT Pin/Home and sidebar-only
+  bookmark presentation. A visible715 journey and actual shared-key/CloudKit
+  roundtrip are not implied by installation. Native starts use a fresh profile.
+- **Arc recovery refusal is preserving real local work, not a permission wait:**
+  the actual recovery UI refused because one unrelated Page changed title/URL/
+  modified time. Desktop's comparison reproduces the expected fingerprint when
+  only that row is substituted in memory; original imports/journal are intact.
+  Its bounded Arc-only correction must retain this local navigation, not restore
+  the entire backup blindly. No successful real recovery/import is claimed.
 - **Build19 future UI request queued, not START:** consume a fresh resource
   handoff after ongoing MBC and the already-waiting BetterConvo control run.
   Coordinator contacted those current owners once and registered Ahoi's short
