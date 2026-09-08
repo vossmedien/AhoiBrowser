@@ -143,22 +143,58 @@ bool TabTreeStore::MigrateSchema(sql::MetaTable* meta_table) {
     }
   }
   if (meta_table->GetVersionNumber() == 2) {
-    if (!db_.Execute("ALTER TABLE tree_nodes ADD COLUMN is_temporary INTEGER "
-                     "NOT NULL DEFAULT 0 CHECK(is_temporary IN (0,1))") ||
-        !db_.Execute("ALTER TABLE tree_nodes ADD COLUMN target_kind INTEGER "
-                     "CHECK(target_kind IN (0,1,2))") ||
-        !db_.Execute("ALTER TABLE tree_nodes ADD COLUMN local_scheme TEXT") ||
-        !db_.Execute("ALTER TABLE undo_node_snapshots ADD COLUMN is_temporary "
-                     "INTEGER DEFAULT 0 CHECK(is_temporary IN (0,1))") ||
-        !db_.Execute("ALTER TABLE undo_node_snapshots ADD COLUMN target_kind "
-                     "INTEGER CHECK(target_kind IN (0,1,2))") ||
-        !db_.Execute("ALTER TABLE undo_node_snapshots ADD COLUMN local_scheme "
-                     "TEXT") ||
-        !meta_table->SetVersionNumber(3)) {
+    if (!MigrateNodesToSchema3() || !meta_table->SetVersionNumber(3)) {
       return false;
     }
   }
   return meta_table->GetVersionNumber() == kCurrentSchemaVersion;
+}
+
+bool TabTreeStore::MigrateNodesToSchema3() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  // InitializeSchema owns the transaction and keeps foreign_keys enabled.
+  // ADD COLUMN ... CHECK invokes pragma_quick_check internally, which the
+  // pinned Chromium SQLite does not expose. Recreate from the same constrained
+  // schema as new stores; INSERT/UPDATE enforce every constraint normally.
+  if (!db_.Execute("ALTER TABLE tree_nodes RENAME TO tree_nodes_schema2") ||
+      !db_.Execute("ALTER TABLE undo_node_snapshots "
+                   "RENAME TO undo_node_snapshots_schema2") ||
+      !CreateSchema() ||
+      !db_.Execute(
+          "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
+          "node_type,title,icon,accent_argb,url,sort_key,"
+          "created_at,modified_at,tombstone,is_temporary,target_kind,"
+          "local_scheme) "
+          "SELECT model_version,id,workspace_id,NULL,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "0,NULL,NULL FROM tree_nodes_schema2") ||
+      // All parents exist before edges are restored, independent of row order.
+      !db_.Execute("UPDATE tree_nodes SET parent_id=(SELECT old.parent_id "
+                   "FROM tree_nodes_schema2 AS old WHERE old.id=tree_nodes.id) "
+                   "WHERE id IN (SELECT id FROM tree_nodes_schema2 "
+                   "WHERE parent_id IS NOT NULL)") ||
+      !db_.Execute(
+          "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,"
+          "node_id,model_version,workspace_id,parent_id,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "is_temporary,target_kind,local_scheme) "
+          "SELECT operation_id,ordinal,existed,node_id,model_version,"
+          "workspace_id,parent_id,node_type,title,icon,accent_argb,url,"
+          "sort_key,created_at,modified_at,tombstone,0,NULL,NULL "
+          "FROM undo_node_snapshots_schema2") ||
+      // Old self-referencing ON DELETE RESTRICT edges must be detached before
+      // DROP's implicit delete. The new tree already has the exact old edges;
+      // any later failure rolls this and both renames/copies back together.
+      !db_.Execute("UPDATE tree_nodes_schema2 SET parent_id=NULL "
+                   "WHERE parent_id IS NOT NULL") ||
+      !db_.Execute("DROP TABLE undo_node_snapshots_schema2") ||
+      !db_.Execute("DROP TABLE tree_nodes_schema2")) {
+    return false;
+  }
+  // The old table owned the named indexes. InitializeSchema calls CreateSchema
+  // again after this migration to recreate them on the new table before commit.
+  // Workspaces, undo_operations (including its sequence) and meta stay intact.
+  return true;
 }
 
 bool TabTreeStore::IsReady() const {

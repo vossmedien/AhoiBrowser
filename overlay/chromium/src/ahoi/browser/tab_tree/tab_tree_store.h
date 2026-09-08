@@ -214,6 +214,7 @@ class TabTreeStore {
   };
 
   [[nodiscard]] bool CreateSchema();
+  [[nodiscard]] bool MigrateNodesToSchema3();
   [[nodiscard]] bool MigrateSchema(sql::MetaTable* meta_table);
   [[nodiscard]] bool InitializeSchema();
   [[nodiscard]] bool IsReady() const;
