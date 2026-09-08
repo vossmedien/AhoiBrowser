@@ -3,6 +3,18 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Existing mobile host-label layout follow-up — 2026-09-08
+
+The actual Build17 navigation.png shows example.com truncated to `exa…` because
+five44pt actions plus capsule icons/padding squeeze its96pt minimum. The existing
+MobileHarborControlsLayout now reserves180pt for the address, using its already
+implemented stacked arrangement on a narrow expanded phone. Hit targets, stable
+view identities, compact collapse and accessibility layout remain; no new layout
+architecture. Long addresses truncate in the middle and retain the complete
+accessibility value/open-address surface. Source only; the frozen Build18/UI
+slot is unchanged. Verify readability and expanded/compact navigation in the
+next suitable candidate, not a new test matrix or replay of old Save evidence.
+
 ## Concrete native extension setup seam — 2026-09-08
 
 `ProfileSyncUiBridge::{ReadNativeExtensionSetup,ApplyNativeExtensionSetup}` now

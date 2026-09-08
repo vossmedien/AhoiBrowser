@@ -192,6 +192,7 @@ struct MobileHarborDeckView: View {
                     .accessibilityHidden(true)
                 Text(addressLabel)
                     .lineLimit(1)
+                    .truncationMode(.middle)
                     .font(.subheadline.weight(.medium))
                     .contentTransition(.opacity)
                     .animation(contentAnimation, value: addressLabel)
@@ -452,7 +453,11 @@ private struct MobileHarborControlsLayout: Layout {
     let usesAccessibilityLayout: Bool
     private let itemSpacing: CGFloat = 6
     private let rowSpacing: CGFloat = 6
-    private let minimumAddressWidth: CGFloat = 96
+    // The native actions keep 44pt hit targets. Reserve a readable short host
+    // instead of accepting a 96pt capsule whose icons/padding leave only "exa…".
+    // Narrow expanded chrome uses our existing stacked arrangement; compact
+    // chrome already has fewer buttons and normally keeps its single row.
+    private let minimumAddressWidth: CGFloat = 180
     private let minimumHitSize: CGFloat = 44
 
     func sizeThatFits(
