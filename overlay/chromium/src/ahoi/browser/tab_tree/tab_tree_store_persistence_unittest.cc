@@ -75,10 +75,17 @@ TEST_F(AhoiTabTreePersistenceTest, ReceiptWriteFailureRollsBackTheWholeTree) {
   {
     sql::Database database(sql::test::kTestTag);
     ASSERT_TRUE(database.Open(path_));
+    // Chromium disables triggers on the production connection. A CHECK
+    // constraint must reject the actual final receipt write, even with REPLACE.
     ASSERT_TRUE(
-        database.Execute("CREATE TRIGGER reject_receipt BEFORE INSERT ON meta "
-                         "WHEN NEW.key='sync_baseline_receipt' "
-                         "BEGIN SELECT RAISE(ABORT, 'receipt rejected'); END"));
+        database.Execute("CREATE TABLE guarded_meta("
+                         "key LONGVARCHAR NOT NULL UNIQUE PRIMARY KEY,"
+                         "value LONGVARCHAR,"
+                         "CHECK(key<>'sync_baseline_receipt' OR "
+                         "value<>'rejected-baseline'));"
+                         "INSERT INTO guarded_meta SELECT key,value FROM meta;"
+                         "DROP TABLE meta;"
+                         "ALTER TABLE guarded_meta RENAME TO meta;"));
   }
   store_ = std::make_unique<TabTreeStore>();
   ASSERT_TRUE(store_->Initialize(path_));
@@ -87,7 +94,7 @@ TEST_F(AhoiTabTreePersistenceTest, ReceiptWriteFailureRollsBackTheWholeTree) {
   rejected.sync_baseline_receipt = "rejected-baseline";
   {
     sql::test::ScopedErrorExpecter errors;
-    errors.ExpectError(SQLITE_CONSTRAINT_TRIGGER);
+    errors.ExpectError(SQLITE_CONSTRAINT_CHECK);
     EXPECT_EQ(TabTreeStore::Result::kDatabaseError,
               store_->ReplacePersistenceSnapshot(rejected));
     EXPECT_TRUE(errors.SawExpectedErrors());
