@@ -144,7 +144,7 @@ inline constexpr int kNavigationSurfaceTopGap = 12;
 inline constexpr int kNavigationSurfaceCornerRadius = 14;
 inline constexpr int kNavigationSurfaceShadowElevation = 6;
 inline constexpr int kNavigationSurfaceRevealOffset = 10;
-inline constexpr int kNavigationRevealNotchWidth = 36;
+inline constexpr int kNavigationRevealNotchWidth = 56;
 inline constexpr int kNavigationRevealNotchHeight = 12;
 inline constexpr int kNavigationRevealNotchVisualHeight = 5;
 

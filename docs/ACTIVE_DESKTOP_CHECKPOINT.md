@@ -146,7 +146,11 @@ bundle/receipt remain unchanged; temporary4cb is still the installed recovery ap
 New user UI feedback14:40 was viewed at
 `/Users/vossmedien/Desktop/Bildschirmfoto 2026-09-08 um 14.40.48.png`:
 widen the address-bar activator and investigate the marked blank round/edge
-region near extensions. Pin/Home are already in3d59, not the installed4cb;
+region near extensions. Activator width is now56 instead of36 in canonical
+source only; unchanged height and one existing shared layout token, not a new
+hit-testing path. It is NOT in the frozen3d59 candidate and does not trigger a
+standalone build before the current visible acceptance. Pin/Home are already
+in3d59, not the installed4cb;
 do not call that old screenshot a failed3d59 acceptance. The extra bookmark
 sync button controls one category within Ahoi Sync, not a second transport;
 the user reasonably finds that separation confusing. No automatic consent or
