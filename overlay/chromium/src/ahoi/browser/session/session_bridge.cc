@@ -82,6 +82,7 @@ void SessionBridge::Shutdown() {
     return;
   }
 
+  CancelPendingSyncedTabTreeApply();
   persistence_timer_.Stop();
   if (tab_tree_ready_ && persistence_enabled_ && tab_tree_store_) {
     PersistTabTreeNow();
@@ -119,6 +120,10 @@ void SessionBridge::Shutdown() {
   tab_tree_store_.reset();
   if (ready_callback_for_testing_) {
     std::move(ready_callback_for_testing_).Run();
+  }
+  if (pending_tree_apply_completion_) {
+    std::move(pending_tree_apply_completion_)
+        .Run(tab_tree::TabTreeStore::Result::kCancelled);
   }
 }
 
@@ -238,6 +243,9 @@ bool SessionBridge::FinishRuntimeInitialization() {
 
 void SessionBridge::ScheduleTabTreePersistence() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!applying_synced_tree_snapshot_) {
+    CancelPendingSyncedTabTreeApply();
+  }
   if (!tab_tree_ready_ || !persistence_enabled_ || shutting_down_) {
     return;
   }
@@ -248,6 +256,7 @@ void SessionBridge::ScheduleTabTreePersistence() {
 
 void SessionBridge::PersistTabTreeNow() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CancelPendingSyncedTabTreeApply();
   if (!tab_tree_store_ || !persistence_enabled_ || !persistence_task_runner_) {
     return;
   }
@@ -269,6 +278,10 @@ void SessionBridge::PersistTabTreeNow() {
 
 void SessionBridge::NotifyTabTreeSnapshotChanged() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (applying_synced_tree_snapshot_) {
+    return;
+  }
+  CancelPendingSyncedTabTreeApply();
   tab_tree::TabTreeSnapshot snapshot;
   if (ExportTabTreeSnapshot(&snapshot)) {
     tab_tree_snapshot_changed_callbacks_.Notify(snapshot);
@@ -333,6 +346,7 @@ void SessionBridge::FlushPersistenceForTesting(base::OnceClosure callback) {
 void SessionBridge::FlushPersistenceForBackup(
     base::OnceCallback<void(bool)> callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CancelPendingSyncedTabTreeApply();
   CHECK(callback);
   persistence_timer_.Stop();
   if (!tab_tree_store_ || !persistence_enabled_ || !persistence_task_runner_) {
@@ -404,16 +418,29 @@ tab_tree::TabTreeStore::Result SessionBridge::ApplySyncedTabTreeSnapshot(
     return tab_tree::TabTreeStore::Result::kDatabaseError;
   }
   snapshot.undo_operations = current.undo_operations;
+  if (std::ranges::none_of(snapshot.workspaces, [](const auto& workspace) {
+        return !workspace.tombstone;
+      })) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   if (snapshot == current) {
     return tab_tree::TabTreeStore::Result::kOk;
   }
   const tab_tree::TabTreeStore::Result result =
       tab_tree_store_->ReplaceWithSnapshot(snapshot);
   if (result != tab_tree::TabTreeStore::Result::kOk ||
-      !RefreshWorkspaceSnapshot()) {
+      !PublishSyncedTabTreeSnapshot()) {
     return result == tab_tree::TabTreeStore::Result::kOk
                ? tab_tree::TabTreeStore::Result::kDatabaseError
                : result;
+  }
+  return tab_tree::TabTreeStore::Result::kOk;
+}
+
+bool SessionBridge::PublishSyncedTabTreeSnapshot() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!RefreshWorkspaceSnapshot()) {
+    return false;
   }
   for (auto it = node_tabs_.begin(); it != node_tabs_.end();) {
     tabs::TabInterface* tab = it->second.get();
@@ -441,7 +468,7 @@ tab_tree::TabTreeStore::Result SessionBridge::ApplySyncedTabTreeSnapshot(
   PublishCommandItems();
   runtime_presentation_changed_callbacks_.Notify();
   NotifyTabTreeSnapshotChanged();
-  return tab_tree::TabTreeStore::Result::kOk;
+  return true;
 }
 
 bool SessionBridge::OpenNormalTabFromRemoteCommand(

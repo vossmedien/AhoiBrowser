@@ -245,6 +245,14 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
                             .created_at = created,
                             .modified_at = created});
   }
+  // Match the native export's ordering, including appended recovery folders.
+  // Common's exact tree+receipt readback must not fail merely because provider
+  // records arrived in another order or a fallback workspace was appended.
+  std::ranges::sort(result.workspaces, [](const auto& left, const auto& right) {
+    return std::tie(left.sort_key, left.id) <
+           std::tie(right.sort_key, right.id);
+  });
+  std::ranges::sort(result.nodes, {}, &tab_tree::TreeNode::id);
   return result;
 }
 

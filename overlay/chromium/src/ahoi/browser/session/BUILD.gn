@@ -98,6 +98,7 @@ source_set("session") {
     "session_bridge_observers.cc",
     "session_bridge_runtime.cc",
     "session_bridge_session.cc",
+    "session_bridge_sync_persistence.cc",
     "session_bridge_workspace.cc",
     "workspace_service_factory.cc",
     "workspace_service_factory.h",

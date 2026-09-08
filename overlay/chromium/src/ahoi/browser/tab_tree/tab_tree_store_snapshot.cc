@@ -19,21 +19,27 @@ namespace ahoi::tab_tree {
 TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
     const TabTreeSnapshot& snapshot) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  return ReplaceSnapshot(snapshot, nullptr);
+  return ReplaceSnapshot(snapshot, nullptr, {});
 }
 
 TabTreeStore::Result TabTreeStore::ReplacePersistenceSnapshot(
-    const PersistenceSnapshot& snapshot) {
+    const PersistenceSnapshot& snapshot,
+    base::RepeatingCallback<bool()> authorization) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  return ReplaceSnapshot(snapshot.tree, &snapshot.sync_baseline_receipt);
+  return ReplaceSnapshot(snapshot.tree, &snapshot.sync_baseline_receipt,
+                         authorization);
 }
 
 TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
     const TabTreeSnapshot& snapshot,
-    const std::string* sync_baseline_receipt) {
+    const std::string* sync_baseline_receipt,
+    const base::RepeatingCallback<bool()>& authorization) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
+  }
+  if (authorization && !authorization.Run()) {
+    return Result::kCancelled;
   }
 
   std::unordered_map<base::Uuid, const Workspace*, base::UuidHash> workspaces;
@@ -250,6 +256,9 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
     }
   }
 
+  if (authorization && !authorization.Run()) {
+    return Result::kCancelled;
+  }
   return transaction.Commit() ? Result::kOk : Result::kDatabaseError;
 }
 

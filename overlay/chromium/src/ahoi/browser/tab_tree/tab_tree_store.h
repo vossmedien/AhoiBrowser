@@ -13,6 +13,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_observer.h"
 #include "base/files/file_path.h"
+#include "base/functional/callback.h"
 #include "base/observer_list.h"
 #include "base/sequence_checker.h"
 #include "sql/database.h"
@@ -37,6 +38,7 @@ class TabTreeStore {
     kCycle,
     kNothingToUndo,
     kDatabaseError,
+    kCancelled,
   };
 
   struct SavedPageMove {
@@ -180,8 +182,12 @@ class TabTreeStore {
   // current receipt. Only an explicit full-state replacement changes it.
   [[nodiscard]] Result ReplaceWithSnapshot(const TabTreeSnapshot& snapshot);
   [[nodiscard]] Result ExportPersistenceSnapshot(PersistenceSnapshot* snapshot);
+  // Remote callers pass their original thread-safe scope, checked before
+  // replacement and immediately before commit. Empty is for ordinary local
+  // persistence only; it does not authorize a remote projection.
   [[nodiscard]] Result ReplacePersistenceSnapshot(
-      const PersistenceSnapshot& snapshot);
+      const PersistenceSnapshot& snapshot,
+      base::RepeatingCallback<bool()> authorization = {});
 
  private:
   static constexpr char kSyncBaselineReceiptKey[] = "sync_baseline_receipt";
@@ -197,8 +203,10 @@ class TabTreeStore {
   [[nodiscard]] bool IsReady() const;
   [[nodiscard]] bool ValidateWorkspace(const Workspace& workspace) const;
   [[nodiscard]] bool ValidateNode(const TreeNode& node) const;
-  [[nodiscard]] Result ReplaceSnapshot(const TabTreeSnapshot& snapshot,
-                                       const std::string* sync_baseline_receipt)
+  [[nodiscard]] Result ReplaceSnapshot(
+      const TabTreeSnapshot& snapshot,
+      const std::string* sync_baseline_receipt,
+      const base::RepeatingCallback<bool()>& authorization)
       VALID_CONTEXT_REQUIRED(sequence_checker_);
 
   [[nodiscard]] Result ReadWorkspace(const base::Uuid& workspace_id,

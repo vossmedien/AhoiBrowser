@@ -4,6 +4,7 @@
 #ifndef AHOI_BROWSER_SESSION_SESSION_BRIDGE_H_
 #define AHOI_BROWSER_SESSION_SESSION_BRIDGE_H_
 
+#include <atomic>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -110,6 +111,9 @@ class SessionBridge : public KeyedService,
 
   [[nodiscard]] bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) override;
+  [[nodiscard]] bool ExportTabTreeSyncSnapshot(
+      tab_tree::TabTreeSnapshot* snapshot,
+      std::string* baseline_receipt) override;
   // Applies a merged/repaired provider snapshot through the regular tree
   // authority, retaining local undo operations and notifying every runtime/UI
   // observer. It never writes a parallel sync-owned tree.
@@ -284,6 +288,19 @@ class SessionBridge : public KeyedService,
   void ScheduleTabTreePersistence();
   void PersistTabTreeNow();
   void NotifyTabTreeSnapshotChanged();
+  void BeginSyncedTabTreeApply(
+      tab_tree::TabTreeSnapshot snapshot,
+      std::string baseline_receipt,
+      base::RepeatingCallback<bool()> authorization,
+      base::OnceCallback<void(tab_tree::TabTreeStore::Result)> completion);
+  void OnSyncedTabTreePersisted(
+      tab_tree::TabTreeStore::PersistenceSnapshot before,
+      tab_tree::TabTreeStore::PersistenceSnapshot projected,
+      std::shared_ptr<std::atomic<bool>> cancelled,
+      base::RepeatingCallback<bool()> authorization,
+      tab_tree::TabTreeStore::Result result);
+  void CancelPendingSyncedTabTreeApply();
+  bool PublishSyncedTabTreeSnapshot();
   static TabTreeLoadResult LoadTabTreeSnapshot(const base::FilePath& path);
   static bool PersistTabTreeSnapshot(
       const base::FilePath& path,
@@ -362,6 +379,12 @@ class SessionBridge : public KeyedService,
   base::RepeatingClosureList runtime_presentation_changed_callbacks_;
   base::RepeatingCallbackList<void(const tab_tree::TabTreeSnapshot&)>
       tab_tree_snapshot_changed_callbacks_;
+  std::shared_ptr<std::atomic<bool>> pending_tree_apply_cancelled_;
+  base::OnceCallback<void(tab_tree::TabTreeStore::Result)>
+      pending_tree_apply_completion_;
+  // Suppress only the synchronous remote publication, never the disk wait or
+  // normal local edits. Common receives its explicit completion/readback.
+  bool applying_synced_tree_snapshot_ = false;
 
   std::map<BrowserWindowInterface*, WindowState> windows_
       GUARDED_BY_CONTEXT(sequence_checker_);

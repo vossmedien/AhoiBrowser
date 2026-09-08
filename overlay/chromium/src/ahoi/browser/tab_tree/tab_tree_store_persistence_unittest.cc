@@ -5,6 +5,7 @@
 
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/test/bind.h"
 #include "sql/database.h"
 #include "sql/statement.h"
 #include "sql/test/scoped_error_expecter.h"
@@ -108,6 +109,22 @@ TEST_F(AhoiTabTreePersistenceTest, ReadingOldStoreDoesNotWriteAnEmptyReceipt) {
       "SELECT value FROM meta WHERE key='sync_baseline_receipt'"));
   EXPECT_FALSE(receipt.Step());
   EXPECT_TRUE(receipt.Succeeded());
+}
+
+TEST_F(AhoiTabTreePersistenceTest, RevocationBeforeCommitKeepsTreeAndBaseline) {
+  auto rejected = initial_;
+  rejected.tree.workspaces.front().name = u"Must not persist";
+  rejected.sync_baseline_receipt = "revoked-baseline";
+  int checks = 0;
+  EXPECT_EQ(TabTreeStore::Result::kCancelled,
+            store_->ReplacePersistenceSnapshot(
+                rejected, base::BindLambdaForTesting(
+                              [&checks] { return ++checks == 1; })));
+  EXPECT_EQ(2, checks);
+  TabTreeStore::PersistenceSnapshot after;
+  ASSERT_EQ(TabTreeStore::Result::kOk,
+            store_->ExportPersistenceSnapshot(&after));
+  EXPECT_EQ(initial_, after);
 }
 
 }  // namespace

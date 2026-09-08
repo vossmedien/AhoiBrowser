@@ -111,16 +111,34 @@ sync Apply-kOk precedes durable write. A local persistence envelope now carries
 tree+receipt through the same SQL transaction/load/save/flush, leaving the domain
 TabTreeSnapshot and Arc fingerprints unchanged. Ordinary tree replacements and
 edits preserve the receipt; reading an old database does not add an empty key.
-Three focused real-SQLite cases and the existing Session flush regression are
-prepared, not compiled/executed. No new candidate/build or Sync runtime claim.
+The envelope is committed/pushed in `cc7e7e3`. Four focused real-SQLite cases
+(including revocation before commit) and the existing Session flush regression
+are prepared, not compiled/executed. No new candidate/build or Sync runtime claim.
 
 Common Service/backend handoff `e2f6711` is now committed and read; B-D do NOT
 wait for another general freeze. One concrete integration correction is requested
 in queue `01a07f98-70b9-7660-a620-ec057c927a3b`: replace synchronous receipt Apply
 with an async Result completion, so Common awaits durable success and retains
-original authorization through Disk commit. Native will persist disk-first and
-only project into RAM if the original scope and local revision still match.
-Never let an ordinary flush bypass a rejected remote persistence operation.
+original authorization through Disk commit. Native disk-first code is prepared in
+`session_bridge_sync_persistence.cc`: `BeginSyncedTabTreeApply` carries that scope
+on the existing writer, checks it before SQL commit and RAM publication, and
+compares the complete local preimage. Local mutation/backup/shutdown invalidate
+pending apply; an already-due local write is retained. If a post-commit UI reply
+is stale, the current local baseline is written back sequentially, not overwritten
+by the remote tree. Only synchronous remote publication suppresses Sync callbacks,
+never the disk wait. Task-post/shutdown failure cannot report success.
+`ExportTabTreeSyncSnapshot` is implemented. The private Begin method is NOT wired
+to Common yet: connect the public override after the requested async signature
+is committed. Native support stays false until COMPLETE B-D, no early writer.
+
+Owned `tab_tree_sync_adapter` now sorts projected workspaces/nodes exactly like
+native SQL export, avoiding false receipt mismatches from provider ordering or
+appended recovery folders. Temporary/target fields are still the next B-D work.
+The helper's bounded backup check was confirmed in source: Arc verifies payloads,
+copies DB/WAL into ScopedTempDir, THEN initializes/migrates that disposable copy
+(`importer/arc/arc_import_recovery.cc:336`). Keep this existing path for the native
+schema extension; no additional reader/framework is needed. Preserve old logical
+Arc journal fingerprints separately from native schema additions.
 No Common/Swift edits or unsafe legacy fallback. Native Install/Enable UI seam
 and storage_frontend.{h,cc} patch
 from ADR0010 are explicitly accepted in Desktop scope; exact Common signatures
