@@ -532,6 +532,7 @@ void SessionBridge::OnActiveWorkspaceChanged(const base::Uuid& window_id,
 
 void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  bool runtime_presentation_changed = false;
   for (const base::Uuid& node_id : change.node_ids) {
     auto bound = node_tabs_.find(node_id);
     if (bound == node_tabs_.end()) {
@@ -559,6 +560,9 @@ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
     }
     auto runtime = runtime_tabs_.find(tab);
     if (runtime != runtime_tabs_.end()) {
+      runtime_presentation_changed |=
+          runtime->second.is_temporary != node.is_temporary ||
+          runtime->second.workspace_id != node.workspace_id;
       if (runtime->second.workspace_id != node.workspace_id) {
         RemoveTabFromLastActiveState(tab);
       }
@@ -572,6 +576,12 @@ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
   }
   ScheduleTabTreePersistence();
   PublishCommandItems();
+  if (runtime_presentation_changed) {
+    // Store observers can refresh rows before this binding changes. Reproject
+    // after Save/Unsave or a workspace move so stale temporary rows and their
+    // tree suppression cannot survive until an unrelated native tab event.
+    runtime_presentation_changed_callbacks_.Notify();
+  }
   NotifyTabTreeSnapshotChanged();
 }
 
