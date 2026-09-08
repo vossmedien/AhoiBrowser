@@ -78,7 +78,7 @@ index 1514298328f544b4517850940564fce3d3a569eb..5ef730b35f375e6810abec1def5f0b02
      "//build:branding_buildflags",
      "//cc/paint",
 diff --git a/chrome/browser/ui/views/toolbar/toolbar_view.cc b/chrome/browser/ui/views/toolbar/toolbar_view.cc
-index 03aedd9edd72435185dca70e8b89574cd387cd3e..36ea7aade6d33794fa8409d98c5757c9e2cda1f9 100644
+index 03aedd9edd72435185dca70e8b89574cd387cd3e..b52966757b65bea29ba6964ffc229f1098bb4f48 100644
 --- a/chrome/browser/ui/views/toolbar/toolbar_view.cc
 +++ b/chrome/browser/ui/views/toolbar/toolbar_view.cc
 @@ -8,6 +8,7 @@
@@ -89,16 +89,16 @@ index 03aedd9edd72435185dca70e8b89574cd387cd3e..36ea7aade6d33794fa8409d98c5757c9
  #include "base/command_line.h"
  #include "base/containers/fixed_flat_map.h"
  #include "base/feature_list.h"
-@@ -579,6 +580,12 @@ void ToolbarView::Init() {
-     avatar_->SetVisible(show_avatar_toolbar_button);
-   }
+@@ -404,6 +405,12 @@ void ToolbarView::Init() {
+ #endif
  
+   // Always add children in order from left to right, for accessibility.
 +  if (browser_view_->IsAhoiBrowserSurface()) {
 +    if (auto pin_button = ahoi::CreateNavigationPinButton(prefs)) {
 +      AddChildView(std::move(pin_button));
 +    }
 +  }
 +
-   overflow_button_ = AddChildView(std::make_unique<OverflowButton>());
-   overflow_button_->SetVisible(false);
- 
+   if (!features::IsWebUIBackForwardButtonEnabled()) {
+     back_ = AddChildView(std::make_unique<BackForwardButton>(
+         BackForwardButton::Direction::kBack,

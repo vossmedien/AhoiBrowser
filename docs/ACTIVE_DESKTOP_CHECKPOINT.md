@@ -155,6 +155,25 @@ do not call that old screenshot a failed3d59 acceptance. The extra bookmark
 sync button controls one category within Ahoi Sync, not a second transport;
 the user reasonably finds that separation confusing. No automatic consent or
 new independent sync system is authorized by the question.
+
+**Confirmed follow-up14:50–14:53:** the user screenshot
+`/Users/vossmedien/Desktop/Bildschirmfoto 2026-09-08 um 14.50.57.png` and fresh
+native AX expose TWO bookmark toolbars (Sidebar and horizontal top-container).
+Native `MaybeShowBookmarkBar` still attaches the second surface behind floating
+navigation. Patch0037 now excludes only an actual Ahoi sidebar surface from
+that attachment; no data/pref/BookmarkModel change, native non-Ahoi behavior
+preserved. User also explicitly requests Pin on the LEFT: updated0034 inserts
+it before Back/Forward in visual/accessibility order. These two changes plus
+activator56px form one next Toolbar correction, no per-file build. Exact
+affected-blob patch checks and pinned formatting passed; NOT compiled/E2E.
+The frozen3d59 package has the earlier right-side Pin and duplicate-bar behavior.
+Its complete build/signing receipts remain truthful, not current UI acceptance.
+
+The attempted recovery UI resumed after fresh no-running-app plus unchanged
+Default tree/journal hashes, but CUA again refused the first mutation because
+the user changed the app while taking the new screenshot. No restore or import
+ran. Do not retry native input while the user is actively testing; independent
+source work continues, no stale Mobile ownership or general approval block.
 Integrated source: native6ae/tests, Toolbarc86314b, Common41de599+29c42db+
 Home-selector1587497, approved Icondf03d46, explicit native Settingsfc37928 and
 Development signing-toolingf4aee9d. No WIP. Overlay91184 TERMINAL EXIT0 and delta
@@ -968,8 +987,10 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
    overlay, signing or verification retry: Development copy verification6196 is
    also EXIT0. After protected Arc recovery below, install the exact completed
    package through the guarded path and visibly exercise Hover/Pin/Home/settings
-   and icon. New14:40 activator-width/render feedback belongs to the next actual
-   visible correction, not a blind rebuild or mutation of the frozen candidate.
+   and icon. The newly requested56px activator/LEFT Pin and confirmed duplicate
+   horizontal bookmark bar are now a bounded coherent source correction. Preserve
+   the3d59 candidates; integrate only these owned changes in one guarded app-only
+   cached follow-up, not foreign Common WIP/patch36, then visible acceptance.
    Keep original and Development-copy receipts distinct. Bootstrap/roundtrip
    remains separate and open. Prior6ae's local lifecycle/focused12-case evidence
    remains valid for its boundary, not proof of multi-device sync.

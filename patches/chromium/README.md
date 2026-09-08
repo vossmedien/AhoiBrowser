@@ -18,6 +18,8 @@ as a second active patch stack.
   Reload's WebUI control CSS, and generated resources with German/en-GB strings.
 - **Rationale:** optional address-bar pinning uses the existing persisted Ahoi
   floating-navigation auto-hide preference and the native ToolbarButton family.
+  The user's September8 placement correction makes it the leftmost navigation
+  control, in the same visual and accessibility order before Back/Forward.
   Chromium's existing Home control is visible by default; explicit user/managed
   values and the native homepage/command paths remain authoritative. Reload's
   outer clipping host gains the inner circular control's own radius.
@@ -32,6 +34,21 @@ as a second active patch stack.
 - **Rebase/removal:** small ToolbarView/pref seams; resource IDs are generated
   by pinned GRIT. Drop Reload's extra clip if upstream supplies equivalent
   complete control clipping; keep product controls in the owned overlay.
+
+## `0037-ahoi-sidebar-exclusive-bookmark-surface.patch`
+
+- **Owner:** Desktop. One native `BrowserView::MaybeShowBookmarkBar` condition.
+- **Purpose:** a browser with the existing Ahoi sidebar bookmark shelf must not
+  also attach Chromium's horizontal bookmark bar behind floating navigation.
+  The user's14:50 screenshot and native accessibility tree show both surfaces.
+- **Scope/security:** native model, data, preferences and commands are unchanged.
+  Non-Ahoi surfaces retain Chromium's normal behavior; no CSS cover-up or global
+  preference overwrite. The existing detach path handles an already-created bar.
+- **Verification:** exact pinned-source patch preflight, then visible new-tab/
+  normal-page/sidebar/toolbar journey on the next corrected candidate. No runtime
+  pass is claimed from the source fix.
+- **Rebase/removal:** narrow visibility seam; remove when upstream selects the
+  sidebar shelf as the exclusive native bookmark surface itself.
 
 ## `0035-ahoi-browser-settings-sync-consent.patch`
 
