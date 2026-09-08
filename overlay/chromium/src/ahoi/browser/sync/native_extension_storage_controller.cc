@@ -7,7 +7,7 @@
 #include <utility>
 
 #include "ahoi/browser/sync/extension_storage_setting.h"
-#include "ahoi/browser/sync/profile_sync_ui_bridge.h"
+#include "ahoi/browser/sync/native_extension_storage_adapter.h"
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "ahoi/browser/sync/sync_serialization.h"
@@ -32,9 +32,9 @@ struct NativeExtensionStorageController::Operation {
 };
 
 NativeExtensionStorageController::NativeExtensionStorageController(
-    base::WeakPtr<ProfileSyncUiBridge> bridge,
+    base::WeakPtr<NativeExtensionStorageAdapter> adapter,
     ChangedCallback changed)
-    : bridge_(std::move(bridge)),
+    : adapter_(std::move(adapter)),
       task_runner_(base::SequencedTaskRunner::GetCurrentDefault()),
       changed_(std::move(changed)) {}
 
@@ -107,7 +107,7 @@ void NativeExtensionStorageController::Request(
       !IsPendingOperation(setting_id, request.operation_id, request.revision)) {
     return;
   }
-  if (!authorized || !bridge_) {
+  if (!authorized || !adapter_) {
     pending.disposition = authorized ? ExtensionStorageDisposition::kUnsupported
                                      : ExtensionStorageDisposition::kCancelled;
     Finish(setting_id, std::move(pending));
@@ -125,7 +125,7 @@ void NativeExtensionStorageController::Request(
       !IsPendingOperation(setting_id, request.operation_id, request.revision)) {
     return;
   }
-  if (!authorized || !bridge_) {
+  if (!authorized || !adapter_) {
     pending.disposition = authorized ? ExtensionStorageDisposition::kUnsupported
                                      : ExtensionStorageDisposition::kCancelled;
     Finish(setting_id, std::move(pending));
@@ -137,9 +137,8 @@ void NativeExtensionStorageController::Request(
       base::BindOnce(&NativeExtensionStorageController::OnNativeResult,
                      lifetime, setting_id, request.operation_id,
                      request.revision));
-  bridge_->ApplyNativeExtensionSetting(std::move(request),
-                                       std::move(completion));
-  // The call may synchronously destroy the bridge/profile/controller. Native
+  adapter_->Apply(std::move(request), std::move(completion));
+  // The call may synchronously destroy the adapter/profile/controller. Native
   // completion is posted to our sequence; no member access after dispatch.
 }
 

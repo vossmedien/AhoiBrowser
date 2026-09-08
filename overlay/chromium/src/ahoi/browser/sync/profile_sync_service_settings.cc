@@ -8,6 +8,7 @@
 #include "ahoi/browser/sync/extension_setup_setting.h"
 #include "ahoi/browser/sync/extension_storage_setting.h"
 #include "ahoi/browser/sync/native_extension_setup_controller.h"
+#include "ahoi/browser/sync/native_extension_storage_adapter.h"
 #include "ahoi/browser/sync/native_extension_storage_controller.h"
 #include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
@@ -99,6 +100,7 @@ void ProfileSyncService::InitializeBrowserSettings() {
 void ProfileSyncService::ResetBrowserSettingsWork() {
   extension_setup_controller_.reset();
   extension_storage_controller_.reset();
+  extension_storage_adapter_.reset();
   extension_storage_read_pending_ = false;
   extension_storage_read_again_ = false;
   extension_storage_seeded_ = false;
@@ -118,6 +120,7 @@ void ProfileSyncService::ResetBrowserSettingsWork() {
 void ProfileSyncService::OnBrowserSettingsConsentChanged() {
   ResetBrowserSettingsWork();
   UpdateBrowserSettingConsent();
+  InitializeExtensionStorage();
   RefreshBrowserSettings();
   NotifyObservers();
 }

@@ -22,7 +22,7 @@ class SequencedTaskRunner;
 namespace ahoi::sync {
 
 struct PermittedSettingRecord;
-class ProfileSyncUiBridge;
+class NativeExtensionStorageAdapter;
 
 // UI-sequence owner of per-key storage applications, not a storage backend or
 // consent source. Native owns the actual keyed commit/readback and its original
@@ -33,8 +33,9 @@ class NativeExtensionStorageController final {
   using ChangedCallback =
       base::RepeatingCallback<void(const ExtensionStorageResult&)>;
 
-  NativeExtensionStorageController(base::WeakPtr<ProfileSyncUiBridge> bridge,
-                                   ChangedCallback changed);
+  NativeExtensionStorageController(
+      base::WeakPtr<NativeExtensionStorageAdapter> adapter,
+      ChangedCallback changed);
   ~NativeExtensionStorageController();
   NativeExtensionStorageController(const NativeExtensionStorageController&) =
       delete;
@@ -72,7 +73,7 @@ class NativeExtensionStorageController final {
   void Notify(ExtensionStorageResult result)
       VALID_CONTEXT_REQUIRED(sequence_checker_);
 
-  const base::WeakPtr<ProfileSyncUiBridge> bridge_;
+  const base::WeakPtr<NativeExtensionStorageAdapter> adapter_;
   const scoped_refptr<base::SequencedTaskRunner> task_runner_;
   const ChangedCallback changed_;
   // Completed attempts are retained so a later refresh cannot accidentally

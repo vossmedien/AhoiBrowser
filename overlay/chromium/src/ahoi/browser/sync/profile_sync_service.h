@@ -17,6 +17,7 @@
 #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
 #include "ahoi/browser/sync/browser_setting_consent.h"
 #include "ahoi/browser/sync/browser_settings_sync_types.h"
+#include "ahoi/browser/sync/extension_storage_types.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
 #include "ahoi/browser/sync/profile_shared_tab_types.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
@@ -56,6 +57,7 @@ namespace ahoi::sync {
 class NativeSearchEngineSetting;
 class NativeExtensionSetupController;
 class NativeExtensionStorageController;
+class NativeExtensionStorageAdapter;
 
 class ProfileSyncBackend;
 class ProfileSyncServiceTest;
@@ -249,6 +251,7 @@ class ProfileSyncService final : public KeyedService,
   void OnExtensionRestoreResult(const ExtensionRestoreResult& result);
   void ApplyExtensionStorageProjection(
       const BrowserSettingsProjection& projection);
+  void InitializeExtensionStorage();
   void OnExtensionStorageResult(const ExtensionStorageResult& result);
   void OnExtensionStorageRead(uint64_t generation,
                               SyncAuthorization authorization,
@@ -351,6 +354,7 @@ class ProfileSyncService final : public KeyedService,
   std::unique_ptr<NativeExtensionSetupController> extension_setup_controller_;
   std::unique_ptr<NativeExtensionStorageController>
       extension_storage_controller_;
+  std::unique_ptr<NativeExtensionStorageAdapter> extension_storage_adapter_;
   bool extension_storage_read_pending_ = false;
   bool extension_storage_read_again_ = false;
   bool extension_storage_seeded_ = false;

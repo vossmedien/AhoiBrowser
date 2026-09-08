@@ -11,6 +11,7 @@
 #include "ahoi/browser/sync/history_sync_filter.h"
 #include "ahoi/browser/sync/native_bookmark_sync_adapter.h"
 #include "ahoi/browser/sync/native_extension_setup_controller.h"
+#include "ahoi/browser/sync/native_extension_storage_adapter.h"
 #include "ahoi/browser/sync/native_extension_storage_controller.h"
 #include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
@@ -114,6 +115,9 @@ void ProfileSyncService::StartBackend() {
   InitializeNativeSearchEngineSetting();
   InitializeExtensionSetup();
   UpdateBrowserSettingConsent();
+  // Capture approved local writes while backend/key setup is still pending.
+  // The adapter is Profile-owned; no browser window is required.
+  InitializeExtensionStorage();
   if (profile_->GetPrefs()->GetString(kDeviceIdPref) !=
       local_device_id_.AsLowercaseString()) {
     profile_->GetPrefs()->SetString(kDeviceIdPref,
@@ -208,7 +212,10 @@ void ProfileSyncService::AttachUiBridge(ProfileSyncUiBridge* bridge) {
   }
   tab_tree_subscription_ = {};
   ui_bridge_attachment_count_ = 0;
-  ResetBrowserSettingsWork();
+  // Only install/enable jobs are bound to this UI bridge. Do not interrupt
+  // the Profile-owned preference/storage observers or their local intents.
+  extension_setup_controller_.reset();
+  extension_setup_retry_.reset();
   ui_bridge_ = bridge->GetWeakPtrForSync();
   if (!ui_bridge_) {
     return;
@@ -236,7 +243,8 @@ void ProfileSyncService::DetachUiBridge(ProfileSyncUiBridge* bridge) {
     return;
   }
   tab_tree_subscription_ = {};
-  ResetBrowserSettingsWork();
+  extension_setup_controller_.reset();
+  extension_setup_retry_.reset();
   ui_bridge_.reset();
   ++native_tree_revision_;
   native_tree_cancelled_->store(true, std::memory_order_release);

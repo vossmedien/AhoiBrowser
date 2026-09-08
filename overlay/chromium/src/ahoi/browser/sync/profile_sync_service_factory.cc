@@ -8,9 +8,13 @@
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service_factory.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
+#include "chrome/browser/extensions/extension_management.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
+#include "extensions/browser/api/storage/storage_frontend.h"
+#include "extensions/browser/extension_system_provider.h"
+#include "extensions/browser/extensions_browser_client.h"
 
 namespace ahoi::sync {
 
@@ -34,6 +38,10 @@ ProfileSyncServiceFactory::ProfileSyncServiceFactory()
   DependsOn(BookmarkModelFactory::GetInstance());
   DependsOn(BookmarkMergedSurfaceServiceFactory::GetInstance());
   DependsOn(TemplateURLServiceFactory::GetInstance());
+  DependsOn(extensions::StorageFrontend::GetFactoryInstance());
+  DependsOn(extensions::ExtensionManagementFactory::GetInstance());
+  DependsOn(
+      extensions::ExtensionsBrowserClient::Get()->GetExtensionSystemFactory());
 }
 
 ProfileSyncServiceFactory::~ProfileSyncServiceFactory() = default;

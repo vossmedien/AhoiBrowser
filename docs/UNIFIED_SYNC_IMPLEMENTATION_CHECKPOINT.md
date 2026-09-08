@@ -53,19 +53,20 @@ only readback; no build/sign/key/cloud action. Exact source+tuple handed to
 Desktop01a081b9-bf6d-7351-b8e4-7c1ae1ee974e and coordinator01a081b9-bfdb-7b02-bf41-f4508ef031d8.
 Build19 and built20 are unchanged by that later source-only configuration.
 
-## Current Common storage consumer WIP — Native entry hook pending
+## Current Common storage source freeze — Native entry hook pending
 
 The851e3bb/0036 observer handoff is consumed. Common has implemented the actual
 StorageFrontend consumer in four new files: native_extension_storage_adapter
 and native_extension_storage_io, each .h/.cc. Controller, Service, factory/GN and
 the corresponding storage documentation are connected in the canonical worktree.
 No Native Session/patch file, Swift candidate, shared checkout/out or UI was changed.
-The unused storage methods on ProfileSyncUiBridge are removed from this WIP;
+The unused storage methods on ProfileSyncUiBridge are removed from this packet;
 the actual store requires no window bridge. Extension installation remains
 with Desktop's separate native setup implementation.
 
-This is NOT a committed source freeze or build-ready package yet. A precise
-additional Native request callback is required before native sync-area Set/
+The Common files are frozen for coordinated integration, NOT a standalone
+build-ready HEAD or runtime pass. A precise additional Native request callback
+is required before native sync-area Set/
 Remove/Clear enters the storage queue, so an original remote epoch is revoked
 before, rather than after, a concurrent local write commits. Request to the
 existing two-file Patch0036 owner:01a08182-b3b0-7a41-b45e-ba352ccca250,
@@ -76,17 +77,23 @@ SHA9f8ef3ca5fbb23970e41b9feec0afd1697a85d5204568f59d8171c2e30dcfecf.
 Application after0036 was checked in an isolated two-file sandbox. Its unique
 diff was verified byte-identical to the committed artifact, then the temporary
 copy was moved recoverably to Trash. Desktop handoff01a081a7-fb45-7101-9482-8797b08c5af5;
-canonical Native files remain untouched. No build/test/UI or source-freeze claim.
+canonical Native files remain untouched. No Native integration/build/test/UI claim.
 Existing completion-only observation cannot detect an intervening A->X->A
 sequence. Common's read/UI fence plus original epoch handles earlier and later
 native requests without a global suppression flag or pending-counter framework.
+
+The final service integration also closes an observed lifecycle gap: approved
+local writes are observed immediately, including during backend/key setup.
+UI bridge attach/detach now cancels only its install/enable controller; it no
+longer interrupts profile-owned storage or preference work. Category/global
+revocation and profile shutdown still cancel storage and original leases.
 
 Positive CWS/source/version/permission/policy checks, scoped shutdown, exact
 bool/reset I/O and committed-change origin notification are implemented. The
 existing mandatory --disable-sync flag excludes a competing Chrome writer;
 no Google Sync service is instantiated. Formatting/GN/line-budget and pinned
-API/source checks only. No build, tests, install or UI. Preserve these owned
-WIP files and wait for the specific Native source handoff before one coherent
+API/source checks only. No build, tests, install or UI. Preserve this Common
+source freeze and combine it with the specific Native handoff before one coherent
 compile; do not insert missing-method references into a frozen candidate.
 
 ## Earlier UI handback — explicit Build18 repeat tool-blocked

@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "ahoi/browser/sync/extension_storage_setting.h"
+#include "ahoi/browser/sync/native_extension_storage_adapter.h"
 #include "ahoi/browser/sync/native_extension_storage_controller.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
@@ -16,6 +17,27 @@
 #include "components/prefs/pref_service.h"
 
 namespace ahoi::sync {
+
+void ProfileSyncService::InitializeExtensionStorage() {
+  if (extension_storage_adapter_ || !sync_enabled_ ||
+      !extension_settings_sync_enabled()) {
+    return;
+  }
+  extension_storage_adapter_ = std::make_unique<NativeExtensionStorageAdapter>(
+      profile_,
+      base::BindRepeating(
+          [](base::WeakPtr<ProfileSyncService> service,
+             ExtensionStorageValue value) {
+            if (service) {
+              std::ignore = service->PublishNativeExtensionStorageChange(
+                  std::move(value));
+            }
+          },
+          weak_ptr_factory_.GetWeakPtr()),
+      base::BindRepeating(
+          &ProfileSyncService::NotifyNativeExtensionSettingsReady,
+          weak_ptr_factory_.GetWeakPtr()));
+}
 
 bool ProfileSyncService::extension_settings_sync_enabled() const {
   return profile_ && !shutting_down_ &&
@@ -78,14 +100,15 @@ void ProfileSyncService::OnExtensionStorageResult(
 
 void ProfileSyncService::ApplyExtensionStorageProjection(
     const BrowserSettingsProjection& projection) {
-  if (!sync_enabled_ || !extension_settings_sync_enabled() || !ui_bridge_ ||
+  if (!sync_enabled_ || !extension_settings_sync_enabled() ||
       !projection.authorization || !projection.authorization.Run()) {
     return;
   }
+  InitializeExtensionStorage();
   if (!extension_storage_controller_) {
     extension_storage_controller_ =
         std::make_unique<NativeExtensionStorageController>(
-            ui_bridge_,
+            extension_storage_adapter_->GetWeakPtr(),
             base::BindRepeating(&ProfileSyncService::OnExtensionStorageResult,
                                 weak_ptr_factory_.GetWeakPtr()));
   }
@@ -114,7 +137,7 @@ void ProfileSyncService::ApplyExtensionStorageProjection(
     extension_storage_controller_->Request(record, std::move(valid), retry);
     if (!lifetime || shutting_down_ ||
         generation != browser_settings_generation_ || !sync_enabled_ ||
-        !extension_storage_controller_ || !ui_bridge_) {
+        !extension_storage_controller_ || !extension_storage_adapter_) {
       return;
     }
   }
@@ -129,7 +152,7 @@ void ProfileSyncService::ApplyExtensionStorageProjection(
       },
       projection.authorization, browser_settings_cancelled_);
   extension_storage_read_pending_ = true;
-  ui_bridge_->ReadNativeExtensionSettings(
+  extension_storage_adapter_->Read(
       valid, base::BindPostTaskToCurrentDefault(
                  base::BindOnce(&ProfileSyncService::OnExtensionStorageRead,
                                 lifetime, generation, valid)));
@@ -147,8 +170,9 @@ void ProfileSyncService::OnExtensionStorageRead(
     RefreshBrowserSettings();  // Discard capture predating the readiness event.
     return;
   }
-  if (!sync_enabled_ || !extension_settings_sync_enabled() || !ui_bridge_ ||
-      !snapshot.complete || !authorization || !authorization.Run()) {
+  if (!sync_enabled_ || !extension_settings_sync_enabled() ||
+      !extension_storage_adapter_ || !snapshot.complete || !authorization ||
+      !authorization.Run()) {
     return;
   }
   std::set<std::string> captured;
