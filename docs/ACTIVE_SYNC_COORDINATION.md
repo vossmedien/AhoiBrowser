@@ -29,6 +29,20 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Combined native candidate is building, 2026-09-08 11:43 UTC:** Desktop's
+  existing clean snapshot is `f5a324b`, including Toolbar/Pin/Home, icon31d9681
+  (canonicaldf03d46), the required Settings implementation/category and signing
+  correction. Coordinator verified no diff from the approved icon package in
+  all asset/generator paths, and the concrete Settings methods are present.
+  The one guarded app-only build uses two jobs. CloudKit preparation reuses a
+  separate copy of that product; no second Chromium compile is requested.
+  Installed6ae remains the accepted old local lifecycle until the new candidate
+  passes its own build/install/visible journey.
+- **Build18 window: one explicit release received.** FillIt01a04a1b confirmed
+  at11:41:12 UTC that its Simulators are shut down and it will not start/focus
+  Simulator/Xcode runtime until this coordinator returns the window. MBC,
+  BetterConvo and Desktop have not yet completed the requested new handoff;
+  their ongoing work/idle PIDs are not release. Mobile must not start yet.
 - **Mac provisioning prerequisite now EXISTS, 2026-09-08 11:32–11:34 UTC:**
   Desktop used the authorized existing Xcode account to create the Mac profile.
   Coordinator independently decoded
