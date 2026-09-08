@@ -35,6 +35,19 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Unsigned iOS Development22 now built and actual tuple read back:** 9658f94
+  corrects the21 preflight failure below;48197 completed EXIT0. Root read the
+  archived app's actual Info.plist as well as its candidate receipt: all seven
+  values match the existing bba96b17 Development scope; app-tree
+  f99ed968c9b667d1586f57b6689af4177c0dce822eed6d0ab2d1da260ea5434b.
+  Signing is explicitly absent. Mobile received01a081fe-a4f4 to proceed with
+  authorized iOS Development signing/provisioning in its own scope, preserving
+  unsigned22; no install/start, payload-key/cloud or Production action implied.
+  That independent step need not wait for the Native48-hook. Desktop retains
+  native Mac signing. Shared manifest SHA is now
+  851600c142f1c289f5f878a23587eecbc9001a4e2c2e072f7c0e0f5dc13c9abe:
+  only mobilePreflightScopeSetting metadata was added, not a new runtime tuple.
+  Root verified the exact diff and told Desktop; old1bd73 receipts remain history.
 - **Current isolated-sync preparation findings, 2026-09-08:** device build21 on
   77061ad failed in the Mobile signing preflight, not at an Apple login gate:
   `AHOI_SYNC_KEYCHAIN_ACCOUNT must equal payload-key for CloudKitDevelopment`.
