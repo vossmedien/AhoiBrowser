@@ -5,6 +5,13 @@ This is an implementation/source-handoff pointer, not product acceptance.
 
 ## Extension orchestration source continuation — 2026-09-08
 
+Exact committed/pushed package:6b0121f76b5ba7b8bd2e32cbf5689b915db81e77 (38 scoped
+files with DCO). Desktop handoff01a08106-1705-7472-9b82-8c3178addf24; coordinator
+01a08106-1737-7993-8346-53c8f3329df7. Only pinned formatting/GN, JSON syntax,
+Xcode project generation, whitespace and source/API checks have run here.
+No compiler/test/app or existing native frozen snapshot was modified by this
+handoff. The independent Build18 visible evidence is committed in4ee7e28.
+
 The committed749598a native/typed seam now has its Common caller: separate
 default-off setup consent, explicit native user-intent publication, first-fetch
 complete-inventory seeding, original-version queue/replay, per-record provider
