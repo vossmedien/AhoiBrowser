@@ -40,6 +40,15 @@ export interface RemoteControlStatusResponse {
   approvedDeviceIds: string[];
 }
 
+export interface BrowserSettingsSyncStatusResponse {
+  action: string;
+  selection: 'none'|'some'|'all';
+  supportedCount: number;
+  selectedCount: number;
+  canChange: boolean;
+  syncEnabled: boolean;
+}
+
 export interface SettingsAhoiPageElement {
   $: {
     viewManager: CrViewManagerElement,
@@ -72,6 +81,9 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       floatingNavigationDelayOptions_: {type: Array},
       historyRetentionOptions_: {type: Array},
       syncEnabledPref_: {type: Object},
+      browserSettingsSyncStatus_: {type: Object},
+      browserSettingsSyncActionPending_: {type: Boolean},
+      browserSettingsSyncActionFailed_: {type: Boolean},
       remoteControlStatus_: {type: Object},
       remoteControlDeviceId_: {type: String},
       remoteControlPublicKey_: {type: String},
@@ -88,6 +100,10 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       PrefObject<boolean>|undefined = undefined;
   protected accessor syncEnabledPref_: PrefObject<boolean>|undefined =
       undefined;
+  protected accessor browserSettingsSyncStatus_:
+      BrowserSettingsSyncStatusResponse|null = null;
+  protected accessor browserSettingsSyncActionPending_: boolean = false;
+  protected accessor browserSettingsSyncActionFailed_: boolean = false;
   protected accessor remoteControlStatus_: RemoteControlStatusResponse|null =
       null;
   protected accessor remoteControlDeviceId_: string = '';
@@ -117,6 +133,11 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
   override connectedCallback() {
     super.connectedCallback();
     this.addWebUiListener(
+        'ahoi-browser-settings-sync-status-changed',
+        (status: BrowserSettingsSyncStatusResponse) => {
+          this.applyBrowserSettingsSyncStatus_(status);
+        });
+    this.addWebUiListener(
         'ahoi-remote-control-status-changed',
         (status: RemoteControlStatusResponse) => {
           this.applyRemoteControlStatus_(status);
@@ -128,6 +149,67 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       'ahoi.sync.enabled': 'syncEnabledPref_',
     });
     void this.refreshRemoteControlStatus_();
+    void this.refreshBrowserSettingsSyncStatus_();
+  }
+
+  private applyBrowserSettingsSyncStatus_(
+      status: BrowserSettingsSyncStatusResponse) {
+    this.browserSettingsSyncStatus_ = status;
+    this.browserSettingsSyncActionFailed_ =
+        status.action === 'blocked' || status.action === 'invalidRequest';
+  }
+
+  private async refreshBrowserSettingsSyncStatus_() {
+    try {
+      this.applyBrowserSettingsSyncStatus_(
+          await sendWithPromise<BrowserSettingsSyncStatusResponse>(
+              'ahoiGetBrowserSettingsSyncStatus'));
+    } catch {
+      this.browserSettingsSyncStatus_ = null;
+      this.browserSettingsSyncActionFailed_ = true;
+    }
+  }
+
+  protected async onBrowserSettingsSyncChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const enabled = checkbox.checked;
+    // The native control toggles before dispatching change. Restore the last
+    // authoritative state until the service replies, including a mixed state.
+    checkbox.checked = this.browserSettingsSyncStatus_?.selection === 'all';
+    checkbox.indeterminate =
+        this.browserSettingsSyncStatus_?.selection === 'some';
+    if (this.browserSettingsSyncActionPending_ ||
+        !this.browserSettingsSyncStatus_?.canChange) {
+      return;
+    }
+    this.browserSettingsSyncActionPending_ = true;
+    this.browserSettingsSyncActionFailed_ = false;
+    try {
+      this.applyBrowserSettingsSyncStatus_(
+          await sendWithPromise<BrowserSettingsSyncStatusResponse>(
+              'ahoiSetBrowserSettingsSyncEnabled', enabled));
+    } catch {
+      await this.refreshBrowserSettingsSyncStatus_();
+      this.browserSettingsSyncActionFailed_ = true;
+    } finally {
+      this.browserSettingsSyncActionPending_ = false;
+    }
+  }
+
+  protected browserSettingsSyncStatusText_(): string {
+    const status = this.browserSettingsSyncStatus_;
+    if (!status) {
+      return loadTimeData.getString(
+          this.browserSettingsSyncActionFailed_ ?
+              'ahoiBrowserSettingsSyncUnavailable' :
+              'ahoiBrowserSettingsSyncLoading');
+    }
+    if (status.supportedCount === 0) {
+      return loadTimeData.getString('ahoiBrowserSettingsSyncUnavailable');
+    }
+    return loadTimeData.getStringF(
+        'ahoiBrowserSettingsSyncSelection', status.selectedCount,
+        status.supportedCount);
   }
 
   private applyRemoteControlStatus_(status: RemoteControlStatusResponse) {

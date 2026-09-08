@@ -96,6 +96,43 @@ export function getHtml(this: SettingsAhoiPageElement) {
           sub-label="$i18n{ahoiSyncEnabledSublabel}">
       </settings-toggle-button>
       <div class="list-frame indented-toggles">
+        <section id="ahoiBrowserSettingsSyncSection"
+            class="browser-settings-sync-card"
+            aria-labelledby="ahoiBrowserSettingsSyncTitle"
+            aria-busy="${this.browserSettingsSyncActionPending_}">
+          <label class="browser-settings-sync-option">
+            <input id="ahoiBrowserSettingsSyncEnabled" type="checkbox"
+                .checked="${this.browserSettingsSyncStatus_?.selection === 'all'}"
+                .indeterminate="${this.browserSettingsSyncStatus_?.selection === 'some'}"
+                ?disabled="${!this.browserSettingsSyncStatus_?.canChange ||
+                    this.browserSettingsSyncActionPending_}"
+                aria-labelledby="ahoiBrowserSettingsSyncTitle"
+                aria-describedby="ahoiBrowserSettingsSyncDescription ahoiBrowserSettingsSyncStatus"
+                @change="${this.onBrowserSettingsSyncChange_}">
+            <span class="browser-settings-sync-copy">
+              <span id="ahoiBrowserSettingsSyncTitle"
+                  class="browser-settings-sync-title">
+                $i18n{ahoiBrowserSettingsSync}
+              </span>
+              <span id="ahoiBrowserSettingsSyncDescription" class="secondary">
+                $i18n{ahoiBrowserSettingsSyncDescription}
+              </span>
+            </span>
+          </label>
+          <div id="ahoiBrowserSettingsSyncStatus"
+              class="browser-settings-sync-status secondary"
+              role="status" aria-live="polite">
+            ${this.browserSettingsSyncStatusText_()}
+            <div ?hidden="${!this.browserSettingsSyncActionFailed_}">
+              $i18n{ahoiBrowserSettingsSyncFailed}
+            </div>
+            <div ?hidden="${!this.browserSettingsSyncStatus_ ||
+                this.browserSettingsSyncStatus_.syncEnabled ||
+                this.browserSettingsSyncStatus_.selectedCount === 0}">
+              $i18n{ahoiBrowserSettingsSyncPaused}
+            </div>
+          </div>
+        </section>
         <settings-toggle-button id="ahoiRemoteControlEnabled"
             no-set-pref
             ?disabled="${!this.remoteControlStatus_?.canEnable ||

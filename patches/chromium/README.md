@@ -33,6 +33,21 @@ as a second active patch stack.
   by pinned GRIT. Drop Reload's extra clip if upstream supplies equivalent
   complete control clipping; keep product controls in the owned overlay.
 
+## `0035-ahoi-browser-settings-sync-consent.patch`
+
+- **Owner:** Desktop; exact M152 pin, after0034.
+- **Paths/purpose:** generated resources, German/en-GB translations and the
+  existing Settings localized-string map for explicit browser-settings consent.
+  The owned WebUI/native handler uses Common's registered supported/permitted
+  IDs, preserving none/some/all and never enabling global Sync by implication.
+- **Rejected alternative:** raw preference or secret transfer, hardcoded labels,
+  a second Sync page/service or implicit startup opt-in.
+- **Verification:** XML/GRIT identity and ordered patch checks; exact installed
+  category/restart/off flow before focused programmatic follow-up. Source only
+  until that candidate exists. No transport/roundtrip claim.
+- **Risk/removal:** low string-map rebase risk; retain the compact consent path
+  until upstream Settings provides the same explicit category contract.
+
 ## `0001-ahoi-m152-integration-seams.patch`
 
 - **Owner:** AhoiBrowser project.

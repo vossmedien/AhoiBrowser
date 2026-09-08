@@ -1,0 +1,88 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index 1666ec879c9adfbac83f2684653b5f8d05193acf..b2cda0379c2f1150d541f4d57c5fdc1fbe710273 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20240,6 +20240,27 @@ Please help our engineers fix this problem. Tell us what happened right before y
+     <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED" desc="Label for enabling AhoiBrowser's local sync state and outbox." meaning="AhoiBrowser feature settings">
+       Ahoi Sync
+     </message>
++    <message name="IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC" desc="Explicit opt-in for supported browser settings sync." meaning="AhoiBrowser feature settings">
++      Sync browser settings
++    </message>
++    <message name="IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_DESCRIPTION" desc="Scope of the supported browser settings sync category." meaning="AhoiBrowser feature settings">
++      Syncs supported browser settings and the search engine. Cookies, passwords, site permissions and local paths stay excluded.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_SELECTION" desc="Selected and supported settings counts." meaning="AhoiBrowser feature settings">
++      Selected: <ph name="SELECTED_COUNT">$1<ex>4</ex></ph> of <ph name="SUPPORTED_COUNT">$2<ex>24</ex></ph> supported settings.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_PAUSED" desc="Category selection retained while global Sync is disabled." meaning="AhoiBrowser feature settings">
++      Your selection is saved. Turn on Ahoi Sync to sync it.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_LOADING" desc="Browser settings sync selection loading." meaning="AhoiBrowser feature settings">
++      Loading selection…
++    </message>
++    <message name="IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_UNAVAILABLE" desc="No supported browser settings registered for this profile." meaning="AhoiBrowser feature settings">
++      No supported settings are currently available for this profile.
++    </message>
++    <message name="IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_FAILED" desc="Browser settings consent action failure." meaning="AhoiBrowser feature settings">
++      Could not change the selection.
++    </message>
+     <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED_SUBLABEL" desc="Description of AhoiBrowser's local sync database, outbox and optional CloudKit transport." meaning="AhoiBrowser feature settings">
+       Keep workspaces, saved tabs and approved settings in the local sync database and pending outbox. A configured CloudKit transport encrypts them before cross-device transfer.
+     </message>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index 82c13d847862bf1842f0fd96728df50ae52140ab..8a553092a4158394242d7f161d26828e64c7bd84 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11251,4 +11251,11 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
+ <translation id="2666937824263873395">Adressleiste anheften</translation>
+ <translation id="5599938554451751534">Adressleiste lösen</translation>
++<translation id="3587386781101745139">Browsereinstellungen synchronisieren</translation>
++<translation id="7726168258236674323">Überträgt unterstützte Browsereinstellungen und die Suchmaschine. Cookies, Passwörter, Website-Berechtigungen und lokale Pfade bleiben ausgeschlossen.</translation>
++<translation id="5558611208267945289">Ausgewählt: <ph name="SELECTED_COUNT"/> von <ph name="SUPPORTED_COUNT"/> unterstützten Einstellungen.</translation>
++<translation id="5596535326786067820">Die Auswahl bleibt gespeichert. Aktivieren Sie Ahoi Sync, um sie zu synchronisieren.</translation>
++<translation id="1555692962934226231">Auswahl wird geladen…</translation>
++<translation id="3373635015517088468">Für dieses Profil sind derzeit keine unterstützten Einstellungen verfügbar.</translation>
++<translation id="5831405800489376068">Die Auswahl konnte nicht geändert werden.</translation>
+ </translationbundle>
+diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+index c40f9bad405d9c167183bfffe5fd6a9b97dab18e..f303c76d0c7d7de3b462bae685d08e51838ebf40 100644
+--- a/chrome/app/resources/generated_resources_en-GB.xtb
++++ b/chrome/app/resources/generated_resources_en-GB.xtb
+@@ -11044,4 +11044,11 @@ This can include information about installed software, files, your browser, the
+ <translation id="5461107725978398953">Recently closed window</translation>
+ <translation id="2666937824263873395">Pin address bar</translation>
+ <translation id="5599938554451751534">Unpin address bar</translation>
++<translation id="3587386781101745139">Sync browser settings</translation>
++<translation id="7726168258236674323">Syncs supported browser settings and the search engine. Cookies, passwords, site permissions and local paths stay excluded.</translation>
++<translation id="5558611208267945289">Selected: <ph name="SELECTED_COUNT"/> of <ph name="SUPPORTED_COUNT"/> supported settings.</translation>
++<translation id="5596535326786067820">Your selection is saved. Turn on Ahoi Sync to sync it.</translation>
++<translation id="1555692962934226231">Loading selection…</translation>
++<translation id="3373635015517088468">No supported settings are currently available for this profile.</translation>
++<translation id="5831405800489376068">Could not change the selection.</translation>
+ </translationbundle>
+diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+index 881437de3f9898cc70689e7630531df16953dbed..8862ed42b4b775a4fadf1eddb7ea17554d031c82 100644
+--- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
++++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+@@ -716,6 +716,19 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+       {"ahoiCloudKitUnavailableSublabel",
+        IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_SUBLABEL},
+       {"ahoiSyncEnabled", IDS_SETTINGS_AHOI_SYNC_ENABLED},
++      {"ahoiBrowserSettingsSync", IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC},
++      {"ahoiBrowserSettingsSyncDescription",
++       IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_DESCRIPTION},
++      {"ahoiBrowserSettingsSyncSelection",
++       IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_SELECTION},
++      {"ahoiBrowserSettingsSyncPaused",
++       IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_PAUSED},
++      {"ahoiBrowserSettingsSyncLoading",
++       IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_LOADING},
++      {"ahoiBrowserSettingsSyncUnavailable",
++       IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_UNAVAILABLE},
++      {"ahoiBrowserSettingsSyncFailed",
++       IDS_SETTINGS_AHOI_BROWSER_SETTINGS_SYNC_FAILED},
+       {"ahoiSyncEnabledSublabel", IDS_SETTINGS_AHOI_SYNC_ENABLED_SUBLABEL},
+       {"ahoiRemoteControlEnabled", IDS_SETTINGS_AHOI_REMOTE_CONTROL_ENABLED},
+       {"ahoiRemoteControlEnabledSublabel",

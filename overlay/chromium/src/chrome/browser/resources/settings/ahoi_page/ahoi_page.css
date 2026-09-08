@@ -28,6 +28,38 @@ cr-view-manager [hidden-by-search] {
   margin-top: 4px;
 }
 
+.browser-settings-sync-card {
+  margin-inline: var(--cr-section-padding);
+  padding-block: 14px;
+}
+
+.browser-settings-sync-option {
+  align-items: start;
+  column-gap: 12px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+}
+
+.browser-settings-sync-option input {
+  accent-color: var(--cr-link-color);
+  block-size: 18px;
+  inline-size: 18px;
+  margin: 3px 0 0;
+}
+
+.browser-settings-sync-copy > span {
+  display: block;
+}
+
+.browser-settings-sync-title {
+  line-height: 24px;
+}
+
+.browser-settings-sync-status {
+  margin-inline-start: 30px;
+  margin-top: 6px;
+}
+
 .remote-pairing-card {
   border-top: 1px solid var(--cr-separator-color);
   margin-inline: var(--cr-section-padding);

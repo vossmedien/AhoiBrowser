@@ -3,14 +3,17 @@
 
 #include "ahoi/browser/ui/settings/ahoi_settings_handler.h"
 
+#include <algorithm>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
 #include "base/functional/bind.h"
 #include "base/strings/string_util.h"
 #include "base/values.h"
 #include "chrome/browser/profiles/profile.h"
+#include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_ui.h"
 
 namespace ahoi::settings {
@@ -58,6 +61,16 @@ void AhoiSettingsHandler::RegisterMessages() {
     sync_service_->AddObserver(this);
   }
   web_ui()->RegisterMessageCallback(
+      "ahoiGetBrowserSettingsSyncStatus",
+      base::BindRepeating(
+          &AhoiSettingsHandler::HandleGetBrowserSettingsSyncStatus,
+          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiSetBrowserSettingsSyncEnabled",
+      base::BindRepeating(
+          &AhoiSettingsHandler::HandleSetBrowserSettingsSyncEnabled,
+          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
       "ahoiGetRemoteControlStatus",
       base::BindRepeating(
           &AhoiSettingsHandler::HandleGetRemoteControlStatus,
@@ -85,6 +98,96 @@ void AhoiSettingsHandler::OnAhoiDeviceTabsChanged(
 void AhoiSettingsHandler::OnAhoiSyncStatusChanged(
     const sync::SyncTransportStatus& /*status*/) {
   PushStatus({});
+  PushBrowserSettingsSyncStatus();
+}
+
+bool AhoiSettingsHandler::IsAuthorizedSettingsPage() {
+  if (!profile_ || profile_->IsOffTheRecord() ||
+      !profile_->IsRegularProfile() || !profile_->AllowsBrowserWindows() ||
+      !web_ui()) {
+    return false;
+  }
+  content::WebContents* contents = web_ui()->GetWebContents();
+  if (!contents || contents->GetBrowserContext() != profile_) {
+    return false;
+  }
+  const GURL& url = contents->GetLastCommittedURL();
+  return url.SchemeIs("chrome") && url.host_piece() == "settings";
+}
+
+base::DictValue AhoiSettingsHandler::BuildBrowserSettingsSyncStatus(
+    std::string_view action) const {
+  base::DictValue result;
+  result.Set("action", std::string(action));
+  const bool available =
+      sync_service_ && profile_ && profile_->IsRegularProfile() &&
+      !profile_->IsOffTheRecord() && profile_->AllowsBrowserWindows();
+  const auto supported = available ? sync_service_->supported_setting_ids()
+                                   : std::vector<std::string>();
+  const auto permitted = available ? sync_service_->permitted_setting_ids()
+                                   : std::vector<std::string>();
+  int selected_count = 0;
+  for (const std::string& id : supported) {
+    if (std::ranges::contains(permitted, id)) {
+      ++selected_count;
+    }
+  }
+  const int supported_count = static_cast<int>(supported.size());
+  result.Set("supportedCount", supported_count);
+  result.Set("selectedCount", selected_count);
+  result.Set("selection", selected_count == 0                 ? "none"
+                          : selected_count == supported_count ? "all"
+                                                              : "some");
+  result.Set("canChange", available && supported_count > 0);
+  result.Set("syncEnabled", available && sync_service_->sync_enabled());
+  return result;
+}
+
+void AhoiSettingsHandler::ResolveBrowserSettingsSyncStatus(
+    base::Value callback_id,
+    std::string_view action) {
+  ResolveJavascriptCallback(
+      callback_id, base::Value(BuildBrowserSettingsSyncStatus(action)));
+}
+
+void AhoiSettingsHandler::PushBrowserSettingsSyncStatus() {
+  if (!IsJavascriptAllowed() || !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  FireWebUIListener("ahoi-browser-settings-sync-status-changed",
+                    base::Value(BuildBrowserSettingsSyncStatus({})));
+}
+
+void AhoiSettingsHandler::HandleGetBrowserSettingsSyncStatus(
+    const base::ListValue& args) {
+  if (args.size() != 1u || !HasCallbackId(args) ||
+      args.front().GetString().empty() || !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  AllowJavascript();
+  ResolveBrowserSettingsSyncStatus(args.front().Clone(), {});
+}
+
+void AhoiSettingsHandler::HandleSetBrowserSettingsSyncEnabled(
+    const base::ListValue& args) {
+  if (!HasCallbackId(args) || args.front().GetString().empty() ||
+      !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  AllowJavascript();
+  if (args.size() != 2u || !args[1].is_bool()) {
+    ResolveBrowserSettingsSyncStatus(args.front().Clone(), "invalidRequest");
+    return;
+  }
+  const bool enabled = args[1].GetBool();
+  // This deliberate category action does not enable global Sync or bypass
+  // the service's account, per-setting or transport authorization boundaries.
+  const bool changed = sync_service_ &&
+                       !sync_service_->supported_setting_ids().empty() &&
+                       sync_service_->SetBrowserSettingsSyncEnabled(enabled);
+  ResolveBrowserSettingsSyncStatus(
+      args.front().Clone(),
+      changed ? (enabled ? "enabled" : "disabled") : "blocked");
 }
 
 base::DictValue AhoiSettingsHandler::BuildRemoteControlStatus(

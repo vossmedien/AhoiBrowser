@@ -15,9 +15,9 @@ class Profile;
 
 namespace ahoi::settings {
 
-// Owns the security-sensitive Settings bridge for remote-control pairing and
-// activation. The WebUI never receives approved public-key material and never
-// writes the receive-policy preference directly.
+// Owns explicit Sync category consent and the security-sensitive Settings
+// bridge for remote-control pairing. The WebUI never receives approved
+// public-key material and never writes the receive policy directly.
 class AhoiSettingsHandler final
     : public content::WebUIMessageHandler,
       public sync::ProfileSyncService::Observer {
@@ -37,6 +37,13 @@ class AhoiSettingsHandler final
       const sync::SyncTransportStatus& status) override;
 
  private:
+  bool IsAuthorizedSettingsPage();
+  base::DictValue BuildBrowserSettingsSyncStatus(std::string_view action) const;
+  void ResolveBrowserSettingsSyncStatus(base::Value callback_id,
+                                        std::string_view action);
+  void PushBrowserSettingsSyncStatus();
+  void HandleGetBrowserSettingsSyncStatus(const base::ListValue& args);
+  void HandleSetBrowserSettingsSyncEnabled(const base::ListValue& args);
   base::DictValue BuildRemoteControlStatus(std::string_view action) const;
   void ResolveStatus(base::Value callback_id, std::string_view action);
   void PushStatus(std::string_view action);
