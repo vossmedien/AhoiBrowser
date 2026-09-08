@@ -29,6 +29,20 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Native build71760 is TERMINAL FAILED, 2026-09-08 08:57 UTC:** the canonical
+  `desktop-shared-tabs-74ceb15-20260908/build-0843.log` ends with Ninja unable to
+  make progress after product compiler errors; wrapper/build PIDs24145/24426 are
+  absent. Owner's exact terminal exit-code receipt is still to be read; no new
+  build/install/E2E pass exists. Do not resume the old live-PID instructions below.
+  Dedupllication gives three compiler-error classes across five owned files:
+  Native TabTree node mutations/snapshot and Common SyncStore have sequence-
+  context annotation conflicts; Common UI-bridge has nonempty inline virtual
+  definitions; Common backend has a missing override marker. Native correction
+  stays Desktop-owned, Common correction/GN stays Sync-owned. Exact bounded
+  assignments: `01a0803e-a008-7080-ad85-5e4692466e96` (Desktop) and
+  `01a0803e-9e2e-7c02-92a3-c2496e3487e9` (Common). Next is ONE coherent cached
+  app-only correction, including the already delivered Inbox fix7a47063; no
+  per-file rebuilds, warning/assertion suppression or extra test-binary gate.
 - **Desktop guarded app build is live, 2026-09-08 08:44–08:46 UTC:** overlay
   succeeded and the same frozen `74ceb15` snapshot entered `build-ahoi.sh dev`
   with `AHOI_JOBS=2`, no extra test binaries. Coordinator verified wrapper
