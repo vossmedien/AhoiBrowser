@@ -313,6 +313,12 @@ suite('AhoiArcStandardImportSurface', () => {
       });
       await microtasksFinished();
       assertEquals('done', arcSection.arcImportStage_);
+      const root = arcSection.shadowRoot!;
+      assertEquals(1, root.querySelectorAll('[role="status"]').length);
+      assertEquals(
+          loadTimeData.getString('ahoiArcImportNoChanges'),
+          root.querySelector('#ahoiArcImportStatus')!.textContent.trim());
+      assertFalse(!!root.querySelector('.result-counts, #ahoiArcDiscover'));
     } finally {
       chrome.send = originalSend;
     }
@@ -398,6 +404,9 @@ suite('AhoiArcStandardImportSurface', () => {
     arcSection.requestUpdate();
     await arcSection.updateComplete;
 
+    assertEquals(
+        1, arcSection.shadowRoot!.querySelectorAll('[role="status"]').length);
+    assertFalse(!!arcSection.shadowRoot!.querySelector('#ahoiArcDiscover'));
     const resultText = (id: string) =>
         arcSection.shadowRoot!.querySelector(id)!.textContent.trim();
     assertEquals(

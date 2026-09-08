@@ -12,19 +12,24 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
       <div id="ahoiArcImportHeading" class="section-title">
         $i18n{ahoiArcImportTitle}
       </div>
-      <div class="secondary">$i18n{ahoiArcImportDescription}</div>
-      <cr-button id="ahoiArcDiscover" class="action-button"
-          ?disabled="${this.isArcBusy_()}"
-          @click="${this.onArcDiscoverClick_}">
-        $i18n{ahoiArcImportDiscover}
-      </cr-button>
+      ${
+      this.arcImportStage_ !== 'done' ? html`
+        <div class="secondary">$i18n{ahoiArcImportDescription}</div>
+        <cr-button id="ahoiArcDiscover" class="action-button"
+            ?disabled="${this.isArcBusy_()}"
+            @click="${this.onArcDiscoverClick_}">
+          $i18n{ahoiArcImportDiscover}
+        </cr-button>
+      ` :
+                                        ''}
 
       <div id="ahoiArcImportStatus" class="status"
           role="status" aria-live="polite">
         ${this.arcStatusText_()}
       </div>
 
-      ${this.showArcRecovery_() ? html`
+      ${
+      this.showArcRecovery_() ? html`
         <section class="warning recovery" aria-labelledby="ahoiArcRecoveryNotice">
           <div id="ahoiArcRecoveryNotice" class="secondary">
             $i18n{ahoiArcImportRecoveryNotice}
@@ -36,16 +41,21 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
             $i18n{ahoiArcImportRecover}
           </cr-button>
         </section>
-      ` : ''}
+      ` :
+                                ''}
 
-      ${this.arcImportStage_ === 'sourceInUse' ? html`
+      ${
+      this.arcImportStage_ === 'sourceInUse' ? html`
         <div class="warning" role="alert">
           <div>$i18n{ahoiArcImportCloseArcTitle}</div>
           <div class="secondary">$i18n{ahoiArcImportCloseArcSublabel}</div>
         </div>
-      ` : ''}
+      ` :
+                                               ''}
 
-      ${this.arcImportPreview_ && this.arcImportStage_ === 'preview' ? html`
+      ${
+      this.arcImportPreview_ && this.arcImportStage_ === 'preview' ?
+          html`
         <section class="preview" aria-labelledby="ahoiArcPreviewHeading">
           <div id="ahoiArcPreviewHeading" class="subheading">
             $i18n{ahoiArcImportPreview}
@@ -83,8 +93,9 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
 
           <div class="subheading">$i18n{ahoiArcImportTargets}</div>
           <ul class="targets">
-            ${this.arcImportPreview_.targetWorkspaces.map(
-                workspace => html`<li>${workspace}</li>`)}
+            ${
+              this.arcImportPreview_.targetWorkspaces.map(
+                  workspace => html`<li>${workspace}</li>`)}
           </ul>
 
           <fieldset class="options">
@@ -107,14 +118,16 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
                 @change="${this.onArcImportSidebarChange_}">
               $i18n{ahoiArcImportSidebarCategory}
             </cr-checkbox>
-            ${this.arcImportPreview_.stats.splits > 0 ? html`
+            ${
+              this.arcImportPreview_.stats.splits > 0 ? html`
               <cr-checkbox id="ahoiArcReconstructSplits"
                   class="arc-import-checkbox"
                   .checked="${this.arcReconstructSplits_}"
                   @change="${this.onArcReconstructSplitsChange_}">
                 $i18n{ahoiArcImportSplitCategory}
               </cr-checkbox>
-            ` : ''}
+            ` :
+                                                        ''}
           </fieldset>
 
           <label class="select-label" for="ahoiArcConflictPolicy">
@@ -147,14 +160,14 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
             $i18n{ahoiArcImportCommit}
           </cr-button>
         </section>
-      ` : ''}
+      ` :
+          ''}
 
-      ${this.arcImportStage_ === 'done' && this.arcImportResult_ ? html`
-        <section class="result" role="status"
-            aria-labelledby="ahoiArcImportResultHeading">
-          <div id="ahoiArcImportResultHeading" class="subheading">
-            ${this.arcStatusText_()}
-          </div>
+      ${
+      this.arcImportStage_ === 'done' &&
+              this.arcImportResult_?.status === 'ok' ?
+          html`
+        <section class="result" aria-labelledby="ahoiArcImportStatus">
           <ul class="counts result-counts">
             <li><span class="count-label">$i18n{ahoiArcImportWorkspaces}</span>
               <span id="ahoiArcResultWorkspaces" class="count-value">
@@ -197,7 +210,8 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
               </span></li>
           </ul>
         </section>
-      ` : ''}
+      ` :
+          ''}
     </section>
   <!--_html_template_end_-->`;
 }
