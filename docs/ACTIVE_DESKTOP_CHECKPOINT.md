@@ -108,6 +108,31 @@ one native build owner, separate exact-candidate Sync acceptance later.
 
 ### Active toolbar/UI continuation — 2026-09-08
 
+**Current execution:** one guarded app-only build79280 is RUNNING in the existing
+clean detached snapshot atf5a324b. Canonical log:
+`artifacts/build/desktop-toolbar-settings-f5a324b-20260908/build.log`.
+Integrated source: native6ae/tests, Toolbarc86314b, Common41de599+29c42db+
+Home-selector1587497, approved Icondf03d46, explicit native Settingsfc37928 and
+Development signing-toolingf4aee9d. No WIP. Overlay91184 TERMINAL EXIT0 and delta
+verified; earlierb63/12891 is superseded, not a resume target. Jobs2, no extra
+test binaries. Fresh repeat capacity recovered to54% idle/51% memory headroom;
+63.3GiB disk uses documentedAHOI_ALLOW_LOW_DISK=1, unchanged32GiB hard floor.
+Do not update snapshot/out while79280 runs. After success: signed atomic install,
+visible Hover/Pin/Home +explicit Settings category and icon, then focused checks.
+
+New Apple authorization has produced a concrete native Mac Development profile,
+not merely a plan:8f149b92-89cc-4d34-a0db-1b305d4e545c in the standard Xcode
+profile cache, OSX/1Mac/Team248AJ5BN47/exactAhoiContainer/developmentAPNs. Tiny
+provision-only Xcode build10142 EXIT0, never launched/installed. No old
+profiles/keys deleted. Real profile validation found and fixed an allowlist-vs-
+signed-claim bug in the existing verifier (f4aee9d); exact app claims and the
+separate Production verifier remain strict. Details/next candidate-copy gate:
+`docs/audit-evidence/2026-09-08-native-cloudkit-development.md`. No CloudKit/key
+bootstrap/roundtrip pass yet; Common owner has exact profile/handoff. No new
+type/role/API wait, and old Mobile07:08 slots remain returned.
+
+#### Toolbar baseline and source inventory (before the current build)
+
 The delayed e2f6711 handoff is already integrated in6ae. No API/role wait or old
 build restart follows from that message. Global/project AGENTS reread live.
 Own runtime74127 is now TERMINAL EXIT0 after normal Quit from the installed6ae
@@ -151,7 +176,7 @@ Source package in this owner only (not compiled/installed):
 
 Canonical overlay/patch contains the work. Scratch copies at
 `/private/tmp/ahoi-toolbar-patch.i9L6at/{before,after}` are only patch-authoring
-material; `.work`/out and clean detacheda9d6ad7 have not been refreshed/changed.
+material; the current integration/build above supersedes this pre-build state.
 Scoped XML/GRIT-ID, GN-format and exact seven-file patch application checks
 passed. No compiler or test was run for this new toolbar package. Finish the
 connected UI work, freeze only owned committed files into the same snapshot,
@@ -853,7 +878,13 @@ the preceding installed `0a13e22` candidate, not fresh `3d413ef` acceptance:
 
 ## Next actions — do not restart the review
 
-1. Installed6ae's bounded local lifecycle and focused12-case checks are complete.
+1. Resume the one RUNNING app-only build79280 on cleanf5a324b, not any older
+   overlay/build/installer. It includes toolbar, approved icon, explicit native
+   settings and committed Common dependencies; no WIP. After verified completion
+   preserve the receipt, atomically install, then visible Hover/Pin/Home/settings
+   and icon. Prepare/sign/verify the separate Development CloudKit copy using
+   the NEW concrete Mac profile; no extra Chromium compile or repeated approval.
+   Installed6ae's bounded local lifecycle and focused12-case checks are complete.
    Previous app/test builds/installers are terminal, NOT restart targets. The
    own UI follow-up74127 is now terminal; toolbar source is described at the top. Finish
    that connected UI package and its visible Hover/Pin/Home journey, without
