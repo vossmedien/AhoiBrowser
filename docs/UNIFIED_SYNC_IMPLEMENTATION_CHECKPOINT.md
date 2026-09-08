@@ -5,6 +5,12 @@ This is an implementation/source-handoff pointer, not product acceptance.
 
 ## Browser settings packet — 2026-09-08
 
+Committed/pushed source: `41de599f94f92688e7c0fca5f947402972f83b49`, 37 scoped
+files with DCO. Native UI/API handoff `01a0806a-8620-7590-9485-c2bf7f9ab028`;
+coordinator update `01a0806a-8661-71b1-9f4a-d6142b8d0ec8`. No Native source or
+shared checkout/out was changed. This packet does not interrupt Desktop's
+separate candidate-bound UI journey or authorize an uncoordinated build.
+
 Native setting capture/apply now uses an explicit 24-entry checked catalogue,
 real USER values, default-reset intent and original-version local recovery
 payloads. Per-setting revocation is connected through C++ backend, outbox pump,
@@ -23,6 +29,10 @@ evidence. Settings/extension restoration, iOS mappings and workspace metadata
 are not complete merely because the first catalogue and settings pipeline exist.
 
 ## Native app-first compiler correction — 2026-09-08
+
+Exact correction `dfcc32edf01b480f0a4b462c0509443610cb0fc9` is pushed; direct
+Desktop handoff `01a08043-d2a3-7c33-955d-51b46679cfd2`. The old compiler blocker
+is resolved in source and must not be reopened as a missing ownership handoff.
 
 Desktop's app-only build71760 on74ceb15 is terminal EXIT1. Its Common causes
 are corrected separately from the ADR0010 setting-catalog WIP: the three
