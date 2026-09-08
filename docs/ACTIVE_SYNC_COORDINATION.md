@@ -29,6 +29,21 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- **Build17 Save + restart evidence, 2026-09-08 08:13 UTC:** coordinator viewed
+  the owner's `navigation.png` / `saved-tab.png` in
+  `artifacts/e2e/mobile-shared-intents-7b706a7-20260908/` and compared the
+  before-restart record with the live persisted session after restart. Exactly
+  one selected saved row remains, with the same Runtime `391646fb…`, Presence
+  `e4a95271…`, Page `18126d0f…` and deterministic Inbox IDs. New app PID67334
+  replaces PID48730 in the same isolated Simulator. The owner's native AX result
+  at 08:09:13 shows `Inbox · Gespeichert` and that same selected row ID.
+  This confirms the bounded local Save/restore journey, not Unsave or CloudKit.
+  Unsave remains unproved because native long-press input has not reached its
+  context menu. Explicit UI handback is still pending; absence of the first PID
+  was a restart, not a runtime-slot release.
+  One actual visible layout defect was sent to Mobile in
+  `01a08011-0102-7f63-99e0-266c3777cb5c`: even `example.com` is truncated to
+  `exa…` by the action row. It belongs to existing UI polish, not a new test gate.
 - **Mobile UI is in progress, 2026-09-08 07:58 UTC:** the Mobile owner has
   consumed the explicit user grant and started the isolated Build17 journey.
   Its live report confirms visible start/navigation and Inbox assignment;
