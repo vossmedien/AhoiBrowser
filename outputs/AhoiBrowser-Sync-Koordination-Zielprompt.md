@@ -92,8 +92,10 @@ matrix. Existing runtime, CPU, privacy and non-destructive boundaries remain.
 
 No new helper is needed just to duplicate these existing owners. The current
 native frozen build must finish without being widened/restarted by this handoff.
-Fresh cross-project CPU gates and the explicit native runtime handoff rules
-continue to apply. Never interrupt another owner's build.
+Use the current global AGENTS.md shared-machine capacity policy: assess total
+CPU relative to available cores, memory/swap and relevant GPU/responsiveness,
+not a fixed 80%-per-process gate or Ahoi-specific priority. File/checkout/out and
+native runtime handoffs remain explicit. Never interfere with foreign processes.
 
 ## Execution
 

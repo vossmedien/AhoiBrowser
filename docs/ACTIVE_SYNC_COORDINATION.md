@@ -1,6 +1,6 @@
 # Active sync coordination
 
-Updated: 2026-09-06 (local time). Coordinator: `01a044d6-1545-7532-8394-6b7df1144bb1`.
+Updated: 2026-09-08. Coordinator: `01a044d6-1545-7532-8394-6b7df1144bb1`.
 Registered goal: joint sync-model integration and candidate-bound acceptance.
 Contract: `outputs/AhoiBrowser-Sync-Koordination-Zielprompt.md` plus ADR 0009,
 binding browser-setup extension ADR 0010 (`79d2102`), and the domain/privacy
@@ -29,6 +29,17 @@ safety checks; no warning suppression or false pass. Desktop was notified in
 
 ## Latest material readback
 
+- Current global and project `AGENTS.md` were read completely on September 8.
+  A read-only local prompt-input check confirmed both files, the new total-machine
+  capacity rule, equal treatment of projects and E2E-first sequencing. The old
+  single-process 80% gate and Ahoi priority are superseded; source/out/UI leases
+  remain unchanged. Both active owners were notified in
+  `01a07f8e-f28b-7c41-af80-a57796ad09d0` / `01a07f8e-f49d-7302-9f4a-7bc3c3bbb0cf`.
+  Fresh process readback bound Desktop PID74605 and Sync PID75291 to their exact
+  resumed thread IDs and the canonical workspace; old process IDs are history.
+- Installed plist readback on September 8 is still `4cb622a`. Earlier visible
+  results below retain their original artifact/environment scope; no rerun or
+  present runtime lease is inferred from them.
 - The user confirmed scope additions made directly in both owner sessions.
   Desktop owns workspace-local cookie/session isolation after its current
   package; Sync owns eligible Chrome settings and extension restoration/settings.
@@ -60,9 +71,10 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   (`7518c2f`): Mobile Page/Presence capture, explicit closing and intent/projection
   separation are now WIP code. The old URL-filter/absence-delete publisher is
   removed; restart duplicate rows have a source correction using binding readback
-  before mirrors. Still open: Common native capture, Mobile lifecycle/navigation/
-  unsave completion and ADR0010 setup adapters. No build/test/runtime pass or
-  B-D API handoff is claimed. Old codec/marker/ownership fixes are not reopened.
+  before mirrors. Common native capture has since been handed over in `e2f6711`
+  below. Mobile lifecycle/navigation/unsave completion, Native B-D implementation
+  and ADR0010 setup adapters remain open. No build/test/runtime pass is claimed.
+  Old codec/marker/ownership fixes are not reopened.
   Golden assertions remain unexecuted and optional expansion deferred; the
   earlier `3e9552f` DCO follow-up remains preserved.
 - On the same installed `4cb622a` candidate, AnyChat 1.0.8 reached the native permissions
@@ -80,16 +92,21 @@ safety checks; no warning suppression or false pass. Desktop was notified in
   files have no `c986090..4cb622a` differences. Reused runner/shared-runtime
   limits are explicit in `artifacts/tests/sidebar-presentation-20260906/README.md`;
   this is not a whole-candidate or unified-Sync pass. No test rerun here.
-- Common C++ Service getter/Observer/capture declarations and implementation
-  files are now visible WIP (`profile_sync_service_shared_capture.cc`,
-  `profile_sync_backend_shared_tabs.cc`). The owner is also requesting a small
-  native atomic projection-receipt seam; that is local persistence, not another
-  wire format. No finished B-D code handoff or build is inferred.
+- Common C++ is now a committed, pushed source handoff:
+  `e2f67111fcb02f08eabe44b6fbac52f0afb3a57b` (September 8). Coordinator checked
+  its manifest: 50 Common files, 3 configs, 2 docs; no Native/Swift files.
+  Service/getter/Observer/capture and receipt-backed backend/journal code are
+  present. Exact callable seams and original-authorization requirements are in
+  the current `docs/UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md`.
+  The missing Common-code wait is RESOLVED; Desktop now implements B-D,
+  including atomic native tree+receipt persistence, against this concrete source.
+  Receipt metadata is local, not a new wire field or migration. Source handoff
+  is not native implementation, compilation, E2E or unified-Sync acceptance.
 - Coordinator observed repeated delayed 92694fe/SQL replies at 20:50–20:52 and
   sent `01a07359-5e4f-7242-a33b-0b407858ba53`: no repeated old handoff checks;
   continue the actual Service/capture/backend and Mobile binding work. ADR0010
-  remains fully in scope. This is execution steering, not a new role/freeze or
-  a claim that the missing B-D code handoff has arrived.
+  remains fully in scope. That was earlier execution steering; the later actual
+  Common handoff is `e2f6711`, not another role/freeze question.
 - The separate stale active Desktop "Next actions" finding from
   `01a0737f-d71e-76b3-86ed-7d68cc9ff160` is FIXED in `5d9f8c1`, verified by the
   coordinator. Its eight active steps now bind `4cb622a`; old926/c986/PIDs are
@@ -149,8 +166,10 @@ common code handoff: shared target/capture/state types, default-false UI bridge
 and isolated GN `shared_tab_types` leaf. Coordinator inspected the full manifest,
 headers and dependencies; no writer/model/store changes. Desktop has the exact
 code/dependency handoff for its alias; no further A format/ownership ACK needed.
-B-D still await the actual service/getter/capture/backend implementation handoff;
-these interfaces alone are not working native behavior. Baseline work is separate.
+B-D now have the actual Common Service/backend handoff `e2f6711`. Native
+implementation remains Desktop-owned and is not yet runtime proof. In particular,
+complete tree+receipt export and authorized atomic apply/persistence must be wired;
+their fail-closed defaults are not a working native adapter. Baseline work stays separate.
 Desktop has consumed Native A in `906dac8`: exactly the Session target-type aliases
 and their GN leaf dependency, documented in e4df043. This is source-only and is
 not included in the unchanged installed4cb candidate; do not request A again.
@@ -252,10 +271,11 @@ not included in the unchanged installed4cb candidate; do not request A again.
 
 1. Both owners have accepted their roles. Follow the concrete package sequence
    and native header handoffs; no further role-confirmation loop.
-2. Track the next bounded native correction handoff/build without starting
-   competing intensive work. Source, build, tests, signing and install
-   remain separate gates.
-3. Sync owner closes matching C++/Swift, fresh bootstrap and live binding
+2. Desktop consumes `e2f6711` for Native B-D and the local receipt seam; no
+   repeated missing-API/role wait or insertion into the separate old baseline.
+   Sync finishes Mobile lifecycle/live binding and ADR0010 setup adapters in
+   its owned scope. Coordinate later heavy phases by actual total capacity.
+3. Close remaining fresh bootstrap and cross-client live binding
    gaps, using exact native adapter handoffs where needed; target one active
    model, not perpetual v2/v3 writer coexistence or complex old-data migration.
 4. Agree the next coherent source freeze and candidate-bound verification.
