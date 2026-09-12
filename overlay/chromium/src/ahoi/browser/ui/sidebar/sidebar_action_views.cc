@@ -33,6 +33,7 @@
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/separator.h"
 #include "ui/views/layout/box_layout.h"
+#include "ui/views/style/typography.h"
 #include "ui/views/view.h"
 #include "ui/views/view_utils.h"
 
@@ -673,8 +674,7 @@ std::unique_ptr<views::View> CreateSidebarSectionDivider(
   action->SetTextColor(views::Button::STATE_NORMAL, visual_style::kMutedText);
   action->SetTextColor(views::Button::STATE_HOVERED, visual_style::kText);
   action->SetTextSubpixelRenderingEnabled(false);
-  action->label()->SetFontList(
-      action->label()->font_list().DeriveWithSizeDelta(-1));
+  action->SetLabelStyle(views::style::STYLE_CAPTION);
   action->SetTooltipText(
       l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL));
   action->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(
