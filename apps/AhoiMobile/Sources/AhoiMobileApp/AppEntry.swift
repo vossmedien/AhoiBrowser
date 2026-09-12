@@ -1,6 +1,7 @@
 import SwiftUI
 import AhoiMobileCore
 import AhoiCloudKitSpike
+import WebKit
 
 @main
 struct AhoiMobileApp: App {
@@ -87,6 +88,8 @@ private final class AhoiMobileBootstrap: ObservableObject {
     private var externalOpenDeduplicator: MobileExternalOpenDeduplicator
     private let performanceRecorder = MobileBrowserPerformanceRecorder()
     private let performanceLaunchValidation: MobilePerformanceLaunchValidation
+    private var developmentScope: MobileDevelopmentScope?
+    private var developmentScopeError: Error?
 
     init() {
         let launchValidation = MobilePerformanceLaunchRequest.validate(
@@ -110,12 +113,30 @@ private final class AhoiMobileBootstrap: ObservableObject {
             return
         }
 #endif
+        do {
+            developmentScope = try MobileDevelopmentScope.resolve(info: Bundle.main.infoDictionary ?? [:])
+        } catch {
+            developmentScopeError = error
+            externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+            return
+        }
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         )[0]
+        if let developmentScope {
+            do {
+                try MobileDevelopmentScope.validateAncestors(
+                    of: developmentScope.supportDirectory(under: applicationSupportURL), under: applicationSupportURL)
+            } catch {
+                developmentScopeError = error
+                externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+                return
+            }
+        }
         externalOpenDeduplicator = MobileExternalOpenDeduplicator(
-            receiptURL: applicationSupportURL
+            receiptURL: developmentScope?.supportDirectory(under: applicationSupportURL)
+                .appendingPathComponent("external-open-receipt.json") ?? applicationSupportURL
                 .appendingPathComponent("AhoiMobile", isDirectory: true)
                 .appendingPathComponent("external-open-receipt.json")
         )
@@ -184,25 +205,29 @@ private final class AhoiMobileBootstrap: ObservableObject {
             return makeSyncVisibleUITestRuntime()
         }
 #endif
+        if let developmentScopeError { throw developmentScopeError }
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         )[0]
-        let supportURL = applicationSupportURL
+        let supportURL = developmentScope?.supportDirectory(under: applicationSupportURL) ?? applicationSupportURL
             .appendingPathComponent("AhoiMobile", isDirectory: true)
             .appendingPathComponent("SyncFormat3", isDirectory: true)
         // Fresh pre-launch namespace: old snapshots, provider checkpoints and
         // encrypted sidecars are neither imported nor overwritten.
-        for directory in [supportURL.deletingLastPathComponent(), supportURL] {
-            if FileManager.default.fileExists(atPath: directory.path),
-               try directory.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink == true {
-                throw CocoaError(.fileWriteInvalidFileName)
-            }
-        }
+        try MobileDevelopmentScope.validateAncestors(of: supportURL, under: applicationSupportURL)
         try FileManager.default.createDirectory(at: supportURL, withIntermediateDirectories: true)
 
         let store = FileCompanionStore(fileURL: supportURL.appendingPathComponent("snapshot-format3.json"))
-        let defaults = UserDefaults.standard
+        let defaults: UserDefaults
+        if let developmentScope {
+            guard let scopedDefaults = UserDefaults(suiteName: developmentScope.defaultsSuite) else {
+                throw MobileDevelopmentScope.ScopeError.defaultsUnavailable
+            }
+            defaults = scopedDefaults
+        } else {
+            defaults = .standard
+        }
         let sourceDeviceUUID = CompanionDeviceIdentity.loadOrCreate(in: defaults)
         let mobileSessionID = DeviceSessionID(
             rawValue: CompanionDeviceIdentity.loadOrCreateSession(in: defaults)
@@ -367,16 +392,20 @@ private final class AhoiMobileBootstrap: ObservableObject {
             syncRuntimeFactory: runtimeFactory,
             mobileSessionID: mobileSessionID,
             mobileDeviceName: UIDevice.current.name,
-            mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+            mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone,
+            defaults: defaults
         )
         let browser = MobileBrowserController(
             store: FileMobileBrowserSessionStore(
                 fileURL: supportURL.appendingPathComponent("browser-session.json")
             ),
+            downloadCoordinator: developmentScope == nil ? MobileDownloadCoordinator()
+                : MobileDownloadCoordinator(directoryURL: supportURL.appendingPathComponent("Downloads")),
             performanceRecorder: performanceRecorder,
             externalOpenReceiptURL: supportURL.appendingPathComponent(
                 "external-open-receipt.json"
-            )
+            ),
+            normalWebsiteDataStore: developmentScope.map { WKWebsiteDataStore(forIdentifier: $0.id) }
         )
         return Runtime(model: model, browser: browser)
     }

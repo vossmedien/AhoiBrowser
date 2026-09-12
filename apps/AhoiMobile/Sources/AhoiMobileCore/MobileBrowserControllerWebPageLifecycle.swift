@@ -222,7 +222,7 @@ extension MobileBrowserController {
                 websiteDataStore = created
             }
         } else {
-            websiteDataStore = .default()
+            websiteDataStore = normalWebsiteDataStore
         }
         websiteDataStores[tabID] = websiteDataStore
         configuration.websiteDataStore = websiteDataStore

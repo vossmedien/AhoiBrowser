@@ -64,6 +64,7 @@ public final class MobileBrowserController: ObservableObject {
     var linkInteractionCoordinators: [UUID: MobileLinkInteractionCoordinator] = [:]
     var websiteDataStores: [UUID: WKWebsiteDataStore] = [:]
     var privateWebsiteDataStore: WKWebsiteDataStore?
+    let normalWebsiteDataStore: WKWebsiteDataStore
     private var lastRecordedHistoryURL: [UUID: String] = [:]
     private var desktopSiteTabIDs: Set<UUID> = []
     var sharedPageSavesInFlight: Set<UUID> = []
@@ -105,9 +106,11 @@ public final class MobileBrowserController: ObservableObject {
         performanceRecorder: MobileBrowserPerformanceRecorder = MobileBrowserPerformanceRecorder(),
         storagePreparation: (@Sendable () async throws -> Void)? = nil,
         startupError: String? = nil,
-        externalOpenReceiptURL: URL? = nil
+        externalOpenReceiptURL: URL? = nil,
+        normalWebsiteDataStore: WKWebsiteDataStore? = nil
     ) {
         self.store = store
+        self.normalWebsiteDataStore = normalWebsiteDataStore ?? .default()
         self.saveCoordinator = MobileBrowserSessionSaveCoordinator(store: store)
         self.storagePreparation = storagePreparation
         self.permissionCoordinator = permissionCoordinator

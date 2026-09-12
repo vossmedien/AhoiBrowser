@@ -371,7 +371,7 @@ extension MobileBrowserController {
     public func clearWebsiteData() async {
         let types = WKWebsiteDataStore.allWebsiteDataTypes()
         await withCheckedContinuation { continuation in
-            WKWebsiteDataStore.default().removeData(
+            normalWebsiteDataStore.removeData(
                 ofTypes: types,
                 modifiedSince: .distantPast
             ) {
