@@ -159,7 +159,7 @@ NativeExtensionStorageAdapter::Eligible(
       return fail(ExtensionStorageDisposition::kUnsupported);
     }
   }
-  if (!system->management_policy()->UserMayLoad(extension, nullptr) ||
+  if (!system->management_policy()->UserMayLoad(extension) ||
       !system->management_policy()->UserMayModifySettings(extension, nullptr)) {
     return fail(ExtensionStorageDisposition::kBlockedByPolicy);
   }
