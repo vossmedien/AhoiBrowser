@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "kind": "normal-product-launch-and-isolated-local-readback",
+  "sourceCommit": "e2faf5440015512800f346a03e02de740a9e08b9",
+  "buildNumber": "24",
+  "candidateReceipt": "candidate.json",
+  "device": "Servusla",
+  "deviceIdentifier": "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+  "launchTime": "2026-09-12T11:28:36Z",
+  "processIdentifier": 5058,
+  "arguments": [],
+  "terminateExisting": false,
+  "rawLaunchResult": "device-product-launch-20260912.json",
+  "ownProcessStillPresentAt": "2026-09-12T11:47:02Z",
+  "rawOwnProcessReadback": "device-own-process-20260912.json",
+  "initialInvocationFailure": {
+    "category": "CLI-argument-validation",
+    "exitCode": 64,
+    "reason": "devicectl rejected an empty JSON environment override before launch",
+    "correction": "Verified no DEVICECTL_CHILD_ variables and omitted that unsupported empty override"
+  },
+  "namespace": {
+    "relativeDirectory": "Library/Application Support/AhoiMobile/DevelopmentAcceptance/bba96b17-f044-4923-9d40-67b15014d59e/SyncFormat3",
+    "preLaunchListing": "CoreDevice.ActionError3; absence not independently proven",
+    "postLaunchListingTime": "2026-09-12T11:29:25Z",
+    "files": ["browser-session.json", "snapshot-format3.json"],
+    "fileModificationMinute": "2026-09-12T11:28Z",
+    "providerEngineOrKeyJournalFilesObserved": false,
+    "scopedDefaultsKeys": ["AhoiMobile.Browser.SessionID", "AhoiMobile.RemoteCommand.SourceDeviceID"],
+    "scopedSyncCategoryOrSearchOverridesPresent": false,
+    "deviceAndSessionUUIDsValidAndMatchSnapshot": true,
+    "snapshotCounts": {"devices": 1, "sessions": 1, "workspaces": 0, "treeNodes": 0, "remoteTabs": 0, "history": 0, "bookmarks": 0},
+    "normalBrowserTabs": 1,
+    "initialTabURLIsAbsent": true
+  },
+  "oldPrivateApplicationDataRead": false,
+  "preferencesArtificiallyChanged": false,
+  "syncOptInOrKeyCloudActivationPerformed": false,
+  "macSimulatorCUAFocusUsed": false,
+  "evidence": {
+    "normalProductLaunch": "PASS",
+    "scopedLocalStateReadback": "PASS",
+    "visibleUIHostlabelMetadataJourney": "NOT_RUN",
+    "reason": "No installed device-bound screenshot or AX-control tool was available; CLI/files are not visible E2E."
+  }
+}

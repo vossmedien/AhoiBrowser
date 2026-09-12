@@ -1,0 +1,32 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "info",
+      "processes",
+      "--device",
+      "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+      "--filter",
+      "PID == 5058",
+      "--json-output",
+      "artifacts/build/mobile-development-e2faf54-20260912/device-own-process-20260912.json"
+    ],
+    "commandType" : "devicectl.device.info.processes",
+    "environment" : {
+      "TERM" : "xterm-256color"
+    },
+    "jsonVersion" : 3,
+    "outcome" : "success",
+    "version" : "518.33"
+  },
+  "result" : {
+    "deviceIdentifier" : "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+    "runningProcesses" : [
+      {
+        "executable" : "file:///private/var/containers/Bundle/Application/03376A5B-2C32-4A38-8B5D-9B9DE460668C/AhoiMobile-e2faf54-development-signed.app/AhoiMobile",
+        "processIdentifier" : 5058
+      }
+    ]
+  }
+}

@@ -71,6 +71,23 @@ closes a protected peer page or alters its account, form, navigation or focus.
 
 ## Persistence and native API handoff
 
+Confirmed local-first authority: logical splits/archive/Home/policy and durable
+local intent/baseline information live in the existing NativeTree SQLite domain
+store, including while Sync is OFF or offline. This adds no archive database.
+The existing Common store remains the consented portable mirror/outbox. Its
+backend/transport gates are not removed or widened; Native reconciles retained
+local intent through the existing adapter when Sync is enabled. Mobile retains
+its local logical data in the existing CompanionStore.
+
+`ReadWorkspaceStructure` uses the profile/provider transport lease; the helper's
+current `CaptureBrowserSettingsAuthorization` name does not introduce Browser-
+Settings category consent. Entity13/14 follow ordinary global Workspace/Tree
+sync authority. Native uses `local_device_id()` and folds the read projection's
+observed clock into its retained local HLC; original durable versions/field maps
+survive retry. Provider/account/first-fetch/CAS checks remain in Common, and
+remote apply receipts prevent a native echo. The source-only mirror API is not
+the offline archive UI's persistence authority.
+
 The existing C++ store now uses exact schema7 because the entity discriminator
 constraint changes from0..12 to0..14. Schema6 and other incompatible files are
 rejected without migration/overwrite. This is independent of wire format3.

@@ -1,0 +1,78 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "info",
+      "files",
+      "--device",
+      "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+      "--domain-type",
+      "appDataContainer",
+      "--domain-identifier",
+      "app.ahoibrowser.AhoiBrowser",
+      "--subdirectory",
+      "Library/Application Support/AhoiMobile/DevelopmentAcceptance/bba96b17-f044-4923-9d40-67b15014d59e/SyncFormat3",
+      "--columns",
+      "*",
+      "--json-output",
+      "artifacts/build/mobile-development-e2faf54-20260912/namespace-after-launch-20260912.json"
+    ],
+    "commandType" : "devicectl.device.info.files",
+    "environment" : {
+      "TERM" : "xterm-256color"
+    },
+    "jsonVersion" : 3,
+    "outcome" : "success",
+    "version" : "518.33"
+  },
+  "result" : {
+    "deviceIdentifier" : "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+    "domain" : "appDataContainer",
+    "domainIdentifier" : "app.ahoibrowser.AhoiBrowser",
+    "files" : [
+      {
+        "metadata" : {
+          "extendedAttributes" : {
+
+          },
+          "lastModDate" : "2026-09-12T11:28:37.000Z",
+          "ownerGid" : 501,
+          "ownerUid" : 501,
+          "permissions" : 420,
+          "size" : 392
+        },
+        "name" : "browser-session.json",
+        "relativePath" : "browser-session.json",
+        "resources" : {
+          "isDirectory" : false,
+          "isHidden" : false,
+          "isReadable" : true,
+          "isSymbolicLink" : false,
+          "isWritable" : true
+        }
+      },
+      {
+        "metadata" : {
+          "extendedAttributes" : {
+
+          },
+          "lastModDate" : "2026-09-12T11:28:37.000Z",
+          "ownerGid" : 501,
+          "ownerUid" : 501,
+          "permissions" : 420,
+          "size" : 3429
+        },
+        "name" : "snapshot-format3.json",
+        "relativePath" : "snapshot-format3.json",
+        "resources" : {
+          "isDirectory" : false,
+          "isHidden" : false,
+          "isReadable" : true,
+          "isSymbolicLink" : false,
+          "isWritable" : true
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "error" : {
+    "code" : 3,
+    "domain" : "CoreDevice.ActionError",
+    "userInfo" : {
+      "NSDebugDescription" : {
+        "string" : "This operation could not be performed due to an error in StreamingAction: The system failed to get a list of files on the remote device."
+      }
+    }
+  },
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "info",
+      "files",
+      "--device",
+      "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+      "--domain-type",
+      "appDataContainer",
+      "--domain-identifier",
+      "app.ahoibrowser.AhoiBrowser",
+      "--subdirectory",
+      "Library/Application Support/AhoiMobile/DevelopmentAcceptance/bba96b17-f044-4923-9d40-67b15014d59e/SyncFormat3",
+      "--json-output",
+      "artifacts/build/mobile-development-e2faf54-20260912/namespace-before-launch-20260912.json"
+    ],
+    "commandType" : "devicectl.device.info.files",
+    "environment" : {
+      "TERM" : "xterm-256color"
+    },
+    "jsonVersion" : 3,
+    "outcome" : "failed",
+    "version" : "518.33"
+  }
+}

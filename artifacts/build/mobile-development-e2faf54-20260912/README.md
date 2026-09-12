@@ -1,5 +1,26 @@
 # Corrected Mobile Development24, installed but not launched
 
+## Subsequent normal product start — 12 September
+
+Root separately authorized a real product launch with Sync OFF. Device24
+started normally at11:28:36UTC as PID5058, with no fixture/harness arguments or
+terminate-existing option. The owned process was still present at11:47:02UTC.
+Only the precise new acceptance namespace/defaults were read: one blank normal
+browser tab, one local device/session pair with matching scoped UUIDs, no
+workspaces/pages/history/bookmarks and no Sync/category/search overrides.
+The namespace contained only the local browser/session snapshot files, modified
+at launch, with no provider/engine/key-journal files. No old private app data
+was read and no preferences, keys or CloudKit state were changed.
+
+This is technical launch/local-state proof, **not a visible UI pass**. No installed
+device-bound screenshot/AX tool was available without entering the foreign
+Mac/Simulator CUA window. Hostlabel/metadata navigation remains NOT_RUN. The
+prelaunch directory query failed generically, so it is not claimed as a proven
+empty-directory baseline. A corrected CLI environment-argument invocation
+failure is also retained in `product-start-receipt-20260912.json`.
+
+## Original build and install evidence
+
 Exact source `e2faf5440015512800f346a03e02de740a9e08b9` is the cleanfa53e31
 baseline plus ONLY the two-file `7e19476` AppStorage correction. The original
 three UI bindings now use the runtime model's scoped defaults. No e7abcff
