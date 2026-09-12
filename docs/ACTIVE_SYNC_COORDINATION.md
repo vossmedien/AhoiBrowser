@@ -142,6 +142,11 @@ OFF and read back0; ordinary application quit succeeded, with PID39235 absent
 and no remaining own windows. Root holds no UI slot. The unused MBC START01a09524
 was revoked; MBC's later11:50 handback was consumed once. None of these events
 starts BetterConvo or revives September8 slots.
+MBC subsequently started a genuinely new8998792A session (launchd_sim77724,
+freshly identified on September12). Its natural handback is requested in
+01a095c1 before the next native Sync UI journey. This is not an old-slot hold.
+Its brief boot-time capacity spike subsided and Desktop resumed its own paused
+preflight after two sufficient samples; no continuing blanket CPU block exists.
 
 **First native visible result:** ordinary c8 MacA launch and navigation through
 the existing Settings UI succeeded. CUA timed out, but permitted native macOS
@@ -151,17 +156,34 @@ the UI then reports an account/zone recovery prerequisite. AX exposes the two
 account-recovery buttons with size0x0 and their Sync disclosure at0x28, so no
 invisible confirmation was performed. Common's selective live flag readback
 confirmed accountTransitionPending=true and zoneRecoveryPending=false. The
-native AccountChange handler resets state even on first/identical sign-in;
-Common is implementing a bound-account correction, preserving real-change
-revocation. Desktop fixed the zero preferred width in6a2cd6f, with the recovery
+native AccountChange handler reset state even on first/identical sign-in.
+Common793d58a now binds that event to the account identity already verified by
+bootstrap, preserving real-change revocation and existing recovery flags.
+Desktop fixed the zero preferred width in6a2cd6f, with the recovery
 disclosure shown without confirming anything. Source-only sidebar polish29b5f8a
 also addresses the user's gray-pill screenshot. The misleading OFF-state
-"CloudKit unavailable in this build" copy is part of the same focused followup.
+"CloudKit unavailable in this build" copy is corrected in30e2a1a.
 Screens are under artifacts/e2e/native-sync-c8d9161-20260912/. This is a blocked
 changed journey, NOT a bootstrap/transport/roundtrip pass. The bba96b17 scope may
 now contain setup state and must never again be assumed unused from its name.
 Device24 stays Sync OFF while this exact native prerequisite is resolved. The
 next c8 correction combines those bounded fixes, not the separate Structure WIP.
+Its initial a95 compilation found one protected LabelButton API in the sidebar
+polish; Desktop10ee5e8 uses the public API. The exact corrected candidate and
+actual guarded build state are in the Desktop checkpoint, not a duplicated
+handle here. For the isolated MacA test data only, Root has explicitly chosen
+the visible "Lokale Daten weiter hochladen" recovery option after candidate/
+scope/visibility verification. No hidden flag reset or real-Default upload is
+authorized by that choice.
+
+The physical Device24 UI access preparation found no validated attach-only
+runner for those installed bytes. Existing fixture/seed/launch-based UI tests
+must not be repurposed as this live-device journey. The current normal device
+entry is More -> Settings -> CloudKit Sync, with an actual device screenshot/
+observation still required; do not infer it from devicectl or local JSON. No
+Phone opt-in was performed. Independent Mobile Home/Reader/Markdown work proceeds
+in its source ownership while the native correction runs, without another
+harness or an uncoordinated hardware/CloudKit action.
 
 No September8 Simulator reservation or START message is valid today. Before
 starting, the current owner checks actual surfaces/workload and gives a concrete
