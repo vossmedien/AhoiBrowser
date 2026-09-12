@@ -2,6 +2,35 @@
 
 ## Restarted native integration — 12 September 2026
 
+**Current concrete candidate:** guarded app-only c8d9161 build7305 is TERMINAL
+EXIT0. The original portable app is under `.work/chromium/src/out/AhoiDev/`;
+build receipt `artifacts/build/native-sync-c8d9161-20260912/build-receipt.json`
+SHA `8dfb9694743780702d00a6108f771420c08c26e23cf5451bddd0afc02e4f9ddb`.
+The APFS copy at that artifact directory's `cloudkit/AhoiBrowser.app` was
+prepared with the exact shared scope, signed and verified through the real CLI:
+preparation67309 and signing/verification90972 are TERMINAL EXIT0.
+Verification receipt SHA `c084bec9fe5a31fd2ec1363790c263ccf8aaae1eff5bfd94dac1e0cd5e7728ac`;
+signed bundle tree `4d4edb07c2f16005aec9fa9a92ab2607eff826871492270c24512a2238615471`;
+signed executable `29118f340a5dbaceaee1c9164353bca6d9b8d9c57dc0ee17242df7b9e7402ee5`.
+The exact clean tool/source snapshot remains
+`/private/tmp/ahoi-native-sync-build.eqejEO/repo` atc8d9161 for install/runtime.
+After the real signing workflow, both new scope cases, the existing exact Apple
+profile-claims case and all five DevelopmentInstallationTests passed:8/8,0.046s.
+These verify signing/configuration/transaction boundaries, not visible app E2E.
+Installation/runtime currently wait for the coordinator's explicit MBC UI
+handback. Neither MacA nor MacB acceptance directory has been created; installed
+a24a792 and the real Default remain unchanged. No CloudKit/key action was taken.
+
+First a58e84c build33274 EXIT1 retains its three compiler causes/log; e5cbe4c
+build87322 EXIT1 retained two missing Native sequence-context checks. Exact
+followupc8d9161 adds the existing sequence assertions/accessor and then passes.
+Original failures remain in their separate artifact directories. No warnings,
+assertions or required app targets were removed.
+
+Later Common/Swift Structure sourcee7abcff is NOT in this candidate. It requires
+Native metadata persistence/projection and a fresh matching schema7 acceptance
+pair; never promote this older restored-setup candidate to a full Crest pass.
+
 The user explicitly restarted the two stopped workstreams. Current Desktop
 ownership is `/root/desktop_resume` under the coordinating thread: Native
 Tree/Session/UI, patch stack, shared Chromium checkout/out, build/sign/install.
