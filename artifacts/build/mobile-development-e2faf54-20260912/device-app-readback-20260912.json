@@ -1,0 +1,46 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "info",
+      "apps",
+      "--device",
+      "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+      "--bundle-id",
+      "app.ahoibrowser.AhoiBrowser",
+      "--json-output",
+      "artifacts/build/mobile-development-e2faf54-20260912/device-app-readback-20260912.json"
+    ],
+    "commandType" : "devicectl.device.info.apps",
+    "environment" : {
+      "TERM" : "xterm-256color"
+    },
+    "jsonVersion" : 3,
+    "outcome" : "success",
+    "version" : "518.33"
+  },
+  "result" : {
+    "apps" : [
+      {
+        "appClip" : false,
+        "builtByDeveloper" : true,
+        "bundleIdentifier" : "app.ahoibrowser.AhoiBrowser",
+        "bundleVersion" : "24",
+        "defaultApp" : false,
+        "hidden" : false,
+        "internalApp" : false,
+        "name" : "AhoiBrowser",
+        "removable" : true,
+        "url" : "file:///private/var/containers/Bundle/Application/03376A5B-2C32-4A38-8B5D-9B9DE460668C/AhoiMobile-e2faf54-development-signed.app/",
+        "version" : "0.1"
+      }
+    ],
+    "defaultAppsIncluded" : false,
+    "deviceIdentifier" : "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+    "hiddenAppsIncluded" : false,
+    "internalAppsIncluded" : false,
+    "matchingBundleIdentifier" : "app.ahoibrowser.AhoiBrowser",
+    "removableAppsIncluded" : true
+  }
+}
