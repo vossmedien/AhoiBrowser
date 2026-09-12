@@ -1,5 +1,45 @@
 # Active Desktop checkpoint
 
+## Restarted native integration — 12 September 2026
+
+The user explicitly restarted the two stopped workstreams. Current Desktop
+ownership is `/root/desktop_resume` under the coordinating thread: Native
+Tree/Session/UI, patch stack, shared Chromium checkout/out, build/sign/install.
+Common C++ and Mobile are `/root/sync_mobile_resume`; the old process/slot
+history below is not an active reservation. Canonical branch is unchanged.
+
+Storage request Hook0040 is committed/pushed as4ee694e, byte-identical to the
+f36e4bd proposal (SHA9f8ef3ca5fbb23970e41b9feec0afd1697a85d5204568f59d8171c2e30dcfecf).
+Common explicitly released unchanged3c4b2dc plus this API for the combined build.
+Ordered offline composition passed; no live checkout was changed for that handoff.
+
+The next source block connects actual CWS install/enable/disable/uninstall to
+SessionBridge, using the retained0039 activation lease and honest native readback.
+Passive installs requiring new permission report NeedsConfirmation; a per-ID
+button in the existing Sync disclosure invokes Common's explicit Retry and the
+normal native permission prompt. Category controls cover extension setup and the
+reviewed Vimium boolean settings. Original authorization persists through async
+work and is revoked on replacement/shutdown. Separate0041 user-action callbacks
+publish actual Settings/prompt/user-uninstall intent without interpreting normal
+registry events or remote apply as user decisions. First installation of the
+separately pinned uBO Classic package still requires its existing dedicated
+source/license flow; it is reported as separate setup, not silently fetched as CWS.
+
+Mac Prepare/Verify/atomic Development Install now accept the same explicit
+`--acceptance-scope` JSON. Only the bound Development zone/subscription/key-account
+change; Team/container/groups/services/Production remain the canonical policy.
+Scope ID+source SHA are signed runtime fields and installation receipt inputs;
+mixed scopes, other signing profiles and unbound installation are rejected.
+Prepared names do not establish an empty server namespace or successful key setup.
+
+Live readback on restart: installed app remainsa24a792, no running Ahoi process.
+No real Default/Arc profile/key/CloudKit data was reset. Current source block is
+not yet a compiled or installed candidate. Representative visible sync/settings/
+extension journeys precede focused checks. Existing repository line-budget
+violations outside this owned block remain red; they are not app build inputs.
+The separate split/archive/Home format extension remains coordinated in
+`docs/SPLIT_ARCHIVE_SYNC.md`, not activated by this extension-restore packet.
+
 Updated: 2026-09-08. Owner: thread `01a04f97-e3ba-70f2-a031-220b214d352d`.
 
 ## Contract and ownership

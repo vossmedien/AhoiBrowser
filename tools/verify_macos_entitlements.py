@@ -55,6 +55,8 @@ CLOUDKIT_ENTITLEMENT_KEYS = {
     "keychain-access-groups",
 }
 CLOUDKIT_RUNTIME_KEYS = {
+    "AHOI_SYNC_ACCEPTANCE_SCOPE_ID",
+    "AHOI_SYNC_ACCEPTANCE_SCOPE_SHA256",
     "AHOI_CLOUDKIT_CONTAINER_ID",
     "AHOI_CLOUDKIT_ZONE_NAME",
     "AHOI_CLOUDKIT_SUBSCRIPTION_ID",
@@ -245,6 +247,57 @@ def load_policy(path: pathlib.Path) -> dict[str, Any]:
     if "browser-app" not in seen_ids:
         raise SystemExit("entitlement policy has no browser-app rule")
     return value
+
+
+def development_acceptance_policy(
+    policy: dict[str, Any], scope_path: pathlib.Path, profile_name: str
+) -> dict[str, Any]:
+    """Bind one isolated Development namespace without changing signing rights."""
+    if profile_name != "cloudkit-development":
+        raise SystemExit("acceptance scope requires cloudkit-development")
+    raw = scope_path.read_bytes()
+    scope = json.loads(raw)
+    if not isinstance(scope, dict):
+        raise SystemExit("acceptance scope must be an object")
+    scope_id = scope.get("scopeID")
+    if not isinstance(scope_id, str) or not re.fullmatch(
+        r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+        scope_id,
+    ):
+        raise SystemExit("acceptance scope requires a canonical UUIDv4")
+    identity = policy["publicIdentity"]
+    runtime = policy["runtimeConfiguration"]
+    expected = {
+        "schemaVersion": 1,
+        "environment": "Development",
+        "containerIdentifier": identity["cloudKitContainerIdentifier"],
+        "zoneName": f"AhoiSyncAcceptance-{scope_id}",
+        "subscriptionIdentifier": f"AhoiSyncAcceptanceSubscription-{scope_id}",
+        "syncKeychainService": runtime["syncKeychainService"],
+        "syncKeychainAccount": f"payload-key.acceptance-{scope_id}",
+        "syncKeychainAccessGroup": identity["keychainAccessGroups"][0],
+        "syncKeyVersion": runtime["syncKeyVersion"],
+        "constraints": {
+            "freshLocalStoresRequired": True,
+            "existingKeysOrRecordsMayBeDeleted": False,
+            "manualKeyCopyAllowed": False,
+            "productionAllowed": False,
+        },
+    }
+    for key, value in expected.items():
+        # Exact JSON types: bool is not an integer schema version.
+        if type(scope.get(key)) is not type(value) or scope[key] != value:
+            raise SystemExit(f"acceptance scope differs from Development contract: {key}")
+    if any(type(value) is not bool for value in scope["constraints"].values()):
+        raise SystemExit("acceptance constraints require exact booleans")
+    scoped = copy.deepcopy(policy)
+    for key in ("zoneName", "subscriptionIdentifier", "syncKeychainAccount"):
+        scoped["runtimeConfiguration"][key] = scope[key]
+    scoped["acceptanceScope"] = {
+        "scopeID": scope_id,
+        "sha256": hashlib.sha256(raw).hexdigest(),
+    }
+    return scoped
 
 
 def parse_entitlements(raw: bytes) -> dict[str, Any]:
@@ -441,6 +494,9 @@ def validate_provisioning_profile(
 def runtime_build_settings(
     policy: dict[str, Any], profile_name: str, profile_uuid: str | None = None
 ) -> dict[str, str]:
+    scope = policy.get("acceptanceScope")
+    if scope is not None and profile_name != "cloudkit-development":
+        raise SystemExit("acceptance scope cannot authorize another signing profile")
     if profile_name == "provider-free":
         return {}
     contract = signing_profile(policy, profile_name)
@@ -463,6 +519,9 @@ def runtime_build_settings(
     }
     if profile_uuid is not None:
         values["AhoiProvisioningProfileUUID"] = profile_uuid
+    if scope is not None:
+        values["AHOI_SYNC_ACCEPTANCE_SCOPE_ID"] = scope["scopeID"]
+        values["AHOI_SYNC_ACCEPTANCE_SCOPE_SHA256"] = scope["sha256"]
     return values
 
 
@@ -489,6 +548,9 @@ def verify_app_runtime_configuration(
     if profile_metadata is None:
         raise SystemExit("CloudKit runtime readback requires provisioning profile metadata")
     expected = runtime_build_settings(policy, profile_name, profile_metadata["uuid"])
+    unexpected = CLOUDKIT_RUNTIME_KEYS.intersection(info) - set(expected)
+    if unexpected:
+        raise SystemExit(f"app contains unbound CloudKit runtime keys: {sorted(unexpected)}")
     for key, value in expected.items():
         if info.get(key) != value:
             raise SystemExit(f"app Info.plist CloudKit value is not exact: {key}")

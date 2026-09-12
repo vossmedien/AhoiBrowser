@@ -244,6 +244,8 @@ source_set("browser_sidebar") {
     "sidebar_split_tab_operations.h",
     "sidebar_sync_controls.cc",
     "sidebar_sync_controls.h",
+    "sidebar_sync_setup_controls.cc",
+    "sidebar_sync_setup_controls.h",
     "sidebar_tab_preview_controller.cc",
     "sidebar_tab_preview_controller.h",
     "sidebar_tab_thumbnail_cache.cc",

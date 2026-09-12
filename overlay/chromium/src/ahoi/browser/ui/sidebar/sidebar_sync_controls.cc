@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "ahoi/browser/sync/profile_sync_service.h"
+#include "ahoi/browser/ui/sidebar/sidebar_sync_setup_controls.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
@@ -142,6 +143,8 @@ class SidebarSyncControlsView final : public views::View {
     // it out of the always-visible filter row prevents an ordinary disabled
     // state from reading like a permanent warning between the user's tabs.
     status_label_ = settings_body_->AddChildView(MakeMutedLabel({}, true));
+    setup_controls_ =
+        settings_body_->AddChildView(CreateSidebarSyncSetupControls());
 
     sync_enabled_ =
         settings_body_->AddChildView(std::make_unique<views::Checkbox>(
@@ -275,6 +278,7 @@ class SidebarSyncControlsView final : public views::View {
   void Update(sync::ProfileSyncService* service,
               std::vector<sync::DeviceRecord> filter_devices) {
     service_ = service;
+    UpdateSidebarSyncSetupControls(setup_controls_, service);
     UpdateFilterDevices(std::move(filter_devices));
     if (!service_) {
       SetEnabled(false);
@@ -356,6 +360,19 @@ class SidebarSyncControlsView final : public views::View {
   std::u16string StatusText(const sync::SyncTransportStatus& status) const {
     if (!status.enabled) {
       return Text(u"Sync ist ausgeschaltet", u"Sync is off");
+    }
+    if (!status.key_setup_issue.empty()) {
+      if (status.key_setup_issue == "key_setup_waiting_for_key") {
+        return Text(u"Warten auf den gemeinsamen iCloud-Schlüssel",
+                    u"Waiting for the shared iCloud key");
+      }
+      if (status.key_setup_issue == "key_setup_in_progress" ||
+          status.key_setup_issue == "key_setup_busy") {
+        return Text(u"Sync-Verbindung wird eingerichtet",
+                    u"Setting up the sync connection");
+      }
+      return Text(u"Sync-Einrichtung unterbrochen · erneut prüfen",
+                  u"Sync setup interrupted · check again");
     }
     if (!status.provider_available) {
       return Text(u"Nur lokal · CloudKit nicht verfügbar",
@@ -602,6 +619,7 @@ class SidebarSyncControlsView final : public views::View {
   raw_ptr<views::LabelButton> settings_button_ = nullptr;
   raw_ptr<views::Label> status_label_ = nullptr;
   raw_ptr<views::View> settings_body_ = nullptr;
+  raw_ptr<views::View> setup_controls_ = nullptr;
   raw_ptr<views::Checkbox> sync_enabled_ = nullptr;
   raw_ptr<views::Checkbox> remote_control_enabled_ = nullptr;
   raw_ptr<views::Combobox> retention_ = nullptr;

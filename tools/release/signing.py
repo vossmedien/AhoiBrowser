@@ -12,6 +12,7 @@ import tempfile
 from typing import Callable, Optional
 
 from verify_macos_entitlements import (
+    development_acceptance_policy,
     decode_provisioning_profile,
     expected_rule_entitlements,
     load_policy as load_entitlement_policy,
@@ -97,10 +98,19 @@ def signing_plan(
     return ordered
 
 
-def _entitlement_policy(policy_path: pathlib.Path) -> dict:
+def _entitlement_policy(
+    policy_path: pathlib.Path,
+    acceptance_scope: Optional[pathlib.Path] = None,
+    signing_profile_name: str = RELEASE_SIGNING_PROFILE,
+) -> dict:
     try:
-        return load_entitlement_policy(policy_path)
-    except SystemExit as error:
+        policy = load_entitlement_policy(policy_path)
+        if acceptance_scope is not None:
+            policy = development_acceptance_policy(
+                policy, acceptance_scope, signing_profile_name
+            )
+        return policy
+    except (SystemExit, OSError, ValueError) as error:
         raise ReleaseError(str(error)) from error
 
 
@@ -244,11 +254,12 @@ def prepare_cloudkit_app(
     provisioning_profile_path: pathlib.Path,
     policy_path: pathlib.Path,
     entitlements_output: Optional[pathlib.Path] = None,
+    acceptance_scope: Optional[pathlib.Path] = None,
 ) -> dict:
     """Embed one validated profile and stamp the exact CloudKit runtime contract."""
     if not app.is_dir() or app.is_symlink() or app.suffix != ".app":
         raise ReleaseError(f"AhoiBrowser app bundle is missing or unsafe: {app}")
-    policy = _entitlement_policy(policy_path)
+    policy = _entitlement_policy(policy_path, acceptance_scope, signing_profile_name)
     contract = signing_profile(policy, signing_profile_name)
     if contract["embeddedProvisioningProfile"] != "required":
         raise ReleaseError("CloudKit preparation requires an entitled signing profile")
@@ -257,6 +268,8 @@ def prepare_cloudkit_app(
     profile_sha256 = sha256_file(source_profile)
     info_path = app / "Contents/Info.plist"
     info = read_bundle_plist(app)
+    if acceptance_scope is not None and info.get("AhoiBuildProfile") not in {"dev", "full-dev"}:
+        raise ReleaseError("acceptance scope requires a development app candidate")
     if info.get("CFBundleIdentifier") != policy["publicIdentity"]["bundleIdentifier"]:
         raise ReleaseError("CloudKit preparation bundle identifier is not AhoiBrowser")
     runtime = runtime_build_settings(policy, signing_profile_name, metadata["uuid"])
@@ -360,10 +373,11 @@ def verify_signed_app(
     signing_profile_name: str = RELEASE_SIGNING_PROFILE,
     require_notarization: bool = False,
     macho_paths: Optional[list[pathlib.Path]] = None,
+    acceptance_scope: Optional[pathlib.Path] = None,
 ) -> dict:
     if not re.fullmatch(r"[A-Z0-9]{10}", expected_team):
         raise ReleaseError("Apple Team ID must contain ten uppercase letters/digits")
-    policy = _entitlement_policy(policy_path)
+    policy = _entitlement_policy(policy_path, acceptance_scope, signing_profile_name)
     contract = signing_profile(policy, signing_profile_name)
     if expected_team != policy["publicIdentity"]["teamIdentifier"]:
         raise ReleaseError("signing Team ID differs from the macOS CloudKit policy")
@@ -371,6 +385,10 @@ def verify_signed_app(
         raise ReleaseError(
             f"signing authority differs from profile {signing_profile_name}"
         )
+    if acceptance_scope is not None and read_bundle_plist(app).get(
+        "AhoiBuildProfile"
+    ) not in {"dev", "full-dev"}:
+        raise ReleaseError("acceptance scope requires a development app candidate")
     if signing_profile_name == "cloudkit-development" and read_bundle_plist(app).get(
         "AhoiBuildProfile"
     ) in {"dev", "full-dev"}:

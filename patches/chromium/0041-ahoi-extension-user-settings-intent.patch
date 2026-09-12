@@ -1,0 +1,190 @@
+diff --git a/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc b/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc
+index f52cfce..c25c8dc 100644
+--- a/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc
++++ b/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc
+@@ -212,6 +212,16 @@ void ChromeManagementAPIDelegate::DisableExtension(
+   SupervisedUserExtensionsDelegate* extensions_delegate =
+       GetSupervisedUserExtensionsDelegateFromContext(context);
+   extensions_delegate->RecordExtensionEnablementUmaMetrics(/*enabled=*/false);
++  if (!source_extension &&
++      disable_reason == disable_reason::DISABLE_USER_ACTION) {
++    const auto* target =
++        ExtensionRegistry::Get(context)->GetInstalledExtension(extension_id);
++    if (target &&
++        !ExtensionRegistrar::Get(context)->NotifyUserSettingsRequested(
++            *target, true, false)) {
++      return;
++    }
++  }
+   ExtensionRegistrar::Get(context)->DisableExtensionWithSource(
+       source_extension, extension_id, disable_reason);
+ }
+diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/browser/ui/extensions/extension_enable_flow.cc
+index c9c2be4..4e8e379 100644
+--- a/chrome/browser/ui/extensions/extension_enable_flow.cc
++++ b/chrome/browser/ui/extensions/extension_enable_flow.cc
+@@ -185,6 +185,13 @@ void ExtensionEnableFlow::CheckPermissionAndMaybePromptUser() {
+       return;
+     }
+     const auto weak_this = weak_ptr_factory_.GetWeakPtr();
++    if (!activation_authorization_ &&
++        !registrar->NotifyUserSettingsRequested(*extension, true, true)) {
++      return;
++    }
++    if (!weak_this) {
++      return;
++    }
+     registrar->EnableExtension(extension_id_);
+     if (!weak_this) {
+       return;
+@@ -323,6 +330,10 @@ void ExtensionEnableFlow::EnableExtension() {
+       return;
+     }
+   } else {
++    if (!registrar->NotifyUserSettingsRequested(*extension, true, true) ||
++        !weak_this) {
++      return;
++    }
+     registrar->GrantPermissionsAndEnableExtension(*extension);
+     if (!weak_this) {
+       return;
+diff --git a/extensions/browser/api/management/management_api.cc b/extensions/browser/api/management/management_api.cc
+index d88571b..f8d36ee 100644
+--- a/extensions/browser/api/management/management_api.cc
++++ b/extensions/browser/api/management/management_api.cc
+@@ -32,6 +32,7 @@
+ #include "extensions/browser/event_router.h"
+ #include "extensions/browser/extension_dialog_auto_confirm.h"
+ #include "extensions/browser/extension_prefs.h"
++#include "extensions/browser/extension_registrar.h"
+ #include "extensions/browser/extension_registry.h"
+ #include "extensions/browser/extension_system.h"
+ #include "extensions/browser/management_policy.h"
+@@ -599,6 +600,12 @@ void ManagementSetEnabledFunction::CheckManifestV2Deprecation() {
+   const ManagementAPIDelegate* delegate = ManagementAPI::GetFactoryInstance()
+                                               ->Get(browser_context())
+                                               ->GetDelegate();
++  if (!this->extension() &&
++      !ExtensionRegistrar::Get(browser_context())
++           ->NotifyUserSettingsRequested(*extension, true, true)) {
++    FinishEnable(Error(keys::kNoExtensionError));
++    return;
++  }
+   delegate->EnableExtension(browser_context(), extension_id_);
+   FinishEnable(NoArguments());
+ }
+@@ -666,6 +673,12 @@ void ManagementSetEnabledFunction::OnSupervisedExtensionApprovalDone(
+           ManagementAPI::GetFactoryInstance()
+               ->Get(browser_context())
+               ->GetDelegate();
++      if (!this->extension() &&
++          !ExtensionRegistrar::Get(browser_context())
++               ->NotifyUserSettingsRequested(*extension, true, true)) {
++        Respond(Error(keys::kNoExtensionError));
++        break;
++      }
+       delegate->EnableExtension(browser_context(), extension_id_);
+       Respond(NoArguments());
+       break;
+diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_installer.cc
+index 75cc0ec..d2432af 100644
+--- a/extensions/browser/crx_installer.cc
++++ b/extensions/browser/crx_installer.cc
+@@ -1144,6 +1144,16 @@ void CrxInstaller::ReportSuccessFromUIThread() {
+   registrar_->OnExtensionInstalled(extension(), page_ordinal_, install_flags_,
+                                    std::move(ruleset_install_prefs_));
+ 
++  if (!activation_authorization_ && client_ && !is_update_ &&
++      !update_from_settings_page_ && browser_context_ &&
++      ExtensionRegistry::Get(browser_context())
++              ->GetInstalledExtension(extension()->id()) == extension() &&
++      !registrar_->NotifyUserSettingsRequested(
++          *extension(), true,
++          registrar_->IsExtensionEnabled(extension()->id()))) {
++    return;
++  }
++
+   if (activation_authorization_) {
+     if (!browser_context_) {
+       return;
+diff --git a/extensions/browser/extension_registrar.cc b/extensions/browser/extension_registrar.cc
+index f60f403..59efb6f 100644
+--- a/extensions/browser/extension_registrar.cc
++++ b/extensions/browser/extension_registrar.cc
+@@ -744,6 +744,11 @@ bool ExtensionRegistrar::UninstallExtension(
+     return false;
+   }
+ 
++  if (reason == UNINSTALL_REASON_USER_INITIATED &&
++      !NotifyUserSettingsRequested(*extension, false, false)) {
++    return false;
++  }
++
+   // Prepare to uninstall the extension.
+   delegate_->PreUninstallExtension(extension.get());
+ 
+@@ -1033,6 +1038,23 @@ bool ExtensionRegistrar::GrantPermissionsAndEnableExtension(
+   return weak_this && IsExtensionEnabled(retained_extension->id());
+ }
+ 
++base::CallbackListSubscription ExtensionRegistrar::ObserveUserSettingsRequests(
++    UserSettingsRequestCallback callback) {
++  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
++  return user_settings_observers_->Add(std::move(callback));
++}
++
++bool ExtensionRegistrar::NotifyUserSettingsRequested(const Extension& extension,
++                                                     bool installed,
++                                                     bool enabled) {
++  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
++  const auto lifetime = weak_factory_.GetWeakPtr();
++  const auto observers = user_settings_observers_;
++  scoped_refptr<const Extension> retained = &extension;
++  observers->Notify(*retained, installed, enabled);
++  return !!lifetime;
++}
++
+ void ExtensionRegistrar::AddDisableFlagExemptedExtension(
+     const ExtensionId& extension_id) {
+   disable_flag_exempted_extensions_.insert(extension_id);
+diff --git a/extensions/browser/extension_registrar.h b/extensions/browser/extension_registrar.h
+index 54df48e..77a6b0e 100644
+--- a/extensions/browser/extension_registrar.h
++++ b/extensions/browser/extension_registrar.h
+@@ -9,6 +9,7 @@
+ #include <set>
+ 
+ #include "base/auto_reset.h"
++#include "base/callback_list.h"
+ #include "base/containers/span.h"
+ #include "base/files/file_path.h"
+ #include "base/functional/callback.h"
+@@ -224,6 +225,17 @@ class ExtensionRegistrar : public KeyedService,
+   // extensions cannot be enabled.)
+   void EnableExtension(const ExtensionId& extension_id);
+ 
++  // Explicit user entry points only, not registry/lifecycle observations.
++  // This is desired intent, not permission or a successful native write.
++  using UserSettingsRequestCallback = base::RepeatingCallback<
++      void(const Extension&, bool installed, bool enabled)>;
++  base::CallbackListSubscription ObserveUserSettingsRequests(
++      UserSettingsRequestCallback callback);
++  // Returns false if a subscriber released the registrar/profile.
++  bool NotifyUserSettingsRequested(const Extension& extension,
++                                   bool installed,
++                                   bool enabled);
++
+   // Marks `extension` as disabled and deactivates it. The ExtensionRegistry
+   // retains a reference to it, so it can be enabled later.
+   void DisableExtension(const ExtensionId& extension_id,
+@@ -521,6 +533,10 @@ class ExtensionRegistrar : public KeyedService,
+   base::ScopedObservation<DelayedInstallManager,
+                           DelayedInstallManager::Observer>
+       delayed_install_manager_observation_{this};
++  using UserSettingsObservers =
++      base::RepeatingCallbackList<void(const Extension&, bool, bool)>;
++  std::shared_ptr<UserSettingsObservers> user_settings_observers_ =
++      std::make_shared<UserSettingsObservers>();
+   base::WeakPtrFactory<ExtensionRegistrar> weak_factory_{this};
+ };
+ 

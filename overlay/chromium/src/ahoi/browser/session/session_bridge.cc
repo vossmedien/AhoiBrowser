@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/extensions/native_extension_setup_operation.h"
 #include "ahoi/browser/navigation/command_service.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
@@ -59,6 +60,7 @@ SessionBridge::SessionBridge(Profile* profile,
     return;
   }
   session_metadata_provider_registered_ = true;
+  InitializeNativeExtensionSetup();
   BeginTabTreeLoad();
 }
 
@@ -92,6 +94,8 @@ void SessionBridge::Shutdown() {
     PersistTabTreeNow();
   }
   shutting_down_ = true;
+  extension_setup_operations_.clear();
+  extension_user_settings_subscription_ = {};
   tab_tree_ready_ = false;
   workspace_reconciliation_scheduled_ = false;
   weak_ptr_factory_.InvalidateWeakPtrs();

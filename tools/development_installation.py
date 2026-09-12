@@ -13,9 +13,12 @@ from release.common import (
     ReleaseError,
     bundle_identity,
     load_json,
+    read_bundle_plist,
     sha256_file,
     run,
 )
+from release.signing import verify_signed_app
+from verify_macos_entitlements import development_acceptance_policy, load_policy
 from release.installation import (
     CopyBundle,
     RenameBundle,
@@ -63,6 +66,8 @@ def _require_verifier_script(path: pathlib.Path) -> str:
 
 def verify_development_bundle(app: pathlib.Path) -> None:
     """Apply the repository's complete stamped/signed build verification contract."""
+    if "AHOI_SYNC_ACCEPTANCE_SCOPE_ID" in read_bundle_plist(app):
+        raise ReleaseError("isolated CloudKit candidate requires --acceptance-scope")
     run([str(VERIFY_SCRIPT), str(app)], cwd=ROOT)
 
 
@@ -76,9 +81,45 @@ def install_development_app(
     exchange_bundle: Optional[RenameBundle] = None,
     move_exclusive: Optional[RenameBundle] = None,
     process_inspector: Optional[ProcessInspector] = None,
+    acceptance_scope: Optional[pathlib.Path] = None,
 ) -> dict:
     """Verify, atomically activate, reverify, and receipt one AhoiDev bundle."""
     verifier_sha256 = _require_verifier_script(VERIFY_SCRIPT)
+    scope_binding = None
+    entitlement_policy = ROOT / "config/macos-entitlements.json"
+    if acceptance_scope is not None:
+        if verifier is not verify_development_bundle:
+            raise ReleaseError("acceptance scope requires the canonical signature verifier")
+        try:
+            scoped = development_acceptance_policy(
+                load_policy(entitlement_policy), acceptance_scope, "cloudkit-development"
+            )
+        except (SystemExit, OSError, ValueError) as error:
+            raise ReleaseError(str(error)) from error
+        scope_binding = scoped["acceptanceScope"]
+        policy_sha256 = sha256_file(entitlement_policy)
+        expected_team = os.environ.get("AHOI_TEAM_ID", "")
+        expected_authority = os.environ.get("AHOI_CODESIGN_IDENTITY", "")
+        if not expected_team or not expected_authority:
+            raise ReleaseError("scoped install requires AHOI_TEAM_ID and AHOI_CODESIGN_IDENTITY")
+
+        def verify_scoped_bundle(target: pathlib.Path) -> None:
+            if (sha256_file(acceptance_scope) != scope_binding["sha256"] or
+                    sha256_file(entitlement_policy) != policy_sha256):
+                raise ReleaseError("Development scope or entitlement policy changed")
+            verify_signed_app(
+                target,
+                expected_team=expected_team,
+                expected_authority=expected_authority,
+                policy_path=entitlement_policy,
+                signing_profile_name="cloudkit-development",
+                acceptance_scope=acceptance_scope,
+            )
+            if (sha256_file(acceptance_scope) != scope_binding["sha256"] or
+                    sha256_file(entitlement_policy) != policy_sha256):
+                raise ReleaseError("Development scope or entitlement policy changed during verification")
+
+        verifier = verify_scoped_bundle
     artifact_reservation = reserve_installer_artifact_output(
         output,
         app=app,
@@ -110,6 +151,10 @@ def install_development_app(
             },
             "installation": installation,
         }
+        if scope_binding is not None:
+            receipt["verification"]["acceptanceScope"] = scope_binding
+            receipt["verification"]["entitlementPolicySha256"] = policy_sha256
+            receipt["verification"]["cloudKitSigningProfile"] = "cloudkit-development"
         if _require_verifier_script(VERIFY_SCRIPT) != verifier_sha256:
             raise ReleaseError(
                 "development verifier changed before receipt publication"
@@ -156,6 +201,8 @@ def parser() -> argparse.ArgumentParser:
         required=True,
         help="new immutable JSON receipt path outside /Applications",
     )
+    result.add_argument("--acceptance-scope", type=pathlib.Path,
+                        help="same isolated Development scope JSON as preparation/signing")
     return result
 
 
@@ -167,7 +214,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 2
     output = pathlib.Path(arguments.output).resolve()
     try:
-        install_development_app(candidate, output=output)
+        install_development_app(candidate, output=output,
+                                acceptance_scope=arguments.acceptance_scope)
     except ReleaseError as error:
         print(f"development install error: {error}", file=sys.stderr)
         return 2

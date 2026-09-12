@@ -101,6 +101,34 @@ as a second active patch stack.
   storage.sync alone is not evidence that values are safe to transfer. Remove
   when Chromium exposes equivalent native observation and origin-bearing apply.
 
+## `0039-ahoi-extension-activation-authorization.patch`
+
+- **Owner:** Desktop. The retained activation proposal is now connected to the
+  Session-owned native setup operation. CrxInstaller and permission/enable flow
+  carry the original permanently revocable authorization across their real
+  asynchronous native paths. No Google Sync approval or permission bypass.
+- **Safety:** recheck before file installation, permission grant and actual
+  registration; do not persist guarded delayed installs. Desired disabled state
+  is installed disabled, without brief activation. Shared modules inherit the
+  lease but not the main extension's disabled state. Native policy remains final.
+- **Acceptance:** one combined app-only candidate; actual supported CWS install,
+  native permission prompt and state readback, then focused authority regressions.
+
+## `0041-ahoi-extension-user-settings-intent.patch`
+
+- **Owner:** Desktop. Registrar subscriptions receive explicit native user
+  requests from Settings/API enable/disable, accepted native enable prompts,
+  user-initiated uninstall and completed non-guarded prompted installation.
+- **Safety:** desired intent is separate from observed inventory. A remote
+  guarded install/enable and SYNC uninstall do not emit these user requests.
+  No asynchronous suppression flag or lifecycle-event inference is used.
+  Subscriptions retain their list while notifying and stop after profile release.
+- **Consumer:** SessionBridge validates trusted installed provenance before
+  handing the exact desired state to Common, which cancels an older remote lease
+  and journals genuine user intent. Unknown/policy packages remain local.
+- **Acceptance:** enabled/disabled/uninstalled changes in the actual linked
+  candidate must converge without being reinstalled or echoed by stale peers.
+
 ## `0040-ahoi-native-sync-storage-write-request.patch`
 
 - **Owner:** Desktop; the exact two-file continuation of0036, applied after0038.

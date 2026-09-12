@@ -73,6 +73,27 @@ source_set("native_setup_inventory") {
   ]
 }
 
+source_set("native_setup_operation") {
+  sources = [
+    "native_extension_setup_operation.cc",
+    "native_extension_setup_operation.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/sync:extension_setup_types",
+    "//ui/gfx:native_ui_types",
+  ]
+  deps = [
+    ":native_setup_inventory",
+    "//base",
+    "//chrome/browser/extensions",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/extensions",
+    "//chrome/browser/ui/extensions:extension_enable_flow_delegate",
+    "//extensions/browser",
+    "//extensions/common",
+  ]
+}
+
 source_set("service") {
   sources = [
     "ubo_extension_inventory.cc",

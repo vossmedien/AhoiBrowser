@@ -45,8 +45,15 @@ class TabStripModel;
 namespace content {
 class WebContents;
 }
+namespace extensions {
+class Extension;
+}
 
 namespace ahoi {
+
+namespace extensions {
+class NativeExtensionSetupOperation;
+}
 
 class CommandService;
 
@@ -112,6 +119,15 @@ class SessionBridge : public KeyedService,
   sync::SharedTabNativeSupport GetSharedTabNativeSupport() const override;
   void RequestSharedTabCapture(uint64_t generation) override;
   sync::NativeExtensionSetupSnapshot ReadNativeExtensionSetup() override;
+  void InitializeNativeExtensionSetup();
+  void OnNativeExtensionUserSettingsRequested(
+      const ::extensions::Extension& extension,
+      bool installed,
+      bool enabled);
+  void ApplyNativeExtensionSetup(
+      sync::ExtensionRestoreRequest request,
+      base::OnceCallback<void(sync::ExtensionRestoreResult)> completion)
+      override;
   base::CallbackListSubscription AddSharedTabCaptureCallback(
       base::RepeatingCallback<void(uint64_t)> callback);
 
@@ -454,6 +470,10 @@ class SessionBridge : public KeyedService,
       GUARDED_BY_CONTEXT(sequence_checker_) = false;
   bool shutting_down_ GUARDED_BY_CONTEXT(sequence_checker_) = false;
   SEQUENCE_CHECKER(sequence_checker_);
+  std::map<std::string,
+           std::unique_ptr<extensions::NativeExtensionSetupOperation>>
+      extension_setup_operations_;
+  base::CallbackListSubscription extension_user_settings_subscription_;
   base::WeakPtrFactory<SessionBridge> weak_ptr_factory_{this};
 };
 

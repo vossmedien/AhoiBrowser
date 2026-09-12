@@ -1,0 +1,656 @@
+diff --git a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc b/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
+--- a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
++++ b/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
+@@ -379,6 +379,9 @@
+     disable_reasons.erase(disable_reason::DISABLE_UPDATE_REQUIRED_BY_POLICY);
+   }
+ 
++  if (install_flags & kInstallFlagInstallDisabled) {
++    disable_reasons.insert(disable_reason::DISABLE_USER_ACTION);
++  }
+   return disable_reasons;
+ }
+ 
+@@ -387,6 +390,11 @@
+     const syncer::StringOrdinal& page_ordinal,
+     int install_flags,
+     base::DictValue ruleset_install_prefs) {
++  if ((install_flags & kInstallFlagInstallDisabled) &&
++      system_->management_policy()->MustRemainEnabled(extension, nullptr)) {
++    // Restoring disabled must not briefly activate or override required policy.
++    return;
++  }
+   const std::string& id = extension->id();
+   std::string install_parameter;
+   auto* pending_extension_manager = PendingExtensionManager::Get(profile_);
+@@ -466,6 +474,11 @@
+           std::move(ruleset_install_prefs));
+       return;
+     case InstallGate::DELAY:
++      if (install_flags & kInstallFlagDisallowDelayedInstall) {
++        // Operation-scoped authorization is never stored for a later retry.
++        // CrxInstaller reports abort when native registration did not occur.
++        return;
++      }
+       extension_prefs_->SetDelayedInstallInfo(
+           extension, {install_flags, delay_reason, page_ordinal,
+                       install_parameter, std::move(ruleset_install_prefs)});
+diff --git a/chrome/browser/extensions/webstore_standalone_installer.cc b/chrome/browser/extensions/webstore_standalone_installer.cc
+--- a/chrome/browser/extensions/webstore_standalone_installer.cc
++++ b/chrome/browser/extensions/webstore_standalone_installer.cc
+@@ -198,6 +198,11 @@
+   DCHECK(payload.result == ExtensionInstallPrompt::Result::ACCEPTED);
+ 
+   std::unique_ptr<InstallApproval> approval = CreateApproval();
++  if (approval->activation_authorization &&
++      !approval->activation_authorization.Run()) {
++    CompleteInstall(webstore_install::ABORTED, std::string());
++    return;
++  }
+ 
+   ExtensionRegistry* extension_registry = ExtensionRegistry::Get(profile_);
+   const Extension* installed_extension =
+@@ -212,7 +217,13 @@
+       // Don't install a blocklisted extension.
+       install_result = webstore_install::BLOCKLISTED;
+       install_message = webstore_install::kExtensionIsBlocklisted;
+-    } else if (!extension_registrar->IsExtensionEnabled(id_)) {
++    } else if (!approval->install_disabled &&
++               !extension_registrar->IsExtensionEnabled(id_)) {
+       // If the extension is installed but disabled, and not blocklisted,
+       // enable it.
++      if (approval->activation_authorization &&
++          !approval->activation_authorization.Run()) {
++        CompleteInstall(webstore_install::ABORTED, std::string());
++        return;
++      }
+       extension_registrar->EnableExtension(id_);
+diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/browser/ui/extensions/extension_enable_flow.cc
+--- a/chrome/browser/ui/extensions/extension_enable_flow.cc
++++ b/chrome/browser/ui/extensions/extension_enable_flow.cc
+@@ -5,6 +5,7 @@
+ #include "chrome/browser/ui/extensions/extension_enable_flow.h"
+ 
+ #include <memory>
++#include <utility>
+ 
+ #include "base/check.h"
+ #include "base/functional/bind.h"
+@@ -35,6 +36,38 @@
+ 
+ ExtensionEnableFlow::~ExtensionEnableFlow() = default;
+ 
++void ExtensionEnableFlow::set_activation_authorization(
++    base::RepeatingCallback<bool()> callback) {
++  CHECK(!started_);
++  CHECK(callback);
++  CHECK(!activation_authorization_);
++  activation_authorization_ = std::move(callback);
++}
++
++bool ExtensionEnableFlow::CheckActivationAuthorization() {
++  if (authorization_aborted_) {
++    return false;
++  }
++  if (!activation_authorization_) {
++    return true;
++  }
++  // Keep the predicate alive even if a caller invalidates its owning flow.
++  const auto authorization = activation_authorization_;
++  const auto weak_this = weak_ptr_factory_.GetWeakPtr();
++  const bool allowed = authorization.Run();
++  if (!weak_this) {
++    return false;
++  }
++  if (allowed) {
++    return true;
++  }
++  authorization_aborted_ = true;
++  StopObserving();
++  weak_ptr_factory_.InvalidateWeakPtrs();
++  delegate_->ExtensionEnableFlowAborted(/*user_initiated=*/false);
++  return false;  // The delegate may have deleted this object.
++}
++
+ void ExtensionEnableFlow::StartForWebContents(
+     content::WebContents* parent_contents) {
+   parent_contents_ = parent_contents;
+@@ -54,6 +87,10 @@
+ }
+ 
+ void ExtensionEnableFlow::Run() {
++  started_ = true;
++  if (!CheckActivationAuthorization()) {
++    return;
++  }
+   extensions::ExtensionRegistry* registry =
+       extensions::ExtensionRegistry::Get(profile_);
+   const Extension* extension =
+@@ -66,8 +103,15 @@
+       return;
+     }
+     // If the app was terminated, reload it first.
++    if (!CheckActivationAuthorization()) {
++      return;
++    }
++    const auto weak_this = weak_ptr_factory_.GetWeakPtr();
+     extensions::ExtensionRegistrar::Get(profile_)->ReloadExtension(
+         extension_id_);
++    if (!weak_this) {
++      return;
++    }
+ 
+     // ReloadExtension reallocates the Extension object.
+     extension = registry->disabled_extensions().GetByID(extension_id_);
+@@ -84,6 +128,9 @@
+ }
+ 
+ void ExtensionEnableFlow::CheckPermissionAndMaybePromptUser() {
++  if (!CheckActivationAuthorization()) {
++    return;
++  }
+   auto* system = extensions::ExtensionSystem::Get(profile_);
+   auto* registrar = extensions::ExtensionRegistrar::Get(profile_);
+   auto* registry = extensions::ExtensionRegistry::Get(profile_);
+@@ -134,7 +181,14 @@
+   if (!prefs->DidExtensionEscalatePermissions(extension_id_)) {
+     // Enable the extension immediately if its privileges weren't escalated.
+     // This is a no-op if the extension was previously terminated.
++    if (!CheckActivationAuthorization()) {
++      return;
++    }
++    const auto weak_this = weak_ptr_factory_.GetWeakPtr();
+     registrar->EnableExtension(extension_id_);
++    if (!weak_this) {
++      return;
++    }
+ 
+     DCHECK(registrar->IsExtensionEnabled(extension_id_));
+     delegate_->ExtensionEnableFlowFinished();  // |delegate_| may delete us.
+@@ -219,11 +273,15 @@
+ }
+ 
+ void ExtensionEnableFlow::EnableExtension() {
++  if (!CheckActivationAuthorization()) {
++    return;
++  }
++  const auto weak_this = weak_ptr_factory_.GetWeakPtr();
+   extensions::ExtensionRegistry* registry =
+       extensions::ExtensionRegistry::Get(profile_);
+   // The extension can be uninstalled in another window while the UI was
+   // showing. Treat it as a cancellation and notify |delegate_|.
+-  const Extension* extension =
++  scoped_refptr<const Extension> extension =
+       registry->disabled_extensions().GetByID(extension_id_);
+   if (!extension) {
+     delegate_->ExtensionEnableFlowAborted(
+@@ -239,13 +297,37 @@
+                 ->GetSupervisedUserExtensionsDelegate();
+     CHECK(supervised_user_extensions_delegate);
+     supervised_user_extensions_delegate->AddExtensionApproval(*extension);
++    if (!weak_this) {
++      return;
++    }
+     supervised_user_extensions_delegate->MaybeRecordPermissionsIncreaseMetrics(
+         *extension);
+     supervised_user_extensions_delegate->RecordExtensionEnablementUmaMetrics(
+         /*enabled=*/true);
+   }
++  if (!CheckActivationAuthorization()) {
++    return;
++  }
+   auto* registrar = extensions::ExtensionRegistrar::Get(profile_);
+-  registrar->GrantPermissionsAndEnableExtension(*extension);
++  if (activation_authorization_) {
++    const bool enabled = registrar->GrantPermissionsAndEnableExtension(
++        *extension, activation_authorization_);
++    if (!weak_this) {
++      return;
++    }
++    if (!enabled) {
++      authorization_aborted_ = true;
++      StopObserving();
++      weak_ptr_factory_.InvalidateWeakPtrs();
++      delegate_->ExtensionEnableFlowAborted(/*user_initiated=*/false);
++      return;
++    }
++  } else {
++    registrar->GrantPermissionsAndEnableExtension(*extension);
++    if (!weak_this) {
++      return;
++    }
++  }
+ 
+   DCHECK(registrar->IsExtensionEnabled(extension_id_));
+   delegate_->ExtensionEnableFlowFinished();  // |delegate_| may delete us.
+diff --git a/chrome/browser/ui/extensions/extension_enable_flow.h b/chrome/browser/ui/extensions/extension_enable_flow.h
+--- a/chrome/browser/ui/extensions/extension_enable_flow.h
++++ b/chrome/browser/ui/extensions/extension_enable_flow.h
+@@ -55,6 +55,11 @@
+   void StartForNativeWindow(gfx::NativeWindow parent_window);
+   void Start();
+ 
++  // Set once before Start*. Empty/default flows retain normal Chromium
++  // behavior. The original side-effect-free UI predicate must remain false
++  // after revocation; a later approval cannot revive this operation.
++  void set_activation_authorization(base::RepeatingCallback<bool()> callback);
++
+   const extensions::ExtensionId& extension_id() const { return extension_id_; }
+ 
+   // LoadErrorReporter::Observer:
+@@ -68,6 +73,9 @@
+   // load to finish before continuing the flow. Otherwise, calls
+   // CheckPermissionAndMaybePromptUser finish the flow.
+   void Run();
++  // Returns false after notifying the delegate of a scope cancellation.
++  // The delegate may delete this object synchronously.
++  bool CheckActivationAuthorization();
+ 
+   // Checks if there is permission escalation while the extension is
+   // disabled/terminated. If no, enables the extension and notify |delegate_|
+@@ -111,6 +119,10 @@
+ 
+   std::unique_ptr<ExtensionInstallPrompt> prompt_;
+ 
++  base::RepeatingCallback<bool()> activation_authorization_;
++  bool started_ = false;
++  bool authorization_aborted_ = false;
++
+   // Listen to extension load notification.
+   base::ScopedObservation<extensions::ExtensionRegistry,
+                           extensions::ExtensionRegistryObserver>
+diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_installer.cc
+--- a/extensions/browser/crx_installer.cc
++++ b/extensions/browser/crx_installer.cc
+@@ -33,6 +33,7 @@
+ #include "extensions/browser/blocklist.h"
+ #include "extensions/browser/blocklist_check.h"
+ #include "extensions/browser/content_verifier/content_verifier.h"
++#include "extensions/browser/delayed_install_manager.h"
+ #include "extensions/browser/event_router_factory.h"
+ #include "extensions/browser/extension_assets_manager.h"
+ #include "extensions/browser/extension_file_task_runner.h"
+@@ -54,6 +55,7 @@
+ #include "extensions/browser/install_stage.h"
+ #include "extensions/browser/install_tracker.h"
+ #include "extensions/browser/load_error_reporter.h"
++#include "extensions/browser/management_policy.h"
+ #include "extensions/browser/permissions/permissions_updater.h"
+ #include "extensions/browser/policy_check.h"
+ #include "extensions/browser/preload_check_group.h"
+@@ -212,6 +214,10 @@
+   if (approval->bypassed_safebrowsing_friction) {
+     install_flags_ = kInstallFlagBypassedSafeBrowsingFriction;
+   }
++  if (approval->activation_authorization) {
++    set_activation_authorization(approval->activation_authorization);
++  }
++  set_install_disabled(approval->install_disabled);
+ }
+ 
+ CrxInstaller::~CrxInstaller() {
+@@ -764,6 +770,12 @@
+     return;
+   }
+ 
++  if (activation_authorization_ && !activation_authorization_.Run()) {
++    ReportFailureFromUIThread(CrxInstallError(
++        CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++    return;
++  }
++
+   if (KioskModeInfo::IsKioskOnly(extension())) {
+     bool in_kiosk_mode = false;
+ #if BUILDFLAG(IS_CHROMEOS)
+@@ -829,13 +841,27 @@
+         return;
+       }
+ 
++      if (activation_authorization_ && !activation_authorization_.Run()) {
++        ReportFailureFromUIThread(CrxInstallError(
++            CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++        break;
++      }
+       // Install (or re-enable) the extension with full permissions.
+       if (update_from_settings_page_) {
+         // TODO(crbug.com/40636075): Add support for withholding permissions on
+         // the re-enable prompt here once we know how that should be handled.
+         DCHECK_NE(payload.result, ExtensionInstallPromptClient::Result::
+                                       ACCEPTED_WITH_WITHHELD_PERMISSIONS);
+-        registrar_->GrantPermissionsAndEnableExtension(*extension());
++        if (activation_authorization_) {
++          if (!registrar_->GrantPermissionsAndEnableExtension(
++                  *extension(), activation_authorization_)) {
++            ReportFailureFromUIThread(
++                CrxInstallError(CrxInstallErrorType::OTHER,
++                                CrxInstallErrorDetail::USER_ABORTED));
++          }
++        } else {
++          registrar_->GrantPermissionsAndEnableExtension(*extension());
++        }
+       } else {
+         WithholdingBehavior withholding_behavior =
+             payload.result == ExtensionInstallPromptClient::Result::
+@@ -891,6 +917,11 @@
+ 
+ void CrxInstaller::UpdateCreationFlagsAndCompleteInstall(
+     WithholdingBehavior withholding_behavior) {
++  if (!CanActivateGuardedInstall()) {
++    ReportFailureFromUIThread(CrxInstallError(
++        CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++    return;
++  }
+   creation_flags_ = extension()->creation_flags() | Extension::REQUIRE_KEY;
+   // If the extension was already installed and had file access, also grant file
+   // access to the updated extension.
+@@ -931,6 +962,11 @@
+ 
+   ExtensionAssetsManager* assets_manager =
+       ExtensionsBrowserClient::Get()->GetAssetsManager();
++  if (activation_authorization_ && !activation_authorization_.Run()) {
++    ReportFailureFromSharedFileThread(CrxInstallError(
++        CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++    return;
++  }
+   assets_manager->InstallExtension(
+       extension(), unpacked_extension_root_, install_directory_,
+       browser_context(),
+@@ -1027,18 +1063,50 @@
+   CleanupTempFiles();
+ }
+ 
++bool CrxInstaller::CanActivateGuardedInstall() {
++  DCHECK_CURRENTLY_ON(BrowserThread::UI);
++  if (!browser_context_) {
++    return false;
++  }
++  if ((install_flags_ & kInstallFlagInstallDisabled) &&
++      ExtensionSystem::Get(browser_context())
++          ->management_policy()
++          ->MustRemainEnabled(extension(), nullptr)) {
++    return false;
++  }
++  if (!activation_authorization_) {
++    return true;
++  }
++  if (!activation_authorization_.Run()) {
++    return false;
++  }
++  auto* delayed = DelayedInstallManager::Get(browser_context());
++  ExtensionPrefs::DelayReason reason;
++  return delayed &&
++         delayed->ShouldDelayExtensionInstall(
++             extension(), !!(install_flags_ & kInstallFlagInstallImmediately),
++             &reason) == InstallGate::INSTALL &&
++         activation_authorization_.Run();
++}
++
+ void CrxInstaller::ReportSuccessFromUIThread() {
+   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+ 
+   if (!browser_context_) {
+     return;
+   }
++  if (!CanActivateGuardedInstall()) {
++    ReportFailureFromUIThread(CrxInstallError(
++        CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++    return;
++  }
+ 
+   extension()->permissions_data()->BindToCurrentThread();
+ 
+   if (!update_from_settings_page_) {
+-    // If there is a client, tell the client about installation.
+-    if (client_) {
++    // Guarded installs report success only after actual native registration.
++    // Preserve the existing order for callers without an operation scope.
++    if (client_ && !activation_authorization_) {
+       client_->OnInstallSuccess(extension_, install_icon_.get());
+     }
+ 
+@@ -1050,6 +1118,11 @@
+          expected_version_ == extension()->version())) {
+       PermissionsUpdater perms_updater(browser_context());
+       perms_updater.InitializePermissions(extension());
++      if (!CanActivateGuardedInstall()) {
++        ReportFailureFromUIThread(CrxInstallError(
++            CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++        return;
++      }
+       perms_updater.GrantActivePermissions(extension());
+     }
+   }
+@@ -1060,9 +1133,34 @@
+                               true);
+   }
+ 
++  // Permission notifications can re-enter the browser. Recheck the original
++  // scope immediately before the registrar; its no-delay flag closes the
++  // remaining native delay decision without persisting an authorization.
++  if (!CanActivateGuardedInstall()) {
++    ReportFailureFromUIThread(CrxInstallError(
++        CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++    return;
++  }
+   registrar_->OnExtensionInstalled(extension(), page_ordinal_, install_flags_,
+                                    std::move(ruleset_install_prefs_));
+ 
++  if (activation_authorization_) {
++    if (!browser_context_) {
++      return;
++    }
++    if (ExtensionRegistry::Get(browser_context())
++            ->GetInstalledExtension(extension()->id()) != extension()) {
++      ReportFailureFromUIThread(CrxInstallError(
++          CrxInstallErrorType::OTHER, CrxInstallErrorDetail::USER_ABORTED));
++      return;
++    }
++    if (client_ && !update_from_settings_page_) {
++      client_->OnInstallSuccess(extension_, install_icon_.get());
++      if (!browser_context_) {
++        return;
++      }
++    }
++  }
+   NotifyCrxInstallComplete(std::nullopt);
+ }
+ 
+@@ -1110,6 +1208,7 @@
+ }
+ 
+ void CrxInstaller::NotifyCrxInstallBegin() {
++  install_started_ = true;
+   ExtensionsBrowserClient::Get()
+       ->GetInstallTracker(browser_context())
+       ->OnBeginCrxInstall(expected_id_);
+@@ -1237,7 +1336,8 @@
+     return;
+   }
+ 
+-  if (!update_from_settings_page_) {
++  if (!update_from_settings_page_ ||
++      (install_flags_ & kInstallFlagInstallDisabled)) {
+     return;
+   }
+ 
+@@ -1292,6 +1392,22 @@
+   expectations_verified_callback_ = std::move(callback);
+ }
+ 
++void CrxInstaller::set_activation_authorization(
++    base::RepeatingCallback<bool()> callback) {
++  DCHECK_CURRENTLY_ON(BrowserThread::UI);
++  CHECK(!install_started_);
++  CHECK(callback);
++  CHECK(!activation_authorization_);
++  activation_authorization_ = std::move(callback);
++  set_install_flag(kInstallFlagDisallowDelayedInstall, true);
++}
++
++void CrxInstaller::set_install_disabled(bool disabled) {
++  DCHECK_CURRENTLY_ON(BrowserThread::UI);
++  CHECK(!install_started_);
++  set_install_flag(kInstallFlagInstallDisabled, disabled);
++}
++
+ void CrxInstaller::Shutdown() {
+   profile_keep_alive_.reset();
+   browser_context_ = nullptr;
+diff --git a/extensions/browser/crx_installer.h b/extensions/browser/crx_installer.h
+--- a/extensions/browser/crx_installer.h
++++ b/extensions/browser/crx_installer.h
+@@ -13,6 +13,7 @@
+ 
+ #include "base/callback_list.h"
+ #include "base/files/file_path.h"
++#include "base/functional/callback.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/memory/scoped_refptr.h"
+ #include "base/scoped_observation.h"
+@@ -263,6 +264,15 @@
+   void set_expectations_verified_callback(
+       ExpectationsVerifiedCallback callback);
+ 
++  // Set once before starting. The predicate is copied, never refreshed from
++  // a later approval. It must be thread-safe, side-effect-free and permanently
++  // false after revocation; checks run on UI and shared-file sequences.
++  void set_activation_authorization(base::RepeatingCallback<bool()> callback);
++
++  // Set before starting. The extension is first registered with the native
++  // user-disabled reason; this does not bypass the permission prompt.
++  void set_install_disabled(bool disabled);
++
+   bool did_handle_successfully() const { return did_handle_successfully_; }
+ 
+   content::BrowserContext* browser_context() { return browser_context_; }
+@@ -354,6 +364,8 @@
+   void ReportFailureFromUIThread(const CrxInstallError& error);
+   void ReportSuccessFromSharedFileThread();
+   void ReportSuccessFromUIThread();
++  // UI-only final gate. Guarded installs may not enqueue delayed activation.
++  bool CanActivateGuardedInstall();
+   // Always report from the UI thread.
+   void ReportInstallationStage(InstallationStage stage);
+   // Returns false if it cannot acquire resources.
+@@ -579,6 +591,10 @@
+   // after unpack success.
+   ExpectationsVerifiedCallback expectations_verified_callback_;
+ 
++  // Configured on UI before start, then immutable across installer sequences.
++  base::RepeatingCallback<bool()> activation_authorization_;
++  bool install_started_ = false;
++
+   // Subscription for a callback that runs when the BrowserContext is
+   // destroyed.
+   base::CallbackListSubscription browser_context_shutdown_subscription_;
+diff --git a/extensions/browser/extension_registrar.cc b/extensions/browser/extension_registrar.cc
+--- a/extensions/browser/extension_registrar.cc
++++ b/extensions/browser/extension_registrar.cc
+@@ -1015,6 +1015,24 @@
+   EnableExtension(extension.id());
+ }
+ 
++bool ExtensionRegistrar::GrantPermissionsAndEnableExtension(
++    const Extension& extension,
++    base::RepeatingCallback<bool()> activation_authorization) {
++  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
++  CHECK(activation_authorization);
++  scoped_refptr<const Extension> retained_extension = &extension;
++  const auto weak_this = weak_factory_.GetWeakPtr();
++  if (!activation_authorization.Run()) {
++    return false;
++  }
++  delegate_->GrantActivePermissions(retained_extension.get());
++  if (!weak_this || !activation_authorization.Run()) {
++    return false;
++  }
++  EnableExtension(retained_extension->id());
++  return weak_this && IsExtensionEnabled(retained_extension->id());
++}
++
+ void ExtensionRegistrar::AddDisableFlagExemptedExtension(
+     const ExtensionId& extension_id) {
+   disable_flag_exempted_extensions_.insert(extension_id);
+diff --git a/extensions/browser/extension_registrar.h b/extensions/browser/extension_registrar.h
+--- a/extensions/browser/extension_registrar.h
++++ b/extensions/browser/extension_registrar.h
+@@ -11,6 +11,7 @@
+ #include "base/auto_reset.h"
+ #include "base/containers/span.h"
+ #include "base/files/file_path.h"
++#include "base/functional/callback.h"
+ #include "base/functional/callback_helpers.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/memory/scoped_refptr.h"
+@@ -373,6 +374,12 @@
+   // permissions in the `extension`s manifest and re-enables the
+   // extension.
+   void GrantPermissionsAndEnableExtension(const Extension& extension);
++  // Optional operation-scoped form. Native permission notifications may
++  // re-enter the browser, so recheck before enabling and retain the extension.
++  // Existing callers keep the one-argument path unchanged.
++  bool GrantPermissionsAndEnableExtension(
++      const Extension& extension,
++      base::RepeatingCallback<bool()> activation_authorization);
+ 
+   // Adds to the set of allowlisted enabled extensions loaded from the
+   // --disable-extensions-except command line flag.
+diff --git a/extensions/browser/install_approval.h b/extensions/browser/install_approval.h
+--- a/extensions/browser/install_approval.h
++++ b/extensions/browser/install_approval.h
+@@ -8,6 +8,7 @@
+ #include <memory>
+ #include <string>
+ 
++#include "base/functional/callback.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/memory/scoped_refptr.h"
+ #include "base/supports_user_data.h"
+@@ -106,6 +107,15 @@
+   // are granted at installation.
+   bool withhold_permissions = false;
+ 
++  // Optional original operation scope. Empty preserves the normal install
++  // path. Must be thread-safe, side-effect-free and permanently false after
++  // revocation: CrxInstaller checks it on UI and shared-file sequences.
++  base::RepeatingCallback<bool()> activation_authorization;
++
++  // Register the main extension disabled from the outset, without running it
++  // briefly first. This is not inherited by shared-module dependencies.
++  bool install_disabled = false;
++
+  private:
+   InstallApproval();
+ };
+diff --git a/extensions/browser/install_flag.h b/extensions/browser/install_flag.h
+--- a/extensions/browser/install_flag.h
++++ b/extensions/browser/install_flag.h
+@@ -32,6 +32,13 @@
+   // not included in the Enhanced Safe Browsing CRX allowlist and the user has
+   // enabled Enhanced Protection.
+   kInstallFlagBypassedSafeBrowsingFriction = 1 << 5,
++
++  // An operation-bound authorization cannot survive a delayed-install queue.
++  // A guarded install must either register now or abort without queuing.
++  kInstallFlagDisallowDelayedInstall = 1 << 6,
++
++  // Deliberate native setup restoration; never briefly activate on install.
++  kInstallFlagInstallDisabled = 1 << 7,
+ };
+ 
+ }  // namespace extensions
+diff --git a/extensions/browser/webstore_installer.cc b/extensions/browser/webstore_installer.cc
+--- a/extensions/browser/webstore_installer.cc
++++ b/extensions/browser/webstore_installer.cc
+@@ -395,6 +395,11 @@
+     // We are downloading a shared module. We need create an approval for it.
+     std::unique_ptr<InstallApproval> approval =
+         InstallApproval::CreateForSharedModule(browser_context_);
++    if (approval_) {
++      // Dependencies share the original operation scope, not the main
++      // extension's requested disabled state.
++      approval->activation_authorization = approval_->activation_authorization;
++    }
+     const SharedModuleInfo::ImportInfo& info = pending_modules_.front();
+     approval->extension_id = info.extension_id;
+     const base::Version version_required(info.minimum_version);

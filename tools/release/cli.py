@@ -225,6 +225,7 @@ def _prepare_macos_cloudkit(args: argparse.Namespace) -> None:
         provisioning_profile_path=_path(args.provisioning_profile),
         policy_path=ENTITLEMENTS_PATH,
         entitlements_output=entitlements,
+        acceptance_scope=_path(args.acceptance_scope) if args.acceptance_scope else None,
     )
     atomic_write_json(
         output,
@@ -249,6 +250,7 @@ def _verify_macos_cloudkit(args: argparse.Namespace) -> None:
         expected_authority=_required_environment("AHOI_CODESIGN_IDENTITY"),
         policy_path=ENTITLEMENTS_PATH,
         signing_profile_name=args.signing_profile,
+        acceptance_scope=_path(args.acceptance_scope) if args.acceptance_scope else None,
     )
     atomic_write_json(
         _path(args.output),
@@ -519,6 +521,7 @@ def parser() -> argparse.ArgumentParser:
     prepare_cloudkit.add_argument("--provisioning-profile", required=True)
     prepare_cloudkit.add_argument("--entitlements-output", required=True)
     prepare_cloudkit.add_argument("--output", required=True)
+    prepare_cloudkit.add_argument("--acceptance-scope", help="isolated Development scope JSON")
     prepare_cloudkit.set_defaults(handler=_prepare_macos_cloudkit)
 
     verify_cloudkit = commands.add_parser(
@@ -532,6 +535,7 @@ def parser() -> argparse.ArgumentParser:
         required=True,
     )
     verify_cloudkit.add_argument("--output", required=True)
+    verify_cloudkit.add_argument("--acceptance-scope", help="same Development scope JSON used in preparation")
     verify_cloudkit.set_defaults(handler=_verify_macos_cloudkit)
 
     notarize = commands.add_parser(

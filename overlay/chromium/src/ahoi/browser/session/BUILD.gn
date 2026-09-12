@@ -117,6 +117,8 @@ source_set("session") {
 
   deps = [
     "//ahoi/browser/extensions:native_setup_inventory",
+    "//ahoi/browser/extensions:native_setup_operation",
+    "//ahoi/browser/sync:profile_sync_service",
     "//chrome/browser/lifetime",
     "//chrome/browser/sessions",
     "//chrome/browser/ui",
@@ -124,6 +126,7 @@ source_set("session") {
     "//components/keyed_service/content",
     "//components/sessions",
     "//content/public/browser",
+    "//extensions/browser",
   ]
 }
 

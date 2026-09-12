@@ -37,4 +37,6 @@
 0036-ahoi-native-sync-storage-observer.patch
 0037-ahoi-sidebar-exclusive-bookmark-surface.patch
 0038-ahoi-concise-arc-recovery-copy.patch
+0039-ahoi-extension-activation-authorization.patch
 0040-ahoi-native-sync-storage-write-request.patch
+0041-ahoi-extension-user-settings-intent.patch

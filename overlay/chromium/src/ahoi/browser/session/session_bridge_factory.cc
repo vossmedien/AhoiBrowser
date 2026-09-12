@@ -8,6 +8,7 @@
 #include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
+#include "ahoi/browser/sync/profile_sync_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_manager_service_factory.h"
 
@@ -34,6 +35,7 @@ SessionBridgeFactory::SessionBridgeFactory()
   DependsOn(BrowserManagerServiceFactory::GetInstance());
   DependsOn(CommandServiceFactory::GetInstance());
   DependsOn(WorkspaceServiceFactory::GetInstance());
+  DependsOn(sync::ProfileSyncServiceFactory::GetInstance());
 }
 
 SessionBridgeFactory::~SessionBridgeFactory() = default;
