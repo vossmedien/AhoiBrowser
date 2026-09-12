@@ -36,7 +36,8 @@ TabTreeStore::Result TabTreeStore::CreateWorkspace(const Workspace& workspace) {
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
-      "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?)"));
+      "created_at,modified_at,tombstone,archive_policy) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?)"));
   statement.BindInt(0, workspace.model_version);
   statement.BindString(1, workspace.id.AsLowercaseString());
   statement.BindString16(2, workspace.name);
@@ -50,6 +51,7 @@ TabTreeStore::Result TabTreeStore::CreateWorkspace(const Workspace& workspace) {
   statement.BindTime(6, workspace.created_at);
   statement.BindTime(7, workspace.modified_at);
   statement.BindBool(8, workspace.tombstone);
+  statement.BindInt(9, static_cast<int>(workspace.archive_policy));
   if (!statement.Run() || !transaction.Commit()) {
     return Result::kDatabaseError;
   }

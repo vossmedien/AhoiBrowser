@@ -29,6 +29,13 @@ bool DecodeWorkspace(sql::Statement& statement, Workspace* workspace) {
   decoded.created_at = statement.ColumnTime(6);
   decoded.modified_at = statement.ColumnTime(7);
   decoded.tombstone = statement.ColumnBool(8);
+  const int archive_policy = statement.ColumnInt(9);
+  if (statement.GetColumnType(9) != sql::ColumnType::kInteger ||
+      archive_policy < 0 || archive_policy > 4) {
+    return false;
+  }
+  decoded.archive_policy =
+      static_cast<sync::SharedArchivePolicy>(archive_policy);
 
   if (decoded.model_version != kCurrentModelVersion || !decoded.id.is_valid()) {
     return false;
@@ -92,6 +99,9 @@ bool DecodeNode(sql::Statement& statement, TreeNode* node) {
   if (statement.GetColumnType(15) != sql::ColumnType::kNull) {
     decoded.local_scheme = statement.ColumnString(15);
   }
+  if (!DecodeHome(statement, 16, &decoded)) {
+    return false;
+  }
 
   if (decoded.model_version != kCurrentModelVersion || !decoded.id.is_valid() ||
       !decoded.workspace_id.is_valid()) {
@@ -99,6 +109,49 @@ bool DecodeNode(sql::Statement& statement, TreeNode* node) {
   }
   *node = std::move(decoded);
   return true;
+}
+
+bool DecodeHome(sql::Statement& statement, int first_column, TreeNode* node) {
+  const auto url_type = statement.GetColumnType(first_column);
+  if (url_type != sql::ColumnType::kNull &&
+      url_type != sql::ColumnType::kText) {
+    return false;
+  }
+  node->home_url = GURL(statement.ColumnString(first_column));
+  if (statement.GetColumnType(first_column + 1) != sql::ColumnType::kNull) {
+    const int kind = statement.ColumnInt(first_column + 1);
+    if (statement.GetColumnType(first_column + 1) !=
+            sql::ColumnType::kInteger ||
+        (kind != static_cast<int>(sync::SharedTabTargetKind::kWeb) &&
+         kind != static_cast<int>(sync::SharedTabTargetKind::kLocalOnly))) {
+      return false;
+    }
+    node->home_target_kind = static_cast<sync::SharedTabTargetKind>(kind);
+  }
+  if (statement.GetColumnType(first_column + 2) != sql::ColumnType::kNull) {
+    if (statement.GetColumnType(first_column + 2) != sql::ColumnType::kText) {
+      return false;
+    }
+    node->home_local_scheme = statement.ColumnString(first_column + 2);
+  }
+  return true;
+}
+
+void BindHome(sql::Statement& statement,
+              int first_column,
+              const TreeNode& node) {
+  statement.BindString(first_column, node.home_url.spec());
+  if (node.home_target_kind) {
+    statement.BindInt(first_column + 1,
+                      static_cast<int>(*node.home_target_kind));
+  } else {
+    statement.BindNull(first_column + 1);
+  }
+  if (node.home_local_scheme) {
+    statement.BindString(first_column + 2, *node.home_local_scheme);
+  } else {
+    statement.BindNull(first_column + 2);
+  }
 }
 
 void BindNodeForInsert(sql::Statement& statement, const TreeNode& node) {
@@ -134,6 +187,7 @@ void BindNodeForInsert(sql::Statement& statement, const TreeNode& node) {
   } else {
     statement.BindNull(15);
   }
+  BindHome(statement, 16, node);
 }
 
 void BindWorkspaceForInsert(sql::Statement& statement,
@@ -151,6 +205,7 @@ void BindWorkspaceForInsert(sql::Statement& statement,
   statement.BindTime(6, workspace.created_at);
   statement.BindTime(7, workspace.modified_at);
   statement.BindBool(8, workspace.tombstone);
+  statement.BindInt(9, static_cast<int>(workspace.archive_policy));
 }
 
 }  // namespace ahoi::tab_tree::internal

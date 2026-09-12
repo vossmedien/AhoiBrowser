@@ -29,10 +29,14 @@ bool IsNodeWellFormed(const tab_tree::TreeNode& node) {
   }
   if (node.type == tab_tree::TreeNodeType::kFolder) {
     return node.url.is_empty() && !node.is_temporary && !node.target_kind &&
-           !node.local_scheme;
+           !node.local_scheme && node.home_url.is_empty() &&
+           !node.home_target_kind && !node.home_local_scheme;
   }
   return node.type == tab_tree::TreeNodeType::kSavedPage &&
-         tab_tree::GetSharedPageTarget(node).has_value();
+         tab_tree::GetSharedPageTarget(node).has_value() &&
+         ((node.home_url.is_empty() && !node.home_target_kind &&
+           !node.home_local_scheme) ||
+          tab_tree::GetSharedHomeTarget(node).has_value());
 }
 
 }  // namespace
@@ -218,7 +222,6 @@ void SidebarTreeViewModel::EraseCachedNodes(
     RebuildCurrentProjection(/*preserve_selection=*/true);
   }
 }
-
 
 bool SidebarTreeViewModel::SetSelectedNode(std::optional<base::Uuid> node_id) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);

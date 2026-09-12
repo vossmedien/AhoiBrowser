@@ -31,6 +31,45 @@ std::optional<sync::SharedTabTarget> GetSharedPageTarget(const TreeNode& node) {
              : std::nullopt;
 }
 
+std::optional<sync::SharedTabTarget> GetSharedHomeTarget(const TreeNode& node) {
+  if (node.type != TreeNodeType::kSavedPage ||
+      (!node.home_url.is_empty() && !node.home_url.is_valid())) {
+    return std::nullopt;
+  }
+  if (!node.home_target_kind) {
+    return node.home_local_scheme
+               ? std::nullopt
+               : DescribeNativeSharedTabTarget(
+                     node.home_url, NativeSharedTabParticipation::kNormal);
+  }
+  SharedTabTarget target{
+      .kind = *node.home_target_kind,
+      .url = *node.home_target_kind == SharedTabTargetKind::kWeb
+                 ? node.home_url.spec()
+                 : std::string(),
+      .local_scheme = node.home_local_scheme};
+  return IsValidSharedPageTarget(target, /*is_temporary=*/false)
+             ? std::make_optional(std::move(target))
+             : std::nullopt;
+}
+
+void InitializeSavedHome(TreeNode* node) {
+  if (!node || node->type != TreeNodeType::kSavedPage || node->is_temporary ||
+      !node->home_url.is_empty() || node->home_target_kind ||
+      node->home_local_scheme || node->url.is_empty() ||
+      !node->url.is_valid()) {
+    return;
+  }
+  const auto target = DescribeNativeSharedTabTarget(
+      node->url, NativeSharedTabParticipation::kNormal);
+  if (!target || target->kind == SharedTabTargetKind::kNewTab) {
+    return;
+  }
+  node->home_url = node->url;
+  node->home_target_kind = target->kind;
+  node->home_local_scheme = target->local_scheme;
+}
+
 std::u16string GetSharedPageTitle(const TreeNode& node) {
   const auto target = GetSharedPageTarget(node);
   if (target && target->kind == SharedTabTargetKind::kLocalOnly) {

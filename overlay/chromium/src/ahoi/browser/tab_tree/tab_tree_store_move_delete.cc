@@ -9,6 +9,7 @@
 
 #include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
+#include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/check.h"
 #include "sql/statement.h"
 #include "sql/transaction.h"
@@ -183,6 +184,9 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
       updated.target_kind = target->kind;
       updated.local_scheme = target->local_scheme;
     }
+    if (node.is_temporary && !updated.is_temporary) {
+      InitializeSavedHome(&updated);
+    }
     if (!ValidateNode(updated)) {
       return Result::kInvalidArgument;
     }
@@ -218,7 +222,8 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
   sql::Statement update(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "UPDATE tree_nodes SET workspace_id=?,parent_id=?,sort_key=?,"
-      "modified_at=?,is_temporary=?,target_kind=?,local_scheme=? WHERE id=?"));
+      "modified_at=?,is_temporary=?,target_kind=?,local_scheme=?,"
+      "home_url=?,home_target_kind=?,home_local_scheme=? WHERE id=?"));
   for (size_t index : changed_indices) {
     const TreeNode& updated = updated_nodes[index];
     update.Reset(/*clear_bound_vars=*/true);
@@ -241,7 +246,8 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
     } else {
       update.BindNull(6);
     }
-    update.BindString(7, updated.id.AsLowercaseString());
+    internal::BindHome(update, 7, updated);
+    update.BindString(10, updated.id.AsLowercaseString());
     if (!update.Run() || db_.GetLastChangeCount() != 1) {
       return Result::kDatabaseError;
     }

@@ -4,6 +4,9 @@
 
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 
+#include <initializer_list>
+#include <string>
+
 #include "base/check.h"
 #include "sql/meta_table.h"
 #include "sql/transaction.h"
@@ -87,7 +90,8 @@ bool TabTreeStore::CreateSchema() {
              "name TEXT NOT NULL,icon TEXT NOT NULL,sort_key TEXT NOT NULL,"
              "accent_argb INTEGER,created_at INTEGER NOT NULL,"
              "modified_at INTEGER NOT NULL,tombstone INTEGER NOT NULL CHECK("
-             "tombstone IN (0,1)))") &&
+             "tombstone IN (0,1)),archive_policy INTEGER NOT NULL DEFAULT 0 "
+             "CHECK(archive_policy IN (0,1,2,3,4)))") &&
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS tree_nodes("
              "model_version INTEGER NOT NULL,id TEXT PRIMARY KEY NOT NULL,"
@@ -100,7 +104,9 @@ bool TabTreeStore::CreateSchema() {
              "tombstone INTEGER NOT NULL CHECK(tombstone IN (0,1)),"
              "is_temporary INTEGER NOT NULL DEFAULT 0 CHECK("
              "is_temporary IN (0,1)),target_kind INTEGER CHECK("
-             "target_kind IN (0,1,2)),local_scheme TEXT)") &&
+             "target_kind IN (0,1,2)),local_scheme TEXT,"
+             "home_url TEXT NOT NULL DEFAULT '',home_target_kind INTEGER "
+             "CHECK(home_target_kind IN (0,2)),home_local_scheme TEXT)") &&
          db_.Execute(
              "CREATE INDEX IF NOT EXISTS tree_nodes_parent_order ON "
              "tree_nodes(workspace_id,parent_id,tombstone,sort_key,id)") &&
@@ -124,6 +130,8 @@ bool TabTreeStore::CreateSchema() {
              "tombstone INTEGER,is_temporary INTEGER DEFAULT 0 CHECK("
              "is_temporary IN (0,1)),target_kind INTEGER CHECK("
              "target_kind IN (0,1,2)),local_scheme TEXT,"
+             "home_url TEXT,home_target_kind INTEGER CHECK("
+             "home_target_kind IN (0,2)),home_local_scheme TEXT,"
              "PRIMARY KEY(operation_id,node_id),"
              "UNIQUE(operation_id,ordinal))");
 }
@@ -144,6 +152,45 @@ bool TabTreeStore::MigrateSchema(sql::MetaTable* meta_table) {
   }
   if (meta_table->GetVersionNumber() == 2) {
     if (!MigrateNodesToSchema3() || !meta_table->SetVersionNumber(3)) {
+      return false;
+    }
+  }
+  if (meta_table->GetVersionNumber() == 3) {
+    // A small additive LOCAL tree upgrade, not a sync-format/data migration.
+    // The pinned SQLite cannot ALTER ADD CHECK (pragma_quick_check); matching
+    // read/write validation keeps these typed columns constrained. A schema2
+    // upgrade may already have created the current node/undo columns above.
+    for (const char* table : {"tree_nodes", "undo_node_snapshots"}) {
+      for (const char* column :
+           {"home_url", "home_target_kind", "home_local_scheme"}) {
+        if (db_.DoesColumnExist(table, column)) {
+          continue;
+        }
+        const std::string type =
+            std::string(column) == "home_target_kind" ? " INTEGER" : " TEXT";
+        const std::string defaults =
+            std::string(column) == "home_url" ? " DEFAULT ''" : "";
+        if (!db_.Execute("ALTER TABLE " + std::string(table) + " ADD COLUMN " +
+                         column + type + defaults)) {
+          return false;
+        }
+      }
+      // Only pre-existing local saved content establishes its initial Home.
+      // Navigation updates never rewrite it; temporary pages keep no default.
+      if (!db_.Execute("UPDATE " + std::string(table) +
+                       " SET home_url=url,home_target_kind=NULL,"
+                       "home_local_scheme=NULL WHERE node_type=1 "
+                       "AND is_temporary=0 AND (target_kind IS NULL OR "
+                       "target_kind!=1)")) {
+        return false;
+      }
+    }
+    if ((!db_.DoesColumnExist("workspaces", "archive_policy") &&
+         !db_.Execute(
+             "ALTER TABLE workspaces ADD COLUMN archive_policy INTEGER "
+             "NOT NULL DEFAULT 0")) ||
+        !meta_table->SetVersionNumber(4) ||
+        !meta_table->SetCompatibleVersionNumber(4)) {
       return false;
     }
   }

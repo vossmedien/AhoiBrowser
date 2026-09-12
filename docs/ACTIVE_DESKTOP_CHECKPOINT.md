@@ -17,9 +17,16 @@ The exact clean tool/source snapshot remains
 After the real signing workflow, both new scope cases, the existing exact Apple
 profile-claims case and all five DevelopmentInstallationTests passed:8/8,0.046s.
 These verify signing/configuration/transaction boundaries, not visible app E2E.
-Installation/runtime currently wait for the coordinator's explicit MBC UI
-handback. Neither MacA nor MacB acceptance directory has been created; installed
-a24a792 and the real Default remain unchanged. No CloudKit/key action was taken.
+The coordinator released guarded filesystem installation independently of MBC's
+UI slot. Installation64142 is TERMINAL EXIT0: `/Applications/AhoiBrowser.app`
+matches the signed c8 bundle above. Install receipt
+`artifacts/install/ahoi-dev-c8d9161-scoped-20260912.json` SHA
+`e31be2e16fc9608abe3e9f83b58ca1a99a3f4f29aaa56af4eaee765d8cd532dd` records all three
+signature/scope checks and the retained a24a792 rollback bundle. Real Local State,
+Default/Preferences and Ahoi Tab Tree hashes are byte-identical before/after.
+No app was started, no Ahoi process remains and neither MacA nor MacB directory
+has been created. Visible runtime still waits for the actual MBC UI handback;
+no CloudKit/key action or visible E2E pass is claimed.
 
 First a58e84c build33274 EXIT1 retains its three compiler causes/log; e5cbe4c
 build87322 EXIT1 retained two missing Native sequence-context checks. Exact
@@ -30,6 +37,31 @@ assertions or required app targets were removed.
 Later Common/Swift Structure sourcee7abcff is NOT in this candidate. It requires
 Native metadata persistence/projection and a fresh matching schema7 acceptance
 pair; never promote this older restored-setup candidate to a full Crest pass.
+
+### Native metadata continuation, source only
+
+While the UI slot remains with MBC, the coordinated Native metadata continuation
+to e7abcff/c2718ac is implemented in the tracked model/store/mapper. Native tree
+schema4 adds workspace archive_policy and an independent Home URL/kind/scheme;
+the Common sync store remains its distinct schema7. Queries, inserts, snapshot
+replacement/export, Undo and workspace duplication retain these fields. The
+small local tree upgrade initializes Home from old local saved URLs and preserves
+the old rows/IDs; it is not a migration of old sync stores or encrypted records.
+
+Only local create/save initializes a new Home. Ordinary navigation and shared
+snapshot apply do not infer one. Unsave can retain dormant Home; remote nil stays
+nil, and a matching LocalOnly descriptor retains its actual private URL only on
+this device. The mapper transfers the portable Home/archive groups both ways.
+Arc's preserving fingerprint and the sidebar row validator also cover the new
+metadata, so an import cannot ignore an intervening Home/policy change.
+Common's matching observation-journal correction is independentlyc2718ac.
+
+Pinned formatter, whitespace, exact API reads and source-only SQL binding-shape
+inspection passed (10 INSERT sites; no database opened). This continuation is
+NOT compiled, installed or tested at runtime. No shared checkout/out, current
+c8 bundle, profile, Keychain or CloudKit resource was changed for it. Split
+capture/projection, archive scheduling/restore UI and explicit Home controls
+still require the next coherent Native product packet and fresh paired E2E.
 
 The user explicitly restarted the two stopped workstreams. Current Desktop
 ownership is `/root/desktop_resume` under the coordinating thread: Native
@@ -74,9 +106,9 @@ The real existing provisioning profile was freshly validated against the exact
 shared scope851600c1…abe and is valid through2027-09-08; no key/cloud action.
 
 Live readback on restart: installed app remainsa24a792, no running Ahoi process.
-No real Default/Arc profile/key/CloudKit data was reset. Current source block is
-not yet a compiled or installed candidate. Representative visible sync/settings/
-extension journeys precede focused checks. Existing repository line-budget
+No real Default/Arc profile/key/CloudKit data was reset. The installed candidate
+above is not visibly accepted yet. Representative visible
+sync/settings/extension journeys precede their focused checks. Repository line-budget
 violations outside this owned block remain red; they are not app build inputs.
 The separate split/archive/Home format extension remains coordinated in
 `docs/SPLIT_ARCHIVE_SYNC.md`, not activated by this extension-restore packet.

@@ -19,7 +19,9 @@ namespace ahoi::tab_tree {
 
 TabTreeStore::Result TabTreeStore::CreateNode(const TreeNode& node) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  return CreateNodeInternal(node, /*record_undo=*/true);
+  TreeNode saved = node;
+  InitializeSavedHome(&saved);
+  return CreateNodeInternal(saved, /*record_undo=*/true);
 }
 
 TabTreeStore::Result TabTreeStore::CreateTemporaryPage(const TreeNode& node) {
@@ -68,8 +70,9 @@ TabTreeStore::Result TabTreeStore::CreateNodeInternal(const TreeNode& node,
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone,is_temporary,target_kind,local_scheme) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme,home_url,home_target_"
+      "kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   internal::BindNodeForInsert(statement, node);
   if (!statement.Run() || !transaction.Commit()) {
     return Result::kDatabaseError;
@@ -80,8 +83,12 @@ TabTreeStore::Result TabTreeStore::CreateNodeInternal(const TreeNode& node,
 }
 
 TabTreeStore::Result TabTreeStore::CreateNodesAtomically(
-    const std::vector<TreeNode>& nodes) {
+    const std::vector<TreeNode>& input_nodes) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  std::vector<TreeNode> nodes = input_nodes;
+  for (auto& node : nodes) {
+    InitializeSavedHome(&node);
+  }
   if (!IsReady()) {
     return Result::kNotInitialized;
   }
@@ -201,8 +208,9 @@ TabTreeStore::Result TabTreeStore::CreateNodesAtomically(
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone,is_temporary,target_kind,local_scheme) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme,home_url,home_target_"
+      "kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (size_t index : insertion_order) {
     statement.Reset(/*clear_bound_vars=*/true);
     internal::BindNodeForInsert(statement, nodes[index]);
@@ -321,8 +329,9 @@ TabTreeStore::Result TabTreeStore::CreateStyledFolderAroundNodes(
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone,is_temporary,target_kind,local_scheme) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme,home_url,home_target_"
+      "kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   internal::BindNodeForInsert(insert_folder, folder);
   if (!insert_folder.Run()) {
     return Result::kDatabaseError;
@@ -503,6 +512,7 @@ TabTreeStore::Result TabTreeStore::SetPageTemporary(const base::Uuid& node_id,
     updated.target_kind = target->kind;
     updated.local_scheme = target->local_scheme;
   }
+  InitializeSavedHome(&updated);
   if (!ValidateNode(updated)) {
     return Result::kInvalidArgument;
   }
@@ -516,7 +526,8 @@ TabTreeStore::Result TabTreeStore::SetPageTemporary(const base::Uuid& node_id,
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "UPDATE tree_nodes SET is_temporary=?,target_kind=?,local_scheme=?,"
-      "modified_at=? WHERE id=?"));
+      "modified_at=?,home_url=?,home_target_kind=?,home_local_scheme=? WHERE "
+      "id=?"));
   statement.BindBool(0, updated.is_temporary);
   if (updated.target_kind) {
     statement.BindInt(1, static_cast<int>(*updated.target_kind));
@@ -529,7 +540,8 @@ TabTreeStore::Result TabTreeStore::SetPageTemporary(const base::Uuid& node_id,
     statement.BindNull(2);
   }
   statement.BindTime(3, modified_at);
-  statement.BindString(4, node.id.AsLowercaseString());
+  internal::BindHome(statement, 4, updated);
+  statement.BindString(7, node.id.AsLowercaseString());
   if (!statement.Run() || db_.GetLastChangeCount() != 1 ||
       !transaction.Commit()) {
     return Result::kDatabaseError;

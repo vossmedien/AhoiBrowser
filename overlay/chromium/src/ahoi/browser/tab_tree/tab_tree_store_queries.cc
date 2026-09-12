@@ -26,7 +26,8 @@ TabTreeStore::Result TabTreeStore::GetWorkspaces(
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-      "modified_at,tombstone FROM workspaces WHERE tombstone=0 ORDER BY "
+      "modified_at,tombstone,archive_policy FROM workspaces WHERE tombstone=0 "
+      "ORDER BY "
       "sort_key,id"));
   std::vector<Workspace> decoded;
   while (statement.Step()) {
@@ -115,14 +116,16 @@ TabTreeStore::Result TabTreeStore::GetChildren(
       parent_id.has_value() ? "SELECT model_version,id,workspace_id,parent_id,"
                               "node_type,title,icon,accent_argb,url,sort_key,"
                               "created_at,modified_at,"
-                              "tombstone,is_temporary,target_kind,local_scheme "
+                              "tombstone,is_temporary,target_kind,local_scheme,"
+                              "home_url,home_target_kind,home_local_scheme "
                               "FROM tree_nodes WHERE workspace_id=? "
                               "AND parent_id=? AND tombstone=0 ORDER BY "
                               "sort_key,id"
                             : "SELECT model_version,id,workspace_id,parent_id,"
                               "node_type,title,icon,accent_argb,url,sort_key,"
                               "created_at,modified_at,"
-                              "tombstone,is_temporary,target_kind,local_scheme "
+                              "tombstone,is_temporary,target_kind,local_scheme,"
+                              "home_url,home_target_kind,home_local_scheme "
                               "FROM tree_nodes WHERE workspace_id=? "
                               "AND parent_id IS NULL AND tombstone=0 ORDER BY "
                               "sort_key,id";
@@ -173,7 +176,8 @@ TabTreeStore::Result TabTreeStore::FindSavedPagesByUrl(
       SQL_FROM_HERE,
       "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
       "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
-      "is_temporary,target_kind,local_scheme FROM "
+      "is_temporary,target_kind,local_scheme,home_url,home_target_kind,home_"
+      "local_scheme FROM "
       "tree_nodes WHERE "
       "workspace_id=? AND node_type=? AND url=? AND tombstone=0 "
       "AND is_temporary=0 ORDER BY "
@@ -209,7 +213,8 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
   TabTreeSnapshot exported;
   sql::Statement workspaces(db_.GetUniqueStatement(
       "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-      "modified_at,tombstone FROM workspaces ORDER BY sort_key,id"));
+      "modified_at,tombstone,archive_policy FROM workspaces ORDER BY "
+      "sort_key,id"));
   while (workspaces.Step()) {
     Workspace workspace;
     if (!internal::DecodeWorkspace(workspaces, &workspace) ||
@@ -225,7 +230,8 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
   sql::Statement nodes(db_.GetUniqueStatement(
       "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
       "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
-      "is_temporary,target_kind,local_scheme FROM "
+      "is_temporary,target_kind,local_scheme,home_url,home_target_kind,home_"
+      "local_scheme FROM "
       "tree_nodes ORDER BY id"));
   while (nodes.Step()) {
     TreeNode node;

@@ -15,6 +15,10 @@ namespace ahoi::tab_tree::internal {
 
 bool DecodeWorkspace(sql::Statement& statement, Workspace* workspace);
 bool DecodeNode(sql::Statement& statement, TreeNode* node);
+bool DecodeHome(sql::Statement& statement, int first_column, TreeNode* node);
+void BindHome(sql::Statement& statement,
+              int first_column,
+              const TreeNode& node);
 void BindNodeForInsert(sql::Statement& statement, const TreeNode& node);
 void BindWorkspaceForInsert(sql::Statement& statement,
                             const Workspace& workspace);

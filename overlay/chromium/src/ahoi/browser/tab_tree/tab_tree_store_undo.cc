@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
+#include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/check.h"
 #include "sql/statement.h"
 
@@ -34,7 +35,8 @@ bool TabTreeStore::InsertUndoOperation(
       "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,node_id,"
       "model_version,workspace_id,parent_id,node_type,title,icon,accent_argb,"
       "url,sort_key,created_at,modified_at,tombstone,is_temporary,target_kind,"
-      "local_scheme) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "local_scheme,home_url,home_target_kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (size_t i = 0; i < snapshots.size(); ++i) {
     const NodeSnapshot& snapshot = snapshots[i];
     snapshot_statement.Reset(/*clear_bound_vars=*/true);
@@ -43,7 +45,7 @@ bool TabTreeStore::InsertUndoOperation(
     snapshot_statement.BindBool(2, snapshot.previous.has_value());
     snapshot_statement.BindString(3, snapshot.node_id.AsLowercaseString());
     if (!snapshot.previous.has_value()) {
-      for (int column = 4; column <= 18; ++column) {
+      for (int column = 4; column <= 21; ++column) {
         snapshot_statement.BindNull(column);
       }
     } else {
@@ -79,6 +81,7 @@ bool TabTreeStore::InsertUndoOperation(
       } else {
         snapshot_statement.BindNull(18);
       }
+      internal::BindHome(snapshot_statement, 19, node);
     }
     if (!snapshot_statement.Run()) {
       return false;
@@ -100,7 +103,8 @@ bool TabTreeStore::RestoreSnapshot(const NodeSnapshot& snapshot) {
       SQL_FROM_HERE,
       "UPDATE tree_nodes SET model_version=?,workspace_id=?,parent_id=?,"
       "node_type=?,title=?,icon=?,accent_argb=?,url=?,sort_key=?,created_at=?,"
-      "modified_at=?,tombstone=?,is_temporary=?,target_kind=?,local_scheme=? "
+      "modified_at=?,tombstone=?,is_temporary=?,target_kind=?,local_scheme=?,"
+      "home_url=?,home_target_kind=?,home_local_scheme=? "
       "WHERE id=?"));
   statement.BindInt(0, node.model_version);
   statement.BindString(1, node.workspace_id.AsLowercaseString());
@@ -133,7 +137,8 @@ bool TabTreeStore::RestoreSnapshot(const NodeSnapshot& snapshot) {
   } else {
     statement.BindNull(14);
   }
-  statement.BindString(15, node.id.AsLowercaseString());
+  internal::BindHome(statement, 15, node);
+  statement.BindString(18, node.id.AsLowercaseString());
   return statement.Run() && db_.GetLastChangeCount() == 1;
 }
 
@@ -143,7 +148,8 @@ bool TabTreeStore::ReadUndoSnapshots(int64_t operation_id,
       SQL_FROM_HERE,
       "SELECT existed,node_id,model_version,workspace_id,parent_id,node_type,"
       "title,icon,accent_argb,url,sort_key,created_at,modified_at,tombstone,"
-      "is_temporary,target_kind,local_scheme "
+      "is_temporary,target_kind,local_scheme,home_url,home_target_kind,home_"
+      "local_scheme "
       "FROM "
       "undo_node_snapshots WHERE operation_id=? ORDER BY ordinal"));
   statement.BindInt64(0, operation_id);
@@ -207,6 +213,9 @@ bool TabTreeStore::ReadUndoSnapshots(int64_t operation_id,
       }
       if (statement.GetColumnType(16) != sql::ColumnType::kNull) {
         node.local_scheme = statement.ColumnString(16);
+      }
+      if (!internal::DecodeHome(statement, 17, &node)) {
+        return false;
       }
       if (!ValidateNode(node)) {
         return false;

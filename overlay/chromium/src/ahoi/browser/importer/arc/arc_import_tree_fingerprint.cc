@@ -101,6 +101,10 @@ void WriteWorkspace(FingerprintWriter* writer,
   writer->WriteTime(workspace.created_at);
   writer->WriteTime(workspace.modified_at);
   writer->WriteBool(workspace.tombstone);
+  if (workspace.archive_policy != sync::SharedArchivePolicy::kNever) {
+    writer->WriteTag("archive-policy-v1");
+    writer->WriteSigned(static_cast<int64_t>(workspace.archive_policy));
+  }
 }
 
 void WriteTreeNode(FingerprintWriter* writer, const tab_tree::TreeNode& node) {
@@ -132,6 +136,19 @@ void WriteTreeNode(FingerprintWriter* writer, const tab_tree::TreeNode& node) {
     writer->WriteBool(node.local_scheme.has_value());
     if (node.local_scheme) {
       writer->WriteString(*node.local_scheme);
+    }
+  }
+  if (!node.home_url.is_empty() || node.home_target_kind ||
+      node.home_local_scheme) {
+    writer->WriteTag("home-target-v1");
+    writer->WriteString(node.home_url.spec());
+    writer->WriteBool(node.home_target_kind.has_value());
+    if (node.home_target_kind) {
+      writer->WriteSigned(static_cast<int64_t>(*node.home_target_kind));
+    }
+    writer->WriteBool(node.home_local_scheme.has_value());
+    if (node.home_local_scheme) {
+      writer->WriteString(*node.home_local_scheme);
     }
   }
 }

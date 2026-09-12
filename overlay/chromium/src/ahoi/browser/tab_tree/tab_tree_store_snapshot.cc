@@ -176,8 +176,9 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
   sql::Statement insert_workspace(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
-      "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?)"));
-  for (const Workspace &workspace : snapshot.workspaces) {
+      "created_at,modified_at,tombstone,archive_policy) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?)"));
+  for (const Workspace& workspace : snapshot.workspaces) {
     insert_workspace.Reset(/*clear_bound_vars=*/true);
     internal::BindWorkspaceForInsert(insert_workspace, workspace);
     if (!insert_workspace.Run()) {
@@ -189,8 +190,9 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone,is_temporary,target_kind,local_scheme) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme,home_url,home_target_"
+      "kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (size_t index : insertion_order) {
     insert_node.Reset(/*clear_bound_vars=*/true);
     internal::BindNodeForInsert(insert_node, snapshot.nodes[index]);
@@ -208,7 +210,8 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,node_id,"
       "model_version,workspace_id,parent_id,node_type,title,icon,accent_argb,"
       "url,sort_key,created_at,modified_at,tombstone,is_temporary,target_kind,"
-      "local_scheme) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "local_scheme,home_url,home_target_kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (const UndoOperationSnapshot& operation : snapshot.undo_operations) {
     insert_operation.Reset(/*clear_bound_vars=*/true);
     insert_operation.BindInt64(0, operation.operation_id);
@@ -227,7 +230,7 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       insert_undo_node.BindBool(2, node_snapshot.previous.has_value());
       insert_undo_node.BindString(3, node_snapshot.node_id.AsLowercaseString());
       if (!node_snapshot.previous.has_value()) {
-        for (int column = 4; column <= 18; ++column) {
+        for (int column = 4; column <= 21; ++column) {
           insert_undo_node.BindNull(column);
         }
       } else {
@@ -263,6 +266,7 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
         } else {
           insert_undo_node.BindNull(18);
         }
+        internal::BindHome(insert_undo_node, 19, node);
       }
       if (!insert_undo_node.Run()) {
         return Result::kDatabaseError;

@@ -30,8 +30,8 @@ base::Uuid RecoveryFolderId(const base::Uuid& workspace_id) {
   std::string hex = base::ToLowerASCII(
       base::HexEncode(base::as_byte_span(bytes).first<16>()));
   return base::Uuid::ParseLowercase(base::StrCat(
-      {hex.substr(0, 8), "-", hex.substr(8, 4), "-", hex.substr(12, 4),
-       "-", hex.substr(16, 4), "-", hex.substr(20, 12)}));
+      {hex.substr(0, 8), "-", hex.substr(8, 4), "-", hex.substr(12, 4), "-",
+       hex.substr(16, 4), "-", hex.substr(20, 12)}));
 }
 
 bool WorkspaceOrder(const tab_tree::Workspace* left,
@@ -49,28 +49,36 @@ tab_tree::Workspace ConvertWorkspace(const WorkspaceRecord& source) {
           .accent_argb = source.accent_argb,
           .created_at = source.created_at,
           .modified_at = source.modified_at,
-          .tombstone = source.tombstone};
+          .tombstone = source.tombstone,
+          .archive_policy = source.archive_policy};
 }
 
 tab_tree::TreeNode ConvertNode(const TreeNodeRecord& source) {
-  return {.model_version = tab_tree::kCurrentModelVersion,
-          .id = source.id,
-          .workspace_id = source.workspace_id,
-          .parent_id = source.parent_id,
-          .type = source.kind == TreeNodeKind::kFolder
-                      ? tab_tree::TreeNodeType::kFolder
-                      : tab_tree::TreeNodeType::kSavedPage,
-          .title = base::UTF8ToUTF16(source.title),
-          .icon = base::UTF8ToUTF16(source.icon),
-          .accent_argb = source.accent_argb,
-          .url = GURL(source.url),
-          .sort_key = source.sort_key,
-          .created_at = source.created_at,
-          .modified_at = source.modified_at,
-          .tombstone = source.tombstone,
-          .is_temporary = source.is_temporary,
-          .target_kind = source.target_kind,
-          .local_scheme = source.local_scheme};
+  return {
+      .model_version = tab_tree::kCurrentModelVersion,
+      .id = source.id,
+      .workspace_id = source.workspace_id,
+      .parent_id = source.parent_id,
+      .type = source.kind == TreeNodeKind::kFolder
+                  ? tab_tree::TreeNodeType::kFolder
+                  : tab_tree::TreeNodeType::kSavedPage,
+      .title = base::UTF8ToUTF16(source.title),
+      .icon = base::UTF8ToUTF16(source.icon),
+      .accent_argb = source.accent_argb,
+      .url = GURL(source.url),
+      .sort_key = source.sort_key,
+      .created_at = source.created_at,
+      .modified_at = source.modified_at,
+      .tombstone = source.tombstone,
+      .is_temporary = source.is_temporary,
+      .target_kind = source.target_kind,
+      .local_scheme = source.local_scheme,
+      .home_url = source.home_target ? GURL(source.home_target->url) : GURL(),
+      .home_target_kind = source.home_target
+                              ? std::make_optional(source.home_target->kind)
+                              : std::nullopt,
+      .home_local_scheme =
+          source.home_target ? source.home_target->local_scheme : std::nullopt};
 }
 
 }  // namespace
@@ -85,7 +93,8 @@ WorkspaceRecord WorkspaceToSyncRecord(const tab_tree::Workspace& workspace,
           .created_at = workspace.created_at,
           .modified_at = workspace.modified_at,
           .tombstone = workspace.tombstone,
-          .version = std::move(version)};
+          .version = std::move(version),
+          .archive_policy = workspace.archive_policy};
 }
 
 TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
@@ -109,7 +118,8 @@ TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
       .version = std::move(version),
       .is_temporary = node.is_temporary,
       .target_kind = target ? std::make_optional(target->kind) : std::nullopt,
-      .local_scheme = target ? target->local_scheme : std::nullopt};
+      .local_scheme = target ? target->local_scheme : std::nullopt,
+      .home_target = tab_tree::GetSharedHomeTarget(node)};
 }
 
 std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
@@ -120,8 +130,11 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
   result.undo_operations = local_snapshot.undo_operations;
   std::map<base::Uuid, size_t> workspace_indexes;
   for (const WorkspaceRecord& source : workspaces) {
-    if (!source.id.is_valid() || source.name.empty() || source.sort_key.empty() ||
-        source.created_at.is_null() || source.modified_at.is_null() ||
+    if (!source.id.is_valid() || source.name.empty() ||
+        source.sort_key.empty() || source.created_at.is_null() ||
+        source.modified_at.is_null() ||
+        static_cast<int>(source.archive_policy) < 0 ||
+        static_cast<int>(source.archive_policy) > 4 ||
         workspace_indexes.contains(source.id)) {
       return std::nullopt;
     }
@@ -131,7 +144,8 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
 
   std::vector<const tab_tree::Workspace*> active;
   for (const tab_tree::Workspace& workspace : result.workspaces) {
-    if (!workspace.tombstone) active.push_back(&workspace);
+    if (!workspace.tombstone)
+      active.push_back(&workspace);
   }
   if (active.empty()) {
     for (const tab_tree::Workspace& workspace : local_snapshot.workspaces) {
@@ -144,11 +158,13 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
       }
     }
   }
-  if (active.empty()) return std::nullopt;
+  if (active.empty())
+    return std::nullopt;
   // Pointers can have been invalidated by the fallback append above.
   active.clear();
   for (const tab_tree::Workspace& workspace : result.workspaces) {
-    if (!workspace.tombstone) active.push_back(&workspace);
+    if (!workspace.tombstone)
+      active.push_back(&workspace);
   }
   std::sort(active.begin(), active.end(), WorkspaceOrder);
   const base::Uuid fallback_workspace = active.front()->id;
@@ -160,15 +176,15 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
   }
   std::set<base::Uuid> force_recovery;
   for (const TreeNodeRecord& source : nodes) {
-    if (!source.id.is_valid() || source.title.empty() || source.sort_key.empty() ||
-        source.created_at.is_null() || source.modified_at.is_null() ||
-        node_indexes.contains(source.id)) {
+    if (!source.id.is_valid() || source.title.empty() ||
+        source.sort_key.empty() || source.created_at.is_null() ||
+        source.modified_at.is_null() || node_indexes.contains(source.id)) {
       return std::nullopt;
     }
     tab_tree::TreeNode node = ConvertNode(source);
     if (source.kind == TreeNodeKind::kFolder) {
       if (source.is_temporary || source.target_kind || source.local_scheme ||
-          !source.url.empty()) {
+          !source.url.empty() || source.home_target) {
         return std::nullopt;
       }
     } else if (source.kind != TreeNodeKind::kPage || !source.target_kind ||
@@ -178,6 +194,17 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
                     .local_scheme = source.local_scheme},
                    source.is_temporary)) {
       return std::nullopt;
+    }
+    if (source.home_target &&
+        !tab_tree::IsValidSharedPageTarget(*source.home_target, false)) {
+      return std::nullopt;
+    }
+    if (node.home_target_kind == SharedTabTargetKind::kLocalOnly) {
+      const auto local = local_nodes.find(node.id);
+      if (local != local_nodes.end() && !local->second->tombstone &&
+          tab_tree::GetSharedHomeTarget(*local->second) == source.home_target) {
+        node.home_url = local->second->home_url;
+      }
     }
     if (node.target_kind == SharedTabTargetKind::kLocalOnly ||
         node.target_kind == SharedTabTargetKind::kNewTab) {
@@ -196,7 +223,8 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     if (workspace == workspace_indexes.end() ||
         (!node.tombstone && result.workspaces[workspace->second].tombstone)) {
       node.workspace_id = fallback_workspace;
-      if (!node.tombstone) force_recovery.insert(node.id);
+      if (!node.tombstone)
+        force_recovery.insert(node.id);
     }
     node_indexes[node.id] = result.nodes.size();
     result.nodes.push_back(std::move(node));
@@ -217,7 +245,8 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
   }
 
   for (tab_tree::TreeNode& node : result.nodes) {
-    if (!node.parent_id) continue;
+    if (!node.parent_id)
+      continue;
     const auto parent = node_indexes.find(*node.parent_id);
     if (parent == node_indexes.end()) {
       recover(node);
@@ -238,7 +267,8 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     std::vector<base::Uuid> stack;
     bool cut = false;
     std::function<void(const base::Uuid&)> visit = [&](const base::Uuid& id) {
-      if (cut || colors[id] == 2) return;
+      if (cut || colors[id] == 2)
+        return;
       if (colors[id] == 1) {
         auto start = std::find(stack.begin(), stack.end(), id);
         const base::Uuid cut_id = *std::min_element(start, stack.end());
@@ -257,9 +287,11 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     };
     for (const auto& [id, index] : node_indexes) {
       visit(id);
-      if (cut) break;
+      if (cut)
+        break;
     }
-    if (!cut) break;
+    if (!cut)
+      break;
   }
 
   for (const base::Uuid& workspace_id : recovery_workspaces) {

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "ahoi/browser/sync/shared_tab_target_types.h"
+#include "ahoi/browser/sync/shared_workspace_structure_types.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "url/gurl.h"
@@ -37,6 +38,8 @@ struct Workspace {
   base::Time created_at;
   base::Time modified_at;
   bool tombstone = false;
+
+  sync::SharedArchivePolicy archive_policy = sync::SharedArchivePolicy::kNever;
 
   bool operator==(const Workspace&) const = default;
 };
@@ -73,12 +76,23 @@ struct TreeNode {
   std::optional<sync::SharedTabTargetKind> target_kind;
   std::optional<std::string> local_scheme;
 
+  // Saved Home is independent of the current navigation URL. A local-only
+  // destination remains private here; only its portable descriptor is shared.
+  // A concurrent Unsave may retain dormant Home metadata on a temporary page.
+  GURL home_url;
+  std::optional<sync::SharedTabTargetKind> home_target_kind;
+  std::optional<std::string> home_local_scheme;
+
   bool operator==(const TreeNode&) const = default;
 };
 
 // Only this bounded target leaves the device. A local-only native URL may be
 // retained in the row for local use, but is never returned by this boundary.
 std::optional<sync::SharedTabTarget> GetSharedPageTarget(const TreeNode& node);
+std::optional<sync::SharedTabTarget> GetSharedHomeTarget(const TreeNode& node);
+// Local creation/save only. Never call while applying a shared snapshot or
+// observing navigation: an absent incoming Home is an intentional value.
+void InitializeSavedHome(TreeNode* node);
 // Native local-only captions may contain file paths or code-derived text.
 // Preserve their local display but use a generic portable caption on the wire.
 std::u16string GetSharedPageTitle(const TreeNode& node);

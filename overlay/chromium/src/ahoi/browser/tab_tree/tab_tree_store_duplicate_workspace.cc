@@ -23,18 +23,21 @@ namespace {
 constexpr char kSelectActiveWorkspaceNodesSql[] =
     "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
     "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
-    "is_temporary,target_kind,local_scheme FROM "
+    "is_temporary,target_kind,local_scheme,home_url,home_target_kind,home_"
+    "local_scheme FROM "
     "tree_nodes WHERE workspace_id=? AND tombstone=0 ORDER BY id";
 
 constexpr char kInsertWorkspaceSql[] =
     "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
-    "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?)";
+    "created_at,modified_at,tombstone,archive_policy) "
+    "VALUES(?,?,?,?,?,?,?,?,?,?)";
 
 constexpr char kInsertNodeSql[] =
     "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
     "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-    "tombstone,is_temporary,target_kind,local_scheme) "
-    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    "tombstone,is_temporary,target_kind,local_scheme,home_url,home_target_kind,"
+    "home_local_scheme) "
+    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 }  // namespace
 
@@ -164,7 +167,9 @@ TabTreeStore::Result TabTreeStore::DuplicateWorkspace(
 
   sql::Statement insert_workspace(
       db_.GetCachedStatement(SQL_FROM_HERE, kInsertWorkspaceSql));
-  internal::BindWorkspaceForInsert(insert_workspace, duplicate_workspace);
+  Workspace preserved_workspace = duplicate_workspace;
+  preserved_workspace.archive_policy = source_workspace.archive_policy;
+  internal::BindWorkspaceForInsert(insert_workspace, preserved_workspace);
   if (!insert_workspace.Run()) {
     return Result::kDatabaseError;
   }
