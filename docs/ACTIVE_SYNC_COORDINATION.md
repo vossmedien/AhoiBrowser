@@ -94,14 +94,22 @@ or an optional UI switch is not implementation/acceptance.
   found Servusla's DDI17F113 mounted, compatible and usable. No Xcode roll was
   needed. A later lock does not invalidate that proof or authorize blind retries;
   read the actual state at the next device action. No passcode was requested.
+- **Corrected Device24 installed and ordinarily launched:** e2faf54 build54890
+  and headless install8681 completed EXIT0. The signed tree is
+  281f5c8b137973cb3624c894c1ea3ab6db5d23fe10d3ca5850c283b45dd16a88.
+  Normal launch at11:28:36UTC used no fixture or harness arguments. Scoped local
+  session/snapshot/defaults readback confirms the intended namespace and Sync
+  remains OFF. This is not a visible iPhone UI or CloudKit pass. Device22/23 above
+  are preserved predecessor evidence, not candidates to restart.
 - **Scoped Mac installed and independently verified:** guarded install64142
   completed EXIT0 on c8d9161057cae20913ddd83bfbfadf22598d3950. Root verified the
   installed deep/strict signature, actual Development/container/zone/subscription/
   account values and executable SHA
   29118f340a5dbaceaee1c9164353bca6d9b8d9c57dc0ee17242df7b9e7402ee5.
   The real Default/Local State/tree are preserved; a24 remains in atomic rollback.
-  No app start, CUA, payload-key or CloudKit action occurred. Normal acceptance
-  startup is protected to its dedicated MacA/MacB profiles, not the real Default.
+  Installation itself did not start the app. Subsequent ordinary MacA startup
+  and the first real visible Sync opt-in are recorded below. Acceptance startup
+  is protected to its dedicated MacA/MacB profiles, not the real Default.
 - **Structure source freeze e7abcff is separate:** record13/14, Home/archive
   fields, both codecs/merge/stores/provider and common golden are implemented in
   Source, not runtime-accepted. Native DTO/persistence/capture/scheduler/UI remain
@@ -128,13 +136,32 @@ See [key setup](KEY_BOOTSTRAP_SYNC.md) and the current
 
 ## Runtime and remaining visible work
 
-**Current UI grant, September12:** MBC's own8998792A was granted the bounded
-ed312139 Journal/Guide-memory journey; no actual START/pass is inferred. Root's
-latest readback still found all Simulators Shutdown and asked for the unused
-window's explicit return (01a09546-220a). Only global CUA/focus waits on that
-handoff. Headless guarded Mac/physical-device installation WITHOUT app launch
-was explicitly released as independent work; it does not use MBC's Simulator.
-No app start or new cloud/provider authority follows from installation.
+**Current UI state, September12:** Root explicitly returned the completed
+Ahoi-c8 window to Desktop and MBC (01a095a0). The visible Sync switch was set
+OFF and read back0; ordinary application quit succeeded, with PID39235 absent
+and no remaining own windows. Root holds no UI slot. The unused MBC START01a09524
+was revoked; MBC's later11:50 handback was consumed once. None of these events
+starts BetterConvo or revives September8 slots.
+
+**First native visible result:** ordinary c8 MacA launch and navigation through
+the existing Settings UI succeeded. CUA timed out, but permitted native macOS
+Accessibility actions and own-window captures work. Root scrolled the actual
+Ahoi Sync checkbox into view and changed it from0 to1. CloudKit is recognized;
+the UI then reports an account/zone recovery prerequisite. AX exposes the two
+account-recovery buttons with size0x0 and their Sync disclosure at0x28, so no
+invisible confirmation was performed. Common's selective live flag readback
+confirmed accountTransitionPending=true and zoneRecoveryPending=false. The
+native AccountChange handler resets state even on first/identical sign-in;
+Common is implementing a bound-account correction, preserving real-change
+revocation. Desktop fixed the zero preferred width in6a2cd6f, with the recovery
+disclosure shown without confirming anything. Source-only sidebar polish29b5f8a
+also addresses the user's gray-pill screenshot. The misleading OFF-state
+"CloudKit unavailable in this build" copy is part of the same focused followup.
+Screens are under artifacts/e2e/native-sync-c8d9161-20260912/. This is a blocked
+changed journey, NOT a bootstrap/transport/roundtrip pass. The bba96b17 scope may
+now contain setup state and must never again be assumed unused from its name.
+Device24 stays Sync OFF while this exact native prerequisite is resolved. The
+next c8 correction combines those bounded fixes, not the separate Structure WIP.
 
 No September8 Simulator reservation or START message is valid today. Before
 starting, the current owner checks actual surfaces/workload and gives a concrete
@@ -147,8 +174,8 @@ solely for branding. Host-label/recognized-metadata observations remain open and
 can be folded into the next relevant candidate journey. Build18's Search/Restart/
 Reset proof stays bounded to its old artifact, not full Sync acceptance.
 
-Still open: matching native candidate, actual device launch and shared-key
-bootstrap/real encrypted roundtrip, native extension restoration/settings,
+Still open: the native first-opt-in/recovery path, visible device acceptance and
+shared-key bootstrap/real encrypted roundtrip, native extension restoration/settings,
 September12 domain extensions and their representative cross-client acceptance.
 No Production publication is authorized or claimed here.
 
