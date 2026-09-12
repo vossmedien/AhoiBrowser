@@ -12,6 +12,7 @@
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
 #include "base/functional/bind.h"
 #include "base/one_shot_event.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "extensions/browser/extension_registrar.h"
 #include "extensions/browser/extension_system.h"
