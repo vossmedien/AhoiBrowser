@@ -67,7 +67,9 @@ void SetSidebarHeaderActionToggleState(views::View* button, bool checked);
 // button insets around the subtle clear action.
 std::unique_ptr<views::View> CreateSidebarSectionDivider(
     views::Button::PressedCallback callback,
-    std::u16string action_name);
+    std::u16string action_name,
+    std::u16string section_name = {});
+std::unique_ptr<views::View> CreateSidebarSectionLabel(std::u16string name);
 
 std::unique_ptr<views::View> CreateSidebarSplitActionCell(
     views::Button::PressedCallback top_callback,

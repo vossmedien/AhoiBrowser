@@ -38,6 +38,7 @@
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/gfx/animation/animation.h"
 #include "ui/gfx/canvas.h"
+#include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/views/accessibility/view_accessibility.h"
@@ -621,19 +622,6 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
   const int row_width = std::max(width(), 1);
   const ui::ColorProvider* colors = GetColorProvider();
 
-  // Keep the saved section recognizable even before a drag begins. This quiet
-  // tint identifies the destination category, not acceptance of a payload.
-  // It remains behind folder/row surfaces and never changes layout or hit
-  // tests.
-  gfx::RectF target(GetLocalBounds());
-  target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
-  cc::PaintFlags section_fill;
-  section_fill.setAntiAlias(true);
-  section_fill.setStyle(cc::PaintFlags::kFill_Style);
-  section_fill.setColor(
-      SkColorSetA(colors->GetColor(visual_style::kAccent), 18));
-  canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, section_fill);
-
   // Row edges keep their positioning markers. The separate trailing area
   // highlights only a validated root append, never the last row/folder.
   gfx::RectF append_target(GetRootAppendDropBounds(visual_rows));
@@ -641,6 +629,18 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
   const bool root_accepting = drop_indicator_.has_value() &&
                               !drop_indicator_->target_node_id.has_value() &&
                               !append_target.IsEmpty();
+  if (rows.empty() && !root_accepting &&
+      !model().is_search_projection_active()) {
+    gfx::Rect hint = GetLocalBounds();
+    hint.Inset(gfx::Insets::VH(0, visual_style::kSidebarSectionSpacing));
+    canvas->DrawStringRectWithFlags(
+        base::i18n::GetConfiguredLocale().starts_with("de")
+            ? u"Tabs zum Speichern hierherziehen"
+            : u"Drag tabs here to save",
+        gfx::FontList().DeriveWithSizeDelta(-1),
+        colors->GetColor(visual_style::kMutedText), hint,
+        gfx::Canvas::TEXT_ALIGN_LEFT);
+  }
   if (root_accepting) {
     cc::PaintFlags fill;
     fill.setAntiAlias(true);

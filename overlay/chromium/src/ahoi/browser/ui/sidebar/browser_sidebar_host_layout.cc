@@ -41,6 +41,7 @@
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/i18n/case_conversion.h"
+#include "base/i18n/rtl.h"
 #include "base/location.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -70,9 +71,9 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/bookmarks/browser/bookmark_model.h"
 #include "components/favicon/content/content_favicon_driver.h"
 #include "components/favicon/core/favicon_service.h"
-#include "components/bookmarks/browser/bookmark_model.h"
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
@@ -275,7 +276,7 @@ BrowserSidebarHostView::BrowserSidebarHostView(
       presentation_prefs &&
           presentation_prefs->FindPreference(kSidebarPresentationModePref) &&
           GetPresentationMode(*presentation_prefs) ==
-          SidebarPresentationMode::kFloating);
+              SidebarPresentationMode::kFloating);
   workspace_header->AddChildView(CreateSidebarHeaderActionButton(
       base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
                           weak_ptr_factory_.GetWeakPtr(),
@@ -300,6 +301,10 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   tabs_surface_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kStretch);
 
+  const bool german_sidebar =
+      base::i18n::GetConfiguredLocale().starts_with("de");
+  tabs_surface->AddChildView(
+      CreateSidebarSectionLabel(german_sidebar ? u"Gespeichert" : u"Saved"));
   auto tree = std::make_unique<SidebarTreeView>(
       controller_.get(), this,
       l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_TREE_ACCESSIBLE_NAME),
@@ -310,7 +315,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   open_tabs_header_ = tabs_surface->AddChildView(CreateSidebarSectionDivider(
       base::BindRepeating(&BrowserSidebarHostView::CloseAllTemporaryTabs,
                           base::Unretained(this)),
-      l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL)));
+      german_sidebar ? u"Entfernen" : u"Clear",
+      german_sidebar ? u"Temporäre Tabs" : u"Temporary tabs"));
 
   auto open_tabs = CreateOpenTabsDropTargetView(
       base::BindRepeating(&BrowserSidebarHostView::CanDropOpenTabToTemporary,
@@ -358,8 +364,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   // Cross-device rows are part of the tab list, not a detached management
   // page. Keep them immediately below the saved tree and above temporary
   // local tabs; the latter may flex into otherwise unused sidebar height.
-  tabs_surface->ReorderChildView(remote_tabs_header_, 1);
-  tabs_surface->ReorderChildView(remote_tabs_container_, 2);
+  tabs_surface->ReorderChildView(remote_tabs_header_, 2);
+  tabs_surface->ReorderChildView(remote_tabs_container_, 3);
   auto* const mini_player_scroll_inset =
       tabs_surface->AddChildView(std::make_unique<views::View>());
   mini_player_scroll_inset->SetPreferredSize(gfx::Size());
