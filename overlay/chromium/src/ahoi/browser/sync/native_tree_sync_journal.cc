@@ -14,6 +14,7 @@
 #include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/sync/sync_unified_validation.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
+#include "ahoi/browser/sync/workspace_structure_sync.h"
 #include "base/check.h"
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
@@ -40,6 +41,7 @@ bool IsUnmodifiedSystemInbox(const SyncRecord& record) {
          workspace->sort_key == "0" && !workspace->accent_argb &&
          workspace->created_at == base::Time::UnixEpoch() &&
          workspace->modified_at == base::Time::UnixEpoch() &&
+         workspace->archive_policy == SharedArchivePolicy::kNever &&
          !workspace->tombstone;
 }
 
@@ -57,6 +59,10 @@ std::optional<Dict> Observation(const SyncRecord& record) {
   }
   Dict result;
   if (const auto* workspace = std::get_if<WorkspaceRecord>(&record)) {
+    if (workspace->archive_policy < SharedArchivePolicy::kNever ||
+        workspace->archive_policy > SharedArchivePolicy::kThirtyDays)
+      return std::nullopt;
+    result.Set("archive_policy", static_cast<int>(workspace->archive_policy));
     result.Set("name", workspace->name);
     result.Set("icon", workspace->icon);
     result.Set("sort_key", workspace->sort_key);
@@ -72,13 +78,13 @@ std::optional<Dict> Observation(const SyncRecord& record) {
     return result;
   }
   const auto* node = std::get_if<TreeNodeRecord>(&record);
-  if (!node ||
+  if (!node || !ValidateHomeTarget(node->home_target) ||
       (node->kind == TreeNodeKind::kPage &&
        !ValidateSharedTarget(node->url, node->target_kind,
                              node->local_scheme)) ||
       (node->kind == TreeNodeKind::kFolder &&
        (!node->url.empty() || node->target_kind || node->local_scheme ||
-        node->is_temporary))) {
+        node->is_temporary || node->home_target))) {
     return std::nullopt;
   }
   Dict location;
@@ -106,6 +112,9 @@ std::optional<Dict> Observation(const SyncRecord& record) {
                                  ? base::Value(*node->local_scheme)
                                  : base::Value());
   result.Set("url", std::move(target));
+  Dict home;
+  serialization_internal::SetHomeTarget(home, node->home_target);
+  result.Set("home_target", std::move(home));
   serialization_internal::SetTime(result, "created_at", node->created_at);
   serialization_internal::SetTime(result, "modified_at", node->modified_at);
   result.Set("is_temporary", node->is_temporary);
