@@ -67,7 +67,7 @@ class NativeBookmarkSyncAdapter;
 // work remains on one MayBlock sequence; views only receive immutable copies.
 class ProfileSyncService final : public KeyedService,
                                  public history::HistoryServiceObserver,
-                                 public extensions::ExtensionRegistryObserver {
+                                 public ::extensions::ExtensionRegistryObserver {
  public:
   enum class BookmarkSyncIssue {
     kNone,
@@ -297,17 +297,17 @@ class ProfileSyncService final : public KeyedService,
 
   // extensions::ExtensionRegistryObserver:
   void OnExtensionLoaded(content::BrowserContext* browser_context,
-                         const extensions::Extension* extension) override;
+                         const ::extensions::Extension* extension) override;
   void OnExtensionUnloaded(content::BrowserContext* browser_context,
-                           const extensions::Extension* extension,
-                           extensions::UnloadedExtensionReason reason) override;
+                           const ::extensions::Extension* extension,
+                           ::extensions::UnloadedExtensionReason reason) override;
   void OnExtensionInstalled(content::BrowserContext* browser_context,
-                            const extensions::Extension* extension,
+                            const ::extensions::Extension* extension,
                             bool is_update) override;
   void OnExtensionUninstalled(content::BrowserContext* browser_context,
-                              const extensions::Extension* extension,
-                              extensions::UninstallReason reason) override;
-  void OnShutdown(extensions::ExtensionRegistry* registry) override;
+                              const ::extensions::Extension* extension,
+                              ::extensions::UninstallReason reason) override;
+  void OnShutdown(::extensions::ExtensionRegistry* registry) override;
 
   // history::HistoryServiceObserver:
   void OnURLVisited(history::HistoryService* history_service,
@@ -327,7 +327,7 @@ class ProfileSyncService final : public KeyedService,
   raw_ptr<Profile> profile_ = nullptr;
   base::WeakPtr<ProfileSyncUiBridge> ui_bridge_;
   raw_ptr<history::HistoryService> history_service_ = nullptr;
-  raw_ptr<extensions::ExtensionRegistry> extension_registry_ = nullptr;
+  raw_ptr<::extensions::ExtensionRegistry> extension_registry_ = nullptr;
   base::CallbackListSubscription tab_tree_subscription_;
   size_t ui_bridge_attachment_count_ = 0;
   std::map<std::string, std::vector<LocalTabState>> window_tabs_;
