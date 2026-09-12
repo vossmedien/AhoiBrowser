@@ -1,5 +1,25 @@
 # Isolated Mobile Development23
 
+## Install only, launch held — 12 September
+
+The already-started native installation completed successfully: Servusla reports
+`app.ahoibrowser.AhoiBrowser`0.1(23), replacing0.1(9). Exact source/tree/signature/
+profile were rechecked before upload. Complete process readbacks found no Ahoi
+process before or after installation. No launch, uninstall, reset or key/cloud
+operation was performed; normal native upgrade semantics preserve the data
+container. Device metadata does not expose AhoiSourceCommit; that association is
+bound to the exact supplied signed artifact, not claimed as a direct device
+Info.plist read. Details: `install-receipt-20260912.json` and raw result/readback.
+
+**Do not start23.** Subsequent source inspection found that three `@AppStorage`
+UI bindings still used implicit standard defaults despite the scoped model.
+The separate two-file fix `7e19476` explicitly binds all three to model.defaults;
+its patch applies cleanly to the originalfa53e31 source without the newer
+Structure/Privacy changes. A corrected matching candidate must precede any
+first visible or CloudKit journey. The signed23 artifact remains unchanged.
+
+## Original build and signing evidence
+
 Source `fa53e316b3a2cfda81dc2f99fdd4a9b2e581b8c6`, CloudKitDevelopment0.1(23),
 iPhoneOS/arm64 built successfully (session67411 EXIT0). The clean detached
 snapshot and ordinary product-only build are bound in `candidate.json`; no
