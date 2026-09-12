@@ -22,6 +22,10 @@ struct CloudKitSyncConfigurationMac {
   uint32_t key_version = 0;
   // Filled only by the verified native bootstrap, never from Info.plist.
   std::string verified_key_sha256;
+  // In-memory identity from the bootstrap's matching before/after account
+  // reads. Never loaded from Info.plist, persisted, logged, or sent on the
+  // wire.
+  std::string verified_account_record_name;
   SyncAuthorization verified_key_authorization;
   bool automatically_sync = true;
 

@@ -111,15 +111,21 @@ class CloudKitBookmarkSyncConsentTest : public testing::Test {
   }
   std::unique_ptr<CloudKitSyncProviderMac> Create(
       const std::shared_ptr<CryptorCalls>& calls,
-      bool enabled = false) {
+      bool enabled = false,
+      std::string verified_account = {}) {
     return CloudKitSyncProviderMac::CreateForConsentTesting(
-        path_, std::make_unique<CountingCryptor>(calls), enabled);
+        path_, std::make_unique<CountingCryptor>(calls), enabled,
+        std::move(verified_account));
   }
   void Receive(CloudKitSyncProviderMac& provider, CKRecord* record) {
     provider.ReceiveRecordForTesting(record);
   }
   void AccountChanged(CloudKitSyncProviderMac& provider) {
     provider.AccountChangedForTesting();
+  }
+  void SignedIn(CloudKitSyncProviderMac& provider, NSString* name) {
+    provider.AccountSignedInForTesting(
+        [[CKRecordID alloc] initWithRecordName:name]);
   }
   base::RepeatingCallback<bool()> QueuedRecord(
       CloudKitSyncProviderMac& provider,
@@ -282,6 +288,31 @@ TEST_F(CloudKitBookmarkSyncConsentTest,
   EXPECT_TRUE(provider->IsAccountTransitionPending());
   EXPECT_TRUE(provider->IsBookmarkConsentRevoked());
   EXPECT_EQ(0, restarted_calls->opened);
+}
+
+TEST_F(CloudKitBookmarkSyncConsentTest,
+       VerifiedFirstSignInPreservesOriginalScopeButDifferentAccountRevokes) {
+  auto calls = std::make_shared<CryptorCalls>();
+  auto provider = Create(calls, true, "fixture-account-a");
+  auto original = provider->GetBookmarkSyncAuthorization();
+  auto queued = QueuedRecord(*provider, BookmarkCloudRecord());
+  ASSERT_TRUE(original);
+  ASSERT_TRUE(original.Run());
+  SignedIn(*provider, @"fixture-account-a");
+  SignedIn(*provider, @"fixture-account-a");
+  EXPECT_FALSE(provider->IsAccountTransitionPending());
+  EXPECT_FALSE(provider->IsBookmarkConsentRevoked());
+  EXPECT_TRUE(original.Run());
+  EXPECT_TRUE(queued.Run());
+  SignedIn(*provider, @"fixture-account-b");
+  EXPECT_TRUE(provider->IsAccountTransitionPending());
+  EXPECT_TRUE(provider->IsBookmarkConsentRevoked());
+  EXPECT_FALSE(original.Run());
+  EXPECT_FALSE(queued.Run());
+  // A matching replay cannot auto-confirm an already persisted recovery gate.
+  SignedIn(*provider, @"fixture-account-a");
+  EXPECT_TRUE(provider->IsAccountTransitionPending());
+  EXPECT_FALSE(original.Run());
 }
 
 TEST_F(CloudKitBookmarkSyncConsentTest,

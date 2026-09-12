@@ -551,7 +551,8 @@ class CloudKitSyncKeyBootstrapMac::Core
   }
 
   void CompleteVerifiedKey() {
-    if (!authorization_.Run() || !claim_) {
+    if (!authorization_.Run() || !claim_ || !identity_ ||
+        identity_.recordName.length == 0) {
       Finish("key_setup_cancelled");
       return;
     }
@@ -571,6 +572,8 @@ class CloudKitSyncKeyBootstrapMac::Core
     }
     auto verified_configuration = configuration_;
     verified_configuration.verified_key_sha256 = claim_->key_sha256;
+    verified_configuration.verified_account_record_name =
+        ToString(identity_.recordName);
     auto cryptor = LoadKeychainSyncPayloadCryptor(verified_configuration);
     if (!cryptor || !authorization_.Run()) {
       Finish("key_setup_keychain_recovery");
@@ -580,7 +583,7 @@ class CloudKitSyncKeyBootstrapMac::Core
     waiting_ = false;
     family_lock_.Release();
     const auto callback = completion_;
-    callback.Run({.configuration = configuration_,
+    callback.Run({.configuration = std::move(verified_configuration),
                   .cryptor = std::move(cryptor),
                   .key_sha256 = claim_->key_sha256,
                   .authorization = authorization_});

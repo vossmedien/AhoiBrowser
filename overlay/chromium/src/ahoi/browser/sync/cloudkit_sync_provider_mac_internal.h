@@ -60,6 +60,10 @@ class CloudKitSyncProviderMac::Core
   void ReadCachedChangesForTesting(std::string token,
                                    DownloadCallback callback);
   void AccountChangedForTesting();
+  void AccountSignedInForTesting(CKRecordID* current_user);
+  void HandleAccountChange(CKSyncEngineAccountChangeType type,
+                           CKRecordID* previous_user,
+                           CKRecordID* current_user) API_AVAILABLE(macos(14.0));
   void LoadInboxForTesting();
 
   void Shutdown() {
@@ -145,7 +149,9 @@ class CloudKitSyncProviderMac::Core
         PersistState(event.stateUpdateEvent.stateSerialization);
       } break;
       case CKSyncEngineEventTypeAccountChange: {
-        ResetAccountState();
+        HandleAccountChange(event.accountChangeEvent.changeType,
+                            event.accountChangeEvent.previousUser,
+                            event.accountChangeEvent.currentUser);
       } break;
       case CKSyncEngineEventTypeFetchedDatabaseChanges:
         for (CKSyncEngineFetchedZoneDeletion* deletion in event

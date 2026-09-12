@@ -198,6 +198,55 @@ void CloudKitSyncProviderMac::Core::SetBookmarkSyncEnabled(bool enabled) {
   PersistInbox();
 }
 
+void CloudKitSyncProviderMac::Core::HandleAccountChange(
+    CKSyncEngineAccountChangeType type,
+    CKRecordID* previous_user,
+    CKRecordID* current_user) {
+  lock_.AssertAcquired();
+  const bool verified_same_sign_in =
+      type == CKSyncEngineAccountChangeTypeSignIn && !previous_user &&
+      current_user && !account_transition_pending_ &&
+      !persisted_state_invalid_ && key_setup_issue_.empty() &&
+      profile_authorization_ && profile_authorization_.Run() &&
+      !configuration_.verified_account_record_name.empty() &&
+      configuration_.verified_key_sha256.size() == 64 &&
+      configuration_.verified_key_authorization &&
+      configuration_.verified_key_authorization.Run() &&
+      [current_user.recordName
+          isEqualToString:ToNSString(
+                              configuration_.verified_account_record_name)];
+  if (!verified_same_sign_in) {
+    // Sign-out, switch, unknown/unverified identities, revoked original key
+    // authority and an already-persisted transition remain fail-closed.
+    ResetAccountState();
+    return;
+  }
+  // A fresh/rebuilt CKSyncEngine can report sign-in for the already verified
+  // account. It resets its pending changes on account events; retain original
+  // record bodies, mutation IDs and consent leases and restore only that queue.
+  // No recovery flag is cleared and no authorization generation is renewed.
+  if (engine_ && zone_id_ && !zone_recovery_pending_) {
+    CKRecordZone* zone = [[CKRecordZone alloc] initWithZoneID:zone_id_];
+    [engine_.state
+        addPendingDatabaseChanges:@[ [[CKSyncEnginePendingZoneSave alloc]
+                                      initWithZone:zone] ]];
+    NSMutableArray* pending = [NSMutableArray array];
+    for (const auto& [key, record] : pending_records_) {
+      if ((IsBookmarkRecord(record) && !BookmarkAllowed()) ||
+          !PendingSettingAllowed(record)) {
+        continue;
+      }
+      [pending
+          addObject:
+              [[CKSyncEnginePendingRecordZoneChange alloc]
+                  initWithRecordID:record.recordID
+                              type:
+                                  CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]];
+    }
+    [engine_.state addPendingRecordZoneChanges:pending];
+  }
+}
+
 void CloudKitSyncProviderMac::Core::ResetAccountState() {
   lock_.AssertAcquired();
   account_transition_pending_ = true;
@@ -535,6 +584,14 @@ void CloudKitSyncProviderMac::Core::AccountChangedForTesting() {
   ResetAccountState();
 }
 
+void CloudKitSyncProviderMac::Core::AccountSignedInForTesting(
+    CKRecordID* current_user) {
+  base::AutoLock guard(lock_);
+  if (@available(macOS 14.0, *)) {
+    HandleAccountChange(CKSyncEngineAccountChangeTypeSignIn, nil, current_user);
+  }
+}
+
 base::RepeatingCallback<bool()>
 CloudKitSyncProviderMac::Core::MakeDelayedRecordDeliveryForTesting(
     CKRecord* record) {
@@ -553,10 +610,19 @@ std::unique_ptr<CloudKitSyncProviderMac>
 CloudKitSyncProviderMac::CreateForConsentTesting(
     const base::FilePath& path,
     std::unique_ptr<SyncPayloadCryptor> cryptor,
-    bool enabled) {
-  auto core = std::make_shared<Core>(CloudKitSyncConfigurationMac(), path,
-                                     std::move(cryptor), enabled,
-                                     base::BindRepeating([] { return true; }));
+    bool enabled,
+    std::string verified_account_record_name) {
+  CloudKitSyncConfigurationMac configuration;
+  if (!verified_account_record_name.empty()) {
+    configuration.verified_account_record_name =
+        std::move(verified_account_record_name);
+    configuration.verified_key_sha256 = std::string(64, 'a');
+    configuration.verified_key_authorization =
+        base::BindRepeating([] { return true; });
+  }
+  auto core =
+      std::make_shared<Core>(configuration, path, std::move(cryptor), enabled,
+                             base::BindRepeating([] { return true; }));
   core->LoadInboxForTesting();
   return std::unique_ptr<CloudKitSyncProviderMac>(
       new CloudKitSyncProviderMac(std::move(core)));
@@ -572,6 +638,11 @@ void CloudKitSyncProviderMac::ReadCachedChangesForTesting(
 }
 void CloudKitSyncProviderMac::AccountChangedForTesting() {
   core_->AccountChangedForTesting();
+}
+
+void CloudKitSyncProviderMac::AccountSignedInForTesting(
+    CKRecordID* current_user) {
+  core_->AccountSignedInForTesting(current_user);
 }
 
 base::RepeatingCallback<bool()>

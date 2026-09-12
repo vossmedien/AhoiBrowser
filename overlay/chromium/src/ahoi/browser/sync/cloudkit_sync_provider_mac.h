@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_SYNC_CLOUDKIT_SYNC_PROVIDER_MAC_H_
 
 #include <memory>
+#include <string>
 
 #include "ahoi/browser/sync/sync_provider.h"
 #include "base/files/file_path.h"
@@ -12,6 +13,7 @@
 
 #ifdef __OBJC__
 @class CKRecord;
+@class CKRecordID;
 #endif
 
 namespace ahoi::sync {
@@ -65,13 +67,15 @@ class CloudKitSyncProviderMac final : public SyncProvider {
   static std::unique_ptr<CloudKitSyncProviderMac> CreateForConsentTesting(
       const base::FilePath& state_path,
       std::unique_ptr<SyncPayloadCryptor> cryptor,
-      bool bookmark_sync_enabled = false);
+      bool bookmark_sync_enabled = false,
+      std::string verified_account_record_name = {});
   void ReceiveRecordForTesting(CKRecord* record);
   base::RepeatingCallback<bool()> MakeDelayedRecordDeliveryForTesting(
       CKRecord* record);
   void ReadCachedChangesForTesting(std::string token,
                                    DownloadCallback callback);
   void AccountChangedForTesting();
+  void AccountSignedInForTesting(CKRecordID* current_user);
 #endif
   std::shared_ptr<Core> core_;
 };
