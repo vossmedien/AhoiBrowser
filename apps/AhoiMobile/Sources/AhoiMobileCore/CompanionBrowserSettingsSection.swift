@@ -7,6 +7,13 @@ struct CompanionBrowserSettingsSection: View {
     @AppStorage(MobileBrowserPreferences.searchEngineKey)
     private var searchEngineRawValue = MobileSearchEngine.duckDuckGo.rawValue
 
+    init(model: CompanionAppModel) {
+        self.model = model
+        _searchEngineRawValue = AppStorage(wrappedValue: MobileSearchEngine.duckDuckGo.rawValue,
+                                           MobileBrowserPreferences.searchEngineKey,
+                                           store: model.defaults)
+    }
+
     var body: some View {
         Section {
             Picker(

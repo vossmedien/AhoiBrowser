@@ -43,6 +43,11 @@ public struct AhoiMobileBrowserView: View {
     ) {
         self.companionModel = companionModel
         self.browser = browser
+        _syncEnabled = AppStorage(wrappedValue: false, CompanionSyncPreferences.enabledKey,
+                                  store: companionModel.defaults)
+        _searchEngineRawValue = AppStorage(wrappedValue: MobileSearchEngine.duckDuckGo.rawValue,
+                                           MobileBrowserPreferences.searchEngineKey,
+                                           store: companionModel.defaults)
         _permissions = ObservedObject(wrappedValue: browser.permissionCoordinator)
         _downloads = ObservedObject(wrappedValue: browser.downloadCoordinator)
     }
