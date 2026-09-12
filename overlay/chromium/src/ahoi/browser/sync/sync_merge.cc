@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include "ahoi/browser/sync/sync_unified_validation.h"
+#include "ahoi/browser/sync/workspace_structure_sync.h"
 #include "base/base64.h"
 #include "base/json/json_reader.h"
 #include "base/strings/string_util.h"
@@ -239,9 +240,14 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
           }
           return true;
         } else if constexpr (std::is_same_v<T, WorkspaceRecord>) {
-          return ValidTimestamp(value.created_at, error) &&
+          return value.archive_policy >= SharedArchivePolicy::kNever &&
+                 value.archive_policy <= SharedArchivePolicy::kThirtyDays &&
+                 ValidTimestamp(value.created_at, error) &&
                  ValidTimestamp(value.modified_at, error);
         } else if constexpr (std::is_same_v<T, TreeNodeRecord>) {
+          if (!ValidateHomeTarget(value.home_target) ||
+              (value.home_target && value.kind != TreeNodeKind::kPage))
+            return false;
           if (!ValidTimestamp(value.created_at, error) ||
               !ValidTimestamp(value.modified_at, error) ||
               !ValidUuid(value.workspace_id, "invalid workspace id", error) ||
@@ -265,6 +271,11 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
           }
           return value.kind == TreeNodeKind::kFolder ||
                  value.kind == TreeNodeKind::kPage;
+        } else if constexpr (std::is_same_v<T, SplitGroupRecord>) {
+          return ValidateSplitMetadata(
+              {value.id, value.workspace_id, value.topology, value.ratios});
+        } else if constexpr (std::is_same_v<T, TabArchiveEntryRecord>) {
+          return ValidateArchiveEntry(value);
         } else if constexpr (std::is_same_v<T, HistoryRecord>) {
           if (!ValidTimestamp(value.last_visit, error) ||
               !ValidUuid(value.device_id, "invalid history device", error) ||

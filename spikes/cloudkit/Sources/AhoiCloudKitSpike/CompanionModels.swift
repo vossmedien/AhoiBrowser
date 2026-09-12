@@ -190,6 +190,7 @@ public struct Device: Codable, Hashable, Sendable, Identifiable {
 }
 
 public struct Workspace: Codable, Hashable, Sendable, Identifiable {
+    public var archivePolicy: SharedArchivePolicy
     public let workspaceID: WorkspaceID
     public var name: String
     public var icon: String
@@ -208,10 +209,12 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
         sortKey: String? = nil,
         createdAt: HybridLogicalClock? = nil,
         modifiedAt: HybridLogicalClock? = nil,
+        archivePolicy: SharedArchivePolicy = .never,
         version: SyncVersion,
         tombstone: Tombstone? = nil
     ) {
         self.workspaceID = workspaceID
+        self.archivePolicy = archivePolicy
         self.name = name
         self.icon = icon
         self.accent = accent
@@ -230,6 +233,7 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.workspaceID = try container.decode(WorkspaceID.self, forKey: .workspaceID)
+        self.archivePolicy = try container.decode(SharedArchivePolicy.self, forKey: .archivePolicy)
         self.name = try container.decodeIfPresent(String.self, forKey: .workspaceName)
             ?? container.decode(String.self, forKey: .name)
         self.icon = try container.decodeIfPresent(String.self, forKey: .icon) ?? ""
@@ -251,6 +255,7 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(workspaceID, forKey: .workspaceID)
+        try container.encode(archivePolicy, forKey: .archivePolicy)
         try container.encode(workspaceName, forKey: .workspaceName)
         try container.encode(icon, forKey: .icon)
         try container.encodeIfPresent(accent, forKey: .accent)
@@ -265,6 +270,7 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
         case workspaceID, workspaceName, icon, accent, sortKey, createdAt, modifiedAt
         case version, tombstone
         case name
+        case archivePolicy
     }
 
     public var id: WorkspaceID { workspaceID }
@@ -278,6 +284,7 @@ public enum TreeNodeKind: String, Codable, CaseIterable, Sendable {
 }
 
 public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
+    public var homeTarget: SharedTabTarget?
     public let treeNodeID: TreeNodeID
     public var workspaceID: WorkspaceID
     public var parentID: TreeNodeID?
@@ -320,6 +327,7 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         isTemporary: Bool = false,
         targetKind: SharedTabTargetKind? = nil,
         localScheme: SharedTabLocalScheme? = nil,
+        homeTarget: SharedTabTarget? = nil,
         createdAt: HybridLogicalClock? = nil,
         modifiedAt: HybridLogicalClock? = nil,
         version: SyncVersion,
@@ -328,6 +336,11 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         if kind == .savedPage && url == nil && !isTemporary && targetKind != .localOnly {
             throw CompanionModelError.savedPageRequiresURL
         }
+        try SharedWorkspaceValidation.home(homeTarget)
+        guard homeTarget == nil || kind == .savedPage else {
+            throw SharedWorkspaceValidation.Error.invalidStructure
+        }
+        self.homeTarget = homeTarget
         if kind == .folder && isTemporary {
             throw CompanionModelError.folderCannotBeTemporary
         }
@@ -380,6 +393,7 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
             isTemporary: container.decode(Bool.self, forKey: .isTemporary),
             targetKind: container.decodeIfPresent(SharedTabTargetKind.self, forKey: .targetKind),
             localScheme: container.decodeIfPresent(SharedTabLocalScheme.self, forKey: .localScheme),
+            homeTarget: container.decodeIfPresent(SharedTabTarget.self, forKey: .homeTarget),
             createdAt: container.decodeIfPresent(
                 HybridLogicalClock.self,
                 forKey: .createdAt
@@ -408,6 +422,7 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         try container.encode(isTemporary, forKey: .isTemporary)
         try container.encodeIfPresent(targetKind, forKey: .targetKind)
         try container.encodeIfPresent(localScheme, forKey: .localScheme)
+        try container.encodeIfPresent(homeTarget, forKey: .homeTarget)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(modifiedAt, forKey: .modifiedAt)
         try container.encode(version, forKey: .version)
@@ -419,6 +434,7 @@ public struct TreeNode: Codable, Hashable, Sendable, Identifiable {
         case wireSortKey
         case isTemporary, createdAt, modifiedAt, version, tombstone
         case targetKind, localScheme
+        case homeTarget
     }
 
     public var id: TreeNodeID { treeNodeID }

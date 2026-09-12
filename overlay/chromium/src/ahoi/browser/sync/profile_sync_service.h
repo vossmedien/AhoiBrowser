@@ -25,6 +25,7 @@
 #include "ahoi/browser/sync/remote_command_security.h"
 #include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
+#include "ahoi/browser/sync/workspace_structure_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/callback_list.h"
 #include "base/memory/raw_ptr.h"
@@ -65,9 +66,10 @@ class NativeBookmarkSyncAdapter;
 
 // Profile-scoped UI facade around the blocking local-first SQLite store. Disk
 // work remains on one MayBlock sequence; views only receive immutable copies.
-class ProfileSyncService final : public KeyedService,
-                                 public history::HistoryServiceObserver,
-                                 public ::extensions::ExtensionRegistryObserver {
+class ProfileSyncService final
+    : public KeyedService,
+      public history::HistoryServiceObserver,
+      public ::extensions::ExtensionRegistryObserver {
  public:
   enum class BookmarkSyncIssue {
     kNone,
@@ -142,6 +144,11 @@ class ProfileSyncService final : public KeyedService,
   void ApplyRemoteBatch(ProviderBatch batch);
   void Refresh();
   void SyncNow();
+  void ReadWorkspaceStructure(
+      base::OnceCallback<void(std::optional<WorkspaceStructureProjection>)>
+          callback);
+  void PublishWorkspaceStructureIntent(WorkspaceStructureIntent intent,
+                                       base::OnceCallback<void(bool)> callback);
   // Explicit retry of key setup only. Account/zone confirmation remains
   // separate.
   void RetrySyncKeySetup();
@@ -298,9 +305,10 @@ class ProfileSyncService final : public KeyedService,
   // extensions::ExtensionRegistryObserver:
   void OnExtensionLoaded(content::BrowserContext* browser_context,
                          const ::extensions::Extension* extension) override;
-  void OnExtensionUnloaded(content::BrowserContext* browser_context,
-                           const ::extensions::Extension* extension,
-                           ::extensions::UnloadedExtensionReason reason) override;
+  void OnExtensionUnloaded(
+      content::BrowserContext* browser_context,
+      const ::extensions::Extension* extension,
+      ::extensions::UnloadedExtensionReason reason) override;
   void OnExtensionInstalled(content::BrowserContext* browser_context,
                             const ::extensions::Extension* extension,
                             bool is_update) override;

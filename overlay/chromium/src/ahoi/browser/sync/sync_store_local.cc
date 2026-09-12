@@ -92,6 +92,45 @@ SyncStore::Result SyncStore::PutLocalBatch(
 }
 
 bool SyncStore::ValidateLocalRecordReferences(const SyncRecord& record) const {
+  if (const auto* split = std::get_if<SplitGroupRecord>(&record)) {
+    if (split->tombstone)
+      return true;
+    StoredRecord workspace;
+    if (ReadStoredRecord(EntityType::kWorkspace, split->workspace_id,
+                         &workspace) != Result::kOk ||
+        IsTombstone(workspace.record))
+      return false;
+    for (const auto& id : split->topology.member_ids) {
+      StoredRecord page;
+      if (ReadStoredRecord(EntityType::kTreeNode, id, &page) != Result::kOk)
+        return false;
+      const auto& node = std::get<TreeNodeRecord>(page.record);
+      if (node.tombstone || node.kind != TreeNodeKind::kPage ||
+          node.workspace_id != split->workspace_id)
+        return false;
+    }
+    return true;
+  }
+  if (const auto* archive = std::get_if<TabArchiveEntryRecord>(&record)) {
+    if (archive->tombstone)
+      return true;
+    StoredRecord workspace;
+    if (ReadStoredRecord(EntityType::kWorkspace, archive->snapshot.workspace_id,
+                         &workspace) != Result::kOk ||
+        IsTombstone(workspace.record))
+      return false;
+    for (const auto& entry : archive->snapshot.pages) {
+      StoredRecord page;
+      if (ReadStoredRecord(EntityType::kTreeNode, entry.tree_node_id, &page) !=
+          Result::kOk)
+        return false;
+      const auto& node = std::get<TreeNodeRecord>(page.record);
+      if (node.tombstone || node.kind != TreeNodeKind::kPage ||
+          node.workspace_id != archive->snapshot.workspace_id)
+        return false;
+    }
+    return true;
+  }
   if (const auto* tab = std::get_if<RemoteTabRecord>(&record)) {
     if (tab->tombstone) {
       return true;

@@ -53,6 +53,7 @@
 		38531745B31811137FFFF424 /* DesktopWirePayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD895C93277F6F3DCBD5F9E3 /* DesktopWirePayloadCodec.swift */; };
 		3868ADCE8BF5616D92A899B0 /* MobilePrivateSceneShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F6B5AEF26908BC9BD2F39CB /* MobilePrivateSceneShield.swift */; };
 		39097977C4312DFC18055BD5 /* MobileChromeVisibilityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0049C7C6066B87B367C10C5 /* MobileChromeVisibilityPolicy.swift */; };
+		39829F8A5CEC710042D29749 /* CompanionWorkspaceStructureMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EEEC96F184580503D57BE29 /* CompanionWorkspaceStructureMerge.swift */; };
 		3A611F9E9122E53D73AB94D6 /* MobileBrowserResilienceAndCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2052EADC1D35FEBD80995C27 /* MobileBrowserResilienceAndCommandTests.swift */; };
 		3AF00DF202AE2401DB1945BA /* MobileFileInputStaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4CCB360C56CB565700F6A5B /* MobileFileInputStaging.swift */; };
 		3B1DE89768DB962783C9AC60 /* CompanionBookmarkHierarchy.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7C7735B8868DE5D0303DAC /* CompanionBookmarkHierarchy.swift */; };
@@ -71,6 +72,7 @@
 		490F33C2DBF48E0FF4C13CB3 /* MobileDownloadRuntimePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9B1C1DD063BB3937EF7F8D /* MobileDownloadRuntimePolicy.swift */; };
 		4B9B9BF12CC01F269D874CE7 /* bookmark_wire_v2.json in Resources */ = {isa = PBXBuildFile; fileRef = B0328EE1F1660C386893FE11 /* bookmark_wire_v2.json */; };
 		4BF10A3118276D7EDC4E5F1D /* AhoiMobileBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4978FB613AE9D58596122AD1 /* AhoiMobileBrowserView.swift */; };
+		4D130574E1AF906657B74B31 /* DesktopWireWorkspaceStructureCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA5853FC15EE39B6899A77D /* DesktopWireWorkspaceStructureCodec.swift */; };
 		4D322BA77F508F0333E17413 /* MobileDevelopmentScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FBE9D74CE42AD639851C6DB /* MobileDevelopmentScopeTests.swift */; };
 		4D623DD58DF9D5CFA0A5C1B6 /* CompanionBookmarkFieldMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402B5D7242170407AD42AD67 /* CompanionBookmarkFieldMerge.swift */; };
 		4D8913443C4A36115E017A36 /* CloudKitSyncProvider+Transport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4A3CE5184D18FFC720231C /* CloudKitSyncProvider+Transport.swift */; };
@@ -342,6 +344,7 @@
 		1E05217774CD763178565A84 /* SyncRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncRecordStore.swift; sourceTree = "<group>"; };
 		1E6CD4F19405136D9B5EEE74 /* AhoiMobileUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AhoiMobileUITests.swift; sourceTree = "<group>"; };
 		1EA7830289B550449F3EB3D4 /* SharedTabWireReadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTabWireReadTests.swift; sourceTree = "<group>"; };
+		1FA5853FC15EE39B6899A77D /* DesktopWireWorkspaceStructureCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWireWorkspaceStructureCodec.swift; sourceTree = "<group>"; };
 		1FBF62FB42E43880988F8CF1 /* DesktopWireTabTargetCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWireTabTargetCodec.swift; sourceTree = "<group>"; };
 		2052EADC1D35FEBD80995C27 /* MobileBrowserResilienceAndCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserResilienceAndCommandTests.swift; sourceTree = "<group>"; };
 		2342ACE33A9A579F82127F12 /* MobileExternalSchemePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileExternalSchemePolicyTests.swift; sourceTree = "<group>"; };
@@ -414,6 +417,7 @@
 		6A15CD934F07D8C2FF3B7681 /* BookmarkWireContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkWireContractTests.swift; sourceTree = "<group>"; };
 		6D69217E6250B2AEB8F83072 /* MobileBrowserScaleLifecycleRealE2EUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserScaleLifecycleRealE2EUITests.swift; sourceTree = "<group>"; };
 		6D9B1C1DD063BB3937EF7F8D /* MobileDownloadRuntimePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileDownloadRuntimePolicy.swift; sourceTree = "<group>"; };
+		6EEEC96F184580503D57BE29 /* CompanionWorkspaceStructureMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionWorkspaceStructureMerge.swift; sourceTree = "<group>"; };
 		6F387D367BCCD491944C1C0E /* MobileHarborControlsLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileHarborControlsLayout.swift; sourceTree = "<group>"; };
 		7168C8D562DBF1B2F531AD9E /* MobileBrowserPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserPresentationTests.swift; sourceTree = "<group>"; };
 		71E9D3A3A68200DE1B700CBA /* MobileStorageMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileStorageMigrator.swift; sourceTree = "<group>"; };
@@ -687,12 +691,14 @@
 				25E55E9F73A8FDE3DE8B290D /* CompanionTreeReordering.swift */,
 				02865824EB9AC0925B5408DD /* CompanionViews.swift */,
 				33D3879B882F144366D5E1D2 /* CompanionWorkspaceIcon.swift */,
+				6EEEC96F184580503D57BE29 /* CompanionWorkspaceStructureMerge.swift */,
 				117EBD09EFC0805ACE4D0EB8 /* DesktopWireBookmarkPayloadCodec.swift */,
 				46232D6E1868F629140AF52D /* DesktopWireCapabilityCodec.swift */,
 				BD895C93277F6F3DCBD5F9E3 /* DesktopWirePayloadCodec.swift */,
 				4F7EF7566292096CDDC7DFAE /* DesktopWireProductPayloadCodec.swift */,
 				DAEE0DE8E2DD2DAA6C03F3C2 /* DesktopWireSharedTabReadPolicy.swift */,
 				1FBF62FB42E43880988F8CF1 /* DesktopWireTabTargetCodec.swift */,
+				1FA5853FC15EE39B6899A77D /* DesktopWireWorkspaceStructureCodec.swift */,
 				6201E82DA3CF9CC4428EA135 /* InMemoryCloudSyncBackend.swift */,
 				7A3FA294A1582AC5C9C7B8BD /* KeychainCompanionPayloadSealer.swift */,
 				33A80DED1B969DE17B85EEA8 /* LocalFirstRepositoryHistory.swift */,
@@ -1277,12 +1283,14 @@
 				0138D30D083B187638BB7BB7 /* CompanionTreeReordering.swift in Sources */,
 				A063FAA5A42AF4608668A156 /* CompanionViews.swift in Sources */,
 				7A0BF939D8B1A4EA65D4B333 /* CompanionWorkspaceIcon.swift in Sources */,
+				39829F8A5CEC710042D29749 /* CompanionWorkspaceStructureMerge.swift in Sources */,
 				CEBA1048B720F2B89BC705AA /* DesktopWireBookmarkPayloadCodec.swift in Sources */,
 				C4544C41D884E543EA251DBD /* DesktopWireCapabilityCodec.swift in Sources */,
 				38531745B31811137FFFF424 /* DesktopWirePayloadCodec.swift in Sources */,
 				D377689254180F0F84CD187F /* DesktopWireProductPayloadCodec.swift in Sources */,
 				0E948A9E13CCF4E3DCFC294F /* DesktopWireSharedTabReadPolicy.swift in Sources */,
 				6A94F92ACF84505EE13205A0 /* DesktopWireTabTargetCodec.swift in Sources */,
+				4D130574E1AF906657B74B31 /* DesktopWireWorkspaceStructureCodec.swift in Sources */,
 				A4ED3E3FC0B6969185D0805D /* InMemoryCloudSyncBackend.swift in Sources */,
 				953695376DDA5FC73C06086A /* KeychainCompanionPayloadSealer.swift in Sources */,
 				EADFA221B97C47BFA5603A7A /* LocalFirstRepositoryHistory.swift in Sources */,

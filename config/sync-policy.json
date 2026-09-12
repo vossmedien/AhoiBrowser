@@ -6,7 +6,7 @@
   "enabledByDefault": false,
   "cloudKitContainerBeforeOptIn": false,
   "wireModelVersion": 3,
-  "localStoreSchemaVersion": 6,
+  "localStoreSchemaVersion": 7,
   "formatContract": "config/sync-format.json",
   "customZoneRequired": true,
   "sync": [
@@ -24,7 +24,9 @@
     "permittedSettings",
     "extensionInventory",
     "optInDeveloperAssets",
-    "remoteCommands"
+    "remoteCommands",
+    "logicalSplitGroups",
+    "tabArchiveEntries"
   ],
   "implementedRecords": [
     "devices",
@@ -41,7 +43,9 @@
     "permittedSettings",
     "extensionInventory",
     "optInDeveloperAssets",
-    "remoteCommands"
+    "remoteCommands",
+    "logicalSplitGroups",
+    "tabArchiveEntries"
   ],
   "neverSync": [
     "cookies",
@@ -52,10 +56,13 @@
     "permissions",
     "extensionStorage",
     "incognito",
-    "splitTopology",
     "keychainSecrets",
     "secretHeaders",
-    "httpAuthSecrets"
+    "httpAuthSecrets",
+    "nativeSplitHandles",
+    "windowGeometry",
+    "liveFocus",
+    "websiteSessionState"
   ],
   "bookmarkCategory": {
     "localConsentRequired": true,
@@ -90,7 +97,12 @@
     "iosPublishesStorage": false
   },
   "historyRetentionDaysDefault": 90,
-  "historyRetentionChoices": [30, 90, 365, -1],
+  "historyRetentionChoices": [
+    30,
+    90,
+    365,
+    -1
+  ],
   "tombstoneRetentionDays": 30,
   "sessionFreshness": {
     "heartbeatMinutes": 5,
@@ -99,10 +111,21 @@
   },
   "convergence": {
     "fieldClock": "hybrid-logical-clock",
-    "treeLocationAtomic": ["workspace_id", "parent_id", "sort_key"],
+    "treeLocationAtomic": [
+      "workspace_id",
+      "parent_id",
+      "sort_key"
+    ],
     "mergedUnionRecordClock": "deterministic-successor",
     "equalClockDifferentValue": "quarantine",
     "invalidRecord": "quarantine-and-advance-token",
     "compactedDeletion": "persistent-watermark-reject-resurrection"
+  },
+  "workspaceStructure": {
+    "formatVersion": 3,
+    "nativeProjectionEnabled": false,
+    "mobileBehavior": "lossless metadata retention; no split UI; no inferred deletion",
+    "automaticArchiveDefault": "never",
+    "receivedArchiveClosesActivePage": false
   }
 }

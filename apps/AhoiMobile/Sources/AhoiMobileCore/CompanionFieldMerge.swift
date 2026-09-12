@@ -13,11 +13,11 @@ public enum CompanionFieldMergeError: Error, Equatable, Sendable {
 public enum CompanionFieldMerge {
     public static let workspaceFields: Set<String> = [
         "name", "icon", "sort_key", "accent_argb", "created_at", "modified_at",
-        "tombstone",
+        "archive_policy", "tombstone",
     ]
     public static let treeNodeFields: Set<String> = [
         "location", "kind", "title", "icon", "accent_argb", "url", "created_at",
-        "modified_at", "is_temporary", "tombstone",
+        "modified_at", "is_temporary", "home_target", "tombstone",
     ]
 
     public static func merge(_ existing: Workspace, _ incoming: Workspace) throws -> Workspace {
@@ -28,6 +28,9 @@ public enum CompanionFieldMerge {
         let oldVersion = try SharedSyncFormat.validate(existing.version, fields: workspaceFields)
         let newVersion = try SharedSyncFormat.validate(incoming.version, fields: workspaceFields)
         var result = existing
+        if try incomingWins("archive_policy", existing.archivePolicy, incoming.archivePolicy, oldVersion, newVersion) {
+            result.archivePolicy = incoming.archivePolicy
+        }
         if try incomingWins("name", existing.name, incoming.name, oldVersion, newVersion) {
             result.name = incoming.name
         }
@@ -94,6 +97,9 @@ public enum CompanionFieldMerge {
             result.accent = incoming.accent
         }
         let oldTarget = try SharedTabURLGroup.of(existing)
+        if try incomingWins("home_target", existing.homeTarget, incoming.homeTarget, oldVersion, newVersion) {
+            result.homeTarget = incoming.homeTarget
+        }
         let newTarget = try SharedTabURLGroup.of(incoming)
         if try incomingWins("url", oldTarget, newTarget, oldVersion, newVersion) {
             result.url = incoming.url
@@ -143,6 +149,7 @@ public enum CompanionFieldMerge {
         let old = previous.version.normalized(for: workspaceFields)
         let equality: [String: Bool] = [
             "name": previous.name == candidate.name,
+            "archive_policy": previous.archivePolicy == candidate.archivePolicy,
             "icon": previous.icon == candidate.icon,
             "sort_key": previous.sortKey == candidate.sortKey,
             "accent_argb": previous.accent == candidate.accent,
@@ -173,6 +180,7 @@ public enum CompanionFieldMerge {
         let equality: [String: Bool] = [
             "location": TreeLocation(previous) == TreeLocation(candidate),
             "kind": previous.kind == candidate.kind,
+            "home_target": previous.homeTarget == candidate.homeTarget,
             "title": previous.title == candidate.title,
             "icon": previous.icon == candidate.icon,
             "accent_argb": previous.accent == candidate.accent,
@@ -274,6 +282,7 @@ public enum CompanionFieldMerge {
         _ rhsVersion: SyncVersion
     ) -> Bool {
         lhs.name == rhs.name && lhs.icon == rhs.icon &&
+            lhs.archivePolicy == rhs.archivePolicy &&
             lhs.sortKey == rhs.sortKey && lhs.accent == rhs.accent &&
             SharedTabCreationProvenance.sameTime(lhs.createdAt, rhs.createdAt) &&
             SharedTabCreationProvenance.sameTime(lhs.modifiedAt, rhs.modifiedAt) &&
@@ -288,6 +297,7 @@ public enum CompanionFieldMerge {
         _ rhsVersion: SyncVersion
     ) -> Bool {
         TreeLocation(lhs) == TreeLocation(rhs) && lhs.kind == rhs.kind &&
+            lhs.homeTarget == rhs.homeTarget &&
             lhs.isTemporary == rhs.isTemporary &&
             lhs.targetKind == rhs.targetKind && lhs.localScheme == rhs.localScheme &&
             lhs.title == rhs.title && lhs.icon == rhs.icon &&

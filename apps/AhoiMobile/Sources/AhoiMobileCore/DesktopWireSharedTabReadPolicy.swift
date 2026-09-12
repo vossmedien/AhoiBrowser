@@ -16,7 +16,7 @@ public enum SharedTabWireReadPolicy {
 
     public static let treeNodeBaseFields: Set<String> = [
         "location", "kind", "title", "icon", "accent_argb", "url",
-        "created_at", "modified_at", "is_temporary", "tombstone",
+        "created_at", "modified_at", "is_temporary", "home_target", "tombstone",
     ]
     public static let remoteTabBaseFields: Set<String> = [
         "device_id", "session_id", "workspace_id", "url", "title",
@@ -75,10 +75,11 @@ public enum SharedTabWireReadPolicy {
         try validateWriteFields(node.version, allowed: treeNodeBaseFields)
         if node.kind == .folder {
             guard !node.isTemporary, node.url == nil, node.targetKind == nil,
-                  node.localScheme == nil else { throw SharedTabTargetError.invalidTarget }
+                  node.localScheme == nil, node.homeTarget == nil else { throw SharedTabTargetError.invalidTarget }
             return
         }
         guard let kind = node.targetKind else { throw SharedTabTargetError.invalidTarget }
+        try SharedWorkspaceValidation.home(node.homeTarget)
         try SharedTabTarget(kind: kind, url: node.url ?? "", localScheme: node.localScheme)
             .validatePage(isTemporary: node.isTemporary)
     }

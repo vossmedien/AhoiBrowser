@@ -79,7 +79,7 @@ public struct SyncBoundary: Sendable {
         switch dataClass {
         case .device, .workspace, .treeNode, .deviceSession, .deviceTab,
              .historyVisit, .appearance, .permittedSetting, .extensionInventory,
-             .developerAsset, .bookmark, .deviceCapability:
+             .developerAsset, .bookmark, .deviceCapability, .splitGroup, .tabArchiveEntry:
             return true
         case .orderKey, .tombstone, .recoveryMetadata, .history, .remoteCommand,
              .cookie, .password, .autofill, .siteData, .cache, .permission,

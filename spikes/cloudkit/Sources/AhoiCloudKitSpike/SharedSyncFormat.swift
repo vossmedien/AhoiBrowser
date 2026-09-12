@@ -24,6 +24,8 @@ public enum SharedSyncFormat {
         .developerAsset,
         .bookmark,
         .deviceCapability,
+        .splitGroup,
+        .tabArchiveEntry,
     ]
 
     /// Domain clocks use Unix milliseconds plus a lossless microsecond part;

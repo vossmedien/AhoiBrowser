@@ -32,7 +32,7 @@ std::optional<SyncChange> DecodeCachedChange(NSDictionary* item) {
   const int raw_type = entity_type.intValue;
   const int raw_kind = kind.intValue;
   if (raw_type < static_cast<int>(EntityType::kDevice) ||
-      raw_type > static_cast<int>(EntityType::kDeviceCapability) ||
+      raw_type > static_cast<int>(EntityType::kTabArchiveEntry) ||
       raw_kind < static_cast<int>(ChangeKind::kUpsert) ||
       raw_kind > static_cast<int>(ChangeKind::kDelete)) {
     return std::nullopt;

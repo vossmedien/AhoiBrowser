@@ -51,6 +51,10 @@ NSString* DataClass(EntityType type) {
       return @"bookmark";
     case EntityType::kDeviceCapability:
       return @"deviceCapability";
+    case EntityType::kSplitGroup:
+      return @"splitGroup";
+    case EntityType::kTabArchiveEntry:
+      return @"tabArchiveEntry";
   }
 }
 
@@ -94,6 +98,8 @@ std::optional<EntityType> EntityTypeForDataClass(NSString* value) {
   if ([value isEqualToString:@"deviceCapability"]) {
     return EntityType::kDeviceCapability;
   }
+  if ([value isEqualToString:@"splitGroup"]) return EntityType::kSplitGroup;
+  if ([value isEqualToString:@"tabArchiveEntry"]) return EntityType::kTabArchiveEntry;
   return std::nullopt;
 }
 

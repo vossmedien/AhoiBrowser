@@ -9,7 +9,7 @@
   ],
   "legacyDevelopmentMigration": false,
   "incompatibleState": "reject-without-overwrite; use a fresh isolated store",
-  "desktopStoreSchemaVersion": 6,
+  "desktopStoreSchemaVersion": 7,
   "swiftSnapshotFormatVersion": 3,
   "freshDevelopmentState": {
     "desktopSyncDatabase": "Ahoi Sync/sync-format3.sqlite",
@@ -23,7 +23,10 @@
   "keyBootstrapControl": {
     "recordType": "AhoiKeyBootstrapClaim",
     "recordName": "payload-key-bootstrap-v1",
-    "fields": ["keyVersion", "keySHA256"],
+    "fields": [
+      "keyVersion",
+      "keySHA256"
+    ],
     "keyVersion": "positive UInt32, no Boolean/fraction coercion",
     "keySHA256": "64 lowercase hexadecimal characters of the actual random 256-bit key",
     "claimPolicy": "ifServerRecordUnchanged; fixed ID; never overwrite a winner",
@@ -38,7 +41,12 @@
       "id": 0,
       "dataClass": "device",
       "wireModelVersion": 3,
-      "deviceTypes": { "mac": 0, "iPhone": 1, "iPad": 2, "other": 3 },
+      "deviceTypes": {
+        "mac": 0,
+        "iPhone": 1,
+        "iPad": 2,
+        "other": 3
+      },
       "fieldGroups": [
         "type",
         "display_name",
@@ -59,6 +67,7 @@
         "accent_argb",
         "created_at",
         "modified_at",
+        "archive_policy",
         "tombstone"
       ]
     },
@@ -76,6 +85,7 @@
         "created_at",
         "modified_at",
         "is_temporary",
+        "home_target",
         "tombstone"
       ]
     },
@@ -204,6 +214,27 @@
         "capabilities",
         "tombstone"
       ]
+    },
+    {
+      "id": 13,
+      "dataClass": "splitGroup",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "workspace_id",
+        "topology",
+        "ratios",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 14,
+      "dataClass": "tabArchiveEntry",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "snapshot",
+        "state",
+        "tombstone"
+      ]
     }
   ],
   "clock": {
@@ -267,8 +298,15 @@
       "tombstoneAllowed": false,
       "catalogue": {
         "dbepggeogbaibhgnhhndojpepiihcmeb": {
-          "reviewedNativeVersions": ["2.4.2"],
-          "keys": ["smoothScroll", "filterLinkHints", "hideHud", "hideUpdateNotifications"]
+          "reviewedNativeVersions": [
+            "2.4.2"
+          ],
+          "keys": [
+            "smoothScroll",
+            "filterLinkHints",
+            "hideHud",
+            "hideUpdateNotifications"
+          ]
         }
       },
       "nativeSource": "chromeWebStore",
@@ -278,9 +316,19 @@
     },
     "extensionDesired": {
       "settingId": "ahoi.extension.<32-character-extension-id>.desired",
-      "valueFields": ["enabled", "installed", "source"],
-      "sources": ["chromeWebStore", "pinnedUblockClassic"],
-      "uninstall": {"installed": false, "enabled": false},
+      "valueFields": [
+        "enabled",
+        "installed",
+        "source"
+      ],
+      "sources": [
+        "chromeWebStore",
+        "pinnedUblockClassic"
+      ],
+      "uninstall": {
+        "installed": false,
+        "enabled": false
+      },
       "tombstoneAllowed": false,
       "arbitraryPackageURLAllowed": false,
       "nativePermissionConfirmationRequiredWhenApplicable": true,
@@ -288,5 +336,105 @@
       "categoryConsentLocalOnly": true
     }
   },
-  "fixturePath": "overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json"
+  "fixturePath": "overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json",
+  "swiftSnapshotStructureRevision": 1,
+  "workspaceStructure": {
+    "nativeConsumersReady": false,
+    "featureAnnouncementEnabled": false,
+    "split": {
+      "memberCount": [
+        2,
+        4
+      ],
+      "groupIdDistinctFromWorkspaceAndMembers": true,
+      "topologyFields": [
+        "member_ids",
+        "axis",
+        "arrangement"
+      ],
+      "axis": {
+        "horizontal": 0,
+        "vertical": 1
+      },
+      "arrangement": {
+        "linear": 0,
+        "mainStart": 1,
+        "mainEnd": 2
+      },
+      "fourPaneOrder": [
+        "topLeft",
+        "topRight",
+        "bottomLeft",
+        "bottomRight"
+      ],
+      "twoAndFourPaneArrangement": 0,
+      "ratios": {
+        "primary": [
+          0,
+          1000000
+        ],
+        "secondary": [
+          0,
+          1000000
+        ],
+        "newGroupDefaultSecondary": 500000,
+        "twoPaneSecondary": "retained but not rendered; topology and ratio edits remain independently mergeable"
+      },
+      "wireNumbers": "strict integers; bool/fraction rejected"
+    },
+    "home": {
+      "fieldGroup": "home_target",
+      "payloadFields": [
+        "home_url",
+        "home_target_kind",
+        "home_local_scheme"
+      ],
+      "absence": "three mandatory JSON null values",
+      "allowedKinds": [
+        0,
+        2
+      ],
+      "foldersAllowed": false,
+      "temporaryPages": "new temporary pages have no Home; dormant Home from concurrent saved-state edits is retained without navigation"
+    },
+    "archive": {
+      "policy": {
+        "never": 0,
+        "12h": 1,
+        "24h": 2,
+        "7d": 3,
+        "30d": 4
+      },
+      "identity": "UUIDv5 URL namespace ahoi:sync:archive:v1:<page|split>:<subject-uuid>",
+      "snapshotFields": [
+        "workspace_id",
+        "pages",
+        "split"
+      ],
+      "pageFields": [
+        "tree_node_id",
+        "parent_id",
+        "sort_key",
+        "title",
+        "target",
+        "home_target"
+      ],
+      "stateFields": [
+        "reason",
+        "archived_at",
+        "restored"
+      ],
+      "reason": {
+        "automatic": 0,
+        "manual": 1
+      },
+      "maximumPages": 4,
+      "maximumPlaintextBytes": 524288,
+      "maximumPageTitleUTF8Bytes": 65536,
+      "maximumPageSortKeyASCIIBytes": 1024,
+      "tombstoneTerminal": true,
+      "automaticDeletion": false,
+      "missingRelations": "retain pending; never fabricate or treat absence as deletion"
+    }
+  }
 }

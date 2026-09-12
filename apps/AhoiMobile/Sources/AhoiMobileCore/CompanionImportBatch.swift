@@ -7,6 +7,8 @@ enum CompanionImportedValue: Sendable {
     case treeNode(TreeNode)
     case bookmark(BookmarkRecord)
     case deviceCapability(DeviceCapabilityRecord)
+    case splitGroup(SplitGroupRecord)
+    case archiveEntry(TabArchiveEntryRecord)
     case session(DeviceSession)
     case tab(RemoteTab)
     case history(HistoryVisit)
@@ -22,6 +24,8 @@ enum CompanionImportedValue: Sendable {
         case .treeNode(let value): return value.id.rawValue
         case .bookmark(let value): return value.id.rawValue
         case .deviceCapability(let value): return value.id
+        case .splitGroup(let value): return value.id
+        case .archiveEntry(let value): return value.id
         case .session(let value): return value.id.rawValue
         case .tab(let value): return value.id.rawValue
         case .history(let value): return value.id.rawValue
@@ -174,6 +178,18 @@ extension LocalFirstRepository {
                     else { working.deviceCapabilities.append(merged) }
                     accepted = .deviceCapability(merged)
                     shouldReenqueue = merged != incoming
+                case .splitGroup(let incoming):
+                    try incoming.validate()
+                    let index = working.splitGroups.firstIndex { $0.id == incoming.id }
+                    let merged = try index.map { try CompanionWorkspaceStructureMerge.merge(working.splitGroups[$0],incoming) } ?? incoming
+                    if let index { working.splitGroups[index] = merged } else { working.splitGroups.append(merged) }
+                    accepted = .splitGroup(merged); shouldReenqueue = merged != incoming
+                case .archiveEntry(let incoming):
+                    try incoming.validate()
+                    let index = working.archiveEntries.firstIndex { $0.id == incoming.id }
+                    let merged = try index.map { try CompanionWorkspaceStructureMerge.merge(working.archiveEntries[$0],incoming) } ?? incoming
+                    if let index { working.archiveEntries[index] = merged } else { working.archiveEntries.append(merged) }
+                    accepted = .archiveEntry(merged); shouldReenqueue = merged != incoming
                 case .session(let incoming):
                     let merged = if let index = sessionIndexes[incoming.id] {
                         try CompanionReadModelFieldMerge.merge(

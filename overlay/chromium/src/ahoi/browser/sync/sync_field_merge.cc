@@ -31,12 +31,12 @@ Fields FieldNames(EntityType type) {
       return {"type",      "display_name", "created_at",
               "last_seen", "retired",      "tombstone"};
     case EntityType::kWorkspace:
-      return {"name",       "icon",        "sort_key", "accent_argb",
-              "created_at", "modified_at", "tombstone"};
+      return {"name",       "icon",        "sort_key",       "accent_argb",
+              "created_at", "modified_at", "archive_policy", "tombstone"};
     case EntityType::kTreeNode:
-      return {"location",     "kind",     "title",      "icon",
-              "accent_argb",  "url",      "created_at", "modified_at",
-              "is_temporary", "tombstone"};
+      return {"location",     "kind",        "title",      "icon",
+              "accent_argb",  "url",         "created_at", "modified_at",
+              "is_temporary", "home_target", "tombstone"};
     case EntityType::kHistoryEntry:
       return {"device_id",   "url",        "title",    "last_visit",
               "visit_count", "transition", "tombstone"};
@@ -62,6 +62,10 @@ Fields FieldNames(EntityType type) {
       return {"location", "kind", "title", "url", "created_at", "tombstone"};
     case EntityType::kDeviceCapability:
       return {"device_id", "capabilities", "tombstone"};
+    case EntityType::kSplitGroup:
+      return {"workspace_id", "topology", "ratios", "tombstone"};
+    case EntityType::kTabArchiveEntry:
+      return {"snapshot", "state", "tombstone"};
   }
   return {};
 }
@@ -126,6 +130,9 @@ bool IsImmutableField(EntityType type, std::string_view field) {
       return field == "kind";
     case EntityType::kDeviceCapability:
       return field == "device_id";
+    case EntityType::kSplitGroup:
+    case EntityType::kTabArchiveEntry:
+      return false;
   }
   return false;
 }
@@ -293,6 +300,16 @@ MergeDecision MergeRecordFields(const SyncRecord& existing,
       if (!FieldEqual(old_value, new_value, field)) {
         SetError("equal field clock conflict", error);
         return MergeDecision::kInvalid;
+      }
+      continue;
+    }
+    if (type == EntityType::kTabArchiveEntry && field == "tombstone" &&
+        IsTombstone(old_value) != IsTombstone(new_value)) {
+      // Final archive deletion is terminal for this subject identity. Restore
+      // is its separate state register, never an untombstone operation.
+      if (IsTombstone(new_value)) {
+        CopyField(new_value, field, merged);
+        Versions(merged).insert_or_assign(std::string(field), new_stamp);
       }
       continue;
     }

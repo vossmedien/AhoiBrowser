@@ -21,6 +21,7 @@
 #include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "ahoi/browser/sync/sync_store.h"
+#include "ahoi/browser/sync/workspace_structure_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback_forward.h"
@@ -98,6 +99,9 @@ class ProfileSyncBackend : public SyncStoreObserver {
   std::optional<SyncStateSnapshot> SetHistoryRetentionDays(int days);
   std::optional<SyncStateSnapshot> UpsertAppearance(AppearanceRecord record);
   std::optional<BrowserSettingsProjection> ReadBrowserSettings();
+  std::optional<WorkspaceStructureProjection> ReadWorkspaceStructure();
+  std::optional<SyncStateSnapshot> PublishWorkspaceStructureIntent(
+      WorkspaceStructureIntent intent);
   // The version belongs to the original persisted user intent. Retrying it
   // must never give an old value a new HLC or overwrite a newer peer change.
   std::optional<SyncStateSnapshot> PublishBrowserSettingIntent(

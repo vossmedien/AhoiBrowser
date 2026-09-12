@@ -16,6 +16,8 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     public var productRecords: CompanionProductSnapshot
     public var bookmarks: [BookmarkRecord]
     public var deviceCapabilities: [DeviceCapabilityRecord]
+    public var splitGroups: [SplitGroupRecord]
+    public var archiveEntries: [TabArchiveEntryRecord]
     /// Local idempotency receipts; never emitted by a wire codec/SyncBridge.
     public var mobileAppliedIntents: Set<UUID>
 
@@ -29,6 +31,8 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         productRecords: CompanionProductSnapshot = .empty,
         bookmarks: [BookmarkRecord] = [],
         deviceCapabilities: [DeviceCapabilityRecord] = [],
+        splitGroups: [SplitGroupRecord] = [],
+        archiveEntries: [TabArchiveEntryRecord] = [],
         mobileAppliedIntents: Set<UUID> = []
     ) {
         self.devices = devices
@@ -40,6 +44,8 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         self.productRecords = productRecords
         self.bookmarks = bookmarks
         self.deviceCapabilities = deviceCapabilities
+        self.splitGroups = splitGroups
+        self.archiveEntries = archiveEntries
         self.mobileAppliedIntents = mobileAppliedIntents
     }
 

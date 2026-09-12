@@ -14,6 +14,7 @@ source_set("shared_tab_types") {
     "profile_sync_types.h",
     "shared_tab_sync_types.h",
     "shared_tab_target_types.h",
+    "shared_workspace_structure_types.h",
   ]
   public_deps = [ "//base" ]
 }
@@ -117,6 +118,9 @@ source_set("sync") {
     "sync_unified_validation.h",
     "tab_tree_sync_adapter.cc",
     "tab_tree_sync_adapter.h",
+    "workspace_structure_sync.cc",
+    "workspace_structure_sync.h",
+    "workspace_structure_sync_types.h",
   ]
 
   public_deps = [
@@ -187,6 +191,7 @@ source_set("profile_sync_service") {
     "profile_sync_backend_provider.cc",
     "profile_sync_backend_settings.cc",
     "profile_sync_backend_shared_tabs.cc",
+    "profile_sync_backend_structure.cc",
     "profile_sync_service.cc",
     "profile_sync_service.h",
     "profile_sync_service_authorization.cc",
@@ -201,6 +206,7 @@ source_set("profile_sync_service") {
     "profile_sync_service_settings.cc",
     "profile_sync_service_shared_capture.cc",
     "profile_sync_service_shared_projection.cc",
+    "profile_sync_service_structure.cc",
     "profile_sync_types.h",
     "sync_product_settings.cc",
     "sync_product_settings.h",

@@ -34,6 +34,8 @@ bool FieldEqual(const SyncRecord& left,
           }
           return field == "tombstone" && a.tombstone == b.tombstone;
         } else if constexpr (std::is_same_v<A, WorkspaceRecord>) {
+          if (field == "archive_policy")
+            return a.archive_policy == b.archive_policy;
           if (field == "name") {
             return a.name == b.name;
           }
@@ -54,6 +56,8 @@ bool FieldEqual(const SyncRecord& left,
           }
           return field == "tombstone" && a.tombstone == b.tombstone;
         } else if constexpr (std::is_same_v<A, TreeNodeRecord>) {
+          if (field == "home_target")
+            return a.home_target == b.home_target;
           if (field == "location") {
             return a.workspace_id == b.workspace_id &&
                    a.parent_id == b.parent_id && a.sort_key == b.sort_key;
@@ -226,6 +230,21 @@ bool FieldEqual(const SyncRecord& left,
                    a.features == b.features;
           }
           return field == "tombstone" && a.tombstone == b.tombstone;
+        } else if constexpr (std::is_same_v<A, SplitGroupRecord>) {
+          if (field == "workspace_id")
+            return a.workspace_id == b.workspace_id;
+          if (field == "topology")
+            return a.topology == b.topology;
+          if (field == "ratios")
+            return a.ratios == b.ratios;
+          return field == "tombstone" && a.tombstone == b.tombstone;
+        } else if constexpr (std::is_same_v<A, TabArchiveEntryRecord>) {
+          if (field == "snapshot")
+            return a.snapshot == b.snapshot;
+          if (field == "state")
+            return a.reason == b.reason && a.archived_at == b.archived_at &&
+                   a.restored == b.restored;
+          return field == "tombstone" && a.tombstone == b.tombstone;
         } else {
           static_assert(std::is_same_v<A, DeveloperAssetRecord>);
           if (field == "kind") {
@@ -276,6 +295,8 @@ void CopyField(const SyncRecord& source,
             to.tombstone = from.tombstone;
           }
         } else if constexpr (std::is_same_v<From, WorkspaceRecord>) {
+          if (field == "archive_policy")
+            to.archive_policy = from.archive_policy;
           if (field == "name") {
             to.name = from.name;
           } else if (field == "icon") {
@@ -292,6 +313,8 @@ void CopyField(const SyncRecord& source,
             to.tombstone = from.tombstone;
           }
         } else if constexpr (std::is_same_v<From, TreeNodeRecord>) {
+          if (field == "home_target")
+            to.home_target = from.home_target;
           if (field == "location") {
             to.workspace_id = from.workspace_id;
             to.parent_id = from.parent_id;
@@ -446,6 +469,25 @@ void CopyField(const SyncRecord& source,
           } else if (field == "tombstone") {
             to.tombstone = from.tombstone;
           }
+        } else if constexpr (std::is_same_v<From, SplitGroupRecord>) {
+          if (field == "workspace_id")
+            to.workspace_id = from.workspace_id;
+          if (field == "topology")
+            to.topology = from.topology;
+          if (field == "ratios")
+            to.ratios = from.ratios;
+          if (field == "tombstone")
+            to.tombstone = from.tombstone;
+        } else if constexpr (std::is_same_v<From, TabArchiveEntryRecord>) {
+          if (field == "snapshot")
+            to.snapshot = from.snapshot;
+          if (field == "state") {
+            to.reason = from.reason;
+            to.archived_at = from.archived_at;
+            to.restored = from.restored;
+          }
+          if (field == "tombstone")
+            to.tombstone = from.tombstone;
         } else {
           static_assert(std::is_same_v<From, DeveloperAssetRecord>);
           if (field == "kind") {

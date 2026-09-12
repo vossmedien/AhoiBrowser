@@ -69,7 +69,7 @@ bool SyncStore::CreateSchema() {
              "ON sync_bookmark_apply_receipts(entity_id)") &&
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS sync_records("
-             "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 12),"
+             "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 14),"
              "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
              "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT "
              "NULL,"

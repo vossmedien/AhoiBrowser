@@ -493,6 +493,10 @@ public actor CompanionSyncBridge {
             return .domain(.deviceCapability(try wireCodec.decodeCapability(
                 record, plaintext: plaintext, knownDevices: context.devices
             )))
+        case .splitGroup:
+            return .domain(.splitGroup(try wireCodec.decodeSplitGroup(record,plaintext:plaintext)))
+        case .tabArchiveEntry:
+            return .domain(.archiveEntry(try wireCodec.decodeArchiveEntry(record,plaintext:plaintext)))
         case .bookmark:
             return .domain(.bookmark(try decodeBookmarkRecord(record, plaintext: plaintext)))
         case .treeNode:
@@ -581,6 +585,12 @@ public actor CompanionSyncBridge {
         switch value {
         case .deviceCapability(let value):
             return try makeCapabilityRecord(value)
+        case .splitGroup(let value):
+            return try codec.makeRecord(recordID:value.id,entityID:value.id,dataClass:.splitGroup,
+                version:value.version,plaintext:wireCodec.encode(value),tombstone:value.tombstone)
+        case .archiveEntry(let value):
+            return try codec.makeRecord(recordID:value.id,entityID:value.id,dataClass:.tabArchiveEntry,
+                version:value.version,plaintext:wireCodec.encode(value),tombstone:value.tombstone)
         case .bookmark(let value):
             return try makeBookmarkRecord(value)
         case .device(let value):
@@ -664,6 +674,10 @@ public actor CompanionSyncBridge {
         }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
+        case .splitGroup:
+            _ = try wireCodec.decodeSplitGroup(record,plaintext:plaintext)
+        case .tabArchiveEntry:
+            _ = try wireCodec.decodeArchiveEntry(record,plaintext:plaintext)
         case .deviceCapability:
             _ = try wireCodec.decodeCapability(record, plaintext: plaintext, knownDevices: context.devices)
         case .bookmark:

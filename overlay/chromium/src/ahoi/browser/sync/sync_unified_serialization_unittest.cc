@@ -32,13 +32,13 @@ class UnifiedSyncGoldenTest : public testing::Test {
         root.AppendASCII("ahoi/browser/sync/testdata/sync_wire_v3.json"),
         &bytes));
     ASSERT_EQ(
-        "18d3a0e5140359ecc6a768681029ec01b09cf4508e11c61552f050795ac7934d",
+        "67f7d3f86aa7a2c7a0a786b36248c1de640fbbca632792bf4bddfc29ed16b22d",
         base::ToLowerASCII(base::HexEncode(crypto::SHA256HashString(bytes))));
     document_ = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
     ASSERT_TRUE(document_);
     ASSERT_EQ(3, document_->FindInt("model_version"));
     ASSERT_TRUE(document_->FindList("records"));
-    ASSERT_EQ(30u, cases().size());
+    ASSERT_EQ(35u, cases().size());
     for (const auto& value : cases()) {
       ASSERT_TRUE(value.is_dict());
       ASSERT_TRUE(value.GetDict().FindString("name"));
@@ -96,7 +96,7 @@ TEST_F(UnifiedSyncGoldenTest, EveryEntityRoundTripsTheSameCanonicalBytes) {
     EXPECT_EQ(payload, encoded);
     seen.insert(type);
   }
-  EXPECT_EQ(13u, seen.size());
+  EXPECT_EQ(15u, seen.size());
 }
 
 TEST_F(UnifiedSyncGoldenTest, OldAndUnknownFormatsAreRejectedForEveryEntity) {

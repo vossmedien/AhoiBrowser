@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "device-ddi-preflight",
+  "time": "2026-09-12T10:55:57Z",
+  "device": "Servusla",
+  "coreDeviceIdentifier": "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+  "userConfirmedUnlock": true,
+  "ddi": {"buildUpdate": "17F113", "contentIsCompatible": true, "isUsable": true},
+  "lockState": {"passcodeRequired": false, "unlockedSinceBoot": true},
+  "commands": ["devicectl device info ddiServices", "devicectl device info lockState"],
+  "session": 20029,
+  "exitCode": 0,
+  "priorDeviceLockedBoundaryResolved": true,
+  "candidate": "candidate.json",
+  "appInstalledOrStarted": false,
+  "keyOrCloudAccess": false,
+  "visibleE2E": "NOT_RUN"
+}

@@ -18,8 +18,8 @@ final class UnifiedSyncWireContractTests: XCTestCase {
         XCTAssertEqual(SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined(),
                        UnifiedSyncFixture.sha256)
         XCTAssertEqual(fixture.model_version, 3)
-        XCTAssertEqual(fixture.records.count, 30)
-        XCTAssertEqual(Set(fixture.records.map(\.entity_type)), Set(0...12))
+        XCTAssertEqual(fixture.records.count, 35)
+        XCTAssertEqual(Set(fixture.records.map(\.entity_type)), Set(0...14))
         var context = Context()
         for sample in fixture.records {
             XCTAssertEqual(try reencode(sample, context: &context), sample.data, sample.name)
@@ -85,6 +85,7 @@ final class UnifiedSyncWireContractTests: XCTestCase {
         XCTAssertEqual(forward.version.fieldVersions["is_temporary"], saved)
         let restarted = try JSONDecoder().decode(TreeNode.self, from: JSONEncoder().encode(forward))
         XCTAssertEqual(restarted.creationProvenanceClock, creator)
+        XCTAssertEqual(restarted.homeTarget, original.homeTarget)
         XCTAssertEqual(try codec.encode(restarted), try codec.encode(forward))
     }
 
@@ -149,6 +150,10 @@ final class UnifiedSyncWireContractTests: XCTestCase {
             return try codec.encode(codec.decodeBookmark(record, plaintext: bytes))
         case .deviceCapability:
             return try codec.encode(codec.decodeCapability(record, plaintext: bytes, knownDevices: context.devices))
+        case .splitGroup:
+            return try codec.encode(codec.decodeSplitGroup(record,plaintext:bytes))
+        case .tabArchiveEntry:
+            return try codec.encode(codec.decodeArchiveEntry(record,plaintext:bytes))
         default:
             throw CompanionSyncBridgeError.unsupportedDataClass(record.dataClass)
         }

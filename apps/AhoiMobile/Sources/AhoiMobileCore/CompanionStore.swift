@@ -485,6 +485,7 @@ public actor LocalFirstRepository {
                     tieBreaker: localDeviceID
                 ),
                 targetKind: kind == .savedPage ? .web : nil,
+                homeTarget: kind == .savedPage ? SharedTabTarget(kind: .web, url: url ?? "") : nil,
                 createdAt: version.modifiedAt,
                 version: version
             )

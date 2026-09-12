@@ -29,7 +29,7 @@ int ToInt(ChangeKind kind) {
 
 bool IsValidEntityType(int value) {
   return value >= static_cast<int>(EntityType::kDevice) &&
-         value <= static_cast<int>(EntityType::kDeviceCapability);
+         value <= static_cast<int>(EntityType::kTabArchiveEntry);
 }
 
 bool IsValidChangeKind(int value) {

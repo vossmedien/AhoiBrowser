@@ -110,6 +110,7 @@ extension LocalFirstRepository {
             title: tab.effectiveTitle, url: target.url,
             orderKey: OrderKey.between(previousOrder, nil, tieBreaker: localDeviceID),
             isTemporary: !tab.isSaved, targetKind: target.kind, localScheme: target.localScheme,
+            homeTarget: tab.isSaved ? target : nil,
             version: version
         ))
         snapshot.treeNodes.append(page)

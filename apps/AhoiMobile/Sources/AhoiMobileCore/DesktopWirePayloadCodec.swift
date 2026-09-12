@@ -18,7 +18,7 @@ public struct DesktopWirePayloadCodec: Sendable {
     ]
     private static let workspaceFields: Set<String> = [
         "name", "icon", "sort_key", "accent_argb", "created_at", "modified_at",
-        "tombstone",
+        "archive_policy", "tombstone",
     ]
     private static let treeNodeFields = SharedTabWireReadPolicy.treeNodeBaseFields
     private static let remoteTabFields = SharedTabWireReadPolicy.remoteTabBaseFields
@@ -63,6 +63,7 @@ public struct DesktopWirePayloadCodec: Sendable {
             fields: Self.workspaceFields
         )
         value["name"] = workspace.name
+        value["archive_policy"] = workspace.archivePolicy.rawValue
         value["icon"] = workspace.icon
         value["sort_key"] = workspace.sortKey
         value["created_at"] = try timeString(workspace.createdAt)
@@ -83,6 +84,7 @@ public struct DesktopWirePayloadCodec: Sendable {
             fields: Self.treeNodeFields
         )
         value["workspace_id"] = uuid(node.workspaceID.rawValue)
+        try encodeHomeTarget(node.homeTarget, into: &value)
         value["parent_id"] = node.parentID.map { uuid($0.rawValue) }
         value["node_kind"] = node.kind == .folder ? 0 : 1
         value["title"] = node.title
@@ -263,6 +265,7 @@ public struct DesktopWirePayloadCodec: Sendable {
             sortKey: try string(value, "sort_key"),
             createdAt: try clock(value, timeKey: "created_at"),
             modifiedAt: try clock(value, timeKey: "modified_at"),
+            archivePolicy: try decodeArchivePolicy(value),
             version: resultVersion,
             tombstone: deleted
         )
@@ -313,6 +316,7 @@ public struct DesktopWirePayloadCodec: Sendable {
             isTemporary: isTemporary,
             targetKind: target?.kind,
             localScheme: target?.localScheme,
+            homeTarget: decodeHomeTarget(value),
             createdAt: try clock(value, timeKey: "created_at"),
             modifiedAt: try clock(value, timeKey: "modified_at"),
             version: resultVersion,

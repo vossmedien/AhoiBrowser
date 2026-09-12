@@ -1,9 +1,26 @@
 # Unified sync implementation checkpoint
 
-Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
+Updated 2026-09-12. Active Common/Mobile owner: `/root/sync_mobile_resume`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
 ## Resumed Common/Mobile — 12 September 2026
+
+Latest device preflight after the user's explicit unlock: Servusla DDI17F113
+mounted successfully at10:55:57UTC; compatible/usable, passcodeRequired=false.
+Session20029 EXIT0 resolves the earlier DeviceLocked boundary. Device23 remains
+unchanged and uninstalled/unstarted. [Readback](../artifacts/build/mobile-development-fa53e31-20260912/device-preflight-20260912T105557Z.json).
+No key/CloudKit action; matching candidate/runtime coordination remains required.
+
+The coordinated split/archive/Home source packet is now implemented in Common
+C++ and Swift: entity13/14, exact field maps, strict nested codecs, field merge,
+original-scope provider/store paths and durable Mobile collections. The existing
+golden now has35 examples/15 classes, SHA `67f7d3f86aa7a2c7a0a786b36248c1de640fbbca632792bf4bddfc29ed16b22d`.
+Source/syntax only; not in any previously built/signed candidate. Current native
+capture/scheduler/UI and Home/archive-policy DTO/persistence mapping are still
+Desktop-owned and required before activation. No new functional capability is
+automatically advertised. The concrete APIs, schema7/Swift structureRevision1
+fresh-store rule and Native handoff are in [SPLIT_ARCHIVE_SYNC.md](SPLIT_ARCHIVE_SYNC.md).
+All earlier profiles/files/keys remain protected; no migration or reset ran.
 
 Latest Mobile candidate: `fa53e31` CloudKitDevelopment0.1(23) builds iPhoneOS/arm64
 and its separate Development-signed copy passes strict/deep verification. This
@@ -12,7 +29,7 @@ domain/provider/session stores, defaults/device identity, downloads and normal
 WebKit storage. Existing product data remains untouched. All seven actual
 Info.plist scope values match. [Candidate and limits](../artifacts/build/mobile-development-fa53e31-20260912/candidate.json).
 Device install/start, namespace readback, focused tests and CloudKit remain open.
-No DDI retry after the proven DeviceLocked boundary. Unsigned/signed22 are retained.
+Unsigned/signed22 are retained. The later successful DDI preflight is recorded above.
 
 Active owner is `/root/sync_mobile_resume`, coordinated by `/root`; Desktop
 Native/build/sign/install belongs to `/root/desktop_resume`. September 8 slots,

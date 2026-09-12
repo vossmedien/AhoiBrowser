@@ -122,7 +122,7 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
   // device row. This prevents a restart from issuing versions below a remote
   // future-skewed record that was already accepted.
   for (int raw = static_cast<int>(EntityType::kDevice);
-       raw <= static_cast<int>(EntityType::kDeviceCapability); ++raw) {
+       raw <= static_cast<int>(EntityType::kTabArchiveEntry); ++raw) {
     std::vector<SyncRecord> records;
     if (store_->GetRecords(static_cast<EntityType>(raw), &records) !=
         SyncStore::Result::kOk) {

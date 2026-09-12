@@ -10,6 +10,7 @@
 #include "ahoi/browser/sync/bookmark_sync_serialization.h"
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_serialization_internal.h"
+#include "ahoi/browser/sync/workspace_structure_sync.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/values.h"
 
@@ -78,6 +79,7 @@ bool SerializeWorkspace(const WorkspaceRecord& record, std::string* payload) {
   SetCommon(dict, record.model_version, record.id, record.tombstone,
             record.version, record.field_versions);
   dict.Set("name", record.name);
+  dict.Set("archive_policy", static_cast<int>(record.archive_policy));
   dict.Set("icon", record.icon);
   dict.Set("sort_key", record.sort_key);
   if (record.accent_argb) {
@@ -99,6 +101,7 @@ bool SerializeTreeNode(const TreeNodeRecord& record, std::string* payload) {
   dict.Set("node_kind", static_cast<int>(record.kind));
   dict.Set("is_temporary", record.is_temporary);
   SetTarget(dict, record.target_kind, record.local_scheme);
+  serialization_internal::SetHomeTarget(dict, record.home_target);
   dict.Set("title", record.title);
   dict.Set("icon", record.icon);
   if (record.accent_argb) {
@@ -306,6 +309,10 @@ bool DeserializeDevice(const Dict& dict, DeviceRecord* record) {
 }
 
 bool DeserializeWorkspace(const Dict& dict, WorkspaceRecord* record) {
+  const auto policy = ReadInt32(dict, "archive_policy");
+  if (!policy || *policy < 0 || *policy > 4)
+    return false;
+  record->archive_policy = static_cast<SharedArchivePolicy>(*policy);
   if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
                   &record->version, &record->field_versions) ||
       !ReadString(dict, "name", &record->name) ||
@@ -327,6 +334,8 @@ bool DeserializeWorkspace(const Dict& dict, WorkspaceRecord* record) {
 }
 
 bool DeserializeTreeNode(const Dict& dict, TreeNodeRecord* record) {
+  if (!serialization_internal::ReadHomeTarget(dict, &record->home_target))
+    return false;
   if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
                   &record->version, &record->field_versions) ||
       !ReadUuid(dict, "workspace_id", &record->workspace_id, false) ||
@@ -589,6 +598,10 @@ bool SerializeRecord(const SyncRecord& record, std::string* payload) {
           return SerializeDeveloperAsset(value, payload);
         } else if constexpr (std::is_same_v<T, DeviceCapabilityRecord>) {
           return SerializeCapability(value, payload);
+        } else if constexpr (std::is_same_v<T, SplitGroupRecord>) {
+          return serialization_internal::SerializeSplitGroup(value, payload);
+        } else if constexpr (std::is_same_v<T, TabArchiveEntryRecord>) {
+          return serialization_internal::SerializeArchiveEntry(value, payload);
         } else {
           static_assert(std::is_same_v<T, BookmarkRecord>);
           return serialization_internal::SerializeBookmark(value, payload);
@@ -600,6 +613,9 @@ bool SerializeRecord(const SyncRecord& record, std::string* payload) {
 bool DeserializeRecord(EntityType expected_type,
                        const std::string& payload,
                        SyncRecord* record) {
+  if (expected_type == EntityType::kTabArchiveEntry &&
+      payload.size() > 512 * 1024)
+    return false;
   std::optional<Dict> dict = ParseDict(payload);
   if (!dict || !record) {
     return false;
@@ -699,6 +715,20 @@ bool DeserializeRecord(EntityType expected_type,
       if (!serialization_internal::DeserializeBookmark(*dict, &value)) {
         return false;
       }
+      decoded = std::move(value);
+      break;
+    }
+    case EntityType::kSplitGroup: {
+      SplitGroupRecord value;
+      if (!serialization_internal::DeserializeSplitGroup(*dict, &value))
+        return false;
+      decoded = std::move(value);
+      break;
+    }
+    case EntityType::kTabArchiveEntry: {
+      TabArchiveEntryRecord value;
+      if (!serialization_internal::DeserializeArchiveEntry(*dict, &value))
+        return false;
       decoded = std::move(value);
       break;
     }

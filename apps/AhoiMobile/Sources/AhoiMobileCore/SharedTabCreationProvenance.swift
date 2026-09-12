@@ -32,12 +32,17 @@ enum SharedTabCreationProvenance {
                             kind: node.kind, title: node.title, url: node.url, icon: node.icon, accent: node.accent,
                             orderKey: node.orderKey, wireSortKey: node.wireSortKey, isTemporary: node.isTemporary,
                             targetKind: node.targetKind, localScheme: node.localScheme,
+                            homeTarget: node.homeTarget,
                             createdAt: time, modifiedAt: node.modifiedAt, version: node.version, tombstone: node.tombstone)
     }
 }
 
 enum SharedTabURLGroup {
     static func of(_ node: TreeNode) throws -> SharedTabTarget? {
+        try SharedWorkspaceValidation.home(node.homeTarget)
+        guard node.homeTarget == nil || node.kind == .savedPage else {
+            throw SharedWorkspaceValidation.Error.invalidStructure
+        }
         guard node.version.schemaVersion == SharedSyncFormat.currentVersion else {
             throw SharedSyncFormatError.unsupportedVersion
         }

@@ -99,6 +99,7 @@ extension LocalFirstRepository {
             try target.validatePage(isTemporary: !saved)
             candidate = previous
             candidate.isTemporary = !saved
+            candidate.homeTarget = saved ? (previous.homeTarget ?? target) : nil
             if saved, let workspaceID, previous.workspaceID != workspaceID {
                 candidate.workspaceID = workspaceID
                 candidate.parentID = nil
@@ -128,6 +129,7 @@ extension LocalFirstRepository {
                 kind: .savedPage, title: title.isEmpty ? target.url : title, url: target.url,
                 orderKey: savedPageRootOrder(workspaceID: workspaceID),
                 targetKind: target.kind, localScheme: target.localScheme,
+                homeTarget: target,
                 version: nextVersion()
             )
             candidate = CompanionFieldMerge.stampLocal(previous: nil, candidate: candidate)

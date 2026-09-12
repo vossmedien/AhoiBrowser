@@ -63,6 +63,16 @@ extension CompanionSyncBridge {
                 tombstone: workspace.tombstone
             ) { try wireCodec.encode(workspace) }
         }
+        for value in snapshot.splitGroups {
+            try appendIfRequired(id:value.id,dataClass:.splitGroup,version:value.version,tombstone:value.tombstone) {
+                try wireCodec.encode(value)
+            }
+        }
+        for value in snapshot.archiveEntries {
+            try appendIfRequired(id:value.id,dataClass:.tabArchiveEntry,version:value.version,tombstone:value.tombstone) {
+                try wireCodec.encode(value)
+            }
+        }
         for node in snapshot.treeNodes {
             try appendIfRequired(
                 id: node.id.rawValue,

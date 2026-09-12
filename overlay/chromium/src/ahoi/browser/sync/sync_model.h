@@ -13,6 +13,7 @@
 
 #include "ahoi/browser/sync/shared_tab_sync_types.h"
 #include "ahoi/browser/sync/shared_tab_target_types.h"
+#include "ahoi/browser/sync/shared_workspace_structure_types.h"
 #include "base/containers/flat_map.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
@@ -23,7 +24,7 @@ namespace ahoi::sync {
 // has its own version; obsolete development formats require a fresh isolated
 // store rather than an implicit record upgrade.
 inline constexpr int kCurrentModelVersion = 3;
-inline constexpr int kCurrentSchemaVersion = 6;
+inline constexpr int kCurrentSchemaVersion = 7;
 
 enum class DeviceType {
   kMacDesktop = 0,
@@ -46,6 +47,8 @@ enum class EntityType {
   kDeveloperAsset = 10,
   kBookmark = 11,
   kDeviceCapability = 12,
+  kSplitGroup = 13,
+  kTabArchiveEntry = 14,
 };
 
 enum class ChangeKind {
@@ -133,6 +136,7 @@ struct WorkspaceRecord {
   bool tombstone = false;
   SyncVersion version;
   FieldVersionMap field_versions;
+  SharedArchivePolicy archive_policy = SharedArchivePolicy::kNever;
 
   friend bool operator==(const WorkspaceRecord&,
                          const WorkspaceRecord&) = default;
@@ -164,6 +168,7 @@ struct TreeNodeRecord {
   // atomic field group. Missing target metadata never implies a web target.
   std::optional<SharedTabTargetKind> target_kind;
   std::optional<std::string> local_scheme;
+  std::optional<SharedTabTarget> home_target;
 
   friend bool operator==(const TreeNodeRecord&,
                          const TreeNodeRecord&) = default;
@@ -401,6 +406,33 @@ struct DeviceCapabilityRecord {
                          const DeviceCapabilityRecord&) = default;
 };
 
+struct SplitGroupRecord {
+  int model_version = kCurrentModelVersion;
+  base::Uuid id;
+  base::Uuid workspace_id;
+  SharedSplitTopology topology;
+  SharedSplitRatios ratios;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+  friend bool operator==(const SplitGroupRecord&,
+                         const SplitGroupRecord&) = default;
+};
+
+struct TabArchiveEntryRecord {
+  int model_version = kCurrentModelVersion;
+  base::Uuid id;
+  SharedArchiveSnapshot snapshot;
+  SharedArchiveReason reason = SharedArchiveReason::kManual;
+  base::Time archived_at;
+  bool restored = false;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+  friend bool operator==(const TabArchiveEntryRecord&,
+                         const TabArchiveEntryRecord&) = default;
+};
+
 // Deletions are retained separately from the materialized record payload so a
 // provider can carry a delete after the last visible copy has been compacted.
 // The SQLite store mirrors this value in `sync_tombstones` and keeps the full
@@ -428,7 +460,9 @@ using SyncRecord = std::variant<DeviceRecord,
                                 ExtensionInventoryRecord,
                                 DeveloperAssetRecord,
                                 BookmarkRecord,
-                                DeviceCapabilityRecord>;
+                                DeviceCapabilityRecord,
+                                SplitGroupRecord,
+                                TabArchiveEntryRecord>;
 
 struct SyncChange {
   std::string mutation_id;
