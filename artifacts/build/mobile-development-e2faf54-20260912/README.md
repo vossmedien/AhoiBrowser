@@ -1,4 +1,4 @@
-# Corrected Mobile Development24, installed but not launched
+# Corrected Mobile Development24 baseline
 
 ## Subsequent normal product start — 12 September
 

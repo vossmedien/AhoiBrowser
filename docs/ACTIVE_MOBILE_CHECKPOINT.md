@@ -1,10 +1,48 @@
 # Active Mobile checkpoint
 
-Updated: 2026-09-08. Mobile/Common implementation owner:
-`01a06d69-1034-7372-b784-0b05a53c87e0`. Coordinator:
-`01a044d6-1545-7532-8394-6b7df1144bb1` (read-only product review/coordination).
+Updated: 2026-09-12. Mobile/Common implementation owner:
+`/root/sync_mobile_resume`. Coordinator: `/root`.
 
 ## Current work — continue here
+
+The corrected Device24/e2faf54 baseline is installed on Servusla and has a
+normal product-launch/local-namespace readback, with Sync OFF. It is fa53e31
+plus only the backportable AppStorage fix7e19476, matching Nativec8d9161; it
+does not contain the later Structure/Private-Lock source. No visible UI or
+CloudKit pass is inferred. Exact current candidate/results are in
+[the unified checkpoint](UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md) and
+[the launch receipt](../artifacts/build/mobile-development-e2faf54-20260912/product-start-receipt-20260912.json).
+
+The optional private-session device-authentication lock is now implemented as
+a separate source block, NOT BUILT or visibly accepted. It reuses the existing
+window shield, installed synchronously from the owning UIKit scene lifecycle,
+including above presented sheets. Its window accessibility list contains only
+the shield while protected; keyboard browser actions are guarded and Return
+can request authentication. System `.deviceOwnerAuthentication` allows native
+biometry/passcode. Cancel/failure stays locked; actual background/disconnect
+invalidates the original auth epoch, and an inactive success waits for its
+same scene to become active. Private-session generation prevents a late result
+unlocking a replacement session. Locking itself never clears tabs or WebKit
+storage. The opt-in/defaults are local-only and use the runtime's scoped store;
+disabling a locked populated session also requires authentication.
+Closing the final private session also dismisses retained private UI drafts;
+the native shield stays until that owned sheet dismissal completes.
+
+Sources: `MobilePrivateSessionLock.swift`, the existing `MobilePrivateSceneShield.swift`
+and `MobilePrivateLockSettingsSection.swift`. German/English labels and the
+Face ID usage description are wired through the generated project. Three
+focused state/race tests are authored, not run. Only Swift syntax, localization/
+plist and project-reference checks have run for this block. The next coherent
+candidate needs a representative visible private-lock/return/cancel/background
+journey with retained private-session state, then those focused tests. Actual
+snapshot/VoiceOver/keyboard/multi-scene behavior remains unproved.
+
+Apple contracts used: [scene snapshot preparation](https://developer.apple.com/documentation/uikit/preparing-your-ui-to-run-in-the-background)
+and [device-owner authentication](https://developer.apple.com/documentation/localauthentication/lapolicy/deviceownerauthentication).
+The remaining Home actions, native Peek, Reader, Markdown copy and task help
+are still binding unfinished work; Mobile Split UI remains outside the required scope.
+
+### Earlier September8 current-work handoff — historical evidence
 
 **The bounded Build17 Simulator journey is finished within the available UI
 scope: navigation, Save and restart are evidenced; Unsave remains unproved.**

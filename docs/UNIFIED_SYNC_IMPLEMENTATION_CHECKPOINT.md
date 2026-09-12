@@ -5,6 +5,24 @@ This is an implementation/source-handoff pointer, not product acceptance.
 
 ## Resumed Common/Mobile — 12 September 2026
 
+Private-session lock is implemented in a separate unbuilt Mobile source block:
+local opt-in, system device-owner authentication, synchronous existing UIKit
+window shield over sheets/AX, keyboard guards and auth epoch/scene/private-session
+generation fencing. Locking does not destroy the private session. Exact scope
+and remaining visible/device gates are in [the Mobile checkpoint](ACTIVE_MOBILE_CHECKPOINT.md).
+Device24's installed baseline is unchanged and contains none of this feature.
+
+Latest installed Mobile baseline is Device24/e2faf54: fa53e31 plus only the
+backported AppStorage fix7e19476, matching Nativec8d9161's schema6 baseline.
+Its real normal product launch succeeded at11:28:36UTC, PID5058 remained alive
+at11:47:02UTC. Only the exact bba namespace/defaults were read: blank normal tab,
+matching local device/session IDs, no Sync/category/search overrides and no
+provider/engine/key-journal files. No Cloud/key activation. This is NOT visible
+UI/Hostlabel/metadata E2E; no device-bound screenshot/AX tool was available in
+the allowed surface. [Launch receipt](../artifacts/build/mobile-development-e2faf54-20260912/product-start-receipt-20260912.json).
+The original23 is preserved and must not be started because its UI AppStorage
+bindings used standard defaults. Its replacement24 has all three bindings fixed.
+
 Latest device preflight after the user's explicit unlock: Servusla DDI17F113
 mounted successfully at10:55:57UTC; compatible/usable, passcodeRequired=false.
 Session20029 EXIT0 resolves the earlier DeviceLocked boundary. Device23 remains

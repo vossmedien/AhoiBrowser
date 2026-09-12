@@ -26,6 +26,7 @@ public final class CompanionAppModel: ObservableObject {
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
 
     public let repository: LocalFirstRepository
+    public let privateSessionLock: MobilePrivateSessionLock
     let defaults: UserDefaults
     var syncProvider: CloudKitSyncProvider?
     var syncBridge: CompanionSyncBridge?
@@ -88,6 +89,7 @@ public final class CompanionAppModel: ObservableObject {
     ) {
         self.repository = repository
         self.defaults = defaults
+        self.privateSessionLock = MobilePrivateSessionLock(defaults: defaults)
         self.syncProvider = syncProvider
         self.syncBridge = syncBridge
         self.syncRuntimeFactory = syncRuntimeFactory

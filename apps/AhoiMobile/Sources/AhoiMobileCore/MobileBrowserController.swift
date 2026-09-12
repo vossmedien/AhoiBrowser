@@ -64,6 +64,7 @@ public final class MobileBrowserController: ObservableObject {
     var linkInteractionCoordinators: [UUID: MobileLinkInteractionCoordinator] = [:]
     var websiteDataStores: [UUID: WKWebsiteDataStore] = [:]
     var privateWebsiteDataStore: WKWebsiteDataStore?
+    public private(set) var privateSessionGeneration: UInt64 = 0
     let normalWebsiteDataStore: WKWebsiteDataStore
     private var lastRecordedHistoryURL: [UUID: String] = [:]
     private var desktopSiteTabIDs: Set<UUID> = []
@@ -329,6 +330,7 @@ public final class MobileBrowserController: ObservableObject {
         // buffer or appear later in an app-switcher/tab-switcher snapshot.
         recentlyClosedTab = removed.mode == .normal ? removed : nil
         if removed.mode == .privateBrowsing && privateTabs.isEmpty {
+            privateSessionGeneration &+= 1
             // Closing the final private tab ends that ephemeral session. A
             // replacement private tab receives a fresh non-persistent store.
             privateWebsiteDataStore = nil
@@ -583,6 +585,7 @@ public final class MobileBrowserController: ObservableObject {
     }
 
     public func clearPrivateTabs() {
+        privateSessionGeneration &+= 1
         let privateIDs = Set(privateTabs.map(\.id))
         tabs.removeAll { privateIDs.contains($0.id) }
         if recentlyClosedTab?.mode == .privateBrowsing { recentlyClosedTab = nil }

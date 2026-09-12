@@ -71,6 +71,7 @@ public struct MobileBrowserCommandActions {
         canReopenClosedTab: Bool,
         canSwitchWorkspace: Bool,
         canToggleSidebar: Bool,
+        executionAllowed: @escaping () -> Bool = { true },
         newTab: @escaping () -> Void,
         newPrivateTab: @escaping () -> Void,
         reopenClosedTab: @escaping () -> Void,
@@ -86,16 +87,16 @@ public struct MobileBrowserCommandActions {
         self.canReopenClosedTab = canReopenClosedTab
         self.canSwitchWorkspace = canSwitchWorkspace
         self.canToggleSidebar = canToggleSidebar
-        self.newTab = newTab
-        self.newPrivateTab = newPrivateTab
-        self.reopenClosedTab = reopenClosedTab
-        self.closeSelectedTab = closeSelectedTab
-        self.presentAddress = presentAddress
-        self.presentTabs = presentTabs
-        self.toggleSidebar = toggleSidebar
-        self.switchWorkspace = switchWorkspace
-        self.switchTab = switchTab
-        self.selectNumberedTab = selectNumberedTab
+        self.newTab = { if executionAllowed() { newTab() } }
+        self.newPrivateTab = { if executionAllowed() { newPrivateTab() } }
+        self.reopenClosedTab = { if executionAllowed() { reopenClosedTab() } }
+        self.closeSelectedTab = { if executionAllowed() { closeSelectedTab() } }
+        self.presentAddress = { if executionAllowed() { presentAddress() } }
+        self.presentTabs = { if executionAllowed() { presentTabs() } }
+        self.toggleSidebar = { if executionAllowed() { toggleSidebar() } }
+        self.switchWorkspace = { if executionAllowed() { switchWorkspace($0) } }
+        self.switchTab = { if executionAllowed() { switchTab($0) } }
+        self.selectNumberedTab = { if executionAllowed() { selectNumberedTab($0) } }
     }
 
     func selectTab(number: Int) {

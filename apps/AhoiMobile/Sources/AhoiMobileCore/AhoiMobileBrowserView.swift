@@ -9,6 +9,7 @@ public struct AhoiMobileBrowserView: View {
     @ObservedObject private var browser: MobileBrowserController
     @ObservedObject private var permissions: MobilePermissionCoordinator
     @ObservedObject private var downloads: MobileDownloadCoordinator
+    @ObservedObject private var privateLock: MobilePrivateSessionLock
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -43,6 +44,11 @@ public struct AhoiMobileBrowserView: View {
     ) {
         self.companionModel = companionModel
         self.browser = browser
+        _privateLock = ObservedObject(wrappedValue: companionModel.privateSessionLock)
+        companionModel.privateSessionLock.sessionGeneration = { [weak browser] in
+            guard let browser, !browser.privateTabs.isEmpty else { return nil }
+            return browser.privateSessionGeneration
+        }
         _syncEnabled = AppStorage(wrappedValue: false, CompanionSyncPreferences.enabledKey,
                                   store: companionModel.defaults)
         _searchEngineRawValue = AppStorage(wrappedValue: MobileSearchEngine.duckDuckGo.rawValue,
@@ -55,6 +61,18 @@ public struct AhoiMobileBrowserView: View {
         MobileE2EEvidenceOverlay(content: finalPresentationLayer)
             .mobileBrowserCommandRegistration(browserCommandActions, router: commandRouter)
             .background(MobileBrowserKeyboardFocusAnchor(router: commandRouter).frame(width: 1, height: 1))
+            .background(MobilePrivateSceneShield(
+                title: CompanionL10n.string("browser.private.cover.title", fallback: "Private browsing protected"),
+                message: CompanionL10n.string("browser.private.cover.message", fallback: "Return to AhoiBrowser to view this private tab."),
+                lock: privateLock, privateContentVisible: { isPrivateContentVisible },
+                presentationVisible: { addressPresented || tabsPresented || bookmarkCapture != nil || browserActionsPresented ||
+                    downloadsPresented || downloadPreviewURL != nil || renameTab != nil || settingsPresented ||
+                    findNavigatorPresented || clearWebsiteDataRequested || clearPrivateTabsRequested ||
+                    browser.pendingLink != nil || browser.pendingExternalOpen != nil },
+                prepareForInactive: { browser.prepareForInactiveScene() },
+                dismissPrivatePresentations: dismissPrivatePresentations).frame(width: 0, height: 0)
+                .id(ObjectIdentifier(privateLock)))
+            .onChange(of: browser.privateTabs.count) { _, _ in privateLock.privateSessionChanged() }
     }
     private var privacyLayer: some View {
         ZStack {
@@ -548,7 +566,14 @@ public struct AhoiMobileBrowserView: View {
         return browser.selectedPage?.url ?? browser.selectedTab?.url.flatMap(URL.init(string:))
     }
     private var privatePrivacyCoverPresented: Bool {
-        scenePhase != .active && isPrivateContentVisible
+        (scenePhase != .active || privateLock.isLocked) && isPrivateContentVisible
+    }
+    private func dismissPrivatePresentations() {
+        addressPresented = false; tabsPresented = false; bookmarkCapture = nil
+        browserActionsPresented = false; downloadsPresented = false; downloadPreviewURL = nil
+        renameTab = nil; renameText = ""; addressText = ""; addressSelection = nil
+        findNavigatorPresented = false; clearWebsiteDataRequested = false; clearPrivateTabsRequested = false
+        browser.prepareForInactiveScene()
     }
     private var isPrivateContentVisible: Bool {
         browser.selectedTab?.mode == .privateBrowsing ||
@@ -592,6 +617,8 @@ public struct AhoiMobileBrowserView: View {
             canSwitchWorkspace: selectedMode == .normal &&
                 companionModel.snapshot.visibleWorkspaces.count > 1,
             canToggleSidebar: horizontalSizeClass == .regular,
+            executionAllowed: { UIApplication.shared.applicationState == .active &&
+                !(privateLock.isLocked && isPrivateContentVisible) },
             newTab: { createSidebarTab(nil, .normal) },
             newPrivateTab: { createSidebarTab(nil, .privateBrowsing) },
             reopenClosedTab: { browser.undoClose(); reconcileSidebarTabs() },

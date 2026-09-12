@@ -38,8 +38,5 @@ struct MobilePrivatePrivacyCoverView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("browser.private-privacy-cover")
-        .background {
-            MobilePrivateSceneShield(title: title, message: message)
-        }
     }
 }

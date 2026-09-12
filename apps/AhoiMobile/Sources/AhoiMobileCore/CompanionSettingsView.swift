@@ -21,6 +21,7 @@ public struct CompanionSettingsView: View {
         NavigationStack {
             Form {
                 CompanionBrowserSettingsSection(model: model)
+                MobilePrivateLockSettingsSection(lock: model.privateSessionLock)
                 CompanionExtensionSetupSection(model: model)
 
                 Section {
