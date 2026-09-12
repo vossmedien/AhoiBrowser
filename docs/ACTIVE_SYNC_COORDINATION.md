@@ -84,17 +84,30 @@ or an optional UI switch is not implementation/acceptance.
   Root read the receipt/actual plist and independently verified its deep/strict
   signature. Original22 and unsigned23 remain preserved. Runtime namespace
   readback, app installation and CloudKit are NOT_RUN, not signature failures.
-  Use23 instead of launching22's non-isolated local data path for acceptance.
-- **Device boundary identified precisely:** Servusla is paired/reachable and
-  Developer Mode enabled. Targeted DDI diagnosis returned
-  `0xe80000e2 kAMDMobileImageMounterDeviceLocked`. User has been asked to unlock
-  the connected iPhone; no passcode requested. Do not loop or roll Xcode while
-  DeviceLocked is the evidenced cause. Source work continues independently.
-- **Installed Mac readback:** Root read `a24a7925bc729dcc6c02b39a5fee1ffdb0ef0aca`
-  with no CloudKit runtime container. This provider-free import candidate is NOT
-  the matching Sync candidate. Preserving recovery/import/restart/NoChanges and
-  earlier Pin/Home/icon journeys retain their bounded evidence in
-  [the Desktop report](audit-evidence/2026-09-08-toolbar-and-arc-recovery.md).
+  Device23 was installed headlessly with no Ahoi process before/after, but must
+  NOT be started: three UI AppStorage properties still used standard defaults.
+  Pure backport7e19476 fixes those exact bindings. Device24 e2faf54 is the clean
+  fa53e31+7e19476 correction, without e7/Privacy additions; its actual build/sign/
+  install result belongs in the Mobile checkpoint/receipt. This correction is
+  required before the first ordinary UI/opt-in, not another feature-only rebuild.
+- **DDI boundary cleared by actual user unlock:** readback20029 at10:55:57UTC
+  found Servusla's DDI17F113 mounted, compatible and usable. No Xcode roll was
+  needed. A later lock does not invalidate that proof or authorize blind retries;
+  read the actual state at the next device action. No passcode was requested.
+- **Scoped Mac installed and independently verified:** guarded install64142
+  completed EXIT0 on c8d9161057cae20913ddd83bfbfadf22598d3950. Root verified the
+  installed deep/strict signature, actual Development/container/zone/subscription/
+  account values and executable SHA
+  29118f340a5dbaceaee1c9164353bca6d9b8d9c57dc0ee17242df7b9e7402ee5.
+  The real Default/Local State/tree are preserved; a24 remains in atomic rollback.
+  No app start, CUA, payload-key or CloudKit action occurred. Normal acceptance
+  startup is protected to its dedicated MacA/MacB profiles, not the real Default.
+- **Structure source freeze e7abcff is separate:** record13/14, Home/archive
+  fields, both codecs/merge/stores/provider and common golden are implemented in
+  Source, not runtime-accepted. Native DTO/persistence/capture/scheduler/UI remain
+  the following integration. Its schema7/structureRevision1 is NOT in c8/Device24.
+  Use a new jointly bound fresh scope if the baseline populates the earlier one;
+  do not migrate or empty existing baseline data to claim a fresh next wave.
 
 ## Exact isolated Development configuration
 
@@ -115,12 +128,13 @@ See [key setup](KEY_BOOTSTRAP_SYNC.md) and the current
 
 ## Runtime and remaining visible work
 
-**Current UI grant, September12:** MBC's own8998792A is granted the bounded
-ed312139 Journal/Guide-memory journey. Root freshly read all Simulators Shutdown
-and no Ahoi/FillItLive app; Desktop holds native UI/install until MBC's explicit
-handback. Its app-only jobs4 build may proceed under total-capacity checks;
-MBC rechecks load before boot. This is START permission, not an observed pass.
-No Ahoi Mobile START or new cloud/provider authority is implied.
+**Current UI grant, September12:** MBC's own8998792A was granted the bounded
+ed312139 Journal/Guide-memory journey; no actual START/pass is inferred. Root's
+latest readback still found all Simulators Shutdown and asked for the unused
+window's explicit return (01a09546-220a). Only global CUA/focus waits on that
+handoff. Headless guarded Mac/physical-device installation WITHOUT app launch
+was explicitly released as independent work; it does not use MBC's Simulator.
+No app start or new cloud/provider authority follows from installation.
 
 No September8 Simulator reservation or START message is valid today. Before
 starting, the current owner checks actual surfaces/workload and gives a concrete
