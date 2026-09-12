@@ -46,6 +46,13 @@ runtime handles remain excluded. Received state must not steal focus, navigate
 or force-close active peer pages or change their website-account context.
 Fresh acceptance does not authorize deleting or resetting existing data/keys.
 
+The full Crest-derived product additions also remain binding, not just their
+sync fields: routing/remembered targets, Home/Peek, shortcuts/MRU, Reader/Markdown,
+import preview/portable export, developer context/help/status and Mobile privacy
+lock. Master WORKFLOW-01..08 and the matching registry IDs are present. Both
+workers received the complete platform-specific follow-up scope; documentation
+or an optional UI switch is not implementation/acceptance.
+
 ## Actual progress on September12
 
 - **Native storage request hook delivered:** `4ee694e` adds patch0040 after0036.
@@ -55,10 +62,11 @@ Fresh acceptance does not authorize deleting or resetting existing data/keys.
 - **Native follow-up in progress:** Desktop is closing actual trusted install/
   enable/disable/uninstall plus0039, category/retry UI and the bound Development
   Prepare/Verify/Install configuration. Inventory `cf56c04` alone was not restore.
-  Full Native/Signing source block `a58e84c` is now frozen and its guarded
-  app-only build33274 is running. Root observed the real wrapper78136 and its
-  build log; all old runs remain historical. Known header fix7a195b9 is separate
-  from the frozen run and will join the bounded correction; no checkout injection.
+  Native/Signing source block a58e84c and bounded subsequent compiler/start-scope
+  corrections are delivered. The current frozen candidate/handle and exact
+  terminal diagnostics belong in [the Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md),
+  not duplicated stale RUNNING instructions here. Root observed the first real
+  wrapper/log; that failed first run must not be resumed as the current candidate.
 - **iOS Development22 signed:** source `9658f945d7c0a80b6b5b331d6fecb4be3e40bb10`,
   iPhoneOS/arm64. Separate signed copy and receipt are under
   `artifacts/build/mobile-development-9658f94-20260908/`.
