@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>application-identifier</key><string>248AJ5BN47.app.ahoibrowser.AhoiBrowser</string>
+  <key>com.apple.developer.team-identifier</key><string>248AJ5BN47</string>
+  <key>get-task-allow</key><true/>
+  <key>com.apple.developer.icloud-container-identifiers</key>
+  <array><string>iCloud.app.ahoibrowser.AhoiBrowser</string></array>
+  <key>com.apple.developer.icloud-services</key><array><string>CloudKit</string></array>
+  <key>com.apple.developer.icloud-container-environment</key><string>Development</string>
+  <key>keychain-access-groups</key>
+  <array><string>248AJ5BN47.app.ahoibrowser.sync</string><string>248AJ5BN47.app.ahoibrowser.commands</string></array>
+  <key>aps-environment</key><string>development</string>
+</dict>
+</plist>

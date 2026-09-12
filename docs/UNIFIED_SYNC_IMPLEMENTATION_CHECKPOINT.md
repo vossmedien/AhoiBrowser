@@ -3,6 +3,35 @@
 Updated 2026-09-08. Owner: `01a06d69-1034-7372-b784-0b05a53c87e0`.
 This is an implementation/source-handoff pointer, not product acceptance.
 
+## Resumed Common/Mobile — 12 September 2026
+
+Active owner is `/root/sync_mobile_resume`, coordinated by `/root`; Desktop
+Native/build/sign/install belongs to `/root/desktop_resume`. September 8 slots,
+PIDs and external session ownership are history, not current reservations.
+
+Common consumer `3c4b2dc` is now paired with Desktop's exact Native request hook
+`4ee694e` / Patch0040. The patch is byte-identical to the proposed `f36e4bd`
+artifact (SHA `9f8ef3ca5fbb23970e41b9feec0afd1697a85d5204568f59d8171c2e30dcfecf`).
+The Common adapter consumes `ObserveSyncSettingsWriteRequests` before queueing;
+original authorization/epoch stays bound through read fence, write, readback
+and completion, and remote committed notifications retain `kRemoteApply`.
+Common `3c4b2dc` is released unchanged for Desktop's coherent candidate build.
+This closes the missing-API source handoff, not compilation or runtime acceptance.
+
+Device22 / `9658f94` now has a separate Development-signed app copy. Strict deep
+signature, exact entitlements, profile grants/certificate/device and the seven
+runtime scope values pass. Original unsigned tree and Info.plist are preserved.
+Receipt: [development signing](../artifacts/build/mobile-development-9658f94-20260908/development-signing-receipt-20260912.json).
+No new build or Portal provisioning was needed. No install/start/key/cloud action.
+Servusla is paired/reachable, Developer Mode enabled, iOS26.6.1, but currently
+requires passcode and has no mounted DDI services despite a usable host DDI.
+Targeted DDI query confirms `0xe80000e2 kAMDMobileImageMounterDeviceLocked`.
+Device unlock and coordinated candidate runtime remain open.
+
+The September12 split/archive/Home/typed routing/shortcut extensions in ADR0009
+and the updated product contracts are binding follow-up scope in the same format3;
+neither current Device22 nor the Common storage handoff implements those additions.
+
 ## Current independent result: unsigned iOS Development22 built
 
 The user challenged the over-broad whole-goal block; the goal is active again.

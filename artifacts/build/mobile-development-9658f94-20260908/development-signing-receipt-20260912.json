@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "kind": "signed-ios-development-copy",
+  "signedAt": "2026-09-12T10:02:21Z",
+  "sourceCommit": "9658f945d7c0a80b6b5b331d6fecb4be3e40bb10",
+  "buildMode": "CloudKitDevelopment",
+  "buildNumber": "22",
+  "originalReceipt": "candidate.json",
+  "originalApp": "AhoiMobile-9658f94-unsigned.app",
+  "originalTreeSha256": "f99ed968c9b667d1586f57b6689af4177c0dce822eed6d0ab2d1da260ea5434b",
+  "originalPreservedAndReverified": true,
+  "signedApp": "AhoiMobile-9658f94-development-signed.app",
+  "signedTreeSha256": "c28c15105060d9004433e5d91881fc9a694e928ed71e64e1e8ec3e58053953c5",
+  "treeHashAlgorithm": "tools/mobile_evidence_artifacts.py:sha256_path tree-v1",
+  "rawFileSha256": {
+    "signedExecutable": "d6215784a3be8b32aeec87d564894f89395f936683b170c892471a7f5792b8d8",
+    "infoPlist": "b3823b43a58c5b7e42b3d1aae4b8d62d1e683bbed40c8c0da2c66773c74cfbe0",
+    "embeddedProfile": "93d378a8348b1592e690365dfadfa5aae83dc6ffc6397f9832c70921a8de7b5c",
+    "entitlementsInput": "78efc90fc777a22eae3d148ab4b33aa49a67624542996014c5b92ca3ad2b4c32"
+  },
+  "signing": {
+    "identity": "Apple Development: Christian Voss (2265UJB5KF)",
+    "certificateSha1": "147982d504ebd2c629843517a8beccdeefc67e6d",
+    "teamIdentifier": "248AJ5BN47",
+    "profileUUID": "bbf658ff-10e4-4768-8cac-de5787ab5e78",
+    "profileExpiration": "2027-08-31T19:55:04Z",
+    "profileDeviceCount": 1,
+    "profileMatchesConnectedServusla": true,
+    "entitlementsInput": "Development22.entitlements.plist",
+    "exactSignedEntitlementsAndAllProfileGrantsVerified": true,
+    "deepStrictCodeSignatureVerification": "PASS",
+    "codeDirectoryHash": "9ee14fdb6b44f7fba8add7cf66727720842bbabb",
+    "nestedFrameworksAndDylibsSignedInsideOut": true,
+    "newBuildOrPortalProvisioningPerformed": false
+  },
+  "configuration": {
+    "sharedScope": "artifacts/e2e/shared-sync-development-scope-20260908.json",
+    "sharedScopeSha256": "851600c142f1c289f5f878a23587eecbc9001a4e2c2e072f7c0e0f5dc13c9abe",
+    "allSevenRuntimeValuesMatch": true,
+    "infoPlistUnchangedFromUnsignedOriginal": true,
+    "cloudKitEnvironment": "Development",
+    "e2eHarnessRealMutationOptIn": "NO"
+  },
+  "deviceReadOnlyPreflight": {
+    "time": "2026-09-12T10:02:51Z",
+    "name": "Servusla",
+    "coreDeviceIdentifier": "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+    "osVersion": "26.6.1",
+    "pairedReachable": true,
+    "developerModeEnabled": true,
+    "passcodeRequired": true,
+    "unlockedSinceBoot": true,
+    "ddiServicesAvailable": false,
+    "infoWarning": "The developer disk image could not be mounted on this device.",
+    "hostPreferredDDIUsableAndCompatible": true,
+    "hostPreferredDDIBuild": "17F113",
+    "targetedDDIDiagnosticTime": "2026-09-12T10:05:02Z",
+    "targetedDDIDiagnostic": "devicectl device info ddiServices",
+    "ddiError": "CoreDeviceError 12040; 0xe80000e2 kAMDMobileImageMounterDeviceLocked",
+    "confirmedRuntimeBlocker": "The device is locked."
+  },
+  "acceptance": {
+    "signedEntitlements": "PASS",
+    "install": "NOT_RUN",
+    "visibleE2E": "NOT_RUN",
+    "keychainLifecycle": "NOT_RUN",
+    "cloudKitRoundtrip": "NOT_RUN"
+  }
+}
