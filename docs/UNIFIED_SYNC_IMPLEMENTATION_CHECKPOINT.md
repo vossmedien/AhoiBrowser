@@ -5,6 +5,15 @@ This is an implementation/source-handoff pointer, not product acceptance.
 
 ## Resumed Common/Mobile — 12 September 2026
 
+Latest Mobile candidate: `fa53e31` CloudKitDevelopment0.1(23) builds iPhoneOS/arm64
+and its separate Development-signed copy passes strict/deep verification. This
+fixes a real acceptance-isolation gap in22: the shared UUID now also scopes local
+domain/provider/session stores, defaults/device identity, downloads and normal
+WebKit storage. Existing product data remains untouched. All seven actual
+Info.plist scope values match. [Candidate and limits](../artifacts/build/mobile-development-fa53e31-20260912/candidate.json).
+Device install/start, namespace readback, focused tests and CloudKit remain open.
+No DDI retry after the proven DeviceLocked boundary. Unsigned/signed22 are retained.
+
 Active owner is `/root/sync_mobile_resume`, coordinated by `/root`; Desktop
 Native/build/sign/install belongs to `/root/desktop_resume`. September 8 slots,
 PIDs and external session ownership are history, not current reservations.
