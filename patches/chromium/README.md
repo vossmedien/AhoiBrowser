@@ -101,6 +101,25 @@ as a second active patch stack.
   storage.sync alone is not evidence that values are safe to transfer. Remove
   when Chromium exposes equivalent native observation and origin-bearing apply.
 
+## `0040-ahoi-native-sync-storage-write-request.patch`
+
+- **Owner:** Desktop; the exact two-file continuation of0036, applied after0038.
+- **Purpose:** notify native consumers before a nonempty sync-area Set/Remove
+  or any Clear enters the backend queue. This revokes an original remote epoch
+  before an intervening local write, including an A-to-X-to-A sequence.
+- **Safety:** carries only the extension ID and no committed-data or upload
+  authority. Subscribers still author only from committed changes. The callback
+  list remains alive during notification; a released frontend stops enqueueing.
+  Remove copies caller-owned keys before callbacks. Other storage areas retain
+  their existing behavior.
+- **Source:** byte-identical to the reviewed f36e4bd proposal, SHA-256
+  `9f8ef3ca5fbb23970e41b9feec0afd1697a85d5204568f59d8171c2e30dcfecf`.
+- **Verification:** ordered offline composition and exact source checks;
+  compilation and the permitted extension-settings journey remain candidate
+  gates. No shared checkout or running app is changed by this source handoff.
+- **Rebase/removal:** narrow StorageFrontend seam; remove with0036 when upstream
+  supplies the equivalent request and origin-bearing commit subscriptions.
+
 ## `0001-ahoi-m152-integration-seams.patch`
 
 - **Owner:** AhoiBrowser project.
