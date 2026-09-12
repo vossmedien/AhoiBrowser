@@ -21,6 +21,7 @@
 namespace ahoi {
 
 void SessionBridge::InitializeNativeExtensionSetup() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (auto* registrar = ::extensions::ExtensionRegistrar::Get(profile_)) {
     extension_user_settings_subscription_ =
         registrar->ObserveUserSettingsRequests(base::BindRepeating(
@@ -32,7 +33,7 @@ void SessionBridge::InitializeNativeExtensionSetup() {
         FROM_HERE,
         base::BindOnce(
             [](base::WeakPtr<SessionBridge> bridge) {
-              if (!bridge || bridge->shutting_down_ || !bridge->profile_) {
+              if (!bridge || !bridge->is_operational() || !bridge->profile_) {
                 return;
               }
               if (auto* service =
@@ -49,6 +50,7 @@ void SessionBridge::OnNativeExtensionUserSettingsRequested(
     const ::extensions::Extension& extension,
     bool installed,
     bool enabled) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (shutting_down_ || !profile_) {
     return;
   }
