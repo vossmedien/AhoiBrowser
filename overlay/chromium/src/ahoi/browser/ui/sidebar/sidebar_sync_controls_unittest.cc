@@ -19,6 +19,11 @@ class SidebarSyncControlsTest : public views::ViewsTestBase {};
 TEST_F(SidebarSyncControlsTest, StatusLivesOnlyInExpandedSyncSettings) {
   std::unique_ptr<views::View> controls = CreateSidebarSyncControlsView(
       /*service=*/nullptr, /*filter_devices=*/{}, base::DoNothing());
+  ASSERT_FALSE(controls->children().empty());
+  const auto& filter_row = controls->children().front()->children();
+  ASSERT_EQ(2u, filter_row.size());
+  EXPECT_FALSE(filter_row.front()->GetVisible());
+  EXPECT_GT(filter_row.back()->GetPreferredSize().width(), 0);
 
   ui::AXNodeData accessibility;
   controls->GetViewAccessibility().GetAccessibleNodeData(&accessibility);

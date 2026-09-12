@@ -71,7 +71,9 @@ std::unique_ptr<views::Label> MakeMutedLabel(std::u16string text,
 }
 
 void StyleButton(views::LabelButton* button) {
-  button->SetPreferredSize(gfx::Size(0, kControlHeight));
+  // A horizontal disclosure must retain its intrinsic text width. A preferred
+  // width of zero collapses Sync entirely when the device filter is hidden.
+  button->SetMinSize(gfx::Size(0, kControlHeight));
   button->SetTextSubpixelRenderingEnabled(false);
   button->SetTextColor(views::Button::STATE_NORMAL, visual_style::kText);
   button->SetTextColor(views::Button::STATE_HOVERED, visual_style::kText);
@@ -323,6 +325,12 @@ class SidebarSyncControlsView final : public views::View {
     no_upload_button_->SetVisible(status.account_transition_pending);
     zone_recovery_button_->SetVisible(status.zone_recovery_pending);
     sync_now_button_->SetEnabled(sync_enabled);
+    const bool recovery_pending =
+        status.account_transition_pending || status.zone_recovery_pending;
+    if (recovery_pending && !recovery_disclosed_) {
+      SetSettingsExpanded(true);
+    }
+    recovery_disclosed_ = recovery_pending;
 
     std::vector<base::Uuid> approved =
         service_->approved_remote_control_devices();
@@ -635,6 +643,7 @@ class SidebarSyncControlsView final : public views::View {
   raw_ptr<views::Label> approval_status_ = nullptr;
   raw_ptr<views::View> approved_devices_container_ = nullptr;
   bool updating_controls_ = false;
+  bool recovery_disclosed_ = false;
   base::WeakPtrFactory<SidebarSyncControlsView> weak_ptr_factory_{this};
 };
 
