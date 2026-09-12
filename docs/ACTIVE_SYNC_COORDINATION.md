@@ -55,7 +55,10 @@ Fresh acceptance does not authorize deleting or resetting existing data/keys.
 - **Native follow-up in progress:** Desktop is closing actual trusted install/
   enable/disable/uninstall plus0039, category/retry UI and the bound Development
   Prepare/Verify/Install configuration. Inventory `cf56c04` alone was not restore.
-  No extra build is needed solely to prove the already delivered hook.
+  Full Native/Signing source block `a58e84c` is now frozen and its guarded
+  app-only build33274 is running. Root observed the real wrapper78136 and its
+  build log; all old runs remain historical. Known header fix7a195b9 is separate
+  from the frozen run and will join the bounded correction; no checkout injection.
 - **iOS Development22 signed:** source `9658f945d7c0a80b6b5b331d6fecb4be3e40bb10`,
   iPhoneOS/arm64. Separate signed copy and receipt are under
   `artifacts/build/mobile-development-9658f94-20260908/`.
@@ -65,11 +68,15 @@ Fresh acceptance does not authorize deleting or resetting existing data/keys.
   Info.plist bytes and signed executable SHA
   `d6215784a3be8b32aeec87d564894f89395f936683b170c892471a7f5792b8d8`.
   Unsigned original remains preserved. No install, app start or CloudKit pass.
-- **Fresh local state still needs product wiring:** a new cloud zone/key account
-  does not isolate Device22's fixed `AhoiMobile/SyncFormat3` and standard defaults.
-  Mobile is binding Development-only local state to the validated acceptance
-  scope. Preserve signed22; do not launch it over existing data as a fresh-store
-  acceptance. This is a necessary follow-up candidate, not a signing failure.
+- **Locally isolated Device23 is built and signed:** fa53e31 binds domain files,
+  defaults/identity, normal WebKit storage and downloads to the validated
+  Development namespace. Build67411 completed EXIT0. Receipt f4c54a7 under
+  `artifacts/build/mobile-development-fa53e31-20260912/candidate.json`; signed tree
+  65dcd44bc99178a7baec16d84fa401c3f79ee3de93d5dab35465ffd47ed0e1df.
+  Root read the receipt/actual plist and independently verified its deep/strict
+  signature. Original22 and unsigned23 remain preserved. Runtime namespace
+  readback, app installation and CloudKit are NOT_RUN, not signature failures.
+  Use23 instead of launching22's non-isolated local data path for acceptance.
 - **Device boundary identified precisely:** Servusla is paired/reachable and
   Developer Mode enabled. Targeted DDI diagnosis returned
   `0xe80000e2 kAMDMobileImageMounterDeviceLocked`. User has been asked to unlock
@@ -93,12 +100,19 @@ server zone. Use actual Claim/Journal/commitment plus synchronizable Keychain,
 not copied key bytes or independently provisioned peer keys.
 
 Both actual candidates must use that same configuration and genuinely fresh
-local stores before opt-in/start. iOS22 does not contain the new September12
+local stores before opt-in/start. iOS23 does not contain the new September12
 split/archive/Home/routing/shortcut implementation; do not claim its acceptance.
 See [key setup](KEY_BOOTSTRAP_SYNC.md) and the current
 [implementation checkpoint](UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md).
 
 ## Runtime and remaining visible work
+
+**Current UI grant, September12:** MBC's own8998792A is granted the bounded
+ed312139 Journal/Guide-memory journey. Root freshly read all Simulators Shutdown
+and no Ahoi/FillItLive app; Desktop holds native UI/install until MBC's explicit
+handback. Its app-only jobs4 build may proceed under total-capacity checks;
+MBC rechecks load before boot. This is START permission, not an observed pass.
+No Ahoi Mobile START or new cloud/provider authority is implied.
 
 No September8 Simulator reservation or START message is valid today. Before
 starting, the current owner checks actual surfaces/workload and gives a concrete
