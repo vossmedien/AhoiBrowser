@@ -84,11 +84,16 @@ export function getHtml(this: SettingsAhoiPageElement) {
       </div>
       <div id="ahoiCloudKitUnavailableStatus"
           class="sync-explanation cr-row" role="status" aria-live="polite"
-          ?hidden="${this.cloudKitAvailable_}">
+          ?hidden="${this.remoteControlStatus_ === null || this.cloudKitAvailable_}">
         <div class="flex cr-padded-text">
           <div>$i18n{ahoiCloudKitUnavailableTitle}</div>
           <div class="secondary">$i18n{ahoiCloudKitUnavailableSublabel}</div>
         </div>
+      </div>
+      <div id="ahoiSyncRuntimeStatus" class="sync-explanation cr-row"
+          role="status" aria-live="polite"
+          ?hidden="${this.syncEnabledPref_?.value || !this.remoteControlStatus_?.syncStatusLabel}">
+        <div class="flex cr-padded-text">${this.remoteControlStatus_?.syncStatusLabel}</div>
       </div>
       <settings-toggle-button id="ahoiSyncEnabled"
           pref-key="ahoi.sync.enabled"

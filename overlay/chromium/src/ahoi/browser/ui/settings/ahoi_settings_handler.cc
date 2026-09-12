@@ -8,8 +8,10 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/sync/cloudkit_sync_configuration_mac.h"
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
 #include "base/functional/bind.h"
+#include "base/i18n/rtl.h"
 #include "base/strings/string_util.h"
 #include "base/values.h"
 #include "chrome/browser/profiles/profile.h"
@@ -21,8 +23,7 @@ namespace {
 
 const char* PrerequisiteName(
     sync::ProfileSyncService::RemoteControlPrerequisite prerequisite) {
-  using Prerequisite =
-      sync::ProfileSyncService::RemoteControlPrerequisite;
+  using Prerequisite = sync::ProfileSyncService::RemoteControlPrerequisite;
   switch (prerequisite) {
     case Prerequisite::kReady:
       return "ready";
@@ -46,8 +47,7 @@ bool HasCallbackId(const base::ListValue& args) {
 
 AhoiSettingsHandler::AhoiSettingsHandler(Profile* profile)
     : profile_(profile),
-      sync_service_(
-          sync::ProfileSyncServiceFactory::GetForProfile(profile_)) {}
+      sync_service_(sync::ProfileSyncServiceFactory::GetForProfile(profile_)) {}
 
 AhoiSettingsHandler::~AhoiSettingsHandler() {
   if (sync_service_ && observing_sync_service_) {
@@ -72,14 +72,12 @@ void AhoiSettingsHandler::RegisterMessages() {
           base::Unretained(this)));
   web_ui()->RegisterMessageCallback(
       "ahoiGetRemoteControlStatus",
-      base::BindRepeating(
-          &AhoiSettingsHandler::HandleGetRemoteControlStatus,
-          base::Unretained(this)));
+      base::BindRepeating(&AhoiSettingsHandler::HandleGetRemoteControlStatus,
+                          base::Unretained(this)));
   web_ui()->RegisterMessageCallback(
       "ahoiSetRemoteControlEnabled",
-      base::BindRepeating(
-          &AhoiSettingsHandler::HandleSetRemoteControlEnabled,
-          base::Unretained(this)));
+      base::BindRepeating(&AhoiSettingsHandler::HandleSetRemoteControlEnabled,
+                          base::Unretained(this)));
   web_ui()->RegisterMessageCallback(
       "ahoiApproveRemoteControlDevice",
       base::BindRepeating(
@@ -87,9 +85,8 @@ void AhoiSettingsHandler::RegisterMessages() {
           base::Unretained(this)));
   web_ui()->RegisterMessageCallback(
       "ahoiRevokeRemoteControlDevice",
-      base::BindRepeating(
-          &AhoiSettingsHandler::HandleRevokeRemoteControlDevice,
-          base::Unretained(this)));
+      base::BindRepeating(&AhoiSettingsHandler::HandleRevokeRemoteControlDevice,
+                          base::Unretained(this)));
 }
 
 void AhoiSettingsHandler::OnAhoiDeviceTabsChanged(
@@ -194,10 +191,21 @@ base::DictValue AhoiSettingsHandler::BuildRemoteControlStatus(
     std::string_view action) const {
   base::DictValue result;
   result.Set("action", std::string(action));
+  // Bundle configuration is independent of a stopped transport. Reading it
+  // does not create a provider, query an account or activate CloudKit.
+  const auto configuration =
+      sync::CloudKitSyncConfigurationMac::FromMainBundle();
+  const bool configured = configuration && configuration->IsE2EKeyConfigured();
+  result.Set("cloudKitAvailable", configured);
+  result.Set("syncStatusLabel",
+             configured && (!sync_service_ || !sync_service_->sync_enabled())
+                 ? (base::i18n::GetConfiguredLocale().starts_with("de")
+                        ? "Sync ist ausgeschaltet"
+                        : "Sync is off")
+                 : "");
   if (!sync_service_) {
     result.Set("prerequisite", "transportUnavailable");
     result.Set("syncEnabled", false);
-    result.Set("cloudKitAvailable", false);
     result.Set("canPair", false);
     result.Set("canEnable", false);
     result.Set("enabled", false);
@@ -208,12 +216,10 @@ base::DictValue AhoiSettingsHandler::BuildRemoteControlStatus(
   const auto prerequisite = sync_service_->remote_control_prerequisite();
   result.Set("prerequisite", PrerequisiteName(prerequisite));
   result.Set("syncEnabled", sync_service_->sync_enabled());
-  result.Set("cloudKitAvailable",
-             sync_service_->transport_status().provider_available);
   result.Set("canPair", sync_service_->can_pair_remote_control_device());
   result.Set("canEnable",
-             prerequisite == sync::ProfileSyncService::
-                                 RemoteControlPrerequisite::kReady);
+             prerequisite ==
+                 sync::ProfileSyncService::RemoteControlPrerequisite::kReady);
   result.Set("enabled", sync_service_->remote_control_enabled());
   base::ListValue approved_devices;
   for (const base::Uuid& device_id :
@@ -226,9 +232,8 @@ base::DictValue AhoiSettingsHandler::BuildRemoteControlStatus(
 
 void AhoiSettingsHandler::ResolveStatus(base::Value callback_id,
                                         std::string_view action) {
-  ResolveJavascriptCallback(
-      callback_id,
-      base::Value(BuildRemoteControlStatus(action)));
+  ResolveJavascriptCallback(callback_id,
+                            base::Value(BuildRemoteControlStatus(action)));
 }
 
 void AhoiSettingsHandler::PushStatus(std::string_view action) {

@@ -34,6 +34,7 @@ export interface RemoteControlStatusResponse {
   prerequisite: string;
   syncEnabled: boolean;
   cloudKitAvailable: boolean;
+  syncStatusLabel?: string;
   canPair: boolean;
   canEnable: boolean;
   enabled: boolean;
