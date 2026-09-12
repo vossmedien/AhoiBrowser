@@ -12,6 +12,7 @@
 #include "base/command_line.h"
 #include "base/feature_list.h"
 #include "base/strings/string_util.h"
+#include "build/build_config.h"
 
 namespace ahoi::startup {
 namespace {
@@ -102,7 +103,12 @@ void WriteFeatureSwitch(base::CommandLine& command_line,
 
 }  // namespace
 
-void ApplyEarlyStartupPolicy(base::CommandLine& command_line) {
+bool ApplyEarlyStartupPolicy(base::CommandLine& command_line) {
+#if BUILDFLAG(IS_MAC)
+  if (!ApplyDevelopmentAcceptanceProfile(command_line)) {
+    return false;
+  }
+#endif
   std::vector<std::string> enabled =
       ReadFeatureSwitch(command_line, switches::kEnableFeatures);
   std::erase_if(enabled, [](std::string_view entry) {
@@ -122,6 +128,7 @@ void ApplyEarlyStartupPolicy(base::CommandLine& command_line) {
     disabled.emplace_back(feature);
   }
   WriteFeatureSwitch(command_line, switches::kDisableFeatures, disabled);
+  return true;
 }
 
 }  // namespace ahoi::startup

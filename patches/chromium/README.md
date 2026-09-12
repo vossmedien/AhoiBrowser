@@ -129,6 +129,20 @@ as a second active patch stack.
 - **Acceptance:** enabled/disabled/uninstalled changes in the actual linked
   candidate must converge without being reinstalled or echoed by stale peers.
 
+## `0042-ahoi-development-acceptance-profile.patch`
+
+- **Owner:** Desktop. The earliest main-process startup accepts/rejects the
+  owned startup policy before Chromium resolves or opens a browser profile.
+- **Safety:** a signed isolated Development scope uses its own MacA/MacB
+  user-data directory under Application Support/AhoiBrowser Sync Acceptance.
+  The real Default, foreign scopes, profile-directory overrides and symlinked
+  acceptance directories are rejected. Ordinary candidates retain their native
+  profile behavior. No existing store or key is deleted or migrated.
+- **Reason:** the real Default already has global Sync opt-in. Signing a fresh
+  CloudKit zone alone must not upload that profile into acceptance automatically.
+- **Acceptance:** normal scoped-app start plus explicit MacB and refusal of the
+  ordinary profile path on the exact signed candidate; no source-only pass.
+
 ## `0040-ahoi-native-sync-storage-write-request.patch`
 
 - **Owner:** Desktop; the exact two-file continuation of0036, applied after0038.

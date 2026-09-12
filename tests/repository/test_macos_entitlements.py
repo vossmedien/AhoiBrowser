@@ -11,9 +11,11 @@ from unittest import mock
 
 from tools.verify_macos_entitlements import (
     CLOUDKIT_ENTITLEMENT_KEYS,
+    development_acceptance_policy,
     expected_rule_entitlements,
     load_policy,
     parse_entitlements,
+    runtime_build_settings,
     validate_provisioning_profile,
     verify,
 )
@@ -71,6 +73,45 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
             },
             set(self.policy["signingProfiles"]),
         )
+
+    def test_development_acceptance_scope_preserves_rights_and_binds_runtime(self):
+        scope = ROOT / "artifacts/e2e/shared-sync-development-scope-20260908.json"
+        scoped = development_acceptance_policy(self.policy, scope, "cloudkit-development")
+        self.assertEqual(self.policy["rules"], scoped["rules"])
+        self.assertEqual(self.policy["publicIdentity"], scoped["publicIdentity"])
+        self.assertEqual(self.policy["signingProfiles"], scoped["signingProfiles"])
+        expected = json.loads(scope.read_text())
+        runtime = runtime_build_settings(scoped, "cloudkit-development")
+        self.assertEqual(expected["zoneName"], runtime["AHOI_CLOUDKIT_ZONE_NAME"])
+        self.assertEqual(expected["subscriptionIdentifier"], runtime["AHOI_CLOUDKIT_SUBSCRIPTION_ID"])
+        self.assertEqual(expected["syncKeychainAccount"], runtime["AHOI_SYNC_KEYCHAIN_ACCOUNT"])
+        self.assertEqual(expected["scopeID"], runtime["AHOI_SYNC_ACCEPTANCE_SCOPE_ID"])
+        self.assertEqual("payload-key", self.policy["runtimeConfiguration"]["syncKeychainAccount"])
+        with self.assertRaises(SystemExit):
+            runtime_build_settings(scoped, "cloudkit-production")
+
+    def test_development_acceptance_scope_rejects_cross_scope_and_privilege_changes(self):
+        source = ROOT / "artifacts/e2e/shared-sync-development-scope-20260908.json"
+        scope = json.loads(source.read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            candidate = pathlib.Path(directory) / "scope.json"
+            for key, value in (
+                ("zoneName", "AhoiBrowserSyncV3"),
+                ("syncKeychainAccount", "payload-key"),
+                ("containerIdentifier", "iCloud.other"),
+                ("syncKeychainAccessGroup", "248AJ5BN47.*"),
+                ("syncKeyVersion", "2"),
+                ("environment", "Production"),
+                ("schemaVersion", True),
+            ):
+                with self.subTest(key=key):
+                    changed = {**scope, key: value}
+                    candidate.write_text(json.dumps(changed))
+                    with self.assertRaises(SystemExit):
+                        development_acceptance_policy(self.policy, candidate, "cloudkit-development")
+        for profile in ("provider-free", "cloudkit-production"):
+            with self.subTest(profile=profile), self.assertRaises(SystemExit):
+                development_acceptance_policy(self.policy, source, profile)
 
     def test_browser_requires_exact_upstream_entitlements(self):
         expected = self.policy["rules"][0]["entitlements"]

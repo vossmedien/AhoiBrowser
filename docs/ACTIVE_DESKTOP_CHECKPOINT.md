@@ -32,6 +32,18 @@ Scope ID+source SHA are signed runtime fields and installation receipt inputs;
 mixed scopes, other signing profiles and unbound installation are rejected.
 Prepared names do not establish an empty server namespace or successful key setup.
 
+The first actual a58e84c build integrated the complete overlay and passed GN;
+its app-only compilation exposed the Common header namespace issue7a195b9 and
+the native Storage policy call mismatch e5447d2. Those exact Common fixes are
+released for the corrective candidate; the later structure-domain WIP is not.
+The signed acceptance candidate additionally needs0042: early startup selects
+`~/Library/Application Support/AhoiBrowser Sync Acceptance/<scope>/MacA`, with
+the exact sibling MacB accepted via `--user-data-dir`. Ordinary Default/foreign
+paths and non-default profile-directory overrides fail before profile startup.
+This is scoped Development isolation, not a new production profile convention.
+The real existing provisioning profile was freshly validated against the exact
+shared scope851600c1…abe and is valid through2027-09-08; no key/cloud action.
+
 Live readback on restart: installed app remainsa24a792, no running Ahoi process.
 No real Default/Arc profile/key/CloudKit data was reset. Current source block is
 not yet a compiled or installed candidate. Representative visible sync/settings/

@@ -1,0 +1,14 @@
+diff --git a/chrome/app/chrome_main_delegate.cc b/chrome/app/chrome_main_delegate.cc
+--- a/chrome/app/chrome_main_delegate.cc
++++ b/chrome/app/chrome_main_delegate.cc
+@@ -1075,7 +1075,9 @@
+   base::CommandLine& mutable_command_line =
+       *base::CommandLine::ForCurrentProcess();
+   if (!mutable_command_line.HasSwitch(switches::kProcessType)) {
+-    ahoi::startup::ApplyEarlyStartupPolicy(mutable_command_line);
++    if (!ahoi::startup::ApplyEarlyStartupPolicy(mutable_command_line)) {
++      return 1;
++    }
+   }
+   const base::CommandLine& command_line = mutable_command_line;
+ 
