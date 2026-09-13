@@ -25,7 +25,12 @@ file/build ownership, consent and data-safety boundaries remain intact.
 
 ## Actual recovery and current workers — September13
 
-**Current installed result is26b01b1, not the failed predecessors below.**
+**Current installed candidate is55abcf7, with the event-driven receiver and
+original per-setting delivery leases.** Build61607, scoped sign/verify40936 and
+install28512 completed EXIT0. The actual remaining visible gate is the locked
+Mac, described below; this candidate has no live-peer acceptance yet.
+
+**Previous bounded runtime evidence belongs to26b01b1.**
 Build65225, scoped sign/verify65919 and install69712 completed EXIT0. The real
 retained-MacA journey performed a visible manual retry before the old deadline,
 then one justified follow-up with server metadata. The same process stayed
@@ -46,11 +51,11 @@ Sync and report the status without account/key details. Until an actual response
 or readback, Phone opt-in is unproved. No manual key copy, zone/store reset or
 artificially seeded phone state is allowed.
 
-**Next independent product gap:** read-only inspection of the exact26/Device24
+**Receiver gap found in the previous candidate:** read-only inspection of the exact26/Device24
 sources found that Mobile already schedules domain import/projection after
 unsolicited CK fetches, while Native only persists its inbox and waits for a
 later startup/manual/local/five-minute sync. That is not the required live
-arrival in an already open native window. Desktop is explicitly implementing
+arrival in an already open native window. Desktop has now implemented
 the minimal durable-inbox -> provider signal -> existing domain import/native
 projection wake, without a new engine or a faster polling timer. Receive-only
 work must not wait for an outgoing backoff or clear it as a fake upload success.
@@ -58,8 +63,8 @@ The active bounded scope includes the existing provider/interface/factory,
 pump/backend/service, and the necessary SyncStore import/precommit lease plus
 preserve-outgoing-retry option. Coalesce events, retain original consent and
 generation through import/ACK, and never focus or eager-load peer pages.
-No other Common/Structure WIP is transferred. This next source work must not
-overwrite the preserved26 candidate or be called a live-peer pass before E2E.
+No other Common/Structure WIP is transferred. The preserved26 candidate remains
+intact; receiver source/build evidence is not a live-peer pass before E2E.
 
 Receiver455f1bb build60531 completed EXIT0 but was NOT installed. The final
 55abcf7 correction retains original per-ID/category read leases in an exact
@@ -80,6 +85,15 @@ Its normal isolated Native-peer journey is explicitly authorized after access
 returns, without seeds/key copies or replacing the required physical-peer pass.
 Only minimal useful existing focused receiver checks may proceed under the
 explicit access-blocked E2E exception; no new harness or general test matrix.
+
+The bounded receiver check is now running under Desktop handle36731: existing
+`ahoi_sync_unittests`, exactly four `SyncReceiveBoundaryTest.*` cases, execution
+with one job and zero retries. Source48f7d71 differs from installed55ab only in
+the existing `sync_unittest.cc`; the guarded target build uses two jobs and its
+read-only plan had63 actions. Logs are in
+`artifacts/tests/receive-boundary-48f7d71-20260913/`. This is not a product rebuild,
+new test harness, UI attempt or peer pass. Await its real terminal result rather
+than launching another check.
 
 A single selective physical-preference read found Device24 still Sync OFF;
 its temporary local copy was removed and the original device state was not
