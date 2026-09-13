@@ -1,6 +1,6 @@
 # Active Mobile checkpoint
 
-Updated: 2026-09-12. Mobile/Common implementation owner:
+Updated: 2026-09-13. Mobile/Common implementation owner:
 `/root/sync_mobile_resume`. Coordinator: `/root`.
 
 ## Current work — continue here
@@ -39,8 +39,27 @@ snapshot/VoiceOver/keyboard/multi-scene behavior remains unproved.
 
 Apple contracts used: [scene snapshot preparation](https://developer.apple.com/documentation/uikit/preparing-your-ui-to-run-in-the-background)
 and [device-owner authentication](https://developer.apple.com/documentation/localauthentication/lapolicy/deviceownerauthentication).
-The remaining Home actions, native Peek, Reader, Markdown copy and task help
-are still binding unfinished work; Mobile Split UI remains outside the required scope.
+The bounded Home/Reader/Markdown action package is now complete in source. A
+saved normal page keeps an explicit Home target independently of current
+navigation and can update it locally with Sync OFF; returning uses the selected
+saved page only. Reader extracts bounded visible article text from the active
+WebKit main document in an isolated content world and presents it without
+navigating or replacing that page. Normal and Markdown copy reject non-Web URLs
+and remove embedded URL credentials; explicit private copies are device-local
+to prevent Universal Clipboard propagation. The normal Browser Actions sheet
+shows loading, availability, failure and Home-position states with German and
+English strings and stable accessibility identifiers.
+
+Exact source: `CompanionSavedPageHome.swift`, `MobilePageActions.swift`,
+`MobileBrowserActionsSheet.swift` and `Resources/Localizable.xcstrings`; the
+generated Xcode project registers both new Swift files. This package is
+**NOT BUILT** and **NOT E2E** and did not touch Device24, Simulator, CloudKit,
+signing, native Chromium or shared wire scopes. The next short visible journey
+on a later coherent candidate is: open a saved normal page, navigate deeper,
+return Home, set the deeper URL as the new Home, open/close Reader on a suitable
+article, confirm the unavailable response on a non-article, and inspect normal
+plus Markdown clipboard output. Native Peek and task help remain binding
+unfinished work; Mobile Split UI remains outside the required scope.
 
 ### Earlier September8 current-work handoff — historical evidence
 
