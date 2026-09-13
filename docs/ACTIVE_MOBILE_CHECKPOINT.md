@@ -1,7 +1,7 @@
 # Active Mobile checkpoint
 
 Updated: 2026-09-13. Mobile/Common implementation owner:
-`/root/sync_mobile_resume`. Coordinator: `/root`.
+`/root/mobile_actions_recovery_20260913`. Coordinator: `/root`.
 
 ## Current work — continue here
 
@@ -13,12 +13,24 @@ CloudKit pass is inferred. Exact current candidate/results are in
 [the unified checkpoint](UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md) and
 [the launch receipt](../artifacts/build/mobile-development-e2faf54-20260912/product-start-receipt-20260912.json).
 
+The current local UX candidate is exact clean source
+`6446b534b3269befaf36a07fb80bde6e0251e745`, provider-free DebugLocal
+0.1 (25), product-only arm64 iOS Simulator. Its four-target build completed
+`EXIT 0`; the app, build log/result/exit, compact source bundle and verified
+source/Info.plist/app-tree/signature receipt are in
+[`artifacts/build/mobile-debuglocal-6446b53-20260913/`](../artifacts/build/mobile-debuglocal-6446b53-20260913/README.md).
+No Simulator was booted and no app was installed or launched. The separate
+Structure-Development scope committed in `2fd0321` was not applied; it belongs
+only to the later entitled schema7/structureRevision1 candidate and does not
+change the protected Device24/bba baseline.
+
 The optional private-session device-authentication lock is now implemented as
-a separate source block, NOT BUILT or visibly accepted. It reuses the existing
-window shield, installed synchronously from the owning UIKit scene lifecycle,
-including above presented sheets. Its window accessibility list contains only
-the shield while protected; keyboard browser actions are guarded and Return
-can request authentication. System `.deviceOwnerAuthentication` allows native
+a separate source block. It is included in Build25, but not visibly accepted.
+It reuses the existing window shield, installed synchronously from the owning
+UIKit scene lifecycle, including above presented sheets. Its window
+accessibility list contains only the shield while protected; keyboard browser
+actions are guarded and Return can request authentication. System
+`.deviceOwnerAuthentication` allows native
 biometry/passcode. Cancel/failure stays locked; actual background/disconnect
 invalidates the original auth epoch, and an inactive success waits for its
 same scene to become active. Private-session generation prevents a late result
@@ -31,10 +43,11 @@ the native shield stays until that owned sheet dismissal completes.
 Sources: `MobilePrivateSessionLock.swift`, the existing `MobilePrivateSceneShield.swift`
 and `MobilePrivateLockSettingsSection.swift`. German/English labels and the
 Face ID usage description are wired through the generated project. Three
-focused state/race tests are authored, not run. Only Swift syntax, localization/
-plist and project-reference checks have run for this block. The next coherent
-candidate needs a representative visible private-lock/return/cancel/background
-journey with retained private-session state, then those focused tests. Actual
+focused state/race tests are authored, not run. Swift syntax, localization/plist,
+project-reference checks and the normal product build have run for this block.
+The next candidate-bound acceptance needs a representative visible
+private-lock/return/cancel/background journey with retained private-session
+state, then those focused tests. Actual
 snapshot/VoiceOver/keyboard/multi-scene behavior remains unproved.
 
 Apple contracts used: [scene snapshot preparation](https://developer.apple.com/documentation/uikit/preparing-your-ui-to-run-in-the-background)
@@ -52,14 +65,15 @@ English strings and stable accessibility identifiers.
 
 Exact source: `CompanionSavedPageHome.swift`, `MobilePageActions.swift`,
 `MobileBrowserActionsSheet.swift` and `Resources/Localizable.xcstrings`; the
-generated Xcode project registers both new Swift files. This package is
-**NOT BUILT** and **NOT E2E** and did not touch Device24, Simulator, CloudKit,
-signing, native Chromium or shared wire scopes. The next short visible journey
-on a later coherent candidate is: open a saved normal page, navigate deeper,
-return Home, set the deeper URL as the new Home, open/close Reader on a suitable
-article, confirm the unavailable response on a non-article, and inspect normal
-plus Markdown clipboard output. Native Peek and task help remain binding
-unfinished work; Mobile Split UI remains outside the required scope.
+generated Xcode project registers both new Swift files. It is included in the
+successful Build25 candidate but remains **NOT E2E**. The build did not touch
+Device24, a Simulator runtime, CloudKit, native Chromium or shared wire scopes.
+The next short visible journey on that exact candidate is: open a saved normal
+page, navigate deeper, return Home, set the deeper URL as the new Home,
+open/close Reader on a suitable article, confirm the unavailable response on a
+non-article, and inspect normal plus Markdown clipboard output. Native Peek and
+task help remain binding unfinished work; Mobile Split UI remains outside the
+required scope.
 
 ### Earlier September8 current-work handoff — historical evidence
 
