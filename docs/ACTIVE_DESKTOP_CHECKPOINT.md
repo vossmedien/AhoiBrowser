@@ -1,8 +1,101 @@
 # Active Desktop checkpoint
 
-## Restarted native integration — 12 September 2026
+## Current native correction — 13 September 2026
 
-**Current concrete candidate:** guarded app-only c8d9161 build7305 is TERMINAL
+**Current correction after real e4 recovery crash:** ccd24827be87ab2cdcc0e2579137eb7d83700b4b
+is e4 plus only two Common SQL fixes, explicitly released to this owner by Root.
+Guarded build41122, scoped sign/verify14386 and guarded install57636 are now
+TERMINAL EXIT0. Actual installed source is ccd, executable SHA
+c2ab46e0fa6ba0f04d87bf066dae3900d599ccba1bcc48d91724cd8498b15112. Installation
+receipt artifacts/install/ahoi-dev-ccd2482-scoped-20260913.json has SHA
+d9ba2781fa920e67eea736049e482a02f3a1e780bbdde8e10dec0294058cff93.
+Canonical two-file source commit614d297868b50173d2b6ae8093c8da58ef5f1f55 is
+DCO-signed and pushed, preserving all foreign Native Structure/Mobile work.
+
+Visible retained-MacA startup/Restore/Sync disclosure and one explicit Jetzt
+synchronisieren kept PID41250 stable, followed by normal quit and confirmed
+absence. No new crashdump. However UI still reports provider_error; after quit
+outbox13/acknowledged0/native_observations0 versus baseline10/0/0. This is NOT a
+successful real ACK or roundtrip. Ordinary CloudKit logs identify one Send
+CKErrorDomain Code2/PartialFailure; per-item detail is private. Exact observed
+journey, focused Chromium-SQLite PASS and remaining narrow diagnostic hypotheses
+are in artifacts/e2e/native-sync-ccd2482-20260913/README.md. No Ahoi UI reservation
+or process remains. Device24 stays OFF; MacA retains ON and its recovered state.
+
+Chromium uses SQLITE_OMIT_UPSERT; AcknowledgeOutbox and native tree observation
+receipts used unsupported UPSERT. Supported INSERT OR REPLACE retains the
+transaction and monotonic ACK clock condition; these complete receipt tables
+have no foreign keys/triggers. No schema/format/key/store reset or SQLite flag
+change. Preserved ref: refs/ahoi-preserved/native-sync-ccd2482-20260913. The same
+isolated worktree now points to ccd; its three-job guarded app-only build and
+terminal outputs are under artifacts/build/native-sync-ccd2482-20260913/.
+
+e4 build82567, scoped prepare/sign/verify26850 and guarded install42266 all
+completed EXIT0. Exact receipts, original portable app and separate entitled
+copy are preserved under artifacts/build/native-sync-e4de9e1-recovery-20260913/.
+Build receipt SHAee559365e251b10f7f6a49d60e18f61466a14048f44634e3ae84b2d551d51e37;
+verification SHA873847d74e4d222e020ff423dec8fb8f71791f5726ccd72b4bef2f46cd101154;
+installed receipt artifacts/install/ahoi-dev-e4de9e1-scoped-20260913.json,
+SHAeb54ab0e73174286e0fd3fb06e60bf1e3e661f370a68a59a84b817707047d245.
+Installed executable SHA4ca4ef074b1e28bdad8f01a0695ffba596136ed7d0fc71484a1c4321d6217dd9.
+The c8 predecessor and all rollback bundles remain preserved.
+
+Actual e4 own-window CUA journey: MacA startup/Continue, correct OFF copy and
+sidebar section labels, visible OFF->ON, normal-width Sync disclosure, visible
+account recovery, then explicit Lokale Daten weiter hochladen. The action
+persisted accountTransitionPending=false and zoneRecoveryPending=false.
+Post-upload ACK then crashed at SyncStore::AcknowledgeOutbox:49 ->
+sql::Statement::CheckValid:98 (invalid UPSERT statement), not a successful
+roundtrip. CUA's next observation relaunched the app; that process was normally
+quit and is absent. MacA Sync remains ON, recovered state retained. Exact
+crash hash, stack, observations and unchanged real-Default hashes are in
+artifacts/e2e/native-sync-e4de9e1-20260913/README.md. Required next proof is
+ccd's actual retained-profile upload/ACK journey, not another recovery reset.
+No own UI reservation remains during the corrective build.
+
+The sole current build/sign/install owner is `/root/desktop_recovery_20260913`,
+explicitly handed the stopped `/root/desktop_resume` task by Root. The exact
+recovered source was `e4de9e14ca3073876e9aa17730876d15cfa41683`, not canonical
+HEAD or the separate Native Structure/Mobile WIP. It is preserved by
+`refs/ahoi-preserved/native-sync-e4de9e1-20260913`; the detached worktree
+at `/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo` has advanced only to ccd.
+The previous
+`/private/tmp/ahoi-native-sync-build.eqejEO/repo` no longer exists on disk;
+its prunable registration and old process handles are not resumable state.
+
+The prior e4 attempt has no terminal exit or build receipt: its retained
+`artifacts/build/native-sync-e4de9e1-20260912/build.log` ends after Chromium
+hooks. The earlier a95 compile failure and public-label-API correction remain
+documented there. The recovered e4 app-only guarded overlay/build was started
+with three jobs against the existing `.work/chromium/src/out/AhoiDev` on
+September13. Fresh start capacity was 68% idle CPU, no compiler, no swap I/O and
+94 GiB available. That invocation82567 is terminal EXIT0, with explicit terminal
+exit files and successful receipt under
+`artifacts/build/native-sync-e4de9e1-recovery-20260913/`.
+
+At the recovery start the installed candidate was scoped Development c8d9161;
+the newer e4 installation and crash above supersede that state. Root's c8 visible opt-in found account recovery
+pending and zero-width action buttons; e4 contains the bounded first-sign-in,
+recovery/disclosure, OFF-status and sidebar corrections. Existing MacA setup/
+recovery state is preserved. The bba scope is not assumed unused. Device24
+remains the matching schema6 peer, Sync OFF; Structure/schema7 is excluded.
+
+The user's new September13 direction, relayed explicitly by Root, authorizes
+parallel work with Ahoi priority and supersedes blanket MBC UI-window waiting.
+Proceed build -> scoped sign/install -> short native e4 Sync/sidebar E2E without
+another MBC START/handback. Target the actual own process/window and direct AX
+actions/captures; only an evidenced global-input collision affects that step.
+Fresh total capacity and candidate/scope checks still apply, and no foreign
+process may be stopped. Installation still requires no Ahoi process.
+Visible MacA recovery choice
+"Lokale Daten weiter hochladen" is explicitly authorized only in the verified
+bba test profile with actually visible controls. No key, store, recovery-flag
+reset or real-Default upload follows from that authorization. All rollback
+bundles remain protected. Return the UI window explicitly after the journey.
+
+## Historical native integration — 12 September 2026
+
+**Completed predecessor candidate:** guarded app-only c8d9161 build7305 is TERMINAL
 EXIT0. The original portable app is under `.work/chromium/src/out/AhoiDev/`;
 build receipt `artifacts/build/native-sync-c8d9161-20260912/build-receipt.json`
 SHA `8dfb9694743780702d00a6108f771420c08c26e23cf5451bddd0afc02e4f9ddb`.
@@ -12,8 +105,9 @@ preparation67309 and signing/verification90972 are TERMINAL EXIT0.
 Verification receipt SHA `c084bec9fe5a31fd2ec1363790c263ccf8aaae1eff5bfd94dac1e0cd5e7728ac`;
 signed bundle tree `4d4edb07c2f16005aec9fa9a92ab2607eff826871492270c24512a2238615471`;
 signed executable `29118f340a5dbaceaee1c9164353bca6d9b8d9c57dc0ee17242df7b9e7402ee5`.
-The exact clean tool/source snapshot remains
-`/private/tmp/ahoi-native-sync-build.eqejEO/repo` atc8d9161 for install/runtime.
+The former clean tool/source snapshot was
+`/private/tmp/ahoi-native-sync-build.eqejEO/repo`; it is now absent, as recorded
+in the current September13 section above.
 After the real signing workflow, both new scope cases, the existing exact Apple
 profile-claims case and all five DevelopmentInstallationTests passed:8/8,0.046s.
 These verify signing/configuration/transaction boundaries, not visible app E2E.
@@ -24,9 +118,9 @@ matches the signed c8 bundle above. Install receipt
 `e31be2e16fc9608abe3e9f83b58ca1a99a3f4f29aaa56af4eaee765d8cd532dd` records all three
 signature/scope checks and the retained a24a792 rollback bundle. Real Local State,
 Default/Preferences and Ahoi Tab Tree hashes are byte-identical before/after.
-No app was started, no Ahoi process remains and neither MacA nor MacB directory
-has been created. Visible runtime still waits for the actual MBC UI handback;
-no CloudKit/key action or visible E2E pass is claimed.
+At that installation no app was started and neither MacA nor MacB existed.
+The later c8 MacA startup/opt-in did create scoped setup/recovery state; see the
+current section and `ACTIVE_SYNC_COORDINATION.md`. No roundtrip pass is claimed.
 
 First a58e84c build33274 EXIT1 retains its three compiler causes/log; e5cbe4c
 build87322 EXIT1 retained two missing Native sequence-context checks. Exact
@@ -64,7 +158,7 @@ capture/projection, archive scheduling/restore UI and explicit Home controls
 still require the next coherent Native product packet and fresh paired E2E.
 
 The user explicitly restarted the two stopped workstreams. Current Desktop
-ownership is `/root/desktop_resume` under the coordinating thread: Native
+ownership was `/root/desktop_resume` under the coordinating thread: Native
 Tree/Session/UI, patch stack, shared Chromium checkout/out, build/sign/install.
 Common C++ and Mobile are `/root/sync_mobile_resume`; the old process/slot
 history below is not an active reservation. Canonical branch is unchanged.
