@@ -191,6 +191,11 @@ bool CloudKitSyncProviderMac::AcknowledgeDownloaded(
   return core_->AcknowledgeDownloaded(change_token, std::move(authorization));
 }
 
+SyncAuthorization CloudKitSyncProviderMac::GetDownloadAuthorization(
+    const std::string& change_token) {
+  return core_->GetDownloadAuthorization(change_token);
+}
+
 SyncAuthorization CloudKitSyncProviderMac::GetPermittedSettingSyncAuthorization(
     const base::Uuid& record_id) {
   return core_->GetSettingAuthorization(record_id);

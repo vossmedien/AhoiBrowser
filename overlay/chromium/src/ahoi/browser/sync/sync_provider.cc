@@ -20,6 +20,11 @@ bool SyncProvider::AcknowledgeDownloaded(std::string change_token,
   return authorization && authorization.Run();
 }
 
+SyncAuthorization SyncProvider::GetDownloadAuthorization(
+    const std::string& change_token) {
+  return GetTransportAuthorization();
+}
+
 void SyncProvider::SetBookmarkSyncEnabled(bool enabled) {}
 
 bool SyncProvider::IsBookmarkConsentRevoked() {

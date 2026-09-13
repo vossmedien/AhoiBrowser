@@ -59,11 +59,13 @@ void CloudKitSyncProviderMac::Core::DispatchDownload(DownloadCallback callback,
   if (!callback) {
     return;
   }
+  const auto original_read_authorization = download_authorization_;
   owner_runner_->PostTask(
       FROM_HERE, base::BindOnce(
                      [](std::weak_ptr<Core> weak, uint64_t generation,
                         DownloadCallback callback, bool success,
-                        ProviderBatch batch, std::string error) {
+                        ProviderBatch batch, std::string error,
+                        SyncAuthorization original_read_authorization) {
                        const auto core = weak.lock();
                        bool current = false;
                        if (core) {
@@ -74,13 +76,18 @@ void CloudKitSyncProviderMac::Core::DispatchDownload(DownloadCallback callback,
                                    !core->account_transition_pending_ &&
                                    !core->zone_recovery_pending_;
                        }
+                       if (success && (!original_read_authorization ||
+                                       !original_read_authorization.Run())) {
+                         current = false;
+                       }
                        std::move(callback).Run(
                            current && success,
                            current ? std::move(batch) : ProviderBatch(),
                            current ? std::move(error) : "cancelled");
                      },
                      weak_from_this(), generation, std::move(callback), success,
-                     std::move(batch), std::move(error)));
+                     std::move(batch), std::move(error),
+                     original_read_authorization));
 }
 
 void CloudKitSyncProviderMac::Core::RequestOperationCancellation() {
@@ -577,10 +584,19 @@ void CloudKitSyncProviderMac::Core::CompleteDownload(NSError* error,
   std::string safe_error =
       !download_error_.empty() ? download_error_ : SafeCloudKitError(error);
   ProviderBatch batch;
+  download_authorization_.Reset();
+  download_setting_authorizations_.clear();
   if (safe_error.empty()) {
+    last_delivery_mutations_.clear();
     for (const auto& [id, change] : fetched_changes_) {
       if (change.entity_type == EntityType::kBookmark && !BookmarkAllowed()) {
         continue;
+      }
+      if (change.entity_type == EntityType::kPermittedSetting) {
+        auto scope = GetSettingAuthorization(change.entity_id);
+        if (!scope || !scope.Run())
+          continue;
+        download_setting_authorizations_.push_back(std::move(scope));
       }
       batch.changes.push_back(change);
       last_delivery_mutations_[id] = change.mutation_id;
@@ -591,12 +607,18 @@ void CloudKitSyncProviderMac::Core::CompleteDownload(NSError* error,
           static_cast<unsigned long long>(++download_generation_));
       batch.next_change_token = last_delivery_token_;
     } else {
+      // No selected record means no delivery can be acknowledged. Blocked
+      // settings remain in fetched_changes_, with their bytes untouched.
+      last_delivery_token_.clear();
       batch.next_change_token = download_base_token_;
     }
     if (!PersistInbox()) {
       safe_error = "provider_error";
       batch = {};
     }
+    download_authorization_token_ = batch.next_change_token;
+    download_authorization_ =
+        BindReadAuthorization(generation, download_setting_authorizations_);
   }
   DispatchDownload(std::move(download_callback_), generation,
                    safe_error.empty(), std::move(batch), safe_error);
@@ -619,7 +641,16 @@ void CloudKitSyncProviderMac::Core::ScheduleIncomingNotification() {
     return;
   }
   bool deliverable = false;
+  std::vector<SyncAuthorization> settings;
   for (const auto& [id, change] : fetched_changes_) {
+    if (change.entity_type == EntityType::kPermittedSetting) {
+      auto scope = GetSettingAuthorization(change.entity_id);
+      if (scope && scope.Run()) {
+        settings.push_back(std::move(scope));
+        deliverable = true;
+      }
+      continue;
+    }
     deliverable |=
         change.entity_type != EntityType::kBookmark || BookmarkAllowed();
   }
@@ -629,16 +660,7 @@ void CloudKitSyncProviderMac::Core::ScheduleIncomingNotification() {
   const uint64_t generation = transport_generation_;
   const uint64_t notification = ++incoming_notification_id_;
   incoming_notification_pending_ = true;
-  auto authorization = base::BindRepeating(
-      [](std::weak_ptr<Core> weak, uint64_t expected) {
-        const auto core = weak.lock();
-        if (!core)
-          return false;
-        base::AutoLock guard(core->lock_);
-        return expected == core->transport_generation_ &&
-               core->TransportAllowed();
-      },
-      weak_from_this(), generation);
+  auto authorization = BindReadAuthorization(generation, std::move(settings));
   owner_runner_->PostTask(
       FROM_HERE,
       base::BindOnce(
@@ -706,7 +728,45 @@ bool CloudKitSyncProviderMac::Core::AcknowledgeDownloaded(
     return false;
   base::AutoLock guard(lock_);
   return generation == transport_generation_ && TransportAllowed() &&
-         AcknowledgeLastDelivery(change_token);
+         change_token == download_authorization_token_ &&
+         DownloadSettingsAuthorized() && AcknowledgeLastDelivery(change_token);
+}
+
+SyncAuthorization CloudKitSyncProviderMac::Core::BindReadAuthorization(
+    uint64_t generation,
+    std::vector<SyncAuthorization> settings) {
+  return base::BindRepeating(
+      [](std::weak_ptr<Core> weak, uint64_t expected,
+         const std::vector<SyncAuthorization>& settings) {
+        const auto core = weak.lock();
+        if (!core)
+          return false;
+        base::AutoLock guard(core->lock_);
+        if (expected != core->transport_generation_ ||
+            !core->TransportAllowed())
+          return false;
+        for (const auto& scope : settings) {
+          if (!scope || !scope.Run())
+            return false;
+        }
+        return true;
+      },
+      weak_from_this(), generation, std::move(settings));
+}
+
+SyncAuthorization CloudKitSyncProviderMac::Core::GetDownloadAuthorization(
+    const std::string& token) {
+  base::AutoLock guard(lock_);
+  return token == download_authorization_token_ ? download_authorization_
+                                                : SyncAuthorization();
+}
+
+bool CloudKitSyncProviderMac::Core::DownloadSettingsAuthorized() const {
+  for (const auto& scope : download_setting_authorizations_) {
+    if (!scope || !scope.Run())
+      return false;
+  }
+  return true;
 }
 
 void CloudKitSyncProviderMac::Core::LoadInboxForTesting() {

@@ -49,6 +49,8 @@ class CloudKitSyncProviderMac final : public SyncProvider {
                           DownloadCallback callback) override;
   bool AcknowledgeDownloaded(std::string change_token,
                              SyncAuthorization authorization) override;
+  SyncAuthorization GetDownloadAuthorization(
+      const std::string& change_token) override;
   void SetBookmarkSyncEnabled(bool enabled) override;
   bool IsBookmarkConsentRevoked() override;
   BookmarkSyncAuthorization GetBookmarkSyncAuthorization() override;

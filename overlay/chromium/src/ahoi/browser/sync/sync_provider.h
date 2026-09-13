@@ -42,6 +42,9 @@ class SyncProvider {
                                   DownloadCallback callback);
   virtual bool AcknowledgeDownloaded(std::string change_token,
                                      SyncAuthorization authorization);
+  // Original authority of the selected delivery, not current preferences.
+  virtual SyncAuthorization GetDownloadAuthorization(
+      const std::string& change_token);
   // Local category consent, additional to the caller's global sync gate.
   // Providers must retain blocked remote bookmarks without
   // decrypting/delivering them and recheck consent before delayed uploads.

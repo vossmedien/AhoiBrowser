@@ -136,7 +136,7 @@ bool CloudKitSyncProviderMac::Core::AcknowledgeLastDelivery(
   }
   last_delivery_mutations_.clear();
   last_delivery_token_.clear();
-  if (PersistInbox())
+  if (DownloadSettingsAuthorized() && PersistInbox())
     return true;
   fetched_changes_ = std::move(previous_changes);
   opaque_bookmark_records_ = std::move(previous_opaque);

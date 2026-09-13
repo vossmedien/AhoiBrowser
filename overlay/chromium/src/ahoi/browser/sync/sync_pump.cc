@@ -370,6 +370,12 @@ void SyncPump::OnDownloadFinished(std::string requested_token,
   auto import_authorization =
       has_bookmarks ? Both(transport_authorization, std::move(authorization))
                     : transport_authorization;
+  import_authorization =
+      Both(std::move(import_authorization),
+           provider_->GetDownloadAuthorization(batch.next_change_token));
+  if (receive_only_) {
+    receive_authorization_ = Both(receive_authorization_, import_authorization);
+  }
   const bool empty_receive = receive_only_ && batch.changes.empty() &&
                              batch.next_change_token == requested_token;
   const auto imported = empty_receive

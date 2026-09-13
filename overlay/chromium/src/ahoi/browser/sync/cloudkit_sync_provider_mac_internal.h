@@ -145,6 +145,11 @@ class CloudKitSyncProviderMac::Core
   bool AcknowledgeDownloaded(const std::string& change_token,
                              SyncAuthorization authorization);
   void ScheduleIncomingNotification();
+  SyncAuthorization BindReadAuthorization(
+      uint64_t generation,
+      std::vector<SyncAuthorization> settings);
+  SyncAuthorization GetDownloadAuthorization(const std::string& token);
+  bool DownloadSettingsAuthorized() const;
   void CompleteUpload(NSError* error, uint64_t generation);
   void CompleteDownload(NSError* error, uint64_t generation);
   void HandleEvent(CKSyncEngineEvent* event) API_AVAILABLE(macos(14.0)) {
@@ -610,6 +615,9 @@ class CloudKitSyncProviderMac::Core
   UploadCallback upload_callback_;
   DownloadCallback download_callback_;
   IncomingCallback incoming_callback_;
+  SyncAuthorization download_authorization_;
+  std::string download_authorization_token_;
+  std::vector<SyncAuthorization> download_setting_authorizations_;
   bool incoming_notification_pending_ = false;
   uint64_t incoming_notification_id_ = 0;
   std::string upload_error_;
