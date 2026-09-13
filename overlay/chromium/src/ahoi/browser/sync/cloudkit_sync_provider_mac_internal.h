@@ -6,6 +6,7 @@
 
 #import <CloudKit/CloudKit.h>
 #import <Foundation/Foundation.h>
+#import <os/log.h>
 
 #include <cstdint>
 #include <map>
@@ -188,6 +189,15 @@ class CloudKitSyncProviderMac::Core
       break;
       case CKSyncEngineEventTypeSentRecordZoneChanges:
         HandleSent(event.sentRecordZoneChangesEvent);
+        break;
+      case CKSyncEngineEventTypeSentDatabaseChanges:
+        if (upload_callback_ &&
+            (event.sentDatabaseChangesEvent.failedZoneSaves.count ||
+             event.sentDatabaseChangesEvent.failedZoneDeletes.count)) {
+          ++upload_unresolved_count_;
+          upload_error_ = "provider_error";
+          upload_failure_stage_ = "zone_failure";
+        }
         break;
       case CKSyncEngineEventTypeDidFetchRecordZoneChanges:
         if (event.didFetchRecordZoneChangesEvent.error) {
@@ -378,7 +388,7 @@ class CloudKitSyncProviderMac::Core
       }
       const std::string key = ToString(record.recordID.recordName);
       const auto attempted = pending_records_.find(key);
-      if (attempted != pending_records_.end() &&
+      if (attempted == pending_records_.end() ||
           !SameUploadedPayload(record, attempted->second)) {
         // A cancelled older operation must not acknowledge a newer mutation
         // that reused this record ID after category approval changed.
@@ -386,8 +396,10 @@ class CloudKitSyncProviderMac::Core
       }
       server_records_[key] = record;
       auto mutation = pending_mutations_.find(key);
-      if (mutation != pending_mutations_.end()) {
+      if (mutation != pending_mutations_.end() &&
+          upload_expected_mutations_.contains(mutation->second)) {
         upload_acknowledgements_.insert(mutation->second);
+        ++upload_saved_count_;
         pending_mutations_.erase(mutation);
       }
       pending_records_.erase(key);
@@ -395,10 +407,16 @@ class CloudKitSyncProviderMac::Core
     }
     for (CKSyncEngineFailedRecordSave* failure in event.failedRecordSaves) {
       NSError* error = failure.error;
+      ++upload_failed_count_;
+      upload_item_error_code_ = error.code;
+      upload_item_error_is_cloudkit_ =
+          [error.domain isEqualToString:CKErrorDomain];
       CKRecord* server = error.userInfo[CKRecordChangedErrorServerRecordKey];
       const std::string key = ToString(failure.record.recordID.recordName);
       if ((IsBookmarkRecord(failure.record) && !BookmarkAllowed()) ||
           !PendingSettingAllowed(failure.record)) {
+        ++upload_unresolved_count_;
+        upload_failure_stage_ = "item_lease_revoked";
         if (server && IsBookmarkRecord(server)) {
           ReceiveFetchedRecord(server);
           PersistInbox();
@@ -408,9 +426,13 @@ class CloudKitSyncProviderMac::Core
       const auto attempted = pending_records_.find(key);
       if (attempted == pending_records_.end() ||
           !SameUploadedPayload(failure.record, attempted->second)) {
+        ++upload_unresolved_count_;
+        upload_failure_stage_ = "unmatched_item";
         continue;
       }
-      if (server) {
+      if (upload_item_error_is_cloudkit_ &&
+          error.code == CKErrorServerRecordChanged && server &&
+          [server.recordID isEqual:failure.record.recordID]) {
         server_records_[key] = server;
         std::optional<SyncChange> remote = Decode(server);
         std::optional<SyncChange> local = Decode(failure.record);
@@ -422,20 +444,45 @@ class CloudKitSyncProviderMac::Core
             if (IsBookmarkRecord(server)) {
               ReceiveFetchedRecord(server);
             } else {
-              fetched_changes_[key] = std::move(*remote);
+              fetched_changes_[key] = *remote;
             }
-            PersistInbox();
+            const auto staged = fetched_changes_.find(key);
+            if (staged == fetched_changes_.end() ||
+                staged->second.version != remote->version ||
+                staged->second.payload != remote->payload || !PersistInbox()) {
+              ++upload_unresolved_count_;
+              upload_error_ = "provider_error";
+              upload_failure_stage_ = "persist_newer_remote";
+              continue;
+            }
           }
           auto mutation = pending_mutations_.find(key);
-          if (mutation != pending_mutations_.end()) {
+          if (mutation != pending_mutations_.end() &&
+              upload_expected_mutations_.contains(mutation->second)) {
             upload_acknowledgements_.insert(mutation->second);
+            ++upload_resolved_count_;
             pending_mutations_.erase(mutation);
+          } else {
+            ++upload_unresolved_count_;
+            upload_failure_stage_ = "unmatched_mutation";
+            continue;
           }
           pending_records_.erase(key);
           pending_setting_authorizations_.erase(key);
+          // CloudKit did not save this conflict, but the validated server
+          // version already satisfies the mutation. Do not leave a phantom
+          // save in the engine after acknowledging its outbox entry.
+          [engine_.state removePendingRecordZoneChanges:@[
+            [[CKSyncEnginePendingRecordZoneChange alloc]
+                initWithRecordID:failure.record.recordID
+                            type:
+                                CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]
+          ]];
           continue;
         }
       }
+      ++upload_unresolved_count_;
+      upload_failure_stage_ = "item_failure";
       upload_error_ = SafeCloudKitError(error);
       if (error.code == CKErrorZoneNotFound ||
           error.code == CKErrorUserDeletedZone) {
@@ -443,6 +490,31 @@ class CloudKitSyncProviderMac::Core
         PersistInbox();
       }
     }
+    if (event.failedRecordDeletes.count) {
+      upload_unresolved_count_ += event.failedRecordDeletes.count;
+      upload_error_ = "provider_error";
+      upload_failure_stage_ = "unexpected_record_delete";
+    }
+  }
+
+  void LogUploadOutcome(const char* stage, NSError* error) const {
+    static os_log_t log = os_log_create("app.ahoibrowser.sync", "Upload");
+    const char* domain = !error ? "none"
+                         : [error.domain isEqualToString:CKErrorDomain]
+                             ? "CKErrorDomain"
+                             : "other";
+    os_log_with_type(
+        log, OS_LOG_TYPE_DEFAULT,
+        "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
+        "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
+        "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
+        "ack=%{public}zu",
+        stage, domain, static_cast<long>(error.code),
+        upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
+        static_cast<long>(upload_item_error_code_),
+        upload_expected_mutations_.size(), upload_saved_count_,
+        upload_resolved_count_, upload_unresolved_count_,
+        upload_acknowledgements_.size());
   }
 
   CKSyncEngineStateSerialization* LoadState() API_AVAILABLE(macos(14.0));
@@ -491,6 +563,17 @@ class CloudKitSyncProviderMac::Core
   std::map<std::string, std::string> materialized_bookmark_keys_;
   std::map<std::string, base::Uuid> bookmark_quarantine_ids_;
   std::set<std::string> upload_acknowledgements_;
+  // Snapshot the mutations actually selected for this send, after coalescing
+  // multiple outbox versions of one record. Unsent older versions stay queued.
+  std::set<std::string> upload_expected_mutations_;
+  std::map<std::string, SyncAuthorization> upload_setting_authorizations_;
+  size_t upload_saved_count_ = 0;
+  size_t upload_failed_count_ = 0;
+  size_t upload_resolved_count_ = 0;
+  size_t upload_unresolved_count_ = 0;
+  NSInteger upload_item_error_code_ = 0;
+  bool upload_item_error_is_cloudkit_ = false;
+  const char* upload_failure_stage_ = nullptr;
   UploadCallback upload_callback_;
   DownloadCallback download_callback_;
   std::string upload_error_;

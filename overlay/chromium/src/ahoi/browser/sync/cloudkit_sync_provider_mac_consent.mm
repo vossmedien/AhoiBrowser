@@ -20,12 +20,16 @@ void CloudKitSyncProviderMac::Core::DispatchUpload(
   if (!callback) {
     return;
   }
+  // Saved records have already left the pending map. Keep the original setting
+  // leases through the final asynchronous delivery of their acknowledgements.
+  const auto setting_authorizations = upload_setting_authorizations_;
   owner_runner_->PostTask(
       FROM_HERE,
       base::BindOnce(
           [](std::weak_ptr<Core> weak, uint64_t generation,
              UploadCallback callback, bool success,
-             std::vector<std::string> acknowledged, std::string error) {
+             std::vector<std::string> acknowledged, std::string error,
+             std::map<std::string, SyncAuthorization> setting_authorizations) {
             const auto core = weak.lock();
             bool current = false;
             if (core) {
@@ -34,6 +38,9 @@ void CloudKitSyncProviderMac::Core::DispatchUpload(
                         generation == core->transport_generation_ &&
                         !core->account_transition_pending_ &&
                         !core->zone_recovery_pending_;
+              for (const auto& [id, authorization] : setting_authorizations) {
+                current = current && authorization && authorization.Run();
+              }
             }
             std::move(callback).Run(
                 current && success,
@@ -41,7 +48,7 @@ void CloudKitSyncProviderMac::Core::DispatchUpload(
                 current ? std::move(error) : "cancelled");
           },
           weak_from_this(), generation, std::move(callback), success,
-          std::move(acknowledged), std::move(error)));
+          std::move(acknowledged), std::move(error), setting_authorizations));
 }
 
 void CloudKitSyncProviderMac::Core::DispatchDownload(DownloadCallback callback,
@@ -370,6 +377,11 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
   {
     base::AutoLock guard(lock_);
     generation = transport_generation_;
+    if (upload_callback_) {
+      DispatchUpload(std::move(callback), generation, false, {},
+                     "temporarily_unavailable");
+      return;
+    }
     if (!TransportAllowed() || shutting_down_ || !engine_ ||
         account_transition_pending_ || zone_recovery_pending_ ||
         operations_cancelling_) {
@@ -441,15 +453,23 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
     for (const auto& [key, record] : records) {
       pending_records_[key] = record;
     }
+    upload_expected_mutations_.clear();
     for (const auto& [key, mutation] : mutations) {
       pending_mutations_[key] = mutation;
+      upload_expected_mutations_.insert(mutation);
     }
+    upload_setting_authorizations_ = setting_authorizations;
     for (auto& [key, authorization] : setting_authorizations) {
       pending_setting_authorizations_[key] = std::move(authorization);
     }
     upload_callback_ = std::move(callback);
     upload_acknowledgements_.clear();
     upload_error_.clear();
+    upload_saved_count_ = upload_failed_count_ = upload_resolved_count_ =
+        upload_unresolved_count_ = 0;
+    upload_item_error_code_ = 0;
+    upload_item_error_is_cloudkit_ = false;
+    upload_failure_stage_ = nullptr;
     [engine_.state addPendingRecordZoneChanges:pending];
     auto* scope = [[CKSyncEngineSendChangesScope alloc]
         initWithZoneIDs:[NSSet setWithObject:zone_id_]];
@@ -506,8 +526,41 @@ void CloudKitSyncProviderMac::Core::CompleteUpload(NSError* error,
       !upload_callback_) {
     return;
   }
-  const std::string safe_error =
+  std::string safe_error =
       !upload_error_.empty() ? upload_error_ : SafeCloudKitError(error);
+  const bool fully_resolved =
+      !upload_expected_mutations_.empty() &&
+      upload_acknowledgements_ == upload_expected_mutations_ &&
+      upload_unresolved_count_ == 0 && upload_failed_count_ > 0 &&
+      upload_failed_count_ == upload_resolved_count_ && upload_error_.empty() &&
+      !inbox_persistence_failed_ && TransportAllowed() &&
+      !operations_cancelling_;
+  // The aggregate error can retain conflicts already resolved by HandleSent.
+  // Normalize only that fully accounted send; any unknown/item/zone failure
+  // retains the caller's outbox and normal backoff.
+  const bool resolved_partial = fully_resolved &&
+                                [error.domain isEqualToString:CKErrorDomain] &&
+                                error.code == CKErrorPartialFailure;
+  if (resolved_partial) {
+    safe_error.clear();
+  }
+  const bool setting_leases_current = std::ranges::all_of(
+      upload_setting_authorizations_,
+      [](const auto& entry) { return entry.second && entry.second.Run(); });
+  if (!TransportAllowed() || operations_cancelling_ ||
+      !setting_leases_current) {
+    safe_error = "cancelled";
+    upload_failure_stage_ = "lease_revoked";
+  }
+  if (safe_error.empty() && upload_acknowledgements_.empty()) {
+    safe_error = "provider_error";
+    upload_failure_stage_ = "empty_ack";
+  }
+  LogUploadOutcome(
+      safe_error.empty()
+          ? (resolved_partial ? "resolved_partial" : "ok")
+          : (upload_failure_stage_ ? upload_failure_stage_ : "send_completion"),
+      error);
   DispatchUpload(
       std::move(upload_callback_), generation, safe_error.empty(),
       {upload_acknowledgements_.begin(), upload_acknowledgements_.end()},
