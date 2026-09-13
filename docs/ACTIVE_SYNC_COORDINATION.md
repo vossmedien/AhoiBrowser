@@ -15,11 +15,40 @@ authorized device-bound work without global focus is unchanged. No foreign
 process/device was stopped, and no prior START is revived by this grant.
 
 This consumes Root's already explicit c8 UI handback, with a fresh corroborating
-readback: no running native Ahoi app and no booted Simulator. The collaboration
-inventory currently contains only Root; the two workstream agents below are
-saved ownership assignments, NOT currently live agents. Their pending source
-and candidates remain preserved. Do not assume the previous correction build
-or a future Ahoi UI journey is running from the dated reports below.
+readback at the grant: no running native Ahoi app and no booted Simulator. MBC
+subsequently reported its actual takeover; wait for that journey's explicit
+handback before another Ahoi UI action. The restarted workers below have no
+grant for UI/App starts during this window.
+
+## Actual recovery and current workers — September13
+
+The previous two workers were no longer in the live collaboration inventory.
+The old `/private/tmp/ahoi-native-sync-build.eqejEO/repo` is missing; the Git
+worktree registration is stale, NOT a running or resumable process. Its exact
+e4de9e14ca3073876e9aa17730876d15cfa41683 commit and original logs survive.
+No cause of the missing directory was established or attributed to the storage
+owner. Nothing was pruned or reset.
+
+Desktop recovery secured the commit under
+`refs/ahoi-preserved/native-sync-e4de9e1-20260913` and restored a clean detached
+snapshot at `/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo`. Its new guarded
+overlay/app-only run is82567, with logs/exit/receipt under
+`artifacts/build/native-sync-e4de9e1-recovery-20260913/`. Initial capacity was
+68 percent CPU idle, no compiler,94 GiB free and0 swap; three build jobs were
+selected. This is a NEW recovery invocation, not a claimed terminal result or
+resumption of September12 PIDs. Desktop supplies its true terminal state.
+The storage owner received this exact new protected path in01a0982b.
+
+Root verified that the e4 correction changes no shared format manifest, model,
+goldens or Swift/Mobile source relative to c8. The preserved signed Device24
+bundle is present and its actual plist matches all seven shared scope values.
+It remains the schema6 partner; this check is not a new physical-device or
+CloudKit pass. The manifest's original prepared-status text is historical,
+not permission to treat the already exercised bba scope as empty.
+
+The separate Mobile worker completes only the retained Home/Reader/Markdown
+product WIP in `apps/AhoiMobile`, not another runner or test matrix. Its source
+belongs to the later Structure/Privacy wave, not the current Device24/e4 pair.
 
 ## Bounded compiled-artifact release — September13
 
@@ -46,14 +75,14 @@ evidence that cleanup occurred or that a measured amount of space was reclaimed.
 
 | Assigned owner | Exclusive product scope |
 | --- | --- |
-| `/root/desktop_resume` | Native Tree/Session/UI, tab-tree adapter, native extension hooks/restore, Mac signing tools, shared Chromium checkout/out, guarded Mac build/sign/install |
-| `/root/sync_mobile_resume` | Common C++ sync/model/codec/store/provider/config/GN/golden, Bookmark domain adapter, Swift/Mobile, iOS Development signing |
+| `/root/desktop_recovery_20260913` | Current exact e4 recovery: isolated source, shared Chromium checkout/out, guarded app build/sign/install; no UI until MBC handback |
+| `/root/mobile_actions_recovery_20260913` | Retained Mobile Home/Reader/Markdown source only; no build, device, signing or Common/Native edits |
 | `/root` | Coordination and acceptance, this checkpoint; no competing product implementation |
 
-When resumed, workers use the current collaboration tools; the September13
-inventory above supersedes previous claims that both are live. Existing uncommitted September12
-product-contract edits are preserved, not silently included in unrelated commits.
-Global/project AGENTS apply directly.
+Workers use the current collaboration tools. The old desktop_resume and
+sync_mobile_resume assignments are preserved history; unassigned Common and
+Native Structure WIP must not be taken over implicitly. Existing uncommitted
+September12 product-contract edits remain untouched. Global/project AGENTS apply.
 
 ## Binding scope and packet order
 
