@@ -61,6 +61,20 @@ generation through import/ACK, and never focus or eager-load peer pages.
 No other Common/Structure WIP is transferred. This next source work must not
 overwrite the preserved26 candidate or be called a live-peer pass before E2E.
 
+Receiver source455f1bb is frozen in15 existing scoped files, with guarded
+app-only60531 under `artifacts/build/native-sync-receive-455f1bb-20260913/`.
+It is NOT an installation candidate yet: Root's bounded source review found
+that a permitted-setting opt-out revokes its per-ID lease, not the provider's
+global transport generation. The new download path must therefore retain the
+original per-ID/category read leases in an exact delivery-token authorization
+through Store commit, provider ACK and UI projection. The owner confirmed this
+specific gap and is correcting it without changing the frozen running source.
+Do not install455 before that correction; no additional consent/schema or
+general review is requested. A single selective physical-preference read found
+Device24 still Sync OFF; its temporary local copy was removed and the original
+device state was not modified. Do not repeat that read or question without a
+user response or another relevant change.
+
 The previous two workers were no longer in the live collaboration inventory.
 The old `/private/tmp/ahoi-native-sync-build.eqejEO/repo` is missing; the Git
 worktree registration is stale, NOT a running or resumable process. Its exact
