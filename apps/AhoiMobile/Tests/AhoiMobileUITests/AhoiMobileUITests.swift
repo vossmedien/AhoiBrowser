@@ -70,7 +70,8 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
 
     @MainActor
     func testDebugLocalSyncOptInStaysLocalAndFailClosed() throws {
-        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        let app = launchExactCandidate(arguments: [])
+        attachScreenshot(named: "01-normal-browser-before-sync", of: app)
 
         openSettings(in: app)
         let toggle = app.switches["settings.sync.enabled"]
@@ -101,10 +102,11 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
             "Sync now must stay disabled without an entitled runtime."
         )
         XCTAssertTrue(app.buttons["settings.done"].exists)
+        attachScreenshot(named: "02-provider-free-sync-opt-in", of: app)
 
         app.buttons["settings.done"].tap()
         app.terminate()
-        relaunchExactCandidate(app, arguments: ["-AhoiUITestFixture"])
+        relaunchExactCandidate(app, arguments: [])
 
         openSettings(in: app)
         let restoredToggle = app.switches["settings.sync.enabled"]
@@ -116,6 +118,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
             ),
             "The opt-in must persist without fabricating an entitled runtime."
         )
+        attachScreenshot(named: "03-sync-opt-in-after-normal-relaunch", of: app)
 
         setSwitch(restoredToggle, enabled: false)
         XCTAssertTrue(
@@ -123,6 +126,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
                 .waitForNonExistence(timeout: 3)
         )
         XCTAssertFalse(app.buttons["settings.sync.now"].isEnabled)
+        attachScreenshot(named: "04-sync-opt-out-restored", of: app)
     }
 
     @MainActor
@@ -261,5 +265,13 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         app.buttons.matching(
             NSPredicate(format: "label IN %@", labels)
         ).firstMatch
+    }
+
+    @MainActor
+    private func attachScreenshot(named name: String, of app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 }
