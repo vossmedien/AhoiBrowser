@@ -59,13 +59,34 @@ statement. Root confirmed the pinned `SQLITE_OMIT_UPSERT` setting. The second
 same unsupported SQL form was in the native observation receipt journal.
 This is still a failed runtime journey, not transport/roundtrip acceptance.
 
-Desktop received exact ownership of those two Common SQL files only. Isolated
+Desktop received exact ownership of those two Common SQL files. Isolated
 ccd24827be87ab2cdcc0e2579137eb7d83700b4b preserves the same schema, transaction,
-clock condition and receipt semantics with supported SQL. Its app-only followup
-is41122; old e4 and the crash evidence remain preserved. No implicit key/store
-reset or SQLite build-flag change. The correction must be carried into the
-canonical two files after the verified narrow handoff; no other Common WIP is
-transferred. Earlier c8 below is retained baseline history.
+clock condition and receipt semantics with supported SQL. Its app-only41122,
+scoped sign/verify14386 and guarded install57636 completed EXIT0. Root read the
+clean build receipt3ad7f306987b090ee23e07d108f88e17a2a6875936303e6cb0b5f47b4e028160
+and independently verified the installed ccd source. The two SQL fixes are now
+canonical614d297; old e4 and crash evidence remain preserved. No key/store reset
+or SQLite build-flag change occurred.
+
+**ccd runtime remains PARTIAL:** the normal retained-MacA start/restore/visible
+Sync Now journey was stable and normally quit. Real post-quit state was13
+outbox rows,0 ACKs,0 native receipts, retry9/provider_error, with recovery flags
+false. Existing public CloudKit logs identify CKErrorDomain2/PartialFailure,
+not its redacted item error. The later focused check against the exact Chromium
+SQLite library verified the two corrected SQL statements and clock ordering;
+it does not prove a real ACK. Details are in
+[the ccd report](../artifacts/e2e/native-sync-ccd2482-20260913/README.md).
+
+Root reviewed and explicitly released only the provider HandleSent /
+CompleteUpload files for the next correction: a logically resolved server
+conflict can collect verified ACKs that the aggregate PartialFailure then
+discards. Do not blindly ignore partial failures; current mutation IDs,
+remaining item/zone failures, durable remote staging and original authorization
+must remain authoritative. A small local code/count/stage diagnostic may
+distinguish this path without logging identifiers, payloads, keys or raw errors.
+No third runtime loop without that concrete change; other Common WIP remains
+unassigned. Device24 stays OFF, freshly confirmed installed on Servusla.
+Earlier c8 below is retained baseline history.
 
 Root verified that the e4 correction changes no shared format manifest, model,
 goldens or Swift/Mobile source relative to c8. The preserved signed Device24
