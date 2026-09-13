@@ -51,8 +51,21 @@ installed executable SHA
 4ca4ef074b1e28bdad8f01a0695ffba596136ed7d0fc71484a1c4321d6217dd9.
 Install receipt `artifacts/install/ahoi-dev-e4de9e1-scoped-20260913.json` has SHA
 eb54ab0e73174286e0fd3fb06e60bf1e3e661f370a68a59a84b817707047d245.
-Desktop now performs the bounded native UI journey; installation alone is not
-the recovery/transport pass. Earlier c8 below is retained baseline history.
+The bounded e4 journey fixed OFF/ON hierarchy and made the recovery action
+visible. After the deliberate local-upload confirmation, account recovery read
+back false, but the browser then crashed. Desktop symbolized the fatal path to
+`SyncStore::AcknowledgeOutbox`: unsupported UPSERT created an invalid Chromium
+statement. Root confirmed the pinned `SQLITE_OMIT_UPSERT` setting. The second
+same unsupported SQL form was in the native observation receipt journal.
+This is still a failed runtime journey, not transport/roundtrip acceptance.
+
+Desktop received exact ownership of those two Common SQL files only. Isolated
+ccd24827be87ab2cdcc0e2579137eb7d83700b4b preserves the same schema, transaction,
+clock condition and receipt semantics with supported SQL. Its app-only followup
+is41122; old e4 and the crash evidence remain preserved. No implicit key/store
+reset or SQLite build-flag change. The correction must be carried into the
+canonical two files after the verified narrow handoff; no other Common WIP is
+transferred. Earlier c8 below is retained baseline history.
 
 Root verified that the e4 correction changes no shared format manifest, model,
 goldens or Swift/Mobile source relative to c8. The preserved signed Device24
@@ -80,6 +93,24 @@ of a specific local account error. No region bypass or replacement UI harness
 was attempted. The actual phone opt-in/observation still needs its normal
 device UI after the native prerequisite succeeds. CUA's ordinary native Finder
 binding/actions now work; old September12 CUA timeouts are not current evidence.
+
+## New user UI/UX direction — selection pending
+
+The user explicitly rejected the entire Sync form, its sidebar position and
+layout, then requested substantially better general UI/UX with ImageGen layouts.
+Root produced three independent, reference-grounded concepts via the built-in
+ImageGen tool. All three were inspected and displayed exactly once in the order
+recorded in [the design handoff](design/2026-09-13-browser-sync/README.md), with
+byte-identical project copies and the full prompt set. They are NOT implemented
+or runtime evidence; their connected-device/status examples are mock data.
+
+The common design direction is ordinary central Sync settings, one clear global
+control, readable data/device groups and remote-control technical fields kept
+separate from normal setup. Sidebar/toolbar integration stays compact; no
+large wizard, new transport or arbitrary data-category expansion. User selection
+of the displayed1/2/3 establishes the visual target before redesign code begins.
+The proven native SQL crash fix continues independently and must not wait for
+that visual choice. Mobile8e81cfc remains a separate unbuilt source packet.
 
 ## Bounded compiled-artifact release — September13
 
