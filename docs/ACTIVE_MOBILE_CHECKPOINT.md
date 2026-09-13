@@ -19,10 +19,11 @@ The current local UX candidate is exact clean source
 `EXIT 0`; the app, build log/result/exit, compact source bundle and verified
 source/Info.plist/app-tree/signature receipt are in
 [`artifacts/build/mobile-debuglocal-6446b53-20260913/`](../artifacts/build/mobile-debuglocal-6446b53-20260913/README.md).
-No Simulator was booted and no app was installed or launched. The separate
-Structure-Development scope committed in `2fd0321` was not applied; it belongs
-only to the later entitled schema7/structureRevision1 candidate and does not
-change the protected Device24/bba baseline.
+At build creation no Simulator was booted and no app was installed or launched;
+the subsequent focused local journey is recorded below. The separate Structure-
+Development scope committed in `2fd0321` was not applied; it belongs only to the
+later entitled schema7/structureRevision1 candidate and does not change the
+protected Device24/bba baseline.
 
 Root also completed the separate physical-iPhone candidate on that same clean
 source: CloudKitDevelopment0.1(26), generic iOS/arm64, build88339 EXIT0. It binds
@@ -36,6 +37,20 @@ Original/signed apps, log/XCResult and exact receipt are in
 This candidate is NOT installed or launched; no payload key or CloudKit call
 occurred. Its matching Native Structure app is still unbuilt. Preserve both
 Device24/bba and local-UX25; no Mobile build or test is currently running.
+
+The exact DebugLocal25 candidate now passed one normal, non-fixtured visible
+Settings/Sync journey on the Ahoi-owned iPhone 17 Pro / iOS 26.5 Simulator
+`C645C09E-B284-434B-BC72-508E481ADC02`: **1/1**, zero failures/skips,
+45.996 seconds. Normal `arguments: []` launch, candidate identity, Sync opt-in,
+`Nur lokal`, disabled Sync keys/action, process relaunch persistence and final
+opt-out were visibly exercised. Four XCTest screenshots were exported and
+inspected. The original off-screen-switch failures and the narrow frame-bound
+runner correction are retained with the successful result in
+[`artifacts/e2e/mobile-debuglocal25-normal-sync-20260913/`](../artifacts/e2e/mobile-debuglocal25-normal-sync-20260913/README.md).
+The Ahoi simulator returned to Shutdown; BetterConvo `751D…` remained booted
+and untouched. This is not CloudKit proof: public `simctl` inventory exposes no
+safe iCloud-account readiness result, no Simulator-compatible entitled
+CloudKitDevelopment candidate ran, and the signed Build26 app is iphoneos-only.
 
 The optional private-session device-authentication lock is now implemented as
 a separate source block. It is included in Build25, but not visibly accepted.
