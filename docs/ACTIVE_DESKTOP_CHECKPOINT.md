@@ -1,6 +1,18 @@
 # Active Desktop checkpoint
 
-## Native Structure source integration — 13 September 2026
+## Native Structure candidate — 13 September 2026
+
+**Frozen combined source89993af004d3c73a202422fe9c950310e149ac92 is committed
+and pushed.** Guarded app-only invocation68856 has started from the clean
+isolated `/private/tmp/ahoi-native-structure.HoBjQO/repo`, using the existing
+verified .65 checkout/out with2jobs. Actual logs/exits/receipt are under
+[native-structure-89993af-20260913](../artifacts/build/native-structure-89993af-20260913/README.md).
+No completion receipt, scoped969 signing, installation or visible pass is yet
+claimed. The prior receiver worktrees/outputs and installed55ab remain protected.
+Root has now reported the actual unlock event (IOConsoleLocked=No) and owns
+the installed55ab/bba runtime. The build owner performs no installation, app
+start or Native UI action during that live journey; only its isolated product
+build and later separate-copy969 preparation/signing may proceed.
 
 The recovery owner integrated the existing e7abcff/c2718ac/6ce5046 Native WIP
 in the canonical worktree. Domain source is preserved by 683d91b, followed by
@@ -65,7 +77,8 @@ receiver/profile. Existing 55ab installation and Device24 are unchanged.
 **Actually installed:** `55abcf76498dcc8629f94e5ecebde89a4269ecf3`, the scoped
 Development/bba receiver candidate. Product build61607, scoped preparation/
 sign verification40936 and guarded installation28512 are all TERMINAL EXIT0.
-There is no active product build. The installed executable SHA256 is
+Those receiver runs are terminal; the separate Structure candidate is tracked
+above. The installed executable SHA256 is
 `c62675d22e397265be0e556b33b178528f3f108196e535e41242bb527fefb9b7`.
 Receipts and originals are under
 `artifacts/build/native-sync-receive-55abcf7-20260913/`; install receipt
@@ -81,7 +94,8 @@ before the original per-setting read-authority correction. The preparation-only
 worktree `/private/tmp/ahoi-receive-authority.6O80m8/repo` contains the same55ab
 source, never ran a build and never owned shared output.
 
-**Visible receiver/peer acceptance is OPEN, blocked by an actual locked Mac.**
+**Visible receiver/peer acceptance is OPEN. Root now owns its live continuation
+after the actual unlock event noted above.** The previous access failure was:
 Read-only ioreg confirmed IOConsoleLocked=Yes and CGSSessionScreenIsLocked=Yes.
 CUA failed with cgWindowNotFound for both Ahoi and the normal Finder startup
 path; one isolated CUA reset/rebind did not change that result. No more CUA,
@@ -121,8 +135,8 @@ No validator/assertion, target, matrix, real store, key or CloudKit state change
 The original fixture failures remain failures; the corrected checks prove only
 their named cached-consumer/store boundaries, not real peer arrival.
 
-No further CUA/Phone/Mac-lock polls, retries or extra test expansion are scheduled.
-Resume the live receive journey only on Root's actual user-unlock/peer event.
+The build owner schedules no CUA/Phone/Mac-lock polls or extra test expansion.
+Root consumed the unlock event and owns the actual receiver/peer continuation.
 
 ### Previous 26 baseline — historical runtime proof, not the installed receiver
 
