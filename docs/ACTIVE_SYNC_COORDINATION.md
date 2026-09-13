@@ -42,6 +42,18 @@ selected. This is a NEW recovery invocation, not a claimed terminal result or
 resumption of September12 PIDs. Desktop supplies its true terminal state.
 The storage owner received this exact new protected path in01a0982b.
 
+**Actual subsequent result:** app-only82567 completed EXIT0. Root read its
+clean-source receipt and verified SHA
+ee559365e251b10f7f6a49d60e18f61466a14048f44634e3ae84b2d551d51e37.
+Separate Development sign/verify26850 and guarded install42266 completed EXIT0.
+Root independently read installed e4, Development and the bba zone, and verified
+installed executable SHA
+4ca4ef074b1e28bdad8f01a0695ffba596136ed7d0fc71484a1c4321d6217dd9.
+Install receipt `artifacts/install/ahoi-dev-e4de9e1-scoped-20260913.json` has SHA
+eb54ab0e73174286e0fd3fb06e60bf1e3e661f370a68a59a84b817707047d245.
+Desktop now performs the bounded native UI journey; installation alone is not
+the recovery/transport pass. Earlier c8 below is retained baseline history.
+
 Root verified that the e4 correction changes no shared format manifest, model,
 goldens or Swift/Mobile source relative to c8. The preserved signed Device24
 bundle is present and its actual plist matches all seven shared scope values.
@@ -52,6 +64,22 @@ not permission to treat the already exercised bba scope as empty.
 The separate Mobile worker completes only the retained Home/Reader/Markdown
 product WIP in `apps/AhoiMobile`, not another runner or test matrix. Its source
 belongs to the later Structure/Privacy wave, not the current Device24/e4 pair.
+That bounded source package is now committed/pushed as8e81cfc: explicit Home
+update/return, article extraction/Reader sheet and safe Markdown-link copying
+through normal browser actions, with private/local clipboard handling and
+DE/EN. Root read the actual product wiring. Syntax/configuration checks passed;
+it is NOT_BUILT/NOT_E2E and no longer an active worker task.
+
+**Physical UI boundary, September13:** Servusla is reachable and unlocked since
+boot but currently requires its passcode. The ordinary Mirroring app binding
+did not establish a connection; the normal Finder check found no selectable
+Mirroring app and was returned to its original folder. No phone, account or
+security setting was changed. [Apple's current support page](https://support.apple.com/en-ca/120421)
+also states that iPhone Mirroring is unavailable in the EU; this is not proof
+of a specific local account error. No region bypass or replacement UI harness
+was attempted. The actual phone opt-in/observation still needs its normal
+device UI after the native prerequisite succeeds. CUA's ordinary native Finder
+binding/actions now work; old September12 CUA timeouts are not current evidence.
 
 ## Bounded compiled-artifact release — September13
 
@@ -79,7 +107,7 @@ evidence that cleanup occurred or that a measured amount of space was reclaimed.
 | Assigned owner | Exclusive product scope |
 | --- | --- |
 | `/root/desktop_recovery_20260913` | Current exact e4 recovery: isolated source, shared Chromium checkout/out, guarded app build/sign/install and the bounded native UI handoff above |
-| `/root/mobile_actions_recovery_20260913` | Retained Mobile Home/Reader/Markdown source only; no build, device, signing or Common/Native edits |
+| `/root/mobile_actions_recovery_20260913` | Completed source8e81cfc; idle, no build/device/signing or Common/Native ownership expansion |
 | `/root` | Coordination and acceptance, this checkpoint; no competing product implementation |
 
 Workers use the current collaboration tools. The old desktop_resume and
