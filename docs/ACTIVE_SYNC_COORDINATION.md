@@ -21,6 +21,27 @@ saved ownership assignments, NOT currently live agents. Their pending source
 and candidates remain preserved. Do not assume the previous correction build
 or a future Ahoi UI journey is running from the dated reports below.
 
+## Bounded compiled-artifact release — September13
+
+The storage owner019e5926 has explicit release for exactly these six superseded
+compiled bundles, after its own fresh use/path checks. Actual bundle plists
+match the named source revisions and their build/signing receipts remain present:
+
+- `artifacts/build/desktop-arc-preserve-e241191-20260908/AhoiBrowser.app`
+- `artifacts/build/desktop-arc-preserve-e241191-20260908/cloudkit/AhoiBrowser.app`
+- `artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/AhoiBrowser.app`
+- `artifacts/build/desktop-toolbar-settings-3d59cf9-20260908/cloudkit/AhoiBrowser.app`
+- `artifacts/build/desktop-toolbar-left-715afc2-20260908/AhoiBrowser.app`
+- `artifacts/build/desktop-toolbar-left-715afc2-20260908/cloudkit/AhoiBrowser.app`
+
+No surrounding directory, source, log, receipt, evidence or external provisioning/
+key material is released. c8 artifacts, all `.work` checkout/output, the existing
+native-sync temporary snapshot and its pending correction, `/Applications` and
+ALL rollback bundles remain protected. The historical instruction to retain the
+then-newest e241 CloudKit copy is superseded only for the exact artifact bundle
+above. Root performed no deletion, build, test or process stop; release is not
+evidence that cleanup occurred or that a measured amount of space was reclaimed.
+
 ## Current owners
 
 | Assigned owner | Exclusive product scope |
