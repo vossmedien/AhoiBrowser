@@ -6,7 +6,6 @@
 
 #import <CloudKit/CloudKit.h>
 #import <Foundation/Foundation.h>
-#import <os/log.h>
 
 #include <cstdint>
 #include <map>
@@ -497,24 +496,20 @@ class CloudKitSyncProviderMac::Core
     }
   }
 
-  void LogUploadOutcome(const char* stage, NSError* error) const {
-    static os_log_t log = os_log_create("app.ahoibrowser.sync", "Upload");
-    const char* domain = !error ? "none"
-                         : [error.domain isEqualToString:CKErrorDomain]
-                             ? "CKErrorDomain"
-                             : "other";
-    os_log_with_type(
-        log, OS_LOG_TYPE_DEFAULT,
-        "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
-        "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
-        "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
-        "ack=%{public}zu",
-        stage, domain, static_cast<long>(error.code),
-        upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
-        static_cast<long>(upload_item_error_code_),
-        upload_expected_mutations_.size(), upload_saved_count_,
-        upload_resolved_count_, upload_unresolved_count_,
-        upload_acknowledgements_.size());
+  void LogUploadOutcome(const std::string& stage, NSError* error) const {
+    NSString* domain = !error ? @"none"
+                       : [error.domain isEqualToString:CKErrorDomain]
+                           ? @"CKErrorDomain"
+                           : @"other";
+    NSLog(@"AhoiSyncUpload stage=%@ domain=%@ code=%ld "
+           "itemDomain=%@ itemCode=%ld expected=%zu "
+           "saved=%zu resolved=%zu unresolved=%zu ack=%zu",
+          ToNSString(stage), domain, static_cast<long>(error.code),
+          upload_item_error_is_cloudkit_ ? @"CKErrorDomain" : @"other",
+          static_cast<long>(upload_item_error_code_),
+          upload_expected_mutations_.size(), upload_saved_count_,
+          upload_resolved_count_, upload_unresolved_count_,
+          upload_acknowledgements_.size());
   }
 
   CKSyncEngineStateSerialization* LoadState() API_AVAILABLE(macos(14.0));
@@ -573,7 +568,7 @@ class CloudKitSyncProviderMac::Core
   size_t upload_unresolved_count_ = 0;
   NSInteger upload_item_error_code_ = 0;
   bool upload_item_error_is_cloudkit_ = false;
-  const char* upload_failure_stage_ = nullptr;
+  std::string upload_failure_stage_;
   UploadCallback upload_callback_;
   DownloadCallback download_callback_;
   std::string upload_error_;

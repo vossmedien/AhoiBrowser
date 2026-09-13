@@ -469,7 +469,7 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
         upload_unresolved_count_ = 0;
     upload_item_error_code_ = 0;
     upload_item_error_is_cloudkit_ = false;
-    upload_failure_stage_ = nullptr;
+    upload_failure_stage_.clear();
     [engine_.state addPendingRecordZoneChanges:pending];
     auto* scope = [[CKSyncEngineSendChangesScope alloc]
         initWithZoneIDs:[NSSet setWithObject:zone_id_]];
@@ -556,11 +556,11 @@ void CloudKitSyncProviderMac::Core::CompleteUpload(NSError* error,
     safe_error = "provider_error";
     upload_failure_stage_ = "empty_ack";
   }
-  LogUploadOutcome(
-      safe_error.empty()
-          ? (resolved_partial ? "resolved_partial" : "ok")
-          : (upload_failure_stage_ ? upload_failure_stage_ : "send_completion"),
-      error);
+  LogUploadOutcome(safe_error.empty()
+                       ? (resolved_partial ? "resolved_partial" : "ok")
+                       : (!upload_failure_stage_.empty() ? upload_failure_stage_
+                                                         : "send_completion"),
+                   error);
   DispatchUpload(
       std::move(upload_callback_), generation, safe_error.empty(),
       {upload_acknowledgements_.begin(), upload_acknowledgements_.end()},
