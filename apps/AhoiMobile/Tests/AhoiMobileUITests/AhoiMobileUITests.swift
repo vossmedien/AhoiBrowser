@@ -76,6 +76,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         openSettings(in: app)
         let toggle = app.switches["settings.sync.enabled"]
         XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        reveal(toggle, in: app)
         setSwitch(toggle, enabled: false)
         setSwitch(toggle, enabled: true)
 
@@ -111,6 +112,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         openSettings(in: app)
         let restoredToggle = app.switches["settings.sync.enabled"]
         XCTAssertTrue(restoredToggle.waitForExistence(timeout: 3))
+        reveal(restoredToggle, in: app)
         XCTAssertEqual(restoredToggle.value as? String, "1")
         XCTAssertTrue(
             ["Local only", "Nur lokal"].contains(
@@ -219,6 +221,10 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
     ) {
         let expectedValue = enabled ? "1" : "0"
         guard (toggle.value as? String) != expectedValue else { return }
+        guard waitForHittable(toggle, timeout: 3) else {
+            XCTFail("The sync opt-in switch is not visible and actionable.", file: file, line: line)
+            return
+        }
 
         // Tapping the row label is not guaranteed to toggle a SwiftUI switch.
         // Target the trailing native control and wait for the accessibility
