@@ -25,6 +25,30 @@ file/build ownership, consent and data-safety boundaries remain intact.
 
 ## Actual recovery and current workers — September13
 
+**Continue from the actual current upload/retry boundary, not the predecessor
+builds below:** installed55f61ca is stable in the bounded native journey but
+still does not complete an ACK cycle. Its safe runtime diagnostic recorded
+expected10/saved1/resolved5/unresolved4/ACK6, item CKError14. Because four items
+remain unresolved, reporting failure and retaining the outbox is correct.
+Post-quit state was outbox16/ACK0, attempt13 and a02:45UTC retry deadline.
+No own Ahoi UI remains active. Details belong in the owner's current
+[Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md) and
+`artifacts/e2e/native-sync-55f61ca-20260913/`.
+
+The next explicitly scoped correction is the real retry-starvation bug:
+automatic calls before the deadline must not MarkRetry and postpone it again.
+A deliberate visible SyncNowFromUser invokes one existing transport attempt,
+without clearing state or bypassing SDK/consent limits; an in-flight click joins
+that attempt. Frozen178dc7b implements that distinction plus numeric diagnostics
+and is being built. Separately2948361 ends the old retry state only AFTER a
+durably successful completed cycle, before a coalesced automatic follow-up,
+and propagates ClearRetry failure rather than claiming success. That correction
+must be included in the final candidate, without mutating a running snapshot.
+No packet here changes the wire/schema or unblocks the still-OFF physical peer.
+The active owner has bounded authority for the provider/pump/service/backend
+and existing native Sync Now call path; no other Common or Structure WIP is
+transferred. Existing group/phone data and key material remain untouched.
+
 The previous two workers were no longer in the live collaboration inventory.
 The old `/private/tmp/ahoi-native-sync-build.eqejEO/repo` is missing; the Git
 worktree registration is stale, NOT a running or resumable process. Its exact
