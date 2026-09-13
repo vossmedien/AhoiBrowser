@@ -42,7 +42,17 @@ enum SidebarContextMenuCommand {
   kToggleWorkspaceSwipe,
   kToggleCmdScrollTabSwitching,
   kToggleMiddleClickAutoscroll,
+  kArchiveTemporaryTab,
+  kArchiveList,
+  kArchivePolicy,
+  kRestoreArchiveOriginal,
+  kRestoreArchiveElsewhere,
+  kGoToSavedHome,
+  kSetSavedHome,
 };
+
+constexpr int kArchivePolicyCommandBase = 600;
+constexpr int kRestoreArchiveCommandBase = 2000000;
 
 constexpr int kActivateWorkspaceCommandBase = 1000;
 constexpr int kMoveToDestinationCommandBase = 2000;
@@ -61,6 +71,7 @@ enum class ContextMenuScope {
   kTree,
   kWorkspace,
   kOpenTab,
+  kArchive,
 };
 
 enum class PendingGroupAction {

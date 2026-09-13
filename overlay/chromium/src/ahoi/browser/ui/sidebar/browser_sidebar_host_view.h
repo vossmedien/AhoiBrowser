@@ -10,6 +10,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -416,7 +417,8 @@ class BrowserSidebarHostView final
 
   BrowserSidebarSplitDropSource MaterializeSavedPage(
       const tab_tree::TreeNode& node,
-      bool require_local_model);
+      bool require_local_model,
+      bool use_saved_home = false);
 
   bool CanSplitSavedPages(const base::Uuid& source_node_id,
                           const base::Uuid& target_node_id) const override;
@@ -551,6 +553,16 @@ class BrowserSidebarHostView final
 
   void ShowWorkspaceDialog(PendingWorkspaceAction action,
                            std::optional<base::Uuid> workspace_id);
+  static std::u16string StructureText(std::u16string_view german,
+                                      std::u16string_view english);
+  void BuildArchiveMenus();
+  void ShowArchiveRestoreMenu(base::Uuid entry_id);
+  void ArchiveContextTabs();
+  std::vector<base::Uuid> ContextArchiveNodes() const;
+  void ShowStructureNotice(std::u16string title, std::u16string body);
+  void OnStructureDialogClosed();
+  void CompleteArchiveAction(bool success);
+  void UseSavedHome(base::Uuid node_id, bool set_current);
 
   void SelectWorkspaceColor(std::optional<uint32_t> color, const ui::Event&);
 
@@ -770,6 +782,12 @@ class BrowserSidebarHostView final
   std::vector<ContextMoveDestination> context_move_destinations_;
   ContextMenuScope context_menu_scope_ = ContextMenuScope::kNone;
   std::unique_ptr<ui::SimpleMenuModel> context_menu_model_;
+  std::unique_ptr<ui::SimpleMenuModel> context_archive_menu_model_;
+  std::unique_ptr<ui::SimpleMenuModel> context_archive_policy_model_;
+  std::vector<base::Uuid> context_archive_ids_;
+  std::optional<base::Uuid> context_archive_id_;
+  std::optional<base::Uuid> context_archive_workspace_id_;
+  std::unique_ptr<views::Widget> structure_dialog_widget_;
   std::unique_ptr<ui::SimpleMenuModel> context_move_menu_model_;
   std::vector<std::unique_ptr<ui::SimpleMenuModel>>
       context_move_submenu_models_;

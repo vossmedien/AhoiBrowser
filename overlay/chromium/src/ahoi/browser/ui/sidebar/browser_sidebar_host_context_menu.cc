@@ -196,6 +196,10 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   context_menu_model_->AddItem(
       kCloseRuntimeTab, l10n_util::GetStringUTF16(IDS_TAB_CXMENU_CLOSETAB));
+  context_menu_model_->AddItem(
+      kArchiveTemporaryTab,
+      tab->GetSplit() ? StructureText(u"Split archivieren", u"Archive split")
+                      : StructureText(u"Tab archivieren", u"Archive tab"));
 
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
       context_menu_model_.get(),
@@ -249,6 +253,8 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
       kDeleteWorkspace,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DELETE_WORKSPACE));
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  BuildArchiveMenus();
+  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   context_menu_model_->AddCheckItem(
       kToggleFloatingSidebar,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_FLOATING_SIDEBAR));
@@ -282,6 +288,10 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_menu_runner_.reset();
   context_menu_model_.reset();
   context_workspace_ids_.clear();
+  context_archive_ids_.clear();
+  context_archive_menu_model_.reset();
+  context_archive_policy_model_.reset();
+  context_archive_workspace_id_.reset();
   context_menu_scope_ = ContextMenuScope::kNone;
 }
 
@@ -313,6 +323,19 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
     context_menu_model_->AddItem(
         kActivateNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_OPEN));
     tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node->id);
+    if (!node->is_temporary) {
+      context_menu_model_->AddItem(
+          kGoToSavedHome,
+          StructureText(u"Zur Ausgangsadresse", u"Go to Home address"));
+      context_menu_model_->AddItem(
+          kSetSavedHome,
+          StructureText(u"Aktuelle Seite als Ausgangsadresse setzen",
+                        u"Set current page as Home address"));
+    } else {
+      context_menu_model_->AddItem(
+          kArchiveTemporaryTab, StructureText(u"Archivieren (inklusive Split)",
+                                              u"Archive (including split)"));
+    }
     if (tab && tab->GetSplit().has_value()) {
       context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
       context_menu_model_->AddCheckItem(
@@ -509,6 +532,14 @@ bool BrowserSidebarHostView::BuildMoveToMenu(const tab_tree::TreeNode* source) {
 
 // ui::SimpleMenuModel::Delegate:
 bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
+  if (command_id >= kArchivePolicyCommandBase &&
+      command_id < kArchivePolicyCommandBase + 5) {
+    const auto workspace_id = context_archive_workspace_id_;
+    const auto* workspace =
+        workspace_id ? FindWorkspace(*workspace_id) : nullptr;
+    return workspace && static_cast<int>(workspace->archive_policy) ==
+                            command_id - kArchivePolicyCommandBase;
+  }
   const PrefService* const prefs = browser_->GetProfile()->GetPrefs();
   if (command_id == kToggleWorkspaceSwipe) {
     return prefs->GetBoolean(
@@ -570,6 +601,47 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
 }
 
 bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
+  if (command_id == kArchiveTemporaryTab)
+    return session_bridge_->CanArchiveTemporaryPages(ContextArchiveNodes());
+  if (command_id == kArchiveList)
+    return !context_archive_ids_.empty();
+  if (command_id >= kRestoreArchiveCommandBase)
+    return context_menu_scope_ == ContextMenuScope::kWorkspace &&
+           static_cast<size_t>(command_id - kRestoreArchiveCommandBase) <
+               context_archive_ids_.size();
+  if (command_id == kArchivePolicy ||
+      (command_id >= kArchivePolicyCommandBase &&
+       command_id < kArchivePolicyCommandBase + 5))
+    return context_menu_scope_ == ContextMenuScope::kWorkspace &&
+           controller_->view_model().workspace_id().has_value();
+  if (command_id == kGoToSavedHome || command_id == kSetSavedHome) {
+    if (!context_node_id_)
+      return false;
+    const auto* node = controller_->view_model().GetNode(*context_node_id_);
+    auto* tab = session_bridge_->FindTabByTreeNodeId(*context_node_id_);
+    return node && !node->is_temporary &&
+           (!tab || session_bridge_->FindTabStripModelForTab(tab) ==
+                        tab_strip_model_) &&
+           (command_id == kGoToSavedHome
+                ? tab_tree::GetSharedHomeTarget(*node).has_value()
+                : tab != nullptr);
+  }
+  if (context_menu_scope_ == ContextMenuScope::kArchive) {
+    if (!context_archive_id_)
+      return false;
+    if (command_id == kRestoreArchiveOriginal)
+      return true;
+    if (command_id == kRestoreArchiveElsewhere)
+      return !context_move_destinations_.empty();
+    if (command_id >= kMoveToWorkspaceSubmenuCommandBase)
+      return static_cast<size_t>(command_id -
+                                 kMoveToWorkspaceSubmenuCommandBase) <
+             context_move_submenu_models_.size();
+    if (command_id >= kMoveToDestinationCommandBase)
+      return static_cast<size_t>(command_id - kMoveToDestinationCommandBase) <
+             context_move_destinations_.size();
+    return false;
+  }
   if (command_id == kMoveTo) {
     return (context_menu_scope_ == ContextMenuScope::kTree ||
             context_menu_scope_ == ContextMenuScope::kOpenTab) &&

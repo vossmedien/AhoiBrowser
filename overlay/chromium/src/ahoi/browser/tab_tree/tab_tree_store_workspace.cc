@@ -139,7 +139,8 @@ TabTreeStore::Result TabTreeStore::DeleteWorkspace(
     if (!node_id.is_valid()) {
       return Result::kDatabaseError;
     }
-    deleted_node_ids.push_back(node_id);
+    if (!IsNodeArchived(node_id))
+      deleted_node_ids.push_back(node_id);
   }
   if (!node_ids.Succeeded()) {
     return Result::kDatabaseError;
@@ -151,12 +152,14 @@ TabTreeStore::Result TabTreeStore::DeleteWorkspace(
   }
   sql::Statement nodes(db_.GetCachedStatement(
       SQL_FROM_HERE,
-      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE workspace_id=? "
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE id=? "
       "AND tombstone=0"));
-  nodes.BindTime(0, modified_at);
-  nodes.BindString(1, workspace_id.AsLowercaseString());
-  if (!nodes.Run()) {
-    return Result::kDatabaseError;
+  for (const auto& node_id : deleted_node_ids) {
+    nodes.Reset(true);
+    nodes.BindTime(0, modified_at);
+    nodes.BindString(1, node_id.AsLowercaseString());
+    if (!nodes.Run() || db_.GetLastChangeCount() != 1)
+      return Result::kDatabaseError;
   }
   sql::Statement workspace_row(db_.GetCachedStatement(
       SQL_FROM_HERE,

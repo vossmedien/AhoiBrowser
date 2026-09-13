@@ -2,22 +2,47 @@
 
 ## Native Structure source integration — 13 September 2026
 
-The recovery owner is continuing the existing e7abcff/c2718ac/6ce5046 Native
-WIP in the canonical worktree. The domain source now includes Session lifecycle
+The recovery owner integrated the existing e7abcff/c2718ac/6ce5046 Native WIP
+in the canonical worktree. Domain source is preserved by 683d91b, followed by
+the Native menu/placement/Home source handoff. The package includes Session lifecycle
 and service lifetime wiring, stable split capture/resting materialization,
 local SQLite structure state, original remote read/publication leases, guarded
 archive/restore and workspace archive policy. Existing retained pages remain
-the restore identity authority; a missing parent currently returns failure.
+the restore identity authority. A missing parent does not fabricate a root:
+the archive menu offers an explicit existing workspace/folder selection.
+Selected placement, split workspace metadata and restored state commit together
+with the same local tree receipt/undo snapshot and original revision guard.
+Folder/workspace deletion retains archived leaves and their original placement;
+an actually tombstoned page is not resurrected by restore.
 ResourcePolicy excludes active/visible, pinned, media/capture, KeepLoaded,
 form/edit, download, unload and protected dialog flows before archive close.
 
 This is SOURCE work only: no overlay, Chromium compilation, installation, UI,
 profile, key or CloudKit operation. clang-format (Chromium style), GN formatting
 and diff whitespace checks ran; they are not compile/runtime acceptance.
-The next authorized source step is the existing Native menu/dialog/command
-integration for Archive/Restore/Policy, explicit missing-parent placement and
-Saved Home actions where absent. Do not build the intermediate domain-only
-package. One later complete Structure candidate must use the separate
+The central source-level journey is now reachable through existing menus:
+temporary tab/tree row -> Archive (complete split); workspace menu -> archived
+entries (title/reason/time) -> original placement or explicit Restore in…;
+workspace menu -> inactive temporary tab policy (Never/12h/24h/7d/30d).
+Saved page menus separately expose Go to Home and Set current page as Home.
+Only explicit Go to Home navigates; ordinary navigation, unload and received
+metadata do not. Closed saved pages use the fresh stored Home on the existing
+materialization path, not a first load of the old current URL.
+
+The additional Native UI paths are sidebar/browser_sidebar_host_structure.cc,
+browser_sidebar_host_{context_menu,command_dispatch,core,page_actions}.cc,
+browser_sidebar_host_{types,view}.h and sidebar/BUILD.gn. Session structure
+controller/persistence and tab_tree model/store/delete/workspace paths contain
+the atomic local placement and independent archive retention. Common C++
+Wire/Codec/Provider/Schema and Swift source were not edited.
+
+Remaining acceptance: compile/link the one complete app-only candidate, then
+the actual visible archive/restore/Home journey and protected/dormant split
+behavior. Passive projection deliberately does not create/load absent panes;
+missing dependencies remain retained pending. Permanent archive deletion and
+an archive-wide search surface are not added by this menu integration and must
+not be reported complete. No compiler, unit/fixture matrix or product UI ran in
+this source phase. Do not build 683d91b alone. The later complete Structure candidate uses the separate
 [Structure scope manifest](../artifacts/e2e/shared-sync-structure-development-scope-20260913.json)
 (96950f6b-50e0-4e2c-9a94-852dc5099446, Native schema7), not the protected bba
 receiver/profile. Existing 55ab installation and Device24 are unchanged.

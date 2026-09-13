@@ -186,9 +186,6 @@ void WorkspaceStructureController::Archive(
   candidate.archived_locally = true;
   const auto version = candidate.record;
   state_.entries.insert_or_assign(id, std::move(candidate));
-  local_changes_.insert(id);
-  remote_authorities_.erase(id);
-  blocked_publications_.erase(id);
   const auto authority = LocalAuthority();
   Persist(authority,
           base::BindOnce(
@@ -212,6 +209,9 @@ void WorkspaceStructureController::Archive(
                   std::move(done).Run(false);
                   return;
                 }
+                owner->local_changes_.insert(id);
+                owner->remote_authorities_.erase(id);
+                owner->blocked_publications_.erase(id);
                 owner->CloseArchived(id, authority);
                 if (!owner) {
                   std::move(done).Run(false);
@@ -299,7 +299,8 @@ bool WorkspaceStructureController::CanRestore(
 
 void WorkspaceStructureController::Restore(
     base::Uuid id,
-    base::OnceCallback<void(bool)> done) {
+    base::OnceCallback<void(bool)> done,
+    std::optional<tab_tree::ArchiveRestorePlacement> placement) {
   auto found = state_.entries.find(id);
   if (!observing_sync_ || persisting_ || publish_pending_ ||
       found == state_.entries.end()) {
@@ -315,14 +316,74 @@ void WorkspaceStructureController::Restore(
   // Retained rows are the local identity authority. Missing/changed
   // dependencies require an explicit placement decision; never invent a root or
   // empty split.
-  if (!CanRestore(*archive)) {
+  if (!placement && !CanRestore(*archive)) {
     std::move(done).Run(false);
     return;
+  }
+  std::optional<tab_tree::TabTreeSnapshot> tree;
+  const auto all_before = state_.entries;
+  if (placement) {
+    tab_tree::Workspace workspace;
+    tab_tree::TreeNode parent;
+    if (bridge_->tab_tree_store()->GetWorkspace(
+            placement->workspace_id, &workspace) != Store::Result::kOk ||
+        workspace.tombstone ||
+        (placement->parent_id &&
+         (bridge_->tab_tree_store()->GetNode(*placement->parent_id, &parent) !=
+              Store::Result::kOk ||
+          parent.tombstone || parent.type != tab_tree::TreeNodeType::kFolder ||
+          parent.workspace_id != placement->workspace_id))) {
+      std::move(done).Run(false);
+      return;
+    }
+    tree.emplace();
+    if (bridge_->tab_tree_store()->ExportSnapshot(&*tree) !=
+        Store::Result::kOk) {
+      std::move(done).Run(false);
+      return;
+    }
+    for (const auto& page : archive->snapshot.pages) {
+      auto node = std::ranges::find(tree->nodes, page.tree_node_id,
+                                    &tab_tree::TreeNode::id);
+      // Explicit permanent tree deletion is absorbing. A placement decision
+      // neither resurrects it nor moves a still-live/protected tab.
+      if (node == tree->nodes.end() || node->tombstone || !node->is_temporary ||
+          bridge_->FindTabByTreeNodeId(page.tree_node_id)) {
+        std::move(done).Run(false);
+        return;
+      }
+      node->workspace_id = placement->workspace_id;
+      node->parent_id = placement->parent_id;
+      node->sort_key = page.sort_key;
+      node->modified_at = base::Time::Now();
+    }
+    if (archive->snapshot.split) {
+      auto split = state_.entries.find(archive->snapshot.split->id);
+      if (split == state_.entries.end() ||
+          !std::holds_alternative<sync::SplitGroupRecord>(
+              split->second.record) ||
+          std::get<sync::SplitGroupRecord>(split->second.record).tombstone) {
+        std::move(done).Run(false);
+        return;
+      }
+      auto& record = std::get<sync::SplitGroupRecord>(split->second.record);
+      if (record.workspace_id != placement->workspace_id) {
+        const auto old = split->second.record;
+        record.workspace_id = placement->workspace_id;
+        if (!Stamp(&split->second.record, &old)) {
+          split->second.record = old;
+          std::move(done).Run(false);
+          return;
+        }
+        split->second.pending.clear();
+        split->second.pending_expected.clear();
+      }
+    }
   }
   const auto before = found->second;
   archive->restored = true;
   if (!Stamp(&found->second.record, &before.record)) {
-    found->second = before;
+    state_.entries = all_before;
     std::move(done).Run(false);
     return;
   }
@@ -330,25 +391,40 @@ void WorkspaceStructureController::Restore(
   found->second.restore_pending = false;
   found->second.pending.clear();
   found->second.pending_expected.clear();
-  local_changes_.insert(id);
-  remote_authorities_.erase(id);
-  blocked_publications_.erase(id);
-  Persist(LocalAuthority(),
-          base::BindOnce(
-              [](base::WeakPtr<WorkspaceStructureController> owner,
-                 base::Uuid id, WorkspaceStructureEntry before,
-                 base::OnceCallback<void(bool)> done, bool ok) {
-                if (!owner) {
-                  std::move(done).Run(false);
-                  return;
-                }
-                if (!ok)
-                  owner->state_.entries.at(id) = std::move(before);
-                if (ok)
-                  owner->Schedule();
-                std::move(done).Run(ok);
-              },
-              weak_factory_.GetWeakPtr(), id, before, std::move(done)));
+  const auto attempted = state_.entries;
+  Persist(
+      LocalAuthority(),
+      base::BindOnce(
+          [](base::WeakPtr<WorkspaceStructureController> owner,
+             std::map<base::Uuid, WorkspaceStructureEntry> before,
+             std::map<base::Uuid, WorkspaceStructureEntry> attempted,
+             base::OnceCallback<void(bool)> done, bool ok) {
+            if (!owner) {
+              std::move(done).Run(false);
+              return;
+            }
+            for (const auto& [id, entry] : attempted) {
+              const auto prior = before.find(id);
+              if (prior == before.end() || prior->second == entry)
+                continue;
+              auto current = owner->state_.entries.find(id);
+              if (current == owner->state_.entries.end() ||
+                  current->second != entry)
+                continue;
+              if (!ok)
+                current->second = prior->second;
+              else {
+                owner->local_changes_.insert(id);
+                owner->remote_authorities_.erase(id);
+                owner->blocked_publications_.erase(id);
+              }
+            }
+            if (ok)
+              owner->Schedule();
+            std::move(done).Run(ok);
+          },
+          weak_factory_.GetWeakPtr(), all_before, attempted, std::move(done)),
+      std::move(tree));
 }
 
 void WorkspaceStructureController::ReconcileArchives(

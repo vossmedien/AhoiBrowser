@@ -1,12 +1,47 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/json/json_reader.h"
 #include "sql/statement.h"
 
 namespace ahoi::tab_tree {
+TabTreeStore::Result TabTreeStore::SetSavedPageHome(const base::Uuid& node_id,
+                                                    const GURL& url,
+                                                    base::Time modified_at) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!IsReady())
+    return Result::kNotInitialized;
+  TreeNode node;
+  const auto result = ReadNode(node_id, &node);
+  if (result != Result::kOk)
+    return result;
+  const auto target =
+      DescribeNativeSharedTabTarget(url, NativeSharedTabParticipation::kNormal);
+  if (node.tombstone || node.is_temporary ||
+      node.type != TreeNodeType::kSavedPage || !target ||
+      target->kind == SharedTabTargetKind::kNewTab || modified_at.is_null())
+    return Result::kInvalidArgument;
+  node.home_url = url;
+  node.home_target_kind = target->kind;
+  node.home_local_scheme = target->local_scheme;
+  if (!GetSharedHomeTarget(node))
+    return Result::kInvalidArgument;
+  sql::Statement update(
+      db_.GetUniqueStatement("UPDATE tree_nodes SET "
+                             "home_url=?,home_target_kind=?,home_local_scheme=?"
+                             ",modified_at=? WHERE id=?"));
+  internal::BindHome(update, 0, node);
+  update.BindTime(3, modified_at);
+  update.BindString(4, node_id.AsLowercaseString());
+  if (!update.Run() || db_.GetLastChangeCount() != 1)
+    return Result::kDatabaseError;
+  Notify(MutationKind::kRenamed, node_id, {node_id});
+  return Result::kOk;
+}
+
 TabTreeStore::Result TabTreeStore::SetWorkspaceArchivePolicy(
     const base::Uuid& workspace_id,
     sync::SharedArchivePolicy policy,

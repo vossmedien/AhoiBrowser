@@ -154,7 +154,8 @@ bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
 
 BrowserSidebarSplitDropSource BrowserSidebarHostView::MaterializeSavedPage(
     const tab_tree::TreeNode& requested_node,
-    bool require_local_model) {
+    bool require_local_model,
+    bool use_saved_home) {
   tab_tree::TreeNode node;
   if (!session_bridge_ || !session_bridge_->is_ready() ||
       session_bridge_->tab_tree_store()->GetNode(requested_node.id, &node) !=
@@ -164,6 +165,14 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::MaterializeSavedPage(
   }
   const base::WeakPtr<BrowserSidebarHostView> weak_host =
       weak_ptr_factory_.GetWeakPtr();
+  if (use_saved_home) {
+    if (node.is_temporary || !tab_tree::GetSharedHomeTarget(node) ||
+        node.home_url.is_empty())
+      return {};
+    node.url = node.home_url;
+    node.target_kind = node.home_target_kind;
+    node.local_scheme = node.home_local_scheme;
+  }
   const base::WeakPtr<tabs::TabInterface> active_before =
       tab_strip_model_ && tab_strip_model_->GetActiveTab()
           ? tab_strip_model_->GetActiveTab()->GetWeakPtr()

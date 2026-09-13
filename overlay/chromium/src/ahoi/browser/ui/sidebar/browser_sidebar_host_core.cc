@@ -282,6 +282,7 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   SetBrowserSidebarDragRoutingActive(this, false);
   tab_preview_controller_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
+  structure_dialog_widget_.reset();
   widget_drag_observation_.Reset();
   group_recent_show_timer_.Stop();
   group_recent_hide_timer_.Stop();

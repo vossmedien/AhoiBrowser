@@ -399,7 +399,8 @@ void WorkspaceStructureController::MaterializeSplits(
 
 void WorkspaceStructureController::Persist(
     sync::SyncAuthorization authority,
-    base::OnceCallback<void(bool)> done) {
+    base::OnceCallback<void(bool)> done,
+    std::optional<tab_tree::TabTreeSnapshot> tree) {
   if (persisting_ || !bridge_lifetime_) {
     std::move(done).Run(false);
     return;
@@ -426,7 +427,8 @@ void WorkspaceStructureController::Persist(
               owner->dirty_ = false;
             std::move(done).Run(ok);
           },
-          weak_factory_.GetWeakPtr(), *encoded, std::move(done)));
+          weak_factory_.GetWeakPtr(), *encoded, std::move(done)),
+      std::move(tree));
 }
 
 void WorkspaceStructureController::OnAhoiDeviceTabsChanged(

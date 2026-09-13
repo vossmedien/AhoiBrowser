@@ -32,12 +32,16 @@ class WorkspaceStructureController final
   void Archive(const std::vector<base::Uuid>& nodes,
                sync::SharedArchiveReason reason,
                base::OnceCallback<void(bool)> done);
-  void Restore(base::Uuid entry_id, base::OnceCallback<void(bool)> done);
+  void Restore(base::Uuid entry_id,
+               base::OnceCallback<void(bool)> done,
+               std::optional<tab_tree::ArchiveRestorePlacement> placement =
+                   std::nullopt);
   std::vector<sync::TabArchiveEntryRecord> Archives() const;
   void OnAhoiDeviceTabsChanged(const sync::DeviceTabsSnapshot&) override;
   void OnAhoiSyncStatusChanged(const sync::SyncTransportStatus&) override;
 
  private:
+  friend class ::ahoi::SessionBridge;
   void Schedule();
   void Refresh();
   void CaptureSplits();
@@ -55,7 +59,8 @@ class WorkspaceStructureController final
                    sync::SyncAuthorization original,
                    bool success);
   void Persist(sync::SyncAuthorization authority,
-               base::OnceCallback<void(bool)> done);
+               base::OnceCallback<void(bool)> done,
+               std::optional<tab_tree::TabTreeSnapshot> tree = std::nullopt);
   sync::SyncAuthorization LocalAuthority() const;
   bool Stamp(sync::SyncRecord* record, const sync::SyncRecord* previous);
   std::vector<base::WeakPtr<BrowserWindowInterface>> Windows() const;

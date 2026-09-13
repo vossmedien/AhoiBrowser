@@ -125,6 +125,52 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
   if (context_menu_scope_ == ContextMenuScope::kNone) {
     return;
   }
+  if (context_menu_scope_ == ContextMenuScope::kWorkspace &&
+      command_id >= kRestoreArchiveCommandBase) {
+    const auto index =
+        static_cast<size_t>(command_id - kRestoreArchiveCommandBase);
+    if (index < context_archive_ids_.size())
+      base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+          FROM_HERE,
+          base::BindOnce(&BrowserSidebarHostView::ShowArchiveRestoreMenu,
+                         weak_ptr_factory_.GetWeakPtr(),
+                         context_archive_ids_[index]));
+    return;
+  }
+  if (context_menu_scope_ == ContextMenuScope::kArchive) {
+    if (!context_archive_id_)
+      return;
+    auto done = base::BindOnce(&BrowserSidebarHostView::CompleteArchiveAction,
+                               weak_ptr_factory_.GetWeakPtr());
+    if (command_id == kRestoreArchiveOriginal) {
+      session_bridge_->RestoreArchivedPages(*context_archive_id_,
+                                            std::move(done));
+    } else if (command_id >= kMoveToDestinationCommandBase &&
+               command_id < kMoveToWorkspaceSubmenuCommandBase) {
+      const auto index =
+          static_cast<size_t>(command_id - kMoveToDestinationCommandBase);
+      if (index < context_move_destinations_.size()) {
+        const auto destination = context_move_destinations_[index];
+        session_bridge_->RestoreArchivedPagesAt(
+            *context_archive_id_,
+            {destination.workspace_id, destination.folder_id}, std::move(done));
+      }
+    }
+    return;
+  }
+  if (context_menu_scope_ == ContextMenuScope::kWorkspace &&
+      command_id >= kArchivePolicyCommandBase &&
+      command_id < kArchivePolicyCommandBase + 5) {
+    const auto workspace_id = context_archive_workspace_id_;
+    if (workspace_id) {
+      const auto result = session_bridge_->SetWorkspaceArchivePolicy(
+          *workspace_id, static_cast<sync::SharedArchivePolicy>(
+                             command_id - kArchivePolicyCommandBase));
+      if (result != tab_tree::TabTreeStore::Result::kOk)
+        OnMutationFailed(result);
+    }
+    return;
+  }
   if ((context_menu_scope_ == ContextMenuScope::kTree ||
        context_menu_scope_ == ContextMenuScope::kOpenTab) &&
       command_id >= kMoveToDestinationCommandBase &&
@@ -259,6 +305,9 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     }
     const int runtime_handle = tab->GetHandle().raw_value();
     switch (command_id) {
+      case kArchiveTemporaryTab:
+        ArchiveContextTabs();
+        return;
       case kActivateNode:
         ActivateRuntimeTab(tab->GetWeakPtr());
         return;
@@ -335,6 +384,13 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     return;
   }
   switch (command_id) {
+    case kArchiveTemporaryTab:
+      ArchiveContextTabs();
+      return;
+    case kGoToSavedHome:
+    case kSetSavedHome:
+      UseSavedHome(node_id, command_id == kSetSavedHome);
+      return;
     case kActivateNode:
       ActivateSavedPage(*node);
       return;

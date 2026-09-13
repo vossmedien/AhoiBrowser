@@ -317,6 +317,8 @@ TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
   if (!node_id.is_valid() || modified_at.is_null()) {
     return Result::kInvalidArgument;
   }
+  if (IsNodeArchived(node_id))
+    return Result::kInvalidArgument;
 
   TreeNode node;
   Result result = ReadNode(node_id, &node);
@@ -333,6 +335,10 @@ TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
     return result;
   }
   std::vector<NodeSnapshot> snapshots;
+  // An archive is retained independently of its former folder. Keep its
+  // original parent link until the user explicitly chooses a restore target.
+  std::erase_if(subtree,
+                [&](const TreeNode& row) { return IsNodeArchived(row.id); });
   snapshots.reserve(subtree.size());
   for (const TreeNode& descendant : subtree) {
     snapshots.push_back({.node_id = descendant.id, .previous = descendant});
@@ -353,15 +359,13 @@ TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
     changed_ids.push_back(descendant.id);
   }
   sql::Statement statement(db_.GetUniqueStatement(
-      "WITH RECURSIVE subtree(id) AS (SELECT id FROM tree_nodes WHERE id=? "
-      "UNION SELECT child.id FROM tree_nodes child JOIN subtree parent ON "
-      "child.parent_id=parent.id) UPDATE tree_nodes SET tombstone=1,"
-      "modified_at=? WHERE id IN (SELECT id FROM subtree)"));
-  statement.BindString(0, node.id.AsLowercaseString());
-  statement.BindTime(1, modified_at);
-  if (!statement.Run() ||
-      db_.GetLastChangeCount() != static_cast<int64_t>(subtree.size())) {
-    return Result::kDatabaseError;
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE id=?"));
+  for (const auto& descendant : subtree) {
+    statement.Reset(true);
+    statement.BindTime(0, modified_at);
+    statement.BindString(1, descendant.id.AsLowercaseString());
+    if (!statement.Run() || db_.GetLastChangeCount() != 1)
+      return Result::kDatabaseError;
   }
   if (!transaction.Commit()) {
     return Result::kDatabaseError;
@@ -384,11 +388,10 @@ TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
 
   std::unordered_set<base::Uuid, base::UuidHash> requested_roots;
   std::unordered_set<base::Uuid, base::UuidHash> affected_ids;
-  std::vector<std::vector<TreeNode>> subtrees;
   std::vector<NodeSnapshot> snapshots;
-  subtrees.reserve(node_ids.size());
   for (const base::Uuid& node_id : node_ids) {
-    if (!node_id.is_valid() || !requested_roots.insert(node_id).second) {
+    if (!node_id.is_valid() || IsNodeArchived(node_id) ||
+        !requested_roots.insert(node_id).second) {
       return Result::kInvalidArgument;
     }
     TreeNode root;
@@ -410,9 +413,10 @@ TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
       if (!affected_ids.insert(descendant.id).second) {
         return Result::kInvalidArgument;
       }
+      if (IsNodeArchived(descendant.id))
+        continue;
       snapshots.push_back({.node_id = descendant.id, .previous = descendant});
     }
-    subtrees.push_back(std::move(subtree));
   }
 
   sql::Transaction transaction(&db_);
@@ -425,16 +429,12 @@ TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
   }
 
   sql::Statement statement(db_.GetUniqueStatement(
-      "WITH RECURSIVE subtree(id) AS (SELECT id FROM tree_nodes WHERE id=? "
-      "UNION SELECT child.id FROM tree_nodes child JOIN subtree parent ON "
-      "child.parent_id=parent.id) UPDATE tree_nodes SET tombstone=1,"
-      "modified_at=? WHERE id IN (SELECT id FROM subtree)"));
-  for (size_t index = 0; index < node_ids.size(); ++index) {
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE id=?"));
+  for (const auto& snapshot : snapshots) {
     statement.Reset(/*clear_bound_vars=*/true);
-    statement.BindString(0, node_ids[index].AsLowercaseString());
-    statement.BindTime(1, modified_at);
-    if (!statement.Run() || db_.GetLastChangeCount() !=
-                                static_cast<int64_t>(subtrees[index].size())) {
+    statement.BindTime(0, modified_at);
+    statement.BindString(1, snapshot.node_id.AsLowercaseString());
+    if (!statement.Run() || db_.GetLastChangeCount() != 1) {
       return Result::kDatabaseError;
     }
   }

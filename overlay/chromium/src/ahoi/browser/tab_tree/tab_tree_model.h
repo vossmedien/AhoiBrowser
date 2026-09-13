@@ -86,6 +86,13 @@ struct TreeNode {
   bool operator==(const TreeNode&) const = default;
 };
 
+// Explicit user choice when an archive's original placement is unavailable.
+// A null parent means the user selected this workspace's root, never fallback.
+struct ArchiveRestorePlacement {
+  base::Uuid workspace_id;
+  std::optional<base::Uuid> parent_id;
+};
+
 // Only this bounded target leaves the device. A local-only native URL may be
 // retained in the row for local use, but is never returned by this boundary.
 std::optional<sync::SharedTabTarget> GetSharedPageTarget(const TreeNode& node);

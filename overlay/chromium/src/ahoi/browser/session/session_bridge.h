@@ -126,13 +126,19 @@ class SessionBridge : public KeyedService,
   void CommitWorkspaceStructureState(
       std::string state,
       base::RepeatingCallback<bool()> authorization,
-      base::OnceCallback<void(bool)> completion);
+      base::OnceCallback<void(bool)> completion,
+      std::optional<tab_tree::TabTreeSnapshot> tree = std::nullopt);
   // Local domain operations. They persist with Sync OFF and never open or
   // focus WebContents. The caller presents failure/missing-parent choices.
   void ArchiveTemporaryPages(std::vector<base::Uuid> nodes,
                              base::OnceCallback<void(bool)> completion);
+  bool CanArchiveTemporaryPages(const std::vector<base::Uuid>& nodes) const;
+  std::vector<base::Uuid> GetArchivePageGroup(base::Uuid node_id) const;
   void RestoreArchivedPages(base::Uuid entry_id,
                             base::OnceCallback<void(bool)> completion);
+  void RestoreArchivedPagesAt(base::Uuid entry_id,
+                              tab_tree::ArchiveRestorePlacement placement,
+                              base::OnceCallback<void(bool)> completion);
   std::vector<sync::TabArchiveEntryRecord> GetArchivedPages() const;
   [[nodiscard]] tab_tree::TabTreeStore::Result SetWorkspaceArchivePolicy(
       base::Uuid workspace_id,

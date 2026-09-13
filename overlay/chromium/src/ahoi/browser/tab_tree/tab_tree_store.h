@@ -68,6 +68,9 @@ class TabTreeStore {
   std::optional<std::string> ReadWorkspaceStructureState();
   [[nodiscard]] Result SetWorkspaceStructureState(std::string state);
   bool IsNodeArchived(const base::Uuid& id) const;
+  [[nodiscard]] Result SetSavedPageHome(const base::Uuid& node_id,
+                                        const GURL& url,
+                                        base::Time modified_at);
   [[nodiscard]] Result SetWorkspaceArchivePolicy(
       const base::Uuid& workspace_id,
       sync::SharedArchivePolicy policy,
