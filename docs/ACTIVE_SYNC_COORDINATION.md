@@ -121,6 +121,27 @@ Chromium build, installed55ab/Device24 replacement, bba reset or design-variant
 implementation is authorized by this source handoff; the later schema7 pair
 needs its own exact fresh acceptance binding.
 
+That non-secret binding is now prepared in
+`artifacts/e2e/shared-sync-structure-development-scope-20260913.json`, scope
+`96950f6b-50e0-4e2c-9a94-852dc5099446`, SHA256
+`5b3586741c8ab4711bf096ac6960b046732a43489bb4ae9c6018afa64439c9f7`.
+The existing Native `development_acceptance_policy` accepted its exact tuple
+and unchanged rights/constraints. The current Mobile preflight/runtime scope
+parsers use the same UUID/zone/subscription/account convention. Only the Native
+configuration validator ran; no candidate, profile, key or server state was
+mutated, and server freshness is NOT yet proved. Native schema7 and Mobile
+structureRevision1 belong to this later matched pair, not the preserved bba pair.
+
+`/root/mobile_actions_recovery_20260913` is concurrently preparing ONE
+product-only generic-Simulator DebugLocal candidate from the already committed
+Home/Reader/Markdown, Structure and private-lock sources. It owns narrowly
+necessary Mobile/Swift compile corrections and its own candidate receipt, not
+Native source/output or new wire/consent decisions. No test target, Simulator
+boot, app/device launch, provisioning or Cloud access is part of this build.
+This provider-free local-UX candidate must NOT be called the entitled Structure
+sync partner; its source/build/receipt and the later fresh scoped pair remain
+separate. Device24 and the existing installation are unchanged.
+
 A single selective physical-preference read found Device24 still Sync OFF;
 its temporary local copy was removed and the original device state was not
 modified. Do not repeat that read or question without a user response or
