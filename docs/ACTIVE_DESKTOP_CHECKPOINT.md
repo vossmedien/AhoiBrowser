@@ -19,6 +19,14 @@ SQL API conversion, full menu enum include, safe policy-name iteration, a
 shadowed restore callback variable and lvalue DictValue Set chaining. No warning,
 validator, consent, schema, Common or Swift code was weakened/changed. One
 incremental app-only corrective run follows the exact committed fix snapshot.
+That exact fix snapshot is `a47b18510f24384ad370ab2c1b230ea33e40193d`, pushed and
+selected in the same clean isolated worktree after68856 ended. The corrective
+run is prepared but NOT started: latest disk32.31GiB leaves only0.31GiB above
+the hard floor for compiler/link/staging; CPU65%idle and memory52%free are fine.
+Root received this actual storage boundary. No new handle, cleanup, signing,
+installation or app action exists. Next invocation is the existing
+`artifacts/build/native-structure-a47b185-20260913/run-build.sh` once capacity
+is genuinely sufficient, not a retry of the terminal89993af source.
 No completion receipt, scoped969 signing, installation or visible pass is yet
 claimed. The prior receiver worktrees/outputs and installed55ab remain protected.
 Root has now reported the actual unlock event (IOConsoleLocked=No) and owns
