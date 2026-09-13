@@ -8,18 +8,21 @@ Their old thread IDs and September8 leases are not current runtime grants.
 ## Current parallel-work rule — explicit user decision, September13
 
 The user explicitly removed the blanket MBC/Ahoi window reservations and repeated
-START/handback coordination: parallel work is intended, with Ahoi taking priority
-in this task. No worker waits for MBC's whole build or UI journey. Separate
-builds, devices and directly addressed windows may run concurrently. Only actual
-sustained machine pressure or a concrete collision over global input warrants
-separating the affected short action. No foreign process is stopped and no
-general START/ACK cycle is required. This supersedes the dated UI leases below.
+START/handback coordination: parallel work is intended. The current global and
+project AGENTS require equal whole-machine capacity assessment across projects,
+without a special Ahoi resource priority or preemption. No worker waits for MBC's
+whole build or UI journey. Separate builds, devices and directly addressed
+windows may run concurrently. Only actual sustained machine pressure or a
+concrete collision over global input warrants separating the affected short
+action. No foreign process is stopped and no general START/ACK cycle is required.
+This supersedes the dated UI leases and earlier resource-priority wording below.
 
 `/root/desktop_recovery_20260913` proceeds autonomously through the exact guarded
 build/sign/install and short native E2E with fresh candidate, scope and own-window
 checks. Verify the corrected OFF label/sidebar, then visible Sync ON and, if
-needed, the authorized local-upload recovery in MacA only. Prefer direct AX
-actions and own-window captures, not unverified global keystrokes. No hidden AX
+needed, the authorized local-upload recovery in MacA only. Use documented
+`cua_repl` actions and own-window captures, not unverified global keystrokes or
+an AppleScript/System Events/CGEvent fallback. No hidden AX
 action, flag/key/store reset or real-Default operation is authorized. Existing
 file/build ownership, consent and data-safety boundaries remain intact.
 
@@ -132,15 +135,22 @@ configuration validator ran; no candidate, profile, key or server state was
 mutated, and server freshness is NOT yet proved. Native schema7 and Mobile
 structureRevision1 belong to this later matched pair, not the preserved bba pair.
 
-`/root/mobile_actions_recovery_20260913` is concurrently preparing ONE
-product-only generic-Simulator DebugLocal candidate from the already committed
-Home/Reader/Markdown, Structure and private-lock sources. It owns narrowly
-necessary Mobile/Swift compile corrections and its own candidate receipt, not
-Native source/output or new wire/consent decisions. No test target, Simulator
-boot, app/device launch, provisioning or Cloud access is part of this build.
-This provider-free local-UX candidate must NOT be called the entitled Structure
-sync partner; its source/build/receipt and the later fresh scoped pair remain
-separate. Device24 and the existing installation are unchanged.
+`/root/mobile_actions_recovery_20260913` completed ONE product-only
+generic-Simulator DebugLocal candidate and handed it back in7afc8f2: exact clean
+source6446b534b3269befaf36a07fb80bde6e0251e745, version0.1(25), four product
+targets, two build jobs, EXIT0. The committed Home/Reader/Markdown, Structure
+and private-lock sources compiled together without a product correction. Root
+independently read build.exit/Info.plist and verified the existing candidate
+receipt against the preserved app and clean Xcode-project snapshot. App-tree SHA
+is2bd065664f717ace4641ac16a61f1ea9e937d3845e662e816067771299cad31e;
+report/app/receipt are under
+`artifacts/build/mobile-debuglocal-6446b53-20260913/`. The isolated source and
+DerivedData at `/private/tmp/ahoi-mobile-debuglocal25.7q8d3O/` remain protected.
+No test target, Simulator boot, app/device launch, provisioning or Cloud access
+occurred. This provider-free local-UX candidate is NOT the entitled Structure
+sync partner. Its visible Home/Reader/private-lock acceptance remains open;
+Device24, installed Native55ab and the bba scope are unchanged. No Mobile build
+or test is currently queued.
 
 A single selective physical-preference read found Device24 still Sync OFF;
 its temporary local copy was removed and the original device state was not
