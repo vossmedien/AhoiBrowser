@@ -25,29 +25,41 @@ file/build ownership, consent and data-safety boundaries remain intact.
 
 ## Actual recovery and current workers — September13
 
-**Continue from the actual current upload/retry boundary, not the predecessor
-builds below:** installed55f61ca is stable in the bounded native journey but
-still does not complete an ACK cycle. Its safe runtime diagnostic recorded
-expected10/saved1/resolved5/unresolved4/ACK6, item CKError14. Because four items
-remain unresolved, reporting failure and retaining the outbox is correct.
-Post-quit state was outbox16/ACK0, attempt13 and a02:45UTC retry deadline.
-No own Ahoi UI remains active. Details belong in the owner's current
+**Current installed result is26b01b1, not the failed predecessors below.**
+Build65225, scoped sign/verify65919 and install69712 completed EXIT0. The real
+retained-MacA journey performed a visible manual retry before the old deadline,
+then one justified follow-up with server metadata. The same process stayed
+stable and displayed "Synchronisiert und bereit" before ordinary quit.
+Root independently read the actual installed26 source and post-quit database:
+outbox0, acknowledged16, native_observations2; retry0/0/0/empty and both recovery
+flags false. Bookmark consent remains revoked. This proves the native MacA
+upload/ACK boundary, NOT a peer/physical Mac–iPhone roundtrip. Exact receipts,
+counts and retained failures are in the current
 [Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md) and
-`artifacts/e2e/native-sync-55f61ca-20260913/`.
+[26 runtime report](../artifacts/e2e/native-sync-26b01b1-20260913/README.md).
+Canonical product commits614d297/2948361/628d163/f7d276c/6fee878 preserve these
+corrections; old55/178 builds, failures and retry deadlines are historical.
 
-The next explicitly scoped correction is the real retry-starvation bug:
-automatic calls before the deadline must not MarkRetry and postpone it again.
-A deliberate visible SyncNowFromUser invokes one existing transport attempt,
-without clearing state or bypassing SDK/consent limits; an in-flight click joins
-that attempt. Frozen178dc7b implements that distinction plus numeric diagnostics
-and is being built. Separately2948361 ends the old retry state only AFTER a
-durably successful completed cycle, before a coalesced automatic follow-up,
-and propagates ClearRetry failure rather than claiming success. That correction
-must be included in the final candidate, without mutating a running snapshot.
-No packet here changes the wire/schema or unblocks the still-OFF physical peer.
-The active owner has bounded authority for the provider/pump/service/backend
-and existing native Sync Now call path; no other Common or Structure WIP is
-transferred. Existing group/phone data and key material remain untouched.
+Root has asked the user for the one ordinary physical action needed on the
+confirmed installed Device24: open Ahoi Settings on Servusla, enable CloudKit
+Sync and report the status without account/key details. Until an actual response
+or readback, Phone opt-in is unproved. No manual key copy, zone/store reset or
+artificially seeded phone state is allowed.
+
+**Next independent product gap:** read-only inspection of the exact26/Device24
+sources found that Mobile already schedules domain import/projection after
+unsolicited CK fetches, while Native only persists its inbox and waits for a
+later startup/manual/local/five-minute sync. That is not the required live
+arrival in an already open native window. Desktop is explicitly implementing
+the minimal durable-inbox -> provider signal -> existing domain import/native
+projection wake, without a new engine or a faster polling timer. Receive-only
+work must not wait for an outgoing backoff or clear it as a fake upload success.
+The active bounded scope includes the existing provider/interface/factory,
+pump/backend/service, and the necessary SyncStore import/precommit lease plus
+preserve-outgoing-retry option. Coalesce events, retain original consent and
+generation through import/ACK, and never focus or eager-load peer pages.
+No other Common/Structure WIP is transferred. This next source work must not
+overwrite the preserved26 candidate or be called a live-peer pass before E2E.
 
 The previous two workers were no longer in the live collaboration inventory.
 The old `/private/tmp/ahoi-native-sync-build.eqejEO/repo` is missing; the Git
