@@ -30,6 +30,7 @@ source_set("tab_tree") {
     "tab_tree_store_node_mutations.cc",
     "tab_tree_store_queries.cc",
     "tab_tree_store_snapshot.cc",
+    "tab_tree_store_structure.cc",
     "tab_tree_store_undo.cc",
     "tab_tree_store_validation.cc",
     "tab_tree_store_workspace.cc",

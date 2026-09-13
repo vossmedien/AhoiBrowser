@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "ahoi/browser/resource_policy/resource_policy_service_factory.h"
 #include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -36,6 +37,7 @@ SessionBridgeFactory::SessionBridgeFactory()
   DependsOn(CommandServiceFactory::GetInstance());
   DependsOn(WorkspaceServiceFactory::GetInstance());
   DependsOn(sync::ProfileSyncServiceFactory::GetInstance());
+  DependsOn(resource_policy::ResourcePolicyServiceFactory::GetInstance());
 }
 
 SessionBridgeFactory::~SessionBridgeFactory() = default;

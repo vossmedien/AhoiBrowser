@@ -172,6 +172,9 @@ void SessionBridge::ScheduleTemporaryPageClose(tabs::TabInterface* tab) {
     return;
   }
   const auto node_id = *found->second.node_id;
+  if (tab_tree_store_ && tab_tree_store_->IsNodeArchived(node_id)) {
+    return;
+  }
   if (!pending_temporary_closes_.insert(node_id).second) {
     return;
   }
@@ -184,7 +187,8 @@ void SessionBridge::ScheduleTemporaryPageClose(tabs::TabInterface* tab) {
 void SessionBridge::DeleteClosedTemporaryPage(const base::Uuid& node_id) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!pending_temporary_closes_.erase(node_id) || !is_ready() ||
-      FindTabByTreeNodeId(node_id)) {
+      FindTabByTreeNodeId(node_id) ||
+      tab_tree_store_->IsNodeArchived(node_id)) {
     return;
   }
   const auto result =

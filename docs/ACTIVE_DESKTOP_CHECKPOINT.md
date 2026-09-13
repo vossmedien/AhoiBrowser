@@ -1,5 +1,27 @@
 # Active Desktop checkpoint
 
+## Native Structure source integration — 13 September 2026
+
+The recovery owner is continuing the existing e7abcff/c2718ac/6ce5046 Native
+WIP in the canonical worktree. The domain source now includes Session lifecycle
+and service lifetime wiring, stable split capture/resting materialization,
+local SQLite structure state, original remote read/publication leases, guarded
+archive/restore and workspace archive policy. Existing retained pages remain
+the restore identity authority; a missing parent currently returns failure.
+ResourcePolicy excludes active/visible, pinned, media/capture, KeepLoaded,
+form/edit, download, unload and protected dialog flows before archive close.
+
+This is SOURCE work only: no overlay, Chromium compilation, installation, UI,
+profile, key or CloudKit operation. clang-format (Chromium style), GN formatting
+and diff whitespace checks ran; they are not compile/runtime acceptance.
+The next authorized source step is the existing Native menu/dialog/command
+integration for Archive/Restore/Policy, explicit missing-parent placement and
+Saved Home actions where absent. Do not build the intermediate domain-only
+package. One later complete Structure candidate must use the separate
+[Structure scope manifest](../artifacts/e2e/shared-sync-structure-development-scope-20260913.json)
+(96950f6b-50e0-4e2c-9a94-852dc5099446, Native schema7), not the protected bba
+receiver/profile. Existing 55ab installation and Device24 are unchanged.
+
 ## Current native receiver — 13 September 2026
 
 **Actually installed:** `55abcf76498dcc8629f94e5ecebde89a4269ecf3`, the scoped

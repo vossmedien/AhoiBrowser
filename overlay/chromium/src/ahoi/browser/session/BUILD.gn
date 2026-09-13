@@ -84,6 +84,8 @@ source_set("session_bridge_api") {
 
 source_set("session") {
   sources = [
+    "native_workspace_structure.cc",
+    "native_workspace_structure.h",
     "session_bridge.cc",
     "session_bridge_extension_setup.cc",
     "session_bridge_factory.cc",
@@ -92,10 +94,17 @@ source_set("session") {
     "session_bridge_observers.cc",
     "session_bridge_runtime.cc",
     "session_bridge_session.cc",
+    "session_bridge_structure_persistence.cc",
     "session_bridge_sync_persistence.cc",
     "session_bridge_workspace.cc",
     "workspace_service_factory.cc",
     "workspace_service_factory.h",
+    "workspace_structure_controller.cc",
+    "workspace_structure_controller.h",
+    "workspace_structure_controller_archive.cc",
+    "workspace_structure_controller_sync.cc",
+    "workspace_structure_state.cc",
+    "workspace_structure_state.h",
   ]
 
   public_deps = [
@@ -118,6 +127,7 @@ source_set("session") {
   deps = [
     "//ahoi/browser/extensions:native_setup_inventory",
     "//ahoi/browser/extensions:native_setup_operation",
+    "//ahoi/browser/resource_policy",
     "//ahoi/browser/sync:profile_sync_service",
     "//chrome/browser/lifetime",
     "//chrome/browser/sessions",
@@ -125,6 +135,7 @@ source_set("session") {
     "//chrome/browser/ui/tabs:tab_strip",
     "//components/keyed_service/content",
     "//components/sessions",
+    "//components/split_tabs",
     "//content/public/browser",
     "//extensions/browser",
   ]

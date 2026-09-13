@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -57,9 +58,20 @@ class TabTreeStore {
   struct PersistenceSnapshot {
     TabTreeSnapshot tree;
     std::string sync_baseline_receipt;
+    // Local split/archive domain state, bindings and durable original intents.
+    // Kept in this same SQLite database; never exposed by the tree wire codec.
+    std::string workspace_structure_state;
 
     bool operator==(const PersistenceSnapshot&) const = default;
   };
+
+  std::optional<std::string> ReadWorkspaceStructureState();
+  [[nodiscard]] Result SetWorkspaceStructureState(std::string state);
+  bool IsNodeArchived(const base::Uuid& id) const;
+  [[nodiscard]] Result SetWorkspaceArchivePolicy(
+      const base::Uuid& workspace_id,
+      sync::SharedArchivePolicy policy,
+      base::Time modified_at);
 
   TabTreeStore();
   TabTreeStore(const TabTreeStore&) = delete;
@@ -216,6 +228,7 @@ class TabTreeStore {
   [[nodiscard]] bool CreateSchema();
   [[nodiscard]] bool MigrateNodesToSchema3();
   [[nodiscard]] bool MigrateSchema(sql::MetaTable* meta_table);
+  bool LoadWorkspaceStructureState();
   [[nodiscard]] bool InitializeSchema();
   [[nodiscard]] bool IsReady() const;
   [[nodiscard]] bool ValidateWorkspace(const Workspace& workspace) const;
@@ -226,6 +239,7 @@ class TabTreeStore {
   [[nodiscard]] Result ReplaceSnapshot(
       const TabTreeSnapshot& snapshot,
       const std::string* sync_baseline_receipt,
+      const std::string* workspace_structure_state,
       const base::RepeatingCallback<bool()>& authorization)
       VALID_CONTEXT_REQUIRED(sequence_checker_);
 
@@ -263,6 +277,7 @@ class TabTreeStore {
       VALID_CONTEXT_REQUIRED(sequence_checker_);
 
   sql::Database db_ GUARDED_BY_CONTEXT(sequence_checker_);
+  std::set<base::Uuid> archived_node_ids_ GUARDED_BY_CONTEXT(sequence_checker_);
   base::ObserverList<TabTreeObserver> observers_;
   SEQUENCE_CHECKER(sequence_checker_);
 };

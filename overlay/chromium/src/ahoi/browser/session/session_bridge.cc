@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/workspace_structure_controller.h"
 
 #include <algorithm>
 #include <set>
@@ -76,6 +77,7 @@ base::WeakPtr<sync::ProfileSyncUiBridge> SessionBridge::GetWeakPtrForSync() {
 
 void SessionBridge::Shutdown() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  workspace_structure_controller_.reset();
   if (session_metadata_provider_registered_) {
     session::UnregisterWorkspaceSessionMetadataProvider(profile_, this);
     session_metadata_provider_registered_ = false;
@@ -242,6 +244,9 @@ bool SessionBridge::FinishRuntimeInitialization() {
   // tree snapshot has loaded. Apply their metadata only now, against the
   // authoritative workspace/node identities rather than the bootstrap store.
   ApplyPendingSessionMetadata();
+  workspace_structure_controller_ =
+      std::make_unique<session::WorkspaceStructureController>(this, profile_);
+  workspace_structure_controller_->Initialize();
   // The sidebar may already be showing its immediate bootstrap projection.
   // Publish one authoritative ready transition even when restoration did not
   // otherwise mutate a tracked tab, so saved/runtime classification cannot

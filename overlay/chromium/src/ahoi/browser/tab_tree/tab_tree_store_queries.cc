@@ -141,7 +141,9 @@ TabTreeStore::Result TabTreeStore::GetChildren(
     if (!internal::DecodeNode(statement, &node) || !ValidateNode(node)) {
       return Result::kDatabaseError;
     }
-    decoded.push_back(std::move(node));
+    if (!node.is_temporary || !IsNodeArchived(node.id)) {
+      decoded.push_back(std::move(node));
+    }
   }
   if (!statement.Succeeded()) {
     return Result::kDatabaseError;
@@ -192,7 +194,9 @@ TabTreeStore::Result TabTreeStore::FindSavedPagesByUrl(
     if (!internal::DecodeNode(statement, &node) || !ValidateNode(node)) {
       return Result::kDatabaseError;
     }
-    decoded.push_back(std::move(node));
+    if (!node.is_temporary || !IsNodeArchived(node.id)) {
+      decoded.push_back(std::move(node));
+    }
   }
   if (!statement.Succeeded()) {
     return Result::kDatabaseError;
@@ -308,6 +312,11 @@ TabTreeStore::Result TabTreeStore::ExportPersistenceSnapshot(
     return Result::kDatabaseError;
   }
   PersistenceSnapshot exported;
+  const auto structure = ReadWorkspaceStructureState();
+  if (!structure) {
+    return Result::kDatabaseError;
+  }
+  exported.workspace_structure_state = *structure;
   const Result result = ExportSnapshot(&exported.tree);
   if (result != Result::kOk) {
     return result;

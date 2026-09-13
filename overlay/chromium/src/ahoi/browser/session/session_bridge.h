@@ -50,6 +50,9 @@ class Extension;
 }
 
 namespace ahoi {
+namespace session {
+class WorkspaceStructureController;
+}
 
 namespace extensions {
 class NativeExtensionSetupOperation;
@@ -120,6 +123,20 @@ class SessionBridge : public KeyedService,
   void RequestSharedTabCapture(uint64_t generation) override;
   sync::NativeExtensionSetupSnapshot ReadNativeExtensionSetup() override;
   void InitializeNativeExtensionSetup();
+  void CommitWorkspaceStructureState(
+      std::string state,
+      base::RepeatingCallback<bool()> authorization,
+      base::OnceCallback<void(bool)> completion);
+  // Local domain operations. They persist with Sync OFF and never open or
+  // focus WebContents. The caller presents failure/missing-parent choices.
+  void ArchiveTemporaryPages(std::vector<base::Uuid> nodes,
+                             base::OnceCallback<void(bool)> completion);
+  void RestoreArchivedPages(base::Uuid entry_id,
+                            base::OnceCallback<void(bool)> completion);
+  std::vector<sync::TabArchiveEntryRecord> GetArchivedPages() const;
+  [[nodiscard]] tab_tree::TabTreeStore::Result SetWorkspaceArchivePolicy(
+      base::Uuid workspace_id,
+      sync::SharedArchivePolicy policy);
   void OnNativeExtensionUserSettingsRequested(
       const ::extensions::Extension& extension,
       bool installed,
@@ -395,6 +412,7 @@ class SessionBridge : public KeyedService,
       const TabStripModelChange& change,
       const TabStripSelectionChange& selection) override;
   void OnTabStripModelDestroyed(TabStripModel* tab_strip_model) override;
+  void OnSplitTabChanged(const SplitTabChange& change) override;
 
   // WorkspaceServiceObserver:
   void OnWorkspaceListChanged() override;
@@ -474,6 +492,8 @@ class SessionBridge : public KeyedService,
            std::unique_ptr<extensions::NativeExtensionSetupOperation>>
       extension_setup_operations_;
   base::CallbackListSubscription extension_user_settings_subscription_;
+  std::unique_ptr<session::WorkspaceStructureController>
+      workspace_structure_controller_;
   base::WeakPtrFactory<SessionBridge> weak_ptr_factory_{this};
 };
 

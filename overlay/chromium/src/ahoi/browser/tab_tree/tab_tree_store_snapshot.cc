@@ -19,7 +19,7 @@ namespace ahoi::tab_tree {
 TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
     const TabTreeSnapshot& snapshot) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  return ReplaceSnapshot(snapshot, nullptr, {});
+  return ReplaceSnapshot(snapshot, nullptr, nullptr, {});
 }
 
 TabTreeStore::Result TabTreeStore::ReplacePersistenceSnapshot(
@@ -27,12 +27,13 @@ TabTreeStore::Result TabTreeStore::ReplacePersistenceSnapshot(
     base::RepeatingCallback<bool()> authorization) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   return ReplaceSnapshot(snapshot.tree, &snapshot.sync_baseline_receipt,
-                         authorization);
+                         &snapshot.workspace_structure_state, authorization);
 }
 
 TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
     const TabTreeSnapshot& snapshot,
     const std::string* sync_baseline_receipt,
+    const std::string* workspace_structure_state,
     const base::RepeatingCallback<bool()>& authorization) {
   // Both public entry points validate the sequence; this helper requires it.
   if (!IsReady()) {
@@ -40,6 +41,11 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
   }
   if (authorization && !authorization.Run()) {
     return Result::kCancelled;
+  }
+  std::set<base::Uuid> hidden;
+  if (workspace_structure_state && !internal::DecodeWorkspaceStructureState(
+                                       *workspace_structure_state, &hidden)) {
+    return Result::kInvalidArgument;
   }
 
   std::unordered_map<base::Uuid, const Workspace*, base::UuidHash> workspaces;
@@ -291,12 +297,24 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       return Result::kDatabaseError;
     }
   }
+  if (workspace_structure_state) {
+    sql::Statement state(
+        db_.GetUniqueStatement("INSERT OR REPLACE INTO meta(key,value) "
+                               "VALUES('ahoi.workspace_structure',?)"));
+    state.BindString(0, *workspace_structure_state);
+    if (!state.Run()) {
+      return Result::kDatabaseError;
+    }
+  }
 
   if (authorization && !authorization.Run()) {
     return Result::kCancelled;
   }
   if (!transaction.Commit()) {
     return Result::kDatabaseError;
+  }
+  if (workspace_structure_state) {
+    archived_node_ids_ = std::move(hidden);
   }
   if (!changed_ids.empty()) {
     // Existing loaded-tree observers perform an identity-preserving splice,

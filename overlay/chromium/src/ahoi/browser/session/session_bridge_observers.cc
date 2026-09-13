@@ -10,6 +10,7 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
+#include "ahoi/browser/session/workspace_structure_controller.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -459,6 +460,9 @@ void SessionBridge::OnTabStripModelChanged(
   if (shutting_down_ || !model_windows_.contains(tab_strip_model)) {
     return;
   }
+  if (workspace_structure_controller_) {
+    workspace_structure_controller_->OnNativeChanged();
+  }
 
   switch (change.type()) {
     case TabStripModelChange::kSelectionOnly:
@@ -511,6 +515,12 @@ void SessionBridge::OnTabStripModelDestroyed(TabStripModel* tab_strip_model) {
   }
 }
 
+void SessionBridge::OnSplitTabChanged(const SplitTabChange& change) {
+  if (!shutting_down_ && workspace_structure_controller_) {
+    workspace_structure_controller_->OnSplitChanged(change);
+  }
+}
+
 void SessionBridge::OnWorkspaceListChanged() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   ScheduleWorkspaceReconciliation();
@@ -532,6 +542,9 @@ void SessionBridge::OnActiveWorkspaceChanged(const base::Uuid& window_id,
 
 void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (workspace_structure_controller_ && !applying_synced_tree_snapshot_) {
+    workspace_structure_controller_->OnNativeChanged();
+  }
   bool runtime_presentation_changed = false;
   for (const base::Uuid& node_id : change.node_ids) {
     auto bound = node_tabs_.find(node_id);

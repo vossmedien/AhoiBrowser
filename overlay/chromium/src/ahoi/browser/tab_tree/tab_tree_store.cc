@@ -69,7 +69,7 @@ bool TabTreeStore::InitializeSchema() {
     }
   }
 
-  return initialized;
+  return initialized && LoadWorkspaceStructureState();
 }
 
 void TabTreeStore::AddObserver(TabTreeObserver* observer) {

@@ -5,6 +5,8 @@
 #ifndef AHOI_BROWSER_TAB_TREE_TAB_TREE_STORE_INTERNAL_H_
 #define AHOI_BROWSER_TAB_TREE_TAB_TREE_STORE_INTERNAL_H_
 
+#include <set>
+#include <string_view>
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 
 namespace sql {
@@ -15,6 +17,8 @@ namespace ahoi::tab_tree::internal {
 
 bool DecodeWorkspace(sql::Statement& statement, Workspace* workspace);
 bool DecodeNode(sql::Statement& statement, TreeNode* node);
+bool DecodeWorkspaceStructureState(std::string_view state,
+                                   std::set<base::Uuid>* hidden_nodes);
 bool DecodeHome(sql::Statement& statement, int first_column, TreeNode* node);
 void BindHome(sql::Statement& statement,
               int first_column,

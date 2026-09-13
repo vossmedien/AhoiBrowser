@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/workspace_structure_controller.h"
 #include "base/auto_reset.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -132,7 +133,8 @@ void SessionBridge::ApplySyncedTabTreeSnapshotWithReceipt(
       },
       std::move(authorization), pending_tree_apply_cancelled_);
   Store::PersistenceSnapshot projected{std::move(snapshot),
-                                       std::move(baseline_receipt)};
+                                       std::move(baseline_receipt),
+                                       before.workspace_structure_state};
   // Existing local writes are ahead of this task on the SAME sequence. RAM
   // stays untouched until the remote tree+receipt has committed, so a failed
   // remote write cannot leak through a later ordinary persistence flush.
@@ -220,6 +222,9 @@ void SessionBridge::OnLocalTabTreePersisted(Store::PersistenceSnapshot snapshot,
     // The earlier mutation invalidated stale work. Common may observe this
     // SAME revision only now, after its disk commit has actually succeeded.
     NotifyTabTreeSnapshotChanged();
+    if (workspace_structure_controller_) {
+      workspace_structure_controller_->OnNativeChanged();
+    }
   }
 }
 
