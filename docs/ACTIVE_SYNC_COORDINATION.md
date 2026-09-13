@@ -5,20 +5,21 @@ Updated: 2026-09-13. Root coordinates the same canonical branch,
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
 
-## Current runtime handoff — September13, 00:17UTC
+## Current runtime handoff — September13, 00:31UTC
 
-MBC's own8998792A has a NEW explicit START01a09820 for the already built
-memory-20260912 native memory journey: activate consent, open/skip original
-source, DE/EN and restart. Root holds Ahoi's global CUA/focus actions until
-MBC's natural completion and explicit handback. BetterConvo's separately
-authorized device-bound work without global focus is unchanged. No foreign
-process/device was stopped, and no prior START is revived by this grant.
+MBC explicitly returned its window: its interrupted run is terminal, old UI
+handles are absent and own8998792A was freshly read as Shutdown. Its functional
+memory journey remains unfinished; that does not retain a UI reservation.
+The earlier START01a09820 is consumed and closed, not to be replayed.
 
-This consumes Root's already explicit c8 UI handback, with a fresh corroborating
-readback at the grant: no running native Ahoi app and no booted Simulator. MBC
-subsequently reported its actual takeover; wait for that journey's explicit
-handback before another Ahoi UI action. The restarted workers below have no
-grant for UI/App starts during this window.
+Root directly granted `/root/desktop_recovery_20260913` the next short native
+journey after a successful corrected build/sign/install and fresh candidate,
+scope, process and surface checks. Verify the corrected OFF label/sidebar,
+then visible Sync ON and, if needed, the explicitly authorized local-upload
+recovery in MacA only. Root/Mobile will not compete for UI. No hidden AX action,
+flag/key/store reset or real-Default operation follows from this grant.
+Desktop returns the window with its actual result and cleanup. BetterConvo's
+separate device-bound permission without global focus remains unchanged.
 
 ## Actual recovery and current workers — September13
 
@@ -75,7 +76,7 @@ evidence that cleanup occurred or that a measured amount of space was reclaimed.
 
 | Assigned owner | Exclusive product scope |
 | --- | --- |
-| `/root/desktop_recovery_20260913` | Current exact e4 recovery: isolated source, shared Chromium checkout/out, guarded app build/sign/install; no UI until MBC handback |
+| `/root/desktop_recovery_20260913` | Current exact e4 recovery: isolated source, shared Chromium checkout/out, guarded app build/sign/install and the bounded native UI handoff above |
 | `/root/mobile_actions_recovery_20260913` | Retained Mobile Home/Reader/Markdown source only; no build, device, signing or Common/Native edits |
 | `/root` | Coordination and acceptance, this checkpoint; no competing product implementation |
 
