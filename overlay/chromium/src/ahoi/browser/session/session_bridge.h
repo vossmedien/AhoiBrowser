@@ -60,6 +60,10 @@ class NativeExtensionSetupOperation;
 
 class CommandService;
 
+namespace sync {
+struct TabArchiveEntryRecord;
+}
+
 inline constexpr char kTabTreeDatabaseFilename[] = "Ahoi Tab Tree";
 
 // Profile-scoped runtime join between Ahoi's persistent UUID model and

@@ -3,10 +3,22 @@
 ## Native Structure candidate — 13 September 2026
 
 **Frozen combined source89993af004d3c73a202422fe9c950310e149ac92 is committed
-and pushed.** Guarded app-only invocation68856 has started from the clean
+and pushed.** Guarded app-only invocation68856 is TERMINAL EXIT1 from the clean
 isolated `/private/tmp/ahoi-native-structure.HoBjQO/repo`, using the existing
 verified .65 checkout/out with2jobs. Actual logs/exits/receipt are under
 [native-structure-89993af-20260913](../artifacts/build/native-structure-89993af-20260913/README.md).
+Its build parent16141 (PPID12554) was briefly SIGSTOPped before compilation
+after a31.29GiB free-space dip below the32GiB hard floor. It has now been
+revalidated and CONT-resumed with stable33.5GiB,42.5%CPU idle and no further
+swap-outs; hooks completed successfully. The resumed run then collected its
+compiler errors and ended;16141/68856 are historical, not resumable processes.
+No foreign process/protected artifact was changed.
+Six compiler causes in five Native files are corrected separately: missing
+archive forward declaration (and its consequential method mismatch), cstring_view
+SQL API conversion, full menu enum include, safe policy-name iteration, a
+shadowed restore callback variable and lvalue DictValue Set chaining. No warning,
+validator, consent, schema, Common or Swift code was weakened/changed. One
+incremental app-only corrective run follows the exact committed fix snapshot.
 No completion receipt, scoped969 signing, installation or visible pass is yet
 claimed. The prior receiver worktrees/outputs and installed55ab remain protected.
 Root has now reported the actual unlock event (IOConsoleLocked=No) and owns

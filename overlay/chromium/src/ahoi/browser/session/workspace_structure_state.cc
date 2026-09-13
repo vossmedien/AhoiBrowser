@@ -227,15 +227,15 @@ std::optional<std::string> EncodeWorkspaceStructureState(
       return std::nullopt;
     }
     base::DictValue d;
-    d.Set("type", static_cast<int>(sync::GetEntityType(e.record)))
-        .Set("record", record)
-        .Set("baseline", e.baseline)
-        .Set("pending", e.pending)
-        .Set("pending_expected", e.pending_expected)
-        .Set("native_split_token", e.native_split_token)
-        .Set("private_nodes", EncodeNodes(e.private_nodes))
-        .Set("archived_locally", e.archived_locally)
-        .Set("restore_pending", e.restore_pending);
+    d.Set("type", static_cast<int>(sync::GetEntityType(e.record)));
+    d.Set("record", record);
+    d.Set("baseline", e.baseline);
+    d.Set("pending", e.pending);
+    d.Set("pending_expected", e.pending_expected);
+    d.Set("native_split_token", e.native_split_token);
+    d.Set("private_nodes", EncodeNodes(e.private_nodes));
+    d.Set("archived_locally", e.archived_locally);
+    d.Set("restore_pending", e.restore_pending);
     d.Set("observed_split", e.observed_split
                                 ? base::Value(EncodeSplit(*e.observed_split))
                                 : base::Value());

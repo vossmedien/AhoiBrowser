@@ -4,6 +4,7 @@
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 
 #include <algorithm>
+#include <array>
 
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
@@ -22,6 +23,7 @@
 #include "content/public/browser/web_contents.h"
 #include "ui/base/l10n/time_format.h"
 #include "ui/base/models/dialog_model.h"
+#include "ui/base/mojom/menu_source_type.mojom-shared.h"
 #include "ui/base/page_transition_types.h"
 #include "ui/menus/simple_menu_model.h"
 #include "ui/views/bubble/bubble_dialog_model_host.h"
@@ -44,15 +46,15 @@ void BrowserSidebarHostView::BuildArchiveMenus() {
   context_menu_model_->AddItem(
       kArchiveList, StructureText(u"Archiv durchsuchen …", u"Search archive…"));
   context_archive_policy_model_ = std::make_unique<ui::SimpleMenuModel>(this);
-  const std::u16string labels[] = {
+  const std::array labels = {
       StructureText(u"Nie (Standard)", u"Never (default)"),
       StructureText(u"Nach 12 Stunden", u"After 12 hours"),
       StructureText(u"Nach 24 Stunden", u"After 24 hours"),
       StructureText(u"Nach 7 Tagen", u"After 7 days"),
       StructureText(u"Nach 30 Tagen", u"After 30 days")};
-  for (int i = 0; i < 5; ++i)
-    context_archive_policy_model_->AddCheckItem(kArchivePolicyCommandBase + i,
-                                                labels[i]);
+  int policy_command = kArchivePolicyCommandBase;
+  for (const auto& label : labels)
+    context_archive_policy_model_->AddCheckItem(policy_command++, label);
   context_menu_model_->AddSubMenu(
       kArchivePolicy,
       StructureText(u"Inaktive temporäre Tabs archivieren",

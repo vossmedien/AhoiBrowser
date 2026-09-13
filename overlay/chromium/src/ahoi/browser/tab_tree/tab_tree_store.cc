@@ -163,7 +163,9 @@ bool TabTreeStore::MigrateSchema(sql::MetaTable* meta_table) {
     for (const char* table : {"tree_nodes", "undo_node_snapshots"}) {
       for (const char* column :
            {"home_url", "home_target_kind", "home_local_scheme"}) {
-        if (db_.DoesColumnExist(table, column)) {
+        const std::string table_name(table);
+        const std::string column_name(column);
+        if (db_.DoesColumnExist(table_name, column_name)) {
           continue;
         }
         const std::string type =

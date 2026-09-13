@@ -407,20 +407,20 @@ void WorkspaceStructureController::Restore(
               std::move(done).Run(false);
               return;
             }
-            for (const auto& [id, entry] : attempted) {
-              const auto prior = before.find(id);
+            for (const auto& [entry_id, entry] : attempted) {
+              const auto prior = before.find(entry_id);
               if (prior == before.end() || prior->second == entry)
                 continue;
-              auto current = owner->state_.entries.find(id);
+              auto current = owner->state_.entries.find(entry_id);
               if (current == owner->state_.entries.end() ||
                   current->second != entry)
                 continue;
               if (!ok)
                 current->second = prior->second;
               else {
-                owner->local_changes_.insert(id);
-                owner->remote_authorities_.erase(id);
-                owner->blocked_publications_.erase(id);
+                owner->local_changes_.insert(entry_id);
+                owner->remote_authorities_.erase(entry_id);
+                owner->blocked_publications_.erase(entry_id);
               }
             }
             if (ok)
