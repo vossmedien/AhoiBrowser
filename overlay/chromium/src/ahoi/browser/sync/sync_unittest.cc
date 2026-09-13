@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/sync/browser_setting_consent.h"
 #include "ahoi/browser/sync/device_tabs_service.h"
 #include "ahoi/browser/sync/history_sync_filter.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
@@ -22,6 +23,7 @@
 #include "base/base64.h"
 #include "base/files/file_path.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/test/bind.h"
 #include "base/test/task_environment.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
@@ -108,11 +110,64 @@ class FakeSyncProvider final : public SyncProvider {
                             std::move(result.error));
   }
 
+  SyncAuthorization GetTransportAuthorization() override { return transport; }
+  SyncAuthorization GetDownloadAuthorization(const std::string&) override {
+    return delivery;
+  }
+  void SetIncomingCallback(IncomingCallback callback) override {
+    incoming = std::move(callback);
+  }
+  void ReadPendingChanges(std::string token,
+                          SyncAuthorization authorization,
+                          DownloadCallback callback) override {
+    ++cached_reads;
+    ASSERT_TRUE(authorization && authorization.Run());
+    ASSERT_FALSE(cached_results.empty());
+    auto result = std::move(cached_results.front());
+    cached_results.pop_front();
+    std::move(callback).Run(result.success, std::move(result.batch),
+                            std::move(result.error));
+  }
+  bool AcknowledgeDownloaded(std::string token,
+                             SyncAuthorization authorization) override {
+    if (!authorization || !authorization.Run())
+      return false;
+    acknowledged.push_back(std::move(token));
+    if (after_ack)
+      after_ack.Run();
+    return true;
+  }
+
+  SyncAuthorization transport;
+  SyncAuthorization delivery;
+  IncomingCallback incoming;
+  base::RepeatingClosure after_ack;
+  std::deque<DownloadResult> cached_results;
+  std::vector<std::string> acknowledged;
+  int cached_reads = 0;
+
   std::deque<UploadResult> upload_results;
   std::deque<DownloadResult> download_results;
   std::vector<std::vector<SyncChange>> uploads;
   std::vector<std::string> download_tokens;
 };
+
+ProviderBatch CachedTabBatch() {
+  auto tab =
+      Tab("10000000-0000-4000-8000-000000000091",
+          "10000000-0000-4000-8000-000000000092",
+          "10000000-0000-4000-8000-000000000093", "https://incoming.test",
+          Version("10000000-0000-4000-8000-000000000092", 11644473600000100LL));
+  tab.opened_at = At(11644473600000010LL);
+  std::string payload;
+  EXPECT_TRUE(SerializeRecord(tab, &payload));
+  SyncChange change{.mutation_id = "cached-receive",
+                    .entity_type = EntityType::kRemoteTab,
+                    .entity_id = tab.id,
+                    .version = tab.version,
+                    .payload = std::move(payload)};
+  return {{std::move(change)}, "incoming-token", false};
+}
 
 }  // namespace
 
@@ -695,6 +750,120 @@ TEST(SyncPumpTest, RejectsNonAdvancingProviderPaginationToken) {
   EXPECT_TRUE(completed);
   EXPECT_EQ(store.GetRetryState().attempt, 1);
   ASSERT_EQ(provider.download_tokens.size(), 1u);
+}
+
+TEST(SyncReceiveBoundaryTest, CachedBurstPreservesOutgoingRetryAndFetchClaim) {
+  base::test::TaskEnvironment tasks;
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  ASSERT_EQ(store.MarkRetry(base::Time::Now() + base::Hours(1), "network"),
+            SyncStore::Result::kOk);
+  const auto retry = store.GetRetryState();
+  FakeSyncProvider provider;
+  provider.transport = provider.delivery =
+      base::BindRepeating([] { return true; });
+  provider.cached_results.push_back({.batch = CachedTabBatch()});
+  provider.cached_results.push_back({.batch = {{}, "incoming-token", false}});
+  SyncPump pump(&store, &provider);
+  int updates = 0;
+  pump.SetIncomingAppliedCallback(
+      base::BindLambdaForTesting([&](SyncAuthorization scope) {
+        EXPECT_TRUE(scope.Run());
+        ++updates;
+      }));
+  for (int i = 0; i < 20; ++i)
+    provider.incoming.Run(provider.transport);
+  tasks.RunUntilIdle();
+  EXPECT_EQ(provider.cached_reads, 2);
+  EXPECT_EQ(updates, 1);
+  EXPECT_TRUE(provider.uploads.empty());
+  EXPECT_TRUE(provider.download_tokens.empty());
+  EXPECT_EQ(store.GetRetryState(), retry);
+  EXPECT_FALSE(store.HasCompletedInitialFetch());
+  EXPECT_EQ(store.GetChangeToken(), "incoming-token");
+  EXPECT_EQ(store.PendingOutboxCount(), 0);
+  std::vector<RemoteTabRecord> tabs;
+  ASSERT_EQ(store.GetRemoteTabs(&tabs), SyncStore::Result::kOk);
+  ASSERT_EQ(tabs.size(), 1u);
+  EXPECT_EQ(tabs.front().url, "https://incoming.test");
+}
+
+TEST(SyncReceiveBoundaryTest, OriginalDeliveryLeaseStaysRevokedAfterOffOn) {
+  base::test::TaskEnvironment tasks;
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  BrowserSettingConsent consent;
+  const auto id = Id("10000000-0000-4000-8000-000000000094");
+  consent.SetAllowed({id});
+  FakeSyncProvider provider;
+  provider.transport = base::BindRepeating([] { return true; });
+  provider.delivery = consent.Capture(id);
+  provider.cached_results.push_back({.batch = CachedTabBatch()});
+  SyncPump pump(&store, &provider);
+  int updates = 0;
+  pump.SetIncomingAppliedCallback(
+      base::BindLambdaForTesting([&](SyncAuthorization) { ++updates; }));
+  provider.incoming.Run(provider.transport);
+  consent.SetAllowed({});
+  consent.SetAllowed({id});
+  ASSERT_TRUE(consent.Capture(id).Run());
+  tasks.RunUntilIdle();
+  EXPECT_FALSE(provider.delivery.Run());
+  EXPECT_TRUE(store.GetChangeToken().empty());
+  EXPECT_TRUE(provider.acknowledged.empty());
+  EXPECT_EQ(updates, 0);
+}
+
+TEST(SyncReceiveBoundaryTest, RevocationAtCommitRollsBackReceiveTransaction) {
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  BrowserSettingConsent consent;
+  const auto id = Id("10000000-0000-4000-8000-000000000094");
+  consent.SetAllowed({id});
+  auto original = consent.Capture(id);
+  int checks = 0;
+  auto authority = base::BindLambdaForTesting([&] {
+    if (++checks == 2) {
+      consent.SetAllowed({});
+      consent.SetAllowed({id});
+    }
+    return original.Run();
+  });
+  EXPECT_EQ(store.ApplyRemoteBatch(CachedTabBatch(), authority, true),
+            SyncStore::Result::kNotAuthorized);
+  EXPECT_EQ(checks, 2);
+  EXPECT_TRUE(store.GetChangeToken().empty());
+  EXPECT_FALSE(store.HasCompletedInitialFetch());
+  std::vector<RemoteTabRecord> tabs;
+  ASSERT_EQ(store.GetRemoteTabs(&tabs), SyncStore::Result::kOk);
+  EXPECT_TRUE(tabs.empty());
+}
+
+TEST(SyncReceiveBoundaryTest, RevocationAfterAckCannotPublishUiState) {
+  base::test::TaskEnvironment tasks;
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  BrowserSettingConsent consent;
+  const auto id = Id("10000000-0000-4000-8000-000000000094");
+  consent.SetAllowed({id});
+  FakeSyncProvider provider;
+  provider.transport = base::BindRepeating([] { return true; });
+  provider.delivery = consent.Capture(id);
+  provider.cached_results.push_back({.batch = CachedTabBatch()});
+  provider.after_ack = base::BindLambdaForTesting([&] {
+    consent.SetAllowed({});
+    consent.SetAllowed({id});
+  });
+  SyncPump pump(&store, &provider);
+  int updates = 0;
+  pump.SetIncomingAppliedCallback(
+      base::BindLambdaForTesting([&](SyncAuthorization) { ++updates; }));
+  provider.incoming.Run(provider.transport);
+  tasks.RunUntilIdle();
+  EXPECT_EQ(provider.acknowledged.size(), 1u);
+  EXPECT_EQ(store.GetChangeToken(), "incoming-token");
+  EXPECT_FALSE(provider.delivery.Run());
+  EXPECT_EQ(updates, 0);
 }
 
 }  // namespace ahoi::sync
