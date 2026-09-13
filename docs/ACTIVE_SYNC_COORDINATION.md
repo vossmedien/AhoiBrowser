@@ -152,6 +152,32 @@ sync partner. Its visible Home/Reader/private-lock acceptance remains open;
 Device24, installed Native55ab and the bba scope are unchanged. No Mobile build
 or test is currently queued.
 
+**Later physical partner prepared, not activated:** Root built the same clean
+6446b53 Mobile source as CloudKitDevelopment0.1(26), generic iOS/arm64,
+handle88339 EXIT0, four product targets and no tests. This separate build binds
+the prepared969 Structure scope. A preserved copy was signed with the existing
+iOS Development profilebbf658ff and exact147982d5 signing identity; handle92531
+and strict/deep verification EXIT0. Actual extracted certificate, exact signed
+Development entitlements, embedded profile bytes and unchanged Info.plist were
+verified. All seven actual built runtime fields match the prepared scope.
+Signed app-tree SHA256 is
+c11ed4f723c888a10b7e4876361c6c8d0fb3bf227b031700ba0262eb44e75414;
+unsigned/signed apps and exact receipt/report are under
+`artifacts/build/mobile-structure-development-6446b53-20260913/`.
+No device installation/launch, payload-key operation or CloudKit request took
+place. Existing profile/certificate/private keys were not created or replaced;
+ordinary signing used the already authorized identity. The old bba/Device24 and
+Native55ab remain unchanged. This is not a Runtime/CloudKit pass.
+
+Native source683d91b/e29ef31 now connects Structure persistence, capture,
+archive/restore/policy and Home actions. Root checked that Mobile/Swift and the
+format manifest/Golden are unchanged from6446b53 through e29ef31. Before the
+ONE following native candidate, the Desktop worker is closing the two still
+explicitly required Master items: searchable archive with reason/time and
+separately confirmed final deletion through the existing absorbing tombstone
+contract. These are unfinished required product behavior, not a new test matrix
+or an unchosen general UI redesign. No Native build/install has started.
+
 A single selective physical-preference read found Device24 still Sync OFF;
 its temporary local copy was removed and the original device state was not
 modified. Do not repeat that read or question without a user response or

@@ -24,6 +24,19 @@ Structure-Development scope committed in `2fd0321` was not applied; it belongs
 only to the later entitled schema7/structureRevision1 candidate and does not
 change the protected Device24/bba baseline.
 
+Root also completed the separate physical-iPhone candidate on that same clean
+source: CloudKitDevelopment0.1(26), generic iOS/arm64, build88339 EXIT0. It binds
+the prepared96950f6b-50e0-4e2c-9a94-852dc5099446 Structure scope. A separate copy
+was signed with the existing valid iOS profile and Apple Development identity;
+sign/strict-deep verification92531 EXIT0, exact entitlements/profile/certificate
+and unchanged Info.plist checked. Its signed tree is
+c11ed4f723c888a10b7e4876361c6c8d0fb3bf227b031700ba0262eb44e75414.
+Original/signed apps, log/XCResult and exact receipt are in
+[`artifacts/build/mobile-structure-development-6446b53-20260913/`](../artifacts/build/mobile-structure-development-6446b53-20260913/README.md).
+This candidate is NOT installed or launched; no payload key or CloudKit call
+occurred. Its matching Native Structure app is still unbuilt. Preserve both
+Device24/bba and local-UX25; no Mobile build or test is currently running.
+
 The optional private-session device-authentication lock is now implemented as
 a separate source block. It is included in Build25, but not visibly accepted.
 It reuses the existing window shield, installed synchronously from the owning
