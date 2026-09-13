@@ -12,8 +12,10 @@ Receipts and originals are under
 `artifacts/install/ahoi-dev-receive-55abcf7-scoped-20260913.json` has SHA256
 `fb60719d7ea4a1ec8fbe0eeffe3b098c3608fd00ca9351330b1e016c82191d1c`.
 
-The receiver source is canonical in d38449b and4b23125; the exact tested build
-snapshot remains in the known isolated worktree at55ab and its protected ref.
+The receiver source is canonical in d38449b and4b23125; the exact installed
+source55ab remains protected by its ref. The known isolated worktree is now at
+test-only0f63dd8 (no product-source difference from55ab), with completed test
+outputs bound separately below. The temporary test build was never installed.
 The preceding455 build60531 was TERMINAL EXIT0 but deliberately NOT installed
 before the original per-setting read-authority correction. The preparation-only
 worktree `/private/tmp/ahoi-receive-authority.6O80m8/repo` contains the same55ab
@@ -42,6 +44,26 @@ lease/coalescing regressions are authorized while waiting. Those checks cannot
 close the actual peer-arrival gate. The detailed installed/access report is
 [here](../artifacts/e2e/native-sync-receive-55abcf7-20260913/README.md).
 
+Focused-check invocation36731 is TERMINAL build0/run1: all four new cases hit
+the same invalid synthetic fixture (missing Format3 shared-page identity and
+target kind), before useful receiver acceptance. The original output remains
+under artifacts/tests/receive-boundary-48f7d71-20260913/. Only those two fixture
+fields were corrected in test-only0f63dd803c2af9122ad31c2c321380eccef84cfc.
+Focused invocation97733 is TERMINAL build0/run0: all four
+SyncReceiveBoundaryTest.* cases passed, one job and zero retries,241ms suite.
+Artifacts/tests/receive-boundary-0f63dd8-20260913/ retains logs/exits/summary;
+summary SHA386f713666fbe07e64d9be628d12c586b054f07add2fc09f1e88e42b9e959887,
+test-binary SHA29b2b265cc45f549147d8145f9e338c7489999b27c0082952342f49eccce5bb3.
+There is no active product or test build/run. Both test commits modify only
+sync_unittest.cc from installed55ab; product source and installed bytes remain
+unchanged. The existing ANGLE duplicate-class warning was retained, not suppressed.
+No validator/assertion, target, matrix, real store, key or CloudKit state changed.
+The original fixture failures remain failures; the corrected checks prove only
+their named cached-consumer/store boundaries, not real peer arrival.
+
+No further CUA/Phone/Mac-lock polls, retries or extra test expansion are scheduled.
+Resume the live receive journey only on Root's actual user-unlock/peer event.
+
 ### Previous 26 baseline — historical runtime proof, not the installed receiver
 
 **Installed and visibly verified:** `26b01b17134a04e6d4e96bf9a837bbcf81ea06e3`,
@@ -51,7 +73,7 @@ are TERMINAL EXIT0. Original portable and entitled copies are preserved in
 `artifacts/build/native-sync-26b01b1-20260913/`; installed executable SHA256:
 `8b21daa3b00c12e68886ebe1108b82f0fc4efc7e93fb68d8950814fdce0f00c9`.
 
-[The current runtime report](../artifacts/e2e/native-sync-26b01b1-20260913/README.md)
+[The previous runtime report](../artifacts/e2e/native-sync-26b01b1-20260913/README.md)
 binds receipts, actual own-window CUA actions, safe provider events and readback.
 A visible user retry before the preserved02:45UTC deadline really sent data.
 The first send retained its CK14 conflicts honestly; one justified follow-up
@@ -67,12 +89,12 @@ Preferences and Ahoi Tab Tree remain byte-identical to the preserved baseline.
 This proves real MacA upload/ACK, native receipt persistence and first download;
 it does **not** prove a physical peer or Mac–iOS roundtrip.
 
-### Source, scope and next owner
+### Historical 26 source handback
 
-The bounded recovery owner `/root/desktop_recovery_20260913` returns the native
-build/sign/install/checkout/out and own UI window to Root. No own build or Ahoi
-process remains. The clean exact tool/source snapshot remains at
-`/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo`, detached26b01b1, with
+At that earlier handback the bounded recovery owner returned native build/UI to
+Root with no own build or Ahoi process. The current receiver ownership and live
+PID are stated above. The exact26 source remains protected by its ref; the known
+tool/source worktree has since advanced to55ab, as recorded above, with
 `refs/ahoi-preserved/native-sync-26b01b1-20260913` protecting the source.
 The disappeared predecessor `/private/tmp/ahoi-native-sync-build.eqejEO/repo`
 and all old handles are historical, not runnable reservations; no worktree was
