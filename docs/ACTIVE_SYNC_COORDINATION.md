@@ -1,20 +1,36 @@
 # Active sync coordination
 
-Updated: 2026-09-12. Root coordinates the same canonical branch,
+Updated: 2026-09-13. Root coordinates the same canonical branch,
 `codex/desktop-core-feature-wave-20260830`. The user explicitly confirmed both
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
 
+## Current runtime handoff — September13, 00:17UTC
+
+MBC's own8998792A has a NEW explicit START01a09820 for the already built
+memory-20260912 native memory journey: activate consent, open/skip original
+source, DE/EN and restart. Root holds Ahoi's global CUA/focus actions until
+MBC's natural completion and explicit handback. BetterConvo's separately
+authorized device-bound work without global focus is unchanged. No foreign
+process/device was stopped, and no prior START is revived by this grant.
+
+This consumes Root's already explicit c8 UI handback, with a fresh corroborating
+readback: no running native Ahoi app and no booted Simulator. The collaboration
+inventory currently contains only Root; the two workstream agents below are
+saved ownership assignments, NOT currently live agents. Their pending source
+and candidates remain preserved. Do not assume the previous correction build
+or a future Ahoi UI journey is running from the dated reports below.
+
 ## Current owners
 
-| Live owner | Exclusive product scope |
+| Assigned owner | Exclusive product scope |
 | --- | --- |
 | `/root/desktop_resume` | Native Tree/Session/UI, tab-tree adapter, native extension hooks/restore, Mac signing tools, shared Chromium checkout/out, guarded Mac build/sign/install |
 | `/root/sync_mobile_resume` | Common C++ sync/model/codec/store/provider/config/GN/golden, Bookmark domain adapter, Swift/Mobile, iOS Development signing |
 | `/root` | Coordination and acceptance, this checkpoint; no competing product implementation |
 
-Both workers are directly addressable through the current collaboration tools.
-No old `codex queue` acknowledgement is needed. Existing uncommitted September12
+When resumed, workers use the current collaboration tools; the September13
+inventory above supersedes previous claims that both are live. Existing uncommitted September12
 product-contract edits are preserved, not silently included in unrelated commits.
 Global/project AGENTS apply directly.
 
@@ -136,7 +152,7 @@ See [key setup](KEY_BOOTSTRAP_SYNC.md) and the current
 
 ## Runtime and remaining visible work
 
-**Current UI state, September12:** Root explicitly returned the completed
+**September12 UI history, superseded by the current handoff above:** Root explicitly returned the completed
 Ahoi-c8 window to Desktop and MBC (01a095a0). The visible Sync switch was set
 OFF and read back0; ordinary application quit succeeded, with PID39235 absent
 and no remaining own windows. Root holds no UI slot. The unused MBC START01a09524
