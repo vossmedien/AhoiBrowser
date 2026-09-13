@@ -76,7 +76,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         openSettings(in: app)
         let toggle = app.switches["settings.sync.enabled"]
         XCTAssertTrue(toggle.waitForExistence(timeout: 3))
-        reveal(toggle, in: app)
+        revealSyncToggle(toggle, in: app)
         setSwitch(toggle, enabled: false)
         setSwitch(toggle, enabled: true)
 
@@ -112,7 +112,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         openSettings(in: app)
         let restoredToggle = app.switches["settings.sync.enabled"]
         XCTAssertTrue(restoredToggle.waitForExistence(timeout: 3))
-        reveal(restoredToggle, in: app)
+        revealSyncToggle(restoredToggle, in: app)
         XCTAssertEqual(restoredToggle.value as? String, "1")
         XCTAssertTrue(
             ["Local only", "Nur lokal"].contains(
@@ -251,6 +251,22 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
             if element.waitForExistence(timeout: 1), element.isHittable { return }
             app.swipeUp()
         }
+    }
+
+    @MainActor
+    private func revealSyncToggle(_ toggle: XCUIElement, in app: XCUIApplication) {
+        let form = app.descendants(matching: .any)["settings.form"]
+        XCTAssertTrue(form.waitForExistence(timeout: 3))
+        for _ in 0..<5 {
+            let frame = toggle.frame
+            let visibleFrame = form.frame.insetBy(dx: 0, dy: 12)
+            if toggle.exists, visibleFrame.contains(frame) { return }
+            form.swipeUp()
+        }
+        XCTAssertTrue(
+            form.frame.insetBy(dx: 0, dy: 12).contains(toggle.frame),
+            "The sync opt-in switch must be fully visible before interaction."
+        )
     }
 
     @MainActor
