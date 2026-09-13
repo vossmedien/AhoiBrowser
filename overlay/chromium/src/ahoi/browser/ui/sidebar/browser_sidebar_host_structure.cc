@@ -41,30 +41,8 @@ std::u16string BrowserSidebarHostView::StructureText(
 
 void BrowserSidebarHostView::BuildArchiveMenus() {
   context_archive_workspace_id_ = controller_->view_model().workspace_id();
-  context_archive_ids_.clear();
-  context_archive_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
-  for (const auto& entry : session_bridge_->GetArchivedPages()) {
-    if (entry.snapshot.pages.empty())
-      continue;
-    std::u16string label =
-        base::UTF8ToUTF16(entry.snapshot.pages.front().title);
-    if (entry.snapshot.split)
-      label += StructureText(u" · Split", u" · Split");
-    label += entry.reason == sync::SharedArchiveReason::kAutomatic
-                 ? StructureText(u" · automatisch · ", u" · automatic · ")
-                 : StructureText(u" · manuell · ", u" · manual · ");
-    label += base::TimeFormatShortDateAndTime(entry.archived_at);
-    context_archive_menu_model_->AddItem(
-        kRestoreArchiveCommandBase +
-            static_cast<int>(context_archive_ids_.size()),
-        label);
-    context_archive_ids_.push_back(entry.id);
-  }
-  context_menu_model_->AddSubMenu(
-      kArchiveList,
-      StructureText(u"Archivierte Tabs wiederherstellen",
-                    u"Restore archived tabs"),
-      context_archive_menu_model_.get());
+  context_menu_model_->AddItem(
+      kArchiveList, StructureText(u"Archiv durchsuchen …", u"Search archive…"));
   context_archive_policy_model_ = std::make_unique<ui::SimpleMenuModel>(this);
   const std::u16string labels[] = {
       StructureText(u"Nie (Standard)", u"Never (default)"),

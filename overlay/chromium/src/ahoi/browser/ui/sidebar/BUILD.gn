@@ -195,6 +195,7 @@ source_set("browser_sidebar") {
   sources = [
     "browser_sidebar_host.cc",
     "browser_sidebar_host.h",
+    "browser_sidebar_host_archive.cc",
     "browser_sidebar_host_command_dispatch.cc",
     "browser_sidebar_host_context_menu.cc",
     "browser_sidebar_host_core.cc",

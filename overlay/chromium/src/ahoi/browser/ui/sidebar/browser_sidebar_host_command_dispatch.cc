@@ -126,15 +126,10 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     return;
   }
   if (context_menu_scope_ == ContextMenuScope::kWorkspace &&
-      command_id >= kRestoreArchiveCommandBase) {
-    const auto index =
-        static_cast<size_t>(command_id - kRestoreArchiveCommandBase);
-    if (index < context_archive_ids_.size())
-      base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
-          FROM_HERE,
-          base::BindOnce(&BrowserSidebarHostView::ShowArchiveRestoreMenu,
-                         weak_ptr_factory_.GetWeakPtr(),
-                         context_archive_ids_[index]));
+      command_id == kArchiveList) {
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&BrowserSidebarHostView::ShowArchiveSearch,
+                                  weak_ptr_factory_.GetWeakPtr()));
     return;
   }
   if (context_menu_scope_ == ContextMenuScope::kArchive) {

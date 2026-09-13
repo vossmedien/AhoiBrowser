@@ -557,6 +557,11 @@ class BrowserSidebarHostView final
                                       std::u16string_view english);
   void BuildArchiveMenus();
   void ShowArchiveRestoreMenu(base::Uuid entry_id);
+  void ShowArchiveSearch();
+  void HandleArchiveSearchAction(sync::TabArchiveEntryRecord expected,
+                                 bool delete_entry);
+  void ConfirmArchiveDelete(sync::TabArchiveEntryRecord expected);
+  void OnArchiveSearchClosed();
   void ArchiveContextTabs();
   std::vector<base::Uuid> ContextArchiveNodes() const;
   void ShowStructureNotice(std::u16string title, std::u16string body);
@@ -782,12 +787,12 @@ class BrowserSidebarHostView final
   std::vector<ContextMoveDestination> context_move_destinations_;
   ContextMenuScope context_menu_scope_ = ContextMenuScope::kNone;
   std::unique_ptr<ui::SimpleMenuModel> context_menu_model_;
-  std::unique_ptr<ui::SimpleMenuModel> context_archive_menu_model_;
   std::unique_ptr<ui::SimpleMenuModel> context_archive_policy_model_;
-  std::vector<base::Uuid> context_archive_ids_;
   std::optional<base::Uuid> context_archive_id_;
   std::optional<base::Uuid> context_archive_workspace_id_;
   std::unique_ptr<views::Widget> structure_dialog_widget_;
+  std::unique_ptr<views::BubbleDialogDelegate> archive_search_delegate_;
+  std::unique_ptr<views::Widget> archive_search_widget_;
   std::unique_ptr<ui::SimpleMenuModel> context_move_menu_model_;
   std::vector<std::unique_ptr<ui::SimpleMenuModel>>
       context_move_submenu_models_;

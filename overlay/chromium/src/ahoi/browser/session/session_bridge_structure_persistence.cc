@@ -83,6 +83,17 @@ void SessionBridge::RestoreArchivedPagesAt(
                                            placement);
 }
 
+void SessionBridge::DeleteArchivedPages(
+    sync::TabArchiveEntryRecord expected,
+    base::OnceCallback<void(bool)> completion) {
+  if (!is_ready() || !workspace_structure_controller_) {
+    std::move(completion).Run(false);
+    return;
+  }
+  workspace_structure_controller_->DeleteArchive(std::move(expected),
+                                                 std::move(completion));
+}
+
 void SessionBridge::CommitWorkspaceStructureState(
     std::string state,
     base::RepeatingCallback<bool()> authorization,

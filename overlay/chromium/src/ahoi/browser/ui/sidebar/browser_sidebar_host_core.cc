@@ -283,6 +283,8 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   tab_preview_controller_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
   structure_dialog_widget_.reset();
+  archive_search_widget_.reset();
+  archive_search_delegate_.reset();
   widget_drag_observation_.Reset();
   group_recent_show_timer_.Stop();
   group_recent_hide_timer_.Stop();

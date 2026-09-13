@@ -288,8 +288,6 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_menu_runner_.reset();
   context_menu_model_.reset();
   context_workspace_ids_.clear();
-  context_archive_ids_.clear();
-  context_archive_menu_model_.reset();
   context_archive_policy_model_.reset();
   context_archive_workspace_id_.reset();
   context_menu_scope_ = ContextMenuScope::kNone;
@@ -604,11 +602,7 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
   if (command_id == kArchiveTemporaryTab)
     return session_bridge_->CanArchiveTemporaryPages(ContextArchiveNodes());
   if (command_id == kArchiveList)
-    return !context_archive_ids_.empty();
-  if (command_id >= kRestoreArchiveCommandBase)
-    return context_menu_scope_ == ContextMenuScope::kWorkspace &&
-           static_cast<size_t>(command_id - kRestoreArchiveCommandBase) <
-               context_archive_ids_.size();
+    return context_menu_scope_ == ContextMenuScope::kWorkspace;
   if (command_id == kArchivePolicy ||
       (command_id >= kArchivePolicyCommandBase &&
        command_id < kArchivePolicyCommandBase + 5))

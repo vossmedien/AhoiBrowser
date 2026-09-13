@@ -140,6 +140,8 @@ class SessionBridge : public KeyedService,
                               tab_tree::ArchiveRestorePlacement placement,
                               base::OnceCallback<void(bool)> completion);
   std::vector<sync::TabArchiveEntryRecord> GetArchivedPages() const;
+  void DeleteArchivedPages(sync::TabArchiveEntryRecord expected,
+                           base::OnceCallback<void(bool)> completion);
   [[nodiscard]] tab_tree::TabTreeStore::Result SetWorkspaceArchivePolicy(
       base::Uuid workspace_id,
       sync::SharedArchivePolicy policy);

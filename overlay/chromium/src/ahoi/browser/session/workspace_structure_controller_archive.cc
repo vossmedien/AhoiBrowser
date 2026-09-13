@@ -309,8 +309,12 @@ void WorkspaceStructureController::Restore(
   }
   auto* archive =
       std::get_if<sync::TabArchiveEntryRecord>(&found->second.record);
-  if (!archive || archive->tombstone || archive->restored) {
+  if (!archive || archive->tombstone) {
     std::move(done).Run(false);
+    return;
+  }
+  if (archive->restored) {
+    std::move(done).Run(true);
     return;
   }
   // Retained rows are the local identity authority. Missing/changed
@@ -424,6 +428,106 @@ void WorkspaceStructureController::Restore(
             std::move(done).Run(ok);
           },
           weak_factory_.GetWeakPtr(), all_before, attempted, std::move(done)),
+      std::move(tree));
+}
+
+void WorkspaceStructureController::DeleteArchive(
+    sync::TabArchiveEntryRecord expected,
+    base::OnceCallback<void(bool)> done) {
+  const auto found = state_.entries.find(expected.id);
+  if (!observing_sync_ || !bridge_lifetime_ || persisting_ ||
+      publish_pending_ || found == state_.entries.end()) {
+    std::move(done).Run(false);
+    return;
+  }
+  auto* archive =
+      std::get_if<sync::TabArchiveEntryRecord>(&found->second.record);
+  if (archive && archive->tombstone) {
+    std::move(done).Run(true);
+    return;
+  }
+  // Confirmation is for exactly the version shown. A concurrent restore or
+  // rearchive is a new decision, not permission to delete its new content.
+  if (!archive || archive->restored || *archive != expected) {
+    std::move(done).Run(false);
+    return;
+  }
+  const auto before = state_.entries;
+  std::optional<tab_tree::TabTreeSnapshot> tree;
+  if (found->second.archived_locally) {
+    tree.emplace();
+    if (bridge_->tab_tree_store()->ExportSnapshot(&*tree) !=
+        Store::Result::kOk) {
+      std::move(done).Run(false);
+      return;
+    }
+    for (const auto& retained : found->second.private_nodes) {
+      auto node =
+          std::ranges::find(tree->nodes, retained.id, &tab_tree::TreeNode::id);
+      if (bridge_->FindTabByTreeNodeId(retained.id) ||
+          !bridge_->tab_tree_store()->IsNodeArchived(retained.id) ||
+          node == tree->nodes.end() || !node->is_temporary ||
+          (!node->tombstone && *node != retained)) {
+        std::move(done).Run(false);
+        return;
+      }
+      // Another retained archive may own the same page after a topology
+      // change. Never delete that independent entry's local restoration data.
+      for (const auto& [other_id, other] : state_.entries) {
+        if (other_id == expected.id || !other.archived_locally)
+          continue;
+        if (std::ranges::any_of(other.private_nodes, [&](const auto& page) {
+              return page.id == retained.id;
+            })) {
+          std::move(done).Run(false);
+          return;
+        }
+      }
+      node->tombstone = true;
+      node->modified_at = base::Time::Now();
+    }
+  }
+  // This is an archive tombstone, not a provider reset or a remote close.
+  // Keep the required bounded portable snapshot; drop only local restore data.
+  archive->tombstone = true;
+  if (!Stamp(&found->second.record, &before.at(expected.id).record)) {
+    state_.entries = before;
+    std::move(done).Run(false);
+    return;
+  }
+  found->second.archived_locally = false;
+  found->second.restore_pending = false;
+  found->second.private_nodes.clear();
+  found->second.pending.clear();
+  found->second.pending_expected.clear();
+  const auto attempted = found->second;
+  Persist(
+      LocalAuthority(),
+      base::BindOnce(
+          [](base::WeakPtr<WorkspaceStructureController> owner, base::Uuid id,
+             WorkspaceStructureEntry before, WorkspaceStructureEntry attempted,
+             base::OnceCallback<void(bool)> done, bool ok) {
+            if (!owner) {
+              std::move(done).Run(false);
+              return;
+            }
+            auto current = owner->state_.entries.find(id);
+            if (current != owner->state_.entries.end() &&
+                current->second == attempted) {
+              if (!ok)
+                current->second = std::move(before);
+              else {
+                owner->local_changes_.insert(id);
+                owner->remote_authorities_.erase(id);
+                owner->blocked_publications_.erase(id);
+              }
+            }
+            if (ok)
+              owner->Schedule();
+            std::move(done).Run(ok);
+          },
+          weak_factory_.GetWeakPtr(), expected.id, before.at(expected.id),
+          attempted, std::move(done)),
       std::move(tree));
 }
 

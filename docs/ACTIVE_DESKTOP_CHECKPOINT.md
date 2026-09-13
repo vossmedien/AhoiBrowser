@@ -39,10 +39,23 @@ Wire/Codec/Provider/Schema and Swift source were not edited.
 Remaining acceptance: compile/link the one complete app-only candidate, then
 the actual visible archive/restore/Home journey and protected/dormant split
 behavior. Passive projection deliberately does not create/load absent panes;
-missing dependencies remain retained pending. Permanent archive deletion and
-an archive-wide search surface are not added by this menu integration and must
-not be reported complete. No compiler, unit/fixture matrix or product UI ran in
-this source phase. Do not build 683d91b alone. The later complete Structure candidate uses the separate
+missing dependencies remain retained pending. The follow-up source now replaces
+the archive submenu with a compact searchable native dialog in
+`sidebar/browser_sidebar_host_archive.cc`. It searches all retained page titles/
+portable addresses and displayed reason/time, shows reason/time per entry, and
+returns to the existing explicit restore destination picker. Final deletion is
+separate, requires a second confirmation (Cancel is default), compares the exact
+displayed archive record, and is idempotent once tombstoned. It never closes any
+WebContents. Only unchanged, exclusively retained, locally archived inactive
+page rows are tombstoned together with the archive marker; changed/live/shared
+rows fail closed. Original archive snapshot/field clocks, local receipt/undo
+guard, existing original publication intent and consent/CAS path are retained.
+Failed persistence rolls back prepared state rather than reporting success;
+concurrent restore/rearchive invalidates the old confirmation. Successful delete
+reopens a fresh search view so the removed entry is no longer listed.
+
+No compiler, unit/fixture matrix or product UI ran in this source phase.
+Do not build the incomplete 683d91b/e29ef31 intermediates. The complete Structure candidate uses the separate
 [Structure scope manifest](../artifacts/e2e/shared-sync-structure-development-scope-20260913.json)
 (96950f6b-50e0-4e2c-9a94-852dc5099446, Native schema7), not the protected bba
 receiver/profile. Existing 55ab installation and Device24 are unchanged.

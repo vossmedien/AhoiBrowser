@@ -37,6 +37,8 @@ class WorkspaceStructureController final
                std::optional<tab_tree::ArchiveRestorePlacement> placement =
                    std::nullopt);
   std::vector<sync::TabArchiveEntryRecord> Archives() const;
+  void DeleteArchive(sync::TabArchiveEntryRecord expected,
+                     base::OnceCallback<void(bool)> done);
   void OnAhoiDeviceTabsChanged(const sync::DeviceTabsSnapshot&) override;
   void OnAhoiSyncStatusChanged(const sync::SyncTransportStatus&) override;
 

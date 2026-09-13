@@ -52,7 +52,6 @@ enum SidebarContextMenuCommand {
 };
 
 constexpr int kArchivePolicyCommandBase = 600;
-constexpr int kRestoreArchiveCommandBase = 2000000;
 
 constexpr int kActivateWorkspaceCommandBase = 1000;
 constexpr int kMoveToDestinationCommandBase = 2000;
