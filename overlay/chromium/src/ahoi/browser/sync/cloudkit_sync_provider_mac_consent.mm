@@ -61,33 +61,31 @@ void CloudKitSyncProviderMac::Core::DispatchDownload(DownloadCallback callback,
   }
   const auto original_read_authorization = download_authorization_;
   owner_runner_->PostTask(
-      FROM_HERE, base::BindOnce(
-                     [](std::weak_ptr<Core> weak, uint64_t generation,
-                        DownloadCallback callback, bool success,
-                        ProviderBatch batch, std::string error,
-                        SyncAuthorization original_read_authorization) {
-                       const auto core = weak.lock();
-                       bool current = false;
-                       if (core) {
-                         base::AutoLock guard(core->lock_);
-                         current = core->TransportAllowed() &&
-                                   !core->shutting_down_ &&
-                                   generation == core->transport_generation_ &&
-                                   !core->account_transition_pending_ &&
-                                   !core->zone_recovery_pending_;
-                       }
-                       if (success && (!original_read_authorization ||
-                                       !original_read_authorization.Run())) {
-                         current = false;
-                       }
-                       std::move(callback).Run(
-                           current && success,
-                           current ? std::move(batch) : ProviderBatch(),
-                           current ? std::move(error) : "cancelled");
-                     },
-                     weak_from_this(), generation, std::move(callback), success,
-                     std::move(batch), std::move(error),
-                     original_read_authorization));
+      FROM_HERE,
+      base::BindOnce(
+          [](std::weak_ptr<Core> weak, uint64_t generation,
+             DownloadCallback callback, bool success, ProviderBatch batch,
+             std::string error, SyncAuthorization original_read_authorization) {
+            const auto core = weak.lock();
+            bool current = false;
+            if (core) {
+              base::AutoLock guard(core->lock_);
+              current = core->TransportAllowed() && !core->shutting_down_ &&
+                        generation == core->transport_generation_ &&
+                        !core->account_transition_pending_ &&
+                        !core->zone_recovery_pending_;
+            }
+            if (success && (!original_read_authorization ||
+                            !original_read_authorization.Run())) {
+              current = false;
+            }
+            std::move(callback).Run(
+                current && success,
+                current ? std::move(batch) : ProviderBatch(),
+                current ? std::move(error) : "cancelled");
+          },
+          weak_from_this(), generation, std::move(callback), success,
+          std::move(batch), std::move(error), original_read_authorization));
 }
 
 void CloudKitSyncProviderMac::Core::RequestOperationCancellation() {
@@ -368,11 +366,127 @@ CKRecord* CloudKitSyncProviderMac::Core::PendingRecordForGeneration(
     return nil;
   }
   const auto record = pending_records_.find(key);
-  return record == pending_records_.end() ||
-                 (IsBookmarkRecord(record->second) && !BookmarkAllowed()) ||
-                 !PendingSettingAllowed(record->second)
-             ? nil
-             : record->second;
+  if (record == pending_records_.end() ||
+      (IsBookmarkRecord(record->second) && !BookmarkAllowed()) ||
+      !PendingSettingAllowed(record->second) || !UploadKeyAuthorized(key))
+    return nil;
+  // Recheck at the SDK's actual record request, not only while preparing the
+  // batch. A fetched/conflict record may have advanced the known server state.
+  const auto server = server_records_.find(key);
+  if (server != server_records_.end()) {
+    const auto local = Decode(record->second);
+    const auto remote = Decode(server->second);
+    SyncRecord local_record, remote_record;
+    if (!local || !remote || !ValidateChangeEnvelope(*local, &local_record) ||
+        !ValidateChangeEnvelope(*remote, &remote_record) ||
+        !DomainCovers(local_record, remote_record)) {
+      if (remote)
+        StageUploadMergeInput(key, *remote, server->second);
+      ++upload_unresolved_count_;
+      upload_error_ = "provider_error";
+      upload_failure_stage_ = "domain_merge_required";
+      return nil;
+    }
+  }
+  return record->second;
+}
+
+bool CloudKitSyncProviderMac::Core::UploadKeyAuthorized(
+    const std::string& key) const {
+  lock_.AssertAcquired();
+  if (!TransportAllowed() || operations_cancelling_ ||
+      upload_generation_ != transport_generation_)
+    return false;
+  const auto pending = pending_mutations_.find(key);
+  if (pending == pending_mutations_.end() || pending->second.empty())
+    return false;
+  if (pending->second.front().entity_type == EntityType::kBookmark)
+    return BookmarkAllowed();
+  if (pending->second.front().entity_type == EntityType::kPermittedSetting) {
+    const auto scope = upload_setting_authorizations_.find(key);
+    return scope != upload_setting_authorizations_.end() && scope->second &&
+           scope->second.Run();
+  }
+  return true;
+}
+
+bool CloudKitSyncProviderMac::Core::StageUploadMergeInput(
+    const std::string& key,
+    const SyncChange& change,
+    CKRecord* encrypted_source) {
+  lock_.AssertAcquired();
+  SyncRecord incoming;
+  if (!UploadKeyAuthorized(key) ||
+      change.entity_id.AsLowercaseString() != key ||
+      !ValidateChangeEnvelope(change, &incoming))
+    return false;
+  const auto retained = fetched_changes_.find(key);
+  if (retained != fetched_changes_.end()) {
+    SyncRecord existing;
+    if (!ValidateChangeEnvelope(retained->second, &existing))
+      return false;
+    if (DomainCovers(existing, incoming) &&
+        (!DomainCovers(incoming, existing) ||
+         GetVersion(existing) >= GetVersion(incoming))) {
+      if (change.entity_type == EntityType::kBookmark && encrypted_source &&
+          DomainCovers(incoming, existing)) {
+        opaque_bookmark_records_[key] = [encrypted_source copy];
+        materialized_bookmark_keys_[key] = key;
+      }
+      const bool persisted = PersistInbox();
+      if (persisted && UploadKeyAuthorized(key))
+        ScheduleIncomingNotification();
+      return persisted && UploadKeyAuthorized(key);
+    }
+    if (!DomainCovers(incoming, existing)) {
+      // Drain this incomparable retained input first. The untouched outbox or
+      // known CKRecord still owns the other input; never replace one with the
+      // other or persist a provider-invented merged clock.
+      if (PersistInbox() && UploadKeyAuthorized(key))
+        ScheduleIncomingNotification();
+      return false;
+    }
+  }
+  fetched_changes_[key] = change;
+  if (change.entity_type == EntityType::kBookmark) {
+    // A category opt-out removes materialized plaintext. Keep the actual
+    // encrypted server record as well, so a staged newer remote value cannot
+    // fall back to an older opaque record before its domain import completes.
+    if (encrypted_source)
+      opaque_bookmark_records_[key] = [encrypted_source copy];
+    materialized_bookmark_keys_[key] = key;
+  }
+  const bool persisted = PersistInbox();
+  if (persisted && UploadKeyAuthorized(key))
+    ScheduleIncomingNotification();
+  return persisted && UploadKeyAuthorized(key);
+}
+
+bool CloudKitSyncProviderMac::Core::AcknowledgeCoveredMutations(
+    const std::string& key,
+    const SyncRecord& stored) {
+  lock_.AssertAcquired();
+  if (!UploadKeyAuthorized(key))
+    return false;
+  auto found = pending_mutations_.find(key);
+  std::set<std::string> covered;
+  for (const auto& original : found->second) {
+    SyncRecord record;
+    if (!upload_expected_mutations_.contains(original.mutation_id) ||
+        !ValidateChangeEnvelope(original, &record))
+      return false;
+    if (DomainCovers(stored, record))
+      covered.insert(original.mutation_id);
+  }
+  if (covered.empty() || !UploadKeyAuthorized(key))
+    return false;
+  upload_acknowledgements_.insert(covered.begin(), covered.end());
+  std::erase_if(found->second, [&](const auto& original) {
+    return covered.contains(original.mutation_id);
+  });
+  if (found->second.empty())
+    pending_mutations_.erase(found);
+  return true;
 }
 
 void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
@@ -397,9 +511,12 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
                                             : "account_unavailable");
       return;
     }
-    NSMutableArray* pending = [NSMutableArray array];
-    std::map<std::string, __strong CKRecord*> records;
-    std::map<std::string, std::string> mutations;
+    struct Original {
+      SyncChange change;
+      SyncRecord record;
+    };
+    std::map<std::string, std::vector<Original>> groups;
+    std::set<std::string> expected;
     std::map<std::string, SyncAuthorization> setting_authorizations;
     for (const auto& change : changes) {
       if (change.entity_type == EntityType::kBookmark && !BookmarkAllowed()) {
@@ -413,8 +530,16 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
                          "cancelled");
           return;
         }
-        setting_authorizations.emplace(change.entity_id.AsLowercaseString(),
-                                       std::move(authorization));
+        const auto key = change.entity_id.AsLowercaseString();
+        const auto previous = setting_authorizations.find(key);
+        if (previous != setting_authorizations.end()) {
+          authorization = base::BindRepeating(
+              [](SyncAuthorization first, SyncAuthorization second) {
+                return first && second && first.Run() && second.Run();
+              },
+              previous->second, std::move(authorization));
+        }
+        setting_authorizations.insert_or_assign(key, std::move(authorization));
       }
       SyncRecord decoded;
       if (!ValidateChangeEnvelope(change, &decoded)) {
@@ -429,46 +554,35 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
                        "provider_error");
         return;
       }
-      auto sealed = cryptor_->Seal(change.payload);
-      if (!sealed) {
-        DispatchUpload(std::move(callback), generation, false, {},
-                       "account_unavailable");
-        return;
-      }
       const std::string key = change.entity_id.AsLowercaseString();
-      CKRecordID* record_id =
-          [[CKRecordID alloc] initWithRecordName:ToNSString(key)
-                                          zoneID:zone_id_];
-      const auto server = server_records_.find(key);
-      CKRecord* record = EncodeCloudKitSyncRecord(
-          change, *sealed, record_id,
-          server == server_records_.end() ? nil : server->second);
-      if (!record) {
+      auto& group = groups[key];
+      SyncRecord merged;
+      if (!expected.insert(change.mutation_id).second ||
+          (!group.empty() &&
+           MergeRecordFields(group.front().record, decoded, &merged) ==
+               MergeDecision::kInvalid)) {
         DispatchUpload(std::move(callback), generation, false, {},
                        "provider_error");
         return;
       }
-      records[key] = record;
-      mutations[key] = change.mutation_id;
-      [pending
-          addObject:
-              [[CKSyncEnginePendingRecordZoneChange alloc]
-                  initWithRecordID:record_id
-                              type:
-                                  CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]];
+      group.push_back({change, std::move(decoded)});
     }
-    for (const auto& [key, record] : records) {
-      pending_records_[key] = record;
+    if (groups.empty()) {
+      DispatchUpload(std::move(callback), generation, false, {},
+                     "provider_error");
+      return;
     }
-    upload_expected_mutations_.clear();
-    for (const auto& [key, mutation] : mutations) {
-      pending_mutations_[key] = mutation;
-      upload_expected_mutations_.insert(mutation);
-    }
+    // Old encoded SDK requests are not authority for a new caller's page.
+    // Their exact mutations remain durable in the outbox until proven covered.
+    pending_records_.clear();
+    pending_mutations_.clear();
+    for (const auto& [key, group] : groups)
+      for (const auto& original : group)
+        pending_mutations_[key].push_back(original.change);
+    upload_generation_ = generation;
+    upload_expected_mutations_ = std::move(expected);
     upload_setting_authorizations_ = setting_authorizations;
-    for (auto& [key, authorization] : setting_authorizations) {
-      pending_setting_authorizations_[key] = std::move(authorization);
-    }
+    pending_setting_authorizations_ = std::move(setting_authorizations);
     upload_callback_ = std::move(callback);
     upload_acknowledgements_.clear();
     upload_error_.clear();
@@ -477,6 +591,113 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
     upload_item_error_code_ = 0;
     upload_item_error_is_cloudkit_ = false;
     upload_failure_stage_.clear();
+    upload_cached_count_ = 0;
+    auto fail = [&](const std::string& stage, const std::string& error) {
+      upload_failure_stage_ = stage;
+      upload_error_ = error;
+      ++upload_unresolved_count_;
+      LogUploadOutcome(stage, nil);
+      DispatchUpload(std::move(upload_callback_), generation, false, {}, error);
+    };
+    NSMutableArray* pending = [NSMutableArray array];
+    std::map<std::string, __strong CKRecord*> records;
+    for (const auto& [key, group] : groups) {
+      if (!UploadKeyAuthorized(key)) {
+        fail("lease_revoked", "cancelled");
+        return;
+      }
+      const Original* selected = &group.front();
+      for (const auto& candidate : group) {
+        if (DomainCovers(candidate.record, selected->record) &&
+            (!DomainCovers(selected->record, candidate.record) ||
+             candidate.change.version > selected->change.version))
+          selected = &candidate;
+      }
+      if (!std::ranges::all_of(group, [&](const auto& original) {
+            return DomainCovers(selected->record, original.record);
+          }))
+        selected = nullptr;
+      const auto server = server_records_.find(key);
+      std::optional<SyncChange> server_change;
+      SyncRecord server_record;
+      if (server != server_records_.end()) {
+        server_change = Decode(server->second);
+        if (!server_change ||
+            !ValidateChangeEnvelope(*server_change, &server_record)) {
+          fail("domain_merge_required", "provider_error");
+          return;
+        }
+        if (std::ranges::all_of(group, [&](const auto& original) {
+              return DomainCovers(server_record, original.record);
+            })) {
+          if (!StageUploadMergeInput(key, *server_change, server->second) ||
+              !AcknowledgeCoveredMutations(key, server_record)) {
+            fail("persist_newer_remote", "provider_error");
+            return;
+          }
+          ++upload_cached_count_;
+          [engine_.state removePendingRecordZoneChanges:@[
+            [[CKSyncEnginePendingRecordZoneChange alloc]
+                initWithRecordID:server->second.recordID
+                            type:
+                                CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]
+          ]];
+          continue;
+        }
+      }
+      if (!selected) {
+        const auto latest = std::ranges::max_element(
+            group, {},
+            [](const auto& original) { return original.change.version; });
+        // Feed an unchanged, still-queued original to the existing domain
+        // merge against its materialized local winner. No synthetic remote
+        // record, new mutation ID, or provider-authored clock is manufactured.
+        for (const auto& original : group) {
+          if (!DomainCovers(latest->record, original.record)) {
+            StageUploadMergeInput(key, original.change);
+            break;
+          }
+        }
+        fail("domain_merge_required", "provider_error");
+        return;
+      }
+      if (server_change && !DomainCovers(selected->record, server_record)) {
+        StageUploadMergeInput(key, *server_change, server->second);
+        fail("domain_merge_required", "provider_error");
+        return;
+      }
+      auto sealed = cryptor_->Seal(selected->change.payload);
+      if (!sealed) {
+        fail("lease_revoked", "account_unavailable");
+        return;
+      }
+      CKRecordID* record_id =
+          [[CKRecordID alloc] initWithRecordName:ToNSString(key)
+                                          zoneID:zone_id_];
+      CKRecord* record = EncodeCloudKitSyncRecord(
+          selected->change, *sealed, record_id,
+          server == server_records_.end() ? nil : server->second);
+      if (!record || !UploadKeyAuthorized(key)) {
+        fail("lease_revoked", "cancelled");
+        return;
+      }
+      records[key] = record;
+      [pending
+          addObject:
+              [[CKSyncEnginePendingRecordZoneChange alloc]
+                  initWithRecordID:record_id
+                              type:
+                                  CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]];
+    }
+    if (!pending.count) {
+      LogUploadOutcome("cached_covered", nil);
+      DispatchUpload(
+          std::move(upload_callback_), generation, true,
+          {upload_acknowledgements_.begin(), upload_acknowledgements_.end()},
+          "");
+      return;
+    }
+    pending_records_ = std::move(records);
     [engine_.state addPendingRecordZoneChanges:pending];
     auto* scope = [[CKSyncEngineSendChangesScope alloc]
         initWithZoneIDs:[NSSet setWithObject:zone_id_]];

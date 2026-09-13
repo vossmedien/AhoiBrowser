@@ -11,6 +11,7 @@
 #include <map>
 #include <set>
 #include <utility>
+#include <vector>
 
 #include "ahoi/browser/sync/cloudkit_sync_configuration_mac.h"
 #include "ahoi/browser/sync/cloudkit_sync_key_bootstrap_mac.h"
@@ -18,6 +19,7 @@
 #include "ahoi/browser/sync/cloudkit_sync_quarantine.h"
 #include "ahoi/browser/sync/cloudkit_sync_record_codec_mac.h"
 #include "ahoi/browser/sync/cloudkit_sync_util_mac.h"
+#include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_payload_cryptor.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "base/files/file_util.h"
@@ -365,6 +367,22 @@ class CloudKitSyncProviderMac::Core
            [right_payload isKindOfClass:[NSData class]] &&
            [left_payload isEqualToData:right_payload];
   }
+  static bool DomainCovers(const SyncRecord& covering,
+                           const SyncRecord& original) {
+    // Use the domain's complete field clocks, immutable identities, terminal
+    // command states and absorbing archive deletion. The envelope topclock or
+    // position in an outbox page alone proves none of these properties.
+    SyncRecord merged;
+    const auto decision = MergeRecordFields(original, covering, &merged);
+    return decision == MergeDecision::kAcceptIncoming ||
+           decision == MergeDecision::kDuplicate;
+  }
+  bool UploadKeyAuthorized(const std::string& key) const;
+  bool StageUploadMergeInput(const std::string& key,
+                             const SyncChange& change,
+                             CKRecord* encrypted_source = nil);
+  bool AcknowledgeCoveredMutations(const std::string& key,
+                                   const SyncRecord& stored);
   bool TransportAllowed() const {
     lock_.AssertAcquired();
     return profile_authorization_ && profile_authorization_.Run() &&
@@ -411,12 +429,16 @@ class CloudKitSyncProviderMac::Core
         continue;
       }
       server_records_[key] = record;
-      auto mutation = pending_mutations_.find(key);
-      if (mutation != pending_mutations_.end() &&
-          upload_expected_mutations_.contains(mutation->second)) {
-        upload_acknowledgements_.insert(mutation->second);
+      const auto saved = Decode(record);
+      SyncRecord stored;
+      if (saved && ValidateChangeEnvelope(*saved, &stored) &&
+          AcknowledgeCoveredMutations(key, stored)) {
         ++upload_saved_count_;
-        pending_mutations_.erase(mutation);
+      } else {
+        ++upload_unresolved_count_;
+        upload_error_ = "provider_error";
+        upload_failure_stage_ = "uncovered_mutation";
+        continue;
       }
       pending_records_.erase(key);
       pending_setting_authorizations_.erase(key);
@@ -452,32 +474,21 @@ class CloudKitSyncProviderMac::Core
         server_records_[key] = server;
         std::optional<SyncChange> remote = Decode(server);
         std::optional<SyncChange> local = Decode(failure.record);
-        if (remote && local &&
-            (local->version < remote->version ||
-             (local->version == remote->version &&
-              local->payload == remote->payload))) {
-          if (local->version < remote->version) {
-            if (IsBookmarkRecord(server)) {
-              ReceiveFetchedRecord(server);
-            } else {
-              fetched_changes_[key] = *remote;
-            }
-            const auto staged = fetched_changes_.find(key);
-            if (staged == fetched_changes_.end() ||
-                staged->second.version != remote->version ||
-                staged->second.payload != remote->payload || !PersistInbox()) {
-              ++upload_unresolved_count_;
-              upload_error_ = "provider_error";
-              upload_failure_stage_ = "persist_newer_remote";
-              continue;
-            }
-          }
-          auto mutation = pending_mutations_.find(key);
-          if (mutation != pending_mutations_.end() &&
-              upload_expected_mutations_.contains(mutation->second)) {
-            upload_acknowledgements_.insert(mutation->second);
+        SyncRecord remote_record, local_record;
+        const bool valid = remote && local &&
+                           ValidateChangeEnvelope(*remote, &remote_record) &&
+                           ValidateChangeEnvelope(*local, &local_record);
+        // Even an incomparable server result must reach the durable domain
+        // merge. Never ACK it merely because its envelope clock is newer.
+        if (valid && !StageUploadMergeInput(key, *remote, server)) {
+          ++upload_unresolved_count_;
+          upload_error_ = "provider_error";
+          upload_failure_stage_ = "persist_newer_remote";
+          continue;
+        }
+        if (valid && DomainCovers(remote_record, local_record)) {
+          if (AcknowledgeCoveredMutations(key, remote_record)) {
             ++upload_resolved_count_;
-            pending_mutations_.erase(mutation);
           } else {
             ++upload_unresolved_count_;
             upload_failure_stage_ = "unmatched_mutation";
@@ -494,6 +505,12 @@ class CloudKitSyncProviderMac::Core
                             type:
                                 CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]
           ]];
+          continue;
+        }
+        if (valid) {
+          ++upload_unresolved_count_;
+          upload_error_ = "provider_error";
+          upload_failure_stage_ = "domain_merge_required";
           continue;
         }
       }
@@ -540,19 +557,25 @@ class CloudKitSyncProviderMac::Core
       stage_code = 11;
     else if (stage == "send_completion")
       stage_code = 12;
+    else if (stage == "cached_covered")
+      stage_code = 13;
+    else if (stage == "domain_merge_required")
+      stage_code = 14;
+    else if (stage == "uncovered_mutation")
+      stage_code = 15;
     NSString* domain = !error ? @"none"
                        : [error.domain isEqualToString:CKErrorDomain]
                            ? @"CKErrorDomain"
                            : @"other";
     NSLog(@"AhoiSyncUpload stageCode=%d stage=%@ domain=%@ code=%ld "
            "itemDomain=%@ itemCode=%ld expected=%zu "
-           "saved=%zu resolved=%zu unresolved=%zu ack=%zu",
+           "saved=%zu resolved=%zu cached=%zu unresolved=%zu ack=%zu",
           stage_code, ToNSString(stage), domain, static_cast<long>(error.code),
           upload_item_error_is_cloudkit_ ? @"CKErrorDomain" : @"other",
           static_cast<long>(upload_item_error_code_),
           upload_expected_mutations_.size(), upload_saved_count_,
-          upload_resolved_count_, upload_unresolved_count_,
-          upload_acknowledgements_.size());
+          upload_resolved_count_, upload_cached_count_,
+          upload_unresolved_count_, upload_acknowledgements_.size());
   }
 
   CKSyncEngineStateSerialization* LoadState() API_AVAILABLE(macos(14.0));
@@ -593,7 +616,9 @@ class CloudKitSyncProviderMac::Core
   std::map<std::string, __strong CKRecord*> pending_records_;
   std::map<std::string, SyncAuthorization> pending_setting_authorizations_;
   std::map<std::string, __strong CKRecord*> server_records_;
-  std::map<std::string, std::string> pending_mutations_;
+  // Every original ID, envelope version and field-clock payload survives
+  // coalescing. A SavedRecord can acknowledge only the originals it covers.
+  std::map<std::string, std::vector<SyncChange>> pending_mutations_;
   std::map<std::string, SyncChange> fetched_changes_;
   // Keep native encrypted records until their decoded delivery is acknowledged.
   // The persisted cache never grants permission to decrypt them after restart.
@@ -601,13 +626,13 @@ class CloudKitSyncProviderMac::Core
   std::map<std::string, std::string> materialized_bookmark_keys_;
   std::map<std::string, base::Uuid> bookmark_quarantine_ids_;
   std::set<std::string> upload_acknowledgements_;
-  // Snapshot the mutations actually selected for this send, after coalescing
-  // multiple outbox versions of one record. Unsent older versions stay queued.
+  // Includes every original input, not just one ID per physical CKRecord.
   std::set<std::string> upload_expected_mutations_;
   std::map<std::string, SyncAuthorization> upload_setting_authorizations_;
   size_t upload_saved_count_ = 0;
   size_t upload_failed_count_ = 0;
   size_t upload_resolved_count_ = 0;
+  size_t upload_cached_count_ = 0;
   size_t upload_unresolved_count_ = 0;
   NSInteger upload_item_error_code_ = 0;
   bool upload_item_error_is_cloudkit_ = false;
@@ -627,6 +652,7 @@ class CloudKitSyncProviderMac::Core
   std::map<std::string, std::string> last_delivery_mutations_;
   uint64_t download_generation_ = 0;
   uint64_t transport_generation_ = 0;
+  uint64_t upload_generation_ = 0;
   bool bookmark_sync_enabled_ = false;
   bool bookmark_consent_revoked_ = false;
   bool operations_cancelling_ = false;

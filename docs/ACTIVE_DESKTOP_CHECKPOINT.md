@@ -19,20 +19,24 @@ SQL API conversion, full menu enum include, safe policy-name iteration, a
 shadowed restore callback variable and lvalue DictValue Set chaining. No warning,
 validator, consent, schema, Common or Swift code was weakened/changed. One
 incremental app-only corrective run follows the exact committed fix snapshot.
-That exact fix snapshot is `a47b18510f24384ad370ab2c1b230ea33e40193d`, pushed and
-selected in the same clean isolated worktree after68856 ended. The corrective
-run is prepared but NOT started: latest disk32.31GiB leaves only0.31GiB above
-the hard floor for compiler/link/staging; CPU65%idle and memory52%free are fine.
-Root received this actual storage boundary. No new handle, cleanup, signing,
-installation or app action exists. Next invocation is the existing
-`artifacts/build/native-structure-a47b185-20260913/run-build.sh` once capacity
-is genuinely sufficient, not a retry of the terminal89993af source.
+That exact Native fix snapshot is `a47b18510f24384ad370ab2c1b230ea33e40193d`,
+pushed and selected in the same clean isolated worktree after68856 ended.
+Do NOT start its prepared standalone script: the real55ab pair subsequently
+exposed a provider coalescing/backward-write bug, not a Native capture failure.
+The explicitly authorized two Core files are now corrected in source; the
+required ReadOutbox pagination seam still needs its exact file handoff.
+[The provider handoff](reviews/2026-09-13-provider-coalescing.md) records both
+the evidence and this incomplete integration boundary. No new build handle,
+test, signing or installation exists. Root last reported44.7GiB free, without
+deletion; the old32.31GiB wait value is obsolete. Recheck overall capacity only
+when the ONE combined Nativea47+complete-provider snapshot is ready.
 No completion receipt, scoped969 signing, installation or visible pass is yet
 claimed. The prior receiver worktrees/outputs and installed55ab remain protected.
-Root has now reported the actual unlock event (IOConsoleLocked=No) and owns
-the installed55ab/bba runtime. The build owner performs no installation, app
-start or Native UI action during that live journey; only its isolated product
-build and later separate-copy969 preparation/signing may proceed.
+Root's installed55ab/bba pair has ended after a new Mac lock; its exact A/B
+processes were terminated with both handles EXIT0. There is no active Native
+UI reservation/run. The user now requests the simulator path without physical
+iPhone; no Mac/Phone unlock prompt is pending. Device24 and signed Device26
+remain unchanged. This worker performs no UI/key/Cloud/profile operation.
 
 The recovery owner integrated the existing e7abcff/c2718ac/6ce5046 Native WIP
 in the canonical worktree. Domain source is preserved by 683d91b, followed by
