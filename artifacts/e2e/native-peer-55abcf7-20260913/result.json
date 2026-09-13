@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "status": "PARTIAL",
+  "sourceCommit": "55abcf76498dcc8629f94e5ecebde89a4269ecf3",
+  "environment": "CloudKit Development",
+  "scopeID": "bba96b17-f044-4923-9d40-67b15014d59e",
+  "physicalMacCount": 1,
+  "normalNativeProfileCount": 2,
+  "macA": {
+    "deviceID": "89bd5081-ccf2-4639-ba07-0010d0451ab5",
+    "initialPID": 14715,
+    "initialOrdinaryUIQuit": true,
+    "restartPID": 90916,
+    "restartHandle": 46806,
+    "cleanupExitCode": 0,
+    "postQuitOutboxCount": 0,
+    "postQuitAcknowledgedRecordCount": 20,
+    "postQuitRetryAttempt": 0
+  },
+  "macB": {
+    "deviceID": "dfbf69ed-c2b0-4616-8c47-d303ec37b1c9",
+    "pid": 49166,
+    "handle": 89088,
+    "normalUIOptIn": true,
+    "manualFollowupAfterObservedCK14Conflict": 1,
+    "visibleReadyAndExistingRemoteRows": true,
+    "cleanupExitCode": 0,
+    "postQuitOutboxCount": 0,
+    "postQuitAcknowledgedRecordCount": 10,
+    "postQuitRetryAttempt": 0
+  },
+  "testNavigation": {
+    "url": "https://www.iana.org/domains/reserved?ahoi-native-peer=20260913-0645",
+    "nativeNodeID": "af0550aa-ace7-4de1-9378-186a54103ede",
+    "nativeMacATreeContainsWebPage": true,
+    "commonMacATreeContainsNode": false,
+    "commonMacBTreeContainsNode": false,
+    "matchingHistoryRecordInBothStores": "2ccae265-2e96-ded2-1c6f-f8ef19bfe5fe",
+    "visibleNewTabArrival": "NOT_PROVEN"
+  },
+  "capabilityReadback": {
+    "recordID": "da948b52-3b7c-5368-bd25-5311a617fbd6",
+    "macAViewOfB": {
+      "versionPhysical": "13433754955710720",
+      "features": []
+    },
+    "macBLocalRecord": {
+      "versionPhysical": "13433754955745728",
+      "features": ["shared-normal-tabs-v3"]
+    },
+    "bothReadableAndWritableModels": [3],
+    "interpretation": "Native tab publication is gated by the stale capability known to A. Source review confirms provider coalescing retains only one mutation ID per entity, leaving older Outbox rows to be sent later with newer server ChangeTags. Persisted receive chronology matches this backward-write path. No gate was weakened and current server state was not queried."
+  },
+  "cleanup": {
+    "reason": "Mac became locked again during the UI journey",
+    "method": "SIGTERM only to freshly verified own scoped test PIDs",
+    "bothMainProcessesVerifiedAbsent": true,
+    "profileOrSyncDataDeleted": false,
+    "phoneAction": false,
+    "keysCopiedOrReset": false
+  },
+  "limits": [
+    "Same-Mac native profile pair, not two physical Macs or an iPhone roundtrip",
+    "CUA exposed a single app identity for both native processes; initial A was ordinarily quit to address B unambiguously",
+    "A restart used the browser's ordinary public URL argument, with no fixture or Sync-state injection",
+    "Second B navigation through the address editor was not confirmed before the renewed screen lock",
+    "No continuous focus/no-eager-load or new-tab arrival pass",
+    "No bookmark, browser-setting, extension, structure or Production acceptance"
+  ],
+  "rawLogSha256": {
+    "maca-runtime.log": "1c2c55072a2c46f7e349e7efd734fd76586b3a15409b0e63c8bdbb0783eb0de2",
+    "macb-runtime.log": "e3e63260da3fa65952c3498abc889805c9d57475f19ef277fa3492a1fad26305"
+  }
+}

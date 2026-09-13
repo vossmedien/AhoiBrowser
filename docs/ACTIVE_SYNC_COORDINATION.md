@@ -5,6 +5,56 @@ Updated: 2026-09-13. Root coordinates the same canonical branch,
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
 
+## Latest user direction and actual peer result — September13
+
+The user now explicitly requests proceeding WITHOUT the physical iPhone,
+using an own Simulator where possible. Stop repeating the Phone/Servusla and
+Mac-unlock requests. Mobile26 remains signed/preserved but uninstalled;
+DebugLocal25 is provider-free and cannot be used as a CloudKit proof. The
+Mobile worker is preparing a device-bound normal Simulator journey, using
+real UI/screenshots and no fixture/SyncProjection or injected opt-in. Any
+Simulator iCloud/account or access limitation must remain explicit; no local
+simulation is a physical or genuine CloudKit pass. BetterConvo751D is foreign
+and remains untouched; there is no blanket MBC/Simulator reservation.
+
+The once-unlocked Mac allowed a real Native55ab MacA/MacB profile journey.
+Both normal clients reached successful uploads/ACKs, and B visibly reached
+Ready with A's existing logical rows. Both were on ONE physical Mac with
+different device UUIDs. The new IANA navigation exists in A's NativeTree and
+its History record reached both Common stores, but the page did not reach
+Shared Tree/Presence. Readback now shows A knows B's old empty capability,
+whereas B has the newer shared-normal-tabs-v3 declaration. The writer is
+therefore correctly gated. The frozen55ab Core upload loop coalesces by entity
+but keeps only the last mutation ID, leaving older Outbox versions behind to
+be sent with newer server ChangeTags. Root read the loop and saved-record
+byte-match/ACK handler; persisted receive chronology matches the backward-write
+path. The actual current server state was not queried. This is not a proven
+Native capture defect or permission to bypass matching capability readiness.
+The Desktop worker now explicitly owns the narrow corrective Common writes in
+`cloudkit_sync_provider_mac_consent.mm` and
+`cloudkit_sync_provider_mac_internal.h`: preserve all original covered mutation
+IDs/versions, require actual fieldclock/tombstone dominance for coalesced ACKs,
+and stage/merge concurrent server state through existing authorized durable
+paths. No topclock-only shortcut, new clock invention, wire/schema/engine or
+consent change is allowed. Source is to join the ONE corrected Native candidate,
+not launch an extra build in the current disk reserve.
+
+The Mac locked again during the later UI step. Only the two freshly identified
+own test PIDs49166/90916 were controlledly terminated; handles89088/46806 both
+EXIT0, processes absent, data retained. Final A/B Outbox0/0, retry0/0, ACK20/10
+are bounded evidence, not new-tab/focus acceptance. Exact observations and
+capability versions are in
+`artifacts/e2e/native-peer-55abcf7-20260913/{README.md,result.json}`.
+No Root Native/UI run remains active. Installed55ab and physical Device24 are
+unchanged. Older PID/lock/wait instructions below are historical to their step.
+
+Native Structure source89993af's first app-only68856 run ended EXIT1. Six
+compile causes were narrowly corrected in five Native files in a47b185;
+handoff67deb61 preserves the failure and exact next run script. The corrected
+worktree `/private/tmp/ahoi-native-structure.HoBjQO/repo` and shared out remain
+protected. No build is currently active or paused; the actual remaining build
+constraint is about32.3GiB disk headroom, not a source/role/UI permission wait.
+
 ## Current parallel-work rule — explicit user decision, September13
 
 The user explicitly removed the blanket MBC/Ahoi window reservations and repeated
