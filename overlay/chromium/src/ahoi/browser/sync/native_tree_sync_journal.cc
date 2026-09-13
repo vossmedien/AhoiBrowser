@@ -361,9 +361,8 @@ bool NativeTreeSyncJournal::ReconcileLocal(
     return false;
   }
   sql::Statement observed(store_->db_.GetUniqueStatement(
-      "INSERT INTO sync_native_tree_observations(receipt_id,payload) "
-      "VALUES(?,?) "
-      "ON CONFLICT(receipt_id) DO UPDATE SET payload=excluded.payload"));
+      "INSERT OR REPLACE INTO sync_native_tree_observations(receipt_id,payload) "
+      "VALUES(?,?)"));
   observed.BindString(0, native.baseline_receipt);
   observed.BindString(1, *observed_payload);
   if (!observed.Run() || !Authorized(read_authorization) ||

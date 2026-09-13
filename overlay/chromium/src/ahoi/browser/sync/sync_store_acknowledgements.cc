@@ -29,22 +29,18 @@ SyncStore::Result SyncStore::AcknowledgeOutbox(
     }
     // Capture the exact acknowledged version before removing its outbox row.
     // A late ACK cannot cover a newer update, nor downgrade a newer receipt.
+    // Chromium's SQLite omits UPSERT; select only receipts we may replace.
     sql::Statement receipt(db_.GetUniqueStatement(
-        "INSERT INTO sync_acknowledged_records(entity_type,entity_id,"
+        "INSERT OR REPLACE INTO sync_acknowledged_records(entity_type,entity_id,"
         "version_model,version_physical,version_logical,version_device) "
         "SELECT entity_type,entity_id,version_model,version_physical,"
         "version_logical,version_device FROM sync_outbox WHERE mutation_id=? "
-        "ON CONFLICT(entity_type,entity_id) DO UPDATE SET "
-        "version_model=excluded.version_model,version_physical=excluded."
-        "version_physical,"
-        "version_logical=excluded.version_logical,version_device=excluded."
-        "version_device "
-        "WHERE "
-        "(excluded.version_physical,excluded.version_logical,excluded.version_"
-        "device) >= "
-        "(sync_acknowledged_records.version_physical,sync_acknowledged_records."
-        "version_logical,"
-        "sync_acknowledged_records.version_device)"));
+        "AND NOT EXISTS (SELECT 1 FROM sync_acknowledged_records AS ack "
+        "WHERE ack.entity_type=sync_outbox.entity_type "
+        "AND ack.entity_id=sync_outbox.entity_id "
+        "AND (ack.version_physical,ack.version_logical,ack.version_device) > "
+        "(sync_outbox.version_physical,sync_outbox.version_logical,"
+        "sync_outbox.version_device))"));
     receipt.BindString(0, mutation);
     if (!receipt.Run()) {
       return Result::kDatabaseError;
