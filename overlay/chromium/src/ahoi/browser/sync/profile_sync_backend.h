@@ -60,6 +60,9 @@ class ProfileSyncBackend : public SyncStoreObserver {
   ~ProfileSyncBackend() override;
 
   std::optional<SyncStateSnapshot> Initialize();
+  void SetIncomingStateCallback(
+      base::RepeatingCallback<void(std::optional<SyncStateSnapshot>,
+                                   SyncAuthorization)> callback);
   std::optional<DeviceTabsSnapshot> ReplaceLocalTabs(
       std::vector<LocalTabState> tabs);
   std::optional<SyncStateSnapshot> SetSharedTabNativeSupport(
@@ -163,6 +166,7 @@ class ProfileSyncBackend : public SyncStoreObserver {
       base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback,
       bool success,
       std::string safe_error);
+  void OnIncomingApplied(SyncAuthorization authorization);
 
   const base::FilePath database_path_;
   const base::Uuid device_id_;
@@ -205,6 +209,9 @@ class ProfileSyncBackend : public SyncStoreObserver {
       key_setup_waiters_;
 #endif
   std::string key_setup_issue_;
+  base::RepeatingCallback<void(std::optional<SyncStateSnapshot>,
+                               SyncAuthorization)>
+      incoming_state_callback_;
   base::WeakPtrFactory<ProfileSyncBackend> weak_ptr_factory_{this};
 };
 

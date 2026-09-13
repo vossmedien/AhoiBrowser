@@ -3,7 +3,22 @@
 
 #include "ahoi/browser/sync/sync_provider.h"
 
+#include <utility>
+
 namespace ahoi::sync {
+
+void SyncProvider::SetIncomingCallback(IncomingCallback callback) {}
+
+void SyncProvider::ReadPendingChanges(std::string change_token,
+                                      SyncAuthorization authorization,
+                                      DownloadCallback callback) {
+  std::move(callback).Run(false, {}, "temporarily_unavailable");
+}
+
+bool SyncProvider::AcknowledgeDownloaded(std::string change_token,
+                                         SyncAuthorization authorization) {
+  return authorization && authorization.Run();
+}
 
 void SyncProvider::SetBookmarkSyncEnabled(bool enabled) {}
 

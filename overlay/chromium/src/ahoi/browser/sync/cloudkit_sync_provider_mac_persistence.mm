@@ -103,11 +103,19 @@ void CloudKitSyncProviderMac::Core::PersistState(
               error:nil];
 }
 
-void CloudKitSyncProviderMac::Core::AcknowledgeLastDelivery(
+bool CloudKitSyncProviderMac::Core::AcknowledgeLastDelivery(
     const std::string& change_token) {
+  if (last_delivery_token_.empty())
+    return true;
   if (change_token.empty() || change_token != last_delivery_token_) {
-    return;
+    return false;
   }
+  auto previous_changes = fetched_changes_;
+  auto previous_opaque = opaque_bookmark_records_;
+  auto previous_materialized = materialized_bookmark_keys_;
+  auto previous_quarantine = bookmark_quarantine_ids_;
+  auto previous_mutations = last_delivery_mutations_;
+  auto previous_token = last_delivery_token_;
   for (const auto& [id, mutation_id] : last_delivery_mutations_) {
     auto current = fetched_changes_.find(id);
     if (current == fetched_changes_.end() ||
@@ -128,7 +136,15 @@ void CloudKitSyncProviderMac::Core::AcknowledgeLastDelivery(
   }
   last_delivery_mutations_.clear();
   last_delivery_token_.clear();
-  PersistInbox();
+  if (PersistInbox())
+    return true;
+  fetched_changes_ = std::move(previous_changes);
+  opaque_bookmark_records_ = std::move(previous_opaque);
+  materialized_bookmark_keys_ = std::move(previous_materialized);
+  bookmark_quarantine_ids_ = std::move(previous_quarantine);
+  last_delivery_mutations_ = std::move(previous_mutations);
+  last_delivery_token_ = std::move(previous_token);
+  return false;
 }
 
 void CloudKitSyncProviderMac::Core::LoadCachedChange(NSDictionary* item) {

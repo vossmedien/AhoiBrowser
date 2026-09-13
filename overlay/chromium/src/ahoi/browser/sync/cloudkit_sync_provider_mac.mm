@@ -173,6 +173,24 @@ void CloudKitSyncProviderMac::SetBookmarkSyncEnabled(bool enabled) {
   core_->SetBookmarkSyncEnabled(enabled);
 }
 
+void CloudKitSyncProviderMac::SetIncomingCallback(IncomingCallback callback) {
+  core_->SetIncomingCallback(std::move(callback));
+}
+
+void CloudKitSyncProviderMac::ReadPendingChanges(
+    std::string change_token,
+    SyncAuthorization authorization,
+    DownloadCallback callback) {
+  core_->ReadPendingChanges(std::move(change_token), std::move(authorization),
+                            std::move(callback));
+}
+
+bool CloudKitSyncProviderMac::AcknowledgeDownloaded(
+    std::string change_token,
+    SyncAuthorization authorization) {
+  return core_->AcknowledgeDownloaded(change_token, std::move(authorization));
+}
+
 SyncAuthorization CloudKitSyncProviderMac::GetPermittedSettingSyncAuthorization(
     const base::Uuid& record_id) {
   return core_->GetSettingAuthorization(record_id);

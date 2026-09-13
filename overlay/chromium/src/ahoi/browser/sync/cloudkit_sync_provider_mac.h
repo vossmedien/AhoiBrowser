@@ -43,6 +43,12 @@ class CloudKitSyncProviderMac final : public SyncProvider {
   void Upload(std::vector<SyncChange> changes,
               UploadCallback callback) override;
   void Download(std::string change_token, DownloadCallback callback) override;
+  void SetIncomingCallback(IncomingCallback callback) override;
+  void ReadPendingChanges(std::string change_token,
+                          SyncAuthorization authorization,
+                          DownloadCallback callback) override;
+  bool AcknowledgeDownloaded(std::string change_token,
+                             SyncAuthorization authorization) override;
   void SetBookmarkSyncEnabled(bool enabled) override;
   bool IsBookmarkConsentRevoked() override;
   BookmarkSyncAuthorization GetBookmarkSyncAuthorization() override;

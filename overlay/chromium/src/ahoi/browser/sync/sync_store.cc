@@ -363,10 +363,17 @@ SyncStore::Result SyncStore::PutLocalRecordInTransaction(
   return Result::kOk;
 }
 
-SyncStore::Result SyncStore::ApplyRemoteBatch(const ProviderBatch& batch) {
+SyncStore::Result SyncStore::ApplyRemoteBatch(
+    const ProviderBatch& batch,
+    const SyncAuthorization& authorization,
+    bool receive_only) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
+  }
+
+  if (authorization && !authorization.Run()) {
+    return Result::kNotAuthorized;
   }
 
   // Provider pages are transport batches, not complete tree snapshots. Parent
@@ -477,13 +484,18 @@ SyncStore::Result SyncStore::ApplyRemoteBatch(const ProviderBatch& batch) {
     changed = true;
   }
   if (!SetMetadata("change_token", batch.next_change_token) ||
-      (!batch.has_more && !SetMetadata("initial_fetch_complete", "1"))) {
+      (!receive_only && !batch.has_more &&
+       !SetMetadata("initial_fetch_complete", "1"))) {
     return Result::kDatabaseError;
   }
-  if (!db_.Execute(
+  if (!receive_only &&
+      !db_.Execute(
           "UPDATE sync_retry_state SET attempt=0,last_attempt=0,next_attempt=0,"
           "last_error='' WHERE provider_key='default'")) {
     return Result::kDatabaseError;
+  }
+  if (authorization && !authorization.Run()) {
+    return Result::kNotAuthorized;
   }
   if (!transaction.Commit()) {
     return Result::kDatabaseError;

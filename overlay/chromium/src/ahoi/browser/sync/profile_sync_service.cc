@@ -136,6 +136,10 @@ void ProfileSyncService::StartBackend() {
           [](std::shared_ptr<BrowserSettingConsent> consent,
              const base::Uuid& id) { return consent->Capture(id); },
           browser_setting_consent_));
+  backend_.AsyncCall(&ProfileSyncBackend::SetIncomingStateCallback)
+      .WithArgs(base::BindPostTaskToCurrentDefault(
+          base::BindRepeating(&ProfileSyncService::OnIncomingState,
+                              backend_weak_ptr_factory_.GetWeakPtr())));
   backend_.AsyncCall(&ProfileSyncBackend::Initialize)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
                            backend_weak_ptr_factory_.GetWeakPtr()));
@@ -424,6 +428,18 @@ void ProfileSyncService::OnSyncCompleted(
   if (!sync_enabled_ || backend_.is_null()) {
     return;
   }
+  OnBackendState(std::move(snapshot));
+}
+
+void ProfileSyncService::OnIncomingState(
+    std::optional<SyncStateSnapshot> snapshot,
+    SyncAuthorization authorization) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      !authorization || !authorization.Run()) {
+    return;
+  }
+  // Reuse the normal dormant-tab/settings/native projection pipeline. A
+  // received page never becomes a request to navigate or focus this device.
   OnBackendState(std::move(snapshot));
 }
 

@@ -602,6 +602,113 @@ void CloudKitSyncProviderMac::Core::CompleteDownload(NSError* error,
                    safe_error.empty(), std::move(batch), safe_error);
 }
 
+void CloudKitSyncProviderMac::Core::SetIncomingCallback(
+    IncomingCallback callback) {
+  base::AutoLock guard(lock_);
+  incoming_callback_ = std::move(callback);
+  ++incoming_notification_id_;
+  incoming_notification_pending_ = false;
+  ScheduleIncomingNotification();
+}
+
+void CloudKitSyncProviderMac::Core::ScheduleIncomingNotification() {
+  lock_.AssertAcquired();
+  if (!incoming_callback_ || incoming_notification_pending_ ||
+      !TransportAllowed() || inbox_persistence_failed_ ||
+      fetched_changes_.empty()) {
+    return;
+  }
+  bool deliverable = false;
+  for (const auto& [id, change] : fetched_changes_) {
+    deliverable |=
+        change.entity_type != EntityType::kBookmark || BookmarkAllowed();
+  }
+  if (!deliverable) {
+    return;
+  }
+  const uint64_t generation = transport_generation_;
+  const uint64_t notification = ++incoming_notification_id_;
+  incoming_notification_pending_ = true;
+  auto authorization = base::BindRepeating(
+      [](std::weak_ptr<Core> weak, uint64_t expected) {
+        const auto core = weak.lock();
+        if (!core)
+          return false;
+        base::AutoLock guard(core->lock_);
+        return expected == core->transport_generation_ &&
+               core->TransportAllowed();
+      },
+      weak_from_this(), generation);
+  owner_runner_->PostTask(
+      FROM_HERE,
+      base::BindOnce(
+          [](std::weak_ptr<Core> weak, uint64_t notification,
+             IncomingCallback callback, SyncAuthorization authorization) {
+            const auto core = weak.lock();
+            if (!core)
+              return;
+            {
+              base::AutoLock guard(core->lock_);
+              if (notification != core->incoming_notification_id_)
+                return;
+              core->incoming_notification_pending_ = false;
+              if (core->shutting_down_ || core->inbox_persistence_failed_)
+                return;
+            }
+            if (authorization.Run())
+              callback.Run(std::move(authorization));
+          },
+          weak_from_this(), notification, incoming_callback_,
+          std::move(authorization)));
+}
+
+void CloudKitSyncProviderMac::Core::ReadPendingChanges(
+    std::string change_token,
+    SyncAuthorization authorization,
+    DownloadCallback callback) {
+  uint64_t generation;
+  {
+    base::AutoLock guard(lock_);
+    generation = transport_generation_;
+  }
+  const bool authorized = authorization && authorization.Run();
+  {
+    base::AutoLock guard(lock_);
+    if (!authorized || generation != transport_generation_ ||
+        !TransportAllowed()) {
+      DispatchDownload(std::move(callback), generation, false, {}, "cancelled");
+      return;
+    }
+    if (download_callback_) {
+      DispatchDownload(std::move(callback), generation, false, {},
+                       "temporarily_unavailable");
+      return;
+    }
+    HydrateDeferredBookmarks();
+    download_base_token_ = std::move(change_token);
+    download_error_.clear();
+    download_callback_ = std::move(callback);
+  }
+  // The CloudKit event already fetched and persisted these records. Do not
+  // start another fetch, which could turn the receive wake into an echo loop.
+  CompleteDownload(nil, generation);
+}
+
+bool CloudKitSyncProviderMac::Core::AcknowledgeDownloaded(
+    const std::string& change_token,
+    SyncAuthorization authorization) {
+  uint64_t generation;
+  {
+    base::AutoLock guard(lock_);
+    generation = transport_generation_;
+  }
+  if (!authorization || !authorization.Run())
+    return false;
+  base::AutoLock guard(lock_);
+  return generation == transport_generation_ && TransportAllowed() &&
+         AcknowledgeLastDelivery(change_token);
+}
+
 void CloudKitSyncProviderMac::Core::LoadInboxForTesting() {
   base::AutoLock guard(lock_);
   LoadInbox();

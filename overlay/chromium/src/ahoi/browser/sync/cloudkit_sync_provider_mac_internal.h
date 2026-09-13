@@ -81,6 +81,8 @@ class CloudKitSyncProviderMac::Core
       delegate_core_ = nil;
       upload_callback_.Reset();
       download_callback_.Reset();
+      incoming_callback_.Reset();
+      ++incoming_notification_id_;
     }
 
     // Invalidation stops new delegate entries. A callback that already locked
@@ -136,6 +138,13 @@ class CloudKitSyncProviderMac::Core
   }
   void Upload(std::vector<SyncChange> changes, UploadCallback callback);
   void Download(std::string change_token, DownloadCallback callback);
+  void SetIncomingCallback(IncomingCallback callback);
+  void ReadPendingChanges(std::string change_token,
+                          SyncAuthorization authorization,
+                          DownloadCallback callback);
+  bool AcknowledgeDownloaded(const std::string& change_token,
+                             SyncAuthorization authorization);
+  void ScheduleIncomingNotification();
   void CompleteUpload(NSError* error, uint64_t generation);
   void CompleteDownload(NSError* error, uint64_t generation);
   void HandleEvent(CKSyncEngineEvent* event) API_AVAILABLE(macos(14.0)) {
@@ -181,7 +190,10 @@ class CloudKitSyncProviderMac::Core
                  .modifications) {
           ReceiveFetchedRecord(record);
         }
-        PersistInbox();
+        if (PersistInbox() && !download_callback_ &&
+            event.fetchedRecordZoneChangesEvent.modifications.count) {
+          ScheduleIncomingNotification();
+        }
       }
       // Physical record deletions are not translated into domain deletion;
       // only authenticated tombstones are accepted.
@@ -541,7 +553,7 @@ class CloudKitSyncProviderMac::Core
   CKSyncEngineStateSerialization* LoadState() API_AVAILABLE(macos(14.0));
   void PersistState(CKSyncEngineStateSerialization* state)
       API_AVAILABLE(macos(14.0));
-  void AcknowledgeLastDelivery(const std::string& change_token);
+  bool AcknowledgeLastDelivery(const std::string& change_token);
   void LoadInbox();
   bool PersistInbox();
   void LoadCachedChange(NSDictionary* item);
@@ -597,6 +609,9 @@ class CloudKitSyncProviderMac::Core
   std::string upload_failure_stage_;
   UploadCallback upload_callback_;
   DownloadCallback download_callback_;
+  IncomingCallback incoming_callback_;
+  bool incoming_notification_pending_ = false;
+  uint64_t incoming_notification_id_ = 0;
   std::string upload_error_;
   std::string download_error_;
   std::string download_base_token_;

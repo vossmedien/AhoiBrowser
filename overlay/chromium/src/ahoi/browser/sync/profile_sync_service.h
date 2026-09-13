@@ -207,6 +207,8 @@ class ProfileSyncService final
 
  private:
   void RequestSync(bool user_initiated);
+  void OnIncomingState(std::optional<SyncStateSnapshot> snapshot,
+                       SyncAuthorization authorization);
   friend class ProfileSyncServiceTest;
   friend class BookmarkSyncAuthorizationTest;
 

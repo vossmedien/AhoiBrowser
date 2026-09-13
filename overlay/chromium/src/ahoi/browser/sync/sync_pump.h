@@ -49,6 +49,8 @@ class SyncPump final {
   // A user request bypasses only the local retry deadline for this attempt;
   // provider authorization and server/SDK retry limits remain authoritative.
   bool SyncNow(CompletionCallback callback, bool user_initiated = false);
+  void SetIncomingAppliedCallback(
+      base::RepeatingCallback<void(SyncAuthorization)> callback);
   void Cancel();
   // Separate local approval, default off. A transition cancels old cycle
   // callbacks without acknowledging or removing queued records.
@@ -57,6 +59,10 @@ class SyncPump final {
   bool syncing_for_testing() const { return syncing_; }
 
  private:
+  void BindIncomingCallback();
+  void OnIncomingAvailable(SyncAuthorization authorization);
+  void StartPendingReceive();
+  void FinishReceive(bool success);
   void StartCycle(bool user_initiated = false);
   void UploadNextPage();
   void OnUploadFinished(std::vector<SyncChange> attempted,
@@ -85,6 +91,12 @@ class SyncPump final {
   bool syncing_ = false;
   bool cycle_requested_ = false;
   bool bookmark_sync_enabled_ = false;
+  bool receive_only_ = false;
+  bool received_changes_ = false;
+  bool queued_user_sync_ = false;
+  SyncAuthorization receive_authorization_;
+  SyncAuthorization pending_receive_authorization_;
+  base::RepeatingCallback<void(SyncAuthorization)> incoming_applied_callback_;
   base::WeakPtrFactory<SyncPump> weak_ptr_factory_{this};
 };
 

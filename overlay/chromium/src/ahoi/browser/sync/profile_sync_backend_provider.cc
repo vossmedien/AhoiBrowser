@@ -14,6 +14,19 @@
 
 namespace ahoi::sync {
 
+void ProfileSyncBackend::SetIncomingStateCallback(
+    base::RepeatingCallback<void(std::optional<SyncStateSnapshot>,
+                                 SyncAuthorization)> callback) {
+  incoming_state_callback_ = std::move(callback);
+}
+
+void ProfileSyncBackend::OnIncomingApplied(SyncAuthorization authorization) {
+  if (ProfileScopeActive() && transport_enabled_ && incoming_state_callback_ &&
+      authorization && authorization.Run()) {
+    incoming_state_callback_.Run(CurrentState(), std::move(authorization));
+  }
+}
+
 bool ProfileSyncBackend::RetrySyncKeySetup() {
 #if BUILDFLAG(IS_MAC)
   if (!ProfileScopeActive() || !transport_enabled_ || !store_ ||
@@ -89,6 +102,9 @@ void ProfileSyncBackend::OnKeyBootstrapResult(
     pump_ = std::make_unique<SyncPump>(
         store_.get(), provider_.get(),
         SyncPump::Options{.bookmark_sync_enabled = bookmark_sync_enabled_});
+    pump_->SetIncomingAppliedCallback(
+        base::BindRepeating(&ProfileSyncBackend::OnIncomingApplied,
+                            weak_ptr_factory_.GetWeakPtr()));
   } else {
     key_setup_issue_ = "key_setup_provider_unavailable";
   }

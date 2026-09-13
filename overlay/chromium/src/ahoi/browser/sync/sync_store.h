@@ -83,7 +83,11 @@ class SyncStore {
   // Applies an entire provider page atomically. A repeated mutation is a
   // no-op, a stale version is retained in the inbox but cannot overwrite the
   // current row, and the change token/retry reset commit with the page.
-  [[nodiscard]] Result ApplyRemoteBatch(const ProviderBatch& batch);
+  // Receive-only imports preserve outgoing retry and initial-full-fetch state.
+  [[nodiscard]] Result ApplyRemoteBatch(
+      const ProviderBatch& batch,
+      const SyncAuthorization& authorization = {},
+      bool receive_only = false);
 
   [[nodiscard]] Result GetRecord(EntityType type,
                                  const base::Uuid& id,
