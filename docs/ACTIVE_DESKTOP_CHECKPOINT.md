@@ -1,97 +1,79 @@
 # Active Desktop checkpoint
 
-## Current native correction — 13 September 2026
+## Current native Sync handback — 13 September 2026
 
-**Current correction after real e4 recovery crash:** ccd24827be87ab2cdcc0e2579137eb7d83700b4b
-is e4 plus only two Common SQL fixes, explicitly released to this owner by Root.
-Guarded build41122, scoped sign/verify14386 and guarded install57636 are now
-TERMINAL EXIT0. Actual installed source is ccd, executable SHA
-c2ab46e0fa6ba0f04d87bf066dae3900d599ccba1bcc48d91724cd8498b15112. Installation
-receipt artifacts/install/ahoi-dev-ccd2482-scoped-20260913.json has SHA
-d9ba2781fa920e67eea736049e482a02f3a1e780bbdde8e10dec0294058cff93.
-Canonical two-file source commit614d297868b50173d2b6ae8093c8da58ef5f1f55 is
-DCO-signed and pushed, preserving all foreign Native Structure/Mobile work.
+**Installed and visibly verified:** `26b01b17134a04e6d4e96bf9a837bbcf81ea06e3`,
+scoped CloudKit Development on the existing bba MacA profile. Guarded build65225,
+scoped preparation/signature verification65919 and guarded installation69712
+are TERMINAL EXIT0. Original portable and entitled copies are preserved in
+`artifacts/build/native-sync-26b01b1-20260913/`; installed executable SHA256:
+`8b21daa3b00c12e68886ebe1108b82f0fc4efc7e93fb68d8950814fdce0f00c9`.
 
-Visible retained-MacA startup/Restore/Sync disclosure and one explicit Jetzt
-synchronisieren kept PID41250 stable, followed by normal quit and confirmed
-absence. No new crashdump. However UI still reports provider_error; after quit
-outbox13/acknowledged0/native_observations0 versus baseline10/0/0. This is NOT a
-successful real ACK or roundtrip. Ordinary CloudKit logs identify one Send
-CKErrorDomain Code2/PartialFailure; per-item detail is private. Exact observed
-journey, focused Chromium-SQLite PASS and remaining narrow diagnostic hypotheses
-are in artifacts/e2e/native-sync-ccd2482-20260913/README.md. No Ahoi UI reservation
-or process remains. Device24 stays OFF; MacA retains ON and its recovered state.
+[The current runtime report](../artifacts/e2e/native-sync-26b01b1-20260913/README.md)
+binds receipts, actual own-window CUA actions, safe provider events and readback.
+A visible user retry before the preserved02:45UTC deadline really sent data.
+The first send retained its CK14 conflicts honestly; one justified follow-up
+using received server metadata acknowledged the queued changes. CUA then showed
+**Synchronisiert und bereit** with the same stable PID70398.
 
-Chromium uses SQLITE_OMIT_UPSERT; AcknowledgeOutbox and native tree observation
-receipts used unsupported UPSERT. Supported INSERT OR REPLACE retains the
-transaction and monotonic ACK clock condition; these complete receipt tables
-have no foreign keys/triggers. No schema/format/key/store reset or SQLite flag
-change. Preserved ref: refs/ahoi-preserved/native-sync-ccd2482-20260913. The same
-isolated worktree now points to ccd; its three-job guarded app-only build and
-terminal outputs are under artifacts/build/native-sync-ccd2482-20260913/.
+After ordinary quit (PID70398 confirmed absent), the scoped database has
+**outbox0, acknowledged16, native_observations2, initial_fetch_complete1**.
+Retry values are attempt0/last0/next0/empty error. Account/zone recovery flags
+remain false; bookmark consent remains revoked and no category or remote-control
+approval was given. There is no new crashdump. The real Default's Local State,
+Preferences and Ahoi Tab Tree remain byte-identical to the preserved baseline.
+This proves real MacA upload/ACK, native receipt persistence and first download;
+it does **not** prove a physical peer or Mac–iOS roundtrip.
 
-e4 build82567, scoped prepare/sign/verify26850 and guarded install42266 all
-completed EXIT0. Exact receipts, original portable app and separate entitled
-copy are preserved under artifacts/build/native-sync-e4de9e1-recovery-20260913/.
-Build receipt SHAee559365e251b10f7f6a49d60e18f61466a14048f44634e3ae84b2d551d51e37;
-verification SHA873847d74e4d222e020ff423dec8fb8f71791f5726ccd72b4bef2f46cd101154;
-installed receipt artifacts/install/ahoi-dev-e4de9e1-scoped-20260913.json,
-SHAeb54ab0e73174286e0fd3fb06e60bf1e3e661f370a68a59a84b817707047d245.
-Installed executable SHA4ca4ef074b1e28bdad8f01a0695ffba596136ed7d0fc71484a1c4321d6217dd9.
-The c8 predecessor and all rollback bundles remain preserved.
+### Source, scope and next owner
 
-Actual e4 own-window CUA journey: MacA startup/Continue, correct OFF copy and
-sidebar section labels, visible OFF->ON, normal-width Sync disclosure, visible
-account recovery, then explicit Lokale Daten weiter hochladen. The action
-persisted accountTransitionPending=false and zoneRecoveryPending=false.
-Post-upload ACK then crashed at SyncStore::AcknowledgeOutbox:49 ->
-sql::Statement::CheckValid:98 (invalid UPSERT statement), not a successful
-roundtrip. CUA's next observation relaunched the app; that process was normally
-quit and is absent. MacA Sync remains ON, recovered state retained. Exact
-crash hash, stack, observations and unchanged real-Default hashes are in
-artifacts/e2e/native-sync-e4de9e1-20260913/README.md. Required next proof is
-ccd's actual retained-profile upload/ACK journey, not another recovery reset.
-No own UI reservation remains during the corrective build.
+The bounded recovery owner `/root/desktop_recovery_20260913` returns the native
+build/sign/install/checkout/out and own UI window to Root. No own build or Ahoi
+process remains. The clean exact tool/source snapshot remains at
+`/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo`, detached26b01b1, with
+`refs/ahoi-preserved/native-sync-26b01b1-20260913` protecting the source.
+The disappeared predecessor `/private/tmp/ahoi-native-sync-build.eqejEO/repo`
+and all old handles are historical, not runnable reservations; no worktree was
+pruned or broadly reset.
 
-The sole current build/sign/install owner is `/root/desktop_recovery_20260913`,
-explicitly handed the stopped `/root/desktop_resume` task by Root. The exact
-recovered source was `e4de9e14ca3073876e9aa17730876d15cfa41683`, not canonical
-HEAD or the separate Native Structure/Mobile WIP. It is preserved by
-`refs/ahoi-preserved/native-sync-e4de9e1-20260913`; the detached worktree
-at `/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo` has advanced only to ccd.
-The previous
-`/private/tmp/ahoi-native-sync-build.eqejEO/repo` no longer exists on disk;
-its prunable registration and old process handles are not resumable state.
+Canonical product commits are614d297 (SQLite syntax),2948361 (durable success
+before a coalesced follow-up),628d163/f7d276c (bounded provider result accounting
+and compatible safe diagnostics) and6fee878 (explicit manual retry).
+One declaration-only cherry-pick conflict retained both existing Workspace
+Structure methods and the new SyncNowFromUser entry. Foreign Native Structure/
+Mobile/product-contract changes are preserved. Canonical HEAD's later Structure
+wave is NOT part of this installed schema6 candidate.
 
-The prior e4 attempt has no terminal exit or build receipt: its retained
-`artifacts/build/native-sync-e4de9e1-20260912/build.log` ends after Chromium
-hooks. The earlier a95 compile failure and public-label-API correction remain
-documented there. The recovered e4 app-only guarded overlay/build was started
-with three jobs against the existing `.work/chromium/src/out/AhoiDev` on
-September13. Fresh start capacity was 68% idle CPU, no compiler, no swap I/O and
-94 GiB available. That invocation82567 is terminal EXIT0, with explicit terminal
-exit files and successful receipt under
-`artifacts/build/native-sync-e4de9e1-recovery-20260913/`.
+The same immutable Development scope SHA remains
+`851600c142f1c289f5f878a23587eecbc9001a4e2c2e072f7c0e0f5dc13c9abe`.
+Its existing stores/key bootstrap/server records are used and are not fresh.
+Matching Device24 remains Root-owned and was not opted in by this worker.
+Next acceptance is the actual matching peer's ordinary UI/bootstrap/roundtrip,
+without key copying or store/zone resets. The rejected Sync menu layout and
+Root's three ImageGen directions are a separate pending UX decision.
 
-At the recovery start the installed candidate was scoped Development c8d9161;
-the newer e4 installation and crash above supersede that state. Root's c8 visible opt-in found account recovery
-pending and zero-width action buttons; e4 contains the bounded first-sign-in,
-recovery/disclosure, OFF-status and sidebar corrections. Existing MacA setup/
-recovery state is preserved. The bba scope is not assumed unused. Device24
-remains the matching schema6 peer, Sync OFF; Structure/schema7 is excluded.
+The user's parallel-work/Ahoi-priority instruction supersedes old blanket MBC
+window waits. Continue with exact own-window targeting and fresh total capacity;
+do not revive old START/PID reservations. All installed rollbacks, current
+original/entitled candidates and their receipts remain protected.
 
-The user's new September13 direction, relayed explicitly by Root, authorizes
-parallel work with Ahoi priority and supersedes blanket MBC UI-window waiting.
-Proceed build -> scoped sign/install -> short native e4 Sync/sidebar E2E without
-another MBC START/handback. Target the actual own process/window and direct AX
-actions/captures; only an evidenced global-input collision affects that step.
-Fresh total capacity and candidate/scope checks still apply, and no foreign
-process may be stopped. Installation still requires no Ahoi process.
-Visible MacA recovery choice
-"Lokale Daten weiter hochladen" is explicitly authorized only in the verified
-bba test profile with actually visible controls. No key, store, recovery-flag
-reset or real-Default upload follows from that authorization. All rollback
-bundles remain protected. Return the UI window explicitly after the journey.
+### Preserved failures and fixes
+
+- [e4 recovery](../artifacts/e2e/native-sync-e4de9e1-20260913/README.md):
+  visible recovery worked, then unsupported Chromium SQLite UPSERT crashed ACK.
+- [ccd follow-up](../artifacts/e2e/native-sync-ccd2482-20260913/README.md):
+  stable process but CKPartialFailure2; actual pinned SQLite compatibility and
+  monotonic receipt SQL were checked without using a mock transport as acceptance.
+- [55 conflict/retry diagnosis](../artifacts/e2e/native-sync-55f61ca-20260913/README.md):
+  real CK14 item counts and the exact sliding-backoff deadline were retained.
+  No premature check now increases Attempt/Deadline; explicit user retry starts
+  one normal attempt, coalesces an in-flight click, and preserves all leases.
+- eb54's os_log unsafe-format compiler failure remains in its original build
+  log; no warning was disabled.178 compiled successfully before the final
+  successful-ClearRetry correction and was not installed.
+
+The final reports replace the former running-state paragraphs; historical
+failure logs and source objects remain intact.
 
 ## Historical native integration — 12 September 2026
 

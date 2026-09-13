@@ -1,0 +1,329 @@
+warning: proceeding with explicit low-disk build override: 56.7 GiB available, 64.0 GiB recommended
+==> host: macOS 26.6 (25G72), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.6 Build version 17F113 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F81a)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 56.7 GiB; required: 64.0 GiB
+warning: proceeding with explicit low-disk build override: 56.7 GiB available, 64.0 GiB recommended
+==> host check passed
+==> Sparkle 2.9.6 verified from fetched-material receipt (ac2def288cbff5cfc7df3ffef6abdf45b72bcb0a)
+warning: proceeding with explicit low-disk build override: 56.5 GiB available, 64.0 GiB recommended
+==> host: macOS 26.6 (25G72), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.6 Build version 17F113 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F81a)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 56.5 GiB; required: 64.0 GiB
+warning: proceeding with explicit low-disk build override: 56.5 GiB available, 64.0 GiB recommended
+==> host check passed
+/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo/artifacts/build/chromium-dependencies.json
+==> running Chromium hooks with compatible-development Xcode/SDK (overlay checkout)
+________ running 'vpython3 -vpython-spec src/.vpython3 -vpython-tool install' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/landmines.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/update_depot_tools_toggle.py --disable' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_files.py src/third_party/test_fonts/test_fonts.tar.gz src/third_party/node/node_modules.tar.gz src/third_party/tfhub_models src/tools/clang/crashreports' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_pyc_files.py src/android_webview/tools src/build/android src/gpu/gles2_conform_support src/infra src/ppapi src/printing src/third_party/blink/renderer/build/scripts src/third_party/blink/tools src/third_party/catapult src/third_party/mako src/tools' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/mac_toolchain.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+Skipping Mac toolchain installation for mac
+________ running 'python3 src/build/util/lastchange.py -o src/build/util/LASTCHANGE' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m GPU_LISTS_VERSION --revision-id-only --header src/gpu/config/gpu_lists_version.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m DAWN_COMMIT_HASH -s src/third_party/dawn --revision src/gpu/webgpu/DAWN_VERSION --header src/gpu/webgpu/dawn_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/download_from_google_storage.py --no_resume --bucket chromium-browser-clang -s src/tools/clang/dsymutil/bin/dsymutil.arm64.sha1 -o src/tools/clang/dsymutil/bin/dsymutil' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/testing/generate_location_tags.py --out src/testing/location_tags.json' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/buildtools/reclient_cfgs/configure_reclient_cfgs.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reproxy_cfg_template reproxy.cfg.template --rewrapper_cfg_project  --skip_remoteexec_cfg_fetch --quiet' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/config/siso/configure_siso.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reapi_instance  --reapi_address  --reapi_backend_config_path  --credential-helper ' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/tast_control.py -o src/chromeos/tast_control.gni -t src/chromeos/tast_control.gni.template -i src/chromeos/tast_control_disabled_tests.txt --input-public src/chromeos/tast_control_disabled_tests_public_builders.txt -f src/chromeos/tast_control_flaky_tests.txt' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'vpython3 scripts/deps/sync_rollup_libs.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/third_party/devtools-frontend/src'
+/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo/artifacts/build/chromium-dependencies.json
+==> pinned Chromium hooks verified: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/state/hooks-fc4d67f1788019a27e32511137ceccbd2fafdaaa.json
+==> generating Ahoi dev build
+==> applying chromium-rust-depfile-space-paths and v8-inspector-protocol-relative-depfile-paths only for gn gen and autoninja
+Done. Made 32148 targets from 4939 files in 4549ms
+ninja: Entering directory `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev'
+[0/1] Regenerating ninja files
+[1/25] OBJCXX obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac.o
+FAILED: obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac.o 
+../../third_party/llvm-build/Release+Asserts/bin/clang++ -MMD -MF obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac.o.d -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FORTIFY_SOURCE=3 -D__ARM_NEON__=1 -DCR_XCODE_BUILD=17F113 -DCR_CLANG_REVISION=\"llvmorg-23-init-19482-g53d18800-1\" -DCOMPONENT_BUILD -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE -D_LIBCPP_INSTRUMENTED_WITH_ASAN=0 -DCR_LIBCXX_REVISION=b16984ce99c702355a5b2b4c52574e82cec41fb9 -DDCHECK_ALWAYS_ON=1 -DNDEBUG -DNVALGRIND -DDYNAMIC_ANNOTATIONS_ENABLED=0 -DABSL_CONSUME_DLL -DABSL_FLAGS_STRIP_NAMES=0 -DBORINGSSL_SHARED_LIBRARY -DUSE_LIBCXX_MODULES -I../.. -Igen -I../../buildtools/third_party/libc++ -I../../third_party/perfetto/include -Igen/third_party/perfetto/build_config -Igen/third_party/perfetto -I../../base/allocator/partition_allocator/src -Igen/base/allocator/partition_allocator/src -I../../third_party/abseil-cpp -I../../third_party/boringssl/src/include -I../../third_party/protobuf/src  -Wall -Wextra -Wimplicit-fallthrough -Wextra-semi -Wunreachable-code-aggressive -Wgnu -Wno-gnu-anonymous-struct -Wno-gnu-conditional-omitted-operand -Wno-gnu-include-next -Wno-gnu-label-as-value -Wno-gnu-redeclared-enum -Wno-gnu-statement-expression -Wno-gnu-zero-variadic-macro-arguments -Wno-zero-length-array -Wthread-safety -Wno-unused-template -Wunguarded-availability -Wno-missing-field-initializers -Wno-unused-parameter -Wno-psabi -Wloop-analysis -Wno-unneeded-internal-declaration -Wno-cast-function-type -Wno-thread-safety-reference-return -Wno-nontrivial-memcall -Wno-uninitialized-const-pointer -Wno-unused-but-set-global -Wexit-time-destructors -Wshadow -Werror -fno-delete-null-pointer-checks -fno-strict-overflow -fno-ident -fno-math-errno -fno-strict-aliasing -fstack-protector -fcolor-diagnostics -fdiagnostics-show-inlining-chain -fmerge-all-constants -fcrash-diagnostics-dir=../clang-crashreports -fno-lifetime-dse -mllvm -instcombine-lower-dbg-declare=0 -mllvm -split-threshold-for-reg-with-hint=0 -ffp-contract=off -fcomplete-member-pointers --target=arm64-apple-macos -mno-outline -Wno-builtin-macro-redefined -D__DATE__= -D__TIME__= -D__TIMESTAMP__= -ffile-compilation-dir=. -no-canonical-prefixes -Xclang -fmodule-file-home-is-cwd -Xclang -fmodules-cache-path=/not_exist_dummy_dir --warning-suppression-mappings=../../build/config/warning_suppression.txt -ftrivial-auto-var-init=pattern -O2 -fno-omit-frame-pointer -gdwarf-4 -g1 -gdwarf-aranges -isysroot sdk/xcode_links/MacOSX26.5.sdk -mmacos-version-min=13.0 -fsanitize=array-bounds -fsanitize-trap=array-bounds -fsanitize-ignore-for-ubsan-feature=array-bounds -Wno-unsafe-buffer-usage-in-static-sized-array -fsanitize=return -fsanitize-trap=return -fsanitize-ignore-for-ubsan-feature=return -fvisibility=hidden -Wheader-hygiene -Wstring-conversion -Wtautological-overlap-compare -Xclang -add-plugin -Xclang find-bad-constructs -Xclang -plugin-arg-find-bad-constructs -Xclang check-stack-allocated -Xclang -plugin-arg-find-bad-constructs -Xclang relax-ctor-checks-for-aggregates -Xclang -add-plugin -Xclang raw-ptr-plugin -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-to-stack-allocated -Xclang -plugin-arg-raw-ptr-plugin -Xclang disable-check-raw-ptr-to-stack-allocated-error -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../third_party/dawn/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../build/config/clang/chrome/test/fuzzing/webidl_fuzzing/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-span-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ref-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang no-special-treatment-for-oilpanized-paths -DUNSAFE_BUFFERS_BUILD -Wunsafe-buffer-usage -Wno-error=unsafe-buffer-usage -Xclang -add-plugin -Xclang unsafe-buffers -Xclang -plugin-arg-unsafe-buffers -Xclang ../../build/config/unsafe_buffers_paths.txt -Wimplicit-retain-self -Wobjc-missing-property-synthesis -std=c++23 -Wno-trigraphs -fno-exceptions -fno-rtti -nostdinc++ -isystem../../third_party/libc++/src/include -isystem../../third_party/libc++abi/src/include -fobjc-arc -fno-objc-arc-exceptions -Wobjc-property-assign-on-object-type -fvisibility-inlines-hidden -c ../../ahoi/browser/sync/cloudkit_sync_provider_mac.mm -o obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac.o
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac.mm:28:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: error: formatting function '__builtin_os_log_format_buffer_size' is unsafe [-Werror,-Wunsafe-buffer-usage-in-format-attr-call]
+  506 |     os_log_with_type(
+      |     ^~~~~~~~~~~~~~~~~
+  507 |         log, OS_LOG_TYPE_DEFAULT,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~
+  508 |         "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  509 |         "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  510 |         "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  511 |         "ack=%{public}zu",
+      |         ~~~~~~~~~~~~~~~~~~
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  513 |         upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  514 |         static_cast<long>(upload_item_error_code_),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  515 |         upload_expected_mutations_.size(), upload_saved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  516 |         upload_resolved_count_, upload_unresolved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  517 |         upload_acknowledgements_.size());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  186 |                 (&__dso_handle, _log_tmp, _type_tmp), format, ##__VA_ARGS__); \
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:88:63: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   88 |         uint8_t _Alignas(16) OS_LOG_UNINITIALIZED _os_fmt_buf[__builtin_os_log_format_buffer_size(fmt, ##__VA_ARGS__)]; \
+      |                                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: note: See //docs/unsafe_buffers.md for help.
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:88:63: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   88 |         uint8_t _Alignas(16) OS_LOG_UNINITIALIZED _os_fmt_buf[__builtin_os_log_format_buffer_size(fmt, ##__VA_ARGS__)]; \
+      |                                                               ^
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac.mm:28:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: error: string argument is not guaranteed to be null-terminated
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ^~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: note: See //docs/unsafe_buffers.md for help.
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: error: formatting function '__builtin_os_log_format' is unsafe [-Werror,-Wunsafe-buffer-usage-in-format-attr-call]
+  506 |     os_log_with_type(
+      |     ^~~~~~~~~~~~~~~~~
+  507 |         log, OS_LOG_TYPE_DEFAULT,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~
+  508 |         "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  509 |         "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  510 |         "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  511 |         "ack=%{public}zu",
+      |         ~~~~~~~~~~~~~~~~~~
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  513 |         upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  514 |         static_cast<long>(upload_item_error_code_),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  515 |         upload_expected_mutations_.size(), upload_saved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  516 |         upload_resolved_count_, upload_unresolved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  517 |         upload_acknowledgements_.size());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  186 |                 (&__dso_handle, _log_tmp, _type_tmp), format, ##__VA_ARGS__); \
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:90:28: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   90 |                 (uint8_t *)__builtin_os_log_format(_os_fmt_buf, fmt, ##__VA_ARGS__), \
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: note: See //docs/unsafe_buffers.md for help.
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:90:28: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   90 |                 (uint8_t *)__builtin_os_log_format(_os_fmt_buf, fmt, ##__VA_ARGS__), \
+      |                            ^
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac.mm:28:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: error: string argument is not guaranteed to be null-terminated
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ^~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: note: See //docs/unsafe_buffers.md for help.
+4 errors generated.
+[2/25] OBJCXX obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_persistence.o
+FAILED: obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_persistence.o 
+../../third_party/llvm-build/Release+Asserts/bin/clang++ -MMD -MF obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_persistence.o.d -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FORTIFY_SOURCE=3 -D__ARM_NEON__=1 -DCR_XCODE_BUILD=17F113 -DCR_CLANG_REVISION=\"llvmorg-23-init-19482-g53d18800-1\" -DCOMPONENT_BUILD -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE -D_LIBCPP_INSTRUMENTED_WITH_ASAN=0 -DCR_LIBCXX_REVISION=b16984ce99c702355a5b2b4c52574e82cec41fb9 -DDCHECK_ALWAYS_ON=1 -DNDEBUG -DNVALGRIND -DDYNAMIC_ANNOTATIONS_ENABLED=0 -DABSL_CONSUME_DLL -DABSL_FLAGS_STRIP_NAMES=0 -DBORINGSSL_SHARED_LIBRARY -DUSE_LIBCXX_MODULES -I../.. -Igen -I../../buildtools/third_party/libc++ -I../../third_party/perfetto/include -Igen/third_party/perfetto/build_config -Igen/third_party/perfetto -I../../base/allocator/partition_allocator/src -Igen/base/allocator/partition_allocator/src -I../../third_party/abseil-cpp -I../../third_party/boringssl/src/include -I../../third_party/protobuf/src  -Wall -Wextra -Wimplicit-fallthrough -Wextra-semi -Wunreachable-code-aggressive -Wgnu -Wno-gnu-anonymous-struct -Wno-gnu-conditional-omitted-operand -Wno-gnu-include-next -Wno-gnu-label-as-value -Wno-gnu-redeclared-enum -Wno-gnu-statement-expression -Wno-gnu-zero-variadic-macro-arguments -Wno-zero-length-array -Wthread-safety -Wno-unused-template -Wunguarded-availability -Wno-missing-field-initializers -Wno-unused-parameter -Wno-psabi -Wloop-analysis -Wno-unneeded-internal-declaration -Wno-cast-function-type -Wno-thread-safety-reference-return -Wno-nontrivial-memcall -Wno-uninitialized-const-pointer -Wno-unused-but-set-global -Wexit-time-destructors -Wshadow -Werror -fno-delete-null-pointer-checks -fno-strict-overflow -fno-ident -fno-math-errno -fno-strict-aliasing -fstack-protector -fcolor-diagnostics -fdiagnostics-show-inlining-chain -fmerge-all-constants -fcrash-diagnostics-dir=../clang-crashreports -fno-lifetime-dse -mllvm -instcombine-lower-dbg-declare=0 -mllvm -split-threshold-for-reg-with-hint=0 -ffp-contract=off -fcomplete-member-pointers --target=arm64-apple-macos -mno-outline -Wno-builtin-macro-redefined -D__DATE__= -D__TIME__= -D__TIMESTAMP__= -ffile-compilation-dir=. -no-canonical-prefixes -Xclang -fmodule-file-home-is-cwd -Xclang -fmodules-cache-path=/not_exist_dummy_dir --warning-suppression-mappings=../../build/config/warning_suppression.txt -ftrivial-auto-var-init=pattern -O2 -fno-omit-frame-pointer -gdwarf-4 -g1 -gdwarf-aranges -isysroot sdk/xcode_links/MacOSX26.5.sdk -mmacos-version-min=13.0 -fsanitize=array-bounds -fsanitize-trap=array-bounds -fsanitize-ignore-for-ubsan-feature=array-bounds -Wno-unsafe-buffer-usage-in-static-sized-array -fsanitize=return -fsanitize-trap=return -fsanitize-ignore-for-ubsan-feature=return -fvisibility=hidden -Wheader-hygiene -Wstring-conversion -Wtautological-overlap-compare -Xclang -add-plugin -Xclang find-bad-constructs -Xclang -plugin-arg-find-bad-constructs -Xclang check-stack-allocated -Xclang -plugin-arg-find-bad-constructs -Xclang relax-ctor-checks-for-aggregates -Xclang -add-plugin -Xclang raw-ptr-plugin -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-to-stack-allocated -Xclang -plugin-arg-raw-ptr-plugin -Xclang disable-check-raw-ptr-to-stack-allocated-error -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../third_party/dawn/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../build/config/clang/chrome/test/fuzzing/webidl_fuzzing/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-span-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ref-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang no-special-treatment-for-oilpanized-paths -DUNSAFE_BUFFERS_BUILD -Wunsafe-buffer-usage -Wno-error=unsafe-buffer-usage -Xclang -add-plugin -Xclang unsafe-buffers -Xclang -plugin-arg-unsafe-buffers -Xclang ../../build/config/unsafe_buffers_paths.txt -Wimplicit-retain-self -Wobjc-missing-property-synthesis -std=c++23 -Wno-trigraphs -fno-exceptions -fno-rtti -nostdinc++ -isystem../../third_party/libc++/src/include -isystem../../third_party/libc++abi/src/include -fobjc-arc -fno-objc-arc-exceptions -Wobjc-property-assign-on-object-type -fvisibility-inlines-hidden -c ../../ahoi/browser/sync/cloudkit_sync_provider_mac_persistence.mm -o obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_persistence.o
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac_persistence.mm:6:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: error: formatting function '__builtin_os_log_format_buffer_size' is unsafe [-Werror,-Wunsafe-buffer-usage-in-format-attr-call]
+  506 |     os_log_with_type(
+      |     ^~~~~~~~~~~~~~~~~
+  507 |         log, OS_LOG_TYPE_DEFAULT,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~
+  508 |         "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  509 |         "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  510 |         "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  511 |         "ack=%{public}zu",
+      |         ~~~~~~~~~~~~~~~~~~
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  513 |         upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  514 |         static_cast<long>(upload_item_error_code_),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  515 |         upload_expected_mutations_.size(), upload_saved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  516 |         upload_resolved_count_, upload_unresolved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  517 |         upload_acknowledgements_.size());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  186 |                 (&__dso_handle, _log_tmp, _type_tmp), format, ##__VA_ARGS__); \
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:88:63: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   88 |         uint8_t _Alignas(16) OS_LOG_UNINITIALIZED _os_fmt_buf[__builtin_os_log_format_buffer_size(fmt, ##__VA_ARGS__)]; \
+      |                                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: note: See //docs/unsafe_buffers.md for help.
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:88:63: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   88 |         uint8_t _Alignas(16) OS_LOG_UNINITIALIZED _os_fmt_buf[__builtin_os_log_format_buffer_size(fmt, ##__VA_ARGS__)]; \
+      |                                                               ^
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac_persistence.mm:6:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: error: string argument is not guaranteed to be null-terminated
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ^~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: note: See //docs/unsafe_buffers.md for help.
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: error: formatting function '__builtin_os_log_format' is unsafe [-Werror,-Wunsafe-buffer-usage-in-format-attr-call]
+  506 |     os_log_with_type(
+      |     ^~~~~~~~~~~~~~~~~
+  507 |         log, OS_LOG_TYPE_DEFAULT,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~
+  508 |         "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  509 |         "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  510 |         "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  511 |         "ack=%{public}zu",
+      |         ~~~~~~~~~~~~~~~~~~
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  513 |         upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  514 |         static_cast<long>(upload_item_error_code_),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  515 |         upload_expected_mutations_.size(), upload_saved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  516 |         upload_resolved_count_, upload_unresolved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  517 |         upload_acknowledgements_.size());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  186 |                 (&__dso_handle, _log_tmp, _type_tmp), format, ##__VA_ARGS__); \
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:90:28: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   90 |                 (uint8_t *)__builtin_os_log_format(_os_fmt_buf, fmt, ##__VA_ARGS__), \
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: note: See //docs/unsafe_buffers.md for help.
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:90:28: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   90 |                 (uint8_t *)__builtin_os_log_format(_os_fmt_buf, fmt, ##__VA_ARGS__), \
+      |                            ^
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac_persistence.mm:6:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: error: string argument is not guaranteed to be null-terminated
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ^~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: note: See //docs/unsafe_buffers.md for help.
+4 errors generated.
+[3/25] OBJCXX obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_consent.o
+FAILED: obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_consent.o 
+../../third_party/llvm-build/Release+Asserts/bin/clang++ -MMD -MF obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_consent.o.d -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FORTIFY_SOURCE=3 -D__ARM_NEON__=1 -DCR_XCODE_BUILD=17F113 -DCR_CLANG_REVISION=\"llvmorg-23-init-19482-g53d18800-1\" -DCOMPONENT_BUILD -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE -D_LIBCPP_INSTRUMENTED_WITH_ASAN=0 -DCR_LIBCXX_REVISION=b16984ce99c702355a5b2b4c52574e82cec41fb9 -DDCHECK_ALWAYS_ON=1 -DNDEBUG -DNVALGRIND -DDYNAMIC_ANNOTATIONS_ENABLED=0 -DABSL_CONSUME_DLL -DABSL_FLAGS_STRIP_NAMES=0 -DBORINGSSL_SHARED_LIBRARY -DUSE_LIBCXX_MODULES -I../.. -Igen -I../../buildtools/third_party/libc++ -I../../third_party/perfetto/include -Igen/third_party/perfetto/build_config -Igen/third_party/perfetto -I../../base/allocator/partition_allocator/src -Igen/base/allocator/partition_allocator/src -I../../third_party/abseil-cpp -I../../third_party/boringssl/src/include -I../../third_party/protobuf/src  -Wall -Wextra -Wimplicit-fallthrough -Wextra-semi -Wunreachable-code-aggressive -Wgnu -Wno-gnu-anonymous-struct -Wno-gnu-conditional-omitted-operand -Wno-gnu-include-next -Wno-gnu-label-as-value -Wno-gnu-redeclared-enum -Wno-gnu-statement-expression -Wno-gnu-zero-variadic-macro-arguments -Wno-zero-length-array -Wthread-safety -Wno-unused-template -Wunguarded-availability -Wno-missing-field-initializers -Wno-unused-parameter -Wno-psabi -Wloop-analysis -Wno-unneeded-internal-declaration -Wno-cast-function-type -Wno-thread-safety-reference-return -Wno-nontrivial-memcall -Wno-uninitialized-const-pointer -Wno-unused-but-set-global -Wexit-time-destructors -Wshadow -Werror -fno-delete-null-pointer-checks -fno-strict-overflow -fno-ident -fno-math-errno -fno-strict-aliasing -fstack-protector -fcolor-diagnostics -fdiagnostics-show-inlining-chain -fmerge-all-constants -fcrash-diagnostics-dir=../clang-crashreports -fno-lifetime-dse -mllvm -instcombine-lower-dbg-declare=0 -mllvm -split-threshold-for-reg-with-hint=0 -ffp-contract=off -fcomplete-member-pointers --target=arm64-apple-macos -mno-outline -Wno-builtin-macro-redefined -D__DATE__= -D__TIME__= -D__TIMESTAMP__= -ffile-compilation-dir=. -no-canonical-prefixes -Xclang -fmodule-file-home-is-cwd -Xclang -fmodules-cache-path=/not_exist_dummy_dir --warning-suppression-mappings=../../build/config/warning_suppression.txt -ftrivial-auto-var-init=pattern -O2 -fno-omit-frame-pointer -gdwarf-4 -g1 -gdwarf-aranges -isysroot sdk/xcode_links/MacOSX26.5.sdk -mmacos-version-min=13.0 -fsanitize=array-bounds -fsanitize-trap=array-bounds -fsanitize-ignore-for-ubsan-feature=array-bounds -Wno-unsafe-buffer-usage-in-static-sized-array -fsanitize=return -fsanitize-trap=return -fsanitize-ignore-for-ubsan-feature=return -fvisibility=hidden -Wheader-hygiene -Wstring-conversion -Wtautological-overlap-compare -Xclang -add-plugin -Xclang find-bad-constructs -Xclang -plugin-arg-find-bad-constructs -Xclang check-stack-allocated -Xclang -plugin-arg-find-bad-constructs -Xclang relax-ctor-checks-for-aggregates -Xclang -add-plugin -Xclang raw-ptr-plugin -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-to-stack-allocated -Xclang -plugin-arg-raw-ptr-plugin -Xclang disable-check-raw-ptr-to-stack-allocated-error -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../third_party/dawn/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../build/config/clang/chrome/test/fuzzing/webidl_fuzzing/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-span-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ref-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang no-special-treatment-for-oilpanized-paths -DUNSAFE_BUFFERS_BUILD -Wunsafe-buffer-usage -Wno-error=unsafe-buffer-usage -Xclang -add-plugin -Xclang unsafe-buffers -Xclang -plugin-arg-unsafe-buffers -Xclang ../../build/config/unsafe_buffers_paths.txt -Wimplicit-retain-self -Wobjc-missing-property-synthesis -std=c++23 -Wno-trigraphs -fno-exceptions -fno-rtti -nostdinc++ -isystem../../third_party/libc++/src/include -isystem../../third_party/libc++abi/src/include -fobjc-arc -fno-objc-arc-exceptions -Wobjc-property-assign-on-object-type -fvisibility-inlines-hidden -c ../../ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm -o obj/ahoi/browser/sync/sync/cloudkit_sync_provider_mac_consent.o
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm:10:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: error: formatting function '__builtin_os_log_format_buffer_size' is unsafe [-Werror,-Wunsafe-buffer-usage-in-format-attr-call]
+  506 |     os_log_with_type(
+      |     ^~~~~~~~~~~~~~~~~
+  507 |         log, OS_LOG_TYPE_DEFAULT,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~
+  508 |         "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  509 |         "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  510 |         "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  511 |         "ack=%{public}zu",
+      |         ~~~~~~~~~~~~~~~~~~
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  513 |         upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  514 |         static_cast<long>(upload_item_error_code_),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  515 |         upload_expected_mutations_.size(), upload_saved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  516 |         upload_resolved_count_, upload_unresolved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  517 |         upload_acknowledgements_.size());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  186 |                 (&__dso_handle, _log_tmp, _type_tmp), format, ##__VA_ARGS__); \
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:88:63: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   88 |         uint8_t _Alignas(16) OS_LOG_UNINITIALIZED _os_fmt_buf[__builtin_os_log_format_buffer_size(fmt, ##__VA_ARGS__)]; \
+      |                                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: note: See //docs/unsafe_buffers.md for help.
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:88:63: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   88 |         uint8_t _Alignas(16) OS_LOG_UNINITIALIZED _os_fmt_buf[__builtin_os_log_format_buffer_size(fmt, ##__VA_ARGS__)]; \
+      |                                                               ^
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm:10:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: error: string argument is not guaranteed to be null-terminated
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ^~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: note: See //docs/unsafe_buffers.md for help.
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: error: formatting function '__builtin_os_log_format' is unsafe [-Werror,-Wunsafe-buffer-usage-in-format-attr-call]
+  506 |     os_log_with_type(
+      |     ^~~~~~~~~~~~~~~~~
+  507 |         log, OS_LOG_TYPE_DEFAULT,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~
+  508 |         "AhoiSyncUpload stage=%{public}s domain=%{public}s code=%{public}ld "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  509 |         "itemDomain=%{public}s itemCode=%{public}ld expected=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  510 |         "saved=%{public}zu resolved=%{public}zu unresolved=%{public}zu "
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  511 |         "ack=%{public}zu",
+      |         ~~~~~~~~~~~~~~~~~~
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  513 |         upload_item_error_is_cloudkit_ ? "CKErrorDomain" : "other",
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  514 |         static_cast<long>(upload_item_error_code_),
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  515 |         upload_expected_mutations_.size(), upload_saved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  516 |         upload_resolved_count_, upload_unresolved_count_,
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  517 |         upload_acknowledgements_.size());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  186 |                 (&__dso_handle, _log_tmp, _type_tmp), format, ##__VA_ARGS__); \
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:90:28: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   90 |                 (uint8_t *)__builtin_os_log_format(_os_fmt_buf, fmt, ##__VA_ARGS__), \
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:506:5: note: See //docs/unsafe_buffers.md for help.
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/log.h:185:9: note: expanded from macro 'os_log_with_type'
+  185 |         OS_LOG_CALL_WITH_FORMAT(_os_log_impl, \
+      |         ^
+sdk/xcode_links/MacOSX26.5.sdk/usr/include/os/trace_base.h:90:28: note: expanded from macro 'OS_LOG_CALL_WITH_FORMAT'
+   90 |                 (uint8_t *)__builtin_os_log_format(_os_fmt_buf, fmt, ##__VA_ARGS__), \
+      |                            ^
+In file included from ../../ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm:10:
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: error: string argument is not guaranteed to be null-terminated
+  512 |         stage, domain, static_cast<long>(error.code),
+      |         ^~~~~
+../../ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h:512:9: note: See //docs/unsafe_buffers.md for help.
+4 errors generated.
+ninja: build stopped: subcommand failed.
