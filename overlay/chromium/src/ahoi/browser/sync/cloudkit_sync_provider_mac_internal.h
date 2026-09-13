@@ -497,14 +497,40 @@ class CloudKitSyncProviderMac::Core
   }
 
   void LogUploadOutcome(const std::string& stage, NSError* error) const {
+    // Numeric codes stay observable when Foundation redacts dynamic strings.
+    int stage_code = 0;
+    if (stage == "ok")
+      stage_code = 1;
+    else if (stage == "resolved_partial")
+      stage_code = 2;
+    else if (stage == "item_lease_revoked")
+      stage_code = 3;
+    else if (stage == "unmatched_item")
+      stage_code = 4;
+    else if (stage == "persist_newer_remote")
+      stage_code = 5;
+    else if (stage == "unmatched_mutation")
+      stage_code = 6;
+    else if (stage == "item_failure")
+      stage_code = 7;
+    else if (stage == "unexpected_record_delete")
+      stage_code = 8;
+    else if (stage == "zone_failure")
+      stage_code = 9;
+    else if (stage == "lease_revoked")
+      stage_code = 10;
+    else if (stage == "empty_ack")
+      stage_code = 11;
+    else if (stage == "send_completion")
+      stage_code = 12;
     NSString* domain = !error ? @"none"
                        : [error.domain isEqualToString:CKErrorDomain]
                            ? @"CKErrorDomain"
                            : @"other";
-    NSLog(@"AhoiSyncUpload stage=%@ domain=%@ code=%ld "
+    NSLog(@"AhoiSyncUpload stageCode=%d stage=%@ domain=%@ code=%ld "
            "itemDomain=%@ itemCode=%ld expected=%zu "
            "saved=%zu resolved=%zu unresolved=%zu ack=%zu",
-          ToNSString(stage), domain, static_cast<long>(error.code),
+          stage_code, ToNSString(stage), domain, static_cast<long>(error.code),
           upload_item_error_is_cloudkit_ ? @"CKErrorDomain" : @"other",
           static_cast<long>(upload_item_error_code_),
           upload_expected_mutations_.size(), upload_saved_count_,

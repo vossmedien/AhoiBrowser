@@ -523,7 +523,7 @@ class SidebarSyncControlsView final : public views::View {
 
   void SyncNow(const ui::Event&) {
     if (service_) {
-      service_->SyncNow();
+      service_->SyncNowFromUser();
     }
   }
 

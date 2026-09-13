@@ -479,7 +479,8 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::UpsertDeveloperAsset(
 }
 
 void ProfileSyncBackend::SyncNow(
-    base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback) {
+    base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback,
+    bool user_initiated) {
   TouchSession();
 #if BUILDFLAG(IS_MAC)
   if (!pump_ && key_bootstrap_) {
@@ -496,7 +497,8 @@ void ProfileSyncBackend::SyncNow(
   }
   std::ignore = pump_->SyncNow(
       base::BindOnce(&ProfileSyncBackend::OnSyncFinished,
-                     weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
+                     weak_ptr_factory_.GetWeakPtr(), std::move(callback)),
+      user_initiated);
 }
 
 void ProfileSyncBackend::SuspendWithoutPersisting() {

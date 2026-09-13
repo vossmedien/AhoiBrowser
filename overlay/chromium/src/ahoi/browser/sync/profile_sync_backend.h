@@ -124,7 +124,8 @@ class ProfileSyncBackend : public SyncStoreObserver {
                                   BookmarkSyncAuthorization authorization);
 
   void SyncNow(
-      base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback);
+      base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback,
+      bool user_initiated = false);
   // Stops provider and local-session activity without mutating the durable
   // store. Used when the profile-wide opt-in is disabled: existing records and
   // outbox entries remain intact, while destruction cannot enqueue lifecycle

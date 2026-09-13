@@ -144,6 +144,7 @@ class ProfileSyncService final
   void ApplyRemoteBatch(ProviderBatch batch);
   void Refresh();
   void SyncNow();
+  void SyncNowFromUser();
   void ReadWorkspaceStructure(
       base::OnceCallback<void(std::optional<WorkspaceStructureProjection>)>
           callback);
@@ -205,6 +206,7 @@ class ProfileSyncService final
   void Shutdown() override;
 
  private:
+  void RequestSync(bool user_initiated);
   friend class ProfileSyncServiceTest;
   friend class BookmarkSyncAuthorizationTest;
 

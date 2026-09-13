@@ -64,7 +64,7 @@ SyncPump::~SyncPump() {
   Cancel();
 }
 
-bool SyncPump::SyncNow(CompletionCallback callback) {
+bool SyncPump::SyncNow(CompletionCallback callback, bool user_initiated) {
   if (!store_ || !provider_ || !task_runner_) {
     return false;
   }
@@ -72,11 +72,13 @@ bool SyncPump::SyncNow(CompletionCallback callback) {
     callbacks_.push_back(std::move(callback));
   }
   if (syncing_) {
-    cycle_requested_ = true;
+    // A click during a real attempt joins that attempt, rather than scheduling
+    // another forced send. Background changes retain one coalesced follow-up.
+    cycle_requested_ |= !user_initiated;
     return true;
   }
   syncing_ = true;
-  StartCycle();
+  StartCycle(user_initiated);
   return true;
 }
 
@@ -101,12 +103,16 @@ void SyncPump::SetBookmarkSyncEnabled(bool enabled) {
   RunCallbacks(false, "cancelled");
 }
 
-void SyncPump::StartCycle() {
+void SyncPump::StartCycle(bool user_initiated) {
   cycle_requested_ = false;
   const RetryState retry = store_->GetRetryState();
-  if (!retry.next_attempt.is_null() && retry.next_attempt > base::Time::Now()) {
-    FinishFailure(retry.last_error.empty() ? "temporarily_unavailable"
-                                           : retry.last_error);
+  if (!user_initiated && !retry.next_attempt.is_null() &&
+      retry.next_attempt > base::Time::Now()) {
+    // Waiting is not another transport failure. Advancing the stored deadline
+    // here lets periodic checks (and manual clicks) postpone a retry forever.
+    syncing_ = false;
+    RunCallbacks(false, retry.last_error.empty() ? "temporarily_unavailable"
+                                                 : retry.last_error);
     return;
   }
   UploadNextPage();

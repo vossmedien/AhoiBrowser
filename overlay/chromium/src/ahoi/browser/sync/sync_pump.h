@@ -46,7 +46,9 @@ class SyncPump final {
 
   // Coalesces a request received during an active cycle and runs it before
   // completing callers. Returns false only when this object cannot start.
-  bool SyncNow(CompletionCallback callback);
+  // A user request bypasses only the local retry deadline for this attempt;
+  // provider authorization and server/SDK retry limits remain authoritative.
+  bool SyncNow(CompletionCallback callback, bool user_initiated = false);
   void Cancel();
   // Separate local approval, default off. A transition cancels old cycle
   // callbacks without acknowledging or removing queued records.
@@ -55,7 +57,7 @@ class SyncPump final {
   bool syncing_for_testing() const { return syncing_; }
 
  private:
-  void StartCycle();
+  void StartCycle(bool user_initiated = false);
   void UploadNextPage();
   void OnUploadFinished(std::vector<SyncChange> attempted,
                         SyncAuthorization transport_authorization,

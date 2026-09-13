@@ -283,13 +283,22 @@ void ProfileSyncService::RetrySyncKeySetup() {
 }
 
 void ProfileSyncService::SyncNow() {
+  RequestSync(false);
+}
+
+void ProfileSyncService::SyncNowFromUser() {
+  RequestSync(true);
+}
+
+void ProfileSyncService::RequestSync(bool user_initiated) {
   if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::SyncNow)
       .WithArgs(base::BindPostTaskToCurrentDefault(
-          base::BindOnce(&ProfileSyncService::OnSyncCompleted,
-                         backend_weak_ptr_factory_.GetWeakPtr())));
+                    base::BindOnce(&ProfileSyncService::OnSyncCompleted,
+                                   backend_weak_ptr_factory_.GetWeakPtr())),
+                user_initiated);
 }
 
 void ProfileSyncService::SetSyncEnabled(bool enabled) {
