@@ -159,6 +159,8 @@ ProviderBatch CachedTabBatch() {
           "10000000-0000-4000-8000-000000000093", "https://incoming.test",
           Version("10000000-0000-4000-8000-000000000092", 11644473600000100LL));
   tab.opened_at = At(11644473600000010LL);
+  tab.tree_node_id = Id("10000000-0000-4000-8000-000000000095");
+  tab.target_kind = SharedTabTargetKind::kWeb;
   std::string payload;
   EXPECT_TRUE(SerializeRecord(tab, &payload));
   SyncChange change{.mutation_id = "cached-receive",
