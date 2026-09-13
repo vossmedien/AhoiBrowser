@@ -5,21 +5,23 @@ Updated: 2026-09-13. Root coordinates the same canonical branch,
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
 
-## Current runtime handoff — September13, 00:31UTC
+## Current parallel-work rule — explicit user decision, September13
 
-MBC explicitly returned its window: its interrupted run is terminal, old UI
-handles are absent and own8998792A was freshly read as Shutdown. Its functional
-memory journey remains unfinished; that does not retain a UI reservation.
-The earlier START01a09820 is consumed and closed, not to be replayed.
+The user explicitly removed the blanket MBC/Ahoi window reservations and repeated
+START/handback coordination: parallel work is intended, with Ahoi taking priority
+in this task. No worker waits for MBC's whole build or UI journey. Separate
+builds, devices and directly addressed windows may run concurrently. Only actual
+sustained machine pressure or a concrete collision over global input warrants
+separating the affected short action. No foreign process is stopped and no
+general START/ACK cycle is required. This supersedes the dated UI leases below.
 
-Root directly granted `/root/desktop_recovery_20260913` the next short native
-journey after a successful corrected build/sign/install and fresh candidate,
-scope, process and surface checks. Verify the corrected OFF label/sidebar,
-then visible Sync ON and, if needed, the explicitly authorized local-upload
-recovery in MacA only. Root/Mobile will not compete for UI. No hidden AX action,
-flag/key/store reset or real-Default operation follows from this grant.
-Desktop returns the window with its actual result and cleanup. BetterConvo's
-separate device-bound permission without global focus remains unchanged.
+`/root/desktop_recovery_20260913` proceeds autonomously through the exact guarded
+build/sign/install and short native E2E with fresh candidate, scope and own-window
+checks. Verify the corrected OFF label/sidebar, then visible Sync ON and, if
+needed, the authorized local-upload recovery in MacA only. Prefer direct AX
+actions and own-window captures, not unverified global keystrokes. No hidden AX
+action, flag/key/store reset or real-Default operation is authorized. Existing
+file/build ownership, consent and data-safety boundaries remain intact.
 
 ## Actual recovery and current workers — September13
 
