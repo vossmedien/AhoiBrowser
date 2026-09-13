@@ -1,6 +1,48 @@
 # Active Desktop checkpoint
 
-## Current native Sync handback — 13 September 2026
+## Current native receiver — 13 September 2026
+
+**Actually installed:** `55abcf76498dcc8629f94e5ecebde89a4269ecf3`, the scoped
+Development/bba receiver candidate. Product build61607, scoped preparation/
+sign verification40936 and guarded installation28512 are all TERMINAL EXIT0.
+There is no active product build. The installed executable SHA256 is
+`c62675d22e397265be0e556b33b178528f3f108196e535e41242bb527fefb9b7`.
+Receipts and originals are under
+`artifacts/build/native-sync-receive-55abcf7-20260913/`; install receipt
+`artifacts/install/ahoi-dev-receive-55abcf7-scoped-20260913.json` has SHA256
+`fb60719d7ea4a1ec8fbe0eeffe3b098c3608fd00ca9351330b1e016c82191d1c`.
+
+The receiver source is canonical in d38449b and4b23125; the exact tested build
+snapshot remains in the known isolated worktree at55ab and its protected ref.
+The preceding455 build60531 was TERMINAL EXIT0 but deliberately NOT installed
+before the original per-setting read-authority correction. The preparation-only
+worktree `/private/tmp/ahoi-receive-authority.6O80m8/repo` contains the same55ab
+source, never ran a build and never owned shared output.
+
+**Visible receiver/peer acceptance is OPEN, blocked by an actual locked Mac.**
+Read-only ioreg confirmed IOConsoleLocked=Yes and CGSSessionScreenIsLocked=Yes.
+CUA failed with cgWindowNotFound for both Ahoi and the normal Finder startup
+path; one isolated CUA reset/rebind did not change that result. No more CUA,
+reopen, Phone or lock-state retries occur until the user actually unlocks.
+Own MacA PID14715 was left running; a one-second sample showed its normal
+NSApplication event loop, with no new crashdump. MacB was checked and did not
+exist; it was NOT started, seeded or falsely reported as a peer. Root requested
+the Mac unlock once and owns the coordinated next real phone/Native-pair step.
+
+The receiver reads durable cached inputs without another fetch/upload, preserves
+outgoing retry and prior full-fetch claims, and checks original transport,
+bookmark and selected per-ID setting leases through PostTask, import commit,
+ACK and UI. Blocked settings stay cached; an off/on transition cannot renew old
+read authority. Callback coalescing, exact selected-token binding and ACK rollback
+reuse the existing provider/store/pump and dormant native projection. No wire,
+schema, engine, key, polling-interval, Session or Sidebar redesign.
+
+Under Root's explicit E2E access exception, only narrow existing-target receive/
+lease/coalescing regressions are authorized while waiting. Those checks cannot
+close the actual peer-arrival gate. The detailed installed/access report is
+[here](../artifacts/e2e/native-sync-receive-55abcf7-20260913/README.md).
+
+### Previous 26 baseline — historical runtime proof, not the installed receiver
 
 **Installed and visibly verified:** `26b01b17134a04e6d4e96bf9a837bbcf81ea06e3`,
 scoped CloudKit Development on the existing bba MacA profile. Guarded build65225,
