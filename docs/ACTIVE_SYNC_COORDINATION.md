@@ -86,14 +86,40 @@ returns, without seeds/key copies or replacing the required physical-peer pass.
 Only minimal useful existing focused receiver checks may proceed under the
 explicit access-blocked E2E exception; no new harness or general test matrix.
 
-The bounded receiver check is now running under Desktop handle36731: existing
-`ahoi_sync_unittests`, exactly four `SyncReceiveBoundaryTest.*` cases, execution
-with one job and zero retries. Source48f7d71 differs from installed55ab only in
-the existing `sync_unittest.cc`; the guarded target build uses two jobs and its
-read-only plan had63 actions. Logs are in
-`artifacts/tests/receive-boundary-48f7d71-20260913/`. This is not a product rebuild,
-new test harness, UI attempt or peer pass. Await its real terminal result rather
-than launching another check.
+**Bounded receiver checks are terminal: four of four PASS.** The initial
+handle36731 built successfully but its four cases failed before meaningful
+receive validation: the synthetic tab lacked the Format3 TreeNode link and
+target kind. Source0f63dd8 adds only those two required fixture fields, without
+changing a product validator or assertion. Corrected handle97733 completed
+build EXIT0 and run EXIT0, exactly `SyncReceiveBoundaryTest.*`, one job and zero
+retries. Root read both runs, the exact fixture diff and all four SUCCESS entries
+with one attempt each. The corrected summary SHA256 is
+`386f713666fbe07e64d9be628d12c586b054f07add2fc09f1e88e42b9e959887`.
+Original failures remain under
+`artifacts/tests/receive-boundary-48f7d71-20260913/`; corrected evidence is under
+`artifacts/tests/receive-boundary-0f63dd8-20260913/`. Only the existing test file
+differs from installed55ab; the test-stamped app was not installed. These are
+consumer/store/consent checks with a synthetic provider, not a transport,
+open-window or physical-peer pass. No more receiver checks are queued.
+
+The repeated access gate has no remaining independent receiver test task:
+resume its visible journey on an actual Mac-unlock / phone-activation event,
+not another unchanged status turn. Preserve the full shared-Sync acceptance;
+do not mark it complete from these tests or reduce it to one Mac's upload/ACK.
+
+**Independent confirmed Crest/Sync source work continues.** After the terminal
+receiver handback4caaca3, the same Desktop worker explicitly owns the existing
+Native Structure WIP: native/workspace structure and SessionBridge consumers,
+NativeTree persistence and ResourcePolicy integration. It will close coherent
+Split capture/dormant projection and local archive/restore lifecycle against
+the committed e7abcff/c2718ac contract, without writing Common wire/provider or
+Swift files. Local Sync-OFF authority, original intent/receipt/CAS, protected
+active pages and no eager loading/focus changes remain binding. This is not a
+new feature request or a reason to await the locked screen. Root checks the
+matching existing Mobile integration and candidate path in parallel. No new
+Chromium build, installed55ab/Device24 replacement, bba reset or design-variant
+implementation is authorized by this source handoff; the later schema7 pair
+needs its own exact fresh acceptance binding.
 
 A single selective physical-preference read found Device24 still Sync OFF;
 its temporary local copy was removed and the original device state was not
