@@ -292,6 +292,12 @@ void SyncPump::OnDownloadFinished(std::string requested_token,
     return;
   }
   if (cycle_requested_) {
+    // This cycle has durably succeeded. Its old backoff must not block a
+    // coalesced follow-up, and callers still wait for that remaining work.
+    if (store_->ClearRetry() != SyncStore::Result::kOk) {
+      FinishFailure("provider_error");
+      return;
+    }
     StartCycle();
     return;
   }
@@ -299,7 +305,10 @@ void SyncPump::OnDownloadFinished(std::string requested_token,
 }
 
 void SyncPump::FinishSuccess() {
-  std::ignore = store_->ClearRetry();
+  if (store_->ClearRetry() != SyncStore::Result::kOk) {
+    FinishFailure("provider_error");
+    return;
+  }
   syncing_ = false;
   RunCallbacks(true, std::string());
 }
