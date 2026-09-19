@@ -1,10 +1,34 @@
 # Active Mobile checkpoint
 
 Updated: 2026-09-19. The bounded Mobile worker
-`/root/simulator_cloudkit_20260919` has returned source4ff9835 to coordinator
+`/root/simulator_cloudkit_20260919` has returned sourcebc12536 to coordinator
 `/root`. No active Mobile build/UI run or new general Common ownership is implied.
 
 ## Current work — continue here
+
+Latest exact Mobile result is clean DCO source
+`bc1253621c3bf9cbb73ba197ad1bbe7b2c718c8c`,
+`CloudKitDevelopment`0.1(35), Xcode27/SDK27 and the unchanged signed-in
+C645/iOS26.5 plus Structure scope969. Build and candidate receipt verification
+passed. The exact candidate was then installed and launched normally without
+the known30s XCUI deadline. Normal Sync OFF→ON reached the terminal visible
+status `Sync-Wiederherstellung erforderlich` with safe evidence
+`bootstrap-recovery:bootstrapOwnershipUnverified`: Build34 had already saved the
+remote first-device claim, but its local accepted receipt/ownership is not
+verifiable. Build35 correctly refuses to adopt, replace or promote it. This is
+an honest fail-closed recovery boundary, not Ready, Sync or CloudKit acceptance.
+No preference, key, receipt, account, database or CloudKit record was manually
+changed. Sync returned visibly to OFF, Ahoi terminated and C645 is Shutdown.
+Exact receipt, screenshot and report are in
+[`artifacts/e2e/mobile-cloudkitdevelopment35-xcode27-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment35-xcode27-20260919/README.md).
+The immediately preceding Build34/red-harness plus bounded manual continuation
+proved a saved claim event reached receipt persistence, then blocked in Security
+XPC (`SecItemCopyMatching`/`SecItemUpdate`) while still inside the CKSyncEngine
+delegate callback. That sample proves the boundary, not causal deadlock. Source
+bc12536 moves receipt persistence after `sendChanges` and a fresh continuity
+proof while preserving persist-before-`.created`; the existing scope cannot
+prove that correction on a clean first claim without an explicit recovery or
+new isolated-scope decision. Cloud acceptance therefore remains OPEN.
 
 Latest exact Mobile result is now source
 `719024631c05fa95d68fb21ce2b8e74f35e84eac`, `CloudKitDevelopment`0.1(30),
