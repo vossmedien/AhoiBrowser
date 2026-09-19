@@ -6,6 +6,40 @@ Updated: 2026-09-19. The bounded Mobile worker
 
 ## Current work — continue here
 
+Latest exact Mobile result is now source
+`719024631c05fa95d68fb21ce2b8e74f35e84eac`, `CloudKitDevelopment`0.1(30),
+Xcode27/SDK27, C645/iOS26.5 and the unchanged Structure scope. Build and receipt
+verification passed; the same normal Settings journey passed1/1 in34.998s.
+After the user completed native Apple Account sign-in, the typed safe result is
+`bootstrap-recovery:accountChanged`: Settings visibly shows
+`Sync-Wiederherstellung erforderlich`, keys remain unavailable, manual Sync is
+disabled and the existing explicit account-recovery/consent decision remains
+pending. No local snapshot upload/discard confirmation was clicked and no
+CloudKit roundtrip is claimed. The same candidate also proves the disabled
+`Jetzt synchronisieren` action is now visibly gray/dim while preserving the
+original single enablement condition. Exact receipt, screenshot and result are
+in
+[`artifacts/e2e/mobile-cloudkitdevelopment30-xcode27-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment30-xcode27-20260919/README.md).
+The preceding Bootstrap error seam now retains real CK9/CK10 access codes and
+keeps local authorization/shutdown separate; neither was the final Build30
+cause. Sync ended OFF, Ahoi was terminated and C645 is Shutdown. Peek-specific
+visible acceptance remains NOT_RUN due the bounded CUA long-press input limit,
+not a product failure.
+
+The exact follow-up source is DCO-committed/pushed as
+`32b5751261cfe0c4d847f3d6092fc55c96f25462`, **NOT BUILT**. Build30 proved
+that the Bootstrap transport treated CKSyncEngine's first post-login `signIn`
+event as an account switch. The corrected actor binds the CloudKit user-record
+identity in memory only: the first `signIn` and matching fresh-engine replay are
+accepted, while a different `signIn`, `signOut`, `switchAccounts` or pre/post
+operation identity mismatch remains `accountChanged`. Identity continuity is
+checked before and after remote inspection, zone save and claim creation; no
+identity is logged/persisted, remote inspection still precedes every claim, and
+no recovery upload/reset or consent decision is automatic. The matching Native
+implementation already verifies account identity before/after its scan and
+needs no C++ change from this finding. Next bounded gate is one normal candidate
+and the same activation journey on the signed-in C645, not a new test matrix.
+
 Latest September19 Mobile result: source
 `42a1f835a3350ed35b758e92576f60061b6add39` is DCO-committed/pushed and the
 receipt-bound `CloudKitDevelopment`0.1(29) Simulator candidate built EXIT0 with
