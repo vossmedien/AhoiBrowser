@@ -45,6 +45,7 @@ public actor CloudKitKeyBootstrapTransport:
     private var sendError: CloudKitKeyBootstrapError?
     private var zoneSaveError: CloudKitKeyBootstrapError?
     private var isShutdown = false
+    private var boundAccountRecordName: String?
     private let authorization: @Sendable () -> Bool
 
     public init(containerIdentifier: String, zoneName: String,
@@ -68,6 +69,7 @@ public actor CloudKitKeyBootstrapTransport:
         guard !isShutdown && authorization() else {
             throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
         }
+        try await verifyAccountContinuity()
         // This API promises a full snapshot. Clearing fetchedClaim while
         // reusing an incremental CKSyncEngine token could report false emptiness.
         if let oldEngine = engine {
@@ -92,6 +94,7 @@ public actor CloudKitKeyBootstrapTransport:
             }
         }
         if let fetchError { throw fetchError }
+        try await verifyAccountContinuity()
         return .init(
             zoneExists: zoneExists,
             claim: fetchedClaim,
@@ -103,6 +106,7 @@ public actor CloudKitKeyBootstrapTransport:
         guard !isShutdown && authorization() else {
             throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
         }
+        try await verifyAccountContinuity()
         let engine = makeEngineIfRequired()
         zoneSaveError = nil
         engine.state.add(
@@ -116,6 +120,7 @@ public actor CloudKitKeyBootstrapTransport:
             )
         }
         if let zoneSaveError { throw zoneSaveError }
+        try await verifyAccountContinuity()
     }
 
     public func createClaim(
@@ -131,6 +136,7 @@ public actor CloudKitKeyBootstrapTransport:
                                       keySHA256: keySHA256).hasKeyCommitment else {
             throw CloudKitKeyBootstrapError.invalidConfiguration
         }
+        try await verifyAccountContinuity()
         let engine = makeEngineIfRequired()
         let recordID = claimRecordID
         let record = CKRecord(recordType: Self.claimRecordType, recordID: recordID)
@@ -153,6 +159,7 @@ public actor CloudKitKeyBootstrapTransport:
             throw CloudKitKeyBootstrapError.sendFailed(cloudError.code.rawValue)
         }
         if let sendError { throw sendError }
+        try await verifyAccountContinuity()
         if let sentReceipt { return .created(sentReceipt) }
         if let existingClaim { return .existing(existingClaim) }
         return .indeterminate
@@ -176,10 +183,26 @@ public actor CloudKitKeyBootstrapTransport:
     ) async {
         guard engine === syncEngine && authorization() else { return }
         switch event {
-        case .accountChange:
-            fetchError = .accountChanged
-            sendError = .accountChanged
-            zoneSaveError = .accountChanged
+        case let .accountChange(change):
+            let changed: Bool
+            switch change.changeType {
+            case let .signIn(currentUser):
+                if let boundAccountRecordName {
+                    changed = boundAccountRecordName != currentUser.recordName
+                } else {
+                    boundAccountRecordName = currentUser.recordName
+                    changed = false
+                }
+            case .signOut, .switchAccounts:
+                changed = true
+            @unknown default:
+                changed = true
+            }
+            if changed {
+                fetchError = .accountChanged
+                sendError = .accountChanged
+                zoneSaveError = .accountChanged
+            }
         case let .fetchedRecordZoneChanges(changes):
             for modification in changes.modifications {
                 do {
@@ -339,6 +362,30 @@ public actor CloudKitKeyBootstrapTransport:
             .cloudKitAccess(error.code.rawValue)
         default:
             .fetchFailed(error.code.rawValue)
+        }
+    }
+
+    private func verifyAccountContinuity() async throws {
+        guard !isShutdown && authorization() else {
+            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
+        }
+        let current: CKRecord.ID
+        do {
+            current = try await CKContainer(
+                identifier: containerIdentifier
+            ).userRecordID()
+        } catch let cloudError as CKError {
+            throw mapFetchError(cloudError)
+        }
+        guard !isShutdown && authorization() else {
+            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
+        }
+        if let boundAccountRecordName {
+            guard boundAccountRecordName == current.recordName else {
+                throw CloudKitKeyBootstrapError.accountChanged
+            }
+        } else {
+            boundAccountRecordName = current.recordName
         }
     }
 
