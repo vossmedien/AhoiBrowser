@@ -48,6 +48,7 @@ public enum CloudKitKeyBootstrapError: Error, Equatable, Sendable {
 private final class CloudKitAccountInvalidation: @unchecked Sendable {
     private let lock = NSLock()
     private var value = false
+    private var observer: NSObjectProtocol?
 
     var isInvalidated: Bool {
         lock.lock()
@@ -59,6 +60,33 @@ private final class CloudKitAccountInvalidation: @unchecked Sendable {
         lock.lock()
         value = true
         lock.unlock()
+    }
+
+    func start() {
+        let observer = NotificationCenter.default.addObserver(
+            forName: .CKAccountChanged,
+            object: nil,
+            queue: nil
+        ) { @Sendable [weak self] _ in
+            self?.invalidate()
+        }
+        lock.lock()
+        self.observer = observer
+        lock.unlock()
+    }
+
+    func stop() {
+        lock.lock()
+        let observer = self.observer
+        self.observer = nil
+        lock.unlock()
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    deinit {
+        stop()
     }
 }
 
@@ -88,7 +116,6 @@ public actor CloudKitKeyBootstrapTransport:
     private var isShutdown = false
     private var boundAccountRecordName: String?
     private let accountInvalidation: CloudKitAccountInvalidation
-    private var accountChangeObserver: NSObjectProtocol?
     private let authorization: @Sendable () -> Bool
 
     public init(containerIdentifier: String, zoneName: String,
@@ -110,19 +137,11 @@ public actor CloudKitKeyBootstrapTransport:
             zoneName: zoneName,
             ownerName: CKCurrentUserDefaultName
         )
-        self.accountChangeObserver = NotificationCenter.default.addObserver(
-            forName: .CKAccountChanged,
-            object: nil,
-            queue: nil
-        ) { @Sendable _ in
-            accountInvalidation.invalidate()
-        }
+        accountInvalidation.start()
     }
 
     deinit {
-        if let accountChangeObserver {
-            NotificationCenter.default.removeObserver(accountChangeObserver)
-        }
+        accountInvalidation.stop()
     }
 
     public func inspectRemote() async throws -> CompanionBootstrapRemoteSnapshot {
@@ -221,10 +240,7 @@ public actor CloudKitKeyBootstrapTransport:
 
     public func shutdown() async {
         isShutdown = true
-        if let accountChangeObserver {
-            NotificationCenter.default.removeObserver(accountChangeObserver)
-            self.accountChangeObserver = nil
-        }
+        accountInvalidation.stop()
         let active = engine
         engine = nil
         await active?.cancelOperations()
