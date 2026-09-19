@@ -5,17 +5,42 @@ import AhoiCloudKitSpike
 #if canImport(CloudKit)
 import CloudKit
 
+public enum CloudKitKeyBootstrapPhase: String, Equatable, Sendable {
+    case accountCheck = "account-check"
+    case fetch
+    case zoneCreate = "zone-create"
+    case claimSend = "claim-send"
+}
+
+public struct CloudKitKeyBootstrapFailure: Equatable, Sendable {
+    public let phase: CloudKitKeyBootstrapPhase
+    public let code: Int
+    public let leafCodes: [Int]
+
+    public init(phase: CloudKitKeyBootstrapPhase, code: Int, leafCodes: [Int] = []) {
+        self.phase = phase
+        self.code = code
+        self.leafCodes = Array(Set(leafCodes).sorted().prefix(8))
+    }
+
+    public var isAccountOrPermissionFailure: Bool {
+        let accessCodes = Set([
+            CKError.notAuthenticated.rawValue,
+            CKError.permissionFailure.rawValue,
+        ])
+        if accessCodes.contains(code) { return true }
+        return code == CKError.partialFailure.rawValue &&
+            !leafCodes.isEmpty && leafCodes.allSatisfy(accessCodes.contains)
+    }
+}
+
 public enum CloudKitKeyBootstrapError: Error, Equatable, Sendable {
     case invalidConfiguration
     case accountChanged
-    case cloudKitAccess(Int)
+    case cloudKit(CloudKitKeyBootstrapFailure)
     case localAuthorizationUnavailable
     case corruptClaim
     case conflictingClaims
-    case zoneCreationFailed(Int)
-    case fetchFailed(Int)
-    case fetchPartialFailure(leafCodes: [Int])
-    case sendFailed(Int)
     case receiptPersistenceFailed
     case missingSendResult
 }
@@ -85,10 +110,11 @@ public actor CloudKitKeyBootstrapTransport:
         do {
             try await engine.fetchChanges(.init(scope: .zoneIDs([zoneID])))
         } catch let cloudError as CKError {
+            if let fetchError { throw fetchError }
             if isConfirmedMissingRequestedZone(cloudError) {
                 zoneExists = false
             } else {
-                throw mapFetchError(cloudError)
+                throw mapCloudKitError(cloudError, phase: .fetch)
             }
         }
         try requireActiveContinuity()
@@ -112,9 +138,8 @@ public actor CloudKitKeyBootstrapTransport:
         do {
             try await engine.sendChanges()
         } catch let cloudError as CKError {
-            throw CloudKitKeyBootstrapError.zoneCreationFailed(
-                cloudError.code.rawValue
-            )
+            if let zoneSaveError { throw zoneSaveError }
+            throw mapCloudKitError(cloudError, phase: .zoneCreate)
         }
         try requireActiveContinuity()
         if let zoneSaveError { throw zoneSaveError }
@@ -152,7 +177,8 @@ public actor CloudKitKeyBootstrapTransport:
         do {
             try await engine.sendChanges(.init(scope: .recordIDs([recordID])))
         } catch let cloudError as CKError {
-            throw CloudKitKeyBootstrapError.sendFailed(cloudError.code.rawValue)
+            if let sendError { throw sendError }
+            throw mapCloudKitError(cloudError, phase: .claimSend)
         }
         try requireActiveContinuity()
         if let sendError { throw sendError }
@@ -218,12 +244,12 @@ public actor CloudKitKeyBootstrapTransport:
                 if result.zoneID == zoneID && error.code == .zoneNotFound {
                     zoneExists = false
                 } else {
-                    fetchError = mapFetchError(error)
+                    fetchError = mapCloudKitError(error, phase: .fetch)
                 }
             }
         case let .sentDatabaseChanges(changes):
             for failure in changes.failedZoneSaves where failure.zone.zoneID == zoneID {
-                zoneSaveError = .zoneCreationFailed(failure.error.code.rawValue)
+                zoneSaveError = mapCloudKitError(failure.error, phase: .zoneCreate)
             }
         case let .sentRecordZoneChanges(changes):
             await acceptSentChanges(changes)
@@ -232,7 +258,10 @@ public actor CloudKitKeyBootstrapTransport:
              .didSendChanges:
             break
         @unknown default:
-            fetchError = .fetchFailed(CKError.internalError.rawValue)
+            fetchError = .cloudKit(.init(
+                phase: .fetch,
+                code: CKError.internalError.rawValue
+            ))
         }
     }
 
@@ -344,7 +373,7 @@ public actor CloudKitKeyBootstrapTransport:
                     sendError = .corruptClaim
                 }
             } else {
-                sendError = .sendFailed(failure.error.code.rawValue)
+                sendError = mapCloudKitError(failure.error, phase: .claimSend)
             }
         }
     }
@@ -374,15 +403,15 @@ public actor CloudKitKeyBootstrapTransport:
         )
     }
 
-    private func mapFetchError(_ error: CKError) -> CloudKitKeyBootstrapError {
-        switch error.code {
-        case .notAuthenticated, .permissionFailure:
-            .cloudKitAccess(error.code.rawValue)
-        case .partialFailure:
-            .fetchPartialFailure(leafCodes: boundedLeafErrorCodes(in: error))
-        default:
-            .fetchFailed(error.code.rawValue)
-        }
+    private func mapCloudKitError(
+        _ error: CKError,
+        phase: CloudKitKeyBootstrapPhase
+    ) -> CloudKitKeyBootstrapError {
+        .cloudKit(.init(
+            phase: phase,
+            code: error.code.rawValue,
+            leafCodes: boundedLeafErrorCodes(in: error)
+        ))
     }
 
     /// A missing bootstrap zone is an empty starting point only when CloudKit
@@ -399,8 +428,8 @@ public actor CloudKitKeyBootstrapTransport:
               let (itemID, itemError) = partialErrors.first,
               let itemZoneID = itemID.base as? CKRecordZone.ID,
               itemZoneID == zoneID,
-              let cloudError = itemError as? CKError,
-              cloudError.code == .zoneNotFound else {
+              (itemError as NSError).domain == CKErrorDomain,
+              (itemError as NSError).code == CKError.zoneNotFound.rawValue else {
             return false
         }
         return true
@@ -413,17 +442,22 @@ public actor CloudKitKeyBootstrapTransport:
         let maximumDepth = 3
 
         func collect(_ error: CKError, depth: Int) -> [Int] {
-            guard error.code == .partialFailure,
-                  depth < maximumDepth,
+            guard depth < maximumDepth,
+                  error.code == .partialFailure,
                   let partialErrors = error.partialErrorsByItemID,
                   !partialErrors.isEmpty else {
-                return [error.code.rawValue]
+                return depth == 0 ? [] : [error.code.rawValue]
             }
             let nestedCodes = partialErrors.values.flatMap { itemError -> [Int] in
-                guard let cloudError = itemError as? CKError else { return [] }
+                let cocoaError = itemError as NSError
+                guard cocoaError.domain == CKErrorDomain else { return [] }
+                guard cocoaError.code == CKError.partialFailure.rawValue,
+                      let cloudError = itemError as? CKError else {
+                    return [cocoaError.code]
+                }
                 return collect(cloudError, depth: depth + 1)
             }
-            return nestedCodes.isEmpty ? [error.code.rawValue] : nestedCodes
+            return nestedCodes
         }
 
         return Array(Set(collect(error, depth: 0)).sorted().prefix(maximumCodeCount))
@@ -437,7 +471,7 @@ public actor CloudKitKeyBootstrapTransport:
                 identifier: containerIdentifier
             ).userRecordID()
         } catch let cloudError as CKError {
-            throw mapFetchError(cloudError)
+            throw mapCloudKitError(cloudError, phase: .accountCheck)
         }
         try requireActiveContinuity()
         if let boundAccountRecordName {
