@@ -208,6 +208,15 @@ codes, or minimally preserves the actual CK access code and distinguishes local
 authorization cancellation at the existing bootstrap seam before ONE corrected
 candidate. No key/account reset or consent bypass; Native4212 continues.
 
+Build30 source719024631c05fa95d68fb21ce2b8e74f35e84eac now retains actual CK9/10
+separately from local authorization cancellation; c38ff81 also makes the existing
+disabled Sync action visibly disabled without changing its authority condition.
+Root read both small diffs. For this one corrected candidate/activation run,
+Root revalidated99332/99307 and STOPped only its scheduler (StateT); children
+finish naturally. Mobile uses one job and its own already signed-in C645.
+Resume the same Native4212 scheduler after the real terminal handback; no new
+Native wrapper, account/key reset or extra test matrix.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
