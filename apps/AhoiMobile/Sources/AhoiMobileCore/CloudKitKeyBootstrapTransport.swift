@@ -45,6 +45,23 @@ public enum CloudKitKeyBootstrapError: Error, Equatable, Sendable {
     case missingSendResult
 }
 
+private final class CloudKitAccountInvalidation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    var isInvalidated: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
+
+    func invalidate() {
+        lock.lock()
+        value = true
+        lock.unlock()
+    }
+}
+
 @available(iOS 17.0, macOS 14.0, *)
 public actor CloudKitKeyBootstrapTransport:
     CompanionKeyBootstrapTransport,
@@ -70,7 +87,8 @@ public actor CloudKitKeyBootstrapTransport:
     private var sendError: CloudKitKeyBootstrapError?
     private var isShutdown = false
     private var boundAccountRecordName: String?
-    private var accountTransitionInvalidated = false
+    private let accountInvalidation: CloudKitAccountInvalidation
+    private var accountChangeObserver: NSObjectProtocol?
     private let authorization: @Sendable () -> Bool
 
     public init(containerIdentifier: String, zoneName: String,
@@ -86,10 +104,25 @@ public actor CloudKitKeyBootstrapTransport:
         self.database = container.privateCloudDatabase
         self.subscriptionID = subscriptionID
         self.authorization = authorization
+        let accountInvalidation = CloudKitAccountInvalidation()
+        self.accountInvalidation = accountInvalidation
         self.zoneID = CKRecordZone.ID(
             zoneName: zoneName,
             ownerName: CKCurrentUserDefaultName
         )
+        self.accountChangeObserver = NotificationCenter.default.addObserver(
+            forName: .CKAccountChanged,
+            object: nil,
+            queue: nil
+        ) { @Sendable _ in
+            accountInvalidation.invalidate()
+        }
+    }
+
+    deinit {
+        if let accountChangeObserver {
+            NotificationCenter.default.removeObserver(accountChangeObserver)
+        }
     }
 
     public func inspectRemote() async throws -> CompanionBootstrapRemoteSnapshot {
@@ -188,6 +221,10 @@ public actor CloudKitKeyBootstrapTransport:
 
     public func shutdown() async {
         isShutdown = true
+        if let accountChangeObserver {
+            NotificationCenter.default.removeObserver(accountChangeObserver)
+            self.accountChangeObserver = nil
+        }
         let active = engine
         engine = nil
         await active?.cancelOperations()
@@ -195,7 +232,7 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func verifiedClaim() -> CompanionBootstrapClaim? {
-        authorization() && !isShutdown && !accountTransitionInvalidated
+        authorization() && !isShutdown && !accountInvalidation.isInvalidated
             ? fetchedClaim
             : nil
     }
@@ -222,7 +259,7 @@ public actor CloudKitKeyBootstrapTransport:
                 changed = true
             }
             if changed {
-                accountTransitionInvalidated = true
+                accountInvalidation.invalidate()
                 sendError = .accountChanged
             }
         case .fetchedRecordZoneChanges:
@@ -252,7 +289,7 @@ public actor CloudKitKeyBootstrapTransport:
         _ context: CKSyncEngine.SendChangesContext,
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.RecordZoneChangeBatch? {
-        if accountTransitionInvalidated {
+        if accountInvalidation.isInvalidated {
             sendError = .accountChanged
             return nil
         }
@@ -274,7 +311,7 @@ public actor CloudKitKeyBootstrapTransport:
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.FetchChangesOptions {
         _ = context
-        if accountTransitionInvalidated {
+        if accountInvalidation.isInvalidated {
             sendError = .accountChanged
             return .init(scope: .zoneIDs([]))
         }
@@ -352,7 +389,7 @@ public actor CloudKitKeyBootstrapTransport:
                 let page = try await database.recordZoneChanges(
                     inZoneWith: zoneID,
                     since: token,
-                    desiredKeys: nil,
+                    desiredKeys: [Self.keyVersionField, Self.keySHA256Field],
                     resultsLimit: nil
                 )
                 try requireActiveContinuity()
@@ -515,7 +552,7 @@ public actor CloudKitKeyBootstrapTransport:
         try requireActiveContinuity()
         if let boundAccountRecordName {
             guard boundAccountRecordName == current.recordName else {
-                accountTransitionInvalidated = true
+                accountInvalidation.invalidate()
                 throw CloudKitKeyBootstrapError.accountChanged
             }
         } else {
@@ -524,7 +561,7 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     private func requireActiveContinuity() throws {
-        if accountTransitionInvalidated {
+        if accountInvalidation.isInvalidated {
             throw CloudKitKeyBootstrapError.accountChanged
         }
         guard !isShutdown && authorization() else {
