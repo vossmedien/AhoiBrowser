@@ -40,13 +40,30 @@ its actual dynamic error type/domain/code must be established on that candidate.
   without an evidenced defect. See [synchronizable items](https://developer.apple.com/documentation/security/ksecattrsynchronizable)
   and [data-protection Keychain](https://developer.apple.com/documentation/security/ksecusedataprotectionkeychain).
 
-### Concrete unresolved activation seam
+### Actual Mobile37 failure and remaining source boundary
+
+The standard debugger on unchanged Mobile37 established the thrown type as
+`CompanionPayloadKeyStoreError.authorizationRevoked` (numeric NSError code10).
+The throw is AppEntry's combined guard after lifecycle Ready and before optional
+remote signing. Authorization was still true and bootstrapClaim non-nil; the
+canonicalKeySHA256 call returned nil. This does not yet prove that an item was
+deleted or that Security returned an access error. The exact call/result path
+must be resolved before a further build. Sanitized evidence is
+`artifacts/e2e/mobile-cloudkitdevelopment37-xcode27-20260919/manual-debugger-cause.txt`.
+
+Therefore RemoteCommandSigner and a presumed CloudKit NSError-bridging failure
+are not the demonstrated cause of this run. A tiny generic Swift6 diagnostic
+also did not reproduce a blanket async-protocol-default dispatch defect; no
+signature rewrite is justified without checking the actual product call site.
+
+### Separate source coupling, not this run's cause
 
 `AppEntry`'s `@MainActor` runtime factory synchronously calls
 `KeychainRemoteCommandSigner.ensureIdentity()` before creating the payload Sync
 runtime. Only `identityRevoked` is handled locally. Other signer errors can
 therefore abort all Sync and fall into the generic setup error classification.
-This is an observed source coupling, NOT yet the proven Mobile37 error.
+This is an observed source coupling; the debugger proves it was not reached
+in the Mobile37 failure above.
 Apple explicitly warns that [SecItemCopyMatching blocks its calling thread](https://developer.apple.com/documentation/security/secitemcopymatching(_:_:))
 and should not block the main UI thread. Optional remote-control identity work
 must not be mistaken for the required payload-key/CloudKit bootstrap. Diagnose
