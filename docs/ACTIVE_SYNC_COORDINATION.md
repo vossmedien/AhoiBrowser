@@ -217,6 +217,19 @@ finish naturally. Mobile uses one job and its own already signed-in C645.
 Resume the same Native4212 scheduler after the real terminal handback; no new
 Native wrapper, account/key reset or extra test matrix.
 
+Build30/7190246 is now terminal: build9427 EXIT0, normal UI96295 EXIT0, one
+case34.998s. Actual cause is `bootstrap-recovery:accountChanged`, not CK9/10 or
+local-authorization; disabled action now visibly dims. Root read terminal
+log/exit and resumed revalidated99332/99307 to StateR. Own C645 ended OFF/Shutdown.
+The concrete remaining product seam is bootstrap handleEvent: every accountChange
+was treated as failure, including signIn from a fresh engine. The existing normal
+provider already distinguishes initial/matching signIn from signOut/switchAccounts.
+Mobile owns a bounded matching bootstrap correction preserving real identity/
+authorization boundaries and remote inspection before claims; no blanket ignore
+or recovery upload. Native bootstrap was read separately: it uses account status,
+identity checks before scan/final completion and account-change notification,
+not this CKSyncEngine signIn path. No Native change from this finding.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
