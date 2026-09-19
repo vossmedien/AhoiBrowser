@@ -196,6 +196,18 @@ from local authorization/shutdown guards, so the Build29 code alone is not proof
 of a particular server error. The Settings observation independently proves the
 missing account prerequisite, not successful CloudKit access after login.
 
+**User login changed the prerequisite:** on the user's request, own C645 was
+opened at the native sign-in start and handed to the user without reading
+credentials. After the user's login update, the worker observed no remaining
+sign-in sheet/prompt and retried normal Ahoi29 activation. It still reported
+cloudkit-account-or-permission, keys off and manual Sync disabled. Opt-out,
+app termination and own Simulator Shutdown completed. Therefore missing login
+alone does not explain the remaining failure; do not ask for another login or
+claim a permission-specific cause. The worker now checks safe existing error
+codes, or minimally preserves the actual CK access code and distinguishes local
+authorization cancellation at the existing bootstrap seam before ONE corrected
+candidate. No key/account reset or consent bypass; Native4212 continues.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
