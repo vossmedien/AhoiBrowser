@@ -15,6 +15,9 @@ namespace ahoi::sidebar {
 
 namespace {
 
+constexpr std::u16string_view kMarkdownAsciiPunctuation =
+    uR"markdown(!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~)markdown";
+
 std::u16string EscapeMarkdownLinkLabel(std::u16string_view title) {
   std::u16string escaped;
   escaped.reserve(title.size());
@@ -27,7 +30,12 @@ std::u16string EscapeMarkdownLinkLabel(std::u16string_view title) {
       }
       continue;
     }
-    if (character == u'\\' || character == u'[' || character == u']') {
+    // CommonMark permits a backslash to escape every ASCII punctuation
+    // character. Escaping the complete set keeps an untrusted page title
+    // literal instead of letting inline HTML, entities, emphasis or code
+    // change the copied link's rendered markup.
+    if (kMarkdownAsciiPunctuation.find(character) !=
+        std::u16string_view::npos) {
       escaped.push_back(u'\\');
     }
     escaped.push_back(character);

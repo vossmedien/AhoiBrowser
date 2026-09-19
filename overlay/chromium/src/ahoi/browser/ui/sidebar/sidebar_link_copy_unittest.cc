@@ -25,6 +25,14 @@ TEST(SidebarLinkCopyTest, BuildsCredentialFreeUrlAndEscapedMarkdownLink) {
       u"(https://example.test/a_\\(b\\)?q=1#fragment)",
       BuildPageLinkClipboardText(url, u"A [title] \\ test",
                                  PageLinkCopyFormat::kMarkdown));
+  EXPECT_EQ(
+      u"[\\<img src\\=x onerror\\=alert\\(1\\)\\> \\&copy\\; "
+      u"\\*emphasis\\* \\`code\\` \\_under\\_]"
+      u"(https://example.test/)",
+      BuildPageLinkClipboardText(
+          GURL("https://example.test/"),
+          u"<img src=x onerror=alert(1)> &copy; *emphasis* `code` _under_",
+          PageLinkCopyFormat::kMarkdown));
 }
 
 TEST(SidebarLinkCopyTest, RejectsNonWebTargetsAndNormalizesTitleWhitespace) {
