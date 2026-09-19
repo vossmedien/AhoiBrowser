@@ -39,6 +39,13 @@ preview to `/root/simulator_cloudkit_20260919`. They do not alter this frozen
 candidate or shared checkout/out. Root integrates their resulting scoped commits
 only in the next coherent candidate, not during this build.
 
+Reader/link-copy source handback is complete:362e338b plus69ee9f5's literal
+Markdown-title correction. Command-bar/context-menu entry, active-page and
+navigation identity checks, credential-free web URLs and the existing native
+reading-mode command are implemented; patch0043 carries localized labels.
+Root read the code boundaries. No product compile or visible acceptance yet;
+runningb23c7d9 deliberately excludes this source-only successor.
+
 The independent Mobile worker checks the genuine entitled Simulator path;
 the user requested no physical-iPhone step for now. Older13September blockers,
 owners/PIDs and the a47-only runner below must not be resumed as current work.

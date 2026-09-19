@@ -75,6 +75,21 @@ Their product changes enter one later coherent integration, never the running
 snapshot. Neither worker spawns helpers. Root retains integration, the single
 Native build, subsequent representative E2E and result verification.
 
+**These two bounded source tasks are now complete and handed back.** Mobile
+Peek is4ff983594a473db5295844953bbfcc532c12159f, including real sheet-onDismiss
+handoff, preview navigation errors/retry, same-WebPage adoption and separate
+normal/private lifetime. Root read the adoption/datastore/cleanup/presentation
+paths; parsing/project checks are not runtime acceptance. Desktop Reader and
+link-copy are362e338b181f02c73025c180695c8afba5a15808, followed by the literal
+Markdown-label correction69ee9f5307f54aaa9dab0c951a163a7fd2011de1 after Root's
+specific finding. Reader uses M152's existing reading-mode command; context
+actions revalidate WebContents/navigation-entry/URL. URL userinfo is removed,
+and CommonMark punctuation cannot turn the title into inline HTML/formatting.
+Root read these implementation boundaries. Both packages are DCO-pushed and
+NOT_BUILT/NOT_E2E; they do not enter the immutable runningb23c7d9 snapshot.
+Do not claim their source-only checks as a visible or Sync pass, and do not
+restart the expired Mobile actool attempts without a changed prerequisite.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.

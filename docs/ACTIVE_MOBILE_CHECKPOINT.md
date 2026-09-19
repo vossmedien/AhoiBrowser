@@ -1,7 +1,8 @@
 # Active Mobile checkpoint
 
-Updated: 2026-09-13. Mobile/Common implementation owner:
-`/root/mobile_actions_recovery_20260913`. Coordinator: `/root`.
+Updated: 2026-09-19. The bounded Mobile worker
+`/root/simulator_cloudkit_20260919` has returned source4ff9835 to coordinator
+`/root`. No active Mobile build/UI run or new general Common ownership is implied.
 
 ## Current work — continue here
 
@@ -21,7 +22,8 @@ stays OPEN. Do not repeat the same `actool` run until the runtime inventory has
 actually changed; do not stop the foreign download or restart global Simulator
 services.
 
-The native Mobile Link Peek follow-up is implemented in source on top of the
+The native Mobile Link Peek follow-up is DCO-committed/pushed as
+`4ff983594a473db5295844953bbfcc532c12159f`, implemented on top of the
 existing long-press link coordinator and WebPage policy. The preview is an
 explicit action, shows destination and source origins, keeps the initiating
 browsing mode/workspace/WebKit data store, returns to the unchanged source page,
@@ -31,6 +33,10 @@ entry; external schemes, permissions, popups and downloads retain the existing
 fail-closed page policy. Source/static/project-generation checks are complete;
 the package is **NOT_BUILT / NOT_E2E**. Build and visible acceptance require a
 fresh capacity gate and, for Simulator runtime, a changed inventory.
+The link sheet only stages the request; its real `onDismiss` presents the
+preview, without a guessed delay. Preview navigation/HTTP failures have a
+visible error/retry path. Root read presentation, adoption and datastore/cleanup
+boundaries; this does not substitute for the still-pending visible journey.
 
 The corrected Device24/e2faf54 baseline is installed on Servusla and has a
 normal product-launch/local-namespace readback, with Sync OFF. It is fa53e31
