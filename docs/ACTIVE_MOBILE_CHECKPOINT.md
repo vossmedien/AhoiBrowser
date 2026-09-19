@@ -1,10 +1,34 @@
 # Active Mobile checkpoint
 
 Updated: 2026-09-19. The bounded Mobile worker
-`/root/simulator_cloudkit_20260919` has returned sourcebc12536 to coordinator
+`/root/simulator_cloudkit_20260919` has returned sourced098e06 to coordinator
 `/root`. No active Mobile build/UI run or new general Common ownership is implied.
 
 ## Current work — continue here
+
+Newest actual candidate is clean descendant source
+`d9faeaa1649acfe5f37a67d52a268811cd3fa39d`,
+`CloudKitDevelopment`0.1(36), Xcode27/SDK27 and the new prepared Development
+scope `37b55dda-30d6-4664-a91c-c91cab92d14b`. Its Mobile product source is
+byte-identical to bc12536; Build35/old scope969 remains fully archived and
+untouched. Build36 and receipt verification passed, and installed Info.plist
+readback proved source/build plus the exact new Zone, Subscription and Keychain
+account. The normal manual fresh opt-in started from a separate empty local
+namespace and remained visibly setup-pending beyond2m56s without a typed error
+or Ready. A bounded process sample observed the saved-record delegate event and
+exact claim decode; a later sample showed neither Bootstrap nor Security/Keychain
+work. This proves the event boundary, not the cause of the remaining wait and
+not CloudKit acceptance. Sync then returned visibly OFF, Ahoi terminated and
+C645 is Shutdown; neither scope received manual key/receipt/prefs/DB/Cloud
+mutation. Candidate, receipt and sanitized phase evidence are in
+[`artifacts/e2e/mobile-cloudkitdevelopment36-xcode27-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment36-xcode27-20260919/manual-pending-phase.txt).
+Follow-up source `d098e06` is DCO-committed/pushed but **NOT BUILT**: bootstrap
+zone/read/claim now all use the same direct private CKDatabase, with an atomic
+single-record `.ifServerRecordUnchanged` save, exact per-item/conflict handling,
+account continuity on success and error paths, exact saved version/digest proof,
+and persist-before-created. The main provider remains CKSyncEngine. A new clean
+first-claim scope is required to exercise that source without rewriting either
+preserved failed scope; no reset is implied.
 
 Latest exact Mobile result is clean DCO source
 `bc1253621c3bf9cbb73ba197ad1bbe7b2c718c8c`,
