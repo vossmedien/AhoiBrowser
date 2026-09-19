@@ -55,6 +55,19 @@ after47–48%idle/49%memory headroom/stable swapouts. Current evidence:
 `artifacts/build/native-unified-b23c7d9-20260919-jobs2-continuation/`.
 No installation or runtime pass yet; old32GiB gates are historical.
 
+**Current Native handle supersedes4212:** after stable57–63%idle, pressure level1
+and no sampled swapouts, Root raised only its own concurrency from2 to4. The
+exact verified Ninja99332 was interrupted normally;4212 ended2 after5,080 actions,
+not a compiler failure. Same cleanb23c7d9/output now runs guarded handle64423,
+app-only/four jobs, preserving all completed objects. Evidence is
+`artifacts/build/native-unified-b23c7d9-20260919-jobs4-continuation/`.
+At the latest readback it was in the normal dependency/hook validation, not a
+missing process or new source build. Do not signal old99332 or resume4212.
+
+The user confirmed Apple-first: finish macOS/iOS with CloudKit now; Windows and
+Android are future demand-dependent work. Keep existing provider boundaries,
+but do not introduce a new backend, account system or cross-platform scope now.
+
 Mobile26.5 compilation reached product sources, but device-specific and generic
 actool attempts failed against the changing Xcode27 CoreSimulator device-type
 inventory. The worker retains those red logs and does not repeat the unchanged
