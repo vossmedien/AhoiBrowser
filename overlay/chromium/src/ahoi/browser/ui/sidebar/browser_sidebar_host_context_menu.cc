@@ -153,12 +153,28 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
   context_runtime_tab_ = tab;
   context_menu_scope_ = ContextMenuScope::kOpenTab;
   context_node_id_.reset();
+  const bool has_page_action_target = CaptureContextPageActionTarget(tab.get());
   context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
   context_menu_model_->AddItem(
       kActivateNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_OPEN));
   context_menu_model_->AddItem(
       kSaveTemporaryTab,
       l10n_util::GetStringUTF16(IDS_STAR_VIEW_MENU_ADD_BOOKMARK));
+  if (has_page_action_target) {
+    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+    context_menu_model_->AddItem(
+        kCopyActivePageLink,
+        l10n_util::GetStringUTF16(IDS_AHOI_COPY_ACTIVE_PAGE_LINK));
+    context_menu_model_->AddItem(
+        kCopyActivePageMarkdownLink,
+        l10n_util::GetStringUTF16(IDS_AHOI_COPY_ACTIVE_PAGE_LINK_AS_MARKDOWN));
+    context_menu_model_->AddItem(
+        kOpenActivePageInReadingMode,
+        l10n_util::GetStringUTF16(
+            CanOpenActivePageInReadingMode(browser_)
+                ? IDS_AHOI_OPEN_ACTIVE_PAGE_IN_READING_MODE
+                : IDS_AHOI_READING_MODE_UNAVAILABLE));
+  }
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   const bool sleeping = ahoi::memory::IsTabSleeping(tab.get());
   context_menu_model_->AddItem(
@@ -213,6 +229,7 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
   context_move_submenu_models_.clear();
   context_move_destinations_.clear();
   context_runtime_tab_.reset();
+  ClearContextPageActionTarget();
   context_menu_scope_ = ContextMenuScope::kNone;
 }
 
@@ -227,6 +244,7 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   }
   context_menu_scope_ = ContextMenuScope::kWorkspace;
   context_node_id_.reset();
+  ClearContextPageActionTarget();
   context_workspace_ids_.clear();
   context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
   for (const tab_tree::Workspace& workspace :
@@ -312,6 +330,7 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
   }
   context_node_id_ = node_id;
   context_menu_scope_ = ContextMenuScope::kTree;
+  ClearContextPageActionTarget();
   context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
   if (!node) {
     context_menu_model_->AddItem(
@@ -333,6 +352,22 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
       context_menu_model_->AddItem(
           kArchiveTemporaryTab, StructureText(u"Archivieren (inklusive Split)",
                                               u"Archive (including split)"));
+    }
+    if (CaptureContextPageActionTarget(tab)) {
+      context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+      context_menu_model_->AddItem(
+          kCopyActivePageLink,
+          l10n_util::GetStringUTF16(IDS_AHOI_COPY_ACTIVE_PAGE_LINK));
+      context_menu_model_->AddItem(
+          kCopyActivePageMarkdownLink,
+          l10n_util::GetStringUTF16(
+              IDS_AHOI_COPY_ACTIVE_PAGE_LINK_AS_MARKDOWN));
+      context_menu_model_->AddItem(
+          kOpenActivePageInReadingMode,
+          l10n_util::GetStringUTF16(
+              CanOpenActivePageInReadingMode(browser_)
+                  ? IDS_AHOI_OPEN_ACTIVE_PAGE_IN_READING_MODE
+                  : IDS_AHOI_READING_MODE_UNAVAILABLE));
     }
     if (tab && tab->GetSplit().has_value()) {
       context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
@@ -414,6 +449,7 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
   context_move_submenu_models_.clear();
   context_move_destinations_.clear();
   context_node_id_.reset();
+  ClearContextPageActionTarget();
   context_menu_scope_ = ContextMenuScope::kNone;
 }
 
@@ -599,6 +635,15 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
 }
 
 bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
+  if (command_id == kCopyActivePageLink ||
+      command_id == kCopyActivePageMarkdownLink) {
+    return IsContextPageActionTargetCurrent() &&
+           CanCopyActivePageLink(browser_);
+  }
+  if (command_id == kOpenActivePageInReadingMode) {
+    return IsContextPageActionTargetCurrent() &&
+           CanOpenActivePageInReadingMode(browser_);
+  }
   if (command_id == kArchiveTemporaryTab)
     return session_bridge_->CanArchiveTemporaryPages(ContextArchiveNodes());
   if (command_id == kArchiveList)

@@ -1,0 +1,46 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20548,6 +20548,18 @@
+     <message name="IDS_AHOI_CONTEXT_COPY_ALL_LINKS" desc="Context-menu action that copies every saved page URL inside an AhoiBrowser group." meaning="AhoiBrowser native sidebar">
+       Copy all links
+     </message>
++    <message name="IDS_AHOI_COPY_ACTIVE_PAGE_LINK" desc="Accessible menu and command-bar label for copying the active split pane's credential-free HTTP(S) URL." meaning="AhoiBrowser page actions">
++      Copy active page link
++    </message>
++    <message name="IDS_AHOI_COPY_ACTIVE_PAGE_LINK_AS_MARKDOWN" desc="Accessible menu and command-bar label for copying the active split pane's title and credential-free URL as Markdown." meaning="AhoiBrowser page actions">
++      Copy active page link as Markdown
++    </message>
++    <message name="IDS_AHOI_OPEN_ACTIVE_PAGE_IN_READING_MODE" desc="Accessible menu and command-bar label for opening Chromium reading mode for the active split pane." meaning="AhoiBrowser page actions">
++      Open active page in reading mode
++    </message>
++    <message name="IDS_AHOI_READING_MODE_UNAVAILABLE" desc="Disabled menu label explaining that Chromium reading mode cannot open the active page." meaning="AhoiBrowser page actions">
++      Reading mode is unavailable for this page
++    </message>
+     <message name="IDS_AHOI_CONTEXT_MOVE_TO" desc="Context-menu submenu for moving an AhoiBrowser sidebar item to another group or workspace root." meaning="AhoiBrowser native sidebar">
+       Move to
+     </message>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11258,4 +11258,8 @@
+ <translation id="1555692962934226231">Auswahl wird geladen…</translation>
+ <translation id="3373635015517088468">Für dieses Profil sind derzeit keine unterstützten Einstellungen verfügbar.</translation>
+ <translation id="5831405800489376068">Die Auswahl konnte nicht geändert werden.</translation>
++<translation id="1523246957163920213">Link der aktiven Seite kopieren</translation>
++<translation id="7654016057361100771">Link der aktiven Seite als Markdown kopieren</translation>
++<translation id="603968043160528313">Aktive Seite im Lesemodus öffnen</translation>
++<translation id="8762882822589517341">Der Lesemodus ist für diese Seite nicht verfügbar</translation>
+ </translationbundle>
+diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+--- a/chrome/app/resources/generated_resources_en-GB.xtb
++++ b/chrome/app/resources/generated_resources_en-GB.xtb
+@@ -11054,4 +11054,8 @@
+ <translation id="4474610624900854258">Close tabs from this import before undoing it. Changed imported items block recovery. Other pages and the backup are kept.</translation>
+ <translation id="554473421888566226">Undo failed import</translation>
+ <translation id="2451348137617820571">The failed import was undone. Review the sidebar, then start a new preview when ready.</translation>
++<translation id="1523246957163920213">Copy active page link</translation>
++<translation id="7654016057361100771">Copy active page link as Markdown</translation>
++<translation id="603968043160528313">Open active page in reading mode</translation>
++<translation id="8762882822589517341">Reading mode is unavailable for this page</translation>
+ </translationbundle>

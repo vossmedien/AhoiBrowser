@@ -22,6 +22,7 @@
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/sidebar/sidebar_link_copy.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
@@ -123,6 +124,22 @@ namespace ahoi::sidebar {
 
 void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
   if (context_menu_scope_ == ContextMenuScope::kNone) {
+    return;
+  }
+  if (command_id == kCopyActivePageLink ||
+      command_id == kCopyActivePageMarkdownLink ||
+      command_id == kOpenActivePageInReadingMode) {
+    if (!IsContextPageActionTargetCurrent()) {
+      return;
+    }
+    if (command_id == kOpenActivePageInReadingMode) {
+      std::ignore = OpenActivePageInReadingMode(browser_);
+    } else {
+      std::ignore =
+          CopyActivePageLink(browser_, command_id == kCopyActivePageMarkdownLink
+                                           ? PageLinkCopyFormat::kMarkdown
+                                           : PageLinkCopyFormat::kUrl);
+    }
     return;
   }
   if (context_menu_scope_ == ContextMenuScope::kWorkspace &&

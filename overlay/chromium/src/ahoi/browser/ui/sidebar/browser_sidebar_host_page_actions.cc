@@ -7,26 +7,122 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_link_copy.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
 #include "base/logging.h"
 #include "base/time/time.h"
+#include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/web_contents.h"
 #include "ui/base/base_window.h"
+#include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/page_transition_types.h"
 #include "ui/base/window_open_disposition.h"
 
 namespace ahoi::sidebar {
+
+namespace {
+
+content::WebContents* GetActivePageActionContents(Browser* browser) {
+  return browser && browser->tab_strip_model()
+             ? browser->tab_strip_model()->GetActiveWebContents()
+             : nullptr;
+}
+
+std::optional<std::u16string> GetActivePageLinkText(Browser* browser,
+                                                    PageLinkCopyFormat format) {
+  content::WebContents* const contents = GetActivePageActionContents(browser);
+  if (!contents) {
+    return std::nullopt;
+  }
+  GURL url = contents->GetVisibleURL();
+  if (!url.is_valid() || url.is_empty()) {
+    url = contents->GetLastCommittedURL();
+  }
+  return BuildPageLinkClipboardText(url, contents->GetTitle(), format);
+}
+
+}  // namespace
+
+bool CanCopyActivePageLink(Browser* browser) {
+  return GetActivePageLinkText(browser, PageLinkCopyFormat::kUrl).has_value();
+}
+
+bool CopyActivePageLink(Browser* browser, PageLinkCopyFormat format) {
+  std::optional<std::u16string> text = GetActivePageLinkText(browser, format);
+  if (!text.has_value()) {
+    return false;
+  }
+  ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
+  writer.WriteText(*text);
+  return true;
+}
+
+bool CanOpenActivePageInReadingMode(Browser* browser) {
+  content::WebContents* const contents = GetActivePageActionContents(browser);
+  if (!contents) {
+    return false;
+  }
+  const GURL& url = contents->GetLastCommittedURL();
+  return url.is_valid() && url.SchemeIsHTTPOrHTTPS() &&
+         chrome::IsCommandEnabled(browser, IDC_SHOW_READING_MODE_SIDE_PANEL);
+}
+
+bool OpenActivePageInReadingMode(Browser* browser) {
+  return CanOpenActivePageInReadingMode(browser) &&
+         chrome::ExecuteCommand(browser, IDC_SHOW_READING_MODE_SIDE_PANEL);
+}
+
+bool BrowserSidebarHostView::CaptureContextPageActionTarget(
+    tabs::TabInterface* tab) {
+  ClearContextPageActionTarget();
+  if (!tab || !tab_strip_model_ || tab_strip_model_->GetActiveTab() != tab ||
+      session_bridge_->FindTabStripModelForTab(tab) != tab_strip_model_) {
+    return false;
+  }
+  content::WebContents* const contents = tab->GetContents();
+  content::NavigationEntry* const entry =
+      contents ? contents->GetController().GetVisibleEntry() : nullptr;
+  if (!contents || !entry) {
+    return false;
+  }
+  context_page_action_contents_ = contents->GetWeakPtr();
+  context_page_action_navigation_id_ = entry->GetUniqueID();
+  context_page_action_url_ = contents->GetVisibleURL();
+  return true;
+}
+
+bool BrowserSidebarHostView::IsContextPageActionTargetCurrent() const {
+  if (!context_page_action_contents_ || !tab_strip_model_ ||
+      tab_strip_model_->GetActiveWebContents() !=
+          context_page_action_contents_.get()) {
+    return false;
+  }
+  content::NavigationEntry* const entry =
+      context_page_action_contents_->GetController().GetVisibleEntry();
+  return entry && entry->GetUniqueID() == context_page_action_navigation_id_ &&
+         context_page_action_contents_->GetVisibleURL() ==
+             context_page_action_url_;
+}
+
+void BrowserSidebarHostView::ClearContextPageActionTarget() {
+  context_page_action_contents_.reset();
+  context_page_action_navigation_id_ = 0;
+  context_page_action_url_ = GURL();
+}
 
 bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
     int runtime_tab_handle,

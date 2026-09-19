@@ -49,6 +49,9 @@ enum SidebarContextMenuCommand {
   kRestoreArchiveElsewhere,
   kGoToSavedHome,
   kSetSavedHome,
+  kCopyActivePageLink,
+  kCopyActivePageMarkdownLink,
+  kOpenActivePageInReadingMode,
 };
 
 constexpr int kArchivePolicyCommandBase = 600;

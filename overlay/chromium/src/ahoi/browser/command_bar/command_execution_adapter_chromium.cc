@@ -16,6 +16,7 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+#include "ahoi/browser/ui/sidebar/sidebar_link_copy.h"
 #include "base/check.h"
 #include "base/containers/span.h"
 #include "base/memory/raw_ptr.h"
@@ -236,6 +237,13 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
              browser_->tab_strip_model()->GetActiveWebContents();
     }
+    if (command_id == internal::kCopyActivePageLinkCommand ||
+        command_id == internal::kCopyActivePageMarkdownLinkCommand) {
+      return sidebar::CanCopyActivePageLink(browser_);
+    }
+    if (command_id == internal::kOpenActivePageInReadingModeCommand) {
+      return sidebar::CanOpenActivePageInReadingMode(browser_);
+    }
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
         command_id == internal::kForgetHttpAuthRealmCommand) {
       content::WebContents* const contents =
@@ -274,6 +282,16 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
           browser_->tab_strip_model()->GetActiveWebContents();
       return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
              ShowHttpAuthManagementDialog(contents);
+    }
+    if (command_id == internal::kCopyActivePageLinkCommand ||
+        command_id == internal::kCopyActivePageMarkdownLinkCommand) {
+      return sidebar::CopyActivePageLink(
+          browser_, command_id == internal::kCopyActivePageMarkdownLinkCommand
+                        ? sidebar::PageLinkCopyFormat::kMarkdown
+                        : sidebar::PageLinkCopyFormat::kUrl);
+    }
+    if (command_id == internal::kOpenActivePageInReadingModeCommand) {
+      return sidebar::OpenActivePageInReadingMode(browser_);
     }
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
         command_id == internal::kForgetHttpAuthRealmCommand) {

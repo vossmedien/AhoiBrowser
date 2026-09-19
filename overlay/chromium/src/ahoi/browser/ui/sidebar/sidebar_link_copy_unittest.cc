@@ -15,6 +15,28 @@
 namespace ahoi::sidebar {
 namespace {
 
+TEST(SidebarLinkCopyTest, BuildsCredentialFreeUrlAndEscapedMarkdownLink) {
+  const GURL url("https://user:secret@example.test/a_(b)?q=1#fragment");
+  EXPECT_EQ(
+      u"https://example.test/a_(b)?q=1#fragment",
+      BuildPageLinkClipboardText(url, u"Ignored", PageLinkCopyFormat::kUrl));
+  EXPECT_EQ(
+      u"[A \\[title\\] \\\\ test]"
+      u"(https://example.test/a_\\(b\\)?q=1#fragment)",
+      BuildPageLinkClipboardText(url, u"A [title] \\ test",
+                                 PageLinkCopyFormat::kMarkdown));
+}
+
+TEST(SidebarLinkCopyTest, RejectsNonWebTargetsAndNormalizesTitleWhitespace) {
+  EXPECT_FALSE(BuildPageLinkClipboardText(GURL("file:///private/page.html"),
+                                          u"Local",
+                                          PageLinkCopyFormat::kMarkdown));
+  EXPECT_EQ(u"[Line one Line two](https://example.test/)",
+            BuildPageLinkClipboardText(GURL("https://example.test/"),
+                                       u"Line one\n\tLine two",
+                                       PageLinkCopyFormat::kMarkdown));
+}
+
 tab_tree::Workspace MakeWorkspace() {
   const base::Time now = base::Time::Now();
   return {.id = base::Uuid::GenerateRandomV4(),

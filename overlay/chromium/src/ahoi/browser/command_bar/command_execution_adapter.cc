@@ -80,6 +80,15 @@ std::optional<int> GetAllowlistedBrowserCommand(std::string_view stable_id) {
   if (stable_id == "http-auth.manage") {
     return kManageHttpAuthCredentialsCommand;
   }
+  if (stable_id == "page.copy-link") {
+    return kCopyActivePageLinkCommand;
+  }
+  if (stable_id == "page.copy-markdown-link") {
+    return kCopyActivePageMarkdownLinkCommand;
+  }
+  if (stable_id == "page.reading-mode") {
+    return kOpenActivePageInReadingModeCommand;
+  }
   return std::nullopt;
 }
 

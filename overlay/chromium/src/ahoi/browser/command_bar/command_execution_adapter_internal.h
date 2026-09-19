@@ -19,6 +19,9 @@ inline constexpr int kOpenPrivacyModeCommand = -2;
 inline constexpr int kSwitchHttpAuthAccountCommand = -3;
 inline constexpr int kForgetHttpAuthRealmCommand = -4;
 inline constexpr int kManageHttpAuthCredentialsCommand = -5;
+inline constexpr int kCopyActivePageLinkCommand = -6;
+inline constexpr int kCopyActivePageMarkdownLinkCommand = -7;
+inline constexpr int kOpenActivePageInReadingModeCommand = -8;
 
 // Converts only the deliberately small, reviewed command-bar allowlist into
 // Chromium command identifiers. Keeping this in the testable core prevents a

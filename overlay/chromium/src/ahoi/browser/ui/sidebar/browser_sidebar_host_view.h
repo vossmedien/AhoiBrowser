@@ -515,6 +515,12 @@ class BrowserSidebarHostView final
   void ResetDragPresentation();
 
   // views::ContextMenuController:
+  bool CaptureContextPageActionTarget(tabs::TabInterface* tab);
+
+  bool IsContextPageActionTargetCurrent() const;
+
+  void ClearContextPageActionTarget();
+
   void ShowContextMenuForViewImpl(
       views::View* source,
       const gfx::Point& screen_point,
@@ -783,6 +789,9 @@ class BrowserSidebarHostView final
   std::unique_ptr<views::Widget> workspace_dialog_widget_;
   std::optional<base::Uuid> context_node_id_;
   base::WeakPtr<tabs::TabInterface> context_runtime_tab_;
+  base::WeakPtr<content::WebContents> context_page_action_contents_;
+  int context_page_action_navigation_id_ = 0;
+  GURL context_page_action_url_;
   std::vector<base::Uuid> context_workspace_ids_;
   std::vector<ContextMoveDestination> context_move_destinations_;
   ContextMenuScope context_menu_scope_ = ContextMenuScope::kNone;

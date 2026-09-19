@@ -33,6 +33,8 @@ class ModalOverlayController;
 
 namespace ahoi::sidebar {
 
+enum class PageLinkCopyFormat;
+
 struct BrowserSidebarSplitDropSource {
   bool valid = false;
   base::WeakPtr<tabs::TabInterface> tab;
@@ -85,6 +87,14 @@ bool ToggleBrowserSidebarFloating(views::View* sidebar_host);
 bool ToggleBrowserSidebarVisibility(views::View* sidebar_host);
 bool RestoreBrowserSidebar(views::View* sidebar_host);
 bool ToggleBrowserSidebarDiscovery(views::View* sidebar_host);
+
+// Compact page actions always resolve the currently active split pane at
+// execution time. They never materialize a saved page or persist clipboard
+// contents into Ahoi profile/sync state, including in off-the-record windows.
+bool CanCopyActivePageLink(Browser* browser);
+bool CopyActivePageLink(Browser* browser, PageLinkCopyFormat format);
+bool CanOpenActivePageInReadingMode(Browser* browser);
+bool OpenActivePageInReadingMode(Browser* browser);
 
 // Resolves only Ahoi's private drag identity. A closed saved page is valid but
 // remains unopened during hover. A committed drop can activate it through the
