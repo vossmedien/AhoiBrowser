@@ -5,6 +5,68 @@ Mac-only load-an-already-provisioned-key path. It does not claim a signed build,
 actual Keychain mutation, successful CloudKit request or cross-device E2E.
 Signing tooling, native UI and the only Chromium build/install remain Desktop-owned.
 
+## Current API review — 19 September 2026
+
+The user requested a primary-source review before any more speculative builds.
+The current Swift direct-bootstrap source is7520228+d098e06. This review is not
+runtime acceptance: Mobile37 still exposes an unclassified activation error;
+its actual dynamic error type/domain/code must be established on that candidate.
+
+### Supported approach and invariants
+
+- Keep one persistent `CKSyncEngine` for normal private-database replication,
+  save its state serialization, process actual send results and server conflicts,
+  and distinguish sign-in from sign-out/account switching. Apple's
+  [engine documentation](https://developer.apple.com/documentation/cloudkit/cksyncengine-5sie5)
+  and [reference implementation](https://github.com/apple/sample-cloudkit-sync-engine/blob/main/SyncEngine/SyncedDatabase.swift)
+  support this pattern. The sample's deliberate reset/data-loss shortcuts are
+  not Ahoi's preservation policy and must not be copied.
+- A bounded one-time bootstrap may use direct public CloudKit APIs. Explicitly
+  verify/save the exact zone, scan from a nil change token through every page,
+  and handle each item result. No callback/default value proves an empty zone.
+  See [record-zone changes](https://developer.apple.com/documentation/cloudkit/ckdatabase/recordzonechanges(inzonewith:since:desiredkeys:resultslimit:)).
+- Claim creation uses the exact record ID, `.ifServerRecordUnchanged` and an
+  atomic operation; handle both thrown errors and per-item results. A conflict
+  is an existing claim, never permission to overwrite it. Partial-error details
+  must be read at their actual item boundary, retaining only safe diagnostic
+  codes. See [modifyRecords](https://developer.apple.com/documentation/cloudkit/ckdatabase/modifyrecords(saving:deleting:savepolicy:atomically:))
+  and [partialFailure](https://developer.apple.com/documentation/cloudkit/ckerror/code/partialfailure).
+- Keep original authorization/account continuity and durable receipt/readback
+  before key promotion. CloudKit and Keychain are separate systems; a server
+  acknowledgement is not proof that the local journal or a peer's key exists.
+- Canonical synchronizable keys must not use `ThisDeviceOnly`; local pending
+  keys/journals do. Access-group authorization is separate from synchronization.
+  Existing Ahoi attributes follow these rules. Do not replace the Keychain model
+  without an evidenced defect. See [synchronizable items](https://developer.apple.com/documentation/security/ksecattrsynchronizable)
+  and [data-protection Keychain](https://developer.apple.com/documentation/security/ksecusedataprotectionkeychain).
+
+### Concrete unresolved activation seam
+
+`AppEntry`'s `@MainActor` runtime factory synchronously calls
+`KeychainRemoteCommandSigner.ensureIdentity()` before creating the payload Sync
+runtime. Only `identityRevoked` is handled locally. Other signer errors can
+therefore abort all Sync and fall into the generic setup error classification.
+This is an observed source coupling, NOT yet the proven Mobile37 error.
+Apple explicitly warns that [SecItemCopyMatching blocks its calling thread](https://developer.apple.com/documentation/security/secitemcopymatching(_:_:))
+and should not block the main UI thread. Optional remote-control identity work
+must not be mistaken for the required payload-key/CloudKit bootstrap. Diagnose
+the actual error before changing this seam; do not weaken its signing/revocation
+checks or simply swallow an error into a false Ready state.
+
+### Simulator evidence boundary
+
+An authenticated Simulator can exercise private Development CloudKit requests;
+see [CKContainer](https://developer.apple.com/documentation/cloudkit/ckcontainer).
+Do not infer that all Simulator push is unsupported from the sample README:
+Apple's [Xcode14 release notes](https://developer.apple.com/de/documentation/xcode-release-notes/xcode-14-release-notes)
+document Sandbox remote notifications on supported Apple-Silicon/T2 Macs. The
+present M2 host meets that hardware premise, but actual registration/delivery
+still requires evidence. No official source reviewed establishes a delivery
+deadline or guaranteed macOS-to-Simulator iCloud-Keychain propagation. Local
+Keychain readback, actual CloudKit traffic, peer key arrival and physical-device
+acceptance remain distinct proofs. Do not invent an external hardware blocker
+for the currently unidentified Mobile37 activation error.
+
 ## Same existing lifecycle, verified key identity
 
 The existing private-zone control record remains `AhoiKeyBootstrapClaim` with
