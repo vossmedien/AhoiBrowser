@@ -12,15 +12,16 @@ Their old thread IDs and September8 leases are not current runtime grants.
   physical-iPhone/unlock request. The user signed in on own C645.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
-  Current guarded app-only build handle64423, Ninja97055/97032, FOUR jobs, resumed
-  to StateR after the latest Mobile36 window. Evidence:
+  Current guarded app-only build handle64423, Ninja97055/97032, FOUR jobs, currently
+  STOPped/StateT for the explicitly bound Mobile37 build/manual-UI window. Evidence:
   `artifacts/build/native-unified-b23c7d9-20260919-jobs4-continuation/`.
   Earlier4212/99332 and other handles below are terminal history; never resume them.
-- **Mobile worker:** `/root/simulator_cloudkit_20260919`, current task SOURCE ONLY:
-  replace the one-shot bootstrap's remaining CKSyncEngine claim write with direct
-  confirmed CKDatabase.modifyRecords, retaining create-if-absent/conflict handling,
-  identity/consent fences and durable receipt-before-created. Normal sync provider
-  remains CKSyncEngine. No new build/UI until source handback and fresh capacity.
+- **Mobile worker:** `/root/simulator_cloudkit_20260919`, direct-bootstrap7520228
+  plus error-path continuity/success-payload guardsd098e06 are committed and Root-
+  read. ONE candidate37/config-source3a4f778 now uses freshfe842 scope below, one
+  compiler job then normal manual first opt-in. Main provider stays CKSyncEngine;
+  only the bounded bootstrap now uses direct confirmed CloudKit operations.
+  Root resumes97055 on terminal handback. No extra review/matrix or unchanged retry.
 - **Actual Mobile36 result:** unchanged productbc12536/config-source d9faeaa,
   build succeeded, manual fresh37b activation remained pending beyond2:56 after
   a saved-record event/claim decode. The earlier Security-in-delegate stack did
@@ -29,10 +30,12 @@ Their old thread IDs and September8 leases are not current runtime grants.
 - **Preserve scopes:** old bba;969 (Build35 correctly reports unverified ownership);
   and new37b55dda-30d6-4664-a91c-c91cab92d14b (Build36 pending first-use). Never
   delete/copy/inject/promote their keys, journal, records or receipts to pass a test.
-  Current tuple: `artifacts/e2e/shared-sync-development-scope-20260919.json`,
-  SHA7201aa070922ad7ca9f27ef20601024df3b863646e87d434510aa1b0206e79f7.
-- **Next:** finish/read the bounded Mobile source fix, then choose a receipt-bound
-  normal first-use continuation without resetting prior evidence. Native build
+  New current tuplefe842784-4865-4272-8bda-4bcf81a64a84 is prepared separately in
+  `artifacts/e2e/shared-sync-direct-bootstrap-scope-20260919.json`, SHA
+  d1605b4622269f1d374440c1fc45e3c4701d209f84d7c675d60d125cbe6b1364.
+  The previous37b manifest and its immutable hash remain linked in that file.
+- **Next:** complete the receipt-bound Mobile37 normal first-use continuation
+  without resetting prior evidence. Native build
   continues independently; its successful build/sign/runtime and real matching
   peer roundtrip are still open. No repeated unchanged test or broad matrix.
 - **Other retained packages:** native Reader/Markdown69ee9f5 is source-complete but
