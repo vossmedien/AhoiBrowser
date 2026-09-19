@@ -321,6 +321,20 @@ safety checks. Existing incomplete-receipt recovery must remain honest; do not
 delete, inject or promote stored state to make this run pass. Resume97055 after
 the exact terminal handback.
 
+Mobile35/bc12536 build12295 EXIT0 and normal manual activation reached terminal
+bootstrapOwnershipUnverified recovery rather than another indefinite callback.
+This is correct fail-closed old-scope behavior, NOT Sync acceptance or proof of
+the new first-creation callback path. Own C645 ended OFF/Shutdown; Root CONTed
+verified97055/97032→R. Preserve35 and all old969 local/server/key material.
+Root now prepared d9faeaa's separate fresh scope37b55dda-30d6-4664-a91c-c91cab92d14b
+in `artifacts/e2e/shared-sync-development-scope-20260919.json`, SHA
+7201aa070922ad7ca9f27ef20601024df3b863646e87d434510aa1b0206e79f7.
+Existing MobileDevelopmentScope already isolates stores/defaults by this tuple;
+no reset, account copy or new persistence harness is needed. The worker prepares
+one configuration-bound Mobile36 from unchangedbc12536 for normal fresh opt-in.
+The same tuple is reserved for the eventual guarded Native Development copy;
+no native install/sign or new CloudKit mutation has occurred from preparation.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
