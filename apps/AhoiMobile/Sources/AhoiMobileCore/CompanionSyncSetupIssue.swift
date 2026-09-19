@@ -95,35 +95,35 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
     public var evidenceValue: String {
         switch self {
         case .staticConfiguration:
-            "static-configuration"
+            return "static-configuration"
         case .cloudKitAccountOrPermission(let code):
-            code.map { "cloudkit-account-or-permission:\($0)" }
+            return code.map { "cloudkit-account-or-permission:\($0)" }
                 ?? "cloudkit-account-or-permission"
         case .cloudKitTransport(let code):
-            code.map { "cloudkit-error:\($0)" } ?? "cloudkit-unavailable"
+            return code.map { "cloudkit-error:\($0)" } ?? "cloudkit-unavailable"
         case .cloudKitPartialFailure(let leafCodes):
             let codes = leafCodes.map(String.init).joined(separator: ",")
             return codes.isEmpty
                 ? "cloudkit-error:2"
                 : "cloudkit-error:2;leaf-codes:\(codes)"
         case .localAuthorization:
-            "local-authorization-unavailable"
+            return "local-authorization-unavailable"
         case .keychain(let status):
-            "keychain-osstatus:\(status)"
+            return "keychain-osstatus:\(status)"
         case .bootstrapRecovery(let reason):
-            "bootstrap-recovery:\(reason.rawValue)"
+            return "bootstrap-recovery:\(reason.rawValue)"
         case .waitingForKey(let reason):
-            "key-waiting:\(reason.rawValue)"
+            return "key-waiting:\(reason.rawValue)"
         case .migration:
-            "key-migration"
+            return "key-migration"
         case .claiming:
-            "key-claiming"
+            return "key-claiming"
         case .rotation:
-            "key-rotation"
+            return "key-rotation"
         case .revoked:
-            "key-revoked"
+            return "key-revoked"
         case .unknown:
-            "unknown"
+            return "unknown"
         }
     }
 
@@ -162,7 +162,7 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
                 "sync.setup.detail.cloudkit",
                 fallback: "Check iCloud sign-in and CloudKit permission. Local data remains available."
             )
-        case .cloudKitTransport:
+        case .cloudKitTransport, .cloudKitPartialFailure:
             CompanionL10n.string(
                 "sync.setup.detail.transport",
                 fallback: "CloudKit is currently unavailable. Local data remains available; try again later."
