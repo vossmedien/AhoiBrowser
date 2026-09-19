@@ -132,6 +132,81 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
     }
 
     @MainActor
+    func testCloudKitDevelopmentSyncOptInShowsRealTransportBoundary() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["AHOI_MOBILE_REAL_E2E"] == "1",
+              environment["AHOI_MOBILE_EXPECTED_BUILD_MODE"] == "CloudKitDevelopment" else {
+            throw XCTSkip(
+                "This journey requires an exact CloudKitDevelopment simulator candidate binding."
+            )
+        }
+
+        let app = launchExactCandidate(arguments: [])
+        openSettings(in: app)
+        let toggle = app.switches["settings.sync.enabled"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        revealSyncToggle(toggle, in: app)
+        setSwitch(toggle, enabled: false)
+        setSwitch(toggle, enabled: true)
+
+        let state = app.descendants(matching: .any)["settings.sync.state"]
+        let keyLifecycle = app.descendants(matching: .any)["settings.sync.key-lifecycle"]
+        XCTAssertTrue(state.waitForExistence(timeout: 3))
+        XCTAssertTrue(keyLifecycle.waitForExistence(timeout: 3))
+
+        let keysOff = ["Sync keys are off", "Sync-Schlüssel sind deaktiviert"]
+        let activationSettled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "NOT value IN %@", keysOff),
+            object: keyLifecycle
+        )
+        let activationResult = XCTWaiter.wait(for: [activationSettled], timeout: 30)
+
+        let stateValue = state.value as? String ?? ""
+        let keyValue = keyLifecycle.value as? String ?? ""
+        let configurationMissing = app.descendants(matching: .any)[
+            "settings.sync.configuration-missing"
+        ].exists
+        let operationError = app.descendants(matching: .any)["browser.library.error"].exists
+        let observation = "state=\(stateValue);keyLifecycle=\(keyValue);" +
+            "configurationMissing=\(configurationMissing);operationError=\(operationError)"
+        let observationAttachment = XCTAttachment(string: observation)
+        observationAttachment.name = "CloudKitDevelopment transport boundary"
+        observationAttachment.lifetime = .keepAlways
+        add(observationAttachment)
+        XCTAssertTrue(
+            activationResult == .completed || operationError,
+            "The real CloudKitDevelopment activation neither settled nor exposed an error. " +
+                observation
+        )
+
+        let localOnly = ["Local only", "Nur lokal"].contains(stateValue)
+        if localOnly {
+            XCTAssertTrue(
+                configurationMissing,
+                "A failed real transport activation must remain visibly local-only. \(observation)"
+            )
+            XCTAssertFalse(
+                app.buttons["settings.sync.now"].isEnabled,
+                "A failed real transport activation must not enable manual Sync. \(observation)"
+            )
+        } else {
+            XCTAssertFalse(
+                configurationMissing,
+                "An active entitled transport must not display the local-only warning. \(observation)"
+            )
+            XCTAssertTrue(
+                app.buttons["settings.sync.now"].isEnabled,
+                "An active entitled transport must expose manual Sync. \(observation)"
+            )
+        }
+
+        attachScreenshot(named: "01-cloudkit-development-transport-boundary", of: app)
+        setSwitch(toggle, enabled: false)
+        XCTAssertEqual(toggle.value as? String, "0")
+        attachScreenshot(named: "02-cloudkit-development-opt-out", of: app)
+    }
+
+    @MainActor
     func testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget() throws {
         let app = launchExactCandidate(arguments: [
             "-AhoiUITestFixture",
