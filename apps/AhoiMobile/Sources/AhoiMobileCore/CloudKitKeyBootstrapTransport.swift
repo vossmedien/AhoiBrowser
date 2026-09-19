@@ -14,6 +14,7 @@ public enum CloudKitKeyBootstrapError: Error, Equatable, Sendable {
     case conflictingClaims
     case zoneCreationFailed(Int)
     case fetchFailed(Int)
+    case fetchPartialFailure(leafCodes: [Int])
     case sendFailed(Int)
     case receiptPersistenceFailed
     case missingSendResult
@@ -84,7 +85,7 @@ public actor CloudKitKeyBootstrapTransport:
         do {
             try await engine.fetchChanges(.init(scope: .zoneIDs([zoneID])))
         } catch let cloudError as CKError {
-            if cloudError.code == .zoneNotFound || cloudError.code == .userDeletedZone {
+            if isConfirmedMissingRequestedZone(cloudError) {
                 zoneExists = false
             } else {
                 throw mapFetchError(cloudError)
@@ -214,7 +215,7 @@ public actor CloudKitKeyBootstrapTransport:
             }
         case let .didFetchRecordZoneChanges(result):
             if let error = result.error {
-                if error.code == .zoneNotFound || error.code == .userDeletedZone {
+                if result.zoneID == zoneID && error.code == .zoneNotFound {
                     zoneExists = false
                 } else {
                     fetchError = mapFetchError(error)
@@ -377,9 +378,55 @@ public actor CloudKitKeyBootstrapTransport:
         switch error.code {
         case .notAuthenticated, .permissionFailure:
             .cloudKitAccess(error.code.rawValue)
+        case .partialFailure:
+            .fetchPartialFailure(leafCodes: boundedLeafErrorCodes(in: error))
         default:
             .fetchFailed(error.code.rawValue)
         }
+    }
+
+    /// A missing bootstrap zone is an empty starting point only when CloudKit
+    /// confirms `zoneNotFound` for the one zone this fetch explicitly scoped.
+    /// User-deleted zones, mixed partial failures and failures for any other
+    /// item remain errors so they cannot authorize a fresh claim.
+    private func isConfirmedMissingRequestedZone(_ error: CKError) -> Bool {
+        if error.code == .zoneNotFound {
+            return true // `inspectRemote` scopes this operation to only `zoneID`.
+        }
+        guard error.code == .partialFailure,
+              let partialErrors = error.partialErrorsByItemID,
+              partialErrors.count == 1,
+              let (itemID, itemError) = partialErrors.first,
+              let itemZoneID = itemID.base as? CKRecordZone.ID,
+              itemZoneID == zoneID,
+              let cloudError = itemError as? CKError,
+              cloudError.code == .zoneNotFound else {
+            return false
+        }
+        return true
+    }
+
+    /// Preserve only a bounded set of numeric leaf codes. Item identifiers,
+    /// descriptions and the original userInfo never leave this method.
+    private func boundedLeafErrorCodes(in error: CKError) -> [Int] {
+        let maximumCodeCount = 8
+        let maximumDepth = 3
+
+        func collect(_ error: CKError, depth: Int) -> [Int] {
+            guard error.code == .partialFailure,
+                  depth < maximumDepth,
+                  let partialErrors = error.partialErrorsByItemID,
+                  !partialErrors.isEmpty else {
+                return [error.code.rawValue]
+            }
+            let nestedCodes = partialErrors.values.flatMap { itemError -> [Int] in
+                guard let cloudError = itemError as? CKError else { return [] }
+                return collect(cloudError, depth: depth + 1)
+            }
+            return nestedCodes.isEmpty ? [error.code.rawValue] : nestedCodes
+        }
+
+        return Array(Set(collect(error, depth: 0)).sorted().prefix(maximumCodeCount))
     }
 
     private func verifyAccountContinuity() async throws {

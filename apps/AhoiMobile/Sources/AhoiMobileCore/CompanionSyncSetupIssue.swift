@@ -10,6 +10,7 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
     case staticConfiguration
     case cloudKitAccountOrPermission(code: Int?)
     case cloudKitTransport(code: Int?)
+    case cloudKitPartialFailure(leafCodes: [Int])
     case localAuthorization
     case keychain(status: OSStatus)
     case bootstrapRecovery(CompanionKeyRecoveryReason)
@@ -85,7 +86,8 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
         case .revoked:
             .recovery(reason: .revokedKey, keyVersion: nil)
         case .staticConfiguration, .cloudKitAccountOrPermission,
-             .cloudKitTransport, .localAuthorization, .keychain, .unknown:
+             .cloudKitTransport, .cloudKitPartialFailure, .localAuthorization,
+             .keychain, .unknown:
             .disabled
         }
     }
@@ -99,6 +101,11 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
                 ?? "cloudkit-account-or-permission"
         case .cloudKitTransport(let code):
             code.map { "cloudkit-error:\($0)" } ?? "cloudkit-unavailable"
+        case .cloudKitPartialFailure(let leafCodes):
+            let codes = leafCodes.map(String.init).joined(separator: ",")
+            return codes.isEmpty
+                ? "cloudkit-error:2"
+                : "cloudkit-error:2;leaf-codes:\(codes)"
         case .localAuthorization:
             "local-authorization-unavailable"
         case .keychain(let status):
@@ -126,7 +133,7 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
             CompanionL10n.string("sync.setup.state.configuration", fallback: "Setup required")
         case .cloudKitAccountOrPermission:
             CompanionL10n.string("sync.setup.state.cloudkit", fallback: "iCloud access required")
-        case .cloudKitTransport:
+        case .cloudKitTransport, .cloudKitPartialFailure:
             CompanionL10n.string("sync.setup.state.transport", fallback: "CloudKit unavailable")
         case .localAuthorization:
             CompanionL10n.string("sync.setup.state.cancelled", fallback: "Sync setup stopped")
@@ -214,6 +221,8 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
             .localAuthorization
         case .zoneCreationFailed(let code), .fetchFailed(let code), .sendFailed(let code):
             .cloudKitTransport(code: code)
+        case .fetchPartialFailure(let leafCodes):
+            .cloudKitPartialFailure(leafCodes: leafCodes)
         case .corruptClaim, .conflictingClaims, .receiptPersistenceFailed,
              .missingSendResult:
             .bootstrapRecovery(.bootstrapOwnershipUnverified)
