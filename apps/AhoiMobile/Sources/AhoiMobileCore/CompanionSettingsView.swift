@@ -91,10 +91,8 @@ public struct CompanionSettingsView: View {
                             systemImage: "arrow.triangle.2.circlepath"
                         )
                     }
-                    .disabled(
-                        !model.isSyncConfigured &&
-                            !(syncEnabled && model.keyLifecycleStatus.isRotationPending)
-                    )
+                    .disabled(!isSyncActionEnabled)
+                    .opacity(isSyncActionEnabled ? 1 : 0.45)
                     .accessibilityIdentifier("settings.sync.now")
                     if model.syncStatus?.phase == .quarantined {
                         if model.physicalDeletionRecoveryRequired {
@@ -680,6 +678,11 @@ public struct CompanionSettingsView: View {
                 CompanionL10n.string("sync.state.failed", fallback: "Failed")
             }
         } ?? CompanionL10n.string("sync.state.ready", fallback: "Ready")
+    }
+
+    private var isSyncActionEnabled: Bool {
+        model.isSyncConfigured ||
+            (syncEnabled && model.keyLifecycleStatus.isRotationPending)
     }
 
     private func commandStatusText(_ item: CompanionRemoteCommandStatusItem) -> String {
