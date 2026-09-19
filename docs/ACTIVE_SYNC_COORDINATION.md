@@ -298,6 +298,19 @@ after this changed capacity prerequisite, no rebuild/fixture/key reset. Allow
 the actual operation to settle rather than treating30s as a product limit.
 97055 staysT until that concrete handback; old99332 is terminal/historical.
 
+That manual continuation is now terminal: installed34 remained setup-pending
+for over2:27. A bounded read-only sample of ownPID31766 showed actual
+sentRecordZoneChanges→acceptSentChanges→acceptedHandler→markClaimAccepted,
+blocked in Security SecItemCopyMatching/SecItemUpdate XPC. A saved/decoded claim
+and its receipt callback were reached, not a completed key promotion/Sync pass.
+Normal SyncOFF, app termination and C645 Shutdown completed; Root revalidated
+97055/97032 and CONT→R. The worker moves receipt persistence outside the
+CKSyncEngine delegate callback, after send completion/account verification but
+before createClaim returns created. This addresses the concrete callback/XPC
+coupling; the sample alone does not prove its causal deadlock. Preserve all969
+pending/canonical/journal/server state. No manual promotion or fresh-scope reset
+may be inferred. Old Build34 red timeout remains evidence, not overwritten.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
