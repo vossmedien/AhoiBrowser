@@ -262,6 +262,17 @@ now emits a different typed value. Mobile now preserves one bounded operation/
 code/leaf description across these existing boundaries, without raw identifiers
 or a new logging system. No unchanged UI rerun or more speculative zone handling.
 
+Mobile33/1acf62d now gives the actual fault: build79716 EXIT0; UI46453 EXIT0,
+one case33.016s; safeCode `cloudkit-error:claim-send:26` (zoneNotFound).
+Fetch/ensureZone returned without a failure but the claim's zone did not exist.
+This disproves treating default zoneExists=true/no delegate error as server proof.
+Own C645 ended OFF/Shutdown; Root resumed verified99332/99307 to StateR.
+Mobile now corrects the bounded bootstrap to use authoritative zone existence/
+save acknowledgement and actual full remote zone inspection before claims,
+using the same CloudKit private database and existing claim/journal/consent
+contract. Normal CKSyncEngine provider stays unchanged. No pending key deletion,
+new engine/category, broad retry or premature Ready claim.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
