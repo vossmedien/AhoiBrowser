@@ -6,6 +6,35 @@ Updated: 2026-09-19. The bounded Mobile worker
 
 ## Current work — continue here
 
+Latest September19 Mobile result: source
+`42a1f835a3350ed35b758e92576f60061b6add39` is DCO-committed/pushed and the
+receipt-bound `CloudKitDevelopment`0.1(29) Simulator candidate built EXIT0 with
+Xcode27/SDK27, one job and the same isolated Structure scope. The same normal
+C645 Settings journey passed1/1 in30.247s. It now reports the actual bounded
+cause as `iCloud-Zugriff erforderlich`, leaves keys off and manual Sync disabled,
+sets `configurationMissing=false`, and exposes only the safe evidence value
+`cloudkit-account-or-permission`; final UI opt-out passed. The classifier keeps
+static configuration, other CloudKit codes, Keychain OSStatus, concrete
+bootstrap/waiting reasons and unknown fallback separate without retaining raw
+NSError userInfo, account, record or key data. Exact candidate, receipt,
+screenshots and result are in
+[`artifacts/e2e/mobile-cloudkitdevelopment29-xcode27-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment29-xcode27-20260919/README.md).
+A separate read-only native Settings check found the generic Apple Account row
+showing the system sign-in prompt: **no Apple Account is signed in on C645**.
+No identity/screenshot was retained and no setting/sign-in was changed. This is
+the actual user gate on this Simulator, but the retained transport code remains
+correctly broader: `accountUnavailable` combines CloudKit `notAuthenticated`
+and `permissionFailure` and can also guard revoked authorization/shutdown, so no
+exact CKError code is invented. No CloudKit roundtrip/cross-device or Peek UI
+acceptance is inferred. Sync ended OFF and the Ahoi app was terminated. A
+bounded CUA attempt on public `example.com` could not generate iOS long-press:
+the available right-click/short-drag inputs performed ordinary link navigation,
+which was restored, so no Peek pass or product failure is inferred and the same
+input was not repeated. On the user's explicit approval C645 is now intentionally
+**Booted** at the native generic Apple Account sign-in method chooser. No method
+was selected, no credential/identity was read or entered, and no screenshot was
+retained; the Simulator window is handed to the user for their own sign-in.
+
 Current September19 Simulator result: exact clean Peek source
 `4ff983594a473db5295844953bbfcc532c12159f` is now the receipt-bound
 `CloudKitDevelopment`0.1(28) arm64 Simulator app, built with Xcode27.0/27A266a
