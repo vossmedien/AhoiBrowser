@@ -263,11 +263,11 @@ extension MobileBrowserController {
         let dialogPresenter = MobileWebDialogPresenter()
         dialogPresenters[tabID] = dialogPresenter
         policy.onOpenNewTab = { [weak self] url in
-            guard let self else { return }
-            let workspaceID = self.tabs.first(where: { $0.id == tabID })?.workspaceID
+            guard let self,
+                  let sourceTab = self.tabs.first(where: { $0.id == tabID }) else { return }
             _ = self.createTab(
                 url: url,
-                workspaceID: workspaceID,
+                workspaceID: sourceTab.workspaceID,
                 mode: mode
             )
         }
@@ -291,8 +291,12 @@ extension MobileBrowserController {
             )
         }
         policy.onHTTPFailure = { [weak self] url, _, failure in
-            guard let self,
-                  let tabIndex = self.tabs.firstIndex(where: { $0.id == tabID }) else {
+            guard let self else { return }
+            if self.linkPreview?.id == tabID {
+                self.linkPreview?.failure = failure
+                return
+            }
+            guard let tabIndex = self.tabs.firstIndex(where: { $0.id == tabID }) else {
                 return
             }
             self.expectedPolicyCancellationTabIDs.insert(tabID)
@@ -307,9 +311,11 @@ extension MobileBrowserController {
             }
         }
         policy.onDownload = { [weak self] request, sourceOrigin in
-            self?.expectedPolicyCancellationTabIDs.insert(tabID)
-            self?.pageFailures.removeValue(forKey: tabID)
-            self?.downloadCoordinator.start(
+            guard let self,
+                  self.tabs.contains(where: { $0.id == tabID }) else { return }
+            self.expectedPolicyCancellationTabIDs.insert(tabID)
+            self.pageFailures.removeValue(forKey: tabID)
+            self.downloadCoordinator.start(
                 request: request,
                 websiteDataStore: websiteDataStore,
                 initiatingOrigin: sourceOrigin,
@@ -317,7 +323,8 @@ extension MobileBrowserController {
             )
         }
         policy.onDownloadRejected = { [weak self] url, initiatingOrigin, reason in
-            guard let self else { return }
+            guard let self,
+                  self.tabs.contains(where: { $0.id == tabID }) else { return }
             let message: String
             switch reason {
             case .unsafeMethod(let method):
@@ -349,7 +356,12 @@ extension MobileBrowserController {
             dialogPresenter: dialogPresenter
         )
         policy.onAllowedMainFrameNavigation = { [weak self, weak page] url, kind in
-            guard let self, let page, self.pages[tabID] === page else { return }
+            guard let self, let page else { return }
+            if self.linkPreview?.id == tabID, self.linkPreview?.page === page {
+                self.linkPreview?.failure = nil
+                return
+            }
+            guard self.pages[tabID] === page else { return }
             self.noteAllowedSharedNavigation(tabID: tabID, url: url, kind: kind)
         }
         return page

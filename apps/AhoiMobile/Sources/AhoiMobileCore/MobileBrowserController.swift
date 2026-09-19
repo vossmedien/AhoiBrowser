@@ -37,6 +37,10 @@ public final class MobileBrowserController: ObservableObject {
                 if pendingLink?.sourceTabID == oldValue {
                     pendingLink = nil
                 }
+                if linkPreview?.link.sourceTabID == oldValue {
+                    dismissLinkPreview()
+                }
+                cancelStagedLinkPreview(sourceTabID: oldValue)
             }
         }
     }
@@ -44,6 +48,9 @@ public final class MobileBrowserController: ObservableObject {
     @Published public internal(set) var recentlyClosedTab: MobileTabRecord?
     @Published public internal(set) var pendingExternalOpen: MobilePendingExternalOpen?
     @Published public internal(set) var pendingLink: MobilePendingLink?
+    @Published internal(set) var linkPreview: MobileLinkPreviewSession?
+    var stagedLinkPreview: MobilePendingLink?
+    var linkPreviewNavigationTask: Task<Void, Never>?
     @Published public internal(set) var pageFailures: [UUID: MobilePageFailureKind] = [:]
     @Published var pageRetryFeedbackTabIDs: Set<UUID> = []
     var pageRetryFeedbackRegistry = MobilePageRetryFeedbackRegistry()
@@ -311,6 +318,8 @@ public final class MobileBrowserController: ObservableObject {
         dialogPresenters.removeValue(forKey: id)?.cancelPending()
         linkInteractionCoordinators.removeValue(forKey: id)?.invalidate()
         if pendingLink?.sourceTabID == id { pendingLink = nil }
+        if linkPreview?.link.sourceTabID == id { dismissLinkPreview() }
+        cancelStagedLinkPreview(sourceTabID: id)
         if pendingExternalOpen?.sourceTabID == id { pendingExternalOpen = nil }
         websiteDataStores.removeValue(forKey: id)
         navigationObservationTasks.removeValue(forKey: id)?.cancel()
@@ -581,6 +590,8 @@ public final class MobileBrowserController: ObservableObject {
         permissionCoordinator.cancelPending(unlessTabID: nil)
         dialogPresenters.values.forEach { $0.cancelPending() }
         pendingLink = nil
+        cancelStagedLinkPreview()
+        dismissLinkPreview()
         pendingExternalOpen = nil
     }
 
@@ -595,6 +606,12 @@ public final class MobileBrowserController: ObservableObject {
         for id in privateIDs { linkInteractionCoordinators.removeValue(forKey: id)?.invalidate() }
         if let pendingLink, privateIDs.contains(pendingLink.sourceTabID) {
             self.pendingLink = nil
+        }
+        if let linkPreview, privateIDs.contains(linkPreview.link.sourceTabID) {
+            dismissLinkPreview()
+        }
+        if let stagedLinkPreview, privateIDs.contains(stagedLinkPreview.sourceTabID) {
+            cancelStagedLinkPreview()
         }
         for id in privateIDs { websiteDataStores.removeValue(forKey: id) }
         for id in privateIDs { navigationObservationTasks.removeValue(forKey: id)?.cancel() }
@@ -752,7 +769,7 @@ public final class MobileBrowserController: ObservableObject {
         )
     }
 
-    private func recordTabState() {
+    func recordTabState() {
         performanceRecorder.recordTabState(
             normalTabs: normalTabs.count,
             privateTabs: privateTabs.count,

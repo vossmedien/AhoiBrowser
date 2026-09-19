@@ -125,6 +125,21 @@ struct MobileLinkActionSheet: View {
             fallback: "Open"
         )) {
             Button {
+                if browser.stagePendingLinkPreview(requestID: link.id) {
+                    dismiss()
+                }
+            } label: {
+                Label(
+                    CompanionL10n.string(
+                        "browser.link_actions.preview",
+                        fallback: "Preview Link"
+                    ),
+                    systemImage: "eye"
+                )
+            }
+            .accessibilityIdentifier("browser.link-actions.preview")
+
+            Button {
                 open()
             } label: {
                 Label(

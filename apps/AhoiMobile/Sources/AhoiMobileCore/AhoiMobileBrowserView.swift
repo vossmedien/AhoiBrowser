@@ -68,7 +68,8 @@ public struct AhoiMobileBrowserView: View {
                 presentationVisible: { addressPresented || tabsPresented || bookmarkCapture != nil || browserActionsPresented ||
                     downloadsPresented || downloadPreviewURL != nil || renameTab != nil || settingsPresented ||
                     findNavigatorPresented || clearWebsiteDataRequested || clearPrivateTabsRequested ||
-                    browser.pendingLink != nil || browser.pendingExternalOpen != nil },
+                    browser.pendingLink != nil || browser.linkPreview != nil ||
+                    browser.pendingExternalOpen != nil },
                 prepareForInactive: { browser.prepareForInactiveScene() },
                 dismissPrivatePresentations: dismissPrivatePresentations).frame(width: 0, height: 0)
                 .id(ObjectIdentifier(privateLock)))
@@ -187,12 +188,20 @@ public struct AhoiMobileBrowserView: View {
         .sheet(item: Binding<MobilePendingLink?>(
             get: { browser.pendingLink },
             set: { if $0 == nil { browser.dismissPendingLink() } }
-        )) { link in
+        ), onDismiss: {
+            browser.presentStagedLinkPreview()
+        }) { link in
             MobileLinkActionSheet(
                 link: link,
                 companionModel: companionModel,
                 browser: browser
             )
+        }
+        .fullScreenCover(item: Binding<MobileLinkPreviewSession?>(
+            get: { browser.linkPreview },
+            set: { if $0 == nil { browser.dismissLinkPreview() } }
+        )) { preview in
+            MobileLinkPreviewView(preview: preview, browser: browser)
         }
     }
     private var confirmationLayer: some View {

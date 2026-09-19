@@ -5,6 +5,33 @@ Updated: 2026-09-13. Mobile/Common implementation owner:
 
 ## Current work — continue here
 
+September19 Simulator continuation: exact clean source `2c57c8d` was configured
+as `CloudKitDevelopment`0.1(27), arm64 iOS Simulator, with the existing
+Structure scope `96950f6b-50e0-4e2c-9a94-852dc5099446`. Xcode26.5/17F42 and
+SDK26.5/23F73 compiled the App/Core source, but no runnable candidate was
+produced: after the known two stale Core-test files were excluded from the
+targeted UI harness, `actool` failed at Simulator asset thinning because the
+active CoreSimulator device-type inventory mixed the Xcode26.5 service with an
+Xcode27 runtime-data download. Both device-bound and generic-destination red
+runs are retained in
+[`artifacts/e2e/mobile-cloudkitdevelopment27-simulator-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment27-simulator-20260919/README.md).
+No app was installed or launched, `CKContainer.accountStatus()` was not reached,
+the Ahoi Simulator remained Shutdown, and CloudKit/Keychain/device acceptance
+stays OPEN. Do not repeat the same `actool` run until the runtime inventory has
+actually changed; do not stop the foreign download or restart global Simulator
+services.
+
+The native Mobile Link Peek follow-up is implemented in source on top of the
+existing long-press link coordinator and WebPage policy. The preview is an
+explicit action, shows destination and source origins, keeps the initiating
+browsing mode/workspace/WebKit data store, returns to the unchanged source page,
+and adopts the already loaded WebPage into a normal/private tab only after the
+user confirms. Preview alone creates no tab, history, session, Sync or restore
+entry; external schemes, permissions, popups and downloads retain the existing
+fail-closed page policy. Source/static/project-generation checks are complete;
+the package is **NOT_BUILT / NOT_E2E**. Build and visible acceptance require a
+fresh capacity gate and, for Simulator runtime, a changed inventory.
+
 The corrected Device24/e2faf54 baseline is installed on Servusla and has a
 normal product-launch/local-namespace readback, with Sync OFF. It is fa53e31
 plus only the backportable AppStorage fix7e19476, matching Nativec8d9161; it
