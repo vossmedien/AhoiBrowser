@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "status": "prepared-not-applied",
+  "purpose": "fresh direct-bootstrap first-use and matching Mac/Simulator acceptance; retain previous incomplete claims unchanged",
+  "environment": "Development",
+  "scopeID": "fe842784-4865-4272-8bda-4bcf81a64a84",
+  "containerIdentifier": "iCloud.app.ahoibrowser.AhoiBrowser",
+  "zoneName": "AhoiSyncAcceptance-fe842784-4865-4272-8bda-4bcf81a64a84",
+  "subscriptionIdentifier": "AhoiSyncAcceptanceSubscription-fe842784-4865-4272-8bda-4bcf81a64a84",
+  "syncKeychainService": "app.ahoibrowser.sync.payload-key",
+  "syncKeychainAccount": "payload-key.acceptance-fe842784-4865-4272-8bda-4bcf81a64a84",
+  "syncKeychainAccessGroup": "248AJ5BN47.app.ahoibrowser.sync",
+  "syncKeyVersion": "1",
+  "constraints": {
+    "freshLocalStoresRequired": true,
+    "existingKeysOrRecordsMayBeDeleted": false,
+    "manualKeyCopyAllowed": false,
+    "productionAllowed": false
+  },
+  "expectedPersistence": {
+    "wireFormat": 3,
+    "nativeSyncStoreSchema": 7,
+    "mobileStructureRevision": 1
+  },
+  "preservedPreviousScopeID": "37b55dda-30d6-4664-a91c-c91cab92d14b",
+  "preservedPreviousManifest": "artifacts/e2e/shared-sync-development-scope-20260919.json",
+  "preservedPreviousManifestSHA256": "7201aa070922ad7ca9f27ef20601024df3b863646e87d434510aa1b0206e79f7",
+  "reasonForNewScope": "Build36 reached the saved-claim event but activation remained pending before a verified durable receipt. Preserve its keys, journal, server claim and original failure evidence. This new run does not accept prior-scope recovery.",
+  "nativeSourceRequirement": "Exact receipt-bound coherent format3 Structure candidate; prepare/sign this tuple only through the existing guarded Development path after build completion.",
+  "mobileSourceRequirement": "Exact receipt-bound coherent candidate containing direct-bootstrap7520228 and continuity/payload-identity guards d098e06 or descendants.",
+  "mobilePreflightScopeSetting": "AHOI_SYNC_ACCEPTANCE_SCOPE_ID",
+  "mobileConfigurationKeys": [
+    "AHOI_CLOUDKIT_CONTAINER_ID",
+    "AHOI_CLOUDKIT_ZONE_NAME",
+    "AHOI_CLOUDKIT_SUBSCRIPTION_ID",
+    "AHOI_SYNC_KEYCHAIN_SERVICE",
+    "AHOI_SYNC_KEYCHAIN_ACCOUNT",
+    "AHOI_SYNC_KEYCHAIN_ACCESS_GROUP",
+    "AHOI_SYNC_KEY_VERSION"
+  ],
+  "acceptance": {
+    "serverZoneCreated": false,
+    "serverZoneEmptyVerified": false,
+    "keyCreatedOrCopied": false,
+    "nativeCandidateBound": false,
+    "mobileEntitledCandidateBound": false,
+    "runtimeStarted": false,
+    "roundtrip": "NOT_RUN"
+  }
+}
