@@ -244,6 +244,13 @@ partialFailure, but no generic partial error may be treated as an empty zone.
 No unchanged retry, key reset, new test matrix or account action is authorized
 by this result. Native4212 remains the same live build.
 
+Source4d34b08 adds the bounded partial-error handling: only confirmed zoneNotFound
+for the single exact requested zone can enter the existing fresh-zone path;
+userDeletedZone, other zones and mixed failures remain errors. Numeric leaf codes
+are retained without identifiers/descriptions. Root read the implementation.
+Own99332/99307 is temporarily STOPped (verified StateT) for the one corrected
+Mobile32 build/activation; resume the SAME Native4212 after actual handback.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
