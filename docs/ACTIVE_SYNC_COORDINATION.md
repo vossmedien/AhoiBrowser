@@ -1,9 +1,66 @@
 # Active sync coordination
 
-Updated: 2026-09-13. Root coordinates the same canonical branch,
+Updated: 2026-09-19. Root coordinates the same canonical branch,
 `codex/desktop-core-feature-wave-20260830`. The user explicitly confirmed both
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
+
+## Current work — September19
+
+Root verified no previous worker or Ahoi build was still active. The old
+ephemeral worktrees are absent, not resumable handles; their committed sources
+and canonical artifacts survive. Root now owns Native/Common integration and
+the sole shared Chromium build. The independent
+`/root/simulator_cloudkit_20260919` owns only the matching Mobile Simulator
+candidate and short real normal CloudKit/status journey. No physical-iPhone or
+Mac-unlock request is pending; no synthetic key, fixture or injected Sync opt-in
+may be counted as CloudKit acceptance.
+
+Core coalescing correctioneffe985 is retained. Root completed its exact
+ReadOutbox pagination seam in108e91aea7bae43542885d54fce8b35a9a92d232:
+oldest entity first, newest existing convergence/original within that entity
+first, original consent filters and accepted-row limit unchanged. The provider
+still proves actual field dominance before acknowledging originals. This
+source also includes Nativea47's required compiler corrections and complete
+archive/search/restore/delete/Home source. No schema/engine or new clocks.
+
+Initial combined invocation77793 ended overlay0/build69 before compilation:
+the former Xcode26.6 default had been replaced by Xcode27 and its build path
+requested license acceptance. The original log/exit remains under
+`artifacts/build/native-unified-108e91a-20260919/`; no license was accepted.
+The user expressly authorized Xcode26.5 while the Simulator download runs.
+Commitb23c7d9 selects installed26.5/17F42 with iOS SDK23F73 ONLY for compatible
+development, preserving all exact checks and pinned/release26.6/17F113/23F81a.
+The actual host check and two existing config/provenance checks passed; global
+xcode-select and all downloading/Simulator services remain untouched.
+
+The ONE corrected app-only run is now7980, clean detached source
+b23c7d9dfaf40752dc5128455579ec4781d45870 in the same preserved
+`/private/tmp/ahoi-native-unified.1FqoG5/repo`, two jobs/no test targets. Current
+logs/exits/receipt: `artifacts/build/native-unified-b23c7d9-20260919/`. Its fresh
+capacity sample was62–68%CPU idle/74%memory headroom/no swapouts; disk about154GiB.
+No installation or runtime pass yet; old32GiB gates are historical.
+
+Mobile26.5 compilation reached product sources, but device-specific and generic
+actool attempts failed against the changing Xcode27 CoreSimulator device-type
+inventory. The worker retains those red logs and does not repeat the unchanged
+attempt or restart shared services. The download affects that Simulator phase,
+not the independently runnable Native build. No real CloudKit pass is claimed.
+
+Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
+The15September storage release was for exactly21 enumerated obsolete bundles
+sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
+The installed55ab, direct rollback26, provider-free fallbacka24 and open-file-
+referenced c8 rollback were specifically protected; old blanket rollback text
+below must not revoke that exact scoped owner handoff or release other paths.
+
+DebugLocal25's normal, non-fixtured Simulator Settings/Sync journey passed1/1
+after the recorded runner correction (086e9b8); it proves local-only behavior,
+not CloudKit. Do not repeat it instead of checking the entitled Simulator path.
+The three ImageGen designs remain unselected and are not implemented.
+
+All older owners, PIDs, resource waits and next-step phrases below are history;
+use them only as evidence for the specific failure or candidate they describe.
 
 ## Latest user direction and actual peer result — September13
 

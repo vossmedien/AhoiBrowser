@@ -1,5 +1,36 @@
 # Active Desktop checkpoint
 
+## Current combined correction — 19 September 2026
+
+Root resumed the stopped worker's exact handoff: coalescing sourceeffe985 plus
+ReadOutbox completion108e91a, on top of Nativea47. No generic scope/field freeze
+is pending. The current clean source is
+b23c7d9dfaf40752dc5128455579ec4781d45870 at
+`/private/tmp/ahoi-native-unified.1FqoG5/repo`. Previous ephemeral worktrees are
+absent, not restartable processes; no registration was pruned or source reset.
+
+Initial invocation77793 is terminal: overlay EXIT0, build EXIT69 before the
+compiler because the former default Xcode26.6 had been replaced by Xcode27,
+whose build path requested license acceptance. Original evidence remains in
+`artifacts/build/native-unified-108e91a-20260919/`; no license was accepted.
+The user then explicitly authorized using installed Xcode26.5 while Simulator
+data downloads. Commitb23c7d9 sets only compatible-development to26.5/17F42,
+its explicit app path and iOS SDK23F73; pinned/release26.6/17F113/23F81a remains.
+The actual host check and two existing configuration/provenance checks passed.
+No global xcode-select or Simulator service/download state was changed.
+
+Corrected guarded app-only invocation7980 is active, two jobs/no test targets,
+after fresh62–68%CPU idle,74%memory headroom and no swapout movement. Its actual
+logs/exits/receipt belong in `artifacts/build/native-unified-b23c7d9-20260919/`.
+Root alone owns shared
+checkout/out and Native candidate preparation. No current install or E2E pass
+is claimed; installed55ab is unchanged. The remaining later scope is the
+prepared969 Structure Development pair, while bba/Device24 stays protected.
+
+The independent Mobile worker checks the genuine entitled Simulator path;
+the user requested no physical-iPhone step for now. Older13September blockers,
+owners/PIDs and the a47-only runner below must not be resumed as current work.
+
 ## Native Structure candidate — 13 September 2026
 
 **Frozen combined source89993af004d3c73a202422fe9c950310e149ac92 is committed

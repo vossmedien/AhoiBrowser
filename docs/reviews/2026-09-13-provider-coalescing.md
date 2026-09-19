@@ -60,6 +60,6 @@ necessary focused regressions remain open; no new code is retroactively covered
 by the55ab or DebugLocal25 evidence.
 
 Do not build the old a47-only script or this intermediate Core-only revision.
-The next product build must combine Nativea47 and the complete provider fix,
-with a fresh total-capacity check. Root last reported44.7GiB free; the older
-32.3GiB disk-gate snapshot is no longer current.
+The next product build combines Nativea47 and the complete provider fix,
+with a fresh total-capacity check. See the current Desktop checkpoint for its
+actual source/handle; the13September disk snapshots are not current gates.
