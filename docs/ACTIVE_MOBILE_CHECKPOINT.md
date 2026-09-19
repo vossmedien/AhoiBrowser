@@ -6,7 +6,30 @@ Updated: 2026-09-19. The bounded Mobile worker
 
 ## Current work — continue here
 
-September19 Simulator continuation: exact clean source `2c57c8d` was configured
+Current September19 Simulator result: exact clean Peek source
+`4ff983594a473db5295844953bbfcc532c12159f` is now the receipt-bound
+`CloudKitDevelopment`0.1(28) arm64 Simulator app, built with Xcode27.0/27A266a
+and SDK27.0/24A430 against the prepared Structure scope
+`96950f6b-50e0-4e2c-9a94-852dc5099446`. The app/tree/runner receipt verified;
+the Simulator Development entitlements contain the exact CloudKit container,
+environment and two intended Keychain groups. The normal C645 Settings journey
+passed 1/1 in31.506s: real Sync opt-in visibly settled at `Nur lokal` plus
+`Verschlüsselungs-Wiederherstellung erforderlich`, missing configuration true,
+manual Sync disabled and no operation error; the same UI then restored Sync OFF.
+No fixture, SyncProjection, defaults/key/SQL or account injection was used.
+Evidence, screenshots, exact receipt and retained red harness-path first attempt
+are in
+[`artifacts/e2e/mobile-cloudkitdevelopment28-xcode27-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment28-xcode27-20260919/README.md).
+This is an honest runtime-activation boundary, not CloudKit success. Static
+configuration is present, but the current error seam collapses thrown
+CloudKit/Keychain failures and nonthrowing bootstrap recovery into the same
+local/recovery presentation without retaining a safe NSError domain/code or
+recovery reason. Therefore no exact `CKAccountStatus`, Keychain `-34018` or
+specific bootstrap cause is claimed; no server roundtrip/cross-device Sync is
+claimed, and Peek-specific visible close/adopt acceptance remains NOT_RUN.
+The app was terminated and C645 returned to Shutdown.
+
+Earlier September19 Simulator attempt: exact clean source `2c57c8d` was configured
 as `CloudKitDevelopment`0.1(27), arm64 iOS Simulator, with the existing
 Structure scope `96950f6b-50e0-4e2c-9a94-852dc5099446`. Xcode26.5/17F42 and
 SDK26.5/23F73 compiled the App/Core source, but no runnable candidate was
@@ -36,10 +59,9 @@ arm64 iPhone Simulator, one job, Swift/localization compile plus framework link,
 EXIT0. The graph contained only `AhoiMobileCore` and its local
 `AhoiCloudKitSpike` dependency; preserved product/log/result are in
 [`artifacts/build/mobile-peek-core-4ff9835-20260919/`](../artifacts/build/mobile-peek-core-4ff9835-20260919/README.md).
-This is still **APP NOT_BUILT / NOT_E2E**: no app target, assets, tests,
-signing, install, launch or Simulator/CloudKit action ran. Full app build and
-visible acceptance require a fresh capacity gate and, for Simulator runtime, a
-changed inventory.
+That narrow Core result itself built no app/assets/tests or runtime. The later
+Build28 result above now adds app build and the normal Settings E2E, but does not
+turn the unrun Peek-specific UI or CloudKit roundtrip into acceptance.
 The link sheet only stages the request; its real `onDismiss` presents the
 preview, without a guessed delay. Preview navigation/HTTP failures have a
 visible error/retry path. Root read presentation, adoption and datastore/cleanup
