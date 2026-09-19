@@ -286,6 +286,18 @@ using the same CloudKit private database and existing claim/journal/consent
 contract. Normal CKSyncEngine provider stays unchanged. No pending key deletion,
 new engine/category, broad retry or premature Ready claim.
 
+Mobile34 sourceb5cb6f3 incorporates direct server zone/save/full-scan0200bd2,
+account-notification fencing2698e96 and its Swift6 observer-cleanup correction.
+Build39664 succeeded, receipt509f79ef…; initial UI81381 EXIT65 reached the
+harness30s activation deadline without a typed error or Ready state. Preserve
+this red run; it is not proof of a specific product/CloudKit error. Actual host
+load had risen to1.6–8.2%idle, so Root stopped only freshly verified Native
+Ninja97055/97032 (current handle64423), leaving completed objects intact.
+The worker now has ONE normal manual-UI continuation on unchanged Mobile34
+after this changed capacity prerequisite, no rebuild/fixture/key reset. Allow
+the actual operation to settle rather than treating30s as a product limit.
+97055 staysT until that concrete handback; old99332 is terminal/historical.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
