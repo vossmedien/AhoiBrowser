@@ -54,14 +54,13 @@ public actor CloudKitKeyBootstrapTransport:
     public static let keyVersionField = "keyVersion"
     public static let keySHA256Field = "keySHA256"
 
-    private let containerIdentifier: String
+    private let container: CKContainer
+    private let database: CKDatabase
     private let zoneID: CKRecordZone.ID
     private let subscriptionID: String?
     private var engine: CKSyncEngine?
     private var fetchedClaim: CompanionBootstrapClaim?
     private var fetchedDomainRecords = false
-    private var fetchError: CloudKitKeyBootstrapError?
-    private var zoneExists = true
     private var outboundClaim: CKRecord?
     private var acceptedHandler: (
         @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
@@ -69,7 +68,6 @@ public actor CloudKitKeyBootstrapTransport:
     private var sentReceipt: CompanionBootstrapClaimReceipt?
     private var existingClaim: CompanionBootstrapClaim?
     private var sendError: CloudKitKeyBootstrapError?
-    private var zoneSaveError: CloudKitKeyBootstrapError?
     private var isShutdown = false
     private var boundAccountRecordName: String?
     private var accountTransitionInvalidated = false
@@ -83,7 +81,9 @@ public actor CloudKitKeyBootstrapTransport:
               !zoneName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw CloudKitKeyBootstrapError.invalidConfiguration
         }
-        self.containerIdentifier = containerIdentifier
+        let container = CKContainer(identifier: containerIdentifier)
+        self.container = container
+        self.database = container.privateCloudDatabase
         self.subscriptionID = subscriptionID
         self.authorization = authorization
         self.zoneID = CKRecordZone.ID(
@@ -95,33 +95,24 @@ public actor CloudKitKeyBootstrapTransport:
     public func inspectRemote() async throws -> CompanionBootstrapRemoteSnapshot {
         try requireActiveContinuity()
         try await verifyAccountContinuity()
-        // This API promises a full snapshot. Clearing fetchedClaim while
-        // reusing an incremental CKSyncEngine token could report false emptiness.
+        // A bootstrap snapshot must come from the server, never from an
+        // incremental CKSyncEngine token or the absence of delegate callbacks.
         if let oldEngine = engine {
             await oldEngine.cancelOperations()
             if engine === oldEngine { engine = nil }
         }
         try requireActiveContinuity()
-        let engine = makeEngineIfRequired()
         fetchedClaim = nil
         fetchedDomainRecords = false
-        fetchError = nil
-        zoneExists = true
-        do {
-            try await engine.fetchChanges(.init(scope: .zoneIDs([zoneID])))
-        } catch let cloudError as CKError {
-            if let fetchError { throw fetchError }
-            if isConfirmedMissingRequestedZone(cloudError) {
-                zoneExists = false
-            } else {
-                throw mapCloudKitError(cloudError, phase: .fetch)
-            }
+        guard try await fetchRequestedZone(phase: .fetch) != nil else {
+            try await verifyAccountContinuity()
+            return .init(zoneExists: false, claim: nil, hasEncryptedDomainRecords: false)
         }
+        try await scanRequestedZone()
         try requireActiveContinuity()
-        if let fetchError { throw fetchError }
         try await verifyAccountContinuity()
         return .init(
-            zoneExists: zoneExists,
+            zoneExists: true,
             claim: fetchedClaim,
             hasEncryptedDomainRecords: fetchedDomainRecords
         )
@@ -130,19 +121,26 @@ public actor CloudKitKeyBootstrapTransport:
     public func ensureZone() async throws {
         try requireActiveContinuity()
         try await verifyAccountContinuity()
-        let engine = makeEngineIfRequired()
-        zoneSaveError = nil
-        engine.state.add(
-            pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: zoneID))]
-        )
+        let savedZone: CKRecordZone
         do {
-            try await engine.sendChanges()
+            savedZone = try await database.save(CKRecordZone(zoneID: zoneID))
         } catch let cloudError as CKError {
-            if let zoneSaveError { throw zoneSaveError }
             throw mapCloudKitError(cloudError, phase: .zoneCreate)
         }
         try requireActiveContinuity()
-        if let zoneSaveError { throw zoneSaveError }
+        guard savedZone.zoneID == zoneID else {
+            throw CloudKitKeyBootstrapError.cloudKit(.init(
+                phase: .zoneCreate,
+                code: CKError.internalError.rawValue
+            ))
+        }
+        try await verifyAccountContinuity()
+        guard try await fetchRequestedZone(phase: .zoneCreate) != nil else {
+            throw CloudKitKeyBootstrapError.cloudKit(.init(
+                phase: .zoneCreate,
+                code: CKError.zoneNotFound.rawValue
+            ))
+        }
         try await verifyAccountContinuity()
     }
 
@@ -225,32 +223,17 @@ public actor CloudKitKeyBootstrapTransport:
             }
             if changed {
                 accountTransitionInvalidated = true
-                fetchError = .accountChanged
                 sendError = .accountChanged
-                zoneSaveError = .accountChanged
             }
-        case let .fetchedRecordZoneChanges(changes):
-            for modification in changes.modifications {
-                do {
-                    try acceptFetchedRecord(modification.record)
-                } catch let error as CloudKitKeyBootstrapError {
-                    fetchError = error
-                } catch {
-                    fetchError = .corruptClaim
-                }
-            }
+        case .fetchedRecordZoneChanges:
+            // Bootstrap reads use the direct, complete server scan below.
+            break
         case let .didFetchRecordZoneChanges(result):
             if let error = result.error {
-                if result.zoneID == zoneID && error.code == .zoneNotFound {
-                    zoneExists = false
-                } else {
-                    fetchError = mapCloudKitError(error, phase: .fetch)
-                }
+                sendError = mapCloudKitError(error, phase: .claimSend)
             }
-        case let .sentDatabaseChanges(changes):
-            for failure in changes.failedZoneSaves where failure.zone.zoneID == zoneID {
-                zoneSaveError = mapCloudKitError(failure.error, phase: .zoneCreate)
-            }
+        case .sentDatabaseChanges:
+            break
         case let .sentRecordZoneChanges(changes):
             await acceptSentChanges(changes)
         case .stateUpdate, .fetchedDatabaseChanges, .willFetchChanges,
@@ -258,8 +241,8 @@ public actor CloudKitKeyBootstrapTransport:
              .didSendChanges:
             break
         @unknown default:
-            fetchError = .cloudKit(.init(
-                phase: .fetch,
+            sendError = .cloudKit(.init(
+                phase: .claimSend,
                 code: CKError.internalError.rawValue
             ))
         }
@@ -292,17 +275,17 @@ public actor CloudKitKeyBootstrapTransport:
     ) async -> CKSyncEngine.FetchChangesOptions {
         _ = context
         if accountTransitionInvalidated {
-            fetchError = .accountChanged
+            sendError = .accountChanged
             return .init(scope: .zoneIDs([]))
         }
         guard engine === syncEngine else {
             return .init(scope: .zoneIDs([]))
         }
         guard authorization() else {
-            fetchError = .localAuthorizationUnavailable
+            sendError = .localAuthorizationUnavailable
             return .init(scope: .zoneIDs([]))
         }
-        return .init(scope: .zoneIDs([zoneID]))
+        return .init(scope: .zoneIDs([]))
     }
 
     private var claimRecordID: CKRecord.ID {
@@ -311,7 +294,6 @@ public actor CloudKitKeyBootstrapTransport:
 
     private func makeEngineIfRequired() -> CKSyncEngine {
         if let engine { return engine }
-        let database = CKContainer(identifier: containerIdentifier).privateCloudDatabase
         var configuration = CKSyncEngine.Configuration(
             database: database,
             stateSerialization: nil,
@@ -337,6 +319,65 @@ public actor CloudKitKeyBootstrapTransport:
             return
         }
         fetchedDomainRecords = true // Unknown existing records are not an empty zone.
+    }
+
+    private func fetchRequestedZone(
+        phase: CloudKitKeyBootstrapPhase
+    ) async throws -> CKRecordZone? {
+        try requireActiveContinuity()
+        do {
+            let zone = try await database.recordZone(for: zoneID)
+            try requireActiveContinuity()
+            guard zone.zoneID == zoneID else {
+                throw CloudKitKeyBootstrapError.cloudKit(.init(
+                    phase: phase,
+                    code: CKError.internalError.rawValue
+                ))
+            }
+            return zone
+        } catch let bootstrapError as CloudKitKeyBootstrapError {
+            throw bootstrapError
+        } catch let cloudError as CKError {
+            if isConfirmedMissingRequestedZone(cloudError) { return nil }
+            throw mapCloudKitError(cloudError, phase: phase)
+        }
+    }
+
+    private func scanRequestedZone() async throws {
+        var token: CKServerChangeToken?
+        var moreComing = true
+        while moreComing {
+            try requireActiveContinuity()
+            do {
+                let page = try await database.recordZoneChanges(
+                    inZoneWith: zoneID,
+                    since: token,
+                    desiredKeys: nil,
+                    resultsLimit: nil
+                )
+                try requireActiveContinuity()
+                for result in page.modificationResultsByID.values {
+                    switch result {
+                    case .success(let modification):
+                        try acceptFetchedRecord(modification.record)
+                    case .failure(let error):
+                        guard let cloudError = error as? CKError else {
+                            throw CloudKitKeyBootstrapError.cloudKit(.init(
+                                phase: .fetch,
+                                code: CKError.internalError.rawValue
+                            ))
+                        }
+                        throw mapCloudKitError(cloudError, phase: .fetch)
+                    }
+                }
+                token = page.changeToken
+                moreComing = page.moreComing
+            } catch let bootstrapError as CloudKitKeyBootstrapError {
+                throw bootstrapError
+            } catch let cloudError as CKError {
+                throw mapCloudKitError(cloudError, phase: .fetch)
+            }
+        }
     }
 
     private func acceptSentChanges(
@@ -467,9 +508,7 @@ public actor CloudKitKeyBootstrapTransport:
         try requireActiveContinuity()
         let current: CKRecord.ID
         do {
-            current = try await CKContainer(
-                identifier: containerIdentifier
-            ).userRecordID()
+            current = try await container.userRecordID()
         } catch let cloudError as CKError {
             throw mapCloudKitError(cloudError, phase: .accountCheck)
         }
@@ -496,13 +535,11 @@ public actor CloudKitKeyBootstrapTransport:
     private func clearOperationState() {
         fetchedClaim = nil
         fetchedDomainRecords = false
-        fetchError = nil
         outboundClaim = nil
         acceptedHandler = nil
         sentReceipt = nil
         existingClaim = nil
         sendError = nil
-        zoneSaveError = nil
     }
 }
 
