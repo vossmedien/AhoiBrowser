@@ -107,9 +107,6 @@ public actor CloudKitKeyBootstrapTransport:
     private var fetchedClaim: CompanionBootstrapClaim?
     private var fetchedDomainRecords = false
     private var outboundClaim: CKRecord?
-    private var acceptedHandler: (
-        @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
-    )?
     private var sentReceipt: CompanionBootstrapClaimReceipt?
     private var existingClaim: CompanionBootstrapClaim?
     private var sendError: CloudKitKeyBootstrapError?
@@ -214,7 +211,6 @@ public actor CloudKitKeyBootstrapTransport:
         record[Self.keyVersionField] = NSNumber(value: keyVersion)
         record[Self.keySHA256Field] = keySHA256 as CKRecordValue
         outboundClaim = record
-        acceptedHandler = accepted
         sentReceipt = nil
         existingClaim = nil
         sendError = nil
@@ -222,7 +218,6 @@ public actor CloudKitKeyBootstrapTransport:
         defer {
             engine.state.remove(pendingRecordZoneChanges: [.saveRecord(recordID)])
             outboundClaim = nil
-            acceptedHandler = nil
         }
         do {
             try await engine.sendChanges(.init(scope: .recordIDs([recordID])))
@@ -233,7 +228,17 @@ public actor CloudKitKeyBootstrapTransport:
         try requireActiveContinuity()
         if let sendError { throw sendError }
         try await verifyAccountContinuity()
-        if let sentReceipt { return .created(sentReceipt) }
+        if let sentReceipt {
+            do {
+                try await accepted(sentReceipt)
+            } catch let error as CloudKitKeyBootstrapError {
+                throw error
+            } catch {
+                throw CloudKitKeyBootstrapError.receiptPersistenceFailed
+            }
+            try requireActiveContinuity()
+            return .created(sentReceipt)
+        }
         if let existingClaim { return .existing(existingClaim) }
         return .indeterminate
     }
@@ -288,7 +293,7 @@ public actor CloudKitKeyBootstrapTransport:
         case .sentDatabaseChanges:
             break
         case let .sentRecordZoneChanges(changes):
-            await acceptSentChanges(changes)
+            acceptSentChanges(changes)
         case .stateUpdate, .fetchedDatabaseChanges, .willFetchChanges,
              .willFetchRecordZoneChanges, .didFetchChanges, .willSendChanges,
              .didSendChanges:
@@ -435,7 +440,7 @@ public actor CloudKitKeyBootstrapTransport:
 
     private func acceptSentChanges(
         _ changes: CKSyncEngine.Event.SentRecordZoneChanges
-    ) async {
+    ) {
         for saved in changes.savedRecords where saved.recordID == claimRecordID {
             do {
                 let claim = try Self.decodeClaim(saved, zoneID: zoneID)
@@ -443,13 +448,6 @@ public actor CloudKitKeyBootstrapTransport:
                     keyVersion: claim.keyVersion,
                     serverChangeTag: claim.serverChangeTag
                 )
-                guard let acceptedHandler else {
-                    sendError = .receiptPersistenceFailed
-                    return
-                }
-                try await verifyAccountContinuity()
-                try await acceptedHandler(receipt)
-                try requireActiveContinuity()
                 sentReceipt = receipt
             } catch let error as CloudKitKeyBootstrapError {
                 sendError = error
@@ -589,7 +587,6 @@ public actor CloudKitKeyBootstrapTransport:
         fetchedClaim = nil
         fetchedDomainRecords = false
         outboundClaim = nil
-        acceptedHandler = nil
         sentReceipt = nil
         existingClaim = nil
         sendError = nil
