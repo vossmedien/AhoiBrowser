@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "status": "prepared-not-applied",
+  "purpose": "fresh first-use and matching Mac/Simulator acceptance after correcting server zone proof and receipt callback ordering",
+  "environment": "Development",
+  "scopeID": "37b55dda-30d6-4664-a91c-c91cab92d14b",
+  "containerIdentifier": "iCloud.app.ahoibrowser.AhoiBrowser",
+  "zoneName": "AhoiSyncAcceptance-37b55dda-30d6-4664-a91c-c91cab92d14b",
+  "subscriptionIdentifier": "AhoiSyncAcceptanceSubscription-37b55dda-30d6-4664-a91c-c91cab92d14b",
+  "syncKeychainService": "app.ahoibrowser.sync.payload-key",
+  "syncKeychainAccount": "payload-key.acceptance-37b55dda-30d6-4664-a91c-c91cab92d14b",
+  "syncKeychainAccessGroup": "248AJ5BN47.app.ahoibrowser.sync",
+  "syncKeyVersion": "1",
+  "constraints": {
+    "freshLocalStoresRequired": true,
+    "existingKeysOrRecordsMayBeDeleted": false,
+    "manualKeyCopyAllowed": false,
+    "productionAllowed": false
+  },
+  "expectedPersistence": {
+    "wireFormat": 3,
+    "nativeSyncStoreSchema": 7,
+    "mobileStructureRevision": 1
+  },
+  "preservedPreviousScopeID": "96950f6b-50e0-4e2c-9a94-852dc5099446",
+  "preservedPreviousManifest": "artifacts/e2e/shared-sync-structure-development-scope-20260913.json",
+  "preservedPreviousManifestSHA256": "5b3586741c8ab4711bf096ac6960b046732a43489bb4ae9c6018afa64439c9f7",
+  "reasonForNewScope": "The old scope reached a saved claim before local receipt persistence was established. Build35 correctly reports bootstrapOwnershipUnverified. Preserve its pending keys, journal, claim and failure evidence; this new run does not accept old-scope recovery.",
+  "nativeSourceRequirement": "Receipt-bound current coherent format3 Structure candidate, initially frozen b23c7d9; apply tuple only through existing guarded Development prepare/sign path after build completion.",
+  "mobileSourceRequirement": "Receipt-bound coherent candidate including bc1253621c3bf9cbb73ba197ad1bbe7b2c718c8c or descendant; no DebugLocal provider-free substitution.",
+  "mobilePreflightScopeSetting": "AHOI_SYNC_ACCEPTANCE_SCOPE_ID",
+  "mobileConfigurationKeys": [
+    "AHOI_CLOUDKIT_CONTAINER_ID",
+    "AHOI_CLOUDKIT_ZONE_NAME",
+    "AHOI_CLOUDKIT_SUBSCRIPTION_ID",
+    "AHOI_SYNC_KEYCHAIN_SERVICE",
+    "AHOI_SYNC_KEYCHAIN_ACCOUNT",
+    "AHOI_SYNC_KEYCHAIN_ACCESS_GROUP",
+    "AHOI_SYNC_KEY_VERSION"
+  ],
+  "acceptance": {
+    "serverZoneCreated": false,
+    "serverZoneEmptyVerified": false,
+    "keyCreatedOrCopied": false,
+    "nativeCandidateBound": false,
+    "mobileEntitledCandidateBound": false,
+    "runtimeStarted": false,
+    "roundtrip": "NOT_RUN"
+  }
+}
