@@ -148,11 +148,22 @@ Root read its actual summary/exit/receipt and inspected the status screenshot.
 The observed product state is NOT CloudKit success: `Nur lokal`, encryption
 recovery required, configurationMissing=true, manual Sync disabled. Normal UI
 opt-out and app termination completed; the own Simulator is Shutdown. The
-worker is doing only a bounded read-only cause trace to distinguish configuration,
-account, Simulator entitlement/Keychain and bootstrap failures using existing
-safe error metadata. No hidden key copy/reset or new test run is authorized by
-this diagnostic. The exact account enum/transport cause is not yet established;
-do not label this an external-account-only gate or a cross-device pass.
+bounded trace found a real product diagnostic collapse: the runtime factory
+catch in CompanionAppModelSyncLifecycle maps every thrown activation error to
+keychainFailure, while bootstrap recovery can produce the same visible state.
+Static configuration and Simulator entitlements are present; retained evidence
+does not identify noAccount, a particular Keychain OSStatus or a server failure.
+Do not call this an external-account-only gate or a cross-device pass.
+
+The same Mobile worker now owns the exact corrective product seam: preserve
+sanitized typed configuration/account-access/Keychain/bootstrap reasons and
+render the appropriate short status/action. No raw NSError userInfo, account,
+record or key data; no new telemetry system. Do not make readiness/config/keys
+or consent artificially true. After a coherent source fix, repeat only the same
+normal visible activation journey on its exact candidate to establish the actual
+cause; no fixture, manual key copy/reset, account injection or matrix expansion.
+Native4212 continues independently. The current Build28 remains preserved and
+the new diagnostic result must not be retroactively assigned to it.
 
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
