@@ -162,8 +162,18 @@ record or key data; no new telemetry system. Do not make readiness/config/keys
 or consent artificially true. After a coherent source fix, repeat only the same
 normal visible activation journey on its exact candidate to establish the actual
 cause; no fixture, manual key copy/reset, account injection or matrix expansion.
-Native4212 continues independently. The current Build28 remains preserved and
+The current Build28 remains preserved and
 the new diagnostic result must not be retroactively assigned to it.
+
+**Build29 compute handoff (September19, 14:22 local):** typed setup source
+42a1f835a3350ed35b758e92576f60061b6add39 is committed. Root read the
+classification/lifecycle/UI seam and revalidated own Native scheduler99332,
+parent99307, command/output before STOP (StateT). Only this scheduler is paused;
+existing children finish normally and no foreign workload is changed. Mobile
+owns one one-job candidate build and the same normal activation journey after
+its fresh capacity check. Root resumes the SAME scheduler on actual terminal
+handback; do not start another Native wrapper or discard objects. This is a
+new bounded handoff, distinct from the already consumed Build28 handoff above.
 
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
