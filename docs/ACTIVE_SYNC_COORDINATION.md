@@ -5,7 +5,42 @@ Updated: 2026-09-19. Root coordinates the same canonical branch,
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
 
-## Current work — September19
+## Current executable state — September19, 15:40 local
+
+- **Priority:** Apple-first macOS/iOS and real CloudKit acceptance. Windows/Android
+  are later, demand-dependent work; no new backend now. Use Simulator, not a
+  physical-iPhone/unlock request. The user signed in on own C645.
+- **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
+  Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
+  Current guarded app-only build handle64423, Ninja97055/97032, FOUR jobs, resumed
+  to StateR after the latest Mobile36 window. Evidence:
+  `artifacts/build/native-unified-b23c7d9-20260919-jobs4-continuation/`.
+  Earlier4212/99332 and other handles below are terminal history; never resume them.
+- **Mobile worker:** `/root/simulator_cloudkit_20260919`, current task SOURCE ONLY:
+  replace the one-shot bootstrap's remaining CKSyncEngine claim write with direct
+  confirmed CKDatabase.modifyRecords, retaining create-if-absent/conflict handling,
+  identity/consent fences and durable receipt-before-created. Normal sync provider
+  remains CKSyncEngine. No new build/UI until source handback and fresh capacity.
+- **Actual Mobile36 result:** unchanged productbc12536/config-source d9faeaa,
+  build succeeded, manual fresh37b activation remained pending beyond2:56 after
+  a saved-record event/claim decode. The earlier Security-in-delegate stack did
+  not recur; exact remaining completion cause is unproven. No Ready/roundtrip pass.
+  C645 was returned to Shutdown; no foreign runtime was changed.
+- **Preserve scopes:** old bba;969 (Build35 correctly reports unverified ownership);
+  and new37b55dda-30d6-4664-a91c-c91cab92d14b (Build36 pending first-use). Never
+  delete/copy/inject/promote their keys, journal, records or receipts to pass a test.
+  Current tuple: `artifacts/e2e/shared-sync-development-scope-20260919.json`,
+  SHA7201aa070922ad7ca9f27ef20601024df3b863646e87d434510aa1b0206e79f7.
+- **Next:** finish/read the bounded Mobile source fix, then choose a receipt-bound
+  normal first-use continuation without resetting prior evidence. Native build
+  continues independently; its successful build/sign/runtime and real matching
+  peer roundtrip are still open. No repeated unchanged test or broad matrix.
+- **Other retained packages:** native Reader/Markdown69ee9f5 is source-complete but
+  not in the runningb23 snapshot. Mobile Peek4ff9835 is compiled in current apps,
+  but its long-press journey is NOT_RUN because current CUA gestures navigated
+  instead. The three existing ImageGen directions remain unselected/unimplemented.
+
+## September19 chronology — evidence only, not current resume instructions
 
 Root verified no previous worker or Ahoi build was still active. The old
 ephemeral worktrees are absent, not resumable handles; their committed sources
