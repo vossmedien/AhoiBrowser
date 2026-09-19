@@ -230,6 +230,20 @@ or recovery upload. Native bootstrap was read separately: it uses account status
 identity checks before scan/final completion and account-change notification,
 not this CKSyncEngine signIn path. No Native change from this finding.
 
+The matching Swift correction32b5751 plus sticky account-invalidation5031197
+preserves identity checks before/after asynchronous boundaries and before the
+accepted-receipt callback; operation clears cannot revive an invalidated
+transport. Root inspected the concrete race correction. Build31/5031197
+30909 EXIT0; normal UI29883 EXIT0, one case34.887s. The prior accountChanged
+loop is absent; actual new boundary is `cloudkit-error:2` (partialFailure),
+not a successful Sync pass. Own C645 returned OFF/Shutdown; Root resumed the
+same verified Native99332/99307 after this bounded compute handoff.
+Next Mobile diagnosis is the specific per-item CloudKit failure, preserving
+only safe numeric codes. A missing fresh requested zone may be wrapped in
+partialFailure, but no generic partial error may be treated as an empty zone.
+No unchanged retry, key reset, new test matrix or account action is authorized
+by this result. Native4212 remains the same live build.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
