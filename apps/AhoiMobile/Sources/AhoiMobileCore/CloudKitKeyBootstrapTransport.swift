@@ -46,6 +46,7 @@ public actor CloudKitKeyBootstrapTransport:
     private var zoneSaveError: CloudKitKeyBootstrapError?
     private var isShutdown = false
     private var boundAccountRecordName: String?
+    private var accountTransitionInvalidated = false
     private let authorization: @Sendable () -> Bool
 
     public init(containerIdentifier: String, zoneName: String,
@@ -66,19 +67,15 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func inspectRemote() async throws -> CompanionBootstrapRemoteSnapshot {
-        guard !isShutdown && authorization() else {
-            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
-        }
+        try requireActiveContinuity()
         try await verifyAccountContinuity()
         // This API promises a full snapshot. Clearing fetchedClaim while
         // reusing an incremental CKSyncEngine token could report false emptiness.
         if let oldEngine = engine {
-            engine = nil
             await oldEngine.cancelOperations()
+            if engine === oldEngine { engine = nil }
         }
-        guard !isShutdown && authorization() else {
-            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
-        }
+        try requireActiveContinuity()
         let engine = makeEngineIfRequired()
         fetchedClaim = nil
         fetchedDomainRecords = false
@@ -93,6 +90,7 @@ public actor CloudKitKeyBootstrapTransport:
                 throw mapFetchError(cloudError)
             }
         }
+        try requireActiveContinuity()
         if let fetchError { throw fetchError }
         try await verifyAccountContinuity()
         return .init(
@@ -103,9 +101,7 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func ensureZone() async throws {
-        guard !isShutdown && authorization() else {
-            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
-        }
+        try requireActiveContinuity()
         try await verifyAccountContinuity()
         let engine = makeEngineIfRequired()
         zoneSaveError = nil
@@ -119,6 +115,7 @@ public actor CloudKitKeyBootstrapTransport:
                 cloudError.code.rawValue
             )
         }
+        try requireActiveContinuity()
         if let zoneSaveError { throw zoneSaveError }
         try await verifyAccountContinuity()
     }
@@ -128,9 +125,7 @@ public actor CloudKitKeyBootstrapTransport:
         keySHA256: String,
         accepted: @escaping @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
     ) async throws -> CompanionBootstrapClaimResult {
-        guard !isShutdown, authorization() else {
-            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
-        }
+        try requireActiveContinuity()
         guard keyVersion > 0,
               CompanionBootstrapClaim(keyVersion: keyVersion, serverChangeTag: "pending",
                                       keySHA256: keySHA256).hasKeyCommitment else {
@@ -158,6 +153,7 @@ public actor CloudKitKeyBootstrapTransport:
         } catch let cloudError as CKError {
             throw CloudKitKeyBootstrapError.sendFailed(cloudError.code.rawValue)
         }
+        try requireActiveContinuity()
         if let sendError { throw sendError }
         try await verifyAccountContinuity()
         if let sentReceipt { return .created(sentReceipt) }
@@ -174,7 +170,9 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func verifiedClaim() -> CompanionBootstrapClaim? {
-        authorization() && !isShutdown ? fetchedClaim : nil
+        authorization() && !isShutdown && !accountTransitionInvalidated
+            ? fetchedClaim
+            : nil
     }
 
     public func handleEvent(
@@ -199,6 +197,7 @@ public actor CloudKitKeyBootstrapTransport:
                 changed = true
             }
             if changed {
+                accountTransitionInvalidated = true
                 fetchError = .accountChanged
                 sendError = .accountChanged
                 zoneSaveError = .accountChanged
@@ -240,8 +239,16 @@ public actor CloudKitKeyBootstrapTransport:
         _ context: CKSyncEngine.SendChangesContext,
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.RecordZoneChangeBatch? {
-        guard engine === syncEngine,
-              authorization(),
+        if accountTransitionInvalidated {
+            sendError = .accountChanged
+            return nil
+        }
+        guard engine === syncEngine else { return nil }
+        guard authorization() else {
+            sendError = .localAuthorizationUnavailable
+            return nil
+        }
+        guard
               let outboundClaim,
               context.options.scope.contains(outboundClaim.recordID) else {
             return nil
@@ -254,7 +261,15 @@ public actor CloudKitKeyBootstrapTransport:
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.FetchChangesOptions {
         _ = context
-        guard engine === syncEngine && authorization() else {
+        if accountTransitionInvalidated {
+            fetchError = .accountChanged
+            return .init(scope: .zoneIDs([]))
+        }
+        guard engine === syncEngine else {
+            return .init(scope: .zoneIDs([]))
+        }
+        guard authorization() else {
+            fetchError = .localAuthorizationUnavailable
             return .init(scope: .zoneIDs([]))
         }
         return .init(scope: .zoneIDs([zoneID]))
@@ -308,7 +323,9 @@ public actor CloudKitKeyBootstrapTransport:
                     sendError = .receiptPersistenceFailed
                     return
                 }
+                try await verifyAccountContinuity()
                 try await acceptedHandler(receipt)
+                try requireActiveContinuity()
                 sentReceipt = receipt
             } catch let error as CloudKitKeyBootstrapError {
                 sendError = error
@@ -366,9 +383,7 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     private func verifyAccountContinuity() async throws {
-        guard !isShutdown && authorization() else {
-            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
-        }
+        try requireActiveContinuity()
         let current: CKRecord.ID
         do {
             current = try await CKContainer(
@@ -377,15 +392,23 @@ public actor CloudKitKeyBootstrapTransport:
         } catch let cloudError as CKError {
             throw mapFetchError(cloudError)
         }
-        guard !isShutdown && authorization() else {
-            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
-        }
+        try requireActiveContinuity()
         if let boundAccountRecordName {
             guard boundAccountRecordName == current.recordName else {
+                accountTransitionInvalidated = true
                 throw CloudKitKeyBootstrapError.accountChanged
             }
         } else {
             boundAccountRecordName = current.recordName
+        }
+    }
+
+    private func requireActiveContinuity() throws {
+        if accountTransitionInvalidated {
+            throw CloudKitKeyBootstrapError.accountChanged
+        }
+        guard !isShutdown && authorization() else {
+            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
         }
     }
 
