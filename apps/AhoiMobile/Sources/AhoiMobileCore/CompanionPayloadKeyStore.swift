@@ -92,11 +92,11 @@ public actor KeychainCompanionPayloadKeyStore:
         })
     }
 
-    public func canonicalKeySHA256(version: UInt32) throws -> String? {
+    public func canonicalKeySHA256(version: UInt32) async throws -> String? {
         try keySHA256(kind: .canonical, version: version)
     }
 
-    public func candidateKeySHA256(version: UInt32) throws -> String? {
+    public func candidateKeySHA256(version: UInt32) async throws -> String? {
         try keySHA256(kind: .pending, version: version)
     }
 
