@@ -8,7 +8,8 @@ import CloudKit
 public enum CloudKitKeyBootstrapError: Error, Equatable, Sendable {
     case invalidConfiguration
     case accountChanged
-    case accountUnavailable
+    case cloudKitAccess(Int)
+    case localAuthorizationUnavailable
     case corruptClaim
     case conflictingClaims
     case zoneCreationFailed(Int)
@@ -64,14 +65,18 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func inspectRemote() async throws -> CompanionBootstrapRemoteSnapshot {
-        guard !isShutdown && authorization() else { throw CloudKitKeyBootstrapError.accountUnavailable }
+        guard !isShutdown && authorization() else {
+            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
+        }
         // This API promises a full snapshot. Clearing fetchedClaim while
         // reusing an incremental CKSyncEngine token could report false emptiness.
         if let oldEngine = engine {
             engine = nil
             await oldEngine.cancelOperations()
         }
-        guard !isShutdown && authorization() else { throw CloudKitKeyBootstrapError.accountUnavailable }
+        guard !isShutdown && authorization() else {
+            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
+        }
         let engine = makeEngineIfRequired()
         fetchedClaim = nil
         fetchedDomainRecords = false
@@ -95,7 +100,9 @@ public actor CloudKitKeyBootstrapTransport:
     }
 
     public func ensureZone() async throws {
-        guard !isShutdown && authorization() else { throw CloudKitKeyBootstrapError.accountUnavailable }
+        guard !isShutdown && authorization() else {
+            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
+        }
         let engine = makeEngineIfRequired()
         zoneSaveError = nil
         engine.state.add(
@@ -116,7 +123,10 @@ public actor CloudKitKeyBootstrapTransport:
         keySHA256: String,
         accepted: @escaping @Sendable (CompanionBootstrapClaimReceipt) async throws -> Void
     ) async throws -> CompanionBootstrapClaimResult {
-        guard !isShutdown, authorization(), keyVersion > 0,
+        guard !isShutdown, authorization() else {
+            throw CloudKitKeyBootstrapError.localAuthorizationUnavailable
+        }
+        guard keyVersion > 0,
               CompanionBootstrapClaim(keyVersion: keyVersion, serverChangeTag: "pending",
                                       keySHA256: keySHA256).hasKeyCommitment else {
             throw CloudKitKeyBootstrapError.invalidConfiguration
@@ -326,7 +336,7 @@ public actor CloudKitKeyBootstrapTransport:
     private func mapFetchError(_ error: CKError) -> CloudKitKeyBootstrapError {
         switch error.code {
         case .notAuthenticated, .permissionFailure:
-            .accountUnavailable
+            .cloudKitAccess(error.code.rawValue)
         default:
             .fetchFailed(error.code.rawValue)
         }

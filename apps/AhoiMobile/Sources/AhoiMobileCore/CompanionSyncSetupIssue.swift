@@ -8,8 +8,9 @@ import Security
 /// enter presentation or evidence.
 public enum CompanionSyncSetupIssue: Equatable, Sendable {
     case staticConfiguration
-    case cloudKitAccountOrPermission
+    case cloudKitAccountOrPermission(code: Int?)
     case cloudKitTransport(code: Int?)
+    case localAuthorization
     case keychain(status: OSStatus)
     case bootstrapRecovery(CompanionKeyRecoveryReason)
     case waitingForKey(CompanionKeyWaitingReason)
@@ -38,7 +39,7 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
         if let error = error as? CKError {
             switch error.code {
             case .notAuthenticated, .permissionFailure:
-                return .cloudKitAccountOrPermission
+                return .cloudKitAccountOrPermission(code: error.code.rawValue)
             default:
                 return .cloudKitTransport(code: error.code.rawValue)
             }
@@ -84,7 +85,7 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
         case .revoked:
             .recovery(reason: .revokedKey, keyVersion: nil)
         case .staticConfiguration, .cloudKitAccountOrPermission,
-             .cloudKitTransport, .keychain, .unknown:
+             .cloudKitTransport, .localAuthorization, .keychain, .unknown:
             .disabled
         }
     }
@@ -93,10 +94,13 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
         switch self {
         case .staticConfiguration:
             "static-configuration"
-        case .cloudKitAccountOrPermission:
-            "cloudkit-account-or-permission"
+        case .cloudKitAccountOrPermission(let code):
+            code.map { "cloudkit-account-or-permission:\($0)" }
+                ?? "cloudkit-account-or-permission"
         case .cloudKitTransport(let code):
             code.map { "cloudkit-error:\($0)" } ?? "cloudkit-unavailable"
+        case .localAuthorization:
+            "local-authorization-unavailable"
         case .keychain(let status):
             "keychain-osstatus:\(status)"
         case .bootstrapRecovery(let reason):
@@ -124,6 +128,8 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
             CompanionL10n.string("sync.setup.state.cloudkit", fallback: "iCloud access required")
         case .cloudKitTransport:
             CompanionL10n.string("sync.setup.state.transport", fallback: "CloudKit unavailable")
+        case .localAuthorization:
+            CompanionL10n.string("sync.setup.state.cancelled", fallback: "Sync setup stopped")
         case .keychain:
             CompanionL10n.string("sync.setup.state.keychain", fallback: "Keychain access required")
         case .bootstrapRecovery, .rotation, .revoked:
@@ -153,6 +159,11 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
             CompanionL10n.string(
                 "sync.setup.detail.transport",
                 fallback: "CloudKit is currently unavailable. Local data remains available; try again later."
+            )
+        case .localAuthorization:
+            CompanionL10n.string(
+                "sync.setup.detail.cancelled",
+                fallback: "Sync setup stopped before completion. Local data remains available; try enabling Sync again."
             )
         case .keychain:
             CompanionL10n.string(
@@ -195,8 +206,12 @@ public enum CompanionSyncSetupIssue: Equatable, Sendable {
         switch error {
         case .invalidConfiguration:
             .staticConfiguration
-        case .accountChanged, .accountUnavailable:
-            .cloudKitAccountOrPermission
+        case .accountChanged:
+            .bootstrapRecovery(.accountChanged)
+        case .cloudKitAccess(let code):
+            .cloudKitAccountOrPermission(code: code)
+        case .localAuthorizationUnavailable:
+            .localAuthorization
         case .zoneCreationFailed(let code), .fetchFailed(let code), .sendFailed(let code):
             .cloudKitTransport(code: code)
         case .corruptClaim, .conflictingClaims, .receiptPersistenceFailed,
