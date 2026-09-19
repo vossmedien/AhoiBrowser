@@ -44,10 +44,15 @@ to increase useful concurrency. Handle7980 ended2 with the normal wrapper
 restoration; this is an operational interruption, not a compiler failure or pass.
 Its original logs/exits remain under
 `artifacts/build/native-unified-b23c7d9-20260919/`.
-The SAME clean source/output resumes incrementally through guarded handle44519,
-six jobs/no test targets, evidence
-`artifacts/build/native-unified-b23c7d9-20260919-jobs6/`. The new capacity sample
-was55–56%CPU idle/58%memory headroom/no swapouts; old object files are retained.
+The six-job continuation44519 reached7,456 further actions, then Root reduced
+only its own workload after new sustained pressure (foreign VM14GiB, CPU9–14%
+idle, swap growth to about5.7GiB). Own NinjaPID43687 was verified and interrupted;
+the wrapper ended2 with restored temporary patches, original log/exit retained
+under `artifacts/build/native-unified-b23c7d9-20260919-jobs6/`. This was not a
+product error or pass. Completed object files remain.
+The SAME clean source/output resumes as guarded handle4212, TWO jobs, no tests,
+after47–48%idle/49%memory headroom/stable swapouts. Current evidence:
+`artifacts/build/native-unified-b23c7d9-20260919-jobs2-continuation/`.
 No installation or runtime pass yet; old32GiB gates are historical.
 
 Mobile26.5 compilation reached product sources, but device-specific and generic
@@ -89,6 +94,14 @@ Root read these implementation boundaries. Both packages are DCO-pushed and
 NOT_BUILT/NOT_E2E; they do not enter the immutable runningb23c7d9 snapshot.
 Do not claim their source-only checks as a visible or Sync pass, and do not
 restart the expired Mobile actool attempts without a changed prerequisite.
+
+One useful independent Mobile gate is assigned to the same worker: compile
+only the existing product `AhoiMobileCore` framework containing Peek, if its
+normal target avoids app-asset generation. At most one Xcode/Swift job after
+a fresh capacity check, no new scheme/harness, tests, Simulator boot or Cloud
+action. This is a product type/link check, not a substitute CloudKit/UI pass.
+The worker initially deferred during actual pressure; the later two-job Native
+continuation leaves it eligible only when its fresh aggregate check permits.
 
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles

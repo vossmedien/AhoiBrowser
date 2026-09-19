@@ -25,9 +25,16 @@ deliberately interrupted ONLY its confirmed NinjaPID1230 to use available
 capacity: the wrapper ended2 and restored its temporary dependency patches.
 No compiler failure/pass is inferred. Its actual log/exit remains in
 `artifacts/build/native-unified-b23c7d9-20260919/`.
-The same source/output now resumes via guarded handle44519 at six jobs, still
-app-only/no test targets, after55–56%CPU idle/58%memory headroom/no swapouts.
-Current logs/exits/receipt: `artifacts/build/native-unified-b23c7d9-20260919-jobs6/`.
+The six-job continuation44519 then reached7,456 further actions before a new
+sustained machine-pressure event: foreign VM14GiB, CPU9–14%idle and swap growth
+to about5.7GiB. Root interrupted only its revalidated NinjaPID43687; the wrapper
+returned2 normally and retained all completed outputs. That is not a compiler
+failure/pass. Original log/exit remains under
+`artifacts/build/native-unified-b23c7d9-20260919-jobs6/`.
+After capacity returned to47–48%idle/49%memory headroom with stable swapouts,
+the same source/output resumed via guarded handle4212 at TWO jobs, app-only/no
+test targets. Current logs/exits/receipt:
+`artifacts/build/native-unified-b23c7d9-20260919-jobs2-continuation/`.
 Root alone owns shared
 checkout/out and Native candidate preparation. No current install or E2E pass
 is claimed; installed55ab is unchanged. The remaining later scope is the
