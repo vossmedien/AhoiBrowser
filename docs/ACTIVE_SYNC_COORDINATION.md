@@ -128,6 +128,17 @@ its own explicitly identified device; the foreign TerminalCockpit build and
 other Simulator projects remain untouched. No physical-iPhone action or repeated
 DebugLocal25 journey is requested, and readiness alone is not a CloudKit pass.
 
+**Current own-compiler handoff:** while OS pressure remained elevated, Root
+temporarily stopped scheduling new Native actions with SIGSTOP only to freshly
+verified NinjaPID99332/PPID99307 (AhoiDev, -j2), which read back StateT. Existing
+compile children49846/49847 may finish naturally. Handle4212 and wrappers remain
+live; this is NOT a terminal build, new build or paused goal. The Mobile worker
+has this bounded opportunity to complete the much smaller prepared candidate
+with one job, after a fresh aggregate check. Root must consume its actual
+completion/blocked handback and CONT the SAME verified Ninja scheduler, without
+rerunning hooks, discarding outputs or leaving the Native job forgotten. No
+foreign job, download or global Simulator service was stopped.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
