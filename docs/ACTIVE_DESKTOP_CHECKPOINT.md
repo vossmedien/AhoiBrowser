@@ -19,13 +19,25 @@ its explicit app path and iOS SDK23F73; pinned/release26.6/17F113/23F81a remains
 The actual host check and two existing configuration/provenance checks passed.
 No global xcode-select or Simulator service/download state was changed.
 
-Corrected guarded app-only invocation7980 is active, two jobs/no test targets,
-after fresh62–68%CPU idle,74%memory headroom and no swapout movement. Its actual
-logs/exits/receipt belong in `artifacts/build/native-unified-b23c7d9-20260919/`.
+Corrected guarded app-only invocation7980 reached4,955 of49,475 actions after
+the toolchain-path change invalidated much of the previous cache. Root then
+deliberately interrupted ONLY its confirmed NinjaPID1230 to use available
+capacity: the wrapper ended2 and restored its temporary dependency patches.
+No compiler failure/pass is inferred. Its actual log/exit remains in
+`artifacts/build/native-unified-b23c7d9-20260919/`.
+The same source/output now resumes via guarded handle44519 at six jobs, still
+app-only/no test targets, after55–56%CPU idle/58%memory headroom/no swapouts.
+Current logs/exits/receipt: `artifacts/build/native-unified-b23c7d9-20260919-jobs6/`.
 Root alone owns shared
 checkout/out and Native candidate preparation. No current install or E2E pass
 is claimed; installed55ab is unchanged. The remaining later scope is the
 prepared969 Structure Development pair, while bba/Device24 stays protected.
+
+Parallel source-only product work is explicitly assigned: Native Reader and
+Markdown-copy to `/root/desktop_page_actions_20260919`, Mobile explicit link
+preview to `/root/simulator_cloudkit_20260919`. They do not alter this frozen
+candidate or shared checkout/out. Root integrates their resulting scoped commits
+only in the next coherent candidate, not during this build.
 
 The independent Mobile worker checks the genuine entitled Simulator path;
 the user requested no physical-iPhone step for now. Older13September blockers,

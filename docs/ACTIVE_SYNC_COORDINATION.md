@@ -11,7 +11,7 @@ Root verified no previous worker or Ahoi build was still active. The old
 ephemeral worktrees are absent, not resumable handles; their committed sources
 and canonical artifacts survive. Root now owns Native/Common integration and
 the sole shared Chromium build. The independent
-`/root/simulator_cloudkit_20260919` owns only the matching Mobile Simulator
+`/root/simulator_cloudkit_20260919` owns the matching Mobile Simulator
 candidate and short real normal CloudKit/status journey. No physical-iPhone or
 Mac-unlock request is pending; no synthetic key, fixture or injected Sync opt-in
 may be counted as CloudKit acceptance.
@@ -34,11 +34,20 @@ development, preserving all exact checks and pinned/release26.6/17F113/23F81a.
 The actual host check and two existing config/provenance checks passed; global
 xcode-select and all downloading/Simulator services remain untouched.
 
-The ONE corrected app-only run is now7980, clean detached source
+Corrected app-only run7980 used clean detached source
 b23c7d9dfaf40752dc5128455579ec4781d45870 in the same preserved
-`/private/tmp/ahoi-native-unified.1FqoG5/repo`, two jobs/no test targets. Current
-logs/exits/receipt: `artifacts/build/native-unified-b23c7d9-20260919/`. Its fresh
-capacity sample was62–68%CPU idle/74%memory headroom/no swapouts; disk about154GiB.
+`/private/tmp/ahoi-native-unified.1FqoG5/repo`, initially two jobs/no test targets.
+The changed toolchain path invalidated a large part of the previous cache:
+the actual graph has49,475 actions, not a short incremental frontier. After
+4,955 actions Root deliberately interrupted only its revalidated NinjaPID1230
+to increase useful concurrency. Handle7980 ended2 with the normal wrapper
+restoration; this is an operational interruption, not a compiler failure or pass.
+Its original logs/exits remain under
+`artifacts/build/native-unified-b23c7d9-20260919/`.
+The SAME clean source/output resumes incrementally through guarded handle44519,
+six jobs/no test targets, evidence
+`artifacts/build/native-unified-b23c7d9-20260919-jobs6/`. The new capacity sample
+was55–56%CPU idle/58%memory headroom/no swapouts; old object files are retained.
 No installation or runtime pass yet; old32GiB gates are historical.
 
 Mobile26.5 compilation reached product sources, but device-specific and generic
@@ -46,6 +55,25 @@ actool attempts failed against the changing Xcode27 CoreSimulator device-type
 inventory. The worker retains those red logs and does not repeat the unchanged
 attempt or restart shared services. The download affects that Simulator phase,
 not the independently runnable Native build. No real CloudKit pass is claimed.
+
+### Independent product development while Simulator data downloads
+
+The user's direct instruction is to continue development, not wait for iOS27.
+After securing the terminal actool boundary, the existing Mobile worker now
+implements the required explicit native link-preview/Peek in the existing
+Swift browser lifecycle. It owns Mobile sources/resources only; normal/private
+context, original page state, deliberate adoption and no premature Sync record
+remain binding. No automatic preview, new transport or mobile Split UI is added.
+
+`/root/desktop_page_actions_20260919` independently implements required native
+Reader/ReadingMode and explicit Markdown-link copy through existing Chromium
+page/command services. It owns scoped sidebar page/context/command code and
+the existing command/localization bindings, not Common Sync, Swift or build/out.
+Active-pane identity, URL credential removal and private clipboard boundaries
+remain binding. Both workers are source-only while the frozen build runs.
+Their product changes enter one later coherent integration, never the running
+snapshot. Neither worker spawns helpers. Root retains integration, the single
+Native build, subsequent representative E2E and result verification.
 
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
