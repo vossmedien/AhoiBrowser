@@ -5,7 +5,7 @@ Updated: 2026-09-19. Root coordinates the same canonical branch,
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
 
-## Current executable state — September19, 15:40 local
+## Current executable state — September19
 
 - **Priority:** Apple-first macOS/iOS and real CloudKit acceptance. Windows/Android
   are later, demand-dependent work; no new backend now. Use Simulator, not a
@@ -13,15 +13,16 @@ Their old thread IDs and September8 leases are not current runtime grants.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
   Current guarded app-only build handle64423, Ninja97055/97032, FOUR jobs, currently
-  STOPped/StateT for the explicitly bound Mobile37 build/manual-UI window. Evidence:
+  RUNNING again after the completed Mobile37 handback. Evidence:
   `artifacts/build/native-unified-b23c7d9-20260919-jobs4-continuation/`.
   Earlier4212/99332 and other handles below are terminal history; never resume them.
-- **Mobile worker:** `/root/simulator_cloudkit_20260919`, direct-bootstrap7520228
-  plus error-path continuity/success-payload guardsd098e06 are committed and Root-
-  read. ONE candidate37/config-source3a4f778 now uses freshfe842 scope below, one
-  compiler job then normal manual first opt-in. Main provider stays CKSyncEngine;
-  only the bounded bootstrap now uses direct confirmed CloudKit operations.
-  Root resumes97055 on terminal handback. No extra review/matrix or unchanged retry.
+- **Mobile worker:** `/root/simulator_cloudkit_20260919`, READ-ONLY diagnosis on
+  built37/config-source3a4f778/productd098e06, no more speculative builds. The
+  actual factory error is PayloadKeyStore.authorizationRevoked at AppEntry's
+  post-Ready guard, although authorization=true and claim exists; canonical digest
+  returned nil. Optional remote signer was not reached. Check the actual call/
+  return path, not guessed CloudKit bridging or deleted keys. Main's primary-
+  source review is in `docs/KEY_BOOTSTRAP_SYNC.md`; no architecture rewrite.
 - **Actual Mobile36 result:** unchanged productbc12536/config-source d9faeaa,
   build succeeded, manual fresh37b activation remained pending beyond2:56 after
   a saved-record event/claim decode. The earlier Security-in-delegate stack did
@@ -34,8 +35,8 @@ Their old thread IDs and September8 leases are not current runtime grants.
   `artifacts/e2e/shared-sync-direct-bootstrap-scope-20260919.json`, SHA
   d1605b4622269f1d374440c1fc45e3c4701d209f84d7c675d60d125cbe6b1364.
   The previous37b manifest and its immutable hash remain linked in that file.
-- **Next:** complete the receipt-bound Mobile37 normal first-use continuation
-  without resetting prior evidence. Native build
+- **Next:** finish the evidenced canonical-read diagnosis and only then apply a
+  cohesive correction to the existing scope/candidate path. Native build
   continues independently; its successful build/sign/runtime and real matching
   peer roundtrip are still open. No repeated unchanged test or broad matrix.
 - **Other retained packages:** native Reader/Markdown69ee9f5 is source-complete but
