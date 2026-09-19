@@ -31,13 +31,12 @@ extension CompanionAppModel {
         guard syncActivationCompletedIntentGeneration != intentGeneration else { return }
         guard let syncRuntimeFactory else {
             isSyncConfigured = false
-            loadError = CompanionL10n.string(
-                "sync.configuration_missing",
-                fallback: "CloudKit is not fully configured. Local data remains available."
-            )
+            syncSetupIssue = .staticConfiguration
+            loadError = nil
             return
         }
 
+        syncSetupIssue = nil
         syncActivationInProgress = true
         let authorization = CompanionSyncRuntimeAuthorization()
         syncActivationAuthorization = authorization
@@ -47,9 +46,11 @@ extension CompanionAppModel {
         } catch {
             authorization.revoke()
             if isCurrentSyncIntent(intentGeneration) {
-                keyLifecycleStatus = .recovery(reason: .keychainFailure, keyVersion: nil)
+                let issue = CompanionSyncSetupIssue.classify(error)
+                syncSetupIssue = issue
+                keyLifecycleStatus = issue.keyLifecyclePresentation
                 isSyncConfigured = false
-                presentOperationFailure(error)
+                loadError = nil
             }
             finishSyncActivation(for: intentGeneration)
             return
@@ -68,8 +69,9 @@ extension CompanionAppModel {
             await activation.discardRuntime()
             if isCurrentSyncIntent(intentGeneration) {
                 keyLifecycleStatus = activation.status
+                syncSetupIssue = CompanionSyncSetupIssue.from(activation.status) ?? .unknown
                 isSyncConfigured = false
-                loadError = activation.status.localizedSummary
+                loadError = nil
             }
             finishSyncActivation(for: intentGeneration)
             return
@@ -81,6 +83,7 @@ extension CompanionAppModel {
         syncBridge = runtime.bridge
         bindEventDrivenSync(to: runtime.provider)
         keyLifecycleStatus = activation.status
+        syncSetupIssue = nil
         isSyncConfigured = true
         loadError = nil
         finishSyncActivation(for: intentGeneration)
@@ -162,6 +165,7 @@ extension CompanionAppModel {
         recentRemoteCommands = []
         commandLabels.removeAll()
         keyLifecycleStatus = .disabled
+        syncSetupIssue = nil
         loadError = nil
     }
 

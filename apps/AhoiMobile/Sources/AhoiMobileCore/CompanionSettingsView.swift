@@ -137,12 +137,20 @@ public struct CompanionSettingsView: View {
                             fallback: "Encrypted transport is paused during key rotation. Local changes remain available and are uploaded only after every safety acknowledgement succeeds."
                         ))
                         .accessibilityIdentifier("settings.sync.rotation-paused")
+                    } else if syncEnabled, let issue = model.syncSetupIssue {
+                        Text(issue.localizedDetail)
+                            .accessibilityIdentifier(
+                                issue == .staticConfiguration
+                                    ? "settings.sync.configuration-missing"
+                                    : "settings.sync.setup-issue"
+                            )
+                            .accessibilityValue(Text(issue.evidenceValue))
                     } else if syncEnabled && !model.isSyncConfigured {
                         Text(CompanionL10n.string(
-                            "settings.sync.configuration_missing",
-                            fallback: "Apple provisioning or the local encryption key is missing. Local data remains available."
+                            "settings.sync.setup_pending",
+                            fallback: "Sync setup is still preparing. Local data remains available."
                         ))
-                        .accessibilityIdentifier("settings.sync.configuration-missing")
+                        .accessibilityIdentifier("settings.sync.setup-pending")
                     }
                 }
 
@@ -628,6 +636,9 @@ public struct CompanionSettingsView: View {
     private var syncStateText: String {
         guard syncEnabled else {
             return CompanionL10n.string("sync.state.off", fallback: "Off")
+        }
+        if let issue = model.syncSetupIssue {
+            return issue.localizedState
         }
         guard model.isSyncConfigured else {
             return CompanionL10n.string(

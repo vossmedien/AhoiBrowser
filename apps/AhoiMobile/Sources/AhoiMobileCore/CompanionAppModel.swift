@@ -23,6 +23,7 @@ public final class CompanionAppModel: ObservableObject {
     @Published public internal(set) var isExtensionSetupMetadataApproved: Bool
     @Published public internal(set) var isExtensionStorageMetadataApproved: Bool
     @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
+    @Published public internal(set) var syncSetupIssue: CompanionSyncSetupIssue?
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
 
     public let repository: LocalFirstRepository
@@ -107,6 +108,7 @@ public final class CompanionAppModel: ObservableObject {
         self.keyLifecycleStatus = syncProvider != nil && syncBridge != nil
             ? .ready(keyVersion: 1)
             : .disabled
+        self.syncSetupIssue = nil
         self.syncVisibleEvidence = nil
         let storedRetention = defaults.integer(
             forKey: CompanionSyncPreferences.historyRetentionDaysKey

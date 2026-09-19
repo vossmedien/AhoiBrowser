@@ -155,45 +155,51 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertTrue(keyLifecycle.waitForExistence(timeout: 3))
 
         let keysOff = ["Sync keys are off", "Sync-Schlüssel sind deaktiviert"]
-        let activationSettled = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "NOT value IN %@", keysOff),
-            object: keyLifecycle
-        )
-        let activationResult = XCTWaiter.wait(for: [activationSettled], timeout: 30)
+        let setupIssue = app.descendants(matching: .any)["settings.sync.setup-issue"]
+        let configurationMissingElement = app.descendants(matching: .any)[
+            "settings.sync.configuration-missing"
+        ]
+        let activationDeadline = Date(timeIntervalSinceNow: 30)
+        while Date() < activationDeadline,
+              keysOff.contains(keyLifecycle.value as? String ?? ""),
+              !setupIssue.exists,
+              !configurationMissingElement.exists {
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.2))
+        }
 
         let stateValue = state.value as? String ?? ""
         let keyValue = keyLifecycle.value as? String ?? ""
-        let configurationMissing = app.descendants(matching: .any)[
-            "settings.sync.configuration-missing"
-        ].exists
+        let configurationMissing = configurationMissingElement.exists
+        let setupIssueExists = setupIssue.exists
+        let setupIssueValue = setupIssueExists ? (setupIssue.value as? String ?? "") : ""
         let operationError = app.descendants(matching: .any)["browser.library.error"].exists
         let observation = "state=\(stateValue);keyLifecycle=\(keyValue);" +
-            "configurationMissing=\(configurationMissing);operationError=\(operationError)"
+            "configurationMissing=\(configurationMissing);" +
+            "setupIssue=\(setupIssueValue);operationError=\(operationError)"
         let observationAttachment = XCTAttachment(string: observation)
         observationAttachment.name = "CloudKitDevelopment transport boundary"
         observationAttachment.lifetime = .keepAlways
         add(observationAttachment)
         XCTAssertTrue(
-            activationResult == .completed || operationError,
+            !keysOff.contains(keyValue) || configurationMissing || setupIssueExists ||
+                operationError,
             "The real CloudKitDevelopment activation neither settled nor exposed an error. " +
                 observation
         )
 
-        let localOnly = ["Local only", "Nur lokal"].contains(stateValue)
-        if localOnly {
-            XCTAssertTrue(
-                configurationMissing,
-                "A failed real transport activation must remain visibly local-only. \(observation)"
-            )
+        let activationBlocked = configurationMissing || setupIssueExists
+        if activationBlocked {
             XCTAssertFalse(
                 app.buttons["settings.sync.now"].isEnabled,
                 "A failed real transport activation must not enable manual Sync. \(observation)"
             )
+            if setupIssueExists {
+                XCTAssertFalse(
+                    setupIssueValue.isEmpty,
+                    "A typed setup issue must publish its bounded evidence value."
+                )
+            }
         } else {
-            XCTAssertFalse(
-                configurationMissing,
-                "An active entitled transport must not display the local-only warning. \(observation)"
-            )
             XCTAssertTrue(
                 app.buttons["settings.sync.now"].isEnabled,
                 "An active entitled transport must expose manual Sync. \(observation)"
