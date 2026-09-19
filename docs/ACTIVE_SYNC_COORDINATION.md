@@ -311,6 +311,16 @@ coupling; the sample alone does not prove its causal deadlock. Preserve all969
 pending/canonical/journal/server state. No manual promotion or fresh-scope reset
 may be inferred. Old Build34 red timeout remains evidence, not overwritten.
 
+Receipt callback correctionbc12536 is committed and Root-read: only decode/store
+receipt in delegate; persist after send completion and continuity proof, before
+returning created. For ONE Mobile35 build and manual normal activation on the
+unchanged signed-in C645/969 state, Root revalidated97055/97032 and STOP→T.
+This supersedes its immediately previous CONT; Native handle remains64423.
+Manual activation replaces the known30s harness deadline, not the receipt/key
+safety checks. Existing incomplete-receipt recovery must remain honest; do not
+delete, inject or promote stored state to make this run pass. Resume97055 after
+the exact terminal handback.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
