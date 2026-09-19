@@ -46,15 +46,25 @@ The standard debugger on unchanged Mobile37 established the thrown type as
 `CompanionPayloadKeyStoreError.authorizationRevoked` (numeric NSError code10).
 The throw is AppEntry's combined guard after lifecycle Ready and before optional
 remote signing. Authorization was still true and bootstrapClaim non-nil; the
-canonicalKeySHA256 call returned nil. This does not yet prove that an item was
+canonicalKeySHA256 call returned nil. This did not prove that an item was
 deleted or that Security returned an access error. The exact call/result path
-must be resolved before a further build. Sanitized evidence is
+was then resolved on the same installed candidate. Sanitized evidence is
 `artifacts/e2e/mobile-cloudkitdevelopment37-xcode27-20260919/manual-debugger-cause.txt`.
 
 Therefore RemoteCommandSigner and a presumed CloudKit NSError-bridging failure
 are not the demonstrated cause of this run. A tiny generic Swift6 diagnostic
-also did not reproduce a blanket async-protocol-default dispatch defect; no
-signature rewrite is justified without checking the actual product call site.
+also did not reproduce a blanket async-protocol-default dispatch defect; that
+generic example did not model the actual product call site. A breakpoint on
+CompanionKeyLifecycle.swift186 then hit the async protocol-extension default
+returning nil, with AppEntry.swift344 as its immediate concrete-actor caller.
+The coordinator's existential calls had used the real actor witness. Thus this
+particular nil was not a Keychain result. Fixf21d089 changes only the two concrete
+digest methods to the exact `async throws` protocol signature. It preserves all
+key/consent/receipt behavior and can be verified on the existing fe842 scope,
+without another key or cloud namespace. Product compile/visible acceptance of
+this fix remain separate and pending. A useful subsequent regression calls the
+concrete store with authorization=false and expects authorizationRevoked before
+any Security access; a silent nil default would fail without reading any key.
 
 ### Separate source coupling, not this run's cause
 
