@@ -577,10 +577,24 @@ SyncStore::Result SyncStore::ReadOutbox(
   }
   changes->clear();
   sql::Statement statement(db_.GetUniqueStatement(
-      "SELECT mutation_id,entity_type,entity_id,change_kind,payload,"
-      "version_model,version_physical,version_logical,version_device "
-      "FROM sync_outbox WHERE (? OR entity_type<>?) "
-      "ORDER BY created_at,mutation_id"));
+      "SELECT pending.mutation_id,pending.entity_type,pending.entity_id,"
+      "pending.change_kind,pending.payload,pending.version_model,"
+      "pending.version_physical,pending.version_logical,pending.version_device "
+      "FROM sync_outbox AS pending JOIN "
+      "(SELECT entity_type,entity_id,MIN(created_at) AS first_created_at "
+      "FROM sync_outbox GROUP BY entity_type,entity_id) AS queued_entity "
+      "ON queued_entity.entity_type=pending.entity_type "
+      "AND queued_entity.entity_id=pending.entity_id "
+      "WHERE (? OR pending.entity_type<>?) "
+      "ORDER BY queued_entity.first_created_at,pending.entity_type,"
+      "pending.entity_id,pending.version_model DESC,"
+      "pending.version_physical DESC,pending.version_logical DESC,"
+      "pending.version_device DESC,pending.created_at DESC,"
+      "pending.mutation_id"));
+  // Oldest entities retain priority, but their newest originals/convergences
+  // must reach the provider before a page full of older unacknowledged inputs.
+  // Ordering is not proof of dominance: the provider still merges field clocks
+  // and acknowledges only originals covered by the actual stored payload.
   // Apply all category filters before the accepted-row limit. Retained blocked
   // settings/bookmarks must not starve later eligible records or be deleted.
   statement.BindBool(0, include_bookmarks);

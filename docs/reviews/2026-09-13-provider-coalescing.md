@@ -39,19 +39,25 @@ Runtime evidence is under `artifacts/e2e/native-peer-55abcf7-20260913/`.
 
 These changes are source-only: no build, test, CloudKit operation or ACK pass.
 
-## Required additional seam — NOT YET AUTHORIZED/IMPLEMENTED
+## Pagination completion — implemented19 September, not runtime accepted
 
-`SyncStore::ReadOutbox` in `sync_store.cc` currently orders only by creation
-time. Its actual default accepted-row limit is100. A legitimate new domain
-convergence can remain behind a page of its own unacknowledgeable originals,
-preventing the covering record from ever reaching this provider.
+The original `SyncStore::ReadOutbox` ordered only by creation time. Its actual
+default accepted-row limit is100. A legitimate new domain convergence could
+remain behind a page of its own unacknowledgeable originals, preventing the
+covering record from ever reaching this provider.
 
-Minimal requested follow-up: preserve oldest-entity priority, but select the
-newest existing version within each entity first. Keep the original category
-filters, per-setting authorization checks and accepted-row limit. The provider
-still proves field dominance independently of query order. No schema, wire,
-engine, public API or new clock authority is required. This source is NOT a
-complete combined build freeze until that pagination seam is resolved.
+Root resumed the stopped worker's exact handoff and owns this one-file seam.
+The query now groups by entity type/ID and preserves the oldest queued entity's
+priority, while yielding its existing versions newest-first. Tied envelopes
+prefer the latest queued convergence. All original rows remain present; the
+category filter, per-setting authorization callback and accepted-row limit are
+unchanged. The provider still proves field dominance independently of query
+order. No schema, wire, engine, public API or clock authority was added.
+
+Core sourceeffe985 plus this pagination completion and Nativea47 form the next
+single combined source candidate. Product build, visible peer-arrival and the
+necessary focused regressions remain open; no new code is retroactively covered
+by the55ab or DebugLocal25 evidence.
 
 Do not build the old a47-only script or this intermediate Core-only revision.
 The next product build must combine Nativea47 and the complete provider fix,
