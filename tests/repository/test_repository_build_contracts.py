@@ -331,18 +331,22 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn('"schemaVersion": 3', hooks)
         self.assertIn('"toolchainMode": toolchain_mode', hooks)
 
-    def test_xcode_26_6_is_the_m152_reference_for_all_build_profiles(self):
+    def test_development_fallback_preserves_the_m152_release_reference(self):
         toolchain = load_json("config/toolchain.json")
         compatible = toolchain["xcode"]["compatibleDevelopment"]
         self.assertEqual("26.6", toolchain["xcode"]["requiredVersion"])
         self.assertEqual("17F113", toolchain["xcode"]["requiredBuild"])
-        self.assertEqual("26.6", compatible["version"])
-        self.assertEqual("17F113", compatible["build"])
-        self.assertIn("pinned Chromium M152 toolchain", compatible["scope"])
+        self.assertEqual("26.5", compatible["version"])
+        self.assertEqual("17F42", compatible["build"])
+        self.assertEqual(
+            "/Applications/Xcode-26.5.0.app/Contents/Developer",
+            compatible["developerDirectory"],
+        )
+        self.assertIn("release toolchain remains unchanged", compatible["scope"])
         ios_sdk = toolchain["sdks"]["iOS"]
         self.assertEqual("26.5", ios_sdk["testedVersion"])
         self.assertEqual("23F81a", ios_sdk["pinnedReferenceBuild"])
-        self.assertEqual("23F81a", ios_sdk["compatibleDevelopmentBuild"])
+        self.assertEqual("23F73", ios_sdk["compatibleDevelopmentBuild"])
         self.assertNotIn("testedBuild", ios_sdk)
         builder = (ROOT / "scripts/build-ahoi.sh").read_text(encoding="utf-8")
         self.assertIn("dev)", builder)
@@ -363,7 +367,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
         helper_script = ROOT / "scripts/lib/common.sh"
         for mode, expected_build in (
             ("pinned-reference", "23F81a"),
-            ("compatible-development", "23F81a"),
+            ("compatible-development", "23F73"),
         ):
             with self.subTest(toolchain_mode=mode):
                 completed = subprocess.run(

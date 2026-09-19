@@ -15,10 +15,10 @@
     "requiredBuild": "17F113",
     "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
     "compatibleDevelopment": {
-      "version": "26.6",
-      "build": "17F113",
-      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
-      "scope": "same pinned Chromium M152 toolchain; development labeling only"
+      "version": "26.5",
+      "build": "17F42",
+      "developerDirectory": "/Applications/Xcode-26.5.0.app/Contents/Developer",
+      "scope": "user-authorized 2026-09-19 development fallback; pinned Chromium M152 release toolchain remains unchanged"
     }
   },
   "python": {
@@ -33,7 +33,7 @@
     "iOS": {
       "testedVersion": "26.5",
       "pinnedReferenceBuild": "23F81a",
-      "compatibleDevelopmentBuild": "23F81a"
+      "compatibleDevelopmentBuild": "23F73"
     }
   },
   "buildTools": {

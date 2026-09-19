@@ -4,10 +4,14 @@
 
 Phase 0 targets Apple Silicon with macOS 26, exact Xcode 26.6 (17F113), macOS
 SDK 26.5 (25F70), iOS SDK 26.5 (23F81a), Git, APFS, and 150 GiB of free space
-for a fresh Chromium checkout. Chromium M152 pins that same Xcode and SDK tuple for the
-upstream control, Ahoi development, and release paths. The paths retain
-different `pinned-reference` and `compatible-development` provenance labels;
-the latter does not turn development evidence into release evidence.
+for a fresh Chromium checkout. Chromium M152 pins that tuple for the upstream
+control and release paths. On19September the user authorized the installed
+Xcode26.5/17F42 as a development-only fallback while Xcode27 downloads Simulator
+data. `compatible-development` uses
+`/Applications/Xcode-26.5.0.app/Contents/Developer`, the same macOS SDK26.5/25F70
+and iOS SDK26.5/23F73. Exact per-mode checks and provenance remain enforced;
+development evidence does not become pinned-reference or release evidence.
+The global Xcode selection and running downloads are left unchanged.
 Repository/build tooling requires Python 3.9 or newer.
 The authoritative upstream requirements are recorded alongside the Chromium
 pin; if Chromium requires a different Xcode/SDK, the host check fails clearly.
@@ -86,9 +90,9 @@ rejected before sync and by all later provenance gates. The default hook step
 fails closed unless exact Xcode 26.6, its SDK builds, dependency closure, clean
 checkout, and build disk headroom all match. For local iteration,
 `--compatible-dev-xcode` selects the separately labeled development entry,
-which currently resolves to the same Xcode 26.6/17F113 and SDK builds. That
-state remains rejected by the upstream/release provenance path despite the
-byte-identical toolchain. Fetch invalidates the prior hook record
+which now resolves to the explicitly authorized Xcode26.5/17F42 fallback and
+its exact SDK builds. That state remains rejected by the upstream/release
+provenance path. Fetch invalidates the prior hook record
 before every sync. More importantly, both build scripts run `gclient runhooks`
 again themselves before `gn gen`; they never use the freely writable state JSON
 as authority to skip execution. The Ahoi build uses the same gate while the
