@@ -251,6 +251,17 @@ are retained without identifiers/descriptions. Root read the implementation.
 Own99332/99307 is temporarily STOPped (verified StateT) for the one corrected
 Mobile32 build/activation; resume the SAME Native4212 after actual handback.
 
+Mobile32 completed on compile-corrected57a2e0a (4d34's operation semantics
+unchanged): Xcode build succeeded; its wrapper had a post-build zsh readonly
+variable failure, retained separately, not a product compile failure. UI34398
+EXIT0, one case33.717s, still `cloudkit-error:2` without leaf codes. No Ready or
+Sync pass. Own C645 ended OFF/Shutdown; Root verified99332/99307 and CONT→R.
+Root identified remaining diagnostic loss at zone-create/claim-send thrown and
+delegate errors, which still reduce CKError to rawValue; the fetch partial path
+now emits a different typed value. Mobile now preserves one bounded operation/
+code/leaf description across these existing boundaries, without raw identifiers
+or a new logging system. No unchanged UI rerun or more speculative zone handling.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
