@@ -128,16 +128,31 @@ its own explicitly identified device; the foreign TerminalCockpit build and
 other Simulator projects remain untouched. No physical-iPhone action or repeated
 DebugLocal25 journey is requested, and readiness alone is not a CloudKit pass.
 
-**Current own-compiler handoff:** while OS pressure remained elevated, Root
-temporarily stopped scheduling new Native actions with SIGSTOP only to freshly
-verified NinjaPID99332/PPID99307 (AhoiDev, -j2), which read back StateT. Existing
-compile children49846/49847 may finish naturally. Handle4212 and wrappers remain
-live; this is NOT a terminal build, new build or paused goal. The Mobile worker
-has this bounded opportunity to complete the much smaller prepared candidate
-with one job, after a fresh aggregate check. Root must consume its actual
-completion/blocked handback and CONT the SAME verified Ninja scheduler, without
-rerunning hooks, discarding outputs or leaving the Native job forgotten. No
-foreign job, download or global Simulator service was stopped.
+**Own-compiler handoff consumed:** Root briefly stopped only its verified
+Ninja99332/99307, letting its compile children end naturally, to let the small
+Mobile phase finish. After Mobile's real terminal handback, Root revalidated
+the exact same Native PID/parent/command/StateT and sent CONT, observing StateR.
+Handle4212/source/output continue unchanged, with no new wrapper/hook run or
+discarded object files. No foreign job, download or global service was stopped.
+
+**Actual Mobile28 result:** build99539 EXIT0 on clean4ff9835, CloudKitDevelopment
+0.1(28), Xcode27.0/27A266a with SDK27.0/24A430; actual ownC645 runtime remained
+iOS26.5/23F77. Candidate receipt SHA12ad28fd1fe2e33c4ee5189c6162cb31c7710ad30dfc7131319d17202e9aaf70
+and app-tree SHAa41005a57539c65d698d5c64ea37e7baed9bb5b263ee193bb9fb933dc79f4d3a
+are under `artifacts/e2e/mobile-cloudkitdevelopment28-xcode27-20260919/`.
+Initial UI8291 failed before execution because copied xctestrun __TESTROOT__
+pointed at the wrong directory; that red run is retained. Corrected UI5536
+finished EXIT0, one normal non-fixtured Settings journey,1/1 with no skips.
+Root read its actual summary/exit/receipt and inspected the status screenshot.
+
+The observed product state is NOT CloudKit success: `Nur lokal`, encryption
+recovery required, configurationMissing=true, manual Sync disabled. Normal UI
+opt-out and app termination completed; the own Simulator is Shutdown. The
+worker is doing only a bounded read-only cause trace to distinguish configuration,
+account, Simulator entitlement/Keychain and bootstrap failures using existing
+safe error metadata. No hidden key copy/reset or new test run is authorized by
+this diagnostic. The exact account enum/transport cause is not yet established;
+do not label this an external-account-only gate or a cross-device pass.
 
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles

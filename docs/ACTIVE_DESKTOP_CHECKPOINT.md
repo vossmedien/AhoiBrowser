@@ -35,12 +35,13 @@ After capacity returned to47–48%idle/49%memory headroom with stable swapouts,
 the same source/output resumed via guarded handle4212 at TWO jobs, app-only/no
 test targets. Current logs/exits/receipt:
 `artifacts/build/native-unified-b23c7d9-20260919-jobs2-continuation/`.
-Root subsequently SIGSTOPped only the verified Ninja scheduler99332/PPID99307
-(StateT), leaving current children49846/49847 to end naturally. This is a short
-OWN-compute handoff for the prepared Mobile app/Simulator candidate, not a
-source/build restart or goal pause. Handle4212/wrappers remain live. After the
-Mobile terminal/blocked handback, revalidate that same PID/command and SIGCONT;
-do not start another runner or discard outputs. No foreign process was touched.
+Root temporarily SIGSTOPped only the verified Ninja scheduler99332/PPID99307,
+leaving current children49846/49847 to end naturally for the bounded Mobile
+app/Simulator phase. That handoff is now CONSUMED: Mobile build99539 and UI5536
+are terminal0 and its device is Shutdown. Root freshly revalidated99332's
+parent/exact command/StateT and sent SIGCONT, observing StateR. The SAME
+handle4212/wrappers/source/output are active again; no runner restart or lost
+objects. No foreign process was touched and no paused goal is implied.
 Root alone owns shared
 checkout/out and Native candidate preparation. No current install or E2E pass
 is claimed; installed55ab is unchanged. The remaining later scope is the
