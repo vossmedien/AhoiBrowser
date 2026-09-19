@@ -186,6 +186,16 @@ and own Simulator Shutdown were handed back. Root verified scheduler99332/99307
 StateT and resumed it to StateR; Native4212 continues unchanged. Evidence:
 `artifacts/e2e/mobile-cloudkitdevelopment29-xcode27-20260919/`.
 
+The subsequent read-only native Settings check on own C645 showed the generic
+Apple Account sign-in prompt: no Apple Account is signed in. No identity or
+account screenshot was retained, no login/key action performed; Settings ended
+and C645 returned to Shutdown. Root offered the user a nonblocking self-login
+option; the Native build and independent product work do not wait for it.
+The exact CKError was discarded upstream. Also accountUnavailable can originate
+from local authorization/shutdown guards, so the Build29 code alone is not proof
+of a particular server error. The Settings observation independently proves the
+missing account prerequisite, not successful CloudKit access after login.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
