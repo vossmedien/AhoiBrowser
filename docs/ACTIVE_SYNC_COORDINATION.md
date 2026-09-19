@@ -103,6 +103,18 @@ action. This is a product type/link check, not a substitute CloudKit/UI pass.
 The worker initially deferred during actual pressure; the later two-job Native
 continuation leaves it eligible only when its fresh aggregate check permits.
 
+That bounded Core gate is now complete, not another pending build:41067 EXIT0,
+exact clean4ff983594a473db5295844953bbfcc532c12159f, Xcode26.5/17F42 with SDK23F73,
+one job and three product/dependency targets. Root read the actual exit/log and
+independently hashed the preserved AhoiMobileCore executable as
+d93f54ddcf4ef20fa3d7aa52bcab49e112f5836b0a9db3772046e05037967453.
+It includes compiled/linked MobileLinkPreview. Evidence/limitations are in
+`artifacts/build/mobile-peek-core-4ff9835-20260919/`, handbackca5dbcb.
+The initial target/derivedData CLI rejection64 is retained separately. Redundant
+internal(set) and AppIntents warnings are retained, not suppressed. This is a
+Core-framework build only: app/assets, signing/install, CloudKit and visible
+Peek remain unaccepted. No further Mobile job or unchanged actool retry is queued.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
