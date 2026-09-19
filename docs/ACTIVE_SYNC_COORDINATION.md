@@ -113,7 +113,20 @@ It includes compiled/linked MobileLinkPreview. Evidence/limitations are in
 The initial target/derivedData CLI rejection64 is retained separately. Redundant
 internal(set) and AppIntents warnings are retained, not suppressed. This is a
 Core-framework build only: app/assets, signing/install, CloudKit and visible
-Peek remain unaccepted. No further Mobile job or unchanged actool retry is queued.
+Peek remain unaccepted.
+
+**Runtime prerequisite changed:** the user reported the iOS27 download complete.
+Root confirmed public simctl inventory lists available iOS27.0/24A434 and
+iOS26.5/23F77; the AhoiC645 device remained Shutdown. The Mobile worker now owns
+one coherent app-candidate/normal-UI continuation including Peek4ff9835 and the
+existing non-fixtured CloudKit-status case. Prefer the matching Xcode27/Simulator
+pair to avoid the prior26.5 actool/service mismatch; record its actual source,
+SDK/signature/config and any account boundary. No license acceptance, global
+xcode-select or shared-service change is implied. Native4212 remains26.5/two jobs.
+Mobile uses at most one compiler job after a fresh whole-machine check and only
+its own explicitly identified device; the foreign TerminalCockpit build and
+other Simulator projects remain untouched. No physical-iPhone action or repeated
+DebugLocal25 journey is requested, and readiness alone is not a CloudKit pass.
 
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
