@@ -6,6 +6,29 @@ Updated: 2026-09-19. The bounded Mobile worker
 
 ## Current work — continue here
 
+Newest exact Mobile runtime result is clean source
+`3a4f77830809cc6696bf57cad3e4eaeea39b6bff` with Mobile product source
+`d098e06`, `CloudKitDevelopment`0.1(37), Xcode27/SDK27 and isolated scope
+`fe842784-4865-4272-8bda-4bcf81a64a84`. Build/receipt/install/config readback
+passed. A normal manual fresh opt-in reached terminal `Sync-Einrichtung nicht
+verfügbar` / safe value `unknown`, not Ready. A bounded standard-debugger pass
+on that exact installed candidate identified the actual factory error as
+`CompanionPayloadKeyStoreError.authorizationRevoked` (same safe NSError domain,
+numeric code10) thrown at `AppEntry.swift:345`, before optional RemoteCommand
+signer setup. At the combined guard, runtime authorization was still true and
+the verified bootstrap claim existed; only `canonicalKeySHA256(activeVersion)`
+was nil. The concrete boundary is therefore an expected canonical payload key
+that is not readable after lifecycle Ready, currently mislabeled by the guard
+as authorization revocation and by UI as unknown. No key bytes/digest,
+record/account identifiers, NSError description/userInfo or credentials were
+retained. Debugger detached, Sync returned visibly OFF, Ahoi terminated and
+C645 is Shutdown. Exact receipt, screenshot and sanitized cause are in
+[`artifacts/e2e/mobile-cloudkitdevelopment37-xcode27-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment37-xcode27-20260919/README.md).
+This does not implicate the optional RemoteCommand signer, prove a CloudKit API
+failure, require a physical iPhone or permit rewriting scopes969/37b/fe842.
+Cloud acceptance remains OPEN; no further source/build loop is authorized by
+the prior `unknown` label alone.
+
 Newest actual candidate is clean descendant source
 `d9faeaa1649acfe5f37a67d52a268811cd3fa39d`,
 `CloudKitDevelopment`0.1(36), Xcode27/SDK27 and the new prepared Development
