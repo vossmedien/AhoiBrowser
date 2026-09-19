@@ -1,10 +1,29 @@
 # Active Mobile checkpoint
 
 Updated: 2026-09-19. The bounded Mobile worker
-`/root/simulator_cloudkit_20260919` has returned sourced098e06 to coordinator
+`/root/simulator_cloudkit_20260919` has returned sourcef21d089 to coordinator
 `/root`. No active Mobile build/UI run or new general Common ownership is implied.
 
 ## Current work — continue here
+
+Latest exact Mobile result is clean DCO source
+`f21d08929e407c6b17cb999c1db944e6b82ac8db`,
+`CloudKitDevelopment`0.1(38), Xcode27/SDK27, existing fe842 scope and the
+already signed-in C645/iOS26.5. A one-job product-only build compiled exactly
+four product targets with no tests/harness; candidate receipt and installed
+source/build/scope readback passed. The normal manual Settings journey reached
+`Status: Bereit`, `Verschlüsselung bereit` and visible provider result
+`Synchronisiert`; `Jetzt synchronisieren` was enabled. One normal manual Sync
+action returned without visible error and retained `Synchronisiert`. This is a
+real Mobile CloudKitDevelopment first-use/bootstrap and provider-status pass.
+The optional RemoteCommand signing identity remained separately revoked or
+unavailable and did not block payload Sync. No fixture, preference/key/account,
+database or scope injection/reset was used. Cleanup returned Sync visibly OFF,
+disabled manual Sync, terminated Ahoi and left C645 Shutdown. Exact receipt,
+screenshot and report are in
+[`artifacts/e2e/mobile-cloudkitdevelopment38-xcode27-20260919/`](../artifacts/e2e/mobile-cloudkitdevelopment38-xcode27-20260919/README.md).
+This does not yet prove a Mac/mobile roundtrip, CloudKit Production, push
+delivery or physical-iPhone behavior.
 
 Newest exact Mobile runtime result is clean source
 `3a4f77830809cc6696bf57cad3e4eaeea39b6bff` with Mobile product source
