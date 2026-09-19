@@ -31,8 +31,15 @@ and adopts the already loaded WebPage into a normal/private tab only after the
 user confirms. Preview alone creates no tab, history, session, Sync or restore
 entry; external schemes, permissions, popups and downloads retain the existing
 fail-closed page policy. Source/static/project-generation checks are complete;
-the package is **NOT_BUILT / NOT_E2E**. Build and visible acceptance require a
-fresh capacity gate and, for Simulator runtime, a changed inventory.
+the exact clean source now has a real **AhoiMobileCore BUILD PASS**: Xcode26.5,
+arm64 iPhone Simulator, one job, Swift/localization compile plus framework link,
+EXIT0. The graph contained only `AhoiMobileCore` and its local
+`AhoiCloudKitSpike` dependency; preserved product/log/result are in
+[`artifacts/build/mobile-peek-core-4ff9835-20260919/`](../artifacts/build/mobile-peek-core-4ff9835-20260919/README.md).
+This is still **APP NOT_BUILT / NOT_E2E**: no app target, assets, tests,
+signing, install, launch or Simulator/CloudKit action ran. Full app build and
+visible acceptance require a fresh capacity gate and, for Simulator runtime, a
+changed inventory.
 The link sheet only stages the request; its real `onDismiss` presents the
 preview, without a guessed delay. Preview navigation/HTTP failures have a
 visible error/retry path. Root read presentation, adoption and datastore/cleanup
