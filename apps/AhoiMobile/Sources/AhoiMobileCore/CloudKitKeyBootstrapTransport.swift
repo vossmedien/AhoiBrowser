@@ -214,6 +214,10 @@ public actor CloudKitKeyBootstrapTransport: CompanionKeyBootstrapTransport {
             switch result {
             case .success(let savedRecord):
                 let claim = try Self.decodeClaim(savedRecord, zoneID: zoneID)
+                guard claim.keyVersion == keyVersion,
+                      claim.keySHA256 == keySHA256 else {
+                    throw CloudKitKeyBootstrapError.conflictingClaims
+                }
                 let receipt = CompanionBootstrapClaimReceipt(
                     keyVersion: claim.keyVersion,
                     serverChangeTag: claim.serverChangeTag
@@ -236,6 +240,8 @@ public actor CloudKitKeyBootstrapTransport: CompanionKeyBootstrapTransport {
         } catch let error as CloudKitKeyBootstrapError {
             throw error
         } catch let cloudError as CKError {
+            try requireActiveContinuity()
+            try await verifyAccountContinuity()
             if let itemError = exactClaimPartialError(
                 in: cloudError,
                 recordID: recordID
