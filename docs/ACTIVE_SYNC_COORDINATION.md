@@ -175,6 +175,17 @@ its fresh capacity check. Root resumes the SAME scheduler on actual terminal
 handback; do not start another Native wrapper or discard objects. This is a
 new bounded handoff, distinct from the already consumed Build28 handoff above.
 
+**Build29 handoff now consumed (14:25 local):** build42569 EXIT0;
+normal UI56143 EXIT0, exactly one case in30.247s. Root independently read the
+terminal exit/log and candidate binding. Same source42a1f835, Xcode27/SDK27,
+actual C645 iOS26.5 runtime. Observed cause is
+`cloudkit-account-or-permission`, configurationMissing=false, not a proven
+noAccount or specific permission error. Existing bootstrap maps both CK errors
+to this category. No CloudKit/peer-roundtrip pass. Normal opt-out, termination
+and own Simulator Shutdown were handed back. Root verified scheduler99332/99307
+StateT and resumed it to StateR; Native4212 continues unchanged. Evidence:
+`artifacts/e2e/mobile-cloudkitdevelopment29-xcode27-20260919/`.
+
 Installed55ab and all matching Device24/25/26 artifacts remain unchanged.
 The15September storage release was for exactly21 enumerated obsolete bundles
 sent directly to019e5926, not `.work`, sources, logs, profiles or current apps.
