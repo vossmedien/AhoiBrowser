@@ -46,6 +46,15 @@ Their old thread IDs and September8 leases are not current runtime grants.
   single-object Git fetch54449 then succeeded. Changed-prerequisite continuation
   61468 uses16-object batches, one attempt/45s timeout, adaptive splitting and
   per-batch progress in `artifacts/build/chromium-m153-preflight-20260920/full-source-hydration-small-batches.json`.
+  **That continuation is now terminal130, not live:** it also failed to hydrate
+  the first batch. Root terminated only the identified leftover Git child group
+  after its parent exited. Exact missing object002c1a318a5209e928c566f5243654127ea34bd8
+  (M153 ios_strings_hu.xtb) timed out through Git in both stdin and argv forms,
+  while official Gitiles returned it promptly with matching Git object hash.
+  No active download remains. Helperm153_toolchain_20260920 now owns a bounded
+  explicit Gitiles transport option in the EXISTING full-hydration tool, using
+  existing verified blob helpers and preserving all metadata/resume guards.
+  No more unchanged Git retries; no new transport backend for product Sync.
   It does not switch HEAD or apply Ahoi patches. A wrong-shell prelaunch attempt
   failed before hydration and was corrected to bash; no checkout operation ran.
   All43 rebased patches are now complete in the worker's isolated chain; final
