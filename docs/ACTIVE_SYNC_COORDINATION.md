@@ -64,12 +64,20 @@ Their old thread IDs and September8 leases are not current runtime grants.
   Changed method: the standard Git `--refetch --no-filter --depth=1` fetches ONE
   complete pinned snapshot pack, not Chromium history. This knowingly transfers
   some existing objects again rather than spending hours on single requests.
-  Wrapper31124 / Git73579 is RUNNING; after aboutone minute95k/508,808 objects
-  were received. No HEAD/ref/FETCH_HEAD update requested; existing target is
-  already shallow. Exact wrapper/log/result: `fetch-snapshot-pack.py`,
+  Wrapper31124 / Git73579 is TERMINAL EXIT0:508,808 objects/1.33GiB transferred
+  and deltas resolved in341.9s. HEAD/index/worktree/refs/FETCH_HEAD/shallow and
+  Git config are byte-identical before/after. Standard Git replaced hours of
+  per-file requests without a new acquisition framework or a second checkout.
+  Exact wrapper/log/result: `fetch-snapshot-pack.py`,
   `snapshot-pack.log`, `snapshot-pack-result.json` in the preflight directory.
   It bounds runtime1800s and disk32GiB; before/after protected-state and config
-  hashes must match. Success additionally requires zero missing target blobs.
+  hashes match. Full no-network inventory91465 EXIT0 proves all465,415 unique
+  target blobs present, zero missing, protected state unchanged. Evidence:
+  `snapshot-pack-inventory.json`. Normal guarded `fetch-chromium.sh` now runs
+  as40991 from clean59a0bf5 snapshot with canonical AHOI_WORK_ROOT and2 dependency
+  workers; log `dependency-sync.log`. Fresh gate57% aggregate idle, no competing
+  compiler and129GiB free. This phase may now change the checkout/dependencies
+  to the exact pin; no compile, install or Sync runtime pass inferred.
   Root's existing clean build snapshot is advanced to59a0bf5, no compiler yet.
   Retained Sparkle2.9.6 revalidated against its old material receipt; reuse after
   overlay instead of another download. The helper's accidental dry-run network
