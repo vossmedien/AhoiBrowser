@@ -1,27 +1,35 @@
 # Active sync coordination
 
-Updated: 2026-09-19. Root coordinates the same canonical branch,
+Updated: 2026-09-20. Root coordinates the same canonical branch,
 `codex/desktop-core-feature-wave-20260830`. The user explicitly confirmed both
 former Terminal agents stopped and authorized restarting the two workstreams.
 Their old thread IDs and September8 leases are not current runtime grants.
 
-## Current executable state — September19
+## Current executable state — September20
 
 - **Priority:** Apple-first macOS/iOS and real CloudKit acceptance. Windows/Android
   are later, demand-dependent work; no new backend now. Use Simulator, not a
   physical-iPhone/unlock request. The user signed in on own C645.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
-  Current guarded app-only build handle64423, Ninja97055/97032, FOUR jobs, currently
-  STOPped/StateT for the bounded Mobile38 product-only compile/manual journey.
-  Resume the same scheduler after terminal handback. Evidence:
-  `artifacts/build/native-unified-b23c7d9-20260919-jobs4-continuation/`.
-  Earlier4212/99332 and other handles below are terminal history; never resume them.
-- **Mobile worker:** `/root/simulator_cloudkit_20260919`, ONE product-only38 build
-  handle24898 on exactf21d089, one job, existingfe842 scope/C645. No test targets,
-  fixture, new namespace, key or journal reset. The two concrete digest methods
-  now explicitly match the protocol's `async throws` requirement. Main read fix
-  and debugger evidence; visible acceptance remains pending.
+  Current guarded app-only continuation is handle81284, FOUR jobs, same clean
+  snapshot/output. Evidence: `artifacts/build/native-unified-b23c7d9-20260920-resume/`.
+  Previous64423/97055 is gone after interruption at11,177/31,981, without a final
+  exit or successful receipt. Root verified no surviving Ahoi build, recovered
+  only the two pinned temporary dependency patches from SHA-matching original
+  backups, preserving mtimes and objects, then invoked the normal guarded script.
+  Do not resume/sign/pass old64423/97055 or earlier handles.
+- **Mobile acceptance:** product-only38/24898 EXIT0, exactf21d089, existingfe842
+  scope/C645. Normal visible opt-in reached Ready, encryption ready, Synchronized;
+  manual Sync also returned synchronized. Root independently read candidate.json
+  and viewed/hash-checked screenshotcfcce85148d4db0501189f27c722de060adb93dfde7d2d23fe30f6a39bb1f5c7.
+  Evidence: `artifacts/e2e/mobile-cloudkitdevelopment38-xcode27-20260919/`.
+  Normal OFF/app termination/own Shutdown followed. This proves mobile startup/
+  provider status, not matching Mac roundtrip, physical iPhone, push or Production.
+- **Bounded helper:** `/root/mobile_digest_regression_20260920` owns only one
+  existing Mobile test file for the concrete-call authorization-false regression
+  after that visible pass. No product writes, Keychain/cloud/UI or broad test
+  build. Former September19 helpers are no longer active; do not message them.
 - **Actual Mobile37 diagnosis:** unchanged installed candidate hit the protocol-
   extension nil default at CompanionKeyLifecycle.swift186, immediately called by
   concrete keyStore at AppEntry.swift344. The coordinator's existential path had
@@ -36,8 +44,8 @@ Their old thread IDs and September8 leases are not current runtime grants.
   `artifacts/e2e/shared-sync-direct-bootstrap-scope-20260919.json`, SHA
   d1605b4622269f1d374440c1fc45e3c4701d209f84d7c675d60d125cbe6b1364.
   The previous37b manifest and its immutable hash remain linked in that file.
-- **Next:** complete the exact38 normal activation on existing data; only then
-  the small relevant concrete-call regression. Native build
+- **Next:** complete the Native candidate and small concrete-call regression;
+  do not repeat the already verified Mobile38 setup. Native build
   continues independently; its successful build/sign/runtime and real matching
   peer roundtrip are still open. No repeated unchanged test or broad matrix.
 - **Other retained packages:** native Reader/Markdown69ee9f5 is source-complete but
