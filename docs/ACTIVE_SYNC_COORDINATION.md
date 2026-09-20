@@ -16,7 +16,8 @@ Their old thread IDs and September8 leases are not current runtime grants.
   discovery proves fully rolled153.0.8010.53, commit792bf6722e73a45aa9e47c163b9901bdc17f3230.
   Reviewed non-production candidate binding is updated through chromium_roll;
   config/chromium.json now selects this exact target in058ea5a for acquisition;
-  shared checkout HEAD remains M152, installed app and all Sync scopes unchanged.
+  shared checkout HEAD now equals that M153 target after guarded dependency
+  continuation34124; installed app and all Sync scopes remain unchanged.
   No build until the patch and overlay handoffs form a coherent source candidate.
   **Current implementation handoff:** toolchain95449bb is source-ready; the same
   helper now owns canonical Ahoi-overlay consumers of removed Browser APIs,
@@ -73,11 +74,18 @@ Their old thread IDs and September8 leases are not current runtime grants.
   It bounds runtime1800s and disk32GiB; before/after protected-state and config
   hashes match. Full no-network inventory91465 EXIT0 proves all465,415 unique
   target blobs present, zero missing, protected state unchanged. Evidence:
-  `snapshot-pack-inventory.json`. Normal guarded `fetch-chromium.sh` now runs
-  as40991 from clean59a0bf5 snapshot with canonical AHOI_WORK_ROOT and2 dependency
-  workers; log `dependency-sync.log`. Fresh gate57% aggregate idle, no competing
-  compiler and129GiB free. This phase may now change the checkout/dependencies
-  to the exact pin; no compile, install or Sync runtime pass inferred.
+  `snapshot-pack-inventory.json`. Guarded fetch40991 stopped before checkout
+  (EXIT1): M153 vendors former `third_party/aria-practices/src` gitlink as normal
+  tracked files. Exact all-gitlinks comparison found this as the sole collision.
+  Old dependency was clean at its pinned7b134ce6d19497cce8a67db4a9f59980baf853dc;
+  Root moved it intact to `retained-aria-practices-m152/` in the preflight evidence
+  and left an empty uninitialized gitlink directory. Superproject remains clean;
+  nothing deleted/forced. Corrected normal fetch now34124, existing clean59a0bf5
+  snapshot, canonical AHOI_WORK_ROOT,2 workers; log `dependency-sync-aria-preserved.log`.
+  Fresh gate57% aggregate idle, no competing compiler and129GiB free.
+  Root verified checkout HEAD792bf6722e73a45aa9e47c163b9901bdc17f3230.
+  This phase is still live, currently actual ICU/JetStream Git pack transfers
+  (gclient5975, log confirms both). No compile, install or Sync runtime pass.
   Root's existing clean build snapshot is advanced to59a0bf5, no compiler yet.
   Retained Sparkle2.9.6 revalidated against its old material receipt; reuse after
   overlay instead of another download. The helper's accidental dry-run network
