@@ -26,10 +26,12 @@ Their old thread IDs and September8 leases are not current runtime grants.
   Evidence: `artifacts/e2e/mobile-cloudkitdevelopment38-xcode27-20260919/`.
   Normal OFF/app termination/own Shutdown followed. This proves mobile startup/
   provider status, not matching Mac roundtrip, physical iPhone, push or Production.
-- **Bounded helper:** `/root/mobile_digest_regression_20260920` owns only one
-  existing Mobile test file for the concrete-call authorization-false regression
-  after that visible pass. No product writes, Keychain/cloud/UI or broad test
-  build. Former September19 helpers are no longer active; do not message them.
+- **Bounded regression:** helper finished its one existing test-file handback.
+  Root aligned the test with AppEntry's MainActor caller and committed33bddb4.
+  Both concrete digest calls with authorization=false must throw authorizationRevoked
+  before Security access, not return nil. Diff/parse checked; execution NOT_RUN
+  because no cached test runner exists. No product/Keychain/cloud/UI mutation or
+  broad test build. Do not mistake source regression for a runtime test pass.
 - **Actual Mobile37 diagnosis:** unchanged installed candidate hit the protocol-
   extension nil default at CompanionKeyLifecycle.swift186, immediately called by
   concrete keyStore at AppEntry.swift344. The coordinator's existential path had
