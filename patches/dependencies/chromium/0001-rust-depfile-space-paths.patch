@@ -1,7 +1,7 @@
 diff --git a/build/rust/gni_impl/rustc_wrapper.py b/build/rust/gni_impl/rustc_wrapper.py
 --- a/build/rust/gni_impl/rustc_wrapper.py
 +++ b/build/rust/gni_impl/rustc_wrapper.py
-@@ -91,15 +91,14 @@ import action_helpers
+@@ -97,15 +97,14 @@
  # Regex for a line that specifies inter-file dependencies in a `.d` file.
  #
  # The syntax for such files follows the Makefile syntax and a regex is not
@@ -20,85 +20,90 @@ diff --git a/build/rust/gni_impl/rustc_wrapper.py b/build/rust/gni_impl/rustc_wr
  
  
  # Equivalent of python3.9 built-in
-@@ -152,6 +151,37 @@ def normalize_path(path, abs_build_root):
-       path, abs_build_root))).replace('\\', '/')
+@@ -158,9 +157,40 @@ def normalize_path(path, abs_build_root):
+     return os.path.relpath(
+         os.path.normpath(remove_prefix(path, abs_build_root))
+     ).replace('\\', '/')
  
  
 +def split_depfile_paths(paths):
-+  """Splits Makefile-style paths while preserving escaped whitespace."""
-+  result = []
-+  current = []
-+  index = 0
-+  while index < len(paths):
-+    char = paths[index]
-+    if char == '\\' and index + 1 < len(paths) and paths[index + 1] == ' ':
-+      # rustc quotes spaces as `\\ ` in its Makefile-style depfile. Decode
-+      # only that documented escape and preserve all other backslashes.
-+      current.append(' ')
-+      index += 2
-+      continue
-+    elif char.isspace():
-+      if current:
-+        result.append(''.join(current))
-+        current = []
-+    else:
-+      current.append(char)
-+    index += 1
++    """Splits Makefile-style paths while preserving escaped whitespace."""
++    result = []
++    current = []
++    index = 0
++    while index < len(paths):
++        char = paths[index]
++        if char == '\\' and index + 1 < len(paths) and paths[index + 1] == ' ':
++            # rustc quotes spaces as `\\ ` in its Makefile-style depfile. Decode
++            # only that documented escape and preserve all other backslashes.
++            current.append(' ')
++            index += 2
++            continue
++        elif char.isspace():
++            if current:
++                result.append(''.join(current))
++                current = []
++        else:
++            current.append(char)
++        index += 1
 +
-+  if current:
-+    result.append(''.join(current))
-+  return result
++    if current:
++        result.append(''.join(current))
++    return result
 +
 +
 +def escape_depfile_path(path):
-+  """Quotes characters in a normalized path that separate Makefile words."""
-+  return path.replace(' ', '\\ ')
++    """Quotes characters in a normalized path that separate Makefile words."""
++    return path.replace(' ', '\\ ')
 +
 +
  def normalize_depline(depline, abs_build_root):
-   """Returns `depline` with normalized file paths.
+     """Returns `depline` with normalized file paths.
  
-@@ -161,22 +191,26 @@ def normalize_depline(depline, abs_build_root):
-      `env-dep`) then an unmodified `depline` is returned.
-   """
--  m = FILE_RE.match(depline)
-+  # rustc may leave absolute OUT_DIR paths unescaped. Escape only the exact
-+  # build-root prefix before tokenizing; already escaped paths stay unchanged.
-+  parseable_depline = depline.replace(
-+      abs_build_root, escape_depfile_path(abs_build_root))
-+  m = FILE_RE.match(parseable_depline)
-   if not m:
-     return depline
+     Path normalization is needed to avoid "absolute path in deps ... request is
+@@ -169,22 +199,27 @@ def normalize_depline(depline, abs_build_root):
+     If `depline` doesn't describe file/path dependencies (e.g. describes an
+     `env-dep`) then an unmodified `depline` is returned.
+     """
+-    m = FILE_RE.match(depline)
++    # rustc may leave absolute OUT_DIR paths unescaped. Escape only the exact
++    # build-root prefix before tokenizing; already escaped paths stay unchanged.
++    parseable_depline = depline.replace(
++        abs_build_root, escape_depfile_path(abs_build_root)
++    )
++    m = FILE_RE.match(parseable_depline)
+     if not m:
+         return depline
  
--  lhs_file = m.group(1)
-+  lhs_file = split_depfile_paths(m.group(1))[0]
-   rhs_group = m.group(2)
-   if rhs_group:
--    rhs_files = rhs_group.split()
-+    rhs_files = split_depfile_paths(rhs_group)
-   else:
-     rhs_files = []
+-    lhs_file = m.group(1)
++    lhs_file = split_depfile_paths(m.group(1))[0]
+     rhs_group = m.group(2)
+     if rhs_group:
+-        rhs_files = rhs_group.split()
++        rhs_files = split_depfile_paths(rhs_group)
+     else:
+         rhs_files = []
  
--  lhs_file = normalize_path(lhs_file, abs_build_root)
-+  lhs_file = escape_depfile_path(normalize_path(lhs_file, abs_build_root))
-   rhs_files = [normalize_path(f, abs_build_root) for f in rhs_files]
+-    lhs_file = normalize_path(lhs_file, abs_build_root)
++    lhs_file = escape_depfile_path(normalize_path(lhs_file, abs_build_root))
+     rhs_files = [normalize_path(f, abs_build_root) for f in rhs_files]
  
-   if rhs_files:
--    rhs_files = " ".join(rhs_files)
-+    rhs_files = " ".join(escape_depfile_path(f) for f in rhs_files)
-     return f"{lhs_file}: {rhs_files}"
-   else:
-     return f"{lhs_file}:"
- 
-@@ -198,7 +232,10 @@ def verify_inputs(depline, sources, abs_build_root):
-   m = FILE_RE.match(depline)
-   if m and m.group(2):
-     files = m.group(2)
--    found_files = {normalize_path(f, abs_build_root): f for f in files.split()}
-+    found_files = {
-+        normalize_path(f, abs_build_root): f
-+        for f in split_depfile_paths(files)
-+    }
-   # Get which ones are not listed in GN.
-   missing_files = found_files.keys() - sources
+     if rhs_files:
+-        rhs_files = " ".join(rhs_files)
++        rhs_files = " ".join(escape_depfile_path(f) for f in rhs_files)
+         return f"{lhs_file}: {rhs_files}"
+     else:
+         return f"{lhs_file}:"
+@@ -204,11 +239,12 @@ def verify_inputs(depline, sources, abs_build_root):
+     found_files = {}
+     m = FILE_RE.match(depline)
+     if m and m.group(2):
+         files = m.group(2)
+         found_files = {
+-            normalize_path(f, abs_build_root): f for f in files.split()
++            normalize_path(f, abs_build_root): f
++            for f in split_depfile_paths(files)
+         }
+     # Get which ones are not listed in GN.
+     missing_files = found_files.keys() - sources
  

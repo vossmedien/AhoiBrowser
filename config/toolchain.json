@@ -18,7 +18,7 @@
       "version": "26.5",
       "build": "17F42",
       "developerDirectory": "/Applications/Xcode-26.5.0.app/Contents/Developer",
-      "scope": "user-authorized 2026-09-19 development fallback; pinned Chromium M152 release toolchain remains unchanged"
+      "scope": "user-authorized 2026-09-19 development fallback; pinned Chromium M153 release toolchain remains unchanged"
     }
   },
   "python": {
@@ -37,19 +37,19 @@
     }
   },
   "buildTools": {
-    "gnRevision": "641ace93dd9560e75e7add0d08f77b446fbb3b78",
-    "gnVersionOutput": "2486 (641ace93dd95)",
-    "gnBinarySha256": "b0723a3eb237552323a24938d9955a176489037a3b1e6bf152af5d6b98164f4e",
+    "gnRevision": "e8a8e0932a5e42a99e5896aa58e3b8290f4e5b8c",
+    "gnVersionOutput": "2517 (e8a8e0932a5e)",
+    "gnBinarySha256": "327d0a225e4d1c67dd528683bd60d6165dd9a0241345b864ea0c9f99c4fd8019",
     "ninjaVersion": "version:3@1.12.1.chromium.4",
     "ninjaVersionOutput": "1.12.1",
     "ninjaBinarySha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f",
-    "sisoRevision": "7bc9a0bfe050ef97e1712ff61c6f11952799e951",
-    "clangPackage": "llvmorg-23-init-19482-g53d18800-1",
-    "clangVersionLine": "clang version 23.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 53d18800eda3b7407e53366f27ca78e922c6e0db)",
-    "clangArchiveSha256": "e96c5e31ddc2a6e841bcb0f7278ae82b3a581799904276e6f7673213c9748c27",
-    "clangBinarySha256": "75228e26b09e1045e9f8b2cfcb5ad5b689c3ee3d74cdfab58e705260f70baf73",
-    "lldVersionLine": "LLD 23.0.0 (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 53d18800eda3b7407e53366f27ca78e922c6e0db)",
-    "lldBinarySha256": "b3f5d2d13548443396baedd54ebe50f1ad9d7ba971499ba33ec7f749dc575655"
+    "sisoRevision": "bc45e8f67ae0f37d337190ad64aa8bb440c791eb",
+    "clangPackage": "llvmorg-24-init-3796-g20e97c4b-2",
+    "clangVersionLine": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 20e97c4b113b79586c29ac57738548939a34d22e)",
+    "clangArchiveSha256": "50946ba4d9fef901a4a5f7cbf3893103ef4c82c569d088082f5497c7ae038515",
+    "clangBinarySha256": "70efde6fd29b79dd209f99a1007fffadf9fb780d5650e2d0d693fd5fb196fbfc",
+    "lldVersionLine": "LLD 24.0.0 (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 20e97c4b113b79586c29ac57738548939a34d22e)",
+    "lldBinarySha256": "6a23f8ae8e5b2fd87814aaab188ee49ba022693905108bc78ff038fe55e2b581"
   },
   "buildSystem": "ninja",
   "targetCpu": "arm64"
