@@ -58,9 +58,22 @@ Their old thread IDs and September8 leases are not current runtime grants.
   the deliberate request-budget stop with34,097 objects still missing. Final
   guard proves HEAD/index/worktree/refs/FETCH_HEAD/shallow unchanged. Evidence:
   `artifacts/build/chromium-m153-preflight-20260920/gitiles-cli-sample.json`.
-  Full bounded acquisition99103 is RUNNING with4 HTTP workers, per-response32MiB,
-  aggregate256MiB/one-hour bounds, resumable verified object promotion. Fresh
-  disk check124,933,582,848 bytes passed; report is `gitiles-acquisition-01.json`.
+  Acquisition99103 is now deliberately terminal130: it worked, but individual
+  requests were too slow for34k files. Verified progress remains;33,705 missing,
+  final protected-state guard unchanged. Report: `gitiles-acquisition-01.json`.
+  Changed method: the standard Git `--refetch --no-filter --depth=1` fetches ONE
+  complete pinned snapshot pack, not Chromium history. This knowingly transfers
+  some existing objects again rather than spending hours on single requests.
+  Wrapper31124 / Git73579 is RUNNING; after aboutone minute95k/508,808 objects
+  were received. No HEAD/ref/FETCH_HEAD update requested; existing target is
+  already shallow. Exact wrapper/log/result: `fetch-snapshot-pack.py`,
+  `snapshot-pack.log`, `snapshot-pack-result.json` in the preflight directory.
+  It bounds runtime1800s and disk32GiB; before/after protected-state and config
+  hashes must match. Success additionally requires zero missing target blobs.
+  Root's existing clean build snapshot is advanced to59a0bf5, no compiler yet.
+  Retained Sparkle2.9.6 revalidated against its old material receipt; reuse after
+  overlay instead of another download. The helper's accidental dry-run network
+  contact transferred no pack and left metadata unchanged; it is not acceptance.
   No more unchanged Git retries; no new transport backend for product Sync.
   It does not switch HEAD or apply Ahoi patches. A wrong-shell prelaunch attempt
   failed before hydration and was corrected to bash; no checkout operation ran.
