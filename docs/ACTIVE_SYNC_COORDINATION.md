@@ -58,8 +58,15 @@ Their old thread IDs and September8 leases are not current runtime grants.
   It does not switch HEAD or apply Ahoi patches. A wrong-shell prelaunch attempt
   failed before hydration and was corrected to bash; no checkout operation ran.
   All43 rebased patches are now complete in the worker's isolated chain; final
-  regeneration against canonical overlay9d0ea12+db04ea6+b7d6156 and exact composed
-  tree validation remain before integration. Source-only, no M153 compile/pass.
+  regeneration against canonical overlay9d0ea12+db04ea6+b7d6156 is COMPLETE.
+  Canonical29dfe7a contains the43 ordered M153 patches, renamed basis patch,
+  resource-test path bindings and README status. Final preflight ready=true:
+  43 applies/0 conflicts/0 already-upstream, exact result tree
+  a83de08b4ed29927e7cd9e5093876a42be03c459, shared checkout mutation guard unchanged.
+  Independent fresh index matched that tree; Root read the actual report and
+  diff-check. Evidence is final-patch-preflight.json in the preflight directory.
+  Source-only, no M153 compile/pass. Next gate is verified source/dependency
+  acquisition; no more patch-design/ownership wait or M152 build restart.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
   M152 continuation81284 is now deliberately TERMINAL EXIT2 at4,656/20,804 after
