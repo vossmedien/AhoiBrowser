@@ -2,6 +2,16 @@
 
 ## Current continuation — 20 September 2026
 
+**Superseding user decision:** now prepare Chromium153.0.8010.53 efficiently,
+avoiding a completed M152 build followed by another major rebuild. Root stopped
+verified Ninja43443; guarded81284 ended2 normally at4,656/20,804, restoring both
+temporary workaround files to their exact pinned originals. Objects, logs,
+installed candidate and rollbacks remain preserved. Do not restart81284/M152.
+`config/upstream-roll-candidate.json` is bound to official commit
+792bf6722e73a45aa9e47c163b9901bdc17f3230; production pin/checkout HEAD are not yet
+changed. Root owns bounded preflight/disk; m153_toolchain_20260920 reads official
+toolchain requirements without writes. No full update/build or deletion yet.
+
 Root remains sole checkout/out/build/sign/install owner. Frozen cleanb23c7d9
 and `/private/tmp/ahoi-native-unified.1FqoG5/repo` survive. Previous64423/97055
 is absent (handle missing, no surviving Ahoi build); its log stops at11,177/31,981

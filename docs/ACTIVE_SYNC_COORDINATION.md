@@ -10,10 +10,21 @@ Their old thread IDs and September8 leases are not current runtime grants.
 - **Priority:** Apple-first macOS/iOS and real CloudKit acceptance. Windows/Android
   are later, demand-dependent work; no new backend now. Use Simulator, not a
   physical-iPhone/unlock request. The user signed in on own C645.
+- **New user direction, September20:** prepare the Chromium153 update now rather
+  than finish a long M152 candidate followed immediately by another major build.
+  The user stopped Docker; Root verified its VM/backend PIDs absent. Official
+  discovery proves fully rolled153.0.8010.53, commit792bf6722e73a45aa9e47c163b9901bdc17f3230.
+  Reviewed non-production candidate binding is updated through chromium_roll;
+  production pin, checkout HEAD, installed app and all Sync scopes remain unchanged.
+  Toolchain helper `/root/m153_toolchain_20260920` is read-only; Root handles
+  patch preflight and disk readiness. No full sync/build until actual prerequisites.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
-  Current guarded app-only continuation is handle81284, FOUR jobs, same clean
-  snapshot/output. Evidence: `artifacts/build/native-unified-b23c7d9-20260920-resume/`.
+  M152 continuation81284 is now deliberately TERMINAL EXIT2 at4,656/20,804 after
+  Root interrupted exactly verified Ninja43443. Both temporary patches restored
+  to pinned original SHA256; all objects/logs/old candidates preserved. DO NOT
+  resume this old build as an automatic next action. Evidence:
+  `artifacts/build/native-unified-b23c7d9-20260920-resume/`.
   Previous64423/97055 is gone after interruption at11,177/31,981, without a final
   exit or successful receipt. Root verified no surviving Ahoi build, recovered
   only the two pinned temporary dependency patches from SHA-matching original
@@ -50,10 +61,11 @@ Their old thread IDs and September8 leases are not current runtime grants.
   `artifacts/e2e/shared-sync-direct-bootstrap-scope-20260919.json`, SHA
   d1605b4622269f1d374440c1fc45e3c4701d209f84d7c675d60d125cbe6b1364.
   The previous37b manifest and its immutable hash remain linked in that file.
-- **Next:** complete the Native candidate and small concrete-call regression;
-  do not repeat the already verified Mobile38 setup. Native build
-  continues independently; its successful build/sign/runtime and real matching
-  peer roundtrip are still open. No repeated unchanged test or broad matrix.
+- **Next:** bounded M153 patch/toolchain compatibility and safe disk preparation,
+  then one coherent updated Native candidate for the existing Mobile38/fe842
+  partner. Do not repeat the already verified Mobile38 setup or its passing
+  regression. Native build/sign/runtime and real matching peer roundtrip remain
+  open. No repeated unchanged test or broad matrix.
 - **Other retained packages:** native Reader/Markdown69ee9f5 is source-complete but
   not in the runningb23 snapshot. Mobile Peek4ff9835 is compiled in current apps,
   but its long-press journey is NOT_RUN because current CUA gestures navigated
