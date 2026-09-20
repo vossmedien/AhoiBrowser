@@ -40,10 +40,17 @@ Their old thread IDs and September8 leases are not current runtime grants.
   4a41dac5a4e1a870dc8fa983df52d75cd4efb4ce. Old overlay/hook states are archived,
   not silently reused. Source inventory70631 EXIT2 is an intentional dry-run:
   431,295 present/34,120 missing target blobs, no state mutation. Full resumable
-  hydration73969 now runs with128-object batches, one request stream and original
-  mutation guards; report `artifacts/build/chromium-m153-preflight-20260920/full-source-hydration.json`.
+  hydration73969 used128-object batches, but its first request timed out; Root
+  interrupted only the identified parent/request group, preserving report130
+  and verified unchanged protected state (34,120 still missing). A bounded
+  single-object Git fetch54449 then succeeded. Changed-prerequisite continuation
+  61468 uses16-object batches, one attempt/45s timeout, adaptive splitting and
+  per-batch progress in `artifacts/build/chromium-m153-preflight-20260920/full-source-hydration-small-batches.json`.
   It does not switch HEAD or apply Ahoi patches. A wrong-shell prelaunch attempt
   failed before hydration and was corrected to bash; no checkout operation ran.
+  All43 rebased patches are now complete in the worker's isolated chain; final
+  regeneration against canonical overlay9d0ea12+db04ea6+b7d6156 and exact composed
+  tree validation remain before integration. Source-only, no M153 compile/pass.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
   M152 continuation81284 is now deliberately TERMINAL EXIT2 at4,656/20,804 after
