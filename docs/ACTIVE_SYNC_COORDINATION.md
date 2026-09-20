@@ -51,9 +51,16 @@ Their old thread IDs and September8 leases are not current runtime grants.
   after its parent exited. Exact missing object002c1a318a5209e928c566f5243654127ea34bd8
   (M153 ios_strings_hu.xtb) timed out through Git in both stdin and argv forms,
   while official Gitiles returned it promptly with matching Git object hash.
-  No active download remains. Helperm153_toolchain_20260920 now owns a bounded
-  explicit Gitiles transport option in the EXISTING full-hydration tool, using
-  existing verified blob helpers and preserving all metadata/resume guards.
+  The bounded transport handoff f07064e is now committed and Main-reviewed.
+  It reuses the EXISTING Gitiles URL/response/hash helpers, leaves Git default
+  unchanged and preserves metadata/resume guards. Real CLI sample17185 fetched
+  all8 requested missing objects, zero failures,29,761 decoded bytes; EXIT2 is
+  the deliberate request-budget stop with34,097 objects still missing. Final
+  guard proves HEAD/index/worktree/refs/FETCH_HEAD/shallow unchanged. Evidence:
+  `artifacts/build/chromium-m153-preflight-20260920/gitiles-cli-sample.json`.
+  Full bounded acquisition99103 is RUNNING with4 HTTP workers, per-response32MiB,
+  aggregate256MiB/one-hour bounds, resumable verified object promotion. Fresh
+  disk check124,933,582,848 bytes passed; report is `gitiles-acquisition-01.json`.
   No more unchanged Git retries; no new transport backend for product Sync.
   It does not switch HEAD or apply Ahoi patches. A wrong-shell prelaunch attempt
   failed before hydration and was corrected to bash; no checkout operation ran.
@@ -67,6 +74,11 @@ Their old thread IDs and September8 leases are not current runtime grants.
   diff-check. Evidence is final-patch-preflight.json in the preflight directory.
   Source-only, no M153 compile/pass. Next gate is verified source/dependency
   acquisition; no more patch-design/ownership wait or M152 build restart.
+  **Merge efficiency direction:** prefer current Chromium owners and reusable
+  existing helpers over old compatibility shims. Remove obsolete code when the
+  native implementation demonstrably covers its contract; preserve Popup
+  Browser-owned lifecycle and all privacy/permission invariants. Do not expand
+  this instruction into a separate architecture rewrite or review phase.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
   M152 continuation81284 is now deliberately TERMINAL EXIT2 at4,656/20,804 after

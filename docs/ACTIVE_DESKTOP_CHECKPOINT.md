@@ -8,9 +8,13 @@ verified Ninja43443; guarded81284 ended2 normally at4,656/20,804, restoring both
 temporary workaround files to their exact pinned originals. Objects, logs,
 installed candidate and rollbacks remain preserved. Do not restart81284/M152.
 `config/upstream-roll-candidate.json` is bound to official commit
-792bf6722e73a45aa9e47c163b9901bdc17f3230; production pin/checkout HEAD are not yet
-changed. Root owns bounded preflight/disk; m153_toolchain_20260920 reads official
-toolchain requirements without writes. No full update/build or deletion yet.
+792bf6722e73a45aa9e47c163b9901bdc17f3230; config/chromium.json now selects that
+target. Live checkout HEAD remains the clean M152 base. All43 rebased patches
+compose without conflicts (29dfe7a), with current native-owner overlay ports
+and matching toolchain manifests. Root owns acquisition and the next build;
+no M153 compile or installed/runtime acceptance yet. Current source acquisition
+uses the bounded Gitiles option f07064e after repeated Git transport timeouts;
+see ACTIVE_SYNC_COORDINATION for its actual handles and progress.
 
 Root remains sole checkout/out/build/sign/install owner. Frozen cleanb23c7d9
 and `/private/tmp/ahoi-native-unified.1FqoG5/repo` survive. Previous64423/97055
@@ -21,10 +25,9 @@ diffs against the pinned patches and both backup SHA256s against the original
 manifest, then restored only those targets byte-for-byte with original mtimes.
 No source reset/foreign change or object deletion. Original log/backups remain.
 
-The normal guarded app-only continuation is now handle81284, four jobs, same
-source and shared output. Logs/exit/receipt are under
-`artifacts/build/native-unified-b23c7d9-20260920-resume/`. No install or runtime
-acceptance yet. Mobile38/f21d089 has actual visible Ready/encryption/Synchronized
+The former app-only continuation81284 is terminal EXIT2, deliberately stopped
+for M153, not a current resume instruction. Its logs/exit remain under
+`artifacts/build/native-unified-b23c7d9-20260920-resume/`. Mobile38/f21d089 has actual visible Ready/encryption/Synchronized
 evidence; matching Mac Development acceptance uses the currentfe842 scope in
 `artifacts/e2e/shared-sync-direct-bootstrap-scope-20260919.json`, not historical969.
 See the current top of ACTIVE_SYNC_COORDINATION for acceptance and preservation.
