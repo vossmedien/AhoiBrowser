@@ -1,0 +1,19 @@
+{
+  "branchHead": 8010,
+  "branchHeadPosition": 1444,
+  "branchPoint": "86cee6df69e0463a839c0cc8435c9d4c259434d3",
+  "branchPosition": 1681091,
+  "channel": "Stable",
+  "commit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+  "milestone": 153,
+  "pinnable": true,
+  "platform": "Mac",
+  "releaseApi": "https://versionhistory.googleapis.com/v1/chrome/platforms/mac_arm64/channels/stable/versions/all/releases?filter=endtime%3Dnone&order_by=version%20desc",
+  "retrievedAt": "2026-09-20T08:06:52Z",
+  "rolloutFraction": 1.0,
+  "schemaVersion": 1,
+  "source": "https://chromium.googlesource.com/chromium/src.git",
+  "tag": "refs/tags/153.0.8010.53",
+  "verifiedVersionFile": "chrome/VERSION",
+  "version": "153.0.8010.53"
+}
