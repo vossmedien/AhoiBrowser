@@ -16,7 +16,6 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
-#include "chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.h"
 #include "chrome/browser/ui/browser_window.h"
 #include "chrome/browser/ui/browser_window/public/desktop_browser_window_capabilities.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
@@ -74,9 +73,8 @@ PopupOverlayController::~PopupOverlayController() {
   contents_host_observation_.Reset();
   RemoveOverlayViewImmediately();
   if (browser_ && service_.popup_contents()) {
-    BrowserWebContentsDelegate::From(browser_)
-        ->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
-                                           /*set_delegate=*/false);
+    browser_->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
+                                               /*set_delegate=*/false);
   }
   service_.ResetForShutdown();
   ClearFocusReturnTarget();
@@ -91,11 +89,10 @@ bool PopupOverlayController::TryShow(
     WindowOpenDisposition disposition,
     const blink::mojom::WindowFeatures& window_features,
     bool user_gesture) {
-  if (!browser_ ||
-      browser_->GetType() != BrowserWindowInterface::TYPE_NORMAL || !opener ||
-      !popup_contents ||
-      !*popup_contents || !user_gesture || IsShowing() || popup_view_ ||
-      !contents_host_ || !contents_host_->GetWidget() ||
+  if (!browser_ || browser_->GetType() != BrowserWindowInterface::TYPE_NORMAL ||
+      !opener || !popup_contents || !*popup_contents || !user_gesture ||
+      IsShowing() || popup_view_ || !contents_host_ ||
+      !contents_host_->GetWidget() ||
       opener->GetBrowserContext() != (*popup_contents)->GetBrowserContext() ||
       opener->GetBrowserContext() != browser_->GetProfile()) {
     return false;
@@ -113,9 +110,8 @@ bool PopupOverlayController::TryShow(
   // A detached popup has no TabModel yet. Browser attaches Chromium's
   // idempotent tab helpers and all delegate-side observers explicitly; the
   // matching teardown happens synchronously before every ownership transfer.
-  BrowserWebContentsDelegate::From(browser_)
-      ->SetAsDelegateForAhoiPopupOverlay(popup_contents->get(),
-                                         /*set_delegate=*/true);
+  browser_->SetAsDelegateForAhoiPopupOverlay(popup_contents->get(),
+                                             /*set_delegate=*/true);
   appearance_signal_source_ =
       std::make_unique<appearance::AppearanceRuntimeSignalSource>(
           browser_->GetProfile()->GetPrefs(),
@@ -125,9 +121,8 @@ bool PopupOverlayController::TryShow(
   original_user_gesture_ = user_gesture;
   CaptureFocusReturnTarget(opener);
   if (!service_.Adopt(opener, popup_contents)) {
-    BrowserWebContentsDelegate::From(browser_)
-        ->SetAsDelegateForAhoiPopupOverlay(popup_contents->get(),
-                                           /*set_delegate=*/false);
+    browser_->SetAsDelegateForAhoiPopupOverlay(popup_contents->get(),
+                                               /*set_delegate=*/false);
     ClearFocusReturnTarget();
     ClearRequestMetadata();
     appearance_signal_source_.reset();
@@ -312,9 +307,8 @@ void PopupOverlayController::SplitPopupWithOpener() {
   }
   if (rejected_contents &&
       service_.RestoreAfterRejectedTransfer(opener.get(), &rejected_contents)) {
-    BrowserWebContentsDelegate::From(browser_)
-        ->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
-                                           /*set_delegate=*/true);
+    browser_->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
+                                               /*set_delegate=*/true);
     ObserveOpenerPane();
     const int restored_opener_index =
         opener ? model->GetIndexOfWebContents(opener.get())
@@ -586,9 +580,8 @@ void PopupOverlayController::OnPopupServiceStateChanged() {
 
 void PopupOverlayController::OnPopupServiceWillDetach() {
   if (browser_ && service_.popup_contents()) {
-    BrowserWebContentsDelegate::From(browser_)
-        ->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
-                                           /*set_delegate=*/false);
+    browser_->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
+                                               /*set_delegate=*/false);
   }
   if (popup_view_) {
     popup_view_->SetWebContents(nullptr);
@@ -651,9 +644,8 @@ void PopupOverlayController::OnViewIsDeleting(views::View* observed_view) {
   opener_pane_ = nullptr;
   contents_host_ = nullptr;
   if (browser_ && service_.popup_contents()) {
-    BrowserWebContentsDelegate::From(browser_)
-        ->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
-                                           /*set_delegate=*/false);
+    browser_->SetAsDelegateForAhoiPopupOverlay(service_.popup_contents(),
+                                               /*set_delegate=*/false);
   }
   service_.ResetForShutdown();
   appearance_signal_source_.reset();
