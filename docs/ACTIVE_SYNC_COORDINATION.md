@@ -18,6 +18,20 @@ Their old thread IDs and September8 leases are not current runtime grants.
   production pin, checkout HEAD, installed app and all Sync scopes remain unchanged.
   Toolchain helper `/root/m153_toolchain_20260920` is read-only; Root handles
   patch preflight and disk readiness. No full sync/build until actual prerequisites.
+  **Current implementation handoff:** toolchain95449bb is source-ready; the same
+  helper now owns canonical Ahoi-overlay consumers of removed Browser APIs,
+  with no shared-checkout/build writes. Patch worker
+  `/root/mobile_digest_regression_20260920` owns the43-patch sequential rebase in
+  `/private/tmp/ahoi-m153-patch-rebase.aMruqC/chromium`. Initial0001 three-way merge
+  resolved251 files automatically and exposed38 real conflicts; those are now
+  resolved and0001/0002 committed in the isolated chain. Root ported the native
+  Browser/Popup/Glass/Startup seams to the M153 owners rather than restoring old
+  APIs. Canonical overlayb7d6156 removes the obsolete PrivacySandbox delegate:
+  M153's native implementation directly denies the affected APIs. Worker rebuilds
+  the final synthetic overlay parent from current overlay before exact preflight.
+  This is source preparation, not a build/runtime pass. Diskupdatef0af52a follows
+  explicit user authorization below64 GiB with32 GiB absolute reserve; first
+  checkout limits remain unchanged. No current disk/ownership ACK blocker.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
   M152 continuation81284 is now deliberately TERMINAL EXIT2 at4,656/20,804 after
