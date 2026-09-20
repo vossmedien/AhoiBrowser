@@ -9,7 +9,7 @@
     "targetPath": "build/rust/gni_impl/rustc_wrapper.py",
     "targetSha256": "98652ff31065e413500cc6c7ed7611d79534f27f58ddd99880b8fcc59715d88a",
     "patchPath": "patches/dependencies/chromium/0001-rust-depfile-space-paths.patch",
-    "patchSha256": "26bc33777ff019deba613cd7d0e9476cfe8f46feab7b486e290ca666b8a21373",
+    "patchSha256": "683b329cb55063744fc76a9dbc46b93ebd15aa5cc4878c0fe34d62835f5b5acb",
     "upstreamFixCommit": null,
     "upstreamVerificationSource": "https://chromium.googlesource.com/chromium/src/+/main/build/rust/gni_impl/rustc_wrapper.py",
     "receiptName": "ahoi-dependency-build-workarounds.json"
