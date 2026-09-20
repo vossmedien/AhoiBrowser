@@ -10,8 +10,9 @@ installed candidate and rollbacks remain preserved. Do not restart81284/M152.
 `config/upstream-roll-candidate.json` is bound to official commit
 792bf6722e73a45aa9e47c163b9901bdc17f3230; config/chromium.json now selects that
 target. Live checkout HEAD now equals that M153 target; guarded dependency
-sync34124 remains active after recoverably preserving the old clean aria-practices
-gitlink, which M153 vendors directly. All43 rebased patches
+sync34124 is EXIT0 with exact dependency/checkout receipts, after recoverably
+preserving the old clean aria-practices gitlink which M153 vendors directly.
+Current clean hook phase5294 precedes overlay and one app-only build. All43 rebased patches
 compose without conflicts (29dfe7a), with current native-owner overlay ports
 and matching toolchain manifests. Root owns acquisition and the next build;
 no M153 compile or installed/runtime acceptance yet. Current source acquisition

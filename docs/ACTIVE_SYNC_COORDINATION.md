@@ -84,8 +84,15 @@ Their old thread IDs and September8 leases are not current runtime grants.
   snapshot, canonical AHOI_WORK_ROOT,2 workers; log `dependency-sync-aria-preserved.log`.
   Fresh gate57% aggregate idle, no competing compiler and129GiB free.
   Root verified checkout HEAD792bf6722e73a45aa9e47c163b9901bdc17f3230.
-  This phase is still live, currently actual ICU/JetStream Git pack transfers
-  (gclient5975, log confirms both). No compile, install or Sync runtime pass.
+  Dependency sync34124 is now TERMINAL EXIT0. Exact M153 checkout and dependency
+  closure were verified at10:09:36 UTC; both normal receipts are retained in the
+  preflight directory. Gclient's26:37 "STALL DETECTED" was merely its silence
+  heuristic: Root verified V8's pack still growing and correctly did not restart.
+  Current next phase is clean upstream hooks5294 in the same59a0bf5 snapshot,
+  explicit compatible-development Xcode26.5, canonical workroot. Log:
+  `hooks-clean.log`. Fresh50.8% CPU idle/69% memory headroom/116GiB free; foreign
+  MBC generic2-job build is identified and untouched. No compiler/installed or
+  Sync runtime pass yet. Overlay and one app-only build follow actual hook success.
   Root's existing clean build snapshot is advanced to59a0bf5, no compiler yet.
   Retained Sparkle2.9.6 revalidated against its old material receipt; reuse after
   overlay instead of another download. The helper's accidental dry-run network
@@ -127,6 +134,14 @@ Their old thread IDs and September8 leases are not current runtime grants.
   Evidence: `artifacts/e2e/mobile-cloudkitdevelopment38-xcode27-20260919/`.
   Normal OFF/app termination/own Shutdown followed. This proves mobile startup/
   provider status, not matching Mac roundtrip, physical iPhone, push or Production.
+  **Fresh runtime correction,20September:** user queried the removed26.5 runtime.
+  Live simctl now lists ONLY iOS27 available; old C645 still exists but belongs
+  to unavailable iOS26.5. Do not attempt another C645/26.5 boot or treat its old
+  acceptance as an iOS27 pass. Next mobile journey uses available iOS27 with a
+  freshly verified device/account state. This is separate from Native builds:
+  Xcode26.5 still exists and provides macOS SDK26.5, M153's exact
+  `mac_sdk_official_version`; installed Xcode27 provides macOS SDK27. Do not
+  conflate removal of a Simulator runtime with removal of the Mac build toolchain.
 - **Bounded regression:** helper finished its one existing test-file handback.
   Root aligned the test with AppEntry's MainActor caller and committed33bddb4.
   Both concrete digest calls with authorization=false must throw authorizationRevoked
