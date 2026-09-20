@@ -22,6 +22,7 @@
 #include "base/time/time.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/tabs/tab_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/common/webui_url_constants.h"
@@ -126,7 +127,7 @@ TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
 
   AddTab(browser(), url);
   task_environment()->RunUntilIdle();
-  TabStripModel* model = browser()->tab_strip_model();
+  TabStripModel* model = browser()->GetTabStripModel();
   tabs::TabInterface* original_tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(original_tab);
   EXPECT_EQ(page.id, bridge_->FindTreeNodeIdForTab(original_tab));
@@ -222,7 +223,7 @@ TEST_F(SessionBridgeTest, NewTabRemainsTemporaryAndIsAddressableByCommandBar) {
 
   AddTab(browser(), url);
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetTabAtIndex(0);
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
   EXPECT_TRUE(bridge_->GetWorkspaceForTab(tab).has_value());
@@ -251,7 +252,7 @@ TEST_F(SessionBridgeTest, NewTabPageNeverRebindsToSavedGenericPage) {
 
   AddTab(browser(), new_tab_url);
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetTabAtIndex(0);
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
   EXPECT_EQ(workspace_id, bridge_->GetWorkspaceForTab(tab));
@@ -269,12 +270,12 @@ TEST_F(SessionBridgeTest,
 
   AddTab(browser(), GURL(chrome::kChromeUINewTabURL));
   tabs::TabInterface* const tab =
-      browser()->tab_strip_model()->GetTabAtIndex(0);
+      browser()->GetTabStripModel()->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   ASSERT_TRUE(bridge_->BindTreeNodeToTab(saved_new_tab, tab));
   task_environment()->RunUntilIdle();
 
-  EXPECT_EQ(1, browser()->tab_strip_model()->count());
+  EXPECT_EQ(1, browser()->GetTabStripModel()->count());
   EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(saved_new_tab.id));
   EXPECT_EQ(saved_new_tab.id, bridge_->FindTreeNodeIdForTab(tab));
 }
@@ -304,7 +305,7 @@ TEST_F(SessionBridgeTest,
       browser(), *created_id, WorkspaceActivationSource::kKeyboard));
   AddTab(browser(), GURL("https://example.test/client-work"));
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetActiveTab();
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(tab);
   EXPECT_EQ(bridge_->GetWorkspaceForTab(tab), *created_id);
 
@@ -372,7 +373,7 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
 
   AddTab(browser(), url);
   task_environment()->RunUntilIdle();
-  TabStripModel* model = browser()->tab_strip_model();
+  TabStripModel* model = browser()->GetTabStripModel();
   tabs::TabInterface* tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   ASSERT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
@@ -582,7 +583,7 @@ TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
 
   const GURL url("https://example.test/runtime");
   AddTab(browser(), url);
-  TabStripModel* model = browser()->tab_strip_model();
+  TabStripModel* model = browser()->GetTabStripModel();
   tabs::TabInterface* tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   content::WebContents* contents = tab->GetContents();
@@ -620,7 +621,7 @@ TEST_F(SessionBridgeTest, BindingFollowsDiscardAndNativeWindowMove) {
 
   const GURL url("https://example.test/movable");
   AddTab(browser(), url);
-  TabStripModel* first_model = browser()->tab_strip_model();
+  TabStripModel* first_model = browser()->GetTabStripModel();
   tabs::TabInterface* tab = first_model->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   content::WebContents* old_contents = tab->GetContents();
@@ -638,9 +639,9 @@ TEST_F(SessionBridgeTest, BindingFollowsDiscardAndNativeWindowMove) {
   EXPECT_EQ(replacement_ptr, bridge_->FindWebContentsForTab(tab));
   EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(node.id));
 
-  Browser::CreateParams params(profile(), /*user_gesture=*/true);
+  BrowserWindowCreateParams params(profile(), /*from_user_gesture=*/true);
   std::unique_ptr<Browser> second_browser =
-      CreateBrowserWithTestWindowForParams(params);
+      CreateBrowserWithTestWindowForParams(std::move(params));
   ASSERT_TRUE(second_browser);
   ASSERT_EQ(2u, bridge_->tracked_window_count());
   const std::optional<base::Uuid> first_window_id =
@@ -650,7 +651,7 @@ TEST_F(SessionBridgeTest, BindingFollowsDiscardAndNativeWindowMove) {
   ASSERT_TRUE(first_window_id.has_value());
   ASSERT_TRUE(second_window_id.has_value());
   EXPECT_NE(first_window_id, second_window_id);
-  TabStripModel* second_model = second_browser->tab_strip_model();
+  TabStripModel* second_model = second_browser->GetTabStripModel();
 
   std::unique_ptr<tabs::TabModel> detached =
       first_model->DetachTabAtForInsertion(0);
@@ -677,7 +678,7 @@ TEST_F(SessionBridgeTest, DroppedDetachedTabIsRetiredFailClosed) {
 
   const GURL url("https://example.test/dropped-detach");
   AddTab(browser(), url);
-  TabStripModel* model = browser()->tab_strip_model();
+  TabStripModel* model = browser()->GetTabStripModel();
   tabs::TabInterface* tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   tab_tree::TreeNode node = MakeSavedPage(workspace.id, url);
@@ -704,7 +705,7 @@ TEST_F(SessionBridgeTest, ShutdownDetachesAndFailsClosed) {
   ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({workspace}));
   task_environment()->RunUntilIdle();
   AddTab(browser(), GURL("https://example.test/before-shutdown"));
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetTabAtIndex(0);
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   tab_tree::TreeNode node =
       MakeSavedPage(workspace.id, tab->GetContents()->GetLastCommittedURL());
@@ -726,7 +727,7 @@ TEST_F(SessionBridgeTest, ShutdownDetachesAndFailsClosed) {
   AddTab(browser(), GURL("https://example.test/after-shutdown"));
   EXPECT_EQ(0u, bridge_->tracked_tab_count());
   EXPECT_FALSE(bridge_->BindTreeNodeToTab(
-      node, browser()->tab_strip_model()->GetTabAtIndex(0)));
+      node, browser()->GetTabStripModel()->GetTabAtIndex(0)));
 }
 
 }  // namespace

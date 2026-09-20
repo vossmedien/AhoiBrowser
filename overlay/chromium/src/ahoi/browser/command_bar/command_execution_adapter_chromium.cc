@@ -140,7 +140,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       }
     }
 
-    TabStripModel* model = browser_->tab_strip_model();
+    TabStripModel* model = browser_->GetTabStripModel();
     for (int index = 0; index < model->count(); ++index) {
       content::WebContents* contents = model->GetWebContentsAt(index);
       if (contents && (contents->GetVisibleURL() == *item.url ||
@@ -235,7 +235,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     }
     if (command_id == internal::kManageHttpAuthCredentialsCommand) {
       return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
-             browser_->tab_strip_model()->GetActiveWebContents();
+             browser_->GetTabStripModel()->GetActiveWebContents();
     }
     if (command_id == internal::kCopyActivePageLinkCommand ||
         command_id == internal::kCopyActivePageMarkdownLinkCommand) {
@@ -247,7 +247,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
         command_id == internal::kForgetHttpAuthRealmCommand) {
       content::WebContents* const contents =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       if (!contents || !contents->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) {
         return false;
       }
@@ -279,7 +279,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     }
     if (command_id == internal::kManageHttpAuthCredentialsCommand) {
       content::WebContents* const contents =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
              ShowHttpAuthManagementDialog(contents);
     }
@@ -296,7 +296,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
         command_id == internal::kForgetHttpAuthRealmCommand) {
       content::WebContents* const contents =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       if (!contents || !contents->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) {
         return false;
       }
@@ -323,12 +323,12 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
 
   bool CanExecuteDeveloperAction(DeveloperAction /*action*/) const override {
     return IsSupportedDeveloperTarget(
-        browser_->tab_strip_model()->GetActiveWebContents());
+        browser_->GetTabStripModel()->GetActiveWebContents());
   }
 
   bool ExecuteDeveloperAction(DeveloperAction action) override {
     content::WebContents* const contents =
-        browser_->tab_strip_model()->GetActiveWebContents();
+        browser_->GetTabStripModel()->GetActiveWebContents();
     if (!IsSupportedDeveloperTarget(contents)) {
       return false;
     }

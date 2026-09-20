@@ -181,7 +181,7 @@ IN_PROC_BROWSER_TEST_F(ArcSplitRuntimeBrowserTest,
   chrome::AddTabAt(browser(), GURL("about:blank"), -1,
                    /*foreground=*/false);
 
-  TabStripModel* const model = browser()->tab_strip_model();
+  TabStripModel* const model = browser()->GetTabStripModel();
   ASSERT_EQ(2, model->count());
   model->ActivateTabAt(0);
   tabs::TabInterface* const original_tab = model->GetActiveTab();

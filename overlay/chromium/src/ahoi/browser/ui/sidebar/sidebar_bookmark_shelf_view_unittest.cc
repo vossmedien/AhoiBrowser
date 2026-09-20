@@ -4,6 +4,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_shelf_view.h"
 
 #include <memory>
+#include <utility>
 
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_context_menu.h"
@@ -23,6 +24,7 @@
 #include "chrome/browser/search_engines/template_url_service_test_util.h"
 #include "chrome/browser/ui/bookmarks/bookmark_utils_desktop.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/grit/generated_resources.h"
 #include "chrome/test/base/test_browser_window.h"
@@ -97,9 +99,9 @@ class SidebarBookmarkShelfViewTest : public ChromeViewsTestBase {
     bookmark_service_->LoadForTesting({});
     bookmarks::test::WaitForBookmarkModelToLoad(bookmark_model());
 
-    Browser::CreateParams params(profile_.get(), true);
+    BrowserWindowCreateParams params(profile_.get(), true);
     params.window = new TestBrowserWindow();
-    browser_ = Browser::DeprecatedCreateOwnedForTesting(params);
+    browser_ = DeprecatedCreateOwnedBrowserWindowForTesting(std::move(params));
     standalone_shelf_ =
         std::make_unique<SidebarBookmarkShelfView>(browser_.get());
     shelf_ = standalone_shelf_.get();

@@ -27,6 +27,7 @@
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/favicon/content/content_favicon_driver.h"
@@ -97,7 +98,7 @@ CommandBarController::CommandBarController(
     views::View* sidebar_host)
     : browser_(browser), modal_overlay_controller_(modal_overlay_controller) {
   CHECK(browser_);
-  tab_strip_model_ = browser_->tab_strip_model();
+  tab_strip_model_ = browser_->GetTabStripModel();
   CHECK(tab_strip_model_);
   CHECK(modal_overlay_controller_);
   tab_strip_model_->AddObserver(this);
@@ -201,7 +202,8 @@ bool CommandBarController::Show(CommandBarDisposition disposition) {
   // this native command surface while every other special browser type keeps
   // Chromium's own UI and lifecycle.
   views::View* const anchor_view = modal_overlay_controller_->center_anchor();
-  if ((!browser_->is_type_normal() && !browser_->is_type_popup()) ||
+  if ((browser_->GetType() != BrowserWindowInterface::TYPE_NORMAL &&
+       browser_->GetType() != BrowserWindowInterface::TYPE_POPUP) ||
       !command_service_ || !execution_adapter_ || !anchor_view ||
       !anchor_view->GetWidget()) {
     return false;
@@ -390,7 +392,7 @@ std::u16string CommandBarController::GetInitialQuery(
     return std::u16string();
   }
   content::WebContents* contents =
-      browser_->tab_strip_model()->GetActiveWebContents();
+      browser_->GetTabStripModel()->GetActiveWebContents();
   if (!contents) {
     return std::u16string();
   }

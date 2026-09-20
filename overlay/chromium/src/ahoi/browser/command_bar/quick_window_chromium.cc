@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <memory>
+#include <utility>
 
 #include "ahoi/browser/command_bar/quick_window.h"
 #include "chrome/app/chrome_command_ids.h"
@@ -10,6 +11,7 @@
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_window.h"
+#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
@@ -36,15 +38,19 @@ Browser* CreateAndShowQuickWindow(Profile* profile,
     return nullptr;
   }
 
-  Browser::CreateParams params(Browser::TYPE_POPUP, profile,
-                               /*user_gesture=*/true);
-  params.trusted_source = true;
+  BrowserWindowCreateParams params(BrowserWindowInterface::TYPE_POPUP, profile,
+                                   /*from_user_gesture=*/true);
+  params.is_trusted_source = true;
   params.omit_from_session_restore = true;
   params.should_trigger_session_restore = false;
   params.initial_bounds = CalculateQuickWindowBounds(anchor_bounds);
-  params.initial_origin_specified = Browser::ValueSpecified::kSpecified;
+  params.initial_origin_specified =
+      BrowserWindowCreateParams::ValueSpecified::kSpecified;
   params.user_title = l10n_util::GetStringUTF8(IDS_AHOI_QUICK_WINDOW_TITLE);
-  Browser* const quick_browser = Browser::Create(params);
+  BrowserWindowInterface* const quick_window =
+      CreateBrowserWindow(std::move(params));
+  Browser* const quick_browser =
+      quick_window ? quick_window->GetBrowserForMigrationOnly() : nullptr;
   if (!quick_browser) {
     return nullptr;
   }
@@ -68,10 +74,11 @@ Browser* CreateAndShowQuickWindow(Profile* profile,
 }
 
 bool CanMoveActiveTabToNormalWindow(const Browser* popup_browser) {
-  return popup_browser && popup_browser->is_type_popup() &&
+  return popup_browser &&
+         popup_browser->GetType() == BrowserWindowInterface::TYPE_POPUP &&
          IsEligibleProfile(popup_browser->GetProfile()) &&
-         popup_browser->tab_strip_model() &&
-         popup_browser->tab_strip_model()->active_index() >= 0;
+         popup_browser->GetTabStripModel() &&
+         popup_browser->GetTabStripModel()->active_index() >= 0;
 }
 
 bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
@@ -92,14 +99,17 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
       });
   const bool created_target = !target;
   if (!target) {
-    target = Browser::Create(
-        Browser::CreateParams(popup_browser->GetProfile(), /*user_gesture=*/true));
+    BrowserWindowInterface* const target_window = CreateBrowserWindow(
+        BrowserWindowCreateParams(popup_browser->GetProfile(),
+                                  /*from_user_gesture=*/true));
+    target = target_window ? target_window->GetBrowserForMigrationOnly()
+                           : nullptr;
   }
   if (!target) {
     return false;
   }
 
-  TabStripModel* const source_model = popup_browser->tab_strip_model();
+  TabStripModel* const source_model = popup_browser->GetTabStripModel();
   std::unique_ptr<tabs::TabModel> tab =
       source_model->DetachTabAtForInsertion(source_model->active_index());
   if (!tab) {
@@ -109,8 +119,8 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
     return false;
   }
 
-  target->tab_strip_model()->InsertDetachedTabAt(
-      target->tab_strip_model()->count(), std::move(tab),
+  target->GetTabStripModel()->InsertDetachedTabAt(
+      target->GetTabStripModel()->count(), std::move(tab),
       AddTabTypes::ADD_ACTIVE);
   if (target->GetWindow()) {
     target->GetWindow()->Show();

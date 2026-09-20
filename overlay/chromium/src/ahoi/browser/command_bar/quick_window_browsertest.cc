@@ -10,6 +10,7 @@
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_init_state.h"
 #include "chrome/browser/ui/browser_window.h"
+#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/window_feature_controller/window_feature_controller.h"
 #include "chrome/test/base/in_process_browser_test.h"
@@ -28,7 +29,7 @@ class QuickWindowBrowserTest : public InProcessBrowserTest {};
 IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
                        CreatesEphemeralPopupWithSharedRegularProfile) {
   Profile* const profile = browser()->GetProfile();
-  TabStripModel* const normal_tabs = browser()->tab_strip_model();
+  TabStripModel* const normal_tabs = browser()->GetTabStripModel();
   content::WebContents* const original_contents =
       normal_tabs->GetActiveWebContents();
   const int original_tab_count = normal_tabs->count();
@@ -49,7 +50,7 @@ IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
   Browser* const quick_browser =
       CreateAndShowQuickWindow(profile, anchor_bounds);
   ASSERT_TRUE(quick_browser);
-  EXPECT_TRUE(quick_browser->is_type_popup());
+  EXPECT_EQ(BrowserWindowInterface::TYPE_POPUP, quick_browser->GetType());
   EXPECT_EQ(profile, quick_browser->GetProfile());
   EXPECT_TRUE(quick_browser->GetProfile()->IsRegularProfile());
   EXPECT_FALSE(quick_browser->GetProfile()->IsOffTheRecord());
@@ -64,9 +65,9 @@ IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
   EXPECT_FALSE(init_state->should_trigger_session_restore());
   EXPECT_EQ(CalculateQuickWindowBounds(anchor_bounds),
             init_state->create_params().initial_bounds);
-  EXPECT_EQ(Browser::ValueSpecified::kSpecified,
+  EXPECT_EQ(BrowserWindowCreateParams::ValueSpecified::kSpecified,
             init_state->create_params().initial_origin_specified);
-  EXPECT_EQ(1, quick_browser->tab_strip_model()->count());
+  EXPECT_EQ(1, quick_browser->GetTabStripModel()->count());
   EXPECT_EQ(original_tracked_windows, bridge->tracked_window_count());
   EXPECT_EQ(original_tracked_tabs, bridge->tracked_tab_count());
 
@@ -82,7 +83,7 @@ IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
 IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
                        MovesExactPageIntoNormalWindowAndClosesPopup) {
   Profile* const profile = browser()->GetProfile();
-  TabStripModel* const normal_tabs = browser()->tab_strip_model();
+  TabStripModel* const normal_tabs = browser()->GetTabStripModel();
   content::WebContents* const original_contents =
       normal_tabs->GetActiveWebContents();
   const int original_tab_count = normal_tabs->count();
@@ -102,9 +103,9 @@ IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
       "data:text/html,<title>Ahoi%20Quick%20Window</title>transfer-state");
   ASSERT_TRUE(ui_test_utils::NavigateToURL(quick_browser, transfer_url));
   content::WebContents* const moved_contents =
-      quick_browser->tab_strip_model()->GetActiveWebContents();
+      quick_browser->GetTabStripModel()->GetActiveWebContents();
   tabs::TabInterface* const moved_tab =
-      quick_browser->tab_strip_model()->GetActiveTab();
+      quick_browser->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(moved_contents);
   ASSERT_TRUE(moved_tab);
   EXPECT_EQ(nullptr, bridge->FindTabByWebContents(moved_contents));

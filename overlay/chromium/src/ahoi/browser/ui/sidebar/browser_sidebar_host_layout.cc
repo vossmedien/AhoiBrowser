@@ -142,7 +142,7 @@ BrowserSidebarHostView::BrowserSidebarHostView(
       session_bridge_(session_bridge),
       workspace_service_(workspace_service),
       modal_overlay_controller_(modal_overlay_controller),
-      tab_strip_model_(browser->tab_strip_model()),
+      tab_strip_model_(browser->GetTabStripModel()),
       controller_(std::make_unique<SidebarTreeController>(
           session_bridge->tab_tree_store())) {
   CHECK(modal_overlay_controller_);

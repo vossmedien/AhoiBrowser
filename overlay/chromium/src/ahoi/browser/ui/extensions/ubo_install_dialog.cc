@@ -258,7 +258,7 @@ bool UboInstallDialog::Accept() {
   switch (action_) {
     case UboDialogAction::kBeginPinnedInstall: {
       content::WebContents* prompt_host =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       if (!prompt_host) {
         // Ahoi intentionally supports a real zero-tab window. Seed only the
         // normal Chromium prompt host in response to this explicit install
@@ -274,7 +274,7 @@ bool UboInstallDialog::Accept() {
       return false;
     case UboDialogAction::kInstallPreparedUpdate: {
       content::WebContents* prompt_host =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       if (!prompt_host) {
         prompt_host = chrome::AddAndReturnTabAt(browser_, GURL(), -1, true);
       }

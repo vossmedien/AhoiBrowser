@@ -63,7 +63,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(tab_strip_model->count(), 3);
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0, 1},
@@ -114,7 +114,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(tab_strip_model->count(), 4);
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0, 1, 2},
@@ -155,7 +155,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(4, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0, 1, 2},
@@ -195,7 +195,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(3, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0, 1},
@@ -237,7 +237,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
                        DragExtractionDissolvesTwoPaneSplit) {
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(2, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0}, split_tabs::SplitTabVisualData(),
@@ -269,7 +269,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(3, tab_strip_model->count());
   tabs::TabInterface* const unsplit_tab = tab_strip_model->GetTabAtIndex(1);
   ASSERT_TRUE(unsplit_tab);
@@ -319,7 +319,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
                        RuntimePaneDropDoesNotRequireSidebarSource) {
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(2, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0},
@@ -366,7 +366,7 @@ IN_PROC_BROWSER_TEST_F(
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(3, tab_strip_model->count());
   // AddToNewSplit() includes the active tab implicitly; only pass the two
   // background tabs that complete this three-pane split.
@@ -438,7 +438,7 @@ IN_PROC_BROWSER_TEST_F(
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(4, tab_strip_model->count());
   tabs::TabInterface* const source = tab_strip_model->GetTabAtIndex(0);
   tabs::TabInterface* const background = tab_strip_model->GetTabAtIndex(3);
@@ -507,7 +507,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
                        PaneMiniToolbarPublishesRuntimeDragIdentity) {
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(2, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0},

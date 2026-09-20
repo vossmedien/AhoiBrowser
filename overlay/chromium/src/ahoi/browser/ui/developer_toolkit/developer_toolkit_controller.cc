@@ -264,8 +264,8 @@ bool DeveloperToolkitController::ClearBrowsingData(
 }
 
 content::WebContents* DeveloperToolkitController::GetActiveWebContents() const {
-  return browser_ && browser_->tab_strip_model()
-             ? browser_->tab_strip_model()->GetActiveWebContents()
+  return browser_ && browser_->GetTabStripModel()
+             ? browser_->GetTabStripModel()->GetActiveWebContents()
              : nullptr;
 }
 
@@ -276,7 +276,8 @@ content::WebContents* DeveloperToolkitController::GetToolkitWebContents()
 
 void DeveloperToolkitController::ActivateToolkitWebContents() {
   content::WebContents* const contents = GetToolkitWebContents();
-  TabStripModel* const model = browser_ ? browser_->tab_strip_model() : nullptr;
+  TabStripModel* const model =
+      browser_ ? browser_->GetTabStripModel() : nullptr;
   if (!contents || !model) {
     return;
   }

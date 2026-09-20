@@ -80,7 +80,7 @@ TEST_F(SessionRestoreIntegrationTest, ExtraDataRoundTripsWindowAndTabState) {
       browser(), second_workspace, WorkspaceActivationSource::kKeyboard));
   AddTab(browser(), GURL("https://example.test/session-roundtrip"));
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetActiveTab();
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(tab);
 
   std::map<std::string, std::string> window_extra_data;
@@ -124,7 +124,7 @@ TEST_F(SessionRestoreIntegrationTest,
             bridge_->tab_tree_store()->CreateNode(saved_page));
 
   AddTab(browser(), url);
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetActiveTab();
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(tab);
   const TabSessionMetadata restored{
       .workspace_id = second_workspace,
@@ -147,12 +147,12 @@ TEST_F(SessionRestoreIntegrationTest,
       workspace_service_->ordered_workspaces().front().id;
   AddTab(browser(), GURL("https://example.test/first-active"));
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* first = browser()->tab_strip_model()->GetActiveTab();
+  tabs::TabInterface* first = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(first);
 
   AddTab(browser(), GURL("https://example.test/second-active"));
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* second = browser()->tab_strip_model()->GetActiveTab();
+  tabs::TabInterface* second = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(second);
   ASSERT_NE(first, second);
 
@@ -167,8 +167,8 @@ TEST_F(SessionRestoreIntegrationTest,
   EXPECT_EQ(second,
             bridge_->GetLastActiveTabForWorkspace(browser(), workspace_id));
 
-  browser()->tab_strip_model()->ActivateTabAt(
-      browser()->tab_strip_model()->GetIndexOfTab(first));
+  browser()->GetTabStripModel()->ActivateTabAt(
+      browser()->GetTabStripModel()->GetIndexOfTab(first));
   task_environment()->RunUntilIdle();
   EXPECT_EQ(first,
             bridge_->GetLastActiveTabForWorkspace(browser(), workspace_id));
@@ -186,7 +186,7 @@ TEST_F(SessionRestoreIntegrationTest,
             bridge_->tab_tree_store()->CreateNode(saved_page));
 
   AddTab(browser(), url);
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetActiveTab();
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(tab);
   const TabSessionMetadata stale{
       .workspace_id = base::Uuid::GenerateRandomV4(),

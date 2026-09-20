@@ -37,8 +37,8 @@ namespace ahoi::sidebar {
 namespace {
 
 content::WebContents* GetActivePageActionContents(Browser* browser) {
-  return browser && browser->tab_strip_model()
-             ? browser->tab_strip_model()->GetActiveWebContents()
+  return browser && browser->GetTabStripModel()
+             ? browser->GetTabStripModel()->GetActiveWebContents()
              : nullptr;
 }
 

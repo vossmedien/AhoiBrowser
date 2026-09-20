@@ -168,7 +168,7 @@ class VerticalTabStripRegionViewTest
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiImportCommandFromEmptyWindowOpensSettings) {
-  TabStripModel* const model = browser()->tab_strip_model();
+  TabStripModel* const model = browser()->GetTabStripModel();
   ASSERT_EQ(1, model->count());
   model->DetachAndDeleteWebContentsAt(0);
   ASSERT_EQ(0, model->count());
@@ -190,7 +190,7 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiZeroTabSplitUpdatesMountedSidebar) {
   BrowserView& browser_view = browser()->GetBrowserView();
   views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_TRUE(sidebar);
   ASSERT_TRUE(tab_strip_model);
   ASSERT_EQ(1, tab_strip_model->count());
@@ -748,7 +748,7 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   ASSERT_TRUE(bridge);
   ASSERT_TRUE(bridge->tab_tree_store());
   tabs::TabInterface* const active_tab =
-      browser()->tab_strip_model()->GetActiveTab();
+      browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(active_tab);
   const std::optional<base::Uuid> saved_id =
       bridge->SaveTabAtWorkspaceRoot(browser(), active_tab);

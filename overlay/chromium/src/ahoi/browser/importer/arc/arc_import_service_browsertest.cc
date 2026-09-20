@@ -239,7 +239,7 @@ class ArcImportServiceBrowserTest : public InProcessBrowserTest {
     ASSERT_EQ(1u, plan_.splits.size());
     ASSERT_EQ(2u, plan_.splits.front().member_node_ids.size());
     ASSERT_EQ(1u, plan_.tree.workspaces.size());
-    initial_tab_count_ = browser()->tab_strip_model()->count();
+    initial_tab_count_ = browser()->GetTabStripModel()->count();
   }
 
   void TearDownOnMainThread() override {
@@ -410,7 +410,7 @@ IN_PROC_BROWSER_TEST_F(
   EXPECT_FALSE(service_->operation_in_progress());
   EXPECT_TRUE(foreground->IsActive());
   EXPECT_FALSE(browser()->IsActive());
-  ASSERT_EQ(initial_tab_count_ + 2, browser()->tab_strip_model()->count());
+  ASSERT_EQ(initial_tab_count_ + 2, browser()->GetTabStripModel()->count());
   EXPECT_EQ(ArcSplitVerification::kExact,
             VerifyArcSplitRuntime(browser(), bridge_, *expected.applied_plan,
                                   /*require_focus=*/true));
@@ -520,7 +520,7 @@ IN_PROC_BROWSER_TEST_F(
   ASSERT_TRUE(bridge_->ExportTabTreeSnapshot(&live));
   EXPECT_EQ(replay_expected, live);
   EXPECT_EQ(backups, BackupDirectories());
-  EXPECT_EQ(initial_tab_count_ + 2, browser()->tab_strip_model()->count());
+  EXPECT_EQ(initial_tab_count_ + 2, browser()->GetTabStripModel()->count());
   for (size_t i = 0; i < members.size(); ++i) {
     ASSERT_TRUE(members[i]);
     EXPECT_EQ(members[i].get(), bridge_->FindTabByTreeNodeId(
@@ -568,7 +568,7 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   // never compensate the imported tree while a surviving tab still exists.
   EXPECT_EQ(*expected.merged_tree, live);
   EXPECT_EQ(1u, BackupDirectories().size());
-  EXPECT_EQ(initial_tab_count_ + 1, browser()->tab_strip_model()->count());
+  EXPECT_EQ(initial_tab_count_ + 1, browser()->GetTabStripModel()->count());
   EXPECT_TRUE(bridge_->FindTabByTreeNodeId(
       plan_.splits.front().member_node_ids.back()));
 }
@@ -629,7 +629,7 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   EXPECT_EQ(ArcImportJournalState::kEmpty,
             ReadArcImportJournal(browser()->GetProfile()->GetPath()).state);
   EXPECT_EQ(backups, BackupDirectories());
-  EXPECT_EQ(initial_tab_count_, browser()->tab_strip_model()->count());
+  EXPECT_EQ(initial_tab_count_, browser()->GetTabStripModel()->count());
   EXPECT_FALSE(first_response_->has_received_request());
   EXPECT_FALSE(second_response_->has_received_request());
   const auto copy = source_directory_.GetPath().AppendASCII("restored-copy");
@@ -661,7 +661,7 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
       browser(), id, WorkspaceActivationSource::kKeyboard));
   ASSERT_TRUE(AddTabAtIndex(1, GURL("about:blank"), ui::PAGE_TRANSITION_TYPED));
-  auto* tab = browser()->tab_strip_model()->GetActiveTab();
+  auto* tab = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(tab);
   ASSERT_FALSE(bridge_->FindTreeNodeIdForTab(tab));
   ASSERT_EQ(id, bridge_->GetWorkspaceForTab(tab));
@@ -673,7 +673,7 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   ExpectRecoveryRejectedWithoutTreeOrJournalChange();
   ASSERT_TRUE(tab_identity);
   EXPECT_EQ(id, bridge_->GetWorkspaceForTab(tab_identity.get()));
-  EXPECT_EQ(initial_tab_count_ + 1, browser()->tab_strip_model()->count());
+  EXPECT_EQ(initial_tab_count_ + 1, browser()->GetTabStripModel()->count());
 }
 
 IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
@@ -682,7 +682,7 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   ASSERT_NO_FATAL_FAILURE(PrepareFailedTreeOnlyImport());
   const auto id = plan_.splits.front().member_node_ids.front();
   auto hold_metadata = bridge_->DeferSavedPageMetadataForNodes({id});
-  auto* tab = browser()->tab_strip_model()->GetActiveTab();
+  auto* tab = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(bridge_->RestoreTabSessionMetadata(
       tab,
       {.workspace_id = plan_.tree.workspaces.front().id, .tree_node_id = id}));
@@ -733,7 +733,7 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   const auto journal = ReadArcImportJournal(browser()->GetProfile()->GetPath());
   EXPECT_EQ(ArcImportStatus::kOk, journal.status);
   EXPECT_EQ(ArcImportJournalState::kEmpty, journal.state);
-  EXPECT_EQ(initial_tab_count_, browser()->tab_strip_model()->count());
+  EXPECT_EQ(initial_tab_count_, browser()->GetTabStripModel()->count());
   EXPECT_FALSE(first_response_->has_received_request());
   EXPECT_FALSE(second_response_->has_received_request());
 }

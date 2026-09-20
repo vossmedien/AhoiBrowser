@@ -281,7 +281,7 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
   EXPECT_EQ(UboDialogAction::kBeginPinnedInstall, before_click.action);
 
   content::WebContents* active_tab =
-      browser()->tab_strip_model()->GetActiveWebContents();
+      browser()->GetTabStripModel()->GetActiveWebContents();
   ASSERT_TRUE(active_tab);
   UboInstallDialog* dialog_ptr = nullptr;
   views::Widget* widget =
@@ -322,9 +322,9 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
     GTEST_SKIP() << "uBO Classic product buildflag is disabled";
   }
 
-  browser()->tab_strip_model()->DetachAndDeleteWebContentsAt(0);
-  ASSERT_EQ(0, browser()->tab_strip_model()->count());
-  ASSERT_FALSE(browser()->tab_strip_model()->GetActiveWebContents());
+  browser()->GetTabStripModel()->DetachAndDeleteWebContentsAt(0);
+  ASSERT_EQ(0, browser()->GetTabStripModel()->count());
+  ASSERT_FALSE(browser()->GetTabStripModel()->GetActiveWebContents());
 
   auto network = std::make_unique<BrowserTestNetworkClient>();
   network->package_path = package_path_;
@@ -366,8 +366,8 @@ IN_PROC_BROWSER_TEST_F(UboServiceBrowserTest,
   EXPECT_FALSE(dialog_ptr->Accept());
   prompt_handoff.Run();
 
-  ASSERT_EQ(1, browser()->tab_strip_model()->count());
-  EXPECT_EQ(browser()->tab_strip_model()->GetActiveWebContents(),
+  ASSERT_EQ(1, browser()->GetTabStripModel()->count());
+  EXPECT_EQ(browser()->GetTabStripModel()->GetActiveWebContents(),
             handed_off_web_contents);
   EXPECT_EQ(UboServiceState::kInstalling, service->status().state);
   EXPECT_TRUE(dialog_destroyed);
