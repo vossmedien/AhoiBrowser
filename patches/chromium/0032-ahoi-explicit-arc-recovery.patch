@@ -1,7 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index 44b72f603f9a716e219928fec1c9afb89de62bab..e91156c319443ab31451a8012b33453a0bcda5b5 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20148,6 +20148,18 @@
+@@ -20390,6 +20390,18 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_REQUIRED" desc="Fail-closed status shown when a previous Arc import requires manual recovery." meaning="AhoiBrowser Arc import">
        A previous Arc import needs manual recovery before another import can start.
      </message>
@@ -20,11 +21,24 @@ diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_SOURCE" desc="Instruction shown when Arc must be closed before importing." meaning="AhoiBrowser Arc import">Close Arc before importing</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE" desc="Instruction to close Arc before import discovery." meaning="AhoiBrowser Arc import">
        Close Arc completely
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index d3c0f56f8ce71a7b61feab6cb185e5c5317f677a..f37f8e944bc176ca0fed59658074c345d23babc0 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11251,4 +11251,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="4131831590543916816">Kürzlich geschlossener Split</translation>
+ <translation id="5502679562240472247">Kürzlich geschlossene Gruppe</translation>
+ <translation id="5461107725978398953">Kürzlich geschlossenes Fenster</translation>
++<translation id="3951572487430475774">Die Seitenleiste aus der Sicherung vor diesem fehlgeschlagenen Import wiederherstellen – nur wenn der importierte Baum unverändert ist und kein betroffener Tab geöffnet oder in der aktuellen Sitzung gespeichert ist. Andernfalls wird die Wiederherstellung beendet, ohne die Seitenleiste zu ersetzen. Die Sicherung bleibt erhalten.</translation>
++<translation id="8353852870894009464">Seitenleiste vor dem Import wiederherstellen</translation>
++<translation id="8579437155006490485">Sicherung prüfen und Seitenleiste wiederherstellen…</translation>
++<translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
+ </translationbundle>
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+index 0cb4bc839f2a96a70cc73b40a41a7a344e6b508c..be12f5e90e31fb46a4ee33767c745ebfc06309f2 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -641,6 +641,14 @@
-       {"ahoiArcImportBackupQuotaExceeded",
+@@ -644,6 +644,14 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
         IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_QUOTA_EXCEEDED},
        {"ahoiArcImportRecoveryRequired",
         IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_REQUIRED},
@@ -38,15 +52,4 @@ diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provide
 +       IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERED},
        {"ahoiArcImportCloseSource", IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_SOURCE},
        {"ahoiArcImportCloseArcTitle",
-diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
---- a/chrome/app/resources/generated_resources_de.xtb
-+++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11470,4 +11470,8 @@
- <translation id="4131831590543916816">Kürzlich geschlossener Split</translation>
- <translation id="5502679562240472247">Kürzlich geschlossene Gruppe</translation>
- <translation id="5461107725978398953">Kürzlich geschlossenes Fenster</translation>
-+<translation id="3951572487430475774">Die Seitenleiste aus der Sicherung vor diesem fehlgeschlagenen Import wiederherstellen – nur wenn der importierte Baum unverändert ist und kein betroffener Tab geöffnet oder in der aktuellen Sitzung gespeichert ist. Andernfalls wird die Wiederherstellung beendet, ohne die Seitenleiste zu ersetzen. Die Sicherung bleibt erhalten.</translation>
-+<translation id="8353852870894009464">Seitenleiste vor dem Import wiederherstellen</translation>
-+<translation id="8579437155006490485">Sicherung prüfen und Seitenleiste wiederherstellen…</translation>
-+<translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
- </translationbundle>
+        IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE},

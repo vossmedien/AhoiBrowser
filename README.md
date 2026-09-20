@@ -14,11 +14,14 @@ architecture decision, test, or release gate.
 
 ## Current status
 
-Phase 0 is in progress on Chromium Mac Stable `152.0.7977.65` at exact commit
-`fc4d67f1788019a27e32511137ceccbd2fafdaaa`. The active source delta is the
+The current source roll targets Chromium Mac Stable `153.0.8010.53` at exact commit
+`792bf6722e73a45aa9e47c163b9901bdc17f3230`. Its43-patch composition is verified;
+the M153 build and runtime gates are still open. Installed candidates retain
+their own older source receipts and are not relabelled by this update.
+The active source delta is the
 tracked overlay plus the complete ordered series declared in
 `patches/chromium/series`; that file is the single source of truth for patch
-count and order. It contains the M152 integration seams, deterministic
+count and order. It contains the M153 integration seams, deterministic
 platform tests, Compose guards, native sidebar/split fixes, the null-tab
 extension-menu guard, Arc 1.162 sidebar-schema compatibility, the accessible
 docked/floating sidebar toggle, and the compact Zen importer seam. The product contains

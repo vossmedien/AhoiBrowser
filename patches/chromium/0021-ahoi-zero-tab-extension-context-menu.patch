@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/extensions/extension_context_menu_model.cc b/chrome/browser/extensions/extension_context_menu_model.cc
-index 94417bcccd3ae41a9c9e781336e595be27c2391d..e8ff55fb05074321c9ddf51c9182772cfe974438 100644
+index d8b4c6491fb5d6e41863ff8d92e0b973c77f63b1..1804b9986e8aa368c7a505c96819a3cd2d18fa58 100644
 --- a/chrome/browser/extensions/extension_context_menu_model.cc
 +++ b/chrome/browser/extensions/extension_context_menu_model.cc
 @@ -291,11 +291,14 @@ void LogToggleVisibility(bool visible) {
@@ -57,7 +57,7 @@ index 94417bcccd3ae41a9c9e781336e595be27c2391d..e8ff55fb05074321c9ddf51c9182772c
        if (side_panel_service->HasSidePanelContextMenuActionForTab(*extension,
                                                                    tab_id)) {
          side_panel_util::ToggleExtensionSidePanel(browser_, extension->id());
-@@ -595,7 +597,7 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
+@@ -594,7 +596,7 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
          replacements.SetQueryStr(query);
          url = url.ReplaceComponents(replacements);
        }
@@ -66,7 +66,7 @@ index 94417bcccd3ae41a9c9e781336e595be27c2391d..e8ff55fb05074321c9ddf51c9182772c
  #endif
        break;
      }
-@@ -727,9 +729,10 @@ void ExtensionContextMenuModel::InitMenuWithFeature(
+@@ -725,9 +727,10 @@ void ExtensionContextMenuModel::InitMenuWithFeature(
    // Show section only when the extension requests host permissions or has
    // activeTab permission.
    auto* permissions_manager = PermissionsManager::Get(profile_);
@@ -80,7 +80,7 @@ index 94417bcccd3ae41a9c9e781336e595be27c2391d..e8ff55fb05074321c9ddf51c9182772c
      const GURL& url = web_contents->GetLastCommittedURL();
      auto site_setting = permissions_manager->GetUserSiteSetting(origin_);
  
-@@ -993,10 +996,15 @@ void ExtensionContextMenuModel::AddSidePanelEntryIfPresent(
+@@ -991,10 +994,15 @@ void ExtensionContextMenuModel::AddSidePanelEntryIfPresent(
      return;
    }
  
@@ -97,7 +97,7 @@ index 94417bcccd3ae41a9c9e781336e595be27c2391d..e8ff55fb05074321c9ddf51c9182772c
    if (!side_panel_service->HasSidePanelContextMenuActionForTab(extension,
                                                                 tab_id)) {
      return;
-@@ -1081,7 +1089,12 @@ void ExtensionContextMenuModel::CreatePageAccessItems(
+@@ -1079,7 +1087,12 @@ void ExtensionContextMenuModel::CreatePageAccessItems(
  }
  
  content::WebContents* ExtensionContextMenuModel::GetActiveWebContents() const {
@@ -112,7 +112,7 @@ index 94417bcccd3ae41a9c9e781336e595be27c2391d..e8ff55fb05074321c9ddf51c9182772c
  
  #if !BUILDFLAG(IS_ANDROID)
 diff --git a/chrome/browser/extensions/extension_context_menu_model_browsertest.cc b/chrome/browser/extensions/extension_context_menu_model_browsertest.cc
-index 1b8553c02b4816f2b1b34f224f4bf4de61556450..2e1fc1e63b101d7b3d28381e86ef25d6c1394031 100644
+index 90d41c43495281ac70615c5f2635e0374485bc64..84813259da3277e134174cc042ee2a10c997075d 100644
 --- a/chrome/browser/extensions/extension_context_menu_model_browsertest.cc
 +++ b/chrome/browser/extensions/extension_context_menu_model_browsertest.cc
 @@ -23,6 +23,7 @@
@@ -122,8 +122,8 @@ index 1b8553c02b4816f2b1b34f224f4bf4de61556450..2e1fc1e63b101d7b3d28381e86ef25d6
 +#include "chrome/browser/ui/tabs/tab_strip_model.h"
  #include "chrome/browser/ui/toolbar/toolbar_actions_model.h"
  #include "chrome/common/extensions/api/context_menus.h"
- #include "chrome/grit/generated_resources.h"
-@@ -2044,6 +2045,54 @@ INSTANTIATE_TEST_SUITE_P(All,
+ #include "chrome/common/pref_names.h"
+@@ -2080,6 +2081,54 @@ INSTANTIATE_TEST_SUITE_P(All,
                           ExtensionContextMenuModelWithUserHostControlsTest,
                           testing::Bool());
  

@@ -1,7 +1,8 @@
 diff --git a/components/sessions/core/command_storage_backend.cc b/components/sessions/core/command_storage_backend.cc
+index 383f444a099e7b03a8b94f64e02fb9f977ed6b0e..15be35e066d7683e2bb3bd188c4ef608ec95a4e2 100644
 --- a/components/sessions/core/command_storage_backend.cc
 +++ b/components/sessions/core/command_storage_backend.cc
-@@ -37,11 +37,31 @@
+@@ -37,12 +37,32 @@
  #include "components/sessions/core/session_service_commands.h"
  #include "third_party/abseil-cpp/absl/strings/str_format.h"
  
@@ -18,7 +19,7 @@ diff --git a/components/sessions/core/command_storage_backend.cc b/components/se
  namespace {
  
  using SessionType = CommandStorageManager::SessionType;
-+
+ 
 +bool FlushContainingDirectory(const base::FilePath& file_path) {
 +#if BUILDFLAG(IS_POSIX)
 +  base::ScopedFD directory_fd(
@@ -30,9 +31,10 @@ diff --git a/components/sessions/core/command_storage_backend.cc b/components/se
 +  return !file_path.empty();
 +#endif
 +}
- 
++
  // File version numbers:
  // kFileVersion1 = 1; No longer supported. Used in production prior to commit
+ //   223e5cd on 2021-05-25.
 @@ -627,17 +647,20 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
    CommandStorageBackend::ReadCommandsResult result;
    if (!open_file_ || !open_file_->file || !open_file_->file->IsValid() ||
@@ -55,18 +57,18 @@ diff --git a/components/sessions/core/command_storage_backend.cc b/components/se
      result.error_reading = true;
      return result;
    }
-@@ -652,6 +675,11 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
-   if (!read_result.has_marker) {
+@@ -653,6 +676,11 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
      read_result.commands.clear();
      read_result.status = ReadStatus::kInvalidCommand;
-+  }
+   }
 +  if (IsError(read_result.status)) {
 +    CloseFile();
 +    result.error_reading = true;
 +    return result;
-   }
++  }
  
    std::unique_ptr<base::File> append_file = std::make_unique<base::File>(
+       current_path, base::File::FLAG_OPEN | base::File::FLAG_APPEND |
 @@ -667,10 +695,6 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
    open_file_->file = std::move(append_file);
  
@@ -78,7 +80,44 @@ diff --git a/components/sessions/core/command_storage_backend.cc b/components/se
    return result;
  }
  
+diff --git a/components/sessions/core/command_storage_backend_unittest.cc b/components/sessions/core/command_storage_backend_unittest.cc
+index 04c8ec54087968ae9150d240071aa50f79287147..2d71b7934a16a8c5a6cd9d21e894508e5ae1998a 100644
+--- a/components/sessions/core/command_storage_backend_unittest.cc
++++ b/components/sessions/core/command_storage_backend_unittest.cc
+@@ -678,6 +678,31 @@ TEST_P(CommandStorageBackendParamTest,
+   EXPECT_FALSE(backend->IsFileOpenForTesting());
+ }
+ 
++TEST_P(CommandStorageBackendParamTest,
++       FlushAndReadCurrentSessionCommandsClosesCorruptFileAndAllowsReset) {
++  scoped_refptr<CommandStorageBackend> backend = CreateBackend();
++  SessionCommands commands;
++  commands.push_back(std::make_unique<SessionCommand>(101, 0));
++  backend->AppendCommands(std::move(commands), /*truncate=*/true,
++                          base::DoNothing());
++  ASSERT_TRUE(base::AppendToFile(backend->current_path_for_testing(),
++                                 "corrupt trailing command"));
++
++  ReadCommandsResult result = backend->FlushAndReadCurrentSessionCommands();
++
++  EXPECT_TRUE(result.error_reading);
++  EXPECT_TRUE(result.commands.empty());
++  EXPECT_FALSE(backend->IsFileOpenForTesting());
++
++  commands.push_back(std::make_unique<SessionCommand>(102, 0));
++  backend->AppendCommands(std::move(commands), /*truncate=*/true,
++                          base::DoNothing());
++  result = backend->FlushAndReadCurrentSessionCommands();
++  EXPECT_FALSE(result.error_reading);
++  ASSERT_EQ(1u, result.commands.size());
++  EXPECT_EQ(102u, result.commands.front()->id());
++}
++
+ TEST_P(CommandStorageBackendParamTest, RandomData) {
+   auto data = std::to_array<TestData>({
+       {1, "a"},
 diff --git a/components/sessions/core/command_storage_manager.cc b/components/sessions/core/command_storage_manager.cc
+index c73486b3ed25248ecc50b97bf5505ed3e5e60c6f..cbc0bfc968a0fba8923e8ab27c3b9adfca788217 100644
 --- a/components/sessions/core/command_storage_manager.cc
 +++ b/components/sessions/core/command_storage_manager.cc
 @@ -473,8 +473,8 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
@@ -130,6 +169,7 @@ diff --git a/components/sessions/core/command_storage_manager.cc b/components/se
    return weak_factory_for_timer_.HasWeakPtrs();
  }
 diff --git a/components/sessions/core/command_storage_manager.h b/components/sessions/core/command_storage_manager.h
+index e22aefa816283c59d655cfbc07808239597fd9a3..f48436b24256c7dc9fae077e783e85890f393b6f 100644
 --- a/components/sessions/core/command_storage_manager.h
 +++ b/components/sessions/core/command_storage_manager.h
 @@ -151,6 +151,14 @@ class SESSIONS_EXPORT CommandStorageManager {
@@ -147,43 +187,8 @@ diff --git a/components/sessions/core/command_storage_manager.h b/components/ses
    // Returns true if cleartext files should be written.
    bool ShouldWriteCleartextFiles() const;
  
-diff --git a/components/sessions/core/command_storage_backend_unittest.cc b/components/sessions/core/command_storage_backend_unittest.cc
---- a/components/sessions/core/command_storage_backend_unittest.cc
-+++ b/components/sessions/core/command_storage_backend_unittest.cc
-@@ -677,7 +677,32 @@ TEST_P(CommandStorageBackendParamTest,
-   EXPECT_TRUE(result.commands.empty());
-   EXPECT_FALSE(backend->IsFileOpenForTesting());
- }
-+
-+TEST_P(CommandStorageBackendParamTest,
-+       FlushAndReadCurrentSessionCommandsClosesCorruptFileAndAllowsReset) {
-+  scoped_refptr<CommandStorageBackend> backend = CreateBackend();
-+  SessionCommands commands;
-+  commands.push_back(std::make_unique<SessionCommand>(101, 0));
-+  backend->AppendCommands(std::move(commands), /*truncate=*/true,
-+                          base::DoNothing());
-+  ASSERT_TRUE(base::AppendToFile(backend->current_path_for_testing(),
-+                                 "corrupt trailing command"));
- 
-+  ReadCommandsResult result = backend->FlushAndReadCurrentSessionCommands();
-+
-+  EXPECT_TRUE(result.error_reading);
-+  EXPECT_TRUE(result.commands.empty());
-+  EXPECT_FALSE(backend->IsFileOpenForTesting());
-+
-+  commands.push_back(std::make_unique<SessionCommand>(102, 0));
-+  backend->AppendCommands(std::move(commands), /*truncate=*/true,
-+                          base::DoNothing());
-+  result = backend->FlushAndReadCurrentSessionCommands();
-+  EXPECT_FALSE(result.error_reading);
-+  ASSERT_EQ(1u, result.commands.size());
-+  EXPECT_EQ(102u, result.commands.front()->id());
-+}
-+
- TEST_P(CommandStorageBackendParamTest, RandomData) {
-   auto data = std::to_array<TestData>({
-       {1, "a"},
 diff --git a/components/sessions/core/command_storage_manager_unittest.cc b/components/sessions/core/command_storage_manager_unittest.cc
+index 39df51442425931458559fd4791acf5c631c44f0..6d1296f1ab1c347854aa31496e7244fb6938e9d4 100644
 --- a/components/sessions/core/command_storage_manager_unittest.cc
 +++ b/components/sessions/core/command_storage_manager_unittest.cc
 @@ -301,6 +301,7 @@ TEST_P(CommandStorageManagerTest,

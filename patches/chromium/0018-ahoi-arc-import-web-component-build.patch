@@ -1,7 +1,8 @@
 diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
+index ba2c1d799c11a67a8ad2d80ec1f75f68abf7357f..d9a3abb5de9aa3c121c6dda7a1049f02e7228eeb 100644
 --- a/chrome/browser/resources/settings/BUILD.gn
 +++ b/chrome/browser/resources/settings/BUILD.gn
-@@ -258,7 +258,6 @@ build_webui("build") {
+@@ -227,7 +227,6 @@ build_webui("build") {
        "languages_page/languages_page_index.ts",
        "languages_page/spell_check_page.ts",
        "languages_page/translate_page.ts",
@@ -9,11 +10,11 @@ diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resourc
        "people_page/import_data_dialog.ts",
        "people_page/manage_profile.ts",
        "relaunch_confirmation_dialog.ts",
-@@ -407,6 +406,7 @@ build_webui("build") {
-       "languages_page/languages_settings_metrics_proxy.ts",
+@@ -435,6 +434,7 @@ build_webui("build") {
        "languages_page/languages_types.ts",
        "languages_page/languages_util.ts",
        "people_page/ahoi_arc_import_section.html.ts",
 +      "people_page/ahoi_arc_import_section.ts",
        "people_page/import_data_browser_proxy.ts",
        "people_page/manage_profile_browser_proxy.ts",
+       "system_page/system_page.html.ts",

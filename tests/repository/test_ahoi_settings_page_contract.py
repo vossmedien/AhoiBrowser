@@ -4,7 +4,7 @@ import unittest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PATCH = ROOT / "patches/chromium/0001-ahoi-m152-integration-seams.patch"
+PATCH = ROOT / "patches/chromium/0001-ahoi-m153-integration-seams.patch"
 STANDARD_IMPORT_PATCH = (
     ROOT / "patches/chromium/0013-ahoi-standard-import-surface.patch"
 )

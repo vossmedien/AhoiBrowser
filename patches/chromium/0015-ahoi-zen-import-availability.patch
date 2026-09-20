@@ -1,7 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index fe4a7f2d9bf0b5d33185cea7342f73d58db6b6dc..51db695b1d46faa67014c65b985b9cd9e20ec0e3 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20161,6 +20161,9 @@
+@@ -20403,6 +20403,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES" desc="Text preceding the number of Arc workspaces skipped by the selected conflict policy." meaning="AhoiBrowser Arc import">Skipped workspaces:</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE" desc="Text preceding the number of imported four-pane layouts whose ratios required a bounded approximation." meaning="AhoiBrowser Arc import">Four-pane ratios approximated:</message>
  
@@ -12,9 +13,10 @@ diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources
      <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
        AhoiBrowser
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index 9ca6b9888808fec059ce58997100b808b13a494d..6c19f414d29f51132ecff00f9eafd5026e6013ce 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11197,6 +11197,7 @@
+@@ -11223,6 +11223,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
  <translation id="8933186299020613227">Übersprungene Arbeitsbereiche:</translation>
  <translation id="4082790717577320066">Annähernd übernommene Vier-Pane-Verhältnisse:</translation>
@@ -23,6 +25,7 @@ diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resour
  <translation id="1323743597646662877">Geöffneter Tab</translation>
  <translation id="5052185113772701312">Schlafender Tab</translation>
 diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/importer_list.cc
+index 4504738f644abfea5a6ff66bb7d9bc76fb9826fd..ba0d005d0d8223e50b192e2eef43a85e2ea1937e 100644
 --- a/chrome/browser/importer/importer_list.cc
 +++ b/chrome/browser/importer/importer_list.cc
 @@ -6,6 +6,9 @@
@@ -35,7 +38,7 @@ diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/
  #include "base/functional/bind.h"
  #include "base/task/task_traits.h"
  #include "base/task/thread_pool.h"
-@@ -158,13 +161,15 @@
+@@ -158,13 +161,15 @@ void DetectFirefoxProfiles(
    }
  }
  
@@ -53,7 +56,7 @@ diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/
  
    // The first run import will automatically take settings from the first
    // profile detected, which should be the user's current default.
-@@ -187,9 +192,31 @@
+@@ -187,9 +192,31 @@ std::vector<user_data_importer::SourceProfile> DetectSourceProfilesWorker(
  #else
    DetectFirefoxProfiles(locale, &profiles);
  #endif
@@ -86,7 +89,7 @@ diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/
  #endif
      user_data_importer::SourceProfile bookmarks_profile;
      bookmarks_profile.importer_name =
-@@ -197,9 +224,12 @@
+@@ -197,9 +224,12 @@ std::vector<user_data_importer::SourceProfile> DetectSourceProfilesWorker(
      bookmarks_profile.importer_type = user_data_importer::TYPE_BOOKMARKS_FILE;
      bookmarks_profile.services_supported = user_data_importer::FAVORITES;
      profiles.push_back(bookmarks_profile);
@@ -100,7 +103,7 @@ diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/
  }
  
  }  // namespace
-@@ -232,11 +262,25 @@
+@@ -232,11 +262,25 @@ const user_data_importer::SourceProfile& ImporterList::GetSourceProfileAt(
    return source_profiles_[index];
  }
  
@@ -129,6 +132,7 @@ diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/
    std::move(profiles_loaded_callback).Run();
  }
 diff --git a/chrome/browser/importer/importer_list.h b/chrome/browser/importer/importer_list.h
+index 214e01496eafc6480acce3c777e1249b5512597d..5f5ea5c97789d5a2866dbbe9ff8d4be5ffe19d5e 100644
 --- a/chrome/browser/importer/importer_list.h
 +++ b/chrome/browser/importer/importer_list.h
 @@ -15,6 +15,29 @@
@@ -161,7 +165,7 @@ diff --git a/chrome/browser/importer/importer_list.h b/chrome/browser/importer/i
  // ImporterList detects installed browsers and profiles via
  // DetectSourceProfilesWorker(). ImporterList lives on the UI thread.
  class ImporterList {
-@@ -48,15 +71,22 @@
+@@ -48,15 +71,22 @@ class ImporterList {
    const user_data_importer::SourceProfile& GetSourceProfileAt(
        size_t index) const;
  
@@ -188,9 +192,10 @@ diff --git a/chrome/browser/importer/importer_list.h b/chrome/browser/importer/i
    SEQUENCE_CHECKER(sequence_checker_);
  
 diff --git a/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts b/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
+index d94ab47f32a6252f42c0c743e030e2b131c39402..ca3c905618c5fb6c2992088ebd311365a15f65df 100644
 --- a/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
 +++ b/chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts
-@@ -10,6 +10,8 @@
+@@ -10,6 +10,8 @@ import {sendWithPromise} from 'chrome://resources/js/cr.js';
   * An object describing a source browser profile that may be imported.
   * The structure of this data must be kept in sync with C++ ImportDataHandler.
   */
@@ -199,7 +204,7 @@ diff --git a/chrome/browser/resources/settings/people_page/import_data_browser_p
  export interface BrowserProfile {
    name: string;
    index: number;
-@@ -19,7 +21,10 @@
+@@ -19,7 +21,10 @@ export interface BrowserProfile {
    passwords: boolean;
    search: boolean;
    autofillFormData: boolean;
@@ -211,78 +216,67 @@ diff --git a/chrome/browser/resources/settings/people_page/import_data_browser_p
  }
  
  /**
+diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.css b/chrome/browser/resources/settings/people_page/import_data_dialog.css
+index 35085c9fdf56643df7aa027baf06519b52cb95d7..175e7df24a3294d9032e20a383c8438e855bf35f 100644
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.css
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.css
+@@ -31,3 +31,7 @@
+ .md-select {
+   margin-top: 2px;
+ }
++
++#sourceDisabledReason {
++  color: var(--cr-secondary-text-color);
++}
 diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.html b/chrome/browser/resources/settings/people_page/import_data_dialog.html
+index 1f8703f2c87a243c6ccdd7dbd88cc5159b5ff62f..8b80c54722c103ac1978ecc2f77cfa032179edbf 100644
 --- a/chrome/browser/resources/settings/people_page/import_data_dialog.html
 +++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html
-@@ -21,6 +21,10 @@
-         margin-top: 2px;
-       }
- 
-+      #sourceDisabledReason {
-+        color: var(--cr-secondary-text-color);
-+      }
-+
-     </style>
-     <cr-dialog id="dialog" close-text="$i18n{close}"
-         ignore-popstate>
-@@ -45,12 +49,20 @@
-               disabled$="[[arcImportBusy_]]"
-               on-change="onBrowserProfileSelectionChange_">
-             <template is="dom-repeat" items="[[browserProfiles_]]">
--              <option value="[[item.index]]">
--                [[getProfileDisplayName_(item.name, item.profileName)]]
-+              <option value="[[item.index]]"
-+                  disabled$="[[isSourceUnavailable_(item.available)]]">
-+                [[getProfileDisplayName_(item.name, item.profileName,
-+                    item.disabledReason)]]
+@@ -23,12 +23,19 @@ import {ImportDataStatus} from './import_data_browser_proxy.js';
+               ?disabled="${this.arcImportBusy_}"
+               @change="${this.onBrowserProfileSelectionChange_}">
+             ${this.browserProfiles_.map(item => html`
+-              <option value="${item.index}">
+-                ${this.getProfileDisplayName_(item.name, item.profileName)}
++              <option value="${item.index}"
++                  ?disabled="${this.isSourceUnavailable_(item.available)}">
++                ${this.getProfileDisplayName_(
++                    item.name, item.profileName, item.disabledReason)}
                </option>
-             </template>
+             `)}
            </select>
--          <div hidden$="[[arcImportSelected_]]">
+-          <div ?hidden="${this.arcImportSelected_}">
 +          <div id="sourceDisabledReason" class="description" role="status"
 +              aria-live="polite"
-+              hidden$="[[!isSourceUnavailable_(selected_.available)]]">
-+            [[getSourceDisabledReason_(selected_.disabledReason)]]
++              ?hidden="${!this.isSourceUnavailable_(this.selected_.available)}">
++            ${this.getSourceDisabledReason_(this.selected_.disabledReason)}
 +          </div>
-+          <div hidden$="[[shouldHideStandardCategories_(
-+              arcImportSelected_, selected_.available)]]">
++          <div ?hidden="${this.shouldHideStandardCategories_()}">
              <div class="description">$i18n{importDescription}</div>
  
              <!--
-@@ -112,7 +124,7 @@
-                 importStatus_, arcImportSelected_)]]"
-             disabled="[[shouldDisableImport_(
-                 importStatus_, noImportDataTypeSelected_,
--                arcImportSelected_)]]"
-+                arcImportSelected_, selected_.available)]]"
-             on-click="onActionButtonClick_">
-           [[getActionButtonText_(selected_)]]
-         </cr-button>
 diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
+index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a650b1295c 100644
 --- a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
 +++ b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
-@@ -28,7 +28,11 @@
- import type {SettingsCheckboxElement} from '../controls/settings_checkbox.js';
+@@ -25,7 +25,7 @@ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
  
  import type {SettingsAhoiArcImportSectionElement} from './ahoi_arc_import_section.js';
 -import type {BrowserProfile, ImportDataBrowserProxy} from './import_data_browser_proxy.js';
-+import type {
-+  BrowserProfile,
-+  ImportDataBrowserProxy,
-+  ImportSourceDisabledReason,
-+} from './import_data_browser_proxy.js';
++import type {BrowserProfile, ImportDataBrowserProxy, ImportSourceDisabledReason,} from './import_data_browser_proxy.js';
  import {ImportDataBrowserProxyImpl, ImportDataStatus} from './import_data_browser_proxy.js';
- import {getTemplate} from './import_data_dialog.html.js';
- 
-@@ -40,6 +44,7 @@
-     done: CrButtonElement,
+ import {getCss} from './import_data_dialog.css.js';
+ import {getHtml} from './import_data_dialog.html.js';
+@@ -39,6 +39,7 @@ export interface SettingsImportDataDialogElement {
      import: CrButtonElement,
      successIcon: HTMLElement,
-+    sourceDisabledReason: HTMLElement,
      ahoiArcImport: SettingsAhoiArcImportSectionElement,
++    sourceDisabledReason: HTMLElement,
    };
  }
-@@ -139,6 +144,7 @@
+ 
+@@ -121,6 +122,7 @@ export class SettingsImportDataDialogElement extends
        // </if>
        this.browserProfiles_ = browserProfiles;
        this.selected_ = this.browserProfiles_[0];
@@ -290,31 +284,31 @@ diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
  
        // Show the dialog only after the browser profiles data is populated
        // to avoid UI flicker.
-@@ -154,20 +160,38 @@
-         });
+@@ -154,20 +156,38 @@ export class SettingsImportDataDialogElement extends
+     }
    }
  
--  private getProfileDisplayName_(name: string, profileName: string): string {
+-  protected getProfileDisplayName_(name: string, profileName: string): string {
 -    return profileName ? `${name} - ${profileName}` : name;
-+  private getProfileDisplayName_(
++  protected getProfileDisplayName_(
 +      name: string, profileName: string,
 +      disabledReason?: ImportSourceDisabledReason): string {
 +    const profileDisplayName = profileName ? `${name} - ${profileName}` : name;
 +    const reason = this.getSourceDisabledReason_(disabledReason);
 +    return reason ? `${profileDisplayName} — ${reason}` : profileDisplayName;
-   }
- 
-+  private getSourceDisabledReason_(
++  }
++
++  protected getSourceDisabledReason_(
 +      disabledReason?: ImportSourceDisabledReason): string {
 +    return disabledReason === 'sourceRunning' ?
 +        this.i18n('ahoiZenImportCloseSource') :
 +        '';
 +  }
 +
-+  private isSourceUnavailable_(available?: boolean): boolean {
++  protected isSourceUnavailable_(available?: boolean): boolean {
 +    return available === false;
-+  }
-+
+   }
+ 
    // <if expr="is_macosx">
    private createArcBrowserProfile_(): BrowserProfile {
      return {
@@ -331,17 +325,17 @@ diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
        profileName: '',
        search: false,
      };
-@@ -213,7 +237,8 @@
+@@ -212,7 +232,8 @@ export class SettingsImportDataDialogElement extends
    }
  
-   private onActionButtonClick_() {
+   protected onActionButtonClick_() {
 -    if (this.isArcImportSelected_()) {
 +    if (this.isArcImportSelected_() ||
-+        this.isSourceUnavailable_(this.selected_?.available)) {
++        this.isSourceUnavailable_(this.selected_.available)) {
        return;
      }
-     const checkboxes = this.shadowRoot!.querySelectorAll('settings-checkbox');
-@@ -224,7 +249,7 @@
+     const checkboxes = this.shadowRoot.querySelectorAll('settings-checkbox');
+@@ -223,7 +244,7 @@ export class SettingsImportDataDialogElement extends
        checkboxes.forEach(checkbox => {
          types[checkbox.pref!.key] = checkbox.checked && !checkbox.hidden;
        });
@@ -350,32 +344,33 @@ diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
      }
      checkboxes.forEach(checkbox => checkbox.sendPrefChange());
    }
-@@ -256,6 +281,11 @@
+@@ -255,6 +276,11 @@ export class SettingsImportDataDialogElement extends
          this.arcImportSelected_;
    }
  
-+  private shouldHideStandardCategories_(): boolean {
++  protected shouldHideStandardCategories_(): boolean {
 +    return this.arcImportSelected_ ||
-+        this.isSourceUnavailable_(this.selected_?.available);
++        this.isSourceUnavailable_(this.selected_.available);
 +  }
 +
-   private shouldHideDone_(): boolean {
+   protected shouldHideDone_(): boolean {
      return !this.hasImportStatus_(ImportDataStatus.SUCCEEDED) &&
          !this.arcImportComplete_;
-@@ -271,7 +301,8 @@
+@@ -270,7 +296,8 @@ export class SettingsImportDataDialogElement extends
     */
-   private shouldDisableImport_(): boolean {
+   protected shouldDisableImport_(): boolean {
      return this.hasImportStatus_(ImportDataStatus.IN_PROGRESS) ||
 -        this.noImportDataTypeSelected_ || this.arcImportSelected_;
 +        this.noImportDataTypeSelected_ || this.arcImportSelected_ ||
-+        this.isSourceUnavailable_(this.selected_?.available);
++        this.isSourceUnavailable_(this.selected_.available);
    }
  }
  
 diff --git a/chrome/browser/ui/webui/settings/import_data_handler.cc b/chrome/browser/ui/webui/settings/import_data_handler.cc
+index 07ad45a8be20ae3390f6fff34f7d17a8363d4019..647e801aaeddb3120d18f1e2f8d0b33ad3c559d4 100644
 --- a/chrome/browser/ui/webui/settings/import_data_handler.cc
 +++ b/chrome/browser/ui/webui/settings/import_data_handler.cc
-@@ -41,6 +41,8 @@
+@@ -41,6 +41,8 @@ namespace {
  const char kImportStatusInProgress[] = "inProgress";
  const char kImportStatusSucceeded[] = "succeeded";
  const char kImportStatusFailed[] = "failed";
@@ -384,7 +379,7 @@ diff --git a/chrome/browser/ui/webui/settings/import_data_handler.cc b/chrome/br
  }  // namespace
  
  ImportDataHandler::ImportDataHandler() : importer_host_(nullptr) {
-@@ -123,16 +125,18 @@
+@@ -123,16 +125,18 @@ void ImportDataHandler::HandleImportData(const base::ListValue& args) {
    CHECK_GE(list.size(), 2u);
  
    int browser_index = list[0].GetInt();
@@ -407,7 +402,7 @@ diff --git a/chrome/browser/ui/webui/settings/import_data_handler.cc b/chrome/br
    const base::DictValue& type_dict = types.GetDict();
    uint16_t selected_items = user_data_importer::NONE;
    if (*type_dict.FindBool(prefs::kImportDialogAutofillFormData)) {
-@@ -214,12 +218,26 @@
+@@ -214,12 +218,26 @@ void ImportDataHandler::SendBrowserProfileData(const std::string& callback_id) {
    for (size_t i = 0; i < importer_list_->count(); ++i) {
      const user_data_importer::SourceProfile& source_profile =
          importer_list_->GetSourceProfileAt(i);
@@ -435,9 +430,10 @@ diff --git a/chrome/browser/ui/webui/settings/import_data_handler.cc b/chrome/br
                          (browser_services & user_data_importer::HISTORY) != 0);
      browser_profile.Set(
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+index facdb20cde139c34459be0961b23fce94efa248f..8495c5c6fc2089932e2de11360aefc8c8fe9cd4e 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -667,6 +667,8 @@
+@@ -669,6 +669,8 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
         IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES},
        {"ahoiArcImportResultFourPane",
         IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE},
@@ -447,9 +443,10 @@ diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provide
        {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
        {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
 diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/settings/BUILD.gn
+index e1b1a96531a3ff93b6fe0f0a9b1c9f9b3fd1d8e2..c4ec2fd95e27c3b021a258b6943d832ad89d3703 100644
 --- a/chrome/test/data/webui/settings/BUILD.gn
 +++ b/chrome/test/data/webui/settings/BUILD.gn
-@@ -259,6 +259,7 @@
+@@ -258,6 +258,7 @@ build_webui_tests("build") {
    if (is_mac) {
      files += [
        "ahoi_arc_import_section_test.ts",
@@ -458,20 +455,19 @@ diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/s
      ]
    }
 diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
+index e5a01b841938db7e5fcfd70ee9a87b609f8ab3c5..af979672908ebcc60669d8772560adabcf8ea28d 100644
 --- a/chrome/test/data/webui/settings/settings_browsertest.cc
 +++ b/chrome/test/data/webui/settings/settings_browsertest.cc
-@@ -102,7 +102,13 @@
- 
- IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiPage) {
+@@ -104,6 +104,12 @@ IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiPage) {
    RunTest("settings/ahoi_page_test.js", "mocha.run()");
-+}
-+
+ }
+ 
 +#if BUILDFLAG(IS_MAC)
 +IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiZenImportAvailability) {
 +  RunTest("settings/ahoi_zen_import_availability_test.js", "mocha.run()");
- }
++}
 +#endif  // BUILDFLAG(IS_MAC)
- 
++
  IN_PROC_BROWSER_TEST_F(SettingsTest, GoogleServicesPage) {
    RunTest("settings/google_services_page_test.js", "mocha.run()");
-
+ }

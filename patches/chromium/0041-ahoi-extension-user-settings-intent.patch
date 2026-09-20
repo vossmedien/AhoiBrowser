@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc b/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc
-index f52cfce..c25c8dc 100644
+index f52cfce94e0bf3e208b079c4d21638e686b53c69..c25c8dc42a5907cec6c450b08426614b7f21ee68 100644
 --- a/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc
 +++ b/chrome/browser/extensions/api/management/chrome_management_api_delegate.cc
 @@ -212,6 +212,16 @@ void ChromeManagementAPIDelegate::DisableExtension(
@@ -20,7 +20,7 @@ index f52cfce..c25c8dc 100644
        source_extension, extension_id, disable_reason);
  }
 diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/browser/ui/extensions/extension_enable_flow.cc
-index c9c2be4..4e8e379 100644
+index c9c2be498297c2eb821281265b9e3390b0f0b9bd..4e8e379c392f68c8dd877b9157801db0bf68247f 100644
 --- a/chrome/browser/ui/extensions/extension_enable_flow.cc
 +++ b/chrome/browser/ui/extensions/extension_enable_flow.cc
 @@ -185,6 +185,13 @@ void ExtensionEnableFlow::CheckPermissionAndMaybePromptUser() {
@@ -49,7 +49,7 @@ index c9c2be4..4e8e379 100644
      if (!weak_this) {
        return;
 diff --git a/extensions/browser/api/management/management_api.cc b/extensions/browser/api/management/management_api.cc
-index d88571b..f8d36ee 100644
+index d88571b4a8eccfaa267b682f1415d5e152b23196..f8d36ee63060a5cf06fd77763ba50eeab1cc183f 100644
 --- a/extensions/browser/api/management/management_api.cc
 +++ b/extensions/browser/api/management/management_api.cc
 @@ -32,6 +32,7 @@
@@ -87,7 +87,7 @@ index d88571b..f8d36ee 100644
        Respond(NoArguments());
        break;
 diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_installer.cc
-index 75cc0ec..d2432af 100644
+index 75cc0ec7c10daaf58a18b16faa41bb908d587927..d2432af5b211c8419fa2ec793214e31205f3df9c 100644
 --- a/extensions/browser/crx_installer.cc
 +++ b/extensions/browser/crx_installer.cc
 @@ -1144,6 +1144,16 @@ void CrxInstaller::ReportSuccessFromUIThread() {
@@ -108,10 +108,10 @@ index 75cc0ec..d2432af 100644
      if (!browser_context_) {
        return;
 diff --git a/extensions/browser/extension_registrar.cc b/extensions/browser/extension_registrar.cc
-index f60f403..59efb6f 100644
+index 78d758970a34f3283671ac9c2c61a4480f6eb1f7..3327b74d468947ab3dbbb009184cb65d50f9f1db 100644
 --- a/extensions/browser/extension_registrar.cc
 +++ b/extensions/browser/extension_registrar.cc
-@@ -744,6 +744,11 @@ bool ExtensionRegistrar::UninstallExtension(
+@@ -742,6 +742,11 @@ bool ExtensionRegistrar::UninstallExtension(
      return false;
    }
  
@@ -123,7 +123,7 @@ index f60f403..59efb6f 100644
    // Prepare to uninstall the extension.
    delegate_->PreUninstallExtension(extension.get());
  
-@@ -1033,6 +1038,23 @@ bool ExtensionRegistrar::GrantPermissionsAndEnableExtension(
+@@ -1025,6 +1030,23 @@ bool ExtensionRegistrar::GrantPermissionsAndEnableExtension(
    return weak_this && IsExtensionEnabled(retained_extension->id());
  }
  
@@ -148,7 +148,7 @@ index f60f403..59efb6f 100644
      const ExtensionId& extension_id) {
    disable_flag_exempted_extensions_.insert(extension_id);
 diff --git a/extensions/browser/extension_registrar.h b/extensions/browser/extension_registrar.h
-index 54df48e..77a6b0e 100644
+index a8427f3bc57972de8f8edfd26df5b855749c4764..7db357d78207d72c558af850a5bbbe4452b321e3 100644
 --- a/extensions/browser/extension_registrar.h
 +++ b/extensions/browser/extension_registrar.h
 @@ -9,6 +9,7 @@
@@ -177,7 +177,7 @@ index 54df48e..77a6b0e 100644
    // Marks `extension` as disabled and deactivates it. The ExtensionRegistry
    // retains a reference to it, so it can be enabled later.
    void DisableExtension(const ExtensionId& extension_id,
-@@ -521,6 +533,10 @@ class ExtensionRegistrar : public KeyedService,
+@@ -516,6 +528,10 @@ class ExtensionRegistrar : public KeyedService,
    base::ScopedObservation<DelayedInstallManager,
                            DelayedInstallManager::Observer>
        delayed_install_manager_observation_{this};

@@ -1,5 +1,5 @@
 # One relative patch path per line. Blank lines and comments are ignored.
-0001-ahoi-m152-integration-seams.patch
+0001-ahoi-m153-integration-seams.patch
 0002-ahoi-deterministic-platform-tests.patch
 0003-ahoi-upstream-page-load-tracing-test-isolation.patch
 0004-ahoi-lean-profile-compose-guards.patch

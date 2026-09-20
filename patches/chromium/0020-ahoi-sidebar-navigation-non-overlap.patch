@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index 5edbf45ac58913cf260d3df415cc9bde7a17cb15..e89b7e0d2cb9e7139aa91ae66f2a8a87965360ce 100644
+index 8459249c31a9f9d8c2ebf158ef2c1d1fda0369eb..870111fadc84f6452fa75a4c516e70d82d2741eb 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -380,7 +380,8 @@ BrowserViewTabbedLayoutImpl::CalculateHorizontalLayout(
+@@ -382,7 +382,8 @@ BrowserViewTabbedLayoutImpl::CalculateHorizontalLayout(
      // A hidden Ahoi sidebar contributes no viewport width. Keeping the native
      // region in the hierarchy lets the BrowserView restore it through the
      // keyboard/accessibility path without creating a second host surface.
@@ -12,10 +12,10 @@ index 5edbf45ac58913cf260d3df415cc9bde7a17cb15..e89b7e0d2cb9e7139aa91ae66f2a8a87
        min_vertical_tab_strip_width = 0;
        preferred_vertical_tab_strip_width = 0;
      }
-@@ -783,12 +784,18 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
-       if (adjust_for_cracking) {
-         inset_amount -= 1;
-       }
+@@ -774,12 +775,18 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+ 
+       const int inset_amount = horizontal_layout.vertical_tab_strip_width -
+                                GetVerticalTabStripContentOverlap();
 +      const bool is_ahoi_shell = IsAhoiShell(views());
        const bool reserve_sidebar_space =
 -          !IsAhoiShell(views()) ||
@@ -33,7 +33,7 @@ index 5edbf45ac58913cf260d3df415cc9bde7a17cb15..e89b7e0d2cb9e7139aa91ae66f2a8a87
        if (reserve_sidebar_space) {
          params.InsetHorizontal(inset_amount, /*leading=*/true);
        }
-@@ -1321,6 +1328,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+@@ -1308,6 +1315,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
      ProposedLayout& layout,
      BrowserLayoutParams params,
      bool needs_exclusion) const {
@@ -42,21 +42,21 @@ index 5edbf45ac58913cf260d3df415cc9bde7a17cb15..e89b7e0d2cb9e7139aa91ae66f2a8a87
 +    // they are hard obstructions for browser chrome. Move the complete top
 +    // container past the mounted card, including its outgoing animation; the
 +    // normal toolbar inset below then supplies the visual gap.
-+    params.InsetHorizontal(views()
-+                               .vertical_tab_strip_region_view
-+                               ->GetAhoiSidebarLeadingObstructionForLayout(
-+                                   layout_data_->horizontal_layout
-+                                       .vertical_tab_strip_width),
-+                           /*leading=*/true);
++    params.InsetHorizontal(
++        views()
++            .vertical_tab_strip_region_view
++            ->GetAhoiSidebarLeadingObstructionForLayout(
++                layout_data_->horizontal_layout.vertical_tab_strip_width),
++        /*leading=*/true);
 +  }
    const int original_top = params.visual_client_area.y();
  
    if (IsParentedTo(views().horizontal_tab_strip_region_view,
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 75c1da970d16a840e810eaab69ef20e77478a20a..798f7df93125a4a751376967e9cb213429a8aa9d 100644
+index cdd8796150259b24bc463174fa85278966edd2d1..d4ebd41dc5466982e772d6aa1fda50ce0c3f87c9 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-@@ -86,10 +86,15 @@ constexpr int kCollapsedResizeAreaWidth = 2;
+@@ -88,10 +88,15 @@ constexpr int kCollapsedResizeAreaWidth = 2;
  constexpr int kKeyboardResizeWidth = 50;
  constexpr int kSnapDistance = 15;
  
@@ -74,7 +74,7 @@ index 75c1da970d16a840e810eaab69ef20e77478a20a..798f7df93125a4a751376967e9cb2134
                               ahoi::visual_style::kFloatingSidebarOuterInset,
                               ahoi::visual_style::kFloatingSidebarTrailingInset);
    }
-@@ -384,10 +389,13 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarPresentation() {
+@@ -391,10 +396,13 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarPresentation() {
      ahoi_sidebar_visual_floating_ =
          ahoi_sidebar_edge_revealed_ ||
          ahoi::sidebar::IsFloating(ahoi_sidebar_presentation_mode_);
@@ -90,7 +90,7 @@ index 75c1da970d16a840e810eaab69ef20e77478a20a..798f7df93125a4a751376967e9cb2134
  
    if (!ahoi_sidebar_presentation_initialized_) {
      ahoi_sidebar_presentation_initialized_ = true;
-@@ -451,6 +459,7 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+@@ -458,6 +466,7 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
    ahoi_sidebar_presentation_animator_.Reset(true);
    ahoi_sidebar_presentation_initialized_ = false;
    ahoi_sidebar_visual_floating_ = false;
@@ -98,7 +98,7 @@ index 75c1da970d16a840e810eaab69ef20e77478a20a..798f7df93125a4a751376967e9cb2134
    resize_area_->SetVisible(!state_controller_->IsCollapsed() ||
                             !state_controller_->IsExpandOnHoverEnabled() ||
                             resize_area_->is_resizing());
-@@ -482,6 +491,20 @@ bool VerticalTabStripRegionView::IsAhoiSidebarHidden() const {
+@@ -489,6 +498,20 @@ bool VerticalTabStripRegionView::IsAhoiSidebarHidden() const {
           !ahoi::sidebar::IsVisible(ahoi_sidebar_presentation_mode_);
  }
  
@@ -119,7 +119,7 @@ index 75c1da970d16a840e810eaab69ef20e77478a20a..798f7df93125a4a751376967e9cb2134
  bool VerticalTabStripRegionView::IsAnimatingSize() const {
    return BrowserAnimationController::From(browser_view()->browser())
        ->IsAnimating(TabStripAnimations::kVerticalTabStrip);
-@@ -602,8 +625,10 @@ void VerticalTabStripRegionView::SetToolbarHeightForLayout(int toolbar_height) {
+@@ -609,8 +632,10 @@ void VerticalTabStripRegionView::SetToolbarHeightForLayout(int toolbar_height) {
    top_button_container_->SetToolbarHeightForLayout(toolbar_height);
    if (ahoi_sidebar_tree_view_) {
      ahoi_sidebar_tree_view_->SetProperty(
@@ -133,10 +133,10 @@ index 75c1da970d16a840e810eaab69ef20e77478a20a..798f7df93125a4a751376967e9cb2134
    }
  }
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
-index dfa39e0dcb88988dfb357e2cfa104d4e11ed2554..6cf004765a051b1e87a34c838056b04b71a377ef 100644
+index 0f48009bc62e242904c435d63fcb52f7601d9458..1f7503ffa0746bc0e8f36a06245903409be81715 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
-@@ -114,6 +114,14 @@ class VerticalTabStripRegionView final
+@@ -115,6 +115,14 @@ class VerticalTabStripRegionView final
    bool IsAhoiSidebarFloating() const;
    bool IsAhoiSidebarHidden() const;
    bool IsAhoiSidebarEdgeRevealed() const { return ahoi_sidebar_edge_revealed_; }
@@ -151,7 +151,7 @@ index dfa39e0dcb88988dfb357e2cfa104d4e11ed2554..6cf004765a051b1e87a34c838056b04b
    // Temporarily reveals a persisted hidden sidebar as an overlay. This state
    // is window-local and must never mutate the profile presentation pref.
    void SetAhoiSidebarEdgeRevealed(bool revealed);
-@@ -290,6 +298,7 @@ class VerticalTabStripRegionView final
+@@ -296,6 +304,7 @@ class VerticalTabStripRegionView final
        ahoi::sidebar::SidebarPresentationMode::kDocked;
    bool ahoi_sidebar_edge_revealed_ = false;
    bool ahoi_sidebar_visual_floating_ = false;

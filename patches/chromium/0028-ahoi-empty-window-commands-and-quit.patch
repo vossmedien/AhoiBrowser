@@ -1,7 +1,10 @@
 diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+index 99101ebc5729963e7fa3761e11f7ebfdb8ac84f1..70270d303073ca5736a6ccb241dd8a00447a8d1d 100644
 --- a/chrome/browser/ui/browser_command_controller.cc
 +++ b/chrome/browser/ui/browser_command_controller.cc
-@@ -635,3 +635,23 @@
+@@ -646,7 +646,27 @@ bool BrowserCommandController::ExecuteCommandWithDispositionAndContext(
+   // crashes, e.g. from Windows sending WM_COMMANDs at random times during
+   // window construction.  This probably could use closer examination someday.
    if (browser_->tab_strip_model()->active_index() == TabStripModel::kNoTab) {
 -    return true;
 +    // Ahoi keeps normal windows alive with no selected tab. Only commands
@@ -26,13 +29,20 @@ diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui
 +        return true;
 +    }
    }
+ 
+   DCHECK(IsCommandEnabled(id)) << "Invalid/disabled command " << id;
 diff --git a/chrome/browser/ui/cocoa/confirm_quit.cc b/chrome/browser/ui/cocoa/confirm_quit.cc
+index e28f7554e2783428124eb4a0f65763572b56c078..f14e096068b55d30a178a4c550602972a93b7c62 100644
 --- a/chrome/browser/ui/cocoa/confirm_quit.cc
 +++ b/chrome/browser/ui/cocoa/confirm_quit.cc
-@@ -17,3 +17,5 @@
+@@ -15,7 +15,9 @@ void RecordHistogram(ConfirmQuitMetric sample) {
+ }
+ 
  void RegisterLocalState(PrefRegistrySimple* registry) {
 -  registry->RegisterBooleanPref(prefs::kConfirmToQuitEnabled, true);
 +  // Ahoi follows the normal macOS short-Command-Q convention. This changes
 +  // only the default; an explicitly stored hold-to-quit choice is preserved.
 +  registry->RegisterBooleanPref(prefs::kConfirmToQuitEnabled, false);
  }
+ 
+ }  // namespace confirm_quit

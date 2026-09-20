@@ -1,8 +1,8 @@
 diff --git a/chrome/app/chromium_strings.grd b/chrome/app/chromium_strings.grd
-index eb7dcad69a..60aec1f0ec 100644
+index a741f89bf54c65b3b188def7b03270015356debe..73dc45020c477ff98f067f5bebe77643fb041214 100644
 --- a/chrome/app/chromium_strings.grd
 +++ b/chrome/app/chromium_strings.grd
-@@ -605,26 +605,26 @@ New bookmarks can’t be saved in your account until you delete some. If you sig
+@@ -608,26 +608,26 @@ New bookmarks can’t be saved in your account until you delete some. If you sig
        </if>
        <!-- Default Browser messages -->
        <message name="IDS_FR_CUSTOMIZE_DEFAULT_BROWSER" desc="Default browser checkbox label">
@@ -36,9 +36,9 @@ index eb7dcad69a..60aec1f0ec 100644
          </message>
        </if>
        <if expr="use_titlecase">
-@@ -796,46 +796,46 @@ Chromium is unable to recover your settings.
-         </message>
+@@ -857,46 +857,46 @@ Chromium is unable to recover your settings.
        </if>
+ 
        <message name="IDS_DEFAULT_BROWSER_INFOBAR_TEXT" desc="Text to show in an infobar when Chromium is not the current default browser.">
 -        Chromium isn't your default browser
 +        AhoiBrowser isn't your default browser
@@ -65,12 +65,12 @@ index eb7dcad69a..60aec1f0ec 100644
 +          Set AhoiBrowser as your default browser
          </message>
          <message name="IDS_DEFAULT_BROWSER_MODAL_BODY_WITHOUT_SETTINGS_ILLUSTRATION" desc="Body text of the default browser modal without settings illustration.">
--          Get easy access to the features you know, love, and trust by setting Chromium as your default browser.
-+          Get easy access to the features you know, love, and trust by setting AhoiBrowser as your default browser.
+-          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to Chromium.
++          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to AhoiBrowser.
          </message>
          <message name="IDS_DEFAULT_BROWSER_MODAL_BODY_WITHOUT_SETTINGS_ILLUSTRATION_UNPINNED" desc="Body text of the default browser modal without settings illustration when Chromium is not pinned to the taskbar.">
--          Get easy access to the features you know, love, and trust by setting Chromium as your default browser. Chromium will be pinned to your taskbar for quick access.
-+          Get easy access to the features you know, love, and trust by setting AhoiBrowser as your default browser. AhoiBrowser will be pinned to your taskbar for quick access.
+-          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to Chromium. Chromium will be pinned to your taskbar for quick access.
++          Keep your passwords, bookmarks, and history perfectly synced across devices. Easily access the features you know and love by updating your default browser to AhoiBrowser. AhoiBrowser will be pinned to your taskbar for quick access.
          </message>
          <message name="IDS_DEFAULT_BROWSER_BUBBLE_DIALOG_TITLE" desc="Title of the dialog prompting the user to set Chromium as the default browser.">
 -          Set Chromium as your default browser
@@ -96,7 +96,7 @@ index eb7dcad69a..60aec1f0ec 100644
          </message>
        </if>
        <if expr="enable_pdf">
-@@ -1601,7 +1601,7 @@ Chromium is unable to recover your settings.
+@@ -1684,7 +1684,7 @@ Chromium is unable to recover your settings.
        <!-- Mac First-run dialog messages -->
        <if expr="is_macosx">
          <message name="IDS_FIRSTRUN_DLG_MAC_SET_DEFAULT_BROWSER_LABEL" desc="Label for checkbox that sets the default browser">
@@ -105,7 +105,7 @@ index eb7dcad69a..60aec1f0ec 100644
          </message>
        </if>
  
-@@ -2551,36 +2551,36 @@ Chromium is unable to recover your settings.
+@@ -2639,36 +2639,36 @@ Chromium is unable to recover your settings.
  
          <!-- Default Browser Promo -->
          <message name="IDS_FRE_DEFAULT_BROWSER_TITLE" desc="Title for the page that prompts user to set Chromium as their default browser in the first run experience.">
@@ -153,7 +153,7 @@ index eb7dcad69a..60aec1f0ec 100644
  
          <!-- Profile switch IPH -->
 diff --git a/chrome/app/resources/chromium_strings_de.xtb b/chrome/app/resources/chromium_strings_de.xtb
-index 487d5747cb..13b0e21ddc 100644
+index 92097f9eb8569d6bdcfd2b54bdd699df0d6b3575..5b76d4e9099ebd8b4d387fe8e33415f278531a46 100644
 --- a/chrome/app/resources/chromium_strings_de.xtb
 +++ b/chrome/app/resources/chromium_strings_de.xtb
 @@ -40,14 +40,17 @@
@@ -174,16 +174,16 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="1574377791422810894">Sicherheitstools von Chromium</translation>
  <translation id="1594928384848033697">Chromium möchte deine Passwortmanager-Daten löschen. Gib dein Windows-Passwort ein, um dies zuzulassen.</translation>
  <translation id="1607715478322902680">{COUNT,plural, =0{Laut deinem Administrator musst du Chromium neu starten, um ein Update durchzuführen}=1{Laut deinem Administrator musst du Chromium neu starten, um ein Update durchzuführen. Dein Inkognitofenster wird nicht wieder geöffnet.}other{Laut deinem Administrator musst du Chromium neu starten, um ein Update durchzuführen. Deine # Inkognitofenster werden nicht wieder geöffnet.}}</translation>
-@@ -76,6 +79,7 @@
- <translation id="1862852878885210965">Mit der Bildersuche suchen</translation>
+@@ -77,6 +80,7 @@
+ <translation id="1863837059069884561"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in Chromium an. Du kannst dann auch auf deine Lesezeichen und weitere Daten von <ph name="DEVICE" /> zugreifen.</translation>
  <translation id="1880677175115548835">Text auswählen</translation>
  <translation id="1881322772814446296">Du meldest dich mit einem verwalteten Konto an und ermöglichst dessen Administrator Zugriff auf dein Chromium-Profil. Deine Chromium-Daten, wie Apps, Lesezeichen, Verlauf, Passwörter und andere Einstellungen, werden dauerhaft mit <ph name="USER_NAME" /> verknüpft. Du kannst diese Daten über das Google Konten-Dashboard löschen, aber nicht mit einem anderen Konto verknüpfen. Wenn du deine bestehenden Chromium-Daten getrennt verwenden möchtest, kannst du ein neues Profil erstellen. <ph name="LEARN_MORE" /></translation>
 +<translation id="1882797069634824530">AhoiBrowser als Standardbrowser festlegen und an die Taskleiste anpinnen</translation>
  <translation id="1896836275755235458">In Chromium wird der Akkuverbrauch reduziert, indem Hintergrundaktivitäten und visuelle Effekte wie optimiertes Scrollen und Video-Framerates eingeschränkt werden. <ph name="BEGIN_LINK" />Weitere Informationen zum Energiesparmodus<ph name="END_LINK" /></translation>
  <translation id="1900969832270057921">Chromium Updater Service</translation>
  <translation id="1911763535808217981">Wenn du diese Einstellung deaktivierst, kannst du dich auf Websites von Google wie beispielsweise Gmail anmelden, ohne dich auch in Chromium anmelden zu müssen</translation>
-@@ -153,7 +157,9 @@
- <translation id="2637732208198500597">{COUNT,plural, =0{Das erweiterte Sicherheitsprogramm erfordert, dass du Chromium neu startest, um ein Update durchzuführen}=1{Das erweiterte Sicherheitsprogramm erfordert, dass du Chromium neu startest, um ein Update durchzuführen. Dein Inkognitofenster wird nicht wieder geöffnet.}other{Das erweiterte Sicherheitsprogramm erfordert, dass du Chromium neu startest, um ein Update durchzuführen. Deine # Inkognitofenster werden nicht wieder geöffnet.}}</translation>
+@@ -156,7 +160,9 @@
+ <translation id="263863604136125912">Chromium starten</translation>
  <translation id="2648074677641340862">Während der Installation ist ein Fehler im Betriebssystem aufgetreten. Bitte lade Chromium erneut herunter.</translation>
  <translation id="2661879430930417727">Auf gemeinsam genutzten Geräten können die verschiedenen Nutzer separat surfen und Chromium jeweils nach ihren Wünschen einrichten</translation>
 +<translation id="2662211830026417309">AhoiBrowser als Standardbrowser festlegen</translation>
@@ -192,7 +192,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="2711502716910134313">Chromium-Tab</translation>
  <translation id="2718390899429598676">Chromium verschlüsselt deine Daten zur Erhöhung der Sicherheit.</translation>
  <translation id="2721354645805494590">Wenn du dein Google-Konto von Chromium entfernen möchtest, melde dich ab</translation>
-@@ -170,6 +176,7 @@
+@@ -173,6 +179,7 @@
  <translation id="2846251086934905009">Installationsfehler: Die Installation konnte nicht abgeschlossen werden und wurde abgebrochen.</translation>
  <translation id="2847479871509788944">Aus Chromium entfernen...</translation>
  <translation id="2850691299438350830">Schützt dich in Chromium und erhöht möglicherweise die Sicherheit in anderen Google-Apps, wenn du angemeldet bist.</translation>
@@ -200,7 +200,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="2885378588091291677">Task-Manager</translation>
  <translation id="2910007522516064972">Über &amp;Chromium</translation>
  <translation id="2915996080311180594">Später neu starten</translation>
-@@ -180,6 +187,7 @@
+@@ -183,6 +190,7 @@
  <translation id="2977470724722393594">Chromium ist auf dem neuesten Stand</translation>
  <translation id="2977506796191543575">Wenn eine Website versucht, dein Passwort zu stehlen, oder wenn du eine schädliche Datei herunterlädst, kann Chromium auch URLs, einschließlich Teile von Seiteninhalten, an Safe Browsing senden</translation>
  <translation id="2981563588585023386">Wenn du die von deinen Eltern festgelegten Einstellungen nutzen möchtest, um im Internet besser geschützt zu sein, melde dich in Chromium an</translation>
@@ -208,7 +208,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="3003694935412297923">Alle Tasks</translation>
  <translation id="3012615494352020668">{count,plural, =1{Chromium muss deine Identität bestätigen, damit einige Daten in deinem Google-Konto gespeichert und auf allen deinen Geräten verwendet werden können. Wenn du dich jetzt abmeldest, werden diese Daten (1 Element) gelöscht.}other{Chromium muss deine Identität bestätigen, damit einige Daten in deinem Google-Konto gespeichert und auf allen deinen Geräten verwendet werden können. Wenn du dich jetzt abmeldest, werden diese Daten ({count} Elemente) gelöscht.}}</translation>
  <translation id="3013473503895162900"><ph name="URL" /> in einem neuen Tab in Chromium öffnen.</translation>
-@@ -220,6 +228,7 @@
+@@ -223,6 +231,7 @@
  <translation id="3313189106987092621">Chromium warnt dich, bevor eine Website über eine unsichere Verbindung geladen wird</translation>
  <translation id="3316771292331273802">Wenn du alle Chromium-Fenster schließt, wirst du auf den meisten Websites abgemeldet – mit Ausnahme deines Google-Kontos, falls du in Chromium angemeldet bist. Wenn du möchtest, dass Websites dich wiedererkennen, <ph name="SETTINGS_LINK" />.</translation>
  <translation id="3352986031709923790">Rechte obere Ecke des Suchbereichs: rechts <ph name="RIGHT" /> %, oben <ph name="TOP" /> %</translation>
@@ -216,7 +216,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="3366305173356742781">Chromium-Daten in deinem Konto</translation>
  <translation id="3375770072980084583">Passwörter mit Chromium auf deinem Smartphone verwenden</translation>
  <translation id="3387527074123400161">Chromium OS</translation>
-@@ -269,6 +278,7 @@
+@@ -272,6 +281,7 @@
  <translation id="3954172517175569325">Deine Passwörter, Zahlungsmethoden und Adressen, die du in deinem Google-Konto gespeichert hast, werden von diesem Gerät entfernt. Wenn du sie in Zukunft in Chromium verwenden möchtest, melde dich einfach wieder an.</translation>
  <translation id="395904275706073188">Geschützte Seiten können nicht gelesen werden. Versuche es mit einer anderen Seite.</translation>
  <translation id="3962647064319009959">So trägt Chromium zu deinem Schutz bei</translation>
@@ -224,7 +224,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="3967822245660637423">Download abgeschlossen</translation>
  <translation id="3971865010372729242">Wenn du etwas in die Adressleiste oder das Suchfeld eingibst, sendet Chromium deine Eingabe an die Such-, KI- und Hilfetools deiner Organisation, um Vorschläge zu erhalten.</translation>
  <translation id="3975724895399328945">Über &amp;Google Chrome for Testing</translation>
-@@ -280,6 +290,7 @@
+@@ -283,6 +293,7 @@
  <translation id="4023601594785368013">Originalsprache: <ph name="LANGUAGE" /></translation>
  <translation id="4023845192681161785">Du kannst über jede App Links in Chromium öffnen. Außerdem wird Chromium für einen einfachen Zugriff an die Taskleiste angepinnt.</translation>
  <translation id="4036079820698952681">Hilf uns mit deinem Feedback zu den <ph name="BEGIN_LINK" />aktuellen Einstellungen<ph name="END_LINK" /> bei der Verbesserung von Chromium</translation>
@@ -232,7 +232,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="4050175100176540509">Wichtige Sicherheitsverbesserungen und neue Funktionen sind in der aktuellen Version verfügbar.</translation>
  <translation id="4055805654398742145">P&amp;asswortmanager</translation>
  <translation id="4095980151185649725">{COUNT,plural, =1{Deine Organisation hat festgelegt, dass Chromium automatisch geschlossen wird, wenn der Browser eine Minute lang nicht verwendet wird. Browserdaten werden gelöscht. Dazu können der Verlauf, Autofill-Daten und Downloads gehören.}other{Deine Organisation hat festgelegt, dass Chromium automatisch geschlossen wird, wenn der Browser # Minuten lang nicht verwendet wird. Browserdaten werden gelöscht. Dazu können der Verlauf, Autofill-Daten und Downloads gehören.}}</translation>
-@@ -334,6 +345,7 @@
+@@ -336,6 +347,7 @@
  <translation id="4621240073146040695">Fast fertig! Starte Chromium neu, um die Aktualisierung abzuschließen.</translation>
  <translation id="4625064703209785397">Websites werden mit der V8-Engine von Chromium beschleunigt, Chromium wird dadurch aber etwas anfälliger für Angriffe</translation>
  <translation id="4665829708273112819">Achtung: Chromium kann nicht verhindern, dass dein Browserverlauf von Erweiterungen protokolliert wird. Du kannst diese Erweiterung für den Inkognitomodus deaktivieren, indem du die Auswahl für die entsprechende Option aufhebst.</translation>
@@ -240,7 +240,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="4673151026126227699">Wenn du Chromium-Nutzungsberichte teilst, enthalten diese Berichte die von dir aufgerufenen URLs</translation>
  <translation id="4673710618874938871">Angemeldet als <ph name="USER_NAME" />, Abo. Kontomenü öffnen.</translation>
  <translation id="4677944499843243528">Das Profil wird offenbar gerade von einem Chromium-Prozess (<ph name="PROCESS_ID" />) auf einem anderen Computer (<ph name="HOST_NAME" />) verwendet. Das Profil wurde von Chromium gesperrt, damit es nicht beschädigt wird. Wenn du sicher bist, dass das Profil nicht von anderen Prozessen verwendet wird, kannst du das Profil entsperren und Chromium neu starten.</translation>
-@@ -376,6 +388,7 @@
+@@ -378,6 +390,7 @@
  <translation id="5294316920224716406">Wenn du im Inkognitomodus surfst, warnt Chromium dich, bevor eine Website über eine unsichere Verbindung geladen wird</translation>
  <translation id="5313228254328109263">Chromium Updater Internal Service</translation>
  <translation id="5324450571874973775">Du kannst sie zusammen mit anderen Gemini-Funktionen in Chromium verwenden</translation>
@@ -248,7 +248,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="5346389065299425353">Die Suche verfeinern, indem du mehrere Tabs, Dateien und Tools hinzufügst</translation>
  <translation id="5348677704241861105">Mit Gemini in Chromium eine schnelle Übersicht über dieses Dokument erhalten und Fragen dazu stellen</translation>
  <translation id="5352264705793813212">Chromium hat einige Sicherheitsempfehlungen gefunden, die du überprüfen solltest</translation>
-@@ -397,6 +410,7 @@
+@@ -399,6 +412,7 @@
  <translation id="549669000822060376">Bitte warte, bis die aktuellen Systemupdates von Chromium installiert wurden.</translation>
  <translation id="5496810170689441661">Chromium versucht, Passwörter zu bearbeiten. Gib dein Windows-Passwort ein, um dies zuzulassen.</translation>
  <translation id="549975168243349205">Mit Chromium kannst du unterwegs nahtlos mit deinen bevorzugten Apps wie Google Drive und YouTube arbeiten.</translation>
@@ -256,7 +256,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="5524890928877629608">Linke obere Ecke des Suchbereichs: links <ph name="LEFT" /> %, oben <ph name="TOP" /> %</translation>
  <translation id="5527463683072221100">PDFs in Chromium öffnen</translation>
  <translation id="5536164441519929134">Stelle eine Frage<ph name="LINE_BREAK" />zu diesem Tab</translation>
-@@ -430,6 +444,10 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
+@@ -433,6 +447,10 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
  <translation id="5889361821821684993">Chromium prüft regelmäßig, ob dein Browser die sichersten Einstellungen hat. Solltest du etwas überprüfen müssen, informieren wir dich.</translation>
  <translation id="5895138241574237353">Neu starten</translation>
  <translation id="5903106910045431592"><ph name="PAGE_TITLE" /> – Netzwerkanmeldung</translation>
@@ -267,7 +267,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="5924017743176219022">Internetverbindung wird hergestellt…</translation>
  <translation id="5939553720811388432">Lass uns Chromium für dich einrichten</translation>
  <translation id="5941711191222866238">Minimieren</translation>
-@@ -451,6 +469,7 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
+@@ -454,6 +472,7 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
  <translation id="6107893135096467929">Aktiviert • Chromium kann nicht bestätigen, woher diese Erweiterung stammt</translation>
  <translation id="611228897408671387">Mein Konto in Chromium</translation>
  <translation id="6119438414301547735">Zulassen, dass die Erweiterung Zugriffsanfragen in der Chromium-Symbolleiste anzeigt</translation>
@@ -275,7 +275,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="6129621093834146363"><ph name="FILE_NAME" /> ist schädlich und wurde daher von Chromium blockiert.</translation>
  <translation id="6132897690380286411">Browserdaten in Chromium werden bald gelöscht und der Browser geschlossen</translation>
  <translation id="6145820983052037069">Hier kannst du zwischen Chromium-Profilen wechseln</translation>
-@@ -487,6 +506,7 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
+@@ -490,6 +509,7 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
  <translation id="6403826409255603130">Chromium ist ein Webbrowser, der Webseiten und Apps in Sekundenschnelle lädt und dabei äußerst stabil und nutzerfreundlich ist. Dank des integrierten Malware- und Phishing-Schutzes kannst du bedenkenlos im Internet surfen.</translation>
  <translation id="6414624068245092115">Damit du Chromium-Daten in deinem Google-Konto jederzeit verwenden und speichern kannst, bestätige deine Identität</translation>
  <translation id="642132557830635295">Chrome wird schneller ausgeführt und Funktionen, die JavaScript verwenden, sollten wie vorgesehen funktionieren (empfohlen)</translation>
@@ -283,7 +283,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="6436260184216827876">Die Bildersuche ist nicht verfügbar. Versuche es später noch einmal.</translation>
  <translation id="6442900851116057561">Chromium OS neu starten</translation>
  <translation id="6443470774889161065">Chromium lädt noch mehr Seiten vorab, die du wahrscheinlich besuchen wirst, sodass sie dann schneller zur Verfügung stehen</translation>
-@@ -558,6 +578,7 @@ Du kannst erst neue Lesezeichen in deinem Konto speichern, wenn du einige gelös
+@@ -561,6 +581,7 @@ Du kannst erst neue Lesezeichen in deinem Konto speichern, wenn du einige gelös
  <translation id="6964305034639999644">Link in Chromium-Inkognitofenster öffnen</translation>
  <translation id="6965382102122355670">OK</translation>
  <translation id="6985329841647292029">Chromium OS-Nutzungsbedingungen</translation>
@@ -291,7 +291,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="7003299027384820442">Gib deine Passphrase ein, um Chromium-Daten in deinem Konto <ph name="ACCOUNT_EMAIL" /> zu verwenden und zu speichern</translation>
  <translation id="7011190694940573312">Die Installation ist fehlgeschlagen, da diese Version des Betriebssystems nicht unterstützt wird.</translation>
  <translation id="7024536598735240744">Fehler beim Entpacken: <ph name="UNPACK_ERROR" />.</translation>
-@@ -568,12 +589,14 @@ Du kannst erst neue Lesezeichen in deinem Konto speichern, wenn du einige gelös
+@@ -571,12 +592,14 @@ Du kannst erst neue Lesezeichen in deinem Konto speichern, wenn du einige gelös
  <translation id="7074836723476134809">Mit der Chromium App auf deinem <ph name="DEVICE_TYPE" /> die Möglichkeiten von KI nutzen</translation>
  <translation id="7134687062119989071">Mit der Chromium App auf deinem Smartphone Passwörter, Tabs und andere Daten unterwegs nutzen</translation>
  <translation id="7141270731789036260">Chrome for Testing personalisieren</translation>
@@ -306,7 +306,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="7213008767289637091">Du kannst Chromium im Dock behalten, um jederzeit schnell darauf zugreifen zu können</translation>
  <translation id="7213407614656404070">Chromium immer verwenden, wenn du auf Links in Nachrichten, Dokumenten und anderen Apps klickst</translation>
  <translation id="7216228761061470870">Wenn du die Bildersuche auf dem Computer verwendest, werden der Seitentitel, die URL und der Inhalt, einschließlich PDFs, an den Server gesendet</translation>
-@@ -602,6 +625,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+@@ -605,6 +628,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
  <translation id="744815265653811511">1. Klicke unten auf <ph name="BUTTON_LABEL" />
  2. Klicke in den Windows-Einstellungen auf <ph name="BUTTON_2" />
  3. Klicke in der Windows-Benachrichtigung auf <ph name="BUTTON_3" />, um Chromium für den Schnellzugriff an die Taskleiste anzupinnen</translation>
@@ -314,7 +314,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="7449453770951226939"><ph name="PAGE_TITLE" /> – Chromium Dev</translation>
  <translation id="7450541714075000668">Text kopiert</translation>
  <translation id="7458892263350425044">Wenn du dein Mikrofon verwenden möchtest, erlaube Chromium über die <ph name="BEGIN_LINK" />Systemeinstellungen<ph name="END_LINK" /> den Zugriff darauf</translation>
-@@ -621,6 +645,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+@@ -624,6 +648,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
  <translation id="7649070708921625228">Hilfe</translation>
  <translation id="7650134251917003571">Chromium App herunterladen</translation>
  <translation id="7658239707568436148">Abbrechen</translation>
@@ -322,15 +322,15 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="7686590090926151193">Chromium ist nicht als dein Standardbrowser festgelegt</translation>
  <translation id="7689606757190482937">Chromium wird auf allen deinen Geräten synchronisiert und personalisiert</translation>
  <translation id="7699779824407626136">Chromium-Update</translation>
-@@ -648,6 +673,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
- <translation id="7888981273428720788">Chromium als Standardbrowser festlegen</translation>
+@@ -652,6 +677,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
  <translation id="7934340546140346950">Chromium stellt unsichere Verbindungen nach Möglichkeit automatisch auf HTTPS um</translation>
  <translation id="7937630085815544518">Du warst in Chromium als <ph name="USER_EMAIL_ADDRESS" /> angemeldet. Melde dich bitte wieder mit demselben Konto an.</translation>
+ <translation id="7944602660083060118"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in Chromium an. Du kannst dann auch auf allen deinen Geräten auf deine Lesezeichen und weitere Daten zugreifen.</translation>
 +<translation id="7968956491425954239">AhoiBrowser kann den Standardbrowser nicht bestimmen oder festlegen</translation>
  <translation id="7975919845073681630">Dies ist eine Zweitinstallation, daher kann Chromium nicht als Standardbrowser festgelegt werden.</translation>
  <translation id="7997934263947464652">Erweiterungen, Apps und Designs aus unbekannten Quellen können Schäden auf deinem Gerät verursachen. Chromium empfiehlt, sie nur über den <ph name="IDS_EXTENSION_WEB_STORE_TITLE" /> zu installieren.</translation>
  <translation id="8000759043835159571">Mit der Chromium App auf deinem <ph name="DEVICE_TYPE" /> das Beste von Google nutzen</translation>
-@@ -669,11 +695,13 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+@@ -673,11 +699,13 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
  <translation id="8130609355518033382">Chromium personalisieren</translation>
  <translation id="8133124826068723441">Chromium OS konnte deine Daten nicht synchronisieren, da die Synchronisierung für deine Domain nicht verfügbar ist.</translation>
  <translation id="813913629614996137">Initialisierung…</translation>
@@ -344,7 +344,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="8221491193165283816">Normalerweise blockierst du Benachrichtigungen. Klicke hier, wenn du von dieser Website Benachrichtigungen erhalten möchtest.</translation>
  <translation id="8223363452568144035">Wenn du deine Kamera verwenden möchtest, erlaube Chromium über die <ph name="BEGIN_LINK" />Systemeinstellungen<ph name="END_LINK" /> den Zugriff darauf</translation>
  <translation id="8232193495299001329">Chromium kann nicht überprüfen, woher diese Erweiterung stammt. Sie könnte unsicher sein. Entferne sie aus Chromium, damit sie deine Daten auf von dir besuchten Websites nicht mehr abrufen oder ändern kann, auch nicht personenbezogene Daten.</translation>
-@@ -719,9 +747,11 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+@@ -725,9 +753,11 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
  <translation id="8576826849825683917">Chromium wird von mehreren Organisationen verwaltet</translation>
  <translation id="8586442755830160949">Copyright <ph name="YEAR" /> Die Chromium-Autoren. Alle Rechte vorbehalten.</translation>
  <translation id="8601359445272098721">Neu! Du kannst sowohl Text als auch Bilder auf deinem Bildschirm übersetzen, indem du den Button „Bildschirm übersetzen“ auswählst</translation>
@@ -356,7 +356,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="8697124171261953979">Die Erweiterung legt auch fest, welche Seite beim Start von Chromium oder bei der Suche über die Omnibox angezeigt wird.</translation>
  <translation id="8704119203788522458">Dies ist dein persönlicher Chromium-Browser</translation>
  <translation id="8712637175834984815">Ok</translation>
-@@ -762,6 +792,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+@@ -768,6 +798,7 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
  <translation id="9053882453960391422">Passwörter, Lesezeichen und Verlauf werden auf allen Geräten synchronisiert. Wenn du deinen Standardbrowser auf Chromium aktualisierst, kannst du ganz einfach auf die vertrauten Funktionen zugreifen. Chromium wird für den Schnellzugriff an die Taskleiste angepinnt.</translation>
  <translation id="9056398481763999048">Mit der Chromium App auf deinem Smartphone die besten KI-Tools von Google nutzen</translation>
  <translation id="9062666675513499497">In Chromium anmelden, wenn du dich in anderen Google-Diensten anmeldest</translation>
@@ -364,7 +364,7 @@ index 487d5747cb..13b0e21ddc 100644
  <translation id="9078733879136747090">Chromium wurde automatisch geschlossen</translation>
  <translation id="9089354809943900324">Chromium ist veraltet.</translation>
  <translation id="9093206154853821181">{0,plural, =1{Chromium wird in einer Stunde neu gestartet}other{Chromium wird in # Stunden neu gestartet}}</translation>
-@@ -786,4 +817,4 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+@@ -792,4 +823,4 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
  <translation id="985602178874221306">Die Chromium-Autoren</translation>
  <translation id="989970834842471429">Wähle einen beliebigen Text oder ein beliebiges Bild aus, um mit der Bildersuche zu suchen</translation>
  <translation id="992780518932311116">Wenn du deinen Standort verwenden möchtest, erlaube Chromium über die <ph name="BEGIN_LINK" />Systemeinstellungen<ph name="END_LINK" /> den Zugriff darauf</translation>
@@ -372,7 +372,7 @@ index 487d5747cb..13b0e21ddc 100644
 \ No newline at end of file
 +</translationbundle>
 diff --git a/chrome/app/settings_chromium_strings.grdp b/chrome/app/settings_chromium_strings.grdp
-index 0c1f37b3d0..34c4b74059 100644
+index 237b2a8517c3c1e20595dacbb543a33d758b6c01..2c958cee22c4b079806da382d10caf378220a532 100644
 --- a/chrome/app/settings_chromium_strings.grdp
 +++ b/chrome/app/settings_chromium_strings.grdp
 @@ -61,25 +61,25 @@
@@ -418,9 +418,10 @@ index 0c1f37b3d0..34c4b74059 100644
        </else>
      </if>
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 31735d0933f6903037d42e5328523ceab6a3deb3..4e29f4cce34f01fae2dcbb2d86f98b42e81e5ba9 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -736,17 +736,41 @@
+@@ -734,11 +734,23 @@ class AhoiQuickWindowGlobalShortcut
    AhoiQuickWindowGlobalShortcut& operator=(
        const AhoiQuickWindowGlobalShortcut&) = delete;
  
@@ -446,11 +447,10 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
      auto* listener = ui::GlobalAcceleratorListener::GetInstance();
      if (!listener) {
        return;
-     }
-     registered_ = listener->RegisterAccelerator(
+@@ -747,6 +759,18 @@ class AhoiQuickWindowGlobalShortcut
          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN), this);
-+  }
-+
+   }
+ 
 +  void Unregister() {
 +    if (!registered_) {
 +      return;
@@ -461,10 +461,12 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
 +          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN), this);
 +    }
 +    registered_ = false;
-   }
- 
++  }
++
    bool registered() const { return registered_; }
-@@ -756,8 +780,11 @@
+ 
+   bool Activate() {
+@@ -754,8 +778,11 @@ class AhoiQuickWindowGlobalShortcut
      if (!ahoi::quick_window::ShouldActivateQuickWindow(last_activation_, now)) {
        return true;
      }
@@ -477,7 +479,7 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
    }
  
    // ui::GlobalAcceleratorListener::Observer:
-@@ -778,7 +805,7 @@
+@@ -776,7 +803,7 @@ class AhoiQuickWindowGlobalShortcut
    AhoiQuickWindowGlobalShortcut() = default;
    ~AhoiQuickWindowGlobalShortcut() override = default;
  
@@ -486,7 +488,7 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
    bool registered_ = false;
    base::TimeTicks last_activation_;
  };
-@@ -1103,7 +1130,7 @@
+@@ -1101,7 +1128,7 @@ BrowserView::BrowserView(Browser* browser)
        browser_(browser) {
  #if BUILDFLAG(IS_MAC)
    if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile()) {
@@ -495,7 +497,7 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
    }
  #endif
    if (auto* manager = InitialWebUIWindowMetricsManager::From(browser_.get())) {
-@@ -1410,6 +1437,11 @@
+@@ -1401,6 +1428,11 @@ BrowserView::BrowserView(Browser* browser)
  }
  
  BrowserView::~BrowserView() {
@@ -507,8 +509,7 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
    ahoi_split_drop_controller_.reset();
    ahoi_command_bar_controller_.reset();
    ahoi_developer_toolkit_controller_.reset();
-@@ -6009,8 +6041,10 @@
- #if BUILDFLAG(IS_MAC)
+@@ -6044,7 +6076,9 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
    if (HandleAhoiSplitAccelerator(accelerator)) {
      return true;
    }
@@ -519,18 +520,19 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
        !AhoiQuickWindowGlobalShortcut::GetInstance()->registered() &&
        AhoiQuickWindowGlobalShortcut::GetInstance()->Activate()) {
      return true;
-@@ -6672,6 +6707,13 @@
+@@ -6772,7 +6806,14 @@ void BrowserView::LoadAccelerators() {
    focus_manager->RegisterAccelerator(
        ui::Accelerator(ui::VKEY_Z, ui::EF_COMMAND_DOWN),
        ui::AcceleratorManager::kHighPriority, this);
+-  if (!AhoiQuickWindowGlobalShortcut::GetInstance()->registered()) {
 +  const bool is_regular_ahoi_browser =
 +      browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
 +      !browser_->GetProfile()->IsOffTheRecord();
 +  if (is_regular_ahoi_browser) {
 +    AhoiQuickWindowGlobalShortcut::GetInstance()->EnsureRegistered();
 +  }
--  if (!AhoiQuickWindowGlobalShortcut::GetInstance()->registered()) {
 +  if (is_regular_ahoi_browser &&
 +      !AhoiQuickWindowGlobalShortcut::GetInstance()->registered()) {
      focus_manager->RegisterAccelerator(
          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),
+         ui::AcceleratorManager::kHighPriority, this);

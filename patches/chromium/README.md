@@ -1,10 +1,20 @@
-# Chromium M152 patch ledger
+# Chromium M153 patch ledger
 
 `series` is the authoritative application order. The active stack targets
-Chromium Mac Stable `152.0.7977.65` at
-`fc4d67f1788019a27e32511137ceccbd2fafdaaa`. A roll is accepted only when the
+Chromium Mac Stable `153.0.8010.53` at
+`792bf6722e73a45aa9e47c163b9901bdc17f3230`. A roll is accepted only when the
 overlay and every patch compose offline to one exact tree, the real checkout
 matches that tree, and the build/test evidence names the same commit.
+
+The20September rebase preserves43 ordered patches. Exact offline composition
+passes43/43 with no conflicts or already-upstream patches; result tree is
+`a83de08b4ed29927e7cd9e5093876a42be03c459`. Evidence:
+`artifacts/build/chromium-m153-preflight-20260920/final-patch-preflight.json`.
+This is SOURCE acceptance only, not compile/runtime/release acceptance. Original
+M152 descriptions below record patch intent, not today's API placement: popup
+callbacks now live in BrowserWebContentsDelegate, native window creation uses
+BrowserWindowInterface/CreateBrowserWindow, and the removed PrivacySandbox
+delegate is replaced by M153's native denial behavior rather than a shim.
 
 The superseded 21-patch M151 stack remains recoverable from
 `refs/ahoi/recovery/product-source-freeze-20260826-a3865fc6e9f8` and
@@ -162,7 +172,7 @@ as a second active patch stack.
 - **Rebase/removal:** narrow StorageFrontend seam; remove with0036 when upstream
   supplies the equivalent request and origin-bearing commit subscriptions.
 
-## `0001-ahoi-m152-integration-seams.patch`
+## `0001-ahoi-m153-integration-seams.patch`
 
 - **Owner:** AhoiBrowser project.
 - **Upstream baseline:** Chromium Mac Stable `152.0.7977.65` at the exact commit

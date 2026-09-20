@@ -1,19 +1,8 @@
-From f017a9d29542db0e200a6be200f0bc1bb5cfc90c Mon Sep 17 00:00:00 2001
-From: vossmedien <christian@vossmedien.de>
-Date: Mon, 31 Aug 2026 11:52:34 +0200
-Subject: [PATCH] patch: synchronize sidebar presentation geometry
-
----
- .../layout/browser_view_tabbed_layout_impl.cc |  85 +++++++++------
- .../frame/vertical_tab_strip_region_view.cc   | 100 +++++++++++++++---
- .../frame/vertical_tab_strip_region_view.h    |  18 +++-
- 3 files changed, 157 insertions(+), 46 deletions(-)
-
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index e89b7e0d2c..5490f19898 100644
+index 870111fadc84f6452fa75a4c516e70d82d2741eb..ce2a751243cde446c3f107375b93fd0293957a25 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -44,6 +44,7 @@
+@@ -45,6 +45,7 @@
  #include "ui/gfx/geometry/outsets.h"
  #include "ui/gfx/geometry/rounded_corners_f.h"
  #include "ui/gfx/geometry/size.h"
@@ -21,9 +10,9 @@ index e89b7e0d2c..5490f19898 100644
  #include "ui/views/controls/separator.h"
  #include "ui/views/view_class_properties.h"
  #include "ui/views/view_utils.h"
-@@ -785,19 +786,16 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
-         inset_amount -= 1;
-       }
+@@ -776,19 +777,16 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+       const int inset_amount = horizontal_layout.vertical_tab_strip_width -
+                                GetVerticalTabStripContentOverlap();
        const bool is_ahoi_shell = IsAhoiShell(views());
 -      const bool reserve_sidebar_space =
 -          !is_ahoi_shell ||
@@ -50,7 +39,7 @@ index e89b7e0d2c..5490f19898 100644
        }
  
        // Let the vertical tab strip animate out over the content.
-@@ -1140,7 +1138,10 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1127,7 +1125,10 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
    // bounds. This is to make optimizations during animations e.g. avoid
    // repositioning status bubble.
    views().multi_contents_view->SetIsAnimatingContent(
@@ -62,7 +51,7 @@ index e89b7e0d2c..5490f19898 100644
  
    // Lay out contents container. The contents container contains the multi-
    // contents view when multi-contents are enabled. The checks here are to
-@@ -1175,7 +1176,12 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1161,7 +1162,12 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
    // hit testing in sync with the pixels the user actually sees.
    if (uses_ahoi_content_card) {
      contents_layout.bounds.Inset(
@@ -76,7 +65,7 @@ index e89b7e0d2c..5490f19898 100644
    }
  
    // Maybe expand and clip the web contents to avoid issues during animation.
-@@ -1328,17 +1334,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+@@ -1315,15 +1321,16 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
      ProposedLayout& layout,
      BrowserLayoutParams params,
      bool needs_exclusion) const {
@@ -87,25 +76,18 @@ index e89b7e0d2c..5490f19898 100644
 -    // they are hard obstructions for browser chrome. Move the complete top
 -    // container past the mounted card, including its outgoing animation; the
 -    // normal toolbar inset below then supplies the visual gap.
--    params.InsetHorizontal(views()
--                               .vertical_tab_strip_region_view
--                               ->GetAhoiSidebarLeadingObstructionForLayout(
--                                   layout_data_->horizontal_layout
--                                       .vertical_tab_strip_width),
--                           /*leading=*/true);
 +    // are hard obstructions for browser chrome. The visible extent follows the
 +    // card on every animation tick, so the navigation surface never overlaps
 +    // it and never retains a stale full-width gap after unmount.
-+    params.InsetHorizontal(
-+        views()
-+            .vertical_tab_strip_region_view
+     params.InsetHorizontal(
+         views()
+             .vertical_tab_strip_region_view
+-            ->GetAhoiSidebarLeadingObstructionForLayout(
 +            ->GetAhoiSidebarVisibleExtentForLayout(
-+                layout_data_->horizontal_layout.vertical_tab_strip_width),
-+        /*leading=*/true);
+                 layout_data_->horizontal_layout.vertical_tab_strip_width),
+         /*leading=*/true);
    }
-   const int original_top = params.visual_client_area.y();
- 
-@@ -1615,12 +1622,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+@@ -1600,12 +1607,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
      // overlay boundary remains legible over arbitrary page content. The
      // region's existing shadow view is reused; this avoids introducing a
      // second host or a second composited WebContents surface.
@@ -130,7 +112,7 @@ index e89b7e0d2c..5490f19898 100644
      } else if (vertical_tabs_bottom_corner_amount > 0.0) {
        shadow_frame->SetShadowCornerRadius(vertical_tabs_bottom_corner_size);
        shadow_frame->SetShadowOpacity(vertical_tabs_bottom_corner_amount);
-@@ -1628,6 +1641,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+@@ -1613,6 +1626,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
      } else {
        shadow_frame->SetShadowVisible(false);
      }
@@ -150,7 +132,7 @@ index e89b7e0d2c..5490f19898 100644
      CustomCornersBackground::Outline vertical_tabs_outline;
      if (!IsAhoiShell(views())) {
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 798f7df931..a1eb76693a 100644
+index d4ebd41dc5466982e772d6aa1fda50ce0c3f87c9..8be5df2cd1de8bb4afa5a2697e3e5f24260428d0 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 @@ -16,6 +16,7 @@
@@ -161,7 +143,7 @@ index 798f7df931..a1eb76693a 100644
  #include "base/time/time.h"
  #include "chrome/browser/ui/actions/chrome_action_id.h"
  #include "chrome/browser/ui/animation/browser_animation_controller.h"
-@@ -413,27 +414,42 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarAnimationState() {
+@@ -420,27 +421,42 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarAnimationState() {
      return;
    }
  
@@ -212,7 +194,7 @@ index 798f7df931..a1eb76693a 100644
    }
    SetAhoiSidebarRoundedClip(ahoi_sidebar_visual_floating_ && keep_mounted);
    SchedulePaint();
-@@ -466,6 +482,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+@@ -473,6 +489,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
    SetCanProcessEventsWithinSubtree(true);
    layer()->SetOpacity(1.0f);
    layer()->SetTransform(gfx::Transform());
@@ -223,7 +205,7 @@ index 798f7df931..a1eb76693a 100644
    if (auto* background = this->background()->AsA<CustomCornersBackground>()) {
      background->SetVisible(true);
    }
-@@ -473,6 +493,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+@@ -480,6 +500,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
  
  void VerticalTabStripRegionView::OnSidebarPresentationAnimationUpdated() {
    ApplyAhoiSidebarAnimationState();
@@ -234,7 +216,7 @@ index 798f7df931..a1eb76693a 100644
    if (!ahoi_sidebar_presentation_animator_.is_animating()) {
      PreferredSizeChanged();
      InvalidateLayout();
-@@ -496,13 +520,61 @@ bool VerticalTabStripRegionView::ShouldKeepAhoiSidebarMountedForLayout() const {
+@@ -503,13 +527,61 @@ bool VerticalTabStripRegionView::ShouldKeepAhoiSidebarMountedForLayout() const {
           ahoi_sidebar_presentation_animator_.ShouldKeepSurfaceMounted();
  }
  
@@ -300,7 +282,7 @@ index 798f7df931..a1eb76693a 100644
  }
  
  bool VerticalTabStripRegionView::IsAnimatingSize() const {
-@@ -702,6 +774,10 @@ void VerticalTabStripRegionView::Layout(PassKey) {
+@@ -709,6 +781,10 @@ void VerticalTabStripRegionView::Layout(PassKey) {
                                     sidebar_bounds.y(), resize_area_width_,
                                     sidebar_bounds.height());
    }
@@ -312,10 +294,10 @@ index 798f7df931..a1eb76693a 100644
    if (IsAhoiSidebarFloating() && ahoi_sidebar_tree_view_) {
      // The shadow follows the inset Ahoi surface, not the full native region.
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
-index 6cf004765a..478383591c 100644
+index 1f7503ffa0746bc0e8f36a06245903409be81715..4158356c5c8f87c97e0acfeacfa64b0a4283b344 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
-@@ -118,10 +118,20 @@ class VerticalTabStripRegionView final
+@@ -119,10 +119,20 @@ class VerticalTabStripRegionView final
    // layout. This deliberately remains true through the outgoing compositor
    // animation so adjacent browser chrome cannot move across the fading card.
    bool ShouldKeepAhoiSidebarMountedForLayout() const;
@@ -340,5 +322,3 @@ index 6cf004765a..478383591c 100644
    // Temporarily reveals a persisted hidden sidebar as an overlay. This state
    // is window-local and must never mutate the profile presentation pref.
    void SetAhoiSidebarEdgeRevealed(bool revealed);
--- 
-2.55.0

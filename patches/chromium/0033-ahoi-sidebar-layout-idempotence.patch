@@ -1,14 +1,9 @@
-From: AhoiBrowser Authors
-Subject: [PATCH] Do not invalidate the sidebar for unchanged layout inputs
-
-CalculateProposedLayout supplies the toolbar height on every pass. Preserve
-native top-container handling, but only update actual changed Ahoi margins and
-use the same during-layout propagation guard as Chromium's top container.
-
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
+index 388e7eaea97719379cb2897e1033605a28a9dbbb..e3ffd325a85815b5ae46459d6898c50f2b7a1884 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-@@ -706,12 +706,19 @@
+@@ -712,14 +712,21 @@ bool VerticalTabStripRegionView::IsPositionInWindowCaption(
+ 
  void VerticalTabStripRegionView::SetToolbarHeightForLayout(int toolbar_height) {
    toolbar_height_for_layout_ = std::max(0, toolbar_height);
 -  top_button_container_->SetToolbarHeightForLayout(toolbar_height);
@@ -16,13 +11,11 @@ diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/c
    if (ahoi_sidebar_tree_view_) {
 -    ahoi_sidebar_tree_view_->SetProperty(
 -        views::kMarginsKey,
--        GetAhoiSidebarMargins(ahoi_sidebar_visual_floating_,
--                              ahoi_sidebar_visual_edge_revealed_,
++    const gfx::Insets margins =
+         GetAhoiSidebarMargins(ahoi_sidebar_visual_floating_,
+                               ahoi_sidebar_visual_edge_revealed_,
 -                              toolbar_height_for_layout_));
 -    InvalidateLayout();
-+    const gfx::Insets margins =
-+        GetAhoiSidebarMargins(ahoi_sidebar_visual_floating_,
-+                              ahoi_sidebar_visual_edge_revealed_,
 +                              toolbar_height_for_layout_);
 +    const gfx::Insets* current =
 +        ahoi_sidebar_tree_view_->GetProperty(views::kMarginsKey);
@@ -35,3 +28,4 @@ diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/c
 +    InvalidateLayout(/*avoid_propagate_during_layout=*/true);
    }
  }
+ 

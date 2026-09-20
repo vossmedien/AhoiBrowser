@@ -1,7 +1,8 @@
 diff --git a/components/sessions/core/command_storage_manager.cc b/components/sessions/core/command_storage_manager.cc
+index cbc0bfc968a0fba8923e8ab27c3b9adfca788217..158b7ce52230f709da678f8881bdeedf64cceca7 100644
 --- a/components/sessions/core/command_storage_manager.cc
 +++ b/components/sessions/core/command_storage_manager.cc
-@@ -473,6 +473,9 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+@@ -473,8 +473,11 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
            base::BindOnce(
                &CommandStorageBackend::FlushAndReadCurrentSessionCommands,
                backend_.get()),
@@ -13,8 +14,9 @@ diff --git a/components/sessions/core/command_storage_manager.cc b/components/se
 +                  &CommandStorageManager::OnCurrentSessionReceiptRead,
 +                  weak_factory_.GetWeakPtr(), std::move(callback))));
        return;
-@@ -483,7 +486,10 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
-           base::BindOnce(
+     case EncryptSessionStorageStage::kWriteBothReadOnlyClear:
+     case EncryptSessionStorageStage::kWriteBothReadPreferEncrypted:
+@@ -484,8 +487,11 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
                &FlushAndReadDualBackends, backend_, encrypted_backend_,
                encrypt_stage ==
                    EncryptSessionStorageStage::kWriteBothReadPreferEncrypted),
@@ -26,7 +28,9 @@ diff --git a/components/sessions/core/command_storage_manager.cc b/components/se
 +                  &CommandStorageManager::OnCurrentSessionReceiptRead,
 +                  weak_factory_.GetWeakPtr(), std::move(callback))));
        return;
-@@ -493,6 +499,9 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
+     case EncryptSessionStorageStage::kWriteEncryptedReadPreferEncrypted:
+       backend_task_runner_->PostTaskAndReplyWithResult(
+@@ -493,8 +499,11 @@ void CommandStorageManager::SaveAndReadCurrentSessionCommands(
            base::BindOnce(
                &CommandStorageBackend::FlushAndReadCurrentSessionCommands,
                encrypted_backend_.get()),
@@ -38,3 +42,5 @@ diff --git a/components/sessions/core/command_storage_manager.cc b/components/se
 +                  &CommandStorageManager::OnCurrentSessionReceiptRead,
 +                  weak_factory_.GetWeakPtr(), std::move(callback))));
        return;
+   }
+ }

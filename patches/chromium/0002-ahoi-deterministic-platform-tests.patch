@@ -1,8 +1,8 @@
 diff --git a/components/autofill/core/browser/metrics/autofill_metrics_test_base.cc b/components/autofill/core/browser/metrics/autofill_metrics_test_base.cc
-index fd941bd7288f61d8a1f13f9030fbb930e0cab278..6307287b9cb9406ae082ca3004e20a1e8f3b23c9 100644
+index 316ba032f338440304c0dac52a00f21883f6ae4c..4502ff94c92cf0a7aca02fb13f8879aa49ad649e 100644
 --- a/components/autofill/core/browser/metrics/autofill_metrics_test_base.cc
 +++ b/components/autofill/core/browser/metrics/autofill_metrics_test_base.cc
-@@ -137,7 +137,7 @@ void AutofillMetricsBaseTest::InitAutofillClient() {
+@@ -134,7 +134,7 @@ void AutofillMetricsBaseTest::InitAutofillClient() {
  void AutofillMetricsBaseTest::SetUpHelper() {
    // Advance the mock clock to a fixed, arbitrary, somewhat recent date.
    base::Time year2020;

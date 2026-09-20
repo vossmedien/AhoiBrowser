@@ -6,7 +6,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCH_ROOT = ROOT / "patches/chromium"
-PATCH_PATH = PATCH_ROOT / "0001-ahoi-m152-integration-seams.patch"
+PATCH_PATH = PATCH_ROOT / "0001-ahoi-m153-integration-seams.patch"
 SERIES_PATH = PATCH_ROOT / "series"
 M152_COMMIT = "fc4d67f1788019a27e32511137ceccbd2fafdaaa"
 

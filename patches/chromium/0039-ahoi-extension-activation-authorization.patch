@@ -1,7 +1,8 @@
 diff --git a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc b/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
+index 9b76aa55907b17a1ac66f78ee51708a756277d57..f6995c27fc4f0cb030492dd6798b9b687c2c906a 100644
 --- a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
 +++ b/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
-@@ -379,6 +379,9 @@
+@@ -379,6 +379,9 @@ ChromeExtensionRegistrarDelegate::GetDisableReasonsOnInstalled(
      disable_reasons.erase(disable_reason::DISABLE_UPDATE_REQUIRED_BY_POLICY);
    }
  
@@ -11,7 +12,7 @@ diff --git a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc b/
    return disable_reasons;
  }
  
-@@ -387,6 +390,11 @@
+@@ -387,6 +390,11 @@ void ChromeExtensionRegistrarDelegate::OnExtensionInstalled(
      const syncer::StringOrdinal& page_ordinal,
      int install_flags,
      base::DictValue ruleset_install_prefs) {
@@ -23,7 +24,7 @@ diff --git a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc b/
    const std::string& id = extension->id();
    std::string install_parameter;
    auto* pending_extension_manager = PendingExtensionManager::Get(profile_);
-@@ -466,6 +474,11 @@
+@@ -466,6 +474,11 @@ void ChromeExtensionRegistrarDelegate::OnExtensionInstalled(
            std::move(ruleset_install_prefs));
        return;
      case InstallGate::DELAY:
@@ -36,9 +37,10 @@ diff --git a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc b/
            extension, {install_flags, delay_reason, page_ordinal,
                        install_parameter, std::move(ruleset_install_prefs)});
 diff --git a/chrome/browser/extensions/webstore_standalone_installer.cc b/chrome/browser/extensions/webstore_standalone_installer.cc
+index 2465fb793e284a380c4467c1886181df4ca0fd93..e49e7c144e678ce88c9a1caee65d97fbf39a0378 100644
 --- a/chrome/browser/extensions/webstore_standalone_installer.cc
 +++ b/chrome/browser/extensions/webstore_standalone_installer.cc
-@@ -198,6 +198,11 @@
+@@ -198,6 +198,11 @@ void WebstoreStandaloneInstaller::OnInstallPromptDone(
    DCHECK(payload.result == ExtensionInstallPrompt::Result::ACCEPTED);
  
    std::unique_ptr<InstallApproval> approval = CreateApproval();
@@ -50,7 +52,7 @@ diff --git a/chrome/browser/extensions/webstore_standalone_installer.cc b/chrome
  
    ExtensionRegistry* extension_registry = ExtensionRegistry::Get(profile_);
    const Extension* installed_extension =
-@@ -212,7 +217,13 @@
+@@ -212,9 +217,15 @@ void WebstoreStandaloneInstaller::OnInstallPromptDone(
        // Don't install a blocklisted extension.
        install_result = webstore_install::BLOCKLISTED;
        install_message = webstore_install::kExtensionIsBlocklisted;
@@ -65,7 +67,10 @@ diff --git a/chrome/browser/extensions/webstore_standalone_installer.cc b/chrome
 +        return;
 +      }
        extension_registrar->EnableExtension(id_);
+     }  // else extension is installed and enabled; no work to be done.
+ 
 diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/browser/ui/extensions/extension_enable_flow.cc
+index 4134275dcbc5304fac670e1fa06f1b4e2ca39107..c9c2be498297c2eb821281265b9e3390b0f0b9bd 100644
 --- a/chrome/browser/ui/extensions/extension_enable_flow.cc
 +++ b/chrome/browser/ui/extensions/extension_enable_flow.cc
 @@ -5,6 +5,7 @@
@@ -76,7 +81,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
  
  #include "base/check.h"
  #include "base/functional/bind.h"
-@@ -35,6 +36,38 @@
+@@ -35,6 +36,38 @@ ExtensionEnableFlow::ExtensionEnableFlow(Profile* profile,
  
  ExtensionEnableFlow::~ExtensionEnableFlow() = default;
  
@@ -115,7 +120,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
  void ExtensionEnableFlow::StartForWebContents(
      content::WebContents* parent_contents) {
    parent_contents_ = parent_contents;
-@@ -54,6 +87,10 @@
+@@ -54,6 +87,10 @@ void ExtensionEnableFlow::Start() {
  }
  
  void ExtensionEnableFlow::Run() {
@@ -126,7 +131,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
    extensions::ExtensionRegistry* registry =
        extensions::ExtensionRegistry::Get(profile_);
    const Extension* extension =
-@@ -66,8 +103,15 @@
+@@ -66,8 +103,15 @@ void ExtensionEnableFlow::Run() {
        return;
      }
      // If the app was terminated, reload it first.
@@ -142,7 +147,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
  
      // ReloadExtension reallocates the Extension object.
      extension = registry->disabled_extensions().GetByID(extension_id_);
-@@ -84,6 +128,9 @@
+@@ -84,6 +128,9 @@ void ExtensionEnableFlow::Run() {
  }
  
  void ExtensionEnableFlow::CheckPermissionAndMaybePromptUser() {
@@ -152,7 +157,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
    auto* system = extensions::ExtensionSystem::Get(profile_);
    auto* registrar = extensions::ExtensionRegistrar::Get(profile_);
    auto* registry = extensions::ExtensionRegistry::Get(profile_);
-@@ -134,7 +181,14 @@
+@@ -134,7 +181,14 @@ void ExtensionEnableFlow::CheckPermissionAndMaybePromptUser() {
    if (!prefs->DidExtensionEscalatePermissions(extension_id_)) {
      // Enable the extension immediately if its privileges weren't escalated.
      // This is a no-op if the extension was previously terminated.
@@ -167,7 +172,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
  
      DCHECK(registrar->IsExtensionEnabled(extension_id_));
      delegate_->ExtensionEnableFlowFinished();  // |delegate_| may delete us.
-@@ -219,11 +273,15 @@
+@@ -219,11 +273,15 @@ void ExtensionEnableFlow::OnExtensionUninstalled(
  }
  
  void ExtensionEnableFlow::EnableExtension() {
@@ -184,7 +189,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
        registry->disabled_extensions().GetByID(extension_id_);
    if (!extension) {
      delegate_->ExtensionEnableFlowAborted(
-@@ -239,13 +297,37 @@
+@@ -239,13 +297,37 @@ void ExtensionEnableFlow::EnableExtension() {
                  ->GetSupervisedUserExtensionsDelegate();
      CHECK(supervised_user_extensions_delegate);
      supervised_user_extensions_delegate->AddExtensionApproval(*extension);
@@ -224,9 +229,10 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.cc b/chrome/brow
    DCHECK(registrar->IsExtensionEnabled(extension_id_));
    delegate_->ExtensionEnableFlowFinished();  // |delegate_| may delete us.
 diff --git a/chrome/browser/ui/extensions/extension_enable_flow.h b/chrome/browser/ui/extensions/extension_enable_flow.h
+index 386e4541ab38f64dcf8d1e8551d94d84907dd8d7..cc3174f4d8d37b7a9473e69005ee3df3e44958fe 100644
 --- a/chrome/browser/ui/extensions/extension_enable_flow.h
 +++ b/chrome/browser/ui/extensions/extension_enable_flow.h
-@@ -55,6 +55,11 @@
+@@ -55,6 +55,11 @@ class ExtensionEnableFlow : public extensions::LoadErrorReporter::Observer,
    void StartForNativeWindow(gfx::NativeWindow parent_window);
    void Start();
  
@@ -238,7 +244,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.h b/chrome/brows
    const extensions::ExtensionId& extension_id() const { return extension_id_; }
  
    // LoadErrorReporter::Observer:
-@@ -68,6 +73,9 @@
+@@ -68,6 +73,9 @@ class ExtensionEnableFlow : public extensions::LoadErrorReporter::Observer,
    // load to finish before continuing the flow. Otherwise, calls
    // CheckPermissionAndMaybePromptUser finish the flow.
    void Run();
@@ -248,7 +254,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.h b/chrome/brows
  
    // Checks if there is permission escalation while the extension is
    // disabled/terminated. If no, enables the extension and notify |delegate_|
-@@ -111,6 +119,10 @@
+@@ -111,6 +119,10 @@ class ExtensionEnableFlow : public extensions::LoadErrorReporter::Observer,
  
    std::unique_ptr<ExtensionInstallPrompt> prompt_;
  
@@ -260,6 +266,7 @@ diff --git a/chrome/browser/ui/extensions/extension_enable_flow.h b/chrome/brows
    base::ScopedObservation<extensions::ExtensionRegistry,
                            extensions::ExtensionRegistryObserver>
 diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_installer.cc
+index f683c189470a2a9234398cdbde0833800877e764..75cc0ec7c10daaf58a18b16faa41bb908d587927 100644
 --- a/extensions/browser/crx_installer.cc
 +++ b/extensions/browser/crx_installer.cc
 @@ -33,6 +33,7 @@
@@ -278,7 +285,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
  #include "extensions/browser/permissions/permissions_updater.h"
  #include "extensions/browser/policy_check.h"
  #include "extensions/browser/preload_check_group.h"
-@@ -212,6 +214,10 @@
+@@ -212,6 +214,10 @@ CrxInstaller::CrxInstaller(content::BrowserContext* context,
    if (approval->bypassed_safebrowsing_friction) {
      install_flags_ = kInstallFlagBypassedSafeBrowsingFriction;
    }
@@ -289,7 +296,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
  }
  
  CrxInstaller::~CrxInstaller() {
-@@ -764,6 +770,12 @@
+@@ -764,6 +770,12 @@ void CrxInstaller::ConfirmInstall() {
      return;
    }
  
@@ -302,7 +309,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
    if (KioskModeInfo::IsKioskOnly(extension())) {
      bool in_kiosk_mode = false;
  #if BUILDFLAG(IS_CHROMEOS)
-@@ -829,13 +841,27 @@
+@@ -829,13 +841,27 @@ void CrxInstaller::OnInstallPromptDone(
          return;
        }
  
@@ -331,7 +338,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
        } else {
          WithholdingBehavior withholding_behavior =
              payload.result == ExtensionInstallPromptClient::Result::
-@@ -891,6 +917,11 @@
+@@ -891,6 +917,11 @@ void CrxInstaller::InitializeCreationFlagsForUpdate(const Extension* extension,
  
  void CrxInstaller::UpdateCreationFlagsAndCompleteInstall(
      WithholdingBehavior withholding_behavior) {
@@ -343,7 +350,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
    creation_flags_ = extension()->creation_flags() | Extension::REQUIRE_KEY;
    // If the extension was already installed and had file access, also grant file
    // access to the updated extension.
-@@ -931,6 +962,11 @@
+@@ -931,6 +962,11 @@ void CrxInstaller::CompleteInstall(
  
    ExtensionAssetsManager* assets_manager =
        ExtensionsBrowserClient::Get()->GetAssetsManager();
@@ -355,7 +362,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
    assets_manager->InstallExtension(
        extension(), unpacked_extension_root_, install_directory_,
        browser_context(),
-@@ -1027,18 +1063,50 @@
+@@ -1027,18 +1063,50 @@ void CrxInstaller::ReportSuccessFromSharedFileThread() {
    CleanupTempFiles();
  }
  
@@ -408,7 +415,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
        client_->OnInstallSuccess(extension_, install_icon_.get());
      }
  
-@@ -1050,6 +1118,11 @@
+@@ -1050,6 +1118,11 @@ void CrxInstaller::ReportSuccessFromUIThread() {
           expected_version_ == extension()->version())) {
        PermissionsUpdater perms_updater(browser_context());
        perms_updater.InitializePermissions(extension());
@@ -420,7 +427,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
        perms_updater.GrantActivePermissions(extension());
      }
    }
-@@ -1060,9 +1133,34 @@
+@@ -1060,9 +1133,34 @@ void CrxInstaller::ReportSuccessFromUIThread() {
                                true);
    }
  
@@ -455,7 +462,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
    NotifyCrxInstallComplete(std::nullopt);
  }
  
-@@ -1110,6 +1208,7 @@
+@@ -1110,6 +1208,7 @@ bool CrxInstaller::AcquireKeepAlive() {
  }
  
  void CrxInstaller::NotifyCrxInstallBegin() {
@@ -463,7 +470,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
    ExtensionsBrowserClient::Get()
        ->GetInstallTracker(browser_context())
        ->OnBeginCrxInstall(expected_id_);
-@@ -1237,7 +1336,8 @@
+@@ -1237,7 +1336,8 @@ void CrxInstaller::ConfirmReEnable() {
      return;
    }
  
@@ -473,7 +480,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
      return;
    }
  
-@@ -1292,6 +1392,22 @@
+@@ -1292,6 +1392,22 @@ void CrxInstaller::set_expectations_verified_callback(
    expectations_verified_callback_ = std::move(callback);
  }
  
@@ -497,6 +504,7 @@ diff --git a/extensions/browser/crx_installer.cc b/extensions/browser/crx_instal
    profile_keep_alive_.reset();
    browser_context_ = nullptr;
 diff --git a/extensions/browser/crx_installer.h b/extensions/browser/crx_installer.h
+index 81bc156183cee7ce3d232e3eb8cc654aadb415fc..e6aaeb3a9bbed5e6eb0ee208b4266e8fb9d2be2a 100644
 --- a/extensions/browser/crx_installer.h
 +++ b/extensions/browser/crx_installer.h
 @@ -13,6 +13,7 @@
@@ -507,7 +515,7 @@ diff --git a/extensions/browser/crx_installer.h b/extensions/browser/crx_install
  #include "base/memory/raw_ptr.h"
  #include "base/memory/scoped_refptr.h"
  #include "base/scoped_observation.h"
-@@ -263,6 +264,15 @@
+@@ -263,6 +264,15 @@ class CrxInstaller : public SandboxedUnpackerClient {
    void set_expectations_verified_callback(
        ExpectationsVerifiedCallback callback);
  
@@ -523,7 +531,7 @@ diff --git a/extensions/browser/crx_installer.h b/extensions/browser/crx_install
    bool did_handle_successfully() const { return did_handle_successfully_; }
  
    content::BrowserContext* browser_context() { return browser_context_; }
-@@ -354,6 +364,8 @@
+@@ -354,6 +364,8 @@ class CrxInstaller : public SandboxedUnpackerClient {
    void ReportFailureFromUIThread(const CrxInstallError& error);
    void ReportSuccessFromSharedFileThread();
    void ReportSuccessFromUIThread();
@@ -532,7 +540,7 @@ diff --git a/extensions/browser/crx_installer.h b/extensions/browser/crx_install
    // Always report from the UI thread.
    void ReportInstallationStage(InstallationStage stage);
    // Returns false if it cannot acquire resources.
-@@ -579,6 +591,10 @@
+@@ -579,6 +591,10 @@ class CrxInstaller : public SandboxedUnpackerClient {
    // after unpack success.
    ExpectationsVerifiedCallback expectations_verified_callback_;
  
@@ -544,9 +552,10 @@ diff --git a/extensions/browser/crx_installer.h b/extensions/browser/crx_install
    // destroyed.
    base::CallbackListSubscription browser_context_shutdown_subscription_;
 diff --git a/extensions/browser/extension_registrar.cc b/extensions/browser/extension_registrar.cc
+index 834a5e38a231cac17e4c400042a3a2c2361234ad..78d758970a34f3283671ac9c2c61a4480f6eb1f7 100644
 --- a/extensions/browser/extension_registrar.cc
 +++ b/extensions/browser/extension_registrar.cc
-@@ -1015,6 +1015,24 @@
+@@ -1007,6 +1007,24 @@ void ExtensionRegistrar::GrantPermissionsAndEnableExtension(
    EnableExtension(extension.id());
  }
  
@@ -572,6 +581,7 @@ diff --git a/extensions/browser/extension_registrar.cc b/extensions/browser/exte
      const ExtensionId& extension_id) {
    disable_flag_exempted_extensions_.insert(extension_id);
 diff --git a/extensions/browser/extension_registrar.h b/extensions/browser/extension_registrar.h
+index 11c4aaf94187648d4184c027c1f028ff8bf1a4ca..a8427f3bc57972de8f8edfd26df5b855749c4764 100644
 --- a/extensions/browser/extension_registrar.h
 +++ b/extensions/browser/extension_registrar.h
 @@ -11,6 +11,7 @@
@@ -582,7 +592,7 @@ diff --git a/extensions/browser/extension_registrar.h b/extensions/browser/exten
  #include "base/functional/callback_helpers.h"
  #include "base/memory/raw_ptr.h"
  #include "base/memory/scoped_refptr.h"
-@@ -373,6 +374,12 @@
+@@ -368,6 +369,12 @@ class ExtensionRegistrar : public KeyedService,
    // permissions in the `extension`s manifest and re-enables the
    // extension.
    void GrantPermissionsAndEnableExtension(const Extension& extension);
@@ -596,6 +606,7 @@ diff --git a/extensions/browser/extension_registrar.h b/extensions/browser/exten
    // Adds to the set of allowlisted enabled extensions loaded from the
    // --disable-extensions-except command line flag.
 diff --git a/extensions/browser/install_approval.h b/extensions/browser/install_approval.h
+index 00a98e0c32293c7e03e7825c925dc1259f2b9d19..debb4d07417d7dd43a515023628a2197033cf648 100644
 --- a/extensions/browser/install_approval.h
 +++ b/extensions/browser/install_approval.h
 @@ -8,6 +8,7 @@
@@ -606,7 +617,7 @@ diff --git a/extensions/browser/install_approval.h b/extensions/browser/install_
  #include "base/memory/raw_ptr.h"
  #include "base/memory/scoped_refptr.h"
  #include "base/supports_user_data.h"
-@@ -106,6 +107,15 @@
+@@ -106,6 +107,15 @@ struct InstallApproval : public base::SupportsUserData::Data {
    // are granted at installation.
    bool withhold_permissions = false;
  
@@ -623,9 +634,10 @@ diff --git a/extensions/browser/install_approval.h b/extensions/browser/install_
    InstallApproval();
  };
 diff --git a/extensions/browser/install_flag.h b/extensions/browser/install_flag.h
+index 6882b24aa6316e5f0962670fd57a753b633fa15c..5101e40c23878eb0f8695a26ad7f3b89cd9298a2 100644
 --- a/extensions/browser/install_flag.h
 +++ b/extensions/browser/install_flag.h
-@@ -32,6 +32,13 @@
+@@ -32,6 +32,13 @@ enum InstallFlag {
    // not included in the Enhanced Safe Browsing CRX allowlist and the user has
    // enabled Enhanced Protection.
    kInstallFlagBypassedSafeBrowsingFriction = 1 << 5,
@@ -640,9 +652,10 @@ diff --git a/extensions/browser/install_flag.h b/extensions/browser/install_flag
  
  }  // namespace extensions
 diff --git a/extensions/browser/webstore_installer.cc b/extensions/browser/webstore_installer.cc
+index fd67930f53114be959b83e59ef715811b17e652b..94adbb9fc59e4f79e38eb575e38320df7ba08d40 100644
 --- a/extensions/browser/webstore_installer.cc
 +++ b/extensions/browser/webstore_installer.cc
-@@ -395,6 +395,11 @@
+@@ -395,6 +395,11 @@ void WebstoreInstaller::OnDownloadStarted(
      // We are downloading a shared module. We need create an approval for it.
      std::unique_ptr<InstallApproval> approval =
          InstallApproval::CreateForSharedModule(browser_context_);

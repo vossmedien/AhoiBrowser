@@ -1,7 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index a43592d9101c7c0c209bd503b73065a3a4954c69..9537fc631aab85079bbbe10adbb40f44fa70653f 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20548,6 +20548,18 @@
+@@ -20793,6 +20793,18 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_AHOI_CONTEXT_COPY_ALL_LINKS" desc="Context-menu action that copies every saved page URL inside an AhoiBrowser group." meaning="AhoiBrowser native sidebar">
        Copy all links
      </message>
@@ -21,9 +22,10 @@ diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources
        Move to
      </message>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index 6f735721324cea3ae90f676c4045a811a85478fb..56c0a6806bd58904061c4a2dbffbe7651f3fac50 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11258,4 +11258,8 @@
+@@ -11264,4 +11264,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="1555692962934226231">Auswahl wird geladen…</translation>
  <translation id="3373635015517088468">Für dieses Profil sind derzeit keine unterstützten Einstellungen verfügbar.</translation>
  <translation id="5831405800489376068">Die Auswahl konnte nicht geändert werden.</translation>
@@ -33,9 +35,10 @@ diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resour
 +<translation id="8762882822589517341">Der Lesemodus ist für diese Seite nicht verfügbar</translation>
  </translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+index aca89ceb55628d5960b6a9389a3c5463d10d882e..e1e56cc687fd8cb9f579eb6df79456f2411c12c7 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -11054,4 +11054,8 @@
+@@ -11060,4 +11060,8 @@ This can include information about installed software, files, your browser, the
  <translation id="4474610624900854258">Close tabs from this import before undoing it. Changed imported items block recovery. Other pages and the backup are kept.</translation>
  <translation id="554473421888566226">Undo failed import</translation>
  <translation id="2451348137617820571">The failed import was undone. Review the sidebar, then start a new preview when ready.</translation>

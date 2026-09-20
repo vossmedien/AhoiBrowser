@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/sessions/session_service.cc b/chrome/browser/sessions/session_service.cc
-index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734ab00d8233 100644
+index 781d2e2f7ef99797284888c446e290488cdc1620..65b19fa9edc007d53fa1939bbb5ddcadc916f6ba 100644
 --- a/chrome/browser/sessions/session_service.cc
 +++ b/chrome/browser/sessions/session_service.cc
-@@ -11,6 +11,7 @@
+@@ -12,6 +12,7 @@
  #include <utility>
  #include <vector>
  
@@ -10,7 +10,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
  #include "base/command_line.h"
  #include "base/debug/alias.h"
  #include "base/debug/dump_without_crashing.h"
-@@ -41,6 +42,7 @@
+@@ -42,6 +43,7 @@
  #include "chrome/browser/ui/browser_tabstrip.h"
  #include "chrome/browser/ui/browser_window.h"
  #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
@@ -18,7 +18,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
  #include "chrome/browser/ui/session_crashed_bubble.h"
  #include "chrome/browser/ui/startup/profile_launch_observer.h"
  #include "chrome/browser/ui/startup/startup_browser_creator.h"
-@@ -57,8 +59,10 @@
+@@ -58,8 +60,10 @@
  #include "components/sessions/core/command_storage_manager.h"
  #include "components/sessions/core/session_command.h"
  #include "components/sessions/core/session_constants.h"
@@ -29,7 +29,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
  #include "content/public/browser/navigation_details.h"
  #include "content/public/browser/navigation_entry.h"
  #include "content/public/browser/session_storage_namespace.h"
-@@ -245,6 +249,19 @@ void SessionService::DeleteLastSession() {
+@@ -246,6 +250,19 @@ void SessionService::DeleteLastSession() {
    ++count_delete_last_session_for_testing_;
  }
  
@@ -49,7 +49,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
  void SessionService::SetSplitTab(SessionID window_id,
                                   SessionID tab_id,
                                   std::optional<split_tabs::SplitTabId> split) {
-@@ -637,6 +654,17 @@ void SessionService::BuildCommandsForTab(
+@@ -641,6 +658,17 @@ void SessionService::BuildCommandsForTab(
        sessions::SessionTabHelper::FromWebContents(tab);
    SessionID session_id(session_tab_helper->session_id());
  
@@ -67,7 +67,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
    const blink::UserAgentOverride& ua_override = tab->GetUserAgentOverride();
  
    if (!ua_override.ua_string_override.empty()) {
-@@ -661,6 +689,23 @@ void SessionService::BuildCommandsForTab(
+@@ -665,6 +693,23 @@ void SessionService::BuildCommandsForTab(
    }
  }
  
@@ -91,7 +91,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
  void SessionService::ScheduleResetCommands() {
    DCHECK(is_saving_enabled());
    command_storage_manager()->set_pending_reset(true);
-@@ -670,6 +715,24 @@ void SessionService::ScheduleResetCommands() {
+@@ -674,6 +719,24 @@ void SessionService::ScheduleResetCommands() {
    last_selected_tab_in_window()->clear();
    set_rebuild_on_next_save(false);
    BuildCommandsFromBrowsers(tab_to_available_range(), windows_tracking());
@@ -116,7 +116,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
    if (!windows_tracking()->empty()) {
      // We're lazily created on startup and won't get an initial batch of
      // SetWindowType messages. Set these here to make sure our state is correct.
-@@ -679,6 +742,27 @@ void SessionService::ScheduleResetCommands() {
+@@ -683,6 +746,27 @@ void SessionService::ScheduleResetCommands() {
    command_storage_manager()->StartSaveTimer();
  }
  
@@ -145,7 +145,7 @@ index db000e3621fe3794f1888bcf039dc79b92510082..4df8a9f395d3adc09bd8f50e3749734a
    for (auto id : pending_tab_close_ids_) {
      ScheduleCommand(sessions::CreateTabClosedCommand(id));
 diff --git a/chrome/browser/sessions/session_service.h b/chrome/browser/sessions/session_service.h
-index 57773c395c0b1b530b2cf9663b509e17adeeee4b..7e2f2be4671b5d4de32cca583a678847ebb1a0b4 100644
+index 92d191c30c8f4919631d1a1e06a1929afac29225..2c86812a6c06f279c9ae92906faae999b8313696 100644
 --- a/chrome/browser/sessions/session_service.h
 +++ b/chrome/browser/sessions/session_service.h
 @@ -56,6 +56,7 @@ using StartupTabs = std::vector<StartupTab>;
@@ -168,7 +168,7 @@ index 57773c395c0b1b530b2cf9663b509e17adeeee4b..7e2f2be4671b5d4de32cca583a678847
    // Sets a tab's split ID, if any. Note that a split can't be across
    // multiple windows.
    void SetSplitTab(SessionID window_id,
-@@ -211,10 +217,19 @@ class SessionService : public SessionServiceBase {
+@@ -212,10 +218,19 @@ class SessionService : public SessionServiceBase {
                             bool is_pinned,
                             IdToRange* tab_to_available_range) override;
  
@@ -189,18 +189,18 @@ index 57773c395c0b1b530b2cf9663b509e17adeeee4b..7e2f2be4671b5d4de32cca583a678847
    void CommitPendingCloses();
  
 diff --git a/chrome/browser/sessions/session_service_browsertest.cc b/chrome/browser/sessions/session_service_browsertest.cc
-index 31b98bb4f4d70787b99fce972c71d0e137baefa0..fcc305d59625aff99eee74087bb38f1b260fdbb4 100644
+index 10bda8612f4040f9788fe4ce40ac96c7003d82ee..d1bd9308af6668e8106ab1d42743d6cd789dad42 100644
 --- a/chrome/browser/sessions/session_service_browsertest.cc
 +++ b/chrome/browser/sessions/session_service_browsertest.cc
-@@ -7,6 +7,7 @@
- #include "base/containers/adapters.h"
+@@ -8,6 +8,7 @@
+ 
  #include "base/run_loop.h"
  #include "base/task/single_thread_task_runner.h"
 +#include "base/test/bind.h"
  #include "base/threading/thread_restrictions.h"
  #include "build/build_config.h"
  #include "chrome/browser/profiles/profile.h"
-@@ -19,6 +20,7 @@
+@@ -20,6 +21,7 @@
  #include "components/sessions/content/session_tab_helper.h"
  #include "components/sessions/core/command_storage_manager.h"
  #include "components/sessions/core/session_command.h"
@@ -208,7 +208,7 @@ index 31b98bb4f4d70787b99fce972c71d0e137baefa0..fcc305d59625aff99eee74087bb38f1b
  #include "content/public/test/browser_test.h"
  
  #if BUILDFLAG(IS_CHROMEOS)
-@@ -151,6 +153,33 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, PinnedAfterReset) {
+@@ -152,6 +154,33 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, PinnedAfterReset) {
    EXPECT_TRUE(found_pinned_command);
  }
  
@@ -241,7 +241,7 @@ index 31b98bb4f4d70787b99fce972c71d0e137baefa0..fcc305d59625aff99eee74087bb38f1b
 +
  IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, LogExit) {
    EXPECT_FALSE(FindMostRecentEventOfType(SessionServiceEventLogType::kExit));
-   service()->WindowClosing(browser()->session_id());
+   service()->WindowClosing(browser()->GetSessionID());
 diff --git a/components/sessions/core/command_storage_backend.cc b/components/sessions/core/command_storage_backend.cc
 index ecab96800d28216be0fc6930e32cd870492965d0..383f444a099e7b03a8b94f64e02fb9f977ed6b0e 100644
 --- a/components/sessions/core/command_storage_backend.cc

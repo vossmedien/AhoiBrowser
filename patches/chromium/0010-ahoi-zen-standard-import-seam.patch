@@ -1,4 +1,5 @@
 diff --git a/chrome/browser/importer/BUILD.gn b/chrome/browser/importer/BUILD.gn
+index 4311dfe4802cf49501096005c32520ea170aa515..c674a07feae3182975ee7cf6c4a109ac34af5731 100644
 --- a/chrome/browser/importer/BUILD.gn
 +++ b/chrome/browser/importer/BUILD.gn
 @@ -65,6 +65,13 @@ source_set("impl") {
@@ -16,6 +17,7 @@ diff --git a/chrome/browser/importer/BUILD.gn b/chrome/browser/importer/BUILD.gn
      sources += [ "firefox_profile_lock_win.cc" ]
    } else {
 diff --git a/chrome/browser/importer/DEPS b/chrome/browser/importer/DEPS
+index 6f0957d48299e596d4e4e79054f76aec52f77124..39af67f69a4830230eafd2a551bd7d04d1e44f68 100644
 --- a/chrome/browser/importer/DEPS
 +++ b/chrome/browser/importer/DEPS
 @@ -1,3 +1,5 @@
@@ -25,6 +27,7 @@ diff --git a/chrome/browser/importer/DEPS b/chrome/browser/importer/DEPS
    "+components/user_data_importer/mojom",
  ]
 diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/importer_list.cc
+index 62546b572bab849b182fed62ad964d5cef136571..4504738f644abfea5a6ff66bb7d9bc76fb9826fd 100644
 --- a/chrome/browser/importer/importer_list.cc
 +++ b/chrome/browser/importer/importer_list.cc
 @@ -19,6 +19,7 @@
@@ -35,11 +38,7 @@ diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/
  #include "base/apple/foundation_util.h"
  #include "chrome/common/importer/safari_importer_utils.h"
  #endif
-@@ -183,8 +184,11 @@ std::vector<user_data_importer::SourceProfile> DetectSourceProfilesWorker(
-     DetectSafariProfiles(&profiles);
-     DetectFirefoxProfiles(locale, &profiles);
-   }
- #else
+@@ -187,6 +188,9 @@ std::vector<user_data_importer::SourceProfile> DetectSourceProfilesWorker(
    DetectFirefoxProfiles(locale, &profiles);
  #endif
    if (include_interactive_profiles) {
@@ -47,10 +46,13 @@ diff --git a/chrome/browser/importer/importer_list.cc b/chrome/browser/importer/
 +    ahoi::importer::zen::AppendZenSourceProfiles(locale, &profiles);
 +#endif
      user_data_importer::SourceProfile bookmarks_profile;
+     bookmarks_profile.importer_name =
+         l10n_util::GetStringUTF16(IDS_IMPORT_FROM_BOOKMARKS_HTML_FILE);
 diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
+index ed36395ae7d494a51a465d4a22d2a89c3bd3479c..3e507b2e36928bee7fce10dd0f642359366da87a 100644
 --- a/chrome/utility/BUILD.gn
 +++ b/chrome/utility/BUILD.gn
-@@ -59,6 +59,7 @@ static_library("utility") {
+@@ -60,6 +60,7 @@ static_library("utility") {
      "//content/public/child",
      "//content/public/common",
      "//content/public/utility",
@@ -59,6 +61,7 @@ diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
      "//ipc",
      "//media",
 diff --git a/chrome/utility/importer/firefox_importer.cc b/chrome/utility/importer/firefox_importer.cc
+index e2bf3edc0a2d9190f887fc556d7de6c33fa3dbf3..ff6ff83821de3c2ece0cefc56e1c777fcd3fcddf 100644
 --- a/chrome/utility/importer/firefox_importer.cc
 +++ b/chrome/utility/importer/firefox_importer.cc
 @@ -4,6 +4,7 @@
@@ -194,6 +197,7 @@ diff --git a/chrome/utility/importer/firefox_importer.cc b/chrome/utility/import
    return destination;
  }
 diff --git a/chrome/utility/importer/firefox_importer.h b/chrome/utility/importer/firefox_importer.h
+index fea3060ce40e8157eca71d54b79427b9d6ed345c..589ecebada0cd6b689e335c49cf68834cc36c83f 100644
 --- a/chrome/utility/importer/firefox_importer.h
 +++ b/chrome/utility/importer/firefox_importer.h
 @@ -72,6 +72,12 @@ class FirefoxImporter : public Importer {
@@ -210,6 +214,7 @@ diff --git a/chrome/utility/importer/firefox_importer.h b/chrome/utility/importe
    void ImportBookmarks();
    void ImportRemainingItems();
 diff --git a/chrome/utility/importer/firefox_importer_unittest.cc b/chrome/utility/importer/firefox_importer_unittest.cc
+index d5ae8759097fb99a6f0d40d938f1365cb88900d4..4571ae8a5e49edd7717bd4e8c11f1c3676bfe469 100644
 --- a/chrome/utility/importer/firefox_importer_unittest.cc
 +++ b/chrome/utility/importer/firefox_importer_unittest.cc
 @@ -28,6 +28,10 @@

@@ -1,19 +1,16 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 51435cd18e12fdacb38a5c7c07907d224b71461e..7ba6b6442a7a3b9c77d2fdf0d6f499796843838a 100644
+index 722af407f5c9dd2e742341121c1c7f4ffabdfc03..af8c80b6945162145a123f69c6a8b96102edfb9e 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -6472,9 +6472,12 @@ BrowserViewLayout* BrowserView::GetBrowserViewLayout() const {
+@@ -6503,8 +6503,10 @@ BrowserViewLayout* BrowserView::GetBrowserViewLayout() const {
  }
  
  bool BrowserView::MaybeShowBookmarkBar(WebContents* contents) {
 +  // Ahoi presents this same native bookmark model in its sidebar shelf. Do not
 +  // attach a second horizontal bar behind the floating navigation surface.
    const bool show_bookmark_bar =
--      contents && browser_->SupportsWindowFeature(
--                      Browser::WindowFeature::kFeatureBookmarkBar);
+-      contents &&
 +      !IsAhoiBrowserSurface() && contents &&
-+      browser_->SupportsWindowFeature(
-+          Browser::WindowFeature::kFeatureBookmarkBar);
+       WindowFeatureController::From(browser_)->SupportsWindowFeature(
+           WindowFeatureController::WindowFeature::kFeatureBookmarkBar);
    if (!show_bookmark_bar && !bookmark_bar_view_) {
-     return false;
-   }

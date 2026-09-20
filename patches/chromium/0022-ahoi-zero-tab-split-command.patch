@@ -1,20 +1,8 @@
-From 63d27148cb910ebbd719fa31c2aaed5f38ec84f1 Mon Sep 17 00:00:00 2001
-From: vossmedien <christian@vossmedien.de>
-Date: Mon, 31 Aug 2026 11:39:34 +0200
-Subject: [PATCH] patch: seed zero-tab split commands
-
----
- chrome/browser/ui/browser_actions.cc          |  4 +++-
- .../browser/ui/browser_command_controller.cc  |  3 ++-
- chrome/browser/ui/browser_commands.cc         | 14 ++++++++++-
- ...er_tab_strip_model_delegate_browsertest.cc | 23 +++++++++++++++++++
- 4 files changed, 41 insertions(+), 3 deletions(-)
-
 diff --git a/chrome/browser/ui/browser_actions.cc b/chrome/browser/ui/browser_actions.cc
-index 438b84da29..a47ae2d48d 100644
+index 3f77da17644cb552f43154c77d86e7f5829d0986..9575de8d30f2ff7e5b0578e48ea0af32d12c6cae 100644
 --- a/chrome/browser/ui/browser_actions.cc
 +++ b/chrome/browser/ui/browser_actions.cc
-@@ -2472,7 +2472,9 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
+@@ -2410,7 +2410,9 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
            base::BindRepeating(
                [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                   actions::ActionInvocationContext context) {
@@ -26,10 +14,10 @@ index 438b84da29..a47ae2d48d 100644
                        bwi, split_tabs::SplitTabLayout::kSideBySide,
                        split_tabs::SplitTabCreatedSource::kKeyboardShortcut);
 diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
-index 78134be80b..be20bf328e 100644
+index c0f89cf017d9e96cf5a65e778fad094b0aaca880..99101ebc5729963e7fa3761e11f7ebfdb8ac84f1 100644
 --- a/chrome/browser/ui/browser_command_controller.cc
 +++ b/chrome/browser/ui/browser_command_controller.cc
-@@ -833,7 +833,8 @@ void BrowserCommandController::HandleCommandWithDisposition(
+@@ -846,7 +846,8 @@ void BrowserCommandController::HandleCommandWithDisposition(
        MoveActiveTabToNewWindow(browser_);
        break;
      case IDC_NEW_SPLIT_TAB:
@@ -40,10 +28,10 @@ index 78134be80b..be20bf328e 100644
                      split_tabs::SplitTabCreatedSource::kKeyboardShortcut);
        }
 diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
-index 294487f786..55cc3572df 100644
+index ec6ecb7da85d13df72713ff4446c412383c62ab6..bba3fcbd16b54b2bda325a79e5d4148fb275a635 100644
 --- a/chrome/browser/ui/browser_commands.cc
 +++ b/chrome/browser/ui/browser_commands.cc
-@@ -1680,7 +1680,19 @@ void NewSplitTab(BrowserWindowInterface* browser,
+@@ -1771,7 +1771,19 @@ void NewSplitTab(BrowserWindowInterface* browser,
                   split_tabs::SplitTabLayout layout,
                   split_tabs::SplitTabCreatedSource source) {
    TabStripModel* const tab_strip_model = browser->GetTabStripModel();
@@ -65,7 +53,7 @@ index 294487f786..55cc3572df 100644
    // the regular NTP which renders special content when in Incognito.
    const GURL new_tab_url = !browser->GetProfile()->IsIncognitoProfile() &&
 diff --git a/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc b/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc
-index 77de23b7ce..43b7ccec73 100644
+index 77de23b7ce1e6efe7e6871dc9f9106fa6fa7e996..43b7ccec7368f97e6e88554dcc145a3eceb57056 100644
 --- a/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc
 +++ b/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc
 @@ -347,6 +347,29 @@ IN_PROC_BROWSER_TEST_F(BrowserTabStripModelDelegateTest,
@@ -98,6 +86,3 @@ index 77de23b7ce..43b7ccec73 100644
  IN_PROC_BROWSER_TEST_F(BrowserTabStripModelDelegateTest,
                         NewSplitTabWithActiveTabGroupped) {
    std::unique_ptr<TabStripModelDelegate> delegate =
--- 
-2.55.0
-

@@ -7,7 +7,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCH_ROOT = ROOT / "patches/chromium"
 
-INTEGRATION_PATCH = "0001-ahoi-m152-integration-seams.patch"
+INTEGRATION_PATCH = "0001-ahoi-m153-integration-seams.patch"
 DETERMINISTIC_PATCH = "0002-ahoi-deterministic-platform-tests.patch"
 TRACING_PATCH = "0003-ahoi-upstream-page-load-tracing-test-isolation.patch"
 LEAN_GUARDS_PATCH = "0004-ahoi-lean-profile-compose-guards.patch"

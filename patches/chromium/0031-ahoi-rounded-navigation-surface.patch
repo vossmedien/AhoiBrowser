@@ -1,23 +1,16 @@
-From: AhoiBrowser Authors
-Subject: [PATCH] Preserve native navigation background ownership and material
-
-The Views-only navigation controller owns material state, but BrowserView and
-its layout keep the real ToolbarView CustomCornersBackground. Apply the resolved
-color/alpha to that painter after native initialization and layout, without
-replacing it or competing with the native fullscreen treatment.
-
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 856263b6618ffc09f9eec4ffa86036aa3bfde0ba..722af407f5c9dd2e742341121c1c7f4ffabdfc03 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -181,6 +181,7 @@
+@@ -185,6 +185,7 @@
+ #include "chrome/browser/ui/views/frame/browser_widget.h"
  #include "chrome/browser/ui/views/frame/contents_container_view.h"
- #include "chrome/browser/ui/views/frame/contents_layout_manager.h"
  #include "chrome/browser/ui/views/frame/contents_separator.h"
 +#include "chrome/browser/ui/views/frame/custom_corners_background.h"
  #include "chrome/browser/ui/views/frame/custom_floating_corner.h"
  #include "chrome/browser/ui/views/frame/horizontal_tab_strip_region_view.h"
  #include "chrome/browser/ui/views/frame/layout/browser_view_layout.h"
-@@ -1296,7 +1297,41 @@
+@@ -1287,7 +1288,41 @@ BrowserView::BrowserView(Browser* browser)
          std::make_unique<ahoi::NavigationSurfaceController>(
              this, top_container_, toolbar_,
              l10n_util::GetStringUTF16(IDS_AHOI_REVEAL_NAVIGATION),
@@ -61,9 +54,10 @@ diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/v
      vertical_tab_strip_top_corner_ =
          AddChildView(std::make_unique<CustomFloatingCorner>(
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index ce2a751243cde446c3f107375b93fd0293957a25..76c78a1cfee71a08d807e5ed6f0372c5b93e1503 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1729,7 +1729,9 @@
+@@ -1718,7 +1718,9 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
    // Set toolbar corners.
    CustomCornersBackground::Corners toolbar_corners;
    if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
