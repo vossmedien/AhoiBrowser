@@ -1,0 +1,97 @@
+{
+  "command": "chromium_checkout_hydration",
+  "complete": false,
+  "dryRun": true,
+  "exitCode": 2,
+  "inventory": {
+    "entryCount": 500429,
+    "initialMissingObjectIdsSha256": "32b3b104c3f1d2c50b6d74e203aa37f811e61e1105a6c79b908856cbd54cac4e",
+    "initiallyMissingBlobCount": 34120,
+    "initiallyPresentBlobCount": 431295,
+    "lazyFetchDisabled": true,
+    "remainingMissingBlobCount": 34120,
+    "remainingObjectIdsSha256": "32b3b104c3f1d2c50b6d74e203aa37f811e61e1105a6c79b908856cbd54cac4e",
+    "resumeModel": "recompute_the_pinned_target_inventory_and_skip_objects_already_present_in_the_immutable_object_store",
+    "submoduleCount": 272,
+    "treeInventorySha256": "58b8a07cb0756f8521da22c6457b445115d1ca47ceb2c3cc35c7969ee0293cfa",
+    "uniqueTargetBlobCount": 465415,
+    "verified": true
+  },
+  "mutationGuard": {
+    "after": {
+      "fetchHeadSha256": "30c025660e73e889eaa192a276a4eacf4c459d32f99d63782e29904e042f3ea7",
+      "head": "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
+      "headFileSha256": "866e9edcf9c054e798b12b286c5ace3f13de8a58b1c1638bf80615fb07b5069e",
+      "indexSha256": "04ec5bf960459f8ac54579d6bce694cc780a8023218fdb8efd2a8830162dc867",
+      "refCount": 11,
+      "refsSha256": "61975590b150b0079578a94fda4d1cdd00acf8c2e2c9557d06cce4a1aee971b5",
+      "shallowSha256": "7fa1e1578bfee291792ed333f6cd2cafbafb357ecc5a4dcfadd3dd8b5bf59469",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeSha256": "04b1688128f37ad8dcbdec2bbab1477eea90f412d71920361634bae698a80bb6"
+    },
+    "allowedMutation": "verified immutable target blob objects and Git object-pack metadata only",
+    "before": {
+      "fetchHeadSha256": "30c025660e73e889eaa192a276a4eacf4c459d32f99d63782e29904e042f3ea7",
+      "head": "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
+      "headFileSha256": "866e9edcf9c054e798b12b286c5ace3f13de8a58b1c1638bf80615fb07b5069e",
+      "indexSha256": "04ec5bf960459f8ac54579d6bce694cc780a8023218fdb8efd2a8830162dc867",
+      "refCount": 11,
+      "refsSha256": "61975590b150b0079578a94fda4d1cdd00acf8c2e2c9557d06cce4a1aee971b5",
+      "shallowSha256": "7fa1e1578bfee291792ed333f6cd2cafbafb357ecc5a4dcfadd3dd8b5bf59469",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeSha256": "04b1688128f37ad8dcbdec2bbab1477eea90f412d71920361634bae698a80bb6"
+    },
+    "changedFields": [],
+    "protected": [
+      "worktree",
+      "index",
+      "HEAD",
+      "refs",
+      "FETCH_HEAD",
+      "shallow boundary"
+    ],
+    "unchanged": true,
+    "verified": true
+  },
+  "origin": {
+    "name": "origin",
+    "partialCloneFilter": "blob:none",
+    "promisor": true,
+    "url": "https://chromium.googlesource.com/chromium/src.git",
+    "verified": true
+  },
+  "phase": "dry_run_incomplete",
+  "schemaVersion": 1,
+  "target": {
+    "commit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "pin": {
+      "channel": "Stable",
+      "path": "config/chromium.json",
+      "platform": "Mac",
+      "sha256": "1d3aa06ecafa668a15334991b9ae07b86433e56a66baa53e8d1305bb412b0d63",
+      "source": "https://chromium.googlesource.com/chromium/src.git",
+      "tag": "refs/tags/153.0.8010.53",
+      "verified": true,
+      "version": "153.0.8010.53"
+    },
+    "tree": "8b19adad2de2334f693bea8f2748edf6421d002d"
+  },
+  "transport": {
+    "adaptiveSplitCount": 0,
+    "attemptsPerBatch": 3,
+    "batchSize": 16,
+    "commandBudgetExhausted": false,
+    "commandCount": 0,
+    "failedCommandCount": 0,
+    "fetchParallel": 1,
+    "fetchTimeoutSeconds": 300,
+    "httpMaxRequests": 1,
+    "httpVersion": "HTTP/1.1",
+    "maxFetchCommands": 4096,
+    "retryCount": 0,
+    "singletonFailureCount": 0,
+    "singletonFailures": [],
+    "singletonFailuresTruncated": false,
+    "successfulCommandCount": 0
+  }
+}

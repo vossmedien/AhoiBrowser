@@ -15,9 +15,9 @@ Their old thread IDs and September8 leases are not current runtime grants.
   The user stopped Docker; Root verified its VM/backend PIDs absent. Official
   discovery proves fully rolled153.0.8010.53, commit792bf6722e73a45aa9e47c163b9901bdc17f3230.
   Reviewed non-production candidate binding is updated through chromium_roll;
-  production pin, checkout HEAD, installed app and all Sync scopes remain unchanged.
-  Toolchain helper `/root/m153_toolchain_20260920` is read-only; Root handles
-  patch preflight and disk readiness. No full sync/build until actual prerequisites.
+  config/chromium.json now selects this exact target in058ea5a for acquisition;
+  shared checkout HEAD remains M152, installed app and all Sync scopes unchanged.
+  No build until the patch and overlay handoffs form a coherent source candidate.
   **Current implementation handoff:** toolchain95449bb is source-ready; the same
   helper now owns canonical Ahoi-overlay consumers of removed Browser APIs,
   with no shared-checkout/build writes. Patch worker
@@ -32,6 +32,18 @@ Their old thread IDs and September8 leases are not current runtime grants.
   This is source preparation, not a build/runtime pass. Diskupdatef0af52a follows
   explicit user authorization below64 GiB with32 GiB absolute reserve; first
   checkout limits remain unchanged. No current disk/ownership ACK blocker.
+  **Actual acquisition:** old overlay restore75447 reversed the source delta but
+  its final tree check rejected the separately fetched Sparkle prebuilt after the
+  overlay ignore rule disappeared. Root verified Sparkle's existing material
+  receipt, moved it recoverably to the preflight artifact's retained-sparkle/
+  directory and independently proved exact clean M152 base tree
+  4a41dac5a4e1a870dc8fa983df52d75cd4efb4ce. Old overlay/hook states are archived,
+  not silently reused. Source inventory70631 EXIT2 is an intentional dry-run:
+  431,295 present/34,120 missing target blobs, no state mutation. Full resumable
+  hydration73969 now runs with128-object batches, one request stream and original
+  mutation guards; report `artifacts/build/chromium-m153-preflight-20260920/full-source-hydration.json`.
+  It does not switch HEAD or apply Ahoi patches. A wrong-shell prelaunch attempt
+  failed before hydration and was corrected to bash; no checkout operation ran.
 - **Root:** sole Native/Common integration, shared checkout/out, build/sign/install.
   Frozen clean sourceb23c7d9 in `/private/tmp/ahoi-native-unified.1FqoG5/repo`.
   M152 continuation81284 is now deliberately TERMINAL EXIT2 at4,656/20,804 after
