@@ -12,9 +12,12 @@ installed candidate and rollbacks remain preserved. Do not restart81284/M152.
 target. Live checkout HEAD now equals that M153 target; guarded dependency
 sync34124 is EXIT0 with exact dependency/checkout receipts, after recoverably
 preserving the old clean aria-practices gitlink which M153 vendors directly.
-Clean hook receipt is verified; overlay34816 EXIT0. Current app-only guarded
-build84666 runs from clean59a0bf5 with six jobs in existing out/AhoiDev;
-`artifacts/build/native-m153-59a0bf5-20260920/` owns its log/exit/receipt.
+Clean hook receipt is verified; overlay34816 EXIT0. First app-only attempt84666
+ended128 before GN/compiler on a malformed Rust-patch hunk count. Narrow fix
+0a1de6a corrects count/hash; actual apply-check passed, original targets preserved.
+Current guarded continuation31816 uses clean0a1de6a/six jobs/existing out/AhoiDev;
+`artifacts/build/native-m153-0a1de6a-20260920/` owns its log/exit/receipt.
+The original59a0bf5 attempt remains preserved separately, not a current resume.
 No successful build/install/Sync pass yet. All43 rebased patches
 compose without conflicts (29dfe7a), with current native-owner overlay ports
 and matching toolchain manifests. Root owns acquisition and the next build;

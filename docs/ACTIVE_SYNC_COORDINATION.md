@@ -95,12 +95,18 @@ Their old thread IDs and September8 leases are not current runtime grants.
   4df029d6cefc8c81351e01a53c88736a1cf42d4b286420277c3d43c53cd84b49.
   Both receipts retained. Verified Sparkle prebuilt APFS-copied back only after
   overlay restored its native directory/ignore rules; original retained intact.
-  **Current product build84666 is RUNNING**, exact clean Ahoi59a0bf5/M153 snapshot,
-  six jobs/keep-going, chrome only, canonical existing out/AhoiDev. Log/exit/receipt
-  under `artifacts/build/native-m153-59a0bf5-20260920/`; frozen run-build.sh checks
-  source/cleanliness. Fresh55–66% aggregate idle/67% memory headroom/0 swapouts and
-  no competing compiler. It runs normal guarded hooks/GN/compile/stage/sign path;
-  no successful build, installed update or Sync roundtrip is claimed yet.
+  Product attempt84666 is TERMINAL EXIT128 before GN/compiler: the rebased Rust
+  dependency patch's final hunk declared11/12 lines but contained10/11. Root fixed
+  only that count and its pinned SHA in0a1de6a. Real `git apply --check` against
+  the current original M153 wrapper PASS; original target hash unchanged and V8
+  clean. Original log/exit kept in `artifacts/build/native-m153-59a0bf5-20260920/`.
+  **Current corrected build31816 is RUNNING**, clean0a1de6a in the SAME snapshot
+  and out/AhoiDev, six jobs/keep-going/chrome only. No product overlay/Chromium
+  patches/GN-args changed, so no new overlay or dependency acquisition required.
+  Log/exit/receipt under `artifacts/build/native-m153-0a1de6a-20260920/`.
+  Fresh68–77% aggregate idle/66% memory headroom/0 swapouts, no competing compiler.
+  Normal guarded hooks/GN/compile/stage/sign path; no successful build, installed
+  update or Sync roundtrip is claimed yet.
   Root's existing clean build snapshot is advanced to59a0bf5, no compiler yet.
   Retained Sparkle2.9.6 revalidated against its old material receipt; reuse after
   overlay instead of another download. The helper's accidental dry-run network
