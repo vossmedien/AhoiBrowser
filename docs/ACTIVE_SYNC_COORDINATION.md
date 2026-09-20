@@ -29,9 +29,13 @@ Their old thread IDs and September8 leases are not current runtime grants.
 - **Bounded regression:** helper finished its one existing test-file handback.
   Root aligned the test with AppEntry's MainActor caller and committed33bddb4.
   Both concrete digest calls with authorization=false must throw authorizationRevoked
-  before Security access, not return nil. Diff/parse checked; execution NOT_RUN
-  because no cached test runner exists. No product/Keychain/cloud/UI mutation or
-  broad test build. Do not mistake source regression for a runtime test pass.
+  before Security access, not return nil. Execution now PASS: one selected test,
+  zero failures/skips,0.018s, xcodebuild EXIT0. Root independently read actual log.
+  Evidence: `artifacts/tests/mobile-digest-regression-20260920/README.md`.
+  The scheme rebuilt extra artifacts because of snapshot-path invalidation,
+  but only one Core test ran; two known stale files remain explicitly excluded.
+  No Keychain/cloud/UI action. Current Native scheduler43443/43419 was briefly
+  stopped for the test and then revalidated/CONT→R; handle81284 is unchanged.
 - **Actual Mobile37 diagnosis:** unchanged installed candidate hit the protocol-
   extension nil default at CompanionKeyLifecycle.swift186, immediately called by
   concrete keyStore at AppEntry.swift344. The coordinator's existential path had
