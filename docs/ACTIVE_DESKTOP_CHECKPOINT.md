@@ -12,7 +12,10 @@ installed candidate and rollbacks remain preserved. Do not restart81284/M152.
 target. Live checkout HEAD now equals that M153 target; guarded dependency
 sync34124 is EXIT0 with exact dependency/checkout receipts, after recoverably
 preserving the old clean aria-practices gitlink which M153 vendors directly.
-Current clean hook phase5294 precedes overlay and one app-only build. All43 rebased patches
+Clean hook receipt is verified; overlay34816 EXIT0. Current app-only guarded
+build84666 runs from clean59a0bf5 with six jobs in existing out/AhoiDev;
+`artifacts/build/native-m153-59a0bf5-20260920/` owns its log/exit/receipt.
+No successful build/install/Sync pass yet. All43 rebased patches
 compose without conflicts (29dfe7a), with current native-owner overlay ports
 and matching toolchain manifests. Root owns acquisition and the next build;
 no M153 compile or installed/runtime acceptance yet. Current source acquisition

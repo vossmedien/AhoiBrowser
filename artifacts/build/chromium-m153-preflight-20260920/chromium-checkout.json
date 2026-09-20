@@ -1,0 +1,8 @@
+{
+  "commit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+  "gclientConfigSha256": "9fbececf7abb89f3da8e9a11c80be2f66103bbf9f95a163ed65e232bdf7d30e7",
+  "schemaVersion": 1,
+  "sourcePath": "<work-root>/chromium/src",
+  "verifiedAt": "2026-09-20T10:09:36.593292+00:00",
+  "version": "153.0.8010.53"
+}

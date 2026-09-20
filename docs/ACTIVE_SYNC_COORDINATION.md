@@ -88,11 +88,19 @@ Their old thread IDs and September8 leases are not current runtime grants.
   closure were verified at10:09:36 UTC; both normal receipts are retained in the
   preflight directory. Gclient's26:37 "STALL DETECTED" was merely its silence
   heuristic: Root verified V8's pack still growing and correctly did not restart.
-  Current next phase is clean upstream hooks5294 in the same59a0bf5 snapshot,
-  explicit compatible-development Xcode26.5, canonical workroot. Log:
-  `hooks-clean.log`. Fresh50.8% CPU idle/69% memory headroom/116GiB free; foreign
-  MBC generic2-job build is identified and untouched. No compiler/installed or
-  Sync runtime pass yet. Overlay and one app-only build follow actual hook success.
+  Clean hooks completed at10:12:09 UTC with normal final verification line and
+  exact clean hook receipt. Tool handle5294 was lost across the user's interrupt;
+  completion is established by the actual log/state and overlay's fresh checks,
+  not an invented observed exit. Overlay34816 then explicitly EXIT0, atomic delta
+  4df029d6cefc8c81351e01a53c88736a1cf42d4b286420277c3d43c53cd84b49.
+  Both receipts retained. Verified Sparkle prebuilt APFS-copied back only after
+  overlay restored its native directory/ignore rules; original retained intact.
+  **Current product build84666 is RUNNING**, exact clean Ahoi59a0bf5/M153 snapshot,
+  six jobs/keep-going, chrome only, canonical existing out/AhoiDev. Log/exit/receipt
+  under `artifacts/build/native-m153-59a0bf5-20260920/`; frozen run-build.sh checks
+  source/cleanliness. Fresh55–66% aggregate idle/67% memory headroom/0 swapouts and
+  no competing compiler. It runs normal guarded hooks/GN/compile/stage/sign path;
+  no successful build, installed update or Sync roundtrip is claimed yet.
   Root's existing clean build snapshot is advanced to59a0bf5, no compiler yet.
   Retained Sparkle2.9.6 revalidated against its old material receipt; reuse after
   overlay instead of another download. The helper's accidental dry-run network
