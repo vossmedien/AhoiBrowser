@@ -60,15 +60,6 @@ source_set("secure_component_transport") {
   ]
 }
 
-source_set("privacy_sandbox_delegate") {
-  sources = [
-    "ahoi_privacy_sandbox_delegate.cc",
-    "ahoi_privacy_sandbox_delegate.h",
-  ]
-  public_deps =
-      [ "//components/privacy_sandbox:privacy_sandbox_settings_headers" ]
-}
-
 source_set("privacy_mode_runtime") {
   sources = [
     "privacy_mode_url_loader_throttle.cc",
@@ -88,13 +79,11 @@ source_set("privacy_mode_runtime") {
 source_set("unit_tests") {
   testonly = true
   sources = [
-    "ahoi_privacy_sandbox_delegate_unittest.cc",
     "privacy_cookie_enforcement_unittest.cc",
     "privacy_mode_url_loader_throttle_unittest.cc",
   ]
   deps = [
     ":privacy_mode_runtime",
-    ":privacy_sandbox_delegate",
     "//base/test:test_support",
     "//components/content_settings/core/common",
     "//components/sync_preferences:test_support",
