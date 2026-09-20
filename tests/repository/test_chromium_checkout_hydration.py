@@ -1,4 +1,5 @@
 import argparse
+import base64
 import json
 import os
 import pathlib
@@ -136,6 +137,8 @@ class CheckoutFixture:
             "target": self.target,
             "output": self.output,
             "dry_run": False,
+            "transport": "git",
+            "jobs": None,
             "batch_size": 1,
             "attempts": 1,
             "fetch_timeout": 5,
@@ -143,6 +146,10 @@ class CheckoutFixture:
             "checkpoint_batches": 1,
             "max_blobs": 100,
             "retry_backoff_seconds": 0.0,
+            "network_timeout": 5,
+            "total_timeout": 30,
+            "max_response_bytes": 1024,
+            "max_total_response_bytes": 4096,
         }
         values.update(overrides)
         return argparse.Namespace(**values)
@@ -317,6 +324,100 @@ class ChromiumCheckoutHydrationCliTests(unittest.TestCase):
         self.assertEqual("mutation_detected", report["phase"])
         self.assertIn("fetchHeadSha256", report["mutationGuard"]["changedFields"])
         self.assertEqual(report, saved)
+
+    def test_gitiles_transport_hydrates_only_bounded_verified_missing_blobs(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-checkout-gitiles-") as raw:
+            fixture = CheckoutFixture(pathlib.Path(raw))
+            requests = []
+
+            def response(target, path, oid, timeout, maximum):
+                requests.append((target, path, oid, timeout, maximum))
+                name = next(
+                    name for name, object_id in fixture.object_ids.items()
+                    if object_id == oid
+                )
+                return base64.b64encode(fixture.contents[name])
+
+            report, exit_code = run_hydration(
+                fixture.namespace(
+                    transport="gitiles", jobs=2, max_fetch_commands=1
+                ),
+                gitiles_loader=response,
+            )
+            saved = json.loads(fixture.output.read_text(encoding="utf-8"))
+
+        self.assertEqual(EXIT_INCOMPLETE, exit_code)
+        self.assertEqual("incomplete_resumable", report["phase"])
+        self.assertEqual(1, len(requests))
+        self.assertEqual(fixture.target, requests[0][0])
+        self.assertIn(requests[0][1], {"a.txt", "unique.txt"})
+        self.assertEqual(1, report["inventory"]["remainingMissingBlobCount"])
+        self.assertEqual("gitiles", report["transport"]["configured"])
+        self.assertEqual(2, report["transport"]["jobs"])
+        self.assertEqual(1, report["transport"]["requestCount"])
+        self.assertTrue(report["transport"]["commandBudgetExhausted"])
+        self.assertTrue(report["mutationGuard"]["unchanged"])
+        self.assertEqual(report, saved)
+
+    def test_jobs_are_bounded_and_git_transport_rejects_the_http_option(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-checkout-gitiles-jobs-") as raw:
+            fixture = CheckoutFixture(pathlib.Path(raw))
+            git_jobs = fixture.invoke("--dry-run", "--jobs", "2")
+            excessive = fixture.invoke(
+                "--dry-run", "--transport", "gitiles", "--jobs", "9"
+            )
+
+        self.assertEqual(1, git_jobs.returncode)
+        self.assertIn("only supported by Gitiles", git_jobs.stderr)
+        self.assertEqual(1, excessive.returncode)
+        self.assertIn("jobs must be between 1 and 8", excessive.stderr)
+
+    def test_gitiles_hash_mismatch_never_promotes_and_is_resumable(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-checkout-gitiles-hash-") as raw:
+            fixture = CheckoutFixture(pathlib.Path(raw))
+
+            report, exit_code = run_hydration(
+                fixture.namespace(
+                    transport="gitiles", jobs=1, max_fetch_commands=1
+                ),
+                gitiles_loader=lambda *_: base64.b64encode(b"wrong blob\n"),
+            )
+
+        self.assertEqual(EXIT_INCOMPLETE, exit_code)
+        self.assertEqual(2, report["inventory"]["remainingMissingBlobCount"])
+        self.assertEqual(1, report["transport"]["failedRequestCount"])
+        self.assertEqual(1, report["transport"]["singletonFailureCount"])
+        self.assertIn(
+            "hash mismatch",
+            report["transport"]["singletonFailures"][0]["detail"],
+        )
+        self.assertTrue(report["mutationGuard"]["unchanged"])
+
+    def test_gitiles_transport_retains_checkout_mutation_guard(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-checkout-gitiles-guard-") as raw:
+            fixture = CheckoutFixture(pathlib.Path(raw))
+
+            def mutating_response(target, path, oid, timeout, maximum):
+                del target, path, timeout, maximum
+                (fixture.checkout / ".git/FETCH_HEAD").write_text(
+                    f"{fixture.target}\t\tfixture\n", encoding="ascii"
+                )
+                name = next(
+                    name for name, object_id in fixture.object_ids.items()
+                    if object_id == oid
+                )
+                return base64.b64encode(fixture.contents[name])
+
+            report, exit_code = run_hydration(
+                fixture.namespace(
+                    transport="gitiles", jobs=1, max_fetch_commands=1
+                ),
+                gitiles_loader=mutating_response,
+            )
+
+        self.assertEqual(EXIT_MUTATION, exit_code)
+        self.assertEqual("mutation_detected", report["phase"])
+        self.assertIn("fetchHeadSha256", report["mutationGuard"]["changedFields"])
 
 
 class ChromiumCheckoutHydrationAlgorithmTests(unittest.TestCase):

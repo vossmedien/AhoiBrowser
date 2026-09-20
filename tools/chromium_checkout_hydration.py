@@ -2,9 +2,10 @@
 """Prehydrate every missing blob for a pinned Chromium checkout target.
 
 The command deliberately does not switch revisions.  It inventories the exact
-target tree without lazy fetching and asks the verified ``origin`` promisor for
-immutable blob object IDs in small batches.  A later ``gclient sync`` can then
-update the worktree without issuing thousands of opportunistic blob requests.
+target tree without lazy fetching and obtains immutable missing blobs either
+from the verified ``origin`` promisor or, when explicitly selected, from exact
+official Gitiles target paths.  A later ``gclient sync`` can then update the
+worktree without issuing thousands of opportunistic blob requests.
 
 Exit codes:
   0   every target blob is present
@@ -17,6 +18,8 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import collections
+import concurrent.futures
 import hashlib
 import json
 import math
@@ -41,6 +44,18 @@ from chromium_checkout_state import (
     git_runner as _git_runner,
     git_text as _git_text,
 )
+from chromium_roll_hydration import (
+    DEFAULT_MAX_RESPONSE_BYTES,
+    DEFAULT_MAX_TOTAL_RESPONSE_BYTES,
+    GITILES_BASE,
+    NETWORK_ATTEMPTS,
+    HydrationError,
+    _decode_verified,
+    fetch_gitiles_response,
+    gitiles_blob_url,
+    validate_git_path,
+    validate_limits,
+)
 from chromium_roll_output import PreparedReportOutput, ReportOutputError
 from verify_chromium_pin import VerificationError, validate_config
 
@@ -55,12 +70,16 @@ DEFAULT_FETCH_TIMEOUT_SECONDS = 300
 DEFAULT_MAX_FETCH_COMMANDS = 4096
 DEFAULT_CHECKPOINT_BATCHES = 16
 DEFAULT_MAX_BLOBS = 2_000_000
+DEFAULT_GITILES_JOBS = 4
+DEFAULT_NETWORK_TIMEOUT_SECONDS = 20
+DEFAULT_TOTAL_TIMEOUT_SECONDS = 900
 
 MAX_BATCH_SIZE = 128
 MAX_ATTEMPTS = 6
 MAX_FETCH_TIMEOUT_SECONDS = 1800
 MAX_FETCH_COMMANDS = 100_000
 MAX_BLOBS = 4_000_000
+MAX_GITILES_JOBS = 8
 
 EXIT_OK = 0
 EXIT_ERROR = 1
@@ -83,9 +102,12 @@ class FetchStatistics:
     adaptive_splits: int = 0
     completed_top_level_batches: int = 0
     command_budget_exhausted: bool = False
+    response_budget_exhausted: bool = False
     interrupted: bool = False
     hydrated: set[str] = field(default_factory=set)
     singleton_failures: dict[str, str] = field(default_factory=dict)
+    response_bytes: int = 0
+    decoded_bytes: int = 0
 
 
 @dataclass(frozen=True)
@@ -96,12 +118,14 @@ class TargetInventory:
     submodule_count: int
     blob_ids: tuple[str, ...]
     missing_blob_ids: tuple[str, ...]
+    blob_paths: tuple[tuple[str, str], ...]
     tree_inventory_sha256: str
 
 
 FetchRunner = Callable[[Sequence[str]], FetchResult]
 MissingChecker = Callable[[Sequence[str]], tuple[str, ...]]
 ProgressCallback = Callable[[FetchStatistics], None]
+GitilesResponseLoader = Callable[[str, str, str, int, int], bytes]
 
 
 def _require_sha1(value: str, label: str) -> str:
@@ -256,6 +280,7 @@ def inventory_target(
         + b"\0"
     )
     blob_ids: set[str] = set()
+    blob_paths: dict[str, str] = {}
     previous_path: bytes | None = None
     entry_count = 0
     submodule_count = 0
@@ -265,19 +290,23 @@ def inventory_target(
         digest.update(record + b"\0")
         entry_count += 1
         try:
-            metadata, path = record.split(b"\t", 1)
+            metadata, raw_path = record.split(b"\t", 1)
             raw_mode, raw_type, raw_oid = metadata.split(b" ", 2)
             mode = raw_mode.decode("ascii", "strict")
             object_kind = raw_type.decode("ascii", "strict")
             oid = raw_oid.decode("ascii", "strict")
+            path = validate_git_path(raw_path.decode("utf-8", "strict"))
         except (UnicodeDecodeError, ValueError) as error:
             raise CheckoutHydrationError("git ls-tree returned malformed data") from error
         _require_sha1(oid, "tree entry object")
-        if not path or path == previous_path:
+        if not raw_path or raw_path == previous_path:
             raise CheckoutHydrationError("target tree contains an invalid duplicate path")
-        previous_path = path
+        previous_path = raw_path
         if mode in {"100644", "100755", "120000"} and object_kind == "blob":
             blob_ids.add(oid)
+            current_path = blob_paths.get(oid)
+            if current_path is None or path < current_path:
+                blob_paths[oid] = path
         elif mode == "160000" and object_kind == "commit":
             submodule_count += 1
         else:
@@ -297,6 +326,7 @@ def inventory_target(
         submodule_count=submodule_count,
         blob_ids=ordered,
         missing_blob_ids=missing,
+        blob_paths=tuple(sorted(blob_paths.items())),
         tree_inventory_sha256=digest.hexdigest(),
     )
 
@@ -372,6 +402,147 @@ def _fetch_object_ids(
         suffix = f": {detail}" if detail else ""
         return FetchResult(False, f"fetch exited {process.returncode}{suffix}")
     return FetchResult(True, detail)
+
+
+def _hydrate_gitiles_blobs(
+    *,
+    git: GitRunner,
+    target: str,
+    object_ids: Sequence[str],
+    blob_paths: Mapping[str, str],
+    jobs: int,
+    max_requests: int,
+    network_timeout: int,
+    total_timeout: int,
+    max_response_bytes: int,
+    max_total_response_bytes: int,
+    load_response: GitilesResponseLoader,
+    progress: ProgressCallback | None = None,
+) -> FetchStatistics:
+    """Download, verify, and promote missing blobs from exact Gitiles paths."""
+
+    _safe_int(jobs, 1, MAX_GITILES_JOBS, "jobs")
+    _safe_int(max_requests, 1, MAX_FETCH_COMMANDS, "max-fetch-commands")
+    try:
+        validate_limits(
+            network_timeout,
+            total_timeout,
+            max_response_bytes,
+            max_total_response_bytes,
+        )
+    except HydrationError as error:
+        raise CheckoutHydrationError(str(error)) from error
+
+    pending = collections.deque(
+        _require_sha1(oid, "Gitiles object ID")
+        for oid in sorted(set(object_ids))
+    )
+    for oid in pending:
+        if oid not in blob_paths:
+            raise CheckoutHydrationError(
+                f"target inventory has no Gitiles path for blob {oid}"
+            )
+        try:
+            validate_git_path(blob_paths[oid])
+        except HydrationError as error:
+            raise CheckoutHydrationError(str(error)) from error
+
+    statistics = FetchStatistics()
+    deadline = time.monotonic() + total_timeout
+
+    def fetch_one(
+        oid: str, maximum: int, timeout: int
+    ) -> tuple[str, bytes, int]:
+        path = blob_paths[oid]
+        raw = load_response(target, path, oid, timeout, maximum)
+        if not isinstance(raw, bytes):
+            raise HydrationError("Gitiles blob response is not bytes")
+        if len(raw) > maximum:
+            raise HydrationError(
+                "Gitiles blob response exceeds the per-response limit"
+            )
+        content = _decode_verified(raw, oid)
+        return oid, content, len(raw)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as executor:
+        while pending:
+            if statistics.command_count >= max_requests:
+                statistics.command_budget_exhausted = True
+                break
+            remaining_total = (
+                max_total_response_bytes - statistics.response_bytes
+            )
+            if remaining_total < 1:
+                statistics.response_budget_exhausted = True
+                break
+            remaining_time = deadline - time.monotonic()
+            if remaining_time <= 0:
+                raise CheckoutHydrationError(
+                    "Gitiles hydration exceeded the total-timeout deadline"
+                )
+            effective_timeout = min(
+                network_timeout, max(1, int(remaining_time + 0.999))
+            )
+            wave: list[tuple[str, int]] = []
+            available = remaining_total
+            available_requests = max_requests - statistics.command_count
+            while (
+                pending
+                and len(wave) < jobs
+                and len(wave) < available_requests
+                and available > 0
+            ):
+                oid = pending.popleft()
+                maximum = min(max_response_bytes, available)
+                wave.append((oid, maximum))
+                available -= maximum
+
+            futures = {
+                executor.submit(fetch_one, oid, maximum, effective_timeout): oid
+                for oid, maximum in wave
+            }
+            statistics.command_count += len(futures)
+            verified: list[tuple[str, bytes]] = []
+            for future in concurrent.futures.as_completed(futures):
+                oid = futures[future]
+                try:
+                    _, content, response_bytes = future.result()
+                except HydrationError as error:
+                    statistics.failed_commands += 1
+                    statistics.singleton_failures[oid] = _clean_detail(str(error))
+                    continue
+                statistics.successful_commands += 1
+                statistics.response_bytes += response_bytes
+                statistics.decoded_bytes += len(content)
+                if statistics.response_bytes > max_total_response_bytes:
+                    raise CheckoutHydrationError(
+                        "Gitiles blob responses exceed the aggregate response limit"
+                    )
+                verified.append((oid, content))
+
+            for oid, content in sorted(verified):
+                written = git(("hash-object", "-w", "--stdin"), content, True).stdout
+                try:
+                    actual = written.decode("ascii", "strict").strip()
+                except UnicodeDecodeError as error:
+                    raise CheckoutHydrationError(
+                        "git hash-object returned invalid output"
+                    ) from error
+                if actual != oid:
+                    raise CheckoutHydrationError(
+                        "git hash-object did not write the verified Gitiles blob"
+                    )
+                if _missing_objects(git, (oid,)):
+                    raise CheckoutHydrationError(
+                        "verified Gitiles blob promotion could not be confirmed"
+                    )
+                statistics.hydrated.add(oid)
+
+            statistics.completed_top_level_batches += 1
+            if progress is not None:
+                progress(statistics)
+
+    return statistics
 
 
 def fetch_adaptively(
@@ -452,24 +623,49 @@ def _transport_report(statistics: FetchStatistics, args: argparse.Namespace) -> 
         {"objectId": oid, "detail": detail}
         for oid, detail in sorted(statistics.singleton_failures.items())[:128]
     ]
-    return {
-        "batchSize": args.batch_size,
-        "attemptsPerBatch": args.attempts,
+    report = {
+        "configured": args.transport,
         "maxFetchCommands": args.max_fetch_commands,
-        "fetchTimeoutSeconds": args.fetch_timeout,
-        "httpVersion": "HTTP/1.1",
-        "httpMaxRequests": 1,
-        "fetchParallel": 1,
         "commandCount": statistics.command_count,
         "successfulCommandCount": statistics.successful_commands,
         "failedCommandCount": statistics.failed_commands,
         "retryCount": statistics.retry_count,
         "adaptiveSplitCount": statistics.adaptive_splits,
         "commandBudgetExhausted": statistics.command_budget_exhausted,
+        "responseBudgetExhausted": statistics.response_budget_exhausted,
         "singletonFailureCount": len(statistics.singleton_failures),
         "singletonFailures": failures,
         "singletonFailuresTruncated": len(statistics.singleton_failures) > len(failures),
     }
+    if args.transport == "git":
+        report.update(
+            {
+                "batchSize": args.batch_size,
+                "attemptsPerBatch": args.attempts,
+                "fetchTimeoutSeconds": args.fetch_timeout,
+                "httpVersion": "HTTP/1.1",
+                "httpMaxRequests": 1,
+                "fetchParallel": 1,
+            }
+        )
+    else:
+        report.update(
+            {
+                "baseUrl": GITILES_BASE,
+                "jobs": args.jobs,
+                "networkAttemptsPerRequest": NETWORK_ATTEMPTS,
+                "networkTimeoutSeconds": args.network_timeout,
+                "totalTimeoutSeconds": args.total_timeout,
+                "maxResponseBytes": args.max_response_bytes,
+                "maxTotalResponseBytes": args.max_total_response_bytes,
+                "requestCount": statistics.command_count,
+                "successfulRequestCount": statistics.successful_commands,
+                "failedRequestCount": statistics.failed_commands,
+                "responseBytes": statistics.response_bytes,
+                "decodedBytes": statistics.decoded_bytes,
+            }
+        )
+    return report
 
 
 def _report(
@@ -563,6 +759,7 @@ def run_hydration(
     args: argparse.Namespace,
     *,
     fetcher: FetchRunner | None = None,
+    gitiles_loader: GitilesResponseLoader | None = None,
     sleeper: Callable[[float], None] = time.sleep,
 ) -> tuple[dict[str, Any], int]:
     repository = args.repository.resolve()
@@ -586,6 +783,23 @@ def run_hydration(
     if not checkout.is_dir():
         raise CheckoutHydrationError("Chromium checkout does not exist")
     target = _require_sha1(args.target, "target")
+    if args.transport not in {"git", "gitiles"}:
+        raise CheckoutHydrationError("transport must be git or gitiles")
+    if args.transport == "git":
+        if args.jobs is not None:
+            raise CheckoutHydrationError("jobs is only supported by Gitiles transport")
+    else:
+        args.jobs = DEFAULT_GITILES_JOBS if args.jobs is None else args.jobs
+        _safe_int(args.jobs, 1, MAX_GITILES_JOBS, "jobs")
+        try:
+            validate_limits(
+                args.network_timeout,
+                args.total_timeout,
+                args.max_response_bytes,
+                args.max_total_response_bytes,
+            )
+        except HydrationError as error:
+            raise CheckoutHydrationError(str(error)) from error
     _safe_int(args.batch_size, 1, MAX_BATCH_SIZE, "batch-size")
     _safe_int(args.attempts, 1, MAX_ATTEMPTS, "attempts")
     _safe_int(
@@ -644,11 +858,6 @@ def run_hydration(
     interrupted = False
     runtime_error: CheckoutHydrationError | None = None
     if remaining and not args.dry_run:
-        actual_fetcher = fetcher or (
-            lambda object_ids: _fetch_object_ids(
-                checkout, environment, object_ids, args.fetch_timeout
-            )
-        )
         initial_missing = set(inventory.missing_blob_ids)
 
         def check_missing(object_ids: Sequence[str]) -> tuple[str, ...]:
@@ -680,17 +889,53 @@ def run_hydration(
             )
 
         try:
-            statistics = fetch_adaptively(
-                inventory.missing_blob_ids,
-                batch_size=args.batch_size,
-                attempts=args.attempts,
-                max_fetch_commands=args.max_fetch_commands,
-                fetch=actual_fetcher,
-                missing=check_missing,
-                retry_backoff_seconds=args.retry_backoff_seconds,
-                sleeper=sleeper,
-                progress=checkpoint,
-            )
+            if args.transport == "git":
+                actual_fetcher = fetcher or (
+                    lambda object_ids: _fetch_object_ids(
+                        checkout, environment, object_ids, args.fetch_timeout
+                    )
+                )
+                statistics = fetch_adaptively(
+                    inventory.missing_blob_ids,
+                    batch_size=args.batch_size,
+                    attempts=args.attempts,
+                    max_fetch_commands=args.max_fetch_commands,
+                    fetch=actual_fetcher,
+                    missing=check_missing,
+                    retry_backoff_seconds=args.retry_backoff_seconds,
+                    sleeper=sleeper,
+                    progress=checkpoint,
+                )
+            else:
+                if gitiles_loader is None:
+
+                    def load_response(
+                        target_id: str,
+                        path: str,
+                        object_id: str,
+                        timeout: int,
+                        maximum: int,
+                    ) -> bytes:
+                        del object_id
+                        return fetch_gitiles_response(
+                            gitiles_blob_url(target_id, path), timeout, maximum
+                        )
+                else:
+                    load_response = gitiles_loader
+                statistics = _hydrate_gitiles_blobs(
+                    git=git,
+                    target=target,
+                    object_ids=inventory.missing_blob_ids,
+                    blob_paths=dict(inventory.blob_paths),
+                    jobs=args.jobs,
+                    max_requests=args.max_fetch_commands,
+                    network_timeout=args.network_timeout,
+                    total_timeout=args.total_timeout,
+                    max_response_bytes=args.max_response_bytes,
+                    max_total_response_bytes=args.max_total_response_bytes,
+                    load_response=load_response,
+                    progress=checkpoint,
+                )
         except KeyboardInterrupt:
             statistics.interrupted = True
             interrupted = True
@@ -755,6 +1000,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--target", required=True)
     parser.add_argument("--output", type=pathlib.Path)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--transport", choices=("git", "gitiles"), default="git"
+    )
+    parser.add_argument("--jobs", type=int)
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--attempts", type=int, default=DEFAULT_ATTEMPTS)
     parser.add_argument(
@@ -768,6 +1017,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max-blobs", type=int, default=DEFAULT_MAX_BLOBS)
     parser.add_argument("--retry-backoff-seconds", type=float, default=1.0)
+    parser.add_argument(
+        "--network-timeout", type=int, default=DEFAULT_NETWORK_TIMEOUT_SECONDS
+    )
+    parser.add_argument(
+        "--total-timeout", type=int, default=DEFAULT_TOTAL_TIMEOUT_SECONDS
+    )
+    parser.add_argument(
+        "--max-response-bytes", type=int, default=DEFAULT_MAX_RESPONSE_BYTES
+    )
+    parser.add_argument(
+        "--max-total-response-bytes",
+        type=int,
+        default=DEFAULT_MAX_TOTAL_RESPONSE_BYTES,
+    )
     return parser
 
 
