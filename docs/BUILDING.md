@@ -51,7 +51,11 @@ after verifying its official origin, valid HEAD, DEPS/VERSION, clean source and
 exact managed `.gclient`, `fetch-chromium.sh` requires the normal64 GiB build
 reserve instead of reserving another initial checkout. The initial150/120 GiB
 policy is unchanged. Update reserve is checked again after prehydration and
-after dependency sync, and cannot be lowered with `AHOI_ALLOW_LOW_DISK`.
+after dependency sync. With explicit user authorization for supervised operation,
+`AHOI_ALLOW_LOW_DISK=1` permits this existing-checkout update below64 GiB but
+never below the existing32 GiB absolute build floor, with a visible warning.
+The user authorized that bounded path on20September. Do not count anticipated
+cleanup as free space or automatically delete old outputs to meet a threshold.
 This is a staging reserve, not a promised download-size bound. Monitor available
 space during long transfers; if capacity falls short, retain the resumable
 checkout/objects and stop before the next phase. Do not delete candidates or

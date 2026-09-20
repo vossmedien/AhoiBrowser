@@ -17,22 +17,31 @@ def load_json(relative_path: str):
 
 
 class RepositoryBuildContractTests(unittest.TestCase):
-    def test_existing_checkout_update_keeps_full_build_staging_reserve(self):
+    def test_existing_checkout_update_requires_explicit_bounded_low_disk_override(self):
         helper = ROOT / "scripts/lib/common.sh"
-        required = load_json("config/toolchain.json")["host"]["minimumFreeBuildBytes"]
-        for available, succeeds in ((required, True), (required - 1, False)):
-            with self.subTest(available=available):
+        policy = load_json("config/toolchain.json")["host"]
+        required = policy["minimumFreeBuildBytes"]
+        floor = policy["absoluteMinimumFreeBuildBytes"]
+        for available, override, succeeds in (
+            (required, "0", True), (required - 1, "0", False),
+            (required - 1, "1", True), (floor, "1", True),
+            (floor - 1, "1", False),
+        ):
+            with self.subTest(available=available, override=override):
                 result = subprocess.run(
                     ["bash", "-c", (
                         'source "$1"; '
                         'ahoi_free_bytes() { printf "%s\\n" "$AHOI_TEST_FREE_BYTES"; }; '
-                        'AHOI_ALLOW_LOW_DISK=1 ahoi_require_update_free_space'
+                        'ahoi_require_update_free_space'
                     ), "ahoi-update-space-test", str(helper)],
                     cwd=ROOT,
-                    env={**os.environ, "AHOI_TEST_FREE_BYTES": str(available)},
+                    env={**os.environ, "AHOI_TEST_FREE_BYTES": str(available),
+                         "AHOI_ALLOW_LOW_DISK": override},
                     capture_output=True, text=True, check=False,
                 )
                 self.assertEqual(succeeds, result.returncode == 0, result.stderr)
+                if succeeds and available < required:
+                    self.assertIn("explicit low-disk existing-checkout update", result.stderr)
         fetch = (ROOT / "scripts/fetch-chromium.sh").read_text(encoding="utf-8")
         self.assertLess(fetch.index("ahoi_require_clean_git_checkout"),
                         fetch.index("ahoi_require_update_free_space"))
