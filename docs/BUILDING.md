@@ -46,6 +46,17 @@ incremental build. The override emits a warning below the applicable
 recommendation and changes neither the recommendation nor the evidence required
 from the resulting build; it is not a release-pass signal by itself.
 
+An update of an existing managed checkout uses a separate staging assessment:
+after verifying its official origin, valid HEAD, DEPS/VERSION, clean source and
+exact managed `.gclient`, `fetch-chromium.sh` requires the normal64 GiB build
+reserve instead of reserving another initial checkout. The initial150/120 GiB
+policy is unchanged. Update reserve is checked again after prehydration and
+after dependency sync, and cannot be lowered with `AHOI_ALLOW_LOW_DISK`.
+This is a staging reserve, not a promised download-size bound. Monitor available
+space during long transfers; if capacity falls short, retain the resumable
+checkout/objects and stop before the next phase. Do not delete candidates or
+user data to satisfy the gate. Builds retain their separate existing limits.
+
 ## Bootstrap
 
 ```sh

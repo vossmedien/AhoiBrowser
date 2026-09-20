@@ -138,6 +138,20 @@ PY
   fi
 }
 
+# Only for an existing, verified managed checkout. Its sources already occupy
+# disk, so do not reserve a second initial checkout. Keep the full normal build
+# reserve for dependency staging; unlike builds, updates cannot opt below it.
+ahoi_require_update_free_space() {
+  local required
+  local available
+  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeBuildBytes)"
+  available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
+  if [ "${available}" -lt "${required}" ]; then
+    ahoi_die "insufficient update staging reserve: ${available} bytes available, ${required} required; existing files retained"
+  fi
+  ahoi_note "existing-checkout update reserve verified: ${available} bytes available, ${required} required"
+}
+
 ahoi_export_depot_tools_environment() {
   case "${AHOI_DEPOT_TOOLS_DIR}" in
     /*) ;;

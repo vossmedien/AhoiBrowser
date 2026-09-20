@@ -37,15 +37,32 @@ ahoi_require_command git
 ahoi_require_command python3
 ahoi_require_command cmp
 ahoi_require_command install
-ahoi_require_free_space
-ahoi_enable_depot_tools
-
 source_url="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/chromium.json" source)"
 pinned_commit="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/chromium.json" commit)"
 pinned_version="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/chromium.json" version)"
 gclient_jobs="${AHOI_GCLIENT_JOBS:-1}"
 [[ "${gclient_jobs}" =~ ^[1-9][0-9]*$ ]] || \
   ahoi_die "AHOI_GCLIENT_JOBS must be a positive integer"
+
+existing_checkout=0
+if [ -d "${AHOI_CHROMIUM_SRC}/.git" ]; then
+  [ -f "${AHOI_CHROMIUM_ROOT}/.gclient" ] || \
+    ahoi_die "existing Chromium checkout has no managed .gclient file"
+  actual_origin="$(git -C "${AHOI_CHROMIUM_SRC}" remote get-url origin)"
+  [ "${actual_origin}" = "${source_url}" ] || \
+    ahoi_die "unexpected Chromium origin: ${actual_origin}"
+  git -C "${AHOI_CHROMIUM_SRC}" rev-parse --verify HEAD >/dev/null
+  [ -f "${AHOI_CHROMIUM_SRC}/DEPS" ] && \
+    [ -f "${AHOI_CHROMIUM_SRC}/chrome/VERSION" ] || \
+    ahoi_die "existing Chromium checkout is incomplete"
+  ahoi_require_clean_git_checkout "${AHOI_CHROMIUM_SRC}"
+  ahoi_require_gclient_config
+  existing_checkout=1
+  ahoi_require_update_free_space
+else
+  ahoi_require_free_space
+fi
+ahoi_enable_depot_tools
 
 mkdir -p "${AHOI_CHROMIUM_ROOT}" "${AHOI_STATE_DIR}" "${AHOI_REPO_ROOT}/artifacts/build"
 
@@ -54,11 +71,6 @@ if [ ! -f "${AHOI_CHROMIUM_ROOT}/.gclient" ]; then
     ahoi_die "src exists without a managed .gclient file: ${AHOI_CHROMIUM_SRC}"
   install -m 0644 "${AHOI_REPO_ROOT}/config/gclient.py" \
     "${AHOI_CHROMIUM_ROOT}/.gclient"
-elif [ -d "${AHOI_CHROMIUM_SRC}/.git" ]; then
-  actual_origin="$(git -C "${AHOI_CHROMIUM_SRC}" remote get-url origin)"
-  [ "${actual_origin}" = "${source_url}" ] || \
-    ahoi_die "unexpected Chromium origin: ${actual_origin}"
-  ahoi_require_clean_git_checkout "${AHOI_CHROMIUM_SRC}"
 fi
 ahoi_require_gclient_config
 
@@ -113,6 +125,9 @@ PY
   fi
 fi
 
+if [ "${existing_checkout}" -eq 1 ]; then
+  ahoi_require_update_free_space
+fi
 # A completed hook record describes the old checkout. Invalidate it before the
 # sync starts, including when the sync later fails or is interrupted.
 ahoi_invalidate_hook_state
@@ -125,6 +140,9 @@ ahoi_note "syncing Chromium ${pinned_version} at ${pinned_commit}"
   gclient sync -j "${gclient_jobs}" --no-history --nohooks \
     --revision "src@${pinned_commit}"
 )
+if [ "${existing_checkout}" -eq 1 ]; then
+  ahoi_require_update_free_space
+fi
 ahoi_require_gclient_config
 
 actual_commit="$(git -C "${AHOI_CHROMIUM_SRC}" rev-parse HEAD)"

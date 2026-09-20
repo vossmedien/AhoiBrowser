@@ -17,6 +17,29 @@ def load_json(relative_path: str):
 
 
 class RepositoryBuildContractTests(unittest.TestCase):
+    def test_existing_checkout_update_keeps_full_build_staging_reserve(self):
+        helper = ROOT / "scripts/lib/common.sh"
+        required = load_json("config/toolchain.json")["host"]["minimumFreeBuildBytes"]
+        for available, succeeds in ((required, True), (required - 1, False)):
+            with self.subTest(available=available):
+                result = subprocess.run(
+                    ["bash", "-c", (
+                        'source "$1"; '
+                        'ahoi_free_bytes() { printf "%s\\n" "$AHOI_TEST_FREE_BYTES"; }; '
+                        'AHOI_ALLOW_LOW_DISK=1 ahoi_require_update_free_space'
+                    ), "ahoi-update-space-test", str(helper)],
+                    cwd=ROOT,
+                    env={**os.environ, "AHOI_TEST_FREE_BYTES": str(available)},
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(succeeds, result.returncode == 0, result.stderr)
+        fetch = (ROOT / "scripts/fetch-chromium.sh").read_text(encoding="utf-8")
+        self.assertLess(fetch.index("ahoi_require_clean_git_checkout"),
+                        fetch.index("ahoi_require_update_free_space"))
+        self.assertLess(fetch.index("ahoi_require_gclient_config"),
+                        fetch.index("ahoi_require_update_free_space"))
+        self.assertEqual(3, fetch.count("ahoi_require_update_free_space"))
+
     def test_dependency_wrapper_rejects_out_dir_escape_before_receipt_mutation(self):
         wrapper = ROOT / "scripts/build-chromium-with-dependency-workarounds.sh"
         receipt_name = load_json("config/dependency-build-workarounds.json")[
