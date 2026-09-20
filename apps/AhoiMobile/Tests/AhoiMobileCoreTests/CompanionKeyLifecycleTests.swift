@@ -9,6 +9,32 @@ private func bootstrapDigest(_ byte: UInt8) -> String {
 }
 
 final class CompanionKeyLifecycleTests: XCTestCase {
+    @MainActor
+    func testConcreteKeyStoreDigestReadsRejectRevokedAuthorization() async throws {
+        let store = try KeychainCompanionPayloadKeyStore(
+            configuration: .init(
+                service: "test.ahoibrowser.payload-key-lifecycle",
+                account: "revoked-digest-read",
+                keyVersion: 1
+            ),
+            authorization: { false }
+        )
+
+        do {
+            _ = try await store.canonicalKeySHA256(version: 1)
+            XCTFail("Expected canonical digest read to reject revoked authorization")
+        } catch {
+            XCTAssertEqual(error as? CompanionPayloadKeyStoreError, .authorizationRevoked)
+        }
+
+        do {
+            _ = try await store.candidateKeySHA256(version: 1)
+            XCTFail("Expected candidate digest read to reject revoked authorization")
+        } catch {
+            XCTAssertEqual(error as? CompanionPayloadKeyStoreError, .authorizationRevoked)
+        }
+    }
+
     func testConcurrentFirstOptInCreatesOneClaimAndNoSplitKey() async throws {
         let server = FakeBootstrapServer(waitForInitialInspectors: 2)
         let firstStore = FakePayloadKeyStore(generatedByte: 0x11)
