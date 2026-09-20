@@ -107,6 +107,9 @@ Their old thread IDs and September8 leases are not current runtime grants.
   Fresh68–77% aggregate idle/66% memory headroom/0 swapouts, no competing compiler.
   Normal guarded hooks/GN/compile/stage/sign path; no successful build, installed
   update or Sync roundtrip is claimed yet.
+  GN now succeeded (32,713 targets/4,982 files); actual Ninja53051/parent53015
+  is compiling with6 jobs. At the latest readback4,297/56,804 actions completed,
+  no FAILED/error diagnostics yet. Do not restart this live continuation.
   Root's existing clean build snapshot is advanced to59a0bf5, no compiler yet.
   Retained Sparkle2.9.6 revalidated against its old material receipt; reuse after
   overlay instead of another download. The helper's accidental dry-run network
@@ -149,10 +152,16 @@ Their old thread IDs and September8 leases are not current runtime grants.
   Normal OFF/app termination/own Shutdown followed. This proves mobile startup/
   provider status, not matching Mac roundtrip, physical iPhone, push or Production.
   **Fresh runtime correction,20September:** user queried the removed26.5 runtime.
-  Live simctl now lists ONLY iOS27 available; old C645 still exists but belongs
-  to unavailable iOS26.5. Do not attempt another C645/26.5 boot or treat its old
-  acceptance as an iOS27 pass. Next mobile journey uses available iOS27 with a
-  freshly verified device/account state. This is separate from Native builds:
+  Live simctl initially listed ONLY iOS27 available, with C645 still bound to
+  unavailable26.5. Native clone refused (401, missing old runtime); Root then
+  used Apple's supported `simctl upgrade C645… com.apple.CoreSimulator.SimRuntime.iOS-27-0`,
+  EXIT0. The SAME C645 is now available on iOS27, still Shutdown, no erase/reset
+  or manual key/data copy. Installed38/f21d089 remains byte-identical to its
+  original receipt: tree0b70e757…/binary85421eec…/plist50f9975d…, verified with
+  the existing `mobile_evidence_artifacts.sha256_path` (typed hashes, not raw
+  shasum). No reinstall needed. Account/session usability and visible startup
+  on27 remain untested; do not relabel the old26.5 pass. Next mobile boot uses
+  this upgraded C645, not a new empty device. This is separate from Native builds:
   Xcode26.5 still exists and provides macOS SDK26.5, M153's exact
   `mac_sdk_official_version`; installed Xcode27 provides macOS SDK27. Do not
   conflate removal of a Simulator runtime with removal of the Mac build toolchain.
