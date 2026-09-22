@@ -1,5 +1,15 @@
 # Active sync coordination
 
+## Current candidate — 23 September 2026
+
+The prior M153 app-only build20314 ended **EXIT1** with one unique
+`SessionBridge::OnSplitTabChanged` sequence-guard compiler error. Exact source
+correction `9617cf1` is DCO-committed; guarded overlay60357 EXIT0. Current
+app-only handle95543 compiles that source in existing `out/AhoiDev` with three
+jobs. Log/exit: `artifacts/build/native-m153-sequence-9617cf1-20260923/`.
+Mobile CloudKitDevelopment40 on iOS27 is ready and visibly synchronized;
+cross-device record transport still requires an installed Mac candidate.
+
 ## Current M153 compiler — 23 September 2026
 
 The exact current handle is20314/Ninja28836, three jobs in existing

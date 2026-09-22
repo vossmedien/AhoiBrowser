@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Latest compiler correction — 23 September 2026
+
+M153 build20314 from clean `ba7a062` completed with **EXIT1** after
+1,308/1,676 actions. Exactly one unique compile cause remained:
+`session_bridge_observers.cc:519` read `shutting_down_` without proving its
+sequence. DCO source `9617cf1` adds the same
+`DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_)` used by neighboring
+callbacks. The full 43-patch composition was checked. Its old build log and
+exit remain under `artifacts/build/native-m153-final-seam-ba7a062-20260923-jobs3/`;
+all successful objects were kept, both temporary dependency files restored.
+
+Root selected the clean `9617cf1` snapshot, refreshed the live M153 overlay
+with guarded handle60357 **EXIT0**, and verified the corrected line in the
+checkout. Current guarded app-only build95543 runs with three jobs in the same
+`out/AhoiDev`. Its log and eventual exit are in
+`artifacts/build/native-m153-sequence-9617cf1-20260923/`.
+No complete M153 build receipt, installation or Mac/mobile roundtrip yet.
+
 ## Latest build handle — 23 September 2026
 
 Guarded M153 app-only build handle20314/Ninja28836 is live from clean
