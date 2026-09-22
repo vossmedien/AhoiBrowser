@@ -72,7 +72,7 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..65b19fa9edc007d53fa1939bbb5ddcad
  }
  
 +void SessionService::BuildCommandsForBrowser(
-+    Browser* browser,
++    BrowserWindowInterface* browser,
 +    IdToRange* tab_to_available_range,
 +    std::set<SessionID>* windows_to_track) {
 +  SessionServiceBase::BuildCommandsForBrowser(browser, tab_to_available_range,
@@ -82,7 +82,7 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..65b19fa9edc007d53fa1939bbb5ddcad
 +  if (ahoi::session::PopulateWindowSessionExtraData(browser, &extra_data)) {
 +    for (const auto& [key, data] : extra_data) {
 +      command_storage_manager()->AppendRebuildCommand(
-+          sessions::CreateAddWindowExtraDataCommand(browser->session_id(), key,
++          sessions::CreateAddWindowExtraDataCommand(browser->GetSessionID(), key,
 +                                                    data));
 +    }
 +  }
@@ -172,7 +172,7 @@ index 92d191c30c8f4919631d1a1e06a1929afac29225..2c86812a6c06f279c9ae92906faae999
                             bool is_pinned,
                             IdToRange* tab_to_available_range) override;
  
-+  void BuildCommandsForBrowser(Browser* browser,
++  void BuildCommandsForBrowser(BrowserWindowInterface* browser,
 +                               IdToRange* tab_to_available_range,
 +                               std::set<SessionID>* windows_to_track) override;
 +

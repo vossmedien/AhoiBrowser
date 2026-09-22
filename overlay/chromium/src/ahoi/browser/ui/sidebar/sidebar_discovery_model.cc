@@ -427,11 +427,11 @@ bool SidebarDiscoveryModel::RestoreRecentlyClosed(
       !internal::IsEligibleRecentlyClosedEntry(**entry)) {
     return false;
   }
-  const std::vector<sessions::LiveTab*> restored =
+  const std::optional<std::vector<sessions::LiveTab*>> restored =
       tab_restore_service_->RestoreEntryById(live_tab_context, entry_id,
                                              WindowOpenDisposition::UNKNOWN);
-  return std::ranges::any_of(restored,
-                             [](sessions::LiveTab* tab) { return tab; });
+  return restored && std::ranges::any_of(
+                         *restored, [](sessions::LiveTab* tab) { return tab; });
 }
 
 void SidebarDiscoveryModel::OnCommandIndexChanged(CommandItemType type) {

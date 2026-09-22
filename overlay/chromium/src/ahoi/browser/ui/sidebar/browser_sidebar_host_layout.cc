@@ -441,7 +441,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   auto* split_action = actions->AddChildView(CreateSidebarSplitActionCell(
       base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
                           weak_ptr_factory_.GetWeakPtr(), IDC_NEW_TAB),
-      vector_icons::kAddWeight500Icon, l10n_util::GetStringUTF16(IDS_NEW_TAB),
+      vector_icons::kAddWeight500CustomIcon,
+      l10n_util::GetStringUTF16(IDS_NEW_TAB),
       base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
                           weak_ptr_factory_.GetWeakPtr(),
                           IDC_NEW_INCOGNITO_WINDOW),

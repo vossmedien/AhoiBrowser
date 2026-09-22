@@ -15837,7 +15837,7 @@ index 0cc5a17a9748ffa50f7916b51758ef248f13320b..1bfd122926d08ccf604df2aef7e8e91f
    ResetDragState();
    auto* scroll_view = GetScrollViewForContainer();
    CHECK(scroll_view);
-@@ -137,6 +158,113 @@ bool DraggedTabsContainer::CanDropTab() {
+@@ -137,6 +158,118 @@ bool DraggedTabsContainer::CanDropTab() {
    return true;
  }
  
@@ -15862,10 +15862,13 @@ index 0cc5a17a9748ffa50f7916b51758ef248f13320b..1bfd122926d08ccf604df2aef7e8e91f
 +
 +  const tabs::ConstChildPtr target_data = split_drop_target->GetNodeData();
 +  const tabs::TabInterface* target_tab = nullptr;
-+  if (std::holds_alternative<const tabs::TabInterface*>(target_data)) {
-+    target_tab = std::get<const tabs::TabInterface*>(target_data);
++  if (std::holds_alternative<tabs::ConstDanglingUntriagedTabInterface>(
++          target_data)) {
++    target_tab =
++        std::get<tabs::ConstDanglingUntriagedTabInterface>(target_data).get();
 +  } else {
-+    const auto* collection = std::get<const tabs::TabCollection*>(target_data);
++    const tabs::TabCollection* collection =
++        std::get<tabs::ConstDanglingUntriagedTabCollection>(target_data).get();
 +    if (collection->type() != tabs::TabCollection::Type::SPLIT ||
 +        collection->TabCountRecursive() >= tabs::SplitTabCollection::kMaxTabs) {
 +      return;
@@ -15902,8 +15905,10 @@ index 0cc5a17a9748ffa50f7916b51758ef248f13320b..1bfd122926d08ccf604df2aef7e8e91f
 +      continue;
 +    }
 +    if (node->type() == TabCollectionNode::Type::SPLIT) {
-+      const auto* collection =
-+          std::get<const tabs::TabCollection*>(node->GetNodeData());
++      const tabs::TabCollection* collection =
++          std::get<tabs::ConstDanglingUntriagedTabCollection>(
++              node->GetNodeData())
++              .get();
 +      if (collection->TabCountRecursive() >=
 +          tabs::SplitTabCollection::kMaxTabs) {
 +        continue;
@@ -15951,7 +15956,7 @@ index 0cc5a17a9748ffa50f7916b51758ef248f13320b..1bfd122926d08ccf604df2aef7e8e91f
  void DraggedTabsContainer::HandleTabDragEnteredContainer() {
    last_move_drag_x_ = std::nullopt;
    CHECK(collection_node_);
-@@ -596,6 +724,7 @@ DraggedTabsContainer::GetTabStripCollapseState() const {
+@@ -596,6 +729,7 @@ DraggedTabsContainer::GetTabStripCollapseState() const {
  }
  
  void DraggedTabsContainer::ResetCollectionNode() {
@@ -21073,3 +21078,15 @@ index cd2df191413e185f4f168f35b1d63887f4216b04..32bf3b17318d9e05e32874bbefd09172
   protected:
    virtual ~DragController() = default;
  };
+diff --git a/tools/metrics/histograms/histograms_xml_files.gni b/tools/metrics/histograms/histograms_xml_files.gni
+index 23727374ae5562bb6022b0045f0c1743d8d44785..c16c0c42309cb232e9abb102d987b85b5d6d4da4 100644
+--- a/tools/metrics/histograms/histograms_xml_files.gni
++++ b/tools/metrics/histograms/histograms_xml_files.gni
+@@ -2,6 +2,7 @@ histograms_xml_files = [
+   "//tools/metrics/histograms/enums.xml",
+   "//tools/metrics/histograms/metadata/accessibility/enums.xml",
+   "//tools/metrics/histograms/metadata/accessibility/histograms.xml",
++  "//tools/metrics/histograms/metadata/ahoi/histograms.xml",
+   "//tools/metrics/histograms/metadata/accessibility_annotator/enums.xml",
+   "//tools/metrics/histograms/metadata/accessibility_annotator/histograms.xml",
+   "//tools/metrics/histograms/metadata/account_manager/histograms.xml",
