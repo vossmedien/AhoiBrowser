@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Live continuation — 23 September 2026
+
+The prior guarded M153 handle65612 became unavailable across an interrupted
+turn. Its log stops after 144/2,260 actions without a terminal exit or build
+receipt; no corresponding compiler/wrapper process survived. The exact Rust
+and V8 temporary workaround targets still carried their build-only patches.
+Root checked reverse application of both pinned patches, reversed only those
+two files, restored their original mtimes and verified their configured
+original SHA-256 plus clean Git status. Patched-byte recovery copies remain
+under `/private/tmp/ahoi-m153-interrupted-workarounds.FH8g2n/`.
+
+The exact clean `ba7a062` source snapshot, existing M153 overlay/out and
+completed objects were retained. Guarded app-only continuation handle78523
+is now running with two jobs in the same `out/AhoiDev`; actual NinjaPID60300.
+Log and eventual exit are under
+`artifacts/build/native-m153-final-seam-ba7a062-20260923-resume/`.
+Host/Sparkle/hooks/GN succeeded. Latest compiler readback was 119/2,116 actions
+with no new error. No build receipt, install or Mac/mobile Sync pass yet.
+
+Matching Mobile CloudKitDevelopment40/fe842 on iOS27 reached Ready,
+encryption-ready and Synchronized after the user confirmed the Apple Account.
+Initial `CKErrorNotAuthenticated`/fetch9 and its later correction are preserved
+in `artifacts/e2e/mobile-cloudkit40-ios27-20260922/`; this is Mobile-only.
+
 ## Current M153 build — 22 September 2026
 
 The first M153 product attempt `0a1de6a` is **terminal EXIT1**, not a running

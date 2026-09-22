@@ -1,5 +1,17 @@
 # Active sync coordination
 
+## Current handle — 23 September 2026
+
+Desktop M153 build handle78523/Ninja60300 runs from clean `ba7a062` source
+with two jobs in the existing out. Its actual log, no exit receipt yet:
+`artifacts/build/native-m153-final-seam-ba7a062-20260923-resume/`.
+Prior handle65612 disappeared during an interrupted turn at144/2,260 without
+a terminal result. Root restored only its two temporary Rust/V8 patches to
+their verified original bytes and mtimes before this continuation. The
+installed Mac browser is still the older candidate. Mobile Development40
+is byte/receipt-bound and visibly synchronized on iOS27 after account
+confirmation; cross-device record transport is still unproven.
+
 ## Current handoff — 22 September 2026
 
 Mobile product correction `45330d2` / DebugLocal39 is installed and visibly
