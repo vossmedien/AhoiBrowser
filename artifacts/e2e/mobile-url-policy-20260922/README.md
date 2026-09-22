@@ -19,7 +19,10 @@ trigger, but the exact blocked action URL was not captured from WebKit.
 - Exact candidate receipt: `artifacts/build/mobile-url-policy-45330d2-20260922/candidate.json`
   (SHA-256 `11d7181fbb875bb915f513777cd4e4277179bc3a855cb0e309e44097c3d03af1`).
   Installed app tree, executable and Info.plist each matched that receipt on
-  dedicated simulator `A168C9AA-1018-4C41-9D20-10ED6206D4B2`.
+  dedicated simulator `A168C9AA-1018-4C41-9D20-10ED6206D4B2`. The exact
+  installed bundle is also preserved locally as
+  `artifacts/build/mobile-url-policy-45330d2-20260922/AhoiMobile-45330d2-build39.app`;
+  the normal receipt verifier and strict deep codesign check pass on this copy.
 - A normal address-field navigation to the same WinFuture URL displayed its
   content and site cookie sheet without the native Ahoi URL alert. The page
   finished loading; a further visible check after five seconds still showed no
@@ -42,6 +45,10 @@ then executed once, passed with zero failures/skips and exited 0. Logs and
 XCResults are under `artifacts/tests/mobile-url-policy-20260922/`; the first
 failure remains retained. The corrected test log SHA-256 is
 `cb10d7d7013a99528b26530c656749c5efc119d8377b986b82361850a439f971`.
+The XCTest build changed the separate DerivedData product executable; it did
+not change the app already installed for the visible journey. The archived
+candidate was therefore copied from the verified installed bundle, not from
+the post-test DerivedData output.
 
 The tested fix allows WebKit-owned internal document URLs in an existing page
 while the address/external-open boundary still accepts only validated web URLs.
