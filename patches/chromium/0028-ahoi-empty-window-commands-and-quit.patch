@@ -2,7 +2,7 @@ diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui
 index 99101ebc5729963e7fa3761e11f7ebfdb8ac84f1..70270d303073ca5736a6ccb241dd8a00447a8d1d 100644
 --- a/chrome/browser/ui/browser_command_controller.cc
 +++ b/chrome/browser/ui/browser_command_controller.cc
-@@ -646,7 +646,27 @@ bool BrowserCommandController::ExecuteCommandWithDispositionAndContext(
+@@ -646,7 +646,28 @@ bool BrowserCommandController::ExecuteCommandWithDispositionAndContext(
    // crashes, e.g. from Windows sending WM_COMMANDs at random times during
    // window construction.  This probably could use closer examination someday.
    if (browser_->tab_strip_model()->active_index() == TabStripModel::kNoTab) {
@@ -10,7 +10,8 @@ index 99101ebc5729963e7fa3761e11f7ebfdb8ac84f1..70270d303073ca5736a6ccb241dd8a00
 +    // Ahoi keeps normal windows alive with no selected tab. Only commands
 +    // whose implementations own a window/profile (not a page) can run here.
 +    // Preserve Chromium's construction guard for other window types.
-+    if (!browser_->is_type_normal() || !browser_->GetWindow()) {
++    if (browser_->GetType() != BrowserWindowInterface::Type::TYPE_NORMAL ||
++        !browser_->GetWindow()) {
 +      return true;
 +    }
 +    switch (id) {
