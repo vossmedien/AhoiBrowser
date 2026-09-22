@@ -27,9 +27,15 @@ but the next cached build28891 found a remaining BookmarkMenu conversion after
 200/3,384 actions. It is terminal EXIT2 by Root's precise Ninja interrupt;
 objects remain. The concrete cause was a forward-declared `Browser` at the
 call site, closed by source317df37's full Browser header. Guarded overlay
-refresh3113 EXIT0 on clean6a6a1d1; the next incremental app-only build15002
-is now running with two jobs in the SAME out/AhoiDev. Current logs/exit:
-`artifacts/build/native-m153-bookmark-6a6a1d1-20260922/`. No successful M153
+refresh3113 EXIT0 on clean6a6a1d1. Cached build15002 is **terminal EXIT2** at
+898/3,185, stopped by exact Ninja SIGINT after two more independent M153 API
+causes surfaced: `browser.cc` used a forward-declared BrowserView and Ahoi's
+`browser_command_controller.cc` used removed `is_type_normal()`. All completed
+objects/logs remain; wrapper restored the pinned Rust/V8 source. Sourceea57e08
+fixes the full BrowserView header and migrates all matching Ahoi type checks to
+M153 `GetType()`. Guarded overlay refresh25795 EXIT0 on cleanea57e08; **current
+app-only build34638 RUNNING** with two jobs in the SAME out/AhoiDev. Current
+log/exit: `artifacts/build/native-m153-browser-ea57e08-20260922/`. No successful M153
 build, install or runtime pass yet. The installed app remains the prior candidate. The Mobile
 URL-policy correction has its own proven DebugLocal39 E2E evidence in the
 Mobile checkpoint; that is not a Mac/CloudKit roundtrip.

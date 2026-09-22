@@ -23,8 +23,12 @@ Root stopped only the identified Ninja scheduler after confirmed machine
 pressure; objects and logs remain and workaround sources were restored.
 Sidebar source84a3405 is committed. Its cached build28891 is terminal EXIT2
 after finding the remaining BookmarkMenu forward-declaration cause; source
-317df37 closes it. Root refreshed the guarded overlay (3113 EXIT0) and started
-cached app-only build15002 with two jobs from clean6a6a1d1 in existing out/AhoiDev.
+317df37 closes it. Root refreshed the guarded overlay (3113 EXIT0); cached
+build15002 is terminal EXIT2 at898/3,185 after independent BrowserView
+incomplete-type and removed `is_type_normal()` causes appeared. Sourceea57e08
+addresses these plus matching sites. Root's guarded overlay25795 EXIT0 and
+current app-only build34638 is RUNNING with two jobs from cleanea57e08 in the
+same out/AhoiDev. Original logs and completed objects remain.
 First attempt0a1de6a remains separate terminal EXIT1. Desktop current details
 and exact next gates are in `ACTIVE_DESKTOP_CHECKPOINT.md`. After a real Mac candidate,
 Development-sign the existing isolated scope and perform normal visible
