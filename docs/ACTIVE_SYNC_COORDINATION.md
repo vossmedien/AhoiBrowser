@@ -1,5 +1,17 @@
 # Active sync coordination
 
+## Current M153 compiler — 23 September 2026
+
+The exact current handle is20314/Ninja28836, three jobs in existing
+`out/AhoiDev`, clean source `ba7a062`; actual log/exit live in
+`artifacts/build/native-m153-final-seam-ba7a062-20260923-jobs3/`.
+Old handle78523 ended2 deliberately at440/2,116; its objects and logs remain.
+After a foreign VM caused sustained CPU contention, Root paused only its own
+Ninja scheduler, let current child compiles finish, then resumed that same PID
+when idle and memory recovered. At resume541/1,676 actions had compiled without
+new source failure. No Mac candidate or cross-device Sync pass yet. Details:
+`ACTIVE_DESKTOP_CHECKPOINT.md` latest section.
+
 ## Current handle — 23 September 2026
 
 Desktop M153 build handle78523/Ninja60300 runs from clean `ba7a062` source

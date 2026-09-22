@@ -1,5 +1,20 @@
 # Active Desktop checkpoint
 
+## Latest build handle — 23 September 2026
+
+Guarded M153 app-only build handle20314/Ninja28836 is live from clean
+`ba7a062` in the existing `out/AhoiDev` with three jobs. Its exact log and
+eventual exit are under
+`artifacts/build/native-m153-final-seam-ba7a062-20260923-jobs3/`.
+The prior two-job continuation78523 ended2 through Root's exact Ninja SIGINT
+at440/2,116 to use available CPU capacity; its wrapper restored both pinned
+build-only workaround sources, and all objects were retained. The new GN/Ninja
+continuation had reached541/1,676 with no compiler error when foreign VM load
+briefly reduced CPU idle to6–9%. Root paused only Ninja28836 with SIGSTOP;
+its three active children finished naturally, swapouts stayed flat, and Root
+sent SIGCONT to the same scheduler after idle recovered to35–40%. It is now
+running again. No build receipt, installation or Mac/mobile record roundtrip.
+
 ## Live continuation — 23 September 2026
 
 The prior guarded M153 handle65612 became unavailable across an interrupted
