@@ -5033,7 +5033,16 @@ index b3a4744e88c7799761c26d51a884c79c3c4e6b0b..c6931a9d3a695d724d1dc53bb3e56eaa
  #include "base/base_paths.h"
  #include "base/check_deref.h"
  #include "base/command_line.h"
-@@ -620,14 +621,32 @@ void Browser::OnTabStripModelChanged(TabStripModel* tab_strip_model,
+@@ -76,7 +77,8 @@
+ #include "chrome/browser/ui/browser_tab_strip_model_delegate.h"
+ #include "chrome/browser/ui/browser_ui_controller/browser_ui_controller.h"
+ #include "chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.h"
+ #include "chrome/browser/ui/browser_window.h"
++#include "chrome/browser/ui/views/frame/browser_view.h"
+ #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
+ #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
+ #include "chrome/browser/ui/browser_window/public/create_browser_window.h"
+@@ -620,14 +622,32 @@ void Browser::OnTabStripModelChanged(TabStripModel* tab_strip_model,
    OnActiveTabChanged(change, selection);
  }
  
@@ -10374,7 +10383,7 @@ index f9b1d3de0545b1426169859660f555f825e02468..87d7cfe077350b0222979e0462ec10a6
    if (command_id == IDC_SHOW_READING_MODE_SIDE_PANEL) {
      context.SetProperty(
          kSidePanelOpenTriggerKey,
-@@ -5216,6 +6072,208 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -5216,6 +6072,210 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        browser_.get(), command_id, std::move(context), accelerator.time_stamp());
  }
  
@@ -10565,7 +10574,9 @@ index f9b1d3de0545b1426169859660f555f825e02468..87d7cfe077350b0222979e0462ec10a6
 +}
 +
 +bool BrowserView::SaveCurrentTabToAhoiTree() {
-+  if (!browser_ || !browser_->is_type_normal() || !browser_->GetProfile() ||
++  if (!browser_ ||
++      browser_->GetType() != BrowserWindowInterface::Type::TYPE_NORMAL ||
++      !browser_->GetProfile() ||
 +      !browser_->GetProfile()->IsRegularProfile() ||
 +      browser_->GetProfile()->IsOffTheRecord()) {
 +    return false;
@@ -10583,7 +10594,7 @@ index f9b1d3de0545b1426169859660f555f825e02468..87d7cfe077350b0222979e0462ec10a6
  ///////////////////////////////////////////////////////////////////////////////
  // BrowserView, infobars::InfoBarContainer::Delegate overrides:
  
-@@ -5350,7 +6408,8 @@ bool BrowserView::MaybeUpdateSplitView(content::WebContents* contents) {
+@@ -5350,7 +6410,8 @@ bool BrowserView::MaybeUpdateSplitView(content::WebContents* contents) {
    if (updated_state) {
      split_tabs::SplitTabData* split_data =
          browser_->tab_strip_model()->GetSplitData(new_tab->GetSplit().value());
@@ -10593,7 +10604,7 @@ index f9b1d3de0545b1426169859660f555f825e02468..87d7cfe077350b0222979e0462ec10a6
    } else if (current_state != updated_state) {
      multi_contents_view_->CloseSplitView();
    } else {
-@@ -5613,6 +6672,65 @@ void BrowserView::LoadAccelerators() {
+@@ -5613,6 +6674,65 @@ void BrowserView::LoadAccelerators() {
          accelerator, ui::AcceleratorManager::kNormalPriority, this);
    }
  
@@ -14672,11 +14683,13 @@ index 335b2902fd43016d45fa176e4aeec65ec87dcb64..070a2f4904a2fb7dd769d9a442bb47b0
    }
  
    run_omnibox_context_menu_callback_ =
-@@ -469,6 +511,96 @@ void LocationBarView::Init() {
+@@ -469,6 +511,98 @@ void LocationBarView::Init() {
    clear_all_button_ = AddChildView(std::move(clear_all_button));
    RefreshClearAllButtonIcon();
  
-+  if (browser_ && browser_->is_type_normal() && profile_ &&
++  if (browser_ &&
++      browser_->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL &&
++      profile_ &&
 +      profile_->IsRegularProfile() && !profile_->IsOffTheRecord() &&
 +      !is_popup_mode_) {
 +    auto configure_ahoi_action_button = [](views::ImageButton* button) {
@@ -15583,7 +15596,7 @@ index ae5f0f10e51eca0477a8d1c10df63321b0f09d08..236612dbb5bbaa7f263af53ecb64b132
  #include "chrome/browser/ui/views/frame/contents_web_view.h"
  #include "chrome/browser/ui/views/location_bar/icon_label_bubble_view.h"
  #include "chrome/browser/ui/views/location_bar/location_bar_view.h"
-@@ -1290,6 +1291,22 @@ void OmniboxViewViews::OnMouseExited(const ui::MouseEvent& event) {
+@@ -1290,6 +1291,24 @@ void OmniboxViewViews::OnMouseExited(const ui::MouseEvent& event) {
  }
  
  bool OmniboxViewViews::OnMousePressed(const ui::MouseEvent& event) {
@@ -15592,7 +15605,9 @@ index ae5f0f10e51eca0477a8d1c10df63321b0f09d08..236612dbb5bbaa7f263af53ecb64b132
 +      location_bar_view_) {
 +    Browser* browser = location_bar_view_->browser();
 +    Profile* profile = location_bar_view_->GetProfile();
-+    if (browser && browser->is_type_normal() && profile &&
++    if (browser &&
++        browser->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL &&
++        profile &&
 +        profile->IsRegularProfile() && !profile->IsOffTheRecord()) {
 +      if (BrowserView* browser_view =
 +              BrowserView::GetBrowserViewForBrowser(browser);
@@ -15606,7 +15621,7 @@ index ae5f0f10e51eca0477a8d1c10df63321b0f09d08..236612dbb5bbaa7f263af53ecb64b132
    PermitExternalProtocolHandler();
  
    // Clear focus of buttons, but do not clear keyword mode.
-@@ -1432,6 +1449,9 @@ bool OmniboxViewViews::OnMouseDragged(const ui::MouseEvent& event) {
+@@ -1432,6 +1451,9 @@ bool OmniboxViewViews::OnMouseDragged(const ui::MouseEvent& event) {
  }
  
  void OmniboxViewViews::OnMouseReleased(const ui::MouseEvent& event) {
