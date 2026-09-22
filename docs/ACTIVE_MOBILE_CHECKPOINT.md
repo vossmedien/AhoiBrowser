@@ -18,6 +18,14 @@ source45330d2/build39. Neither this provider-free candidate nor this URL
 journey is a Mac/mobile CloudKit roundtrip. Do not repeat the older Build38
 Sync first-use evidence as an iOS27 retest or infer broad HTTP compatibility.
 
+The matching `CloudKitDevelopment` build40 is now a separate product-only
+candidate from the same45330d2 source. Its Xcode27 build exited0; archived
+bundle, deep signature, exact source/build stamp and receipt all verify. The
+Info.plist carries the existing fe842 Development container, zone,
+subscription and keychain group/account. It is not installed or CloudKit-tested
+yet. Use it for the normal matching Mac/mobile journey after the Mac M153
+candidate succeeds; [build40 receipt and limits](../artifacts/build/mobile-cloudkit-url-policy-45330d2-20260922/README.md).
+
 Updated: 2026-09-19. The bounded Mobile worker
 `/root/simulator_cloudkit_20260919` has returned sourcef21d089 to coordinator
 `/root`. No active Mobile build/UI run or new general Common ownership is implied.
