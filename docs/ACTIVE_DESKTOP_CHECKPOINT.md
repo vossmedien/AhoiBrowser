@@ -22,9 +22,15 @@ cause. Sustained 4–5% CPU idle and rising Swapouts made continued compilation
 costly; Root stopped only its identified Ninja PID60218. Its wrapper restored
 the exact Rust target and clean V8 dependency; completed objects remain cached.
 Original log/exit are retained. Desktop helper owns source-only fixes to these
-seams. Next build uses the same out after one bundled source handoff, fresh
-capacity check and guarded overlay refresh. No successful M153 build, install
-or runtime pass yet. The installed app remains the prior candidate. The Mobile
+seams. Follow-up source84a3405 corrected the Observer/BrowserView transitions,
+but the next cached build28891 found a remaining BookmarkMenu conversion after
+200/3,384 actions. It is terminal EXIT2 by Root's precise Ninja interrupt;
+objects remain. The concrete cause was a forward-declared `Browser` at the
+call site, closed by source317df37's full Browser header. Guarded overlay
+refresh3113 EXIT0 on clean6a6a1d1; the next incremental app-only build15002
+is now running with two jobs in the SAME out/AhoiDev. Current logs/exit:
+`artifacts/build/native-m153-bookmark-6a6a1d1-20260922/`. No successful M153
+build, install or runtime pass yet. The installed app remains the prior candidate. The Mobile
 URL-policy correction has its own proven DebugLocal39 E2E evidence in the
 Mobile checkpoint; that is not a Mac/CloudKit roundtrip.
 

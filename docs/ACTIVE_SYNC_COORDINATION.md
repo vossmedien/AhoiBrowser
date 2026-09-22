@@ -14,11 +14,13 @@ M153 source fixes `252617b`/`752c8c6` were applied through the guarded
 overlay refresh. Root's incremental build60308 is **terminal EXIT2** at
 500/3,860: four newly exposed Sidebar API causes, not an installable candidate.
 Root stopped only the identified Ninja scheduler after confirmed machine
-pressure; objects and logs remain and workaround sources were restored. Helper
-is fixing the four narrow Desktop seams source-only before one cached
-continuation. First attempt0a1de6a remains separate terminal EXIT1. Desktop
-current details and exact next gates are in `ACTIVE_DESKTOP_CHECKPOINT.md`.
-After a real Mac candidate,
+pressure; objects and logs remain and workaround sources were restored.
+Sidebar source84a3405 is committed. Its cached build28891 is terminal EXIT2
+after finding the remaining BookmarkMenu forward-declaration cause; source
+317df37 closes it. Root refreshed the guarded overlay (3113 EXIT0) and started
+cached app-only build15002 with two jobs from clean6a6a1d1 in existing out/AhoiDev.
+First attempt0a1de6a remains separate terminal EXIT1. Desktop current details
+and exact next gates are in `ACTIVE_DESKTOP_CHECKPOINT.md`. After a real Mac candidate,
 Development-sign the existing isolated scope and perform normal visible
 Mac/mobile Sync roundtrip. No overall Sync pass or goal completion yet.
 
