@@ -1,5 +1,23 @@
 # Active Mobile checkpoint
 
+## Current product correction — 22 September 2026
+
+The user's WinFuture report reproduced on installed build38/iOS27: ordinary
+page load raised the native “sichere Weblinks” alert. Product source45330d2
+now lets existing WebKit frames handle their internal `about:`, `data:` and
+`blob:` documents, keeps app/address validation separate and presents blocked
+scheme alerts only for explicit main-frame links. The bottom unassigned-tab
+title now reads “Tabs”. Exact DebugLocal39 app built/installed on dedicated
+iOS27 A168; WinFuture loaded without the alert, a new tab showed “Tabs”, and
+direct `javascript:` address input remained blocked. One focused policy test
+passed after excluding two unrelated stale SharedTab test source files; its
+initial compile failure is retained. Full candidate, screenshots, hashes and
+limits: [mobile URL policy evidence](../artifacts/e2e/mobile-url-policy-20260922/README.md).
+The source test-only follow-up is37aba33; the visibly tested app remains
+source45330d2/build39. Neither this provider-free candidate nor this URL
+journey is a Mac/mobile CloudKit roundtrip. Do not repeat the older Build38
+Sync first-use evidence as an iOS27 retest or infer broad HTTP compatibility.
+
 Updated: 2026-09-19. The bounded Mobile worker
 `/root/simulator_cloudkit_20260919` has returned sourcef21d089 to coordinator
 `/root`. No active Mobile build/UI run or new general Common ownership is implied.
