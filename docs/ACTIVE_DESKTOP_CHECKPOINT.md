@@ -11,14 +11,20 @@ histogram input action. Original log/exit:
 
 Desktop source fixes `252617b` and `752c8c6` are committed on the shared
 branch. Their 43-patch composition passed a fresh isolated M153 Git-index
-apply. Root alone refreshed the live guarded overlay from clean snapshot
-`37aba33`; `artifacts/build/native-m153-correction-37aba33-20260922/overlay.log`
-is EXIT0. The same snapshot/out now runs the guarded incremental **app-only**
-build, handle `60308`, three Ninja jobs; the compiler is active and no new
-failure has been reported as of its first 63/3,860 actions. Exact current
-`build.log`, later `build.exit` and candidate receipt live in that directory.
-Do not call this a build, install or runtime pass until its actual exit and
-receipt are read. The installed app remains the prior candidate. The Mobile
+apply. Root refreshed the live guarded overlay from clean snapshot `37aba33`;
+`artifacts/build/native-m153-correction-37aba33-20260922/overlay.log` is EXIT0.
+The guarded incremental **app-only** build60308 is now **terminal EXIT2** at
+500/3,860 actions. It exposed four Sidebar API causes: Observer
+`OnTabChangedAt` override shape, obsolete `Browser::GetBrowserView`,
+`BookmarkMenuDelegate` constructor and `raw_ptr<Browser>` to
+`BrowserWindowInterface*` mismatch. Repeated header diagnostics are one root
+cause. Sustained 4–5% CPU idle and rising Swapouts made continued compilation
+costly; Root stopped only its identified Ninja PID60218. Its wrapper restored
+the exact Rust target and clean V8 dependency; completed objects remain cached.
+Original log/exit are retained. Desktop helper owns source-only fixes to these
+seams. Next build uses the same out after one bundled source handoff, fresh
+capacity check and guarded overlay refresh. No successful M153 build, install
+or runtime pass yet. The installed app remains the prior candidate. The Mobile
 URL-policy correction has its own proven DebugLocal39 E2E evidence in the
 Mobile checkpoint; that is not a Mac/CloudKit roundtrip.
 

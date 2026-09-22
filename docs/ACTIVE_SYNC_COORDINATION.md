@@ -10,11 +10,15 @@ Exact source, screenshots, candidate and limits are in
 `artifacts/e2e/mobile-url-policy-20260922/README.md`. This is provider-free and
 does not replace the earlier Mobile38 CloudKit first-use proof.
 
-M153 source fixes `252617b`/`752c8c6` have been applied through the guarded
-overlay refresh; Root's incremental app-only build is **currently live** as
-handle60308 on clean37aba33/out/AhoiDev, three jobs. First attempt0a1de6a is
-terminal EXIT1 with retained diagnostics. Desktop current details and exact
-next gates are in `ACTIVE_DESKTOP_CHECKPOINT.md`. After a real Mac candidate,
+M153 source fixes `252617b`/`752c8c6` were applied through the guarded
+overlay refresh. Root's incremental build60308 is **terminal EXIT2** at
+500/3,860: four newly exposed Sidebar API causes, not an installable candidate.
+Root stopped only the identified Ninja scheduler after confirmed machine
+pressure; objects and logs remain and workaround sources were restored. Helper
+is fixing the four narrow Desktop seams source-only before one cached
+continuation. First attempt0a1de6a remains separate terminal EXIT1. Desktop
+current details and exact next gates are in `ACTIVE_DESKTOP_CHECKPOINT.md`.
+After a real Mac candidate,
 Development-sign the existing isolated scope and perform normal visible
 Mac/mobile Sync roundtrip. No overall Sync pass or goal completion yet.
 
