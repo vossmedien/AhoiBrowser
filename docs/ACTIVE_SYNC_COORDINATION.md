@@ -1,5 +1,23 @@
 # Active sync coordination
 
+## Current handoff — 22 September 2026
+
+Mobile product correction `45330d2` / DebugLocal39 is installed and visibly
+passed the user's WinFuture URL-warning journey and neutral “Tabs” label on
+dedicated iOS27 A168. Direct `javascript:` input remains blocked; one focused
+policy XCTest passed after excluding two unrelated stale SharedTab test sources.
+Exact source, screenshots, candidate and limits are in
+`artifacts/e2e/mobile-url-policy-20260922/README.md`. This is provider-free and
+does not replace the earlier Mobile38 CloudKit first-use proof.
+
+M153 source fixes `252617b`/`752c8c6` have been applied through the guarded
+overlay refresh; Root's incremental app-only build is **currently live** as
+handle60308 on clean37aba33/out/AhoiDev, three jobs. First attempt0a1de6a is
+terminal EXIT1 with retained diagnostics. Desktop current details and exact
+next gates are in `ACTIVE_DESKTOP_CHECKPOINT.md`. After a real Mac candidate,
+Development-sign the existing isolated scope and perform normal visible
+Mac/mobile Sync roundtrip. No overall Sync pass or goal completion yet.
+
 Updated: 2026-09-20. Root coordinates the same canonical branch,
 `codex/desktop-core-feature-wave-20260830`. The user explicitly confirmed both
 former Terminal agents stopped and authorized restarting the two workstreams.
