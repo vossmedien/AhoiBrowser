@@ -1,4 +1,5 @@
 import XCTest
+import WebKit
 @testable import AhoiMobileCore
 
 final class MobileExternalSchemePolicyTests: XCTestCase {
@@ -34,6 +35,63 @@ final class MobileExternalSchemePolicyTests: XCTestCase {
             let url = try XCTUnwrap(URL(string: value))
             XCTAssertEqual(MobileNavigationTargetPolicy.decide(url), .blocked, value)
         }
+    }
+
+    func testWebKitDocumentNavigationDoesNotTurnIntoExternalURLPermission() throws {
+        for value in ["about:blank", "about:srcdoc", "data:text/html,frame"] {
+            let url = try XCTUnwrap(URL(string: value))
+            XCTAssertTrue(MobileNavigationTargetPolicy.allowsWebKitDocumentNavigation(
+                url,
+                hasTargetFrame: true,
+                targetIsMainFrame: false,
+                sourceScheme: "https"
+            ), value)
+            XCTAssertEqual(MobileNavigationTargetPolicy.decide(url), .blocked, value)
+        }
+
+        for value in ["blob:https://example.com/fixture", "javascript:void(0)"] {
+            let url = try XCTUnwrap(URL(string: value))
+            XCTAssertTrue(MobileNavigationTargetPolicy.allowsWebKitDocumentNavigation(
+                url,
+                hasTargetFrame: true,
+                targetIsMainFrame: true,
+                sourceScheme: "https"
+            ), value)
+            XCTAssertFalse(MobileNavigationTargetPolicy.allowsWebKitDocumentNavigation(
+                url,
+                hasTargetFrame: false,
+                targetIsMainFrame: true,
+                sourceScheme: "https"
+            ), value)
+        }
+
+        let dataURL = try XCTUnwrap(URL(string: "data:text/html,frame"))
+        XCTAssertFalse(MobileNavigationTargetPolicy.allowsWebKitDocumentNavigation(
+            dataURL,
+            hasTargetFrame: true,
+            targetIsMainFrame: true,
+            sourceScheme: "https"
+        ))
+        let fileURL = try XCTUnwrap(URL(string: "file:///tmp/private"))
+        XCTAssertFalse(MobileNavigationTargetPolicy.allowsWebKitDocumentNavigation(
+            fileURL,
+            hasTargetFrame: true,
+            targetIsMainFrame: false,
+            sourceScheme: "https"
+        ))
+
+        XCTAssertTrue(MobileNavigationTargetPolicy.presentsBlockedLink(
+            navigationType: .linkActivated,
+            targetIsMainFrame: true
+        ))
+        XCTAssertFalse(MobileNavigationTargetPolicy.presentsBlockedLink(
+            navigationType: .other,
+            targetIsMainFrame: true
+        ))
+        XCTAssertFalse(MobileNavigationTargetPolicy.presentsBlockedLink(
+            navigationType: .linkActivated,
+            targetIsMainFrame: false
+        ))
     }
 
     @MainActor
