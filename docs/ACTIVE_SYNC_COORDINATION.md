@@ -8,7 +8,13 @@ dedicated iOS27 A168. Direct `javascript:` input remains blocked; one focused
 policy XCTest passed after excluding two unrelated stale SharedTab test sources.
 Exact source, screenshots, candidate and limits are in
 `artifacts/e2e/mobile-url-policy-20260922/README.md`. This is provider-free and
-does not replace the earlier Mobile38 CloudKit first-use proof.
+does not replace the earlier Mobile38 CloudKit first-use proof. Matching
+`CloudKitDevelopment` build40 from the same source/fe842 is now installed on
+C645/iOS27: initial CloudKit fetch9/notAuthenticated was red, then the user's
+native Apple Account confirmation plus normal Ahoi restart yielded visible
+Ready/encryption-ready/Synchronized and a successful manual Sync action.
+Evidence/cleanup: `artifacts/e2e/mobile-cloudkit40-ios27-20260922/README.md`.
+This is Mobile provider-status evidence, not Mac/mobile record transport.
 
 M153 source fixes `252617b`/`752c8c6` were applied through the guarded
 overlay refresh. Root's incremental build60308 is **terminal EXIT2** at

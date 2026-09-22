@@ -18,13 +18,17 @@ source45330d2/build39. Neither this provider-free candidate nor this URL
 journey is a Mac/mobile CloudKit roundtrip. Do not repeat the older Build38
 Sync first-use evidence as an iOS27 retest or infer broad HTTP compatibility.
 
-The matching `CloudKitDevelopment` build40 is now a separate product-only
+The matching `CloudKitDevelopment` build40 is a separate product-only
 candidate from the same45330d2 source. Its Xcode27 build exited0; archived
 bundle, deep signature, exact source/build stamp and receipt all verify. The
 Info.plist carries the existing fe842 Development container, zone,
-subscription and keychain group/account. It is not installed or CloudKit-tested
-yet. Use it for the normal matching Mac/mobile journey after the Mac M153
-candidate succeeds; [build40 receipt and limits](../artifacts/build/mobile-cloudkit-url-policy-45330d2-20260922/README.md).
+subscription and keychain group/account. It was installed byte-identically on
+owned C645/iOS27. Initial Settings check was red with CloudKit fetch9 (Apple
+notAuthenticated); after the user completed the native Apple Account password
+step, a normal app restart visibly reached Ready/encryption-ready/Synchronized,
+and one manual Sync returned without error. The app was backgrounded normally
+and C645 shut down with Sync still enabled. [Build40 journey and limits](../artifacts/e2e/mobile-cloudkit40-ios27-20260922/README.md).
+The matching Mac/mobile record roundtrip still requires the M153 Mac candidate.
 
 Updated: 2026-09-19. The bounded Mobile worker
 `/root/simulator_cloudkit_20260919` has returned sourcef21d089 to coordinator
