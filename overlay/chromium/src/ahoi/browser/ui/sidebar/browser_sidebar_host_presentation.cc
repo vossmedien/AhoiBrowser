@@ -137,8 +137,8 @@ bool BrowserSidebarHostView::SetSidebarPresentationMode(
       !SetPresentationMode(browser_->GetProfile()->GetPrefs(), mode)) {
     return false;
   }
-  const bool applied =
-      browser_->GetBrowserView().SetAhoiSidebarPresentationMode(mode);
+  const bool applied = BrowserView::GetBrowserViewForBrowser(browser_.get())
+                           ->SetAhoiSidebarPresentationMode(mode);
   if (applied) {
     SetSidebarHeaderActionToggleState(
         floating_sidebar_button_, mode == SidebarPresentationMode::kFloating);
@@ -148,7 +148,8 @@ bool BrowserSidebarHostView::SetSidebarPresentationMode(
 
 bool BrowserSidebarHostView::ToggleFloatingSidebar() {
   const SidebarPresentationMode current =
-      browser_->GetBrowserView().GetAhoiSidebarPresentationMode();
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode();
   if (current == SidebarPresentationMode::kHidden) {
     return SetSidebarPresentationMode(
         GetVisibleModeBeforeHidden(*browser_->GetProfile()->GetPrefs()));
@@ -161,7 +162,8 @@ bool BrowserSidebarHostView::ToggleFloatingSidebar() {
 
 bool BrowserSidebarHostView::ToggleSidebarVisibility() {
   const SidebarPresentationMode current =
-      browser_->GetBrowserView().GetAhoiSidebarPresentationMode();
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode();
   if (current == SidebarPresentationMode::kHidden) {
     return RestoreSidebar();
   }
@@ -169,7 +171,8 @@ bool BrowserSidebarHostView::ToggleSidebarVisibility() {
 }
 
 bool BrowserSidebarHostView::RestoreSidebar() {
-  if (browser_->GetBrowserView().GetAhoiSidebarPresentationMode() !=
+  if (BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode() !=
       SidebarPresentationMode::kHidden) {
     return false;
   }
@@ -188,7 +191,8 @@ void BrowserSidebarHostView::OnSidebarHeaderActionPressed(
 
 void BrowserSidebarHostView::RunSidebarHeaderAction(bool toggle_visibility) {
   const SidebarPresentationMode current =
-      browser_->GetBrowserView().GetAhoiSidebarPresentationMode();
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode();
   if (current == SidebarPresentationMode::kHidden) {
     // The visibility button is also used by the edge-reveal overlay. In that
     // state the persisted mode is already hidden, so reapplying it closes only

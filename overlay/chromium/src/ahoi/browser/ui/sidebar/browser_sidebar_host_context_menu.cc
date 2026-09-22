@@ -279,7 +279,8 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_menu_model_->AddItem(
       kToggleSidebarVisibility,
       l10n_util::GetStringUTF16(
-          browser_->GetBrowserView().GetAhoiSidebarPresentationMode() ==
+          BrowserView::GetBrowserViewForBrowser(browser_.get())
+                      ->GetAhoiSidebarPresentationMode() ==
                   SidebarPresentationMode::kHidden
               ? IDS_AHOI_CONTEXT_SHOW_SIDEBAR
               : IDS_AHOI_CONTEXT_HIDE_SIDEBAR));
@@ -586,7 +587,8 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
     return ahoi::navigation_input_prefs::IsMiddleClickAutoscrollEnabled(*prefs);
   }
   if (command_id == kToggleFloatingSidebar) {
-    return browser_->GetBrowserView().GetAhoiSidebarPresentationMode() ==
+    return BrowserView::GetBrowserViewForBrowser(browser_.get())
+               ->GetAhoiSidebarPresentationMode() ==
            SidebarPresentationMode::kFloating;
   }
   if (command_id == kSplitSideBySide || command_id == kSplitStacked) {

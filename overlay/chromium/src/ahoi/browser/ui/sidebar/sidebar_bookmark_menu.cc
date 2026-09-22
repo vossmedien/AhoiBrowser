@@ -72,7 +72,8 @@ void SidebarBookmarkMenu::RunAt(views::View* anchor, const ui::Event& event) {
     return;
   }
   delegate_ = std::make_unique<BookmarkMenuDelegate>(
-      browser_, anchor->GetWidget(), this, BookmarkLaunchLocation::kSubfolder);
+      browser_.get(), anchor->GetWidget(), this,
+      BookmarkLaunchLocation::kSubfolder);
   delegate_->SetContextMenuPresentationCallback(base::BindRepeating(
       [](base::WeakPtr<SidebarBookmarkMenu> owner, views::MenuItemView* menu) {
         return owner && owner->PrepareContextMenu(menu);
@@ -179,7 +180,7 @@ void SidebarBookmarkMenu::ExecuteCommand(int id, int event_flags) {
   const auto nodes = bookmark_service_->GetUnderlyingNodes(*folder);
   std::vector<raw_ptr<const bookmarks::BookmarkNode, VectorExperimental>>
       selection(nodes.begin(), nodes.end());
-  bookmarks::OpenAllIfAllowed(browser_, selection,
+  bookmarks::OpenAllIfAllowed(browser_.get(), selection,
                               WindowOpenDisposition::NEW_BACKGROUND_TAB);
 }
 

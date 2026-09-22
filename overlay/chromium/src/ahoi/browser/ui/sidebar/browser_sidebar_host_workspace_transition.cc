@@ -94,7 +94,9 @@ void BrowserSidebarHostView::StartWorkspaceTransition(
     sidebar_contents->SetPaintToLayer();
     sidebar_contents->layer()->SetFillsBoundsOpaquely(false);
   }
-  views::View* const contents = browser_->GetBrowserView().contents_container();
+  views::View* const contents =
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->contents_container();
   workspace_transition_animator_.Start(
       sidebar_contents->layer(), contents ? contents->layer() : nullptr,
       delta > 0 ? WorkspaceTransitionDirection::kNext

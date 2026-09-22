@@ -467,7 +467,8 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
   if (active_tab && (!active_tab_workspace.has_value() ||
                      active_tab_workspace == workspace_id)) {
     if (browser_->GetWindow()) {
-      browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->SetAhoiEmptyStateVisible(false);
     }
     return;
   }
@@ -510,7 +511,8 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
           TabStripUserGestureDetails(
               TabStripUserGestureDetails::GestureType::kKeyboard));
       if (browser_->GetWindow()) {
-        browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
+        BrowserView::GetBrowserViewForBrowser(browser_.get())
+            ->SetAhoiEmptyStateVisible(false);
       }
     }
     return;
@@ -520,7 +522,8 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
   // Tab page when switching into one; the native empty surface remains visible
   // and the user can create a tab explicitly through Cmd+T or the sidebar.
   if (browser_->GetWindow()) {
-    browser_->GetBrowserView().SetAhoiEmptyStateVisible(true);
+    BrowserView::GetBrowserViewForBrowser(browser_.get())
+        ->SetAhoiEmptyStateVisible(true);
   }
 }
 
@@ -534,7 +537,8 @@ void BrowserSidebarHostView::EnsureWorkspaceSurface() {
   if (active_workspace.has_value()) {
     ActivateWorkspaceRuntimeTab(*active_workspace);
   } else {
-    browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
+    BrowserView::GetBrowserViewForBrowser(browser_.get())
+        ->SetAhoiEmptyStateVisible(false);
   }
 }
 
@@ -580,7 +584,6 @@ void BrowserSidebarHostView::OnTabStripModelChanged(
 }
 
 void BrowserSidebarHostView::OnTabChangedAt(tabs::TabInterface* tab,
-                                            int,
                                             TabChangeType change_type) {
   if (tab && change_type == TabChangeType::kAll) {
     const auto it = tab_thumbnail_cache_.find(tab->GetHandle().raw_value());

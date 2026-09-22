@@ -652,7 +652,6 @@ class BrowserSidebarHostView final
                               const TabStripSelectionChange&) override;
 
   void OnTabChangedAt(tabs::TabInterface* tab,
-                      int,
                       TabChangeType change_type) override;
 
   void OnSplitTabChanged(const SplitTabChange& change) override;
