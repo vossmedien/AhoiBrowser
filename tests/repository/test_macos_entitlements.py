@@ -124,9 +124,10 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
             verify(self.policy, "Contents/MacOS/AhoiBrowser", missing)
 
     def test_jit_is_allowed_only_for_renderer_and_gpu(self):
+        framework_version = self.policy["frameworkVersion"]
         renderer = (
             "Contents/Frameworks/AhoiBrowser Framework.framework/"
-            "Versions/152.0.7977.65/"
+            f"Versions/{framework_version}/"
             "Helpers/AhoiBrowser Helper (Renderer).app/Contents/MacOS/"
             "AhoiBrowser Helper (Renderer)"
         )
@@ -135,16 +136,38 @@ class MacOSEntitlementPolicyTests(unittest.TestCase):
 
         generic = (
             "Contents/Frameworks/AhoiBrowser Framework.framework/"
-            "Versions/152.0.7977.65/"
+            f"Versions/{framework_version}/"
             "Helpers/AhoiBrowser Helper.app/Contents/MacOS/AhoiBrowser Helper"
         )
         with self.assertRaises(SystemExit):
             verify(self.policy, generic, jit)
         self.assertEqual("generic-helper", verify(self.policy, generic, {}))
 
-        stale_renderer = renderer.replace("152.0.7977.65", "151.0.7922.170")
+        stale_renderer = renderer.replace(framework_version, "151.0.7922.170")
         with self.assertRaises(SystemExit):
             verify(self.policy, stale_renderer, jit)
+
+        aperitif_renderer = (
+            "Contents/Frameworks/AhoiBrowser Framework.framework/"
+            f"Versions/{framework_version}/"
+            "Helpers/AhoiBrowser Helper (Aperitif Renderer).app/Contents/MacOS/"
+            "AhoiBrowser Helper (Aperitif Renderer)"
+        )
+        self.assertEqual(
+            "aperitif-renderer-helper",
+            verify(self.policy, aperitif_renderer, jit),
+        )
+        aperitif_generic = (
+            "Contents/Frameworks/AhoiBrowser Framework.framework/"
+            f"Versions/{framework_version}/"
+            "Helpers/AhoiBrowser Helper (Aperitif).app/Contents/MacOS/"
+            "AhoiBrowser Helper (Aperitif)"
+        )
+        self.assertEqual(
+            "aperitif-helper", verify(self.policy, aperitif_generic, {})
+        )
+        with self.assertRaises(SystemExit):
+            verify(self.policy, aperitif_generic, jit)
 
     def test_risky_or_unknown_entitlements_fail_closed(self):
         actual = {"com.apple.security.cs.disable-library-validation": True}
