@@ -244,6 +244,37 @@ enum MobileNavigationTargetPolicy {
         }
         return .externalApp(url)
     }
+
+    /// These URLs belong to a document already running inside WebKit. They are
+    /// never accepted by the address bar, external-open path, or shared tabs.
+    /// WebKit remains responsible for their origin, CSP, and frame sandbox.
+    static func allowsWebKitDocumentNavigation(
+        _ url: URL,
+        hasTargetFrame: Bool,
+        targetIsMainFrame: Bool,
+        sourceScheme: String
+    ) -> Bool {
+        guard hasTargetFrame else { return false }
+        switch url.scheme?.lowercased() {
+        case "about":
+            return url.absoluteString == "about:blank" ||
+                url.absoluteString == "about:srcdoc"
+        case "data":
+            return !targetIsMainFrame &&
+                (sourceScheme == "http" || sourceScheme == "https")
+        case "blob", "javascript":
+            return sourceScheme == "http" || sourceScheme == "https"
+        default:
+            return false
+        }
+    }
+
+    static func presentsBlockedLink(
+        navigationType: WKNavigationType,
+        targetIsMainFrame: Bool?
+    ) -> Bool {
+        navigationType == .linkActivated && targetIsMainFrame != false
+    }
 }
 
 enum MobileHTTPFailurePolicy {
@@ -292,9 +323,23 @@ final class MobileNavigationPolicyHandler: WebPage.NavigationDeciding {
             return .cancel
         }
 
+        if MobileNavigationTargetPolicy.allowsWebKitDocumentNavigation(
+            url,
+            hasTargetFrame: action.target != nil,
+            targetIsMainFrame: action.target?.isMainFrame == true,
+            sourceScheme: action.source.securityOrigin.protocol.lowercased()
+        ) {
+            return .allow
+        }
+
         switch MobileNavigationTargetPolicy.decide(url) {
         case .blocked:
-            onBlockedNavigation?(url)
+            if MobileNavigationTargetPolicy.presentsBlockedLink(
+                navigationType: action.navigationType,
+                targetIsMainFrame: action.target?.isMainFrame
+            ) {
+                onBlockedNavigation?(url)
+            }
             return .cancel
         case .externalApp(let externalURL):
             if action.navigationType == .linkActivated {

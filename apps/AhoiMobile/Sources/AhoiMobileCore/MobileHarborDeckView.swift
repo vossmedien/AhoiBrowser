@@ -318,8 +318,8 @@ struct MobileHarborDeckView: View {
             return CompanionL10n.string("browser.private", fallback: "Private")
         }
         return workspaceName ?? CompanionL10n.string(
-            "browser.tabs.unassigned",
-            fallback: "No workspace"
+            "browser.tabs.title",
+            fallback: "Tabs"
         )
     }
 
