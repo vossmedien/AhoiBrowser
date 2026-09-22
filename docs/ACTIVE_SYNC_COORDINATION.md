@@ -26,9 +26,13 @@ after finding the remaining BookmarkMenu forward-declaration cause; source
 317df37 closes it. Root refreshed the guarded overlay (3113 EXIT0); cached
 build15002 is terminal EXIT2 at898/3,185 after independent BrowserView
 incomplete-type and removed `is_type_normal()` causes appeared. Sourceea57e08
-addresses these plus matching sites. Root's guarded overlay25795 EXIT0 and
-current app-only build34638 is RUNNING with two jobs from cleanea57e08 in the
-same out/AhoiDev. Original logs and completed objects remain.
+addresses these plus matching sites in base patch0001. Guarded overlay25795
+EXIT0; app-only build34638 is **terminal EXIT2** at30/2,289 because removed
+`is_type_normal()` survived in later patch0028. Root stopped only Ninja56176
+under fresh resource pressure; objects/logs and clean workaround sources
+remain. Sourceba7a062 corrects exact patch0028, with full43-patch apply check.
+Root's guarded overlay82650 EXIT0, and cached app-only build65612 now RUNNING
+with two jobs from cleanba7a062 in same out/AhoiDev. No install/pass yet.
 First attempt0a1de6a remains separate terminal EXIT1. Desktop current details
 and exact next gates are in `ACTIVE_DESKTOP_CHECKPOINT.md`. After a real Mac candidate,
 Development-sign the existing isolated scope and perform normal visible

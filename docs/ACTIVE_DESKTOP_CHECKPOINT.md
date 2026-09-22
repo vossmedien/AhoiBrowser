@@ -33,8 +33,16 @@ causes surfaced: `browser.cc` used a forward-declared BrowserView and Ahoi's
 `browser_command_controller.cc` used removed `is_type_normal()`. All completed
 objects/logs remain; wrapper restored the pinned Rust/V8 source. Sourceea57e08
 fixes the full BrowserView header and migrates all matching Ahoi type checks to
-M153 `GetType()`. Guarded overlay refresh25795 EXIT0 on cleanea57e08; **current
-app-only build34638 RUNNING** with two jobs in the SAME out/AhoiDev. Current
+M153 `GetType()` in base patch0001. Guarded overlay refresh25795 EXIT0 on
+cleanea57e08. Its app-only build34638 is **terminal EXIT2** at30/2,289 after
+the remaining removed `is_type_normal()` call in later patch0028 surfaced at
+`browser_command_controller.cc:652`. No other unique error appeared. Root
+stopped only exact Ninja56176 under confirmed resource pressure; objects/logs
+survive and workaround sources were restored. Sourceba7a062 now corrects the
+precise patch0028 seam. Guarded overlay refresh82650 EXIT0; the cached
+app-only build65612 is RUNNING from cleanba7a062 in the same out/AhoiDev with
+two jobs after a 49–51% idle/51% memory-headroom gate. Current log/exit:
+`artifacts/build/native-m153-final-seam-ba7a062-20260923/`. Previous red
 log/exit: `artifacts/build/native-m153-browser-ea57e08-20260922/`. No successful M153
 build, install or runtime pass yet. The installed app remains the prior candidate. The Mobile
 URL-policy correction has its own proven DebugLocal39 E2E evidence in the
