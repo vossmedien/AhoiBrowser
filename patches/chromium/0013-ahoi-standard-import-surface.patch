@@ -157,8 +157,8 @@ index 500b01562f069254e7b5e517871ed133072bae4a..1f8703f2c87a243c6ccdd7dbd88cc515
            </div>
 +          <settings-ahoi-arc-import-section id="ahoiArcImport"
 +              ?hidden="${!this.arcImportSelected_}"
-+              @ahoi-arc-import-busy-changed="${this.onArcImportBusyChanged_}"
-+              @ahoi-arc-import-complete="${this.onArcImportComplete_}">
++              @ahoi-arc-import-busy-changed="${this.onAhoiArcImportBusyChanged_}"
++              @ahoi-arc-import-complete="${this.onAhoiArcImportComplete_}">
 +          </settings-ahoi-arc-import-section>
          </div>
        </div>
@@ -310,11 +310,11 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
      this.$.dialog.close();
    }
  
-+  protected onArcImportBusyChanged_(event: CustomEvent<{busy: boolean}>) {
++  protected onAhoiArcImportBusyChanged_(event: CustomEvent<{busy: boolean}>) {
 +    this.arcImportBusy_ = event.detail.busy;
 +  }
 +
-+  protected onArcImportComplete_(event: CustomEvent<{complete: boolean}>) {
++  protected onAhoiArcImportComplete_(event: CustomEvent<{complete: boolean}>) {
 +    this.arcImportComplete_ = event.detail.complete;
 +  }
 +
