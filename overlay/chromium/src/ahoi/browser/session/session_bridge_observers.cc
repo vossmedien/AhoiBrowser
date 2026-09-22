@@ -516,6 +516,7 @@ void SessionBridge::OnTabStripModelDestroyed(TabStripModel* tab_strip_model) {
 }
 
 void SessionBridge::OnSplitTabChanged(const SplitTabChange& change) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!shutting_down_ && workspace_structure_controller_) {
     workspace_structure_controller_->OnSplitChanged(change);
   }
