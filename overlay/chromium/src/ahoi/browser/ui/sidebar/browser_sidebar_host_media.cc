@@ -108,8 +108,8 @@ void BrowserSidebarHostView::OnAppearanceChanged(
   if (surface.uses_glass() &&
       GetPresentationMode(*browser_->GetProfile()->GetPrefs()) ==
           SidebarPresentationMode::kDocked) {
-    surface.background_color = ui::kColorSysSurface;
-    surface.opacity = 0.88f;
+    surface.background_color = ui::kColorSysSurfaceVariant;
+    surface.opacity = 0.90f;
     surface.background_blur_sigma = 0.0f;
   }
   surface_corner_radius_ = surface.corner_radius;
