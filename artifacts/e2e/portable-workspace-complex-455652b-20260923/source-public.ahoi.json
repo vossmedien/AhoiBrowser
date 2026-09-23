@@ -1,0 +1,98 @@
+{
+  "format": "ahoi-workspaces",
+  "version": 1,
+  "workspaces": [
+    {
+      "id": "61000000-0000-4000-8000-000000000001",
+      "name": "Tide",
+      "icon": "",
+      "sort_key": "V",
+      "archive_policy": 0,
+      "accent_argb": "ff5a8fb8"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "71000000-0000-4000-8000-000000000001",
+      "workspace_id": "61000000-0000-4000-8000-000000000001",
+      "kind": "folder",
+      "title": "Research",
+      "icon": "",
+      "sort_key": "A"
+    },
+    {
+      "id": "72000000-0000-4000-8000-000000000001",
+      "workspace_id": "61000000-0000-4000-8000-000000000001",
+      "parent_id": "71000000-0000-4000-8000-000000000001",
+      "kind": "page",
+      "title": "Tide A",
+      "icon": "",
+      "sort_key": "A",
+      "is_temporary": false,
+      "target": {"kind": "web", "url": "https://example.com/"},
+      "home_target": {"kind": "web", "url": "https://example.org/"}
+    },
+    {
+      "id": "72000000-0000-4000-8000-000000000002",
+      "workspace_id": "61000000-0000-4000-8000-000000000001",
+      "parent_id": "71000000-0000-4000-8000-000000000001",
+      "kind": "page",
+      "title": "Tide B",
+      "icon": "",
+      "sort_key": "B",
+      "is_temporary": false,
+      "target": {"kind": "web", "url": "https://example.org/"}
+    }
+  ],
+  "splits": [
+    {
+      "id": "73000000-0000-4000-8000-000000000001",
+      "workspace_id": "61000000-0000-4000-8000-000000000001",
+      "axis": 0,
+      "arrangement": 0,
+      "primary_ratio": 620000,
+      "secondary_ratio": 500000,
+      "member_ids": [
+        "72000000-0000-4000-8000-000000000001",
+        "72000000-0000-4000-8000-000000000002"
+      ]
+    }
+  ],
+  "archives": [
+    {
+      "id": "232f6646-8063-5f4e-bbc3-f30331c422a0",
+      "workspace_id": "61000000-0000-4000-8000-000000000001",
+      "reason": 1,
+      "archived_at_us": "13400000000000000",
+      "pages": [
+        {
+          "id": "74000000-0000-4000-8000-000000000001",
+          "parent_id": "71000000-0000-4000-8000-000000000001",
+          "sort_key": "C",
+          "title": "Tide archived A",
+          "target": {"kind": "web", "url": "https://example.net/"},
+          "home_target": {"kind": "web", "url": "https://example.com/"}
+        },
+        {
+          "id": "74000000-0000-4000-8000-000000000002",
+          "parent_id": "71000000-0000-4000-8000-000000000001",
+          "sort_key": "D",
+          "title": "Tide archived B",
+          "target": {"kind": "web", "url": "https://example.org/"}
+        }
+      ],
+      "split": {
+        "id": "75000000-0000-4000-8000-000000000001",
+        "workspace_id": "61000000-0000-4000-8000-000000000001",
+        "axis": 1,
+        "arrangement": 0,
+        "primary_ratio": 400000,
+        "secondary_ratio": 500000,
+        "member_ids": [
+          "74000000-0000-4000-8000-000000000001",
+          "74000000-0000-4000-8000-000000000002"
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Complex portable structure journey — 23 September 2026
+
+Exact signed M153 source `455652b` also passed one bounded nontrivial portable
+Workspace-file journey in a fresh isolated profile. The native Settings picker
+accepted a public-only Tide file with one nested folder, two saved pages, a
+Home URL, one ordered two-page split with 62% primary ratio, and a two-page
+archive carrying its own split topology. Preview showed six new items, one
+split, one archive, zero conflicts; an explicit Import returned success. Tide
+and Research/Tide A/Tide B appeared visibly. The existing SQLite store held
+the exact parent/target/Home fields, one live split, one archive record and one
+archived split with original IDs/ratios; `quick_check=ok`. Native re-export of
+only Tide with archives selected produced a 0600 file semantically identical
+to the source (`jq -S`/`diff` exit 0). Reopening that file returned a visible
+NoChanges. After normal quit/relaunch/Continue, the folder/pages and durable
+structure remained. When both saved pages were opened and then made inactive,
+the protected native projector formed the real two-`WebContents` split;
+returning to Tide visibly showed the imported 62% divider. Exact fixture,
+re-export hashes, candidate and limits:
+[`artifacts/e2e/portable-workspace-complex-455652b-20260923/README.md`](../artifacts/e2e/portable-workspace-complex-455652b-20260923/README.md).
+
+A separate zero-tab Settings gap is **RED**: from a Tide workspace with no
+live tab, the Settings command changed the window URL to `chrome://settings/`
+but left the empty-workspace overlay in front. Choosing Inbox exposed Settings.
+Do not count zero-tab Settings access as accepted; diagnose this without
+weakening the tab-removed empty-workspace invariant. Archive restore/delete,
+rollback injection, cross-profile and installed-app acceptance remain open.
+
 ## Workspace-selection import and Settings crash correction — 23 September 2026
 
 The previously interrupted mixed-file journey now has a real selected commit.

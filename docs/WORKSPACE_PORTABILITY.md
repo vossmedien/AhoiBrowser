@@ -5,8 +5,11 @@ Mac source `820cf4e`. The newer additive transaction and whole-Workspace
 selection are built and visibly exercised in separate signed, isolated
 profiles: an independent new Workspace can be imported while a conflicting
 Workspace is explicitly skipped, then replayed as NoChanges after restart.
-The corrected candidate is source `455652b`; it is not installed. Rename/merge
-choices and full split/archive/rollback acceptance remain open.
+The corrected candidate is source `455652b`; it is not installed. A bounded
+complex file with nested hierarchy, Home URL, live split and archived split
+has also passed native import, semantic re-export, NoChanges replay, restart
+and protected native split projection. Rename/merge choices and broader
+archive restoration/rollback acceptance remain open.
 The active product requirement is in
 [the master goal](../outputs/AhoiBrowser-Master-Zielprompt.md#portabler-workspace-export-und-wiederimport).
 
@@ -70,6 +73,9 @@ visibly executed on signed `38eebb9`. A separate Sidebar/TabStrip reentrancy
 crash on switching from Harbor to the existing Settings tab was corrected in
 `455652b`; its exact signed clone passed that changed navigation, identical
 file NoChanges replay and normal restart on the same isolated profile. See
-the [current Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md). This proves
-the bounded selected-Workspace case, not rename/merge, nontrivial
-split/archive restore, rollback fault handling or installed-app acceptance.
+the [current Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md). This simple
+mixed-file case alone does not prove rename/merge, nontrivial structure,
+rollback fault handling or installed-app acceptance.
+The separate [complex-structure journey](../artifacts/e2e/portable-workspace-complex-455652b-20260923/README.md)
+proves one nontrivial portable split/archive file roundtrip and normal restart;
+it does not yet prove archive-restore actions or fault-injected rollback.
