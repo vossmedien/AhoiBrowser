@@ -1,5 +1,42 @@
 # Active Desktop checkpoint
 
+## Current portability result — 23 September 2026
+
+The shared branch now includes source `51d7e79` for an atomic, conflict-free
+portable Workspace-file import. The guard uses the existing SessionBridge
+tree+structure SQLite transaction; it replans from the durable state at the
+commit click, consumes the file token once, preserves existing rows, and
+returns NoChanges on an identical replay. Collisions remain explicitly shown
+and disabled rather than being silently renamed or overwritten. A strict
+file-codec follow-up rejects empty node/archive titles and duplicate archived
+page IDs that the native tree could not restore. Product-only guarded M153
+build EXIT0 with binary SHA-256
+`b3ea2d2acf2301f4b7acf300b627d71d8be8534f2a2e468332939963bf59e341`;
+receipt is under
+`artifacts/build/native-m153-portable-import-51d7e79-20260923/`.
+
+The short real native Settings Save/Open/Import/Repeat/Restart journey on an
+isolated APFS-cloned app and disposable profile is recorded in
+[`artifacts/e2e/portable-workspace-import-51d7e79-20260923/README.md`](../artifacts/e2e/portable-workspace-import-51d7e79-20260923/README.md).
+One public page was imported and visible in the Sidebar, retained its exact
+global ID after restart, and repeated as a visible NoChanges with no duplicate;
+SQLite `quick_check=ok`. The final `51d7e79` signed clone visibly reopened the
+same file and returned NoChanges with unchanged ID count. The first mutation
+was on earlier `a6c8835`; only strict validation and test source changed
+afterward. This is **not** full portability acceptance: explicit collision
+choice, nontrivial split/archive, rollback recovery and installed-app gate
+remain. The one focused test binary was not built/run because its target
+expanded to 3,471 actions; only the product-only candidate is green.
+
+The user reiterated that Glass ON still changes mainly the Sidebar rather
+than delivering a meaningful milky browser backdrop. Keep that UI outcome RED;
+the installed app remains `820cf4e`, not this portability candidate. Mac–iOS
+encrypted record roundtrip also remains RED in `ACTIVE_SYNC_COORDINATION.md`.
+The next substantive implementation choice is a user-visible additive conflict
+decision without overwriting existing data, followed by a coherent install
+and short affected E2E. Do not restart the oversized test target or the
+ineffective Omnibox patch as a prerequisite.
+
 ## Current source and acceptance — 23 September 2026
 
 The shared branch contains the bounded portable-file destination analysis from
