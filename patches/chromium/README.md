@@ -2,15 +2,19 @@
 
 ## `0045-ahoi-milky-browser-glass-foundation.patch`
 
-The native macOS glass view now covers the full window beneath Chromium's
-opaque WebContents, while a neutral translucent NSWindow foundation prevents
-desktop windows from showing sharply through transparent WebUI/chrome gaps.
-Reduced-transparency and disabled-Glass paths keep the existing opaque
-fallback. Installed `820cf4e` passed a bounded Settings Glass on/off journey
-without the earlier sharp desktop see-through; the user's `c7381c1` report
-remains the preserved RED baseline. Aesthetic milky-glass acceptance and the
-normal-page/high-contrast/performance variants remain open. No website
-compositor or permission path changes.
+The native macOS glass view covers the full window beneath Chromium's opaque
+WebContents. Its neutral translucent NSWindow foundation avoids sharp desktop
+see-through in transparent WebUI/chrome gaps. The `5ee283a` correction uses a
+55% foundation with the matching Ahoi browser-chrome tint: the prior 82% plus
+72% layers hid almost all material, even though the native glass view was
+present. The owned visual-style overlay exposes a real 20-DIP top/side gutter
+without changing the page compositor. Disabled-Glass and accessibility paths
+remain opaque. A signed isolated M153 clone visibly passed normal-page
+Glass ON/OFF, two-pane split/divider/fullscreen and light-Appearance checks;
+see `docs/ACTIVE_DESKTOP_CHECKPOINT.md`. Installed `820cf4e` and the user's
+`c7381c1` RED baseline remain separate. High-contrast, Reduce Transparency,
+performance and installed-app acceptance are still open. No permission path
+changes.
 
 `series` is the authoritative application order. The active stack targets
 Chromium Mac Stable `153.0.8010.53` at

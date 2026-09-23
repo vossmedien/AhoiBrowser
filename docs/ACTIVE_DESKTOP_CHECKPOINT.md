@@ -1,5 +1,45 @@
 # Active Desktop checkpoint
 
+## Native Glass backdrop correction — 23 September 2026
+
+The user's report that Glass changed chiefly the Sidebar reproduced on a
+signed `38eebb9` test copy: on public `example.com`, Glass ON/OFF left the
+webpage and narrow surrounding browser frame practically identical. Source
+`b9a4025` increased the real top/side content-card inset from 8 to 20 DIP and
+reduced the browser-chrome tint, but its exact signed visible candidate still
+showed almost no material change outside the Sidebar. That visual attempt is
+**RED**, not promoted. A read-only debugger inspection of only that disposable
+app confirmed `GlassFrameBackgroundView` beneath Chromium's Views; macOS also
+provides `NSGlassEffectView`. The cause was compounded opacity: the 82% native
+window foundation and 72% browser-chrome tint obscured the material. The
+debugger detached normally; the old disposable app process was ended.
+
+Source `5ee283a` retains the real 20-DIP top/side layout and sets the native
+foundation and browser-chrome tint to 55% each. WebContents remains opaque;
+Glass OFF and accessibility policy fallbacks remain opaque. Guarded M153
+product-only build EXIT0 with clean source, Apple Development signing, deep
+verification and binary SHA-256
+`20d35b67df86a2671f0b6a76b811c486f4b291819cb3db47ab8254875190ca97`.
+Receipt:
+`artifacts/build/native-m153-glass-5ee283a-20260923/build-receipt.json`.
+Its signed test copy at `/private/tmp/ahoi-glass-candidate-2.NMO4P8/` has the
+same binary hash and passed `codesign --verify --deep --strict`.
+
+Visible E2E on that exact copy and a separate public-only profile: restored
+`example.com`; Glass ON showed a visibly lighter, material browser backdrop
+around the unchanged readable webpage, while Glass OFF showed the dark opaque
+frame on the same page. Re-enabling Glass retained the result. The native Tab
+menu created a real two-WebContents split of `example.org` and `example.com`;
+both pages rendered inside the card, the accessible divider moved from 50 to
+about 56%, and entering/exiting macOS fullscreen retained both panes and the
+restored normal-window backdrop. Light Appearance with Glass ON kept the
+sidebar, frame and both web pages readable; the test profile was returned to
+Device Appearance. This is a bounded visual/layout pass, not a full Glass
+matrix: Reduce Transparency, increased contrast, energy/performance fallbacks,
+other surface roles and installed-app behavior are still open. The installed
+`/Applications/AhoiBrowser.app` remains `820cf4e`; no install or release is
+claimed from the clone.
+
 ## Selected Workspace import follow-up — 23 September 2026
 
 The signed `38eebb9` M153 app also includes source `9f17ada`'s per-Workspace
