@@ -98,9 +98,20 @@ void BrowserSidebarHostView::OnAppearanceChanged(
   if (reduced_motion_) {
     CancelWorkspaceTransition();
   }
-  const appearance::SurfaceAppearance surface =
+  appearance::SurfaceAppearance surface =
       appearance::AppearanceResolver::Resolve(appearance::SurfaceRole::kSidebar,
                                               policy);
+  // A backdrop filter on the full-height docked surface samples Chromium's
+  // saturated frame color outside the sidebar bounds on macOS. Keep the
+  // docked material translucent, but reserve compositor blur for the smaller
+  // floating sidebar where its backdrop is the actual browser content.
+  if (surface.uses_glass() &&
+      GetPresentationMode(*browser_->GetProfile()->GetPrefs()) ==
+          SidebarPresentationMode::kDocked) {
+    surface.background_color = ui::kColorSysSurface;
+    surface.opacity = 0.88f;
+    surface.background_blur_sigma = 0.0f;
+  }
   surface_corner_radius_ = surface.corner_radius;
   appearance::ApplySurfaceAppearance(
       this, surface, appearance::SurfaceCornerOwnership::kCaller);

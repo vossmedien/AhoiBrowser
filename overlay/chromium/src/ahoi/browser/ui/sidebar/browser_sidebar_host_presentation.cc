@@ -141,6 +141,9 @@ bool BrowserSidebarHostView::SetSidebarPresentationMode(
   if (applied) {
     SetSidebarHeaderActionToggleState(
         floating_sidebar_button_, mode == SidebarPresentationMode::kFloating);
+    if (appearance_signal_source_) {
+      OnAppearanceChanged(appearance_signal_source_->policy());
+    }
   }
   return applied;
 }
