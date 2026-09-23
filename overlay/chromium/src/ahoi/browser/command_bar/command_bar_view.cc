@@ -294,8 +294,6 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   input_shell->SetPreferredSize(
       gfx::Size(visual_style::kCommandBarContentWidth,
                 visual_style::kCommandBarInputHeight));
-  input_shell->SetBackground(views::CreateRoundedRectBackground(
-      ui::kColorSysSurface, visual_style::kControlCornerRadius));
   input_shell->SetBorder(views::CreateRoundedRectBorder(
       visual_style::kControlBorderThickness, visual_style::kControlCornerRadius,
       visual_style::kAccent));
@@ -323,6 +321,9 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   textfield_->SetPlaceholderText(placeholder);
   textfield_->SetAccessibleName(placeholder);
   textfield_->SetBorder(nullptr);
+  // The parent paints the input material. Textfield's default opaque fill
+  // would otherwise cover it with a white rectangle in the glass dialog.
+  textfield_->SetBackgroundEnabled(false);
   textfield_->SetBackgroundColor(ui::kColorSysSurface);
   textfield_->SetTextColorId(visual_style::kText);
   textfield_->SetPlaceholderTextColorId(visual_style::kMutedText);
@@ -368,11 +369,19 @@ void CommandBarView::OnAppearanceChanged(
   const appearance::SurfaceAppearance surface =
       appearance::AppearanceResolver::Resolve(
           appearance::SurfaceRole::kCommandBar, policy);
-  // The input must use the same semantic surface as its dialog. Surface3 can
-  // resolve to a light field while the floating command surface is dark,
-  // leaving the icon and editable text effectively invisible.
-  textfield_->parent()->SetBackground(views::CreateRoundedRectBackground(
-      surface.background_color, visual_style::kControlCornerRadius));
+  // Glass mixes the dialog color with its backdrop; an opaque input using the
+  // same ColorId resolves to white over that dark composite. Tint the input
+  // with a little of the dialog's foreground instead. In opaque/high-contrast
+  // mode, use the same solid surface as the dialog.
+  appearance::SurfaceAppearance input_surface = surface;
+  input_surface.corner_radius = visual_style::kControlCornerRadius;
+  input_surface.background_blur_sigma = 0.0f;
+  input_surface.background_color = surface.uses_glass()
+                                       ? surface.foreground_color
+                                       : surface.background_color;
+  input_surface.opacity = surface.uses_glass() ? 0.10f : 1.0f;
+  appearance::ApplySurfaceBackgroundAppearance(textfield_->parent(),
+                                               input_surface);
   textfield_->SetBackgroundColor(surface.background_color);
   textfield_->SetTextColorId(surface.foreground_color);
   views::ClientView* client_view =
