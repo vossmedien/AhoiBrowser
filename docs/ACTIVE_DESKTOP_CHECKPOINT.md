@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## HTTP-auth dialog crash correction — 23 September 2026
+
+The user reported a real crash (incident
+`16176D6C-90C0-4C4F-AED4-F48E02E141A4`) in the disposable `9f17ada`
+app: a command-bar navigation entered
+`HttpAuthManagementDialog::DidStartNavigation → ClearEditor →
+MaskEditorPassword → views::Textfield::SetTextInputType`, then dereferenced a
+null textfield model. That is consistent with a non-null editor field pointer
+outliving its Views child during window teardown. Source
+`38eebb9` detaches the WebContents observer in `WindowClosing`, skips UI
+access once the Widget is closed, makes repeat editor clears idempotent, and
+stops the dialog destructor from touching already-destroyed child views.
+
+Guarded M153 product-only build of exactly `38eebb9` ended EXIT0. The signed
+bundle and its APFS test copy passed `codesign --verify --deep --strict`;
+both binary hashes are
+`78061133996d7a51c21a87f3615ad1725389ce5071b336a92fd6e471bf2b274e`.
+Receipt: `artifacts/build/native-m153-http-auth-crashfix-38eebb9-20260923/build-receipt.json`.
+Visible E2E on the copy at
+`/private/tmp/ahoi-http-auth-crashfix.LRfbte/AhoiBrowser.app` with a separate
+profile: opened public `example.com`, invoked the native "HTTP-Zugänge"
+management dialog through Ahoi's command bar, closed it, then navigated to
+public `example.org`; the destination rendered and browser PID `64682`
+remained alive. This proves the close-then-navigation journey, not the
+original revealed-password editor state; no credential was present in this
+fresh profile. The installed `/Applications/AhoiBrowser.app` was not changed.
+
 ## Current source / partial UI gate — 23 September 2026
 
 Source `9f17ada` extends the compact portable-file preview with explicit
