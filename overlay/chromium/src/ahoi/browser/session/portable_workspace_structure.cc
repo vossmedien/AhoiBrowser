@@ -46,20 +46,36 @@ std::optional<PortableWorkspaceStructure> SelectPortableWorkspaceStructure(
 
   PortableWorkspaceStructure result{.tree = std::move(*selected_tree)};
   std::set<base::Uuid> workspace_ids;
+  std::set<base::Uuid> archived_page_ids;
   std::map<base::Uuid, base::Uuid> page_workspaces;
   std::map<base::Uuid, base::Uuid> folder_workspaces;
   for (const auto& workspace : result.tree.workspaces) {
     workspace_ids.insert(workspace.id);
   }
+  for (const auto& item : structure.entries) {
+    const auto* archive =
+        std::get_if<sync::TabArchiveEntryRecord>(&item.second.record);
+    if (!archive || archive->tombstone || archive->restored ||
+        !workspace_ids.contains(archive->snapshot.workspace_id)) {
+      continue;
+    }
+    for (const auto& page : archive->snapshot.pages) {
+      archived_page_ids.insert(page.tree_node_id);
+    }
+  }
+  std::erase_if(result.tree.nodes, [&](const auto& node) {
+    return archived_page_ids.contains(node.id);
+  });
   for (const auto& node : result.tree.nodes) {
     (node.type == tab_tree::TreeNodeType::kFolder ? folder_workspaces
-                                                 : page_workspaces)
+                                                  : page_workspaces)
         .emplace(node.id, node.workspace_id);
   }
 
   for (const auto& item : structure.entries) {
     const auto& entry = item.second;
-    if (const auto* split = std::get_if<sync::SplitGroupRecord>(&entry.record)) {
+    if (const auto* split =
+            std::get_if<sync::SplitGroupRecord>(&entry.record)) {
       if (split->tombstone || !workspace_ids.contains(split->workspace_id)) {
         continue;
       }
@@ -71,6 +87,13 @@ std::optional<PortableWorkspaceStructure> SelectPortableWorkspaceStructure(
       };
       if (IsCompleteSplit(metadata, workspace_ids, page_workspaces)) {
         result.splits.push_back(metadata);
+      } else if (sync::ValidateSplitMetadata(metadata) &&
+                 std::ranges::all_of(metadata.topology.member_ids,
+                                     [&](const base::Uuid& id) {
+                                       return archived_page_ids.contains(id);
+                                     })) {
+        // This complete group is represented inside one archive snapshot.
+        continue;
       } else {
         ++result.excluded_incomplete_splits;
       }
@@ -86,12 +109,12 @@ std::optional<PortableWorkspaceStructure> SelectPortableWorkspaceStructure(
     }
     bool portable = sync::ValidateArchiveEntry(*archive);
     for (const auto& page : archive->snapshot.pages) {
-      portable = portable && IsPortableTarget(page.target) &&
-                 (!page.home_target || IsPortableTarget(*page.home_target)) &&
-                 (!page.parent_id ||
-                  (folder_workspaces.contains(*page.parent_id) &&
-                   folder_workspaces.at(*page.parent_id) ==
-                       archive->snapshot.workspace_id));
+      portable =
+          portable && IsPortableTarget(page.target) &&
+          (!page.home_target || IsPortableTarget(*page.home_target)) &&
+          (!page.parent_id || (folder_workspaces.contains(*page.parent_id) &&
+                               folder_workspaces.at(*page.parent_id) ==
+                                   archive->snapshot.workspace_id));
     }
     if (!portable) {
       ++result.excluded_nonportable_archives;

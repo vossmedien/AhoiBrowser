@@ -86,6 +86,9 @@ source_set("session") {
   sources = [
     "native_workspace_structure.cc",
     "native_workspace_structure.h",
+    "portable_workspace_bundle.h",
+    "portable_workspace_bundle_decode.cc",
+    "portable_workspace_bundle_encode.cc",
     "portable_workspace_structure.cc",
     "portable_workspace_structure.h",
     "session_bridge.cc",

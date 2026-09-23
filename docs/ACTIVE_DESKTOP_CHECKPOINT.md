@@ -60,9 +60,11 @@ TabTreeSnapshot and counts excluded temporary, nonportable page and Home
 targets. `portable_workspace_structure.{h,cc}` adds only complete logical
 split groups and explicitly selected archives, excluding nonportable targets
 and preserving native/private/session tokens locally. It is not yet a file
-encoder, UI export command or reimport and has no build/runtime pass. It stays
-in the next coherent feature package; do not call it portable-export
-acceptance.
+UI export command or import transaction and has no build/runtime pass. A new
+strict version-1 JSON encoder/decoder is now source-only in
+`portable_workspace_bundle*`; the exact contract is
+`docs/WORKSPACE_PORTABILITY.md`. The next package must wire native save,
+preview and atomic additive reimport before calling portability accepted.
 
 Mac Sync remains red: status can reach a matching remote claim but is still
 waiting for the canonical iCloud Keychain item, and an observed account-change
