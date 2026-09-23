@@ -11,7 +11,8 @@ if (is_mac) {
       "ahoi_settings_portability.cc",
     ]
     public_deps = [
-      "//ahoi/browser/session",
+      "//ahoi/browser/session:session_bridge_api",
+      "//ahoi/browser/session:workspace_portability",
       "//ahoi/browser/sync:profile_sync_service",
       "//ahoi/browser/tab_tree",
       "//base",

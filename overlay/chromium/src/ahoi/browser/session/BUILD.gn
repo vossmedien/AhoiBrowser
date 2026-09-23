@@ -82,15 +82,27 @@ source_set("session_bridge_api") {
   ]
 }
 
-source_set("session") {
+source_set("workspace_portability") {
   sources = [
-    "native_workspace_structure.cc",
-    "native_workspace_structure.h",
     "portable_workspace_bundle.h",
     "portable_workspace_bundle_decode.cc",
     "portable_workspace_bundle_encode.cc",
     "portable_workspace_structure.cc",
     "portable_workspace_structure.h",
+    "workspace_structure_state.cc",
+    "workspace_structure_state.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/sync",
+    "//ahoi/browser/tab_tree",
+    "//base",
+  ]
+}
+
+source_set("session") {
+  sources = [
+    "native_workspace_structure.cc",
+    "native_workspace_structure.h",
     "session_bridge.cc",
     "session_bridge_extension_setup.cc",
     "session_bridge_factory.cc",
@@ -108,8 +120,6 @@ source_set("session") {
     "workspace_structure_controller.h",
     "workspace_structure_controller_archive.cc",
     "workspace_structure_controller_sync.cc",
-    "workspace_structure_state.cc",
-    "workspace_structure_state.h",
   ]
 
   public_deps = [
@@ -118,6 +128,7 @@ source_set("session") {
     ":session_preferences",
     ":session_restore_integration",
     ":startup_policy",
+    ":workspace_portability",
     ":workspace_session_metadata",
     "//ahoi/browser/navigation",
     "//ahoi/browser/tab_tree",
