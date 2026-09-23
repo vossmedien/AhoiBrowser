@@ -112,7 +112,7 @@ void BrowserSidebarHostView::OnAppearanceChanged(
   // The host owns the only full-size surface. Its scroll/tree children stay
   // transparent, while the overlay resolves its own semantic material.
   if (scroll_view_) {
-    scroll_view_->SetBackground(nullptr);
+    scroll_view_->SetBackgroundColor(std::nullopt);
   }
   if (tree_view_) {
     tree_view_->SetBackground(nullptr);

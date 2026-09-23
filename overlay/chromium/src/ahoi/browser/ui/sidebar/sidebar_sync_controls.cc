@@ -29,16 +29,19 @@
 #include "ui/gfx/geometry/size.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/border.h"
+#include "ui/views/bubble/bubble_dialog_delegate_view.h"
 #include "ui/views/controls/button/checkbox.h"
 #include "ui/views/controls/button/label_button.h"
 #include "ui/views/controls/combobox/combobox.h"
 #include "ui/views/controls/label.h"
+#include "ui/views/controls/scroll_view.h"
 #include "ui/views/controls/separator.h"
 #include "ui/views/controls/textfield/textfield.h"
 #include "ui/views/layout/box_layout.h"
 #include "ui/views/style/typography.h"
 #include "ui/views/view.h"
 #include "ui/views/view_utils.h"
+#include "ui/views/widget/widget.h"
 
 namespace ahoi::sidebar {
 namespace {
@@ -100,9 +103,11 @@ class SidebarSyncControlsView final : public views::View {
  public:
   SidebarSyncControlsView(sync::ProfileSyncService* service,
                           std::vector<sync::DeviceRecord> filter_devices,
-                          base::RepeatingClosure filter_changed_callback)
+                          base::RepeatingClosure filter_changed_callback,
+                          bool popup_contents = false)
       : service_(service),
-        filter_changed_callback_(std::move(filter_changed_callback)) {
+        filter_changed_callback_(std::move(filter_changed_callback)),
+        popup_contents_(popup_contents) {
     SetID(kSidebarSyncControlsViewId);
     SetBorder(views::CreateEmptyBorder(gfx::Insets::TLBR(2, 6, 6, 6)));
     auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
@@ -131,6 +136,7 @@ class SidebarSyncControlsView final : public views::View {
                                 weak_ptr_factory_.GetWeakPtr()),
             Text(u"Sync", u"Sync")));
     StyleButton(settings_button_);
+    filter_row->SetVisible(!popup_contents_);
     AddChildView(std::move(filter_row));
 
     settings_body_ = AddChildView(std::make_unique<views::View>());
@@ -269,7 +275,7 @@ class SidebarSyncControlsView final : public views::View {
     approved_layout->set_cross_axis_alignment(
         views::BoxLayout::CrossAxisAlignment::kStretch);
 
-    settings_body_->SetVisible(false);
+    settings_body_->SetVisible(popup_contents_);
     Update(service, std::move(filter_devices));
   }
 
@@ -317,6 +323,13 @@ class SidebarSyncControlsView final : public views::View {
     approved_devices_container_->SetEnabled(true);
     retention_->SetEnabled(sync_enabled);
     status_label_->SetText(StatusText(status));
+    if (!popup_contents_) {
+      settings_button_->SetTooltipText(StatusText(status));
+      settings_button_->SetText(
+          status.account_transition_pending || status.zone_recovery_pending
+              ? Text(u"Sync prüfen", u"Review sync")
+              : Text(u"Sync", u"Sync"));
+    }
     recovery_container_->SetVisible(status.account_transition_pending ||
                                     status.zone_recovery_pending);
     recovery_label_->SetVisible(status.account_transition_pending ||
@@ -325,13 +338,6 @@ class SidebarSyncControlsView final : public views::View {
     no_upload_button_->SetVisible(status.account_transition_pending);
     zone_recovery_button_->SetVisible(status.zone_recovery_pending);
     sync_now_button_->SetEnabled(sync_enabled);
-    const bool recovery_pending =
-        status.account_transition_pending || status.zone_recovery_pending;
-    if (recovery_pending && !recovery_disclosed_) {
-      SetSettingsExpanded(true);
-    }
-    recovery_disclosed_ = recovery_pending;
-
     std::vector<base::Uuid> approved =
         service_->approved_remote_control_devices();
     if (approved != approved_device_ids_) {
@@ -341,6 +347,9 @@ class SidebarSyncControlsView final : public views::View {
         pending_revoke_.reset();
       }
       RebuildApprovedDevices();
+    }
+    if (bubble_contents_) {
+      bubble_contents_->Update(service, {});
     }
   }
 
@@ -483,7 +492,52 @@ class SidebarSyncControlsView final : public views::View {
   }
 
   void ToggleSettings(const ui::Event&) {
-    SetSettingsExpanded(!settings_body_->GetVisible());
+    if (!popup_contents_) {
+      ShowSettingsBubble();
+    }
+  }
+
+  void ShowSettingsBubble() {
+    if (!GetWidget() || !settings_button_->IsDrawn()) {
+      return;
+    }
+    if (bubble_widget_) {
+      bubble_widget_->Activate();
+      return;
+    }
+    auto contents = std::make_unique<SidebarSyncControlsView>(
+        service_, std::vector<sync::DeviceRecord>{}, base::RepeatingClosure(),
+        /*popup_contents=*/true);
+    bubble_contents_ = contents.get();
+    auto scroll = std::make_unique<views::ScrollView>();
+    scroll->SetBackgroundColor(std::nullopt);
+    scroll->SetHorizontalScrollBarMode(
+        views::ScrollView::ScrollBarMode::kDisabled);
+    scroll->ClipHeightTo(0, 580);
+    scroll->SetContents(std::move(contents));
+    auto delegate = std::make_unique<views::BubbleDialogDelegate>(
+        settings_button_, views::BubbleBorder::TOP_LEFT);
+    delegate->SetTitle(Text(u"Synchronisierung", u"Sync"));
+    delegate->SetButtons(0);
+    delegate->set_fixed_width(visual_style::kSidebarDialogWidth);
+    delegate->set_margins(gfx::Insets::VH(10, 10));
+    delegate->SetContentsView(std::move(scroll));
+    bubble_widget_ = views::BubbleDialogDelegate::CreateBubble(
+        delegate.get(),
+        base::BindOnce(&SidebarSyncControlsView::OnBubbleClosed,
+                       weak_ptr_factory_.GetWeakPtr()));
+    if (!bubble_widget_) {
+      bubble_contents_ = nullptr;
+      return;
+    }
+    bubble_delegate_ = std::move(delegate);
+    bubble_widget_->Show();
+  }
+
+  void OnBubbleClosed(views::Widget::ClosedReason) {
+    bubble_contents_ = nullptr;
+    bubble_widget_.reset();
+    bubble_delegate_.reset();
   }
 
   void SetSettingsExpanded(bool expanded) {
@@ -618,6 +672,7 @@ class SidebarSyncControlsView final : public views::View {
 
   raw_ptr<sync::ProfileSyncService> service_ = nullptr;
   base::RepeatingClosure filter_changed_callback_;
+  const bool popup_contents_ = false;
   std::vector<base::Uuid> filter_device_ids_;
   std::vector<std::u16string> filter_device_labels_;
   std::optional<base::Uuid> selected_device_id_;
@@ -643,7 +698,9 @@ class SidebarSyncControlsView final : public views::View {
   raw_ptr<views::Label> approval_status_ = nullptr;
   raw_ptr<views::View> approved_devices_container_ = nullptr;
   bool updating_controls_ = false;
-  bool recovery_disclosed_ = false;
+  raw_ptr<SidebarSyncControlsView> bubble_contents_ = nullptr;
+  std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate_;
+  std::unique_ptr<views::Widget> bubble_widget_;
   base::WeakPtrFactory<SidebarSyncControlsView> weak_ptr_factory_{this};
 };
 

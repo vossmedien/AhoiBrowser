@@ -371,7 +371,11 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   mini_player_scroll_inset->SetPreferredSize(gfx::Size());
 
   auto scroll = std::make_unique<views::ScrollView>();
-  scroll->SetBackground(nullptr);
+  // ScrollView owns an additional viewport (and, with layered scrolling, a
+  // contents layer). Clearing only this View's Background leaves those inner
+  // surfaces filled with the default theme color after a theme change, making
+  // the lower half of the sidebar look like a separate opaque panel.
+  scroll->SetBackgroundColor(std::nullopt);
   scroll->SetDrawOverflowIndicator(false);
   scroll->SetHorizontalScrollBarMode(
       views::ScrollView::ScrollBarMode::kDisabled);
