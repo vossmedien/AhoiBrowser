@@ -54,6 +54,10 @@ Cmd+Q auto-relaunched the disposable app *without* the explicit profile
 argument. That new PID was terminated before further UI actions, and the
 profile-bound app was launched explicitly. The unbound launch is not counted
 as a restart pass. No other Ahoi process was stopped.
+After the final readback, all exact task-owned browser PIDs were terminated.
+The three disposable `/private/tmp` app/profile/log directories (about 10 GB)
+were moved to macOS Trash, not permanently deleted; they remain recoverable.
+Only the public export and this sanitized result were retained in the repo.
 
 An attempted focused `ahoi_session_unittests` target unexpectedly expanded to
 3,471 Chromium test actions. Only our own Ninja run was interrupted after
