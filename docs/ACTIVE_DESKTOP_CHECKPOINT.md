@@ -51,9 +51,12 @@ profile migration. Its public listing is
 Feature-first source WIP: `portable_workspace_selection.{h,cc}` creates an
 explicit allowlisted workspace/page export projection from the existing
 TabTreeSnapshot and counts excluded temporary, nonportable page and Home
-targets. It is not yet a file encoder, UI export command, archive/split
-selection or reimport and has no build/runtime pass. It stays in the next
-coherent feature package; do not call it portable-export acceptance.
+targets. `portable_workspace_structure.{h,cc}` adds only complete logical
+split groups and explicitly selected archives, excluding nonportable targets
+and preserving native/private/session tokens locally. It is not yet a file
+encoder, UI export command or reimport and has no build/runtime pass. It stays
+in the next coherent feature package; do not call it portable-export
+acceptance.
 
 Mac Sync remains red: status can reach a matching remote claim but is still
 waiting for the canonical iCloud Keychain item, and an observed account-change
