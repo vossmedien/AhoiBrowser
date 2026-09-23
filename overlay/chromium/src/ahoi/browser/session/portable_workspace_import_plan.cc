@@ -87,6 +87,43 @@ bool AddSplit(const sync::SharedSplitMetadata& split,
 
 }  // namespace
 
+std::optional<PortableWorkspaceStructure> SelectPortableWorkspaceImport(
+    const PortableWorkspaceStructure& imported,
+    const std::vector<base::Uuid>& selected_workspace_ids) {
+  const std::set<base::Uuid> selected(selected_workspace_ids.begin(),
+                                      selected_workspace_ids.end());
+  if (selected.empty() || selected.size() != selected_workspace_ids.size()) {
+    return std::nullopt;
+  }
+  PortableWorkspaceStructure result;
+  for (const auto& workspace : imported.tree.workspaces) {
+    if (selected.contains(workspace.id)) {
+      result.tree.workspaces.push_back(workspace);
+    }
+  }
+  if (result.tree.workspaces.size() != selected.size()) {
+    return std::nullopt;
+  }
+  for (const auto& node : imported.tree.nodes) {
+    if (selected.contains(node.workspace_id)) {
+      result.tree.nodes.push_back(node);
+    }
+  }
+  for (const auto& split : imported.splits) {
+    if (selected.contains(split.workspace_id)) {
+      result.splits.push_back(split);
+    }
+  }
+  for (const auto& archive : imported.archives) {
+    if (selected.contains(archive.snapshot.workspace_id)) {
+      result.archives.push_back(archive);
+    }
+  }
+  return EncodePortableWorkspaceBundle(result)
+             ? std::make_optional(std::move(result))
+             : std::nullopt;
+}
+
 std::optional<PortableWorkspaceImportPlan> PreparePortableWorkspaceImport(
     const PortableWorkspaceStructure& imported,
     const tab_tree::TabTreeSnapshot& current_tree,

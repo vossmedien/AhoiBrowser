@@ -411,15 +411,25 @@ export function getHtml(this: SettingsAhoiPageElement) {
             ${this.portableImportStatusText_()}
           </div>
           ${this.portableImportPreview_ ? html`
-            <div class="portable-import-preview" role="status">
+            <div class="portable-import-preview" role="group"
+                aria-label="${this.portableExportOptions_?.labels.importDestination || ''}">
               <div>${this.portableExportOptions_?.labels.importDestination}</div>
+              <p class="secondary">
+                ${this.portableExportOptions_?.labels.importSelectionHint}
+              </p>
               ${this.portableImportPreview_.workspaces?.map(workspace => html`
-                <div>${workspace.name} ·
-                  ${workspace.destination === 'new' ?
-                      this.portableExportOptions_?.labels.importNew :
-                      workspace.destination === 'identical' ?
-                      this.portableExportOptions_?.labels.importIdentical :
-                      this.portableExportOptions_?.labels.importConflict}</div>
+                <label class="portable-workspace-option">
+                  <input type="checkbox" data-workspace-id="${workspace.id}"
+                      .checked="${this.portableImportSelectedWorkspaceIds_.includes(workspace.id)}"
+                      ?disabled="${this.portableImportPending_}"
+                      @change="${this.onPortableImportWorkspaceChange_}">
+                  <span>${workspace.name} ·
+                    ${workspace.destination === 'new' ?
+                        this.portableExportOptions_?.labels.importNew :
+                        workspace.destination === 'identical' ?
+                        this.portableExportOptions_?.labels.importIdentical :
+                        this.portableExportOptions_?.labels.importConflict}</span>
+                </label>
               `)}
               <div>${this.portableExportOptions_?.labels.pages}:
                 ${this.portableImportPreview_.pages}</div>
@@ -434,8 +444,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
               <div>${this.portableExportOptions_?.labels.importConflict}:
                 ${this.portableImportPreview_.conflictingItems}</div>
               <cr-button id="ahoiPortableImportCommit" class="action-button"
-                  ?disabled="${this.portableImportPending_ ||
-                      !this.portableImportPreview_.canImport}"
+                  ?disabled="${!this.canCommitPortableImport_()}"
                   @click="${this.onPortableCommitClick_}">
                 ${this.portableExportOptions_?.labels.importCommit || ''}
               </cr-button>

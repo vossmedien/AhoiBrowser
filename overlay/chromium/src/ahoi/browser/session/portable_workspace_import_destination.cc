@@ -46,6 +46,7 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
   PortableImportDestination result;
   std::map<base::Uuid, const tab_tree::Workspace*> workspaces;
   std::map<base::Uuid, const tab_tree::TreeNode*> nodes;
+  std::map<base::Uuid, size_t> imported_workspace_indexes;
   for (const auto& workspace : current_tree.workspaces) {
     workspaces.emplace(workspace.id, &workspace);
   }
@@ -66,7 +67,16 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
       kind = PortableDestinationKind::kConflict;
     }
     result.workspaces.push_back({workspace.id, workspace.name, kind});
+    imported_workspace_indexes.emplace(workspace.id,
+                                       result.workspaces.size() - 1);
   }
+  const auto mark_conflict = [&](const base::Uuid& workspace_id) {
+    const auto index = imported_workspace_indexes.find(workspace_id);
+    if (index != imported_workspace_indexes.end()) {
+      result.workspaces[index->second].kind =
+          PortableDestinationKind::kConflict;
+    }
+  };
   for (const auto& node : imported.tree.nodes) {
     const auto existing = nodes.find(node.id);
     if (existing == nodes.end()) {
@@ -75,6 +85,7 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
       ++result.identical_nodes;
     } else {
       ++result.conflicting_nodes;
+      mark_conflict(node.workspace_id);
     }
   }
   for (const auto& split : imported.splits) {
@@ -91,6 +102,7 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
       ++result.identical_splits;
     } else {
       ++result.conflicting_splits;
+      mark_conflict(split.workspace_id);
     }
   }
   for (const auto& archive : imported.archives) {
@@ -101,6 +113,7 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
           [&](const auto& page) { return nodes.contains(page.tree_node_id); });
       if (page_id_collision) {
         ++result.conflicting_archives;
+        mark_conflict(archive.snapshot.workspace_id);
       } else {
         ++result.new_archives;
       }
@@ -122,6 +135,7 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
       ++result.identical_archives;
     } else {
       ++result.conflicting_archives;
+      mark_conflict(archive.snapshot.workspace_id);
     }
   }
   return result;

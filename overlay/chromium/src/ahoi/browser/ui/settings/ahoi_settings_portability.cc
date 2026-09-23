@@ -10,6 +10,7 @@
 
 #include "ahoi/browser/session/portable_workspace_bundle.h"
 #include "ahoi/browser/session/portable_workspace_import_destination.h"
+#include "ahoi/browser/session/portable_workspace_import_plan.h"
 #include "ahoi/browser/session/portable_workspace_structure.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
@@ -87,8 +88,13 @@ base::DictValue ExportLabels() {
   labels.Set("importTargetUnavailable",
              label("Zielprofil gerade nicht verfügbar",
                    "Destination profile currently unavailable"));
-  labels.Set("importCommit",
-             label("Ausgewählte Datei importieren", "Import selected file"));
+  labels.Set("importCommit", label("Ausgewählte Workspaces importieren",
+                                   "Import selected workspaces"));
+  labels.Set("importSelectionHint",
+             label("Wähle die Ziele. Workspaces mit Konflikten bleiben "
+                   "abgewählt; vorhandene Daten werden nicht ersetzt.",
+                   "Choose destinations. Conflicting workspaces stay "
+                   "unselected; existing data is not replaced."));
   labels.Set("imported", label("Import abgeschlossen", "Import complete"));
   labels.Set("noChanges", label("Bereits vorhanden – keine Änderungen",
                                 "Already present – no changes"));
@@ -381,12 +387,13 @@ void AhoiSettingsHandler::OnPortableImportRead(
                      static_cast<int>(destination.conflicting_nodes +
                                       destination.conflicting_splits +
                                       destination.conflicting_archives));
-      const bool conflict_free = conflicting_workspaces == 0 &&
-                                 destination.conflicting_nodes == 0 &&
-                                 destination.conflicting_splits == 0 &&
-                                 destination.conflicting_archives == 0;
-      result.Set("canImport", conflict_free);
-      if (conflict_free) {
+      const bool has_safe_workspace = std::ranges::any_of(
+          destination.workspaces, [](const auto& workspace) {
+            return workspace.kind !=
+                   session::PortableDestinationKind::kConflict;
+          });
+      result.Set("canImport", has_safe_workspace);
+      if (has_safe_workspace) {
         portable_import_structure_ = std::move(readback.structure);
         portable_import_token_ =
             base::Uuid::GenerateRandomV4().AsLowercaseString();
@@ -395,6 +402,7 @@ void AhoiSettingsHandler::OnPortableImportRead(
       base::ListValue workspaces;
       for (const auto& workspace : destination.workspaces) {
         base::DictValue value;
+        value.Set("id", workspace.id.AsLowercaseString());
         value.Set("name", base::TruncateUTF8ToByteSize(
                               base::UTF16ToUTF8(workspace.name), 256));
         value.Set(
@@ -422,11 +430,34 @@ void AhoiSettingsHandler::HandleCommitPortableImport(
   AllowJavascript();
   base::DictValue result;
   result.Set("status", "blocked");
-  if (args.size() != 2u || !args[1].is_string() ||
+  if (args.size() != 3u || !args[1].is_string() || !args[2].is_list() ||
+      args[2].GetList().empty() || args[2].GetList().size() > 128u ||
       args[1].GetString() != portable_import_token_ ||
       portable_import_token_.empty() || !portable_import_structure_ ||
       portable_file_dialog_ || portable_import_reading_ ||
       portable_import_committing_ || portable_export_writing_) {
+    ResolveJavascriptCallback(args.front().Clone(),
+                              base::Value(std::move(result)));
+    return;
+  }
+  std::vector<base::Uuid> selected_workspace_ids;
+  for (const auto& raw : args[2].GetList()) {
+    if (!raw.is_string()) {
+      ResolveJavascriptCallback(args.front().Clone(),
+                                base::Value(std::move(result)));
+      return;
+    }
+    const auto id = base::Uuid::ParseLowercase(raw.GetString());
+    if (!id.is_valid()) {
+      ResolveJavascriptCallback(args.front().Clone(),
+                                base::Value(std::move(result)));
+      return;
+    }
+    selected_workspace_ids.push_back(id);
+  }
+  auto selected = session::SelectPortableWorkspaceImport(
+      *portable_import_structure_, selected_workspace_ids);
+  if (!selected) {
     ResolveJavascriptCallback(args.front().Clone(),
                               base::Value(std::move(result)));
     return;
@@ -446,7 +477,7 @@ void AhoiSettingsHandler::HandleCommitPortableImport(
       },
       portable_import_lease_);
   bridge->CommitPortableWorkspaceImport(
-      *portable_import_structure_, std::move(authorization),
+      *selected, std::move(authorization),
       base::BindOnce(&AhoiSettingsHandler::OnPortableImportCommitted,
                      weak_factory_.GetWeakPtr(), args.front().Clone()));
 }

@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "ahoi/browser/session/portable_workspace_structure.h"
 #include "base/time/time.h"
@@ -22,6 +23,13 @@ struct PortableWorkspaceImportPlan {
   std::string encoded_structure;
   bool changed = false;
 };
+
+// Explicit all-or-nothing selection of complete Workspaces from one decoded
+// file. Dependent pages/splits/archives follow only their selected workspace;
+// a partial subtree or unknown/duplicate selection is rejected.
+std::optional<PortableWorkspaceStructure> SelectPortableWorkspaceImport(
+    const PortableWorkspaceStructure& imported,
+    const std::vector<base::Uuid>& selected_workspace_ids);
 
 // Only conflict-free additions are currently planned. A changed existing ID,
 // even at the same URL, is never overwritten or silently reidentified. The

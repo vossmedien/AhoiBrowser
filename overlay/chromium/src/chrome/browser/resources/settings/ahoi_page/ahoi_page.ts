@@ -78,6 +78,7 @@ export interface PortableExportOptionsResponse {
     importDestination: string,
     importTargetUnavailable: string,
     importCommit: string,
+    importSelectionHint: string,
     imported: string,
     noChanges: string,
     importChanged: string,
@@ -102,6 +103,7 @@ export interface PortableImportPreviewResponse {
   token?: string;
   canImport?: boolean;
   workspaces?: Array<{
+    id: string,
     name: string,
     destination: 'new'|'identical'|'conflict',
   }>;
@@ -207,6 +209,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       portableExportStatus_: {type: String},
       portableExportPending_: {type: Boolean},
       portableImportPreview_: {type: Object},
+      portableImportSelectedWorkspaceIds_: {type: Array},
       portableImportStatus_: {type: String},
       portableImportPending_: {type: Boolean},
     };
@@ -244,6 +247,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
   protected accessor portableExportPending_: boolean = false;
   protected accessor portableImportPreview_: PortableImportPreviewResponse|null =
       null;
+  protected accessor portableImportSelectedWorkspaceIds_: string[] = [];
   protected accessor portableImportStatus_: string = '';
   protected accessor portableImportPending_: boolean = false;
 
@@ -298,6 +302,12 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         this.portableImportPending_ = false;
         this.portableImportPreview_ =
             result.status === 'preview' ? result : null;
+        this.portableImportSelectedWorkspaceIds_ =
+            result.status === 'preview' ?
+            (result.workspaces || [])
+                .filter(workspace => workspace.destination !== 'conflict')
+                .map(workspace => workspace.id) :
+            [];
         this.portableImportStatus_ = result.status;
         if (result.status === 'imported') {
           this.portableExportPreview_ = null;
@@ -413,6 +423,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
     this.portableImportPending_ = true;
     this.portableImportPreview_ = null;
+    this.portableImportSelectedWorkspaceIds_ = [];
     this.portableImportStatus_ = '';
     try {
       const result = await sendWithPromise<{status: string}>(
@@ -427,24 +438,47 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
+  protected onPortableImportWorkspaceChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const id = checkbox.dataset['workspaceId'];
+    if (!id) {
+      return;
+    }
+    const selected = new Set(this.portableImportSelectedWorkspaceIds_);
+    checkbox.checked ? selected.add(id) : selected.delete(id);
+    this.portableImportSelectedWorkspaceIds_ = [...selected];
+  }
+
+  protected canCommitPortableImport_(): boolean {
+    if (this.portableImportPending_ || !this.portableImportPreview_?.token ||
+        !this.portableImportPreview_.canImport ||
+        this.portableImportSelectedWorkspaceIds_.length === 0) {
+      return false;
+    }
+    const selected = new Set(this.portableImportSelectedWorkspaceIds_);
+    const chosen = this.portableImportPreview_.workspaces?.filter(
+        workspace => selected.has(workspace.id)) || [];
+    return selected.size === this.portableImportSelectedWorkspaceIds_.length &&
+        chosen.length === selected.size &&
+        chosen.every(workspace => workspace.destination !== 'conflict');
+  }
+
   protected async onPortableCommitClick_() {
-    if (this.portableImportPending_ ||
-        !this.portableImportPreview_?.canImport ||
-        !this.portableImportPreview_.token) {
+    if (!this.canCommitPortableImport_()) {
       return;
     }
     this.portableImportPending_ = true;
     this.portableImportStatus_ = '';
     try {
       const result = await sendWithPromise<{status: string}>(
-          'ahoiCommitPortableImport', this.portableImportPreview_.token);
+          'ahoiCommitPortableImport', this.portableImportPreview_!.token,
+          this.portableImportSelectedWorkspaceIds_);
       this.portableImportStatus_ = result.status;
+      this.portableImportPreview_ = null;
+      this.portableImportSelectedWorkspaceIds_ = [];
       if (result.status === 'imported' || result.status === 'noChanges') {
-        this.portableImportPreview_ = null;
         this.portableExportPreview_ = null;
         void this.refreshPortableExportOptions_();
-      } else if (result.status === 'conflict') {
-        this.portableImportPreview_ = null;
       }
     } catch {
       this.portableImportStatus_ = 'commitFailed';

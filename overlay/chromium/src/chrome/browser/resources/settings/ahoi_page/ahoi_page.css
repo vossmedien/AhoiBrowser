@@ -179,6 +179,15 @@ cr-view-manager [hidden-by-search] {
   margin-top: 10px;
 }
 
+.portable-import-preview {
+  display: grid;
+  gap: 8px;
+}
+
+.portable-import-preview .secondary {
+  margin: 0;
+}
+
 .pairing-title {
   font-weight: 500;
 }
