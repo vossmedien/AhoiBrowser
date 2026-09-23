@@ -23,8 +23,12 @@ Visible E2E on the copy at
 profile: opened public `example.com`, invoked the native "HTTP-Zugänge"
 management dialog through Ahoi's command bar, closed it, then navigated to
 public `example.org`; the destination rendered and browser PID `64682`
-remained alive. This proves the close-then-navigation journey, not the
-original revealed-password editor state; no credential was present in this
+remained alive. A second visible pass opened the same dialog on `example.org`,
+closed it, immediately opened Ahoi's own command bar and accepted
+`https://example.com`; that destination rendered and the same PID remained
+alive, matching the crash report's command-bar navigation path. This proves
+the close-then-navigation journey, not a populated or revealed-password
+editor state; no credential was present in this
 fresh profile. The installed `/Applications/AhoiBrowser.app` was not changed.
 
 ## Current source / partial UI gate — 23 September 2026
