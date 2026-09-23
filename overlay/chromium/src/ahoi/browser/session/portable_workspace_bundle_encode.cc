@@ -186,7 +186,7 @@ std::optional<std::string> EncodePortableWorkspaceBundle(
 
   for (const auto& node : structure.tree.nodes) {
     if (!node.id.is_valid() || !node_ids.insert(node.id).second ||
-        !workspace_ids.contains(node.workspace_id) ||
+        !workspace_ids.contains(node.workspace_id) || node.title.empty() ||
         !budget.Charge(node.title, kMaximumTextBytes) ||
         !budget.Charge(node.icon, kMaximumIconBytes) ||
         !ValidSortKey(node.sort_key, &budget)) {
@@ -264,6 +264,7 @@ std::optional<std::string> EncodePortableWorkspaceBundle(
 
   base::ListValue archives;
   std::set<base::Uuid> archive_ids;
+  std::set<base::Uuid> archived_page_ids;
   for (const auto& archive : structure.archives) {
     if (!archive.id.is_valid() || !archive_ids.insert(archive.id).second ||
         !workspace_ids.contains(archive.snapshot.workspace_id) ||
@@ -286,14 +287,15 @@ std::optional<std::string> EncodePortableWorkspaceBundle(
     base::ListValue pages;
     std::map<base::Uuid, base::Uuid> archived_page_workspaces;
     for (const auto& page : archive.snapshot.pages) {
-      if (node_ids.contains(page.tree_node_id)) {
+      if (node_ids.contains(page.tree_node_id) ||
+          !archived_page_ids.insert(page.tree_node_id).second) {
         return std::nullopt;
       }
       archived_page_workspaces.emplace(page.tree_node_id,
                                        archive.snapshot.workspace_id);
       if (!ValidParent(page.parent_id, archive.snapshot.workspace_id,
                        folder_workspaces) ||
-          !budget.Charge(page.title, kMaximumTextBytes) ||
+          page.title.empty() || !budget.Charge(page.title, kMaximumTextBytes) ||
           !ValidSortKey(page.sort_key, &budget)) {
         return std::nullopt;
       }
