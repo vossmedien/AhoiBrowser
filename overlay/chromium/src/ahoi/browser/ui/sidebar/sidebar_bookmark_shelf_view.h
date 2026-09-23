@@ -141,7 +141,6 @@ class SidebarBookmarkShelfView final
   raw_ptr<views::View> trailing_overflow_ = nullptr;
   raw_ptr<views::View> bookmark_items_ = nullptr;
   raw_ptr<views::Button> manager_button_ = nullptr;
-  raw_ptr<views::Label> empty_label_ = nullptr;
   std::map<std::string, raw_ptr<SidebarBookmarkButton>> buttons_;
   std::set<std::string> desired_keys_;
   std::unique_ptr<SidebarBookmarkMenu> folder_menu_;

@@ -92,19 +92,44 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
     : browser_(browser) {
   CHECK(browser_);
   set_context_menu_controller(this);
-  SetPreferredSize(gfx::Size(0, visual_style::kBookmarkShelfHeight));
   SetBackground(nullptr);
-  SetBorder(views::CreateEmptyBorder(
-      gfx::Insets::VH(visual_style::kBookmarkShelfVerticalInset, 0)));
   GetViewAccessibility().SetRole(ax::mojom::Role::kToolbar);
   GetViewAccessibility().SetName(
       l10n_util::GetStringUTF16(IDS_ACCNAME_BOOKMARKS));
 
   auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
-      views::BoxLayout::Orientation::kHorizontal, gfx::Insets(),
-      visual_style::kBookmarkShelfSpacing));
+      views::BoxLayout::Orientation::kVertical, gfx::Insets(), 2));
   layout->set_cross_axis_alignment(
+      views::BoxLayout::CrossAxisAlignment::kStretch);
+
+  auto header = std::make_unique<views::View>();
+  header->SetPreferredSize(
+      gfx::Size(0, visual_style::kBookmarkShelfHeight));
+  auto* header_layout =
+      header->SetLayoutManager(std::make_unique<views::BoxLayout>(
+          views::BoxLayout::Orientation::kHorizontal,
+          gfx::Insets::TLBR(0, visual_style::kSidebarSectionSpacing, 0, 0),
+          visual_style::kBookmarkShelfSpacing));
+  header_layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kCenter);
+  auto heading = std::make_unique<views::Label>(
+      l10n_util::GetStringUTF16(IDS_ACCNAME_BOOKMARKS));
+  heading->SetEnabledColor(visual_style::kMutedText);
+  heading->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  heading->SetSubpixelRenderingEnabled(false);
+  header_layout->SetFlexForView(header->AddChildView(std::move(heading)), 1);
+  auto manager = std::make_unique<SidebarBookmarkButton>(
+      base::BindRepeating(&SidebarBookmarkShelfView::OpenBookmarkManager,
+                          weak_ptr_factory_.GetWeakPtr()),
+      std::u16string(),
+      ui::ImageModel::FromVectorIcon(kBookmarkManagerIcon,
+                                     visual_style::kMutedText,
+                                     visual_style::kSidebarIconSize),
+      l10n_util::GetStringUTF16(IDS_BOOKMARK_MANAGER_V2),
+      /*folder=*/false);
+  manager_button_ = manager.get();
+  header->AddChildView(std::move(manager));
+  AddChildView(std::move(header));
 
   auto items = std::make_unique<views::View>();
   bookmark_items_ = items.get();
@@ -118,6 +143,8 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
 
   auto scroll = std::make_unique<views::ScrollView>();
   scroll_view_ = scroll.get();
+  scroll_view_->SetPreferredSize(
+      gfx::Size(0, visual_style::kBookmarkShelfHeight));
   scroll_view_->SetUseContentsPreferredSize(true);
   scroll_view_->SetBackgroundColor(std::nullopt);
   scroll_view_->SetDrawOverflowIndicator(true);
@@ -143,27 +170,8 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
         }
       },
       weak_ptr_factory_.GetWeakPtr()));
-  views::View* const scroll_ptr = AddChildView(std::move(scroll));
-  layout->SetFlexForView(scroll_ptr, 1);
-  auto empty_label = std::make_unique<views::Label>(
-      l10n_util::GetStringUTF16(IDS_ACCNAME_BOOKMARKS));
-  empty_label_ = empty_label.get();
-  empty_label_->SetEnabledColor(visual_style::kMutedText);
-  empty_label_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-  layout->SetFlexForView(AddChildView(std::move(empty_label)), 1);
+  AddChildView(std::move(scroll));
   scroll_view_->SetVisible(false);
-
-  auto manager = std::make_unique<SidebarBookmarkButton>(
-      base::BindRepeating(&SidebarBookmarkShelfView::OpenBookmarkManager,
-                          weak_ptr_factory_.GetWeakPtr()),
-      std::u16string(),
-      ui::ImageModel::FromVectorIcon(kBookmarkManagerIcon,
-                                     visual_style::kMutedText,
-                                     visual_style::kSidebarIconSize),
-      l10n_util::GetStringUTF16(IDS_BOOKMARK_MANAGER_V2),
-      /*folder=*/false);
-  manager_button_ = manager.get();
-  AddChildView(std::move(manager));
   bookmark_service_ = BookmarkMergedSurfaceServiceFactory::GetForProfile(
       browser_->GetProfile());
   if (!bookmark_service_) {
@@ -219,7 +227,7 @@ void SidebarBookmarkShelfView::BookmarkMergedSurfaceServiceBeingDeleted() {
   bookmark_items_->RemoveAllChildViews();
   bookmark_item_count_ = 0;
   scroll_view_->SetVisible(false);
-  empty_label_->SetVisible(true);
+  PreferredSizeChanged();
 }
 
 void SidebarBookmarkShelfView::BookmarkNodeAdded(
@@ -327,9 +335,9 @@ void SidebarBookmarkShelfView::Rebuild() {
     }
   }
   scroll_view_->SetVisible(bookmark_item_count_ != 0);
-  empty_label_->SetVisible(bookmark_item_count_ == 0);
   bookmark_items_->InvalidateLayout();
   scroll_view_->InvalidateLayout();
+  PreferredSizeChanged();
   if (focused_index && GetFocusManager() &&
       !GetFocusManager()->GetFocusedView()) {
     if (bookmark_item_count_ == 0) {

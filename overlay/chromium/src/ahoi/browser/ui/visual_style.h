@@ -121,10 +121,9 @@ inline constexpr int kBookmarkShelfFolderMinimumWidth = 44;
 inline constexpr int kBookmarkShelfFolderMaximumWidth = 112;
 inline constexpr float kBookmarkShelfCornerRadius = 8.0f;
 
-// The normal browsing surface is deliberately inset from the window chrome.
-// Besides creating the Arc-like card treatment this inset is part of layout,
-// so the renderer receives the real (smaller) viewport instead of being
-// visually covered by sidebar or shell chrome.
+// The normal browsing surface retains breathing room at its top and sides;
+// its bottom meets the window edge. These insets are real layout, so the
+// renderer receives exactly the viewport the user sees.
 inline constexpr int kContentCardInset = 8;
 inline constexpr int kContentCardCornerRadius = 14;
 inline constexpr int kContentCardShadowElevation = 10;

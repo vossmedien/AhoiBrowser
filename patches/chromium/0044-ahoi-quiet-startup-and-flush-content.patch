@@ -1,0 +1,91 @@
+diff --git a/chrome/browser/ui/startup/infobar_utils.cc b/chrome/browser/ui/startup/infobar_utils.cc
+index a7dbbd4..c56a7bf 100644
+--- a/chrome/browser/ui/startup/infobar_utils.cc
++++ b/chrome/browser/ui/startup/infobar_utils.cc
+@@ -234,6 +234,11 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
+   }
+ #endif
+ 
++  // Ahoi already asks about session restoration in its own startup sheet and
++  // keeps Default Browser in Settings. Do not stack either informational
++  // infobar across the complete content width. Security/OS warnings above
++  // remain unchanged.
++#if !BUILDFLAG(IS_MAC)
+ #if !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
+   if (is_web_app ||
+       startup_command_line.HasSwitch(switches::kNoDefaultBrowserCheck) ||
+@@ -293,4 +298,5 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
+ #endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
+   }
+ #endif  // !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
++#endif  // !BUILDFLAG(IS_MAC)
+ }
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index 76c78a1..4fe48e3 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1166,7 +1166,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+                           views()
+                               .vertical_tab_strip_region_view
+                               ->GetAhoiContentCardLeadingInsetForLayout(),
+-                          ahoi::visual_style::kContentCardInset,
++                          0,
+                           ahoi::visual_style::kContentCardInset));
+   }
+ 
+@@ -1213,7 +1213,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+ 
+   if (uses_ahoi_content_card) {
+     views().multi_contents_view->SetBackgroundRadii(
+-        gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius));
++        gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius,
++                             ahoi::visual_style::kContentCardCornerRadius,
++                             0.0f, 0.0f));
+   } else if (in_glass_mode()) {
+     // If the window goes out of glass mode, these changes won't hurt anything.
+     gfx::RoundedCornersF content_corners;
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 4d06a29..586e789 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -1265,17 +1265,15 @@ BrowserView::BrowserView(Browser* browser)
+ 
+     // Keep the product treatment at the BrowserView seam: MultiContentsView
+     // remains responsible for clipping every live WebContents (including
+-    // split panes and docked DevTools), while this transparent host layer only
+-    // contributes the card shadow behind it.
++    // split panes and docked DevTools). The card is rounded at the top but
++    // meets the window bottom without a separate shadow or exposed gutter.
+     contents_container()->SetPaintToLayer();
+     contents_container()->layer()->SetFillsBoundsOpaquely(false);
+     contents_container()->SetBackground(views::CreateRoundedRectBackground(
+         ahoi::visual_style::kChromeSurface,
+-        ahoi::visual_style::kContentCardCornerRadius));
+-    ahoi_contents_shadow_ = std::make_unique<views::ViewShadow>(
+-        contents_container(), ahoi::visual_style::kContentCardShadowElevation);
+-    ahoi_contents_shadow_->SetRoundedCornerRadius(
+-        ahoi::visual_style::kContentCardCornerRadius);
++        gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius,
++                             ahoi::visual_style::kContentCardCornerRadius,
++                             0.0f, 0.0f)));
+ 
+     toolbar_->SetPaintToLayer();
+     toolbar_->layer()->SetFillsBoundsOpaquely(false);
+diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
+index ecf6bf5..4c3a156 100644
+--- a/chrome/browser/ui/views/frame/browser_view.h
++++ b/chrome/browser/ui/views/frame/browser_view.h
+@@ -1304,11 +1304,8 @@ class BrowserView : public BrowserWindow,
+   // The view that contains all visible WebContents.
+   raw_ptr<MultiContentsView> multi_contents_view_ = nullptr;
+ 
+-  // Ahoi renders normal tabbed content as an inset card. ViewShadow owns a
+-  // sibling compositor layer below `multi_contents_view_`; keeping it here
+-  // gives it the same lifetime as the observed View and avoids teaching
+-  // Chromium's generic ContentsLayoutManager about product chrome.
+-  std::unique_ptr<views::ViewShadow> ahoi_contents_shadow_;
++  // The floating navigation shadow belongs to the browser view, not to an
++  // individual tab or the now flush-bottom content surface.
+   std::unique_ptr<views::ViewShadow> ahoi_toolbar_shadow_;
+ 
+   // Owns the reveal notch, auto-hide leases and presentation animation for

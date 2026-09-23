@@ -669,14 +669,14 @@ std::unique_ptr<views::View> CreateSidebarSectionDivider(
     layout->SetFlexForView(label, 1);
   }
 
+  const std::u16string action_tooltip = action_name;
   auto* action = divider->AddChildView(std::make_unique<views::LabelButton>(
       std::move(callback), std::move(action_name)));
   action->SetTextColor(views::Button::STATE_NORMAL, visual_style::kMutedText);
   action->SetTextColor(views::Button::STATE_HOVERED, visual_style::kText);
   action->SetTextSubpixelRenderingEnabled(false);
   action->SetLabelStyle(views::style::STYLE_CAPTION);
-  action->SetTooltipText(
-      l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL));
+  action->SetTooltipText(action_tooltip);
   action->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(
       0, visual_style::kSidebarSectionDividerActionHorizontalInset)));
   action->SetBackground(nullptr);
@@ -688,7 +688,6 @@ std::unique_ptr<views::View> CreateSidebarSectionLabel(std::u16string name) {
   label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
   label->SetEnabledColor(visual_style::kMutedText);
   label->SetSubpixelRenderingEnabled(false);
-  label->SetFontList(label->font_list().DeriveWithSizeDelta(-1));
   label->SetBorder(views::CreateEmptyBorder(
       gfx::Insets::VH(0, visual_style::kSidebarSectionSpacing)));
   label->SetPreferredSize(

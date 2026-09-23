@@ -16,6 +16,21 @@ callbacks now live in BrowserWebContentsDelegate, native window creation uses
 BrowserWindowInterface/CreateBrowserWindow, and the removed PrivacySandbox
 delegate is replaced by M153's native denial behavior rather than a shim.
 
+## `0044-ahoi-quiet-startup-and-flush-content.patch`
+
+- **Owner/pin:** Desktop UI on M153. It follows the 43 already applied patches;
+  normal overlay composition and installed-candidate verification still apply.
+- **Scope:** only redundant macOS startup/default-browser informational
+  infobars are suppressed after the existing security and obsolete-OS checks.
+  Ahoi's startup choice and Chromium's Default Browser settings remain
+  available. All other infobars keep their native owner.
+- **Geometry:** normal tabbed content keeps its top/side insets and top corners,
+  but its bottom meets the window edge; the separate content shadow is removed.
+  Split/WebContents bounds remain real layout, not a visual overlay.
+- **Acceptance:** visible startup with no full-width informational banner,
+  representative content and sidebar bottoms aligned, then focused layout and
+  startup checks. The concept image is design direction, not runtime proof.
+
 The superseded 21-patch M151 stack remains recoverable from
 `refs/ahoi/recovery/product-source-freeze-20260826-a3865fc6e9f8` and
 `artifacts/build/recovery/ahoi-m151-final.bundle`; it is intentionally not kept

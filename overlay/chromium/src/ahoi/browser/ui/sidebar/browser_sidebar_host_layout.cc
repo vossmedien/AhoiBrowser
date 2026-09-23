@@ -117,6 +117,7 @@
 #include "ui/views/controls/button/image_button_factory.h"
 #include "ui/views/controls/image_view.h"
 #include "ui/views/controls/label.h"
+#include "ui/views/controls/separator.h"
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/controls/textfield/textfield.h"
@@ -303,8 +304,17 @@ BrowserSidebarHostView::BrowserSidebarHostView(
 
   const bool german_sidebar =
       base::i18n::GetConfiguredLocale().starts_with("de");
+  const auto add_section_rule = [&]() {
+    auto rule = std::make_unique<views::Separator>();
+    rule->SetOrientation(views::Separator::Orientation::kHorizontal);
+    rule->SetColorId(visual_style::kDivider);
+    rule->SetBorder(views::CreateEmptyBorder(gfx::Insets::TLBR(8, 6, 3, 6)));
+    tabs_surface->AddChildView(std::move(rule));
+  };
+  add_section_rule();
   tabs_surface->AddChildView(
-      CreateSidebarSectionLabel(german_sidebar ? u"Gespeichert" : u"Saved"));
+      CreateSidebarSectionLabel(german_sidebar ? u"Gespeicherte Tabs"
+                                               : u"Saved tabs"));
   auto tree = std::make_unique<SidebarTreeView>(
       controller_.get(), this,
       l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_TREE_ACCESSIBLE_NAME),
@@ -312,11 +322,13 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   tree_view_ = tree.get();
   tabs_surface->AddChildView(std::move(tree));
 
+  add_section_rule();
   open_tabs_header_ = tabs_surface->AddChildView(CreateSidebarSectionDivider(
       base::BindRepeating(&BrowserSidebarHostView::CloseAllTemporaryTabs,
                           base::Unretained(this)),
-      german_sidebar ? u"Entfernen" : u"Clear",
-      german_sidebar ? u"Temporäre Tabs" : u"Temporary tabs"));
+      german_sidebar ? u"Alle schließen" : u"Close all",
+      german_sidebar ? u"Offene Tabs" : u"Open tabs"));
+  open_tabs_header_->SetPreferredSize(gfx::Size(0, 32));
 
   auto open_tabs = CreateOpenTabsDropTargetView(
       base::BindRepeating(&BrowserSidebarHostView::CanDropOpenTabToTemporary,
@@ -364,8 +376,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   // Cross-device rows are part of the tab list, not a detached management
   // page. Keep them immediately below the saved tree and above temporary
   // local tabs; the latter may flex into otherwise unused sidebar height.
-  tabs_surface->ReorderChildView(remote_tabs_header_, 2);
-  tabs_surface->ReorderChildView(remote_tabs_container_, 3);
+  tabs_surface->ReorderChildView(remote_tabs_header_, 3);
+  tabs_surface->ReorderChildView(remote_tabs_container_, 4);
   auto* const mini_player_scroll_inset =
       tabs_surface->AddChildView(std::make_unique<views::View>());
   mini_player_scroll_inset->SetPreferredSize(gfx::Size());
