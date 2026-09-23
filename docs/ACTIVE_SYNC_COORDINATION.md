@@ -1,6 +1,26 @@
 # Active sync coordination
 
-## Installed matching Development scope — 23 September 2026
+## Current matching candidates — 23 September 2026
+
+Mac installed source `ba87a7b` and Mobile CloudKitDevelopment40/source
+`45330d2` use the same signed `fe842` Development zone and key family. The
+Mac's isolated `MacA` profile visibly enabled Sync and read the matching
+remote key-bootstrap claim, but the canonical synchronizable key has not
+arrived there. macOS `Passwörter & Schlüsselbund` is ON. Bookmark consent was
+explicitly approved from the now-central Ahoi Settings UI; it is not a domain
+record transport pass. No key copy/replacement, existing-zone reset or
+Production mutation. The first no-provider account-notification dead-end is
+corrected in source `30cd18f`, included in installed `ba87a7b`; its recovery
+choice still needs a representative runtime if that condition recurs.
+
+The Desktop layout follow-up source `c3e29e7` is in a guarded two-job build;
+it does not change Sync schema, provider or key behavior. Installed
+`ba87a7b` remains the current runtime until a complete signed installation
+and visible layout journey. The Mac/iOS encrypted record roundtrip remains
+OPEN. On an E2E tooling or key-arrival block, continue only useful independent
+focused checks, not a speculative new key transport.
+
+## Prior installed matching Development scope — 23 September 2026 (historical)
 
 Desktop M153 source `9617cf1` built EXIT0, was signed with the existing Mac
 Development profile and exact `fe842` acceptance scope, and installed through
@@ -10,11 +30,16 @@ the guarded transaction EXIT0. The source/build/signing evidence is under
 Mobile Build40 on the dedicated C645/iOS27 simulator previously reached
 Ready/encryption-ready/Synchronized on the same scope after Apple Account
 sign-in. A different iPhone 17 simulator is currently booted; its password
-entry alone is not a Build40/CloudKit readback. Native Computer Use binding
-timed out at the new Mac runtime gate, so the Mac/iOS record roundtrip is still
-OPEN. Resume the exact installed app and the dedicated Mobile candidate when
-UI control is available; no new Chromium build, scope, key family or migration
-is implied by the timeout.
+entry alone is not a Build40/CloudKit readback. Native Computer Use later
+recovered. The exact installed Mac app launched on an isolated `MacA` profile;
+explicit Sync opt-in reached a matching remote bootstrap claim but is still
+**waiting for the shared iCloud Keychain item**. Mac `Passwörter & Schlüsselbund`
+synchronization is ON, and a normal retry did not yet find the item. This is
+not a domain-record roundtrip; no key copy, replacement or zone reset is
+authorized. UI-only source `87872b7` is now in a separate incremental
+app-only build, not installed. Finish its visible Sidebar/Sync-popup acceptance
+before treating its package as current; retain installed `9617cf1` as the
+actual Keychain-waiting runtime candidate.
 
 ## Prior compiler candidate — 23 September 2026 (historical)
 

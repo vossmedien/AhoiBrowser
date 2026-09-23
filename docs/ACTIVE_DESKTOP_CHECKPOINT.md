@@ -1,6 +1,40 @@
 # Active Desktop checkpoint
 
-## Installed M153 CloudKit Development candidate — 23 September 2026
+## Current candidate and visual acceptance — 23 September 2026
+
+Installed `/Applications/AhoiBrowser.app` is now M153 source `ba87a7b`, signed
+for the unchanged `fe842` CloudKit Development scope. The guarded product
+build, separate signing verification and atomic installer all exited0;
+receipts are under `artifacts/build/native-m153-settings-ba87a7b-20260923/`
+and `artifacts/install/ahoi-dev-ba87a7b-cloudkit-development-20260923.json`.
+On the exact installed app, the normal Ahoi Settings window rendered with
+Glass ON while the browser frame/sidebar stayed opaque. Neither global Sync
+nor bookmark consent appears as a Sidebar button; the Settings Sync section
+showed status/manual action, bookmark consent and extension choices. Explicit
+bookmark approval in the isolated `MacA` profile changed its control to
+"Lesezeichen-Sync stoppen". This is visible UI/category evidence, not a
+CloudKit record roundtrip. The Mac still reports waiting for the matching
+iCloud Keychain item; Mobile Build40's independent Ready state remains separate.
+
+The user then identified additional native layout issues. Design direction
+is `docs/design/ahoi-browser-layout-study-20260923.png`, not product evidence.
+Source `db79050` refines bookmark/saved/open-tab hierarchy and adds an M153
+patch for quiet informational startup notices plus flush-bottom content.
+Its first guarded build was intentionally interrupted after23/342 actions
+because removing one private BrowserView header field caused an unnecessary
+broad rebuild; both temporary dependency workarounds were restored to their
+verified original bytes, and objects/log remain. Follow-up `c3e29e7` keeps
+the header byte-identical while preserving the intended layout. Guarded
+overlay refresh is EXIT0 and the two-job product build is running from its
+clean snapshot. Log:
+`artifacts/build/native-m153-layout-c3e29e7-20260923/build.log`. This source
+is **not yet installed or visibly accepted**. Next: complete its exact
+build/sign/install, verify startup without redundant full-width info banners,
+aligned content/sidebar bottoms and the new Sidebar spacing/wording, then run
+only the focused relevant checks. Do not claim Sync complete until a real
+Mac/iOS encrypted record roundtrip succeeds.
+
+## Prior installed M153 CloudKit Development candidate — 23 September 2026 (historical)
 
 The guarded app-only M153 build on exact source `9617cf1` completed EXIT0;
 `artifacts/build/native-m153-sequence-9617cf1-20260923/` contains its log,
@@ -12,19 +46,34 @@ is `cloudkit-verification.json` in that build directory. The guarded atomic
 installer exited0 and verified the installed bundle before and after
 activation; receipt:
 `artifacts/install/ahoi-dev-9617cf1-cloudkit-development-20260923.json`.
-`/Applications/AhoiBrowser.app` now reads back source `9617cf1`, Chromium
+`/Applications/AhoiBrowser.app` then read back source `9617cf1`, Chromium
 153.0.8010.53 and zone `AhoiSyncAcceptance-fe842784-4865-4272-8bda-4bcf81a64a84`.
 The previous `55abcf7` app remains at the installer-recorded rollback path.
 
-This is **not** a Mac startup, CloudKit transport or cross-device record pass.
-Fresh native Computer Use app bindings timed out twice after installation;
-neither returned a window or launched a verifiable browser process. Do not
-infer runtime success from signing or installation. Next: when native UI
-control responds, launch this exact installed candidate, verify normal
-Settings/Sync first-use and one representative Mac/iOS record roundtrip with
-Mobile Build40 on its own signed-in C645 simulator. Do not repeat the M153
-compile or install merely because the UI binding timed out. The focused M153
-entitlement-policy suite passed 14/14 after the E2E tooling block.
+The installed app subsequently launched and rendered its normal window and
+Ahoi Settings. On an isolated `MacA` acceptance profile, explicit Ahoi Sync
+OFF→ON first showed setup in progress and then **"Warten auf den gemeinsamen
+iCloud-Schlüssel"**. The native bootstrap reaches that state only after
+finding the matching remote claim and no local canonical key; it is not an
+encrypted-domain or cross-device record pass. Mac System Settings shows
+`Passwörter & Schlüsselbund → Diesen Mac synchronisieren` ON. One explicit
+retry still showed the same waiting state. Do not copy/regenerate a key or
+infer that Simulator-to-Mac Keychain propagation is guaranteed. Mobile Build40
+remains the distinct prior Ready candidate; a different iPhone17 simulator is
+currently booted. The focused M153 entitlement-policy suite passed 14/14.
+
+The user's visible UI report is also reproduced on this installed build:
+an opaque lower Sidebar ScrollView viewport contrasts with the translucent
+upper surface even when Glass is switched off; the prior Glass preference was
+restored. Source `87872b7` clears the ScrollView/viewport background, reduces
+excessive chrome transparency and moves the long inline Sync controls to a
+bounded popup. Guarded overlay refresh completed; a two-job app-only product
+build is running from the clean `87872b7` snapshot, with log under
+`artifacts/build/native-m153-ui-87872b7-20260923/`. This new UI source is
+not installed or visually accepted yet. Next: finish that build, verify the
+changed visible Sidebar/Sync-popup journey on its exact signed installed copy,
+then continue the Mac/iOS key-arrival and record-roundtrip gate without
+changing the existing Development scope.
 
 ## Prior compiler correction — 23 September 2026 (historical)
 
