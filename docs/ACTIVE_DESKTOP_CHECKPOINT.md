@@ -49,6 +49,10 @@ code is unchanged in `455652b`, whose affected Settings and replay/restart
 paths were visibly repeated. Nontrivial split/archive portable roundtrips,
 rollback injection and installed-app acceptance remain open. Installed
 `/Applications/AhoiBrowser.app` is still `820cf4e`, not this candidate.
+The exact final test copy and imported profile remain under `/private/tmp` for
+later bounded acceptance. Three older task-owned Glass baseline/candidate
+copies were moved to macOS Trash, recoverably; Trash bytes were not counted as
+reclaimed disk space.
 
 ## Native Glass backdrop correction — 23 September 2026
 
