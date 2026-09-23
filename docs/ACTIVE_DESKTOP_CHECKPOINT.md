@@ -48,6 +48,12 @@ side-panel/New-Tab/restart journey, not all provider integrations or a normal-
 profile migration. Its public listing is
 `https://chromewebstore.google.com/detail/anychat-ai-powered-browsi/khpefodpgnkegiohbolbaaeabnfdegln`.
 
+The same installed candidate's normal `chrome://settings/importData` dialog
+visibly reported Arc as still running and Zen as not installed; only actually
+available standard sources were selectable. It was cancelled without preview,
+import or profile mutation. This is an honest source-availability readback, not
+a new Arc or Zen import pass.
+
 Feature-first source WIP: `portable_workspace_selection.{h,cc}` creates an
 explicit allowlisted workspace/page export projection from the existing
 TabTreeSnapshot and counts excluded temporary, nonportable page and Home
