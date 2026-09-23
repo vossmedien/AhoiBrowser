@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "ahoi/browser/sync/profile_sync_service.h"
+#include "base/callback_list.h"
 #include "base/memory/raw_ptr.h"
 #include "base/values.h"
 #include "content/public/browser/web_ui_message_handler.h"
@@ -60,6 +61,7 @@ class AhoiSettingsHandler final
 
   raw_ptr<Profile> profile_ = nullptr;
   raw_ptr<sync::ProfileSyncService> sync_service_ = nullptr;
+  base::CallbackListSubscription bookmark_status_subscription_;
   bool observing_sync_service_ = false;
 };
 

@@ -121,6 +121,31 @@ export function getHtml(this: SettingsAhoiPageElement) {
           </div>
           <div class="sync-control-options">
             <div class="sync-control-heading">
+              ${this.syncControlsStatus_?.labels.bookmarks || ''}
+            </div>
+            <div id="ahoiBookmarkConsentHint" class="secondary">
+              ${this.syncControlsStatus_?.bookmarkSyncEnabled ?
+                  this.syncControlsStatus_?.labels.bookmarkStopHint :
+                  this.syncControlsStatus_?.labels.bookmarkConsentHint}
+            </div>
+            <div class="sync-control-actions">
+              <cr-button id="ahoiBookmarkSyncConsent"
+                  ?disabled="${!this.syncControlsStatus_?.canChangeBookmarkConsent ||
+                      this.syncControlsActionPending_}"
+                  aria-describedby="ahoiBookmarkConsentHint"
+                  @click="${this.onBookmarkSyncClick_}">
+                ${this.syncControlsStatus_?.bookmarkSyncEnabled ?
+                    this.syncControlsStatus_?.labels.stopBookmarks :
+                    this.syncControlsStatus_?.labels.approveBookmarks}
+              </cr-button>
+            </div>
+            <div class="secondary" role="status" aria-live="polite"
+                ?hidden="${!this.syncControlsStatus_?.bookmarkIssueLabel}">
+              ${this.syncControlsStatus_?.bookmarkIssueLabel || ''}
+            </div>
+          </div>
+          <div class="sync-control-options">
+            <div class="sync-control-heading">
               ${this.syncControlsStatus_?.labels.extensions || ''}
             </div>
             <label class="sync-control-option">

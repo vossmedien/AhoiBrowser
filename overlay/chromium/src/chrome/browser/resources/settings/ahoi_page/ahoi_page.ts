@@ -63,6 +63,9 @@ export interface SyncControlsStatusResponse {
   canChangeExtensionConsent: boolean;
   extensionSetupEnabled: boolean;
   extensionSettingsEnabled: boolean;
+  bookmarkSyncEnabled: boolean;
+  canChangeBookmarkConsent: boolean;
+  bookmarkIssueLabel: string;
   extensionResults: Array<{
     id: string,
     status: string,
@@ -76,6 +79,11 @@ export interface SyncControlsStatusResponse {
     extensionSetup: string,
     extensionSettings: string,
     extensionSettingsHint: string,
+    bookmarks: string,
+    bookmarkConsentHint: string,
+    bookmarkStopHint: string,
+    approveBookmarks: string,
+    stopBookmarks: string,
     retryExtension: string,
     reviewExtension: string,
     recovery: string,
@@ -265,6 +273,13 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     const id = (event.currentTarget as HTMLElement).dataset['extensionId'];
     if (id) {
       void this.runSyncControlAction_('retryExtension', id);
+    }
+  }
+
+  protected onBookmarkSyncClick_() {
+    if (this.syncControlsStatus_) {
+      void this.runSyncControlAction_(
+          'bookmarkSync', !this.syncControlsStatus_.bookmarkSyncEnabled);
     }
   }
 

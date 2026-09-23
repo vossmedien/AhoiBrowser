@@ -113,6 +113,7 @@ AhoiSettingsHandler::AhoiSettingsHandler(Profile* profile)
       sync_service_(sync::ProfileSyncServiceFactory::GetForProfile(profile_)) {}
 
 AhoiSettingsHandler::~AhoiSettingsHandler() {
+  bookmark_status_subscription_ = {};
   if (sync_service_ && observing_sync_service_) {
     sync_service_->RemoveObserver(this);
   }
@@ -122,6 +123,9 @@ void AhoiSettingsHandler::RegisterMessages() {
   if (sync_service_ && !observing_sync_service_) {
     observing_sync_service_ = true;
     sync_service_->AddObserver(this);
+    bookmark_status_subscription_ = sync_service_->ObserveBookmarkSync(
+        base::BindRepeating(&AhoiSettingsHandler::PushSyncControlsStatus,
+                            base::Unretained(this)));
   }
   web_ui()->RegisterMessageCallback(
       "ahoiGetBrowserSettingsSyncStatus",
@@ -279,6 +283,24 @@ base::DictValue AhoiSettingsHandler::BuildSyncControlsStatus(
   labels.Set("extensionSettingsHint",
              text("Nur geprüfte Optionen; unbekannte Daten bleiben lokal.",
                   "Only reviewed options; unknown data stays local."));
+  labels.Set("bookmarks", text("Lesezeichen", "Bookmarks"));
+  labels.Set("bookmarkConsentHint",
+             text("Lesezeichen und Ordner dieses Profils werden mit deinen "
+                  "Ahoi-Geräten zusammengeführt. Diese Freigabe schaltet "
+                  "Ahoi Sync nicht selbst ein; lokale Lesezeichen bleiben "
+                  "ohne sie nutzbar.",
+                  "Bookmarks and folders in this profile merge with your "
+                  "Ahoi devices. This approval does not turn on Ahoi Sync; "
+                  "local bookmarks remain usable without it."));
+  labels.Set("bookmarkStopHint",
+             text("Neue Übertragungen stoppen; lokale Lesezeichen und "
+                  "bereits übertragene Daten bleiben erhalten.",
+                  "Stop new transfers; local bookmarks and previously "
+                  "transferred data remain available."));
+  labels.Set("approveBookmarks",
+             text("Lesezeichen-Sync freigeben", "Approve bookmark sync"));
+  labels.Set("stopBookmarks",
+             text("Lesezeichen-Sync stoppen", "Stop bookmark sync"));
   labels.Set("retryExtension", text("Erneut versuchen", "Try again"));
   labels.Set("reviewExtension", text("Einrichten…", "Set up…"));
   labels.Set("recovery", text("Sync-Wiederherstellung", "Sync recovery"));
@@ -318,6 +340,37 @@ base::DictValue AhoiSettingsHandler::BuildSyncControlsStatus(
              sync_service_ && sync_service_->extension_setup_sync_enabled());
   result.Set("extensionSettingsEnabled",
              sync_service_ && sync_service_->extension_settings_sync_enabled());
+  result.Set("bookmarkSyncEnabled",
+             sync_service_ && sync_service_->bookmark_sync_enabled());
+  result.Set("canChangeBookmarkConsent", sync_service_ != nullptr);
+  std::string bookmark_issue;
+  if (sync_service_) {
+    switch (sync_service_->bookmark_sync_issue()) {
+      case sync::ProfileSyncService::BookmarkSyncIssue::kNone:
+        break;
+      case sync::ProfileSyncService::BookmarkSyncIssue::kUnsupportedLocalData:
+        bookmark_issue = text(
+            "Abgleich pausiert: prüfe nicht übertragbare Adressen oder "
+            "Metadaten in der Lesezeichenverwaltung.",
+            "Sync paused: check unsupported addresses or metadata in "
+            "Bookmark Manager.");
+        break;
+      case sync::ProfileSyncService::BookmarkSyncIssue::kReconciliationFailed:
+        bookmark_issue = text(
+            "Lokaler Abgleich nicht bestätigt; Änderungen bleiben erhalten "
+            "und werden erneut geprüft.",
+            "Local reconciliation is unconfirmed; changes are preserved "
+            "and will be retried.");
+        break;
+      case sync::ProfileSyncService::BookmarkSyncIssue::kAuthorizationChanged:
+        bookmark_issue = text(
+            "Konto oder Freigabe geändert; ältere Antworten werden nicht "
+            "mehr angewendet.",
+            "Account or consent changed; old responses will not be applied.");
+        break;
+    }
+  }
+  result.Set("bookmarkIssueLabel", std::move(bookmark_issue));
   base::ListValue extensions;
   if (sync_service_) {
     for (const auto& [id, restore] : sync_service_->extension_setup_results()) {
@@ -402,6 +455,9 @@ void AhoiSettingsHandler::HandleSyncControlAction(
   } else if (sync_service_ && action == "extensionSettings" &&
              args.size() == 3u && args[2].is_bool()) {
     accepted = sync_service_->SetExtensionSettingsSyncEnabled(args[2].GetBool());
+  } else if (sync_service_ && action == "bookmarkSync" &&
+             args.size() == 3u && args[2].is_bool()) {
+    accepted = sync_service_->SetBookmarkSyncEnabled(args[2].GetBool());
   } else if (sync_service_ && action == "retryExtension" &&
              args.size() == 3u && args[2].is_string()) {
     accepted = sync_service_->RetryExtensionSetup(args[2].GetString());
