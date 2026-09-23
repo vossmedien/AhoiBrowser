@@ -164,6 +164,7 @@ source_set("session") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "portable_workspace_import_plan_unittest.cc",
     "session_bridge_unittest.cc",
     "session_prefs_unittest.cc",
     "session_restore_integration_unittest.cc",
