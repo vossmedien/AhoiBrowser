@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ahoi/browser/session/portable_workspace_bundle.h"
+#include "ahoi/browser/session/portable_workspace_import_destination.h"
 #include "ahoi/browser/session/portable_workspace_structure.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
@@ -76,6 +77,16 @@ base::DictValue ExportLabels() {
                                   "File inspected – nothing imported yet"));
   labels.Set("importFailed", label("Datei nicht lesbar oder nicht unterstützt",
                                    "File unreadable or unsupported"));
+  labels.Set("importNew", label("Neu", "New"));
+  labels.Set("importIdentical",
+             label("Bereits identisch", "Already identical"));
+  labels.Set("importConflict", label("Konflikt – Entscheidung nötig",
+                                     "Conflict – decision required"));
+  labels.Set("importDestination", label("Zielvorschau – noch kein Import",
+                                        "Destination preview – not imported"));
+  labels.Set("importTargetUnavailable",
+             label("Zielprofil gerade nicht verfügbar",
+                   "Destination profile currently unavailable"));
   return labels;
 }
 
@@ -298,18 +309,7 @@ AhoiSettingsHandler::ReadPortableImportFile(base::FilePath path) {
   if (!decoded) {
     return readback;
   }
-  readback.valid = true;
-  for (const auto& workspace : decoded->tree.workspaces) {
-    const std::string name = base::UTF16ToUTF8(workspace.name);
-    readback.workspace_names.emplace_back(
-        base::TruncateUTF8ToByteSize(name, 256));
-  }
-  readback.pages = static_cast<int>(
-      std::ranges::count_if(decoded->tree.nodes, [](const auto& node) {
-        return node.type == tab_tree::TreeNodeType::kSavedPage;
-      }));
-  readback.splits = static_cast<int>(decoded->splits.size());
-  readback.archives = static_cast<int>(decoded->archives.size());
+  readback.structure = std::move(*decoded);
   return readback;
 }
 
@@ -317,17 +317,55 @@ void AhoiSettingsHandler::OnPortableImportRead(
     PortableImportReadback readback) {
   portable_import_reading_ = false;
   base::DictValue result;
-  result.Set("status", "failed");
-  if (readback.valid) {
-    result.Set("status", "preview");
-    result.Set("pages", readback.pages);
-    result.Set("splits", readback.splits);
-    result.Set("archives", readback.archives);
-    base::ListValue workspaces;
-    for (const auto& name : readback.workspace_names) {
-      workspaces.Append(name);
+  result.Set("status", readback.structure ? "targetUnavailable" : "failed");
+  SessionBridge* bridge = SessionBridgeFactory::GetForProfile(profile_);
+  tab_tree::TabTreeSnapshot current_tree;
+  if (readback.structure && bridge && bridge->is_ready() &&
+      bridge->ExportTabTreeSnapshot(&current_tree) &&
+      bridge->tab_tree_store()) {
+    const auto encoded_state =
+        bridge->tab_tree_store()->ReadWorkspaceStructureState();
+    const auto current_structure =
+        encoded_state ? session::DecodeWorkspaceStructureState(*encoded_state)
+                      : std::nullopt;
+    if (current_structure) {
+      const auto destination = session::AnalyzePortableWorkspaceDestination(
+          *readback.structure, current_tree, *current_structure);
+      result.Set("status", "preview");
+      result.Set("pages",
+                 static_cast<int>(std::ranges::count_if(
+                     readback.structure->tree.nodes, [](const auto& node) {
+                       return node.type == tab_tree::TreeNodeType::kSavedPage;
+                     })));
+      result.Set("splits", static_cast<int>(readback.structure->splits.size()));
+      result.Set("archives",
+                 static_cast<int>(readback.structure->archives.size()));
+      result.Set("newItems", static_cast<int>(destination.new_nodes +
+                                              destination.new_splits +
+                                              destination.new_archives));
+      result.Set("identicalItems",
+                 static_cast<int>(destination.identical_nodes +
+                                  destination.identical_splits +
+                                  destination.identical_archives));
+      result.Set("conflictingItems",
+                 static_cast<int>(destination.conflicting_nodes +
+                                  destination.conflicting_splits +
+                                  destination.conflicting_archives));
+      base::ListValue workspaces;
+      for (const auto& workspace : destination.workspaces) {
+        base::DictValue value;
+        value.Set("name", base::TruncateUTF8ToByteSize(
+                              base::UTF16ToUTF8(workspace.name), 256));
+        value.Set(
+            "destination",
+            workspace.kind == session::PortableDestinationKind::kNew ? "new"
+            : workspace.kind == session::PortableDestinationKind::kIdentical
+                ? "identical"
+                : "conflict");
+        workspaces.Append(std::move(value));
+      }
+      result.Set("workspaces", std::move(workspaces));
     }
-    result.Set("workspaces", std::move(workspaces));
   }
   if (IsJavascriptAllowed() && IsAuthorizedSettingsPage()) {
     FireWebUIListener("ahoi-portable-import-result",

@@ -5,10 +5,12 @@
 #define AHOI_BROWSER_UI_SETTINGS_AHOI_SETTINGS_HANDLER_H_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "ahoi/browser/session/portable_workspace_structure.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "base/callback_list.h"
 #include "base/files/file_path.h"
@@ -74,11 +76,7 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   void HandleOpenPortableImport(const base::ListValue& args);
   void OnPortableExportWritten(bool success);
   struct PortableImportReadback {
-    bool valid = false;
-    std::vector<std::string> workspace_names;
-    int pages = 0;
-    int splits = 0;
-    int archives = 0;
+    std::optional<session::PortableWorkspaceStructure> structure;
   };
   static PortableImportReadback ReadPortableImportFile(base::FilePath path);
   void OnPortableImportRead(PortableImportReadback readback);

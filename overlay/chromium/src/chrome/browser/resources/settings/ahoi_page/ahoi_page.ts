@@ -72,6 +72,11 @@ export interface PortableExportOptionsResponse {
     importFile: string,
     importReady: string,
     importFailed: string,
+    importNew: string,
+    importIdentical: string,
+    importConflict: string,
+    importDestination: string,
+    importTargetUnavailable: string,
   };
 }
 
@@ -87,11 +92,17 @@ export interface PortableExportPreviewResponse {
 }
 
 export interface PortableImportPreviewResponse {
-  status: 'preview'|'failed'|'cancelled';
-  workspaces?: string[];
+  status: 'preview'|'failed'|'cancelled'|'targetUnavailable';
+  workspaces?: Array<{
+    name: string,
+    destination: 'new'|'identical'|'conflict',
+  }>;
   pages?: number;
   splits?: number;
   archives?: number;
+  newItems?: number;
+  identicalItems?: number;
+  conflictingItems?: number;
 }
 
 export interface SyncControlsStatusResponse {
@@ -413,6 +424,8 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         return labels?.cancelled || '';
       case 'failed':
         return labels?.importFailed || '';
+      case 'targetUnavailable':
+        return labels?.importTargetUnavailable || '';
       default:
         return '';
     }

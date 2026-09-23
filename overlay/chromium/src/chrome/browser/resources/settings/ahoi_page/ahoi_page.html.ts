@@ -411,15 +411,28 @@ export function getHtml(this: SettingsAhoiPageElement) {
             ${this.portableImportStatusText_()}
           </div>
           ${this.portableImportPreview_ ? html`
-            <div class="portable-import-preview">
-              <div>${this.portableExportOptions_?.labels.workspaces}:
-                ${this.portableImportPreview_.workspaces?.join(', ') || ''}</div>
+            <div class="portable-import-preview" role="status">
+              <div>${this.portableExportOptions_?.labels.importDestination}</div>
+              ${this.portableImportPreview_.workspaces?.map(workspace => html`
+                <div>${workspace.name} ·
+                  ${workspace.destination === 'new' ?
+                      this.portableExportOptions_?.labels.importNew :
+                      workspace.destination === 'identical' ?
+                      this.portableExportOptions_?.labels.importIdentical :
+                      this.portableExportOptions_?.labels.importConflict}</div>
+              `)}
               <div>${this.portableExportOptions_?.labels.pages}:
                 ${this.portableImportPreview_.pages}</div>
               <div>${this.portableExportOptions_?.labels.splits}:
                 ${this.portableImportPreview_.splits}</div>
               <div>${this.portableExportOptions_?.labels.archivesCount}:
                 ${this.portableImportPreview_.archives}</div>
+              <div>${this.portableExportOptions_?.labels.importNew}:
+                ${this.portableImportPreview_.newItems}</div>
+              <div>${this.portableExportOptions_?.labels.importIdentical}:
+                ${this.portableImportPreview_.identicalItems}</div>
+              <div>${this.portableExportOptions_?.labels.importConflict}:
+                ${this.portableImportPreview_.conflictingItems}</div>
             </div>` : ''}
         </div>
       </section>
