@@ -1,5 +1,22 @@
 # Active Desktop checkpoint
 
+## Selected Workspace import follow-up — 23 September 2026
+
+The signed `38eebb9` M153 app also includes source `9f17ada`'s per-Workspace
+import selection. A fresh isolated `selection-profile` under
+`/private/tmp/ahoi-http-auth-crashfix.LRfbte/` began with only the built-in
+Inbox Workspace and one Settings tab. Its app process was PID `80850`; the
+binary SHA-256 matches the guarded `38eebb9` receipt below. The native Open
+dialog selected the byte-identical, public-only 798-byte mixed Workspace file
+(SHA-256 `9bb93ff5ea2e67e832b2939872089272b22eb78cccb9200c299c6561fe9660e0`).
+On returning from the picker, Computer Use exposed an unattributed Find-on-page
+overlay instead of the expected import preview. No preview, checkbox change or
+Import click is inferred. Read-only SQLite still shows Inbox alone, neither
+synthetic file page ID, and `quick_check=ok`. The selected partial commit,
+NoChanges replay and restart remain **NOT_RUN**; preserve this test profile and
+do not touch the unrelated search or installed Ahoi window. Resume visible
+E2E only when the exact test window is reliably bound.
+
 ## HTTP-auth dialog crash correction — 23 September 2026
 
 The user reported a real crash (incident
