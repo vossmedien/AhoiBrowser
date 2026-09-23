@@ -1,22 +1,37 @@
 # Active Desktop checkpoint
 
-## Current installed UI and correction — 23 September 2026
+## Current installed candidate and next package — 23 September 2026
 
-Installed `/Applications/AhoiBrowser.app` is exact M153 source `c3e29e7`,
+Installed `/Applications/AhoiBrowser.app` is exact M153 source `ca1e5a7`,
 CloudKit Development scope `fe842`; guarded build, separate signing verification
 and atomic installer exited0. Receipts:
-`artifacts/build/native-m153-layout-c3e29e7-20260923/` and
-`artifacts/install/ahoi-dev-c3e29e7-cloudkit-development-20260923.json`.
-Visible startup/Settings on its isolated `MacA` profile: the redundant
-full-width startup infobar is gone, the content reaches the window bottom,
-and the Sidebar has aligned Lesezeichen/Gespeicherte Tabs/Offene Tabs labels.
-The user rejected the new divider lines and observed that Glass ON no longer
-affected the sidebar. Source `11f5e36` replaces lines with spacing and gives
-the sidebar a restrained frosted layer over the still-opaque native window;
-it is in a guarded two-job product build. Log:
-`artifacts/build/native-m153-ui-11f5e36-20260923/build.log`. Do not treat
-that source as installed or visually accepted until the exact candidate passes
-the same short on/off Glass and section-layout journey.
+`artifacts/build/native-m153-glass-ca1e5a7-20260923/` and
+`artifacts/install/ahoi-dev-ca1e5a7-cloudkit-development-20260923.json`.
+Installed startup/Settings still has no redundant full-width infobar or Sidebar
+divider lines and the content remains flush at the window bottom. The user's
+actual Glass target is the gray **browser-chrome background**, not just the
+sidebar. On `ca1e5a7` the sidebar-only change is insufficient: the main gray
+background does not visibly become milky/translucent, and the bright blue frame
+reappeared while loading/restoring WinFuture even with Glass OFF. This is a RED
+visual gate, not an accepted Glass fix. Source `72a3707` restores neutral-tinted
+native browser glass; its guarded overlay refreshed, but the owner stopped its
+build during hooks at the user's feature-first direction. No `72a3707` build,
+signing, installation or visible pass exists. Preserve the cache and combine
+this source with the next meaningful feature package before another compile.
+
+With the user's action-time approval, the installed `ca1e5a7` completed the
+Official GitHub uBlock Origin Classic 1.74.0 path in the isolated `MacA`
+acceptance profile. Chromium showed its real all-sites/privacy permission
+dialog, then reported addition. The persisted extension directory is
+`fkgkibajhfbepljeaefdnfnegdcjomkh/1.74.0_0`; its manifest says V2 with a
+background page and `webRequestBlocking`. On real `winfuture.de`, its popup
+showed 6 blocked requests and 3 of 7 domains; after normal Cmd+Q/restart the
+same popup/dashboard and 6 blocked requests were visible again. The normal
+`AhoiBrowser/Default` extension directory still contains Lite
+`ddkjiahejlhfcafbddmgiahcphecmpfh` and 1Password but not Classic. This is a
+bounded Classic install/filter/restart pass on `MacA`, not an every-site,
+update, security-negative or normal-profile migration pass. Do not remove Lite
+as part of this test.
 
 Mac Sync remains red: status can reach a matching remote claim but is still
 waiting for the canonical iCloud Keychain item, and an observed account-change
