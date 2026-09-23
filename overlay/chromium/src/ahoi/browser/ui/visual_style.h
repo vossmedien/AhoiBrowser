@@ -121,10 +121,11 @@ inline constexpr int kBookmarkShelfFolderMinimumWidth = 44;
 inline constexpr int kBookmarkShelfFolderMaximumWidth = 112;
 inline constexpr float kBookmarkShelfCornerRadius = 8.0f;
 
-// The normal browsing surface retains breathing room at its top and sides;
-// its bottom meets the window edge. These insets are real layout, so the
-// renderer receives exactly the viewport the user sees.
-inline constexpr int kContentCardInset = 8;
+// The normal browsing surface leaves enough browser chrome visible at its top
+// and sides for the native Glass material to read as a backdrop rather than
+// only a sidebar treatment. Its bottom still meets the window edge. These
+// insets are real layout, so the renderer receives the viewport it sees.
+inline constexpr int kContentCardInset = 20;
 inline constexpr int kContentCardCornerRadius = 14;
 inline constexpr int kContentCardShadowElevation = 10;
 // Split panes live inside the same content card and therefore share its

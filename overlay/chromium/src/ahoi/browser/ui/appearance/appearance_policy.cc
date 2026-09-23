@@ -20,7 +20,7 @@ struct RoleDefaults {
 constexpr RoleDefaults GetRoleDefaults(SurfaceRole role) {
   switch (role) {
     case SurfaceRole::kBrowserChrome:
-      return {ui::kColorSysSurfaceVariant, 0, 0.90f, 0.0f, 0};
+      return {ui::kColorSysSurfaceVariant, 0, 0.72f, 0.0f, 0};
     case SurfaceRole::kSidebar:
       return {ui::kColorSysSurface2, 14, 0.82f, 24.0f, 0};
     case SurfaceRole::kFloatingNavigation:
