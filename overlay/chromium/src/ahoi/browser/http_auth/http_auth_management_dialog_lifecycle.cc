@@ -25,7 +25,9 @@
 namespace ahoi {
 
 HttpAuthManagementDialog::~HttpAuthManagementDialog() {
-  ClearEditor();
+  // Widget teardown may already have destroyed the child views at this point.
+  // WindowClosing() wipes the editor while those views are still alive.
+  ClearCopiedSecretIfUnchanged();
   secret_access_controller_.reset();
 }
 
@@ -34,6 +36,9 @@ std::u16string HttpAuthManagementDialog::GetWindowTitle() const {
 }
 
 void HttpAuthManagementDialog::WindowClosing() {
+  // A macOS widget can finish closing asynchronously. Stop WebContents
+  // callbacks before its child views become invalid.
+  Observe(nullptr);
   ClearEditor();
   secret_access_controller_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
@@ -44,22 +49,30 @@ void HttpAuthManagementDialog::DidStartNavigation(
   if (!navigation_handle || !navigation_handle->IsInPrimaryMainFrame()) {
     return;
   }
+  views::Widget* widget = GetWidget();
+  Observe(nullptr);
+  if (!widget || widget->IsClosed()) {
+    secret_access_controller_.reset();
+    weak_ptr_factory_.InvalidateWeakPtrs();
+    return;
+  }
   ClearEditor();
   secret_access_controller_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
-  if (GetWidget()) {
-    GetWidget()->Close();
-  }
+  widget->Close();
 }
 
 void HttpAuthManagementDialog::WebContentsDestroyed() {
-  ClearEditor();
-  secret_access_controller_.reset();
+  views::Widget* widget = GetWidget();
   Observe(nullptr);
+  if (widget && !widget->IsClosed()) {
+    ClearEditor();
+  }
+  secret_access_controller_.reset();
   pending_deletion_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
-  if (GetWidget()) {
-    GetWidget()->Close();
+  if (widget && !widget->IsClosed()) {
+    widget->Close();
   }
 }
 
