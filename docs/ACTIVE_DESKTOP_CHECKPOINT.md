@@ -33,6 +33,28 @@ bounded Classic install/filter/restart pass on `MacA`, not an every-site,
 update, security-negative or normal-profile migration pass. Do not remove Lite
 as part of this test.
 
+AnyChat Store ID `khpefodpgnkegiohbolbaaeabnfdegln`, version 1.0.8/MV3,
+is now installed in that same isolated `MacA` profile after the user's explicit
+approval of its 14 AI-domain, New Tab and favicon permissions. Chromium's
+normal Web Store permission dialog and added confirmation appeared; the exact
+extension directory was absent before and present afterward. Its welcome page
+and settings opened, a new Ahoi tab resolved to AnyChat's extension-owned
+`newtab.html` after Chrome's keep-change prompt, the toolbar action opened a
+composer on public `example.com`, and Move to the side panel displayed the
+native Chromium side panel. After normal Cmd+Q/restart the AnyChat action opened
+again. No prompt was sent or account login performed. The normal Ahoi Default
+profile still has no AnyChat directory. This proves the bounded install/action/
+side-panel/New-Tab/restart journey, not all provider integrations or a normal-
+profile migration. Its public listing is
+`https://chromewebstore.google.com/detail/anychat-ai-powered-browsi/khpefodpgnkegiohbolbaaeabnfdegln`.
+
+Feature-first source WIP: `portable_workspace_selection.{h,cc}` creates an
+explicit allowlisted workspace/page export projection from the existing
+TabTreeSnapshot and counts excluded temporary, nonportable page and Home
+targets. It is not yet a file encoder, UI export command, archive/split
+selection or reimport and has no build/runtime pass. It stays in the next
+coherent feature package; do not call it portable-export acceptance.
+
 Mac Sync remains red: status can reach a matching remote claim but is still
 waiting for the canonical iCloud Keychain item, and an observed account-change
 recovery action left its UI pending. The real encrypted Mac/iOS record

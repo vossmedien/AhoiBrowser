@@ -18,6 +18,8 @@ source_set("shared_tab_target_policy") {
 
 source_set("tab_tree") {
   sources = [
+    "portable_workspace_selection.cc",
+    "portable_workspace_selection.h",
     "tab_tree_model.cc",
     "tab_tree_model.h",
     "tab_tree_observer.h",

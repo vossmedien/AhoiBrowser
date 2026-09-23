@@ -2,9 +2,10 @@
 
 ## Current installed pair — 23 September 2026
 
-Mac installed source `c3e29e7` and Mobile Build40/source `45330d2` retain
-the same signed `fe842` Development scope. The layout-only source `11f5e36`
-is building but is not installed. Mac first-use has observed the matching
+Mac installed source `ca1e5a7` and Mobile Build40/source `45330d2` retain
+the same signed `fe842` Development scope. Later neutral browser-glass source
+`72a3707` is deliberately unbuilt after the user's feature-first direction;
+it changes no Sync contract. Mac first-use has observed the matching
 bootstrap claim, then a waiting-key state and a later account-change state.
 One explicit "Lokale Daten weiter hochladen" action in isolated `MacA` remained
 visibly pending; it is RED, not a recovery pass. Normal quit preserved the
