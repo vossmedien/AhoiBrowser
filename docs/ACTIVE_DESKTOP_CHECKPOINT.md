@@ -1,5 +1,55 @@
 # Active Desktop checkpoint
 
+## Workspace-selection import and Settings crash correction — 23 September 2026
+
+The previously interrupted mixed-file journey now has a real selected commit.
+On the signed `38eebb9` clone's isolated `selection-profile`, the unchanged
+Find-on-page overlay was closed after it remained present for almost an hour;
+the already-loaded native file preview then showed changed Inbox unchecked
+and new Harbor checked. Selecting the conflicting Inbox disabled Import;
+unselecting it enabled Harbor alone. One explicit import returned "Import
+abgeschlossen", added Harbor and its synthetic public `example.org` temporary
+page, and left the original Inbox and the file's conflicting Inbox page
+untouched. The new Harbor page opened as a real tab. The file was the
+mode-0600, 798-byte public-only
+`artifacts/e2e/portable-workspace-selection-9f17ada-20260923/mixed-public.ahoi.json`
+(SHA-256 `9bb93ff5ea2e67e832b2939872089272b22eb78cccb9200c299c6561fe9660e0`).
+
+The next Harbor → existing Settings-tab action exposed a separate **product
+crash**, reproduced on both `38eebb9` and `5ee283a` (incidents
+`D8F56BF3-03A6-401F-B788-570263D27442` and
+`9351BC84-E5E8-4085-8226-CD05FF712DBA`). Both stacks terminate at
+`TabStripModel::ValidateNotReentrant`: the Sidebar's
+`OnTabStripModelChanged → EnsureWorkspaceSurface → ActivateWorkspaceRuntimeTab`
+tried to activate another tab synchronously inside Chromium's selection
+notification. Source `455652b` makes the observer selection-read-only and
+reconciles after that notification: native tab selection follows the selected
+tab's Workspace, while tab removal preserves the current Workspace/empty
+surface. A later explicit Workspace choice cancels any older pending reconcile.
+This is a private module-boundary change, not a second tab or session owner.
+
+Guarded M153 product-only build of exact clean source `455652b` ended EXIT0;
+the Apple-Development-signed copy at
+`/private/tmp/ahoi-workspace-reconcile.ZPGZD0/AhoiBrowser.app` passed deep
+signature verification and matches binary SHA-256
+`fa975013dfa9a879287a4ffebf549d4604a77b4e0fd53d65d4429d11380a8112`.
+Receipt: `artifacts/build/native-m153-workspace-reconcile-455652b-20260923/build-receipt.json`.
+On that copy and the retained imported profile, Harbor/`example.org` →
+existing Settings tab in Inbox → Harbor/`example.org` worked twice without a
+crash. Reopening the same file showed Harbor "Bereits identisch" and the
+conflicting Inbox still unchecked; the selected replay visibly returned
+"Bereits vorhanden – keine Änderungen". A normal `⌘Q` and explicit restart of
+the same candidate/profile showed the ordinary startup choice, not crash
+recovery; Continue restored the Inbox Settings tab and Harbor again opened
+`example.org`. Read-only SQLite after replay/restart: one Harbor Workspace,
+one exact Harbor page ID, zero file Inbox page IDs, `quick_check=ok`; source
+file SHA unchanged. This supersedes the earlier `NOT_RUN` selected-commit
+notes below. Initial mutation was on `38eebb9`; selection/SQLite transaction
+code is unchanged in `455652b`, whose affected Settings and replay/restart
+paths were visibly repeated. Nontrivial split/archive portable roundtrips,
+rollback injection and installed-app acceptance remain open. Installed
+`/Applications/AhoiBrowser.app` is still `820cf4e`, not this candidate.
+
 ## Native Glass backdrop correction — 23 September 2026
 
 The user's report that Glass changed chiefly the Sidebar reproduced on a

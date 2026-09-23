@@ -1,10 +1,12 @@
 # Portable workspace files
 
 Status: bounded export and read-only file preview visibly accepted on installed
-Mac source `820cf4e`. The newer `51d7e79` conflict-free additive transaction is
-built and visibly exercised in a separate signed, isolated profile, but is not
-installed. Explicit conflict choices and full split/archive acceptance remain
-open.
+Mac source `820cf4e`. The newer additive transaction and whole-Workspace
+selection are built and visibly exercised in separate signed, isolated
+profiles: an independent new Workspace can be imported while a conflicting
+Workspace is explicitly skipped, then replayed as NoChanges after restart.
+The corrected candidate is source `455652b`; it is not installed. Rename/merge
+choices and full split/archive/rollback acceptance remain open.
 The active product requirement is in
 [the master goal](../outputs/AhoiBrowser-Master-Zielprompt.md#portabler-workspace-export-und-wiederimport).
 
@@ -42,9 +44,9 @@ local destination preview, and only a conflict-free proposal can acquire a
 one-use commit token. On click, the SessionBridge replans against the durable
 profile and writes tree plus split/archive structure through one existing
 SQLite transaction. The source file is never mutated. Changed IDs or same-name
-Workspace conflicts block the commit; explicit rename/skip/merge decisions
-remain to be implemented. No real-profile data is changed merely by parsing a
-file.
+Workspace conflicts block the selected proposal's commit. Explicit
+whole-Workspace skip is available; rename/merge decisions remain to be
+implemented. No real-profile data is changed merely by parsing a file.
 
 The installed `820cf4e` candidate adds a bounded native Open dialog and read-only preview:
 symlinks, non-regular/oversized files, invalid JSON and unsupported graphs are
@@ -61,10 +63,13 @@ The installed-app pass and the nontrivial conflict/split/archive/rollback
 journeys remain open.
 
 Source `9f17ada` additionally offers explicit whole-Workspace selection in
-the same compact preview. It can skip a visibly conflicting Workspace while
+the same compact preview. It skips a visibly conflicting Workspace while
 including an independent safe Workspace, with backend UUID/subtree validation
-before the existing atomic commit. Its mixed-workspace preview is visibly
-verified, but its selected partial commit remains untested because the UI
-controller switched to another running Ahoi window before the click. See the
-[current Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md); this is not a
-successful partial-import claim.
+before the existing atomic commit. The mixed-file Harbor-only commit was
+visibly executed on signed `38eebb9`. A separate Sidebar/TabStrip reentrancy
+crash on switching from Harbor to the existing Settings tab was corrected in
+`455652b`; its exact signed clone passed that changed navigation, identical
+file NoChanges replay and normal restart on the same isolated profile. See
+the [current Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md). This proves
+the bounded selected-Workspace case, not rename/merge, nontrivial
+split/archive restore, rollback fault handling or installed-app acceptance.
