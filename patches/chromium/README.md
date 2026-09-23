@@ -25,7 +25,8 @@ delegate is replaced by M153's native denial behavior rather than a shim.
   Ahoi's startup choice and Chromium's Default Browser settings remain
   available. All other infobars keep their native owner.
 - **Geometry:** normal tabbed content keeps its top/side insets and top corners,
-  but its bottom meets the window edge; the separate content shadow is removed.
+  but its bottom meets the window edge. The existing shadow remains behind
+  the clipped content; no broad BrowserView header change is needed.
   Split/WebContents bounds remain real layout, not a visual overlay.
 - **Acceptance:** visible startup with no full-width informational banner,
   representative content and sidebar bottoms aligned, then focused layout and
