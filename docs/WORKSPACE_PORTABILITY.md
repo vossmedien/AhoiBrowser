@@ -37,3 +37,8 @@ The detached decoder does not grant import authority. A later UI must show a
 redacted preview and omissions, obtain the user's workspace/category/conflict
 choices, then use an atomic additive commit and preserve rollback/idempotence.
 No real-profile data is changed merely by parsing a file.
+
+The current source adds a bounded native Open dialog and read-only preview:
+symlinks, non-regular/oversized files, invalid JSON and unsupported graphs are
+rejected before any profile mutation. It intentionally offers no Import button
+until the separate atomic transaction and rollback path are implemented.

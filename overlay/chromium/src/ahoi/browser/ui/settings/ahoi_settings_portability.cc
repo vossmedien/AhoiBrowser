@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
+#include <cstdint>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -12,12 +14,14 @@
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_structure_state.h"
 #include "ahoi/browser/ui/settings/ahoi_settings_handler.h"
+#include "base/files/file.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
 #include "base/location.h"
+#include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/thread_pool.h"
 #include "base/uuid.h"
@@ -66,6 +70,12 @@ base::DictValue ExportLabels() {
   labels.Set("saved", label("Datei gesichert", "File saved"));
   labels.Set("cancelled", label("Sichern abgebrochen", "Save cancelled"));
   labels.Set("failed", label("Export nicht möglich", "Export unavailable"));
+  labels.Set("importFile",
+             label("Workspace-Datei prüfen…", "Inspect workspace file…"));
+  labels.Set("importReady", label("Datei geprüft – noch nichts importiert",
+                                  "File inspected – nothing imported yet"));
+  labels.Set("importFailed", label("Datei nicht lesbar oder nicht unterstützt",
+                                   "File unreadable or unsupported"));
   return labels;
 }
 
@@ -115,8 +125,8 @@ void AhoiSettingsHandler::HandlePreparePortableExport(
   result.Set("status", "blocked");
   if (args.size() != 4u || !args[1].is_list() ||
       args[1].GetList().size() > 128u || !args[2].is_bool() ||
-      !args[3].is_bool() || portable_export_dialog_ ||
-      portable_export_writing_) {
+      !args[3].is_bool() || portable_file_dialog_ || portable_export_writing_ ||
+      portable_import_reading_) {
     ResolveJavascriptCallback(args.front().Clone(),
                               base::Value(std::move(result)));
     return;
@@ -205,14 +215,15 @@ void AhoiSettingsHandler::HandleSavePortableExport(
   result.Set("status", "blocked");
   if (args.size() != 2u || !args[1].is_string() ||
       args[1].GetString() != portable_export_token_ ||
-      portable_export_json_.empty() || portable_export_dialog_ ||
+      portable_export_json_.empty() || portable_file_dialog_ ||
       portable_export_writing_) {
     ResolveJavascriptCallback(args.front().Clone(),
                               base::Value(std::move(result)));
     return;
   }
   content::WebContents* contents = web_ui()->GetWebContents();
-  portable_export_dialog_ = ui::SelectFileDialog::Create(
+  portable_dialog_purpose_ = PortableDialogPurpose::kExportSave;
+  portable_file_dialog_ = ui::SelectFileDialog::Create(
       this, std::make_unique<ChromeSelectFilePolicy>(contents));
   ui::SelectFileDialog::FileTypeInfo types;
   types.extensions.resize(1);
@@ -221,7 +232,7 @@ void AhoiSettingsHandler::HandleSavePortableExport(
       base::GetHomeDir()
           .AppendASCII("Downloads")
           .Append(FILE_PATH_LITERAL("AhoiBrowser-Workspaces.ahoi.json"));
-  portable_export_dialog_->SelectFile(
+  portable_file_dialog_->SelectFile(
       ui::SelectFileDialog::SELECT_SAVEAS_FILE, std::u16string(), suggested,
       &types, 0, FILE_PATH_LITERAL("json"), contents->GetTopLevelNativeWindow(),
       nullptr);
@@ -230,9 +241,118 @@ void AhoiSettingsHandler::HandleSavePortableExport(
                             base::Value(std::move(result)));
 }
 
+void AhoiSettingsHandler::HandleOpenPortableImport(
+    const base::ListValue& args) {
+  if (!HasCallbackId(args) || !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  AllowJavascript();
+  base::DictValue result;
+  result.Set("status", "blocked");
+  if (args.size() != 1u || portable_file_dialog_ || portable_export_writing_ ||
+      portable_import_reading_) {
+    ResolveJavascriptCallback(args.front().Clone(),
+                              base::Value(std::move(result)));
+    return;
+  }
+  content::WebContents* contents = web_ui()->GetWebContents();
+  portable_dialog_purpose_ = PortableDialogPurpose::kImportOpen;
+  portable_file_dialog_ = ui::SelectFileDialog::Create(
+      this, std::make_unique<ChromeSelectFilePolicy>(contents));
+  ui::SelectFileDialog::FileTypeInfo types;
+  types.extensions.resize(1);
+  types.extensions[0].push_back(FILE_PATH_LITERAL("json"));
+  portable_file_dialog_->SelectFile(
+      ui::SelectFileDialog::SELECT_OPEN_FILE, std::u16string(),
+      base::GetHomeDir().AppendASCII("Downloads"), &types, 0,
+      FILE_PATH_LITERAL("json"), contents->GetTopLevelNativeWindow(), nullptr);
+  result.Set("status", "dialog");
+  ResolveJavascriptCallback(args.front().Clone(),
+                            base::Value(std::move(result)));
+}
+
+AhoiSettingsHandler::PortableImportReadback
+AhoiSettingsHandler::ReadPortableImportFile(base::FilePath path) {
+  PortableImportReadback readback;
+  for (base::FilePath cursor = path; !cursor.empty();
+       cursor = cursor.DirName()) {
+    if (base::IsLink(cursor)) {
+      return readback;
+    }
+    if (cursor.DirName() == cursor) {
+      break;
+    }
+  }
+  base::File::Info info;
+  if (!base::GetFileInfo(path, &info) || info.is_directory || info.size <= 0 ||
+      info.size >
+          static_cast<int64_t>(session::kMaximumPortableWorkspaceBundleBytes)) {
+    return readback;
+  }
+  std::string bytes;
+  if (!base::ReadFileToStringWithMaxSize(
+          path, &bytes, session::kMaximumPortableWorkspaceBundleBytes)) {
+    return readback;
+  }
+  const auto decoded = session::DecodePortableWorkspaceBundle(bytes);
+  if (!decoded) {
+    return readback;
+  }
+  readback.valid = true;
+  for (const auto& workspace : decoded->tree.workspaces) {
+    const std::string name = base::UTF16ToUTF8(workspace.name);
+    readback.workspace_names.emplace_back(
+        base::TruncateUTF8ToByteSize(name, 256));
+  }
+  readback.pages = static_cast<int>(
+      std::ranges::count_if(decoded->tree.nodes, [](const auto& node) {
+        return node.type == tab_tree::TreeNodeType::kSavedPage;
+      }));
+  readback.splits = static_cast<int>(decoded->splits.size());
+  readback.archives = static_cast<int>(decoded->archives.size());
+  return readback;
+}
+
+void AhoiSettingsHandler::OnPortableImportRead(
+    PortableImportReadback readback) {
+  portable_import_reading_ = false;
+  base::DictValue result;
+  result.Set("status", "failed");
+  if (readback.valid) {
+    result.Set("status", "preview");
+    result.Set("pages", readback.pages);
+    result.Set("splits", readback.splits);
+    result.Set("archives", readback.archives);
+    base::ListValue workspaces;
+    for (const auto& name : readback.workspace_names) {
+      workspaces.Append(name);
+    }
+    result.Set("workspaces", std::move(workspaces));
+  }
+  if (IsJavascriptAllowed() && IsAuthorizedSettingsPage()) {
+    FireWebUIListener("ahoi-portable-import-result",
+                      base::Value(std::move(result)));
+  }
+}
+
 void AhoiSettingsHandler::FileSelected(const ui::SelectedFileInfo& file,
                                        int /*index*/) {
-  portable_export_dialog_ = nullptr;
+  const PortableDialogPurpose purpose = portable_dialog_purpose_;
+  portable_dialog_purpose_ = PortableDialogPurpose::kNone;
+  portable_file_dialog_ = nullptr;
+  if (purpose == PortableDialogPurpose::kImportOpen) {
+    portable_import_reading_ = true;
+    base::ThreadPool::PostTaskAndReplyWithResult(
+        FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
+        base::BindOnce(&AhoiSettingsHandler::ReadPortableImportFile,
+                       file.path()),
+        base::BindOnce(&AhoiSettingsHandler::OnPortableImportRead,
+                       weak_factory_.GetWeakPtr()));
+    return;
+  }
+  if (purpose != PortableDialogPurpose::kExportSave) {
+    return;
+  }
   if (portable_export_json_.empty() || portable_export_writing_) {
     return;
   }
@@ -247,11 +367,15 @@ void AhoiSettingsHandler::FileSelected(const ui::SelectedFileInfo& file,
 }
 
 void AhoiSettingsHandler::FileSelectionCanceled() {
-  portable_export_dialog_ = nullptr;
+  const PortableDialogPurpose purpose = portable_dialog_purpose_;
+  portable_dialog_purpose_ = PortableDialogPurpose::kNone;
+  portable_file_dialog_ = nullptr;
   if (IsJavascriptAllowed() && IsAuthorizedSettingsPage()) {
     base::DictValue result;
     result.Set("status", "cancelled");
-    FireWebUIListener("ahoi-portable-export-result",
+    FireWebUIListener(purpose == PortableDialogPurpose::kImportOpen
+                          ? "ahoi-portable-import-result"
+                          : "ahoi-portable-export-result",
                       base::Value(std::move(result)));
   }
 }

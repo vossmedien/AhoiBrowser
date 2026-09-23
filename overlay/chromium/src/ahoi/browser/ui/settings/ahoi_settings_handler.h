@@ -4,11 +4,14 @@
 #ifndef AHOI_BROWSER_UI_SETTINGS_AHOI_SETTINGS_HANDLER_H_
 #define AHOI_BROWSER_UI_SETTINGS_AHOI_SETTINGS_HANDLER_H_
 
+#include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "base/callback_list.h"
+#include "base/files/file_path.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/values.h"
@@ -68,16 +71,30 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   void HandleGetPortableExportOptions(const base::ListValue& args);
   void HandlePreparePortableExport(const base::ListValue& args);
   void HandleSavePortableExport(const base::ListValue& args);
+  void HandleOpenPortableImport(const base::ListValue& args);
   void OnPortableExportWritten(bool success);
+  struct PortableImportReadback {
+    bool valid = false;
+    std::vector<std::string> workspace_names;
+    int pages = 0;
+    int splits = 0;
+    int archives = 0;
+  };
+  static PortableImportReadback ReadPortableImportFile(base::FilePath path);
+  void OnPortableImportRead(PortableImportReadback readback);
+
+  enum class PortableDialogPurpose { kNone, kExportSave, kImportOpen };
 
   raw_ptr<Profile> profile_ = nullptr;
   raw_ptr<sync::ProfileSyncService> sync_service_ = nullptr;
   base::CallbackListSubscription bookmark_status_subscription_;
   bool observing_sync_service_ = false;
-  scoped_refptr<ui::SelectFileDialog> portable_export_dialog_;
+  scoped_refptr<ui::SelectFileDialog> portable_file_dialog_;
+  PortableDialogPurpose portable_dialog_purpose_ = PortableDialogPurpose::kNone;
   std::string portable_export_token_;
   std::string portable_export_json_;
   bool portable_export_writing_ = false;
+  bool portable_import_reading_ = false;
   base::WeakPtrFactory<AhoiSettingsHandler> weak_factory_{this};
 };
 

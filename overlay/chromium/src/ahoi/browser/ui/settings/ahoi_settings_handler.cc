@@ -113,8 +113,8 @@ AhoiSettingsHandler::AhoiSettingsHandler(Profile* profile)
       sync_service_(sync::ProfileSyncServiceFactory::GetForProfile(profile_)) {}
 
 AhoiSettingsHandler::~AhoiSettingsHandler() {
-  if (portable_export_dialog_) {
-    portable_export_dialog_->ListenerDestroyed();
+  if (portable_file_dialog_) {
+    portable_file_dialog_->ListenerDestroyed();
   }
   bookmark_status_subscription_ = {};
   if (sync_service_ && observing_sync_service_) {
@@ -176,6 +176,10 @@ void AhoiSettingsHandler::RegisterMessages() {
   web_ui()->RegisterMessageCallback(
       "ahoiSavePortableExport",
       base::BindRepeating(&AhoiSettingsHandler::HandleSavePortableExport,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiOpenPortableImport",
+      base::BindRepeating(&AhoiSettingsHandler::HandleOpenPortableImport,
                           base::Unretained(this)));
 }
 

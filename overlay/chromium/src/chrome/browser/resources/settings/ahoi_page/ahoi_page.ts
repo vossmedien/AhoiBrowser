@@ -69,6 +69,9 @@ export interface PortableExportOptionsResponse {
     saved: string,
     cancelled: string,
     failed: string,
+    importFile: string,
+    importReady: string,
+    importFailed: string,
   };
 }
 
@@ -81,6 +84,14 @@ export interface PortableExportPreviewResponse {
   splits?: number;
   archives?: number;
   excluded?: number;
+}
+
+export interface PortableImportPreviewResponse {
+  status: 'preview'|'failed'|'cancelled';
+  workspaces?: string[];
+  pages?: number;
+  splits?: number;
+  archives?: number;
 }
 
 export interface SyncControlsStatusResponse {
@@ -176,6 +187,9 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       portableExportPreview_: {type: Object},
       portableExportStatus_: {type: String},
       portableExportPending_: {type: Boolean},
+      portableImportPreview_: {type: Object},
+      portableImportStatus_: {type: String},
+      portableImportPending_: {type: Boolean},
     };
   }
 
@@ -209,6 +223,10 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       null;
   protected accessor portableExportStatus_: string = '';
   protected accessor portableExportPending_: boolean = false;
+  protected accessor portableImportPreview_: PortableImportPreviewResponse|null =
+      null;
+  protected accessor portableImportStatus_: string = '';
+  protected accessor portableImportPending_: boolean = false;
 
   protected accessor floatingNavigationDelayOptions_: DropdownMenuOptionList = [
     {value: 400, name: loadTimeData.getString('ahoiNavigationDelayFast')},
@@ -254,6 +272,14 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
           if (result.status === 'saved') {
             this.portableExportPreview_ = null;
           }
+        });
+    this.addWebUiListener(
+        'ahoi-portable-import-result',
+        (result: PortableImportPreviewResponse) => {
+          this.portableImportPending_ = false;
+          this.portableImportPreview_ =
+              result.status === 'preview' ? result : null;
+          this.portableImportStatus_ = result.status;
         });
     this.mirrorPrefs({
       'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
@@ -353,6 +379,40 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         return labels?.cancelled || '';
       case 'failed':
         return labels?.failed || '';
+      default:
+        return '';
+    }
+  }
+
+  protected async onPortableImportClick_() {
+    if (this.portableImportPending_ || this.portableExportPending_) {
+      return;
+    }
+    this.portableImportPending_ = true;
+    this.portableImportPreview_ = null;
+    this.portableImportStatus_ = '';
+    try {
+      const result = await sendWithPromise<{status: string}>(
+          'ahoiOpenPortableImport');
+      if (result.status !== 'dialog') {
+        this.portableImportPending_ = false;
+        this.portableImportStatus_ = 'failed';
+      }
+    } catch {
+      this.portableImportPending_ = false;
+      this.portableImportStatus_ = 'failed';
+    }
+  }
+
+  protected portableImportStatusText_(): string {
+    const labels = this.portableExportOptions_?.labels;
+    switch (this.portableImportStatus_) {
+      case 'preview':
+        return labels?.importReady || '';
+      case 'cancelled':
+        return labels?.cancelled || '';
+      case 'failed':
+        return labels?.importFailed || '';
       default:
         return '';
     }

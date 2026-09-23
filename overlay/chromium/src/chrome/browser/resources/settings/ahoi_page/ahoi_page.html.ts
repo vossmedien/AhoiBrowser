@@ -400,6 +400,28 @@ export function getHtml(this: SettingsAhoiPageElement) {
             aria-live="polite">
           ${this.portableExportStatusText_()}
         </div>
+        <div class="portable-import-section">
+          <cr-button id="ahoiPortableImportPreview"
+              ?disabled="${this.portableImportPending_ ||
+                  this.portableExportPending_}"
+              @click="${this.onPortableImportClick_}">
+            ${this.portableExportOptions_?.labels.importFile || ''}
+          </cr-button>
+          <div class="secondary" role="status" aria-live="polite">
+            ${this.portableImportStatusText_()}
+          </div>
+          ${this.portableImportPreview_ ? html`
+            <div class="portable-import-preview">
+              <div>${this.portableExportOptions_?.labels.workspaces}:
+                ${this.portableImportPreview_.workspaces?.join(', ') || ''}</div>
+              <div>${this.portableExportOptions_?.labels.pages}:
+                ${this.portableImportPreview_.pages}</div>
+              <div>${this.portableExportOptions_?.labels.splits}:
+                ${this.portableImportPreview_.splits}</div>
+              <div>${this.portableExportOptions_?.labels.archivesCount}:
+                ${this.portableImportPreview_.archives}</div>
+            </div>` : ''}
+        </div>
       </section>
 
       <div class="section-heading cr-row hr">

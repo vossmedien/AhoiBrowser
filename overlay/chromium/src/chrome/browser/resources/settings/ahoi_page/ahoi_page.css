@@ -168,6 +168,17 @@ cr-view-manager [hidden-by-search] {
   gap: 8px 14px;
 }
 
+.portable-import-section {
+  border-top: 1px solid var(--cr-separator-color);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.portable-import-section .secondary,
+.portable-import-preview {
+  margin-top: 10px;
+}
+
 .pairing-title {
   font-weight: 500;
 }

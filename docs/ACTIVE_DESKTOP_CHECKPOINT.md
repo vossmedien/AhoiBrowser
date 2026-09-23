@@ -21,6 +21,9 @@ correction, not yet built/installed. It gives the NSWindow a neutral translucent
 foundation and extends the native material below the whole browser shell while
 keeping WebContents opaque. The earlier blue-frame issue at Glass OFF remains a
 separate visual regression to check on the corrected candidate.
+The next source package also adds a read-only native file picker and bounded
+Workspace-file preview; no additive import or file-read E2E is claimed. Both
+belong in the next combined guarded candidate, not an isolated optics build.
 
 With the user's action-time approval, the installed `ca1e5a7` completed the
 Official GitHub uBlock Origin Classic 1.74.0 path in the isolated `MacA`
