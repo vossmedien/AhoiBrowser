@@ -1,6 +1,29 @@
 # Active Desktop checkpoint
 
-## Current candidate and visual acceptance — 23 September 2026
+## Current installed UI and correction — 23 September 2026
+
+Installed `/Applications/AhoiBrowser.app` is exact M153 source `c3e29e7`,
+CloudKit Development scope `fe842`; guarded build, separate signing verification
+and atomic installer exited0. Receipts:
+`artifacts/build/native-m153-layout-c3e29e7-20260923/` and
+`artifacts/install/ahoi-dev-c3e29e7-cloudkit-development-20260923.json`.
+Visible startup/Settings on its isolated `MacA` profile: the redundant
+full-width startup infobar is gone, the content reaches the window bottom,
+and the Sidebar has aligned Lesezeichen/Gespeicherte Tabs/Offene Tabs labels.
+The user rejected the new divider lines and observed that Glass ON no longer
+affected the sidebar. Source `11f5e36` replaces lines with spacing and gives
+the sidebar a restrained frosted layer over the still-opaque native window;
+it is in a guarded two-job product build. Log:
+`artifacts/build/native-m153-ui-11f5e36-20260923/build.log`. Do not treat
+that source as installed or visually accepted until the exact candidate passes
+the same short on/off Glass and section-layout journey.
+
+Mac Sync remains red: status can reach a matching remote claim but is still
+waiting for the canonical iCloud Keychain item, and an observed account-change
+recovery action left its UI pending. The real encrypted Mac/iOS record
+roundtrip is OPEN; no key/zone/profile reset or Production claim is implied.
+
+## Prior candidate and visual acceptance — 23 September 2026 (historical)
 
 Installed `/Applications/AhoiBrowser.app` is now M153 source `ba87a7b`, signed
 for the unchanged `fe842` CloudKit Development scope. The guarded product

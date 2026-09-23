@@ -1,6 +1,19 @@
 # Active sync coordination
 
-## Current matching candidates — 23 September 2026
+## Current installed pair — 23 September 2026
+
+Mac installed source `c3e29e7` and Mobile Build40/source `45330d2` retain
+the same signed `fe842` Development scope. The layout-only source `11f5e36`
+is building but is not installed. Mac first-use has observed the matching
+bootstrap claim, then a waiting-key state and a later account-change state.
+One explicit "Lokale Daten weiter hochladen" action in isolated `MacA` remained
+visibly pending; it is RED, not a recovery pass. Normal quit preserved the
+local SQLite store (8 records, 14 outbox entries, zero inbox at the bounded
+readback). No actual encrypted Mac/iOS record roundtrip, no key copying or
+CloudKit Production action. Resume on the exact candidate after the UI build;
+do not infer key arrival from an Account/CloudKit status label alone.
+
+## Prior matching candidates — 23 September 2026 (historical)
 
 Mac installed source `ba87a7b` and Mobile CloudKitDevelopment40/source
 `45330d2` use the same signed `fe842` Development zone and key family. The
