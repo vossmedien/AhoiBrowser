@@ -59,3 +59,12 @@ proves one public page addition and NoChanges replay, with stable ID and valid
 SQLite readback. See the [candidate-bound evidence](../artifacts/e2e/portable-workspace-import-51d7e79-20260923/README.md).
 The installed-app pass and the nontrivial conflict/split/archive/rollback
 journeys remain open.
+
+Source `9f17ada` additionally offers explicit whole-Workspace selection in
+the same compact preview. It can skip a visibly conflicting Workspace while
+including an independent safe Workspace, with backend UUID/subtree validation
+before the existing atomic commit. Its mixed-workspace preview is visibly
+verified, but its selected partial commit remains untested because the UI
+controller switched to another running Ahoi window before the click. See the
+[current Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md); this is not a
+successful partial-import claim.

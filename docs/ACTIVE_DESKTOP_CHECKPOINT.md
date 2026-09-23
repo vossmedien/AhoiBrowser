@@ -1,5 +1,41 @@
 # Active Desktop checkpoint
 
+## Current source / partial UI gate — 23 September 2026
+
+Source `9f17ada` extends the compact portable-file preview with explicit
+Workspace selection. A conflict in a Workspace, one of its pages, splits or
+archives marks that Workspace as conflicting; safe Workspaces are preselected,
+while a selected conflict disables Commit. The backend receives only the
+selected UUIDs, rejects duplicates/unknown IDs, selects their complete
+subtrees/splits/archives, then uses the existing durable-state replan and
+single SQLite transaction. No rename/overwrite or second importer is added.
+The product-only guarded M153 build ended EXIT0 on exactly `9f17ada`;
+`artifacts/build/native-m153-portable-selection-9f17ada-20260923/build-receipt.json`
+binds binary SHA-256
+`0471f2406f1a526dea1d15525a05a7f45a52d126c1a52c9830cc0aebb99b2939`.
+
+Visible, bounded partial E2E on a signed APFS clone in a fresh disposable
+profile: a mode-0600, 798-byte public-only file (SHA-256
+`9bb93ff5ea2e67e832b2939872089272b22eb78cccb9200c299c6561fe9660e0`)
+showed the intentionally changed Inbox as a visible, unchecked conflict and
+new Harbor as checked. The Import action was enabled for Harbor. Before the
+next checkbox/commit action, Computer Use reported a user-changed surface and
+a fresh binding showed a different Ahoi window on WinFuture. No further UI
+input was sent there. A read-only check of the disposable profile returned
+zero Harbor Workspace rows, zero file page IDs and SQLite `quick_check=ok`.
+Thus the selected-Workspace commit, no-op replay and restart are **NOT_RUN**
+on `9f17ada`; do not promote this partial preview to an import pass or install
+it as an accepted candidate. The earlier exact conflict-free import/replay on
+`51d7e79` remains separately green below. The disposable profile is retained
+for an exact later continuation because it also received a user navigation;
+it is not safe to treat it as empty or silently delete it.
+
+Installed `/Applications/AhoiBrowser.app` remains `820cf4e`/Development
+scope `fe842`, with Glass materially unsatisfactory and Mac–iOS key arrival
+still RED. Continue useful independent work without touching the active
+installed Ahoi window; resume this short E2E only with a reliably isolated
+runtime target, not by trusting a bundle-ID-only Computer Use binding.
+
 ## Current portability result — 23 September 2026
 
 The shared branch now includes source `51d7e79` for an atomic, conflict-free
