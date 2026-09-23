@@ -292,6 +292,9 @@ class SidebarSyncControlsView final : public views::View {
       SetEnabled(false);
       status_label_->SetText(
           Text(u"Sync-Anbieter nicht verfügbar", u"Sync provider unavailable"));
+      if (bubble_contents_) {
+        bubble_contents_->Update(nullptr, {});
+      }
       return;
     }
     SetEnabled(true);
