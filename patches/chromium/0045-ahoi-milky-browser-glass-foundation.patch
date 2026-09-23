@@ -21,7 +21,7 @@ diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome
 +                               colorWithSRGBRed:SkColorGetR(foundation) / 255.0
 +                                          green:SkColorGetG(foundation) / 255.0
 +                                           blue:SkColorGetB(foundation) / 255.0
-+                                          alpha:0.82]];
++                                          alpha:0.55]];
  
      if (!background_view_) {
        NSView* const content_view = [ns_window contentView];
