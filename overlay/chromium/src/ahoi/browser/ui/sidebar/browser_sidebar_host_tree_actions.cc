@@ -147,7 +147,20 @@ void BrowserSidebarHostView::ExecuteBrowserCommand(int command_id) {
     chrome::NewTab(browser_, NewTabTypes::kNewTabCommand);
     return;
   }
+  const base::WeakPtr<BrowserSidebarHostView> weak_this =
+      weak_ptr_factory_.GetWeakPtr();
   chrome::ExecuteCommand(browser_, command_id);
+  if (command_id == IDC_OPTIONS && weak_this) {
+    // Settings is a singleton tab. In an empty Workspace it can already be
+    // selected globally, so TabStripModel emits no selection change to clear
+    // the empty surface. Reconcile after the command's tab work has finished.
+    const uint64_t generation = ++workspace_surface_generation_;
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE,
+        base::BindOnce(&BrowserSidebarHostView::ReconcileWorkspaceSurface,
+                       weak_ptr_factory_.GetWeakPtr(), generation,
+                       /*follow_selected_tab=*/true));
+  }
 }
 
 BrowserSidebarSplitDropSource BrowserSidebarHostView::ResolveSplitDropSource(
