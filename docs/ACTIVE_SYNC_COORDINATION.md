@@ -1,6 +1,22 @@
 # Active sync coordination
 
-## Current candidate — 23 September 2026
+## Installed matching Development scope — 23 September 2026
+
+Desktop M153 source `9617cf1` built EXIT0, was signed with the existing Mac
+Development profile and exact `fe842` acceptance scope, and installed through
+the guarded transaction EXIT0. The source/build/signing evidence is under
+`artifacts/build/native-m153-sequence-9617cf1-20260923/`; installed receipt is
+`artifacts/install/ahoi-dev-9617cf1-cloudkit-development-20260923.json`.
+Mobile Build40 on the dedicated C645/iOS27 simulator previously reached
+Ready/encryption-ready/Synchronized on the same scope after Apple Account
+sign-in. A different iPhone 17 simulator is currently booted; its password
+entry alone is not a Build40/CloudKit readback. Native Computer Use binding
+timed out at the new Mac runtime gate, so the Mac/iOS record roundtrip is still
+OPEN. Resume the exact installed app and the dedicated Mobile candidate when
+UI control is available; no new Chromium build, scope, key family or migration
+is implied by the timeout.
+
+## Prior compiler candidate — 23 September 2026 (historical)
 
 The prior M153 app-only build20314 ended **EXIT1** with one unique
 `SessionBridge::OnSplitTabChanged` sequence-guard compiler error. Exact source
@@ -10,7 +26,7 @@ jobs. Log/exit: `artifacts/build/native-m153-sequence-9617cf1-20260923/`.
 Mobile CloudKitDevelopment40 on iOS27 is ready and visibly synchronized;
 cross-device record transport still requires an installed Mac candidate.
 
-## Current M153 compiler — 23 September 2026
+## Prior M153 compiler — 23 September 2026 (historical)
 
 The exact current handle is20314/Ninja28836, three jobs in existing
 `out/AhoiDev`, clean source `ba7a062`; actual log/exit live in

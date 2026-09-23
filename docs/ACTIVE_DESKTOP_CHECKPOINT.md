@@ -1,6 +1,32 @@
 # Active Desktop checkpoint
 
-## Latest compiler correction — 23 September 2026
+## Installed M153 CloudKit Development candidate — 23 September 2026
+
+The guarded app-only M153 build on exact source `9617cf1` completed EXIT0;
+`artifacts/build/native-m153-sequence-9617cf1-20260923/` contains its log,
+exit and build receipt. A separate copy was prepared and signed for the
+existing `fe842` CloudKit Development acceptance scope using the exact M153
+entitlement policy `2f42f89` and Apple Development profile
+`8f149b92-89cc-4d34-a0db-1b305d4e545c`. The complete signing verification
+is `cloudkit-verification.json` in that build directory. The guarded atomic
+installer exited0 and verified the installed bundle before and after
+activation; receipt:
+`artifacts/install/ahoi-dev-9617cf1-cloudkit-development-20260923.json`.
+`/Applications/AhoiBrowser.app` now reads back source `9617cf1`, Chromium
+153.0.8010.53 and zone `AhoiSyncAcceptance-fe842784-4865-4272-8bda-4bcf81a64a84`.
+The previous `55abcf7` app remains at the installer-recorded rollback path.
+
+This is **not** a Mac startup, CloudKit transport or cross-device record pass.
+Fresh native Computer Use app bindings timed out twice after installation;
+neither returned a window or launched a verifiable browser process. Do not
+infer runtime success from signing or installation. Next: when native UI
+control responds, launch this exact installed candidate, verify normal
+Settings/Sync first-use and one representative Mac/iOS record roundtrip with
+Mobile Build40 on its own signed-in C645 simulator. Do not repeat the M153
+compile or install merely because the UI binding timed out. The focused M153
+entitlement-policy suite passed 14/14 after the E2E tooling block.
+
+## Prior compiler correction — 23 September 2026 (historical)
 
 M153 build20314 from clean `ba7a062` completed with **EXIT1** after
 1,308/1,676 actions. Exactly one unique compile cause remained:
@@ -18,7 +44,7 @@ checkout. Current guarded app-only build95543 runs with three jobs in the same
 `artifacts/build/native-m153-sequence-9617cf1-20260923/`.
 No complete M153 build receipt, installation or Mac/mobile roundtrip yet.
 
-## Latest build handle — 23 September 2026
+## Prior build handle — 23 September 2026 (historical)
 
 Guarded M153 app-only build handle20314/Ninja28836 is live from clean
 `ba7a062` in the existing `out/AhoiDev` with three jobs. Its exact log and
