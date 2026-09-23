@@ -1,6 +1,46 @@
 # Active Desktop checkpoint
 
-## Current installed candidate and next package — 23 September 2026
+## Current installed candidate — 23 September 2026
+
+Installed `/Applications/AhoiBrowser.app` is exact M153 source `820cf4e`,
+CloudKit Development scope `fe842`. The guarded incremental product build,
+separate Apple Development signing verification and atomic installation all
+exited 0. Receipts:
+`artifacts/build/native-m153-portability-820cf4e-20260923/` and
+`artifacts/install/ahoi-dev-820cf4e-cloudkit-development-20260923.json`.
+The interrupted first build handle had disappeared without a new receipt; the
+same clean source and cached output were resumed in one guarded build, not
+promoted from partial objects.
+
+Visible E2E in the isolated `MacA` profile: Glass ON/OFF changed the Sidebar
+material, and on the Settings surface the previous sharp view of desktop
+windows through the browser was no longer observed. This is a bounded fix for
+the reported see-through failure, not yet an aesthetic acceptance of “milky”
+glass or a full normal-page/high-contrast/performance pass. A later normal-page
+click was interrupted by an external UI change; the target was rebound and no
+result was inferred from that click.
+
+The Settings export journey selected Inbox, then temporarily included normal
+tabs: the preview changed from 0 pages/6 omissions to 3 pages/4 omissions and
+warned explicitly that the file is unencrypted. The native Save dialog wrote a
+0600, 1,038-byte JSON file to a new isolated `/private/tmp` directory. Its
+SHA-256 was `74709a0ad0829f925b6a293ece616d53b16674ae6bb1686c74c304defd3cbde7`;
+readback showed format `ahoi-workspaces` version 1, one Workspace, three web
+pages including public `https://example.com/`, no split/archive and no
+nonportable target kind. Reopening that exact file via the native picker showed
+“Datei geprüft – noch nichts importiert” with Inbox/3 pages/0 splits/0
+archives. One synthetic version-999 file was visibly rejected. Neither file
+was imported. Atomic additive commit, rollback, idempotent reimport and
+nontrivial split/archive export remain OPEN; no whole portability pass.
+
+Mac–iOS encrypted record transport is still RED. The installed Mac Settings
+still read “Warten auf den gemeinsamen iCloud-Schlüssel”; Mobile Build40's
+independent Ready state is not a roundtrip. No key/profile/zone reset or
+Production operation was performed. Next work: atomic additive import on a
+fresh isolated profile and the exact Mac–iOS key-arrival/record gate, with
+focused checks only after their affected visible journeys.
+
+## Prior installed candidate and next package — 23 September 2026 (historical)
 
 Installed `/Applications/AhoiBrowser.app` is exact M153 source `c7381c1`,
 CloudKit Development scope `fe842`; guarded build, separate signing verification

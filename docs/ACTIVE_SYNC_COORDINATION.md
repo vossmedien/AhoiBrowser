@@ -2,9 +2,10 @@
 
 ## Current installed pair — 23 September 2026
 
-Mac installed source `c7381c1` and Mobile Build40/source `45330d2` retain
+Mac installed source `820cf4e` and Mobile Build40/source `45330d2` retain
 the same signed `fe842` Development scope. The portable export and visual
-Glass changes in this Mac candidate do not change the Sync contract. Mac
+Glass changes in this Mac candidate do not change the Sync contract. Its
+visible Settings still said “Warten auf den gemeinsamen iCloud-Schlüssel”. Mac
 first-use has observed the matching
 bootstrap claim, then a waiting-key state and a later account-change state.
 One explicit "Lokale Daten weiter hochladen" action in isolated `MacA` remained

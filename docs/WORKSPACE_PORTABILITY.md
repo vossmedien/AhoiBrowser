@@ -1,6 +1,7 @@
 # Portable workspace files
 
-Status: source-only contract, not a built or visible export/import pass.
+Status: built and visibly accepted for bounded export and read-only file
+preview on installed Mac source `820cf4e`; additive import is NOT implemented.
 The active product requirement is in
 [the master goal](../outputs/AhoiBrowser-Master-Zielprompt.md#portabler-workspace-export-und-wiederimport).
 
@@ -38,7 +39,9 @@ redacted preview and omissions, obtain the user's workspace/category/conflict
 choices, then use an atomic additive commit and preserve rollback/idempotence.
 No real-profile data is changed merely by parsing a file.
 
-The current source adds a bounded native Open dialog and read-only preview:
+The installed candidate adds a bounded native Open dialog and read-only preview:
 symlinks, non-regular/oversized files, invalid JSON and unsupported graphs are
 rejected before any profile mutation. It intentionally offers no Import button
 until the separate atomic transaction and rollback path are implemented.
+The isolated real file roundtrip and a rejected unknown-version file are
+recorded in [the Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md).

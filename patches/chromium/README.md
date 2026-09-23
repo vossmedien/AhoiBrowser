@@ -6,9 +6,11 @@ The native macOS glass view now covers the full window beneath Chromium's
 opaque WebContents, while a neutral translucent NSWindow foundation prevents
 desktop windows from showing sharply through transparent WebUI/chrome gaps.
 Reduced-transparency and disabled-Glass paths keep the existing opaque
-fallback. The user's installed `c7381c1` screenshot is RED; this patch is
-source-only until the same Glass on/off Settings and normal-page journey passes
-on a signed candidate. No website compositor or permission path changes.
+fallback. Installed `820cf4e` passed a bounded Settings Glass on/off journey
+without the earlier sharp desktop see-through; the user's `c7381c1` report
+remains the preserved RED baseline. Aesthetic milky-glass acceptance and the
+normal-page/high-contrast/performance variants remain open. No website
+compositor or permission path changes.
 
 `series` is the authoritative application order. The active stack targets
 Chromium Mac Stable `153.0.8010.53` at
