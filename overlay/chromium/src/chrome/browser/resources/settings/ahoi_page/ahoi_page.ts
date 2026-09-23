@@ -50,6 +50,39 @@ export interface BrowserSettingsSyncStatusResponse {
   syncEnabled: boolean;
 }
 
+export interface PortableExportOptionsResponse {
+  available: boolean;
+  workspaces: Array<{id: string, name: string}>;
+  labels: {
+    title: string,
+    description: string,
+    temporary: string,
+    archives: string,
+    prepare: string,
+    save: string,
+    unencrypted: string,
+    workspaces: string,
+    pages: string,
+    splits: string,
+    archivesCount: string,
+    excluded: string,
+    saved: string,
+    cancelled: string,
+    failed: string,
+  };
+}
+
+export interface PortableExportPreviewResponse {
+  status: 'ready'|'blocked';
+  token?: string;
+  bytes?: number;
+  workspaces?: number;
+  pages?: number;
+  splits?: number;
+  archives?: number;
+  excluded?: number;
+}
+
 export interface SyncControlsStatusResponse {
   action: 'requested'|'blocked'|'';
   statusLabel: string;
@@ -136,6 +169,13 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       remoteControlDeviceId_: {type: String},
       remoteControlPublicKey_: {type: String},
       remoteControlActionPending_: {type: Boolean},
+      portableExportOptions_: {type: Object},
+      portableSelectedWorkspaceIds_: {type: Array},
+      portableIncludeTemporary_: {type: Boolean},
+      portableIncludeArchives_: {type: Boolean},
+      portableExportPreview_: {type: Object},
+      portableExportStatus_: {type: String},
+      portableExportPending_: {type: Boolean},
     };
   }
 
@@ -160,6 +200,15 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
   protected accessor remoteControlDeviceId_: string = '';
   protected accessor remoteControlPublicKey_: string = '';
   protected accessor remoteControlActionPending_: boolean = false;
+  protected accessor portableExportOptions_: PortableExportOptionsResponse|null =
+      null;
+  protected accessor portableSelectedWorkspaceIds_: string[] = [];
+  protected accessor portableIncludeTemporary_: boolean = false;
+  protected accessor portableIncludeArchives_: boolean = false;
+  protected accessor portableExportPreview_: PortableExportPreviewResponse|null =
+      null;
+  protected accessor portableExportStatus_: string = '';
+  protected accessor portableExportPending_: boolean = false;
 
   protected accessor floatingNavigationDelayOptions_: DropdownMenuOptionList = [
     {value: 400, name: loadTimeData.getString('ahoiNavigationDelayFast')},
@@ -198,6 +247,14 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         (status: SyncControlsStatusResponse) => {
           this.applySyncControlsStatus_(status);
         });
+    this.addWebUiListener(
+        'ahoi-portable-export-result', (result: {status: string}) => {
+          this.portableExportPending_ = false;
+          this.portableExportStatus_ = result.status;
+          if (result.status === 'saved') {
+            this.portableExportPreview_ = null;
+          }
+        });
     this.mirrorPrefs({
       'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
       'ahoi.navigation.floating_auto_hide_enabled':
@@ -207,6 +264,98 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     void this.refreshRemoteControlStatus_();
     void this.refreshBrowserSettingsSyncStatus_();
     void this.refreshSyncControlsStatus_();
+    void this.refreshPortableExportOptions_();
+  }
+
+  private async refreshPortableExportOptions_() {
+    try {
+      this.portableExportOptions_ =
+          await sendWithPromise<PortableExportOptionsResponse>(
+              'ahoiGetPortableExportOptions');
+    } catch {
+      this.portableExportStatus_ = 'failed';
+    }
+  }
+
+  protected onPortableWorkspaceChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const id = checkbox.dataset['workspaceId'];
+    if (!id) {
+      return;
+    }
+    const selected = new Set(this.portableSelectedWorkspaceIds_);
+    checkbox.checked ? selected.add(id) : selected.delete(id);
+    this.portableSelectedWorkspaceIds_ = [...selected];
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+  }
+
+  protected onPortableTemporaryChange_(event: Event) {
+    this.portableIncludeTemporary_ =
+        (event.currentTarget as HTMLInputElement).checked;
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+  }
+
+  protected onPortableArchivesChange_(event: Event) {
+    this.portableIncludeArchives_ =
+        (event.currentTarget as HTMLInputElement).checked;
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+  }
+
+  protected async onPortablePreviewClick_() {
+    if (this.portableExportPending_ ||
+        this.portableSelectedWorkspaceIds_.length === 0) {
+      return;
+    }
+    this.portableExportPending_ = true;
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+    try {
+      const preview = await sendWithPromise<PortableExportPreviewResponse>(
+          'ahoiPreparePortableExport', this.portableSelectedWorkspaceIds_,
+          this.portableIncludeTemporary_, this.portableIncludeArchives_);
+      this.portableExportPreview_ = preview.status === 'ready' ? preview : null;
+      this.portableExportStatus_ = preview.status === 'ready' ? '' : 'failed';
+    } catch {
+      this.portableExportStatus_ = 'failed';
+    } finally {
+      this.portableExportPending_ = false;
+    }
+  }
+
+  protected async onPortableSaveClick_() {
+    if (this.portableExportPending_ || !this.portableExportPreview_?.token) {
+      return;
+    }
+    this.portableExportPending_ = true;
+    this.portableExportStatus_ = '';
+    try {
+      const result = await sendWithPromise<{status: string}>(
+          'ahoiSavePortableExport', this.portableExportPreview_.token);
+      if (result.status !== 'dialog') {
+        this.portableExportPending_ = false;
+        this.portableExportStatus_ = 'failed';
+      }
+    } catch {
+      this.portableExportPending_ = false;
+      this.portableExportStatus_ = 'failed';
+    }
+  }
+
+  protected portableExportStatusText_(): string {
+    const labels = this.portableExportOptions_?.labels;
+    switch (this.portableExportStatus_) {
+      case 'saved':
+        return labels?.saved || '';
+      case 'cancelled':
+        return labels?.cancelled || '';
+      case 'failed':
+        return labels?.failed || '';
+      default:
+        return '';
+    }
   }
 
   private applySyncControlsStatus_(status: SyncControlsStatusResponse) {

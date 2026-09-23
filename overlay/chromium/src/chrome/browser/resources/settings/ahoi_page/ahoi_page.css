@@ -128,6 +128,46 @@ cr-view-manager [hidden-by-search] {
   padding-block: 14px;
 }
 
+.portable-export-card {
+  margin-inline: var(--cr-section-padding);
+  padding-block: 14px;
+}
+
+.portable-workspace-list,
+.portable-export-categories {
+  display: grid;
+  gap: 8px;
+}
+
+.portable-export-categories {
+  margin-top: 14px;
+}
+
+.portable-workspace-option {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-height: 28px;
+}
+
+.portable-workspace-option input {
+  accent-color: var(--cr-link-color);
+  height: 18px;
+  width: 18px;
+}
+
+.portable-export-actions,
+.portable-export-preview,
+.portable-export-status {
+  margin-top: 12px;
+}
+
+.portable-export-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
 .pairing-title {
   font-weight: 500;
 }

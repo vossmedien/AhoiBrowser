@@ -8,12 +8,17 @@ if (is_mac) {
     sources = [
       "ahoi_settings_handler.cc",
       "ahoi_settings_handler.h",
+      "ahoi_settings_portability.cc",
     ]
     public_deps = [
+      "//ahoi/browser/session",
       "//ahoi/browser/sync:profile_sync_service",
+      "//ahoi/browser/tab_tree",
       "//base",
       "//chrome/browser/profiles:profile",
+      "//chrome/browser/ui/select_file_policy",
       "//content/public/browser",
+      "//ui/shell_dialogs",
     ]
   }
 }

@@ -326,6 +326,82 @@ export function getHtml(this: SettingsAhoiPageElement) {
         </div>
       </div>
 
+      <div class="section-heading cr-row hr"
+          ?hidden="${!this.portableExportOptions_}">
+        <div class="flex cr-padded-text">
+          <div id="ahoiPortableExportTitle">
+            ${this.portableExportOptions_?.labels.title || ''}
+          </div>
+          <div class="secondary">
+            ${this.portableExportOptions_?.labels.description || ''}
+          </div>
+        </div>
+      </div>
+      <section id="ahoiPortableExport" class="portable-export-card"
+          aria-labelledby="ahoiPortableExportTitle"
+          aria-busy="${this.portableExportPending_}"
+          ?hidden="${!this.portableExportOptions_}">
+        <div class="portable-workspace-list">
+          ${this.portableExportOptions_?.workspaces.map(workspace => html`
+            <label class="portable-workspace-option">
+              <input type="checkbox" data-workspace-id="${workspace.id}"
+                  .checked="${this.portableSelectedWorkspaceIds_.includes(workspace.id)}"
+                  ?disabled="${this.portableExportPending_}"
+                  @change="${this.onPortableWorkspaceChange_}">
+              <span>${workspace.name}</span>
+            </label>`)}
+        </div>
+        <div class="portable-export-categories">
+          <label class="portable-workspace-option">
+            <input type="checkbox" .checked="${this.portableIncludeTemporary_}"
+                ?disabled="${this.portableExportPending_}"
+                @change="${this.onPortableTemporaryChange_}">
+            <span>${this.portableExportOptions_?.labels.temporary || ''}</span>
+          </label>
+          <label class="portable-workspace-option">
+            <input type="checkbox" .checked="${this.portableIncludeArchives_}"
+                ?disabled="${this.portableExportPending_}"
+                @change="${this.onPortableArchivesChange_}">
+            <span>${this.portableExportOptions_?.labels.archives || ''}</span>
+          </label>
+        </div>
+        <div class="portable-export-actions">
+          <cr-button id="ahoiPortablePreview"
+              ?disabled="${!this.portableExportOptions_?.available ||
+                  this.portableSelectedWorkspaceIds_.length === 0 ||
+                  this.portableExportPending_}"
+              @click="${this.onPortablePreviewClick_}">
+            ${this.portableExportOptions_?.labels.prepare || ''}
+          </cr-button>
+        </div>
+        ${this.portableExportPreview_ ? html`
+          <div class="portable-export-preview" role="status">
+            <span>${this.portableExportOptions_?.labels.workspaces}:
+              ${this.portableExportPreview_.workspaces}</span>
+            <span>${this.portableExportOptions_?.labels.pages}:
+              ${this.portableExportPreview_.pages}</span>
+            <span>${this.portableExportOptions_?.labels.splits}:
+              ${this.portableExportPreview_.splits}</span>
+            <span>${this.portableExportOptions_?.labels.archivesCount}:
+              ${this.portableExportPreview_.archives}</span>
+            <span>${this.portableExportOptions_?.labels.excluded}:
+              ${this.portableExportPreview_.excluded}</span>
+          </div>
+          <p id="ahoiPortableExportWarning" class="secondary">
+            ${this.portableExportOptions_?.labels.unencrypted || ''}
+          </p>
+          <cr-button id="ahoiPortableSave" class="action-button"
+              aria-describedby="ahoiPortableExportWarning"
+              ?disabled="${this.portableExportPending_}"
+              @click="${this.onPortableSaveClick_}">
+            ${this.portableExportOptions_?.labels.save || ''}
+          </cr-button>` : ''}
+        <div class="portable-export-status secondary" role="status"
+            aria-live="polite">
+          ${this.portableExportStatusText_()}
+        </div>
+      </section>
+
       <div class="section-heading cr-row hr">
         <div class="flex cr-padded-text">
           <div>$i18n{ahoiDeveloperSection}</div>

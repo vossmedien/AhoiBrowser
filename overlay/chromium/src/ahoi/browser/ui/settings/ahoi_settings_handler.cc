@@ -113,6 +113,9 @@ AhoiSettingsHandler::AhoiSettingsHandler(Profile* profile)
       sync_service_(sync::ProfileSyncServiceFactory::GetForProfile(profile_)) {}
 
 AhoiSettingsHandler::~AhoiSettingsHandler() {
+  if (portable_export_dialog_) {
+    portable_export_dialog_->ListenerDestroyed();
+  }
   bookmark_status_subscription_ = {};
   if (sync_service_ && observing_sync_service_) {
     sync_service_->RemoveObserver(this);
@@ -161,6 +164,18 @@ void AhoiSettingsHandler::RegisterMessages() {
   web_ui()->RegisterMessageCallback(
       "ahoiRevokeRemoteControlDevice",
       base::BindRepeating(&AhoiSettingsHandler::HandleRevokeRemoteControlDevice,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiGetPortableExportOptions",
+      base::BindRepeating(&AhoiSettingsHandler::HandleGetPortableExportOptions,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiPreparePortableExport",
+      base::BindRepeating(&AhoiSettingsHandler::HandlePreparePortableExport,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiSavePortableExport",
+      base::BindRepeating(&AhoiSettingsHandler::HandleSavePortableExport,
                           base::Unretained(this)));
 }
 
