@@ -542,6 +542,29 @@ void BrowserSidebarHostView::EnsureWorkspaceSurface() {
   }
 }
 
+void BrowserSidebarHostView::ReconcileWorkspaceSurface(
+    uint64_t generation,
+    bool follow_selected_tab) {
+  if (generation != workspace_surface_generation_ || !tab_strip_model_ ||
+      !browser_ || browser_->IsWindowCloseRequested()) {
+    return;
+  }
+  if (follow_selected_tab) {
+    const std::optional<base::Uuid> tab_workspace =
+        session_bridge_->GetWorkspaceForTab(tab_strip_model_->GetActiveTab());
+    if (tab_workspace.has_value() &&
+        tab_workspace != session_bridge_->GetActiveWorkspaceForWindow(browser_) &&
+        session_bridge_->SetActiveWorkspaceForWindow(
+            browser_, *tab_workspace,
+            WorkspaceActivationSource::kDataReconciliation)) {
+      // The WorkspaceService observer projects the selected workspace and
+      // sees the already-active tab; it cannot re-enter TabStripModel here.
+      return;
+    }
+  }
+  EnsureWorkspaceSurface();
+}
+
 void BrowserSidebarHostView::SynchronizeSelection() {
   if (!tab_strip_model_ || !session_bridge_) {
     return;
@@ -565,6 +588,11 @@ void BrowserSidebarHostView::OnActiveWorkspaceChanged(
   if (!window_id_.has_value()) {
     window_id_ = session_bridge_->GetWindowId(browser_);
   }
+  if (window_id_ == window_id) {
+    // An explicit Workspace switch supersedes a queued response to an older
+    // native tab notification, especially when switching to an empty space.
+    ++workspace_surface_generation_;
+  }
   if (window_id_ == window_id && new_workspace_id.has_value()) {
     UpdateWorkspaceSelectorIndicators();
     RememberActiveTabForWorkspace(old_workspace_id);
@@ -574,12 +602,23 @@ void BrowserSidebarHostView::OnActiveWorkspaceChanged(
 
 // TabStripModelObserver:
 void BrowserSidebarHostView::OnTabStripModelChanged(
-    TabStripModel*,
-    const TabStripModelChange&,
-    const TabStripSelectionChange&) {
+    TabStripModel* tab_strip_model,
+    const TabStripModelChange& change,
+    const TabStripSelectionChange& selection) {
   SynchronizeSelection();
   RefreshPageTint();
-  EnsureWorkspaceSurface();
+  if (tab_strip_model == tab_strip_model_ &&
+      (selection.active_tab_changed() ||
+       change.type() == TabStripModelChange::kRemoved)) {
+    const uint64_t generation = ++workspace_surface_generation_;
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE,
+        base::BindOnce(
+            &BrowserSidebarHostView::ReconcileWorkspaceSurface,
+            weak_ptr_factory_.GetWeakPtr(), generation,
+            selection.active_tab_changed() &&
+                change.type() != TabStripModelChange::kRemoved));
+  }
   ScheduleRuntimePresentationRefresh();
 }
 

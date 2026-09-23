@@ -227,6 +227,13 @@ class BrowserSidebarHostView final
 
   void ActivateWorkspaceRuntimeTab(const base::Uuid& workspace_id);
 
+  // TabStripModel observer callbacks must not activate another tab. After
+  // their notification finishes, native tab selection follows that tab's
+  // workspace; removal instead preserves the current workspace, including
+  // its empty surface when only foreign-workspace tabs remain.
+  void ReconcileWorkspaceSurface(uint64_t generation,
+                                 bool follow_selected_tab);
+
   // Keeps the native WebView surface aligned with the active Ahoi workspace
   // after a tab removal. A shared Chromium TabStripModel may still contain
   // tabs from another workspace, so an empty Ahoi workspace must explicitly
@@ -752,6 +759,7 @@ class BrowserSidebarHostView final
       widget_drag_observation_{this};
   SidebarRuntimeRefreshGate runtime_refresh_gate_;
   uint64_t runtime_refresh_generation_ = 0;
+  uint64_t workspace_surface_generation_ = 0;
   bool runtime_auxiliary_prime_scheduled_ = false;
   bool runtime_auxiliary_ready_ = false;
   // Split ratio notifications are synchronous. Suppressing the ordinary
