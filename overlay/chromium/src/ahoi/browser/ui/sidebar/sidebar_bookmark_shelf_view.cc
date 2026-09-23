@@ -114,7 +114,7 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
       views::BoxLayout::CrossAxisAlignment::kCenter);
   auto heading = std::make_unique<views::Label>(
       l10n_util::GetStringUTF16(IDS_ACCNAME_BOOKMARKS));
-  heading->SetEnabledColor(visual_style::kMutedText);
+  heading->SetEnabledColor(visual_style::kText);
   heading->SetHorizontalAlignment(gfx::ALIGN_LEFT);
   heading->SetSubpixelRenderingEnabled(false);
   header_layout->SetFlexForView(header->AddChildView(std::move(heading)), 1);

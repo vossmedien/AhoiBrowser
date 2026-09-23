@@ -686,7 +686,7 @@ std::unique_ptr<views::View> CreateSidebarSectionDivider(
 std::unique_ptr<views::View> CreateSidebarSectionLabel(std::u16string name) {
   auto label = std::make_unique<views::Label>(std::move(name));
   label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-  label->SetEnabledColor(visual_style::kMutedText);
+  label->SetEnabledColor(visual_style::kText);
   label->SetSubpixelRenderingEnabled(false);
   label->SetBorder(views::CreateEmptyBorder(
       gfx::Insets::VH(0, visual_style::kSidebarSectionSpacing)));

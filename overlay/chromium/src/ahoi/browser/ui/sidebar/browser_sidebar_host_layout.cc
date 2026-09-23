@@ -117,7 +117,6 @@
 #include "ui/views/controls/button/image_button_factory.h"
 #include "ui/views/controls/image_view.h"
 #include "ui/views/controls/label.h"
-#include "ui/views/controls/separator.h"
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/controls/textfield/textfield.h"
@@ -304,14 +303,12 @@ BrowserSidebarHostView::BrowserSidebarHostView(
 
   const bool german_sidebar =
       base::i18n::GetConfiguredLocale().starts_with("de");
-  const auto add_section_rule = [&]() {
-    auto rule = std::make_unique<views::Separator>();
-    rule->SetOrientation(views::Separator::Orientation::kHorizontal);
-    rule->SetColorId(visual_style::kDivider);
-    rule->SetBorder(views::CreateEmptyBorder(gfx::Insets::TLBR(8, 6, 3, 6)));
-    tabs_surface->AddChildView(std::move(rule));
+  const auto add_section_gap = [&]() {
+    auto gap = std::make_unique<views::View>();
+    gap->SetPreferredSize(gfx::Size(0, 10));
+    tabs_surface->AddChildView(std::move(gap));
   };
-  add_section_rule();
+  add_section_gap();
   tabs_surface->AddChildView(
       CreateSidebarSectionLabel(german_sidebar ? u"Gespeicherte Tabs"
                                                : u"Saved tabs"));
@@ -322,7 +319,7 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   tree_view_ = tree.get();
   tabs_surface->AddChildView(std::move(tree));
 
-  add_section_rule();
+  add_section_gap();
   open_tabs_header_ = tabs_surface->AddChildView(CreateSidebarSectionDivider(
       base::BindRepeating(&BrowserSidebarHostView::CloseAllTemporaryTabs,
                           base::Unretained(this)),
