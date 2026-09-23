@@ -44,8 +44,9 @@ constexpr bool operator!=(const NativeChromeMaterialConfiguration& lhs,
 
 // Converts the platform-neutral appearance result and theme colors into the
 // complete native material contract. `resolved_background_color` is used for
-// the deterministic opaque fallback; `theme_tint_color` keeps native glass in
-// sync with Chromium's current light/dark/user-color theme.
+// the deterministic opaque fallback and the neutral glass tint. The frame
+// theme color is retained as an API input for the native caller, but must not
+// saturate the full browser background.
 NativeChromeMaterialConfiguration ResolveNativeChromeMaterialConfiguration(
     const SurfaceAppearance& appearance,
     SkColor theme_tint_color,

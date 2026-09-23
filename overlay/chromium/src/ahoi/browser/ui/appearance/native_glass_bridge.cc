@@ -11,7 +11,7 @@ namespace ahoi::appearance {
 
 NativeChromeMaterialConfiguration ResolveNativeChromeMaterialConfiguration(
     const SurfaceAppearance& appearance,
-    SkColor theme_tint_color,
+    SkColor /*theme_tint_color*/,
     SkColor resolved_background_color,
     NativeGlassStyle style) {
   const float clamped_opacity = std::clamp(appearance.opacity, 0.0f, 1.0f);
@@ -21,7 +21,7 @@ NativeChromeMaterialConfiguration ResolveNativeChromeMaterialConfiguration(
       .use_native_glass = appearance.uses_glass(),
       .style = style,
       .tint_color = appearance.uses_glass()
-                        ? SkColorSetA(theme_tint_color, tint_alpha)
+                        ? SkColorSetA(resolved_background_color, tint_alpha)
                         : SK_ColorTRANSPARENT,
       .fallback_color = SkColorSetA(resolved_background_color, 0xFF),
       .corner_radius = std::max(0, appearance.corner_radius),

@@ -20,7 +20,7 @@ struct RoleDefaults {
 constexpr RoleDefaults GetRoleDefaults(SurfaceRole role) {
   switch (role) {
     case SurfaceRole::kBrowserChrome:
-      return {ui::kColorSysSurface2, 0, 1.0f, 0.0f, 0};
+      return {ui::kColorSysSurfaceVariant, 0, 0.90f, 0.0f, 0};
     case SurfaceRole::kSidebar:
       return {ui::kColorSysSurface2, 14, 0.82f, 24.0f, 0};
     case SurfaceRole::kFloatingNavigation:
@@ -58,12 +58,9 @@ SurfaceAppearance AppearanceResolver::Resolve(SurfaceRole role,
   appearance.background_color = defaults.background_color;
   appearance.corner_radius = defaults.corner_radius;
   appearance.border_thickness = defaults.border_thickness;
-  // Never make the NSWindow itself transparent: the desktop must not show
-  // through browser-chrome gaps. The sidebar can still use a restrained
-  // frosted material above that opaque foundation when Glass is enabled.
-  appearance.mode = role == SurfaceRole::kBrowserChrome
-                        ? GlassMode::kOpaque
-                        : ResolveMode(policy);
+  // The native browser backdrop is a neutral, strongly tinted material.
+  // WebContents stays opaque; only browser-chrome gaps reveal the glass.
+  appearance.mode = ResolveMode(policy);
   if (appearance.uses_glass()) {
     appearance.opacity = defaults.glass_opacity;
     appearance.background_blur_sigma = defaults.glass_blur_sigma;
