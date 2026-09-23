@@ -1,5 +1,17 @@
 # Chromium M153 patch ledger
 
+## `0046-ahoi-settings-follow-selected-workspace.patch`
+
+The normal Chromium Settings entry point still owns singleton-tab navigation.
+After it returns, a regular-profile Ahoi window follows the selected Settings
+tab's existing Workspace. This closes the case where native macOS
+`Einstellungen…` reuses an already active tab while Ahoi shows an empty
+Workspace overlay; no TabStripModel activation occurs in an observer. OTR,
+non-Mac and profiles without a SessionBridge are unchanged. The Sidebar
+footer's deferred reconciliation remains a narrow fallback for a newly
+created Settings tab. The exact guarded build and visible menu/footer
+journeys remain to be checked; source composition alone is not acceptance.
+
 ## `0045-ahoi-milky-browser-glass-foundation.patch`
 
 The native macOS glass view covers the full window beneath Chromium's opaque

@@ -1,0 +1,41 @@
+diff --git a/chrome/browser/ui/chrome_pages.cc b/chrome/browser/ui/chrome_pages.cc
+--- a/chrome/browser/ui/chrome_pages.cc
++++ b/chrome/browser/ui/chrome_pages.cc
+@@ -20,6 +20,11 @@
+ #include "base/strings/string_util.h"
+ #include "base/strings/stringprintf.h"
+ #include "build/build_config.h"
++#if BUILDFLAG(IS_MAC)
++#include "ahoi/browser/navigation/workspace_service.h"
++#include "ahoi/browser/session/session_bridge.h"
++#include "ahoi/browser/session/session_bridge_factory.h"
++#endif
+ #include "chrome/browser/apps/app_service/app_service_proxy.h"
+ #include "chrome/browser/apps/app_service/app_service_proxy_factory.h"
+ #include "chrome/browser/bookmarks/bookmark_model_factory.h"
+@@ -495,4 +500,25 @@ void ShowSettingsSubPageInTabbedBrowser(BrowserWindowInterface* browser,
+   // about to be shown) is focused. (See crbug.com/41438063 for motivation.)
+   FocusWebContents(browser);
+   ShowSingletonTabIgnorePathOverwriteNTP(browser, GetSettingsUrl(sub_page));
++#if BUILDFLAG(IS_MAC)
++  // The singleton can already be selected in the global TabStripModel while
++  // Ahoi's current Workspace is empty. In that case no tab-selection observer
++  // runs, so follow the Settings tab's existing Workspace after navigation
++  // rather than leaving an empty Workspace surface over the page.
++  Profile* const profile = browser->GetProfile();
++  ahoi::SessionBridge* const bridge =
++      profile && profile->IsRegularProfile()
++          ? ahoi::SessionBridgeFactory::GetForProfile(profile)
++          : nullptr;
++  if (bridge) {
++    const auto workspace = bridge->GetWorkspaceForTab(
++        browser->GetTabStripModel()->GetActiveTab());
++    if (workspace != bridge->GetActiveWorkspaceForWindow(browser) &&
++        workspace.has_value()) {
++      (void)bridge->SetActiveWorkspaceForWindow(
++          browser, *workspace,
++          ahoi::WorkspaceActivationSource::kDataReconciliation);
++    }
++  }
++#endif
+ }
