@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
-#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -15,7 +14,6 @@
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_device_tab_commands.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
-#include "ahoi/browser/ui/sidebar/sidebar_sync_controls.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -200,43 +198,9 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
   if (!remote_tabs_header_ || !remote_tabs_container_) {
     return;
   }
-  std::set<base::Uuid> remote_device_ids;
-  for (const sync::RemoteTabRecord& tab : device_tabs_snapshot_.remote_tabs) {
-    const GURL remote_url(tab.url);
-    if (!HasProjectedSharedPage(tab) && !tab.tombstone &&
-        remote_url.is_valid() && remote_url.SchemeIsHTTPOrHTTPS() &&
-        !remote_url.has_username() && !remote_url.has_password()) {
-      remote_device_ids.insert(tab.device_id);
-    }
-  }
-  std::vector<sync::DeviceRecord> filter_devices;
-  for (const sync::DeviceRecord& device : device_tabs_snapshot_.devices) {
-    if (remote_device_ids.contains(device.id)) {
-      filter_devices.push_back(device);
-    }
-  }
-
-  views::View* controls =
-      remote_tabs_container_->GetViewByID(kSidebarSyncControlsViewId);
-  if (!controls) {
-    controls =
-        remote_tabs_container_->AddChildView(CreateSidebarSyncControlsView(
-            profile_sync_service_, std::move(filter_devices),
-            base::BindRepeating(
-                &BrowserSidebarHostView::ScheduleRuntimePresentationRefresh,
-                weak_ptr_factory_.GetWeakPtr())));
-  } else {
-    UpdateSidebarSyncControlsView(controls, profile_sync_service_,
-                                  std::move(filter_devices));
-  }
-  // Search is a direct navigation mode. Device-filter controls do not affect
-  // its exact matched rows and would otherwise imply a second active filter.
-  controls->SetVisible(sidebar_discovery_query_.empty());
   std::vector<views::View*> previous_rows;
   for (views::View* child : remote_tabs_container_->children()) {
-    if (child != controls) {
-      previous_rows.push_back(child);
-    }
+    previous_rows.push_back(child);
   }
   for (views::View* row : previous_rows) {
     remote_tabs_container_->RemoveChildViewT(row);
@@ -248,9 +212,7 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
     const GURL remote_url(tab.url);
     if (HasProjectedSharedPage(tab) || tab.tombstone ||
         !remote_url.is_valid() || !remote_url.SchemeIsHTTPOrHTTPS() ||
-        remote_url.has_username() || remote_url.has_password() ||
-        (sidebar_discovery_query_.empty() &&
-         !SidebarSyncControlsMatchesDevice(controls, tab.device_id))) {
+        remote_url.has_username() || remote_url.has_password()) {
       continue;
     }
     sync::DeviceType device_type = sync::DeviceType::kOther;
@@ -338,10 +300,9 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
   }
   const bool show_remote_tabs = row_count > 0u;
   remote_tabs_header_->SetVisible(show_remote_tabs);
-  // A fresh profile still needs its compact Sync entry point. Already linked
-  // pages live in the workspace tree, not as duplicate device-tab rows here.
-  remote_tabs_container_->SetVisible(show_remote_tabs ||
-                                     (controls && controls->GetVisible()));
+  // Only actual device tabs belong in the sidebar. Global Sync setup and
+  // recovery live in Ahoi Settings, including for a fresh profile.
+  remote_tabs_container_->SetVisible(show_remote_tabs);
   remote_tabs_container_->InvalidateLayout();
 }
 

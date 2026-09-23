@@ -20,9 +20,9 @@ struct RoleDefaults {
 constexpr RoleDefaults GetRoleDefaults(SurfaceRole role) {
   switch (role) {
     case SurfaceRole::kBrowserChrome:
-      return {ui::kColorSysSurface2, 0, 0.76f, 28.0f, 0};
+      return {ui::kColorSysSurface2, 0, 1.0f, 0.0f, 0};
     case SurfaceRole::kSidebar:
-      return {ui::kColorSysSurface2, 14, 0.88f, 30.0f, 0};
+      return {ui::kColorSysSurface2, 14, 1.0f, 0.0f, 0};
     case SurfaceRole::kFloatingNavigation:
       return {ui::kColorSysSurface3, 14, 0.62f, 30.0f, 0};
     case SurfaceRole::kCommandBar:
@@ -58,7 +58,14 @@ SurfaceAppearance AppearanceResolver::Resolve(SurfaceRole role,
   appearance.background_color = defaults.background_color;
   appearance.corner_radius = defaults.corner_radius;
   appearance.border_thickness = defaults.border_thickness;
-  appearance.mode = ResolveMode(policy);
+  // A full-window native glass underlay exposes the desktop through every
+  // browser-chrome gap. Likewise, a docked sidebar needs one stable surface
+  // from header to footer. Keep the optional glass treatment for short-lived
+  // floating controls, never for the browser frame or primary tab rail.
+  appearance.mode =
+      role == SurfaceRole::kBrowserChrome || role == SurfaceRole::kSidebar
+          ? GlassMode::kOpaque
+          : ResolveMode(policy);
   if (appearance.uses_glass()) {
     appearance.opacity = defaults.glass_opacity;
     appearance.background_blur_sigma = defaults.glass_blur_sigma;

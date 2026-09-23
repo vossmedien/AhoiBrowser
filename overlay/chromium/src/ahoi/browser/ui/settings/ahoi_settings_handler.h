@@ -44,6 +44,12 @@ class AhoiSettingsHandler final
   void PushBrowserSettingsSyncStatus();
   void HandleGetBrowserSettingsSyncStatus(const base::ListValue& args);
   void HandleSetBrowserSettingsSyncEnabled(const base::ListValue& args);
+  base::DictValue BuildSyncControlsStatus(std::string_view action) const;
+  void ResolveSyncControlsStatus(base::Value callback_id,
+                                 std::string_view action);
+  void PushSyncControlsStatus();
+  void HandleGetSyncControlsStatus(const base::ListValue& args);
+  void HandleSyncControlAction(const base::ListValue& args);
   base::DictValue BuildRemoteControlStatus(std::string_view action) const;
   void ResolveStatus(base::Value callback_id, std::string_view action);
   void PushStatus(std::string_view action);

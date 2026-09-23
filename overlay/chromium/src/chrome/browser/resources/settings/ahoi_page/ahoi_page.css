@@ -28,6 +28,68 @@ cr-view-manager [hidden-by-search] {
   margin-top: 4px;
 }
 
+.sync-control-card {
+  margin-inline: var(--cr-section-padding);
+  padding-block: 14px;
+}
+
+.sync-control-status {
+  font-weight: 500;
+  line-height: 22px;
+}
+
+.sync-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sync-control-options {
+  border-top: 1px solid var(--cr-separator-color);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.sync-control-heading {
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.sync-control-option {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  margin-block: 10px;
+}
+
+.sync-control-option input {
+  accent-color: var(--cr-link-color);
+  block-size: 18px;
+  inline-size: 18px;
+  margin: 3px 0 0;
+}
+
+.sync-control-option .secondary {
+  display: block;
+  margin-top: 3px;
+}
+
+.sync-extension-result {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-inline-start: 30px;
+  min-height: 34px;
+}
+
+.sync-recovery-card:not([hidden]) {
+  border-top: 1px solid var(--cr-separator-color);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
 .browser-settings-sync-card {
   margin-inline: var(--cr-section-padding);
   padding-block: 14px;

@@ -29,7 +29,6 @@
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
-#include "ahoi/browser/ui/sidebar/sidebar_sync_controls.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"

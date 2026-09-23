@@ -370,17 +370,11 @@ void ProfileSyncService::ConfirmCloudKitAccountTransition(
   if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
-  if (!allow_local_upload) {
-    // Preserve local values/intents, but do not reuse the previous account's
-    // per-setting approval after the user explicitly refused local upload.
-    profile_->GetPrefs()->SetList(kPermittedSettingIdsPref, base::ListValue());
-    profile_->GetPrefs()->SetBoolean(kExtensionSetupSyncEnabledPref, false);
-    profile_->GetPrefs()->SetBoolean(kExtensionSettingsSyncEnabledPref, false);
-  }
   backend_.AsyncCall(&ProfileSyncBackend::ConfirmAccountTransition)
       .WithArgs(allow_local_upload)
-      .Then(base::BindOnce(&ProfileSyncService::OnCloudKitRecoveryConfirmed,
-                           backend_weak_ptr_factory_.GetWeakPtr()));
+      .Then(base::BindOnce(&ProfileSyncService::OnAccountTransitionConfirmed,
+                           backend_weak_ptr_factory_.GetWeakPtr(),
+                           allow_local_upload));
 }
 
 void ProfileSyncService::ConfirmCloudKitZoneRecovery() {
@@ -447,6 +441,19 @@ void ProfileSyncService::OnCloudKitRecoveryConfirmed(bool confirmed) {
   if (confirmed) {
     SyncNow();
   }
+}
+
+void ProfileSyncService::OnAccountTransitionConfirmed(
+    bool allow_local_upload,
+    bool confirmed) {
+  if (confirmed && !allow_local_upload && profile_ && !shutting_down_) {
+    // The backend committed the user's no-upload choice. Preserve local
+    // values/intents while revoking the former account's category consent.
+    profile_->GetPrefs()->SetList(kPermittedSettingIdsPref, base::ListValue());
+    profile_->GetPrefs()->SetBoolean(kExtensionSetupSyncEnabledPref, false);
+    profile_->GetPrefs()->SetBoolean(kExtensionSettingsSyncEnabledPref, false);
+  }
+  OnCloudKitRecoveryConfirmed(confirmed);
 }
 
 void ProfileSyncService::OnSyncEnabledPrefChanged() {

@@ -3,6 +3,7 @@
 
 import {html} from '//resources/lit/v3_0/lit.rollup.js';
 
+import {loadTimeData} from '../i18n_setup.js';
 import type {SettingsAhoiPageElement} from './ahoi_page.js';
 
 export function getHtml(this: SettingsAhoiPageElement) {
@@ -90,17 +91,105 @@ export function getHtml(this: SettingsAhoiPageElement) {
           <div class="secondary">$i18n{ahoiCloudKitUnavailableSublabel}</div>
         </div>
       </div>
-      <div id="ahoiSyncRuntimeStatus" class="sync-explanation cr-row"
-          role="status" aria-live="polite"
-          ?hidden="${this.syncEnabledPref_?.value || !this.remoteControlStatus_?.syncStatusLabel}">
-        <div class="flex cr-padded-text">${this.remoteControlStatus_?.syncStatusLabel}</div>
-      </div>
       <settings-toggle-button id="ahoiSyncEnabled"
           pref-key="ahoi.sync.enabled"
           label="$i18n{ahoiSyncEnabled}"
           sub-label="$i18n{ahoiSyncEnabledSublabel}">
       </settings-toggle-button>
       <div class="list-frame indented-toggles">
+        <section id="ahoiSyncControls" class="sync-control-card"
+            aria-label="$i18n{ahoiSyncSection}"
+            aria-busy="${this.syncControlsActionPending_}">
+          <div class="sync-control-status" role="status" aria-live="polite">
+            ${this.syncControlsStatus_?.statusLabel ||
+                loadTimeData.getString('ahoiBrowserSettingsSyncLoading')}
+          </div>
+          <div class="sync-control-actions">
+            <cr-button id="ahoiSyncNow"
+                ?disabled="${!this.syncControlsStatus_?.canSyncNow ||
+                    this.syncControlsActionPending_}"
+                @click="${this.onSyncNowClick_}">
+              ${this.syncControlsStatus_?.labels.syncNow || ''}
+            </cr-button>
+            <cr-button id="ahoiRetrySyncKey"
+                ?hidden="${!this.syncControlsStatus_?.keySetupIssue}"
+                ?disabled="${!this.syncControlsStatus_?.canRetryKey ||
+                    this.syncControlsActionPending_}"
+                @click="${this.onRetrySyncKeyClick_}">
+              ${this.syncControlsStatus_?.labels.retryKey || ''}
+            </cr-button>
+          </div>
+          <div class="sync-control-options">
+            <div class="sync-control-heading">
+              ${this.syncControlsStatus_?.labels.extensions || ''}
+            </div>
+            <label class="sync-control-option">
+              <input id="ahoiExtensionSetupSync" type="checkbox"
+                  .checked="${this.syncControlsStatus_?.extensionSetupEnabled ?? false}"
+                  ?disabled="${!this.syncControlsStatus_?.canChangeExtensionConsent ||
+                      this.syncControlsActionPending_}"
+                  @change="${this.onExtensionSetupChange_}">
+              <span>${this.syncControlsStatus_?.labels.extensionSetup || ''}</span>
+            </label>
+            <label class="sync-control-option">
+              <input id="ahoiExtensionSettingsSync" type="checkbox"
+                  .checked="${this.syncControlsStatus_?.extensionSettingsEnabled ?? false}"
+                  ?disabled="${!this.syncControlsStatus_?.canChangeExtensionConsent ||
+                      this.syncControlsActionPending_}"
+                  @change="${this.onExtensionSettingsChange_}">
+              <span>
+                ${this.syncControlsStatus_?.labels.extensionSettings || ''}
+                <span class="secondary">
+                  ${this.syncControlsStatus_?.labels.extensionSettingsHint || ''}
+                </span>
+              </span>
+            </label>
+            ${this.syncControlsStatus_?.extensionResults.map(item => html`
+              <div class="sync-extension-result">
+                <span title="${item.id}">${item.id.slice(0, 8)} · ${item.status}</span>
+                <cr-button data-extension-id="${item.id}"
+                    ?hidden="${!item.canRetry}"
+                    ?disabled="${this.syncControlsActionPending_}"
+                    @click="${this.onExtensionRetryClick_}">
+                  ${item.needsConfirmation ?
+                      this.syncControlsStatus_?.labels.reviewExtension :
+                      this.syncControlsStatus_?.labels.retryExtension}
+                </cr-button>
+              </div>`)}
+          </div>
+          <div class="sync-recovery-card"
+              ?hidden="${!this.syncControlsStatus_?.accountTransitionPending &&
+                  !this.syncControlsStatus_?.zoneRecoveryPending}">
+            <div class="sync-control-heading">
+              ${this.syncControlsStatus_?.labels.recovery || ''}
+            </div>
+            <div class="secondary"
+                ?hidden="${!this.syncControlsStatus_?.accountTransitionPending}">
+              ${this.syncControlsStatus_?.labels.accountRecoveryHint || ''}
+            </div>
+            <div class="sync-control-actions">
+              <cr-button ?hidden="${!this.syncControlsStatus_?.accountTransitionPending}"
+                  ?disabled="${this.syncControlsActionPending_}"
+                  @click="${this.onAccountRecoveryUploadClick_}">
+                ${this.syncControlsStatus_?.labels.uploadLocal || ''}
+              </cr-button>
+              <cr-button ?hidden="${!this.syncControlsStatus_?.accountTransitionPending}"
+                  ?disabled="${this.syncControlsActionPending_}"
+                  @click="${this.onAccountRecoveryWithoutUploadClick_}">
+                ${this.syncControlsStatus_?.labels.withoutUpload || ''}
+              </cr-button>
+              <cr-button ?hidden="${!this.syncControlsStatus_?.zoneRecoveryPending}"
+                  ?disabled="${this.syncControlsActionPending_}"
+                  @click="${this.onZoneRecoveryClick_}">
+                ${this.syncControlsStatus_?.labels.recoverZone || ''}
+              </cr-button>
+            </div>
+          </div>
+          <div class="secondary" role="status" aria-live="polite"
+              ?hidden="${!this.syncControlsActionFailed_}">
+            $i18n{ahoiBrowserSettingsSyncFailed}
+          </div>
+        </section>
         <section id="ahoiBrowserSettingsSyncSection"
             class="browser-settings-sync-card"
             aria-labelledby="ahoiBrowserSettingsSyncTitle"

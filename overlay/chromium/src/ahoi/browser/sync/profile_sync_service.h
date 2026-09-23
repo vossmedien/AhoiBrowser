@@ -236,6 +236,7 @@ class ProfileSyncService final
   void FinishSharedTabProjection();
   void OnSyncCompleted(std::optional<SyncStateSnapshot> snapshot);
   void OnCloudKitRecoveryConfirmed(bool confirmed);
+  void OnAccountTransitionConfirmed(bool allow_local_upload, bool confirmed);
   void OnSyncEnabledPrefChanged();
   void OnHistoryRetentionPrefChanged();
   void OnRemoteControlPolicyPrefChanged();

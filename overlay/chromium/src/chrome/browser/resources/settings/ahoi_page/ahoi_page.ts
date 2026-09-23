@@ -50,6 +50,42 @@ export interface BrowserSettingsSyncStatusResponse {
   syncEnabled: boolean;
 }
 
+export interface SyncControlsStatusResponse {
+  action: 'requested'|'blocked'|'';
+  statusLabel: string;
+  syncEnabled: boolean;
+  providerAvailable: boolean;
+  keySetupIssue: string;
+  accountTransitionPending: boolean;
+  zoneRecoveryPending: boolean;
+  canSyncNow: boolean;
+  canRetryKey: boolean;
+  canChangeExtensionConsent: boolean;
+  extensionSetupEnabled: boolean;
+  extensionSettingsEnabled: boolean;
+  extensionResults: Array<{
+    id: string,
+    status: string,
+    canRetry: boolean,
+    needsConfirmation: boolean,
+  }>;
+  labels: {
+    syncNow: string,
+    retryKey: string,
+    extensions: string,
+    extensionSetup: string,
+    extensionSettings: string,
+    extensionSettingsHint: string,
+    retryExtension: string,
+    reviewExtension: string,
+    recovery: string,
+    accountRecoveryHint: string,
+    uploadLocal: string,
+    withoutUpload: string,
+    recoverZone: string,
+  };
+}
+
 export interface SettingsAhoiPageElement {
   $: {
     viewManager: CrViewManagerElement,
@@ -85,6 +121,9 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       browserSettingsSyncStatus_: {type: Object},
       browserSettingsSyncActionPending_: {type: Boolean},
       browserSettingsSyncActionFailed_: {type: Boolean},
+      syncControlsStatus_: {type: Object},
+      syncControlsActionPending_: {type: Boolean},
+      syncControlsActionFailed_: {type: Boolean},
       remoteControlStatus_: {type: Object},
       remoteControlDeviceId_: {type: String},
       remoteControlPublicKey_: {type: String},
@@ -105,6 +144,9 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       BrowserSettingsSyncStatusResponse|null = null;
   protected accessor browserSettingsSyncActionPending_: boolean = false;
   protected accessor browserSettingsSyncActionFailed_: boolean = false;
+  protected accessor syncControlsStatus_: SyncControlsStatusResponse|null = null;
+  protected accessor syncControlsActionPending_: boolean = false;
+  protected accessor syncControlsActionFailed_: boolean = false;
   protected accessor remoteControlStatus_: RemoteControlStatusResponse|null =
       null;
   protected accessor remoteControlDeviceId_: string = '';
@@ -143,6 +185,11 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         (status: RemoteControlStatusResponse) => {
           this.applyRemoteControlStatus_(status);
         });
+    this.addWebUiListener(
+        'ahoi-sync-controls-status-changed',
+        (status: SyncControlsStatusResponse) => {
+          this.applySyncControlsStatus_(status);
+        });
     this.mirrorPrefs({
       'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
       'ahoi.navigation.floating_auto_hide_enabled':
@@ -151,6 +198,86 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     });
     void this.refreshRemoteControlStatus_();
     void this.refreshBrowserSettingsSyncStatus_();
+    void this.refreshSyncControlsStatus_();
+  }
+
+  private applySyncControlsStatus_(status: SyncControlsStatusResponse) {
+    this.syncControlsStatus_ = status;
+    this.syncControlsActionFailed_ = status.action === 'blocked';
+  }
+
+  private async refreshSyncControlsStatus_() {
+    try {
+      this.applySyncControlsStatus_(
+          await sendWithPromise<SyncControlsStatusResponse>(
+              'ahoiGetSyncControlsStatus'));
+    } catch {
+      this.syncControlsStatus_ = null;
+      this.syncControlsActionFailed_ = true;
+    }
+  }
+
+  private async runSyncControlAction_(
+      action: string, value?: boolean|string) {
+    if (this.syncControlsActionPending_ || !this.syncControlsStatus_) {
+      return;
+    }
+    this.syncControlsActionPending_ = true;
+    this.syncControlsActionFailed_ = false;
+    try {
+      const status = value === undefined ?
+          await sendWithPromise<SyncControlsStatusResponse>(
+              'ahoiSyncControlAction', action) :
+          await sendWithPromise<SyncControlsStatusResponse>(
+              'ahoiSyncControlAction', action, value);
+      this.applySyncControlsStatus_(status);
+    } catch {
+      await this.refreshSyncControlsStatus_();
+      this.syncControlsActionFailed_ = true;
+    } finally {
+      this.syncControlsActionPending_ = false;
+    }
+  }
+
+  protected onSyncNowClick_() {
+    void this.runSyncControlAction_('syncNow');
+  }
+
+  protected onRetrySyncKeyClick_() {
+    void this.runSyncControlAction_('retryKey');
+  }
+
+  protected onExtensionSetupChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const enabled = checkbox.checked;
+    checkbox.checked = this.syncControlsStatus_?.extensionSetupEnabled ?? false;
+    void this.runSyncControlAction_('extensionSetup', enabled);
+  }
+
+  protected onExtensionSettingsChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const enabled = checkbox.checked;
+    checkbox.checked = this.syncControlsStatus_?.extensionSettingsEnabled ?? false;
+    void this.runSyncControlAction_('extensionSettings', enabled);
+  }
+
+  protected onExtensionRetryClick_(event: Event) {
+    const id = (event.currentTarget as HTMLElement).dataset['extensionId'];
+    if (id) {
+      void this.runSyncControlAction_('retryExtension', id);
+    }
+  }
+
+  protected onAccountRecoveryUploadClick_() {
+    void this.runSyncControlAction_('confirmAccount', true);
+  }
+
+  protected onAccountRecoveryWithoutUploadClick_() {
+    void this.runSyncControlAction_('confirmAccount', false);
+  }
+
+  protected onZoneRecoveryClick_() {
+    void this.runSyncControlAction_('recoverZone');
   }
 
   private applyBrowserSettingsSyncStatus_(

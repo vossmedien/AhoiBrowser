@@ -367,7 +367,35 @@ bool ProfileSyncBackend::CompleteRemoteCommand(base::Uuid command_id,
 }
 
 bool ProfileSyncBackend::ConfirmAccountTransition(bool allow_local_upload) {
-  if (!provider_ || !store_ || !provider_->IsAccountTransitionPending()) {
+  if (!store_ || !transport_enabled_ || !ProfileScopeActive()) {
+    return false;
+  }
+#if BUILDFLAG(IS_MAC)
+  if (!provider_ && key_setup_issue_ == "key_setup_account_changed") {
+    // An account notification can revoke the first-use key lease before the
+    // domain provider exists. The UI already exposes the explicit upload/no-
+    // upload recovery choice, but the old provider-only guard made both
+    // buttons permanent no-ops. Preserve local records and apply that choice
+    // transactionally before starting an independently verified new claim/key
+    // lease. No old key or CloudKit record is copied or replaced here.
+    const auto configuration = CloudKitSyncConfigurationMac::FromMainBundle();
+    if (!configuration || !configuration->IsTransportConfigured() ||
+        !configuration->IsE2EKeyConfigured()) {
+      return false;
+    }
+    ResetBookmarkAuthorizationScope(transport_enabled_ &&
+                                    bookmark_sync_enabled_);
+    if (store_->PrepareOutboxForCloudRecovery(allow_local_upload) !=
+        SyncStore::Result::kOk) {
+      return false;
+    }
+    key_bootstrap_.reset();
+    key_setup_issue_.clear();
+    InitializeProviderIfAvailable();
+    return key_bootstrap_ != nullptr;
+  }
+#endif
+  if (!provider_ || !provider_->IsAccountTransitionPending()) {
     return false;
   }
   ResetBookmarkAuthorizationScope(transport_enabled_ && bookmark_sync_enabled_);
