@@ -1,7 +1,9 @@
 # Portable workspace files
 
-Status: built and visibly accepted for bounded export and read-only file
-preview on installed Mac source `820cf4e`; additive import is NOT implemented.
+Status: bounded export and read-only file preview visibly accepted on installed
+Mac source `820cf4e`. The newer `ff51464` destination comparison was built and
+visibly exercised in a separate signed, isolated profile, but is not installed;
+additive import is NOT implemented.
 The active product requirement is in
 [the master goal](../outputs/AhoiBrowser-Master-Zielprompt.md#portabler-workspace-export-und-wiederimport).
 
@@ -45,3 +47,8 @@ rejected before any profile mutation. It intentionally offers no Import button
 until the separate atomic transaction and rollback path are implemented.
 The isolated real file roundtrip and a rejected unknown-version file are
 recorded in [the Desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md).
+The newer target comparison distinguishes new, identical and colliding IDs for
+Workspaces, nodes, splits and archives without a mutation. Its first visible
+same-profile file readback showed one identical Workspace and one identical
+page, with zero conflicts. New-destination and conflict-choice journeys, the
+atomic write and a repeated no-op remain unproven and open.

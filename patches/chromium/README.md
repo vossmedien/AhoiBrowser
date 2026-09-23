@@ -1033,21 +1033,6 @@ as a second active patch stack.
 - **Security/rebase:** no profile or permission change; narrow Views seam,
   matching the native top-container guard. Low rebase risk.
 
-## `0046-ahoi-omnibox-popup-input-contrast.patch`
-
-- **Owner/baseline:** Desktop, Chromium M153 after the ordered Ahoi stack.
-- **Scope:** Native LocationBarView color selection only. When its WebUI
-  suggestions popup is open before the caret flag becomes visible, the actual
-  editable Omnibox and popup use the same semantic results background. No
-  autocomplete, navigation, profile or command-bar ownership changes.
-- **Evidence:** the isolated `80e2294` candidate visibly retained a white
-  Omnibox input above dark suggestions after the separate CommandBarView
-  adjustment; the popup's accessibility URL was
-  `chrome://omnibox-popup.top-chrome/`. A corrected candidate must show a
-  readable input and suggestions together in glass and opaque modes.
-- **Rebase/removal:** remove when upstream matches the visible popup state in
-  `RefreshBackground` rather than relying on the caret flag alone.
-
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

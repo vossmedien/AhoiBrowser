@@ -1,5 +1,45 @@
 # Active Desktop checkpoint
 
+## Current source and acceptance — 23 September 2026
+
+The shared branch contains the bounded portable-file destination analysis from
+`ff51464`. Its guarded M153 app build exited 0; exact build receipt:
+`artifacts/build/native-m153-portability-ff51464-20260923/build-receipt.json`.
+On a signed APFS-cloned copy with an isolated disposable profile, the normal
+Settings Save/Open journey wrote a 0600, 434-byte file with one public web
+page (SHA-256 `3476078ca306c6b9b13c23d62c90b33b9ac687ae52f2f3f0286a06580eb55e64`).
+Reopening that exact file visibly showed the new destination result: Inbox
+already identical, one identical page, zero new items and zero conflicts;
+“noch nichts importiert” remained explicit. This is a real same-profile
+read-only destination preview, **not** an additive import, new-target conflict
+choice, rollback or no-op commit proof. The source API is intentionally typed
+and keeps raw file bytes/URLs out of WebUI readback.
+
+The user's new Omnibox screenshot exposed a separate **RED** presentation
+defect: white native input above dark M153 WebUI suggestions. Two isolated
+guarded candidates (`80e2294`, `b5f183b`) changed the wrong CommandBarView
+surface and remained visibly white. Those changes were restored to the
+`ff51464` source state. A later exact source `39e6dde` built EXIT0 in the
+guarded cached out (receipt
+`artifacts/build/native-m153-omnibox-39e6dde-20260923/build-receipt.json`,
+binary SHA-256 `57ee8212d4ef99e0227ca6f849f8ea23772993cb115cfe0d12370569d639bce8`),
+but the same visible white input persisted. M153's enabled classic WebUI
+popup has no WebUI search field: the white oval is native LocationBarView.
+Patch `0046`, which only keyed `RefreshBackground` off popup-open state, was
+therefore removed again in the next source commit as ineffective; the exact
+paint/color-provider boundary still needs diagnosis before another build.
+No white-input fix or installed UI candidate is claimed. The debugger and
+exact disposable Ahoi PIDs were ended; later Computer Use binding returned a
+native-pipe startup error, so no further UI result was inferred. The actual
+installed Development app remains `820cf4e` below.
+
+Next independent product work: an atomic additive Workspace-file commit using
+the existing tree/structure persistence authority, with a deliberate conflict
+choice and candidate-bound visible repeat import. Mac–iOS key arrival remains
+the separate RED Sync gate in `ACTIVE_SYNC_COORDINATION.md`. Do not turn the
+read-only comparison into an enabled Import button before the transaction and
+rollback semantics exist; do not retry the ineffective Omnibox patch.
+
 ## Current installed candidate — 23 September 2026
 
 Installed `/Applications/AhoiBrowser.app` is exact M153 source `820cf4e`,
