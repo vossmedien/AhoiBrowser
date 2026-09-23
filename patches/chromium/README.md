@@ -1,5 +1,15 @@
 # Chromium M153 patch ledger
 
+## `0045-ahoi-milky-browser-glass-foundation.patch`
+
+The native macOS glass view now covers the full window beneath Chromium's
+opaque WebContents, while a neutral translucent NSWindow foundation prevents
+desktop windows from showing sharply through transparent WebUI/chrome gaps.
+Reduced-transparency and disabled-Glass paths keep the existing opaque
+fallback. The user's installed `c7381c1` screenshot is RED; this patch is
+source-only until the same Glass on/off Settings and normal-page journey passes
+on a signed candidate. No website compositor or permission path changes.
+
 `series` is the authoritative application order. The active stack targets
 Chromium Mac Stable `153.0.8010.53` at
 `792bf6722e73a45aa9e47c163b9901bdc17f3230`. A roll is accepted only when the

@@ -2,22 +2,25 @@
 
 ## Current installed candidate and next package — 23 September 2026
 
-Installed `/Applications/AhoiBrowser.app` is exact M153 source `ca1e5a7`,
+Installed `/Applications/AhoiBrowser.app` is exact M153 source `c7381c1`,
 CloudKit Development scope `fe842`; guarded build, separate signing verification
 and atomic installer exited0. Receipts:
-`artifacts/build/native-m153-glass-ca1e5a7-20260923/` and
-`artifacts/install/ahoi-dev-ca1e5a7-cloudkit-development-20260923.json`.
-Installed startup/Settings still has no redundant full-width infobar or Sidebar
-divider lines and the content remains flush at the window bottom. The user's
-actual Glass target is the gray **browser-chrome background**, not just the
-sidebar. On `ca1e5a7` the sidebar-only change is insufficient: the main gray
-background does not visibly become milky/translucent, and the bright blue frame
-reappeared while loading/restoring WinFuture even with Glass OFF. This is a RED
-visual gate, not an accepted Glass fix. Source `72a3707` restores neutral-tinted
-native browser glass; its guarded overlay refreshed, but the owner stopped its
-build during hooks at the user's feature-first direction. No `72a3707` build,
-signing, installation or visible pass exists. Preserve the cache and combine
-this source with the next meaningful feature package before another compile.
+`artifacts/build/native-m153-portability-c7381c1-20260923/` and
+`artifacts/install/ahoi-dev-c7381c1-cloudkit-development-20260923.json`.
+The product-only compile included the portable codec, Settings WebUI/handler,
+and the earlier native-Glass source; TS/CSS and C++ linked, signed and installed.
+With Computer Use unavailable after repeated fresh bindings, the user explicitly
+authorized AppleScript fallback. The exact installed app launched in isolated
+`MacA`, and its Settings page visibly shows the independent Workspace export
+section with Inbox/category checkboxes and a disabled Preview until selection.
+No file has been saved, decoded or reimported, so portability E2E remains OPEN.
+The user's screenshot of this same candidate shows sharp desktop windows behind
+the browser when Glass is ON: this is RED, not the requested milky material.
+`0045-ahoi-milky-browser-glass-foundation.patch` is a checked source-only
+correction, not yet built/installed. It gives the NSWindow a neutral translucent
+foundation and extends the native material below the whole browser shell while
+keeping WebContents opaque. The earlier blue-frame issue at Glass OFF remains a
+separate visual regression to check on the corrected candidate.
 
 With the user's action-time approval, the installed `ca1e5a7` completed the
 Official GitHub uBlock Origin Classic 1.74.0 path in the isolated `MacA`
@@ -54,17 +57,18 @@ available standard sources were selectable. It was cancelled without preview,
 import or profile mutation. This is an honest source-availability readback, not
 a new Arc or Zen import pass.
 
-Feature-first source WIP: `portable_workspace_selection.{h,cc}` creates an
+Portability implementation: `portable_workspace_selection.{h,cc}` creates an
 explicit allowlisted workspace/page export projection from the existing
 TabTreeSnapshot and counts excluded temporary, nonportable page and Home
 targets. `portable_workspace_structure.{h,cc}` adds only complete logical
 split groups and explicitly selected archives, excluding nonportable targets
-and preserving native/private/session tokens locally. It is not yet a file
-UI export command or import transaction and has no build/runtime pass. A new
-strict version-1 JSON encoder/decoder is now source-only in
-`portable_workspace_bundle*`; the exact contract is
-`docs/WORKSPACE_PORTABILITY.md`. The next package must wire native save,
-preview and atomic additive reimport before calling portability accepted.
+and preserving native/private/session tokens locally. The strict version-1
+codec is in `portable_workspace_bundle*`; `c7381c1` adds a native Save dialog
+and frozen preview through Ahoi Settings. Only the Settings section's rendering
+is visibly shown; selection, atomic file write, decoder and additive import
+have not passed E2E. The contract is `docs/WORKSPACE_PORTABILITY.md`. Do not
+call portability accepted until export/readback and atomic additive reimport
+work.
 
 Mac Sync remains red: status can reach a matching remote claim but is still
 waiting for the canonical iCloud Keychain item, and an observed account-change
