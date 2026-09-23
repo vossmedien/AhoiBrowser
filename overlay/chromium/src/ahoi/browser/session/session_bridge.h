@@ -51,8 +51,9 @@ class Extension;
 
 namespace ahoi {
 namespace session {
+struct PortableWorkspaceStructure;
 class WorkspaceStructureController;
-}
+}  // namespace session
 
 namespace extensions {
 class NativeExtensionSetupOperation;
@@ -132,6 +133,21 @@ class SessionBridge : public KeyedService,
       base::RepeatingCallback<bool()> authorization,
       base::OnceCallback<void(bool)> completion,
       std::optional<tab_tree::TabTreeSnapshot> tree = std::nullopt);
+  enum class PortableImportResult {
+    kImported,
+    kNoChanges,
+    kConflict,
+    kUnavailable,
+    kFailed,
+  };
+  // Replans a previously inspected, detached portable file against the exact
+  // durable state at the user's commit click. One SQLite transaction owns the
+  // tree, archive/split metadata and rollback; no file path or Sync wire is
+  // accepted at this boundary.
+  void CommitPortableWorkspaceImport(
+      const session::PortableWorkspaceStructure& imported,
+      base::RepeatingCallback<bool()> authorization,
+      base::OnceCallback<void(PortableImportResult)> completion);
   // Local domain operations. They persist with Sync OFF and never open or
   // focus WebContents. The caller presents failure/missing-parent choices.
   void ArchiveTemporaryPages(std::vector<base::Uuid> nodes,

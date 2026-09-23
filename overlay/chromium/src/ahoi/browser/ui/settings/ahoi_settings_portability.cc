@@ -87,6 +87,17 @@ base::DictValue ExportLabels() {
   labels.Set("importTargetUnavailable",
              label("Zielprofil gerade nicht verfügbar",
                    "Destination profile currently unavailable"));
+  labels.Set("importCommit",
+             label("Ausgewählte Datei importieren", "Import selected file"));
+  labels.Set("imported", label("Import abgeschlossen", "Import complete"));
+  labels.Set("noChanges", label("Bereits vorhanden – keine Änderungen",
+                                "Already present – no changes"));
+  labels.Set("importChanged",
+             label("Ziel geändert – Datei erneut prüfen",
+                   "Destination changed – inspect file again"));
+  labels.Set("importCommitFailed",
+             label("Import nicht abgeschlossen – Ergebnis prüfen",
+                   "Import not completed – review result"));
   return labels;
 }
 
@@ -137,7 +148,7 @@ void AhoiSettingsHandler::HandlePreparePortableExport(
   if (args.size() != 4u || !args[1].is_list() ||
       args[1].GetList().size() > 128u || !args[2].is_bool() ||
       !args[3].is_bool() || portable_file_dialog_ || portable_export_writing_ ||
-      portable_import_reading_) {
+      portable_import_reading_ || portable_import_committing_) {
     ResolveJavascriptCallback(args.front().Clone(),
                               base::Value(std::move(result)));
     return;
@@ -227,7 +238,7 @@ void AhoiSettingsHandler::HandleSavePortableExport(
   if (args.size() != 2u || !args[1].is_string() ||
       args[1].GetString() != portable_export_token_ ||
       portable_export_json_.empty() || portable_file_dialog_ ||
-      portable_export_writing_) {
+      portable_export_writing_ || portable_import_committing_) {
     ResolveJavascriptCallback(args.front().Clone(),
                               base::Value(std::move(result)));
     return;
@@ -261,11 +272,13 @@ void AhoiSettingsHandler::HandleOpenPortableImport(
   base::DictValue result;
   result.Set("status", "blocked");
   if (args.size() != 1u || portable_file_dialog_ || portable_export_writing_ ||
-      portable_import_reading_) {
+      portable_import_reading_ || portable_import_committing_) {
     ResolveJavascriptCallback(args.front().Clone(),
                               base::Value(std::move(result)));
     return;
   }
+  portable_import_token_.clear();
+  portable_import_structure_.reset();
   content::WebContents* contents = web_ui()->GetWebContents();
   portable_dialog_purpose_ = PortableDialogPurpose::kImportOpen;
   portable_file_dialog_ = ui::SelectFileDialog::Create(
@@ -316,6 +329,8 @@ AhoiSettingsHandler::ReadPortableImportFile(base::FilePath path) {
 void AhoiSettingsHandler::OnPortableImportRead(
     PortableImportReadback readback) {
   portable_import_reading_ = false;
+  portable_import_token_.clear();
+  portable_import_structure_.reset();
   base::DictValue result;
   result.Set("status", readback.structure ? "targetUnavailable" : "failed");
   SessionBridge* bridge = SessionBridgeFactory::GetForProfile(profile_);
@@ -331,6 +346,18 @@ void AhoiSettingsHandler::OnPortableImportRead(
     if (current_structure) {
       const auto destination = session::AnalyzePortableWorkspaceDestination(
           *readback.structure, current_tree, *current_structure);
+      const int new_workspaces = static_cast<int>(std::ranges::count_if(
+          destination.workspaces, [](const auto& workspace) {
+            return workspace.kind == session::PortableDestinationKind::kNew;
+          }));
+      const int identical_workspaces = static_cast<int>(std::ranges::count_if(
+          destination.workspaces, [](const auto& workspace) {
+            return workspace.kind ==
+                   session::PortableDestinationKind::kIdentical;
+          }));
+      const int conflicting_workspaces =
+          static_cast<int>(destination.workspaces.size()) - new_workspaces -
+          identical_workspaces;
       result.Set("status", "preview");
       result.Set("pages",
                  static_cast<int>(std::ranges::count_if(
@@ -340,17 +367,31 @@ void AhoiSettingsHandler::OnPortableImportRead(
       result.Set("splits", static_cast<int>(readback.structure->splits.size()));
       result.Set("archives",
                  static_cast<int>(readback.structure->archives.size()));
-      result.Set("newItems", static_cast<int>(destination.new_nodes +
-                                              destination.new_splits +
-                                              destination.new_archives));
+      result.Set("newItems",
+                 new_workspaces + static_cast<int>(destination.new_nodes +
+                                                   destination.new_splits +
+                                                   destination.new_archives));
       result.Set("identicalItems",
-                 static_cast<int>(destination.identical_nodes +
-                                  destination.identical_splits +
-                                  destination.identical_archives));
+                 identical_workspaces +
+                     static_cast<int>(destination.identical_nodes +
+                                      destination.identical_splits +
+                                      destination.identical_archives));
       result.Set("conflictingItems",
-                 static_cast<int>(destination.conflicting_nodes +
-                                  destination.conflicting_splits +
-                                  destination.conflicting_archives));
+                 conflicting_workspaces +
+                     static_cast<int>(destination.conflicting_nodes +
+                                      destination.conflicting_splits +
+                                      destination.conflicting_archives));
+      const bool conflict_free = conflicting_workspaces == 0 &&
+                                 destination.conflicting_nodes == 0 &&
+                                 destination.conflicting_splits == 0 &&
+                                 destination.conflicting_archives == 0;
+      result.Set("canImport", conflict_free);
+      if (conflict_free) {
+        portable_import_structure_ = std::move(readback.structure);
+        portable_import_token_ =
+            base::Uuid::GenerateRandomV4().AsLowercaseString();
+        result.Set("token", portable_import_token_);
+      }
       base::ListValue workspaces;
       for (const auto& workspace : destination.workspaces) {
         base::DictValue value;
@@ -371,6 +412,77 @@ void AhoiSettingsHandler::OnPortableImportRead(
     FireWebUIListener("ahoi-portable-import-result",
                       base::Value(std::move(result)));
   }
+}
+
+void AhoiSettingsHandler::HandleCommitPortableImport(
+    const base::ListValue& args) {
+  if (!HasCallbackId(args) || !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  AllowJavascript();
+  base::DictValue result;
+  result.Set("status", "blocked");
+  if (args.size() != 2u || !args[1].is_string() ||
+      args[1].GetString() != portable_import_token_ ||
+      portable_import_token_.empty() || !portable_import_structure_ ||
+      portable_file_dialog_ || portable_import_reading_ ||
+      portable_import_committing_ || portable_export_writing_) {
+    ResolveJavascriptCallback(args.front().Clone(),
+                              base::Value(std::move(result)));
+    return;
+  }
+  SessionBridge* bridge = SessionBridgeFactory::GetForProfile(profile_);
+  if (!bridge) {
+    ResolveJavascriptCallback(args.front().Clone(),
+                              base::Value(std::move(result)));
+    return;
+  }
+  portable_import_committing_ = true;
+  portable_import_token_.clear();
+  portable_import_lease_ = std::make_shared<std::atomic<bool>>(true);
+  auto authorization = base::BindRepeating(
+      [](std::shared_ptr<std::atomic<bool>> lease) {
+        return lease->load(std::memory_order_acquire);
+      },
+      portable_import_lease_);
+  bridge->CommitPortableWorkspaceImport(
+      *portable_import_structure_, std::move(authorization),
+      base::BindOnce(&AhoiSettingsHandler::OnPortableImportCommitted,
+                     weak_factory_.GetWeakPtr(), args.front().Clone()));
+}
+
+void AhoiSettingsHandler::OnPortableImportCommitted(
+    base::Value callback_id,
+    SessionBridge::PortableImportResult outcome) {
+  portable_import_committing_ = false;
+  if (portable_import_lease_) {
+    portable_import_lease_->store(false, std::memory_order_release);
+  }
+  portable_import_lease_.reset();
+  portable_import_structure_.reset();
+  if (!IsJavascriptAllowed() || !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  const char* status = "commitFailed";
+  switch (outcome) {
+    case SessionBridge::PortableImportResult::kImported:
+      status = "imported";
+      break;
+    case SessionBridge::PortableImportResult::kNoChanges:
+      status = "noChanges";
+      break;
+    case SessionBridge::PortableImportResult::kConflict:
+      status = "conflict";
+      break;
+    case SessionBridge::PortableImportResult::kUnavailable:
+      status = "targetUnavailable";
+      break;
+    case SessionBridge::PortableImportResult::kFailed:
+      break;
+  }
+  base::DictValue result;
+  result.Set("status", status);
+  ResolveJavascriptCallback(callback_id, base::Value(std::move(result)));
 }
 
 void AhoiSettingsHandler::FileSelected(const ui::SelectedFileInfo& file,

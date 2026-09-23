@@ -77,6 +77,11 @@ export interface PortableExportOptionsResponse {
     importConflict: string,
     importDestination: string,
     importTargetUnavailable: string,
+    importCommit: string,
+    imported: string,
+    noChanges: string,
+    importChanged: string,
+    importCommitFailed: string,
   };
 }
 
@@ -92,7 +97,10 @@ export interface PortableExportPreviewResponse {
 }
 
 export interface PortableImportPreviewResponse {
-  status: 'preview'|'failed'|'cancelled'|'targetUnavailable';
+  status: 'preview'|'failed'|'cancelled'|'targetUnavailable'|
+      'imported'|'noChanges'|'conflict'|'commitFailed';
+  token?: string;
+  canImport?: boolean;
   workspaces?: Array<{
     name: string,
     destination: 'new'|'identical'|'conflict',
@@ -285,13 +293,17 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
           }
         });
     this.addWebUiListener(
-        'ahoi-portable-import-result',
-        (result: PortableImportPreviewResponse) => {
-          this.portableImportPending_ = false;
-          this.portableImportPreview_ =
-              result.status === 'preview' ? result : null;
-          this.portableImportStatus_ = result.status;
-        });
+      'ahoi-portable-import-result',
+      (result: PortableImportPreviewResponse) => {
+        this.portableImportPending_ = false;
+        this.portableImportPreview_ =
+            result.status === 'preview' ? result : null;
+        this.portableImportStatus_ = result.status;
+        if (result.status === 'imported') {
+          this.portableExportPreview_ = null;
+          void this.refreshPortableExportOptions_();
+        }
+      });
     this.mirrorPrefs({
       'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
       'ahoi.navigation.floating_auto_hide_enabled':
@@ -415,6 +427,32 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
+  protected async onPortableCommitClick_() {
+    if (this.portableImportPending_ ||
+        !this.portableImportPreview_?.canImport ||
+        !this.portableImportPreview_.token) {
+      return;
+    }
+    this.portableImportPending_ = true;
+    this.portableImportStatus_ = '';
+    try {
+      const result = await sendWithPromise<{status: string}>(
+          'ahoiCommitPortableImport', this.portableImportPreview_.token);
+      this.portableImportStatus_ = result.status;
+      if (result.status === 'imported' || result.status === 'noChanges') {
+        this.portableImportPreview_ = null;
+        this.portableExportPreview_ = null;
+        void this.refreshPortableExportOptions_();
+      } else if (result.status === 'conflict') {
+        this.portableImportPreview_ = null;
+      }
+    } catch {
+      this.portableImportStatus_ = 'commitFailed';
+    } finally {
+      this.portableImportPending_ = false;
+    }
+  }
+
   protected portableImportStatusText_(): string {
     const labels = this.portableExportOptions_?.labels;
     switch (this.portableImportStatus_) {
@@ -426,6 +464,14 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         return labels?.importFailed || '';
       case 'targetUnavailable':
         return labels?.importTargetUnavailable || '';
+      case 'imported':
+        return labels?.imported || '';
+      case 'noChanges':
+        return labels?.noChanges || '';
+      case 'conflict':
+        return labels?.importChanged || '';
+      case 'commitFailed':
+        return labels?.importCommitFailed || '';
       default:
         return '';
     }

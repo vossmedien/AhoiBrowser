@@ -4,6 +4,9 @@
 #include "ahoi/browser/session/session_bridge.h"
 
 #include <algorithm>
+#include <utility>
+
+#include "ahoi/browser/session/portable_workspace_import_plan.h"
 #include "ahoi/browser/session/workspace_structure_controller.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
@@ -160,5 +163,85 @@ void SessionBridge::CommitWorkspaceStructureState(
     std::move(pending_tree_apply_completion_)
         .Run(Store::Result::kNotInitialized);
   }
+}
+
+void SessionBridge::CommitPortableWorkspaceImport(
+    const session::PortableWorkspaceStructure& imported,
+    base::RepeatingCallback<bool()> authorization,
+    base::OnceCallback<void(PortableImportResult)> completion) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CHECK(completion);
+  auto* controller = workspace_structure_controller_.get();
+  if (!is_ready() || !persistence_enabled_ || !controller ||
+      !controller->sync_ || !controller->observing_sync_ ||
+      controller->persisting_ || controller->dirty_ ||
+      controller->read_pending_ || controller->publish_pending_ ||
+      pending_tree_apply_cancelled_ || !authorization || !authorization.Run()) {
+    std::move(completion).Run(PortableImportResult::kUnavailable);
+    return;
+  }
+  tab_tree::TabTreeStore::PersistenceSnapshot before;
+  if (tab_tree_store_->ExportPersistenceSnapshot(&before) !=
+          tab_tree::TabTreeStore::Result::kOk ||
+      !durable_tree_snapshot_ || before != *durable_tree_snapshot_) {
+    std::move(completion).Run(PortableImportResult::kUnavailable);
+    return;
+  }
+  const auto structure =
+      session::DecodeWorkspaceStructureState(before.workspace_structure_state);
+  if (!structure || controller->state_.entries != structure->entries ||
+      controller->state_.clock != structure->clock) {
+    std::move(completion).Run(PortableImportResult::kUnavailable);
+    return;
+  }
+  auto plan = session::PreparePortableWorkspaceImport(
+      imported, before.tree, *structure, controller->sync_->local_device_id(),
+      base::Time::Now());
+  if (!plan) {
+    std::move(completion).Run(PortableImportResult::kConflict);
+    return;
+  }
+  if (!plan->changed) {
+    std::move(completion).Run(PortableImportResult::kNoChanges);
+    return;
+  }
+
+  std::optional<tab_tree::TabTreeSnapshot> changed_tree;
+  if (plan->tree != before.tree) {
+    changed_tree = std::move(plan->tree);
+  }
+  controller->persisting_ = true;
+  auto guarded = base::BindRepeating(
+      [](base::RepeatingCallback<bool()> requested,
+         base::RepeatingCallback<bool()> local) {
+        return requested.Run() && local.Run();
+      },
+      std::move(authorization), controller->LocalAuthority());
+  CommitWorkspaceStructureState(
+      std::move(plan->encoded_structure), std::move(guarded),
+      base::BindOnce(
+          [](base::WeakPtr<SessionBridge> bridge,
+             session::WorkspaceStructureState next,
+             base::OnceCallback<void(PortableImportResult)> done, bool ok) {
+            if (!bridge || !bridge->workspace_structure_controller_) {
+              std::move(done).Run(PortableImportResult::kUnavailable);
+              return;
+            }
+            auto* controller = bridge->workspace_structure_controller_.get();
+            controller->persisting_ = false;
+            if (!ok) {
+              controller->Schedule();
+              std::move(done).Run(PortableImportResult::kFailed);
+              return;
+            }
+            controller->state_ = std::move(next);
+            controller->clock_.Restore(controller->state_.clock);
+            controller->dirty_ = false;
+            controller->Schedule();
+            std::move(done).Run(PortableImportResult::kImported);
+          },
+          weak_ptr_factory_.GetWeakPtr(), std::move(plan->structure),
+          std::move(completion)),
+      std::move(changed_tree));
 }
 }  // namespace ahoi

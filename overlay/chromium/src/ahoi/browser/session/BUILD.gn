@@ -89,6 +89,8 @@ source_set("workspace_portability") {
     "portable_workspace_bundle_encode.cc",
     "portable_workspace_import_destination.cc",
     "portable_workspace_import_destination.h",
+    "portable_workspace_import_plan.cc",
+    "portable_workspace_import_plan.h",
     "portable_workspace_structure.cc",
     "portable_workspace_structure.h",
     "workspace_structure_state.cc",

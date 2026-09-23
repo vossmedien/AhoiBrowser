@@ -96,7 +96,14 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
   for (const auto& archive : imported.archives) {
     const auto existing = current_structure.entries.find(archive.id);
     if (existing == current_structure.entries.end()) {
-      ++result.new_archives;
+      const bool page_id_collision = std::ranges::any_of(
+          archive.snapshot.pages,
+          [&](const auto& page) { return nodes.contains(page.tree_node_id); });
+      if (page_id_collision) {
+        ++result.conflicting_archives;
+      } else {
+        ++result.new_archives;
+      }
       continue;
     }
     const auto* record =
@@ -104,7 +111,14 @@ PortableImportDestination AnalyzePortableWorkspaceDestination(
     if (record && !record->tombstone && !record->restored &&
         record->id == archive.id && record->snapshot == archive.snapshot &&
         record->reason == archive.reason &&
-        record->archived_at == archive.archived_at) {
+        record->archived_at == archive.archived_at &&
+        existing->second.archived_locally &&
+        existing->second.private_nodes.size() ==
+            archive.snapshot.pages.size() &&
+        std::ranges::equal(existing->second.private_nodes,
+                           archive.snapshot.pages, std::ranges::equal_to{},
+                           &tab_tree::TreeNode::id,
+                           &sync::SharedArchivePageSnapshot::tree_node_id)) {
       ++result.identical_archives;
     } else {
       ++result.conflicting_archives;

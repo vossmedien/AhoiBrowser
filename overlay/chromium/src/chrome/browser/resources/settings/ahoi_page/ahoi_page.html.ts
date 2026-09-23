@@ -433,6 +433,12 @@ export function getHtml(this: SettingsAhoiPageElement) {
                 ${this.portableImportPreview_.identicalItems}</div>
               <div>${this.portableExportOptions_?.labels.importConflict}:
                 ${this.portableImportPreview_.conflictingItems}</div>
+              <cr-button id="ahoiPortableImportCommit" class="action-button"
+                  ?disabled="${this.portableImportPending_ ||
+                      !this.portableImportPreview_.canImport}"
+                  @click="${this.onPortableCommitClick_}">
+                ${this.portableExportOptions_?.labels.importCommit || ''}
+              </cr-button>
             </div>` : ''}
         </div>
       </section>

@@ -4,6 +4,7 @@
 #ifndef AHOI_BROWSER_UI_SETTINGS_AHOI_SETTINGS_HANDLER_H_
 #define AHOI_BROWSER_UI_SETTINGS_AHOI_SETTINGS_HANDLER_H_
 
+#include <atomic>
 #include <memory>
 #include <optional>
 #include <string>
@@ -11,6 +12,7 @@
 #include <vector>
 
 #include "ahoi/browser/session/portable_workspace_structure.h"
+#include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "base/callback_list.h"
 #include "base/files/file_path.h"
@@ -74,12 +76,15 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   void HandlePreparePortableExport(const base::ListValue& args);
   void HandleSavePortableExport(const base::ListValue& args);
   void HandleOpenPortableImport(const base::ListValue& args);
+  void HandleCommitPortableImport(const base::ListValue& args);
   void OnPortableExportWritten(bool success);
   struct PortableImportReadback {
     std::optional<session::PortableWorkspaceStructure> structure;
   };
   static PortableImportReadback ReadPortableImportFile(base::FilePath path);
   void OnPortableImportRead(PortableImportReadback readback);
+  void OnPortableImportCommitted(base::Value callback_id,
+                                 SessionBridge::PortableImportResult result);
 
   enum class PortableDialogPurpose { kNone, kExportSave, kImportOpen };
 
@@ -93,6 +98,10 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   std::string portable_export_json_;
   bool portable_export_writing_ = false;
   bool portable_import_reading_ = false;
+  bool portable_import_committing_ = false;
+  std::string portable_import_token_;
+  std::optional<session::PortableWorkspaceStructure> portable_import_structure_;
+  std::shared_ptr<std::atomic<bool>> portable_import_lease_;
   base::WeakPtrFactory<AhoiSettingsHandler> weak_factory_{this};
 };
 

@@ -113,6 +113,9 @@ AhoiSettingsHandler::AhoiSettingsHandler(Profile* profile)
       sync_service_(sync::ProfileSyncServiceFactory::GetForProfile(profile_)) {}
 
 AhoiSettingsHandler::~AhoiSettingsHandler() {
+  if (portable_import_lease_) {
+    portable_import_lease_->store(false, std::memory_order_release);
+  }
   if (portable_file_dialog_) {
     portable_file_dialog_->ListenerDestroyed();
   }
@@ -180,6 +183,10 @@ void AhoiSettingsHandler::RegisterMessages() {
   web_ui()->RegisterMessageCallback(
       "ahoiOpenPortableImport",
       base::BindRepeating(&AhoiSettingsHandler::HandleOpenPortableImport,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiCommitPortableImport",
+      base::BindRepeating(&AhoiSettingsHandler::HandleCommitPortableImport,
                           base::Unretained(this)));
 }
 
@@ -292,13 +299,13 @@ base::DictValue AhoiSettingsHandler::BuildSyncControlsStatus(
   };
   base::DictValue labels;
   labels.Set("syncNow", text("Jetzt synchronisieren", "Sync now"));
-  labels.Set("retryKey", text("Verbindung erneut prüfen", "Check connection again"));
+  labels.Set("retryKey",
+             text("Verbindung erneut prüfen", "Check connection again"));
   labels.Set("extensions", text("Erweiterungen", "Extensions"));
   labels.Set("extensionSetup",
              text("Erweiterungen synchronisieren", "Sync extensions"));
-  labels.Set("extensionSettings",
-             text("Unterstützte Erweiterungsoptionen",
-                  "Supported extension settings"));
+  labels.Set("extensionSettings", text("Unterstützte Erweiterungsoptionen",
+                                       "Supported extension settings"));
   labels.Set("extensionSettingsHint",
              text("Nur geprüfte Optionen; unbekannte Daten bleiben lokal.",
                   "Only reviewed options; unknown data stays local."));
@@ -328,10 +335,10 @@ base::DictValue AhoiSettingsHandler::BuildSyncControlsStatus(
                   "iCloud-Account zusammengeführt werden.",
                   "Choose whether to merge local changes into the current "
                   "iCloud account."));
-  labels.Set("uploadLocal",
-             text("Lokale Daten weiter hochladen", "Continue uploading local data"));
-  labels.Set("withoutUpload",
-             text("Ohne lokalen Upload fortfahren", "Continue without local upload"));
+  labels.Set("uploadLocal", text("Lokale Daten weiter hochladen",
+                                 "Continue uploading local data"));
+  labels.Set("withoutUpload", text("Ohne lokalen Upload fortfahren",
+                                   "Continue without local upload"));
   labels.Set("recoverZone",
              text("Sync-Zone wiederherstellen", "Recover sync zone"));
   result.Set("labels", std::move(labels));
@@ -396,14 +403,15 @@ base::DictValue AhoiSettingsHandler::BuildSyncControlsStatus(
       base::DictValue item;
       item.Set("id", id);
       item.Set("status", ExtensionResultLabel(restore.disposition));
-      item.Set("canRetry", status.enabled &&
-                               sync_service_->extension_setup_sync_enabled() &&
-                               (restore.disposition ==
-                                    sync::ExtensionRestoreDisposition::kNeedsConfirmation ||
-                                restore.disposition ==
-                                    sync::ExtensionRestoreDisposition::kFailed ||
-                                restore.disposition ==
-                                    sync::ExtensionRestoreDisposition::kCancelled));
+      item.Set("canRetry",
+               status.enabled &&
+                   sync_service_->extension_setup_sync_enabled() &&
+                   (restore.disposition ==
+                        sync::ExtensionRestoreDisposition::kNeedsConfirmation ||
+                    restore.disposition ==
+                        sync::ExtensionRestoreDisposition::kFailed ||
+                    restore.disposition ==
+                        sync::ExtensionRestoreDisposition::kCancelled));
       item.Set("needsConfirmation",
                restore.disposition ==
                    sync::ExtensionRestoreDisposition::kNeedsConfirmation);
@@ -414,9 +422,8 @@ base::DictValue AhoiSettingsHandler::BuildSyncControlsStatus(
   return result;
 }
 
-void AhoiSettingsHandler::ResolveSyncControlsStatus(
-    base::Value callback_id,
-    std::string_view action) {
+void AhoiSettingsHandler::ResolveSyncControlsStatus(base::Value callback_id,
+                                                    std::string_view action) {
   ResolveJavascriptCallback(callback_id,
                             base::Value(BuildSyncControlsStatus(action)));
 }
@@ -439,8 +446,7 @@ void AhoiSettingsHandler::HandleGetSyncControlsStatus(
   ResolveSyncControlsStatus(args.front().Clone(), {});
 }
 
-void AhoiSettingsHandler::HandleSyncControlAction(
-    const base::ListValue& args) {
+void AhoiSettingsHandler::HandleSyncControlAction(const base::ListValue& args) {
   if (!HasCallbackId(args) || args.front().GetString().empty() ||
       !IsAuthorizedSettingsPage()) {
     return;
@@ -461,32 +467,31 @@ void AhoiSettingsHandler::HandleSyncControlAction(
       !status.zone_recovery_pending) {
     sync_service_->SyncNowFromUser();
     accepted = true;
-  } else if (sync_service_ && action == "retryKey" &&
-             args.size() == 2u && status.enabled &&
-             !status.key_setup_issue.empty() &&
+  } else if (sync_service_ && action == "retryKey" && args.size() == 2u &&
+             status.enabled && !status.key_setup_issue.empty() &&
              !status.account_transition_pending &&
              !status.zone_recovery_pending) {
     sync_service_->RetrySyncKeySetup();
     accepted = true;
-  } else if (sync_service_ && action == "extensionSetup" &&
-             args.size() == 3u && args[2].is_bool()) {
+  } else if (sync_service_ && action == "extensionSetup" && args.size() == 3u &&
+             args[2].is_bool()) {
     accepted = sync_service_->SetExtensionSetupSyncEnabled(args[2].GetBool());
   } else if (sync_service_ && action == "extensionSettings" &&
              args.size() == 3u && args[2].is_bool()) {
-    accepted = sync_service_->SetExtensionSettingsSyncEnabled(args[2].GetBool());
-  } else if (sync_service_ && action == "bookmarkSync" &&
-             args.size() == 3u && args[2].is_bool()) {
+    accepted =
+        sync_service_->SetExtensionSettingsSyncEnabled(args[2].GetBool());
+  } else if (sync_service_ && action == "bookmarkSync" && args.size() == 3u &&
+             args[2].is_bool()) {
     accepted = sync_service_->SetBookmarkSyncEnabled(args[2].GetBool());
-  } else if (sync_service_ && action == "retryExtension" &&
-             args.size() == 3u && args[2].is_string()) {
+  } else if (sync_service_ && action == "retryExtension" && args.size() == 3u &&
+             args[2].is_string()) {
     accepted = sync_service_->RetryExtensionSetup(args[2].GetString());
-  } else if (sync_service_ && action == "confirmAccount" &&
-             args.size() == 3u && args[2].is_bool() &&
-             status.account_transition_pending) {
+  } else if (sync_service_ && action == "confirmAccount" && args.size() == 3u &&
+             args[2].is_bool() && status.account_transition_pending) {
     sync_service_->ConfirmCloudKitAccountTransition(args[2].GetBool());
     accepted = true;
-  } else if (sync_service_ && action == "recoverZone" &&
-             args.size() == 2u && status.zone_recovery_pending) {
+  } else if (sync_service_ && action == "recoverZone" && args.size() == 2u &&
+             status.zone_recovery_pending) {
     sync_service_->ConfirmCloudKitZoneRecovery();
     accepted = true;
   }
