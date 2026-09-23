@@ -295,7 +295,7 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
       gfx::Size(visual_style::kCommandBarContentWidth,
                 visual_style::kCommandBarInputHeight));
   input_shell->SetBackground(views::CreateRoundedRectBackground(
-      visual_style::kRaisedSurface, visual_style::kControlCornerRadius));
+      ui::kColorSysSurface, visual_style::kControlCornerRadius));
   input_shell->SetBorder(views::CreateRoundedRectBorder(
       visual_style::kControlBorderThickness, visual_style::kControlCornerRadius,
       visual_style::kAccent));
@@ -323,7 +323,7 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   textfield_->SetPlaceholderText(placeholder);
   textfield_->SetAccessibleName(placeholder);
   textfield_->SetBorder(nullptr);
-  textfield_->SetBackgroundColor(visual_style::kRaisedSurface);
+  textfield_->SetBackgroundColor(ui::kColorSysSurface);
   textfield_->SetTextColorId(visual_style::kText);
   textfield_->SetPlaceholderTextColorId(visual_style::kMutedText);
   textfield_->RemoveHoverEffect();
@@ -368,6 +368,13 @@ void CommandBarView::OnAppearanceChanged(
   const appearance::SurfaceAppearance surface =
       appearance::AppearanceResolver::Resolve(
           appearance::SurfaceRole::kCommandBar, policy);
+  // The input must use the same semantic surface as its dialog. Surface3 can
+  // resolve to a light field while the floating command surface is dark,
+  // leaving the icon and editable text effectively invisible.
+  textfield_->parent()->SetBackground(views::CreateRoundedRectBackground(
+      surface.background_color, visual_style::kControlCornerRadius));
+  textfield_->SetBackgroundColor(surface.background_color);
+  textfield_->SetTextColorId(surface.foreground_color);
   views::ClientView* client_view =
       GetWidget() ? GetWidget()->client_view() : nullptr;
   if (!client_view) {
