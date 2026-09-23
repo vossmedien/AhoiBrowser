@@ -1,0 +1,16 @@
+diff --git a/chrome/browser/ui/views/location_bar/location_bar_view.cc b/chrome/browser/ui/views/location_bar/location_bar_view.cc
+--- a/chrome/browser/ui/views/location_bar/location_bar_view.cc
++++ b/chrome/browser/ui/views/location_bar/location_bar_view.cc
+@@ -1633,9 +1633,9 @@ void LocationBarView::RefreshBackground() {
+       color_provider->GetColor(kColorLocationBarBackgroundHovered);
+ 
+   background_color_ = gfx::Tween::ColorValueBetween(opacity, normal, hovered);
+-  if (is_caret_visible) {
+-    // Match the background color to the popup if the Omnibox is visibly
+-    // focused.
++  if (is_caret_visible || GetOmniboxController()->IsPopupOpen()) {
++    // The WebUI popup can already be visible while the caret flag is false.
++    // Keep the input and suggestions on the same contrast surface then.
+     background_color_ =
+         color_provider->GetColor(kColorOmniboxResultsBackground);
+   } else if (input_in_progress && !high_contrast) {
