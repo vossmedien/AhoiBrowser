@@ -1,5 +1,18 @@
 # Active Mobile checkpoint
 
+## Focused Format-3 regression — 24 September 2026
+
+Clean detached source `7d7a92a` replaces two obsolete SharedTab test classes
+with current Format-3 checks; Mobile product/config/project files remain
+unchanged from visibly tested source `45330d2`. Xcode 27.0 on dedicated
+A168/iOS 27, `DebugLocal` test action, exact source stamp and two class filters:
+6 passed, 0 failed, 0 skipped, with both files compiled rather than excluded.
+The [result bundle and limits](../artifacts/tests/mobile-format3-7d7a92a-20260924/README.md)
+are archived. This is a focused unit regression only: no Build41 installed
+journey, no new CloudKit claim and no Mac/mobile encrypted record roundtrip.
+Build40/source `45330d2` remains the last visibly accepted Mobile Development
+candidate.
+
 ## Current product correction — 22 September 2026
 
 The user's WinFuture report reproduced on installed build38/iOS27: ordinary
