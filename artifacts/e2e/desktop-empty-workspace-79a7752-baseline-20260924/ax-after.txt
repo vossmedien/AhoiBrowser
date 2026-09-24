@@ -1,0 +1,2 @@
+  AXWindow | Ahoi empty workspace probe - Chromium
+                    AXButton | Leer-Zwei, Workspace wechseln | Leer-Zwei, Workspace wechseln

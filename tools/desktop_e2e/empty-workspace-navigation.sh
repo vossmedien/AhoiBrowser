@@ -39,14 +39,32 @@ newws() {
     $AX key $PID 53 >> $OUT/steps.txt; sleep 2
   done
   waitax "AXTextField \\| Workspace-Name" 8 || fail_setup "workspace dialog for $2 did not open"
-  $AX setvalue $PID "Workspace-Name" "$2" >> $OUT/steps.txt; $AX press $PID "Erstellen" >> $OUT/steps.txt
-  waitax "$2, Workspace wechseln" 10 || fail_setup "workspace $2 not active"
+  $AX setvalue $PID "Workspace-Name" "$2" >> $OUT/steps.txt; sleep 1
+  for attempt in 1 2 3; do
+    $AX press $PID "Erstellen" >> $OUT/steps.txt
+    waitax "$2, Workspace wechseln" 6 && break
+    # Fall back to real typing so the dialog sees ordinary text edits.
+    $AX focus $PID "Workspace-Name" >> $OUT/steps.txt; $AX key $PID 0 cmd >> $OUT/steps.txt
+    $AX type $PID "$2" >> $OUT/steps.txt; sleep 1
+  done
+  waitax "$2, Workspace wechseln" 4 || fail_setup "workspace $2 not active"
 }
 nav() { # <keycode> <url>
-  $AX key $PID $1 cmd >> $OUT/steps.txt
-  waitax "AXWindow \\| Suchen oder URL eingeben" 10 || fail_setup "command bar did not open"
-  sleep 1; $AX key $PID 0 cmd >> $OUT/steps.txt
-  $AX type $PID "$2" >> $OUT/steps.txt; sleep 1; $AX key $PID 36 >> $OUT/steps.txt
+  local opened=0
+  for attempt in 1 2 3; do
+    $AX activate $PID >> $OUT/steps.txt; sleep 1
+    $AX key $PID $1 cmd >> $OUT/steps.txt
+    waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
+  done
+  [ $opened = 1 ] || fail_setup "command bar did not open"
+  local typed=0
+  for attempt in 1 2 3; do
+    sleep 1; $AX key $PID 0 cmd >> $OUT/steps.txt
+    $AX type $PID "$2" >> $OUT/steps.txt
+    waitax "URL eingeben \\| .*${2//\?/\\?}" 4 && { typed=1; break; }
+  done
+  [ $typed = 1 ] || fail_setup "typed URL $2 did not reach the command bar"
+  $AX key $PID 36 >> $OUT/steps.txt
 }
 # Step A: first empty workspace, ⌘T (new tab) -> tab A in "Leer-Test".
 newws Inbox Leer-Test; nav 17 "$SITE/?empty-probe=1"
@@ -62,7 +80,8 @@ b=dict(json.loads(sys.argv[1])); a=dict(json.loads(sys.argv[2]))
 moved=[i for i in b if i in a and a[i]!=b[i]]
 new=[i for i in a if i not in b]
 ok=not moved and len(new)==1 and a[new[0]].endswith("empty-probe=2")
-print(json.dumps({"pass":ok,"hiddenTabsNavigated":moved,"newTabs":{i:a[i] for i in new}},indent=1))
+navigated=any(u.endswith("empty-probe=2") for u in a.values())
+print(json.dumps({"pass":ok,"navigationObserved":navigated,"hiddenTabsNavigated":moved,"newTabs":{i:a[i] for i in new}},indent=1))
 PY
 $AX key $PID 12 cmd >> $OUT/steps.txt; sleep 5; kill -0 $PID 2>/dev/null && echo "still running after quit" >> $OUT/run.txt
 cat $OUT/verdict.json
