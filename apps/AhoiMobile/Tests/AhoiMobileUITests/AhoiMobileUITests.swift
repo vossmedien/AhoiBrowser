@@ -423,8 +423,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
 
         app.buttons["browser.more"].tap()
         let save = app.buttons["browser.actions.save-to-workspace"]
-        XCTAssertTrue(save.waitForExistence(timeout: 5))
-        for _ in 0..<4 where !save.isHittable { app.swipeUp() }
+        XCTAssertTrue(revealInLazySheet(save, in: app))
         save.tap()
         let destination = app.buttons[workspace]
         XCTAssertTrue(destination.waitForExistence(timeout: 4))
@@ -435,8 +434,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
 
         app.buttons["browser.more"].tap()
         let homeHelp = app.staticTexts["browser.actions.home-help"]
-        XCTAssertTrue(homeHelp.waitForExistence(timeout: 8))
-        for _ in 0..<6 where !homeHelp.isHittable { app.swipeUp() }
+        XCTAssertTrue(revealInLazySheet(homeHelp, in: app))
         XCTAssertTrue(
             homeHelp.label.hasPrefix("Die Ausgangsadresse ist der feste Startpunkt") ||
             homeHelp.label.hasPrefix("A Home Address is this saved page")
@@ -797,6 +795,17 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         app.buttons.matching(
             NSPredicate(format: "label IN %@", labels)
         ).firstMatch
+    }
+
+    /// Lazy sheet lists only materialize rows near the viewport.
+    @MainActor
+    private func revealInLazySheet(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
+        if element.waitForExistence(timeout: 2), element.isHittable { return true }
+        for _ in 0..<8 {
+            app.swipeUp()
+            if element.waitForExistence(timeout: 1), element.isHittable { return true }
+        }
+        return false
     }
 
     /// Reads off the main thread so a system paste-consent prompt can be answered.
