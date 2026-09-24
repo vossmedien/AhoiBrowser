@@ -510,17 +510,9 @@ public struct AhoiMobileBrowserView: View {
             syncEnabled: $syncEnabled,
             openURL: browserOpenURLAction,
             onOpenTreeNode: openSharedPage,
-            accentTint: chromeTintColor
+            accentTint: chromeTintColor,
+            onDone: { libraryPresented = false }
         )
-        .overlay(alignment: .topTrailing) {
-            Button(CompanionL10n.string("action.done", fallback: "Done")) {
-                libraryPresented = false
-            }
-            .buttonStyle(.borderedProminent)
-            .padding(.top, 16)
-            .padding(.trailing, 18)
-            .accessibilityIdentifier("browser.library.done")
-        }
     }
     private var browserOpenURLAction: OpenURLAction {
         OpenURLAction { url in

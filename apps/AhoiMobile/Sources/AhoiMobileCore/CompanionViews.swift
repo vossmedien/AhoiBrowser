@@ -21,6 +21,7 @@ public struct CompanionRootView: View {
     private let overriddenOpenURL: OpenURLAction?
     private let onOpenTreeNode: ((TreeNodeID) -> Void)?
     private let accentTint: Color
+    private let onDone: (() -> Void)?
     @State private var selectedWorkspaceID: WorkspaceID?
     @State private var query = ""
     @State private var draftTitle = ""
@@ -40,13 +41,15 @@ public struct CompanionRootView: View {
         syncEnabled: Binding<Bool>,
         openURL: OpenURLAction? = nil,
         onOpenTreeNode: ((TreeNodeID) -> Void)? = nil,
-        accentTint: Color = .accentColor
+        accentTint: Color = .accentColor,
+        onDone: (() -> Void)? = nil
     ) {
         self.model = model
         self._syncEnabled = syncEnabled
         self.overriddenOpenURL = openURL
         self.onOpenTreeNode = onOpenTreeNode
         self.accentTint = accentTint
+        self.onDone = onDone
     }
 
     private var openURL: OpenURLAction { overriddenOpenURL ?? systemOpenURL }
@@ -127,6 +130,7 @@ public struct CompanionRootView: View {
             .background(accentTint.opacity(0.055))
             .accessibilityIdentifier("browser.library.root")
             .navigationTitle("AhoiBrowser")
+            .modifier(LibraryDoneToolbar(onDone: onDone))
             .toolbar {
                 ToolbarItem(placement: .automatic) {
                     Menu {
@@ -205,6 +209,7 @@ public struct CompanionRootView: View {
                 )
             }
         } detail: {
+            Group {
             if let workspace = model.snapshot.visibleWorkspaces.first(where: { $0.id == selectedWorkspaceID }) {
                 WorkspaceDetailView(
                     workspace: workspace,
@@ -260,6 +265,9 @@ public struct CompanionRootView: View {
                     ))
                 )
             }
+            }
+            // A pushed compact detail hides the sidebar's Done, so it carries its own.
+            .modifier(LibraryDoneToolbar(onDone: onDone, onlyWhenCompact: true))
         }
         .tint(accentTint)
         .sheet(isPresented: $bookmarksPresented) {
@@ -760,5 +768,24 @@ private struct TreeNodeRow: View {
                 ? "browser.library.folder.\(stableUUID(node.id.rawValue))"
                 : "browser.library.saved-page.\(stableUUID(node.id.rawValue))"
         )
+    }
+}
+
+private struct LibraryDoneToolbar: ViewModifier {
+    let onDone: (() -> Void)?
+    var onlyWhenCompact = false
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    func body(content: Content) -> some View {
+        if let onDone, !onlyWhenCompact || sizeClass == .compact {
+            content.toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(CompanionL10n.string("action.done", fallback: "Done"), action: onDone)
+                        .accessibilityIdentifier("browser.library.done")
+                }
+            }
+        } else {
+            content
+        }
     }
 }

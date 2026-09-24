@@ -450,6 +450,48 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].exists)
     }
 
+    /// Creating a Workspace pushes its detail on iPhone; Done must still close
+    /// the library from there (build66 left it stuck behind the pushed detail).
+    @MainActor
+    func testLibraryClosesWithDoneAfterCreatingWorkspace() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+        let name = "Fertig \(UUID().uuidString.prefix(6))"
+        app.buttons["browser.more"].tap()
+        let workspaces = app.buttons["browser.actions.workspaces"]
+        XCTAssertTrue(waitForHittable(workspaces, timeout: 5))
+        workspaces.tap()
+        let manage = app.buttons["browser.library.manage"]
+        XCTAssertTrue(waitForHittable(manage, timeout: 8))
+        manage.tap()
+        let create = app.buttons["browser.library.create.workspace"]
+        XCTAssertTrue(waitForHittable(create, timeout: 8))
+        create.tap()
+        let identified = app.textFields["browser.library.create.name"]
+        let field = identified.waitForExistence(timeout: 3)
+            ? identified : app.alerts.firstMatch.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText(name)
+        let confirm = app.alerts.firstMatch.buttons["browser.library.create.confirm"].firstMatch
+        XCTAssertTrue(waitForHittable(confirm, timeout: 5))
+        confirm.tap()
+        XCTAssertTrue(confirm.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars.staticTexts[name].waitForExistence(timeout: 8)
+                      || app.staticTexts[name].waitForExistence(timeout: 2))
+        attachScreenshot(named: "library-created-workspace-detail", of: app)
+
+        let done = app.buttons["browser.library.done"]
+        XCTAssertTrue(waitForHittable(done, timeout: 5), "Done must be reachable on the pushed detail.")
+        done.tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.library.root"].waitForNonExistence(timeout: 5)
+        )
+        XCTAssertTrue(waitForHittable(app.buttons["browser.address"], timeout: 5))
+        attachScreenshot(named: "library-closed-browser-ready", of: app)
+    }
+
     /// Saved-page Home help needs real shared-tab presence; see
     /// `MobileBrowserTabWorkspaceRealE2EUITests.testSavedPageHomeAddressHelpReturnAndRestore`.
     @MainActor
