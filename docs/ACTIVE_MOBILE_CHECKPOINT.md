@@ -1,5 +1,19 @@
 # Active Mobile checkpoint
 
+## Page-link copy and unavailable Reader — 24 September 2026
+
+Exact clean source `bda2815`, Xcode27 `DebugLocal` build52, passed one visible
+A168/iOS27 journey **1 passed, 0 failed, 0 skipped**: "Adresse kopieren" and
+"Link als Markdown kopieren" wrote the exact expected strings to the real
+system pasteboard (runner answered the paste-consent prompt), and on the same
+page with its article removed the Reader showed the localized "kein lesbarer
+Artikel" alert while the original page remained. Build51 was a test-harness
+RED (wrong German prompt label), not a product failure. Built and installed
+bundles matched byte-for-byte with valid ad-hoc signature and source/build
+stamp. [Candidate, images and limits](../artifacts/e2e/mobile-copy-reader-unavailable52-20260924/README.md).
+Private-tab local-only copy, escaping-heavy titles, real websites, physical
+device, Desktop and full DoD27 remain open. C645/CloudKit Sync untouched.
+
 ## Reader: article chosen over enclosing main — 24 September 2026
 
 Exact clean source `3abe4c4`, Xcode27 `DebugLocal` build50, passed the visible
