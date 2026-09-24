@@ -29,9 +29,14 @@ separate and is unavailable on this host. The exact host check and guarded
 54-patch overlay refresh passed. From clean detached source
 `/private/tmp/ahoi-m153-ws.x4fmXk/repo`, the guarded
 `./scripts/build-ahoi.sh dev ahoi_session_unittests` is currently compiling in
-the shared Desktop-owned `out/AhoiDev`, with log
-`/private/tmp/ahoi-m153-ws.x4fmXk/build8-xcode27.log` (wrapper PID 86153,
-Ninja PID 96985 at the last live check). These PIDs are observations, not
+the shared Desktop-owned `out/AhoiDev`. Build8
+(`build8-xcode27.log`, `AHOI_JOBS=2`) reached 26722/52538 without an error and
+was deliberately interrupted with SIGINT at 22:4x CEST because two jobs under
+heavy unrelated host load would have needed many more hours; the wrapper's
+EXIT trap restored both dependency workarounds. The same guarded command from
+the same clean source resumed incrementally as build9 with `AHOI_JOBS=6`
+(`/private/tmp/ahoi-m153-ws.x4fmXk/run-build9.sh`, log `build9-xcode27.log`,
+exit file `build9-xcode27.exit`). These PIDs are observations, not
 resumption instructions; verify live state before acting. Available disk was
 above the 64-GiB build recommendation. No terminal build result, new signed
 candidate, unit result, or visible E2E is claimed yet. After an EXIT0, first
