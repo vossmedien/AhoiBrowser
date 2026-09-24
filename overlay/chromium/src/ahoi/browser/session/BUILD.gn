@@ -22,6 +22,8 @@ source_set("session_restore_integration") {
     "session_restore_integration.h",
   ]
   public_deps = [
+    ":session_preferences",
+    ":website_session_context",
     ":workspace_session_metadata",
     "//base",
     "//chrome/browser/profiles:profile",
@@ -36,9 +38,22 @@ source_set("session_preferences") {
     "session_prefs.h",
   ]
   public_deps = [
+    "//base",
     "//components/prefs",
     "//components/sync_preferences",
   ]
+}
+
+source_set("website_session_context") {
+  sources = [
+    "website_session_context.cc",
+    "website_session_context.h",
+  ]
+  public_deps = [
+    ":session_preferences",
+    "//content/public/browser",
+  ]
+  deps = [ "//chrome/browser/profiles:profile" ]
 }
 
 source_set("startup_policy") {
@@ -70,6 +85,7 @@ source_set("session_bridge_api") {
   public_deps = [
     ":session_restore_integration",
     ":workspace_session_metadata",
+    ":website_session_context",
     "//ahoi/browser/navigation",
     "//ahoi/browser/sync:profile_sync_ui_bridge",
     "//ahoi/browser/tab_tree",
@@ -134,6 +150,7 @@ source_set("session") {
     ":startup_policy",
     ":workspace_portability",
     ":workspace_session_metadata",
+    ":website_session_context",
     "//ahoi/browser/navigation",
     "//ahoi/browser/tab_tree",
     "//base",

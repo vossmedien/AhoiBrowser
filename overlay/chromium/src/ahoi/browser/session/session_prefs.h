@@ -7,6 +7,11 @@
 #include <optional>
 #include <string_view>
 
+#include "base/containers/span.h"
+#include "base/feature.h"
+#include "base/feature_list.h"
+#include "base/uuid.h"
+
 class PrefService;
 
 namespace user_prefs {
@@ -16,6 +21,25 @@ class PrefRegistrySyncable;
 namespace ahoi::session {
 
 inline constexpr char kStartupModePref[] = "ahoi.session.startup_mode";
+// These profile preferences are deliberately not syncable. A workspace's
+// portable identity is distinct from its device-local website-session binding.
+inline constexpr char kWebsiteSessionBindingsPref[] =
+    "ahoi.session.website_session_bindings";
+
+// Development gate while Chromium's native site-permission authority is still
+// profile-wide. Once a profile has local bindings, disabling the feature must
+// not silently route its existing isolated Workspaces to the default jar.
+BASE_DECLARE_FEATURE(kAhoiWorkspaceWebsiteSessions);
+bool ShouldUseWorkspaceWebsiteSessions(const PrefService* prefs);
+
+struct WebsiteSessionBinding {
+  // An invalid UUID means Chromium's existing default StoragePartition. This
+  // is an explicit binding, not a missing dictionary entry.
+  base::Uuid context_id;
+
+  bool is_default() const { return !context_id.is_valid(); }
+  bool operator==(const WebsiteSessionBinding&) const = default;
+};
 
 enum class StartupMode {
   kAsk = 0,
@@ -34,6 +58,27 @@ StartupMode GetStartupMode(const PrefService& prefs);
 // Returns false for managed preferences or an invalid enum value.
 bool SetStartupMode(PrefService* prefs, StartupMode mode);
 bool IsStartupModeManaged(const PrefService& prefs);
+
+// On first adoption, bind every already-persisted workspace to the existing
+// default partition. New workspaces subsequently receive a fresh local context
+// without moving, copying or clearing any previously stored website data.
+bool InitializeWebsiteSessionBindings(
+    PrefService* prefs,
+    base::span<const base::Uuid> existing_workspace_ids);
+
+// A missing entry after initialization is a newly arriving workspace. Invalid
+// entries fail rather than silently sending that workspace to the default jar.
+std::optional<WebsiteSessionBinding> GetOrCreateWebsiteSessionBinding(
+    PrefService* prefs,
+    const base::Uuid& workspace_id);
+
+// Restore accepts a local isolated context only if the profile already knows
+// it. Corrupt or foreign tab metadata goes to a separate, stable recovery
+// partition instead of gaining access to another workspace's cookies.
+bool IsKnownWebsiteSessionBinding(const PrefService* prefs,
+                                  const WebsiteSessionBinding& binding);
+std::optional<WebsiteSessionBinding> GetWebsiteSessionRecoveryBinding(
+    const PrefService* prefs);
 
 }  // namespace ahoi::session
 

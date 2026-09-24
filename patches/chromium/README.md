@@ -1082,6 +1082,26 @@ as a second active patch stack.
 - **Security/rebase:** no profile or permission change; narrow Views seam,
   matching the native top-container guard. Low rebase risk.
 
+## `0049`–`0052`: M153 workspace website-session routing (development gate)
+
+- **Owner:** Desktop; native Chromium M153, ordered after the fullscreen UI
+  correction. `0049` selects a persistent fixed StoragePartition before a new
+  WebContents is created, `0050` restores the same partition and SessionStorage
+  namespace, `0051` preserves it for `noopener` windows, and `0052` rejects a
+  foreign or corrupt restored context instead of using the shared default jar.
+- **Safety:** existing Workspaces are explicitly bound to their original default
+  partition. New Workspaces get device-local random context IDs; local IDs,
+  cookies, site data and grants never enter portable tree/sync records. The
+  routing is disabled by default while M153's profile-wide native permission
+  map is not yet scoped to the website-session context. Source composition or
+  a cookie-only trial is not feature acceptance.
+- **Tests:** guarded M153 build, then short visible two-account/restart journey
+  on an isolated profile with the development feature enabled; afterward
+  popup/noopener, restore, transfer, site-permission and extension boundaries.
+- **Rebase/removal:** medium-to-high at navigation, restore and content popup
+  seams. Keep the feature gated until the native permission boundary and the
+  complete acceptance journey are proven.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

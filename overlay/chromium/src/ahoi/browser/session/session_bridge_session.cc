@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/session_prefs.h"
+#include "ahoi/browser/session/website_session_context.h"
 #include "ahoi/browser/session/workspace_session_metadata.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
@@ -81,6 +83,9 @@ std::optional<session::TabSessionMetadata> SessionBridge::GetTabSessionMetadata(
   }
 
   const RuntimeTabState& runtime = runtime_it->second;
+  const std::optional<session::WebsiteSessionBinding> website_binding =
+      session::WebsiteSessionBindingForWebContents(
+          profile_, tab->GetContents());
   bool last_active = false;
   auto browser_it = model_windows_.find(runtime.tab_strip_model);
   if (browser_it != model_windows_.end()) {
@@ -106,7 +111,35 @@ std::optional<session::TabSessionMetadata> SessionBridge::GetTabSessionMetadata(
                           : std::nullopt,
       .last_active_in_workspace = last_active,
       .shared_binding_invalidated = runtime.shared_binding_invalidated,
+      .website_session_context_id =
+          website_binding && !website_binding->is_default()
+              ? std::make_optional(website_binding->context_id)
+              : std::nullopt,
   };
+}
+
+std::optional<session::WebsiteSessionBinding>
+SessionBridge::GetWebsiteSessionBindingForWindow(
+    const BrowserWindowInterface* browser) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_ || !ShouldTrackBrowser(browser)) {
+    return std::nullopt;
+  }
+  if (!tab_tree_ready_) {
+    // Session restore itself supplies the tab's persisted local context. Tabs
+    // created before the asynchronous tree load retain legacy/default state.
+    return session::WebsiteSessionBinding();
+  }
+  if (!session::ShouldUseWorkspaceWebsiteSessions(profile_->GetPrefs())) {
+    return session::WebsiteSessionBinding();
+  }
+  const std::optional<base::Uuid> workspace_id =
+      GetActiveWorkspaceForWindow(browser);
+  if (!workspace_id.has_value() || !WorkspaceExists(*workspace_id)) {
+    return std::nullopt;
+  }
+  return session::GetOrCreateWebsiteSessionBinding(profile_->GetPrefs(),
+                                                   *workspace_id);
 }
 
 tabs::TabInterface* SessionBridge::GetLastActiveTabForWorkspace(

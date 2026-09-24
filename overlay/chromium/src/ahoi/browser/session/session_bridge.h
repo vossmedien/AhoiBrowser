@@ -239,6 +239,9 @@ class SessionBridge : public KeyedService,
       const BrowserWindowInterface* browser) const override;
   std::optional<session::TabSessionMetadata> GetTabSessionMetadata(
       const tabs::TabInterface* tab) const override;
+  std::optional<session::WebsiteSessionBinding>
+  GetWebsiteSessionBindingForWindow(
+      const BrowserWindowInterface* browser) const override;
   [[nodiscard]] bool RestoreWindowSessionMetadata(
       BrowserWindowInterface* browser,
       const session::WindowSessionMetadata& metadata) override;

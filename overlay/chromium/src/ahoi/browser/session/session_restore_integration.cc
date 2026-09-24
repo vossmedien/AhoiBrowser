@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ahoi/browser/session/session_restore_integration.h"
+#include "ahoi/browser/session/website_session_context.h"
 
 #include <optional>
 #include <string>
@@ -12,6 +13,8 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/site_instance.h"
+#include "content/public/browser/storage_partition.h"
 
 namespace ahoi::session {
 
@@ -151,6 +154,59 @@ bool RestoreTabSessionExtraData(
   WorkspaceSessionMetadataProvider* provider =
       GetProviderForSessionBrowser(browser, tab);
   return provider && provider->RestoreTabSessionMetadata(tab, metadata);
+}
+
+std::optional<WebsiteSessionBinding> ResolveWebsiteSessionBindingForNewTab(
+    BrowserWindowInterface* browser,
+    content::SiteInstance* initiating_site_instance) {
+  if (!browser || !browser->GetProfile()) {
+    return std::nullopt;
+  }
+  Profile* profile = browser->GetProfile();
+  if (profile->IsOffTheRecord() || !profile->IsRegularProfile() ||
+      browser->GetType() != BrowserWindowInterface::TYPE_NORMAL) {
+    return WebsiteSessionBinding();
+  }
+  if (initiating_site_instance &&
+      initiating_site_instance->GetBrowserContext() == profile) {
+    const std::optional<WebsiteSessionBinding> inherited =
+        WebsiteSessionBindingForSiteInstance(profile,
+                                             initiating_site_instance);
+    content::StoragePartition* partition =
+        profile->GetStoragePartition(initiating_site_instance);
+    if (!inherited &&
+        (!partition || partition->GetConfig().partition_domain() ==
+                           kWebsiteSessionPartitionDomain)) {
+      return std::nullopt;
+    }
+    // App/extension-owned partitions are not Ahoi website sessions; their
+    // native special-page rules continue to control the target.
+    return inherited.value_or(WebsiteSessionBinding());
+  }
+  WorkspaceSessionMetadataProvider* provider =
+      GetProviderForSessionBrowser(browser);
+  return provider ? provider->GetWebsiteSessionBindingForWindow(browser)
+                  : std::make_optional(WebsiteSessionBinding());
+}
+
+std::optional<WebsiteSessionBinding> ReadRestoredWebsiteSessionBinding(
+    Profile* profile,
+    const std::map<std::string, std::string>& extra_data) {
+  const auto serialized = extra_data.find(kTabSessionMetadataExtraDataKey);
+  if (serialized == extra_data.end()) {
+    return WebsiteSessionBinding();
+  }
+  TabSessionMetadata metadata;
+  if (DecodeTabSessionMetadata(serialized->second, &metadata) !=
+      SessionMetadataDecodeResult::kSuccess) {
+    return std::nullopt;
+  }
+  WebsiteSessionBinding binding{
+      .context_id = metadata.website_session_context_id.value_or(base::Uuid())};
+  return IsKnownWebsiteSessionBinding(profile ? profile->GetPrefs() : nullptr,
+                                      binding)
+             ? std::make_optional(binding)
+             : std::nullopt;
 }
 
 }  // namespace ahoi::session

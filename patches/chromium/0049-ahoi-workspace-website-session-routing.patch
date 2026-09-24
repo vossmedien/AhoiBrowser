@@ -1,0 +1,102 @@
+diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/ui/navigator/browser_navigator.cc
+index f8d51faf9020..46ce1127669b 100644
+--- a/chrome/browser/ui/navigator/browser_navigator.cc
++++ b/chrome/browser/ui/navigator/browser_navigator.cc
+@@ -10,5 +10,7 @@
+ #include <string_view>
+ #include <utility>
+ 
++#include "ahoi/browser/session/session_restore_integration.h"
++#include "ahoi/browser/session/website_session_context.h"
+ #include "base/feature_list.h"
+ #include "base/memory/raw_ptr.h"
+@@ -71,6 +73,7 @@
+ #include "content/public/browser/render_process_host.h"
+ #include "content/public/browser/render_view_host.h"
+ #include "content/public/browser/site_isolation_policy.h"
++#include "content/public/browser/site_instance.h"
+ #include "content/public/browser/web_contents.h"
+ #include "extensions/buildflags/buildflags.h"
+ #include "ui/base/window_open_disposition.h"
+@@ -109,6 +112,7 @@ namespace {
+ 
+ struct AdditionalParams {
+   bool tab_modal_popup = false;
++  ahoi::session::WebsiteSessionBinding website_session_binding;
+ };
+ 
+ // Returns true if |params.browser| exists and can open a new tab for
+@@ -471,7 +475,8 @@ Profile* GetSourceProfile(NavigateParams* params) {
+ 
+ std::unique_ptr<content::WebContents> CreateTargetContents(
+     const NavigateParams& params,
+-    const GURL& url) {
++    const GURL& url,
++    const ahoi::session::WebsiteSessionBinding& website_session_binding) {
+   // Always create the new WebContents in a new SiteInstance (and therefore a
+   // new BrowsingInstance), *unless* there's a |params.opener|.
+   //
+@@ -482,10 +487,19 @@ std::unique_ptr<content::WebContents> CreateTargetContents(
+   // subsequent navigation is cross-process (i.e. cross-SiteInstance), then it
+   // will stay in the same BrowsingInstance (creating frame proxies as needed)
+   // preserving the requested opener relationship along the way.
+-  scoped_refptr<content::SiteInstance> initial_site_instance_for_new_contents =
+-      params.opener ? params.opener->GetSiteInstance()
+-                    : tab_util::GetSiteInstanceForNewTab(
+-                          params.browser->GetProfile(), url);
++  scoped_refptr<content::SiteInstance> initial_site_instance_for_new_contents;
++  if (params.opener) {
++    initial_site_instance_for_new_contents = params.opener->GetSiteInstance();
++  } else if (!website_session_binding.is_default()) {
++    initial_site_instance_for_new_contents =
++        content::SiteInstance::CreateForFixedStoragePartition(
++            params.browser->GetProfile(), url,
++            ahoi::session::StoragePartitionConfigForWebsiteSession(
++                params.browser->GetProfile(), website_session_binding));
++  } else {
++    initial_site_instance_for_new_contents =
++        tab_util::GetSiteInstanceForNewTab(params.browser->GetProfile(), url);
++  }
+ 
+   WebContents::CreateParams create_params(
+       params.browser->GetProfile(), initial_site_instance_for_new_contents);
+@@ -800,6 +814,29 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+           params->initiating_profile, params->url)) {
+     CHECK(web_app::AppBrowserController::IsIsolatedWebApp(params->browser));
+   }
++  if (!contents_to_navigate_or_insert &&
++      params->disposition != WindowOpenDisposition::CURRENT_TAB) {
++    content::SiteInstance* initiating_site_instance = nullptr;
++    const bool page_initiated =
++        params->is_renderer_initiated ||
++        ui::PageTransitionIsWebTriggerable(params->transition);
++    if (page_initiated &&
++        GetSourceProfile(params) == params->browser->GetProfile()) {
++      initiating_site_instance = params->source_site_instance.get();
++      if (!initiating_site_instance && params->source_contents &&
++          params->source_contents->GetPrimaryMainFrame()) {
++        initiating_site_instance =
++            params->source_contents->GetPrimaryMainFrame()->GetSiteInstance();
++      }
++    }
++    const std::optional<ahoi::session::WebsiteSessionBinding> binding =
++        ahoi::session::ResolveWebsiteSessionBindingForNewTab(
++            params->browser, initiating_site_instance);
++    if (!binding.has_value()) {
++      return nullptr;
++    }
++    additional_params.website_session_binding = *binding;
++  }
+ #if BUILDFLAG(IS_CHROMEOS)
+   if (source_browser && source_browser != params->browser) {
+     // When the newly created browser was spawned by a browser which visits
+@@ -887,7 +924,8 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+     DCHECK(!params->url.is_empty());
+     if (params->disposition != WindowOpenDisposition::CURRENT_TAB) {
+       tab_to_insert = std::make_unique<tabs::TabModel>(
+-          CreateTargetContents(*params, params->url),
++          CreateTargetContents(*params, params->url,
++                               additional_params.website_session_binding),
+           params->browser->GetBrowserForMigrationOnly()->tab_strip_model());
+       if (params->source_contents &&
+           ((params->tabstrip_add_types & AddTabTypes::ADD_INHERIT_OPENER) ||

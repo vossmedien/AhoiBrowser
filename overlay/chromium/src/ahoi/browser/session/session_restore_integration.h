@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 
+#include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/workspace_session_metadata.h"
 
 class BrowserWindowInterface;
@@ -15,6 +16,9 @@ class Profile;
 
 namespace tabs {
 class TabInterface;
+}
+namespace content {
+class SiteInstance;
 }
 
 namespace ahoi::session {
@@ -29,6 +33,9 @@ class WorkspaceSessionMetadataProvider {
       const BrowserWindowInterface* browser) const = 0;
   virtual std::optional<TabSessionMetadata> GetTabSessionMetadata(
       const tabs::TabInterface* tab) const = 0;
+  virtual std::optional<WebsiteSessionBinding>
+  GetWebsiteSessionBindingForWindow(
+      const BrowserWindowInterface* browser) const = 0;
   virtual bool RestoreWindowSessionMetadata(
       BrowserWindowInterface* browser,
       const WindowSessionMetadata& metadata) = 0;
@@ -67,6 +74,20 @@ void UnregisterWorkspaceSessionMetadataProvider(
 [[nodiscard]] bool RestoreTabSessionExtraData(
     BrowserWindowInterface* browser,
     tabs::TabInterface* tab,
+    const std::map<std::string, std::string>& extra_data);
+
+// Initial tab placement is chosen before a WebContents exists. Page-initiated
+// new tabs inherit the initiating SiteInstance's native partition; browser-UI
+// tabs use the target window's explicit local workspace binding. Nullopt means
+// an invalid binding and must abort the website navigation, not use default.
+std::optional<WebsiteSessionBinding> ResolveWebsiteSessionBindingForNewTab(
+    BrowserWindowInterface* browser,
+    content::SiteInstance* initiating_site_instance);
+
+// Missing extra data is an old default-context tab. Malformed Ahoi metadata
+// is not an authorization to restore its URL into the shared default context.
+std::optional<WebsiteSessionBinding> ReadRestoredWebsiteSessionBinding(
+    Profile* profile,
     const std::map<std::string, std::string>& extra_data);
 
 }  // namespace ahoi::session

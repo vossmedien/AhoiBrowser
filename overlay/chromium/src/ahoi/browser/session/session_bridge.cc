@@ -12,6 +12,7 @@
 
 #include "ahoi/browser/extensions/native_extension_setup_operation.h"
 #include "ahoi/browser/navigation/command_service.h"
+#include "ahoi/browser/session/session_prefs.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -223,6 +224,17 @@ void SessionBridge::OnTabTreeLoaded(TabTreeLoadResult result) {
 
 bool SessionBridge::FinishRuntimeInitialization() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (session::ShouldUseWorkspaceWebsiteSessions(profile_->GetPrefs())) {
+    const std::vector<base::Uuid> existing_workspace_ids =
+        OrderedWorkspaceIdsForSession();
+    if (!session::InitializeWebsiteSessionBindings(
+            profile_->GetPrefs(), base::span(existing_workspace_ids))) {
+      // A damaged local binding must not silently turn a future isolated
+      // Workspace into the default cookie jar. Navigation resolution will fail
+      // closed, while the existing tree and recovery data remain untouched.
+      LOG(ERROR) << "Ahoi website-session bindings could not be initialized";
+    }
+  }
   ProfileBrowserCollection* browser_collection =
       ProfileBrowserCollection::GetForProfile(profile_);
   if (!browser_collection) {

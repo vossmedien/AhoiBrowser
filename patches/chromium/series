@@ -47,3 +47,7 @@
 0046-ahoi-settings-follow-selected-workspace.patch
 0047-ahoi-empty-state-card-clip.patch
 0048-ahoi-fullscreen-sidebar-flush.patch
+0049-ahoi-workspace-website-session-routing.patch
+0050-ahoi-workspace-website-session-restore.patch
+0051-ahoi-fixed-website-session-noopener.patch
+0052-ahoi-website-session-restore-authority.patch
