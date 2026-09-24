@@ -1,5 +1,58 @@
 # Active Desktop checkpoint
 
+## Archive crash correction and restored split — 24 September 2026
+
+The two `26c39be` archive-dialog crashes below are corrected in source
+`b3e18cc`: the bubble close callback defers destruction until Chromium's
+activation observer returns. The first canonical-repo guarded build compiled,
+signed and deeply verified the app but ended EXIT1 only at the final
+provenance gate because unrelated user-owned repository edits made that
+checkout dirty. A second guarded incremental build from a clean detached
+worktree on exactly `b3e18cc` ended EXIT0. Its Apple-Development-signed M153
+bundle and APFS clone at `/private/tmp/ahoi-archive-bubble.octG4t/AhoiBrowser.app`
+passed deep signature verification; both main binaries match SHA-256
+`812bbe65cc8fbf35dea035cc7d470b576f62179ab4c04e95ea140c3798ef6d97`.
+Receipt and both terminal build logs:
+`artifacts/build/native-m153-archive-bubble-b3e18cc-20260924/`.
+
+Visible E2E on that exact clone with the retained synthetic, isolated
+`complex-profile`: Tide's native archive dialog listed the two-page manual
+split; entering `archived B` filtered to that entry, closing and reopening
+did not crash. `Wiederherstellen …` opened the native destination menu and
+`Am ursprünglichen Ort wiederherstellen` placed both original page IDs under
+the original Research folder. Reopening the archive showed `Das Archiv ist
+leer.` A normal `⌘Q` and explicit restart showed Ahoi's ordinary startup
+choice, not crash recovery; Continue retained both pages. Read-only SQLite
+checks across restore and quit returned `quick_check=ok`, page IDs
+`74000000-0000-4000-8000-000000000001/2` at original parent
+`71000000-0000-4000-8000-000000000001`, no tombstones, an archive marker
+with `restored=true`, and split ID
+`75000000-0000-4000-8000-000000000001` with the original vertical member
+order and 400000/500000 ratios. Opening both public `example.net` and
+`example.org` pages, switching to Inbox to make them resting, then returning
+to Tide visibly rematerialized the two real WebContents above/below one
+another; the accessible divider read 40. The browser process remained alive
+and no new Ahoi crash report appeared. This is the affected archive
+search/restore/restart journey, not auto-archive, permanent deletion,
+missing-parent restore, multi-device convergence or installed-app acceptance.
+Installed `/Applications/AhoiBrowser.app` remains `820cf4e`.
+
+## Upper-left content-card seam — 24 September 2026
+
+The user supplied a current screenshot with a red circle around a hard,
+rectangular step where the gray top browser frame, the widened sidebar/card
+gutter and the rounded top-left content card meet. This is a reported visual
+defect, not a Glass pass. The current M153 layout gives the normal card a real
+20-DIP top/side inset; the card and split panes have native rounded clipping,
+while the macOS frame material has a separate neutral fallback. A previous
+September screenshot already showed a narrower dark rail at the same kind of
+seam (`artifacts/computer-use/bookmarks-coordination-20260905/user-sidebar-seam-091918.png`).
+The exact offending edge/background has not yet been isolated on a candidate;
+do not substitute a cosmetic overlay or claim it fixed from source inspection.
+After the archive crash candidate is accepted, compare the same public page
+with Glass ON/OFF and normal/fullscreen at this corner, correct the owning
+view/material geometry, then repeat the visible journey.
+
 ## Archive UI continuation — 24 September 2026
 
 The signed `26c39be` clone, initially still running with the isolated
@@ -9,14 +62,31 @@ archived B` split, its manual reason and time, and separate restore/permanent-
 delete actions. No restore or delete action was selected. An attempt to set
 the archive search field returned `elementHasNoFrame`; a fresh Computer Use
 observation then bound to a different Ahoi window. The original isolated PID
-`36570` had exited without a new Ahoi crash report. Rebinding by full app path
+`36570` had exited. Its macOS crash report arrived later (incident
+`A2D51424-C30D-4261-974A-5204FE83FEE6`); the earlier absence-of-report
+observation is superseded. Rebinding by full app path
 started PID `75721` without `--user-data-dir`; read-only process inspection
 showed it opened the existing default Ahoi profile, so no UI action was sent
 to that window. That exact task-started PID was ended with `SIGTERM`; the
 installed, separately scoped Ahoi PID `30773` remained running. The default
 profile was not reset or deleted, but this launch may have ordinary startup
 side effects. Search-input, restore, deletion and restart acceptance remain
-**OPEN** until a reliably bound isolated candidate is available again.
+**OPEN**.
+
+The same signed `26c39be` clone was then explicitly launched with that
+isolated profile (PID `85888`, verified by process arguments and open profile
+files). Tide's archive dialog again displayed the imported two-page split;
+before search input, it crashed with incident
+`61792F42-E13B-4B17-87B5-51DE6C031678`. Both reports are identical
+`EXC_BAD_ACCESS` at
+`BubbleDialogDelegate::BubbleWidgetObserver::OnWidgetActivationChanged`:
+the close-on-deactivate callback deleted the archive Widget and delegate
+inside their own activation notification, whose observer then accessed the
+delegate again. Source `b3e18cc` defers that close cleanup to the next UI
+task, preserving widget/delegate lifetime through the callback. The exact
+guarded M153 build and visible archive search/restore/restart journey above
+now pass. Neither earlier crashed candidate restored or deleted an archive
+entry; the installed `820cf4e` app was untouched.
 
 ## Empty-Workspace Settings correction — 24 September 2026
 
