@@ -1,5 +1,18 @@
 # Active Mobile checkpoint
 
+## Private-session lock: focused state/race regression — 24 September 2026
+
+Xcode 27.0 ran the three existing `MobilePrivateSessionLockTests` on the owned
+A168/iOS 27 Simulator: **3 passed, 0 failed, 0 skipped**. The test action ran
+at HEAD `8662590` with clean Mobile paths; product/project/configuration files
+are unchanged from the visibly tested `45330d2` DebugLocal build 39. The installed Build 39
+remained installed and A168 was returned to Shutdown. Exact command, result
+bundle and limits: [private-lock focused tests](../artifacts/tests/mobile-private-lock-xcode27-20260924/README.md).
+This proves only the tested authentication state/race logic. A normal visible
+private-lock, return, cancellation and background journey with retained private
+state is still **NOT_RUN**; do not promote the unit result to UI/real-device
+acceptance. C645's CloudKit Development candidate was not touched.
+
 ## Focused Format-3 regression — 24 September 2026
 
 Clean detached source `7d7a92a` replaces two obsolete SharedTab test classes
