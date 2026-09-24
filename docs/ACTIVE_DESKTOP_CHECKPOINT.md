@@ -1,5 +1,21 @@
 # Active Desktop checkpoint
 
+## M153 session candidate: host toolchain gate — 24 September 2026
+
+After external disk cleanup, the guarded overlay verification on clean detached
+source `dc9cd54` exited 0 (`overlay unchanged and checkout delta verified`).
+The next guarded `./scripts/build-ahoi.sh dev ahoi_session_unittests` attempt
+then exited 1 **before GN or compilation**: the configured compatible-
+development directory `/Applications/Xcode-26.5.0.app/Contents/Developer` was
+missing. A fresh host check found only `/Applications/Xcode.app` (Xcode 27.0,
+27A266a, macOS/iOS SDK 27); Spotlight found no indexed copy of the exact 26.5
+app. Available space was above the 64-GiB build recommendation. No new bundle,
+signature, unit result or visible E2E is claimed. The M153 checkout/output and
+the clean detached source remain preserved. Do not silently switch the pinned
+development/release toolchain to Xcode 27: resume the guarded build only after
+the exact 26.5 installation is restored or a separate reviewed toolchain
+decision is made.
+
 ## Workspace-local website sessions: gated M153 development candidate — 24 September 2026
 
 Source `d6aca09` adds a device-local binding for each Workspace, a native
