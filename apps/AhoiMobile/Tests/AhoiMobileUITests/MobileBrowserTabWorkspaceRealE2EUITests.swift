@@ -463,7 +463,11 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
             .buttons["browser.library.create.confirm"]
             .firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 8))
-        confirm.tap()
+        for _ in 0..<3 where confirm.exists {
+            if confirm.isHittable { confirm.tap() }
+            if confirm.waitForNonExistence(timeout: 4) { break }
+        }
+        XCTAssertFalse(confirm.exists, "The workspace name alert must close after confirming.")
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 8))
     }
 
