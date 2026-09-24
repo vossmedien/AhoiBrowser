@@ -1082,13 +1082,17 @@ as a second active patch stack.
 - **Security/rebase:** no profile or permission change; narrow Views seam,
   matching the native top-container guard. Low rebase risk.
 
-## `0049`–`0052`: M153 workspace website-session routing (development gate)
+## `0049`–`0053`: M153 workspace website-session routing (development gate)
 
 - **Owner:** Desktop; native Chromium M153, ordered after the fullscreen UI
   correction. `0049` selects a persistent fixed StoragePartition before a new
   WebContents is created, `0050` restores the same partition and SessionStorage
-  namespace, `0051` preserves it for `noopener` windows, and `0052` rejects a
-  foreign or corrupt restored context instead of using the shared default jar.
+  namespace, `0051` preserves it for `noopener` windows, `0052` rejects a
+  foreign or corrupt restored context instead of using the shared default jar,
+  and `0053` gives only Ahoi's persistent native partitions the regular
+  profile's session-cookie persist/restore policy. That last correction follows
+  a visible `93dc235` restart in which the isolated context retained Bob's
+  LocalStorage but lost its session cookie; Inbox retained Alice's cookie.
 - **Safety:** existing Workspaces are explicitly bound to their original default
   partition. New Workspaces get device-local random context IDs; local IDs,
   cookies, site data and grants never enter portable tree/sync records. The

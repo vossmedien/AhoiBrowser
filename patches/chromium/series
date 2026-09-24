@@ -51,3 +51,4 @@
 0050-ahoi-workspace-website-session-restore.patch
 0051-ahoi-fixed-website-session-noopener.patch
 0052-ahoi-website-session-restore-authority.patch
+0053-ahoi-workspace-session-cookie-restore.patch
