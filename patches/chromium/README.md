@@ -1082,7 +1082,7 @@ as a second active patch stack.
 - **Security/rebase:** no profile or permission change; narrow Views seam,
   matching the native top-container guard. Low rebase risk.
 
-## `0049`–`0053`: M153 workspace website-session routing (development gate)
+## `0049`–`0054`: M153 workspace website-session routing (development gate)
 
 - **Owner:** Desktop; native Chromium M153, ordered after the fullscreen UI
   correction. `0049` selects a persistent fixed StoragePartition before a new
@@ -1093,6 +1093,12 @@ as a second active patch stack.
   profile's session-cookie persist/restore policy. That last correction follows
   a visible `93dc235` restart in which the isolated context retained Bob's
   LocalStorage but lost its session cookie; Inbox retained Alice's cookie.
+  `0054` prevents typed address-bar input in a tabless selected Workspace from
+  navigating Chromium's still-active tab in another Workspace. A visible
+  `79a7752` probe in a fresh "Leer-Test" Workspace changed the hidden Inbox
+  tab to `?empty-probe=1` and showed Alice's Cookie after switching back;
+  the correction creates a new foreground tab with the selected Workspace's
+  partition before any request and clears inherited opener/referrer state.
 - **Safety:** existing Workspaces are explicitly bound to their original default
   partition. New Workspaces get device-local random context IDs; local IDs,
   cookies, site data and grants never enter portable tree/sync records. The

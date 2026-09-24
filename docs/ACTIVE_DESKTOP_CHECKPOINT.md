@@ -1,5 +1,73 @@
 # Active Desktop checkpoint
 
+## Workspace-local website sessions: gated M153 development candidate — 24 September 2026
+
+Source `d6aca09` adds a device-local binding for each Workspace, a native
+persistent fixed `StoragePartition` for newly created Workspaces, version-3
+local-only tab restore metadata, matching SessionStorage restore and fixed-
+partition `noopener` inheritance. Existing Workspaces explicitly keep the
+default partition; no cookie, local partition ID, permission or site-storage
+payload is added to Workspace/Sync records. `93dc235` corrected a Chromium
+dictionary-iterator compile error. The first signed `93dc235` isolated test
+proved Alice/Inbox and Bob/Privat Cookie+LocalStorage separation and workspace
+switching, but after normal Quit/Continue Bob's session cookie was empty while
+his LocalStorage and Inbox/Alice survived. M153's
+`ProfileNetworkContextService` sets session-cookie persistence/restore only
+for its default partition. Ordered patch `0053` in `79a7752` applies the same
+normal-profile policy only to persistent Ahoi partitions under
+`Storage/ext/ahoi/*`; other native partitions keep upstream behavior.
+
+The guarded 53-patch M153 build of exactly `79a7752` ended EXIT0 from a clean
+detached worktree, with the supervised 64-GiB recommendation override still
+above the 32-GiB hard floor. Its Apple-Development-signed binary SHA-256 is
+`dd93cdb52d975d90626155c2b5f1b2c65039d4b85b42060ccc8ef4ae2bc69cda`;
+the bundle and APFS test clone at
+`/private/tmp/ahoi-cookie-fix.afGwcv/AhoiBrowser.app` passed deep signature
+verification and had identical main-binary hashes. Receipt, log and terminal
+exit are in `artifacts/build/native-m153-website-sessions-79a7752-20260924/`.
+
+On that exact clone with disposable profile
+`/private/tmp/ahoi-website-session-profile.LLT8Ij` and explicitly enabled
+`AhoiWorkspaceWebsiteSessions`, a local loopback page showed Inbox/Alice and
+new Privat/Bob as separate Cookie+LocalStorage states. Normal Quit and
+"Fortsetzen" restored Bob/Bob in Privat and Alice/Alice in Inbox. Logging out
+in Inbox cleared only its own two values; Privat remained Bob/Bob. A normal
+`window.open(..., 'noopener')` tab initiated in Privat also showed Bob/Bob.
+After normal Quit, the Ahoi tree and both native Cookie SQLite stores returned
+`quick_check=ok`; the isolated store retained one synthetic loopback cookie,
+while the default store had none following the deliberate Inbox logout. The
+same clone then wrote IndexedDB and Cache Storage markers and registered one
+ServiceWorker separately in both Workspaces: Privat read Bob/Bob/1 and Inbox
+Alice/Alice/1. After another normal Quit/Continue, both Workspaces still read
+their own marker values and one registration each. This proves registration
+and these stored data classes on the isolated fixture, not ServiceWorker fetch
+execution or SharedWorker isolation. The installed `/Applications/AhoiBrowser.app`
+was not replaced or quit.
+
+A further visible negative on that same `79a7752` clone found an unaccepted
+first-request boundary: with Inbox/Alice's Chromium tab selected underneath a
+new, tabless "Leer-Test" Workspace, typing
+`http://127.0.0.1:8767/?empty-probe=1` into Ahoi's command bar left the new
+Workspace empty but changed the hidden Inbox tab's URL. Switching back showed
+the probe URL and Alice's Cookie. Ordered patch `0054` is a source-only
+correction in the shared branch: for typed browser-UI current-tab navigation,
+it asks SessionBridge whether the concrete source tab belongs to the selected
+Workspace; a mismatch creates a new foreground WebContents with the selected
+local context and drops inherited opener/referrer state before a request.
+That correction is **NOT_BUILT/NOT_E2E** until the ongoing focused
+`9b4af65` test-target build releases the shared checkout/output and a new
+exact candidate repeats the negative journey.
+
+This is a **development-gated partial feature**, not DoD item 25 acceptance:
+the flag is OFF by default because M153's native site-permission map remains
+profile-wide. The extension cookies API still addresses the default store;
+SharedWorker and ServiceWorker execution, site-permission grants,
+context-transfer/multiwindow paths and complete no-secret Sync behavior still
+need focused implementation
+and visible proof. Test-only source `9b4af65` adds narrow local-binding,
+version-3 metadata and restore-authority regressions; their target build/test
+outcome is not yet claimed here.
+
 ## Archive crash correction and restored split — 24 September 2026
 
 The two `26c39be` archive-dialog crashes below are corrected in source

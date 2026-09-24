@@ -19,6 +19,7 @@ class TabInterface;
 }
 namespace content {
 class SiteInstance;
+class WebContents;
 }
 
 namespace ahoi::session {
@@ -36,6 +37,11 @@ class WorkspaceSessionMetadataProvider {
   virtual std::optional<WebsiteSessionBinding>
   GetWebsiteSessionBindingForWindow(
       const BrowserWindowInterface* browser) const = 0;
+  // Nullopt means workspace state is not ready. False means the concrete tab
+  // is not in this window's currently selected Workspace.
+  virtual std::optional<bool> IsTabInActiveWorkspace(
+      const BrowserWindowInterface* browser,
+      const tabs::TabInterface* tab) const = 0;
   virtual bool RestoreWindowSessionMetadata(
       BrowserWindowInterface* browser,
       const WindowSessionMetadata& metadata) = 0;
@@ -83,6 +89,13 @@ void UnregisterWorkspaceSessionMetadataProvider(
 std::optional<WebsiteSessionBinding> ResolveWebsiteSessionBindingForNewTab(
     BrowserWindowInterface* browser,
     content::SiteInstance* initiating_site_instance);
+
+// Browser-UI address-bar input must not reuse Chromium's native active tab
+// when Ahoi's selected Workspace has no matching tab. This does not apply to
+// renderer-initiated navigation within a concrete WebContents.
+std::optional<bool> IsCurrentTabInActiveWorkspaceForNavigation(
+    BrowserWindowInterface* browser,
+    content::WebContents* contents);
 
 // Missing extra data is an old default-context tab. Malformed Ahoi metadata
 // is not an authorization to restore its URL into the shared default context.

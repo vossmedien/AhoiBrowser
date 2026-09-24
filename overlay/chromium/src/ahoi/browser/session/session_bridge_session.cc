@@ -142,6 +142,26 @@ SessionBridge::GetWebsiteSessionBindingForWindow(
                                                    *workspace_id);
 }
 
+std::optional<bool> SessionBridge::IsTabInActiveWorkspace(
+    const BrowserWindowInterface* browser,
+    const tabs::TabInterface* tab) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_ || !tab_tree_ready_ || !ShouldTrackBrowser(browser)) {
+    return std::nullopt;
+  }
+  const std::optional<base::Uuid> active_workspace =
+      GetActiveWorkspaceForWindow(browser);
+  if (!active_workspace.has_value()) {
+    return std::nullopt;
+  }
+  if (!tab || tab->GetBrowserWindowInterface() != browser) {
+    return false;
+  }
+  auto runtime = runtime_tabs_.find(const_cast<tabs::TabInterface*>(tab));
+  return runtime != runtime_tabs_.end() &&
+         runtime->second.workspace_id == active_workspace;
+}
+
 tabs::TabInterface* SessionBridge::GetLastActiveTabForWorkspace(
     const BrowserWindowInterface* browser,
     const base::Uuid& workspace_id) const {

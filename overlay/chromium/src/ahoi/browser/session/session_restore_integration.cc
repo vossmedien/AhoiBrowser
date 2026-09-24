@@ -15,6 +15,7 @@
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/site_instance.h"
 #include "content/public/browser/storage_partition.h"
+#include "content/public/browser/web_contents.h"
 
 namespace ahoi::session {
 
@@ -187,6 +188,19 @@ std::optional<WebsiteSessionBinding> ResolveWebsiteSessionBindingForNewTab(
       GetProviderForSessionBrowser(browser);
   return provider ? provider->GetWebsiteSessionBindingForWindow(browser)
                   : std::make_optional(WebsiteSessionBinding());
+}
+
+std::optional<bool> IsCurrentTabInActiveWorkspaceForNavigation(
+    BrowserWindowInterface* browser,
+    content::WebContents* contents) {
+  WorkspaceSessionMetadataProvider* provider =
+      GetProviderForSessionBrowser(browser);
+  if (!provider) {
+    return std::nullopt;
+  }
+  return provider->IsTabInActiveWorkspace(
+      browser,
+      contents ? tabs::TabInterface::MaybeGetFromContents(contents) : nullptr);
 }
 
 std::optional<WebsiteSessionBinding> ReadRestoredWebsiteSessionBinding(

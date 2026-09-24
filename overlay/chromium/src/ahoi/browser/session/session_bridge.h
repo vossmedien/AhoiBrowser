@@ -242,6 +242,9 @@ class SessionBridge : public KeyedService,
   std::optional<session::WebsiteSessionBinding>
   GetWebsiteSessionBindingForWindow(
       const BrowserWindowInterface* browser) const override;
+  std::optional<bool> IsTabInActiveWorkspace(
+      const BrowserWindowInterface* browser,
+      const tabs::TabInterface* tab) const override;
   [[nodiscard]] bool RestoreWindowSessionMetadata(
       BrowserWindowInterface* browser,
       const session::WindowSessionMetadata& metadata) override;
