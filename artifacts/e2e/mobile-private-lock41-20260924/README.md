@@ -29,6 +29,9 @@ actual private page after successful authentication, hardware Face ID/Touch ID,
 physical iPhone behavior, or any CloudKit roundtrip. The simulator test opted
 in via `AHOI_PRIVATE_LOCK_E2E=1`; no production setting or device auth secret
 was injected. C645 and its CloudKit Development build 40 were not touched.
+The opt-in runner environment was removed and A168 returned to Shutdown;
+Build41 and the test-enabled private-lock preference remain in that dedicated
+simulator's app data. Future A168 journeys must account for that local state.
 
 The smallest next private-lock E2E is to navigate to a local private page,
 background/return, attempt cancel and successful unlock, and confirm the page
