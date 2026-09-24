@@ -211,7 +211,13 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
             more.tap()
             if element.waitForExistence(timeout: 2), element.isHittable { return true }
             for _ in 0..<4 {
-                app.swipeUp()
+                // Swipe on a plain button row: starting over a Menu row can open
+                // its popover, whose dismissal then focuses page content.
+                let anchor = [
+                    app.buttons["browser.actions.reader"],
+                    app.buttons["browser.actions.copy-address"]
+                ].first { $0.exists && $0.isHittable }
+                if let anchor { anchor.swipeUp() } else { app.swipeUp() }
                 if element.waitForExistence(timeout: 1), element.isHittable { return true }
             }
             dismissActionsIfPresent(in: app)
@@ -224,8 +230,12 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
     @MainActor
     private func dismissPopoverIfPresent(in app: XCUIApplication) {
         let region = app.otherElements["PopoverDismissRegion"]
-        if region.waitForExistence(timeout: 1) { region.tap() }
+        if region.waitForExistence(timeout: 1) {
+            attachScreenshot(named: "unexpected-popover", of: app)
+            region.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.02)).tap()
+        }
         XCTAssertTrue(region.waitForNonExistence(timeout: 3))
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "No page input may hold focus here.")
     }
 
     @MainActor
