@@ -1,9 +1,11 @@
 # Workspace-local website sessions
 
-Status: accepted user requirement, 2026-09-05; NOT implemented or accepted.
-Desktop implements after closing its current browser-fix package. The frozen
-startup candidate is not widened. This supersedes the former always-shared
-workspace cookie/login rule, not the no-cookie-sync or native-engine boundaries.
+Status: accepted user requirement, 2026-09-05; native partition routing is a
+development-gated partial implementation, NOT product/release accepted. The
+exact built candidate, visible proofs, failed first-request probe and remaining
+permission/extension boundaries are in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md).
+This supersedes the former always-shared workspace cookie/login rule, not the
+no-cookie-sync or native-engine boundaries.
 
 ## Product boundary
 

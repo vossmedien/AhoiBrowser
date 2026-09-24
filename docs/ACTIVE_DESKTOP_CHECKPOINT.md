@@ -41,8 +41,14 @@ ServiceWorker separately in both Workspaces: Privat read Bob/Bob/1 and Inbox
 Alice/Alice/1. After another normal Quit/Continue, both Workspaces still read
 their own marker values and one registration each. This proves registration
 and these stored data classes on the isolated fixture, not ServiceWorker fetch
-execution or SharedWorker isolation. The installed `/Applications/AhoiBrowser.app`
+execution. The installed `/Applications/AhoiBrowser.app`
 was not replaced or quit.
+
+The same signed `79a7752` clone also passed a live SharedWorker check on the
+loopback origin: Inbox wrote Alice to its worker, Privat initially read
+`leer`, wrote Bob, and Inbox still read Alice after switching back. This proves
+runtime worker-state separation while both tabs are live; SharedWorker restart
+behavior is not claimed.
 
 A further visible negative on that same `79a7752` clone found an unaccepted
 first-request boundary: with Inbox/Alice's Chromium tab selected underneath a
@@ -61,7 +67,7 @@ exact candidate repeats the negative journey.
 This is a **development-gated partial feature**, not DoD item 25 acceptance:
 the flag is OFF by default because M153's native site-permission map remains
 profile-wide. The extension cookies API still addresses the default store;
-SharedWorker and ServiceWorker execution, site-permission grants,
+ServiceWorker execution, site-permission grants,
 context-transfer/multiwindow paths and complete no-secret Sync behavior still
 need focused implementation
 and visible proof. Test-only source `9b4af65` adds narrow local-binding,

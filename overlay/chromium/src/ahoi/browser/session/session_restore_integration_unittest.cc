@@ -156,6 +156,41 @@ TEST_F(SessionRestoreIntegrationTest,
 }
 
 TEST_F(SessionRestoreIntegrationTest,
+       TypedNavigationDoesNotTargetHiddenWorkspaceTab) {
+  const base::Uuid first_workspace =
+      workspace_service_->ordered_workspaces().front().id;
+  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
+      browser(), first_workspace, WorkspaceActivationSource::kKeyboard));
+  AddTab(browser(), GURL("https://example.test/first-workspace"));
+  task_environment()->RunUntilIdle();
+  tabs::TabInterface* first = browser()->GetTabStripModel()->GetActiveTab();
+  ASSERT_TRUE(first);
+  const auto first_is_active = IsCurrentTabInActiveWorkspaceForNavigation(
+      browser(), first->GetContents());
+  ASSERT_TRUE(first_is_active);
+  EXPECT_TRUE(*first_is_active);
+
+  const base::Uuid second_workspace = CreateSecondWorkspace();
+  ASSERT_TRUE(second_workspace.is_valid());
+  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
+      browser(), second_workspace, WorkspaceActivationSource::kKeyboard));
+  const auto hidden_source = IsCurrentTabInActiveWorkspaceForNavigation(
+      browser(), first->GetContents());
+  ASSERT_TRUE(hidden_source);
+  EXPECT_FALSE(*hidden_source);
+
+  AddTab(browser(), GURL("https://example.test/second-workspace"));
+  task_environment()->RunUntilIdle();
+  tabs::TabInterface* second = browser()->GetTabStripModel()->GetActiveTab();
+  ASSERT_TRUE(second);
+  ASSERT_NE(first, second);
+  const auto second_is_active = IsCurrentTabInActiveWorkspaceForNavigation(
+      browser(), second->GetContents());
+  ASSERT_TRUE(second_is_active);
+  EXPECT_TRUE(*second_is_active);
+}
+
+TEST_F(SessionRestoreIntegrationTest,
        RestoredTemporaryTabDoesNotAutoBindByUrl) {
   const base::Uuid second_workspace = CreateSecondWorkspace();
   ASSERT_TRUE(second_workspace.is_valid());
