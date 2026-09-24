@@ -7,8 +7,10 @@ import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {flush} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
 import type {BrowserProfile, ImportDataBrowserProxy, SettingsImportDataDialogElement} from 'chrome://settings/lazy_load.js';
 import {ImportDataBrowserProxyImpl} from 'chrome://settings/lazy_load.js';
+import {PrefService, PrefsBrowserProxy} from 'chrome://settings/settings.js';
 import {assertEquals, assertFalse, assertTrue} from 'chrome://webui-test/chai_assert.js';
 import {TestBrowserProxy} from 'chrome://webui-test/test_browser_proxy.js';
+import {TestPrefsBrowserProxy} from './test_prefs_browser_proxy.js';
 // clang-format on
 
 class TestImportDataBrowserProxy extends TestBrowserProxy implements
@@ -109,10 +111,13 @@ suite('AhoiZenImportAvailability', () => {
   }> {
     const proxy = new TestImportDataBrowserProxy(profiles);
     ImportDataBrowserProxyImpl.setInstance(proxy);
+    PrefsBrowserProxy.setInstance(new TestPrefsBrowserProxy(
+        Object.values(createPrefs())));
+    PrefService.resetInstanceForTesting();
     document.body.innerHTML = window.trustedTypes!.emptyHTML;
     const dialog = document.createElement('settings-import-data-dialog');
-    dialog.set('prefs', createPrefs());
     document.body.appendChild(dialog);
+    await PrefService.getInstance().whenInitialized();
     await proxy.whenCalled('initializeImportDialog');
     flush();
     return {dialog, proxy};

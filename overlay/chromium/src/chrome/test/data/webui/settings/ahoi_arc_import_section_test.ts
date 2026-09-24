@@ -6,9 +6,12 @@ import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {flush} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
 import type {BrowserProfile, ImportDataBrowserProxy, SettingsImportDataDialogElement} from 'chrome://settings/lazy_load.js';
 import {ImportDataBrowserProxyImpl} from 'chrome://settings/lazy_load.js';
+import {PrefService, PrefsBrowserProxy} from 'chrome://settings/settings.js';
 import {assertDeepEquals, assertEquals, assertFalse, assertTrue} from 'chrome://webui-test/chai_assert.js';
 import {TestBrowserProxy} from 'chrome://webui-test/test_browser_proxy.js';
 import {microtasksFinished} from 'chrome://webui-test/test_util.js';
+
+import {TestPrefsBrowserProxy} from './test_prefs_browser_proxy.js';
 
 type ArcImportStage = 'idle'|'discovering'|'preview'|'committing'|'recovering'|
     'recovered'|'sourceInUse'|'done'|'error';
@@ -122,27 +125,28 @@ suite('AhoiArcStandardImportSurface', () => {
   let browserProxy: TestImportDataBrowserProxy;
 
   setup(async () => {
-    browserProxy = new TestImportDataBrowserProxy(standardProfiles);
-    ImportDataBrowserProxyImpl.setInstance(browserProxy);
-    document.body.innerHTML = window.trustedTypes!.emptyHTML;
-
-    dialog = document.createElement('settings-import-data-dialog');
-    const prefs: {[key: string]: chrome.settingsPrivate.PrefObject} = {};
-    for (const key
-             of ['import_dialog_history',
+    const prefs: chrome.settingsPrivate.PrefObject[] = [];
+    for (const key of ['import_dialog_history',
                  'import_dialog_bookmarks',
                  'import_dialog_saved_passwords',
                  'import_dialog_search_engine',
                  'import_dialog_autofill_form_data',
     ]) {
-      prefs[key] = {
+      prefs.push({
         key,
         type: chrome.settingsPrivate.PrefType.BOOLEAN,
         value: true,
-      };
+      });
     }
-    dialog.set('prefs', prefs);
+    PrefsBrowserProxy.setInstance(new TestPrefsBrowserProxy(prefs));
+    PrefService.resetInstanceForTesting();
+    browserProxy = new TestImportDataBrowserProxy(standardProfiles);
+    ImportDataBrowserProxyImpl.setInstance(browserProxy);
+    document.body.innerHTML = window.trustedTypes!.emptyHTML;
+
+    dialog = document.createElement('settings-import-data-dialog');
     document.body.appendChild(dialog);
+    await PrefService.getInstance().whenInitialized();
     await browserProxy.whenCalled('initializeImportDialog');
     flush();
   });
