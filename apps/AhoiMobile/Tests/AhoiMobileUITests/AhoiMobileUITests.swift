@@ -279,6 +279,65 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertFalse(privatePage.exists)
     }
 
+    /// Same Simulator Face ID opt-in as the unlock journey; the host delivers a
+    /// non-matching face (`com.apple.BiometricKit_Sim.pearl.nomatch`).
+    @MainActor
+    func testFailedFaceIDKeepsLoadedPrivatePageShielded() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["AHOI_PRIVATE_LOCK_E2E"] == "1",
+              environment["AHOI_PRIVATE_LOCK_SIMULATED_FACE_ID_NOMATCH"] == "1" else {
+            throw XCTSkip("Explicitly opt in with an enrolled Simulator Face ID.")
+        }
+        let app = XCUIApplication()
+        app.launchArguments = []
+        app.terminate()
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
+        openSettings(in: app)
+        let toggle = app.switches["settings.private.lock"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        revealSyncToggle(toggle, in: app)
+        if (toggle.value as? String) != "1" {
+            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        }
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "1"), object: toggle
+        )], timeout: 4) == .completed)
+        app.buttons["settings.done"].tap()
+
+        app.terminate()
+        app.launchArguments = [
+            "-AhoiUITestFixture", "-AhoiUITestPrivateTabCount", "1", "-AhoiUITestSelectPrivate"
+        ]
+        app.launch()
+        let privateAddress = app.buttons["browser.address.private"]
+        let privatePage = app.webViews.staticTexts["Scale tab"]
+        XCTAssertTrue(privatePage.waitForExistence(timeout: 8))
+
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        let unlock = app.buttons["browser.private.lock.unlock"]
+        XCTAssertTrue(unlock.waitForExistence(timeout: 8))
+        unlock.tap()
+        NSLog("AHOI_PRIVATE_UNLOCK_AWAITING_NOMATCH")
+        // The host sends non-matching faces; the system eventually offers a
+        // retry/passcode sheet, which the test cancels.
+        Thread.sleep(forTimeInterval: 6)
+        XCTAssertFalse(privatePage.exists, "A failed face must never reveal the private page.")
+        XCTAssertFalse(privateAddress.exists)
+        attachScreenshot(named: "private-nomatch-shielded", of: app)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let cancel = springboard.buttons.matching(
+            NSPredicate(format: "label IN %@", ["Cancel", "Abbrechen"])
+        ).firstMatch
+        if cancel.waitForExistence(timeout: 8) { cancel.tap() }
+        XCTAssertTrue(unlock.waitForExistence(timeout: 8))
+        XCTAssertFalse(privatePage.exists)
+        XCTAssertFalse(privateAddress.exists)
+        attachScreenshot(named: "private-nomatch-after-cancel", of: app)
+    }
+
     @MainActor
     func testLocalFixtureAndPrivateTabLifecycle() throws {
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
