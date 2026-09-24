@@ -181,6 +181,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         Thread.sleep(forTimeInterval: 1)
         XCTAssertTrue(unlock.isHittable)
         attachScreenshot(named: "private-loaded-page-after-second-background-settled", of: app)
+        Thread.sleep(forTimeInterval: 8)
 
         app.terminate()
         app.launchArguments = []
