@@ -432,9 +432,22 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
             app.buttons["browser.actions.done"].tap()
         }
 
-        app.buttons["browser.more"].tap()
+        // The save commits asynchronously; reopen until the saved-page Home rows appear.
         let homeHelp = app.staticTexts["browser.actions.home-help"]
-        XCTAssertTrue(revealInLazySheet(homeHelp, in: app))
+        var homeRowsVisible = false
+        for _ in 0..<4 where !homeRowsVisible {
+            XCTAssertTrue(waitForHittable(app.buttons["browser.more"], timeout: 5))
+            app.buttons["browser.more"].tap()
+            homeRowsVisible = revealInLazySheet(homeHelp, in: app)
+            if !homeRowsVisible {
+                app.buttons["browser.actions.done"].tap()
+                Thread.sleep(forTimeInterval: 2)
+            }
+        }
+        if !homeRowsVisible {
+            attachScreenshot(named: "home-address-rows-missing", of: app)
+        }
+        XCTAssertTrue(homeRowsVisible)
         XCTAssertTrue(
             homeHelp.label.hasPrefix("Die Ausgangsadresse ist der feste Startpunkt") ||
             homeHelp.label.hasPrefix("A Home Address is this saved page")
@@ -801,7 +814,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
     @MainActor
     private func revealInLazySheet(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
         if element.waitForExistence(timeout: 2), element.isHittable { return true }
-        for _ in 0..<8 {
+        for _ in 0..<4 {
             app.swipeUp()
             if element.waitForExistence(timeout: 1), element.isHittable { return true }
         }
