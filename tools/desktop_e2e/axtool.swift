@@ -32,6 +32,18 @@ func walk(_ e: AXUIElement, _ d: Int, _ max: Int, _ visit: (AXUIElement, Int) ->
     return false
 }
 
+/// `needle` is a title/description/identifier, optionally prefixed with a role
+/// (`AXButton:Anmelden`) when a window and a button share one name.
+func matches(_ e: AXUIElement, _ needle: String) -> Bool {
+    var name = needle
+    if needle.hasPrefix("AX"), let colon = needle.firstIndex(of: ":") {
+        guard str(e, kAXRoleAttribute) == String(needle[..<colon]) else { return false }
+        name = String(needle[needle.index(after: colon)...])
+    }
+    return [str(e, kAXTitleAttribute), str(e, kAXDescriptionAttribute), str(e, "AXIdentifier")]
+        .contains(name)
+}
+
 let args = CommandLine.arguments
 guard args.count >= 3, let pid = pid_t(args[2]) else {
     FileHandle.standardError.write("bad args\n".data(using: .utf8)!); exit(2)
@@ -55,8 +67,7 @@ case "press":
     let needle = args[3]
     var found: AXUIElement?
     _ = walk(app, 0, 30) { e, _ in
-        let l = [str(e, kAXTitleAttribute), str(e, kAXDescriptionAttribute), str(e, "AXIdentifier")]
-        if l.contains(where: { $0 == needle }) { found = e; return true }
+        if matches(e, needle) { found = e; return true }
         return false
     }
     guard let f = found else { print("NOT FOUND"); exit(1) }
@@ -92,8 +103,7 @@ case "focus":
     let needle = args[3]
     var found: AXUIElement?
     _ = walk(app, 0, 30) { e, _ in
-        let l = [str(e, kAXTitleAttribute), str(e, kAXDescriptionAttribute), str(e, "AXIdentifier")]
-        if l.contains(where: { $0 == needle }) { found = e; return true }
+        if matches(e, needle) { found = e; return true }
         return false
     }
     guard let f = found else { print("NOT FOUND"); exit(1) }
@@ -117,8 +127,7 @@ case "click", "rightclick":
     let needle = args[3]
     var found: AXUIElement?
     _ = walk(app, 0, 30) { e, _ in
-        let l = [str(e, kAXTitleAttribute), str(e, kAXDescriptionAttribute), str(e, "AXIdentifier")]
-        if l.contains(where: { $0 == needle }) { found = e; return true }
+        if matches(e, needle) { found = e; return true }
         return false
     }
     guard let f = found, let pv = attr(f, kAXPositionAttribute), let sv = attr(f, kAXSizeAttribute) else {
