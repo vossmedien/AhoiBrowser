@@ -166,9 +166,18 @@ void BrowserSidebarHostView::ShowArchiveSearch() {
   delegate->SetContentsView(std::move(contents));
   auto widget = views::BubbleDialogDelegate::CreateBubble(
       delegate.get(),
-      base::IgnoreArgs<views::Widget::ClosedReason>(
-          base::BindOnce(&BrowserSidebarHostView::OnArchiveSearchClosed,
-                         weak_ptr_factory_.GetWeakPtr())));
+      base::BindOnce(
+          [](base::WeakPtr<BrowserSidebarHostView> host,
+             views::Widget::ClosedReason) {
+            // Deactivation can close a bubble inside its own WidgetObserver.
+            // Keep both the Widget and delegate alive until that notification
+            // has returned; its observer still reads the delegate afterwards.
+            base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+                FROM_HERE,
+                base::BindOnce(&BrowserSidebarHostView::OnArchiveSearchClosed,
+                               std::move(host)));
+          },
+          weak_ptr_factory_.GetWeakPtr()));
   if (!widget)
     return;
   archive_search_delegate_ = std::move(delegate);
