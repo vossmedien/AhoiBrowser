@@ -173,8 +173,8 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertTrue(unlock.waitForExistence(timeout: 8))
         XCTAssertFalse(privatePage.exists)
         XCTAssertFalse(privateAddress.exists)
-        attachScreenshot(named: "private-loaded-page-after-second-background", of: app)
         XCTAssertTrue(unlock.isHittable)
+        NSLog("AHOI_PRIVATE_LOCK_SECOND_RETURN_READY")
         // Keep the actual foreground scene observable for a separately captured
         // Simulator screenshot; XCTest's repeated screenshot API can return an
         // empty frame even while the external compositor still shows the shield.
