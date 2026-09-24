@@ -240,6 +240,8 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertTrue(content.staticTexts.matching(NSPredicate(
             format: "label BEGINSWITH %@", "The first paragraph is ordinary visible prose"
         )).firstMatch.exists)
+        XCTAssertFalse(content.staticTexts["Ahoi fixture page"].exists)
+        XCTAssertFalse(content.staticTexts["Ahoi visible find target"].exists)
         attachScreenshot(named: "reader-loaded-article", of: app)
 
         app.buttons["browser.reader.return"].tap()

@@ -54,7 +54,7 @@ extension MobileBrowserController {
           'nav', 'header', 'footer', 'aside', 'form', 'button', '[hidden]',
           '[aria-hidden="true"]', '[contenteditable]:not([contenteditable="false"])'
         ].join(',');
-        let best = null;
+        let bestArticle = null, bestMain = null;
         for (let rootIndex = 0; rootIndex < Math.min(roots.length, 32); rootIndex++) {
           const root = roots[rootIndex];
           if (root.closest(excluded)) continue;
@@ -76,9 +76,17 @@ extension MobileBrowserController {
             if (node.tagName === 'P' && text.length >= 80) prose++;
             paragraphs.push(text);
           }
-          if (prose >= 2 && total >= 400 && (!best || total > best.total))
-            best = {paragraphs, total};
+          if (prose >= 2 && total >= 400) {
+            const candidate = {paragraphs, total};
+            if (root.matches('article, [role="article"]')) {
+              if (!bestArticle || total > bestArticle.total) bestArticle = candidate;
+            } else if (!bestMain || total > bestMain.total) {
+              bestMain = candidate;
+            }
+          }
         }
+        // A qualifying article is more specific than its enclosing main element.
+        const best = bestArticle || bestMain;
         return best ? {
           paragraphs: best.paragraphs,
           title: (document.title || '').slice(0, 2048),
