@@ -391,70 +391,13 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].exists)
     }
 
+    /// Saved-page Home help needs real shared-tab presence; see
+    /// `MobileBrowserTabWorkspaceRealE2EUITests.testSavedPageHomeAddressHelpReturnAndRestore`.
     @MainActor
-    func testContextualHelpExplainsHomeAddressAndLinkPreview() throws {
+    func testContextualHelpExplainsLinkPreview() throws {
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
         defer { app.terminate() }
         XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
-        let workspace = "Hilfe \(UUID().uuidString.prefix(6))"
-        app.buttons["browser.more"].tap()
-        let workspaces = app.buttons["browser.actions.workspaces"]
-        XCTAssertTrue(waitForHittable(workspaces, timeout: 4))
-        workspaces.tap()
-        let manage = app.buttons["browser.library.manage"]
-        XCTAssertTrue(waitForHittable(manage, timeout: 5))
-        manage.tap()
-        let create = app.buttons["browser.library.create.workspace"]
-        XCTAssertTrue(waitForHittable(create, timeout: 3))
-        create.tap()
-        let identified = app.textFields["browser.library.create.name"]
-        let field = identified.waitForExistence(timeout: 1)
-            ? identified : app.alerts.firstMatch.textFields.firstMatch
-        XCTAssertTrue(field.waitForExistence(timeout: 3))
-        field.tap()
-        field.typeText(workspace)
-        let confirm = app.alerts.firstMatch.buttons["browser.library.create.confirm"].firstMatch
-        XCTAssertTrue(confirm.waitForExistence(timeout: 3))
-        confirm.tap()
-        XCTAssertTrue(app.staticTexts[workspace].waitForExistence(timeout: 5))
-        let libraryDone = app.buttons["browser.library.done"]
-        XCTAssertTrue(waitForHittable(libraryDone, timeout: 3))
-        libraryDone.tap()
-
-        app.buttons["browser.more"].tap()
-        let save = app.buttons["browser.actions.save-to-workspace"]
-        XCTAssertTrue(revealInLazySheet(save, in: app))
-        save.tap()
-        let destination = app.buttons[workspace]
-        XCTAssertTrue(destination.waitForExistence(timeout: 4))
-        destination.tap()
-        if app.buttons["browser.actions.done"].waitForExistence(timeout: 2) {
-            app.buttons["browser.actions.done"].tap()
-        }
-
-        // The save commits asynchronously; reopen until the saved-page Home rows appear.
-        let homeHelp = app.staticTexts["browser.actions.home-help"]
-        var homeRowsVisible = false
-        for _ in 0..<4 where !homeRowsVisible {
-            XCTAssertTrue(waitForHittable(app.buttons["browser.more"], timeout: 5))
-            app.buttons["browser.more"].tap()
-            homeRowsVisible = revealInLazySheet(homeHelp, in: app)
-            if !homeRowsVisible {
-                app.buttons["browser.actions.done"].tap()
-                Thread.sleep(forTimeInterval: 2)
-            }
-        }
-        if !homeRowsVisible {
-            attachScreenshot(named: "home-address-rows-missing", of: app)
-        }
-        XCTAssertTrue(homeRowsVisible)
-        XCTAssertTrue(
-            homeHelp.label.hasPrefix("Die Ausgangsadresse ist der feste Startpunkt") ||
-            homeHelp.label.hasPrefix("A Home Address is this saved page")
-        )
-        XCTAssertTrue(app.staticTexts["browser.actions.home-state"].exists)
-        attachScreenshot(named: "home-address-help", of: app)
-        app.buttons["browser.actions.done"].tap()
 
         let link = app.webViews.links["Open Ahoi link actions"]
         XCTAssertTrue(link.waitForExistence(timeout: 5))

@@ -143,6 +143,91 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
     }
 
     @MainActor
+    func testSavedPageHomeAddressHelpReturnAndRestore() async throws {
+        let fixture = try await requireReachableFixture()
+        let token = UUID().uuidString.lowercased().prefix(8)
+        let workspace = "Home Harbor \(token)"
+        let homeURL = fixture.url(path: "/navigation?home-address=\(token)")
+        let awayURL = fixture.url(path: "/navigation?home-away=\(token)")
+        let app = coldLaunchApplication()
+        defer {
+            deleteWorkspaceIfPresent(named: workspace, in: app)
+            app.terminate()
+        }
+
+        openLibrary(in: app)
+        createWorkspace(named: workspace, in: app)
+        closeLibrary(in: app)
+        navigate(to: homeURL, in: app)
+        saveSelectedPage(to: workspace, in: app)
+
+        let homeHelp = app.staticTexts["browser.actions.home-help"]
+        let homeState = app.staticTexts["browser.actions.home-state"]
+        XCTAssertTrue(openActionsRevealing(homeHelp, in: app, attempts: 4),
+                      "Saving must expose the saved page's Home Address rows.")
+        XCTAssertTrue(
+            homeHelp.label.hasPrefix("Die Ausgangsadresse ist der feste Startpunkt") ||
+                homeHelp.label.hasPrefix("A Home Address is this saved page")
+        )
+        XCTAssertTrue(["An der Ausgangsadresse", "At Home Address"].contains(homeState.label))
+        attachScreenshot(named: "home-address-help-at-home", of: app)
+        dismissActionsIfPresent(in: app)
+
+        navigate(to: awayURL, in: app)
+        XCTAssertTrue(openActionsRevealing(homeState, in: app, attempts: 2))
+        let awayState = NSPredicate(format: "label IN %@", [
+            "Nicht an der Ausgangsadresse", "Away from Home Address"
+        ])
+        XCTAssertTrue(XCTWaiter.wait(for: [
+            XCTNSPredicateExpectation(predicate: awayState, object: homeState)
+        ], timeout: 5) == .completed)
+        let goHome = app.buttons["browser.actions.home-return"]
+        reveal(goHome, in: app)
+        attachScreenshot(named: "home-address-away", of: app)
+        goHome.tap()
+        assertAddress(homeURL, containsOrigin: fixture.origin, in: app)
+
+        flushThroughVisibleBackgroundTransition(app)
+        relaunchExactCandidate(app)
+        openTabSwitcher(in: app)
+        let restored = row(containing: homeURL.absoluteString, in: app)
+        XCTAssertTrue(restored.waitForExistence(timeout: 5))
+        restored.tap()
+        XCTAssertTrue(openActionsRevealing(homeState, in: app, attempts: 3))
+        XCTAssertTrue(["An der Ausgangsadresse", "At Home Address"].contains(homeState.label),
+                      "The Home Address must survive process restoration.")
+        attachScreenshot(named: "home-address-after-relaunch", of: app)
+        dismissActionsIfPresent(in: app)
+    }
+
+    @MainActor
+    private func openActionsRevealing(
+        _ element: XCUIElement, in app: XCUIApplication, attempts: Int
+    ) -> Bool {
+        for _ in 0..<attempts {
+            let more = app.buttons["browser.more"]
+            XCTAssertTrue(waitForHittable(more, timeout: 5))
+            more.tap()
+            if element.waitForExistence(timeout: 2), element.isHittable { return true }
+            for _ in 0..<4 {
+                app.swipeUp()
+                if element.waitForExistence(timeout: 1), element.isHittable { return true }
+            }
+            dismissActionsIfPresent(in: app)
+            Thread.sleep(forTimeInterval: 2)
+        }
+        return false
+    }
+
+    @MainActor
+    private func attachScreenshot(named name: String, of app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
     func testTargetBlankCreatesOneNormalThirdPartyTabWithDestinationAttribution() async throws {
         let fixture = try await requireReachableFixture()
         let app = coldLaunchApplication()
