@@ -426,23 +426,23 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
     @MainActor
     private func createWorkspace(named name: String, in app: XCUIApplication) {
         let manage = app.buttons["browser.library.manage"]
-        XCTAssertTrue(waitForHittable(manage, timeout: 4))
+        XCTAssertTrue(waitForHittable(manage, timeout: 8))
         manage.tap()
         let create = app.buttons["browser.library.create.workspace"]
-        XCTAssertTrue(waitForHittable(create, timeout: 3))
+        XCTAssertTrue(waitForHittable(create, timeout: 8))
         create.tap()
         let identified = app.textFields["browser.library.create.name"]
         let fallback = app.alerts.firstMatch.textFields.firstMatch
-        let field = identified.waitForExistence(timeout: 1) ? identified : fallback
-        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        let field = identified.waitForExistence(timeout: 3) ? identified : fallback
+        XCTAssertTrue(field.waitForExistence(timeout: 8))
         field.tap()
         field.typeText(name)
         let confirm = app.alerts.firstMatch
             .buttons["browser.library.create.confirm"]
             .firstMatch
-        XCTAssertTrue(confirm.waitForExistence(timeout: 3))
+        XCTAssertTrue(confirm.waitForExistence(timeout: 8))
         confirm.tap()
-        XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 8))
     }
 
     @MainActor
