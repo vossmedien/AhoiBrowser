@@ -4,9 +4,9 @@
   "gates": [
     {
       "id": "xcode-26.6",
-      "state": "verified",
+      "state": "reference-toolchain-unavailable-on-current-host",
       "owner": "engineering",
-      "condition": "Xcode 26.6 build 17F113 is the exact Chromium M152 toolchain for upstream, development and release profiles, with macOS SDK 26.5 build 25F70 and iOS SDK 26.5 build 23F81a. Pinned-reference and compatible-development remain separate provenance labels even though they select the same installation."
+      "condition": "The upstream and release reference remains Xcode 26.6 build 17F113 with macOS SDK 26.5 build 25F70 and iOS SDK 26.5 build 23F81a; that installation is absent on the current host. User-authorized development selects installed Xcode 27.0 build 27A266a with macOS SDK 27.0 build 26A425 and iOS SDK 27.0 build 24A430. Per-mode checks remain exact. Development compatibility and visible M153 E2E are pending and cannot satisfy the separate release gate."
     },
     {
       "id": "disk-headroom",

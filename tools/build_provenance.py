@@ -152,6 +152,7 @@ def verify_profile_binding(
 
 
 def expected_xcode_for_kind(kind: str, toolchain: dict) -> dict[str, str]:
+    macos_sdk = toolchain["sdks"]["macOS"]
     ios_sdk = toolchain["sdks"]["iOS"]
     if kind in {"dev", "full-dev"}:
         compatible = toolchain["xcode"]["compatibleDevelopment"]
@@ -160,6 +161,9 @@ def expected_xcode_for_kind(kind: str, toolchain: dict) -> dict[str, str]:
             "version": compatible["version"],
             "build": compatible["build"],
             "developerDirectory": compatible["developerDirectory"],
+            "macOSSDKVersion": macos_sdk["compatibleDevelopmentVersion"],
+            "macOSSDKBuild": macos_sdk["compatibleDevelopmentBuild"],
+            "iOSSDKVersion": ios_sdk["compatibleDevelopmentVersion"],
             "iOSSDKBuild": ios_sdk["compatibleDevelopmentBuild"],
         }
     if kind not in {"upstream", "release", "full-release"}:
@@ -169,6 +173,9 @@ def expected_xcode_for_kind(kind: str, toolchain: dict) -> dict[str, str]:
         "version": toolchain["xcode"]["requiredVersion"],
         "build": toolchain["xcode"]["requiredBuild"],
         "developerDirectory": toolchain["xcode"]["developerDirectory"],
+        "macOSSDKVersion": macos_sdk["testedVersion"],
+        "macOSSDKBuild": macos_sdk["chromiumOfficialBuild"],
+        "iOSSDKVersion": ios_sdk["testedVersion"],
         "iOSSDKBuild": ios_sdk["pinnedReferenceBuild"],
     }
 
@@ -420,13 +427,13 @@ def main() -> int:
     ).resolve():
         raise SystemExit("DEVELOPER_DIR does not match the configured toolchain mode")
     macos_sdk_version = output("xcrun", "--sdk", "macosx", "--show-sdk-version")
-    if macos_sdk_version != toolchain["sdks"]["macOS"]["testedVersion"]:
+    if macos_sdk_version != expected_xcode["macOSSDKVersion"]:
         raise SystemExit("macOS SDK version does not match the configured toolchain")
     ios_sdk_version = output("xcrun", "--sdk", "iphoneos", "--show-sdk-version")
     ios_sdk_build = output(
         "xcrun", "--sdk", "iphoneos", "--show-sdk-build-version"
     )
-    if ios_sdk_version != toolchain["sdks"]["iOS"]["testedVersion"]:
+    if ios_sdk_version != expected_xcode["iOSSDKVersion"]:
         raise SystemExit("iOS SDK version does not match the configured toolchain")
     if ios_sdk_build != expected_xcode["iOSSDKBuild"]:
         raise SystemExit("iOS SDK build does not match the configured toolchain")
@@ -435,8 +442,8 @@ def main() -> int:
     with sdk_system_version.open("rb") as handle:
         sdk_metadata = plistlib.load(handle)
     macos_sdk_build = sdk_metadata["ProductBuildVersion"]
-    if macos_sdk_build != toolchain["sdks"]["macOS"]["chromiumOfficialBuild"]:
-        raise SystemExit("macOS SDK build does not match the Chromium baseline")
+    if macos_sdk_build != expected_xcode["macOSSDKBuild"]:
+        raise SystemExit("macOS SDK build does not match the configured toolchain mode")
 
     app_payload = {
         "path": logical_path(app),

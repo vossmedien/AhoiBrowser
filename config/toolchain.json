@@ -15,10 +15,10 @@
     "requiredBuild": "17F113",
     "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
     "compatibleDevelopment": {
-      "version": "26.5",
-      "build": "17F42",
-      "developerDirectory": "/Applications/Xcode-26.5.0.app/Contents/Developer",
-      "scope": "user-authorized 2026-09-19 development fallback; pinned Chromium M153 release toolchain remains unchanged"
+      "version": "27.0",
+      "build": "27A266a",
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "scope": "user-authorized 2026-09-24 development toolchain; M153 compatibility requires an exact build and visible E2E; pinned reference and release toolchain remains unchanged"
     }
   },
   "python": {
@@ -28,12 +28,15 @@
     "macOS": {
       "testedVersion": "26.5",
       "chromiumOfficialVersion": "26.5",
-      "chromiumOfficialBuild": "25F70"
+      "chromiumOfficialBuild": "25F70",
+      "compatibleDevelopmentVersion": "27.0",
+      "compatibleDevelopmentBuild": "26A425"
     },
     "iOS": {
       "testedVersion": "26.5",
       "pinnedReferenceBuild": "23F81a",
-      "compatibleDevelopmentBuild": "23F73"
+      "compatibleDevelopmentVersion": "27.0",
+      "compatibleDevelopmentBuild": "24A430"
     }
   },
   "buildTools": {

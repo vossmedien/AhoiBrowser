@@ -77,12 +77,12 @@ remains recovery/history evidence only.
 ./scripts/test-repository.sh
 ```
 
-M152 upstream/release profiles retain pinned Xcode26.6/17F113, macOS SDK26.5/
-25F70 and iOS SDK23F81a. The user-authorized19September development fallback
-uses the separate Xcode26.5/17F42 installation with iOS SDK23F73 and the same
-macOS SDK. Exact per-mode provenance checks remain; development evidence cannot
-satisfy release tests. This does not change global `xcode-select` or stop the
-active Xcode27 Simulator downloads. See [BUILDING.md](docs/BUILDING.md).
+Upstream/release profiles retain pinned Xcode 26.6/17F113, macOS SDK 26.5/
+25F70 and iOS SDK 23F81a. The user-authorized 24 September development
+toolchain uses installed Xcode 27.0/27A266a with macOS SDK 27.0/26A425 and
+iOS SDK 27.0/24A430. Exact per-mode provenance checks remain; development
+evidence cannot satisfy release tests. This does not change global
+`xcode-select`. See [BUILDING.md](docs/BUILDING.md).
 
 A standalone hook run is useful as a preflight, but build scripts deliberately
 rerun Chromium hooks themselves. The local hook-state JSON is evidence only and

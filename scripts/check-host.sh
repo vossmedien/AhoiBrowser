@@ -68,17 +68,17 @@ if actual + (0,) * (width - len(actual)) < minimum + (0,) * (width - len(minimum
     )
 PY
 
-expected_sdk="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" sdks.macOS.testedVersion)"
+expected_sdk="$(ahoi_expected_macos_sdk_version "${xcode_mode}")"
 actual_sdk="$(xcrun --sdk macosx --show-sdk-version)"
 [ "${actual_sdk}" = "${expected_sdk}" ] || \
   ahoi_die "macOS SDK mismatch: expected ${expected_sdk}, got ${actual_sdk}"
 sdk_path="$(xcrun --sdk macosx --show-sdk-path)"
-expected_sdk_build="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" sdks.macOS.chromiumOfficialBuild)"
+expected_sdk_build="$(ahoi_expected_macos_sdk_build "${xcode_mode}")"
 actual_sdk_build="$(defaults read "${sdk_path}/System/Library/CoreServices/SystemVersion" ProductBuildVersion)"
 [ "${actual_sdk_build}" = "${expected_sdk_build}" ] || \
   ahoi_die "macOS SDK build mismatch: expected ${expected_sdk_build}, got ${actual_sdk_build}"
 
-expected_ios_sdk="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" sdks.iOS.testedVersion)"
+expected_ios_sdk="$(ahoi_expected_ios_sdk_version "${xcode_mode}")"
 actual_ios_sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
 [ "${actual_ios_sdk}" = "${expected_ios_sdk}" ] || \
   ahoi_die "iOS SDK mismatch: expected ${expected_ios_sdk}, got ${actual_ios_sdk}"

@@ -292,7 +292,7 @@ class ChromiumDependencyContractTests(unittest.TestCase):
                 full_release_plist,
             )
 
-    def test_xcode_binding_separates_development_from_the_m152_reference(self):
+    def test_xcode_binding_separates_development_from_the_release_reference(self):
         toolchain = build_provenance.load_json(
             build_provenance.ROOT / "config/toolchain.json"
         )
@@ -304,12 +304,18 @@ class ChromiumDependencyContractTests(unittest.TestCase):
         )
         upstream = build_provenance.expected_xcode_for_kind("upstream", toolchain)
         self.assertEqual("compatible-development", dev["mode"])
-        self.assertEqual("26.5", dev["version"])
-        self.assertEqual("17F42", dev["build"])
-        self.assertEqual("23F73", dev["iOSSDKBuild"])
+        self.assertEqual("27.0", dev["version"])
+        self.assertEqual("27A266a", dev["build"])
+        self.assertEqual("27.0", dev["macOSSDKVersion"])
+        self.assertEqual("26A425", dev["macOSSDKBuild"])
+        self.assertEqual("27.0", dev["iOSSDKVersion"])
+        self.assertEqual("24A430", dev["iOSSDKBuild"])
         self.assertEqual(dev, full_dev)
         self.assertEqual("pinned-reference", release["mode"])
         self.assertEqual("26.6", release["version"])
+        self.assertEqual("26.5", release["macOSSDKVersion"])
+        self.assertEqual("25F70", release["macOSSDKBuild"])
+        self.assertEqual("26.5", release["iOSSDKVersion"])
         self.assertEqual("23F81a", release["iOSSDKBuild"])
         self.assertEqual(release, upstream)
         self.assertEqual(release, full_release)

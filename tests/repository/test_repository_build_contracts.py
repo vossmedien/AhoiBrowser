@@ -240,7 +240,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertEqual(2, config["schemaVersion"])
         rust_workaround = config["chromiumRustDepfileSpacePaths"]
         self.assertEqual(
-            "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
+            "792bf6722e73a45aa9e47c163b9901bdc17f3230",
             rust_workaround["upstreamCommit"],
         )
         self.assertEqual(
@@ -248,7 +248,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
             rust_workaround["targetPath"],
         )
         self.assertEqual(
-            "3ddaae81891ab9397a734bbaffffd69bcca65e90c418aaa7cd3995eeccf4bbe5",
+            "98652ff31065e413500cc6c7ed7611d79534f27f58ddd99880b8fcc59715d88a",
             rust_workaround["targetSha256"],
         )
         self.assertIsNone(rust_workaround["upstreamFixCommit"])
@@ -263,14 +263,15 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn("escape_depfile_path", rust_patch_text)
         self.assertIn(
             "parseable_depline = depline.replace(\n"
-            "+      abs_build_root, escape_depfile_path(abs_build_root))",
+            "+        abs_build_root, escape_depfile_path(abs_build_root)\n"
+            "+    )",
             rust_patch_text,
         )
         self.assertIn("(?:\\\\ |[^ ])*", rust_patch_text)
 
         workaround = config["v8InspectorProtocolRelativeDepfilePaths"]
         self.assertEqual(
-            "6aacaf6256a069ee455142333b7d38cad1c8d6e0",
+            "d1fed5cd7e3b114dea70f18b20d26f816322833d",
             workaround["upstreamCommit"],
         )
         self.assertEqual(
@@ -363,22 +364,28 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn('"schemaVersion": 3', hooks)
         self.assertIn('"toolchainMode": toolchain_mode', hooks)
 
-    def test_development_fallback_preserves_the_m152_release_reference(self):
+    def test_xcode27_development_preserves_the_release_reference(self):
         toolchain = load_json("config/toolchain.json")
         compatible = toolchain["xcode"]["compatibleDevelopment"]
         self.assertEqual("26.6", toolchain["xcode"]["requiredVersion"])
         self.assertEqual("17F113", toolchain["xcode"]["requiredBuild"])
-        self.assertEqual("26.5", compatible["version"])
-        self.assertEqual("17F42", compatible["build"])
+        self.assertEqual("27.0", compatible["version"])
+        self.assertEqual("27A266a", compatible["build"])
         self.assertEqual(
-            "/Applications/Xcode-26.5.0.app/Contents/Developer",
+            "/Applications/Xcode.app/Contents/Developer",
             compatible["developerDirectory"],
         )
         self.assertIn("release toolchain remains unchanged", compatible["scope"])
+        macos_sdk = toolchain["sdks"]["macOS"]
+        self.assertEqual("26.5", macos_sdk["testedVersion"])
+        self.assertEqual("25F70", macos_sdk["chromiumOfficialBuild"])
+        self.assertEqual("27.0", macos_sdk["compatibleDevelopmentVersion"])
+        self.assertEqual("26A425", macos_sdk["compatibleDevelopmentBuild"])
         ios_sdk = toolchain["sdks"]["iOS"]
         self.assertEqual("26.5", ios_sdk["testedVersion"])
         self.assertEqual("23F81a", ios_sdk["pinnedReferenceBuild"])
-        self.assertEqual("23F73", ios_sdk["compatibleDevelopmentBuild"])
+        self.assertEqual("27.0", ios_sdk["compatibleDevelopmentVersion"])
+        self.assertEqual("24A430", ios_sdk["compatibleDevelopmentBuild"])
         self.assertNotIn("testedBuild", ios_sdk)
         builder = (ROOT / "scripts/build-ahoi.sh").read_text(encoding="utf-8")
         self.assertIn("dev)", builder)
@@ -391,22 +398,32 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn("expected_xcode_for_kind", provenance)
         host_check = (ROOT / "scripts/check-host.sh").read_text(encoding="utf-8")
         common = (ROOT / "scripts/lib/common.sh").read_text(encoding="utf-8")
+        self.assertIn('ahoi_expected_macos_sdk_version "${xcode_mode}"', host_check)
+        self.assertIn('ahoi_expected_macos_sdk_build "${xcode_mode}"', host_check)
+        self.assertIn('ahoi_expected_ios_sdk_version "${xcode_mode}"', host_check)
         self.assertIn('ahoi_expected_ios_sdk_build "${xcode_mode}"', host_check)
+        self.assertIn("ahoi_expected_macos_sdk_version", common)
+        self.assertIn("ahoi_expected_macos_sdk_build", common)
+        self.assertIn("ahoi_expected_ios_sdk_version", common)
         self.assertIn("ahoi_expected_ios_sdk_build", common)
         self.assertIn('"${expected_ios_sdk_build}"', common)
         self.assertIn('expected_xcode["iOSSDKBuild"]', provenance)
 
         helper_script = ROOT / "scripts/lib/common.sh"
-        for mode, expected_build in (
-            ("pinned-reference", "23F81a"),
-            ("compatible-development", "23F73"),
+        for mode, expected in (
+            ("pinned-reference", ("26.5", "25F70", "26.5", "23F81a")),
+            ("compatible-development", ("27.0", "26A425", "27.0", "24A430")),
         ):
             with self.subTest(toolchain_mode=mode):
                 completed = subprocess.run(
                     [
                         "bash",
                         "-c",
-                        'source "$1"; ahoi_expected_ios_sdk_build "$2"',
+                        'source "$1"; '
+                        'ahoi_expected_macos_sdk_version "$2"; '
+                        'ahoi_expected_macos_sdk_build "$2"; '
+                        'ahoi_expected_ios_sdk_version "$2"; '
+                        'ahoi_expected_ios_sdk_build "$2"',
                         "ahoi-sdk-test",
                         str(helper_script),
                         mode,
@@ -416,7 +433,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
                     capture_output=True,
                     text=True,
                 )
-                self.assertEqual(expected_build, completed.stdout.strip())
+                self.assertEqual(expected, tuple(completed.stdout.splitlines()))
         forged = subprocess.run(
             [
                 "bash",
