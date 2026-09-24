@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Archive UI continuation — 24 September 2026
+
+The signed `26c39be` clone, initially still running with the isolated
+`complex-profile`, visibly opened `Archiv durchsuchen …` from Tide's Workspace
+context menu. The native dialog listed the imported `Tide archived A · Tide
+archived B` split, its manual reason and time, and separate restore/permanent-
+delete actions. No restore or delete action was selected. An attempt to set
+the archive search field returned `elementHasNoFrame`; a fresh Computer Use
+observation then bound to a different Ahoi window. The original isolated PID
+`36570` had exited without a new Ahoi crash report. Rebinding by full app path
+started PID `75721` without `--user-data-dir`; read-only process inspection
+showed it opened the existing default Ahoi profile, so no UI action was sent
+to that window. That exact task-started PID was ended with `SIGTERM`; the
+installed, separately scoped Ahoi PID `30773` remained running. The default
+profile was not reset or deleted, but this launch may have ordinary startup
+side effects. Search-input, restore, deletion and restart acceptance remain
+**OPEN** until a reliably bound isolated candidate is available again.
+
 ## Empty-Workspace Settings correction — 24 September 2026
 
 Source `bc0fb53` defers Sidebar reconciliation after its Settings footer
