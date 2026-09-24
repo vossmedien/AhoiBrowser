@@ -199,7 +199,7 @@ bool IsKnownWebsiteSessionBinding(const PrefService* prefs,
   }
   const base::DictValue* workspaces =
       root->FindDict(kWebsiteSessionWorkspacesKey);
-  for (const auto& entry : *workspaces) {
+  for (auto entry : *workspaces) {
     const std::string* stored = entry.second.GetIfString();
     if (stored && *stored == context_id) {
       return true;
