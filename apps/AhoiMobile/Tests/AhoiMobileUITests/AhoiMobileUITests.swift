@@ -245,13 +245,21 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         // Let the system biometric sheet appear before the Simulator match event.
         Thread.sleep(forTimeInterval: 2)
         attachScreenshot(named: "private-unlock-face-id-prompt", of: app)
+        let systemUI = XCTAttachment(
+            string: XCUIApplication(bundleIdentifier: "com.apple.springboard").debugDescription
+        )
+        systemUI.name = "private-unlock-system-auth-hierarchy"
+        systemUI.lifetime = .keepAlways
+        add(systemUI)
+        // The host may also deliver the same Simulator match event while this waits.
+        NSLog("AHOI_PRIVATE_UNLOCK_AWAITING_MATCH")
         CFNotificationCenterPostNotification(
             CFNotificationCenterGetDarwinNotifyCenter(),
             CFNotificationName("com.apple.BiometricKit_Sim.pearl.match" as CFString),
             nil, nil, true
         )
 
-        XCTAssertTrue(privateAddress.waitForExistence(timeout: 8))
+        XCTAssertTrue(privateAddress.waitForExistence(timeout: 20))
         XCTAssertTrue(privatePage.waitForExistence(timeout: 5))
         XCTAssertFalse(unlock.exists)
         attachScreenshot(named: "private-unlock-retained-page", of: app)
