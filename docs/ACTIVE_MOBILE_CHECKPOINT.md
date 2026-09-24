@@ -23,10 +23,10 @@ at HEAD `8662590` with clean Mobile paths; product/project/configuration files
 are unchanged from the visibly tested `45330d2` DebugLocal build 39. The installed Build 39
 remained installed and A168 was returned to Shutdown. Exact command, result
 bundle and limits: [private-lock focused tests](../artifacts/tests/mobile-private-lock-xcode27-20260924/README.md).
-This proves only the tested authentication state/race logic. A normal visible
-private-lock, return, cancellation and background journey with retained private
-state is still **NOT_RUN**; do not promote the unit result to UI/real-device
-acceptance. C645's CloudKit Development candidate was not touched.
+This proves only the tested authentication state/race logic. At that point the
+visible return journey above had not run; do not promote this unit result to
+UI/real-device acceptance. Cancellation, successful unlock and retained page
+state remain **NOT_RUN**. C645's CloudKit Development candidate was not touched.
 
 ## Focused Format-3 regression — 24 September 2026
 
@@ -36,8 +36,9 @@ unchanged from visibly tested source `45330d2`. Xcode 27.0 on dedicated
 A168/iOS 27, `DebugLocal` test action, exact source stamp and two class filters:
 6 passed, 0 failed, 0 skipped, with both files compiled rather than excluded.
 The [result bundle and limits](../artifacts/tests/mobile-format3-7d7a92a-20260924/README.md)
-are archived. This is a focused unit regression only: no Build41 installed
-journey, no new CloudKit claim and no Mac/mobile encrypted record roundtrip.
+are archived. This is a focused unit regression only; the later Build41
+private-lock journey above is separate, and neither result is a new CloudKit
+claim or a Mac/mobile encrypted record roundtrip.
 Build40/source `45330d2` remains the last visibly accepted Mobile Development
 candidate.
 
