@@ -137,9 +137,9 @@ commits, trusted GN/Ninja/Clang/LLD binary hashes, and exact Xcode/SDK versions.
 ./scripts/build-ahoi.sh
 ```
 
-With the pinned Xcode 26.6 toolchain, bootstrap and apply the overlay explicitly
-as follows; `build-ahoi.sh dev` then selects the same installation under the
-development provenance label automatically:
+With the active Xcode 27 compatible-development toolchain, bootstrap and apply
+the overlay explicitly as follows; `build-ahoi.sh dev` then selects the same
+installation under the development provenance label automatically:
 
 ```sh
 ./scripts/run-chromium-hooks.sh --compatible-dev-xcode

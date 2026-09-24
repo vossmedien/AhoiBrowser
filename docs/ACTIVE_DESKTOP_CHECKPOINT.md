@@ -1,20 +1,39 @@
 # Active Desktop checkpoint
 
+## M153 session candidate: Xcode 27 development build — 24 September 2026
+
+The user confirmed Xcode 26.5 was removed and explicitly directed use of the
+installed Xcode 27. Source `484a2f9` changes only the compatible-development
+toolchain to Xcode 27.0 (27A266a), macOS SDK 27.0 (26A425) and iOS SDK 27.0
+(24A430); the Xcode 26.6/SDK 26.5 upstream-control and release reference stays
+separate and is unavailable on this host. The exact host check and guarded
+54-patch overlay refresh passed. From clean detached source
+`/private/tmp/ahoi-m153-ws.x4fmXk/repo`, the guarded
+`./scripts/build-ahoi.sh dev ahoi_session_unittests` is currently compiling in
+the shared Desktop-owned `out/AhoiDev`, with log
+`/private/tmp/ahoi-m153-ws.x4fmXk/build8-xcode27.log` (wrapper PID 86153,
+Ninja PID 96985 at the last live check). These PIDs are observations, not
+resumption instructions; verify live state before acting. Available disk was
+above the 64-GiB build recommendation. No terminal build result, new signed
+candidate, unit result, or visible E2E is claimed yet. After an EXIT0, first
+repeat the empty-Workspace typed-navigation journey on the exact signed app;
+then run only affected focused regressions. Do not launch a second build into
+the same output or infer release compatibility from development provenance.
+
 ## M153 session candidate: host toolchain gate — 24 September 2026
 
 After external disk cleanup, the guarded overlay verification on clean detached
 source `dc9cd54` exited 0 (`overlay unchanged and checkout delta verified`).
 The next guarded `./scripts/build-ahoi.sh dev ahoi_session_unittests` attempt
-then exited 1 **before GN or compilation**: the configured compatible-
+then exited 1 **before GN or compilation**: the then-configured compatible-
 development directory `/Applications/Xcode-26.5.0.app/Contents/Developer` was
 missing. A fresh host check found only `/Applications/Xcode.app` (Xcode 27.0,
 27A266a, macOS/iOS SDK 27); Spotlight found no indexed copy of the exact 26.5
 app. Available space was above the 64-GiB build recommendation. No new bundle,
 signature, unit result or visible E2E is claimed. The M153 checkout/output and
-the clean detached source remain preserved. Do not silently switch the pinned
-development/release toolchain to Xcode 27: resume the guarded build only after
-the exact 26.5 installation is restored or a separate reviewed toolchain
-decision is made.
+clean detached source were preserved. The user's later explicit Xcode 27
+development decision and live continuation are recorded above; this section
+is historical failure evidence, not an active blocker.
 
 ## Workspace-local website sessions: gated M153 development candidate — 24 September 2026
 
