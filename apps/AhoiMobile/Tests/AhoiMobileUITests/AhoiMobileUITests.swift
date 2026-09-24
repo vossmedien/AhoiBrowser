@@ -266,11 +266,11 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         }
         XCTAssertTrue(addressCopy.isHittable)
         addressCopy.tap()
-        XCTAssertEqual(UIPasteboard.general.string, "https://fixture.ahoibrowser.test/start")
+        XCTAssertEqual(readPasteboardString(), "https://fixture.ahoibrowser.test/start")
         XCTAssertTrue(markdownCopy.isHittable)
         markdownCopy.tap()
         XCTAssertEqual(
-            UIPasteboard.general.string,
+            readPasteboardString(),
             "[Ahoi Fixture](<https://fixture.ahoibrowser.test/start>)"
         )
         attachScreenshot(named: "page-link-copy-actions", of: app)
@@ -642,6 +642,24 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         app.buttons.matching(
             NSPredicate(format: "label IN %@", labels)
         ).firstMatch
+    }
+
+    /// Reads off the main thread so a system paste-consent prompt can be answered.
+    @MainActor
+    private func readPasteboardString() -> String? {
+        final class Box: @unchecked Sendable { var value: String? }
+        let box = Box()
+        let done = expectation(description: "pasteboard read")
+        DispatchQueue.global(qos: .userInitiated).async {
+            box.value = UIPasteboard.general.string
+            done.fulfill()
+        }
+        let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons.matching(
+            NSPredicate(format: "label IN %@", ["Allow Paste", "Einfügen erlauben"])
+        ).firstMatch
+        if allow.waitForExistence(timeout: 2) { allow.tap() }
+        wait(for: [done], timeout: 10)
+        return box.value
     }
 
     @MainActor
