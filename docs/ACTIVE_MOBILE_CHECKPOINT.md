@@ -1,5 +1,21 @@
 # Active Mobile checkpoint
 
+## Private-session lock: visible authentication cancellation — 24 September 2026
+
+Xcode 27.0 built clean source `9a49230` as DebugLocal build43 and ran one
+opted-in visible UI journey on owned A168/iOS27: **1 passed, 0 failed, 0
+skipped**. After Home/return, “Entsperren” presented the actual full-screen
+SpringBoard iPhone-code prompt; “Abbrechen” left the native private shield in
+place and the private address control absent from accessibility. Xcode's
+post-test installed bundle matched the built app byte-for-byte, including
+source/build stamp and valid ad-hoc signature. [Exact candidate, screenshots
+and limits](../artifacts/e2e/mobile-private-cancel43-20260924/README.md).
+The prior Build42 RED was a test-harness selector error: the system prompt is
+`authentication_ui`, not an alert; the corrected exact Build43 journey passed.
+Successful unlock with a retained loaded private page and physical-device
+authentication remain open. This is not a Sync result. C645's CloudKit
+Development build40 was untouched.
+
 ## Private-session lock: visible return shield — 24 September 2026
 
 Xcode 27.0 built clean source `2feae1e` as DebugLocal build 41 and ran one

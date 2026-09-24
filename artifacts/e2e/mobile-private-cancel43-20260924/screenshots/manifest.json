@@ -1,0 +1,26 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "2563C761-6F89-46E2-97AB-3463F5C0A982.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-lock-after-authentication-cancel_0_B0077869-8996-4D75-AF6B-F0D6F3D57895.png",
+        "timestamp" : 1790263097.072
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "F12B13A7-D807-4563-B54C-EE83BBDB5437.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-lock-authentication-prompt_0_96FFDED9-080B-484B-BAF1-30C2AD86DA48.png",
+        "timestamp" : 1790263094.15
+      }
+    ],
+    "testIdentifier" : "AhoiMobileUITests/testPrivateSessionRemainsShieldedWhenAuthenticationIsCancelled()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/AhoiMobileUITests/testPrivateSessionRemainsShieldedWhenAuthenticationIsCancelled"
+  }
+]
