@@ -174,6 +174,13 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertFalse(privatePage.exists)
         XCTAssertFalse(privateAddress.exists)
         attachScreenshot(named: "private-loaded-page-after-second-background", of: app)
+        let screenAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        screenAttachment.name = "private-loaded-page-after-second-background-screen"
+        screenAttachment.lifetime = .keepAlways
+        add(screenAttachment)
+        Thread.sleep(forTimeInterval: 1)
+        XCTAssertTrue(unlock.isHittable)
+        attachScreenshot(named: "private-loaded-page-after-second-background-settled", of: app)
 
         app.terminate()
         app.launchArguments = []
