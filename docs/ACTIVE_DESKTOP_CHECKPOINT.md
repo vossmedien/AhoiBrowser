@@ -16,6 +16,7 @@ owner supplies the input. Add new items here instead of asking.
 | Formal reviews | Named reviewers / external security and product reviews | 20–21 |
 | Xcode 26.6 / SDK 26.5 reference | Owner-provided copy of the exact upstream/release reference toolchain (removed from host; Xcode 27 is development-only) | 1–4 release compatibility |
 | Third-party accounts | Credentials for password-manager extensions (1Password, Bitwarden) if a real vault must be unlocked | 8 password-manager journey |
+| macOS Screen Recording permission | Grant "Bildschirmaufnahme" to the agent host app (Terminal Cockpit) so `screencapture` can record desktop E2E images; until then agents use Accessibility trees and Chromium DevTools state as visible-state evidence | 5–7, 11 image evidence (not the behavior itself) |
 | Publication / release | Any App Store, TestFlight, website, update-feed or GitHub release publication | 15, 23–24 |
 
 ## M153 session candidate: Xcode 27 development build — 24 September 2026
