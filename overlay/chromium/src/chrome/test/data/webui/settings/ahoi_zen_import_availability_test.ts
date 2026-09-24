@@ -169,7 +169,7 @@ suite('AhoiZenImportAvailability', () => {
         option => option.textContent.trim());
     assertFalse(optionLabels.some(label => label.startsWith('Zen')));
     assertFalse(optionLabels.some(label => label.startsWith('Arc')));
-    const sourceStatus = dialog.shadowRoot!.querySelector<HTMLElement>(
+    const sourceStatus = dialog.shadowRoot.querySelector<HTMLElement>(
         '#sourceDiscoveryStatus')!;
     assertFalse(sourceStatus.hidden);
     assertTrue(sourceStatus.textContent.includes(
@@ -199,7 +199,7 @@ suite('AhoiZenImportAvailability', () => {
 
     selectSource(dialog, 1);
     assertFalse(dialog.$.import.disabled);
-    const structureStatus = dialog.shadowRoot!.querySelector<HTMLElement>(
+    const structureStatus = dialog.shadowRoot.querySelector<HTMLElement>(
         '#zenStructureStatus')!;
     assertFalse(structureStatus.hidden);
     assertTrue(structureStatus.textContent.includes(

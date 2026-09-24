@@ -158,7 +158,7 @@ suite('AhoiArcStandardImportSurface', () => {
   }
 
   function getArcSection(): MutableArcImportSection {
-    return dialog.shadowRoot!.querySelector<MutableArcImportSection>(
+    return dialog.shadowRoot.querySelector<MutableArcImportSection>(
         '#ahoiArcImport')!;
   }
 
