@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/session/session_restore_integration.h"
 
+#include <array>
 #include <map>
 #include <optional>
 #include <string>
@@ -12,10 +13,12 @@
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "ahoi/browser/session/workspace_session_metadata.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
+#include "base/containers/span.h"
 #include "base/memory/raw_ptr.h"
 #include "base/run_loop.h"
 #include "base/time/time.h"
@@ -23,6 +26,7 @@
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/test/base/browser_with_test_window_test.h"
+#include "components/prefs/pref_service.h"
 #include "components/tabs/public/tab_interface.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "url/gurl.h"
@@ -112,6 +116,43 @@ TEST_F(SessionRestoreIntegrationTest, ExtraDataRoundTripsWindowAndTabState) {
   EXPECT_TRUE(RestoreTabSessionExtraData(browser(), tab, tab_extra_data));
   EXPECT_EQ(second_workspace, bridge_->GetActiveWorkspaceForWindow(browser()));
   EXPECT_EQ(second_workspace, bridge_->GetWorkspaceForTab(tab));
+}
+
+TEST_F(SessionRestoreIntegrationTest,
+       RestoredNativeContextMustBelongToLocalProfile) {
+  const base::Uuid existing =
+      workspace_service_->ordered_workspaces().front().id;
+  const std::array<base::Uuid, 1> existing_ids = {existing};
+  ASSERT_TRUE(InitializeWebsiteSessionBindings(profile()->GetPrefs(),
+                                                base::span(existing_ids)));
+  const base::Uuid new_workspace = base::Uuid::GenerateRandomV4();
+  const auto binding = GetOrCreateWebsiteSessionBinding(profile()->GetPrefs(),
+                                                        new_workspace);
+  ASSERT_TRUE(binding);
+  ASSERT_FALSE(binding->is_default());
+
+  TabSessionMetadata metadata{
+      .workspace_id = new_workspace,
+      .website_session_context_id = binding->context_id,
+  };
+  std::map<std::string, std::string> extra_data;
+  const auto encoded = EncodeTabSessionMetadata(metadata);
+  ASSERT_TRUE(encoded);
+  extra_data[kTabSessionMetadataExtraDataKey] = *encoded;
+  EXPECT_EQ(binding,
+            ReadRestoredWebsiteSessionBinding(profile(), extra_data));
+
+  metadata.website_session_context_id = base::Uuid::GenerateRandomV4();
+  const auto foreign = EncodeTabSessionMetadata(metadata);
+  ASSERT_TRUE(foreign);
+  extra_data[kTabSessionMetadataExtraDataKey] = *foreign;
+  EXPECT_FALSE(ReadRestoredWebsiteSessionBinding(profile(), extra_data));
+  extra_data[kTabSessionMetadataExtraDataKey] = "not-json";
+  EXPECT_FALSE(ReadRestoredWebsiteSessionBinding(profile(), extra_data));
+  extra_data.clear();
+  const auto legacy = ReadRestoredWebsiteSessionBinding(profile(), extra_data);
+  ASSERT_TRUE(legacy);
+  EXPECT_TRUE(legacy->is_default());
 }
 
 TEST_F(SessionRestoreIntegrationTest,
