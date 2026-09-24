@@ -1,5 +1,20 @@
 # Active Mobile checkpoint
 
+## Private-session lock: visible return shield — 24 September 2026
+
+Xcode 27.0 built clean source `2feae1e` as DebugLocal build 41 and ran one
+opted-in visible UI journey on owned A168/iOS 27: **1 passed, 0 failed, 0
+skipped**. Settings enabled the actual device-authentication preference, a new
+private tab opened, and Home/return displayed the native full-screen shield
+without exposing the private address control. The installed app matched the
+test-built archived bundle byte-for-byte, with source/build stamp and valid
+ad-hoc signature. [Exact candidate, screenshots and limits](../artifacts/e2e/mobile-private-lock41-20260924/README.md).
+The UI test rebuilt the executable after the product-only build, so the
+receipt identifies the **tested** binary, not the earlier product-only binary.
+Cancel, successful unlock with retained private page, physical-device
+authentication and Sync remain unproved. C645's CloudKit Development build 40
+was not touched.
+
 ## Private-session lock: focused state/race regression — 24 September 2026
 
 Xcode 27.0 ran the three existing `MobilePrivateSessionLockTests` on the owned
