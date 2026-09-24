@@ -76,13 +76,31 @@ a non-Guest fixed partition. This is still planning, not implemented isolation.
 This is not a complete five-entry feature plan: native permission and extension
 cookie routing are required integration boundaries too. The live pinned
 ContentSettingPermissionContextBase still reads a profile-wide SettingsMap;
-PermissionContextBase explicitly notes that permissions are not partition-scoped.
+PermissionContextBase still writes to that same profile-wide map.
 The Chrome cookies API's ParseStoreCookieManager uses DefaultStoragePartition.
 Consequently, simply selecting a partition for initial NewTab is insufficient.
 Keep upstream permission/extension authority, global extension trust and native
 special-page ownership; do not reinterpret pins as rights or swap global grants
 when the foreground workspace changes. New isolated jars start empty; no
 automatic copying, clearing or logout of existing website sessions.
+
+The pinned M153 source confirms this remains an implementation gate after the
+initial partition-routing work. `ChromePermissionsClient::GetSettingsMap()`
+accepts only `BrowserContext` and returns the Profile's
+`HostContentSettingsMap`. `PermissionContextBase` reads, writes, resets and
+observes that same map; the derived content-setting context also reads it.
+`PermissionUtil::IsPermissionBlockedInPartition()` denies only the
+*undelegated* case when the requesting origin's home partition differs from
+the renderer's partition; delegated and double-keyed permissions pass this
+check. A correct local permission solution therefore needs explicit native
+request/read/write/reset/observer scoping and tests for existing grants in
+another Workspace, not only a new-partition prompt test. Likewise, the M153
+`chrome.cookies` store IDs select a Profile and
+`ParseStoreCookieManager()` then returns its default partition; the cookie
+event router also listens at Profile scope. No isolated-Workspace cookie
+store is exposed by that API yet. The development flag must remain off by
+default until these surfaces preserve both per-context isolation and global
+extension installation/authority.
 
 ## Sync coordination
 
