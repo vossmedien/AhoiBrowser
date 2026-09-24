@@ -578,6 +578,12 @@ struct MobileBrowserActionsSheet: View {
                 currentPageTarget == nil || currentPageTarget == node.homeTarget
         )
         .accessibilityIdentifier("browser.actions.home-set")
+        Text(CompanionL10n.string(
+            "browser.home.help",
+            fallback: "A Home Address is this saved page's fixed starting point. Browsing in the tab doesn't change it; “Go to Home Address” takes you back."
+        ))
+            .font(.caption).foregroundStyle(.secondary)
+            .accessibilityIdentifier("browser.actions.home-help")
     }
 
     private var currentPageTarget: SharedTabTarget? {

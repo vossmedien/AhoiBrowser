@@ -392,6 +392,51 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
     }
 
     @MainActor
+    func testContextualHelpExplainsHomeAddressAndLinkPreview() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+
+        app.buttons["browser.more"].tap()
+        let save = app.buttons["browser.actions.save-to-workspace"]
+        XCTAssertTrue(save.waitForExistence(timeout: 5))
+        for _ in 0..<4 where !save.isHittable { app.swipeUp() }
+        save.tap()
+        let destination = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "browser.actions.save-to-workspace."
+        )).firstMatch
+        XCTAssertTrue(destination.waitForExistence(timeout: 4))
+        destination.tap()
+        if app.buttons["browser.actions.done"].waitForExistence(timeout: 2) {
+            app.buttons["browser.actions.done"].tap()
+        }
+
+        app.buttons["browser.more"].tap()
+        let homeHelp = app.staticTexts["browser.actions.home-help"]
+        XCTAssertTrue(homeHelp.waitForExistence(timeout: 8))
+        for _ in 0..<6 where !homeHelp.isHittable { app.swipeUp() }
+        XCTAssertTrue(
+            homeHelp.label.hasPrefix("Die Ausgangsadresse ist der feste Startpunkt") ||
+            homeHelp.label.hasPrefix("A Home Address is this saved page")
+        )
+        XCTAssertTrue(app.staticTexts["browser.actions.home-state"].exists)
+        attachScreenshot(named: "home-address-help", of: app)
+        app.buttons["browser.actions.done"].tap()
+
+        let link = app.webViews.links["Open Ahoi link actions"]
+        XCTAssertTrue(link.waitForExistence(timeout: 5))
+        link.press(forDuration: 1.2)
+        let previewHelp = app.staticTexts["browser.link-actions.preview-help"]
+        XCTAssertTrue(previewHelp.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["browser.link-actions.preview"].exists)
+        XCTAssertTrue(
+            previewHelp.label.hasPrefix("Die Vorschau lädt den Link") ||
+            previewHelp.label.hasPrefix("Preview loads the link")
+        )
+        attachScreenshot(named: "link-preview-help", of: app)
+    }
+
+    @MainActor
     func testUnsafeSchemeIsExplainedAndRejected() throws {
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 

@@ -120,10 +120,7 @@ struct MobileLinkActionSheet: View {
     }
 
     private var openSection: some View {
-        Section(CompanionL10n.string(
-            "browser.link_actions.open_section",
-            fallback: "Open"
-        )) {
+        Section {
             Button {
                 if browser.stagePendingLinkPreview(requestID: link.id) {
                     dismiss()
@@ -162,6 +159,14 @@ struct MobileLinkActionSheet: View {
                 )
             }
             .accessibilityIdentifier(alternateModeOpenIdentifier)
+        } header: {
+            Text(CompanionL10n.string("browser.link_actions.open_section", fallback: "Open"))
+        } footer: {
+            Text(CompanionL10n.string(
+                "browser.link_actions.preview_help",
+                fallback: "Preview loads the link without leaving this page. Keep it with “Open as Tab” or close it."
+            ))
+            .accessibilityIdentifier("browser.link-actions.preview-help")
         }
     }
 
