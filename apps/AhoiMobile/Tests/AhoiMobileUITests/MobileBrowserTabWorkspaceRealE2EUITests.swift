@@ -172,6 +172,7 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
         XCTAssertTrue(["An der Ausgangsadresse", "At Home Address"].contains(homeState.label))
         attachScreenshot(named: "home-address-help-at-home", of: app)
         dismissActionsIfPresent(in: app)
+        dismissPopoverIfPresent(in: app)
 
         navigate(to: awayURL, in: app)
         XCTAssertTrue(openActionsRevealing(homeState, in: app, attempts: 2))
@@ -217,6 +218,14 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
             Thread.sleep(forTimeInterval: 2)
         }
         return false
+    }
+
+    /// A swipe across a Menu row can leave its popover open over the toolbar.
+    @MainActor
+    private func dismissPopoverIfPresent(in app: XCUIApplication) {
+        let region = app.otherElements["PopoverDismissRegion"]
+        if region.waitForExistence(timeout: 1) { region.tap() }
+        XCTAssertTrue(region.waitForNonExistence(timeout: 3))
     }
 
     @MainActor
