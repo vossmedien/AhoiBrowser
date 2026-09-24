@@ -1,5 +1,7 @@
 # Active Mobile checkpoint
 
+Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
+
 ## Page-link copy and unavailable Reader — 24 September 2026
 
 Exact clean source `bda2815`, Xcode27 `DebugLocal` build52, passed one visible
