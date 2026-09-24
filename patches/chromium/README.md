@@ -9,9 +9,10 @@ region already begins below the visible toolbar. This patch passes zero
 caption height in fullscreen, removes the fallback top margin only for that
 zero-height Ahoi case, and aligns caption hit-testing with the actual reserved
 height. Normal-window 40-DIP titlebar and floating-sidebar margins are
-unchanged; no page viewport or BrowserContext ownership changes. Source
-application check passes. Guarded build and visible normal/fullscreen checks
-remain open.
+unchanged; no page viewport or BrowserContext ownership changes. The guarded
+`13a992c` 48-patch M153 build and isolated normal/fullscreen, Glass ON/OFF
+zero-tab journey passed; see the current desktop checkpoint for receipt and
+remaining installed/accessibility limits.
 
 ## `0047-ahoi-empty-state-card-clip.patch`
 
@@ -25,8 +26,8 @@ layouts explicitly clear the mask again, even when Glass is off. No page
 viewport, WebContents, sidebar width or profile authority changes. The first
 `c76e98b` 47-patch signed build visibly corrected the normal zero-tab corner;
 the missing fullscreen reset was found in source before acceptance. The
-updated 48-patch stack and normal/fullscreen journey still require their
-exact guarded build and visible check.
+updated `13a992c` 48-patch stack built and visibly passed normal/fullscreen
+Glass ON/OFF on the isolated candidate. Installed-app acceptance is separate.
 
 ## `0046-ahoi-settings-follow-selected-workspace.patch`
 

@@ -15,9 +15,10 @@ architecture decision, test, or release gate.
 ## Current status
 
 The current source roll targets Chromium Mac Stable `153.0.8010.53` at exact commit
-`792bf6722e73a45aa9e47c163b9901bdc17f3230`. Its 46-patch ordered
-composition and bounded M153 development builds/runtime journeys are verified;
-the full product and release gates remain open. Installed candidates retain
+`792bf6722e73a45aa9e47c163b9901bdc17f3230`. Its 48-patch ordered
+composition, guarded Development build, and bounded zero-tab/fullscreen
+visual journeys are verified on source `13a992c`; the full product and
+release gates remain open. Installed candidates retain
 their own older source receipts and are not relabelled by this update.
 The active source delta is the
 tracked overlay plus the complete ordered series declared in

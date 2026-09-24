@@ -47,11 +47,77 @@ defect, not a Glass pass. The current M153 layout gives the normal card a real
 while the macOS frame material has a separate neutral fallback. A previous
 September screenshot already showed a narrower dark rail at the same kind of
 seam (`artifacts/computer-use/bookmarks-coordination-20260905/user-sidebar-seam-091918.png`).
-The exact offending edge/background has not yet been isolated on a candidate;
-do not substitute a cosmetic overlay or claim it fixed from source inspection.
-After the archive crash candidate is accepted, compare the same public page
-with Glass ON/OFF and normal/fullscreen at this corner, correct the owning
-view/material geometry, then repeat the visible journey.
+The signed `b3e18cc` archive clone reproduced the square fill on a real
+`Leer starten`/zero-tab window in the isolated profile. Its
+`EmptyStateView::OnPaint` fills its complete rectangular bounds; the parent
+card/background and normal ContentsContainerView receive dynamic top radii,
+but this direct zero-tab child did not. Source `c76e98b` adds ordered patch
+`0047` to give only the EmptyStateView a transparent composited layer whose
+clip follows the existing `SetBackgroundRadii` contract (including clearing
+it for square/fullscreen layouts). The guarded 47-patch M153 build from a
+clean detached source worktree exited 0 with explicit supervised low-disk
+warning (58.8 GiB available, 64 GiB recommended, 32 GiB hard floor). The
+Apple-Development-signed binary hash was
+`a9a1c18ee2c107d78888c25cb971caf9ff0a975abab6a1893c14dfe1516e615d`;
+receipt/log: `artifacts/build/native-m153-empty-card-c76e98b-20260924/`.
+On that exact `out/AhoiDev` app and isolated `complex-profile`, the real
+zero-tab normal-window corner visibly became rounded instead of showing the
+square dark fill. This is a bounded normal-window pass, not final acceptance.
+
+Source review and a new user fullscreen screenshot exposed a second part of
+the same corner contract: when Glass was off, the layout never cleared the
+normal card's radius on entering fullscreen. The user additionally reported
+a separate 40-DIP dark band above the docked Sidebar in fullscreen. On the
+same intermediate signed candidate, real fullscreen kept that dark band;
+the normal window was restored afterward. The cause is the unconditional
+normal-window caption reservation in `BrowserViewTabbedLayoutImpl`, compounded
+by `GetAhoiSidebarMargins`' minimum top margin and matching fixed caption hit
+area. Patch `0047` now explicitly clears the radius for Ahoi fullscreen even
+without Glass, and new ordered patch `0048` removes only the fullscreen
+caption reservation/band while preserving normal-window and floating modes.
+The full 48-patch guarded overlay refresh exited 0. The clean detached
+`13a992c` source then completed the guarded incremental M153 build EXIT0
+with a supervised low-disk warning (about 58 GiB free, still above the
+32-GiB hard floor). Its Apple-Development-signed app passed deep signature
+verification; binary SHA-256
+`d2f0689ad63362006048b42d831356f1120700d9bff527a3ca93b863f7f40624`.
+Receipt/log: `artifacts/build/native-m153-fullscreen-sidebar-13a992c-20260924/`.
+
+On exactly that `out/AhoiDev` app with the isolated synthetic
+`complex-profile`, the zero-tab normal card showed a rounded top-left corner
+with Glass ON. In fullscreen, the docked Sidebar began directly below the
+toolbar instead of leaving the reported dark 40-DIP band; the Workspace
+switcher opened its native menu. Returning to normal retained the rounded
+corner. In the same profile, Glass was explicitly set OFF: the empty card
+remained rounded in a normal window, fullscreen had a square/flush Empty
+State and still no dark Sidebar band, and returning to normal worked. Glass
+was set back ON before normal Quit. As a focused shared-layout regression,
+the two restored public pages `example.net`/`example.org` visibly formed a
+real top/bottom split again with an accessible divider value of 40. The
+browser quit normally, SQLite `quick_check=ok`, and no new Ahoi crash report
+appeared. This accepts the reported corner and fullscreen Sidebar band on an
+isolated signed candidate, not the full Glass/accessibility/performance matrix
+or installed-app/release acceptance.
+
+One Computer Use rebinding of the intermediate `out/AhoiDev` candidate
+started a second instance without `--user-data-dir` on the ordinary default
+profile. No UI action was sent there; both exact task-started PIDs `23207`
+(isolated) and `23673` (default) were ended with `SIGTERM`, then the app was
+relaunched by absolute executable path with the isolated profile. A still
+running earlier task-started default-profile PID `89428` was found and ended
+the same way. The default profile was not reset/deleted; those launches can
+have normal startup side effects. Installed `820cf4e`/PID `30773` remained
+running and unchanged. The final intermediate visual pass used only the
+verified isolated PID `28761`, which ended through the native Quit menu.
+During final-candidate setup, a direct-executable launch plus Computer Use
+rebinding likewise created an unintended default-profile PID `14672`; it
+was individually identified and ended, with no UI action sent to that
+window. Starting the exact app through `open -n -a`
+with the explicit isolated `--user-data-dir` registered one matching process
+with LaunchServices and prevented another default-profile launch. That
+isolated final PID `35051` supplied the Glass-OFF and split checks and quit
+normally. Preserve this launch/binding distinction for later multi-copy UI
+work; no default-profile data was reset or deleted.
 
 ## Archive UI continuation — 24 September 2026
 
