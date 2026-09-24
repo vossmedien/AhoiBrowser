@@ -52,6 +52,75 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
     }
 
     @MainActor
+    func testPrivateSessionRemainsShieldedWhenAuthenticationIsCancelled() throws {
+        guard ProcessInfo.processInfo.environment["AHOI_PRIVATE_LOCK_E2E"] == "1" else {
+            throw XCTSkip("Explicitly opt in to the device-authentication UI journey.")
+        }
+        let app = XCUIApplication()
+        app.launchArguments = []
+        app.terminate()
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
+
+        openSettings(in: app)
+        let toggle = app.switches["settings.private.lock"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        revealSyncToggle(toggle, in: app)
+        if (toggle.value as? String) != "1" {
+            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        }
+        let enabled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "1"), object: toggle
+        )
+        guard XCTWaiter.wait(for: [enabled], timeout: 4) == .completed else {
+            attachScreenshot(named: "private-lock-cancel-device-auth-unavailable", of: app)
+            XCTFail("The real device-authentication setting did not enable on this device.")
+            return
+        }
+        app.buttons["settings.done"].tap()
+
+        app.buttons["browser.more"].tap()
+        let privateTab = app.buttons["browser.new-private-tab"]
+        XCTAssertTrue(privateTab.waitForExistence(timeout: 3))
+        privateTab.tap()
+        XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 5))
+        XCUIDevice.shared.press(.home)
+        app.activate()
+
+        let unlock = app.buttons["browser.private.lock.unlock"]
+        XCTAssertTrue(unlock.waitForExistence(timeout: 8))
+        unlock.tap()
+        let appAlert = app.alerts.firstMatch
+        let springboardAlert = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+            .alerts.firstMatch
+        let systemAlert: XCUIElement
+        if appAlert.waitForExistence(timeout: 4) {
+            systemAlert = appAlert
+        } else {
+            guard springboardAlert.waitForExistence(timeout: 4) else {
+                attachScreenshot(named: "private-lock-cancel-auth-prompt-missing", of: app)
+                XCTFail("The real device-authentication prompt must be presented.")
+                return
+            }
+            systemAlert = springboardAlert
+        }
+        attachScreenshot(named: "private-lock-authentication-prompt", of: app)
+        let cancel = systemAlert.buttons.matching(
+            NSPredicate(format: "label IN %@", ["Cancel", "Abbrechen"])
+        ).firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 3))
+        cancel.tap()
+
+        XCTAssertTrue(unlock.waitForExistence(timeout: 5))
+        XCTAssertFalse(
+            app.buttons["browser.address.private"].exists,
+            "Cancelling device authentication must never expose the private tab."
+        )
+        attachScreenshot(named: "private-lock-after-authentication-cancel", of: app)
+    }
+
+    @MainActor
     func testLocalFixtureAndPrivateTabLifecycle() throws {
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
