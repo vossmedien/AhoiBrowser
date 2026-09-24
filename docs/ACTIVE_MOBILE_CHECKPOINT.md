@@ -1,5 +1,18 @@
 # Active Mobile checkpoint
 
+## Reader: article chosen over enclosing main — 24 September 2026
+
+Exact clean source `3abe4c4`, Xcode27 `DebugLocal` build50, passed the visible
+A168/iOS27 Reader journey **1 passed, 0 failed, 0 skipped**. The first Build49
+image exposed unrelated page text when `<main>` won over its nested article;
+Build50 prioritizes a qualifying `<article>` and the repeated E2E image shows
+only its content. The original page remained available after returning. Built,
+archived and installed bundles matched byte-for-byte with valid ad-hoc
+signature and source/build stamp. [Candidate, accepted image and limits](../artifacts/e2e/mobile-reader50-20260924/README.md).
+This is a synthetic local article, not a real-website, scroll/form-retention,
+Markdown, physical-device, Desktop or full DoD27 pass. C645/CloudKit Sync was
+untouched.
+
 ## Private-session lock: loaded page, cancellation and repeated return — 24 September 2026
 
 Clean source `4040605` built as Xcode27 DebugLocal build48 and passed the

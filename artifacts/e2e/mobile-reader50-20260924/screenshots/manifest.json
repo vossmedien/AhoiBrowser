@@ -1,0 +1,17 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "00A87F1D-79D9-4F5A-9D09-D1609BE1BFF1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reader-loaded-article_0_185A8E95-3E52-4652-A75A-2EFBD197C492.png",
+        "timestamp" : 1790266498.463
+      }
+    ],
+    "testIdentifier" : "AhoiMobileUITests/testReaderExtractsVisibleArticleAndReturnsToSamePage()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/AhoiMobileUITests/testReaderExtractsVisibleArticleAndReturnsToSamePage"
+  }
+]
