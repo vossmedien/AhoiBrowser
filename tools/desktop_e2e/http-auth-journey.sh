@@ -33,16 +33,24 @@ cmdbar() { local ok=1
   for i in 1 2 3; do ax activate $PID; sleep 1; ax key $PID 17 cmd
     waitax "AXWindow \| Suchen oder URL eingeben" 6 && { ok=0; break; }; done; return $ok; }
 goto() { cmdbar || return 1; ax key $PID 0 cmd; ax type $PID "$1"; sleep 1; ax key $PID 36; }
-command() { cmdbar || return 1; ax type $PID "$1"; waitax "AXStaticText \| $1" 6 || return 1; ax key $PID 36; }
+# HTTP-auth commands appear in this order below the "HTTP" query; the first is
+# preselected. A full-text query would instead preselect the web search row.
+command() { local idx
+  case "$1" in switch) idx=0;; forget) idx=1;; manage) idx=2;; esac
+  cmdbar || return 1; ax type $PID "HTTP"
+  waitax "AXStaticText \| HTTP-Authentifizierungskonto wechseln" 8 || return 1
+  for i in $(seq 1 $idx); do ax key $PID 125; sleep 0.3; done
+  ax key $PID 36; }
 dialog() { waitax "AXHeading \| Anmelden" "${1:-10}"; }
 login() { # <user> <password> <save-option-label or ''>
   ax focus $PID "AXTextField:Nutzername"; ax key $PID 0 cmd; ax type $PID "$1"
   ax focus $PID "AXTextField:Passwort"; ax key $PID 0 cmd; ax type $PID "$2"; sleep 1
   [ -n "$3" ] && ax press $PID "$3"
   ax press $PID "AXButton:Anmelden"; }
-accounts() { ax focus $PID "AXTextField:Nutzername"; ax key $PID 0 cmd; ax key $PID 51; sleep 1
+accounts() { dialog 2 || { echo "no-dialog"; return; }; ax focus $PID "AXTextField:Nutzername"; ax key $PID 0 cmd; ax key $PID 51; sleep 1
   ax press $PID "AXButton:Nutzername"; sleep 2
-  $AX dump $PID 45 | grep -o -E 'AXMenuItem \| [a-z]+ \|' | sort -u | awk '{print $3}' | tr '\n' ' '
+  $AX dump $PID 45 | awk '/AXMenuBar$/{exit} {print}' | grep -o -E 'AXMenuItem \| [a-z]+ \|' \
+    | sort -u | awk '{print $3}' | tr '\n' ' '
   ax key $PID 53; sleep 1; }
 SAVE="Zugang nach erfolgreicher Anmeldung speichern"
 UPDATE="Gespeicherten Zugang nach erfolgreicher Anmeldung aktualisieren"
@@ -51,12 +59,12 @@ UPDATE="Gespeicherten Zugang nach erfolgreicher Anmeldung aktualisieren"
 goto "http://127.0.0.1:$A/a/"; dialog 15 && login alice alice-pass-1 "$SAVE"
 waittitle "auth:alice@Ahoi Realm A:$A" 15 && record save_first PASS || record save_first FAIL
 # 2 Second account via account switch.
-command "HTTP-Authentifizierungskonto wechseln"; dialog && login bob bob-pass-1 "$SAVE"
+command switch; dialog && login bob bob-pass-1 "$SAVE"
 waittitle "auth:bob@Ahoi Realm A:$A" 15 && record save_second PASS || record save_second FAIL
 [ "$(store)" = "http://127.0.0.1:$A/Ahoi Realm A|alice http://127.0.0.1:$A/Ahoi Realm A|bob " ] \
   && record store_two_accounts PASS || record store_two_accounts "FAIL:$(store)"
 # 3 Choice + autocomplete: both listed, pick alice, password filled from store.
-command "HTTP-Authentifizierungskonto wechseln"; dialog
+command switch; dialog
 LIST=$(accounts); [ "$LIST" = "alice bob " ] && record choice_lists_both PASS || record choice_lists_both "FAIL:$LIST"
 ax press $PID "AXButton:Nutzername"; sleep 1; ax press $PID "AXMenuItem:alice"; sleep 1
 $AX dump $PID 40 | grep -q -E 'AXTextField \| Passwort \| •+' && record autocomplete_password PASS || record autocomplete_password FAIL
@@ -75,7 +83,7 @@ ax press $PID "AXButton:Abbrechen"; sleep 2
 #   without deleting the account; the new one updates the same row.
 curl -s http://127.0.0.1:$A/__rotate >/dev/null
 goto "http://127.0.0.1:$A/a/"; sleep 3
-command "HTTP-Authentifizierungskonto wechseln"; dialog
+command switch; dialog
 ax press $PID "AXButton:Nutzername"; sleep 1; ax press $PID "AXMenuItem:alice"; sleep 1; ax press $PID "AXButton:Anmelden"
 dialog 15 && record rejected_reprompt PASS || record rejected_reprompt FAIL
 echo "$(store)" | grep -q "|alice" && record rejected_keeps_account PASS || record rejected_keeps_account FAIL
@@ -84,13 +92,13 @@ waittitle "auth:alice@Ahoi Realm A:$A" 15 && record password_update_signin PASS 
 [ "$(store)" = "http://127.0.0.1:$A/Ahoi Realm A|alice http://127.0.0.1:$A/Ahoi Realm A|bob " ] \
   && record update_no_duplicate PASS || record update_no_duplicate "FAIL:$(store)"
 # 7 Sign out without restart: switch, then cancel the challenge -> 401 page.
-command "HTTP-Authentifizierungskonto wechseln"; dialog && ax press $PID "AXButton:Abbrechen"
+command switch; dialog && ax press $PID "AXButton:Abbrechen"
 waittitle "Ahoi auth required" 10 && record sign_out_without_restart PASS || record sign_out_without_restart "FAIL:$(title)"
 kill -0 $PID 2>/dev/null && record same_browser_process PASS || record same_browser_process FAIL
 # 8 Forget this realm: saved accounts for Realm A are removed.
 goto "http://127.0.0.1:$A/a/"; dialog 15 && login bob bob-pass-1 ""
 waittitle "auth:bob@Ahoi Realm A:$A" 15
-command "Gespeicherte HTTP-Zugangsdaten für diesen Schutzbereich vergessen"; sleep 4
+command forget; sleep 4
 [ -z "$(store)" ] && record forget_realm PASS || record forget_realm "FAIL:$(store)"
 # 9 No password or Basic token in logs.
 if grep -a -q -E 'alice-pass|bob-pass|YWxpY2U6|Ym9iOm' $OUT/browser.log $OUT/fixture.log; then
