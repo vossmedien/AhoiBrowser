@@ -1,0 +1,44 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "D855335A-AB84-498F-8DD7-F68CB1B8F8AF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-unlock-relocked_0_03D7CB54-DD5F-4B08-9D42-181FC5D6E3D9.png",
+        "timestamp" : 1790279584.92
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "D85D9F2A-FBAA-486B-95BA-CFE7760D4D13.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-unlock-retained-page_0_A7DF77D5-8B15-437A-88E3-29EA29A19D29.png",
+        "timestamp" : 1790279582.662
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "24B9E34E-5ED0-4B83-8E39-8977EDAF51DF.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-unlock-system-auth-hierarchy_0_CD2CA1DD-077B-4CC5-A2E8-4656DC823176.txt",
+        "timestamp" : 1790279580.398
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "09F644B2-2F0F-41A4-9E67-9883F5C8D58F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-unlock-face-id-prompt_0_BC9070A9-CCBF-4315-9C02-CCBD87F5B531.png",
+        "timestamp" : 1790279579.691
+      }
+    ],
+    "testIdentifier" : "AhoiMobileUITests/testLoadedPrivatePageUnlocksWithRetainedContentAndRelocks()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/AhoiMobileUITests/testLoadedPrivatePageUnlocksWithRetainedContentAndRelocks"
+  }
+]

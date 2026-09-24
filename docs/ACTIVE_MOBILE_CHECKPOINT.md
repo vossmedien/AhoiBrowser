@@ -2,6 +2,19 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Private-session lock: successful unlock with retained page — 24 September 2026
+
+Exact clean source `ebc6748`, Xcode27 DebugLocal build54, passed one visible
+A168/iOS27 journey **1 passed, 0 failed, 0 skipped**: a loaded private page was
+shielded after Home/return, SpringBoard's Face ID sheet unlocked it on the
+Simulator's own biometric match, the same page and private address returned,
+a second Home/return re-shielded it, and relaunch left no private tab. Build53
+was a harness RED (runner-posted match did not reach the Simulator); the host
+now delivers it. Built/installed bundles byte-identical with valid ad-hoc
+signature. [Candidate, images and limits](../artifacts/e2e/mobile-private-unlock54-20260924/README.md).
+Physical-device biometrics/passcode, iPad scenes, VoiceOver and the auth-error
+path remain open. Sync untouched.
+
 ## Page-link copy and unavailable Reader — 24 September 2026
 
 Exact clean source `bda2815`, Xcode27 `DebugLocal` build52, passed one visible
