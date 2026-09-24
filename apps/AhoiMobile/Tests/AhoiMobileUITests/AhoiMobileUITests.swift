@@ -396,15 +396,37 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
         defer { app.terminate() }
         XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+        let workspace = "Hilfe \(UUID().uuidString.prefix(6))"
+        app.buttons["browser.more"].tap()
+        let workspaces = app.buttons["browser.actions.workspaces"]
+        XCTAssertTrue(waitForHittable(workspaces, timeout: 4))
+        workspaces.tap()
+        let manage = app.buttons["browser.library.manage"]
+        XCTAssertTrue(waitForHittable(manage, timeout: 5))
+        manage.tap()
+        let create = app.buttons["browser.library.create.workspace"]
+        XCTAssertTrue(waitForHittable(create, timeout: 3))
+        create.tap()
+        let identified = app.textFields["browser.library.create.name"]
+        let field = identified.waitForExistence(timeout: 1)
+            ? identified : app.alerts.firstMatch.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        field.tap()
+        field.typeText(workspace)
+        let confirm = app.alerts.firstMatch.buttons["browser.library.create.confirm"].firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 3))
+        confirm.tap()
+        XCTAssertTrue(app.staticTexts[workspace].waitForExistence(timeout: 5))
+        let libraryDone = app.buttons["browser.library.done"]
+        XCTAssertTrue(waitForHittable(libraryDone, timeout: 3))
+        libraryDone.tap()
 
         app.buttons["browser.more"].tap()
         let save = app.buttons["browser.actions.save-to-workspace"]
         XCTAssertTrue(save.waitForExistence(timeout: 5))
         for _ in 0..<4 where !save.isHittable { app.swipeUp() }
         save.tap()
-        let destination = app.buttons.matching(NSPredicate(
-            format: "identifier BEGINSWITH %@", "browser.actions.save-to-workspace."
-        )).firstMatch
+        let destination = app.buttons[workspace]
         XCTAssertTrue(destination.waitForExistence(timeout: 4))
         destination.tap()
         if app.buttons["browser.actions.done"].waitForExistence(timeout: 2) {
