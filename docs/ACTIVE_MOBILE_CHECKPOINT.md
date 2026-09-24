@@ -1,5 +1,23 @@
 # Active Mobile checkpoint
 
+## Private-session lock: loaded page, cancellation and repeated return — 24 September 2026
+
+Clean source `4040605` built as Xcode27 DebugLocal build48 and passed the
+single opted-in visible A168/iOS27 journey twice: **1 passed, 0 failed, 0
+skipped** per run. A private WebKit test page was visibly loaded; Home/return
+shielded it, native authentication cancellation kept it inaccessible, a second
+Home/return still displayed the shield, and normal process termination left no
+private session to restore. The test-built and post-test installed bundles
+matched byte-for-byte with exact source/build stamp and valid ad-hoc signature.
+An independent Simulator screenshot about four seconds after the second
+return showed the shield without private content. [Exact candidate, images and
+limits](../artifacts/e2e/mobile-private-loaded48-20260924/README.md). This
+uses synthetic local WebKit content; successful unlock with retained page,
+real-website load, physical device, iPad scenes and VoiceOver remain open.
+Earlier white frames after repeated XCTest screenshot calls are retained only
+as a test-harness caveat, not promoted to a product failure or acceptance.
+C645's CloudKit Development build40 and all Sync data remained untouched.
+
 ## Private-session lock: visible authentication cancellation — 24 September 2026
 
 Xcode 27.0 built clean source `9a49230` as DebugLocal build43 and ran one
