@@ -1,5 +1,17 @@
 # Chromium M153 patch ledger
 
+## `0047-ahoi-empty-state-card-clip.patch`
+
+The Ahoi zero-tab EmptyStateView is a direct MultiContentsView child and paints
+its own opaque rectangle. Unlike a normal ContentsContainerView, it did not
+receive the content card's live rounded-corner geometry, so its square paint
+covered the card's top-left radius in the user's 24 September screenshot.
+This patch gives only that view a non-opaque composited layer and applies the
+same radii provided by `MultiContentsView::SetBackgroundRadii`; square/fullscreen
+layouts clear the mask again. No page viewport, WebContents, sidebar width or
+profile authority changes. The 47-patch application check passes; guarded
+build and visible zero-tab normal/fullscreen checks remain open.
+
 ## `0046-ahoi-settings-follow-selected-workspace.patch`
 
 The normal Chromium Settings entry point still owns singleton-tab navigation.

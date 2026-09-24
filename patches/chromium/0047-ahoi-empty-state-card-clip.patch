@@ -1,0 +1,26 @@
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -124,6 +124,8 @@ MultiContentsView::MultiContentsView(
+   ahoi_empty_state_view_ =
+       AddChildView(ahoi::empty_state::CreateEmptyStateView());
+   ahoi_empty_state_view_->SetVisible(false);
++  ahoi_empty_state_view_->SetPaintToLayer();
++  ahoi_empty_state_view_->layer()->SetFillsBoundsOpaquely(false);
+ 
+   drop_target_view_ =
+       AddChildView(std::make_unique<MultiContentsDropTargetView>());
+@@ -297,5 +299,13 @@ void MultiContentsView::SetBackgroundRadii(const gfx::RoundedCornersF& radii) {
+ 
+   background_view_->SetRoundedCorners(radii);
+ 
++  // The zero-tab surface paints an opaque rectangle of its own. Clip that
++  // layer to the same live card corners as a normal ContentsContainerView;
++  // fullscreen and other square layouts must also clear the clip.
++  ui::Layer* const empty_state_layer = ahoi_empty_state_view_->layer();
++  empty_state_layer->SetRoundedCornerRadius(radii);
++  empty_state_layer->SetIsFastRoundedCorner(!radii.IsEmpty());
++  empty_state_layer->SetMasksToBounds(!radii.IsEmpty());
++
+   if (!IsInSplitView()) {
+     GetActiveContentsContainerView()->SetRoundedCorners(radii);
