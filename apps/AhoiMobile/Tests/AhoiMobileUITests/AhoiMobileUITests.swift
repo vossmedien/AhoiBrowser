@@ -91,24 +91,15 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         let unlock = app.buttons["browser.private.lock.unlock"]
         XCTAssertTrue(unlock.waitForExistence(timeout: 8))
         unlock.tap()
-        let appAlert = app.alerts.firstMatch
-        let springboardAlert = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-            .alerts.firstMatch
-        let systemAlert: XCUIElement
-        if appAlert.waitForExistence(timeout: 4) {
-            systemAlert = appAlert
-        } else {
-            guard springboardAlert.waitForExistence(timeout: 4) else {
-                attachScreenshot(named: "private-lock-cancel-auth-prompt-missing", of: app)
-                XCTFail("The real device-authentication prompt must be presented.")
-                return
-            }
-            systemAlert = springboardAlert
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let authenticationUI = springboard.otherElements["authentication_ui"]
+        guard authenticationUI.waitForExistence(timeout: 8) else {
+            attachScreenshot(named: "private-lock-cancel-auth-prompt-missing", of: app)
+            XCTFail("The real device-authentication screen must be presented.")
+            return
         }
         attachScreenshot(named: "private-lock-authentication-prompt", of: app)
-        let cancel = systemAlert.buttons.matching(
-            NSPredicate(format: "label IN %@", ["Cancel", "Abbrechen"])
-        ).firstMatch
+        let cancel = springboard.buttons["Cancel"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 3))
         cancel.tap()
 
