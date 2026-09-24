@@ -155,6 +155,14 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
 
         navigate(to: homeURL, in: app)
         saveSelectedPage(to: "Inbox", in: app)
+        openTabSwitcher(in: app)
+        let savedHeader = sectionHeader(
+            workspace: "Inbox", kindLabels: ["Saved", "Gespeichert"], in: app
+        )
+        let saved = savedHeader.waitForExistence(timeout: 8)
+        attachScreenshot(named: "home-address-after-save-switcher", of: app)
+        XCTAssertTrue(saved, "The page must visibly settle as saved before Home rows can exist.")
+        app.buttons["browser.tabs.done"].tap()
 
         let homeHelp = app.staticTexts["browser.actions.home-help"]
         let homeState = app.staticTexts["browser.actions.home-state"]
