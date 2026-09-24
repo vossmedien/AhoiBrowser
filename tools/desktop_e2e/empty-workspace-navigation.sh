@@ -16,25 +16,44 @@ tabs() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print
 PID=$!; echo "pid=$PID profile=$P" > $OUT/run.txt
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 4; $AX activate $PID >> $OUT/steps.txt
+waitax() { # <regex> <seconds>
+  local end=$(( $(date +%s) + $2 ))
+  while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done
+  return 1
+}
+waiturl() { # <url-substring> <seconds>
+  local end=$(( $(date +%s) + $2 ))
+  while [ $(date +%s) -lt $end ]; do tabs | grep -q "$1" && return 0; sleep 1; done
+  return 1
+}
+fail_setup() {
+  echo "{\"pass\": false, \"setupFailed\": \"$1\"}" > $OUT/verdict.json
+  $AX dump $PID 14 > $OUT/ax-setup-failure.txt; $AX key $PID 12 cmd >> $OUT/steps.txt
+  cat $OUT/verdict.json; exit 4
+}
 newws() {
-  for attempt in 1 2 3; do
-    $AX press $PID "$1, Workspace wechseln" AXShowMenu >> $OUT/steps.txt; sleep 1
-    $AX press $PID "Neuer Workspace…" >> $OUT/steps.txt && break
+  $AX key $PID 53 >> $OUT/steps.txt; sleep 1
+  for attempt in 1 2 3 4; do
+    $AX press $PID "$1, Workspace wechseln" AXShowMenu >> $OUT/steps.txt
+    waitax "Neuer Workspace…" 4 && $AX press $PID "Neuer Workspace…" >> $OUT/steps.txt && break
     $AX key $PID 53 >> $OUT/steps.txt; sleep 2
   done
-  sleep 2
-  $AX setvalue $PID "Workspace-Name" "$2" >> $OUT/steps.txt; $AX press $PID "Erstellen" >> $OUT/steps.txt; sleep 2
-  if ! $AX dump $PID 14 | grep -q "$2, Workspace wechseln"; then
-    echo '{"pass": false, "setupFailed": "workspace '"$2"' not active"}' > $OUT/verdict.json
-    $AX key $PID 12 cmd >> $OUT/steps.txt; cat $OUT/verdict.json; exit 4
-  fi
+  waitax "AXTextField \\| Workspace-Name" 8 || fail_setup "workspace dialog for $2 did not open"
+  $AX setvalue $PID "Workspace-Name" "$2" >> $OUT/steps.txt; $AX press $PID "Erstellen" >> $OUT/steps.txt
+  waitax "$2, Workspace wechseln" 10 || fail_setup "workspace $2 not active"
 }
-nav() { $AX key $PID $1 cmd >> $OUT/steps.txt; sleep 2; $AX key $PID 0 cmd >> $OUT/steps.txt
-  $AX type $PID "$2" >> $OUT/steps.txt; sleep 1; $AX key $PID 36 >> $OUT/steps.txt; sleep 5; }
+nav() { # <keycode> <url>
+  $AX key $PID $1 cmd >> $OUT/steps.txt
+  waitax "AXWindow \\| Suchen oder URL eingeben" 10 || fail_setup "command bar did not open"
+  sleep 1; $AX key $PID 0 cmd >> $OUT/steps.txt
+  $AX type $PID "$2" >> $OUT/steps.txt; sleep 1; $AX key $PID 36 >> $OUT/steps.txt
+}
 # Step A: first empty workspace, ⌘T (new tab) -> tab A in "Leer-Test".
-newws Inbox Leer-Test; nav 17 "$SITE/?empty-probe=1"; echo "afterA $(tabs)" >> $OUT/tabs.txt
+newws Inbox Leer-Test; nav 17 "$SITE/?empty-probe=1"
+waiturl "empty-probe=1" 20 || fail_setup "new tab did not load probe 1"; echo "afterA $(tabs)" >> $OUT/tabs.txt
 # Step B: second empty workspace, ⌘L (current-tab navigation) — must create a new tab, not move tab A.
-newws Leer-Test Leer-Zwei; BEFORE=$(tabs); nav 37 "$SITE/?empty-probe=2"; AFTER=$(tabs)
+newws Leer-Test Leer-Zwei; BEFORE=$(tabs); nav 37 "$SITE/?empty-probe=2"
+waiturl "empty-probe=2" 20; sleep 2; AFTER=$(tabs)
 echo "beforeB $BEFORE" >> $OUT/tabs.txt; echo "afterB $AFTER" >> $OUT/tabs.txt
 $AX dump $PID 14 | grep -E 'Workspace wechseln|AXRadioButton|AXWindow' > $OUT/ax-after.txt
 python3 - "$BEFORE" "$AFTER" > $OUT/verdict.json <<'PY'

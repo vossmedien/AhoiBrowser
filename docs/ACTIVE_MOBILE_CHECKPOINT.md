@@ -2,6 +2,15 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Private-session lock: failed Face ID error path — 24 September 2026
+
+Exact clean source `88c3cd3`, Xcode27 DebugLocal build62: **1 passed, 0 failed,
+0 skipped**. A non-matching Simulator face made iOS fail the evaluation; the
+loaded private page stayed behind the shield with the localized retry text and
+an enabled "Entsperren". [Evidence and limits](../artifacts/e2e/mobile-private-nomatch62-20260924/README.md).
+Biometric-lockout passcode fallback, physical device, iPad scenes and VoiceOver
+remain open.
+
 ## Private-session lock: successful unlock with retained page — 24 September 2026
 
 Exact clean source `ebc6748`, Xcode27 DebugLocal build54, passed one visible
