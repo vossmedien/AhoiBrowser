@@ -655,9 +655,9 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
             done.fulfill()
         }
         let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons.matching(
-            NSPredicate(format: "label IN %@", ["Allow Paste", "Einfügen erlauben"])
+            NSPredicate(format: "label IN %@", ["Allow Paste", "Einsetzen erlauben"])
         ).firstMatch
-        if allow.waitForExistence(timeout: 2) { allow.tap() }
+        if allow.waitForExistence(timeout: 4) { allow.tap() }
         wait(for: [done], timeout: 10)
         return box.value
     }
