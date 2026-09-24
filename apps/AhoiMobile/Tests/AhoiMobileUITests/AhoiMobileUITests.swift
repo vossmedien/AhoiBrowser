@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 final class AhoiMobileUITests: MobileBrowserUITestCase {
@@ -247,6 +248,59 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         app.buttons["browser.reader.return"].tap()
         XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["browser.address"].exists)
+    }
+
+    @MainActor
+    func testPageLinkCopiesAndUnavailableReaderKeepOriginalPage() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+
+        app.buttons["browser.more"].tap()
+        let addressCopy = app.buttons["browser.actions.copy-address"]
+        let markdownCopy = app.buttons["browser.actions.copy-markdown"]
+        XCTAssertTrue(addressCopy.waitForExistence(timeout: 5))
+        for _ in 0..<4 {
+            if addressCopy.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(addressCopy.isHittable)
+        addressCopy.tap()
+        XCTAssertEqual(UIPasteboard.general.string, "https://fixture.ahoibrowser.test/start")
+        XCTAssertTrue(markdownCopy.isHittable)
+        markdownCopy.tap()
+        XCTAssertEqual(
+            UIPasteboard.general.string,
+            "[Ahoi Fixture](<https://fixture.ahoibrowser.test/start>)"
+        )
+        attachScreenshot(named: "page-link-copy-actions", of: app)
+        app.buttons["browser.actions.done"].tap()
+
+        let removeArticle = app.webViews.buttons["Remove Reader article fixture"]
+        XCTAssertTrue(removeArticle.waitForExistence(timeout: 5))
+        removeArticle.tap()
+        XCTAssertFalse(app.webViews.staticTexts["Ahoi Reader fixture article"].exists)
+        app.buttons["browser.more"].tap()
+        let reader = app.buttons["browser.actions.reader"]
+        XCTAssertTrue(reader.waitForExistence(timeout: 5))
+        for _ in 0..<4 {
+            if reader.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(reader.isHittable)
+        reader.tap()
+
+        let alert = app.alerts.firstMatch
+        XCTAssertTrue(alert.waitForExistence(timeout: 8))
+        XCTAssertTrue(
+            alert.staticTexts["No readable article found on this page."].exists ||
+            alert.staticTexts["Auf dieser Seite wurde kein lesbarer Artikel gefunden."].exists
+        )
+        XCTAssertFalse(app.descendants(matching: .any)["browser.reader.content"].exists)
+        attachScreenshot(named: "reader-unavailable-original-page", of: app)
+        alert.buttons.firstMatch.tap()
+        app.buttons["browser.actions.done"].tap()
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].exists)
     }
 
     @MainActor

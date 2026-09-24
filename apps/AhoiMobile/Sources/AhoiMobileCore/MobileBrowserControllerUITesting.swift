@@ -94,6 +94,7 @@ extension MobileBrowserController {
               body.nested-scroll-active #nested-scroll-fixture { display:block }
             </style></head><body>
             <main><h1>Ahoi fixture page</h1>
+            <button id="reader-unavailable-fixture" aria-label="Remove Reader article fixture" onclick="document.querySelector('article').remove()">Remove Reader article fixture</button>
             <p>This page is provided locally for deterministic browser UI tests.</p>
             <p id="find-target">Ahoi visible find target</p>
             <button id="nested-scroll-activate" aria-label="Activate nested scroll fixture" onclick="activateNestedScrollFixture()">Activate nested scroll fixture</button>
