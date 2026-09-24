@@ -1,5 +1,39 @@
 # Active Desktop checkpoint
 
+## Empty-Workspace Settings correction — 24 September 2026
+
+Source `bc0fb53` defers Sidebar reconciliation after its Settings footer
+command, covering a newly selected Settings tab without changing the empty
+Workspace invariant. Its guarded M153 product build exited 0; the signed
+binary SHA-256 was
+`8fd4253d392614063dc3232b20747b2e791270b0714531c2c36bfbb6df159f9b`
+(`artifacts/build/native-m153-empty-settings-bc0fb53-20260923/build-receipt.json`).
+The isolated `complex-profile` visibly opened Settings from an empty Tide
+Workspace via that footer. The same candidate remained **RED** for the macOS
+menu when Chromium reused an already active Settings singleton tab.
+
+Source `26c39be` adds ordered patch `0046`: after Chromium's native Settings
+singleton navigation, a regular-profile Ahoi window follows the selected
+Settings tab's existing Workspace. No tab activation is attempted inside a
+TabStripModel observer. The full 46-patch stack applied through the guarded
+overlay script; the guarded M153 product build exited 0 with clean source.
+The Apple-Development-signed clone at
+`/private/tmp/ahoi-settings-central.6FmlZy/AhoiBrowser.app` passed deep
+signature verification and matches binary SHA-256
+`8145af9e531faa26059ac13f8a8fb00912032792d5a3bd992d5c7852f8f81fd0`.
+Receipt:
+`artifacts/build/native-m153-settings-workspace-26c39be-20260923/build-receipt.json`.
+
+On that exact clone and the retained isolated complex import profile, choosing
+empty Inbox displayed the empty-workspace overlay. Native AhoiBrowser menu
+`Einstellungen…`, the Sidebar Settings footer, and `⌘,` each exposed the HTML
+Settings page with the Tide Workspace selected, rather than leaving the
+overlay above it. The browser remained alive; SQLite retained Tide and its
+six nodes with `quick_check=ok`. This supersedes the zero-tab Settings RED
+below. No off-the-record, other Settings subpage, installed-app or release
+acceptance is inferred. Installed `/Applications/AhoiBrowser.app` remains
+`820cf4e` and was not stopped or replaced.
+
 ## Complex portable structure journey — 23 September 2026
 
 Exact signed M153 source `455652b` also passed one bounded nontrivial portable
@@ -20,12 +54,11 @@ returning to Tide visibly showed the imported 62% divider. Exact fixture,
 re-export hashes, candidate and limits:
 [`artifacts/e2e/portable-workspace-complex-455652b-20260923/README.md`](../artifacts/e2e/portable-workspace-complex-455652b-20260923/README.md).
 
-A separate zero-tab Settings gap is **RED**: from a Tide workspace with no
-live tab, the Settings command changed the window URL to `chrome://settings/`
-but left the empty-workspace overlay in front. Choosing Inbox exposed Settings.
-Do not count zero-tab Settings access as accepted; diagnose this without
-weakening the tab-removed empty-workspace invariant. Archive restore/delete,
-rollback injection, cross-profile and installed-app acceptance remain open.
+At this older `455652b` candidate, zero-tab Settings was **RED**: the command
+changed the URL but left the empty-workspace overlay in front. The later
+`26c39be` candidate above corrects this visible journey. Archive
+restore/delete, rollback injection, cross-profile and installed-app acceptance
+remain open.
 
 ## Workspace-selection import and Settings crash correction — 23 September 2026
 

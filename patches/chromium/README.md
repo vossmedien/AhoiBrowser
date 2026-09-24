@@ -10,7 +10,11 @@ Workspace overlay; no TabStripModel activation occurs in an observer. OTR,
 non-Mac and profiles without a SessionBridge are unchanged. The Sidebar
 footer's deferred reconciliation remains a narrow fallback for a newly
 created Settings tab. The exact guarded build and visible menu/footer
-journeys remain to be checked; source composition alone is not acceptance.
+journeys passed on the Apple-Development-signed isolated `26c39be` M153
+candidate (binary SHA-256
+`8145af9e531faa26059ac13f8a8fb00912032792d5a3bd992d5c7852f8f81fd0`).
+The menu, footer and `⌘,` each exposed Settings from an empty Workspace;
+see `docs/ACTIVE_DESKTOP_CHECKPOINT.md` for profile, receipt and limits.
 
 ## `0045-ahoi-milky-browser-glass-foundation.patch`
 

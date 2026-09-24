@@ -15,8 +15,9 @@ architecture decision, test, or release gate.
 ## Current status
 
 The current source roll targets Chromium Mac Stable `153.0.8010.53` at exact commit
-`792bf6722e73a45aa9e47c163b9901bdc17f3230`. Its43-patch composition is verified;
-the M153 build and runtime gates are still open. Installed candidates retain
+`792bf6722e73a45aa9e47c163b9901bdc17f3230`. Its 46-patch ordered
+composition and bounded M153 development builds/runtime journeys are verified;
+the full product and release gates remain open. Installed candidates retain
 their own older source receipts and are not relabelled by this update.
 The active source delta is the
 tracked overlay plus the complete ordered series declared in
@@ -27,10 +28,10 @@ extension-menu guard, Arc 1.162 sidebar-schema compatibility, the accessible
 docked/floating sidebar toggle, and the compact Zen importer seam. The product contains
 the profile-backed sidebar, SQLite-backed nested tree, saved/temporary live-tab
 lifecycle, drag-and-drop, command bar, shared
-visual language, and bounded split-view integration. The current M152 ARM64
-development build is installed at `/Applications/AhoiBrowser.app`; focused
-tests and a visible installed-app compatibility smoke, including repeated
-sidebar collapse/restore and resize, passed. The Chromium base is Stable while
+visual language, and bounded split-view integration. The current M153 ARM64
+development build from source `820cf4e` is installed at
+`/Applications/AhoiBrowser.app`; newer signed candidates are tested in isolated
+profiles and are not installed. The Chromium base is Stable while
 the Ahoi development product channel remains `nightly`. This milestone does not
 claim the master prompt's complete binary/device matrix, `CU_E2E PASS`, or a
 Developer-ID-signed, notarized Ahoi Stable release. The previous M151 evidence
