@@ -5,6 +5,7 @@
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9344
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
+if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $PORT busy" >&2; exit 6; fi
 mkdir -p $OUT; P=$(mktemp -d /private/tmp/ahoi-emptyws-profile.XXXXXX)
 SITE_PORT=${AHOI_E2E_SITE_PORT:-8791}; mkdir -p $P-site
 printf '<title>Ahoi empty workspace probe</title><h1>probe</h1>' > $P-site/index.html

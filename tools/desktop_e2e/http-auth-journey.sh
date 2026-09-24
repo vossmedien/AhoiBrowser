@@ -8,6 +8,7 @@ set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd)
 AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9366; A=8793; B2=8794
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
+if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $PORT busy" >&2; exit 6; fi
 mkdir -p $OUT; P=$(mktemp -d /private/tmp/ahoi-auth-profile.XXXXXX); : > $OUT/steps.txt; : > $OUT/results.txt
 python3 "$S/basic_auth_fixture.py" --port $A --second-port $B2 > $OUT/fixture.log 2>&1 &
 FIX=$!; trap 'kill $FIX 2>/dev/null' EXIT; sleep 1
