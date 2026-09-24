@@ -174,14 +174,13 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertFalse(privatePage.exists)
         XCTAssertFalse(privateAddress.exists)
         attachScreenshot(named: "private-loaded-page-after-second-background", of: app)
-        let screenAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        screenAttachment.name = "private-loaded-page-after-second-background-screen"
-        screenAttachment.lifetime = .keepAlways
-        add(screenAttachment)
-        Thread.sleep(forTimeInterval: 1)
         XCTAssertTrue(unlock.isHittable)
-        attachScreenshot(named: "private-loaded-page-after-second-background-settled", of: app)
-        Thread.sleep(forTimeInterval: 8)
+        // Keep the actual foreground scene observable for a separately captured
+        // Simulator screenshot; XCTest's repeated screenshot API can return an
+        // empty frame even while the external compositor still shows the shield.
+        if ProcessInfo.processInfo.environment["AHOI_PRIVATE_LOCK_CAPTURE_HOLD"] == "1" {
+            Thread.sleep(forTimeInterval: 8)
+        }
 
         app.terminate()
         app.launchArguments = []
