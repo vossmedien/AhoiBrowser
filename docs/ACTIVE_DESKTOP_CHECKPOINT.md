@@ -60,9 +60,23 @@ correction in the shared branch: for typed browser-UI current-tab navigation,
 it asks SessionBridge whether the concrete source tab belongs to the selected
 Workspace; a mismatch creates a new foreground WebContents with the selected
 local context and drops inherited opener/referrer state before a request.
-That correction is **NOT_BUILT/NOT_E2E** until the ongoing focused
-`9b4af65` test-target build releases the shared checkout/output and a new
-exact candidate repeats the negative journey.
+That correction is **NOT_BUILT/NOT_E2E** as a complete candidate. The guarded
+54-patch test-target build of `9b4af65` ended EXIT1 at an M153 Lit migration
+error in two Ahoi import tests (`dialog.set('prefs', ...)` no longer exists).
+Source `ea265ab` moved those fixtures to Chromium's `PrefService` test API;
+its guarded build compiled the new `browser_navigator.o` and linked
+`libchrome_dll.dylib`, then ended EXIT1 on three import-test ESLint assertions.
+Source `2e3b24d` removes those assertions. Its guarded incremental build
+passed the import TypeScript and ESLint actions but was deliberately interrupted
+at 7/133 Ninja actions when free disk fell below the documented 32-GiB build
+hard floor. It ended EXIT2; the wrapper restored both temporary dependency
+workarounds to their pinned SHA-256 bytes. The three terminal logs and exit
+codes are preserved in
+`artifacts/build/native-m153-website-sessions-2e3b24d-attempts-20260924/`.
+No app bundle, signed candidate or
+test result is claimed from these attempts. Rebuild this exact source only
+after a fresh capacity check; then repeat the empty-Workspace typed-navigation
+journey before focused regressions. The checkout/out lease remains Desktop-owned.
 
 This is a **development-gated partial feature**, not DoD item 25 acceptance:
 the flag is OFF by default because M153's native site-permission map remains
@@ -71,8 +85,9 @@ ServiceWorker execution, site-permission grants,
 context-transfer/multiwindow paths and complete no-secret Sync behavior still
 need focused implementation
 and visible proof. Test-only source `9b4af65` adds narrow local-binding,
-version-3 metadata and restore-authority regressions; their target build/test
-outcome is not yet claimed here.
+version-3 metadata and restore-authority regressions; `81d7346` adds a
+hidden-tab navigation regression. None of those cases has a compiled/tested
+result yet. The installed app remains the older `820cf4e` candidate.
 
 ## Archive crash correction and restored split — 24 September 2026
 
