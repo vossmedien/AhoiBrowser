@@ -1,5 +1,18 @@
 # Chromium M153 patch ledger
 
+## `0048-ahoi-fullscreen-sidebar-flush.patch`
+
+The user's 24 September fullscreen screenshot shows a 40-DIP dark band between
+the top toolbar and the docked Sidebar card. Ahoi's normal-window caption
+reservation was applied unconditionally in fullscreen, even though the tab
+region already begins below the visible toolbar. This patch passes zero
+caption height in fullscreen, removes the fallback top margin only for that
+zero-height Ahoi case, and aligns caption hit-testing with the actual reserved
+height. Normal-window 40-DIP titlebar and floating-sidebar margins are
+unchanged; no page viewport or BrowserContext ownership changes. Source
+application check passes. Guarded build and visible normal/fullscreen checks
+remain open.
+
 ## `0047-ahoi-empty-state-card-clip.patch`
 
 The Ahoi zero-tab EmptyStateView is a direct MultiContentsView child and paints
@@ -8,9 +21,12 @@ receive the content card's live rounded-corner geometry, so its square paint
 covered the card's top-left radius in the user's 24 September screenshot.
 This patch gives only that view a non-opaque composited layer and applies the
 same radii provided by `MultiContentsView::SetBackgroundRadii`; square/fullscreen
-layouts clear the mask again. No page viewport, WebContents, sidebar width or
-profile authority changes. The 47-patch application check passes; guarded
-build and visible zero-tab normal/fullscreen checks remain open.
+layouts explicitly clear the mask again, even when Glass is off. No page
+viewport, WebContents, sidebar width or profile authority changes. The first
+`c76e98b` 47-patch signed build visibly corrected the normal zero-tab corner;
+the missing fullscreen reset was found in source before acceptance. The
+updated 48-patch stack and normal/fullscreen journey still require their
+exact guarded build and visible check.
 
 ## `0046-ahoi-settings-follow-selected-workspace.patch`
 

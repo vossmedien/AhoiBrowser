@@ -1,0 +1,40 @@
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1252,8 +1252,10 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+     // If the toolbar is not in the browser, then the exclusion isn't either.
+     if (is_ahoi_shell) {
+       // Ahoi's toolbar is a floating overlay. Its current visibility must not
+       // resize the stable macOS caption/title area above the sidebar.
+-      toolbar_height = ahoi::visual_style::kSidebarTitlebarHeight;
++      toolbar_height = is_fullscreen(layout_data_->window_state)
++                           ? 0
++                           : ahoi::visual_style::kSidebarTitlebarHeight;
+       caption_button_width =
+           base::ClampCeil(browser_params.leading_exclusion.content.width()) -
+           tabstrip_bounds->x();
+diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
+--- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
++++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
+@@ -105,5 +105,6 @@ gfx::Insets GetAhoiSidebarMargins(bool floating,
+   const int vertical_margin = GetLayoutConstant(
+       LayoutConstant::kVerticalTabStripCollapsedVerticalPadding);
+-  return gfx::Insets::TLBR(std::max(toolbar_height, vertical_margin), 0,
+-                           vertical_margin, 0);
++  const int top_margin =
++      toolbar_height > 0 ? std::max(toolbar_height, vertical_margin) : 0;
++  return gfx::Insets::TLBR(top_margin, 0, vertical_margin, 0);
+ }
+@@ -671,8 +672,7 @@ bool VerticalTabStripRegionView::IsPositionInWindowCaption(
+-  // A docked sidebar reserves the stable native titlebar band. A floating card
+-  // starts at its own compact outer inset instead, so applying the docked band
+-  // there would turn the workspace and presentation buttons into caption drag
+-  // targets.
++  // A docked sidebar reserves only the current native titlebar band. In
++  // fullscreen there is none; a floating card uses its compact outer inset
++  // instead so the workspace controls never become caption drag targets.
+   const int caption_height =
+       IsAhoiSidebarFloating() ? ahoi::visual_style::kFloatingSidebarOuterInset
+-                              : ahoi::visual_style::kSidebarTitlebarHeight;
++                              : toolbar_height_for_layout_;
+   if (ahoi_sidebar_tree_view_ && point.y() < caption_height) {

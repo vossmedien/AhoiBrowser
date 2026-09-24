@@ -24,3 +24,18 @@ diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/brows
 +
    if (!IsInSplitView()) {
      GetActiveContentsContainerView()->SetRoundedCorners(radii);
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1215,7 +1215,11 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+     views().multi_contents_view->SetBackgroundRadii(
+         gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius,
+                              ahoi::visual_style::kContentCardCornerRadius,
+                              0.0f, 0.0f));
++  } else if (is_ahoi_shell) {
++    // Fullscreen drops the card gutter; keep the zero-tab clip square even
++    // when the native Glass mode is disabled.
++    views().multi_contents_view->SetBackgroundRadii(gfx::RoundedCornersF());
+   } else if (in_glass_mode()) {
+     // If the window goes out of glass mode, these changes won't hurt anything.
+     gfx::RoundedCornersF content_corners;
