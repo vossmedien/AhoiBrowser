@@ -112,6 +112,78 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
     }
 
     @MainActor
+    func testLoadedPrivatePageStaysShieldedAfterCancelAndSecondBackground() throws {
+        guard ProcessInfo.processInfo.environment["AHOI_PRIVATE_LOCK_E2E"] == "1" else {
+            throw XCTSkip("Explicitly opt in to the device-authentication UI journey.")
+        }
+        let app = XCUIApplication()
+        app.launchArguments = []
+        app.terminate()
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
+
+        openSettings(in: app)
+        let toggle = app.switches["settings.private.lock"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        revealSyncToggle(toggle, in: app)
+        if (toggle.value as? String) != "1" {
+            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        }
+        let enabled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "1"), object: toggle
+        )
+        guard XCTWaiter.wait(for: [enabled], timeout: 4) == .completed else {
+            attachScreenshot(named: "private-loaded-page-device-auth-unavailable", of: app)
+            XCTFail("The real device-authentication setting did not enable on this device.")
+            return
+        }
+        app.buttons["settings.done"].tap()
+
+        app.terminate()
+        app.launchArguments = [
+            "-AhoiUITestFixture", "-AhoiUITestPrivateTabCount", "1", "-AhoiUITestSelectPrivate"
+        ]
+        app.launch()
+        let privateAddress = app.buttons["browser.address.private"]
+        XCTAssertTrue(privateAddress.waitForExistence(timeout: 8))
+        let privatePage = app.webViews.staticTexts["Scale tab"]
+        XCTAssertTrue(privatePage.waitForExistence(timeout: 8))
+        attachScreenshot(named: "private-loaded-page-before-background", of: app)
+
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        let unlock = app.buttons["browser.private.lock.unlock"]
+        XCTAssertTrue(unlock.waitForExistence(timeout: 8))
+        XCTAssertFalse(privatePage.exists)
+        XCTAssertFalse(privateAddress.exists)
+        unlock.tap()
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        XCTAssertTrue(springboard.otherElements["authentication_ui"].waitForExistence(timeout: 8))
+        let cancel = springboard.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 3))
+        cancel.tap()
+        XCTAssertTrue(unlock.waitForExistence(timeout: 5))
+        XCTAssertFalse(privatePage.exists)
+        XCTAssertFalse(privateAddress.exists)
+        attachScreenshot(named: "private-loaded-page-after-cancel", of: app)
+
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        XCTAssertTrue(unlock.waitForExistence(timeout: 8))
+        XCTAssertFalse(privatePage.exists)
+        XCTAssertFalse(privateAddress.exists)
+        attachScreenshot(named: "private-loaded-page-after-second-background", of: app)
+
+        app.terminate()
+        app.launchArguments = []
+        app.launch()
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
+        XCTAssertFalse(privateAddress.exists)
+        XCTAssertFalse(privatePage.exists)
+    }
+
+    @MainActor
     func testLocalFixtureAndPrivateTabLifecycle() throws {
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
