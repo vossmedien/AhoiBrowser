@@ -40,7 +40,12 @@ exit file `build9-xcode27.exit`). These PIDs are observations, not
 resumption instructions; verify live state before acting. Available disk was
 above the 64-GiB build recommendation. No terminal build result, new signed
 candidate, unit result, or visible E2E is claimed yet. After an EXIT0, first
-repeat the empty-Workspace typed-navigation journey on the exact signed app;
+repeat the empty-Workspace typed-navigation journey on the exact signed app —
+now automated and PID-scoped as `tools/desktop_e2e/empty-workspace-navigation.sh`
+(Accessibility tree + Chromium DevTools tab state; never name-based System
+Events, which cannot tell a clone from the installed app). Its baseline on the
+pre-`0054` signed `79a7752` clone reproduced the defect RED
+(`artifacts/e2e/desktop-empty-workspace-79a7752-baseline-20260924/`);
 then run only affected focused regressions. Do not launch a second build into
 the same output or infer release compatibility from development provenance.
 
