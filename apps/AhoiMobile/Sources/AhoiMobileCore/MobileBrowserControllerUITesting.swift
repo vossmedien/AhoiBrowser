@@ -127,6 +127,12 @@ extension MobileBrowserController {
               <button id="motion" aria-label="Request motion permission" onclick="requestMotion()">Request motion</button>
               <output id="permission-result" aria-label="Website permission result" aria-live="polite">No permission result yet.</output>
             </section>
+            <article aria-label="Ahoi Reader fixture article">
+              <h2>Ahoi Reader fixture article</h2>
+              <p>The first paragraph is ordinary visible prose in the loaded main document. It describes a browser journey that opens the Reader without fetching a replacement page, rewriting the source document, or changing the active tab.</p>
+              <p>The second paragraph provides enough independent article text for the Reader's content threshold. After the Reader appears, the same browser page should still be available when the person returns to it.</p>
+              <p>This final paragraph gives the deterministic fixture a distinct ending. The article stays inside the normal WebKit document so the test exercises the real extraction and presentation path.</p>
+            </article>
             </main>
             <script>
               const dialogResult = document.getElementById('dialog-result');

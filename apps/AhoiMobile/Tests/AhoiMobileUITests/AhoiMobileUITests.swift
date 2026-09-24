@@ -219,6 +219,35 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
     }
 
     @MainActor
+    func testReaderExtractsVisibleArticleAndReturnsToSamePage() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+
+        app.buttons["browser.more"].tap()
+        let reader = app.buttons["browser.actions.reader"]
+        XCTAssertTrue(reader.waitForExistence(timeout: 5))
+        for _ in 0..<4 {
+            if reader.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(reader.isHittable)
+        reader.tap()
+
+        let content = app.descendants(matching: .any)["browser.reader.content"]
+        XCTAssertTrue(content.waitForExistence(timeout: 8))
+        XCTAssertTrue(content.staticTexts["Ahoi Reader fixture article"].exists)
+        XCTAssertTrue(content.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "The first paragraph is ordinary visible prose"
+        )).firstMatch.exists)
+        attachScreenshot(named: "reader-loaded-article", of: app)
+
+        app.buttons["browser.reader.return"].tap()
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["browser.address"].exists)
+    }
+
+    @MainActor
     func testUnsafeSchemeIsExplainedAndRejected() throws {
         let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
