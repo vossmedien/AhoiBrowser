@@ -397,7 +397,13 @@ public struct CompanionRootView: View {
     private func beginCreation(_ kind: CreationKind) {
         draftTitle = ""
         draftURL = ""
-        creationKind = kind
+        // Called from the Manage menu: presenting the alert while that menu is
+        // still closing leaves its popover dismiss region behind, which then
+        // swallows taps such as Done after the Workspace is created.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            creationKind = kind
+        }
     }
 
     private func resetCreation() {
