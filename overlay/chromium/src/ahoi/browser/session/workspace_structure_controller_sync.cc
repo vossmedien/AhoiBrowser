@@ -9,7 +9,7 @@
 
 namespace ahoi::session {
 void WorkspaceStructureController::ReadRemote() {
-  if (read_pending_ || publish_pending_ || persisting_ ||
+  if (read_pending_ || publish_pending_ || persisting_ || !sync_ ||
       !sync_->sync_enabled()) {
     return;
   }
