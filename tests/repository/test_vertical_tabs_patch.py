@@ -8,7 +8,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCH_ROOT = ROOT / "patches/chromium"
 PATCH_PATH = PATCH_ROOT / "0001-ahoi-m153-integration-seams.patch"
 SERIES_PATH = PATCH_ROOT / "series"
-M152_COMMIT = "fc4d67f1788019a27e32511137ceccbd2fafdaaa"
+M153_VERSION = "153.0.8010.53"
+M153_COMMIT = "792bf6722e73a45aa9e47c163b9901bdc17f3230"
 
 
 def series_entries() -> tuple[str, ...]:
@@ -41,21 +42,23 @@ class VerticalTabsPatchContractTests(unittest.TestCase):
     def setUp(self):
         self.patch = PATCH_PATH.read_text(encoding="utf-8")
 
-    def test_vertical_tabs_contract_lives_in_the_m152_integration_layer(self):
+    def test_vertical_tabs_contract_lives_in_the_m153_integration_layer(self):
         entries = series_entries()
+        # The integration seam stays the first layer; the M153 rebase
+        # (29dfe7a) and later waves append further ordered layers.
         self.assertEqual(PATCH_PATH.name, entries[0])
-        self.assertEqual(3, len(entries))
+        self.assertEqual(1, entries.count(PATCH_PATH.name))
         self.assertEqual(len(entries), len(set(entries)))
 
         pin = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
-        self.assertEqual("152.0.7977.65", pin["version"])
-        self.assertEqual(M152_COMMIT, pin["commit"])
+        self.assertEqual(M153_VERSION, pin["version"])
+        self.assertEqual(M153_COMMIT, pin["commit"])
         self.assertEqual("Stable", pin["channel"])
         self.assertEqual("Mac", pin["platform"])
 
         ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertEqual(1, ledger.count(f"## `{PATCH_PATH.name}`"))
-        self.assertIn(M152_COMMIT, ledger)
+        self.assertIn(M153_COMMIT, ledger)
 
     def test_ahoi_defaults_the_existing_vertical_tabs_profile_pref_to_true(self):
         prefs = file_section(
