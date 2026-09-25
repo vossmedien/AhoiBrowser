@@ -175,19 +175,33 @@ menu Zwei "Workspace löschen" || fail_setup "delete item missing for Zwei"
 $AX press $PID "$($AX dump $PID 14 | grep -o 'Workspace löschen[^|]*' | head -1 | sed 's/ *$//')" >> "$OUT/steps.txt"
 waitax "AXButton \\| Löschen" 8 || fail_setup "delete dialog for Zwei did not open"
 $AX press $PID "AXButton:Löschen" >> "$OUT/steps.txt"; kill -9 $PID; sleep 2
-echo "afterKill $(storage)" >> "$OUT/storage.txt"
+AFTER_KILL=$(storage); echo "afterKill $AFTER_KILL" >> "$OUT/storage.txt"
+# Directories queued for removal at the kill; these must never come back.
+REMOVING=$(echo "$AFTER_KILL" | python3 -c 'import json,sys,os;print(" ".join(os.path.basename(p["path"]) for p in json.load(sys.stdin)["pending"]))')
 # WS-DEL-06: relaunch; cleanup finishes and the directory never comes back.
 launch
 REAPPEARED=false
 for i in $(seq 1 6); do
   sleep 5; S_NOW=$(storage); echo "t+$((i*5))s $S_NOW" >> "$OUT/storage.txt"
   # The first sample may still show the directory being deleted.
-  if [ $i -ge 2 ] && ! echo "$S_NOW" | grep -q '"partitionDirs": \[\]'; then REAPPEARED=true; fi
+  if [ $i -ge 2 ]; then for dir in $REMOVING; do echo "$S_NOW" | grep -q "\"$dir\"" && REAPPEARED=true; done; fi
 done
 [ $REAPPEARED = false ] && record partitionNotRecreatedAtStartup true || record partitionNotRecreatedAtStartup false
-waitax "Inbox, Workspace wechseln" 6 && ! $AX dump $PID 14 | grep -q 'Zwei, Workspace wechseln' && record killedDeletionStaysDeleted true || record killedDeletionStaysDeleted false
+# kill -9 may land before or after the deletion commit. Either Zwei is gone
+# with its binding and partition, or it is fully intact; never half.
+ZWEI_EXISTS=false
+if menu Inbox "Neuer Workspace…"; then
+  $AX dump $PID 14 > "$OUT/ax-menu-after-relaunch.txt"
+  grep -q -E 'AXMenuItem \| Zwei( – [^|]*)? \|' "$OUT/ax-menu-after-relaunch.txt" && ZWEI_EXISTS=true
+  $AX key $PID 53 >> "$OUT/steps.txt"
+fi
+echo "zwei exists after relaunch: $ZWEI_EXISTS" >> "$OUT/steps.txt"
+waitax "Inbox, Workspace wechseln" 6 && record killedDeletionConsistent true || record killedDeletionConsistent false
 quit
 FINAL=$(storage); echo "final $FINAL" >> "$OUT/storage.txt"
-echo "$FINAL" | python3 -c 'import json,sys;d=json.load(sys.stdin);sys.exit(0 if not d["ownBindings"] and not d["pending"] and not d["partitionDirs"] else 1)' \
-  && record bindingAndPartitionGoneAfterCrash true || record bindingAndPartitionGoneAfterCrash false
+echo "$FINAL" | python3 -c 'import json,sys
+d=json.load(sys.stdin); exists=sys.argv[1]=="true"
+ok=(len(d["ownBindings"])==1 and len(d["partitionDirs"])==1 and not d["pending"]) if exists else (not d["ownBindings"] and not d["pending"] and not d["partitionDirs"])
+sys.exit(0 if ok else 1)' "$ZWEI_EXISTS" \
+  && record bindingAndPartitionConsistentAfterCrash true || record bindingAndPartitionConsistentAfterCrash false
 finish ""
