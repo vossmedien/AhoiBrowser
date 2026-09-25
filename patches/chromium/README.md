@@ -1258,6 +1258,23 @@ as a second active patch stack.
   with the option on and off.
 - **Rebase/removal:** low; one early-return block and one GN line.
 
+## `0062-ahoi-no-gaia-list-accounts-without-signin.patch`
+
+- **Owner:** Desktop (network silence). `GaiaCookieManagerService::
+  TriggerListAccounts` returns early while `signin.allowed` is false, so no
+  `https://accounts.google.com/ListAccounts` request is made.
+- **Why:** the fresh-profile audit on installed `edced8d` (build 29) found
+  four `ListAccounts` requests at startup
+  (`artifacts/e2e/fresh-profile-network-audit-edced8d-20260925/`) although
+  Ahoi disallows browser sign-in by default. Many Chromium callers read the
+  cookie jar at startup; gating the single trigger covers all of them.
+- **Safety:** callers keep the cached, not-fresh cookie-jar result, which is
+  what they already handle while a request is pending. With sign-in allowed
+  (never by Ahoi default), upstream behavior is unchanged.
+- **Tests:** guarded build, then the fresh-profile network audit on the exact
+  candidate must show no `accounts.google.com` origin.
+- **Rebase/removal:** low; one early return in one function.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

@@ -1,0 +1,19 @@
+diff --git a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
+index db2e026..e45b9be 100644
+--- a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
++++ b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
+@@ -525,6 +525,14 @@ GaiaCookieManagerService::GetCachedListAccounts() {
+ }
+ 
+ void GaiaCookieManagerService::TriggerListAccounts() {
++  // AhoiBrowser: with browser sign-in disallowed there is no Google account
++  // to reconcile, so the cookie jar is never listed against Gaia (fresh-
++  // profile network audit). Callers keep the cached, not-fresh result.
++  PrefService* const prefs = signin_client_->GetPrefs();
++  if (prefs && prefs->FindPreference(prefs::kSigninAllowed) &&
++      !prefs->GetBoolean(prefs::kSigninAllowed)) {
++    return;
++  }
+   // Callers suspect that a check to Gaia needs to be done, don't rely on the
+   // in progress request, conditions might have changed while the request is
+   // in-flight.
