@@ -1,0 +1,151 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_session.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_session.cc
+index 878a7b7..54a04fc 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_session.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_session.cc
+@@ -246,18 +246,21 @@ void SessionBridge::ApplyPendingSessionMetadata() {
+   std::vector<PendingTabSessionMetadata> pending_tabs;
+   pending_windows.swap(pending_window_session_metadata_);
+   pending_tabs.swap(pending_tab_session_metadata_);
+-  for (const PendingWindowSessionMetadata& pending : pending_windows) {
+-    if (pending.browser) {
+-      std::ignore = ApplyWindowSessionMetadataNow(pending.browser.get(),
+-                                                  pending.metadata);
+-    }
+-  }
++  // Handoff 011 S4: tabs first. Switching a window's Workspace makes the
++  // sidebar align its surface; by then every restored tab must already carry
++  // its own Workspace and last-active flag.
+   for (const PendingTabSessionMetadata& pending : pending_tabs) {
+     if (pending.tab) {
+       std::ignore =
+           ApplyTabSessionMetadataNow(pending.tab.get(), pending.metadata);
+     }
+   }
++  for (const PendingWindowSessionMetadata& pending : pending_windows) {
++    if (pending.browser) {
++      std::ignore = ApplyWindowSessionMetadataNow(pending.browser.get(),
++                                                  pending.metadata);
++    }
++  }
+ }
+ 
+ bool SessionBridge::ApplyWindowSessionMetadataNow(
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc
+index 72b4c54..a9571e7 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc
+@@ -59,6 +59,7 @@
+ #include "chrome/browser/favicon/favicon_service_factory.h"
+ #include "chrome/browser/history/history_service_factory.h"
+ #include "chrome/browser/profiles/profile.h"
++#include "chrome/browser/sessions/session_restore.h"
+ #include "chrome/browser/sessions/tab_restore_service_factory.h"
+ #include "chrome/browser/ui/browser.h"
+ #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+@@ -294,6 +295,7 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
+   group_recent_delegate_.reset();
+   session_presentation_subscription_ = {};
+   shared_tab_capture_subscription_ = {};
++  session_restored_subscription_ = {};
+   if (profile_sync_service_ && profile_sync_ui_attached_) {
+     if (window_id_.has_value()) {
+       profile_sync_service_->RemoveWindowTabs(window_id_->AsLowercaseString());
+@@ -458,7 +460,7 @@ tabs::TabInterface* BrowserSidebarHostView::FindRuntimeTab(
+ 
+ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
+     const base::Uuid& workspace_id) {
+-  if (!tab_strip_model_) {
++  if (!tab_strip_model_ || DeferWorkspaceSurfaceDuringRestore()) {
+     return;
+   }
+   tabs::TabInterface* active_tab = tab_strip_model_->GetActiveTab();
+@@ -546,7 +548,8 @@ void BrowserSidebarHostView::ReconcileWorkspaceSurface(
+     uint64_t generation,
+     bool follow_selected_tab) {
+   if (generation != workspace_surface_generation_ || !tab_strip_model_ ||
+-      !browser_ || browser_->IsWindowCloseRequested()) {
++      !browser_ || browser_->IsWindowCloseRequested() ||
++      DeferWorkspaceSurfaceDuringRestore()) {
+     return;
+   }
+   if (follow_selected_tab) {
+@@ -565,6 +568,43 @@ void BrowserSidebarHostView::ReconcileWorkspaceSurface(
+   EnsureWorkspaceSurface();
+ }
+ 
++bool BrowserSidebarHostView::DeferWorkspaceSurfaceDuringRestore() {
++  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
++  if (!profile || session_restore_notified_ ||
++      !SessionRestore::IsRestoring(profile)) {
++    return false;
++  }
++  if (!session_restored_subscription_) {
++    session_restored_subscription_ =
++        SessionRestore::RegisterOnSessionRestoredCallback(base::BindRepeating(
++            &BrowserSidebarHostView::OnSessionRestored,
++            weak_ptr_factory_.GetWeakPtr()));
++  }
++  return true;
++}
++
++void BrowserSidebarHostView::OnSessionRestored(Profile* profile, int) {
++  if (!browser_ || profile != browser_->GetProfile()) {
++    return;
++  }
++  // SessionRestore notifies while it is still registered as restoring; the
++  // reconciliation runs after its stack has unwound.
++  session_restore_notified_ = true;
++  session_restored_subscription_ = {};
++  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
++      FROM_HERE,
++      base::BindOnce(
++          &BrowserSidebarHostView::ReconcileWorkspaceSurfaceAfterRestore,
++          weak_ptr_factory_.GetWeakPtr()));
++}
++
++void BrowserSidebarHostView::ReconcileWorkspaceSurfaceAfterRestore() {
++  // The window's restored Workspace wins; the selected tab does not pull the
++  // window into another Workspace.
++  ReconcileWorkspaceSurface(workspace_surface_generation_,
++                            /*follow_selected_tab=*/false);
++}
++
+ void BrowserSidebarHostView::SynchronizeSelection() {
+   if (!tab_strip_model_ || !session_bridge_) {
+     return;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+index b9ca2c5..4557dcc 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -66,6 +66,7 @@
+ #include "url/gurl.h"
+ 
+ class Browser;
++class Profile;
+ class SessionID;
+ class TabStripModel;
+ 
+@@ -242,6 +243,14 @@ class BrowserSidebarHostView final
+   // cover that stale global selection instead of showing it in the page area.
+   void EnsureWorkspaceSurface();
+ 
++  // Handoff 011 S4: SessionRestore creates the window, applies its Workspace
++  // and only then inserts the tabs with theirs. Aligning the surface in
++  // between activates the wrong tab or leaves the empty state visible, so it
++  // waits for the restore-finished notification and runs once afterwards.
++  bool DeferWorkspaceSurfaceDuringRestore();
++  void OnSessionRestored(Profile* profile, int num_tabs);
++  void ReconcileWorkspaceSurfaceAfterRestore();
++
+   void SynchronizeSelection();
+ 
+   void ScheduleRuntimePresentationRefresh();
+@@ -767,6 +776,8 @@ class BrowserSidebarHostView final
+   SidebarRuntimeRefreshGate runtime_refresh_gate_;
+   uint64_t runtime_refresh_generation_ = 0;
+   uint64_t workspace_surface_generation_ = 0;
++  base::CallbackListSubscription session_restored_subscription_;
++  bool session_restore_notified_ = false;
+   bool runtime_auxiliary_prime_scheduled_ = false;
+   bool runtime_auxiliary_ready_ = false;
+   // Split ratio notifications are synchronous. Suppressing the ordinary
