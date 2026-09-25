@@ -14,6 +14,7 @@
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
@@ -28,6 +29,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
+#include "base/feature_list.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/i18n/case_conversion.h"
@@ -99,6 +101,7 @@
 #include "ui/views/controls/button/image_button.h"
 #include "ui/views/controls/button/image_button_factory.h"
 #include "ui/views/controls/button/label_button.h"
+#include "ui/views/controls/button/radio_button.h"
 #include "ui/views/controls/image_view.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/menu/menu_runner.h"
@@ -230,6 +233,9 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
                      IDS_AHOI_GROUP_COLOR_VIOLET);
     contents->AddChildView(std::move(color_choices));
     UpdateWorkspaceColorButtons();
+    if (action == PendingWorkspaceAction::kCreate) {
+      AddWorkspaceLevelChoice(contents.get());
+    }
   }
 
   views::View* const modal_anchor = modal_overlay_controller_->center_anchor();
@@ -303,6 +309,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
                               weak_ptr_factory_.GetWeakPtr()))) {
     workspace_name_field_ = nullptr;
     workspace_icon_field_ = nullptr;
+    workspace_own_sessions_radio_ = nullptr;
     workspace_dialog_widget_.reset();
     workspace_dialog_delegate_.reset();
     pending_workspace_action_ = PendingWorkspaceAction::kNone;
@@ -315,6 +322,42 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     workspace_name_field_->RequestFocus();
     workspace_name_field_->SelectAll(false);
   }
+}
+
+void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
+  // ADR 0011: the level is chosen once, when the Workspace is created.
+  constexpr int kLevelGroup = 0x41686f69;  // Radio group of this dialog.
+  auto* level_label = contents->AddChildView(std::make_unique<views::Label>(
+      StructureText(u"Trennung", u"Separation")));
+  level_label->SetSubpixelRenderingEnabled(false);
+  level_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  level_label->SetEnabledColor(visual_style::kMutedText);
+  auto* shared = contents->AddChildView(std::make_unique<views::RadioButton>(
+      StructureText(u"Gemeinsam", u"Shared"), kLevelGroup));
+  workspace_own_sessions_radio_ =
+      contents->AddChildView(std::make_unique<views::RadioButton>(
+          StructureText(u"Eigene Website-Sitzungen",
+                        u"Own website sessions"),
+          kLevelGroup));
+  // The development gate isolates every new Workspace; preselect that.
+  const bool own_default =
+      base::FeatureList::IsEnabled(session::kAhoiWorkspaceWebsiteSessions);
+  shared->SetChecked(!own_default);
+  workspace_own_sessions_radio_->SetChecked(own_default);
+  auto* explanation = contents->AddChildView(std::make_unique<views::Label>(
+      StructureText(
+          u"Eigene Website-Sitzungen trennen Anmeldungen, Cookies und "
+          u"Websitedaten dieses Workspaces. Verlauf, Passwörter, "
+          u"Berechtigungen und Erweiterungen teilen alle Workspaces. Die "
+          u"Stufe lässt sich später nicht ändern.",
+          u"Own website sessions separate this Workspace's logins, cookies "
+          u"and site data. History, passwords, permissions and extensions "
+          u"stay shared with all Workspaces. The level cannot be changed "
+          u"later.")));
+  explanation->SetSubpixelRenderingEnabled(false);
+  explanation->SetMultiLine(true);
+  explanation->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  explanation->SetEnabledColor(visual_style::kMutedText);
 }
 
 void BrowserSidebarHostView::SelectWorkspaceColor(std::optional<uint32_t> color,
@@ -364,8 +407,10 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
   }
   if (pending_workspace_action_ == PendingWorkspaceAction::kCreate) {
     const std::optional<base::Uuid> workspace_id =
-        session_bridge_->CreateWorkspace(std::move(name), std::move(icon),
-                                         pending_workspace_accent_argb_);
+        session_bridge_->CreateWorkspace(
+            std::move(name), std::move(icon), pending_workspace_accent_argb_,
+            workspace_own_sessions_radio_ &&
+                workspace_own_sessions_radio_->GetChecked());
     if (!workspace_id.has_value()) {
       OnMutationFailed(tab_tree::TabTreeStore::Result::kDatabaseError);
       return false;
@@ -425,6 +470,7 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
   workspace_color_buttons_.clear();
   workspace_name_field_ = nullptr;
   workspace_icon_field_ = nullptr;
+  workspace_own_sessions_radio_ = nullptr;
   std::unique_ptr<views::Widget> closed_widget =
       std::move(workspace_dialog_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =

@@ -73,8 +73,23 @@ bool InitializeWebsiteSessionBindings(
     PrefService* prefs,
     base::span<const base::Uuid> existing_workspace_ids);
 
-// A missing entry after initialization is a newly arriving workspace. Invalid
-// entries fail rather than silently sending that workspace to the default jar.
+// ADR 0011: the level of a new Workspace is chosen when it is created.
+// Records `workspace_id` as `shared` (default partition) or with its own
+// fresh website-session context. The first own Workspace adopts every Workspace
+// in `other_workspace_ids` as shared, so no existing login moves. Fails for an
+// already bound Workspace (the level is not changed in place), for managed or
+// corrupt state.
+bool BindNewWorkspaceWebsiteSessions(
+    PrefService* prefs,
+    const base::Uuid& workspace_id,
+    base::span<const base::Uuid> other_workspace_ids,
+    bool own_website_sessions);
+
+// A missing entry after initialization is a Workspace this device did not
+// create (for example one that arrived by sync). It is shared unless the
+// development gate `kAhoiWorkspaceWebsiteSessions` isolates every new
+// Workspace. Invalid entries fail rather than silently sending a Workspace to
+// the default jar.
 std::optional<WebsiteSessionBinding> GetOrCreateWebsiteSessionBinding(
     PrefService* prefs,
     const base::Uuid& workspace_id);

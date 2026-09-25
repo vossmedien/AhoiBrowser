@@ -252,13 +252,17 @@ class SessionBridge : public KeyedService,
   [[nodiscard]] bool RestoreTabSessionMetadata(
       tabs::TabInterface* tab,
       const session::TabSessionMetadata& metadata) override;
+  // `own_website_sessions` selects the ADR 0011 level `website-sessions`
+  // instead of `shared`; the level is fixed at creation.
   std::optional<base::Uuid> CreateWorkspace(
       std::u16string name,
       std::u16string icon,
-      std::optional<uint32_t> accent_argb);
+      std::optional<uint32_t> accent_argb,
+      bool own_website_sessions = false);
   // Duplicates one active workspace, including its complete saved-page tree.
   // The duplicate receives a fresh identity and is placed directly after the
-  // source in workspace order. No ID is returned unless the store mutation
+  // source in workspace order. It keeps the source's level; an own
+  // website-session level starts with a fresh, empty session. No ID is returned unless the store mutation
   // and the in-memory workspace snapshot both succeed.
   std::optional<base::Uuid> DuplicateWorkspace(
       const base::Uuid& source_workspace_id,
@@ -435,6 +439,11 @@ class SessionBridge : public KeyedService,
   // Workspace session continuity lives in a separate implementation unit so
   // Chromium session seams do not leak into the persistent tree/runtime code.
   std::vector<base::Uuid> OrderedWorkspaceIdsForSession() const;
+  // Persists the level of a Workspace about to be created. Bound before the
+  // tree commit: a crash in between leaves an orphan binding that startup
+  // retires, never a Workspace that silently falls back to `shared`.
+  bool BindNewWorkspaceLevel(const base::Uuid& workspace_id,
+                             bool own_website_sessions);
   void ApplyPendingSessionMetadata();
   [[nodiscard]] bool ApplyWindowSessionMetadataNow(
       BrowserWindowInterface* browser,

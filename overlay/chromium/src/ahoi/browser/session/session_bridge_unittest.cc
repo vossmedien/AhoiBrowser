@@ -12,6 +12,7 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -278,6 +279,37 @@ TEST_F(SessionBridgeTest,
   EXPECT_EQ(1, browser()->GetTabStripModel()->count());
   EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(saved_new_tab.id));
   EXPECT_EQ(saved_new_tab.id, bridge_->FindTreeNodeIdForTab(tab));
+}
+
+TEST_F(SessionBridgeTest, WorkspaceLevelIsChosenAtCreationAndDuplicated) {
+  const base::Uuid fallback_id =
+      workspace_service_->ordered_workspaces().front().id;
+  const std::optional<base::Uuid> shared_id =
+      bridge_->CreateWorkspace(u"Shared", u"S", std::nullopt);
+  ASSERT_TRUE(shared_id.has_value());
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(*shared_id));
+
+  const std::optional<base::Uuid> own_id = bridge_->CreateWorkspace(
+      u"Client", u"C", std::nullopt, /*own_website_sessions=*/true);
+  ASSERT_TRUE(own_id.has_value());
+  EXPECT_TRUE(bridge_->HasOwnWebsiteSessions(*own_id));
+  // Workspaces that existed before the first own one keep the default jar.
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(fallback_id));
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(*shared_id));
+
+  const std::optional<base::Uuid> copy_id =
+      bridge_->DuplicateWorkspace(*own_id, u"Client copy", u"C", std::nullopt);
+  ASSERT_TRUE(copy_id.has_value());
+  EXPECT_TRUE(bridge_->HasOwnWebsiteSessions(*copy_id));
+  // A duplicate starts with a fresh, empty session of its own.
+  EXPECT_NE(
+      session::FindWebsiteSessionBinding(profile()->GetPrefs(), *own_id),
+      session::FindWebsiteSessionBinding(profile()->GetPrefs(), *copy_id));
+
+  const std::optional<base::Uuid> shared_copy = bridge_->DuplicateWorkspace(
+      *shared_id, u"Shared copy", u"S", std::nullopt);
+  ASSERT_TRUE(shared_copy.has_value());
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(*shared_copy));
 }
 
 TEST_F(SessionBridgeTest,

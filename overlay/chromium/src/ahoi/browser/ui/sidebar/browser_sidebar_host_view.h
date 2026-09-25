@@ -86,6 +86,7 @@ class ImageButton;
 class LabelButton;
 class MenuRunner;
 class ScrollView;
+class RadioButton;
 class Textfield;
 class Widget;
 }  // namespace views
@@ -586,6 +587,7 @@ class BrowserSidebarHostView final
   void SelectWorkspaceColor(std::optional<uint32_t> color, const ui::Event&);
 
   void UpdateWorkspaceColorButtons();
+  void AddWorkspaceLevelChoice(views::View* contents);
 
   bool AcceptWorkspaceDialog();
 
@@ -791,6 +793,8 @@ class BrowserSidebarHostView final
   std::optional<uint32_t> pending_workspace_accent_argb_;
   raw_ptr<views::Textfield> workspace_name_field_ = nullptr;
   raw_ptr<views::Textfield> workspace_icon_field_ = nullptr;
+  // ADR 0011 level choice; only present while creating a Workspace.
+  raw_ptr<views::RadioButton> workspace_own_sessions_radio_ = nullptr;
   std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
       workspace_color_buttons_;
   std::unique_ptr<views::BubbleDialogDelegate> workspace_dialog_delegate_;

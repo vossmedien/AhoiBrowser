@@ -253,6 +253,12 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
                            static_cast<int>(context_workspace_ids_.size());
     context_workspace_ids_.push_back(workspace.id);
     context_menu_model_->AddCheckItem(command_id, workspace.name);
+    if (session_bridge_->HasOwnWebsiteSessions(workspace.id)) {
+      // ADR 0011: every non-shared Workspace states its level.
+      context_menu_model_->SetMinorText(
+          context_menu_model_->GetItemCount() - 1,
+          StructureText(u"Eigene Website-Sitzungen", u"Own website sessions"));
+    }
   }
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   context_menu_model_->AddItem(

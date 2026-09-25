@@ -10,7 +10,9 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
+#include "ahoi/browser/session/session_prefs.h"
 #include "base/check.h"
+#include "base/containers/span.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
@@ -97,10 +99,26 @@ std::optional<base::Uuid> SessionBridge::GetActiveWorkspaceForWindow(
              : std::nullopt;
 }
 
+bool SessionBridge::BindNewWorkspaceLevel(const base::Uuid& workspace_id,
+                                          bool own_website_sessions) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const std::vector<base::Uuid> existing = OrderedWorkspaceIdsForSession();
+  if (!session::BindNewWorkspaceWebsiteSessions(
+          profile_->GetPrefs(), workspace_id, base::span(existing),
+          own_website_sessions)) {
+    return false;
+  }
+  if (own_website_sessions) {
+    profile_->GetPrefs()->CommitPendingWrite();
+  }
+  return true;
+}
+
 std::optional<base::Uuid> SessionBridge::CreateWorkspace(
     std::u16string name,
     std::u16string icon,
-    std::optional<uint32_t> accent_argb) {
+    std::optional<uint32_t> accent_argb,
+    bool own_website_sessions) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (shutting_down_ || !tab_tree_ready_ || !tab_tree_store_ ||
       !workspace_service_ || name.empty()) {
@@ -120,6 +138,9 @@ std::optional<base::Uuid> SessionBridge::CreateWorkspace(
       .created_at = now,
       .modified_at = now,
   };
+  if (!BindNewWorkspaceLevel(workspace.id, own_website_sessions)) {
+    return std::nullopt;
+  }
   if (tab_tree_store_->CreateWorkspace(workspace) !=
           tab_tree::TabTreeStore::Result::kOk ||
       !RefreshWorkspaceSnapshot()) {
@@ -176,6 +197,10 @@ std::optional<base::Uuid> SessionBridge::DuplicateWorkspace(
       .created_at = now,
       .modified_at = now,
   };
+  if (!BindNewWorkspaceLevel(duplicate.id,
+                             HasOwnWebsiteSessions(source_workspace_id))) {
+    return std::nullopt;
+  }
   if (tab_tree_store_->DuplicateWorkspace(source_workspace_id, duplicate) !=
           tab_tree::TabTreeStore::Result::kOk ||
       !RefreshWorkspaceSnapshot()) {

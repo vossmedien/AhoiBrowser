@@ -126,8 +126,11 @@ TEST_F(SessionRestoreIntegrationTest,
   ASSERT_TRUE(InitializeWebsiteSessionBindings(profile()->GetPrefs(),
                                                 base::span(existing_ids)));
   const base::Uuid new_workspace = base::Uuid::GenerateRandomV4();
-  const auto binding = GetOrCreateWebsiteSessionBinding(profile()->GetPrefs(),
-                                                        new_workspace);
+  ASSERT_TRUE(BindNewWorkspaceWebsiteSessions(
+      profile()->GetPrefs(), new_workspace, base::span(existing_ids),
+      /*own_website_sessions=*/true));
+  const auto binding =
+      FindWebsiteSessionBinding(profile()->GetPrefs(), new_workspace);
   ASSERT_TRUE(binding);
   ASSERT_FALSE(binding->is_default());
 

@@ -180,12 +180,72 @@ std::optional<WebsiteSessionBinding> GetOrCreateWebsiteSessionBinding(
   if (prefs->IsManagedPreference(kWebsiteSessionBindingsPref)) {
     return std::nullopt;
   }
+  if (!base::FeatureList::IsEnabled(kAhoiWorkspaceWebsiteSessions)) {
+    base::DictValue updated = current->Clone();
+    updated.FindDict(kWebsiteSessionWorkspacesKey)
+        ->Set(key, kDefaultWebsiteSessionValue);
+    prefs->SetDict(kWebsiteSessionBindingsPref, std::move(updated));
+    return WebsiteSessionBinding();
+  }
   base::Uuid context_id = base::Uuid::GenerateRandomV4();
   base::DictValue updated = current->Clone();
   updated.FindDict(kWebsiteSessionWorkspacesKey)
       ->Set(key, context_id.AsLowercaseString());
   prefs->SetDict(kWebsiteSessionBindingsPref, std::move(updated));
   return WebsiteSessionBinding{.context_id = context_id};
+}
+
+bool BindNewWorkspaceWebsiteSessions(
+    PrefService* prefs,
+    const base::Uuid& workspace_id,
+    base::span<const base::Uuid> other_workspace_ids,
+    bool own_website_sessions) {
+  if (!prefs || !workspace_id.is_valid() ||
+      !prefs->FindPreference(kWebsiteSessionBindingsPref) ||
+      prefs->IsManagedPreference(kWebsiteSessionBindingsPref)) {
+    return false;
+  }
+  if (!GetValidWebsiteSessionRoot(prefs)) {
+    if (!prefs->GetDict(kWebsiteSessionBindingsPref).empty()) {
+      return false;  // Corrupt state; never overwrite it.
+    }
+    if (!own_website_sessions) {
+      // Nothing is isolated yet; the missing entry already means shared.
+      return true;
+    }
+    base::DictValue bindings;
+    std::set<base::Uuid> unique_ids;
+    for (const base::Uuid& id : other_workspace_ids) {
+      if (id == workspace_id) {
+        continue;
+      }
+      if (!id.is_valid() || !unique_ids.insert(id).second) {
+        return false;
+      }
+      bindings.Set(id.AsLowercaseString(), kDefaultWebsiteSessionValue);
+    }
+    base::DictValue root;
+    root.Set(kWebsiteSessionVersionKey, kWebsiteSessionBindingsVersion);
+    root.Set(kWebsiteSessionWorkspacesKey, std::move(bindings));
+    root.Set(kWebsiteSessionRecoveryKey,
+             base::Uuid::GenerateRandomV4().AsLowercaseString());
+    prefs->SetDict(kWebsiteSessionBindingsPref, std::move(root));
+  }
+  const base::DictValue* current = GetValidWebsiteSessionRoot(prefs);
+  if (!current) {
+    return false;
+  }
+  const std::string key = workspace_id.AsLowercaseString();
+  if (current->FindDict(kWebsiteSessionWorkspacesKey)->Find(key)) {
+    return false;
+  }
+  base::DictValue updated = current->Clone();
+  updated.FindDict(kWebsiteSessionWorkspacesKey)
+      ->Set(key, own_website_sessions
+                     ? base::Uuid::GenerateRandomV4().AsLowercaseString()
+                     : std::string(kDefaultWebsiteSessionValue));
+  prefs->SetDict(kWebsiteSessionBindingsPref, std::move(updated));
+  return true;
 }
 
 std::optional<WebsiteSessionBinding> FindWebsiteSessionBinding(

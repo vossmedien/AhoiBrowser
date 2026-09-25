@@ -21,6 +21,28 @@ no-cookie-sync or native-engine boundaries.
 | Extension `chrome.cookies` API | Profile-wide default partition in this level; not scoped per Workspace | Never |
 | Downloads | Global manager; any later preferred directory is device-local | No filesystem paths |
 
+## Level choice (ADR 0011)
+
+The level is chosen once, in the "Neuer Workspace" dialog ("Trennung":
+"Gemeinsam" or "Eigene Website-Sitzungen", with the shared-permissions and
+fixed-level disclosure). Source since `SessionBridge::CreateWorkspace(...,
+own_website_sessions)` / `BindNewWorkspaceWebsiteSessions`:
+
+- The binding is written, and for an own level committed to disk, before the
+  tree commit; a crash in between leaves an orphan binding that startup
+  retires, never a Workspace silently downgraded to `shared`.
+- The first own Workspace adopts every existing Workspace as explicitly
+  `shared`, so no existing login moves. A profile without any own Workspace
+  keeps no binding state at all.
+- A Workspace this device did not create (for example one arriving by sync)
+  is `shared`; the level is device-local until the per-Profile sync namespace
+  (ADR 0011 step 4).
+- Duplicating keeps the level; an own duplicate starts with a fresh, empty
+  session. The Workspace menu shows "Eigene Website-Sitzungen" next to every
+  such Workspace.
+- The feature `AhoiWorkspaceWebsiteSessions` stays a development/E2E gate: it
+  preselects the own level in the dialog and isolates unknown Workspaces.
+
 This separates website accounts, not users of the Mac. Global history/password
 access and authorized global extensions remain visible by design. It is not
 Incognito. Do not invent history silos, per-workspace password databases, a proxy

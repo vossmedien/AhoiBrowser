@@ -6,6 +6,7 @@
 #include <array>
 #include <utility>
 
+#include "base/test/scoped_feature_list.h"
 #include "base/values.h"
 #include "components/sync_preferences/testing_pref_service_syncable.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -58,6 +59,8 @@ TEST_F(SessionPrefsTest, InvalidEnumIsRejected) {
 }
 
 TEST_F(SessionPrefsTest, ExistingWorkspacesStayDefaultAndNewOnesAreLocal) {
+  // The development gate isolates every Workspace this device learns about.
+  base::test::ScopedFeatureList gate(kAhoiWorkspaceWebsiteSessions);
   const base::Uuid existing = base::Uuid::ParseLowercase(
       "10000000-0000-4000-8000-000000000001");
   const base::Uuid added = base::Uuid::ParseLowercase(
@@ -87,6 +90,72 @@ TEST_F(SessionPrefsTest, ExistingWorkspacesStayDefaultAndNewOnesAreLocal) {
                                                base::span(later_snapshot)));
   EXPECT_EQ(isolated, GetOrCreateWebsiteSessionBinding(&prefs_, added));
   EXPECT_TRUE(GetOrCreateWebsiteSessionBinding(&prefs_, existing)->is_default());
+}
+
+TEST_F(SessionPrefsTest, UnknownWorkspaceIsSharedWithoutTheGate) {
+  const base::Uuid existing = base::Uuid::GenerateRandomV4();
+  const base::Uuid arrived = base::Uuid::GenerateRandomV4();
+  const std::array<base::Uuid, 1> existing_ids = {existing};
+  ASSERT_TRUE(InitializeWebsiteSessionBindings(&prefs_,
+                                               base::span(existing_ids)));
+  const auto binding = GetOrCreateWebsiteSessionBinding(&prefs_, arrived);
+  ASSERT_TRUE(binding.has_value());
+  EXPECT_TRUE(binding->is_default());
+  EXPECT_EQ(binding, FindWebsiteSessionBinding(&prefs_, arrived));
+}
+
+TEST_F(SessionPrefsTest, SharedLevelNeedsNoBindingState) {
+  const base::Uuid workspace = base::Uuid::GenerateRandomV4();
+  const std::array<base::Uuid, 1> others = {base::Uuid::GenerateRandomV4()};
+  EXPECT_TRUE(BindNewWorkspaceWebsiteSessions(&prefs_, workspace,
+                                              base::span(others),
+                                              /*own_website_sessions=*/false));
+  EXPECT_TRUE(prefs_.GetDict(kWebsiteSessionBindingsPref).empty());
+  EXPECT_FALSE(ShouldUseWorkspaceWebsiteSessions(&prefs_));
+}
+
+TEST_F(SessionPrefsTest, OwnLevelAdoptsOthersAsSharedAndIsFixed) {
+  const base::Uuid first = base::Uuid::GenerateRandomV4();
+  const base::Uuid second = base::Uuid::GenerateRandomV4();
+  const base::Uuid own = base::Uuid::GenerateRandomV4();
+  const std::array<base::Uuid, 3> known = {first, second, own};
+  ASSERT_TRUE(BindNewWorkspaceWebsiteSessions(&prefs_, own, base::span(known),
+                                              /*own_website_sessions=*/true));
+  EXPECT_TRUE(ShouldUseWorkspaceWebsiteSessions(&prefs_));
+  EXPECT_TRUE(FindWebsiteSessionBinding(&prefs_, first)->is_default());
+  EXPECT_TRUE(FindWebsiteSessionBinding(&prefs_, second)->is_default());
+  const auto isolated = FindWebsiteSessionBinding(&prefs_, own);
+  ASSERT_TRUE(isolated.has_value());
+  EXPECT_FALSE(isolated->is_default());
+  EXPECT_TRUE(IsKnownWebsiteSessionBinding(&prefs_, *isolated));
+
+  // The level is chosen once; a second bind for the same Workspace fails and
+  // keeps its context.
+  EXPECT_FALSE(BindNewWorkspaceWebsiteSessions(&prefs_, own, base::span(known),
+                                               /*own_website_sessions=*/false));
+  EXPECT_EQ(isolated, FindWebsiteSessionBinding(&prefs_, own));
+
+  // A later shared Workspace is recorded explicitly as shared.
+  const base::Uuid later = base::Uuid::GenerateRandomV4();
+  ASSERT_TRUE(BindNewWorkspaceWebsiteSessions(&prefs_, later,
+                                              base::span(known),
+                                              /*own_website_sessions=*/false));
+  EXPECT_TRUE(FindWebsiteSessionBinding(&prefs_, later)->is_default());
+}
+
+TEST_F(SessionPrefsTest, OwnLevelRefusesCorruptOrManagedState) {
+  const base::Uuid workspace = base::Uuid::GenerateRandomV4();
+  base::DictValue future;
+  future.Set("version", 2);
+  prefs_.SetDict(kWebsiteSessionBindingsPref, future.Clone());
+  EXPECT_FALSE(BindNewWorkspaceWebsiteSessions(&prefs_, workspace, {},
+                                               /*own_website_sessions=*/true));
+  EXPECT_FALSE(BindNewWorkspaceWebsiteSessions(&prefs_, workspace, {},
+                                               /*own_website_sessions=*/false));
+  prefs_.ClearPref(kWebsiteSessionBindingsPref);
+  prefs_.SetManagedPref(kWebsiteSessionBindingsPref, base::Value(base::DictValue()));
+  EXPECT_FALSE(BindNewWorkspaceWebsiteSessions(&prefs_, workspace, {},
+                                               /*own_website_sessions=*/true));
 }
 
 TEST_F(SessionPrefsTest, CorruptBindingDoesNotFallBackToDefault) {
