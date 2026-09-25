@@ -800,8 +800,11 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
       case kEditWorkspace:
         return controller_->view_model().workspace_id().has_value();
       case kDeleteWorkspace:
+        // A fully separated Workspace is its Profile's only Workspace;
+        // deleting it deletes that Profile (ADR 0011).
         return controller_->view_model().workspace_id().has_value() &&
-               workspace_service_->ordered_workspaces().size() > 1;
+               (workspace_service_->ordered_workspaces().size() > 1 ||
+                session::IsIsolatedWorkspaceProfile(browser_->GetProfile()));
       case kToggleFloatingSidebar:
       case kToggleSidebarVisibility:
       case kToggleWorkspaceSwipe:

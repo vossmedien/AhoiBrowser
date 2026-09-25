@@ -161,7 +161,11 @@ void RunHandOver(BrowserWindowInterface* source,
 }  // namespace
 
 void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+  VLOG(1) << "Ahoi sidebar command " << command_id << " scope "
+          << static_cast<int>(context_menu_scope_);
   if (context_menu_scope_ == ContextMenuScope::kNone) {
+    LOG(WARNING) << "Ahoi sidebar command " << command_id
+                 << " ignored: menu scope already reset";
     return;
   }
   if (command_id == kCopyActivePageLink ||

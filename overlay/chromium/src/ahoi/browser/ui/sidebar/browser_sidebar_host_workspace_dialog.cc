@@ -136,6 +136,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     PendingWorkspaceAction action,
     std::optional<base::Uuid> workspace_id) {
   CHECK(action != PendingWorkspaceAction::kNone);
+  VLOG(1) << "Ahoi Workspace dialog requested: " << static_cast<int>(action);
   CHECK_EQ(action != PendingWorkspaceAction::kCreate, workspace_id.has_value());
   if (workspace_dialog_widget_ || group_dialog_widget_) {
     LOG(WARNING) << "Ahoi Workspace dialog not shown: another dialog is open";
@@ -315,6 +316,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
               base::BindOnce(&BrowserSidebarHostView::OnWorkspaceDialogClosed,
                              weak_ptr_factory_.GetWeakPtr())));
   if (!widget) {
+    LOG(WARNING) << "Ahoi Workspace dialog not shown: bubble not created";
     OnWorkspaceDialogClosed();
     return;
   }
@@ -324,6 +326,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
           workspace_dialog_widget_.get(),
           base::BindRepeating(&BrowserSidebarHostView::CloseWorkspaceDialogNow,
                               weak_ptr_factory_.GetWeakPtr()))) {
+    LOG(WARNING) << "Ahoi Workspace dialog not shown: overlay refused panel";
     workspace_name_field_ = nullptr;
     workspace_icon_field_ = nullptr;
     workspace_own_sessions_radio_ = nullptr;
