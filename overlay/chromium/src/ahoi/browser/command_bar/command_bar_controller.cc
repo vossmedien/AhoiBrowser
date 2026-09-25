@@ -379,14 +379,15 @@ std::vector<CommandBarSuggestion> CommandBarController::GetSuggestions(
 bool CommandBarController::ExecuteSuggestion(
     const CommandBarSuggestion& suggestion,
     std::u16string_view original_input) {
+  const CommandBarDisposition disposition =
+      !view_ ? CommandBarDisposition::kCurrentTab
+      : view_->accepting_as_peek() ? CommandBarDisposition::kPeek
+                                   : view_->disposition();
   if (suggestion.kind == CommandBarSuggestionKind::kInputFallback) {
-    return execution_adapter_->ExecuteInput(
-        original_input,
-        view_ ? view_->disposition() : CommandBarDisposition::kCurrentTab);
+    return execution_adapter_->ExecuteInput(original_input, disposition);
   }
   return suggestion.item.has_value() && view_ &&
-         execution_adapter_->ExecuteItem(*suggestion.item,
-                                         view_->disposition());
+         execution_adapter_->ExecuteItem(*suggestion.item, disposition);
 }
 
 std::u16string CommandBarController::GetInitialQuery(

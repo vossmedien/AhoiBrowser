@@ -13,6 +13,7 @@
 #include "ahoi/browser/developer_toolkit/developer_toolkit_target.h"
 #include "ahoi/browser/http_auth/http_auth_management_dialog.h"
 #include "ahoi/browser/navigation/keyboard_shortcuts.h"
+#include "ahoi/browser/popup/link_peek.h"
 #include "ahoi/browser/http_auth/http_auth_session_controller.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
@@ -20,8 +21,10 @@
 #include "ahoi/browser/ui/sidebar/sidebar_link_copy.h"
 #include "base/check.h"
 #include "base/containers/span.h"
+#include "base/functional/bind.h"
 #include "base/memory/raw_ptr.h"
 #include "base/strings/stringprintf.h"
+#include "base/task/single_thread_task_runner.h"
 #include "base/uuid.h"
 #include "chrome/browser/autocomplete/chrome_autocomplete_scheme_classifier.h"
 #include "chrome/browser/profiles/profile.h"
@@ -165,6 +168,26 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       return false;
     }
 
+    if (disposition == CommandBarDisposition::kPeek && post_data.empty()) {
+      content::WebContents* const opener =
+          browser_->GetTabStripModel()->GetActiveWebContents();
+      if (popup::CanPeekLink(opener, url)) {
+        // The command bar closes first; the preview then opens over the page
+        // it covered.
+        base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+            FROM_HERE, base::BindOnce(
+                           [](base::WeakPtr<content::WebContents> opener,
+                              GURL url) {
+                             if (opener) {
+                               popup::PeekLink(opener.get(), url);
+                             }
+                           },
+                           opener->GetWeakPtr(), url));
+        return true;
+      }
+      // Where no preview fits, Shift+Return behaves like opening a new tab.
+      disposition = CommandBarDisposition::kNewForegroundTab;
+    }
     const ui::PageTransition transition =
         ui::PageTransitionFromInt((is_search ? ui::PAGE_TRANSITION_GENERATED
                                              : ui::PAGE_TRANSITION_TYPED) |

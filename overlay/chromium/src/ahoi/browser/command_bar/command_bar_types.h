@@ -20,6 +20,8 @@ namespace ahoi {
 enum class CommandBarDisposition {
   kCurrentTab = 0,
   kNewForegroundTab = 1,
+  // Shift+Return: preview the address over the active page (Link-Peek).
+  kPeek = 2,
 };
 
 enum class CommandBarSuggestionKind {

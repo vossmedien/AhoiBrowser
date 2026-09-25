@@ -181,5 +181,14 @@ $AX press $PID "Popup schließen" >> "$OUT/steps.txt"; sleep 2
 click_link l 8   # Shift-click
 waitax "Popup schließen" 8 && record shiftClickPeeks true || record shiftClickPeeks false
 $AX press $PID "Popup schließen" >> "$OUT/steps.txt"; sleep 1
+# Command entry: Shift+Return in the command bar previews the address.
+key 17 cmd
+if waitax "AXWindow \\| Suchen oder URL eingeben" 6; then
+  sleep 1; $AX type $PID "$SITE/target.html?command" >> "$OUT/steps.txt"; sleep 1; key 36 shift
+  waitax "Popup schließen" 8 && record commandShiftReturnPeeks true || record commandShiftReturnPeeks false
+  $AX press $PID "Popup schließen" >> "$OUT/steps.txt"; sleep 1
+else
+  record commandShiftReturnPeeks false
+fi
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 finish; quit

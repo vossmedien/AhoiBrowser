@@ -462,6 +462,7 @@ bool CommandBarView::HandleKeyEvent(views::Textfield* sender,
       return MoveSelection(key_event.IsShiftDown() ? -1 : 1,
                            /*request_focus=*/false);
     case ui::VKEY_RETURN:
+      accepting_as_peek_ = key_event.IsShiftDown();
       return AcceptSelection();
     case ui::VKEY_ESCAPE:
       CloseCommandBar();
@@ -610,6 +611,9 @@ bool CommandBarView::AcceptSelection() {
   // its bind state survives destruction of this View during the invocation.
   const ExecuteCallback execute_callback = execute_callback_;
   if (!execute_callback.Run(suggestion, input)) {
+    if (weak_this) {
+      weak_this->accepting_as_peek_ = false;
+    }
     return false;
   }
   // Cross-window activation and focus-changing browser commands can close and
@@ -655,6 +659,7 @@ bool CommandBarView::HandleResultKeyEvent(size_t index,
                            /*request_focus=*/true);
     case ui::VKEY_RETURN:
       SelectIndex(index, /*request_focus=*/false);
+      accepting_as_peek_ = event.IsShiftDown();
       ScheduleAcceptSelection();
       return true;
     case ui::VKEY_ESCAPE:
