@@ -20,6 +20,7 @@
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_runner.h"
+#include "base/trace_event/trace_event.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/omnibox/browser/omnibox_text_util.h"
 #include "components/vector_icons/vector_icons.h"
@@ -496,6 +497,8 @@ views::View::DropCallback CommandBarView::CreateDropCallback(
 }
 
 void CommandBarView::RebuildSuggestions(bool prefer_input_fallback) {
+  // Measured by tools/perf (PERF-03): keystroke to rebuilt result rows.
+  TRACE_EVENT("browser", "Ahoi.CommandBar.RebuildSuggestions");
   suggestions_ = suggestions_callback_.Run(textfield_->GetText());
   if (suggestions_.size() > kMaximumSuggestionCount) {
     suggestions_.resize(kMaximumSuggestionCount);

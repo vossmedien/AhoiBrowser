@@ -21,6 +21,7 @@
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
+#include "base/trace_event/trace_event.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -59,6 +60,8 @@ bool SessionBridge::SetActiveWorkspaceForWindow(
     const base::Uuid& workspace_id,
     WorkspaceActivationSource source) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  // Measured by tools/perf (PERF-04): commit of a local Workspace switch.
+  TRACE_EVENT("browser", "Ahoi.Workspace.Switch");
   if (shutting_down_ || !workspace_service_) {
     return false;
   }

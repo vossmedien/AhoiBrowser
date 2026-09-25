@@ -21,6 +21,7 @@
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
+#include "base/trace_event/trace_event.h"
 #include "base/functional/callback_helpers.h"
 #include "base/location.h"
 #include "base/strings/strcat.h"
@@ -587,6 +588,7 @@ void CommandBarController::RefreshHistoryItems() {
 
 void CommandBarController::OnHistoryQueryCompleted(
     history::QueryResults results) {
+  TRACE_EVENT("browser", "Ahoi.CommandBar.HistoryItems");
   history_query_in_flight_ = false;
   last_history_refresh_ = base::TimeTicks::Now();
   if (!command_service_) {
