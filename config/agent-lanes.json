@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "description": "Parallel agent lanes. Checked by tools/check_lane_boundaries.py; contract in outputs/AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md.",
+  "commitTrailer": "Lane",
+  "lanes": {
+    "crest-hardening": {
+      "checkpoint": "docs/ACTIVE_CREST_HARDENING_LANE.md",
+      "goal": "outputs/AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md",
+      "exclusive": [
+        "outputs/AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md",
+        "docs/ACTIVE_CREST_HARDENING_LANE.md",
+        "docs/reviews/2026-09-25-crest-chromium-core.md",
+        "docs/reviews/crest-hardening-*.md",
+        "docs/PERFORMANCE_METHODOLOGY.md",
+        "docs/NETWORK_SILENCE_CHECKLIST.md",
+        "config/agent-lanes.json",
+        "handoffs/crest-hardening/**",
+        "fixtures/sync-conformance/**",
+        "tools/check_lane_boundaries.py",
+        "tools/engine_input_key.py",
+        "tools/perf/**",
+        "tools/sync_conformance/**",
+        "tests/repository/test_check_lane_boundaries.py",
+        "tests/repository/test_engine_input_key.py",
+        "tests/repository/test_perf_*.py",
+        "tests/repository/test_sync_conformance*.py"
+      ],
+      "writableByOwners": [
+        "handoffs/crest-hardening/*/HANDOFF.md"
+      ],
+      "pointerInsertionsOnly": [
+        "outputs/AhoiBrowser-Master-Zielprompt.md",
+        "AGENTS.md",
+        "docs/ACTIVE_DESKTOP_CHECKPOINT.md"
+      ],
+      "forbidden": [
+        "overlay/**",
+        "patches/**",
+        "apps/**",
+        "scripts/**",
+        "config/sync-*.json",
+        "config/test-registry.json",
+        ".work/**",
+        "out/**"
+      ]
+    },
+    "desktop": {
+      "checkpoint": "docs/ACTIVE_DESKTOP_CHECKPOINT.md",
+      "owns": [
+        "overlay/**",
+        "patches/**",
+        "scripts/**",
+        "docs/ACTIVE_DESKTOP_CHECKPOINT.md",
+        "docs/ACTIVE_BOOKMARKS_CHECKPOINT.md"
+      ]
+    },
+    "sync": {
+      "checkpoint": "docs/ACTIVE_SYNC_COORDINATION.md",
+      "owns": [
+        "config/sync-*.json",
+        "overlay/chromium/src/ahoi/browser/sync/**",
+        "docs/ACTIVE_SYNC_COORDINATION.md"
+      ]
+    },
+    "mobile": {
+      "checkpoint": "docs/ACTIVE_MOBILE_CHECKPOINT.md",
+      "owns": [
+        "apps/AhoiMobile/**",
+        "docs/ACTIVE_MOBILE_CHECKPOINT.md"
+      ]
+    }
+  },
+  "sharedResources": {
+    "installed-app": {
+      "owner": "desktop",
+      "what": "/Applications/AhoiBrowser.app and any launch of it"
+    },
+    "build-output": {
+      "owner": "desktop",
+      "what": ".work/chromium/src, out/AhoiDev, overlay refresh, signing, installation; never leased to crest-hardening"
+    },
+    "host-quiet": {
+      "owner": "desktop",
+      "what": "no build or heavy foreign load during performance measurement"
+    },
+    "simulator": {
+      "owner": "mobile",
+      "what": "iOS simulators used for Mobile E2E"
+    }
+  }
+}

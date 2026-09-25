@@ -19,6 +19,17 @@ owner supplies the input. Add new items here instead of asking.
 | macOS Screen Recording permission | Grant "Bildschirmaufnahme" to the agent host app (Terminal Cockpit) so `screencapture` can record desktop E2E images; until then agents use Accessibility trees and Chromium DevTools state as visible-state evidence | 5–7, 11 image evidence (not the behavior itself) |
 | Publication / release | Any App Store, TestFlight, website, update-feed or GitHub release publication | 15, 23–24 |
 
+## Parallel lane `crest-hardening` — 25 September 2026
+
+A separate agent works the user-ordered
+[Crest-Konvergenz-Härtung](../outputs/AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md)
+in parallel. It never builds, installs, refreshes the overlay or writes under
+`overlay/`, `patches/`, `apps/` or `scripts/`; its paths are listed in
+`config/agent-lanes.json`. Desktop duty: before cutting the next package,
+review `ready` handoffs under `handoffs/crest-hardening/`, take them in or
+defer them with a reason, and confirm or decline lease requests from
+`docs/ACTIVE_CREST_HARDENING_LANE.md`. No extra build for a handoff.
+
 ## M153 candidate e9f4a99 and empty-Workspace finding — 25 September 2026
 
 Build10 of `484a2f9` compiled everything but ended EXIT1 on one M153 test API

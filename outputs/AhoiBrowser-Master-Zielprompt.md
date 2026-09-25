@@ -26,6 +26,10 @@ nachgewiesenen Lebenszyklus-/Ownership-Grund. Modellwechsel rechtfertigen weder
 eine Neuentwicklung funktionierender Komponenten noch eine pauschale Abwertung
 bereits belegter Arbeit.
 
+### Verbindliche Parallel-Lane Crest-Konvergenz-Härtung vom 25. September 2026
+
+Der Nutzer hat die fünf Nachschärfungen aus der [Bewertung von Crests Chromium-Umbau](../docs/reviews/2026-09-25-crest-chromium-core.md) beauftragt: Sync-Konformität zwischen C++ und Swift, eine Schreibhoheit für Tab-Baum und Chromium-Session, vergleichbare Performance-Methodik, Engine-Eingabeschlüssel für Kandidaten-Wiederverwendung sowie Crest-Referenz und Netzwerk-Stille. Sie laufen als eigene Lane `crest-hardening` **parallel** zu Desktop, Mobile und Sync nach dem [Zielprompt Crest-Konvergenz-Härtung](AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md). Die Lane schreibt nur ihre in `config/agent-lanes.json` gelisteten Pfade, baut und installiert nicht und liefert Beiträge zu fremdem Besitz als Handoff unter `handoffs/crest-hardening/`, die der jeweilige Eigentümer in sein nächstes geplantes Paket übernimmt. Produktumfang, Architektur, Paketfolge und bestehende Eigentümerschaften bleiben unverändert. Der Terminal-Cockpit-Orchestrator prüft die Grenzen mit `tools/check_lane_boundaries.py`.
+
 ### Verbindliche Sync-Vereinfachung vom 5. September 2026
 
 Die App wird laut ausdrücklicher Nutzerentscheidung noch nicht live/aktiv
