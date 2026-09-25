@@ -1,6 +1,6 @@
 # 013 – Review of ADR 0011 step 1 (fully separated Workspaces)
 
-Status: ready
+Status: integrated 8a9fc91 (I1, I2; I3 by visible test; I4 deferred)
 Owner lane: desktop
 Reviewed: `671796d`, `9b308f0`, `08f5518` (sync), `0a2b4c0`. Source reading
 only; nothing was run.
@@ -59,3 +59,12 @@ Chromium's profile deletion closes them without asking.
 **I5 (info)** – `DeleteIsolatedWorkspaceProfile` uses `GroupPageClose::Ask`.
 Its holder is deleted through `DeleteSoon`, so no use-after-free occurs even
 with the synchronous overlap path. The 010 R1 patch still applies.
+
+## Owner intake (desktop, 2026-09-25)
+
+- I1: the main window's Workspace menu lists all fully separated Workspaces
+  and opens their windows (`OpenIsolatedWorkspace`), WS-ISO-14 journey pending.
+- I2: at startup a `creating` entry becomes active if its tree was written,
+  otherwise its Profile is marked ephemeral and deleted (WS-ISO-15 pending).
+- I3: verified by the visible WS-ISO-16 journey on the next candidate.
+- I4 deferred with 010 R5 (pages outside the tab strip).

@@ -1,6 +1,6 @@
 # 011 – Single-writer rule and fixes for tree/session double writers (H2)
 
-Status: ready
+Status: integrated 8a9fc91 (rule and S1; S2-S8 deferred with reasons)
 Owner lane: desktop (session, sidebar, split, architecture doc)
 Base: `b141fce`. Audit: `docs/reviews/crest-hardening-2026-09-25-single-writer-audit.md`.
 Deletion re-homing is tracked separately as handoff 010 R6.
@@ -36,3 +36,15 @@ Visible journeys after the fixes, on the exact candidate: moving the active
 page and then typing a URL; archiving and restoring an open split;
 restoring at startup with a non-first Workspace selected; promoting a popup
 from a second Workspace.
+
+## Owner intake (desktop, 2026-09-25)
+
+- Rule added to `docs/ARCHITECTURE.md` under "Tree model" (`8a9fc91`).
+- S1 fixed: moving the active tab calls `SetActiveWorkspaceForWindow`, the
+  sidebar follows the service (`8a9fc91`). Its unit test waits for the next
+  sidebar test build.
+- Deferred to the next desktop package, in this order: S5, S7, S6, S2, S3,
+  S8, S4. Reason: each changes a shared tree/session path and needs its own
+  unit test plus a visible journey on an exact candidate; the current
+  candidate is reserved for the ADR 0011 and WS-DEL acceptance. S2/S3/S4 are
+  marked "inferred" and get a reproduction first.

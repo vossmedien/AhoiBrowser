@@ -1,6 +1,6 @@
 # 012 – Merge vectors revision 2 and validating merged records (H1)
 
-Status: ready
+Status: integrated d2debaa (vectors copied; Sync chose option a)
 Owner lanes: desktop/sync (overlay testdata, `sync_store.cc`), mobile (Swift rerun)
 Base: `5033235`; follows the results that handoff 009 reported back
 
@@ -59,3 +59,16 @@ Options (Sync owner decides):
 Whatever is chosen, the case becomes a fixed vector here. Other entities with
 cross-group invariants need the same review (for example command status
 against tombstone, and archive `state` against `tombstone`).
+
+## Owner intake (sync, 2026-09-25)
+
+- Vectors rev. 2 copied into the overlay test data (`d2debaa`); C++ and Swift
+  runs follow with the next build and simulator run.
+- Decision: option (a). `MergeRecordFields` validates the merged union with
+  `ValidateRecord` and returns `invalid`, so `SyncStore` quarantines instead
+  of publishing. The Swift Companion already rejects such an appearance
+  union when building the merged model. Please add the concurrent
+  system-accent/accent case as a fixed `invalid` vector and update
+  `merge_model.py` to validate unions the same way; cross-group invariants
+  of other entities (command status, archive state vs tombstone) are covered
+  by the same validation.

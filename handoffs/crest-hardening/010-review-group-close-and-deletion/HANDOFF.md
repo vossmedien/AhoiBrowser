@@ -1,6 +1,6 @@
 # 010 – Review of the integrated handoffs 003 and 006 (H6.4, H2)
 
-Status: ready
+Status: integrated 990c7bb, 17f5319 (R4 and R5 deferred; tests pending on the next candidate)
 Owner lane: desktop
 Base: `15ec908`. Reviewed commits: `5cfc9d2` (GroupPageClose, patch 0055),
 `52bfd3c` (Workspace deletion), `87a6b89` (archive and close-all).
@@ -116,3 +116,20 @@ after the last page of the binding was destroyed would remove the fixed delay.
 
 Deferred by desktop (needs an UnloadController/BrowserCloseManager seam).
 Keep CLOSE-GRP-03 open.
+
+## Owner intake (desktop, 2026-09-25)
+
+- R1: patch applied unchanged (`990c7bb`). GPC-01..03 need a browser test with
+  before-unload pages; queued with the visible CLOSE-GRP journeys.
+- R2: startup cleanup computes the directory (`WebsiteSessionPartitionPath`,
+  pinned by `SessionBridgeTest.ComputedPartitionPathMatchesTheLoadedPartition`)
+  and never loads the partition; a partition held by a restored page is
+  cleared natively and its directory deleted at the next launch (`17f5319`).
+- R3: pages opened during the prompt close after the confirmed commit.
+- R6: pages of the deleted sessions are marked closing; binding, temporary
+  nodes and reconciliation skip them, and they are unbound with
+  `clear_workspace = true`. WS-DEL-08 as a unit test needs a page in a fixed
+  partition in `TestingProfile`; covered by the visible WS-DEL journey instead.
+- R4 deferred: the 3 s clear is bounded by the next-launch directory
+  deletion; replacing the delay by "last page destroyed" follows with S2.
+- R5 stays deferred (UnloadController seam), CLOSE-GRP-03 open.
