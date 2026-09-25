@@ -806,6 +806,8 @@ class BrowserSidebarHostView final
   int context_page_action_navigation_id_ = 0;
   GURL context_page_action_url_;
   std::vector<base::Uuid> context_workspace_ids_;
+  // Profile directories behind the menu's fully separated Workspace items.
+  std::vector<std::string> context_isolated_workspace_dirs_;
   std::vector<ContextMoveDestination> context_move_destinations_;
   ContextMenuScope context_menu_scope_ = ContextMenuScope::kNone;
   std::unique_ptr<ui::SimpleMenuModel> context_menu_model_;

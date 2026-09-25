@@ -14,6 +14,7 @@
 #include "ahoi/browser/memory/tab_sleeping.h"
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -208,7 +209,11 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       if (SaveTemporaryTabAtDrop(tab->GetHandle().raw_value(), drop_target,
                                  nullptr) &&
           was_active) {
-        ActivateWorkspace(destination.workspace_id);
+        // Handoff 011 S1: the window's Workspace follows the moved active
+        // tab through WorkspaceService; the sidebar follows its notification.
+        std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
+            browser_, destination.workspace_id,
+            WorkspaceActivationSource::kSidebar);
       }
       return;
     }
@@ -236,7 +241,9 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       std::ignore = controller_->ExpandNode(*destination.folder_id);
     }
     if (moved_active_tab) {
-      ActivateWorkspace(destination.workspace_id);
+      std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
+          browser_, destination.workspace_id,
+          WorkspaceActivationSource::kSidebar);
     }
     return;
   }
@@ -296,6 +303,16 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     if (command_id == kDeleteWorkspace && active_workspace_id.has_value()) {
       ShowWorkspaceDialog(PendingWorkspaceAction::kDelete,
                           *active_workspace_id);
+      return;
+    }
+    if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
+        command_id < kActivateWorkspaceCommandBase) {
+      const size_t isolated_index =
+          static_cast<size_t>(command_id - kOpenIsolatedWorkspaceCommandBase);
+      if (isolated_index < context_isolated_workspace_dirs_.size()) {
+        session::OpenIsolatedWorkspace(
+            context_isolated_workspace_dirs_[isolated_index]);
+      }
       return;
     }
     if (command_id < kActivateWorkspaceCommandBase || !window_id_.has_value()) {

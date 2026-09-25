@@ -266,11 +266,31 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   // no second Workspace until the shared switcher (step 2) exists.
   const bool isolated_profile =
       session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
+  context_isolated_workspace_dirs_.clear();
   if (isolated_profile) {
     context_menu_model_->SetMinorText(
         context_menu_model_->GetItemCount() - 2,
         StructureText(u"Vollständig getrennt", u"Fully separated"));
   } else {
+    // Until the shared switcher (step 2): reach every fully separated
+    // Workspace, also after its window was closed or the app restarted.
+    for (const session::IsolatedProfileEntry& entry :
+         session::GetOpenableIsolatedWorkspaces()) {
+      if (context_isolated_workspace_dirs_.size() >= 99) {
+        break;
+      }
+      context_menu_model_->AddItem(
+          kOpenIsolatedWorkspaceCommandBase +
+              static_cast<int>(context_isolated_workspace_dirs_.size()),
+          entry.name);
+      context_menu_model_->SetMinorText(
+          context_menu_model_->GetItemCount() - 1,
+          StructureText(u"Vollständig getrennt", u"Fully separated"));
+      context_isolated_workspace_dirs_.push_back(entry.profile_dir);
+    }
+    if (!context_isolated_workspace_dirs_.empty()) {
+      context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+    }
     context_menu_model_->AddItem(
         kCreateWorkspace,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_WORKSPACE));
@@ -744,6 +764,12 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
         return true;
       default:
         break;
+    }
+    if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
+        command_id < kActivateWorkspaceCommandBase) {
+      return static_cast<size_t>(command_id -
+                                 kOpenIsolatedWorkspaceCommandBase) <
+             context_isolated_workspace_dirs_.size();
     }
     if (command_id < kActivateWorkspaceCommandBase) {
       return false;

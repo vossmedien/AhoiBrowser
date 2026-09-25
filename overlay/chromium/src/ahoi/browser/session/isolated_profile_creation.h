@@ -7,6 +7,9 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
+
+#include "ahoi/browser/session/isolated_profile_registry.h"
 
 #include "base/functional/callback_forward.h"
 
@@ -33,6 +36,13 @@ void CreateIsolatedWorkspace(std::u16string name,
 // windows, browsing data and the directory.
 void DeleteIsolatedWorkspaceProfile(Profile* profile,
                                     base::OnceCallback<void(bool)> done);
+
+// Fully separated Workspaces that can be opened (not being deleted), in
+// registry order, for the main window's Workspace menu until the shared
+// switcher (step 2) exists.
+std::vector<IsolatedProfileEntry> GetOpenableIsolatedWorkspaces();
+// Loads the Profile of `profile_dir` if needed and shows its window.
+void OpenIsolatedWorkspace(const std::string& profile_dir);
 
 // True for a Profile that carries a fully separated Workspace.
 bool IsIsolatedWorkspaceProfile(const Profile* profile);

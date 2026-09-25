@@ -103,6 +103,20 @@ is independent from transient `SessionID` values.
 The controller must tolerate renderer crashes, discarded tabs, restored
 sessions, extension-created tabs, popups, and tabs moved between windows.
 
+
+### Single writer
+
+An Ahoi operation decides a semantic transition (Workspace switch, move,
+archive, delete, split) and commits it once. Chromium executes and reports
+completion. Observers of a self-caused change do not write again. They
+recognize it by an operation guard that lasts until Chromium's asynchronous
+execution has finished, not merely until the call returns. Only externally
+caused changes (native UI, extensions, restore) become new facts. Late or
+repeated completions are idempotent through a process-local operation ID.
+Authority epochs expire only on changes to the guarded precondition.
+(Crest-hardening handoff 011; audit
+`docs/reviews/crest-hardening-2026-09-25-single-writer-audit.md`.)
+
 ## Split-view model
 
 `SplitViewService` coordinates UI policy and persistence, but Chromium's
