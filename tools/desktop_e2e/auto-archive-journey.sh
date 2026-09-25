@@ -114,6 +114,9 @@ else record restore_brings_url_back FAIL; fi
 ax key $PID 53
 # 5 Reset the policy to Never so the profile keeps the default.
 workspace_menu && ax press $PID "Nie (Standard)"; sleep 1
+workspace_menu && "$AX" checked $PID "AXMenuItem:Nie (Standard)" >> "$OUT/steps.txt" \
+  && record policy_reset_to_never PASS || record policy_reset_to_never FAIL
+ax key $PID 53
 
 ax key $PID 12 cmd; sleep 5
 python3 - "$OUT/results.txt" > "$OUT/results.json" <<'PY'
