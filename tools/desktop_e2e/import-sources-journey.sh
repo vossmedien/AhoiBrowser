@@ -10,9 +10,12 @@ APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); PORT=9385
 if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $PORT busy" >&2; exit 6; fi
 mkdir -p "$OUT"; P=$(mktemp -d /private/tmp/ahoi-import-profile.XXXXXX); : > "$OUT/results.txt"
 "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
-  --remote-debugging-port=$PORT "chrome://settings/importData" > "$OUT/browser.log" 2>&1 &
+  --remote-debugging-port=$PORT about:blank > "$OUT/browser.log" 2>&1 &
 PID=$!; trap 'kill $PID 2>/dev/null' EXIT; echo "pid=$PID profile=$P" > "$OUT/run.txt"
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
+sleep 3
+# chrome:// pages are not opened from the command line; open it via DevTools.
+curl -s -X PUT "http://127.0.0.1:$PORT/json/new?chrome://settings/importData" > /dev/null
 sleep 8
 record() { echo "$1 $2" >> "$OUT/results.txt"; }
 # The source <select> sits in settings-import-data-dialog's shadow root.
