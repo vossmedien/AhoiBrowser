@@ -43,7 +43,9 @@ PATTERNS: Sequence[Tuple[str, re.Pattern[bytes]]] = (
     (
         "cookie-header",
         re.compile(
-            rb"(?i)(?:set-)?cookie[ \t]*:[ \t]*"
+            # (?![ \t]) keeps the value from backtracking into the spaces, so
+            # "Cookie: <redacted>" is recognized as redacted.
+            rb"(?i)(?:set-)?cookie[ \t]*:[ \t]*(?![ \t])"
             rb"(?!(?:<redacted>|\[redacted\]|redacted)(?:[ \t\"'\r\n]|$))"
             rb"[^\r\n\"']{1,8192}"
         ),
