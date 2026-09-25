@@ -129,15 +129,16 @@ p = sys.argv[1]; d = json.load(open(p))
 d.setdefault("ahoi", {}).setdefault("session", {})["startup_mode"] = "continue"
 json.dump(d, open(p, "w"))
 PY2
-  # Start without a URL so session restore alone decides the surface.
+  # Start without a URL and without DevTools: --remote-debugging-port is an
+  # explicit startup intent, so Ahoi defers to Chromium's new tab instead of
+  # restoring (build 32). The front page comes from the window title.
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
-    --remote-debugging-port=$PORT --enable-logging=stderr \
+    --enable-logging=stderr \
     --vmodule=session_bridge_session=1,browser_sidebar_host_core=1 >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "restart $n pid=$PID" >> "$OUT/run.txt"
-  for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
-  sleep 6
+  waitax "AXWindow \\|" 40; sleep 6
   $AX dump $PID 30 > "$OUT/ax-restart-$n.txt"
-  NOW=$(visible)
+  NOW=$(grep -m1 -o -E '^ *AXWindow \| [^|]*' "$OUT/ax-restart-$n.txt" | sed -E 's/^ *AXWindow \| //; s/ - Chromium *$//; s/ *$//')
   if waitax "Zwei, Workspace wechseln" 5; then ws=true; else ws=false; fi
   if empty_state; then empty=true; else empty=false; fi
   echo "restart $n: workspace_zwei=$ws front=$NOW empty_state=$empty" >> "$OUT/steps.txt"
