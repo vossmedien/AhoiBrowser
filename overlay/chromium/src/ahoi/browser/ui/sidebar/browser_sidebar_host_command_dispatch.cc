@@ -623,6 +623,9 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       return;
     }
     case kDeleteNode: {
+      if (CloseTemporaryPageForDeletion(node_id)) {
+        return;
+      }
       const tab_tree::TabTreeStore::Result result =
           controller_->DeleteNode(node_id, base::Time::Now());
       if (result != tab_tree::TabTreeStore::Result::kOk) {

@@ -512,8 +512,11 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
     case ui::VKEY_DELETE:
       if (model().selected_node_id().has_value() && !selected_node_suppressed &&
           !model().is_search_projection_active()) {
-        const auto result = controller_->DeleteNode(*model().selected_node_id(),
-                                                    base::Time::Now());
+        const base::Uuid node_id = *model().selected_node_id();
+        if (delegate_ && delegate_->CloseTemporaryPageForDeletion(node_id)) {
+          return true;
+        }
+        const auto result = controller_->DeleteNode(node_id, base::Time::Now());
         if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
           delegate_->OnMutationFailed(result);
         }
@@ -780,5 +783,10 @@ bool SidebarTreeView::GetDropFormats(
 
 BEGIN_METADATA(SidebarTreeView)
 END_METADATA
+
+bool SidebarTreeViewDelegate::CloseTemporaryPageForDeletion(
+    const base::Uuid&) {
+  return false;
+}
 
 }  // namespace ahoi::sidebar

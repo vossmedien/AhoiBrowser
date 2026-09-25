@@ -189,6 +189,12 @@ void RecordingDelegate::OnMutationFailed(
   last_error = result;
 }
 
+bool RecordingDelegate::CloseTemporaryPageForDeletion(
+    const base::Uuid& node_id) {
+  close_for_deletion_requests.push_back(node_id);
+  return close_temporary_for_deletion;
+}
+
 void RecordingDelegate::OnSidebarDragStateChanged(
     std::optional<base::Uuid> dragged_node_id) {
   drag_state = std::move(dragged_node_id);

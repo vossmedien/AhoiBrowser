@@ -647,4 +647,19 @@ void BrowserSidebarHostView::PerformSavedPageTrailingAction(
   }
 }
 
+bool BrowserSidebarHostView::CloseTemporaryPageForDeletion(
+    const base::Uuid& node_id) {
+  const tab_tree::TreeNode* node = controller_->view_model().GetNode(node_id);
+  if (!node || node->type != tab_tree::TreeNodeType::kSavedPage ||
+      !node->is_temporary) {
+    return false;
+  }
+  tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node_id);
+  if (!tab) {
+    return false;
+  }
+  tab->Close();
+  return true;
+}
+
 }  // namespace ahoi::sidebar

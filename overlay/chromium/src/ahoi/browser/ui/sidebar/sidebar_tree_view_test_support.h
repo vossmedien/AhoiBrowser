@@ -89,6 +89,7 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::vector<gfx::ImageSkia> GetSavedPageDragThumbnails(
       const base::Uuid&) const override;
   void OnMutationFailed(tab_tree::TabTreeStore::Result result) override;
+  bool CloseTemporaryPageForDeletion(const base::Uuid& node_id) override;
   void OnSidebarDragStateChanged(
       std::optional<base::Uuid> dragged_node_id) override;
 
@@ -105,6 +106,8 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   bool can_reorder_temporary_split = false;
   bool reorder_temporary_split_succeeds = false;
   bool saved_page_running = false;
+  bool close_temporary_for_deletion = false;
+  std::vector<base::Uuid> close_for_deletion_requests;
   std::u16string saved_page_status_text;
   std::optional<base::Uuid> activated_node;
   std::optional<tab_tree::TabTreeStore::Result> last_error;

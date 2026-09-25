@@ -102,6 +102,11 @@ class SidebarTreeViewDelegate {
   // A running saved page is closed but retained. A closed saved page is moved
   // to Trash, matching the stateful trailing action painted by the row.
   virtual void PerformSavedPageTrailingAction(const base::Uuid&) {}
+  // A temporary row is its live tab. Deleting it closes that tab, and the
+  // tab-close path removes the row; deleting only the row would unbind the
+  // tab and recreate the row under a new id (handoff 011 S8). Returns true
+  // when the delegate handled the deletion this way.
+  virtual bool CloseTemporaryPageForDeletion(const base::Uuid&);
   virtual void OnFolderHoverChanged(const base::Uuid&,
                                     views::View* anchor,
                                     bool hovered) {}

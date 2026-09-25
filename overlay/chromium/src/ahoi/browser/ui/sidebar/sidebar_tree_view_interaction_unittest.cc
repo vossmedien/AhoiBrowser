@@ -703,6 +703,51 @@ TEST_F(SidebarTreeViewTest, SavedPageTrailingActionRequiresRealHover) {
   row->OnMouseExited(exit);
   EXPECT_FALSE(row->IsTrailingActionAt(action_point));
 }
+
+// Handoff 011 S8: the Delete key on a temporary row with a live tab lets the
+// host close that tab; the row is not deleted separately, so it cannot come
+// back under a new id.
+TEST_F(SidebarTreeViewTest, DeleteKeyLetsHostCloseTemporaryPage) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode page =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Temporary", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(page));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->SelectNode(page.id));
+  delegate_.close_temporary_for_deletion = true;
+
+  auto view = NewTreeView();
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_DELETE, ui::EF_NONE)));
+  EXPECT_EQ(std::vector<base::Uuid>{page.id},
+            delegate_.close_for_deletion_requests);
+  EXPECT_NE(nullptr, controller_->view_model().GetNode(page.id));
+}
+
+// Any other row is still deleted by the tree itself.
+TEST_F(SidebarTreeViewTest, DeleteKeyDeletesRowTheHostDoesNotClose) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const tab_tree::TreeNode page =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Saved", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(page));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->SelectNode(page.id));
+
+  auto view = NewTreeView();
+  EXPECT_TRUE(view->OnKeyPressed(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_DELETE, ui::EF_NONE)));
+  EXPECT_EQ(std::vector<base::Uuid>{page.id},
+            delegate_.close_for_deletion_requests);
+  EXPECT_EQ(nullptr, controller_->view_model().GetNode(page.id));
+}
 }  // namespace
 
 }  // namespace ahoi::sidebar

@@ -507,6 +507,7 @@ class BrowserSidebarHostView final
       const tab_tree::TreeNode& node) const override;
 
   void PerformSavedPageTrailingAction(const base::Uuid& node_id) override;
+  bool CloseTemporaryPageForDeletion(const base::Uuid& node_id) override;
 
   void OnSidebarDragStateChanged(
       std::optional<base::Uuid> dragged_node_id) override;
