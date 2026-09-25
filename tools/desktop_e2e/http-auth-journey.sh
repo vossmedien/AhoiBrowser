@@ -127,7 +127,15 @@ waittitle "auth:alice@Ahoi Realm A:$A" 15 && record password_update_signin PASS 
   && record update_no_duplicate PASS || record update_no_duplicate "FAIL:$(store)"
 # 7 Sign out without restart: switch, then cancel the challenge -> 401 page.
 command switch; dialog && ax press $PID "AXButton:Abbrechen"
-waittitle "Ahoi auth required" 10 && record sign_out_without_restart PASS || record sign_out_without_restart "FAIL:$(title)"
+if waittitle "Ahoi auth required" 10; then record sign_out_without_restart PASS
+else
+  # Build 32 showed only the URL as title: record what the tab shows.
+  curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
+for t in json.load(sys.stdin):
+    if t["type"]=="page": print("page:", t["url"], "|", t["title"])' >> "$OUT/steps.txt"
+  node "$S/cdp.mjs" $PORT "127.0.0.1:$A" Runtime.evaluate '{"expression":"document.body?document.body.innerText.slice(0,200):\"<no body>\"","returnByValue":true}' >> "$OUT/steps.txt" 2>&1
+  record sign_out_without_restart "FAIL:$(title)"
+fi
 kill -0 $PID 2>/dev/null && record same_browser_process PASS || record same_browser_process FAIL
 # 8 Forget this realm: saved accounts for Realm A are removed.
 goto "http://127.0.0.1:$A/a/"; challenge && login bob bob-pass-1 ""
