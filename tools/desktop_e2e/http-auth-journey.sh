@@ -25,7 +25,21 @@ PID=$!; echo "pid=$PID profile=$P" > $OUT/run.txt
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 4
 
-ax() { $AX "$@" >> $OUT/steps.txt 2>&1; }
+# Keys go through the HID event tap like a real keyboard (keys posted to the
+# process are intermittently dropped by Chromium); hidkey refuses unless the
+# app is frontmost, so bring it forward and retry.
+ax() {
+  if [ "$1" = key ]; then
+    shift; local pid=$1; shift
+    for attempt in 1 2 3 4 5; do
+      "$AX" activate "$pid" >/dev/null 2>&1; sleep 0.3
+      "$AX" hidkey "$pid" "$@" >> "$OUT/steps.txt" 2>&1 && return 0
+      sleep 1
+    done
+    echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
+  fi
+  "$AX" "$@" >> "$OUT/steps.txt" 2>&1
+}
 title() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
 p=[t for t in json.load(sys.stdin) if t["type"]=="page"]; print(p[0]["title"] if p else "")'; }
 waitax() { local end=$(( $(date +%s) + $2 ))
