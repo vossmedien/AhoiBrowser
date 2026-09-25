@@ -1112,6 +1112,24 @@ as a second active patch stack.
   seams. Keep the feature gated until the native permission boundary and the
   complete acceptance journey are proven.
 
+## `0055-ahoi-group-before-unload.patch`
+
+- **Owner:** Desktop. Routes `BrowserWebContentsDelegate::BeforeUnloadFired`
+  through `ahoi::session::GroupPageClose` before the existing popup-overlay
+  hook. Chromium offers all-or-nothing before-unload only for whole windows
+  (`UnloadController`); Ahoi's group closes (Workspace deletion, archive,
+  "close all temporary tabs", split close) need the same for a subset of tabs
+  (crest-hardening handoffs 003 and 006). While a page belongs to a running
+  group question the hook reports its answer and sets
+  `proceed_to_fire_unload = false`, so an agreeing page is not closed before
+  every page agreed and the semantic change is committed. Late answers of a
+  cancelled group are swallowed, never closing the tab.
+- **Safety:** pages outside a group question take the unchanged upstream and
+  popup paths. No renderer, profile or permission change.
+- **Tests:** guarded M153 build; CLOSE-GRP-01..04 and WS-DEL-01..05 visible
+  journeys on the exact candidate.
+- **Rebase/removal:** low; one delegate call and one GN dependency.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

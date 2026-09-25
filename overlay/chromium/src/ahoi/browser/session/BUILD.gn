@@ -16,6 +16,17 @@ source_set("workspace_session_metadata") {
   public_deps = [ "//base" ]
 }
 
+source_set("group_page_close") {
+  sources = [
+    "group_page_close.cc",
+    "group_page_close.h",
+  ]
+  public_deps = [
+    "//base",
+    "//content/public/browser",
+  ]
+}
+
 source_set("session_restore_integration") {
   sources = [
     "session_restore_integration.cc",
