@@ -4,13 +4,17 @@
 #include "ahoi/browser/session/workspace_structure_controller.h"
 
 #include <algorithm>
+#include <optional>
 #include <set>
+#include <string>
 
 #include "ahoi/browser/resource_policy/resource_policy_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/sync/workspace_structure_sync.h"
 #include "base/auto_reset.h"
+#include "base/command_line.h"
 #include "base/functional/bind.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/browser/lifetime/browser_shutdown.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -22,7 +26,36 @@ namespace ahoi::session {
 namespace {
 using Store = tab_tree::TabTreeStore;
 
+#if !defined(OFFICIAL_BUILD)
+// Visible E2E seam for development builds only: replaces the configured age of
+// an already enabled policy so the automatic archive can be observed without
+// waiting hours. "Never" stays never; official/release builds ignore it.
+constexpr char kE2EArchiveAgeSecondsSwitch[] = "ahoi-e2e-archive-age-seconds";
+
+std::optional<base::TimeDelta> E2EArchiveAgeOverride() {
+  if (!base::CommandLine::InitializedForCurrentProcess()) {
+    return std::nullopt;
+  }
+  const std::string value =
+      base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(
+          kE2EArchiveAgeSecondsSwitch);
+  int seconds = 0;
+  if (value.empty() || !base::StringToInt(value, &seconds) || seconds < 1 ||
+      seconds > 3600) {
+    return std::nullopt;
+  }
+  return base::Seconds(seconds);
+}
+#endif
+
 base::TimeDelta ArchiveAge(sync::SharedArchivePolicy policy) {
+#if !defined(OFFICIAL_BUILD)
+  if (policy != sync::SharedArchivePolicy::kNever) {
+    if (const std::optional<base::TimeDelta> age = E2EArchiveAgeOverride()) {
+      return *age;
+    }
+  }
+#endif
   switch (policy) {
     case sync::SharedArchivePolicy::kNever:
       return base::TimeDelta::Max();
