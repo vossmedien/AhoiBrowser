@@ -1,6 +1,6 @@
 # 056 – ADR 0011 step 3, mobile: retire a separated Workspace only for its known owner
 
-Status: ready
+Status: integrated a007aa3 (SeparatedWorkspaceSyncTests 20/0 on simulator A168, DebugLocal)
 Owner lane: mobile (apply, run `SeparatedWorkspaceSyncTests` in the simulator)
 Base: HEAD `1716fea` (`git apply --check` passes). Implements review 026 by
 the crest-hardening lane; not compiled or run by the lane (no builds).
