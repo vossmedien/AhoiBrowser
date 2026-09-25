@@ -28,6 +28,16 @@ except the invalid generator inputs listed in the handoff. Full
 no remote-command tombstone; a deleted command is rejected at decode. A real
 Mac↔iOS round trip for these entities stays owner-gated (sync peers).
 
+## Desktop sync unit tests — 25 September 2026
+
+`ahoi_sync_unittests`: 57 failures on build 18 → 14 on build 19 → 6 on
+build 20 (`7210394`), all stale tests from before the format-3 rework, no
+product defect found. The last six follow the CloudKit readiness gates
+(`7399558`); run with build 21. Coverage gap: no unit test proves a tab is
+written or a permitted setting seeded once CloudKit acknowledged the device
+records and finished the first fetch; needs a fake provider that
+acknowledges the bootstrap and a bridge with native shared-tab support.
+
 ## Current installed pair — 23 September 2026
 
 Mac installed source `820cf4e` and Mobile Build40/source `45330d2` retain
