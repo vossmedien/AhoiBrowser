@@ -33,6 +33,24 @@ source_set("link_peek") {
   ]
 }
 
+# Optional automatic Peek from saved pages (patch 0060 registers it).
+source_set("link_peek_throttle") {
+  sources = [
+    "link_peek_throttle.cc",
+    "link_peek_throttle.h",
+  ]
+  public_deps = [ "//content/public/browser" ]
+  deps = [
+    ":link_peek",
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//components/prefs",
+    "//net",
+    "//ui/base",
+    "//url",
+  ]
+}
+
 source_set("unit_tests") {
   testonly = true
   sources = [

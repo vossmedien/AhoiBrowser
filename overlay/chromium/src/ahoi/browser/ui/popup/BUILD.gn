@@ -23,6 +23,7 @@ source_set("popup_overlay") {
 
   deps = [
     ":popup_overlay_layout",
+    "//ahoi/browser/session:session_bridge_api",
     "//ahoi/browser/ui:visual_style",
     "//ahoi/browser/ui/appearance",
     "//chrome/app:generated_resources",

@@ -14,6 +14,7 @@
 #include "ahoi/browser/memory/tab_sleeping.h"
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/popup/link_peek.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
@@ -308,6 +309,11 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
           ahoi::navigation_input_prefs::kMiddleClickAutoscrollEnabled,
           !ahoi::navigation_input_prefs::IsMiddleClickAutoscrollEnabled(
               *prefs));
+      return;
+    }
+    if (command_id == kToggleAutoPeek) {
+      prefs->SetBoolean(popup::kAutoPeekFromSavedPagesPref,
+                        !prefs->GetBoolean(popup::kAutoPeekFromSavedPagesPref));
       return;
     }
     if (command_id == kToggleFloatingSidebar) {

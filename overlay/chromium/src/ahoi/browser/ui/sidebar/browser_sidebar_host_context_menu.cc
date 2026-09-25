@@ -13,6 +13,7 @@
 
 #include "ahoi/browser/memory/tab_sleeping.h"
 #include "ahoi/browser/navigation/keyboard_shortcuts.h"
+#include "ahoi/browser/popup/link_peek.h"
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
@@ -376,6 +377,11 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_menu_model_->AddCheckItem(
       kToggleMiddleClickAutoscroll,
       l10n_util::GetStringUTF16(IDS_AHOI_NAVIGATION_MIDDLE_CLICK_AUTOSCROLL));
+  context_menu_model_->AddCheckItem(
+      kToggleAutoPeek,
+      StructureText(u"Links gespeicherter Seiten zu anderen Websites als "
+                    u"Vorschau öffnen",
+                    u"Preview links from saved pages to other sites"));
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   context_menu_model_->AddItem(
       kCreateRootGroup,
@@ -697,6 +703,9 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
   if (command_id == kToggleMiddleClickAutoscroll) {
     return ahoi::navigation_input_prefs::IsMiddleClickAutoscrollEnabled(*prefs);
   }
+  if (command_id == kToggleAutoPeek) {
+    return prefs->GetBoolean(popup::kAutoPeekFromSavedPagesPref);
+  }
   if (command_id == kToggleFloatingSidebar) {
     return BrowserView::GetBrowserViewForBrowser(browser_.get())
                ->GetAhoiSidebarPresentationMode() ==
@@ -838,6 +847,7 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
       case kToggleWorkspaceSwipe:
       case kToggleCmdScrollTabSwitching:
       case kToggleMiddleClickAutoscroll:
+      case kToggleAutoPeek:
         return true;
       default:
         break;

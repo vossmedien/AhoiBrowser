@@ -7,6 +7,8 @@
 #include <utility>
 
 #include "ahoi/browser/popup/popup_types.h"
+#include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
 #include "ahoi/browser/ui/popup/popup_overlay_view.h"
 #include "ahoi/browser/ui/visual_style.h"
@@ -22,6 +24,7 @@
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/split_tabs/split_tab_visual_data.h"
+#include "components/tabs/public/tab_interface.h"
 #include "components/tabs/public/split_tab_collection.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "content/public/browser/browser_context.h"
@@ -164,6 +167,20 @@ bool PopupOverlayController::ShowPeek(content::WebContents* opener,
                                  kStrictOriginWhenCrossOrigin));
   peek->GetController().LoadURLWithParams(load);
   return true;
+}
+
+bool PopupOverlayController::IsSavedPage(content::WebContents* contents) {
+  tabs::TabInterface* const tab =
+      contents ? tabs::TabInterface::MaybeGetFromContents(contents) : nullptr;
+  SessionBridge* const bridge =
+      browser_ ? SessionBridgeFactory::GetForProfile(browser_->GetProfile())
+               : nullptr;
+  if (!tab || !bridge) {
+    return false;
+  }
+  const std::optional<session::TabSessionMetadata> metadata =
+      bridge->GetTabSessionMetadata(tab);
+  return metadata && metadata->tree_node_id.has_value();
 }
 
 bool PopupOverlayController::AdoptAndShow(

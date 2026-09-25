@@ -71,6 +71,7 @@ class PopupOverlayController final
   // below as it was; promotion to a tab or split reuses the same WebContents.
   bool CanPeek(content::WebContents* opener, const GURL& url) override;
   bool ShowPeek(content::WebContents* opener, const GURL& url) override;
+  bool IsSavedPage(content::WebContents* contents) override;
 
   bool IsShowing() const { return service_.IsShowing(); }
   bool OwnsContents(const content::WebContents* contents) const;

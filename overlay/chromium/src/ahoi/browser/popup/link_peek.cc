@@ -56,6 +56,11 @@ bool PeekLink(content::WebContents* opener, const GURL& url) {
   return host && host->ShowPeek(opener, url);
 }
 
+bool CanAutoPeekLink(content::WebContents* opener, const GURL& url) {
+  LinkPeekHost* host = FindHost(opener, url);
+  return host && host->IsSavedPage(opener);
+}
+
 std::u16string PeekLinkMenuLabel() {
   return base::i18n::GetConfiguredLocale().starts_with("de")
              ? u"Link in Vorschau öffnen"

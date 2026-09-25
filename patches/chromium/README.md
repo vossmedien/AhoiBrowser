@@ -1223,6 +1223,25 @@ as a second active patch stack.
 - **Rebase/removal:** low; three local hunks and one GN line next to
   upstream's link items.
 
+## `0060-ahoi-auto-peek-throttle.patch`
+
+- **Owner:** Desktop. Registers `ahoi::popup::LinkPeekNavigationThrottle`
+  (overlay `ahoi/browser/popup:link_peek_throttle`) in
+  `CreateAndAddChromeThrottlesForNavigation`, next to 0001's developer
+  profile throttle, plus its GN dependency in `chrome/browser:core`.
+- **Safety:** the throttle is only added when the Profile opted in
+  (`ahoi.peek.auto_from_saved_pages`, default off), for renderer-initiated
+  primary-main-frame navigations with a user gesture. In `WillStartRequest`
+  it cancels only a GET link click from a saved page of the tab tree to
+  another site that the window's overlay can preview, and opens that link
+  as a Peek after the cancellation. Same-site links, forms, script
+  navigations, pages that are not saved and windows without an overlay go
+  through unchanged; nothing ever switches account context or opens
+  incognito.
+- **Tests:** guarded build; the WORKFLOW-02 journey covers auto-peek on and
+  off on the exact candidate.
+- **Rebase/removal:** low; one include, one call and one GN line.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

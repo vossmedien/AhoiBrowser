@@ -7,6 +7,7 @@
 
 #include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/navigation/link_routing.h"
+#include "ahoi/browser/popup/link_peek.h"
 #include "components/prefs/pref_service.h"
 #include "components/sync_preferences/pref_service_syncable.h"
 
@@ -51,6 +52,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // Device-local like the routing rules: the bindings follow this Mac's
   // keyboard and extensions.
   shortcuts::RegisterProfilePrefs(registry);
+  // Link-Peek from saved pages is opt-in (master contract: default off).
+  registry->RegisterBooleanPref(popup::kAutoPeekFromSavedPagesPref, false);
 }
 
 WorkspaceSwipeSettings ReadWorkspaceSwipeSettings(const PrefService& prefs) {

@@ -14,7 +14,10 @@ source_set("navigation_preferences") {
     "//components/prefs",
     "//components/sync_preferences",
   ]
-  deps = [ ":link_routing" ]
+  deps = [
+    ":link_routing",
+    "//ahoi/browser/popup:link_peek",
+  ]
 }
 
 # One catalog of Ahoi keyboard commands, their user bindings and the
