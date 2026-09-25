@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -433,7 +434,48 @@ void SessionBridge::UpdateLastActiveTab(TabStripModel* model,
     return;
   }
   RestoreLastActiveTabFlag(tab, /*last_active=*/true);
+  if (auto window = model_windows_.find(model); window != model_windows_.end()) {
+    if (auto state = windows_.find(window->second); state != windows_.end()) {
+      state->second.mru.RecordActivation(tab->GetHandle().raw_value());
+    }
+  }
   PersistTabSessionMetadata(tab);
+}
+
+bool SessionBridge::ActivateLastUsedTab(BrowserWindowInterface* browser) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_ || !tab_tree_ready_ || !browser) {
+    return false;
+  }
+  const auto window = windows_.find(browser);
+  const std::optional<base::Uuid> workspace =
+      GetActiveWorkspaceForWindow(browser);
+  TabStripModel* model = browser->GetTabStripModel();
+  if (window == windows_.end() || !workspace || !model ||
+      window->second.tab_strip_model != model) {
+    return false;
+  }
+  // Tabs of this window in its active Workspace; everything else (other
+  // Workspaces, closed or moved tabs) is never a target.
+  std::set<int32_t> eligible;
+  for (int i = 0; i < model->count(); ++i) {
+    tabs::TabInterface* tab = model->GetTabAtIndex(i);
+    auto runtime = runtime_tabs_.find(tab);
+    if (runtime != runtime_tabs_.end() &&
+        runtime->second.tab_strip_model == model &&
+        runtime->second.workspace_id == workspace) {
+      eligible.insert(tab->GetHandle().raw_value());
+    }
+  }
+  tabs::TabInterface* current = model->GetActiveTab();
+  const std::optional<int32_t> target = window->second.mru.LastUsedBefore(
+      current ? current->GetHandle().raw_value() : 0,
+      [&eligible](int32_t id) { return eligible.contains(id); });
+  if (!target) {
+    return false;
+  }
+  model->ActivateTabAt(model->GetIndexOfTab(tabs::TabHandle(*target).Get()));
+  return true;
 }
 
 void SessionBridge::PersistWindowSessionMetadata(

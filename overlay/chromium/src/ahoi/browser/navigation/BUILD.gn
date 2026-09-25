@@ -23,16 +23,18 @@ source_set("navigation_preferences") {
 # conflict check. Pure model: no views, no //chrome.
 source_set("keyboard_shortcuts") {
   sources = [
+    "keyboard_shortcut_registration.cc",
+    "keyboard_shortcut_registration.h",
     "keyboard_shortcuts.cc",
     "keyboard_shortcuts.h",
   ]
   public_deps = [
     "//base",
+    "//components/prefs",
     "//ui/base",
   ]
   deps = [
     "//components/pref_registry",
-    "//components/prefs",
     "//ui/events",
   ]
 }
@@ -146,6 +148,7 @@ source_set("unit_tests") {
   sources = [
     "cmd_scroll_tab_switcher_unittest.cc",
     "command_service_unittest.cc",
+    "keyboard_shortcut_registration_unittest.cc",
     "keyboard_shortcuts_unittest.cc",
     "link_routing_editor_unittest.cc",
     "link_routing_unittest.cc",

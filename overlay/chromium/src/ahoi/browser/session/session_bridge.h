@@ -14,6 +14,7 @@
 #include <string_view>
 #include <vector>
 
+#include "ahoi/browser/navigation/tab_mru.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
@@ -336,6 +337,10 @@ class SessionBridge : public KeyedService,
   tabs::TabInterface* GetLastActiveTabForWorkspace(
       const BrowserWindowInterface* browser,
       const base::Uuid& workspace_id) const;
+  // The last-used-tab command: activates the tab selected before the current
+  // one in `browser`'s active Workspace. Tabs of other Workspaces or windows
+  // are never chosen. Returns false when there is none.
+  bool ActivateLastUsedTab(BrowserWindowInterface* browser);
   tabs::TabInterface* FindTabByWebContents(
       const content::WebContents* contents) const;
   TabStripModel* FindTabStripModelForTab(const tabs::TabInterface* tab) const;
@@ -358,6 +363,8 @@ class SessionBridge : public KeyedService,
     base::Uuid window_id;
     raw_ptr<TabStripModel> tab_strip_model = nullptr;
     std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> last_active_tabs;
+    // Real tab activations in this window, most recent first.
+    TabMru mru;
   };
 
   struct RuntimeTabState {
