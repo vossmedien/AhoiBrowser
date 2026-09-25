@@ -50,6 +50,31 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 30 installed; build 31 in the pipeline — 25 September 2026
+
+- **Installed candidate:** build 30 of `f5c53d9`, receipt
+  `artifacts/install/installed-ahoi-dev-f5c53d9-20260925T194136Z.json`. All
+  eight focused unit-test binaries pass, including the new sync
+  secret-boundary tests and the shortcut settings tests.
+- It adds the command-bar catalog entries, automatic Peek (0060) and
+  Shift-click Peek (0061). Journeys are queued in idle windows.
+- **Build 31** (`49bcbe9` or later) adds:
+  - Option+Tab as the last-used-tab default. Control+\` cannot be reached
+    on German keyboards.
+  - VLOG dispatch diagnostics. On build 29 neither the default nor a rebound
+    key switched tabs, and the cause is still open.
+  - Shift+Return Peek from the command bar.
+  - Patch 0062 against `ListAccounts`.
+  The crest-hardening lane repeats its H5 audit on build 31.
+- **Handoffs:**
+  - 022: Xcode 27 is the reference and release toolchain (`6630a7f`). The
+    `upstream-release` and `ahoi-release` builds follow the dev iteration.
+    Disk space is tight: about 78 GiB free, 64 GiB recommended per build.
+  - 024: the iOS account switch no longer deletes separated Workspaces'
+    logins (`57b6ee1`, tests 18/0).
+- **Repository contract suite:** 27 failures + 1 error, mostly M152-era
+  markers. A repair pass is running (tests only).
+
 ## Build 29 installed; network audit and journeys — 25 September 2026
 
 - **Installed candidate:** build 29 of `edced8d`, receipt
