@@ -260,6 +260,7 @@ source_set("browser_sidebar") {
     "//ahoi/browser/media",
     "//ahoi/browser/memory:tab_sleeping",
     "//ahoi/browser/navigation:navigation_preferences",
+    "//ahoi/browser/session:group_page_close",
     "//ahoi/browser/session:session_bridge_api",
     "//ahoi/browser/sync:profile_sync_service",
     "//ahoi/browser/ui/appearance",

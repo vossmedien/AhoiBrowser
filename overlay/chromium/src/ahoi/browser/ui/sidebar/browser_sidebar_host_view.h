@@ -18,6 +18,7 @@
 #include "ahoi/browser/media/media_mini_player_chromium_adapter.h"
 #include "ahoi/browser/media/media_mini_player_service.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
@@ -816,6 +817,8 @@ class BrowserSidebarHostView final
   base::CallbackListSubscription session_presentation_subscription_;
   base::CallbackListSubscription shared_tab_capture_subscription_;
   std::optional<sync::LocalTabCapture> observed_shared_tabs_;
+  // Running before-unload group question of "close all temporary tabs".
+  std::unique_ptr<session::GroupPageClose> close_all_temporary_;
   base::WeakPtrFactory<BrowserSidebarHostView> weak_ptr_factory_{this};
 };
 

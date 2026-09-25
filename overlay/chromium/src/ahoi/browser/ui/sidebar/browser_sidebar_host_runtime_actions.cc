@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -662,11 +663,30 @@ void BrowserSidebarHostView::CloseAllTemporaryTabs(const ui::Event&) {
   // Ahoi intentionally keeps the browser window and workspace alive when the
   // last temporary tab is closed. The empty native surface is owned by
   // BrowserView; never create a synthetic replacement WebContents here.
-  for (auto tab : tabs_to_close) {
+  // Handoff 006: ask every page first; one veto keeps all of them open.
+  if (close_all_temporary_ || tabs_to_close.empty()) {
+    return;
+  }
+  std::vector<content::WebContents*> pages;
+  for (const auto& tab : tabs_to_close) {
     if (tab) {
-      tab->Close();
+      pages.push_back(tab->GetContents());
     }
   }
+  close_all_temporary_ = session::GroupPageClose::Ask(
+      std::move(pages),
+      base::BindOnce(
+          [](base::WeakPtr<BrowserSidebarHostView> view, bool all_agreed) {
+            if (!view) {
+              return;
+            }
+            std::unique_ptr<session::GroupPageClose> group =
+                std::move(view->close_all_temporary_);
+            if (all_agreed && group) {
+              group->ClosePages();
+            }
+          },
+          weak_ptr_factory_.GetWeakPtr()));
 }
 
 }  // namespace ahoi::sidebar

@@ -4,6 +4,9 @@
 #define AHOI_BROWSER_SESSION_WORKSPACE_STRUCTURE_CONTROLLER_H_
 
 #include <atomic>
+#include <memory>
+
+#include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/workspace_structure_state.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
@@ -50,6 +53,15 @@ class WorkspaceStructureController final
   void MaterializeSplits(sync::SyncAuthorization authority);
   void ScanArchiveDeadline();
   void CloseArchived(base::Uuid entry_id, sync::SyncAuthorization authority);
+  // Handoff 006: archive only after every live page of the group agreed to
+  // close; the entry is written first, then exactly those pages close.
+  void ArchiveAgreedPages(const std::vector<base::Uuid>& nodes,
+                          sync::SharedArchiveReason reason,
+                          base::OnceCallback<void(bool)> done);
+  void OnArchivePagesAnswered(std::vector<base::Uuid> nodes,
+                              sync::SharedArchiveReason reason,
+                              base::OnceCallback<void(bool)> done,
+                              bool all_agreed);
   void ReconcileArchives(sync::SyncAuthorization authority);
   bool CanArchive(const std::vector<base::Uuid>& ids) const;
   bool CanRestore(const sync::TabArchiveEntryRecord& archive) const;
@@ -95,6 +107,7 @@ class WorkspaceStructureController final
   std::set<base::Uuid> local_changes_;
   std::set<std::string> changed_native_splits_;
   std::set<base::Uuid> blocked_publications_;
+  std::unique_ptr<GroupPageClose> archive_close_;
   base::WeakPtrFactory<WorkspaceStructureController> weak_factory_{this};
 };
 }  // namespace ahoi::session

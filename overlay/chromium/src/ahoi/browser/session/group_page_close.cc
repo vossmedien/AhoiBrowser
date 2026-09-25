@@ -118,7 +118,8 @@ GroupPageClose::~GroupPageClose() {
 // static
 std::unique_ptr<GroupPageClose> GroupPageClose::Ask(
     std::vector<content::WebContents*> pages,
-    Done done) {
+    Done done,
+    bool auto_cancel) {
   auto group = base::WrapUnique(new GroupPageClose(std::move(done)));
   std::vector<content::WebContents*> to_dispatch;
   for (content::WebContents* page : pages) {
@@ -152,7 +153,7 @@ std::unique_ptr<GroupPageClose> GroupPageClose::Ask(
   // Dispatch only after every page is registered: an immediate answer must
   // not complete the group before later pages were asked.
   for (content::WebContents* page : to_dispatch) {
-    page->DispatchBeforeUnload(/*auto_cancel=*/false);
+    page->DispatchBeforeUnload(auto_cancel);
   }
   return group;
 }

@@ -38,9 +38,12 @@ class GroupPageClose {
   // Starts phase one. `done` runs exactly once, asynchronously if any page
   // shows a before-unload prompt. The returned object must stay alive until
   // `done` ran; destroying it earlier reports false.
+  // With `auto_cancel` a page that wants to prompt answers "no" without any
+  // dialog (used by automatic archiving, which must never ask).
   static std::unique_ptr<GroupPageClose> Ask(
       std::vector<content::WebContents*> pages,
-      Done done);
+      Done done,
+      bool auto_cancel = false);
 
   // Phase two. Closes every page that is still alive: pages that ran their
   // before-unload handler proceed straight to unload; the rest take the

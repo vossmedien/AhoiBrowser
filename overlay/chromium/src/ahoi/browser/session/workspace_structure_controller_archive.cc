@@ -157,10 +157,45 @@ void WorkspaceStructureController::Archive(
     const std::vector<base::Uuid>& nodes,
     sync::SharedArchiveReason reason,
     base::OnceCallback<void(bool)> done) {
-  if (persisting_ || publish_pending_ || !CanArchive(nodes)) {
+  if (persisting_ || publish_pending_ || archive_close_ || !CanArchive(nodes)) {
     std::move(done).Run(false);
     return;
   }
+  // Ask every live page before any record changes. A page that gained a
+  // before-unload handler after the eligibility check can veto; then no
+  // archive entry exists and all pages stay open. Automatic archiving must
+  // never show a prompt, so such a page simply declines there.
+  std::vector<content::WebContents*> pages;
+  for (const auto& id : nodes) {
+    if (auto* tab = bridge_->FindTabByTreeNodeId(id)) {
+      pages.push_back(tab->GetContents());
+    }
+  }
+  archive_close_ = GroupPageClose::Ask(
+      std::move(pages),
+      base::BindOnce(&WorkspaceStructureController::OnArchivePagesAnswered,
+                     weak_factory_.GetWeakPtr(), nodes, reason,
+                     std::move(done)),
+      /*auto_cancel=*/reason == sync::SharedArchiveReason::kAutomatic);
+}
+
+void WorkspaceStructureController::OnArchivePagesAnswered(
+    std::vector<base::Uuid> nodes,
+    sync::SharedArchiveReason reason,
+    base::OnceCallback<void(bool)> done,
+    bool all_agreed) {
+  if (!all_agreed || persisting_ || publish_pending_ || !CanArchive(nodes)) {
+    archive_close_.reset();
+    std::move(done).Run(false);
+    return;
+  }
+  ArchiveAgreedPages(nodes, reason, std::move(done));
+}
+
+void WorkspaceStructureController::ArchiveAgreedPages(
+    const std::vector<base::Uuid>& nodes,
+    sync::SharedArchiveReason reason,
+    base::OnceCallback<void(bool)> done) {
   sync::SharedArchiveSnapshot snapshot;
   std::vector<base::Uuid> ordered = nodes;
   for (const auto& [id, entry] : state_.entries) {
@@ -179,6 +214,7 @@ void WorkspaceStructureController::Archive(
     tab_tree::TreeNode node;
     if (bridge_->tab_tree_store()->GetNode(id, &node) != Store::Result::kOk ||
         bridge_->tab_tree_store()->IsNodeArchived(id)) {
+      archive_close_.reset();
       std::move(done).Run(false);
       return;
     }
@@ -191,6 +227,7 @@ void WorkspaceStructureController::Archive(
     candidate.private_nodes.push_back(node);
   }
   if (!sync::ValidateArchiveSnapshot(snapshot)) {
+    archive_close_.reset();
     std::move(done).Run(false);
     return;
   }
@@ -201,6 +238,7 @@ void WorkspaceStructureController::Archive(
     const auto* previous =
         std::get_if<sync::TabArchiveEntryRecord>(&existing->second.record);
     if (!previous || previous->tombstone) {
+      archive_close_.reset();
       std::move(done).Run(false);
       return;
     }
@@ -213,6 +251,7 @@ void WorkspaceStructureController::Archive(
                                   .reason = reason,
                                   .archived_at = base::Time::Now()};
   if (!Stamp(&candidate.record, before ? &before->record : nullptr)) {
+    archive_close_.reset();
     std::move(done).Run(false);
     return;
   }
@@ -230,6 +269,8 @@ void WorkspaceStructureController::Archive(
                   std::move(done).Run(false);
                   return;
                 }
+                std::unique_ptr<GroupPageClose> group =
+                    std::move(owner->archive_close_);
                 if (!ok) {
                   auto it = owner->state_.entries.find(id);
                   if (it != owner->state_.entries.end() &&
@@ -245,7 +286,13 @@ void WorkspaceStructureController::Archive(
                 owner->local_changes_.insert(id);
                 owner->remote_authorities_.erase(id);
                 owner->blocked_publications_.erase(id);
-                owner->CloseArchived(id, authority);
+                // The agreed pages close now; they are not asked again.
+                if (group && authority.Run() &&
+                    owner->bridge_->tab_tree_store()) {
+                  group->ClosePages();
+                } else {
+                  owner->CloseArchived(id, authority);
+                }
                 if (!owner) {
                   std::move(done).Run(false);
                   return;
