@@ -183,10 +183,10 @@ class FakeSyncProvider final : public SyncProvider {
     return true;
   }
 
-  // An authorized transport is the default; tests that exercise revocation
-  // replace it explicitly.
+  // Authorized transport and delivery are the default (a missing delivery
+  // authorization fails closed); tests that exercise revocation replace them.
   SyncAuthorization transport = base::BindRepeating([] { return true; });
-  SyncAuthorization delivery;
+  SyncAuthorization delivery = base::BindRepeating([] { return true; });
   IncomingCallback incoming;
   base::RepeatingClosure after_ack;
   std::deque<DownloadResult> cached_results;
@@ -663,12 +663,24 @@ TEST(DeviceTabsServiceTest, PublishesNormalLocalAndRemoteTabsOnly) {
   EXPECT_EQ(observer.last.local_tabs.size(), 1u);
   EXPECT_TRUE(observer.last.remote_tabs.empty());
 
-  DeviceSessionRecord mismatched_session = remote_session;
-  mismatched_session.device_id = local_device;
-  mismatched_session.last_seen = base::Time::Now();
-  mismatched_session.version = Version(kDeviceB, 55);
-  EXPECT_EQ(service->store_for_testing()->PutLocalRecord(mismatched_session),
+  // A Session's device_id is immutable, so the mismatch is a remote Presence
+  // that claims the remote device but names the active local Session.
+  RemoteTabRecord mismatched_session =
+      Tab("10000000-0000-4000-8000-000000000048",
+          "10000000-0000-4000-8000-000000000044",
+          "10000000-0000-4000-8000-000000000042", "https://mismatch.test",
+          Version(kDeviceB, 55));
+  ASSERT_NO_FATAL_FAILURE(
+      SeedSharedPage(service->store_for_testing(), mismatched_session));
+  ASSERT_TRUE(SerializeRecord(mismatched_session, &payload));
+  EXPECT_EQ(service->store_for_testing()->ApplyRemoteBatch(ProviderBatch{
+                {SyncChange{"mismatch", EntityType::kRemoteTab,
+                            mismatched_session.id, ChangeKind::kUpsert,
+                            mismatched_session.version, payload}},
+                "token-mismatch",
+                false}),
             SyncStore::Result::kOk);
+  EXPECT_EQ(observer.last.local_tabs.size(), 1u);
   EXPECT_TRUE(observer.last.remote_tabs.empty());
 
   DeviceSessionRecord current_session = remote_session;

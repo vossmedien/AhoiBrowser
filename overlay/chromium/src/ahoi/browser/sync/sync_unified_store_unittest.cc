@@ -137,21 +137,31 @@ TEST(UnifiedSyncStoreTest, LateSqlFailureRollsBackEarlierRowsAndOutbox) {
   const auto path = directory.GetPath().AppendASCII("format3.sqlite");
   {
     // The store holds SQLite's exclusive lock while open, so the fixture
-    // trigger is installed between a schema-creating and the tested session.
+    // constraint is installed between a schema-creating and the tested
+    // session.
     SyncStore schema_store;
     ASSERT_TRUE(schema_store.Initialize(path));
   }
   {
     sql::Database database(sql::test::kTestTag);
     ASSERT_TRUE(database.Open(path));
+    // Chromium's sql::Database keeps triggers disabled, so the late failure
+    // is an equivalent (still empty) sync_records table whose CHECK rejects
+    // the Device row, written last. REPLACE resolves a CHECK like ABORT.
+    ASSERT_TRUE(database.Execute("DROP TABLE sync_records"));
     ASSERT_TRUE(database.Execute(
-        "CREATE TRIGGER fixture_fail_last BEFORE INSERT ON sync_records "
-        "WHEN NEW.entity_type=0 BEGIN SELECT RAISE(ABORT,'fixture'); END"));
+        "CREATE TABLE sync_records("
+        "entity_type INTEGER NOT NULL CHECK(entity_type BETWEEN 0 AND 14),"
+        "entity_id TEXT NOT NULL,payload TEXT NOT NULL,tombstone INTEGER "
+        "NOT NULL CHECK(tombstone IN (0,1)),model_version INTEGER NOT NULL,"
+        "version_physical INTEGER NOT NULL,version_logical INTEGER NOT NULL,"
+        "version_device TEXT NOT NULL,PRIMARY KEY(entity_type,entity_id),"
+        "CHECK(entity_type<>0))"));
   }
   SyncStore store;
   ASSERT_TRUE(store.Initialize(path));
   sql::test::ScopedErrorExpecter errors;
-  errors.ExpectError(SQLITE_CONSTRAINT_TRIGGER);
+  errors.ExpectError(SQLITE_CONSTRAINT_CHECK);
   EXPECT_EQ(Result::kDatabaseError,
             store.PutLocalBatch(CaptureRows(), Approved()));
   EXPECT_TRUE(errors.SawExpectedErrors());

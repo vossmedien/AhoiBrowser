@@ -385,8 +385,12 @@ TEST_F(ProfileSyncServiceTest,
   const std::optional<StoreCounts> counts =
       ReadCounts(&service, DatabasePath(*profile));
   ASSERT_TRUE(counts.has_value());
-  EXPECT_EQ(2, counts->tabs);
-  EXPECT_EQ(2, counts->active_tabs);
+  // ADR 0009: shared-tab writes wait for the provider-acknowledged
+  // capability bootstrap. Without CloudKit the capture request is issued but
+  // no Presence is authored; the obsolete PublishWindowTabs() vector is
+  // ignored.
+  EXPECT_EQ(0, counts->tabs);
+  EXPECT_EQ(0, counts->active_tabs);
   EXPECT_GT(counts->outbox, 0);
 
   service.SetSyncEnabled(false);
@@ -403,9 +407,9 @@ TEST_F(ProfileSyncServiceTest,
   const std::optional<StoreCounts> reenabled_counts =
       ReadCounts(&service, DatabasePath(*profile));
   ASSERT_TRUE(reenabled_counts.has_value());
-  EXPECT_GT(reenabled_counts->tabs, counts->tabs);
-  EXPECT_EQ(1, reenabled_counts->active_tabs);
-  EXPECT_EQ(1, ReadActivePayloadCount(&service, DatabasePath(*profile),
+  EXPECT_EQ(0, reenabled_counts->tabs);
+  EXPECT_EQ(0, reenabled_counts->active_tabs);
+  EXPECT_EQ(0, ReadActivePayloadCount(&service, DatabasePath(*profile),
                                       EntityType::kRemoteTab,
                                       "runtime-after-reenable.example"));
 
@@ -460,12 +464,13 @@ TEST_F(ProfileSyncServiceTest,
   EXPECT_GT(enabled_counts->records, 0);
   EXPECT_GT(enabled_counts->outbox, 0);
   EXPECT_EQ(1, enabled_counts->history);
-  EXPECT_EQ(1, enabled_counts->tabs);
-  EXPECT_EQ(1, enabled_counts->active_tabs);
+  // No Presence before the provider-acknowledged shared-tab bootstrap.
+  EXPECT_EQ(0, enabled_counts->tabs);
+  EXPECT_EQ(0, enabled_counts->active_tabs);
 
-  // A mutation accepted before the opt-out is ordered ahead of suspension on
-  // the backend sequence. It may complete; the durable state after suspension
-  // is the cutoff that disabled capture must preserve.
+  // The opt-out revokes the profile scope synchronously, before the backend
+  // runs a write that was posted earlier, so the in-flight visit is dropped
+  // and the durable state at opt-out is the cutoff.
   RecordHistoryVisit(&service, GURL("https://in-flight.example/history"), 3);
   service.SetSyncEnabled(false);
   EXPECT_FALSE(service.sync_enabled());
@@ -474,10 +479,7 @@ TEST_F(ProfileSyncServiceTest,
   const std::optional<StoreCounts> cutoff_counts =
       ReadStoreCounts(database_path);
   ASSERT_TRUE(cutoff_counts.has_value());
-  EXPECT_GT(cutoff_counts->records, enabled_counts->records);
-  EXPECT_GT(cutoff_counts->outbox, enabled_counts->outbox);
-  EXPECT_EQ(enabled_counts->history + 1, cutoff_counts->history);
-  EXPECT_EQ(enabled_counts->tabs, cutoff_counts->tabs);
+  EXPECT_EQ(enabled_counts, cutoff_counts);
 
   PublishTabsNow(&service, "post-disable-tab", "https://post-disable.example/");
   RecordHistoryVisit(&service, GURL("https://post-disable.example/history"), 4);
@@ -502,12 +504,15 @@ TEST_F(ProfileSyncServiceTest,
   service.SetSyncEnabled(true);
   DrainBackend(&service);
 
-  EXPECT_EQ(1, ReadActivePayloadCount(
+  // The seed waits for the provider's completed initial fetch, so a local
+  // value never overwrites remote state it has not seen yet. Without CloudKit
+  // the selection is retained but nothing is authored.
+  EXPECT_TRUE(std::ranges::contains(
+      service.permitted_setting_ids(),
+      std::string(appearance::kSidebarPageTintEnabledPref)));
+  EXPECT_EQ(0, ReadActivePayloadCount(
                    &service, database_path, EntityType::kPermittedSetting,
                    appearance::kSidebarPageTintEnabledPref));
-  EXPECT_EQ(1, ReadActivePayloadCount(&service, database_path,
-                                      EntityType::kPermittedSetting,
-                                      "\"value_json\":\"true\""));
 
   service.Shutdown();
 }
