@@ -1,0 +1,23 @@
+--- a/tools/build_provenance.py
++++ b/tools/build_provenance.py
+@@ -14,6 +14,7 @@
+ from typing import Optional
+ 
+ from chromium_dependencies import collect_revisions, verify_revisions
++from engine_input_key import key_of, receipt_components
+ from evidence import bundle_hash
+ from overlay_state import OverlayStateError, verify_overlay_state
+ from release.common import tree_sha256
+@@ -549,6 +550,12 @@
+             "pins": toolchain,
+         },
+     }
++    if is_ahoi:
++        engine_inputs = receipt_components(payload)
++        if engine_inputs is None:
++            raise SystemExit("receipt lacks the fields of the engine input key")
++        payload["engineInputKey"] = key_of(engine_inputs)
++        payload["engineInputs"] = engine_inputs
+     args.output.parent.mkdir(parents=True, exist_ok=True)
+     args.output.write_text(
+         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",

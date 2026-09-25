@@ -12,8 +12,12 @@ This lane never builds, installs, refreshes the overlay, writes under
 
 - Lane established; goal, lane config, boundary checker and review committed.
 - Base commit for boundary checks: recorded in the lane's first commit message.
-- Next: H4 engine input key, then H5 review/checklist, H3 methodology/harness,
-  H1 conformance vectors/generator/drift gate, H2 audit.
+- H4: `tools/engine_input_key.py` (key, components, receipt, lookup) with
+  `tests/repository/test_engine_input_key.py`; receipt integration handed off
+  as 001. Remaining H4 DoD: desktop integration and one regular build receipt
+  carrying the key.
+- Next: H5 review/checklist, H3 methodology/harness, H1 conformance
+  vectors/generator/drift gate, H2 audit.
 
 ## Packages
 
@@ -22,7 +26,7 @@ This lane never builds, installs, refreshes the overlay, writes under
 | H1 Sync conformance | not started | – | – |
 | H2 Single writer | not started | – | – |
 | H3 Performance methodology | not started | – | – |
-| H4 Engine input key | not started | – | – |
+| H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) ready | – |
 | H5 Crest reference / network silence | not started | – | – |
 
 ## Lease requests
