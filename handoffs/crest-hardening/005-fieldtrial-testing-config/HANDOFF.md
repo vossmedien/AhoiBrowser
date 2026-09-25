@@ -1,6 +1,6 @@
 # 005 – Disable the field-trial testing config (H5, N2)
 
-Status: ready
+Status: integrated 0981913 (pre-existing lean baseline failures from 75e20c1 remain open)
 Owner lane: desktop (build configuration, lean contract)
 Base: `f811604`
 
