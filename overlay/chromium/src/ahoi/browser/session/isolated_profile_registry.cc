@@ -118,6 +118,20 @@ std::optional<IsolatedProfileEntry> FindIsolatedProfile(
   return std::nullopt;
 }
 
+std::optional<IsolatedProfileEntry> FindIsolatedProfileByWorkspaceId(
+    const PrefService* local_state,
+    const base::Uuid& workspace_id) {
+  if (!workspace_id.is_valid()) {
+    return std::nullopt;
+  }
+  for (IsolatedProfileEntry& entry : GetIsolatedProfiles(local_state)) {
+    if (entry.workspace_id == workspace_id) {
+      return std::move(entry);
+    }
+  }
+  return std::nullopt;
+}
+
 bool AddIsolatedProfile(PrefService* local_state,
                         const IsolatedProfileEntry& entry) {
   if (!CanWrite(local_state) || !IsValidProfileDir(entry.profile_dir) ||

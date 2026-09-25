@@ -58,6 +58,11 @@ std::vector<IsolatedProfileEntry> GetIsolatedProfiles(
 std::optional<IsolatedProfileEntry> FindIsolatedProfile(
     const PrefService* local_state,
     std::string_view profile_dir);
+// The entry carrying `workspace_id` (any state), or nullopt. Link routing
+// resolves its logical Workspace targets to a Profile through this lookup.
+std::optional<IsolatedProfileEntry> FindIsolatedProfileByWorkspaceId(
+    const PrefService* local_state,
+    const base::Uuid& workspace_id);
 
 // Fails for an invalid entry or a directory or Workspace already listed.
 bool AddIsolatedProfile(PrefService* local_state,

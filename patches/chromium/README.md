@@ -1148,6 +1148,33 @@ as a second active patch stack.
   `mtalk.google.com:5228`.
 - **Rebase/removal:** low; one early return in a single factory.
 
+## `0057-ahoi-route-external-links.patch`
+
+- **Owner:** Desktop. In `app_controller_mac.mm`'s `OpenStartupTabsInBrowser`
+  (reached from `-application:openURLs:`, the pre-launch `_startupTabs` queue
+  and handoff), trusted `kNormal` http/https startup tabs are first offered to
+  `ahoi::navigation::RouteExternalUrls` (overlay
+  `ahoi/browser/navigation/link_routing_dispatch`). When routing takes them
+  over, Chromium's last-profile open is skipped for exactly those URLs; the
+  rest (stripped `google-chrome://` launches, `.webloc` shortcuts, other
+  schemes) keeps the upstream path. One GN dependency on the new source_set in
+  `chrome/browser:core`'s macOS deps, next to 0001's `//ahoi/browser/updater`.
+- **Safety:** routing uses the main Profile's `ahoi.navigation.link_routing`
+  (logical Workspace UUIDs only). It selects the target Workspace in a main
+  window before the tab exists, or presents the fully separated Workspace's
+  Profile window, so the website session is fixed before the first request.
+  It never opens incognito; a Quick Window is not used for a Workspace with its
+  own website session. URLs it accepted but cannot place go back to Chromium's
+  default through a fallback callback; disabled routing returns them unchanged.
+- **Tests:** `ahoi_navigation_unittests` (`LinkRoutingTest.*`),
+  `ahoi_session_unittests` (`FindsEntryByWorkspaceId`); guarded build, then the
+  WS-ISO-06 visible journey (rule to a `Vollständig getrennt` Workspace, Quick
+  Window and hand-over from it, default route without a rule) on the exact
+  candidate.
+- **Rebase/removal:** low; one hunk in a file-local helper and one GN line.
+  Context depends on 0001's `app_controller_mac.mm` include and
+  `chrome/browser/BUILD.gn` hunk.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

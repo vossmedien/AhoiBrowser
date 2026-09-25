@@ -40,6 +40,28 @@ TEST_F(IsolatedProfileRegistryTest, RoundTripsEntriesInOrder) {
   EXPECT_FALSE(FindIsolatedProfile(&local_state_, "Default").has_value());
 }
 
+TEST_F(IsolatedProfileRegistryTest, FindsEntryByWorkspaceId) {
+  const IsolatedProfileEntry first = Entry("Profile 1");
+  const IsolatedProfileEntry second = Entry("Profile 2");
+  ASSERT_TRUE(AddIsolatedProfile(&local_state_, first));
+  ASSERT_TRUE(AddIsolatedProfile(&local_state_, second));
+  EXPECT_EQ(second, FindIsolatedProfileByWorkspaceId(&local_state_,
+                                                     second.workspace_id));
+  EXPECT_FALSE(FindIsolatedProfileByWorkspaceId(&local_state_,
+                                                base::Uuid::GenerateRandomV4())
+                   .has_value());
+  EXPECT_FALSE(FindIsolatedProfileByWorkspaceId(&local_state_, base::Uuid())
+                   .has_value());
+  EXPECT_FALSE(FindIsolatedProfileByWorkspaceId(nullptr, first.workspace_id)
+                   .has_value());
+  // An entry being deleted is still reported; callers check its state.
+  ASSERT_TRUE(SetIsolatedProfileState(&local_state_, "Profile 1",
+                                      IsolatedProfileState::kDeleting));
+  EXPECT_EQ(IsolatedProfileState::kDeleting,
+            FindIsolatedProfileByWorkspaceId(&local_state_, first.workspace_id)
+                ->state);
+}
+
 TEST_F(IsolatedProfileRegistryTest, RejectsDuplicatesAndInvalidEntries) {
   IsolatedProfileEntry entry = Entry("Profile 1");
   ASSERT_TRUE(AddIsolatedProfile(&local_state_, entry));
