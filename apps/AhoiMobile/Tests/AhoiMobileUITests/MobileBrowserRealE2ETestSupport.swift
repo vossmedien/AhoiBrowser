@@ -249,11 +249,21 @@ class MobileBrowserUITestCase: XCTestCase {
                 XCTFail("The address editor disappeared during its bounded input retry.")
                 return
             }
-            let end = value.index(
+            var end = value.index(
                 start,
                 offsetBy: 10,
                 limitedBy: value.endIndex
             ) ?? value.endIndex
+            // XCUI drops a repeated character within one injection under load
+            // ("https" became "htps"): end a chunk between equal neighbours.
+            var probe = value.index(after: start)
+            while probe < end {
+                if value[probe] == value[value.index(before: probe)] {
+                    end = probe
+                    break
+                }
+                probe = value.index(after: probe)
+            }
             let chunk = String(value[start..<end])
             field.typeText(chunk)
             consumed += chunk
