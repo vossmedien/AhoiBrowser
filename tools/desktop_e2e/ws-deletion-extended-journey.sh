@@ -61,7 +61,7 @@ menu() { # <active workspace name> <menu item regex>
   $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
   for attempt in 1 2 3 4; do
     $AX press $PID "$1, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
-    waitax "$2" 4 && return 0
+    waitax "AXMenuItem \\| $2" 4 && return 0
     $AX key $PID 53 >> "$OUT/steps.txt"; sleep 2
   done
   return 1
