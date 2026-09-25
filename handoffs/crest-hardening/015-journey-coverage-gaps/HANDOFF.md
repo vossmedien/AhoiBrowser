@@ -19,3 +19,8 @@ and 05 on the product default launch. These cases from handoffs 003, 007, 010,
 
 No extra build is needed; all of them run on the candidate reserved for the
 ADR 0011 and WS-DEL acceptance.
+
+## Lane note (25 September 2026)
+
+Written in a desktop-owner session by mistake; adopted unchanged by the
+`crest-hardening` lane after checking it against `b0c5960`.

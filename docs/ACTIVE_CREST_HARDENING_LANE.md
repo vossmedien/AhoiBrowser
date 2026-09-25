@@ -57,6 +57,13 @@ This lane never builds, installs, refreshes the overlay, writes under
 - Waiting for owner lanes: 010, 011 integration; 009 run results; NET-GCM-01/02
   and fresh-profile audit; H3 lease; each ADR 0011 implementation step for review.
 
+- Ownership clarified with the desktop/mobile/sync owner session: the whole
+  lane, including H6, stays here. Handoffs 015 and 016 (commits `1e7ad0b`,
+  `2633818`) were written there by mistake and are adopted by this lane. The
+  owner writes only `Status:` lines under `handoffs/crest-hardening/` and
+  builds only from `/private/tmp/ahoi-m153-ws.x4fmXk/repo`. The next build (21)
+  starts after it has checked the ready handoffs.
+
 ## Goal status — 25 September 2026, after the 010–013 intake
 
 Every lane-owned deliverable of H1–H6 is done and committed. Desktop and Sync

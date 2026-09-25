@@ -49,3 +49,11 @@ every hand-over keeps the source's renderers alive.
 
 Still open in step 2 by the owner's own list: routing, Quick Window,
 import/export and a process-wide sidebar order.
+
+## Lane note (25 September 2026)
+
+Written in a desktop-owner session by mistake; adopted by the
+`crest-hardening` lane. H1 verified at `bc3cdc2`
+(`isolated_workspace_directory.cc:183-186` hands over the restored bounds and
+never enters fullscreen). H2 is inferred: the hand-over code does not
+exclude the hidden source window from session restore.
