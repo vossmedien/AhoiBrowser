@@ -53,14 +53,21 @@ finish() {
   cat "$OUT/verdict.json"
 }
 fail_setup() { $AX dump $PID 14 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
+# Escape before AXShowMenu goes straight to the process: an HID Escape
+# arrives asynchronously and would close the menu just opened by AX.
 menu() { # <active workspace name> <menu item regex>
-  key 53; sleep 1
+  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
   for attempt in 1 2 3 4; do
     $AX press $PID "$1, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
     waitax "$2" 4 && return 0
-    key 53; sleep 2
+    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 2
   done
   return 1
+}
+# Workspace menu items carry their level in the title ("Kunde – Eigene
+# Website-Sitzungen"); resolve a Workspace name to its full item title.
+menuitem() { # <workspace name>
+  $AX dump $PID 14 | grep -oE "AXMenuItem \| $1( – [^|]*)? \|" | head -1 | sed -E 's/^AXMenuItem \| //; s/ \|$//'
 }
 open_url() { # <url>
   local opened=0
@@ -97,7 +104,7 @@ ORIGIN=$(origin_of login.html)
 # WS-ISO-17: hand over to the main Workspace; the separated window hides.
 menu Getrennt "Inbox" || fail_setup "separated window menu has no main Workspaces"
 $AX dump $PID 14 > "$OUT/ax-menu-separated.txt"
-$AX press $PID "Inbox" >> "$OUT/steps.txt"
+$AX press $PID "$(menuitem Inbox)" >> "$OUT/steps.txt"
 waitax "Inbox, Workspace wechseln" 10 && record handOverToMain true || record handOverToMain false
 sleep 2; $AX dump $PID 14 > "$OUT/ax-after-handover.txt"
 { ! grep -q 'Getrennt, Workspace wechseln' "$OUT/ax-after-handover.txt"; } && record separatedHidden true || record separatedHidden false
@@ -105,14 +112,14 @@ open_url "$SITE/check.html"
 [ -z "$(cookie_of check.html)" ] && record mainNotLoggedIn true || record mainNotLoggedIn false
 # Back to the separated Workspace: same page, no reload.
 menu Inbox "Getrennt" || fail_setup "main menu has no separated Workspace"
-$AX press $PID "Getrennt" >> "$OUT/steps.txt"
+$AX press $PID "$(menuitem Getrennt)" >> "$OUT/steps.txt"
 waitax "Getrennt, Workspace wechseln" 10 && record handOverBack true || record handOverBack false
 [ -n "$ORIGIN" ] && [ "$(origin_of login.html)" = "$ORIGIN" ] && record noReload true || record noReload false
 quit
 # WS-ISO-14: after a relaunch the separated Workspace is still reachable.
 launch
 if waitax "Getrennt, Workspace wechseln" 5; then record reachableAfterRelaunch true; else
-  menu Inbox "Getrennt" && $AX press $PID "Getrennt" >> "$OUT/steps.txt"
+  menu Inbox "Getrennt" && $AX press $PID "$(menuitem Getrennt)" >> "$OUT/steps.txt"
   waitax "Getrennt, Workspace wechseln" 15 && record reachableAfterRelaunch true || record reachableAfterRelaunch false
 fi
 # The login is a persistent cookie of the separated Profile; tab restore of

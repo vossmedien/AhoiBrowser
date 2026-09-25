@@ -54,14 +54,21 @@ finish() {
   cat "$OUT/verdict.json"
 }
 fail_setup() { $AX dump $PID 14 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
+# Escape before AXShowMenu goes straight to the process: an HID Escape
+# arrives asynchronously and would close the menu just opened by AX.
 menu() { # <active workspace name> <menu item regex>
-  key 53; sleep 1
+  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
   for attempt in 1 2 3 4; do
     $AX press $PID "$1, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
     waitax "$2" 4 && return 0
-    key 53; sleep 2
+    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 2
   done
   return 1
+}
+# Workspace menu items carry their level in the title ("Kunde – Eigene
+# Website-Sitzungen"); resolve a Workspace name to its full item title.
+menuitem() { # <workspace name>
+  $AX dump $PID 14 | grep -oE "AXMenuItem \| $1( – [^|]*)? \|" | head -1 | sed -E 's/^AXMenuItem \| //; s/ \|$//'
 }
 newws() { # <active> <name> <level radio label or "">
   menu "$1" "Neuer Workspace…" || fail_setup "workspace menu did not open for $2"
@@ -93,7 +100,7 @@ open_url() { # <url> ; ⌘T + type + Return
 }
 switchws() { # <active> <target>
   menu "$1" "$2" || fail_setup "menu to switch to $2 did not open"
-  $AX press $PID "$2" >> "$OUT/steps.txt"; waitax "$2, Workspace wechseln" 8 || fail_setup "switch to $2 failed"
+  $AX press $PID "$(menuitem "$2")" >> "$OUT/steps.txt"; waitax "$2, Workspace wechseln" 8 || fail_setup "switch to $2 failed"
 }
 cookie_of() { CDP "$1" Runtime.evaluate '{"expression":"document.cookie","returnByValue":true}' | python3 -c 'import json,sys;print(json.load(sys.stdin).get("result",{}).get("value",""))'; }
 delete_active() { # <active>

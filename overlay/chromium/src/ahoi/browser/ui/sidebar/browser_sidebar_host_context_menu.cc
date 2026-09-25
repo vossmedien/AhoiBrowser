@@ -38,6 +38,7 @@
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/pickle.h"
+#include "base/strings/strcat.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/cancelable_task_tracker.h"
@@ -249,34 +250,40 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   ClearContextPageActionTarget();
   context_workspace_ids_.clear();
   context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
+  // ADR 0011: every non-shared Workspace states its level. The level is part
+  // of the title because native macOS menus do not show minor text.
+  const std::u16string own_sessions_level =
+      StructureText(u"Eigene Website-Sitzungen", u"Own website sessions");
+  const std::u16string isolated_level =
+      StructureText(u"Vollständig getrennt", u"Fully separated");
+  const auto with_level = [](const std::u16string& name,
+                             const std::u16string& level) {
+    return base::StrCat({name, u" – ", level});
+  };
+  const bool isolated_profile =
+      session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
   for (const tab_tree::Workspace& workspace :
        workspace_service_->ordered_workspaces()) {
     const int command_id = kActivateWorkspaceCommandBase +
                            static_cast<int>(context_workspace_ids_.size());
     context_workspace_ids_.push_back(workspace.id);
-    context_menu_model_->AddCheckItem(command_id, workspace.name);
-    if (session_bridge_->HasOwnWebsiteSessions(workspace.id)) {
-      // ADR 0011: every non-shared Workspace states its level.
-      context_menu_model_->SetMinorText(
-          context_menu_model_->GetItemCount() - 1,
-          StructureText(u"Eigene Website-Sitzungen", u"Own website sessions"));
-    }
+    context_menu_model_->AddCheckItem(
+        command_id,
+        isolated_profile ? with_level(workspace.name, isolated_level)
+        : session_bridge_->HasOwnWebsiteSessions(workspace.id)
+            ? with_level(workspace.name, own_sessions_level)
+            : workspace.name);
   }
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   // One fully separated Workspace per Profile (ADR 0011). The shared
   // switcher (step 2) lists the other Profiles' Workspaces below; choosing
   // one hands this window's frame over to that Profile's window.
-  const bool isolated_profile =
-      session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
   const std::string own_profile_dir =
       browser_->GetProfile()->GetPath().BaseName().AsUTF8Unsafe();
   context_isolated_workspace_dirs_.clear();
   context_main_workspace_ids_.clear();
   context_offers_main_workspaces_ = false;
   if (isolated_profile) {
-    context_menu_model_->SetMinorText(
-        context_menu_model_->GetItemCount() - 2,
-        StructureText(u"Vollständig getrennt", u"Fully separated"));
     Profile* main_profile = session::GetLoadedMainProfile();
     WorkspaceService* main_workspaces =
         main_profile ? WorkspaceServiceFactory::GetForProfile(main_profile)
@@ -293,13 +300,9 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
         context_menu_model_->AddItem(
             kOpenMainWorkspaceCommandBase +
                 static_cast<int>(context_main_workspace_ids_.size()),
-            workspace.name);
-        if (main_bridge->HasOwnWebsiteSessions(workspace.id)) {
-          context_menu_model_->SetMinorText(
-              context_menu_model_->GetItemCount() - 1,
-              StructureText(u"Eigene Website-Sitzungen",
-                            u"Own website sessions"));
-        }
+            main_bridge->HasOwnWebsiteSessions(workspace.id)
+                ? with_level(workspace.name, own_sessions_level)
+                : workspace.name);
         context_main_workspace_ids_.push_back(workspace.id);
       }
     } else {
@@ -322,10 +325,7 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
     context_menu_model_->AddItem(
         kOpenIsolatedWorkspaceCommandBase +
             static_cast<int>(context_isolated_workspace_dirs_.size()),
-        entry.name);
-    context_menu_model_->SetMinorText(
-        context_menu_model_->GetItemCount() - 1,
-        StructureText(u"Vollständig getrennt", u"Fully separated"));
+        with_level(entry.name, isolated_level));
     context_isolated_workspace_dirs_.push_back(entry.profile_dir);
   }
   if (!context_isolated_workspace_dirs_.empty() ||
