@@ -64,28 +64,7 @@ grep -c -- '--type=renderer' "$OUT/processes.tsv" > "$OUT/renderer-count.txt"
 # when their tab is selected: select each tab, then read all text.
 node "$S/cdp.mjs" $PORT process-internals Runtime.evaluate \
   '{"expression":"(async()=>{const all=[];const walk=r=>{for(const e of r.querySelectorAll(\"*\")){all.push(e);if(e.shadowRoot)walk(e.shadowRoot)}};walk(document);for(const t of all.filter(e=>e.getAttribute&&e.getAttribute(\"role\")===\"tab\")){t.click();await new Promise(r=>setTimeout(r,1500))}const text=[];const grab=r=>{for(const e of r.querySelectorAll(\"*\")){if(e.shadowRoot)grab(e.shadowRoot)}text.push(r.textContent||\"\")};grab(document);return text.join(\"\\n\")})()","returnByValue":true,"awaitPromise":true}' > "$OUT/process-internals.json"
-python3 - "$OUT/process-internals.json" "$OUT/results.txt" <<'PY'
-import json, sys
-text = json.load(open(sys.argv[1])).get("result", {}).get("value", "") or ""
-ok = "Site Per Process" in text or "site-per-process" in text.lower()
-open(sys.argv[2], "a").write(f"site_per_process {'PASS' if ok else 'FAIL'}\n")
-PY
-python3 - "$OUT/process-internals.json" "$SITE_PORT" "$OUT/results.txt" <<'PY'
-import json, re, sys
-text = json.load(open(sys.argv[1])).get("result", {}).get("value", "") or ""
-port = sys.argv[2]
-# process-internals lists frames with their process id: "... Process: <n> ... URL".
-def proc(host):
-    for line in text.splitlines():
-        if f"{host}:{port}" in line:
-            m = re.search(r"[Pp]rocess(?: ID)?[:=]?\s*(\d+)", line)
-            if m:
-                return m.group(1)
-    return None
-a, b = proc("127.0.0.1"), proc("localhost")
-state = "PASS" if a and b and a != b else ("NOT_MEASURED" if not (a and b) else "FAIL")
-open(sys.argv[3], "a").write(f"cross_site_separate_processes {state}\n")
-PY
+python3 "$S/process_internals_frames.py" "$OUT/process-internals.json" "$SITE_PORT" "$OUT/results.txt"
 python3 - "$OUT/results.txt" > "$OUT/results.json" <<'PY'
 import json, sys
 rows = dict(line.split() for line in open(sys.argv[1]) if line.strip())
