@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "base/strings/strcat.h"
+#include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 
 namespace ahoi::sidebar {
@@ -21,14 +22,25 @@ constexpr std::u16string_view kMarkdownAsciiPunctuation =
 std::u16string EscapeMarkdownLinkLabel(std::u16string_view title) {
   std::u16string escaped;
   escaped.reserve(title.size());
-  bool last_was_space = false;
+  bool pending_space = false;
   for (const char16_t character : title) {
-    if (character == u'\r' || character == u'\n' || character == u'\t') {
-      if (!escaped.empty() && !last_was_space) {
-        escaped.push_back(u' ');
-        last_was_space = true;
-      }
+    // Collapse every Unicode whitespace run (including line/paragraph
+    // separators and no-break spaces) to one ASCII space and drop leading and
+    // trailing runs, so a copied label always stays on one visible line.
+    if (base::IsUnicodeWhitespace(character)) {
+      pending_space = !escaped.empty();
       continue;
+    }
+    // Other C0/C1 controls and bidi embedding/override/isolate controls would
+    // make the rendered label differ from what the user saw; drop them.
+    if (character < 0x20 || (character >= 0x7f && character < 0xa0) ||
+        (character >= 0x202a && character <= 0x202e) ||
+        (character >= 0x2066 && character <= 0x2069)) {
+      continue;
+    }
+    if (pending_space) {
+      escaped.push_back(u' ');
+      pending_space = false;
     }
     // CommonMark permits a backslash to escape every ASCII punctuation
     // character. Escaping the complete set keeps an untrusted page title
@@ -39,7 +51,6 @@ std::u16string EscapeMarkdownLinkLabel(std::u16string_view title) {
       escaped.push_back(u'\\');
     }
     escaped.push_back(character);
-    last_was_space = character == u' ';
   }
   return escaped;
 }

@@ -45,6 +45,24 @@ TEST(SidebarLinkCopyTest, RejectsNonWebTargetsAndNormalizesTitleWhitespace) {
                                        PageLinkCopyFormat::kMarkdown));
 }
 
+TEST(SidebarLinkCopyTest, MarkdownLabelStaysOneVisibleLine) {
+  const GURL url("https://example.test/");
+  EXPECT_EQ(u"[Title](https://example.test/)",
+            BuildPageLinkClipboardText(url, u"  \n Title \t\r\n",
+                                       PageLinkCopyFormat::kMarkdown));
+  EXPECT_EQ(u"[One Two Three](https://example.test/)",
+            BuildPageLinkClipboardText(url, u"One\u2028Two\u00a0\u00a0Three",
+                                       PageLinkCopyFormat::kMarkdown));
+  // Bidi overrides and other controls cannot disguise the visible label.
+  EXPECT_EQ(u"[abcdef](https://example.test/)",
+            BuildPageLinkClipboardText(url, u"abc\u202edef\u0007",
+                                       PageLinkCopyFormat::kMarkdown));
+  // A whitespace-only title falls back to the host.
+  EXPECT_EQ(u"[example\\.test](https://example.test/)",
+            BuildPageLinkClipboardText(url, u" \u3000 ",
+                                       PageLinkCopyFormat::kMarkdown));
+}
+
 tab_tree::Workspace MakeWorkspace() {
   const base::Time now = base::Time::Now();
   return {.id = base::Uuid::GenerateRandomV4(),

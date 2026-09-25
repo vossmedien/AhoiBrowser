@@ -15,6 +15,7 @@
 #include "base/logging.h"
 #include "base/time/time.h"
 #include "chrome/app/chrome_command_ids.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
@@ -68,6 +69,11 @@ bool CopyActivePageLink(Browser* browser, PageLinkCopyFormat format) {
   }
   ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
   writer.WriteText(*text);
+  // Match Chromium's omnibox copy: a link copied from an off-the-record
+  // window must not enter local clipboard history or cloud clipboard sync.
+  if (browser->GetProfile() && browser->GetProfile()->IsOffTheRecord()) {
+    writer.MarkAsOffTheRecord();
+  }
   return true;
 }
 
