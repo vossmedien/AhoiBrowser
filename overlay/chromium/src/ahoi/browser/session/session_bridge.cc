@@ -598,18 +598,48 @@ std::string RuntimeStableId(std::string_view local_stable_key) {
 
 }  // namespace
 
+bool SessionBridge::ActivateTabInItsWorkspace(
+    tabs::TabInterface* tab,
+    WorkspaceActivationSource source,
+    bool user_gesture) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
+  auto browser = model ? model_windows_.find(model) : model_windows_.end();
+  if (!model || browser == model_windows_.end() ||
+      model->GetIndexOfTab(tab) == TabStripModel::kNoTab) {
+    return false;
+  }
+  const std::optional<base::Uuid> workspace = GetWorkspaceForTab(tab);
+  if (workspace.has_value() &&
+      workspace != GetActiveWorkspaceForWindow(browser->second) &&
+      !SetActiveWorkspaceForWindow(browser->second, *workspace, source)) {
+    return false;
+  }
+  // The Workspace switch may have activated that Workspace's last tab;
+  // re-resolve the index before selecting the requested one.
+  const int index = model->GetIndexOfTab(tab);
+  if (index == TabStripModel::kNoTab) {
+    return false;
+  }
+  model->ActivateTabAt(
+      index,
+      TabStripUserGestureDetails(
+          user_gesture ? TabStripUserGestureDetails::GestureType::kKeyboard
+                       : TabStripUserGestureDetails::GestureType::kNone));
+  return true;
+}
+
 bool SessionBridge::FocusNormalTabFromRemoteCommand(
     std::string_view local_stable_key) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   const std::string stable_id = RuntimeStableId(local_stable_key);
   tabs::TabInterface* tab = FindTabForOpenTabStableId(stable_id);
   TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
-  const int index =
-      model && tab ? model->GetIndexOfTab(tab) : TabStripModel::kNoTab;
-  if (index == TabStripModel::kNoTab) {
+  if (!ActivateTabInItsWorkspace(tab,
+                                 WorkspaceActivationSource::kDataReconciliation,
+                                 /*user_gesture=*/false)) {
     return false;
   }
-  model->ActivateTabAt(index);
   auto browser = model_windows_.find(model);
   if (browser != model_windows_.end() && browser->second->GetWindow()) {
     browser->second->GetWindow()->Activate();

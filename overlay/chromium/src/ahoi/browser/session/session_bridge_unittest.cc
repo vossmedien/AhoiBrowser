@@ -630,6 +630,41 @@ TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
   EXPECT_TRUE(command_service->Query(u"secret-qzx654", 10u).empty());
 }
 
+TEST_F(SessionBridgeTest, ActivateTabInItsWorkspaceSelectsWorkspaceFirst) {
+  tab_tree::Workspace primary = MakeWorkspace(u"Primary", "a");
+  tab_tree::Workspace secondary = MakeWorkspace(u"Secondary", "b");
+  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({secondary, primary}));
+  task_environment()->RunUntilIdle();
+
+  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
+      browser(), secondary.id, WorkspaceActivationSource::kKeyboard));
+  AddTab(browser(), GURL("https://example.test/secondary"));
+  task_environment()->RunUntilIdle();
+  TabStripModel* model = browser()->GetTabStripModel();
+  tabs::TabInterface* secondary_tab = model->GetActiveTab();
+  ASSERT_TRUE(secondary_tab);
+  ASSERT_EQ(bridge_->GetWorkspaceForTab(secondary_tab), secondary.id);
+
+  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
+      browser(), primary.id, WorkspaceActivationSource::kKeyboard));
+  AddTab(browser(), GURL("https://example.test/primary"));
+  task_environment()->RunUntilIdle();
+  ASSERT_NE(model->GetActiveTab(), secondary_tab);
+  ASSERT_EQ(bridge_->GetActiveWorkspaceForWindow(browser()), primary.id);
+
+  // Consistent right after the call: no posted reconciliation has run yet.
+  ASSERT_TRUE(bridge_->ActivateTabInItsWorkspace(
+      secondary_tab, WorkspaceActivationSource::kKeyboard,
+      /*user_gesture=*/true));
+  EXPECT_EQ(model->GetActiveTab(), secondary_tab);
+  EXPECT_EQ(bridge_->GetActiveWorkspaceForWindow(browser()), secondary.id);
+  EXPECT_EQ(bridge_->IsTabInActiveWorkspace(browser(), secondary_tab),
+            std::optional<bool>(true));
+
+  EXPECT_FALSE(bridge_->ActivateTabInItsWorkspace(
+      nullptr, WorkspaceActivationSource::kKeyboard, /*user_gesture=*/true));
+}
+
 TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
   ASSERT_EQ(1u, bridge_->tracked_window_count());
   const std::optional<base::Uuid> window_id = bridge_->GetWindowId(browser());

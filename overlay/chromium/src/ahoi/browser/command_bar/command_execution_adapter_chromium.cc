@@ -129,17 +129,16 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       if (bridge) {
         tabs::TabInterface* tab =
             bridge->FindTabForOpenTabStableId(item.stable_id);
-        TabStripModel* model = bridge->FindTabStripModelForTab(tab);
-        if (tab && model) {
-          const int index = model->GetIndexOfTab(tab);
-          BrowserWindowInterface* window = tab->GetBrowserWindowInterface();
-          if (index >= 0 && window && window->GetWindow()) {
-            model->ActivateTabAt(
-                index, TabStripUserGestureDetails(
-                           TabStripUserGestureDetails::GestureType::kKeyboard));
-            window->GetWindow()->Activate();
-            return true;
-          }
+        BrowserWindowInterface* window =
+            tab ? tab->GetBrowserWindowInterface() : nullptr;
+        // Handoff 011 S5: the tab's Workspace is selected before the tab, so
+        // the command bar never leaves the active tab hidden.
+        if (window && window->GetWindow() &&
+            bridge->ActivateTabInItsWorkspace(
+                tab, WorkspaceActivationSource::kKeyboard,
+                /*user_gesture=*/true)) {
+          window->GetWindow()->Activate();
+          return true;
         }
       }
     }

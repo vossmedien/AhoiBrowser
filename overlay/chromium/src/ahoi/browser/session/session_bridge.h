@@ -227,6 +227,14 @@ class SessionBridge : public KeyedService,
   bool SetActiveWorkspaceForWindow(BrowserWindowInterface* browser,
                                    const base::Uuid& workspace_id,
                                    WorkspaceActivationSource source);
+  // Single writer (docs/ARCHITECTURE.md, handoff 011 S5): selects `tab`'s
+  // Workspace in its window first and only then activates the tab, so an
+  // Ahoi caller never leaves the active tab hidden in another Workspace for
+  // the delayed sidebar reconciliation to repair. Returns false for an
+  // untracked tab or when the Workspace switch is refused.
+  [[nodiscard]] bool ActivateTabInItsWorkspace(tabs::TabInterface* tab,
+                                               WorkspaceActivationSource source,
+                                               bool user_gesture);
   std::optional<base::Uuid> ActivateRelativeWorkspaceForWindow(
       BrowserWindowInterface* browser,
       int delta,
