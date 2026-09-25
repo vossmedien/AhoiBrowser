@@ -632,7 +632,7 @@ TEST_F(SessionBridgeTest, BindingFollowsDiscardAndNativeWindowMove) {
       content::WebContentsTester::CreateTestWebContents(profile(), nullptr);
   content::WebContents* replacement_ptr = replacement.get();
   std::unique_ptr<content::WebContents> discarded =
-      first_model->DiscardWebContentsAt(0, std::move(replacement));
+      first_model->DiscardWebContents(old_contents, std::move(replacement));
   ASSERT_EQ(old_contents, discarded.get());
   EXPECT_EQ(nullptr, bridge_->FindTabByWebContents(old_contents));
   EXPECT_EQ(tab, bridge_->FindTabByWebContents(replacement_ptr));
