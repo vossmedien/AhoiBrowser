@@ -34,6 +34,7 @@
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/i18n/case_conversion.h"
+#include "base/logging.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/pickle.h"
@@ -137,12 +138,14 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
   CHECK(action != PendingWorkspaceAction::kNone);
   CHECK_EQ(action != PendingWorkspaceAction::kCreate, workspace_id.has_value());
   if (workspace_dialog_widget_ || group_dialog_widget_) {
+    LOG(WARNING) << "Ahoi Workspace dialog not shown: another dialog is open";
     return;
   }
 
   const tab_tree::Workspace* existing =
       workspace_id.has_value() ? FindWorkspace(*workspace_id) : nullptr;
   if (action != PendingWorkspaceAction::kCreate && !existing) {
+    LOG(WARNING) << "Ahoi Workspace dialog not shown: Workspace not listed";
     return;
   }
   pending_workspace_action_ = action;
@@ -253,6 +256,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
 
   views::View* const modal_anchor = modal_overlay_controller_->center_anchor();
   if (!modal_anchor || !modal_anchor->GetWidget()) {
+    LOG(WARNING) << "Ahoi Workspace dialog not shown: no modal anchor";
     OnWorkspaceDialogClosed();
     return;
   }

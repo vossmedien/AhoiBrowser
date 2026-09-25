@@ -32,6 +32,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
 #include "ahoi/browser/ui/visual_style.h"
+#include "base/logging.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
@@ -335,6 +336,9 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     if (command_id == kEditWorkspace && active_workspace_id.has_value()) {
       ShowWorkspaceDialog(PendingWorkspaceAction::kEdit, *active_workspace_id);
       return;
+    }
+    if (command_id == kDeleteWorkspace && !active_workspace_id.has_value()) {
+      LOG(WARNING) << "Ahoi cannot delete: the sidebar shows no Workspace";
     }
     if (command_id == kDeleteWorkspace && active_workspace_id.has_value()) {
       ShowWorkspaceDialog(PendingWorkspaceAction::kDelete,
