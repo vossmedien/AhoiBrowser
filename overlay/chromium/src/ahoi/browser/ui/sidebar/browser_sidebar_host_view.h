@@ -67,6 +67,7 @@
 #include "url/gurl.h"
 
 class Browser;
+class Profile;
 class SessionID;
 class TabStripModel;
 
@@ -247,6 +248,14 @@ class BrowserSidebarHostView final
   // tabs from another workspace, so an empty Ahoi workspace must explicitly
   // cover that stale global selection instead of showing it in the page area.
   void EnsureWorkspaceSurface();
+
+  // Handoff 011 S4: SessionRestore creates the window, applies its Workspace
+  // and only then inserts the tabs with theirs. Aligning the surface in
+  // between activates the wrong tab or leaves the empty state visible, so it
+  // waits for the restore-finished notification and runs once afterwards.
+  bool DeferWorkspaceSurfaceDuringRestore();
+  void OnSessionRestored(Profile* profile, int num_tabs);
+  void ReconcileWorkspaceSurfaceAfterRestore();
 
   void SynchronizeSelection();
 
@@ -797,6 +806,8 @@ class BrowserSidebarHostView final
   SidebarRuntimeRefreshGate runtime_refresh_gate_;
   uint64_t runtime_refresh_generation_ = 0;
   uint64_t workspace_surface_generation_ = 0;
+  base::CallbackListSubscription session_restored_subscription_;
+  bool session_restore_notified_ = false;
   bool runtime_auxiliary_prime_scheduled_ = false;
   bool runtime_auxiliary_ready_ = false;
   // Split ratio notifications are synchronous. Suppressing the ordinary

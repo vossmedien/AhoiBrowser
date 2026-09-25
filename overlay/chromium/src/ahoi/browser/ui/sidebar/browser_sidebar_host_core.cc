@@ -59,6 +59,7 @@
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/sessions/session_restore.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -294,6 +295,7 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   group_recent_delegate_.reset();
   session_presentation_subscription_ = {};
   shared_tab_capture_subscription_ = {};
+  session_restored_subscription_ = {};
   if (profile_sync_service_ && profile_sync_ui_attached_) {
     if (window_id_.has_value()) {
       profile_sync_service_->RemoveWindowTabs(window_id_->AsLowercaseString());
@@ -456,7 +458,7 @@ tabs::TabInterface* BrowserSidebarHostView::FindRuntimeTab(
 
 void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
     const base::Uuid& workspace_id) {
-  if (!tab_strip_model_) {
+  if (!tab_strip_model_ || DeferWorkspaceSurfaceDuringRestore()) {
     return;
   }
   tabs::TabInterface* active_tab = tab_strip_model_->GetActiveTab();
@@ -544,7 +546,8 @@ void BrowserSidebarHostView::ReconcileWorkspaceSurface(
     uint64_t generation,
     bool follow_selected_tab) {
   if (generation != workspace_surface_generation_ || !tab_strip_model_ ||
-      !browser_ || browser_->IsWindowCloseRequested()) {
+      !browser_ || browser_->IsWindowCloseRequested() ||
+      DeferWorkspaceSurfaceDuringRestore()) {
     return;
   }
   if (follow_selected_tab) {
@@ -561,6 +564,43 @@ void BrowserSidebarHostView::ReconcileWorkspaceSurface(
     }
   }
   EnsureWorkspaceSurface();
+}
+
+bool BrowserSidebarHostView::DeferWorkspaceSurfaceDuringRestore() {
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
+  if (!profile || session_restore_notified_ ||
+      !SessionRestore::IsRestoring(profile)) {
+    return false;
+  }
+  if (!session_restored_subscription_) {
+    session_restored_subscription_ =
+        SessionRestore::RegisterOnSessionRestoredCallback(base::BindRepeating(
+            &BrowserSidebarHostView::OnSessionRestored,
+            weak_ptr_factory_.GetWeakPtr()));
+  }
+  return true;
+}
+
+void BrowserSidebarHostView::OnSessionRestored(Profile* profile, int) {
+  if (!browser_ || profile != browser_->GetProfile()) {
+    return;
+  }
+  // SessionRestore notifies while it is still registered as restoring; the
+  // reconciliation runs after its stack has unwound.
+  session_restore_notified_ = true;
+  session_restored_subscription_ = {};
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE,
+      base::BindOnce(
+          &BrowserSidebarHostView::ReconcileWorkspaceSurfaceAfterRestore,
+          weak_ptr_factory_.GetWeakPtr()));
+}
+
+void BrowserSidebarHostView::ReconcileWorkspaceSurfaceAfterRestore() {
+  // The window's restored Workspace wins; the selected tab does not pull the
+  // window into another Workspace.
+  ReconcileWorkspaceSurface(workspace_surface_generation_,
+                            /*follow_selected_tab=*/false);
 }
 
 void BrowserSidebarHostView::SynchronizeSelection() {

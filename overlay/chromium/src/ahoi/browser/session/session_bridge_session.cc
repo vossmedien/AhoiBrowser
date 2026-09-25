@@ -246,16 +246,19 @@ void SessionBridge::ApplyPendingSessionMetadata() {
   std::vector<PendingTabSessionMetadata> pending_tabs;
   pending_windows.swap(pending_window_session_metadata_);
   pending_tabs.swap(pending_tab_session_metadata_);
-  for (const PendingWindowSessionMetadata& pending : pending_windows) {
-    if (pending.browser) {
-      std::ignore = ApplyWindowSessionMetadataNow(pending.browser.get(),
-                                                  pending.metadata);
-    }
-  }
+  // Handoff 011 S4: tabs first. Switching a window's Workspace makes the
+  // sidebar align its surface; by then every restored tab must already carry
+  // its own Workspace and last-active flag.
   for (const PendingTabSessionMetadata& pending : pending_tabs) {
     if (pending.tab) {
       std::ignore =
           ApplyTabSessionMetadataNow(pending.tab.get(), pending.metadata);
+    }
+  }
+  for (const PendingWindowSessionMetadata& pending : pending_windows) {
+    if (pending.browser) {
+      std::ignore = ApplyWindowSessionMetadataNow(pending.browser.get(),
+                                                  pending.metadata);
     }
   }
 }
