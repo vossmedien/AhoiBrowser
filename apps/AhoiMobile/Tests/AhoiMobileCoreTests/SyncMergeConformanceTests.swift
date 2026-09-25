@@ -60,11 +60,26 @@ final class SyncMergeConformanceTests: XCTestCase {
         return url.appendingPathComponent("fixtures/sync-conformance/merge_v3.json")
     }
 
+    /// A deleted payload arrives with envelope tombstone metadata, which the
+    /// codec requires to match the payload clock; the vectors carry payloads
+    /// only, so the runner supplies the metadata a sender would attach.
     private func envelope(_ vector: Vector, _ payload: JSONValue) throws -> SyncRecord {
-        try UnifiedSyncFixture.envelope(UnifiedSyncFixture.Sample(
+        let record = try UnifiedSyncFixture.envelope(UnifiedSyncFixture.Sample(
             name: vector.name, entity_type: vector.entityType,
             data_class: vector.dataClass,
             payload: String(decoding: payload.data, as: UTF8.self)))
+        let object = try JSONSerialization.jsonObject(with: payload.data) as? [String: Any]
+        guard object?["tombstone"] as? Bool == true else { return record }
+        return SyncRecord(
+            recordID: record.recordID, entityID: record.entityID,
+            schemaVersion: record.schemaVersion, dataClass: record.dataClass,
+            modifiedAt: record.modifiedAt, originatingDevice: record.originatingDevice,
+            orderKey: record.orderKey, encryptedValue: record.encryptedValue,
+            tombstone: Tombstone(
+                entityID: record.entityID, deletedAt: record.modifiedAt,
+                deletedBy: record.originatingDevice, originalParentID: nil,
+                originalOrderKey: nil,
+                purgeAfterMilliseconds: record.modifiedAt.physicalMilliseconds + 2_592_000_000))
     }
 
     private func devices() throws -> [DeviceID: Device] {
@@ -117,6 +132,58 @@ final class SyncMergeConformanceTests: XCTestCase {
         }
     }
 
+    /// Flattens a model into sorted `path = value` leaves so a mismatch names
+    /// the differing fields instead of printing two unordered dumps.
+    private static func flatten(_ value: Any, path: String = "") -> [String: String] {
+        let mirror = Mirror(reflecting: value)
+        if mirror.displayStyle == .optional {
+            guard let child = mirror.children.first else { return [path: "nil"] }
+            return flatten(child.value, path: path)
+        }
+        if mirror.displayStyle == .dictionary {
+            var result: [String: String] = [:]
+            for pair in mirror.children {
+                let entry = Array(Mirror(reflecting: pair.value).children)
+                guard entry.count == 2 else { continue }
+                result.merge(flatten(entry[1].value, path: "\(path)[\(entry[0].value)]")) { a, _ in a }
+            }
+            return result.isEmpty ? [path: "[:]"] : result
+        }
+        if type(of: value) == AnyHashable.self, let erased = value as? AnyHashable {
+            return flatten(erased.base, path: path)
+        }
+        guard !mirror.children.isEmpty,
+              mirror.displayStyle == .struct || mirror.displayStyle == .class ||
+              mirror.displayStyle == .enum || mirror.displayStyle == .tuple ||
+              mirror.displayStyle == .collection || mirror.displayStyle == .set else {
+            return [path: String(describing: value)]
+        }
+        var result: [String: String] = [:]
+        for (index, child) in mirror.children.enumerated() {
+            let key = mirror.displayStyle == .set ? "\(child.value)" : (child.label ?? "\(index)")
+            result.merge(flatten(child.value, path: path.isEmpty ? key : "\(path).\(key)")) { a, _ in a }
+        }
+        return result
+    }
+
+    /// Leaves that are not part of the wire payload and therefore not pinned
+    /// by the vectors: envelope tombstone metadata (the runner synthesizes it
+    /// from the payload clock, so the expected side always carries the merged
+    /// record clock) and the local `OrderKey` tie-breaker the codec derives
+    /// from the opaque `sort_key`, whose wire bytes stay in `wireSortKey`.
+    private static let receiverLocalPrefixes = [
+        "tombstone.deletedAt", "tombstone.deletedBy", "tombstone.purgeAfterMilliseconds",
+    ]
+
+    private static func wireFields(_ value: Any) -> [String: String] {
+        let leaves = flatten(value)
+        let opaqueSortKey = leaves["wireSortKey"].map { $0 != "nil" } ?? false
+        return leaves.filter { key, _ in
+            !receiverLocalPrefixes.contains { key.hasPrefix($0) } &&
+                !(opaqueSortKey && key.hasPrefix("orderKey.tieBreaker"))
+        }
+    }
+
     func testSharedMergeVectors() throws {
         let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL()))
         XCTAssertEqual(document.schemaVersion, 1)
@@ -129,7 +196,11 @@ final class SyncMergeConformanceTests: XCTestCase {
                 if vector.expect.decision == "invalid" {
                     XCTFail("\(vector.name): expected rejection, Swift merged \(merged)")
                 } else {
-                    XCTAssertEqual(merged, want, vector.name)
+                    let diff = Self.wireFields(merged).symmetricDifferenceDescription(
+                        Self.wireFields(want as Any))
+                    if !diff.isEmpty {
+                        XCTFail("\(vector.name): merged differs from expectation: \(diff)")
+                    }
                 }
             } catch let skip as XCTSkip {
                 throw skip
@@ -148,5 +219,13 @@ final class SyncMergeConformanceTests: XCTestCase {
         let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL()))
         let present = Set(document.cases.map(\.entityType))
         XCTAssertEqual(present.subtracting(Self.covered), [6, 7, 8])
+    }
+}
+
+private extension Dictionary where Key == String, Value == String {
+    func symmetricDifferenceDescription(_ other: [String: String]) -> String {
+        Set(keys).union(other.keys).sorted().compactMap { key in
+            self[key] == other[key] ? nil : "\(key): swift=\(self[key] ?? "-") expected=\(other[key] ?? "-")"
+        }.joined(separator: "; ")
     }
 }
