@@ -15,8 +15,18 @@ merges them per field. iOS must not overwrite those records whole, because a
 concurrent Mac edit of another field group would be lost. Queued package:
 port `MergeRecordFields` semantics for entities 6–8 to the Companion and add
 them to the Swift conformance runner (`covered`), then drop them from
-`testUncoveredEntitiesAreExplicit`. Until then the DoD sync-convergence item
-stays open for these three entities.
+`testUncoveredEntitiesAreExplicit`.
+
+Done in source and simulator unit tests (`CompanionProductFieldMerge`):
+appearance and permitted settings merge per field group in the store and the
+import batch; remote-command state merges on apply, keeps terminal status and
+never regresses; equal-clock conflicts are quarantined at decode. The Swift
+runner now covers entities 1, 2, 5, 6, 7, 8 and 14; all 6–8 vectors pass
+except the invalid generator inputs listed in the handoff. Full
+`AhoiMobileCoreTests`: 276 tests, the same 38 failing cases before and after
+(pre-existing, unrelated; 4 of them in `CompanionConvergenceTests`). Swift has
+no remote-command tombstone; a deleted command is rejected at decode. A real
+Mac↔iOS round trip for these entities stays owner-gated (sync peers).
 
 ## Current installed pair — 23 September 2026
 

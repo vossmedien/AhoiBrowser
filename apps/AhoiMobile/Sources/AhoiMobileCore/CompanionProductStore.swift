@@ -9,10 +9,8 @@ extension LocalFirstRepository {
         await acquireMutation()
         defer { releaseMutation() }
         try await loadIfNeeded()
-        let result = try selectRecord(
-            snapshot.productRecords.appearance.first { $0.id == incoming.id },
-            incoming
-        )
+        let result = try snapshot.productRecords.appearance.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
         snapshot.productRecords.appearance.replace(result) { $0.id == incoming.id }
         try await persist()
         return result
@@ -25,10 +23,8 @@ extension LocalFirstRepository {
         await acquireMutation()
         defer { releaseMutation() }
         try await loadIfNeeded()
-        let result = try selectRecord(
-            snapshot.productRecords.permittedSettings.first { $0.id == incoming.id },
-            incoming
-        )
+        let result = try snapshot.productRecords.permittedSettings.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
         snapshot.productRecords.permittedSettings.replace(result) { $0.id == incoming.id }
         try await persist()
         return result

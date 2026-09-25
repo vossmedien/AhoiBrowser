@@ -273,7 +273,12 @@ public actor CompanionSyncBridge {
         )
         for commandImport in remoteCommandImports {
             let state = commandImport.state
-            if commandStates[state.id].map({ $0.version < state.version }) ?? true {
+            if let existing = commandStates[state.id] {
+                // Status never regresses and stays terminal once reached.
+                if let merged = try? CompanionProductFieldMerge.merge(existing, state) {
+                    commandStates[state.id] = merged
+                }
+            } else {
                 commandStates[state.id] = state
             }
         }
@@ -540,8 +545,12 @@ public actor CompanionSyncBridge {
                 return .ignored
             }
             try validateLocallyOwnedRemoteCommand(value)
-            if let existing = commandStates[value.id], existing.envelope != value.envelope {
-                throw CompanionSyncBridgeError.envelopeMismatch
+            if let existing = commandStates[value.id] {
+                guard existing.envelope == value.envelope else {
+                    throw CompanionSyncBridgeError.envelopeMismatch
+                }
+                // Rejects equal-clock conflicts before the page is applied.
+                _ = try CompanionProductFieldMerge.merge(existing, value)
             }
             return .remoteCommand(value)
         case .appearance:

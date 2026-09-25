@@ -236,12 +236,11 @@ extension LocalFirstRepository {
                     accepted = .history(merged)
                     shouldReenqueue = merged != incoming
                 case .appearance(let incoming):
-                    let merged = try selectRecord(
-                        appearanceIndexes[incoming.id].map {
-                            working.productRecords.appearance[$0]
-                        },
-                        incoming
-                    )
+                    let merged = try appearanceIndexes[incoming.id].map {
+                        try CompanionProductFieldMerge.merge(
+                            working.productRecords.appearance[$0], incoming
+                        )
+                    } ?? incoming
                     if let index = appearanceIndexes[incoming.id] {
                         working.productRecords.appearance[index] = merged
                     } else {
@@ -249,14 +248,13 @@ extension LocalFirstRepository {
                         working.productRecords.appearance.append(merged)
                     }
                     accepted = .appearance(merged)
-                    shouldReenqueue = merged.version > incoming.version
+                    shouldReenqueue = merged != incoming
                 case .permittedSetting(let incoming):
-                    let merged = try selectRecord(
-                        settingIndexes[incoming.id].map {
-                            working.productRecords.permittedSettings[$0]
-                        },
-                        incoming
-                    )
+                    let merged = try settingIndexes[incoming.id].map {
+                        try CompanionProductFieldMerge.merge(
+                            working.productRecords.permittedSettings[$0], incoming
+                        )
+                    } ?? incoming
                     if let index = settingIndexes[incoming.id] {
                         working.productRecords.permittedSettings[index] = merged
                     } else {
@@ -267,7 +265,7 @@ extension LocalFirstRepository {
                     accepted = .permittedSetting(merged)
                     // Preserve unknown desktop metadata without turning a
                     // field merge into permission to publish opaque values.
-                    shouldReenqueue = merged.version > incoming.version &&
+                    shouldReenqueue = merged != incoming &&
                         CompanionBrowserSettingCatalog.isPortable(merged)
                 case .extensionInventory(let incoming):
                     let merged = try selectRecord(

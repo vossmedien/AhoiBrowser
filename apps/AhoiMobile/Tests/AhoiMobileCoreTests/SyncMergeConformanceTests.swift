@@ -51,7 +51,7 @@ final class SyncMergeConformanceTests: XCTestCase {
         }
     }
 
-    private static let covered: Set<Int> = [1, 2, 5, 14]
+    private static let covered: Set<Int> = [1, 2, 5, 6, 7, 8, 14]
 
     private func vectorsURL() -> URL {
         // Tests run on the Mac host, so the repository file is readable directly.
@@ -95,7 +95,7 @@ final class SyncMergeConformanceTests: XCTestCase {
     }
 
     /// Returns the merged model and the decoded expectation, both type-erased.
-    private func run(_ vector: Vector, merged expected: JSONValue?) throws -> (AnyHashable, AnyHashable?) {
+    private func run(_ vector: Vector, merged expected: JSONValue?) throws -> (Any, Any?) {
         let codec = DesktopWirePayloadCodec()
         let old = try envelope(vector, vector.existing)
         let new = try envelope(vector, vector.incoming)
@@ -127,6 +127,24 @@ final class SyncMergeConformanceTests: XCTestCase {
                 try codec.decodeArchiveEntry(new, plaintext: vector.incoming.data))
             let want = try expected.map { try codec.decodeArchiveEntry(try envelope(vector, $0), plaintext: $0.data) }
             return (result, want)
+        case 6:
+            let result = try CompanionProductFieldMerge.merge(
+                try codec.decodeRemoteCommand(old, plaintext: vector.existing.data),
+                try codec.decodeRemoteCommand(new, plaintext: vector.incoming.data))
+            let want = try expected.map { try codec.decodeRemoteCommand(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want)
+        case 7:
+            let result = try CompanionProductFieldMerge.merge(
+                try codec.decodeAppearance(old, plaintext: vector.existing.data),
+                try codec.decodeAppearance(new, plaintext: vector.incoming.data))
+            let want = try expected.map { try codec.decodeAppearance(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want)
+        case 8:
+            let result = try CompanionProductFieldMerge.merge(
+                try codec.decodePermittedSetting(old, plaintext: vector.existing.data),
+                try codec.decodePermittedSetting(new, plaintext: vector.incoming.data))
+            let want = try expected.map { try codec.decodePermittedSetting(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want)
         default:
             throw XCTSkip("entity \(vector.entityType) has no Companion field merge")
         }
@@ -140,6 +158,8 @@ final class SyncMergeConformanceTests: XCTestCase {
             guard let child = mirror.children.first else { return [path: "nil"] }
             return flatten(child.value, path: path)
         }
+        // Data reflects its storage pointer; compare its bytes instead.
+        if let data = value as? Data { return [path: data.base64EncodedString()] }
         if mirror.displayStyle == .dictionary {
             var result: [String: String] = [:]
             for pair in mirror.children {
@@ -213,12 +233,12 @@ final class SyncMergeConformanceTests: XCTestCase {
         XCTAssertGreaterThan(executed, 0)
     }
 
-    /// Records which contract entities still lack a Companion field merge, so
-    /// adding one without joining the conformance run fails loudly.
-    func testUncoveredEntitiesAreExplicit() throws {
+    /// Every contract entity with shared vectors has a Companion field merge
+    /// in the conformance run, so a new entity without one fails loudly.
+    func testEveryVectorEntityIsCovered() throws {
         let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL()))
         let present = Set(document.cases.map(\.entityType))
-        XCTAssertEqual(present.subtracting(Self.covered), [6, 7, 8])
+        XCTAssertEqual(present.subtracting(Self.covered), [])
     }
 }
 
