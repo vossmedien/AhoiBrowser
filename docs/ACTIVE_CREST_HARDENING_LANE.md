@@ -36,8 +36,9 @@ This lane never builds, installs, refreshes the overlay, writes under
 - Pre-existing red test reported in 005: `test_lean_chromium.py` fails at
   `f811604` because `75e20c1` appended `enable_ahoi_ubo_classic` after the
   lean delta and changed the pinned full profiles.
-- Next: H6 WS-ISO catalogue; H1 conformance vectors/generator/drift gate;
-  H2 audit.
+- H6: acceptance catalogue WS-ISO-01..13 handed off as 007 (Master matrix
+  lines + registry entries; both files hold uncommitted desktop work).
+- Next: H1 conformance vectors/generator/drift gate; H2 audit.
 
 ## Packages
 
@@ -48,7 +49,7 @@ This lane never builds, installs, refreshes the overlay, writes under
 | H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) integrated | `d425c3b` |
 | H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) integrated | `2ab7909` |
 | H5 Crest reference / network silence | review `docs/reviews/crest-hardening-2026-09-25-crest-chromium-reference.md` and `docs/NETWORK_SILENCE_CHECKLIST.md` done; remaining DoD: GCM fix integrated and fresh-profile audit on the candidate | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [004](../handoffs/crest-hardening/004-gcm-policy-invalidations/HANDOFF.md), [005](../handoffs/crest-hardening/005-fieldtrial-testing-config/HANDOFF.md), [006](../handoffs/crest-hardening/006-batch-before-unload/HANDOFF.md) ready | – |
-| H6 Isolated Workspaces (contract) | analysis and ADR 0011 accepted; deletion defect handed off (003); WS-ISO catalogue next | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md) ready | – |
+| H6 Isolated Workspaces (contract) | analysis, ADR 0011, deletion defect and WS-ISO-01..13 catalogue handed off; remaining DoD: review of each desktop implementation step | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [007](../handoffs/crest-hardening/007-ws-iso-acceptance/HANDOFF.md) ready | – |
 
 ## Lease requests
 
