@@ -16,12 +16,12 @@ if [ "$(idle_seconds)" -lt "${AHOI_E2E_MIN_IDLE:-300}" ]; then
   echo "owner active (idle $(idle_seconds)s); refusing to drive the desktop" >&2; exit 7
 fi
 if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $PORT busy" >&2; exit 6; fi
-mkdir -p $OUT; P=$(mktemp -d /private/tmp/ahoi-auth-profile.XXXXXX); : > $OUT/steps.txt; : > $OUT/results.txt
-python3 "$S/basic_auth_fixture.py" --port $A --second-port $B2 > $OUT/fixture.log 2>&1 &
+mkdir -p "$OUT"; P=$(mktemp -d /private/tmp/ahoi-auth-profile.XXXXXX); : > "$OUT/steps.txt"; : > "$OUT/results.txt"
+python3 "$S/basic_auth_fixture.py" --port $A --second-port $B2 > "$OUT/fixture.log" 2>&1 &
 FIX=$!; trap 'kill $FIX 2>/dev/null' EXIT; sleep 1
 "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
-  --remote-debugging-port=$PORT about:blank > $OUT/browser.log 2>&1 &
-PID=$!; echo "pid=$PID profile=$P" > $OUT/run.txt
+  --remote-debugging-port=$PORT about:blank > "$OUT/browser.log" 2>&1 &
+PID=$!; echo "pid=$PID profile=$P" > "$OUT/run.txt"
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 4
 
@@ -46,10 +46,10 @@ waitax() { local end=$(( $(date +%s) + $2 ))
   while [ $(date +%s) -lt $end ]; do $AX dump $PID 40 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waittitle() { local end=$(( $(date +%s) + $2 ))
   while [ $(date +%s) -lt $end ]; do title | grep -q "$1" && return 0; sleep 1; done; return 1; }
-record() { echo "$1 $2" >> $OUT/results.txt; echo "== $1 $2" >> $OUT/steps.txt; }
-store() { cp "$P/Default/Login Data" $OUT/.ld.db 2>/dev/null || { echo ""; return; }
-  sqlite3 $OUT/.ld.db "select signon_realm||'|'||username_value from logins where scheme=1 order by 1;" | tr '\n' ' '
-  rm -f $OUT/.ld.db; }
+record() { echo "$1 $2" >> "$OUT/results.txt"; echo "== $1 $2" >> "$OUT/steps.txt"; }
+store() { cp "$P/Default/Login Data" "$OUT/.ld.db" 2>/dev/null || { echo ""; return; }
+  sqlite3 "$OUT/.ld.db" "select signon_realm||'|'||username_value from logins where scheme=1 order by 1;" | tr '\n' ' '
+  rm -f "$OUT/.ld.db"; }
 cmdbar() { local ok=1
   for i in 1 2 3; do ax activate $PID; sleep 1; ax key $PID 17 cmd
     waitax "AXWindow \| Suchen oder URL eingeben" 6 && { ok=0; break; }; done; return $ok; }
@@ -57,12 +57,12 @@ closed_cmdbar() { local end=$(( $(date +%s) + 10 ))
   while [ $(date +%s) -lt $end ]; do $AX dump $PID 3 | grep -q 'Suchen oder URL eingeben' || return 0; sleep 1; done
   return 1; }
 goto() { cmdbar || return 1; ax key $PID 0 cmd; ax type $PID "$1"; sleep 1; ax key $PID 36
-  closed_cmdbar || echo "-- command bar still open after Return" >> $OUT/steps.txt; }
+  closed_cmdbar || echo "-- command bar still open after Return" >> "$OUT/steps.txt"; }
 # A challenge the harness disturbed shows only the 401 page; one explicit reload
 # re-issues it. Every use is recorded so a product-side cancel stays visible.
 challenge() { dialog "${1:-30}" && return 0
   title | grep -q "Ahoi auth required" || return 1
-  echo "-- reload to re-issue challenge" >> $OUT/steps.txt; echo reload >> $OUT/reloads.txt
+  echo "-- reload to re-issue challenge" >> "$OUT/steps.txt"; echo reload >> "$OUT/reloads.txt"
   ax activate $PID; ax key $PID 15 cmd; dialog 20; }
 # HTTP-auth commands appear in this order below the "HTTP" query; the first is
 # preselected. A full-text query would instead preselect the web search row.
@@ -73,7 +73,7 @@ command() { local idx
   for i in $(seq 1 $idx); do ax key $PID 125; sleep 0.3; done
   ax key $PID 36; }
 dialog() { waitax "AXHeading \| Anmelden" "${1:-20}" && return 0
-  { echo "-- dialog timeout; windows and page:"; $AX dump $PID 3 | grep AXWindow; title; } >> $OUT/steps.txt
+  { echo "-- dialog timeout; windows and page:"; $AX dump $PID 3 | grep AXWindow; title; } >> "$OUT/steps.txt"
   return 1; }
 login() { # <user> <password> <save-option-label or ''>
   ax focus $PID "AXTextField:Nutzername"; ax key $PID 0 cmd; ax type $PID "$1"
@@ -134,11 +134,11 @@ waittitle "auth:bob@Ahoi Realm A:$A" 15
 command forget; sleep 4
 [ -z "$(store)" ] && record forget_realm PASS || record forget_realm "FAIL:$(store)"
 # 9 No password or Basic token in logs.
-if grep -a -q -E 'alice-pass|bob-pass|YWxpY2U6|Ym9iOm' $OUT/browser.log $OUT/fixture.log; then
+if grep -a -q -E 'alice-pass|bob-pass|YWxpY2U6|Ym9iOm' "$OUT/browser.log" "$OUT/fixture.log"; then
   record no_secret_in_logs FAIL; else record no_secret_in_logs PASS; fi
 
 ax key $PID 12 cmd; sleep 5
-python3 - $OUT/results.txt > $OUT/results.json <<'PY'
+python3 - "$OUT/results.txt" > "$OUT/results.json" <<'PY'
 import json,sys
 rows=[l.split(" ",1) for l in open(sys.argv[1]).read().splitlines() if l]
 res={k:v for k,v in rows}
@@ -146,4 +146,4 @@ import os
 reloads=sum(1 for _ in open(os.path.join(os.path.dirname(sys.argv[1]),"reloads.txt"))) if os.path.exists(os.path.join(os.path.dirname(sys.argv[1]),"reloads.txt")) else 0
 print(json.dumps({"pass":all(v=="PASS" for v in res.values()) and len(res)>=16,"harnessReloads":reloads,"steps":res},indent=1))
 PY
-cat $OUT/results.json
+cat "$OUT/results.json"
