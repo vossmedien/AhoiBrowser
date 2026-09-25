@@ -195,6 +195,32 @@ case "focused":
 case "activate":
     let r = AXUIElementSetAttributeValue(app, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
     print("frontmost -> \(r.rawValue)")
+case "hidrightclick":
+    // Like a real mouse: through the HID event tap (Chromium views ignore
+    // mouse events posted to the process). Refuses unless the target app is
+    // frontmost, so it can never click into another app.
+    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
+        print("hidrightclick refused: target not frontmost"); exit(3)
+    }
+    var hfound: AXUIElement?
+    _ = walk(app, 0, 30) { e, _ in
+        if matches(e, args[3]) { hfound = e; return true }
+        return false
+    }
+    guard let hf = hfound, let hpv = attr(hf, kAXPositionAttribute), let hsv = attr(hf, kAXSizeAttribute) else {
+        print("NOT FOUND"); exit(1)
+    }
+    var hpos = CGPoint.zero, hsize = CGSize.zero
+    AXValueGetValue(hpv as! AXValue, .cgPoint, &hpos)
+    AXValueGetValue(hsv as! AXValue, .cgSize, &hsize)
+    let hc = CGPoint(x: hpos.x + hsize.width / 2, y: hpos.y + hsize.height / 2)
+    for t: CGEventType in [.mouseMoved, .rightMouseDown, .rightMouseUp] {
+        let ev = CGEvent(mouseEventSource: nil, mouseType: t, mouseCursorPosition: hc,
+                         mouseButton: .right)!
+        ev.post(tap: .cghidEventTap)
+        usleep(80000)
+    }
+    print("hidrightclicked \(label(hf)) at \(hc)")
 case "click", "rightclick":
     let needle = args[3]
     var found: AXUIElement?

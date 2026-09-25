@@ -81,8 +81,12 @@ ROW=$(grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Ahoi split left[^|]*' 
 echo "row: $ROW" >> "$OUT/steps.txt"
 NAME=${ROW#*| }; ROLE=${ROW%% |*}
 # Open-tab rows are radio buttons without AXShowMenu (build 32 returned
-# -25204); a real right-click opens the row's context menu.
-ax activate $PID; sleep 1; ax rightclick $PID "$ROLE:$NAME"
+# -25204), and clicks posted to the process do not reach views; a real
+# right-click through the HID tap opens the row's context menu.
+for attempt in 1 2 3; do
+  ax activate $PID; sleep 1
+  "$AX" hidrightclick $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1 && break; sleep 1
+done
 # Open split tabs say "Split archivieren"; saved tree rows say "Archivieren
 # (inklusive Split)".
 if waitax "AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))" 5; then
