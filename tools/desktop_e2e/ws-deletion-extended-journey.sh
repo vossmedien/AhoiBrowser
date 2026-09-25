@@ -50,7 +50,8 @@ waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; d
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
 finish() {
   local joined; joined=$(IFS=,; echo "${RESULTS[*]}")
-  echo "{${joined}${1:+, \"setupFailed\": \"$1\"}}" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["pass"]=("setupFailed" not in d) and all(v is True for k,v in d.items() if k!="setupFailed");print(json.dumps(d,indent=1))' > "$OUT/verdict.json"
+  local sep=""; [ -n "$joined" ] && sep=", "
+  echo "{${joined}${1:+$sep\"setupFailed\": \"$1\"}}" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["pass"]=("setupFailed" not in d) and all(v is True for k,v in d.items() if k!="setupFailed");print(json.dumps(d,indent=1))' > "$OUT/verdict.json"
   cat "$OUT/verdict.json"
 }
 fail_setup() { $AX dump $PID 14 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
@@ -103,6 +104,18 @@ switchws() { # <active> <target>
   $AX press $PID "$(menuitem "$2")" >> "$OUT/steps.txt"; waitax "$2, Workspace wechseln" 8 || fail_setup "switch to $2 failed"
 }
 cookie_of() { CDP "$1" Runtime.evaluate '{"expression":"document.cookie","returnByValue":true}' | python3 -c 'import json,sys;print(json.load(sys.stdin).get("result",{}).get("value",""))'; }
+# The before-unload question of a group close is a native macOS alert
+# ("Website verlassen?"), not a page dialog CDP can answer; press its button
+# through AX and fall back to CDP only when no alert appears.
+unload_prompt() { # <page url substring> <accept|cancel>
+  local button=Abbrechen; [ "$2" = accept ] && button=Verlassen
+  if waitax "AXStaticText \\| Website verlassen" 8; then
+    $AX dump $PID 14 > "$OUT/ax-unload-prompt-$2.txt"
+    $AX press $PID "$button" >> "$OUT/steps.txt"; return 0
+  fi
+  CDP "$1" Page.handleJavaScriptDialog "{\"accept\":$([ "$2" = accept ] && echo true || echo false)}" > "$OUT/dialog-$2.json"
+  ! grep -q '"error"' "$OUT/dialog-$2.json"
+}
 delete_active() { # <active>
   menu "$1" "Workspace löschen" || fail_setup "delete item missing for $1"
   $AX press $PID "$($AX dump $PID 14 | grep -o 'Workspace löschen[^|]*' | head -1 | sed 's/ *$//')" >> "$OUT/steps.txt"
@@ -131,9 +144,18 @@ open_url "$SITE/unload.html"
 CDP unload.html Input.dispatchMouseEvent '{"type":"mousePressed","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
 CDP unload.html Input.dispatchMouseEvent '{"type":"mouseReleased","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
 delete_active Kunde; sleep 3
-# WS-DEL-07: while the prompt shows, open another page in the same Workspace.
-open_url "$SITE/late.html"; echo "whilePrompt $(tabs)" >> "$OUT/tabs.txt"
-CDP unload.html Page.handleJavaScriptDialog '{"accept":true}' > "$OUT/dialog-accept.json"
+# WS-DEL-07: while the prompt shows, try to open another page in the same
+# Workspace. The native prompt may block that; then nothing late exists.
+waitax "AXStaticText \\| Website verlassen" 8 && record promptShown true || record promptShown false
+key 17 cmd
+if waitax "AXWindow \\| Suchen oder URL eingeben" 4; then
+  $AX type $PID "$SITE/late.html" >> "$OUT/steps.txt"; sleep 1; key 36; sleep 2
+  echo "latePage opened" >> "$OUT/steps.txt"
+else
+  echo "latePage blocked by the prompt" >> "$OUT/steps.txt"
+fi
+echo "whilePrompt $(tabs)" >> "$OUT/tabs.txt"
+unload_prompt unload.html accept >> "$OUT/steps.txt"
 # WS-DEL-08: poll while the pages close; none may show up under the fallback.
 REHOMED=false
 for i in $(seq 1 15); do

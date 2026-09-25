@@ -37,7 +37,8 @@ waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; d
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
 finish() {
   local joined; joined=$(IFS=,; echo "${RESULTS[*]}")
-  echo "{${joined}${1:+, \"setupFailed\": \"$1\"}}" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["pass"]=("setupFailed" not in d) and all(v is True for k,v in d.items() if k!="setupFailed");print(json.dumps(d,indent=1))' > "$OUT/verdict.json"
+  local sep=""; [ -n "$joined" ] && sep=", "
+  echo "{${joined}${1:+$sep\"setupFailed\": \"$1\"}}" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["pass"]=("setupFailed" not in d) and all(v is True for k,v in d.items() if k!="setupFailed");print(json.dumps(d,indent=1))' > "$OUT/verdict.json"
   cat "$OUT/verdict.json"
 }
 fail_setup() { $AX dump $PID 14 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
