@@ -1,6 +1,6 @@
 # 028 – S5: Ahoi callers select the tab's Workspace before the tab
 
-Status: ready
+Status: integrated 6f66a44 (build 32; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `ad93779` (patch applies with `git apply --check`). Implementation of
 011 S5, written by the crest-hardening lane; not compiled by the lane.

@@ -1,6 +1,6 @@
 # 032 – S6: the split record follows its members' Workspace
 
-Status: ready
+Status: integrated c64c358 (build 32; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `982aa3b` (`git apply --check` passes). Implementation of 011 S6
 by the crest-hardening lane; not compiled by the lane.

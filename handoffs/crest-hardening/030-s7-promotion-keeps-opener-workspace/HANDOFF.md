@@ -1,6 +1,6 @@
 # 030 – S7: promoted popups join the opener's Workspace; Quick Window never mixes sessions
 
-Status: ready
+Status: integrated 047d739 (build 32; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `3a9fb13` (`git apply --check` passes). Implementation of 011 S7
 by the crest-hardening lane; not compiled by the lane.

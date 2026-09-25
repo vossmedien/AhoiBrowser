@@ -1,6 +1,6 @@
 # 038 – S8: deleting a temporary row closes its tab
 
-Status: ready
+Status: integrated 72109fc (default body moved out of line; build 32; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `604ef57` (`git apply --check` passes on HEAD and on the current
 worktree; independent of 028–036). Implementation of 011 S8 by the

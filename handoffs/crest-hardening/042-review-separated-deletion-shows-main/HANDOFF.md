@@ -1,6 +1,6 @@
 # 042 – Review of 5fedf6e: windows after deleting a separated Workspace
 
-Status: ready
+Status: integrated 663398a, reworked (showing the watched hidden windows directly instead of returning early, which would skip the restart case that failed on build 30)
 Owner lane: desktop (apply, build, test)
 Base: HEAD (`git apply --check` passes). Review by the crest-hardening lane
 of `5fedf6e`; also confirms 028 → `6f66a44` and 030 → `047d739`, both
