@@ -1,6 +1,6 @@
 # 052 – ADR 0011 step 2: convert a Workspace into a fully separated one
 
-Status: ready
+Status: integrated 92f7583 (reviewed: deletion-then-close order matches the existing delete flow; syntax-checked; unit tests and WS-ISO-09 journey on build 33)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `eb9277f` (contains 044–054 via `5be0782`; `git apply --check`
 passes on HEAD and the current worktree). By the crest-hardening lane; not
