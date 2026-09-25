@@ -1,0 +1,58 @@
+== trial 1 after Workspace creation
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXGroup | about:blank - Chromium
+focusedWindow: AXWindow | about:blank - Chromium
+mainWindow: AXWindow | about:blank - Chromium
+== trial 1 before cmd-T
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXGroup | about:blank - Chromium
+focusedWindow: AXWindow | about:blank - Chromium
+mainWindow: AXWindow | about:blank - Chromium
+AXMenuItem | Neuer Tab | commandDispatch: enabled=true
+== trial 1 before Return
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXTextField | Mit Google suchen oder eine URL eingeben | Mit Google suchen oder eine URL eingeben | http://127.0.0.1:8794/check.html?t=1
+focusedWindow: AXWindow | Suchen oder URL eingeben
+mainWindow: AXWindow | about:blank - Chromium
+== trial 2 after Workspace creation
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXGroup | check - Chromium
+focusedWindow: AXWindow | check - Chromium
+mainWindow: AXWindow | check - Chromium
+== trial 2 before cmd-T
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXGroup | check - Chromium
+focusedWindow: AXWindow | check - Chromium
+mainWindow: AXWindow | check - Chromium
+AXMenuItem | Neuer Tab | commandDispatch: enabled=true
+== trial 2 after unanswered cmd-T
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXGroup | check - Chromium
+focusedWindow: AXWindow | check - Chromium
+mainWindow: AXWindow | check - Chromium
+== trial 3 after Workspace creation
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXGroup | check - Chromium
+focusedWindow: AXWindow | check - Chromium
+mainWindow: AXWindow | check - Chromium
+== trial 3 before cmd-T
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXGroup | check - Chromium
+focusedWindow: AXWindow | check - Chromium
+mainWindow: AXWindow | check - Chromium
+AXMenuItem | Neuer Tab | commandDispatch: enabled=true
+== trial 3 before Return
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXTextField | Mit Google suchen oder eine URL eingeben | Mit Google suchen oder eine URL eingeben | http://127.0.0.1:8794/check.html?t=3
+focusedWindow: AXWindow | Suchen oder URL eingeben
+mainWindow: AXWindow | check - Chromium
+== trial 3 after failed Return
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXTextField | Mit Google suchen oder eine URL eingeben | Mit Google suchen oder eine URL eingeben | http://127.0.0.1:8794/check.html?t=3
+focusedWindow: AXWindow | Suchen oder URL eingeben
+mainWindow: AXWindow | check - Chromium
+== trial 3 after second Return
+frontmostApp: AhoiBrowser pid=25853 target=25853
+focusedElement: AXWebArea | check
+focusedWindow: AXWindow | check - Chromium
+mainWindow: AXWindow | check - Chromium

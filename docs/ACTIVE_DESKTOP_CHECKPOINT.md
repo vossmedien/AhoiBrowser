@@ -41,6 +41,21 @@ taken in as `095b959`; the Swift runner needed envelope tombstone metadata
 for deleted payloads (runner fix, no expectation edited). Results go to the
 lane checkpoint as the handoff asks.
 
+## Empty-Workspace "typed URL does nothing": test artifact, not a product defect — 25 September 2026
+
+Resolved. Focus probes on installed `8705a7f` (`tools/desktop_e2e/command-bar-focus-probe.sh`,
+evidence `artifacts/computer-use/m153/command-bar-focus-probe{4,5-hid}-8705a7f-20260925/`)
+showed AhoiBrowser frontmost, the "Neuer Tab" menu item enabled and focus in
+the command-bar field, yet keys sent with `CGEvent.postToPid` were
+intermittently dropped (⌘T unanswered, first Return lost, second Return
+navigated). Sent through the HID event tap with modifier events, like a real
+keyboard, the first Return navigated in 5 of 5 trials (the sixth refused
+because the owner had another app in front). All journeys now use `hidkey`.
+The earlier RED of DoD 5/25 empty-Workspace navigation and the setup
+failures of the level/isolated/deletion journeys on builds 21–26 were this
+harness defect. The defensive activation fix `8705a7f` (reactivate the host
+window after a key panel closes) stays: it is guarded and harmless.
+
 ## Installed candidate: build 24 of `f91e5b7` — 25 September 2026
 
 Guarded build 24 (Xcode 27 development toolchain) of `f91e5b7` is installed
