@@ -341,6 +341,14 @@ MergeDecision MergeRecordFields(const SyncRecord& existing,
     return MergeDecision::kInvalid;
   }
   MutableVersion(merged).stamp = *merge_stamp;
+  // Handoff 012 (Sync decision: option a): field groups merge independently,
+  // so a union can break an invariant spanning groups (for example a custom
+  // accent next to the system accent). Such a record would be rejected by
+  // every peer's decoder; reject it here so the store quarantines it
+  // instead of publishing it.
+  if (!ValidateRecord(*merged, error)) {
+    return MergeDecision::kInvalid;
+  }
   return MergeDecision::kMergeFields;
 }
 
