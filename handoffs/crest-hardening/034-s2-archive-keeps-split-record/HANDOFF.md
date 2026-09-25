@@ -1,6 +1,6 @@
 # 034 – S2: archiving a live split keeps its split record restorable
 
-Status: integrated 5f1ce2c (syntax-checked; reproduction on build 32 and acceptance on build 33 by split-archive-restore-journey)
+Status: integrated 5f1ce2c (syntax-checked; not reproduced on build 32: the journey creates the split, but neither AXShowMenu nor synthetic right-clicks open the open-tab row menu, and without screen recording the cause cannot be seen; acceptance still needs that row menu or an owner-assisted run)
 Owner lane: desktop (reproduce, apply, build, test)
 Base: HEAD `e59fb0b` (`git apply --check` passes). Implementation of 011 S2
 by the crest-hardening lane; not compiled by the lane.
