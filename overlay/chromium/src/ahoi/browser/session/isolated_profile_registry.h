@@ -24,6 +24,11 @@ namespace ahoi::session {
 // first tree commit, found by the process-wide directory (step 2) and cleaned
 // up after a crash. It holds presentation only, never website data.
 inline constexpr char kIsolatedProfilesPref[] = "ahoi.isolated_profiles";
+// Directory of the Profile whose window was presented by the last hand-over
+// (ADR 0011 step 2); after a restart the other Profiles' windows in the same
+// frame are hidden behind it again. Empty when no hand-over is active.
+inline constexpr char kPresentedProfileDirPref[] =
+    "ahoi.isolated_profiles_presented_dir";
 
 enum class IsolatedProfileState {
   // Registered; the Profile's tree has not yet persisted the seeded Workspace.

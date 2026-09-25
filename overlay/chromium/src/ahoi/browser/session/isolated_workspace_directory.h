@@ -54,6 +54,12 @@ void PresentProfileWindow(
     BrowserWindowInterface* source,
     base::OnceCallback<void(BrowserWindowInterface*)> done);
 
+// After a restart session restore shows every window again. Called once per
+// Profile after its restore: when the last hand-over presented another
+// Profile whose window is visible, this Profile's windows in that frame are
+// hidden behind it again, with the same show-again guarantee.
+void RestoreHandOverAfterStartup(Profile* profile);
+
 // Loads the Profile of the fully separated Workspace `profile_dir` and
 // presents its window with PresentProfileWindow().
 void PresentIsolatedWorkspace(

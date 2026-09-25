@@ -14,6 +14,7 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_prefs.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
@@ -283,6 +284,8 @@ bool SessionBridge::FinishRuntimeInitialization() {
   // After every browser and tab is tracked: finish removals of deleted
   // Workspaces' website-session partitions (handoff 003, WS-DEL-03/04).
   ResumeWebsiteSessionRemovals();
+  // ADR 0011 step 2: keep one visible window per hand-over across restarts.
+  session::RestoreHandOverAfterStartup(profile_);
   if (const std::optional<session::IsolatedProfileEntry> isolated =
           FindIsolatedProfileEntry()) {
     if (isolated->state == session::IsolatedProfileState::kCreating &&

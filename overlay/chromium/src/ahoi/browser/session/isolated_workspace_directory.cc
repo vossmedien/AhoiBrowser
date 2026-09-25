@@ -21,6 +21,7 @@
 #include "base/memory/raw_ptr.h"
 #include "base/no_destructor.h"
 #include "base/task/single_thread_task_runner.h"
+#include "base/time/time.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/lifetime/browser_shutdown.h"
 #include "chrome/browser/profiles/profile.h"
@@ -92,6 +93,17 @@ BrowserWindowInterface* FindMostRecentNormalBrowser(Profile* profile) {
   return match;
 }
 
+// Remembered across restarts (Local State), see RestoreHandOverAfterStartup.
+void RecordPresentedProfile(Profile* profile) {
+  PrefService* local_state =
+      g_browser_process ? g_browser_process->local_state() : nullptr;
+  if (!local_state || !local_state->FindPreference(kPresentedProfileDirPref)) {
+    return;
+  }
+  local_state->SetString(kPresentedProfileDirPref,
+                         profile ? DirName(profile->GetPath()) : std::string());
+}
+
 // Shows the hidden `source` again when the window presented in its place
 // closes (for example the last window of a deleted separated Workspace), so
 // the user is never left with only hidden windows. One per (presented,
@@ -134,6 +146,7 @@ class HandOverWatch {
       ui::BaseWindow* window = hidden ? hidden->GetWindow() : nullptr;
       if (window && !window->IsVisible() && !window->IsMinimized()) {
         window->Show();
+        RecordPresentedProfile(hidden->GetProfile());
       }
     }
     Remove();
@@ -165,6 +178,7 @@ class HandOverWatch {
   base::CallbackListSubscription presented_closed_;
   base::CallbackListSubscription hidden_closed_;
 };
+
 
 struct SourceFrame {
   SessionID id = SessionID::InvalidValue();
@@ -219,6 +233,7 @@ void FinishHandOver(SourceFrame frame,
     // reload. Session restore still records the window as open.
     source->GetWindow()->Hide();
     HandOverWatch::Watch(target, source);
+    RecordPresentedProfile(target->GetProfile());
   }
   std::move(done).Run(target);
 }
@@ -345,6 +360,69 @@ void PresentProfileWindow(
       base::BindOnce(&FinishHandOver, std::move(frame), std::move(done)),
       /*always_create=*/true, /*is_new_profile=*/false,
       /*open_command_line_urls=*/false, target);
+}
+
+void RestoreHandOverAfterStartup(Profile* profile) {
+  PrefService* local_state =
+      g_browser_process ? g_browser_process->local_state() : nullptr;
+  if (!profile || !local_state ||
+      !local_state->FindPreference(kPresentedProfileDirPref)) {
+    return;
+  }
+  const std::string presented_dir =
+      local_state->GetString(kPresentedProfileDirPref);
+  if (presented_dir.empty() || presented_dir == DirName(profile->GetPath())) {
+    return;
+  }
+  // Restore of the other Profile may still be opening its window.
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
+      FROM_HERE,
+      base::BindOnce(
+          [](base::FilePath path, std::string presented_dir) {
+            ProfileManager* manager =
+                g_browser_process ? g_browser_process->profile_manager()
+                                  : nullptr;
+            Profile* profile = manager ? manager->GetProfileByPath(path)
+                                       : nullptr;
+            Profile* presented_profile =
+                manager ? manager->GetProfileByPath(
+                              manager->user_data_dir().AppendASCII(
+                                  presented_dir))
+                        : nullptr;
+            BrowserWindowInterface* presented =
+                presented_profile
+                    ? FindMostRecentNormalBrowser(presented_profile)
+                    : nullptr;
+            ui::BaseWindow* presented_window =
+                presented ? presented->GetWindow() : nullptr;
+            if (!profile || !presented_window ||
+                !presented_window->IsVisible()) {
+              return;  // Nothing visible to hide behind: keep this one.
+            }
+            const gfx::Rect frame = presented_window->GetBounds();
+            std::vector<BrowserWindowInterface*> to_hide;
+            if (ProfileBrowserCollection* browsers =
+                    ProfileBrowserCollection::GetForProfile(profile)) {
+              browsers->ForEach(
+                  [&to_hide, &frame](BrowserWindowInterface* browser) {
+                    ui::BaseWindow* window = browser->GetWindow();
+                    if (browser->GetType() ==
+                            BrowserWindowInterface::TYPE_NORMAL &&
+                        window && window->IsVisible() &&
+                        window->GetBounds().Intersects(frame)) {
+                      to_hide.push_back(browser);
+                    }
+                    return true;
+                  },
+                  BrowserCollection::Order::kCreation);
+            }
+            for (BrowserWindowInterface* browser : to_hide) {
+              browser->GetWindow()->Hide();
+              HandOverWatch::Watch(presented, browser);
+            }
+          },
+          profile->GetPath(), presented_dir),
+      base::Seconds(2));
 }
 
 void PresentIsolatedWorkspace(

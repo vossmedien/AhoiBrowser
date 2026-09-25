@@ -89,6 +89,7 @@ bool CanWrite(const PrefService* local_state) {
 
 void RegisterIsolatedProfileLocalState(PrefRegistrySimple* registry) {
   registry->RegisterListPref(kIsolatedProfilesPref);
+  registry->RegisterStringPref(kPresentedProfileDirPref, std::string());
 }
 
 std::vector<IsolatedProfileEntry> GetIsolatedProfiles(
