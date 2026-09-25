@@ -23,6 +23,7 @@ public struct AhoiMobileBrowserView: View {
     @State private var settingsPresented = false
     @State private var downloadsPresented = false
     @State private var browserActionsPresented = false
+    @State private var afterBrowserActions: (@MainActor () -> Void)?
     @State private var findNavigatorPresented = false
     @State private var harborDeckCollapsed = false
     @State private var harborDeckResetGeneration: UInt64 = 0
@@ -178,7 +179,9 @@ public struct AhoiMobileBrowserView: View {
             }
         }
         .sheet(isPresented: $downloadsPresented) { downloadsSheet }
-        .sheet(isPresented: $browserActionsPresented) { browserActionsSheet }
+        .sheet(isPresented: $browserActionsPresented, onDismiss: runAfterBrowserActions) {
+            browserActionsSheet
+        }
         .sheet(isPresented: $settingsPresented) {
             CompanionSettingsView(
                 model: companionModel,
@@ -666,12 +669,21 @@ public struct AhoiMobileBrowserView: View {
         tabSwitcherMode = browser.selectedTab?.mode ?? .normal
         tabsPresented = true
     }
+    /// Presents the follow-up only once the actions sheet has finished
+    /// dismissing. Presenting a sibling sheet during that animation could leave
+    /// it unable to dismiss later (e.g. the library after creating a Workspace).
     private func presentAfterBrowserActions(_ action: @escaping @MainActor () -> Void) {
-        browserActionsPresented = false
-        Task { @MainActor in
-            await Task.yield()
+        guard browserActionsPresented else {
             action()
+            return
         }
+        afterBrowserActions = action
+        browserActionsPresented = false
+    }
+    private func runAfterBrowserActions() {
+        guard let action = afterBrowserActions else { return }
+        afterBrowserActions = nil
+        action()
     }
     private func expandHarborDeck() {
         harborDeckResetGeneration &+= 1
