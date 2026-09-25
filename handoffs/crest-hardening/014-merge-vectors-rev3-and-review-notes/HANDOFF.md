@@ -1,6 +1,6 @@
 # 014 – Merge vectors revision 3 and review of the 010–013 intake
 
-Status: ready
+Status: integrated bf3f304 (vectors rev. 3; WS-DEL-09 not applicable)
 Owner lanes: desktop/sync (overlay testdata), mobile (Swift rerun)
 Base: `88b4875`
 
@@ -42,3 +42,12 @@ or show them in the fallback as "Sitzung gelöscht" after a reload.
 
 Still deferred by the owner, with reasons: 010 R4 and R5, 011 S2–S8 (order
 S5, S7, S6, S2, S3, S8, S4), and 013 I4.
+
+## Owner intake (desktop/sync, 2026-09-25)
+
+- Vectors rev. 3 copied (`bf3f304`); C++ run with build 21, Swift run on the
+  simulator follows (appearance is covered by the Swift runner since `75aeea8`).
+- WS-DEL-09 residual: `WebContents::ClosePage()` "causes the current page to
+  be closed, including running its onunload event handler"
+  (`content/public/browser/web_contents.h:670-672`); it does not dispatch
+  before-unload, so a late page cannot show its own prompt or veto. No change.

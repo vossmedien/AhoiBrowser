@@ -1,6 +1,6 @@
 # 015 – Coverage gaps of the Workspace level and deletion journey (H6)
 
-Status: ready
+Status: integrated d1ba87a (WS-ISO journey); WS-DEL-04/06-09 extensions queued
 Owner lane: desktop (visible acceptance)
 Reviewed: `b0c5960` (`tools/desktop_e2e/ws-level-deletion-journey.sh`)
 
@@ -24,3 +24,10 @@ ADR 0011 and WS-DEL acceptance.
 
 Written in a desktop-owner session by mistake; adopted unchanged by the
 `crest-hardening` lane after checking it against `b0c5960`.
+
+## Owner intake (desktop, 2026-09-25)
+
+- The isolated level has its own journey `tools/desktop_e2e/ws-isolated-journey.sh`
+  (`d1ba87a`, WS-ISO-01/02/14/16/17).
+- WS-DEL-04, 06, 07 and 08 extensions are queued for the deletion journey
+  and run on the same candidate; WS-DEL-09 is not applicable (see 014).

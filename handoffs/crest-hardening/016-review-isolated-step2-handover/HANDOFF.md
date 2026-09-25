@@ -1,6 +1,6 @@
 # 016 – Review of ADR 0011 step 2, part 1 (window hand-over)
 
-Status: ready
+Status: integrated cfcc187 (H1, H2; H3 and H4 deferred)
 Owner lane: desktop
 Reviewed: `bc3cdc2` (`session/isolated_workspace_directory.cc`, sidebar menu
 and dispatch). This is source reading only; the commit says "not yet built".
@@ -57,3 +57,15 @@ Written in a desktop-owner session by mistake; adopted by the
 (`isolated_workspace_directory.cc:183-186` hands over the restored bounds and
 never enters fullscreen). H2 is inferred: the hand-over code does not
 exclude the hidden source window from session restore.
+
+## Owner intake (desktop, 2026-09-25)
+
+- H1: a fullscreen source leaves fullscreen, the presented window enters it
+  (`cfcc187`, sidebar dispatch `RunHandOver`).
+- H2: the last presented Profile is stored in Local State
+  (`ahoi.isolated_profiles_presented_dir`); after restore the other
+  Profiles' windows in its frame are hidden again (`RestoreHandOverAfterStartup`).
+  Verified by WS-ISO-17 on the next candidate.
+- H3 deferred: a media indicator for hidden windows belongs to the shared
+  switcher's process-wide list (step 2 rest).
+- H4: WS-ISO-11 memory measurement includes hidden windows (H3 lease run).
