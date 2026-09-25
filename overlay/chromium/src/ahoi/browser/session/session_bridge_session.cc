@@ -186,6 +186,11 @@ bool SessionBridge::RestoreWindowSessionMetadata(
     BrowserWindowInterface* browser,
     const session::WindowSessionMetadata& metadata) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  VLOG(1) << "Ahoi restore window metadata: workspace="
+          << metadata.active_workspace_id.AsLowercaseString()
+          << " valid=" << metadata.active_workspace_id.is_valid()
+          << " trackable=" << ShouldTrackBrowser(browser)
+          << " tree_ready=" << tab_tree_ready_;
   if (shutting_down_ || !metadata.active_workspace_id.is_valid() ||
       !ShouldTrackBrowser(browser)) {
     return false;
@@ -280,9 +285,15 @@ bool SessionBridge::ApplyWindowSessionMetadataNow(
   const std::optional<base::Uuid> resolved =
       session::ResolveWorkspaceForRestore(metadata.active_workspace_id,
                                           workspace_ids);
-  if (!resolved.has_value() || !workspace_service_->SetActiveWorkspace(
-                                   window_it->second.window_id, *resolved,
-                                   WorkspaceActivationSource::kRestore)) {
+  const bool applied =
+      resolved.has_value() &&
+      workspace_service_->SetActiveWorkspace(
+          window_it->second.window_id, *resolved,
+          WorkspaceActivationSource::kRestore);
+  VLOG(1) << "Ahoi apply window metadata: resolved="
+          << (resolved ? resolved->AsLowercaseString() : std::string("none"))
+          << " applied=" << applied;
+  if (!applied) {
     return false;
   }
   PersistWindowSessionMetadata(browser);

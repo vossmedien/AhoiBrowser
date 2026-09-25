@@ -66,6 +66,7 @@ void SessionBridge::TrackBrowser(BrowserWindowInterface* browser) {
   model->AddObserver(this);
 
   if (workspace_service_ && !workspace_service_->ordered_workspaces().empty()) {
+    VLOG(1) << "Ahoi track window: first Workspace until restore metadata";
     CHECK(workspace_service_->SetActiveWorkspace(
         window_id, workspace_service_->ordered_workspaces().front().id,
         WorkspaceActivationSource::kDataReconciliation));
