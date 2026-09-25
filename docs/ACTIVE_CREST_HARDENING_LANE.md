@@ -64,6 +64,13 @@ This lane never builds, installs, refreshes the overlay, writes under
   builds only from `/private/tmp/ahoi-m153-ws.x4fmXk/repo`. The next build (21)
   starts after it has checked the ready handoffs.
 
+- User decision 25 Sep (evening): this lane also writes the implementation of
+  011 S2–S8 and the open parts of ADR 0011 step 2 (Quick Window, export/import,
+  process-wide Workspace order) as complete patch handoffs with unit tests
+  (even numbers from 028, order S5, S7, S6, S2, S3, S8, S4, then step 2). The
+  desktop owner applies, builds, tests visibly and sets the status; the lane
+  still never writes owned paths directly or builds. Coordinated by message.
+
 ## Goal status — 25 September 2026, after the 010–013 intake
 
 Every lane-owned deliverable of H1–H6 is done and committed. Desktop and Sync
