@@ -1,6 +1,6 @@
 # 003 – Deleting a Workspace with its own website sessions (H5, H6)
 
-Status: ready
+Status: integrated 52bfd3c (with 87a6b89 and 0055 in 5cfc9d2; acceptance WS-DEL-01..05 pending on the next candidate)
 Owner lane: desktop (session, native isolation)
 Base: `f811604`; gate for enabling `AhoiWorkspaceWebsiteSessions` (ADR 0011, order step 1)
 

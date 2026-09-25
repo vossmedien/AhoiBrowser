@@ -1,6 +1,6 @@
 # 006 – Group before-unload for multi-tab closes, archive and popup overlays (H5, H2)
 
-Status: ready
+Status: integrated 87a6b89 (items 1-2 and deletion via 5cfc9d2; item 3 popup overlays at quit deferred: needs an UnloadController seam)
 Owner lane: desktop
 Base: `f811604`
 
