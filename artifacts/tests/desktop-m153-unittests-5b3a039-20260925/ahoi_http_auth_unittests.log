@@ -1,0 +1,37 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 4 parallel jobs.
+[1/28] HttpAuthCredentialServiceTest.PasswordOnlyUpdateKeepsPrimaryKeyAndUsesPasswordStoreUpdate (1 ms)
+[2/28] HttpAuthCredentialServiceTest.IncognitoDoesNotReadOrWrite (0 ms)
+[3/28] HttpAuthCredentialServiceTest.IncognitoReadsOnlyAfterExplicitUserSelection (0 ms)
+[4/28] HttpAuthCredentialServiceTest.NeverSaveSuppressesWritesButDoesNotHideExistingAccounts (0 ms)
+[5/28] HttpAuthCredentialServiceTest.InsecureHttpRequiresExplicitSaveConfirmation (0 ms)
+[6/28] HttpAuthCredentialServiceTest.CacheFilterIsExactOriginOnly (0 ms)
+[7/28] HttpAuthManagementModelTest.FiltersMetadataWithoutSecretFields (4 ms)
+[8/28] HttpAuthManagementModelTest.GroupsAndSortsPreferredAccountFirst (0 ms)
+[9/28] HttpAuthManagementModelTest.DeduplicatesPasswordStoreAccountAcrossNetworkPartitions (0 ms)
+[10/28] HttpAuthManagementModelTest.SwitchRequiresExactActiveProtectionSpace (0 ms)
+[11/28] HttpAuthManagementModelTest.DestructiveIdentityMatchesPasswordStoreScopeAcrossNetworks (0 ms)
+[12/28] HttpAuthSecretAccessControllerTest.FetchesSecretOnlyAfterSuccessfulAuthentication (0 ms)
+[13/28] HttpAuthSecretAccessControllerTest.AuthenticationFailureNeverInvokesSecretLoader (0 ms)
+[14/28] HttpAuthSecretAccessControllerTest.MissingOrInvalidContextFailsClosedBeforeAuthentication (0 ms)
+[15/28] HttpAuthSecretAccessControllerTest.InvalidationCancelsAuthenticationAndIgnoresStaleCallback (0 ms)
+[16/28] HttpAuthSecretAccessControllerTest.InvalidationIgnoresSecretArrivingAfterContextBecameStale (0 ms)
+[17/28] HttpAuthSecretAccessControllerStandaloneTest.MissingAuthenticatorFailsClosed (0 ms)
+[18/28] HttpAuthSecretUtilTest.ExplicitClearLeavesNoLogicalPlaintext (0 ms)
+[19/28] HttpAuthProtectionSpaceTest.SeparatesEveryProtectionDimension (0 ms)
+[20/28] HttpAuthProtectionSpaceTest.ChallengeAcceptsOnlyBasicAndDigest (0 ms)
+[21/28] HttpAuthCredentialServiceTest.MetadataPreferenceIsNotSyncable (0 ms)
+[22/28] HttpAuthCredentialServiceTest.ManagementCredentialSnapshotFailsClosedOnMalformedState (0 ms)
+[23/28] HttpAuthCredentialServiceTest.ManagementNeverSaveSnapshotFailsClosedOnMalformedState (0 ms)
+[24/28] HttpAuthCredentialServiceTest.RanksPreferredAccountBeforeLastSuccess (0 ms)
+[25/28] HttpAuthCredentialServiceTest.SingleFailureRetainsSavedMetadata (0 ms)
+[26/28] HttpAuthCredentialServiceTest.DeleteRemovesPartitionedMetadataForSharedPasswordStoreSecret (0 ms)
+[27/28] HttpAuthCredentialServiceTest.UpdateRenamesPasswordStorePrimaryKeyAndEveryPartitionedMetadataRow (0 ms)
+[28/28] HttpAuthCredentialServiceTest.UpdateFailsClosedOnUsernameCollisionWithoutPasswordStoreWrite (0 ms)
+SUCCESS: all tests passed.
+Tests took 0 seconds.
+EXIT 0
