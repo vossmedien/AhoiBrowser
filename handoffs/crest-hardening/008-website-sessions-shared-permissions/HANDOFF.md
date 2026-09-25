@@ -1,6 +1,6 @@
 # 008 – Level `website-sessions`: permissions and `chrome.cookies` stay shared
 
-Status: ready
+Status: integrated b0b7f6c
 Owner lane: desktop (Master text, `docs/WORKSPACE_SESSIONS.md`, package 1b)
 Base: user decision of 25 September 2026, recorded in ADR 0011
 ("Decided scope of level `website-sessions`")
