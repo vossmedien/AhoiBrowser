@@ -57,21 +57,21 @@ This lane never builds, installs, refreshes the overlay, writes under
 - Waiting for owner lanes: 010, 011 integration; 009 run results; NET-GCM-01/02
   and fresh-profile audit; H3 lease; each ADR 0011 implementation step for review.
 
-## Goal status — 25 September 2026, after `24d1f16`
+## Goal status — 25 September 2026, after the 010–013 intake
 
-Every lane-owned deliverable of H1–H6 is done and committed. Each remaining
-DoD item waits only on an owner-lane integration, a lease window or an owner
-implementation step. The lane cannot do any of them itself without building,
-installing or writing owned paths.
+Every lane-owned deliverable of H1–H6 is done and committed. Desktop and Sync
+integrated 010–013 (`990c7bb`, `17f5319`, `8a9fc91`, `d2debaa`, `88b4875`);
+the lane reviewed that intake (014). Each remaining DoD item waits only on
+an owner integration, a lease window or an owner implementation step.
 
 | Package | Lane work | Waits only on | Owner |
 | --- | --- | --- | --- |
-| H1 | done: drift gate, merge model, 130 vectors (rev 2), input-invariant test; runners integrated (`095b959`, `11bf324`); first run: C++ and Swift agree on every valid vector | integration of 012 (copy rev 2, rerun on the next planned build and simulator) | desktop/sync, mobile |
-| H2 | done: audit, rule and fixes S1–S8 with tests (011); deletion re-homing as 010 R6 | integration of 011 and of 010 R6, plus the visible journeys named there | desktop |
-| H3 | done: methodology, harness, 16 tests; trace events integrated (`d425c3b`) | lease window "open" on the next installed candidate (confirmed with conditions in the desktop checkpoint); budget verdicts also wait for the owner-gated reference toolchain | desktop, owner |
-| H4 | done: tool, tests; receipt integration (`2ab7909`) | the next regular build receipt carrying `engineInputKey` | desktop |
-| H5 | done: review, checklist; 003–006 integrated (`caf6f1e`, `0981913`, `87a6b89`) | NET-GCM-01/02 and the fresh-profile audit on the next installed candidate | desktop |
-| H6 | done: analysis, ADR 0011, WS-ISO catalogue (integrated `7401b8e`), reviews 010 and 013 of the integrated steps | integration of 010 and 013; ADR 0011 steps 2 and 3 implemented by desktop, then the lane reviews them | desktop, sync, mobile |
+| H1 | done: drift gate, merge model (now with union validation as decided by Sync), 131 vectors (rev 3); runners integrated; first run agrees on every valid vector | integration of 014 (copy rev 3) and reruns on the next build and simulator | desktop/sync, mobile |
+| H2 | done: audit, rule; S1 and rule integrated (`8a9fc91`), R6 integrated (`17f5319`) | owner's deferred S2–S8 (planned for the next desktop package) and the visible journeys | desktop |
+| H3 | done: methodology, harness, trace events (`d425c3b`) | lease window "open" on the next installed candidate; budget verdicts also wait for the owner-gated reference toolchain | desktop, owner |
+| H4 | done: tool, receipt integration (`2ab7909`) | the next regular build receipt carrying `engineInputKey` | desktop |
+| H5 | done: review, checklist; GCM, field trials, group close integrated | NET-GCM-01/02 and the fresh-profile audit on the next installed candidate | desktop |
+| H6 | done: ADR 0011, catalogue, reviews 010, 013 and 014 of all integrated steps | visible WS-ISO/WS-DEL acceptance on the next candidate; ADR 0011 steps 2 and 3, then their review | desktop, sync, mobile |
 
 ## Packages
 

@@ -114,6 +114,17 @@ def projected(entity: int, payload: dict, groups: list[str]) -> list:
             for g in groups]
 
 
+def union_valid(entity: int, payload: dict) -> bool:
+    """Cross-group invariants of ValidateRecord that a union can break.
+
+    Only the rules the vectors can reach are modelled: appearance forbids a
+    custom accent next to the system accent (sync_merge.cc).
+    """
+    if entity == 7:
+        return not (payload.get("use_system_accent") and payload.get("accent_argb") is not None)
+    return True
+
+
 def merge(entity: int, groups: list[str], existing: dict,
           incoming: dict) -> tuple[str, Optional[dict]]:
     """Return (decision, merged payload or None) like MergeRecordFields."""
@@ -161,6 +172,10 @@ def merge(entity: int, groups: list[str], existing: dict,
         else:
             decision = "mergeFields"
             top = next_merge_stamp(top)
+            # Sync decision on handoff 012 (option a, `d2debaa`): a union that
+            # breaks a cross-group record invariant is rejected (ValidateRecord).
+            if not union_valid(entity, merged):
+                raise Invalid("merged record violates an invariant")
         merged["version_physical"] = str(top.physical)
         merged["version_logical"] = top.logical
         merged["version_device"] = top.device

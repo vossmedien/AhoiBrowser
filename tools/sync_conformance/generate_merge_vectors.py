@@ -143,6 +143,12 @@ def cases_for(entity: int, data_class: str, groups: list[str],
         cases.append(("status_never_regresses", "a later lower status is ignored",
                       edit(base, entity, groups, {"status": 1}, s(T1)),
                       edit(base, entity, groups, {"status": 0}, s(T2, PHONE))))
+    if entity == 7:
+        cases.append(("cross_group_union_rejected",
+                      "system accent and a later custom accent from two devices; the "
+                      "union breaks the accent invariant and is rejected (handoff 012)",
+                      edit(base, entity, groups, SYSTEM_ACCENT, s(T2)),
+                      edit(base, entity, groups, {"accent_argb": -16776961}, s(T3, PHONE))))
     if entity == 14:
         deleted = edit(base, entity, groups, {"tombstone": True}, s(T2))
         cases.append(("archive_deletion_is_terminal", "a newer untombstone does not revive",

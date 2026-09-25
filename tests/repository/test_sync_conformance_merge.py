@@ -135,6 +135,10 @@ class MergeModelSemanticsTest(unittest.TestCase):
         self.assertIs(merged["tombstone"], True)
         self.assertIs(merged["restored"], True)
 
+    def test_union_breaking_the_accent_invariant_is_invalid(self):
+        self.assertIsNone(self.expect(
+            "appearance_custom_accent.cross_group_union_rejected", "invalid"))
+
     def test_absent_optional_key_equals_null(self):
         base = gen.fixture_payloads()["workspace"]
         with_null = dict(base, accent_argb=None)

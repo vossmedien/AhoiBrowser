@@ -6875,6 +6875,83 @@
       "name": "appearance_custom_accent.field_clock_after_record_clock"
     },
     {
+      "dataClass": "appearance",
+      "description": "system accent and a later custom accent from two devices; the union breaks the accent invariant and is rejected (handoff 012)",
+      "entityType": 7,
+      "existing": {
+        "color_mode": "dark",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473605000000"
+          },
+          "color_mode": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "use_system_accent": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473605000000"
+          }
+        },
+        "id": "a7000000-0000-4000-8000-000000000001",
+        "model_version": 3,
+        "tombstone": false,
+        "use_system_accent": true,
+        "version_device": "a0000000-0000-4000-8000-000000000001",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473605000000"
+      },
+      "expect": {
+        "decision": "invalid",
+        "merged": null
+      },
+      "incoming": {
+        "accent_argb": -16776961,
+        "color_mode": "dark",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000002",
+            "logical": 0,
+            "physical": "11644473606000000"
+          },
+          "color_mode": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "use_system_accent": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          }
+        },
+        "id": "a7000000-0000-4000-8000-000000000001",
+        "model_version": 3,
+        "tombstone": false,
+        "use_system_accent": false,
+        "version_device": "a0000000-0000-4000-8000-000000000002",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473606000000"
+      },
+      "name": "appearance_custom_accent.cross_group_union_rejected"
+    },
+    {
       "dataClass": "permittedSetting",
       "description": "identical records",
       "entityType": 8,
