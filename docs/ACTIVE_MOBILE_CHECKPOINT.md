@@ -21,12 +21,12 @@ the web view's accessibility frame under the toolbar is a small a11y quirk.
 A168 (was 52 failures in 37 cases, all tests predating format 3 or later
 feature commits; no product change). UI suites now use shared
 `assertLibraryClosed` / `assertBrowserAcceptsAddressInput` helpers.
-`MobileBrowserLayoutUITests` (13 tests, 1 iPad-only skip) still has three
-real failures, not caused by the helper change: the 1/5/20-tab scale
-fixture (line 16, tab count), `testProgrammaticPageScrollDoesNotCollapseHarborDeck`
-(fixture text not visible within 3 s, line 192) and
-`testVisiblePrivateTabCreation…` (`browser.tabs.mode` control missing,
-line 535). Minor: `BookmarkTransportAuthorization.authorize` labels a
+`MobileBrowserLayoutUITests`: the three former failures are fixed (stale
+private-tab expectation after 9ca3bd1, debug fixture leaking temporary
+shared pages, fixed 3 s wait); each passes alone. A full class run had two
+load-sensitive failures (`testHarborDeckTracksNestedScroller…` line 243,
+`testInteractiveWebPresentations…` line 321, 30 s query timeouts) that pass
+when rerun; the class has no fully green single run yet. Minor: `BookmarkTransportAuthorization.authorize` labels a
 disallowed data class `unsupportedVersion`.
 The Home-Address journey's own RED (saved state not settling on a fresh
 install, builds 69/70) is still under investigation.
