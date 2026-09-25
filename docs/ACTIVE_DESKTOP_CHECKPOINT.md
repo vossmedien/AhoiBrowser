@@ -30,6 +30,48 @@ review `ready` handoffs under `handoffs/crest-hardening/`, take them in or
 defer them with a reason, and confirm or decline lease requests from
 `docs/ACTIVE_CREST_HARDENING_LANE.md`. No extra build for a handoff.
 
+Lease decisions:
+
+| Request (lane checkpoint) | Decision |
+| --- | --- |
+| `installed-app` + `host-quiet`, H3 harness run (`startup`, `memory`, `idle`, 5 runs, disposable profiles, ~30 min), requested 2026-09-25 | **Confirmed with conditions.** Only on the next installed package candidate (build of `993a151` or later, after its unit tests), never while a Desktop build, overlay refresh, unit-test run or visible E2E runs, and only while the owner is idle (`HIDIdleTime` ≥ 300 s). Desktop marks the window below as `open` once the candidate is installed; the lane stops at the first owner input and records the receipt against that candidate. Window: **not open yet** (package build 16 running). |
+
+Handoff intake for the build-16 package: 009 (merge conformance runners)
+taken in as `095b959`; the Swift runner needed envelope tombstone metadata
+for deleted payloads (runner fix, no expectation edited). Results go to the
+lane checkpoint as the handoff asks.
+
+## Current package: ADR 0011 levels — 25 September 2026
+
+Source (all committed, `Lane: desktop` unless noted):
+
+| Item | Commit | State |
+| --- | --- | --- |
+| Group before-unload (0055), Workspace deletion closes own sessions, archive/close-all ask first | `5cfc9d2`, `52bfd3c`, `87a6b89`, `993a151` | built in build 16 (`993a151`, EXIT 0); visible WS-DEL/CLOSE-GRP pending |
+| GCM check-in off (0056), field-trial testing config off | `caf6f1e`, `0981913` | built; NET-GCM-01 pending |
+| Temporary command-bar diagnostics removed | `abe9d62` | built |
+| Level choice at creation (Gemeinsam / Eigene Website-Sitzungen), menu names the level | `c74d3cc`, `15a7fc3` | in build 18 |
+| Level `isolated` step 1: own Profile, seeded Workspace, own window, deletion via Chromium profile deletion, picker disabled at startup | `671796d`, `9b308f0` | in build 18; step 2 (shared switcher, routing, Quick Window, export/import) and step 3 (sync namespace, Mobile) open |
+| Merge conformance runners (handoff 009) | `095b959` (sync), `11bf324` (mobile) | C++ and Swift pass all decodable vectors; generator defects reported |
+| iOS field merge for entities 6–8 | `75aeea8` (mobile) | simulator unit tests |
+
+Build 16 unit tests (`993a151`): command bar, HTTP auth, resource policy
+passed; session 4, tab tree 5, sync 56 failures (55 pre-existing classes plus
+the conformance test that fails only on the invalid generator vectors). The
+tab-tree/session TreeNode comparisons now print fields (`c4d4bf9`) so the
+pre-existing failures can be classified from build 18's output.
+
+Visible acceptance still needs the owner idle (`HIDIdleTime` ≥ 300 s): new
+journey `tools/desktop_e2e/ws-level-deletion-journey.sh` (level choice, login
+isolation, WS-DEL-01/02/03/05) plus the existing empty-Workspace, auto-archive
+and HTTP-auth journeys on build 18; then the H3 lease window below.
+
+Known step-1 limits (documented, not hidden): an isolated window offers no
+second Workspace and no switch to the main Profile's Workspaces until step 2;
+Quick Window still falls back to the first loaded Profile; sync is not gated
+per Profile yet (it stays opt-in; step 3 gives each Profile its own
+namespace); a new isolated Profile starts with the default startup mode.
+
 ## M153 focused unit tests, six binaries — 25 September 2026
 
 Guarded build14 of `c3c814f` (debug traces included, product otherwise equal to
