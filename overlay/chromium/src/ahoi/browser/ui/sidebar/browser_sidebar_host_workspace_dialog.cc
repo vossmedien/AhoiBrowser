@@ -89,6 +89,7 @@
 #include "ui/events/event.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/geometry/insets.h"
+#include "ui/gfx/text_utils.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/gfx/geometry/vector2d.h"
@@ -273,14 +274,15 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
   delegate->SetTitle(l10n_util::GetStringUTF16(title_id));
   delegate->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk) |
                        static_cast<int>(ui::mojom::DialogButton::kCancel));
+  // IDS_DELETE is a menu string with a Windows mnemonic ("&Löschen").
   delegate->SetButtonLabel(
       ui::mojom::DialogButton::kOk,
-      l10n_util::GetStringUTF16(
+      gfx::RemoveAccelerator(l10n_util::GetStringUTF16(
           action == PendingWorkspaceAction::kCreate ||
                   action == PendingWorkspaceAction::kDuplicate
               ? IDS_AHOI_DIALOG_CREATE
           : action == PendingWorkspaceAction::kEdit ? IDS_AHOI_DIALOG_SAVE
-                                                    : IDS_DELETE));
+                                                    : IDS_DELETE)));
   delegate->SetButtonLabel(ui::mojom::DialogButton::kCancel,
                            l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_CANCEL));
   delegate->SetAcceptCallbackWithClose(base::BindRepeating(

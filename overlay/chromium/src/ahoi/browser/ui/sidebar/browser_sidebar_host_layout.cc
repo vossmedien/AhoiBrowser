@@ -102,6 +102,7 @@
 #include "ui/events/event.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/geometry/insets.h"
+#include "ui/gfx/text_utils.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/gfx/geometry/vector2d.h"
@@ -448,18 +449,21 @@ BrowserSidebarHostView::BrowserSidebarHostView(
     auto* action = actions->AddChildView(CreateSidebarActionButton(
         base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
                             weak_ptr_factory_.GetWeakPtr(), command_id),
-        icon, l10n_util::GetStringUTF16(label_id)));
+        // Chromium menu strings carry Windows mnemonics ("&Verlauf").
+        icon, gfx::RemoveAccelerator(l10n_util::GetStringUTF16(label_id))));
     actions_layout->SetFlexForView(action, 1);
   };
   auto* split_action = actions->AddChildView(CreateSidebarSplitActionCell(
       base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
                           weak_ptr_factory_.GetWeakPtr(), IDC_NEW_TAB),
       vector_icons::kAddWeight500CustomIcon,
-      l10n_util::GetStringUTF16(IDS_NEW_TAB),
+      gfx::RemoveAccelerator(l10n_util::GetStringUTF16(IDS_NEW_TAB)),
       base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
                           weak_ptr_factory_.GetWeakPtr(),
                           IDC_NEW_INCOGNITO_WINDOW),
-      kIncognitoIcon, l10n_util::GetStringUTF16(IDS_NEW_INCOGNITO_WINDOW)));
+      kIncognitoIcon,
+      gfx::RemoveAccelerator(
+          l10n_util::GetStringUTF16(IDS_NEW_INCOGNITO_WINDOW))));
   actions_layout->SetFlexForView(split_action, 1);
   add_action(IDC_SHOW_DOWNLOADS, vector_icons::kDownloadIcon,
              IDS_DOWNLOAD_HISTORY_TITLE);

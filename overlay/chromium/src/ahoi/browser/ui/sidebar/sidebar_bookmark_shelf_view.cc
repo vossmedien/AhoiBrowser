@@ -32,6 +32,7 @@
 #include "components/vector_icons/vector_icons.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/gfx/text_utils.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/base/models/image_model.h"
 #include "ui/base/window_open_disposition_utils.h"
@@ -125,7 +126,7 @@ SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
       ui::ImageModel::FromVectorIcon(kBookmarkManagerIcon,
                                      visual_style::kMutedText,
                                      visual_style::kSidebarIconSize),
-      l10n_util::GetStringUTF16(IDS_BOOKMARK_MANAGER_V2),
+      gfx::RemoveAccelerator(l10n_util::GetStringUTF16(IDS_BOOKMARK_MANAGER_V2)),
       /*folder=*/false);
   manager_button_ = manager.get();
   header->AddChildView(std::move(manager));
