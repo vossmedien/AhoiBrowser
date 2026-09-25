@@ -497,6 +497,12 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
                           *active_workspace_id);
       return;
     }
+    if (command_id == kConvertWorkspaceToIsolated &&
+        active_workspace_id.has_value()) {
+      ShowWorkspaceDialog(PendingWorkspaceAction::kConvertToIsolated,
+                          *active_workspace_id);
+      return;
+    }
     // ADR 0011 step 2: another Profile's Workspace takes over this window's
     // frame; this window is hidden, not closed, and is shown again when the
     // user switches back.

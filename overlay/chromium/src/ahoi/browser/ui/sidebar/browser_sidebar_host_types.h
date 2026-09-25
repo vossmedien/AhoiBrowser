@@ -54,6 +54,7 @@ enum SidebarContextMenuCommand {
   kCopyActivePageLink,
   kCopyActivePageMarkdownLink,
   kOpenActivePageInReadingMode,
+  kConvertWorkspaceToIsolated,
 };
 
 constexpr int kArchivePolicyCommandBase = 600;
@@ -100,6 +101,8 @@ enum class PendingWorkspaceAction {
   kDuplicate,
   kEdit,
   kDelete,
+  // ADR 0011 step 2 (handoff 052).
+  kConvertToIsolated,
 };
 
 }  // namespace ahoi::sidebar

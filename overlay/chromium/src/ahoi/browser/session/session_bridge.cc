@@ -288,8 +288,10 @@ bool SessionBridge::FinishRuntimeInitialization() {
   session::RestoreHandOverAfterStartup(profile_);
   if (const std::optional<session::IsolatedProfileEntry> isolated =
           FindIsolatedProfileEntry()) {
-    if (isolated->state == session::IsolatedProfileState::kCreating &&
-        WorkspaceExists(isolated->workspace_id)) {
+    if (isolated->state == session::IsolatedProfileState::kConverting) {
+      ContinueWorkspaceConversion(isolated->profile_dir);
+    } else if (isolated->state == session::IsolatedProfileState::kCreating &&
+               WorkspaceExists(isolated->workspace_id)) {
       ScheduleTabTreePersistence();
       session::SetIsolatedProfileState(g_browser_process->local_state(),
                                        isolated->profile_dir,

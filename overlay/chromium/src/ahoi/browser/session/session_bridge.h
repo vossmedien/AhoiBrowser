@@ -54,6 +54,7 @@ class Extension;
 
 namespace ahoi {
 namespace session {
+struct PendingWorkspaceConversion;
 struct PortableWorkspaceStructure;
 class WorkspaceStructureController;
 }  // namespace session
@@ -302,6 +303,24 @@ class SessionBridge : public KeyedService,
   // True when the Workspace uses its own website-session partition.
   bool HasOwnWebsiteSessions(const base::Uuid& workspace_id) const;
 
+  enum class WorkspaceConversionResult {
+    kConverted,
+    kCancelled,
+    kUnavailable,
+    kFailed,
+  };
+  // ADR 0011 step 2 (handoff 052): moves a Workspace of this (main) Profile
+  // into a new fully separated Workspace with the same id and position. Its
+  // open pages are asked as one before-unload group first; a veto reports
+  // kCancelled and changes nothing. The structure (tree, splits, archives,
+  // homes) moves through the portable format; logins, passwords and site data
+  // stay behind. Open temporary pages are reopened in the new Profile. Only
+  // after the new Profile imported the structure is the source Workspace
+  // deleted here and its pages closed; any failure before that leaves it.
+  void ConvertWorkspaceToIsolated(
+      const base::Uuid& workspace_id,
+      base::OnceCallback<void(WorkspaceConversionResult)> done);
+
   // Binds one validated, active saved-page row to a currently tracked native
   // tab. A persistent node cannot be bound to two runtime tabs. Rebinding one
   // tab to another node is atomic from callers' perspective.
@@ -427,6 +446,23 @@ class SessionBridge : public KeyedService,
       std::vector<base::WeakPtr<content::WebContents>> asked_pages,
       WorkspaceDeletionCallback done,
       bool all_agreed);
+  // Handoff 052, source side.
+  void OnConversionPagesAnswered(
+      base::Uuid workspace_id,
+      std::vector<GURL> reopen_urls,
+      base::OnceCallback<void(WorkspaceConversionResult)> done,
+      bool all_agreed);
+  void OnWorkspaceConverted(
+      base::Uuid workspace_id,
+      base::OnceCallback<void(WorkspaceConversionResult)> done,
+      bool imported);
+  // Handoff 052, receiving side (a Profile registered as `converting`).
+  void ContinueWorkspaceConversion(const std::string& profile_dir);
+  void ImportConvertedWorkspace(session::PendingWorkspaceConversion pending,
+                                int attempt);
+  void OnConvertedWorkspaceImported(session::PendingWorkspaceConversion pending,
+                                    int attempt,
+                                    PortableImportResult result);
   void ClearRetiredWebsiteSessionData(base::Uuid context_id);
   void ResumeWebsiteSessionRemovals();
   void OnWebsiteSessionDirectoryDeleted(base::Uuid context_id, bool deleted);
@@ -590,6 +626,10 @@ class SessionBridge : public KeyedService,
   std::unique_ptr<session::WorkspaceStructureController>
       workspace_structure_controller_;
   std::unique_ptr<session::GroupPageClose> workspace_deletion_close_;
+  // The agreed pages of a Workspace being converted (handoff 052); closed
+  // only after the new Profile imported the structure.
+  std::unique_ptr<session::GroupPageClose> workspace_conversion_close_;
+  bool workspace_conversion_running_ = false;
   base::WeakPtrFactory<SessionBridge> weak_ptr_factory_{this};
 };
 

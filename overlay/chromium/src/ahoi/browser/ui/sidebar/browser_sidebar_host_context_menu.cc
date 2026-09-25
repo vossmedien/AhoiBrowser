@@ -329,6 +329,12 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_menu_model_->AddItem(
       kCopyAllLinks,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_COPY_ALL_LINKS));
+  if (!isolated_profile) {
+    context_menu_model_->AddItem(
+        kConvertWorkspaceToIsolated,
+        StructureText(u"In vollständig getrennten Workspace umwandeln …",
+                      u"Convert to fully separated Workspace …"));
+  }
   context_menu_model_->AddItem(
       kDeleteWorkspace,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DELETE_WORKSPACE));
@@ -823,6 +829,11 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
       case kCopyAllLinks:
       case kEditWorkspace:
         return controller_->view_model().workspace_id().has_value();
+      case kConvertWorkspaceToIsolated:
+        // The main Profile keeps at least one Workspace (handoff 052).
+        return controller_->view_model().workspace_id().has_value() &&
+               workspace_service_->ordered_workspaces().size() > 1 &&
+               !session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
       case kDeleteWorkspace:
         // A fully separated Workspace is its Profile's only Workspace;
         // deleting it deletes that Profile (ADR 0011).

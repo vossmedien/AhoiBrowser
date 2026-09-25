@@ -119,6 +119,17 @@ TEST_F(IsolatedProfileRegistryTest, RoundTripsSortKey) {
                    .contains("sort_key"));
 }
 
+TEST_F(IsolatedProfileRegistryTest, RoundTripsConvertingState) {
+  IsolatedProfileEntry converting = Entry("Profile 1");
+  converting.state = IsolatedProfileState::kConverting;
+  ASSERT_TRUE(AddIsolatedProfile(&local_state_, converting));
+  EXPECT_EQ(converting, FindIsolatedProfile(&local_state_, "Profile 1"));
+  ASSERT_TRUE(SetIsolatedProfileState(&local_state_, "Profile 1",
+                                      IsolatedProfileState::kActive));
+  EXPECT_EQ(IsolatedProfileState::kActive,
+            FindIsolatedProfile(&local_state_, "Profile 1")->state);
+}
+
 TEST_F(IsolatedProfileRegistryTest, SkipsMalformedStoredEntries) {
   base::ListValue list;
   list.Append("not a dict");

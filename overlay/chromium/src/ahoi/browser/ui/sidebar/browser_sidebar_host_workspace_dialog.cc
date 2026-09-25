@@ -192,6 +192,24 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
       sessions->SetMultiLine(true);
       sessions->SetHorizontalAlignment(gfx::ALIGN_LEFT);
     }
+  } else if (action == PendingWorkspaceAction::kConvertToIsolated) {
+    // ADR 0011 step 2 (handoff 052): say what moves and what stays.
+    auto* body = contents->AddChildView(std::make_unique<views::Label>(
+        StructureText(
+            u"Der Workspace wird zu einem eigenen, vollständig getrennten "
+            u"Profil mit eigenem Fenster. Ordner, Reihenfolge, Splits, "
+            u"Ausgangsadressen und Archiv ziehen mit um. Anmeldungen, "
+            u"Passwörter, Verlauf und Websitedaten ziehen nicht mit; du "
+            u"meldest dich dort neu an. Offene Tabs werden hier geschlossen "
+            u"und temporäre Tabs dort neu geöffnet. Abbrechen ändert nichts.",
+            u"The Workspace becomes its own fully separated profile with its "
+            u"own window. Folders, order, splits, home addresses and the "
+            u"archive move along. Logins, passwords, history and site data "
+            u"do not; you sign in there again. Open tabs close here, and "
+            u"temporary tabs reopen there. Cancel changes nothing.")));
+    body->SetSubpixelRenderingEnabled(false);
+    body->SetMultiLine(true);
+    body->SetHorizontalAlignment(gfx::ALIGN_LEFT);
   } else {
     auto* name_label = contents->AddChildView(std::make_unique<views::Label>(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_NAME)));
@@ -273,13 +291,19 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
                        : action == PendingWorkspaceAction::kEdit
                            ? IDS_AHOI_DIALOG_EDIT_WORKSPACE
                            : IDS_AHOI_DIALOG_DELETE_WORKSPACE;
-  delegate->SetTitle(l10n_util::GetStringUTF16(title_id));
+  delegate->SetTitle(
+      action == PendingWorkspaceAction::kConvertToIsolated
+          ? StructureText(u"In vollständig getrennten Workspace umwandeln",
+                          u"Convert to fully separated Workspace")
+          : l10n_util::GetStringUTF16(title_id));
   delegate->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk) |
                        static_cast<int>(ui::mojom::DialogButton::kCancel));
   // IDS_DELETE is a menu string with a Windows mnemonic ("&Löschen").
   delegate->SetButtonLabel(
       ui::mojom::DialogButton::kOk,
-      gfx::RemoveAccelerator(l10n_util::GetStringUTF16(
+      action == PendingWorkspaceAction::kConvertToIsolated
+          ? StructureText(u"Umwandeln", u"Convert")
+          : gfx::RemoveAccelerator(l10n_util::GetStringUTF16(
           action == PendingWorkspaceAction::kCreate ||
                   action == PendingWorkspaceAction::kDuplicate
               ? IDS_AHOI_DIALOG_CREATE
@@ -441,6 +465,28 @@ std::string BrowserSidebarHostView::NextProcessWideWorkspaceSortKey() const {
 }
 
 bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
+  if (pending_workspace_action_ == PendingWorkspaceAction::kConvertToIsolated) {
+    if (pending_workspace_id_.has_value()) {
+      // The Workspace's pages are asked as one before-unload group first; a
+      // veto changes nothing (kCancelled).
+      session_bridge_->ConvertWorkspaceToIsolated(
+          *pending_workspace_id_,
+          base::BindOnce(
+              [](base::WeakPtr<BrowserSidebarHostView> view,
+                 SessionBridge::WorkspaceConversionResult result) {
+                if (view &&
+                    (result ==
+                         SessionBridge::WorkspaceConversionResult::kFailed ||
+                     result == SessionBridge::WorkspaceConversionResult::
+                                   kUnavailable)) {
+                  view->OnMutationFailed(
+                      tab_tree::TabTreeStore::Result::kDatabaseError);
+                }
+              },
+              weak_ptr_factory_.GetWeakPtr()));
+    }
+    return true;
+  }
   if (pending_workspace_action_ == PendingWorkspaceAction::kDelete &&
       session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
     // The Profile is the Workspace: Chromium deletes both after the pages

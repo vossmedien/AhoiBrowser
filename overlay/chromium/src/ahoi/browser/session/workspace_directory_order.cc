@@ -24,7 +24,8 @@ std::vector<DirectoryWorkspace> OrderDirectoryWorkspaces(
     ranked.push_back({workspace, false, false, ranked.size()});
   }
   for (const IsolatedProfileEntry& entry : isolated_entries) {
-    if (entry.state == IsolatedProfileState::kDeleting) {
+    if (entry.state == IsolatedProfileState::kDeleting ||
+        entry.state == IsolatedProfileState::kConverting) {
       continue;
     }
     ranked.push_back({{.workspace_id = entry.workspace_id,

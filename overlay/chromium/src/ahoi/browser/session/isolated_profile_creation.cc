@@ -3,9 +3,11 @@
 
 #include "ahoi/browser/session/isolated_profile_creation.h"
 
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -18,6 +20,7 @@
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/logging.h"
+#include "base/no_destructor.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
@@ -72,16 +75,19 @@ void OnIsolatedProfileInitialized(std::string dir,
 
 }  // namespace
 
-void CreateIsolatedWorkspace(std::u16string name,
-                             std::u16string icon,
-                             std::optional<uint32_t> accent_argb,
-                             std::string sort_key,
-                             base::OnceCallback<void(bool)> done) {
+namespace {
+
+// Registers `entry` (its directory is chosen here) and creates the Profile
+// and its window. Returns the directory, or nullopt when registration failed;
+// `done` has then run with false.
+std::optional<std::string> RegisterAndCreateIsolatedProfile(
+    IsolatedProfileEntry entry,
+    base::OnceCallback<void(bool)> done) {
   ProfileManager* profile_manager = g_browser_process->profile_manager();
   PrefService* local_state = g_browser_process->local_state();
-  if (!profile_manager || !local_state || name.empty()) {
+  if (!profile_manager || !local_state || entry.name.empty()) {
     std::move(done).Run(false);
-    return;
+    return std::nullopt;
   }
   ProfileAttributesStorage& storage =
       profile_manager->GetProfileAttributesStorage();
@@ -94,18 +100,10 @@ void CreateIsolatedWorkspace(std::u16string name,
 
   // Registered and committed before the Profile exists, so its SessionBridge
   // seeds this Workspace and a crash leaves only a sweepable entry.
-  const IsolatedProfileEntry entry{
-      .profile_dir = DirName(path),
-      .workspace_id = base::Uuid::GenerateRandomV4(),
-      .name = name,
-      .icon = std::move(icon),
-      .accent_argb = accent_argb,
-      .state = IsolatedProfileState::kCreating,
-      .sort_key = std::move(sort_key),
-  };
+  entry.profile_dir = DirName(path);
   if (!AddIsolatedProfile(local_state, entry)) {
     std::move(done).Run(false);
-    return;
+    return std::nullopt;
   }
   local_state->CommitPendingWrite();
 
@@ -113,7 +111,7 @@ void CreateIsolatedWorkspace(std::u16string name,
   // start. The Workspace name doubles as the Profile name.
   ProfileAttributesInitParams init_params;
   init_params.profile_path = path;
-  init_params.profile_name = std::move(name);
+  init_params.profile_name = entry.name;
   init_params.icon_index = 0;
   storage.AddProfile(std::move(init_params));
 
@@ -137,6 +135,74 @@ void CreateIsolatedWorkspace(std::u16string name,
                                          std::move(dir), std::move(done)));
               },
               path, entry.profile_dir, std::move(done))));
+  return entry.profile_dir;
+}
+
+// Conversions waiting for their new Profile's SessionBridge, by directory.
+// In memory only: a restart interrupts the conversion, and the sweep or the
+// Profile's own bridge then deletes the half-converted Profile.
+std::map<std::string, PendingWorkspaceConversion>& PendingConversions() {
+  static base::NoDestructor<std::map<std::string, PendingWorkspaceConversion>>
+      pending;
+  return *pending;
+}
+
+}  // namespace
+
+void CreateIsolatedWorkspace(std::u16string name,
+                             std::u16string icon,
+                             std::optional<uint32_t> accent_argb,
+                             std::string sort_key,
+                             base::OnceCallback<void(bool)> done) {
+  std::ignore = RegisterAndCreateIsolatedProfile(
+      IsolatedProfileEntry{
+          .workspace_id = base::Uuid::GenerateRandomV4(),
+          .name = std::move(name),
+          .icon = std::move(icon),
+          .accent_argb = accent_argb,
+          .state = IsolatedProfileState::kCreating,
+          .sort_key = std::move(sort_key),
+      },
+      std::move(done));
+}
+
+void ConvertToIsolatedWorkspace(const IsolatedProfileEntry& presentation,
+                                PendingWorkspaceConversion pending) {
+  IsolatedProfileEntry entry = presentation;
+  entry.profile_dir.clear();
+  entry.state = IsolatedProfileState::kConverting;
+  auto dir = std::make_shared<std::string>();
+  const std::optional<std::string> created = RegisterAndCreateIsolatedProfile(
+      std::move(entry),
+      base::BindOnce(
+          [](std::shared_ptr<std::string> dir, bool created) {
+            if (created) {
+              return;  // The new Profile's SessionBridge imports and reports.
+            }
+            if (std::optional<PendingWorkspaceConversion> failed =
+                    TakePendingWorkspaceConversion(*dir)) {
+              std::move(failed->done).Run(false);
+            }
+          },
+          dir));
+  if (!created) {
+    std::move(pending.done).Run(false);
+    return;
+  }
+  *dir = *created;
+  PendingConversions().insert_or_assign(*created, std::move(pending));
+}
+
+std::optional<PendingWorkspaceConversion> TakePendingWorkspaceConversion(
+    const std::string& profile_dir) {
+  auto& all = PendingConversions();
+  auto it = all.find(profile_dir);
+  if (it == all.end()) {
+    return std::nullopt;
+  }
+  PendingWorkspaceConversion pending = std::move(it->second);
+  all.erase(it);
+  return pending;
 }
 
 void DeleteIsolatedWorkspaceProfile(Profile* profile,
@@ -221,7 +287,8 @@ std::vector<IsolatedProfileEntry> GetOpenableIsolatedWorkspaces() {
   PrefService* local_state =
       g_browser_process ? g_browser_process->local_state() : nullptr;
   for (IsolatedProfileEntry& entry : GetIsolatedProfiles(local_state)) {
-    if (entry.state != IsolatedProfileState::kDeleting) {
+    if (entry.state != IsolatedProfileState::kDeleting &&
+        entry.state != IsolatedProfileState::kConverting) {
       result.push_back(std::move(entry));
     }
   }
@@ -280,11 +347,15 @@ void SweepIsolatedProfileRegistry() {
   // Handoff 013 I2: an entry still `creating` after a restart comes from a
   // creation that crashed before its window initialized. If its tree was
   // already written the Workspace exists and becomes active; otherwise the
-  // half-created Profile is deleted so no trace remains.
+  // half-created Profile is deleted so no trace remains. Handoff 052: an
+  // entry still `converting` is always deleted; its source Workspace was
+  // never removed from the main Profile.
   for (const IsolatedProfileEntry& entry : GetIsolatedProfiles(local_state)) {
-    if (entry.state != IsolatedProfileState::kCreating) {
+    if (entry.state != IsolatedProfileState::kCreating &&
+        entry.state != IsolatedProfileState::kConverting) {
       continue;
     }
+    const bool converting = entry.state == IsolatedProfileState::kConverting;
     const base::FilePath path =
         profile_manager->user_data_dir().AppendASCII(entry.profile_dir);
     if (profile_manager->GetProfileByPath(path)) {
@@ -295,13 +366,14 @@ void SweepIsolatedProfileRegistry() {
         base::BindOnce(&base::PathExists,
                        path.AppendASCII(kTabTreeDatabaseFilename)),
         base::BindOnce(
-            [](base::FilePath path, std::string dir, bool tree_written) {
+            [](base::FilePath path, std::string dir, bool converting,
+               bool tree_written) {
               PrefService* local_state = g_browser_process->local_state();
               ProfileManager* manager = g_browser_process->profile_manager();
               if (!local_state || !manager) {
                 return;
               }
-              if (tree_written) {
+              if (tree_written && !converting) {
                 SetIsolatedProfileState(local_state, dir,
                                         IsolatedProfileState::kActive);
                 return;
@@ -318,7 +390,7 @@ void SweepIsolatedProfileRegistry() {
                   path, base::DoNothing(),
                   ProfileMetrics::DELETE_PROFILE_USER_MANAGER);
             },
-            path, entry.profile_dir));
+            path, entry.profile_dir, converting));
   }
 }
 

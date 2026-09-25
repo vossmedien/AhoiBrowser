@@ -54,11 +54,14 @@ TEST(WorkspaceDirectoryOrderTest, UnkeyedFollowAndDeletingIsSkipped) {
   const IsolatedProfileEntry old_a = Isolated("Profile 1", "");
   IsolatedProfileEntry deleting = Isolated("Profile 3", "0");
   deleting.state = IsolatedProfileState::kDeleting;
+  IsolatedProfileEntry converting = Isolated("Profile 5", "0");
+  converting.state = IsolatedProfileState::kConverting;
   const IsolatedProfileEntry keyed = Isolated("Profile 4", "00000000@");
   EXPECT_EQ((std::vector<DirectoryWorkspace>{main, AsDirectory(keyed),
                                              AsDirectory(old_b),
                                              AsDirectory(old_a)}),
-            OrderDirectoryWorkspaces({main}, {old_b, old_a, deleting, keyed}));
+            OrderDirectoryWorkspaces({main}, {old_b, old_a, deleting,
+                                              converting, keyed}));
 }
 
 TEST(WorkspaceDirectoryOrderTest, NextKeyFollowsEveryWorkspace) {

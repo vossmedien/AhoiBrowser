@@ -26,7 +26,8 @@ struct DirectoryWorkspace {
 };
 
 // Merges `main_workspaces` (in their Profile's order) with the separated
-// Workspaces of `isolated_entries`, skipping entries being deleted. Sorted by
+// Workspaces of `isolated_entries`, skipping entries being deleted or still
+// receiving a converted Workspace (its source is listed instead). Sorted by
 // `sort_key`; on equal keys main Workspaces come first, then input order.
 // Separated entries without a key (written before step 2) follow all others
 // in registry order, which is where they appeared until now.

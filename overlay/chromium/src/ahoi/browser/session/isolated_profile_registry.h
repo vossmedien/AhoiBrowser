@@ -36,6 +36,10 @@ enum class IsolatedProfileState {
   kActive = 1,
   // Deletion confirmed; Chromium's profile deletion is running or resumes.
   kDeleting = 2,
+  // Handoff 052: created to receive an existing Workspace of the main Profile
+  // (same Workspace id). Not openable until the import finished; after an
+  // interrupted conversion the Profile is deleted and the source stays.
+  kConverting = 3,
 };
 
 struct IsolatedProfileEntry {

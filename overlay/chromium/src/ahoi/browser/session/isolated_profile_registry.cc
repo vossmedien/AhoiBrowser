@@ -42,7 +42,7 @@ std::optional<IsolatedProfileEntry> Decode(const base::Value& value) {
   const std::optional<int> state = dict->FindInt(kStateKey);
   if (!dir || !IsValidProfileDir(*dir) || !workspace || !name || !icon ||
       !state || *state < static_cast<int>(IsolatedProfileState::kCreating) ||
-      *state > static_cast<int>(IsolatedProfileState::kDeleting)) {
+      *state > static_cast<int>(IsolatedProfileState::kConverting)) {
     return std::nullopt;
   }
   IsolatedProfileEntry entry{
