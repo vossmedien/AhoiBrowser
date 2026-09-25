@@ -1,0 +1,180 @@
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+index 95d3141..68eb78d 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+@@ -623,6 +623,9 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+       return;
+     }
+     case kDeleteNode: {
++      if (CloseTemporaryPageForDeletion(node_id)) {
++        return;
++      }
+       const tab_tree::TabTreeStore::Result result =
+           controller_->DeleteNode(node_id, base::Time::Now());
+       if (result != tab_tree::TabTreeStore::Result::kOk) {
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc
+index 75d09dc..e947a35 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc
+@@ -647,4 +647,19 @@ void BrowserSidebarHostView::PerformSavedPageTrailingAction(
+   }
+ }
+ 
++bool BrowserSidebarHostView::CloseTemporaryPageForDeletion(
++    const base::Uuid& node_id) {
++  const tab_tree::TreeNode* node = controller_->view_model().GetNode(node_id);
++  if (!node || node->type != tab_tree::TreeNodeType::kSavedPage ||
++      !node->is_temporary) {
++    return false;
++  }
++  tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node_id);
++  if (!tab) {
++    return false;
++  }
++  tab->Close();
++  return true;
++}
++
+ }  // namespace ahoi::sidebar
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+index b9ca2c5..cfe6239 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -507,6 +507,7 @@ class BrowserSidebarHostView final
+       const tab_tree::TreeNode& node) const override;
+ 
+   void PerformSavedPageTrailingAction(const base::Uuid& node_id) override;
++  bool CloseTemporaryPageForDeletion(const base::Uuid& node_id) override;
+ 
+   void OnSidebarDragStateChanged(
+       std::optional<base::Uuid> dragged_node_id) override;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
+index 4f8f349..a632dab 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.cc
+@@ -512,8 +512,11 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
+     case ui::VKEY_DELETE:
+       if (model().selected_node_id().has_value() && !selected_node_suppressed &&
+           !model().is_search_projection_active()) {
+-        const auto result = controller_->DeleteNode(*model().selected_node_id(),
+-                                                    base::Time::Now());
++        const base::Uuid node_id = *model().selected_node_id();
++        if (delegate_ && delegate_->CloseTemporaryPageForDeletion(node_id)) {
++          return true;
++        }
++        const auto result = controller_->DeleteNode(node_id, base::Time::Now());
+         if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
+           delegate_->OnMutationFailed(result);
+         }
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h
+index 2687b44..71f1b2e 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h
+@@ -102,6 +102,13 @@ class SidebarTreeViewDelegate {
+   // A running saved page is closed but retained. A closed saved page is moved
+   // to Trash, matching the stateful trailing action painted by the row.
+   virtual void PerformSavedPageTrailingAction(const base::Uuid&) {}
++  // A temporary row is its live tab. Deleting it closes that tab, and the
++  // tab-close path removes the row; deleting only the row would unbind the
++  // tab and recreate the row under a new id (handoff 011 S8). Returns true
++  // when the delegate handled the deletion this way.
++  virtual bool CloseTemporaryPageForDeletion(const base::Uuid&) {
++    return false;
++  }
+   virtual void OnFolderHoverChanged(const base::Uuid&,
+                                     views::View* anchor,
+                                     bool hovered) {}
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_interaction_unittest.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_interaction_unittest.cc
+index be09ae4..3748694 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_interaction_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_interaction_unittest.cc
+@@ -703,6 +703,51 @@ TEST_F(SidebarTreeViewTest, SavedPageTrailingActionRequiresRealHover) {
+   row->OnMouseExited(exit);
+   EXPECT_FALSE(row->IsTrailingActionAt(action_point));
+ }
++
++// Handoff 011 S8: the Delete key on a temporary row with a live tab lets the
++// host close that tab; the row is not deleted separately, so it cannot come
++// back under a new id.
++TEST_F(SidebarTreeViewTest, DeleteKeyLetsHostCloseTemporaryPage) {
++  const tab_tree::Workspace workspace = MakeWorkspace();
++  const tab_tree::TreeNode page =
++      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
++               u"Temporary", "a");
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            store_.CreateWorkspace(workspace));
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(page));
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            controller_->ActivateWorkspace(workspace.id));
++  ASSERT_TRUE(controller_->SelectNode(page.id));
++  delegate_.close_temporary_for_deletion = true;
++
++  auto view = NewTreeView();
++  EXPECT_TRUE(view->OnKeyPressed(
++      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_DELETE, ui::EF_NONE)));
++  EXPECT_EQ(std::vector<base::Uuid>{page.id},
++            delegate_.close_for_deletion_requests);
++  EXPECT_NE(nullptr, controller_->view_model().GetNode(page.id));
++}
++
++// Any other row is still deleted by the tree itself.
++TEST_F(SidebarTreeViewTest, DeleteKeyDeletesRowTheHostDoesNotClose) {
++  const tab_tree::Workspace workspace = MakeWorkspace();
++  const tab_tree::TreeNode page =
++      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
++               u"Saved", "a");
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            store_.CreateWorkspace(workspace));
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(page));
++  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
++            controller_->ActivateWorkspace(workspace.id));
++  ASSERT_TRUE(controller_->SelectNode(page.id));
++
++  auto view = NewTreeView();
++  EXPECT_TRUE(view->OnKeyPressed(
++      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_DELETE, ui::EF_NONE)));
++  EXPECT_EQ(std::vector<base::Uuid>{page.id},
++            delegate_.close_for_deletion_requests);
++  EXPECT_EQ(nullptr, controller_->view_model().GetNode(page.id));
++}
+ }  // namespace
+ 
+ }  // namespace ahoi::sidebar
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.cc
+index 6eac5bc..7c83ab4 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.cc
+@@ -189,6 +189,12 @@ void RecordingDelegate::OnMutationFailed(
+   last_error = result;
+ }
+ 
++bool RecordingDelegate::CloseTemporaryPageForDeletion(
++    const base::Uuid& node_id) {
++  close_for_deletion_requests.push_back(node_id);
++  return close_temporary_for_deletion;
++}
++
+ void RecordingDelegate::OnSidebarDragStateChanged(
+     std::optional<base::Uuid> dragged_node_id) {
+   drag_state = std::move(dragged_node_id);
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h
+index 77e6193..fb44666 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_test_support.h
+@@ -89,6 +89,7 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
+   std::vector<gfx::ImageSkia> GetSavedPageDragThumbnails(
+       const base::Uuid&) const override;
+   void OnMutationFailed(tab_tree::TabTreeStore::Result result) override;
++  bool CloseTemporaryPageForDeletion(const base::Uuid& node_id) override;
+   void OnSidebarDragStateChanged(
+       std::optional<base::Uuid> dragged_node_id) override;
+ 
+@@ -105,6 +106,8 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
+   bool can_reorder_temporary_split = false;
+   bool reorder_temporary_split_succeeds = false;
+   bool saved_page_running = false;
++  bool close_temporary_for_deletion = false;
++  std::vector<base::Uuid> close_for_deletion_requests;
+   std::u16string saved_page_status_text;
+   std::optional<base::Uuid> activated_node;
+   std::optional<tab_tree::TabTreeStore::Result> last_error;
