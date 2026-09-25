@@ -138,6 +138,9 @@ class ProfileSyncBackend : public SyncStoreObserver {
 
  private:
   friend class BookmarkSyncAuthorizationTest;
+  // Reads the live store on this sequence; SQLite's exclusive lock blocks a
+  // second connection while the backend is open.
+  friend class ProfileSyncServiceTest;
 
   template <typename Record>
   bool Put(const Record& record);

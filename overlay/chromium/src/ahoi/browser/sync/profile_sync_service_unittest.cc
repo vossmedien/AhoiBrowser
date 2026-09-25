@@ -3,14 +3,19 @@
 
 #include "ahoi/browser/sync/profile_sync_service.h"
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
+#include "ahoi/browser/sync/profile_sync_service_factory.h"
 #include "ahoi/browser/sync/sync_model.h"
+#include "ahoi/browser/sync/sync_serialization.h"
+#include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/ui/appearance/appearance_prefs.h"
 #include "base/base64.h"
 #include "base/files/file_util.h"
@@ -21,6 +26,7 @@
 #include "chrome/test/base/testing_profile.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/url_row.h"
+#include "components/keyed_service/core/keyed_service.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/test/browser_task_environment.h"
 #include "sql/database.h"
@@ -161,7 +167,105 @@ std::optional<int> ReadActiveRecordPayloadCount(
 class ProfileSyncServiceTest : public testing::Test {
  protected:
   std::unique_ptr<TestingProfile> CreateProfile() {
-    return TestingProfile::Builder().Build();
+    TestingProfile::Builder builder;
+    // Each test owns the one service. An eagerly created keyed service would
+    // start a second backend on the same database when Sync is enabled and
+    // race the test's service for SQLite's exclusive lock.
+    builder.AddTestingFactory(
+        ProfileSyncServiceFactory::GetInstance(),
+        base::BindRepeating(
+            [](content::BrowserContext*) -> std::unique_ptr<KeyedService> {
+              return {};
+            }));
+    return builder.Build();
+  }
+
+  // The open backend holds SQLite's exclusive lock, so a live store is read
+  // on the backend sequence; a stopped one is read from the closed file.
+  std::optional<StoreCounts> ReadCounts(ProfileSyncService* service,
+                                        const base::FilePath& path) {
+    if (service->backend_.is_null()) {
+      return ReadStoreCounts(path);
+    }
+    std::optional<StoreCounts> counts;
+    service->backend_.PostTaskWithThisObject(
+        base::BindOnce(&ProfileSyncServiceTest::CountLiveStore, &counts));
+    service->backend_.FlushPostedTasksForTesting();
+    return counts;
+  }
+
+  std::optional<int> ReadActivePayloadCount(ProfileSyncService* service,
+                                            const base::FilePath& path,
+                                            EntityType entity_type,
+                                            const std::string& fragment) {
+    if (service->backend_.is_null()) {
+      return ReadActiveRecordPayloadCount(path, entity_type, fragment);
+    }
+    std::optional<int> count;
+    service->backend_.PostTaskWithThisObject(
+        base::BindOnce(&ProfileSyncServiceTest::CountLivePayloads, entity_type,
+                       fragment, &count));
+    service->backend_.FlushPostedTasksForTesting();
+    return count;
+  }
+
+  static void CountLiveStore(std::optional<StoreCounts>* out,
+                             const ProfileSyncBackend& backend) {
+    const SyncStore* store = backend.store_.get();
+    if (!store) {
+      return;
+    }
+    StoreCounts counts;
+    for (int raw = static_cast<int>(EntityType::kDevice);
+         raw <= static_cast<int>(EntityType::kTabArchiveEntry); ++raw) {
+      const EntityType type = static_cast<EntityType>(raw);
+      std::vector<SyncRecord> records;
+      if (store->GetRecords(type, &records) != SyncStore::Result::kOk) {
+        return;
+      }
+      const int size = static_cast<int>(records.size());
+      counts.records += size;
+      if (type == EntityType::kHistoryEntry) {
+        counts.history = size;
+      } else if (type == EntityType::kRemoteTab) {
+        counts.tabs = size;
+        counts.active_tabs = static_cast<int>(std::ranges::count_if(
+            records,
+            [](const SyncRecord& record) { return !IsTombstone(record); }));
+      }
+    }
+    const int64_t outbox = store->PendingOutboxCount();
+    if (outbox < 0) {
+      return;
+    }
+    counts.outbox = static_cast<int>(outbox);
+    *out = counts;
+  }
+
+  static void CountLivePayloads(EntityType entity_type,
+                                const std::string& fragment,
+                                std::optional<int>* out,
+                                const ProfileSyncBackend& backend) {
+    const SyncStore* store = backend.store_.get();
+    std::vector<SyncRecord> records;
+    if (!store ||
+        store->GetRecords(entity_type, &records) != SyncStore::Result::kOk) {
+      return;
+    }
+    int count = 0;
+    for (const SyncRecord& record : records) {
+      std::string payload;
+      if (IsTombstone(record)) {
+        continue;
+      }
+      if (!SerializeRecord(record, &payload)) {
+        return;
+      }
+      if (payload.find(fragment) != std::string::npos) {
+        ++count;
+      }
+    }
+    *out = count;
   }
 
   base::FilePath DatabasePath(const TestingProfile& profile) const {
@@ -279,7 +383,7 @@ TEST_F(ProfileSyncServiceTest,
   DrainBackend(&service);
 
   const std::optional<StoreCounts> counts =
-      ReadStoreCounts(DatabasePath(*profile));
+      ReadCounts(&service, DatabasePath(*profile));
   ASSERT_TRUE(counts.has_value());
   EXPECT_EQ(2, counts->tabs);
   EXPECT_EQ(2, counts->active_tabs);
@@ -297,13 +401,13 @@ TEST_F(ProfileSyncServiceTest,
   DrainBackend(&service);
 
   const std::optional<StoreCounts> reenabled_counts =
-      ReadStoreCounts(DatabasePath(*profile));
+      ReadCounts(&service, DatabasePath(*profile));
   ASSERT_TRUE(reenabled_counts.has_value());
   EXPECT_GT(reenabled_counts->tabs, counts->tabs);
   EXPECT_EQ(1, reenabled_counts->active_tabs);
-  EXPECT_EQ(1, ReadActiveRecordPayloadCount(DatabasePath(*profile),
-                                            EntityType::kRemoteTab,
-                                            "runtime-after-reenable.example"));
+  EXPECT_EQ(1, ReadActivePayloadCount(&service, DatabasePath(*profile),
+                                      EntityType::kRemoteTab,
+                                      "runtime-after-reenable.example"));
 
   service.DetachUiBridge(&bridge);
   service.Shutdown();
@@ -342,15 +446,16 @@ TEST_F(ProfileSyncServiceTest,
       profile->GetPrefs()->GetDict(kApprovedRemoteCommandKeysPref);
   EXPECT_FALSE(keys_after_blocked_mutations.contains(
       unapproved_device.AsLowercaseString()));
-  EXPECT_EQ(public_key_base64, *keys_after_blocked_mutations.FindString(
-                                   approved_device.AsLowercaseString()));
+  // Revocation is local and fail-closed, so it is never blocked.
+  EXPECT_FALSE(keys_after_blocked_mutations.contains(
+      approved_device.AsLowercaseString()));
 
   PublishTabsNow(&service, "enabled-tab", "https://enabled.example/");
   RecordHistoryVisit(&service, GURL("https://enabled.example/history"), 2);
   DrainBackend(&service);
 
   const std::optional<StoreCounts> enabled_counts =
-      ReadStoreCounts(database_path);
+      ReadCounts(&service, database_path);
   ASSERT_TRUE(enabled_counts.has_value());
   EXPECT_GT(enabled_counts->records, 0);
   EXPECT_GT(enabled_counts->outbox, 0);
@@ -397,12 +502,12 @@ TEST_F(ProfileSyncServiceTest,
   service.SetSyncEnabled(true);
   DrainBackend(&service);
 
-  EXPECT_EQ(1, ReadActiveRecordPayloadCount(
-                   database_path, EntityType::kPermittedSetting,
+  EXPECT_EQ(1, ReadActivePayloadCount(
+                   &service, database_path, EntityType::kPermittedSetting,
                    appearance::kSidebarPageTintEnabledPref));
-  EXPECT_EQ(1, ReadActiveRecordPayloadCount(database_path,
-                                            EntityType::kPermittedSetting,
-                                            "\"value_json\":\"true\""));
+  EXPECT_EQ(1, ReadActivePayloadCount(&service, database_path,
+                                      EntityType::kPermittedSetting,
+                                      "\"value_json\":\"true\""));
 
   service.Shutdown();
 }

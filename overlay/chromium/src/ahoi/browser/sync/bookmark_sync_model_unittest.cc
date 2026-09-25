@@ -65,7 +65,10 @@ BookmarkRecord StampEdit(const BookmarkRecord& previous,
                          BookmarkRecord edited,
                          const char* device,
                          int64_t physical) {
-  const SyncRecord before = previous;
+  // A stored predecessor always carries its complete field-clock map; a
+  // freshly authored fixture receives it from its creation clock.
+  SyncRecord before = previous;
+  EXPECT_TRUE(NormalizeFieldVersions(&before));
   edited.version = Version(device, physical);
   SyncRecord after = std::move(edited);
   EXPECT_TRUE(StampLocalMutation(&before, &after));
@@ -309,9 +312,11 @@ TEST(BookmarkSyncModelTest, TombstoneSurvivesConcurrentMetadataAndStaleReplay) {
   EXPECT_TRUE(merged.tombstone);
   EXPECT_EQ(renamed.title, merged.title);
   EXPECT_EQ(removed.version.stamp, merged.field_versions.at("tombstone"));
+  SyncRecord stale_replay = initial;
+  ASSERT_TRUE(NormalizeFieldVersions(&stale_replay));
   SyncRecord replay;
   EXPECT_EQ(MergeDecision::kKeepExisting,
-            MergeRecordFields(forward, initial, &replay));
+            MergeRecordFields(forward, stale_replay, &replay));
   EXPECT_TRUE(std::get<BookmarkRecord>(replay).tombstone);
 }
 

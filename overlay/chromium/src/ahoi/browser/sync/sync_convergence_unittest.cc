@@ -249,7 +249,11 @@ TEST(SyncStoreV3Test, CompactionWatermarkRejectsDelayedResurrection) {
   EXPECT_EQ(store.GetRecord(EntityType::kWorkspace, deleted.id, &value),
             SyncStore::Result::kNotFound);
 
-  WorkspaceRecord resurrected = deleted;
+  // A delayed peer write carries the complete field-clock map of the deleted
+  // record with only its tombstone register advanced.
+  SyncRecord complete_deleted = deleted;
+  ASSERT_TRUE(NormalizeFieldVersions(&complete_deleted));
+  WorkspaceRecord resurrected = std::get<WorkspaceRecord>(complete_deleted);
   resurrected.tombstone = false;
   resurrected.version = MakeVersion(kDeviceB, 300);
   resurrected.field_versions.insert_or_assign("tombstone",

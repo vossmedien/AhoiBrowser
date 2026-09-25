@@ -2,6 +2,7 @@
 // Use of this source code is governed by a GPL-3.0-or-later license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
 #include <deque>
 #include <memory>
 #include <string>
@@ -83,6 +84,32 @@ RemoteTabRecord Tab(const char* id,
                          .version = std::move(version),
                          .tree_node_id = SharedPageFor(id),
                          .target_kind = SharedTabTargetKind::kWeb};
+}
+
+// A live local Presence is admitted only next to its matching shared Page,
+// and DeviceTabsService publishes a Presence only with that Page present.
+TreeNodeRecord SharedPageOf(const RemoteTabRecord& tab) {
+  return TreeNodeRecord{.id = *tab.tree_node_id,
+                        .workspace_id =
+                            Id("10000000-0000-4000-8000-0000000000f0"),
+                        .kind = TreeNodeKind::kPage,
+                        .title = tab.title,
+                        .url = tab.url,
+                        .sort_key = "0",
+                        .created_at = Ts(1),
+                        .modified_at = Ts(1),
+                        .version = Version(kDeviceA, 1),
+                        .is_temporary = true,
+                        .target_kind = tab.target_kind};
+}
+
+// Seeds the Page and acknowledges its upload so the test's own outbox
+// expectations cover only the Presence under test.
+void SeedSharedPage(SyncStore* store, const RemoteTabRecord& tab) {
+  const std::string mutation = "page-" + tab.id.AsLowercaseString();
+  ASSERT_EQ(store->PutLocalRecord(SharedPageOf(tab), mutation),
+            SyncStore::Result::kOk);
+  ASSERT_EQ(store->AcknowledgeOutbox({mutation}), SyncStore::Result::kOk);
 }
 
 class SnapshotObserver final : public DeviceTabsService::Observer {
@@ -461,6 +488,7 @@ TEST(SyncStoreTest, LocalMutationIsAtomicWithOutboxAndPersists) {
   {
     SyncStore store;
     ASSERT_TRUE(store.Initialize(path));
+    ASSERT_NO_FATAL_FAILURE(SeedSharedPage(&store, tab));
     EXPECT_EQ(store.PutLocalRecord(tab, "mutation-local"),
               SyncStore::Result::kOk);
     EXPECT_EQ(store.PutLocalRecord(tab, "mutation-local"),
@@ -496,6 +524,7 @@ TEST(SyncStoreTest, CloudRecoveryPreservesRecordsAndRebuildsOutbox) {
           "10000000-0000-4000-8000-000000000024",
           "10000000-0000-4000-8000-000000000025", "https://recovery.test",
           Version(kDeviceA, 35));
+  ASSERT_NO_FATAL_FAILURE(SeedSharedPage(&store, tab));
   ASSERT_EQ(store.PutLocalRecord(tab, "before-account-change"),
             SyncStore::Result::kOk);
   EXPECT_EQ(store.PrepareOutboxForCloudRecovery(false), SyncStore::Result::kOk);
@@ -506,11 +535,15 @@ TEST(SyncStoreTest, CloudRecoveryPreservesRecordsAndRebuildsOutbox) {
   EXPECT_EQ(store.PrepareOutboxForCloudRecovery(true), SyncStore::Result::kOk);
   std::vector<SyncChange> outbox;
   ASSERT_EQ(store.ReadOutbox(10, &outbox), SyncStore::Result::kOk);
-  ASSERT_EQ(outbox.size(), 1u);
+  // Every retained record is republished: the Presence and its Page.
+  ASSERT_EQ(outbox.size(), 2u);
+  const auto presence =
+      std::ranges::find(outbox, tab.id, &SyncChange::entity_id);
+  ASSERT_NE(presence, outbox.end());
   std::string retained_payload;
   ASSERT_TRUE(SerializeRecord(retained, &retained_payload));
-  EXPECT_NE(outbox[0].mutation_id, "before-account-change");
-  EXPECT_EQ(outbox[0].payload, retained_payload);
+  EXPECT_NE(presence->mutation_id, "before-account-change");
+  EXPECT_EQ(presence->payload, retained_payload);
 }
 
 TEST(SyncStoreTest, RemotePageIsIdempotentAndAdvancesTokenAtomically) {
@@ -605,6 +638,9 @@ TEST(DeviceTabsServiceTest, PublishesNormalLocalAndRemoteTabsOnly) {
   RemoteTabRecord incognito = remote;
   incognito.id = Id("10000000-0000-4000-8000-000000000046");
   incognito.is_incognito = true;
+  ASSERT_NO_FATAL_FAILURE(SeedSharedPage(service->store_for_testing(), local));
+  ASSERT_NO_FATAL_FAILURE(
+      SeedSharedPage(service->store_for_testing(), remote));
   EXPECT_EQ(service->store_for_testing()->PutLocalRecord(local),
             SyncStore::Result::kOk);
   EXPECT_TRUE(observer.last.local_tabs.empty());
@@ -674,6 +710,7 @@ TEST(SyncPumpTest, AcknowledgesOutboxAndDrainsEveryRemotePage) {
           "10000000-0000-4000-8000-000000000072",
           "10000000-0000-4000-8000-000000000073", "https://local.test",
           Version(kDeviceA, 70));
+  ASSERT_NO_FATAL_FAILURE(SeedSharedPage(&store, local));
   ASSERT_EQ(store.PutLocalRecord(local, "local-70"), SyncStore::Result::kOk);
 
   const RemoteTabRecord remote =
@@ -731,6 +768,7 @@ TEST(SyncPumpTest, InvalidAcknowledgementKeepsOutboxAndPersistsSafeBackoff) {
           "10000000-0000-4000-8000-000000000082",
           "10000000-0000-4000-8000-000000000083", "https://local.test",
           Version(kDeviceA, 80));
+  ASSERT_NO_FATAL_FAILURE(SeedSharedPage(&store, local));
   ASSERT_EQ(store.PutLocalRecord(local, "local-80"), SyncStore::Result::kOk);
 
   FakeSyncProvider provider;

@@ -135,8 +135,12 @@ TEST(UnifiedSyncStoreTest, LateSqlFailureRollsBackEarlierRowsAndOutbox) {
   base::ScopedTempDir directory;
   ASSERT_TRUE(directory.CreateUniqueTempDir());
   const auto path = directory.GetPath().AppendASCII("format3.sqlite");
-  SyncStore store;
-  ASSERT_TRUE(store.Initialize(path));
+  {
+    // The store holds SQLite's exclusive lock while open, so the fixture
+    // trigger is installed between a schema-creating and the tested session.
+    SyncStore schema_store;
+    ASSERT_TRUE(schema_store.Initialize(path));
+  }
   {
     sql::Database database(sql::test::kTestTag);
     ASSERT_TRUE(database.Open(path));
@@ -144,6 +148,8 @@ TEST(UnifiedSyncStoreTest, LateSqlFailureRollsBackEarlierRowsAndOutbox) {
         "CREATE TRIGGER fixture_fail_last BEFORE INSERT ON sync_records "
         "WHEN NEW.entity_type=0 BEGIN SELECT RAISE(ABORT,'fixture'); END"));
   }
+  SyncStore store;
+  ASSERT_TRUE(store.Initialize(path));
   sql::test::ScopedErrorExpecter errors;
   errors.ExpectError(SQLITE_CONSTRAINT_TRIGGER);
   EXPECT_EQ(Result::kDatabaseError,

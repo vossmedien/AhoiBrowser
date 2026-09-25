@@ -1039,6 +1039,17 @@ CloudKitSyncProviderMac::Core::MakeDelayedRecordDeliveryForTesting(
   base::AutoLock guard(lock_);
   const std::string key = ToString(record.recordID.recordName);
   pending_records_[key] = record;
+  // A delayed SDK request is only ever for a mutation of the current upload
+  // page (UploadKeyAuthorized); model that page as Upload() would.
+  const std::optional<EntityType> type =
+      EntityTypeForDataClass(record[@"dataClass"]);
+  const base::Uuid entity_id = base::Uuid::ParseLowercase(key);
+  if (type && entity_id.is_valid()) {
+    pending_mutations_[key] = {{.mutation_id = "delayed-delivery-" + key,
+                                .entity_type = *type,
+                                .entity_id = entity_id}};
+  }
+  upload_generation_ = transport_generation_;
   return base::BindRepeating(
       [](std::weak_ptr<Core> weak, std::string key, uint64_t generation) {
         const auto core = weak.lock();
