@@ -1,6 +1,6 @@
 # 018 – Review of the 016 fixes (fullscreen and restart hand-over)
 
-Status: ready
+Status: integrated b41cac6 (H2 polls for the presented window up to 60 s; WS-ISO-19 by visible test)
 Owner lane: desktop
 Reviewed: `cfcc187` (source reading; the commit says "not yet built").
 

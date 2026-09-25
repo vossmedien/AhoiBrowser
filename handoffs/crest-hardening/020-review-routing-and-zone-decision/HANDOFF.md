@@ -1,6 +1,6 @@
 # 020 – Review of cross-Profile link routing and the per-Profile zone decision (H6)
 
-Status: ready
+Status: integrated 3b16f31, 620e5c3 (port hint in the editor; zone and key retired after 30 days; WS-ISO-06/20 by visible test)
 Owner lanes: desktop (routing), sync (zones)
 Reviewed: `c48a879` (routing core, patch 0057; "not yet built") and
 `f8a241f` (Sync decision in `docs/ACTIVE_SYNC_COORDINATION.md`). Source
