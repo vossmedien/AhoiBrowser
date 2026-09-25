@@ -73,11 +73,11 @@ an owner integration, a lease window or an owner implementation step.
 
 | Package | Lane work | Waits only on | Owner |
 | --- | --- | --- | --- |
-| H1 | done: drift gate, merge model (now with union validation as decided by Sync), 131 vectors (rev 3); runners integrated; first run agrees on every valid vector | C++ DoD met: build 21 (`f5e4c1f`) passes all rev-3 vectors in `ahoi_sync_unittests` (160 green). Remaining: Swift rerun of rev 3 on the simulator (appearance now covered, `75aeea8`) | desktop/sync, mobile |
+| H1 | **DoD met**: drift gate, merge model with union validation, 131 vectors (rev 3); C++ green on builds 24/25, Swift green on A168 (all seven entity types, 0 failures) | – | – |
 | H2 | done: audit, rule; S1 and rule integrated (`8a9fc91`), R6 integrated (`17f5319`) | owner's deferred S2–S8 (planned for the next desktop package) and the visible journeys | desktop |
 | H3 | done: methodology, harness, trace events (`d425c3b`) | **harness DoD met**: validation run on installed build 24 (`f91e5b7`, binary `57431edd…`), user-approved on the attended, loaded host (load ≈19), `artifacts/perf/f91e5b7-20260925-validation/`: warm start median 5.1 s (spread 3.8 %), 1/20 tabs RSS 1.5/5.7 GiB, idle CPU 1.4 %; all budgets INSUFFICIENT or NOT_MEASURED by design. Budget verdicts wait for `upstream-release` and `ahoi-release` builds with Xcode 27 (user decision 25 Sep, handoff 022) and a quiet host | desktop, owner |
 | H4 | done: tool, receipt integration (`2ab7909`) | **DoD met**: build 21 receipt (`f5e4c1f`, built 14:14 UTC) carries `engineInputKey ca277d91…`, identical to `tools/engine_input_key.py key` of the exported source tree `f5e4c1f` | desktop |
-| H5 | done: review, checklist; GCM, field trials, group close integrated; audit tool `tools/network_audit/fresh_profile_audit.py` with tests | lease `installed-app` for the audit run (requested); then NET-GCM-01 and the fresh-profile verdict | desktop |
+| H5 | done: review, checklist, audit tool; lease confirmed (desktop `6d40b5b`, open from 21:10) | audit run queued behind `build.lock` on installed build 29 (NET-GCM-01); the full silence verdict needs build 31+ with patch 0062 (ListAccounts) | desktop |
 | H6 | done: ADR 0011, catalogue, reviews 010, 013, 014, 015, 016, 018, 020 (step 2 hand-over, routing, zone decision), 024 (step 3 iOS: M1 high, account switch wipes separated logins) | 024 ready; step 2 Quick Window, export/import and process-wide order not implemented yet; visible WS-ISO/WS-DEL acceptance | desktop, sync, mobile |
 
 ## Packages
@@ -99,8 +99,8 @@ checkpoint.
 | Resource | Purpose | Requested | Confirmed by owner |
 | --- | --- | --- | --- |
 | `installed-app` + `host-quiet` | H3 harness validation run: `startup`, `memory`, `idle` scenarios, 5 runs, disposable profiles, on the installed candidate; about 30 minutes while no build runs and the owner is away | 2026-09-25 | confirmed with conditions (desktop checkpoint); window not open yet |
-| `installed-app` | H5 fresh-profile network audit (NET-GCM-01): `tools/network_audit/fresh_profile_audit.py`, one window with a disposable profile, 10 min idle plus one local page, no UI input, ~12 min; holds `h3.lock` | 2026-09-25 | pending |
-| `simulator` (or owner run) | H1 Swift rerun of merge vectors rev 3 (`SyncMergeConformanceTests`) | 2026-09-25 | pending |
+| `installed-app` | H5 fresh-profile network audit (NET-GCM-01): `tools/network_audit/fresh_profile_audit.py`, one window with a disposable profile, 10 min idle plus one local page, no UI input, ~12 min; holds `h3.lock` | 2026-09-25 | confirmed (`6d40b5b`), open from 21:10, only without e2e/build lock |
+| `simulator` (or owner run) | H1 Swift rerun of merge vectors rev 3 (`SyncMergeConformanceTests`) | 2026-09-25 | done by the owner (0 failures on A168) |
 
 ## Open questions to other lanes
 

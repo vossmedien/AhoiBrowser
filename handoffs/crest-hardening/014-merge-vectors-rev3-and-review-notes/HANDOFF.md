@@ -51,3 +51,12 @@ S5, S7, S6, S2, S3, S8, S4), and 013 I4.
   be closed, including running its onunload event handler"
   (`content/public/browser/web_contents.h:670-672`); it does not dispatch
   before-unload, so a late page cannot show its own prompt or veto. No change.
+
+## Results (recorded by the lane, 25 September 2026)
+
+Both runners pass revision 3 (131 vectors): C++
+`SyncMergeConformanceTest.SharedVectors` on builds 24 (`f91e5b7`) and 25
+(`5b3a039`), and Swift `SyncMergeConformanceTests` on simulator A168 with 0
+failures and all seven entity types covered (`docs/ACTIVE_SYNC_COORDINATION.md`,
+"Merge conformance rev. 3: both runners green"). No implementation mismatch
+remains between Mac and iOS.
