@@ -80,6 +80,31 @@ when the set changed between question and commit.
 - **WS-DEL-07**: Prompt open on page A; open page B in the same Workspace;
   confirm. Neither A nor B survives with the deleted Workspace's accounts.
 
+## R6 (high) – Pages of the deleted Workspace are re-homed before they close
+
+Found by the H2 audit and checked against the code. `CommitWorkspaceDeletion`
+calls `UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false)` for the
+isolated pages and skips re-homing them (`session_bridge_website_session_removal.cc:194-200`).
+The unbind itself calls `ScheduleTreeNodeBinding(tab)`
+(`session_bridge_workspace.cc:405-407`). The delayed `EnsureTreeNodeForTab`
+then finds no existing Workspace and falls back to the window's active
+Workspace (`session_bridge_runtime.cc:225-227`). The delayed
+`ReconcileWorkspaces` also assigns the fallback
+(`session_bridge_observers.cc:407-423`). Both run before `ClosePage()`
+finishes its unload. The pages therefore appear, briefly or permanently if
+an unload hangs, as temporary rows of the fallback Workspace, still carrying
+the deleted Workspace's cookies. That is exactly what handoff 003 forbids.
+
+Fix idea: mark these tabs "closing, excluded" before the commit. Binding,
+`EnsureTreeNodeForTab` and `ReconcileWorkspaces` skip them, and
+`UnbindTreeNodeFromTabInternal` is called with `clear_workspace = true` for
+them.
+
+- **WS-DEL-08** (`SessionBridgeTest.DeletedIsolatedWorkspacePagesAreNotRehomed`):
+  open a page in an isolated Workspace, delete it and agree, run pending tasks
+  before the close completes, then assert that no temporary node exists for
+  it and that its runtime Workspace is not the fallback.
+
 ## R4 (low) – Clearing races with closing pages
 
 `OnWorkspaceDeletionPagesAnswered` clears the partition 3 s after

@@ -11,6 +11,7 @@ import generate_merge_vectors as gen  # noqa: E402
 import merge_model as m  # noqa: E402
 
 VECTORS = ROOT / "fixtures/sync-conformance/merge_v3.json"
+OVERLAY_COPY = ROOT / "overlay/chromium/src/ahoi/browser/sync/testdata/merge_v3.json"
 CPP_COPY = (ROOT / "handoffs/crest-hardening/009-sync-merge-conformance/files/overlay/"
             "chromium/src/ahoi/browser/sync/testdata/merge_v3.json")
 
@@ -23,9 +24,11 @@ class MergeVectorFileTest(unittest.TestCase):
     def test_committed_vectors_are_current(self):
         self.assertEqual(gen.main(["--check"]), 0)
 
-    def test_handoff_copy_matches(self):
-        if CPP_COPY.exists():
-            self.assertTrue(filecmp.cmp(VECTORS, CPP_COPY, shallow=False))
+    def test_runner_copies_match(self):
+        for copy in (CPP_COPY, OVERLAY_COPY):
+            if copy.exists():
+                self.assertTrue(filecmp.cmp(VECTORS, copy, shallow=False),
+                                f"{copy.relative_to(ROOT)} is stale; copy the regenerated vectors")
 
     def test_every_decision_occurs(self):
         decisions = {c["expect"]["decision"] for c in cases().values()}

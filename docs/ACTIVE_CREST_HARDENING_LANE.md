@@ -48,14 +48,17 @@ This lane never builds, installs, refreshes the overlay, writes under
 - Handoff 005 was integrated by desktop (`0981913`).
 - Desktop integrated 003, 004, 006, 007 and 008. Review of 003/006 as handoff
   010 (R1 high: synchronous overlap rejection in `GroupPageClose::Ask`).
-- Next: H2 audit (read-only helper running), then lease-bound H3 run.
+- H2 audit done; fixes handed off as 011, deletion re-homing added to 010 as
+  R6 (high). 009 runners integrated by sync (`095b959`), not yet run.
+- Waiting for owner lanes: 010, 011 integration; 009 run results; NET-GCM-01/02
+  and fresh-profile audit; H3 lease; each ADR 0011 implementation step for review.
 
 ## Packages
 
 | Package | State | Handoff | Integrated in |
 | --- | --- | --- | --- |
-| H1 Sync conformance | field-group drift gate (37 copies, 15 entities, no drift); merge model, 132 vectors (72 structured + 60 seeded random), convergence tests; C++ and Swift runners handed off. Remaining DoD: both runners green on the integrated candidates, or each mismatch reported | [009](../handoffs/crest-hardening/009-sync-merge-conformance/HANDOFF.md) ready | – |
-| H2 Single writer | not started | – | – |
+| H1 Sync conformance | field-group drift gate (37 copies, 15 entities, no drift); merge model, 132 vectors (72 structured + 60 seeded random), convergence tests; C++ and Swift runners handed off. Remaining DoD: both runners green on the integrated candidates, or each mismatch reported | [009](../handoffs/crest-hardening/009-sync-merge-conformance/HANDOFF.md) integrated `095b959` (runs pending on next build / simulator) | `095b959` |
+| H2 Single writer | audit `docs/reviews/crest-hardening-2026-09-25-single-writer-audit.md` done (rule, transition table, 5 findings; 3 checked in code); remaining DoD: fixes S1–S8 integrated with tests and the visible journeys | [011](../handoffs/crest-hardening/011-single-writer-fixes/HANDOFF.md) ready; deletion re-homing as 010 R6 | – |
 | H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) integrated | `d425c3b` |
 | H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) integrated | `2ab7909` |
 | H5 Crest reference / network silence | review and checklist done; 003–006 integrated (GCM as patch 0056 `caf6f1e`, field trials `0981913`, group close `87a6b89`); remaining DoD: NET-GCM-01/02 and the fresh-profile audit on the next candidate | 004–006 integrated | `caf6f1e`, `0981913`, `87a6b89` |
