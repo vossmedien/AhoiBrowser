@@ -197,7 +197,9 @@ class MobileBrowserUITestCase: XCTestCase {
         }
         field.tap()
         field.typeText(expectedValue)
-        if !waitForAddressField(field, toEqual: expectedValue, timeout: 1) {
+        // Generous windows: under heavy host load (load average > 100) XCUI
+        // reports a focused sheet field unhittable for over a second.
+        if !waitForAddressField(field, toEqual: expectedValue, timeout: 3) {
             // XCUI occasionally coalesces repeated characters when it injects a
             // complete URL into SwiftUI's selection-aware TextField. Retry in
             // bounded chunks so input loss cannot masquerade as navigation
@@ -243,7 +245,7 @@ class MobileBrowserUITestCase: XCTestCase {
         var consumed = ""
         var start = value.startIndex
         while start < value.endIndex {
-            guard waitForHittable(field, timeout: 1) else {
+            guard waitForHittable(field, timeout: 4) else {
                 XCTFail("The address editor disappeared during its bounded input retry.")
                 return
             }
@@ -255,7 +257,7 @@ class MobileBrowserUITestCase: XCTestCase {
             let chunk = String(value[start..<end])
             field.typeText(chunk)
             consumed += chunk
-            guard waitForAddressField(field, toEqual: consumed, timeout: 1) else {
+            guard waitForAddressField(field, toEqual: consumed, timeout: 3) else {
                 XCTFail(
                     "The address retry lost input after prefix \(consumed). "
                         + "Actual value: \(addressFieldValue(field))."
