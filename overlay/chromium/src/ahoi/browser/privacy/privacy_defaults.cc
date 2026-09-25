@@ -78,6 +78,12 @@ void ApplyLocalStateDefaults(PrefRegistrySimple* registry) {
   SetDefaultIfRegistered(
       registry, variations::prefs::kVariationsRestrictionsByPolicy,
       base::Value(static_cast<int>(variations::RestrictionPolicy::ALL)));
+  // ADR 0011: fully separated Workspaces are Profiles; they must never turn
+  // startup into Chromium's profile picker. Value 1 is
+  // ProfilePicker::AvailabilityOnStartup::kDisabled; policy can override it.
+  SetDefaultIfRegistered(registry,
+                         prefs::kBrowserProfilePickerAvailabilityOnStartup,
+                         base::Value(1));
 }
 
 }  // namespace ahoi::privacy

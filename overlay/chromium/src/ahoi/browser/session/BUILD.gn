@@ -45,6 +45,8 @@ source_set("session_restore_integration") {
 
 source_set("session_preferences") {
   sources = [
+    "isolated_profile_registry.cc",
+    "isolated_profile_registry.h",
     "session_prefs.cc",
     "session_prefs.h",
   ]
@@ -52,6 +54,26 @@ source_set("session_preferences") {
     "//base",
     "//components/prefs",
     "//components/sync_preferences",
+  ]
+}
+
+source_set("isolated_profiles") {
+  sources = [
+    "isolated_profile_creation.cc",
+    "isolated_profile_creation.h",
+  ]
+  public_deps = [ "//base" ]
+  deps = [
+    ":group_page_close",
+    ":session_preferences",
+    "//chrome/browser:browser_process",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/profiles:profile_manager",
+    "//chrome/browser/profiles:profile_util",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/browser_window",
+    "//components/prefs",
+    "//content/public/browser",
   ]
 }
 
@@ -94,6 +116,8 @@ source_set("session_bridge_api") {
     "workspace_service_factory.h",
   ]
   public_deps = [
+    ":group_page_close",
+    ":session_preferences",
     ":session_restore_integration",
     ":workspace_session_metadata",
     ":website_session_context",
@@ -175,10 +199,12 @@ source_set("session") {
   ]
 
   deps = [
+    ":isolated_profiles",
     "//ahoi/browser/extensions:native_setup_inventory",
     "//ahoi/browser/extensions:native_setup_operation",
     "//ahoi/browser/resource_policy",
     "//ahoi/browser/sync:profile_sync_service",
+    "//chrome/browser:browser_process",
     "//chrome/browser/lifetime",
     "//chrome/browser/sessions",
     "//chrome/browser/ui",
@@ -196,6 +222,7 @@ source_set("session") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "isolated_profile_registry_unittest.cc",
     "portable_workspace_import_plan_unittest.cc",
     "session_bridge_unittest.cc",
     "session_prefs_unittest.cc",
@@ -215,6 +242,7 @@ source_set("unit_tests") {
     "//chrome/browser/ui/tabs:tab_model",
     "//chrome/browser/ui/tabs:tab_strip",
     "//chrome/test:test_support",
+    "//components/prefs:test_support",
     "//components/sync_preferences:test_support",
     "//components/tabs:public",
     "//content/test:test_support",

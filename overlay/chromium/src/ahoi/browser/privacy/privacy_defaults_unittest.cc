@@ -91,6 +91,8 @@ TEST(PrivacyDefaultsTest, LocalStateDisablesReportingAndVariations) {
   local_state.registry()->RegisterIntegerPref(
       variations::prefs::kVariationsRestrictionsByPolicy,
       static_cast<int>(variations::RestrictionPolicy::NO_RESTRICTIONS));
+  local_state.registry()->RegisterIntegerPref(
+      prefs::kBrowserProfilePickerAvailabilityOnStartup, 0);
 
   ApplyLocalStateDefaults(local_state.registry());
 
@@ -101,6 +103,9 @@ TEST(PrivacyDefaultsTest, LocalStateDisablesReportingAndVariations) {
   EXPECT_EQ(static_cast<int>(variations::RestrictionPolicy::ALL),
             local_state.GetInteger(
                 variations::prefs::kVariationsRestrictionsByPolicy));
+  // ProfilePicker::AvailabilityOnStartup::kDisabled.
+  EXPECT_EQ(1, local_state.GetInteger(
+                   prefs::kBrowserProfilePickerAvailabilityOnStartup));
 }
 
 }  // namespace

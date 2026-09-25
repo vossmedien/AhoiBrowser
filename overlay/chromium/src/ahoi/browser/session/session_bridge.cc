@@ -12,6 +12,8 @@
 
 #include "ahoi/browser/extensions/native_extension_setup_operation.h"
 #include "ahoi/browser/navigation/command_service.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
+#include "ahoi/browser/session/isolated_profile_registry.h"
 #include "ahoi/browser/session/session_prefs.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
@@ -24,6 +26,8 @@
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
+#include "components/prefs/pref_service.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -155,6 +159,16 @@ bool SessionBridge::InitializeTabTree() {
   workspace.sort_key = "0";
   workspace.created_at = now;
   workspace.modified_at = now;
+  // ADR 0011: a fully separated Workspace's Profile starts with that
+  // Workspace, registered before the Profile existed, never with the shared
+  // Inbox identity.
+  if (const std::optional<session::IsolatedProfileEntry> isolated =
+          FindIsolatedProfileEntry()) {
+    workspace.id = isolated->workspace_id;
+    workspace.name = isolated->name;
+    workspace.icon = isolated->icon;
+    workspace.accent_argb = isolated->accent_argb;
+  }
   if (store->CreateWorkspace(workspace) !=
       tab_tree::TabTreeStore::Result::kOk) {
     return false;
@@ -269,7 +283,30 @@ bool SessionBridge::FinishRuntimeInitialization() {
   // After every browser and tab is tracked: finish removals of deleted
   // Workspaces' website-session partitions (handoff 003, WS-DEL-03/04).
   ResumeWebsiteSessionRemovals();
+  if (const std::optional<session::IsolatedProfileEntry> isolated =
+          FindIsolatedProfileEntry()) {
+    if (isolated->state == session::IsolatedProfileState::kCreating &&
+        WorkspaceExists(isolated->workspace_id)) {
+      ScheduleTabTreePersistence();
+      session::SetIsolatedProfileState(g_browser_process->local_state(),
+                                       isolated->profile_dir,
+                                       session::IsolatedProfileState::kActive);
+    }
+  } else {
+    session::SweepIsolatedProfileRegistry();
+  }
   return true;
+}
+
+std::optional<session::IsolatedProfileEntry>
+SessionBridge::FindIsolatedProfileEntry() const {
+  PrefService* local_state =
+      g_browser_process ? g_browser_process->local_state() : nullptr;
+  if (!local_state || !profile_) {
+    return std::nullopt;
+  }
+  return session::FindIsolatedProfile(
+      local_state, profile_->GetPath().BaseName().AsUTF8Unsafe());
 }
 
 void SessionBridge::ScheduleTabTreePersistence() {

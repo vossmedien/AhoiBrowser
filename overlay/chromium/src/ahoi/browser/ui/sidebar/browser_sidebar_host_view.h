@@ -795,6 +795,7 @@ class BrowserSidebarHostView final
   raw_ptr<views::Textfield> workspace_icon_field_ = nullptr;
   // ADR 0011 level choice; only present while creating a Workspace.
   raw_ptr<views::RadioButton> workspace_own_sessions_radio_ = nullptr;
+  raw_ptr<views::RadioButton> workspace_isolated_radio_ = nullptr;
   std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
       workspace_color_buttons_;
   std::unique_ptr<views::BubbleDialogDelegate> workspace_dialog_delegate_;

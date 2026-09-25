@@ -16,6 +16,7 @@
 
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/group_page_close.h"
+#include "ahoi/browser/session/isolated_profile_registry.h"
 #include "ahoi/browser/session/session_restore_integration.h"
 #include "ahoi/browser/sync/profile_sync_ui_bridge.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
@@ -444,6 +445,8 @@ class SessionBridge : public KeyedService,
   // retires, never a Workspace that silently falls back to `shared`.
   bool BindNewWorkspaceLevel(const base::Uuid& workspace_id,
                              bool own_website_sessions);
+  // This Profile's entry when it carries a fully separated Workspace.
+  std::optional<session::IsolatedProfileEntry> FindIsolatedProfileEntry() const;
   void ApplyPendingSessionMetadata();
   [[nodiscard]] bool ApplyWindowSessionMetadataNow(
       BrowserWindowInterface* browser,

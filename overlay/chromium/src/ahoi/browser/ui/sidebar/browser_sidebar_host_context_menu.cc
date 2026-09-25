@@ -14,6 +14,7 @@
 #include "ahoi/browser/memory/tab_sleeping.h"
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -261,12 +262,22 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
     }
   }
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  context_menu_model_->AddItem(
-      kCreateWorkspace,
-      l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_WORKSPACE));
-  context_menu_model_->AddItem(
-      kDuplicateWorkspace,
-      l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DUPLICATE));
+  // One fully separated Workspace per Profile (ADR 0011): its window offers
+  // no second Workspace until the shared switcher (step 2) exists.
+  const bool isolated_profile =
+      session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
+  if (isolated_profile) {
+    context_menu_model_->SetMinorText(
+        context_menu_model_->GetItemCount() - 2,
+        StructureText(u"Vollständig getrennt", u"Fully separated"));
+  } else {
+    context_menu_model_->AddItem(
+        kCreateWorkspace,
+        l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_WORKSPACE));
+    context_menu_model_->AddItem(
+        kDuplicateWorkspace,
+        l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DUPLICATE));
+  }
   context_menu_model_->AddItem(
       kEditWorkspace,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_EDIT_WORKSPACE));

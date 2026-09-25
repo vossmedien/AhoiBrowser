@@ -13,6 +13,7 @@
 
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -158,8 +159,20 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     warning->SetSubpixelRenderingEnabled(false);
     warning->SetMultiLine(true);
     warning->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    if (workspace_id.has_value() && session_bridge_ &&
-        session_bridge_->HasOwnWebsiteSessions(*workspace_id)) {
+    if (session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
+      auto* isolated = contents->AddChildView(std::make_unique<views::Label>(
+          StructureText(u"Dieser Workspace ist vollständig getrennt: Sein "
+                        u"Fenster wird geschlossen, und sein Verlauf, seine "
+                        u"Passwörter, Erweiterungen, Anmeldungen und "
+                        u"Websitedaten werden gelöscht.",
+                        u"This Workspace is fully separated: its window "
+                        u"closes, and its history, passwords, extensions, "
+                        u"logins and site data are deleted.")));
+      isolated->SetSubpixelRenderingEnabled(false);
+      isolated->SetMultiLine(true);
+      isolated->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    } else if (workspace_id.has_value() && session_bridge_ &&
+               session_bridge_->HasOwnWebsiteSessions(*workspace_id)) {
       // Handoff 003: say what happens to the Workspace's own accounts.
       auto* sessions = contents->AddChildView(std::make_unique<views::Label>(
           StructureText(u"Dieser Workspace hat eigene Website-Sitzungen: Seine "
@@ -310,6 +323,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     workspace_name_field_ = nullptr;
     workspace_icon_field_ = nullptr;
     workspace_own_sessions_radio_ = nullptr;
+    workspace_isolated_radio_ = nullptr;
     workspace_dialog_widget_.reset();
     workspace_dialog_delegate_.reset();
     pending_workspace_action_ = PendingWorkspaceAction::kNone;
@@ -344,6 +358,13 @@ void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
       base::FeatureList::IsEnabled(session::kAhoiWorkspaceWebsiteSessions);
   shared->SetChecked(!own_default);
   workspace_own_sessions_radio_->SetChecked(own_default);
+  // One fully separated Workspace per Profile: not offered inside one.
+  if (!session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
+    workspace_isolated_radio_ =
+        contents->AddChildView(std::make_unique<views::RadioButton>(
+            StructureText(u"Vollständig getrennt", u"Fully separated"),
+            kLevelGroup));
+  }
   auto* explanation = contents->AddChildView(std::make_unique<views::Label>(
       StructureText(
           u"Eigene Website-Sitzungen trennen Anmeldungen, Cookies und "
@@ -354,6 +375,22 @@ void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
           u"and site data. History, passwords, permissions and extensions "
           u"stay shared with all Workspaces. The level cannot be changed "
           u"later.")));
+  if (workspace_isolated_radio_) {
+    auto* isolated_explanation =
+        contents->AddChildView(std::make_unique<views::Label>(StructureText(
+            u"Vollständig getrennt öffnet den Workspace in einem eigenen "
+            u"Fenster mit eigenem Verlauf, eigenen Passwörtern, Erweiterungen, "
+            u"Berechtigungen und Einstellungen. Das ist eine Datentrennung im "
+            u"Browser, kein Schutz vor anderer Software auf diesem Mac.",
+            u"Fully separated opens the Workspace in its own window with its "
+            u"own history, passwords, extensions, permissions and settings. "
+            u"This separates data inside the browser; it does not protect "
+            u"against other software on this Mac.")));
+    isolated_explanation->SetSubpixelRenderingEnabled(false);
+    isolated_explanation->SetMultiLine(true);
+    isolated_explanation->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    isolated_explanation->SetEnabledColor(visual_style::kMutedText);
+  }
   explanation->SetSubpixelRenderingEnabled(false);
   explanation->SetMultiLine(true);
   explanation->SetHorizontalAlignment(gfx::ALIGN_LEFT);
@@ -374,6 +411,14 @@ void BrowserSidebarHostView::UpdateWorkspaceColorButtons() {
 }
 
 bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
+  if (pending_workspace_action_ == PendingWorkspaceAction::kDelete &&
+      session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
+    // The Profile is the Workspace: Chromium deletes both after the pages
+    // agreed. A veto keeps everything.
+    session::DeleteIsolatedWorkspaceProfile(browser_->GetProfile(),
+                                            base::DoNothing());
+    return true;
+  }
   if (pending_workspace_action_ == PendingWorkspaceAction::kDelete) {
     if (pending_workspace_id_.has_value()) {
       // Pages in the Workspace's own website-session partition are asked as
@@ -404,6 +449,22 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
   }
   if (icon.empty()) {
     icon = name.substr(0, std::min<size_t>(1, name.size()));
+  }
+  if (pending_workspace_action_ == PendingWorkspaceAction::kCreate &&
+      workspace_isolated_radio_ && workspace_isolated_radio_->GetChecked()) {
+    // ADR 0011 level `isolated`: a new Profile with its own window; this
+    // window's Workspaces stay unchanged.
+    session::CreateIsolatedWorkspace(
+        std::move(name), std::move(icon), pending_workspace_accent_argb_,
+        base::BindOnce(
+            [](base::WeakPtr<BrowserSidebarHostView> view, bool created) {
+              if (view && !created) {
+                view->OnMutationFailed(
+                    tab_tree::TabTreeStore::Result::kDatabaseError);
+              }
+            },
+            weak_ptr_factory_.GetWeakPtr()));
+    return true;
   }
   if (pending_workspace_action_ == PendingWorkspaceAction::kCreate) {
     const std::optional<base::Uuid> workspace_id =
@@ -471,6 +532,7 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
   workspace_name_field_ = nullptr;
   workspace_icon_field_ = nullptr;
   workspace_own_sessions_radio_ = nullptr;
+  workspace_isolated_radio_ = nullptr;
   std::unique_ptr<views::Widget> closed_widget =
       std::move(workspace_dialog_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
