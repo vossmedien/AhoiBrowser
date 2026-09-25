@@ -1,6 +1,6 @@
 # 007 – Acceptance catalogue for Workspace isolation levels (H6)
 
-Status: ready
+Status: integrated 7401b8e (suite corrected to WS-ISO)
 Owner lane: desktop (Master acceptance matrix, `config/test-registry.json`)
 Base: ADR 0011 at `f811604`
 
