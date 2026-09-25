@@ -4,6 +4,8 @@
 #ifndef AHOI_BROWSER_SYNC_PROFILE_SYNC_PREFS_H_
 #define AHOI_BROWSER_SYNC_PROFILE_SYNC_PREFS_H_
 
+class PrefRegistrySimple;
+
 namespace user_prefs {
 class PrefRegistrySyncable;
 }
@@ -40,6 +42,12 @@ inline constexpr char kApprovedRemoteCommandKeysPref[] =
     "ahoi.sync.remote_control.approved_public_keys";
 
 void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
+
+// Local State of the sync layer: pending retirements of deleted fully
+// separated Workspaces' CloudKit zones (workspace_zone_retirement.h).
+inline constexpr char kPendingWorkspaceZoneRetirementsPref[] =
+    "ahoi.sync.pending_workspace_zone_retirements";
+void RegisterLocalStatePrefs(PrefRegistrySimple* registry);
 
 }  // namespace ahoi::sync
 

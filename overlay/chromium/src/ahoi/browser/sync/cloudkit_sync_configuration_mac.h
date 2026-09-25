@@ -9,12 +9,13 @@
 #include <string>
 
 #include "ahoi/browser/sync/sync_authorization.h"
+#include "ahoi/browser/sync/sync_namespace.h"
 
 namespace ahoi::sync {
 
 struct CloudKitSyncConfigurationMac {
   std::string container_identifier;
-  std::string zone_name = "AhoiBrowserSyncV3";
+  std::string zone_name = kMainSyncZoneName;
   std::string subscription_identifier;
   std::string keychain_service;
   std::string keychain_account;
@@ -35,6 +36,12 @@ struct CloudKitSyncConfigurationMac {
   // Reads only fork-configurable Info.plist values. Unresolved build-setting
   // placeholders are treated as absent, so an unsigned local build is inert.
   static std::optional<CloudKitSyncConfigurationMac> FromMainBundle();
+  // ADR 0011 step 4: the bundle configuration moved into `sync_namespace`.
+  // The main namespace returns exactly FromMainBundle(); a separated
+  // Workspace gets its own zone, subscription and key account, or nullopt
+  // when they cannot be derived (never the main zone).
+  static std::optional<CloudKitSyncConfigurationMac> FromMainBundle(
+      const SyncNamespace& sync_namespace);
 };
 
 }  // namespace ahoi::sync

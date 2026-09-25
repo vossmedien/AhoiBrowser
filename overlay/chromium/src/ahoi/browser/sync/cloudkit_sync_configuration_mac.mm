@@ -62,4 +62,29 @@ CloudKitSyncConfigurationMac::FromMainBundle() {
   return result;
 }
 
+std::optional<CloudKitSyncConfigurationMac>
+CloudKitSyncConfigurationMac::FromMainBundle(
+    const SyncNamespace& sync_namespace) {
+  std::optional<CloudKitSyncConfigurationMac> result = FromMainBundle();
+  if (!result || sync_namespace.is_main()) {
+    return result;
+  }
+  const std::optional<SyncNamespaceIdentifiers> identifiers =
+      ResolveSyncNamespace(
+          sync_namespace,
+          {.zone_name = result->zone_name,
+           .subscription_identifier = result->subscription_identifier,
+           .keychain_account = result->keychain_account});
+  if (!identifiers) {
+    return std::nullopt;
+  }
+  result->zone_name = identifiers->zone_name;
+  result->subscription_identifier = identifiers->subscription_identifier;
+  result->keychain_account = identifiers->keychain_account;
+  if (!result->IsTransportConfigured()) {
+    return std::nullopt;
+  }
+  return result;
+}
+
 }  // namespace ahoi::sync

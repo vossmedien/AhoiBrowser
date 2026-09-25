@@ -20,6 +20,7 @@
 #include "ahoi/browser/sync/remote_command_security.h"
 #include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
+#include "ahoi/browser/sync/sync_namespace.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/sync/workspace_structure_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
@@ -54,7 +55,8 @@ class ProfileSyncBackend : public SyncStoreObserver {
                      int history_retention_days,
                      bool bookmark_sync_enabled = false,
                      SyncAuthorization profile_authorization = {},
-                     SettingAuthorizationSource setting_authorization = {});
+                     SettingAuthorizationSource setting_authorization = {},
+                     SyncNamespace sync_namespace = SyncNamespace::Main());
   ProfileSyncBackend(const ProfileSyncBackend&) = delete;
   ProfileSyncBackend& operator=(const ProfileSyncBackend&) = delete;
   ~ProfileSyncBackend() override;
@@ -177,6 +179,8 @@ class ProfileSyncBackend : public SyncStoreObserver {
   const std::string device_name_;
   const SyncAuthorization profile_authorization_;
   const SettingAuthorizationSource setting_authorization_;
+  // ADR 0011 step 4: the only CloudKit zone and key this backend may use.
+  const SyncNamespace sync_namespace_;
   struct BrowserSettingScope {
     PermittedSettingRecord record;
     std::shared_ptr<std::atomic<bool>> cancelled;

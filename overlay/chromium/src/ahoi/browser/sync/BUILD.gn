@@ -97,6 +97,8 @@ source_set("sync") {
     "sync_merge.h",
     "sync_model.cc",
     "sync_model.h",
+    "sync_namespace.cc",
+    "sync_namespace.h",
     "sync_payload_cryptor.cc",
     "sync_payload_cryptor.h",
     "sync_provider.cc",
@@ -210,7 +212,17 @@ source_set("profile_sync_service") {
     "profile_sync_types.h",
     "sync_product_settings.cc",
     "sync_product_settings.h",
+    "workspace_zone_retirement.cc",
+    "workspace_zone_retirement.h",
   ]
+  if (is_mac) {
+    sources += [ "workspace_zone_retirement_mac.mm" ]
+    frameworks = [
+      "CloudKit.framework",
+      "Foundation.framework",
+      "Security.framework",
+    ]
+  }
   public_deps = [
     ":profile_sync_ui_bridge",
     ":sync",
@@ -263,11 +275,13 @@ source_set("unit_tests") {
     "profile_sync_service_unittest.cc",
     "sync_convergence_unittest.cc",
     "sync_merge_conformance_unittest.cc",
+    "sync_namespace_unittest.cc",
     "sync_product_settings_unittest.cc",
     "sync_security_tree_unittest.cc",
     "sync_unified_serialization_unittest.cc",
     "sync_unified_store_unittest.cc",
     "sync_unittest.cc",
+    "workspace_zone_retirement_unittest.cc",
   ]
   data = [
     "testdata/bookmark_wire_v2.json",
@@ -284,6 +298,7 @@ source_set("unit_tests") {
     ":profile_sync_preferences",
     ":profile_sync_service",
     ":sync",
+    "//ahoi/browser/session:session_preferences",
     "//ahoi/browser/ui/appearance:appearance_preferences",
     "//base/test:test_support",
     "//chrome/browser/bookmarks",
@@ -291,6 +306,7 @@ source_set("unit_tests") {
     "//components/bookmarks/test",
     "//components/history/core/browser",
     "//components/prefs",
+    "//components/prefs:test_support",
     "//components/sync_preferences:test_support",
     "//content/test:test_support",
     "//sql",

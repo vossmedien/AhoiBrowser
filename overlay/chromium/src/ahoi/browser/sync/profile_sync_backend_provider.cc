@@ -51,8 +51,10 @@ void ProfileSyncBackend::InitializeProviderIfAvailable() {
     return;
   }
 #if BUILDFLAG(IS_MAC)
+  // The main namespace resolves exactly to the bundle configuration; a
+  // separated Workspace only ever to its own zone and key account.
   std::optional<CloudKitSyncConfigurationMac> configuration =
-      CloudKitSyncConfigurationMac::FromMainBundle();
+      CloudKitSyncConfigurationMac::FromMainBundle(sync_namespace_);
   if (!configuration) {
     return;
   }

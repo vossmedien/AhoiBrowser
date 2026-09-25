@@ -18,12 +18,14 @@
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/sync_policy.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
+#include "ahoi/browser/sync/workspace_zone_retirement.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/bind_post_task.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/history/core/browser/history_service.h"
@@ -58,11 +60,13 @@ std::string DeviceDisplayName(Profile& profile) {
 
 }  // namespace
 
-ProfileSyncService::ProfileSyncService(Profile* profile)
+ProfileSyncService::ProfileSyncService(Profile* profile,
+                                       SyncNamespace sync_namespace)
     : local_device_id_(LoadOrGenerateDeviceId(
           *profile,
           profile->GetPrefs()->GetBoolean(kSyncEnabledPref))),
       local_session_id_(base::Uuid::GenerateRandomV4()),
+      sync_namespace_(std::move(sync_namespace)),
       browser_settings_clock_(local_device_id_.AsLowercaseString()),
       backend_task_runner_(base::ThreadPool::CreateSequencedTaskRunner(
           {base::MayBlock(), base::TaskPriority::USER_VISIBLE,
@@ -89,6 +93,17 @@ ProfileSyncService::ProfileSyncService(Profile* profile)
       kApprovedRemoteCommandKeysPref,
       base::BindRepeating(&ProfileSyncService::OnRemoteControlPolicyPrefChanged,
                           weak_ptr_factory_.GetWeakPtr()));
+  if (sync_namespace_.is_main()) {
+    // Deleted separated Workspaces' zones are retired from the main side,
+    // since their Profiles no longer exist (WS-ISO-20).
+    ScheduleDueWorkspaceZoneRetirementsOnce();
+  } else if (g_browser_process) {
+    zone_retirement_observer_ =
+        std::make_unique<WorkspaceZoneRetirementObserver>(
+            g_browser_process->local_state(), profile->GetPrefs(),
+            profile->GetPath().BaseName().AsUTF8Unsafe(),
+            sync_namespace_.workspace_id());
+  }
   InitializeProductSync();
   InitializeBookmarkSync();
   if (history_service_) {
@@ -135,7 +150,8 @@ void ProfileSyncService::StartBackend() {
       base::BindRepeating(
           [](std::shared_ptr<BrowserSettingConsent> consent,
              const base::Uuid& id) { return consent->Capture(id); },
-          browser_setting_consent_));
+          browser_setting_consent_),
+      sync_namespace_);
   backend_.AsyncCall(&ProfileSyncBackend::SetIncomingStateCallback)
       .WithArgs(base::BindPostTaskToCurrentDefault(
           base::BindRepeating(&ProfileSyncService::OnIncomingState,
@@ -397,6 +413,7 @@ void ProfileSyncService::Shutdown() {
   sync_timer_.Stop();
   history_task_tracker_.TryCancelAll();
   sync_pref_registrar_.RemoveAll();
+  zone_retirement_observer_.reset();
   tab_tree_subscription_ = {};
   if (history_service_) {
     history_service_->RemoveObserver(this);

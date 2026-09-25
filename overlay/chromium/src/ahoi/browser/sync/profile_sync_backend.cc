@@ -85,13 +85,15 @@ ProfileSyncBackend::ProfileSyncBackend(
     int history_retention_days,
     bool bookmark_sync_enabled,
     SyncAuthorization profile_authorization,
-    SettingAuthorizationSource setting_authorization)
+    SettingAuthorizationSource setting_authorization,
+    SyncNamespace sync_namespace)
     : database_path_(std::move(database_path)),
       device_id_(std::move(device_id)),
       session_id_(std::move(session_id)),
       device_name_(std::move(device_name)),
       profile_authorization_(std::move(profile_authorization)),
       setting_authorization_(std::move(setting_authorization)),
+      sync_namespace_(std::move(sync_namespace)),
       transport_enabled_(transport_enabled),
       bookmark_sync_enabled_(bookmark_sync_enabled),
       history_retention_days_(
@@ -378,7 +380,8 @@ bool ProfileSyncBackend::ConfirmAccountTransition(bool allow_local_upload) {
     // buttons permanent no-ops. Preserve local records and apply that choice
     // transactionally before starting an independently verified new claim/key
     // lease. No old key or CloudKit record is copied or replaced here.
-    const auto configuration = CloudKitSyncConfigurationMac::FromMainBundle();
+    const auto configuration =
+        CloudKitSyncConfigurationMac::FromMainBundle(sync_namespace_);
     if (!configuration || !configuration->IsTransportConfigured() ||
         !configuration->IsE2EKeyConfigured()) {
       return false;

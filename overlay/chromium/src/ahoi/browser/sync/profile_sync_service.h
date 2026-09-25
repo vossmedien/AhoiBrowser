@@ -25,6 +25,7 @@
 #include "ahoi/browser/sync/remote_command_security.h"
 #include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
+#include "ahoi/browser/sync/sync_namespace.h"
 #include "ahoi/browser/sync/workspace_structure_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/callback_list.h"
@@ -62,6 +63,7 @@ class NativeExtensionStorageAdapter;
 
 class ProfileSyncBackend;
 class ProfileSyncServiceTest;
+class WorkspaceZoneRetirementObserver;
 class NativeBookmarkSyncAdapter;
 
 // Profile-scoped UI facade around the blocking local-first SQLite store. Disk
@@ -96,7 +98,11 @@ class ProfileSyncService final
         const SharedTabSyncState& state) {}
   };
 
-  explicit ProfileSyncService(Profile* profile);
+  // `sync_namespace` is the only CloudKit zone and key this Profile may use
+  // (ADR 0011 step 4); the factory resolves it from the Local State registry.
+  explicit ProfileSyncService(
+      Profile* profile,
+      SyncNamespace sync_namespace = SyncNamespace::Main());
   ProfileSyncService(const ProfileSyncService&) = delete;
   ProfileSyncService& operator=(const ProfileSyncService&) = delete;
   ~ProfileSyncService() override;
@@ -332,6 +338,7 @@ class ProfileSyncService final
 
   const base::Uuid local_device_id_;
   const base::Uuid local_session_id_;
+  const SyncNamespace sync_namespace_;
   HybridLogicalClock browser_settings_clock_;
   const scoped_refptr<base::SequencedTaskRunner> backend_task_runner_;
   std::shared_ptr<std::atomic<bool>> profile_scope_cancelled_ =
@@ -396,6 +403,9 @@ class ProfileSyncService final
   base::RepeatingTimer sync_timer_;
   base::CancelableTaskTracker history_task_tracker_;
   PrefChangeRegistrar sync_pref_registrar_;
+  // Separated namespace only: schedules its zone's retirement (WS-ISO-20)
+  // when the registry marks this Profile `deleting`.
+  std::unique_ptr<WorkspaceZoneRetirementObserver> zone_retirement_observer_;
   bool sync_enabled_ = false;
   bool initialized_ = false;
   bool backend_ready_ = false;

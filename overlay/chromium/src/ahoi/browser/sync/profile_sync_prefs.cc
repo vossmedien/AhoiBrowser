@@ -3,6 +3,8 @@
 
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 
+#include "components/prefs/pref_registry_simple.h"
+
 #include <string>
 
 #include "components/pref_registry/pref_registry_syncable.h"
@@ -22,6 +24,10 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterListPref(kDeveloperAssetOptInIdsPref);
   registry->RegisterBooleanPref(kRemoteControlEnabledPref, false);
   registry->RegisterDictionaryPref(kApprovedRemoteCommandKeysPref);
+}
+
+void RegisterLocalStatePrefs(PrefRegistrySimple* registry) {
+  registry->RegisterListPref(kPendingWorkspaceZoneRetirementsPref);
 }
 
 }  // namespace ahoi::sync
