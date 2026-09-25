@@ -3,6 +3,8 @@
 
 #include "ahoi/browser/command_bar/command_bar_view.h"
 
+#include "base/logging.h"
+
 #include <algorithm>
 #include <memory>
 #include <optional>
@@ -596,6 +598,13 @@ bool CommandBarView::MoveSelection(int delta, bool request_focus) {
 }
 
 bool CommandBarView::AcceptSelection() {
+  // TEMPORARY DIAGNOSTIC (remove after the empty-Workspace investigation).
+  LOG(WARNING) << "AHOI_CMDBAR_ACCEPT selected="
+               << (selected_index_.has_value() ? static_cast<int>(*selected_index_) : -1)
+               << " count=" << suggestions_.size() << " kind="
+               << (selected_index_.has_value() && *selected_index_ < suggestions_.size()
+                       ? static_cast<int>(suggestions_[*selected_index_].kind)
+                       : -1);
   if (!selected_index_.has_value() || *selected_index_ >= suggestions_.size()) {
     return false;
   }

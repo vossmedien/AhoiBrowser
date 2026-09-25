@@ -3,6 +3,8 @@
 
 #include "ahoi/browser/command_bar/command_bar_controller.h"
 
+#include "base/logging.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <memory>
@@ -381,9 +383,14 @@ bool CommandBarController::ExecuteSuggestion(
         original_input,
         view_ ? view_->disposition() : CommandBarDisposition::kCurrentTab);
   }
-  return suggestion.item.has_value() && view_ &&
-         execution_adapter_->ExecuteItem(*suggestion.item,
-                                         view_->disposition());
+  // TEMPORARY DIAGNOSTIC (remove after the empty-Workspace investigation).
+  const bool executed = suggestion.item.has_value() && view_ &&
+                        execution_adapter_->ExecuteItem(*suggestion.item,
+                                                        view_->disposition());
+  LOG(WARNING) << "AHOI_CMDBAR_ITEM type="
+               << (suggestion.item ? static_cast<int>(suggestion.item->type) : -1)
+               << " view=" << (view_ != nullptr) << " executed=" << executed;
+  return executed;
 }
 
 std::u16string CommandBarController::GetInitialQuery(
