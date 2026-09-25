@@ -482,9 +482,16 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
                       || app.staticTexts[name].waitForExistence(timeout: 2))
         attachScreenshot(named: "library-created-workspace-detail", of: app)
 
-        let done = app.buttons["browser.library.done"]
-        XCTAssertTrue(waitForHittable(done, timeout: 5), "Done must be reachable on the pushed detail.")
-        done.tap()
+        // Sidebar and pushed detail both carry Done; the sidebar's copy sits off
+        // screen after the push, so tap the on-screen one.
+        let doneButtons = app.buttons.matching(identifier: "browser.library.done")
+        XCTAssertTrue(doneButtons.firstMatch.waitForExistence(timeout: 5))
+        let screen = app.windows.firstMatch.frame
+        let done = doneButtons.allElementsBoundByIndex.first {
+            $0.isHittable && screen.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY))
+        }
+        XCTAssertNotNil(done, "Done must be reachable on the pushed detail.")
+        done?.tap()
         XCTAssertTrue(
             app.descendants(matching: .any)["browser.library.root"].waitForNonExistence(timeout: 5)
         )
