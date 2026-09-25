@@ -11,14 +11,14 @@
     "absoluteMinimumFreeBuildBytes": 34359738368
   },
   "xcode": {
-    "requiredVersion": "26.6",
-    "requiredBuild": "17F113",
+    "requiredVersion": "27.0",
+    "requiredBuild": "27A266a",
     "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
     "compatibleDevelopment": {
       "version": "27.0",
       "build": "27A266a",
       "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
-      "scope": "user-authorized 2026-09-24 development toolchain; M153 compatibility requires an exact build and visible E2E; pinned reference and release toolchain remains unchanged"
+      "scope": "user decision 2026-09-25 (\"wir nutzen nur noch 27\"): Xcode 27.0 is the only toolchain, for development and for the pinned reference and release builds; this entry keeps the development mode identical to the reference"
     }
   },
   "python": {
@@ -26,15 +26,15 @@
   },
   "sdks": {
     "macOS": {
-      "testedVersion": "26.5",
-      "chromiumOfficialVersion": "26.5",
-      "chromiumOfficialBuild": "25F70",
+      "testedVersion": "27.0",
+      "chromiumOfficialVersion": "27.0",
+      "chromiumOfficialBuild": "26A425",
       "compatibleDevelopmentVersion": "27.0",
       "compatibleDevelopmentBuild": "26A425"
     },
     "iOS": {
-      "testedVersion": "26.5",
-      "pinnedReferenceBuild": "23F81a",
+      "testedVersion": "27.0",
+      "pinnedReferenceBuild": "24A430",
       "compatibleDevelopmentVersion": "27.0",
       "compatibleDevelopmentBuild": "24A430"
     }

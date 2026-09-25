@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-04T22:51:32+02:00",
+  "updatedAt": "2026-09-25T21:15:00+02:00",
   "gates": [
     {
-      "id": "xcode-26.6",
-      "state": "reference-toolchain-unavailable-on-current-host",
+      "id": "xcode-27-reference",
+      "state": "ready",
       "owner": "engineering",
-      "condition": "The upstream and release reference remains Xcode 26.6 build 17F113 with macOS SDK 26.5 build 25F70 and iOS SDK 26.5 build 23F81a; that installation is absent on the current host. User-authorized development selects installed Xcode 27.0 build 27A266a with macOS SDK 27.0 build 26A425 and iOS SDK 27.0 build 24A430. Per-mode checks remain exact. Development compatibility and visible M153 E2E are pending and cannot satisfy the separate release gate."
+      "condition": "Since the user decision of 25 September 2026, Xcode 27.0 build 27A266a with macOS SDK 27.0 build 26A425 and iOS SDK 27.0 build 24A430 is the only toolchain: development, upstream reference and release. It is installed on the current host. Per-mode checks remain exact; release receipts change their engine input key once, by design. Xcode 26.6 (17F113) is no longer required."
     },
     {
       "id": "disk-headroom",

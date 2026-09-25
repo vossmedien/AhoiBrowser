@@ -364,26 +364,26 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertIn('"schemaVersion": 3', hooks)
         self.assertIn('"toolchainMode": toolchain_mode', hooks)
 
-    def test_xcode27_development_preserves_the_release_reference(self):
+    def test_xcode27_is_development_and_release_reference(self):
         toolchain = load_json("config/toolchain.json")
         compatible = toolchain["xcode"]["compatibleDevelopment"]
-        self.assertEqual("26.6", toolchain["xcode"]["requiredVersion"])
-        self.assertEqual("17F113", toolchain["xcode"]["requiredBuild"])
+        self.assertEqual("27.0", toolchain["xcode"]["requiredVersion"])
+        self.assertEqual("27A266a", toolchain["xcode"]["requiredBuild"])
         self.assertEqual("27.0", compatible["version"])
         self.assertEqual("27A266a", compatible["build"])
         self.assertEqual(
             "/Applications/Xcode.app/Contents/Developer",
             compatible["developerDirectory"],
         )
-        self.assertIn("release toolchain remains unchanged", compatible["scope"])
+        self.assertIn("only toolchain", compatible["scope"])
         macos_sdk = toolchain["sdks"]["macOS"]
-        self.assertEqual("26.5", macos_sdk["testedVersion"])
-        self.assertEqual("25F70", macos_sdk["chromiumOfficialBuild"])
+        self.assertEqual("27.0", macos_sdk["testedVersion"])
+        self.assertEqual("26A425", macos_sdk["chromiumOfficialBuild"])
         self.assertEqual("27.0", macos_sdk["compatibleDevelopmentVersion"])
         self.assertEqual("26A425", macos_sdk["compatibleDevelopmentBuild"])
         ios_sdk = toolchain["sdks"]["iOS"]
-        self.assertEqual("26.5", ios_sdk["testedVersion"])
-        self.assertEqual("23F81a", ios_sdk["pinnedReferenceBuild"])
+        self.assertEqual("27.0", ios_sdk["testedVersion"])
+        self.assertEqual("24A430", ios_sdk["pinnedReferenceBuild"])
         self.assertEqual("27.0", ios_sdk["compatibleDevelopmentVersion"])
         self.assertEqual("24A430", ios_sdk["compatibleDevelopmentBuild"])
         self.assertNotIn("testedBuild", ios_sdk)
@@ -411,7 +411,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
 
         helper_script = ROOT / "scripts/lib/common.sh"
         for mode, expected in (
-            ("pinned-reference", ("26.5", "25F70", "26.5", "23F81a")),
+            ("pinned-reference", ("27.0", "26A425", "27.0", "24A430")),
             ("compatible-development", ("27.0", "26A425", "27.0", "24A430")),
         ):
             with self.subTest(toolchain_mode=mode):

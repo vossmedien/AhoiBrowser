@@ -3,16 +3,15 @@
 ## Supported host
 
 Phase 0 targets Apple Silicon with macOS 26, Git, APFS, and 150 GiB of free
-space for a fresh Chromium checkout. The upstream-control and release
-reference remains exact Xcode 26.6 (17F113), macOS SDK 26.5 (25F70), and iOS
-SDK 26.5 (23F81a); that Xcode is not installed on the current host. On
-24 September the user replaced the earlier Xcode 26.5 development fallback
-with the installed Xcode 27.0 (27A266a) for development only.
-`compatible-development` now selects
-`/Applications/Xcode.app/Contents/Developer`, macOS SDK 27.0 (26A425), and
-iOS SDK 27.0 (24A430). Exact per-mode checks and provenance remain enforced;
-an M153 build and visible E2E must establish actual compatibility, and
-development evidence does not become pinned-reference or release evidence.
+space for a fresh Chromium checkout. Since the user decision of
+25 September 2026 ("wir nutzen nur noch 27", handoff 022), Xcode 27.0
+(27A266a) with macOS SDK 27.0 (26A425) and iOS SDK 27.0 (24A430) is the only
+toolchain: for development, for the upstream control and for release.
+Xcode 26.6 (17F113) is no longer required. Both `pinned-reference` and
+`compatible-development` select `/Applications/Xcode.app/Contents/Developer`
+with these exact builds. Exact per-mode checks and provenance remain enforced,
+and development evidence still does not become pinned-reference or release
+evidence; release receipts changed their engine input key once, by design.
 The global Xcode selection is not changed.
 Repository/build tooling requires Python 3.9 or newer.
 The authoritative upstream requirements are recorded alongside the Chromium
@@ -104,7 +103,7 @@ DEPS-declared revisions with the actual installed revisions. Fetch deliberately
 uses `--nohooks` and creates/revalidates the byte-exact, reviewable
 `config/gclient.py`; local solutions, `custom_vars`, or target overrides are
 rejected before sync and by all later provenance gates. The default hook step
-fails closed unless exact Xcode 26.6, its SDK builds, dependency closure, clean
+fails closed unless exact Xcode 27.0, its SDK builds, dependency closure, clean
 checkout, and build disk headroom all match. For local iteration,
 `--compatible-dev-xcode` selects the separately labeled development entry,
 which now resolves to the explicitly authorized Xcode 27.0/27A266a and its
@@ -343,7 +342,7 @@ distribution review and remains separate from core browsing.
 
 - `upstream-release`: unmodified Chromium control, ARM64, non-component.
 - `ahoi-dev`: faster local Ahoi iteration while retaining sandbox behavior;
-  uses the development provenance label for the pinned Xcode 26.6 toolchain.
+  uses the development provenance label for the Xcode 27.0 toolchain.
 - `ahoi-release`: optimized, non-component, unsigned candidate for the later
   signing and notarization pipeline.
 
@@ -364,10 +363,10 @@ macOS-26 AppKit APIs belong in narrow Objective-C++ adapters guarded with
 `@available(macOS 26.0, *)` (or `__builtin_available`), with no AppKit-26 types
 leaking into generic Chromium headers. Do not use the deployment-target
 preprocessor macro to remove the new code: the shared compiler target remains
-13 by design while the linked SDK remains 26.5.
+13 by design; the linked SDK is 27.0 and `mac_sdk_min` stays 26.5 as a floor.
 
 No supported profile uses `--no-sandbox`, `--ignore-certificate-errors`, or a
 disabled site-isolation mode.
-Selecting Xcode 26.6 through the development label is deliberately not treated
+Selecting the reference Xcode through the development label is deliberately not treated
 as upstream/release provenance: identical toolchain bytes do not let a
 development build satisfy control, signed-candidate, or release gates.

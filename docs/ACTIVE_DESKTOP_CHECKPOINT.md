@@ -6,7 +6,8 @@ The owner directed on 24 September 2026 that agents work autonomously on
 everything else and only collect these items here. Purchases, credentials,
 legal consent, publication and releases stay with the owner. Agents do not
 fake, stub or claim any of them; the affected DoD items stay open until the
-owner supplies the input. Add new items here instead of asking.
+owner supplies the input. Add new items here instead of asking. The Xcode 26.6 reference row was
+removed on 25 September 2026: Xcode 27 is now the only toolchain (handoff 022).
 
 | Gate | Needed from owner | Blocks (DoD) |
 |---|---|---|
@@ -14,7 +15,6 @@ owner supplies the input. Add new items here instead of asking.
 | Developer ID + notarization | Developer ID Application certificate, notary credentials, approval to sign/notarize | 1–4 release bundle, 15 signed updates, 23 release chain |
 | Codec/DRM rights | H.264/AAC licensing decision, Widevine agreement/CDM access, test accounts for two DRM services | 16–17 |
 | Formal reviews | Named reviewers / external security and product reviews | 20–21 |
-| Xcode 26.6 / SDK 26.5 reference | Owner-provided copy of the exact upstream/release reference toolchain (removed from host; Xcode 27 is development-only) | 1–4 release compatibility |
 | Third-party accounts | Credentials for password-manager extensions (1Password, Bitwarden) if a real vault must be unlocked | 8 password-manager journey |
 | macOS Screen Recording permission | Grant "Bildschirmaufnahme" to the agent host app (Terminal Cockpit) so `screencapture` can record desktop E2E images; until then agents use Accessibility trees and Chromium DevTools state as visible-state evidence | 5–7, 11 image evidence (not the behavior itself) |
 | Publication / release | Any App Store, TestFlight, website, update-feed or GitHub release publication | 15, 23–24 |
