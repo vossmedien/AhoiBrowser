@@ -80,7 +80,9 @@ both_visible && record split_created PASS || { record split_created FAIL; finish
 ROW=$(grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Ahoi split left[^|]*' "$OUT/ax-split.txt" | head -1 | sed -E 's/ *$//')
 echo "row: $ROW" >> "$OUT/steps.txt"
 NAME=${ROW#*| }; ROLE=${ROW%% |*}
-ax press $PID "$ROLE:$NAME" AXShowMenu
+# Open-tab rows are radio buttons without AXShowMenu (build 32 returned
+# -25204); a real right-click opens the row's context menu.
+ax activate $PID; sleep 1; ax rightclick $PID "$ROLE:$NAME"
 waitax "AXMenuItem \| Archivieren \(inklusive Split\)" 5 && ax press $PID "AXMenuItem:Archivieren (inklusive Split)"
 sleep 5
 case "$(visible_titles)" in *"Ahoi split"*) record split_archived FAIL ;; *) record split_archived PASS ;; esac
