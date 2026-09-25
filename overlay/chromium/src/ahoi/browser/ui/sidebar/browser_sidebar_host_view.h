@@ -808,6 +808,9 @@ class BrowserSidebarHostView final
   std::vector<base::Uuid> context_workspace_ids_;
   // Profile directories behind the menu's fully separated Workspace items.
   std::vector<std::string> context_isolated_workspace_dirs_;
+  // Main Profile Workspaces listed in a fully separated Workspace's window.
+  std::vector<base::Uuid> context_main_workspace_ids_;
+  bool context_offers_main_workspaces_ = false;
   std::vector<ContextMoveDestination> context_move_destinations_;
   ContextMenuScope context_menu_scope_ = ContextMenuScope::kNone;
   std::unique_ptr<ui::SimpleMenuModel> context_menu_model_;

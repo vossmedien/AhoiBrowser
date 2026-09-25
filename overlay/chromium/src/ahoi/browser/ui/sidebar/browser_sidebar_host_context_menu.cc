@@ -15,6 +15,7 @@
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -262,35 +263,77 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
     }
   }
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  // One fully separated Workspace per Profile (ADR 0011): its window offers
-  // no second Workspace until the shared switcher (step 2) exists.
+  // One fully separated Workspace per Profile (ADR 0011). The shared
+  // switcher (step 2) lists the other Profiles' Workspaces below; choosing
+  // one hands this window's frame over to that Profile's window.
   const bool isolated_profile =
       session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
+  const std::string own_profile_dir =
+      browser_->GetProfile()->GetPath().BaseName().AsUTF8Unsafe();
   context_isolated_workspace_dirs_.clear();
+  context_main_workspace_ids_.clear();
+  context_offers_main_workspaces_ = false;
   if (isolated_profile) {
     context_menu_model_->SetMinorText(
         context_menu_model_->GetItemCount() - 2,
         StructureText(u"Vollständig getrennt", u"Fully separated"));
-  } else {
-    // Until the shared switcher (step 2): reach every fully separated
-    // Workspace, also after its window was closed or the app restarted.
-    for (const session::IsolatedProfileEntry& entry :
-         session::GetOpenableIsolatedWorkspaces()) {
-      if (context_isolated_workspace_dirs_.size() >= 99) {
-        break;
+    Profile* main_profile = session::GetLoadedMainProfile();
+    WorkspaceService* main_workspaces =
+        main_profile ? WorkspaceServiceFactory::GetForProfile(main_profile)
+                     : nullptr;
+    SessionBridge* main_bridge =
+        main_profile ? SessionBridgeFactory::GetForProfile(main_profile)
+                     : nullptr;
+    if (main_workspaces && main_bridge) {
+      for (const tab_tree::Workspace& workspace :
+           main_workspaces->ordered_workspaces()) {
+        if (context_main_workspace_ids_.size() >= 99) {
+          break;
+        }
+        context_menu_model_->AddItem(
+            kOpenMainWorkspaceCommandBase +
+                static_cast<int>(context_main_workspace_ids_.size()),
+            workspace.name);
+        if (main_bridge->HasOwnWebsiteSessions(workspace.id)) {
+          context_menu_model_->SetMinorText(
+              context_menu_model_->GetItemCount() - 1,
+              StructureText(u"Eigene Website-Sitzungen",
+                            u"Own website sessions"));
+        }
+        context_main_workspace_ids_.push_back(workspace.id);
       }
+    } else {
+      context_offers_main_workspaces_ = true;
       context_menu_model_->AddItem(
-          kOpenIsolatedWorkspaceCommandBase +
-              static_cast<int>(context_isolated_workspace_dirs_.size()),
-          entry.name);
-      context_menu_model_->SetMinorText(
-          context_menu_model_->GetItemCount() - 1,
-          StructureText(u"Vollständig getrennt", u"Fully separated"));
-      context_isolated_workspace_dirs_.push_back(entry.profile_dir);
+          kOpenMainWorkspacesCommand,
+          StructureText(u"Haupt-Workspaces öffnen", u"Open main Workspaces"));
     }
-    if (!context_isolated_workspace_dirs_.empty()) {
-      context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  }
+  // Every other fully separated Workspace, also after its window was closed
+  // or the app restarted.
+  for (const session::IsolatedProfileEntry& entry :
+       session::GetOpenableIsolatedWorkspaces()) {
+    if (context_isolated_workspace_dirs_.size() >= 99) {
+      break;
     }
+    if (entry.profile_dir == own_profile_dir) {
+      continue;
+    }
+    context_menu_model_->AddItem(
+        kOpenIsolatedWorkspaceCommandBase +
+            static_cast<int>(context_isolated_workspace_dirs_.size()),
+        entry.name);
+    context_menu_model_->SetMinorText(
+        context_menu_model_->GetItemCount() - 1,
+        StructureText(u"Vollständig getrennt", u"Fully separated"));
+    context_isolated_workspace_dirs_.push_back(entry.profile_dir);
+  }
+  if (!context_isolated_workspace_dirs_.empty() ||
+      !context_main_workspace_ids_.empty() ||
+      context_offers_main_workspaces_) {
+    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  }
+  if (!isolated_profile) {
     context_menu_model_->AddItem(
         kCreateWorkspace,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_WORKSPACE));
@@ -344,6 +387,9 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_menu_runner_.reset();
   context_menu_model_.reset();
   context_workspace_ids_.clear();
+  context_isolated_workspace_dirs_.clear();
+  context_main_workspace_ids_.clear();
+  context_offers_main_workspaces_ = false;
   context_archive_policy_model_.reset();
   context_archive_workspace_id_.reset();
   context_menu_scope_ = ContextMenuScope::kNone;
@@ -764,6 +810,14 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
         return true;
       default:
         break;
+    }
+    if (command_id == kOpenMainWorkspacesCommand) {
+      return context_offers_main_workspaces_;
+    }
+    if (command_id >= kOpenMainWorkspaceCommandBase &&
+        command_id < kOpenIsolatedWorkspaceCommandBase) {
+      return static_cast<size_t>(command_id - kOpenMainWorkspaceCommandBase) <
+             context_main_workspace_ids_.size();
     }
     if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
         command_id < kActivateWorkspaceCommandBase) {

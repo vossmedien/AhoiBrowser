@@ -56,8 +56,13 @@ enum SidebarContextMenuCommand {
 
 constexpr int kArchivePolicyCommandBase = 600;
 
-// Opens a fully separated Workspace's window (ADR 0011 step 1); below the
-// Workspace range, above the archive policies.
+// ADR 0011 step 2, in a fully separated Workspace's window: loads the main
+// Profile when its Workspaces are not known yet, or presents the main window
+// with one of its Workspaces. Between the archive policies (600..604) and
+// the separated Workspaces; at most 99 items each.
+constexpr int kOpenMainWorkspacesCommand = 700;
+constexpr int kOpenMainWorkspaceCommandBase = 800;
+// Presents a fully separated Workspace's window; below the Workspace range.
 constexpr int kOpenIsolatedWorkspaceCommandBase = 900;
 constexpr int kActivateWorkspaceCommandBase = 1000;
 constexpr int kMoveToDestinationCommandBase = 2000;

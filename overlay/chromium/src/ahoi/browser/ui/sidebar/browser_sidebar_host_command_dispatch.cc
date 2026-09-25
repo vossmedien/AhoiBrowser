@@ -15,6 +15,7 @@
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -67,6 +68,7 @@
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/prefs/pref_service.h"
+#include "components/sessions/core/session_id.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "components/tabs/public/tab_interface.h"
@@ -305,13 +307,58 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
                           *active_workspace_id);
       return;
     }
+    // ADR 0011 step 2: another Profile's Workspace takes over this window's
+    // frame; this window is hidden, not closed, and is shown again when the
+    // user switches back.
+    if (command_id == kOpenMainWorkspacesCommand ||
+        (command_id >= kOpenMainWorkspaceCommandBase &&
+         command_id < kOpenIsolatedWorkspaceCommandBase)) {
+      std::optional<base::Uuid> main_workspace_id;
+      if (command_id != kOpenMainWorkspacesCommand) {
+        const size_t main_index =
+            static_cast<size_t>(command_id - kOpenMainWorkspaceCommandBase);
+        if (main_index >= context_main_workspace_ids_.size()) {
+          return;
+        }
+        main_workspace_id = context_main_workspace_ids_[main_index];
+      } else if (!context_offers_main_workspaces_) {
+        return;
+      }
+      const SessionID source_id = browser_->GetSessionID();
+      session::LoadMainProfile(base::BindOnce(
+          [](SessionID source_id, std::optional<base::Uuid> workspace_id,
+             Profile* main_profile) {
+            BrowserWindowInterface* source =
+                BrowserWindowInterface::FromSessionID(source_id);
+            session::PresentProfileWindow(
+                main_profile, source,
+                base::BindOnce(
+                    [](std::optional<base::Uuid> workspace_id,
+                       BrowserWindowInterface* main_browser) {
+                      SessionBridge* bridge =
+                          main_browser ? SessionBridgeFactory::GetForProfile(
+                                             main_browser->GetProfile())
+                                       : nullptr;
+                      if (!bridge || !workspace_id.has_value()) {
+                        return;
+                      }
+                      std::ignore = bridge->SetActiveWorkspaceForWindow(
+                          main_browser, *workspace_id,
+                          WorkspaceActivationSource::kSidebar);
+                    },
+                    workspace_id));
+          },
+          source_id, main_workspace_id));
+      return;
+    }
     if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
         command_id < kActivateWorkspaceCommandBase) {
       const size_t isolated_index =
           static_cast<size_t>(command_id - kOpenIsolatedWorkspaceCommandBase);
       if (isolated_index < context_isolated_workspace_dirs_.size()) {
-        session::OpenIsolatedWorkspace(
-            context_isolated_workspace_dirs_[isolated_index]);
+        session::PresentIsolatedWorkspace(
+            context_isolated_workspace_dirs_[isolated_index], browser_.get(),
+            base::DoNothing());
       }
       return;
     }

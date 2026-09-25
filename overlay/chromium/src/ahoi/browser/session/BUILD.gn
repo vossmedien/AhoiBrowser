@@ -61,6 +61,8 @@ source_set("isolated_profiles") {
   sources = [
     "isolated_profile_creation.cc",
     "isolated_profile_creation.h",
+    "isolated_workspace_directory.cc",
+    "isolated_workspace_directory.h",
   ]
   public_deps = [
     ":session_preferences",
@@ -73,10 +75,14 @@ source_set("isolated_profiles") {
     "//chrome/browser/profiles:profile",
     "//chrome/browser/profiles:profile_manager",
     "//chrome/browser/profiles:profile_util",
+    "//chrome/browser/lifetime",
     "//chrome/browser/ui/browser_window",
     "//chrome/browser/ui/tabs:tab_strip",
     "//components/prefs",
+    "//components/sessions",
     "//content/public/browser",
+    "//ui/base",
+    "//ui/gfx/geometry",
   ]
 }
 
@@ -229,6 +235,7 @@ source_set("unit_tests") {
   testonly = true
   sources = [
     "isolated_profile_registry_unittest.cc",
+    "isolated_workspace_directory_unittest.cc",
     "portable_workspace_import_plan_unittest.cc",
     "session_bridge_unittest.cc",
     "session_prefs_unittest.cc",
@@ -238,6 +245,7 @@ source_set("unit_tests") {
     "workspace_session_metadata_unittest.cc",
   ]
   deps = [
+    ":isolated_profiles",
     ":session",
     ":session_preferences",
     ":shared_tab_target_policy",

@@ -220,27 +220,6 @@ std::vector<IsolatedProfileEntry> GetOpenableIsolatedWorkspaces() {
   return result;
 }
 
-void OpenIsolatedWorkspace(const std::string& profile_dir) {
-  ProfileManager* profile_manager =
-      g_browser_process ? g_browser_process->profile_manager() : nullptr;
-  if (!profile_manager ||
-      !FindIsolatedProfile(g_browser_process->local_state(), profile_dir)) {
-    return;
-  }
-  profiles::LoadProfileAsync(
-      profile_manager->user_data_dir().AppendASCII(profile_dir),
-      base::BindOnce([](Profile* profile) {
-        if (!profile) {
-          return;
-        }
-        // Reuses an open window of that Profile; otherwise opens one.
-        profiles::OpenBrowserWindowForProfile(
-            base::DoNothing(), /*always_create=*/false,
-            /*is_new_profile=*/false, /*open_command_line_urls=*/false,
-            profile);
-      }));
-}
-
 bool IsIsolatedWorkspaceProfile(const Profile* profile) {
   PrefService* local_state =
       g_browser_process ? g_browser_process->local_state() : nullptr;

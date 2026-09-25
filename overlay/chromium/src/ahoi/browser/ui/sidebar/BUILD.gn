@@ -303,6 +303,7 @@ source_set("browser_sidebar") {
     "//components/favicon/core",
     "//components/favicon_base",
     "//components/history/core/browser",
+    "//components/sessions",
     "//components/split_tabs",
     "//components/strings",
     "//components/tabs:public",

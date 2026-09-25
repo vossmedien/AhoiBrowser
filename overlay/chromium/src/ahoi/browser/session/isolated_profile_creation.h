@@ -41,8 +41,6 @@ void DeleteIsolatedWorkspaceProfile(Profile* profile,
 // registry order, for the main window's Workspace menu until the shared
 // switcher (step 2) exists.
 std::vector<IsolatedProfileEntry> GetOpenableIsolatedWorkspaces();
-// Loads the Profile of `profile_dir` if needed and shows its window.
-void OpenIsolatedWorkspace(const std::string& profile_dir);
 
 // True for a Profile that carries a fully separated Workspace.
 bool IsIsolatedWorkspaceProfile(const Profile* profile);
