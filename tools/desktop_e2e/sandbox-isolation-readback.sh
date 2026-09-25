@@ -60,8 +60,10 @@ grep -c -- '--type=renderer' "$OUT/processes.tsv" > "$OUT/renderer-count.txt"
 
 # The two sites must render in different processes; process-internals lists
 # each frame with its process id.
+# innerText skips the hidden tabs, and Site Isolation / Frame Trees fill in
+# when their tab is selected: select each tab, then read all text.
 node "$S/cdp.mjs" $PORT process-internals Runtime.evaluate \
-  '{"expression":"document.body.innerText","returnByValue":true}' > "$OUT/process-internals.json"
+  '{"expression":"(async()=>{const all=[];const walk=r=>{for(const e of r.querySelectorAll(\"*\")){all.push(e);if(e.shadowRoot)walk(e.shadowRoot)}};walk(document);for(const t of all.filter(e=>e.getAttribute&&e.getAttribute(\"role\")===\"tab\")){t.click();await new Promise(r=>setTimeout(r,1500))}const text=[];const grab=r=>{for(const e of r.querySelectorAll(\"*\")){if(e.shadowRoot)grab(e.shadowRoot)}text.push(r.textContent||\"\")};grab(document);return text.join(\"\\n\")})()","returnByValue":true,"awaitPromise":true}' > "$OUT/process-internals.json"
 python3 - "$OUT/process-internals.json" "$OUT/results.txt" <<'PY'
 import json, sys
 text = json.load(open(sys.argv[1])).get("result", {}).get("value", "") or ""
