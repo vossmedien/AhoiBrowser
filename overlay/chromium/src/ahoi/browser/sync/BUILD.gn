@@ -221,8 +221,10 @@ source_set("profile_sync_service") {
   ]
   deps = [
     ":profile_sync_preferences",
+    "//ahoi/browser/session:session_preferences",
     "//ahoi/browser/tab_tree",
     "//ahoi/browser/ui/appearance:appearance_preferences",
+    "//chrome/browser:browser_process",
     "//chrome/browser/bookmarks",
     "//chrome/browser/extensions",
     "//chrome/browser/history",

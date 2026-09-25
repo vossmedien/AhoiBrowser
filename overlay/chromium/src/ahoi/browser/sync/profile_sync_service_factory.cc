@@ -5,8 +5,10 @@
 
 #include <memory>
 
+#include "ahoi/browser/session/isolated_profile_registry.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service_factory.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/extensions/extension_management.h"
 #include "chrome/browser/history/history_service_factory.h"
@@ -52,6 +54,14 @@ ProfileSyncServiceFactory::BuildServiceInstanceForBrowserContext(
   Profile* const profile = Profile::FromBrowserContext(context);
   if (!profile || profile->IsOffTheRecord() || !profile->IsRegularProfile() ||
       !profile->AllowsBrowserWindows()) {
+    return nullptr;
+  }
+  // ADR 0011: a fully separated Workspace's Profile gets its own CloudKit
+  // namespace in step 3. Until then it has no sync service, so it can never
+  // write into the main Profile's namespace.
+  if (g_browser_process && session::FindIsolatedProfile(
+                               g_browser_process->local_state(),
+                               profile->GetPath().BaseName().AsUTF8Unsafe())) {
     return nullptr;
   }
   return std::make_unique<ProfileSyncService>(profile);
