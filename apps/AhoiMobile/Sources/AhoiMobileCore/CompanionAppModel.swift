@@ -27,6 +27,9 @@ public final class CompanionAppModel: ObservableObject {
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
 
     public let repository: LocalFirstRepository
+    /// ADR 0011 step 4: fully separated Workspaces, each synced in its own
+    /// zone and session, never merged into `snapshot`.
+    public let separatedWorkspaces: SeparatedWorkspaceSyncCoordinator
     public let privateSessionLock: MobilePrivateSessionLock
     let defaults: UserDefaults
     var syncProvider: CloudKitSyncProvider?
@@ -80,6 +83,7 @@ public final class CompanionAppModel: ObservableObject {
         mobileDeviceName: String = "Ahoi Mobile",
         mobileDeviceKind: DeviceKind = .iPhone,
         defaults: UserDefaults = .standard,
+        separatedWorkspaces: SeparatedWorkspaceSyncCoordinator? = nil,
         remoteCommandClock: @escaping CompanionRemoteCommandClock = {
             UInt64(max(Date().timeIntervalSince1970 * 1_000, 0))
         },
@@ -89,6 +93,7 @@ public final class CompanionAppModel: ObservableObject {
         }
     ) {
         self.repository = repository
+        self.separatedWorkspaces = separatedWorkspaces ?? SeparatedWorkspaceSyncCoordinator()
         self.defaults = defaults
         self.privateSessionLock = MobilePrivateSessionLock(defaults: defaults)
         self.syncProvider = syncProvider
@@ -459,6 +464,16 @@ public final class CompanionAppModel: ObservableObject {
                 return
             }
             await refreshRemoteCommandStates(using: bridge)
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
+            }
+            if separatedWorkspaces.isConfigured {
+                await separatedWorkspaces.refreshDiscovery(using: syncProvider)
+                guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                    return
+                }
+                await separatedWorkspaces.syncEnabledWorkspaces()
+            }
         } catch {
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return

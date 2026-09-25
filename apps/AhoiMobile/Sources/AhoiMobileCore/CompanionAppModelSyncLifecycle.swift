@@ -143,6 +143,9 @@ extension CompanionAppModel {
         providerPrepared = false
         clearSyncVisibleUITestRuntime()
         resetDisabledSyncPresentation()
+        if separatedWorkspaces.hasActiveSessions {
+            await separatedWorkspaces.suspendAll()
+        }
 
         if let providerToCancel {
             let cancellation = Task<Void, Never> {

@@ -221,6 +221,12 @@ extension MobileBrowserController {
                 privateWebsiteDataStore = created
                 websiteDataStore = created
             }
+        } else if let workspaceID = tabs.first(where: { $0.id == tabID })?.workspaceID,
+                  isSeparatedWorkspace(workspaceID),
+                  let separated = separatedWorkspaceDataStores?.dataStore(
+                      for: workspaceID.rawValue
+                  ) {
+            websiteDataStore = separated
         } else {
             websiteDataStore = normalWebsiteDataStore
         }

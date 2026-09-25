@@ -126,7 +126,8 @@ struct MobileBrowserSidebar: View {
     @ViewBuilder
     private var workspaceSection: some View {
         Section(CompanionL10n.string("root.workspaces", fallback: "Workspaces")) {
-            if model.snapshot.visibleWorkspaces.isEmpty {
+            if model.snapshot.visibleWorkspaces.isEmpty,
+               model.separatedWorkspaces.entries.isEmpty {
                 sidebarEmptyRow(
                     CompanionL10n.string(
                         "browser.sidebar.workspaces.empty",
@@ -163,6 +164,11 @@ struct MobileBrowserSidebar: View {
                     .accessibilityValue(Text(isSelected ? selectedAccessibilityValue : ""))
                 }
             }
+            SeparatedWorkspaceRows(
+                coordinator: model.separatedWorkspaces,
+                accentTint: accentTint,
+                onOpen: onSelectWorkspace
+            )
         }
     }
 

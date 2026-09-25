@@ -90,6 +90,11 @@ public struct CompanionRootView: View {
                             )
                         }
                     }
+                    SeparatedWorkspaceRows(
+                        coordinator: model.separatedWorkspaces,
+                        accentTint: .accentColor,
+                        onOpen: nil
+                    )
                 }
 
                 if !model.snapshot.visibleRemoteTabs.isEmpty {

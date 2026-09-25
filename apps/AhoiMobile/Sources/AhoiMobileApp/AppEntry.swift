@@ -387,13 +387,49 @@ private final class AhoiMobileBootstrap: ObservableObject {
         } else {
             runtimeFactory = nil
         }
+        // ADR 0011 step 4: fully separated Workspaces, each in its own zone,
+        // key, session and website data store.
+        let separatedDataStores = MobileSeparatedWorkspaceDataStores.webKit(
+            idStore: UserDefaultsSeparatedWorkspaceIDStore(defaults: defaults)
+        )
+        var separatedSessionFactory: SeparatedWorkspaceSessionFactory?
+        if let keyConfiguration, let desiredKeyVersion, let containerIdentifier {
+            separatedSessionFactory = SeparatedWorkspaceCloudKitSessionFactory.make(
+                containerIdentifier: containerIdentifier,
+                baseKeyConfiguration: keyConfiguration,
+                desiredKeyVersion: desiredKeyVersion,
+                supportURL: supportURL,
+                localDeviceID: DeviceID(rawValue: sourceDeviceUUID)
+            )
+        }
+        let separatedBase = cloudKitZoneName.flatMap { zoneName in
+            keyAccount.map { account in
+                SyncNamespaceIdentifiers(
+                    zoneName: zoneName,
+                    subscriptionIdentifier: cloudKitSubscriptionID ?? "",
+                    keychainAccount: account
+                )
+            }
+        }
+        let separatedWorkspaces = SeparatedWorkspaceSyncCoordinator(
+            base: separatedSessionFactory == nil ? nil : separatedBase,
+            stateStore: UserDefaultsSeparatedWorkspaceStateStore(defaults: defaults),
+            dataStores: separatedDataStores,
+            sessionFactory: separatedSessionFactory,
+            removeLocalData: { workspaceID in
+                SeparatedWorkspaceCloudKitSessionFactory.removeLocalData(
+                    for: workspaceID, under: supportURL
+                )
+            }
+        )
         let model = CompanionAppModel(
             repository: repository,
             syncRuntimeFactory: runtimeFactory,
             mobileSessionID: mobileSessionID,
             mobileDeviceName: UIDevice.current.name,
             mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone,
-            defaults: defaults
+            defaults: defaults,
+            separatedWorkspaces: separatedWorkspaces
         )
         let browser = MobileBrowserController(
             store: FileMobileBrowserSessionStore(
@@ -405,8 +441,12 @@ private final class AhoiMobileBootstrap: ObservableObject {
             externalOpenReceiptURL: supportURL.appendingPathComponent(
                 "external-open-receipt.json"
             ),
-            normalWebsiteDataStore: developmentScope.map { WKWebsiteDataStore(forIdentifier: $0.id) }
+            normalWebsiteDataStore: developmentScope.map { WKWebsiteDataStore(forIdentifier: $0.id) },
+            separatedWorkspaceDataStores: separatedDataStores
         )
+        separatedDataStores.willRemoveDataStore = { [weak browser] workspaceID in
+            browser?.closeTabs(inWorkspace: workspaceID)
+        }
         return Runtime(model: model, browser: browser)
     }
 

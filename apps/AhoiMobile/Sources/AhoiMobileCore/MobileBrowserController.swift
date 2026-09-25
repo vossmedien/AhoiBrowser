@@ -73,6 +73,9 @@ public final class MobileBrowserController: ObservableObject {
     var privateWebsiteDataStore: WKWebsiteDataStore?
     public private(set) var privateSessionGeneration: UInt64 = 0
     let normalWebsiteDataStore: WKWebsiteDataStore
+    /// ADR 0011 step 4: pages of a fully separated Workspace use its own
+    /// `WKWebsiteDataStore(forIdentifier:)`, never the normal store.
+    public let separatedWorkspaceDataStores: MobileSeparatedWorkspaceDataStores?
     private var lastRecordedHistoryURL: [UUID: String] = [:]
     private var desktopSiteTabIDs: Set<UUID> = []
     var sharedPageSavesInFlight: Set<UUID> = []
@@ -115,10 +118,12 @@ public final class MobileBrowserController: ObservableObject {
         storagePreparation: (@Sendable () async throws -> Void)? = nil,
         startupError: String? = nil,
         externalOpenReceiptURL: URL? = nil,
-        normalWebsiteDataStore: WKWebsiteDataStore? = nil
+        normalWebsiteDataStore: WKWebsiteDataStore? = nil,
+        separatedWorkspaceDataStores: MobileSeparatedWorkspaceDataStores? = nil
     ) {
         self.store = store
         self.normalWebsiteDataStore = normalWebsiteDataStore ?? .default()
+        self.separatedWorkspaceDataStores = separatedWorkspaceDataStores
         self.saveCoordinator = MobileBrowserSessionSaveCoordinator(store: store)
         self.storagePreparation = storagePreparation
         self.permissionCoordinator = permissionCoordinator
@@ -212,11 +217,13 @@ public final class MobileBrowserController: ObservableObject {
         select: Bool = true,
         participatesInSharedTabs: Bool = true
     ) -> UUID {
+        // A separated Workspace's tabs never enter the main zone's shared tabs.
         let record = MobileTabRecord(
             workspaceID: workspaceID,
             url: url?.absoluteString,
             mode: mode,
-            participatesInSharedTabs: participatesInSharedTabs
+            participatesInSharedTabs: participatesInSharedTabs &&
+                !isSeparatedWorkspace(workspaceID)
         )
         tabs.append(record)
         if select { selectedTabID = record.id }
@@ -365,6 +372,10 @@ public final class MobileBrowserController: ObservableObject {
     public func moveTab(_ id: UUID, to workspaceID: WorkspaceID?) {
         guard let index = tabs.firstIndex(where: { $0.id == id }),
               tabs[index].workspaceID != workspaceID else { return }
+        // A page never changes its data store: moving into or out of a fully
+        // separated Workspace is refused (the URL must be reopened there).
+        guard !isSeparatedWorkspace(tabs[index].workspaceID),
+              !isSeparatedWorkspace(workspaceID) else { return }
         var candidate = tabs[index]
         candidate.workspaceID = workspaceID
         candidate.stageSharedIntent(.move(workspaceID))
@@ -434,6 +445,17 @@ public final class MobileBrowserController: ObservableObject {
             tabs[slot] = record
         }
         persistSoon()
+    }
+
+    public func isSeparatedWorkspace(_ workspaceID: WorkspaceID?) -> Bool {
+        separatedWorkspaceDataStores?.isSeparated(workspaceID?.rawValue) ?? false
+    }
+
+    /// Closes every tab of one Workspace, e.g. before its data store is removed.
+    public func closeTabs(inWorkspace workspaceID: UUID) {
+        for id in tabs.filter({ $0.workspaceID?.rawValue == workspaceID }).map(\.id) {
+            close(id)
+        }
     }
 
     public func closeSelectedTab() {
