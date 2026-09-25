@@ -5,6 +5,13 @@
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9344
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
+# The journey activates windows and posts input: never run it while the owner
+# is using this Mac. Require AHOI_E2E_MIN_IDLE seconds (default 300) of no HID
+# input before starting.
+idle_seconds() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
+if [ "$(idle_seconds)" -lt "${AHOI_E2E_MIN_IDLE:-300}" ]; then
+  echo "owner active (idle $(idle_seconds)s); refusing to drive the desktop" >&2; exit 7
+fi
 if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $PORT busy" >&2; exit 6; fi
 mkdir -p $OUT; P=$(mktemp -d /private/tmp/ahoi-emptyws-profile.XXXXXX)
 SITE_PORT=${AHOI_E2E_SITE_PORT:-8791}; mkdir -p $P-site
