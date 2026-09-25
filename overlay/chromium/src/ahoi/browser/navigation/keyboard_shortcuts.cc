@@ -7,6 +7,7 @@
 #include <array>
 #include <utility>
 
+#include "base/i18n/rtl.h"
 #include "base/no_destructor.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_split.h"
@@ -203,7 +204,88 @@ void WriteOverride(PrefService* prefs,
   ScopedDictPrefUpdate(prefs, kShortcutBindingsPref)->Set(id, std::move(list));
 }
 
+bool German() {
+  return base::i18n::GetConfiguredLocale().starts_with("de");
+}
+
+std::string KeyName(ui::KeyboardCode key) {
+  if ((key >= ui::VKEY_A && key <= ui::VKEY_Z) ||
+      (key >= ui::VKEY_0 && key <= ui::VKEY_9)) {
+    return std::string(1, static_cast<char>(key));
+  }
+  if (key >= ui::VKEY_F1 && key <= ui::VKEY_F24) {
+    return "F" + base::NumberToString(key - ui::VKEY_F1 + 1);
+  }
+  switch (key) {
+    case ui::VKEY_LEFT:
+      return "←";
+    case ui::VKEY_RIGHT:
+      return "→";
+    case ui::VKEY_UP:
+      return "↑";
+    case ui::VKEY_DOWN:
+      return "↓";
+    case ui::VKEY_SPACE:
+      return German() ? "Leertaste" : "Space";
+    case ui::VKEY_TAB:
+      return "⇥";
+    case ui::VKEY_ESCAPE:
+      return "⎋";
+    case ui::VKEY_RETURN:
+      return "↩";
+    case ui::VKEY_BACK:
+      return "⌫";
+    case ui::VKEY_DELETE:
+      return "⌦";
+    case ui::VKEY_OEM_3:
+      return "`";
+    case ui::VKEY_OEM_COMMA:
+      return ",";
+    case ui::VKEY_OEM_PERIOD:
+      return ".";
+    case ui::VKEY_OEM_MINUS:
+      return "-";
+    case ui::VKEY_OEM_PLUS:
+      return "=";
+    case ui::VKEY_OEM_1:
+      return ";";
+    case ui::VKEY_OEM_2:
+      return "/";
+    case ui::VKEY_OEM_4:
+      return "[";
+    case ui::VKEY_OEM_5:
+      return "\\";
+    case ui::VKEY_OEM_6:
+      return "]";
+    case ui::VKEY_OEM_7:
+      return "'";
+    default:
+      return "#" + base::NumberToString(static_cast<int>(key));
+  }
+}
+
 }  // namespace
+
+std::u16string CommandTitle(const ShortcutCommand& command) {
+  return German() ? command.title_de : command.title_en;
+}
+
+std::string ShortcutKeyText(const ui::Accelerator& accelerator) {
+  std::string text;
+  if (accelerator.IsCtrlDown()) {
+    text += "⌃";
+  }
+  if (accelerator.IsAltDown()) {
+    text += "⌥";
+  }
+  if (accelerator.IsShiftDown()) {
+    text += "⇧";
+  }
+  if (accelerator.IsCmdDown()) {
+    text += "⌘";
+  }
+  return text + KeyName(accelerator.key_code());
+}
 
 const std::vector<ShortcutCommand>& Catalog() {
   static const base::NoDestructor<std::vector<ShortcutCommand>> catalog(

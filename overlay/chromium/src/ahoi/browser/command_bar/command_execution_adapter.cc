@@ -123,6 +123,16 @@ std::optional<DeveloperAction> GetAllowlistedDeveloperAction(
 
 }  // namespace internal
 
+bool CommandExecutionDelegate::CanExecuteShortcutCommand(
+    std::string_view /*catalog_id*/) const {
+  return false;
+}
+
+bool CommandExecutionDelegate::ExecuteShortcutCommand(
+    std::string_view /*catalog_id*/) {
+  return false;
+}
+
 CommandExecutionAdapter::CommandExecutionAdapter(
     CommandService* command_service,
     std::unique_ptr<AutocompleteSchemeClassifier> scheme_classifier,
@@ -184,6 +194,11 @@ bool CommandExecutionAdapter::CanExecuteItem(const CommandItem& item) const {
       return base::Uuid::ParseLowercase(item.stable_id).is_valid() &&
              execution_delegate_->CanRevealFolder(item.stable_id);
     case CommandItemType::kBrowserCommand:
+      if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
+        return execution_delegate_->CanExecuteShortcutCommand(
+            std::string_view(item.stable_id)
+                .substr(sizeof(internal::kShortcutCommandPrefix) - 1));
+      }
       if (const auto action =
               internal::GetAllowlistedDeveloperAction(item.stable_id)) {
         return execution_delegate_->CanExecuteDeveloperAction(*action);
@@ -252,6 +267,11 @@ bool CommandExecutionAdapter::ExecuteItem(const CommandItem& item,
     case CommandItemType::kFolder:
       return execution_delegate_->RevealFolder(item.stable_id);
     case CommandItemType::kBrowserCommand:
+      if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
+        return execution_delegate_->ExecuteShortcutCommand(
+            std::string_view(item.stable_id)
+                .substr(sizeof(internal::kShortcutCommandPrefix) - 1));
+      }
       if (const auto action =
               internal::GetAllowlistedDeveloperAction(item.stable_id)) {
         return execution_delegate_->ExecuteDeveloperAction(*action);

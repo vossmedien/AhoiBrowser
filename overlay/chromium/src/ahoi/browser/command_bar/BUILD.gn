@@ -73,6 +73,7 @@ source_set("command_bar") {
   deps = [
     "//ahoi/browser/developer_toolkit",
     "//ahoi/browser/http_auth",
+    "//ahoi/browser/navigation:keyboard_shortcuts",
     "//ahoi/browser/session:command_service_factory",
     "//ahoi/browser/session:session_bridge_api",
     "//ahoi/browser/ui:modal_overlay",

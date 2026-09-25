@@ -133,6 +133,11 @@ bool Unbind(PrefService* prefs, std::string_view id);
 bool ResetToDefault(PrefService* prefs, std::string_view id);
 void ResetAll(PrefService* prefs);
 
+// The command's title in the browser's language.
+std::u16string CommandTitle(const ShortcutCommand& command);
+// macOS notation, for example "⌃⌘L" or "⌃`".
+std::string ShortcutKeyText(const ui::Accelerator& accelerator);
+
 // Stable storage form, for example "cmd+shift+83" (modifiers, key code).
 std::string Serialize(const ui::Accelerator& accelerator);
 std::optional<ui::Accelerator> Parse(std::string_view text);

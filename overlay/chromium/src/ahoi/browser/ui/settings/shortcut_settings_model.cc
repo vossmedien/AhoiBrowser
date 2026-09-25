@@ -31,7 +31,7 @@ std::string Text(const char* de, const char* en) {
 }
 
 std::string Title(const ShortcutCommand& command) {
-  return base::UTF16ToUTF8(German() ? command.title_de : command.title_en);
+  return base::UTF16ToUTF8(shortcuts::CommandTitle(command));
 }
 
 std::string CategoryId(ShortcutCategory category) {
@@ -64,66 +64,10 @@ std::string CategoryLabel(ShortcutCategory category) {
   }
 }
 
-std::string KeyName(ui::KeyboardCode key) {
-  if ((key >= ui::VKEY_A && key <= ui::VKEY_Z) ||
-      (key >= ui::VKEY_0 && key <= ui::VKEY_9)) {
-    return std::string(1, static_cast<char>(key));
-  }
-  if (key >= ui::VKEY_F1 && key <= ui::VKEY_F24) {
-    return "F" + base::NumberToString(key - ui::VKEY_F1 + 1);
-  }
-  switch (key) {
-    case ui::VKEY_LEFT:
-      return "←";
-    case ui::VKEY_RIGHT:
-      return "→";
-    case ui::VKEY_UP:
-      return "↑";
-    case ui::VKEY_DOWN:
-      return "↓";
-    case ui::VKEY_SPACE:
-      return Text("Leertaste", "Space");
-    case ui::VKEY_TAB:
-      return "⇥";
-    case ui::VKEY_ESCAPE:
-      return "⎋";
-    case ui::VKEY_RETURN:
-      return "↩";
-    case ui::VKEY_BACK:
-      return "⌫";
-    case ui::VKEY_DELETE:
-      return "⌦";
-    case ui::VKEY_OEM_3:
-      return "`";
-    case ui::VKEY_OEM_COMMA:
-      return ",";
-    case ui::VKEY_OEM_PERIOD:
-      return ".";
-    case ui::VKEY_OEM_MINUS:
-      return "-";
-    case ui::VKEY_OEM_PLUS:
-      return "=";
-    case ui::VKEY_OEM_1:
-      return ";";
-    case ui::VKEY_OEM_2:
-      return "/";
-    case ui::VKEY_OEM_4:
-      return "[";
-    case ui::VKEY_OEM_5:
-      return "\\";
-    case ui::VKEY_OEM_6:
-      return "]";
-    case ui::VKEY_OEM_7:
-      return "'";
-    default:
-      return "#" + base::NumberToString(static_cast<int>(key));
-  }
-}
-
 base::ListValue KeyTexts(const std::vector<ui::Accelerator>& accelerators) {
   base::ListValue list;
   for (const ui::Accelerator& accelerator : accelerators) {
-    list.Append(ShortcutKeyText(accelerator));
+    list.Append(shortcuts::ShortcutKeyText(accelerator));
   }
   return list;
 }
@@ -177,23 +121,6 @@ std::optional<ui::Accelerator> AcceleratorFromPayload(
 }
 
 }  // namespace
-
-std::string ShortcutKeyText(const ui::Accelerator& accelerator) {
-  std::string text;
-  if (accelerator.IsCtrlDown()) {
-    text += "⌃";
-  }
-  if (accelerator.IsAltDown()) {
-    text += "⌥";
-  }
-  if (accelerator.IsShiftDown()) {
-    text += "⇧";
-  }
-  if (accelerator.IsCmdDown()) {
-    text += "⌘";
-  }
-  return text + KeyName(accelerator.key_code());
-}
 
 base::DictValue BuildShortcutState(const shortcuts::Overrides& overrides,
                                    bool can_change) {

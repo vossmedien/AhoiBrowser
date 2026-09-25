@@ -12,6 +12,7 @@
 #include "ahoi/browser/developer_toolkit/developer_toolkit_action_executor.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_target.h"
 #include "ahoi/browser/http_auth/http_auth_management_dialog.h"
+#include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/http_auth/http_auth_session_controller.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
@@ -319,6 +320,20 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     return command_id.has_value() &&
            chrome::IsCommandEnabled(browser_, *command_id) &&
            chrome::ExecuteCommand(browser_, *command_id);
+  }
+
+  bool CanExecuteShortcutCommand(std::string_view catalog_id) const override {
+    const shortcuts::ShortcutCommand* command =
+        shortcuts::FindCommand(catalog_id);
+    return command && command->rebindable &&
+           BrowserView::GetBrowserViewForBrowser(browser_);
+  }
+
+  bool ExecuteShortcutCommand(std::string_view catalog_id) override {
+    BrowserView* const browser_view =
+        BrowserView::GetBrowserViewForBrowser(browser_);
+    return CanExecuteShortcutCommand(catalog_id) && browser_view &&
+           browser_view->HandleAhoiShortcutCommand(catalog_id);
   }
 
   bool CanExecuteDeveloperAction(DeveloperAction /*action*/) const override {

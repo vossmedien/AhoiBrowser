@@ -53,12 +53,12 @@ TEST_F(ShortcutSettingsModelTest, ShowsEveryCatalogCommandWithItsKeys) {
 
 TEST_F(ShortcutSettingsModelTest, KeyTextUsesMacOrder) {
   EXPECT_EQ("⌃⌥⇧⌘L",
-            ShortcutKeyText(ui::Accelerator(
+            shortcuts::ShortcutKeyText(ui::Accelerator(
                 ui::VKEY_L, ui::EF_CONTROL_DOWN | ui::EF_ALT_DOWN |
                                 ui::EF_SHIFT_DOWN | ui::EF_COMMAND_DOWN)));
-  EXPECT_EQ("⌘→", ShortcutKeyText(ui::Accelerator(ui::VKEY_RIGHT,
+  EXPECT_EQ("⌘→", shortcuts::ShortcutKeyText(ui::Accelerator(ui::VKEY_RIGHT,
                                                   ui::EF_COMMAND_DOWN)));
-  EXPECT_EQ("F5", ShortcutKeyText(ui::Accelerator(ui::VKEY_F5, 0)));
+  EXPECT_EQ("F5", shortcuts::ShortcutKeyText(ui::Accelerator(ui::VKEY_F5, 0)));
 }
 
 TEST_F(ShortcutSettingsModelTest, SetUnbindResetAndConflictMessages) {

@@ -78,6 +78,10 @@ class CommandExecutionDelegate {
   virtual bool ExecuteBrowserCommand(std::string_view stable_id) = 0;
   virtual bool CanExecuteDeveloperAction(DeveloperAction action) const = 0;
   virtual bool ExecuteDeveloperAction(DeveloperAction action) = 0;
+  // Commands of the shared shortcut catalog ("shortcut.<catalog id>"), run
+  // exactly as their key would run them.
+  virtual bool CanExecuteShortcutCommand(std::string_view catalog_id) const;
+  virtual bool ExecuteShortcutCommand(std::string_view catalog_id);
 };
 
 class CommandExecutionAdapter {

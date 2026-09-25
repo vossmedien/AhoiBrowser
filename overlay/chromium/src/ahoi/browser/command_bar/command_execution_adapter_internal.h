@@ -23,6 +23,9 @@ inline constexpr int kCopyActivePageLinkCommand = -6;
 inline constexpr int kCopyActivePageMarkdownLinkCommand = -7;
 inline constexpr int kOpenActivePageInReadingModeCommand = -8;
 
+// Command-bar ids of shortcut catalog commands.
+inline constexpr char kShortcutCommandPrefix[] = "shortcut.";
+
 // Converts only the deliberately small, reviewed command-bar allowlist into
 // Chromium command identifiers. Keeping this in the testable core prevents a
 // string supplied by an index publisher from becoming an arbitrary browser

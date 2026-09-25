@@ -12,6 +12,7 @@
 #include "ahoi/browser/command_bar/command_bar_view.h"
 #include "ahoi/browser/command_bar/command_execution_adapter.h"
 #include "ahoi/browser/navigation/command_service.h"
+#include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
@@ -23,6 +24,7 @@
 #include "base/functional/callback_helpers.h"
 #include "base/location.h"
 #include "base/strings/strcat.h"
+#include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_runner.h"
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
@@ -550,6 +552,30 @@ void CommandBarController::PublishBrowserCommands() {
         .title = l10n_util::GetStringUTF16(definition.title_id),
         .keywords = std::move(definition.keywords),
         .priority = definition.priority,
+    });
+  }
+  // The shared shortcut catalog: every rebindable command with its current
+  // key, so the command bar and the keys run the same thing.
+  const shortcuts::Overrides overrides =
+      browser_ && browser_->GetProfile()
+          ? shortcuts::ReadOverrides(*browser_->GetProfile()->GetPrefs())
+          : shortcuts::Overrides();
+  for (const shortcuts::ShortcutCommand& command : shortcuts::Catalog()) {
+    if (!command.rebindable) {
+      continue;
+    }
+    const std::vector<ui::Accelerator> keys =
+        shortcuts::EffectiveAccelerators(overrides, command.id);
+    commands.push_back({
+        .type = CommandItemType::kBrowserCommand,
+        .stable_id = base::StrCat({"shortcut.", command.id}),
+        .title = shortcuts::CommandTitle(command),
+        .secondary_text =
+            keys.empty() ? std::u16string()
+                         : base::UTF8ToUTF16(
+                               shortcuts::ShortcutKeyText(keys.front())),
+        .keywords = {command.title_de, command.title_en},
+        .priority = 150,
     });
   }
   CHECK(command_service_->ReplaceItems(CommandItemType::kBrowserCommand,

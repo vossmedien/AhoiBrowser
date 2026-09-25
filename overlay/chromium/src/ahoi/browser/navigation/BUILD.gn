@@ -32,6 +32,7 @@ source_set("keyboard_shortcuts") {
     "//ui/base",
   ]
   deps = [
+    "//base:i18n",
     "//components/pref_registry",
     "//ui/events",
   ]

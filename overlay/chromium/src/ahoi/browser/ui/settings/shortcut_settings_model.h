@@ -38,9 +38,6 @@ ShortcutActionResult ApplyShortcutAction(
 // A sentence for the editor, naming the command that holds a key.
 std::string ShortcutErrorLabel(const ShortcutActionResult& result);
 
-// macOS notation, for example "⌃⌘L" or "⌃`".
-std::string ShortcutKeyText(const ui::Accelerator& accelerator);
-
 }  // namespace ahoi::settings
 
 #endif  // AHOI_BROWSER_UI_SETTINGS_SHORTCUT_SETTINGS_MODEL_H_

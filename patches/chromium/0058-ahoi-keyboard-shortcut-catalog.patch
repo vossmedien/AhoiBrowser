@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index ecf6bf5..f98e62b 100644
+index ecf6bf5..443d5de 100644
 --- a/chrome/browser/ui/views/frame/browser_view.h
 +++ b/chrome/browser/ui/views/frame/browser_view.h
 @@ -9,6 +9,7 @@
@@ -20,16 +20,24 @@ index ecf6bf5..f98e62b 100644
  }  // namespace ahoi
  
  namespace gfx {
-@@ -1042,10 +1046,15 @@ class BrowserView : public BrowserWindow,
+@@ -806,6 +810,12 @@ class BrowserView : public BrowserWindow,
+   // bookmark command outside Ahoi's regular browsing surface.
+   bool SaveCurrentTabToAhoiTree();
+ 
++  // Runs one rebindable command of Ahoi's shortcut catalog, from its key or
++  // from the command bar. Returns false when it does not apply now (for
++  // example a split command outside a split), so Chromium and the page keep
++  // the key.
++  bool HandleAhoiShortcutCommand(std::string_view command_id);
++
+   // ImmersiveModeController::Observer:
+   void OnImmersiveFullscreenEntered() override;
+   void OnImmersiveFullscreenExited() override;
+@@ -1042,10 +1052,10 @@ class BrowserView : public BrowserWindow,
    // use.
    void LoadAccelerators();
  
 -  // Handles Ahoi's macOS split-view keyboard contract without navigating or
-+  // Runs one rebindable command of Ahoi's shortcut catalog. Returns false
-+  // when it does not apply now (for example a split command outside a
-+  // split), so Chromium and the page keep the key.
-+  bool HandleAhoiShortcutCommand(std::string_view command_id);
-+
 +  // Handles Ahoi's macOS split-view keyboard commands without navigating or
    // recreating the participating WebContents. Returns false outside an active
    // split so Chromium and the page retain their normal shortcuts.
@@ -38,7 +46,7 @@ index ecf6bf5..f98e62b 100644
  
    void RefreshAhoiNavigationInputSettings();
    bool CanUseAhoiCmdScrollTabSwitch(int delta) const;
-@@ -1371,6 +1380,10 @@ class BrowserView : public BrowserWindow,
+@@ -1371,6 +1381,10 @@ class BrowserView : public BrowserWindow,
    // one BrowserView makes bubble and profile lifetimes explicit.
    std::unique_ptr<ahoi::CommandBarController> ahoi_command_bar_controller_;
  
