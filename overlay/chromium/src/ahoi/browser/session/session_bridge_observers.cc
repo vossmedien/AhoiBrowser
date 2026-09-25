@@ -406,6 +406,7 @@ void SessionBridge::ReconcileWorkspaces() {
   std::vector<tabs::TabInterface*> tabs_to_reassign;
   for (const auto& [tab, runtime] : runtime_tabs_) {
     if (runtime.workspace_id.has_value() &&
+        !runtime.closing_with_deleted_workspace &&
         !visible_workspaces.contains(*runtime.workspace_id)) {
       tabs_to_reassign.push_back(tab);
     }

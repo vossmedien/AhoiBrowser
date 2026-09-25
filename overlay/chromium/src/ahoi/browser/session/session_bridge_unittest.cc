@@ -13,6 +13,7 @@
 #include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/session_prefs.h"
+#include "ahoi/browser/session/website_session_context.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -31,6 +32,7 @@
 #include "chrome/test/base/test_browser_window.h"
 #include "chrome/test/base/testing_profile.h"
 #include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/storage_partition.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/test/web_contents_tester.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -286,6 +288,21 @@ TEST_F(SessionBridgeTest,
   EXPECT_EQ(1, browser()->GetTabStripModel()->count());
   EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(saved_new_tab.id));
   EXPECT_EQ(saved_new_tab.id, bridge_->FindTreeNodeIdForTab(tab));
+}
+
+TEST_F(SessionBridgeTest, ComputedPartitionPathMatchesTheLoadedPartition) {
+  // Handoff 010 R2: startup cleanup computes the directory instead of loading
+  // the partition; this pins the computation to content's own layout.
+  const session::WebsiteSessionBinding binding{
+      .context_id = base::Uuid::GenerateRandomV4()};
+  content::StoragePartition* partition = profile()->GetStoragePartition(
+      session::StoragePartitionConfigForWebsiteSession(profile(), binding));
+  ASSERT_TRUE(partition);
+  EXPECT_EQ(partition->GetPath(),
+            session::WebsiteSessionPartitionPath(profile()->GetPath(), binding));
+  EXPECT_TRUE(session::WebsiteSessionPartitionPath(
+                  profile()->GetPath(), session::WebsiteSessionBinding())
+                  .empty());
 }
 
 TEST_F(SessionBridgeTest, WorkspaceLevelIsChosenAtCreationAndDuplicated) {

@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "ahoi/browser/session/session_prefs.h"
+#include "base/files/file_path.h"
 #include "content/public/browser/storage_partition_config.h"
 
 class Profile;
@@ -34,6 +35,13 @@ std::optional<WebsiteSessionBinding> WebsiteSessionBindingForSiteInstance(
 std::optional<WebsiteSessionBinding> WebsiteSessionBindingForWebContents(
     Profile* profile,
     content::WebContents* contents);
+
+// On-disk directory of an own website-session partition, computed without
+// loading it. Mirrors content's StoragePartitionImplMap::GetStoragePartitionPath
+// (Storage/ext/<domain>/<hex of the first 6 SHA-256 bytes of the name>); a
+// unit test pins it against a loaded partition. Empty for the default binding.
+base::FilePath WebsiteSessionPartitionPath(const base::FilePath& profile_path,
+                                           const WebsiteSessionBinding& binding);
 
 }  // namespace ahoi::session
 

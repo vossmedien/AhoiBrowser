@@ -374,6 +374,9 @@ class SessionBridge : public KeyedService,
     // A peer's removal must not recreate the shared page merely on a favicon
     // callback. A subsequent explicit navigation/save may create a new page.
     bool shared_binding_invalidated = false;
+    // Handoff 010 R6: a page of a deleted Workspace's own sessions waits for
+    // its close. It is never bound, re-homed or given a temporary node.
+    bool closing_with_deleted_workspace = false;
     std::u16string last_observed_title;
     GURL last_observed_url;
     base::CallbackListSubscription tab_ui_change_subscription;
@@ -404,9 +407,11 @@ class SessionBridge : public KeyedService,
   tab_tree::TabTreeStore::Result CommitWorkspaceDeletion(
       const base::Uuid& workspace_id,
       const std::optional<session::WebsiteSessionBinding>& isolated_binding);
-  void OnWorkspaceDeletionPagesAnswered(base::Uuid workspace_id,
-                                        WorkspaceDeletionCallback done,
-                                        bool all_agreed);
+  void OnWorkspaceDeletionPagesAnswered(
+      base::Uuid workspace_id,
+      std::vector<base::WeakPtr<content::WebContents>> asked_pages,
+      WorkspaceDeletionCallback done,
+      bool all_agreed);
   void ClearRetiredWebsiteSessionData(base::Uuid context_id);
   void ResumeWebsiteSessionRemovals();
   void OnWebsiteSessionDirectoryDeleted(base::Uuid context_id, bool deleted);

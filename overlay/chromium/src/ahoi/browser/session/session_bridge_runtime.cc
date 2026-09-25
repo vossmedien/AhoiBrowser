@@ -209,6 +209,7 @@ void SessionBridge::EnsureTreeNodeForTab(tabs::TabInterface* tab) {
   if (runtime_it == runtime_tabs_.end() ||
       runtime_it->second.node_id.has_value() ||
       runtime_it->second.shared_binding_invalidated ||
+      runtime_it->second.closing_with_deleted_workspace ||
       !runtime_it->second.tab_strip_model || !runtime_it->second.web_contents) {
     return;
   }

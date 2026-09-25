@@ -6,11 +6,14 @@
 #include <optional>
 
 #include "base/check.h"
+#include "base/containers/span.h"
+#include "base/strings/string_number_conversions.h"
 #include "chrome/browser/profiles/profile.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/site_instance.h"
 #include "content/public/browser/storage_partition.h"
 #include "content/public/browser/web_contents.h"
+#include "crypto/hash.h"
 
 namespace ahoi::session {
 
@@ -62,6 +65,19 @@ std::optional<WebsiteSessionBinding> WebsiteSessionBindingForWebContents(
              ? WebsiteSessionBindingForSiteInstance(
                    profile, contents->GetPrimaryMainFrame()->GetSiteInstance())
              : std::nullopt;
+}
+
+base::FilePath WebsiteSessionPartitionPath(const base::FilePath& profile_path,
+                                           const WebsiteSessionBinding& binding) {
+  if (binding.is_default()) {
+    return base::FilePath();
+  }
+  const auto hash =
+      crypto::hash::Sha256(binding.context_id.AsLowercaseString());
+  return profile_path.AppendASCII("Storage")
+      .AppendASCII("ext")
+      .AppendASCII(kWebsiteSessionPartitionDomain)
+      .AppendASCII(base::HexEncode(base::span(hash).first<6>()));
 }
 
 }  // namespace ahoi::session

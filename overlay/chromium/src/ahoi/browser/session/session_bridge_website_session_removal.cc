@@ -98,18 +98,21 @@ void SessionBridge::DeleteWorkspaceClosingIsolatedPages(
     return;
   }
   std::vector<content::WebContents*> contents;
+  std::vector<base::WeakPtr<content::WebContents>> asked;
   for (tabs::TabInterface* tab : pages) {
     contents.push_back(tab->GetContents());
+    asked.push_back(tab->GetContents()->GetWeakPtr());
   }
   workspace_deletion_close_ = session::GroupPageClose::Ask(
       std::move(contents),
       base::BindOnce(&SessionBridge::OnWorkspaceDeletionPagesAnswered,
                      weak_ptr_factory_.GetWeakPtr(), workspace_id,
-                     std::move(done)));
+                     std::move(asked), std::move(done)));
 }
 
 void SessionBridge::OnWorkspaceDeletionPagesAnswered(
     base::Uuid workspace_id,
+    std::vector<base::WeakPtr<content::WebContents>> asked_pages,
     WorkspaceDeletionCallback done,
     bool all_agreed) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
@@ -126,6 +129,20 @@ void SessionBridge::OnWorkspaceDeletionPagesAnswered(
       CommitWorkspaceDeletion(workspace_id, binding);
   if (result == tab_tree::TabTreeStore::Result::kOk && group) {
     group->ClosePages();
+  }
+  if (result == tab_tree::TabTreeStore::Result::kOk) {
+    // Handoff 010 R3: a page opened in the Workspace while the prompt was
+    // showing was not asked, but belongs to the deleted accounts too. The
+    // deletion is confirmed, so it closes through the normal unload path.
+    for (const auto& [tab, runtime] : runtime_tabs_) {
+      content::WebContents* contents = runtime.web_contents.get();
+      if (runtime.closing_with_deleted_workspace && contents &&
+          std::ranges::none_of(asked_pages, [contents](const auto& asked) {
+            return asked.get() == contents;
+          })) {
+        contents->ClosePage();
+      }
+    }
   }
   if (result == tab_tree::TabTreeStore::Result::kOk && binding.has_value() &&
       !binding->is_default()) {
@@ -167,14 +184,10 @@ tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceDeletion(
   }
 
   if (binding.has_value()) {
-    base::FilePath partition_path;
-    if (isolated) {
-      if (content::StoragePartition* partition = profile_->GetStoragePartition(
-              session::StoragePartitionConfigForWebsiteSession(profile_,
-                                                                *binding))) {
-        partition_path = partition->GetPath();
-      }
-    }
+    const base::FilePath partition_path =
+        isolated ? session::WebsiteSessionPartitionPath(profile_->GetPath(),
+                                                        *binding)
+                 : base::FilePath();
     // Retire the binding and record the removal intent right after the tree
     // commit. Startup also retires bindings of Workspaces that no longer
     // exist, so a crash between both writes cannot leave a restorable
@@ -191,11 +204,17 @@ tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceDeletion(
     if (runtime.workspace_id != workspace_id) {
       continue;
     }
-    UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
-    RemoveTabFromLastActiveState(tab);
-    if (std::ranges::find(isolated_pages, tab) != isolated_pages.end()) {
+    const bool closing =
+        std::ranges::find(isolated_pages, tab) != isolated_pages.end();
+    if (closing) {
       // Closed by the caller after this commit; never re-homed with the
-      // deleted Workspace's accounts into the fallback.
+      // deleted Workspace's accounts into the fallback, not even by a
+      // deferred binding or reconciliation before the unload finished.
+      runtime.closing_with_deleted_workspace = true;
+    }
+    UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/closing);
+    RemoveTabFromLastActiveState(tab);
+    if (closing) {
       runtime_changed = true;
       continue;
     }
@@ -253,14 +272,13 @@ void SessionBridge::ResumeWebsiteSessionRemovals() {
   for (const base::Uuid& id : orphaned) {
     const std::optional<session::WebsiteSessionBinding> binding =
         session::FindWebsiteSessionBinding(prefs, id);
-    base::FilePath path;
-    if (binding.has_value() && !binding->is_default()) {
-      if (content::StoragePartition* partition = profile_->GetStoragePartition(
-              session::StoragePartitionConfigForWebsiteSession(profile_,
-                                                                *binding))) {
-        path = partition->GetPath();
-      }
-    }
+    // Handoff 010 R2: compute the directory; loading the partition only to
+    // learn its path would let it rewrite files after the deletion.
+    const base::FilePath path =
+        binding.has_value()
+            ? session::WebsiteSessionPartitionPath(profile_->GetPath(),
+                                                   *binding)
+            : base::FilePath();
     session::RetireWebsiteSessionBinding(prefs, id, path);
     if (binding.has_value() && !binding->is_default()) {
       // A page restored before this retirement must not stay open with the
@@ -287,9 +305,18 @@ void SessionBridge::ResumeWebsiteSessionRemovals() {
       session::CompleteWebsiteSessionRemoval(prefs, pending.context_id);
       continue;
     }
-    // Clear through the native path first when the partition is loaded (a
-    // restored page may still hold it), then delete the directory.
-    ClearRetiredWebsiteSessionData(pending.context_id);
+    // A partition that is loaded (a restored page still held it) is cleared
+    // natively now; its directory is deleted at the next launch, when nothing
+    // can hold it, so the intent stays pending until the files are gone.
+    const session::WebsiteSessionBinding pending_binding{
+        .context_id = pending.context_id};
+    if (profile_->GetStoragePartition(
+            session::StoragePartitionConfigForWebsiteSession(profile_,
+                                                              pending_binding),
+            /*can_create=*/false)) {
+      ClearRetiredWebsiteSessionData(pending.context_id);
+      continue;
+    }
     base::ThreadPool::PostTaskAndReplyWithResult(
         FROM_HERE,
         {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
