@@ -493,7 +493,15 @@ bool SessionBridge::ActivateLastUsedTab(BrowserWindowInterface* browser) {
   if (!target) {
     return false;
   }
-  model->ActivateTabAt(model->GetIndexOfTab(tabs::TabHandle(*target).Get()));
+  tabs::TabInterface* target_tab = tabs::TabHandle(*target).Get();
+  const int target_index = model->GetIndexOfTab(target_tab);
+  VLOG(1) << "Ahoi last-used tab: activate index " << target_index << " from "
+          << model->active_index() << " url="
+          << (target_tab && target_tab->GetContents()
+                  ? target_tab->GetContents()->GetVisibleURL().spec()
+                  : std::string("none"));
+  model->ActivateTabAt(target_index);
+  VLOG(1) << "Ahoi last-used tab: active index now " << model->active_index();
   return true;
 }
 
