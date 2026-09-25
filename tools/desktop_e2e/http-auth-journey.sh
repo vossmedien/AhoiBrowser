@@ -70,7 +70,8 @@ command() { local idx
   case "$1" in switch) idx=0;; forget) idx=1;; manage) idx=2;; esac
   cmdbar || return 1; ax type $PID "HTTP"
   waitax "AXStaticText \| HTTP-Authentifizierungskonto wechseln" 8 || return 1
-  for i in $(seq 1 $idx); do ax key $PID 125; sleep 0.3; done
+  # Not `seq 1 $idx`: BSD seq counts down, so idx=0 pressed Down twice.
+  local i=0; while [ $i -lt $idx ]; do ax key $PID 125; sleep 0.3; i=$((i+1)); done
   ax key $PID 36; }
 dialog() { waitax "AXHeading \| Anmelden" "${1:-20}" && return 0
   { echo "-- dialog timeout; windows and page:"; $AX dump $PID 3 | grep AXWindow; title; } >> "$OUT/steps.txt"
