@@ -33,9 +33,9 @@ Rules:
   need `ahoi-release`/`ahoi-full-release` against the unmodified
   `upstream-release` control (`scripts/build-upstream.sh`,
   `config/build/upstream-release.gn`), both built by the desktop owner with
-  the pinned reference toolchain. As of 25 September 2026 that toolchain
-  (Xcode 26.6 / SDK 26.5) is owner-gated and no upstream control bundle exists,
-  so budget verdicts are blocked on that gate.
+  the reference toolchain. Since the user's decision of 25 September 2026 the
+  reference toolchain is Xcode 27 (handoff 022); budget verdicts wait only for
+  those two release builds and a quiet host.
 - **Same pin.** `chromiumVersion` must match (the runner reads it from each
   bundle and refuses a mismatch as `INSUFFICIENT`).
 - The candidate is identified by `binarySha256` and, once handoff 001 is
