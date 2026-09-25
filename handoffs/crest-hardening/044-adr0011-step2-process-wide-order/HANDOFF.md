@@ -4,7 +4,7 @@ Status: ready
 Owner lane: desktop (apply, build, test)
 Base: HEAD `663398a` (`git apply --check` passes on HEAD and the current
 worktree). First of the step 2 handoffs by the crest-hardening lane
-(044 order, 046 switcher, 048 Quick Window, 050 conversion); not compiled
+(044 order, 048 switcher, 050 Quick Window, 052 conversion); not compiled
 by the lane.
 
 ## Gap
@@ -35,7 +35,7 @@ Workspaces, and the order differs between surfaces.
 - `SessionBridge::CreateWorkspace` appends after the merged order, so a
   main Workspace created later also follows existing separated ones.
 
-No surface changes its display in this handoff; 046 switches the switcher,
+No surface changes its display in this handoff; 048 switches the switcher,
 keyboard cycling, command bar, context menu and routing lists to
 `OrderDirectoryWorkspaces`. The keys are local (Local State); syncing them
 belongs to step 3.
@@ -45,4 +45,4 @@ belongs to step 3.
 - `WorkspaceDirectoryOrderTest` (4 cases, new file, added to
   `ahoi_session_unittests`).
 - `IsolatedProfileRegistryTest.RoundTripsSortKey`.
-- Visible: none yet (no display change); covered by 046's journey.
+- Visible: none yet (no display change); covered by 048's journey.
