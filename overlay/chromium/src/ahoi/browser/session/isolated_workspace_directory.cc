@@ -421,6 +421,38 @@ void TryHideBehindPresented(base::FilePath path,
 
 }  // namespace
 
+void ShowMainWindowsAfterIsolatedDeletion(
+    const std::string& removed_profile_dir) {
+  PrefService* local_state =
+      g_browser_process ? g_browser_process->local_state() : nullptr;
+  if (local_state && local_state->FindPreference(kPresentedProfileDirPref) &&
+      local_state->GetString(kPresentedProfileDirPref) == removed_profile_dir) {
+    local_state->SetString(kPresentedProfileDirPref, std::string());
+  }
+  Profile* main_profile = GetLoadedMainProfile();
+  ProfileBrowserCollection* browsers =
+      main_profile ? ProfileBrowserCollection::GetForProfile(main_profile)
+                   : nullptr;
+  if (!browsers) {
+    return;
+  }
+  std::vector<BrowserWindowInterface*> hidden;
+  browsers->ForEach(
+      [&hidden](BrowserWindowInterface* browser) {
+        ui::BaseWindow* window = browser->GetWindow();
+        if (browser->GetType() == BrowserWindowInterface::TYPE_NORMAL &&
+            window && !window->IsVisible() && !window->IsMinimized()) {
+          hidden.push_back(browser);
+        }
+        return true;
+      },
+      BrowserCollection::Order::kActivation);
+  // Most recently active last, so it ends up in front.
+  for (auto it = hidden.rbegin(); it != hidden.rend(); ++it) {
+    (*it)->GetWindow()->Show();
+  }
+}
+
 void RestoreHandOverAfterStartup(Profile* profile) {
   PrefService* local_state =
       g_browser_process ? g_browser_process->local_state() : nullptr;

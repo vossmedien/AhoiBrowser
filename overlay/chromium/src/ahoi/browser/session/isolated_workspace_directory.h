@@ -60,6 +60,11 @@ void PresentProfileWindow(
 // hidden behind it again, with the same show-again guarantee.
 void RestoreHandOverAfterStartup(Profile* profile);
 
+// After the fully separated Workspace `removed_profile_dir` was deleted: the
+// main Profile's windows hidden by a hand-over are shown again and the
+// remembered hand-over is cleared, so deleting never leaves no window.
+void ShowMainWindowsAfterIsolatedDeletion(const std::string& removed_profile_dir);
+
 // Loads the Profile of the fully separated Workspace `profile_dir` and
 // presents its window with PresentProfileWindow().
 void PresentIsolatedWorkspace(

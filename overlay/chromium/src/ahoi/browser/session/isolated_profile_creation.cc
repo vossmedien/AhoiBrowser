@@ -11,6 +11,7 @@
 
 #include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
@@ -187,6 +188,11 @@ void DeleteIsolatedWorkspaceProfile(Profile* profile,
             // Pages already agreed; close them without a second question,
             // then let Chromium delete the Profile once its windows are gone.
             (**holder).ClosePages();
+            // The main window this Workspace was presented over must come
+            // back even when no hand-over watch survived a restart.
+            base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+                FROM_HERE, base::BindOnce(&ShowMainWindowsAfterIsolatedDeletion,
+                                          DirName(path)));
             base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(
                 FROM_HERE, std::move(holder));
             base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
@@ -247,6 +253,27 @@ void SweepIsolatedProfileRegistry() {
        RemoveIsolatedProfilesNotIn(local_state, existing)) {
     LOG(WARNING) << "Ahoi removed the registry entry of missing profile "
                  << dir;
+  }
+  // An entry left `deleting` whose directory is already gone (the deletion
+  // finished in an earlier run, after this sweep) is dropped, so a deleted
+  // separated Workspace leaves no registry trace.
+  for (const IsolatedProfileEntry& entry : GetIsolatedProfiles(local_state)) {
+    if (entry.state != IsolatedProfileState::kDeleting) {
+      continue;
+    }
+    const base::FilePath path =
+        profile_manager->user_data_dir().AppendASCII(entry.profile_dir);
+    base::ThreadPool::PostTaskAndReplyWithResult(
+        FROM_HERE, {base::MayBlock(), base::TaskPriority::BEST_EFFORT},
+        base::BindOnce(&base::DirectoryExists, path),
+        base::BindOnce(
+            [](std::string dir, bool exists) {
+              PrefService* local_state = g_browser_process->local_state();
+              if (!exists && local_state) {
+                RemoveIsolatedProfile(local_state, dir);
+              }
+            },
+            entry.profile_dir));
   }
   // Handoff 013 I2: an entry still `creating` after a restart comes from a
   // creation that crashed before its window initialized. If its tree was
