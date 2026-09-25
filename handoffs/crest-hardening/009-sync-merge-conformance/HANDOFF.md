@@ -1,6 +1,6 @@
 # 009 – Shared merge conformance vectors for C++ and Swift (H1)
 
-Status: ready
+Status: integrated 095b959 (runner fix 11bf324; 16 vectors reported back, see "Results")
 Owner lanes: desktop/sync (C++ runner, `BUILD.gn`), mobile/sync (Swift runner)
 Base: `119548a`
 
@@ -63,3 +63,41 @@ Covered entities, with the rules exercised:
   copied, and it applies the successor clock only for a true union. The
   vectors `*.disjoint_union`, `*.incoming_older` and `*.logical_overflow_successor`
   will show whether both give the same result.
+
+## Results (desktop/sync/mobile owner, 2026-09-25)
+
+- **C++** (`ahoi_sync_unittests`, build 16 of `993a151`,
+  `SyncMergeConformanceTest.SharedVectors`): every vector whose inputs the
+  wire decoder accepts (118 of 132) gives the expected decision and canonical
+  merged bytes. The test fails only on 14 vectors whose *inputs* are rejected
+  by `DeserializeRecord`, although the expectation is not `invalid`.
+- **Swift** (`SyncMergeConformanceTests`, simulator A168): the runner needed
+  envelope tombstone metadata for deleted payloads (the codec requires it to
+  match the payload clock) and now compares wire fields only; runner-
+  synthesized tombstone metadata and the local `OrderKey` tie-breaker of an
+  opaque `sort_key` are excluded (`11bf324`). No expectation was edited.
+  67 of the 69 vectors for the four covered entities pass; the other 2 are in
+  the list below.
+- **Vectors for the lane: generator produces invalid inputs.** Please fix in
+  `tools/sync_conformance/generate_merge_vectors.py` and regenerate; neither
+  side should accept them:
+  - `first_alt` appends `" (other)"` to typed strings: `last_seen`
+    (timestamp: `device_session.incoming_older`, `.device_tiebreak`,
+    `.equal_clock_conflict`), `color_mode` (enum:
+    `appearance_custom_accent.incoming_older`, `.device_tiebreak`),
+    `value_json` (JSON text: `permitted_setting_glass_enabled.incoming_older`,
+    `.device_tiebreak`).
+  - Appearance edits break the accent/system-accent invariant the decoder
+    enforces: `appearance_custom_accent.disjoint_union`,
+    `.logical_overflow_successor`, `random.153.009/019/022/057.appearance`.
+    If a group edit can legally produce such a pair after merge, that is a
+    merge question for Sync; as inputs they are invalid.
+  - `remote_command_open_shape_only.disjoint_union` and
+    `.logical_overflow_successor` combine `tombstone: true` with a
+    non-terminal `status`, which the decoder rejects.
+- The two Companion findings above (no field merge for entities 6, 7, 8;
+  `mergedVersion` taking each field's maximum clock) are unchanged: on the
+  covered entities the Swift results equal the C++ results, so the clock
+  difference produced no observable mismatch in these vectors. Whether iOS may
+  overwrite entities 6–8 whole remains a Sync-owner decision, recorded in
+  `docs/ACTIVE_SYNC_COORDINATION.md`.

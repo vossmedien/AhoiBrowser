@@ -1,5 +1,23 @@
 # Active sync coordination
 
+## Merge conformance (crest handoff 009) — 25 September 2026
+
+Shared vectors `fixtures/sync-conformance/merge_v3.json` run in C++
+(`SyncMergeConformanceTest.SharedVectors`) and Swift
+(`SyncMergeConformanceTests`). Every decodable vector matches in C++ (118/132)
+and in Swift for its four covered entities (67/69); all remaining failures
+are invalid generator inputs, reported back in the
+[handoff](../handoffs/crest-hardening/009-sync-merge-conformance/HANDOFF.md).
+
+**Sync-owner decision:** iOS writes `appearance` (7), `permittedSetting` (8)
+and `remoteCommand` state (6) but has no field merge for them; Chromium
+merges them per field. iOS must not overwrite those records whole, because a
+concurrent Mac edit of another field group would be lost. Queued package:
+port `MergeRecordFields` semantics for entities 6–8 to the Companion and add
+them to the Swift conformance runner (`covered`), then drop them from
+`testUncoveredEntitiesAreExplicit`. Until then the DoD sync-convergence item
+stays open for these three entities.
+
 ## Current installed pair — 23 September 2026
 
 Mac installed source `820cf4e` and Mobile Build40/source `45330d2` retain
