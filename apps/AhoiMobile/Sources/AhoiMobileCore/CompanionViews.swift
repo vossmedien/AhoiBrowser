@@ -22,6 +22,9 @@ public struct CompanionRootView: View {
     private let onOpenTreeNode: ((TreeNodeID) -> Void)?
     private let accentTint: Color
     private let onDone: (() -> Void)?
+    // Read at the sheet root, outside NavigationSplitView, so it dismisses the
+    // library sheet itself rather than popping a pushed detail column.
+    @Environment(\.dismiss) private var dismissLibrary
     @State private var selectedWorkspaceID: WorkspaceID?
     @State private var query = ""
     @State private var draftTitle = ""
@@ -130,7 +133,7 @@ public struct CompanionRootView: View {
             .background(accentTint.opacity(0.055))
             .accessibilityIdentifier("browser.library.root")
             .navigationTitle("AhoiBrowser")
-            .modifier(LibraryDoneToolbar(onDone: onDone))
+            .modifier(LibraryDoneToolbar(onDone: libraryDoneAction))
             .toolbar {
                 ToolbarItem(placement: .automatic) {
                     Menu {
@@ -267,7 +270,7 @@ public struct CompanionRootView: View {
             }
             }
             // A pushed compact detail hides the sidebar's Done, so it carries its own.
-            .modifier(LibraryDoneToolbar(onDone: onDone, onlyWhenCompact: true))
+            .modifier(LibraryDoneToolbar(onDone: libraryDoneAction, onlyWhenCompact: true))
         }
         .tint(accentTint)
         .sheet(isPresented: $bookmarksPresented) {
@@ -394,6 +397,16 @@ public struct CompanionRootView: View {
             remoteDeviceIDs.contains($0.id) && !$0.isDeleted && !$0.isRevoked
         }.sorted {
             $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+    }
+
+    /// Updates the caller's binding and dismisses the sheet directly: after a
+    /// Workspace push the binding alone could leave the sheet on screen.
+    private var libraryDoneAction: (() -> Void)? {
+        guard let onDone else { return nil }
+        return {
+            onDone()
+            dismissLibrary()
         }
     }
 
