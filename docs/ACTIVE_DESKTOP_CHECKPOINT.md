@@ -50,6 +50,42 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 31 installed; build 32 with ADR 0011 step 2 in the pipeline — 25 September 2026
+
+- **Installed:** build 31 of `8b3336a`. All eight unit-test binaries pass.
+  It contains Option+Tab, patch 0062 and the dispatch diagnostics. The
+  crest-hardening lane repeats its H5 audit on it.
+- **Findings from builds 30 and 31**, each fixed for build 32 (`5be0782` or
+  later):
+  - Link-Peek crashed the browser when chosen: `RecordUsedItem` hits
+    NOTREACHED for a command id without a UMA bucket. Fixed in 0059
+    (`e23b31a`).
+  - Last-used tab: dispatch works, but only one tab counted as eligible
+    (`mru=6 eligible=1`). A unit test and per-tab VLOG are in `ba6309a`.
+  - The editor could not record a bound key, because Chromium pre-handles
+    Ahoi accelerators before the page. Shortcuts now pause while recording
+    (`ba6309a`).
+  - Separated Workspace (WS-ISO), 13/15: after deleting it following a
+    restart, no window was shown and the registry entry stayed. Fixed in
+    `5fedf6e` and `663398a`, plus 046.
+  - The auto-archive journey passes 5/6. Restore does not bring the URL
+    back; still open.
+  - The HTTP-auth journey failed on unquoted paths (`d538c67`).
+- **Crest-hardening intake into build 32:**
+  - 028 (S5), 030 (S7), 032 (S6) and 038 (S8).
+  - 042 reworked: show the watched hidden windows directly.
+  - ADR 0011 step 2: 044, 048, 054, 050 and 046.
+  - 034 (S2), 036 (S3) and 040 (S4) wait for their required reproduction.
+- **Repository contract suite:** now 412 tests with 1 failure, the line
+  budget (42 files over 800 lines). Stale M152 markers were rebound
+  (`c23c910`, `e59fb0b`). Real findings fixed:
+  - the secret scanner accepted no redacted Cookie header (`24a416a`);
+  - patch 0003 had shrunk to reformatting and was retired, because M153
+    ships the fix (`e3554a3`);
+  - ledger sections for 0043 and 0049–0054 were missing.
+- **iOS Home-Address journey:** the harness fails under extreme host load
+  (see the mobile checkpoint). Visible iOS runs wait for a quieter host.
+
 ## Build 30 installed; build 31 in the pipeline — 25 September 2026
 
 - **Installed candidate:** build 30 of `f5c53d9`, receipt
