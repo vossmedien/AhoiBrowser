@@ -1,0 +1,108 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 4 parallel jobs.
+[1/56] CommandServiceTest.RejectsUrlUserinfoBeforeIndexing (0 ms)
+[2/56] CommandServiceTest.LimitsResultsAndUsesRecencyAsStableTieBreaker (0 ms)
+[3/56] CommandServiceTest.CrossSourceTiesHaveTotalDeterministicOrder (0 ms)
+[4/56] CommandServiceTest.ExplicitPrefixesScopeLocallyAndNeverBecomeSearches (0 ms)
+[5/56] CommandServiceTest.QueryDeduplicatesUrlAcrossAllLocalSources (0 ms)
+[ RUN      ] CommandServiceTest.QueryPolicyKeepsDuplicateTabsAndFiltersSources
+../../ahoi/browser/navigation/command_service_unittest.cc:266: Failure
+Expected equality of these values:
+  results[1].item.type
+    Which is: 4-byte object <01-00 00-00>
+  CommandItemType::kOpenTab
+    Which is: 4-byte object <00-00 00-00>
+Stack trace:
+0   ahoi_navigation_unittests           0x0000000102d6f630 ahoi::(anonymous namespace)::CommandServiceTest_QueryPolicyKeepsDuplicateTabsAndFiltersSources_Test::TestBody() + 3872
+
+../../ahoi/browser/navigation/command_service_unittest.cc:268: Failure
+Expected equality of these values:
+  results[2].item.type
+    Which is: 4-byte object <00-00 00-00>
+  CommandItemType::kSavedPage
+    Which is: 4-byte object <01-00 00-00>
+Stack trace:
+0   ahoi_navigation_unittests           0x0000000102d6f880 ahoi::(anonymous namespace)::CommandServiceTest_QueryPolicyKeepsDuplicateTabsAndFiltersSources_Test::TestBody() + 4464
+
+[  FAILED  ] CommandServiceTest.QueryPolicyKeepsDuplicateTabsAndFiltersSources (0 ms)
+[6/56] CommandServiceTest.QueryPolicyKeepsDuplicateTabsAndFiltersSources (0 ms)
+[7/56] CommandServiceTest.DeviceTabsRequireAnExplicitSurfacePolicy (0 ms)
+[8/56] CommandServiceTest.TenThousandItemIndexReturnsBoundedResults (12 ms)
+[9/56] LinkRoutingTest.OnlyHttpAndHttpsAreRoutable (0 ms)
+[10/56] LinkRoutingTest.NormalizesRuleHosts (0 ms)
+[11/56] LinkRoutingTest.SettingsRoundTrip (0 ms)
+[12/56] LinkRoutingTest.StrictParseFallsBackToDefaults (0 ms)
+[13/56] LinkRoutingTest.MalformedOrDuplicateRulesAreDropped (0 ms)
+[14/56] LinkRoutingTest.PrefStorage (0 ms)
+[15/56] NavigationInputPrefsTest.DefaultsMatchRuntimeInputContract (0 ms)
+[16/56] NavigationInputPrefsTest.ValuesClampAndEveryGestureCanBeDisabled (0 ms)
+[17/56] WorkspaceServiceTest.SortsAndFiltersSnapshotAtomically (0 ms)
+[18/56] WorkspaceServiceTest.RejectsDuplicateAcrossLiveAndTombstoneRows (0 ms)
+[19/56] WorkspaceServiceTest.RejectsInvalidModelRowsAtomically (0 ms)
+[20/56] WorkspaceServiceTest.ActivatesRelativePerWindowAndWraps (0 ms)
+[21/56] CmdScrollTabSwitcherTest.SwitchesOncePerTrackpadGesture (0 ms)
+[22/56] CmdScrollTabSwitcherTest.PhaseLessMouseWheelAccumulatesToThreshold (0 ms)
+[23/56] CmdScrollTabSwitcherTest.IgnoresMomentumWithoutDirectGesture (0 ms)
+[24/56] CmdScrollTabSwitcherTest.CancelResetsGesture (0 ms)
+[25/56] CmdScrollTabSwitcherTest.DisabledSettingNeverConsumesAndInvalidFails (0 ms)
+[26/56] CmdScrollTabSwitcherTest.RateLimitsSeparateGestures (0 ms)
+[27/56] CommandServiceTest.ParsesSearchShortcutAndUrlsLocally (0 ms)
+[28/56] CommandServiceTest.RanksExactAndPrefixMatchesDeterministically (0 ms)
+[29/56] CommandServiceTest.InvalidReplacementLeavesPreviousSourceIntact (0 ms)
+[30/56] CommandServiceTest.RejectsTypeUrlShapeMismatchAtomically (0 ms)
+[31/56] LinkRoutingTest.NormalizesPathPrefixes (0 ms)
+[32/56] LinkRoutingTest.ExactHostDoesNotMatchLookalikes (0 ms)
+[33/56] LinkRoutingTest.SubdomainsOnlyWhenIncluded (0 ms)
+[34/56] LinkRoutingTest.QueryAndFragmentNeverMatch (0 ms)
+[35/56] LinkRoutingTest.PathPrefixMatchesAtSegmentBoundaries (0 ms)
+[36/56] LinkRoutingTest.IpAndLocalhostRulesAreExactOnly (0 ms)
+[37/56] LinkRoutingTest.FirstEnabledRuleWinsInOrder (0 ms)
+[38/56] LinkRoutingTest.DefaultRouteAppliesWithoutMatch (0 ms)
+[39/56] LinkRoutingTest.UnavailableExplicitTargetNeedsChoice (0 ms)
+[40/56] LinkRoutingTest.NormalizeAndDedupKeepsFirstRoutableInOrder (0 ms)
+[41/56] WorkspaceSwipeTrackerTest.RejectsVerticalAndSupportsDirectionSetting (0 ms)
+[42/56] WorkspaceSwipeTrackerTest.DisabledAndInvalidSettingsFailClosed (0 ms)
+[43/56] WorkspaceSwipeTrackerTest.MomentumCannotInitiateWorkspaceSwitch (0 ms)
+[44/56] WorkspaceSwipeTrackerTest.CancelAndNewBeginDiscardPartialDistance (0 ms)
+[45/56] WorkspaceSwipeTrackerTest.NonFiniteDeltasFailClosed (0 ms)
+[46/56] WorkspaceSwipeTrackerTest.RejectedGestureStaysRejectedThroughMomentum (0 ms)
+[47/56] WorkspaceServiceTest.ReconciliationClearsRemovedActivation (0 ms)
+[48/56] WorkspaceSwipeEventHandlerTest.MouseDragPassesThroughUntouched (0 ms)
+[49/56] WorkspaceSwipeEventHandlerTest.PretargetHorizontalSwipeSwitchesOnce (0 ms)
+[50/56] WorkspaceSwipeEventHandlerTest.MacLegacyPhaseSequenceSwitchesOnce (0 ms)
+[51/56] WorkspaceSwipeEventHandlerTest.MacMomentumCannotInitiateWorkspaceSwitch (0 ms)
+[52/56] WorkspaceSwipeEventHandlerTest.TargetPhaseScrollPassesThrough (0 ms)
+[53/56] WorkspaceSwipeEventHandlerTest.WorkspaceSwipeOutsideConfiguredRegionPassesThrough (0 ms)
+[54/56] WorkspaceSwipeEventHandlerTest.CommandScrollSwitchesTabBeforeWorkspace (0 ms)
+[55/56] WorkspaceSwipeEventHandlerTest.CommandScrollPreviewConsumesBeforeSwitch (0 ms)
+[56/56] WorkspaceSwipeTrackerTest.CommitsAtMostOncePerGesture (0 ms)
+Retrying 1 test (retry #0)
+[ RUN      ] CommandServiceTest.QueryPolicyKeepsDuplicateTabsAndFiltersSources
+../../ahoi/browser/navigation/command_service_unittest.cc:266: Failure
+Expected equality of these values:
+  results[1].item.type
+    Which is: 4-byte object <01-00 00-00>
+  CommandItemType::kOpenTab
+    Which is: 4-byte object <00-00 00-00>
+Stack trace:
+0   ahoi_navigation_unittests           0x0000000104b87630 ahoi::(anonymous namespace)::CommandServiceTest_QueryPolicyKeepsDuplicateTabsAndFiltersSources_Test::TestBody() + 3872
+
+../../ahoi/browser/navigation/command_service_unittest.cc:268: Failure
+Expected equality of these values:
+  results[2].item.type
+    Which is: 4-byte object <00-00 00-00>
+  CommandItemType::kSavedPage
+    Which is: 4-byte object <01-00 00-00>
+Stack trace:
+0   ahoi_navigation_unittests           0x0000000104b87880 ahoi::(anonymous namespace)::CommandServiceTest_QueryPolicyKeepsDuplicateTabsAndFiltersSources_Test::TestBody() + 4464
+
+[  FAILED  ] CommandServiceTest.QueryPolicyKeepsDuplicateTabsAndFiltersSources (0 ms)
+[57/57] CommandServiceTest.QueryPolicyKeepsDuplicateTabsAndFiltersSources (0 ms)
+1 test failed:
+    CommandServiceTest.QueryPolicyKeepsDuplicateTabsAndFiltersSources (../../ahoi/browser/navigation/command_service_unittest.cc:235)
+Tests took 2 seconds.
+EXIT 1
