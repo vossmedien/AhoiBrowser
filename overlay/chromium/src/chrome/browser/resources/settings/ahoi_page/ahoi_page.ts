@@ -522,14 +522,14 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         rule.id);
   }
 
-  protected onLinkRoutingRuleDelete_(event: Event) {
+  protected onLinkRoutingRuleDeleteClick_(event: Event) {
     const rule = this.findLinkRoutingRule_(event);
     if (rule) {
       void this.runLinkRoutingAction_('deleteRule', {id: rule.id}, rule.id);
     }
   }
 
-  protected onLinkRoutingRuleMoveUp_(event: Event) {
+  protected onLinkRoutingRuleMoveUpClick_(event: Event) {
     const rule = this.findLinkRoutingRule_(event);
     if (rule) {
       void this.runLinkRoutingAction_(
@@ -537,12 +537,25 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
-  protected onLinkRoutingRuleMoveDown_(event: Event) {
+  protected onLinkRoutingRuleMoveDownClick_(event: Event) {
     const rule = this.findLinkRoutingRule_(event);
     if (rule) {
       void this.runLinkRoutingAction_(
           'moveRule', {id: rule.id, delta: 1}, rule.id);
     }
+  }
+
+  protected isLinkRoutingLocked_(): boolean {
+    return !this.linkRouting_?.canChange || this.linkRoutingPending_;
+  }
+
+  protected isLinkRoutingError_(scope: string): boolean {
+    return !!this.linkRouting_?.error &&
+        this.linkRoutingErrorRuleId_ === scope;
+  }
+
+  protected onLinkRoutingDraftInput_(event: Event) {
+    this.onLinkRoutingDraftChange_(event);
   }
 
   protected onLinkRoutingDraftChange_(event: Event) {
