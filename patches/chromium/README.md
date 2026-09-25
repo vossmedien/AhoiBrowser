@@ -1130,6 +1130,24 @@ as a second active patch stack.
   journeys on the exact candidate.
 - **Rebase/removal:** low; one delegate call and one GN dependency.
 
+## `0056-ahoi-no-gaia-policy-invalidations.patch`
+
+- **Owner:** Desktop (from crest-hardening handoff 004, H5/N1).
+  `UserFmRegistrationTokenUploaderFactory` returns no service when the
+  profile's cloud policy manager is the Gaia-based `UserCloudPolicyManager`.
+  Ahoi disallows Google sign-in, so that manager can never register a client;
+  its policy and remote-command invalidation listeners otherwise made every
+  fresh profile check in with GCM, request FCM tokens and open MCS about 10 s
+  after launch (`registration_request.cc … DEPRECATED_ENDPOINT`).
+- **Safety:** profile-level management (`ProfileCloudPolicyManager`,
+  enrollment token) keeps invalidations. No GCM code is removed; Web Push and
+  `chrome.gcm` still start GCM when a site or extension uses them (product
+  decision NET-GCM-02 pending).
+- **Tests:** next guarded build; NET-GCM-01 fresh-profile 10-minute idle log and
+  capture without `registration_request`, `android.clients.google.com` or
+  `mtalk.google.com:5228`.
+- **Rebase/removal:** low; one early return in a single factory.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`
