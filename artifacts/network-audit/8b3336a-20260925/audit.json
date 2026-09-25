@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "ahoi-fresh-profile-network-audit",
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "d637fd8c3b5263408400d2b5a93517d598d2e77e5347512a7843184bc9a6c2b9",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "8b3336a70af973316a9130df24b9d8a16e41e7c5",
+    "buildProfile": "dev"
+  },
+  "startedAt": "2026-09-25T21:06:00.668252+00:00",
+  "idleSeconds": 600,
+  "netlogBytes": 8351112,
+  "hosts": {
+    "allowed": [
+      {
+        "host": "edgedl.me.gvt1.com",
+        "count": 115,
+        "rule": "chromium-component-download-edge"
+      },
+      {
+        "host": "safebrowsing.googleapis.com",
+        "count": 15,
+        "rule": "safe-browsing-v5"
+      },
+      {
+        "host": "update.googleapis.com",
+        "count": 128,
+        "rule": "chromium-component-update-check"
+      }
+    ],
+    "conditional": [],
+    "denied": [],
+    "unknown": []
+  },
+  "socketRemotes": [
+    "142.251.142.110:443",
+    "172.217.16.142:443",
+    "192.178.194.95:443",
+    "34.104.35.123:443"
+  ],
+  "gcmStoreHasCheckin": null,
+  "verdicts": {
+    "NET-GCM-01": "PASS",
+    "fresh-profile-silence": "PASS"
+  },
+  "method": "Chromium NetLog (Default capture) plus lsof socket polling every 2 s; no root, so non-Chromium DNS is not observed"
+}
