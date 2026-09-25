@@ -492,11 +492,25 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         }
         XCTAssertNotNil(done, "Done must be reachable on the pushed detail.")
         done?.tap()
+        // The pushed compact detail hides the sidebar list, so the library root
+        // alone does not prove the sheet closed; every Done and the new detail
+        // title must be gone too.
         XCTAssertTrue(
             app.descendants(matching: .any)["browser.library.root"].waitForNonExistence(timeout: 5)
         )
-        XCTAssertTrue(waitForHittable(app.buttons["browser.address"], timeout: 5))
+        XCTAssertTrue(doneButtons.firstMatch.waitForNonExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars.staticTexts[name].exists)
         attachScreenshot(named: "library-closed-browser-ready", of: app)
+
+        // The address control sits in the Harbor deck over the loaded page. The
+        // WebView's accessibility frame reaches under the expanded deck, so
+        // XCUITest reports the address as not hittable even right after
+        // launch; opening the address sheet proves the browser is interactive.
+        let address = app.buttons["browser.address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 5))
+        address.tap()
+        XCTAssertTrue(app.buttons["browser.address.clear"].waitForExistence(timeout: 5),
+                      "The browser must accept input once the library has closed.")
     }
 
     /// Saved-page Home help needs real shared-tab presence; see
