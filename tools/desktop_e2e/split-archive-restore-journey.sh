@@ -91,6 +91,13 @@ for attempt in 1 2 3; do
   "$AX" hidrightclick $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1 && break; sleep 1
 done
 sleep 1; "$AX" dump $PID 45 > "$OUT/ax-after-rightclick.txt"
+# Fallback: the keyboard context-menu key (Shift+F10) on the focused row.
+if ! grep -q -E 'AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))' "$OUT/ax-after-rightclick.txt"; then
+  "$AX" focus $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1; sleep 0.5
+  ax key $PID 109 shift; sleep 1
+  "$AX" dump $PID 45 > "$OUT/ax-after-shift-f10.txt"
+  echo "menu after Shift+F10: $(grep -c -E 'AXMenuItem \| (Split archivieren|Archivieren)' "$OUT/ax-after-shift-f10.txt")" >> "$OUT/steps.txt"
+fi
 echo "frontmost after right-click: $(osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2>/dev/null)" >> "$OUT/steps.txt"
 # Open split tabs say "Split archivieren"; saved tree rows say "Archivieren
 # (inklusive Split)".
