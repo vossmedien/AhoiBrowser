@@ -30,6 +30,20 @@ review `ready` handoffs under `handoffs/crest-hardening/`, take them in or
 defer them with a reason, and confirm or decline lease requests from
 `docs/ACTIVE_CREST_HARDENING_LANE.md`. No extra build for a handoff.
 
+## M153 focused unit tests, six binaries — 25 September 2026
+
+Guarded build14 of `c3c814f` (debug traces included, product otherwise equal to
+`e9f4a99` plus the metadata-version fix pending in the next build) built six
+test targets EXIT0. Results (`artifacts/tests/desktop-m153-unittests-c3c814f-20260925/`):
+`ahoi_command_bar_unittests`, `ahoi_http_auth_unittests` and
+`ahoi_resource_policy_unittests` **passed**; `ahoi_session_unittests` 4 failed
+(the metadata-version case is fixed in source, not yet in this binary),
+`ahoi_tab_tree_unittests` 5 failed, `ahoi_sync_unittests` **56 failed**, mostly
+`SerializeRecord`/`ValidateRecord`/`StampLocalMutation` returning false in
+bookmark, store and wire suites. No earlier M153 pass is recorded for these
+binaries; classify (stale Format-3 expectations vs. product regression) as its
+own sync/desktop package before claiming DoD 13/20.
+
 ## M153 focused regression: ahoi_session_unittests — 25 September 2026
 
 On the diagnostic build of `8185509` (product code identical to `e9f4a99`
