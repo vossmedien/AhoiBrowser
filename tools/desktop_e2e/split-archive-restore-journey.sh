@@ -83,7 +83,12 @@ NAME=${ROW#*| }; ROLE=${ROW%% |*}
 # Open-tab rows are radio buttons without AXShowMenu (build 32 returned
 # -25204); a real right-click opens the row's context menu.
 ax activate $PID; sleep 1; ax rightclick $PID "$ROLE:$NAME"
-waitax "AXMenuItem \| Archivieren \(inklusive Split\)" 5 && ax press $PID "AXMenuItem:Archivieren (inklusive Split)"
+# Open split tabs say "Split archivieren"; saved tree rows say "Archivieren
+# (inklusive Split)".
+if waitax "AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))" 5; then
+  ARCH=$("$AX" dump $PID 45 | grep -o -E 'AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))' | head -1 | sed 's/^AXMenuItem | //')
+  ax press $PID "AXMenuItem:$ARCH"
+else "$AX" dump $PID 45 > "$OUT/ax-row-menu.txt"; fi
 sleep 5
 case "$(visible_titles)" in *"Ahoi split"*) record split_archived FAIL ;; *) record split_archived PASS ;; esac
 
