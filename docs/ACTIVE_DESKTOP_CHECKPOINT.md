@@ -30,6 +30,27 @@ review `ready` handoffs under `handoffs/crest-hardening/`, take them in or
 defer them with a reason, and confirm or decline lease requests from
 `docs/ACTIVE_CREST_HARDENING_LANE.md`. No extra build for a handoff.
 
+## M153 focused regression: ahoi_session_unittests — 25 September 2026
+
+On the diagnostic build of `8185509` (product code identical to `e9f4a99`
+apart from temporary command-bar traces) `ahoi_session_unittests` ran 52 tests:
+**47 passed, 5 failed** (`artifacts/tests/desktop-session-unittests-8185509-20260925/`).
+Classification (not yet fixed; batch into the next guarded build):
+- `WorkspaceSessionMetadataTest.RejectsUnsupportedOrExtendedSchema`: product
+  semantics — a version-2 (tab-only) payload in window metadata returns
+  `kMalformed` instead of `kUnsupportedVersion` because the shared parser
+  accepts tab versions 1–3 before the window decoder checks for 1.
+- `SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState`: an
+  unsaved tab's tab metadata carries a `tree_node_id`; decide whether a pending
+  temporary node id may be persisted, then align product or test.
+- `SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar`,
+  `PersistsAndRebindsNestedPageAfterTabRecreation`,
+  `DuplicatesWorkspaceTreeAndPlacesItAfterSource`: the bridge sees no committed
+  URL for tabs added by `BrowserWithTestWindowTest::AddTab`. Runtime URL
+  tracking works on M153 (`79a7752` command bar listed the live auth tab with
+  title/URL), so this is most likely the M153 unit-test environment not
+  delivering `TabUIHelper` UI-change callbacks; confirm before changing product.
+
 ## M153 candidate e9f4a99 and empty-Workspace finding — 25 September 2026
 
 Build10 of `484a2f9` compiled everything but ended EXIT1 on one M153 test API
