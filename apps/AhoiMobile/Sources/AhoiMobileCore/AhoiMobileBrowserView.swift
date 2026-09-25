@@ -112,15 +112,22 @@ public struct AhoiMobileBrowserView: View {
                 break
             }
             await browser.load()
+            await companionModel.load()
 #if DEBUG
             if launchArguments.contains("-AhoiUITestFixture") {
+                // The fixture replaces the restored local population. Close
+                // that population through the product path first, so its
+                // temporary shared pages are tombstoned instead of returning
+                // as dormant tabs and inflating the requested tab count.
+                for tab in browser.normalTabs {
+                    _ = await companionModel.closePublishedMobileTab(tab) {}
+                }
                 browser.loadUITestFixture()
             }
             if launchArguments.contains("-AhoiUITestOffline") {
                 browser.loadUITestOfflineFailure()
             }
 #endif
-            await companionModel.load()
             await companionModel.setSyncEnabled(syncEnabled)
             await companionModel.reconcilePublishedMobileTabs(browser)
 #if DEBUG

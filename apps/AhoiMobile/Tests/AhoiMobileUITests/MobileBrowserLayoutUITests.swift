@@ -13,7 +13,10 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
 
             let tabs = app.buttons["browser.tabs"]
             XCTAssertTrue(tabs.waitForExistence(timeout: 8))
-            XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: 3))
+            XCTAssertTrue(
+                waitForTabCount(count, in: tabs, timeout: 3),
+                "Fixture \(count): tabs label '\(tabs.label)' value '\(String(describing: tabs.value))'"
+            )
             tabs.tap()
             XCTAssertTrue(
                 app.descendants(matching: .any)["browser.tabs.mode"]
@@ -189,7 +192,16 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let page = app.webViews.firstMatch.staticTexts["Ahoi fixture page"]
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
-        XCTAssertTrue(page.waitForExistence(timeout: 3))
+        // Gate on the committed fixture load first. The page renders promptly,
+        // but WebKit's remote accessibility tree can stay unreachable
+        // (kAXErrorServerNotFound) for a few seconds after launch while the
+        // scripted scroll workload runs; the ~20 s workload outlasts this wait.
+        let loadedAddress = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value CONTAINS %@", "fixture.ahoibrowser.test"),
+            object: app.buttons["browser.address"]
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [loadedAddress], timeout: 8), .completed)
+        XCTAssertTrue(page.waitForExistence(timeout: 8))
         Thread.sleep(forTimeInterval: 2.5)
         XCTAssertTrue(
             workspace.exists,
@@ -519,6 +531,17 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         closeTabRows(until: 0, in: app)
         XCTAssertTrue(waitForQueryCount(0, query: closeButtons, timeout: 3))
 
+        // Closing the final private tab ends the private session; the private
+        // scene shield then dismisses the still-presented switcher so no
+        // private UI draft survives (9ca3bd1, mobile checkpoint).
+        XCTAssertTrue(
+            modeControl.waitForNonExistence(timeout: 5),
+            "Ending the private session must dismiss the private tab switcher."
+        )
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(waitForHittable(tabs, timeout: 5))
+        tabs.tap()
+        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
         selectTabSwitcherMode(.normal, using: modeControl)
         XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: 3))
         let remainingNormalRow = firstHittableElement(in: tabRows(in: app))
