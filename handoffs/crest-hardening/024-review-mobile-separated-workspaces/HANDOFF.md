@@ -1,6 +1,6 @@
 # 024 – Review of ADR 0011 step 3 on iOS (separated Workspaces)
 
-Status: ready
+Status: integrated 57b6ee1 (M1 account binding with pause, M2 assumption documented, M3 already covered; WS-ISO-21/22 visible runs open, need real CloudKit)
 Owner lanes: mobile, sync
 Reviewed: `fd6c3b2`, `9347aae` (Companion), `e760c1f` (desktop delete fix).
 Source reading only; the commits report 292 simulator unit tests green, real
