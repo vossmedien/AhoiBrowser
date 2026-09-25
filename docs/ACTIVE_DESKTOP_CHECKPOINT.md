@@ -41,6 +41,16 @@ taken in as `095b959`; the Swift runner needed envelope tombstone metadata
 for deleted payloads (runner fix, no expectation edited). Results go to the
 lane checkpoint as the handoff asks.
 
+## Working order: DoD gap analysis — 25 September 2026
+
+No DoD item is closed with evidence yet; all 433 registry cases are
+`NOT_RUN`. The ordered package plan for the agent-doable remainder (25
+packages), per-item status and evidence are in
+[`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Missing product code:
+desktop Link-Peek, shortcut catalog with MRU, desktop Reader/Markdown.
+Installed candidate is `8705a7f` (build 26); build 27 (`e760c1f`) is in
+the pipeline.
+
 ## Empty-Workspace "typed URL does nothing": test artifact, not a product defect — 25 September 2026
 
 Resolved. Focus probes on installed `8705a7f` (`tools/desktop_e2e/command-bar-focus-probe.sh`,
