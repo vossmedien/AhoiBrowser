@@ -665,6 +665,41 @@ TEST_F(SessionBridgeTest, ActivateTabInItsWorkspaceSelectsWorkspaceFirst) {
       nullptr, WorkspaceActivationSource::kKeyboard, /*user_gesture=*/true));
 }
 
+TEST_F(SessionBridgeTest, ActivateLastUsedTabTogglesWithinTheActiveWorkspace) {
+  tab_tree::Workspace primary = MakeWorkspace(u"Primary", "a");
+  tab_tree::Workspace secondary = MakeWorkspace(u"Secondary", "b");
+  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({primary, secondary}));
+  task_environment()->RunUntilIdle();
+  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
+      browser(), primary.id, WorkspaceActivationSource::kKeyboard));
+  AddTab(browser(), GURL("https://example.test/first"));
+  task_environment()->RunUntilIdle();
+  TabStripModel* model = browser()->GetTabStripModel();
+  tabs::TabInterface* first = model->GetActiveTab();
+  AddTab(browser(), GURL("https://example.test/second"));
+  task_environment()->RunUntilIdle();
+  tabs::TabInterface* second = model->GetActiveTab();
+  ASSERT_NE(first, second);
+  ASSERT_EQ(bridge_->GetWorkspaceForTab(first), primary.id);
+  ASSERT_EQ(bridge_->GetWorkspaceForTab(second), primary.id);
+
+  // Back to the tab used before, then toggled forward again.
+  ASSERT_TRUE(bridge_->ActivateLastUsedTab(browser()));
+  EXPECT_EQ(model->GetActiveTab(), first);
+  ASSERT_TRUE(bridge_->ActivateLastUsedTab(browser()));
+  EXPECT_EQ(model->GetActiveTab(), second);
+
+  // Never into another Workspace: alone in Secondary there is no target.
+  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
+      browser(), secondary.id, WorkspaceActivationSource::kKeyboard));
+  AddTab(browser(), GURL("https://example.test/other"));
+  task_environment()->RunUntilIdle();
+  tabs::TabInterface* other = model->GetActiveTab();
+  ASSERT_EQ(bridge_->GetWorkspaceForTab(other), secondary.id);
+  EXPECT_FALSE(bridge_->ActivateLastUsedTab(browser()));
+  EXPECT_EQ(model->GetActiveTab(), other);
+}
+
 TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
   ASSERT_EQ(1u, bridge_->tracked_window_count());
   const std::optional<base::Uuid> window_id = bridge_->GetWindowId(browser());

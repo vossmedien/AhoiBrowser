@@ -58,7 +58,7 @@ index ecf6bf5..443d5de 100644
    // toolkit renderer hooks, observers or background work.
    std::unique_ptr<ahoi::DeveloperToolkitController>
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 78bf753..eb737ae 100644
+index 78bf753..03ea167 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -17,6 +17,8 @@
@@ -70,13 +70,14 @@ index 78bf753..eb737ae 100644
  #include "ahoi/browser/navigation/navigation_input_prefs.h"
  #include "ahoi/browser/navigation/workspace_swipe_event_handler.h"
  #endif
-@@ -6110,8 +6112,17 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6110,8 +6112,18 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
    }
  
  #if BUILDFLAG(IS_MAC)
 -  if (HandleAhoiSplitAccelerator(accelerator)) {
 -    return true;
-+  if (ahoi_shortcuts_) {
++  // While the settings editor records a key, the key belongs to the page.
++  if (ahoi_shortcuts_ && !ahoi::shortcuts::IsRecordingActive()) {
 +    const std::optional<std::string> ahoi_command =
 +        ahoi_shortcuts_->CommandFor(accelerator);
 +    if (ahoi_command) {
@@ -90,7 +91,7 @@ index 78bf753..eb737ae 100644
    }
    if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
        !browser_->GetProfile()->IsOffTheRecord() &&
-@@ -6120,56 +6131,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6120,56 +6132,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        AhoiQuickWindowGlobalShortcut::GetInstance()->Activate()) {
      return true;
    }
@@ -147,7 +148,7 @@ index 78bf753..eb737ae 100644
    const bool is_ahoi_sidebar_undo =
        accelerator.IsCmdDown() && !accelerator.IsCtrlDown() &&
        !accelerator.IsAltDown() && !accelerator.IsShiftDown() &&
-@@ -6235,13 +6196,53 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6235,13 +6197,53 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        browser_.get(), command_id, std::move(context), accelerator.time_stamp());
  }
  
@@ -205,7 +206,7 @@ index 78bf753..eb737ae 100644
      return false;
    }
  
-@@ -6279,16 +6280,17 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6279,16 +6281,17 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return true;
    };
  
@@ -230,7 +231,7 @@ index 78bf753..eb737ae 100644
      const auto target_index = ahoi::split_drop::ResolveReorderTarget(
          active_index, panes.size(), direction);
      if (!target_index.has_value()) {
-@@ -6297,7 +6299,7 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6297,7 +6300,7 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return model->ReorderTabInSplit(active_tab, panes[*target_index]);
    }
  
@@ -239,7 +240,7 @@ index 78bf753..eb737ae 100644
      const split_tabs::SplitTabVisualData next =
          ahoi::split_drop::NextKeyboardLayout(*split_data->visual_data(),
                                               panes.size());
-@@ -6306,21 +6308,20 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6306,21 +6309,20 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return true;
    }
  
@@ -266,7 +267,7 @@ index 78bf753..eb737ae 100644
      active_tab->Close();
      return true;
    }
-@@ -6865,50 +6866,26 @@ void BrowserView::LoadAccelerators() {
+@@ -6865,50 +6867,26 @@ void BrowserView::LoadAccelerators() {
          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),
          kAhoiFallthroughPriority, this);
    }

@@ -9,6 +9,7 @@
 
 #include "base/i18n/rtl.h"
 #include "base/no_destructor.h"
+#include "base/time/time.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
@@ -284,6 +285,22 @@ std::string KeyName(ui::KeyboardCode key) {
 }
 
 }  // namespace
+
+namespace {
+base::TimeTicks& RecordingUntil() {
+  static base::TimeTicks until;
+  return until;
+}
+}  // namespace
+
+void SetRecordingActive(bool active) {
+  RecordingUntil() =
+      active ? base::TimeTicks::Now() + base::Seconds(30) : base::TimeTicks();
+}
+
+bool IsRecordingActive() {
+  return !RecordingUntil().is_null() && base::TimeTicks::Now() < RecordingUntil();
+}
 
 std::u16string CommandTitle(const ShortcutCommand& command) {
   return German() ? command.title_de : command.title_en;

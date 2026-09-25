@@ -138,6 +138,12 @@ std::u16string CommandTitle(const ShortcutCommand& command);
 // macOS notation, for example "⌃⌘L" or "⌃`".
 std::string ShortcutKeyText(const ui::Accelerator& accelerator);
 
+// While the settings editor records a new key, Ahoi's own shortcuts step
+// aside so the pressed key reaches the page (Chromium pre-handles them before
+// the renderer). The state expires by itself after 30 seconds.
+void SetRecordingActive(bool active);
+bool IsRecordingActive();
+
 // Stable storage form, for example "cmd+shift+83" (modifiers, key code).
 std::string Serialize(const ui::Accelerator& accelerator);
 std::optional<ui::Accelerator> Parse(std::string_view text);

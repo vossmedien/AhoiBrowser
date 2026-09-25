@@ -548,7 +548,14 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     this.shortcutQuery_ = (event.target as HTMLInputElement).value;
   }
 
+  private setShortcutRecording_(active: boolean) {
+    // Ahoi's own shortcuts step aside while a key is recorded; otherwise the
+    // browser would run a bound key before the page sees it.
+    chrome.send('ahoiSetShortcutRecording', [active]);
+  }
+
   protected onShortcutChangeClick_(event: Event) {
+    this.setShortcutRecording_(true);
     this.shortcutRecordingId_ = this.shortcutIdOf_(event);
     this.shortcutErrorId_ = '';
     (event.currentTarget as HTMLElement).focus();
@@ -566,6 +573,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       return;
     }
     this.shortcutRecordingId_ = '';
+    this.setShortcutRecording_(false);
     if (event.key === 'Escape' && !event.metaKey && !event.ctrlKey &&
         !event.altKey && !event.shiftKey) {
       return;
@@ -583,6 +591,9 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
   }
 
   protected onShortcutRecordBlur_() {
+    if (this.shortcutRecordingId_) {
+      this.setShortcutRecording_(false);
+    }
     this.shortcutRecordingId_ = '';
   }
 

@@ -106,6 +106,7 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   void PushShortcutStatus();
   void HandleGetShortcuts(const base::ListValue& args);
   void HandleShortcutAction(const base::ListValue& args);
+  void HandleSetShortcutRecording(const base::ListValue& args);
 
   enum class PortableDialogPurpose { kNone, kExportSave, kImportOpen };
 

@@ -122,4 +122,12 @@ void AhoiSettingsHandler::HandleShortcutAction(const base::ListValue& args) {
                                       ShortcutErrorLabel(result))));
 }
 
+void AhoiSettingsHandler::HandleSetShortcutRecording(
+    const base::ListValue& args) {
+  if (args.size() != 1u || !args[0].is_bool() || !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  shortcuts::SetRecordingActive(args[0].GetBool());
+}
+
 }  // namespace ahoi::settings

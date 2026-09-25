@@ -465,6 +465,16 @@ bool SessionBridge::ActivateLastUsedTab(BrowserWindowInterface* browser) {
   for (int i = 0; i < model->count(); ++i) {
     tabs::TabInterface* tab = model->GetTabAtIndex(i);
     auto runtime = runtime_tabs_.find(tab);
+    VLOG(1) << "Ahoi last-used tab: index " << i << " tracked="
+            << (runtime != runtime_tabs_.end()) << " same_model="
+            << (runtime != runtime_tabs_.end() &&
+                runtime->second.tab_strip_model == model)
+            << " workspace="
+            << (runtime != runtime_tabs_.end() &&
+                        runtime->second.workspace_id.has_value()
+                    ? runtime->second.workspace_id->AsLowercaseString()
+                    : std::string("none"))
+            << " active=" << workspace->AsLowercaseString();
     if (runtime != runtime_tabs_.end() &&
         runtime->second.tab_strip_model == model &&
         runtime->second.workspace_id == workspace) {
