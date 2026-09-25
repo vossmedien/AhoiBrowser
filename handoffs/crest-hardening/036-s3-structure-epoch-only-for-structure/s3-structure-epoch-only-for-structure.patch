@@ -1,0 +1,247 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/BUILD.gn b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+index e6ca206..04600f1 100644
+--- a/overlay/chromium/src/ahoi/browser/session/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+@@ -243,6 +243,7 @@ source_set("unit_tests") {
+     "shared_tab_target_policy_unittest.cc",
+     "startup_policy_unittest.cc",
+     "workspace_session_metadata_unittest.cc",
++    "workspace_structure_invalidation_unittest.cc",
+     "workspace_structure_split_capture_unittest.cc",
+   ]
+   deps = [
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
+index 6566faf..58801f5 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
+@@ -462,7 +462,11 @@ void SessionBridge::OnTabStripModelChanged(
+     return;
+   }
+   if (workspace_structure_controller_) {
+-    workspace_structure_controller_->OnNativeChanged();
++    if (session::TabStripChangeInvalidatesStructure(change.type())) {
++      workspace_structure_controller_->OnNativeChanged();
++    } else {
++      workspace_structure_controller_->OnNativeMetadataChanged();
++    }
+   }
+ 
+   switch (change.type()) {
+@@ -545,7 +549,11 @@ void SessionBridge::OnActiveWorkspaceChanged(const base::Uuid& window_id,
+ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   if (workspace_structure_controller_ && !applying_synced_tree_snapshot_) {
+-    workspace_structure_controller_->OnNativeChanged();
++    if (session::TreeChangeInvalidatesStructure(change.kind)) {
++      workspace_structure_controller_->OnNativeChanged();
++    } else {
++      workspace_structure_controller_->OnNativeMetadataChanged();
++    }
+   }
+   bool runtime_presentation_changed = false;
+   for (const base::Uuid& node_id : change.node_ids) {
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+index d934f10..ff82407 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+@@ -31,6 +31,21 @@ sync::SharedSplitMetadata Metadata(const sync::SplitGroupRecord& r) {
+ }
+ }  // namespace
+ 
++bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type) {
++  return type != TabStripModelChange::kSelectionOnly;
++}
++
++bool TreeChangeInvalidatesStructure(tab_tree::MutationKind kind) {
++  // kRenamed covers titles, URLs, homes and folder presentation; none of them
++  // is part of a split or archive record's membership.
++  return kind != tab_tree::MutationKind::kRenamed;
++}
++
++bool ResourceChangeInvalidatesStructure(bool was_protected,
++                                        bool now_protected) {
++  return now_protected && !was_protected;
++}
++
+ SplitCaptureAdoption ClassifySplitCapture(
+     bool native_change,
+     bool record_tombstone,
+@@ -93,9 +108,10 @@ void WorkspaceStructureController::Initialize() {
+   resource_subscription_ =
+       resources_->AddStatusChangedCallback(base::BindRepeating(
+           [](base::WeakPtr<WorkspaceStructureController> owner,
+-             tabs::TabInterface*, const resource_policy::TabResourceStatus&) {
++             tabs::TabInterface* tab,
++             const resource_policy::TabResourceStatus&) {
+             if (owner)
+-              owner->OnNativeChanged();
++              owner->OnResourceStatusChanged(tab);
+           },
+           weak_factory_.GetWeakPtr()));
+   restored_subscription_ =
+@@ -141,6 +157,33 @@ void WorkspaceStructureController::OnNativeChanged() {
+   Schedule();
+ }
+ 
++void WorkspaceStructureController::OnNativeMetadataChanged() {
++  if (scope_->applying) {
++    return;
++  }
++  Schedule();
++}
++
++void WorkspaceStructureController::OnResourceStatusChanged(
++    tabs::TabInterface* tab) {
++  if (!tab || !resources_) {
++    OnNativeMetadataChanged();
++    return;
++  }
++  const bool now_protected = !resources_->CanArchiveTab(tab);
++  const bool was_protected = protected_tabs_.contains(tab->GetHandle());
++  if (now_protected) {
++    protected_tabs_.insert(tab->GetHandle());
++  } else {
++    protected_tabs_.erase(tab->GetHandle());
++  }
++  if (ResourceChangeInvalidatesStructure(was_protected, now_protected)) {
++    OnNativeChanged();
++  } else {
++    OnNativeMetadataChanged();
++  }
++}
++
+ void WorkspaceStructureController::OnSplitChanged(
+     const SplitTabChange& change) {
+   if (scope_->applying || browser_shutdown::IsTryingToQuit() ||
+@@ -209,6 +252,8 @@ bool WorkspaceStructureController::Stamp(sync::SyncRecord* record,
+ 
+ void WorkspaceStructureController::Refresh() {
+   scheduled_ = false;
++  std::erase_if(protected_tabs_,
++                [](const tabs::TabHandle& handle) { return !handle.Get(); });
+   if (!observing_sync_ || !bridge_lifetime_ || !bridge_->is_ready() ||
+       persisting_ || SessionRestore::IsRestoring(profile_)) {
+     return;
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+index 36d1762..2651112 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+@@ -6,14 +6,17 @@
+ #include <atomic>
+ #include <memory>
+ #include <optional>
++#include <set>
+ 
+ #include "ahoi/browser/session/group_page_close.h"
+ #include "ahoi/browser/session/workspace_structure_state.h"
+ #include "ahoi/browser/sync/hybrid_logical_clock.h"
+ #include "ahoi/browser/sync/profile_sync_service.h"
++#include "ahoi/browser/tab_tree/tab_tree_model.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/timer/timer.h"
+ #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
++#include "components/tabs/public/tab_interface.h"
+ 
+ class Profile;
+ class BrowserWindowInterface;
+@@ -45,6 +48,16 @@ SplitCaptureAdoption ClassifySplitCapture(
+     const sync::SharedSplitMetadata& current,
+     const base::Uuid& record_workspace_id);
+ 
++// Whether an observed native event renews the structure authority epoch and
++// so cancels an in-flight structure commit (handoff 011 S3). Only changes of
++// tab-strip structure, tree structure, split membership or archive membership
++// do. Selection, title/URL/presentation metadata and a resource status that
++// does not newly protect a page only reschedule a refresh.
++bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type);
++bool TreeChangeInvalidatesStructure(tab_tree::MutationKind kind);
++bool ResourceChangeInvalidatesStructure(bool was_protected,
++                                        bool now_protected);
++
+ class WorkspaceStructureController final
+     : public sync::ProfileSyncService::Observer {
+  public:
+@@ -52,6 +65,9 @@ class WorkspaceStructureController final
+   ~WorkspaceStructureController() override;
+   void Initialize();
+   void OnNativeChanged();
++  // A native event that changes no structure: refresh without cancelling an
++  // in-flight structure commit (handoff 011 S3).
++  void OnNativeMetadataChanged();
+   void OnSplitChanged(const SplitTabChange& change);
+   void Archive(const std::vector<base::Uuid>& nodes,
+                sync::SharedArchiveReason reason,
+@@ -70,6 +86,7 @@ class WorkspaceStructureController final
+   friend class ::ahoi::SessionBridge;
+   void Schedule();
+   void Refresh();
++  void OnResourceStatusChanged(tabs::TabInterface* tab);
+   void CaptureSplits();
+   void MaterializeSplits(sync::SyncAuthorization authority);
+   void ScanArchiveDeadline();
+@@ -132,6 +149,9 @@ class WorkspaceStructureController final
+   std::set<base::Uuid> local_changes_;
+   std::set<std::string> changed_native_splits_;
+   std::set<std::string> archive_closing_splits_;
++  // Tabs last seen as not archivable. Only the transition into protection
++  // cancels a pending archive or remote dissolve (handoff 011 S3).
++  std::set<tabs::TabHandle> protected_tabs_;
+   std::set<base::Uuid> blocked_publications_;
+   std::unique_ptr<GroupPageClose> archive_close_;
+   base::WeakPtrFactory<WorkspaceStructureController> weak_factory_{this};
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_invalidation_unittest.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_invalidation_unittest.cc
+new file mode 100644
+index 0000000..1c00e21
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_invalidation_unittest.cc
+@@ -0,0 +1,50 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/session/workspace_structure_controller.h"
++#include "testing/gtest/include/gtest/gtest.h"
++
++namespace ahoi::session {
++namespace {
++
++// Handoff 011 S3: a selection change while an archive commit is in flight
++// must not cancel it.
++TEST(WorkspaceStructureInvalidationTest, SelectionOnlyKeepsStructureAuthority) {
++  EXPECT_FALSE(
++      TabStripChangeInvalidatesStructure(TabStripModelChange::kSelectionOnly));
++  EXPECT_TRUE(
++      TabStripChangeInvalidatesStructure(TabStripModelChange::kInserted));
++  EXPECT_TRUE(
++      TabStripChangeInvalidatesStructure(TabStripModelChange::kRemoved));
++  EXPECT_TRUE(
++      TabStripChangeInvalidatesStructure(TabStripModelChange::kMoved));
++  EXPECT_TRUE(
++      TabStripChangeInvalidatesStructure(TabStripModelChange::kReplaced));
++}
++
++// A loading page updates its saved title and URL (kRenamed) while the archive
++// entry is being written; the archive survives.
++TEST(WorkspaceStructureInvalidationTest, ArchiveSurvivesUnrelatedTitleChange) {
++  EXPECT_FALSE(
++      TreeChangeInvalidatesStructure(tab_tree::MutationKind::kRenamed));
++  EXPECT_TRUE(
++      TreeChangeInvalidatesStructure(tab_tree::MutationKind::kCreated));
++  EXPECT_TRUE(
++      TreeChangeInvalidatesStructure(tab_tree::MutationKind::kMoved));
++  EXPECT_TRUE(
++      TreeChangeInvalidatesStructure(tab_tree::MutationKind::kDeleted));
++  EXPECT_TRUE(
++      TreeChangeInvalidatesStructure(tab_tree::MutationKind::kUndone));
++}
++
++// Only a page that newly becomes protected (audio, capture, unsaved form)
++// cancels a pending archive or remote dissolve.
++TEST(WorkspaceStructureInvalidationTest, OnlyNewProtectionCancels) {
++  EXPECT_TRUE(ResourceChangeInvalidatesStructure(false, true));
++  EXPECT_FALSE(ResourceChangeInvalidatesStructure(true, true));
++  EXPECT_FALSE(ResourceChangeInvalidatesStructure(true, false));
++  EXPECT_FALSE(ResourceChangeInvalidatesStructure(false, false));
++}
++
++}  // namespace
++}  // namespace ahoi::session
