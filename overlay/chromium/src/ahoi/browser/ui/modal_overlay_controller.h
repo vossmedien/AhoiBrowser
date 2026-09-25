@@ -95,6 +95,7 @@ class ModalOverlayController final : public views::ViewObserver,
   views::ViewTracker scrim_tracker_;
   views::ViewTracker previously_focused_view_tracker_;
   raw_ptr<views::Widget> panel_widget_ = nullptr;
+  bool reactivate_host_after_close_ = false;
   base::RepeatingClosure request_panel_close_;
   State state_ = State::kIdle;
   uint64_t close_generation_ = 0;

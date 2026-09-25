@@ -285,6 +285,10 @@ void ModalOverlayController::ResetActivePanel(bool restore_focus) {
   }
 
   views::Widget* const panel_widget = panel_widget_;
+  // The panel was the key window: closing its child window does not make the
+  // browser window key again on macOS, so the next shortcut (for example ⌘T
+  // right after creating a Workspace) would reach no window.
+  reactivate_host_after_close_ = restore_focus && panel_widget->IsActive();
   state_ = State::kIdle;
   ++close_generation_;
   panel_widget_observation_.Reset();
@@ -306,7 +310,8 @@ void ModalOverlayController::ResetActivePanel(bool restore_focus) {
 }
 
 void ModalOverlayController::ScheduleFocusRestore() {
-  if (!previously_focused_view_tracker_.view()) {
+  if (!previously_focused_view_tracker_.view() &&
+      !reactivate_host_after_close_) {
     return;
   }
   focus_restore_attempts_ = 0;
@@ -318,6 +323,14 @@ void ModalOverlayController::ScheduleFocusRestore() {
 void ModalOverlayController::RestoreFocus() {
   if (state_ != State::kIdle || panel_widget_) {
     return;
+  }
+  if (std::exchange(reactivate_host_after_close_, false) && window_host_) {
+    // Only when the closing panel itself held activation, so no other app or
+    // window loses focus to this.
+    if (views::Widget* const host = window_host_->GetWidget();
+        host && host->IsVisible() && !host->IsActive()) {
+      host->Activate();
+    }
   }
   views::View* const previously_focused =
       previously_focused_view_tracker_.view();
