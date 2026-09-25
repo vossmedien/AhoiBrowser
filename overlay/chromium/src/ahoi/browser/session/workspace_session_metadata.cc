@@ -100,9 +100,16 @@ SessionMetadataDecodeResult DecodeWindowSessionMetadata(
     return parsed.result;
   }
   const base::DictValue* dictionary = parsed.root->GetIfDict();
-  if (!dictionary || dictionary->size() != 2u ||
-      dictionary->FindInt(kVersionKey) !=
-          kWorkspaceSessionMetadataVersion) {
+  if (!dictionary) {
+    return SessionMetadataDecodeResult::kMalformed;
+  }
+  // The shared parser also admits the tab-only versions; for a window those
+  // are an unsupported schema rather than a corrupt payload.
+  const std::optional<int> version = dictionary->FindInt(kVersionKey);
+  if (version.has_value() && *version != kWorkspaceSessionMetadataVersion) {
+    return SessionMetadataDecodeResult::kUnsupportedVersion;
+  }
+  if (dictionary->size() != 2u || !version.has_value()) {
     return SessionMetadataDecodeResult::kMalformed;
   }
 
