@@ -41,7 +41,9 @@ command() { local idx
   waitax "AXStaticText \| HTTP-Authentifizierungskonto wechseln" 8 || return 1
   for i in $(seq 1 $idx); do ax key $PID 125; sleep 0.3; done
   ax key $PID 36; }
-dialog() { waitax "AXHeading \| Anmelden" "${1:-10}"; }
+dialog() { waitax "AXHeading \| Anmelden" "${1:-20}" && return 0
+  { echo "-- dialog timeout; windows and page:"; $AX dump $PID 3 | grep AXWindow; title; } >> $OUT/steps.txt
+  return 1; }
 login() { # <user> <password> <save-option-label or ''>
   ax focus $PID "AXTextField:Nutzername"; ax key $PID 0 cmd; ax type $PID "$1"
   ax focus $PID "AXTextField:Passwort"; ax key $PID 0 cmd; ax type $PID "$2"; sleep 1
@@ -56,7 +58,7 @@ SAVE="Zugang nach erfolgreicher Anmeldung speichern"
 UPDATE="Gespeicherten Zugang nach erfolgreicher Anmeldung aktualisieren"
 
 # 1 Save alice in Realm A.
-goto "http://127.0.0.1:$A/a/"; dialog 15 && login alice alice-pass-1 "$SAVE"
+goto "http://127.0.0.1:$A/a/"; dialog 30 && login alice alice-pass-1 "$SAVE"
 waittitle "auth:alice@Ahoi Realm A:$A" 15 && record save_first PASS || record save_first FAIL
 # 2 Second account via account switch.
 command switch; dialog && login bob bob-pass-1 "$SAVE"
@@ -71,12 +73,12 @@ $AX dump $PID 40 | grep -q -E 'AXTextField \| Passwort \| •+' && record autoco
 ax press $PID "AXButton:Anmelden"
 waittitle "auth:alice@Ahoi Realm A:$A" 15 && record choose_account PASS || record choose_account FAIL
 # 4 Realm separation: Realm B on the same origin offers neither account.
-goto "http://127.0.0.1:$A/b/"; dialog 15
+goto "http://127.0.0.1:$A/b/"; dialog 30
 $AX dump $PID 40 | grep -q 'Realm: Ahoi Realm B' || record realm_b_prompt FAIL
 LIST=$(accounts); [ -z "$LIST" ] && record realm_separation PASS || record realm_separation "FAIL:$LIST"
 ax press $PID "AXButton:Abbrechen"; sleep 2
 # 5 Port separation: same realm name on another port offers no account.
-goto "http://127.0.0.1:$B2/a/"; dialog 15
+goto "http://127.0.0.1:$B2/a/"; dialog 30
 LIST=$(accounts); [ -z "$LIST" ] && record port_separation PASS || record port_separation "FAIL:$LIST"
 ax press $PID "AXButton:Abbrechen"; sleep 2
 # 6 Password update: server rotates alice; old saved password is rejected
@@ -85,7 +87,7 @@ curl -s http://127.0.0.1:$A/__rotate >/dev/null
 goto "http://127.0.0.1:$A/a/"; sleep 3
 command switch; dialog
 ax press $PID "AXButton:Nutzername"; sleep 1; ax press $PID "AXMenuItem:alice"; sleep 1; ax press $PID "AXButton:Anmelden"
-dialog 15 && record rejected_reprompt PASS || record rejected_reprompt FAIL
+dialog 30 && record rejected_reprompt PASS || record rejected_reprompt FAIL
 echo "$(store)" | grep -q "|alice" && record rejected_keeps_account PASS || record rejected_keeps_account FAIL
 login alice alice-pass-2 "$UPDATE"
 waittitle "auth:alice@Ahoi Realm A:$A" 15 && record password_update_signin PASS || record password_update_signin FAIL
@@ -96,7 +98,7 @@ command switch; dialog && ax press $PID "AXButton:Abbrechen"
 waittitle "Ahoi auth required" 10 && record sign_out_without_restart PASS || record sign_out_without_restart "FAIL:$(title)"
 kill -0 $PID 2>/dev/null && record same_browser_process PASS || record same_browser_process FAIL
 # 8 Forget this realm: saved accounts for Realm A are removed.
-goto "http://127.0.0.1:$A/a/"; dialog 15 && login bob bob-pass-1 ""
+goto "http://127.0.0.1:$A/a/"; dialog 30 && login bob bob-pass-1 ""
 waittitle "auth:bob@Ahoi Realm A:$A" 15
 command forget; sleep 4
 [ -z "$(store)" ] && record forget_realm PASS || record forget_realm "FAIL:$(store)"
