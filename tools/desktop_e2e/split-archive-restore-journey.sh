@@ -74,6 +74,9 @@ print(t[0]["id"] if t else "")')
 [ -n "$NEW" ] && CDP "$NEW" Page.navigate "{\"url\":\"$SITE/right.html\"}" >> "$OUT/steps.txt"
 sleep 4
 both_visible && record split_created PASS || { record split_created FAIL; finish; }
+# Active tabs are never archived; bring a third tab forward first so the
+# split is a background split like the one a user archives.
+curl -s -X PUT "http://127.0.0.1:$PORT/json/new?about:blank" > /dev/null; sleep 3
 "$AX" dump $PID 45 > "$OUT/ax-split.txt"
 
 # 2 Archive the split from its sidebar row.
@@ -96,7 +99,10 @@ if waitax "AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))" 5;
   ax press $PID "AXMenuItem:$ARCH"
 else "$AX" dump $PID 45 > "$OUT/ax-row-menu.txt"; fi
 sleep 5
-case "$(visible_titles)" in *"Ahoi split"*) record split_archived FAIL ;; *) record split_archived PASS ;; esac
+# Archived pages close: neither split page may still be an open target.
+PAGES=$(curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(" ".join(t["url"] for t in json.load(sys.stdin) if t["type"]=="page"))')
+echo "pages after archive: $PAGES" >> "$OUT/steps.txt"
+case "$PAGES" in *left.html*|*right.html*) record split_archived FAIL ;; *) record split_archived PASS ;; esac
 
 # 3 Restore at the original place from the archive.
 ax press $PID "Inbox, Workspace wechseln" AXShowMenu

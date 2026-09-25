@@ -217,6 +217,8 @@ case "hidrightclick":
     for t: CGEventType in [.mouseMoved, .rightMouseDown, .rightMouseUp] {
         let ev = CGEvent(mouseEventSource: nil, mouseType: t, mouseCursorPosition: hc,
                          mouseButton: .right)!
+        // A click count of 0 is not a click for AppKit.
+        if t != .mouseMoved { ev.setIntegerValueField(.mouseEventClickState, value: 1) }
         ev.post(tap: .cghidEventTap)
         usleep(80000)
     }
