@@ -3191,7 +3191,7 @@ index 6ccdf1e52f7fd305c36b0f109586b19d6080004b..25f84ee798bb3449e844446555821a20
  #include "chrome/browser/about_flags.h"
  #include "chrome/browser/accessibility/accessibility_labels_service.h"
  #include "chrome/browser/accessibility/invert_bubble_prefs.h"
-@@ -1745,6 +1759,12 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+@@ -1745,6 +1759,13 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
        policy::policy_prefs::kLocalNetworkAccessPermissionsPolicyDefaultEnabled,
        false);
  
@@ -3199,12 +3199,13 @@ index 6ccdf1e52f7fd305c36b0f109586b19d6080004b..25f84ee798bb3449e844446555821a20
 +  ahoi::privacy::ApplyLocalStateDefaults(registry);
 +  ahoi::resource_policy::ApplyLocalStateDefaults(registry);
 +  ahoi::session::RegisterIsolatedProfileLocalState(registry);
++  ahoi::sync::RegisterLocalStatePrefs(registry);
 +#endif
 +
    // This is intentionally last.
    RegisterLocalStatePrefsForMigration(registry);
  }
-@@ -1759,6 +1779,17 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+@@ -1759,6 +1780,17 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
    accessibility_annotator::prefs::RegisterProfilePrefs(registry);
    AimEligibilityService::RegisterProfilePrefs(registry);
    AnnouncementNotificationService::RegisterProfilePrefs(registry);
@@ -3222,7 +3223,7 @@ index 6ccdf1e52f7fd305c36b0f109586b19d6080004b..25f84ee798bb3449e844446555821a20
    autofill::prefs::RegisterProfilePrefs(registry);
    browsing_data::prefs::RegisterBrowserUserPrefs(registry);
    capture_policy::RegisterProfilePrefs(registry);
-@@ -2480,6 +2511,11 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
+@@ -2480,6 +2512,11 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
    // Please don't delete the preceding line. It is used by PRESUBMIT.py.
  
  #if !BUILDFLAG(IS_ANDROID)
