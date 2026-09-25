@@ -6,6 +6,7 @@
 #define AHOI_BROWSER_TAB_TREE_TAB_TREE_MODEL_H_
 
 #include <cstdint>
+#include <iosfwd>
 #include <optional>
 #include <string>
 #include <vector>
@@ -84,6 +85,8 @@ struct TreeNode {
   std::optional<std::string> home_local_scheme;
 
   bool operator==(const TreeNode&) const = default;
+  // Field-by-field output so a failed test comparison names what differs.
+  friend void PrintTo(const TreeNode& node, std::ostream* os);
 };
 
 // Explicit user choice when an archive's original placement is unavailable.

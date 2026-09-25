@@ -3,11 +3,45 @@
 
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 
+#include <ostream>
 #include <utility>
 
 #include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
+#include "base/strings/utf_string_conversions.h"
 
 namespace ahoi::tab_tree {
+
+namespace {
+
+template <typename T>
+void PrintOptionalInt(std::ostream* os, const std::optional<T>& value) {
+  if (value) {
+    *os << static_cast<int64_t>(*value);
+  } else {
+    *os << "none";
+  }
+}
+
+}  // namespace
+
+void PrintTo(const TreeNode& node, std::ostream* os) {
+  *os << "{v=" << node.model_version << " id=" << node.id
+      << " ws=" << node.workspace_id << " parent="
+      << (node.parent_id ? node.parent_id->AsLowercaseString() : "none")
+      << " type=" << static_cast<int>(node.type)
+      << " title=" << base::UTF16ToUTF8(node.title)
+      << " icon=" << base::UTF16ToUTF8(node.icon) << " accent=";
+  PrintOptionalInt(os, node.accent_argb);
+  *os << " url=" << node.url.possibly_invalid_spec()
+      << " sort=" << node.sort_key << " created=" << node.created_at
+      << " modified=" << node.modified_at << " tomb=" << node.tombstone
+      << " temp=" << node.is_temporary << " target=";
+  PrintOptionalInt(os, node.target_kind);
+  *os << " scheme=" << node.local_scheme.value_or("none")
+      << " home=" << node.home_url.possibly_invalid_spec() << " home_target=";
+  PrintOptionalInt(os, node.home_target_kind);
+  *os << " home_scheme=" << node.home_local_scheme.value_or("none") << "}";
+}
 
 std::optional<sync::SharedTabTarget> GetSharedPageTarget(const TreeNode& node) {
   if (node.type != TreeNodeType::kSavedPage ||
