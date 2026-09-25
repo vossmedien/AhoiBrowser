@@ -29,9 +29,15 @@ This lane never builds, installs, refreshes the overlay, writes under
 - Handoffs 001 and 002 were integrated by desktop (`2ab7909`, `d425c3b`).
 - Rule clarification: `.work/chromium/src` may be read for source analysis
   (a research helper did so on 25 Sep); never written, built or run.
-- Next: H5 review doc, network checklist, handoffs (GCM, field-trial config,
-  Workspace deletion, batch before-unload); H6 WS-ISO catalogue; H1
-  conformance vectors/generator/drift gate; H2 audit.
+- H5: Crest host reference review and network-silence checklist committed.
+  Handoffs 003 (Workspace deletion keeps foreign partition sessions), 004
+  (GCM check-in root cause: user policy invalidations), 005 (field-trial
+  testing config) and 006 (group before-unload) are ready.
+- Pre-existing red test reported in 005: `test_lean_chromium.py` fails at
+  `f811604` because `75e20c1` appended `enable_ahoi_ubo_classic` after the
+  lean delta and changed the pinned full profiles.
+- Next: H6 WS-ISO catalogue; H1 conformance vectors/generator/drift gate;
+  H2 audit.
 
 ## Packages
 
@@ -39,10 +45,10 @@ This lane never builds, installs, refreshes the overlay, writes under
 | --- | --- | --- | --- |
 | H1 Sync conformance | not started | – | – |
 | H2 Single writer | not started | – | – |
-| H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) ready | – |
-| H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) ready | – |
-| H5 Crest reference / network silence | research done (Crest host review, ungoogled 153 checklist, GCM root cause); review doc and handoffs in progress | – | – |
-| H6 Isolated Workspaces (contract) | analysis and ADR 0011 accepted; WS-ISO catalogue and deletion-defect handoff next | – | – |
+| H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) integrated | `d425c3b` |
+| H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) integrated | `2ab7909` |
+| H5 Crest reference / network silence | review `docs/reviews/crest-hardening-2026-09-25-crest-chromium-reference.md` and `docs/NETWORK_SILENCE_CHECKLIST.md` done; remaining DoD: GCM fix integrated and fresh-profile audit on the candidate | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [004](../handoffs/crest-hardening/004-gcm-policy-invalidations/HANDOFF.md), [005](../handoffs/crest-hardening/005-fieldtrial-testing-config/HANDOFF.md), [006](../handoffs/crest-hardening/006-batch-before-unload/HANDOFF.md) ready | – |
+| H6 Isolated Workspaces (contract) | analysis and ADR 0011 accepted; deletion defect handed off (003); WS-ISO catalogue next | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md) ready | – |
 
 ## Lease requests
 
