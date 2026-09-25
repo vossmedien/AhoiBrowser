@@ -46,6 +46,15 @@ void BrowserSidebarHostView::BuildArchiveMenus() {
   context_menu_model_->AddItem(
       kArchiveList, StructureText(u"Archiv durchsuchen …", u"Search archive…"));
   context_archive_policy_model_ = std::make_unique<ui::SimpleMenuModel>(this);
+  // Contract: the setting explains that tabs move to a restorable archive and
+  // are never deleted, and which pages stay.
+  context_archive_policy_model_->AddTitle(StructureText(
+      u"Verschiebt geeignete inaktive temporäre Tabs ins wiederherstellbare "
+      u"Archiv – nichts wird gelöscht. Gespeicherte, angeheftete und "
+      u"geschützte Seiten bleiben offen.",
+      u"Moves eligible inactive temporary tabs to the restorable archive – "
+      u"nothing is deleted. Saved, pinned and protected pages stay open."));
+  context_archive_policy_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   const std::array labels = {
       StructureText(u"Nie (Standard)", u"Never (default)"),
       StructureText(u"Nach 12 Stunden", u"After 12 hours"),
