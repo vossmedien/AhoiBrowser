@@ -1,6 +1,6 @@
 # 040 – S4: restore aligns the Workspace surface after the tabs' metadata
 
-Status: ready
+Status: integrated 00381ba (syntax-checked; reproduction on build 32 and acceptance on build 33 by restore-surface-journey)
 Owner lane: desktop (reproduce, apply, build, test)
 Base: HEAD `755e3a9` (`git apply --check` passes on HEAD and on the current
 worktree, and together with 038). Implementation of 011 S4 by the
