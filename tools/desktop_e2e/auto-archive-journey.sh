@@ -72,7 +72,8 @@ PY
 }
 
 # 0 Default policy is Never.
-workspace_menu && "$AX" dump $PID 45 | grep -E 'AXMenuItem \| Nie \(Standard\) \|.* \| 1' -q \
+# The checked policy carries the native menu check mark.
+workspace_menu && "$AX" checked $PID "AXMenuItem:Nie (Standard)" >> "$OUT/steps.txt" \
   && record default_never PASS || record default_never FAIL
 ax key $PID 53; sleep 1
 # 1 Open idle, form and active pages; edit the form (unsaved user input).
@@ -82,7 +83,7 @@ open_tab "$SITE/active.html"
 echo "before $(urls)" >> "$OUT/steps.txt"
 # 2 Enable the shortest policy (age replaced by the E2E seam).
 workspace_menu && ax press $PID "Nach 12 Stunden"; sleep 1
-workspace_menu && "$AX" dump $PID 45 | grep -q -E 'AXMenuItem \| Nach 12 Stunden \|.* \| 1' \
+workspace_menu && "$AX" checked $PID "AXMenuItem:Nach 12 Stunden" >> "$OUT/steps.txt" \
   && record policy_selected PASS || record policy_selected FAIL
 "$AX" dump $PID 45 | grep -q 'nichts wird gelöscht' && record policy_explained PASS || record policy_explained FAIL
 ax key $PID 53
@@ -100,7 +101,16 @@ waitax "Ahoi archive idle" 10 && record archive_lists_entry PASS || record archi
 ax press $PID "AXButton:Wiederherstellen …: Ahoi archive idle"
 waitax "Am ursprünglichen Ort wiederherstellen" 6 && ax press $PID "Am ursprünglichen Ort wiederherstellen"
 sleep 5
-case "$(urls)" in *idle.html*) record restore_brings_url_back PASS ;; *) record restore_brings_url_back FAIL ;; esac
+# Restoring puts the entry back without loading it, so an unloaded tab may be
+# missing from the DevTools list; the sidebar row counts too once the archive
+# dialog is closed. A failure notice always fails.
+ax press $PID "AXButton:Schließen"; sleep 2
+"$AX" dump $PID 45 > "$OUT/after-restore.txt"; echo "restored $(urls)" >> "$OUT/steps.txt"
+if grep -q -E 'konnte nicht|could not complete' "$OUT/after-restore.txt"; then
+  record restore_brings_url_back FAIL
+elif urls | grep -q idle.html || grep -v -E 'Wiederherstellen|löschen' "$OUT/after-restore.txt" | grep -q 'Ahoi archive idle'; then
+  record restore_brings_url_back PASS
+else record restore_brings_url_back FAIL; fi
 ax key $PID 53
 # 5 Reset the policy to Never so the profile keeps the default.
 workspace_menu && ax press $PID "Nie (Standard)"; sleep 1

@@ -75,6 +75,17 @@ case "press":
     let action = args.count > 4 ? args[4] : kAXPressAction
     AXUIElementSetMessagingTimeout(f, 1.5)
     print("\(action) \(label(f)) -> \(AXUIElementPerformAction(f, action as CFString).rawValue)")
+case "checked":
+    // Exit 0 when the menu item carries a check mark (native NSMenu state).
+    var found: AXUIElement?
+    _ = walk(app, 0, 30) { e, _ in
+        if matches(e, args[3]) { found = e; return true }
+        return false
+    }
+    guard let f = found else { print("NOT FOUND"); exit(1) }
+    let mark = str(f, "AXMenuItemMarkChar")
+    print("checked \(label(f)) mark=\(mark)")
+    exit(mark.isEmpty ? 1 : 0)
 case "type":
     let text = args[3]
     for scalar in text.utf16 {
