@@ -147,6 +147,15 @@ void WorkspaceStructureController::OnSplitChanged(
       SessionRestore::IsRestoring(profile_) || change.model->closing_all()) {
     return;
   }
+  if (change.type == SplitTabChange::Type::kRemoved &&
+      change.GetRemovedChange()->reason() ==
+          SplitTabChange::SplitTabRemoveReason::kSplitTabRemoved &&
+      archive_closing_splits_.erase(change.split_id.ToString())) {
+    // Handoff 011 S2: the archive closed this split's pages. The split record
+    // stays live so restoring the archive can materialize it again.
+    OnNativeChanged();
+    return;
+  }
   changed_native_splits_.insert(change.split_id.ToString());
   if (change.type == SplitTabChange::Type::kRemoved &&
       change.GetRemovedChange()->reason() ==

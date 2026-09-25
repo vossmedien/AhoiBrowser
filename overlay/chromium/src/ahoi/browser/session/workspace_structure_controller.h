@@ -74,6 +74,10 @@ class WorkspaceStructureController final
   void MaterializeSplits(sync::SyncAuthorization authority);
   void ScanArchiveDeadline();
   void CloseArchived(base::Uuid entry_id, sync::SyncAuthorization authority);
+  // Handoff 011 S2: remembers the native splits of an archive's pages right
+  // before they close, so OnSplitChanged does not read the resulting split
+  // removal as a user dissolve and tombstone the record the restore needs.
+  void MarkSplitsClosingForArchive(const base::Uuid& archive_id);
   // Handoff 006: archive only after every live page of the group agreed to
   // close; the entry is written first, then exactly those pages close.
   void ArchiveAgreedPages(const std::vector<base::Uuid>& nodes,
@@ -127,6 +131,7 @@ class WorkspaceStructureController final
   std::map<base::Uuid, sync::SyncAuthorization> remote_authorities_;
   std::set<base::Uuid> local_changes_;
   std::set<std::string> changed_native_splits_;
+  std::set<std::string> archive_closing_splits_;
   std::set<base::Uuid> blocked_publications_;
   std::unique_ptr<GroupPageClose> archive_close_;
   base::WeakPtrFactory<WorkspaceStructureController> weak_factory_{this};

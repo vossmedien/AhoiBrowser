@@ -192,6 +192,25 @@ void WorkspaceStructureController::OnArchivePagesAnswered(
   ArchiveAgreedPages(nodes, reason, std::move(done));
 }
 
+void WorkspaceStructureController::MarkSplitsClosingForArchive(
+    const base::Uuid& archive_id) {
+  const auto entry = state_.entries.find(archive_id);
+  const auto* archive =
+      entry == state_.entries.end()
+          ? nullptr
+          : std::get_if<sync::TabArchiveEntryRecord>(&entry->second.record);
+  if (!archive) {
+    return;
+  }
+  for (const auto& page : archive->snapshot.pages) {
+    tabs::TabInterface* const tab =
+        bridge_->FindTabByTreeNodeId(page.tree_node_id);
+    if (tab && tab->IsSplit()) {
+      archive_closing_splits_.insert(tab->GetSplit()->ToString());
+    }
+  }
+}
+
 void WorkspaceStructureController::ArchiveAgreedPages(
     const std::vector<base::Uuid>& nodes,
     sync::SharedArchiveReason reason,
@@ -289,6 +308,7 @@ void WorkspaceStructureController::ArchiveAgreedPages(
                 // The agreed pages close now; they are not asked again.
                 if (group && authority.Run() &&
                     owner->bridge_->tab_tree_store()) {
+                  owner->MarkSplitsClosingForArchive(id);
                   group->ClosePages();
                 } else {
                   owner->CloseArchived(id, authority);
