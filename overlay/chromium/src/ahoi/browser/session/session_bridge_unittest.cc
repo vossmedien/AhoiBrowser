@@ -357,7 +357,9 @@ TEST_F(SessionBridgeTest, DuplicatesWorkspaceTreeAndPlacesItAfterSource) {
   const base::Uuid source_id =
       workspace_service_->ordered_workspaces().front().id;
   const GURL source_url("https://example.test/duplicated-workspace");
-  const tab_tree::TreeNode source_page = MakeSavedPage(source_id, source_url);
+  tab_tree::TreeNode source_page = MakeSavedPage(source_id, source_url);
+  // The store records a saved page's Home on creation; expect it.
+  tab_tree::InitializeSavedHome(&source_page);
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             bridge_->tab_tree_store()->CreateNode(source_page));
 

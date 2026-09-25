@@ -81,6 +81,8 @@ class AhoiTabTreeStoreTest : public testing::Test {
                               std::move(sort_key));
     node.type = TreeNodeType::kSavedPage;
     node.url = url;
+    // The store records a saved page's Home on creation; expect it.
+    InitializeSavedHome(&node);
     return node;
   }
 
