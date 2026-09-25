@@ -70,7 +70,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
         </div>
       </div>
 
-      <div class="section-heading cr-row hr" ?hidden="${!routing}">
+      <div class="section-heading cr-row hr" ?hidden="${!this.linkRouting_}">
         <div class="flex cr-padded-text">
           <div id="ahoiLinkRoutingTitle">${this.linkRouting_?.labels?.title || ''}</div>
           <div class="secondary">${this.linkRouting_?.labels?.description || ''}</div>
@@ -78,7 +78,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
       </div>
       <section id="ahoiLinkRouting" class="link-routing-card"
           aria-labelledby="ahoiLinkRoutingTitle"
-          aria-busy="${this.linkRoutingPending_}" ?hidden="${!routing}">
+          aria-busy="${this.linkRoutingPending_}" ?hidden="${!this.linkRouting_}">
         <label class="link-routing-option">
           <input id="ahoiLinkRoutingEnabled" type="checkbox"
               .checked="${this.linkRouting_?.enabled ?? false}"
