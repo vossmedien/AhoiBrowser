@@ -120,6 +120,21 @@ case "setvalue":
     guard let f = found else { print("NOT FOUND"); exit(1) }
     let r = AXUIElementSetAttributeValue(f, kAXValueAttribute as CFString, args[4] as CFString)
     print("setvalue \(label(f)) -> \(r.rawValue) now=\(str(f, kAXValueAttribute))")
+case "focused":
+    // Which element and windows receive keyboard input right now.
+    func element(_ attribute: String) -> AXUIElement? {
+        guard let value = attr(app, attribute) else { return nil }
+        return (value as! AXUIElement)
+    }
+    for (name, attribute) in [("focusedElement", kAXFocusedUIElementAttribute),
+                              ("focusedWindow", kAXFocusedWindowAttribute),
+                              ("mainWindow", kAXMainWindowAttribute)] {
+        if let e = element(attribute) {
+            print("\(name): \(label(e))")
+        } else {
+            print("\(name): none")
+        }
+    }
 case "activate":
     let r = AXUIElementSetAttributeValue(app, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
     print("frontmost -> \(r.rawValue)")
