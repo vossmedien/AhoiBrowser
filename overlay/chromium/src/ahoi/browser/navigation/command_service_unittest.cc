@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/navigation/command_service.h"
 
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -261,11 +262,20 @@ TEST(CommandServiceTest, QueryPolicyKeepsDuplicateTabsAndFiltersSources) {
   };
   const std::vector<RankedCommand> results =
       service.Query(u"shared", sidebar_options);
+  // Equal scores are ordered by title, so only the composition is pinned:
+  // both duplicate open tabs stay, the saved page stays, history is filtered.
   ASSERT_EQ(results.size(), 3u);
-  EXPECT_EQ(results[0].item.type, CommandItemType::kOpenTab);
-  EXPECT_EQ(results[1].item.type, CommandItemType::kOpenTab);
-  EXPECT_NE(results[0].item.stable_id, results[1].item.stable_id);
-  EXPECT_EQ(results[2].item.type, CommandItemType::kSavedPage);
+  std::set<std::string> open_tab_ids;
+  size_t saved_pages = 0;
+  for (const RankedCommand& result : results) {
+    if (result.item.type == CommandItemType::kOpenTab) {
+      open_tab_ids.insert(result.item.stable_id);
+    } else if (result.item.type == CommandItemType::kSavedPage) {
+      ++saved_pages;
+    }
+  }
+  EXPECT_EQ(open_tab_ids, (std::set<std::string>{"first", "second"}));
+  EXPECT_EQ(saved_pages, 1u);
 }
 
 TEST(CommandServiceTest, DeviceTabsRequireAnExplicitSurfacePolicy) {
