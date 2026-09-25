@@ -295,15 +295,16 @@ void SessionBridge::ResumeWebsiteSessionRemovals() {
         {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
          base::TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN},
         base::BindOnce(&base::DeletePathRecursively, pending.partition_path),
-        base::BindOnce(
-            [](base::WeakPtr<SessionBridge> bridge, base::Uuid context_id,
-               bool deleted) {
-              if (bridge && deleted && !bridge->shutting_down_) {
-                session::CompleteWebsiteSessionRemoval(
-                    bridge->profile_->GetPrefs(), context_id);
-              }
-            },
-            weak_ptr_factory_.GetWeakPtr(), pending.context_id));
+        base::BindOnce(&SessionBridge::OnWebsiteSessionDirectoryDeleted,
+                       weak_ptr_factory_.GetWeakPtr(), pending.context_id));
+  }
+}
+
+void SessionBridge::OnWebsiteSessionDirectoryDeleted(base::Uuid context_id,
+                                                     bool deleted) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (deleted && !shutting_down_ && profile_) {
+    session::CompleteWebsiteSessionRemoval(profile_->GetPrefs(), context_id);
   }
 }
 

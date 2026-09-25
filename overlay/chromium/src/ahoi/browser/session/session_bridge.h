@@ -404,6 +404,7 @@ class SessionBridge : public KeyedService,
                                         bool all_agreed);
   void ClearRetiredWebsiteSessionData(base::Uuid context_id);
   void ResumeWebsiteSessionRemovals();
+  void OnWebsiteSessionDirectoryDeleted(base::Uuid context_id, bool deleted);
   void ScheduleTabTreePersistence();
   void PersistTabTreeNow();
   void NotifyTabTreeSnapshotChanged();
