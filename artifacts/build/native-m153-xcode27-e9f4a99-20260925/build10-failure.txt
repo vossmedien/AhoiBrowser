@@ -1,0 +1,2 @@
+25661:FAILED: obj/ahoi/browser/session/unit_tests/session_bridge_unittest.o 
+25663:../../ahoi/browser/session/session_bridge_unittest.cc:635:20: error: no member named 'DiscardWebContentsAt' in 'TabStripModel'

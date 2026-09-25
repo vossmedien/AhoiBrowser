@@ -19,6 +19,45 @@ owner supplies the input. Add new items here instead of asking.
 | macOS Screen Recording permission | Grant "Bildschirmaufnahme" to the agent host app (Terminal Cockpit) so `screencapture` can record desktop E2E images; until then agents use Accessibility trees and Chromium DevTools state as visible-state evidence | 5–7, 11 image evidence (not the behavior itself) |
 | Publication / release | Any App Store, TestFlight, website, update-feed or GitHub release publication | 15, 23–24 |
 
+## M153 candidate e9f4a99 and empty-Workspace finding — 25 September 2026
+
+Build10 of `484a2f9` compiled everything but ended EXIT1 on one M153 test API
+change (`TabStripModel::DiscardWebContentsAt` → `DiscardWebContents`). Source
+`e9f4a99` fixes only that test; after the guarded overlay refresh
+(`checkout-refreshed and checkout delta verified`) build11 ended **EXIT0**:
+Chromium 153.0.8010.53, Apple-Development-signed, deep verify OK, binary
+SHA-256 `921684b56572fc3ce9fe605dbd7082a2b713bfb79b2b378639571e2d394fd679`,
+source stamp `e9f4a99`. Receipt and logs:
+`artifacts/build/native-m153-xcode27-e9f4a99-20260925/`.
+
+First visible journey on that exact candidate (PID-scoped AX + CDP): in a new,
+tabless Workspace, command bar ⌘T → typed loopback URL → Return **did
+nothing** (bar stayed open, no tab, hidden Inbox tab unchanged). Control:
+the same input from Inbox navigated. The same manual journey on the old
+pre-`0054` `79a7752` candidate without the website-session flag failed the
+same way, so this is **not introduced by `0054`**; it is timing-sensitive
+(the harness passed it twice on `79a7752` with the flag, and a debugger pause
+at `NavigateImpl` let it succeed). lldb confirmed Return reaches
+`CommandBarView::AcceptSelection → ExecuteInput → Navigate → NavigateImpl`.
+Root cause still open; next step is catching which `NavigateImpl` early return
+fires (logging breakpoints, no pauses). DoD 5/25 empty-Workspace acceptance
+remains **RED**. The old hidden-tab redirection defect was not observed on
+`e9f4a99`.
+
+Side finding for DoD 12: a fresh profile logs Google GCM registration
+requests (`google_apis/gcm … DEPRECATED_ENDPOINT`); fresh-profile network
+silence is not proved.
+
+Cleanup on 25 September at the owner's request: 65 stale `/private/tmp`
+worktrees, ~30 GB of old clones/profiles/harness data, two untracked
+`install-candidate` app copies (receipts kept), the disposable Simulator with
+its local test CA (fixture trust receipt finalized) and all stale
+LaunchServices registrations were removed. Kept: `/Applications/AhoiBrowser.app`,
+`out/AhoiDev` (unregistered from LaunchServices), the build worktree
+`/private/tmp/ahoi-m153-ws.x4fmXk/repo` and Simulators C645/A168. Earlier
+checkpoint paths under `/private/tmp` no longer exist; tracked evidence is
+under `artifacts/`.
+
 ## M153 session candidate: Xcode 27 development build — 24 September 2026
 
 The user confirmed Xcode 26.5 was removed and explicitly directed use of the
