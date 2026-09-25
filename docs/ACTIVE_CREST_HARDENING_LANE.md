@@ -53,7 +53,7 @@ This lane never builds, installs, refreshes the overlay, writes under
 - 009 results: implementations agree on every valid vector; generator fixed
   (rev 2) and a Sync invariant finding handed off as 012. H3 lease confirmed
   with conditions (window opens on the next installed package candidate).
-  ADR 0011 step 1 implemented by desktop (`671796d`), review next.
+  ADR 0011 step 1 implemented by desktop (`671796d`), reviewed as 013.
 - Waiting for owner lanes: 010, 011 integration; 009 run results; NET-GCM-01/02
   and fresh-profile audit; H3 lease; each ADR 0011 implementation step for review.
 
@@ -66,7 +66,7 @@ This lane never builds, installs, refreshes the overlay, writes under
 | H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) integrated | `d425c3b` |
 | H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) integrated | `2ab7909` |
 | H5 Crest reference / network silence | review and checklist done; 003–006 integrated (GCM as patch 0056 `caf6f1e`, field trials `0981913`, group close `87a6b89`); remaining DoD: NET-GCM-01/02 and the fresh-profile audit on the next candidate | 004–006 integrated | `caf6f1e`, `0981913`, `87a6b89` |
-| H6 Isolated Workspaces (contract) | analysis, ADR 0011, WS-ISO catalogue done; 003/007/008 integrated (`52bfd3c`, `7401b8e`, `b0b7f6c`); review of the integrated deletion and group close found R1 (high: one overlap disables archive/close-all/deletion until restart) and R2–R4 | [010](../handoffs/crest-hardening/010-review-group-close-and-deletion/HANDOFF.md) ready | 003 `52bfd3c`, 007 `7401b8e`, 008 `b0b7f6c` |
+| H6 Isolated Workspaces (contract) | ADR, catalogue done; 003/007/008 integrated; reviews: 010 (group close and deletion, R1 and R6 high), 013 (step 1 `671796d`: I1 high, no way to reopen a closed separated Workspace until step 2; I2 crash while creating). Remaining DoD: review of steps 2 and 3 | [010](../handoffs/crest-hardening/010-review-group-close-and-deletion/HANDOFF.md), [013](../handoffs/crest-hardening/013-review-isolated-step1/HANDOFF.md) ready | 003 `52bfd3c`, 007 `7401b8e`, 008 `b0b7f6c` |
 
 ## Lease requests
 
