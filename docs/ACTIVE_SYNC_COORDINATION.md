@@ -28,6 +28,33 @@ except the invalid generator inputs listed in the handoff. Full
 no remote-command tombstone; a deleted command is rejected at decode. A real
 Mac↔iOS round trip for these entities stays owner-gated (sync peers).
 
+## Decision: per-Profile sync namespace (ADR 0011 step 4) — 25 September 2026
+
+Sync-owner decision for fully separated Workspaces (each its own Profile):
+
+- **Namespace.** The main Profile keeps zone `AhoiBrowserSyncV3`. A fully
+  separated Workspace's Profile syncs into its own zone
+  `AhoiBrowserSyncV3-ws-<workspace uuid, lowercase>` in the same private
+  database and account. Records never cross zones; no Profile reads or writes
+  another zone.
+- **Keys.** Each zone has its own end-to-end key and key version, bootstrapped
+  and rotated like the main zone's. A leaked or revoked key of one zone never
+  opens another.
+- **Opt-in.** Sync stays opt-in per Profile; enabling it in a separated
+  Profile enables only its zone. Until this lands the separated Profile has
+  no sync service (`08f5518`).
+- **Catalog.** The same format-3 entity catalog and merge rules apply per
+  zone. Website data, passwords, permission grants and HTTP-auth
+  credentials stay unsynced everywhere.
+- **Mobile.** The Companion lists zones with the prefix, shows each separated
+  Workspace as its own entry, and opens its pages in a dedicated
+  `WKWebsiteDataStore(forIdentifier:)` keyed by the Workspace UUID, so its
+  cookies and site data never mix with the main store. Deleting the
+  Workspace on the Mac tombstones it in its zone; the Companion then removes
+  that data store.
+- **Evidence.** Unit tests on both sides; a real encrypted Mac↔iOS round
+  trip per zone stays owner-gated (sync peers).
+
 ## Desktop sync unit tests — 25 September 2026
 
 `ahoi_sync_unittests`: 57 failures on build 18 → 14 on build 19 → 6 on
