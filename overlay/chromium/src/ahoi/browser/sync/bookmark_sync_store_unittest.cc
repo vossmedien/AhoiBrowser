@@ -36,8 +36,13 @@ base::Time At(int64_t micros) {
   return base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(micros));
 }
 
-SyncVersion Version(const char* device, int64_t physical) {
-  return {.stamp = {.physical_time_us = physical, .device_tiebreak = device}};
+// Format 3 clocks carry a canonical device UUID and a physical time at or
+// after the Unix epoch. Fixtures express clocks as offsets from that minimum.
+constexpr char kLocalDevice[] = "92000000-0000-4000-8000-00000000d001";
+
+SyncVersion Version(const char* device, int64_t offset) {
+  return {.stamp = {.physical_time_us = kMinimumSyncClockPhysicalUs + offset,
+                    .device_tiebreak = device}};
 }
 
 BookmarkRecord Page(unsigned id = 1) {
@@ -48,7 +53,7 @@ BookmarkRecord Page(unsigned id = 1) {
           .title = "Saved 海",
           .url = "https://example.test/bookmark",
           .created_at = At(10),
-          .version = Version("local-device", 100)};
+          .version = Version(kLocalDevice, 100)};
 }
 
 SyncChange ChangeFor(const SyncRecord& record, const char* mutation_id) {
@@ -78,8 +83,8 @@ Rows ReadRows(sql::Database& database, base::cstring_view query) {
 }
 
 // Frozen v4 wire-v1 rows intentionally include whitespace and escaped content.
-// A schema migration must preserve these bytes, not decode and reserialize
-// them.
+// Format 3 has no migration path (ADR 0009): opening such a store must fail
+// closed and leave these bytes untouched.
 constexpr char kLegacyAppearanceId[] = "a2000000-0000-4000-8000-000000000001";
 constexpr char kLegacyAppearancePayload[] = R"json( {
   "model_version":1, "id":"a2000000-0000-4000-8000-000000000001",
@@ -95,7 +100,6 @@ constexpr char kLegacyAssetPayload[] = R"json({
  "asset_kind":0,"name":"Legacy CSS","scope":"https://example.test/*",
  "source":"body { color: red; }\n/* \u00e4 */","enabled":true,"opted_in":true
 })json";
-constexpr char kWatermarkId[] = "a2000000-0000-4000-8000-000000000003";
 
 struct LegacyRow {
   EntityType type;
@@ -306,7 +310,7 @@ TEST(BookmarkSyncStoreTest,
   BookmarkRecord invalid = original;
   invalid.kind = BookmarkKind::kFolder;
   invalid.url.clear();
-  invalid.version = Version("local-device", 200);
+  invalid.version = Version(kLocalDevice, 200);
   EXPECT_NE(Result::kOk, store.PutLocalRecord(invalid, "changed-kind"));
   SyncRecord after;
   ASSERT_EQ(Result::kOk,
@@ -328,7 +332,7 @@ TEST(BookmarkSyncStoreTest,
     ASSERT_EQ(Result::kOk, store.AcknowledgeOutbox({"create"}));
     BookmarkRecord removed = original;
     removed.tombstone = true;
-    removed.version = Version("local-device", 300);
+    removed.version = Version(kLocalDevice, 300);
     ASSERT_EQ(Result::kOk, store.PutLocalRecord(removed, "delete"));
     ASSERT_EQ(Result::kOk,
               store.CompactExpiredTombstones(base::Time::Now() + base::Days(31),
@@ -376,31 +380,34 @@ TEST(BookmarkSyncStoreTest,
     EXPECT_EQ(0, store.PendingOutboxCount());
     EXPECT_EQ("after-compaction", store.GetChangeToken());
     BookmarkRecord resurrection = original;
-    resurrection.version = Version("local-device", 400);
+    resurrection.version = Version(kLocalDevice, 400);
     EXPECT_EQ(Result::kConflict,
               store.PutLocalRecord(resurrection, "resurrection"));
   }
 }
 
-TEST(BookmarkSyncStoreTest, MigratesRealV4SchemaWithoutRewritingLegacyData) {
+TEST(BookmarkSyncStoreTest, RefusesRealV4SchemaWithoutRewritingLegacyData) {
   static_assert(SyncStore::kCurrentSchemaVersion == kCurrentSchemaVersion);
+  static_assert(SyncStore::kLowestSupportedSchemaVersion ==
+                kCurrentSchemaVersion);
   base::ScopedTempDir directory;
   ASSERT_TRUE(directory.CreateUniqueTempDir());
   const auto path = directory.GetPath().AppendASCII("v4.sqlite");
   ASSERT_TRUE(CreateV4Fixture(path));
   constexpr char kRecordsQuery[] =
-      "SELECT * FROM sync_records WHERE entity_type<>11 ORDER BY "
-      "entity_type,entity_id";
+      "SELECT * FROM sync_records ORDER BY entity_type,entity_id";
   constexpr char kOutboxQuery[] =
-      "SELECT * FROM sync_outbox WHERE entity_type<>11 ORDER BY mutation_id";
+      "SELECT * FROM sync_outbox ORDER BY mutation_id";
   constexpr char kTombstonesQuery[] =
       "SELECT * FROM sync_tombstones ORDER BY entity_type,entity_id";
   constexpr char kWatermarksQuery[] =
       "SELECT * FROM sync_deletion_watermarks ORDER BY entity_type,entity_id";
+  constexpr char kMetadataQuery[] = "SELECT * FROM sync_metadata ORDER BY key";
   Rows records_before;
   Rows outbox_before;
   Rows tombstones_before;
   Rows watermarks_before;
+  Rows metadata_before;
   {
     sql::Database database(sql::test::kTestTag);
     ASSERT_TRUE(database.Open(path));
@@ -408,69 +415,32 @@ TEST(BookmarkSyncStoreTest, MigratesRealV4SchemaWithoutRewritingLegacyData) {
     outbox_before = ReadRows(database, kOutboxQuery);
     tombstones_before = ReadRows(database, kTombstonesQuery);
     watermarks_before = ReadRows(database, kWatermarksQuery);
+    metadata_before = ReadRows(database, kMetadataQuery);
     ASSERT_EQ(2u, records_before.size());
     ASSERT_EQ(2u, outbox_before.size());
     ASSERT_EQ(1u, tombstones_before.size());
     ASSERT_EQ(1u, watermarks_before.size());
+    ASSERT_EQ(1u, metadata_before.size());
   }
-  {
+  for (int attempt = 0; attempt < 2; ++attempt) {
+    SCOPED_TRACE(attempt);
     SyncStore store;
-    ASSERT_TRUE(store.Initialize(path));
-    EXPECT_EQ("v4-token", store.GetChangeToken());
-    EXPECT_EQ(3, store.GetRetryState().attempt);
-    EXPECT_EQ("offline", store.GetRetryState().last_error);
-    EXPECT_EQ(0, store.QuarantineCount());
-    for (const auto& row : kLegacyRows) {
-      SyncRecord actual;
-      ASSERT_EQ(Result::kOk,
-                store.GetRecord(row.type, base::Uuid::ParseLowercase(row.id),
-                                &actual));
-      EXPECT_EQ(row.type, GetEntityType(actual));
-      EXPECT_EQ(1, GetVersion(actual).model_version);
-      EXPECT_EQ(row.tombstone, IsTombstone(actual));
-    }
-    std::vector<SyncChange> outbox;
-    ASSERT_EQ(Result::kOk, store.ReadOutbox(10, &outbox));
-    ASSERT_EQ(2u, outbox.size());
-    for (size_t i = 0; i < outbox.size(); ++i) {
-      EXPECT_EQ(kLegacyRows[i].mutation_id, outbox[i].mutation_id);
-      EXPECT_EQ(kLegacyRows[i].payload, outbox[i].payload);
-    }
-    // A real entity 11 write exercises the migrated CHECK constraint.
-    ASSERT_EQ(Result::kOk, store.PutLocalRecord(Page(), "new-bookmark"));
+    EXPECT_FALSE(store.Initialize(path));
   }
   {
     sql::Database database(sql::test::kTestTag);
     ASSERT_TRUE(database.Open(path));
     sql::MetaTable meta;
-    ASSERT_TRUE(meta.Init(&database, 5, 5));
-    EXPECT_EQ(5, meta.GetVersionNumber());
+    ASSERT_TRUE(meta.Init(&database, 4, 4));
+    EXPECT_EQ(4, meta.GetVersionNumber());
+    EXPECT_EQ(4, meta.GetCompatibleVersionNumber());
     EXPECT_EQ(records_before, ReadRows(database, kRecordsQuery));
     EXPECT_EQ(outbox_before, ReadRows(database, kOutboxQuery));
     EXPECT_EQ(tombstones_before, ReadRows(database, kTombstonesQuery));
     EXPECT_EQ(watermarks_before, ReadRows(database, kWatermarksQuery));
-  }
-  {
-    SyncStore store;
-    ASSERT_TRUE(store.Initialize(path));
-    SyncRecord actual;
-    EXPECT_EQ(Result::kOk,
-              store.GetRecord(EntityType::kBookmark, Page().id, &actual));
-    // The migrated watermark must still block an old non-bookmark replay.
-    const RemoteTabRecord stale{.id = base::Uuid::ParseLowercase(kWatermarkId),
-                                .device_id = Id(20),
-                                .session_id = Id(21),
-                                .url = "https://example.test/old-tab",
-                                .title = "Old tab",
-                                .opened_at = At(10),
-                                .last_active = At(50),
-                                .version = Version("old-device", 50)};
-    ASSERT_EQ(Result::kOk,
-              store.ApplyRemoteBatch({.changes = {ChangeFor(stale, "old-tab")},
-                                      .next_change_token = "after-watermark"}));
-    EXPECT_EQ(Result::kNotFound,
-              store.GetRecord(EntityType::kRemoteTab, stale.id, &actual));
-    EXPECT_EQ(1, store.QuarantineCount());
+    EXPECT_EQ(metadata_before, ReadRows(database, kMetadataQuery));
+    // No format-3 table was created next to the refused schema.
+    EXPECT_FALSE(database.DoesTableExist("sync_acknowledged_records"));
   }
 }
 

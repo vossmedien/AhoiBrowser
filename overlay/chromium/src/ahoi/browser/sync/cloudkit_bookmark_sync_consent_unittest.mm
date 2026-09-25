@@ -60,7 +60,9 @@ SyncChange BookmarkChange() {
           base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(kTime)),
       .version = {.stamp = {.physical_time_us = kTime,
                             .logical = 3,
-                            .device_tiebreak = "device-a"}}};
+                            // Format 3 requires a canonical device UUID.
+                            .device_tiebreak =
+                                "94000000-0000-4000-8000-00000000d00a"}}};
   std::string payload;
   EXPECT_TRUE(SerializeRecord(record, &payload));
   return {.mutation_id = "fixture",

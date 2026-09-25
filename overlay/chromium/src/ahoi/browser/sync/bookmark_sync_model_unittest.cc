@@ -25,8 +25,23 @@ base::Time At(int64_t micros) {
   return base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(micros));
 }
 
-SyncVersion Version(const char* device, int64_t physical) {
-  return {.stamp = {.physical_time_us = physical, .device_tiebreak = device}};
+// Format 3 clocks carry a canonical device UUID and a physical time at or
+// after the Unix epoch. Fixtures express clocks as offsets from that minimum.
+constexpr char kOriginDevice[] = "91000000-0000-4000-8000-00000000d000";
+constexpr char kDeviceA[] = "91000000-0000-4000-8000-00000000d00a";
+constexpr char kDeviceB[] = "91000000-0000-4000-8000-00000000d00b";
+constexpr char kRootDevice[] = "91000000-0000-4000-8000-00000000d001";
+constexpr char kNestedDevice[] = "91000000-0000-4000-8000-00000000d002";
+constexpr char kTitleDevice[] = "91000000-0000-4000-8000-00000000d003";
+constexpr char kFolderDevice[] = "91000000-0000-4000-8000-00000000d004";
+constexpr char kRenameDevice[] = "91000000-0000-4000-8000-00000000d005";
+constexpr char kDeleteDevice[] = "91000000-0000-4000-8000-00000000d006";
+constexpr char kFutureDevice[] = "91000000-0000-4000-8000-00000000d007";
+constexpr char kNegativeDevice[] = "91000000-0000-4000-8000-00000000d008";
+
+SyncVersion Version(const char* device, int64_t offset) {
+  return {.stamp = {.physical_time_us = kMinimumSyncClockPhysicalUs + offset,
+                    .device_tiebreak = device}};
 }
 
 BookmarkRecord Folder(unsigned id) {
@@ -35,7 +50,7 @@ BookmarkRecord Folder(unsigned id) {
           .sort_key = "a",
           .title = "Ordner 海",
           .created_at = At(10),
-          .version = Version("origin", 100)};
+          .version = Version(kOriginDevice, 100)};
 }
 
 BookmarkRecord Page(unsigned id = 1) {
@@ -104,7 +119,7 @@ TEST(BookmarkSyncModelTest, RejectsInvalidIdentityKindVersionAndLocation) {
   invalid.parent_id = invalid.id;
   ExpectInvalid(invalid);
 
-  for (int model : {0, 1, 3}) {
+  for (int model : {0, 1, 2, kCurrentModelVersion + 1}) {
     invalid = Page();
     invalid.model_version = model;
     invalid.version.model_version = model;
@@ -179,10 +194,12 @@ TEST(BookmarkSyncModelTest, RejectsUnknownAndFutureFieldClocks) {
   invalid.field_versions.emplace("root_kind", invalid.version.stamp);
   ExpectInvalid(invalid);
   invalid = Page();
-  invalid.field_versions.emplace("location", Version("future", 101).stamp);
+  invalid.field_versions.emplace("location", Version(kFutureDevice, 101).stamp);
   ExpectInvalid(invalid);
   invalid = Page();
-  invalid.field_versions.emplace("title", Version("negative", -1).stamp);
+  invalid.field_versions.emplace(
+      "title", HlcStamp{.physical_time_us = -1,
+                        .device_tiebreak = kNegativeDevice});
   ExpectInvalid(invalid);
 }
 
@@ -191,11 +208,11 @@ TEST(BookmarkSyncModelTest,
   const BookmarkRecord initial = Page();
   BookmarkRecord renamed = initial;
   renamed.title = "Neuer Titel";
-  renamed = StampEdit(initial, renamed, "device-a", 200);
+  renamed = StampEdit(initial, renamed, kDeviceA, 200);
   BookmarkRecord corrected = initial;
   corrected.url = "https://example.test/corrected";
   corrected.created_at = At(5);
-  corrected = StampEdit(initial, corrected, "device-b", 300);
+  corrected = StampEdit(initial, corrected, kDeviceB, 300);
 
   SyncRecord forward;
   SyncRecord reverse;
@@ -222,17 +239,17 @@ TEST(BookmarkSyncModelTest, RootParentAndOrderAreOneAtomicLocationBothWays) {
     BookmarkRecord root = initial;
     root.root_kind = BookmarkRoot::kMobile;
     root.sort_key = "root-order";
-    root = StampEdit(initial, root, "root-device", nested_wins ? 200 : 210);
+    root = StampEdit(initial, root, kRootDevice, nested_wins ? 200 : 210);
     BookmarkRecord nested = initial;
     nested.root_kind.reset();
     nested.parent_id = Id(2);
     nested.sort_key = "nested-order";
     nested =
-        StampEdit(initial, nested, "nested-device", nested_wins ? 210 : 200);
+        StampEdit(initial, nested, kNestedDevice, nested_wins ? 210 : 200);
     BookmarkRecord& losing_location = nested_wins ? root : nested;
     BookmarkRecord renamed = losing_location;
     renamed.title = "Latest title on the older location";
-    losing_location = StampEdit(losing_location, renamed, "title-device", 240);
+    losing_location = StampEdit(losing_location, renamed, kTitleDevice, 240);
     const BookmarkRecord& winning_location = nested_wins ? nested : root;
 
     SyncRecord forward;
@@ -258,7 +275,7 @@ TEST(BookmarkSyncModelTest, RejectsKindChangesAndEqualClockDivergence) {
   BookmarkRecord folder = page;
   folder.kind = BookmarkKind::kFolder;
   folder.url.clear();
-  folder.version = Version("folder-device", 200);
+  folder.version = Version(kFolderDevice, 200);
   ASSERT_TRUE(ValidateRecord(page));
   ASSERT_TRUE(ValidateRecord(folder));
   SyncRecord merged;
@@ -277,10 +294,10 @@ TEST(BookmarkSyncModelTest, TombstoneSurvivesConcurrentMetadataAndStaleReplay) {
   const BookmarkRecord initial = Page();
   BookmarkRecord renamed = initial;
   renamed.title = "Concurrent rename";
-  renamed = StampEdit(initial, renamed, "rename-device", 200);
+  renamed = StampEdit(initial, renamed, kRenameDevice, 200);
   BookmarkRecord removed = initial;
   removed.tombstone = true;
-  removed = StampEdit(initial, removed, "delete-device", 250);
+  removed = StampEdit(initial, removed, kDeleteDevice, 250);
   SyncRecord forward;
   SyncRecord reverse;
   ASSERT_EQ(MergeDecision::kMergeFields,

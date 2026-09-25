@@ -23,6 +23,7 @@
 #include "base/base64.h"
 #include "base/files/file_path.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/functional/bind.h"
 #include "base/test/bind.h"
 #include "base/test/task_environment.h"
 #include "base/time/time.h"
@@ -41,13 +42,28 @@ base::Time At(int64_t micros) {
   return base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(micros));
 }
 
-SyncVersion Version(const char* device,
-                    int64_t physical,
-                    uint32_t logical = 0) {
+// Format 3 records need canonical device UUIDs and clocks/timestamps at or
+// after the Unix epoch; fixtures express both as offsets from that minimum.
+constexpr char kDeviceA[] = "10000000-0000-4000-8000-00000000d00a";
+constexpr char kDeviceB[] = "10000000-0000-4000-8000-00000000d00b";
+
+base::Time Ts(int64_t offset) {
+  return At(kMinimumSyncClockPhysicalUs + offset);
+}
+
+SyncVersion Version(const char* device, int64_t offset, uint32_t logical = 0) {
   return SyncVersion{.model_version = kCurrentModelVersion,
-                     .stamp = HlcStamp{.physical_time_us = physical,
+                     .stamp = HlcStamp{.physical_time_us =
+                                           kMinimumSyncClockPhysicalUs + offset,
                                        .logical = logical,
                                        .device_tiebreak = device}};
+}
+
+// Presence records must name their shared page, which is never the tab itself.
+base::Uuid SharedPageFor(const char* tab_id) {
+  std::string page(tab_id);
+  page[0] = page[0] == 'f' ? 'e' : 'f';
+  return Id(page.c_str());
 }
 
 RemoteTabRecord Tab(const char* id,
@@ -61,10 +77,12 @@ RemoteTabRecord Tab(const char* id,
                          .session_id = Id(session),
                          .url = url,
                          .title = "Ahoi",
-                         .opened_at = At(10),
+                         .opened_at = Ts(10),
                          .last_active = At(version.stamp.physical_time_us),
                          .is_incognito = incognito,
-                         .version = std::move(version)};
+                         .version = std::move(version),
+                         .tree_node_id = SharedPageFor(id),
+                         .target_kind = SharedTabTargetKind::kWeb};
 }
 
 class SnapshotObserver final : public DeviceTabsService::Observer {
@@ -138,7 +156,9 @@ class FakeSyncProvider final : public SyncProvider {
     return true;
   }
 
-  SyncAuthorization transport;
+  // An authorized transport is the default; tests that exercise revocation
+  // replace it explicitly.
+  SyncAuthorization transport = base::BindRepeating([] { return true; });
   SyncAuthorization delivery;
   IncomingCallback incoming;
   base::RepeatingClosure after_ack;
@@ -157,7 +177,7 @@ ProviderBatch CachedTabBatch() {
       Tab("10000000-0000-4000-8000-000000000091",
           "10000000-0000-4000-8000-000000000092",
           "10000000-0000-4000-8000-000000000093", "https://incoming.test",
-          Version("10000000-0000-4000-8000-000000000092", 11644473600000100LL));
+          Version("10000000-0000-4000-8000-000000000092", 100));
   tab.opened_at = At(11644473600000010LL);
   tab.tree_node_id = Id("10000000-0000-4000-8000-000000000095");
   tab.target_kind = SharedTabTargetKind::kWeb;
@@ -191,8 +211,8 @@ TEST(HybridLogicalClockTest, TicksAndObservesWithStableDeviceTieBreak) {
 }
 
 TEST(SyncMergeTest, ConcurrentVersionsUseDeviceTieBreakAndAreIdempotent) {
-  const SyncVersion left = Version("device-a", 10);
-  const SyncVersion right = Version("device-b", 10);
+  const SyncVersion left = Version(kDeviceA, 10);
+  const SyncVersion right = Version(kDeviceB, 10);
   EXPECT_EQ(DecideMerge(left, "left", right, "right"),
             MergeDecision::kAcceptIncoming);
   EXPECT_EQ(DecideMerge(right, "right", left, "left"),
@@ -207,7 +227,7 @@ TEST(SyncSerializationTest, RemoteTabRoundTripsAndRejectsIncognitoEnvelope) {
       Tab("10000000-0000-4000-8000-000000000001",
           "10000000-0000-4000-8000-000000000002",
           "10000000-0000-4000-8000-000000000003", "https://example.test/path",
-          Version("device-a", 20));
+          Version(kDeviceA, 20));
   SyncRecord original = tab;
   std::string payload;
   ASSERT_TRUE(SerializeRecord(original, &payload));
@@ -226,36 +246,34 @@ TEST(SyncSerializationTest, RemoteTabRoundTripsAndRejectsIncognitoEnvelope) {
   EXPECT_FALSE(ValidateRecord(tab));
 }
 
-TEST(SyncSerializationTest, DecodesLegacyMacIOSWireV1GoldenPayload) {
-  constexpr int64_t kPhysical = 11644473601000000LL;
-  const RemoteTabRecord tab{
-      .model_version = 1,
-      .id = Id("10000000-0000-4000-8000-000000000001"),
-      .device_id = Id("10000000-0000-4000-8000-000000000002"),
-      .session_id = Id("10000000-0000-4000-8000-000000000003"),
-      .url = "https://example.test/path",
-      .title = "Ahoi",
-      .opened_at = At(kPhysical),
-      .last_active = At(kPhysical),
-      .version = {.model_version = 1,
-                  .stamp = {.physical_time_us = kPhysical,
-                            .logical = 2,
-                            .device_tiebreak =
-                                "10000000-0000-4000-8000-000000000002"}}};
+// Wire v1 is removed (ADR 0009): the frozen Mac/iOS golden bytes fail closed.
+TEST(SyncSerializationTest, RejectsLegacyMacIOSWireV1GoldenPayload) {
+  constexpr char kLegacyPayload[] =
+      "{\"device_id\":\"10000000-0000-4000-8000-000000000002\","
+      "\"id\":\"10000000-0000-4000-8000-000000000001\","
+      "\"is_incognito\":false,\"last_active\":\"11644473601000000\","
+      "\"model_version\":1,\"opened_at\":\"11644473601000000\","
+      "\"pinned\":false,"
+      "\"session_id\":\"10000000-0000-4000-8000-000000000003\","
+      "\"title\":\"Ahoi\",\"tombstone\":false,"
+      "\"url\":\"https://example.test/path\","
+      "\"version_device\":\"10000000-0000-4000-8000-000000000002\","
+      "\"version_logical\":2,\"version_model\":1,"
+      "\"version_physical\":\"11644473601000000\"}";
+  SyncRecord decoded;
+  EXPECT_FALSE(
+      DeserializeRecord(EntityType::kRemoteTab, kLegacyPayload, &decoded));
+
+  // Nor can a model-1 record be authored in the current format.
+  RemoteTabRecord legacy =
+      Tab("10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002",
+          "10000000-0000-4000-8000-000000000003", "https://example.test/path",
+          Version(kDeviceA, 1000000, 2));
+  legacy.model_version = 1;
+  legacy.version.model_version = 1;
   std::string payload;
-  ASSERT_TRUE(SerializeRecord(tab, &payload));
-  EXPECT_EQ(payload,
-            "{\"device_id\":\"10000000-0000-4000-8000-000000000002\","
-            "\"id\":\"10000000-0000-4000-8000-000000000001\","
-            "\"is_incognito\":false,\"last_active\":\"11644473601000000\","
-            "\"model_version\":1,\"opened_at\":\"11644473601000000\","
-            "\"pinned\":false,"
-            "\"session_id\":\"10000000-0000-4000-8000-000000000003\","
-            "\"title\":\"Ahoi\",\"tombstone\":false,"
-            "\"url\":\"https://example.test/path\","
-            "\"version_device\":\"10000000-0000-4000-8000-000000000002\","
-            "\"version_logical\":2,\"version_model\":1,"
-            "\"version_physical\":\"11644473601000000\"}");
+  EXPECT_FALSE(SerializeRecord(legacy, &payload));
 }
 
 TEST(SyncPayloadCryptorTest, AESGCMEnvelopeRoundTripsAndRejectsTampering) {
@@ -279,19 +297,19 @@ TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
   const base::Uuid device_id = Id("10000000-0000-4000-8000-000000000060");
   const base::Uuid workspace_id = Id("10000000-0000-4000-8000-000000000061");
   const base::Uuid session_id = Id("10000000-0000-4000-8000-000000000062");
-  const SyncVersion version = Version("device-a", 60);
+  const SyncVersion version = Version(kDeviceA, 60);
   std::vector<SyncRecord> records;
   records.emplace_back(DeviceRecord{.id = device_id,
                                     .type = DeviceType::kMacDesktop,
                                     .display_name = "Mac",
-                                    .created_at = At(1),
-                                    .last_seen = At(2),
+                                    .created_at = Ts(1),
+                                    .last_seen = Ts(2),
                                     .version = version});
   records.emplace_back(WorkspaceRecord{.id = workspace_id,
                                        .name = "Work",
                                        .sort_key = "a",
-                                       .created_at = At(1),
-                                       .modified_at = At(2),
+                                       .created_at = Ts(1),
+                                       .modified_at = Ts(2),
                                        .version = version});
   records.emplace_back(
       TreeNodeRecord{.id = Id("10000000-0000-4000-8000-000000000063"),
@@ -299,14 +317,15 @@ TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
                      .kind = TreeNodeKind::kFolder,
                      .title = "Folder",
                      .sort_key = "a",
-                     .created_at = At(1),
-                     .modified_at = At(2),
+                     .created_at = Ts(1),
+                     .modified_at = Ts(2),
                      .version = version});
   records.emplace_back(
       HistoryRecord{.id = Id("10000000-0000-4000-8000-000000000064"),
+                    .device_id = device_id,
                     .url = "https://history.test",
                     .title = "History",
-                    .last_visit = At(2),
+                    .last_visit = Ts(2),
                     .visit_count = 3,
                     .version = version});
   records.emplace_back(Tab("10000000-0000-4000-8000-000000000065",
@@ -315,16 +334,16 @@ TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
                            "https://tab.test", version));
   records.emplace_back(DeviceSessionRecord{.id = session_id,
                                            .device_id = device_id,
-                                           .started_at = At(1),
-                                           .last_seen = At(2),
+                                           .started_at = Ts(1),
+                                           .last_seen = Ts(2),
                                            .version = version});
   records.emplace_back(RemoteCommandRecord{
       .id = Id("10000000-0000-4000-8000-000000000066"),
       .source_device_id = device_id,
       .target_device_id = Id("10000000-0000-4000-8000-000000000067"),
       .nonce_base64 = base::Base64Encode(std::string(16, '\0')),
-      .issued_at = At(1),
-      .expires_at = At(1) + base::Minutes(5),
+      .issued_at = Ts(1000),
+      .expires_at = Ts(1000) + base::Minutes(5),
       .kind = RemoteCommandKind::kOpen,
       .url = "https://command.test",
       .signature_base64 = base::Base64Encode(std::string(64, '\0')),
@@ -371,7 +390,7 @@ TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
 }
 
 TEST(SyncMergeTest, ProductRecordsEnforceOptInAndSecretBoundaries) {
-  const SyncVersion version = Version("device-a", 61);
+  const SyncVersion version = Version(kDeviceA, 61);
   PermittedSettingRecord setting{
       .id = Id("20000000-0000-4000-8000-000000000061"),
       .setting_id = "ahoi.appearance.glass_enabled",
@@ -406,12 +425,16 @@ TEST(SyncMergeTest, TreeGraphRejectsCyclesAndCrossWorkspaceParents) {
   TreeNodeRecord folder_a{.id = Id("10000000-0000-4000-8000-000000000011"),
                           .workspace_id = workspace,
                           .kind = TreeNodeKind::kFolder,
-                          .version = Version("device-a", 1)};
+                          .created_at = Ts(1),
+                          .modified_at = Ts(1),
+                          .version = Version(kDeviceA, 1)};
   TreeNodeRecord folder_b{.id = Id("10000000-0000-4000-8000-000000000012"),
                           .workspace_id = workspace,
                           .parent_id = folder_a.id,
                           .kind = TreeNodeKind::kFolder,
-                          .version = Version("device-a", 2)};
+                          .created_at = Ts(2),
+                          .modified_at = Ts(2),
+                          .version = Version(kDeviceA, 2)};
   EXPECT_TRUE(ValidateTreeGraph({folder_a, folder_b}));
   folder_a.parent_id = folder_b.id;
   EXPECT_FALSE(ValidateTreeGraph({folder_a, folder_b}));
@@ -433,7 +456,7 @@ TEST(SyncStoreTest, LocalMutationIsAtomicWithOutboxAndPersists) {
   const RemoteTabRecord tab = Tab(
       "10000000-0000-4000-8000-000000000022",
       device.AsLowercaseString().c_str(), session.AsLowercaseString().c_str(),
-      "https://local.test", Version("device-a", 30));
+      "https://local.test", Version(kDeviceA, 30));
 
   {
     SyncStore store;
@@ -472,7 +495,7 @@ TEST(SyncStoreTest, CloudRecoveryPreservesRecordsAndRebuildsOutbox) {
       Tab("10000000-0000-4000-8000-000000000023",
           "10000000-0000-4000-8000-000000000024",
           "10000000-0000-4000-8000-000000000025", "https://recovery.test",
-          Version("device-a", 35));
+          Version(kDeviceA, 35));
   ASSERT_EQ(store.PutLocalRecord(tab, "before-account-change"),
             SyncStore::Result::kOk);
   EXPECT_EQ(store.PrepareOutboxForCloudRecovery(false), SyncStore::Result::kOk);
@@ -497,7 +520,7 @@ TEST(SyncStoreTest, RemotePageIsIdempotentAndAdvancesTokenAtomically) {
       Tab("10000000-0000-4000-8000-000000000030",
           "10000000-0000-4000-8000-000000000031",
           "10000000-0000-4000-8000-000000000032", "https://remote.test",
-          Version("device-b", 40));
+          Version(kDeviceB, 40));
   std::string payload;
   ASSERT_TRUE(SerializeRecord(tab, &payload));
   const SyncChange change{.mutation_id = "remote-mutation",
@@ -519,7 +542,7 @@ TEST(SyncStoreTest, RemotePageIsIdempotentAndAdvancesTokenAtomically) {
 
   RemoteTabRecord deleted = tab;
   deleted.tombstone = true;
-  deleted.version = Version("device-b", 41);
+  deleted.version = Version(kDeviceB, 41);
   ASSERT_TRUE(SerializeRecord(deleted, &payload));
   const SyncChange delete_change{.mutation_id = "remote-delete",
                                  .entity_type = EntityType::kRemoteTab,
@@ -549,36 +572,36 @@ TEST(DeviceTabsServiceTest, PublishesNormalLocalAndRemoteTabsOnly) {
       Tab("10000000-0000-4000-8000-000000000041",
           "10000000-0000-4000-8000-000000000040",
           "10000000-0000-4000-8000-000000000042", "https://local.test",
-          Version("device-a", 50));
+          Version(kDeviceA, 50));
   const RemoteTabRecord remote =
       Tab("10000000-0000-4000-8000-000000000043",
           "10000000-0000-4000-8000-000000000044",
           "10000000-0000-4000-8000-000000000045", "https://remote.test",
-          Version("device-b", 51));
+          Version(kDeviceB, 51));
   const DeviceSessionRecord local_session{.id = local.session_id,
                                           .device_id = local.device_id,
                                           .started_at = base::Time::Now(),
                                           .last_seen = base::Time::Now(),
-                                          .version = Version("device-a", 49)};
+                                          .version = Version(kDeviceA, 49)};
   const DeviceRecord remote_device{.id = remote.device_id,
                                    .type = DeviceType::kIPhone,
                                    .display_name = "iPhone",
-                                   .created_at = At(1),
-                                   .last_seen = At(52),
-                                   .version = Version("device-b", 52)};
+                                   .created_at = Ts(1),
+                                   .last_seen = Ts(52),
+                                   .version = Version(kDeviceB, 52)};
   const WorkspaceRecord remote_workspace{
       .id = Id("10000000-0000-4000-8000-000000000047"),
       .name = "Mobil",
       .sort_key = "a",
-      .created_at = At(1),
-      .modified_at = At(53),
-      .version = Version("device-b", 53)};
+      .created_at = Ts(1),
+      .modified_at = Ts(53),
+      .version = Version(kDeviceB, 53)};
   const DeviceSessionRecord remote_session{
       .id = remote.session_id,
       .device_id = remote.device_id,
       .started_at = base::Time::Now() - base::Days(8),
       .last_seen = base::Time::Now() - base::Days(8),
-      .version = Version("device-b", 54)};
+      .version = Version(kDeviceB, 54)};
   RemoteTabRecord incognito = remote;
   incognito.id = Id("10000000-0000-4000-8000-000000000046");
   incognito.is_incognito = true;
@@ -607,14 +630,14 @@ TEST(DeviceTabsServiceTest, PublishesNormalLocalAndRemoteTabsOnly) {
   DeviceSessionRecord mismatched_session = remote_session;
   mismatched_session.device_id = local_device;
   mismatched_session.last_seen = base::Time::Now();
-  mismatched_session.version = Version("device-b", 55);
+  mismatched_session.version = Version(kDeviceB, 55);
   EXPECT_EQ(service->store_for_testing()->PutLocalRecord(mismatched_session),
             SyncStore::Result::kOk);
   EXPECT_TRUE(observer.last.remote_tabs.empty());
 
   DeviceSessionRecord current_session = remote_session;
   current_session.last_seen = base::Time::Now();
-  current_session.version = Version("device-b", 56);
+  current_session.version = Version(kDeviceB, 56);
   EXPECT_TRUE(DeviceTabsService::IsRemoteSessionActionable(current_session,
                                                            base::Time::Now()));
   current_session.last_seen = base::Time::Now() - base::Minutes(16);
@@ -635,7 +658,7 @@ TEST(DeviceTabsServiceTest, PublishesNormalLocalAndRemoteTabsOnly) {
 
   DeviceSessionRecord ended_session = current_session;
   ended_session.active = false;
-  ended_session.version = Version("device-b", 57);
+  ended_session.version = Version(kDeviceB, 57);
   EXPECT_EQ(service->store_for_testing()->PutLocalRecord(ended_session),
             SyncStore::Result::kOk);
   EXPECT_TRUE(observer.last.remote_tabs.empty());
@@ -650,14 +673,14 @@ TEST(SyncPumpTest, AcknowledgesOutboxAndDrainsEveryRemotePage) {
       Tab("10000000-0000-4000-8000-000000000071",
           "10000000-0000-4000-8000-000000000072",
           "10000000-0000-4000-8000-000000000073", "https://local.test",
-          Version("device-a", 70));
+          Version(kDeviceA, 70));
   ASSERT_EQ(store.PutLocalRecord(local, "local-70"), SyncStore::Result::kOk);
 
   const RemoteTabRecord remote =
       Tab("10000000-0000-4000-8000-000000000074",
           "10000000-0000-4000-8000-000000000075",
           "10000000-0000-4000-8000-000000000076", "https://remote.test",
-          Version("device-b", 71));
+          Version(kDeviceB, 71));
   std::string payload;
   ASSERT_TRUE(SerializeRecord(remote, &payload));
   const SyncChange remote_change{.mutation_id = "remote-71",
@@ -707,7 +730,7 @@ TEST(SyncPumpTest, InvalidAcknowledgementKeepsOutboxAndPersistsSafeBackoff) {
       Tab("10000000-0000-4000-8000-000000000081",
           "10000000-0000-4000-8000-000000000082",
           "10000000-0000-4000-8000-000000000083", "https://local.test",
-          Version("device-a", 80));
+          Version(kDeviceA, 80));
   ASSERT_EQ(store.PutLocalRecord(local, "local-80"), SyncStore::Result::kOk);
 
   FakeSyncProvider provider;

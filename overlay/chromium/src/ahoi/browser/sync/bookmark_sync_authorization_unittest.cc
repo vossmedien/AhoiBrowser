@@ -170,7 +170,8 @@ class BookmarkSyncAuthorizationTest : public testing::Test {
     backend_ = std::make_unique<ProfileSyncBackend>(
         DatabasePath(), Id(kDevice), Id(kSession), "Authorization test",
         /*transport_enabled=*/true, /*history_retention_days=*/90,
-        /*bookmark_sync_enabled=*/true);
+        /*bookmark_sync_enabled=*/true,
+        /*profile_authorization=*/base::BindRepeating([] { return true; }));
     // Initialize only the store. No device/session publication, real provider,
     // or SyncPump is needed to exercise the real bookmark backend methods.
     backend_->store_ = std::make_unique<SyncStore>();

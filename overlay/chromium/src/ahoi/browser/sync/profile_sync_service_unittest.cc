@@ -98,7 +98,7 @@ class FakeProfileSyncUiBridge final : public ProfileSyncUiBridge {
 std::optional<int> QueryCount(sql::Database* database,
                               const std::string& query) {
   sql::Statement statement(database->GetUniqueStatement(query));
-  if (!statement.Step()) {
+  if (!statement.is_valid() || !statement.Step()) {
     return std::nullopt;
   }
   return statement.ColumnInt(0);
@@ -145,6 +145,9 @@ std::optional<int> ReadActiveRecordPayloadCount(
   sql::Statement statement(database.GetUniqueStatement(
       "SELECT COUNT(*) FROM sync_records WHERE entity_type=? "
       "AND tombstone=0 AND payload LIKE ?"));
+  if (!statement.is_valid()) {
+    return std::nullopt;
+  }
   statement.BindInt(0, static_cast<int>(entity_type));
   statement.BindString(1, "%" + payload_fragment + "%");
   if (!statement.Step()) {
@@ -164,7 +167,7 @@ class ProfileSyncServiceTest : public testing::Test {
   base::FilePath DatabasePath(const TestingProfile& profile) const {
     return profile.GetPath()
         .AppendASCII("Ahoi Sync")
-        .AppendASCII("sync.sqlite");
+        .AppendASCII("sync-format3.sqlite");
   }
 
   bool BackendIsNull(const ProfileSyncService& service) const {

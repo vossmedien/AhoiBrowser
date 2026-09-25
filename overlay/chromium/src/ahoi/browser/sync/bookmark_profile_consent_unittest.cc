@@ -29,7 +29,8 @@ TEST_F(BookmarkProfileConsentTest, CategoryApprovalCannotEnableGlobalSync) {
   EXPECT_FALSE(service.sync_enabled());
   EXPECT_FALSE(service.initialized());
   EXPECT_FALSE(base::PathExists(
-      profile.GetPath().AppendASCII("Ahoi Sync").AppendASCII("sync.sqlite")));
+      profile.GetPath().AppendASCII("Ahoi Sync").AppendASCII(
+          "sync-format3.sqlite")));
   ASSERT_TRUE(service.SetBookmarkSyncEnabled(false));
   EXPECT_FALSE(service.bookmark_sync_enabled());
   service.Shutdown();

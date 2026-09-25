@@ -23,13 +23,51 @@
 namespace ahoi::sync {
 namespace {
 
-TEST(BookmarkSyncGoldenTest, SharedPayloadsRoundTripWithoutPlatformChanges) {
+base::FilePath TestDataPath(const char* name) {
   base::FilePath root;
-  ASSERT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &root));
+  EXPECT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &root));
+  return root.AppendASCII("ahoi/browser/sync/testdata").AppendASCII(name);
+}
+
+TEST(BookmarkSyncGoldenTest, SharedV3PayloadsRoundTripWithoutPlatformChanges) {
   std::string fixture;
-  ASSERT_TRUE(base::ReadFileToString(
-      root.AppendASCII("ahoi/browser/sync/testdata/bookmark_wire_v2.json"),
-      &fixture));
+  ASSERT_TRUE(
+      base::ReadFileToString(TestDataPath("sync_wire_v3.json"), &fixture));
+  const auto document =
+      base::JSONReader::ReadDict(fixture, base::JSON_PARSE_RFC);
+  ASSERT_TRUE(document);
+  ASSERT_EQ(3, document->FindInt("model_version"));
+  const auto* records = document->FindList("records");
+  ASSERT_TRUE(records);
+  size_t bookmarks = 0;
+  for (const auto& item : *records) {
+    ASSERT_TRUE(item.is_dict());
+    if (item.GetDict().FindInt("entity_type") !=
+        static_cast<int>(EntityType::kBookmark)) {
+      continue;
+    }
+    ++bookmarks;
+    const auto* name = item.GetDict().FindString("name");
+    ASSERT_TRUE(name);
+    SCOPED_TRACE(*name);
+    const auto* payload = item.GetDict().FindString("payload");
+    ASSERT_TRUE(payload);
+    SyncRecord decoded;
+    ASSERT_TRUE(DeserializeRecord(EntityType::kBookmark, *payload, &decoded));
+    ASSERT_TRUE(std::holds_alternative<BookmarkRecord>(decoded));
+    std::string reencoded;
+    ASSERT_TRUE(SerializeRecord(decoded, &reencoded));
+    EXPECT_EQ(*payload, reencoded);
+  }
+  EXPECT_EQ(4u, bookmarks);
+}
+
+// Format 2 is deliberately removed (ADR 0009): the frozen wire-v2 bookmark
+// goldens must fail closed instead of being upgraded.
+TEST(BookmarkSyncGoldenTest, RejectsFrozenV2Payloads) {
+  std::string fixture;
+  ASSERT_TRUE(
+      base::ReadFileToString(TestDataPath("bookmark_wire_v2.json"), &fixture));
   const auto document =
       base::JSONReader::ReadDict(fixture, base::JSON_PARSE_RFC);
   ASSERT_TRUE(document);
@@ -44,18 +82,12 @@ TEST(BookmarkSyncGoldenTest, SharedPayloadsRoundTripWithoutPlatformChanges) {
     SCOPED_TRACE(*name);
     const auto* payload = item.GetDict().FindDict("payload");
     ASSERT_TRUE(payload);
+    ASSERT_EQ(2, payload->FindInt("model_version"));
     std::string encoded;
     ASSERT_TRUE(
         base::JSONWriter::Write(base::Value(payload->Clone()), &encoded));
     SyncRecord decoded;
-    ASSERT_TRUE(DeserializeRecord(EntityType::kBookmark, encoded, &decoded));
-    ASSERT_TRUE(std::holds_alternative<BookmarkRecord>(decoded));
-    std::string reencoded;
-    ASSERT_TRUE(SerializeRecord(decoded, &reencoded));
-    const auto readback =
-        base::JSONReader::ReadDict(reencoded, base::JSON_PARSE_RFC);
-    ASSERT_TRUE(readback);
-    EXPECT_EQ(*payload, *readback);
+    EXPECT_FALSE(DeserializeRecord(EntityType::kBookmark, encoded, &decoded));
   }
 }
 
@@ -249,7 +281,7 @@ TEST_F(BookmarkSyncSerializationTest, RejectsMissingOrConflictingLocation) {
 TEST_F(BookmarkSyncSerializationTest, RejectsInvalidEnumTypesAndValues) {
   for (const char* key : {"kind", "root_kind"}) {
     for (const char* malformed :
-         {"null", "true", "-1", "3", "0.0", "\"0\"", "[]", "{}"}) {
+         {"null", "true", "-1", "3", "0.5", "\"0\"", "[]", "{}"}) {
       SCOPED_TRACE(malformed);
       auto value = base::JSONReader::Read(malformed, base::JSON_PARSE_RFC);
       ASSERT_TRUE(value);
@@ -257,6 +289,16 @@ TEST_F(BookmarkSyncSerializationTest, RejectsInvalidEnumTypesAndValues) {
     }
   }
   ExpectRejectedValue("kind", base::Value(2));
+  // Whole-number JSON doubles are integral inputs by the format-3 contract
+  // (config/sync-format.json numericInputs) and decode like the integer.
+  auto integral = wire_.Clone();
+  integral.Set("root_kind", base::Value(0.0));
+  std::string payload;
+  ASSERT_TRUE(base::JSONWriter::Write(base::Value(integral.Clone()), &payload));
+  SyncRecord decoded;
+  ASSERT_TRUE(DeserializeRecord(EntityType::kBookmark, payload, &decoded));
+  EXPECT_EQ(BookmarkRoot::kBookmarkBar,
+            std::get<BookmarkRecord>(decoded).root_kind);
 }
 
 TEST_F(BookmarkSyncSerializationTest, RejectsMissingAndMistypedRequiredFields) {
@@ -285,7 +327,7 @@ TEST_F(BookmarkSyncSerializationTest, RejectsMissingAndMistypedRequiredFields) {
 }
 
 TEST_F(BookmarkSyncSerializationTest, RejectsLegacyOrMismatchedModelVersions) {
-  for (int model : {0, 1, 3}) {
+  for (int model : {0, 1, 2, kCurrentModelVersion + 1}) {
     SCOPED_TRACE(model);
     auto invalid = wire_.Clone();
     invalid.Set("model_version", model);
@@ -293,6 +335,14 @@ TEST_F(BookmarkSyncSerializationTest, RejectsLegacyOrMismatchedModelVersions) {
     ExpectRejected(invalid);
   }
   ExpectRejectedValue("version_model", base::Value(1));
+  ExpectRejectedValue("version_model", base::Value(2));
+  ExpectRejectedValue("model_version", base::Value(2));
+  // The current model decodes.
+  std::string current;
+  ASSERT_TRUE(base::JSONWriter::Write(base::Value(wire_.Clone()), &current));
+  ASSERT_EQ(kCurrentModelVersion, wire_.FindInt("model_version"));
+  SyncRecord decoded;
+  EXPECT_TRUE(DeserializeRecord(EntityType::kBookmark, current, &decoded));
 }
 
 TEST_F(BookmarkSyncSerializationTest, RejectsIncompleteOrUnknownFieldClocks) {

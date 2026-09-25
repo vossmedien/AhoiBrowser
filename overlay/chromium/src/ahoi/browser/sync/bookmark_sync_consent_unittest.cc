@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_provider.h"
 #include "ahoi/browser/sync/sync_pump.h"
 #include "ahoi/browser/sync/sync_serialization.h"
@@ -22,9 +23,18 @@ namespace {
 
 using Result = SyncStore::Result;
 
+// Format 3 accepts only canonical device UUIDs and clocks at or after the
+// Unix epoch.
+constexpr char kDevice[] = "93000000-0000-4000-8000-00000000d0a1";
+
 base::Uuid Id(unsigned value) {
   return base::Uuid::ParseLowercase(
       base::StringPrintf("93000000-0000-4000-8000-%012x", value));
+}
+
+base::Time At(int64_t micros) {
+  return base::Time::FromDeltaSinceWindowsEpoch(
+      base::Microseconds(kMinimumSyncClockPhysicalUs + micros));
 }
 
 BookmarkRecord Bookmark(unsigned id) {
@@ -32,10 +42,10 @@ BookmarkRecord Bookmark(unsigned id) {
           .root_kind = BookmarkRoot::kBookmarkBar,
           .sort_key = "a",
           .title = "Private bookmark folder",
-          .created_at =
-              base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(10)),
-          .version = {.stamp = {.physical_time_us = 100,
-                                .device_tiebreak = "device-a"}}};
+          .created_at = At(10),
+          .version = {.stamp = {.physical_time_us =
+                                    kMinimumSyncClockPhysicalUs + 100,
+                                .device_tiebreak = kDevice}}};
 }
 
 WorkspaceRecord Workspace(unsigned id) {
@@ -43,12 +53,11 @@ WorkspaceRecord Workspace(unsigned id) {
           .name = "Allowed workspace",
           .icon = "compass",
           .sort_key = "a",
-          .created_at =
-              base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(10)),
-          .modified_at =
-              base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(100)),
-          .version = {.stamp = {.physical_time_us = 100,
-                                .device_tiebreak = "device-a"}}};
+          .created_at = At(10),
+          .modified_at = At(100),
+          .version = {.stamp = {.physical_time_us =
+                                    kMinimumSyncClockPhysicalUs + 100,
+                                .device_tiebreak = kDevice}}};
 }
 
 SyncChange Remote(const SyncRecord& record, const char* mutation) {
@@ -101,6 +110,11 @@ class ControlledProvider final : public SyncProvider {
     SetBookmarkSyncEnabled(true);
   }
   bool IsBookmarkConsentRevoked() override { return revoked; }
+  // The transport itself stays authorized; these tests revoke only the
+  // bookmark category scope.
+  SyncAuthorization GetTransportAuthorization() override {
+    return base::BindRepeating([] { return true; });
+  }
   void Upload(std::vector<SyncChange> changes,
               UploadCallback callback) override {
     uploads.push_back({std::move(changes), std::move(callback)});
