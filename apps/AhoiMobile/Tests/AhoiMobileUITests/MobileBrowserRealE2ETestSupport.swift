@@ -205,7 +205,7 @@ class MobileBrowserUITestCase: XCTestCase {
             // bounded chunks so input loss cannot masquerade as navigation
             // failure without paying one failed XCUI resolution per character.
             clearAddressEditor(field, in: app)
-            guard waitForHittable(field, timeout: 2) else {
+            guard waitForHittable(field, timeout: 5) else {
                 XCTFail("The address editor disappeared before its bounded input retry.")
                 return
             }

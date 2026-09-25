@@ -2,6 +2,24 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Home-Address journey: harness input under extreme host load — 25 September 2026
+
+The real HTTPS Home-Address journey (`testSavedPageHomeAddressHelpReturnAndRestore`)
+was run on exact clean candidates 77, 78 and 79 on A168/iOS 27. It fails before
+the first navigation, in the test's address input, not in the product:
+- XCUI dropped a repeated character (`https://fi` became `htps://fi`).
+- A focused sheet field was reported unhittable for over a second.
+- One test took 366 s instead of about 40 s.
+Host load averages were 100–340, mostly foreign Xcode builds and VMs. The
+harness now splits input between repeated characters (`3fe2371`) and uses 3–5 s
+windows (`7ca9664`, this commit). Further visible iOS runs wait for a quieter
+host. The product-side "saved state does not settle on a fresh install"
+finding from builds 69/70 is still unconfirmed.
+
+Handoff 024 M1 (`57b6ee1`): an iCloud account switch pauses separated
+Workspaces ("Anderes iCloud-Konto") instead of deleting their logins.
+`SeparatedWorkspaceSyncTests` pass 18/0 on A168.
+
 ## Resolved: library closes after creating a Workspace (was a test artifact) — 25 September 2026
 
 Not a product defect. Traced runs on A168/iOS27 show `libraryPresented`
