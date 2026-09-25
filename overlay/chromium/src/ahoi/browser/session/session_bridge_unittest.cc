@@ -237,7 +237,14 @@ TEST_F(SessionBridgeTest, NewTabRemainsTemporaryAndIsAddressableByCommandBar) {
                ranked.item.url == url &&
                ranked.item.stable_id.starts_with("runtime:");
       });
-  ASSERT_NE(result, results.end());
+  ASSERT_NE(result, results.end()) << [&results] {
+    std::string ids;
+    for (const RankedCommand& ranked : results) {
+      ids += " " + std::to_string(static_cast<int>(ranked.item.type)) + ":" +
+             ranked.item.stable_id + "@" + ranked.item.url.spec();
+    }
+    return "results:" + ids;
+  }();
   EXPECT_EQ(tab, bridge_->FindTabForOpenTabStableId(result->item.stable_id));
 }
 

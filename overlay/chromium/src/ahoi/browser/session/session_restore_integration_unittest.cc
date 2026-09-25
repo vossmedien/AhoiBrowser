@@ -104,7 +104,9 @@ TEST_F(SessionRestoreIntegrationTest, ExtraDataRoundTripsWindowAndTabState) {
       DecodeTabSessionMetadata(
           tab_extra_data.at(kTabSessionMetadataExtraDataKey), &decoded_tab));
   EXPECT_EQ(second_workspace, decoded_tab.workspace_id);
-  EXPECT_FALSE(decoded_tab.tree_node_id.has_value());
+  EXPECT_FALSE(decoded_tab.tree_node_id.has_value())
+      << "tree_node_id=" << decoded_tab.tree_node_id->AsLowercaseString()
+      << " bridge=" << bridge_->FindTreeNodeIdForTab(tab).has_value();
   EXPECT_TRUE(decoded_tab.last_active_in_workspace);
 
   const base::Uuid first_workspace =
