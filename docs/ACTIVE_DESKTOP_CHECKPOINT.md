@@ -43,13 +43,58 @@ lane checkpoint as the handoff asks.
 
 ## Working order: DoD gap analysis — 25 September 2026
 
-No DoD item is closed with evidence yet; all 433 registry cases are
-`NOT_RUN`. The ordered package plan for the agent-doable remainder (25
-packages), per-item status and evidence are in
-[`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Missing product code:
-desktop Link-Peek, shortcut catalog with MRU, desktop Reader/Markdown.
-Installed candidate is `8705a7f` (build 26); build 27 (`e760c1f`) is in
-the pipeline.
+No DoD item is closed with evidence yet. The ordered package plan for the
+agent-doable remainder (25 packages), per-item status and evidence are in
+[`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
+and 17 (shortcut catalog with last-used tab) now have code; see below.
+
+## Build 28 installed; packages 16 and 17 in build 29 — 25 September 2026
+
+- **Installed candidate:** build 28 of `a5e32c8`, receipt
+  `artifacts/install/installed-ahoi-dev-a5e32c8-20260925T170502Z.json`. All
+  eight focused unit-test binaries pass (logs in the build worktree
+  `unittests28/`). It contains the mnemonic fix for the delete dialog
+  (`f59a161`), the Workspace level in the native menu title (`415fc8a`),
+  the off-the-record and Markdown link-copy fixes (`da2c1f1`) and the
+  corrected lean full-profile baselines (`a5e32c8`, `test_lean_chromium`
+  8/8).
+- **Visible on build 28:** the delete probe passes (the dialog opens and
+  deletes). The level journey now shows the level in the menu
+  (`menuNamesLevel` true). The three Workspace journeys still ended in setup
+  failures, for two harness reasons fixed in `5e2f59f`:
+  - The group-close before-unload question is a native macOS alert
+    ("Website verlassen?"), which CDP cannot answer, so the open alert
+    blocked the next delete dialog.
+  - Setup failures before the first result wrote an empty verdict.
+
+  The separated-Workspace journey's menu did not appear while build 29
+  compiled in parallel. Reruns are queued on build 29.
+- **Package 17 (WORKFLOW-03):**
+  - The shared catalog `ahoi/browser/navigation/keyboard_shortcuts` lists
+    every Ahoi command with its default key.
+  - BrowserView registers and dispatches the keys by command id (patch
+    0058).
+  - Control+\` switches to the last used tab of the window's active
+    Workspace (`SessionBridge::ActivateLastUsedTab`, a real-activation MRU).
+  - The Settings editor searches, rebinds, removes and resets bindings; it
+    refuses conflicts with another command, browser commands, extensions,
+    macOS reserved keys and unusable combinations, naming the holder.
+  - Sidebar menus show the catalog keys.
+  - Fixed for now: Quick Window, sidebar Undo, command bar and Save.
+  - Journey: `tools/desktop_e2e/keyboard-shortcuts-journey.sh`.
+- **Package 16 (WORKFLOW-02, Peek part):**
+  - The link context menu offers "Link in Vorschau öffnen" (patch 0059).
+    The window's popup overlay shows it in a WebContents of the opener's
+    StoragePartition, so it stays in the same website session.
+  - Closing keeps the page. Promoting to a tab or split keeps the same
+    WebContents.
+  - Not done yet: the modifier click, the command entry and optional
+    auto-peek.
+  - Journey: `tools/desktop_e2e/link-peek-journey.sh`.
+- **Crest handoffs:** 018 (restart hand-over) and 020 (routing, zone
+  retirement) reviewed and marked integrated (`ca516fe`). Their points were
+  already in `b41cac6`, `3b16f31` and `620e5c3`. WS-ISO-06/19/20 stay visible
+  tests.
 
 ## Empty-Workspace "typed URL does nothing": test artifact, not a product defect — 25 September 2026
 

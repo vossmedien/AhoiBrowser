@@ -44,7 +44,7 @@ Status: **P** = teilweise (PARTIAL), **O** = offen (OPEN), **OG** = beim Owner (
 | 24 Lean | O | Messung nur M152; `test_lean_chromium.py` rot seit `75e20c1` | Test reparieren, M153 messen, Null-Aktivitätsnachweise, M (Lean Chromium) |
 | 25 Website-Sitzungen | P | Cookie-, LocalStorage-, IndexedDB-, ServiceWorker- und SharedWorker-Trennung auf Kopie `79a7752` hinter Flag; ADR-0011-Stufen implementiert; alle Level-Journeys `pass:false` | Build mit `e760c1f`, WS-ISO/WS-DEL-Journeys installiert, Popup/Transfer/Worker-Restart, Default-Flag-Entscheid, L (Workspace-Sitzung, ADR 0011) |
 | 26 Setup-Sync ADR 0010 | P + OG | Adapter vorhanden; Mobile-Settings-Journey nur lokal (DebugLocal 18) | Lokale Restore-Journey Extension + Settings mit zwei Profilen, M; neuer echter Mac = OG |
-| 27 Crest-Empfehlungen | P | Routing-Kern `0057` nur mit Unit-Tests, Editor `3b16f31` ungebaut; Portabilität teilweise (Import und No-op `51d7e79`, `455652b`; Auswahl-Commit `NOT_RUN`); iOS-Privatsperre und iOS-Reader im Simulator; Desktop-Code für **Peek und Shortcut-Katalog/MRU fehlt**, Reader/Markdown fehlt auf Desktop; iOS-Home-Journey rot | WORKFLOW-01…08, siehe Tabelle 2 |
+| 27 Crest-Empfehlungen | P | Routing-Kern `0057` nur mit Unit-Tests, Editor `3b16f31` ungebaut; Portabilität teilweise (Import und No-op `51d7e79`, `455652b`; Auswahl-Commit `NOT_RUN`); iOS-Privatsperre und iOS-Reader im Simulator; Peek (`bfe39d7`) und Kürzel-Katalog/MRU (`5ddb39c`…`f4c3f00`) als Code vorhanden, sichtbar noch nicht abgenommen; Desktop-Reader vorhanden; iOS-Home-Journey rot | WORKFLOW-01…08, siehe Tabelle 2 |
 | 28 Auto-Archiv + Split/Archiv-Sync | P + OG | Manueller Archiv-Restore auf `b3e18cc`; Auto-Archiv-Journey `8821ed1` ohne Ergebnis; `SPLIT_ARCHIVE_SYNC.md` | Auto-Archiv-Journey, endgültiges Löschen, Restore ohne Elternordner, M; Desktop-Paar lokal (zwei Profile), M; echte zwei Macs = OG |
 
 ## 2. Features außerhalb einer einzelnen DoD-Zeile
@@ -57,8 +57,8 @@ Status: **P** = teilweise (PARTIAL), **O** = offen (OPEN), **OG** = beim Owner (
 | AnyChat / uBO Classic | P | siehe 8 | Default-Profil, Lite-Ablösung, S–M |
 | Split 2×2 persistiert | P | Nur M152-Browsertests | Installierte SPLIT-Journeys (40 Fälle), L |
 | Archiv | P | siehe 28 | M |
-| Link-Peek (Desktop) | O | Kein Code | Implementieren plus E2E, L |
-| Tastenkürzel/MRU | O | Nur `config/shortcuts.json` und Chromium-Pref `kCtrlTabMru` | Katalog, Umbelegung, MRU, L |
+| Link-Peek (Desktop) | P | Kontextmenü „Link in Vorschau öffnen“ (Patch `0059`, `bfe39d7`), Overlay im WebContents der Opener-Partition, Schließen/Übernahme über den Popup-Lebenszyklus; Journey `link-peek-journey.sh` auf Build 29 eingereiht | Modifier-Klick, Befehl, optionales Auto-Peek aus gespeicherten Seiten, M |
+| Tastenkürzel/MRU | P | Katalog `keyboard_shortcuts` mit Konfliktprüfung, BrowserView-Dispatch (Patch `0058`), ⌃` zum zuletzt benutzten Tab im aktiven Workspace, Editor in den Einstellungen, Menü-Anzeige; Journey `keyboard-shortcuts-journey.sh` auf Build 29 eingereiht. `config/shortcuts.json` ist eine ältere Default-Liste (dort ⌘S statt ⇧⌘S für die Seitenleiste) | Quick Window/Undo/Command Bar/Speichern umbelegbar machen, Command-Bar-Einträge aus dem Katalog, Default-Liste abgleichen, M |
 | Reader/Markdown (Desktop) | P | Code vorhanden (`362e338`, `69ee9f5`: Chromium-Lesemodus als Overlay, Link/Markdown-Link kopieren, Command-Bar-Einträge); Titel-Bereinigung und Inkognito-Clipboard `WORKFLOW-07`-Nachbesserung | installierte WORKFLOW-07-Journey, S |
 | Gespeicherte Ausgangsadresse | P | Desktop nur Unit-Tests; iOS-Journey rot | Desktop-E2E und iOS-Fix, S–M |
 | Workspace-Routing | P | Kern `0057` mit Unit-Tests | Editor bauen, WORKFLOW-01, M |
