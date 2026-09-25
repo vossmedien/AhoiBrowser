@@ -1,6 +1,6 @@
 # 040 – S4: restore aligns the Workspace surface after the tabs' metadata
 
-Status: integrated 00381ba (syntax-checked; reproduction on build 32 and acceptance on build 33 by restore-surface-journey)
+Status: integrated 00381ba (syntax-checked; reproduced 5/5 on build 32: the window shows the second Workspace's tab while the selector and sidebar stay in Inbox; acceptance on build 33 by restore-surface-journey)
 Owner lane: desktop (reproduce, apply, build, test)
 Base: HEAD `755e3a9` (`git apply --check` passes on HEAD and on the current
 worktree, and together with 038). Implementation of 011 S4 by the
