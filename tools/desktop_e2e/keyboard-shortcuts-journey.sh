@@ -22,7 +22,9 @@ CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 tabs() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(json.dumps(sorted([t["url"] for t in json.load(sys.stdin) if t["type"]=="page"])))'; }
 launch() {
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
-    --remote-debugging-port=$PORT about:blank >> "$OUT/browser.log" 2>&1 &
+    --remote-debugging-port=$PORT --enable-logging=stderr \
+    --vmodule=browser_view=1,session_bridge_session=1,keyboard_shortcut_registration=1 \
+    about:blank >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "pid=$PID profile=$P" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 4; $AX activate $PID >> "$OUT/steps.txt"
@@ -101,7 +103,7 @@ switchws() { # <active> <target>
 # Title of the page that is visible now (the active tab or pane).
 visible() {
   curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;[print(t["id"]) for t in json.load(sys.stdin) if t["type"]=="page"]' | while read -r id; do
-    CDP "$id" Runtime.evaluate '{"expression":"document.visibilityState===\"visible\"?document.title:\"\"","returnByValue":true}' | python3 -c 'import json,sys;v=json.load(sys.stdin).get("result",{}).get("value","");v and print(v)'
+    CDP "$id" Runtime.evaluate '{"expression":"document.visibilityState===\"visible\"?(document.title||location.href):\"\"","returnByValue":true}' | python3 -c 'import json,sys;v=json.load(sys.stdin).get("result",{}).get("value","");v and print(v)'
   done | head -1
 }
 waitvisible() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do [ "$(visible)" = "$1" ] && return 0; sleep 1; done; return 1; }
@@ -118,32 +120,32 @@ record_key() { # <command id> ; click Change, then the caller presses the key
 launch
 open_url "$SITE/alpha.html"; open_url "$SITE/beta.html"; open_url "$SITE/gamma.html"
 waitvisible gamma 5 || fail_setup "gamma not visible"
-# WORKFLOW-03: ⌃` returns to the last used tab and toggles back; ⌃⇥ keeps
+# WORKFLOW-03: ⌥⇥ returns to the last used tab and toggles back; ⌃⇥ keeps
 # cycling in order, separate from it.
-key 50 ctrl; waitvisible beta 5 && record mruToPrevious true || record mruToPrevious false
-key 50 ctrl; waitvisible gamma 5 && record mruTogglesBack true || record mruTogglesBack false
+key 48 opt; waitvisible beta 5 && record mruToPrevious true || record mruToPrevious false
+key 48 opt; waitvisible gamma 5 && record mruTogglesBack true || record mruTogglesBack false
 key 48 ctrl; sleep 2; NOW=$(visible); echo "after ctrl-tab: $NOW" >> "$OUT/steps.txt"
 [ -n "$NOW" ] && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && record cyclingIsSeparate true || record cyclingIsSeparate false
-key 50 ctrl; waitvisible gamma 5 && record mruAfterCycling true || record mruAfterCycling false
+key 48 opt; waitvisible gamma 5 && record mruAfterCycling true || record mruAfterCycling false
 # Never into another Workspace.
 newws Inbox Zwei ""; open_url "$SITE/delta.html"
-key 50 ctrl; sleep 2; NOW=$(visible)
+key 48 opt; sleep 2; NOW=$(visible)
 waitax "Zwei, Workspace wechseln" 3 && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && [ "$NOW" != alpha ] \
   && record mruStaysInWorkspace true || record mruStaysInWorkspace false
 switchws Zwei Inbox
 # Editor: rebind, conflict without overwrite, old key released, new key works.
 open_url "chrome://settings/ahoi"; sleep 3
 settings_js "const s=q('#ahoiShortcutList');if(s)s.scrollIntoView();return q('#ahoiShortcuts')?'present':'missing'" > "$OUT/editor-present.txt"
-[ "$(keys_of tab.last-used)" = "⌃\`" ] && record editorShowsDefault true || record editorShowsDefault false
+[ "$(keys_of tab.last-used)" = "⌥⇥" ] && record editorShowsDefault true || record editorShowsDefault false
 record_key tab.last-used; key 40 cmd opt; sleep 2
 [ "$(keys_of tab.last-used)" = "⌥⌘K" ] && record editorRebinds true || record editorRebinds false
-record_key tab.last-used; key 1 cmd shift; sleep 2
+record_key tab.last-used; key 19 ctrl; sleep 2   # ⌃2 belongs to "Workspace 2"
 ERR=$(settings_js "const e=q('.shortcut-row[data-command-id=\"tab.last-used\"] .shortcut-error');return e&&!e.hidden?e.textContent.trim():''")
 echo "conflict: $ERR" >> "$OUT/steps.txt"
-echo "$ERR" | grep -q "Seitenleiste schwebend" && record conflictNamesHolder true || record conflictNamesHolder false
+echo "$ERR" | grep -q "Workspace 2" && record conflictNamesHolder true || record conflictNamesHolder false
 [ "$(keys_of tab.last-used)" = "⌥⌘K" ] && waitax "Inbox, Workspace wechseln" 2 && record conflictNotOverwritten true || record conflictNotOverwritten false
 SETTINGS_TITLE=$(settings_js "return document.title")
-key 50 ctrl; sleep 2; NOW=$(visible); echo "after old key: $NOW" >> "$OUT/steps.txt"
+key 48 opt; sleep 2; NOW=$(visible); echo "after old key: $NOW" >> "$OUT/steps.txt"
 [ -n "$SETTINGS_TITLE" ] && [ "$NOW" = "$SETTINGS_TITLE" ] && record oldKeyReleased true || record oldKeyReleased false
 key 40 cmd opt; sleep 2; NOW=$(visible); echo "after new key: $NOW" >> "$OUT/steps.txt"
 [ "$NOW" = gamma ] && record newKeyWorks true || record newKeyWorks false
@@ -152,6 +154,6 @@ quit; launch
 open_url "chrome://settings/ahoi"; sleep 3
 [ "$(keys_of tab.last-used)" = "⌥⌘K" ] && record bindingPersists true || record bindingPersists false
 settings_js "const r=q('.shortcut-row[data-command-id=\"tab.last-used\"]');const b=r&&[...r.querySelectorAll('cr-button')][1];if(!b)return 'missing';b.click();return 'ok'" >> "$OUT/steps.txt"; sleep 2
-[ "$(keys_of tab.last-used)" = "⌃\`" ] && record resetRestoresDefault true || record resetRestoresDefault false
+[ "$(keys_of tab.last-used)" = "⌥⇥" ] && record resetRestoresDefault true || record resetRestoresDefault false
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 finish; quit

@@ -12,7 +12,7 @@
     "toggleSidebar": "Command+Shift+H",
     "toggleSidebarFloating": "Command+Shift+S",
     "searchSidebar": "Command+Shift+F",
-    "switchToLastUsedTab": "Control+`",
+    "switchToLastUsedTab": "Option+Tab",
     "focusSplitPane1": "Command+Control+1",
     "focusSplitPane2": "Command+Control+2",
     "focusSplitPane3": "Command+Control+3",

@@ -1185,7 +1185,7 @@ as a second active patch stack.
   `HandleAhoiSplitCommand` replacing the key-based split handler). Quick
   Window, sidebar Undo, the command bar and Save keep their 0001 handling;
   they are listed in the catalog but not rebindable yet.
-- **Safety:** defaults are the keys 0001 registered, plus Control+` for the
+- **Safety:** defaults are the keys 0001 registered, plus Option+Tab for the
   new last-used-tab command (`SessionBridge::ActivateLastUsedTab`, active
   Workspace of the window only). A key Chromium's own accelerator table
   already registers for the view is never registered or unregistered by the

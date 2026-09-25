@@ -58,7 +58,7 @@ TEST_F(KeyboardShortcutsTest, DefaultsKeepTodaysKeysAndAddLastUsedTab) {
   EXPECT_EQ("workspace.9",
             CommandForAccelerator({}, Key(ui::VKEY_9, kCtrl)));
   EXPECT_EQ(kSwitchToLastUsedTab,
-            CommandForAccelerator({}, Key(ui::VKEY_OEM_3, kCtrl)));
+            CommandForAccelerator({}, Key(ui::VKEY_TAB, kAlt)));
   // Chromium's own Control+Tab cycling stays outside the catalog.
   EXPECT_FALSE(CommandForAccelerator({}, Key(ui::VKEY_TAB, kCtrl)));
 }
@@ -72,7 +72,7 @@ TEST_F(KeyboardShortcutsTest, RebindUnbindAndReset) {
   Overrides overrides = ReadOverrides(prefs_);
   EXPECT_EQ(kSwitchToLastUsedTab, CommandForAccelerator(overrides, new_key));
   EXPECT_FALSE(
-      CommandForAccelerator(overrides, Key(ui::VKEY_OEM_3, kCtrl)));
+      CommandForAccelerator(overrides, Key(ui::VKEY_TAB, kAlt)));
 
   ASSERT_TRUE(Unbind(&prefs_, kSwitchToLastUsedTab));
   overrides = ReadOverrides(prefs_);
@@ -82,7 +82,7 @@ TEST_F(KeyboardShortcutsTest, RebindUnbindAndReset) {
   ASSERT_TRUE(ResetToDefault(&prefs_, kSwitchToLastUsedTab));
   EXPECT_EQ(kSwitchToLastUsedTab,
             CommandForAccelerator(ReadOverrides(prefs_),
-                                  Key(ui::VKEY_OEM_3, kCtrl)));
+                                  Key(ui::VKEY_TAB, kAlt)));
 }
 
 TEST_F(KeyboardShortcutsTest, ConflictsAreReportedAndNeverOverwritten) {

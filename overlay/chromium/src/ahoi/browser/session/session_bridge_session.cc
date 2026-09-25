@@ -15,6 +15,7 @@
 #include "ahoi/browser/session/workspace_session_metadata.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
+#include "base/logging.h"
 #include "base/task/sequenced_task_runner.h"
 #include "chrome/browser/sessions/session_service.h"
 #include "chrome/browser/sessions/session_service_factory.h"
@@ -453,6 +454,9 @@ bool SessionBridge::ActivateLastUsedTab(BrowserWindowInterface* browser) {
   TabStripModel* model = browser->GetTabStripModel();
   if (window == windows_.end() || !workspace || !model ||
       window->second.tab_strip_model != model) {
+    VLOG(1) << "Ahoi last-used tab: window not tracked (window="
+            << (window != windows_.end()) << " workspace=" << workspace.has_value()
+            << ")";
     return false;
   }
   // Tabs of this window in its active Workspace; everything else (other
@@ -471,6 +475,8 @@ bool SessionBridge::ActivateLastUsedTab(BrowserWindowInterface* browser) {
   const std::optional<int32_t> target = window->second.mru.LastUsedBefore(
       current ? current->GetHandle().raw_value() : 0,
       [&eligible](int32_t id) { return eligible.contains(id); });
+  VLOG(1) << "Ahoi last-used tab: mru=" << window->second.mru.size()
+          << " eligible=" << eligible.size() << " target=" << target.has_value();
   if (!target) {
     return false;
   }

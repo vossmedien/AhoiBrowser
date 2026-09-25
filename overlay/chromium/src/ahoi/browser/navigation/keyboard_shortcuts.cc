@@ -59,12 +59,13 @@ std::vector<ShortcutCommand> BuildCatalog() {
                             u"Quick Window öffnen", u"Open Quick Window",
                             {Key(ui::VKEY_SPACE, kAlt)},
                             /*rebindable=*/false));
-  // New in the catalog: the key is free in Chromium and macOS, and it sits
-  // next to Tab, whose Control combination cycles tabs in order.
+  // New in the catalog. Option+Tab is layout independent (the key left of 1
+  // is "^" on German keyboards), types no character, is free in Chromium and
+  // macOS, and sits next to Control+Tab, which cycles tabs in order.
   catalog.push_back(Command(kSwitchToLastUsedTab, ShortcutCategory::kTab,
                             u"Zum zuletzt benutzten Tab",
                             u"Switch to the last used tab",
-                            {Key(ui::VKEY_OEM_3, kCtrl)}));
+                            {Key(ui::VKEY_TAB, kAlt)}));
   catalog.push_back(Command(kSaveTab, ShortcutCategory::kTab,
                             u"Tab speichern", u"Save tab",
                             {Key(ui::VKEY_D, kCmd)}, /*rebindable=*/false));
@@ -167,10 +168,28 @@ bool IsValid(const ui::Accelerator& accelerator) {
   if (modifiers & (ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN)) {
     return true;
   }
-  // Option alone (with or without Shift) types characters on macOS; only
-  // function keys and Space stay free of that.
+  // Option alone (with or without Shift) types characters on macOS with
+  // printable keys; function, editing and navigation keys stay free of that.
   if (modifiers & ui::EF_ALT_DOWN) {
-    return IsFunctionKey(key) || key == ui::VKEY_SPACE;
+    switch (key) {
+      case ui::VKEY_SPACE:
+      case ui::VKEY_TAB:
+      case ui::VKEY_ESCAPE:
+      case ui::VKEY_RETURN:
+      case ui::VKEY_BACK:
+      case ui::VKEY_DELETE:
+      case ui::VKEY_LEFT:
+      case ui::VKEY_RIGHT:
+      case ui::VKEY_UP:
+      case ui::VKEY_DOWN:
+      case ui::VKEY_HOME:
+      case ui::VKEY_END:
+      case ui::VKEY_PRIOR:
+      case ui::VKEY_NEXT:
+        return true;
+      default:
+        return IsFunctionKey(key);
+    }
   }
   return IsFunctionKey(key);
 }

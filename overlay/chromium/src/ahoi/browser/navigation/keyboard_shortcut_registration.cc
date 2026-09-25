@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "base/functional/bind.h"
+#include "base/logging.h"
 #include "components/prefs/pref_service.h"
 
 namespace ahoi::shortcuts {
@@ -47,11 +48,13 @@ void ShortcutRegistration::Refresh() {
   }
   for (const ui::Accelerator& accelerator : registered_) {
     if (!std::ranges::contains(wanted, accelerator)) {
+      VLOG(1) << "Ahoi shortcut unregistered: " << Serialize(accelerator);
       apply_.Run(accelerator, false);
     }
   }
   for (const ui::Accelerator& accelerator : wanted) {
     if (!std::ranges::contains(registered_, accelerator)) {
+      VLOG(1) << "Ahoi shortcut registered: " << Serialize(accelerator);
       apply_.Run(accelerator, true);
     }
   }
