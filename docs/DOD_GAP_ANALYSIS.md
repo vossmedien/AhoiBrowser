@@ -59,7 +59,7 @@ Status: **P** = teilweise (PARTIAL), **O** = offen (OPEN), **OG** = beim Owner (
 | Archiv | P | siehe 28 | M |
 | Link-Peek (Desktop) | O | Kein Code | Implementieren plus E2E, L |
 | Tastenkürzel/MRU | O | Nur `config/shortcuts.json` und Chromium-Pref `kCtrlTabMru` | Katalog, Umbelegung, MRU, L |
-| Reader/Markdown (Desktop) | O | Nur Strings (`0043`) | Implementieren plus E2E, M |
+| Reader/Markdown (Desktop) | P | Code vorhanden (`362e338`, `69ee9f5`: Chromium-Lesemodus als Overlay, Link/Markdown-Link kopieren, Command-Bar-Einträge); Titel-Bereinigung und Inkognito-Clipboard `WORKFLOW-07`-Nachbesserung | installierte WORKFLOW-07-Journey, S |
 | Gespeicherte Ausgangsadresse | P | Desktop nur Unit-Tests; iOS-Journey rot | Desktop-E2E und iOS-Fix, S–M |
 | Workspace-Routing | P | Kern `0057` mit Unit-Tests | Editor bauen, WORKFLOW-01, M |
 | Quick Window | P | Nur M152; Profil-Fallback bei isolierten Workspaces | QUICK-Journeys, ADR-0011-Schritt 2, M |
@@ -94,7 +94,7 @@ Status: **P** = teilweise (PARTIAL), **O** = offen (OPEN), **OG** = beim Owner (
 | 15 | Auto-Archiv komplett (endgültiges Löschen, Restore ohne Elternordner) plus lokales Desktop-Paar mit zwei Profilen für Split-/Archiv-Sync | 28 | M | ja |
 | 16 | Neu implementieren: Desktop-Peek | 27 | L | ja |
 | 17 | Neu implementieren: Tastenkürzel-Katalog plus MRU | 27 | L | ja |
-| 18 | Neu implementieren: Desktop-Reader plus Markdown-Kopie; Aufgabenhilfe und Zustände | 27 | M | ja |
+| 18 | Desktop-Reader/Markdown-Link abnehmen (Code existiert); Aufgabenhilfe und Zustände | 27 | S–M | ja |
 | 19 | Portabilität fertig: Kollisionswahl, Rollback, Auswahl-Commit; Import-Zielvorschau (WORKFLOW-06) | 27 | M | ja |
 | 20 | Arc-Import auf M153 wiederholen (Snapshot, Rollback, Idempotenz, redigierter Bericht); Zen-Fixture-Import | 22 | M | ja |
 | 21 | Developer Toolkit (DEV, 29 Fälle) | 10 | L | ja |
@@ -113,4 +113,4 @@ Beim Owner bleiben (OWNER-GATED), laut Tabelle oben in `docs/ACTIVE_DESKTOP_CHEC
 - Bildschirmaufnahme-Freigabe; bis dahin nur Accessibility- und DevTools-Evidenz, keine Bilder
 - jede Veröffentlichung
 
-Die Pakete 16–18 enthalten fehlenden Produktcode (Peek, Kürzel/MRU, Reader auf Desktop), keine bloße Abnahme. Sie bestimmen, wann DoD 27 überhaupt schließbar ist.
+Die Pakete 16–17 enthalten fehlenden Produktcode (Peek, Kürzel/MRU; der Desktop-Reader existiert bereits), keine bloße Abnahme. Sie bestimmen, wann DoD 27 überhaupt schließbar ist.
