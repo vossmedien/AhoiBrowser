@@ -120,6 +120,15 @@ BEFORE=$(visible); echo "before quit: $BEFORE" >> "$OUT/steps.txt"
 all_ok=true
 for n in $(seq 1 $RESTARTS); do
   quit; sleep 2
+  # 040 is about the restored surface, not the startup choice: continue the
+  # last session (the default "ask" showed neither a choice nor a restore on
+  # build 32). The profile is closed, so its Preferences can be edited.
+  [ $n = 1 ] && python3 - "$P/Default/Preferences" <<'PY2'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p))
+d.setdefault("ahoi", {}).setdefault("session", {})["startup_mode"] = "continue"
+json.dump(d, open(p, "w"))
+PY2
   # Start without a URL so session restore alone decides the surface.
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
     --remote-debugging-port=$PORT --enable-logging=stderr \
