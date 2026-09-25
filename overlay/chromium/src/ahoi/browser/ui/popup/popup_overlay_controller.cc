@@ -65,6 +65,28 @@ std::u16string FallbackNotice(popup::PopupFallbackReason reason) {
   return l10n_util::GetStringUTF16(IDS_AHOI_POPUP_FALLBACK_SEPARATE_WINDOW);
 }
 
+// Handoff 011 S7: a promoted popup keeps the opener's website session, so it
+// must join the opener's Workspace. Selecting that Workspace before the
+// insertion lets SessionBridge bind the new tab to it, instead of to whichever
+// Workspace the window shows by then.
+void SelectOpenerWorkspace(Browser* browser, content::WebContents* opener) {
+  SessionBridge* const bridge =
+      browser ? SessionBridgeFactory::GetForProfile(browser->GetProfile())
+              : nullptr;
+  tabs::TabInterface* const opener_tab =
+      opener ? tabs::TabInterface::MaybeGetFromContents(opener) : nullptr;
+  if (!bridge || !opener_tab) {
+    return;
+  }
+  const std::optional<base::Uuid> workspace =
+      bridge->GetWorkspaceForTab(opener_tab);
+  if (workspace.has_value() &&
+      workspace != bridge->GetActiveWorkspaceForWindow(browser)) {
+    bridge->SetActiveWorkspaceForWindow(
+        browser, *workspace, WorkspaceActivationSource::kDataReconciliation);
+  }
+}
+
 }  // namespace
 
 PopupOverlayController::PopupOverlayController(Browser* browser,
@@ -321,6 +343,7 @@ void PopupOverlayController::PromotePopupToTab() {
     return;
   }
   content::WebContents* const popup = service_.popup_contents();
+  SelectOpenerWorkspace(browser_, service_.opener());
   std::unique_ptr<content::WebContents> contents =
       service_.ReleaseForTransfer();
   if (!contents) {
@@ -347,6 +370,7 @@ void PopupOverlayController::SplitPopupWithOpener() {
   }
 
   TabStripModel* const model = browser_->GetTabStripModel();
+  SelectOpenerWorkspace(browser_, service_.opener());
   base::WeakPtr<content::WebContents> opener = service_.opener()->GetWeakPtr();
   content::WebContents* const popup = service_.popup_contents();
   std::unique_ptr<content::WebContents> contents =

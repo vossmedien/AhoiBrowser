@@ -5,6 +5,8 @@
 #include <utility>
 
 #include "ahoi/browser/command_bar/quick_window.h"
+#include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/session_bridge_factory.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
@@ -18,6 +20,8 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/web_contents.h"
+#include "ui/base/window_open_disposition.h"
 #include "ui/base/base_window.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "url/gurl.h"
@@ -110,6 +114,36 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
   }
 
   TabStripModel* const source_model = popup_browser->GetTabStripModel();
+
+  // Handoff 011 S7 and ADR 0011: a Quick Window page runs in the Profile's
+  // shared website session. Moving that WebContents into a Workspace with its
+  // own website sessions would mix two accounts, so the page is reopened
+  // there instead and loads in that Workspace's own session.
+  SessionBridge* const bridge =
+      SessionBridgeFactory::GetForProfile(target->GetProfile());
+  const std::optional<base::Uuid> target_workspace =
+      bridge ? bridge->GetActiveWorkspaceForWindow(target) : std::nullopt;
+  if (target_workspace.has_value() &&
+      bridge->HasOwnWebsiteSessions(*target_workspace)) {
+    content::WebContents* const contents =
+        source_model->GetActiveWebContents();
+    const GURL url = contents ? contents->GetLastCommittedURL() : GURL();
+    if (!url.is_valid() || url.IsAboutBlank()) {
+      if (created_target && target->GetWindow()) {
+        target->GetWindow()->Close();
+      }
+      return false;
+    }
+    target->OpenGURL(url, WindowOpenDisposition::NEW_FOREGROUND_TAB);
+    if (target->GetWindow()) {
+      target->GetWindow()->Show();
+      target->GetWindow()->Activate();
+    }
+    source_model->CloseWebContentsAt(source_model->active_index(),
+                                     TabCloseTypes::CLOSE_USER_GESTURE);
+    return true;
+  }
+
   std::unique_ptr<tabs::TabModel> tab =
       source_model->DetachTabAtForInsertion(source_model->active_index());
   if (!tab) {

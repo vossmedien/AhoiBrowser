@@ -5,6 +5,8 @@
 
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/session/session_prefs.h"
+#include "base/test/scoped_feature_list.h"
 #include "base/run_loop.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
@@ -122,6 +124,55 @@ IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
   EXPECT_EQ(moved_tab, bridge->FindTabByWebContents(moved_contents));
   EXPECT_EQ(normal_tabs, bridge->FindTabStripModelForTab(moved_tab));
   EXPECT_EQ(original_tracked_tabs + 1, bridge->tracked_tab_count());
+}
+
+class QuickWindowWebsiteSessionBrowserTest : public InProcessBrowserTest {
+ public:
+  QuickWindowWebsiteSessionBrowserTest() {
+    features_.InitAndEnableFeature(session::kAhoiWorkspaceWebsiteSessions);
+  }
+
+ private:
+  base::test::ScopedFeatureList features_;
+};
+
+// Handoff 011 S7: a shared-session Quick Window page is reopened, not moved,
+// when the target window shows a Workspace with its own website sessions.
+IN_PROC_BROWSER_TEST_F(QuickWindowWebsiteSessionBrowserTest,
+                       ReopensInsteadOfMovingIntoOwnWebsiteSessionWorkspace) {
+  Profile* const profile = browser()->GetProfile();
+  SessionBridge* const bridge = SessionBridgeFactory::GetForProfile(profile);
+  ASSERT_TRUE(bridge);
+  base::RunLoop bridge_ready;
+  bridge->RunWhenReadyForTesting(bridge_ready.QuitClosure());
+  bridge_ready.Run();
+  const std::optional<base::Uuid> own_sessions =
+      bridge->CreateWorkspace(u"Kunde", u"K", std::nullopt,
+                              /*own_website_sessions=*/true);
+  ASSERT_TRUE(own_sessions.has_value());
+  ASSERT_TRUE(bridge->HasOwnWebsiteSessions(*own_sessions));
+  ASSERT_TRUE(bridge->SetActiveWorkspaceForWindow(
+      browser(), *own_sessions, WorkspaceActivationSource::kKeyboard));
+
+  Browser* const quick_browser =
+      CreateAndShowQuickWindow(profile, browser()->GetWindow()->GetBounds());
+  ASSERT_TRUE(quick_browser);
+  const GURL url("data:text/html,<title>Reopen</title>reopen-state");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(quick_browser, url));
+  content::WebContents* const quick_contents =
+      quick_browser->GetTabStripModel()->GetActiveWebContents();
+
+  ui_test_utils::BrowserDestroyedObserver popup_closed(quick_browser);
+  ASSERT_TRUE(MoveActiveTabToNormalWindow(quick_browser));
+  popup_closed.Wait();
+
+  TabStripModel* const normal_tabs = browser()->GetTabStripModel();
+  content::WebContents* const reopened = normal_tabs->GetActiveWebContents();
+  ASSERT_TRUE(reopened);
+  EXPECT_NE(quick_contents, reopened);
+  EXPECT_EQ(url, reopened->GetVisibleURL());
+  tabs::TabInterface* const tab = normal_tabs->GetActiveTab();
+  EXPECT_EQ(bridge->GetWorkspaceForTab(tab), *own_sessions);
 }
 
 }  // namespace
