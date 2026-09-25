@@ -2,6 +2,20 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Separated Workspaces: retire only for the known owner (crest 056) — 26 September 2026
+
+ADR 0011 step 3 on iOS was already implemented (`fd6c3b2`, `9347aae`,
+`57b6ee1`): per-Workspace zones byte-equal to the desktop header, discovery,
+`WKWebsiteDataStore(forIdentifier:)` per Workspace UUID, idempotent store
+removal and account binding. Review 026 found two paths that could still
+delete a separated Workspace's logins without a confirmed matching account.
+Handoff 056 (`a007aa3`) closes them: a zone missing from a successful listing
+retires the Workspace only when the listing's account and the recorded owner
+are known and equal; an unknown account changes nothing, an unknown or
+different owner pauses. `SeparatedWorkspaceSyncTests` passed 20/0 on
+simulator A168 (DebugLocal). WS-ISO-21/22 need real CloudKit and stay with
+the owner.
+
 ## Home-Address journey: harness input under extreme host load — 25 September 2026
 
 The real HTTPS Home-Address journey (`testSavedPageHomeAddressHelpReturnAndRestore`)
