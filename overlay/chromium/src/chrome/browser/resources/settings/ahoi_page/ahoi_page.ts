@@ -511,7 +511,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
-  protected get filteredShortcuts_(): ShortcutCommandItem[] {
+  protected filteredShortcuts_(): ShortcutCommandItem[] {
     const query = this.shortcutQuery_.trim().toLocaleLowerCase();
     const commands = this.shortcuts_?.commands || [];
     if (!query) {

@@ -372,9 +372,9 @@ export function getHtml(this: SettingsAhoiPageElement) {
             spellcheck="false" autocomplete="off"
             @input="${this.onShortcutSearchInput_}">
         <div id="ahoiShortcutList" class="shortcut-list" role="list">
-          ${this.filteredShortcuts_.length ? '' : html`
+          ${this.filteredShortcuts_().length ? '' : html`
             <div class="secondary">${this.shortcuts_?.labels.noMatch || ''}</div>`}
-          ${this.filteredShortcuts_.map(command => html`
+          ${this.filteredShortcuts_().map(command => html`
             <div class="shortcut-row" role="listitem"
                 data-command-id="${command.id}">
               <div class="shortcut-name">
