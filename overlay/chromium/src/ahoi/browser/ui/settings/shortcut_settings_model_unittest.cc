@@ -68,9 +68,11 @@ TEST_F(ShortcutSettingsModelTest, SetUnbindResetAndConflictMessages) {
   set.Set("cmd", true);
   set.Set("alt", true);
   EXPECT_TRUE(ApplyShortcutAction(&prefs_, "set", set, {}).error.empty());
-  const base::DictValue* item = FindCommand(
-      BuildShortcutState(shortcuts::ReadOverrides(prefs_), true),
-      shortcuts::kSwitchToLastUsedTab);
+  const base::DictValue state =
+      BuildShortcutState(shortcuts::ReadOverrides(prefs_), true);
+  const base::DictValue* item =
+      FindCommand(state, shortcuts::kSwitchToLastUsedTab);
+  ASSERT_TRUE(item);
   EXPECT_EQ("⌥⌘K", (*item->FindList("keys"))[0].GetString());
   EXPECT_TRUE(*item->FindBool("customized"));
 
