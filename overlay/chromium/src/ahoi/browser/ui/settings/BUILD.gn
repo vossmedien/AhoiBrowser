@@ -19,6 +19,24 @@ source_set("link_routing_settings_model") {
   ]
 }
 
+# Pure WebUI model of the keyboard shortcut editor.
+source_set("shortcut_settings_model") {
+  sources = [
+    "shortcut_settings_model.cc",
+    "shortcut_settings_model.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/navigation:keyboard_shortcuts",
+    "//base",
+    "//ui/base",
+  ]
+  deps = [
+    "//base:i18n",
+    "//components/prefs",
+    "//ui/events",
+  ]
+}
+
 if (is_mac) {
   source_set("settings_handler") {
     sources = [
@@ -26,9 +44,11 @@ if (is_mac) {
       "ahoi_settings_handler.h",
       "ahoi_settings_link_routing.cc",
       "ahoi_settings_portability.cc",
+      "ahoi_settings_shortcuts.cc",
     ]
     public_deps = [
       ":link_routing_settings_model",
+      ":shortcut_settings_model",
       "//ahoi/browser/session:session_bridge_api",
       "//ahoi/browser/session:workspace_portability",
       "//ahoi/browser/sync:profile_sync_service",
@@ -69,10 +89,14 @@ if (!is_android) {
     sources = [
       "link_routing_settings_model_unittest.cc",
       "settings_private_prefs_unittest.cc",
+      "shortcut_settings_model_unittest.cc",
     ]
 
     deps = [
       ":link_routing_settings_model",
+      ":shortcut_settings_model",
+      "//components/sync_preferences:test_support",
+      "//ui/events",
       "//ahoi/browser/developer_toolkit:developer_toolkit_preferences",
       "//ahoi/browser/session:session_preferences",
       "//ahoi/browser/sync:profile_sync_preferences",

@@ -313,3 +313,41 @@ cr-view-manager [hidden-by-search] {
   color: var(--cr-fallback-color-error, var(--google-red-600));
   margin-top: 10px;
 }
+
+.shortcut-search {
+  box-sizing: border-box;
+  margin-block-end: 10px;
+  width: 100%;
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-block-end: 12px;
+}
+
+.shortcut-row {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr auto auto auto;
+}
+
+.shortcut-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.shortcut-keys {
+  font-variant-numeric: tabular-nums;
+  min-width: 96px;
+}
+
+.shortcut-keys.recording {
+  outline: 2px solid var(--cr-focus-outline-color);
+}
+
+.shortcut-error {
+  grid-column: 1 / -1;
+}

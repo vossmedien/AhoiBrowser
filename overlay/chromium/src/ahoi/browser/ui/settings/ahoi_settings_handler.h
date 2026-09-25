@@ -99,6 +99,14 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   void HandleLinkRoutingAction(const base::ListValue& args);
   void HandleResolveLinkRoutingExample(const base::ListValue& args);
 
+  // Keyboard shortcut editor (ahoi_settings_shortcuts.cc). Bindings live in
+  // this page's Profile.
+  base::DictValue BuildShortcutStatus(std::string_view action,
+                                      std::string_view error_label) const;
+  void PushShortcutStatus();
+  void HandleGetShortcuts(const base::ListValue& args);
+  void HandleShortcutAction(const base::ListValue& args);
+
   enum class PortableDialogPurpose { kNone, kExportSave, kImportOpen };
 
   raw_ptr<Profile> profile_ = nullptr;
@@ -118,6 +126,8 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   // Observes the routing pref when this page's Profile is the main Profile,
   // so a "Für diese Website merken" choice appears without a reload.
   PrefChangeRegistrar link_routing_pref_registrar_;
+  // Shows a binding changed in another settings tab without a reload.
+  PrefChangeRegistrar shortcut_pref_registrar_;
   base::WeakPtrFactory<AhoiSettingsHandler> weak_factory_{this};
 };
 

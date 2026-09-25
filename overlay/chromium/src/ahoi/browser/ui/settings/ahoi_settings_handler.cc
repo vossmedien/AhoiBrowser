@@ -201,6 +201,14 @@ void AhoiSettingsHandler::RegisterMessages() {
       base::BindRepeating(
           &AhoiSettingsHandler::HandleResolveLinkRoutingExample,
           base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiGetShortcuts",
+      base::BindRepeating(&AhoiSettingsHandler::HandleGetShortcuts,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiShortcutAction",
+      base::BindRepeating(&AhoiSettingsHandler::HandleShortcutAction,
+                          base::Unretained(this)));
 }
 
 void AhoiSettingsHandler::OnAhoiDeviceTabsChanged(
