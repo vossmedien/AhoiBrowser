@@ -107,8 +107,11 @@ Cookie-Verwaltung, Credential-Kopie oder nachträgliche Kontext-Umetikettierung.
 
 History, Passwortspeicher, installierte/aktivierte Erweiterungen und deren
 eigener Storage bleiben global. Erweiterungs-Action-Pins und Darstellung können
-Workspace-bezogen sein. Site-Berechtigungen sollen im lokalen Sitzungskontext
-gelten, ohne automatische Übernahme einer Freigabe aus einem anderen Kontext.
+Workspace-bezogen sein. Site-Berechtigungen und die Cookie-Schnittstelle für
+Erweiterungen bleiben in dieser Stufe profilweit gemeinsam und werden in der
+Oberfläche so benannt; vollständige Trennung liefert die Stufe `Vollständig
+getrennt` nach ADR 0011. Eigene Chromium-Eingriffe für getrennte Berechtigungen
+je Partition sind eine offen gehaltene spätere Option und nicht beauftragt.
 Getrennte History-Silos sind nicht beauftragt; eine mögliche spätere Filteransicht
 rechtfertigt keine zweite Datenhaltung. Das ist Account-/Sitzungstrennung, kein
 Inkognito-Modus und keine Benutzer-Sicherheitsgrenze gegenüber globalen Extensions.
@@ -861,7 +864,7 @@ Accessibility und Lokalisierung:
 ### Workspaces
 
 - Workspaces können dieselbe Website in getrennten, persistenten lokalen Website-Sitzungen verwenden. Cookies, Site Storage, Worker und laufender Auth-Kontext dürfen nicht zwischen diesen Sitzungen vermischt werden.
-- Verlauf, Passwortspeicher, installierte/aktivierte Extensions und der Downloadmanager bleiben global; Action-Pins können je Workspace variieren. Site-Berechtigungsfreigaben gelten lokal im zugehörigen Sitzungskontext.
+- Verlauf, Passwortspeicher, installierte/aktivierte Extensions und der Downloadmanager bleiben global; Action-Pins können je Workspace variieren. Site-Berechtigungsfreigaben gelten bei `Eigene Website-Sitzungen` profilweit und bei `Vollständig getrennt` je Profil (ADR 0011).
 - Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Akzent sind Workspace-bezogen.
 - Wechsel über Sidebar, Tastatur und horizontale Zwei-Finger-/Magic-Mouse-Geste innerhalb der Sidebar.
 - Richtung, Empfindlichkeit und Deaktivierung der Geste sind konfigurierbar.

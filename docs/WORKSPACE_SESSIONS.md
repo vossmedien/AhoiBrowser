@@ -17,7 +17,8 @@ no-cookie-sync or native-engine boundaries.
 | Extension installation, enablement and extension-owned storage | Global; not duplicated for each workspace | No raw extension storage; pins alone cannot install software or grant permissions |
 | Transferable browser/extension settings and desired extension setup | Global by default; explicitly scoped workspace presentation overrides only | ADR 0010: supported native user preferences, trusted restore flow and positively reviewed extension-ID/key/value schemas |
 | Extension action pins/order, workspace name/icon/accent | Workspace presentation | Suitable metadata; exact fields/category owned by Sync |
-| Site permission decisions | Local session/origin context; native authority | Never; no inherited remote or other-context grant |
+| Site permission decisions | Profile-wide in this level (shared with other Workspaces, disclosed in UI); separate only in level `isolated` (ADR 0011) | Never |
+| Extension `chrome.cookies` API | Profile-wide default partition in this level; not scoped per Workspace | Never |
 | Downloads | Global manager; any later preferred directory is device-local | No filesystem paths |
 
 This separates website accounts, not users of the Mac. Global history/password
@@ -98,9 +99,10 @@ another Workspace, not only a new-partition prompt test. Likewise, the M153
 `chrome.cookies` store IDs select a Profile and
 `ParseStoreCookieManager()` then returns its default partition; the cookie
 event router also listens at Profile scope. No isolated-Workspace cookie
-store is exposed by that API yet. The development flag must remain off by
-default until these surfaces preserve both per-context isolation and global
-extension installation/authority.
+store is exposed by that API yet. The development flag may be enabled once
+handoff 003 (deletion) is accepted and the UI discloses that permissions and
+extensions are shared. Per-partition permission and `chrome.cookies` scoping is
+a later option (ADR 0011).
 
 ## Sync coordination
 
