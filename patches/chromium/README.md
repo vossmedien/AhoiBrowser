@@ -1200,6 +1200,29 @@ as a second active patch stack.
   `LoadAccelerators`, `AcceleratorPressed` and the split handler, so its
   context follows 0001 and 0026's fallthrough priority.
 
+## `0059-ahoi-link-peek-context-menu.patch`
+
+- **Owner:** Desktop. Adds `IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK` (50119, in
+  the free range after `OPENLINK_ISOLATED`) and one link item in
+  `RenderViewContextMenu`, right after "Open link in new window": "Link in
+  Vorschau öffnen" / "Open link in preview". Enabling and execution call the
+  overlay hook `ahoi/browser/popup:link_peek` (one GN dependency), which asks
+  the window's `PopupOverlayController` to show the link.
+- **Safety:** shown only where "Open link in new tab" is allowed and the
+  overlay can host the page (a normal window of the same Profile whose
+  visible pane shows it, no other overlay open), and only for http/https.
+  The preview is a real WebContents in the opener's StoragePartition, so it
+  stays in the Workspace's website session; it follows the popup overlay's
+  contract (Escape, focus, before-unload, sensitive-flow fallback to a
+  window) and enters the tab tree, session restore or sync only when the
+  user promotes it to a tab or split. The label is chosen at run time by
+  locale, so no grd/xtb change is needed.
+- **Tests:** guarded build, then the WORKFLOW-02 Peek journey (open, close
+  keeps the page, promote to tab and to split without reload, same login)
+  on the exact candidate.
+- **Rebase/removal:** low; three local hunks and one GN line next to
+  upstream's link items.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

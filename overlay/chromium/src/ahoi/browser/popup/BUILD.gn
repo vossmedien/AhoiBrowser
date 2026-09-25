@@ -20,6 +20,19 @@ source_set("popup") {
   ]
 }
 
+# Context-menu entry point of Link-Peek; no browser window dependencies.
+source_set("link_peek") {
+  sources = [
+    "link_peek.cc",
+    "link_peek.h",
+  ]
+  public_deps = [ "//base" ]
+  deps = [
+    "//base:i18n",
+    "//url",
+  ]
+}
+
 source_set("unit_tests") {
   testonly = true
   sources = [

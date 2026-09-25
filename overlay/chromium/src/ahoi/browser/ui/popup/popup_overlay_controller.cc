@@ -24,7 +24,15 @@
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_collection.h"
 #include "components/tabs/public/split_tab_data.h"
+#include "content/public/browser/browser_context.h"
+#include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/site_instance.h"
+#include "content/public/browser/storage_partition.h"
+#include "content/public/browser/storage_partition_config.h"
 #include "content/public/browser/web_contents.h"
+#include "content/public/common/referrer.h"
+#include "services/network/public/mojom/referrer_policy.mojom-shared.h"
 #include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/page_transition_types.h"
@@ -65,9 +73,11 @@ PopupOverlayController::PopupOverlayController(Browser* browser,
   CHECK(browser_);
   CHECK(contents_host_);
   contents_host_observation_.Observe(contents_host_);
+  popup::AddLinkPeekHost(this);
 }
 
 PopupOverlayController::~PopupOverlayController() {
+  popup::RemoveLinkPeekHost(this);
   weak_ptr_factory_.InvalidateWeakPtrs();
   opener_pane_observation_.Reset();
   contents_host_observation_.Reset();
@@ -82,6 +92,18 @@ PopupOverlayController::~PopupOverlayController() {
   contents_host_ = nullptr;
 }
 
+bool PopupOverlayController::CanHostFor(content::WebContents* opener) const {
+  if (!browser_ || browser_->GetType() != BrowserWindowInterface::TYPE_NORMAL ||
+      !opener || IsShowing() || popup_view_ || !contents_host_ ||
+      !contents_host_->GetWidget() ||
+      opener->GetBrowserContext() != browser_->GetProfile()) {
+    return false;
+  }
+  // A background or detached opener has no pane to cover without creating a
+  // misleading window-wide overlay. Keep it on Chromium's native path.
+  return opener_pane_provider_ && opener_pane_provider_.Run(opener);
+}
+
 bool PopupOverlayController::TryShow(
     content::WebContents* opener,
     std::unique_ptr<content::WebContents>* popup_contents,
@@ -89,24 +111,66 @@ bool PopupOverlayController::TryShow(
     WindowOpenDisposition disposition,
     const blink::mojom::WindowFeatures& window_features,
     bool user_gesture) {
-  if (!browser_ || browser_->GetType() != BrowserWindowInterface::TYPE_NORMAL ||
-      !opener || !popup_contents || !*popup_contents || !user_gesture ||
-      IsShowing() || popup_view_ || !contents_host_ ||
-      !contents_host_->GetWidget() ||
-      opener->GetBrowserContext() != (*popup_contents)->GetBrowserContext() ||
-      opener->GetBrowserContext() != browser_->GetProfile()) {
-    return false;
-  }
-  if (!opener_pane_provider_ || !opener_pane_provider_.Run(opener)) {
-    // A background or detached opener has no pane to cover without creating a
-    // misleading window-wide overlay. Keep it on Chromium's native path.
+  if (!popup_contents || !*popup_contents || !user_gesture ||
+      !CanHostFor(opener) ||
+      opener->GetBrowserContext() != (*popup_contents)->GetBrowserContext()) {
     return false;
   }
   if (!popup::IsOverlayEligible(popup::ClassifyPopupForOverlay(
           target_url, disposition, window_features))) {
     return false;
   }
+  return AdoptAndShow(opener, popup_contents, window_features, user_gesture);
+}
 
+bool PopupOverlayController::CanPeek(content::WebContents* opener,
+                                     const GURL& url) {
+  return popup::IsPeekableUrl(url) && CanHostFor(opener);
+}
+
+bool PopupOverlayController::ShowPeek(content::WebContents* opener,
+                                      const GURL& url) {
+  if (!CanPeek(opener, url) || !opener->GetPrimaryMainFrame()) {
+    return false;
+  }
+  // The preview stays in the opener's website session (ADR 0011), so it
+  // sees the same logins and never another Workspace's cookies.
+  content::BrowserContext* context = opener->GetBrowserContext();
+  content::StoragePartition* partition = context->GetStoragePartition(
+      opener->GetPrimaryMainFrame()->GetSiteInstance());
+  if (!partition) {
+    return false;
+  }
+  const content::StoragePartitionConfig& config = partition->GetConfig();
+  content::WebContents::CreateParams params(
+      context, config.is_default()
+                   ? content::SiteInstance::CreateForURL(context, url)
+                   : content::SiteInstance::CreateForFixedStoragePartition(
+                         context, url, config));
+  std::unique_ptr<content::WebContents> contents =
+      content::WebContents::Create(params);
+  content::WebContents* peek = contents.get();
+  if (!AdoptAndShow(opener, &contents, blink::mojom::WindowFeatures(),
+                    /*user_gesture=*/true)) {
+    return false;
+  }
+  content::NavigationController::LoadURLParams load(url);
+  load.transition_type = ui::PAGE_TRANSITION_LINK;
+  load.initiator_origin =
+      opener->GetPrimaryMainFrame()->GetLastCommittedOrigin();
+  load.referrer = content::Referrer::SanitizeForRequest(
+      url, content::Referrer(opener->GetLastCommittedURL(),
+                             network::mojom::ReferrerPolicy::
+                                 kStrictOriginWhenCrossOrigin));
+  peek->GetController().LoadURLWithParams(load);
+  return true;
+}
+
+bool PopupOverlayController::AdoptAndShow(
+    content::WebContents* opener,
+    std::unique_ptr<content::WebContents>* popup_contents,
+    const blink::mojom::WindowFeatures& window_features,
+    bool user_gesture) {
   // A detached popup has no TabModel yet. Browser attaches Chromium's
   // idempotent tab helpers and all delegate-side observers explicitly; the
   // matching teardown happens synchronously before every ownership transfer.

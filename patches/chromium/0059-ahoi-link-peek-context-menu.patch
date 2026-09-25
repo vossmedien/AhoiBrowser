@@ -1,0 +1,74 @@
+diff --git a/chrome/app/chrome_command_ids.h b/chrome/app/chrome_command_ids.h
+index b66c6ed..2c89bec 100644
+--- a/chrome/app/chrome_command_ids.h
++++ b/chrome/app/chrome_command_ids.h
+@@ -331,6 +331,7 @@
+ #define IDC_CONTENT_CONTEXT_OPENLINKSPLITVIEW 50111
+ #define IDC_CONTENT_CONTEXT_ADD_LINK_TO_READING_LIST 50112
+ #define IDC_CONTENT_CONTEXT_OPENLINK_ISOLATED 50113
++#define IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK 50119
+ // Image items.
+ #define IDC_CONTENT_CONTEXT_SAVEIMAGEAS 50120
+ #define IDC_CONTENT_CONTEXT_COPYIMAGELOCATION 50121
+diff --git a/chrome/browser/renderer_context_menu/BUILD.gn b/chrome/browser/renderer_context_menu/BUILD.gn
+index e15704b..cadfee9 100644
+--- a/chrome/browser/renderer_context_menu/BUILD.gn
++++ b/chrome/browser/renderer_context_menu/BUILD.gn
+@@ -111,6 +111,7 @@ source_set("impl") {
+     ]
+ 
+     deps += [
++      "//ahoi/browser/popup:link_peek",
+       "//chrome/app:command_ids",
+       "//chrome/app:generated_resources",
+       "//chrome/browser:browser_features",
+diff --git a/chrome/browser/renderer_context_menu/render_view_context_menu.cc b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+index 835dd9a..f50da72 100644
+--- a/chrome/browser/renderer_context_menu/render_view_context_menu.cc
++++ b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+@@ -14,6 +14,7 @@
+ #include <string>
+ #include <utility>
+ 
++#include "ahoi/browser/popup/link_peek.h"
+ #include "base/check.h"
+ #include "base/command_line.h"
+ #include "base/containers/fixed_flat_map.h"
+@@ -1967,6 +1968,14 @@ void RenderViewContextMenu::AppendLinkItems() {
+                                   : kOpenInNewOldIcon);
+     }
+ 
++    // Ahoi Link-Peek: preview the link over this page in the window's popup
++    // overlay; offered only where that overlay can show it.
++    if (show_open_in_new_tab &&
++        ahoi::popup::CanPeekLink(source_web_contents_, params_.link_url)) {
++      menu_model_.AddItem(IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK,
++                          ahoi::popup::PeekLinkMenuLabel());
++    }
++
+ #if !BUILDFLAG(IS_ANDROID)
+     if (show_open_in_new_tab) {
+       // Opening a link in split view should also go through the same
+@@ -3446,6 +3455,11 @@ bool RenderViewContextMenu::IsCommandIdEnabled(int id) const {
+              params_.link_url.IsStandard() &&
+              IsOpenLinkAllowedByDlp(params_.link_url);
+ 
++    case IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK:
++      return navigation_allowed && IsOpenLinkAllowedByDlp(params_.link_url) &&
++             ahoi::popup::CanPeekLink(source_web_contents_,
++                                      params_.link_url);
++
+     case IDC_CONTENT_CONTEXT_COPYLINKLOCATION:
+       return params_.unfiltered_link_url.is_valid();
+ 
+@@ -3766,6 +3780,10 @@ void RenderViewContextMenu::ExecuteCommand(int id, int event_flags) {
+   }
+ 
+   switch (id) {
++    case IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK:
++      ahoi::popup::PeekLink(source_web_contents_, params_.link_url);
++      break;
++
+     case IDC_CONTENT_CONTEXT_OPENLINKNEWTAB: {
+       WindowOpenDisposition new_tab_disposition =
+           WindowOpenDisposition::NEW_BACKGROUND_TAB;

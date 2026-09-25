@@ -13,6 +13,7 @@ source_set("popup_overlay") {
 
   public_deps = [
     "//ahoi/browser/popup",
+    "//ahoi/browser/popup:link_peek",
     "//base",
     "//components/tabs:public",
     "//content/public/browser",
