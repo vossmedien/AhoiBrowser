@@ -25,7 +25,7 @@ Stille eines frischen Profils.
 
 ## Gesamtziel
 
-Setze die Pakete H1–H5 vollständig bis zu ihrer jeweiligen Definition of Done
+Setze die Pakete H1–H6 vollständig bis zu ihrer jeweiligen Definition of Done
 um. Arbeite dabei ausschließlich in der Lane `crest-hardening`. Alles, was
 fremden Besitz berührt, entsteht als geprüfte, anwendungsfertige Übergabe und
 wird vom jeweiligen Eigentümer in dessen nächstes geplantes Paket übernommen.
@@ -160,6 +160,31 @@ DoD: Review und Checkliste im Repository; GCM-Korrektur vom Desktop-Owner
 integriert und im Fresh-Profile-Netzwerkaudit des exakten Kandidaten ohne
 unerwartete Google-Endpunkte belegt.
 
+### H6 – Optional vollständig getrennte Workspaces (Vertrag)
+
+Nutzerauftrag vom 25. September 2026: Workspaces optional so vollständig wie
+Profile trennen. Entscheidung und Stufenmodell: [ADR 0011](../docs/decisions/0011-optional-isolated-workspace-profiles.md).
+Die Implementierung gehört dem Desktop-Owner (native Profile, UI, Session)
+und für Sync/Mobile den jeweiligen Eigentümern; diese Lane liefert Vertrag,
+Abnahmefälle und Prüfung.
+
+Umsetzen:
+
+1. Analyse und ADR 0011 (erledigt mit Anlage dieses Pakets).
+2. **Abnahmekatalog** `WS-ISO-*` für alle drei Stufen: Anlegen, Wechsel,
+   Neustart, Löschen mit Before-Unload und Datenentfernung, Routing, Quick
+   Window, Import/Export, Erweiterungen/Passwörter/Berechtigungen/Verlauf
+   getrennt, Speicherkosten geladener Profile, Sync-Namensraum; als
+   Registry-Übergabe an Desktop.
+3. **Übergabe des Lösch-Befunds** der Stufe `website-sessions`
+   (`SessionBridge::DeleteWorkspace` verschiebt Tabs samt isolierter
+   Partition in den Fallback) mit Testfällen.
+4. **Review** jeder Desktop-Implementierungsstufe gegen ADR 0011 als
+   Befundliste im Lane-Checkpoint.
+
+DoD: ADR, Katalog und Lösch-Befund übergeben; Reviews der vom Desktop-Owner
+gelieferten Stufen erfolgt. Die Produktabnahme selbst liegt beim Desktop-Owner.
+
 ## Parallelvertrag: kollisionsfreie Zusammenarbeit
 
 ### Lanes und Eigentum
@@ -182,8 +207,9 @@ unerwartete Google-Endpunkte belegt.
    `HANDOFF.md` (Zweck, Zielpfade, Anwendung, erwartete Tests, Risiken).
    Der Eigentümer übernimmt sie gebündelt in sein nächstes geplantes Paket;
    danach setzt er im Handoff den Status `integrated <commit>`.
-3. **Kein Build, keine Installation, kein Overlay-Refresh**, kein Zugriff auf
-   `.work/chromium/src` oder `out/AhoiDev`, kein Beenden fremder Prozesse.
+3. **Kein Build, keine Installation, kein Overlay-Refresh**, keine
+   Schreibzugriffe und keine Prozesse in `.work/chromium/src` oder
+   `out/AhoiDev` (nur lesende Quellanalyse), kein Beenden fremder Prozesse.
    Chromium-seitige Runner laufen ausschließlich im Paket des Desktop-Owners.
 4. **Geteilte Ressourcen nur per Lease**: `installed-app` (Start des
    installierten Kandidaten für Messung/Audit), `host-quiet` (Performance-

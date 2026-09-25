@@ -25,7 +25,8 @@
         "tests/repository/test_perf_*.py",
         "tests/repository/test_sync_conformance*.py",
         "artifacts/perf/**",
-        "artifacts/network-audit/**"
+        "artifacts/network-audit/**",
+        "docs/decisions/0011-optional-isolated-workspace-profiles.md"
       ],
       "writableByOwners": [
         "handoffs/crest-hardening/*/HANDOFF.md"

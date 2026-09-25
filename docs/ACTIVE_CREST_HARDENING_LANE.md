@@ -22,8 +22,16 @@ This lane never builds, installs, refreshes the overlay, writes under
   Budget verdicts are additionally blocked on the owner-gated reference
   toolchain: `ahoi-dev` is a component build and no `upstream-release`
   control exists yet.
-- Next: H5 review/checklist (Crest reference findings in), H1 conformance
-  vectors/generator/drift gate, H2 audit.
+- H6 (new, user request 25 Sep): optional fully isolated Workspaces.
+  Analysis `docs/reviews/crest-hardening-2026-09-25-workspace-isolation.md`,
+  decision `docs/decisions/0011-optional-isolated-workspace-profiles.md`,
+  Master pointer section. Implementation belongs to desktop.
+- Handoffs 001 and 002 were integrated by desktop (`2ab7909`, `d425c3b`).
+- Rule clarification: `.work/chromium/src` may be read for source analysis
+  (a research helper did so on 25 Sep); never written, built or run.
+- Next: H5 review doc, network checklist, handoffs (GCM, field-trial config,
+  Workspace deletion, batch before-unload); H6 WS-ISO catalogue; H1
+  conformance vectors/generator/drift gate; H2 audit.
 
 ## Packages
 
@@ -33,7 +41,8 @@ This lane never builds, installs, refreshes the overlay, writes under
 | H2 Single writer | not started | – | – |
 | H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) ready | – |
 | H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) ready | – |
-| H5 Crest reference / network silence | not started | – | – |
+| H5 Crest reference / network silence | research done (Crest host review, ungoogled 153 checklist, GCM root cause); review doc and handoffs in progress | – | – |
+| H6 Isolated Workspaces (contract) | analysis and ADR 0011 accepted; WS-ISO catalogue and deletion-defect handoff next | – | – |
 
 ## Lease requests
 
