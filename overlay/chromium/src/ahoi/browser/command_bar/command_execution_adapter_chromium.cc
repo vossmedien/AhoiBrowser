@@ -27,6 +27,7 @@
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "base/logging.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
@@ -194,8 +195,17 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
           std::string(content_type).c_str());
     }
 
+    // TEMPORARY DIAGNOSTIC (remove after the empty-Workspace investigation).
+    const int requested_disposition = static_cast<int>(params.disposition);
     const base::WeakPtr<content::NavigationHandle> navigation_handle =
         ::Navigate(&params);
+    LOG(WARNING) << "AHOI_CMDBAR_NAV requested=" << requested_disposition
+                 << " final=" << static_cast<int>(params.disposition)
+                 << " browser=" << (params.browser != nullptr)
+                 << " handle=" << static_cast<bool>(navigation_handle)
+                 << " contents="
+                 << (params.navigated_or_inserted_contents != nullptr)
+                 << " search=" << is_search;
     return navigation_handle || params.navigated_or_inserted_contents;
   }
 
